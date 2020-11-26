@@ -2,7 +2,7 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 package:
-  name: snitch_vm
+  name: snitch_ipu
   authors:
   - Fabian Schuiki <fschuiki@iis.ee.ethz.ch>
   - Florian Zaruba <zarubaf@iis.ee.ethz.ch>
@@ -13,7 +13,9 @@ dependencies:
 
 sources:
 # Level 0:
-- src/snitch_ptw.sv
-- target: test
-  files:
-  - test/snitch_ptw_l0_tb.sv
+- src/snitch_ipu_pkg.sv
+# Level 1:
+- src/snitch_ipu_alu.sv
+# Level 2:
+- src/snitch_int_ss.sv
+
