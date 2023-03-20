@@ -492,8 +492,8 @@ module snitch_cluster
   snitch_icache_pkg::icache_events_t [NrCores-1:0] icache_events;
 
   // 4. Memory Subsystem (Core side).
-  reqrsp_req_t [NrCores-1:0] core_req, filtered_core_req;
-  reqrsp_rsp_t [NrCores-1:0] core_rsp, filtered_core_rsp;
+  reqrsp_req_t [NrCores-1:0] core_req;
+  reqrsp_rsp_t [NrCores-1:0] core_rsp;
   reqrsp_req_t [NrHives-1:0] ptw_req;
   reqrsp_rsp_t [NrHives-1:0] ptw_rsp;
 
@@ -504,6 +504,8 @@ module snitch_cluster
   // 5. Misc. Wires.
   logic icache_prefetch_enable;
   logic [NrCores-1:0] cl_interrupt;
+  logic [NrCores-1:0] barrier_in;
+  logic barrier_out;
 
   // -------------
   // DMA Subsystem
@@ -892,7 +894,9 @@ module snitch_cluster
         .axi_dma_perf_o (),
         .axi_dma_events_o (dma_core_events),
         .core_events_o (core_events[i]),
-        .tcdm_addr_base_i (tcdm_start_address)
+        .tcdm_addr_base_i (tcdm_start_address),
+        .barrier_o (barrier_in[i]),
+        .barrier_i (barrier_out)
       );
       for (genvar j = 0; j < TcdmPorts; j++) begin : gen_tcdm_user
         always_comb begin
@@ -1003,19 +1007,14 @@ module snitch_cluster
   // --------
   // Coes SoC
   // --------
+
   snitch_barrier #(
-    .AddrWidth (PhysicalAddrWidth),
-    .NrPorts (NrCores),
-    .dreq_t  (reqrsp_req_t),
-    .drsp_t  (reqrsp_rsp_t)
+    .NrCores(NrCores)
   ) i_snitch_barrier (
     .clk_i,
     .rst_ni,
-    .in_req_i (core_req),
-    .in_rsp_o (core_rsp),
-    .out_req_o (filtered_core_req),
-    .out_rsp_i (filtered_core_rsp),
-    .cluster_periph_start_address_i (cluster_periph_start_address)
+    .barrier_i(barrier_in),
+    .barrier_o(barrier_out)
   );
 
   reqrsp_req_t core_to_axi_req;
@@ -1035,8 +1034,8 @@ module snitch_cluster
   ) i_reqrsp_mux_core (
     .clk_i,
     .rst_ni,
-    .slv_req_i (filtered_core_req),
-    .slv_rsp_o (filtered_core_rsp),
+    .slv_req_i (core_req),
+    .slv_rsp_o (core_rsp),
     .mst_req_o (core_to_axi_req),
     .mst_rsp_i (core_to_axi_rsp),
     .idx_o (/*unused*/)
