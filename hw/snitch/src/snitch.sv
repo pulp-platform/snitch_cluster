@@ -102,7 +102,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   output fpnew_pkg::fmt_mode_t      fpu_fmt_mode_o,
   input  fpnew_pkg::status_t        fpu_status_i,
   // Core events for performance counters
-  output snitch_pkg::core_events_t  core_events_o
+  output snitch_pkg::core_events_t  core_events_o,
+  // Cluster HW barrier
+  output logic          barrier_o,
+  input  logic          barrier_i
 );
   // Debug module's base address
   localparam logic [31:0] DmBaseAddress = 0;
@@ -233,6 +236,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic [31:0] csr_rvalue;
   logic csr_en;
   logic csr_dump;
+  logic csr_stall_d, csr_stall_q;
 
   localparam logic M = 0;
   localparam logic S = 1;
@@ -293,6 +297,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   `FFNR(dpc_q, dpc_d, clk_i)
   `FFNR(dscratch_q, dscratch_d, clk_i)
   `FFAR(debug_q, debug_d, '0, clk_i, rst_i) // Debug mode
+
+  `FFAR(csr_stall_q, csr_stall_d, '0, clk_i, rst_i)
 
   typedef struct packed {
     fpnew_pkg::fmt_mode_t  fmode;
@@ -399,7 +405,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     | (~{(PPNSize){trans_active}} & {{{AddrWidth-32}{1'b0}}, pc_q[31:PageShift]});
   assign inst_addr_o[PageShift-1:0] = pc_q[PageShift-1:0];
   assign inst_cacheable_o = snitch_pma_pkg::is_inside_cacheable_regions(SnitchPMACfg, inst_addr_o);
-  assign inst_valid_o = ~wfi_q;
+  assign inst_valid_o = ~wfi_q && ~csr_stall_q;
 
   // --------------------
   // Control
@@ -455,7 +461,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     pc_d = pc_q;
     npc = pc_q; // the next PC if we wouldn't be in debug mode
     // if we got a valid instruction word increment the PC unless we are waiting for an event
-    if (!stall && !wfi_q) begin
+    if (!stall && !wfi_q && !csr_stall_q) begin
       casez (next_pc)
         Consec: npc = consec_pc;
         Alu: npc = alu_result & {{31{1'b1}}, ~zero_lsb};
@@ -2275,6 +2281,11 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     dpc_d = dpc_q;
     dscratch_d = dscratch_q;
 
+    csr_stall_d = csr_stall_q;
+
+    if (barrier_i) csr_stall_d = 1'b0;
+    barrier_o = 1'b0;
+
     // DPC and DCSR update logic
     if (!debug_q) begin
       if (valid_instr && inst_data_i == EBREAK) begin
@@ -2469,6 +2480,11 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
               csr_rvalue = {22'b0, fcsr_q};
               if (!exception) fcsr_d = fcsr_t'(alu_result[9:0]);
             end else illegal_csr = 1'b1;
+          end
+          // HW cluster barrier
+          CSR_BARRIER: begin
+            barrier_o = 1'b1;
+            csr_stall_d = 1'b1;
           end
           default: begin
             csr_rvalue = 1'b0;

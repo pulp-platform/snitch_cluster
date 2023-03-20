@@ -1133,6 +1133,7 @@ package riscv_instr;
   localparam logic [11:0] CSR_MHARTID = 12'hf14;
   localparam logic [11:0] CSR_SSR = 12'h7c0;
   localparam logic [11:0] CSR_FPMODE = 12'h7c1;
+  localparam logic [11:0] CSR_BARRIER = 12'h7c2;
   localparam logic [11:0] CSR_HTIMEDELTAH = 12'h615;
   localparam logic [11:0] CSR_CYCLEH = 12'hc80;
   localparam logic [11:0] CSR_TIMEH = 12'hc81;

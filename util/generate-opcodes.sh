@@ -3,7 +3,7 @@
 # Solderpad Hardware License, Version 0.51, see LICENSE for details.
 # SPDX-License-Identifier: SHL-0.51
 
-# Generate the opcodes for the Snith system.
+# Generate the opcodes for the Snitch system.
 set -e
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 
