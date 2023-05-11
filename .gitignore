@@ -1,4 +1,5 @@
 .bender/
+Bender.lock
 .vscode/
 __pycache__
 
@@ -9,3 +10,6 @@ modelsim.ini
 transcript
 
 gmon.out
+
+// Docs
+/site/

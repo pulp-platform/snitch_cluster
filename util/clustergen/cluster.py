@@ -46,7 +46,7 @@ class Generator(object):
 // instead."""
 
     file_path = pathlib.Path(__file__).parent
-    snitch_cluster_folder = file_path / "../../hw/ip/snitch_cluster"
+    snitch_cluster_folder = file_path / "../../hw/snitch_cluster"
 
     templates = TemplateLookup(directories=[snitch_cluster_folder],
                                output_encoding="utf-8")

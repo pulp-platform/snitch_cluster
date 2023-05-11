@@ -10,7 +10,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifdef KMP_DEBUG_LEVEL
-#include "encoding.h"
+#include "../../../deps/riscv-opcodes/encoding.h"
 #include "printf.h"
 #define _KMP_PRINTF(...)             \
     if (1) {                         \

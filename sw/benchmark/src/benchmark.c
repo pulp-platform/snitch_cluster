@@ -3,6 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 #include "benchmark.h"
 
-#include "../../vendor/riscv-opcodes/encoding.h"
+#include "../../deps/riscv-opcodes/encoding.h"
 
 size_t benchmark_get_cycle() { return read_csr(mcycle); }

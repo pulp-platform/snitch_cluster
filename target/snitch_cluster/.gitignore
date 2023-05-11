@@ -1,2 +1,8 @@
-/logs
-/generated
+/logs/
+/generated/
+/bin/
+/cfg/lru.hjson
+/work/
+/work-vsim/
+/work-vlt/
+/*.log

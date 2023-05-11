@@ -4,8 +4,5 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-SHARED_APPS_DIR  = $(abspath ../../../../../../sw/apps)
-CLUSTER_APPS_DIR = $(abspath ..)
-
-include $(SHARED_APPS_DIR)/lto/Makefile
-include $(CLUSTER_APPS_DIR)/common.mk
+include ../../../../../sw/apps/lto/Makefile
+include ../common.mk

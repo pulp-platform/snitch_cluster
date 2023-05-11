@@ -18,3 +18,5 @@ pyyaml
 pytablewriter
 termcolor
 pandas
+
+-r docs/requirements.txt

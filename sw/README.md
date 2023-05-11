@@ -22,6 +22,6 @@ The `banshee` directory contains an LLVM-based binary translation simulator for 
 
 ### Third-Party
 
-The `vendor` directory contains third-party tools that we inline into this repository for ease of use.
+The `deps` directory contains third-party tools that we inline into this repository for ease of use.
 
-- `vendor/riscv-opcodes`: Utilities to manage instruction encodings and generate functions and data structurse for parsing and representation in various languages.
+- `deps/riscv-opcodes`: Utilities to manage instruction encodings and generate functions and data structurse for parsing and representation in various languages.

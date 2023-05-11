@@ -11,4 +11,4 @@ extern void snrt_putchar(char character);
 #endif
 
 // Include the vendorized tiny printf implementation.
-#include "../vendor/printf/printf.c"
+#include "../../deps/printf/printf.c"
