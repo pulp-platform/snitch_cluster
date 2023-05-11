@@ -4,7 +4,6 @@
 
 # Keep sorted.
 clang-format
-cmake
 device-tree-compiler
 graphviz
 python3

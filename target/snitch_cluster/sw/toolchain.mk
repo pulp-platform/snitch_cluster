@@ -15,12 +15,13 @@ DEBUG ?= OFF # ON to turn on debugging symbols
 ###################
 
 # Compiler toolchain
-RISCV_CC        ?= clang
-RISCV_LD        ?= lld
-RISCV_AR        ?= llvm-ar
-RISCV_OBJCOPY   ?= llvm-objcopy
-RISCV_OBJDUMP   ?= llvm-objdump
-RISCV_DWARFDUMP ?= llvm-dwarfdump
+LLVM_BINROOT    ?= $(dir $(shell which riscv32-unknown-elf-clang))
+RISCV_CC        ?= $(LLVM_BINROOT)/clang
+RISCV_LD        ?= $(LLVM_BINROOT)/ld.lld
+RISCV_AR        ?= $(LLVM_BINROOT)/llvm-ar
+RISCV_OBJCOPY   ?= $(LLVM_BINROOT)/llvm-objcopy
+RISCV_OBJDUMP   ?= $(LLVM_BINROOT)/llvm-objdump
+RISCV_DWARFDUMP ?= $(LLVM_BINROOT)/llvm-dwarfdump
 
 # Compiler flags
 RISCV_CFLAGS += $(addprefix -I,$(INCDIRS))

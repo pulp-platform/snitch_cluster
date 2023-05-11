@@ -78,13 +78,13 @@ pip install -r python-requirements.txt
 Go to the `snitch_cluster` folder, where most of your efforts will take place:
 
 ```
-cd hw/system/snitch_cluster
+cd target/snitch_cluster
 ```
 
-___Note:__ from now on, assume all paths to be relative to `hw/system/snitch_cluster`._
+___Note:__ from now on, assume all paths to be relative to `target/snitch_cluster`._
 
-The Snitch cluster RTL sources are partly automatically generated from a configuration file provided in `.hjson` format. Several RTL files are templated and use the `.hjson` configuration file to fill the template entries. An example is `hw/ip/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl`.
-Under the `cfg` folder different configurations are provided. The `cluster.hjson` configuration instantiates 8 compute cores + 1 DMA core in the cluster. The `core.hjson` configuration instantiates a cluster with a single compute core. If you need a specific configuration you can create your own configuration file. To override the default configuration, define the following variable when you invoke Make:
+The Snitch cluster RTL sources are partly automatically generated from a configuration file provided in `.hjson` format. Several RTL files are templated and use the `.hjson` configuration file to fill the template entries. An example is `hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl`.
+Under the `cfg` folder different configurations are provided. The `default.hjson` configuration instantiates 8 compute cores + 1 DMA core in the cluster. If you need a specific configuration you can create your own configuration file. To override the default configuration, define the following variable when you invoke Make:
 
 ```bash
 # Compile the RTL for Questasim
@@ -99,7 +99,7 @@ Note the `CFG_OVERRIDE` variable need only be defined for those targets which ma
 
 Note that the RTL is not the only source which is generated from the configuration file. The software stack also depends on the configuration file. Make sure you always build the software with the same configuration of the hardware you are going to run it on. By default, if you compile the software after you have compiled the hardware, this is ensured automatically for you. Whenever you override the configuration file on the Make command-line, the configuration will be stored in the `cfg/lru.hjson` file. Successive invocations of Make may omit the `CFG_OVERRIDE` flag and the least-recently used configuration saved in `cfg/lru.hjson` will be picked up automatically.
 
-___Note:__ When you have time, have a look at the `Makefile` and the commands that are executed by the `sw`, `rtl` and `bin/snitch_cluster.vsim` targets. Note that the Makefile includes the Makefrag in `util/Makefrag` at the root of this repository where plenty of things are defined._
+___Note:__ When you have time, have a look at the `Makefile` and the commands that are executed by the `sw` and `bin/snitch_cluster.vsim` targets. Note that the Makefile includes the Make fragment in `target/common/common.mk` at the root of this repository where plenty of things are defined._
 
 ## Building the Snitch software
 
@@ -345,6 +345,6 @@ Now re-run your kernel and compare the execution time of the compute region with
 
 As you may have noticed, there is a good deal of code which is independent of the hardware platform we execute our AXPY kernel on. This is true for the `data.h` file and possible data generation scripts. The Snitch AXPY kernel itself is not specific to the Snitch cluster, but can be ported to any platform which provides an implementation of the snRuntime API. An example is Occamy, with its own testbench and SW development environment.
 
-It is thus preferable to develop the data generation scripts and Snitch kernels in a shared location, from which multiple platforms can take and include the code. The `sw` directory in the root of this repository was created with this goal in mind. For the AXPY example, shared sources are hosted under the `sw/blas/axpy` directory. As an example of how these shared sources are used to build an AXPY application for a specific platform (in this case the standalone Snitch cluster) you can have a look at the `hw/system/snitch_cluster/sw/apps/blas/axpy`.
+It is thus preferable to develop the data generation scripts and Snitch kernels in a shared location, from which multiple platforms can take and include the code. The `sw` directory in the root of this repository was created with this goal in mind. For the AXPY example, shared sources are hosted under the `sw/blas/axpy` directory. As an example of how these shared sources are used to build an AXPY application for a specific platform (in this case the standalone Snitch cluster) you can have a look at the `target/snitch_cluster/sw/apps/blas/axpy`.
 
 We recommend that you follow this approach also in your own developments for as much of the code which can be reused.

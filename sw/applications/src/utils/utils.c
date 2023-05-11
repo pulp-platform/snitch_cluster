@@ -7,7 +7,7 @@
 #include <math.h>
 #include <stdint.h>
 
-#include "../../vendor/riscv-opcodes/encoding.h"
+#include "../../deps/riscv-opcodes/encoding.h"
 #include "layer.h"
 #include "printf.h"
 #include "snrt.h"

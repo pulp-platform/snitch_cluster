@@ -26,7 +26,7 @@
 #endif
 
 #ifdef OMP_DEBUG_LEVEL
-#include "encoding.h"
+#include "../../../deps/riscv-opcodes/encoding.h"
 #include "printf.h"
 #define _OMP_PRINTF(...)             \
     if (1) {                         \

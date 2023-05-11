@@ -2,7 +2,5 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-# Keep sorted.
-mkdocs
-# Last version compatible with python-3.6 (default on Ubuntu 18.04)
-mkdocs-material <= 8.2.11
+overrides:
+    axi: {git: https://github.com/pulp-platform/axi.git, rev: 45cfe01040d3db5d4aece8cc0e439e4e4ff13672}

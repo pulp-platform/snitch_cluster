@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "encoding.h"
+#include "../../../deps/riscv-opcodes/encoding.h"
 #include "omp.h"
 
 typedef void (*__task_type32)(_kmp_ptr32, _kmp_ptr32, _kmp_ptr32);

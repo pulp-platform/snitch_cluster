@@ -4,7 +4,14 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-include ../../../../../../sw/blas/axpy/Makefile
-include ../../common.mk
+SUBDIRS  = lto
+SUBDIRS += nop
+SUBDIRS += blas/axpy
+SUBDIRS += blas/gemm
 
-$(DEP): $(ROOT)/sw/blas/axpy/data/data.h
+.PHONY: all clean $(SUBDIRS)
+
+all: $(SUBDIRS)
+
+$(SUBDIRS):
+	$(MAKE) -C $@ $(TARGET)

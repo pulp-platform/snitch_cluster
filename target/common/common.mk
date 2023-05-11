@@ -5,6 +5,7 @@ VLT			   ?= verilator
 VERIBLE_FMT    ?= verible-verilog-format
 BIN2JTAG       ?= $(ROOT)/util/bin2jtag.py
 ANNOTATE	   ?= ${ROOT}/util/trace/annotate.py
+GENTRACE	   ?= ${ROOT}/util/trace/gen_trace.py
 CLANG_FORMAT   ?= clang-format
 
 VERILATOR_ROOT ?= $(dir $(shell which $(VLT)))/../share/verilator
@@ -16,9 +17,9 @@ MATCH_END := '/+incdir+/ s/$$/\/*\/*/'
 MATCH_BGN := 's/+incdir+//g'
 SED_SRCS  := sed -e ${MATCH_END} -e ${MATCH_BGN}
 TB_SRCS   := $(wildcard ${ROOT}/hw/ip/test/*.sv)
-TB_DIR    := ${ROOT}/hw/ip/test/src
+TB_DIR    := ${ROOT}/target/common/test
 
-VSIM_BENDER   += -t test -t rtl -t simulation -t vsim -t cv64a6_imafdc_sv39
+VSIM_BENDER   += -t test -t rtl -t simulation -t vsim -t cv64a6_imafdc_sv39 -t generated
 VSIM_SOURCES  := $(shell ${BENDER} script flist ${VSIM_BENDER} | ${SED_SRCS})
 VSIM_BUILDDIR := work-vsim
 
@@ -38,7 +39,7 @@ VLT_FLAGS    += -Wno-UNSIGNED
 VLT_FLAGS    += -Wno-UNOPTFLAT
 VLT_FLAGS    += -Wno-fatal
 VLT_FLAGS    += --unroll-count 1024
-VLT_BENDER   += -t rtl -t cv64a6_imafdc_sv39
+VLT_BENDER   += -t rtl -t cv64a6_imafdc_sv39 -t generated
 VLT_SOURCES  := $(shell ${BENDER} script flist ${VLT_BENDER} | ${SED_SRCS})
 VLT_CFLAGS   += -std=c++14 -pthread
 VLT_CFLAGS   +=-I ${VLT_BUILDDIR} -I $(VLT_ROOT)/include -I $(VLT_ROOT)/include/vltstd -I $(VLT_FESVR)/include -I $(TB_DIR)
@@ -105,7 +106,6 @@ $(VLT_FESVR)/${FESVR_VERSION}_unzip:
 	mkdir -p $(dir $@)
 	wget -O $(dir $@)/${FESVR_VERSION} https://github.com/riscv/riscv-isa-sim/tarball/${FESVR_VERSION}
 	tar xfm $(dir $@)${FESVR_VERSION} --strip-components=1 -C $(dir $@)
-	patch -d $(dir $@) -p1 < ${ROOT}/util/patches/riscv-isa-sim/fesrv.patch
 	touch $@
 
 $(VLT_BUILDDIR)/lib/libfesvr.a: $(VLT_FESVR)/${FESVR_VERSION}_unzip
@@ -175,8 +175,8 @@ define reggen_generate_header
 	@$(CLANG_FORMAT) -i $1
 endef
 
-$(LOGS_DIR)/trace_hart_%.txt $(LOGS_DIR)/hart_%_perf.json: $(LOGS_DIR)/trace_hart_%.dasm ${ROOT}/util/gen_trace.py
-	$(DASM) < $< | $(PYTHON) ${ROOT}/util/gen_trace.py --permissive -d $(LOGS_DIR)/hart_$*_perf.json > $(LOGS_DIR)/trace_hart_$*.txt
+$(LOGS_DIR)/trace_hart_%.txt $(LOGS_DIR)/hart_%_perf.json: $(LOGS_DIR)/trace_hart_%.dasm $(GENTRACE)
+	$(DASM) < $< | $(PYTHON) $(GENTRACE) --permissive -d $(LOGS_DIR)/hart_$*_perf.json > $(LOGS_DIR)/trace_hart_$*.txt
 
 traces: $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null | sed 's/\.dasm/\.txt/') || echo "") \
         $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null | sed 's/trace_hart/hart/' | sed 's/.dasm/_perf.json/') || echo "")

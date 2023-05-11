@@ -9,33 +9,34 @@
 MK_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 include $(MK_DIR)/../toolchain.mk
 
+###############
+# Directories #
+###############
+
+ROOT        = $(abspath ../../../..)
+SNRT_DIR    = $(ROOT)/sw/snRuntime
+SRC_DIR     = $(ROOT)/sw/tests
+BUILDDIR    = $(ROOT)/target/snitch_cluster/sw/tests/build
+ifeq ($(SELECT_RUNTIME), banshee)
+RUNTIME_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/banshee
+else
+RUNTIME_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/rtl
+endif
+
 ###################
 # Build variables #
 ###################
 
-# Directories
-BUILDDIR     = $(abspath build)
-SNRT_DIR    := $(abspath $(MK_DIR)/../../../../../sw/snRuntime)
-SRC_DIR     := $(abspath $(MK_DIR)/../../../../../sw/tests)
-ifeq ($(SELECT_RUNTIME), banshee)
-RUNTIME_DIR := $(abspath $(MK_DIR)/../runtime/banshee)
-else
-RUNTIME_DIR := $(abspath $(MK_DIR)/../runtime/rtl)
-endif
-
-# Dependencies
 INCDIRS += $(RUNTIME_DIR)/src
-INCDIRS += $(RUNTIME_DIR)/../shared
+INCDIRS += $(RUNTIME_DIR)/../common
 INCDIRS += $(SNRT_DIR)/api
 INCDIRS += $(SNRT_DIR)/api/omp
 INCDIRS += $(SNRT_DIR)/src
 INCDIRS += $(SNRT_DIR)/src/omp
 INCDIRS += $(SNRT_DIR)/vendor/riscv-opcodes
 
-# Linker script
 RISCV_LDFLAGS += -L$(abspath $(RUNTIME_DIR))
 RISCV_LDFLAGS += -T$(abspath $(SNRT_DIR)/base.ld)
-# Link snRuntime library
 RISCV_LDFLAGS += -L$(abspath $(RUNTIME_DIR)/build/)
 RISCV_LDFLAGS += -lsnRuntime
 
