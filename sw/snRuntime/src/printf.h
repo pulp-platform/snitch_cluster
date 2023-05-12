@@ -7,4 +7,4 @@
 
 extern void snrt_putchar(char character);
 
-#include "../vendor/printf/printf.h"
+#include "../../deps/printf/printf.h"
