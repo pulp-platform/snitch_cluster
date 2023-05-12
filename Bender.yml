@@ -20,10 +20,10 @@ package:
 
 dependencies:
   axi:                { git: https://github.com/pulp-platform/axi,                version:  0.39.0-beta.4 }
+  axi_riscv_atomics:  { git: https://github.com/pulp-platform/axi_riscv_atomics,  version:  0.6.0   }
   common_cells:       { git: https://github.com/pulp-platform/common_cells,       version:  1.28.0  }
-  FPnew:              { git: https://github.com/openhwgroup/cvfpu,                rev:      1202ca3 }
+  FPnew:              { git: https://github.com/openhwgroup/cvfpu,                rev:      1202ca3 }   # TODO: Update to next release
   register_interface: { git: https://github.com/pulp-platform/register_interface, version:  0.3.3   }
-  riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          rev:      ec0d92f }
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.11  }
 
 export_include_dirs:
@@ -220,3 +220,19 @@ sources:
   - target: test
     files:
       - hw/snitch_cluster/test/snitch_tcdm_interconnect_tb.sv
+
+  # target/common
+  - target: any(simulation, verilator)
+    files:
+      - target/common/src/tb_memory_regbus.sv
+      - target/common/src/tb_memory_axi.sv
+  - target: test
+    files:
+      - target/common/src/tb_bin.sv
+
+  # target/snitch_cluster
+  - files:
+    - target/snitch_cluster/generated/snitch_cluster_wrapper.sv
+  - target: any(simulation, verilator)
+    files:
+      - target/snitch_cluster/test/testharness.sv
