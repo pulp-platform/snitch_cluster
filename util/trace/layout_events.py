@@ -40,6 +40,7 @@ import sys
 import argparse
 import csv
 import pandas as pd
+from math import isnan
 
 
 def main():
@@ -54,6 +55,11 @@ def main():
         metavar='<layout>',
         help='Layout CSV file')
     parser.add_argument(
+        '--num-clusters',
+        type=int,
+        default=1,
+        help='Number of clusters')
+    parser.add_argument(
         '-o',
         '--output',
         metavar='<output>',
@@ -65,58 +71,67 @@ def main():
     # Read input CSV
     df = pd.read_csv(args.csv)
 
-    # Open output CSV for writing
-    with open(args.output, mode='w') as out_f:
-        writer = csv.writer(out_f, delimiter=',', quotechar='"')
+    # Output CSV data
+    data = []
+    columns = []
 
-        # Open layout CSV
-        with open(args.layout) as layout_f:
-            layout_reader = csv.reader(layout_f, delimiter=',')
+    # Open layout CSV
+    with open(args.layout) as layout_f:
+        layout_reader = csv.reader(layout_f, delimiter=',')
 
-            # Get region labels from layout header
-            regions = [label for label in next(layout_reader) if label and not label.isspace()]
+        # Get region labels from layout header
+        regions = [label for label in next(layout_reader) if label and not label.isspace()]
 
-            # Generate output header: appropriately spaced region labels
-            header = [''] + [val for label in regions for val in [label, '']]
-            writer.writerow(header)
+        # Generate output columns: appropriately spaced region labels
+        columns = ['hartid'] + [val for label in regions for val in [label, '']]
 
-            # Iterate layout rows
-            for row in layout_reader:
+        # Iterate layout rows
+        for row in layout_reader:
 
-                # First entry in row is a hart ID or a Python expression
-                # which generates a list of hart IDs
-                expr = row[0]
-                code = compile(expr, "<string>", "eval")
-                tids = eval(code)
-                if isinstance(tids, int):
-                    tids = [tids]
+            # First entry in row is a hart ID or a Python expression
+            # which generates a list of hart IDs
+            expr = row[0]
+            code = compile(expr, "<string>", "eval")
+            tids = eval(code, {}, {'num_clusters': args.num_clusters})
+            if type(tids) == int:
+                tids = [tids]
 
-                # Iterate hart IDs
-                for tid in tids:
+            # Iterate hart IDs
+            for tid in tids:
 
-                    # Start output row with hart ID
-                    orow = [tid]
+                # Start output row with hart ID
+                orow = [tid]
 
-                    # Iterate all other cells in layout row (indices of regions to take)
-                    for cell in row[1:]:
+                # Iterate all other cells in layout row (indices of regions to take)
+                for cell in row[1:]:
 
-                        # If the cell is not empty, get start and end times
-                        # of the region from the input CSV and append them to the
-                        # output row. Otherwise, leave cells empty.
-                        if cell and not cell.isspace():
-                            reg_idx = int(cell)
-                            row_idx = tid
-                            col_idx = 1 + reg_idx * 2
-                            assert row_idx < df.shape[0], f'Hart ID {row_idx} out of bounds'
-                            assert (col_idx + 1) < df.shape[1], \
-                                f'Region index {reg_idx} out of bounds'
-                            orow.append(int(df.iat[row_idx, col_idx]))
-                            orow.append(int(df.iat[row_idx, col_idx + 1]))
-                        else:
-                            orow.append('')
-                            orow.append('')
+                    # If the cell is not empty, get start and end times
+                    # of the region from the input CSV and append them to the
+                    # output row. Otherwise, leave cells empty.
+                    if cell and not cell.isspace():
+                        reg_idx = int(cell)
+                        row_idx = tid
+                        col_idx = 1 + reg_idx * 2
+                        assert row_idx < df.shape[0], f'Hart ID {row_idx} out of bounds'
+                        assert (col_idx + 1) < df.shape[1],\
+                            f'Region index {reg_idx} out of bounds for hart {tid}'
+                        assert not isnan(df.iat[row_idx, col_idx]),\
+                            (f'Region {reg_idx} looks empty for hart {tid},'
+                             f'check whether it was simulated')
+                        orow.append(int(df.iat[row_idx, col_idx]))
+                        orow.append(int(df.iat[row_idx, col_idx + 1]))
+                    else:
+                        orow.append('')
+                        orow.append('')
 
-                    writer.writerow(orow)
+                data.append(orow)
+
+    # Create output dataframe and write to CSV
+    df = pd.DataFrame(data, columns=columns)
+    df.set_index('hartid', inplace=True)
+    df.sort_index(axis='index', inplace=True)
+    df.index.name = None
+    df.to_csv(args.output)
 
 
 if __name__ == '__main__':

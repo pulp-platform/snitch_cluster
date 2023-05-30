@@ -22,9 +22,8 @@
 import sys
 import os
 import re
-from functools import lru_cache
 import argparse
-from termcolor import colored
+import a2l
 
 # Argument parsing
 parser = argparse.ArgumentParser('annotate', allow_abbrev=True)
@@ -84,7 +83,7 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-elf = args.elf
+elf_file = args.elf
 trace = args.trace
 output = args.output
 diff = args.diff
@@ -93,7 +92,7 @@ quiet = args.quiet
 keep_time = args.keep_time
 
 if not quiet:
-    print('elf:', elf, file=sys.stderr)
+    print('elf:', elf_file, file=sys.stderr)
     print('trace:', trace, file=sys.stderr)
     print('output:', output, file=sys.stderr)
     print('diff:', diff, file=sys.stderr)
@@ -110,34 +109,9 @@ src_files = {}
 trace_start_col = -1
 
 
-@lru_cache(maxsize=1024)
-def adr2line(addr):
-    cmd = f'{addr2line} -e {elf} -f -i {addr:x}'
-    return os.popen(cmd).read().split('\n')
-
-
-# helper functions to parse addr2line output
-def a2l_file_path(a2l_file_str):
-    return a2l_file_str.split(':')[0]
-
-
-def a2l_file_name(a2l_file_str):
-    return a2l_file_str.split('/')[-1].split(':')[0]
-
-
-def a2l_file_line(a2l_file_str):
-    return int(a2l_file_str.split(':')[-1].split(' ')[0])
-
-
-def format_a2l_funcname(a2l_func_name):
-    if a2l_func_name == '??':
-        return 'unknown function'
-    return a2l_func_name
-
-
 # helper functions to assemble diff output
 def format_call(level, call):
-    funcname = format_a2l_funcname(call[0])
+    funcname = a2l.format_function_name(call[0])
     if level == 0:
         return f'{funcname} ({call[1]})\n'
     else:
@@ -189,6 +163,9 @@ def dump_hunk(hunk_tstart, hunk_sstart, hunk_trace, hunk_source):
     of.write(f'{hunk_header}{hunk_trace}{hunk_source}')
 
 
+# Open ELF file for addr2line processing
+elf = a2l.Elf(elf_file)
+
 # core functionality
 with open(trace, 'r') as f:
 
@@ -223,12 +200,16 @@ with open(trace, 'r') as f:
         # RTL traces might not contain a PC on each line
         try:
             # Get address from PC column
-            addr_str = cols[3]
-            addr = int(addr_str, base=16)
+            addr = cols[3]
             # Find index of first character in PC
             if trace_start_col < 0:
-                trace_start_col = line.find(addr_str)
+                trace_start_col = line.find(addr)
+            # Get addr2line information and format it as an assembly comment
+            a2l_output = elf.addr2line(addr)
+            annot = '\n'.join([f'#; {line}' for line in str(a2l_output).split('\n')])
         except (ValueError, IndexError):
+            a2l_output = None
+            annot = ''
             if keep_time:
                 filtered_line = f'{time:>12}    {line[trace_start_col:]}'
             else:
@@ -245,41 +226,14 @@ with open(trace, 'r') as f:
         else:
             filtered_line = f'{line[trace_start_col:]}'
 
-        addr_hex = f'{addr:x}'
-        ret = adr2line(addr)
-
-        funs = ret[::2]
-        file_paths = [a2l_file_path(x) for x in ret[1::2]]
-        file_names = [a2l_file_name(x) for x in ret[1::2]]
-        file_lines = [a2l_file_line(x) for x in ret[1::2]]
-        # Assemble annotation string
-        if len(funs):
-            annot = f'#; {funs[0]} ({file_names[0]}:{file_lines[0]})'
-            for fun, file_name, file_line in zip(funs[1:], file_names[1:], file_lines[1:]):
-                annot = f'{annot}\n#;  in {fun} ({file_name}:{file_line})'
-
-        # Get source of last file and print the line
-        src_fname = file_paths[0]
-        if src_fname not in src_files.keys():
-            try:
-                # Issue warning if source was modified after trace
-                src_timestamp = os.path.getmtime(src_fname)
-                if src_timestamp >= trace_timestamp:
-                    print(colored('Warning:', 'yellow'),
-                          f'{src_fname} has been edited since the trace was generated')
-
-                with open(src_fname, 'r') as src_f:
-                    src_files[src_fname] = [x.strip() for x in src_f.readlines()]
-            except OSError:
-                src_files[src_fname] = None
-        if src_files[src_fname] is not None:
-            src_line = src_files[src_fname][file_lines[0]-1]
-            annot = f'{annot}\n#;  {src_line}'
-
         # Print diff
         if diff:
             # Compare current and previous call stacks
-            next_call_stack = assemble_call_stack(funs, file_paths, file_lines)
+            if a2l_output:
+                funs, files, lines = zip(*[level.values() for level in a2l_output.function_stack()])
+            else:
+                funs = files = lines = []
+            next_call_stack = assemble_call_stack(funs, files, lines)
             matching_cstack_levels = matching_call_stack_levels(next_call_stack, call_stack)
             matching_src_line = matching_source_line(next_call_stack, call_stack)
 
@@ -297,13 +251,14 @@ with open(trace, 'r') as f:
             call_stack = next_call_stack
 
             # Assemble source part of hunk
-            if len(funs) and src_files[src_fname]:
+            src_line = a2l_output.line()
+            if len(funs) and src_line:
                 for i, call in enumerate(call_stack):
                     if i >= matching_cstack_levels:
                         hunk_source += f'+{format_call(i, call)}'
                 if not matching_src_line:
                     indentation = '  ' * (len(call_stack) - 1)
-                    hunk_source += f'+{indentation}{file_lines[0]}: {src_line}\n'
+                    hunk_source += f'+{indentation}{lines[0]}: {src_line}\n'
 
             # Assemble trace part of hunk
             hunk_trace += f'-{filtered_line}'
@@ -329,4 +284,3 @@ with open(trace, 'r') as f:
 
 if not quiet:
     print(' done')
-    print(adr2line.cache_info())
