@@ -31,6 +31,7 @@ import sys
 import argparse
 import csv
 import json
+import tracevis
 
 
 def pairwise(iterable):
@@ -52,6 +53,15 @@ def main():
         metavar='<csv>',
         help='Input CSV file')
     parser.add_argument(
+        '--traces',
+        metavar='<trace>',
+        nargs='*',
+        help='Simulation traces to process')
+    parser.add_argument(
+        '--elf',
+        nargs='?',
+        help='ELF from which the traces were generated')
+    parser.add_argument(
         '-o',
         '--output',
         metavar='<json>',
@@ -60,8 +70,21 @@ def main():
         help='Output JSON file')
     args = parser.parse_args()
 
-    # Read CSV to collect TraceViewer events
+    # TraceViewer events
     events = []
+
+    # Add a dummy instant event to mark time 0.
+    # This is to avoid that the events are shifted from
+    # their actual start times to align the first event
+    # at time 0.
+    event = {'name': 'zero',
+             'ph':   'I',  # Instant event type
+             'ts':   0,
+             's':    'g'  # Global scope
+             }
+    events.append(event)
+
+    # Read CSV to collect TraceViewer events
     with open(args.csv) as f:
         reader = csv.reader(f, delimiter=',')
 
@@ -91,6 +114,13 @@ def main():
                              'tid': tid
                              }
                     events.append(event)
+
+    # Optionally extract also instruction-level events
+    # from the simulation traces
+    if args.traces and args.elf:
+        events += tracevis.parse_traces(args.traces, start=0, end=-1, fmt='snitch',
+                                        addr2line='addr2line', use_time=True, pid=1,
+                                        cache=True, elf=args.elf, collapse_call_stack=True)
 
     # Create TraceViewer JSON object
     tvobj = {}

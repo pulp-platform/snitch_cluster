@@ -12,12 +12,13 @@
 # This script is inspired by https://github.com/SalvatoreDiGirolamo/tracevis
 # Author: Noah Huetter <huettern@student.ethz.ch>
 #         Samuel Riedel <sriedel@iis.ee.ethz.ch>
+#         Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import re
-import os
 import sys
-from functools import lru_cache
+import json
 import argparse
+from a2l import Elf
 
 has_progressbar = True
 try:
@@ -31,13 +32,16 @@ except ImportError as e:
 # line format:
 # Snitch RTL simulation:
 # 101000 82      M         0x00001000 csrr    a0, mhartid     #; comment
-# time   cycle   priv_lvl  pc         insn
+# CVA6 RTL simulation:
+# 101ns  82      M         0000000000001000 0      301022f3     csrr   t0, misa  ...
+# time   cycle   priv_lvl  pc               branch machine_insn insn
 # MemPool RTL simulation:
 # 101000 82      0x00001000 csrr    a0, mhartid     #; comment
 # time   cycle   pc         insn
 # Banshee traces:
 # 00000432 00000206 0005     800101e0  x15:00000064 x15=00000065 # addi    a5, a5, 1
 # cycle    instret  hard_id  pc        register                    insn
+FORMATS = ['cva6', 'snitch', 'banshee']
 
 # regex matches to groups
 # 0 -> time
@@ -45,10 +49,11 @@ except ImportError as e:
 # 2 -> privilege level (RTL) / hartid (banshee)
 # 3 -> pc (hex with 0x prefix)
 # 4 -> instruction
-# 5 -> args (RTL) / empty (banshee)
-# 6 -> comment (RTL) / instruction arguments (banshee)
-RTL_REGEX = r' *(\d+) +(\d+) +([3M1S0U]?) *(0x[0-9a-f]+) ([.\w]+) +(.+)#; (.*)'
-BANSHEE_REGEX = r' *(\d+) (\d+) (\d+) ([0-9a-f]+) *.+ +.+# ([\w\.]*)( +)(.*)'
+# 5 -> args (RTL) / empty (cva6, banshee)
+# 6 -> comment (RTL) / instruction arguments (banshee) / empty (cva6)
+REGEX = {'snitch': r' *(\d+) +(\d+) +([3M1S0U]?) *(0x[0-9a-f]+) ([.\w]+) +(.+)#; (.*)',
+         'cva6': r' *(\d+)ns +(\d+) +([3M1S0U]?) *([0-9a-f]+) +[01]+ +[0-9a-f]+ +([.\w]+)',
+         'banshee': r' *(\d+) (\d+) (\d+) ([0-9a-f]+) *.+ +.+# ([\w\.]*)( +)(.*)'}
 
 # regex matches a line of instruction retired by the accelerator
 # 0 -> time
@@ -57,29 +62,20 @@ BANSHEE_REGEX = r' *(\d+) (\d+) (\d+) ([0-9a-f]+) *.+ +.+# ([\w\.]*)( +)(.*)'
 # 3 -> comment
 ACC_LINE_REGEX = r' *(\d+) +(\d+) +([3M1S0U]?) *#; (.*)'
 
-buf = []
 
+# Parses the output of the `parse_line()` function into a TraceViewer
+# event, formatted as a dictionary. It operates on multiple of these
+# outputs, collected in a buffer `buf`.
+def flush(lah, buf, **kwargs):
+    elf = kwargs['elf']
+    fmt = kwargs['fmt']
+    use_time = kwargs['use_time']
+    collapse_call_stack = kwargs['collapse_call_stack']
 
-@lru_cache(maxsize=1024)
-def addr2line_cache(addr):
-    cmd = f'{addr2line} -e {elf} -f -a -i {addr:x}'
-    return os.popen(cmd).read().split('\n')
-
-
-def flush(buf, hartid):
-    global output_file
-    # get function names
-    pcs = [x[3] for x in buf]
-    a2ls = []
-
-    if cache:
-        for addr in pcs:
-            a2ls += addr2line_cache(int(addr, base=16))[:-1]
-    else:
-        a2ls = os.popen(
-            f'{addr2line} -e {elf} -f -a -i {" ".join(pcs)}').read().split('\n')[:-1]
-
+    # Iterate buffer entries
+    events = []
     for i in range(len(buf)-1):
+
         (time, cyc, priv, pc, instr, args, cmt) = buf.pop(0)
 
         if use_time:
@@ -91,158 +87,86 @@ def flush(buf, hartid):
 
         # Have lookahead time to this instruction?
         next_time = lah[time] if time in lah else next_time
-
-        # print(f'time "{time}", cyc "{cyc}", priv "{priv}", pc "{pc}"'
-        #       f', instr "{instr}", args "{args}"', file=sys.stderr)
-
-        [pc, func, file] = a2ls.pop(0), a2ls.pop(0), a2ls.pop(0)
-
-        # check for more output of a2l
-        inlined = ''
-        while not a2ls[0].startswith('0x'):
-            inlined += '(inlined by) ' + a2ls.pop(0)
-        # print(f'pc "{pc}", func "{func}", file "{file}"')
-
-        # assemble values for json
-        # Doc: https://docs.google.com/document/d/
-        # 1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview
-        # The name of the event, as displayed in Trace Viewer
-        name = instr
-        # The event categories. This is a comma separated list of categories for the event.
-        # The categories can be used to hide events in the Trace Viewer UI.
-        cat = 'instr'
-        # The tracing clock timestamp of the event.
-        # The timestamps are provided at microsecond granularity.
-        ts = time
-        # There is an extra parameter dur to specify the tracing clock duration
-        # of complete events in microseconds.
         duration = next_time - time
 
-        if banshee:
+        # Get information on current instruction from addr2line
+        a2l_info = elf.addr2line(pc)
+
+        # Assemble TraceViewer event
+        # Doc: https://docs.google.com/document/d/
+        #      1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview
+        event = {}
+        # The name of the event, as displayed in Trace Viewer
+        event['name'] = instr
+        # The event type, 'X' indicates a "complete event"
+        event['ph'] = 'X'
+        # The event categories. This is a comma separated list of categories for the event.
+        # The categories can be used to hide events in the Trace Viewer UI.
+        event['cat'] = 'instr'
+        # The tracing clock timestamp of the event. The timestamps are provided at microsecond
+        # granularity.
+        if use_time:
+            time = time / 1000 if fmt == 'cva6' else time / 1000000
+        event['ts'] = time
+        # There is an extra parameter dur to specify the tracing clock duration of complete
+        # events in microseconds. In Banshee, each instruction takes one cycle
+        if use_time:
+            duration = duration / 1000 if fmt == 'cva6' else duration / 1000000
+        event['dur'] = 1 if fmt == 'banshee' else duration
+        # The thread ID is used to group events in a single TraceViewer row
+        if not collapse_call_stack:
+            event['tid'] = a2l_info.function_stack[0]['func']
+        if fmt == 'banshee':
             # Banshee stores all traces in a single file
-            hartid = priv
-            # In Banshee, each instruction takes one cycle
-            duration = 1
+            event['tid'] = priv
+        # Additional event args
+        event['args'] = {}
+        event['args']['pc'] = pc
+        event['args']['instr'] = f'{instr} {args}'
+        if cmt:
+            event['args']['comment'] = cmt
+        event['args']['cycle'] = cyc
+        event['args']['stack'] = a2l_info.function_stack_string(short=True)
+        event['args']['line'] = a2l_info.line()
 
-        pid = elf+':hartid'+str(hartid)
-        funcname = func
-
-        # args
-        arg_pc = pc
-        arg_instr = instr
-        arg_args = args
-        arg_cycles = cyc
-        arg_coords = file
-        arg_inlined = inlined
-
-        output_file.write((
-            f'{{"name": "{name}", "cat": "{cat}", "ph": "X", '
-            f'"ts": {ts}, "dur": {duration}, "pid": "{pid}", '
-            f'"tid": "{funcname}", "args": {{"pc": "{arg_pc}", '
-            f'"instr": "{arg_instr} {arg_args}", "time": "{arg_cycles}", '
-            f'"Origin": "{arg_coords}", "inline": "{arg_inlined}"'
-            f'}}}},\n'))
+        events.append(event)
+    return events
 
 
-def parse_line(line, hartid):
-    global last_time, last_cyc
+# Parses a trace line and returns an array of values extracted from the line
+def parse_line(line, **kwargs):
+    fmt = kwargs['fmt']
+
+    # Compile regex
+    re_line = re.compile(REGEX[fmt])
+
     # print(line)
     match = re_line.match(line)
     if match:
-        (time, cyc, priv, pc, instr, args, cmt) = tuple(
-            [match.group(i+1).strip() for i in range(re_line.groups)])
-        buf.append((time, cyc, priv, pc, instr, args, cmt))
-        last_time, last_cyc = time, cyc
+        # TODO extend CVA6 regex to extract instruction args
+        if fmt == 'cva6':
+            (time, cyc, priv, pc, instr) = tuple(
+                [match.group(i+1).strip() for i in range(re_line.groups)])
+            args = cmt = ''
+        else:
+            (time, cyc, priv, pc, instr, args, cmt) = tuple(
+                [match.group(i+1).strip() for i in range(re_line.groups)])
+        return (time, cyc, priv, pc, instr, args, cmt)
 
-    if len(buf) > 10:
-        flush(buf, hartid)
-    return 0
-
-
-# Argument parsing
-parser = argparse.ArgumentParser('tracevis', allow_abbrev=True)
-parser.add_argument(
-    'elf',
-    metavar='<elf>',
-    help='The binary executed to generate the traces',
+    return None
 
 
-)
-parser.add_argument(
-    'traces',
-    metavar='<trace>',
-    nargs='+',
-    help='Snitch traces to visualize')
-parser.add_argument(
-    '-o',
-    '--output',
-    metavar='<json>',
-    nargs='?',
-    default='chrome.json',
-    help='Output JSON file')
-parser.add_argument(
-    '--addr2line',
-    metavar='<path>',
-    nargs='?',
-    default='addr2line',
-    help='`addr2line` binary to use for parsing')
-parser.add_argument(
-    '-t',
-    '--time',
-    action='store_true',
-    help='Use the traces time instead of cycles')
-parser.add_argument(
-    '-b',
-    '--banshee',
-    action='store_true',
-    help='Parse Banshee traces')
-parser.add_argument(
-    '--no-cache',
-    action='store_true',
-    help='Disable addr2line caching (slow but might give better traces in some cases)')
-parser.add_argument(
-    '-s',
-    '--start',
-    metavar='<line>',
-    nargs='?',
-    type=int,
-    default=0,
-    help='First line to parse')
-parser.add_argument(
-    '-e',
-    '--end',
-    metavar='<line>',
-    nargs='?',
-    type=int,
-    default=-1,
-    help='Last line to parse')
+# Parses a trace file and returns a dictionary mapping the time stamp
+# when every instruction is issued, to the time stamp when the instruction
+# writes back.
+def offload_lookahead(lines, **kwargs):
+    fmt = kwargs['fmt']
+    use_time = kwargs['use_time']
 
-args = parser.parse_args()
+    # Compile regex
+    re_line = re.compile(REGEX[fmt])
+    re_acc_line = re.compile(ACC_LINE_REGEX)
 
-elf = args.elf
-traces = args.traces
-output = args.output
-use_time = args.time
-banshee = args.banshee
-addr2line = args.addr2line
-cache = not args.no_cache
-
-print('elf:', elf, file=sys.stderr)
-print('traces:', traces, file=sys.stderr)
-print('output:', output, file=sys.stderr)
-print('addr2line:', addr2line, file=sys.stderr)
-print('cache:', cache, file=sys.stderr)
-
-# Compile regex
-if banshee:
-    re_line = re.compile(BANSHEE_REGEX)
-else:
-    re_line = re.compile(RTL_REGEX)
-
-re_acc_line = re.compile(ACC_LINE_REGEX)
-
-
-def offload_lookahead(lines):
     # dict mapping time stamp of retired instruction to time stamp of
     # accelerator complete
     lah = {}
@@ -287,40 +211,177 @@ def offload_lookahead(lines):
     return lah
 
 
-lah = {}
+# Parses a trace file and returns a list of TraceViewer events.
+# Each event is formatted as a dictionary.
+def parse_trace(filename, **kwargs):
 
-with open(output, 'w') as output_file:
-    # JSON header
-    output_file.write('{"traceEvents": [\n')
+    start = kwargs['start']
+    end = kwargs['end']
+    fmt = kwargs['fmt']
 
-    for filename in traces:
-        hartid = 0
-        parsed_nums = re.findall(r'\d+', filename)
-        hartid = int(parsed_nums[-1]) if len(parsed_nums) else hartid+1
-        fails = lines = 0
-        last_time = last_cyc = 0
+    # Open trace
+    print(f'parsing trace {filename}', file=sys.stderr)
+    lah = {}
+    buf = []
+    fails = lines = 0
+    with open(filename) as f:
 
-        print(
-            f'parsing hartid {hartid} with trace {filename}', file=sys.stderr)
-        tot_lines = len(open(filename).readlines())
-        with open(filename) as f:
-            all_lines = f.readlines()[args.start:args.end]
-            # offload lookahead
-            if not banshee:
-                lah = offload_lookahead(all_lines)
-            if has_progressbar:
-                for lino, line in progressbar.progressbar(
-                        enumerate(all_lines),
-                        max_value=tot_lines):
-                    fails += parse_line(line, hartid)
-                    lines += 1
+        # Read lines
+        all_lines = f.readlines()
+        if end < 0:
+            end = len(all_lines) + end + 1
+        all_lines = all_lines[start:end]
+
+        # offload lookahead
+        if fmt == 'snitch':
+            lah = offload_lookahead(all_lines, **kwargs)
+
+        # Use a progress bar iterator if the package is installed
+        if has_progressbar:
+            iterations = progressbar.progressbar(
+                    enumerate(all_lines),
+                    max_value=len(all_lines))
+        else:
+            iterations = enumerate(all_lines)
+
+        # Iterate lines
+        events = []
+        for lino, line in iterations:
+            # Parse line
+            parsed_line = parse_line(line, **kwargs)
+            if parsed_line:
+                buf.append(parsed_line)
             else:
-                for lino, line in enumerate(
-                        all_lines):
-                    fails += parse_line(line, hartid)
-                    lines += 1
-            flush(buf, hartid)
-            print(f' parsed {lines-fails} of {lines} lines', file=sys.stderr)
+                fails += 1
+            lines += 1
 
-    # JSON footer
-    output_file.write(r'{}]}''\n')
+            # Flush buffer when it contains enough lines
+            if len(buf) > 10:
+                events += flush(lah, buf, **kwargs)
+        events += flush(lah, buf, **kwargs)
+
+        print(f' parsed {lines-fails} of {lines} lines', file=sys.stderr)
+        return events
+
+
+def parse_traces(traces, **kwargs):
+
+    # Open ELF file
+    elf_path = kwargs['elf']
+    kwargs['elf'] = Elf(elf_path, a2l_binary=kwargs['addr2line'])
+
+    # Iterate traces
+    events = []
+    for i, filename in enumerate(traces):
+
+        # Extract hartid from filename or use current index
+        # TODO doesn't work with hex numbers
+        # parsed_nums = re.findall(r'\d+', filename)
+        # hartid = int(parsed_nums[-1]) if len(parsed_nums) else i
+        hartid = i
+
+        # Extract TraceViewer events from trace
+        trace_events = parse_trace(filename, **kwargs)
+
+        # Assign a per-trace unique TID or PID to all events
+        pid = elf_path if 'pid' not in kwargs else kwargs['pid']
+        for event in trace_events:
+            if kwargs['collapse_call_stack']:
+                event['pid'] = pid
+                event['tid'] = hartid
+            else:
+                event['pid'] = pid+':hartid'+str(hartid)
+
+        # Add to events from previous traces
+        events += trace_events
+
+    return events
+
+
+def main(**kwargs):
+    elf = kwargs['elf']
+    traces = kwargs['traces']
+    output = kwargs['output']
+    addr2line = kwargs['addr2line']
+
+    print('elf:', elf, file=sys.stderr)
+    print('traces:', traces, file=sys.stderr)
+    print('output:', output, file=sys.stderr)
+    print('addr2line:', addr2line, file=sys.stderr)
+
+    # Parse traces and create TraceViewer JSON object
+    events = parse_traces(**kwargs)
+    tvobj = {'traceEvents': events, 'displayTimeUnit': 'ns'}
+
+    # Dump JSON object to file
+    with open(output, 'w') as output_file:
+        json.dump(tvobj, output_file, indent=4)
+
+
+# Parse command-line args
+def parse_args():
+    # Argument parsing
+    parser = argparse.ArgumentParser('tracevis', allow_abbrev=True)
+    parser.add_argument(
+        'elf',
+        metavar='<elf>',
+        help='The binary executed to generate the traces',
+    )
+    parser.add_argument(
+        'traces',
+        metavar='<trace>',
+        nargs='+',
+        help='Traces to visualize')
+    parser.add_argument(
+        '-o',
+        '--output',
+        metavar='<json>',
+        nargs='?',
+        default='chrome.json',
+        help='Output JSON file')
+    parser.add_argument(
+        '--addr2line',
+        metavar='<path>',
+        nargs='?',
+        default='addr2line',
+        help='`addr2line` binary to use for parsing')
+    parser.add_argument(
+        '-t',
+        '--time',
+        dest='use_time',
+        action='store_true',
+        help='Use the traces time instead of cycles')
+    parser.add_argument(
+        '-f',
+        '--format',
+        dest='fmt',
+        type=str,
+        default='snitch',
+        choices=FORMATS,
+        help='Trace format')
+    parser.add_argument(
+        '--collapse-call-stack',
+        action='store_true',
+        help='Visualize all instructions of a core in a single TraceViewer thread')
+    parser.add_argument(
+        '-s',
+        '--start',
+        metavar='<line>',
+        nargs='?',
+        type=int,
+        default=0,
+        help='First line to parse')
+    parser.add_argument(
+        '-e',
+        '--end',
+        metavar='<line>',
+        nargs='?',
+        type=int,
+        default=-1,
+        help='Last line to parse (inclusive)')
+    return parser.parse_args()
+
+
+if __name__ == '__main__':
+    args = vars(parse_args())
+    main(**args)
