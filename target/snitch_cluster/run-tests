@@ -17,7 +17,7 @@ from termcolor import colored, cprint
 import re
 
 
-BANSHEE_CFG = Path(__file__).parent / '../../../sw/banshee/config/snitch_cluster.yaml'
+BANSHEE_CFG = Path(__file__).parent / 'src/banshee.yaml'
 
 # Tool settings
 SIMULATORS        = ['vsim', 'banshee', 'verilator', 'vcs']
