@@ -31,6 +31,13 @@ SIMULATOR_CMDS    = {
 }
 
 
+def print_failed_test(test, retcode, location):
+    if location == 'test':
+        print(f'{colored(test, "cyan")} test {colored("failed", "red")} with exit code {retcode}')
+    elif location == 'simulator':
+        print(f'Simulator {colored("failed", "red")} with exit code {retcode} during {colored(test, "cyan")} test')
+
+
 def main():
     # Argument parsing
     parser = argparse.ArgumentParser()
@@ -60,8 +67,7 @@ def main():
     dry_run    = args.dry_run
     early_exit = args.early_exit
 
-    failed = []
-    retcodes = []
+    failures = []
 
     # Read test list file
     testlist_path = Path(testlist).absolute()
@@ -82,6 +88,7 @@ def main():
 
             # Run test
             retcode = 0
+            failure = {}
             if not dry_run:
 
                 # When simulating with vsim, we need to parse the simulation log to catch the
@@ -97,6 +104,11 @@ def main():
                         if match:
                             retcode = match.group(1)
 
+                    # Check if the subprocess terminated correctly
+                    if p.poll() != 0:
+                        retcode = p.poll()
+                        failure['location'] = 'simulator'
+
                 else:
                     p = subprocess.Popen(cmd, shell=True)
                     p.wait()
@@ -109,8 +121,11 @@ def main():
                 cprint(f'Failed with exit code {retcode}', 'red', attrs=['bold'], flush=True)
 
                 # Record failing tests for final summary
-                failed.append(test)
-                retcodes.append(retcode)
+                failure['test'] = test
+                failure['retcode'] = retcode
+                if 'location' not in failure:
+                    failure['location'] = 'test'
+                failures.append(failure)
 
                 # End program if requested on first test failure
                 if early_exit:
@@ -119,9 +134,9 @@ def main():
     # Print test summary
     if not dry_run:
         print('\n==== Test summary ====')
-        if failed:
-            for test, retcode in zip(failed, retcodes):
-                print(f'{colored(test, "cyan")} test {colored("failed", "red")} with exit code {retcode}')
+        if failures:
+            for failure in failures:
+                print_failed_test(**failure)
             return 1
         else:
             print(f'All tests {colored("passed", "green")}!')
