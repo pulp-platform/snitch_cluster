@@ -4,10 +4,7 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-BLAS_DIR = $(abspath ../../../../../../../sw/blas)
-APPS_DIR = $(abspath ../..)
+include ../../../../../../sw/blas/axpy/Makefile
+include ../../common.mk
 
-include $(BLAS_DIR)/axpy/Makefile
-include $(APPS_DIR)/common.mk
-
-$(DEP): $(DATA_DIR)/data.h
+$(DEP): $(ROOT)/sw/blas/axpy/data/data.h

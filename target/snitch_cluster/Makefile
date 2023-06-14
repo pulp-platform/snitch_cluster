@@ -18,15 +18,15 @@ SELECT_RUNTIME ?=      # Select snRuntime implementation: "banshee" or "rtl" (de
 all: sw
 clean: clean-sw clean-vsim clean-vlt clean-vcs clean-logs clean-bender
 
-############
-# Makefrag #
-############
+##########
+# Common #
+##########
 
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 MKFILE_DIR  := $(dir $(MKFILE_PATH))
-ROOT        := ${MKFILE_DIR}../../..
+ROOT        := ${MKFILE_DIR}../..
 
-include $(ROOT)/util/Makefrag
+include $(ROOT)/target/common/common.mk
 
 ############
 # Programs #
@@ -44,8 +44,9 @@ VLOG      	?= vlog ${QUESTA_64BIT}
 # Files and directories #
 #########################
 
-PLATFORM_HEADERS_DIR ?= sw/runtime/shared
-GENERATED_DIR        ?= $(MKFILE_DIR)generated
+SW_DIR             = sw
+TARGET_C_HDRS_DIR ?= $(SW_DIR)/runtime/common
+GENERATED_DIR     ?= $(MKFILE_DIR)generated
 
 # Verilated and compiled snitch cluster
 VLT_AR = ${VLT_BUILDDIR}/Vtestharness__ALL.a
@@ -55,7 +56,8 @@ VLT_AR = ${VLT_BUILDDIR}/Vtestharness__ALL.a
 # (LRU) config, all targets depending on the configuration file have
 # to be rebuilt. This file is used to express this condition as a
 # prerequisite for other rules.
-CFG = cfg/lru.hjson
+DEFAULT_CFG = cfg/default.hjson
+CFG         = cfg/lru.hjson
 
 #####################
 # Simulator options #
@@ -108,7 +110,7 @@ CLUSTER_GEN_PREREQ = ${CLUSTER_GEN} ${CLUSTER_GEN_SRC}
 $(CFG): FORCE
 	@# If the LRU config file doesn't exist, we use the default config.
 	@if [ ! -e $@ ] ; then \
-		DEFAULT_CFG="cfg/cluster.hjson"; \
+		DEFAULT_CFG="$(DEFAULT_CFG)"; \
 		echo "Using default config file: $$DEFAULT_CFG"; \
 		cp $$DEFAULT_CFG $@; \
 	fi
@@ -138,26 +140,26 @@ CLUSTER_GEN_HEADERS = snitch_cluster_cfg.h \
 
 REGGEN_HEADERS = snitch_cluster_peripheral.h
 
-PLATFORM_HEADERS = $(addprefix $(PLATFORM_HEADERS_DIR)/,$(CLUSTER_GEN_HEADERS) $(REGGEN_HEADERS))
+TARGET_C_HDRS = $(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS) $(REGGEN_HEADERS))
 
 .PHONY: sw clean-headers clean-sw
 
-sw: $(PLATFORM_HEADERS)
-	$(MAKE) -C sw/
+sw: $(TARGET_C_HDRS)
+	$(MAKE) -C $(SW_DIR)
 
 clean-headers:
-	rm -f $(PLATFORM_HEADERS)
+	rm -f $(TARGET_C_HDRS)
 
 clean-sw: clean-headers
-	$(MAKE) -C sw/ TARGET=clean
+	$(MAKE) -C $(SW_DIR) TARGET=clean
 
 # CLUSTERGEN headers
-$(addprefix $(PLATFORM_HEADERS_DIR)/,$(CLUSTER_GEN_HEADERS)): %.h: $(CFG) $(CLUSTER_GEN_PREREQ) %.h.tpl
+$(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS)): %.h: $(CFG) $(CLUSTER_GEN_PREREQ) %.h.tpl
 	@echo "[CLUSTERGEN] Generate $@"
-	$(CLUSTER_GEN) -c $< --outdir $(PLATFORM_HEADERS_DIR) --template $@.tpl
+	$(CLUSTER_GEN) -c $< --outdir $(TARGET_C_HDRS_DIR) --template $@.tpl
 
 # REGGEN headers
-$(PLATFORM_HEADERS_DIR)/snitch_cluster_peripheral.h: $(ROOT)/hw/ip/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.hjson $(REGGEN)
+$(TARGET_C_HDRS_DIR)/snitch_cluster_peripheral.h: $(ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.hjson $(REGGEN)
 	$(call reggen_generate_header,$@,$<)
 
 #######
