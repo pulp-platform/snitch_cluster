@@ -16,7 +16,7 @@ MATCH_END := '/+incdir+/ s/$$/\/*\/*/'
 MATCH_BGN := 's/+incdir+//g'
 SED_SRCS  := sed -e ${MATCH_END} -e ${MATCH_BGN}
 TB_SRCS   := $(wildcard ${ROOT}/hw/ip/test/*.sv)
-TB_DIR    := ${ROOT}/hw/ip/test/src
+TB_DIR    := ${ROOT}/target/common/test
 
 VSIM_BENDER   += -t test -t rtl -t simulation -t vsim -t cv64a6_imafdc_sv39
 VSIM_SOURCES  := $(shell ${BENDER} script flist ${VSIM_BENDER} | ${SED_SRCS})
@@ -105,7 +105,6 @@ $(VLT_FESVR)/${FESVR_VERSION}_unzip:
 	mkdir -p $(dir $@)
 	wget -O $(dir $@)/${FESVR_VERSION} https://github.com/riscv/riscv-isa-sim/tarball/${FESVR_VERSION}
 	tar xfm $(dir $@)${FESVR_VERSION} --strip-components=1 -C $(dir $@)
-	patch -d $(dir $@) -p1 < ${ROOT}/util/patches/riscv-isa-sim/fesrv.patch
 	touch $@
 
 $(VLT_BUILDDIR)/lib/libfesvr.a: $(VLT_FESVR)/${FESVR_VERSION}_unzip

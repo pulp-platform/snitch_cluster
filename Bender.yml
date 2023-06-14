@@ -25,6 +25,7 @@ dependencies:
   FPnew:              { git: https://github.com/openhwgroup/cvfpu,                rev:      1202ca3 }   # TODO: Update to next release
   register_interface: { git: https://github.com/pulp-platform/register_interface, version:  0.3.3   }
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.11  }
+  riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          rev:      ec0d92fa5fdaaf611e5b8a4cc8ee84017ff98710 }
 
 export_include_dirs:
   - hw/reqrsp_interface/include
@@ -138,13 +139,13 @@ sources:
   # snitch_dma
   - files:
     # Level 0
-    - src/axi_dma_pkg.sv
+    - hw/snitch_dma/src/axi_dma_pkg.sv
     # Level 1
-    - src/axi_dma_error_handler.sv
-    - src/axi_dma_perf_counters.sv
-    - src/axi_dma_twod_ext.sv
+    - hw/snitch_dma/src/axi_dma_error_handler.sv
+    - hw/snitch_dma/src/axi_dma_perf_counters.sv
+    - hw/snitch_dma/src/axi_dma_twod_ext.sv
     # Level 2:
-    - src/axi_dma_tc_snitch_fe.sv
+    - hw/snitch_dma/src/axi_dma_tc_snitch_fe.sv
 
   # snitch_icache
   - files:
@@ -224,11 +225,11 @@ sources:
   # target/common
   - target: any(simulation, verilator)
     files:
-      - target/common/src/tb_memory_regbus.sv
-      - target/common/src/tb_memory_axi.sv
+      - target/common/test/tb_memory_regbus.sv
+      - target/common/test/tb_memory_axi.sv
   - target: test
     files:
-      - target/common/src/tb_bin.sv
+      - target/common/test/tb_bin.sv
 
   # target/snitch_cluster
   - files:
