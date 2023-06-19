@@ -5,6 +5,7 @@ VLT			   ?= verilator
 VERIBLE_FMT    ?= verible-verilog-format
 BIN2JTAG       ?= $(ROOT)/util/bin2jtag.py
 ANNOTATE	   ?= ${ROOT}/util/trace/annotate.py
+GENTRACE	   ?= ${ROOT}/util/trace/gen_trace.py
 CLANG_FORMAT   ?= clang-format
 
 VERILATOR_ROOT ?= $(dir $(shell which $(VLT)))/../share/verilator
@@ -174,8 +175,8 @@ define reggen_generate_header
 	@$(CLANG_FORMAT) -i $1
 endef
 
-$(LOGS_DIR)/trace_hart_%.txt $(LOGS_DIR)/hart_%_perf.json: $(LOGS_DIR)/trace_hart_%.dasm ${ROOT}/util/gen_trace.py
-	$(DASM) < $< | $(PYTHON) ${ROOT}/util/gen_trace.py --permissive -d $(LOGS_DIR)/hart_$*_perf.json > $(LOGS_DIR)/trace_hart_$*.txt
+$(LOGS_DIR)/trace_hart_%.txt $(LOGS_DIR)/hart_%_perf.json: $(LOGS_DIR)/trace_hart_%.dasm $(GENTRACE)
+	$(DASM) < $< | $(PYTHON) $(GENTRACE) --permissive -d $(LOGS_DIR)/hart_$*_perf.json > $(LOGS_DIR)/trace_hart_$*.txt
 
 traces: $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null | sed 's/\.dasm/\.txt/') || echo "") \
         $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null | sed 's/trace_hart/hart/' | sed 's/.dasm/_perf.json/') || echo "")
