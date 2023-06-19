@@ -4,10 +4,7 @@
 #
 # Tim Fischer <fischeti@iis.ee.ethz.ch>
 
-BLAS_DIR = $(abspath ../../../../../../../sw/blas)
-APPS_DIR = $(abspath ../..)
+include ../../../../../../sw/blas/gemm/Makefile
+include ../../common.mk
 
-include $(BLAS_DIR)/gemm/Makefile
-include $(APPS_DIR)/common.mk
-
-$(DEP): $(DATA_DIR)/data.h
+$(DEP): $(ROOT)/sw/blas/gemm/data/data.h
