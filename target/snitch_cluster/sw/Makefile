@@ -4,8 +4,6 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-APPS := $(shell cat apps.list)
-
 TARGET ?= all
 SELECT_RUNTIME ?= rtl
 
@@ -15,16 +13,19 @@ else
 RUNTIME = runtime/rtl
 endif
 
-SUBDIRS  = runtime/banshee
-SUBDIRS += runtime/rtl
-SUBDIRS += $(APPS)
+SUBDIRS = apps tests runtime/banshee runtime/rtl
 
 .PHONY: all $(SUBDIRS)
 
 all: $(SUBDIRS)
 
 # Explicit dependency of apps on runtime
-$(APPS): $(RUNTIME)
+apps: $(RUNTIME)
+	$(MAKE) -C $@ TARGET=$(TARGET)
 
-$(SUBDIRS):
+# Explicit dependency of tests on runtime
+tests: $(RUNTIME)
+	$(MAKE) -C $@ $(TARGET)
+
+runtime/rtl runtime/banshee:
 	$(MAKE) -C $@ $(TARGET)
