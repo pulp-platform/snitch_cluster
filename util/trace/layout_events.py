@@ -108,7 +108,8 @@ def main():
                             row_idx = tid
                             col_idx = 1 + reg_idx * 2
                             assert row_idx < df.shape[0], f'Hart ID {row_idx} out of bounds'
-                            assert (col_idx + 1) < df.shape[1], f'Region index {reg_idx} out of bounds'
+                            assert (col_idx + 1) < df.shape[1],\
+                                f'Region index {reg_idx} out of bounds'
                             orow.append(int(df.iat[row_idx, col_idx]))
                             orow.append(int(df.iat[row_idx, col_idx + 1]))
                         else:

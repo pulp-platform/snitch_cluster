@@ -104,15 +104,18 @@ def flush(buf, hartid):
         # print(f'pc "{pc}", func "{func}", file "{file}"')
 
         # assemble values for json
-        # Doc: https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview
+        # Doc: https://docs.google.com/document/d/
+        # 1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview
         # The name of the event, as displayed in Trace Viewer
         name = instr
         # The event categories. This is a comma separated list of categories for the event.
         # The categories can be used to hide events in the Trace Viewer UI.
         cat = 'instr'
-        # The tracing clock timestamp of the event. The timestamps are provided at microsecond granularity.
+        # The tracing clock timestamp of the event.
+        # The timestamps are provided at microsecond granularity.
         ts = time
-        # There is an extra parameter dur to specify the tracing clock duration of complete events in microseconds.
+        # There is an extra parameter dur to specify the tracing clock duration
+        # of complete events in microseconds.
         duration = next_time - time
 
         if banshee:
