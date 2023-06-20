@@ -265,7 +265,8 @@ with open(trace, 'r') as f:
                 # Issue warning if source was modified after trace
                 src_timestamp = os.path.getmtime(src_fname)
                 if src_timestamp >= trace_timestamp:
-                    print(colored('Warning:', 'yellow'), f'{src_fname} has been edited since the trace was generated')
+                    print(colored('Warning:', 'yellow'),
+                          f'{src_fname} has been edited since the trace was generated')
 
                 with open(src_fname, 'r') as src_f:
                     src_files[src_fname] = [x.strip() for x in src_f.readlines()]
