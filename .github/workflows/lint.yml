@@ -75,6 +75,7 @@ jobs:
   # Check License #
   #################
   license-lint:
+    name: Check License headers
     runs-on: ubuntu-latest
     steps:
       - name: Check License
@@ -93,7 +94,7 @@ jobs:
   # Lint YML Files #
   ##################
   yaml-lint:
-    name: YAML Sources
+    name: Lint YAML Sources
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -105,7 +106,7 @@ jobs:
   ########################
   python-lint:
     runs-on: ubuntu-latest
-    name: Lint
+    name: Lint Python Sources
     steps:
       - name: Check out source repository
         uses: actions/checkout@v3
@@ -121,7 +122,7 @@ jobs:
   ######################
   # Check C/C++ files for correct formatting.
   clangfmt:
-    name: C/C++ Sources
+    name: Lint C/C++ Sources
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -134,7 +135,7 @@ jobs:
   ######################
   # Detect trailing whitespaces, missing new lines and wrong file encodings.
   editorconfig-lint:
-    name: Editorconfig
+    name: Lint Editorconfig
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
