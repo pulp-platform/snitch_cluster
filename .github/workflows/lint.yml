@@ -14,17 +14,17 @@ jobs:
   verible-lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: chipsalliance/verible-linter-action@main
-      with:
-        paths: |
-          ./hw
-        exclude_paths: |
-          ./hw/future/test
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        fail_on_error: true
-        reviewdog_reporter: github-check
-        extra_args: "--waiver_files util/lint/waiver.verible"
+      - uses: actions/checkout@v3
+      - uses: chipsalliance/verible-linter-action@main
+        with:
+          paths: |
+            ./hw
+          exclude_paths: |
+            ./hw/future/test
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          fail_on_error: true
+          reviewdog_reporter: github-check
+          extra_args: "--waiver_files util/lint/waiver.verible"
 
   #####################
   # Vendor Up-to-Date #
@@ -67,7 +67,8 @@ jobs:
       - run: npm install -g @adobe/jsonschema2md@v5.0.1
       - name: Re-generate documentation and diff
         run: |
-          cd docs/ && rm -r schema-doc && jsonschema2md -d schema/ --out schema-doc -x schema-doc -n
+          cd docs/ && rm -r schema-doc
+          jsonschema2md -d schema/ --out schema-doc -x schema-doc -n
       - name: Diff porcelain
         uses: mmontes11/diff-porcelain@v0.0.1
         with:
@@ -84,8 +85,8 @@ jobs:
         uses: pulp-platform/pulp-actions/lint-license@patch/license-checker
         with:
           patches: 0001-Allow-hash-comments-in-assembly.patch
-        # We cover ETH Zurich and lowRISC licenses and Apache 2.0 (mostly for SW)
-        # and Solderpad for the hardware.
+        # We cover ETH Zurich and lowRISC licenses and Apache 2.0
+        # (mostly for SW) and Solderpad for the hardware.
           license: |
             Copyright (\d{4}(-\d{4})?\s)?(ETH Zurich and University of Bologna|lowRISC contributors).
             (Solderpad Hardware License, Version 0.51|Licensed under the Apache License, Version 2.0), see LICENSE for details.
