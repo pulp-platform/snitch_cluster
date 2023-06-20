@@ -24,7 +24,7 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         fail_on_error: true
         reviewdog_reporter: github-check
-        extra_args: "--waiver_files util/verible.waiver"
+        extra_args: "--waiver_files util/waiver.verible"
 
   #####################
   # Vendor Up-to-Date #
