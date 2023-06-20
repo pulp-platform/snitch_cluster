@@ -1,4 +1,5 @@
 .bender/
+Bender.lock
 .vscode/
 __pycache__
 

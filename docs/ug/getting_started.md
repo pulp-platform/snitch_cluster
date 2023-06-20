@@ -6,7 +6,7 @@ This will take you through the necessary steps to get a sample program running o
 
 1. Clone the repository.
    ```
-   git clone https://github.com/pulp-platform/snitch.git
+   git clone https://github.com/pulp-platform/snitch.git --recurse-submodules
    ```
 2. Start the Docker container containing all necessary development tools. If you
    do not want (or can not) use Docker please see the
