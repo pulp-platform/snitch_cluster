@@ -24,16 +24,16 @@ module fixture_axi_dma_backend ();
   //--------------------------------------
   // Parameters
   //--------------------------------------
-  localparam TA = 0.2ns;  // must be nonzero to avoid Snitch load fifo double pop glitch
-  localparam TT = 0.8ns;
-  localparam HalfPeriod = 50ns;
-  localparam Reset = 75ns;
+  localparam time TA = 0.2ns;  // must be nonzero to avoid Snitch load fifo double pop glitch
+  localparam time TT = 0.8ns;
+  localparam time HalfPeriod = 50ns;
+  localparam time Reset = 75ns;
 
-  localparam DataWidth = 512;
-  localparam AddrWidth = 64;
-  localparam StrbWidth = DataWidth / 8;
-  localparam IdWidth = 6;
-  localparam UserWidth = 1;
+  localparam int unsigned DataWidth = 512;
+  localparam int unsigned AddrWidth = 64;
+  localparam int unsigned StrbWidth = DataWidth / 8;
+  localparam int unsigned IdWidth = 6;
+  localparam int unsigned UserWidth = 1;
 
   typedef union packed {
     logic [StrbWidth-1:0][7:0] bytes;

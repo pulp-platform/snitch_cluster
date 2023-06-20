@@ -77,16 +77,16 @@ package snitch_pkg;
   } status_rv32_t;
 
   // Virtual Memory
-  localparam int unsigned PAGE_SHIFT = 12;
+  localparam int unsigned PageShift = 12;
   /// Size in bits of the virtual address segments
-  localparam int unsigned VPN_SIZE = 10;
+  localparam int unsigned VpnSize = 10;
 
   /// Virtual Address Definition
   typedef struct packed {
     /// Virtual Page Number 1
-    logic [31:32-VPN_SIZE] vpn1;
+    logic [31:32-VpnSize] vpn1;
     /// Virtual Page Number 0
-    logic [PAGE_SHIFT+VPN_SIZE-1:PAGE_SHIFT] vpn0;
+    logic [PageShift+VpnSize-1:PageShift] vpn0;
   } va_t;
 
   typedef struct packed {
@@ -98,20 +98,20 @@ package snitch_pkg;
     logic               r;
   } pte_flags_t;
 
-  localparam logic [3:0] INSTR_ADDR_MISALIGNED = 0;
-  localparam logic [3:0] INSTR_ACCESS_FAULT    = 1;
-  localparam logic [3:0] ILLEGAL_INSTR         = 2;
-  localparam logic [3:0] BREAKPOINT            = 3;
-  localparam logic [3:0] LD_ADDR_MISALIGNED    = 4;
-  localparam logic [3:0] LD_ACCESS_FAULT       = 5;
-  localparam logic [3:0] ST_ADDR_MISALIGNED    = 6;
-  localparam logic [3:0] ST_ACCESS_FAULT       = 7;
-  localparam logic [3:0] ENV_CALL_UMODE        = 8;  // environment call from user mode
-  localparam logic [3:0] ENV_CALL_SMODE        = 9;  // environment call from supervisor mode
-  localparam logic [3:0] ENV_CALL_MMODE        = 11; // environment call from machine mode
-  localparam logic [3:0] INSTR_PAGE_FAULT      = 12; // Instruction page fault
-  localparam logic [3:0] LOAD_PAGE_FAULT       = 13; // Load page fault
-  localparam logic [3:0] STORE_PAGE_FAULT      = 15; // Store page fault
+  localparam logic [3:0] InstrAddrMisaligned  = 0;
+  localparam logic [3:0] InstrAccessFault     = 1;
+  localparam logic [3:0] IllegalInstr         = 2;
+  localparam logic [3:0] Breakpoint           = 3;
+  localparam logic [3:0] LoadAddrMisaligned   = 4;
+  localparam logic [3:0] LoadAccessFault      = 5;
+  localparam logic [3:0] StoreAddrMisaligned  = 6;
+  localparam logic [3:0] StoreAccessFault     = 7;
+  localparam logic [3:0] EnvCallUMode         = 8;  // environment call from user mode
+  localparam logic [3:0] EnvCallSMode         = 9;  // environment call from supervisor mode
+  localparam logic [3:0] EnvCallMMode         = 11; // environment call from machine mode
+  localparam logic [3:0] InstrPageFault       = 12; // Instruction page fault
+  localparam logic [3:0] LoadPageFault        = 13; // Load page fault
+  localparam logic [3:0] StorePageFault       = 15; // Store page fault
 
   localparam logic [3:0] MSI = 3;
   localparam logic [3:0] MTI = 7;
