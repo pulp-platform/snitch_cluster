@@ -6,3 +6,6 @@ waive --rule=interface-name-style --line=8 --location="hw/mem_interface/src/mem_
 waive --rule=interface-name-style --line=55 --location="hw/mem_interface/src/mem_interface.sv"
 waive --rule=line-length --line=238 --location="hw/snitch/src/snitch_pkg.sv"
 waive --rule=line-length --line=245 --location="hw/snitch/src/snitch_pkg.sv"
+# Auto-generated configuration registers are waived
+waive --rule=typedef-structs-unions --location="src/regs/*"
+waive --rule=line-length --location="src/regs/*"
