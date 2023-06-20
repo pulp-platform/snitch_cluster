@@ -13,6 +13,7 @@ rules:
     allow-non-breakable-inline-mappings: true
     ignore: |
       Bender.yml
+      workflows/lint.yml
   colons:
     ignore: |
       Bender.yml
