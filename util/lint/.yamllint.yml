@@ -7,8 +7,3 @@ rules:
   line-length:
     allow-non-breakable-words: true
     allow-non-breakable-inline-mappings: true
-
-ignore-from-file:
-  - .gitignore
-  - .yamlignore
-  - hw/system/.gitignore
