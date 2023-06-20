@@ -25,28 +25,15 @@ RUN apt-get update && \
 # Build Rust tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH "/root/.cargo/bin:${PATH}"
+
+# Install Bender
 RUN cargo install bender --version 0.23.2
-
-# Get LLVM 12
-RUN wget https://apt.llvm.org/llvm.sh
-RUN chmod +x llvm.sh
-RUN ./llvm.sh 12
-
-# Install `banshee`
-COPY sw/banshee /tmp/banshee
-RUN cargo install --path /tmp/banshee
-
-# Build `riscv-isa-sim`
-COPY sw/vendor/riscv-isa-sim /tmp/riscv-isa-sim
-RUN cd /tmp/riscv-isa-sim && mkdir build && cd build && ../configure --prefix=/root/riscv && make install
 
 # 2. Stage
 FROM ubuntu:18.04 AS snitch
-ARG RISCV_GCC_VERSION=8.3.0-2020.04.0
 ARG SNITCH_LLVM_VERSION=latest
 ARG VERIBLE_VERSION=0.0-776-g09e0b87
 ARG VERILATOR_VERSION=4.100
-ARG CMAKE_VERSION=3.19.4
 
 LABEL version="0.1"
 LABEL description="Snitch container for hardware and software development."
@@ -78,21 +65,10 @@ RUN echo 'deb http://download.opensuse.org/repositories/home:/phiwag:/edatools/x
     apt-get clean ; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
-# Install a newer version of cmake (we need this for cross compiling)
-RUN wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz && \
-    tar -x -f cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz --strip-components=1 -C . && \
-    rm -rf cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz
-
-# Copy repository into tmp directory to execute additional install steps.
+# Install Python requirements
 COPY python-requirements.txt /tmp/python-requirements.txt
-COPY sw/applications/requirements.txt /tmp/sw/applications/requirements.txt
-RUN pip3 install -r /tmp/python-requirements.txt -r /tmp/sw/applications/requirements.txt
-
-# Get the precompiled toolchain
-RUN wget https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-${RISCV_GCC_VERSION}-x86_64-linux-ubuntu14.tar.gz && \
-    mkdir -p riscv && tar -x -f riscv64-unknown-elf-gcc-${RISCV_GCC_VERSION}-x86_64-linux-ubuntu14.tar.gz --strip-components=1 -C riscv && \
-    rm -rf riscv64-unknown-elf-gcc-${RISCV_GCC_VERSION}-x86_64-linux-ubuntu14.tar.gz
-ENV PATH "/tools/riscv/bin:${PATH}"
+COPY docs/requirements.txt /tmp/docs/requirements.txt
+RUN pip3 install -r /tmp/python-requirements.txt
 
 # Get the precompiled LLVM toolchain
 RUN latest_tag=`curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/pulp-platform/llvm-project/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'` && \
@@ -111,9 +87,16 @@ RUN wget https://github.com/google/verible/releases/download/v${VERIBLE_VERSION}
     rm -rf verible-v${VERIBLE_VERSION}-Ubuntu-18.04-bionic-x86_64.tar.gz
 ENV PATH "/tools/bin:${PATH}"
 
-# Alias the RISC-V toolchain from riscv64- to riscv32-
-RUN cd /tools/riscv/bin && for file in riscv64-*; do ln -s $file $(echo "$file" | sed 's/^riscv64/riscv32/g'); done
+# Install git>=2.18, required by Github checkout action to recurse submodules
+RUN apt-get update && apt-get install software-properties-common -y && \
+    add-apt-repository -y ppa:git-core/ppa && \
+    apt-get update && \
+    apt-get install git -y
 
-COPY --from=builder /root/.cargo/bin/banshee bin/
+# Copy artifacts from stage 1.
 COPY --from=builder /root/.cargo/bin/bender bin/
-COPY --from=builder /root/riscv riscv/
+
+# Set locale to UTF-8, required because Python 3.6 defaults on ASCII encoding.
+# See https://click.palletsprojects.com/en/8.1.x/unicode-support/
+ENV LC_ALL "C.UTF-8"
+ENV LANG   "C.UTF-8"
