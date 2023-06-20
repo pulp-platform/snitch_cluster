@@ -4,10 +4,11 @@
 name: publish-docs
 on:
   push:
-    branches: [master]
+    branches: [main]
   workflow_dispatch:
 jobs:
   deploy:
+    name: Deploy documentation
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
