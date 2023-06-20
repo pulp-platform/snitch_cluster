@@ -16,3 +16,9 @@ rules:
   colons:
     ignore: |
       Bender.yml
+  braces:
+    ignore: |
+      Bender.yml
+  commas:
+    ignore: |
+      Bender.yml
