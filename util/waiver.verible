@@ -6,6 +6,8 @@ waive --rule=interface-name-style --line=8 --location="hw/mem_interface/src/mem_
 waive --rule=interface-name-style --line=55 --location="hw/mem_interface/src/mem_interface.sv"
 waive --rule=interface-name-style --line=21 --location="hw/reqrsp_interface/src/reqrsp_intf.sv"
 waive --rule=interface-name-style --line=67 --location="hw/reqrsp_interface/src/reqrsp_intf.sv"
+waive --rule=interface-name-style --line=8 --location="hw/tcdm_interface/src/tcdm_interface.sv"
+waive --rule=interface-name-style --line=56 --location="hw/tcdm_interface/src/tcdm_interface.sv"
 waive --rule=line-length --line=238 --location="hw/snitch/src/snitch_pkg.sv"
 waive --rule=line-length --line=245 --location="hw/snitch/src/snitch_pkg.sv"
 # Sources in the future folder

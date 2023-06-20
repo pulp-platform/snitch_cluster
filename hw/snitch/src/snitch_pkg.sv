@@ -170,7 +170,7 @@ package snitch_pkg;
   } core_events_t;
 
   // SSRs
-  localparam logic [11:0] CSR_MSEG = 12'hBC0;
+  localparam logic [11:0] CsrMseg = 12'hBC0;
 
   // --------------------
   // Trace Infrastructure
