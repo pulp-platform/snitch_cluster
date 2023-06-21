@@ -93,7 +93,7 @@ module snitch_hive #(
     .FILL_AW            ( AddrWidth        ),
     .FILL_DW            ( WideDataWidth    ),
     .EARLY_LATCH        ( 0               ),
-    .L0_EARLY_TAG_WIDTH ( snitch_pkg::PAGE_SHIFT - $clog2(ICacheLineWidth/8) ),
+    .L0_EARLY_TAG_WIDTH ( snitch_pkg::PageShift - $clog2(ICacheLineWidth/8) ),
     .ISO_CROSSING       ( IsoCrossing     ),
     .sram_cfg_tag_t     ( sram_cfg_t ),
     .sram_cfg_data_t    ( sram_cfg_t ),
