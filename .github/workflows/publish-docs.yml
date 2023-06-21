@@ -19,6 +19,7 @@ jobs:
         with:
           working-directory: sw/
       - name: Generate Runtime Documentation
+        # yamllint disable rule:line-length
         run: |
           mkdir doxybook2; cd doxybook2
           wget https://github.com/matusnovak/doxybook2/releases/download/v1.4.0/doxybook2-linux-amd64-v1.4.0.zip
@@ -27,5 +28,6 @@ jobs:
           mkdir docs/runtime
           ./doxybook2/bin/doxybook2 --input sw/doxygen/xml --output docs/runtime --config docs/doxybook2.json
           rm -rf doxybook2
+        # yamllint enable rule:line-length
       - run: pip install -r docs/requirements.txt
       - run: mkdocs gh-deploy --force

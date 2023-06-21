@@ -3,16 +3,16 @@
 # SPDX-License-Identifier: Apache-2.0
 
 variables:
-  GIT_STRATEGY:           clone
+  GIT_STRATEGY: clone
   GIT_SUBMODULE_STRATEGY: recursive
-  PYTHON:                 /usr/local/anaconda3-2022.05/bin/python3
-  BENDER:                 bender-0.27.1
-  CC:                     gcc-9.2.0
-  CXX:                    g++-9.2.0
-  VCS:                    vcs-2020.12
-  VERILATOR:              verilator-4.110
-  QUESTA:                 questa-2022.3
-  LLVM_BINROOT:           /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
+  PYTHON: /usr/local/anaconda3-2022.05/bin/python3
+  BENDER: bender-0.27.1
+  CC: gcc-9.2.0
+  CXX: g++-9.2.0
+  VCS: vcs-2020.12
+  VERILATOR: verilator-4.110
+  QUESTA: questa-2022.3
+  LLVM_BINROOT: /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
 
 before_script:
   - $PYTHON -m venv .venv
