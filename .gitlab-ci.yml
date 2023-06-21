@@ -1,0 +1,88 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+variables:
+  GIT_STRATEGY:           clone
+  GIT_SUBMODULE_STRATEGY: recursive
+  PYTHON:                 /usr/local/anaconda3-2022.05/bin/python3
+  BENDER:                 bender-0.27.1
+  CC:                     gcc-9.2.0
+  CXX:                    g++-9.2.0
+  VCS:                    vcs-2020.12
+  VERILATOR:              verilator-4.110
+  QUESTA:                 questa-2022.3
+  RISCV_BIN_DIR:          /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin/
+  RISCV_CC:               $RISCV_BIN_DIR/clang
+  RISCV_LD:               $RISCV_BIN_DIR/lld
+  RISCV_AR:               $RISCV_BIN_DIR/llvm-ar
+  RISCV_OBJCOPY:          $RISCV_BIN_DIR/llvm-objcopy
+  RISCV_OBJDUMP:          $RISCV_BIN_DIR/llvm-objdump
+  RISCV_DWARFDUMP:        $RISCV_BIN_DIR/llvm-dwarfdump
+
+before_script:
+  - $PYTHON -m venv .venv
+  - source .venv/bin/activate
+  - pip install -r python-requirements.txt
+
+#################################
+# Build Snitch cluster software #
+#################################
+
+snitch-cluster-sw:
+  script:
+    - cd target/snitch_cluster
+    - make sw
+  artifacts:
+    paths:
+      - target/snitch_cluster/sw/**/build/*.elf
+    expire_in: 1 day
+
+#######################
+# Standalone IP tests #
+#######################
+
+# Build and run all individual IP testbenches.
+# Currently missing IP tests:
+# - snitch_vm
+# - snitch_ipu
+# - snitch_dma
+# - snitch
+# Currently failing IP tests/scripts:
+# - reqrsp_interface
+# - snitch_ssr
+snitch-ip-tests:
+  needs: []
+  parallel:
+    matrix:
+      - IP:
+          - mem_interface
+          - snitch_cluster
+          - snitch_icache
+          - tcdm_interface
+  script:
+    - cd hw/$IP
+    - ./util/compile.sh
+    - ./util/run_vsim.sh
+
+########################
+# Snitch cluster tests #
+########################
+
+# VCS
+snitch-cluster-vcs:
+  needs: [snitch-cluster-sw]
+  script:
+    - cd target/snitch_cluster
+    - $VCS make bin/snitch_cluster.vcs
+    - $VCS ./sw/test/run.py sw/tests/passing-apps.list --simulator vcs
+    - $VCS ./sw/apps/run.py sw/apps/passing-apps.list --simulator vcs
+
+# Questa
+snitch-cluster-vsim:
+  needs: [snitch-cluster-sw]
+  script:
+    - cd target/snitch_cluster
+    - $QUESTA make bin/snitch_cluster.vsim
+    - $QUESTA ./sw/test/run.py sw/tests/passing-apps.list --simulator vsim
+    - $QUESTA ./sw/apps/run.py sw/apps/passing-apps.list --simulator vsim
