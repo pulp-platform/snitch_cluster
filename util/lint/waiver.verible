@@ -1,0 +1,15 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Solderpad Hardware License, Version 0.51, see LICENSE for details.
+# SPDX-License-Identifier: SHL-0.51
+
+# Sources in the future folder
+waive --rule=always-ff-non-blocking --location="hw/future/src/dma/axi_dma_backend.sv"
+waive --rule=explicit-parameter-storage-type --location="hw/future/test/fixture_axi_dma_backend.sv"
+waive --rule=explicit-task-lifetime --location="hw/future/test/fixture_axi_dma_backend.sv"
+waive --rule=explicit-function-task-parameter-type --location="hw/future/test/fixture_axi_dma_backend.sv"
+waive --rule=line-length --location="hw/future/test/fixture_axi_dma_backend.sv"
+waive --rule=parameter-name-style --location="hw/future/src/axi_interleaved_xbar.sv"
+waive --rule=unpacked-dimensions-range-ordering --location="hw/future/src/axi_interleaved_xbar.sv"
+# Auto-generated configuration registers are waived
+waive --rule=typedef-structs-unions --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv"
+waive --rule=line-length --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv"

@@ -1,0 +1,47 @@
+# Copyright 2020 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Run functional regression checks
+name: ci
+on: [push, pull_request]
+jobs:
+
+  ########
+  # Docs #
+  ########
+
+  docs:
+    name: Build documentation
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/pulp-platform/snitch_cluster
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build docs
+        run: mkdocs build
+
+  ##############################################
+  # Simulate SW on Snitch Cluster w/ Verilator #
+  ##############################################
+
+  sw-snitch-cluster:
+    name: Simulate SW on Snitch Cluster w/ Verilator
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/pulp-platform/snitch_cluster
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - name: Build Software
+        run: |
+          make -C target/snitch_cluster sw
+      - name: Build Hardware
+        run: |
+          make -C target/snitch_cluster bin/snitch_cluster.vlt
+      - name: Run Unit Tests
+        working-directory: target/snitch_cluster
+        run: |-
+          ./sw/tests/run.py sw/tests/passing-apps.list --simulator verilator
+          ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator

@@ -14,10 +14,10 @@ OPCODES=(opcodes-pseudo opcodes-rv32i opcodes-rv64i opcodes-rv32m opcodes-rv64m 
 # RTL #
 #######
 OPCODES+=(opcodes-ipu_CUSTOM)
-INSTR_SV=$ROOT/hw/ip/snitch/src/riscv_instr.sv
+INSTR_SV=$ROOT/hw/snitch/src/riscv_instr.sv
 
 cat > $INSTR_SV <<- EOM
-// Copyright 2020 ETH Zurich and University of Bologna.
+// Copyright 2023 ETH Zurich and University of Bologna.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 

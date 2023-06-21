@@ -37,21 +37,21 @@ export_include_dirs:
 sources:
   # future
   - files:
-    # Level 0
-    - hw/future/src/mem_to_axi_lite.sv
-    - hw/future/src/idma_reg64_frontend_reg_pkg.sv
-    - hw/future/src/idma_tf_id_gen.sv
-    - hw/future/src/dma/axi_dma_data_path.sv
-    - hw/future/src/axi_interleaved_xbar.sv
-    # Level 1
-    - hw/future/src/axi_zero_mem.sv
-    - hw/future/src/idma_reg64_frontend_reg_top.sv
-    # Level 2
-    - hw/future/src/idma_reg64_frontend.sv
-    - hw/future/src/dma/axi_dma_data_mover.sv
-    - hw/future/src/dma/axi_dma_burst_reshaper.sv
-    # Level 3
-    - hw/future/src/dma/axi_dma_backend.sv
+      # Level 0
+      - hw/future/src/mem_to_axi_lite.sv
+      - hw/future/src/idma_reg64_frontend_reg_pkg.sv
+      - hw/future/src/idma_tf_id_gen.sv
+      - hw/future/src/dma/axi_dma_data_path.sv
+      - hw/future/src/axi_interleaved_xbar.sv
+      # Level 1
+      - hw/future/src/axi_zero_mem.sv
+      - hw/future/src/idma_reg64_frontend_reg_top.sv
+      # Level 2
+      - hw/future/src/idma_reg64_frontend.sv
+      - hw/future/src/dma/axi_dma_data_mover.sv
+      - hw/future/src/dma/axi_dma_burst_reshaper.sv
+      # Level 3
+      - hw/future/src/dma/axi_dma_backend.sv
   - target: test
     files:
       - hw/future/test/fixture_axi_dma_backend.sv
@@ -59,17 +59,17 @@ sources:
 
   # reqrsp_interface
   - files:
-    # Level 0
-    - hw/reqrsp_interface/src/reqrsp_pkg.sv
-    # Level 1
-    - hw/reqrsp_interface/src/reqrsp_intf.sv
-    # Level 2
-    - hw/reqrsp_interface/src/axi_to_reqrsp.sv
-    - hw/reqrsp_interface/src/reqrsp_cut.sv
-    - hw/reqrsp_interface/src/reqrsp_demux.sv
-    - hw/reqrsp_interface/src/reqrsp_iso.sv
-    - hw/reqrsp_interface/src/reqrsp_mux.sv
-    - hw/reqrsp_interface/src/reqrsp_to_axi.sv
+      # Level 0
+      - hw/reqrsp_interface/src/reqrsp_pkg.sv
+      # Level 1
+      - hw/reqrsp_interface/src/reqrsp_intf.sv
+      # Level 2
+      - hw/reqrsp_interface/src/axi_to_reqrsp.sv
+      - hw/reqrsp_interface/src/reqrsp_cut.sv
+      - hw/reqrsp_interface/src/reqrsp_demux.sv
+      - hw/reqrsp_interface/src/reqrsp_iso.sv
+      - hw/reqrsp_interface/src/reqrsp_mux.sv
+      - hw/reqrsp_interface/src/reqrsp_to_axi.sv
   - target: simulation
     files:
       - hw/reqrsp_interface/src/reqrsp_test.sv
@@ -83,8 +83,8 @@ sources:
 
   # mem_interface
   - files:
-    - hw/mem_interface/src/mem_wide_narrow_mux.sv
-    - hw/mem_interface/src/mem_interface.sv
+      - hw/mem_interface/src/mem_wide_narrow_mux.sv
+      - hw/mem_interface/src/mem_interface.sv
   - target: simulation
     files:
       - hw/mem_interface/src/mem_test.sv
@@ -94,12 +94,12 @@ sources:
 
   # tcdm_interface
   - files:
-    # Level 0
-    - hw/tcdm_interface/src/tcdm_interface.sv
-    # Level 1
-    - hw/tcdm_interface/src/axi_to_tcdm.sv
-    - hw/tcdm_interface/src/reqrsp_to_tcdm.sv
-    - hw/tcdm_interface/src/tcdm_mux.sv
+      # Level 0
+      - hw/tcdm_interface/src/tcdm_interface.sv
+      # Level 1
+      - hw/tcdm_interface/src/axi_to_tcdm.sv
+      - hw/tcdm_interface/src/reqrsp_to_tcdm.sv
+      - hw/tcdm_interface/src/tcdm_mux.sv
   - target: simulation
     files:
       - hw/tcdm_interface/src/tcdm_test.sv
@@ -110,15 +110,15 @@ sources:
 
   # snitch
   - files:
-    # Level 0
-    - hw/snitch/src/snitch_pma_pkg.sv
-    - hw/snitch/src/riscv_instr.sv
-    # Level 1
-    - hw/snitch/src/snitch_pkg.sv
-    # Level 2
-    - hw/snitch/src/snitch_regfile_ff.sv
-    - hw/snitch/src/snitch_lsu.sv
-    - hw/snitch/src/snitch_l0_tlb.sv
+      # Level 0
+      - hw/snitch/src/snitch_pma_pkg.sv
+      - hw/snitch/src/riscv_instr.sv
+      # Level 1
+      - hw/snitch/src/snitch_pkg.sv
+      # Level 2
+      - hw/snitch/src/snitch_regfile_ff.sv
+      - hw/snitch/src/snitch_lsu.sv
+      - hw/snitch/src/snitch_l0_tlb.sv
   - target: not(disable_pmcs)
     defines:
       SNITCH_ENABLE_PERF:
@@ -134,60 +134,60 @@ sources:
 
   # snitch_vm
   - files:
-    - hw/snitch_vm/src/snitch_ptw.sv
+      - hw/snitch_vm/src/snitch_ptw.sv
 
   # snitch_dma
   - files:
-    # Level 0
-    - hw/snitch_dma/src/axi_dma_pkg.sv
-    # Level 1
-    - hw/snitch_dma/src/axi_dma_error_handler.sv
-    - hw/snitch_dma/src/axi_dma_perf_counters.sv
-    - hw/snitch_dma/src/axi_dma_twod_ext.sv
-    # Level 2:
-    - hw/snitch_dma/src/axi_dma_tc_snitch_fe.sv
+      # Level 0
+      - hw/snitch_dma/src/axi_dma_pkg.sv
+      # Level 1
+      - hw/snitch_dma/src/axi_dma_error_handler.sv
+      - hw/snitch_dma/src/axi_dma_perf_counters.sv
+      - hw/snitch_dma/src/axi_dma_twod_ext.sv
+      # Level 2:
+      - hw/snitch_dma/src/axi_dma_tc_snitch_fe.sv
 
   # snitch_icache
   - files:
-    # Level 0
-    - hw/snitch_icache/src/snitch_icache_pkg.sv
-    # Level 1
-    - hw/snitch_icache/src/snitch_icache_l0.sv
-    - hw/snitch_icache/src/snitch_icache_refill.sv
-    - hw/snitch_icache/src/snitch_icache_lfsr.sv
-    - hw/snitch_icache/src/snitch_icache_lookup.sv
-    # Level 2
-    - hw/snitch_icache/src/snitch_icache_handler.sv
-    # Level 3
-    - hw/snitch_icache/src/snitch_icache.sv
-    - target: test
-      files:
-        - hw/snitch_icache/test/snitch_icache_l0_tb.sv
+      # Level 0
+      - hw/snitch_icache/src/snitch_icache_pkg.sv
+      # Level 1
+      - hw/snitch_icache/src/snitch_icache_l0.sv
+      - hw/snitch_icache/src/snitch_icache_refill.sv
+      - hw/snitch_icache/src/snitch_icache_lfsr.sv
+      - hw/snitch_icache/src/snitch_icache_lookup.sv
+      # Level 2
+      - hw/snitch_icache/src/snitch_icache_handler.sv
+      # Level 3
+      - hw/snitch_icache/src/snitch_icache.sv
+      - target: test
+        files:
+          - hw/snitch_icache/test/snitch_icache_l0_tb.sv
 
   # snitch_ipu
   - files:
-    # Level 0
-    - hw/snitch_ipu/src/snitch_ipu_pkg.sv
-    # Level 1
-    - hw/snitch_ipu/src/snitch_ipu_alu.sv
-    # Level 2
-    - hw/snitch_ipu/src/snitch_int_ss.sv
+      # Level 0
+      - hw/snitch_ipu/src/snitch_ipu_pkg.sv
+      # Level 1
+      - hw/snitch_ipu/src/snitch_ipu_alu.sv
+      # Level 2
+      - hw/snitch_ipu/src/snitch_int_ss.sv
 
   # snitch_ssr
   - files:
-    # Level 0
-    - hw/snitch_ssr/src/snitch_ssr_pkg.sv
-    - hw/snitch_ssr/src/snitch_ssr_switch.sv
-    - hw/snitch_ssr/src/snitch_ssr_credit_counter.sv
-    # Level 1
-    - hw/snitch_ssr/src/snitch_ssr_indirector.sv
-    - hw/snitch_ssr/src/snitch_ssr_intersector.sv
-    # Level 2
-    - hw/snitch_ssr/src/snitch_ssr_addr_gen.sv
-    # Level 3
-    - hw/snitch_ssr/src/snitch_ssr.sv
-    # Level 4
-    - hw/snitch_ssr/src/snitch_ssr_streamer.sv
+      # Level 0
+      - hw/snitch_ssr/src/snitch_ssr_pkg.sv
+      - hw/snitch_ssr/src/snitch_ssr_switch.sv
+      - hw/snitch_ssr/src/snitch_ssr_credit_counter.sv
+      # Level 1
+      - hw/snitch_ssr/src/snitch_ssr_indirector.sv
+      - hw/snitch_ssr/src/snitch_ssr_intersector.sv
+      # Level 2
+      - hw/snitch_ssr/src/snitch_ssr_addr_gen.sv
+      # Level 3
+      - hw/snitch_ssr/src/snitch_ssr.sv
+      # Level 4
+      - hw/snitch_ssr/src/snitch_ssr_streamer.sv
   - target: test
     files:
       # Level 0
@@ -199,25 +199,25 @@ sources:
 
   # snitch_cluster
   - files:
-    # Level 0
-    - hw/snitch_cluster/src/snitch_amo_shim.sv
-    - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv
-    - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_top.sv
-    - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral.sv
-    - hw/snitch_cluster/src/snitch_fpu.sv
-    - hw/snitch_cluster/src/snitch_sequencer.sv
-    - hw/snitch_cluster/src/snitch_tcdm_interconnect.sv
-    # Level 1
-    - hw/snitch_cluster/src/snitch_barrier.sv
-    - hw/snitch_cluster/src/snitch_fp_ss.sv
-    - hw/snitch_cluster/src/snitch_shared_muldiv.sv
-    # Level 2
-    - hw/snitch_cluster/src/snitch_cc.sv
-    - hw/snitch_cluster/src/snitch_clkdiv2.sv
-    # Level 3
-    - hw/snitch_cluster/src/snitch_hive.sv
-    # Level 4
-    - hw/snitch_cluster/src/snitch_cluster.sv
+      # Level 0
+      - hw/snitch_cluster/src/snitch_amo_shim.sv
+      - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv
+      - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_top.sv
+      - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral.sv
+      - hw/snitch_cluster/src/snitch_fpu.sv
+      - hw/snitch_cluster/src/snitch_sequencer.sv
+      - hw/snitch_cluster/src/snitch_tcdm_interconnect.sv
+      # Level 1
+      - hw/snitch_cluster/src/snitch_barrier.sv
+      - hw/snitch_cluster/src/snitch_fp_ss.sv
+      - hw/snitch_cluster/src/snitch_shared_muldiv.sv
+      # Level 2
+      - hw/snitch_cluster/src/snitch_cc.sv
+      - hw/snitch_cluster/src/snitch_clkdiv2.sv
+      # Level 3
+      - hw/snitch_cluster/src/snitch_hive.sv
+      # Level 4
+      - hw/snitch_cluster/src/snitch_cluster.sv
   - target: test
     files:
       - hw/snitch_cluster/test/snitch_tcdm_interconnect_tb.sv
@@ -232,9 +232,9 @@ sources:
       - target/common/test/tb_bin.sv
 
   # target/snitch_cluster
-  - target: generated
+  - target: snitch_cluster
     files:
       - target/snitch_cluster/generated/snitch_cluster_wrapper.sv
-  - target: all(generated, any(simulation, verilator))
+  - target: all(snitch_cluster, any(simulation, verilator))
     files:
       - target/snitch_cluster/test/testharness.sv
