@@ -87,12 +87,12 @@ jobs:
           patches: 0001-Allow-hash-comments-in-assembly.patch
           # We cover ETH Zurich and lowRISC licenses and Apache 2.0
           # (mostly for SW) and Solderpad for the hardware.
-          license: "Copyright (\\d{4}(-\\d{4})?\\s)?(ETH Zurich and \
-            University of Bologna|lowRISC contributors).\n
-            (Solderpad Hardware License, Version 0.51|\
-            Licensed under the Apache License, Version 2.0), \
-            see LICENSE for details.\n
-            SPDX-License-Identifier: (SHL-0.51|Apache-2.0)"
+          # yamllint disable rule:line-length
+          license: |
+            Copyright (\d{4}(-\d{4})?\s)?(ETH Zurich and University of Bologna|lowRISC contributors).
+            (Solderpad Hardware License, Version 0.51|Licensed under the Apache License, Version 2.0), see LICENSE for details.
+            SPDX-License-Identifier: (SHL-0.51|Apache-2.0)
+          # yamllint enable rule:line-length
           match_regex: true
           exclude_paths: |
             sw/snRuntime/src/omp/interface.h
