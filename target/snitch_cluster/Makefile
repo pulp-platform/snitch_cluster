@@ -63,7 +63,8 @@ CFG         = cfg/lru.hjson
 # Simulator options #
 #####################
 
-VLT_FLAGS  += --trace
+VSIM_BENDER += -t snitch_cluster
+VLT_BENDER  += -t snitch_cluster
 
 VSIM_FLAGS += -t 1ps
 VSIM_FLAGS += -voptargs=+acc
@@ -74,6 +75,8 @@ VLOG_FLAGS += -override_timescale 1ns/1ps
 VLOG_FLAGS += -suppress 2583
 VLOG_FLAGS += -suppress 13314
 VLOG_FLAGS += ${QUESTA_64BIT}
+
+VLT_FLAGS  += --trace
 
 ###############
 # C testbench #

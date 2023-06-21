@@ -5,6 +5,7 @@
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 
 /// MEM Interface.
+// verilog_lint: waive interface-name-style
 interface MEM_BUS #(
   /// The width of the address.
   parameter int  ADDR_WIDTH = -1,
@@ -52,6 +53,7 @@ interface MEM_BUS #(
 endinterface
 
 /// MEM Interface for verficiation purposes.
+// verilog_lint: waive interface-name-style
 interface MEM_BUS_DV #(
   /// The width of the address.
   parameter int  ADDR_WIDTH = -1,

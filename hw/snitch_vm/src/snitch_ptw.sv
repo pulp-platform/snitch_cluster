@@ -17,7 +17,7 @@ module snitch_ptw import snitch_pkg::*; #(
   parameter type l0_pte_t = logic,
   parameter type pte_sv32_t = logic,
   /// Derived parameter. *Do not change*
-  parameter int unsigned PPNSize = AddrWidth - PAGE_SHIFT
+  parameter int unsigned PPNSize = AddrWidth - PageShift
 ) (
   input  logic                clk_i,
   input  logic                rst_ni,
@@ -88,7 +88,7 @@ module snitch_ptw import snitch_pkg::*; #(
   // 6. If i > 0 and pte.ppn [i-1:0] != 0, this is a misaligned superpage; stop and raise a page-fault
   //    exception corresponding to the original access type.
   always_comb begin
-    automatic logic [PAGE_SHIFT-1:0] page_table_index;
+    automatic logic [PageShift-1:0] page_table_index;
     // As of now this is a read only interface.
     data_req_o.q.amo = reqrsp_pkg::AMONone;
     data_req_o.q.data = '0;
@@ -179,11 +179,11 @@ module snitch_ptw import snitch_pkg::*; #(
   end
 
   // check that we use the full virtual address
-  `ASSERT_INIT(SanityVirtualAddress, PAGE_SHIFT + VPN_SIZE * 2 == 32)
+  `ASSERT_INIT(SanityVirtualAddress, PageShift + VpnSize * 2 == 32)
   // Check that definitions are coherent
   `ASSERT_INIT(SanityPhysicalAddress, PPNSize == $bits(pa_t))
   // check that we can address the entire physical address space
-  `ASSERT_INIT(SanityPhysicalAddressSpace, PPNSize + PAGE_SHIFT == AddrWidth)
+  `ASSERT_INIT(SanityPhysicalAddressSpace, PPNSize + PageShift == AddrWidth)
   // check data width is sane
   `ASSERT_INIT(SanityDataWidth, DataWidth >= PPNSize && DataWidth >= 32 && DataWidth == PTESize * 8)
   // assert stability
@@ -204,5 +204,5 @@ module snitch_ptw import snitch_pkg::*; #(
   // only a fraction of it.
   // TODO(zarubaf): Fix. This might not be a problem since the lookup address
   // will be aligned to the PTE size.
-  // `ASSERT_INIT(VPNSanity, VPN_SIZE + $clog2(PTESize) <= PAGE_SHIFT)
+  // `ASSERT_INIT(VPNSanity, VpnSize + $clog2(PTESize) <= PageShift)
 endmodule

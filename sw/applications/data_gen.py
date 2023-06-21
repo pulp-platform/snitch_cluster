@@ -28,7 +28,8 @@ def array_to_cstr(a, fmt=float):
         for el in a:
             out += '{}, '.format(el)
     else:
-        for sign, exp, mant in zip(a['sign'].numpy().flat, a['exponent'].numpy().flat, a['mantissa'].numpy().flat):
+        for sign, exp, mant in zip(a['sign'].numpy().flat, a['exponent']
+                                   .numpy().flat, a['mantissa'].numpy().flat):
             value = sign * 2**7 + exp * 2**2 + mant
             out += "0x{:02x}, ".format(value)
     out = out[:-2] + '}'
@@ -83,11 +84,16 @@ def emit_conv2d_layer(name='conv2d', **kwargs):
     layer_str += f'\t.FW = {fw}\n'
     layer_str += '};\n\n\n'
 
-    layer_str += f'static double {name}_result[{oh}][{ow}][{co}] __attribute__((section(".data")));\n\n'
-    layer_str += f'static double {name}_checksum[{oh}][{ow}] = ' + array_to_cstr(torch.sum(ofmap, dim=-1)) + ';\n\n\n'
-    layer_str += f'static double {name}_ifmap_dram[{ih}][{iw}][{ci}] = ' + array_to_cstr(ifmap) + ';\n\n\n'
-    layer_str += f'static double {name}_weights_dram[{co}][{ci}][{fh}][{fw}] = ' + array_to_cstr(weights) + ';\n\n\n'
-    layer_str += f'static double {name}_ofmap_dram[{oh}][{ow}][{co}] = ' + array_to_cstr(ofmap) + ';\n\n\n'
+    layer_str += f'static double {name}_result[{oh}][{ow}][{co}]' \
+                 + '__attribute__((section(".data")));\n\n'
+    layer_str += f'static double {name}_checksum[{oh}][{ow}] = ' \
+                 + array_to_cstr(torch.sum(ofmap, dim=-1)) + ';\n\n\n'
+    layer_str += f'static double {name}_ifmap_dram[{ih}][{iw}][{ci}] = ' \
+                 + array_to_cstr(ifmap) + ';\n\n\n'
+    layer_str += f'static double {name}_weights_dram[{co}][{ci}][{fh}][{fw}] = ' \
+                 + array_to_cstr(weights) + ';\n\n\n'
+    layer_str += f'static double {name}_ofmap_dram[{oh}][{ow}][{co}] = ' \
+                 + array_to_cstr(ofmap) + ';\n\n\n'
 
     return layer_str
 
@@ -130,11 +136,16 @@ def emit_GEMM_layer(name='gemm', **kwargs):
 
     dtype = ctypes[str(kwargs['prec'])]
     if dtype != 'char':
-        layer_str += f'static {dtype} {name}_A_dram [{m}][{k}] = ' + array_to_cstr(mat_A) + ';\n\n\n'
-        layer_str += f'static {dtype} {name}_B_dram [{k}][{n}] = ' + array_to_cstr(mat_B) + ';\n\n\n'
-        layer_str += f'static {dtype} {name}_C_dram [{m}][{n}] = ' + array_to_cstr(mat_C) + ';\n\n\n'
-        layer_str += f'static {dtype} {name}_result[{m}][{n}] __attribute__((section(".data")));\n\n'
-        layer_str += f'static {dtype} {name}_checksum[{m}] = ' + array_to_cstr(torch.sum(result, dim=-1)) + ';\n\n\n'
+        layer_str += f'static {dtype} {name}_A_dram [{m}][{k}] = ' \
+                     + array_to_cstr(mat_A) + ';\n\n\n'
+        layer_str += f'static {dtype} {name}_B_dram [{k}][{n}] = ' \
+                     + array_to_cstr(mat_B) + ';\n\n\n'
+        layer_str += f'static {dtype} {name}_C_dram [{m}][{n}] = ' \
+                     + array_to_cstr(mat_C) + ';\n\n\n'
+        layer_str += f'static {dtype} {name}_result[{m}][{n}]' \
+                     + ' __attribute__((section(".data")));\n\n'
+        layer_str += f'static {dtype} {name}_checksum[{m}] = ' \
+                     + array_to_cstr(torch.sum(result, dim=-1)) + ';\n\n\n'
     else:
         layer_str += f'static {dtype} {name}_A_dram [{m}][{k}] = ' + \
             array_to_cstr(kwargs['bits_A'], fmt='char') + ';\n\n\n'
@@ -167,12 +178,18 @@ def emit_batchnorm_layer(name='batchnorm', **kwargs):
     layer_str += f'\t.OW = {ow},\n'
     layer_str += '};\n\n\n'
 
-    layer_str += f'static double {name}_result[{oh}][{ow}][{co}] __attribute__((section(".data")));\n\n'
-    layer_str += f'static double {name}_checksum[{oh}][{ow}] = ' + array_to_cstr(torch.sum(ofmap, dim=-1)) + ';\n\n\n'
-    layer_str += f'static double {name}_ifmap_dram[{ih}][{iw}][{ci}] = ' + array_to_cstr(ifmap) + ';\n\n\n'
-    layer_str += f'static double {name}_beta_dram[{ci}] = ' + array_to_cstr(beta) + ';\n\n\n'
-    layer_str += f'static double {name}_gamma_dram[{ci}] = ' + array_to_cstr(gamma) + ';\n\n\n'
-    layer_str += f'static double {name}_ofmap_dram[{oh}][{ow}][{co}] = ' + array_to_cstr(ofmap) + ';\n\n\n'
+    layer_str += f'static double {name}_result[{oh}][{ow}][{co}]' \
+                 + ' __attribute__((section(".data")));\n\n'
+    layer_str += f'static double {name}_checksum[{oh}][{ow}] = ' \
+                 + array_to_cstr(torch.sum(ofmap, dim=-1)) + ';\n\n\n'
+    layer_str += f'static double {name}_ifmap_dram[{ih}][{iw}][{ci}] = ' \
+                 + array_to_cstr(ifmap) + ';\n\n\n'
+    layer_str += f'static double {name}_beta_dram[{ci}] = ' \
+                 + array_to_cstr(beta) + ';\n\n\n'
+    layer_str += f'static double {name}_gamma_dram[{ci}] = ' \
+                 + array_to_cstr(gamma) + ';\n\n\n'
+    layer_str += f'static double {name}_ofmap_dram[{oh}][{ow}][{co}] = ' \
+                 + array_to_cstr(ofmap) + ';\n\n\n'
 
     return layer_str
 
@@ -199,10 +216,14 @@ def emit_maxpool_layer(name='maxpool', **kwargs):
     layer_str += f'\t.FW = {k},\n'
     layer_str += '};\n\n\n'
 
-    layer_str += f'static double {name}_result[{oh}][{ow}][{co}] __attribute__((section(".data")));\n\n'
-    layer_str += f'static double {name}_checksum[{oh}][{ow}] = ' + array_to_cstr(torch.sum(ofmap, dim=-1)) + ';\n\n\n'
-    layer_str += f'static double {name}_ifmap_dram[{ih}][{iw}][{ci}] = ' + array_to_cstr(ifmap) + ';\n\n\n'
-    layer_str += f'static double {name}_ofmap_dram[{oh}][{ow}][{co}] = ' + array_to_cstr(ofmap) + ';\n\n\n'
+    layer_str += f'static double {name}_result[{oh}][{ow}][{co}]' \
+                 + '__attribute__((section(".data")));\n\n'
+    layer_str += f'static double {name}_checksum[{oh}][{ow}] = ' \
+                 + array_to_cstr(torch.sum(ofmap, dim=-1)) + ';\n\n\n'
+    layer_str += f'static double {name}_ifmap_dram[{ih}][{iw}][{ci}] = ' \
+                 + array_to_cstr(ifmap) + ';\n\n\n'
+    layer_str += f'static double {name}_ofmap_dram[{oh}][{ow}][{co}] = ' \
+                 + array_to_cstr(ofmap) + ';\n\n\n'
 
     return layer_str
 
@@ -272,11 +293,16 @@ def emit_fusedconv(name='fusedconv', **kwargs):
 
     layer_str += f'static {dtype} {name}_pInBuffer_dram[{ih_pad}][{iw_pad}][{ci}] = ' + \
         array_to_cstr(ifmap_padded) + ';\n\n'
-    layer_str += f'static {dtype} {name}_pWeight_dram[{co}][{fh}][{fw}][{ci}] = {array_to_cstr(kernel)};\n\n'
-    layer_str += f'static {dtype} {name}_lambda_dram[{ci}] = {array_to_cstr(bn_l)};\n\n'
-    layer_str += f'static {dtype} {name}_kappa_dram[{ci}] = {array_to_cstr(bn_k)};\n\n'
-    layer_str += f'static {dtype} {name}_pOutBuffer_dram[{oh}][{ow}][{co}] = {array_to_cstr(ofmap_before)};\n\n'
-    layer_str += f'static {dtype} {name}_pCheckOutBuffer_dram[{oh}][{ow}][{co}] = {array_to_cstr(ofmap)};\n\n'
+    layer_str += f'static {dtype} {name}_pWeight_dram[{co}][{fh}][{fw}][{ci}] = ' \
+                 f'{array_to_cstr(kernel)};\n\n'
+    layer_str += f'static {dtype} {name}_lambda_dram[{ci}] = ' \
+                 f'{array_to_cstr(bn_l)};\n\n'
+    layer_str += f'static {dtype} {name}_kappa_dram[{ci}] = ' \
+                 f'{array_to_cstr(bn_k)};\n\n'
+    layer_str += f'static {dtype} {name}_pOutBuffer_dram[{oh}][{ow}][{co}] = ' \
+                 f'{array_to_cstr(ofmap_before)};\n\n'
+    layer_str += f'static {dtype} {name}_pCheckOutBuffer_dram[{oh}][{ow}][{co}] = ' \
+                 f'{array_to_cstr(ofmap)};\n\n'
 
     return layer_str
 
@@ -294,10 +320,11 @@ def rand_data_generator(shape, prec, alt=False):
     elif prec == 8:
         sign = torch.randint(0, 2, shape, requires_grad=False, dtype=torch.uint8)  # -1 or 1
         exponent = torch.randint(0, 16, shape, requires_grad=False, dtype=torch.uint8)  # < 0b01111
-        mantissa = torch.randint(0, 4, shape, requires_grad=False, dtype=torch.uint8)  # can be arbitrary
+        mantissa = torch.randint(0, 4, shape, requires_grad=False, dtype=torch.uint8)
         bits = {'sign': sign, 'exponent': exponent, 'mantissa': mantissa}
         # TODO: not actually correct
-        return ((-1.0)**sign.double())*(2.0**(exponent.double()-15.0))*(1.0 + mantissa.double() / (2**2)), bits
+        return ((-1.0)**sign.double())*(2.0**(exponent.double()-15.0)) \
+            * (1.0 + mantissa.double() / (2**2)), bits
 
 
 def conv2d(ifmap, weights, padding=1, stride=1):
@@ -306,7 +333,8 @@ def conv2d(ifmap, weights, padding=1, stride=1):
 
     conv2d = nn.Conv2d(ci, co, (fh, fw), padding=((fh-1)//2, (fw-1)//2))
     conv2d.weight = nn.Parameter(weights, requires_grad=False)
-    conv2d.bias = nn.Parameter(torch.zeros_like(conv2d.bias, dtype=weights.dtype), requires_grad=False)
+    conv2d.bias = nn.Parameter(torch.zeros_like(conv2d.bias, dtype=weights.dtype),
+                               requires_grad=False)
     ofmap = conv2d(ifmap)
 
     return ofmap
@@ -372,14 +400,16 @@ def fused_conv(ifmap, weights, bn_k, bn_l, padding, stride, bn, relu, accumulate
             for w in range(0, ifmap_padded.shape[1] - (fw - 1), stride['stride_x']):
                 for c in range(co):
                     ofmap[h//stride['stride_y'], w//stride['stride_x'],
-                          c] = torch.dot(ifmap_padded[h:h+fh, w:w+fw, c].flatten(), weights[:, :, c].flatten())
+                          c] = torch.dot(ifmap_padded[h:h+fh, w:w+fw, c].flatten(),
+                                         weights[:, :, c].flatten())
     else:
         # Conv2d
         for h in range(0, ifmap_padded.shape[0] - (fh - 1), stride['stride_y']):
             for w in range(0, ifmap_padded.shape[1] - (fw - 1), stride['stride_x']):
                 for c in range(co):
                     ofmap[h//stride['stride_y'], w//stride['stride_x'],
-                          c] = torch.dot(ifmap_padded[h:h+fh, w:w+fw].flatten(), weights[c].flatten())
+                          c] = torch.dot(ifmap_padded[h:h+fh, w:w+fw].flatten(),
+                                         weights[c].flatten())
 
     ofmap += ofmap_before
 
@@ -509,7 +539,8 @@ def main():
         emit_header_file('MaxPool', **kwargs)
 
     elif param['kernel'] == 'FusedConv':
-        ifmap = torch.randn(param['dim_in_y'], param['dim_in_x'], param['ch_in'], requires_grad=False, dtype=dtype)
+        ifmap = torch.randn(param['dim_in_y'], param['dim_in_x'], param['ch_in'],
+                            requires_grad=False, dtype=dtype)
         if not param['depthwise']:
             kernel = torch.randn(param['ch_out'], param['dim_kernel_y'], param['dim_kernel_x'],
                                  param['ch_in'], requires_grad=False, dtype=dtype)
@@ -520,16 +551,17 @@ def main():
         bn_k = torch.randn(param['ch_out'], requires_grad=False)
         bn_l = torch.randn(param['ch_out'], requires_grad=False)
 
-        ofmap, ofmap_before, ifmap_padded = fused_conv(ifmap,
-                                                       kernel,
-                                                       bn_k,
-                                                       bn_l,
-                                                       param['padding'],
-                                                       param['stride'],
-                                                       param['flags']['flag_batch_norm'],
-                                                       param['flags']['flag_relu'],
-                                                       not param['flags']['flag_y_accumulate_start'],
-                                                       param['depthwise'])
+        ofmap, ofmap_before, ifmap_padded = fused_conv(
+            ifmap,
+            kernel,
+            bn_k,
+            bn_l,
+            param['padding'],
+            param['stride'],
+            param['flags']['flag_batch_norm'],
+            param['flags']['flag_relu'],
+            not param['flags']['flag_y_accumulate_start'],
+            param['depthwise'])
 
         if param['chw_layer']:
             ifmap = ifmap.permute(2, 0, 1)

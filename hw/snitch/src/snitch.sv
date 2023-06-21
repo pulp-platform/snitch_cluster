@@ -108,7 +108,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   localparam logic [31:0] DmBaseAddress = 0;
   localparam int RegWidth = RVE ? 4 : 5;
   /// Total physical address portion.
-  localparam int unsigned PPNSize = AddrWidth - PAGE_SHIFT;
+  localparam int unsigned PPNSize = AddrWidth - PageShift;
   localparam bit NSX = XF16 | XF16ALT | XF8 | XFVEC;
 
   logic illegal_inst, illegal_csr;
@@ -348,7 +348,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // ---------
   // L0 ITLB
   // ---------
-  assign itlb_va = va_t'(pc_q[31:PAGE_SHIFT]);
+  assign itlb_va = va_t'(pc_q[31:PageShift]);
 
   if (VMSupport) begin : gen_itlb
     snitch_l0_tlb #(
@@ -393,10 +393,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // ---------------------------
   // TODO(paulsc) Add CSR-based segmentation solution for case without VM without sudden jump.
   // Mulitplexer using and/or as this signal is likely timing critical.
-  assign inst_addr_o[PPNSize+PAGE_SHIFT-1:PAGE_SHIFT] =
+  assign inst_addr_o[PPNSize+PageShift-1:PageShift] =
       ({(PPNSize){trans_active}} & itlb_pa)
-    | (~{(PPNSize){trans_active}} & {{{AddrWidth-32}{1'b0}}, pc_q[31:PAGE_SHIFT]});
-  assign inst_addr_o[PAGE_SHIFT-1:0] = pc_q[PAGE_SHIFT-1:0];
+    | (~{(PPNSize){trans_active}} & {{{AddrWidth-32}{1'b0}}, pc_q[31:PageShift]});
+  assign inst_addr_o[PageShift-1:0] = pc_q[PageShift-1:0];
   assign inst_cacheable_o = snitch_pma_pkg::is_inside_cacheable_regions(SnitchPMACfg, inst_addr_o);
   assign inst_valid_o = ~wfi_q;
 
@@ -2333,7 +2333,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
             csr_rvalue = instret_q[63:32];
           end
           `endif
-          CSR_MSEG: begin
+          CsrMseg: begin
             csr_rvalue = mseg_q;
             if (!exception) mseg_d = alu_result[$bits(mseg_q)-1:0];
           end
@@ -2477,28 +2477,28 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     if (valid_instr) begin
       // Exceptions
       // Illegal Instructions.
-      if (illegal_inst || illegal_csr) cause_d[M] = ILLEGAL_INSTR;
+      if (illegal_inst || illegal_csr) cause_d[M] = IllegalInstr;
       // Environment Calls.
       if (ecall) begin
         unique case (priv_lvl_q)
-          PrivLvlM: cause_d[M] = ENV_CALL_MMODE;
-          PrivLvlS: cause_d[M] = ENV_CALL_SMODE;
-          PrivLvlU: cause_d[M] = ENV_CALL_UMODE;
-          default: cause_d[M] = ENV_CALL_MMODE;
+          PrivLvlM: cause_d[M] = EnvCallMMode;
+          PrivLvlS: cause_d[M] = EnvCallSMode;
+          PrivLvlU: cause_d[M] = EnvCallUMode;
+          default: cause_d[M] = EnvCallMMode;
         endcase
       end
 
-      if (ebreak) cause_d[M] = BREAKPOINT;
+      if (ebreak) cause_d[M] = Breakpoint;
       // Page faults.
       if (dtlb_trans_valid && dtlb_page_fault) begin
-        if (is_store) cause_d[M] = STORE_PAGE_FAULT;
-        if (is_load)  cause_d[M] = LOAD_PAGE_FAULT;
+        if (is_store) cause_d[M] = StorePageFault;
+        if (is_load)  cause_d[M] = LoadPageFault;
       end
-      if (itlb_trans_valid && itlb_page_fault) cause_d[M] = INSTR_PAGE_FAULT;
-      if (inst_addr_misaligned) cause_d[M] = INSTR_ADDR_MISALIGNED;
+      if (itlb_trans_valid && itlb_page_fault) cause_d[M] = InstrPageFault;
+      if (inst_addr_misaligned) cause_d[M] = InstrAddrMisaligned;
       // Misaligned load/stores
-      if (ld_addr_misaligned) cause_d[M] = LD_ADDR_MISALIGNED;
-      if (st_addr_misaligned) cause_d[M] = ST_ADDR_MISALIGNED;
+      if (ld_addr_misaligned) cause_d[M] = LoadAddrMisaligned;
+      if (st_addr_misaligned) cause_d[M] = StoreAddrMisaligned;
 
       // Interrupts.
       if (interrupt) begin
@@ -2679,7 +2679,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // --------------------
   // L0 DTLB
   // --------------------
-  assign dtlb_va = va_t'(alu_result[31:PAGE_SHIFT]);
+  assign dtlb_va = va_t'(alu_result[31:PageShift]);
 
   if (VMSupport) begin : gen_dtlb
     snitch_l0_tlb #(
@@ -2728,10 +2728,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign dtlb_valid = (lsu_tlb_qvalid & trans_active) | ((is_fp_load | is_fp_store) & trans_active);
 
   // Mulitplexer using and/or as this signal is likely timing critical.
-  assign ls_paddr[PPNSize+PAGE_SHIFT-1:PAGE_SHIFT] =
+  assign ls_paddr[PPNSize+PageShift-1:PageShift] =
           ({(PPNSize){trans_active}} & dtlb_pa) |
-          (~{(PPNSize){trans_active}} & {mseg_q, alu_result[31:PAGE_SHIFT]});
-  assign ls_paddr[PAGE_SHIFT-1:0] = alu_result[PAGE_SHIFT-1:0];
+          (~{(PPNSize){trans_active}} & {mseg_q, alu_result[31:PageShift]});
+  assign ls_paddr[PageShift-1:0] = alu_result[PageShift-1:0];
 
   assign lsu_qvalid = lsu_tlb_qvalid & trans_ready;
   assign lsu_tlb_qready = lsu_qready & trans_ready;

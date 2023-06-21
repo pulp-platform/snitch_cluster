@@ -9,8 +9,8 @@
 
   `define SNITCH_VM_TYPEDEF(__plen)                                                       \
     typedef struct packed {                                                               \
-      logic [``__plen``-1:snitch_pkg::PAGE_SHIFT+snitch_pkg::VPN_SIZE] ppn1;              \
-      logic [snitch_pkg::PAGE_SHIFT+snitch_pkg::VPN_SIZE-1:snitch_pkg::PAGE_SHIFT] ppn0;  \
+      logic [``__plen``-1:snitch_pkg::PageShift+snitch_pkg::VpnSize] ppn1;              \
+      logic [snitch_pkg::PageShift+snitch_pkg::VpnSize-1:snitch_pkg::PageShift] ppn0;  \
     } pa_t;                                                                               \
                                                                                           \
     typedef struct packed {                                                               \

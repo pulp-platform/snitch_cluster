@@ -9,7 +9,6 @@
 import argparse
 from pathlib import Path
 import subprocess
-import sys
 from termcolor import colored, cprint
 import re
 
@@ -17,9 +16,9 @@ import re
 BANSHEE_CFG = 'src/banshee.yaml'
 
 # Tool settings
-SIMULATORS        = ['vsim', 'banshee', 'verilator', 'vcs']
+SIMULATORS = ['vsim', 'banshee', 'verilator', 'vcs']
 DEFAULT_SIMULATOR = SIMULATORS[0]
-SIMULATOR_CMDS    = {
+SIMULATOR_CMDS = {
     'vsim': 'bin/snitch_cluster.vsim {0}',
     'banshee': (f'banshee --no-opt-llvm --no-opt-jit --configuration {BANSHEE_CFG}'
                 ' --trace {0} > /dev/null'),
@@ -118,7 +117,8 @@ def print_failed_test(test, retcode, location):
     if location == 'test':
         print(f'{colored(test, "cyan")} test {colored("failed", "red")} with exit code {retcode}')
     elif location == 'simulator':
-        print(f'Simulator {colored("failed", "red")} with exit code {retcode} during {colored(test, "cyan")} test')
+        print(f'Simulator {colored("failed", "red")}'
+              + f' with exit code {retcode} during {colored(test, "cyan")} test')
 
 
 def print_test_summary(failed_tests, dry_run=False):
@@ -158,4 +158,3 @@ def main(format_elf_path):
               args.simulator,
               args.dry_run,
               args.early_exit)
-

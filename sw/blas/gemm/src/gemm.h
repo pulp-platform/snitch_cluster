@@ -5,6 +5,7 @@
 // Author: Tim Fischer <fischeti@iis.ee.ethz.ch>
 
 #include <stdint.h>
+
 #include "snrt.h"
 
 typedef float v2f32 __attribute__((vector_size(8)));
