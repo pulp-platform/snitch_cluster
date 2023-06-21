@@ -79,7 +79,7 @@ RUN latest_tag=`curl -s -H "Accept: application/vnd.github.v3+json" https://api.
     echo "SNITCH_LLVM_VERSION=${SNITCH_LLVM_VERSION} LLVM_TAR=${LLVM_TAR} latest_tag=${latest_tag}" && \
     wget -qO- https://github.com/pulp-platform/llvm-project/releases/download/${SNITCH_LLVM_VERSION}/${LLVM_TAR} | \
     tar xvz --strip-components=1 -C riscv-llvm
-ENV PATH "/tools/riscv-llvm/bin:${PATH}"
+ENV LLVM_BINROOT "/tools/riscv-llvm/bin"
 
 # Install Verible
 RUN wget https://github.com/google/verible/releases/download/v${VERIBLE_VERSION}/verible-v${VERIBLE_VERSION}-Ubuntu-18.04-bionic-x86_64.tar.gz && \

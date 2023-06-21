@@ -12,13 +12,7 @@ variables:
   VCS:                    vcs-2020.12
   VERILATOR:              verilator-4.110
   QUESTA:                 questa-2022.3
-  RISCV_BIN_DIR:          /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin/
-  RISCV_CC:               $RISCV_BIN_DIR/clang
-  RISCV_LD:               $RISCV_BIN_DIR/lld
-  RISCV_AR:               $RISCV_BIN_DIR/llvm-ar
-  RISCV_OBJCOPY:          $RISCV_BIN_DIR/llvm-objcopy
-  RISCV_OBJDUMP:          $RISCV_BIN_DIR/llvm-objdump
-  RISCV_DWARFDUMP:        $RISCV_BIN_DIR/llvm-dwarfdump
+  LLVM_BINROOT:           /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
 
 before_script:
   - $PYTHON -m venv .venv
