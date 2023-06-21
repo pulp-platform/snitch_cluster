@@ -7,9 +7,9 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import sys
-import simutils
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent / '../../../../util'))
+import simutils
 
 
 def main():
