@@ -19,6 +19,14 @@ before_script:
   - source .venv/bin/activate
   - pip install -r python-requirements.txt
 
+##############
+# Build docs #
+##############
+
+docs:
+  script:
+    - mkdocs build
+
 #################################
 # Build Snitch cluster software #
 #################################
@@ -56,12 +64,21 @@ snitch-ip-tests:
           - tcdm_interface
   script:
     - cd hw/$IP
-    - ./util/compile.sh
-    - ./util/run_vsim.sh
+    - $QUESTA ./util/compile.sh
+    - $QUESTA ./util/run_vsim.sh
 
 ########################
 # Snitch cluster tests #
 ########################
+
+# Verilator
+snitch-cluster-vlt:
+  needs: [snitch-cluster-sw]
+  script:
+    - cd target/snitch_cluster
+    - $VERILATOR make bin/snitch_cluster.vlt
+    - $VERILATOR ./sw/test/run.py sw/tests/passing-apps.list --simulator verilator
+    - $VERILATOR ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator
 
 # VCS
 snitch-cluster-vcs:
