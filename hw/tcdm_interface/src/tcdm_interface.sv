@@ -5,6 +5,7 @@
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 
 /// TCDM Interface.
+// verilog_lint: waive interface-name-style
 interface TCDM_BUS #(
   /// The width of the address.
   parameter int  ADDR_WIDTH = -1,
@@ -53,6 +54,7 @@ interface TCDM_BUS #(
 endinterface
 
 /// TCDM Interface for verficiation purposes.
+// verilog_lint: waive interface-name-style
 interface TCDM_BUS_DV #(
   /// The width of the address.
   parameter int  ADDR_WIDTH = -1,
