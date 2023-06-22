@@ -18,6 +18,7 @@
 /// un-modified value (the value read before an operation was performed).For
 /// further details see docs/index.md
 
+// verilog_lint: waive interface-name-style
 interface REQRSP_BUS #(
   /// The width of the address.
   parameter int ADDR_WIDTH = -1,
@@ -64,6 +65,7 @@ interface REQRSP_BUS #(
 endinterface
 
 // The DV interface additionally caries a clock signal.
+// verilog_lint: waive interface-name-style
 interface REQRSP_BUS_DV #(
   /// The width of the address.
   parameter int ADDR_WIDTH = -1,

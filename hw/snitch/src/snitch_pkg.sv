@@ -214,6 +214,7 @@ package snitch_pkg;
     longint is_seq_insn;
   } snitch_trace_port_t;
 
+  // verilog_lint: waive-start line-length
   function automatic string print_snitch_trace(snitch_trace_port_t snitch_trace);
     string extras_str = "{";
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "source", snitch_trace.source);
@@ -248,6 +249,7 @@ package snitch_pkg;
     extras_str = $sformatf("%s}", extras_str);
     return extras_str;
   endfunction
+  // verilog_lint: waive-stop line-length
 
   // Trace-Port Definitions
   typedef struct packed {
