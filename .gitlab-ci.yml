@@ -74,11 +74,13 @@ snitch-ip-tests:
 # Verilator
 snitch-cluster-vlt:
   needs: [snitch-cluster-sw]
+  # yamllint disable rule:line-length
   script:
     - cd target/snitch_cluster
     - $VERILATOR make bin/snitch_cluster.vlt
     - $VERILATOR ./sw/test/run.py sw/tests/passing-apps.list --simulator verilator
     - $VERILATOR ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator
+  # yamllint enable rule:line-length
 
 # VCS
 snitch-cluster-vcs:
