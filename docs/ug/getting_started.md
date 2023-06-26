@@ -1,34 +1,37 @@
 # Getting Started
 
-## Quick Start
+In the following some quick start instructions are given. A more detailed documentation on how to use the Snitch cluster setup is given [here](../snitch_cluster/).
+
+## Quick Start with Ubuntu Docker Image
 
 This will take you through the necessary steps to get a sample program running on a cluster of Snitch cores.
 
 1. Clone the repository.
    ```
-   git clone https://github.com/pulp-platform/snitch.git --recurse-submodules
+   git clone https://github.com/pulp-platform/snitch_cluster.git --recurse-submodules
    ```
 2. Start the Docker container containing all necessary development tools. If you
    do not want (or can not) use Docker please see the
    [prerequisites](#prerequisites) sections on how to obtain all required tools.
     ```
-    docker run -it -v `pwd`/snitch:/repo -w /repo ghcr.io/pulp-platform/snitch
+    docker run -it -v `pwd`/snitch_cluster:/repo -w /repo ghcr.io/pulp-platform/snitch_cluster
     ```
-3. To simulate a cluster of Snitch cores go to `hw/system/snitch_cluster` and build the Verilator model for the Snitch cluster.
+3. Enter the `snitch_cluster` target:
     ```
-    cd hw/system/snitch_cluster
-    make bin/snitch_cluster.vlt
+    cd target/snitch_cluster
     ```
 4. Build the software.
     ```
-    mkdir sw/build
-    cd sw/build
-    cmake ..
-    make
+    make sw
     ```
-5. Run a sample application on the Verilator model.
+5. To simulate a cluster of Snitch cores you need to build the Verilator model for the Snitch cluster.
     ```
-    ./bin/snitch_cluster.vlt sw/build/benchmark/benchmark-matmul-all
+    make bin/snitch_cluster.vlt
+    ```
+6. Rrun sample tests and applications on the Verilator model.
+    ```
+    ./sw/tests/run.py sw/tests/passing-apps.list --simulator verilator
+    ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator
     ```
 6. Generate the annotated traces and inspect the trace for core 0.
     ```
@@ -36,7 +39,7 @@ This will take you through the necessary steps to get a sample program running o
     less trace_hart_00000000.txt
     ```
     Optionally you can inspect the dumped waveforms (`snitch_cluster.vcd`).
-    `spike-dasm` is required to generate the traces. Using the source from this repository supports disassembly of Snitch-custom instructions:
+    `spike-dasm` is required to generate the traces. Using the source from this repository supports disassembly of Snitch-custom instructions.
     ```
     cd sw/vendor/riscv-isa-sim
     mkdir build; cd build
@@ -52,6 +55,63 @@ This will take you through the necessary steps to get a sample program running o
     ./util/trace/annotate.py -o annotated.s sw/build/benchmark/benchmark-matmul-all hw/system/snitch_cluster/logs/trace_hart_00001.txt
     ```
     The generated `annotated.s` interleaves source code with retired instructions.
+
+## Quick Start on IIS Machines
+
+First, be aware of the shell which you are using.
+
+1. We recommend using bash:
+    ```bash
+    bash
+    ```
+2. Clone the repository and enter the directory.
+   ```bash
+   git clone https://github.com/pulp-platform/snitch_cluster.git --recurse-submodules
+   cd snitch_cluster
+   ```
+3. Set the correct environmental variables to ensure you are using the correct tool versions.
+    ```bash
+    export PYTHON=/usr/local/anaconda3-2022.05/bin/python3
+    export BENDER=bender-0.27.1
+    export CC=gcc-9.2.0
+    export CXX=g++-9.2.0
+    export VCS=vcs-2020.12
+    export VERILATOR=verilator-4.110
+    export QUESTA=questa-2022.3
+    export LLVM_BINROOT=/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
+    ```
+4. Install the python dependencies.
+    ```bash
+    $PYTHON -m venv .venv
+    source .venv/bin/activate
+    pip install -r python-requirements.txt
+    ```
+5. Enter the `snitch_cluster` target.
+    ```bash
+    cd target/snitch_cluster
+    ```
+6. Build the software.
+    ```bash
+    make sw
+    ```
+7. Compile the hardware for **Verilator** and run the SW tests.
+    ```bash
+    $VERILATOR make bin/snitch_cluster.vlt
+    $VERILATOR ./sw/test/run.py sw/tests/passing-apps.list --simulator verilator
+    $VERILATOR ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator
+    ```
+    or compile the hardware for **VCS** and run the SW tests.
+    ```bash
+    $VCS make bin/snitch_cluster.vcs
+    $VCS ./sw/test/run.py sw/tests/passing-apps.list --simulator vcs
+    $VCS ./sw/apps/run.py sw/apps/passing-apps.list --simulator vcs
+    ```
+    or compile the hardware for **Modelsim** and run the SW tests.
+    ```bash
+    $QUESTA make bin/snitch_cluster.vsim
+    $QUESTA ./sw/test/run.py sw/tests/passing-apps.list --simulator vsim
+    $QUESTA ./sw/apps/run.py sw/apps/passing-apps.list --simulator vsim
+    ```
 
 ## Prerequisites
 
@@ -103,4 +163,3 @@ An alternative way, if you have Rust installed, is `cargo install bender`.
 
 - We use `verible` for style linting. Either build it from [source](https://github.com/google/verible) or, if available for your platform,  use one of the [pre-built images](https://github.com/google/verible/releases).
 - We support simulation with Verilator, VCS and Modelsim.
-
