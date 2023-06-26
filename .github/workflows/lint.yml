@@ -25,6 +25,7 @@ jobs:
           fail_on_error: true
           reviewdog_reporter: github-check
           extra_args: "--waiver_files util/lint/waiver.verible"
+          verible_version: "v0.0-3318-g8d254167"
 
   #####################
   # Vendor Up-to-Date #
