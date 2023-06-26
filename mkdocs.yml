@@ -8,8 +8,8 @@ theme:
   icon:
     repo: fontawesome/brands/github
 
-repo_url: https://github.com/pulp-platform/snitch
-repo_name: pulp-platform/snitch
+repo_url: https://github.com/pulp-platform/snitch_cluster
+repo_name: pulp-platform/snitch_cluster
 
 markdown_extensions:
   - admonition
@@ -26,36 +26,26 @@ nav:
   - Home: index.md
   - User Guide:
       - Getting Started: ug/getting_started.md
-      - Benchmarking: ug/benchmarking.md
-      - Tooling Setup at IIS: ug/setup-iis.md
-      - Trace Example: ug/example_trace.html
-      - Docker: ug/docker.md
-      - Directory Structure: ug/directory_structure.md
-      - Documentation: ug/documentation.md
-  - Systems:
+      - Repository Setup:
+          - Docker: ug/docker.md
+          - Directory Structure: ug/directory_structure.md
+          - Documentation: ug/documentation.md
       - Snitch Cluster:
           - Guide: ug/snitch_cluster.md
           - Schema: schema-doc/snitch_cluster.md
-      - Occamy:
-          - Guide: ug/occamy_system/occamy.md
-          - Architecture:
-              - Overview: ug/occamy_system/1_overview.md
-              - Address Map: ug/occamy_system/2_addrmap.md
-              - System Components: ug/occamy_system/3_system_components.md
-              - Clocking: ug/occamy_system/4_clocking.md
-              - Interrupts and Synchronization: 5_interrupts_and_synchronization.md
-          - Schema: schema-doc/occamy.md
-  - Reference Manual:
-      - Snitch: rm/snitch/index.md
-      - Snitch Cluster: rm/snitch_cluster/index.md
+          - Benchmarking: ug/benchmarking.md
+          - Trace Example: ug/example_trace.html
+  - HW IPs Reference Manual:
+      - Snitch: rm/snitch.md
+      - Snitch Cluster: rm/snitch_cluster.md
       - Reqrsp Interface: rm/reqrsp_interface/index.md
       - Custom Instructions: rm/custom_instructions.md
-  - Snitch Runtime:
+      # - Solder: rm/solder.md
+  - Snitch SW Runtime:
       - Pages: runtime/Pages/index.md
       - Files: runtime/Files/index.md
       - Classes: runtime/Classes/index.md
       - Examples: runtime/Examples/index.md
       - Modules: runtime/Modules/index.md
       - Namespaces: runtime/Namespaces/index.md
-      # - Solder: rm/solder.md
   - Publications: publications.md
