@@ -1,42 +1,42 @@
-# Docker Container
+# Docker container
 
-Docker container based on Ubuntu 18.04 LTS containing various hardware and
-software development tools for Snitch.
+This directory contains the [Docker file](Dockerfile) used to build the `snitch_cluster` Docker container. The container is based on the Ubuntu 18.04 LTS image and comes with all free development tools for Snitch pre-installed. The environment is also already configured, such that no additional steps are required to work in the container after installation.
 
-## Pre-built Container
+## Installation
 
-There is an experimental version of the container available.
-To download, first login to the GitHub container registry:
+### Pre-built container
+
+There is a pre-built version of the container available online. This version is up to date with the latest developments on the `main` branch. The CI publishes a new container every time a new commit is pushed to this branch.
+
+To download the container, first login to the GitHub container registry:
 ```shell
 $ docker login ghcr.io
 ```
 You will be asked for a username (your GitHub username).
 As a password you should use a
-[PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+[personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
 that at least has package registry read permission.
 
-Then you can run:
-
+You can then install the container by running:
 ```shell
-$ docker pull ghcr.io/pulp-platform/snitch
+$ docker pull ghcr.io/pulp-platform/snitch_cluster
 ```
 
-## Using the Container
+### Build instructions
 
-To run container in interactive mode:
+In case you cannot use the pre-built container, e.g. if you need to make changes to the Dockerfile, you can build the
+container locally by running the following command in the root of the repository:
 
 ```shell
-$ docker run -it -v $REPO_TOP:/repo -w /repo ghcr.io/pulp-platform/snitch
+$ sudo docker build -t ghcr.io/pulp-platform/snitch_cluster -f util/container/Dockerfile .
 ```
 
-## Local Build Instructions
+## Usage
 
-In case you do not want to use the pre-built container you can also build the
-container in local mode:
+To run the container in interactive mode:
 
 ```shell
-$ cd $REPO_TOP
-$ sudo docker build -t ghcr.io/pulp-platform/snitch -f util/container/Dockerfile .
+$ docker run -it -v $REPO_TOP:/repo -w /repo ghcr.io/pulp-platform/snitch_cluster
 ```
 
 ## Limitations
