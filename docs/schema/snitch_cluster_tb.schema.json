@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "http://pulp-platform.org/snitch/snitch_cluster_tb.schema.json",
+    "$id": "http://pulp-platform.org/snitch_cluster/snitch_cluster_tb.schema.json",
     "title": "Snitch Cluster TB Schema",
     "description": "Description for a very simple single-cluster testbench. That is the most minimal system available. Most of the hardware is emulated by the testbench.",
     "type": "object",
@@ -9,7 +9,7 @@
     ],
     "properties": {
         "cluster": {
-            "$ref": "http://pulp-platform.org/snitch/snitch_cluster.schema.json"
+            "$ref": "http://pulp-platform.org/snitch_cluster/snitch_cluster.schema.json"
         },
         "dram": {
             "title": "DRAM",
