@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema#",
-    "$id": "http://pulp-platform.org/snitch/snitch_cluster.schema.json",
+    "$id": "http://pulp-platform.org/snitch_cluster/snitch_cluster.schema.json",
     "title": "Snitch Cluster Schema",
     "description": "Base description of a Snitch cluster and its internal structure and configuration.",
     "type": "object",

@@ -12,6 +12,7 @@ jobs:
   # Verible Lint #
   ################
   verible-lint:
+    name: Lint Verilog sources
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -25,15 +26,17 @@ jobs:
           fail_on_error: true
           reviewdog_reporter: github-check
           extra_args: "--waiver_files util/lint/waiver.verible"
+          verible_version: "v0.0-3318-g8d254167"
 
   #####################
   # Vendor Up-to-Date #
   #####################
   bender-vendor-up-to-date:
+    name: Check bender vendor up-to-date
     runs-on: ubuntu-latest
     steps:
       - name: Check bender vendor up-to-date
-        uses: pulp-platform/pulp-actions/bender-vendor-up-to-date@v2
+        uses: pulp-platform/pulp-actions/bender-vendor-up-to-date@v2.1.0
 
   ######################
   # Opcodes Up-to-Date #
@@ -61,7 +64,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check License
-        uses: pulp-platform/pulp-actions/lint-license@patch/license-checker
+        uses: pulp-platform/pulp-actions/lint-license@v2.1.0
         with:
           patches: 0001-Allow-hash-comments-in-assembly.patch
           # We cover ETH Zurich and lowRISC licenses and Apache 2.0

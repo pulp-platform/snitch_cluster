@@ -1,0 +1,11 @@
+# These owners will be the default owners for everything in the repo.
+# Unless a later match takes precedence, global owners below will be
+# requested for review when someone opens a pull request.
+
+* @paulsc96 @colluca
+
+hw/snitch_cluster @paulsc96 @lucabertaccini
+hw/snitch_dma @paulsc96 @thommythomaso
+hw/snitch_icache @paulsc96 @SamuelRiedel
+
+sw @colluca @fischeti @viv-eth

@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check Gitlab CI
-        uses: pulp-platform/pulp-actions/gitlab-ci@v2
+        uses: pulp-platform/pulp-actions/gitlab-ci@v2.1.0
         # Skip on forks or pull requests from forks due to missing secrets.
         if:
           # yamllint disable rule:line-length

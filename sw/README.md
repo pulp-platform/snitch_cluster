@@ -4,15 +4,11 @@ This subdirectory contains the various bits and pieces of software for the Snitc
 
 ## Contents
 
-### Simulator
-
-The `banshee` directory contains an LLVM-based binary translation simulator for Snitch systems that is capable of specifically emulating the custom instruction set extensions. See `banshee/README.md` for more details.
-
 ### Libraries
 
 - `applications`: Contains applications and kernels, mostly NN-related with SW testbenches for performance profiling.
 - `cmake`: Bits and pieces for integration with the CMake build system.
-- `snRuntime`: The fundamental, bare-metal runtime for Snitch systems. Exposes a minimal API to manage execution of code across the available cores and clusters, query information about a thread's context, and to coordinate and exchange data with other threads.
+- `snRuntime`: The fundamental, bare-metal runtime for Snitch systems. Exposes a minimal API to manage execution of code across the available cores and clusters, query information about a thread's context, and to coordinate and exchange data with other threads. Hardware configuration dependent implementations of the `snRuntime` can be found, e.g., under `target/snitch_cluster/sw/snRuntime`.
 - `snBLAS`: A minimal reference implementation of the basic linear algebra subprograms that demonstrates the use of Snitch and its extensions.
 
 ### Tests
@@ -25,3 +21,4 @@ The `banshee` directory contains an LLVM-based binary translation simulator for 
 The `deps` directory contains third-party tools that we inline into this repository for ease of use.
 
 - `deps/riscv-opcodes`: Utilities to manage instruction encodings and generate functions and data structurse for parsing and representation in various languages.
+- `deps/printf`: A printf / sprintf implementation for embedded systems.
