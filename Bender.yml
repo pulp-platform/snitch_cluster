@@ -232,9 +232,9 @@ sources:
       - target/common/test/tb_bin.sv
 
   # target/snitch_cluster
-  - target: generated
+  - target: snitch_cluster
     files:
       - target/snitch_cluster/generated/snitch_cluster_wrapper.sv
-  - target: all(generated, any(simulation, verilator))
+  - target: all(snitch_cluster, any(simulation, verilator))
     files:
       - target/snitch_cluster/test/testharness.sv
