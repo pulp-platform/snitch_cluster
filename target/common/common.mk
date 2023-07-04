@@ -24,7 +24,6 @@ TB_SRCS   := $(wildcard ${ROOT}/hw/ip/test/*.sv)
 TB_DIR    := ${ROOT}/target/common/test
 
 VSIM_BENDER   += -t test -t rtl -t simulation -t vsim
-VSIM_SOURCES   = $(shell ${BENDER} script flist ${VSIM_BENDER} | ${SED_SRCS})
 VSIM_BUILDDIR := work-vsim
 
 # fesvr is being installed here
@@ -44,7 +43,6 @@ VLT_FLAGS    += -Wno-UNOPTFLAT
 VLT_FLAGS    += -Wno-fatal
 VLT_FLAGS    += --unroll-count 1024
 VLT_BENDER   += -t rtl
-VLT_SOURCES  := $(shell ${BENDER} script flist ${VLT_BENDER} | ${SED_SRCS})
 VLT_CFLAGS   += -std=c++14 -pthread
 VLT_CFLAGS   +=-I ${VLT_BUILDDIR} -I $(VLT_ROOT)/include -I $(VLT_ROOT)/include/vltstd -I $(VLT_FESVR)/include -I $(TB_DIR)
 

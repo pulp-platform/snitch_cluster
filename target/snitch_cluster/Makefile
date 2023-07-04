@@ -36,9 +36,8 @@ REGGEN          ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_ope
 CLUSTER_GEN     ?= $(ROOT)/util/clustergen.py
 CLUSTER_GEN_SRC ?= $(wildcard $(ROOT)/util/clustergen/*.py)
 
-QUESTA_64BIT = -64
-VSIM      	?= vsim ${QUESTA_64BIT}
-VLOG      	?= vlog ${QUESTA_64BIT}
+VSIM      	?= vsim
+VLOG      	?= vlog
 
 #########################
 # Files and directories #
@@ -66,6 +65,13 @@ CFG         = cfg/lru.hjson
 VSIM_BENDER += -t snitch_cluster
 VLT_BENDER  += -t snitch_cluster
 
+VLT_SOURCES  := $(shell ${BENDER} script flist ${VLT_BENDER} | ${SED_SRCS})
+VSIM_SOURCES := $(shell ${BENDER} script flist ${VSIM_BENDER} | ${SED_SRCS})
+
+QUESTA_64BIT = -64
+VLOG_64BIT   = -64
+
+VSIM_FLAGS += ${QUESTA_64BIT}
 VSIM_FLAGS += -t 1ps
 VSIM_FLAGS += -voptargs=+acc
 VSIM_FLAGS += -do "log -r /*; run -a"
@@ -74,7 +80,7 @@ VLOG_FLAGS += -svinputport=compat
 VLOG_FLAGS += -override_timescale 1ns/1ps
 VLOG_FLAGS += -suppress 2583
 VLOG_FLAGS += -suppress 13314
-VLOG_FLAGS += ${QUESTA_64BIT}
+VLOG_FLAGS += ${VLOG_64BIT}
 
 VLT_FLAGS  += --trace
 
