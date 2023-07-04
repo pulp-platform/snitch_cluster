@@ -1,2 +1,8 @@
 blas/axpy
 blas/gemm
+sndnn/batchnorm
+sndnn/fusedconv
+sndnn/linear
+sndnn/maxpool
+sndnn/gelu
+sndnn/gemm

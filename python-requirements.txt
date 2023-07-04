@@ -20,3 +20,4 @@ termcolor
 pandas
 
 -r docs/requirements.txt
+-r sw/snDNN/requirements.txt

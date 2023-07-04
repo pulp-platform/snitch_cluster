@@ -13,7 +13,7 @@ else
 RUNTIME = runtime/rtl
 endif
 
-SUBDIRS = apps tests runtime/banshee runtime/rtl
+SUBDIRS = runtime/banshee runtime/rtl libraries/snDNN apps tests
 
 .PHONY: all $(SUBDIRS)
 
@@ -27,5 +27,5 @@ apps: $(RUNTIME)
 tests: $(RUNTIME)
 	$(MAKE) -C $@ $(TARGET)
 
-runtime/rtl runtime/banshee:
+runtime/rtl runtime/banshee libraries/snDNN:
 	$(MAKE) -C $@ $(TARGET)
