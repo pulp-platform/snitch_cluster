@@ -64,9 +64,11 @@ CFG         = cfg/lru.hjson
 
 VSIM_BENDER += -t snitch_cluster
 VLT_BENDER  += -t snitch_cluster
+VCS_BENDER  += -t snitch_cluster
 
 VLT_SOURCES  := $(shell ${BENDER} script flist ${VLT_BENDER} | ${SED_SRCS})
 VSIM_SOURCES := $(shell ${BENDER} script flist ${VSIM_BENDER} | ${SED_SRCS})
+VCS_SOURCES  := $(shell ${BENDER} script flist ${VCS_BENDER} | ${SED_SRCS})
 
 QUESTA_64BIT = -64
 VLOG_64BIT   = -64
@@ -249,12 +251,12 @@ bin/snitch_cluster.vsim: ${VSIM_BUILDDIR}/compile.vsim.tcl work/lib/libfesvr.a
 
 # Clean all build directories and temporary files for VCS simulation
 clean-vcs: clean-work
-	rm -rf bin/snitch_cluster.vcs work-vcs
+	rm -rf bin/snitch_cluster.vcs $(VCS_BUILDDIR) vc_hdrs.h
 
 # Build compilation script and compile all sources for VCS simulation
-bin/snitch_cluster.vcs: work-vcs/compile.sh work/lib/libfesvr.a $(GENERATED_DIR)/snitch_cluster_wrapper.sv ${TB_DIR}/common_lib.cc $(GENERATED_DIR)/bootdata.cc
+bin/snitch_cluster.vcs: ${VCS_SOURCES} ${TB_SRCS} $(VCS_BUILDDIR)/compile.sh work/lib/libfesvr.a $(GENERATED_DIR)/snitch_cluster_wrapper.sv ${TB_DIR}/common_lib.cc $(GENERATED_DIR)/bootdata.cc
 	mkdir -p bin
-	vcs -Mlib=work-vcs -Mdir=work-vcs -o bin/snitch_cluster.vcs -cc $(CC) -cpp $(CXX) \
+	vcs -Mlib=$(VCS_BUILDDIR) -Mdir=$(VCS_BUILDDIR) -o bin/snitch_cluster.vcs -cc $(CC) -cpp $(CXX) \
 		-assert disable_cover -override_timescale=1ns/1ps -full64 tb_bin ${TB_DIR}/rtl_lib.cc ${TB_DIR}/common_lib.cc $(GENERATED_DIR)/bootdata.cc \
 		-CFLAGS "-std=c++14 -I${MKFILE_DIR} -I${MKFILE_DIR}/test -I${FESVR}/include -I${TB_DIR}" -LDFLAGS "-L${FESVR}/lib" -lfesvr
 

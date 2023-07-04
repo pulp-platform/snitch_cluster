@@ -26,6 +26,11 @@ TB_DIR    := ${ROOT}/target/common/test
 VSIM_BENDER   += -t test -t rtl -t simulation -t vsim
 VSIM_BUILDDIR := work-vsim
 
+# VCS_BUILDDIR should to be the same as the `DEFAULT : ./work-vcs`
+# in target/snitch_cluster/synopsys_sim.setup
+VCS_BENDER   += -t test -t rtl -t simulation -t vcs
+VCS_BUILDDIR := work-vcs
+
 # fesvr is being installed here
 FESVR          ?= ${MKFILE_DIR}work
 FESVR_VERSION  ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
@@ -159,11 +164,11 @@ endef
 #######
 # VCS #
 #######
-work-vcs/compile.sh: ${VSIM_SOURCES} ${TB_SRCS}
-	mkdir -p work-vcs
-	${BENDER} script vcs ${VSIM_BENDER} --vlog-arg="${VLOGAN_FLAGS}" --vcom-arg="${VHDLAN_FLAGS}" > $@
+$(VCS_BUILDDIR)/compile.sh:
+	mkdir -p $(VCS_BUILDDIR)
+	${BENDER} script vcs ${VCS_BENDER} --vlog-arg="${VLOGAN_FLAGS}" --vcom-arg="${VHDLAN_FLAGS}" > $@
 	chmod +x $@
-	$@ > work-vcs/compile.log
+	$@ > $(VCS_BUILDDIR)/compile.log
 
 ########
 # Util #
