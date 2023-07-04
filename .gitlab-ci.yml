@@ -78,7 +78,7 @@ snitch-cluster-vlt:
   script:
     - cd target/snitch_cluster
     - $VERILATOR make bin/snitch_cluster.vlt
-    - $VERILATOR ./sw/test/run.py sw/tests/passing-apps.list --simulator verilator
+    - $VERILATOR ./sw/tests/run.py sw/tests/passing-apps.list --simulator verilator
     - $VERILATOR ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator
   # yamllint enable rule:line-length
 
@@ -88,7 +88,7 @@ snitch-cluster-vcs:
   script:
     - cd target/snitch_cluster
     - $VCS make bin/snitch_cluster.vcs
-    - $VCS ./sw/test/run.py sw/tests/passing-apps.list --simulator vcs
+    - $VCS ./sw/tests/run.py sw/tests/passing-apps.list --simulator vcs
     - $VCS ./sw/apps/run.py sw/apps/passing-apps.list --simulator vcs
 
 # Questa
@@ -97,5 +97,5 @@ snitch-cluster-vsim:
   script:
     - cd target/snitch_cluster
     - $QUESTA make bin/snitch_cluster.vsim
-    - $QUESTA ./sw/test/run.py sw/tests/passing-apps.list --simulator vsim
+    - $QUESTA ./sw/tests/run.py sw/tests/passing-apps.list --simulator vsim
     - $QUESTA ./sw/apps/run.py sw/apps/passing-apps.list --simulator vsim
