@@ -8,6 +8,15 @@ SUBDIRS  = lto
 SUBDIRS += nop
 SUBDIRS += blas/axpy
 SUBDIRS += blas/gemm
+SUBDIRS += sndnn/batchnorm
+# SUBDIRS += sndnn/conv2d # fails with exit code 32
+SUBDIRS += sndnn/fusedconv
+SUBDIRS += sndnn/gelu
+SUBDIRS += sndnn/gemm
+# SUBDIRS += sndnn/layernorm # throws illegal instruction in simulation
+SUBDIRS += sndnn/linear
+SUBDIRS += sndnn/maxpool
+# SUBDIRS += sndnn/softmax
 
 .PHONY: all clean $(SUBDIRS)
 
