@@ -14,8 +14,9 @@ export CC=clang
 Where `clang` is the compiler that you want to use. At IIS, please use `/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin/riscv32-unknown-elf-clang`.
 Next, we create the installation directory and configure the build and installation process. 
 ```
-mkdir /snitch/sw/vendor/install
-./configure --disable-shared --prefix=/snitch/sw/vendor/install/ --with-boost-libdir=<path_to_boost_dir> --enable-wrapper=all CFLAGS="-mcpu=snitch -menable-experimental-extensions"
+mkdir install
+cd musl
+./configure --disable-shared --prefix=../install/ --with-boost-libdir=<path_to_boost_dir> --enable-wrapper=all CFLAGS="-mcpu=snitch -menable-experimental-extensions"
 ```
 Where `<path_to_boost_dir>` is the path to the `boost` library. At IIS, if you are using Alma Linux you might have to install the `boost-devel` package. 
 You can do this by retrieviing the `rpm` package and updating your `LD_LIBRARY_PATH` variable. 
@@ -29,10 +30,12 @@ Afterward, we can build and install the `musl` library.
 make -j$(nproc)
 make install
 ```
+You might have to change the permissions of the `./tools/install.sh` script. This can be done by running `chmod +x ./tools/install.sh`. 
 Finally, we need to set the `LD_LIBRARY_PATH` variable so that `Snitch` can find the `musl` library. 
 ```
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/snitch/sw/vendor/install/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<home>/snitch_cluster/sw/deps/install/lib
 ```
+where `<home>` is the path to the location where you cloned the `snitch_cluster` repository.
 
 **Important** : Whenever you change the source code of the `musl` library, you need to recompile it. 
 
