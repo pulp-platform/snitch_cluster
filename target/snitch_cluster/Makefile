@@ -16,7 +16,7 @@ SELECT_RUNTIME ?=      # Select snRuntime implementation: "banshee" or "rtl" (de
 .DEFAULT_GOAL := help
 .PHONY: all clean
 all: sw
-clean: clean-sw clean-vsim clean-vlt clean-vcs clean-logs clean-bender
+clean: clean-sw clean-work clean-vsim clean-vlt clean-vcs clean-logs clean-bender clean-generated
 
 ##########
 # Common #
@@ -192,7 +192,7 @@ $(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 
 # Clean all build directories and temporary files for Questasim simulation
 clean-vlt: clean-work
-	rm -rf $(VLT_BUILDDIR)
+	rm -rf bin/snitch_cluster.vlt $(VLT_BUILDDIR)
 
 $(VLT_AR): ${VLT_SOURCES} ${TB_SRCS}
 	$(call VERILATE,testharness)
@@ -223,7 +223,7 @@ bin/snitch_cluster.vlt: $(VLT_AR) $(VLT_COBJ) ${VLT_BUILDDIR}/lib/libfesvr.a
 
 # Clean all build directories and temporary files for Questasim simulation
 clean-vsim: clean-work
-	rm -rf bin/snitch_cluster.vsim bin/snitch_cluster.vsim.gui work-vsim vsim.wlf
+	rm -rf bin/snitch_cluster.vsim bin/snitch_cluster.vsim.gui $(VSIM_BUILDDIR) vsim.wlf
 
 ${VSIM_BUILDDIR}/compile.vsim.tcl: $(VSIM_SOURCES) ${TB_SRCS} ${TB_CC_SOURCES}
 	vlib $(dir $@)
@@ -274,10 +274,13 @@ clean-work:
 	rm -rf work
 
 clean-bender:
-	rm -rf Bender.lock .bender/
+	rm -rf $(ROOT)/Bender.lock $(ROOT)/.bender/
 
 clean-logs:
-	rm -rf logs/
+	rm -rf $(LOGS_DIR)
+
+clean-generated:
+	rm -rf $(GENERATED_DIR)
 
 # Help command
 Blue=\033[1;34m
@@ -292,16 +295,17 @@ help:
 	@echo -e "${Blue}bin/snitch_cluster.vlt  ${Black}Build compilation script and compile all sources for Verilator simulation."
 	@echo -e "${Blue}bin/snitch_cluster.vsim ${Black}Build compilation script and compile all sources for Questasim simulation."
 	@echo -e ""
-	@echo -e "${Blue}sw             ${Black}Build all software."
+	@echo -e "${Blue}sw               ${Black}Build all software."
 	@echo -e ""
-	@echo -e "${Blue}clean          ${Black}Clean everything except traces in logs directory."
-	@echo -e "${Blue}clean-bender   ${Black}Clean Bender dependencies."
-	@echo -e "${Blue}clean-sw       ${Black}Clean all software."
-	@echo -e "${Blue}clean-logs     ${Black}Delete all traces in logs directory."
-	@echo -e "${Blue}clean-vcs      ${Black}Clean all build directories and temporary files for VCS simulation."
-	@echo -e "${Blue}clean-vlt      ${Black}Clean all build directories and temporary files for Verilator simulation."
-	@echo -e "${Blue}clean-vsim     ${Black}Clean all build directories and temporary files for Questasim simulation."
+	@echo -e "${Blue}clean            ${Black}Clean everything except traces in logs directory."
+	@echo -e "${Blue}clean-bender     ${Black}Clean Bender dependencies."
+	@echo -e "${Blue}clean-sw         ${Black}Clean all software."
+	@echo -e "${Blue}clean-generated  ${Black}Delete all generated files in the generated directory."
+	@echo -e "${Blue}clean-logs       ${Black}Delete all traces in logs directory."
+	@echo -e "${Blue}clean-vcs        ${Black}Clean all build directories and temporary files for VCS simulation."
+	@echo -e "${Blue}clean-vlt        ${Black}Clean all build directories and temporary files for Verilator simulation."
+	@echo -e "${Blue}clean-vsim       ${Black}Clean all build directories and temporary files for Questasim simulation."
 	@echo -e ""
 	@echo -e "Additional useful targets from the included Makefrag:"
-	@echo -e "${Blue}traces         ${Black}Generate the better readable traces in .logs/trace_hart_<hart_id>.txt with spike-dasm."
-	@echo -e "${Blue}annotate       ${Black}Annotate the better readable traces in .logs/trace_hart_<hart_id>.s with the source code related with the retired instructions."
+	@echo -e "${Blue}traces           ${Black}Generate the better readable traces in .logs/trace_hart_<hart_id>.txt with spike-dasm."
+	@echo -e "${Blue}annotate         ${Black}Annotate the better readable traces in .logs/trace_hart_<hart_id>.s with the source code related with the retired instructions."
