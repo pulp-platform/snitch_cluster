@@ -5,9 +5,9 @@
 #include "kmp.h"
 
 #include <inttypes.h>  // for PRIx##
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 
 #include "../../../deps/riscv-opcodes/encoding.h"
 #include "omp.h"
