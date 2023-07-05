@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
+# Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
 ######################
 # Invocation options #
@@ -32,6 +33,11 @@ RISCV_STRIP     ?= $(LLVM_BINROOT)/llvm-strip
 
 # Compiler flags
 RISCV_CFLAGS += $(addprefix -I,$(INCDIRS))
+
+# musl specific flags
+RISCV_CFLAGS += -I$(SW_INSTALL_DIR)/include
+RISCV_CFLAGS += -B$(SW_INSTALL_DIR)/bin
+
 RISCV_CFLAGS += -mcpu=snitch
 RISCV_CFLAGS += -menable-experimental-extensions
 RISCV_CFLAGS += -mabi=ilp32d
@@ -40,7 +46,7 @@ RISCV_CFLAGS += -ffast-math
 RISCV_CFLAGS += -fno-builtin-printf
 RISCV_CFLAGS += -fno-common
 RISCV_CFLAGS += -fopenmp
-RISCV_CFLAGS += -O3
+
 RISCV_CFLAGS += -flto=thin
 RISCV_CFLAGS += -ffunction-sections
 RISCV_CFLAGS += -Wextra
@@ -48,16 +54,12 @@ RISCV_CFLAGS += -static
 RISCV_CFLAGS += -mllvm -enable-misched=false
 RISCV_CFLAGS += -mno-relax
 RISCV_CFLAGS += -ftls-model=local-exec
-ifeq ($(DEBUG), ON)
-RISCV_CFLAGS += -g
-endif
-ifeq ($(DEBUG), ON)
-RISCV_CFLAGS += -g
-endif
-# musl specific flags
-RISCV_CFLAGS += -I$(SW_INSTALL_DIR)/include
-RISCV_CFLAGS += -B$(SW_INSTALL_DIR)/bin
 RISCV_CFLAGS += -nostdinc
+
+RISCV_CFLAGS += -O3
+ifeq ($(DEBUG), ON)
+RISCV_CFLAGS += -g
+endif
 
 # Linker flags
 RISCV_LDFLAGS += -fuse-ld=$(RISCV_LD)
