@@ -7,6 +7,7 @@
 #include <inttypes.h>  // for PRIx##
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include "../../../deps/riscv-opcodes/encoding.h"
 #include "omp.h"
