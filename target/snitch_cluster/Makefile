@@ -66,10 +66,6 @@ VSIM_BENDER += -t snitch_cluster
 VLT_BENDER  += -t snitch_cluster
 VCS_BENDER  += -t snitch_cluster
 
-VLT_SOURCES  := $(shell ${BENDER} script flist ${VLT_BENDER} | ${SED_SRCS})
-VSIM_SOURCES := $(shell ${BENDER} script flist ${VSIM_BENDER} | ${SED_SRCS})
-VCS_SOURCES  := $(shell ${BENDER} script flist ${VCS_BENDER} | ${SED_SRCS})
-
 QUESTA_64BIT = -64
 VLOG_64BIT   = -64
 
