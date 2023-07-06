@@ -71,8 +71,7 @@ def run_test(test, format_elf_path, simulator, dry_run=False):
     print(f'$ {cmd}', flush=True)
 
     # Run test
-    retcode = 0
-    failure = {}
+    result = 1
     if not dry_run:
 
         # When simulating with vsim, we need to parse the simulation log to catch the
@@ -83,42 +82,33 @@ def run_test(test, format_elf_path, simulator, dry_run=False):
             while p.poll() is None:
                 line = p.stdout.readline()
                 print(line, end='', flush=True)
-                regex = r'\[FAILURE\] Finished with exit code\s*(\d*)'
-                match = re.search(regex, line)
-                if match:
-                    retcode = match.group(1)
+
+                # Capture success
+                regex_success = r'\[SUCCESS\] Program finished successfully'
+                match_success = re.search(regex_success, line)
+                if match_success:
+                    result = 0
 
             # Check if the subprocess terminated correctly
             if p.poll() != 0:
-                retcode = p.poll()
-                failure['location'] = 'simulator'
+                result = p.poll()
 
         else:
             p = subprocess.Popen(cmd, shell=True)
             p.wait()
-            retcode = p.returncode
+            result = p.returncode
 
-    # When test fails
-    if retcode != 0:
+    # Report failure or success
+    if result != 0:
+        cprint(f'{test} test failed', 'red', attrs=['bold'], flush=True)
+    else:
+        cprint(f'{test} test passed', 'green', attrs=['bold'], flush=True)
 
-        # Report failure
-        cprint(f'Failed with exit code {retcode}', 'red', attrs=['bold'], flush=True)
-
-        # Record failing tests for final summary
-        failure['test'] = test
-        failure['retcode'] = retcode
-        if 'location' not in failure:
-            failure['location'] = 'test'
-
-    return failure
+    return result
 
 
-def print_failed_test(test, retcode, location):
-    if location == 'test':
-        print(f'{colored(test, "cyan")} test {colored("failed", "red")} with exit code {retcode}')
-    elif location == 'simulator':
-        print(f'Simulator {colored("failed", "red")}'
-              + f' with exit code {retcode} during {colored(test, "cyan")} test')
+def print_failed_test(test):
+    print(f'{colored(test, "cyan")} test {colored("failed", "red")}')
 
 
 def print_test_summary(failed_tests, dry_run=False):
@@ -126,11 +116,12 @@ def print_test_summary(failed_tests, dry_run=False):
         print('\n==== Test summary ====')
         if failed_tests:
             for failed_test in failed_tests:
-                print_failed_test(**failed_test)
+                print_failed_test(failed_test)
             return 1
         else:
             print(f'All tests {colored("passed", "green")}!')
             return 0
+    return 0
 
 
 def run_tests(testlist, format_elf_path, simulator, dry_run=False, early_exit=False):
@@ -139,22 +130,22 @@ def run_tests(testlist, format_elf_path, simulator, dry_run=False, early_exit=Fa
     failed_tests = []
     for test in tests:
         # Run test
-        failure = run_test(test, format_elf_path, simulator, dry_run)
-        if failure:
-            failed_tests.append(failure)
+        result = run_test(test, format_elf_path, simulator, dry_run)
+        if result != 0:
+            failed_tests.append(test)
             # End program if requested on first test failure
             if early_exit:
                 break
 
-    print_test_summary(failed_tests, dry_run)
+    return print_test_summary(failed_tests, dry_run)
 
 
 # format_elf_path: function which constructs the path to an ELF binary
 #                  from a test name as listed in the test list file
 def main(format_elf_path):
     args = parse_args()
-    run_tests(args.testlist,
-              format_elf_path,
-              args.simulator,
-              args.dry_run,
-              args.early_exit)
+    return run_tests(args.testlist,
+                     format_elf_path,
+                     args.simulator,
+                     args.dry_run,
+                     args.early_exit)
