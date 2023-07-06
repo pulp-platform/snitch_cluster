@@ -13,6 +13,7 @@ variables:
   VERILATOR: verilator-4.110
   QUESTA: questa-2022.3
   LLVM_BINROOT: /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
+  CLANG: /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin/clang
 
 before_script:
   - $PYTHON -m venv .venv
@@ -36,7 +37,7 @@ snitch-cluster-sw:
     - cd sw/deps
     - mkdir install
     - cd musl
-    - CC=clang ./configure --disable-shared --prefix=../install/ --enable-wrapper=all CFLAGS="-mcpu=snitch -menable-experimental-extensions"
+    - CC=$CLANG ./configure --disable-shared --prefix=../install/ --enable-wrapper=all CFLAGS="-mcpu=snitch -menable-experimental-extensions"
     - make -j4
     - make install
     - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/../install/lib
