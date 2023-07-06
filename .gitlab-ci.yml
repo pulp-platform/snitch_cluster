@@ -33,6 +33,14 @@ docs:
 
 snitch-cluster-sw:
   script:
+    - cd sw/deps
+    - mkdir install
+    - cd musl
+    - ./configure --disable-shared --prefix=../install/ --enable-wrapper=all CFLAGS="-mcpu=snitch -menable-experimental-extensions"
+    - make -j4
+    - make install
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/../install/lib
+    - cd ../../../
     - cd target/snitch_cluster
     - make sw
   artifacts:
