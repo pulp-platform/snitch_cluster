@@ -16,9 +16,9 @@ variables:
   CLANG: /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin/clang
 
 before_script:
-- $PYTHON -m venv .venv
-- source .venv/bin/activate
-- pip install -r python-requirements.txt
+  - $PYTHON -m venv .venv
+  - source .venv/bin/activate
+  - pip install -r python-requirements.txt
 
 ##############
 # Build docs #
@@ -26,7 +26,7 @@ before_script:
 
 docs:
   script:
-  - mkdocs build
+    - mkdocs build
 
 #################################
 # Build Snitch cluster software #
@@ -34,20 +34,19 @@ docs:
 
 snitch-cluster-sw:
   script:
-  - cd sw/deps
-  - mkdir install
-  - cd musl
-  - CC=$CLANG ./configure --disable-shared --prefix=../install/ --enable-wrapper=all
-    CFLAGS="-mcpu=snitch -menable-experimental-extensions"
-  - make -j4
-  - make install
-  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/../install/lib
-  - cd ../../../
-  - cd target/snitch_cluster
-  - make sw
+    - cd sw/deps
+    - mkdir install
+    - cd musl
+    - CC=$CLANG ./configure --disable-shared --prefix=../install/ --enable-wrapper=all
+      CFLAGS="-mcpu=snitch -menable-experimental-extensions"
+    - make -j4
+    - make install
+    - cd ../../../
+    - cd target/snitch_cluster
+    - make sw
   artifacts:
     paths:
-    - target/snitch_cluster/sw/**/build/*.elf
+        - target/snitch_cluster/sw/**/build/*.elf
     expire_in: 1 day
 
 #######################
@@ -67,15 +66,15 @@ snitch-ip-tests:
   needs: []
   parallel:
     matrix:
-    - IP:
-      - mem_interface
-      - snitch_cluster
-      - snitch_icache
-      - tcdm_interface
+      - IP:
+          - mem_interface
+          - snitch_cluster
+          - snitch_icache
+          - tcdm_interface
   script:
-  - cd hw/$IP
-  - $QUESTA ./util/compile.sh
-  - $QUESTA ./util/run_vsim.sh
+    - cd hw/$IP
+    - $QUESTA ./util/compile.sh
+    - $QUESTA ./util/run_vsim.sh
 
 ########################
 # Snitch cluster tests #
@@ -86,26 +85,26 @@ snitch-cluster-vlt:
   needs: [snitch-cluster-sw]
   # yamllint disable rule:line-length
   script:
-  - cd target/snitch_cluster
-  - $VERILATOR make bin/snitch_cluster.vlt
-  - $VERILATOR ./sw/test/run.py sw/tests/passing-apps.list --simulator verilator
-  - $VERILATOR ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator
+    - cd target/snitch_cluster
+    - $VERILATOR make bin/snitch_cluster.vlt
+    - $VERILATOR ./sw/test/run.py sw/tests/passing-apps.list --simulator verilator
+    - $VERILATOR ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator
   # yamllint enable rule:line-length
 
 # VCS
 snitch-cluster-vcs:
   needs: [snitch-cluster-sw]
   script:
-  - cd target/snitch_cluster
-  - $VCS make bin/snitch_cluster.vcs
-  - $VCS ./sw/test/run.py sw/tests/passing-apps.list --simulator vcs
-  - $VCS ./sw/apps/run.py sw/apps/passing-apps.list --simulator vcs
+    - cd target/snitch_cluster
+    - $VCS make bin/snitch_cluster.vcs
+    - $VCS ./sw/test/run.py sw/tests/passing-apps.list --simulator vcs
+    - $VCS ./sw/apps/run.py sw/apps/passing-apps.list --simulator vcs
 
 # Questa
 snitch-cluster-vsim:
   needs: [snitch-cluster-sw]
   script:
-  - cd target/snitch_cluster
-  - $QUESTA make bin/snitch_cluster.vsim
-  - $QUESTA ./sw/test/run.py sw/tests/passing-apps.list --simulator vsim
-  - $QUESTA ./sw/apps/run.py sw/apps/passing-apps.list --simulator vsim
+    - cd target/snitch_cluster
+    - $QUESTA make bin/snitch_cluster.vsim
+    - $QUESTA ./sw/test/run.py sw/tests/passing-apps.list --simulator vsim
+    - $QUESTA ./sw/apps/run.py sw/apps/passing-apps.list --simulator vsim
