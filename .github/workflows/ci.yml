@@ -39,7 +39,7 @@ jobs:
           cd sw/deps
           mkdir install
           cd musl
-          CC=$RISCV_CC ./configure --disable-shared --prefix=../install/ --enable-wrapper=all CFLAGS="-mcpu=snitch -menable-experimental-extensions"
+          CC=$LLVM_BINROOT/clang ./configure --disable-shared --prefix=../install/ --enable-wrapper=all CFLAGS="-mcpu=snitch -menable-experimental-extensions"
           make -j4
           make install
           cd ../../../
