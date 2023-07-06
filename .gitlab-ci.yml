@@ -37,7 +37,8 @@ snitch-cluster-sw:
     - cd sw/deps
     - mkdir install
     - cd musl
-    - CC=$CLANG ./configure --disable-shared --prefix=../install/ --enable-wrapper=all
+    - CC=$CLANG ./configure --disable-shared --prefix=../install/
+      --enable-wrapper=all
       CFLAGS="-mcpu=snitch -menable-experimental-extensions"
     - make -j4
     - make install
@@ -46,7 +47,7 @@ snitch-cluster-sw:
     - make sw
   artifacts:
     paths:
-        - target/snitch_cluster/sw/**/build/*.elf
+      - target/snitch_cluster/sw/**/build/*.elf
     expire_in: 1 day
 
 #######################
