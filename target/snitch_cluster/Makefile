@@ -233,14 +233,14 @@ bin/snitch_cluster.vlt: $(VLT_AR) $(VLT_COBJ) ${VLT_BUILDDIR}/lib/libfesvr.a
 clean-vsim: clean-work
 	rm -rf bin/snitch_cluster.vsim bin/snitch_cluster.vsim.gui $(VSIM_BUILDDIR) vsim.wlf
 
-${VSIM_BUILDDIR}/compile.vsim.tcl: $(VSIM_SOURCES) ${TB_SRCS} ${TB_CC_SOURCES}
+${VSIM_BUILDDIR}/compile.vsim.tcl:
 	vlib $(dir $@)
 	${BENDER} script vsim ${VSIM_BENDER} --vlog-arg="${VLOG_FLAGS} -work $(dir $@) " > $@
 	echo '${VLOG} -work $(dir $@) ${TB_CC_SOURCES} -ccflags "$(TB_CC_FLAGS)"' >> $@
 	echo 'return 0' >> $@
 
 # Build compilation script and compile all sources for Questasim simulation
-bin/snitch_cluster.vsim: ${VSIM_BUILDDIR}/compile.vsim.tcl work/lib/libfesvr.a
+bin/snitch_cluster.vsim: ${VSIM_BUILDDIR}/compile.vsim.tcl $(VSIM_SOURCES) ${TB_SRCS} ${TB_CC_SOURCES} work/lib/libfesvr.a
 	$(call QUESTASIM,tb_bin)
 
 #######
@@ -254,11 +254,11 @@ clean-vcs: clean-work
 	rm -rf bin/snitch_cluster.vcs $(VCS_BUILDDIR) vc_hdrs.h
 
 # Build compilation script and compile all sources for VCS simulation
-bin/snitch_cluster.vcs: ${VCS_SOURCES} ${TB_SRCS} $(VCS_BUILDDIR)/compile.sh work/lib/libfesvr.a $(GENERATED_DIR)/snitch_cluster_wrapper.sv ${TB_DIR}/common_lib.cc $(GENERATED_DIR)/bootdata.cc
+bin/snitch_cluster.vcs: ${VCS_SOURCES} ${TB_SRCS} $(TB_CC_SOURCES) $(VCS_BUILDDIR)/compile.sh work/lib/libfesvr.a
 	mkdir -p bin
 	vcs -Mlib=$(VCS_BUILDDIR) -Mdir=$(VCS_BUILDDIR) -o bin/snitch_cluster.vcs -cc $(CC) -cpp $(CXX) \
-		-assert disable_cover -override_timescale=1ns/1ps -full64 tb_bin ${TB_DIR}/rtl_lib.cc ${TB_DIR}/common_lib.cc $(GENERATED_DIR)/bootdata.cc \
-		-CFLAGS "-std=c++14 -I${MKFILE_DIR} -I${MKFILE_DIR}/test -I${FESVR}/include -I${TB_DIR}" -LDFLAGS "-L${FESVR}/lib" -lfesvr
+		-assert disable_cover -override_timescale=1ns/1ps -full64 tb_bin $(TB_CC_SRCS) \
+		-CFLAGS $(TB_CC_FLAGS) -LDFLAGS "-L${FESVR}/lib" -lfesvr
 
 ##########
 # Traces #

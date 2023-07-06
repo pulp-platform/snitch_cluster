@@ -71,8 +71,7 @@ def run_test(test, format_elf_path, simulator, dry_run=False):
     print(f'$ {cmd}', flush=True)
 
     # Run test
-    retcode = -1
-    result = {}
+    result = 1
     if not dry_run:
 
         # When simulating with vsim, we need to parse the simulation log to catch the
@@ -83,111 +82,70 @@ def run_test(test, format_elf_path, simulator, dry_run=False):
             while p.poll() is None:
                 line = p.stdout.readline()
                 print(line, end='', flush=True)
-                regex_failure = r'\[FAILURE\] Finished with exit code\s*(\d*)'
-                match = re.search(regex_failure, line)
-                if match:
-                    retcode = match.group(1)
-                    result['location'] = 'test'
 
-                # Capture success return code
+                # Capture success
                 regex_success = r'\[SUCCESS\] Program finished successfully'
                 match_success = re.search(regex_success, line)
                 if match_success:
-                    retcode = 0
+                    result = 0
 
             # Check if the subprocess terminated correctly
             if p.poll() != 0:
-                retcode = p.poll()
-                result['location'] = 'simulator'
+                result = p.poll()
 
         else:
             p = subprocess.Popen(cmd, shell=True)
             p.wait()
-            retcode = p.returncode
+            result = p.returncode
 
-    # When test fails
-    if retcode != 0:
-
-        # Report failure
-        cprint(f'Failed with exit code {retcode}', 'red', attrs=['bold'], flush=True)
-
-        # Record failing tests for final summary
-        result['success'] = False
-        result['test'] = test
-        result['retcode'] = retcode
-        if 'location' not in result:
-            result['location'] = 'binary'
-
-    # When test passes
+    # Report failure or success
+    if result != 0:
+        cprint(f'{test} test failed', 'red', attrs=['bold'], flush=True)
     else:
-
-        # Report success
-        cprint(f'Passed with exit code {retcode}', 'green', attrs=['bold'], flush=True)
-
-        # Record failing tests for final summary
-        result['success'] = True
-        result['test'] = test
-        result['retcode'] = retcode
-        result['location'] = ''
+        cprint(f'{test} test passed', 'green', attrs=['bold'], flush=True)
 
     return result
 
 
-def print_failed_test(success, test, retcode, location):
-    if location == 'test':
-        print(f'{colored(test, "cyan")} test {colored("failed", "red")} with exit code {retcode}')
-    elif location == 'simulator':
-        print(f'{colored("Simulator failed", "red")}'
-              + f' with exit code {retcode} during {colored(test, "cyan")} test')
-    elif location == 'binary':
-        print(f'{colored("ELF file not found", "red")}'
-              + f' for {colored(test, "cyan")} test')
+def print_failed_test(test):
+    print(f'{colored(test, "cyan")} test {colored("failed", "red")}')
 
 
-def print_success_test(success, test, retcode, location):
-    print(f'{colored(test, "cyan")} test {colored("passed", "green")} with exit code {retcode}')
-
-
-def print_test_summary(successful_tests, failed_tests, dry_run=False):
+def print_test_summary(failed_tests, dry_run=False):
     if not dry_run:
         print('\n==== Test summary ====')
-        if successful_tests:
-            for successful_test in successful_tests:
-                print_success_test(**successful_test)
         if failed_tests:
             for failed_test in failed_tests:
-                print_failed_test(**failed_test)
+                print_failed_test(failed_test)
             return 1
         else:
             print(f'All tests {colored("passed", "green")}!')
             return 0
+    return 0
 
 
 def run_tests(testlist, format_elf_path, simulator, dry_run=False, early_exit=False):
     # Iterate tests
     tests = get_tests(testlist)
     failed_tests = []
-    successful_tests = []
     for test in tests:
         # Run test
         result = run_test(test, format_elf_path, simulator, dry_run)
-        if result['success']:
-            successful_tests.append(result)
-        else:
-            failed_tests.append(result)
+        if result != 0:
+            failed_tests.append(test)
             # End program if requested on first test failure
             if early_exit:
                 break
 
-    print_test_summary(successful_tests, failed_tests, dry_run)
+    return print_test_summary(failed_tests, dry_run)
 
 
 # format_elf_path: function which constructs the path to an ELF binary
 #                  from a test name as listed in the test list file
 def main(format_elf_path):
     args = parse_args()
-    run_tests(args.testlist,
-              format_elf_path,
-              args.simulator,
-              args.dry_run,
-              args.early_exit)
+    return run_tests(args.testlist,
+                     format_elf_path,
+                     args.simulator,
+                     args.dry_run,
+                     args.early_exit)
