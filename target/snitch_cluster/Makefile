@@ -16,7 +16,7 @@ SELECT_RUNTIME ?=      # Select snRuntime implementation: "banshee" or "rtl" (de
 .DEFAULT_GOAL := help
 .PHONY: all clean
 all: sw
-clean: clean-sw clean-vsim clean-vlt clean-vcs clean-logs clean-bender
+clean: clean-sw clean-work clean-vsim clean-vlt clean-vcs clean-logs clean-bender clean-generated
 
 ##########
 # Common #
@@ -36,9 +36,8 @@ REGGEN          ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_ope
 CLUSTER_GEN     ?= $(ROOT)/util/clustergen.py
 CLUSTER_GEN_SRC ?= $(wildcard $(ROOT)/util/clustergen/*.py)
 
-QUESTA_64BIT = -64
-VSIM      	?= vsim ${QUESTA_64BIT}
-VLOG      	?= vlog ${QUESTA_64BIT}
+VSIM      	?= vsim
+VLOG      	?= vlog
 
 #########################
 # Files and directories #
@@ -65,7 +64,12 @@ CFG         = cfg/lru.hjson
 
 VSIM_BENDER += -t snitch_cluster
 VLT_BENDER  += -t snitch_cluster
+VCS_BENDER  += -t snitch_cluster
 
+QUESTA_64BIT = -64
+VLOG_64BIT   = -64
+
+VSIM_FLAGS += ${QUESTA_64BIT}
 VSIM_FLAGS += -t 1ps
 VSIM_FLAGS += -voptargs=+acc
 VSIM_FLAGS += -do "log -r /*; run -a"
@@ -74,7 +78,7 @@ VLOG_FLAGS += -svinputport=compat
 VLOG_FLAGS += -override_timescale 1ns/1ps
 VLOG_FLAGS += -suppress 2583
 VLOG_FLAGS += -suppress 13314
-VLOG_FLAGS += ${QUESTA_64BIT}
+VLOG_FLAGS += ${VLOG_64BIT}
 
 VLT_FLAGS  += --trace
 
@@ -192,7 +196,7 @@ $(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 
 # Clean all build directories and temporary files for Questasim simulation
 clean-vlt: clean-work
-	rm -rf $(VLT_BUILDDIR)
+	rm -rf bin/snitch_cluster.vlt $(VLT_BUILDDIR)
 
 $(VLT_AR): ${VLT_SOURCES} ${TB_SRCS}
 	$(call VERILATE,testharness)
@@ -223,16 +227,16 @@ bin/snitch_cluster.vlt: $(VLT_AR) $(VLT_COBJ) ${VLT_BUILDDIR}/lib/libfesvr.a
 
 # Clean all build directories and temporary files for Questasim simulation
 clean-vsim: clean-work
-	rm -rf bin/snitch_cluster.vsim bin/snitch_cluster.vsim.gui work-vsim vsim.wlf
+	rm -rf bin/snitch_cluster.vsim bin/snitch_cluster.vsim.gui $(VSIM_BUILDDIR) vsim.wlf
 
-${VSIM_BUILDDIR}/compile.vsim.tcl: $(VSIM_SOURCES) ${TB_SRCS} ${TB_CC_SOURCES}
+${VSIM_BUILDDIR}/compile.vsim.tcl:
 	vlib $(dir $@)
 	${BENDER} script vsim ${VSIM_BENDER} --vlog-arg="${VLOG_FLAGS} -work $(dir $@) " > $@
 	echo '${VLOG} -work $(dir $@) ${TB_CC_SOURCES} -ccflags "$(TB_CC_FLAGS)"' >> $@
 	echo 'return 0' >> $@
 
 # Build compilation script and compile all sources for Questasim simulation
-bin/snitch_cluster.vsim: ${VSIM_BUILDDIR}/compile.vsim.tcl work/lib/libfesvr.a
+bin/snitch_cluster.vsim: ${VSIM_BUILDDIR}/compile.vsim.tcl $(VSIM_SOURCES) ${TB_SRCS} ${TB_CC_SOURCES} work/lib/libfesvr.a
 	$(call QUESTASIM,tb_bin)
 
 #######
@@ -243,14 +247,14 @@ bin/snitch_cluster.vsim: ${VSIM_BUILDDIR}/compile.vsim.tcl work/lib/libfesvr.a
 
 # Clean all build directories and temporary files for VCS simulation
 clean-vcs: clean-work
-	rm -rf bin/snitch_cluster.vcs work-vcs
+	rm -rf bin/snitch_cluster.vcs $(VCS_BUILDDIR) vc_hdrs.h
 
 # Build compilation script and compile all sources for VCS simulation
-bin/snitch_cluster.vcs: work-vcs/compile.sh work/lib/libfesvr.a $(GENERATED_DIR)/snitch_cluster_wrapper.sv ${TB_DIR}/common_lib.cc $(GENERATED_DIR)/bootdata.cc
+bin/snitch_cluster.vcs: ${VCS_SOURCES} ${TB_SRCS} $(TB_CC_SOURCES) $(VCS_BUILDDIR)/compile.sh work/lib/libfesvr.a
 	mkdir -p bin
-	vcs -Mlib=work-vcs -Mdir=work-vcs -o bin/snitch_cluster.vcs -cc $(CC) -cpp $(CXX) \
-		-assert disable_cover -override_timescale=1ns/1ps -full64 tb_bin ${TB_DIR}/rtl_lib.cc ${TB_DIR}/common_lib.cc $(GENERATED_DIR)/bootdata.cc \
-		-CFLAGS "-std=c++14 -I${MKFILE_DIR} -I${MKFILE_DIR}/test -I${FESVR}/include -I${TB_DIR}" -LDFLAGS "-L${FESVR}/lib" -lfesvr
+	vcs -Mlib=$(VCS_BUILDDIR) -Mdir=$(VCS_BUILDDIR) -o bin/snitch_cluster.vcs -cc $(CC) -cpp $(CXX) \
+		-assert disable_cover -override_timescale=1ns/1ps -full64 tb_bin $(TB_CC_SRCS) \
+		-CFLAGS $(TB_CC_FLAGS) -LDFLAGS "-L${FESVR}/lib" -lfesvr
 
 ##########
 # Traces #
@@ -274,10 +278,13 @@ clean-work:
 	rm -rf work
 
 clean-bender:
-	rm -rf Bender.lock .bender/
+	rm -rf $(ROOT)/Bender.lock $(ROOT)/.bender/
 
 clean-logs:
-	rm -rf logs/
+	rm -rf $(LOGS_DIR)
+
+clean-generated:
+	rm -rf $(GENERATED_DIR)
 
 # Help command
 Blue=\033[1;34m
@@ -292,16 +299,17 @@ help:
 	@echo -e "${Blue}bin/snitch_cluster.vlt  ${Black}Build compilation script and compile all sources for Verilator simulation."
 	@echo -e "${Blue}bin/snitch_cluster.vsim ${Black}Build compilation script and compile all sources for Questasim simulation."
 	@echo -e ""
-	@echo -e "${Blue}sw             ${Black}Build all software."
+	@echo -e "${Blue}sw               ${Black}Build all software."
 	@echo -e ""
-	@echo -e "${Blue}clean          ${Black}Clean everything except traces in logs directory."
-	@echo -e "${Blue}clean-bender   ${Black}Clean Bender dependencies."
-	@echo -e "${Blue}clean-sw       ${Black}Clean all software."
-	@echo -e "${Blue}clean-logs     ${Black}Delete all traces in logs directory."
-	@echo -e "${Blue}clean-vcs      ${Black}Clean all build directories and temporary files for VCS simulation."
-	@echo -e "${Blue}clean-vlt      ${Black}Clean all build directories and temporary files for Verilator simulation."
-	@echo -e "${Blue}clean-vsim     ${Black}Clean all build directories and temporary files for Questasim simulation."
+	@echo -e "${Blue}clean            ${Black}Clean everything except traces in logs directory."
+	@echo -e "${Blue}clean-bender     ${Black}Clean Bender dependencies."
+	@echo -e "${Blue}clean-sw         ${Black}Clean all software."
+	@echo -e "${Blue}clean-generated  ${Black}Delete all generated files in the generated directory."
+	@echo -e "${Blue}clean-logs       ${Black}Delete all traces in logs directory."
+	@echo -e "${Blue}clean-vcs        ${Black}Clean all build directories and temporary files for VCS simulation."
+	@echo -e "${Blue}clean-vlt        ${Black}Clean all build directories and temporary files for Verilator simulation."
+	@echo -e "${Blue}clean-vsim       ${Black}Clean all build directories and temporary files for Questasim simulation."
 	@echo -e ""
 	@echo -e "Additional useful targets from the included Makefrag:"
-	@echo -e "${Blue}traces         ${Black}Generate the better readable traces in .logs/trace_hart_<hart_id>.txt with spike-dasm."
-	@echo -e "${Blue}annotate       ${Black}Annotate the better readable traces in .logs/trace_hart_<hart_id>.s with the source code related with the retired instructions."
+	@echo -e "${Blue}traces           ${Black}Generate the better readable traces in .logs/trace_hart_<hart_id>.txt with spike-dasm."
+	@echo -e "${Blue}annotate         ${Black}Annotate the better readable traces in .logs/trace_hart_<hart_id>.s with the source code related with the retired instructions."

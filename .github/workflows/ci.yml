@@ -25,7 +25,7 @@ jobs:
   # Simulate SW on Snitch Cluster w/ Verilator #
   ##############################################
 
-  sw-snitch-cluster:
+  sw-snitch-cluster-vlt:
     name: Simulate SW on Snitch Cluster w/ Verilator
     runs-on: ubuntu-22.04
     container:
@@ -45,3 +45,20 @@ jobs:
         run: |-
           ./sw/tests/run.py sw/tests/passing-apps.list --simulator verilator
           ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator
+
+  ############################################
+  # Build SW on Snitch Cluster w/ Banshee #
+  ############################################
+
+  sw-snitch-cluster-banshee:
+    name: Build SW on Snitch Cluster w/ Banshee
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/pulp-platform/snitch_cluster
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - name: Build Software
+        run: |
+          make -C target/snitch_cluster SELECT_RUNTIME=banshee sw
