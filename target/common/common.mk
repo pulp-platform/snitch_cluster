@@ -27,10 +27,18 @@ VSIM_BENDER   += -t test -t rtl -t simulation -t vsim
 VSIM_SOURCES   = $(shell ${BENDER} script flist ${VSIM_BENDER} | ${SED_SRCS})
 VSIM_BUILDDIR := work-vsim
 
+# VCS_BUILDDIR should to be the same as the `DEFAULT : ./work-vcs`
+# in target/snitch_cluster/synopsys_sim.setup
+VCS_BENDER   += -t test -t rtl -t simulation -t vcs
+VCS_SOURCES   = $(shell ${BENDER} script flist ${VCS_BENDER} | ${SED_SRCS})
+VCS_BUILDDIR := work-vcs
+
 # fesvr is being installed here
 FESVR          ?= ${MKFILE_DIR}work
 FESVR_VERSION  ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
 
+VLT_BENDER   += -t rtl
+VLT_SOURCES   = $(shell ${BENDER} script flist ${VLT_BENDER} | ${SED_SRCS})
 VLT_BUILDDIR := work-vlt
 VLT_FESVR     = $(VLT_BUILDDIR)/riscv-isa-sim
 VLT_FLAGS    += -Wno-BLKANDNBLK
@@ -43,8 +51,6 @@ VLT_FLAGS    += -Wno-UNSIGNED
 VLT_FLAGS    += -Wno-UNOPTFLAT
 VLT_FLAGS    += -Wno-fatal
 VLT_FLAGS    += --unroll-count 1024
-VLT_BENDER   += -t rtl
-VLT_SOURCES  := $(shell ${BENDER} script flist ${VLT_BENDER} | ${SED_SRCS})
 VLT_CFLAGS   += -std=c++14 -pthread
 VLT_CFLAGS   +=-I ${VLT_BUILDDIR} -I $(VLT_ROOT)/include -I $(VLT_ROOT)/include/vltstd -I $(VLT_FESVR)/include -I $(TB_DIR)
 
@@ -161,11 +167,11 @@ endef
 #######
 # VCS #
 #######
-work-vcs/compile.sh: ${VSIM_SOURCES} ${TB_SRCS}
-	mkdir -p work-vcs
-	${BENDER} script vcs ${VSIM_BENDER} --vlog-arg="${VLOGAN_FLAGS}" --vcom-arg="${VHDLAN_FLAGS}" > $@
+$(VCS_BUILDDIR)/compile.sh:
+	mkdir -p $(VCS_BUILDDIR)
+	${BENDER} script vcs ${VCS_BENDER} --vlog-arg="${VLOGAN_FLAGS}" --vcom-arg="${VHDLAN_FLAGS}" > $@
 	chmod +x $@
-	$@ > work-vcs/compile.log
+	$@ > $(VCS_BUILDDIR)/compile.log
 
 ########
 # Util #
