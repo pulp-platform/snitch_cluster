@@ -1,197 +1,53 @@
-# Snitch Cluster System
+# Snitch cluster target
 
-The Snitch cluster system (`target/snitch_cluster`) is a fundamental system
-around a Snitch core. The cluster can be configured using a config file (`target/snitch_cluster/cfg/default.hsjon`).
+The Snitch cluster target (`target/snitch_cluster`) is a simple RTL testbench
+around a Snitch cluster. The cluster can be configured using a config file. By default, the config file which will be picked up is `target/snitch_cluster/cfg/default.hsjon`.
 
-The configuration parameters are documented using JSON schema, and documentation
-is generated for the schema. The configuration options can be found [here](../../schema-doc/snitch_cluster/).
+The configuration parameters are documented using JSON schema. Documentation for the schema and available configuration options can be found in `docs/schema-doc/snitch_cluster/`).
 
-The cluster testbench simulates an infinite memory. The RISC-V ELF file is
-preloaded using RISC-V's Front-end Server (`fesvr`).
+The cluster testbench simulates an infinite memory. The RISC-V ELF file to be simulated is
+preloaded using RISC-V's Front-End Server (`fesvr`).
 
-## Quick Guide / Summary
+## Tutorial
 
-In `hw/system/snicht_cluster`:
+In the following tutorial you can assume the working directory to be `target/snitch_cluster`. All paths are to be assumed relative to this directory. Paths relative to the root of the repository are prefixed with a slash.
 
-- Build the software:
-    ```
-    make sw
-    ```
-- Compile the model for your simulator:
+### Building the hardware
 
-    === "Verilator"
+To compile the hardware for simulation run one of the following commands, depending on the desired simulator:
 
-        ```
-        make bin/snitch_cluster.vlt
-        ```
+```shell
+# Verilator (for Docker users)
+make bin/snitch_cluster.vlt
+# Verilator (for IIS users)
+verilator-4.110 make bin/snitch_cluster.vlt
 
-    === "Questasim"
+# Questa (for IIS users)
+questa-2022.3 make bin/snitch_cluster.vsim
 
-        ```
-        make bin/snitch_cluster.vsim
-        ```
-
-    === "VCS"
-
-        ```
-        make bin/snitch_cluster.vcs
-        ```
-
-- Run a binary on the simulator:
-
-    === "Verilator"
-
-        ```
-        bin/snitch_cluster.vlt path/to/riscv/binary
-        ```
-
-    === "Questasim"
-
-        ```
-        # Headless
-        bin/snitch_cluster.vsim path/to/riscv/binary
-        # GUI
-        bin/snitch_cluster.vsim.gui path/to/riscv/binary
-        ```
-
-    === "VCS"
-
-        ```
-        bin/snitch_cluster.vcs path/to/riscv/binary
-        ```
-
-- Build the traces in `.logs/trace_hart_<hart_id>.txt` with the help of spike-dasm:
-    ```
-    make traces
-    ```
-
-- Annotate the traces in `.logs/trace_hart_<hart_id>.s` with the source code related with the retired instructions:
-    ```
-    make annotate
-    ```
-
-- Get an overview of all Makefile targets:
-    ```
-    make help
-    ```
-
-## Fast setup at IIS ETH Zurich
-
-### Scratch folder
-
-First, create yourself a folder to work in on the scratch disk. Your home directory is mounted from the network, and has tighter size and access speed constraints than the scratch disks in your machine. You can sometimes select between multiple scratch disks, such as `/scratch`, `/scratch2`, `/scratch3`.
-
-```bash
-# Look how much free space there is in the scratch folders
-df -h | grep scratch
-# Pick one and create your folder in there, for example:
-mkdir -p /scratch/${USER}
-# You can find the name of a machine by running
-export MACHINE=$(hostname | cut -d . -f 1)
-# Note, contrary to your home folder, the scratch folder is local to your machine, but you can access it on any other machine like so
-cd /usr/scratch/${MACHINE}/${USER}
+# VCS (for IIS users)
+vcs-2020.12 make bin/snitch_cluster.vcs
 ```
 
-### Dependencies
+These commands compile the RTL sources respectively in `work-vlt`, `work-vsim` and `work-vcs`. Additionally, common C++ testbench sources (e.g. the [frontend server (fesvr)](https://github.com/riscv-software-src/riscv-isa-sim)) are compiled under `work`. Each command will also generate a script or an executable (e.g. `bin/snitch_cluster.vsim`) which you can invoke to simulate the hardware. We will see how to do this in a later section.
 
-At IIS the default version of some tools (`gcc`, ...) might be too old for certain projects. You will need to setup your own default binary for these tools:
+### Cluster configuration
 
-```bash
-export PYTHON=/usr/local/anaconda3-2022.05/bin/python3
-export BENDER=bender-0.27.1
-export CC=gcc-9.2.0
-export CXX=g++-9.2.0
-export VCS=vcs-2020.12
-export VERILATOR=verilator-4.110
-export QUESTA=questa-2022.3
+Note that the Snitch cluster RTL sources are partly automatically generated from a configuration file provided in `.hjson` format. Several RTL files are templated and use the `.hjson` configuration file to fill the template entries. An example is `/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl`.
+
+Under the `cfg` folder, different configurations are provided. The `cfg/default.hjson` configuration instantiates 8 compute cores + 1 DMA core in the cluster. If you need a specific configuration you can create your own configuration file.
+
+The command you executed previously automatically generated the templated RTL sources. It implicitly used the default configuration file.
+To override the default configuration file, define the following variable when you invoke `make`:
+```shell
+make CFG_OVERRIDE=cfg/custom.hjson bin/snitch_cluster.vlt
 ```
 
-And a temporary workaround (TO BE UPDATED ONCE CORRECT TOOLVERSIONS ARE INSTALLED SYSTEMWIDE!!!):
-```bash
-mkdir -p /home/${USER}/.snitch-bin
-cd /home/${USER}/.snitch-bin
-ln -s /home/colluca/bin/spike-dasm spike-dasm
-# Add the created binary location to your path
-export PATH=/home/${USER}/.snitch-bin:$PATH
-export PATH=/usr/scratch/dachstein/colluca/opt/verible/bin:$PATH
-```
+___Note:__ whenever you override the configuration file on the `make` command-line, the configuration will be stored in the `cfg/lru.hjson` file. Successive invocations of `make` will automatically pick up the `cfg/lru.hjson` file. You can therefore omit the `CFG_OVERRIDE` definition in successive commands unless you want to override the least-recently used configuration._
 
-#### Install Python Requirements
-Create a Python virtual environment:
+### Building the software
 
-```bash
-$PYTHON -m venv .venv
-```
-
-Activate your environment, e.g. in a bash shell and install the requirements:
-```bash
-source .venv/bin/activate
-pip install -r python-requirements.txt
-```
-
-Note that the default shell for IIS users is `tcsh`, hence you may need to adapt the previous command accordingly.
-
-To compile your code to a RISC-V executable you will need a compiler toolchain for RISC-V. There are plenty of pre-compiled RISC-V toolchains at IIS, for Snitch you can use the following LLVM toolchain.
-
-```bash
-export LLVM_BINROOT=/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
-```
-
-## Cloning Snitch
-
-First, clone this repository on your scratch folder. We suggest you first make a private fork of the repo.
-
-```bash
-git clone https://github.com/pulp-platform/snitch.git
-cd snitch
-```
-
-Now install the required Python dependencies. Make sure you have activated your virtual environment before doing so.
-
-```
-pip install -r python-requirements.txt
-```
-
-
-## Detailed Guide
-### Cluster Configuration and RTL Generation
-
-#### RTL Generation
-
-The Snitch cluster RTL sources are partly automatically generated by **Solder** from a configuration file provided in `.hjson` format. Several RTL files are templated and use the `.hjson` configuration file to fill the template entries. An example is `hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl`.
-Under the `target/snitch_cluster/cfg` folder different configurations are provided. The `target/snitch_cluster/cfg/default.hjson` configuration instantiates 8 compute cores + 1 DMA core in the cluster. If you need a specific configuration you can create your own configuration file. To override the default configuration, define the following variable when you invoke `make` for your preferred simulator:
-
-=== "Verilator"
-
-    ```bash
-    make CFG_OVERRIDE=cfg/cluster.hjson bin/snitch_cluster.vlt
-    ```
-
-=== "Questasim"
-
-    ```bash
-    make CFG_OVERRIDE=cfg/cluster.hjson bin/snitch_cluster.vsim
-    ```
-
-=== "VCS"
-
-    ```bash
-    make CFG_OVERRIDE=cfg/cluster.hjson bin/snitch_cluster.vcs
-    ```
-
-The previous command generates the templated RTL sources from the configuration file and compiles the RTL for Questasim simulation. Additionally, the Questasim RTL simulation model is compiled into `target/snitch_cluster/work-vsim` and the [frontend server (fesvr)](https://github.com/riscv-software-src/riscv-isa-sim) and other C++ sources used throughout the testbench are compiled into `target/snitch_cluster/work`. A script named `target/snitch_cluster/bin/snitch_cluster.vsim` will also be generated (_have a look inside the file_) as a wrapper for the command that you would invoke to simulate your hardware with Questasim. The script takes an executable compiled for Snitch as input, and feeds it as an argument to the simulator. The testbench relies on the `fesvr` utilities to load your executable into the simulated DRAM memory.
-
-Note the `CFG_OVERRIDE` variable need only be defined for those targets which make use of the configuration file, e.g. RTL generation.
-
-#### SW Generation
-
-Note that the RTL is not the only source which is generated from the configuration file. The software stack also depends on the configuration file. Make sure you always build the software with the same configuration of the hardware you are going to run it on. By default, if you compile the software after you have compiled the hardware, this is ensured automatically for you. Whenever you override the configuration file on the `make` command-line, the configuration will be stored in the `cfg/lru.hjson` file. Successive invocations of `make` may omit the `CFG_OVERRIDE` flag and the least-recently used configuration saved in `cfg/lru.hjson` will be picked up automatically.
-
-___Note:__ Have a look at the `Makefile` and the commands that are executed by the `sw` and `bin/snitch_cluster.vsim` targets. Note that the Makefile includes the Make fragment in `target/common/common.mk` at the root of this repository where plenty of things are defined._
-
-### Building the Snitch SW
-
-To build all of the software for the Snitch cluster, run the following Make command:
+To build all of the software for the Snitch cluster, run the following command:
 
 ```bash
 make DEBUG=ON sw
@@ -201,9 +57,42 @@ The `sw` target first generates some C header files which depend on the hardware
 
 The `DEBUG=ON` flag is used to tell the compiler to produce debugging symbols. It is necessary for the `annotate` target, showcased in the Debugging section of this guide, to work.
 
-### Creating Your First Snitch app
+___Note:__ the RTL is not the only source which is generated from the configuration file. The software stack also depends on the configuration file. Make sure you always build the software with the same configuration of the hardware you are going to run it on._
 
-In the following we will add a new AXPY kernel implementation as an example.
+### Running a simulation
+
+Create the `logs` directory to host the simulation traces:
+
+```shell
+# If it's the first time you run this the logs/ folder won't exist and you will have to create it
+mkdir logs
+```
+
+Run one of the executables which was compiled in the previous step on your Snitch cluster hardware with your preferred simulator:
+
+```shell
+# Verilator (for Docker users)
+bin/snitch_cluster.vlt sw/apps/blas/axpy/build/axpy.elf
+# Verilator (for IIS users)
+verilator-4.110 bin/snitch_cluster.vlt sw/apps/blas/axpy/build/axpy.elf
+
+# Questa (for IIS users)
+questa-2022.3 bin/snitch_cluster.vsim sw/apps/blas/axpy/build/axpy.elf
+
+# VCS (for IIS users)
+vcs-2020.12 bin/snitch_cluster.vcs sw/apps/blas/axpy/build/axpy.elf
+```
+
+The previous commands will run the simulation in your current terminal. You can also run the simulation in the QuestaSim GUI by adapting the previous command to:
+
+```shell
+# Questa (for IIS users)
+questa-2022.3 bin/snitch_cluster.vsim.gui sw/apps/blas/axpy/build/axpy.elf
+```
+
+### Creating your first Snitch app
+
+In the following you will create your own AXPY kernel implementation as an example how to develop software for Snitch.
 
 #### Writing the C Code
 
@@ -272,7 +161,7 @@ double z[16];
 
 ```
 
-In this file we hardcode the data to be used by the kernel. This data will be loaded in memory together with your application code. In general, to verify your code you may want to randomly generate the above data. Or you may want to test your kernel on different problem sizes, e.g. varying the length of the vectors, without having to manually rewrite the file. This can be achieved by generating the data header file with a Python script. You may have a look at the `sw/blas/axpy/datagen` folder in the root of this repository as an example. You may reuse several of the functions defined in `sw/blas/axpy/datagen/datagen.py`. Eventually, we will promote these functions to a dedicated Python module which can be easily reused.
+In this file we hardcode the data to be used by the kernel. This data will be loaded in memory together with your application code. In general, to verify your code you may want to randomly generate the above data. You may also want to test your kernel on different problem sizes, e.g. varying the length of the vectors, without having to manually rewrite the file. This can be achieved by generating the data header file with a Python script. You may have a look at the `sw/blas/axpy/datagen` folder in the root of this repository as an example. You may reuse several of the functions defined in `sw/blas/axpy/datagen/datagen.py`. Eventually, we will promote these functions to a dedicated Python module which can be easily reused.
 
 #### Compiling the C Code
 
@@ -294,9 +183,9 @@ In order for the top-level Makefile to find your application, add the following 
 apps/axpy
 ```
 
-Now you can recompile all software, including your newly added AXPY application, with the following command (in the `snitch_cluster` folder):
+Now you can recompile all software, including your newly added AXPY application:
 
-```bash
+```shell
 make DEBUG=ON sw
 ```
 
@@ -306,41 +195,15 @@ In the `sw/apps/axpy/build` directory, you will now find your `axpy.elf` executa
 
 If you want to dig deeper into how our build system works and how these files were generated you can follow the recursive Makefile invocations starting from the `sw` target in `snitch_cluster/Makefile`.
 
-#### Running your Application
+#### Run your application
 
-Create the `./logs` directory:
+You can run your application in simulation as shown in the previous sections. Make sure to pick up the right binary, e.g.:
 
-```bash
-# If it's the first time you run this the logs/ folder won't exist and you will have to create it
-mkdir logs
+```shell
+questa-2022.3 bin/snitch_cluster.vsim sw/apps/axpy/build/axpy.elf
 ```
 
-Run the executable on your Snitch cluster hardware in simulation with your preferred simulator:
-
-=== "Verilator"
-
-    ```bash
-    # Run the simulation in the current terminal
-    bin/snitch_cluster.vlt sw/apps/axpy/build/axpy.elf
-    ```
-
-=== "Questasim"
-
-    ```bash
-    # Run the simulation in the current terminal
-    bin/snitch_cluster.vsim sw/apps/axpy/build/axpy.elf
-    # Run the simulation in the QuestaSim GUI
-    bin/snitch_cluster.vsim.gui sw/apps/axpy/build/axpy.elf
-    ```
-
-=== "VCS"
-
-    ```bash
-    # Run the simulation in the current terminal
-    bin/snitch_cluster.vcs sw/apps/axpy/build/axpy.elf
-    ```
-
-### Debugging and Benchmarking
+### Debugging and benchmarking
 
 When you run the simulation, every core will log all the instructions it executes (along with additional information, such as the value of the registers before/after the instruction) in a trace file, located in the `target/snitch_cluster/logs` directory. The traces are identified by their hart ID, that is a unique ID for every hardware thread (hart) in a RISC-V system (and since all our cores have a single thread that is a unique ID per core)
 
@@ -397,9 +260,9 @@ make logs/event.csv
 ../../../util/trace/eventvis.py -o logs/trace.json logs/trace.csv
 ```
 
-Open a Chrome browser and go to `chrome://tracing`. Here you can load the `logs/trace.json` file and graphically view the runtime of the compute region in your code. To learn more about the layout file syntax and what the Python scripts do you can have a look at the description comment at the start of the scripts themselves.
+Go to `http://ui.perfetto.dev/`. Here you can load the `logs/trace.json` file and graphically view the runtime of the compute region in your code. To learn more about the layout file syntax and what the Python scripts do you can have a look at the description comment at the start of the scripts themselves.
 
-__Great, but, have you noticed a Problem?__
+__Great, but, have you noticed a problem?__
 
 Look into `sw/apps/axpy/build/axpy.dump` and search for the address of the output variable `<z>` :
 

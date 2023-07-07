@@ -7,3 +7,4 @@ mkdocs
 # Last version compatible with python-3.6 (default on Ubuntu 18.04)
 mkdocs-material <= 8.2.11
 mkdocs-include-markdown-plugin
+mkdocs-macros-plugin
