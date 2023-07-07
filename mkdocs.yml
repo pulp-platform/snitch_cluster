@@ -1,7 +1,7 @@
 # Copyright 2020 ETH Zurich and University of Bologna.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
-site_name: Snitch
+site_name: Snitch Cluster
 theme:
   name: material
 
@@ -22,30 +22,34 @@ markdown_extensions:
       emoji_generator: !!python/name:materialx.emoji.to_svg
 plugins:
   - include-markdown
+  - macros
+use_directory_urls: false
+extra:
+  branch: init
 nav:
   - Home: index.md
   - User Guide:
       - Getting Started: ug/getting_started.md
-      - Repository Setup:
-          - Docker: ug/docker.md
-          - Directory Structure: ug/directory_structure.md
-          - Documentation: ug/documentation.md
-      - Snitch Cluster:
-          - Guide: ug/snitch_cluster.md
-          - Schema: schema-doc/snitch_cluster.md
-          - Benchmarking: ug/benchmarking.md
-          - Trace Example: ug/example_trace.html
-  - HW IPs Reference Manual:
-      - Snitch: rm/snitch.md
-      - Snitch Cluster: rm/snitch_cluster.md
-      - Reqrsp Interface: rm/reqrsp_interface/index.md
-      - Custom Instructions: rm/custom_instructions.md
-      # - Solder: rm/solder.md
-  - Snitch SW Runtime:
-      - Pages: runtime/Pages/index.md
-      - Files: runtime/Files/index.md
-      - Classes: runtime/Classes/index.md
-      - Examples: runtime/Examples/index.md
-      - Modules: runtime/Modules/index.md
-      - Namespaces: runtime/Namespaces/index.md
+      - Repository Structure: ug/directory_structure.md
+      - Tutorial: ug/tutorial.md
+      - Documentation: ug/documentation.md
+      # Remove
+      # - Benchmarking: ug/benchmarking.md
+      # - Trace Example: ug/example_trace.html
+  - Reference Manual:
+      - Hardware:
+          - Snitch: rm/snitch.md
+          - Snitch Cluster:
+              - Overview: rm/snitch_cluster.md
+              - Schema: schema-doc/snitch_cluster.md
+          - Reqrsp Interface: rm/reqrsp_interface.md
+          - Custom Instructions: rm/custom_instructions.md
+          # - Solder: rm/solder.md
+      - Software:
+          - Pages: runtime/Pages/index.md
+          - Files: runtime/Files/index.md
+          - Classes: runtime/Classes/index.md
+          - Examples: runtime/Examples/index.md
+          - Modules: runtime/Modules/index.md
+          - Namespaces: runtime/Namespaces/index.md
   - Publications: publications.md

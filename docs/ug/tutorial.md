@@ -1,9 +1,14 @@
+# Tutorial
+
+The following tutorial will guide you through the use of the Snitch cluster. You will learn how to develop, simulate, debug and benchmark software for the Snitch cluster architecture.
+
 <!---
 The following documentation is directly included from `../../target/snitch_cluster/README.md`
 -->
 {%
    include-markdown '../../target/snitch_cluster/README.md'
    comments=false
+   start="## Tutorial"
 %}
 
 ## Using Verilator with LLVM
