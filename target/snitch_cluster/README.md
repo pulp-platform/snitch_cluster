@@ -177,10 +177,10 @@ include ../common.mk
 
 This Makefile will be invoked recursively by the top-level Makefile, compiling your source code into an executable with the name provided in the `APP` variable.
 
-In order for the top-level Makefile to find your application, add the following line to `sw/apps.list`:
+In order for the top-level Makefile to find your application, add your application's directory to the `SUBDIRS` variable in `sw/apps/Makefile`:
 
 ```
-apps/axpy
+SUBDIRS += axpy
 ```
 
 Now you can recompile all software, including your newly added AXPY application:
