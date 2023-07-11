@@ -6,8 +6,8 @@
 module tb_bin;
   import "DPI-C" function int fesvr_tick();
 
-  // This can't have a unit otherwise the simulation will not advance, for
-  // whatever reason.
+  // This can't have an explicit type, otherwise the simulation will not advance
+  // for whatever reason.
   // verilog_lint: waive explicit-parameter-storage-type
   localparam TCK = 1ns;
 
