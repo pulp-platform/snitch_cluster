@@ -19,9 +19,6 @@
 #include "sync_decls.h"
 #include "team_decls.h"
 
-// Empty printf implementation
-inline int printf(const char* format, ...) { return 0; };
-
 // Implementation
 #include "alloc.h"
 #include "cls.h"
@@ -32,6 +29,7 @@ inline int printf(const char* format, ...) { return 0; };
 #include "kmp.h"
 #include "omp.h"
 #include "perf_cnt.h"
+#include "printf.h"
 #include "riscv.h"
 #include "snitch_cluster_global_interrupts.h"
 #include "ssr.h"
