@@ -2245,7 +2245,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
 
   // CSR logic
   always_comb begin
-    csr_rvalue = 1'b0;
+    csr_rvalue = '0;
     csr_dump = 1'b0;
     illegal_csr = '0;
     priv_lvl_d = priv_lvl_q;
@@ -2331,6 +2331,19 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
                               | (1   << 30);
           CSR_MHARTID: begin
             csr_rvalue = hart_id_i;
+          end
+          CSR_DCSR: begin
+            csr_rvalue = dcsr_q;
+            dcsr_d.ebreakm = alu_result[15];
+            dcsr_d.step = alu_result[2];
+          end
+          CSR_DPC: begin
+            csr_rvalue = dpc_q;
+            dpc_d = alu_result;
+          end
+          CSR_DSCRATCH0: begin
+            csr_rvalue = dscratch_q;
+            dscratch_d = alu_result;
           end
           `ifdef SNITCH_ENABLE_PERF
           CSR_MCYCLE: begin
@@ -2487,7 +2500,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
             csr_stall_d = 1'b1;
           end
           default: begin
-            csr_rvalue = 1'b0;
+            csr_rvalue = '0;
             csr_dump = 1'b1;
           end
         endcase
