@@ -232,7 +232,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // -----
   logic [31:0] csr_rvalue;
   logic csr_en;
-
+  logic csr_write;
+  
   localparam logic M = 0;
   localparam logic S = 1;
 
@@ -763,6 +764,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         rd_select = RdBypass;
         rd_bypass = csr_rvalue;
         csr_en = valid_instr;
+        csr_write = 1'b1;
       end
       CSRRWI: begin
         opa_select = CSRImmmediate;
@@ -770,6 +772,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         rd_select = RdBypass;
         rd_bypass = csr_rvalue;
         csr_en = valid_instr;
+        csr_write = 1'b1;
       end
       CSRRS: begin  // Atomic Read and Set Bits in CSR
           alu_op = LOr;
@@ -778,6 +781,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           rd_select = RdBypass;
           rd_bypass = csr_rvalue;
           csr_en = valid_instr;
+          //write to the CSR only if rs1 == x0
+          csr_write = (rs1 == 32'd0) ? 1'b0 : 1'b1;
       end
       CSRRSI: begin
         // offload CSR enable to FP SS
@@ -788,7 +793,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           rd_select = RdBypass;
           rd_bypass = csr_rvalue;
           csr_en = valid_instr;
+          csr_write = (rs1 == 32'd0) ? 1'b0 : 1'b1;
         end else begin
+          csr_write = 1'b0;
           write_rd = 1'b0;
           acc_qvalid_o = valid_instr;
         end
@@ -800,6 +807,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         rd_select = RdBypass;
         rd_bypass = csr_rvalue;
         csr_en = valid_instr;
+        csr_write = (rs1 == 32'd0) ? 1'b0 : 1'b1;
       end
       CSRRCI: begin
         if (inst_data_i[31:20] != CSR_SSR) begin
@@ -809,7 +817,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           rd_select = RdBypass;
           rd_bypass = csr_rvalue;
           csr_en = valid_instr;
+          csr_write = (rs1 == 32'd0) ? 1'b0 : 1'b1;
         end else begin
+          csr_write = 1'b0;
           write_rd = 1'b0;
           acc_qvalid_o = valid_instr;
         end
@@ -2188,6 +2198,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       end
 
       default: begin
+        csr_write = 1'b0;
         illegal_inst = 1'b1;
       end
     endcase
@@ -2318,6 +2329,18 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
                               | (1   << 30);
           CSR_MHARTID: begin
             csr_rvalue = hart_id_i;
+          end
+          CSR_DCSR: begin
+            csr_rvalue = dcsr_q;
+            {dcsr_d.ebreakm, dcsr_d.step} = csr_write ? {alu_result[15], alu_result[2]} : {dcsr_q.ebreakm, dcsr_q.step};
+          end
+          CSR_DPC: begin
+            csr_rvalue = dpc_q;
+            dpc_d = csr_write ? alu_result : dpc_q;
+          end
+          CSR_DSCRATCH0: begin
+            csr_rvalue = dscratch_q;
+            dscratch_d = csr_write ? alu_result : dscratch_q;
           end
           `ifdef SNITCH_ENABLE_PERF
           CSR_MCYCLE: begin
