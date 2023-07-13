@@ -4,9 +4,6 @@
 
 #include "snrt.h"
 
-// Empty printf implementation
-extern int printf(const char* format, ...);
-
 #include "alloc.c"
 #include "cls.c"
 #include "cluster_interrupts.c"
@@ -15,6 +12,8 @@ extern int printf(const char* format, ...);
 #include "eu.c"
 #include "kmp.c"
 #include "omp.c"
+#include "printf.c"
+#include "putchar.c"
 #include "snitch_cluster_start.c"
 #include "sync.c"
 #include "team.c"
