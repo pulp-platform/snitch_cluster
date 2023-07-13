@@ -13,8 +13,8 @@ To get started, check out the [getting started guide](https://pulp-platform.gith
 
 What can you expect to find in this repository?
 
-- The RISC-V [Snitch integer core](https://pulp-platform.github.io/snitch_cluster/rm/snitch/). This can be useful stand-alone if you are just interested in re-using the core for your project, e.g., as a tiny control core or you want to make a peripheral smart. The sky is the limit.
-- The [Snitch cluster](https://pulp-platform.github.io/snitch_cluster/ug/snitch_cluster/). A highly configurable cluster containing one to many integer cores with optional floating-point capabilities as well as our custom ISA extensions `Xssr`, `Xfrep`, and `Xdma`.
+- The RISC-V [Snitch integer core](https://pulp-platform.github.io/snitch_cluster/rm/snitch.html). This can be useful stand-alone if you are just interested in re-using the core for your project, e.g., as a tiny control core or you want to make a peripheral smart. The sky is the limit.
+- The [Snitch cluster](https://pulp-platform.github.io/snitch_cluster/rm/snitch_cluster.html). A highly configurable cluster containing one to many integer cores with optional floating-point capabilities as well as our custom ISA extensions `Xssr`, `Xfrep`, and `Xdma`.
 - A runtime and example applications for the Snitch cluster.
 - RTL simulation environments for Verilator, Questa Advanced Simulator, and VCS, as well as configurations for our [Banshee system simulator](https://github.com/pulp-platform/banshee)
 
