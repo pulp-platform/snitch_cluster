@@ -37,8 +37,8 @@ snitch-cluster-sw:
     - cd sw/deps
     - mkdir install
     - cd musl
-    - CC=$CLANG ./configure --disable-shared --prefix=../install/ 
-      --enable-wrapper=all 
+    - CC=$CLANG ./configure --disable-shared --prefix=../install/
+      --enable-wrapper=all
       CFLAGS="-mcpu=snitch -menable-experimental-extensions"
     - make -j4
     - make install
