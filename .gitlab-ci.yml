@@ -13,6 +13,7 @@ variables:
   VERILATOR: verilator-4.110
   QUESTA: questa-2022.3
   LLVM_BINROOT: /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
+  CLANG: /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin/clang
 
 before_script:
   - $PYTHON -m venv .venv
@@ -33,6 +34,15 @@ docs:
 
 snitch-cluster-sw:
   script:
+    - cd sw/deps
+    - mkdir install
+    - cd musl
+    - CC=$CLANG ./configure --disable-shared --prefix=../install/
+      --enable-wrapper=all
+      CFLAGS="-mcpu=snitch -menable-experimental-extensions"
+    - make -j4
+    - make install
+    - cd ../../../
     - cd target/snitch_cluster
     - make sw
   artifacts:
@@ -78,7 +88,7 @@ snitch-cluster-vlt:
   script:
     - cd target/snitch_cluster
     - $VERILATOR make bin/snitch_cluster.vlt
-    - $VERILATOR ./sw/tests/run.py sw/tests/passing-apps.list --simulator verilator
+    - $VERILATOR ./sw/test/run.py sw/tests/passing-apps.list --simulator verilator
     - $VERILATOR ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator
   # yamllint enable rule:line-length
 
@@ -88,7 +98,7 @@ snitch-cluster-vcs:
   script:
     - cd target/snitch_cluster
     - $VCS make bin/snitch_cluster.vcs
-    - $VCS ./sw/tests/run.py sw/tests/passing-apps.list --simulator vcs
+    - $VCS ./sw/test/run.py sw/tests/passing-apps.list --simulator vcs
     - $VCS ./sw/apps/run.py sw/apps/passing-apps.list --simulator vcs
 
 # Questa
@@ -97,5 +107,5 @@ snitch-cluster-vsim:
   script:
     - cd target/snitch_cluster
     - $QUESTA make bin/snitch_cluster.vsim
-    - $QUESTA ./sw/tests/run.py sw/tests/passing-apps.list --simulator vsim
+    - $QUESTA ./sw/test/run.py sw/tests/passing-apps.list --simulator vsim
     - $QUESTA ./sw/apps/run.py sw/apps/passing-apps.list --simulator vsim

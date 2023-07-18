@@ -36,6 +36,15 @@ jobs:
           submodules: 'recursive'
       - name: Build Software
         run: |
+          cd sw/deps
+          mkdir install
+          cd musl
+          CC=$LLVM_BINROOT/clang ./configure --disable-shared \
+          --prefix=../install/ --enable-wrapper=all \
+          CFLAGS="-mcpu=snitch -menable-experimental-extensions"
+          make -j4
+          make install
+          cd ../../../
           make -C target/snitch_cluster sw
       - name: Build Hardware
         run: |
@@ -61,4 +70,13 @@ jobs:
           submodules: 'recursive'
       - name: Build Software
         run: |
+          cd sw/deps
+          mkdir install
+          cd musl
+          CC=$LLVM_BINROOT/clang ./configure --disable-shared \
+          --prefix=../install/ --enable-wrapper=all \
+          CFLAGS="-mcpu=snitch -menable-experimental-extensions"
+          make -j4
+          make install
+          cd ../../../
           make -C target/snitch_cluster SELECT_RUNTIME=banshee sw
