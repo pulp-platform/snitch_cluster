@@ -299,7 +299,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   //---------------------------------------------
 
   `FFNR(  scratch_q,   scratch_d, clk_i)
-  `FFNR(      vec_q,      tvec_d, clk_i)
+  `FFNR(     tvec_q,      tvec_d, clk_i)
   `FFNR(      epc_q,       epc_d, clk_i)
   `FFNR(     satp_q,      satp_d, clk_i)
   `FFAR(    cause_q,     cause_d,    '0, clk_i, rst_i)
@@ -347,7 +347,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     logic [63:0] cycle_q;
     logic [63:0] instret_q;
     logic        retired_instr_q;
-    logi         retired_load_q;
+    logic        retired_load_q;
     logic        retired_i_q;
     logic        retired_acc_q;
 
