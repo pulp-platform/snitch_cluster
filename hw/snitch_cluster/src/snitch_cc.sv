@@ -1,15 +1,12 @@
-//----------------------------------------------------------------------------
+//---------------------------------------------
 // Copyright 2020 ETH Zurich and University of Bologna.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
-//----------------------------------------------------------------------------
+//---------------------------------------------
 
-//----------------------------------------------------------------------------
-// BEGIN lint waivers:
 // verilog_lint: waive-start rule-line-length
-// verilog_lint: waive-start no-rule-trailing-spaces
-//----------------------------------------------------------------------------
+// verilog_lint: waive-start rule-no-trailing-spaces
 
 //-------------------------------------------------------------------------
 // Include typedef definitions
@@ -19,10 +16,10 @@
 `include "common_cells/registers.svh"
 `include "snitch_vm/typedef.svh"
 
-//----------------------------------------------------------------------------
+//---------------------------------------------
 // Snitch Core Complex (CC)
 // Contains the Snitch Integer Core + FPU + Private Accelerators
-//----------------------------------------------------------------------------
+//---------------------------------------------
 module snitch_cc #(
 
   // Address width of the buses
@@ -146,9 +143,9 @@ module snitch_cc #(
 
 );
 
-  //----------------------------------------------------------------------------
+  //---------------------------------------------
   // Local parameters
-  //----------------------------------------------------------------------------
+  //---------------------------------------------
 
   // FMA architecture is "merged" -> mulexp and macexp instructions are supported
   localparam bit XFauxMerged  = (FPUImplementation.UnitTypes[3] == fpnew_pkg::MERGED);
@@ -1041,10 +1038,8 @@ module snitch_cc #(
 
   `ASSERT_INIT(BootAddrAligned, BootAddr[1:0] == 2'b00)
 
+  // verilog_lint: waive-stop rule-line-length
+  // verilog_lint: waive-stop rule-no-trailing-spaces
+
 endmodule
 
-//----------------------------------------------------------------------------
-// END lint waivers:
-// verilog_lint: waive-stop rule-line-length
-// verilog_lint: waive-stop rule-no-trailing-spaces
-//----------------------------------------------------------------------------
