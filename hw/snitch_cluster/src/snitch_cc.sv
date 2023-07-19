@@ -5,6 +5,12 @@
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 //----------------------------------------------------------------------------
 
+//----------------------------------------------------------------------------
+// BEGIN lint waivers:
+// verilog_lint: waive-start rule-line-length
+// verilog_lint: waive-start no-rule-trailing-spaces
+//----------------------------------------------------------------------------
+
 //-------------------------------------------------------------------------
 // Include typedef definitions
 //-------------------------------------------------------------------------
@@ -1036,3 +1042,9 @@ module snitch_cc #(
   `ASSERT_INIT(BootAddrAligned, BootAddr[1:0] == 2'b00)
 
 endmodule
+
+//----------------------------------------------------------------------------
+// END lint waivers:
+// verilog_lint: waive-stop rule-line-length
+// verilog_lint: waive-stop rule-no-trailing-spaces
+//----------------------------------------------------------------------------
