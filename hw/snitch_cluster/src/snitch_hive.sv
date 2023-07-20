@@ -136,7 +136,7 @@ module snitch_hive #(
     .sram_cfg_data_i      ( sram_cfgs_i.icache_data ),
 
     .axi_req_o            ( axi_req_o       ),
-    .axi_rsp_i            ( axi_rsp_        )
+    .axi_rsp_i            ( axi_rsp_i       )
   );
 
   //---------------------------------------------
