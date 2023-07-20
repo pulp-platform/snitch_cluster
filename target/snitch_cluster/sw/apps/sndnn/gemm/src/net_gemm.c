@@ -39,7 +39,7 @@ int main() {
     const uint32_t cluster_num = snrt_cluster_num();
     const uint32_t cluster_id = snrt_cluster_idx();
     const uint32_t compute_num = snrt_cluster_compute_core_num();
-    const uint32_t compute_id = snrt_cluster_compute_core_num();
+    const uint32_t compute_id = snrt_global_core_idx();
 
     void *mat_A, *mat_B, *mat_C;
 
@@ -93,8 +93,7 @@ int main() {
 
     snrt_cluster_hw_barrier();
 
-    if (snrt_is_compute_core() &&
-        snrt_cluster_compute_core_num() < compute_num) {
+    if (snrt_is_compute_core()) {
         const uint32_t setup_SSR = 1;
 
         if (!l1_gemm_l.TA && !l1_gemm_l.TB) {
