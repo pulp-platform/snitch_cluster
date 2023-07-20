@@ -1,0 +1,46 @@
+
+APP = polybench_$(TEST)
+ifeq ($(TEST),COV) 
+SRCS = src/covariance.c
+endif
+
+ifeq ($(TEST),CORR) 
+SRCS = src/correlation.c
+endif
+
+ifeq ($(TEST),ATAX) 
+SRCS = src/atax.c
+endif
+
+INCDIRS = data
+
+
+ifdef HOST
+CFLAGS=-Wall 
+CFLAGS+=-DHOST 
+endif
+
+ifdef USE_OMP
+CFLAGS+=-DUSE_OMP
+endif
+
+ifndef PROB_SIZE
+PROB_SIZE=8
+endif
+
+
+gen_data: 
+	python scripts/data_gen.py $(PROB_SIZE)
+
+clean_data:
+	rm data/data.h
+
+host_dbg_compile:
+	gcc  $(CFLAGS) $(SRCS) -Idata/ -fopenmp -lm -o debug_$(TEST)
+
+host_dbg_run:
+	./debug_$(TEST)
+
+ifndef HOST
+include ../../common.mk
+endif
