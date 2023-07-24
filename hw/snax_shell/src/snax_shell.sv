@@ -77,14 +77,14 @@ module snax_shell #(
   // Has virtual memory support.
   parameter bit          VMSupport          = 1,
   parameter int unsigned NumIntOutstandingLoads = 0,
-  parameter int unsigned NumIntOutstandingMem = 0,
-  parameter int unsigned NumFPOutstandingLoads = 0,
-  parameter int unsigned NumFPOutstandingMem = 0,
-  parameter int unsigned NumDTLBEntries = 0,
-  parameter int unsigned NumITLBEntries = 0,
-  parameter int unsigned NumSequencerInstr = 0,
-  parameter int unsigned NumSsrs = 0,
-  parameter int unsigned SsrMuxRespDepth = 0,
+  parameter int unsigned NumIntOutstandingMem   = 0,
+  parameter int unsigned NumFPOutstandingLoads  = 0,
+  parameter int unsigned NumFPOutstandingMem    = 0,
+  parameter int unsigned NumDTLBEntries         = 0,
+  parameter int unsigned NumITLBEntries         = 0,
+  parameter int unsigned NumSequencerInstr      = 0,
+  parameter int unsigned NumSsrs                = 0,
+  parameter int unsigned SsrMuxRespDepth        = 0,
   parameter snitch_ssr_pkg::ssr_cfg_t [NumSsrs-1:0] SsrCfgs = '0,
   parameter logic [NumSsrs-1:0][4:0] SsrRegs = '0,
   // Add isochronous clock-domain crossings e.g., make it possible to operate
@@ -173,9 +173,9 @@ module snax_shell #(
     logic [31:0] data;
   } ssr_cfg_rsp_t;
 
-  acc_req_t acc_snitch_req;
-  acc_req_t acc_snitch_demux;
-  acc_req_t acc_snitch_demux_q;
+  acc_req_t  acc_snitch_req;
+  acc_req_t  acc_snitch_demux;
+  acc_req_t  acc_snitch_demux_q;
   acc_resp_t acc_seq;
   acc_resp_t acc_demux_snitch;
   acc_resp_t acc_demux_snitch_q;

@@ -271,7 +271,7 @@ module tb_snax_shell;
     logic [PhysicalAddrWidth-1:0] inst_mem [0:1024];
     logic [PhysicalAddrWidth-1:0] instruction_addr_offset;
 
-	initial begin $readmemh("./mem/inst/addi_only.txt", inst_mem); end
+	initial begin $readmemh("./mem/inst/lw_only.txt", inst_mem); end
 
 	// Dirty fix to offset the instruction memory since boot starts at 4096
 	always_comb begin
@@ -280,6 +280,67 @@ module tb_snax_shell;
 
     assign hive_rsp_i.inst_data  = inst_mem[(instruction_addr_offset >> 2)];
     assign hive_rsp_i.inst_ready = 1;
+
+    //---------------------------------------------
+    // Data memory
+    //---------------------------------------------
+    logic [NarrowDataWidth-1:0] data_mem [0:128];
+
+	initial begin $readmemh("./mem/data/rand_data_1.txt", data_mem); end
+
+    // This signal is to fake a start-up because starting immediately on a load
+    // Messes up the simulation so we need to have a "fake" start-up
+    logic start_mem;
+    logic [NarrowDataWidth-1:0] data_addr_offset;
+    logic [NarrowDataWidth-1:0] next_data_mem;
+
+    assign data_addr_offset = data_req_o.q.addr >> 3;
+    assign next_data_mem = data_mem[data_addr_offset];
+
+    // Main memory control incorporated in the fake startup
+    always_ff @ (posedge clk_i or negedge rst_ni) begin
+
+        if(!rst_ni) begin
+
+            start_mem <= 1'b0;
+            data_rsp_i.p_valid <= 1'b0;
+            data_rsp_i.p.data  <= 64'd0;
+            data_rsp_i.p.error <= 0;
+
+        end else begin
+
+            if(!start_mem) begin
+                start_mem <= 1'b1;
+            end else begin
+                start_mem <= start_mem;
+            end
+            
+            data_rsp_i.p_valid <= (start_mem) ? data_rsp_i.q_ready & data_req_o.q_valid: 1'b0;
+            data_rsp_i.p.data  <= (start_mem) ?  next_data_mem : '0;
+            data_rsp_i.p.error <= 0;
+
+        end
+        
+    end
+
+    //assign data_rsp_i.p_valid = (start_mem) ? data_rsp_i.q_ready & data_req_o.q_valid: 1'b0;
+    //assign data_rsp_i.p.data  = (start_mem) ? data_mem[data_addr_offset] : '0;
+    //assign data_rsp_i.p.error = 0;
+
+
+    // Synchronized writing of data since this messes up the simulation
+    // Need to accommodate memory multiplexing for this part
+    // Let's assume first that no arbitration is set
+    always @ (posedge clk_i) begin
+
+        if((data_req_o.q.write  & data_req_o.q_valid) & data_rsp_i.q_ready) begin
+            data_mem[data_addr_offset] <= data_req_o.q.data;
+        end
+
+    end
+
+    //assign data_rsp_i.p.data  = data_mem[data_rsp_i.q.addr >> 2];
+    assign data_rsp_i.q_ready = (start_mem) ? 1'b1 : 1'b0;
 
     //---------------------------------------------
     // Main snax shell module
@@ -363,7 +424,7 @@ module tb_snax_shell;
       .axi_dma_perf_o         (                     ), // Leave this unused first
       .axi_dma_events_o       (                     ), // Leave this unused first
       .core_events_o          (                     ), // Leave this unused first
-      .tcdm_addr_base_i       ( '0                  )  // TODO: Fix me later. Assume starting is at 0 first
+      .tcdm_addr_base_i       ( 48'h1000_0000_0000  )  // TODO: Fix me later. Assume starting is at 0 first
     );
 
 
@@ -403,10 +464,10 @@ module tb_snax_shell;
         irq_i.msip  <= 0;
         irq_i.mcip  <= 0;
 
-        data_rsp_i.p.data  <= 0;
-        data_rsp_i.p.error <= 0;
-        data_rsp_i.p_valid <= 0;
-        data_rsp_i.q_ready <= 0;
+        //data_rsp_i.p.data  <= 0;
+        //data_rsp_i.p.error <= 0;
+        //data_rsp_i.p_valid <= 0;
+        //data_rsp_i.q_ready <= 0;
 
         tcdm_rsp_i.p.data  <= 0;
         tcdm_rsp_i.p_valid <= 0;
@@ -434,7 +495,7 @@ module tb_snax_shell;
         @(posedge clk_i);
         @(posedge clk_i);
 
-        #1000;
+        #2000;
         $stop();
 
     end
