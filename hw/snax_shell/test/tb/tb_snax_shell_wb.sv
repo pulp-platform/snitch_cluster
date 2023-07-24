@@ -31,6 +31,7 @@ import snitch_pkg::*;
 import snitch_ssr_pkg::*;
 import snitch_pma_pkg::*;
 import fpnew_pkg::*;
+import reqrsp_pkg::*;
 
 module tb_snax_shell;
 
@@ -59,10 +60,10 @@ module tb_snax_shell;
     parameter int unsigned NumSsrs                  = 3;
     parameter int unsigned SsrMuxRespDepth          = 4;
 
-    parameter int unsigned RegisterOffloadReq       = 1;
-    parameter int unsigned RegisterOffloadRsp       = 1;
-    parameter int unsigned RegisterCoreReq          = 1;
-    parameter int unsigned RegisterCoreRsp          = 1;
+    parameter int unsigned RegisterOffloadReq       = 0;
+    parameter int unsigned RegisterOffloadRsp       = 0;
+    parameter int unsigned RegisterCoreReq          = 0;
+    parameter int unsigned RegisterCoreRsp          = 0;
     parameter int unsigned RegisterFPUReq           = 0;
     parameter int unsigned RegisterSequencer        = 0;
     parameter int unsigned RegisterFPUIn            = 0;
@@ -263,6 +264,23 @@ module tb_snax_shell;
     logic clk_i;
     logic rst_ni;
 
+
+    //---------------------------------------------
+    // Instruction memory
+    //---------------------------------------------
+    logic [PhysicalAddrWidth-1:0] inst_mem [0:1024];
+    logic [PhysicalAddrWidth-1:0] instruction_addr_offset;
+
+	initial begin $readmemh("./mem/inst/addi_only.txt", inst_mem); end
+
+	// Dirty fix to offset the instruction memory since boot starts at 4096
+	always_comb begin
+		instruction_addr_offset = hive_req_o.inst_addr - 48'd4096;
+	end
+
+    assign hive_rsp_i.inst_data  = inst_mem[(instruction_addr_offset >> 2)];
+    assign hive_rsp_i.inst_ready = 1;
+
     //---------------------------------------------
     // Main snax shell module
     //---------------------------------------------
@@ -331,7 +349,7 @@ module tb_snax_shell;
       .rst_ni                 ( rst_ni              ),
       .rst_int_ss_ni          ( 1'b1                ), // Always available
       .rst_fp_ss_ni           ( 1'b1                ), // Always available
-      .hart_id_i              ( hart_base_id_i      ),
+      .hart_id_i              ( '0                  ), // 9-bits hardwired naming
       .hive_req_o             ( hive_req_o          ),
       .hive_rsp_i             ( hive_rsp_i          ),
       .irq_i                  ( irq_i               ),
@@ -361,6 +379,52 @@ module tb_snax_shell;
 
         clk_i  <= 0;
         rst_ni <= 0;
+
+        //---------------------------------------------
+        // Initialize stimuli for guidance
+        //---------------------------------------------
+
+        hive_rsp_i.flush_i_ready <= 0;
+        //hive_rsp_i.inst_data     <= 0;
+        //hive_rsp_i.inst_ready    <= 1;
+        hive_rsp_i.inst_error    <= 0;
+
+        hive_rsp_i.acc_qready    <= 0;
+        hive_rsp_i.acc_resp      <= 0;
+        hive_rsp_i.acc_pvalid    <= 0;
+
+        hive_rsp_i.ptw_ready     <= 0;
+        hive_rsp_i.ptw_pte       <= 0;
+        hive_rsp_i.ptw_is_4mega  <= 0;
+
+        irq_i.debug <= 0;
+        irq_i.meip  <= 0;
+        irq_i.mtip  <= 0;
+        irq_i.msip  <= 0;
+        irq_i.mcip  <= 0;
+
+        data_rsp_i.p.data  <= 0;
+        data_rsp_i.p.error <= 0;
+        data_rsp_i.p_valid <= 0;
+        data_rsp_i.q_ready <= 0;
+
+        tcdm_rsp_i.p.data  <= 0;
+        tcdm_rsp_i.p_valid <= 0;
+        tcdm_rsp_i.q_ready <= 0;
+
+        axi_dma_res_i.aw_ready <= 0;
+        axi_dma_res_i.ar_ready <= 0;
+        axi_dma_res_i.w_ready  <= 0;
+        axi_dma_res_i.b_valid  <= 0;
+        axi_dma_res_i.b.id     <= 0;
+        axi_dma_res_i.b.resp   <= 0;
+        axi_dma_res_i.b.user   <= 0;
+        axi_dma_res_i.r_valid  <= 0;
+        axi_dma_res_i.r.id     <= 0;
+        axi_dma_res_i.r.data   <= 0;
+        axi_dma_res_i.r.resp   <= 0;
+        axi_dma_res_i.r.last   <= 0;
+        axi_dma_res_i.r.user   <= 0;
 
         @(posedge clk_i);
         @(posedge clk_i);
