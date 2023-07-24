@@ -29,6 +29,8 @@
 //---------------------------------------------
 import snitch_pkg::*;
 import snitch_ssr_pkg::*;
+import snitch_pma_pkg::*;
+import fpnew_pkg::*;
 
 module tb_snax_shell;
 
@@ -41,6 +43,9 @@ module tb_snax_shell;
     parameter int unsigned NarrowDataWidth          = 64;
     parameter int unsigned WideDataWidth            = 512;
     parameter int unsigned WideIdWidthIn            = 1;
+    parameter int unsigned WideUserWidth            = 1;
+    parameter int unsigned DMAAxiReqFifoDepth       = 3;
+    parameter int unsigned DMAReqFifoDepth          = 3;
     parameter int unsigned BootAddr                 = 32'h0000_1000;
 
     parameter int unsigned NumIntOutstandingLoads   = 1;
@@ -62,7 +67,6 @@ module tb_snax_shell;
     parameter int unsigned RegisterSequencer        = 0;
     parameter int unsigned RegisterFPUIn            = 0;
     parameter int unsigned RegisterFPUOut           = 0;
-    parameter int unsigned TCDMAddrWidth            = 4;
 
     localparam int unsigned NrBanks                 = 32;
     localparam int unsigned TCDMDepth               = 512;
@@ -97,43 +101,16 @@ module tb_snax_shell;
     typedef logic [PhysicalAddrWidth-1:0] addr_t;
     typedef logic [  NarrowDataWidth-1:0] data_t;
     typedef logic [NarrowDataWidth/8-1:0] strb_t;
+    typedef logic [    TCDMAddrWidth-1:0] tcdm_addr_t;
+    typedef logic [    WideIdWidthIn-1:0] id_dma_mst_t;
+    typedef logic [    WideDataWidth-1:0] data_dma_t;
+    typedef logic [  WideDataWidth/8-1:0] strb_dma_t;
+    typedef logic [    WideUserWidth-1:0] user_dma_t;
 
     typedef struct packed {
-        logic [CoreIDWidth-1:0] core_id;
-        bit                     is_core;
+        logic core_id;
+        bit   is_core;
     } tcdm_user_t;
-
-    typedef struct packed {
-        // Slow domain.
-        logic          flush_i_valid;
-        addr_t         inst_addr;
-        logic          inst_cacheable;
-        logic          inst_valid;
-        // Fast domain.
-        acc_req_t      acc_req;
-        logic          acc_qvalid;
-        logic          acc_pready;
-        // Slow domain.
-        logic [1:0]    ptw_valid;
-        va_t  [1:0]    ptw_va;
-        pa_t  [1:0]    ptw_ppn;
-    } hive_req_t;
-
-    typedef struct packed {
-        // Slow domain.
-        logic          flush_i_ready;
-        logic [31:0]   inst_data;
-        logic          inst_ready;
-        logic          inst_error;
-        // Fast domain.
-        logic          acc_qready;
-        acc_resp_t     acc_resp;
-        logic          acc_pvalid;
-        // Slow domain.
-        logic [1:0]    ptw_ready;
-        l0_pte_t [1:0] ptw_pte;
-        logic [1:0]    ptw_is_4mega;
-    } hive_rsp_t;
 
     typedef struct packed {
         acc_addr_e   addr;
@@ -149,6 +126,42 @@ module tb_snax_shell;
         logic       error;
         data_t      data;
     } acc_rsp_t;
+
+    // Can be found in snitch_vm/typedef.svh
+    // for pa_t
+    `SNITCH_VM_TYPEDEF(PhysicalAddrWidth)
+
+    typedef struct packed {
+        // Slow domain.
+        logic          flush_i_valid;
+        addr_t         inst_addr;
+        logic          inst_cacheable;
+        logic          inst_valid;
+        // Fast domain.
+        acc_req_t      acc_req;
+        logic          acc_qvalid;
+        logic          acc_pready;
+        // Slow domain.
+        logic [1:0]    ptw_valid;
+        va_t  [1:0]    ptw_va;      // Found in snitch_pkg
+        pa_t  [1:0]    ptw_ppn;     // Found in snitch_vm.svh
+    } hive_req_t;
+
+    typedef struct packed {
+        // Slow domain.
+        logic          flush_i_ready;
+        logic [31:0]   inst_data;
+        logic          inst_ready;
+        logic          inst_error;
+        // Fast domain.
+        logic          acc_qready;
+        acc_rsp_t      acc_resp;
+        logic          acc_pvalid;
+        // Slow domain.
+        logic [1:0]    ptw_ready;
+        l0_pte_t [1:0] ptw_pte;
+        logic [1:0]    ptw_is_4mega;
+    } hive_rsp_t;
 
     typedef struct packed {
         logic aw_stall, ar_stall, r_stall, w_stall,
@@ -174,11 +187,27 @@ module tb_snax_shell;
             '{0, 0, 0, 0, 1, 1, 4, 14, 17, 3, 4, 3, 8, 4, 3},
             '{0, 0, 0, 0, 1, 1, 4, 14, 17, 3, 4, 3, 8, 4, 3},
             '{0, 0, 0, 0, 1, 1, 4, 14, 17, 3, 4, 3, 8, 4, 3}
-        },
+        }
     };
 
     localparam logic [3-1:0][4:0] SsrRegs [1] = '{
         '{2, 1, 0}
+    };
+
+    //---------------------------------------------
+    // VM stuff of snitch
+    //---------------------------------------------
+    snitch_pma_t SnitchPMACfg = '{
+        NrCachedRegionRules: 1,
+        default: 0
+    };
+
+
+    //---------------------------------------------
+    // Keep 0 for now
+    //---------------------------------------------
+    fpu_implementation_t FPUImplementation = '{
+        default: 0
     };
 
     //---------------------------------------------
@@ -211,7 +240,7 @@ module tb_snax_shell;
     //---------------------------------------------
     // This generates the following:
     // axi_mst_dma_req_t
-    // axi_mst_dma_rsp_t
+    // axi_mst_dma_resp_t - note that it really is resp_t based on definition
     //---------------------------------------------
 
     `AXI_TYPEDEF_ALL(axi_mst_dma, addr_t, id_dma_mst_t, data_dma_t, strb_dma_t, user_dma_t)
@@ -243,7 +272,7 @@ module tb_snax_shell;
       .DataWidth              ( NarrowDataWidth            ),
       .DMADataWidth           ( WideDataWidth              ),
       .DMAIdWidth             ( WideIdWidthIn              ),
-      .SnitchPMACfg           ( SnitchPMACfg               ), // TODO: Find me later
+      //.SnitchPMACfg           ( SnitchPMACfg               ), // TODO: Find me later
       .DMAAxiReqFifoDepth     ( DMAAxiReqFifoDepth         ),
       .DMAReqFifoDepth        ( DMAReqFifoDepth            ),
       .dreq_t                 ( reqrsp_req_t               ),
@@ -252,7 +281,7 @@ module tb_snax_shell;
       .tcdm_rsp_t             ( tcdm_rsp_t                 ),
       .tcdm_user_t            ( tcdm_user_t                ),
       .axi_req_t              ( axi_mst_dma_req_t          ),
-      .axi_rsp_t              ( axi_mst_dma_rsp_t          ),
+      .axi_rsp_t              ( axi_mst_dma_resp_t         ),
       .hive_req_t             ( hive_req_t                 ),
       .hive_rsp_t             ( hive_rsp_t                 ),
       .acc_req_t              ( acc_req_t                  ),
@@ -279,7 +308,7 @@ module tb_snax_shell;
       .NumIntOutstandingMem   ( NumIntOutstandingMem       ),
       .NumFPOutstandingLoads  ( NumFPOutstandingLoads      ),
       .NumFPOutstandingMem    ( NumFPOutstandingMem        ),
-      .FPUImplementation      ( FPUImplementation          ), //TODO: Find out about this
+      //.FPUImplementation      ( FPUImplementation          ), //TODO: Find out about this
       .NumDTLBEntries         ( NumDTLBEntries             ),
       .NumITLBEntries         ( NumITLBEntries             ),
       .NumSequencerInstr      ( NumSequencerInstr          ),
