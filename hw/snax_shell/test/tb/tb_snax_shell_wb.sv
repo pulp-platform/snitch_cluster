@@ -197,18 +197,12 @@ module tb_snax_shell;
     //---------------------------------------------
     // VM stuff of snitch
     //---------------------------------------------
-    snitch_pma_t SnitchPMACfg = '{
-        NrCachedRegionRules: 1,
-        default: 0
-    };
-
+    snitch_pma_t SnitchPMACfg;
 
     //---------------------------------------------
     // Keep 0 for now
     //---------------------------------------------
-    fpu_implementation_t FPUImplementation = '{
-        default: 0
-    };
+    fpu_implementation_t FPUImplementation;
 
     //---------------------------------------------
     // Type definitions. Need to checkout the following from 
@@ -264,6 +258,12 @@ module tb_snax_shell;
     axi_mst_dma_resp_t  axi_dma_res_i;
 
     //---------------------------------------------
+    // Clock and reset
+    //---------------------------------------------
+    logic clk_i;
+    logic rst_ni;
+
+    //---------------------------------------------
     // Main snax shell module
     //---------------------------------------------
 
@@ -314,8 +314,8 @@ module tb_snax_shell;
       .NumSequencerInstr      ( NumSequencerInstr          ),
       .NumSsrs                ( NumSsrs                    ),
       .SsrMuxRespDepth        ( SsrMuxRespDepth            ),
-      .SsrCfgs                ( SsrCfgs                    ), //TODO: Fix me later
-      .SsrRegs                ( SsrRegs                    ), //TODO: Fix me later
+      .SsrCfgs                ( '0                    ), //TODO: Fix me later
+      .SsrRegs                ( '0                    ), //TODO: Fix me later
       .RegisterOffloadReq     ( RegisterOffloadReq         ),
       .RegisterOffloadRsp     ( RegisterOffloadRsp         ),
       .RegisterCoreReq        ( RegisterCoreReq            ),
@@ -347,6 +347,33 @@ module tb_snax_shell;
       .core_events_o          (                     ), // Leave this unused first
       .tcdm_addr_base_i       ( '0                  )  // TODO: Fix me later. Assume starting is at 0 first
     );
+
+
+    //---------------------------------------------
+    // Always on clock
+    //---------------------------------------------
+    always begin #10; clk_i <= !clk_i; end
+
+    //---------------------------------------------
+    // Stimuli
+    //---------------------------------------------
+    initial begin
+
+        clk_i  <= 0;
+        rst_ni <= 0;
+
+        @(posedge clk_i);
+        @(posedge clk_i);
+
+        rst_ni <= 1;
+
+        @(posedge clk_i);
+        @(posedge clk_i);
+
+        #1000;
+        $stop();
+
+    end
 
 
 endmodule
