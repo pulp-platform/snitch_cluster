@@ -22,6 +22,7 @@ jobs:
             ./hw
           exclude_paths: |
             ./hw/future/test
+            ./hw/snax_shell/test
           github_token: ${{ secrets.GITHUB_TOKEN }}
           fail_on_error: true
           reviewdog_reporter: github-check
@@ -78,6 +79,7 @@ jobs:
           match_regex: true
           exclude_paths: |
             sw/snRuntime/src/omp/interface.h
+            ./hw/snax_shell
 
   ##################
   # Lint YML Files #

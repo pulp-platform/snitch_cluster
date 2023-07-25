@@ -36,7 +36,7 @@ import snitch_pma_pkg::*;
 import fpnew_pkg::*;
 import reqrsp_pkg::*;
 
-module tb_snax_shell;
+module tb_snax_shell_wb;
 
     //---------------------------------------------
     // Prototype parameters
