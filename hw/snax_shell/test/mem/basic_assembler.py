@@ -128,7 +128,7 @@ def decode(entry):
         op = '0101011'
         machine_inst = f7+rs2+rs1+f3+rd+op
         hex_code = hex_fix(machine_inst)
-    elif (entry[0] == '//'):
+    elif (entry[0] == '#'):
         pass
     else:
         # This is nop
