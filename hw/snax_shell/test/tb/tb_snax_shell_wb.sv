@@ -9,6 +9,8 @@
 // It should give the users an idea on how it was built.
 //---------------------------------------------
 
+c
+
 //---------------------------------------------
 // Type definitions to include
 //---------------------------------------------
@@ -531,5 +533,7 @@ module tb_snax_shell;
 
     end
 
+// verilog_lint: waive-stop line-length
+// verilog_lint: waive-stop no-trailing-spaces
 
 endmodule

@@ -1,3 +1,10 @@
+# -----------------------------
+# Copyright 2023 Katolieke Universiteit Leuven (KUL)
+# Solderpad Hardware License, Version 0.51, see LICENSE for details.
+# SPDX-License-Identifier: SHL-0.51
+# Author: Ryan Antonio (ryan.antonio@kuleuven.be)
+# -----------------------------
+
 # Manual assembler for basic operations only
 import sys
 
@@ -109,6 +116,8 @@ def decode(entry):
     op           = '0101011'
     machine_inst = f7+rs2+rs1+f3+rd+op
     hex_code     = hex_fix(machine_inst)
+  elif(entry[0] == '#'):
+    pass
   else:
     # This is nop
     hex_code = '00000013'
