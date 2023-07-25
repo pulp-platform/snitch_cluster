@@ -79,7 +79,7 @@ jobs:
           match_regex: true
           exclude_paths: |
             sw/snRuntime/src/omp/interface.h
-            ./hw/snax_shell
+            hw/snax_shell/test
 
   ##################
   # Lint YML Files #

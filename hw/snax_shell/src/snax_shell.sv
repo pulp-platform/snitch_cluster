@@ -1,7 +1,10 @@
 //---------------------------------------------
-// Copyright 2023 Katolieke Universiteit Leuven (KUL)
+// Copyright 2020 ETH Zurich and University of Bologna.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
+// Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
+//
+// Copyright 2023 Katolieke Universiteit Leuven (KUL)
 // Author: Ryan Antonio (ryan.antonio@kuleuven.be)
 //---------------------------------------------
 
