@@ -9,7 +9,8 @@
 // It should give the users an idea on how it was built.
 //---------------------------------------------
 
-c
+// verilog_lint: waive-start line-length
+// verilog_lint: waive-start no-trailing-spaces
 
 //---------------------------------------------
 // Type definitions to include

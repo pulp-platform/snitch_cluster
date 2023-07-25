@@ -1,9 +1,9 @@
-# -----------------------------
-# Copyright 2023 Katolieke Universiteit Leuven (KUL)
-# Solderpad Hardware License, Version 0.51, see LICENSE for details.
-# SPDX-License-Identifier: SHL-0.51
-# Author: Ryan Antonio (ryan.antonio@kuleuven.be)
-# -----------------------------
+// -----------------------------
+// Copyright 2023 Katolieke Universiteit Leuven (KUL)
+// Solderpad Hardware License, Version 0.51, see LICENSE for details.
+// SPDX-License-Identifier: SHL-0.51
+// Author: Ryan Antonio (ryan.antonio@kuleuven.be)
+// -----------------------------
 nop
 nop
 nop
