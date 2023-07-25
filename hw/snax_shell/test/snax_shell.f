@@ -27,6 +27,7 @@
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/common_cells-02aa01ee4a3b2e52/src/addr_decode_napot.sv
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/common_cells-02aa01ee4a3b2e52/src/addr_decode.sv
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/common_cells-02aa01ee4a3b2e52/src/lzc.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/common_cells-02aa01ee4a3b2e52/src/popcount.sv
 
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/axi-10c18867bc585e38/src/axi_pkg.sv
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/axi-10c18867bc585e38/src/axi_intf.sv

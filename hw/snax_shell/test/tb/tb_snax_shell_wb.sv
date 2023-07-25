@@ -49,7 +49,7 @@ module tb_snax_shell;
     parameter int unsigned DMAReqFifoDepth          = 3;
     parameter int unsigned BootAddr                 = 32'h0000_1000;
 
-    parameter int unsigned NumIntOutstandingLoads   = 1;
+    parameter int unsigned NumIntOutstandingLoads   = 4; // This controls how many load transactions can be buffered in the Snitch's LSU
     parameter int unsigned NumIntOutstandingMem     = 4;
     parameter int unsigned NumFPOutstandingLoads    = 4;
     parameter int unsigned NumFPOutstandingMem      = 4;
@@ -69,8 +69,8 @@ module tb_snax_shell;
     parameter int unsigned RegisterFPUIn            = 0;
     parameter int unsigned RegisterFPUOut           = 0;
 
-    localparam int unsigned NrBanks                 = 32;
-    localparam int unsigned TCDMDepth               = 512;
+    localparam int unsigned NrBanks                 = 8;    // Default was 32 - but kept small for TCDM port testing purposes
+    localparam int unsigned TCDMDepth               = 64;   // Default was 512 - but kept small for TCDM port testing purposes
     localparam int unsigned TCDMSize                = NrBanks * TCDMDepth * (NarrowDataWidth/8);
     localparam int unsigned TCDMAddrWidth           = $clog2(TCDMSize);
 
@@ -88,7 +88,7 @@ module tb_snax_shell;
     parameter int unsigned XF8ALT      = 1'b0;
     parameter int unsigned XFVEC       = 1'b0;
     parameter int unsigned XFDOTP      = 1'b0;
-    parameter int unsigned Xdma        = 1'b0;
+    parameter int unsigned Xdma        = 1'b1;
     parameter int unsigned IsoCrossing = 1'b0;
     parameter int unsigned Xfrep       = 1'b0;
     parameter int unsigned Xssr        = 1'b0;
@@ -244,16 +244,16 @@ module tb_snax_shell;
     //---------------------------------------------
     // Wiring and stimuli declaration
     //---------------------------------------------
-    hive_req_t      hive_req_o;
-    hive_rsp_t      hive_rsp_i;
+    hive_req_t          hive_req_o;
+    hive_rsp_t          hive_rsp_i;
 
-    interrupts_t    irq_i; // You can find interrupts_t from the snitch_pkg
+    interrupts_t        irq_i; // You can find interrupts_t from the snitch_pkg
 
-    reqrsp_req_t    data_req_o;
-    reqrsp_rsp_t    data_rsp_i;
+    reqrsp_req_t        data_req_o;
+    reqrsp_rsp_t        data_rsp_i;
 
-    tcdm_req_t      tcdm_req_o;
-    tcdm_rsp_t      tcdm_rsp_i;
+    tcdm_req_t          tcdm_req_o;
+    tcdm_rsp_t          tcdm_rsp_i;
 
     axi_mst_dma_req_t   axi_dma_req_o;
     axi_mst_dma_resp_t  axi_dma_res_i;
@@ -271,7 +271,7 @@ module tb_snax_shell;
     logic [PhysicalAddrWidth-1:0] inst_mem [0:1024];
     logic [PhysicalAddrWidth-1:0] instruction_addr_offset;
 
-	initial begin $readmemh("./mem/inst/lw_only.txt", inst_mem); end
+	initial begin $readmemh("./mem/inst/comb_mem_lw.txt", inst_mem); end
 
 	// Dirty fix to offset the instruction memory since boot starts at 4096
 	always_comb begin
@@ -284,7 +284,7 @@ module tb_snax_shell;
     //---------------------------------------------
     // Data memory
     //---------------------------------------------
-    logic [NarrowDataWidth-1:0] data_mem [0:128];
+    logic [NarrowDataWidth-1:0] data_mem [0:255];
 
 	initial begin $readmemh("./mem/data/rand_data_1.txt", data_mem); end
 
@@ -323,11 +323,6 @@ module tb_snax_shell;
         
     end
 
-    //assign data_rsp_i.p_valid = (start_mem) ? data_rsp_i.q_ready & data_req_o.q_valid: 1'b0;
-    //assign data_rsp_i.p.data  = (start_mem) ? data_mem[data_addr_offset] : '0;
-    //assign data_rsp_i.p.error = 0;
-
-
     // Synchronized writing of data since this messes up the simulation
     // Need to accommodate memory multiplexing for this part
     // Let's assume first that no arbitration is set
@@ -343,88 +338,135 @@ module tb_snax_shell;
     assign data_rsp_i.q_ready = (start_mem) ? 1'b1 : 1'b0;
 
     //---------------------------------------------
+    // TCDM Data memory
+    //---------------------------------------------
+    logic [NarrowDataWidth-1:0] tcdm_data_mem [0:255];
+
+	initial begin $readmemh("./mem/data/rand_data_2.txt", tcdm_data_mem); end
+
+    // This signal is to fake a start-up because starting immediately on a load
+    // Messes up the simulation so we need to have a "fake" start-up
+    logic [NarrowDataWidth-1:0] tcdm_data_addr_offset;
+    logic [NarrowDataWidth-1:0] tcdm_next_data_mem;
+
+    assign tcdm_data_addr_offset = tcdm_req_o.q.addr >> 3;
+    assign tcdm_next_data_mem    = tcdm_data_mem[tcdm_data_addr_offset];
+
+    // Main memory control incorporated in the fake startup
+    always_ff @ (posedge clk_i or negedge rst_ni) begin
+
+        if(!rst_ni) begin
+
+            tcdm_rsp_i.p.data  <= 64'd0;
+            tcdm_rsp_i.p_valid <= 1'b0;
+            
+        end else begin
+            
+            tcdm_rsp_i.p.data  <= (start_mem) ? tcdm_next_data_mem : '0;
+            tcdm_rsp_i.p_valid <= (start_mem) ? tcdm_rsp_i.q_ready & tcdm_req_o.q_valid: 1'b0;
+            
+        end
+        
+    end
+
+    // Synchronized writing of data since this messes up the simulation
+    // Need to accommodate memory multiplexing for this part
+    // Let's assume first that no arbitration is set
+    always @ (posedge clk_i) begin
+
+        if((tcdm_req_o.q.write  & tcdm_req_o.q_valid) & tcdm_rsp_i.q_ready) begin
+            tcdm_data_mem[tcdm_data_addr_offset] <= tcdm_req_o.q.data;
+        end
+
+    end
+
+    //assign data_rsp_i.p.data  = data_mem[data_rsp_i.q.addr >> 2];
+    assign tcdm_rsp_i.q_ready = (start_mem) ? 1'b1 : 1'b0;
+
+
+    //---------------------------------------------
     // Main snax shell module
     //---------------------------------------------
 
     snax_shell #(
-      .AddrWidth              ( PhysicalAddrWidth          ), 
-      .DataWidth              ( NarrowDataWidth            ),
-      .DMADataWidth           ( WideDataWidth              ),
-      .DMAIdWidth             ( WideIdWidthIn              ),
-      //.SnitchPMACfg           ( SnitchPMACfg               ), // TODO: Find me later
-      .DMAAxiReqFifoDepth     ( DMAAxiReqFifoDepth         ),
-      .DMAReqFifoDepth        ( DMAReqFifoDepth            ),
-      .dreq_t                 ( reqrsp_req_t               ),
-      .drsp_t                 ( reqrsp_rsp_t               ),
-      .tcdm_req_t             ( tcdm_req_t                 ),
-      .tcdm_rsp_t             ( tcdm_rsp_t                 ),
-      .tcdm_user_t            ( tcdm_user_t                ),
-      .axi_req_t              ( axi_mst_dma_req_t          ),
-      .axi_rsp_t              ( axi_mst_dma_resp_t         ),
-      .hive_req_t             ( hive_req_t                 ),
-      .hive_rsp_t             ( hive_rsp_t                 ),
-      .acc_req_t              ( acc_req_t                  ),
-      .acc_resp_t             ( acc_rsp_t                  ),
-      .dma_events_t           ( dma_events_t               ),
-      .BootAddr               ( BootAddr                   ),
-      .RVE                    ( RVE                        ),
-      .RVF                    ( RVF                        ),
-      .RVD                    ( RVD                        ),
-      .XDivSqrt               ( XDivSqrt                   ),
-      .XF16                   ( XF16                       ),
-      .XF16ALT                ( XF16ALT                    ),
-      .XF8                    ( XF8                        ),
-      .XF8ALT                 ( XF8ALT                     ),
-      .XFVEC                  ( XFVEC                      ),
-      .XFDOTP                 ( XFDOTP                     ),
-      .Xdma                   ( Xdma                       ),
-      .IsoCrossing            ( IsoCrossing                ),
-      .Xfrep                  ( Xfrep                      ),
-      .Xssr                   ( Xssr                       ),
-      .Xipu                   ( Xipu                       ),
-      .VMSupport              ( VMSupport                  ),
-      .NumIntOutstandingLoads ( NumIntOutstandingLoads     ),
-      .NumIntOutstandingMem   ( NumIntOutstandingMem       ),
-      .NumFPOutstandingLoads  ( NumFPOutstandingLoads      ),
-      .NumFPOutstandingMem    ( NumFPOutstandingMem        ),
-      //.FPUImplementation      ( FPUImplementation          ), //TODO: Find out about this
-      .NumDTLBEntries         ( NumDTLBEntries             ),
-      .NumITLBEntries         ( NumITLBEntries             ),
-      .NumSequencerInstr      ( NumSequencerInstr          ),
-      .NumSsrs                ( NumSsrs                    ),
-      .SsrMuxRespDepth        ( SsrMuxRespDepth            ),
-      .SsrCfgs                ( '0                    ), //TODO: Fix me later
-      .SsrRegs                ( '0                    ), //TODO: Fix me later
-      .RegisterOffloadReq     ( RegisterOffloadReq         ),
-      .RegisterOffloadRsp     ( RegisterOffloadRsp         ),
-      .RegisterCoreReq        ( RegisterCoreReq            ),
-      .RegisterCoreRsp        ( RegisterCoreRsp            ),
-      .RegisterFPUReq         ( RegisterFPUReq             ),
-      .RegisterSequencer      ( RegisterSequencer          ),
-      .RegisterFPUIn          ( RegisterFPUIn              ),
-      .RegisterFPUOut         ( RegisterFPUOut             ),
-      .TCDMAddrWidth          ( TCDMAddrWidth              )
+      .AddrWidth              ( PhysicalAddrWidth       ), 
+      .DataWidth              ( NarrowDataWidth         ),
+      .DMADataWidth           ( WideDataWidth           ),
+      .DMAIdWidth             ( WideIdWidthIn           ),
+      //.SnitchPMACfg           ( SnitchPMACfg          ), // TODO: Find me later
+      .DMAAxiReqFifoDepth     ( DMAAxiReqFifoDepth      ),
+      .DMAReqFifoDepth        ( DMAReqFifoDepth         ),
+      .dreq_t                 ( reqrsp_req_t            ),
+      .drsp_t                 ( reqrsp_rsp_t            ),
+      .tcdm_req_t             ( tcdm_req_t              ),
+      .tcdm_rsp_t             ( tcdm_rsp_t              ),
+      .tcdm_user_t            ( tcdm_user_t             ),
+      .axi_req_t              ( axi_mst_dma_req_t       ),
+      .axi_rsp_t              ( axi_mst_dma_resp_t      ),
+      .hive_req_t             ( hive_req_t              ),
+      .hive_rsp_t             ( hive_rsp_t              ),
+      .acc_req_t              ( acc_req_t               ),
+      .acc_resp_t             ( acc_rsp_t               ),
+      .dma_events_t           ( dma_events_t            ),
+      .BootAddr               ( BootAddr                ),
+      .RVE                    ( RVE                     ),
+      .RVF                    ( RVF                     ),
+      .RVD                    ( RVD                     ),
+      .XDivSqrt               ( XDivSqrt                ),
+      .XF16                   ( XF16                    ),
+      .XF16ALT                ( XF16ALT                 ),
+      .XF8                    ( XF8                     ),
+      .XF8ALT                 ( XF8ALT                  ),
+      .XFVEC                  ( XFVEC                   ),
+      .XFDOTP                 ( XFDOTP                  ),
+      .Xdma                   ( Xdma                    ),
+      .IsoCrossing            ( IsoCrossing             ),
+      .Xfrep                  ( Xfrep                   ),
+      .Xssr                   ( Xssr                    ),
+      .Xipu                   ( Xipu                    ),
+      .VMSupport              ( VMSupport               ),
+      .NumIntOutstandingLoads ( NumIntOutstandingLoads  ),
+      .NumIntOutstandingMem   ( NumIntOutstandingMem    ),
+      .NumFPOutstandingLoads  ( NumFPOutstandingLoads   ),
+      .NumFPOutstandingMem    ( NumFPOutstandingMem     ),
+      //.FPUImplementation      ( FPUImplementation     ), //TODO: Find out about this
+      .NumDTLBEntries         ( NumDTLBEntries          ),
+      .NumITLBEntries         ( NumITLBEntries          ),
+      .NumSequencerInstr      ( NumSequencerInstr       ),
+      .NumSsrs                ( NumSsrs                 ),
+      .SsrMuxRespDepth        ( SsrMuxRespDepth         ),
+      .SsrCfgs                ( '0                      ), //TODO: Fix me later
+      .SsrRegs                ( '0                      ), //TODO: Fix me later
+      .RegisterOffloadReq     ( RegisterOffloadReq      ),
+      .RegisterOffloadRsp     ( RegisterOffloadRsp      ),
+      .RegisterCoreReq        ( RegisterCoreReq         ),
+      .RegisterCoreRsp        ( RegisterCoreRsp         ),
+      .RegisterFPUReq         ( RegisterFPUReq          ),
+      .RegisterSequencer      ( RegisterSequencer       ),
+      .RegisterFPUIn          ( RegisterFPUIn           ),
+      .RegisterFPUOut         ( RegisterFPUOut          ),
+      .TCDMAddrWidth          ( TCDMAddrWidth           )
     ) i_snitch_cc (
-      .clk_i                  ( clk_i               ),
-      .clk_d2_i               ( clk_i               ), // Note: Use same clock
-      .rst_ni                 ( rst_ni              ),
-      .rst_int_ss_ni          ( 1'b1                ), // Always available
-      .rst_fp_ss_ni           ( 1'b1                ), // Always available
-      .hart_id_i              ( '0                  ), // 9-bits hardwired naming
-      .hive_req_o             ( hive_req_o          ),
-      .hive_rsp_i             ( hive_rsp_i          ),
-      .irq_i                  ( irq_i               ),
-      .data_req_o             ( data_req_o          ),
-      .data_rsp_i             ( data_rsp_i          ),
-      .tcdm_req_o             ( tcdm_req_o          ),
-      .tcdm_rsp_i             ( tcdm_rsp_i          ),
-      .axi_dma_req_o          ( axi_dma_req_o       ),
-      .axi_dma_res_i          ( axi_dma_res_i       ),
-      .axi_dma_busy_o         (                     ), // Leave this unused first
-      .axi_dma_perf_o         (                     ), // Leave this unused first
-      .axi_dma_events_o       (                     ), // Leave this unused first
-      .core_events_o          (                     ), // Leave this unused first
-      .tcdm_addr_base_i       ( 48'h1000_0000_0000  )  // TODO: Fix me later. Assume starting is at 0 first
+      .clk_i                  ( clk_i                   ),
+      .clk_d2_i               ( clk_i                   ), // Note: Use same clock
+      .rst_ni                 ( rst_ni                  ),
+      .rst_int_ss_ni          ( 1'b1                    ), // Always available
+      .rst_fp_ss_ni           ( 1'b1                    ), // Always available
+      .hart_id_i              ( '0                      ), // 9-bits hardwired naming
+      .hive_req_o             ( hive_req_o              ),
+      .hive_rsp_i             ( hive_rsp_i              ),
+      .irq_i                  ( irq_i                   ),
+      .data_req_o             ( data_req_o              ),
+      .data_rsp_i             ( data_rsp_i              ),
+      .tcdm_req_o             ( tcdm_req_o              ),
+      .tcdm_rsp_i             ( tcdm_rsp_i              ),
+      .axi_dma_req_o          ( axi_dma_req_o           ),
+      .axi_dma_res_i          ( axi_dma_res_i           ),
+      .axi_dma_busy_o         (                         ), // Leave this unused first
+      .axi_dma_perf_o         (                         ), // Leave this unused first
+      .axi_dma_events_o       (                         ), // Leave this unused first
+      .core_events_o          (                         ), // Leave this unused first
+      .tcdm_addr_base_i       ( 48'h0000_0000_1000      )  // TODO: Fix me later. Assume starting is at 0 first
     );
 
 
@@ -446,8 +488,6 @@ module tb_snax_shell;
         //---------------------------------------------
 
         hive_rsp_i.flush_i_ready <= 0;
-        //hive_rsp_i.inst_data     <= 0;
-        //hive_rsp_i.inst_ready    <= 1;
         hive_rsp_i.inst_error    <= 0;
 
         hive_rsp_i.acc_qready    <= 0;
@@ -463,15 +503,6 @@ module tb_snax_shell;
         irq_i.mtip  <= 0;
         irq_i.msip  <= 0;
         irq_i.mcip  <= 0;
-
-        //data_rsp_i.p.data  <= 0;
-        //data_rsp_i.p.error <= 0;
-        //data_rsp_i.p_valid <= 0;
-        //data_rsp_i.q_ready <= 0;
-
-        tcdm_rsp_i.p.data  <= 0;
-        tcdm_rsp_i.p_valid <= 0;
-        tcdm_rsp_i.q_ready <= 0;
 
         axi_dma_res_i.aw_ready <= 0;
         axi_dma_res_i.ar_ready <= 0;
