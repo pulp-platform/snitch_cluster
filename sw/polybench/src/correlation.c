@@ -5,7 +5,7 @@
 // Correlation Kernel from the Polybench Suite
 // Correctness of results are checked automatically
 // Author: Jose Pedro Castro Fonseca
-// Email: jose.pc.fonseca@gmail, jcastro@ethz.ch
+// Email: jose.pc.fonseca@gmail.com, jcastro@ethz.ch
 
 
 #include <math.h>
@@ -28,23 +28,24 @@ void kernel_correlation(uint32_t M, uint32_t N, double *data, double *mean, doub
 
 	int i,j,k;
 	double float_N  = (double)N / 1.0;
-	
+	double tmp=0.0;
+
 	// Evaluate Mean
 	#ifdef USE_OMP
 	#ifndef HOST
-	#pragma omp parallel priate(i,j) firstprivate(mean) shared(data)
+	#pragma omp parallel private(tmp,i,j) shared(mean,data,float_N)
 	{
 	#pragma omp for schedule(static)
 	#else
-	#pragma omp parallel for schedule(static) private(i,j) firstprivate(mean) shared(data)
+	#pragma omp parallel for schedule(static) private(tmp,i,j) shared(mean,data,float_N)
 	#endif
 	#endif
 	for(j = 0; j < M; j++) {
-		mean[j] = 0.0;
+		tmp = 0.0;
 		for(i=0; i < N; i++) {
-			mean[j] += data[i+j*M];
+			tmp += data[i+j*M];
 		}
-		mean[j] = mean[j] /float_N;
+		mean[j] = tmp /float_N;
 	}
 	#if defined USE_OMP && !defined HOST
 	}
@@ -53,20 +54,20 @@ void kernel_correlation(uint32_t M, uint32_t N, double *data, double *mean, doub
 	// Evaluate Stddev
 	#ifdef USE_OMP
 	#ifndef HOST
-	#pragma omp parallel private(i,j) firstprivate(stddev) shared(data,mean)
+	#pragma omp parallel private(tmp,i,j) shared(data,mean,stddev,float_N)
 	{
 	#pragma omp for schedule(static)
 	#else
-	#pragma omp parallel for schedule(static) private(i,j) firstprivate(stddev) shared(data,mean) 
+	#pragma omp parallel for schedule(static) private(tmp,i,j) shared(data,mean,stddev,float_N) 
 	#endif
 	#endif
 	for(j=0; j < M; j++) {
-		stddev[j] = 0.0;
+		tmp = 0.0;
 		for(i=0; i < N; i++) {
-			stddev[j] += (data[i+j*M] - mean[j]) * (data[i+j*M] - mean[j]);
+			tmp += (data[i+j*M] - mean[j]) * (data[i+j*M] - mean[j]);
 		}
-		stddev[j] = sqrt(stddev[j] / float_N);
-		stddev[j] = stddev[j] <= 0.01 ? 1.0 : stddev[j];
+		tmp = sqrt(tmp / float_N);
+		stddev[j] = tmp <= 0.01 ? 1.0 : tmp;
 	}
 	#if defined USE_OMP && !defined HOST
 	}
@@ -76,11 +77,11 @@ void kernel_correlation(uint32_t M, uint32_t N, double *data, double *mean, doub
 	// De-reference data with mean
 	#ifdef USE_OMP
 	#ifndef HOST
-	#pragma omp parallel private(i,j) firstprivate(data) shared(mean)
+	#pragma omp parallel private(i,j) shared(mean,data)
 	{
 	#pragma omp for schedule(static)
 	#else
-	#pragma omp parallel for schedule(static) private(i,j) firstprivate(data) shared(mean)
+	#pragma omp parallel for schedule(static) private(i,j) shared(mean,data)
 	#endif
 	#endif
 	for(i=0; i < N; i++) {
@@ -95,29 +96,25 @@ void kernel_correlation(uint32_t M, uint32_t N, double *data, double *mean, doub
 	// Evaluate Correlation
 	#ifdef USE_OMP
 	#ifndef HOST
-	#pragma omp parallel private(i,j,k) firstprivate(corr) shared(data, stddev)
+	#pragma omp parallel private(tmp,i,j,k) shared(data,corr,stddev,float_N)
 	{
 	#pragma omp for schedule(static)
 	#else
-	#pragma omp parallel for schedule(static) private(i,j,k) firstprivate(corr) shared(data, stddev)
+	#pragma omp parallel for schedule(static) private(tmp,i,j,k) shared(data,corr,stddev,float_N)
 	#endif
 	#endif
 	for(i=0; i < M; i++) {
 		for(j = i; j < M; j++) {
-			corr[i+j*M] = 0.0;
+			tmp = 0.0;
 			for(k = 0; k < N; k++) {
-				corr[i+j*M] += data[k+i*M] *  data[k+j*M];
+				tmp += data[k+i*M] *  data[k+j*M];
 			}
-			corr[i+j*M] = corr[i+j*M]/(float_N*stddev[i]*stddev[j]);
+			corr[i+j*M] = tmp/(float_N*stddev[i]*stddev[j]);
 			corr[j+i*M] = corr[i+j*M];
 		}
 	}
 	#if defined USE_OMP && !defined HOST
 	}
-	#endif
-
-	#ifndef HOST
-	snrt_fpu_fence();
 	#endif
 }
 
@@ -178,18 +175,6 @@ int main() {
     #ifndef HOST
     if (snrt_cluster_core_idx()==0) {
     #endif
-	// Check Mean
-	/*
-        for (int i = 0; i < M; i++) {
-		diff = fabs(golden_mean[i] - local_mean[i]);
-		if(diff > 0.01) {
-			nerr++;
-			#ifdef HOST
-			printf("Wrong mean sample [%d]: %f vs %f!\n", i, local_mean[i], golden_mean[i]);
-			#endif 
-		}
-        }
-	*/
 	// Evaluate Correlation
 	for(int i=0; i < M; i++) {
 		for(int j = 0; j < N; j++) {

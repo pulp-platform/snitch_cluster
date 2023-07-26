@@ -5,7 +5,7 @@
 // ATAX Kernel from the Polybench Suite
 // Correctness of results are checked automatically
 // Author: Jose Pedro Castro Fonseca
-// Email: jose.pc.fonseca@gmail, jcastro@ethz.ch
+// Email: jose.pc.fonseca@gmail.com, jcastro@ethz.ch
 
 
 #include <math.h>
@@ -28,21 +28,24 @@
 void kernel_atax(uint32_t M, uint32_t N, double *A, double *x, double *y, double *tmp) {
 
 	int i,j;
+	double tmp_fs=0.0;
 
 	// Evaluate y = At * (A * x)
 	#ifdef USE_OMP
 	#ifndef HOST
-	#pragma omp parallel firstprivate(tmp) shared(A,x)
+	#pragma omp parallel private(tmp_fs,i,j) shared(A,x,tmp)
 	{
 	#pragma omp for schedule(static)
 	#else
-	#pragma omp parallel for schedule(static)  private(i,j) firstprivate(tmp) shared(A,x)
+	#pragma omp parallel for schedule(static)  private(tmp_fs,i,j) firstprivate(tmp) shared(A,x)
 	#endif
 	#endif
 	for(i = 0; i < M; i++) {
+		tmp_fs = 0.0;
 		for(j = 0; j < N; j++) {
-			tmp[i] += A[i+j*N] * x[j];
+			tmp_fs += A[i+j*N] * x[j];
 		}
+		tmp[i] = tmp_fs;
 	}
 	#if defined USE_OMP && !defined HOST
 	}
@@ -50,25 +53,23 @@ void kernel_atax(uint32_t M, uint32_t N, double *A, double *x, double *y, double
 
 	#ifdef USE_OMP
 	#ifndef HOST
-	#pragma omp parallel  firstprivate(y) shared(A,tmp)
+	#pragma omp parallel private(tmp_fs,i,j) shared(A,tmp,y)
 	{
 	#pragma omp for schedule(static)
 	#else
-	#pragma omp parallel for schedule(static) private(i,j) firstprivate(y) shared(A,tmp)
+	#pragma omp parallel for schedule(static) private(tmp_fs,i,j) firstprivate(y) shared(A,tmp)
 	#endif
 	#endif
 	for(j = 0; j < N; j++) {
+		tmp_fs = 0.0;
 		for(i = 0; i < M; i++) {
 			// The order of the for loops was exchanged, so that each loop reduces in y at position j, iterating through the i positions.
-			y[j] += A[i+j*N] * tmp[i];
+			tmp_fs += A[i+j*N] * tmp[i];
 		}
+		y[j] = tmp_fs;
 	}
 	#if defined USE_OMP && !defined HOST
 	}
-	#endif
-
-	#ifndef HOST
-	snrt_fpu_fence();
 	#endif
 }
 
@@ -107,25 +108,36 @@ int main() {
 		local_tmp[i] = 0;
 	}
 
+
+ 	// *************************** SNITCH MODE ***************************//
 	// Perform Computations 
+
 	#ifndef HOST
     	__snrt_omp_bootstrap(core_idx);
-	#ifndef USE_OMP
-	uint32_t sta = mcycle();
-	#endif
-	kernel_atax(M, N, local_A, local_x, local_y, local_tmp);
-	#ifndef USE_OMP
-	uint32_t end = mcycle();
-	#endif
+    	if(snrt_is_compute_core()) {
+		#ifndef USE_OMP
+		uint32_t sta = mcycle();
+		#endif
+		kernel_atax(M, N, local_A, local_x, local_y, local_tmp);
+		#ifndef USE_OMP
+		uint32_t end = mcycle();
+		#endif
+	}
     	__snrt_omp_destroy(core_idx);
-
-	#else
-	#ifdef USE_OMP
-	omp_set_num_threads(NTHREADS);
 	#endif
+
+ 	// *******************************************************************//
+
+ 	// **************************** HOST MODE ****************************//
+	#if defined HOST && defined USE_OMP
+	omp_set_num_threads(8);
+	#endif
+
+	#ifdef HOST
 	kernel_atax(M, N, local_A, local_x, local_y, local_tmp);
 	#endif
-   
+ 	// ******************************************************************//
+
 
 	// Check computation is correct
 	#ifndef HOST

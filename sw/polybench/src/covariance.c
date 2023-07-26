@@ -5,7 +5,7 @@
 // Covariance Kernel from the Polybench Suite
 // Correctness of results are checked automatically
 // Author: Jose Pedro Castro Fonseca
-// Email: jose.pc.fonseca@gmail, jcastro@ethz.ch
+// Email: jose.pc.fonseca@gmail.com, jcastro@ethz.ch
 
 
 #include <math.h>
@@ -29,23 +29,24 @@ void kernel_covariance(uint32_t M, uint32_t N, double *data, double *mean, doubl
 	int i,j,k;
 	double float_N  = (double)N         / 1.0;
 	double float_N1 = ((double)N -1.0)  / 1.0;
+	double tmp=0;
 
 	// Evaluate Mean
 	#ifdef USE_OMP
 	#ifndef HOST
-	#pragma omp parallel firstprivate(mean) shared(data)
+	#pragma omp parallel private(tmp,i,j) shared(mean,data, float_N)
 	{
 	#pragma omp for schedule(static)
 	#else
-	#pragma omp parallel for schedule(static) private(i,j) firstprivate(mean) shared(data)
+	#pragma omp parallel for schedule(static) private(tmp,i,j) shared(data,mean,float_N)
 	#endif
 	#endif
 	for(j = 0; j < M; j++) {
-		mean[j] = 0.0;
+		tmp = 0.0;
 		for(i=0; i < N; i++) {
-			mean[j] += data[i+j*M];
+			tmp += data[i+j*M];
 		}
-		mean[j] = mean[j] / float_N;
+		mean[j] = tmp / float_N;
 	}
 	#if defined USE_OMP && !defined HOST
 	}
@@ -53,11 +54,11 @@ void kernel_covariance(uint32_t M, uint32_t N, double *data, double *mean, doubl
 
 	#ifdef USE_OMP
 	#ifndef HOST
-	#pragma omp parallel firstprivate(data)  shared(mean)
+	#pragma omp parallel private(i,j) shared(mean,data)
 	{
 	#pragma omp for schedule(static)
 	#else
-	#pragma omp parallel for schedule(static) private(i,j) firstprivate(data)  shared(mean)
+	#pragma omp parallel for schedule(static) private(i,j) shared(mean,data)
 	#endif
 	#endif
 	for(i=0; i < N; i++) {
@@ -72,20 +73,20 @@ void kernel_covariance(uint32_t M, uint32_t N, double *data, double *mean, doubl
 	// Evaluate Covariance
 	#ifdef USE_OMP
 	#ifndef HOST
-	#pragma omp parallel private(i,j,k) firstprivate(cov) shared(data)
+	#pragma omp parallel private(tmp,i,j,k)  shared(data, cov, float_N1)
 	{
 	#pragma omp for schedule(static)
 	#else
-	#pragma omp parallel for schedule(static) private(i,j,k) firstprivate(cov) shared(data)
+	#pragma omp parallel for schedule(static) private(tmp,i,j,k) shared(data,cov,float_N1)
 	#endif
 	#endif
 	for(i=0; i < M; i++) {
 		for(j = i; j < M; j++) {
-			cov[i+j*M] = 0.0;
+			tmp = 0.0;
 			for(k = 0; k < N; k++) {
-				cov[i+j*M] += data[k+i*M] *  data[k+j*M];
+				tmp += data[k+i*M] *  data[k+j*M];
 			}
-			cov[i+j*M] = cov[i+j*M] / float_N1;
+			cov[i+j*M] = tmp / float_N1;
 			cov[j+i*M] = cov[i+j*M];
 		}
 	}
