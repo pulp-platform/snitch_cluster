@@ -5,6 +5,9 @@
 // Author: Ryan Antonio (ryan.antonio@kuleuven.be)
 //---------------------------------------------
 
+// verilog_lint: waive-start line-length
+// verilog_lint: waive-start no-trailing-spaces
+
 import snax_riscv_instr::*;
 
 module snax_hwpe_ctrl #(
@@ -210,5 +213,7 @@ module snax_hwpe_ctrl #(
     .pop_i      (  pop_hwpe_sn      )
   );
 
+// verilog_lint: waive-stop line-length
+// verilog_lint: waive-stop no-trailing-spaces
 
 endmodule

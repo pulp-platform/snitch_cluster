@@ -5,7 +5,8 @@
 // Author: Ryan Antonio (ryan.antonio@kuleuven.be)
 //---------------------------------------------
 
-
+// verilog_lint: waive-start line-length
+// verilog_lint: waive-start no-trailing-spaces
 
 import reqrsp_pkg::*;
 
@@ -126,6 +127,8 @@ module snax_hwpe_to_reqrsp #(
   assign tcdm_req_o.q.strb = {STRB_WIDTH{strb}};
   assign tcdm_req_o.q.user   = '0;
 
+// verilog_lint: waive-stop line-length
+// verilog_lint: waive-stop no-trailing-spaces
 
 endmodule
 
