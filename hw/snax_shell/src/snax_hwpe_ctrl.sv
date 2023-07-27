@@ -11,7 +11,7 @@
 import snax_riscv_instr::*;
 
 module snax_hwpe_ctrl #(
-  parameter DataWidth       = 64,
+  parameter int unsigned DataWidth       = 64,
   parameter type acc_req_t  = logic,          // Memory request payload type, usually write enable, write data, etc.
   parameter type acc_resp_t = logic           // Memory response payload type, usually read data
 )(

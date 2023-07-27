@@ -956,7 +956,7 @@ module snax_shell #(
     );
 
     genvar i;
-    for (i = 0; i < NumSsrs-1; i++) begin
+    for (i = 0; i < NumSsrs-1; i++) begin: gen_hwpe_to_reqrsp
       snax_hwpe_to_reqrsp #(
         .DataWidth        ( DataWidth       ),  // Data width to use
         .tcdm_req_t       ( tcdm_req_t      ),  // TCDM request type
