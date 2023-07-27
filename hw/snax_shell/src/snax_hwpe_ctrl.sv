@@ -44,7 +44,7 @@ module snax_hwpe_ctrl #(
   localparam int unsigned TotalHwpeSnFifoWidth = 5 + 32 + 1;
 
   // Number of bits to fill to extend to DataWidth
-  localparam int unsigned FILL_BITS = DataWidth - 32;
+  localparam int unsigned FillBits = DataWidth - 32;
 
   //---------------------------------------------
   // Registers and wires
@@ -180,12 +180,12 @@ module snax_hwpe_ctrl #(
   // Simply extending the unpacked_data to 64 bits
   // At the same time wiring it to the resp_o.data value
   // We make a condition here just for safety if DataWidth is less than 32
-  if (FILL_BITS > 0) begin
+  if (FillBits > 0) begin: gen_fill_bits
 
     // Fill upper bits with 0s
-    assign resp_o.data = {{FILL_BITS{1'b0}},unpacked_data};
+    assign resp_o.data = {{FillBits{1'b0}},unpacked_data};
 
-  end else begin
+  end else begin: gen_no_fill_bits
 
     // This automatically truncates the upper bits
     // if the resp_o.data is more than 32 bits.
