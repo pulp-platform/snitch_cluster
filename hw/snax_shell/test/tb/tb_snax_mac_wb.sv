@@ -276,7 +276,7 @@ module tb_snax_mac_wb;
     logic [PhysicalAddrWidth-1:0] inst_mem [0:1024];
     logic [PhysicalAddrWidth-1:0] instruction_addr_offset;
 
-	initial begin $readmemh("./mem/inst/comb_mem_lw.txt", inst_mem); end
+	initial begin $readmemh("./mem/inst/mac_test.txt", inst_mem); end
 
 	// Dirty fix to offset the instruction memory since boot starts at 4096
 	always_comb begin
@@ -407,13 +407,13 @@ module tb_snax_mac_wb;
     assign hwpe_tcdm_next_data_mem[0]    = hwpe_tcdm_mem_0[hwpe_tcdm_data_addr_offset[0]];
 
     assign hwpe_tcdm_data_addr_offset[1] = tcdm_req_o[2].q.addr >> 3;
-    assign hwpe_tcdm_next_data_mem[1]    = hwpe_tcdm_mem_0[hwpe_tcdm_data_addr_offset[1]];
+    assign hwpe_tcdm_next_data_mem[1]    = hwpe_tcdm_mem_1[hwpe_tcdm_data_addr_offset[1]];
 
     assign hwpe_tcdm_data_addr_offset[2] = tcdm_req_o[3].q.addr >> 3;
-    assign hwpe_tcdm_next_data_mem[2]    = hwpe_tcdm_mem_0[hwpe_tcdm_data_addr_offset[2]];
+    assign hwpe_tcdm_next_data_mem[2]    = hwpe_tcdm_mem_2[hwpe_tcdm_data_addr_offset[2]];
 
     assign hwpe_tcdm_data_addr_offset[3] = tcdm_req_o[4].q.addr >> 3;
-    assign hwpe_tcdm_next_data_mem[3]    = hwpe_tcdm_mem_0[hwpe_tcdm_data_addr_offset[3]];
+    assign hwpe_tcdm_next_data_mem[3]    = hwpe_tcdm_mem_3[hwpe_tcdm_data_addr_offset[3]];
 
     // Main memory control incorporated in the fake startup
     always_ff @ (posedge clk_i or negedge rst_ni) begin
@@ -618,7 +618,7 @@ module tb_snax_mac_wb;
         @(posedge clk_i);
         @(posedge clk_i);
 
-        #2000;
+        #5000;
         $stop();
 
     end

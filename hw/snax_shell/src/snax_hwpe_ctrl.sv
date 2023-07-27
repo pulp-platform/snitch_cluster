@@ -38,15 +38,10 @@ module snax_hwpe_ctrl #(
 
   // We need to pack and unpack in order:
   // {id, req, add, wen, be, data} - which leads to a total of...
-  localparam int unsigned TOTAL_SN_HWPE_FIFO_WIDTH = 5 + 1 + 32 + 1 + 1 + 32; //67 in total
+  localparam int unsigned TotalSnHwpeFifoWidth = 5 + 1 + 32 + 1 + 1 + 32; //67 in total
 
   // {r_id, r_valid, r_data}
-  localparam int unsigned TOTAL_HWPE_SN_FIFO_WIDTH = 5 + 32 + 1;
-
-  // These local parameters are based on the default HWPE mappings
-  localparam int unsigned BASE_MANDATORY_REGS = 0;
-  localparam int unsigned BASE_GENERIC_REGS   = 32;
-  localparam int unsigned BASE_ENGINE_REGS    = 64;
+  localparam int unsigned TotalHwpeSnFifoWidth = 5 + 32 + 1;
 
   // Number of bits to fill to extend to DataWidth
   localparam int unsigned FILL_BITS = DataWidth - 32;
@@ -65,12 +60,28 @@ module snax_hwpe_ctrl #(
   logic       wen;
   logic [3:0] be;
 
-  // Pack and unpack signals
-  logic [TOTAL_SN_HWPE_FIFO_WIDTH-1:0] fifo_sn_hwpe_in;
-  logic [TOTAL_SN_HWPE_FIFO_WIDTH-1:0] fifo_sn_hwpe_out;
+  // Typedef struct for pack and unpack signals
+  typedef struct packed {
+    logic [ 4:0] id;
+    logic        req;
+    logic [31:0] add;
+    logic        wen;
+    logic        be;
+    logic [31:0] data;
+  } hwpe_tcdm_t;
 
-  logic [TOTAL_HWPE_SN_FIFO_WIDTH-1:0] fifo_hwpe_sn_in;
-  logic [TOTAL_HWPE_SN_FIFO_WIDTH-1:0] fifo_hwpe_sn_out;
+  typedef struct packed {
+    logic [ 4:0] r_id;
+    logic        r_valid;
+    logic [31:0] r_data;
+  } tcdm_hwpe_t;
+
+  // Pack and unpack signals
+  hwpe_tcdm_t fifo_sn_hwpe_in;
+  hwpe_tcdm_t fifo_sn_hwpe_out;
+
+  tcdm_hwpe_t fifo_hwpe_sn_in;
+  tcdm_hwpe_t fifo_hwpe_sn_out;
 
   // Push and pop signals, the latter 2 labels indicate direction
   logic push_sn_hwpe;
@@ -95,27 +106,23 @@ module snax_hwpe_ctrl #(
   assign wen = (req_i.data_op == SNAX_RD_ACC) ? 1'b1 : 1'b0;
 
   // Byte enable always only when we need to write
-  assign be  = (req & !wen) ? 4'hF : 4'h0;
+  assign be  = (transaction_valid & !wen) ? 4'hF : 4'h0;
 
   // Pack
-  assign fifo_sn_hwpe_in = {
-    req_i.id,               // id
-    transaction_valid,      // req
-    req_i.data_arga[31:0],  // add - original snitch uses 64 bits so truncate to 32 bits only
-    wen,                    // wen
-    be,                     // be
-    req_i.data_argb[31:0]   // data
-  };
+  assign fifo_sn_hwpe_in.id   = req_i.id;
+  assign fifo_sn_hwpe_in.req  = transaction_valid;
+  assign fifo_sn_hwpe_in.add  = req_i.data_arga[31:0];
+  assign fifo_sn_hwpe_in.wen  = wen;
+  assign fifo_sn_hwpe_in.be   = be;
+  assign fifo_sn_hwpe_in.data = req_i.data_argb[31:0];
 
   // Unpack
-  assign {
-    periph.id,
-    periph.req,
-    periph.add,
-    periph.wen,
-    periph.be,
-    periph.data
-  } = fifo_sn_hwpe_out;
+  assign periph.id   = fifo_sn_hwpe_out.id;
+  assign periph.req  = fifo_sn_hwpe_out.req;
+  assign periph.add  = fifo_sn_hwpe_out.add;
+  assign periph.wen  = fifo_sn_hwpe_out.wen;
+  assign periph.be   = fifo_sn_hwpe_out.be;
+  assign periph.data = fifo_sn_hwpe_out.data;
 
   // Push into SN to HWPE FIFO queue if transaction is valid and for HWPE ACC
   assign push_sn_hwpe = transaction_valid;
@@ -131,7 +138,7 @@ module snax_hwpe_ctrl #(
   // FIFO queue for tranasctions from Snitch to HWPE
   //---------------------------------------------
   fifo_v3 #(
-    .DATA_WIDTH ( TOTAL_SN_HWPE_FIFO_WIDTH ), // Sum of address and 
+    .dtype      ( hwpe_tcdm_t         ), // Sum of address and 
     .DEPTH      ( 8                   )  // Arbitrarily chosen
   ) i_sn_hwpe_fifo (
     .clk_i      ( clk_i               ),
@@ -153,18 +160,14 @@ module snax_hwpe_ctrl #(
   //---------------------------------------------
 
   // Pack
-  assign fifo_hwpe_sn_in = {
-    periph.r_id,
-    periph.r_valid,
-    periph.r_data
-  };
-
+  assign fifo_hwpe_sn_in.r_id    = periph.r_id;
+  assign fifo_hwpe_sn_in.r_valid = periph.r_valid;
+  assign fifo_hwpe_sn_in.r_data  = periph.r_data;
+  
   // Unpack
-  assign {
-    resp_o.id,
-    resp_valid_o,
-    unpacked_data
-  } = fifo_hwpe_sn_out;
+  assign resp_o.id     = fifo_hwpe_sn_out.r_id;
+  assign resp_valid_o  = fifo_hwpe_sn_out.r_valid;
+  assign unpacked_data = fifo_hwpe_sn_out.r_data;
 
   // The only signal we get from HWPE is the r_valid to indicate valid read data
   // Push HWPE to SN FIFO queue when r_valid is asserted
@@ -197,7 +200,7 @@ module snax_hwpe_ctrl #(
   // FIFO queue for valid reads from HWPE to Snitch
   //---------------------------------------------
   fifo_v3 #(
-    .DATA_WIDTH ( TOTAL_HWPE_SN_FIFO_WIDTH ), // Sum of address and 
+    .dtype      ( tcdm_hwpe_t       ), // Sum of address and 
     .DEPTH      ( 8                 )  // Arbitrarily chosen
   ) i_hwpe_sn_fifo (
     .clk_i      ( clk_i             ),

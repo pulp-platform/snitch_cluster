@@ -11,6 +11,7 @@
 import reqrsp_pkg::*;
 
 module snax_hwpe_to_reqrsp #(
+  parameter int unsigned AddrWidth = 48,
   parameter int unsigned DataWidth = 64,
   parameter type tcdm_req_t = logic,            // Memory request payload type, usually write enable, write data, etc.
   parameter type tcdm_rsp_t = logic             // Memory response payload type, usually read data
@@ -25,15 +26,8 @@ module snax_hwpe_to_reqrsp #(
   //---------------------------------------------
   // Some local parameters
   //---------------------------------------------
-  
-  // From HWPE to TCDM we pack
-  // {hwpe_tcdm_slave.add, hwpe_tcdm_slave.wen, hwpe_tcdm_slave.be, hwpe_tcdm_slave.data, 1'b1}
-  // From HWPE to TCDM we unpack 
-  // {tcdm_req_o.q.addr, tcdm_req_o.q.write, tcdm_req_o.q.data, tcdm_req_o.q.strb, tcdm_req_o.q.q_valid}
-  // Note that HWPE address is 32 bits only as well as data width
-  localparam int unsigned TOTAL_HWPE_TCDM_FIFO_WIDTH = 32 + 1 + 1 + 32 + 1;
 
-  localparam int unsigned STRB_WIDTH = (DataWidth/8);
+  localparam int unsigned StrbWidth = (DataWidth/8);
 
   //---------------------------------------------
   // Pack, unpack, and some logic
@@ -42,33 +36,41 @@ module snax_hwpe_to_reqrsp #(
   logic pop_hwpe_tcdm;
 
   logic fifo_hwpe_tcdm_full;
-
-  logic [TOTAL_HWPE_TCDM_FIFO_WIDTH-1:0] fifo_hwpe_tcdm_data_in;
-  logic [TOTAL_HWPE_TCDM_FIFO_WIDTH-1:0] fifo_hwpe_tcdm_data_out;
+  logic fifo_hwpe_tcdm_empty;
 
   logic be;
   logic strb;
+
+  logic [31:0] unpack_addr;
+  logic [31:0] unpack_data;
+
+  typedef struct packed {
+    logic [31:0] add;
+    logic        wen;
+    logic        be;
+    logic [31:0] data;
+    logic        r_valid;
+  } hwpe_tcdm_t;
+
+  hwpe_tcdm_t fifo_hwpe_tcdm_data_in;
+  hwpe_tcdm_t fifo_hwpe_tcdm_data_out;
 
   // HWPE shows 4 bits of be but let's just say it's always strobed properly
   assign be = hwpe_tcdm_slave.be[0];
 
   // Pack
-  assign fifo_hwpe_tcdm_data_in = {
-    hwpe_tcdm_slave.add,
-    hwpe_tcdm_slave.wen,
-    be,
-    hwpe_tcdm_slave.data,
-    1'b1
-  };
+  assign fifo_hwpe_tcdm_data_in.add     = hwpe_tcdm_slave.add;
+  assign fifo_hwpe_tcdm_data_in.wen     = hwpe_tcdm_slave.wen;
+  assign fifo_hwpe_tcdm_data_in.be      = be;
+  assign fifo_hwpe_tcdm_data_in.data    = hwpe_tcdm_slave.data;
+  assign fifo_hwpe_tcdm_data_in.r_valid = hwpe_tcdm_slave.gnt;
 
   // Unpack
-  assign {
-    tcdm_req_o.q.addr,
-    tcdm_req_o.q.write,
-    strb,
-    tcdm_req_o.q.data,
-    tcdm_req_o.q_valid
-  } = fifo_hwpe_tcdm_data_out;
+  assign unpack_addr        = fifo_hwpe_tcdm_data_out.add;
+  assign tcdm_req_o.q.write = fifo_hwpe_tcdm_data_out.wen;
+  assign strb               = fifo_hwpe_tcdm_data_out.be;
+  assign unpack_data        = fifo_hwpe_tcdm_data_out.data;
+  assign tcdm_req_o.q_valid = fifo_hwpe_tcdm_data_out.r_valid & !fifo_hwpe_tcdm_empty;
 
   //---------------------------------------------
   // Simple grant request control
@@ -90,28 +92,27 @@ module snax_hwpe_to_reqrsp #(
   assign push_hwpe_tcdm = hwpe_tcdm_slave.req & hwpe_tcdm_slave.gnt & !fifo_hwpe_tcdm_full;
 
   // Pop when port has a valid transaction at the tcdm side
-  assign pop_hwpe_tcdm = tcdm_req_o.q_valid & tcdm_rsp_i.q_ready;
+  assign pop_hwpe_tcdm = tcdm_req_o.q_valid & tcdm_rsp_i.q_ready & !fifo_hwpe_tcdm_empty;
 
   //---------------------------------------------
   // FIFO queue for tranasctions from HWPE to TCDM
   //---------------------------------------------
   fifo_v3 #(
-    .DATA_WIDTH ( TOTAL_HWPE_TCDM_FIFO_WIDTH ), // Sum of address and 
-    .DEPTH      ( 8                       )  // Arbitrarily chosen
+    .dtype      ( hwpe_tcdm_t             ), // Sum of address and 
+    .DEPTH      ( 10                      )  // Arbitrarily chosen
   ) i_hwpe_tcdm_fifo (
     .clk_i      ( clk_i                   ),
     .rst_ni     ( rst_ni                  ),
     .flush_i    ( 1'b0                    ),
     .testmode_i ( 1'b0                    ),
     .full_o     ( fifo_hwpe_tcdm_full     ),
-    .empty_o    ( /*unused*/              ),
+    .empty_o    ( fifo_hwpe_tcdm_empty    ),
     .usage_o    ( /*unused*/              ),
     .data_i     ( fifo_hwpe_tcdm_data_in  ),
     .push_i     ( push_hwpe_tcdm          ),
     .data_o     ( fifo_hwpe_tcdm_data_out ),
     .pop_i      ( pop_hwpe_tcdm           )
   );
-
 
   //---------------------------------------------
   // We just directly map the tcdm_rsp_i to the HWPE ports
@@ -123,8 +124,10 @@ module snax_hwpe_to_reqrsp #(
   // Some signals are unimportant so we tie them to 0
   // Strb is just extended version of strb
   //---------------------------------------------
+  assign tcdm_req_o.q.addr = {{31{1'b0}},unpack_addr} << 1;
+  assign tcdm_req_o.q.data = {{31{1'b0}},unpack_data};
   assign tcdm_req_o.q.amo  = AMONone;
-  assign tcdm_req_o.q.strb = {STRB_WIDTH{strb}};
+  assign tcdm_req_o.q.strb = {StrbWidth{strb}};
   assign tcdm_req_o.q.user   = '0;
 
 // verilog_lint: waive-stop line-length
