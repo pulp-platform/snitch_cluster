@@ -29,6 +29,11 @@
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/common_cells-02aa01ee4a3b2e52/src/popcount.sv
 
 #--------------------------------------------
+# Tech cells
+#--------------------------------------------
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/tech_cells_generic-1282165f7b690985/src/rtl/tc_clk.sv
+
+#--------------------------------------------
 # AXI components
 #--------------------------------------------
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/axi-10c18867bc585e38/src/axi_pkg.sv
@@ -48,6 +53,69 @@
 # RISCV debug components
 #--------------------------------------------
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/riscv-dbg-4d2e83f8d49c3adc/src/dm_pkg.sv
+
+#--------------------------------------------
+# HWPE-control components
+#--------------------------------------------
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-ctrl-078b13d4b656e469/rtl/hwpe_ctrl_interfaces.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-ctrl-078b13d4b656e469/rtl/hwpe_ctrl_package.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-ctrl-078b13d4b656e469/rtl/hwpe_ctrl_regfile_latch.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-ctrl-078b13d4b656e469/rtl/hwpe_ctrl_seq_mult.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-ctrl-078b13d4b656e469/rtl/hwpe_ctrl_uloop.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-ctrl-078b13d4b656e469/rtl/hwpe_ctrl_regfile_latch_test_wrap.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-ctrl-078b13d4b656e469/rtl/hwpe_ctrl_regfile.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-ctrl-078b13d4b656e469/rtl/hwpe_ctrl_slave.sv
+
+#--------------------------------------------
+# HWPE-stream components
+#--------------------------------------------
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/hwpe_stream_interfaces.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/hwpe_stream_package.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/basic/hwpe_stream_assign.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/basic/hwpe_stream_buffer.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/basic/hwpe_stream_demux_static.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/basic/hwpe_stream_deserialize.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/basic/hwpe_stream_fence.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/basic/hwpe_stream_merge.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/basic/hwpe_stream_mux_static.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/basic/hwpe_stream_serialize.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/basic/hwpe_stream_split.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/fifo/hwpe_stream_fifo_ctrl.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/fifo/hwpe_stream_fifo_scm.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/streamer/hwpe_stream_addressgen.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/streamer/hwpe_stream_addressgen_v2.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/streamer/hwpe_stream_addressgen_v3.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/streamer/hwpe_stream_sink_realign.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/streamer/hwpe_stream_source_realign.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/streamer/hwpe_stream_strbgen.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/streamer/hwpe_stream_streamer_queue.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/tcdm/hwpe_stream_tcdm_assign.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/tcdm/hwpe_stream_tcdm_mux.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/tcdm/hwpe_stream_tcdm_mux_static.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/tcdm/hwpe_stream_tcdm_reorder.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/tcdm/hwpe_stream_tcdm_reorder_static.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/fifo/hwpe_stream_fifo_earlystall.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/fifo/hwpe_stream_fifo_earlystall_sidech.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/fifo/hwpe_stream_fifo_scm_test_wrap.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/fifo/hwpe_stream_fifo_sidech.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/fifo/hwpe_stream_fifo.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/tcdm/hwpe_stream_tcdm_fifo_load_sidech.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/streamer/hwpe_stream_source.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/tcdm/hwpe_stream_tcdm_fifo.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/tcdm/hwpe_stream_tcdm_fifo_load.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/tcdm/hwpe_stream_tcdm_fifo_store.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/streamer/hwpe_stream_sink.sv
+
+#--------------------------------------------
+# HWPE-MAC simple engine components
+#--------------------------------------------
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-mac-engine-2b826360825b0834/rtl/mac_package.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-mac-engine-2b826360825b0834/rtl/mac_engine.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-mac-engine-2b826360825b0834/rtl/mac_fsm.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-mac-engine-2b826360825b0834/rtl/mac_streamer.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-mac-engine-2b826360825b0834/rtl/mac_ctrl.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-mac-engine-2b826360825b0834/rtl/mac_top.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-mac-engine-2b826360825b0834/wrap/mac_top_wrap.sv
 
 #--------------------------------------------
 # Core Snitch Components
@@ -128,10 +196,14 @@
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/hw/snitch_cluster/src/snitch_hive.sv
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/hw/snitch_cluster/src/snitch_cluster.sv
 
-
 #--------------------------------------------
 # Snax components
 #--------------------------------------------
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/hw/snax_shell/src/snax_riscv_instr.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/hw/snax_shell/src/snax_snitch_pkg.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/hw/snax_shell/src/snax_snitch.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/hw/snax_shell/src/snax_hwpe_ctrl.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/hw/snax_shell/src/snax_hwpe_to_reqrsp.sv
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/hw/snax_shell/src/snax_shell.sv
 
 
@@ -139,3 +211,4 @@
 # Snax testbenches
 #--------------------------------------------
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/hw/snax_shell/test/tb/tb_snax_shell_wb.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/hw/snax_shell/test/tb/tb_snax_mac_wb.sv

@@ -24,7 +24,7 @@ dependencies:
   common_cells:       { git: https://github.com/pulp-platform/common_cells,         version:  1.28.0  }
   FPnew:              { git: https://github.com/openhwgroup/cvfpu,                  rev:      1202ca3 }   # TODO: Update to next release
   register_interface: { git: https://github.com/pulp-platform/register_interface,   version:  0.3.3   }
-  tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic,   version:  0.2.11  }
+  tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic,   version:  0.2.2   }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,            rev:      ec0d92fa5fdaaf611e5b8a4cc8ee84017ff98710 }
   hwpe-stream:        { git: https://github.com/pulp-platform/hwpe-stream.git,      version:  1.6.3   }
   hwpe-ctrl:          { git: https://github.com/pulp-platform/hwpe-ctrl.git,        version:  1.6.1   }

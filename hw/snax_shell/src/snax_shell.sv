@@ -1,4 +1,11 @@
 //---------------------------------------------
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Solderpad Hardware License, Version 0.51, see LICENSE for details.
+// SPDX-License-Identifier: SHL-0.51
+// Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
+// Author: Fabian Schuiki <fschuiki@iis.ee.ethz.ch>
+// Author: Thomas Benz <tbenz@iis.ee.ethz.ch>
+//---------------------------------------------
 // Copyright 2023 Katolieke Universiteit Leuven (KUL)
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
@@ -15,6 +22,12 @@
 `include "common_cells/assertions.svh"
 `include "common_cells/registers.svh"
 `include "snitch_vm/typedef.svh"
+
+//---------------------------------------------
+// Import MAC packages here
+//---------------------------------------------
+import hwpe_ctrl_package::*;
+import mac_package::*;
 
 //---------------------------------------------
 // Snitch Core Complex (CC)
@@ -68,14 +81,16 @@ module snax_shell #(
   parameter bit          XFDOTP             = 0,
   // Enable Snitch DMA
   parameter bit          Xdma               = 0,
-  // Has `frep` support.
+  // Has `frep` support
   parameter bit          Xfrep              = 1,
-  // Has `SSR` support.
+  // Has `SSR` support
   parameter bit          Xssr               = 1,
-  // Has `IPU` support.
+  // Has `IPU` support
   parameter bit          Xipu               = 1,
-  // Has virtual memory support.
+  // Has virtual memory support
   parameter bit          VMSupport          = 1,
+  // Has HWPE MAC support
+  parameter bit          HwpeMac            = 0, 
   parameter int unsigned NumIntOutstandingLoads = 0,
   parameter int unsigned NumIntOutstandingMem   = 0,
   parameter int unsigned NumFPOutstandingLoads  = 0,
@@ -121,7 +136,7 @@ module snax_shell #(
   input  logic                       rst_int_ss_ni,
   input  logic                       rst_fp_ss_ni,
   input  logic [31:0]                hart_id_i,
-  input  snitch_pkg::interrupts_t    irq_i,
+  input  snax_snitch_pkg::interrupts_t    irq_i,
   output hive_req_t                  hive_req_o,
   input  hive_rsp_t                  hive_rsp_i,
   // Core data ports
@@ -138,7 +153,7 @@ module snax_shell #(
   output axi_dma_pkg::dma_perf_t     axi_dma_perf_o,
   output dma_events_t                axi_dma_events_o,
   // Core event strobes
-  output snitch_pkg::core_events_t   core_events_o,
+  output snax_snitch_pkg::core_events_t   core_events_o,
   input  addr_t                      tcdm_addr_base_i
 
 );
@@ -181,8 +196,8 @@ module snax_shell #(
   acc_resp_t acc_demux_snitch_q;
   acc_resp_t dma_resp;
   acc_resp_t ipu_resp;
-
   acc_resp_t ssr_resp;
+  acc_resp_t snx_resp;
 
   logic acc_snitch_demux_qvalid, acc_snitch_demux_qready;
   logic acc_snitch_demux_qvalid_q, acc_snitch_demux_qready_q;
@@ -190,11 +205,13 @@ module snax_shell #(
   logic dma_qvalid, dma_qready;
   logic ipu_qvalid, ipu_qready;
   logic ssr_qvalid, ssr_qready;
+  logic snx_qvalid, snx_qready;
 
   logic acc_pvalid, acc_pready;
   logic dma_pvalid, dma_pready;
   logic ipu_pvalid, ipu_pready;
   logic ssr_pvalid, ssr_pready;
+  logic snx_pvalid, snx_pready;
   logic acc_demux_snitch_valid, acc_demux_snitch_ready;
   logic acc_demux_snitch_valid_q, acc_demux_snitch_ready_q;
 
@@ -202,8 +219,8 @@ module snax_shell #(
   fpnew_pkg::fmt_mode_t  fpu_fmt_mode;
   fpnew_pkg::status_t    fpu_status;
 
-  snitch_pkg::core_events_t snitch_events;
-  snitch_pkg::core_events_t fpu_events;
+  snax_snitch_pkg::core_events_t snitch_events;
+  snax_snitch_pkg::core_events_t fpu_events;
 
   // Snitch Integer Core
   dreq_t snitch_dreq_d, snitch_dreq_q, merged_dreq;
@@ -217,7 +234,7 @@ module snax_shell #(
   // Snitch Integer Core
   //-------------------------------------------------------------------------
 
-  snitch #(
+  snax_snitch #(
     .AddrWidth              ( AddrWidth              ),
     .DataWidth              ( DataWidth              ),
     .acc_req_t              ( acc_req_t              ),
@@ -340,13 +357,13 @@ module snax_shell #(
   // Accelerator Demux Port
   //-------------------------------------------------------------------------
   stream_demux #(
-    .N_OUP ( 5 )
+    .N_OUP ( 6 )
   ) i_stream_demux_offload (
     .inp_valid_i  ( acc_snitch_demux_qvalid_q  ),
     .inp_ready_o  ( acc_snitch_demux_qready_q  ),
-    .oup_sel_i    ( acc_snitch_demux_q.addr[$clog2(5)-1:0]             ),
-    .oup_valid_o  ( {ssr_qvalid, ipu_qvalid, dma_qvalid, hive_req_o.acc_qvalid, acc_qvalid} ),
-    .oup_ready_i  ( {ssr_qready, ipu_qready, dma_qready, hive_rsp_i.acc_qready, acc_qready} )
+    .oup_sel_i    ( acc_snitch_demux_q.addr[$clog2(6)-1:0]  ),
+    .oup_valid_o  ( {snx_qvalid, ssr_qvalid, ipu_qvalid, dma_qvalid, hive_req_o.acc_qvalid, acc_qvalid} ),
+    .oup_ready_i  ( {snx_qready, ssr_qready, ipu_qready, dma_qready, hive_rsp_i.acc_qready, acc_qready} )
   );
 
 
@@ -358,16 +375,16 @@ module snax_shell #(
 
   stream_arbiter #(
     .DATA_T      ( acc_resp_t ),
-    .N_INP       ( 5          )
+    .N_INP       ( 6          )
   ) i_stream_arbiter_offload (
-    .clk_i       ( clk_i                                   ),
-    .rst_ni      ( rst_ni                                  ),
-    .inp_data_i  ( {ssr_resp,   ipu_resp,   dma_resp,   hive_rsp_i.acc_resp,   acc_seq    } ),
-    .inp_valid_i ( {ssr_pvalid, ipu_pvalid, dma_pvalid, hive_rsp_i.acc_pvalid, acc_pvalid } ),
-    .inp_ready_o ( {ssr_pready, ipu_pready, dma_pready, hive_req_o.acc_pready, acc_pready } ),
-    .oup_data_o  ( acc_demux_snitch_q                      ),
-    .oup_valid_o ( acc_demux_snitch_valid_q                ),
-    .oup_ready_i ( acc_demux_snitch_ready_q                )
+    .clk_i       ( clk_i                    ),
+    .rst_ni      ( rst_ni                   ),
+    .inp_data_i  ( {  snx_resp,   ssr_resp,   ipu_resp,   dma_resp,   hive_rsp_i.acc_resp,    acc_seq } ),
+    .inp_valid_i ( {snx_pvalid, ssr_pvalid, ipu_pvalid, dma_pvalid, hive_rsp_i.acc_pvalid, acc_pvalid } ),
+    .inp_ready_o ( {snx_pready, ssr_pready, ipu_pready, dma_pready, hive_req_o.acc_pready, acc_pready } ),
+    .oup_data_o  ( acc_demux_snitch_q       ),
+    .oup_valid_o ( acc_demux_snitch_valid_q ),
+    .oup_ready_i ( acc_demux_snitch_ready_q )
   );
 
   //-------------------------------------------------------------------------
@@ -466,8 +483,8 @@ module snax_shell #(
   end
 
   // pragma translate_off
-  snitch_pkg::fpu_trace_port_t           fpu_trace;
-  snitch_pkg::fpu_sequencer_trace_port_t fpu_sequencer_trace;
+  snax_snitch_pkg::fpu_trace_port_t           fpu_trace;
+  snax_snitch_pkg::fpu_sequencer_trace_port_t fpu_sequencer_trace;
   // pragma translate_on
 
   //-------------------------------------------------------------------------
@@ -489,7 +506,7 @@ module snax_shell #(
   logic             ssr_streamctl_ready;
 
   if (FPEn) begin : gen_fpu
-    snitch_pkg::core_events_t fp_ss_core_events;
+    snax_snitch_pkg::core_events_t fp_ss_core_events;
 
     dreq_t fpu_dreq;
     drsp_t fpu_drsp;
@@ -719,7 +736,7 @@ module snax_shell #(
     //-------------------------------------------------------------------------
     always_comb begin
 
-      import riscv_instr::*;
+      import snax_riscv_instr::*;
 
       automatic logic [11:0] addr;
       automatic logic [ 4:0] addr_dm;
@@ -892,6 +909,76 @@ module snax_shell #(
   end
 
   //-------------------------------------------------------------------------
+  // Main MAC generation
+  // TODO: Add mux later for the SSR and MAC but for now assume that SSR are disabled
+  //-------------------------------------------------------------------------
+  if (HwpeMac) begin: gen_mac
+
+    // HWPE control interface
+    hwpe_ctrl_intf_periph #(
+        .ID_WIDTH ( 5 )
+    ) mac_periph (
+        .clk ( clk_i )
+    );
+
+    // HWPE stream interface
+    hwpe_stream_intf_tcdm mac_tcdm [3:0] (
+        .clk ( clk_i )
+    );
+
+    snax_hwpe_ctrl #(
+      .DataWidth    ( DataWidth          ), // Default data width
+      .acc_req_t    ( acc_req_t          ), // Memory request payload type, usually write enable, write data, etc.
+      .acc_resp_t   ( acc_resp_t         )  // Memory response payload type, usually read data
+    ) i_snax_hwpe_ctrl (
+      .clk_i        ( clk_i              ), // Clock
+      .rst_ni       ( rst_ni             ), // Asynchronous reset, active low
+      .req_i        ( acc_snitch_demux_q ), // Request stream interface, payload
+      .req_valid_i  ( snx_qvalid         ), // Request stream interface, payload is valid for transfer
+      .req_ready_o  ( snx_qready         ), // Request stream interface, payload can be accepted
+      .resp_o       ( snx_resp           ), // Response stream interface, payload
+      .resp_valid_o ( snx_pvalid         ), // Response stream interface, payload is valid for transfer
+      .resp_ready_i ( snx_pready         ), // Response stream interface, payload can be accepted
+      .periph       ( mac_periph         )  // periph master port
+    );
+
+    mac_top #(
+        .N_CORES     ( 1            ),
+        .MP          ( 4            ),
+        .ID          ( 5            )
+    ) i_mac_top (
+        .clk_i       ( clk_i        ),
+        .rst_ni      ( rst_ni       ),
+        .test_mode_i ( 1'b0         ),
+        .evt_o       ( /*unused*/   ),
+        .tcdm        ( mac_tcdm     ),   // Master port
+        .periph      ( mac_periph   )    // Slave port
+    );
+
+    genvar i;
+    for (i = 0; i < NumSsrs-1; i++) begin
+      snax_hwpe_to_reqrsp #(
+        .DataWidth        ( DataWidth       ),  // Data width to use
+        .tcdm_req_t       ( tcdm_req_t      ),  // TCDM request type
+        .tcdm_rsp_t       ( tcdm_rsp_t      )   // TCDM response type
+      ) i_snax_hwpe_to_reqrsp (
+        .clk_i            ( clk_i           ),  // Clock
+        .rst_ni           ( rst_ni          ),  // Asynchronous reset, active low
+        .tcdm_req_o       ( tcdm_req_o[i+1] ),  // TCDM valid ready format
+        .tcdm_rsp_i       ( tcdm_rsp_i[i+1] ),  // TCDM valid ready format
+        .hwpe_tcdm_slave  ( mac_tcdm[i]     )   // HWPE TCDM slave port
+      );
+    end
+
+  end else begin: gen_no_mac
+
+    assign snx_qready = '0;
+    assign snx_resp   = '0;
+    assign snx_pvalid = '0;
+
+  end
+
+  //-------------------------------------------------------------------------
   // Core events for performance counters
   //-------------------------------------------------------------------------
   assign core_events_o.retired_instr = snitch_events.retired_instr;
@@ -930,14 +1017,14 @@ module snax_shell #(
 
     automatic string trace_entry;
     automatic string extras_str;
-    automatic snitch_pkg::snitch_trace_port_t extras_snitch;
-    automatic snitch_pkg::fpu_trace_port_t extras_fpu;
-    automatic snitch_pkg::fpu_sequencer_trace_port_t extras_fpu_seq_out;
+    automatic snax_snitch_pkg::snitch_trace_port_t extras_snitch;
+    automatic snax_snitch_pkg::fpu_trace_port_t extras_fpu;
+    automatic snax_snitch_pkg::fpu_sequencer_trace_port_t extras_fpu_seq_out;
 
     if (rst_ni) begin
       extras_snitch = '{
         // State
-        source:       snitch_pkg::SrcSnitch,
+        source:       snax_snitch_pkg::SrcSnitch,
         stall:        i_snitch.stall,
         exception:    i_snitch.exception,
         // Decoding
@@ -973,7 +1060,7 @@ module snax_shell #(
         // FPU offload
         fpu_offload:
           (i_snitch.acc_qready_i && i_snitch.acc_qvalid_o && i_snitch.acc_qreq_o.addr == 0),
-        is_seq_insn:  (i_snitch.inst_data_i inside {riscv_instr::FREP_I, riscv_instr::FREP_O})
+        is_seq_insn:  (i_snitch.inst_data_i inside {snax_riscv_instr::FREP_I, snax_riscv_instr::FREP_O})
       };
 
       if (FPEn) begin
@@ -997,7 +1084,7 @@ module snax_shell #(
       ) begin
         $sformat(trace_entry, "%t %1d %8d 0x%h DASM(%h) #; %s\n",
             $time, cycle, i_snitch.priv_lvl_q, i_snitch.pc_q, i_snitch.inst_data_i,
-            snitch_pkg::print_snitch_trace(extras_snitch));
+            snax_snitch_pkg::print_snitch_trace(extras_snitch));
         $fwrite(f, trace_entry);
       end
 
@@ -1011,7 +1098,7 @@ module snax_shell #(
         || extras_fpu.lsu_q_hs || extras_fpu.fpr_we) begin
           $sformat(trace_entry, "%t %1d %8d 0x%h DASM(%h) #; %s\n",
               $time, cycle, i_snitch.priv_lvl_q, 32'hz, extras_fpu.op_in,
-              snitch_pkg::print_fpu_trace(extras_fpu));
+              snax_snitch_pkg::print_fpu_trace(extras_fpu));
           $fwrite(f, trace_entry);
         end
         // sequencer instructions
@@ -1019,7 +1106,7 @@ module snax_shell #(
           if (extras_fpu_seq_out.cbuf_push) begin
             $sformat(trace_entry, "%t %1d %8d 0x%h DASM(%h) #; %s\n",
                 $time, cycle, i_snitch.priv_lvl_q, 32'hz, 64'hz,
-                snitch_pkg::print_fpu_sequencer_trace(extras_fpu_seq_out));
+                snax_snitch_pkg::print_fpu_sequencer_trace(extras_fpu_seq_out));
             $fwrite(f, trace_entry);
           end
         end
