@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: 'recursive'
-      - name: Build Software
+      - name: Build MUSL dependency
         run: |
           cd sw/deps
           mkdir install
@@ -45,6 +45,8 @@ jobs:
           make -j4
           make install
           cd ../../../
+      - name: Build Software
+        run: |
           make -C target/snitch_cluster sw
       - name: Build Hardware
         run: |
@@ -52,15 +54,30 @@ jobs:
       - name: Run Unit Tests
         working-directory: target/snitch_cluster
         run: |-
-          ./sw/tests/run.py sw/tests/passing-apps.list --simulator verilator
-          ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator
+          ./sw/tests/run.py sw/tests/passing-apps.list --simulator verilator \
+          2>&1 | tee tests.log
+      - name: Run Test Applications
+        working-directory: target/snitch_cluster
+        env:
+          SNITCH_LOG: info
+        run: |-
+          ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator \
+          2>&1 | tee apps.log
+      - name: Check Unit Tests
+        working-directory: target/snitch_cluster
+        run: |-
+          grep -zoP 'All tests passed' tests.log
+      - name: Check Test Applications
+        working-directory: target/snitch_cluster
+        run: |-
+          grep -zoP 'All tests passed' apps.log
 
   ############################################
   # Build SW on Snitch Cluster w/ Banshee #
   ############################################
 
   sw-snitch-cluster-banshee:
-    name: Build SW on Snitch Cluster w/ Banshee
+    name: Simulate SW on Snitch Cluster w/ Banshee
     runs-on: ubuntu-22.04
     container:
       image: ghcr.io/pulp-platform/snitch_cluster
@@ -68,7 +85,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: 'recursive'
-      - name: Build Software
+      - name: Build MUSL dependency
         run: |
           cd sw/deps
           mkdir install
@@ -79,4 +96,28 @@ jobs:
           make -j4
           make install
           cd ../../../
+      - name: Build Software
+        run: |
           make -C target/snitch_cluster SELECT_RUNTIME=banshee sw
+      - name: Run Unit Tests
+        working-directory: target/snitch_cluster
+        env:
+          SNITCH_LOG: info
+        run: |-
+          ./sw/tests/run.py sw/tests/banshee-apps.list --simulator banshee \
+          2>&1 | tee tests.log
+      - name: Run Test Applications
+        working-directory: target/snitch_cluster
+        env:
+          SNITCH_LOG: info
+        run: |-
+          ./sw/apps/run.py sw/apps/passing-apps.list --simulator banshee \
+          2>&1 | tee  apps.log
+      - name: Check Unit Tests
+        working-directory: target/snitch_cluster
+        run: |-
+          grep -zoP 'All tests passed' tests.log
+      - name: Check Test Applications
+        working-directory: target/snitch_cluster
+        run: |-
+          grep -zoP 'All tests passed' apps.log

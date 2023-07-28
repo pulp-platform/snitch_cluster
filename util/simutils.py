@@ -119,7 +119,7 @@ def print_test_summary(failed_tests, dry_run=False):
                 print_failed_test(failed_test)
             return 1
         else:
-            print(f'All tests {colored("passed", "green")}!')
+            print(f'{colored("All tests passed!", "green")}')
             return 0
     return 0
 
