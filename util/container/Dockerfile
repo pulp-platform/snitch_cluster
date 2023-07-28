@@ -6,6 +6,7 @@
 
 # 1. Stage
 FROM ubuntu:18.04 AS builder
+ARG CMAKE_VERSION=3.19.4
 
 COPY apt-requirements.txt /tmp/apt-requirements.txt
 RUN apt-get update && \
@@ -25,12 +26,31 @@ RUN apt-get update && \
 # Build Rust tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH "/root/.cargo/bin:${PATH}"
+RUN rustup install 1.63.0
+RUN rustup override set 1.63.0
 
 # Install Bender
 RUN cargo install bender --version 0.23.2
 
+# Get LLVM 12
+RUN wget https://apt.llvm.org/llvm.sh
+RUN chmod +x llvm.sh
+RUN ./llvm.sh 12
+
+WORKDIR /tools
+
+# Install a newer version of cmake (we need this for banshee)
+RUN wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz && \
+    tar -x -f cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz --strip-components=1 -C . && \
+    rm -rf cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz
+ENV PATH "/tools/bin:${PATH}"
+
+# Install `banshee` (needs cmake)
+RUN git clone https://github.com/pulp-platform/banshee.git /tmp/banshee --recurse-submodules
+RUN cargo install --path /tmp/banshee
+
 # 2. Stage
-FROM ubuntu:18.04 AS snitch
+FROM ubuntu:18.04 AS snitch_cluster
 ARG SNITCH_LLVM_VERSION=latest
 ARG VERIBLE_VERSION=0.0-776-g09e0b87
 ARG VERILATOR_VERSION=4.100
@@ -38,7 +58,7 @@ ARG VERILATOR_VERSION=4.100
 LABEL version="0.1"
 LABEL description="Snitch container for hardware and software development."
 LABEL maintainer="zarubaf@iis.ee.ethz.ch"
-LABEL org.opencontainers.image.source https://github.com/pulp-platform/snitch
+LABEL org.opencontainers.image.source https://github.com/pulp-platform/snitch_cluster
 
 WORKDIR /tools
 
@@ -95,6 +115,7 @@ RUN apt-get update && apt-get install software-properties-common -y && \
 
 # Copy artifacts from stage 1.
 COPY --from=builder /root/.cargo/bin/bender bin/
+COPY --from=builder /root/.cargo/bin/banshee bin/
 
 # Set locale to UTF-8, required because Python 3.6 defaults on ASCII encoding.
 # See https://click.palletsprojects.com/en/8.1.x/unicode-support/
