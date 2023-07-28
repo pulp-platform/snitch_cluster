@@ -14,6 +14,10 @@ variables:
   QUESTA: questa-2022.3
   LLVM_BINROOT: /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
   CLANG: /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin/clang
+  CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: /usr/pack/gcc-9.2.0-af/linux-x64/bin/gcc
+  LLVM_SYS_120_PREFIX: /usr/pack/llvm-12.0.1-af
+  SNITCH_LOG: info
+  CMAKE: cmake-3.18.1
 
 before_script:
   - $PYTHON -m venv .venv
@@ -32,7 +36,7 @@ docs:
 # Build Snitch cluster software #
 #################################
 
-snitch-cluster-sw:
+snitch-cluster-sw-musl:
   script:
     - cd sw/deps
     - mkdir install
@@ -42,9 +46,28 @@ snitch-cluster-sw:
       CFLAGS="-mcpu=snitch -menable-experimental-extensions"
     - make -j4
     - make install
-    - cd ../../../
+  artifacts:
+    paths:
+      - sw/deps/install/bin/*
+      - sw/deps/install/include/*
+      - sw/deps/install/lib/*
+    expire_in: 1 day
+
+snitch-cluster-sw:
+  needs: [snitch-cluster-sw-musl]
+  script:
     - cd target/snitch_cluster
     - make sw
+  artifacts:
+    paths:
+      - target/snitch_cluster/sw/**/build/*.elf
+    expire_in: 1 day
+
+snitch-cluster-sw-banshee:
+  needs: [snitch-cluster-sw-musl]
+  script:
+    - cd target/snitch_cluster
+    - make SELECT_RUNTIME=banshee sw
   artifacts:
     paths:
       - target/snitch_cluster/sw/**/build/*.elf
@@ -88,24 +111,77 @@ snitch-cluster-vlt:
   script:
     - cd target/snitch_cluster
     - $VERILATOR make bin/snitch_cluster.vlt
-    - $VERILATOR ./sw/test/run.py sw/tests/passing-apps.list --simulator verilator
-    - $VERILATOR ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator
+    - $VERILATOR ./sw/tests/run.py sw/tests/passing-apps.list --simulator verilator 2>&1 | tee tests.log
+    - $VERILATOR ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator 2>&1 | tee apps.log
+    - grep -zoP 'All tests passed' tests.log
+    - grep -zoP 'All tests passed' apps.log
   # yamllint enable rule:line-length
+  artifacts:
+    when: on_failure
+    paths:
+      - target/snitch_cluster/tests.log
+      - target/snitch_cluster/apps.log
+    expire_in: 1 day
 
 # VCS
 snitch-cluster-vcs:
   needs: [snitch-cluster-sw]
+  # yamllint disable rule:line-length
   script:
     - cd target/snitch_cluster
     - $VCS make bin/snitch_cluster.vcs
-    - $VCS ./sw/test/run.py sw/tests/passing-apps.list --simulator vcs
-    - $VCS ./sw/apps/run.py sw/apps/passing-apps.list --simulator vcs
+    - $VCS ./sw/tests/run.py sw/tests/passing-apps.list --simulator vcs 2>&1 | tee tests.log
+    - $VCS ./sw/apps/run.py sw/apps/passing-apps.list --simulator vcs 2>&1 | tee apps.log
+    - grep -zoP 'All tests passed' tests.log
+    - grep -zoP 'All tests passed' apps.log
+  # yamllint enable rule:line-length
+  artifacts:
+    when: on_failure
+    paths:
+      - target/snitch_cluster/tests.log
+      - target/snitch_cluster/apps.log
+    expire_in: 1 day
 
 # Questa
 snitch-cluster-vsim:
   needs: [snitch-cluster-sw]
+  # yamllint disable rule:line-length
   script:
     - cd target/snitch_cluster
     - $QUESTA make bin/snitch_cluster.vsim
-    - $QUESTA ./sw/test/run.py sw/tests/passing-apps.list --simulator vsim
-    - $QUESTA ./sw/apps/run.py sw/apps/passing-apps.list --simulator vsim
+    - $QUESTA ./sw/tests/run.py sw/tests/passing-apps.list --simulator vsim 2>&1 | tee tests.log
+    - $QUESTA ./sw/apps/run.py sw/apps/passing-apps.list --simulator vsim 2>&1 | tee apps.log
+    - grep -zoP 'All tests passed' tests.log
+    - grep -zoP 'All tests passed' apps.log
+  # yamllint enable rule:line-length
+  artifacts:
+    when: on_failure
+    paths:
+      - target/snitch_cluster/tests.log
+      - target/snitch_cluster/apps.log
+    expire_in: 1 day
+
+# Banshee
+snitch-cluster-banshee:
+  needs: [snitch-cluster-sw-banshee]
+  # yamllint disable rule:line-length
+  script:
+    - rustup install 1.63.0
+    - rustup override set 1.63.0
+    - rustc --version
+    - rustup --version
+    - git clone git@github.com:pulp-platform/banshee.git --recurse-submodules
+    - cd banshee
+    - cargo install --path .
+    - cd ../target/snitch_cluster
+    - ./sw/tests/run.py sw/tests/banshee-apps.list --simulator banshee 2>&1 | tee tests.log
+    - ./sw/apps/run.py sw/apps/passing-apps.list --simulator banshee 2>&1 | tee apps.log
+    - grep -zoP 'All tests passed' tests.log
+    - grep -zoP 'All tests passed' apps.log
+  # yamllint enable rule:line-length
+  artifacts:
+    when: on_failure
+    paths:
+      - target/snitch_cluster/tests.log
+      - target/snitch_cluster/apps.log
+    expire_in: 1 day
