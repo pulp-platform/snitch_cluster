@@ -49,7 +49,7 @@ module snax_hwpe_to_reqrsp #(
     logic        wen;
     logic        be;
     logic [31:0] data;
-    logic        r_valid;
+    logic        valid;
   } hwpe_tcdm_t;
 
   hwpe_tcdm_t fifo_hwpe_tcdm_data_in;
@@ -59,18 +59,21 @@ module snax_hwpe_to_reqrsp #(
   assign be = hwpe_tcdm_slave.be[0];
 
   // Pack
-  assign fifo_hwpe_tcdm_data_in.add     = hwpe_tcdm_slave.add;
-  assign fifo_hwpe_tcdm_data_in.wen     = hwpe_tcdm_slave.wen;
-  assign fifo_hwpe_tcdm_data_in.be      = be;
-  assign fifo_hwpe_tcdm_data_in.data    = hwpe_tcdm_slave.data;
-  assign fifo_hwpe_tcdm_data_in.r_valid = hwpe_tcdm_slave.gnt;
+  assign fifo_hwpe_tcdm_data_in.add   = hwpe_tcdm_slave.add;
+  assign fifo_hwpe_tcdm_data_in.wen   = hwpe_tcdm_slave.wen;
+  assign fifo_hwpe_tcdm_data_in.be    = be;
+  assign fifo_hwpe_tcdm_data_in.data  = hwpe_tcdm_slave.data;
+  assign fifo_hwpe_tcdm_data_in.valid = hwpe_tcdm_slave.gnt & hwpe_tcdm_slave.req;
 
   // Unpack
   assign unpack_addr        = fifo_hwpe_tcdm_data_out.add;
   assign tcdm_req_o.q.write = fifo_hwpe_tcdm_data_out.wen;
   assign strb               = fifo_hwpe_tcdm_data_out.be;
   assign unpack_data        = fifo_hwpe_tcdm_data_out.data;
-  assign tcdm_req_o.q_valid = fifo_hwpe_tcdm_data_out.r_valid & !fifo_hwpe_tcdm_empty;
+
+  // This is necessary to include the empty. Since the FIFO does not clear its contents,
+  // we need to disable the valid when last state of FIFO was released and next state is empty
+  assign tcdm_req_o.q_valid = fifo_hwpe_tcdm_data_out.valid & !fifo_hwpe_tcdm_empty; 
 
   //---------------------------------------------
   // Simple grant request control
@@ -92,14 +95,17 @@ module snax_hwpe_to_reqrsp #(
   assign push_hwpe_tcdm = hwpe_tcdm_slave.req & hwpe_tcdm_slave.gnt & !fifo_hwpe_tcdm_full;
 
   // Pop when port has a valid transaction at the tcdm side
-  assign pop_hwpe_tcdm = tcdm_req_o.q_valid & tcdm_rsp_i.q_ready & !fifo_hwpe_tcdm_empty;
+  // The not empty signal is mandatory because the fifo_v3 loops around
+  // Then loads the last state on the data_out. Whenever a pop happens, fifo does not
+  // clear the contents at a specific pointer
+  assign pop_hwpe_tcdm = tcdm_req_o.q_valid & tcdm_rsp_i.q_ready;
 
   //---------------------------------------------
   // FIFO queue for tranasctions from HWPE to TCDM
   //---------------------------------------------
   fifo_v3 #(
     .dtype      ( hwpe_tcdm_t             ), // Sum of address and 
-    .DEPTH      ( 10                      )  // Arbitrarily chosen
+    .DEPTH      ( 8                       )  // Arbitrarily chosen
   ) i_hwpe_tcdm_fifo (
     .clk_i      ( clk_i                   ),
     .rst_ni     ( rst_ni                  ),
