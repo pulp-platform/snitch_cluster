@@ -74,3 +74,15 @@ Install the required packages in the currently active virtual environment:
 ```shell
 pip install -r python-requirements.txt
 ```
+
+## Dependencies
+
+This repository has a couple of tool dependencies:
+
+- Dependency management tool `bender`:
+   ```bash
+   # Bender tool
+   cargo install bender --version 0.23.2
+   ```
+- Instruction-accurate simulator `banshee`:
+  Follow instructions on [Banshee Github Repo](https://github.com/pulp-platform/banshee)

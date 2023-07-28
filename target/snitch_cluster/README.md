@@ -31,6 +31,9 @@ vcs-2020.12 make bin/snitch_cluster.vcs
 
 These commands compile the RTL sources respectively in `work-vlt`, `work-vsim` and `work-vcs`. Additionally, common C++ testbench sources (e.g. the [frontend server (fesvr)](https://github.com/riscv-software-src/riscv-isa-sim)) are compiled under `work`. Each command will also generate a script or an executable (e.g. `bin/snitch_cluster.vsim`) which you can invoke to simulate the hardware. We will see how to do this in a later section.
 
+### Building the Banshee simulator
+Instead of running an RTL simulation, you can use our instruction-accuracte simulator called `banshee`. To install the simulator, please follow the instructions of the Banshee repository: [https://github.com/pulp-platform/banshee](https://github.com/pulp-platform/banshee).
+
 ### Cluster configuration
 
 Note that the Snitch cluster RTL sources are partly automatically generated from a configuration file provided in `.hjson` format. Several RTL files are templated and use the `.hjson` configuration file to fill the template entries. An example is `/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl`.
@@ -45,17 +48,25 @@ make CFG_OVERRIDE=cfg/custom.hjson bin/snitch_cluster.vlt
 
 ___Note:__ whenever you override the configuration file on the `make` command-line, the configuration will be stored in the `cfg/lru.hjson` file. Successive invocations of `make` will automatically pick up the `cfg/lru.hjson` file. You can therefore omit the `CFG_OVERRIDE` definition in successive commands unless you want to override the least-recently used configuration._
 
+Banshee uses also a cluster configuration file, however, that is given directly when simulating a specific binary with banshee with the help of the `--configuration <cluster_config.yaml>`.
+
 ### Building the software
 
 To build all of the software for the Snitch cluster, run the following command:
 
 ```bash
+# for RTL simulation
 make DEBUG=ON sw
+
+# for Banshee simulation (requires slightly different runtime)
+make SELECT_RUNTIME=banshee DEBUG=ON sw
 ```
 
 The `sw` target first generates some C header files which depend on the hardware configuration. Hence, the need to generate the software for the same configuration as your hardware. Afterwards, it recursively invokes the `make` target in the `sw` subdirectory to build the apps/kernels which have been developed in that directory.
 
 The `DEBUG=ON` flag is used to tell the compiler to produce debugging symbols. It is necessary for the `annotate` target, showcased in the Debugging section of this guide, to work.
+
+The `SELECT_RUNTIME` is set by default to `rtl`. To use the Banshee runtime, it requires to be set to be set to `banshee` with `SELECT_RUNTIME=banshee`.
 
 ___Note:__ the RTL is not the only source which is generated from the configuration file. The software stack also depends on the configuration file. Make sure you always build the software with the same configuration of the hardware you are going to run it on._
 
@@ -81,6 +92,9 @@ questa-2022.3 bin/snitch_cluster.vsim sw/apps/blas/axpy/build/axpy.elf
 
 # VCS (for IIS users)
 vcs-2020.12 bin/snitch_cluster.vcs sw/apps/blas/axpy/build/axpy.elf
+
+# Banshee
+banshee --no-opt-llvm --no-opt-jit --configuration src/banshee.yaml --trace sw/apps/blas/axpy/build/axpy.elf
 ```
 
 The previous commands will run the simulation in your current terminal. You can also run the simulation in the QuestaSim GUI by adapting the previous command to:
@@ -89,6 +103,9 @@ The previous commands will run the simulation in your current terminal. You can 
 # Questa (for IIS users)
 questa-2022.3 bin/snitch_cluster.vsim.gui sw/apps/blas/axpy/build/axpy.elf
 ```
+
+For Banshee, you need to give a specific cluster configuration to the simulator with the flag `--configuration <cluster_config.yaml>`. A default Snitch cluster configuration is given (`src/banshee.yaml`). The flag `--trace` enables the printing of the traces similar to the RTL simulation.
+For more information and debug options, please have a look at the Banshee repository: [https://github.com/pulp-platform/banshee](https://github.com/pulp-platform/banshee).
 
 ### Creating your first Snitch app
 
