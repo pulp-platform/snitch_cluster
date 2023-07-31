@@ -10,8 +10,6 @@
 //
 // Thomas Benz <tbenz@ethz.ch>
 
-`timescale 1ns/1ps
-
 /// The backend implements the generic 1D data transfer on an AXI BUS
 module axi_dma_backend #(
     /// Data width of the AXI bus
