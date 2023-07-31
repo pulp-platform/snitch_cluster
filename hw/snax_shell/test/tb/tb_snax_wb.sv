@@ -102,7 +102,8 @@ module tb_snax_wb;
     parameter bit Xipu        = 1'b0;
     parameter bit VMSupport   = 1'b0;
     parameter bit HwpeMac     = 1'b0;
-    parameter bit HwpeNe16    = 1'b1;
+    parameter bit HwpeNe16    = 1'b0;
+    parameter bit HwpeRedmule = 1'b1;
 
     //---------------------------------------------
     // Necessary type definitions
@@ -546,6 +547,7 @@ module tb_snax_wb;
       .VMSupport              ( VMSupport               ),
       .HwpeMac                ( HwpeMac                 ),
       .HwpeNe16               ( HwpeNe16                ),
+      .HwpeRedmule            ( HwpeRedmule             ),
       .NumIntOutstandingLoads ( NumIntOutstandingLoads  ),
       .NumIntOutstandingMem   ( NumIntOutstandingMem    ),
       .NumFPOutstandingLoads  ( NumFPOutstandingLoads   ),

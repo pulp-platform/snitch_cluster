@@ -162,8 +162,6 @@
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/fpnew-afcaf014ef5047df/src/fpnew_divsqrt_multi.sv
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/fpnew-afcaf014ef5047df/src/fpnew_fma.sv
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/fpnew-afcaf014ef5047df/src/fpnew_fma_multi.sv
-/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/fpnew-afcaf014ef5047df/src/fpnew_sdotp_multi.sv
-/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/fpnew-afcaf014ef5047df/src/fpnew_sdotp_multi_wrapper.sv
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/fpnew-afcaf014ef5047df/src/fpnew_noncomp.sv
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/fpnew-afcaf014ef5047df/src/fpnew_opgroup_block.sv
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/fpnew-afcaf014ef5047df/src/fpnew_opgroup_fmt_slice.sv

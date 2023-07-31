@@ -44,6 +44,9 @@
 # Floating point components
 #--------------------------------------------
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/fpnew-afcaf014ef5047df/src/fpnew_pkg.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/fpnew-afcaf014ef5047df/src/fpnew_cast_multi.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/fpnew-afcaf014ef5047df/src/fpnew_classifier.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/fpnew-afcaf014ef5047df/src/fpnew_rounding.sv
 
 #--------------------------------------------
 # Register interfaces components
