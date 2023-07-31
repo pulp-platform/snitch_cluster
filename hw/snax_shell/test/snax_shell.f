@@ -55,6 +55,11 @@
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/riscv-dbg-4d2e83f8d49c3adc/src/dm_pkg.sv
 
 #--------------------------------------------
+# TCDM interconnect components
+#--------------------------------------------
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/cluster_interconnect-2ab3d7e3b8d9d27b/rtl/tcdm_interconnect/tcdm_interconnect_pkg.sv
+
+#--------------------------------------------
 # HWPE-control components
 #--------------------------------------------
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-ctrl-078b13d4b656e469/rtl/hwpe_ctrl_interfaces.sv
@@ -106,6 +111,32 @@
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/tcdm/hwpe_stream_tcdm_fifo_store.sv
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-stream-b9a93a56b69d7039/rtl/streamer/hwpe_stream_sink.sv
 
+
+#--------------------------------------------
+# HCI Components
+#--------------------------------------------
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/common/hci_package.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/common/hci_interfaces.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/core/hci_core_assign.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/core/hci_core_cmd_queue.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/core/hci_core_fifo.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/core/hci_core_memmap_demux_interl.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/core/hci_core_memmap_filter.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/core/hci_core_mux_dynamic.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/core/hci_core_mux_static.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/core/hci_core_r_valid_filter.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/core/hci_core_source.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/core/hci_core_split.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/interco/hci_log_interconnect.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/interco/hci_log_interconnect_l2.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/interco/hci_new_log_interconnect.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/interco/hci_shallow_interconnect.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/mem/hci_mem_assign.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/core/hci_core_sink.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/interco/hci_hwpe_interconnect.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hci-db100dfe6fa29313/rtl/hci_interconnect.sv
+
+
 #--------------------------------------------
 # HWPE-MAC simple engine components
 #--------------------------------------------
@@ -116,6 +147,33 @@
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-mac-engine-2b826360825b0834/rtl/mac_ctrl.sv
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-mac-engine-2b826360825b0834/rtl/mac_top.sv
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/hwpe-mac-engine-2b826360825b0834/wrap/mac_top_wrap.sv
+
+
+#--------------------------------------------
+# NE16 Components
+#--------------------------------------------
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/ne16_package.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/accumulator/ne16_accumulator_scm_test_wrap.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/input_buffer/ne16_input_buffer_scm_test_wrap.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/accumulator/ne16_accumulator_scm.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/accumulator/ne16_accumulator_normquant.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/accumulator/ne16_normquant.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/accumulator/ne16_normquant_shifter.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/accumulator/ne16_normquant_bias.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/accumulator/ne16_normquant_multiplier.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/input_buffer/ne16_input_buffer_scm.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/input_buffer/ne16_input_buffer.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/array/ne16_scale.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/array/ne16_binconv_block.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/array/ne16_binconv_column.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/array/ne16_binconv_array.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/ctrl/ne16_ctrl_fsm.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/ctrl/ne16_ctrl.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/ne16_engine.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/ne16_streamer.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/ne16_top.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/ne16-cdbdbc3d36d10302/rtl/ne16_top_wrap.sv
+
 
 #--------------------------------------------
 # Core Snitch Components
@@ -211,4 +269,5 @@
 # Snax testbenches
 #--------------------------------------------
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/hw/snax_shell/test/tb/tb_snax_shell_wb.sv
-/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/hw/snax_shell/test/tb/tb_snax_mac_wb.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/hw/snax_shell/test/tb/tb_dummy_memory.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/hw/snax_shell/test/tb/tb_snax_wb.sv
