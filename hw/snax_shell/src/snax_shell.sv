@@ -27,7 +27,6 @@
 // Import MAC packages here
 //---------------------------------------------
 import hwpe_ctrl_package::*;
-import mac_package::*;
 
 //---------------------------------------------
 // Snitch Core Complex (CC)
@@ -164,6 +163,11 @@ module snax_shell #(
   input  addr_t                      tcdm_addr_base_i
 
 );
+
+  //---------------------------------------------
+  // For loops
+  //---------------------------------------------
+  genvar i;
 
   //---------------------------------------------
   // Local parameters
@@ -916,20 +920,18 @@ module snax_shell #(
   end
 
   //-------------------------------------------------------------------------
-  // Main MAC generation
-  // TODO: Add mux later for the SSR and MAC but for now assume that SSR are disabled
+  // Generate Snax HWPE Controller
   //-------------------------------------------------------------------------
-  if (HwpeMac) begin: gen_hwpe_mac
+  if (HwpeMac || HwpeNe16) begin: gen_hwpe_ctrl
 
     // HWPE control interface
     hwpe_ctrl_intf_periph #(
         .ID_WIDTH ( 5 )
-    ) mac_periph (
+    ) snax_periph (
         .clk ( clk_i )
     );
 
-    // HWPE stream interface
-    hwpe_stream_intf_tcdm mac_tcdm [NumHwpeMemPorts-1:0] (
+    hwpe_stream_intf_tcdm snax_tcdm [NumHwpeMemPorts-1:0] (
         .clk ( clk_i )
     );
 
@@ -947,25 +949,98 @@ module snax_shell #(
       .resp_o       ( snx_resp           ), // Response stream interface, payload
       .resp_valid_o ( snx_pvalid         ), // Response stream interface, payload is valid for transfer
       .resp_ready_i ( snx_pready         ), // Response stream interface, payload can be accepted
-      .periph       ( mac_periph         )  // periph master port
+      .periph       ( snax_periph        )  // periph master port
     );
 
-    // Main MAC engine
-    mac_top #(
-        .N_CORES     ( 1                ),
-        .MP          ( NumHwpeMemPorts  ),
-        .ID          ( 5                )
-    ) i_mac_top (
-        .clk_i       ( clk_i            ),
-        .rst_ni      ( rst_ni           ),
-        .test_mode_i ( 1'b0             ),
-        .evt_o       ( /*unused*/       ),
-        .tcdm        ( mac_tcdm         ),   // Master port
-        .periph      ( mac_periph       )    // Slave port
-    );
+    //-------------------------------------------------------------------------
+    // Main MAC generation
+    //-------------------------------------------------------------------------
+    if (HwpeMac) begin: gen_hwpe_mac
+
+      import mac_package::*;
+
+      // Main MAC engine
+      mac_top #(
+          .N_CORES     ( 1                ),
+          .MP          ( NumHwpeMemPorts  ),
+          .ID          ( 5                )
+      ) i_mac_top (
+          .clk_i       ( clk_i            ),
+          .rst_ni      ( rst_ni           ),
+          .test_mode_i ( 1'b0             ),
+          .evt_o       ( /*unused*/       ),
+          .tcdm        ( snax_tcdm        ),   // Master port
+          .periph      ( snax_periph      )    // Slave port
+      );
+
+    //-------------------------------------------------------------------------
+    // Main NE16 generation
+    //-------------------------------------------------------------------------
+    end else if (HwpeNe16) begin: gen_hwpe_ne16 
+
+      import ne16_package::*;
+
+      // ne16_top_wrap needs manual hard mapping of signals
+      logic [NumHwpeMemPorts-1:0]       tcdm_req;
+      logic [NumHwpeMemPorts-1:0]       tcdm_gnt;
+      logic [NumHwpeMemPorts-1:0][31:0] tcdm_add;
+      logic [NumHwpeMemPorts-1:0]       tcdm_wen;
+      logic [NumHwpeMemPorts-1:0][ 3:0] tcdm_be;
+      logic [NumHwpeMemPorts-1:0][31:0] tcdm_data;
+      logic [NumHwpeMemPorts-1:0][31:0] tcdm_r_data;
+      logic [NumHwpeMemPorts-1:0]       tcdm_r_valid;
+
+      ne16_top_wrap #(
+        .TP_IN          ( NE16_TP_IN          ),      // Default 16
+        .TP_OUT         ( NE16_TP_OUT         ),      // Default 32
+        .CNT            ( VLEN_CNT_SIZE       ),      // Default 16
+        .BW             ( NE16_MEM_BANDWIDTH_EXT ),   // Default 288 ( 9 x 32 bits )
+        .ID             ( 5                   ), 
+        .N_CORES        ( NR_CORES            ),      // Default 9
+        .N_CONTEXT      ( NR_CONTEXT          )       // Default 1
+      ) i_ne16_top_wrap (
+        .clk_i          ( clk_i               ),
+        .rst_ni         ( rst_ni              ),
+        .test_mode_i    ( test_mode_i         ),
+        .evt_o          (                     ),      // Unused
+        .busy_o         ( busy_o              ),
+        .periph_req     ( snax_periph.req     ),
+        .periph_gnt     ( snax_periph.gnt     ),
+        .periph_add     ( snax_periph.add     ),
+        .periph_wen     ( snax_periph.wen     ),
+        .periph_be      ( snax_periph.be      ),
+        .periph_data    ( snax_periph.data    ),
+        .periph_id      ( snax_periph.id      ),
+        .periph_r_data  ( snax_periph.r_data  ),
+        .periph_r_valid ( snax_periph.r_valid ),
+        .periph_r_id    ( snax_periph.r_id    ),
+        .tcdm_req       ( tcdm_req            ),
+        .tcdm_gnt       ( tcdm_gnt            ),      // input
+        .tcdm_add       ( tcdm_add            ),
+        .tcdm_wen       ( tcdm_wen            ),
+        .tcdm_be        ( tcdm_be             ),
+        .tcdm_data      ( tcdm_data           ),
+        .tcdm_r_data    ( tcdm_r_data         ),      // input
+        .tcdm_r_valid   ( tcdm_r_valid        )       // input
+      );
+
+      // Manual remapping
+      for (i = 0; i < NumHwpeMemPorts; i++) begin
+        assign snax_tcdm   [i].req  = tcdm_req[i];
+        assign tcdm_gnt    [i]      = snax_tcdm[i].gnt;
+        assign snax_tcdm   [i].add  = tcdm_add[i];
+        assign snax_tcdm   [i].wen  = tcdm_wen[i];
+        assign snax_tcdm   [i].be   = tcdm_be[i];
+        assign snax_tcdm   [i].data = tcdm_data[i];
+        assign tcdm_r_data [i]      = snax_tcdm[i].r_data;
+        assign tcdm_r_valid[i]      = snax_tcdm[i].r_valid;
+      end
+
+
+    end 
 
     // Hardmapping for the TCDM ports from MAC top
-    genvar i;
+    
     for (i = 0; i < NumHwpeMemPorts; i++) begin: gen_hwpe_to_reqrsp
       snax_hwpe_to_reqrsp #(
         .DataWidth        ( DataWidth          ),  // Data width to use
@@ -976,45 +1051,9 @@ module snax_shell #(
         .rst_ni           ( rst_ni             ),  // Asynchronous reset, active low
         .tcdm_req_o       ( hwpe_tcdm_req_o[i] ),  // TCDM valid ready format
         .tcdm_rsp_i       ( hwpe_tcdm_rsp_i[i] ),  // TCDM valid ready format
-        .hwpe_tcdm_slave  ( mac_tcdm[i]        )   // HWPE TCDM slave port
+        .hwpe_tcdm_slave  ( snax_tcdm[i]       )   // HWPE TCDM slave port
       );
     end
-
-  end else if (HwpeNe16) begin: gen_hwpe_ne16 
-
-    // HWPE control interface
-    hwpe_ctrl_intf_periph #(
-        .ID_WIDTH ( 5 )
-    ) ne16_periph (
-        .clk ( clk_i )
-    );
-
-    // HWPE stream interface
-    // TODO: make sure to set bit width appropriatley
-    hwpe_stream_intf_tcdm ne16_tcdm  (
-        .clk ( clk_i )
-    );
-
-    import ne16_package::*;
-
-    ne16_top #(
-      .TP_IN       ( NE16_TP_IN  ),
-      .TP_OUT      ( NE16_TP_OUT ),
-      .CNT         ( VLEN_CNT_SIZE ),
-      .BW          ( NE16_MEM_BANDWIDTH_EXT ),
-      .ID          ( 5           ),
-      .N_CORES     ( NR_CORES    ),
-      .N_CONTEXT   ( NR_CONTEXT  )
-    ) i_ne16_top (
-      .clk_i       ( clk_i       ),
-      .rst_ni      ( rst_ni      ),
-      .test_mode_i ( test_mode_i ),
-      .evt_o       ( /*unused*/  ),
-      .busy_o      ( busy_o      ),
-      .tcdm        ( ne16_tcdm   ),
-      .periph      ( ne16_periph )
-    );
-
 
   end else begin: gen_no_snax
 
@@ -1023,6 +1062,8 @@ module snax_shell #(
     assign snx_pvalid = '0;
 
   end
+
+  
 
   //-------------------------------------------------------------------------
   // Core events for performance counters

@@ -65,7 +65,7 @@ module tb_snax_wb;
     parameter int unsigned NumSsrs                  = 3;
     parameter int unsigned SsrMuxRespDepth          = 4;
 
-    parameter int unsigned NumHwpeMemPorts          = 4;
+    parameter int unsigned NumHwpeMemPorts          = 9;
 
     parameter int unsigned RegisterOffloadReq       = 0;
     parameter int unsigned RegisterOffloadRsp       = 0;
@@ -101,8 +101,8 @@ module tb_snax_wb;
     parameter bit Xssr        = 1'b0;
     parameter bit Xipu        = 1'b0;
     parameter bit VMSupport   = 1'b0;
-    parameter bit HwpeMac     = 1'b1;
-    parameter bit HwpeNe16    = 1'b0;
+    parameter bit HwpeMac     = 1'b0;
+    parameter bit HwpeNe16    = 1'b1;
 
     //---------------------------------------------
     // Necessary type definitions
@@ -284,7 +284,7 @@ module tb_snax_wb;
     logic [PhysicalAddrWidth-1:0] inst_mem [0:1024];
     logic [PhysicalAddrWidth-1:0] instruction_addr_offset;
 
-	initial begin $readmemh("./mem/inst/mac_test.txt", inst_mem); end
+	initial begin $readmemh("./mem/inst/ne16_test.txt", inst_mem); end
 
 	// Dirty fix to offset the instruction memory since boot starts at 4096
 	always_comb begin

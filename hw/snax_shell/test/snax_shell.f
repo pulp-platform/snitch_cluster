@@ -32,6 +32,7 @@
 # Tech cells
 #--------------------------------------------
 /users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/tech_cells_generic-1282165f7b690985/src/rtl/tc_clk.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/tech_cells_generic-1282165f7b690985/src/deprecated/cluster_clk_cells.sv
 
 #--------------------------------------------
 # AXI components
