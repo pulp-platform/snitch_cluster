@@ -177,6 +177,27 @@
 
 
 #--------------------------------------------
+# Redmule Components
+#--------------------------------------------
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/redmule-ed31832a0a440825/rtl/redmule_pkg.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/redmule-ed31832a0a440825/rtl/redmule_ctrl.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/redmule-ed31832a0a440825/rtl/redmule_scheduler.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/redmule-ed31832a0a440825/rtl/redmule_castin.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/redmule-ed31832a0a440825/rtl/redmule_castout.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/redmule-ed31832a0a440825/rtl/redmule_streamer.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/redmule-ed31832a0a440825/rtl/redmule_x_buffer.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/redmule-ed31832a0a440825/rtl/redmule_w_buffer.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/redmule-ed31832a0a440825/rtl/redmule_z_buffer.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/redmule-ed31832a0a440825/rtl/redmule_fma.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/redmule-ed31832a0a440825/rtl/redmule_noncomp.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/redmule-ed31832a0a440825/rtl/redmule_ce.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/redmule-ed31832a0a440825/rtl/redmule_row.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/redmule-ed31832a0a440825/rtl/redmule_engine.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/redmule-ed31832a0a440825/rtl/redmule_top.sv
+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/.bender/git/checkouts/redmule-ed31832a0a440825/rtl/redmule_wrap.sv
+
+
+#--------------------------------------------
 # Core Snitch Components
 #--------------------------------------------
 +incdir+/users/micas/rantonio/no_backup/rga-workspace/snitch_cluster/hw/reqrsp_interface/include
