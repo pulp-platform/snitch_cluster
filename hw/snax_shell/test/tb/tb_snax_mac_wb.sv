@@ -9,6 +9,8 @@
 // It should give the users an idea on how it was built.
 //---------------------------------------------
 
+`timescale 1ns/1ps
+
 // verilog_lint: waive-start line-length
 // verilog_lint: waive-start no-trailing-spaces
 
@@ -36,7 +38,7 @@ import snitch_pma_pkg::*;
 import fpnew_pkg::*;
 import reqrsp_pkg::*;
 
-module tb_snax_shell_wb;
+module tb_snax_mac_wb;
 
     //---------------------------------------------
     // Prototype parameters
@@ -60,7 +62,7 @@ module tb_snax_shell_wb;
     parameter int unsigned NumDTLBEntries           = 1;
     parameter int unsigned NumITLBEntries           = 1;
     parameter int unsigned NumSequencerInstr        = 16;
-    parameter int unsigned NumSsrs                  = 3;
+    parameter int unsigned NumSsrs                  = 5;
     parameter int unsigned SsrMuxRespDepth          = 4;
 
     parameter int unsigned RegisterOffloadReq       = 0;
@@ -81,22 +83,23 @@ module tb_snax_shell_wb;
     //---------------------------------------------
     // For generated modules, a 1'b1 means they exist
     //---------------------------------------------
-    parameter int unsigned RVE         = 1'b0;
-    parameter int unsigned RVF         = 1'b0;
-    parameter int unsigned RVD         = 1'b0;
-    parameter int unsigned XDivSqrt    = 1'b0;
-    parameter int unsigned XF16        = 1'b0;
-    parameter int unsigned XF16ALT     = 1'b0;
-    parameter int unsigned XF8         = 1'b0;
-    parameter int unsigned XF8ALT      = 1'b0;
-    parameter int unsigned XFVEC       = 1'b0;
-    parameter int unsigned XFDOTP      = 1'b0;
-    parameter int unsigned Xdma        = 1'b1;
-    parameter int unsigned IsoCrossing = 1'b0;
-    parameter int unsigned Xfrep       = 1'b0;
-    parameter int unsigned Xssr        = 1'b0;
-    parameter int unsigned Xipu        = 1'b0;
-    parameter int unsigned VMSupport   = 1'b0;
+    parameter bit RVE         = 1'b0;
+    parameter bit RVF         = 1'b0;
+    parameter bit RVD         = 1'b0;
+    parameter bit XDivSqrt    = 1'b0;
+    parameter bit XF16        = 1'b0;
+    parameter bit XF16ALT     = 1'b0;
+    parameter bit XF8         = 1'b0;
+    parameter bit XF8ALT      = 1'b0;
+    parameter bit XFVEC       = 1'b0;
+    parameter bit XFDOTP      = 1'b0;
+    parameter bit Xdma        = 1'b1;
+    parameter bit IsoCrossing = 1'b0;
+    parameter bit Xfrep       = 1'b0;
+    parameter bit Xssr        = 1'b0;
+    parameter bit Xipu        = 1'b0;
+    parameter bit VMSupport   = 1'b0;
+    parameter bit HwpeMac     = 1'b1;
 
     //---------------------------------------------
     // Necessary type definitions
@@ -255,8 +258,8 @@ module tb_snax_shell_wb;
     reqrsp_req_t        data_req_o;
     reqrsp_rsp_t        data_rsp_i;
 
-    tcdm_req_t          tcdm_req_o;
-    tcdm_rsp_t          tcdm_rsp_i;
+    tcdm_req_t [NumSsrs-1:0] tcdm_req_o;
+    tcdm_rsp_t [NumSsrs-1:0] tcdm_rsp_i;
 
     axi_mst_dma_req_t   axi_dma_req_o;
     axi_mst_dma_resp_t  axi_dma_res_i;
@@ -267,14 +270,13 @@ module tb_snax_shell_wb;
     logic clk_i;
     logic rst_ni;
 
-
     //---------------------------------------------
     // Instruction memory
     //---------------------------------------------
     logic [PhysicalAddrWidth-1:0] inst_mem [0:1024];
     logic [PhysicalAddrWidth-1:0] instruction_addr_offset;
 
-	initial begin $readmemh("./mem/inst/comb_mem_lw.txt", inst_mem); end
+	initial begin $readmemh("./mem/inst/mac_test.txt", inst_mem); end
 
 	// Dirty fix to offset the instruction memory since boot starts at 4096
 	always_comb begin
@@ -300,30 +302,30 @@ module tb_snax_shell_wb;
     assign data_addr_offset = data_req_o.q.addr >> 3;
     assign next_data_mem = data_mem[data_addr_offset];
 
-    // Main memory control incorporated in the fake startup
+    // Seperate start memory for now
     always_ff @ (posedge clk_i or negedge rst_ni) begin
-
         if(!rst_ni) begin
-
             start_mem <= 1'b0;
-            data_rsp_i.p_valid <= 1'b0;
-            data_rsp_i.p.data  <= 64'd0;
-            data_rsp_i.p.error <= 0;
-
         end else begin
-
             if(!start_mem) begin
                 start_mem <= 1'b1;
             end else begin
                 start_mem <= start_mem;
             end
-            
+        end
+    end
+
+    // Main memory control incorporated in the fake startup
+    always_ff @ (posedge clk_i or negedge rst_ni) begin
+        if(!rst_ni) begin
+            data_rsp_i.p_valid <= 1'b0;
+            data_rsp_i.p.data  <= 64'd0;
+            data_rsp_i.p.error <= 0;
+        end else begin
             data_rsp_i.p_valid <= (start_mem) ? data_rsp_i.q_ready & data_req_o.q_valid: 1'b0;
             data_rsp_i.p.data  <= (start_mem) ?  next_data_mem : '0;
             data_rsp_i.p.error <= 0;
-
         end
-        
     end
 
     // Synchronized writing of data since this messes up the simulation
@@ -337,7 +339,6 @@ module tb_snax_shell_wb;
 
     end
 
-    //assign data_rsp_i.p.data  = data_mem[data_rsp_i.q.addr >> 2];
     assign data_rsp_i.q_ready = (start_mem) ? 1'b1 : 1'b0;
 
     //---------------------------------------------
@@ -352,7 +353,7 @@ module tb_snax_shell_wb;
     logic [NarrowDataWidth-1:0] tcdm_data_addr_offset;
     logic [NarrowDataWidth-1:0] tcdm_next_data_mem;
 
-    assign tcdm_data_addr_offset = tcdm_req_o.q.addr >> 3;
+    assign tcdm_data_addr_offset = tcdm_req_o[0].q.addr >> 3;
     assign tcdm_next_data_mem    = tcdm_data_mem[tcdm_data_addr_offset];
 
     // Main memory control incorporated in the fake startup
@@ -360,13 +361,13 @@ module tb_snax_shell_wb;
 
         if(!rst_ni) begin
 
-            tcdm_rsp_i.p.data  <= 64'd0;
-            tcdm_rsp_i.p_valid <= 1'b0;
+            tcdm_rsp_i[0].p.data  <= 64'd0;
+            tcdm_rsp_i[0].p_valid <= 1'b0;
             
         end else begin
             
-            tcdm_rsp_i.p.data  <= (start_mem) ? tcdm_next_data_mem : '0;
-            tcdm_rsp_i.p_valid <= (start_mem) ? tcdm_rsp_i.q_ready & tcdm_req_o.q_valid: 1'b0;
+            tcdm_rsp_i[0].p.data  <= (start_mem) ? tcdm_next_data_mem : '0;
+            tcdm_rsp_i[0].p_valid <= (start_mem) ? tcdm_rsp_i[0].q_ready & tcdm_req_o[0].q_valid: 1'b0;
             
         end
         
@@ -376,16 +377,103 @@ module tb_snax_shell_wb;
     // Need to accommodate memory multiplexing for this part
     // Let's assume first that no arbitration is set
     always @ (posedge clk_i) begin
-
-        if((tcdm_req_o.q.write  & tcdm_req_o.q_valid) & tcdm_rsp_i.q_ready) begin
-            tcdm_data_mem[tcdm_data_addr_offset] <= tcdm_req_o.q.data;
+        if((tcdm_req_o[0].q.write  & tcdm_req_o[0].q_valid) & tcdm_rsp_i[0].q_ready) begin
+            tcdm_data_mem[tcdm_data_addr_offset] <= tcdm_req_o[0].q.data;
         end
-
     end
 
     //assign data_rsp_i.p.data  = data_mem[data_rsp_i.q.addr >> 2];
-    assign tcdm_rsp_i.q_ready = (start_mem) ? 1'b1 : 1'b0;
+    assign tcdm_rsp_i[0].q_ready = (start_mem) ? 1'b1 : 1'b0;
 
+    //---------------------------------------------
+    // For the TCDM HWPE we will make synthetic banks
+    //---------------------------------------------
+    logic [NarrowDataWidth-1:0] hwpe_tcdm_mem_0 [0:255];
+    logic [NarrowDataWidth-1:0] hwpe_tcdm_mem_1 [0:255];
+    logic [NarrowDataWidth-1:0] hwpe_tcdm_mem_2 [0:255];
+    logic [NarrowDataWidth-1:0] hwpe_tcdm_mem_3 [0:255];
+
+    initial begin
+        $readmemh("./mem/data/hwpe_data_mem_0.txt", hwpe_tcdm_mem_0);
+        $readmemh("./mem/data/hwpe_data_mem_1.txt", hwpe_tcdm_mem_1);
+        $readmemh("./mem/data/hwpe_data_mem_2.txt", hwpe_tcdm_mem_2);
+        $readmemh("./mem/data/hwpe_data_mem_3.txt", hwpe_tcdm_mem_3);
+    end
+
+    logic [NarrowDataWidth-1:0] hwpe_tcdm_data_addr_offset [0:3];
+    logic [NarrowDataWidth-1:0] hwpe_tcdm_next_data_mem    [0:3];
+
+    assign hwpe_tcdm_data_addr_offset[0] = tcdm_req_o[1].q.addr >> 3;
+    assign hwpe_tcdm_next_data_mem[0]    = hwpe_tcdm_mem_0[hwpe_tcdm_data_addr_offset[0]];
+
+    assign hwpe_tcdm_data_addr_offset[1] = tcdm_req_o[2].q.addr >> 3;
+    assign hwpe_tcdm_next_data_mem[1]    = hwpe_tcdm_mem_1[hwpe_tcdm_data_addr_offset[1]];
+
+    assign hwpe_tcdm_data_addr_offset[2] = tcdm_req_o[3].q.addr >> 3;
+    assign hwpe_tcdm_next_data_mem[2]    = hwpe_tcdm_mem_2[hwpe_tcdm_data_addr_offset[2]];
+
+    assign hwpe_tcdm_data_addr_offset[3] = tcdm_req_o[4].q.addr >> 3;
+    assign hwpe_tcdm_next_data_mem[3]    = hwpe_tcdm_mem_3[hwpe_tcdm_data_addr_offset[3]];
+
+    // Main memory control incorporated in the fake startup
+    always_ff @ (posedge clk_i or negedge rst_ni) begin
+
+        if(!rst_ni) begin
+
+            tcdm_rsp_i[1].p.data  <= 64'd0;
+            tcdm_rsp_i[1].p_valid <= 1'b0;
+
+            tcdm_rsp_i[2].p.data  <= 64'd0;
+            tcdm_rsp_i[2].p_valid <= 1'b0;
+
+            tcdm_rsp_i[3].p.data  <= 64'd0;
+            tcdm_rsp_i[3].p_valid <= 1'b0;
+
+            tcdm_rsp_i[4].p.data  <= 64'd0;
+            tcdm_rsp_i[4].p_valid <= 1'b0;
+            
+        end else begin
+            
+            tcdm_rsp_i[1].p.data  <= (start_mem) ? hwpe_tcdm_next_data_mem[0] : '0;
+            tcdm_rsp_i[1].p_valid <= (start_mem) ? tcdm_rsp_i[1].q_ready & tcdm_req_o[1].q_valid: 1'b0;
+
+            tcdm_rsp_i[2].p.data  <= (start_mem) ? hwpe_tcdm_next_data_mem[1] : '0;
+            tcdm_rsp_i[2].p_valid <= (start_mem) ? tcdm_rsp_i[2].q_ready & tcdm_req_o[2].q_valid: 1'b0;
+
+            tcdm_rsp_i[3].p.data  <= (start_mem) ? hwpe_tcdm_next_data_mem[2] : '0;
+            tcdm_rsp_i[3].p_valid <= (start_mem) ? tcdm_rsp_i[3].q_ready & tcdm_req_o[3].q_valid: 1'b0;
+
+            tcdm_rsp_i[4].p.data  <= (start_mem) ? hwpe_tcdm_next_data_mem[3] : '0;
+            tcdm_rsp_i[4].p_valid <= (start_mem) ? tcdm_rsp_i[4].q_ready & tcdm_req_o[4].q_valid: 1'b0;
+            
+        end
+        
+    end
+
+    always @ (posedge clk_i) begin
+        if((tcdm_req_o[1].q.write  & tcdm_req_o[1].q_valid) & tcdm_rsp_i[1].q_ready) begin
+            hwpe_tcdm_mem_0[hwpe_tcdm_data_addr_offset[0]] <= tcdm_req_o[1].q.data;
+        end
+
+        if((tcdm_req_o[2].q.write  & tcdm_req_o[2].q_valid) & tcdm_rsp_i[2].q_ready) begin
+            hwpe_tcdm_mem_1[hwpe_tcdm_data_addr_offset[1]] <= tcdm_req_o[2].q.data;
+        end
+
+        if((tcdm_req_o[3].q.write  & tcdm_req_o[3].q_valid) & tcdm_rsp_i[3].q_ready) begin
+            hwpe_tcdm_mem_2[hwpe_tcdm_data_addr_offset[2]] <= tcdm_req_o[3].q.data;
+        end
+
+        if((tcdm_req_o[4].q.write  & tcdm_req_o[4].q_valid) & tcdm_rsp_i[4].q_ready) begin
+            hwpe_tcdm_mem_3[hwpe_tcdm_data_addr_offset[3]] <= tcdm_req_o[4].q.data;
+        end
+    end
+
+    //assign data_rsp_i.p.data  = data_mem[data_rsp_i.q.addr >> 2];
+    assign tcdm_rsp_i[1].q_ready = (start_mem) ? 1'b1 : 1'b0;
+    assign tcdm_rsp_i[2].q_ready = (start_mem) ? 1'b1 : 1'b0;
+    assign tcdm_rsp_i[3].q_ready = (start_mem) ? 1'b1 : 1'b0;
+    assign tcdm_rsp_i[4].q_ready = (start_mem) ? 1'b1 : 1'b0;
+    
 
     //---------------------------------------------
     // Main snax shell module
@@ -428,6 +516,7 @@ module tb_snax_shell_wb;
       .Xssr                   ( Xssr                    ),
       .Xipu                   ( Xipu                    ),
       .VMSupport              ( VMSupport               ),
+      .HwpeMac                ( HwpeMac                 ),
       .NumIntOutstandingLoads ( NumIntOutstandingLoads  ),
       .NumIntOutstandingMem   ( NumIntOutstandingMem    ),
       .NumFPOutstandingLoads  ( NumFPOutstandingLoads   ),
@@ -449,7 +538,7 @@ module tb_snax_shell_wb;
       .RegisterFPUIn          ( RegisterFPUIn           ),
       .RegisterFPUOut         ( RegisterFPUOut          ),
       .TCDMAddrWidth          ( TCDMAddrWidth           )
-    ) i_snitch_cc (
+    ) i_snax_shell (
       .clk_i                  ( clk_i                   ),
       .clk_d2_i               ( clk_i                   ), // Note: Use same clock
       .rst_ni                 ( rst_ni                  ),
@@ -529,7 +618,7 @@ module tb_snax_shell_wb;
         @(posedge clk_i);
         @(posedge clk_i);
 
-        #2000;
+        #5000;
         $stop();
 
     end

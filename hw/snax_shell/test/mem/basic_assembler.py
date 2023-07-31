@@ -128,6 +128,24 @@ def decode(entry):
         op = '0101011'
         machine_inst = f7+rs2+rs1+f3+rd+op
         hex_code = hex_fix(machine_inst)
+    elif (entry[0] == 'snwacc'):
+        f7 = '0000000'
+        rs2 = ext_type(int(entry[3].strip('x').strip(',')), 'reg')
+        rs1 = ext_type(int(entry[2].strip('x').strip(',')), 'reg')
+        f3 = '000'
+        rd = ext_type(int(entry[1].strip('x').strip(',')), 'reg')
+        op = '0011000'
+        machine_inst = f7+rs2+rs1+f3+rd+op
+        hex_code = hex_fix(machine_inst)
+    elif (entry[0] == 'snracc'):
+        f7 = '0000000'
+        rs2 = ext_type(int(entry[3].strip('x').strip(',')), 'reg')
+        rs1 = ext_type(int(entry[2].strip('x').strip(',')), 'reg')
+        f3 = '001'
+        rd = ext_type(int(entry[1].strip('x').strip(',')), 'reg')
+        op = '0011000'
+        machine_inst = f7+rs2+rs1+f3+rd+op
+        hex_code = hex_fix(machine_inst)
     elif (entry[0] == '#'):
         pass
     else:
