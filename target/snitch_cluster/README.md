@@ -244,8 +244,8 @@ The traces contain a lot of information which we might not be interested at firs
 
 ```
             , compute
-"range(0,9)",       1
-9           ,
+"range(0,8)",       1
+8           ,
 
 ```
 
@@ -255,9 +255,9 @@ Then run the following commands:
 # Similar to logs/perf.csv but filters all but tstart and tend metrics
 make logs/event.csv
 # Labels, filters and reorders the event regions as specified by an application-specific layout file
-../../../util/trace/layout_events.py logs/event.csv sw/apps/axpy/layout.csv -o logs/trace.csv
+../../util/trace/layout_events.py logs/event.csv sw/apps/axpy/layout.csv -o logs/trace.csv
 # Creates a trace file which can be visualized with Chrome's TraceViewer
-../../../util/trace/eventvis.py -o logs/trace.json logs/trace.csv
+../../util/trace/eventvis.py -o logs/trace.json logs/trace.csv
 ```
 
 Go to `http://ui.perfetto.dev/`. Here you can load the `logs/trace.json` file and graphically view the runtime of the compute region in your code. To learn more about the layout file syntax and what the Python scripts do you can have a look at the description comment at the start of the scripts themselves.
