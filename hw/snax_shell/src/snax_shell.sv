@@ -1025,7 +1025,7 @@ module snax_shell #(
       );
 
       // Manual remapping
-      for (i = 0; i < NumHwpeMemPorts; i++) begin
+      for (i = 0; i < NumHwpeMemPorts; i++) begin: gen_ne16_hardmap
         assign snax_tcdm   [i].req  = tcdm_req[i];
         assign tcdm_gnt    [i]      = snax_tcdm[i].gnt;
         assign snax_tcdm   [i].add  = tcdm_add[i];
