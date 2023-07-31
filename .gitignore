@@ -13,3 +13,12 @@ gmon.out
 
 // Docs
 /site/
+
+// Snax backs
+/hw/snax_shell/test/snax_shell_bak.f
+/hw/snax_shell/test/work
+/hw/snax_shell/test/logs
+/hw/snax_shell/test/.nfs*
+/hw/snax_shell/test/dma*
+/hw/future/src/dma/*
+/snax_Bender.yml

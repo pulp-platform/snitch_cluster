@@ -111,8 +111,8 @@ jobs:
         uses: py-actions/flake8@v2
         with:
           max-line-length: "100"
-          exclude_paths: |
-            ./util
+          exclude: |
+            ./util/trace/*
 
   ######################
   # Clang-Format Check #
