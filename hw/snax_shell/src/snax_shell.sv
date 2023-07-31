@@ -27,7 +27,6 @@
 // Import MAC packages here
 //---------------------------------------------
 import hwpe_ctrl_package::*;
-import mac_package::*;
 
 //---------------------------------------------
 // Snitch Core Complex (CC)
@@ -91,6 +90,8 @@ module snax_shell #(
   parameter bit          VMSupport          = 1,
   // Has HWPE MAC support
   parameter bit          HwpeMac            = 0, 
+  // Has HWPE Ne16 support
+  parameter bit          HwpeNe16           = 0, 
   parameter int unsigned NumIntOutstandingLoads = 0,
   parameter int unsigned NumIntOutstandingMem   = 0,
   parameter int unsigned NumFPOutstandingLoads  = 0,
@@ -99,6 +100,7 @@ module snax_shell #(
   parameter int unsigned NumITLBEntries         = 0,
   parameter int unsigned NumSequencerInstr      = 0,
   parameter int unsigned NumSsrs                = 0,
+  parameter int unsigned NumHwpeMemPorts        = 0,
   parameter int unsigned SsrMuxRespDepth        = 0,
   parameter snitch_ssr_pkg::ssr_cfg_t [NumSsrs-1:0] SsrCfgs = '0,
   parameter logic [NumSsrs-1:0][4:0] SsrRegs = '0,
@@ -145,6 +147,10 @@ module snax_shell #(
   // TCDM Streamer Ports
   output tcdm_req_t [TCDMPorts-1:0]  tcdm_req_o,
   input  tcdm_rsp_t [TCDMPorts-1:0]  tcdm_rsp_i,
+  // TCDM HWPE streamer ports
+  output tcdm_req_t [NumHwpeMemPorts-1:0]  hwpe_tcdm_req_o,
+  input  tcdm_rsp_t [NumHwpeMemPorts-1:0]  hwpe_tcdm_rsp_i,
+
   // Accelerator Offload port
   // DMA ports
   output axi_req_t                   axi_dma_req_o,
@@ -157,6 +163,11 @@ module snax_shell #(
   input  addr_t                      tcdm_addr_base_i
 
 );
+
+  //---------------------------------------------
+  // For loops
+  //---------------------------------------------
+  genvar i;
 
   //---------------------------------------------
   // Local parameters
@@ -909,23 +920,22 @@ module snax_shell #(
   end
 
   //-------------------------------------------------------------------------
-  // Main MAC generation
-  // TODO: Add mux later for the SSR and MAC but for now assume that SSR are disabled
+  // Generate Snax HWPE Controller
   //-------------------------------------------------------------------------
-  if (HwpeMac) begin: gen_mac
+  if (HwpeMac || HwpeNe16) begin: gen_hwpe_ctrl
 
     // HWPE control interface
     hwpe_ctrl_intf_periph #(
         .ID_WIDTH ( 5 )
-    ) mac_periph (
+    ) snax_periph (
         .clk ( clk_i )
     );
 
-    // HWPE stream interface
-    hwpe_stream_intf_tcdm mac_tcdm [3:0] (
+    hwpe_stream_intf_tcdm snax_tcdm [NumHwpeMemPorts-1:0] (
         .clk ( clk_i )
     );
 
+    // SNAX HWPE controller
     snax_hwpe_ctrl #(
       .DataWidth    ( DataWidth          ), // Default data width
       .acc_req_t    ( acc_req_t          ), // Memory request payload type, usually write enable, write data, etc.
@@ -939,44 +949,121 @@ module snax_shell #(
       .resp_o       ( snx_resp           ), // Response stream interface, payload
       .resp_valid_o ( snx_pvalid         ), // Response stream interface, payload is valid for transfer
       .resp_ready_i ( snx_pready         ), // Response stream interface, payload can be accepted
-      .periph       ( mac_periph         )  // periph master port
+      .periph       ( snax_periph        )  // periph master port
     );
 
-    mac_top #(
-        .N_CORES     ( 1            ),
-        .MP          ( 4            ),
-        .ID          ( 5            )
-    ) i_mac_top (
-        .clk_i       ( clk_i        ),
-        .rst_ni      ( rst_ni       ),
-        .test_mode_i ( 1'b0         ),
-        .evt_o       ( /*unused*/   ),
-        .tcdm        ( mac_tcdm     ),   // Master port
-        .periph      ( mac_periph   )    // Slave port
-    );
+    //-------------------------------------------------------------------------
+    // Main MAC generation
+    //-------------------------------------------------------------------------
+    if (HwpeMac) begin: gen_hwpe_mac
 
-    genvar i;
-    for (i = 0; i < NumSsrs-1; i++) begin: gen_hwpe_to_reqrsp
+      import mac_package::*;
+
+      // Main MAC engine
+      mac_top #(
+          .N_CORES     ( 1                ),
+          .MP          ( NumHwpeMemPorts  ),
+          .ID          ( 5                )
+      ) i_mac_top (
+          .clk_i       ( clk_i            ),
+          .rst_ni      ( rst_ni           ),
+          .test_mode_i ( 1'b0             ),
+          .evt_o       ( /*unused*/       ),
+          .tcdm        ( snax_tcdm        ),   // Master port
+          .periph      ( snax_periph      )    // Slave port
+      );
+
+    //-------------------------------------------------------------------------
+    // Main NE16 generation
+    //-------------------------------------------------------------------------
+    end else if (HwpeNe16) begin: gen_hwpe_ne16 
+
+      import ne16_package::*;
+
+      // ne16_top_wrap needs manual hard mapping of signals
+      logic [NumHwpeMemPorts-1:0]       tcdm_req;
+      logic [NumHwpeMemPorts-1:0]       tcdm_gnt;
+      logic [NumHwpeMemPorts-1:0][31:0] tcdm_add;
+      logic [NumHwpeMemPorts-1:0]       tcdm_wen;
+      logic [NumHwpeMemPorts-1:0][ 3:0] tcdm_be;
+      logic [NumHwpeMemPorts-1:0][31:0] tcdm_data;
+      logic [NumHwpeMemPorts-1:0][31:0] tcdm_r_data;
+      logic [NumHwpeMemPorts-1:0]       tcdm_r_valid;
+
+      ne16_top_wrap #(
+        .TP_IN          ( NE16_TP_IN          ),      // Default 16
+        .TP_OUT         ( NE16_TP_OUT         ),      // Default 32
+        .CNT            ( VLEN_CNT_SIZE       ),      // Default 16
+        .BW             ( NE16_MEM_BANDWIDTH_EXT ),   // Default 288 ( 9 x 32 bits )
+        .ID             ( 5                   ), 
+        .N_CORES        ( NR_CORES            ),      // Default 9
+        .N_CONTEXT      ( NR_CONTEXT          )       // Default 1
+      ) i_ne16_top_wrap (
+        .clk_i          ( clk_i               ),
+        .rst_ni         ( rst_ni              ),
+        .test_mode_i    ( test_mode_i         ),
+        .evt_o          (                     ),      // Unused
+        .busy_o         ( busy_o              ),
+        .periph_req     ( snax_periph.req     ),
+        .periph_gnt     ( snax_periph.gnt     ),
+        .periph_add     ( snax_periph.add     ),
+        .periph_wen     ( snax_periph.wen     ),
+        .periph_be      ( snax_periph.be      ),
+        .periph_data    ( snax_periph.data    ),
+        .periph_id      ( snax_periph.id      ),
+        .periph_r_data  ( snax_periph.r_data  ),
+        .periph_r_valid ( snax_periph.r_valid ),
+        .periph_r_id    ( snax_periph.r_id    ),
+        .tcdm_req       ( tcdm_req            ),
+        .tcdm_gnt       ( tcdm_gnt            ),      // input
+        .tcdm_add       ( tcdm_add            ),
+        .tcdm_wen       ( tcdm_wen            ),
+        .tcdm_be        ( tcdm_be             ),
+        .tcdm_data      ( tcdm_data           ),
+        .tcdm_r_data    ( tcdm_r_data         ),      // input
+        .tcdm_r_valid   ( tcdm_r_valid        )       // input
+      );
+
+      // Manual remapping
+      for (i = 0; i < NumHwpeMemPorts; i++) begin: gen_ne16_hardmap
+        assign snax_tcdm   [i].req  = tcdm_req[i];
+        assign tcdm_gnt    [i]      = snax_tcdm[i].gnt;
+        assign snax_tcdm   [i].add  = tcdm_add[i];
+        assign snax_tcdm   [i].wen  = tcdm_wen[i];
+        assign snax_tcdm   [i].be   = tcdm_be[i];
+        assign snax_tcdm   [i].data = tcdm_data[i];
+        assign tcdm_r_data [i]      = snax_tcdm[i].r_data;
+        assign tcdm_r_valid[i]      = snax_tcdm[i].r_valid;
+      end
+
+
+    end 
+
+    // Hardmapping for the TCDM ports from MAC top
+    
+    for (i = 0; i < NumHwpeMemPorts; i++) begin: gen_hwpe_to_reqrsp
       snax_hwpe_to_reqrsp #(
-        .DataWidth        ( DataWidth       ),  // Data width to use
-        .tcdm_req_t       ( tcdm_req_t      ),  // TCDM request type
-        .tcdm_rsp_t       ( tcdm_rsp_t      )   // TCDM response type
+        .DataWidth        ( DataWidth          ),  // Data width to use
+        .tcdm_req_t       ( tcdm_req_t         ),  // TCDM request type
+        .tcdm_rsp_t       ( tcdm_rsp_t         )   // TCDM response type
       ) i_snax_hwpe_to_reqrsp (
-        .clk_i            ( clk_i           ),  // Clock
-        .rst_ni           ( rst_ni          ),  // Asynchronous reset, active low
-        .tcdm_req_o       ( tcdm_req_o[i+1] ),  // TCDM valid ready format
-        .tcdm_rsp_i       ( tcdm_rsp_i[i+1] ),  // TCDM valid ready format
-        .hwpe_tcdm_slave  ( mac_tcdm[i]     )   // HWPE TCDM slave port
+        .clk_i            ( clk_i              ),  // Clock
+        .rst_ni           ( rst_ni             ),  // Asynchronous reset, active low
+        .tcdm_req_o       ( hwpe_tcdm_req_o[i] ),  // TCDM valid ready format
+        .tcdm_rsp_i       ( hwpe_tcdm_rsp_i[i] ),  // TCDM valid ready format
+        .hwpe_tcdm_slave  ( snax_tcdm[i]       )   // HWPE TCDM slave port
       );
     end
 
-  end else begin: gen_no_mac
+  end else begin: gen_no_snax
 
     assign snx_qready = '0;
     assign snx_resp   = '0;
     assign snx_pvalid = '0;
 
   end
+
+  
 
   //-------------------------------------------------------------------------
   // Core events for performance counters

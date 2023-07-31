@@ -38,7 +38,7 @@ import snitch_pma_pkg::*;
 import fpnew_pkg::*;
 import reqrsp_pkg::*;
 
-module tb_snax_mac_wb;
+module tb_snax_wb;
 
     //---------------------------------------------
     // Prototype parameters
@@ -62,8 +62,10 @@ module tb_snax_mac_wb;
     parameter int unsigned NumDTLBEntries           = 1;
     parameter int unsigned NumITLBEntries           = 1;
     parameter int unsigned NumSequencerInstr        = 16;
-    parameter int unsigned NumSsrs                  = 5;
+    parameter int unsigned NumSsrs                  = 3;
     parameter int unsigned SsrMuxRespDepth          = 4;
+
+    parameter int unsigned NumHwpeMemPorts          = 9;
 
     parameter int unsigned RegisterOffloadReq       = 0;
     parameter int unsigned RegisterOffloadRsp       = 0;
@@ -99,7 +101,8 @@ module tb_snax_mac_wb;
     parameter bit Xssr        = 1'b0;
     parameter bit Xipu        = 1'b0;
     parameter bit VMSupport   = 1'b0;
-    parameter bit HwpeMac     = 1'b1;
+    parameter bit HwpeMac     = 1'b0;
+    parameter bit HwpeNe16    = 1'b1;
 
     //---------------------------------------------
     // Necessary type definitions
@@ -261,6 +264,11 @@ module tb_snax_mac_wb;
     tcdm_req_t [NumSsrs-1:0] tcdm_req_o;
     tcdm_rsp_t [NumSsrs-1:0] tcdm_rsp_i;
 
+    tcdm_req_t [NumHwpeMemPorts-1:0] hwpe_tcdm_req_o;
+    tcdm_rsp_t [NumHwpeMemPorts-1:0] hwpe_tcdm_rsp_i;
+
+    
+
     axi_mst_dma_req_t   axi_dma_req_o;
     axi_mst_dma_resp_t  axi_dma_res_i;
 
@@ -276,7 +284,7 @@ module tb_snax_mac_wb;
     logic [PhysicalAddrWidth-1:0] inst_mem [0:1024];
     logic [PhysicalAddrWidth-1:0] instruction_addr_offset;
 
-	initial begin $readmemh("./mem/inst/mac_test.txt", inst_mem); end
+	initial begin $readmemh("./mem/inst/ne16_test.txt", inst_mem); end
 
 	// Dirty fix to offset the instruction memory since boot starts at 4096
 	always_comb begin
@@ -344,6 +352,26 @@ module tb_snax_mac_wb;
     //---------------------------------------------
     // TCDM Data memory
     //---------------------------------------------
+
+    genvar i;
+    for( i=0; i<NumHwpeMemPorts; i++ ) begin
+        tb_dummy_memory #(
+            .MemoryWidth  ( NarrowDataWidth    ), 
+            .MemorySize   ( 1024               ),
+            .tcdm_req_t   ( tcdm_req_t         ),
+            .tcdm_rsp_t   ( tcdm_rsp_t         ),
+            .ForceInitVal ( 1                  ),
+            .InitVal      ( "./mem/data/hwpe_data_mem_1.txt" )
+        ) i_tb_dummy_memory (
+            .clk_i        ( clk_i              ),
+            .rst_ni       ( rst_ni             ),
+            .data_req_i   ( hwpe_tcdm_req_o[i] ),
+            .data_rsp_o   ( hwpe_tcdm_rsp_i[i] )
+        );
+    end
+
+
+    /*
     logic [NarrowDataWidth-1:0] tcdm_data_mem [0:255];
 
 	initial begin $readmemh("./mem/data/rand_data_2.txt", tcdm_data_mem); end
@@ -473,7 +501,7 @@ module tb_snax_mac_wb;
     assign tcdm_rsp_i[2].q_ready = (start_mem) ? 1'b1 : 1'b0;
     assign tcdm_rsp_i[3].q_ready = (start_mem) ? 1'b1 : 1'b0;
     assign tcdm_rsp_i[4].q_ready = (start_mem) ? 1'b1 : 1'b0;
-    
+    */
 
     //---------------------------------------------
     // Main snax shell module
@@ -517,6 +545,7 @@ module tb_snax_mac_wb;
       .Xipu                   ( Xipu                    ),
       .VMSupport              ( VMSupport               ),
       .HwpeMac                ( HwpeMac                 ),
+      .HwpeNe16               ( HwpeNe16                ),
       .NumIntOutstandingLoads ( NumIntOutstandingLoads  ),
       .NumIntOutstandingMem   ( NumIntOutstandingMem    ),
       .NumFPOutstandingLoads  ( NumFPOutstandingLoads   ),
@@ -526,6 +555,7 @@ module tb_snax_mac_wb;
       .NumITLBEntries         ( NumITLBEntries          ),
       .NumSequencerInstr      ( NumSequencerInstr       ),
       .NumSsrs                ( NumSsrs                 ),
+      .NumHwpeMemPorts        ( NumHwpeMemPorts         ),
       .SsrMuxRespDepth        ( SsrMuxRespDepth         ),
       .SsrCfgs                ( '0                      ), //TODO: Fix me later
       .SsrRegs                ( '0                      ), //TODO: Fix me later
@@ -552,6 +582,8 @@ module tb_snax_mac_wb;
       .data_rsp_i             ( data_rsp_i              ),
       .tcdm_req_o             ( tcdm_req_o              ),
       .tcdm_rsp_i             ( tcdm_rsp_i              ),
+      .hwpe_tcdm_req_o        ( hwpe_tcdm_req_o         ),
+      .hwpe_tcdm_rsp_i        ( hwpe_tcdm_rsp_i         ),
       .axi_dma_req_o          ( axi_dma_req_o           ),
       .axi_dma_res_i          ( axi_dma_res_i           ),
       .axi_dma_busy_o         (                         ), // Leave this unused first

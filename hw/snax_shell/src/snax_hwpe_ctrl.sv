@@ -36,13 +36,6 @@ module snax_hwpe_ctrl #(
   // Local parameters
   //---------------------------------------------
 
-  // We need to pack and unpack in order:
-  // {id, req, add, wen, be, data} - which leads to a total of...
-  localparam int unsigned TotalSnHwpeFifoWidth = 5 + 1 + 32 + 1 + 1 + 32; //67 in total
-
-  // {r_id, r_valid, r_data}
-  localparam int unsigned TotalHwpeSnFifoWidth = 5 + 32 + 1;
-
   // Number of bits to fill to extend to DataWidth
   localparam int unsigned FillBits = DataWidth - 32;
 
