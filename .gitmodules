@@ -6,4 +6,4 @@
 	url = https://github.com/mpaland/printf.git
 [submodule "sw/deps/musl"]
 	path = sw/deps/musl
-	url = git@github.com:kraj/musl.git
+	url = https://github.com/kraj/musl.git
