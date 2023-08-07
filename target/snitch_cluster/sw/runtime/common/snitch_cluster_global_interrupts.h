@@ -6,6 +6,7 @@
 inline void snrt_int_sw_clear(uint32_t hartid) {
     snrt_int_cluster_clr(1 << hartid);
 }
+
 inline void snrt_int_sw_set(uint32_t hartid) {
     snrt_int_cluster_set(1 << hartid);
 }

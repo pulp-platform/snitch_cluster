@@ -31,7 +31,7 @@
 #include "perf_cnt.h"
 #include "printf.h"
 #include "riscv.h"
-// #include "snitch_cluster_global_interrupts.h" # what is Banshee equivalent?
+#include "snitch_cluster_global_interrupts.h"
 #include "ssr.h"
 #include "sync.h"
 #include "team.h"
