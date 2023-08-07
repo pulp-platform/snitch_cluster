@@ -32,7 +32,7 @@ vcs-2020.12 make bin/snitch_cluster.vcs
 These commands compile the RTL sources respectively in `work-vlt`, `work-vsim` and `work-vcs`. Additionally, common C++ testbench sources (e.g. the [frontend server (fesvr)](https://github.com/riscv-software-src/riscv-isa-sim)) are compiled under `work`. Each command will also generate a script or an executable (e.g. `bin/snitch_cluster.vsim`) which you can invoke to simulate the hardware. We will see how to do this in a later section.
 
 ### Building the Banshee simulator
-Instead of running an RTL simulation, you can use our instruction-accuracte simulator called `banshee`. To install the simulator, please follow the instructions of the Banshee repository: [https://github.com/pulp-platform/banshee](https://github.com/pulp-platform/banshee).
+Instead of running an RTL simulation, you can use our instruction-accurate simulator called `banshee`. To install the simulator, please follow the instructions of the Banshee repository: [https://github.com/pulp-platform/banshee](https://github.com/pulp-platform/banshee).
 
 ### Cluster configuration
 
@@ -48,7 +48,7 @@ make CFG_OVERRIDE=cfg/custom.hjson bin/snitch_cluster.vlt
 
 ___Note:__ whenever you override the configuration file on the `make` command-line, the configuration will be stored in the `cfg/lru.hjson` file. Successive invocations of `make` will automatically pick up the `cfg/lru.hjson` file. You can therefore omit the `CFG_OVERRIDE` definition in successive commands unless you want to override the least-recently used configuration._
 
-Banshee uses also a cluster configuration file, however, that is given directly when simulating a specific binary with banshee with the help of the `--configuration <cluster_config.yaml>`.
+Banshee uses also a cluster configuration file, however, that is given directly when simulating a specific binary with banshee with the help of `--configuration <cluster_config.yaml>`.
 
 ### Building the software
 
@@ -66,7 +66,7 @@ The `sw` target first generates some C header files which depend on the hardware
 
 The `DEBUG=ON` flag is used to tell the compiler to produce debugging symbols. It is necessary for the `annotate` target, showcased in the Debugging section of this guide, to work.
 
-The `SELECT_RUNTIME` is set by default to `rtl`. To use the Banshee runtime, it requires to be set to be set to `banshee` with `SELECT_RUNTIME=banshee`.
+The `SELECT_RUNTIME` flag is set by default to `rtl`. To build the software with the Banshee runtime, set the flag to `banshee`.
 
 ___Note:__ the RTL is not the only source which is generated from the configuration file. The software stack also depends on the configuration file. Make sure you always build the software with the same configuration of the hardware you are going to run it on._
 

@@ -116,12 +116,6 @@ snitch-cluster-vlt:
     - grep -zoP 'All tests passed' tests.log
     - grep -zoP 'All tests passed' apps.log
   # yamllint enable rule:line-length
-  artifacts:
-    when: on_failure
-    paths:
-      - target/snitch_cluster/tests.log
-      - target/snitch_cluster/apps.log
-    expire_in: 1 day
 
 # VCS
 snitch-cluster-vcs:
@@ -135,12 +129,6 @@ snitch-cluster-vcs:
     - grep -zoP 'All tests passed' tests.log
     - grep -zoP 'All tests passed' apps.log
   # yamllint enable rule:line-length
-  artifacts:
-    when: on_failure
-    paths:
-      - target/snitch_cluster/tests.log
-      - target/snitch_cluster/apps.log
-    expire_in: 1 day
 
 # Questa
 snitch-cluster-vsim:
@@ -154,12 +142,6 @@ snitch-cluster-vsim:
     - grep -zoP 'All tests passed' tests.log
     - grep -zoP 'All tests passed' apps.log
   # yamllint enable rule:line-length
-  artifacts:
-    when: on_failure
-    paths:
-      - target/snitch_cluster/tests.log
-      - target/snitch_cluster/apps.log
-    expire_in: 1 day
 
 # Banshee
 snitch-cluster-banshee:
@@ -179,9 +161,3 @@ snitch-cluster-banshee:
     - grep -zoP 'All tests passed' tests.log
     - grep -zoP 'All tests passed' apps.log
   # yamllint enable rule:line-length
-  artifacts:
-    when: on_failure
-    paths:
-      - target/snitch_cluster/tests.log
-      - target/snitch_cluster/apps.log
-    expire_in: 1 day
