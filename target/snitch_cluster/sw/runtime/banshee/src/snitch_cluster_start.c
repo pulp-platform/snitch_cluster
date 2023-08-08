@@ -11,11 +11,8 @@
 #define SNRT_CRT0_POST_BARRIER
 #define SNRT_CRT0_EXIT
 
-// needs to be before #include "start.c"
-static inline void snrt_exit(int exit_code) {
-    volatile uint32_t *scratch_reg = (volatile uint32_t *)0x02000014;
-
-    if (snrt_global_core_idx() == 0) *(scratch_reg) = (exit_code << 1) | 1;
+static inline volatile uint32_t* snrt_exit_code_destination() {
+    return (volatile uint32_t*)0x02000014;
 }
 
 #include "start.c"

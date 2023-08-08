@@ -84,6 +84,11 @@ static inline void snrt_init_cls() {
 
 static inline void snrt_init_libs() { snrt_alloc_init(); }
 
+static inline void snrt_exit(int exit_code) {
+    if (snrt_global_core_idx() == 0)
+        *(snrt_exit_code_destination()) = (exit_code << 1) | 1;
+}
+
 void snrt_main() {
     int exit_code = 0;
 
