@@ -16,7 +16,6 @@ variables:
   CLANG: /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin/clang
   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: /usr/pack/gcc-9.2.0-af/linux-x64/bin/gcc
   LLVM_SYS_120_PREFIX: /usr/pack/llvm-12.0.1-af
-  SNITCH_LOG: info
   CMAKE: cmake-3.18.1
 
 before_script:
@@ -111,42 +110,33 @@ snitch-cluster-vlt:
   script:
     - cd target/snitch_cluster
     - $VERILATOR make bin/snitch_cluster.vlt
-    - $VERILATOR ./sw/tests/run.py sw/tests/passing-apps.list --simulator verilator 2>&1 | tee tests.log
-    - $VERILATOR ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator 2>&1 | tee apps.log
-    - grep -zoP 'All tests passed' tests.log
-    - grep -zoP 'All tests passed' apps.log
+    - $VERILATOR ./sw/tests/run.py sw/tests/passing-apps.list --simulator verilator
+    - $VERILATOR ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator
   # yamllint enable rule:line-length
 
 # VCS
 snitch-cluster-vcs:
   needs: [snitch-cluster-sw]
-  # yamllint disable rule:line-length
   script:
     - cd target/snitch_cluster
     - $VCS make bin/snitch_cluster.vcs
-    - $VCS ./sw/tests/run.py sw/tests/passing-apps.list --simulator vcs 2>&1 | tee tests.log
-    - $VCS ./sw/apps/run.py sw/apps/passing-apps.list --simulator vcs 2>&1 | tee apps.log
-    - grep -zoP 'All tests passed' tests.log
-    - grep -zoP 'All tests passed' apps.log
-  # yamllint enable rule:line-length
+    - $VCS ./sw/tests/run.py sw/tests/passing-apps.list --simulator vcs
+    - $VCS ./sw/apps/run.py sw/apps/passing-apps.list --simulator vcs
 
 # Questa
 snitch-cluster-vsim:
   needs: [snitch-cluster-sw]
-  # yamllint disable rule:line-length
   script:
     - cd target/snitch_cluster
     - $QUESTA make bin/snitch_cluster.vsim
-    - $QUESTA ./sw/tests/run.py sw/tests/passing-apps.list --simulator vsim 2>&1 | tee tests.log
-    - $QUESTA ./sw/apps/run.py sw/apps/passing-apps.list --simulator vsim 2>&1 | tee apps.log
-    - grep -zoP 'All tests passed' tests.log
-    - grep -zoP 'All tests passed' apps.log
-  # yamllint enable rule:line-length
+    - $QUESTA ./sw/tests/run.py sw/tests/passing-apps.list --simulator vsim
+    - $QUESTA ./sw/apps/run.py sw/apps/passing-apps.list --simulator vsim
 
 # Banshee
 snitch-cluster-banshee:
   needs: [snitch-cluster-sw-banshee]
-  # yamllint disable rule:line-length
+  variables:
+    SNITCH_LOG: info
   script:
     - rustup install 1.63.0
     - rustup override set 1.63.0
@@ -156,8 +146,5 @@ snitch-cluster-banshee:
     - cd banshee
     - cargo install --path .
     - cd ../target/snitch_cluster
-    - ./sw/tests/run.py sw/tests/banshee-apps.list --simulator banshee 2>&1 | tee tests.log
-    - ./sw/apps/run.py sw/apps/passing-apps.list --simulator banshee 2>&1 | tee apps.log
-    - grep -zoP 'All tests passed' tests.log
-    - grep -zoP 'All tests passed' apps.log
-  # yamllint enable rule:line-length
+    - ./sw/tests/run.py sw/tests/banshee-apps.list --simulator banshee
+    - ./sw/apps/run.py sw/apps/passing-apps.list --simulator banshee

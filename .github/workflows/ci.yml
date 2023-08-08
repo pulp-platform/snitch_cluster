@@ -51,26 +51,11 @@ jobs:
       - name: Build Hardware
         run: |
           make -C target/snitch_cluster bin/snitch_cluster.vlt
-      - name: Run Unit Tests
+      - name: Run Tests
         working-directory: target/snitch_cluster
         run: |-
-          ./sw/tests/run.py sw/tests/passing-apps.list --simulator verilator \
-          2>&1 | tee tests.log
-      - name: Run Test Applications
-        working-directory: target/snitch_cluster
-        env:
-          SNITCH_LOG: info
-        run: |-
-          ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator \
-          2>&1 | tee apps.log
-      - name: Check Unit Tests
-        working-directory: target/snitch_cluster
-        run: |-
-          grep -zoP 'All tests passed' tests.log
-      - name: Check Test Applications
-        working-directory: target/snitch_cluster
-        run: |-
-          grep -zoP 'All tests passed' apps.log
+          ./sw/tests/run.py sw/tests/passing-apps.list --simulator verilator
+          ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator
 
   ############################################
   # Build SW on Snitch Cluster w/ Banshee #
@@ -99,25 +84,10 @@ jobs:
       - name: Build Software
         run: |
           make -C target/snitch_cluster SELECT_RUNTIME=banshee sw
-      - name: Run Unit Tests
-        working-directory: target/snitch_cluster
+      - name: Run Tests
         env:
           SNITCH_LOG: info
-        run: |-
-          ./sw/tests/run.py sw/tests/banshee-apps.list --simulator banshee \
-          2>&1 | tee tests.log
-      - name: Run Test Applications
-        working-directory: target/snitch_cluster
-        env:
-          SNITCH_LOG: info
-        run: |-
-          ./sw/apps/run.py sw/apps/passing-apps.list --simulator banshee \
-          2>&1 | tee  apps.log
-      - name: Check Unit Tests
         working-directory: target/snitch_cluster
         run: |-
-          grep -zoP 'All tests passed' tests.log
-      - name: Check Test Applications
-        working-directory: target/snitch_cluster
-        run: |-
-          grep -zoP 'All tests passed' apps.log
+          ./sw/tests/run.py sw/tests/banshee-apps.list --simulator banshee
+          ./sw/apps/run.py sw/apps/passing-apps.list --simulator banshee
