@@ -5,3 +5,5 @@
 extern void snrt_int_sw_clear(uint32_t hartid);
 
 extern void snrt_int_sw_set(uint32_t hartid);
+
+extern uint32_t snrt_int_sw_get(uint32_t hartid);

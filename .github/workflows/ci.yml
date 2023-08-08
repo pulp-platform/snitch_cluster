@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: 'recursive'
-      - name: Build Software
+      - name: Build MUSL dependency
         run: |
           cd sw/deps
           mkdir install
@@ -45,11 +45,13 @@ jobs:
           make -j4
           make install
           cd ../../../
+      - name: Build Software
+        run: |
           make -C target/snitch_cluster sw
       - name: Build Hardware
         run: |
           make -C target/snitch_cluster bin/snitch_cluster.vlt
-      - name: Run Unit Tests
+      - name: Run Tests
         working-directory: target/snitch_cluster
         run: |-
           ./sw/tests/run.py sw/tests/passing-apps.list --simulator verilator
@@ -60,7 +62,7 @@ jobs:
   ############################################
 
   sw-snitch-cluster-banshee:
-    name: Build SW on Snitch Cluster w/ Banshee
+    name: Simulate SW on Snitch Cluster w/ Banshee
     runs-on: ubuntu-22.04
     container:
       image: ghcr.io/pulp-platform/snitch_cluster
@@ -68,7 +70,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: 'recursive'
-      - name: Build Software
+      - name: Build MUSL dependency
         run: |
           cd sw/deps
           mkdir install
@@ -79,4 +81,13 @@ jobs:
           make -j4
           make install
           cd ../../../
+      - name: Build Software
+        run: |
           make -C target/snitch_cluster SELECT_RUNTIME=banshee sw
+      - name: Run Tests
+        env:
+          SNITCH_LOG: info
+        working-directory: target/snitch_cluster
+        run: |-
+          ./sw/tests/run.py sw/tests/banshee-apps.list --simulator banshee
+          ./sw/apps/run.py sw/apps/passing-apps.list --simulator banshee

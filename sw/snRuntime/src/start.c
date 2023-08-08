@@ -85,9 +85,8 @@ static inline void snrt_init_cls() {
 static inline void snrt_init_libs() { snrt_alloc_init(); }
 
 static inline void snrt_exit(int exit_code) {
-    extern volatile uint32_t tohost;
-
-    if (snrt_global_core_idx() == 0) tohost = (exit_code << 1) | 1;
+    if (snrt_global_core_idx() == 0)
+        *(snrt_exit_code_destination()) = (exit_code << 1) | 1;
 }
 
 void snrt_main() {
@@ -160,6 +159,6 @@ void snrt_main() {
 #endif
 
 #ifdef SNRT_CRT0_CALLBACK8
-    snrt_crt0_callback8(exit_code);
+    snrt_crt0_callback8();
 #endif
 }

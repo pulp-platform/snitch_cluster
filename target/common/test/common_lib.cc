@@ -17,7 +17,7 @@ extern const uint8_t tb_bootrom_end;
 
 asm(".global tb_bootrom_start \n"
     ".global tb_bootrom_end \n"
-    "tb_bootrom_start: .incbin \"test/bootrom.bin\" \n"
+    "tb_bootrom_start: .incbin \"bootrom.bin\" \n"
     "tb_bootrom_end: \n");
 
 // The global memory all memory ports write into.

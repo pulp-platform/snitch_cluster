@@ -10,6 +10,8 @@
 #include "dm.c"
 #include "dma.c"
 #include "eu.c"
+#include "kmp.c"
+#include "omp.c"
 #include "printf.c"
 #include "putchar.c"
 #include "snitch_cluster_start.c"

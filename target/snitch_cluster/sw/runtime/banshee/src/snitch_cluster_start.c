@@ -9,12 +9,10 @@
 #define SNRT_CRT0_PRE_BARRIER
 #define SNRT_INVOKE_MAIN
 #define SNRT_CRT0_POST_BARRIER
-#define SNRT_CRT0_CALLBACK8
+#define SNRT_CRT0_EXIT
 
-static inline void snrt_crt0_callback8(int exit_code) {
-    volatile uint32_t *scratch_reg = (volatile uint32_t *)0x02000014;
-
-    if (snrt_global_core_idx() == 0) *(scratch_reg) = (exit_code << 1) | 1;
+static inline volatile uint32_t* snrt_exit_code_destination() {
+    return (volatile uint32_t*)0x02000014;
 }
 
 #include "start.c"

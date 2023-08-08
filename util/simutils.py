@@ -11,6 +11,7 @@ from pathlib import Path
 import subprocess
 from termcolor import colored, cprint
 import re
+import sys
 
 
 BANSHEE_CFG = 'src/banshee.yaml'
@@ -119,7 +120,7 @@ def print_test_summary(failed_tests, dry_run=False):
                 print_failed_test(failed_test)
             return 1
         else:
-            print(f'All tests {colored("passed", "green")}!')
+            print(f'{colored("All tests passed!", "green")}')
             return 0
     return 0
 
@@ -144,8 +145,8 @@ def run_tests(testlist, format_elf_path, simulator, dry_run=False, early_exit=Fa
 #                  from a test name as listed in the test list file
 def main(format_elf_path):
     args = parse_args()
-    return run_tests(args.testlist,
-                     format_elf_path,
-                     args.simulator,
-                     args.dry_run,
-                     args.early_exit)
+    sys.exit(run_tests(args.testlist,
+                       format_elf_path,
+                       args.simulator,
+                       args.dry_run,
+                       args.early_exit))
