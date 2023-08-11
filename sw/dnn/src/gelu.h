@@ -4,8 +4,8 @@
 
 #pragma once
 
-// #include "printf.h"
 #include "snrt.h"
+#include "math.h"
 #include "utils.h"
 
 /**
@@ -102,8 +102,7 @@ static inline void gelu_layer(const gelu_layer_t *l) {
 
     snrt_cluster_hw_barrier();
 
-    if (snrt_is_compute_core() &&
-        snrt_cluster_compute_core_num() < compute_num) {
+    if (snrt_is_compute_core()) {
         // determine the row offset for each core
         int32_t row_offset = compute_id * l->HIDDEN_NODES;
 

@@ -4,6 +4,3 @@
 [submodule "sw/deps/printf"]
 	path = sw/deps/printf
 	url = https://github.com/mpaland/printf.git
-[submodule "sw/deps/musl"]
-	path = sw/deps/musl
-	url = https://github.com/kraj/musl.git

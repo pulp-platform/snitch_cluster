@@ -144,7 +144,7 @@ snitch-cluster-banshee:
     - rustup --version
     - git clone git@github.com:pulp-platform/banshee.git --recurse-submodules
     - cd banshee
-    - cargo install --path .
+    - cargo install --debug --path .
     - cd ../target/snitch_cluster
     - ./sw/tests/run.py sw/tests/banshee-apps.list --simulator banshee
     - ./sw/apps/run.py sw/apps/passing-apps.list --simulator banshee
