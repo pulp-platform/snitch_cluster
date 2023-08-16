@@ -88,7 +88,7 @@ RUN echo 'deb http://download.opensuse.org/repositories/home:/phiwag:/edatools/x
 # Install Python requirements
 COPY python-requirements.txt /tmp/python-requirements.txt
 COPY docs/requirements.txt /tmp/docs/requirements.txt
-COPY sw/snDNN/requirements.txt /tmp/sw/snDNN/requirements.txt
+COPY sw/dnn/requirements.txt /tmp/sw/dnn/requirements.txt
 RUN pip3 install -r /tmp/python-requirements.txt
 
 # Get the precompiled LLVM toolchain
