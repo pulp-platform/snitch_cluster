@@ -28,9 +28,9 @@ int main() {
 
     // Compute
     if (!snrt_is_dm_core()) {
-        uint32_t start_cycle = mcycle();
+        uint32_t start_cycle = snrt_mcycle();
         axpy(l, a, local_x, local_y, local_z);
-        uint32_t end_cycle = mcycle();
+        uint32_t end_cycle = snrt_mcycle();
     }
 
     snrt_cluster_hw_barrier();

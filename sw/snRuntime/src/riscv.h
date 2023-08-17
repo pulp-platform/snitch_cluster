@@ -10,7 +10,7 @@
  */
 static inline void snrt_wfi() { asm volatile("wfi"); }
 
-static inline uint32_t mcycle() {
+static inline uint32_t snrt_mcycle() {
     uint32_t register r;
     asm volatile("csrr %0, mcycle" : "=r"(r) : : "memory");
     return r;

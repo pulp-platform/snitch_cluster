@@ -155,3 +155,41 @@ inline void snrt_dma_wait_all() {
         "bne t0, zero, 1b \n" ::
             : "t0");
 }
+
+/**
+ * @brief start tracking of dma performance region. Does not have any
+ * implications on the HW. Only injects a marker in the DMA traces that can be
+ * analyzed
+ *
+ */
+inline void snrt_dma_start_tracking() { asm volatile("dmstati zero, 1"); }
+
+/**
+ * @brief stop tracking of dma performance region. Does not have any
+ * implications on the HW. Only injects a marker in the DMA traces that can be
+ * analyzed
+ *
+ */
+inline void snrt_dma_stop_tracking() { asm volatile("dmstati zero, 3"); }
+
+/**
+ * @brief fast memset function performed by DMA
+ *
+ * @param ptr pointer to the start of the region
+ * @param value value to set
+ * @param len number of bytes, must be multiple of DMA bus-width
+ */
+inline void snrt_dma_memset(void* ptr, uint8_t value, uint32_t len) {
+    // set first 64bytes to value
+    // memset(ptr, value, 64);
+    uint8_t *p = ptr;
+    uint32_t nbytes = 64;
+    while (nbytes--) {
+        *p++ = value;
+    }
+
+    // DMA copy the the rest
+    snrt_dma_txid_t memset_txid =
+        snrt_dma_start_2d(ptr, ptr, 64, 64, 0, len / 64);
+    snrt_dma_wait_all();
+}

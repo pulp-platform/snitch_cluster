@@ -53,7 +53,7 @@ int main() {
     // Compute
     if (!snrt_is_dm_core()) {
         const uint32_t setup_SSR = 1;
-        uint32_t start_cycle = mcycle();
+        uint32_t start_cycle = snrt_mcycle();
 
         if (!TA && !TB) {
             volatile uint32_t A_offset =
@@ -104,7 +104,7 @@ int main() {
         } else if (TA) {
             printf("transpose TA not supported\n");
         }
-        uint32_t end_cycle = mcycle();
+        uint32_t end_cycle = snrt_mcycle();
     }
 
     snrt_cluster_hw_barrier();
