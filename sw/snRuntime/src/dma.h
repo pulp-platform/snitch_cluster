@@ -179,7 +179,7 @@ inline void snrt_dma_stop_tracking() { asm volatile("dmstati zero, 3"); }
  * @param value value to set
  * @param len number of bytes, must be multiple of DMA bus-width
  */
-inline void snrt_dma_memset(void* ptr, uint8_t value, uint32_t len) {
+inline void snrt_dma_memset(void *ptr, uint8_t value, uint32_t len) {
     // set first 64bytes to value
     // memset(ptr, value, 64);
     uint8_t *p = ptr;

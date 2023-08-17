@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "snrt.h"
 #include "math.h"
+#include "snrt.h"
 #include "utils.h"
 
 /**
@@ -36,7 +36,6 @@ typedef struct gelu_layer_struct {
 
     precision_t dtype;
 } gelu_layer_t;
-
 
 /**
  * Implementation of the GELU layer

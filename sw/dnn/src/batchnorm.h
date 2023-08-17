@@ -17,9 +17,9 @@
  * @param compute_num number of compute units
  * @param setup_SSR setup SSR strides and bounds
  */
-static inline void batchnorm_fp64(double *ifmap, double *gamma, double *beta, double *ofmap,
-                    uint32_t OW, uint32_t CI, uint32_t compute_num,
-                    uint32_t setup_SSR) {
+static inline void batchnorm_fp64(double *ifmap, double *gamma, double *beta,
+                                  double *ofmap, uint32_t OW, uint32_t CI,
+                                  uint32_t compute_num, uint32_t setup_SSR) {
     // initial SSR setup
     if (setup_SSR) {
         uint32_t ssr_b[2] = {OW, CI / compute_num};

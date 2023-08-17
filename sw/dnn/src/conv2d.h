@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "snrt.h"
 #include "blas.h"
+#include "snrt.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
@@ -333,8 +333,8 @@ void bn_relu(const float *pBuffer, const uint16_t dim_x, const uint16_t dim_y,
     // is at least n_unroll
     if (dim_y >= n_unroll) {
         for (uint32_t co = compute_id; co < ch / 2; co += compute_num) {
-            volatile register v2s current_lambda = ((v2s*)lambda)[co];
-            volatile register v2s current_kappa = ((v2s*)kappa)[co];
+            volatile register v2s current_lambda = ((v2s *)lambda)[co];
+            volatile register v2s current_kappa = ((v2s *)kappa)[co];
             volatile register v2s zero = (v2s)0.0;
 
             volatile register v2s tmp[n_unroll];
@@ -414,8 +414,8 @@ void bn_relu(const float *pBuffer, const uint16_t dim_x, const uint16_t dim_y,
                        &pBuffer[h_cleanup_index * h_stride + compute_id * 2]);
 
         for (uint32_t co = compute_id; co < ch / 2; co += compute_num) {
-            volatile register v2s current_lambda = ((v2s*)lambda)[co];
-            volatile register v2s current_kappa = ((v2s*)kappa)[co];
+            volatile register v2s current_lambda = ((v2s *)lambda)[co];
+            volatile register v2s current_kappa = ((v2s *)kappa)[co];
             volatile register v2s zero = (v2s)0.0;
 
             volatile register v2s tmp[n_unroll];
@@ -665,11 +665,11 @@ static inline void conv2d_fp64(kernel_fp64 *k) {
                 // SSR address setup and enable
                 snrt_ssr_read(
                     SNRT_SSR_DM0, SNRT_SSR_4D,
-                    (void*)(k->pInBuffer +
-                            h0 * max_unroll * k->stride_y * input_h_stride +
-                            w * k->stride_x * input_w_stride));
+                    (void *)(k->pInBuffer +
+                             h0 * max_unroll * k->stride_y * input_h_stride +
+                             w * k->stride_x * input_w_stride));
                 snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_3D,
-                              (void*)(k->pWeight + co * kernel_co_stride));
+                              (void *)(k->pWeight + co * kernel_co_stride));
                 snrt_ssr_enable();
 
                 asm volatile(
@@ -730,11 +730,11 @@ static inline void conv2d_fp64(kernel_fp64 *k) {
                 // SSR address setup and enable
                 snrt_ssr_read(
                     SNRT_SSR_DM0, SNRT_SSR_4D,
-                    (void*)(k->pInBuffer +
-                            h0 * max_unroll * k->stride_y * input_h_stride +
-                            w * k->stride_x * input_w_stride));
+                    (void *)(k->pInBuffer +
+                             h0 * max_unroll * k->stride_y * input_h_stride +
+                             w * k->stride_x * input_w_stride));
                 snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_3D,
-                              (void*)(k->pWeight + co * kernel_co_stride));
+                              (void *)(k->pWeight + co * kernel_co_stride));
                 snrt_ssr_enable();
 
                 switch (cleanup_unroll) {
@@ -1009,7 +1009,7 @@ static inline void conv2d_fp32(kernel_fp32 *k) {
                 volatile register float reduce_reg[max_unroll];
                 // pointer to output buffer location where intermediate values
                 // are read from and stored
-                float* _pOutBuffer =
+                float *_pOutBuffer =
                     &k->pOutBuffer[(h0 * max_unroll) * output_h_stride +
                                    w * output_w_stride + co];
 
@@ -1030,11 +1030,11 @@ static inline void conv2d_fp32(kernel_fp32 *k) {
                 // SSR address setup and enable
                 snrt_ssr_read(
                     SNRT_SSR_DM0, SNRT_SSR_4D,
-                    (void*)(k->pInBuffer +
-                            h0 * max_unroll * k->stride_y * input_h_stride +
-                            w * k->stride_x * input_w_stride));
+                    (void *)(k->pInBuffer +
+                             h0 * max_unroll * k->stride_y * input_h_stride +
+                             w * k->stride_x * input_w_stride));
                 snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_3D,
-                              (void*)(k->pWeight + co * kernel_co_stride));
+                              (void *)(k->pWeight + co * kernel_co_stride));
                 snrt_ssr_enable();
 
                 asm volatile(
@@ -1101,7 +1101,7 @@ static inline void conv2d_fp32(kernel_fp32 *k) {
 
                 // pointer to output buffer location where intermediate values
                 // are read from and stored
-                float* _pOutBuffer =
+                float *_pOutBuffer =
                     &k->pOutBuffer[(h0 * max_unroll) * output_h_stride +
                                    w * output_w_stride + co];
 
@@ -1120,11 +1120,11 @@ static inline void conv2d_fp32(kernel_fp32 *k) {
                 // SSR address setup and enable
                 snrt_ssr_read(
                     SNRT_SSR_DM0, SNRT_SSR_4D,
-                    (void*)(k->pInBuffer +
-                            h0 * max_unroll * k->stride_y * input_h_stride +
-                            w * k->stride_x * input_w_stride));
+                    (void *)(k->pInBuffer +
+                             h0 * max_unroll * k->stride_y * input_h_stride +
+                             w * k->stride_x * input_w_stride));
                 snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_3D,
-                              (void*)(k->pWeight + co * kernel_co_stride));
+                              (void *)(k->pWeight + co * kernel_co_stride));
                 snrt_ssr_enable();
 
                 switch (cleanup_unroll) {
@@ -1432,18 +1432,18 @@ static inline void conv2d_dw_fp32(kernel_fp32 *k) {
             // SSR address setup and enable
             snrt_ssr_read(
                 SNRT_SSR_DM0, SNRT_SSR_4D,
-                (void*)(k->pInBuffer +
-                        h0 * max_unroll * k->stride_y * input_h_stride + co));
-            snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_3D, (void*)(k->pWeight + co));
+                (void *)(k->pInBuffer +
+                         h0 * max_unroll * k->stride_y * input_h_stride + co));
+            snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_3D, (void *)(k->pWeight + co));
 
             // Output width dimension `k->dim_out_x`
             for (uint32_t w = 0; w < k->dim_out_x; w++) {
                 volatile register v2s sum[max_unroll];
                 // pointer to output buffer location where intermediate values
                 // are read from and stored
-                v2s* _pOutBuffer =
-                    (v2s*)(&k->pOutBuffer[(h0 * max_unroll) * output_h_stride +
-                                          w * output_w_stride + co]);
+                v2s *_pOutBuffer =
+                    (v2s *)(&k->pOutBuffer[(h0 * max_unroll) * output_h_stride +
+                                           w * output_w_stride + co]);
 
                 // Initialize registers with zero if the first
                 // tile is processed, otherwise load intermediate values
@@ -1501,9 +1501,9 @@ static inline void conv2d_dw_fp32(kernel_fp32 *k) {
             // SSR address setup and enable
             snrt_ssr_read(
                 SNRT_SSR_DM0, SNRT_SSR_4D,
-                (void*)(k->pInBuffer +
-                        h0 * max_unroll * k->stride_y * input_h_stride + co));
-            snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_3D, (void*)(k->pWeight + co));
+                (void *)(k->pInBuffer +
+                         h0 * max_unroll * k->stride_y * input_h_stride + co));
+            snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_3D, (void *)(k->pWeight + co));
 
             // Output width dimension `k->dim_out_x`
             for (uint32_t w = 0; w < k->dim_out_x; w++) {
@@ -1511,9 +1511,9 @@ static inline void conv2d_dw_fp32(kernel_fp32 *k) {
 
                 // pointer to output buffer location where intermediate values
                 // are read from and stored
-                v2s* _pOutBuffer =
-                    (v2s*)(&k->pOutBuffer[(h0 * max_unroll) * output_h_stride +
-                                          w * output_w_stride + co]);
+                v2s *_pOutBuffer =
+                    (v2s *)(&k->pOutBuffer[(h0 * max_unroll) * output_h_stride +
+                                           w * output_w_stride + co]);
 
                 if (k->flag_y_accumulate_start) {
                     for (uint32_t i = 0; i < cleanup_unroll; i++) {
@@ -1776,11 +1776,11 @@ static inline void conv2d_chw_fp32(kernel_fp32 *k) {
                 // SSR address setup and enable
                 snrt_ssr_read(
                     SNRT_SSR_DM0, SNRT_SSR_4D,
-                    (void*)(k->pInBuffer + h * k->stride_y * input_h_stride +
-                            ci * input_ci_stride));
+                    (void *)(k->pInBuffer + h * k->stride_y * input_h_stride +
+                             ci * input_ci_stride));
                 snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_3D,
-                              (void*)(k->pWeight + ci * kernel_ci_stride +
-                                      co * kernel_co_stride));
+                              (void *)(k->pWeight + ci * kernel_ci_stride +
+                                       co * kernel_co_stride));
 
                 // Output width dimension `k->dim_out_x`
                 for (uint32_t w = 0; w < k->dim_out_x; w++) {
@@ -1788,7 +1788,7 @@ static inline void conv2d_chw_fp32(kernel_fp32 *k) {
                     volatile register float reduce_reg[max_unroll];
                     // pointer to output buffer location where intermediate
                     // values are read from and stored
-                    float* _pOutBuffer = &k->pOutBuffer[h * output_h_stride +
+                    float *_pOutBuffer = &k->pOutBuffer[h * output_h_stride +
                                                         w * output_w_stride +
                                                         co * output_co_stride];
 
@@ -1872,11 +1872,11 @@ static inline void conv2d_chw_fp32(kernel_fp32 *k) {
                 // SSR address setup and enable
                 snrt_ssr_read(
                     SNRT_SSR_DM0, SNRT_SSR_4D,
-                    (void*)(k->pInBuffer + h * k->stride_y * input_h_stride +
-                            ci * input_ci_stride));
+                    (void *)(k->pInBuffer + h * k->stride_y * input_h_stride +
+                             ci * input_ci_stride));
                 snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_3D,
-                              (void*)(k->pWeight + ci * kernel_ci_stride +
-                                      co * kernel_co_stride));
+                              (void *)(k->pWeight + ci * kernel_ci_stride +
+                                       co * kernel_co_stride));
 
                 // Output width dimension `k->dim_out_x`
                 for (uint32_t w = 0; w < k->dim_out_x; w++) {
@@ -1885,7 +1885,7 @@ static inline void conv2d_chw_fp32(kernel_fp32 *k) {
 
                     // pointer to output buffer location where intermediate
                     // values are read from and stored
-                    float* _pOutBuffer = &k->pOutBuffer[h * output_h_stride +
+                    float *_pOutBuffer = &k->pOutBuffer[h * output_h_stride +
                                                         w * output_w_stride +
                                                         co * output_co_stride];
 
@@ -2243,8 +2243,9 @@ void conv2d_layer(const conv_layer *l) {
                                 n_ofmap_pixel_read);    /* repetitions */
                             snrt_dma_wait_all();
                         } else {
-                            snrt_dma_memset(&ofmap[write_buf * ofmap_stride], 0,
-                                       sizeof(double) * 8 * n_ofmap_pixel_read);
+                            snrt_dma_memset(
+                                &ofmap[write_buf * ofmap_stride], 0,
+                                sizeof(double) * 8 * n_ofmap_pixel_read);
                         }
 
                         if (l->cluster2cluster) {
@@ -2274,11 +2275,12 @@ void conv2d_layer(const conv_layer *l) {
                                 // Fill horizontal lines with zeros for padding
                                 if (oh + fh < l->pad ||
                                     oh + fh >= l->IH + ((l->FH - 1) >> 1)) {
-                                    snrt_dma_memset(&ifmap[write_buf * ifmap_stride +
-                                                      fh * ifmap_row_stride],
-                                               0,
-                                               sizeof(double) * l->TILE_CI *
-                                                   n_ifmap_pixel_read);
+                                    snrt_dma_memset(
+                                        &ifmap[write_buf * ifmap_stride +
+                                               fh * ifmap_row_stride],
+                                        0,
+                                        sizeof(double) * l->TILE_CI *
+                                            n_ifmap_pixel_read);
                                 } else {
                                     uint32_t padding_left =
                                         (ow < l->pad) ? (l->pad - ow) : 0;

@@ -13,9 +13,9 @@
  * @param checksum checksum to compare against, reduced over input channels
  * @return uint32_t
  */
-static inline uint32_t check_layer(const conv_layer* l, double* checksum) {
+static inline uint32_t check_layer(const conv_layer *l, double *checksum) {
     uint32_t errors = 0;
-    double *ptr = (double *) snrt_l1_start_addr();
+    double *ptr = (double *)snrt_l1_start_addr();
     volatile double *result_buf = ptr;
     ptr += l->CO;
     volatile double *ofmap_checksums = ptr;
