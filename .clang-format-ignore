@@ -3,9 +3,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Ignore vendored third-party code
-./sw/math/arch/generic/*
-./sw/math/arch/riscv64/bits/*
-./sw/math/include/*
-./sw/math/src/include/*
-./sw/math/src/internal/*
-./sw/math/src/math/*
+./sw/math/*
