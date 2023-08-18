@@ -2,6 +2,14 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+static inline void snrt_crt0_cluster_hw_barrier() {
+    uint32_t register r;
+    uint32_t hw_barrier =
+        SNRT_CLUSTER_HW_BARRIER_ADDR + snrt_cluster_idx() * SNRT_CLUSTER_OFFSET;
+    asm volatile("lw %0, 0(%1)" : "=r"(r) : "r"(hw_barrier) : "memory");
+}
+
+#ifdef SNRT_INIT_CLS
 static inline uint32_t snrt_cls_base_addr() {
     extern volatile uint32_t __cdata_start, __cdata_end;
     extern volatile uint32_t __cbss_start, __cbss_end;
@@ -12,14 +20,9 @@ static inline uint32_t snrt_cls_base_addr() {
                            SNRT_TCDM_SIZE;
     return l1_end_addr - cdata_size - cbss_size;
 }
+#endif
 
-static inline void snrt_crt0_cluster_hw_barrier() {
-    uint32_t register r;
-    uint32_t hw_barrier =
-        SNRT_CLUSTER_HW_BARRIER_ADDR + snrt_cluster_idx() * SNRT_CLUSTER_OFFSET;
-    asm volatile("lw %0, 0(%1)" : "=r"(r) : "r"(hw_barrier) : "memory");
-}
-
+#ifdef SNRT_INIT_TLS
 static inline void snrt_init_tls() {
     extern volatile uint32_t __tdata_start, __tdata_end;
     extern volatile uint32_t __tbss_start, __tbss_end;
@@ -41,7 +44,9 @@ static inline void snrt_init_tls() {
         tls_ptr++;
     }
 }
+#endif
 
+#ifdef SNRT_INIT_BSS
 static inline void snrt_init_bss() {
     extern volatile uint32_t __bss_start, __bss_end;
 
@@ -54,7 +59,9 @@ static inline void snrt_init_bss() {
         }
     }
 }
+#endif
 
+#ifdef SNRT_INIT_CLS
 static inline void snrt_init_cls() {
     extern volatile uint32_t __cdata_start, __cdata_end;
     extern volatile uint32_t __cbss_start, __cbss_end;
@@ -81,13 +88,18 @@ static inline void snrt_init_cls() {
         }
     }
 }
+#endif
 
+#ifdef SNRT_INIT_LIBS
 static inline void snrt_init_libs() { snrt_alloc_init(); }
+#endif
 
+#ifdef SNRT_CRT0_EXIT
 static inline void snrt_exit(int exit_code) {
     if (snrt_global_core_idx() == 0)
         *(snrt_exit_code_destination()) = (exit_code << 1) | 1;
 }
+#endif
 
 void snrt_main() {
     int exit_code = 0;
