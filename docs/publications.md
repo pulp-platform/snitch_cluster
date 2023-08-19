@@ -2,6 +2,8 @@
 
 If you use the Snitch cluster or its extensions in your work, you can cite us:
 
+<!--start-publications-->
+
 <details>
 <summary><b>Snitch: A tiny Pseudo Dual-Issue Processor for Area and Energy Efficient Execution of Floating-Point Intensive Workloads</b></summary>
 <p>
@@ -95,3 +97,5 @@ If you use the Snitch cluster or its extensions in your work, you can cite us:
 ```
 
 </p>
+
+<!--end-publications-->
