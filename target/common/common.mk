@@ -2,26 +2,26 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
+LOGS_DIR       ?= logs
+TB_DIR         ?= $(SNITCH_ROOT)/target/common/test
+UTIL_DIR       ?= $(SNITCH_ROOT)/util
+
 # Support for local override
 BENDER		   ?= bender
 DASM 	       ?= spike-dasm
 VLT			   ?= verilator
 VERIBLE_FMT    ?= verible-verilog-format
-BIN2JTAG       ?= $(ROOT)/util/bin2jtag.py
-ANNOTATE	   ?= ${ROOT}/util/trace/annotate.py
-GENTRACE	   ?= ${ROOT}/util/trace/gen_trace.py
+BIN2JTAG       ?= $(UTIL_DIR)/bin2jtag.py
+ANNOTATE	   ?= $(UTIL_DIR)/trace/annotate.py
+GENTRACE	   ?= $(UTIL_DIR)/trace/gen_trace.py
 CLANG_FORMAT   ?= clang-format
 
 VERILATOR_ROOT ?= $(dir $(shell which $(VLT)))/../share/verilator
 VLT_ROOT	   ?= ${VERILATOR_ROOT}
 
-LOGS_DIR       ?= logs
-
 MATCH_END := '/+incdir+/ s/$$/\/*\/*/'
 MATCH_BGN := 's/+incdir+//g'
 SED_SRCS  := sed -e ${MATCH_END} -e ${MATCH_BGN}
-TB_SRCS   := $(wildcard ${ROOT}/hw/ip/test/*.sv)
-TB_DIR    := ${ROOT}/target/common/test
 
 VSIM_BENDER   += -t test -t rtl -t simulation -t vsim
 VSIM_SOURCES   = $(shell ${BENDER} script flist ${VSIM_BENDER} | ${SED_SRCS})
