@@ -18,7 +18,13 @@ jobs:
       - uses: mattnotmitt/doxygen-action@v1
         with:
           working-directory: sw/
-      - name: Generate Runtime Documentation
+      - name: bender install
+        uses: pulp-platform/pulp-actions/bender-install@v2
+        with:
+          version: 0.27.1
+      - name: Install Python requirements
+        run: pip install -r python-requirements.txt
+      - name: Generate runtime documentation
         # yamllint disable rule:line-length
         run: |
           mkdir doxybook2; cd doxybook2
@@ -29,5 +35,7 @@ jobs:
           ./doxybook2/bin/doxybook2 --input sw/doxygen/xml --output docs/runtime --config docs/doxybook2.json
           rm -rf doxybook2
         # yamllint enable rule:line-length
-      - run: pip install -r docs/requirements.txt
-      - run: mkdocs gh-deploy --force
+      - name: Generate documentation sources
+        run: make doc-srcs
+      - name: Build and deploy documentation
+        run: mkdocs gh-deploy --force

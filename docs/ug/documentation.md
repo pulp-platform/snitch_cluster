@@ -10,20 +10,11 @@ documentation, make sure you have the required dependencies installed:
 pip install -r docs/requirements.txt
 ```
 
-After everything is installed, you can build and serve a local copy by
+After everything is installed, you can build a static copy of the `html` documentation by
 executing (in the root directory):
 
 ```shell
-mkdocs serve
-```
-
-This opens a local webserver listening on
-[http://127.0.0.1:8000/](http://127.0.0.1:8000/).
-
-Alternatively, you can build a static copy of the `html` documentation:
-
-```shell
-mkdocs build
+make docs
 ```
 
 ## Organization

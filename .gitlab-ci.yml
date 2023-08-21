@@ -29,7 +29,7 @@ before_script:
 
 docs:
   script:
-    - mkdocs build
+    - make docs
 
 #################################
 # Build Snitch cluster software #

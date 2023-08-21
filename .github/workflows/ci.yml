@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build docs
-        run: mkdocs build
+        run: make docs
 
   ##############################################
   # Simulate SW on Snitch Cluster w/ Verilator #
