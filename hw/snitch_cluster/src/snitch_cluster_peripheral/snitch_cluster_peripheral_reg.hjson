@@ -39,7 +39,7 @@
                 desc: '''
                         Increased whenever the TCDM is accessed. Each individual access is tracked,
                         so if `n` cores access the TCDM, `n` will be added. Accesses are tracked at the TCDM,
-                        so it doesn't matter whether the cores or the for example the SSR hardware accesses
+                        so it doesn't matter whether the cores or for example the SSR hardware accesses
                         the TCDM. _This is a cluster-global signal._
                         '''
             },
@@ -48,8 +48,8 @@
                 resval: "0",
                 name: "TCDM_CONGESTED"
                 desc: '''
-                        Incremented whenever an access twoards the TCDM is made but the arbitration
-                        logic didn't grant the access (due to congestion). Is strictly less than TCDM_ACCESSED.
+                        Incremented whenever an access towards the TCDM is made but the arbitration
+                        logic didn't grant the access (due to congestion). It's strictly less than TCDM_ACCESSED.
                         _This is a cluster-global signal._
                         '''
             },
@@ -58,7 +58,10 @@
                 resval: "0",
                 name: "ISSUE_FPU"
                 desc: '''
-                        Core operations performed in the FPU. _This is a hart-local signal._
+                        Operations performed in the FPU. Includes both operations initiated by the
+                        sequencer and by the core. When the Xfrep extension is available, this counter is
+                        equivalent to ISSUE_FPU_SEQ (see description of ISSUE_FPU_SEQ). If the Xfrep extension
+                        is not supported, then it is equivalent to ISSUE_CORE_TO_FPU. _This is a hart-local signal._
                         '''
             },
             {
@@ -67,7 +70,11 @@
                 name: "ISSUE_FPU_SEQ"
                 desc: '''
                         Incremented whenever the FPU Sequencer issues an FPU instruction.
-                        Might be non available if the hardware doesn't support FREP.
+                        Might not be available if the hardware doesn't support FREP.
+                        Note that all FP instructions offloaded by the core to the FPU are routed
+                        through the sequencer (although not necessarily buffered) and thus are also counted.
+                        The instructions issued independently by the FPU sequencer could thus be
+                        calculated as ISSUE_FPU_SEQ_PROPER = ISSUE_FPU_SEQ - ISSUE_CORE_TO_FPU.
                         _This is a hart-local signal._
                         '''
             },
@@ -83,7 +90,9 @@
                 resval: "0",
                 name: "RETIRED_INSTR"
                 desc: '''
-                        Instructions retired by the core. _This is a hart-local signal._
+                        Instructions retired by the core, both offloaded and not. Does not
+                        count instructions issued independently by the FPU sequencer.
+                        _This is a hart-local signal._
                         '''
             },
             {
