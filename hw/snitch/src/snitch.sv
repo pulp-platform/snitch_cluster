@@ -2562,7 +2562,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     // Display CSR write if the CSR does not exist
     if (!rst_i && csr_dump && inst_valid_o && inst_ready_i && !stall) begin
       // $timeformat(-9, 0, " ns", 0);
-      $display("[DUMP] %t Core %3d: 0x%3h = 0x%08h, %d, %f", $time, hart_id_i, inst_data_i[31:20], alu_result, alu_result, $bitstoshortreal(alu_result));
+      $display("[DUMP] %t Core %3d: 0x%3h = 0x%08h, %d, %f",
+        $time, hart_id_i, inst_data_i[31:20], alu_result, alu_result, $bitstoshortreal(alu_result));
     end
   end
   // pragma translate_on
