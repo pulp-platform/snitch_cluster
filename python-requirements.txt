@@ -18,6 +18,7 @@ pyyaml
 pytablewriter
 termcolor
 pandas
+pyelftools
 
 -r docs/requirements.txt
 -r sw/dnn/requirements.txt

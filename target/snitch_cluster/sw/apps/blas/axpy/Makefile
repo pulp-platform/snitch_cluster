@@ -7,4 +7,4 @@
 include ../../../../../../sw/blas/axpy/Makefile
 include ../../common.mk
 
-$(DEP): $(ROOT)/sw/blas/axpy/data/data.h
+$(DEP): $(DATA_H)

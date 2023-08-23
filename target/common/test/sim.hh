@@ -14,6 +14,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "ipc.hh"
+
 namespace sim {
 using namespace std::chrono_literals;
 
@@ -47,6 +49,7 @@ struct Sim : htif_t {
     context_t target;
     bool vlt_vcd = false;
     bool disable_preloading = false;
+    IpcIface ipc;
 };
 
 void sim_thread_main(void *arg);

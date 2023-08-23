@@ -15,6 +15,7 @@
 extern "C" {
 /// Tick and check whether `fesvr` communication is necessary.
 int fesvr_tick();
+void fesvr_cleanup();
 void clint_tick(const svOpenArrayHandle msip);
 void tb_memory_read(long long addr, int len, const svOpenArrayHandle data);
 void tb_memory_write(long long addr, int len, const svOpenArrayHandle data,
@@ -24,7 +25,7 @@ void tb_memory_write(long long addr, int len, const svOpenArrayHandle data,
 namespace sim {
 void sim_thread_main(void *arg) { ((Sim *)arg)->main(); }
 
-Sim::Sim(int argc, char **argv) : htif_t(argc, argv) {
+Sim::Sim(int argc, char **argv) : htif_t(argc, argv), ipc(argc, argv) {
     for (auto i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "--disable_preloading") == 0) {
             printf("fesvr-based binary preloading disabled\n");
@@ -103,8 +104,12 @@ int fesvr_tick() {
 
         s = std::make_unique<sim::Sim>(argc, (char **)argv);
     }
+
     return s->run();
 }
+
+// Destroy simulation object, synchronizes the IPC thread
+void fesvr_cleanup() { s.reset(); }
 
 // DPI calls.
 void tb_memory_read(long long addr, int len, const svOpenArrayHandle data) {

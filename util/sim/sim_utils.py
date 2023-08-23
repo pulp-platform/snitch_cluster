@@ -12,6 +12,7 @@ import subprocess
 from termcolor import colored, cprint
 import re
 import sys
+import yaml
 
 
 BANSHEE_CFG = 'src/banshee.yaml'
@@ -19,12 +20,18 @@ BANSHEE_CFG = 'src/banshee.yaml'
 # Tool settings
 SIMULATORS = ['vsim', 'banshee', 'verilator', 'vcs']
 DEFAULT_SIMULATOR = SIMULATORS[0]
+SIMULATOR_BINS = {
+    'vsim': 'bin/snitch_cluster.vsim',
+    'banshee': 'banshee',
+    'verilator': 'bin/snitch_cluster.vlt',
+    'vcs': 'bin/snitch_cluster.vcs'
+}
 SIMULATOR_CMDS = {
-    'vsim': 'bin/snitch_cluster.vsim {0}',
-    'banshee': (f'banshee --no-opt-llvm --no-opt-jit --configuration {BANSHEE_CFG}'
-                ' --trace {0} > /dev/null'),
-    'verilator': 'bin/snitch_cluster.vlt {0}',
-    'vcs': 'bin/snitch_cluster.vcs {0}'
+    'vsim': '{sim_bin} {elf}',
+    'banshee': ('{{sim_bin}} --no-opt-llvm --no-opt-jit --configuration {cfg}'
+                ' --trace {{elf}} > /dev/null').format(cfg=BANSHEE_CFG),
+    'verilator': '{sim_bin} {elf}',
+    'vcs': '{sim_bin} {elf}'
 }
 
 
@@ -56,29 +63,47 @@ def parse_args():
 # Get tests from a test list file
 def get_tests(testlist_path):
     testlist_path = Path(testlist_path).absolute()
-    with open(testlist_path, 'r') as f:
-        tests = [line for line in f.read().splitlines() if line.partition('#')[0]]
-        return tests
+    with open(testlist_path, 'r') as file:
+        tests = yaml.safe_load(file)['runs']
+    return tests
+
+
+def check_exit_code(test, exit_code):
+    if 'exit_code' in test:
+        return not (int(test['exit_code']) == int(exit_code))
+    else:
+        return exit_code
 
 
 def run_test(test, format_elf_path, simulator, dry_run=False):
+    # Get test parameters
+    app = test['app']
+    if 'simulators' in test:
+        if simulator not in test['simulators']:
+            return 0
 
     # Construct path to executable
-    elf = format_elf_path(test)
+    elf = format_elf_path(app)
     cprint(f'Run test {colored(elf, "cyan")}', attrs=["bold"])
 
-    # Construct simulation command
-    cmd = SIMULATOR_CMDS[simulator].format(elf)
+    # Construct simulation command (override only supported for RTL)
+    if 'cmd' in test and simulator != 'banshee':
+        cmd = test['cmd']
+    else:
+        cmd = SIMULATOR_CMDS[simulator]
+    cmd = cmd.format(sim_bin=SIMULATOR_BINS[simulator], elf=elf)
     print(f'$ {cmd}', flush=True)
 
     # Run test
-    result = 1
+    result = 0
     if not dry_run:
+        result = 1
 
-        # When simulating with vsim, we need to parse the simulation log to catch the
-        # application's return code
-        if simulator == 'vsim':
-            p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, text=True)
+        # When simulating with vsim or vcs, we need to parse the simulation
+        # log to catch the application's return code
+        if simulator in ['vsim', 'vcs']:
+            p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
+                                 text=True)
 
             while p.poll() is None:
                 line = p.stdout.readline()
@@ -89,6 +114,12 @@ def run_test(test, format_elf_path, simulator, dry_run=False):
                 match_success = re.search(regex_success, line)
                 if match_success:
                     result = 0
+                else:
+                    regex_fail = r'\[FAILURE\] Finished with exit code\s+(\d+)'
+                    match = re.search(regex_fail, line)
+                    if match:
+                        exit_code = match.group(1)
+                        result = check_exit_code(test, exit_code)
 
             # Check if the subprocess terminated correctly
             if p.poll() != 0:
@@ -97,19 +128,20 @@ def run_test(test, format_elf_path, simulator, dry_run=False):
         else:
             p = subprocess.Popen(cmd, shell=True)
             p.wait()
-            result = p.returncode
+            exit_code = p.returncode
+            result = check_exit_code(test, exit_code)
 
-    # Report failure or success
-    if result != 0:
-        cprint(f'{test} test failed', 'red', attrs=['bold'], flush=True)
-    else:
-        cprint(f'{test} test passed', 'green', attrs=['bold'], flush=True)
+        # Report failure or success
+        if result != 0:
+            cprint(f'{app} test failed', 'red', attrs=['bold'], flush=True)
+        else:
+            cprint(f'{app} test passed', 'green', attrs=['bold'], flush=True)
 
     return result
 
 
 def print_failed_test(test):
-    print(f'{colored(test, "cyan")} test {colored("failed", "red")}')
+    print(f'{colored(test["app"], "cyan")} test {colored("failed", "red")}')
 
 
 def print_test_summary(failed_tests, dry_run=False):

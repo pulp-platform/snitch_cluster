@@ -88,6 +88,7 @@ VLT_FLAGS  += --trace
 ###############
 
 TB_CC_SOURCES += \
+	${TB_DIR}/ipc.cc \
 	${TB_DIR}/rtl_lib.cc \
 	${TB_DIR}/common_lib.cc \
 	$(GENERATED_DIR)/bootdata.cc
@@ -99,6 +100,7 @@ TB_CC_FLAGS += \
 	-I${TB_DIR}
 
 # Required C sources for the verilator TB that are linked against the verilated model
+VLT_COBJ += $(VLT_BUILDDIR)/tb/ipc.o
 VLT_COBJ += $(VLT_BUILDDIR)/tb/common_lib.o
 VLT_COBJ += $(VLT_BUILDDIR)/tb/verilator_lib.o
 VLT_COBJ += $(VLT_BUILDDIR)/tb/tb_bin.o

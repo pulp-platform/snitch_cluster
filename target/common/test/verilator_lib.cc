@@ -19,7 +19,7 @@ void sim_thread_main(void *arg) { ((Sim *)arg)->main(); }
 // Sim time.
 int TIME = 0;
 
-Sim::Sim(int argc, char **argv) : htif_t(argc, argv) {
+Sim::Sim(int argc, char **argv) : htif_t(argc, argv), ipc(argc, argv) {
     // Search arguments for `--vcd` flag and enable waves if requested
     for (auto i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "--vcd") == 0) {

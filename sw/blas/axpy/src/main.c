@@ -9,7 +9,6 @@
 #include "data.h"
 
 int main() {
-    uint32_t nerr = 0;
     double *local_x, *local_y, *local_z;
 
     // Allocate space in TCDM
@@ -35,12 +34,24 @@ int main() {
 
     snrt_cluster_hw_barrier();
 
-    // Check computation is correct
+    // Copy data out of TCDM
     if (snrt_is_dm_core()) {
+        size_t size = l * sizeof(double);
+        snrt_dma_start_1d(z, local_z, size);
+    }
+
+#ifdef BIST
+    uint32_t nerr = l;
+
+    // Check computation is correct
+    if (snrt_global_core_idx() == 0) {
         for (int i = 0; i < l; i++) {
-            if (local_z[i] != g[i]) nerr++;
+            if (local_z[i] == g[i]) nerr--;
         }
     }
 
     return nerr;
+#endif
+
+    return 0;
 }

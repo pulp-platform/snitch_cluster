@@ -14,10 +14,11 @@ include $(MK_DIR)/../toolchain.mk
 ###############
 
 # Fixed paths in repository tree
-ROOT        := $(abspath $(MK_DIR)/../../../..)
-SNRT_DIR    := $(ROOT)/sw/snRuntime
+ROOT     := $(abspath $(MK_DIR)/../../../..)
+SNRT_DIR := $(ROOT)/sw/snRuntime
 ifeq ($(SELECT_RUNTIME), banshee)
-RUNTIME_DIR := $(ROOT)/target/snitch_cluster/sw/runtime/banshee
+RUNTIME_DIR  := $(ROOT)/target/snitch_cluster/sw/runtime/banshee
+RISCV_CFLAGS += -DBIST
 else
 RUNTIME_DIR := $(ROOT)/target/snitch_cluster/sw/runtime/rtl
 endif
@@ -77,7 +78,7 @@ $(BUILDDIR):
 $(DEP): $(SRCS) | $(BUILDDIR)
 	$(RISCV_CC) $(RISCV_CFLAGS) -MM -MT '$(ELF)' $< > $@
 
-$(ELF): $(SRCS) | $(BUILDDIR)
+$(ELF): $(SRCS) $(DEP) | $(BUILDDIR)
 	$(RISCV_CC) $(RISCV_CFLAGS) $(RISCV_LDFLAGS) $(SRCS) -o $@
 
 $(DUMP): $(ELF) | $(BUILDDIR)

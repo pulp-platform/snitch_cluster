@@ -15,12 +15,15 @@ APP     ?= axpy
 SRCS    ?= $(SRC_DIR)/main.c
 INCDIRS += $(DATA_DIR) $(SRC_DIR)
 
-$(DATA_DIR)/data.h: $(DATA_DIR)/datagen.py
+DATAGEN_PY = $(DATA_DIR)/datagen.py
+DATA_H     = $(DATA_DIR)/data.h
+
+$(DATA_H): $(DATAGEN_PY)
 	$< $(LENGTH) > $@
 
 .PHONY: clean-data clean
 
 clean-data:
-	rm -f $(DATA_DIR)/data.h
+	rm -f $(DATA_H)
 
 clean: clean-data
