@@ -30,7 +30,7 @@ RUN rustup install 1.63.0
 RUN rustup override set 1.63.0
 
 # Install Bender
-RUN cargo install bender --version 0.23.2
+RUN cargo install bender --version 0.27.1
 
 # Get LLVM 12
 RUN wget https://apt.llvm.org/llvm.sh
