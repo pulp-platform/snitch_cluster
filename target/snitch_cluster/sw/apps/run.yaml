@@ -4,7 +4,6 @@
 
 runs:
   - app: blas/axpy
-    simulators: [vsim, banshee]
     cmd: ../../sw/blas/axpy/verify.py {sim_bin} {elf}
   - app: blas/gemm
   - app: dnn/batchnorm
