@@ -28,6 +28,11 @@ inline uint32_t __attribute__((const)) snrt_global_core_idx() {
     return snrt_hartid() - snrt_global_core_base_hartid();
 }
 
+inline uint32_t __attribute__((const)) snrt_global_compute_core_idx() {
+    return snrt_cluster_idx() * snrt_cluster_compute_core_num() +
+           snrt_cluster_core_idx();
+}
+
 inline uint32_t __attribute__((const)) snrt_cluster_idx() {
     return snrt_global_core_idx() / snrt_cluster_core_num();
 }
