@@ -10,17 +10,26 @@
 
 int main() {
     double *local_x, *local_y, *local_z;
+    double *remote_x, *remote_y, *remote_z;
+
+    // Calculate size and pointers for each cluster
+    uint32_t frac = l / snrt_cluster_num();
+    uint32_t offset = frac * snrt_cluster_idx();
+    remote_x = x + offset;
+    remote_y = y + offset;
+    remote_z = z + offset;
 
     // Allocate space in TCDM
     local_x = (double *)snrt_l1_next();
-    local_y = local_x + l;
-    local_z = local_y + l;
+    local_y = local_x + frac;
+    local_z = local_y + frac;
 
     // Copy data in TCDM
     if (snrt_is_dm_core()) {
-        size_t size = l * sizeof(double);
-        snrt_dma_start_1d(local_x, x, size);
-        snrt_dma_start_1d(local_y, y, size);
+        size_t size = frac * sizeof(double);
+        snrt_dma_start_1d(local_x, remote_x, size);
+        snrt_dma_start_1d(local_y, remote_y, size);
+        snrt_dma_wait_all();
     }
 
     snrt_cluster_hw_barrier();
@@ -28,7 +37,7 @@ int main() {
     // Compute
     if (!snrt_is_dm_core()) {
         uint32_t start_cycle = snrt_mcycle();
-        axpy(l, a, local_x, local_y, local_z);
+        axpy(frac, a, local_x, local_y, local_z);
         uint32_t end_cycle = snrt_mcycle();
     }
 
@@ -36,10 +45,15 @@ int main() {
 
     // Copy data out of TCDM
     if (snrt_is_dm_core()) {
-        size_t size = l * sizeof(double);
-        snrt_dma_start_1d(z, local_z, size);
+        size_t size = frac * sizeof(double);
+        snrt_dma_start_1d(remote_z, local_z, size);
+        snrt_dma_wait_all();
     }
 
+    snrt_cluster_hw_barrier();
+
+// TODO: currently only works for single cluster otherwise need to
+//       synchronize all cores here
 #ifdef BIST
     uint32_t nerr = l;
 
@@ -47,6 +61,7 @@ int main() {
     if (snrt_global_core_idx() == 0) {
         for (int i = 0; i < l; i++) {
             if (local_z[i] == g[i]) nerr--;
+            printf("%d %d\n", local_z[i], g[i]);
         }
     }
 

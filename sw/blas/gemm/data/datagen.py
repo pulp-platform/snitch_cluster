@@ -10,6 +10,13 @@ import numpy as np
 import argparse
 import pathlib
 import hjson
+import sys
+import os
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
+from data_utils import emit_license, format_scalar_definition, \
+                       format_vector_definition, format_ifdef_wrapper  # noqa: E402
+
 
 np.random.seed(42)
 
@@ -33,41 +40,11 @@ FP8_FORMATS = {
 }
 
 
-def format_vector_definition(id, vector, typ):
-    s = f'{typ} {id}[{len(vector)}] = ' + '{\n'
-    for i, el in enumerate(vector):
-        if typ != 'char':
-            s += f'\t{el},'
-        else:
-            if type(el) == float:
-                print(el)
-            s += f'0x{el:02x},'
-        if i % 8 == 7:
-            s += '\n'
-    s += '};'
-    return s
+def golden_model(a, b, alpha, c):
+    return np.matmul(a, b) + alpha * c
 
 
-def format_vector_declaration(id, vector, typ):
-    s = f'{typ} {id}[{len(vector)}];'
-    return s
-
-
-def format_scalar_definition(id, scalar, typ):
-    s = f'{typ} {id} = {scalar};'
-    return s
-
-
-def emit_header_file(**kwargs):
-
-    emit_str = "// Copyright 2023 ETH Zurich and University of Bologna.\n" + \
-               "// Licensed under the Apache License, Version 2.0, see LICENSE for details.\n" + \
-               "// SPDX-License-Identifier: Apache-2.0\n\n"
-    emit_str += emit_gemm_data(**kwargs)
-    return emit_str
-
-
-def emit_gemm_data(**kwargs):
+def emit_header(**kwargs):
 
     # Generate random input matrices
     dtype = NUMPY_TYPES[str(kwargs['prec'])]
@@ -104,30 +81,31 @@ def emit_gemm_data(**kwargs):
         a = np.random.rand(kwargs['M'], kwargs['K']).astype(dtype)
         b = np.random.rand(kwargs['K'], kwargs['N']).astype(dtype)
         c = np.random.rand(kwargs['M'], kwargs['N']).astype(dtype)
-        result = np.matmul(a, b) + kwargs['alpha'] * c
+        result = golden_model(a, b, kwargs['alpha'], c)
 
     # Store matrices in transposed form if requested
     a = a.T if kwargs['ta'] else a
     b = b.T if kwargs['tb'] else b
 
-    data_str = []
-    data_str += [format_scalar_definition('M', kwargs['M'], 'uint32_t')]
-    data_str += [format_scalar_definition('N', kwargs['N'], 'uint32_t')]
-    data_str += [format_scalar_definition('K', kwargs['K'], 'uint32_t')]
-    data_str += [format_scalar_definition('TA', int(kwargs['ta']), 'uint32_t')]
-    data_str += [format_scalar_definition('TB', int(kwargs['tb']), 'uint32_t')]
-    data_str += [format_scalar_definition('ALPHA', kwargs['alpha'], 'uint32_t')]
-    data_str += [format_scalar_definition('dtype_size', kwargs['prec']//8, 'uint32_t')]
-    data_str += [format_scalar_definition('expand', kwargs['expand'], 'uint32_t')]
-    data_str += [format_vector_definition('a', a.flatten(), C_TYPES[str(kwargs['prec'])])]
-    data_str += [format_vector_definition('b', b.flatten(), C_TYPES[str(kwargs['prec'])])]
-    data_str += [format_vector_definition('c', c.flatten(), C_TYPES[str(kwargs['prec'])])]
+    data_str = [emit_license()]
+    data_str += [format_scalar_definition('uint32_t', 'M', kwargs['M'])]
+    data_str += [format_scalar_definition('uint32_t', 'N', kwargs['N'])]
+    data_str += [format_scalar_definition('uint32_t', 'K', kwargs['K'])]
+    data_str += [format_scalar_definition('uint32_t', 'TA', int(kwargs['ta']))]
+    data_str += [format_scalar_definition('uint32_t', 'TB', int(kwargs['tb']))]
+    data_str += [format_scalar_definition('uint32_t', 'ALPHA', kwargs['alpha'])]
+    data_str += [format_scalar_definition('uint32_t', 'dtype_size', kwargs['prec']//8)]
+    data_str += [format_scalar_definition('uint32_t', 'expand', kwargs['expand'])]
+    data_str += [format_vector_definition(C_TYPES[str(kwargs['prec'])], 'a', a.flatten())]
+    data_str += [format_vector_definition(C_TYPES[str(kwargs['prec'])], 'b', b.flatten())]
+    data_str += [format_vector_definition(C_TYPES[str(kwargs['prec'])], 'c', c.flatten())]
     if kwargs['prec'] == 8:
-        data_str += [format_vector_definition('result', result.flatten(), C_TYPES['64'])]
+        result_def = format_vector_definition(C_TYPES['64'], 'result', result.flatten())
     else:
-        data_str += [format_vector_definition('result',
-                                              result.flatten(),
-                                              C_TYPES[str(kwargs['prec'])])]
+        result_def = format_vector_definition(C_TYPES[str(kwargs['prec'])],
+                                              'result',
+                                              result.flatten())
+    data_str += [format_ifdef_wrapper('BIST', result_def)]
     data_str = '\n\n'.join(data_str)
 
     return data_str
@@ -149,7 +127,7 @@ def main():
         param = hjson.loads(f.read())
 
     # Emit header file
-    print(emit_header_file(**param))
+    print(emit_header(**param))
 
 
 if __name__ == '__main__':
