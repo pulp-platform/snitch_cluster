@@ -5,6 +5,14 @@
 # Author: Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import struct
+from datetime import datetime
+
+
+def emit_license():
+    s = (f"// Copyright {datetime.now().year} ETH Zurich and University of Bologna."
+         f"// Licensed under the Apache License, Version 2.0, see LICENSE for details.\n"
+         f"// SPDX-License-Identifier: Apache-2.0\n\n")
+    return s
 
 
 def variable_attributes(alignment=None, section=None):
@@ -20,7 +28,11 @@ def format_vector_definition(type, uid, vector, alignment=None, section=None):
     attributes = variable_attributes(alignment, section)
     s = f'{type} {uid}[{len(vector)}] {attributes} = ' + '{\n'
     for el in vector:
-        s += f'\t{el},\n'
+        if type != 'char':
+            el_str = f'{el}'
+        else:
+            el_str = f'0x{el:02x}'
+        s += f'\t{el_str},\n'
     s += '};'
     return s
 
@@ -55,3 +67,16 @@ def bytes_to_doubles(byte_array):
         double = struct.unpack('<d', double_bytes)[0]
         doubles.append(double)
     return doubles
+
+
+def bytes_to_uint32s(byte_array):
+    uint32_size = struct.calcsize('I')  # Size of a uint32 in bytes
+    num_uints = len(byte_array) // uint32_size
+
+    # Unpack the byte array into a list of uints
+    uints = []
+    for i in range(num_uints):
+        uint32_bytes = byte_array[i * uint32_size:(i + 1) * uint32_size]
+        uint = struct.unpack('<I', uint32_bytes)[0]
+        uints.append(uint)
+    return uints
