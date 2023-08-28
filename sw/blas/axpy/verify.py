@@ -24,12 +24,16 @@ def main():
     args = verification.parse_args()
     raw_results = verification.simulate(sim_bin=args.sim_bin,
                                         snitch_bin=args.snitch_bin,
+                                        symbols_bin=args.symbols_bin,
                                         log=args.log,
                                         output_uids=['z'])
     z_actual = np.array(bytes_to_doubles(raw_results['z']))
 
     # Extract input operands from ELF file
-    elf = Elf(args.snitch_bin)
+    if args.symbols_bin:
+        elf = Elf(args.symbols_bin)
+    else:
+        elf = Elf(args.snitch_bin)
     a = np.array(bytes_to_doubles(elf.get_symbol_contents('a')))
     x = np.array(bytes_to_doubles(elf.get_symbol_contents('x')))
     y = np.array(bytes_to_doubles(elf.get_symbol_contents('y')))

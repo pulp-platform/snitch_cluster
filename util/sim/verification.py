@@ -25,12 +25,17 @@ def parse_args():
         'snitch_bin',
         help='The Snitch binary to be executed by the simulated Snitch hardware')
     parser.add_argument(
+        '--symbols-bin',
+        help='An optional binary containing the I/O symbols. By default,'
+             'these are searched for in snitch_bin. This argument serves as an'
+             'alternative.')
+    parser.add_argument(
         '--log',
         help='Redirect simulation output to this log file')
     return parser.parse_args()
 
 
-def simulate(sim_bin, snitch_bin, log, output_uids):
+def simulate(sim_bin, snitch_bin, log, output_uids, symbols_bin=None):
     # Open ELF file for processing
     elf = Elf(snitch_bin)
 
@@ -43,6 +48,8 @@ def simulate(sim_bin, snitch_bin, log, output_uids):
     sim.poll(tohost, 1, 0)
 
     # Read out results from memory
+    if symbols_bin:
+        elf = Elf(symbols_bin)
     raw_outputs = {}
     for uid in output_uids:
         address = elf.get_symbol_address(uid)
