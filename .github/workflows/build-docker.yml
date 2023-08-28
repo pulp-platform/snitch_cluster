@@ -6,7 +6,7 @@
 name: build-docker
 on:
   push:
-    branches: [main]
+    branches: [occamy]
   workflow_dispatch:
 jobs:
   build-docker:
