@@ -46,6 +46,8 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cm
 ENV PATH "/tools/bin:${PATH}"
 
 # Install `banshee` (needs cmake)
+RUN rustup install 1.63.0
+RUN rustup override set 1.63.0
 RUN git clone https://github.com/pulp-platform/banshee.git /tmp/banshee --recurse-submodules
 RUN cargo install --path /tmp/banshee
 
