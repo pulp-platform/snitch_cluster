@@ -67,5 +67,7 @@ jobs:
           SNITCH_LOG: info
         working-directory: target/snitch_cluster
         run: |-
+          rustup install 1.63.0
+          rustup override set 1.63.0
           ./sw/tests/run.py sw/tests/banshee-apps.list --simulator banshee
           ./sw/apps/run.py sw/apps/passing-apps.list --simulator banshee
