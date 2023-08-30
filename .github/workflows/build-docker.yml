@@ -6,7 +6,7 @@
 name: build-docker
 on:
   push:
-    branches: [main]
+    branches: [dev/dnn-verification]
   workflow_dispatch:
 jobs:
   build-docker:
