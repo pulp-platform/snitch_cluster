@@ -1,0 +1,21 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Solderpad Hardware License, Version 0.51, see LICENSE for details.
+// SPDX-License-Identifier: SHL-0.51
+// 
+// Author: Viviane Potocnik, ETH Zurich <vivianep@iis.ee.ethz.ch>
+// Parameters for a transformer
+
+{
+    kernel: "Transformer"
+    input_dim: {
+        seq_len: 2048,
+        embeddings: 768,
+        positional_embeddings: 64,
+        feedforward_len: 3072,
+        heads: 12,
+    }
+    eps: 1e-5
+    prec: 64
+    brief: true
+    num_iters: 2
+}

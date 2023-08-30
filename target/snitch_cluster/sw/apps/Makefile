@@ -6,6 +6,7 @@
 
 SUBDIRS  = lto
 SUBDIRS += nop
+SUBDIRS += transformer
 SUBDIRS += blas/axpy
 SUBDIRS += blas/gemm
 SUBDIRS += dnn/batchnorm

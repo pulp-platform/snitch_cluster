@@ -3,8 +3,8 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-# Author: Tim Fischer <fischeti@iis.ee.ethz.ch>
-# Author: Viviane Potocnik <vivianep@iis.ee.ethz.ch>
+# Authors: Tim Fischer <fischeti@iis.ee.ethz.ch>
+#          Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
 import numpy as np
 import torch
@@ -63,10 +63,97 @@ def emit_header_file(file, layer_type: str, **kwargs):
         emit_str += emit_softmax_layer(**kwargs)
     elif layer_type == 'LayerNorm':
         emit_str += emit_layernorm_layer(**kwargs)
+    elif layer_type == 'Transformer':
+        emit_str += emit_transformer_layer(**kwargs)
 
     with file.open('w') as f:
         f.write(emit_str)
 
+def emit_transformer_layer(name='transformer', **kwargs):
+
+    ifmap = kwargs['ifmap']
+    ifmap_ln = kwargs['ifmap_ln']
+    ifmap_lin2 = kwargs['ifmap_lin2']
+    # retrieve tiling parameters
+    S_tile_ln = kwargs['S_tile_ln']
+    S_tile_lin1 = kwargs['S_tile_lin1']
+    P_tile_lin1 = kwargs['P_tile_lin1']
+    Br_tile_fa = kwargs['Br_tile_fa']
+    Bc_tile_fa = kwargs['Bc_tile_fa']
+    Br_tile_lin2 = kwargs['Br_tile_lin2']
+    Bc_tile_lin2 = kwargs['Bc_tile_lin2']
+    positional_embeddings_fa = kwargs['positional_embeddings_fa']
+    q_fa = kwargs['q_fa']
+    k_fa = kwargs['k_fa']
+    v_fa = kwargs['v_fa']
+    weights_q = kwargs['weights_q']
+    weights_k = kwargs['weights_k']
+    weights_v = kwargs['weights_v']
+    weights_lin2 = kwargs['weights_lin2']
+
+    # Get the dimensions: sequence length S, 
+    # embedding size E, and position embedding size P
+    S, E = ifmap.shape
+    _, P = weights_q.shape
+    _, P_fa = q_fa.shape
+    H, _, P_lin2 = ifmap_lin2.shape
+    _, _, E_lin2 = weights_lin2.shape
+
+
+    ctypes = {
+        '64': 'double',
+        '32': 'float',
+        '16': '__fp16',
+        '8': 'char'
+    }
+
+    dtype = ctypes[str(kwargs['prec'])]
+
+    # layer_str = '#include <stdint.h>\n'
+    layer_str = ''
+    layer_str += '#include "transformer.h"\n\n'
+    layer_str += f'transformer_layer_fp{kwargs["prec"]}_t {name}_l = {{\n'
+    layer_str += f'\t.seq_len = {S},\n'
+    layer_str += f'\t.S_tile_ln = {S_tile_ln},\n'
+    layer_str += f'\t.S_tile_lin1 = {S_tile_lin1},\n'
+    layer_str += f'\t.P_tile_lin1 = {P_tile_lin1},\n'
+    layer_str += f'\t.Br_tile_fa = {Br_tile_fa},\n'
+    layer_str += f'\t.Bc_tile_fa = {Bc_tile_fa},\n'
+    layer_str += f'\t.Br_tile_lin2 = {Br_tile_lin2},\n'
+    layer_str += f'\t.Bc_tile_lin2 = {Bc_tile_lin2},\n'
+    layer_str += f'\t.embeddings = {E},\n'
+    layer_str += f'\t.embeddings_lin2 = {E_lin2},\n'
+    layer_str += f'\t.positional_embeddings = {P},\n'
+    layer_str += f'\t.positional_embeddings_fa = {positional_embeddings_fa},\n'
+    layer_str += f'\t.feedforward_len = {kwargs["feedforward_len"]},\n'
+    layer_str += f'\t.heads = {H},\n'
+    layer_str += f'\t.eps = {kwargs["eps"]},\n'
+    layer_str += f'\t.dtype = FP{kwargs["prec"]},\n'
+    layer_str += '};\n\n\n'
+
+    # Declare the DRAM arrays
+    layer_str += f'static {dtype} {name}_Q_lin_dram[{S}][{E}] __attribute__((section(".data")));\n\n'
+    layer_str += f'static {dtype} {name}_K_lin_dram[{S}][{E}] __attribute__((section(".data")));\n\n'
+    layer_str += f'static {dtype} {name}_V_lin_dram[{S}][{E}] __attribute__((section(".data")));\n\n'
+    layer_str += f'static {dtype} {name}_O_dram[{S}][{P}] __attribute__((section(".data")));\n\n'
+    layer_str += f'static {dtype} {name}_O_lin2_dram[{S}][{E_lin2}] __attribute__((section(".data")));\n\n'
+    layer_str += f'static {dtype} {name}_ifmap_dram[{S}][{E}] = ' + array_to_cstr(ifmap) + ';\n\n'
+    layer_str += f'static {dtype} {name}_ifmap_ln_dram[{S}][{E}] = ' + array_to_cstr(ifmap_ln) + ';\n\n'
+    layer_str += f'static {dtype} {name}_ifmap_lin2_dram[{H}][{S}][{P_lin2}] = ' + array_to_cstr(ifmap_lin2) + ';\n\n'
+    # layer_str += f'static {dtype} {name}_ofmap_dram[{S}][{HP}] = ' + array_to_cstr(ofmap) + ';\n\n'
+    layer_str += f'static {dtype} {name}_weights_q_dram[{E}][{P}] = ' + array_to_cstr(weights_q) + ';\n\n'
+    layer_str += f'static {dtype} {name}_weights_k_dram[{E}][{P}] = ' + array_to_cstr(weights_k) + ';\n\n'
+    layer_str += f'static {dtype} {name}_weights_v_dram[{E}][{P}] = ' + array_to_cstr(weights_v) + ';\n\n'
+    layer_str += f'static {dtype} {name}_weights_lin2_dram[{H}][{P_lin2}][{E_lin2}] = ' + array_to_cstr(weights_lin2) + ';\n\n'
+    layer_str += f'static {dtype} {name}_q_fa_dram[{S}][{P_fa}] = ' + array_to_cstr(q_fa) + ';\n\n'
+    layer_str += f'static {dtype} {name}_k_fa_dram[{P_fa}][{S}] = ' + array_to_cstr(k_fa) + ';\n\n'
+    layer_str += f'static {dtype} {name}_v_fa_dram[{S}][{P_fa}] = ' + array_to_cstr(v_fa) + ';\n\n'
+    # layer_str += f'static {dtype} {name}_weights_o_dram[{HP}][{E}] = ' + array_to_cstr(weights_o) + ';\n\n'
+    # layer_str += f'static {dtype} {name}_query_dram[{S}][{P}] = ' + array_to_cstr(query) + ';\n\n'
+    # layer_str += f'static {dtype} {name}_key_dram[{S}][{P}] = ' + array_to_cstr(key) + ';\n\n'
+    # layer_str += f'static {dtype} {name}_value_dram[{S}][{P}] = ' + array_to_cstr(value) + ';\n\n'
+
+    return layer_str
 
 def emit_layernorm_layer(name='layernorm', **kwargs):
     ifmap = kwargs['ifmap']
@@ -618,6 +705,16 @@ def layernorm(ifmap, eps, shape):
 
     return ofmap
 
+def transformer(ifmap, weights, bias, eps, shape, use_bias):
+    # ln = torch.nn.LayerNorm(shape, eps=eps)
+    # ofmap = ln(ifmap)
+    if use_bias:
+        ofmap = torch.matmul(ifmap, weights.T) + bias
+    else:
+        ofmap = torch.matmul(ifmap, weights.T)
+
+    return ofmap
+
 
 def main():
 
@@ -854,6 +951,246 @@ def main():
         }
 
         emit_header_file(args.output, 'LayerNorm', **kwargs)
+
+    elif param['kernel'] == 'Transformer':
+        seq_len = param['input_dim']['seq_len']
+        heads = param['input_dim']['heads']
+        embeddings = param['input_dim']['embeddings']
+        positional_embeddings = param['input_dim']['positional_embeddings']
+        feedforward_len = param['input_dim']['feedforward_len']
+
+        # check if we want to run a brief test
+        brief = param['brief']
+        num_iters = param['num_iters']
+        print("Brief test: ", brief)
+        print("Number of iterations: ", num_iters)
+
+        # tcdm capacity in bytes
+        tcdm_size = 125 * 1024
+        # data type size in bytes
+        data_type_size = torch.tensor(1, dtype=dtype).element_size()
+        print("Data type size: ", data_type_size)
+        # initialize the best solution parameters   
+        best_dram_accessed_data = float('inf')
+        dram_accessed_data_list = []
+        best_tcdm_storage = 0
+        best_s_tile_ln = 0
+        for S_tile in range(8, seq_len, 8):
+            dram_accessed_data = 2 * (seq_len // S_tile) * embeddings * data_type_size 
+            tcdm_storage = (S_tile) * embeddings * data_type_size
+            if tcdm_storage <= tcdm_size:
+                if tcdm_storage > best_tcdm_storage or dram_accessed_data < best_dram_accessed_data:
+                    best_dram_accessed_data = dram_accessed_data
+                    best_tcdm_storage = tcdm_storage
+                    best_s_tile_ln = S_tile
+
+        print("LayerNorm Best S_tile: ", best_s_tile_ln)
+        if(brief == True):
+            seq_len = num_iters * best_s_tile_ln
+            embeddings = embeddings // 70
+        
+        print("LayerNorm Sequence length: ", seq_len)
+
+        # Layer 1: LayerNorm layer
+        ifmap = torch.randn(seq_len, embeddings,
+                            requires_grad=False, dtype=dtype)
+        
+        eps = param['eps']
+        
+        m = nn.LayerNorm(ifmap.size()[1:])
+
+        # TODO: due to a bug in PyTorch, we need to cast the input to float32 or BFloat16
+        ifmap = ifmap.type(torch.float32)
+
+        ifmap_ln = m(ifmap)
+
+        # cast back to the original data type
+        ifmap_ln = ifmap_ln.to(dtype).detach()
+        ifmap = ifmap.to(dtype)
+
+        # Layer 2: Linear layer 1
+        # TODO: check whether we go for min DRAM accesses or min DRAM accessed data
+        # we reset the best solution parameters
+        seq_len = param['input_dim']['seq_len']
+        embeddings = param['input_dim']['embeddings']
+        best_dram_accessed_data = float('inf')
+        best_dram_accesses = float('inf')
+        best_tcdm_storage = 0
+        best_s_tile_lin1 = 0
+        best_p_tile_lin1 = 0
+
+        for S_tile in range(8, seq_len, 8):
+            for P_tile in range(1, positional_embeddings, 1):
+                dram_accessed_data = ((seq_len // S_tile) * (S_tile * embeddings) + \
+                                      (seq_len // S_tile) * 3 * (positional_embeddings // P_tile) * embeddings * P_tile \
+                                      + (seq_len // S_tile) * (positional_embeddings // P_tile) * S_tile * P_tile) * data_type_size
+                dram_accesses =  (seq_len // S_tile) + (seq_len // S_tile) * 2 * 3 * (positional_embeddings // P_tile)
+                tcdm_storage = (S_tile * embeddings + 3 * embeddings * P_tile + 3 * S_tile * P_tile) * data_type_size
+                if tcdm_storage <= tcdm_size:
+                    if tcdm_storage > best_tcdm_storage or dram_accesses < best_dram_accesses:#or dram_accessed_data < best_dram_accessed_data:
+                        best_dram_accessed_data = dram_accessed_data
+                        best_dram_accesses = dram_accesses
+                        best_tcdm_storage = tcdm_storage
+                        best_s_tile_lin1 = S_tile
+                        best_p_tile_lin1 = P_tile
+
+        print("Layer 1 Best S_tile: ", best_s_tile_lin1)
+        print("Layer 1 Best P_tile: ", best_p_tile_lin1)
+        if(brief == True):
+            seq_len = num_iters * best_s_tile_lin1
+            positional_embeddings = num_iters * best_p_tile_lin1
+            embeddings = embeddings // 70
+
+        print("Layer 1 Sequence length: ", seq_len)
+        print("Layer 1 Positional embeddings: ", positional_embeddings)
+        print("Layer 1 Embeddings: ", embeddings)
+
+        weights_q = torch.randn(embeddings, positional_embeddings,
+                                requires_grad=False, dtype=dtype)
+        weights_k = torch.randn(embeddings, positional_embeddings,
+                                requires_grad=False, dtype=dtype)
+        weights_v = torch.randn(embeddings, positional_embeddings,
+                                requires_grad=False, dtype=dtype)
+        
+        # Layer 3: FlashAttention-2 layer
+        # TODO: check whether we go for min DRAM accesses or min DRAM accessed data
+
+        # we reset the best solution parameters
+        # TODO: For the full model, we must also reset the sequence length
+        seq_len = param['input_dim']['seq_len']
+        embeddings = param['input_dim']['embeddings']
+        positional_embeddings = param['input_dim']['positional_embeddings']
+        best_dram_accessed_data = float('inf')
+        best_dram_accesses = float('inf')
+        best_tcdm_storage = 0
+        best_br_tile_fa = 0
+        best_bc_tile_fa = 0
+
+        for B_r in range(8, seq_len, 8):
+            for B_c in range(2, seq_len, 2):
+                dram_accesses = (seq_len // B_r) + (seq_len // B_r) * 2 * (seq_len // B_c) + (seq_len // B_r)
+                dram_accessed_data = ((seq_len // B_r) * (B_r * positional_embeddings) + (seq_len // B_r) * 2 * (seq_len // B_c) * (B_c * positional_embeddings) + (seq_len // B_r) * (B_r * B_c)) * data_type_size
+                tcdm_storage = (B_r * positional_embeddings + 2 * positional_embeddings * B_c + 4 * B_r + 2 * B_r * B_c ) * data_type_size
+                if tcdm_storage <= tcdm_size:
+                    if tcdm_storage > best_tcdm_storage or dram_accesses < best_dram_accesses:
+                        best_dram_accessed_data = dram_accessed_data
+                        best_dram_accesses = dram_accesses
+                        best_tcdm_storage = tcdm_storage
+                        best_br_tile_fa = B_r
+                        best_bc_tile_fa = B_c
+
+        print("FlashAttention Layer 2 Best B_r: ", best_br_tile_fa)
+        print("FlashAttention Layer 2 Best B_c: ", best_bc_tile_fa)
+        if(brief == True):
+            # seq_len = num_iters * best_br_tile_fa
+            seq_len = num_iters * best_s_tile_ln
+            positional_embeddings_fa = positional_embeddings // 10
+            embeddings = embeddings // 70
+            best_br_tile_fa = best_br_tile_fa // 10 * num_iters
+            best_bc_tile_fa = best_bc_tile_fa // 10 * num_iters
+
+            print("FlashAttention Layer 2 Sequence length brief: ", seq_len)
+            print("FlashAttention Layer 2 Positional embeddings brief: ", positional_embeddings_fa)
+            print("FlashAttention Layer 2 Embeddings brief: ", embeddings)
+            print("FlashAttention Layer 2 Best B_r brief: ", best_br_tile_fa)
+            print("FlashAttention Layer 2 Best B_c brief: ", best_bc_tile_fa)
+
+        # positional_embeddings_fa = positional_embeddings
+
+        q_fa = torch.rand(seq_len, positional_embeddings_fa,
+                                requires_grad=False, dtype=dtype)
+        k_fa = torch.rand(positional_embeddings_fa, seq_len,
+                                requires_grad=False, dtype=dtype)
+        v_fa = torch.rand(seq_len, positional_embeddings_fa,
+                                requires_grad=False, dtype=dtype)
+        
+        # Layer 4: Linear layer 2
+        # Every cluster computes one head
+        seq_len = param['input_dim']['seq_len']
+        embeddings = param['input_dim']['embeddings']
+        positional_embeddings = param['input_dim']['positional_embeddings']
+        best_dram_accessed_data = float('inf')
+        best_dram_accesses = float('inf')
+        best_tcdm_storage = 0
+        best_br_tile_lin2 = 0
+        best_bc_tile_lin2 = 0
+        
+        for B_r in range(8, seq_len, 8):
+            for B_c in range(2, embeddings, 2):
+                dram_accesses = (seq_len // B_r) + (seq_len // B_r) * (embeddings // B_c) + (seq_len // B_r) * (embeddings // B_c)
+                dram_accessed_data = ((seq_len // B_r) * (B_r * positional_embeddings) \
+                                    + (seq_len // B_r) * (embeddings // B_c) * (B_c * positional_embeddings) \
+                                    + (seq_len // B_r) * (embeddings // B_c) * (B_c * B_r)) * data_type_size
+                
+                # TCDM storage: Input (B_r x P) + Weights (P * B_c) + 2 * Output (B_r * B_c) 
+                # we store the output twice to use it for cluster2cluster communication
+                tcdm_storage = (B_r * positional_embeddings + \
+                                positional_embeddings * B_c + \
+                                2 * B_c * B_r) * data_type_size
+                                
+                
+                if tcdm_storage <= tcdm_size:
+                    if tcdm_storage > best_tcdm_storage or dram_accesses < best_dram_accesses:
+                        best_dram_accessed_data = dram_accessed_data
+                        best_dram_accesses = dram_accesses
+                        best_tcdm_storage = tcdm_storage
+                        best_br_tile_lin2 = B_r
+                        best_bc_tile_lin2 = B_c
+
+        # check which is the closest divisor of embeddings for B_c
+        embeddings_divisors = []
+        for i in range(1, embeddings + 1):
+            if embeddings % i == 0:
+                embeddings_divisors.append(i)
+        best_bc_tile_lin2 = min(embeddings_divisors, key=lambda x:abs(x-best_bc_tile_lin2))
+
+        if(brief == True):
+            seq_len = num_iters * best_s_tile_ln
+            best_br_tile_lin2 = best_s_tile_ln
+            embeddings = best_bc_tile_lin2 * num_iters
+            positional_embeddings = positional_embeddings // 10
+
+            print("Layer 2 Sequence length brief: ", seq_len)
+            print("Layer 2 Positional embeddings brief: ", positional_embeddings)
+            print("Layer 2 Embeddings brief: ", embeddings)
+
+        print("Layer 2 Best B_r: ", best_br_tile_lin2)
+        print("Layer 2 Best B_c: ", best_bc_tile_lin2)
+        heads = param['input_dim']['heads']
+        ifmap_lin2 = torch.randn(heads, seq_len, positional_embeddings,
+                            requires_grad=False, dtype=dtype)
+        weights_lin2 = torch.randn(heads, positional_embeddings, embeddings,
+                                requires_grad=False, dtype=dtype)
+
+        feedforward_len = param['input_dim']['feedforward_len']
+
+        kwargs = {
+            'ifmap': ifmap,
+            'ifmap_ln': ifmap_ln,
+            'ifmap_lin2': ifmap_lin2,
+            'S_tile_ln': best_s_tile_ln,
+            'S_tile_lin1': best_s_tile_lin1,
+            'P_tile_lin1': best_p_tile_lin1,
+            'Br_tile_fa': best_br_tile_fa,
+            'Bc_tile_fa': best_bc_tile_fa,
+            'Br_tile_lin2': best_br_tile_lin2,
+            'Bc_tile_lin2': best_bc_tile_lin2,
+            'positional_embeddings': positional_embeddings,
+            'positional_embeddings_fa': positional_embeddings_fa,
+            'weights_q': weights_q,
+            'weights_k': weights_k,
+            'weights_v': weights_v,
+            'weights_lin2': weights_lin2,
+            'q_fa': q_fa,
+            'k_fa': k_fa,
+            'v_fa': v_fa,
+            'prec': param['prec'],
+            'eps': eps,
+            'feedforward_len': feedforward_len,
+            'heads': heads,
+        }
+
+        emit_header_file(args.output, 'Transformer', **kwargs)
 
     else:
         print("No valid kernel selected")

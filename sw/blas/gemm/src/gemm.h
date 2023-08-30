@@ -21,8 +21,8 @@ typedef __fp16 v4f16 __attribute__((vector_size(8)));
 typedef char v8f8 __attribute__((vector_size(8)));
 #endif
 
-dump_float(query, 11); // = 0xb
-dump_uint(index, 9); // 14 = 0xe
+dump_float(gemm, 8);
+dump_uint(index, 9);
 
 
 void gemm_fp64_baseline(uint32_t M, uint32_t N, uint32_t K, double* A,
@@ -31,8 +31,10 @@ void gemm_fp64_baseline(uint32_t M, uint32_t N, uint32_t K, double* A,
     if (!ta && !tb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                register double c0 = BETA * C[m * ldC + n];
+                double c0 = BETA * C[m * ldC + n];
                 for (uint32_t k = 0; k < K; k++) {
+                    // dump_index(k + m * ldA);
+                    // dump_gemm(A[k + m * ldA]);
                     c0 += A[k + m * ldA] * B[k * ldB + n];
                 }
                 C[m * ldC + n] = c0;
