@@ -2239,8 +2239,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
 
   // CSR logic
   always_comb begin
-    csr_rvalue = '0;
-    csr_dump = '0;
+    csr_rvalue = 1'b0;
+    csr_dump = 1'b0;
     illegal_csr = '0;
     priv_lvl_d = priv_lvl_q;
     // registers
@@ -2471,8 +2471,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
             end else illegal_csr = 1'b1;
           end
           default: begin
-            csr_rvalue = '0;
-            csr_dump = '1;
+            csr_rvalue = 1'b0;
+            csr_dump = 1'b1;
           end
         endcase
       end else illegal_csr = 1'b1;
