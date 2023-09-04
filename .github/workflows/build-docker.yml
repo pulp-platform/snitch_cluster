@@ -27,6 +27,6 @@ jobs:
           context: .
           file: util/container/Dockerfile
           push: true
-          tags: ghcr.io/pulp-platform/snitch_cluster:latest
+          tags: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
           build-args: |-
             SNITCH_LLVM_VERSION=latest
