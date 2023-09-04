@@ -232,6 +232,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // -----
   logic [31:0] csr_rvalue;
   logic csr_en;
+  logic csr_dump;
 
   localparam logic M = 0;
   localparam logic S = 1;
@@ -2238,7 +2239,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
 
   // CSR logic
   always_comb begin
-    csr_rvalue = '0;
+    csr_rvalue = 1'b0;
+    csr_dump = 1'b0;
     illegal_csr = '0;
     priv_lvl_d = priv_lvl_q;
     // registers
@@ -2468,7 +2470,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
               if (!exception) fcsr_d = fcsr_t'(alu_result[9:0]);
             end else illegal_csr = 1'b1;
           end
-          default: csr_rvalue = '0;
+          default: begin
+            csr_rvalue = 1'b0;
+            csr_dump = 1'b1;
+          end
         endcase
       end else illegal_csr = 1'b1;
     end
@@ -2551,6 +2556,17 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     dcsr_d.nmip = 0;
     dcsr_d.prv = dm::priv_lvl_t'(dm::PRIV_LVL_M);
   end
+
+  // pragma translate_off
+  always_ff @(posedge clk_i or posedge rst_i) begin
+    // Display CSR write if the CSR does not exist
+    if (!rst_i && csr_dump && inst_valid_o && inst_ready_i && !stall) begin
+      // $timeformat(-9, 0, " ns", 0);
+      $display("[DUMP] %t Core %3d: 0x%3h = 0x%08h, %d, %f",
+        $time, hart_id_i, inst_data_i[31:20], alu_result, alu_result, $bitstoshortreal(alu_result));
+    end
+  end
+  // pragma translate_on
 
   snitch_regfile #(
     .DATA_WIDTH     ( 32       ),
