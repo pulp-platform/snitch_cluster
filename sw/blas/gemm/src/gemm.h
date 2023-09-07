@@ -121,7 +121,7 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, double* A, uint32_t ldA,
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
-            register double c[unroll];
+            double c[unroll];
 
             // Load intermediate result
             if (*ALPHA) {
@@ -234,7 +234,7 @@ void gemm_fp32_opt(const uint32_t M, const uint32_t N, const uint32_t K,
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
             float* _C = &C[m * ldC + n / 2];
             const register float zero = 0.0;
-            register v2f32 c[unroll], reduce_reg[unroll];
+            v2f32 c[unroll], reduce_reg[unroll];
 
             asm volatile(
                 "lw      t0, 0(%[ALPHA]) \n"
@@ -384,8 +384,8 @@ void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A, uint32_t ldA,
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
             __fp16* _C = &C[m * ldC + n];
             const register float zero = 0.0;
-            register v4f16 c[unroll];
-            register v2f32 reduce_reg[unroll];
+            v4f16 c[unroll];
+            v2f32 reduce_reg[unroll];
             uint32_t alpha;
 
             asm volatile(
@@ -568,8 +568,8 @@ void gemm_fp16_ex_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
             __fp16* _C = &C[m * ldC + n];
             const register float zero = 0.0;
-            register v4f16 c[unroll];
-            register v2f32 reduce_reg[unroll];
+            v4f16 c[unroll];
+            v2f32 reduce_reg[unroll];
             uint32_t alpha;
 
             asm volatile(
@@ -735,8 +735,8 @@ void gemm_fp8_ex_opt(uint32_t M, uint32_t N, uint32_t K, char* A, uint32_t ldA,
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
             char* _C = &C[m * ldC + n];
             const register float zero = 0.0;
-            register v8f8 c[unroll];
-            register v4f16 reduce_reg[unroll];
+            v8f8 c[unroll];
+            v4f16 reduce_reg[unroll];
             uint32_t alpha;
 
             asm volatile(
