@@ -15,7 +15,7 @@ jobs:
     name: Build documentation
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster
+      image: ghcr.io/pulp-platform/snitch_cluster:ipc-verification
     steps:
       - uses: actions/checkout@v2
       - name: Build docs
@@ -29,7 +29,7 @@ jobs:
     name: Simulate SW on Snitch Cluster w/ Verilator
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster
+      image: ghcr.io/pulp-platform/snitch_cluster:ipc-verification
     steps:
       - uses: actions/checkout@v2
         with:
@@ -43,8 +43,8 @@ jobs:
       - name: Run Tests
         working-directory: target/snitch_cluster
         run: |-
-          ./sw/tests/run.py sw/tests/passing-apps.list --simulator verilator
-          ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator
+          ./sw/tests/run.py sw/tests/run.yaml --simulator verilator
+          ./sw/apps/run.py sw/apps/run.yaml --simulator verilator
 
   ############################################
   # Build SW on Snitch Cluster w/ Banshee #
@@ -54,7 +54,7 @@ jobs:
     name: Simulate SW on Snitch Cluster w/ Banshee
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster
+      image: ghcr.io/pulp-platform/snitch_cluster:ipc-verification
     steps:
       - uses: actions/checkout@v2
         with:
@@ -67,5 +67,5 @@ jobs:
           SNITCH_LOG: info
         working-directory: target/snitch_cluster
         run: |-
-          ./sw/tests/run.py sw/tests/banshee-apps.list --simulator banshee
-          ./sw/apps/run.py sw/apps/passing-apps.list --simulator banshee
+          ./sw/tests/run.py sw/tests/run.yaml --simulator banshee
+          ./sw/apps/run.py sw/apps/run.yaml --simulator banshee

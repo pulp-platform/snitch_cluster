@@ -19,7 +19,11 @@ inline void axpy(uint32_t l, double a, double* x, double* y, double* z) {
 
 #else
 
-    snrt_ssr_loop_1d(SNRT_SSR_DM_ALL, frac, sizeof(double));
+    // TODO(colluca): revert once Banshee supports SNRT_SSR_DM_ALL
+    // snrt_ssr_loop_1d(SNRT_SSR_DM_ALL, frac, sizeof(double));
+    snrt_ssr_loop_1d(SNRT_SSR_DM0, frac, sizeof(double));
+    snrt_ssr_loop_1d(SNRT_SSR_DM1, frac, sizeof(double));
+    snrt_ssr_loop_1d(SNRT_SSR_DM2, frac, sizeof(double));
 
     snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_1D, x + offset);
     snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_1D, y + offset);

@@ -5,6 +5,7 @@
 /// RTL Top-level for `fesvr` simulation.
 module tb_bin;
   import "DPI-C" function int fesvr_tick();
+  import "DPI-C" function void fesvr_cleanup();
 
   // This can't have an explicit type, otherwise the simulation will not advance
   // for whatever reason.
@@ -18,6 +19,7 @@ module tb_bin;
     .rst_ni
   );
 
+  // Generate reset
   initial begin
     rst_ni = 0;
     #10ns;
@@ -28,7 +30,7 @@ module tb_bin;
     rst_ni = 1;
   end
 
-  // Generate reset and clock.
+  // Generate clock
   initial begin
     forever begin
       clk_i = 1;
@@ -38,10 +40,12 @@ module tb_bin;
     end
   end
 
-  // Start `fesvr`.
+  // Start `fesvr`
   initial begin
     automatic int exit_code;
     while ((exit_code = fesvr_tick()) == 0) #200ns;
+    // Cleanup C++ simulation objects before $finish is called
+    fesvr_cleanup();
     exit_code >>= 1;
     if (exit_code > 0) begin
       $error("[FAILURE] Finished with exit code %2d", exit_code);

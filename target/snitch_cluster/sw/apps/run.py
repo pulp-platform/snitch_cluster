@@ -9,12 +9,12 @@
 import sys
 from pathlib import Path
 
-sys.path.append(str(Path(__file__).parent / '../../../../util'))
-import simutils # noqa: E402,E261
+sys.path.append(str(Path(__file__).parent / '../../../../util/sim'))
+import sim_utils # noqa: E402,E261
 
 
 def main():
-    simutils.main(lambda test: Path(__file__).parent / f'{test}/build/{Path(test).name}.elf')
+    sim_utils.main(lambda test: Path(__file__).parent / f'{test}/build/{Path(test).name}.elf')
 
 
 if __name__ == '__main__':

@@ -93,8 +93,8 @@ snitch-cluster-vlt:
   script:
     - cd target/snitch_cluster
     - $VERILATOR make bin/snitch_cluster.vlt
-    - $VERILATOR ./sw/tests/run.py sw/tests/passing-apps.list --simulator verilator
-    - $VERILATOR ./sw/apps/run.py sw/apps/passing-apps.list --simulator verilator
+    - $VERILATOR ./sw/tests/run.py sw/tests/run.yaml --simulator verilator
+    - $VERILATOR ./sw/apps/run.py sw/apps/run.yaml --simulator verilator
   # yamllint enable rule:line-length
 
 # VCS
@@ -103,8 +103,8 @@ snitch-cluster-vcs:
   script:
     - cd target/snitch_cluster
     - $VCS make bin/snitch_cluster.vcs
-    - $VCS ./sw/tests/run.py sw/tests/passing-apps.list --simulator vcs
-    - $VCS ./sw/apps/run.py sw/apps/passing-apps.list --simulator vcs
+    - $VCS ./sw/tests/run.py sw/tests/run.yaml --simulator vcs
+    - $VCS ./sw/apps/run.py sw/apps/run.yaml --simulator vcs
 
 # Questa
 snitch-cluster-vsim:
@@ -112,8 +112,8 @@ snitch-cluster-vsim:
   script:
     - cd target/snitch_cluster
     - $QUESTA make bin/snitch_cluster.vsim
-    - $QUESTA ./sw/tests/run.py sw/tests/passing-apps.list --simulator vsim
-    - $QUESTA ./sw/apps/run.py sw/apps/passing-apps.list --simulator vsim
+    - $QUESTA ./sw/tests/run.py sw/tests/run.yaml --simulator vsim
+    - $QUESTA ./sw/apps/run.py sw/apps/run.yaml --simulator vsim
 
 # Banshee
 snitch-cluster-banshee:
@@ -129,5 +129,5 @@ snitch-cluster-banshee:
     - cd banshee
     - cargo install --debug --path .
     - cd ../target/snitch_cluster
-    - ./sw/tests/run.py sw/tests/banshee-apps.list --simulator banshee
-    - ./sw/apps/run.py sw/apps/passing-apps.list --simulator banshee
+    - ./sw/tests/run.py sw/tests/run.yaml --simulator banshee
+    - ./sw/apps/run.py sw/apps/run.yaml --simulator banshee

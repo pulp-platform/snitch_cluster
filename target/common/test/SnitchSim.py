@@ -13,15 +13,17 @@ import sys
 import tempfile
 import subprocess
 import struct
+import functools
 
 
 class SnitchSim:
 
-    def __init__(self, sim_bin: str, snitch_bin: str):
+    def __init__(self, sim_bin: str, snitch_bin: str, log: str = None):
         self.sim_bin = sim_bin
         self.snitch_bin = snitch_bin
         self.sim = None
         self.tmpdir = None
+        self.log = open(log, 'w+') if log else log
 
     def start(self):
         # Create FIFOs
@@ -32,40 +34,44 @@ class SnitchSim:
         os.mkfifo(rx_fd)
         # Start simulator process
         ipc_arg = f'--ipc,{tx_fd},{rx_fd}'
-        self.sim = subprocess.Popen([self.sim_bin, self.snitch_bin, ipc_arg])
+        self.sim = subprocess.Popen([self.sim_bin, self.snitch_bin, ipc_arg], stdout=self.log)
         # Open FIFOs
-        self.tx = open(tx_fd, 'wb')
+        self.tx = open(tx_fd, 'wb', buffering=0)  # Unbuffered
         self.rx = open(rx_fd, 'rb')
 
     def __sim_active(func):
+        @functools.wraps(func)
         def inner(self, *args, **kwargs):
             if self.sim is None:
-                raise RuntimeError(f'Snitch is not running (simulation `{self.sim_bin}`,'
-                                   + f' binary `{self.snitch_bin}`)')
+                raise RuntimeError(f'Snitch is not running (simulation `{self.sim_bin}`'
+                                   f'binary `{self.snitch_bin}`)')
             return func(self, *args, **kwargs)
         return inner
 
     @__sim_active
     def read(self, addr: int, length: int) -> bytes:
-        op = struct.pack('QQQ', 0, addr, length)
+        op = struct.pack('=QQQ', 0, addr, length)
         self.tx.write(op)
-        self.tx.flush()
         return self.rx.read(length)
 
     @__sim_active
     def write(self, addr: int, data: bytes):
-        op = struct.pack('QQQ', 1, addr, len(data))
+        op = struct.pack('=QQQ', 1, addr, len(data))
         self.tx.write(op)
         self.tx.write(data)
-        self.tx.flush()
 
     @__sim_active
     def poll(self, addr: int, mask32: int, exp32: int):
-        # TODO: check endiannesses
-        op = struct.pack('QQLL', 2, addr, mask32, exp32)
-        self.tx.write(op)
-        self.tx.flush()
-        return int.from_bytes(self.rx.read(4))
+        op = struct.pack('=QQLL', 2, addr, mask32, exp32)
+        while True:
+            try:
+                self.tx.write(op)
+            except IOError:
+                print('Broken pipe error')
+                continue
+            break
+        bytestring = self.rx.read(4)
+        return int.from_bytes(bytestring, byteorder='little')
 
     # Simulator can exit only once TX FIFO closes
     @__sim_active

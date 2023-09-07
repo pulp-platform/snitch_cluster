@@ -44,18 +44,7 @@ RISCV_LDFLAGS += -lsnRuntime
 # Outputs #
 ###########
 
-# Treat lines starting with '#' as comments
-define get_apps_from_list
-	$(shell grep -v '^\#' $(1))
-endef
-
-ifeq ($(SELECT_RUNTIME), banshee)
-	APPS = $(call get_apps_from_list,banshee-apps.list)
-else
-	APPS  = $(call get_apps_from_list,passing-apps.list)
-	APPS += $(call get_apps_from_list,failing-apps.list)
-endif
-
+APPS        = $(shell $(MK_DIR)/../../../../util/sim/list_apps.py run.yaml)
 ELFS        = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .elf,$(APPS))))
 DEPS        = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .d,$(APPS))))
 DUMPS       = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .dump,$(APPS))))
@@ -90,7 +79,6 @@ $(BUILDDIR)/%.dump: $(BUILDDIR)/%.elf | $(BUILDDIR)
 	$(RISCV_OBJDUMP) -D -S $< > $@
 
 $(BUILDDIR)/%.dwarf: $(BUILDDIR)/%.elf | $(BUILDDIR)
-# 	$(RISCV_READELF) --debug-dump $< > $@
 	$(RISCV_DWARFDUMP) --all $< > $@
 
 ifneq ($(MAKECMDGOALS),clean)
