@@ -130,6 +130,10 @@ module snitch_cluster
   /// Radix of the individual switch points of the network.
   /// Currently supported are `32'd2` and `32'd4`.
   parameter int unsigned Radix              = 32'd2,
+  /// Number of parallel networks for switch-based TCDM interconnect.
+  parameter int unsigned NumSwitchNets      = 32'd2,
+  /// Whether to use an LFSR to arbitrate switch-based TCDM networks.
+  parameter bit          SwitchLfsrArbiter  = 1'b0,
   /// ## Timing Tuning Parameters
   /// Insert Pipeline registers into off-loading path (request)
   parameter bit          RegisterOffloadReq = 1'b0,
@@ -768,7 +772,9 @@ module snitch_cluster
     .user_t (tcdm_user_t),
     .MemoryResponseLatency (1 + RegisterTCDMCuts),
     .Radix (Radix),
-    .Topology (Topology)
+    .Topology (Topology),
+    .NumSwitchNets (NumSwitchNets),
+    .SwitchLfsrArbiter (SwitchLfsrArbiter)
   ) i_tcdm_interconnect (
     .clk_i,
     .rst_ni,
