@@ -887,37 +887,39 @@ module snitch_cc #(
       end
 
       cycle++;
-      // Trace snitch iff:
-      // we are not stalled <==> we have issued and processed an instruction (including offloads)
-      // OR we are retiring (issuing a writeback from) a load or accelerator instruction
-      if (
-          !i_snitch.stall || i_snitch.retire_load || i_snitch.retire_acc
-      ) begin
-        $sformat(trace_entry, "%t %1d %8d 0x%h DASM(%h) #; %s\n",
-            $time, cycle, i_snitch.priv_lvl_q, i_snitch.pc_q, i_snitch.inst_data_i,
-            snitch_pkg::print_snitch_trace(extras_snitch));
-        $fwrite(f, trace_entry);
-      end
-      if (FPEn) begin
-        // Trace FPU iff:
-        // an incoming handshake on the accelerator bus occurs <==> an instruction was issued
-        // OR an FPU result is ready to be written back to an FPR register or the bus
-        // OR an LSU result is ready to be written back to an FPR register or the bus
-        // OR an FPU result, LSU result or bus value is ready to be written back to an FPR register
-        if (extras_fpu.acc_q_hs || extras_fpu.fpu_out_hs
-        || extras_fpu.lsu_q_hs || extras_fpu.fpr_we) begin
+      if (i_snitch.csr_trace_q) begin
+        // Trace snitch iff:
+        // we are not stalled <==> we have issued and processed an instruction (including offloads)
+        // OR we are retiring (issuing a writeback from) a load or accelerator instruction
+        if (
+            !i_snitch.stall || i_snitch.retire_load || i_snitch.retire_acc
+        ) begin
           $sformat(trace_entry, "%t %1d %8d 0x%h DASM(%h) #; %s\n",
-              $time, cycle, i_snitch.priv_lvl_q, 32'hz, extras_fpu.op_in,
-              snitch_pkg::print_fpu_trace(extras_fpu));
+              $time, cycle, i_snitch.priv_lvl_q, i_snitch.pc_q, i_snitch.inst_data_i,
+              snitch_pkg::print_snitch_trace(extras_snitch));
           $fwrite(f, trace_entry);
         end
-        // sequencer instructions
-        if (Xfrep) begin
-          if (extras_fpu_seq_out.cbuf_push) begin
+        if (FPEn) begin
+          // Trace FPU iff:
+          // an incoming handshake on the accelerator bus occurs <==> an instruction was issued
+          // OR an FPU result is ready to be written back to an FPR register or the bus
+          // OR an LSU result is ready to be written back to an FPR register or the bus
+          // OR an FPU result, LSU result or bus value is ready to be written back to an FPR register
+          if (extras_fpu.acc_q_hs || extras_fpu.fpu_out_hs
+          || extras_fpu.lsu_q_hs || extras_fpu.fpr_we) begin
             $sformat(trace_entry, "%t %1d %8d 0x%h DASM(%h) #; %s\n",
-                $time, cycle, i_snitch.priv_lvl_q, 32'hz, 64'hz,
-                snitch_pkg::print_fpu_sequencer_trace(extras_fpu_seq_out));
+                $time, cycle, i_snitch.priv_lvl_q, 32'hz, extras_fpu.op_in,
+                snitch_pkg::print_fpu_trace(extras_fpu));
             $fwrite(f, trace_entry);
+          end
+          // sequencer instructions
+          if (Xfrep) begin
+            if (extras_fpu_seq_out.cbuf_push) begin
+              $sformat(trace_entry, "%t %1d %8d 0x%h DASM(%h) #; %s\n",
+                  $time, cycle, i_snitch.priv_lvl_q, 32'hz, 64'hz,
+                  snitch_pkg::print_fpu_sequencer_trace(extras_fpu_seq_out));
+              $fwrite(f, trace_entry);
+            end
           end
         end
       end

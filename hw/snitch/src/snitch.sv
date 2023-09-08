@@ -239,6 +239,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic csr_en;
   logic csr_dump;
   logic csr_stall_d, csr_stall_q;
+  logic csr_trace_q, csr_trace_d;
 
   localparam logic M = 0;
   localparam logic S = 1;
@@ -308,6 +309,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   end
 
   `FFAR(csr_stall_q, csr_stall_d, '0, clk_i, rst_i)
+
+  // CSR registers
+  `FFAR(csr_trace_q, csr_trace_d, 1'b1, clk_i, rst_i);
 
   typedef struct packed {
     fpnew_pkg::fmt_mode_t  fmode;
@@ -2260,6 +2264,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     illegal_csr = '0;
     priv_lvl_d = priv_lvl_q;
     // registers
+    csr_trace_d = csr_trace_q;
     fcsr_d = fcsr_q;
     fcsr_d.fflags = fcsr_q.fflags | fpu_status_i;
     fcsr_d.fmode.src = fcsr_q.fmode.src;
@@ -2360,6 +2365,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
               csr_rvalue = dscratch_q;
               dscratch_d = alu_result;
             end else illegal_csr = 1'b1;
+          end
+          CSR_TRACE: begin
+            csr_rvalue[0] = csr_trace_q;
+            csr_trace_d = alu_result[0];
           end
           `ifdef SNITCH_ENABLE_PERF
           CSR_MCYCLE: begin
