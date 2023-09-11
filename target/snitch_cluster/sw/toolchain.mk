@@ -17,7 +17,7 @@ DEBUG ?= OFF # ON to turn on debugging symbols
 
 # Compiler toolchain
 LLVM_BINROOT    ?= $(dir $(shell which riscv32-unknown-elf-clang))
-LLVM_VER        ?= $(subst git,,$(shell $(LLVM_BINROOT)/llvm-config --version))
+LLVM_VER        ?= $(shell $(LLVM_BINROOT)/llvm-config --version | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
 RISCV_CC        ?= $(LLVM_BINROOT)/clang
 RISCV_LD        ?= $(LLVM_BINROOT)/ld.lld
 RISCV_AR        ?= $(LLVM_BINROOT)/llvm-ar
