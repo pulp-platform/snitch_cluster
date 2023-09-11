@@ -108,12 +108,14 @@ module snitch_tcdm_interconnect #(
     assign mem_req_o[i].q = out_req[i];
   end
 
+  localparam snitch_pkg::topo_e TOPO = snitch_pkg::OmegaNet;
+
   // ------------
   // Request Side
   // ------------
   // We need to arbitrate the requests coming from the input side and resolve
   // potential bank conflicts. Therefore a full arbitration tree is needed.
-  if (Topology == snitch_pkg::LogarithmicInterconnect) begin : gen_xbar
+  if (TOPO == snitch_pkg::LogarithmicInterconnect) begin : gen_xbar
     stream_xbar #(
       .NumInp      ( NumInp    ),
       .NumOut      ( NumOut    ),
@@ -136,7 +138,7 @@ module snitch_tcdm_interconnect #(
       .valid_o ( mem_q_valid_flat ),
       .ready_i ( mem_q_ready_flat )
     );
-  end else if (Topology == snitch_pkg::OmegaNet) begin : gen_omega_net
+  end else if (TOPO == snitch_pkg::OmegaNet) begin : gen_omega_net
     localparam int unsigned NumInpPerNet = cf_math_pkg::ceil_div(NumInp, NumOmegaNets);
 
     // Intermediate request signals for Omega-to-Xbar interface
@@ -183,7 +185,7 @@ module snitch_tcdm_interconnect #(
     assign data_in  = in_req;
     assign in_sel   = bank_select;
     assign in_valid = req_q_valid_flat;
-    assign req_q_ready_flat = in_ready;
+    assign rsp_q_ready_flat = in_ready;
 
 
     // Generate Omega networks (first stage)
