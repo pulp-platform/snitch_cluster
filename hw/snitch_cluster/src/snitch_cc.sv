@@ -124,6 +124,13 @@ module snitch_cc #(
   output logic                       axi_dma_busy_o,
   output axi_dma_pkg::dma_perf_t     axi_dma_perf_o,
   output dma_events_t                axi_dma_events_o,
+  // Snax ports
+  output acc_req_t                  snax_req_o,
+  output logic                      snax_qvalid_o,
+  input  logic                      snax_qready_i,
+  input  acc_resp_t                 snax_resp_i,
+  input  logic                      snax_pvalid_i,
+  output logic                      snax_pready_o,
   // Core event strobes
   output snitch_pkg::core_events_t   core_events_o,
   input  addr_t                      tcdm_addr_base_i
@@ -162,6 +169,7 @@ module snitch_cc #(
   acc_resp_t ipu_resp;
 
   acc_resp_t ssr_resp;
+  acc_resp_t snax_resp;
 
   logic acc_snitch_demux_qvalid, acc_snitch_demux_qready;
   logic acc_snitch_demux_qvalid_q, acc_snitch_demux_qready_q;
@@ -169,11 +177,13 @@ module snitch_cc #(
   logic dma_qvalid, dma_qready;
   logic ipu_qvalid, ipu_qready;
   logic ssr_qvalid, ssr_qready;
+  logic snax_qvalid, snax_qready;
 
   logic acc_pvalid, acc_pready;
   logic dma_pvalid, dma_pready;
   logic ipu_pvalid, ipu_pready;
   logic ssr_pvalid, ssr_pready;
+  logic snax_pvalid, snax_pready;
   logic acc_demux_snitch_valid, acc_demux_snitch_ready;
   logic acc_demux_snitch_valid_q, acc_demux_snitch_ready_q;
 
@@ -309,14 +319,21 @@ module snitch_cc #(
 
   // Accelerator Demux Port
   stream_demux #(
-    .N_OUP ( 5 )
+    .N_OUP ( 6 )
   ) i_stream_demux_offload (
     .inp_valid_i  ( acc_snitch_demux_qvalid_q  ),
     .inp_ready_o  ( acc_snitch_demux_qready_q  ),
-    .oup_sel_i    ( acc_snitch_demux_q.addr[$clog2(5)-1:0]             ),
-    .oup_valid_o  ( {ssr_qvalid, ipu_qvalid, dma_qvalid, hive_req_o.acc_qvalid, acc_qvalid} ),
-    .oup_ready_i  ( {ssr_qready, ipu_qready, dma_qready, hive_rsp_i.acc_qready, acc_qready} )
+    .oup_sel_i    ( acc_snitch_demux_q.addr[$clog2(5)-1:0] ),
+    .oup_valid_o  ( {snax_qvalid, ssr_qvalid, ipu_qvalid,
+                     dma_qvalid, hive_req_o.acc_qvalid, acc_qvalid} ),
+    .oup_ready_i  ( {snax_qready, ssr_qready, ipu_qready,
+                     dma_qready, hive_rsp_i.acc_qready, acc_qready} )
   );
+
+  // To SNAX ports
+  assign snax_req_o = acc_snitch_demux_q;
+  assign snax_qvalid_o = snax_qvalid;
+  assign snax_qready = snax_qready_i;
 
   // To shared muldiv
   assign hive_req_o.acc_req = acc_snitch_demux_q;
@@ -324,17 +341,23 @@ module snitch_cc #(
 
   stream_arbiter #(
     .DATA_T      ( acc_resp_t ),
-    .N_INP       ( 5          )
+    .N_INP       ( 6          )
   ) i_stream_arbiter_offload (
     .clk_i       ( clk_i                                   ),
     .rst_ni      ( rst_ni                                  ),
-    .inp_data_i  ( {ssr_resp,   ipu_resp,   dma_resp,   hive_rsp_i.acc_resp,   acc_seq    } ),
-    .inp_valid_i ( {ssr_pvalid, ipu_pvalid, dma_pvalid, hive_rsp_i.acc_pvalid, acc_pvalid } ),
-    .inp_ready_o ( {ssr_pready, ipu_pready, dma_pready, hive_req_o.acc_pready, acc_pready } ),
+    .inp_data_i  ( {snax_resp, ssr_resp, ipu_resp, dma_resp, hive_rsp_i.acc_resp, acc_seq } ),
+    .inp_valid_i ( {snax_pvalid, ssr_pvalid, ipu_pvalid,
+                    dma_pvalid, hive_rsp_i.acc_pvalid, acc_pvalid } ),
+    .inp_ready_o ( {snax_pready, ssr_pready, ipu_pready,
+                    dma_pready, hive_req_o.acc_pready, acc_pready } ),
     .oup_data_o  ( acc_demux_snitch_q                      ),
     .oup_valid_o ( acc_demux_snitch_valid_q                ),
     .oup_ready_i ( acc_demux_snitch_ready_q                )
   );
+
+  assign snax_resp = snax_resp_i;
+  assign snax_pvalid = snax_pvalid_i;
+  assign snax_pready_o = snax_pready;
 
   if (Xdma) begin : gen_dma
     axi_dma_tc_snitch_fe #(
