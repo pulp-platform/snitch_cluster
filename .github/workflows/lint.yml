@@ -85,6 +85,7 @@ jobs:
             sw/math/src/internal/*
             sw/math/src/math/*
             sw/math/Makefile
+            hw/snitch/src/csr_snax_def.sv
 
   ##################
   # Lint YML Files #
