@@ -96,6 +96,10 @@ module snitch_cluster
   /// FPU configuration.
   parameter fpnew_pkg::fpu_implementation_t FPUImplementation [NrCores] =
     '{default: fpnew_pkg::fpu_implementation_t'(0)},
+  /// Enable SNAX per core
+  parameter bit [NrCores-1:0] SNAX          = '0,
+  /// Number of SNAX TCDM ports, the default assumes HWPE MAC engine
+  parameter int unsigned SnaxTcdmPorts      =  4,
   /// Physical Memory Attribute Configuration
   parameter snitch_pma_pkg::snitch_pma_t SnitchPMACfg = '0,
   /// # Per-core parameters
@@ -251,6 +255,9 @@ module snitch_cluster
     for (int i = 0; i < core_idx; i++) n += get_tcdm_ports(i);
     return n;
   endfunction
+
+  // SNAX TCDM
+  localparam int unsigned TotalSnaxTcdmPorts = SnaxTcdmPorts*NrCores;
 
   localparam int unsigned NrTCDMPortsCores = get_tcdm_port_offs(NrCores);
   localparam int unsigned NumTCDMIn = NrTCDMPortsCores + 1;
@@ -485,6 +492,10 @@ module snitch_cluster
 
   tcdm_req_t [NrTCDMPortsCores-1:0] tcdm_req;
   tcdm_rsp_t [NrTCDMPortsCores-1:0] tcdm_rsp;
+
+  // Generation of SNAX wires
+  tcdm_req_t [NrCores-1:0] [SnaxTcdmPorts-1:0 ] snax_tcdm_req;
+  tcdm_rsp_t [NrCores-1:0] [SnaxTcdmPorts-1:0 ] snax_tcdm_rsp;
 
   core_events_t [NrCores-1:0] core_events;
   tcdm_events_t               tcdm_events;
@@ -756,27 +767,52 @@ module snitch_cluster
     end
   end
 
-  snitch_tcdm_interconnect #(
-    .NumInp (NumTCDMIn),
-    .NumOut (NrBanks),
-    .tcdm_req_t (tcdm_req_t),
-    .tcdm_rsp_t (tcdm_rsp_t),
-    .mem_req_t (mem_req_t),
-    .mem_rsp_t (mem_rsp_t),
-    .MemAddrWidth (TCDMMemAddrWidth),
-    .DataWidth (NarrowDataWidth),
-    .user_t (tcdm_user_t),
-    .MemoryResponseLatency (1 + RegisterTCDMCuts),
-    .Radix (Radix),
-    .Topology (Topology)
-  ) i_tcdm_interconnect (
-    .clk_i,
-    .rst_ni,
-    .req_i ({axi_soc_req, tcdm_req}),
-    .rsp_o ({axi_soc_rsp, tcdm_rsp}),
-    .mem_req_o (ic_req),
-    .mem_rsp_i (ic_rsp)
-  );
+  // generate TCDM for snax if any of the cores has SNAX enabled
+  if(|SNAX) begin: gen_yes_snax_tcdm_interconnect
+    snitch_tcdm_interconnect #(
+      .NumInp (NumTCDMIn + TotalSnaxTcdmPorts),
+      .NumOut (NrBanks),
+      .tcdm_req_t (tcdm_req_t),
+      .tcdm_rsp_t (tcdm_rsp_t),
+      .mem_req_t (mem_req_t),
+      .mem_rsp_t (mem_rsp_t),
+      .MemAddrWidth (TCDMMemAddrWidth),
+      .DataWidth (NarrowDataWidth),
+      .user_t (tcdm_user_t),
+      .MemoryResponseLatency (1 + RegisterTCDMCuts),
+      .Radix (Radix),
+      .Topology (Topology)
+    ) i_tcdm_interconnect (
+      .clk_i,
+      .rst_ni,
+      .req_i ({axi_soc_req, tcdm_req, snax_tcdm_req}),
+      .rsp_o ({axi_soc_rsp, tcdm_rsp, snax_tcdm_rsp}),
+      .mem_req_o (ic_req),
+      .mem_rsp_i (ic_rsp)
+    );
+  end else begin: gen_no_snax_tcdm_interconnect
+    snitch_tcdm_interconnect #(
+      .NumInp (NumTCDMIn),
+      .NumOut (NrBanks),
+      .tcdm_req_t (tcdm_req_t),
+      .tcdm_rsp_t (tcdm_rsp_t),
+      .mem_req_t (mem_req_t),
+      .mem_rsp_t (mem_rsp_t),
+      .MemAddrWidth (TCDMMemAddrWidth),
+      .DataWidth (NarrowDataWidth),
+      .user_t (tcdm_user_t),
+      .MemoryResponseLatency (1 + RegisterTCDMCuts),
+      .Radix (Radix),
+      .Topology (Topology)
+    ) i_tcdm_interconnect (
+      .clk_i,
+      .rst_ni,
+      .req_i ({axi_soc_req, tcdm_req}),
+      .rsp_o ({axi_soc_rsp, tcdm_rsp}),
+      .mem_req_o (ic_req),
+      .mem_rsp_i (ic_rsp)
+    );
+  end
 
   logic clk_d2;
 
@@ -814,6 +850,14 @@ module snitch_cluster
     assign irq.mcip = cl_interrupt[i];
 
       tcdm_req_t [TcdmPorts-1:0] tcdm_req_wo_user;
+
+      // SNAX wiring
+      acc_req_t snax_req;
+      logic snax_qvalid;
+      logic snax_qready;
+      acc_resp_t snax_resp;
+      logic snax_pvalid;
+      logic snax_pready;
 
       snitch_cc #(
         .AddrWidth (PhysicalAddrWidth),
@@ -893,6 +937,12 @@ module snitch_cluster
         .axi_dma_busy_o (),
         .axi_dma_perf_o (),
         .axi_dma_events_o (dma_core_events),
+        .snax_req_o (snax_req),
+        .snax_qvalid_o (snax_qvalid),
+        .snax_qready_i (snax_qready),
+        .snax_resp_i (snax_resp),
+        .snax_pvalid_i (snax_pvalid),
+        .snax_pready_o (snax_pready),
         .core_events_o (core_events[i]),
         .tcdm_addr_base_i (tcdm_start_address),
         .barrier_o (barrier_in[i]),
@@ -909,6 +959,42 @@ module snitch_cluster
         assign wide_axi_mst_req[SDMAMst] = axi_dma_req;
         assign axi_dma_res = wide_axi_mst_rsp[SDMAMst];
         assign dma_events = dma_core_events;
+      end
+
+      if(SNAX[i]) begin: gen_yes_mac
+        //TODO: Add MAC engine here in next PR
+        // Tie these signal to low when no SNAX accelerator is present
+        assign snax_qready = '0;
+        assign snax_resp   = '0;
+        assign snax_pvalid = '0;
+        assign snax_tcdm_req[i] = '0;
+
+        // snax_mac # (
+        //   .DataWidth          ( 32               ),
+        //   .SnaxTcdmPorts      ( SnaxTcdmPorts    ),
+        //   .acc_req_t          ( acc_req_t        ),
+        //   .acc_rsp_t          ( acc_resp_t       ),
+        //   .tcdm_req_t         ( tcdm_req_t       ),
+        //   .tcdm_rsp_t         ( tcdm_rsp_t       )
+        // ) i_snax_mac (
+        //   .clk_i              ( clk_i            ),
+        //   .rst_ni             ( rst_ni           ),
+        //   .snax_req_i         ( snax_req         ),
+        //   .snax_qvalid_i      ( snax_qvalid      ),
+        //   .snax_qready_o      ( snax_qready      ),
+        //   .snax_resp_o        ( snax_resp        ),
+        //   .snax_pvalid_o      ( snax_pvalid      ),
+        //   .snax_pready_i      ( snax_pready      ),
+        //   .snax_tcdm_req_o    ( snax_tcdm_req[i] ),
+        //   .snax_tcdm_rsp_i    ( snax_tcdm_rsp[i] )
+        // );
+
+      end else begin: gen_no_mac
+        // Tie these signal to low when no SNAX accelerator is present
+        assign snax_qready = '0;
+        assign snax_resp   = '0;
+        assign snax_pvalid = '0;
+        assign snax_tcdm_req[i] = '0;
       end
   end
 
