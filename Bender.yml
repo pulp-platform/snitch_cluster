@@ -138,6 +138,7 @@ sources:
       # Level 0
       - hw/snitch/src/snitch_pma_pkg.sv
       - hw/snitch/src/riscv_instr.sv
+      - hw/snitch/src/csr_snax_def.sv
       # Level 1
       - hw/snitch/src/snitch_pkg.sv
       # Level 2
