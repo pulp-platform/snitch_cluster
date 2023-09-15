@@ -22,7 +22,8 @@ markdown_extensions:
       emoji_generator: !!python/name:materialx.emoji.to_svg
 plugins:
   - include-markdown
-  - macros
+  - macros:
+      on_error_fail: true
 use_directory_urls: false
 extra:
   branch: main
@@ -41,6 +42,7 @@ nav:
           - Snitch: rm/snitch.md
           - Snitch Cluster:
               - Overview: rm/snitch_cluster.md
+              - Peripherals: rm/peripherals.md
               - Schema: schema-doc/snitch_cluster.md
           - Reqrsp Interface: rm/reqrsp_interface.md
           - Custom Instructions: rm/custom_instructions.md

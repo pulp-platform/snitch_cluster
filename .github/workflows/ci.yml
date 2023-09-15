@@ -15,11 +15,11 @@ jobs:
     name: Build documentation
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster:ipc-verification
+      image: ghcr.io/pulp-platform/snitch_cluster:main
     steps:
       - uses: actions/checkout@v2
       - name: Build docs
-        run: mkdocs build
+        run: make docs
 
   ##############################################
   # Simulate SW on Snitch Cluster w/ Verilator #
@@ -29,7 +29,7 @@ jobs:
     name: Simulate SW on Snitch Cluster w/ Verilator
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster:ipc-verification
+      image: ghcr.io/pulp-platform/snitch_cluster:main
     steps:
       - uses: actions/checkout@v2
         with:
@@ -54,7 +54,7 @@ jobs:
     name: Simulate SW on Snitch Cluster w/ Banshee
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster:ipc-verification
+      image: ghcr.io/pulp-platform/snitch_cluster:main
     steps:
       - uses: actions/checkout@v2
         with:
