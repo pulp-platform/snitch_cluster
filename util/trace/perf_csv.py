@@ -51,7 +51,7 @@ def main():
     for dump in dumps:
 
         # Get hart id from filename and append to index
-        hartid = int(re.search(HARTID_REGEX, dump).group(1))
+        hartid = int(re.search(HARTID_REGEX, dump).group(1), base=16)
         index.append(hartid)
 
         # Populate dictionary of metrics for the current hart
