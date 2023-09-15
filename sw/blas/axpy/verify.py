@@ -42,6 +42,9 @@ def main():
     z_golden = golden_model(a, x, y)
     relative_err = np.absolute((z_golden - z_actual) / z_golden)
     fail = np.any(relative_err > ERR_THRESHOLD)
+    if (fail):
+        verification.dump_results_to_csv([z_golden, z_actual, relative_err],
+                                         Path.cwd() / 'axpy_results.csv')
 
     return int(fail)
 

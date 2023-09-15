@@ -7,6 +7,8 @@
 
 import sys
 import argparse
+import numpy as np
+import csv
 from elf import Elf
 from pathlib import Path
 
@@ -60,3 +62,19 @@ def simulate(sim_bin, snitch_bin, log, output_uids, symbols_bin=None):
     sim.finish(wait_for_sim=True)
 
     return raw_outputs
+
+
+# Takes a set of Numpy arrays (of the same shape), flattens them, zips them
+# and dumps them to a CSV file. Arrays may for example be: golden results, actual
+# results, absolute errors and relative errors.
+def dump_results_to_csv(results, path):
+    # Flatten and zip arrays
+    flattened = [arr.flatten() for arr in results]
+    zipped = np.column_stack(flattened)
+    # Write row-by-row to CSV file
+    with open(path, 'w') as csv_file:
+        csv_writer = csv.writer(csv_file)
+        for row in zipped:
+            csv_writer.writerow(row)
+    # Print path where results were written
+    print(f"Wrote results to {path}")
