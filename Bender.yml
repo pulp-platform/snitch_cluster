@@ -184,6 +184,13 @@ sources:
     files:
       - hw/snitch/test/snitch_l0_tlb_tb.sv
 
+  # hwpe_mac
+  - files:
+      # Level 0
+      - hw/snax_hwpe_mac/src/snax_hwpe_ctrl.sv
+      - hw/snax_hwpe_mac/src/snax_hwpe_to_reqrsp.sv
+      - hw/snax_hwpe_mac/src/snax_mac.sv
+
   # snitch_vm
   - files:
       - hw/snitch_vm/src/snitch_ptw.sv
