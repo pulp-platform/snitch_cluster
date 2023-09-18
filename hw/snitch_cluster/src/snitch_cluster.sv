@@ -962,32 +962,25 @@ module snitch_cluster
       end
 
       if(SNAX[i]) begin: gen_yes_mac
-        //TODO: Add MAC engine here in next PR
-        // Tie these signal to low when no SNAX accelerator is present
-        assign snax_qready = '0;
-        assign snax_resp   = '0;
-        assign snax_pvalid = '0;
-        assign snax_tcdm_req[i] = '0;
-
-        // snax_mac # (
-        //   .DataWidth          ( 32               ),
-        //   .SnaxTcdmPorts      ( SnaxTcdmPorts    ),
-        //   .acc_req_t          ( acc_req_t        ),
-        //   .acc_rsp_t          ( acc_resp_t       ),
-        //   .tcdm_req_t         ( tcdm_req_t       ),
-        //   .tcdm_rsp_t         ( tcdm_rsp_t       )
-        // ) i_snax_mac (
-        //   .clk_i              ( clk_i            ),
-        //   .rst_ni             ( rst_ni           ),
-        //   .snax_req_i         ( snax_req         ),
-        //   .snax_qvalid_i      ( snax_qvalid      ),
-        //   .snax_qready_o      ( snax_qready      ),
-        //   .snax_resp_o        ( snax_resp        ),
-        //   .snax_pvalid_o      ( snax_pvalid      ),
-        //   .snax_pready_i      ( snax_pready      ),
-        //   .snax_tcdm_req_o    ( snax_tcdm_req[i] ),
-        //   .snax_tcdm_rsp_i    ( snax_tcdm_rsp[i] )
-        // );
+        snax_mac # (
+          .DataWidth          ( 32               ),
+          .SnaxTcdmPorts      ( SnaxTcdmPorts    ),
+          .acc_req_t          ( acc_req_t        ),
+          .acc_rsp_t          ( acc_resp_t       ),
+          .tcdm_req_t         ( tcdm_req_t       ),
+          .tcdm_rsp_t         ( tcdm_rsp_t       )
+        ) i_snax_mac (
+          .clk_i              ( clk_i            ),
+          .rst_ni             ( rst_ni           ),
+          .snax_req_i         ( snax_req         ),
+          .snax_qvalid_i      ( snax_qvalid      ),
+          .snax_qready_o      ( snax_qready      ),
+          .snax_resp_o        ( snax_resp        ),
+          .snax_pvalid_o      ( snax_pvalid      ),
+          .snax_pready_i      ( snax_pready      ),
+          .snax_tcdm_req_o    ( snax_tcdm_req[i] ),
+          .snax_tcdm_rsp_i    ( snax_tcdm_rsp[i] )
+        );
 
       end else begin: gen_no_mac
         // Tie these signal to low when no SNAX accelerator is present
