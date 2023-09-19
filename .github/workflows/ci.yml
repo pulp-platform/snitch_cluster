@@ -46,6 +46,28 @@ jobs:
           ./sw/tests/run.py sw/tests/run.yaml --simulator verilator
           ./sw/apps/run.py sw/apps/run.yaml --simulator verilator
 
+  sw-snax-cluster-vlt:
+    name: Simulate SW on SNAX Cluster w/ Verilator
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/pulp-platform/snitch_cluster:ipc-verification
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - name: Build Hardware
+        run: |
+          make CFG_OVERRIDE=cfg/snax.hjson \
+          -C target/snitch_cluster bin/snitch_cluster.vlt
+      - name: Build Software
+        run: |
+          make -C target/snitch_cluster sw
+      - name: Run Tests
+        working-directory: target/snitch_cluster
+        run: |-
+          ./sw/tests/run.py sw/tests/snax-run.yaml --simulator verilator
+          ./sw/apps/run.py sw/apps/run.yaml --simulator verilator
+
   ############################################
   # Build SW on Snitch Cluster w/ Banshee #
   ############################################
