@@ -1,0 +1,18 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+runs:
+  - app: blas/axpy
+    cmd: ../../sw/blas/axpy/verify.py {sim_bin} {elf}
+  - app: blas/gemm
+  - app: dnn/batchnorm
+  - app: dnn/linear
+  - app: dnn/maxpool
+  - app: dnn/gemm
+  - app: snax-mac
+# dnn/gelu # seems like it stalls
+# dnn/conv2d # fails with exit code 32
+# dnn/fusedconv # fails newly
+# dnn/layernorm # throws illegal instruction on FDIV in simulation
+# dnn/softmax # throws illegal instruction on FDIV in simulation
