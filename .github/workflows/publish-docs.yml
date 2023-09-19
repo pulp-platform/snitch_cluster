@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v4
         with:
-          python-version: 3.x
+          python-version: "3.11"
       - uses: mattnotmitt/doxygen-action@v1
         with:
           working-directory: sw/
