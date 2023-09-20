@@ -8,11 +8,14 @@
 # TODO colluca: timeout feature
 
 import argparse
+import multiprocessing
 from pathlib import Path
 import subprocess
 from termcolor import colored, cprint
+import os
 import re
 import sys
+import time
 import yaml
 
 
@@ -28,7 +31,7 @@ SIMULATOR_BINS = {
     'vcs': 'bin/snitch_cluster.vcs'
 }
 SIMULATOR_CMDS = {
-    'vsim': '{sim_bin} {elf}',
+    'vsim': '{sim_bin} {elf} "" -batch',
     'banshee': ('{{sim_bin}} --no-opt-llvm --no-opt-jit --configuration {cfg}'
                 ' --trace {{elf}} > /dev/null').format(cfg=BANSHEE_CFG),
     'verilator': '{sim_bin} {elf}',
@@ -62,6 +65,22 @@ def parse_args():
         '--early-exit',
         action='store_true',
         help='Exit as soon as any test fails')
+    parser.add_argument(
+        '-j',
+        action='store',
+        dest='n_procs',
+        nargs='?',
+        type=int,
+        default=1,
+        const=os.cpu_count(),
+        help=('Maximum number of tests to run in parallel. '
+              'One if the option is not present. Equal to the number of CPU cores '
+              'if the option is present but not followed by an argument.'))
+    parser.add_argument(
+        '--verbose',
+        action='store_true',
+        help=('Option to print simulation logs when multiple tests are run in parallel.'
+              'Logs are always printed when n_procs == 1'))
     args = parser.parse_args()
     return args
 
@@ -81,17 +100,25 @@ def check_exit_code(test, exit_code):
         return exit_code
 
 
-def run_simulation(cmd, simulator, test):
+def multiple_processes(args):
+    return args.n_procs != 1
+
+
+def run_simulation(cmd, simulator, test, quiet=False):
     # Defaults
     result = 1
+    log = ''
 
     # Spawn simulation subprocess
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                         universal_newlines=True)
 
     # Poll simulation subprocess and log its output
     while p.poll() is None:
         line = p.stdout.readline()
-        print(line, end='', flush=True)
+        log += line
+        if not quiet:
+            print(line, end='', flush=True)
 
         # When simulating with vsim or vcs, we need to parse the simulation
         # log to catch the application's return code
@@ -123,7 +150,7 @@ def run_simulation(cmd, simulator, test):
         if exit_code != 0:
             result = exit_code
 
-    return result
+    return result, log
 
 
 def run_test(test, args):
@@ -132,11 +159,12 @@ def run_test(test, args):
     sim_bin = args.sim_bin if args.sim_bin else SIMULATOR_BINS[simulator]
     dry_run = args.dry_run
     testlist = args.testlist
+    quiet = multiple_processes(args)
 
     # Check if simulator is supported for this test
     if 'simulators' in test:
         if simulator not in test['simulators']:
-            return 0
+            return (0, '')
 
     # Construct path to executable
     elf = Path(test['elf'])
@@ -152,12 +180,14 @@ def run_test(test, args):
     else:
         cmd = SIMULATOR_CMDS[simulator]
         cmd = cmd.format(sim_bin=sim_bin, elf=elf)
-    print(f'$ {cmd}', flush=True)
+    if not quiet:
+        print(f'$ {cmd}', flush=True)
 
     # Run simulation
     result = 0
+    log = ''
     if not dry_run:
-        result = run_simulation(cmd, simulator, test)
+        result, log = run_simulation(cmd, simulator, test, quiet)
 
     # Report failure or success
     if result != 0:
@@ -165,39 +195,72 @@ def run_test(test, args):
     else:
         cprint(f'{elf} test passed', 'green', attrs=['bold'], flush=True)
 
-    return result
+    return (result, log)
 
 
 def print_failed_test(test):
     print(f'{colored(test["elf"], "cyan")} test {colored("failed", "red")}')
 
 
-def print_test_summary(failed_tests, dry_run=False):
-    if not dry_run:
-        print('\n==== Test summary ====')
+def print_test_summary(failed_tests, args):
+    if not args.dry_run:
+        header = f'\n==== Test summary {"(early exit)" if args.early_exit else ""} ===='
+        cprint(header, attrs=['bold'])
         if failed_tests:
             for failed_test in failed_tests:
                 print_failed_test(failed_test)
-            return 1
         else:
             print(f'{colored("All tests passed!", "green")}')
-            return 0
-    return 0
 
 
 def run_tests(args):
-    # Iterate tests
+
+    # Get tests from testlist
     tests = get_tests(args.testlist)
+
+    # Create a process Pool
+    with multiprocessing.Pool(args.n_procs) as pool:
+
+        # Create a shared object which parent and child processes can access
+        # concurrently to terminate the pool early as soon as one process fails
+        exit_early = multiprocessing.Value('B')
+        exit_early.value = 0
+
+        # Define callback for early exit
+        def completion_callback(return_value):
+            result = return_value[0]
+            log = return_value[1]
+            if args.early_exit and result != 0:
+                exit_early.value = 1
+            # Printing the log all at once here, rather than line-by-line
+            # in run_simulation, ensures that the logs of different processes
+            # are not interleaved in stdout.
+            # However, as we prefer line-by-line printing when a single process
+            # is used, we have to make sure we don't print twice.
+            if args.verbose and multiple_processes(args):
+                print(log)
+
+        # Queue tests to process pool
+        results = []
+        for test in tests:
+            result = pool.apply_async(run_test, args=(test, args), callback=completion_callback)
+            results.append(result)
+
+        # Wait for all tests to complete
+        running = range(len(tests))
+        while len(running) != 0 and not exit_early.value:
+            time.sleep(1)
+            running = [i for i in running if not results[i].ready()]
+
+    # Query test results
     failed_tests = []
-    for test in tests:
-        # Run test
-        result = run_test(test, args)
-        if result != 0:
+    for test, result in zip(tests, results):
+        if result.ready() and result.get()[0] != 0:
             failed_tests.append(test)
-            # End program if requested on first test failure
-            if args.early_exit:
-                break
-    return print_test_summary(failed_tests, args.dry_run)
+
+    print_test_summary(failed_tests, args)
+
+    return len(failed_tests)
 
 
 def main():
