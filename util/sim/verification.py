@@ -28,8 +28,8 @@ def parse_args():
         help='The Snitch binary to be executed by the simulated Snitch hardware')
     parser.add_argument(
         '--symbols-bin',
-        help='An optional binary containing the I/O symbols. By default,'
-             'these are searched for in snitch_bin. This argument serves as an'
+        help='An optional binary containing the I/O symbols. By default, '
+             'these are searched for in snitch_bin. This argument serves as an '
              'alternative.')
     parser.add_argument(
         '--log',

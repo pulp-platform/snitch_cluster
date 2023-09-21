@@ -213,10 +213,7 @@ def print_test_summary(failed_tests, args):
             print(f'{colored("All tests passed!", "green")}')
 
 
-def run_tests(args):
-
-    # Get tests from testlist
-    tests = get_tests(args.testlist)
+def run_tests(tests, args):
 
     # Create a process Pool
     with multiprocessing.Pool(args.n_procs) as pool:
@@ -265,8 +262,9 @@ def run_tests(args):
 
 def main():
     args = parse_args()
-    sys.exit(run_tests(args))
+    tests = get_tests(args.testlist)
+    return run_tests(tests, args)
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
