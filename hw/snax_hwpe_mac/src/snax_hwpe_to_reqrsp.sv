@@ -12,6 +12,7 @@ import reqrsp_pkg::*;
 module snax_hwpe_to_reqrsp #(
   parameter int unsigned AddrWidth = 48,
   parameter int unsigned DataWidth = 64,
+  parameter bit  AlignOutputDouble = 0,         // This triggers the x2 alignment for the addreses for doubles
   parameter type tcdm_req_t = logic,            // Memory request payload type, usually write enable, write data, etc.
   parameter type tcdm_rsp_t = logic             // Memory response payload type, usually read data
 )(
@@ -66,7 +67,10 @@ module snax_hwpe_to_reqrsp #(
   assign fifo_hwpe_tcdm_data_in.valid = hwpe_tcdm_slave.gnt & hwpe_tcdm_slave.req;
 
   // Unpack
-  assign unpack_addr        = fifo_hwpe_tcdm_data_out.add;
+  // Align the address to double if the HWPE stream is an output
+  // The incoming HWPE addresses are in multiples of 4
+  // Make them multiples of 8 by simply multiplying by 2
+  assign unpack_addr        = (AlignOutputDouble) ? fifo_hwpe_tcdm_data_out.add << 1 : fifo_hwpe_tcdm_data_out.add;
   assign tcdm_req_o.q.write = fifo_hwpe_tcdm_data_out.wen;
   assign strb               = fifo_hwpe_tcdm_data_out.be;
   assign unpack_data        = fifo_hwpe_tcdm_data_out.data;
@@ -173,7 +177,7 @@ module snax_hwpe_to_reqrsp #(
   // 
   //---------------------------------------------
 
-  assign hwpe_tcdm_slave.r_data  = (fifo_addr_out[2]) ?  tcdm_rsp_i.p.data[63:32] : tcdm_rsp_i.p.data[31:0];
+  assign hwpe_tcdm_slave.r_data  = tcdm_rsp_i.p.data[31:0];
   assign hwpe_tcdm_slave.r_valid = tcdm_rsp_i.p_valid;
 
   //---------------------------------------------
@@ -183,7 +187,7 @@ module snax_hwpe_to_reqrsp #(
   assign tcdm_req_o.q.addr = {{31{1'b0}},unpack_addr};
   assign tcdm_req_o.q.data = {{31{1'b0}},unpack_data};
   assign tcdm_req_o.q.amo  = AMONone;
-  assign tcdm_req_o.q.strb = {StrbWidth{strb}};
+  assign tcdm_req_o.q.strb = '1; //Byte strobes are always valid
   assign tcdm_req_o.q.user = '0;
 
 // verilog_lint: waive-stop line-length
