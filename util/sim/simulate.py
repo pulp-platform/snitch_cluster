@@ -180,6 +180,12 @@ def run_test(test, args):
     else:
         cmd = SIMULATOR_CMDS[simulator]
         cmd = cmd.format(sim_bin=sim_bin, elf=elf)
+
+    # Check if the simulation should be run in a specific directory.
+    # This is useful, e.g. to preserve the logs of multiple simulations
+    # which are executed in parallel
+    if 'rundir' in test:
+        cmd = f'cd {test["rundir"]} && {cmd}'
     if not quiet:
         print(f'$ {cmd}', flush=True)
 
