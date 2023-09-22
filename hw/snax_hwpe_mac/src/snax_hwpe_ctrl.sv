@@ -38,6 +38,12 @@ module snax_hwpe_ctrl #(
   // Number of bits to fill to extend to DataWidth
   localparam int unsigned FillBits = DataWidth - 32;
 
+  // CSR addresses for HWPE register mappings
+  localparam int unsigned HwpeStreamAddrA   = 32'd64;
+  localparam int unsigned HwpeStreamAddrB   = 32'd68;
+  localparam int unsigned HwpeStreamAddrC   = 32'd72;
+  localparam int unsigned HwpeStreamAddrOut = 32'd76;
+
   //---------------------------------------------
   // Registers and wires
   //---------------------------------------------
@@ -115,9 +121,16 @@ module snax_hwpe_ctrl #(
     endcase
   end
 
+  // If the writes are towards address settings
+  // Make sure to trigger the flag so we can offset the addresses
+  logic  address_register;
+  assign address_register = ( address_in == HwpeStreamAddrA
+                           || address_in == HwpeStreamAddrB
+                           || address_in == HwpeStreamAddrC
+                           || address_in == HwpeStreamAddrOut );
+
   // Byte enable always only when we need to write
   assign be  = (is_write) ? 4'hF : 4'h0;
-
 
   // States
   typedef enum logic [1:0] {
@@ -214,7 +227,9 @@ module snax_hwpe_ctrl #(
             periph.add  <= address_in;
             periph.wen  <= wen;
             periph.be   <= be;
-            periph.data <= req_i.data_arga[31:0];
+            // If the CSR update is for a address setting,
+            // then we align to double (64 bits)
+            periph.data <= (address_register) ? {req_i.data_arga[31:3],3'b000} >> 1: req_i.data_arga[31:0];
           end
         end 
         WRITE: begin 
