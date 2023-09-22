@@ -151,16 +151,16 @@ define QUESTASIM
 	@! grep -P "Errors: [1-9]*," $(dir $<)vsim.log
 	@mkdir -p bin
 	@echo "#!/bin/bash" > $@
-	@echo 'binary=$$(realpath --relative-to=${MKFILE_DIR} $$1)' >> $@
-	@echo 'cd ${MKFILE_DIR}' >> $@
+	@echo 'binary=$$(realpath $$1)' >> $@
+	@echo 'mkdir -p $(LOGS_DIR)' >> $@
 	@echo 'echo $$binary > $(LOGS_DIR)/.rtlbinary' >> $@
 	@echo '${VSIM} +permissive ${VSIM_FLAGS} $$3 -work ${MKFILE_DIR}/${VSIM_BUILDDIR} -c \
 				-ldflags "-Wl,-rpath,${FESVR}/lib -L${FESVR}/lib -lfesvr -lutil" \
 				$1 +permissive-off ++$$binary ++$$2' >> $@
 	@chmod +x $@
 	@echo "#!/bin/bash" > $@.gui
-	@echo 'binary=$$(pwd)/$$1' >> $@.gui
-	@echo 'cd ${MKFILE_DIR}' >> $@.gui
+	@echo 'binary=$$(realpath $$1)' >> $@.gui
+	@echo 'mkdir -p $(LOGS_DIR)' >> $@
 	@echo 'echo $$binary > $(LOGS_DIR)/.rtlbinary' >> $@.gui
 	@echo '${VSIM} +permissive ${VSIM_FLAGS} -work ${MKFILE_DIR}/${VSIM_BUILDDIR} \
 				-ldflags "-Wl,-rpath,${FESVR}/lib -L${FESVR}/lib -lfesvr -lutil" \
