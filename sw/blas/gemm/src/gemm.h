@@ -4,14 +4,22 @@
 //
 // Author: Tim Fischer <fischeti@iis.ee.ethz.ch>
 //         Luca Bertaccini <lbertaccini@iis.ee.ethz.ch>
+//         Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 #include <stdint.h>
 
 #include "snrt.h"
 
+// Guard to avoid conflict with DNN header file
+// TODO: move this definition to Snitch math library to solve problem
+#ifndef PRECISION_T
+#define PRECISION_T
+typedef enum { FP64 = 8, FP32 = 4, FP16 = 2, FP8 = 1 } precision_t;
+
 typedef float v2f32 __attribute__((vector_size(8)));
 typedef __fp16 v4f16 __attribute__((vector_size(8)));
 typedef char v8f8 __attribute__((vector_size(8)));
+#endif
 
 void gemm_fp64_baseline(uint32_t M, uint32_t N, uint32_t K, double* A,
                         uint32_t ldA, uint32_t ta, double* B, uint32_t ldB,
@@ -113,7 +121,7 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, double* A, uint32_t ldA,
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
-            register double c[unroll];
+            double c[unroll];
 
             // Load intermediate result
             if (*ALPHA) {
@@ -226,7 +234,7 @@ void gemm_fp32_opt(const uint32_t M, const uint32_t N, const uint32_t K,
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
             float* _C = &C[m * ldC + n / 2];
             const register float zero = 0.0;
-            register v2f32 c[unroll], reduce_reg[unroll];
+            v2f32 c[unroll], reduce_reg[unroll];
 
             asm volatile(
                 "lw      t0, 0(%[ALPHA]) \n"
@@ -376,8 +384,8 @@ void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A, uint32_t ldA,
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
             __fp16* _C = &C[m * ldC + n];
             const register float zero = 0.0;
-            register v4f16 c[unroll];
-            register v2f32 reduce_reg[unroll];
+            v4f16 c[unroll];
+            v2f32 reduce_reg[unroll];
             uint32_t alpha;
 
             asm volatile(
@@ -560,8 +568,8 @@ void gemm_fp16_ex_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
             __fp16* _C = &C[m * ldC + n];
             const register float zero = 0.0;
-            register v4f16 c[unroll];
-            register v2f32 reduce_reg[unroll];
+            v4f16 c[unroll];
+            v2f32 reduce_reg[unroll];
             uint32_t alpha;
 
             asm volatile(
@@ -727,8 +735,8 @@ void gemm_fp8_ex_opt(uint32_t M, uint32_t N, uint32_t K, char* A, uint32_t ldA,
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
             char* _C = &C[m * ldC + n];
             const register float zero = 0.0;
-            register v8f8 c[unroll];
-            register v4f16 reduce_reg[unroll];
+            v8f8 c[unroll];
+            v4f16 reduce_reg[unroll];
             uint32_t alpha;
 
             asm volatile(
@@ -873,4 +881,57 @@ void gemm_fp8_ex_opt(uint32_t M, uint32_t N, uint32_t K, char* A, uint32_t ldA,
     }
 
     snrt_ssr_disable();
+}
+
+// BLAS compliant GEMM kernel, with some additional arguments at the beginning
+// to specify Snitch implementation details. Matrix sizes and pointers are for
+// the whole cluster computation
+// TODO: alpha (and beta) should be of floating-point type (same precision as
+// operands)
+void gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
+          uint32_t transa, uint32_t transb, uint32_t m, uint32_t n, uint32_t k,
+          uint32_t alpha, void* a, uint32_t lda, void* b, uint32_t ldb,
+          double beta, void* c, uint32_t ldc) {
+    const uint32_t compute_num = snrt_cluster_compute_core_num();
+    const uint32_t compute_id = snrt_cluster_core_idx();
+
+    // Compute cores work not on contiguous blocks but on strided rows
+    uint32_t lda_strided = compute_num * lda;
+    uint32_t ldc_strided = compute_num * ldc;
+
+    // Compute cores access A and C at offsets of one row from each other
+    uint32_t offsetA = compute_id * lda;
+    uint32_t offsetC = compute_id * ldc;
+
+    // Compute fraction of C rows every core computes
+    uint32_t frac_m = m / compute_num;
+
+    switch (prec) {
+        case FP64:
+            gemm_fp64_opt(frac_m, n, k, (double*)a + offsetA, lda_strided,
+                          transa, (double*)b, ldb, transb, (double*)c + offsetC,
+                          ldc_strided, &alpha, setup_ssr);
+            break;
+        case FP32:
+            gemm_fp32_opt(frac_m, n, k, (float*)a + offsetA, lda_strided,
+                          (float*)b, ldb, (float*)c + offsetC, ldc_strided,
+                          &alpha, setup_ssr);
+            break;
+        case FP16:
+            if (expand) {
+                gemm_fp16_ex_opt(
+                    frac_m, n, k, (__fp16*)a + offsetA, lda_strided, (__fp16*)b,
+                    ldb, (__fp16*)c + offsetC, ldc_strided, &alpha, setup_ssr);
+            } else {
+                gemm_fp16_opt(frac_m, n, k, (__fp16*)a + offsetA, lda_strided,
+                              (__fp16*)b, ldb, (__fp16*)c + offsetC,
+                              ldc_strided, &alpha, setup_ssr);
+            }
+            break;
+        case FP8:
+            gemm_fp8_ex_opt(frac_m, n, k, (char*)a + offsetA, lda, (char*)b,
+                            ldb, (char*)c + offsetC, ldc_strided, &alpha,
+                            setup_ssr);
+            break;
+    }
 }

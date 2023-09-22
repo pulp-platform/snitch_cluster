@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#ifdef SNRT_INIT_CLS
 static inline uint32_t snrt_cls_base_addr() {
     extern volatile uint32_t __cdata_start, __cdata_end;
     extern volatile uint32_t __cbss_start, __cbss_end;
@@ -12,14 +13,9 @@ static inline uint32_t snrt_cls_base_addr() {
                            SNRT_TCDM_SIZE;
     return l1_end_addr - cdata_size - cbss_size;
 }
+#endif
 
-static inline void snrt_crt0_cluster_hw_barrier() {
-    uint32_t register r;
-    uint32_t hw_barrier =
-        SNRT_CLUSTER_HW_BARRIER_ADDR + snrt_cluster_idx() * SNRT_CLUSTER_OFFSET;
-    asm volatile("lw %0, 0(%1)" : "=r"(r) : "r"(hw_barrier) : "memory");
-}
-
+#ifdef SNRT_INIT_TLS
 static inline void snrt_init_tls() {
     extern volatile uint32_t __tdata_start, __tdata_end;
     extern volatile uint32_t __tbss_start, __tbss_end;
@@ -41,20 +37,22 @@ static inline void snrt_init_tls() {
         tls_ptr++;
     }
 }
+#endif
 
+#ifdef SNRT_INIT_BSS
 static inline void snrt_init_bss() {
     extern volatile uint32_t __bss_start, __bss_end;
 
     // Only one core needs to perform the initialization
     if (snrt_cluster_idx() == 0 && snrt_is_dm_core()) {
-        volatile uint32_t* p;
-
-        for (p = (uint32_t*)(&__bss_start); p < (uint32_t*)(&__bss_end); p++) {
-            *p = 0;
-        }
+        size_t size = (size_t)(&__bss_end) - (size_t)(&__bss_start);
+        snrt_dma_start_1d_wideptr((uint64_t)(&__bss_start),
+                                  (uint64_t)(snrt_zero_memory_ptr()), size);
     }
 }
+#endif
 
+#ifdef SNRT_INIT_CLS
 static inline void snrt_init_cls() {
     extern volatile uint32_t __cdata_start, __cdata_end;
     extern volatile uint32_t __cbss_start, __cbss_end;
@@ -63,37 +61,36 @@ static inline void snrt_init_cls() {
 
     // Only one core per cluster has to do this
     if (snrt_is_dm_core()) {
-        volatile uint32_t* p;
-        volatile uint32_t* cls_ptr = (volatile uint32_t*)snrt_cls_base_addr();
+        void* ptr = (void*)snrt_cls_base_addr();
+        size_t size;
 
         // Copy cdata section to base of the TCDM
-        for (p = (uint32_t*)(&__cdata_start); p < (uint32_t*)(&__cdata_end);
-             p++) {
-            *cls_ptr = *p;
-            cls_ptr++;
-        }
+        size = (size_t)(&__cdata_end) - (size_t)(&__cdata_start);
+        if (size > 0) snrt_dma_start_1d(ptr, (void*)(&__cdata_start), size);
 
         // Clear cbss section
-        for (p = (uint32_t*)(&__cbss_start); p < (uint32_t*)(&__cbss_end);
-             p++) {
-            *cls_ptr = 0;
-            cls_ptr++;
-        }
+        ptr = (void*)((uint32_t)ptr + size);
+        size = (size_t)(&__cbss_end) - (size_t)(&__cbss_start);
+        snrt_dma_start_1d(ptr, (void*)(snrt_zero_memory_ptr()), size);
     }
 }
+#endif
 
+#ifdef SNRT_INIT_LIBS
 static inline void snrt_init_libs() { snrt_alloc_init(); }
+#endif
 
+#ifdef SNRT_CRT0_EXIT
 static inline void snrt_exit(int exit_code) {
     if (snrt_global_core_idx() == 0)
         *(snrt_exit_code_destination()) = (exit_code << 1) | 1;
 }
+#endif
 
 void snrt_main() {
     int exit_code = 0;
 
 #ifdef SNRT_CRT0_CALLBACK0
-
     snrt_crt0_callback0();
 #endif
 
@@ -117,6 +114,11 @@ void snrt_main() {
     snrt_init_cls();
 #endif
 
+#if defined(SNRT_INIT_BSS) || defined(SNRT_INIT_CLS)
+    // Single DMA wait call for both snrt_init_bss() and snrt_init_cls()
+    if (snrt_is_dm_core()) snrt_dma_wait_all();
+#endif
+
 #ifdef SNRT_CRT0_CALLBACK3
     snrt_crt0_callback3();
 #endif
@@ -130,7 +132,7 @@ void snrt_main() {
 #endif
 
 #ifdef SNRT_CRT0_PRE_BARRIER
-    snrt_crt0_cluster_hw_barrier();
+    snrt_cluster_hw_barrier();
 #endif
 
 #ifdef SNRT_CRT0_CALLBACK5
@@ -147,7 +149,7 @@ void snrt_main() {
 #endif
 
 #ifdef SNRT_CRT0_POST_BARRIER
-    snrt_crt0_cluster_hw_barrier();
+    snrt_cluster_hw_barrier();
 #endif
 
 #ifdef SNRT_CRT0_CALLBACK7

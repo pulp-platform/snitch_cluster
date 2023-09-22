@@ -95,6 +95,7 @@ module tb_memory_axi #(
     .ID_WIDTH   ( AxiIdWidth   ),
     .USER_WIDTH ( AxiUserWidth ),
     .DECOUPLE_W ( 1            ),
+    .FULL_BW    ( 1            ),
     .AXI_MAX_WRITE_TXNS ( 32'd128 ),
     .AXI_MAX_READ_TXNS  ( 32'd128 )
   ) i_axi_to_reg (

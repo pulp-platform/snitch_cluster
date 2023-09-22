@@ -1,10 +1,12 @@
+<!--start-section-1-->
+
 # Getting Started
 
 ## Installation
 
 Clone the repository:
 ```shell
-git clone https://github.com/pulp-platform/snitch_cluster.git --recurse-submodules
+git clone https://github.com/pulp-platform/{{ repo  }}.git --recurse-submodules
 ```
 
 If you had already cloned the repository without the `--recurse-submodules` flag, clone its submodules:
@@ -18,15 +20,17 @@ This repository requires several tools to be installed on your machine. Some of 
 
 Note that installing all tools, in appropriate versions, may be non-trivial. For this purpose, we provide a Docker container with all free tools installed.
 
-The [following section](#docker-container) provides instructions to install the Docker container.
+The [following section](https://pulp-platform.github.io/{{ repo }}/ug/getting_started.html#docker-container) provides instructions to install the Docker container.
 
-Users with access to ETH Zurich IIS machines can find all tools already installed on these machines. To complete the setup, skip to the [IIS environment setup](#iis-environment-setup) section.
+Users with access to ETH Zurich IIS machines can find all tools already installed on these machines. To complete the setup, skip to the [IIS environment setup](https://pulp-platform.github.io/{{ repo }}/ug/getting_started.html#iis-environment-setup) section.
 
-If you do choose to setup a custom development environment on your own machine, we strongly recommend you take example from our [Docker file](https://github.com/pulp-platform/snitch_cluster/blob/{{ branch }}/util/container/README.md).
+If you do choose to setup a custom development environment on your own machine, we strongly recommend you take example from our [Docker file](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/container/README.md).
 
 ## Docker container
 
-The following instructions are extracted from the Docker container [README.md](https://github.com/pulp-platform/snitch_cluster/blob/{{ branch }}/util/container/README.md). For additional information on the Docker container refer to that document.
+<!--end-section-1-->
+
+The following instructions are extracted from the Docker container [README.md](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/container/README.md). For additional information on the Docker container refer to that document.
 
 ### Installation
 
@@ -37,6 +41,8 @@ The following instructions are extracted from the Docker container [README.md](h
    comments=false
    heading-offset=1
 %}
+
+<!--start-section-2-->
 
 ## IIS environment setup
 
@@ -74,3 +80,4 @@ Install the required packages in the currently active virtual environment:
 ```shell
 pip install -r python-requirements.txt
 ```
+<!--end-section-2-->

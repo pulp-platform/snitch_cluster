@@ -26,6 +26,7 @@ plugins:
       on_error_fail: true
 use_directory_urls: false
 extra:
+  repo: snitch_cluster
   branch: main
 nav:
   - Home: index.md

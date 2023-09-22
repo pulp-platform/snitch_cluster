@@ -6,15 +6,19 @@ LOGS_DIR       ?= logs
 TB_DIR         ?= $(SNITCH_ROOT)/target/common/test
 UTIL_DIR       ?= $(SNITCH_ROOT)/util
 
-# Support for local override
+# External executables
 BENDER		   ?= bender
 DASM 	       ?= spike-dasm
 VLT			   ?= verilator
 VERIBLE_FMT    ?= verible-verilog-format
-BIN2JTAG       ?= $(UTIL_DIR)/bin2jtag.py
-ANNOTATE	   ?= $(UTIL_DIR)/trace/annotate.py
-GENTRACE	   ?= $(UTIL_DIR)/trace/gen_trace.py
 CLANG_FORMAT   ?= clang-format
+
+# Internal executables
+BIN2JTAG       ?= $(UTIL_DIR)/bin2jtag.py
+GENTRACE	   ?= $(UTIL_DIR)/trace/gen_trace.py
+ANNOTATE_PY	   ?= $(UTIL_DIR)/trace/annotate.py
+EVENTS_PY	   ?= $(UTIL_DIR)/trace/events.py
+PERF_CSV_PY	   ?= $(UTIL_DIR)/trace/perf_csv.py
 
 VERILATOR_ROOT ?= $(dir $(shell which $(VLT)))/../share/verilator
 VLT_ROOT	   ?= ${VERILATOR_ROOT}
@@ -150,7 +154,7 @@ define QUESTASIM
 	@echo 'binary=$$(realpath --relative-to=${MKFILE_DIR} $$1)' >> $@
 	@echo 'cd ${MKFILE_DIR}' >> $@
 	@echo 'echo $$binary > $(LOGS_DIR)/.rtlbinary' >> $@
-	@echo '${VSIM} +permissive ${VSIM_FLAGS} -work ${MKFILE_DIR}/${VSIM_BUILDDIR} -c \
+	@echo '${VSIM} +permissive ${VSIM_FLAGS} $$3 -work ${MKFILE_DIR}/${VSIM_BUILDDIR} -c \
 				-ldflags "-Wl,-rpath,${FESVR}/lib -L${FESVR}/lib -lfesvr -lutil" \
 				$1 +permissive-off ++$$binary ++$$2' >> $@
 	@chmod +x $@
@@ -194,10 +198,10 @@ traces: $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null | sed 's/\.dasm/\.
 # make annotate
 # Generate source-code interleaved traces for all harts. Reads the binary from
 # the logs/.rtlbinary file that is written at start of simulation in the vsim script
-$(LOGS_DIR)/trace_hart_%.s: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE}
-	$(PYTHON) ${ANNOTATE} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $<
-$(LOGS_DIR)/trace_hart_%.diff: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE}
-	$(PYTHON) ${ANNOTATE} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $< -d
+$(LOGS_DIR)/trace_hart_%.s: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY}
+	$(PYTHON) ${ANNOTATE_PY} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $<
+$(LOGS_DIR)/trace_hart_%.diff: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY}
+	$(PYTHON) ${ANNOTATE_PY} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $< -d
 BINARY ?= $(shell cat $(LOGS_DIR)/.rtlbinary)
 annotate: $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null | sed 's/\.dasm/\.s/') || echo "") \
           $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null | sed 's/\.dasm/\.diff/') || echo "")

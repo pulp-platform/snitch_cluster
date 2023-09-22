@@ -13,10 +13,10 @@ from data.datagen import golden_model
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import bytes_to_doubles  # noqa: E402
+from data_utils import bytes_to_doubles, bytes_to_uint32s  # noqa: E402
 
 
-ERR_THRESHOLD = 1E-10
+ERR_THRESHOLD = 0.001
 
 
 def main():
@@ -26,8 +26,8 @@ def main():
                                         snitch_bin=args.snitch_bin,
                                         symbols_bin=args.symbols_bin,
                                         log=args.log,
-                                        output_uids=['z'])
-    z_actual = np.array(bytes_to_doubles(raw_results['z']))
+                                        output_uids=['c'])
+    c_actual = np.array(bytes_to_doubles(raw_results['c']))
 
     # Extract input operands from ELF file
     if args.symbols_bin:
@@ -35,16 +35,24 @@ def main():
     else:
         elf = Elf(args.snitch_bin)
     a = np.array(bytes_to_doubles(elf.get_symbol_contents('a')))
-    x = np.array(bytes_to_doubles(elf.get_symbol_contents('x')))
-    y = np.array(bytes_to_doubles(elf.get_symbol_contents('y')))
+    b = np.array(bytes_to_doubles(elf.get_symbol_contents('b')))
+    c = np.array(bytes_to_doubles(elf.get_symbol_contents('c')))
+    alpha = bytes_to_uint32s(elf.get_symbol_contents('ALPHA'))[0]
+    m = bytes_to_uint32s(elf.get_symbol_contents('M'))[0]
+    n = bytes_to_uint32s(elf.get_symbol_contents('N'))[0]
+    k = bytes_to_uint32s(elf.get_symbol_contents('K'))[0]
+    tb = bytes_to_uint32s(elf.get_symbol_contents('TB'))[0]
+    a = np.reshape(a, (m, k))
+    b = np.reshape(b, (k, n))
+    if tb:
+        b = b.transpose()
+    c = np.reshape(c, (m, n))
 
     # Verify results
-    z_golden = golden_model(a, x, y)
-    relative_err = np.absolute((z_golden - z_actual) / z_golden)
-    fail = np.any(relative_err > ERR_THRESHOLD)
-    if (fail):
-        verification.dump_results_to_csv([z_golden, z_actual, relative_err],
-                                         Path.cwd() / 'axpy_results.csv')
+    c_golden = golden_model(a, b, alpha, c).flatten()
+
+    absolute_err = np.absolute(c_golden - c_actual)
+    fail = np.any(absolute_err > ERR_THRESHOLD)
 
     return int(fail)
 

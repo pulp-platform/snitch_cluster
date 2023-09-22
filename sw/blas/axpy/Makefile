@@ -9,7 +9,8 @@ MK_DIR   := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 DATA_DIR := $(realpath $(MK_DIR)/data)
 SRC_DIR  := $(realpath $(MK_DIR)/src)
 
-LENGTH ?= 24
+LENGTH  ?= 24
+SECTION ?=
 
 APP     ?= axpy
 SRCS    ?= $(SRC_DIR)/main.c
@@ -19,7 +20,7 @@ DATAGEN_PY = $(DATA_DIR)/datagen.py
 DATA_H     = $(DATA_DIR)/data.h
 
 $(DATA_H): $(DATAGEN_PY)
-	$< $(LENGTH) > $@
+	$< $(LENGTH) --section="$(SECTION)" > $@
 
 .PHONY: clean-data clean
 
