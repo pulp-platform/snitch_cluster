@@ -9,7 +9,7 @@
 
 module snax_mac # (
   parameter int unsigned DataWidth         = 32,
-  parameter int unsigned SnaxTcdmPorts = 4,
+  parameter int unsigned SnaxTcdmPorts     = 4,
   parameter type         acc_req_t         = logic,
   parameter type         acc_rsp_t         = logic,
   parameter type         tcdm_req_t        = logic,
@@ -135,7 +135,8 @@ module snax_mac # (
     snax_hwpe_to_reqrsp #(
       .DataWidth        ( DataWidth           ),  // Data width to use
       .tcdm_req_t       ( tcdm_req_t          ),  // TCDM request type
-      .tcdm_rsp_t       ( tcdm_rsp_t          )   // TCDM response type
+      .tcdm_rsp_t       ( tcdm_rsp_t          ),  // TCDM response type
+      .AlignOutputDouble( 1'b1                )   // Align data to double word
     ) i_snax_hwpe_to_reqrsp (
       .clk_i            ( clk_i               ),  // Clock
       .rst_ni           ( rst_ni              ),  // Asynchronous reset, active low
