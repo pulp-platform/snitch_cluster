@@ -2,26 +2,27 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-LOGS_DIR       ?= logs
-TB_DIR         ?= $(SNITCH_ROOT)/target/common/test
-UTIL_DIR       ?= $(SNITCH_ROOT)/util
+LOGS_DIR ?= logs
+TB_DIR   ?= $(SNITCH_ROOT)/target/common/test
+UTIL_DIR ?= $(SNITCH_ROOT)/util
 
 # External executables
-BENDER		   ?= bender
-DASM 	       ?= spike-dasm
-VLT			   ?= verilator
-VERIBLE_FMT    ?= verible-verilog-format
-CLANG_FORMAT   ?= clang-format
+BENDER       ?= bender
+DASM         ?= spike-dasm
+VLT          ?= verilator
+VERIBLE_FMT  ?= verible-verilog-format
+CLANG_FORMAT ?= clang-format
 
 # Internal executables
-BIN2JTAG       ?= $(UTIL_DIR)/bin2jtag.py
-GENTRACE	   ?= $(UTIL_DIR)/trace/gen_trace.py
-ANNOTATE_PY	   ?= $(UTIL_DIR)/trace/annotate.py
-EVENTS_PY	   ?= $(UTIL_DIR)/trace/events.py
-PERF_CSV_PY	   ?= $(UTIL_DIR)/trace/perf_csv.py
+GENTRACE_PY      ?= $(UTIL_DIR)/trace/gen_trace.py
+ANNOTATE_PY      ?= $(UTIL_DIR)/trace/annotate.py
+EVENTS_PY        ?= $(UTIL_DIR)/trace/events.py
+PERF_CSV_PY      ?= $(UTIL_DIR)/trace/perf_csv.py
+LAYOUT_EVENTS_PY ?= $(UTIL_DIR)/trace/layout_events.py
+EVENTVIS_PY      ?= $(UTIL_DIR)/trace/eventvis.py
 
 VERILATOR_ROOT ?= $(dir $(shell which $(VLT)))/../share/verilator
-VLT_ROOT	   ?= ${VERILATOR_ROOT}
+VLT_ROOT       ?= ${VERILATOR_ROOT}
 
 MATCH_END := '/+incdir+/ s/$$/\/*\/*/'
 MATCH_BGN := 's/+incdir+//g'
@@ -38,8 +39,8 @@ VCS_SOURCES   = $(shell ${BENDER} script flist ${VCS_BENDER} | ${SED_SRCS})
 VCS_BUILDDIR := work-vcs
 
 # fesvr is being installed here
-FESVR          ?= ${MKFILE_DIR}work
-FESVR_VERSION  ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
+FESVR         ?= ${MKFILE_DIR}work
+FESVR_VERSION ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
 
 VLT_BENDER   += -t rtl
 VLT_SOURCES   = $(shell ${BENDER} script flist ${VLT_BENDER} | ${SED_SRCS})
@@ -189,26 +190,56 @@ define reggen_generate_header
 	@$(CLANG_FORMAT) -i $1
 endef
 
-$(LOGS_DIR)/trace_hart_%.txt $(LOGS_DIR)/hart_%_perf.json: $(LOGS_DIR)/trace_hart_%.dasm $(GENTRACE)
-	$(DASM) < $< | $(PYTHON) $(GENTRACE) --permissive -d $(LOGS_DIR)/hart_$*_perf.json > $(LOGS_DIR)/trace_hart_$*.txt
+# Arg 1: binary
+# Arg 2: max size in bytes
+define BINARY_SIZE_CHECK
+  echo "Binary size: $$(stat -c %s $(1))B"
+  @[ "$$(stat -c %s $(1))" -lt "$(2)" ] || (echo "Binary exceeds specified size of $(2)B"; exit 1)
+endef
 
-traces: $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null | sed 's/\.dasm/\.txt/') || echo "") \
-        $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null | sed 's/trace_hart/hart/' | sed 's/.dasm/_perf.json/') || echo "")
+##########
+# Traces #
+##########
 
-# make annotate
+DASM_TRACES      = $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null))
+TXT_TRACES       = $(shell (echo $(DASM_TRACES) | sed 's/\.dasm/\.txt/g'))
+PERF_TRACES      = $(shell (echo $(DASM_TRACES) | sed 's/trace_hart/hart/g' | sed 's/.dasm/_perf.json/g'))
+ANNOTATED_TRACES = $(shell (echo $(DASM_TRACES) | sed 's/\.dasm/\.s/g'))
+DIFF_TRACES      = $(shell (echo $(DASM_TRACES) | sed 's/\.dasm/\.diff/g'))
+
+GENTRACE_OUTPUTS = $(TXT_TRACES) $(PERF_TRACES)
+ANNOTATE_OUTPUTS = $(ANNOTATED_TRACES)
+PERF_CSV         = $(LOGS_DIR)/perf.csv
+EVENT_CSV        = $(LOGS_DIR)/event.csv
+TRACE_CSV        = $(LOGS_DIR)/trace.csv
+TRACE_JSON       = $(LOGS_DIR)/trace.json
+
+.PHONY: traces annotate perf-csv event-csv layout
+traces: $(GENTRACE_OUTPUTS)
+annotate: $(ANNOTATE_OUTPUTS)
+perf-csv: $(PERF_CSV)
+event-csv: $(EVENT_CSV)
+layout: $(TRACE_CSV) $(TRACE_JSON)
+
+$(LOGS_DIR)/trace_hart_%.txt $(LOGS_DIR)/hart_%_perf.json: $(LOGS_DIR)/trace_hart_%.dasm $(GENTRACE_PY)
+	$(DASM) < $< | $(PYTHON) $(GENTRACE_PY) --permissive -d $(LOGS_DIR)/hart_$*_perf.json > $(LOGS_DIR)/trace_hart_$*.txt
+
 # Generate source-code interleaved traces for all harts. Reads the binary from
 # the logs/.rtlbinary file that is written at start of simulation in the vsim script
+BINARY ?= $(shell cat $(LOGS_DIR)/.rtlbinary)
 $(LOGS_DIR)/trace_hart_%.s: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY}
 	$(PYTHON) ${ANNOTATE_PY} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $<
 $(LOGS_DIR)/trace_hart_%.diff: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY}
 	$(PYTHON) ${ANNOTATE_PY} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $< -d
-BINARY ?= $(shell cat $(LOGS_DIR)/.rtlbinary)
-annotate: $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null | sed 's/\.dasm/\.s/') || echo "") \
-          $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null | sed 's/\.dasm/\.diff/') || echo "")
 
-# Arg 1: binary
-# Arg 2: max size in bytes
-define BINRAY_SIZE_CHECK
-  echo "Binary size: $$(stat -c %s $(1))B"
-  @[ "$$(stat -c %s $(1))" -lt "$(2)" ] || (echo "Binary exceeds specified size of $(2)B"; exit 1)
-endef
+$(PERF_CSV): $(PERF_TRACES) $(PERF_CSV_PY)
+	$(PYTHON) $(PERF_CSV_PY) -o $@ -i $(PERF_TRACES)
+
+$(EVENT_CSV): $(PERF_TRACES) $(PERF_CSV_PY)
+	$(PYTHON) $(PERF_CSV_PY) -o $@ -i $(PERF_TRACES) --filter tstart tend
+
+$(TRACE_CSV): $(EVENT_CSV) $(LAYOUT_FILE) $(LAYOUT_EVENTS_PY)
+	$(PYTHON) $(LAYOUT_EVENTS_PY) $(LAYOUT_EVENTS_FLAGS) $(EVENT_CSV) $(LAYOUT_FILE) -o $@
+
+$(TRACE_JSON): $(TRACE_CSV) $(EVENTVIS_PY)
+	$(PYTHON) $(EVENTVIS_PY) -o $@ $(TRACE_CSV)
