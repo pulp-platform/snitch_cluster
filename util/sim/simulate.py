@@ -39,7 +39,7 @@ SIMULATOR_CMDS = {
 }
 
 
-def parse_args():
+def parser():
     # Argument parsing
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -81,8 +81,7 @@ def parse_args():
         action='store_true',
         help=('Option to print simulation logs when multiple tests are run in parallel.'
               'Logs are always printed when n_procs == 1'))
-    args = parser.parse_args()
-    return args
+    return parser
 
 
 # Get tests from a test list file
@@ -267,7 +266,7 @@ def run_tests(tests, args):
 
 
 def main():
-    args = parse_args()
+    args = parser().parse_args()
     tests = get_tests(args.testlist)
     return run_tests(tests, args)
 
