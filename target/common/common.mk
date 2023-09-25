@@ -30,7 +30,7 @@ SED_SRCS  := sed -e ${MATCH_END} -e ${MATCH_BGN}
 
 VSIM_BENDER   += -t test -t rtl -t simulation -t vsim
 VSIM_SOURCES   = $(shell ${BENDER} script flist ${VSIM_BENDER} | ${SED_SRCS})
-VSIM_BUILDDIR := work-vsim
+VSIM_BUILDDIR ?= work-vsim
 
 # VCS_BUILDDIR should to be the same as the `DEFAULT : ./work-vcs`
 # in target/snitch_cluster/synopsys_sim.setup
@@ -147,10 +147,13 @@ endef
 # Modelsim #
 ############
 
+$(VSIM_BUILDDIR):
+	mkdir -p $@
+
 define QUESTASIM
 	${VSIM} -c -do "source $<; quit" | tee $(dir $<)vsim.log
 	@! grep -P "Errors: [1-9]*," $(dir $<)vsim.log
-	@mkdir -p bin
+	@mkdir -p $(dir $@)
 	@echo "#!/bin/bash" > $@
 	@echo 'binary=$$(realpath $$1)' >> $@
 	@echo 'mkdir -p $(LOGS_DIR)' >> $@
