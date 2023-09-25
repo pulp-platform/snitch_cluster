@@ -186,7 +186,7 @@ def run_test(test, args):
     # which are executed in parallel
     if 'rundir' in test:
         cmd = f'cd {test["rundir"]} && {cmd}'
-    if not quiet:
+    if not quiet or args.verbose:
         print(f'$ {cmd}', flush=True)
 
     # Run simulation
