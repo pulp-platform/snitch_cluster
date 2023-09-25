@@ -17,7 +17,7 @@ import json
 import pandas as pd
 
 
-HARTID_REGEX = r'\D*(\d*)\D*'
+HARTID_REGEX = r'hart_([0-9a-f]+)_perf.json'
 
 
 def main():
