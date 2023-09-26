@@ -11,6 +11,7 @@ runs:
   - app: dnn/maxpool
   - app: dnn/gemm
   - app: snax-mac
+  - app: snax-mac-simple
 # dnn/gelu # seems like it stalls
 # dnn/conv2d # fails with exit code 32
 # dnn/fusedconv # fails newly

@@ -18,6 +18,7 @@ SUBDIRS += dnn/linear
 SUBDIRS += dnn/maxpool
 SUBDIRS += dnn/softmax
 SUBDIRS += snax-mac
+SUBDIRS += snax-mac-simple
 
 .PHONY: all clean $(SUBDIRS)
 
