@@ -54,7 +54,7 @@
                     cacheline: 256 // word size in bits
                 },
                 cores: [
-                    { $ref: "#/snax_core_template" },
+                    { $ref: "#/snax_mac_core_template" },
                     { $ref: "#/dma_core_template" },
                 ]
             }
@@ -75,7 +75,7 @@
         },
     },
     // Templates.
-    snax_core_template: {
+    snax_mac_core_template: {
         isa: "rv32imafd",
         xssr: true,
         xfrep: true,
@@ -87,6 +87,7 @@
         xfdotp: true,
         xfvec: true,
         snax: true,
+        snax_tcdm_ports: 4,
         num_int_outstanding_loads: 1,
         num_int_outstanding_mem: 4,
         num_fp_outstanding_loads: 4,
