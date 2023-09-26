@@ -422,6 +422,12 @@
                                     "description": "Enable Snitch Accelerator eXtension (SNAX)",
                                     "default": false
                                 },
+                                "snax_tcdm_ports": {
+                                    "type": "number",
+                                    "title": "SNAX TCDM Port",
+                                    "description": "Number of ports dedicated for an accelerator",
+                                    "default": 0
+                                },
                                 "num_int_outstanding_loads": {
                                     "type": "number",
                                     "description": "Number of outstanding integer loads. Determines the buffer size in the core's load/store unit.",
