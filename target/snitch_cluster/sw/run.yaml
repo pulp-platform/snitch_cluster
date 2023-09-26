@@ -84,3 +84,4 @@ runs:
   #   throws illegal instruction on FDIV in simulation
   # - elf: apps/dnn/softmax/build/softmax.elf
   #   throws illegal instruction on FDIV in simulation
+  - elf: apps/montecarlo/pi_estimation/build/pi_estimation.elf
