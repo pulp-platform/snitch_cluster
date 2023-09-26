@@ -19,6 +19,7 @@ SUBDIRS += dnn/maxpool
 SUBDIRS += dnn/softmax
 SUBDIRS += montecarlo/pi_estimation
 SUBDIRS += snax-mac
+SUBDIRS += snax-mac-simple
 
 .PHONY: all clean $(SUBDIRS)
 
