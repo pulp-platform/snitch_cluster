@@ -55,6 +55,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   parameter int unsigned NumDTLBEntries = 0,
   parameter int unsigned NumITLBEntries = 0,
   parameter snitch_pma_pkg::snitch_pma_t SnitchPMACfg = '{default: 0},
+  /// Enable debug support.
+  parameter bit         DebugSupport = 1,
   /// Derived parameter *Do not override*
   parameter type addr_t = logic [AddrWidth-1:0],
   parameter type data_t = logic [DataWidth-1:0]
@@ -289,10 +291,17 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   `FFAR(ssip_q, ssip_d, '0, clk_i, rst_i)
   `FFAR(scip_q, scip_d, '0, clk_i, rst_i)
 
-  `FFAR(dcsr_q, dcsr_d, '0, clk_i, rst_i)
-  `FFNR(dpc_q, dpc_d, clk_i)
-  `FFNR(dscratch_q, dscratch_d, clk_i)
-  `FFAR(debug_q, debug_d, '0, clk_i, rst_i) // Debug mode
+  if (DebugSupport) begin : gen_debug
+    `FFAR(dcsr_q, dcsr_d, '0, clk_i, rst_i)
+    `FFNR(dpc_q, dpc_d, clk_i)
+    `FFNR(dscratch_q, dscratch_d, clk_i)
+    `FFAR(debug_q, debug_d, '0, clk_i, rst_i) // Debug mode
+  end else begin : gen_no_debug
+    assign dcsr_q = '0;
+    assign dpc_q  = '0;
+    assign dscratch_q = '0;
+    assign debug_q = '0;
+  end
 
   typedef struct packed {
     fpnew_pkg::fmt_mode_t  fmode;
@@ -475,7 +484,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           DmBaseAddress + dm::HaltAddress : DmBaseAddress + dm::ExceptionAddress;
       end else begin
       end
-      if (!debug_q && (irq_i.debug || dcsr_q.step)) pc_d = DmBaseAddress + dm::HaltAddress;
+      if (!debug_q && ((DebugSupport && irq_i.debug) || dcsr_q.step))
+        pc_d = DmBaseAddress + dm::HaltAddress;
     end
   end
 
@@ -523,7 +533,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     debug_d = (!debug_q && (
           // the external debugger or an ebreak instruction triggerd the
           // request to debug.
-          irq_i.debug ||
+          (DebugSupport && irq_i.debug) ||
           // We encountered an ebreak and the default ebreak behaviour is switched off
           (dcsr_q.ebreakm && inst_data_i == EBREAK) ||
           // This was a single-step
@@ -533,7 +543,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     csr_en = 1'b0;
     // Debug request and wake up are possibilties to move out of
     // the low power state.
-    wfi_d = (irq_i.debug || debug_q || any_interrupt_pending) ? 1'b0 : wfi_q;
+    wfi_d = ((DebugSupport && irq_i.debug) || debug_q || any_interrupt_pending) ? 1'b0 : wfi_q;
 
     unique casez (inst_data_i)
       ADD: begin
@@ -2280,7 +2290,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       if (valid_instr && inst_data_i == EBREAK) begin
         dpc_d = pc_q;
         dcsr_d.cause = dm::CauseBreakpoint;
-      end else if (irq_i.debug) begin
+      end else if (DebugSupport && irq_i.debug) begin
         dpc_d = npc;
         dcsr_d.cause = dm::CauseRequest;
       end else if (valid_instr && dcsr_q.step) begin
@@ -2322,17 +2332,23 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
             csr_rvalue = hart_id_i;
           end
           CSR_DCSR: begin
-            csr_rvalue = dcsr_q;
-            dcsr_d.ebreakm = alu_result[15];
-            dcsr_d.step = alu_result[2];
+            if (DebugSupport) begin
+              csr_rvalue = dcsr_q;
+              dcsr_d.ebreakm = alu_result[15];
+              dcsr_d.step = alu_result[2];
+            end else illegal_csr = 1'b1;
           end
           CSR_DPC: begin
-            csr_rvalue = dpc_q;
-            dpc_d = alu_result;
+            if (DebugSupport) begin
+              csr_rvalue = dpc_q;
+              dpc_d = alu_result;
+            end else illegal_csr = 1'b1;
           end
           CSR_DSCRATCH0: begin
-            csr_rvalue = dscratch_q;
-            dscratch_d = alu_result;
+            if (DebugSupport) begin
+              csr_rvalue = dscratch_q;
+              dscratch_d = alu_result;
+            end else illegal_csr = 1'b1;
           end
           `ifdef SNITCH_ENABLE_PERF
           CSR_MCYCLE: begin
