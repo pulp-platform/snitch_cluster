@@ -155,10 +155,16 @@ def run_simulation(cmd, simulator, test, quiet=False):
 def run_test(test, args):
     # Extract args
     simulator = args.simulator
-    sim_bin = args.sim_bin if args.sim_bin else SIMULATOR_BINS[simulator]
     dry_run = args.dry_run
     testlist = args.testlist
     quiet = multiple_processes(args)
+
+    # Simulator binary can be overriden on the command-line or test-wise
+    sim_bin = SIMULATOR_BINS[simulator]
+    if args.sim_bin:
+        sim_bin = args.sim_bin
+    if 'sim_bin' in test:
+        sim_bin = test['sim_bin']
 
     # Check if simulator is supported for this test
     if 'simulators' in test:
