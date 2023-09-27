@@ -185,7 +185,9 @@ module snitch_cluster
   // value here. This only applies to the TCDM. The instruction cache macros will break!
   // In case you are using the `RegisterTCDMCuts` feature this adds an
   // additional cycle latency, which is taken into account here.
-  parameter int unsigned MemoryMacroLatency = 1 + RegisterTCDMCuts
+  parameter int unsigned MemoryMacroLatency = 1 + RegisterTCDMCuts,
+  /// Enable debug support.
+  parameter bit         DebugSupport = 1
 ) (
   /// System clock. If `IsoCrossing` is enabled this port is the _fast_ clock.
   /// The slower, half-frequency clock, is derived internally.
@@ -876,7 +878,8 @@ module snitch_cluster
         .RegisterSequencer (RegisterSequencer),
         .RegisterFPUIn (RegisterFPUIn),
         .RegisterFPUOut (RegisterFPUOut),
-        .TCDMAddrWidth (TCDMAddrWidth)
+        .TCDMAddrWidth (TCDMAddrWidth),
+        .DebugSupport (DebugSupport)
       ) i_snitch_cc (
         .clk_i,
         .clk_d2_i (clk_d2),

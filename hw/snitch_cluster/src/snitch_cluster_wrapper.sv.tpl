@@ -333,7 +333,8 @@ module ${cfg['name']}_wrapper (
     .NarrowMaxMstTrans (${cfg['narrow_trans']}),
     .NarrowMaxSlvTrans (${cfg['narrow_trans']}),
     .sram_cfg_t (${cfg['pkg_name']}::sram_cfg_t),
-    .sram_cfgs_t (${cfg['pkg_name']}::sram_cfgs_t)
+    .sram_cfgs_t (${cfg['pkg_name']}::sram_cfgs_t),
+    .DebugSupport (${int(cfg['enable_debug'])})
   ) i_cluster (
     .clk_i,
     .rst_ni,
