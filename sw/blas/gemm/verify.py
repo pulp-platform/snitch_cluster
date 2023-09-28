@@ -53,6 +53,9 @@ def main():
 
     absolute_err = np.absolute(c_golden - c_actual)
     fail = np.any(absolute_err > ERR_THRESHOLD)
+    if (fail):
+        verification.dump_results_to_csv([c_golden, c_actual, absolute_err],
+                                         Path.cwd() / 'gemm_results.csv')
 
     return int(fail)
 
