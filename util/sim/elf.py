@@ -36,6 +36,15 @@ class Elf(object):
     def get_symbol_contents(self, uid):
         addr = self.get_symbol_address(uid)
         size = self.get_symbol_size(uid)
-        fpos = list(self.elf.address_offsets(addr, size))[0]
-        self.elf.stream.seek(fpos)
-        return self.elf.stream.read(size)
+        try:
+            fpos = list(self.elf.address_offsets(addr, size))[0]
+            self.elf.stream.seek(fpos)
+            contents = self.elf.stream.read(size)
+        except IndexError:
+            # We assume all segments in our ELF are of type PT_LOAD and
+            # that the only section whose contents are not stored in
+            # the ELF file is the .bss section. Therefore, whenever
+            # `address_offsets()` fails to return a valid offset into the
+            # file we assume that the address falls in the .bss section.
+            contents = bytearray([0] * size)
+        return contents
