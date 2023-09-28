@@ -61,8 +61,8 @@ int main() {
             ldb = K;
         }
 
-        gemm(dtype_size, expand, setup_ssr, TA, TB, frac_m, N, K, ALPHA,
-             local_a, lda, local_b, ldb, 1, local_c, ldc);
+        gemm(dtype_size, expand, setup_ssr, TA, TB, frac_m, N, K, 1, local_a,
+             lda, local_b, ldb, BETA, local_c, ldc);
 
         uint32_t end_cycle = snrt_mcycle();
     }

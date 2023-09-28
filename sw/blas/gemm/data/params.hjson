@@ -8,7 +8,7 @@
     M: 192,
     N: 16,
     K: 16,
-    alpha: 0,
+    beta: 0,
     ta: false,
     tb: true, // must be true for SIMD
     prec: 64,
