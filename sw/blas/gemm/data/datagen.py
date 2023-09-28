@@ -40,8 +40,8 @@ FP8_FORMATS = {
 }
 
 
-def golden_model(a, b, alpha, c):
-    return np.matmul(a, b) + alpha * c
+def golden_model(alpha, a, b, beta, c):
+    return alpha * np.matmul(a, b) + beta * c
 
 
 def emit_header(**kwargs):
@@ -73,7 +73,7 @@ def emit_header(**kwargs):
             * (1.0 + mantissa_b.astype(np.double) / (2**2))
         _c = ((-1.0)**sign_c.astype(np.double))*(2.0**(exponent_c.astype(np.double)-15.0)) \
             * (1.0 + mantissa_c.astype(np.double) / (2**2))
-        result = np.matmul(_a, _b) + kwargs['alpha'] * _c
+        result = golden_model(1, _a, _b, kwargs['beta'], _c)
         a = sign_a << 7 | exponent_a << FP8_FORMATS['fp8']['mant'] | mantissa_a
         b = sign_b << 7 | exponent_b << FP8_FORMATS['fp8']['mant'] | mantissa_b
         c = sign_c << 7 | exponent_c << FP8_FORMATS['fp8']['mant'] | mantissa_c
@@ -81,7 +81,7 @@ def emit_header(**kwargs):
         a = np.random.rand(kwargs['M'], kwargs['K']).astype(dtype)
         b = np.random.rand(kwargs['K'], kwargs['N']).astype(dtype)
         c = np.random.rand(kwargs['M'], kwargs['N']).astype(dtype)
-        result = golden_model(a, b, kwargs['alpha'], c)
+        result = golden_model(1, a, b, kwargs['beta'], c)
 
     # Store matrices in transposed form if requested
     a = a.T if kwargs['ta'] else a
@@ -93,7 +93,7 @@ def emit_header(**kwargs):
     data_str += [format_scalar_definition('uint32_t', 'K', kwargs['K'])]
     data_str += [format_scalar_definition('uint32_t', 'TA', int(kwargs['ta']))]
     data_str += [format_scalar_definition('uint32_t', 'TB', int(kwargs['tb']))]
-    data_str += [format_scalar_definition('uint32_t', 'ALPHA', kwargs['alpha'])]
+    data_str += [format_scalar_definition('uint32_t', 'BETA', kwargs['beta'])]
     data_str += [format_scalar_definition('uint32_t', 'dtype_size', kwargs['prec']//8)]
     data_str += [format_scalar_definition('uint32_t', 'expand', kwargs['expand'])]
     data_str += [format_vector_definition(C_TYPES[str(kwargs['prec'])], 'a', a.flatten())]
