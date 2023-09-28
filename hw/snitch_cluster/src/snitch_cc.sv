@@ -99,6 +99,9 @@ module snitch_cc #(
   parameter snitch_pma_pkg::snitch_pma_t SnitchPMACfg = '{default: 0},
   /// Enable debug support.
   parameter bit          DebugSupport = 1,
+  /// Optional fixed TCDM alias.
+  parameter bit          TCDMAliasEnable = 1'b0,
+  parameter logic [AddrWidth-1:0] TCDMAliasStart  = '0,
   /// Derived parameter *Do not override*
   parameter int unsigned TCDMPorts = (NumSsrs > 1 ? NumSsrs : 1),
   parameter type addr_t = logic [AddrWidth-1:0],
@@ -590,16 +593,23 @@ module snitch_cc #(
     logic [AddrWidth-1:0] mask;
   } reqrsp_rule_t;
 
-  reqrsp_rule_t addr_map;
-  assign addr_map = '{
+  reqrsp_rule_t [TCDMAliasEnable:0] addr_map;
+  assign addr_map[0] = '{
     idx: 1,
     base: tcdm_addr_base_i,
     mask: ({AddrWidth{1'b1}} << TCDMAddrWidth)
   };
+  if (TCDMAliasEnable) begin : gen_tcdm_alias_rule
+    assign addr_map[1] = '{
+      idx: 1,
+      base: TCDMAliasStart,
+      mask: ({AddrWidth{1'b1}} << TCDMAddrWidth)
+    };
+  end
 
   addr_decode_napot #(
     .NoIndices (2),
-    .NoRules (1),
+    .NoRules (1 + TCDMAliasEnable),
     .addr_t (logic [AddrWidth-1:0]),
     .rule_t (reqrsp_rule_t)
   ) i_addr_decode_napot (

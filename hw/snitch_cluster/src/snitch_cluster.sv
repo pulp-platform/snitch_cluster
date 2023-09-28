@@ -187,7 +187,10 @@ module snitch_cluster
   // additional cycle latency, which is taken into account here.
   parameter int unsigned MemoryMacroLatency = 1 + RegisterTCDMCuts,
   /// Enable debug support.
-  parameter bit         DebugSupport = 1
+  parameter bit          DebugSupport = 1,
+  /// Optional fixed cluster alias region.
+  parameter bit          AliasRegionEnable  = 1'b0,
+  parameter logic [PhysicalAddrWidth-1:0] AliasRegionBase    = '0
 ) (
   /// System clock. If `IsoCrossing` is enabled this port is the _fast_ clock.
   /// The slower, half-frequency clock, is derived internally.
@@ -265,13 +268,16 @@ module snitch_cluster
   localparam int unsigned NarrowIdWidthOut = $clog2(NrNarrowMasters) + NarrowIdWidthIn;
 
   localparam int unsigned NrSlaves = 3;
-  localparam int unsigned NrRules = NrSlaves - 1;
+  localparam int unsigned NrRuleIdcs = NrSlaves - 1;
+  localparam int unsigned NrRules = (1 + AliasRegionEnable) * NrRuleIdcs;
 
   // DMA, SoC Request, `n` instruction caches.
   localparam int unsigned NrWideMasters = 2 + NrHives;
   localparam int unsigned WideIdWidthOut = $clog2(NrWideMasters) + WideIdWidthIn;
   // DMA X-BAR configuration
   localparam int unsigned NrWideSlaves = 3;
+  localparam int unsigned NrWideRuleIdcs = NrWideSlaves - 1;
+  localparam int unsigned NrWideRules = (1 + AliasRegionEnable) * NrWideRuleIdcs;
 
   // AXI Configuration
   localparam axi_pkg::xbar_cfg_t ClusterXbarCfg = '{
@@ -304,7 +310,7 @@ module snitch_cluster
     UniqueIds: 1'b0,
     AxiAddrWidth: PhysicalAddrWidth,
     AxiDataWidth: WideDataWidth,
-    NoAddrRules: 2
+    NoAddrRules: NrWideRules
   };
 
   function automatic int unsigned get_hive_size(int unsigned current_hive);
@@ -440,9 +446,9 @@ module snitch_cluster
     logic [1:0]    ptw_is_4mega;
   } hive_rsp_t;
 
-  // -----------
-  // Assignments
-  // -----------
+  // ---------------------------
+  // Cluster-internal Addressing
+  // ---------------------------
   // Calculate start and end address of TCDM based on the `cluster_base_addr_i`.
   addr_t tcdm_start_address, tcdm_end_address;
   assign tcdm_start_address = (cluster_base_addr_i & TCDMMask);
@@ -455,6 +461,15 @@ module snitch_cluster
   addr_t zero_mem_start_address, zero_mem_end_address;
   assign zero_mem_start_address = cluster_periph_end_address;
   assign zero_mem_end_address   = cluster_periph_end_address + ZeroMemorySize * 1024;
+
+  localparam addr_t TCDMAliasStart = AliasRegionBase & TCDMMask;
+  localparam addr_t TCDMAliasEnd   = (TCDMAliasStart + TCDMSize) & TCDMMask;
+
+  localparam addr_t PeriphAliasStart = TCDMAliasEnd;
+  localparam addr_t PeriphAliasEnd   = TCDMAliasEnd + ClusterPeriphSize * 1024;
+
+  localparam addr_t ZeroMemAliasStart = PeriphAliasEnd;
+  localparam addr_t ZeroMemAliasEnd   = PeriphAliasEnd + ZeroMemorySize * 1024;
 
   // ----------------
   // Wire Definitions
@@ -555,7 +570,7 @@ module snitch_cluster
   xbar_rule_t [DmaXbarCfg.NoAddrRules-1:0] dma_xbar_rule;
 
   assign dma_xbar_default_port = '{default: SoCDMAOut};
-  assign dma_xbar_rule = '{
+  assign dma_xbar_rule[NrWideRuleIdcs-1:0] = '{
     '{
       idx:        TCDMDMA,
       start_addr: tcdm_start_address,
@@ -567,6 +582,21 @@ module snitch_cluster
       end_addr:   zero_mem_end_address
     }
   };
+  if (AliasRegionEnable) begin : gen_dma_xbar_alias
+    assign dma_xbar_rule [NrWideRules:NrWideRuleIdcs] = '{
+      '{
+        idx:        TCDMDMA,
+        start_addr: TCDMAliasStart,
+        end_addr:   TCDMAliasEnd
+      },
+      '{
+        idx:        ZeroMemory,
+        start_addr: ZeroMemAliasStart,
+        end_addr:   ZeroMemAliasEnd
+      }
+    };
+  end
+
   localparam bit [DmaXbarCfg.NoSlvPorts-1:0] DMAEnableDefaultMstPort = '1;
   axi_xbar #(
     .Cfg (DmaXbarCfg),
@@ -879,7 +909,9 @@ module snitch_cluster
         .RegisterFPUIn (RegisterFPUIn),
         .RegisterFPUOut (RegisterFPUOut),
         .TCDMAddrWidth (TCDMAddrWidth),
-        .DebugSupport (DebugSupport)
+        .DebugSupport (DebugSupport),
+        .TCDMAliasEnable (AliasRegionEnable),
+        .TCDMAliasStart (TCDMAliasStart)
       ) i_snitch_cc (
         .clk_i,
         .clk_d2_i (clk_d2),
@@ -1068,7 +1100,7 @@ module snitch_cluster
     cluster_xbar_default_port;
   xbar_rule_t [NrRules-1:0] cluster_xbar_rules;
 
-  assign cluster_xbar_rules = '{
+  assign cluster_xbar_rules [NrRuleIdcs-1:0] = '{
     '{
       idx:        TCDM,
       start_addr: tcdm_start_address,
@@ -1080,6 +1112,20 @@ module snitch_cluster
       end_addr:   cluster_periph_end_address
     }
   };
+  if (AliasRegionEnable) begin : gen_cluster_xbar_alias
+    assign cluster_xbar_rules [NrRules-1:NrRuleIdcs] = '{
+      '{
+        idx:        TCDM,
+        start_addr: TCDMAliasStart,
+        end_addr:   TCDMAliasEnd
+      },
+      '{
+        idx:        ClusterPeripherals,
+        start_addr: PeriphAliasStart,
+        end_addr:   PeriphAliasEnd
+      }
+    };
+  end
 
   localparam bit [ClusterXbarCfg.NoSlvPorts-1:0] ClusterEnableDefaultMstPort = '1;
   axi_xbar #(
@@ -1189,9 +1235,6 @@ module snitch_cluster
     .rst_ni,
     .reg_req_i (reg_req),
     .reg_rsp_o (reg_rsp),
-    /// The TCDM always starts at the cluster base.
-    .tcdm_start_address_i (tcdm_start_address),
-    .tcdm_end_address_i (tcdm_end_address),
     .icache_prefetch_enable_o (icache_prefetch_enable),
     .cl_clint_o (cl_interrupt),
     .cluster_hart_base_id_i (hart_base_id_i),
@@ -1251,6 +1294,8 @@ module snitch_cluster
   `ASSERT_INIT(CheckSuperBankFactor, (NrBanks % BanksPerSuperBank) == 0);
   // Check that the cluster base address aligns to the TCDMSize.
   `ASSERT(ClusterBaseAddrAlign, ((TCDMSize - 1) & cluster_base_addr_i) == 0)
+  // Check that the cluster alias address, if enabled, aligns to the TCDMSize.
+  `ASSERT(AliasRegionAddrAlign, ~AliasRegionEnable || ((TCDMSize - 1) & AliasRegionBase) == 0)
   // Make sure we only have one DMA in the system.
   `ASSERT_INIT(NumberDMA, $onehot0(Xdma))
 

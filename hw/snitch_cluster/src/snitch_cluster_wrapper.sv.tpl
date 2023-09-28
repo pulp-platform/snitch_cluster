@@ -334,7 +334,9 @@ module ${cfg['name']}_wrapper (
     .NarrowMaxSlvTrans (${cfg['narrow_trans']}),
     .sram_cfg_t (${cfg['pkg_name']}::sram_cfg_t),
     .sram_cfgs_t (${cfg['pkg_name']}::sram_cfgs_t),
-    .DebugSupport (${int(cfg['enable_debug'])})
+    .DebugSupport (${int(cfg['enable_debug'])}),
+    .AliasRegionEnable (${int(cfg['alias_region_enable'])}),
+    .AliasRegionBase (${int(cfg['alias_region_base'])})
   ) i_cluster (
     .clk_i,
     .rst_ni,
