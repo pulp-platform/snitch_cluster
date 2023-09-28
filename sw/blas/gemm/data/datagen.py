@@ -39,6 +39,10 @@ FP8_FORMATS = {
     'fp8alt': {'exp': 4, 'mant': 3}
 }
 
+# AXI splits bursts crossing 4KB address boundaries. To minimize
+# the occurrence of these splits the data should be aligned to 4KB
+BURST_ALIGNMENT = 4096
+
 
 def golden_model(alpha, a, b, beta, c):
     return alpha * np.matmul(a, b) + beta * c
@@ -96,9 +100,12 @@ def emit_header(**kwargs):
     data_str += [format_scalar_definition('uint32_t', 'BETA', kwargs['beta'])]
     data_str += [format_scalar_definition('uint32_t', 'dtype_size', kwargs['prec']//8)]
     data_str += [format_scalar_definition('uint32_t', 'expand', kwargs['expand'])]
-    data_str += [format_vector_definition(C_TYPES[str(kwargs['prec'])], 'a', a.flatten())]
-    data_str += [format_vector_definition(C_TYPES[str(kwargs['prec'])], 'b', b.flatten())]
-    data_str += [format_vector_definition(C_TYPES[str(kwargs['prec'])], 'c', c.flatten())]
+    data_str += [format_vector_definition(C_TYPES[str(kwargs['prec'])], 'a', a.flatten(),
+                 alignment=BURST_ALIGNMENT, section=kwargs['section'])]
+    data_str += [format_vector_definition(C_TYPES[str(kwargs['prec'])], 'b', b.flatten(),
+                 alignment=BURST_ALIGNMENT, section=kwargs['section'])]
+    data_str += [format_vector_definition(C_TYPES[str(kwargs['prec'])], 'c', c.flatten(),
+                 alignment=BURST_ALIGNMENT, section=kwargs['section'])]
     if kwargs['prec'] == 8:
         result_def = format_vector_definition(C_TYPES['64'], 'result', result.flatten())
     else:
@@ -120,11 +127,16 @@ def main():
         required=True,
         help='Select param config file kernel'
     )
+    parser.add_argument(
+        '--section',
+        type=str,
+        help='Section to store matrices in')
     args = parser.parse_args()
 
     # Load param config file
     with args.cfg.open() as f:
         param = hjson.loads(f.read())
+    param['section'] = args.section
 
     # Emit header file
     print(emit_header(**param))
