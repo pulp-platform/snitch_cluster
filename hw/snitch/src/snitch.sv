@@ -2931,4 +2931,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // Make sure that without virtual memory support, translation is never enabled
   `ASSERT(NoVMSupportNoTranslation, (~VMSupport |-> ~trans_active), clk_i, rst_i)
 
+  // Make sure debug IRQ line is not raised when debug mode is not supported
+  `ASSERT(DebugModeUnsupported, irq_i.debug == 1'b1 |-> DebugSupport == 1, clk_i, rst_i)
+
 endmodule
