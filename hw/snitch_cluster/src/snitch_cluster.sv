@@ -579,7 +579,7 @@ module snitch_cluster
     }
   };
   if (AliasRegionEnable) begin : gen_dma_xbar_alias
-    assign dma_xbar_rule [NrWideRules:NrWideRuleIdcs] = '{
+    assign dma_xbar_rule [NrWideRules-1:NrWideRuleIdcs] = '{
       '{
         idx:        TCDMDMA,
         start_addr: TCDMAliasStart,
