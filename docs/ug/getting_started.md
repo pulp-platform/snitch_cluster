@@ -11,7 +11,7 @@ git clone https://github.com/pulp-platform/{{ repo  }}.git --recurse-submodules
 
 If you had already cloned the repository without the `--recurse-submodules` flag, clone its submodules:
 ```shell
-git submodule init --recursive
+git submodule update --init --recursive
 ```
 
 ## Tools and environment
@@ -57,7 +57,7 @@ export LLVM_BINROOT="/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin"
 # As a temporary workaround (until correct tool versions are installed system-wide):
 export PATH=/usr/scratch/dachstein/colluca/opt/verible/bin:$PATH
 
-# Install spike for spike-dasm (submodule of the repository)
+# Install spike-dasm
 cd sw/deps/riscv-isa-sim
 autoconf
 mkdir build
@@ -65,8 +65,6 @@ cd build
 ../configure
 make
 export PATH=$(pwd):$PATH
-# or use temporary:
-# export PATH=/home/colluca/snitch/bin:$PATH
 ```
 
 Add these commands to your shell startup file (e.g. `~/.bashrc` if you use bash as the default shell) to ensure that the environment is set up correctly every time you open a new shell.

@@ -31,6 +31,11 @@ before_script:
   - TMPDIR=tmp pip install -r python-requirements.txt
   - rm -rf tmp
   - $BENDER vendor init
+  # Install spike-dasm
+  # yamllint disable rule:line-length
+  - wget https://github.com/pulp-platform/riscv-isa-sim/releases/download/snitch-v0.1.0/snitch-spike-dasm-0.1.0-x86_64-linux-gnu-almalinux8.7.tar.gz
+  # yamllint enable rule:line-length
+  - tar xzf snitch-spike-dasm-0.1.0-x86_64-linux-gnu-almalinux8.7.tar.gz
 
 ##############
 # Build docs #
@@ -118,6 +123,7 @@ snitch-cluster-vsim:
     - cd target/snitch_cluster
     - make bin/snitch_cluster.vsim
     - ./run.py sw/run.yaml --simulator vsim -j --run-dir runs/vsim
+    - make LOGS_DIR=./runs/vsim/simple/logs annotate -j
 
 # Banshee
 snitch-cluster-banshee:
