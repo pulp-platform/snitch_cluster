@@ -1289,7 +1289,7 @@ module snitch_cluster
   // Check that the cluster base address aligns to the TCDMSize.
   `ASSERT(ClusterBaseAddrAlign, ((TCDMSize - 1) & cluster_base_addr_i) == 0)
   // Check that the cluster alias address, if enabled, aligns to the TCDMSize.
-  `ASSERT(AliasRegionAddrAlign, ~AliasRegionEnable || ((TCDMSize - 1) & AliasRegionBase) == 0)
+  `ASSERT_INIT(AliasRegionAddrAlign, ~AliasRegionEnable || ((TCDMSize - 1) & AliasRegionBase) == 0)
   // Make sure we only have one DMA in the system.
   `ASSERT_INIT(NumberDMA, $onehot0(Xdma))
 
