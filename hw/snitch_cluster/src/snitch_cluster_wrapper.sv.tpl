@@ -251,6 +251,7 @@ module ${cfg['name']}_wrapper (
   localparam int unsigned NumSequencerInstr [${cfg['nr_cores']}] = '{${core_cfg('num_sequencer_instructions')}};
   localparam int unsigned NumSsrs [${cfg['nr_cores']}] = '{${core_cfg('num_ssrs')}};
   localparam int unsigned SsrMuxRespDepth [${cfg['nr_cores']}] = '{${core_cfg('ssr_mux_resp_depth')}};
+  localparam int unsigned SNAX [${cfg['nr_cores']}] = '{${core_cfg('snax_acc')}};
   localparam int unsigned SnaxTcdmPorts [${cfg['nr_cores']}] = '{${core_cfg('snax_tcdm_ports')}};
 
   // Snitch cluster under test.
@@ -296,7 +297,7 @@ module ${cfg['name']}_wrapper (
     .Xdma (${core_cfg_flat('xdma')}),
     .Xssr (${core_cfg_flat('xssr')}),
     .Xfrep (${core_cfg_flat('xfrep')}),
-    .SNAX(${core_cfg_flat('snax')}),
+    .SNAX(SNAX),
     .SnaxTcdmPorts(SnaxTcdmPorts),
     .FPUImplementation (${cfg['pkg_name']}::FPUImplementation),
     .SnitchPMACfg (${cfg['pkg_name']}::SnitchPMACfg),

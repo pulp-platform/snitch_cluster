@@ -46,11 +46,12 @@ jobs:
         run: |
           ./run.py sw/run.yaml --simulator verilator -j
 
+
   ##############################################
   # Simulate SW on Snitch Cluster w/ Verilator #
   ##############################################
-  sw-snax-cluster-vlt:
-    name: Simulate SW on SNAX Cluster w/ Verilator
+  sw-snax-mac-cluster-vlt:
+    name: Simulate SW on SNAX MAC Cluster w/ Verilator
     runs-on: ubuntu-22.04
     container:
       image: ghcr.io/kuleuven-micas/snax:latest
@@ -60,7 +61,7 @@ jobs:
           submodules: 'recursive'
       - name: Build Hardware
         run: |
-          make CFG_OVERRIDE=cfg/snax.hjson \
+          make CFG_OVERRIDE=cfg/snax-mac.hjson \
           -C target/snitch_cluster bin/snitch_cluster.vlt
       - name: Build Software
         run: |
@@ -71,6 +72,27 @@ jobs:
           ./run.py sw/tests/snax-run.yaml --simulator verilator
           ./run.py sw/apps/run.yaml --simulator verilator
 
+  sw-snax-gemm-cluster-vlt:
+    name: Simulate SW on SNAX GEMM Cluster w/ Verilator
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/kuleuven-micas/snax:latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - name: Build Hardware
+        run: |
+          make CFG_OVERRIDE=cfg/snax-gemm.hjson \
+          -C target/snitch_cluster bin/snitch_cluster.vlt
+      - name: Build Software
+        run: |
+          make -C target/snitch_cluster sw
+      - name: Run Tests
+        working-directory: target/snitch_cluster
+        run: |-
+          ./run.py sw/tests/snax-gemm-run.yaml --simulator verilator
+          ./run.py sw/apps/snax-gemm-run.yaml --simulator verilator
 
   ############################################
   # Build SW on Snitch Cluster w/ Banshee #
