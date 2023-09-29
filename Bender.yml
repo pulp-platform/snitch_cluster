@@ -17,6 +17,8 @@ package:
     - Nils Wistoff <nwistoff@iis.ee.ethz.ch>
     - Luca Bertaccini <lbertaccini@iis.ee.ethz.ch>
     - Matheus Cavalcante <matheusd@iis.ee.ethz.ch>
+    - Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
+    - Ryan Antonio <ryan.antonio@esat.kuleuven.be>
 
 dependencies:
   axi:                { git: https://github.com/pulp-platform/axi,                version:  0.39.0  }
@@ -27,6 +29,7 @@ dependencies:
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.11  }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0   }
   hwpe-mac-engine:    { git: https://github.com/KULeuven-MICAS/hwpe-mac-engine.git, rev: 5d3b4525b665169fc8321c8a811f3c83ad3c72e8 }
+  snax-gemm:          { git: https://github.com/KULeuven-MICAS/snax-gemm.git,     rev: 6b538447969cb0c00a4b749b38d68ae932c6aca1 }
 
 vendor_package:
   - name: musl
@@ -184,12 +187,17 @@ sources:
     files:
       - hw/snitch/test/snitch_l0_tlb_tb.sv
 
-  # hwpe_mac
+  # snax mac
   - files:
       # Level 0
       - hw/snax_hwpe_mac/src/snax_hwpe_ctrl.sv
       - hw/snax_hwpe_mac/src/snax_hwpe_to_reqrsp.sv
       - hw/snax_hwpe_mac/src/snax_mac.sv
+
+  # snax gemm
+  - files:
+      # Level 0
+      - hw/snax_gemm/src/snax_gemm.sv
 
   # snitch_vm
   - files:
