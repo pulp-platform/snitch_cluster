@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 runs:
+  - elf: tests/build/alias.elf
   - elf: tests/build/atomics.elf
     simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x4
   - elf: tests/build/barrier.elf
