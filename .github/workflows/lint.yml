@@ -87,6 +87,7 @@ jobs:
             sw/math/Makefile
             hw/snitch/src/csr_snax_def.sv
             hw/snax_hwpe_mac/src/*
+            hw/snax_gemm/src/*
             target/snitch_cluster/sw/apps/snax-mac/*
             target/snitch_cluster/sw/apps/snax-mac-simple/*
 

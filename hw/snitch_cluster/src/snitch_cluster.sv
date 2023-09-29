@@ -96,9 +96,9 @@ module snitch_cluster
   /// FPU configuration.
   parameter fpnew_pkg::fpu_implementation_t FPUImplementation [NrCores] =
     '{default: fpnew_pkg::fpu_implementation_t'(0)},
-  /// Enable SNAX per core
-  parameter bit [NrCores-1:0] SNAX          = '0,
-  /// Number of SNAX TCDM ports, the default assumes HWPE MAC engine
+  /// Enable SNAX accelerators per core. Integer coded.
+  parameter int unsigned  SNAX         [NrCores] = '{default: 0},
+  /// Number of SNAX TCDM ports per core
   parameter int unsigned SnaxTcdmPorts [NrCores] = '{default: 0},
   /// Physical Memory Attribute Configuration
   parameter snitch_pma_pkg::snitch_pma_t SnitchPMACfg = '0,
@@ -264,7 +264,17 @@ module snitch_cluster
     return n;
   endfunction
 
+  function automatic int unsigned check_if_snax(int unsigned core_idx);
+    for (int i = 0; i < core_idx; i++) begin
+      if ( SNAX[i] > 0) begin
+        return 1;
+      end
+    end
+    return 0;
+  endfunction
+
   // SNAX TCDM
+  localparam int unsigned SnaxSystem         = check_if_snax(NrCores);
   localparam int unsigned TotalSnaxTcdmPorts = get_snax_tcdm_port_offs(NrCores);
 
   localparam int unsigned NrTCDMPortsCores = get_tcdm_port_offs(NrCores);
@@ -774,7 +784,7 @@ module snitch_cluster
   end
 
   // generate TCDM for snax if any of the cores has SNAX enabled
-  if(|SNAX) begin: gen_yes_snax_tcdm_interconnect
+  if( SnaxSystem ) begin: gen_yes_snax_tcdm_interconnect
     snitch_tcdm_interconnect #(
       .NumInp (NumTCDMIn + TotalSnaxTcdmPorts),
       .NumOut (NrBanks),
@@ -967,12 +977,15 @@ module snitch_cluster
 
   for (genvar i = 0; i < NrCores; i++) begin : gen_snax_acc
 
+    // Calculate exact count of SNAX TCDM ports
     localparam int unsigned LocalSnaxTcdmPorts  = get_snax_tcdm_ports(i);
     localparam int unsigned LocalSnaxTcdmOffset = get_snax_tcdm_port_offs(i);
 
     tcdm_req_t [LocalSnaxTcdmPorts-1:0] hang_snax_tcdm_req;
     tcdm_rsp_t [LocalSnaxTcdmPorts-1:0] hang_snax_tcdm_rsp;
 
+    // Remap SNAX TCDM ports to prune cores that
+    // do not use SNAX TCDM ports
     for (genvar j = 0; j < LocalSnaxTcdmPorts; j++) begin : gen_snax_tcdm_map_per_core
       always_comb begin
         snax_tcdm_req[LocalSnaxTcdmOffset+j] = hang_snax_tcdm_req[j];
@@ -980,7 +993,7 @@ module snitch_cluster
       end
     end
 
-    if(SNAX[i]) begin: gen_yes_mac
+    if(SNAX[i] == 1) begin: gen_snax_mac
 
       snax_mac # (
         .DataWidth          ( 32               ),
@@ -990,6 +1003,28 @@ module snitch_cluster
         .tcdm_req_t         ( tcdm_req_t       ),
         .tcdm_rsp_t         ( tcdm_rsp_t       )
       ) i_snax_mac (
+        .clk_i              ( clk_i            ),
+        .rst_ni             ( rst_ni           ),
+        .snax_req_i         ( snax_req[i]      ),
+        .snax_qvalid_i      ( snax_qvalid[i]   ),
+        .snax_qready_o      ( snax_qready[i]   ),
+        .snax_resp_o        ( snax_resp[i]     ),
+        .snax_pvalid_o      ( snax_pvalid[i]   ),
+        .snax_pready_i      ( snax_pready[i]   ),
+        .snax_tcdm_req_o    ( hang_snax_tcdm_req ),
+        .snax_tcdm_rsp_i    ( hang_snax_tcdm_rsp )
+      );
+
+    end else if (SNAX[i] == 2) begin: gen_snax_gemm
+
+      snax_gemm # (
+        .DataWidth          ( NarrowDataWidth  ),
+        .SnaxTcdmPorts      ( LocalSnaxTcdmPorts ),
+        .acc_req_t          ( acc_req_t        ),
+        .acc_rsp_t          ( acc_resp_t       ),
+        .tcdm_req_t         ( tcdm_req_t       ),
+        .tcdm_rsp_t         ( tcdm_rsp_t       )
+      ) i_snax_gemm (
         .clk_i              ( clk_i            ),
         .rst_ni             ( rst_ni           ),
         .snax_req_i         ( snax_req[i]      ),
