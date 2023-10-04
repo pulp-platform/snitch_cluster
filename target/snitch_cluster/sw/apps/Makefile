@@ -19,6 +19,8 @@ SUBDIRS += dnn/maxpool
 SUBDIRS += dnn/softmax
 SUBDIRS += snax-mac
 SUBDIRS += snax-mac-simple
+SUBDIRS += snax-gemm-engine
+SUBDIRS += snax-gemm-base
 
 .PHONY: all clean $(SUBDIRS)
 
