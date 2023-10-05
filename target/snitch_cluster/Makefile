@@ -119,21 +119,31 @@ VLT_COBJ += $(VLT_BUILDDIR)/generated/bootdata.o
 
 CLUSTER_GEN_PREREQ = ${CLUSTER_GEN} ${CLUSTER_GEN_SRC}
 
+# This target is always evaluated and creates a symlink to the least
+# recently used config file. Because it is a symlink, targets to which it is a
+# prerequisite will only be updated if the symlink target is newer than the
+# depending targets, regardless of the symlink timestamp itself. The symlink
+# timestamp can be taken into account by using the `make -L` flag on the
+# command-line, however for simplicity we touch the symlink targets so it can
+# be used without.
 $(CFG): FORCE
 	@# If the LRU config file doesn't exist, we use the default config.
-	@if [ ! -e $@ ] ; then \
-		DEFAULT_CFG="$(DEFAULT_CFG)"; \
-		echo "Using default config file: $$DEFAULT_CFG"; \
-		cp $$DEFAULT_CFG $@; \
+	@if [ ! -e "$@" ] ; then \
+		echo "Using default config file: $(DEFAULT_CFG) $@"; \
+		ln -s --relative $(DEFAULT_CFG) $@; \
+		touch $(DEFAULT_CFG); \
 	fi
-	@# If a config file is provided on the command-line and it differs
-	@# from the LRU config file then we override the LRU file with it
+	@# If a config file is provided on the command-line and the LRU
+	@# config file doesn't point to it already, then we make it point to it
 	@if [ $(CFG_OVERRIDE) ] ; then \
 		echo "Overriding config file with: $(CFG_OVERRIDE)"; \
-		if cmp -s $(CFG_OVERRIDE) $@ ; then \
-			echo "Override and LRU config files are equivalent. Nothing to be done."; \
+		target=$$(readlink -f $@); \
+		if [ "$$target" = "$(abspath $(CFG_OVERRIDE))" ] ; then \
+			echo "LRU config file already points to $(CFG_OVERRIDE). Nothing to be done."; \
 		else \
-			cp $(CFG_OVERRIDE) $@; \
+			rm -f $@; \
+			ln -s --relative $(CFG_OVERRIDE) $@; \
+			touch $(CFG_OVERRIDE); \
 		fi \
 	fi
 FORCE:
