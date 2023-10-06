@@ -43,9 +43,11 @@ def main():
     k = bytes_to_uint32s(elf.get_symbol_contents('K'))[0]
     tb = bytes_to_uint32s(elf.get_symbol_contents('TB'))[0]
     a = np.reshape(a, (m, k))
-    b = np.reshape(b, (k, n))
     if tb:
+        b = np.reshape(b, (n, k))
         b = b.transpose()
+    else:
+        b = np.reshape(b, (k, n))
     c = np.reshape(c, (m, n))
 
     # Verify results
