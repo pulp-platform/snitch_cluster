@@ -20,22 +20,38 @@ static inline void snrt_init_tls() {
     extern volatile uint32_t __tdata_start, __tdata_end;
     extern volatile uint32_t __tbss_start, __tbss_end;
 
-    volatile uint32_t* p;
-    volatile uint32_t* tls_ptr;
+    size_t size;
+    volatile uint32_t tls_ptr;
 
-    asm volatile("mv %0, tp" : "=r"(tls_ptr) : :);
+    // To avoid contentions in main memory, and take advantage of the
+    // bandwidth of the DMA, the DM core initializes the TLS section
+    // for every core in a cluster.
+    if (snrt_is_dm_core()) {
+        size = (size_t)(&__tdata_end) - (size_t)(&__tdata_start);
 
-    // Copy tdata section
-    for (p = (uint32_t*)(&__tdata_start); p < (uint32_t*)(&__tdata_end); p++) {
-        *tls_ptr = *p;
-        tls_ptr++;
+        // First initialize the DM core's .tdata section from main memory
+        asm volatile("mv %0, tp" : "=r"(tls_ptr) : :);
+        snrt_dma_start_1d((void*)tls_ptr, (void*)(&__tdata_start), size);
+
+        // Then initialize all other cores' .tdata sections from the DM
+        // core's. The offset between the TLS section of successive cores
+        // is defined in start.S
+        size_t tls_offset = (1 << SNRT_LOG2_STACK_SIZE) + 8;
+        for (int i = 1; i < snrt_cluster_core_num(); i++) {
+            snrt_dma_start_1d((void*)(tls_ptr + i * tls_offset), (void*)tls_ptr,
+                              size);
+        }
+
+        // Initialize all cores' .tbss sections
+        tls_ptr += size;
+        size = (size_t)(&__tbss_end) - (size_t)(&__tbss_start);
+        for (int i = 0; i < snrt_cluster_core_num(); i++) {
+            snrt_dma_start_1d((void*)(tls_ptr + i * tls_offset),
+                              (void*)(snrt_zero_memory_ptr()), size);
+        }
     }
 
-    // Clear tbss section
-    for (p = (uint32_t*)(&__tbss_start); p < (uint32_t*)(&__tbss_end); p++) {
-        *tls_ptr = 0;
-        tls_ptr++;
-    }
+    snrt_cluster_hw_barrier();
 }
 #endif
 
