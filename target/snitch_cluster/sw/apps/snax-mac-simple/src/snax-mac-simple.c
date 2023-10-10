@@ -10,11 +10,11 @@ int main() {
     // Set err value for checking
     int err = 0;
 
-    uint64_t *local_a, *local_b;
-    uint64_t *local_o;
+    uint32_t *local_a, *local_b;
+    uint32_t *local_o;
 
     // Allocate space in TCDM
-    local_a = (uint64_t *)snrt_l1_next();
+    local_a = (uint32_t *)snrt_l1_next();
     local_b = local_a + VEC_LEN;
     local_o = local_b + VEC_LEN;
 
@@ -22,7 +22,7 @@ int main() {
 
     // Use data mover core to bring data from L3 to TCDM
     if (snrt_is_dm_core()) {
-        size_t vector_size = VEC_LEN * sizeof(uint64_t);
+        size_t vector_size = VEC_LEN * sizeof(uint32_t);
         snrt_dma_start_1d(local_a, A, vector_size);
         snrt_dma_start_1d(local_b, B, vector_size);
     }
@@ -39,9 +39,9 @@ int main() {
         uint32_t csr_set = snrt_mcycle();
 
         // Set addresses
-        write_csr(0x3d0, (uint64_t)local_a);
-        write_csr(0x3d1, (uint64_t)local_b);
-        write_csr(0x3d3, (uint64_t)local_o);
+        write_csr(0x3d0, (uint32_t)local_a);
+        write_csr(0x3d1, (uint32_t)local_b);
+        write_csr(0x3d3, (uint32_t)local_o);
 
         // Set configs
         write_csr(0x3d4, 1);   // Number of iterations
@@ -65,9 +65,9 @@ int main() {
         };
 
         uint32_t mac_end = snrt_mcycle();
-        uint64_t cpu_checker;
+        uint32_t cpu_checker;
 
-        for (uint64_t i = 0; i < (uint64_t)VEC_LEN; i++) {
+        for (uint32_t i = 0; i < (uint32_t)VEC_LEN; i++) {
             // Check if output is same as golden output
             if (*(local_o + i) != OUT[i]) {
                 err++;

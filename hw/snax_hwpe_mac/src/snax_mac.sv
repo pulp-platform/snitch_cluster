@@ -135,8 +135,7 @@ module snax_mac # (
     snax_hwpe_to_reqrsp #(
       .DataWidth        ( DataWidth           ),  // Data width to use
       .tcdm_req_t       ( tcdm_req_t          ),  // TCDM request type
-      .tcdm_rsp_t       ( tcdm_rsp_t          ),  // TCDM response type
-      .AlignOutputDouble( 1'b1                )   // Align data to double word
+      .tcdm_rsp_t       ( tcdm_rsp_t          )   // TCDM response type
     ) i_snax_hwpe_to_reqrsp (
       .clk_i            ( clk_i               ),  // Clock
       .rst_ni           ( rst_ni              ),  // Asynchronous reset, active low
