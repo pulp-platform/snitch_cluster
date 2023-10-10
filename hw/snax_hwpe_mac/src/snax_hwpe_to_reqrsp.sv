@@ -12,7 +12,6 @@ import reqrsp_pkg::*;
 module snax_hwpe_to_reqrsp #(
   parameter int unsigned AddrWidth = 48,
   parameter int unsigned DataWidth = 64,
-  parameter bit  AlignOutputDouble = 0,         // This triggers the x2 alignment for the addreses for doubles
   parameter type tcdm_req_t = logic,            // Memory request payload type, usually write enable, write data, etc.
   parameter type tcdm_rsp_t = logic             // Memory response payload type, usually read data
 )(
@@ -24,12 +23,6 @@ module snax_hwpe_to_reqrsp #(
 );
 
   //---------------------------------------------
-  // Some local parameters
-  //---------------------------------------------
-
-  localparam int unsigned StrbWidth = (DataWidth/8);
-
-  //---------------------------------------------
   // Pack, unpack, and some logic
   //---------------------------------------------
   logic push_hwpe_tcdm;
@@ -39,7 +32,7 @@ module snax_hwpe_to_reqrsp #(
   logic fifo_hwpe_tcdm_empty;
 
   logic be;
-  logic strb;
+  logic [7:0] strb;
 
   logic [31:0] unpack_addr;
   logic [31:0] unpack_data;
@@ -61,18 +54,19 @@ module snax_hwpe_to_reqrsp #(
 
   // Pack
   assign fifo_hwpe_tcdm_data_in.add   = hwpe_tcdm_slave.add;
-  assign fifo_hwpe_tcdm_data_in.wen   = !hwpe_tcdm_slave.wen; // Not wen, because HWPE uses wen=0 to write and wen = 1 to read but memory uses wen = 1 to write and wen = 0 to read
+  // Not wen, because HWPE uses wen=0 to write and wen = 1 to read but memory uses wen = 1 to write and wen = 0 to read
+  assign fifo_hwpe_tcdm_data_in.wen   = !hwpe_tcdm_slave.wen;
   assign fifo_hwpe_tcdm_data_in.be    = be;
   assign fifo_hwpe_tcdm_data_in.data  = hwpe_tcdm_slave.data;
   assign fifo_hwpe_tcdm_data_in.valid = hwpe_tcdm_slave.gnt & hwpe_tcdm_slave.req;
 
-  // Unpack
-  // Align the address to double if the HWPE stream is an output
-  // The incoming HWPE addresses are in multiples of 4
-  // Make them multiples of 8 by simply multiplying by 2
-  assign unpack_addr        = (AlignOutputDouble) ? fifo_hwpe_tcdm_data_out.add << 1 : fifo_hwpe_tcdm_data_out.add;
+  // Re-wiring
+  assign unpack_addr        = fifo_hwpe_tcdm_data_out.add;
   assign tcdm_req_o.q.write = fifo_hwpe_tcdm_data_out.wen;
-  assign strb               = fifo_hwpe_tcdm_data_out.be;
+
+  // For the STRB, if the address is multiples of 8 ONLY, then we get lower 32 bits
+  // Otherwise we get upper 32 bits
+  assign strb               = (unpack_addr[2]) ? 8'b1111_0000 : 8'b0000_1111;
   assign unpack_data        = fifo_hwpe_tcdm_data_out.data;
 
   // This is necessary to include the empty. Since the FIFO does not clear its contents,
@@ -137,6 +131,8 @@ module snax_hwpe_to_reqrsp #(
   typedef logic [31:0] fifo_addr_buffer_t;
   fifo_addr_buffer_t fifo_addr_out;
 
+  // This buffer is to hold the read address for
+  // word selection whether upper or lower 32-bits data
   fifo_v3 #(
     .dtype      ( fifo_addr_buffer_t  ), // Sum of address and 
     .DEPTH      ( 8                   )  // Arbitrarily chosen
@@ -177,17 +173,18 @@ module snax_hwpe_to_reqrsp #(
   // 
   //---------------------------------------------
 
-  assign hwpe_tcdm_slave.r_data  = tcdm_rsp_i.p.data[31:0];
+  // Select the appropriate word depending on address
+  assign hwpe_tcdm_slave.r_data  = (fifo_addr_out[2]) ? tcdm_rsp_i.p.data[63:32] : tcdm_rsp_i.p.data[31:0];
   assign hwpe_tcdm_slave.r_valid = tcdm_rsp_i.p_valid;
 
   //---------------------------------------------
   // Some signals are unimportant so we tie them to 0
   // Strb is just extended version of strb
   //---------------------------------------------
-  assign tcdm_req_o.q.addr = {{31{1'b0}},unpack_addr};
-  assign tcdm_req_o.q.data = {{31{1'b0}},unpack_data};
+  assign tcdm_req_o.q.addr = {{32{1'b0}},unpack_addr};
+  assign tcdm_req_o.q.data = (unpack_addr[2]) ? {unpack_data, {32{1'b0}}} : {{32{1'b0}},unpack_data};
   assign tcdm_req_o.q.amo  = AMONone;
-  assign tcdm_req_o.q.strb = '1; //Byte strobes are always valid
+  assign tcdm_req_o.q.strb = strb;
   assign tcdm_req_o.q.user = '0;
 
 // verilog_lint: waive-stop line-length
