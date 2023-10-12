@@ -82,7 +82,7 @@ static inline void snrt_init_cls() {
 
         // Copy cdata section to base of the TCDM
         size = (size_t)(&__cdata_end) - (size_t)(&__cdata_start);
-        if (size > 0) snrt_dma_start_1d(ptr, (void*)(&__cdata_start), size);
+        snrt_dma_start_1d(ptr, (void*)(&__cdata_start), size);
 
         // Clear cbss section
         ptr = (void*)((uint32_t)ptr + size);
