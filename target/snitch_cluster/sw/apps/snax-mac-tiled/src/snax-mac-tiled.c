@@ -11,6 +11,30 @@ void snax_mac_sw_barrier(){
     while (read_csr(0x3c3)) {};
 }
 
+void snax_mac_setup_simple_mult(uint32_t* a, uint32_t* b,
+                                uint32_t* o, uint32_t vector_length){
+        /*
+         * Setup the hwpe_mac accelerator in simple_mult mode.
+         * This computes the product A*B in 32 bits and stores it starting
+         * from the pointer given by O
+         * args:
+         *  a: pointer in TCDM (L1) to vector A
+         *  b: pointer in TCDM (L1) to vector B
+         *  o: pointer in TCDM (L1) to where output O must be stored
+         *  vector_length: length of A,B and O
+         * */
+
+        // Set addresses
+        write_csr(0x3d0, (uint32_t)a);
+        write_csr(0x3d1, (uint32_t)b);
+        write_csr(0x3d3, (uint32_t)o);
+
+        // Set configs
+        write_csr(0x3d4, 1);   // Number of iterations
+        write_csr(0x3d5, vector_length);  // Vector length
+        write_csr(0x3d6, 1);   // Set simple multiplication
+}
+
 int main() {
     // Set err value for checking
     int err = 0;
@@ -43,15 +67,7 @@ int main() {
         // This marks the start of the accelerator style of MAC operation
         uint32_t csr_set = snrt_mcycle();
 
-        // Set addresses
-        write_csr(0x3d0, (uint32_t)local_a);
-        write_csr(0x3d1, (uint32_t)local_b);
-        write_csr(0x3d3, (uint32_t)local_o);
-
-        // Set configs
-        write_csr(0x3d4, 1);   // Number of iterations
-        write_csr(0x3d5, 19);  // Vector length
-        write_csr(0x3d6, 1);   // Set simple multiplication
+        snax_mac_setup_simple_mult(local_a, local_b, local_o, VEC_LEN);
 
         // Write start CSR to launch accelerator
         write_csr(0x3c0, 0);
