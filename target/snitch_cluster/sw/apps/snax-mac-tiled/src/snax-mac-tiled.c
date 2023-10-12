@@ -6,6 +6,11 @@
 
 #include "data.h"
 
+void snax_mac_launch(){
+    // Write start CSR to launch accelerator
+    write_csr(0x3c0, 0);
+}
+
 void snax_mac_sw_barrier(){
     // poll csr 0x3c3 until HWPE MAC accelerator is finished
     while (read_csr(0x3c3)) {};
