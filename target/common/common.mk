@@ -164,7 +164,7 @@ define QUESTASIM
 	@chmod +x $@
 	@echo "#!/bin/bash" > $@.gui
 	@echo 'binary=$$(realpath $$1)' >> $@.gui
-	@echo 'mkdir -p $(LOGS_DIR)' >> $@
+	@echo 'mkdir -p $(LOGS_DIR)' >> $@.gui
 	@echo 'echo $$binary > $(LOGS_DIR)/.rtlbinary' >> $@.gui
 	@echo '${VSIM} +permissive ${VSIM_FLAGS} -work ${MKFILE_DIR}/${VSIM_BUILDDIR} \
 				-ldflags "-Wl,-rpath,${FESVR}/lib -L${FESVR}/lib -lfesvr -lutil" \
