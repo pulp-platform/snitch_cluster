@@ -37,7 +37,7 @@ The FREP instruction has the following signature:
 | max_inst | max_rpt | stagger_max | stagger_mask | 0        | OP-CUSTOM1 | FREP.I    |
 | max_inst | max_rpt | stagger_max | stagger_mask | 1        | OP-CUSTOM1 | FREP.O    |
 
-FREP.I and FREP.O repeat the *max_inst* instructions following the FREP instruction for *max_rpt + 1* times. The FREP.I instruction (*I* stands for inner) repeats every instruction the specified number of times and moves on to executing and repeating the next. The FREP.O instruction (*O* stands for outer) repeats the whole sequence of instructions *max_rpt + 1* times. Register staggering can be enabled and configured via the *stagger_mask* and *stagger_max* immediates. A detailed explanation of their use can be found in the Snitch [paper](/publications).
+FREP.I and FREP.O repeat the *max_inst + 1* instructions following the FREP instruction for *max_rpt + 1* times. The FREP.I instruction (*I* stands for inner) repeats every instruction the specified number of times and moves on to executing and repeating the next. The FREP.O instruction (*O* stands for outer) repeats the whole sequence of instructions *max_rpt + 1* times. Register staggering can be enabled and configured via the *stagger_mask* and *stagger_max* immediates. A detailed explanation of their use can be found in the Snitch [paper](/publications).
 
 The assembly instruction signature follows:
 
