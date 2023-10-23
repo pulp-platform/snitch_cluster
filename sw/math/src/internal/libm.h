@@ -96,6 +96,47 @@ static int32_t converttoint(double_t);
 #define predict_false(x) (x)
 #endif
 
+/* FPU fence to synchronize the FPU and integer core in Snitch. */
+inline void snrt_fpu_fence() {
+    unsigned tmp;
+    __asm__ volatile(
+        "fmv.x.w %0, fa0\n"
+        "mv      %0, %0\n"
+        : "+r"(tmp)::"memory");
+}
+
+/* Synch-secure double to uint64 conversion functions. */
+static inline uint64_t asuint64(double f) {
+    uint64_t result;
+    snrt_fpu_fence();
+    result = *(uint64_t *)&f;
+    return result;
+}
+
+/* Synch-secure float to uint conversion functions. */
+static inline uint64_t asuint(float f) {
+    uint32_t result;
+    snrt_fpu_fence();
+    result = *(uint32_t *)&f;
+    return result;
+}
+
+/* Synch-secure uint64 to double conversion functions. */
+static inline double asdouble(uint64_t i) {
+    double result;
+    snrt_fpu_fence();
+    result = *(double *)&i;
+    return result;
+}
+
+/* Synch-secure uint to float conversion functions. */
+static inline float asfloat(uint32_t i) {
+	float result;
+	snrt_fpu_fence();
+	result = *(float *)&i;
+	return result;
+}
+
 /* Evaluate an expression as the specified type. With standard excess
    precision handling a type cast or assignment is enough (with
    -ffloat-store an assignment is required, in old compilers argument
@@ -187,10 +228,12 @@ static inline void fp_force_evall(long double x)
 	}                                         \
 } while(0)
 
-#define asuint(f) ((union{float _f; uint32_t _i;}){f})._i
-#define asfloat(i) ((union{uint32_t _i; float _f;}){i})._f
-#define asuint64(f) ((union{double _f; uint64_t _i;}){f})._i
-#define asdouble(i) ((union{uint64_t _i; double _f;}){i})._f
+// Unsafe in Snitch due to the decoupled FPU and integer
+// arithmetic units. Use at your own risk.
+#define asuint_unsafe(f) ((union{float _f; uint32_t _i;}){f})._i
+#define asfloat_unsafe(i) ((union{uint32_t _i; float _f;}){i})._f
+#define asuint64_unsafe(f) ((union{double _f; uint64_t _i;}){f})._i
+#define asdouble_unsafe(i) ((union{uint64_t _i; double _f;}){i})._f
 
 #define EXTRACT_WORDS(hi,lo,d)                    \
 do {                                              \
