@@ -34,6 +34,7 @@ RISCV_CFLAGS += -mcmodel=medany
 # RISCV_CFLAGS += -mno-fdiv # Not supported by Clang
 RISCV_CFLAGS += -ffast-math
 RISCV_CFLAGS += -fno-builtin-printf
+RISCV_CFLAGS += -fno-builtin-sqrtf
 RISCV_CFLAGS += -fno-common
 RISCV_CFLAGS += -fopenmp
 RISCV_CFLAGS += -ftls-model=local-exec
