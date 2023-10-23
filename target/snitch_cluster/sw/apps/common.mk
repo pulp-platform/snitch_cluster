@@ -22,6 +22,7 @@ RISCV_CFLAGS += -DBIST
 else
 RUNTIME_DIR := $(ROOT)/target/snitch_cluster/sw/runtime/rtl
 endif
+MATH_DIR := $(ROOT)/target/snitch_cluster/sw/math
 
 # Paths relative to the app including this Makefile
 BUILDDIR = $(abspath build)
@@ -37,18 +38,13 @@ INCDIRS += $(SNRT_DIR)/api/omp
 INCDIRS += $(SNRT_DIR)/src
 INCDIRS += $(SNRT_DIR)/src/omp
 INCDIRS += $(ROOT)/sw/deps/riscv-opcodes
-
-# Math library override
-INCDIRS += $(ROOT)/sw/math/arch/riscv64/bits/
-INCDIRS += $(ROOT)/sw/math/arch/generic
-INCDIRS += $(ROOT)/sw/math/src/include
-INCDIRS += $(ROOT)/sw/math/src/internal
-INCDIRS += $(ROOT)/sw/math/include/bits
 INCDIRS += $(ROOT)/sw/math/include
 
 RISCV_LDFLAGS += -L$(abspath $(RUNTIME_DIR))
 RISCV_LDFLAGS += -T$(abspath $(SNRT_DIR)/base.ld)
 RISCV_LDFLAGS += -L$(abspath $(RUNTIME_DIR)/build/)
+RISCV_LDFLAGS += -L$(abspath $(MATH_DIR)/build/)
+RISCV_LDFLAGS += -lmath
 RISCV_LDFLAGS += -lsnRuntime
 
 ###########
