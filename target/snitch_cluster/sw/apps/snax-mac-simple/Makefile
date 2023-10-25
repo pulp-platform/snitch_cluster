@@ -2,10 +2,28 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 #
-# Ryan Antonio <ryan.antonio@esat.kuleuven.be>
+# Gianna Paulin <pauling@iis.ee.ethz.ch>
+# Josse Van Delm <jvandelm@esat.kuleuven.be>
 
-APP     = snax-mac-simple
-SRCS    = src/snax-mac-simple.c
-INCDIRS = data
+# Usage of absolute paths is required to externally include this Makefile
+MK_DIR   := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+SRC_DIR  := $(realpath $(MK_DIR)/$(APP)/src)
 
-include ../common.mk
+INCDIRS += $(SRC_DIR)
+
+SRCS     = $(realpath $(SRC_DIR)/$(APP).c)
+
+LENGTH ?= 20
+TILE_SIZE ?= 4
+
+DATA_H = $(SRC_DIR)/data.h
+
+$(DATA_H): $(MK_DIR)/datagen.py
+	$< --length=$(LENGTH) --tile_size=$(TILE_SIZE) > $@
+
+.PHONY: clean-data clean
+
+clean-data:
+	rm -f $(DATA_H)
+
+clean: clean-data
