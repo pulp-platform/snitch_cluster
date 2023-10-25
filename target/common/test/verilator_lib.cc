@@ -17,7 +17,7 @@ const int HTIFTimeInterval = 200;
 void sim_thread_main(void *arg) { ((Sim *)arg)->main(); }
 
 // Sim time.
-int TIME = 0;
+vluint64_t TIME = 0;
 
 Sim::Sim(int argc, char **argv) : htif_t(argc, argv), ipc(argc, argv) {
     // Search arguments for `--vcd` flag and enable waves if requested
@@ -78,7 +78,11 @@ void Sim::main() {
 }  // namespace sim
 
 // Verilator callback to get the current time.
-double sc_time_stamp() { return sim::TIME; }
+double sc_time_stamp() { 
+    // We want to return timestamp in picosecond accuracy, assuming that one cycle takes 1ns
+    // Since 1 cycle takes 2 time increments, scale by 500 to get time = cycle * 1000 + <some constant>
+    return sim::TIME * 500; 
+}
 
 // DPI calls.
 void tb_memory_read(long long addr, int len, const svOpenArrayHandle data) {
