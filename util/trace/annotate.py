@@ -164,7 +164,7 @@ def dump_hunk(hunk_tstart, hunk_sstart, hunk_trace, hunk_source):
 
 
 # Open ELF file for addr2line processing
-elf = a2l.Elf(elf_file)
+elf = a2l.Elf(elf_file, addr2line)
 
 # core functionality
 with open(trace, 'r') as f:
