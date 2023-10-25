@@ -18,8 +18,8 @@ SUBDIRS += dnn/linear
 SUBDIRS += dnn/maxpool
 SUBDIRS += dnn/softmax
 SUBDIRS += snax-mac
-SUBDIRS += snax-mac-simple
-SUBDIRS += snax-mac-tiled
+SUBDIRS += snax-mac-simple/untiled
+SUBDIRS += snax-mac-simple/tiled
 SUBDIRS += snax-gemm-engine
 SUBDIRS += snax-gemm-base
 
