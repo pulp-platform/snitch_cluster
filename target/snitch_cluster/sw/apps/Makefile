@@ -20,6 +20,7 @@ SUBDIRS += dnn/softmax
 SUBDIRS += montecarlo/pi_estimation
 SUBDIRS += snax-mac
 SUBDIRS += snax-mac-simple
+SUBDIRS += snax-mac-tiled
 SUBDIRS += snax-gemm-engine
 SUBDIRS += snax-gemm-base
 
