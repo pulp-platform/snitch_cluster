@@ -90,6 +90,7 @@ jobs:
             hw/snax_gemm/src/*
             target/snitch_cluster/sw/apps/snax-mac/*
             target/snitch_cluster/sw/apps/snax-mac-simple/*
+            target/snitch_cluster/sw/apps/snax-mac-tiled/*
             target/snitch_cluster/sw/apps/snax-gemm-base/*
             target/snitch_cluster/sw/apps/snax-gemm-engine/*
 
