@@ -13,7 +13,6 @@ variables:
   VERILATOR: verilator-4.110
   QUESTA: questa-2022.3
   LLVM_BINROOT: /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
-  CLANG: /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin/clang
   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: /usr/pack/gcc-9.2.0-af/linux-x64/bin/gcc
   LLVM_SYS_120_PREFIX: /usr/pack/llvm-12.0.1-af
   CMAKE: cmake-3.18.1
@@ -22,6 +21,7 @@ before_script:
   - $PYTHON -m venv .venv
   - source .venv/bin/activate
   - pip install -r python-requirements.txt
+  - $BENDER vendor init
 
 ##############
 # Build docs #
