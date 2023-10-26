@@ -5,6 +5,7 @@
 // Author: Tim Fischer <fischeti@iis.ee.ethz.ch>
 //         Luca Bertaccini <lbertaccini@iis.ee.ethz.ch>
 //         Luca Colagrande <colluca@iis.ee.ethz.ch>
+//         Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
 #include <stdint.h>
 

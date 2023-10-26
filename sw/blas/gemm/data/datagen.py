@@ -15,7 +15,7 @@ import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
 from data_utils import emit_license, format_scalar_definition, \
-                       format_vector_definition, format_ifdef_wrapper  # noqa: E402
+                       format_array_definition, format_ifdef_wrapper  # noqa: E402
 
 
 np.random.seed(42)
@@ -100,18 +100,18 @@ def emit_header(**kwargs):
     data_str += [format_scalar_definition('uint32_t', 'BETA', kwargs['beta'])]
     data_str += [format_scalar_definition('uint32_t', 'dtype_size', kwargs['prec']//8)]
     data_str += [format_scalar_definition('uint32_t', 'expand', kwargs['expand'])]
-    data_str += [format_vector_definition(C_TYPES[str(kwargs['prec'])], 'a', a.flatten(),
+    data_str += [format_array_definition(C_TYPES[str(kwargs['prec'])], 'a', a.flatten(),
                  alignment=BURST_ALIGNMENT, section=kwargs['section'])]
-    data_str += [format_vector_definition(C_TYPES[str(kwargs['prec'])], 'b', b.flatten(),
+    data_str += [format_array_definition(C_TYPES[str(kwargs['prec'])], 'b', b.flatten(),
                  alignment=BURST_ALIGNMENT, section=kwargs['section'])]
-    data_str += [format_vector_definition(C_TYPES[str(kwargs['prec'])], 'c', c.flatten(),
+    data_str += [format_array_definition(C_TYPES[str(kwargs['prec'])], 'c', c.flatten(),
                  alignment=BURST_ALIGNMENT, section=kwargs['section'])]
     if kwargs['prec'] == 8:
-        result_def = format_vector_definition(C_TYPES['64'], 'result', result.flatten())
+        result_def = format_array_definition(C_TYPES['64'], 'result', result.flatten())
     else:
-        result_def = format_vector_definition(C_TYPES[str(kwargs['prec'])],
-                                              'result',
-                                              result.flatten())
+        result_def = format_array_definition(C_TYPES[str(kwargs['prec'])],
+                                             'result',
+                                             result.flatten())
     data_str += [format_ifdef_wrapper('BIST', result_def)]
     data_str = '\n\n'.join(data_str)
 

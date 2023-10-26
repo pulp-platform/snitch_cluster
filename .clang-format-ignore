@@ -4,3 +4,6 @@
 
 # Ignore vendored third-party code
 ./sw/math/*
+./target/snitch_cluster/sw/apps/transformer/src/transformer.c
+./target/snitch_cluster/sw/apps/transformer/src/data.h
+./sw/apps/transformer/src/transformer.h
