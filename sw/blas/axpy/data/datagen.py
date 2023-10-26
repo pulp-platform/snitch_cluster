@@ -11,8 +11,8 @@ import numpy as np
 import os
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
-from data_utils import format_scalar_definition, format_vector_definition, \
-                       format_vector_declaration, format_ifdef_wrapper  # noqa: E402
+from data_utils import format_scalar_definition, format_array_definition, \
+                       format_array_declaration, format_ifdef_wrapper  # noqa: E402
 
 MIN = -1000
 MAX = +1000
@@ -47,16 +47,16 @@ def main():
     a = np.random.uniform(MIN, MAX, 1)
     x = np.random.uniform(MIN, MAX, length)
     y = np.random.uniform(MIN, MAX, length)
-    z = np.zeros(length)
     g = golden_model(a, x, y)
 
     # Format header file
     l_str = format_scalar_definition('const uint32_t', 'l', length)
     a_str = format_scalar_definition('const double', 'a', a[0])
-    x_str = format_vector_definition('double', 'x', x, alignment=BURST_ALIGNMENT, section=section)
-    y_str = format_vector_definition('double', 'y', y, alignment=BURST_ALIGNMENT, section=section)
-    z_str = format_vector_declaration('double', 'z', z, alignment=BURST_ALIGNMENT, section=section)
-    g_str = format_vector_definition('double', 'g', g)
+    x_str = format_array_definition('double', 'x', x, alignment=BURST_ALIGNMENT, section=section)
+    y_str = format_array_definition('double', 'y', y, alignment=BURST_ALIGNMENT, section=section)
+    z_str = format_array_declaration('double', 'z', [length],
+                                     alignment=BURST_ALIGNMENT, section=section)
+    g_str = format_array_definition('double', 'g', g)
     g_str = format_ifdef_wrapper('BIST', g_str)
     f_str = '\n\n'.join([l_str, a_str, x_str, y_str, z_str, g_str])
     f_str += '\n'

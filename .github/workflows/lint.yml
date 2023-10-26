@@ -117,6 +117,7 @@ jobs:
         with:
           flake8-version: "6.0.0"
           max-line-length: "100"
+          exclude: "target/snitch_cluster/sw/apps/dnn/datagen.py"
 
   ######################
   # Clang-Format Check #

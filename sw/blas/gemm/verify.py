@@ -13,7 +13,7 @@ from data.datagen import golden_model
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import bytes_to_doubles, bytes_to_uint32s  # noqa: E402
+from data_utils import bytes_to_float, bytes_to_int  # noqa: E402
 
 
 ERR_THRESHOLD = 0.001
@@ -27,21 +27,21 @@ def main():
                                         symbols_bin=args.symbols_bin,
                                         log=args.log,
                                         output_uids=['c'])
-    c_actual = np.array(bytes_to_doubles(raw_results['c']))
+    c_actual = np.array(bytes_to_float(raw_results['c'], prec='64'))
 
     # Extract input operands from ELF file
     if args.symbols_bin:
         elf = Elf(args.symbols_bin)
     else:
         elf = Elf(args.snitch_bin)
-    a = np.array(bytes_to_doubles(elf.get_symbol_contents('a')))
-    b = np.array(bytes_to_doubles(elf.get_symbol_contents('b')))
-    c = np.array(bytes_to_doubles(elf.get_symbol_contents('c')))
-    beta = bytes_to_uint32s(elf.get_symbol_contents('BETA'))[0]
-    m = bytes_to_uint32s(elf.get_symbol_contents('M'))[0]
-    n = bytes_to_uint32s(elf.get_symbol_contents('N'))[0]
-    k = bytes_to_uint32s(elf.get_symbol_contents('K'))[0]
-    tb = bytes_to_uint32s(elf.get_symbol_contents('TB'))[0]
+    a = np.array(bytes_to_float(elf.get_symbol_contents('a'), prec='64'))
+    b = np.array(bytes_to_float(elf.get_symbol_contents('b'), prec='64'))
+    c = np.array(bytes_to_float(elf.get_symbol_contents('c'), prec='64'))
+    beta = bytes_to_int(elf.get_symbol_contents('BETA'), prec='32', signedness='unsigned')[0]
+    m = bytes_to_int(elf.get_symbol_contents('M'), prec='32', signedness='unsigned')[0]
+    n = bytes_to_int(elf.get_symbol_contents('N'), prec='32', signedness='unsigned')[0]
+    k = bytes_to_int(elf.get_symbol_contents('K'), prec='32', signedness='unsigned')[0]
+    tb = bytes_to_int(elf.get_symbol_contents('TB'), prec='32', signedness='unsigned')[0]
     a = np.reshape(a, (m, k))
     if tb:
         b = np.reshape(b, (n, k))

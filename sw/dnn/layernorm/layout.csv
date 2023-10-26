@@ -1,0 +1,3 @@
+            , setup, dma in, compute tile, dma out, dma in, compute tile, dma out
+"range(0,8)",      1,      ,            3,        ,       ,            5,        
+8           ,      1,     2,             ,       4,      5,             ,       7

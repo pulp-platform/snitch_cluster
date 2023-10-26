@@ -56,7 +56,7 @@ VLT_AR = ${VLT_BUILDDIR}/Vtestharness__ALL.a
 # (LRU) config, all targets depending on the configuration file have
 # to be rebuilt. This file is used to express this condition as a
 # prerequisite for other rules.
-DEFAULT_CFG = cfg/default.hjson
+DEFAULT_CFG = cfg/divsqrt.hjson
 CFG         = cfg/lru.hjson
 
 #####################

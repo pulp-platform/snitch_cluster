@@ -37,6 +37,7 @@ INCDIRS += $(SNRT_DIR)/api
 INCDIRS += $(SNRT_DIR)/api/omp
 INCDIRS += $(SNRT_DIR)/src
 INCDIRS += $(SNRT_DIR)/src/omp
+INCDIRS += $(ROOT)/sw/blas
 INCDIRS += $(ROOT)/sw/deps/riscv-opcodes
 INCDIRS += $(ROOT)/sw/math/include
 
