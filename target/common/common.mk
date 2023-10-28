@@ -59,7 +59,8 @@ VLT_FLAGS    += --unroll-count 1024
 VLT_CFLAGS   += -std=c++14 -pthread
 VLT_CFLAGS   +=-I ${VLT_BUILDDIR} -I $(VLT_ROOT)/include -I $(VLT_ROOT)/include/vltstd -I $(VLT_FESVR)/include -I $(TB_DIR) -I ${MKFILE_DIR}/test
 
-ANNOTATE_FLAGS ?= -q --keep-time
+ANNOTATE_FLAGS      ?= -q --keep-time
+LAYOUT_EVENTS_FLAGS ?= --cfg=$(CFG)
 
 # We need a recent LLVM installation (>11) to compile Verilator.
 # We also need to link the binaries with LLVM's libc++.
