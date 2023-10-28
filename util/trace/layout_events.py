@@ -41,6 +41,7 @@ import argparse
 import csv
 import pandas as pd
 from math import isnan
+import hjson
 
 
 def main():
@@ -55,10 +56,9 @@ def main():
         metavar='<layout>',
         help='Layout CSV file')
     parser.add_argument(
-        '--num-clusters',
-        type=int,
-        default=1,
-        help='Number of clusters')
+        '--cfg',
+        type=str,
+        help='System configuration .hjson file')
     parser.add_argument(
         '-o',
         '--output',
@@ -70,6 +70,11 @@ def main():
 
     # Read input CSV
     df = pd.read_csv(args.csv)
+
+    # Read system configuration .hjson file
+    cfg = None
+    with open(args.cfg) as cfg_file:
+        cfg = hjson.load(cfg_file)
 
     # Output CSV data
     data = []
@@ -92,7 +97,9 @@ def main():
             # which generates a list of hart IDs
             expr = row[0]
             code = compile(expr, "<string>", "eval")
-            tids = eval(code, {}, {'num_clusters': args.num_clusters})
+            # Symbols must be added to globals to be used in list comprehensions
+            # see https://bugs.python.org/issue36300
+            tids = eval(code, {'cfg': cfg}, {'cfg': cfg})
             if type(tids) == int:
                 tids = [tids]
 
