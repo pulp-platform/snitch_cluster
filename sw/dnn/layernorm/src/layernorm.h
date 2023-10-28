@@ -110,12 +110,15 @@ static inline void layernorm_fp32(float *input, float *output,
 //     layernorm_fp32(input, input, ldI, 0, 1, seq_len, embeddings, eps);
 // }
 
-// Tiles the seq_len axis
+// Tiles the seq_len axis (assumes seq_len is an integer multiple of n_tiles)
+// Distributes tiles to clusters (assumes n_tiles is an integer multiple of
+// the number of clusters)
 static inline void layernorm_layer(layernorm_layer_t l) {
     snrt_mcycle();
 
     // Compute the tiling parameters
     uint32_t n_tiles = l.n_tiles;
+    uint32_t n_tiles_per_cluster = l.n_tiles / snrt_cluster_num();
     uint32_t tile_seq_len = l.seq_len / n_tiles;
     uint32_t tile_size = l.batch_size * tile_seq_len * l.embeddings;
     uint32_t tile_offset = tile_seq_len * l.embeddings;
@@ -130,7 +133,11 @@ static inline void layernorm_layer(layernorm_layer_t l) {
 
     // Iterate tiles
     snrt_mcycle();
-    for (int tile_idx = 0; tile_idx < n_tiles; tile_idx++) {
+    for (uint32_t cluster_tile_idx = 0; cluster_tile_idx < n_tiles_per_cluster;
+         cluster_tile_idx++) {
+        // Calculate absolute tile index
+        uint32_t tile_idx =
+            snrt_cluster_idx() * n_tiles_per_cluster + cluster_tile_idx;
         // Copy input tile
         if (snrt_is_dm_core()) {
             float *remote_itile = remote_ifmap + tile_idx * tile_offset;
