@@ -2,10 +2,7 @@
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 
-// Parameters for a single SoftMax layer
-
 {
-    kernel: "SoftMax"
     input_dim: {
         batch_size: 3,
         seq_len: 16,

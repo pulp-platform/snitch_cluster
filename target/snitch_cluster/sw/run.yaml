@@ -78,9 +78,10 @@ runs:
   - elf: apps/dnn/maxpool/build/maxpool.elf
   - elf: apps/dnn/gemm/build/gemm.elf
   - elf: apps/dnn/layernorm/build/layernorm.elf # Illegal FDIV without FDIV unit
+    cmd: ../../sw/dnn/layernorm/verify.py {sim_bin} {elf}
   # - elf: apps/dnn/gelu/build/gelu.elf # seems like it stalls
   # - elf: apps/dnn/conv2d/build/conv2d.elf # fails with exit code 32
   # - elf: apps/dnn/fusedconv/build/fusedconv.elf # fails newly
-  # - elf: apps/dnn/softmax/build/softmax.elf
-  #   throws illegal instruction on FDIV in simulation
+  - elf: apps/dnn/softmax/build/softmax.elf # Illegal FDIV without FDIV unit
+    cmd: ../../sw/dnn/softmax/verify.py {sim_bin} {elf}
   - elf: apps/montecarlo/pi_estimation/build/pi_estimation.elf
