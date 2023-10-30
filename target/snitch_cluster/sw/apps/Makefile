@@ -17,7 +17,7 @@ SUBDIRS += dnn/gemm
 SUBDIRS += dnn/layernorm
 SUBDIRS += dnn/linear
 SUBDIRS += dnn/maxpool
-# SUBDIRS += dnn/softmax
+SUBDIRS += dnn/softmax
 SUBDIRS += montecarlo/pi_estimation
 
 .PHONY: all clean $(SUBDIRS)
