@@ -64,8 +64,6 @@ module snax_hwpe_ctrl #(
     logic [31:0] r_data;
   } tcdm_hwpe_t;
 
-  hwpe_tcdm_t sn_hwpe_reg;
-
   // This is just a necessary wiring to re-map the data going
   // back to acc_reqrsp to 64 bits or anything beyond 32 bits
   logic [31:0] unpacked_data;
@@ -78,13 +76,11 @@ module snax_hwpe_ctrl #(
   logic transaction_start;
   logic transaction_end;
   logic is_write;
-  logic is_read;
 
   // A transaction is valid when both ready and valid signal for requestor are valid
   assign transaction_start = req_valid_i & req_ready_o;
   assign transaction_end   = periph.req & periph.gnt;
   assign is_write          = transaction_start & !wen;
-  assign is_read           = transaction_start &  wen;
 
   // wen = 1'b1 whenever we read. wen = 1'b0 whenever we write
   // decode this based on the instruction given
@@ -118,63 +114,10 @@ module snax_hwpe_ctrl #(
   // Byte enable always only when we need to write
   assign be  = (is_write) ? 4'hF : 4'h0;
 
-  // States
-  typedef enum logic [1:0] {
-    WAIT,
-    WRITE,
-    READ
-  } ctrl_states_t;
-
-  
-  ctrl_states_t cstate, nstate;
-
-  // Changing states
-  always_ff @ (posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni) begin
-      cstate <= WAIT;
-    end else begin
-      cstate <= nstate;
-    end
-  end
-
-  // Next state changes
-  always_comb begin
-    case(cstate)
-      WAIT: begin
-        if (is_write) begin
-          nstate = WRITE;
-        end else if (is_read) begin
-          nstate = READ;
-        end else begin
-          nstate = WAIT;
-        end
-      end 
-      WRITE: begin
-        if (transaction_end) begin 
-          nstate = WAIT; 
-        end else begin
-          nstate = WRITE; 
-        end
-      end
-      READ: begin
-        if (periph.r_valid) begin 
-          nstate = WAIT; 
-        end else begin
-          nstate = READ; 
-        end
-      end
-      default: begin
-        nstate = WAIT;
-      end
-    endcase
-
-  end
-
   //---------------------------------------------
   // Combinational logic and wiring assignments
   // for HWPE to SN FIFO queue
   //---------------------------------------------
-
 
   // Simply extending the unpacked_data to 64 bits
   // At the same time wiring it to the resp_o.data value
@@ -192,93 +135,81 @@ module snax_hwpe_ctrl #(
 
   end
  
-  // Controller
-  always_ff @ (posedge clk_i or negedge rst_ni) begin
-    if(!rst_ni) begin
-      req_ready_o   <= 1'b1;
-      periph.id     <= '0;
-      periph.req    <= '0;
-      periph.add    <= '0;
-      periph.wen    <= '0;
-      periph.be     <= '0;
-      periph.data   <= '0;
-    end else begin
+  // Fully combinational control to the MAC engine
+  // Avoids unnecessary cycle delays from buffers
+  always_comb begin
+    req_ready_o = periph.gnt;
 
-      case (cstate)
-        WAIT: begin
-          if (is_write || is_read) begin 
-            req_ready_o <= 1'b0;
-            periph.id   <= req_i.id;
-            periph.req  <= 1'b1;
-            periph.add  <= address_in;
-            periph.wen  <= wen;
-            periph.be   <= be;
-            periph.data <= req_i.data_arga[31:0];
-          end
-        end 
-        WRITE: begin 
-          if (transaction_end) begin 
-            req_ready_o <= 1'b1;
-            periph.id   <= '0;
-            periph.req  <= '0;
-            periph.add  <= '0;
-            periph.wen  <= '0;
-            periph.be   <= '0;
-            periph.data <= '0;
-          end
-        end
-        READ: begin
-          if (periph.r_valid) begin
-            req_ready_o <= 1'b1;
-            periph.id   <= '0;
-            periph.req  <= '0;
-            periph.add  <= '0;
-            periph.wen  <= '0;
-            periph.be   <= '0;
-            periph.data <= '0;
-          end
-        end
-        default: begin
-          req_ready_o   <= 1'b1;
-          periph.id     <= '0;
-          periph.req    <= '0;
-          periph.add    <= '0;
-          periph.wen    <= '0;
-          periph.be     <= '0;
-          periph.data   <= '0;
-        end
-      endcase
-    end
+    periph.id   = req_i.id;
+    periph.req  = req_valid_i;
+    periph.add  = address_in;
+    periph.wen  = wen;
+    periph.be   = be;
+    periph.data = req_i.data_arga[31:0];
   end
   
-  // Response port
-  always_ff @ (posedge clk_i or negedge rst_ni) begin
-    if(!rst_ni) begin
-      resp_o.id     <= '0;
-      resp_o.error  <= '0;
-      resp_o.data   <= '0;
-      resp_valid_o  <= 1'b0;
-    end else begin
+//---------------------------------------------
+  // FIFO queue for tranasctions from HWPE
+  // to SNAX response ports. This becomes
+  // necessary due to the r_valid signal only
+  // of the TCDM. It becomes hard to control the timing
+  // since there is no ready signal from the TCDM
+  // The TCDM assumes that whenever r_valid is high,
+  // which ever module gets it should buffer the data.
+  // This is a low-cost buffer anyway.
+  //---------------------------------------------
 
-      case (cstate)
-        READ: begin
-          if (periph.r_valid) begin 
-            resp_o.id     <= periph.r_id;
-            resp_o.error  <= '0;
-            resp_o.data   <= unpacked_data;
-            resp_valid_o  <= 1'b1;
-          end
-        end 
-        default: begin
-          resp_o.id     <= '0;
-          resp_o.error  <= '0;
-          resp_o.data   <= '0;
-          resp_valid_o  <= 1'b0;
-        end
-      endcase
-    end
+  tcdm_hwpe_t hwpe_sn_fifo_in;
+  tcdm_hwpe_t hwpe_sn_fifo_out;
+
+  logic fifo_hwpe_sn_push;
+  logic fifo_hwpe_sn_pop;
+
+  logic fifo_hwpe_sn_full;
+  logic fifo_hwpe_sn_empty;
+
+  logic sn_valid_trans_rsp;
+
+  assign sn_valid_trans_rsp = resp_valid_o & resp_ready_i;
+  
+  // Packing
+  always_comb begin
+    hwpe_sn_fifo_in.r_id    = periph.r_id;
+    hwpe_sn_fifo_in.r_data  = periph.r_data;
+    hwpe_sn_fifo_in.r_valid = periph.r_valid;
+
+    fifo_hwpe_sn_push = periph.r_valid & !fifo_hwpe_sn_full;
+    fifo_hwpe_sn_pop  = sn_valid_trans_rsp & !fifo_hwpe_sn_empty;
   end
 
+  fifo_v3 #(
+    // When FALL_THROUGH = 0 we can push through without cycle latency
+    // This is a feature of the fifo_v3 and hence we can get responses faster
+    .FALL_THROUGH ( 1                   ), 
+    .dtype        ( tcdm_hwpe_t         ), // Sum of address and 
+    .DEPTH        ( 8                   )  // Arbitrarily chosen
+  ) i_hwpe_sn_fifo (
+    .clk_i        ( clk_i               ),
+    .rst_ni       ( rst_ni              ),
+    .flush_i      ( 1'b0                ),
+    .testmode_i   ( 1'b0                ),
+    .full_o       ( fifo_hwpe_sn_full   ),
+    .empty_o      ( fifo_hwpe_sn_empty  ),
+    .usage_o      ( /*unused*/          ),
+    .data_i       ( hwpe_sn_fifo_in     ),
+    .push_i       ( fifo_hwpe_sn_push   ),
+    .data_o       ( hwpe_sn_fifo_out    ),
+    .pop_i        ( fifo_hwpe_sn_pop    )
+  );
+
+  // Unpacking
+  always_comb begin
+    resp_valid_o = hwpe_sn_fifo_out.r_valid & !fifo_hwpe_sn_empty;
+
+    resp_o.id    = hwpe_sn_fifo_out.r_id;
+    resp_o.error = '0;
+    resp_o.data  = hwpe_sn_fifo_out.r_data;
+  end
 // verilog_lint: waive-stop line-length
 // verilog_lint: waive-stop no-trailing-spaces
 
