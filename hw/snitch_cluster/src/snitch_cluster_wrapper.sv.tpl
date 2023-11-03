@@ -222,7 +222,7 @@ module ${cfg['name']}_wrapper (
   input  logic [${cfg['pkg_name']}::NrCores-1:0] meip_i,
   input  logic [${cfg['pkg_name']}::NrCores-1:0] mtip_i,
   input  logic [${cfg['pkg_name']}::NrCores-1:0] msip_i,
-% if not cfg['tie_ports']:
+% if cfg['cluster_base_expose']:
   input  logic [9:0]                             hart_base_id_i,
   input  logic [${cfg['addr_width']-1}:0]                            cluster_base_addr_i,
 % endif
@@ -344,12 +344,12 @@ module ${cfg['name']}_wrapper (
     .meip_i,
     .mtip_i,
     .msip_i,
-% if cfg['tie_ports']:
-    .hart_base_id_i (${to_sv_hex(cfg['cluster_base_hartid'], 10)}),
-    .cluster_base_addr_i (${to_sv_hex(cfg['cluster_base_addr'], cfg['addr_width'])}),
-% else:
+% if cfg['cluster_base_expose']:
     .hart_base_id_i,
     .cluster_base_addr_i,
+% else:
+    .hart_base_id_i (${to_sv_hex(cfg['cluster_base_hartid'], 10)}),
+    .cluster_base_addr_i (${to_sv_hex(cfg['cluster_base_addr'], cfg['addr_width'])}),
 % endif
 % if cfg['timing']['iso_crossings']:
     .clk_d2_bypass_i,
