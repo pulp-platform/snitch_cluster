@@ -14,6 +14,11 @@ namespace sim {
 
 // Number of cycles between HTIF checks.
 const int HTIFTimeInterval = 200;
+
+// We want to return timestamp in picosecond accuracy, assuming that one cycle
+// takes 1ns Since 1 cycle takes 2 sim::TIME increments, scale by 500 to get
+// time = cycle * 1000 + <some constant>
+const int TIME_CYCLES_TO_TIMESTAMP = 500;
 void sim_thread_main(void *arg) { ((Sim *)arg)->main(); }
 
 // Sim time.
@@ -78,11 +83,7 @@ void Sim::main() {
 }  // namespace sim
 
 // Verilator callback to get the current time.
-double sc_time_stamp() { 
-    // We want to return timestamp in picosecond accuracy, assuming that one cycle takes 1ns
-    // Since 1 cycle takes 2 time increments, scale by 500 to get time = cycle * 1000 + <some constant>
-    return sim::TIME * 500; 
-}
+double sc_time_stamp() { return sim::TIME * TIME_CYCLES_TO_TIMESTAMP; }
 
 // DPI calls.
 void tb_memory_read(long long addr, int len, const svOpenArrayHandle data) {
