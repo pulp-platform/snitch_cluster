@@ -83,7 +83,7 @@ void Sim::main() {
 }  // namespace sim
 
 // Verilator callback to get the current time.
-double sc_time_stamp() { return sim::TIME * TIME_CYCLES_TO_TIMESTAMP; }
+double sc_time_stamp() { return sim::TIME * sim::TIME_CYCLES_TO_TIMESTAMP; }
 
 // DPI calls.
 void tb_memory_read(long long addr, int len, const svOpenArrayHandle data) {
