@@ -207,3 +207,4 @@ typedef struct network_single_cluster_t_ {
 #include "../layernorm/src/layernorm.h"
 #include "../maxpool/src/maxpool.h"
 #include "../softmax/src/softmax.h"
+#include "../transpose/src/transpose.h"
