@@ -40,12 +40,16 @@ INCDIRS += $(SNRT_DIR)/src/omp
 INCDIRS += $(ROOT)/sw/deps/riscv-opcodes
 INCDIRS += $(ROOT)/sw/math/include
 
+LIBS  = $(MATH_DIR)/build/libmath.a
+LIBS += $(RUNTIME_DIR)/build/libsnRuntime.a
+
+LIBDIRS  = $(dir $(LIBS))
+LIBNAMES = $(patsubst lib%,%,$(notdir $(basename $(LIBS))))
+
 RISCV_LDFLAGS += -L$(abspath $(RUNTIME_DIR))
 RISCV_LDFLAGS += -T$(abspath $(SNRT_DIR)/base.ld)
-RISCV_LDFLAGS += -L$(abspath $(RUNTIME_DIR)/build/)
-RISCV_LDFLAGS += -L$(abspath $(MATH_DIR)/build/)
-RISCV_LDFLAGS += -lmath
-RISCV_LDFLAGS += -lsnRuntime
+RISCV_LDFLAGS += $(addprefix -L,$(LIBDIRS))
+RISCV_LDFLAGS += $(addprefix -l,$(LIBNAMES))
 
 ###########
 # Outputs #
@@ -74,7 +78,7 @@ $(BUILDDIR):
 $(DEP): $(SRCS) | $(BUILDDIR)
 	$(RISCV_CC) $(RISCV_CFLAGS) -MM -MT '$(ELF)' $< > $@
 
-$(ELF): $(SRCS) $(DEP) | $(BUILDDIR)
+$(ELF): $(SRCS) $(DEP) $(LIBS) | $(BUILDDIR)
 	$(RISCV_CC) $(RISCV_CFLAGS) $(RISCV_LDFLAGS) $(SRCS) -o $@
 
 $(DUMP): $(ELF) | $(BUILDDIR)
