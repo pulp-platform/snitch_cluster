@@ -6,16 +6,23 @@
  */
 double tanh(double x)
 {
-	union {double f; uint64_t i;} u = {.f = x};
 	uint32_t w;
 	int sign;
 	double_t t;
 
 	/* x = |x| */
-	sign = u.i >> 63;
-	u.i &= (uint64_t)-1/2;
-	x = u.f;
-	w = u.i >> 32;
+	/// Original implementation
+	// union {double f; uint64_t i;} u = {.f = x};
+	// sign = u.i >> 63;
+	// u.i &= (uint64_t)-1/2;
+	// x = u.f;
+	// w = u.i >> 32;
+	/// Safe implementation in Snitch
+	uint32_t upper_32b_x = safe_extract_upper_32b_from_double(x);
+	sign = upper_32b_x >> 31;
+	uint32_t sign_mask = (~(1 << 31));
+	w = upper_32b_x & sign_mask;
+	safe_inject_into_upper_32b_double(w, &x);
 
 	if (w > 0x3fe193ea) {
 		/* |x| > log(3)/2 ~= 0.5493 or nan */

@@ -121,9 +121,14 @@ Q5 = -2.01099218183624371326e-07; /* BE8AFDB7 6E09C32D */
 double expm1(double x)
 {
 	double_t y,hi,lo,c,t,e,hxs,hfx,r1,twopk;
-	union {double f; uint64_t i;} u = {x};
-	uint32_t hx = u.i>>32 & 0x7fffffff;
-	int k, sign = u.i>>63;
+	/// Original implementation
+	// union {double f; uint64_t i;} u = {x};
+	// uint32_t hx = u.i>>32 & 0x7fffffff;
+	// int k, sign = u.i>>63;
+	/// Safe implementation in Snitch
+	uint32_t upper_32b_x = safe_extract_upper_32b_from_double(x);
+	uint32_t hx = upper_32b_x & 0x7fffffff;
+	int k, sign = upper_32b_x>>31;
 
 	/* filter out huge and non-finite argument */
 	if (hx >= 0x4043687A) {  /* if |x|>=56*ln2 */
@@ -182,8 +187,12 @@ double expm1(double x)
 			return -2.0*(e-(x+0.5));
 		return 1.0+2.0*(x-e);
 	}
-	u.i = (uint64_t)(0x3ff + k)<<52;  /* 2^k */
-	twopk = u.f;
+	/// Original implementation
+	// u.i = (uint64_t)(0x3ff + k)<<52;  /* 2^k */
+	// twopk = u.f;
+	/// Safe implementation in Snitch
+	uint32_t u_i = (uint32_t)(0x3ff + k)<<20;
+	safe_inject_into_upper_32b_double(u_i, &twopk);
 	if (k < 0 || k > 56) {  /* suffice to return exp(x)-1 */
 		y = x - e + 1.0;
 		if (k == 1024)
@@ -192,10 +201,19 @@ double expm1(double x)
 			y = y*twopk;
 		return y - 1.0;
 	}
-	u.i = (uint64_t)(0x3ff - k)<<52;  /* 2^-k */
+	/// Original implementation
+	// u.i = (uint64_t)(0x3ff - k)<<52;  /* 2^-k */
+	// if (k < 20)
+	// 	y = (x-e+(1-u.f))*twopk;
+	// else
+	// 	y = (x-(e+u.f)+1)*twopk;
+	/// Safe implementation in Snitch
+	u_i = (uint32_t)(0x3ff - k)<<20;
+	double u_f = 0;
+	safe_inject_into_upper_32b_double(u_i, &u_f);
 	if (k < 20)
-		y = (x-e+(1-u.f))*twopk;
+		y = (x-e+(1-u_f))*twopk;
 	else
-		y = (x-(e+u.f)+1)*twopk;
+		y = (x-(e+u_f)+1)*twopk;
 	return y;
 }
