@@ -35,30 +35,26 @@ PRECISION_T = {
 
 
 def golden_model(ifmap):
-    gelu = torch.nn.GELU()
+    gelu = torch.nn.GELU(approximate='tanh')
     return gelu(ifmap)
 
 
 def emit_header(**kwargs):
 
-    batch_size = kwargs['input_dim']['batch_size']
-    seq_len = kwargs['input_dim']['seq_len']
-    hidden_nodes = kwargs['input_dim']['hidden_nodes']
+    size = kwargs['size']
     prec = str(kwargs['prec'])
 
     torch_type = data_utils.floating_point_torch_type(prec)
     ctype = data_utils.floating_point_ctype(prec)
 
-    ifmap = torch.randn(batch_size, seq_len, hidden_nodes, requires_grad=False, dtype=torch_type)
+    ifmap = torch.randn(size, requires_grad=False, dtype=torch_type)
     ofmap = golden_model(ifmap)
 
     ifmap_uid = 'ifmap'
     ofmap_uid = 'ofmap'
 
     layer_cfg = {
-        'batch_size': batch_size,
-        'seq_len': seq_len,
-        'hidden_nodes': hidden_nodes,
+        'size':  size,
         'ifmap': ifmap_uid,
         'ofmap': ofmap_uid,
         'dtype': PRECISION_T[prec]
@@ -82,7 +78,7 @@ def emit_header(**kwargs):
 
 def main():
 
-    parser = argparse.ArgumentParser(description='Generate data for layernorm kernel')
+    parser = argparse.ArgumentParser()
     parser.add_argument(
         "-c", "--cfg",
         type=pathlib.Path,

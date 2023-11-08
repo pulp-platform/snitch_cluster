@@ -11,116 +11,72 @@
  * @struct gelu_layer_struct
  * @brief This structure contains all parameters necessary
  *        for computing the GELU activation function
- * @var gelu_layer_struct::batch_size
- * Size of each input sample
- * @var gelu_layer_struct::seq_len
- * Size of each output sample
- * @var gelu_layer_struct::hidden_nodes
- * Number of hidden dimensions
+ * @var gelu_layer_struct::size
+ * Size of the feature map
  * @var gelu_layer_struct::ifmap
  * Pointer to input feature map
  * @var gelu_layer_struct::ofmap
  * Pointer to output feature map
  */
 typedef struct gelu_layer_struct {
-    uint32_t batch_size;
-    uint32_t seq_len;
-    uint32_t hidden_nodes;
-    float *ifmap;
-    float *ofmap;
+    uint32_t size;
+    double *ifmap;
+    double *ofmap;
     precision_t dtype;
 } gelu_layer_t;
 
-/**
- * Implementation of the GELU layer
- */
-static inline void gelu_fp32(float *input, float *output, int32_t ldI,
-                             uint32_t batch_size, uint32_t seq_len,
-                             uint32_t hidden_nodes) {
-    // uint32_t compute_id = snrt_cluster_compute_core_num();
+// tanh based approximation of the GeLU activation function
+static inline double gelu_activation_fp64(double x) {
+    return 0.5 * x *
+           (1.0 + tanh(sqrt(2.0 / M_PI) * (x + 0.044715 * x * x * x)));
+}
 
-    for (int s = 0; s < seq_len; s++) {
-        for (int h = 0; h < hidden_nodes; h++) {
-            // if (compute_id == 1) {
-            //     printf("compute id: %d, input[%d][%d] = %f\n", compute_id, s,
-            //     h,
-            //         input[s * hidden_nodes + h]);
-            // }
-            float x = input[s * hidden_nodes + h];
-            float y =
-                0.5 * x *
-                (1.0 + tanh(sqrt(2.0 / M_PI) * (x + 0.044715 * x * x * x)));
-            output[s * hidden_nodes + h] = y;
-
-            // if (compute_id == 1) {
-            //     printf("compute id: %d, output[%d][%d] = %f\n", compute_id,
-            //     s, h,
-            //         output[s * hidden_nodes + h]);
-            // }
+// Single-cluster GeLU
+static inline void gelu_fp64(double *input, double *output, uint32_t size) {
+    if (snrt_is_compute_core()) {
+        for (uint32_t i = 0; i < size; i++) {
+            snrt_mcycle();
+            output[i] = gelu_activation_fp64(input[i]);
         }
     }
 }
 
-/**
- * @brief  GELU layer
- *
- * @param l gelu_layer_t struct that holds addresses and parameters
- *
- */
-static inline void gelu_layer(const gelu_layer_t *l) {
-    uint32_t cluster_num = snrt_cluster_num();
-    uint32_t cluster_id = snrt_cluster_idx();
-    uint32_t compute_num = snrt_cluster_compute_core_num();
-    uint32_t compute_id = snrt_cluster_compute_core_num();
+// Parallel GeLU layer with DMA transfers
+static inline void gelu_layer(const gelu_layer_t l) {
+    // Parallelize the computation over clusters
+    uint32_t cluster_fmap_size = l.size / snrt_cluster_num();
+    uint32_t cluster_fmap_bytes = cluster_fmap_size * sizeof(double);
 
-    uint32_t ifmap_size =
-        l->batch_size * l->seq_len * l->hidden_nodes * sizeof(float);
-    uint32_t ofmap_size = ifmap_size;
+    // Allocate memory in TCDM
+    void *ptr = (double *)snrt_l1_next();
+    double *l1_ifmap = ptr;
+    ptr += cluster_fmap_bytes;
+    double *l1_ofmap = ptr;
+    ptr += cluster_fmap_bytes;
 
-    void *ptr = (float *)snrt_l1_next();
-    float *ifmap = ptr;
-    ptr += ifmap_size;
-    float *ofmap = ptr;
-    ptr += ofmap_size;
+    // Get pointer to feature maps in L3
+    uint32_t cluster_offset = cluster_fmap_bytes * snrt_cluster_idx();
+    double *l3_ifmap = ((void *)l.ifmap) + cluster_offset;
+    double *l3_ofmap = ((void *)l.ofmap) + cluster_offset;
 
     // DMA transfer the ifmap into the cluster TCDM
     if (snrt_is_dm_core()) {
-        snrt_dma_txid_t txid_ifmap = snrt_dma_start_2d(
-            ifmap, l->ifmap, l->batch_size * sizeof(float),
-            l->batch_size * sizeof(float), l->batch_size * sizeof(float),
-            l->seq_len * l->hidden_nodes * sizeof(float));
-
+        snrt_dma_start_1d(l1_ifmap, l3_ifmap, cluster_fmap_bytes);
         snrt_dma_wait_all();
     }
 
     snrt_cluster_hw_barrier();
 
-    if (snrt_is_compute_core()) {
-        // determine the row offset for each core
-        int32_t row_offset = compute_id * l->hidden_nodes;
+    // Cluster computation
+    gelu_fp64(l1_ifmap, l1_ofmap, cluster_fmap_size);
 
-        // determine the row stride of each matrix
-        int32_t ldI = compute_num * l->hidden_nodes;
+    snrt_cluster_hw_barrier();
 
-        // determine the batch offset for each core
-        int32_t batch_offset = l->seq_len * l->hidden_nodes;
-
-        // printf("row_offset: %d, ldI: %d\n", row_offset, ldI);
-
-        for (int b = 0; b < l->batch_size; b++) {
-            // if (compute_id == 1) {
-            //     printf("BATCH: %d\n", b);
-            // }
-            gelu_fp32(&ifmap[row_offset + b * batch_offset],
-                      &ofmap[row_offset + b * batch_offset], ldI, l->batch_size,
-                      l->seq_len / 8, l->hidden_nodes);
-        }
-
-        snrt_cluster_hw_barrier();
-
-    } else {
-        snrt_cluster_hw_barrier();
+    // DMA transfer the ofmap to DRAM
+    if (snrt_is_dm_core()) {
+        snrt_dma_start_1d(l3_ofmap, l1_ofmap, cluster_fmap_bytes);
+        snrt_dma_wait_all();
     }
 
-    snrt_global_barrier();
+    snrt_cluster_hw_barrier();
 }
