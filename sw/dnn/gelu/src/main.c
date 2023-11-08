@@ -6,4 +6,4 @@
 
 #include "data.h"
 
-int main() { gelu_layer(&layer); }
+int main() { gelu_layer(layer); }
