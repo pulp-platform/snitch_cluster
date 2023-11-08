@@ -96,6 +96,78 @@ static int32_t converttoint(double_t);
 #define predict_false(x) (x)
 #endif
 
+/* Memory-consistent functions to manipulate the upper word of a
+   double-precision floating-point number in the integer core.
+   Since there is no dedicated instruction to move the upper 32-bits
+   of a double-precision floating point register to an integer register
+   the compiler resorts to moving the value through the memory. However in
+   Snitch neither the program ordering between floating-point and integer
+   instructions is guaranteed, nor is memory consistency between the integer
+   and floating-point threads.  */
+
+static inline uint32_t safe_extract_upper_32b_from_double(double x) {
+	double f;
+	uint32_t result;
+	asm volatile("fsd %[x], 0(%[ptr]) \n"
+	             "fld ft3, 0(%[ptr]) \n"
+				 "fmv.x.w t0, ft3 \n"
+				 "mv      t0, t0 \n"
+				 "lw %[result], 4(%[ptr]) \n"
+	 : [result]"=r"(result) : [x]"f"(x), [ptr]"r"(&f): "ft3", "t0", "memory");
+	return result;
+}
+
+static inline void safe_inject_into_upper_32b_double(uint32_t x, double *f) {
+	asm volatile("sw %[x], 4(%[ptr]) \n"
+                 "lw %[x], 4(%[ptr]) \n"
+                 "fmv.w.x ft3, %[x] \n"
+	 : : [x]"r"(x), [ptr]"r"(f): "ft3", "memory");
+}
+
+/* TODO: the following functions are not really safe, compare previous two
+   functions */
+
+/* FPU fence to synchronize the FPU and integer core in Snitch. */
+inline void snrt_fpu_fence() {
+    unsigned tmp;
+    __asm__ volatile(
+        "fmv.x.w %0, fa0\n"
+        "mv      %0, %0\n"
+        : "+r"(tmp)::"memory");
+}
+
+/* Synch-secure double to uint64 conversion functions. */
+static inline uint64_t asuint64(double f) {
+    uint64_t result;
+    snrt_fpu_fence();
+    result = *(uint64_t *)&f;
+    return result;
+}
+
+/* Synch-secure float to uint conversion functions. */
+static inline uint64_t asuint(float f) {
+    uint32_t result;
+    snrt_fpu_fence();
+    result = *(uint32_t *)&f;
+    return result;
+}
+
+/* Synch-secure uint64 to double conversion functions. */
+static inline double asdouble(uint64_t i) {
+    double result;
+    snrt_fpu_fence();
+    result = *(double *)&i;
+    return result;
+}
+
+/* Synch-secure uint to float conversion functions. */
+static inline float asfloat(uint32_t i) {
+	float result;
+	snrt_fpu_fence();
+	result = *(float *)&i;
+	return result;
+}
+
 /* Evaluate an expression as the specified type. With standard excess
    precision handling a type cast or assignment is enough (with
    -ffloat-store an assignment is required, in old compilers argument
@@ -187,10 +259,12 @@ static inline void fp_force_evall(long double x)
 	}                                         \
 } while(0)
 
-#define asuint(f) ((union{float _f; uint32_t _i;}){f})._i
-#define asfloat(i) ((union{uint32_t _i; float _f;}){i})._f
-#define asuint64(f) ((union{double _f; uint64_t _i;}){f})._i
-#define asdouble(i) ((union{uint64_t _i; double _f;}){i})._f
+// Unsafe in Snitch due to the decoupled FPU and integer
+// arithmetic units. Use at your own risk.
+#define asuint_unsafe(f) ((union{float _f; uint32_t _i;}){f})._i
+#define asfloat_unsafe(i) ((union{uint32_t _i; float _f;}){i})._f
+#define asuint64_unsafe(f) ((union{double _f; uint64_t _i;}){f})._i
+#define asdouble_unsafe(i) ((union{uint64_t _i; double _f;}){i})._f
 
 #define EXTRACT_WORDS(hi,lo,d)                    \
 do {                                              \
