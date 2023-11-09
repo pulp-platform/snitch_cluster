@@ -56,10 +56,10 @@ module snax_gemm # (
   // Local parameters for input and output sizes
   localparam int unsigned InputTcdmPorts = 16;
   localparam int unsigned OutputTcdmPorts = 8;
-  localparam int unsigned InputMatrixSize  = DataWidth * SnaxTcdmPorts / 2;
+  localparam int unsigned InputMatrixSize  = DataWidth * InputTcdmPorts / 2;
   localparam int unsigned OutputMatrixSize = DataWidth * OutputTcdmPorts;          // x4 because of multiplication and addition considerations
 
-  // CSRs
+  // CSRs wires
   localparam int unsigned RegNum        = 11;
   localparam int unsigned CsrAddrOFfset = 32'h3c0;
 
@@ -70,16 +70,21 @@ module snax_gemm # (
   logic read_csr;
 
   // Gemm wires
+  // gemm data ports
   logic [ InputMatrixSize-1:0] io_data_a_i;
   logic [ InputMatrixSize-1:0] io_data_b_i;
   logic [OutputMatrixSize-1:0] io_data_multi_stage_c_o;
 
+  // gemm control signals
   logic      io_ctrl_start_do_i;
   logic      io_ctrl_data_valid_i;
   logic      io_ctrl_gemm_read_valid_o;
   logic io_ctrl_gemm_write_valid_o;
   logic io_ctrl_busy_o;
+  logic io_ctrl_read_mem_ready;
+  logic io_ctrl_write_mem_ready;
 
+  // gemm matrix size configuration and address setting signals
   logic [7:0] io_ctrl_B_i;
   logic [7:0] io_ctrl_M_i;
   logic [7:0] io_ctrl_K_i;
@@ -100,8 +105,22 @@ module snax_gemm # (
   logic [31:0] io_ctrl_addr_a_o;
   logic [31:0] io_ctrl_addr_b_o;
   logic [31:0] io_ctrl_addr_c_o;
+  
+  // local input matrix buffer
+  logic [ InputMatrixSize * 2 - 1:0] data_reg;  
 
+  // tracing p_valid and q_ready signals for solving contentions
   logic [InputTcdmPorts-1:0] snax_tcdm_rsp_i_p_valid;
+  logic [SnaxTcdmPorts-1:0] snax_tcdm_rsp_i_q_ready;
+  logic [InputTcdmPorts-1:0] snax_tcdm_rsp_i_p_valid_reg;
+  logic [SnaxTcdmPorts-1:0] snax_tcdm_rsp_i_q_ready_reg;  
+
+  // signals indicating if gemm is stalled by contention
+  logic wait_for_q_ready_read;
+  logic wait_for_p_valid_read;
+  logic wait_for_q_ready_write;
+
+  // split tcdm request to input and output
   tcdm_req_t  [InputTcdmPorts-1:0] snax_tcdm_req_o_input;
   tcdm_req_t  [OutputTcdmPorts-1:0] snax_tcdm_req_o_output;
 
@@ -111,17 +130,18 @@ module snax_gemm # (
       for (int i=0; i < RegNum - 1; i++) begin
         CSRs[i] <= 32'd0;
       end     
-      CSRs[STATE_CSR - CsrAddrOFfset] <= 32'd1;
+      CSRs[STATE_CSR - CsrAddrOFfset][1] <= 32'd1;
     end else begin
+      // if gemm is busy, no CSR settings
       if(write_csr == 1'b1 && io_ctrl_busy_o != 1'b1) begin
         CSRs[csr_addr] <= snax_req_i.data_arga[31:0];
       end 
       else begin
         if (io_ctrl_busy_o == 1'b1) begin
-          CSRs[STATE_CSR - CsrAddrOFfset] <= 32'd0;          
+          CSRs[STATE_CSR - CsrAddrOFfset][1] <= 32'd0;          
         end        
         else if (io_ctrl_busy_o == 1'b0) begin
-          CSRs[STATE_CSR - CsrAddrOFfset] <= 32'd1;
+          CSRs[STATE_CSR - CsrAddrOFfset][1] <= 32'd1;
         end
       end
     end
@@ -174,7 +194,8 @@ module snax_gemm # (
     end
   end
 
-  assign snax_qready_o = 1'b1;
+  // when gemm is not busy, ready for CSR settings
+  assign snax_qready_o = io_ctrl_busy_o != 1'b1;
   assign csr_addr = snax_req_i.data_argb - CsrAddrOFfset;
 
   // configuration of gemm
@@ -195,6 +216,7 @@ module snax_gemm # (
   assign io_ctrl_strideB_i = CSRs[StrideB_CSR - CsrAddrOFfset];
   assign io_ctrl_strideC_i = CSRs[StrideC_CSR - CsrAddrOFfset];
 
+  // gemm instiantion and ports connection
   BatchGemmTCDMWritePortsMultiOutput inst_BatchGemmTCDMWritePortsMultiOutput (
     .clock(clk_i), 
     .reset(!rst_ni),
@@ -215,6 +237,8 @@ module snax_gemm # (
     .io_ctrl_strideC_i(io_ctrl_strideC_i),
     .io_data_a_i(io_data_a_i),
     .io_data_b_i(io_data_b_i),
+    .io_ctrl_read_mem_ready(io_ctrl_read_mem_ready),
+    .io_ctrl_write_mem_ready(io_ctrl_write_mem_ready),
     .io_ctrl_gemm_read_valid_o(io_ctrl_gemm_read_valid_o),
     .io_ctrl_gemm_write_valid_o(io_ctrl_gemm_write_valid_o),
     .io_ctrl_addr_a_o(io_ctrl_addr_a_o),
@@ -228,6 +252,7 @@ module snax_gemm # (
   assign io_ctrl_start_do_i = snax_qvalid_i && (csr_addr == (STATE_CSR - CsrAddrOFfset)) && snax_qready_o && snax_req_i.data_arga[0] == 1'b1;
 
   // request for reading data from TCDM and writing data to TCDM
+  // reading request
   always_comb begin
       for (int i = 0; i < InputTcdmPorts / 2; i++) begin
         if(!rst_ni) begin
@@ -285,6 +310,7 @@ module snax_gemm # (
       end
   end 
 
+  // writing request
   always_comb begin
     for (int i = 0; i < OutputTcdmPorts; i = i + 1) begin
       if(!rst_ni) begin
@@ -317,6 +343,7 @@ module snax_gemm # (
     end
   end
 
+  // combining all request together
   always_comb begin
     for (int i = 0; i < SnaxTcdmPorts; i = i + 1) begin
       if(!rst_ni) begin
@@ -340,6 +367,42 @@ module snax_gemm # (
   end
 
   // get input data for gemm from tcdm responds
+  // store p_valid and data when p_valid during the wait_for_p_valid_read && !io_ctrl_data_valid_i period
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+      for (int i = 0; i < InputTcdmPorts; i++) begin
+        if(!rst_ni) begin
+          snax_tcdm_rsp_i_p_valid_reg[i] = 1'b0;
+          data_reg[i * DataWidth +: DataWidth] = {DataWidth{1'b0}};
+        end
+        else begin
+          if(wait_for_p_valid_read && !io_ctrl_data_valid_i) begin
+            if(snax_tcdm_rsp_i[i].p_valid) begin
+              snax_tcdm_rsp_i_p_valid_reg[i] = snax_tcdm_rsp_i[i].p_valid;
+              data_reg[i * DataWidth +: DataWidth] = snax_tcdm_rsp_i[i].p.data;              
+            end
+          end
+          else begin
+            snax_tcdm_rsp_i_p_valid_reg[i] = 1'b0;  
+          end
+        end 
+      end    
+  end
+
+  // p_valid when p_valid previously (above) or currently
+  always_comb begin
+      for (int i = 0; i < InputTcdmPorts; i++) begin
+        if(!rst_ni) begin
+          snax_tcdm_rsp_i_p_valid[i] = 1'b0;
+        end
+        else begin
+          snax_tcdm_rsp_i_p_valid[i] = snax_tcdm_rsp_i[i].p_valid || snax_tcdm_rsp_i_p_valid_reg[i];
+        end 
+      end
+  end 
+
+  // giving right data to gemm
+  // when p_valid previouly, giving the previously stored data
+  // when p_valid currently, giving the current response data
   always_comb begin
     if (!rst_ni) begin
         io_data_a_i = {InputMatrixSize{1'b0}};        
@@ -347,8 +410,16 @@ module snax_gemm # (
     end else begin
       for (int i = 0; i < InputTcdmPorts / 2; i++) begin
         if(io_ctrl_data_valid_i) begin
-          io_data_a_i[i * DataWidth +: DataWidth] = snax_tcdm_rsp_i[i].p.data;
-          io_data_b_i[i * DataWidth +: DataWidth] = snax_tcdm_rsp_i[i + InputTcdmPorts / 2].p.data;
+          if(snax_tcdm_rsp_i[i].p_valid) begin
+            io_data_a_i[i * DataWidth +: DataWidth] = snax_tcdm_rsp_i[i].p.data;
+          end else begin
+            io_data_a_i[i * DataWidth +: DataWidth] = data_reg[i * DataWidth +: DataWidth];
+          end
+          if(snax_tcdm_rsp_i[i + InputTcdmPorts / 2].p_valid) begin
+            io_data_b_i[i * DataWidth +: DataWidth] = snax_tcdm_rsp_i[i + InputTcdmPorts / 2].p.data;
+          end else begin
+            io_data_b_i[i * DataWidth +: DataWidth] = data_reg[(i + InputTcdmPorts / 2) * DataWidth +: DataWidth];
+          end
         end
         else begin
           io_data_a_i[i * DataWidth +: DataWidth] = 0;
@@ -358,25 +429,92 @@ module snax_gemm # (
     end
   end  
 
+  // mataining stall for contention signals
   always_comb begin
-      for (int i = 0; i < InputTcdmPorts; i++) begin
+    if(!rst_ni) begin
+      wait_for_p_valid_read = 1'b0;
+    end else begin
+      if(io_ctrl_gemm_read_valid_o && !io_ctrl_data_valid_i) begin
+        wait_for_p_valid_read = 1'b1;
+      end else begin
+        wait_for_p_valid_read = 1'b0;
+      end
+    end
+  end
+
+  always_comb begin
+    if(!rst_ni) begin
+      wait_for_q_ready_read = 1'b0;
+    end else begin
+      if(io_ctrl_gemm_read_valid_o && !io_ctrl_read_mem_ready) begin
+        wait_for_q_ready_read = 1'b1;
+      end else begin
+        wait_for_q_ready_read = 1'b0;
+      end
+    end
+  end
+
+  always_comb begin
+    if(!rst_ni) begin
+      wait_for_q_ready_write = 1'b0;
+    end else begin
+      if(io_ctrl_gemm_write_valid_o && !io_ctrl_write_mem_ready) begin
+        wait_for_q_ready_write = 1'b1;
+      end else begin
+        wait_for_q_ready_write = 1'b0;
+      end
+    end
+  end
+
+  // store q_ready signals
+  // when q_ready, it means that the request has been sent correctly
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+      for (int i = 0; i < SnaxTcdmPorts; i++) begin
         if(!rst_ni) begin
-          snax_tcdm_rsp_i_p_valid[i] = 1'b0;
+          snax_tcdm_rsp_i_q_ready_reg[i] = 1'b0;
         end
         else begin
-          snax_tcdm_rsp_i_p_valid[i] = snax_tcdm_rsp_i[i].p_valid;
+          // for read q_ready
+          if(i < InputTcdmPorts) begin
+            if(wait_for_q_ready_read && !io_ctrl_read_mem_ready) begin
+              if(snax_tcdm_rsp_i[i].q_ready) begin
+                snax_tcdm_rsp_i_q_ready_reg[i] = snax_tcdm_rsp_i[i].q_ready;                
+              end
+            end
+            else begin
+              snax_tcdm_rsp_i_q_ready_reg[i] = 1'b0;  
+            end            
+          // for write q_ready
+          end else begin
+            if(wait_for_q_ready_write && !io_ctrl_write_mem_ready) begin
+              if(snax_tcdm_rsp_i[i].q_ready) begin
+                snax_tcdm_rsp_i_q_ready_reg[i] = snax_tcdm_rsp_i[i].q_ready;                
+              end
+            end
+            else begin
+              snax_tcdm_rsp_i_q_ready_reg[i] = 1'b0;  
+            end            
+          end
+
         end 
-        // if(io_data_in_valid) begin
-        //   snax_tcdm_rsp_i[i].q_ready = 1'b1
-        // end
-        // else begin
-        //   snax_tcdm_rsp_i[i].q_ready = 1'b0
-        // end
+      end    
+  end
+
+  // similiar as p_valid, q_ready when q_ready previously (above) or currently
+  always_comb begin
+      for (int i = 0; i < SnaxTcdmPorts; i++) begin
+        if(!rst_ni) begin
+          snax_tcdm_rsp_i_q_ready[i] = 1'b0;
+        end
+        else begin
+          snax_tcdm_rsp_i_q_ready[i] = snax_tcdm_rsp_i[i].q_ready || snax_tcdm_rsp_i_q_ready_reg[i];
+        end 
       end
   end 
 
+  // controls signals for gemm
   assign io_ctrl_data_valid_i = (&snax_tcdm_rsp_i_p_valid) === 1'b1;
-
-  // TODO: take consideration of mem ready and also take in data when signal data valid is asserted and give data to gemm when all data is valid
+  assign io_ctrl_write_mem_ready = (&snax_tcdm_rsp_i_q_ready[SnaxTcdmPorts - 1 : InputTcdmPorts]) === 1'b1;
+  assign io_ctrl_read_mem_ready = (&snax_tcdm_rsp_i_q_ready[InputTcdmPorts - 1 : 0]) === 1'b1;
 
 endmodule
