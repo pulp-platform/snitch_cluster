@@ -4,8 +4,11 @@
 #
 # Ryan Antonio <ryan.antonio@esat.kuleuven.be>
 
-APP     = snax-gemm-large
-SRCS    = src/snax-gemm-large.c
+APP     = snax-block-gemm
+SRCS    = src/snax-block-gemm.c
 INCDIRS = data
 
 include ../common.mk
+include ./data/Makefile
+
+$(DEP): $(DATA_H)

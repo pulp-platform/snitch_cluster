@@ -1,5 +1,5 @@
 
-#include "data_bak.h"
+#include "data.h"
 #include "snrt.h"
 #include "stdint.h"
 #include <stdbool.h>
@@ -9,6 +9,7 @@
 // allocate space in TCDM
 // write data from l3 to tcdm
 // config csr
+// start
 // wait until finish
 // check result
 
@@ -16,12 +17,14 @@ int32_t gen_size_config(uint8_t Batch, uint8_t M, uint8_t K, uint8_t N){
     return ((int32_t)Batch << 24) | ((int32_t)M << 16) | ((int32_t)K << 8) | (int32_t)N;
 }
 
-bool base_gemm(int m, int k, int n, int8_t * A, int8_t * B, int32_t* C_cpu){
+bool base_gemm(int m, int k, int n, int8_t * A, int8_t * B, int32_t* C_cpu, bool new_batch){
 
     if (snrt_is_compute_core()) {
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
-                // C_cpu[i * n + j] = 0;
+                if(new_batch){
+                    C_cpu[i * n + j] = 0;
+                }
                 for (int s = 0; s < k; s++) {
                     C_cpu[i * n + j] =
                         C_cpu[i * n + j] +
@@ -50,13 +53,14 @@ bool batch_gemm_cpu(uint8_t Batch, uint8_t M, uint8_t K, uint8_t N, int8_t* A, i
     
     if (snrt_is_compute_core()) {
         for (int b = 0; b < Batch; b++) {
+            // new batch init
             for (int m = 0; m < M; m++) {
                 for (int n = 0; n < N; n++) {
                     for (int k = 0; k < K; k++) {
                         addr_a = start_addr_a + (b * strideA + m * ldA + k * baseAddrIncrementA) / sizeof(int8_t);
                         addr_b = start_addr_b + (b * strideB + n * ldB + k * baseAddrIncrementB) / sizeof(int8_t);
                         addr_c = start_addr_c + (b * strideC + m * ldC + n * baseAddrIncrementC) / sizeof(int32_t);
-                        base_gemm(meshRow, tileSize, meshCol, addr_a, addr_b, addr_c);
+                        base_gemm(meshRow, tileSize, meshCol, addr_a, addr_b, addr_c,m == 0 && n == 0 && k == 0);
                     }
                 }
             }
@@ -81,6 +85,7 @@ bool set_batch_gemm(uint8_t Batch, uint8_t M, uint8_t K, uint8_t N, int8_t *loca
     write_csr(0x3c3, gen_size_config(Batch, M, K ,N));
 
     write_csr(0x3c4,ldA);
+    // set_stride_A(ldA);
     write_csr(0x3c5,ldB);
     write_csr(0x3c6,ldC);
 
@@ -134,7 +139,7 @@ int main() {
     uint32_t k = K * tileSize;
     uint32_t n = N * meshRow;
     local_a = (int8_t *)snrt_l1_next();
-    local_b = local_a + m * k * sizeof(int8_t) + 64;
+    local_b = local_a + m * k * sizeof(int8_t);
     local_c = (int32_t *)(local_b + n * k * sizeof(int8_t));
 
     uint32_t dma_pre_load = snrt_mcycle();
@@ -153,13 +158,14 @@ int main() {
         // This marks the start of the accelerator style of MAC operation
         uint32_t csr_set = snrt_mcycle();
 
-        uint32_t ldA,ldB,ldC,strideA,strideB,strideC;
-        ldA = 128;
-        ldB = 128;
-        ldC = 512;
-        strideA = 0;
-        strideB = 0;
-        strideC = 0;
+        // uint32_t ldA,ldB,ldC,strideA,strideB,strideC;
+
+        // ldA = 128;
+        // ldB = 128;
+        // ldC = 512;
+        // strideA = 0;
+        // strideB = 0;
+        // strideC = 0;
 
         // Start of CSR start and poll until accelerator finishes
         uint32_t gemm_start = snrt_mcycle();

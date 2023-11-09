@@ -1,0 +1,21 @@
+// Copyright 2023 ETH Zurich and University of Bologna.
+// Solderpad Hardware License, Version 0.51, see LICENSE for details.
+// SPDX-License-Identifier: SHL-0.51
+
+// Parameters for a GEMM
+
+{
+    Batch: 2
+    M: 2,
+    N: 2,
+    K: 2,
+    ldA: 128,
+    ldB: 128,
+    ldC: 512,
+    strideA: 0,
+    strideB: 0,
+    strideC:0,
+    tileSize: 8,
+    meshRow: 8,
+    meshCol: 8
+}
