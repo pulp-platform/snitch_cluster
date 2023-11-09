@@ -10,6 +10,10 @@ MK_DIR   := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 SRC_DIR  := $(realpath $(MK_DIR)/$(APP)/src)
 
 INCDIRS += $(SRC_DIR)
+INCDIRS += ../../../snax/mac/include
+
+# Include this binary in the final build
+RISCV_LDFLAGS += ../../../snax/mac/build/mac.o
 
 SRCS     = $(realpath $(SRC_DIR)/$(APP).c)
 
