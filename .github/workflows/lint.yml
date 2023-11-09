@@ -71,7 +71,7 @@ jobs:
           # (mostly for SW) and Solderpad for the hardware.
           # yamllint disable rule:line-length
           license: |
-            Copyright (\d{4}(-\d{4})?\s)?(ETH Zurich and University of Bologna|lowRISC contributors).
+            Copyright (\d{4}(-\d{4})?\s)?(ETH Zurich and University of Bologna|lowRISC contributors|KU Leuven).
             (Solderpad Hardware License, Version 0.51|Licensed under the Apache License, Version 2.0), see LICENSE for details.
             SPDX-License-Identifier: (SHL-0.51|Apache-2.0)
           # yamllint enable rule:line-length
