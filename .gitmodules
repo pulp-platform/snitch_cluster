@@ -4,3 +4,6 @@
 [submodule "sw/deps/printf"]
 	path = sw/deps/printf
 	url = https://github.com/mpaland/printf.git
+[submodule "hw/snax_gemm"]
+	path = hw/snax_gemm
+	url = git@github.com:KULeuven-MICAS/snax-gemm.git

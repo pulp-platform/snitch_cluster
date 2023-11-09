@@ -1,4 +1,16 @@
 .bender/
+
+.bender_test/
+hw/snitch/test/
+hw/snax/test/
+hw/test/sim/
+hw/test-xyi/sim/
+hw/test-xyi/mem/inst
+.metals/
+.scala-build/
+*.txt
+*.do
+
 Bender.lock
 .vscode/
 __pycache__

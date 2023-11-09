@@ -29,7 +29,7 @@ dependencies:
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.11  }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0   }
   hwpe-mac-engine:    { git: https://github.com/KULeuven-MICAS/hwpe-mac-engine.git, rev: 5d3b4525b665169fc8321c8a811f3c83ad3c72e8 }
-  snax-gemm:          { git: https://github.com/KULeuven-MICAS/snax-gemm.git,     rev: 6b538447969cb0c00a4b749b38d68ae932c6aca1 }
+  # snax-gemm:          { git: https://github.com/KULeuven-MICAS/snax-gemm.git,     rev: 6b538447969cb0c00a4b749b38d68ae932c6aca1 }
 
 # Note: used to vendor-in the musl sources, but cannot be used consistently
 #       until this issue is solved https://github.com/pulp-platform/bender/issues/133
@@ -172,7 +172,8 @@ sources:
   # snax gemm
   - files:
       # Level 0
-      - hw/snax_gemm/src/snax_gemm.sv
+      - hw/snax_gemm/src/BatchGemmTCDMWritePortsMultiOutput.sv
+      - hw/snax_gemm/src/snax_new_gemm.sv
 
   # snitch_vm
   - files:

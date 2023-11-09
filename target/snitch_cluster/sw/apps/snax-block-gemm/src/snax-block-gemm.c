@@ -22,7 +22,7 @@ bool base_gemm(int m, int k, int n, int8_t * A, int8_t * B, int32_t* C_cpu, bool
     if (snrt_is_compute_core()) {
         for (int i = 0; i < m; i++) {
             for (int j = 0; j < n; j++) {
-                if(new_batch){
+                if(new_batch == true){
                     C_cpu[i * n + j] = 0;
                 }
                 for (int s = 0; s < k; s++) {
@@ -47,6 +47,8 @@ bool batch_gemm_cpu(uint8_t Batch, uint8_t M, uint8_t K, uint8_t N, int8_t* A, i
     int8_t* addr_b;
     int32_t* addr_c;
 
+    bool new_batch;
+
     // Read the mcycle CSR (this is our way to mark/delimit a specific code
     // region for benchmarking)
     uint32_t start_cycle = snrt_mcycle();
@@ -60,7 +62,11 @@ bool batch_gemm_cpu(uint8_t Batch, uint8_t M, uint8_t K, uint8_t N, int8_t* A, i
                         addr_a = start_addr_a + (b * strideA + m * ldA + k * baseAddrIncrementA) / sizeof(int8_t);
                         addr_b = start_addr_b + (b * strideB + n * ldB + k * baseAddrIncrementB) / sizeof(int8_t);
                         addr_c = start_addr_c + (b * strideC + m * ldC + n * baseAddrIncrementC) / sizeof(int32_t);
-                        base_gemm(meshRow, tileSize, meshCol, addr_a, addr_b, addr_c,m == 0 && n == 0 && k == 0);
+                        new_batch = m == 0 && n == 0 && k == 0;
+                        printf("b = %d, m = %d, n = %d, k = %d, new_batch = %d \n",
+                               b, m, n, k, new_batch);
+                        base_gemm(meshRow, tileSize, meshCol, addr_a, addr_b,
+                                  addr_c, new_batch);
                     }
                 }
             }
@@ -93,37 +99,60 @@ bool set_batch_gemm(uint8_t Batch, uint8_t M, uint8_t K, uint8_t N, int8_t *loca
     write_csr(0x3c8,strideB);
     write_csr(0x3c9,strideC);
 
+    return 0;
+
+}
+
+bool start_batch_gemm() {
     // CSR start
     write_csr(0x3ca, 1);
+    return 0;
+}
 
+bool wait_batch_gemm(){
     uint32_t break_poll;
 
-    while(1){
+    while (1) {
         // STATE_CSR is the CSR address for accelerator status
         break_poll = read_csr(0x3ca);
-        if(break_poll == 1){
+        if (break_poll == 1) {
             break;
         };
     };
 
     return 0;
-
 }
 
-uint32_t check_result(int32_t* output, int32_t* output_golden,
-                      uint32_t length){
+uint32_t check_result(int32_t* output, int32_t* output_golden, uint8_t Batch,
+                      uint8_t M, uint8_t N, uint32_t ldC, uint32_t strideC) {
     /*
      * Compare output to output_golden with length
      */
     uint32_t err = 0;
-    for (uint32_t i = 0; i < length; i++) {
-        // Check if output is same as golden output
-        if (output[i] != output_golden[i]) {
-            printf("%dth not equal: output %d, golden %d \n",i, output[i],output_golden[i]);
-            err++;
-        };
-    };
+    uint32_t golden_idx;
+    int32_t * out_addr;
+
+    for (int b = 0; b < Batch; b++) {
+        for (int m = 0; m < M; m++) {
+            for (int n = 0; n < N; n++) {
+                for (int i = 0; i < meshRow; i++){
+                    for (int j = 0; j < meshCol; j++){
+                        golden_idx = i * meshCol + j + m * meshRow * meshCol * N + n * meshRow * meshCol;
+                        out_addr = output + (b * strideC + m * ldC) / sizeof(int32_t) + n * meshRow * meshCol + i * meshCol + j;
+                        // Check if output is same as golden output
+                        if ((int32_t) *out_addr != output_golden[golden_idx]) {
+                            printf("%dth not equal: output %d, golden %d \n", golden_idx,
+                                   (int32_t) *out_addr, output_golden[golden_idx]);
+                            err++;
+                        };
+                    };
+                }
+            }
+        }
+    }
+
     return err;
+
 }
 
 int main() {
@@ -132,15 +161,15 @@ int main() {
 
     // Prepare addresses in TCDM
     int8_t *local_a, *local_b;
-    int32_t *local_c;
+    int32_t* local_c;
 
     // Allocate space in TCDM
     uint32_t m = M * meshRow;
     uint32_t k = K * tileSize;
     uint32_t n = N * meshRow;
-    local_a = (int8_t *)snrt_l1_next();
+    local_a = (int8_t*)snrt_l1_next();
     local_b = local_a + m * k * sizeof(int8_t);
-    local_c = (int32_t *)(local_b + n * k * sizeof(int8_t));
+    local_c = (int32_t*)(local_b + n * k * sizeof(int8_t));
 
     uint32_t dma_pre_load = snrt_mcycle();
 
@@ -155,53 +184,49 @@ int main() {
     snrt_cluster_hw_barrier();
 
     if (snrt_is_compute_core()) {
-        // This marks the start of the accelerator style of MAC operation
+        // This marks the start of the accelerator style of MAC
+        // operation
         uint32_t csr_set = snrt_mcycle();
-
-        // uint32_t ldA,ldB,ldC,strideA,strideB,strideC;
-
-        // ldA = 128;
-        // ldB = 128;
-        // ldC = 512;
-        // strideA = 0;
-        // strideB = 0;
-        // strideC = 0;
 
         // Start of CSR start and poll until accelerator finishes
         uint32_t gemm_start = snrt_mcycle();
 
-        set_batch_gemm(Batch, M, K ,N,local_a,local_b,local_c,ldA,ldB,ldC,strideA,strideB,strideC);
+        set_batch_gemm(Batch, M, K, N, local_a, local_b, local_c, ldA,
+                        ldB, ldC, strideA, strideB, strideC);
+        start_batch_gemm();
+        wait_batch_gemm();
 
         uint32_t gemm_end = snrt_mcycle();
 
         printf("cycle number for Gemm to do matrix multiply: %d \n",
-               gemm_end - dma_pre_load);
+                gemm_end - dma_pre_load);
 
         // for (int i = 0; i < M * meshRow; i++) {
         //     for (int j = 0; j < N * meshCol; j++) {
-        //         printf("C[%d][%d] = %d\n", i, j, *(local_c + (i * n + j)));
+        //         printf("C[%d][%d] = %d\n", i, j, *(local_c + (i * n +
+        //         j)));
         //     }
         // }
 
         uint32_t end_of_check = snrt_mcycle();
 
-        err = check_result(local_c,C_golden,m*n);
-        printf("gemm err: %d\n",err);
-        
+        err = check_result(local_c, C_golden, Batch, M, N, ldC, strideC);
+        printf("gemm err: %d\n", err);
     };
 
     snrt_cluster_hw_barrier();
 
-    if(snrt_is_compute_core()){
-        batch_gemm_cpu(Batch,M,K,N,A,B,C_cpu,128,128,512,0,0,0);
+    if (snrt_is_compute_core()) {
+        batch_gemm_cpu(Batch, M, K, N, A, B, C_cpu, 128, 128, 512, 0, 0,0);
 
-        err = check_result(C_cpu,C_golden,m*n);
+        err = check_result(C_cpu, C_golden, Batch, M, N, ldC, strideC);
         // for (int i = 0; i < M * meshRow; i++) {
         //     for (int j = 0; j < N * meshCol; j++) {
-        //         printf("C_cpu[%d][%d] = %d\n", i, j, *(C_cpu + (i * n + j)));
+        //         printf("C_cpu[%d][%d] = %d\n", i, j, *(C_cpu + (i * n
+        //         + j)));
         //     }
-        // }    
-        printf("cpu err: %d\n",err);        
+        // }
+        printf("cpu err: %d\n", err);
     }
 
     return err;
