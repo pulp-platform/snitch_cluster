@@ -8,7 +8,7 @@ inline void snrt_fpu_fence() {
     asm volatile(
         "fmv.x.w %0, fa0\n"
         "mv      %0, %0\n"
-        : "+r"(tmp)::"memory");
+        : "+r"(tmp):: "fa0", "memory");
 }
 
 /// The different SSR data movers.
@@ -57,16 +57,28 @@ inline void snrt_ssr_disable() {
 }
 
 inline uint32_t read_ssr_cfg(uint32_t reg, uint32_t dm) {
-    uint32_t value;
-    asm volatile("scfgri %[value], %[dm] | %[reg]<<5\n"
-                 : [ value ] "=r"(value)
-                 : [ dm ] "i"(dm), [ reg ] "i"(reg));
+    register uint32_t operand asm("t0") = reg << 5 | dm;
+    register uint32_t value;
+    asm volatile("scfgr %[value], %[operand]\n" : [ value ] "=r"(value), [ operand ] "+r"(operand));
     return value;
+    // uint32_t value;
+    // bits [4:0] = dm: Which SSR data mover to configure
+    // bits [11:5] = reg: Indicates index of the register to read/write
+    // asm volatile("scfgri %[value], %[dm] | %[reg]<<5\n"
+    //              : [ value ] "=r"(value)
+    //              : [ dm ] "i"(dm), [ reg ] "i"(reg));
+    // return value;
 }
 
 inline void write_ssr_cfg(uint32_t reg, uint32_t dm, uint32_t value) {
-    asm volatile("scfgwi %[value], %[dm] | %[reg]<<5\n" ::[value] "r"(value),
-                 [ dm ] "i"(dm), [ reg ] "i"(reg));
+    register uint32_t operand = reg << 5 | dm;
+
+    asm volatile("scfgw %[value], %[operand]\n" ::[value] "r"(value),
+                 [operand] "r"(operand):"memory");
+
+    // snrt_fpu_fence();
+    // asm volatile("scfgwi %[value], %[dm] | %[reg]<<5\n" ::[value] "r"(value),
+    //              [ dm ] "i"(dm), [ reg ] "i"(reg));
 }
 
 // Configure an SSR data mover for a 1D loop nest.
@@ -79,6 +91,10 @@ inline void snrt_ssr_loop_1d(enum snrt_ssr_dm dm, size_t b0, size_t s0) {
 }
 
 // Configure an SSR data mover for a 2D loop nest.
+// b0: Inner-most bound (limit of loop)
+// b1: Outer-most bound (limit of loop)
+// s0: increment size of inner-most loop
+// s1: increment size of outer-most loop
 inline void snrt_ssr_loop_2d(enum snrt_ssr_dm dm, size_t b0, size_t b1,
                              size_t s0, size_t s1) {
     --b0;
@@ -127,9 +143,9 @@ inline void snrt_ssr_loop_4d(enum snrt_ssr_dm dm, size_t b0, size_t b1,
     write_ssr_cfg(REG_BOUNDS + 3, dm, b3);
     size_t a = 0;
     write_ssr_cfg(REG_STRIDES + 0, dm, s0 - a);
-    a += s0 * b0;
+    a += s0 * b0; // 32
     write_ssr_cfg(REG_STRIDES + 1, dm, s1 - a);
-    a += s1 * b1;
+    a += s1 * b1; // s1 = 32, a = 32
     write_ssr_cfg(REG_STRIDES + 2, dm, s2 - a);
     a += s2 * b2;
     write_ssr_cfg(REG_STRIDES + 3, dm, s3 - a);
