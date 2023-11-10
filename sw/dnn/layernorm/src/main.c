@@ -9,6 +9,10 @@
 #include "data.h"
 
 int main() {
+    layernorm_layer_t *layer_cfg = snrt_l1alloc(sizeof(*layer_cfg));
+    if (snrt_is_dm_core()) {
+        snrt_dma_start_1d((void *)layer_cfg, (void *)&layer, sizeof(*layer_cfg));
+    }
     layernorm_layer(layer);
     return 0;
 }
