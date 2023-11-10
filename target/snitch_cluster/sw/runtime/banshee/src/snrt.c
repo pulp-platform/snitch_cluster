@@ -15,5 +15,6 @@
 #include "printf.c"
 #include "putchar.c"
 #include "snitch_cluster_start.c"
+#include "ssr.c"
 #include "sync.c"
 #include "team.c"
