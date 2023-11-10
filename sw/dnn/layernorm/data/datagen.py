@@ -36,6 +36,8 @@ PRECISION_T = {
 
 def golden_model(ifmap, eps, shape, prec):
     ln = torch.nn.LayerNorm(shape, eps=eps)
+    # cast ifmap to fp32
+    ifmap = ifmap.type(torch.float32)
     return ln(ifmap)
 
 
