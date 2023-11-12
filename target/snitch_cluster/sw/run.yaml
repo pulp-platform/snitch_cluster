@@ -88,4 +88,6 @@ runs:
   # Illegal FDIV without FDIV unit
   - elf: apps/dnn/flashattention_2/build/flashattention_2.elf
     cmd: ../../sw/dnn/flashattention_2/verify.py {sim_bin} {elf}
+  - elf: apps/dnn/concat/build/concat.elf
+    cmd: ../../sw/dnn/concat/verify.py {sim_bin} {elf}
   - elf: apps/montecarlo/pi_estimation/build/pi_estimation.elf

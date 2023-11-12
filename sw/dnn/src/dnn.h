@@ -204,4 +204,5 @@ typedef struct network_single_cluster_t_ {
 #include "../linear/src/linear.h"
 #include "../maxpool/src/maxpool.h"
 #include "../softmax/src/softmax.h"
+#include "../concat/src/concat.h"
 // #include "utils.h"
