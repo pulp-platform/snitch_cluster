@@ -83,7 +83,7 @@ void gemm_fp32_baseline(uint32_t M, uint32_t N, uint32_t K, float* A,
 
 void gemm_fp64_baseline(uint32_t M, uint32_t N, uint32_t K, double* A,
                         uint32_t ldA, uint32_t ta, double* B, uint32_t ldB,
-                        uint32_t tb, double* C, uint32_t ldC, double BETA) {
+                        uint32_t tb, double* C, uint32_t ldC, double* BETA) {
     if (!ta && !tb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
@@ -109,9 +109,12 @@ void gemm_fp64_baseline(uint32_t M, uint32_t N, uint32_t K, double* A,
             for (uint32_t n = 0; n < N; n++) {
                 double c0 = multiply_opt(C[m * ldC + n], BETA);
                 for (uint32_t k = 0; k < K; k++) {
+                    // dump_index(k + m * ldA);
+                    // dump_gemm(A[k + m * ldA]);
                     c0 += A[k + m * ldA] * B[k + n * ldB];
                 }
                 C[m * ldC + n] = c0;
+                // dump_gemm(C[m * ldC + n]);
             }
         }
     } else {
@@ -378,7 +381,8 @@ void gemm_fp32_opt(const uint32_t M, const uint32_t N, const uint32_t K,
     // Unrolling factor of most inner loop.
     // Should be at least as high as the FMA delay
     // for maximum utilization
-    const uint32_t unroll = 8;
+    // const uint32_t unroll = 8;
+    const uint32_t unroll = 4;
 
     // SSR strides and bounds only have to be configured
     // once in the beginning
@@ -421,19 +425,19 @@ void gemm_fp32_opt(const uint32_t M, const uint32_t N, const uint32_t K,
                 "flw %[reduce_reg1], 4(%[C]) \n"
                 "flw %[reduce_reg2], 8(%[C]) \n"
                 "flw %[reduce_reg3], 12(%[C]) \n"
-                "flw %[reduce_reg4], 16(%[C]) \n"
-                "flw %[reduce_reg5], 20(%[C]) \n"
-                "flw %[reduce_reg6], 24(%[C]) \n"
-                "flw %[reduce_reg7], 28(%[C]) \n"
+                // "flw %[reduce_reg4], 16(%[C]) \n"
+                // "flw %[reduce_reg5], 20(%[C]) \n"
+                // "flw %[reduce_reg6], 24(%[C]) \n"
+                // "flw %[reduce_reg7], 28(%[C]) \n"
                 // Pack intermediate results into SIMD vector
                 "vfcpka.s.s %[reduce_reg0], %[reduce_reg0], %[zero]\n"
                 "vfcpka.s.s %[reduce_reg1], %[reduce_reg1], %[zero]\n"
                 "vfcpka.s.s %[reduce_reg2], %[reduce_reg2], %[zero]\n"
                 "vfcpka.s.s %[reduce_reg3], %[reduce_reg3], %[zero]\n"
-                "vfcpka.s.s %[reduce_reg4], %[reduce_reg4], %[zero]\n"
-                "vfcpka.s.s %[reduce_reg5], %[reduce_reg5], %[zero]\n"
-                "vfcpka.s.s %[reduce_reg6], %[reduce_reg6], %[zero]\n"
-                "vfcpka.s.s %[reduce_reg7], %[reduce_reg7], %[zero]\n"
+                // "vfcpka.s.s %[reduce_reg4], %[reduce_reg4], %[zero]\n"
+                // "vfcpka.s.s %[reduce_reg5], %[reduce_reg5], %[zero]\n"
+                // "vfcpka.s.s %[reduce_reg6], %[reduce_reg6], %[zero]\n"
+                // "vfcpka.s.s %[reduce_reg7], %[reduce_reg7], %[zero]\n"
                 "j 2f \n"
                 "1: \n"
                 // Initialize SIMD vector with zeros
@@ -441,10 +445,10 @@ void gemm_fp32_opt(const uint32_t M, const uint32_t N, const uint32_t K,
                 "vfcpka.s.s %[reduce_reg1], %[zero], %[zero]\n"
                 "vfcpka.s.s %[reduce_reg2], %[zero], %[zero]\n"
                 "vfcpka.s.s %[reduce_reg3], %[zero], %[zero]\n"
-                "vfcpka.s.s %[reduce_reg4], %[zero], %[zero]\n"
-                "vfcpka.s.s %[reduce_reg5], %[zero], %[zero]\n"
-                "vfcpka.s.s %[reduce_reg6], %[zero], %[zero]\n"
-                "vfcpka.s.s %[reduce_reg7], %[zero], %[zero]\n"
+                // "vfcpka.s.s %[reduce_reg4], %[zero], %[zero]\n"
+                // "vfcpka.s.s %[reduce_reg5], %[zero], %[zero]\n"
+                // "vfcpka.s.s %[reduce_reg6], %[zero], %[zero]\n"
+                // "vfcpka.s.s %[reduce_reg7], %[zero], %[zero]\n"
 
                 "2: \n"
                 // Don't accumulate in first iteration
@@ -452,34 +456,34 @@ void gemm_fp32_opt(const uint32_t M, const uint32_t N, const uint32_t K,
                 "vfmul.s %[c1], ft1, ft0 \n"
                 "vfmul.s %[c2], ft1, ft0 \n"
                 "vfmul.s %[c3], ft1, ft0 \n"
-                "vfmul.s %[c4], ft1, ft0 \n"
-                "vfmul.s %[c5], ft1, ft0 \n"
-                "vfmul.s %[c6], ft1, ft0 \n"
-                "vfmul.s %[c7], ft1, ft0 \n"
+                // "vfmul.s %[c4], ft1, ft0 \n"
+                // "vfmul.s %[c5], ft1, ft0 \n"
+                // "vfmul.s %[c6], ft1, ft0 \n"
+                // "vfmul.s %[c7], ft1, ft0 \n"
                 // frep over MACs
                 "frep.o  %[n_frep], %[unroll], 0, 0 \n"
                 "vfmac.s %[c0], ft1, ft0 \n"
                 "vfmac.s %[c1], ft1, ft0 \n"
                 "vfmac.s %[c2], ft1, ft0 \n"
                 "vfmac.s %[c3], ft1, ft0 \n"
-                "vfmac.s %[c4], ft1, ft0 \n"
-                "vfmac.s %[c5], ft1, ft0 \n"
-                "vfmac.s %[c6], ft1, ft0 \n"
-                "vfmac.s %[c7], ft1, ft0 \n"
+                // "vfmac.s %[c4], ft1, ft0 \n"
+                // "vfmac.s %[c5], ft1, ft0 \n"
+                // "vfmac.s %[c6], ft1, ft0 \n"
+                // "vfmac.s %[c7], ft1, ft0 \n"
                 // Sum-reduce vector
                 "vfsum.s %[reduce_reg0], %[c0] \n"
                 "vfsum.s %[reduce_reg1], %[c1] \n"
                 "vfsum.s %[reduce_reg2], %[c2] \n"
                 "vfsum.s %[reduce_reg3], %[c3] \n"
-                "vfsum.s %[reduce_reg4], %[c4] \n"
-                "vfsum.s %[reduce_reg5], %[c5] \n"
-                "vfsum.s %[reduce_reg6], %[c6] \n"
-                "vfsum.s %[reduce_reg7], %[c7] \n"
+                // "vfsum.s %[reduce_reg4], %[c4] \n"
+                // "vfsum.s %[reduce_reg5], %[c5] \n"
+                // "vfsum.s %[reduce_reg6], %[c6] \n"
+                // "vfsum.s %[reduce_reg7], %[c7] \n"
                 // Pack results together again into vectors
                 "vfcpka.s.s %[c0], %[reduce_reg0], %[reduce_reg1] \n"
                 "vfcpka.s.s %[c1], %[reduce_reg2], %[reduce_reg3] \n"
-                "vfcpka.s.s %[c2], %[reduce_reg4], %[reduce_reg5] \n"
-                "vfcpka.s.s %[c3], %[reduce_reg6], %[reduce_reg7] \n"
+                // "vfcpka.s.s %[c2], %[reduce_reg4], %[reduce_reg5] \n"
+                // "vfcpka.s.s %[c3], %[reduce_reg6], %[reduce_reg7] \n"
                 : [ c0 ] "+f"(c[0]), [ c1 ] "+f"(c[1]), [ c2 ] "+f"(c[2]),
                   [ c3 ] "+f"(c[3]), [ c4 ] "+f"(c[4]), [ c5 ] "+f"(c[5]),
                   [ c6 ] "+f"(c[6]), [ c7 ] "+f"(c[7]),
@@ -498,8 +502,8 @@ void gemm_fp32_opt(const uint32_t M, const uint32_t N, const uint32_t K,
             // Store results
             ((v2f32*)_C)[0] = c[0];
             ((v2f32*)_C)[1] = c[1];
-            ((v2f32*)_C)[2] = c[2];
-            ((v2f32*)_C)[3] = c[3];
+            // ((v2f32*)_C)[2] = c[2];
+            // ((v2f32*)_C)[3] = c[3];
 
             // progress by 2 columns each iteration of the loop
             n += unroll * 2;

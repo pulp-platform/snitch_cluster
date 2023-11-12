@@ -13,6 +13,9 @@
 #include "gemm.h"
 #include "snrt.h"
 
+dump_uint(val, 8);
+dump_float(value, 9);
+
 int main() {
     int retcode = gemm(dtype_size, expand, 1, parallelize_m, parallelize_k,
                        m_tiles, n_tiles, k_tiles, 1, 1, 1, TA, TB, M, N, K,
