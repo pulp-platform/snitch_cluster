@@ -411,7 +411,8 @@ def emul_seq(fseq_info: dict,
     # Are we working on an FRep ...
     if cfg is not None:
         # If we are still filling our loop buffer: add to it and replicate
-        if cfg['inst_iter'] <= cfg['max_inst']:
+        # When there are no FPSS PCs left (e.g. inner FREP), we cannot replicate!
+        if cfg['inst_iter'] <= cfg['max_inst'] and len(fseq_info['fpss_pcs']):
             pc_str, curr_sec, is_frep = fseq_info['fpss_pcs'].pop()
             if is_frep:
                 msg_type = 'WARNING' if permissive else 'FATAL'
