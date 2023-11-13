@@ -18,6 +18,12 @@ from data_utils import bytes_to_float, bytes_to_int  # noqa: E402
 
 ERR_THRESHOLD = 0.001
 
+NUMPY_T = {
+    '64': np.float64,
+    '32': np.float32,
+    '16': np.float16
+}
+
 
 def main():
     # Run simulation and get outputs
@@ -27,16 +33,17 @@ def main():
                                         symbols_bin=args.symbols_bin,
                                         log=args.log,
                                         output_uids=['c'])
-    c_actual = np.array(bytes_to_float(raw_results['c'], prec='64'))
 
     # Extract input operands from ELF file
     if args.symbols_bin:
         elf = Elf(args.symbols_bin)
     else:
         elf = Elf(args.snitch_bin)
-    a = np.array(bytes_to_float(elf.get_symbol_contents('a'), prec='64'))
-    b = np.array(bytes_to_float(elf.get_symbol_contents('b'), prec='64'))
-    c = np.array(bytes_to_float(elf.get_symbol_contents('c'), prec='64'))
+    dtype_size = bytes_to_int(elf.get_symbol_contents('dtype_size'), prec='32', signedness='unsigned')[0]
+    prec = str(dtype_size*8)
+    a = np.array(bytes_to_float(elf.get_symbol_contents('a'), prec=prec))
+    b = np.array(bytes_to_float(elf.get_symbol_contents('b'), prec=prec))
+    c = np.array(bytes_to_float(elf.get_symbol_contents('c'), prec=prec))
     beta = bytes_to_int(elf.get_symbol_contents('BETA'), prec='32', signedness='unsigned')[0]
     m = bytes_to_int(elf.get_symbol_contents('M'), prec='32', signedness='unsigned')[0]
     n = bytes_to_int(elf.get_symbol_contents('N'), prec='32', signedness='unsigned')[0]
@@ -51,13 +58,15 @@ def main():
     c = np.reshape(c, (m, n))
 
     # Verify results
+    c_actual = np.array(bytes_to_float(raw_results['c'], prec), dtype=NUMPY_T[prec])
     c_golden = golden_model(1, a, b, beta, c).flatten()
 
     absolute_err = np.absolute(c_golden - c_actual)
     fail = np.any(absolute_err > ERR_THRESHOLD)
     if (fail):
+        print('Simulation results are incorrect.')
         verification.dump_results_to_csv([c_golden, c_actual, absolute_err],
-                                         Path.cwd() / 'gemm_results.csv')
+                                         Path.cwd() / 'results.csv')
 
     return int(fail)
 
