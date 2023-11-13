@@ -4,10 +4,9 @@
 
 #pragma once
 
+#include "dnn.h"
 #include "math.h"
 #include "snrt.h"
-// #include "printf.h"
-#include "dnn.h"
 
 /**
  * @struct layernorm_layer_struct

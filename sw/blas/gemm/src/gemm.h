@@ -1164,7 +1164,6 @@ int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
     for (uint32_t m_tile = 0; m_tile < m_tiles_per_cluster; m_tile++) {
         for (uint32_t n_tile = 0; n_tile < n_tiles; n_tile++) {
             for (uint32_t k_tile = 0; k_tile < k_tiles; k_tile++) {
-                
                 // Calculate tile pointer offsets for each cluster
                 uint32_t absolute_m_tile_idx =
                     snrt_cluster_idx() * m_tiles_per_cluster + m_tile;
