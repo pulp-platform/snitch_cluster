@@ -14,8 +14,8 @@
     prec: 64,
     expand: 0,
     m_tiles: 2 // number of tiles in M dimension
-    k_tiles: 2 // number of tiles in K dimension
     n_tiles: 2 // number of tiles in N dimension
+    k_tiles: 2 // number of tiles in K dimension
     parallelize_k: 0
     parallelize_m: 1
 }

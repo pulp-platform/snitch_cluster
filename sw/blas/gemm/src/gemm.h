@@ -111,6 +111,7 @@ void gemm_fp64_baseline(uint32_t M, uint32_t N, uint32_t K, double* A,
                 for (uint32_t k = 0; k < K; k++) {
                     // dump_index(k + m * ldA);
                     // dump_gemm(A[k + m * ldA]);
+                    // dump_gemm(B[k + n * ldB]);
                     c0 += A[k + m * ldA] * B[k + n * ldB];
                 }
                 C[m * ldC + n] = c0;
