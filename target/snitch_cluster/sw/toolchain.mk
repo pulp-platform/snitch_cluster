@@ -32,7 +32,7 @@ RISCV_CFLAGS += -menable-experimental-extensions
 RISCV_CFLAGS += -mabi=ilp32d
 RISCV_CFLAGS += -mcmodel=medany
 # RISCV_CFLAGS += -mno-fdiv # Not supported by Clang
-RISCV_CFLAGS += -ffast-math
+# RISCV_CFLAGS += -ffast-math
 RISCV_CFLAGS += -fno-builtin-printf
 RISCV_CFLAGS += -fno-builtin-sqrtf
 RISCV_CFLAGS += -fno-common

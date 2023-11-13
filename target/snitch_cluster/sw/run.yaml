@@ -84,4 +84,7 @@ runs:
   # - elf: apps/dnn/fusedconv/build/fusedconv.elf # fails newly
   - elf: apps/dnn/softmax/build/softmax.elf # Illegal FDIV without FDIV unit
     cmd: ../../sw/dnn/softmax/verify.py {sim_bin} {elf}
+  # Illegal FDIV without FDIV unit
+  - elf: apps/dnn/flashattention_2/build/flashattention_2.elf
+    cmd: ../../sw/dnn/flashattention_2/verify.py {sim_bin} {elf}
   - elf: apps/montecarlo/pi_estimation/build/pi_estimation.elf

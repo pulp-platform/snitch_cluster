@@ -3,5 +3,5 @@
 # SPDX-License-Identifier: Apache-2.0
 
 numpy
-torch>=1.8
+torch==2.1
 hjson

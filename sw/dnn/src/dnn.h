@@ -197,6 +197,7 @@ typedef struct network_single_cluster_t_ {
 // #include "conv2d.h"
 
 #include "../batchnorm/src/batchnorm.h"
+#include "../flashattention_2/src/flashattention_2.h"
 #include "../gelu/src/gelu.h"
 #include "../gemm/src/gemm.h"
 #include "../layernorm/src/layernorm.h"
