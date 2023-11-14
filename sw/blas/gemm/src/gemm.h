@@ -1138,9 +1138,6 @@ int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
          uint32_t nr_clusters, uint32_t transa, uint32_t transb, uint32_t m,
          uint32_t n, uint32_t k, double alpha, void* a, void* b, uint32_t beta,
          void* c) {
-    void *local_a, *local_b, *local_c;
-    void *remote_a, *remote_b, *remote_c;
-
     // Calculate tile sizes
     uint32_t frac_m = m / m_tiles;
     uint32_t frac_n = n / n_tiles;
@@ -1152,6 +1149,7 @@ int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
     uint32_t size_frac_c = frac_c * prec;
 
     // Allocate space in TCDM
+    void *local_a, *local_b, *local_c;
     local_a = (void*)snrt_l1_next();
     local_b = local_a + size_frac_a;
     local_c = local_b + size_frac_b;
@@ -1163,46 +1161,29 @@ int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
     // Iterate tiles
     for (uint32_t m_tile = 0; m_tile < m_tiles_per_cluster; m_tile++) {
         for (uint32_t n_tile = 0; n_tile < n_tiles; n_tile++) {
+
+            // Calculate absolute m tile index for the current cluster
+            uint32_t absolute_m_tile_idx =
+                snrt_cluster_idx() * m_tiles_per_cluster + m_tile;
+
+            // k accumulation loop
             for (uint32_t k_tile = 0; k_tile < k_tiles; k_tile++) {
-                // Calculate tile pointer offsets for each cluster
-                uint32_t absolute_m_tile_idx =
-                    snrt_cluster_idx() * m_tiles_per_cluster + m_tile;
-                uint32_t offset_a =
-                    absolute_m_tile_idx * frac_m * k + k_tile * frac_k;
-                remote_a = a + offset_a * prec;
-                uint32_t offset_b = k_tile * frac_k * n + n_tile * frac_n;
-                remote_b = b + offset_b * prec;
-                uint32_t offset_c =
-                    absolute_m_tile_idx * frac_m * n + n_tile * frac_n;
-                remote_c = c + offset_c * prec;
 
                 // Copy data in TCDM
                 if (snrt_is_dm_core()) {
-                    snrt_dma_start_2d(local_a,        // dst
-                                      remote_a,       // src
-                                      frac_k * prec,  // size
-                                      frac_k * prec,  // dst_stride
-                                      k * prec,       // src_stride
-                                      frac_m          // repeat
-                    );
-                    snrt_dma_start_2d(local_b,        // dst
-                                      remote_b,       // src
-                                      frac_n * prec,  // size
-                                      frac_n * prec,  // dst_stride
-                                      n * prec,       // src_stride
-                                      frac_k          // repeat
-                    );
+                    snrt_dma_load_2d_tile(local_a, a,
+                                          absolute_m_tile_idx, k_tile,
+                                          frac_m, frac_k, k, prec);
+                    snrt_dma_load_2d_tile(local_b, b,
+                                          k_tile, n_tile,
+                                          frac_k, frac_n, n, prec);
                     // C tile is loaded only upon first iteration, then the C
                     // array will contain the partial results from the
                     // previous iteration
                     if (k_tile == 0) {
-                        snrt_dma_start_2d(local_c,        // dst
-                                          remote_c,       // src
-                                          frac_n * prec,  // size
-                                          frac_n * prec,  // dst_stride
-                                          n * prec,       // src_stride
-                                          frac_m          // repeat
-                        );
+                        snrt_dma_load_2d_tile(local_c, c,
+                                              absolute_m_tile_idx, n_tile,
+                                              frac_m, frac_n, n, prec);
                     }
                     snrt_dma_wait_all();
                 }
@@ -1247,13 +1228,9 @@ int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
 
             // Copy data out of TCDM
             if (snrt_is_dm_core()) {
-                snrt_dma_start_2d(remote_c,       // dst
-                                  local_c,        // src
-                                  frac_n * prec,  // size
-                                  n * prec,       // dst_stride
-                                  frac_n * prec,  // src_stride
-                                  frac_m          // repeat
-                );
+                snrt_dma_store_2d_tile(c, local_c,
+                                       absolute_m_tile_idx, n_tile,
+                                       frac_m, frac_n, n, prec);
                 snrt_dma_wait_all();
             }
         }
