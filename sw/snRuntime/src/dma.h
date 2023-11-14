@@ -205,3 +205,51 @@ inline void snrt_dma_memset(void *ptr, uint8_t value, uint32_t len) {
         snrt_dma_start_2d(ptr, ptr, 64, 64, 0, len / 64);
     snrt_dma_wait_all();
 }
+
+/// Load a 2D-tile of shape (tile_x1_size, tile_x0_size) from the 2D array
+/// of shape (full_x1_size, full_x0_size). The specific tile is selected
+/// by the (tile_x1_idx, tile_x0_idx) tuple. Every element in the src and
+/// destination arrays has prec bytes.
+inline snrt_dma_txid_t snrt_dma_load_2d_tile(void *dst, void *src,
+                                             size_t tile_x1_idx, size_t tile_x0_idx,
+                                             size_t tile_x1_size, size_t tile_x0_size,
+                                             size_t full_x0_size, uint32_t prec) {
+    size_t src_offset = 0;
+    // Advance src array in x0 and x1 dimensions, and convert to byte offset
+    src_offset += tile_x0_idx * tile_x0_size;
+    src_offset += tile_x1_idx * tile_x1_size * full_x0_size;
+    src_offset *= prec;
+    // Initiate transfer
+    return snrt_dma_start_2d(
+        dst,                  // dst
+        src + src_offset,     // src
+        tile_x0_size * prec,  // size
+        tile_x0_size * prec,  // dst_stride
+        full_x0_size * prec,  // src_stride
+        tile_x1_size          // repeat
+    );
+}
+
+/// Store a 2D-tile of shape (tile_x1_size, tile_x0_size) to the 2D array
+/// of shape (full_x1_size, full_x0_size). The specific tile is selected
+/// by the (tile_x1_idx, tile_x0_idx) tuple. Every element in the src and
+/// destination arrays has prec bytes.
+inline snrt_dma_txid_t snrt_dma_store_2d_tile(void *dst, void *src,
+                                             size_t tile_x1_idx, size_t tile_x0_idx,
+                                             size_t tile_x1_size, size_t tile_x0_size,
+                                             size_t full_x0_size, uint32_t prec) {
+    size_t dst_offset = 0;
+    // Advance dst array in x0 and x1 dimensions, and convert to byte offset
+    dst_offset += tile_x0_idx * tile_x0_size;
+    dst_offset += tile_x1_idx * tile_x1_size * full_x0_size;
+    dst_offset *= prec;
+    // Initiate transfer
+    return snrt_dma_start_2d(
+        dst + dst_offset,     // dst
+        src,                  // src
+        tile_x0_size * prec,  // size
+        full_x0_size * prec,  // dst_stride
+        tile_x0_size * prec,  // src_stride
+        tile_x1_size          // repeat
+    );
+}
