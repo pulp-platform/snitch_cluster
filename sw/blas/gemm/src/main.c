@@ -16,8 +16,9 @@
 #undef BIST
 
 int main() {
-    int retcode = gemm(dtype_size, expand, 1, m_tiles, n_tiles, k_tiles,
-                       snrt_cluster_num(), TA, TB, M, N, K, 1, a, b, BETA, c);
+    int retcode = gemm(dtype_size, expand, 1, parallelize_m, parallelize_k,
+                       m_tiles, n_tiles, k_tiles, 1, 1, 1, TA, TB, M, N, K,
+                       1, a, b, BETA, c);
 
     snrt_cluster_hw_barrier();
 
