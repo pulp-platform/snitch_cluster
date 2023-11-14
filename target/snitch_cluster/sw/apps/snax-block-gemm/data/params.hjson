@@ -2,20 +2,68 @@
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 
-// Parameters for a GEMM
+// Parameters for a block GEMM
+// need to fix batch = 1
 
+// {
+//     Batch: 1
+//     M: 2,
+//     N: 2,
+//     K: 2,
+//     strideInnermostA: 64,
+//     strideInnermostB: 64,
+//     strideInnermostC: 256,
+//     ldA: 128,
+//     ldB: 128,
+//     ldC: 512,
+//     strideA: 0,
+//     strideB: 0,
+//     strideC:0,
+//     tileSize: 8,
+//     meshRow: 8,
+//     meshCol: 8
+// }
+
+// no input data contention
+// {
+//     Batch: 1
+//     M: 2,
+//     N: 2,
+//     K: 2,
+//     strideInnermostA: 256,
+//     strideInnermostB: 256,
+//     strideInnermostC: 256,
+//     ldA: 512,
+//     ldB: 512,
+//     ldC: 512,
+//     strideA: 0,
+//     strideB: 0,
+//     strideC:0,
+//     tileSize: 8,
+//     meshRow: 8,
+//     meshCol: 8,
+    // delta_local_a: 64,
+    // delta_local_b: 64
+// }
+
+// no input data contention
 {
-    Batch: 2
-    M: 2,
-    N: 2,
-    K: 2,
-    ldA: 128,
-    ldB: 128,
-    ldC: 512,
+    Batch: 1
+    M: 4,
+    N: 4,
+    K: 4,
+    strideInnermostA: 64,
+    strideInnermostB: 64,
+    strideInnermostC: 256,
+    ldA: 256,
+    ldB: 256,
+    ldC: 1024,
     strideA: 0,
     strideB: 0,
     strideC:0,
     tileSize: 8,
     meshRow: 8,
-    meshCol: 8
+    meshCol: 8,
+    delta_local_a: 1024,
+    delta_local_b: 1024
 }

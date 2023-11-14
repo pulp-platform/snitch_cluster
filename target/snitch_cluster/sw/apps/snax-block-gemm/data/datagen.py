@@ -50,12 +50,21 @@ def emit_gemm_data(**kwargs):
     data_str += [format_scalar_definition('int8_t', 'N', kwargs['N'])]
 
     # Generating strides settings
+
+    data_str += [format_scalar_definition('int32_t', 'strideInnermostA', kwargs['strideInnermostA'])]
+    data_str += [format_scalar_definition('int32_t', 'strideInnermostB', kwargs['strideInnermostB'])]
+    data_str += [format_scalar_definition('int32_t', 'strideInnermostC', kwargs['strideInnermostC'])]
+
     data_str += [format_scalar_definition('int32_t', 'ldA', kwargs['ldA'])]
     data_str += [format_scalar_definition('int32_t', 'ldB', kwargs['ldB'])]
     data_str += [format_scalar_definition('int32_t', 'ldC', kwargs['ldC'])]
+
     data_str += [format_scalar_definition('int32_t', 'strideA', kwargs['strideA'])]
     data_str += [format_scalar_definition('int32_t', 'strideB', kwargs['strideB'])]
     data_str += [format_scalar_definition('int32_t', 'strideC', kwargs['strideC'])]
+    
+    data_str += [format_scalar_definition('int32_t', 'delta_local_a', kwargs['delta_local_a'])]
+    data_str += [format_scalar_definition('int32_t', 'delta_local_b', kwargs['delta_local_b'])]
 
     # Generate random input matrices
     length_a = kwargs['M'] * kwargs['K'] * kwargs['meshRow'] * kwargs['tileSize']

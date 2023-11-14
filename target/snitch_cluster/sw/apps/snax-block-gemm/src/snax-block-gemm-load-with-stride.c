@@ -20,21 +20,17 @@ int main() {
     int32_t* local_c;
 
     // Allocate space in TCDM
-    uint32_t m = M * meshRow;
-    uint32_t k = K * tileSize;
-    uint32_t n = N * meshRow;
     local_a = (int8_t*)snrt_l1_next();
-    local_b = local_a + m * k * sizeof(int8_t);
-    local_c = (int32_t*)(local_b + n * k * sizeof(int8_t));
+    local_b = local_a + delta_local_a * sizeof(int8_t);
+    // local_c = (int32_t*)(local_b + meshCol * tileSize * sizeof(int8_t));
+    local_c = (int32_t*)(local_b + delta_local_b * sizeof(int8_t));
 
     uint32_t dma_pre_load = snrt_mcycle();
 
     // Transfer data from L3 to L1
     // Using DMA only
-    if (snrt_is_dm_core()) {
-        snrt_dma_start_1d(local_a, A, m * k * sizeof(int8_t));
-        snrt_dma_start_1d(local_b, B, n * k * sizeof(int8_t));
-    }
+    load_input_data(Batch, M, K, N, local_a, local_b, A, B, strideInnermostA, strideInnermostB,
+    ldA, ldB, strideA, strideB);
 
     // Wait for DMA to finish
     snrt_cluster_hw_barrier();
@@ -45,8 +41,8 @@ int main() {
         uint32_t csr_set = snrt_mcycle();
 
         // Start of CSR start and poll until accelerator finishes
-        uint32_t gemm_start = snrt_mcycle();
         uint32_t size_setting = gen_size_config(Batch, M, K ,N);
+        uint32_t gemm_start = snrt_mcycle();
 
         set_batch_gemm(size_setting, local_a, local_b, local_c,strideInnermostA, strideInnermostB,strideInnermostC,
         ldA,ldB, ldC, strideA, strideB, strideC);
@@ -56,7 +52,7 @@ int main() {
         uint32_t gemm_end = snrt_mcycle();
 
         printf("cycle number for Gemm to do matrix multiply: %d \n",
-                gemm_end - dma_pre_load);
+                gemm_end - gemm_start);
 
         // for (int i = 0; i < M * meshRow; i++) {
         //     for (int j = 0; j < N * meshCol; j++) {

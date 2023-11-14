@@ -5,7 +5,9 @@
 # Ryan Antonio <ryan.antonio@esat.kuleuven.be>
 
 APP     = snax-block-gemm
-SRCS    = src/snax-block-gemm.c
+# SRCS    = src/snax-block-gemm.c
+SRCS    = src/snax-block-gemm-no-contention.c
+SRCS    += src/snax-gemm-lib.c
 INCDIRS = data
 
 include ../common.mk
