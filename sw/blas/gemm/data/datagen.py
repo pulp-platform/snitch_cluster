@@ -56,6 +56,8 @@ def emit_header(**kwargs):
     m_tiles = kwargs['m_tiles']
     n_tiles = kwargs['n_tiles']
     k_tiles = kwargs['k_tiles']
+    parallelize_m = kwargs['parallelize_m']
+    parallelize_k = kwargs['parallelize_k']
 
     assert (M % m_tiles) == 0, 'M is not an integer multiple of tile size'
     assert (N % n_tiles) == 0, 'N is not an integer multiple of tile size'
@@ -63,6 +65,7 @@ def emit_header(**kwargs):
     frac_m = M / m_tiles
     assert (frac_m % 8) == 0, 'frac_m is not an integer multiple of the number of cores per' \
                               'cluster'
+    assert not (parallelize_m and parallelize_k), 'Cannot parallelize K and M simultaneously'
 
     if (kwargs['prec']) == 8:
         # sign -1 or 1
@@ -115,6 +118,8 @@ def emit_header(**kwargs):
     data_str += [format_scalar_definition('uint32_t', 'm_tiles', kwargs['m_tiles'])]
     data_str += [format_scalar_definition('uint32_t', 'n_tiles', kwargs['n_tiles'])]
     data_str += [format_scalar_definition('uint32_t', 'k_tiles', kwargs['k_tiles'])]
+    data_str += [format_scalar_definition('uint32_t', 'parallelize_m', kwargs['parallelize_m'])]
+    data_str += [format_scalar_definition('uint32_t', 'parallelize_k', kwargs['parallelize_k'])]
     data_str += [format_array_definition(C_TYPES[str(kwargs['prec'])], 'a', a.flatten(),
                  alignment=BURST_ALIGNMENT, section=kwargs['section'])]
     data_str += [format_array_definition(C_TYPES[str(kwargs['prec'])], 'b', b.flatten(),
