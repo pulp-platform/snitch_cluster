@@ -29,10 +29,10 @@
  * @var layernorm_layer_struct::ofmap
  * Pointer to output feature map
  */
+NAMED_DUMP(uint32_t, debug, 8);
+NAMED_DUMP(float, val, 9);
+NAMED_DUMP(uint32_t, value, 7);
 
-dump_float(debug, 8);
-dump_float(val, 9);
-dump_uint(value, 7);
 typedef struct layernorm_layer_struct {
     uint32_t batch_size;
     uint32_t seq_len;

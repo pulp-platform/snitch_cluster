@@ -83,7 +83,7 @@ void gemm_fp32_baseline(uint32_t M, uint32_t N, uint32_t K, float* A,
 
 void gemm_fp64_baseline(uint32_t M, uint32_t N, uint32_t K, double* A,
                         uint32_t ldA, uint32_t ta, double* B, uint32_t ldB,
-                        uint32_t tb, double* C, uint32_t ldC, double* BETA) {
+                        uint32_t tb, double* C, uint32_t ldC, double BETA) {
     if (!ta && !tb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
