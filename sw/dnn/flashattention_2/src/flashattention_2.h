@@ -101,7 +101,7 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
     float used_memory_kB =
         (float)((uint64_t)tcdm_ptr - (uint64_t)snrt_l1_next()) / 1024.0f;
 
-    DUMP(used_memory_kB);
+    // DUMP(used_memory_kB);
 
     // Iterate row blocks of Q
     uint32_t start_loop_outer = snrt_mcycle();
@@ -218,8 +218,8 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                 // column block of K to calculate a tile of S: S = Q * K^T.
                 // The S tile is of form (B_r, B_c)
                 uint32_t start_gemm = snrt_mcycle();
-                gemm(FP64, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, B_r, B_c, d, 1, Q_fa, K_fa,
-                     0, S_fa);
+                sc_st_gemm(FP64, 0, 0, 0, 0, B_r, B_c, d, 1, Q_fa, d, K_fa, B_c,
+                     0, S_fa, B_c);
                 uint32_t end_gemm = snrt_mcycle();
 
                 snrt_cluster_hw_barrier();
@@ -300,12 +300,12 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                 // The P tile is of size (B_r, B_c) and V of size (B_c, d)
                 if (t_c == 0) {
                     // In first t_c iteration, initialize O_ij to P_ij * V_j
-                    gemm(FP64, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, B_r, d, B_c, 1, P_fa,
-                         V_fa, 0.0f, O_fa);
+                    sc_st_gemm(FP64, 0, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c,
+                         V_fa, d, 0.0f, O_fa, d);
                 } else {
                     // In successive t_c iterations, O_ij += P_ij * V_j
-                    gemm(FP64, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, B_r, d, B_c, 1, P_fa,
-                         V_fa, 1.0f, O_fa);
+                    sc_st_gemm(FP64, 0, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c,
+                         V_fa, d, 1.0f, O_fa, d);
                 }
 
                 uint32_t end_stats = snrt_mcycle();
