@@ -10,7 +10,7 @@
 
 
 #define UNROLL 4
-#define USE_SSR 0
+#define USE_SSR 1
 #define PREC 32
 /**
  * @struct layernorm_layer_struct
@@ -210,7 +210,7 @@ static inline void layernorm_fp32_opt(float *input, float *output,
                 );
                 // snrt_ssr_disable();
                 // TODO: fix the RegWriteKnown errors due to SSR bug
-                // mean_tot /= embeddings;
+                mean_tot /= embeddings;
                 // dump_debug(mean_tot);
                 asm volatile (
                     // var += (ft0 - mean) * (ft0 - mean)
@@ -248,6 +248,8 @@ static inline void layernorm_fp32_opt(float *input, float *output,
                     : "ft0", "ft1", "ft2"
 
                 );
+                // snrt_ssr_disable();
+                // dump_debug(var_tot);
 
                 var_tot /= embeddings;
 
@@ -281,6 +283,10 @@ static inline void layernorm_fp64_opt(double *input, double *output,
                                   int32_t batch_size, int32_t seq_len,
                                   int32_t embeddings, int32_t eps) {
     if (snrt_is_compute_core()) {
+        // dump_value(batch_size);
+        // dump_value(seq_len);
+        // dump_value(embeddings);
+        // dump_value(eps);
         // Get parameters for every core's tile
         // offset: offset between data accessed by every core (for
         //         corresponding iterations)
@@ -290,6 +296,7 @@ static inline void layernorm_fp64_opt(double *input, double *output,
         uint32_t offset = snrt_cluster_core_idx() * embeddings;
         uint32_t stride = snrt_cluster_compute_core_num() * embeddings;
         uint32_t tile_seq_len = seq_len / snrt_cluster_compute_core_num();
+        // dump_value(tile_seq_len);
         double *core_itile = input + offset;
         double *core_otile = output + offset;
 
@@ -302,6 +309,7 @@ static inline void layernorm_fp64_opt(double *input, double *output,
         double divisor = 0.0;   // sqrt(var + eps)
         double mean_reg = 0.0;
         for (int32_t b = 0; b < batch_size; b++) {
+            // dump_value(111);
             // define the bounds for the loops
             const uint32_t ssr0_b[4] = {UNROLL, embeddings / UNROLL, 2, tile_seq_len};
             // INFO: increments MUST be 8 byte aligned!!
@@ -325,6 +333,7 @@ static inline void layernorm_fp64_opt(double *input, double *output,
             const uint32_t n_frep = embeddings / UNROLL;
 
             for (int32_t s = 0; s < tile_seq_len; s++) {
+                // dump_value(444);
                 double mean[UNROLL] = {0.0, 0.0, 0.0, 0.0};
                 double var[UNROLL] = {0.0, 0.0, 0.0, 0.0};
                 mean_tot = 0.0;
@@ -367,9 +376,9 @@ static inline void layernorm_fp64_opt(double *input, double *output,
                     "fmul.d %[pow1], %[var1], %[var1] \n"
                     "fmul.d %[pow2], %[var2], %[var2] \n"
                     "fmul.d %[pow3], %[var3], %[var3] \n"
-                    "fadd.s %[var0], %[pow0], %[pow1] \n"    // var0 = var0 + var1
-                    "fadd.s %[var2], %[pow2], %[pow3] \n"    // var2 = var2 + var3
-                    "fadd.s %[var_tot], %[var0], %[var2] \n" // var_tot = var0 + var1 + var2 + var3
+                    "fadd.d %[var0], %[pow0], %[pow1] \n"    // var0 = var0 + var1
+                    "fadd.d %[var2], %[pow2], %[pow3] \n"    // var2 = var2 + var3
+                    "fadd.d %[var_tot], %[var0], %[var2] \n" // var_tot = var0 + var1 + var2 + var3
 
                     : [var_reg0] "+f" (var_reg[0]), [var_reg1] "+f" (var_reg[1]), 
                       [var_reg2] "+f" (var_reg[2]), [var_reg3] "+f" (var_reg[3]),
@@ -433,7 +442,6 @@ static inline void layernorm_fp64_opt(double *input, double *output,
 // Distributes tiles to clusters (assumes n_tiles is an integer multiple of
 // the number of clusters)
 static inline void layernorm_layer(layernorm_layer_t l) {
-    snrt_mcycle();
 
     // Compute the tiling parameters
     uint32_t n_tiles = l.n_tiles;
@@ -442,23 +450,30 @@ static inline void layernorm_layer(layernorm_layer_t l) {
     uint32_t tile_size = l.batch_size * tile_seq_len * l.embeddings;
     uint32_t tile_offset = tile_seq_len * l.embeddings;
 
-    dump_val(n_tiles);
-    dump_val(n_tiles_per_cluster);
-    dump_val(tile_seq_len);
-    dump_val(tile_size);
-    dump_val(tile_offset);
+    // dump_val(888);
 
+    if(snrt_cluster_core_idx() == 0) {    
+        dump_val(n_tiles);
+        dump_val(n_tiles_per_cluster);
+        dump_val(tile_seq_len);
+        dump_val(tile_size);
+        dump_val(tile_offset);
+    }
+
+    // dump_val(snrt_cluster_idx());
+
+    snrt_mcycle();
     // Allocate space for arrays in TCDM (single precision)
     float *local_itile = (float *)snrt_l1_next();
-    float *local_otile = local_itile + tile_size;
+    // float *local_otile = local_itile + tile_size;
 
     // Get pointers to arrays in DRAM
     float *remote_ifmap = (float *)l.ifmap;
     float *remote_ofmap = (float *)l.ofmap;
 
-    // Allocate space for arrays in TCDM (double precision)
+    // // Allocate space for arrays in TCDM (double precision)
     // double *local_itile = (double *)snrt_l1_next();
-    // double *local_otile = local_itile + tile_size;
+    // // double *local_otile = local_itile + tile_size;
 
     // // Get pointers to arrays in DRAM
     // double *remote_ifmap = (double *)l.ifmap;
@@ -508,21 +523,23 @@ static inline void layernorm_layer(layernorm_layer_t l) {
         // Compute layernorm tile
         if (USE_SSR == 0 && PREC == 32) {
             if (snrt_is_compute_core()) snrt_mcycle();
-            layernorm_fp32(local_itile, local_otile, l.batch_size, tile_seq_len,
+            layernorm_fp32(local_itile, local_itile, l.batch_size, tile_seq_len,
                         l.embeddings, l.eps);
             if (snrt_is_compute_core()) snrt_mcycle();
         } else if (USE_SSR == 1 && PREC == 32) {
             // dump_value(777);
             if (snrt_is_compute_core()) snrt_mcycle();
-            layernorm_fp32_opt(local_itile, local_otile, l.batch_size, tile_seq_len,
+            layernorm_fp32_opt(local_itile, local_itile, l.batch_size, tile_seq_len,
                         l.embeddings, l.eps);
             if (snrt_is_compute_core()) snrt_mcycle();
             // dump_value(666);
-        } else {
+        } else if (USE_SSR == 1 && PREC == 64) {
             if (snrt_is_compute_core()) snrt_mcycle();
-            layernorm_fp64_opt(local_itile, local_otile, l.batch_size, tile_seq_len,
+            // dump_value(777);
+            layernorm_fp64_opt(local_itile, local_itile, l.batch_size, tile_seq_len,
                         l.embeddings, l.eps);
             if (snrt_is_compute_core()) snrt_mcycle();
+            // dump_value(666);
         }
 
         snrt_cluster_hw_barrier();
@@ -536,7 +553,7 @@ static inline void layernorm_layer(layernorm_layer_t l) {
                 float *remote_otile = remote_ofmap + tile_idx * tile_offset;
                 snrt_dma_txid_t txid_ofmap = snrt_dma_start_2d(
                     remote_otile,                                /* dst */
-                    local_otile,                                 /* src */
+                    local_itile,                                 /* src */
                     tile_seq_len * l.embeddings * sizeof(float), /* size */
                     l.seq_len * l.embeddings * sizeof(float),    /* dst_stride */
                     tile_seq_len * l.embeddings * sizeof(float), /* src_stride */
@@ -548,7 +565,7 @@ static inline void layernorm_layer(layernorm_layer_t l) {
                 double *remote_otile = remote_ofmap + tile_idx * tile_offset;
                 snrt_dma_txid_t txid_ofmap = snrt_dma_start_2d(
                     remote_otile,                                /* dst */
-                    local_otile,                                 /* src */
+                    local_itile,                                 /* src */
                     tile_seq_len * l.embeddings * sizeof(double), /* size */
                     l.seq_len * l.embeddings * sizeof(double),    /* dst_stride */
                     tile_seq_len * l.embeddings * sizeof(double), /* src_stride */

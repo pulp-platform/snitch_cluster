@@ -52,7 +52,7 @@ def emit_header(**kwargs):
     assert (seq_len % n_tiles) == 0, 'Input dimension is not an integer multiple of tile size'
 
     torch_type = data_utils.floating_point_torch_type(prec)
-    ifmap = torch.randn(batch_size, seq_len, embeddings, requires_grad=False, dtype=torch_type)
+    ifmap = torch.rand(batch_size, seq_len, embeddings, requires_grad=False, dtype=torch_type) - 1.0
 
     ofmap = golden_model(ifmap, eps, embeddings, prec)
     ofmap = ofmap.detach().numpy()

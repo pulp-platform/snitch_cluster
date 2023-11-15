@@ -4,11 +4,11 @@
 
 {
     input_dim: {
-        batch_size: 2,
-        seq_len: 64,
-        embeddings: 32
+        batch_size: 1,
+        seq_len: 32,
+        embeddings: 1280,
     }
     eps: 1e-5
     prec: 32
-    n_tiles: 2
+    n_tiles: 4
 }
