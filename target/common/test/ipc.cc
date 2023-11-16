@@ -19,12 +19,16 @@ void* IpcIface::ipc_thread_handle(void* in) {
     // Handle commands
     ipc_op_t op;
 
-    while (!feof(tx)) {
-        uint8_t ret_value = fread(&op, sizeof(ipc_op_t), 1, tx);
-        if (ret_value != 1) {
-            if (ferror(tx)) {
-                continue;  // jumps to while() again
+    while (size_t num_messages_read = fread(&op, sizeof(ipc_op_t), 1, tx)) {
+        if (num_messages_read != 1) {
+            if (feof(tx)) {
+                printf(
+                    "[IPC] All messages read. Closing FIFOs and joining main "
+                    "thread.\n");
+            } else if (ferror(tx)) {
+                perror("[IPC] read from tx failed\n");
             }
+            break;
         }
         switch (op.opcode) {
             case Read:
@@ -73,6 +77,7 @@ void* IpcIface::ipc_thread_handle(void* in) {
         }
         printf("[IPC] ... done\n");
     }
+
     // TX FIFO closed at other end: close both FIFOs and join main thread
     fclose(tx);
     fclose(rx);
