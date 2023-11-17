@@ -1,24 +1,60 @@
-# Snitch cluster target
+# Snitch/SNAX Cluster Target
 
+## Details
 The Snitch cluster target (`target/snitch_cluster`) is a simple RTL testbench
-around a Snitch cluster. The cluster can be configured using a config file. By default, the config file which will be picked up is `target/snitch_cluster/cfg/default.hsjon`.
+around a SNAX cluster. It is still the same as the Snitch cluster but with SNAX modifications. The cluster can be configured using a config file. By default, the config file which will be picked up is `target/snitch_cluster/cfg/default.hjson`.
 
 The configuration parameters are documented using JSON schema. Documentation for the schema and available configuration options can be found in `docs/schema-doc/snitch_cluster/`).
 
 The cluster testbench simulates an infinite memory. The RISC-V ELF file to be simulated is
 preloaded using RISC-V's Front-End Server (`fesvr`).
 
-## Tutorial
+## Quick Start
+
+These quick start steps demonstrate how you quickly run a simple MAC-engine accelerator in SNAX shell. This assumes you either have the necessary dependencies already or have the docker started (see [getting started](ug/getting_started.md)). Use this if you want to try out a simple test quickly. More details for each step are in the [Detailed Tutorial](#detailed-tutorial) section.
+
+1. Move into `./target/snitch_cluster/.`
+
+```shell
+cd ./target/snitch_cluster/.
+```
+
+2. Build custom hardware using one of the `cfg.hjson` files for a SNAX accelerator. The code below builds the SNAX with HWPE MAC engine. Add the `-j` option to set the number of  cores to run the build. The output is a RTL Verilator binary which runs the system. 
+
+```shell
+make CFG_OVERRIDE=cfg/snax-mac.hjson bin/snitch_cluster.vlt -j 16
+```
+
+3. Build the software. This produces `.elf` files (binary) which we feed into the built RTL builds.
+
+```shell
+make DEBUG=ON sw
+```
+
+4. Feed the `.elf` file into the RTL binary. Wait for the simulation to run. This produces `.dasm` (disassembly) files stored in the `./logs` directory.
+
+```shell
+bin/snitch_cluster.vlt sw/apps/snax-mac/build/snax-mac.elf
+```
+
+5. Make traces. See [Debugging and Benchmarking](#debugging-and-benchmarking) section. This produces a `.txt` dump which are the traces you can inspect.
+
+```shell
+make traces
+```
+
+## Detailed Tutorial
 
 In the following tutorial you can assume the working directory to be `target/snitch_cluster`. All paths are to be assumed relative to this directory. Paths relative to the root of the repository are prefixed with a slash.
 
-### Building the hardware
+### Building the Hardware
 
-To compile the hardware for simulation run one of the following commands, depending on the desired simulator:
+To compile the default Snitch hardware for simulation run one of the following commands, depending on the desired simulator:
 
 ```shell
 # Verilator (for Docker users)
 make bin/snitch_cluster.vlt
+
 # Verilator (for IIS users)
 verilator-4.110 make bin/snitch_cluster.vlt
 
@@ -29,19 +65,27 @@ questa-2022.3 make bin/snitch_cluster.vsim
 vcs-2020.12 make bin/snitch_cluster.vcs
 ```
 
+!!! note
+
+    You can find more details of the configuration file in the Cluster Configuration below.
+
 These commands compile the RTL sources respectively in `work-vlt`, `work-vsim` and `work-vcs`. Additionally, common C++ testbench sources (e.g. the [frontend server (fesvr)](https://github.com/riscv-software-src/riscv-isa-sim)) are compiled under `work`. Each command will also generate a script or an executable (e.g. `bin/snitch_cluster.vsim`) which you can invoke to simulate the hardware. We will see how to do this in a later section.
 
 ### Building the Banshee simulator
 Instead of running an RTL simulation, you can use our instruction-accurate simulator called `banshee`. To install the simulator, please follow the instructions of the Banshee repository: [https://github.com/pulp-platform/banshee](https://github.com/pulp-platform/banshee).
 
-### Cluster configuration
+### Cluster Configuration
 
 Note that the Snitch cluster RTL sources are partly automatically generated from a configuration file provided in `.hjson` format. Several RTL files are templated and use the `.hjson` configuration file to fill the template entries. An example is `/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl`.
 
 Under the `cfg` folder, different configurations are provided. The `cfg/default.hjson` configuration instantiates 8 compute cores + 1 DMA core in the cluster. If you need a specific configuration you can create your own configuration file.
 
-The command you executed previously automatically generated the templated RTL sources. It implicitly used the default configuration file.
-To override the default configuration file, define the following variable when you invoke `make`:
+We have other architectures for different accelerators:
+* `cfg/snax-mac.hjson` - is a SNAX shell with the simple [HWPE MAC engine](https://github.com/KULeuven-MICAS/hwpe-mac-engine).
+* `cfg/snax-gemm.hjson` - is a SNAX shell with a [GEMM engine](https://github.com/KULeuven-MICAS/snax-gemm).
+
+The command `make bin/snitch_cluster.vlt` automatically generates the default (Snitch cluster with 8 compute ores and 1 DMA core) templated RTL sources. It implicitly used the default configuration file (`cfg/default.hjson`). To override the default configuration file, define the following variable when you invoke `make` to use the custom config files:
+
 ```shell
 make CFG_OVERRIDE=cfg/custom.hjson bin/snitch_cluster.vlt
 ```
@@ -62,13 +106,15 @@ make DEBUG=ON sw
 make SELECT_RUNTIME=banshee DEBUG=ON sw
 ```
 
-The `sw` target first generates some C header files which depend on the hardware configuration. Hence, the need to generate the software for the same configuration as your hardware. Afterwards, it recursively invokes the `make` target in the `sw` subdirectory to build the apps/kernels which have been developed in that directory.
+The `sw` target first generates some C header files which depend on the hardware configuration. Hence, the need to generate the software for the same configuration as your hardware. Afterwards, it recursively invokes the `make` target in the `sw` subdirectory to build the `apps/kernels` which have been developed in that directory.
 
 The `DEBUG=ON` flag is used to tell the compiler to produce debugging symbols. It is necessary for the `annotate` target, showcased in the Debugging section of this guide, to work.
 
 The `SELECT_RUNTIME` flag is set by default to `rtl`. To build the software with the Banshee runtime, set the flag to `banshee`.
 
-___Note:__ the RTL is not the only source which is generated from the configuration file. The software stack also depends on the configuration file. Make sure you always build the software with the same configuration of the hardware you are going to run it on._
+!!! note
+
+    the RTL is not the only source which is generated from the configuration file. The software stack also depends on the configuration file. **Make sure you always build the software with the same configuration of the hardware you are going to run it on**
 
 ### Running a simulation
 
@@ -84,6 +130,7 @@ Run one of the executables which was compiled in the previous step on your Snitc
 ```shell
 # Verilator (for Docker users)
 bin/snitch_cluster.vlt sw/apps/blas/axpy/build/axpy.elf
+
 # Verilator (for IIS users)
 verilator-4.110 bin/snitch_cluster.vlt sw/apps/blas/axpy/build/axpy.elf
 
@@ -103,6 +150,20 @@ The previous commands will run the simulation in your current terminal. You can 
 # Questa (for IIS users)
 questa-2022.3 bin/snitch_cluster.vsim.gui sw/apps/blas/axpy/build/axpy.elf
 ```
+
+You can also produce a `vcd` file which you can display on [gtkwave](https://gtkwave.sourceforge.net/).
+
+```shell
+# Add the --vcd at the end to generate vcd files. This produces sim.vcd
+bin/snitch_cluster.vlt sw/apps/blas/axpy/build/axpy.elf --vcd
+
+# Display the vcd file in gtkwave
+gtkwave sim.vcd
+```
+!!! note "SNAX does not support Banshee"
+
+    Careful! SNAX does not support Banshee hence do not use the simulator for SNAX builds.
+
 
 For Banshee, you need to give a specific cluster configuration to the simulator with the flag `--configuration <cluster_config.yaml>`. A default Snitch cluster configuration is given (`src/banshee.yaml`). The flag `--trace` enables the printing of the traces similar to the RTL simulation.
 For more information and debug options, please have a look at the Banshee repository: [https://github.com/pulp-platform/banshee](https://github.com/pulp-platform/banshee).
@@ -224,6 +285,13 @@ questa-2022.3 bin/snitch_cluster.vsim sw/apps/axpy/build/axpy.elf
 
 When you run the simulation, every core will log all the instructions it executes (along with additional information, such as the value of the registers before/after the instruction) in a trace file, located in the `target/snitch_cluster/logs` directory. The traces are identified by their hart ID, that is a unique ID for every hardware thread (hart) in a RISC-V system (and since all our cores have a single thread that is a unique ID per core)
 
+You need to build and install `spike-dasm` from source first. After making the hardware build, it should create a `work-vlt` directory. Do the following to install `spike-dasm`:
+
+1. Go to: `target/snitch_cluster/work-vlt/riscv-isa-sim`
+2. `spike-dasm` uses GNU autoconf for makefile generation: `./configure --prefix="/opt/spike"`
+3. Build and install `spike-dasm` with: `make -j$(nproc) install`
+4. Add to path `export PATH="/opt/spike/bin:$PATH"`
+
 The simulation logs the traces in a non-human readable format with `.dasm` extension. To convert these to a human-readable form run:
 
 ```bash
@@ -234,6 +302,7 @@ In addition to generating readable traces (`.txt` format), the above command als
 
 ```bash
 make logs/perf.csv
+
 # View the CSV file
 libreoffice logs/perf.csv
 ```
