@@ -7,7 +7,7 @@ This repository hosts the hardware and software for the Snitch cluster and its g
 
 ## Getting Started
 
-To get started, check out the [getting started guide](https://pulp-platform.github.io/snitch_cluster/ug/getting_started.html).
+To get started, check out the [getting started guide](https://kuleuven-micas.github.io/snitch_cluster/ug/getting_started.html).
 
 ## Content
 
