@@ -6,7 +6,8 @@
 # additional decode stage info into meaningful annotation. It also counts
 # and computes various performance metrics up to each mcycle CSR read.
 
-# Author: Paul Scheffler <paulsc@iis.ee.ethz.ch>
+# Authors: Paul Scheffler <paulsc@iis.ee.ethz.ch>
+#          Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 # TODO: OPER_TYPES and FPU_OPER_TYPES could break: optimization might alter enum mapping
 # TODO: We annotate all FP16 LSU values as IEEE, not FP16ALT... can we do better?
@@ -16,8 +17,10 @@ import re
 import math
 import argparse
 import json
+import ast
 from ctypes import c_int32, c_uint32
 from collections import deque, defaultdict
+from pathlib import Path
 
 EXTRA_WB_WARN = 'WARNING: {} transactions still in flight for {}.'
 
@@ -381,6 +384,99 @@ def flt_lit(num: int, fmt: int, width: int = 7) -> str:
     return flt_fmt(flt_decode(num, fmt), width)
 
 
+# -------------------- DMA --------------------
+
+
+# We always assume dma_trans contains at least one incomplete placeholder DMA transaction.
+# This incomplete transaction contains default settings. Only upon a DMCPY* instruction
+# is the size of the transaction known, completing the transaction. At that point, a new
+# incomplete transaction is created, inheriting the configuration settings from the previous
+# transaction, which may or may not be overriden before the next DMCPY*.
+def update_dma(insn, extras, dma_trans):
+    # Extract instruction mnemonic from full instruction decoding (includes operand registers)
+    MNEMONIC_REGEX = r'^([\w.]+)\s'
+    match = re.match(MNEMONIC_REGEX, insn)
+    if match:
+        mnemonic = match.group(1)
+        # Process DMA instruction
+        if mnemonic in ['dmsrc', 'dmdst', 'dmstr']:
+            pass
+        elif mnemonic == 'dmrep':
+            print(f'DMREP {extras["opa"]}')
+            dma_trans[-1]['rep'] = extras['opa']
+        elif mnemonic in ['dmcpy', 'dmcpyi']:
+            print(f'DMCPY {extras["opa"]}')
+            dma_trans[-1]['size'] = extras['opa']
+            # Create new placeholder transaction
+            dma_trans.append(dma_trans[-1].copy())
+            dma_trans[-1].pop('size')
+
+
+def eval_dma_metrics(dma_trans, dma_trace):
+    with dma_trace as f:
+        # Initialize variables
+        compl_transfers = []
+        outst_transfers = []
+        req_transfer_idx = 0
+        req_bytes = 0
+        # Iterate lines in DMA trace
+        for line in f.readlines():
+            dma = ast.literal_eval(line)
+            if 'backend_burst_req_valid' in dma:
+                # When there is a burst handshake we record a new transfer if it is the first
+                # burst for the currect transfer. We always record the number of bytes moved by
+                # the burst, and update the count of bursts associated to the current transfer.
+                if dma['backend_burst_req_valid'] and dma['backend_burst_req_ready']:
+                    if req_bytes == 0:
+                        n_bytes = dma_trans[req_transfer_idx]['rep'] * \
+                                  dma_trans[req_transfer_idx]['size']
+                        outst_transfers.append({'start': dma['time'],
+                                                'exp_bursts': 0,
+                                                'rec_bursts': 0,
+                                                'bytes': n_bytes})
+                    req_bytes += dma['backend_burst_req_num_bytes']
+                    outst_transfers[-1]['exp_bursts'] += 1
+                # A transfer request completes when the bytes requested match the requested
+                # transfer size. We then advance to the next transfer.
+                if req_bytes == outst_transfers[-1]['bytes']:
+                    req_bytes = 0
+                    req_transfer_idx += 1
+                    if 'size' in dma_trans[req_transfer_idx]:
+                        transfer_size = dma_trans[req_transfer_idx]['rep'] * dma_trans[req_transfer_idx]['size']
+                # Upon a burst completion, we increment the received bursts count. When this count
+                # matches the expected bursts count we record the end time of the transfer and
+                # move the transfer from the outstanding to completed transfers queue.
+                if dma['transfer_completed']:
+                    outst_transfers[0]['rec_bursts'] += 1
+                    if outst_transfers[0]['rec_bursts'] == outst_transfers[0]['exp_bursts']:
+                        outst_transfers[0]['end'] = dma['time']
+                        compl_transfer = outst_transfers.pop(0)
+                        compl_transfer.pop('exp_bursts')
+                        compl_transfer.pop('rec_bursts')
+                        compl_transfers.append(compl_transfer)
+        # Calculate bandwidth of individual transfers
+        for transfer in compl_transfers:
+            transfer['cycles'] = transfer['end'] - transfer['start']
+            transfer['bw'] = transfer['bytes'] / transfer['cycles']
+        # Calculate aggregate bandwidth: total number of bytes transferred while any
+        # transfer is active (considers overlaps between transfers).
+        prev_trans_end = 0
+        active_cycles = 0
+        n_bytes = 0
+        for transfer in compl_transfers:
+            # Calculate active cycles, without double-counting overlaps
+            curr_trans_start, curr_trans_end = transfer['start'], transfer['end']
+            if curr_trans_start > prev_trans_end:
+                active_cycles += curr_trans_end - curr_trans_start
+            else:
+                active_cycles += curr_trans_end - prev_trans_end
+            prev_trans_end = curr_trans_end
+            # Calculate total number of bytes
+            n_bytes += transfer['bytes']
+        print(compl_transfers)
+        print(n_bytes / active_cycles)
+
+
 # -------------------- FPU Sequencer --------------------
 
 
@@ -638,7 +734,8 @@ def annotate_insn(
     annot_fseq_offl:
     bool = False,  # Annotate whenever core offloads to CPU on own line
     force_hex_addr: bool = True,
-    permissive: bool = True
+    permissive: bool = True,
+    dma_trans: list = []
 ) -> (str, tuple, bool
       ):  # Return time info, whether trace line contains no info, and fseq_len
     match = re.search(TRACE_IN_REGEX, line.strip('\n'))
@@ -667,6 +764,7 @@ def annotate_insn(
                 insn, pc_str = ('', '')
             else:
                 perf_metrics[-1]['snitch_issues'] += 1
+            update_dma(insn, extras, dma_trans)    
         # Annotate sequencer
         elif extras['source'] == TRACE_SRCES['sequencer']:
             if extras['cbuf_push']:
@@ -803,6 +901,12 @@ def main():
     )
     parser.add_argument(
         '-o',
+        '--output',
+        required=True,
+        type=argparse.FileType('w'),
+        help='Path to the output file'
+    )
+    parser.add_argument(
         '--offl',
         action='store_true',
         help='Annotate FPSS and sequencer offloads when they happen in core')
@@ -821,6 +925,11 @@ def main():
         '--permissive',
         action='store_true',
         help='Ignore some state-related issues when they occur')
+    parser.add_argument(
+        '--dma-trace',
+        type=argparse.FileType('r'),
+        help='Path to a DMA trace file'
+    )
     parser.add_argument('-d',
                         '--dump-perf',
                         nargs='?',
@@ -830,42 +939,48 @@ def main():
 
     args = parser.parse_args()
     line_iter = iter(args.infile.readline, b'')
-    # Prepare stateful data structures
-    time_info = None
-    gpr_wb_info = defaultdict(deque)
-    fpr_wb_info = defaultdict(deque)
-    fseq_info = {
-        'curr_sec': 0,
-        'fpss_pcs': deque(),
-        'fseq_pcs': deque(),
-        'cfg_buf': deque(),
-        'curr_cfg': None
-    }
-    perf_metrics = [
-        defaultdict(int)
-    ]  # all values initially 0, also 'start' time of measurement 0
-    perf_metrics[0]['start'] = None
-    # Parse input line by line
-    for line in line_iter:
-        if line:
-            ann_insn, time_info, empty = annotate_insn(
-                line, gpr_wb_info, fpr_wb_info, fseq_info, perf_metrics, False,
-                time_info, args.offl, not args.saddr, args.permissive)
-            if perf_metrics[0]['start'] is None:
-                perf_metrics[0]['tstart'] = time_info[0] / 1000
-                perf_metrics[0]['start'] = time_info[1]
-            if not empty:
-                print(ann_insn)
-        else:
-            break  # Nothing more in pipe, EOF
-    perf_metrics[-1]['tend'] = time_info[0] / 1000
-    perf_metrics[-1]['end'] = time_info[1]
-    # Compute metrics
-    eval_perf_metrics(perf_metrics)
-    # Emit metrics
-    print('\n## Performance metrics')
-    for idx in range(len(perf_metrics)):
-        print('\n' + fmt_perf_metrics(perf_metrics, idx, not args.allkeys))
+        
+    with args.output as file:
+        # Prepare stateful data structures
+        time_info = None
+        gpr_wb_info = defaultdict(deque)
+        fpr_wb_info = defaultdict(deque)
+        fseq_info = {
+            'curr_sec': 0,
+            'fpss_pcs': deque(),
+            'fseq_pcs': deque(),
+            'cfg_buf': deque(),
+            'curr_cfg': None
+        }
+        dma_trans = [{'rep': 1}]
+        perf_metrics = [
+            defaultdict(int)
+        ]  # all values initially 0, also 'start' time of measurement 0
+        perf_metrics[0]['start'] = None
+        # Parse input line by line
+        for line in line_iter:
+            if line:
+                ann_insn, time_info, empty = annotate_insn(
+                    line, gpr_wb_info, fpr_wb_info, fseq_info, perf_metrics, False,
+                    time_info, args.offl, not args.saddr, args.permissive, dma_trans)
+                if perf_metrics[0]['start'] is None:
+                    perf_metrics[0]['tstart'] = time_info[0] / 1000
+                    perf_metrics[0]['start'] = time_info[1]
+                if not empty:
+                    print(ann_insn, file=file)
+            else:
+                break  # Nothing more in pipe, EOF
+        perf_metrics[-1]['tend'] = time_info[0] / 1000
+        perf_metrics[-1]['end'] = time_info[1]
+        # Compute metrics
+        eval_perf_metrics(perf_metrics)
+        # Emit metrics
+        print('\n## Performance metrics', file=file)
+        for idx in range(len(perf_metrics)):
+            print('\n' + fmt_perf_metrics(perf_metrics, idx, not args.allkeys), file=file)
+        # Emit DMA metrics
+        if args.dma_trace:
+            eval_dma_metrics(dma_trans, args.dma_trace)
 
     if args.dump_perf:
         with args.dump_perf as file:
