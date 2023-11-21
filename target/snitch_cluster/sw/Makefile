@@ -14,8 +14,9 @@ RUNTIME = runtime/rtl
 endif
 
 SNAX = snax/mac
-SUBDIRS = runtime/banshee runtime/rtl math apps $(SNAX) tests
+SNAX += snax/gemm
 
+SUBDIRS = runtime/banshee runtime/rtl math apps $(SNAX) tests
 
 .PHONY: all $(SUBDIRS)
 

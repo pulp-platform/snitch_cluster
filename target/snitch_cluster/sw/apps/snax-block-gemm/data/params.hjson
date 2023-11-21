@@ -1,0 +1,29 @@
+// Copyright 2023 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
+
+// Parameters for a block GEMM
+// need to fix batch = 1
+
+{
+    Batch: 1
+    M: 2,
+    N: 2,
+    K: 2,
+    strideInnermostA: 256,
+    strideInnermostB: 256,
+    strideInnermostC: 256,
+    ldA: 2048,
+    ldB: 2048,
+    ldC: 1024,
+    strideA: 0,
+    strideB: 0,
+    strideC: 0,
+    tileSize: 8,
+    meshRow: 8,
+    meshCol: 8,
+    delta_local_a: 64,
+    delta_local_b: 8192
+}

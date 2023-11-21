@@ -1024,7 +1024,7 @@ module snitch_cluster
 
     end else if (SNAX[i] == 2) begin: gen_snax_gemm
 
-      snax_gemm # (
+      snax_gemm_wrapper # (
         .DataWidth          ( NarrowDataWidth  ),
         .SnaxTcdmPorts      ( LocalSnaxTcdmPorts ),
         .acc_req_t          ( acc_req_t        ),
