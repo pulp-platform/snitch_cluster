@@ -56,8 +56,6 @@ int main() {
         // Transpose of A unsopported
         if (TA) return -1;
         if (TB) {
-            // Transpose of B supported only in FP64
-            if (dtype_size != FP64) return -1;
             ldb = K;
         }
 
