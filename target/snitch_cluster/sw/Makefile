@@ -13,18 +13,18 @@ else
 RUNTIME = runtime/rtl
 endif
 
-SUBDIRS = runtime/banshee runtime/rtl snax/mac math apps tests
+SUBDIRS = runtime/banshee runtime/rtl snax/mac snax/gemm math apps tests
 
 .PHONY: all $(SUBDIRS)
 
 all: $(SUBDIRS)
 
 # Explicit dependency of apps on runtime
-apps: $(RUNTIME) math snax/mac
+apps: $(RUNTIME) math snax/mac snax/gemm
 	$(MAKE) -C $@ TARGET=$(TARGET)
 
 # Explicit dependency of tests on runtime
-tests: $(RUNTIME) math snax/mac
+tests: $(RUNTIME) math snax/mac snax/gemm
 	$(MAKE) -C $@ $(TARGET)
 
 runtime/rtl runtime/banshee math:
