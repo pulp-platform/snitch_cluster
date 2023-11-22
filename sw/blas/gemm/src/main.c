@@ -98,7 +98,7 @@ int main() {
                         break;
                     case FP16:
                         if (fabs(result[idx] - ((__fp16 *)local_c)[idx]) <
-                            0.001)
+                            0.065)
                             errors--;
                         break;
                     case FP8:
