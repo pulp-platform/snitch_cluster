@@ -89,18 +89,18 @@ int main() {
                 switch (dtype_size) {
                     case FP64:
                         if (fabs(result[idx] - ((double *)local_c)[idx]) <
-                            0.001)
+                            fabs(result[idx] * 0.00001))
                             errors--;
                         break;
                     case FP32:
-                        if (fabs(result[idx] - ((float *)local_c)[idx]) < 0.001)
+                        if (fabs(result[idx] - ((float *)local_c)[idx]) <
+                            fabs(result[idx] * 0.0001))
                             errors--;
                         break;
                     case FP16:
                         if (fabs(result[idx] - ((__fp16 *)local_c)[idx]) <
-                            0.065)
+                            fabs(result[idx] * 0.005))
                             errors--;
-                        break;
                     case FP8:
                         printf("No golden model yet for fp8!\n");
                         return -1;
