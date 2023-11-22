@@ -50,13 +50,15 @@ int main() {
         uint32_t start_cycle = snrt_mcycle();
 
         volatile uint32_t lda = K;
-        volatile uint32_t ldb = N;
+        volatile uint32_t ldb = K;
         volatile uint32_t ldc = N;
 
         // Transpose of A unsopported
         if (TA) return -1;
-        if (TB) {
-            ldb = K;
+        if (!TB) {
+            // Transpose of B supported only in FP64
+            if (dtype_size != FP64) return -1;
+            ldb = N;
         }
 
         gemm(dtype_size, expand, setup_ssr, TA, TB, frac_m, N, K, 1, local_a,
