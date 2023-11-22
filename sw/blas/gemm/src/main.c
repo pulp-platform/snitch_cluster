@@ -75,6 +75,8 @@ int main() {
         snrt_dma_wait_all();
     }
 
+    snrt_cluster_hw_barrier();
+
 // TODO: currently only works for single cluster otherwise need to
 //       synchronize all cores here
 #ifdef BIST
@@ -86,16 +88,16 @@ int main() {
                 uint32_t idx = m * N + n;
                 switch (dtype_size) {
                     case FP64:
-                        if (fabs(result[idx] - ((double *)local_c)[idx]) >
+                        if (fabs(result[idx] - ((double *)local_c)[idx]) <
                             0.001)
                             errors--;
                         break;
                     case FP32:
-                        if (fabs(result[idx] - ((float *)local_c)[idx]) > 0.001)
+                        if (fabs(result[idx] - ((float *)local_c)[idx]) < 0.001)
                             errors--;
                         break;
                     case FP16:
-                        if (fabs(result[idx] - ((__fp16 *)local_c)[idx]) >
+                        if (fabs(result[idx] - ((__fp16 *)local_c)[idx]) <
                             0.001)
                             errors--;
                         break;
