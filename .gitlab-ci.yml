@@ -89,11 +89,10 @@ snitch-ip-tests:
 # Verilator
 snitch-cluster-vlt:
   needs: [snitch-cluster-sw]
-  # yamllint disable rule:line-length
   script:
     - cd target/snitch_cluster
     - make bin/snitch_cluster.vlt
-    - ../../util/sim/simulate.py sw/run.yaml --simulator verilator -j --verbose
+    - ./run.py sw/run.yaml --simulator verilator -j --run-dir runs/vlt
 
 # VCS
 snitch-cluster-vcs:
@@ -101,7 +100,7 @@ snitch-cluster-vcs:
   script:
     - cd target/snitch_cluster
     - make bin/snitch_cluster.vcs
-    - ../../util/sim/simulate.py sw/run.yaml --simulator vcs -j --verbose
+    - ./run.py sw/run.yaml --simulator vcs -j --run-dir runs/vcs
 
 # Questa
 snitch-cluster-vsim:
@@ -109,8 +108,7 @@ snitch-cluster-vsim:
   script:
     - cd target/snitch_cluster
     - make bin/snitch_cluster.vsim
-    - ../../util/sim/simulate.py sw/run.yaml --simulator vsim -j
-      --verbose
+    - ./run.py sw/run.yaml --simulator vsim -j --run-dir runs/vsim
 
 # Banshee
 snitch-cluster-banshee:
@@ -126,4 +124,4 @@ snitch-cluster-banshee:
     - cd banshee
     - cargo install --debug --path .
     - cd ../target/snitch_cluster
-    - ../../util/sim/simulate.py sw/run.yaml --simulator banshee -j --verbose
+    - ./run.py sw/run.yaml --simulator banshee -j --run-dir runs/banshee
