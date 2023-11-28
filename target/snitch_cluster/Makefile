@@ -37,9 +37,6 @@ REGGEN          ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_ope
 CLUSTER_GEN     ?= $(ROOT)/util/clustergen.py
 CLUSTER_GEN_SRC ?= $(wildcard $(ROOT)/util/clustergen/*.py)
 
-VSIM      	?= vsim
-VLOG      	?= vlog
-
 #########################
 # Files and directories #
 #########################
@@ -245,7 +242,7 @@ clean-vsim: clean-work
 	rm -rf bin/snitch_cluster.vsim bin/snitch_cluster.vsim.gui $(VSIM_BUILDDIR) vsim.wlf
 
 ${VSIM_BUILDDIR}/compile.vsim.tcl:
-	vlib $(dir $@)
+	$(VLIB) $(dir $@)
 	${BENDER} script vsim ${VSIM_BENDER} --vlog-arg="${VLOG_FLAGS} -work $(dir $@) " > $@
 	echo '${VLOG} -work $(dir $@) ${TB_CC_SOURCES} ${TB_ASM_SOURCES} -vv -ccflags "$(TB_CC_FLAGS)"' >> $@
 	echo 'return 0' >> $@
@@ -267,7 +264,7 @@ clean-vcs: clean-work
 # Build compilation script and compile all sources for VCS simulation
 bin/snitch_cluster.vcs: ${VCS_SOURCES} ${TB_SRCS} $(TB_CC_SOURCES) $(TB_ASM_SOURCES) $(VCS_BUILDDIR)/compile.sh work/lib/libfesvr.a
 	mkdir -p bin
-	vcs -Mlib=$(VCS_BUILDDIR) -Mdir=$(VCS_BUILDDIR) -o bin/snitch_cluster.vcs -cc $(CC) -cpp $(CXX) \
+	$(VCS) -Mlib=$(VCS_BUILDDIR) -Mdir=$(VCS_BUILDDIR) -o bin/snitch_cluster.vcs -cc $(CC) -cpp $(CXX) \
 		-assert disable_cover -override_timescale=1ns/1ps -full64 tb_bin $(TB_CC_SOURCES) $(TB_ASM_SOURCES) \
 		-CFLAGS "$(TB_CC_FLAGS)" -LDFLAGS "-L${FESVR}/lib" -lfesvr
 

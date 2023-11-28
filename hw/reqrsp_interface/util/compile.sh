@@ -17,4 +17,4 @@ $(BENDER) script vsim -t test \
     --vlog-arg="+cover=sbecft" \
     > compile.tcl
 echo 'return 0' >> compile.tcl
-$VSIM -c -do 'exit -code [source compile.tcl]'
+$QUESTA_SEPP $VSIM -c -do 'exit -code [source compile.tcl]'

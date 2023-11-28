@@ -86,6 +86,7 @@ RUN echo 'deb http://download.opensuse.org/repositories/home:/phiwag:/edatools/x
     apt-get update && apt-get install -y verilator-${VERILATOR_VERSION} && \
     apt-get clean ; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+ENV VLT_ROOT "/usr/share/verilator"
 
 # Install Python requirements
 COPY python-requirements.txt /tmp/python-requirements.txt

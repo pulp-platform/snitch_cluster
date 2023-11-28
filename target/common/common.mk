@@ -6,12 +6,21 @@ LOGS_DIR ?= logs
 TB_DIR   ?= $(SNITCH_ROOT)/target/common/test
 UTIL_DIR ?= $(SNITCH_ROOT)/util
 
+# SEPP packages
+QUESTA_SEPP    ?=
+VCS_SEPP       ?=
+VERILATOR_SEPP ?=
+
 # External executables
 BENDER       ?= bender
 DASM         ?= spike-dasm
-VLT          ?= verilator
+VLT          ?= $(VERILATOR_SEPP) verilator
+VCS          ?= $(VCS_SEPP) vcs
 VERIBLE_FMT  ?= verible-verilog-format
 CLANG_FORMAT ?= clang-format
+VSIM         ?= $(QUESTA_SEPP) vsim
+VLOG         ?= $(QUESTA_SEPP) vlog
+VLIB         ?= $(QUESTA_SEPP) vlib
 
 # Internal executables
 GENTRACE_PY      ?= $(UTIL_DIR)/trace/gen_trace.py
@@ -21,7 +30,7 @@ PERF_CSV_PY      ?= $(UTIL_DIR)/trace/perf_csv.py
 LAYOUT_EVENTS_PY ?= $(UTIL_DIR)/trace/layout_events.py
 EVENTVIS_PY      ?= $(UTIL_DIR)/trace/eventvis.py
 
-VERILATOR_ROOT ?= $(dir $(shell which $(VLT)))/../share/verilator
+VERILATOR_ROOT ?= $(dir $(shell $(VERILATOR_SEPP) which verilator))..
 VLT_ROOT       ?= ${VERILATOR_ROOT}
 
 MATCH_END := '/+incdir+/ s/$$/\/*\/*/'
@@ -179,7 +188,7 @@ $(VCS_BUILDDIR)/compile.sh:
 	mkdir -p $(VCS_BUILDDIR)
 	${BENDER} script vcs ${VCS_BENDER} --vlog-arg="${VLOGAN_FLAGS}" --vcom-arg="${VHDLAN_FLAGS}" > $@
 	chmod +x $@
-	$@ > $(VCS_BUILDDIR)/compile.log
+	$(VCS_SEPP) $@ > $(VCS_BUILDDIR)/compile.log
 
 ########
 # Util #
