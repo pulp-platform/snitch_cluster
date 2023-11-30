@@ -5,6 +5,10 @@
 variables:
   GIT_STRATEGY: clone
   GIT_SUBMODULE_STRATEGY: recursive
+  # Enable colors in CI terminal
+  TERM: ansi
+  FORCE_COLOR: 1
+  # Configure environment
   PYTHON: /usr/local/anaconda3-2022.05/bin/python3
   BENDER: bender-0.27.1
   CC: gcc-9.2.0
