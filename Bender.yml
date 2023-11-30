@@ -29,7 +29,7 @@ dependencies:
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.11  }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0   }
   hwpe-mac-engine:    { git: https://github.com/KULeuven-MICAS/hwpe-mac-engine.git, rev: 5d3b4525b665169fc8321c8a811f3c83ad3c72e8 }
-  snax-gemm:          { git: https://github.com/KULeuven-MICAS/snax-gemm.git,     rev: 8db7ea781b8d10a9aec67a02c445252d2cbac547 }
+  snax-gemm:          { git: https://github.com/KULeuven-MICAS/snax-gemm.git,     rev: db87157ad619bdbfe317b48c9a2790bce156db6f }
 
 vendor_package:
   - name: musl
