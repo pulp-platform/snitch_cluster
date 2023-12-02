@@ -410,6 +410,7 @@ def update_dma(insn, extras, dma_trans):
             # Create new placeholder transaction
             dma_trans.append(dma_trans[-1].copy())
             dma_trans[-1].pop('size')
+            dma_trans[-1]['rep'] = 1
 
 
 def eval_dma_metrics(dma_trans, dma_trace):
