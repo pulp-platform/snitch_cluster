@@ -457,7 +457,7 @@ def eval_dma_metrics(dma_trans, dma_trace):
                         compl_transfers.append(compl_transfer)
         # Calculate bandwidth of individual transfers
         for transfer in compl_transfers:
-            transfer['cycles'] = transfer['end'] - transfer['start']
+            transfer['cycles'] = (transfer['end'] - transfer['start']) // 1000
             transfer['bw'] = transfer['bytes'] / transfer['cycles']
         # Calculate aggregate bandwidth: total number of bytes transferred while any
         # transfer is active (considers overlaps between transfers).
@@ -466,7 +466,8 @@ def eval_dma_metrics(dma_trans, dma_trace):
         n_bytes = 0
         for transfer in compl_transfers:
             # Calculate active cycles, without double-counting overlaps
-            curr_trans_start, curr_trans_end = transfer['start'], transfer['end']
+            # Convert time to cycles since time = cycles * 1000 + <constant>
+            curr_trans_start, curr_trans_end = transfer['start'] // 1000, transfer['end'] // 1000
             if curr_trans_start > prev_trans_end:
                 active_cycles += curr_trans_end - curr_trans_start
             else:
