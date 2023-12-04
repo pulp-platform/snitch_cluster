@@ -267,18 +267,6 @@ bin/snitch_cluster.vcs: ${VCS_SOURCES} ${TB_SRCS} $(TB_CC_SOURCES) $(TB_ASM_SOUR
 		-assert disable_cover -override_timescale=1ns/1ps -full64 tb_bin $(TB_CC_SOURCES) $(TB_ASM_SOURCES) \
 		-CFLAGS "$(TB_CC_FLAGS)" -LDFLAGS "-L${FESVR}/lib" -lfesvr
 
-##########
-# Traces #
-##########
-
-$(LOGS_DIR)/perf.csv: $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null | sed 's/trace_hart/hart/' | sed 's/.dasm/_perf.json/')) \
-		$(PERF_CSV_PY)
-	$(PYTHON) $(PERF_CSV_PY) -o $@ -i $(LOGS_DIR)/hart_*_perf.json
-
-$(LOGS_DIR)/event.csv: $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null | sed 's/trace_hart/hart/' | sed 's/.dasm/_perf.json/')) \
-		$(PERF_CSV_PY)
-	$(PYTHON) $(PERF_CSV_PY) -o $@ -i $(LOGS_DIR)/hart_*_perf.json --filter tstart tend
-
 ########
 # Util #
 ########
