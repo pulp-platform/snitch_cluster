@@ -19,6 +19,7 @@ VCS          ?= $(VCS_SEPP) vcs
 VERIBLE_FMT  ?= verible-verilog-format
 CLANG_FORMAT ?= clang-format
 VSIM         ?= $(QUESTA_SEPP) vsim
+VOPT         ?= $(QUESTA_SEPP) vopt
 VLOG         ?= $(QUESTA_SEPP) vlog
 VLIB         ?= $(QUESTA_SEPP) vlib
 
@@ -40,6 +41,7 @@ SED_SRCS  := sed -e ${MATCH_END} -e ${MATCH_BGN}
 VSIM_BENDER   += -t test -t rtl -t simulation -t vsim
 VSIM_SOURCES   = $(shell ${BENDER} script flist ${VSIM_BENDER} | ${SED_SRCS})
 VSIM_BUILDDIR ?= work-vsim
+VOPT_FLAGS     = +acc
 
 # VCS_BUILDDIR should to be the same as the `DEFAULT : ./work-vcs`
 # in target/snitch_cluster/synopsys_sim.setup
@@ -159,9 +161,14 @@ endef
 $(VSIM_BUILDDIR):
 	mkdir -p $@
 
+# Expects vlog/vcom script in $< (e.g. as output by bender)
+# Expects the top module name in $1
+# Produces a binary used to run the simulation at the path specified by $@
 define QUESTASIM
-	${VSIM} -c -do "source $<; quit" | tee $(dir $<)vsim.log
-	@! grep -P "Errors: [1-9]*," $(dir $<)vsim.log
+	${VSIM} -c -do "source $<; quit" | tee $(dir $<)vlog.log
+	@! grep -P "Errors: [1-9]*," $(dir $<)vlog.log
+	$(VOPT) $(VOPT_FLAGS) -work $(VSIM_BUILDDIR) $1 -o $(1)_opt | tee $(dir $<)vopt.log
+	@! grep -P "Errors: [1-9]*," $(dir $<)vopt.log
 	@mkdir -p $(dir $@)
 	@echo "#!/bin/bash" > $@
 	@echo 'binary=$$(realpath $$1)' >> $@
@@ -169,7 +176,7 @@ define QUESTASIM
 	@echo 'echo $$binary > $(LOGS_DIR)/.rtlbinary' >> $@
 	@echo '${VSIM} +permissive ${VSIM_FLAGS} $$3 -work ${MKFILE_DIR}/${VSIM_BUILDDIR} -c \
 				-ldflags "-Wl,-rpath,${FESVR}/lib -L${FESVR}/lib -lfesvr -lutil" \
-				$1 +permissive-off ++$$binary ++$$2' >> $@
+				$(1)_opt +permissive-off ++$$binary ++$$2' >> $@
 	@chmod +x $@
 	@echo "#!/bin/bash" > $@.gui
 	@echo 'binary=$$(realpath $$1)' >> $@.gui
@@ -177,7 +184,7 @@ define QUESTASIM
 	@echo 'echo $$binary > $(LOGS_DIR)/.rtlbinary' >> $@.gui
 	@echo '${VSIM} +permissive ${VSIM_FLAGS} -work ${MKFILE_DIR}/${VSIM_BUILDDIR} \
 				-ldflags "-Wl,-rpath,${FESVR}/lib -L${FESVR}/lib -lfesvr -lutil" \
-				$1 +permissive-off ++$$binary ++$$2' >> $@.gui
+				$(1)_opt +permissive-off ++$$binary ++$$2' >> $@.gui
 	@chmod +x $@.gui
 endef
 

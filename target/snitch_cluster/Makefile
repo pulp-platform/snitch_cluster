@@ -69,7 +69,6 @@ VLOG_64BIT   = -64
 
 VSIM_FLAGS += ${QUESTA_64BIT}
 VSIM_FLAGS += -t 1ps
-VSIM_FLAGS += -voptargs=+acc
 VSIM_FLAGS += -do "log -r /*; run -a"
 
 VLOG_FLAGS += -svinputport=compat
