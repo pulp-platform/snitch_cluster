@@ -19,63 +19,65 @@ void* IpcIface::ipc_thread_handle(void* in) {
     // Handle commands
     ipc_op_t op;
 
-    while (size_t num_messages_read = fread(&op, sizeof(ipc_op_t), 1, tx)) {
-        if (num_messages_read != 1) {
+    while (1) {
+        if (!fread(&op, sizeof(ipc_op_t), 1, tx)) {
             if (feof(tx)) {
                 printf(
                     "[IPC] All messages read. Closing FIFOs and joining main "
                     "thread.\n");
-            } else if (ferror(tx)) {
-                perror("[IPC] read from tx failed\n");
+                break;
             }
-            break;
+        } else {
+            switch (op.opcode) {
+                case Read:
+                    // Read full blocks until one full block or less left
+                    printf("[IPC] Read from 0x%x len 0x%x ...\n", op.addr,
+                           op.len);
+                    for (uint64_t i = op.len; i > IPC_BUF_SIZE;
+                         i -= IPC_BUF_SIZE) {
+                        sim::MEM.read(op.addr, IPC_BUF_SIZE, buf_data);
+                        fwrite(buf_data, IPC_BUF_SIZE, 1, rx);
+                        op.addr += IPC_BUF_SIZE;
+                        op.len -= IPC_BUF_SIZE;
+                    }
+                    sim::MEM.read(op.addr, op.len, buf_data);
+                    fwrite(buf_data, op.len, 1, rx);
+                    fflush(rx);
+                    break;
+                case Write:
+                    // Write full blocks until one full block or less left
+                    printf("[IPC] Write to 0x%x len %d ...\n", op.addr, op.len);
+                    for (uint64_t i = op.len; i > IPC_BUF_SIZE;
+                         i -= IPC_BUF_SIZE) {
+                        fread(buf_data, IPC_BUF_SIZE, 1, tx);
+                        sim::MEM.write(op.addr, IPC_BUF_SIZE, buf_data,
+                                       buf_strb);
+                        op.addr += IPC_BUF_SIZE;
+                        op.len -= IPC_BUF_SIZE;
+                    }
+                    fread(buf_data, op.len, 1, tx);
+                    sim::MEM.write(op.addr, op.len, buf_data, buf_strb);
+                    break;
+                case Poll:
+                    // Unpack 32b checking mask and expected value from length
+                    uint32_t mask = op.len & 0xFFFFFFFF;
+                    uint32_t expected = (op.len >> 32) & 0xFFFFFFFF;
+                    printf("[IPC] Poll on 0x%x mask 0x%x expected 0x%x ...\n",
+                           op.addr, mask, expected);
+                    uint32_t read;
+                    do {
+                        sim::MEM.read(op.addr, sizeof(uint32_t),
+                                      (uint8_t*)(void*)&read);
+                        nanosleep(
+                            (const struct timespec[]){{0, IPC_POLL_PERIOD_NS}},
+                            NULL);
+                    } while ((read & mask) == (expected & mask));
+                    // Send back read 32b word
+                    fwrite(&read, sizeof(uint32_t), 1, rx);
+                    fflush(rx);
+                    break;
+            }
         }
-        switch (op.opcode) {
-            case Read:
-                // Read full blocks until one full block or less left
-                printf("[IPC] Read from 0x%x len 0x%x ...\n", op.addr, op.len);
-                for (uint64_t i = op.len; i > IPC_BUF_SIZE; i -= IPC_BUF_SIZE) {
-                    sim::MEM.read(op.addr, IPC_BUF_SIZE, buf_data);
-                    fwrite(buf_data, IPC_BUF_SIZE, 1, rx);
-                    op.addr += IPC_BUF_SIZE;
-                    op.len -= IPC_BUF_SIZE;
-                }
-                sim::MEM.read(op.addr, op.len, buf_data);
-                fwrite(buf_data, op.len, 1, rx);
-                fflush(rx);
-                break;
-            case Write:
-                // Write full blocks until one full block or less left
-                printf("[IPC] Write to 0x%x len %d ...\n", op.addr, op.len);
-                for (uint64_t i = op.len; i > IPC_BUF_SIZE; i -= IPC_BUF_SIZE) {
-                    fread(buf_data, IPC_BUF_SIZE, 1, tx);
-                    sim::MEM.write(op.addr, IPC_BUF_SIZE, buf_data, buf_strb);
-                    op.addr += IPC_BUF_SIZE;
-                    op.len -= IPC_BUF_SIZE;
-                }
-                fread(buf_data, op.len, 1, tx);
-                sim::MEM.write(op.addr, op.len, buf_data, buf_strb);
-                break;
-            case Poll:
-                // Unpack 32b checking mask and expected value from length
-                uint32_t mask = op.len & 0xFFFFFFFF;
-                uint32_t expected = (op.len >> 32) & 0xFFFFFFFF;
-                printf("[IPC] Poll on 0x%x mask 0x%x expected 0x%x ...\n",
-                       op.addr, mask, expected);
-                uint32_t read;
-                do {
-                    sim::MEM.read(op.addr, sizeof(uint32_t),
-                                  (uint8_t*)(void*)&read);
-                    nanosleep(
-                        (const struct timespec[]){{0, IPC_POLL_PERIOD_NS}},
-                        NULL);
-                } while ((read & mask) == (expected & mask));
-                // Send back read 32b word
-                fwrite(&read, sizeof(uint32_t), 1, rx);
-                fflush(rx);
-                break;
-        }
-        printf("[IPC] ... done\n");
     }
 
     // TX FIFO closed at other end: close both FIFOs and join main thread
