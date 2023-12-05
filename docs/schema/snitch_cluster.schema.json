@@ -417,10 +417,10 @@
                                     "default": false
                                 },
                                 "snax_acc": {
-                                    "type": "number",
+                                    "type": "string",
                                     "title": "SNAX Accelerator Extension",
-                                    "description": "Enable specific Snitch Accelerator eXtension (SNAX). 1 for MAC engine and 2 for GEMM engine.",
-                                    "default": 0
+                                    "description": "Enable specific Snitch Accelerator eXtension (SNAX). Simply put the string name of the accelerator wrapper.",
+                                    "default": "none"
                                 },
                                 "snax_tcdm_ports": {
                                     "type": "number",

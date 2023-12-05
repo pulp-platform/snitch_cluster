@@ -41,11 +41,15 @@ ${',' if not loop.last else ''}
 % endfor
 </%def>\
 
+// These includes are necessary for pre-defined typedefs
 `include "axi/typedef.svh"
+`include "tcdm_interface/typedef.svh"
 
+// Main cluster package
 // verilog_lint: waive-start package-filename
 package ${cfg['pkg_name']};
 
+  // Base and pre-calculated parameters
   localparam int unsigned NrCores = ${cfg['nr_cores']};
   localparam int unsigned NrHives = ${cfg['nr_hives']};
 
@@ -61,6 +65,11 @@ package ${cfg['pkg_name']};
   localparam int unsigned WideIdWidthIn = ${cfg['dma_id_width_in']};
   localparam int unsigned WideIdWidthOut = $clog2(NrDmaMasters) + WideIdWidthIn;
 
+  localparam int unsigned CoreIDWidth = cf_math_pkg::idx_width(NrCores);
+
+  localparam int unsigned TCDMDepth = ${cfg['tcdm']['depth']};
+  localparam int unsigned NrBanks = ${cfg['tcdm']['banks']};
+
   localparam int unsigned NarrowUserWidth = ${cfg['user_width']};
   localparam int unsigned WideUserWidth = ${cfg['dma_user_width']};
 
@@ -70,6 +79,7 @@ package ${cfg['pkg_name']};
 
   localparam int unsigned Hive [NrCores] = '{${core_cfg('hive')}};
 
+  // SRAM configurations
   typedef struct packed {
 % for field, width in cfg['sram_cfg_fields'].items():
     logic [${width-1}:0] ${field};
@@ -82,6 +92,7 @@ package ${cfg['pkg_name']};
     sram_cfg_t tcdm;
   } sram_cfgs_t;
 
+  // Re-defined typedefs used for other typedefs
   typedef logic [AddrWidth-1:0]         addr_t;
   typedef logic [NarrowDataWidth-1:0]   data_t;
   typedef logic [NarrowDataWidth/8-1:0] strb_t;
@@ -94,11 +105,43 @@ package ${cfg['pkg_name']};
   typedef logic [NarrowUserWidth-1:0]   user_t;
   typedef logic [WideUserWidth-1:0]     user_dma_t;
 
+  // Typedefs for the AXI connections
   `AXI_TYPEDEF_ALL(narrow_in, addr_t, narrow_in_id_t, data_t, strb_t, user_t)
   `AXI_TYPEDEF_ALL(narrow_out, addr_t, narrow_out_id_t, data_t, strb_t, user_t)
   `AXI_TYPEDEF_ALL(wide_in, addr_t, wide_in_id_t, data_dma_t, strb_dma_t, user_dma_t)
   `AXI_TYPEDEF_ALL(wide_out, addr_t, wide_out_id_t, data_dma_t, strb_dma_t, user_dma_t)
 
+  localparam int unsigned TCDMMemAddrWidth = $clog2(TCDMDepth);
+  localparam int unsigned TCDMSize = NrBanks * TCDMDepth * (NarrowDataWidth/8);
+  localparam int unsigned TCDMAddrWidth = $clog2(TCDMSize);
+  typedef logic [TCDMAddrWidth-1:0] tcdm_addr_t;
+
+  // TCDM definitions
+  typedef struct packed {
+    logic [CoreIDWidth-1:0] core_id;
+    bit                     is_core;
+  } tcdm_user_t;
+
+  `TCDM_TYPEDEF_ALL(tcdm, tcdm_addr_t, data_t, strb_t, tcdm_user_t)
+
+  // Accelerator definitions for SNAX and other Snitch L0 accelerators
+  // (e.g., of L0 accelerators - DMA, FPSS, and so on)
+  typedef struct packed {
+    snitch_pkg::acc_addr_e   addr;
+    logic [4:0]  id;
+    logic [31:0] data_op;
+    data_t       data_arga;
+    data_t       data_argb;
+    addr_t       data_argc;
+  } acc_req_t;
+
+  typedef struct packed {
+    logic [4:0] id;
+    logic       error;
+    data_t      data;
+  } acc_resp_t;
+
+  // Function pre-calculations
   function automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] get_cached_regions();
     automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] cached_regions;
     cached_regions = '{default: '0};
@@ -114,6 +157,7 @@ package ${cfg['pkg_name']};
       default: 0
   };
 
+  // FPU configurations per FPU that has a core
   localparam fpnew_pkg::fpu_implementation_t FPUImplementation [${cfg['nr_cores']}] = '{
   % for c in cfg['cores']:
     '{
@@ -213,6 +257,7 @@ ${ssr_cfg(core, '{reg_idx}', '/*None*/ 0', ',')}\
 endpackage
 // verilog_lint: waive-stop package-filename
 
+// Main snitch or SNAX cluster wrapper
 module ${cfg['name']}_wrapper (
   input  logic                                   clk_i,
   input  logic                                   rst_ni,
@@ -242,6 +287,7 @@ module ${cfg['name']}_wrapper (
   output ${cfg['pkg_name']}::wide_in_resp_t      wide_in_resp_o
 );
 
+  // Internal local parameters to be hooked into the Snitch / SNAX cluster
   localparam int unsigned NumIntOutstandingLoads [${cfg['nr_cores']}] = '{${core_cfg('num_int_outstanding_loads')}};
   localparam int unsigned NumIntOutstandingMem [${cfg['nr_cores']}] = '{${core_cfg('num_int_outstanding_mem')}};
   localparam int unsigned NumFPOutstandingLoads [${cfg['nr_cores']}] = '{${core_cfg('num_fp_outstanding_loads')}};
@@ -251,8 +297,32 @@ module ${cfg['name']}_wrapper (
   localparam int unsigned NumSequencerInstr [${cfg['nr_cores']}] = '{${core_cfg('num_sequencer_instructions')}};
   localparam int unsigned NumSsrs [${cfg['nr_cores']}] = '{${core_cfg('num_ssrs')}};
   localparam int unsigned SsrMuxRespDepth [${cfg['nr_cores']}] = '{${core_cfg('ssr_mux_resp_depth')}};
-  localparam int unsigned SNAX [${cfg['nr_cores']}] = '{${core_cfg('snax_acc')}};
   localparam int unsigned SnaxTcdmPorts [${cfg['nr_cores']}] = '{${core_cfg('snax_tcdm_ports')}};
+
+  // SNAX accelerator ports
+  ${cfg['pkg_name']}::acc_req_t  [${cfg['pkg_name']}::NrCores-1:0] snax_req;
+  logic      [${cfg['pkg_name']}::NrCores-1:0] snax_qvalid;
+  logic      [${cfg['pkg_name']}::NrCores-1:0] snax_qready;
+  ${cfg['pkg_name']}::acc_resp_t [${cfg['pkg_name']}::NrCores-1:0] snax_resp;
+  logic      [${cfg['pkg_name']}::NrCores-1:0] snax_pvalid;
+  logic      [${cfg['pkg_name']}::NrCores-1:0] snax_pready;
+  ## This set of lines are for the internal pre-calculations for SNAX ports
+  <%
+    extract_port_num_list = []
+    for i in range(len(cfg['cores'])):
+      extract_port_num_list.append(cfg['cores'][i]['snax_tcdm_ports'])
+    
+    offset_list = []
+    init_offset = 0
+
+    for i in range(len(extract_port_num_list)):
+      offset_list.append(init_offset)
+      init_offset += extract_port_num_list[i]
+  %>
+  // SNAX TCDM wires
+  // Wires need to be declared before use
+  ${cfg['pkg_name']}::tcdm_req_t [${init_offset-1}:0] snax_tcdm_req;
+  ${cfg['pkg_name']}::tcdm_rsp_t [${init_offset-1}:0] snax_tcdm_rsp;
 
   // Snitch cluster under test.
   snitch_cluster #(
@@ -274,10 +344,10 @@ module ${cfg['name']}_wrapper (
     .wide_in_resp_t (${cfg['pkg_name']}::wide_in_resp_t),
     .NrHives (${cfg['nr_hives']}),
     .NrCores (${cfg['nr_cores']}),
-    .TCDMDepth (${cfg['tcdm']['depth']}),
+    .TCDMDepth (${cfg['pkg_name']}::TCDMDepth),
     .ZeroMemorySize (${cfg['zero_mem_size']}),
     .ClusterPeriphSize (${cfg['cluster_periph_size']}),
-    .NrBanks (${cfg['tcdm']['banks']}),
+    .NrBanks (${cfg['pkg_name']}::NrBanks),
     .DMAAxiReqFifoDepth (${cfg['dma_axi_req_fifo_depth']}),
     .DMAReqFifoDepth (${cfg['dma_req_fifo_depth']}),
     .ICacheLineWidth (${cfg['pkg_name']}::ICacheLineWidth),
@@ -297,8 +367,7 @@ module ${cfg['name']}_wrapper (
     .Xdma (${core_cfg_flat('xdma')}),
     .Xssr (${core_cfg_flat('xssr')}),
     .Xfrep (${core_cfg_flat('xfrep')}),
-    .SNAX(SNAX),
-    .SnaxTcdmPorts(SnaxTcdmPorts),
+    .TotalSnaxTcdmPorts(${init_offset}),
     .FPUImplementation (${cfg['pkg_name']}::FPUImplementation),
     .SnitchPMACfg (${cfg['pkg_name']}::SnitchPMACfg),
     .NumIntOutstandingLoads (NumIntOutstandingLoads),
@@ -337,6 +406,10 @@ module ${cfg['name']}_wrapper (
     .sram_cfg_t (${cfg['pkg_name']}::sram_cfg_t),
     .sram_cfgs_t (${cfg['pkg_name']}::sram_cfgs_t),
     .DebugSupport (${int(cfg['enable_debug'])})
+    .acc_req_t (${cfg['pkg_name']}::acc_req_t),
+    .acc_resp_t (${cfg['pkg_name']}::acc_resp_t),
+    .tcdm_req_t (${cfg['pkg_name']}::tcdm_req_t),
+    .tcdm_rsp_t (${cfg['pkg_name']}::tcdm_rsp_t)
   ) i_cluster (
     .clk_i,
     .rst_ni,
@@ -360,6 +433,14 @@ module ${cfg['name']}_wrapper (
 % else:
     .clk_d2_bypass_i (1'b0),
 % endif
+    .snax_req_o (snax_req),
+    .snax_qvalid_o (snax_qvalid),
+    .snax_qready_i (snax_qready),
+    .snax_resp_i (snax_resp),
+    .snax_pvalid_i (snax_pvalid),
+    .snax_pready_o (snax_pready),
+    .snax_tcdm_req_i (snax_tcdm_req),
+    .snax_tcdm_rsp_o (snax_tcdm_rsp),
 % if cfg['sram_cfg_expose']:
     .sram_cfgs_i (sram_cfgs_i),
 % else:
@@ -374,4 +455,39 @@ module ${cfg['name']}_wrapper (
     .wide_in_req_i,
     .wide_in_resp_o
   );
+
+  // Accelerator instances if there are accelerator ports
+  // If there are not accelerator ports, we tie the input signals to 0
+% for idx, c in enumerate(cfg['cores']):
+  % if c['snax_acc'] != "none":
+
+  ${c['snax_acc']} # (
+    .DataWidth ( ${cfg['pkg_name']}::NarrowDataWidth ),
+    .SnaxTcdmPorts ( SnaxTcdmPorts[${idx}] ),
+    .acc_req_t ( ${cfg['pkg_name']}::acc_req_t ),
+    .acc_rsp_t ( ${cfg['pkg_name']}::acc_resp_t ),
+    .tcdm_req_t ( ${cfg['pkg_name']}::tcdm_req_t ),
+    .tcdm_rsp_t ( ${cfg['pkg_name']}::tcdm_rsp_t )
+  ) i_${c['snax_acc']}_${idx}  (
+    .clk_i ( clk_i ),
+    .rst_ni ( rst_ni ),
+    .snax_req_i ( snax_req[${idx}] ),
+    .snax_qvalid_i ( snax_qvalid[${idx}] ),
+    .snax_qready_o ( snax_qready[${idx}] ),
+    .snax_resp_o ( snax_resp[${idx}] ),
+    .snax_pvalid_o ( snax_pvalid[${idx}] ),
+    .snax_pready_i ( snax_pready[${idx}] ),
+    .snax_tcdm_req_o ( snax_tcdm_req[${offset_list[idx+1]-1}:${offset_list[idx]}] ),
+    .snax_tcdm_rsp_i ( snax_tcdm_rsp[${offset_list[idx+1]-1}:${offset_list[idx]}] )
+  );
+  % else:
+
+  assign snax_qready[${idx}] = '0;
+  assign snax_resp[${idx}] = '0;
+  assign snax_pvalid[${idx}] = '0;
+  
+  % endif
+% endfor
+
+
 endmodule
