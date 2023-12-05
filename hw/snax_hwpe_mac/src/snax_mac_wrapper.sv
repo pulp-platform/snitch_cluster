@@ -7,7 +7,7 @@
 // verilog_lint: waive-start line-length
 // verilog_lint: waive-start no-trailing-spaces
 
-module snax_mac # (
+module snax_mac_wrapper # (
   parameter int unsigned DataWidth         = 32,
   parameter int unsigned SnaxTcdmPorts     = 4,
   parameter type         acc_req_t         = logic,
