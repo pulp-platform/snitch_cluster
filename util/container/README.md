@@ -19,7 +19,7 @@ that at least has package registry read permission.
 
 You can then install the container by running:
 ```shell
-$ docker pull ghcr.io/pulp-platform/snitch_cluster:main
+$ docker pull ghcr.io/kuleuven-micas/snax:latest
 ```
 
 ### Build instructions
@@ -28,7 +28,7 @@ In case you cannot use the pre-built container, e.g. if you need to make changes
 container locally by running the following command in the root of the repository:
 
 ```shell
-$ sudo docker build -t ghcr.io/pulp-platform/snitch_cluster:main -f util/container/Dockerfile .
+$ sudo docker build -t ghcr.io/kuleuven-micas/snax:latest -f util/container/DockerfileChisel .
 ```
 
 ## Usage
@@ -36,7 +36,7 @@ $ sudo docker build -t ghcr.io/pulp-platform/snitch_cluster:main -f util/contain
 To run the container in interactive mode:
 
 ```shell
-$ docker run -it -v $REPO_TOP:/repo -w /repo ghcr.io/pulp-platform/snitch_cluster:main
+$ docker run -it -v $REPO_TOP:/repo -w /repo ghcr.io/kuleuven-micas/snax:latest
 ```
 
 ## Limitations
