@@ -42,19 +42,39 @@ If you use the Snitch cluster or its extensions in your work, you can cite us:
 </details>
 
 <details>
-<summary><b>Indirection Stream Semantic Register Architecture for Efficient Sparse-Dense Linear Algebra</b></summary>
+<summary><b>Sparse Stream Semantic Registers: A Lightweight ISA Extension Accelerating General Sparse Linear Algebra</b></summary>
 <p>
 
 ```
-@inproceedings{scheffler2021indirect,
+@article{scheffler2023sparsessr,
   author={Scheffler, Paul and Zaruba, Florian and Schuiki, Fabian and Hoefler, Torsten and Benini, Luca},
-  booktitle={2021 Design, Automation & Test in Europe Conference & Exhibition (DATE)},
-  title={Indirection Stream Semantic Register Architecture for Efficient Sparse-Dense Linear Algebra},
-  year={2021},
+  journal={IEEE Transactions on Parallel and Distributed Systems},
+  title={Sparse Stream Semantic Registers: A Lightweight ISA Extension Accelerating General Sparse Linear Algebra},
+  year={2023},
+  volume={34},
+  number={12},
+  pages={3147-3161},
+  doi={10.1109/TPDS.2023.3322029}
+}
+```
+
+</p>
+</details>
+
+<details>
+<summary><b>A High-performance, Energy-efficient Modular DMA Engine Architecture</b></summary>
+<p>
+
+```
+@ARTICLE{benz2023idma,
+  author={Benz, Thomas and Rogenmoser, Michael and Scheffler, Paul and Riedel, Samuel and Ottaviano, Alessandro and Kurth, Andreas and Hoefler, Torsten and Benini, Luca},
+  journal={IEEE Transactions on Computers},
+  title={A High-performance, Energy-efficient Modular DMA Engine Architecture},
+  year={2023},
   volume={},
   number={},
-  pages={1787-1792}
-}
+  pages={1-14},
+  doi={10.1109/TC.2023.3329930}}
 ```
 
 </p>
