@@ -12,7 +12,7 @@ ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 [ ! -z "$VSIM" ] || VSIM=vsim
 
 call_vsim() {
-    echo "log -r /*; run -all" | $VSIM -c -coverage -voptargs='+acc +cover=sbecft' "$@" | tee vsim.log 2>&1
+    echo "log -r /*; run -all" | $QUESTA_SEPP $VSIM -c -coverage -voptargs='+acc +cover=sbecft' "$@" | tee vsim.log 2>&1
     grep "Errors: 0," vsim.log
 }
 

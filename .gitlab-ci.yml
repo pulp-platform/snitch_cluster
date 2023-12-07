@@ -5,13 +5,17 @@
 variables:
   GIT_STRATEGY: clone
   GIT_SUBMODULE_STRATEGY: recursive
+  # Enable colors in CI terminal
+  TERM: ansi
+  FORCE_COLOR: 1
+  # Configure environment
   PYTHON: /usr/local/anaconda3-2022.05/bin/python3
   BENDER: bender-0.27.1
   CC: gcc-9.2.0
   CXX: g++-9.2.0
-  VCS: vcs-2020.12
-  VERILATOR: verilator-4.110
-  QUESTA: questa-2022.3
+  VCS_SEPP: vcs-2020.12
+  VERILATOR_SEPP: verilator-4.110
+  QUESTA_SEPP: questa-2022.3
   LLVM_BINROOT: /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: /usr/pack/gcc-9.2.0-af/linux-x64/bin/gcc
   LLVM_SYS_120_PREFIX: /usr/pack/llvm-12.0.1-af
@@ -79,8 +83,8 @@ snitch-ip-tests:
           - tcdm_interface
   script:
     - cd hw/$IP
-    - $QUESTA ./util/compile.sh
-    - $QUESTA ./util/run_vsim.sh
+    - ./util/compile.sh
+    - ./util/run_vsim.sh
 
 ########################
 # Snitch cluster tests #
@@ -89,29 +93,26 @@ snitch-ip-tests:
 # Verilator
 snitch-cluster-vlt:
   needs: [snitch-cluster-sw]
-  # yamllint disable rule:line-length
   script:
     - cd target/snitch_cluster
-    - $VERILATOR make bin/snitch_cluster.vlt
-    - $VERILATOR ../../util/sim/simulate.py sw/run.yaml --simulator verilator -j --verbose
-  # yamllint enable rule:line-length
+    - make bin/snitch_cluster.vlt
+    - ./run.py sw/run.yaml --simulator verilator -j --run-dir runs/vlt
 
 # VCS
 snitch-cluster-vcs:
   needs: [snitch-cluster-sw]
   script:
     - cd target/snitch_cluster
-    - $VCS make bin/snitch_cluster.vcs
-    - $VCS ../../util/sim/simulate.py sw/run.yaml --simulator vcs -j --verbose
+    - make bin/snitch_cluster.vcs
+    - ./run.py sw/run.yaml --simulator vcs -j --run-dir runs/vcs
 
 # Questa
 snitch-cluster-vsim:
   needs: [snitch-cluster-sw]
   script:
     - cd target/snitch_cluster
-    - $QUESTA make bin/snitch_cluster.vsim
-    - $QUESTA ../../util/sim/simulate.py sw/run.yaml --simulator vsim -j
-      --verbose
+    - make bin/snitch_cluster.vsim
+    - ./run.py sw/run.yaml --simulator vsim -j --run-dir runs/vsim
 
 # Banshee
 snitch-cluster-banshee:
@@ -127,4 +128,4 @@ snitch-cluster-banshee:
     - cd banshee
     - cargo install --debug --path .
     - cd ../target/snitch_cluster
-    - ../../util/sim/simulate.py sw/run.yaml --simulator banshee -j --verbose
+    - ./run.py sw/run.yaml --simulator banshee -j --run-dir runs/banshee
