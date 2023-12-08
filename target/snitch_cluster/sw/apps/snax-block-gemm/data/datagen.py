@@ -22,7 +22,8 @@ np.random.seed(42)
 
 
 # Golden model in python
-def block_gemm_golden_model(m, k, n, row, size, col, a, b):
+def block_gemm_golden_model(m, k, n, row, size, col, a, b,
+                            subtraction_a, subtraction_b):
     c = np.zeros(m * row * n * col, dtype=(np.int32))
     for mm in range(m):
         for nn in range(n):
@@ -48,7 +49,9 @@ def block_gemm_golden_model(m, k, n, row, size, col, a, b):
                                 + cc * size
                                 + ss
                             )
-                            c[c_index] = c[c_index] + a[a_index] * b[b_index]
+                            c[c_index] = c[c_index] + \
+                                (a[a_index] - subtraction_a) * \
+                                (b[b_index] - subtraction_b)
     return c
 
 
@@ -115,6 +118,22 @@ def emit_gemm_data(**kwargs):
         )
     ]
 
+    # Generating random 8 integer a and b for subtraction
+    subtraction_a = np.random.randint(MIN, MAX)
+    subtraction_b = np.random.randint(MIN, MAX)
+
+    # Writing the subtraction value to data.h
+    data_str += [
+        format_scalar_definition(
+            "int8_t", "subtraction_a", subtraction_a
+        )
+    ]
+    data_str += [
+        format_scalar_definition(
+            "int8_t", "subtraction_b", subtraction_b
+        )
+    ]
+
     # Generate random input matrices
     length_a = (
         kwargs["M"] * kwargs["K"] * kwargs["meshRow"] * kwargs["tileSize"]
@@ -135,6 +154,8 @@ def emit_gemm_data(**kwargs):
         kwargs["meshCol"],
         a,
         b,
+        subtraction_a,
+        subtraction_b
     )
     c_init = np.zeros(c_golden.shape)
     c_cpu = np.zeros(c_golden.shape)
