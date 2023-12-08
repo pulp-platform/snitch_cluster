@@ -50,12 +50,16 @@ int main() {
         // Pack matrix size setting to one CSR
         uint32_t size_setting = gen_size_config(Batch, M, K, N);
 
+        uint32_t subtraction_setting =
+            gen_subtraction_config(subtraction_a, subtraction_b);
+
         uint32_t gemm_start = snrt_mcycle();
 
         // Set GEMM configuration CSR
-        set_batch_gemm(size_setting, local_a, local_b, local_c,
-                       strideInnermostA, strideInnermostB, strideInnermostC,
-                       ldA, ldB, ldC, strideA, strideB, strideC);
+        set_batch_gemm(size_setting, local_a, local_b, subtraction_setting,
+                       local_c, strideInnermostA, strideInnermostB,
+                       strideInnermostC, ldA, ldB, ldC, strideA, strideB,
+                       strideC);
 
         // Set CSR to start GEMM and poll until GEMM accelerator finishes
         start_batch_gemm();
@@ -77,9 +81,10 @@ int main() {
         // region for benchmarking)
         uint32_t start_cycle = snrt_mcycle();
 
-        batch_gemm_cpu(Batch, M, K, N, local_a, local_b, C_cpu,
-                       strideInnermostA, strideInnermostB, strideInnermostC,
-                       ldA, ldB, ldC, strideA, strideB, strideC);
+        batch_gemm_cpu(Batch, M, K, N, local_a, local_b, subtraction_a,
+                       subtraction_b, C_cpu, strideInnermostA, strideInnermostB,
+                       strideInnermostC, ldA, ldB, ldC, strideA, strideB,
+                       strideC);
 
         // Read the mcycle CSR
         uint32_t end_cycle = snrt_mcycle();

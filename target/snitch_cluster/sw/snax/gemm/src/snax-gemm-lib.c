@@ -13,8 +13,19 @@ int32_t gen_size_config(uint8_t Batch, uint8_t M, uint8_t K, uint8_t N) {
            (int32_t)N;
 }
 
+int32_t gen_subtraction_config(int8_t subtraction_a, int8_t subtraction_b) {
+    return ((uint8_t)subtraction_b << 8) | (uint8_t)subtraction_a;
+}
+
+uint32_t read_performance_counter() {
+    uint32_t performance_counter;
+    performance_counter = read_csr(0x3cd);
+    return performance_counter;
+};
+
 void base_gemm(uint8_t m, uint8_t k, uint8_t n, int8_t* A, int8_t* B,
-               int32_t* C_cpu, bool clear) {
+               int8_t subtraction_a, int8_t subtraction_b, int32_t* C_cpu,
+               bool clear) {
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
             // clear memory first before start matrix multiplication
@@ -23,15 +34,18 @@ void base_gemm(uint8_t m, uint8_t k, uint8_t n, int8_t* A, int8_t* B,
                 C_cpu[i * n + j] = 0;
             }
             for (int s = 0; s < k; s++) {
-                C_cpu[i * n + j] = C_cpu[i * n + j] + (int32_t)A[i * k + s] *
-                                                          (int32_t)B[s + j * k];
+                C_cpu[i * n + j] =
+                    C_cpu[i * n + j] +
+                    ((int32_t)A[i * k + s] - (int32_t)subtraction_a) *
+                        ((int32_t)B[s + j * k] - (int32_t)subtraction_b);
             }
         }
     }
 };
 
 void batch_gemm_cpu(uint8_t Batch, uint8_t M, uint8_t K, uint8_t N, int8_t* A,
-                    int8_t* B, int32_t* C, uint32_t strideInnermostA,
+                    int8_t* B, int8_t subtraction_a, int8_t subtraction_b,
+                    int32_t* C, uint32_t strideInnermostA,
                     uint32_t strideInnermostB, uint32_t strideInnermostC,
                     uint32_t ldA, uint32_t ldB, uint32_t ldC, uint32_t strideA,
                     uint32_t strideB, uint32_t strideC) {
@@ -62,7 +76,7 @@ void batch_gemm_cpu(uint8_t Batch, uint8_t M, uint8_t K, uint8_t N, int8_t* A,
                     // when k == 0, clear the memory
                     clear = k == 0;
                     base_gemm(meshRow, tileSize, meshCol, addr_a, addr_b,
-                              addr_c, clear);
+                              subtraction_a, subtraction_b, addr_c, clear);
                 }
             }
         }
@@ -120,10 +134,11 @@ void load_input_data(uint8_t Batch, uint8_t M, uint8_t K, uint8_t N,
 }
 
 void set_batch_gemm(uint32_t size_setting, int8_t* local_a, int8_t* local_b,
-                    int32_t* local_c, uint32_t strideInnermostA,
-                    uint32_t strideInnermostB, uint32_t strideInnermostC,
-                    uint32_t ldA, uint32_t ldB, uint32_t ldC, uint32_t strideA,
-                    uint32_t strideB, uint32_t strideC) {
+                    int32_t subtractions, int32_t* local_c,
+                    uint32_t strideInnermostA, uint32_t strideInnermostB,
+                    uint32_t strideInnermostC, uint32_t ldA, uint32_t ldB,
+                    uint32_t ldC, uint32_t strideA, uint32_t strideB,
+                    uint32_t strideC) {
     // Set matrix size
     write_csr(0x3c0, size_setting);
 
@@ -144,13 +159,16 @@ void set_batch_gemm(uint32_t size_setting, int8_t* local_a, int8_t* local_b,
     write_csr(0x3ca, strideA);
     write_csr(0x3cb, strideB);
     write_csr(0x3cc, strideC);
+
+    // Set subtraction values
+    write_csr(0x3ce, subtractions);
 }
 
 void start_batch_gemm() {
     // 0x3ce is the CSR address for accelerator status
     // set the lowest bit of state CSR  (state CSR[0]) to set start signal in
     // GEMM
-    write_csr(0x3ce, 1);
+    write_csr(0x3cf, 1);
 }
 
 void wait_batch_gemm() {
@@ -158,7 +176,7 @@ void wait_batch_gemm() {
 
     while (1) {
         // poll the state CSR[1] to see if GEMM is still busy
-        break_poll = read_csr(0x3ce);
+        break_poll = read_csr(0x3cf);
         if ((break_poll >> 1) == 1) {
             break;
         };
