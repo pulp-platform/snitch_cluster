@@ -405,7 +405,7 @@ module ${cfg['name']}_wrapper (
     .NarrowMaxSlvTrans (${cfg['narrow_trans']}),
     .sram_cfg_t (${cfg['pkg_name']}::sram_cfg_t),
     .sram_cfgs_t (${cfg['pkg_name']}::sram_cfgs_t),
-    .DebugSupport (${int(cfg['enable_debug'])})
+    .DebugSupport (${int(cfg['enable_debug'])}),
     .acc_req_t (${cfg['pkg_name']}::acc_req_t),
     .acc_resp_t (${cfg['pkg_name']}::acc_resp_t),
     .tcdm_req_t (${cfg['pkg_name']}::tcdm_req_t),

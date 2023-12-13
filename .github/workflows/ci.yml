@@ -69,8 +69,7 @@ jobs:
       - name: Run Tests
         working-directory: target/snitch_cluster
         run: |-
-          ./run.py sw/tests/snax-run.yaml --simulator verilator
-          ./run.py sw/apps/run.yaml --simulator verilator
+          ./run.py sw/snax-mac-run.yaml --simulator verilator
 
   sw-snax-gemm-cluster-vlt:
     name: Simulate SW on SNAX GEMM Cluster w/ Verilator
@@ -91,8 +90,7 @@ jobs:
       - name: Run Tests
         working-directory: target/snitch_cluster
         run: |-
-          ./run.py sw/tests/snax-gemm-run.yaml --simulator verilator
-          ./run.py sw/apps/snax-gemm-run.yaml --simulator verilator
+          ./run.py sw/snax-gemm-run.yaml --simulator verilator
 
   ############################################
   # Build SW on Snitch Cluster w/ Banshee #
