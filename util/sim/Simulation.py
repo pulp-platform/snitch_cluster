@@ -13,10 +13,20 @@ from mako.template import Template
 
 
 class Simulation(object):
+    """Provides a common interface to manage simulations."""
 
     LOG_FILE = 'sim.txt'
 
     def __init__(self, elf=None):
+        """Constructor for the Simulation class.
+
+        A Simulation object is defined at a minimum by a software
+        binary to be simulated on the desired hardware. The hardware is
+        implicitly determined by the simulation command.
+
+        Arguments:
+            elf: The software binary to simulate.
+        """
         self.elf = elf
         self.testname = Path(self.elf).stem
         self.cmd = []
@@ -24,6 +34,18 @@ class Simulation(object):
         self.process = None
 
     def launch(self, run_dir=None, dry_run=False):
+        """Launch the simulation.
+
+        Launch the simulation by invoking the command stored in the
+        `cmd` attribute of the class. Subclasses are required to define
+        a non-empty `cmd` attribute prior to invoking this method.
+
+        Arguments:
+            run_dir: The directory where to launch the simulation
+                command.
+            dry_run: Use dry-run mode to preview the simulation command
+                without actually launching the simulation.
+        """
         # Default to current working directory as simulation directory
         if not run_dir:
             run_dir = Path.cwd()
@@ -44,19 +66,27 @@ class Simulation(object):
                                                 cwd=run_dir, universal_newlines=True)
 
     def completed(self):
+        """Return whether the simulation completed."""
         if self.process:
             return self.process.poll() is not None
         else:
             return False
 
     def successful(self):
+        """Return whether the simulation was successful."""
         return None
 
     def print_log(self):
+        """Print a log of the simulation to stdout."""
         with open(self.log, 'r') as f:
             print(f.read())
 
     def print_status(self):
+        """Print a status message to stdout.
+
+        The status message reports whether the test is still running
+        or, if it completed, whether it was successful or failed.
+        """
         if self.completed():
             if self.successful():
                 cprint(f'{self.elf} test passed', 'green', attrs=['bold'], flush=True)
@@ -67,6 +97,14 @@ class Simulation(object):
 
 
 class BistSimulation(Simulation):
+    """A simulation that verifies itself.
+
+    A built-in self-test (BIST) simulation is one which verifies
+    itself, i.e. the simulated software binary executes some
+    verification logic to verify that the execution was successful.
+    The return code of the simulation is used to indicate if the
+    simulation was successful or not.
+    """
 
     def __init__(self, elf=None, retcode=0):
         super().__init__(elf)
@@ -87,6 +125,11 @@ class BistSimulation(Simulation):
 
 
 class RTLSimulation(BistSimulation):
+    """A BIST simulation run on an RTL simulator.
+
+    An RTL simulation is launched through a simulation binary built
+    in advance from some RTL design.
+    """
 
     def __init__(self, elf=None, retcode=0, sim_bin=None):
         super().__init__(elf, retcode)
@@ -94,12 +137,22 @@ class RTLSimulation(BistSimulation):
 
 
 class VerilatorSimulation(RTLSimulation):
+    """An RTL simulation running on Verilator.
+
+    The return code of the simulation is returned directly as the
+    return code of the command launching the simulation.
+    """
 
     def get_retcode(self):
         return self.process.returncode
 
 
 class QuestaVCSSimulation(RTLSimulation):
+    """An RTL simulation running on QuestaSim or VCS.
+
+    QuestaSim and VCS print out the simulation return code in the
+    simulation log. This is parsed to extract the return code.
+    """
 
     def get_retcode(self):
 
@@ -127,6 +180,7 @@ class QuestaVCSSimulation(RTLSimulation):
 
 
 class QuestaSimulation(QuestaVCSSimulation):
+    """An RTL simulation running on QuestaSim."""
 
     def __init__(self, elf=None, retcode=0, sim_bin=None):
         super().__init__(elf, retcode, sim_bin)
@@ -134,10 +188,16 @@ class QuestaSimulation(QuestaVCSSimulation):
 
 
 class VCSSimulation(QuestaVCSSimulation):
+    """An RTL simulation running on VCS."""
     pass
 
 
 class BansheeSimulation(BistSimulation):
+    """A BIST simulation running on Banshee.
+
+    The return code of the simulation is returned directly as the
+    return code of the command launching the simulation.
+    """
 
     def __init__(self, elf=None, retcode=0, banshee_cfg=None):
         super().__init__(elf, retcode)
@@ -149,6 +209,17 @@ class BansheeSimulation(BistSimulation):
 
 
 class CustomSimulation(Simulation):
+    """A simulation which is run through a custom command.
+
+    The custom command generally invokes an RTL simulator binary behind
+    the scenes and executes some additional verification logic after
+    the end of the simulation.
+
+    Custom simulations are considered unsuccessful if the return code
+    of the custom command is non-null. As a custom command can
+    implement any verification logic, there is no reason to implement
+    any additional logic here.
+    """
 
     def __init__(self, elf=None, sim_bin=None, cmd=None):
         super().__init__(elf)

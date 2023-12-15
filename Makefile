@@ -17,9 +17,7 @@ clean: clean-docs
 doc-srcs: $(GENERATED_DOC_SRCS)
 
 docs: doc-srcs
-	@if mkdocs build | grep -q "ERROR"; then \
-		exit 1; \
-	fi
+	mkdocs build
 
 clean-docs:
 	rm -rf $(GENERATED_DOCS_DIR)
