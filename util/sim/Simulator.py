@@ -70,16 +70,22 @@ class RTLSimulator(Simulator):
     given test, with the custom command and simulation binary.
     """
 
-    def __init__(self, name, simulation_cls, binary):
-        super().__init__(name, simulation_cls)
+    def __init__(self, binary, **kwargs):
+        """Constructor for the RTLSimulator class.
+
+        Arguments:
+            binary: The simulation binary.
+            kwargs: Arguments passed to the base class constructor.
+        """
+        super().__init__(**kwargs)
         self.binary = binary
 
     def get_simulation(self, test):
         if 'cmd' in test:
-            return CustomSimulation(test['elf'], self.binary, test['cmd'])
+            return CustomSimulation(elf=test['elf'], sim_bin=self.binary, cmd=test['cmd'])
         else:
             return self.simulation_cls(
-                test['elf'],
+                elf=test['elf'],
                 retcode=test['exit_code'] if 'exit_code' in test else 0,
                 sim_bin=self.binary
             )
@@ -94,7 +100,12 @@ class VCSSimulator(RTLSimulator):
     """
 
     def __init__(self, binary):
-        super().__init__('vcs', VCSSimulation, binary)
+        """Constructor for the VCSSimulator class.
+
+        Arguments:
+            binary: The VCS simulation binary.
+        """
+        super().__init__(binary, name='vcs', simulation_cls=VCSSimulation)
 
 
 class QuestaSimulator(RTLSimulator):
@@ -106,7 +117,12 @@ class QuestaSimulator(RTLSimulator):
     """
 
     def __init__(self, binary):
-        super().__init__('vsim', QuestaSimulation, binary)
+        """Constructor for the QuestaSimulator class.
+
+        Arguments:
+            binary: The QuestaSim simulation binary.
+        """
+        super().__init__(binary, name='vsim', simulation_cls=QuestaSimulation)
 
 
 class VerilatorSimulator(RTLSimulator):
@@ -118,7 +134,12 @@ class VerilatorSimulator(RTLSimulator):
     """
 
     def __init__(self, binary):
-        super().__init__('verilator', VerilatorSimulation, binary)
+        """Constructor for the VerilatorSimulator class.
+
+        Arguments:
+            binary: The Verilator simulation binary.
+        """
+        super().__init__(binary, name='verilator', simulation_cls=VerilatorSimulation)
 
 
 class BansheeSimulator(Simulator):
@@ -129,7 +150,12 @@ class BansheeSimulator(Simulator):
     """
 
     def __init__(self, cfg):
-        super().__init__('banshee', BansheeSimulation)
+        """Constructor for the BansheeSimulator class.
+
+        Arguments:
+            cfg: A Banshee config file.
+        """
+        super().__init__(name='banshee', simulation_cls=BansheeSimulation)
         self.cfg = cfg
 
     def supports(self, test):
@@ -146,7 +172,7 @@ class BansheeSimulator(Simulator):
 
     def get_simulation(self, test):
         return self.simulation_cls(
-            test['elf'],
+            elf=test['elf'],
             retcode=test['exit_code'] if 'exit_code' in test else 0,
             banshee_cfg=self.cfg
         )

@@ -106,8 +106,14 @@ class BistSimulation(Simulation):
     simulation was successful or not.
     """
 
-    def __init__(self, elf=None, retcode=0):
-        super().__init__(elf)
+    def __init__(self, retcode=0, **kwargs):
+        """Constructor for the BistSimulation class.
+
+        Arguments:
+            retcode: The expected return code of the simulation.
+            kwargs: Arguments passed to the base class constructor.
+        """
+        super().__init__(**kwargs)
         self.expected_retcode = retcode
         self.actual_retcode = None
 
@@ -131,8 +137,14 @@ class RTLSimulation(BistSimulation):
     in advance from some RTL design.
     """
 
-    def __init__(self, elf=None, retcode=0, sim_bin=None):
-        super().__init__(elf, retcode)
+    def __init__(self, sim_bin=None, **kwargs):
+        """Constructor for the RTLSimulation class.
+
+        Arguments:
+            sim_bin: The simulation binary.
+            kwargs: Arguments passed to the base class constructor.
+        """
+        super().__init__(**kwargs)
         self.cmd = [str(sim_bin), str(self.elf)]
 
 
@@ -155,7 +167,6 @@ class QuestaVCSSimulation(RTLSimulation):
     """
 
     def get_retcode(self):
-
         # Extract the application's return code from the simulation log
         with open(self.log, 'r') as f:
             for line in f.readlines():
@@ -182,8 +193,8 @@ class QuestaVCSSimulation(RTLSimulation):
 class QuestaSimulation(QuestaVCSSimulation):
     """An RTL simulation running on QuestaSim."""
 
-    def __init__(self, elf=None, retcode=0, sim_bin=None):
-        super().__init__(elf, retcode, sim_bin)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.cmd += ['', '-batch']
 
 
@@ -199,8 +210,14 @@ class BansheeSimulation(BistSimulation):
     return code of the command launching the simulation.
     """
 
-    def __init__(self, elf=None, retcode=0, banshee_cfg=None):
-        super().__init__(elf, retcode)
+    def __init__(self, banshee_cfg=None, **kwargs):
+        """Constructor for the BansheeSimulation class.
+
+        Arguments:
+            banshee_cfg: A Banshee config file.
+            kwargs: Arguments passed to the base class constructor.
+        """
+        super().__init__(**kwargs)
         self.cmd = ['banshee', '--no-opt-llvm', '--no-opt-jit', '--configuration',
                     str(banshee_cfg), '--trace', str(self.elf)]
 
@@ -221,9 +238,16 @@ class CustomSimulation(Simulation):
     any additional logic here.
     """
 
-    def __init__(self, elf=None, sim_bin=None, cmd=None):
-        super().__init__(elf)
-        self.dynamic_args = {'sim_bin': str(sim_bin), 'elf': str(elf)}
+    def __init__(self, sim_bin=None, cmd=None, **kwargs):
+        """Constructor for the CustomSimulation class.
+
+        Arguments:
+            sim_bin: The simulation binary.
+            cmd: The custom command used to launch the simulation.
+            kwargs: Arguments passed to the base class constructor.
+        """
+        super().__init__(**kwargs)
+        self.dynamic_args = {'sim_bin': str(sim_bin), 'elf': str(self.elf)}
         self.cmd = cmd
 
     def launch(self, run_dir=None, dry_run=False):
