@@ -6,8 +6,4 @@
 clang-format
 device-tree-compiler
 graphviz
-python3
-python3-pip
-python3-setuptools
-python3-wheel
 tar

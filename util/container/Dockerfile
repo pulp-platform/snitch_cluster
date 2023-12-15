@@ -7,7 +7,11 @@
 # 1. Stage
 FROM ubuntu:18.04 AS builder
 ARG CMAKE_VERSION=3.19.4
+ARG PYTHON_VERSION=3.9.12
+# Run dpkg without interactive dialogue
+ARG DEBIAN_FRONTEND=noninteractive
 
+# Install APT requirements
 COPY apt-requirements.txt /tmp/apt-requirements.txt
 RUN apt-get update && \
     sed 's/#.*//' /tmp/apt-requirements.txt \
@@ -20,8 +24,26 @@ RUN apt-get update && \
         lsb-release \
         software-properties-common \
         unzip \
-        wget \
-        zlib1g-dev
+        wget
+# Required to install Python
+RUN apt-get update && apt-get install -y \
+        zlib1g-dev \
+        libreadline-gplv2-dev \
+        libncursesw5-dev \
+        libssl-dev \
+        libsqlite3-dev \
+        tk-dev \
+        libgdbm-dev \
+        libc6-dev \
+        libbz2-dev \
+        libffi-dev
+
+# Install Python
+RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
+RUN tar xzf Python-${PYTHON_VERSION}.tgz
+RUN cd Python-${PYTHON_VERSION} && \
+    ./configure --enable-optimizations --prefix=/opt/python/ && \
+    make install -j
 
 # Build Rust tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -37,6 +59,7 @@ RUN wget https://apt.llvm.org/llvm.sh
 RUN chmod +x llvm.sh
 RUN ./llvm.sh 12
 
+# Change working directory
 WORKDIR /tools
 
 # Install a newer version of cmake (we need this for banshee)
@@ -88,12 +111,6 @@ RUN echo 'deb http://download.opensuse.org/repositories/home:/phiwag:/edatools/x
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 ENV VLT_ROOT "/usr/share/verilator"
 
-# Install Python requirements
-COPY python-requirements.txt /tmp/python-requirements.txt
-COPY docs/requirements.txt /tmp/docs/requirements.txt
-COPY sw/dnn/requirements.txt /tmp/sw/dnn/requirements.txt
-RUN pip3 install -r /tmp/python-requirements.txt
-
 # Get the precompiled LLVM toolchain
 RUN latest_tag=`curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/pulp-platform/llvm-project/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'` && \
     echo "SNITCH_LLVM_VERSION=${SNITCH_LLVM_VERSION} LLVM_TAR=${LLVM_TAR} latest_tag=${latest_tag}" && \
@@ -120,6 +137,17 @@ RUN apt-get update && apt-get install software-properties-common -y && \
 # Copy artifacts from stage 1.
 COPY --from=builder /root/.cargo/bin/bender bin/
 COPY --from=builder /root/.cargo/bin/banshee bin/
+COPY --from=builder /opt/python /opt/python
+
+# Create and activate virtual environment
+ENV VIRTUAL_ENV "/root/.venvs/snitch_cluster"
+RUN /opt/python/bin/python3 -m venv ${VIRTUAL_ENV}
+ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
+# Install Python requirements
+COPY python-requirements.txt /tmp/python-requirements.txt
+COPY docs/requirements.txt /tmp/docs/requirements.txt
+COPY sw/dnn/requirements.txt /tmp/sw/dnn/requirements.txt
+RUN pip install -r /tmp/python-requirements.txt
 
 # Set locale to UTF-8, required because Python 3.6 defaults on ASCII encoding.
 # See https://click.palletsprojects.com/en/8.1.x/unicode-support/
