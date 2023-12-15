@@ -96,6 +96,7 @@ RUN apt-get update && \
     sed 's/#.*//' /tmp/apt-requirements.txt \
         | xargs apt-get install -y && \
     apt-get install -y --no-install-recommends \
+        ca-certificates \
         gnupg2 \
         curl \
         wget \
