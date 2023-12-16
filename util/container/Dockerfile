@@ -100,6 +100,7 @@ RUN apt-get update && \
         gnupg2 \
         curl \
         wget \
+        build-essential \
         git && \
     apt-get clean ; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
