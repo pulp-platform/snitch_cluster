@@ -22,6 +22,7 @@ RUN echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/ap
 RUN apt-get install -y sbt
 
 RUN wget https://github.com/llvm/circt/releases/download/firtool-1.42.0/firrtl-bin-ubuntu-20.04.tar.gz && \
-    tar -xvzf firrtl-bin-ubuntu-20.04.tar.gz
+    tar -xvzf firrtl-bin-ubuntu-20.04.tar.gz && \
+    rm firrtl-bin-ubuntu-20.04.tar.gz
 
 ENV PATH "/tools/firtool-1.42.0/bin/:${PATH}"
