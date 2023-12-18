@@ -4,7 +4,12 @@
 
 # Some CI tests run on our GitLab servers due to licenses and tools
 name: gitlab-ci
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
 jobs:
   gitlab-ci:
     name: Internal Gitlab CI
