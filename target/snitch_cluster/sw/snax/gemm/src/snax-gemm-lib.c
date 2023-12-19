@@ -105,8 +105,7 @@ void load_input_data(uint8_t Batch, uint8_t M, uint8_t K, uint8_t N,
                 // element index of A
                 addr_A =
                     A + (b * M * meshRow * tileSize * K +
-                         m * meshRow * tileSize * K + k * meshRow * tileSize) /
-                            sizeof(int8_t);
+                         m * meshRow * tileSize * K + k * meshRow * tileSize);
                 snrt_dma_start_1d(addr_a, addr_A,
                                   meshRow * tileSize * sizeof(int8_t));
             }
@@ -124,8 +123,7 @@ void load_input_data(uint8_t Batch, uint8_t M, uint8_t K, uint8_t N,
                 // element index of B
                 addr_B =
                     B + (b * K * tileSize * meshCol * N +
-                         n * tileSize * meshCol * K + k * tileSize * meshCol) /
-                            sizeof(int8_t);
+                         n * tileSize * meshCol * K + k * tileSize * meshCol);
                 snrt_dma_start_1d(addr_b, addr_B,
                                   meshCol * tileSize * sizeof(int8_t));
             }
