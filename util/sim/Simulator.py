@@ -46,14 +46,21 @@ class Simulator(object):
         """
         return 'simulators' not in test or self.name in test['simulators']
 
-    def get_simulation(self, test):
+    def get_simulation(self, test, simulation_cls=None, **kwargs):
         """Construct a Simulation object from the specified test.
 
         Arguments:
             test: The test for which a Simulation object must be
                 constructed.
+            simulation_cls: Create a simulation instance of this
+                Simulation subclass. Use `self.simulation_cls` by
+                default.
         """
-        return self.simulation_cls(test['elf'])
+        kwargs.update({key: test[key] for key in ['elf', 'run_dir', 'retcode'] if key in test})
+        if simulation_cls is not None:
+            return simulation_cls(**kwargs)
+        else:
+            return self.simulation_cls(**kwargs)
 
 
 class RTLSimulator(Simulator):
@@ -82,11 +89,14 @@ class RTLSimulator(Simulator):
 
     def get_simulation(self, test):
         if 'cmd' in test:
-            return CustomSimulation(elf=test['elf'], sim_bin=self.binary, cmd=test['cmd'])
+            return super().get_simulation(
+                test,
+                simulation_cls=CustomSimulation,
+                sim_bin=self.binary,
+                cmd=test['cmd'])
         else:
-            return self.simulation_cls(
-                elf=test['elf'],
-                retcode=test['exit_code'] if 'exit_code' in test else 0,
+            return super().get_simulation(
+                test,
                 sim_bin=self.binary
             )
 
@@ -171,8 +181,7 @@ class BansheeSimulator(Simulator):
             return supported
 
     def get_simulation(self, test):
-        return self.simulation_cls(
-            elf=test['elf'],
-            retcode=test['exit_code'] if 'exit_code' in test else 0,
+        return super().get_simulation(
+            test,
             banshee_cfg=self.cfg
         )

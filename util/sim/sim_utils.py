@@ -99,6 +99,10 @@ def parser(default_simulator='vsim', simulator_choices=['vsim']):
         action='store_true',
         help='Exit as soon as any test fails')
     parser.add_argument(
+        '--verbose',
+        action='store_true',
+        help='Activate verbose printing')
+    parser.add_argument(
         '-j',
         action='store',
         dest='n_procs',
@@ -141,7 +145,7 @@ def _resolve_relative_path(base_path, s):
         return s
 
 
-def get_simulations(testlist, simulator):
+def get_simulations(testlist, simulator, run_dir=None):
     """Create simulation objects from a test list file.
 
     Args:
@@ -149,6 +153,9 @@ def get_simulations(testlist, simulator):
             file describing a set of tests.
         simulator: The simulator to use to run the tests. A test run on
             a specific simulator defines a simulation.
+        run_dir: A directory under which all tests should be run. If
+            provided, a unique subdirectory for each test will be
+            created under this directory, based on the test name.
 
     Returns:
         A list of `Simulation` objects. The list contains a
@@ -167,6 +174,10 @@ def get_simulations(testlist, simulator):
             test['cmd'] = [_resolve_relative_path(testlist_path.parent, arg) for arg in test['cmd']]
     # Create simulation object for every test which supports the specified simulator
     simulations = [simulator.get_simulation(test) for test in tests if simulator.supports(test)]
+    # Set simulation run directory
+    if run_dir is not None:
+        for sim in simulations:
+            sim.run_dir = Path(run_dir) / sim.testname
     return simulations
 
 
@@ -190,8 +201,8 @@ def print_summary(failed_sims, early_exit=False, dry_run=False):
             print(f'{colored("All tests passed!", "green")}')
 
 
-def terminate_simulations():
-    print('Terminating simulations')
+def terminate_processes():
+    print('Terminate processes')
     # Get PID and PGID of parent process (current Python script)
     ppid = os.getpid()
     pgid = os.getpgid(0)
@@ -202,7 +213,29 @@ def terminate_simulations():
             os.kill(pid, signal.SIGKILL)
 
 
-def run_simulations(simulations, n_procs=1, run_dir=None, dry_run=False, early_exit=False):
+def get_unique_run_dir(sim, prefix=None):
+    """Get unique run directory for a simulation.
+
+    If the simulation was already assigned a run directory at creation
+    time, None is returned. Otherwise, return a unique run directory
+    based on the testname under an optional prefix directory.
+
+    Args:
+        sim: The simulation for which the run directory is
+            requested.
+        prefix: Get a unique run directory under a directory which
+            could be common to multiple simulations. We call this
+            a prefix. By default the current working directory is
+            assumed as the prefix.
+    """
+    if sim.run_dir is None:
+        if prefix is None:
+            prefix = Path.cwd()
+        return prefix / sim.testname
+
+
+def run_simulations(simulations, n_procs=1, dry_run=None, early_exit=False,
+                    verbose=False):
     """Run simulations defined by a list of `Simulation` objects.
 
     Args:
@@ -213,30 +246,21 @@ def run_simulations(simulations, n_procs=1, run_dir=None, dry_run=False, early_e
         The number of failed simulations.
     """
     # Register SIGTERM handler, used to gracefully terminate all simulation subprocesses
-    signal.signal(signal.SIGTERM, lambda _, __: terminate_simulations())
+    signal.signal(signal.SIGTERM, lambda _, __: terminate_processes())
 
     # Spawn a process for every test, wait for all running tests to terminate and check results
     running_sims = []
     failed_sims = []
     early_exit_requested = False
-    uniquify_run_dir = len(simulations) > 1
     try:
         while (len(simulations) or len(running_sims)) and not early_exit_requested:
             # If there are still simulations to run and there are less running simulations than
             # the maximum number of processes allowed in parallel, spawn new simulation
             if len(simulations) and len(running_sims) < n_procs:
                 running_sims.append(simulations.pop(0))
-                # Launch simulation in current working directory, by default
-                if run_dir is None:
-                    run_dir = Path.cwd()
-                # Create unique subdirectory for each test under run directory, if multiple tests
-                if uniquify_run_dir:
-                    unique_run_dir = run_dir / running_sims[-1].testname
-                else:
-                    unique_run_dir = run_dir
-                running_sims[-1].launch(run_dir=unique_run_dir, dry_run=dry_run)
+                running_sims[-1].launch(dry_run=dry_run)
             # Remove completed sims from running sims list
-            idcs = [i for i, sim in enumerate(running_sims) if dry_run or sim.completed()]
+            idcs = [i for i, sim in enumerate(running_sims) if sim.completed()]
             completed_sims = [running_sims.pop(i) for i in sorted(idcs, reverse=True)]
             # Check completed sims and report status
             for sim in completed_sims:
@@ -244,7 +268,8 @@ def run_simulations(simulations, n_procs=1, run_dir=None, dry_run=False, early_e
                     sim.print_status()
                 else:
                     failed_sims.append(sim)
-                    sim.print_log()
+                    if verbose:
+                        sim.print_log()
                     sim.print_status()
                     # If in early-exit mode, terminate as soon as any simulation fails
                     if early_exit:
@@ -256,7 +281,7 @@ def run_simulations(simulations, n_procs=1, run_dir=None, dry_run=False, early_e
 
     # Clean up after early exit
     if early_exit_requested:
-        terminate_simulations()
+        terminate_processes()
 
     # Print summary
     print_summary(failed_sims, early_exit_requested)
