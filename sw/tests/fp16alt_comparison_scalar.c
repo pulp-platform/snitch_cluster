@@ -6,9 +6,9 @@
 #include "printf.h"
 
 int main() {
-    int errs = 40;
-
     if (snrt_is_compute_core()) {
+        int errs = 40;
+
         uint32_t i8a = 0xFFFF4049;   // 3.14
         uint32_t i8an = 0xFFFFC049;  // -3.14
         uint32_t i8b = 0xFFFF3FCF;   // 1.618
@@ -213,7 +213,8 @@ int main() {
 
         errs -= (cmp0 == 0x1);
         errs -= (cmp1 == 0x1);
-    }
 
-    return errs;
+        return errs;
+    }
+    return 0;
 }

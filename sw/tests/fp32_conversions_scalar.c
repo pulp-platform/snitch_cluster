@@ -8,9 +8,9 @@
 typedef float v2s __attribute__((vector_size(8)));
 
 int main() {
-    int errs = 48;
-
     if (snrt_is_compute_core()) {
+        int errs = 48;
+
         unsigned int res_cvt0 = 0;
         unsigned int res_cvt1 = 0;
 
@@ -480,7 +480,8 @@ int main() {
             : "+r"(res_cvt0), "+r"(res_cvt1));
         errs -= (res_cvt0 == 0x1);
         errs -= (res_cvt1 == 0x1);
-    }
 
-    return errs;
+        return errs;
+    }
+    return 0;
 }

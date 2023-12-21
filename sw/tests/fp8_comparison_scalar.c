@@ -5,9 +5,9 @@
 #include "snrt.h"
 
 int main() {
-    int errs = 40;
-
     if (snrt_is_compute_core()) {
+        int errs = 40;
+
         uint32_t i8a = 0xFFFFFF42;   // 3.14
         uint32_t i8an = 0xFFFFFFC2;  // -3.14
         uint32_t i8b = 0xFFFFFF3E;   // 1.618
@@ -209,7 +209,8 @@ int main() {
 
         errs -= (cmp0 == 0x1);
         errs -= (cmp1 == 0x1);
-    }
 
-    return errs;
+        return errs;
+    }
+    return 0;
 }

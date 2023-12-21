@@ -6,9 +6,9 @@
 #include "printf.h"
 
 int main() {
-    int errs = 64;
-
     if (snrt_is_compute_core()) {
+        int errs = 64;
+
         uint32_t fa8 = 0x4048F5C3;   // 0x4248 3.14
         uint32_t fa8n = 0xC048F5C3;  // 0xC248 -3.14
         uint32_t fb8 = 0x3FCF1AA0;   // 0x3E79  1.618
@@ -295,7 +295,8 @@ int main() {
             "vfeq.b %1, ft8, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
-    }
 
-    return errs;
+        return errs;
+    }
+    return 0;
 }
