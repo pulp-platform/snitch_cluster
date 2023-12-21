@@ -1,0 +1,12 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+runs:
+  - elf: tests/build/fp16_comparison_scalar.elf
+    simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x10
+  - elf: tests/build/fp16_computation_scalar.elf
+    simulators: [vsim, vcs, verilator] # banshee fails with JIT issue
+  - elf: tests/build/fp32_comparison_scalar.elf
+  - elf: tests/build/fp32_computation_scalar.elf
+    simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x2

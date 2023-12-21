@@ -19,6 +19,8 @@ SNRT_DIR := $(ROOT)/sw/snRuntime
 ifeq ($(SELECT_RUNTIME), banshee)
 RUNTIME_DIR  := $(ROOT)/target/snitch_cluster/sw/runtime/banshee
 RISCV_CFLAGS += -DBIST
+else ifeq ($(SELECT_RUNTIME), rtl-generic)
+RUNTIME_DIR  := $(ROOT)/target/snitch_cluster/sw/runtime/rtl-generic
 else
 RUNTIME_DIR := $(ROOT)/target/snitch_cluster/sw/runtime/rtl
 endif

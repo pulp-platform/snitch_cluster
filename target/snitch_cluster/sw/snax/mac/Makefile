@@ -10,6 +10,14 @@
 MK_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 include $(MK_DIR)/../../toolchain.mk
 
+# Banshee runtime is not supported
+ifeq ($(SELECT_RUNTIME), rtl-generic)
+RUNTIME_DIR := rtl-generic
+else
+RUNTIME_DIR := rtl
+endif
+
+
 ################
 ## Directories #
 ################
@@ -32,8 +40,8 @@ INCDIRS += $(SNRT_DIR)/src/omp
 INCDIRS += $(SNRT_DIR)/api/omp
 INCDIRS += $(SNRT_DIR)/vendor/riscv-opcodes
 INCDIRS += $(ROOT)/target/snitch_cluster/sw/runtime/common
-INCDIRS += $(ROOT)/target/snitch_cluster/sw/runtime/rtl/src
-INCDIRS += $(ROOT)/target/snitch_cluster/sw/runtime/rtl/include
+INCDIRS += $(ROOT)/target/snitch_cluster/sw/runtime/$(RUNTIME_DIR)/src
+INCDIRS += $(ROOT)/target/snitch_cluster/sw/runtime/$(RUNTIME_DIR)/include
 
 ############
 ## Outputs #

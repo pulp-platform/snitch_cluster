@@ -2,19 +2,9 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
+# This file contains all tests that require hardware to be built with
+# a snax core with a snax-gemm accelerator attached to it
+
 runs:
-  - elf: apps/blas/axpy/build/axpy.elf
-    cmd: [../../../sw/blas/axpy/verify.py, "${sim_bin}", "${elf}"]
-  - elf: apps/blas/gemm/build/gemm.elf
-    cmd: [../../../sw/blas/gemm/verify.py, "${sim_bin}", "${elf}"]
-  - elf: apps/dnn/batchnorm/build/batchnorm.elf
-  - elf: apps/dnn/linear/build/linear.elf
-  - elf: apps/dnn/maxpool/build/maxpool.elf
-  - elf: apps/dnn/gemm/build/gemm.elf
   - elf: apps/snax-gemm-base/build/snax-gemm-base.elf
   - elf: apps/snax-block-gemm/build/snax-block-gemm.elf
-# dnn/gelu # seems like it stalls
-# dnn/conv2d # fails with exit code 32
-# dnn/fusedconv # fails newly
-# dnn/layernorm # throws illegal instruction on FDIV in simulation
-# dnn/softmax # throws illegal instruction on FDIV in simulation
