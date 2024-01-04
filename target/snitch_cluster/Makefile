@@ -100,20 +100,6 @@ RTL_CC_SOURCES += ${TB_DIR}/rtl_lib.cc
 VLT_CC_SOURCES += \
 	${TB_DIR}/verilator_lib.cc \
 	${TB_DIR}/tb_bin.cc
-				
-
-# Required C sources for the verilator TB that are linked against the verilated model
-VLT_COBJ += $(VLT_BUILDDIR)/tb/bootrom.o
-VLT_COBJ += $(VLT_BUILDDIR)/tb/ipc.o
-VLT_COBJ += $(VLT_BUILDDIR)/tb/common_lib.o
-VLT_COBJ += $(VLT_BUILDDIR)/tb/verilator_lib.o
-VLT_COBJ += $(VLT_BUILDDIR)/tb/tb_bin.o
-# Sources from verilator root
-VLT_COBJ += $(VLT_BUILDDIR)/vlt/verilated.o
-VLT_COBJ += $(VLT_BUILDDIR)/vlt/verilated_dpi.o
-VLT_COBJ += $(VLT_BUILDDIR)/vlt/verilated_vcd_c.o
-# Bootdata
-VLT_COBJ += $(VLT_BUILDDIR)/generated/bootdata.o
 
 #################
 # Prerequisites #
