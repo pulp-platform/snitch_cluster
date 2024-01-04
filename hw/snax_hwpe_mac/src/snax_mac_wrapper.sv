@@ -15,17 +15,25 @@ module snax_mac_wrapper # (
   parameter type         tcdm_req_t        = logic,
   parameter type         tcdm_rsp_t        = logic
 )(
-  input     logic                               clk_i,
-  input     logic                               rst_ni,
-  input     logic                               snax_qvalid_i,
-  output    logic                               snax_qready_o,
-  input     acc_req_t                           snax_req_i,
-  output    acc_rsp_t                           snax_resp_o,
-  output    logic                               snax_pvalid_o,
-  input     logic                               snax_pready_i,
+  input     logic                           clk_i,
+  input     logic                           rst_ni,
+  input     logic                           snax_qvalid_i,
+  output    logic                           snax_qready_o,
+  input     acc_req_t                       snax_req_i,
+  output    acc_rsp_t                       snax_resp_o,
+  output    logic                           snax_pvalid_o,
+  input     logic                           snax_pready_i,
   output    tcdm_req_t  [SnaxTcdmPorts-1:0] snax_tcdm_req_o,
-  input     tcdm_rsp_t  [SnaxTcdmPorts-1:0] snax_tcdm_rsp_i
+  input     tcdm_rsp_t  [SnaxTcdmPorts-1:0] snax_tcdm_rsp_i,
+  output    logic                           snax_barrier_o
 );
+
+  //------------------------------
+  // Event control
+  //------------------------------
+  logic [1:0] evt;
+  assign snax_barrier_o = |evt;
+
   //------------------------------
   // HWPE control interface
   //------------------------------
@@ -93,7 +101,7 @@ module snax_mac_wrapper # (
     .clk_i          ( clk_i               ),
     .rst_ni         ( rst_ni              ),
     .test_mode_i    ( 1'b0                ),
-    .evt_o          (                     ),      // Unused
+    .evt_o          ( evt                 ),
     .tcdm_req       ( snax_mem.req        ),
     .tcdm_gnt       ( snax_mem.gnt        ),      // input
     .tcdm_add       ( snax_mem.add        ),

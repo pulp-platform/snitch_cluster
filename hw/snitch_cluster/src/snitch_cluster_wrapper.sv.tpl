@@ -306,6 +306,7 @@ module ${cfg['name']}_wrapper (
   ${cfg['pkg_name']}::acc_resp_t [${cfg['pkg_name']}::NrCores-1:0] snax_resp;
   logic      [${cfg['pkg_name']}::NrCores-1:0] snax_pvalid;
   logic      [${cfg['pkg_name']}::NrCores-1:0] snax_pready;
+  logic      [${cfg['pkg_name']}::NrCores-1:0] snax_barrier;
   ## This set of lines are for the internal pre-calculations for SNAX ports
   <%
     extract_port_num_list = []
@@ -441,6 +442,7 @@ module ${cfg['name']}_wrapper (
     .snax_pready_o (snax_pready),
     .snax_tcdm_req_i (snax_tcdm_req),
     .snax_tcdm_rsp_o (snax_tcdm_rsp),
+    .snax_barrier_i  (snax_barrier),
 % if cfg['sram_cfg_expose']:
     .sram_cfgs_i (sram_cfgs_i),
 % else:
@@ -459,8 +461,7 @@ module ${cfg['name']}_wrapper (
   // Accelerator instances if there are accelerator ports
   // If there are not accelerator ports, we tie the input signals to 0
 % for idx, c in enumerate(cfg['cores']):
-  % if c['snax_acc'] != "none":
-
+  % if c['snax_acc'] == "snax_gemm_wrapper":
   ${c['snax_acc']} # (
     .DataWidth ( ${cfg['pkg_name']}::NarrowDataWidth ),
     .SnaxTcdmPorts ( SnaxTcdmPorts[${idx}] ),
@@ -480,11 +481,38 @@ module ${cfg['name']}_wrapper (
     .snax_tcdm_req_o ( snax_tcdm_req[${offset_list[idx+1]-1}:${offset_list[idx]}] ),
     .snax_tcdm_rsp_i ( snax_tcdm_rsp[${offset_list[idx+1]-1}:${offset_list[idx]}] )
   );
+
+  assign snax_barrier[${idx}] = '0;
+
+  % elif c['snax_acc'] != "none":
+
+  ${c['snax_acc']} # (
+    .DataWidth ( ${cfg['pkg_name']}::NarrowDataWidth ),
+    .SnaxTcdmPorts ( SnaxTcdmPorts[${idx}] ),
+    .acc_req_t ( ${cfg['pkg_name']}::acc_req_t ),
+    .acc_rsp_t ( ${cfg['pkg_name']}::acc_resp_t ),
+    .tcdm_req_t ( ${cfg['pkg_name']}::tcdm_req_t ),
+    .tcdm_rsp_t ( ${cfg['pkg_name']}::tcdm_rsp_t )
+  ) i_${c['snax_acc']}_${idx}  (
+    .clk_i ( clk_i ),
+    .rst_ni ( rst_ni ),
+    .snax_req_i ( snax_req[${idx}] ),
+    .snax_qvalid_i ( snax_qvalid[${idx}] ),
+    .snax_qready_o ( snax_qready[${idx}] ),
+    .snax_resp_o ( snax_resp[${idx}] ),
+    .snax_pvalid_o ( snax_pvalid[${idx}] ),
+    .snax_pready_i ( snax_pready[${idx}] ),
+    .snax_barrier_o ( snax_barrier[${idx}] ),
+    .snax_tcdm_req_o ( snax_tcdm_req[${offset_list[idx+1]-1}:${offset_list[idx]}] ),
+    .snax_tcdm_rsp_i ( snax_tcdm_rsp[${offset_list[idx+1]-1}:${offset_list[idx]}] )
+  );
+
   % else:
 
   assign snax_qready[${idx}] = '0;
   assign snax_resp[${idx}] = '0;
   assign snax_pvalid[${idx}] = '0;
+  assign snax_barrier[${idx}] = '0;
   
   % endif
 % endfor

@@ -105,6 +105,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   input  fpnew_pkg::status_t        fpu_status_i,
   // Core events for performance counters
   output snitch_pkg::core_events_t  core_events_o,
+  // Cluster SNAX HW barrier
+  input  logic          snax_barrier_i,
   // Cluster HW barrier
   output logic          barrier_o,
   input  logic          barrier_i
@@ -242,6 +244,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic csr_en;
   logic csr_dump;
   logic csr_stall_d, csr_stall_q;
+  logic snax_csr_stall_d, snax_csr_stall_q;
+  logic snax_csr_barr_en_d, snax_csr_barr_en_q;
 
   localparam logic M = 0;
   localparam logic S = 1;
@@ -311,6 +315,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   end
 
   `FFAR(csr_stall_q, csr_stall_d, '0, clk_i, rst_i)
+  `FFAR(snax_csr_stall_q, snax_csr_stall_d, '0, clk_i, rst_i)
+  `FFAR(snax_csr_barr_en_q, snax_csr_barr_en_d, '0, clk_i, rst_i)
 
   typedef struct packed {
     fpnew_pkg::fmt_mode_t  fmode;
@@ -473,7 +479,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     pc_d = pc_q;
     npc = pc_q; // the next PC if we wouldn't be in debug mode
     // if we got a valid instruction word increment the PC unless we are waiting for an event
-    if (!stall && !wfi_q && !csr_stall_q) begin
+    if (!stall && !wfi_q && !csr_stall_q && !(snax_csr_stall_q && snax_csr_barr_en_q)) begin
       casez (next_pc)
         Consec: npc = consec_pc;
         Alu: npc = alu_result & {{31{1'b1}}, ~zero_lsb};
@@ -2360,9 +2366,15 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     dscratch_d = dscratch_q;
 
     csr_stall_d = csr_stall_q;
+    snax_csr_stall_d = snax_csr_stall_q;
+    snax_csr_barr_en_d = snax_csr_barr_en_q;
 
+    // Snitch barrier
     if (barrier_i) csr_stall_d = 1'b0;
     barrier_o = 1'b0;
+
+    // SNAX barrier
+    if (snax_barrier_i) snax_csr_stall_d = 1'b0;
 
     // DPC and DCSR update logic
     if (!debug_q) begin
@@ -2577,6 +2589,15 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
               csr_rvalue = {22'b0, fcsr_q};
               if (!exception) fcsr_d = fcsr_t'(alu_result[9:0]);
             end else illegal_csr = 1'b1;
+          end
+          // HW cluster barrier
+          csr_snax_def::SNAX_CSR_BARRIER_EN: begin
+            csr_rvalue = {31'd0,snax_csr_barr_en_q};
+            snax_csr_barr_en_d = alu_result[0];
+          end
+
+          csr_snax_def::SNAX_CSR_BARRIER: begin
+            snax_csr_stall_d = 1'b1;
           end
           // HW cluster barrier
           CSR_BARRIER: begin

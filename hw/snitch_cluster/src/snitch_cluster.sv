@@ -233,6 +233,7 @@ module snitch_cluster
   output logic      [NrCores-1:0]            snax_pready_o,
   input  tcdm_req_t [TotalSnaxTcdmPorts-1:0] snax_tcdm_req_i,
   output tcdm_rsp_t [TotalSnaxTcdmPorts-1:0] snax_tcdm_rsp_o,
+  input  logic      [NrCores-1:0]            snax_barrier_i,
   /// AXI Core cluster in-port.
   input  narrow_in_req_t                narrow_in_req_i,
   output narrow_in_resp_t               narrow_in_resp_o,
@@ -928,6 +929,7 @@ module snitch_cluster
         .snax_pready_o (snax_pready_o[i]),
         .core_events_o (core_events[i]),
         .tcdm_addr_base_i (tcdm_start_address),
+        .snax_barrier_i (snax_barrier_i[i]),
         .barrier_o (barrier_in[i]),
         .barrier_i (barrier_out)
       );

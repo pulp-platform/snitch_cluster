@@ -52,21 +52,17 @@ int main() {
         write_csr(0x3d4, 1);   // Number of iterations
         write_csr(0x3d5, 19);  // Vector length
 
+        // Enable SNAX barrier
+        write_csr(0x7c3, 1);
+
         // Write start CSR to launch accelerator
         write_csr(0x3c0, 0);
 
         // Start of CSR start and poll until accelerator finishes
         uint32_t mac_start = snrt_mcycle();
 
-        uint32_t break_poll;
-
-        while (1) {
-            // 0x3c3 is the CSR address for accelerator status
-            break_poll = read_csr(0x3c3);
-            if (break_poll == 0) {
-                break;
-            };
-        };
+        // Trigger SNAX barrier
+        write_csr(0x7c4, 0);
 
         uint32_t mac_end = snrt_mcycle();
 

@@ -137,6 +137,7 @@ module snitch_cc #(
   output snitch_pkg::core_events_t   core_events_o,
   input  addr_t                      tcdm_addr_base_i,
   // Cluster HW barrier
+  input  logic                       snax_barrier_i,
   output logic                       barrier_o,
   input  logic                       barrier_i
 );
@@ -269,6 +270,7 @@ module snitch_cc #(
     .fpu_fmt_mode_o ( fpu_fmt_mode ),
     .fpu_status_i ( fpu_status ),
     .core_events_o ( snitch_events),
+    .snax_barrier_i (snax_barrier_i ),
     .barrier_o ( barrier_o ),
     .barrier_i ( barrier_i )
   );
