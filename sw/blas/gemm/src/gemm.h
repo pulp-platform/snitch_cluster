@@ -70,7 +70,6 @@ void gemm_fp64_baseline(uint32_t M, uint32_t N, uint32_t K, double* A,
 void gemm_fp32_baseline(uint32_t M, uint32_t N, uint32_t K, float* A,
                         uint32_t ldA, uint32_t ta, float* B, uint32_t ldB,
                         uint32_t tb, float* C, uint32_t ldC, float BETA) {
-
     float c0 = 0.0f;
     float c1 = 0.0f;
     float c2 = 0.0f;
@@ -82,7 +81,7 @@ void gemm_fp32_baseline(uint32_t M, uint32_t N, uint32_t K, float* A,
                 c1 = 0.0f;
                 c2 = 0.0f;
                 c3 = 0.0f;
-                for (uint32_t k = 0; k < K; k+=4) {
+                for (uint32_t k = 0; k < K; k += 4) {
                     c0 += A[(k + 0) + m * ldA] * B[(k + 0) * ldB + n];
                     c1 += A[(k + 1) + m * ldA] * B[(k + 1) * ldB + n];
                     c2 += A[(k + 2) + m * ldA] * B[(k + 2) * ldB + n];
@@ -98,7 +97,7 @@ void gemm_fp32_baseline(uint32_t M, uint32_t N, uint32_t K, float* A,
                 c1 = 0.0f;
                 c2 = 0.0f;
                 c3 = 0.0f;
-                for (uint32_t k = 0; k < K; k+=4) {
+                for (uint32_t k = 0; k < K; k += 4) {
                     c0 += A[(k + 0) * M * ldA + m * ldA] * B[(k + 0) * ldB + n];
                     c1 += A[(k + 1) * M * ldA + m * ldA] * B[(k + 1) * ldB + n];
                     c2 += A[(k + 2) * M * ldA + m * ldA] * B[(k + 2) * ldB + n];
@@ -114,7 +113,7 @@ void gemm_fp32_baseline(uint32_t M, uint32_t N, uint32_t K, float* A,
                 c1 = 0.0f;
                 c2 = 0.0f;
                 c3 = 0.0f;
-                for (uint32_t k = 0; k < K; k+=4) {
+                for (uint32_t k = 0; k < K; k += 4) {
                     // c0 += A[k + m * ldA] * B[k + n * ldB];
                     c0 += A[(k + 0) + m * ldA] * B[(k + 0) + n * ldB];
                     c1 += A[(k + 1) + m * ldA] * B[(k + 1) + n * ldB];
