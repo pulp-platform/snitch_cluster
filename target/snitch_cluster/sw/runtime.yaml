@@ -1,0 +1,23 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+runs:
+  - elf: tests/build/atomics.elf
+    simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x4
+  - elf: tests/build/barrier.elf
+  - elf: tests/build/dma_simple.elf
+  - elf: tests/build/fence_i.elf
+  - elf: tests/build/interrupt_local.elf
+  - elf: tests/build/multi_cluster.elf
+  - elf: tests/build/perf_cnt.elf
+  - elf: tests/build/printf_simple.elf
+  - elf: tests/build/printf_fmtint.elf
+  - elf: tests/build/simple.elf
+  - elf: tests/build/tls.elf
+  - elf: tests/build/varargs_1.elf
+  - elf: tests/build/varargs_2.elf
+  - elf: tests/build/zero_mem.elf
+  - elf: tests/build/non_null_exitcode.elf
+    exit_code: 14
+  - elf: apps/montecarlo/pi_estimation/build/pi_estimation.elf

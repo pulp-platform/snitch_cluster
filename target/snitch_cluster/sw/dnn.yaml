@@ -1,0 +1,16 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+runs:
+  - elf: apps/dnn/batchnorm/build/batchnorm.elf
+  - elf: apps/dnn/linear/build/linear.elf
+  - elf: apps/dnn/maxpool/build/maxpool.elf
+  - elf: apps/dnn/gemm/build/gemm.elf
+  # - elf: apps/dnn/gelu/build/gelu.elf # seems like it stalls
+  # - elf: apps/dnn/conv2d/build/conv2d.elf # fails with exit code 32
+  # - elf: apps/dnn/fusedconv/build/fusedconv.elf # fails newly
+  # - elf: apps/dnn/layernorm/build/layernorm.elf
+  #   throws illegal instruction on FDIV in simulation
+  # - elf: apps/dnn/softmax/build/softmax.elf
+  #   throws illegal instruction on FDIV in simulation

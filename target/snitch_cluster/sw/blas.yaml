@@ -1,0 +1,9 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+runs:
+  - elf: apps/blas/axpy/build/axpy.elf
+    cmd: [../../../sw/blas/axpy/verify.py, "${sim_bin}", "${elf}"]
+  - elf: apps/blas/gemm/build/gemm.elf
+    cmd: [../../../sw/blas/gemm/verify.py, "${sim_bin}", "${elf}"]

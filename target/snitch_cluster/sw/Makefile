@@ -9,23 +9,25 @@ SELECT_RUNTIME ?= rtl
 
 ifeq ($(SELECT_RUNTIME), banshee)
 RUNTIME = runtime/banshee
+else ifeq ($(SELECT_RUNTIME), rtl-generic)
+RUNTIME = runtime/rtl-generic
 else
 RUNTIME = runtime/rtl
 endif
 
-SUBDIRS = runtime/banshee runtime/rtl math apps tests
+SUBDIRS += $(RUNTIME) snax/mac snax/gemm math apps tests
 
 .PHONY: all $(SUBDIRS)
 
 all: $(SUBDIRS)
 
 # Explicit dependency of apps on runtime
-apps: $(RUNTIME) math
+apps: $(RUNTIME) math snax/mac snax/gemm
 	$(MAKE) -C $@ TARGET=$(TARGET)
 
 # Explicit dependency of tests on runtime
-tests: $(RUNTIME) math
+tests: $(RUNTIME) math snax/mac snax/gemm
 	$(MAKE) -C $@ $(TARGET)
 
-runtime/rtl runtime/banshee math:
+runtime/rtl runtime/banshee runtime/rtl-generic math snax/mac snax/gemm:
 	$(MAKE) -C $@ $(TARGET)

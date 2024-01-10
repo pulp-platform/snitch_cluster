@@ -6,7 +6,7 @@
 
 Clone the repository:
 ```shell
-git clone https://github.com/pulp-platform/{{ repo  }}.git --recurse-submodules
+git clone https://github.com/KULeuven-MICAS/snitch_cluster.git --recurse-submodules
 ```
 
 If you had already cloned the repository without the `--recurse-submodules` flag, clone its submodules:

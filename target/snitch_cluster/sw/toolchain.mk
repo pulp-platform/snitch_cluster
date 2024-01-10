@@ -16,19 +16,34 @@ DEBUG ?= OFF # ON to turn on debugging symbols
 ###################
 
 # Compiler toolchain
-LLVM_BINROOT    ?= $(dir $(shell which riscv32-unknown-elf-clang))
-LLVM_VER        ?= $(shell $(LLVM_BINROOT)/llvm-config --version | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
-RISCV_CC        ?= $(LLVM_BINROOT)/clang
-RISCV_LD        ?= $(LLVM_BINROOT)/ld.lld
-RISCV_AR        ?= $(LLVM_BINROOT)/llvm-ar
-RISCV_OBJCOPY   ?= $(LLVM_BINROOT)/llvm-objcopy
-RISCV_OBJDUMP   ?= $(LLVM_BINROOT)/llvm-objdump
-RISCV_DWARFDUMP ?= $(LLVM_BINROOT)/llvm-dwarfdump
+ifneq ($(SELECT_TOOLCHAIN), llvm-generic)
+# specialized version does not use a version specifier in the binary
+LLVM_BINROOT    = /tools/riscv-llvm/bin
+LLVM_VERSION    = 
+else
+LLVM_BINROOT    = /usr/bin
+LLVM_VERSION    = -17
+endif
+RISCV_CC        ?= $(LLVM_BINROOT)/clang$(LLVM_VERSION)
+RISCV_LD        ?= $(LLVM_BINROOT)/ld.lld$(LLVM_VERSION)
+RISCV_AR        ?= $(LLVM_BINROOT)/llvm-ar$(LLVM_VERSION)
+RISCV_OBJCOPY   ?= $(LLVM_BINROOT)/llvm-objcopy$(LLVM_VERSION)
+RISCV_OBJDUMP   ?= $(LLVM_BINROOT)/llvm-objdump$(LLVM_VERSION)
+RISCV_DWARFDUMP ?= $(LLVM_BINROOT)/llvm-dwarfdump$(LLVM_VERSION)
+
+LLVM_VER        ?= $(shell /tools/riscv-llvm/bin/llvm-config --version | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
 
 # Compiler flags
-RISCV_CFLAGS += $(addprefix -I,$(INCDIRS))
+ifneq ($(SELECT_TOOLCHAIN), llvm-generic)
 RISCV_CFLAGS += -mcpu=snitch
 RISCV_CFLAGS += -menable-experimental-extensions
+else
+RISCV_CFLAGS += --target=riscv32-unknown-elf
+RISCV_CFLAGS += -mcpu=generic-rv32
+RISCV_CFLAGS += -march=rv32imafdzfh
+endif
+# Common flags
+RISCV_CFLAGS += $(addprefix -I,$(INCDIRS))
 RISCV_CFLAGS += -mabi=ilp32d
 RISCV_CFLAGS += -mcmodel=medany
 # RISCV_CFLAGS += -mno-fdiv # Not supported by Clang
@@ -46,12 +61,19 @@ endif
 RISCV_CFLAGS += -D__DEFINED_uint64_t
 
 # Linker flags
-RISCV_LDFLAGS += -fuse-ld=$(RISCV_LD)
+ifneq ($(SELECT_TOOLCHAIN), llvm-generic)
 RISCV_LDFLAGS += -nostartfiles
-RISCV_LDFLAGS += -nostdlib
-RISCV_LDFLAGS += -lc
-RISCV_LDFLAGS += -L$(LLVM_BINROOT)/../lib/clang/$(LLVM_VER)/lib/
+else
+RISCV_LDFLAGS += -L/tools/riscv-llvm/riscv32-unknown-elf/lib/
+endif
+# Common flags
 RISCV_LDFLAGS += -lclang_rt.builtins-riscv32
+# Use custom version here regardless
+RISCV_LDFLAGS += -L/tools/riscv-llvm/lib/clang/$(LLVM_VER)/lib/
+RISCV_LDFLAGS += -fuse-ld=$(RISCV_LD)
+RISCV_LDFLAGS += -nostdlib
+# FIXME Josse: is this flag necessary? in the rtl runtime there's no libc.a?
+RISCV_LDFLAGS += -lc
 
 # Archiver flags
 RISCV_ARFLAGS = rcs

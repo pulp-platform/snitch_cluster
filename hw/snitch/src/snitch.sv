@@ -105,6 +105,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   input  fpnew_pkg::status_t        fpu_status_i,
   // Core events for performance counters
   output snitch_pkg::core_events_t  core_events_o,
+  // Cluster SNAX HW barrier
+  input  logic          snax_barrier_i,
   // Cluster HW barrier
   output logic          barrier_o,
   input  logic          barrier_i
@@ -130,9 +132,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic wfi_d, wfi_q;
   logic [31:0] consec_pc;
   // Immediates
-  logic [31:0] iimm, uimm, jimm, bimm, simm;
+  logic [31:0] iimm, uimm, jimm, bimm, simm, csrimm;
   /* verilator lint_off WIDTH */
   assign iimm = $signed({inst_data_i[31:20]});
+  assign csrimm = {inst_data_i[31:20]};
   assign uimm = {inst_data_i[31:12], 12'b0};
   assign jimm = $signed({inst_data_i[31],
                                   inst_data_i[19:12], inst_data_i[20], inst_data_i[30:21], 1'b0});
@@ -217,7 +220,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   alu_op_e alu_op;
 
   typedef enum logic [3:0] {
-    None, Reg, IImmediate, UImmediate, JImmediate, SImmediate, SFImmediate, PC, CSR, CSRImmmediate
+    None, Reg, IImmediate, UImmediate, JImmediate,
+    SImmediate, SFImmediate, PC,
+    CSR, CSRImmmediate, CSRAddrImmediate
   } op_select_e;
   op_select_e opa_select, opb_select;
 
@@ -239,6 +244,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic csr_en;
   logic csr_dump;
   logic csr_stall_d, csr_stall_q;
+  logic snax_csr_stall_d, snax_csr_stall_q;
+  logic snax_csr_barr_en_d, snax_csr_barr_en_q;
 
   localparam logic M = 0;
   localparam logic S = 1;
@@ -308,6 +315,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   end
 
   `FFAR(csr_stall_q, csr_stall_d, '0, clk_i, rst_i)
+  `FFAR(snax_csr_stall_q, snax_csr_stall_d, '0, clk_i, rst_i)
+  `FFAR(snax_csr_barr_en_q, snax_csr_barr_en_d, '0, clk_i, rst_i)
 
   typedef struct packed {
     fpnew_pkg::fmt_mode_t  fmode;
@@ -470,7 +479,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     pc_d = pc_q;
     npc = pc_q; // the next PC if we wouldn't be in debug mode
     // if we got a valid instruction word increment the PC unless we are waiting for an event
-    if (!stall && !wfi_q && !csr_stall_q) begin
+    if (!stall && !wfi_q && !csr_stall_q && !(snax_csr_stall_q && snax_csr_barr_en_q)) begin
       casez (next_pc)
         Consec: npc = consec_pc;
         Alu: npc = alu_result & {{31{1'b1}}, ~zero_lsb};
@@ -773,64 +782,129 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         opa_select = Reg;
         opb_select = IImmediate;
       end
+
+      //---------------------------------------------
       // CSR Instructions
+      //---------------------------------------------
+
       CSRRW: begin // Atomic Read/Write CSR
-        opa_select = Reg;
-        opb_select = None;
-        rd_select = RdBypass;
-        rd_bypass = csr_rvalue;
-        csr_en = valid_instr;
+        if((csrimm >= csr_snax_def::CSR_SNAX_BEGIN) &&
+          ((csrimm <= csr_snax_def::CSR_SNAX_END))) begin
+          acc_qvalid_o    = valid_instr;
+          opa_select      = Reg;
+          opb_select      = CSRAddrImmediate;
+          acc_qreq_o.addr = SNAX_CSR;
+        end else begin
+          opa_select      = Reg;
+          opb_select      = None;
+          rd_select       = RdBypass;
+          rd_bypass       = csr_rvalue;
+          csr_en          = valid_instr;
+        end
       end
+
       CSRRWI: begin
-        opa_select = CSRImmmediate;
-        opb_select = None;
-        rd_select = RdBypass;
-        rd_bypass = csr_rvalue;
-        csr_en = valid_instr;
+        if((csrimm >= csr_snax_def::CSR_SNAX_BEGIN) &&
+          ((csrimm <= csr_snax_def::CSR_SNAX_END))) begin
+          acc_qvalid_o    = valid_instr;
+          opa_select      = CSRImmmediate;
+          opb_select      = CSRAddrImmediate;
+          acc_qreq_o.addr = SNAX_CSR;
+        end else begin
+          opa_select      = CSRImmmediate;
+          opb_select      = None;
+          rd_select       = RdBypass;
+          rd_bypass       = csr_rvalue;
+          csr_en          = valid_instr;
+        end
       end
+
       CSRRS: begin  // Atomic Read and Set Bits in CSR
-          alu_op = LOr;
-          opa_select = Reg;
-          opb_select = CSR;
-          rd_select = RdBypass;
-          rd_bypass = csr_rvalue;
-          csr_en = valid_instr;
+        if((csrimm >= csr_snax_def::CSR_SNAX_BEGIN) &&
+          ((csrimm <= csr_snax_def::CSR_SNAX_END))) begin
+          write_rd        = 1'b0;
+          uses_rd         = 1'b1;
+          acc_qvalid_o    = valid_instr;
+          opa_select      = None;
+          opb_select      = CSRAddrImmediate; // Just reading so nothing to write
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = SNAX_CSR;
+        end else begin
+          alu_op          = LOr;
+          opa_select      = Reg;
+          opb_select      = CSR;
+          rd_select       = RdBypass;
+          rd_bypass       = csr_rvalue;
+          csr_en          = valid_instr;
+        end
       end
+
       CSRRSI: begin
-        // offload CSR enable to FP SS
-        if (inst_data_i[31:20] != CSR_SSR) begin
-          alu_op = LOr;
-          opa_select = CSRImmmediate;
-          opb_select = CSR;
-          rd_select = RdBypass;
-          rd_bypass = csr_rvalue;
-          csr_en = valid_instr;
+        if((csrimm >= csr_snax_def::CSR_SNAX_BEGIN) &&
+          ((csrimm <= csr_snax_def::CSR_SNAX_END))) begin
+          write_rd        = 1'b0;
+          uses_rd         = 1'b1;
+          acc_qvalid_o    = valid_instr;
+          opa_select      = None;
+          opb_select      = CSRAddrImmediate; // Just reading so nothing to write
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = SNAX_CSR;
+        end else if (inst_data_i[31:20] != CSR_SSR) begin // offload CSR enable to FP SS
+          alu_op          = LOr;
+          opa_select      = CSRImmmediate;
+          opb_select      = CSR;
+          rd_select       = RdBypass;
+          rd_bypass       = csr_rvalue;
+          csr_en          = valid_instr;
         end else begin
           write_rd = 1'b0;
-          acc_qvalid_o = valid_instr;
+          acc_qvalid_o    = valid_instr;
         end
       end
+
       CSRRC: begin // Atomic Read and Clear Bits in CSR
-        alu_op = LNAnd;
-        opa_select = Reg;
-        opb_select = CSR;
-        rd_select = RdBypass;
-        rd_bypass = csr_rvalue;
-        csr_en = valid_instr;
-      end
-      CSRRCI: begin
-        if (inst_data_i[31:20] != CSR_SSR) begin
-          alu_op = LNAnd;
-          opa_select = CSRImmmediate;
-          opb_select = CSR;
-          rd_select = RdBypass;
-          rd_bypass = csr_rvalue;
-          csr_en = valid_instr;
+        if((csrimm >= csr_snax_def::CSR_SNAX_BEGIN) &&
+          ((csrimm <= csr_snax_def::CSR_SNAX_END))) begin
+          write_rd        = 1'b0;
+          uses_rd         = 1'b1;
+          acc_qvalid_o    = valid_instr;
+          opa_select      = None;
+          opb_select      = CSRAddrImmediate; // Just reading so nothing to write
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = SNAX_CSR;
         end else begin
-          write_rd = 1'b0;
-          acc_qvalid_o = valid_instr;
+          alu_op          = LNAnd;
+          opa_select      = Reg;
+          opb_select      = CSR;
+          rd_select       = RdBypass;
+          rd_bypass       = csr_rvalue;
+          csr_en          = valid_instr;
         end
       end
+
+      CSRRCI: begin
+        if((csrimm >= csr_snax_def::CSR_SNAX_BEGIN) &&
+          ((csrimm <= csr_snax_def::CSR_SNAX_END))) begin
+          write_rd        = 1'b0;
+          uses_rd         = 1'b1;
+          acc_qvalid_o    = valid_instr;
+          opa_select      = None;
+          opb_select      = CSRAddrImmediate; // Just reading so nothing to write
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = SNAX_CSR;
+        end else if (inst_data_i[31:20] != CSR_SSR) begin
+          alu_op          = LNAnd;
+          opa_select      = CSRImmmediate;
+          opb_select      = CSR;
+          rd_select       = RdBypass;
+          rd_bypass       = csr_rvalue;
+          csr_en          = valid_instr;
+        end else begin
+          write_rd        = 1'b0;
+          acc_qvalid_o    = valid_instr;
+        end
+      end
+
       ECALL: ecall = 1'b1;
       EBREAK: ebreak = 1'b1;
       // Environment return
@@ -2292,9 +2366,15 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     dscratch_d = dscratch_q;
 
     csr_stall_d = csr_stall_q;
+    snax_csr_stall_d = snax_csr_stall_q;
+    snax_csr_barr_en_d = snax_csr_barr_en_q;
 
+    // Snitch barrier
     if (barrier_i) csr_stall_d = 1'b0;
     barrier_o = 1'b0;
+
+    // SNAX barrier
+    if (snax_barrier_i) snax_csr_stall_d = 1'b0;
 
     // DPC and DCSR update logic
     if (!debug_q) begin
@@ -2511,6 +2591,15 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
             end else illegal_csr = 1'b1;
           end
           // HW cluster barrier
+          csr_snax_def::SNAX_CSR_BARRIER_EN: begin
+            csr_rvalue = {31'd0,snax_csr_barr_en_q};
+            snax_csr_barr_en_d = alu_result[0];
+          end
+
+          csr_snax_def::SNAX_CSR_BARRIER: begin
+            snax_csr_stall_d = 1'b1;
+          end
+          // HW cluster barrier
           CSR_BARRIER: begin
             barrier_o = 1'b1;
             csr_stall_d = 1'b1;
@@ -2650,6 +2739,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       SFImmediate, SImmediate: opb = simm;
       PC: opb = pc_q;
       CSR: opb = csr_rvalue;
+      CSRAddrImmediate: opb = csrimm;
       default: opb = '0;
     endcase
   end

@@ -21,7 +21,8 @@ def parser(default_simulator='vsim', simulator_choices=['vsim']):
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'testlist',
-        help='File specifying a list of apps to run')
+        nargs="+",
+        help='File(s) specifying a list of apps to run')
     parser.add_argument(
         '--simulator',
         action='store',
@@ -79,18 +80,25 @@ def resolve_relative_path(base_path, s):
 
 
 # Create simulation objects from a test list file
-def get_simulations(testlist, simulator):
+def get_simulations(testlists, simulator):
     # Get tests from test list file
-    testlist_path = Path(testlist).absolute()
-    with open(testlist_path, 'r') as f:
-        tests = yaml.safe_load(f)['runs']
-    # Convert relative paths in testlist file to absolute paths
-    for test in tests:
-        test['elf'] = testlist_path.parent / test['elf']
-        if 'cmd' in test:
-            test['cmd'] = [resolve_relative_path(testlist_path.parent, arg) for arg in test['cmd']]
+    all_tests = []
+    for testlist in testlists:
+        testlist_path = Path(testlist).absolute()
+        with open(testlist_path, 'r') as f:
+            tests = yaml.safe_load(f)['runs']
+        # Convert relative paths in testlist file to absolute paths
+        for test in tests:
+            test['elf'] = testlist_path.parent / test['elf']
+            if 'cmd' in test:
+                resolved_paths = []
+                for arg in test['cmd']:
+                    resolved_path = resolve_relative_path(testlist_path.parent, arg)
+                    resolved_paths.append(resolved_path)
+                test['cmd'] = resolved_paths
+        all_tests.extend(tests)
     # Create simulation object for every test which supports the specified simulator
-    simulations = [simulator.get_simulation(test) for test in tests if simulator.supports(test)]
+    simulations = [simulator.get_simulation(test) for test in all_tests if simulator.supports(test)]
     return simulations
 
 

@@ -9,6 +9,29 @@
 MK_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 include $(MK_DIR)/../toolchain.mk
 
+########
+# Apps #
+########
+
+# Note, various tests only work with the non-generic runtime and the specific llvm toolchain
+# moving to the generic runtime there are less tests that work,
+# and moving to generic llvm even less tests work
+APPS        = $(shell $(MK_DIR)/../../../../util/sim/list_apps.py --in-dir tests/ ../runtime.yaml)
+APPS        += $(shell $(MK_DIR)/../../../../util/sim/list_apps.py --in-dir tests/ ../standard-fp.yaml)
+# These tests only need custom riscv instructions, no custom builtins
+ifneq ($(SELECT_TOOLCHAIN), llvm-generic)
+APPS        += $(shell $(MK_DIR)/../../../../util/sim/list_apps.py --in-dir tests/ ../custom-fp.yaml)
+ifneq ($(SELECT_RUNTIME), rtl-generic)
+# These tests need custom builtins in the runtime
+APPS        += $(shell $(MK_DIR)/../../../../util/sim/list_apps.py --in-dir tests/ ../openmp.yaml)
+APPS        += $(shell $(MK_DIR)/../../../../util/sim/list_apps.py --in-dir tests/ ../snitch-cluster-openmp.yaml)
+APPS        += $(shell $(MK_DIR)/../../../../util/sim/list_apps.py --in-dir tests/ ../snitch-cluster-runtime.yaml)
+# These tests need custom builtins in the runtime and custom riscv instructions
+APPS        += $(shell $(MK_DIR)/../../../../util/sim/list_apps.py --in-dir tests/ ../dnn.yaml)
+APPS        += $(shell $(MK_DIR)/../../../../util/sim/list_apps.py --in-dir tests/ ../blas.yaml)
+endif
+endif
+
 ###############
 # Directories #
 ###############
@@ -19,6 +42,8 @@ SRC_DIR     = $(ROOT)/sw/tests
 BUILDDIR    = $(ROOT)/target/snitch_cluster/sw/tests/build
 ifeq ($(SELECT_RUNTIME), banshee)
 RUNTIME_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/banshee
+else ifeq ($(SELECT_RUNTIME), rtl-generic)
+RUNTIME_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/rtl-generic
 else
 RUNTIME_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/rtl
 endif
@@ -44,7 +69,6 @@ RISCV_LDFLAGS += -lsnRuntime
 # Outputs #
 ###########
 
-APPS        = $(shell $(MK_DIR)/../../../../util/sim/list_apps.py --in-dir tests/ ../run.yaml)
 ELFS        = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .elf,$(APPS))))
 DEPS        = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .d,$(APPS))))
 DUMPS       = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .dump,$(APPS))))

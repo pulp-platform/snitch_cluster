@@ -17,6 +17,8 @@ package:
     - Nils Wistoff <nwistoff@iis.ee.ethz.ch>
     - Luca Bertaccini <lbertaccini@iis.ee.ethz.ch>
     - Matheus Cavalcante <matheusd@iis.ee.ethz.ch>
+    - Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
+    - Ryan Antonio <ryan.antonio@esat.kuleuven.be>
 
 dependencies:
   axi:                { git: https://github.com/pulp-platform/axi,                version:  0.39.0  }
@@ -26,6 +28,8 @@ dependencies:
   register_interface: { git: https://github.com/pulp-platform/register_interface, version:  0.4.2   }
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.11  }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0   }
+  hwpe-mac-engine:    { git: https://github.com/KULeuven-MICAS/hwpe-mac-engine.git, rev: 5d3b4525b665169fc8321c8a811f3c83ad3c72e8 }
+  snax-gemm:          { git: https://github.com/KULeuven-MICAS/snax-gemm.git,     rev: 7e04484633da28513bdbe96a73a86a8476f69da4 }
 
 vendor_package:
   - name: musl
@@ -163,6 +167,7 @@ sources:
       # Level 0
       - hw/snitch/src/snitch_pma_pkg.sv
       - hw/snitch/src/riscv_instr.sv
+      - hw/snitch/src/csr_snax_def.sv
       # Level 1
       - hw/snitch/src/snitch_pkg.sv
       # Level 2
@@ -181,6 +186,13 @@ sources:
   - target: test
     files:
       - hw/snitch/test/snitch_l0_tlb_tb.sv
+
+  # snax mac
+  - files:
+      # Level 0
+      - hw/snax_hwpe_mac/src/snax_hwpe_ctrl.sv
+      - hw/snax_hwpe_mac/src/snax_hwpe_to_reqrsp.sv
+      - hw/snax_hwpe_mac/src/snax_mac_wrapper.sv
 
   # snitch_vm
   - files:

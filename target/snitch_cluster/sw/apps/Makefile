@@ -6,6 +6,8 @@
 
 SUBDIRS  = lto
 SUBDIRS += nop
+# Tests below don't work with the generic runtime
+ifneq ($(SELECT_RUNTIME), rtl-generic)
 SUBDIRS += blas/axpy
 SUBDIRS += blas/gemm
 SUBDIRS += dnn/batchnorm
@@ -17,7 +19,14 @@ SUBDIRS += dnn/layernorm
 SUBDIRS += dnn/linear
 SUBDIRS += dnn/maxpool
 SUBDIRS += dnn/softmax
+endif
 SUBDIRS += montecarlo/pi_estimation
+SUBDIRS += snax-mac
+SUBDIRS += snax-mac-simple/untiled
+SUBDIRS += snax-mac-simple/tiled
+SUBDIRS += snax-gemm-engine
+SUBDIRS += snax-gemm-base
+SUBDIRS += snax-block-gemm
 
 .PHONY: all clean $(SUBDIRS)
 
