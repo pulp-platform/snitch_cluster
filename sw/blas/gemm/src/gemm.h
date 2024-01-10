@@ -929,9 +929,9 @@ void gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
             }
             break;
         case FP8:
-            gemm_fp8_ex_opt(frac_m, n, k, (char*)a + offsetA, lda, (char*)b,
-                            ldb, (char*)c + offsetC, ldc_strided, &beta,
-                            setup_ssr);
+            gemm_fp8_ex_opt(frac_m, n, k, (char*)a + offsetA, lda_strided,
+                            (char*)b, ldb, (char*)c + offsetC, ldc_strided,
+                            &beta, setup_ssr);
             break;
     }
 }

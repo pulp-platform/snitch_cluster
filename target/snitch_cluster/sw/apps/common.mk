@@ -82,7 +82,7 @@ $(ELF): $(SRCS) $(DEP) $(LIBS) | $(BUILDDIR)
 	$(RISCV_CC) $(RISCV_CFLAGS) $(RISCV_LDFLAGS) $(SRCS) -o $@
 
 $(DUMP): $(ELF) | $(BUILDDIR)
-	$(RISCV_OBJDUMP) -D $< > $@
+	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_FLAGS) $< > $@
 
 $(DWARF): $(ELF) | $(BUILDDIR)
 	$(RISCV_DWARFDUMP) $< > $@

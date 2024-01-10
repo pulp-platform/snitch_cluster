@@ -50,15 +50,15 @@ int main() {
         uint32_t start_cycle = snrt_mcycle();
 
         volatile uint32_t lda = K;
-        volatile uint32_t ldb = N;
+        volatile uint32_t ldb = K;
         volatile uint32_t ldc = N;
 
         // Transpose of A unsopported
         if (TA) return -1;
-        if (TB) {
+        if (!TB) {
             // Transpose of B supported only in FP64
             if (dtype_size != FP64) return -1;
-            ldb = K;
+            ldb = N;
         }
 
         gemm(dtype_size, expand, setup_ssr, TA, TB, frac_m, N, K, 1, local_a,
@@ -75,6 +75,8 @@ int main() {
         snrt_dma_wait_all();
     }
 
+    snrt_cluster_hw_barrier();
+
 // TODO: currently only works for single cluster otherwise need to
 //       synchronize all cores here
 #ifdef BIST
@@ -86,19 +88,19 @@ int main() {
                 uint32_t idx = m * N + n;
                 switch (dtype_size) {
                     case FP64:
-                        if (fabs(result[idx] - ((double *)local_c)[idx]) >
-                            0.001)
+                        if (fabs(result[idx] - ((double *)local_c)[idx]) <
+                            fabs(result[idx] * 0.00001))
                             errors--;
                         break;
                     case FP32:
-                        if (fabs(result[idx] - ((float *)local_c)[idx]) > 0.001)
+                        if (fabs(result[idx] - ((float *)local_c)[idx]) <
+                            fabs(result[idx] * 0.0001))
                             errors--;
                         break;
                     case FP16:
-                        if (fabs(result[idx] - ((__fp16 *)local_c)[idx]) >
-                            0.001)
+                        if (fabs(result[idx] - ((__fp16 *)local_c)[idx]) <
+                            fabs(result[idx] * 0.005))
                             errors--;
-                        break;
                     case FP8:
                         printf("No golden model yet for fp8!\n");
                         return -1;
