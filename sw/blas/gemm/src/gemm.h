@@ -67,6 +67,76 @@ void gemm_fp64_baseline(uint32_t M, uint32_t N, uint32_t K, double* A,
     }
 }
 
+void gemm_fp32_baseline(uint32_t M, uint32_t N, uint32_t K, float* A,
+                        uint32_t ldA, uint32_t ta, float* B, uint32_t ldB,
+                        uint32_t tb, float* C, uint32_t ldC, float BETA) {
+
+    float c0 = 0.0f;
+    float c1 = 0.0f;
+    float c2 = 0.0f;
+    float c3 = 0.0f;
+    if (!ta && !tb) {
+        for (uint32_t m = 0; m < M; m++) {
+            for (uint32_t n = 0; n < N; n++) {
+                c0 = BETA * C[m * ldC + n];
+                c1 = 0.0f;
+                c2 = 0.0f;
+                c3 = 0.0f;
+                for (uint32_t k = 0; k < K; k+=4) {
+                    c0 += A[(k + 0) + m * ldA] * B[(k + 0) * ldB + n];
+                    c1 += A[(k + 1) + m * ldA] * B[(k + 1) * ldB + n];
+                    c2 += A[(k + 2) + m * ldA] * B[(k + 2) * ldB + n];
+                    c3 += A[(k + 3) + m * ldA] * B[(k + 3) * ldB + n];
+                }
+                C[m * ldC + n] = c0 + c1 + c2 + c3;
+            }
+        }
+    } else if (ta && !tb) {
+        for (uint32_t m = 0; m < M; m++) {
+            for (uint32_t n = 0; n < N; n++) {
+                c0 = BETA * C[m * ldC + n];
+                c1 = 0.0f;
+                c2 = 0.0f;
+                c3 = 0.0f;
+                for (uint32_t k = 0; k < K; k+=4) {
+                    c0 += A[(k + 0) * M * ldA + m * ldA] * B[(k + 0) * ldB + n];
+                    c1 += A[(k + 1) * M * ldA + m * ldA] * B[(k + 1) * ldB + n];
+                    c2 += A[(k + 2) * M * ldA + m * ldA] * B[(k + 2) * ldB + n];
+                    c3 += A[(k + 3) * M * ldA + m * ldA] * B[(k + 3) * ldB + n];
+                }
+                C[m * ldC + n] = c0 + c1 + c2 + c3;
+            }
+        }
+    } else if (!ta && tb) {
+        for (uint32_t m = 0; m < M; m++) {
+            for (uint32_t n = 0; n < N; n++) {
+                c0 = BETA * C[m * ldC + n];
+                c1 = 0.0f;
+                c2 = 0.0f;
+                c3 = 0.0f;
+                for (uint32_t k = 0; k < K; k+=4) {
+                    // c0 += A[k + m * ldA] * B[k + n * ldB];
+                    c0 += A[(k + 0) + m * ldA] * B[(k + 0) + n * ldB];
+                    c1 += A[(k + 1) + m * ldA] * B[(k + 1) + n * ldB];
+                    c2 += A[(k + 2) + m * ldA] * B[(k + 2) + n * ldB];
+                    c3 += A[(k + 3) + m * ldA] * B[(k + 3) + n * ldB];
+                }
+                C[m * ldC + n] = c0 + c1 + c2 + c3;
+            }
+        }
+    } else {
+        for (uint32_t m = 0; m < M; m++) {
+            for (uint32_t n = 0; n < N; n++) {
+                c0 = BETA * C[m * ldC + n];
+                for (uint32_t k = 0; k < K; k++) {
+                    c0 += A[k * M * ldA + m * ldA] * B[k + n * ldB];
+                }
+                C[m * ldC + n] = c0;
+            }
+        }
+    }
+}
+
 void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, double* A, uint32_t ldA,
                    uint32_t ta, double* B, uint32_t ldB, uint32_t tb, double* C,
                    uint32_t ldC, const uint32_t* BETA, uint32_t setup_SSR) {
