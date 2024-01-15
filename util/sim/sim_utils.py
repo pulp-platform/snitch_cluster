@@ -3,6 +3,49 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
+"""Convenience functions to set up a Python simulation framework.
+
+Such a framework enables you to transparently run a software test suite
+on any simulator of choice, provided that the latter is supported by
+the framework. It can be used in CIs, regression testing or to conduct
+systematic evaluation experiments.
+
+Three interfaces are required to implement a common framework:
+
+1. a test suite specification interface to specify the software tests
+2. a command-line interface used to launch the simulations
+3. an interface to the simulators supported by the framework
+
+The framework can be divided into three components each managing one of
+the defined interfaces:
+
+1. a test suite frontend
+2. a command-line frontend
+3. a simulation backend
+
+A fourth component, the core, serves to glue all other components
+together.
+
+The [parser()][sim_utils.parser] function provides a minimum
+command-line interface to control the tool.
+
+The [get_simulations()][sim_utils.get_simulations] function
+provides a common means to implement the test suite frontend. At the
+input interface it assumes a test suite specification file in YAML
+syntax, and returns a list of simulation objects which implement a
+common interface to the simulation backend. This interface is defined
+by the [Simulation][Simulation.Simulation] class.
+
+The core logic of the framework is implemented in the
+[run_simulations()][sim_utils.run_simulations] function. It takes
+the output from [get_simulations()][sim_utils.get_simulations] and
+launches the simulations through the interface to the simulation
+backend.
+
+The simulation backend is implemented by the
+[Simulation][Simulation.Simulation] and
+[Simulator][Simulator.Simulator] classes and their subclasses.
+"""
 
 import argparse
 from termcolor import colored, cprint
@@ -17,6 +60,18 @@ POLL_PERIOD = 0.2
 
 
 def parser(default_simulator='vsim', simulator_choices=['vsim']):
+    """Default command-line parser for Python simulation frameworks.
+
+    Returns a Python `argparse` parser with common options used to
+    simulate one or multiple binaries on an RTL design. Can be extended
+    by adding arguments to it.
+
+    Args:
+        default_simulator: The simulator to be used when none is
+            specified on the command-line.
+        simulator_choices: All simulator choices which can be passed on
+            the command-line.
+    """
     # Argument parsing
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -44,6 +99,10 @@ def parser(default_simulator='vsim', simulator_choices=['vsim']):
         action='store_true',
         help='Exit as soon as any test fails')
     parser.add_argument(
+        '--verbose',
+        action='store_true',
+        help='Activate verbose printing')
+    parser.add_argument(
         '-j',
         action='store',
         dest='n_procs',
@@ -57,9 +116,17 @@ def parser(default_simulator='vsim', simulator_choices=['vsim']):
     return parser
 
 
-# Checks if a string s represents a valid relative path w.r.t. to a certain base_path and resolves
-# it to an absolute path, if this is the case. Otherwise returns the original string.
-def resolve_relative_path(base_path, s):
+def _resolve_relative_path(base_path, s):
+    """Resolve a relative path string w.r.t. a ceratin base.
+
+    Checks if an input string represents a valid relative path w.r.t.
+    to a certain base path and resolves it to an absolute path, if this
+    is the case. Otherwise returns the original string.
+
+    Args:
+        s: The input string
+        base_path: The base path
+    """
     try:
         base_path = Path(base_path).resolve()  # Get the absolute path of the base directory
         input_path = Path(s)
@@ -78,8 +145,24 @@ def resolve_relative_path(base_path, s):
         return s
 
 
-# Create simulation objects from a test list file
-def get_simulations(testlist, simulator):
+def get_simulations(testlist, simulator, run_dir=None):
+    """Create simulation objects from a test list file.
+
+    Args:
+        testlist: Path to a test list file. A test list file is a YAML
+            file describing a set of tests.
+        simulator: The simulator to use to run the tests. A test run on
+            a specific simulator defines a simulation.
+        run_dir: A directory under which all tests should be run. If
+            provided, a unique subdirectory for each test will be
+            created under this directory, based on the test name.
+
+    Returns:
+        A list of `Simulation` objects. The list contains a
+            `Simulation` object for every test which supports the given
+            `simulator`. This object defines a simulation of the test on
+            that particular `simulator`.
+    """
     # Get tests from test list file
     testlist_path = Path(testlist).absolute()
     with open(testlist_path, 'r') as f:
@@ -88,13 +171,27 @@ def get_simulations(testlist, simulator):
     for test in tests:
         test['elf'] = testlist_path.parent / test['elf']
         if 'cmd' in test:
-            test['cmd'] = [resolve_relative_path(testlist_path.parent, arg) for arg in test['cmd']]
+            test['cmd'] = [_resolve_relative_path(testlist_path.parent, arg) for arg in test['cmd']]
     # Create simulation object for every test which supports the specified simulator
     simulations = [simulator.get_simulation(test) for test in tests if simulator.supports(test)]
+    # Set simulation run directory
+    if run_dir is not None:
+        for sim in simulations:
+            sim.run_dir = Path(run_dir) / sim.testname
     return simulations
 
 
 def print_summary(failed_sims, early_exit=False, dry_run=False):
+    """Print a summary of the simulation suite's exit status.
+
+    Args:
+        failed_sims: A list of failed simulations from the simulation
+            suite.
+        early_exit: Whether the simulation suite was configured to
+            terminate upon the first failing simulation.
+        dry_run: Whether the simulation suite was launched in dry run
+            mode.
+    """
     if not dry_run:
         header = f'==== Test summary {"(early exit)" if early_exit else ""} ===='
         cprint(header, attrs=['bold'])
@@ -104,8 +201,8 @@ def print_summary(failed_sims, early_exit=False, dry_run=False):
             print(f'{colored("All tests passed!", "green")}')
 
 
-def terminate_simulations():
-    print('Terminating simulations')
+def terminate_processes():
+    print('Terminate processes')
     # Get PID and PGID of parent process (current Python script)
     ppid = os.getpid()
     pgid = os.getpgid(0)
@@ -116,32 +213,54 @@ def terminate_simulations():
             os.kill(pid, signal.SIGKILL)
 
 
-def run_simulations(simulations, n_procs=1, run_dir=None, dry_run=False, early_exit=False):
+def get_unique_run_dir(sim, prefix=None):
+    """Get unique run directory for a simulation.
+
+    If the simulation was already assigned a run directory at creation
+    time, None is returned. Otherwise, return a unique run directory
+    based on the testname under an optional prefix directory.
+
+    Args:
+        sim: The simulation for which the run directory is
+            requested.
+        prefix: Get a unique run directory under a directory which
+            could be common to multiple simulations. We call this
+            a prefix. By default the current working directory is
+            assumed as the prefix.
+    """
+    if sim.run_dir is None:
+        if prefix is None:
+            prefix = Path.cwd()
+        return prefix / sim.testname
+
+
+def run_simulations(simulations, n_procs=1, dry_run=None, early_exit=False,
+                    verbose=False):
+    """Run simulations defined by a list of `Simulation` objects.
+
+    Args:
+        simulations: A list of `Simulation` objects as returned e.g. by
+            [sim_utils.get_simulations][].
+
+    Returns:
+        The number of failed simulations.
+    """
     # Register SIGTERM handler, used to gracefully terminate all simulation subprocesses
-    signal.signal(signal.SIGTERM, lambda _, __: terminate_simulations())
+    signal.signal(signal.SIGTERM, lambda _, __: terminate_processes())
 
     # Spawn a process for every test, wait for all running tests to terminate and check results
     running_sims = []
     failed_sims = []
     early_exit_requested = False
-    uniquify_run_dir = len(simulations) > 1
     try:
         while (len(simulations) or len(running_sims)) and not early_exit_requested:
             # If there are still simulations to run and there are less running simulations than
             # the maximum number of processes allowed in parallel, spawn new simulation
             if len(simulations) and len(running_sims) < n_procs:
                 running_sims.append(simulations.pop(0))
-                # Launch simulation in current working directory, by default
-                if run_dir is None:
-                    run_dir = Path.cwd()
-                # Create unique subdirectory for each test under run directory, if multiple tests
-                if uniquify_run_dir:
-                    unique_run_dir = run_dir / running_sims[-1].testname
-                else:
-                    unique_run_dir = run_dir
-                running_sims[-1].launch(run_dir=unique_run_dir, dry_run=dry_run)
+                running_sims[-1].launch(dry_run=dry_run)
             # Remove completed sims from running sims list
-            idcs = [i for i, sim in enumerate(running_sims) if dry_run or sim.completed()]
+            idcs = [i for i, sim in enumerate(running_sims) if sim.completed()]
             completed_sims = [running_sims.pop(i) for i in sorted(idcs, reverse=True)]
             # Check completed sims and report status
             for sim in completed_sims:
@@ -149,7 +268,8 @@ def run_simulations(simulations, n_procs=1, run_dir=None, dry_run=False, early_e
                     sim.print_status()
                 else:
                     failed_sims.append(sim)
-                    sim.print_log()
+                    if verbose:
+                        sim.print_log()
                     sim.print_status()
                     # If in early-exit mode, terminate as soon as any simulation fails
                     if early_exit:
@@ -161,7 +281,7 @@ def run_simulations(simulations, n_procs=1, run_dir=None, dry_run=False, early_e
 
     # Clean up after early exit
     if early_exit_requested:
-        terminate_simulations()
+        terminate_processes()
 
     # Print summary
     print_summary(failed_sims, early_exit_requested)

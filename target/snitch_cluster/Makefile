@@ -9,7 +9,7 @@
 # Makefile invocation #
 #######################
 
-DEBUG          ?= OFF  # ON to turn on debugging symbols
+DEBUG          ?= OFF  # ON to turn on debugging symbols and wave logging
 CFG_OVERRIDE   ?=      # Override default config file
 SELECT_RUNTIME ?=      # Select snRuntime implementation: "banshee" or "rtl" (default)
 
@@ -68,8 +68,6 @@ QUESTA_64BIT = -64
 VLOG_64BIT   = -64
 
 VSIM_FLAGS += ${QUESTA_64BIT}
-VSIM_FLAGS += -t 1ps
-VSIM_FLAGS += -do "log -r /*; run -a"
 
 VLOG_FLAGS += -svinputport=compat
 VLOG_FLAGS += -override_timescale 1ns/1ps

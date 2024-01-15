@@ -2,6 +2,10 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
+# Makefile invocation
+DEBUG ?= OFF  # ON to turn on wave logging
+
+# Directories
 LOGS_DIR ?= logs
 TB_DIR   ?= $(SNITCH_ROOT)/target/common/test
 UTIL_DIR ?= $(SNITCH_ROOT)/util
@@ -41,7 +45,13 @@ SED_SRCS  := sed -e ${MATCH_END} -e ${MATCH_BGN}
 VSIM_BENDER   += -t test -t rtl -t simulation -t vsim
 VSIM_SOURCES   = $(shell ${BENDER} script flist ${VSIM_BENDER} | ${SED_SRCS})
 VSIM_BUILDDIR ?= work-vsim
+VSIM_FLAGS    += -t 1ps
+ifeq ($(DEBUG), ON)
+VSIM_FLAGS    += -do "log -r /*; run -a"
 VOPT_FLAGS     = +acc
+else
+VSIM_FLAGS    += -do "run -a"
+endif
 
 # VCS_BUILDDIR should to be the same as the `DEFAULT : ./work-vcs`
 # in target/snitch_cluster/synopsys_sim.setup

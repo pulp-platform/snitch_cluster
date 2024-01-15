@@ -22,6 +22,10 @@ markdown_extensions:
       emoji_generator: !!python/name:materialx.emoji.to_svg
 plugins:
   - include-markdown
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [util/sim]
   - macros:
       on_error_fail: true
 use_directory_urls: false
@@ -49,10 +53,15 @@ nav:
           - Custom Instructions: rm/custom_instructions.md
           # - Solder: rm/solder.md
       - Software:
-          - Pages: runtime/Pages/index.md
-          - Files: runtime/Files/index.md
-          - Classes: runtime/Classes/index.md
-          - Examples: runtime/Examples/index.md
-          - Modules: runtime/Modules/index.md
-          - Namespaces: runtime/Namespaces/index.md
+          - Simulation Utilities:
+              - sim_utils: rm/sim/sim_utils.md
+              - rm/sim/Simulation.md
+              - rm/sim/Simulator.md
+          - Snitch Runtime:
+              - Pages: runtime/Pages/index.md
+              - Files: runtime/Files/index.md
+              - Classes: runtime/Classes/index.md
+              - Examples: runtime/Examples/index.md
+              - Modules: runtime/Modules/index.md
+              - Namespaces: runtime/Namespaces/index.md
   - Publications: publications.md
