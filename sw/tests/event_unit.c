@@ -9,7 +9,6 @@ volatile static uint32_t sum = 0;
 static void task(void *arg, uint32_t argc) {
     uint32_t arg0 = ((uint32_t *)arg)[0];
     __atomic_add_fetch(&sum, arg0, __ATOMIC_RELAXED);
-    printf("work arg[0] = %d argc = %d\n", arg0, argc);
 }
 
 uint32_t run_and_verify_task(uint32_t *arg, uint32_t n_workers) {

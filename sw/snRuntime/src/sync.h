@@ -83,6 +83,12 @@ inline void snrt_global_barrier() {
     snrt_cluster_hw_barrier();
 }
 
+inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
+    __atomic_add_fetch(&_reduction_result, value, __ATOMIC_RELAXED);
+    snrt_global_barrier();
+    return _reduction_result;
+}
+
 /**
  * @brief Generic barrier
  *
