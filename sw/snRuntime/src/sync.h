@@ -62,7 +62,7 @@ inline void snrt_cluster_hw_barrier() {
 /// Synchronize clusters globally with a global software barrier
 inline void snrt_global_barrier() {
     snrt_cluster_hw_barrier();
-    
+
     // Synchronize all DM cores in software
     if (snrt_is_dm_core()) {
         // Remember previous iteration
