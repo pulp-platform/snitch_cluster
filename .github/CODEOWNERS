@@ -2,7 +2,7 @@
 # Unless a later match takes precedence, global owners below will be
 # requested for review when someone opens a pull request.
 
-* @paulsc96 @colluca
+* @paulsc96 @colluca @fischeti
 
 hw/snitch_cluster @paulsc96 @lucabertaccini
 hw/snitch_dma @paulsc96 @thommythomaso

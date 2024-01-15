@@ -24,7 +24,12 @@ variables:
 before_script:
   - $PYTHON -m venv .venv
   - source .venv/bin/activate
-  - pip install -r python-requirements.txt
+  # Unpack packages in a local temporary directory which can be safely cleaned
+  # after installation. Also protects against "No space left on device" errors
+  # occurring when the /tmp folder is filled by other processes.
+  - mkdir tmp
+  - TMPDIR=tmp pip install -r python-requirements.txt
+  - rm -rf tmp
   - $BENDER vendor init
 
 ##############
