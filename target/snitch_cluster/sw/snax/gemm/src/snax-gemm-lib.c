@@ -172,13 +172,10 @@ void start_batch_gemm() {
 void wait_batch_gemm() {
     uint32_t break_poll;
 
-    while (1) {
-        // poll the state CSR[1] to see if GEMM is still busy
-        break_poll = read_csr(0x3cf);
-        if ((break_poll >> 1) == 1) {
-            break;
-        };
-    };
+    // Enable SNAX barrier
+    write_csr(0x7c3, 1);
+    // Trigger SNAX barrier
+    write_csr(0x7c4, 0);
 }
 
 uint32_t check_result(int32_t* output, int32_t* output_golden, uint8_t Batch,
