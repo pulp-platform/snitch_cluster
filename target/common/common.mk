@@ -199,25 +199,31 @@ endef
 # Traces #
 ##########
 
-DASM_TRACES      = $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null))
-TXT_TRACES       = $(shell (echo $(DASM_TRACES) | sed 's/\.dasm/\.txt/g'))
-PERF_TRACES      = $(shell (echo $(DASM_TRACES) | sed 's/trace_hart/hart/g' | sed 's/.dasm/_perf.json/g'))
-ANNOTATED_TRACES = $(shell (echo $(DASM_TRACES) | sed 's/\.dasm/\.s/g'))
-DIFF_TRACES      = $(shell (echo $(DASM_TRACES) | sed 's/\.dasm/\.diff/g'))
+SNITCH_DASM_TRACES      = $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null))
+SNITCH_TXT_TRACES       = $(shell (echo $(SNITCH_DASM_TRACES) | sed 's/\.dasm/\.txt/g'))
+SNITCH_ANNOTATED_TRACES = $(shell (echo $(SNITCH_DASM_TRACES) | sed 's/\.dasm/\.s/g'))
+SNITCH_PERF_DUMPS       = $(shell (echo $(SNITCH_DASM_TRACES) | sed 's/trace_hart/hart/g' | sed 's/.dasm/_perf.json/g'))
 
-GENTRACE_OUTPUTS = $(TXT_TRACES) $(PERF_TRACES)
-ANNOTATE_OUTPUTS = $(ANNOTATED_TRACES)
-PERF_CSV         = $(LOGS_DIR)/perf.csv
-EVENT_CSV        = $(LOGS_DIR)/event.csv
-TRACE_CSV        = $(LOGS_DIR)/trace.csv
-TRACE_JSON       = $(LOGS_DIR)/trace.json
+TXT_TRACES       += $(SNITCH_TXT_TRACES)
+ANNOTATED_TRACES += $(SNITCH_ANNOTATED_TRACES)
+PERF_DUMPS       += $(SNITCH_PERF_DUMPS)
+JOINT_PERF_DUMP   = $(LOGS_DIR)/perf.json
+ROI_DUMP          = $(LOGS_DIR)/roi.json
+VISUAL_TRACE      = $(LOGS_DIR)/trace.json
 
-.PHONY: traces annotate perf-csv event-csv layout
-traces: $(GENTRACE_OUTPUTS)
-annotate: $(ANNOTATE_OUTPUTS)
-perf-csv: $(PERF_CSV)
-event-csv: $(EVENT_CSV)
-layout: $(TRACE_CSV) $(TRACE_JSON)
+.PHONY: traces annotate visual-trace clean-traces clean-annotate clean-perf clean-visual-trace
+traces: $(TXT_TRACES)
+annotate: $(ANNOTATED_TRACES)
+perf: $(JOINT_PERF_DUMP)
+visual-trace: $(VISUAL_TRACE)
+clean-traces:
+	rm -f $(TXT_TRACES)
+clean-annotate:
+	rm -f $(ANNOTATED_TRACES)
+clean-perf:
+	rm -f $(PERF_DUMPS) $(JOINT_PERF_DUMP)
+clean-visual-trace:
+	rm -f $(VISUAL_TRACE)
 
 $(LOGS_DIR)/trace_hart_%.txt $(LOGS_DIR)/hart_%_perf.json: $(LOGS_DIR)/trace_hart_%.dasm $(GENTRACE_PY)
 	$(DASM) < $< | $(GENTRACE_PY) --permissive -d $(LOGS_DIR)/hart_$*_perf.json > $(LOGS_DIR)/trace_hart_$*.txt
@@ -230,14 +236,11 @@ $(LOGS_DIR)/trace_hart_%.s: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY}
 $(LOGS_DIR)/trace_hart_%.diff: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY}
 	${ANNOTATE_PY} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $< -d
 
-$(PERF_CSV): $(PERF_TRACES) $(PERF_CSV_PY)
-	$(PERF_CSV_PY) -o $@ -i $(PERF_TRACES)
+$(JOINT_PERF_DUMP): $(PERF_DUMPS) $(JOIN_PY)
+	$(JOIN_PY) -i $(shell ls $(LOGS_DIR)/*_perf.json) -o $@
 
-$(EVENT_CSV): $(PERF_TRACES) $(PERF_CSV_PY)
-	$(PERF_CSV_PY) -o $@ -i $(PERF_TRACES) --filter tstart tend
+$(ROI_DUMP): $(JOINT_PERF_DUMP) $(ROI_SPEC) $(ROI_PY)
+	$(ROI_PY) $(JOINT_PERF_DUMP) $(ROI_SPEC) --cfg $(CFG) -o $@
 
-$(TRACE_CSV): $(EVENT_CSV) $(LAYOUT_FILE) $(LAYOUT_EVENTS_PY)
-	$(LAYOUT_EVENTS_PY) $(LAYOUT_EVENTS_FLAGS) $(EVENT_CSV) $(LAYOUT_FILE) -o $@
-
-$(TRACE_JSON): $(TRACE_CSV) $(EVENTVIS_PY)
-	$(EVENTVIS_PY) -o $@ $(TRACE_CSV)
+$(VISUAL_TRACE): $(ROI_DUMP) $(VISUALIZE_PY)
+	$(VISUALIZE_PY) $(ROI_DUMP) --traces $(SNITCH_TXT_TRACES) --elf $(BINARY) -o $@
