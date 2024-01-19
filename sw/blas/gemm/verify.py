@@ -20,6 +20,7 @@ ERR_THRESHOLD = {8: 1e-6, 4: 1e-6, 2: 1e-2, 1: 1e-1}
 
 NP_DTYPE = {8: np.float64, 4: np.float32, 2: np.float16, 1: np.uint8}
 
+
 def fp8byte_to_float(byte: np.uint8):
     """Converts a number from a byte stored as a uint8 to a float."""
     sign = (byte & 0x80) >> 7  # Extract sign (1 bit)
