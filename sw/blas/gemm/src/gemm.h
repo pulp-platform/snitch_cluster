@@ -425,15 +425,6 @@ void gemm_fp32_baseline(const uint32_t M, const uint32_t N, const uint32_t K,
                   [ zero ] "f"(zero)
                 : "ft0", "ft1", "ft2", "ft3", "ft4", "t0");
         }
-
-        // Clean up of leftover columns
-        for (; n < N; n++) {
-            float c = (*BETA) ? C[m * ldC + n] : 0.0;
-            for (uint32_t k = 0; k < K; k++) {
-                c += A[k + m * ldA] * B[k + n * ldB];
-            }
-            C[m * ldC + n] = c;
-        }
     }
 }
 
