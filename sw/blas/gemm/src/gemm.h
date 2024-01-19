@@ -982,6 +982,61 @@ void gemm_fp16_ex_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
     snrt_ssr_disable();
 }
 
+void gemm_fp8_baseline(uint32_t M, uint32_t N, uint32_t K, char* A,
+                       uint32_t ldA, char* B, uint32_t ldB, char* C,
+                       uint32_t ldC, const uint32_t* BETA, uint32_t setup_SSR) {
+    for (uint32_t m = 0; m < M; m++) {
+        uint32_t n = 0;
+        for (; n < N; n++) {
+            volatile register v8f8 *a_ptr, *b_ptr;
+            register v8f8 a, b;
+            volatile char* c_ptr;
+            const register float zero = 0.0;
+            double c = 0.0;
+            v8f8 reduce_reg;
+
+            a_ptr = (v8f8*)(&A[m * ldA]);
+            b_ptr = (v8f8*)(&B[n * ldB]);
+            c_ptr = &C[m * ldC + n];
+            asm volatile(
+                "lw      t0, 0(%[BETA]) \n"
+                "beqz    t0, 1f \n"
+                // Load intermediate results
+                "flb ft2, 0(%[C]) \n"
+                "vfcvt.s.b ft2, ft2\n"
+                "vfcpka.h.s ft2, ft2, %[zero]\n"
+                // or initialize with zero
+                "j 2f \n"
+                "1: \n"
+                "vfcpka.s.s ft2, %[zero], %[zero]\n"
+                "2: \n"
+                // loop over the MACs
+                "li     t0, 0 \n"
+                "3: \n"
+                "fld ft0, 0(%[a_ptr]) \n"
+                "fld ft1, 0(%[b_ptr]) \n"
+                "add %[a_ptr], %[a_ptr], 8 \n"
+                "add %[b_ptr], %[b_ptr], 8 \n"
+                "vfdotpex.h.b ft2, ft0, ft1 \n"
+                "addi  t0, t0, 8 \n"
+                "blt   t0, %[K], 3b \n"
+                // Sum reduce vector
+                "vfcpka.s.s ft3, %[zero], %[zero]\n"
+                "vfsumex.s.h ft3, ft2 \n"
+                "vfcpka.s.s ft2, %[zero], %[zero]\n"
+                "vfsum.s ft2, ft3 \n"
+                "vfcvt.b.s ft2, ft2\n"
+                // Store results
+                "fsb ft2, 0(%[C]) \n"
+                : [ a_ptr ] "+r"(a_ptr), [ b_ptr ] "+r"(b_ptr)
+                : [ c ] "f"(c), [ reduce_reg ] "f"(reduce_reg),
+                  [ C ] "r"(c_ptr), [ BETA ] "r"(BETA), [ K ] "r"(K),
+                  [ zero ] "f"(zero)
+                : "ft0", "ft1", "ft2", "ft3", "ft4", "t0");
+        }
+    }
+}
+
 void gemm_fp8_ex_opt(uint32_t M, uint32_t N, uint32_t K, char* A, uint32_t ldA,
                      char* B, uint32_t ldB, char* C, uint32_t ldC,
                      const uint32_t* BETA, uint32_t setup_SSR) {
