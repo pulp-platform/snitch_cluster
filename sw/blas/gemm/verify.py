@@ -10,23 +10,38 @@ from pathlib import Path
 import numpy as np
 from data.datagen import golden_model
 
-sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
+sys.path.append(str(Path(__file__).parent / "../../../util/sim/"))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
 from data_utils import from_buffer, ctype_from_precision_t  # noqa: E402
 
 
-ERR_THRESHOLD = 0.001
+ERR_THRESHOLD = {8: 1e-6, 4: 1e-6, 2: 1e-2, 1: 1e-1}
+
+NP_DTYPE = {8: np.float64, 4: np.float32, 2: np.float16, 1: np.uint8}
+
+def fp8byte_to_float(byte: np.uint8):
+    """Converts a number from a byte stored as a uint8 to a float."""
+    sign = (byte & 0x80) >> 7  # Extract sign (1 bit)
+    exponent = (byte & 0x7c) >> 2  # Extract exponent (5 bits)
+    mantissa = (byte & 0x03) << 5  # Extract mantissa (2 bits)
+    real_exp = exponent - 15  # Convert exponent from excess-7 to excess-127
+    value = (1 + mantissa / 4) * (2 ** float(real_exp))  # Calculate value
+    if sign:
+        value *= -1
+    return value
 
 
 def main():
     # Run simulation and get outputs
     args = verification.parse_args()
-    raw_results = verification.simulate(sim_bin=args.sim_bin,
-                                        snitch_bin=args.snitch_bin,
-                                        symbols_bin=args.symbols_bin,
-                                        log=args.log,
-                                        output_uids=['c'])
+    raw_results = verification.simulate(
+        sim_bin=args.sim_bin,
+        snitch_bin=args.snitch_bin,
+        symbols_bin=args.symbols_bin,
+        log=args.log,
+        output_uids=["c"],
+    )
 
     # Extract input operands from ELF file
     if args.symbols_bin:
