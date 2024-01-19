@@ -370,6 +370,73 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, double* A, uint32_t ldA,
     snrt_ssr_disable();
 }
 
+void gemm_fp32_baseline(const uint32_t M, const uint32_t N, const uint32_t K,
+                        float* A, const uint32_t ldA, float* B,
+                        const uint32_t ldB, float* C, const uint32_t ldC,
+                        const uint32_t* BETA, const uint32_t setup_SSR) {
+    for (uint32_t m = 0; m < M; m++) {
+        uint32_t n = 0;
+        for (; n < N; n++) {
+            volatile register v2f32 *a_ptr, *b_ptr;
+            register v2f32 a, b;
+            volatile float* c_ptr;
+            const register float zero = 0.0;
+            double c = 0.0;
+            v2f32 reduce_reg;
+
+            a_ptr = (v2f32*)(&A[m * ldA]);
+            b_ptr = (v2f32*)(&B[n * ldB]);
+            c_ptr = &C[m * ldC + n];
+            // Don't accumulate in first iteration
+            asm volatile(
+                "lw      t0, 0(%[BETA]) \n"
+                "beqz    t0, 1f \n"
+                // Load intermediate results
+                "flw ft2, 0(%[C]) \n"
+                "vfcpka.s.s ft2, ft2, %[zero]\n"
+                // or initialize with zero
+                "j 2f \n"
+                "1: \n"
+                "vfcpka.s.s ft2, %[zero], %[zero]\n"
+                // Don't accumulate in first iteration
+                "2: \n"
+                "fld ft0, 0(%[a_ptr]) \n"
+                "fld ft1, 0(%[b_ptr]) \n"
+                "add %[a_ptr], %[a_ptr], 8 \n"
+                "add %[b_ptr], %[b_ptr], 8 \n"
+                "vfmul.s ft3, ft0, ft1 \n"
+                // loop over the MACs
+                "li     t0, 2 \n"
+                "3: \n"
+                "fld ft0, 0(%[a_ptr]) \n"
+                "fld ft1, 0(%[b_ptr]) \n"
+                "vfmac.s ft3, ft0, ft1 \n"
+                "add %[a_ptr], %[a_ptr], 8 \n"
+                "add %[b_ptr], %[b_ptr], 8 \n"
+                "addi  t0, t0, 2 \n"
+                "blt   t0, %[K], 3b \n"
+                // Sum reduce vector
+                "vfsum.s ft2, ft3 \n"
+                // Store results
+                "fsw ft2, 0(%[C]) \n"
+                : [ a_ptr ] "+r"(a_ptr), [ b_ptr ] "+r"(b_ptr)
+                : [ c ] "f"(c), [ reduce_reg ] "f"(reduce_reg),
+                  [ C ] "r"(c_ptr), [ BETA ] "r"(BETA), [ K ] "r"(K),
+                  [ zero ] "f"(zero)
+                : "ft0", "ft1", "ft2", "ft3", "ft4", "t0");
+        }
+
+        // Clean up of leftover columns
+        for (; n < N; n++) {
+            float c = (*BETA) ? C[m * ldC + n] : 0.0;
+            for (uint32_t k = 0; k < K; k++) {
+                c += A[k + m * ldA] * B[k + n * ldB];
+            }
+            C[m * ldC + n] = c;
+        }
+    }
+}
+
 void gemm_fp32_opt(const uint32_t M, const uint32_t N, const uint32_t K,
                    float* A, const uint32_t ldA, float* B, const uint32_t ldB,
                    float* C, const uint32_t ldC, const uint32_t* BETA,
