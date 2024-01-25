@@ -1296,11 +1296,18 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
                 }
                 break;
             case FP8:
-                gemm_fp8_ex_opt(frac_m, n, k, (char*)a + offsetA, lda, (char*)b,
+                if (baseline) {
+                    gemm_fp8_baseline(frac_m, n, k, (char*)a + offsetA, lda, (char*)b,
                                 ldb, (char*)c + offsetC, ldc_strided, &beta,
                                 setup_ssr);
+                } else {
+                    gemm_fp8_ex_opt(frac_m, n, k, (char*)a + offsetA, lda, (char*)b,
+                                ldb, (char*)c + offsetC, ldc_strided, &beta,
+                                setup_ssr);
+                }
                 break;
         }
+
     }
 }
 
