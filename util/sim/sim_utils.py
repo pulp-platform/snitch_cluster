@@ -181,12 +181,11 @@ def get_simulations(testlist, simulator, run_dir=None):
     return simulations
 
 
-def print_summary(failed_sims, early_exit=False, dry_run=False):
+def print_summary(sims, early_exit=False, dry_run=False):
     """Print a summary of the simulation suite's exit status.
 
     Args:
-        failed_sims: A list of failed simulations from the simulation
-            suite.
+        sims: A list of simulations from the simulation suite.
         early_exit: Whether the simulation suite was configured to
             terminate upon the first failing simulation.
         dry_run: Whether the simulation suite was launched in dry run
@@ -195,10 +194,10 @@ def print_summary(failed_sims, early_exit=False, dry_run=False):
     if not dry_run:
         header = f'==== Test summary {"(early exit)" if early_exit else ""} ===='
         cprint(header, attrs=['bold'])
-        if failed_sims:
-            [sim.print_status() for sim in failed_sims]
+        if sims:
+            [sim.print_status() for sim in sims]
         else:
-            print(f'{colored("All tests passed!", "green")}')
+            print(f'{colored("All tests terminated and passed!", "green")}')
 
 
 def terminate_processes():
@@ -279,10 +278,11 @@ def run_simulations(simulations, n_procs=1, dry_run=None, early_exit=False,
     except KeyboardInterrupt:
         early_exit_requested = True
 
+    # Print summary
+    print_summary(running_sims + failed_sims, early_exit_requested)
+
     # Clean up after early exit
     if early_exit_requested:
         terminate_processes()
 
-    # Print summary
-    print_summary(failed_sims, early_exit_requested)
     return len(failed_sims)

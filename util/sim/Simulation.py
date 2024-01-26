@@ -113,7 +113,7 @@ class Simulation(object):
             else:
                 cprint(f'{self.elf} test failed', 'red', attrs=['bold'], flush=True)
         else:
-            cprint(f'{self.elf} test running', 'black', flush=True)
+            cprint(f'{self.elf} test running', 'yellow', attrs=['bold'], flush=True)
 
 
 class RTLSimulation(Simulation):
