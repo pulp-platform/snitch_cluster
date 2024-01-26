@@ -39,7 +39,8 @@ def main():
         elf = Elf(args.symbols_bin)
     else:
         elf = Elf(args.snitch_bin)
-    dtype_size = bytes_to_int(elf.get_symbol_contents('dtype_size'), prec='32', signedness='unsigned')[0]
+    dtype_size = bytes_to_int(elf.get_symbol_contents('dtype_size'),
+                              prec='32', signedness='unsigned')[0]
     prec = str(dtype_size*8)
     a = np.array(bytes_to_float(elf.get_symbol_contents('a'), prec=prec))
     b = np.array(bytes_to_float(elf.get_symbol_contents('b'), prec=prec))
