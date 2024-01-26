@@ -46,6 +46,30 @@ jobs:
         run: |
           ./run.py sw/run.yaml --simulator verilator -j
 
+  # Tests requiring hardware FDIV unit
+  sw-snitch-cluster-fdiv-vlt:
+    name: Simulate FDIV SW on Snitch Cluster w/ Verilator
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/pulp-platform/snitch_cluster:tracer-dma
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - name: Build Software
+        working-directory: target/snitch_cluster
+        run: |
+          bender vendor init
+          make CFG_OVERRIDE=cfg/fdiv.hjson sw
+      - name: Build Hardware
+        working-directory: target/snitch_cluster
+        run: |
+          make CFG_OVERRIDE=cfg/fdiv.hjson bin/snitch_cluster.vlt
+      - name: Run Tests
+        working-directory: target/snitch_cluster
+        run: |
+          ./run.py sw/fdiv.yaml --simulator verilator -j
+
   #########################################
   # Build SW on Snitch Cluster w/ Banshee #
   #########################################

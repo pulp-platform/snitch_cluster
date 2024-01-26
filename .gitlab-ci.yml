@@ -134,3 +134,11 @@ snitch-cluster-banshee:
     - cargo install --debug --path .
     - cd ../target/snitch_cluster
     - ./run.py sw/run.yaml --simulator banshee -j --run-dir runs/banshee
+
+# Tests requiring hardware FDIV unit
+snitch-cluster-fdiv-vsim:
+  script:
+    - cd target/snitch_cluster
+    - make CFG_OVERRIDE=cfg/fdiv.hjson sw
+    - make bin/snitch_cluster.vsim
+    - ./run.py sw/fdiv.yaml --simulator vsim -j --run-dir runs/vsim
