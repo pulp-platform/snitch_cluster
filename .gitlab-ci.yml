@@ -40,6 +40,14 @@ docs:
   script:
     - make docs
 
+#####################
+# Python unit tests #
+#####################
+
+pytest:
+  script:
+    - pytest
+
 #################################
 # Build Snitch cluster software #
 #################################

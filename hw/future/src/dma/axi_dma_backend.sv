@@ -288,7 +288,6 @@ module axi_dma_backend #(
   //--------------------------------------
   //pragma translate_off
 `ifndef SYNTHESYS
-`ifndef VERILATOR
   generate
     if (DmaTracing) begin : gen_dma_tracer
       string fn;
@@ -595,7 +594,6 @@ module axi_dma_backend #(
       end
     end
   endgenerate
-`endif
 `endif
   //pragma translate_on
 endmodule : axi_dma_backend

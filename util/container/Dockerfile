@@ -78,7 +78,7 @@ RUN cargo install --path /tmp/banshee
 FROM ubuntu:18.04 AS snitch_cluster
 ARG SNITCH_LLVM_VERSION=latest
 ARG VERIBLE_VERSION=0.0-776-g09e0b87
-ARG VERILATOR_VERSION=4.100
+ARG VERILATOR_VERSION=4.110
 
 LABEL version="0.1"
 LABEL description="Snitch container for hardware and software development."

@@ -31,9 +31,9 @@ VLIB         ?= $(QUESTA_SEPP) vlib
 GENTRACE_PY      ?= $(UTIL_DIR)/trace/gen_trace.py
 ANNOTATE_PY      ?= $(UTIL_DIR)/trace/annotate.py
 EVENTS_PY        ?= $(UTIL_DIR)/trace/events.py
-PERF_CSV_PY      ?= $(UTIL_DIR)/trace/perf_csv.py
-LAYOUT_EVENTS_PY ?= $(UTIL_DIR)/trace/layout_events.py
-EVENTVIS_PY      ?= $(UTIL_DIR)/trace/eventvis.py
+JOIN_PY          ?= $(UTIL_DIR)/bench/join.py
+ROI_PY           ?= $(UTIL_DIR)/bench/roi.py
+VISUALIZE_PY     ?= $(UTIL_DIR)/bench/visualize.py
 
 VERILATOR_ROOT ?= $(dir $(shell $(VERILATOR_SEPP) which verilator))..
 VLT_ROOT       ?= ${VERILATOR_ROOT}
@@ -77,6 +77,7 @@ VLT_FLAGS    += -Wno-UNSIGNED
 VLT_FLAGS    += -Wno-UNOPTFLAT
 VLT_FLAGS    += -Wno-fatal
 VLT_FLAGS    += --unroll-count 1024
+VLT_FLAGS    += --timescale 1ns/1ps
 VLT_CFLAGS   += -std=c++14 -pthread
 VLT_CFLAGS   +=-I ${VLT_BUILDDIR} -I $(VLT_ROOT)/include -I $(VLT_ROOT)/include/vltstd -I $(VLT_FESVR)/include -I $(TB_DIR) -I ${MKFILE_DIR}/test
 
@@ -232,26 +233,27 @@ endef
 
 DASM_TRACES      = $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null))
 TXT_TRACES       = $(shell (echo $(DASM_TRACES) | sed 's/\.dasm/\.txt/g'))
-PERF_TRACES      = $(shell (echo $(DASM_TRACES) | sed 's/trace_hart/hart/g' | sed 's/.dasm/_perf.json/g'))
+PERF_DUMPS       = $(shell (echo $(DASM_TRACES) | sed 's/trace_hart/hart/g' | sed 's/.dasm/_perf.json/g'))
 ANNOTATED_TRACES = $(shell (echo $(DASM_TRACES) | sed 's/\.dasm/\.s/g'))
 DIFF_TRACES      = $(shell (echo $(DASM_TRACES) | sed 's/\.dasm/\.diff/g'))
 
-GENTRACE_OUTPUTS = $(TXT_TRACES) $(PERF_TRACES)
+GENTRACE_OUTPUTS = $(TXT_TRACES) $(PERF_DUMPS)
 ANNOTATE_OUTPUTS = $(ANNOTATED_TRACES)
-PERF_CSV         = $(LOGS_DIR)/perf.csv
-EVENT_CSV        = $(LOGS_DIR)/event.csv
-TRACE_CSV        = $(LOGS_DIR)/trace.csv
+PERF_DUMP        = $(LOGS_DIR)/perf.json
+ROI_DUMP         = $(LOGS_DIR)/roi.json
 TRACE_JSON       = $(LOGS_DIR)/trace.json
 
-.PHONY: traces annotate perf-csv event-csv layout
+.PHONY: traces annotate visual-trace clean-traces clean-annotate
 traces: $(GENTRACE_OUTPUTS)
 annotate: $(ANNOTATE_OUTPUTS)
-perf-csv: $(PERF_CSV)
-event-csv: $(EVENT_CSV)
-layout: $(TRACE_CSV) $(TRACE_JSON)
+visual-trace: $(TRACE_JSON)
+clean-traces:
+	rm -f $(GENTRACE_OUTPUTS)
+clean-annotate:
+	rm -f $(ANNOTATE_OUTPUTS)
 
-$(LOGS_DIR)/trace_hart_%.txt $(LOGS_DIR)/hart_%_perf.json: $(LOGS_DIR)/trace_hart_%.dasm $(GENTRACE_PY)
-	$(DASM) < $< | $(PYTHON) $(GENTRACE_PY) --permissive -d $(LOGS_DIR)/hart_$*_perf.json > $(LOGS_DIR)/trace_hart_$*.txt
+$(addprefix $(LOGS_DIR)/,trace_hart_%.txt hart_%_perf.json): $(LOGS_DIR)/trace_hart_%.dasm $(GENTRACE_PY)
+	$(DASM) < $< | $(PYTHON) $(GENTRACE_PY) --permissive --dma-trace $(LOGS_DIR)/dma_trace_$*.log --dump-hart-perf $(LOGS_DIR)/hart_$*_perf.json --dump-dma-perf $(LOGS_DIR)/dma_$*_perf.json -o $(LOGS_DIR)/trace_hart_$*.txt
 
 # Generate source-code interleaved traces for all harts. Reads the binary from
 # the logs/.rtlbinary file that is written at start of simulation in the vsim script
@@ -261,14 +263,11 @@ $(LOGS_DIR)/trace_hart_%.s: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY}
 $(LOGS_DIR)/trace_hart_%.diff: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY}
 	$(PYTHON) ${ANNOTATE_PY} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $< -d
 
-$(PERF_CSV): $(PERF_TRACES) $(PERF_CSV_PY)
-	$(PYTHON) $(PERF_CSV_PY) -o $@ -i $(PERF_TRACES)
+$(PERF_DUMP): $(PERF_DUMPS) $(JOIN_PY)
+	$(PYTHON) $(JOIN_PY) -i $(shell ls $(LOGS_DIR)/*_perf.json) -o $@
 
-$(EVENT_CSV): $(PERF_TRACES) $(PERF_CSV_PY)
-	$(PYTHON) $(PERF_CSV_PY) -o $@ -i $(PERF_TRACES) --filter tstart tend
+$(ROI_DUMP): $(PERF_DUMP) $(ROI_SPEC) $(ROI_PY)
+	$(PYTHON) $(ROI_PY) $(PERF_DUMP) $(ROI_SPEC) --cfg $(CFG) -o $@
 
-$(TRACE_CSV): $(EVENT_CSV) $(LAYOUT_FILE) $(LAYOUT_EVENTS_PY)
-	$(PYTHON) $(LAYOUT_EVENTS_PY) $(LAYOUT_EVENTS_FLAGS) $(EVENT_CSV) $(LAYOUT_FILE) -o $@
-
-$(TRACE_JSON): $(TRACE_CSV) $(EVENTVIS_PY)
-	$(PYTHON) $(EVENTVIS_PY) -o $@ $(TRACE_CSV)
+$(TRACE_JSON): $(ROI_DUMP) $(VISUALIZE_PY)
+	$(PYTHON) $(VISUALIZE_PY) $(ROI_DUMP) --traces $(TXT_TRACES) --elf $(BINARY) -o $@

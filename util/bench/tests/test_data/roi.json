@@ -1,0 +1,33 @@
+{
+    "hart_0": [
+        {
+            "label": "compute",
+            "tstart": 6802.0,
+            "tend": 12647.0,
+            "attrs": {
+                "fpss_fpu_occupancy": 0.013860369609856264,
+                "total_ipc": 0.20756331279945245
+            }
+        }
+    ],
+    "dma_9": [
+        {
+            "label": "dma_in",
+            "tstart": 3512,
+            "tend": 3526,
+            "attrs": {
+                "bw": 1.1428571428571428
+            }
+        }
+    ],
+    "dma_18": [
+        {
+            "label": "dma_in",
+            "tstart": 3608,
+            "tend": 3622,
+            "attrs": {
+                "bw": 1.1428571428571428
+            }
+        }
+    ]
+}

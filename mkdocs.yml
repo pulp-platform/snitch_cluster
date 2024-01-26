@@ -25,7 +25,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: [util/sim]
+          paths: [util/sim, util/trace, util/bench]
   - macros:
       on_error_fail: true
 use_directory_urls: false
@@ -57,6 +57,14 @@ nav:
               - sim_utils: rm/sim/sim_utils.md
               - rm/sim/Simulation.md
               - rm/sim/Simulator.md
+          - Trace Utilities:
+              - gen_trace.py: rm/trace/gen_trace.md
+              - annotate.py: rm/trace/annotate.md
+              - events.py: rm/trace/events.md
+          - Benchmarking Utilities:
+              - join.py: rm/bench/join.md
+              - roi.py: rm/bench/roi.md
+              - visualize.py: rm/bench/visualize.md
           - Snitch Runtime:
               - Pages: runtime/Pages/index.md
               - Files: runtime/Files/index.md
