@@ -13,6 +13,8 @@
 #include "gemm.h"
 #include "snrt.h"
 
+#undef BIST
+
 int main() {
     int retcode = gemm(dtype_size, expand, 1, m_tiles, n_tiles, k_tiles,
                        snrt_cluster_num(), TA, TB, M, N, K, 1, a, b, BETA, c);
@@ -22,6 +24,14 @@ int main() {
 // TODO: currently only works for single cluster otherwise need to
 //       synchronize all cores here
 #ifdef BIST
+    void *local_a, *local_b, *local_c;
+    void *remote_a, *remote_b, *remote_c;
+
+    // Allocate space in TCDM
+    local_a = (void *)snrt_l1_next();
+    local_b = local_a + size_frac_a;
+    local_c = local_b + size_b;
+
     uint32_t errors = M * N;
 
     if (snrt_cluster_core_idx() == 0) {
