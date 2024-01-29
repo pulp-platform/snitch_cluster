@@ -219,7 +219,7 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                 // The S tile is of form (B_r, B_c)
                 uint32_t start_gemm = snrt_mcycle();
                 sc_st_gemm(FP64, 0, 0, 0, 0, B_r, B_c, d, 1, Q_fa, d, K_fa, B_c,
-                     0, S_fa, B_c);
+                           0, S_fa, B_c);
                 uint32_t end_gemm = snrt_mcycle();
 
                 snrt_cluster_hw_barrier();
@@ -301,11 +301,11 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                 if (t_c == 0) {
                     // In first t_c iteration, initialize O_ij to P_ij * V_j
                     sc_st_gemm(FP64, 0, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c,
-                         V_fa, d, 0.0f, O_fa, d);
+                               V_fa, d, 0.0f, O_fa, d);
                 } else {
                     // In successive t_c iterations, O_ij += P_ij * V_j
                     sc_st_gemm(FP64, 0, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c,
-                         V_fa, d, 1.0f, O_fa, d);
+                               V_fa, d, 1.0f, O_fa, d);
                 }
 
                 uint32_t end_stats = snrt_mcycle();
