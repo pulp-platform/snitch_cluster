@@ -60,10 +60,11 @@ def main():
     num_inputs = layer['num_inputs']
     input_shape = [layer['height'], layer['width']]
     inputs = layer['inputs']
-    output = layer['output']
+    # output = layer['output']
     prec = PRECISION_T[layer['dtype']]
 
-    inputs = [np.array(bytes_to_float(elf.get_symbol_contents(f'input_{i}'), prec), dtype=NUMPY_T[prec]) for i in range(num_inputs)]
+    inputs = [np.array(bytes_to_float(elf.get_symbol_contents(f'input_{i}'), prec),
+              dtype=NUMPY_T[prec]) for i in range(num_inputs)]
     inputs = [torch.from_numpy(tensor.reshape(input_shape)) for tensor in inputs]
 
     # Verify results

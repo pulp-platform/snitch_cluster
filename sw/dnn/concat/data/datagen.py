@@ -45,7 +45,8 @@ def emit_header(section, params):
 
     torch_type = data_utils.floating_point_torch_type(prec)
 
-    inputs = [torch.rand(*input_shape, requires_grad=False, dtype=torch_type) for _ in range(num_inputs)]
+    inputs = [torch.rand(*input_shape, requires_grad=False, dtype=torch_type)
+              for _ in range(num_inputs)]
     output = golden_model(inputs)
 
     ctype = data_utils.floating_point_ctype(prec)
@@ -57,12 +58,14 @@ def emit_header(section, params):
     }
 
     data_str = [emit_license()]
-    data_str += [format_array_declaration(ctype, f'input_{i}', input_shape) for i in range(num_inputs)]
+    data_str += [format_array_declaration(ctype, f'input_{i}', input_shape)
+                 for i in range(num_inputs)]
     data_str += [format_array_declaration('void*', 'inputs', [num_inputs])]
     data_str += [format_array_declaration(ctype, 'output', output.shape)]
     data_str += [format_struct_definition('concat_layer_t', 'layer', layer_cfg)]
     data_str += [format_array_definition(ctype, f'input_{i}', t) for i, t in enumerate(inputs)]
-    data_str += [format_array_definition('void*', 'inputs', np.array([f'input_{i}' for i in range(num_inputs)]))]
+    data_str += [format_array_definition('void*', 'inputs', np.array([f'input_{i}'
+                 for i in range(num_inputs)]))]
     result_def = format_array_definition(ctype, 'golden', output)
     data_str += [format_ifdef_wrapper('BIST', result_def)]
     data_str = '\n\n'.join(data_str)

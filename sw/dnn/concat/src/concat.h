@@ -31,12 +31,12 @@ typedef struct {
 // Every cluster stores one of the input tensors in the output tensor, all
 // clusters operate in parallel.
 // Note: currently requires that the number of inputs is smaller than the
-// number of clusters in the system. 
+// number of clusters in the system.
 static inline int concat_layer(concat_layer_t l) {
     // Return error if number of input tensors is greater than number of
     // clusters
     if (l.num_inputs > snrt_cluster_num()) return 1;
-    
+
     // Perform the concatenation
     if (snrt_is_dm_core()) {
         if (snrt_cluster_idx() < l.num_inputs) {
