@@ -1161,29 +1161,24 @@ int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
     // Iterate tiles
     for (uint32_t m_tile = 0; m_tile < m_tiles_per_cluster; m_tile++) {
         for (uint32_t n_tile = 0; n_tile < n_tiles; n_tile++) {
-
             // Calculate absolute m tile index for the current cluster
             uint32_t absolute_m_tile_idx =
                 snrt_cluster_idx() * m_tiles_per_cluster + m_tile;
 
             // k accumulation loop
             for (uint32_t k_tile = 0; k_tile < k_tiles; k_tile++) {
-
                 // Copy data in TCDM
                 if (snrt_is_dm_core()) {
-                    snrt_dma_load_2d_tile(local_a, a,
-                                          absolute_m_tile_idx, k_tile,
-                                          frac_m, frac_k, k, prec);
-                    snrt_dma_load_2d_tile(local_b, b,
-                                          k_tile, n_tile,
-                                          frac_k, frac_n, n, prec);
+                    snrt_dma_load_2d_tile(local_a, a, absolute_m_tile_idx,
+                                          k_tile, frac_m, frac_k, k, prec);
+                    snrt_dma_load_2d_tile(local_b, b, k_tile, n_tile, frac_k,
+                                          frac_n, n, prec);
                     // C tile is loaded only upon first iteration, then the C
                     // array will contain the partial results from the
                     // previous iteration
                     if (k_tile == 0) {
-                        snrt_dma_load_2d_tile(local_c, c,
-                                              absolute_m_tile_idx, n_tile,
-                                              frac_m, frac_n, n, prec);
+                        snrt_dma_load_2d_tile(local_c, c, absolute_m_tile_idx,
+                                              n_tile, frac_m, frac_n, n, prec);
                     }
                     snrt_dma_wait_all();
                 }
@@ -1228,8 +1223,7 @@ int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
 
             // Copy data out of TCDM
             if (snrt_is_dm_core()) {
-                snrt_dma_store_2d_tile(c, local_c,
-                                       absolute_m_tile_idx, n_tile,
+                snrt_dma_store_2d_tile(c, local_c, absolute_m_tile_idx, n_tile,
                                        frac_m, frac_n, n, prec);
                 snrt_dma_wait_all();
             }

@@ -197,6 +197,7 @@ typedef struct network_single_cluster_t_ {
 // #include "conv2d.h"
 
 #include "../batchnorm/src/batchnorm.h"
+#include "../concat/src/concat.h"
 #include "../flashattention_2/src/flashattention_2.h"
 #include "../gelu/src/gelu.h"
 #include "../gemm/src/gemm.h"
@@ -204,5 +205,4 @@ typedef struct network_single_cluster_t_ {
 #include "../linear/src/linear.h"
 #include "../maxpool/src/maxpool.h"
 #include "../softmax/src/softmax.h"
-#include "../concat/src/concat.h"
 // #include "utils.h"
