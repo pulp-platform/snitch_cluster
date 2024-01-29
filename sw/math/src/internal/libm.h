@@ -126,13 +126,14 @@ static inline void safe_inject_into_upper_32b_double(uint32_t x, double *f) {
 
 /* Synch-secure double to uint64 conversion functions. */
 static inline uint64_t asuint64(double f) {
-    uint64_t *ptr;
+	uint64_t result;
+    uint64_t *ptr = &result;
 	asm volatile("fsd %[f], 0(%[ptr]) \n"
 	             "fld ft3, 0(%[ptr]) \n"
-				 "fmv.x.w t0, ft3 \n"
-				 "mv      t0, t0 \n"
+				 "fmv.x.w t0, ft3 \n" 
+				 "mv      t0, t0 \n" 
 	 : : [f]"f"(f), [ptr]"r"(ptr): "ft3", "t0", "memory");
-	return *result;
+	return result;
 }
 
 /* Synch-secure uint64 to double conversion functions. */
@@ -141,7 +142,7 @@ static inline double asdouble(uint64_t i) {
 	uint64_t *ptr = &i;
 	asm volatile("fmv.w.x ft3, t0 \n"
 		         "fld %[result], 0(%[ptr]) \n"
-	 : [result]"=r"(result) : [ptr]"r"(ptr): "ft3", "memory");
+	 : [result]"=f"(result) : [ptr]"r"(ptr): "ft3", "memory");
 }
 
 /* TODO: the following functions are not really safe, compare previous two
