@@ -122,7 +122,7 @@ inline void snrt_partial_barrier(snrt_barrier_t *barr, uint32_t n) {
 
 // Assumes the dst and src buffers are at the same offset in the TCDM of every
 // cluster
-inline void snrt_global_reduction_dma(double* dst_buffer, double* src_buffer,
+inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
                                       size_t len) {
     // If we have a single cluster the reduction degenerates to a memcpy
     if (snrt_cluster_num() == 1) {
@@ -135,11 +135,10 @@ inline void snrt_global_reduction_dma(double* dst_buffer, double* src_buffer,
         // Iterate levels in the binary reduction tree
         int num_levels = ceil(log2(snrt_cluster_num()));
         for (unsigned int level = 0; level < num_levels; level++) {
-
             // Determine whether the current cluster is an active cluster.
             // An active cluster is a cluster that participates in the current
-            // level of the reduction tree. Every second cluster among the active
-            // ones is a sender.
+            // level of the reduction tree. Every second cluster among the
+            // active ones is a sender.
             uint32_t is_active = (snrt_cluster_idx() % (1 << level)) == 0;
             uint32_t is_sender = (snrt_cluster_idx() % (1 << (level + 1))) != 0;
 
@@ -147,8 +146,8 @@ inline void snrt_global_reduction_dma(double* dst_buffer, double* src_buffer,
             // buffer to the respective receiver's destination buffer
             if (is_active && is_sender) {
                 if (!snrt_is_compute_core()) {
-                    void *dst = (void *)dst_buffer -
-                        (1 << level) * SNRT_CLUSTER_OFFSET;
+                    void *dst =
+                        (void *)dst_buffer - (1 << level) * SNRT_CLUSTER_OFFSET;
                     snrt_dma_start_1d(dst, src_buffer, len * sizeof(double));
                     snrt_dma_wait_all();
                 }
