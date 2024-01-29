@@ -1139,10 +1139,9 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
 // k_tiles: number of tiles in K dimension
 // n_tiles: number of tiles in N dimension
 int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
-         uint32_t parallelize_m, uint32_t parallelize_k,
-         uint32_t m_tiles, uint32_t n_tiles, uint32_t k_tiles,
-         uint32_t load_a, uint32_t load_b, uint32_t load_c,
-         uint32_t transa, uint32_t transb, uint32_t m,
+         uint32_t parallelize_m, uint32_t parallelize_k, uint32_t m_tiles,
+         uint32_t n_tiles, uint32_t k_tiles, uint32_t load_a, uint32_t load_b,
+         uint32_t load_c, uint32_t transa, uint32_t transb, uint32_t m,
          uint32_t n, uint32_t k, double alpha, void* a, void* b, uint32_t beta,
          void* c) {
     // Calculate tile sizes
@@ -1157,52 +1156,57 @@ int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
 
     // Allocate space in TCDM
     void *local_a, *local_b, *local_c_partial, *local_c;
-    void *heap_ptr = (void*)snrt_l1_next();
+    void* heap_ptr = (void*)snrt_l1_next();
     if (load_a) {
         local_a = heap_ptr;
         heap_ptr += size_frac_a;
-    } else local_a = a;
+    } else
+        local_a = a;
     if (load_b) {
         local_b = heap_ptr;
         heap_ptr += size_frac_b;
-    } else local_b = b;
+    } else
+        local_b = b;
     if (load_c) {
         local_c_partial = heap_ptr;
         heap_ptr += size_frac_c;
-    } else local_c_partial = c;
+    } else
+        local_c_partial = c;
     local_c = parallelize_k ? heap_ptr : local_c_partial;
 
     // Assign m and k tiles to clusters
-    uint32_t m_tiles_per_cluster = parallelize_m ?
-        m_tiles / snrt_cluster_num() : m_tiles;
-    uint32_t k_tiles_per_cluster = parallelize_k ?
-        k_tiles / snrt_cluster_num() : k_tiles;
-    
+    uint32_t m_tiles_per_cluster =
+        parallelize_m ? m_tiles / snrt_cluster_num() : m_tiles;
+    uint32_t k_tiles_per_cluster =
+        parallelize_k ? k_tiles / snrt_cluster_num() : k_tiles;
+
     // Every cluster iterates over its subset of m tiles
     for (uint32_t m_tile = 0; m_tile < m_tiles_per_cluster; m_tile++) {
         for (uint32_t n_tile = 0; n_tile < n_tiles; n_tile++) {
             // Calculate absolute m tile index for the current cluster
-            uint32_t abs_m_tile_idx = !parallelize_m ? m_tile :
-                snrt_cluster_idx() * m_tiles_per_cluster + m_tile;
+            uint32_t abs_m_tile_idx =
+                !parallelize_m
+                    ? m_tile
+                    : snrt_cluster_idx() * m_tiles_per_cluster + m_tile;
 
             // k accumulation loop
             for (uint32_t k_tile = 0; k_tile < k_tiles_per_cluster; k_tile++) {
-
                 // Calculate absolute k tile index for the current cluster
-                uint32_t abs_k_tile_idx = !parallelize_k ? k_tile :
-                    snrt_cluster_idx() * k_tiles_per_cluster + k_tile;
+                uint32_t abs_k_tile_idx =
+                    !parallelize_k
+                        ? k_tile
+                        : snrt_cluster_idx() * k_tiles_per_cluster + k_tile;
 
                 // Copy data in TCDM
                 if (snrt_is_dm_core()) {
                     if (load_a) {
-                        snrt_dma_load_2d_tile(local_a, a,
-                                              abs_m_tile_idx, abs_k_tile_idx,
-                                              frac_m, frac_k, k, prec);
+                        snrt_dma_load_2d_tile(local_a, a, abs_m_tile_idx,
+                                              abs_k_tile_idx, frac_m, frac_k, k,
+                                              prec);
                     }
                     if (load_b) {
-                        snrt_dma_load_2d_tile(local_b, b,
-                                              abs_k_tile_idx, n_tile,
-                                              frac_k, frac_n, n, prec);
+                        snrt_dma_load_2d_tile(local_b, b, abs_k_tile_idx,
+                                              n_tile, frac_k, frac_n, n, prec);
                     }
                     // C tile is loaded only upon first iteration, then the C
                     // array will contain the partial results from the
@@ -1214,7 +1218,7 @@ int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
                                                   frac_m, frac_n, n, prec);
                         } else if (k_tile == 0) {
                             snrt_dma_start_1d(local_c_partial,
-                                              (void *)snrt_zero_memory_ptr(),
+                                              (void*)snrt_zero_memory_ptr(),
                                               frac_m * frac_n * prec);
                         }
                     }
@@ -1262,17 +1266,17 @@ int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
             // Add the partial results from the various clusters together in a
             // logarithmic reduction fashion
             if (parallelize_k) {
-                snrt_global_reduction_dma((double *)local_c, (double *)local_c_partial,
-                    frac_m * frac_n);
+                snrt_global_reduction_dma((double*)local_c,
+                                          (double*)local_c_partial,
+                                          frac_m * frac_n);
             }
 
             // Copy data out of TCDM
             if (snrt_is_dm_core()) {
                 // If parallelize_k, then only cluster 0 must writeback
                 if ((snrt_cluster_idx() == 0) || !parallelize_k) {
-                    snrt_dma_store_2d_tile(c, local_c,
-                                        abs_m_tile_idx, n_tile,
-                                        frac_m, frac_n, n, prec);
+                    snrt_dma_store_2d_tile(c, local_c, abs_m_tile_idx, n_tile,
+                                           frac_m, frac_n, n, prec);
                     snrt_dma_wait_all();
                 }
             }
