@@ -33,9 +33,21 @@ PRECISION_T = {
     '8': 'FP8'
 }
 
+# Sigmoid based approximation of the GeLU activation function
+# adapted from i-BERT (https://arxiv.org/pdf/2101.01321.pdf)
+# L(x) = sgn(x) [a(clip(|x|, max = −b) + b)^2 + 1]
+# a = -0.2888, b = -1.769
+
+
+def sigmoid_gelu(x):
+    a = -0.2888
+    b = -1.769
+    return torch.sign(x) * (a * (torch.clamp(torch.abs(x), max=-b) + b)**2 + 1)
+
 
 def golden_model(ifmap):
-    gelu = torch.nn.GELU(approximate='tanh')
+    # gelu = torch.nn.GELU(approximate='tanh')
+    gelu = sigmoid_gelu
     return gelu(ifmap)
 
 

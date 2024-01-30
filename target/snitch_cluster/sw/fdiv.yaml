@@ -7,3 +7,5 @@ runs:
     cmd: [../../../sw/dnn/softmax/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/dnn/layernorm/build/layernorm.elf
     cmd: [../../../sw/dnn/layernorm/verify.py, "${sim_bin}", "${elf}"]
+  - elf: apps/dnn/gelu/build/gelu.elf
+    cmd: [../../../sw/dnn/gelu/verify.py, "${sim_bin}", "${elf}"]

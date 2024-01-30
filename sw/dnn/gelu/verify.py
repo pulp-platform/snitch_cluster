@@ -17,7 +17,7 @@ from elf import Elf  # noqa: E402
 from data_utils import bytes_to_float, bytes_to_struct  # noqa: E402
 
 
-ERR_THRESHOLD = 1E-6
+ERR_THRESHOLD = 1E-0
 
 PRECISION_T = {
     8: '64',

@@ -31,12 +31,26 @@ static inline double gelu_activation_fp64(double x) {
            (1.0 + tanh(sqrt(2.0 / M_PI) * (x + 0.044715 * x * x * x)));
 }
 
+// Sigmoid based approximation of the GeLU activation function
+// adapted from i-BERT (https://arxiv.org/pdf/2101.01321.pdf)
+static inline double sigmoid_gelu_fp64(double x, float a, float b) {
+    // L(x) = sgn(x) [a(clip(|x|, max = −b) + b)^2 + 1]
+    // a = -0.2888, b = -1.769
+    double sign = x > 0.0 ? 1.0 : -1.0;
+    // double arg = clip(fabs(x), -b);
+    double sqrt2_inv = 1 / 1.4142135623730951;
+    double x_scaled = sqrt2_inv * x;
+    double arg = fabs(x_scaled) > -b ? -b : fabs(x_scaled);
+    double l = sign * (a * arg * arg + 1.0);
+    return x * 0.5 * (1 + l);
+}
+
 // Single-cluster GeLU
 static inline void gelu_fp64(double *input, double *output, uint32_t size) {
     if (snrt_is_compute_core()) {
         for (uint32_t i = 0; i < size; i++) {
             snrt_mcycle();
-            output[i] = gelu_activation_fp64(input[i]);
+            output[i] = sigmoid_gelu_fp64(input[i], -0.2888, -1.769);
         }
     }
 }
