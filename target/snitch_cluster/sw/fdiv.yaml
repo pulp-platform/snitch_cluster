@@ -3,3 +3,5 @@
 # SPDX-License-Identifier: Apache-2.0
 
 runs:
+  - elf: apps/dnn/softmax/build/softmax.elf
+    cmd: [../../../sw/dnn/softmax/verify.py, "${sim_bin}", "${elf}"]

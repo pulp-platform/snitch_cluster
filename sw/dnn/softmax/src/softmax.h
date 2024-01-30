@@ -34,6 +34,30 @@ typedef struct softmax_layer_struct {
     precision_t dtype;
 } softmax_layer_t;
 
+// Taylor series approximation of exp(x)
+// Slow but accurate
+float dummy_exp(float x) {
+    int n = 100;
+    float sum = 1.0f;
+    for (int i = n - 1; i > 0; --i) {
+        sum = 1 + x * sum / i;
+    }
+    return sum;
+}
+
+// IEEE 754-2008 compliant implementation of exp(x)
+// Fast but less accurate
+float fast_exp(float x) {
+    float fx = 0.0f;
+    union {
+        float f;
+        int i;
+    } v = {x};
+    v.i = (1 << 23) * (x / logf(2)) + 0x3f800000;
+    fx = v.f;
+    return fx;
+}
+
 /**
  * Implementation of the SoftMax layer.
  */
@@ -57,7 +81,7 @@ static inline void softmax_fp32(float *input, float *output, int32_t ldI,
             // compute the shifted value of the current row
             for (int32_t i = 0; i < input_samples; i++) {
                 output[b * batch_offset + s * ldI + i] =
-                    expf(input[b * batch_offset + s * ldI + i] - max_core);
+                    dummy_exp(input[b * batch_offset + s * ldI + i] - max_core);
                 sum += output[b * batch_offset + s * ldI + i];
             }
 
