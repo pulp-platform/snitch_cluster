@@ -103,9 +103,9 @@ def emit_header(section, params):
 
     torch_type = data_utils.floating_point_torch_type(prec)
 
-    Q = torch.rand(N, d, requires_grad=False, dtype=torch_type)
-    K = torch.rand(N, d, requires_grad=False, dtype=torch_type)
-    V = torch.rand(N, d, requires_grad=False, dtype=torch_type)
+    Q = 2 * torch.rand(N, d, requires_grad=False, dtype=torch_type) - 1
+    K = 2 * torch.rand(N, d, requires_grad=False, dtype=torch_type) - 1
+    V = 2 * torch.rand(N, d, requires_grad=False, dtype=torch_type) - 1
 
     output = exact_golden_model(Q, K, V, B_r, B_c)
 
