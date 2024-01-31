@@ -416,6 +416,18 @@
                                     "description": "Enable Smallfloat vector extension (SIMD).",
                                     "default": false
                                 },
+                                "snax_acc": {
+                                    "type": "string",
+                                    "title": "SNAX Accelerator Extension",
+                                    "description": "Enable specific Snitch Accelerator eXtension (SNAX). Simply put the string name of the accelerator wrapper.",
+                                    "default": "none"
+                                },
+                                "snax_tcdm_ports": {
+                                    "type": "number",
+                                    "title": "SNAX TCDM Port",
+                                    "description": "Number of ports dedicated for an accelerator",
+                                    "default": 0
+                                },
                                 "num_int_outstanding_loads": {
                                     "type": "number",
                                     "description": "Number of outstanding integer loads. Determines the buffer size in the core's load/store unit.",
