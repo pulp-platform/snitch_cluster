@@ -10,6 +10,30 @@
 
 // #define ENABLE_PRINTS
 
+// Taylor series approximation of exp(x)
+// Slow but accurate
+double double_dummy_exp(double x) {
+    int n = 100;
+    double sum = 1.0f;
+    for (int i = n - 1; i > 0; --i) {
+        sum = 1 + x * sum / i;
+    }
+    return sum;
+}
+
+// IEEE 754-2008 compliant implementation of exp(x)
+// Fast but less accurate
+double double_fast_exp(double x) {
+    double fx = 0.0f;
+    union {
+        double f;
+        int i;
+    } v = {x};
+    v.i = (1 << 23) * (x / log(2)) + 0x3f800000;
+    fx = v.f;
+    return fx;
+}
+
 /**
  * @struct flashattention_2_layer_t
  * @brief This structure contains all parameters necessary
@@ -252,13 +276,18 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                     // Calculate P tile as the "local" softmax of S
                     for (int col_idx = 0; col_idx < B_c; col_idx++) {
                         P_fa[row_idx * B_c + col_idx] =
-                            expf(S_fa[row_idx * B_c + col_idx] - m_i[row_idx]);
+                            double_dummy_exp(S_fa[row_idx * B_c + col_idx] - m_i[row_idx]);
+                            // expf(S_fa[row_idx * B_c + col_idx] - m_i[row_idx]);
                         row_sum += P_fa[row_idx * B_c + col_idx];
                     }
 
                     // Calculate rescaling factor l
-                    shifted_exp = expf(m_i_prev[row_idx] - m_i[row_idx]);
-                    l_i[row_idx] = l_i[row_idx] * shifted_exp + row_sum;
+                    shifted_exp = double_dummy_exp(m_i_prev[row_idx] - m_i[row_idx]);
+                    if (t_c != 0) {
+                        l_i[row_idx] = l_i[row_idx] * shifted_exp + row_sum;
+                    } else {
+                        l_i[row_idx] = row_sum;
+                    }
 
                     // If not in first t_c iteration, update
                     // O_ij = diag(shifted_exp)^(-1) * O_i(j-1)
