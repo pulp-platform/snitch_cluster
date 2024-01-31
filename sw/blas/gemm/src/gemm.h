@@ -11,6 +11,7 @@
 
 #include "snrt.h"
 
+#define BASELINE 1
 // Guard to avoid conflict with DNN header file
 // TODO: move this definition to Snitch math library to solve problem
 #ifndef PRECISION_T
@@ -1088,23 +1089,29 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
 
         switch (prec) {
             case FP64:
-                // gemm_fp64_opt(frac_m, n, k, (double*)a + offsetA,
-                // lda_strided,
-                //               transa, (double*)b, ldb, transb, (double*)c +
-                //               offsetC, ldc_strided, &beta, setup_ssr);
+            if (BASELINE == 1) {
                 gemm_fp64_baseline(frac_m, n, k, (double*)a + offsetA,
                                    lda_strided, transa, (double*)b, ldb, transb,
                                    (double*)c + offsetC, ldc_strided,
                                    (double)beta);
+            } else {
+                gemm_fp64_opt(frac_m, n, k, (double*)a + offsetA,
+                                lda_strided, transa, (double*)b, ldb, transb, 
+                                (double*)c + offsetC, ldc_strided, &beta, setup_ssr);
+            }
                 break;
             case FP32:
-                gemm_fp32_baseline(frac_m, n, k, (float*)a + offsetA,
-                                   lda_strided, transa, (float*)b, ldb, transb,
-                                   (float*)c + offsetC, ldc_strided,
-                                   (float)beta);
-                // gemm_fp32_opt(frac_m, n, k, (float*)a + offsetA, lda_strided,
-                //             (float*)b, ldb, (float*)c + offsetC, ldc_strided,
-                //             &beta, setup_ssr);
+            if (BASELINE == 1) {
+                    gemm_fp32_baseline(frac_m, n, k, (float*)a + offsetA,
+                                    lda_strided, transa, (float*)b, ldb, transb,
+                                    (float*)c + offsetC, ldc_strided,
+                                    (float)beta);
+            } else {
+                    gemm_fp32_opt(frac_m, n, k, (float*)a + offsetA, lda_strided,
+                                (float*)b, ldb, (float*)c + offsetC, ldc_strided,
+                                &beta, setup_ssr);
+            }
+                
                 break;
             case FP16:
                 if (expand) {
