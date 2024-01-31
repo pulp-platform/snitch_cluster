@@ -275,14 +275,15 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
 
                     // Calculate P tile as the "local" softmax of S
                     for (int col_idx = 0; col_idx < B_c; col_idx++) {
-                        P_fa[row_idx * B_c + col_idx] =
-                            double_dummy_exp(S_fa[row_idx * B_c + col_idx] - m_i[row_idx]);
-                            // expf(S_fa[row_idx * B_c + col_idx] - m_i[row_idx]);
+                        P_fa[row_idx * B_c + col_idx] = double_dummy_exp(
+                            S_fa[row_idx * B_c + col_idx] - m_i[row_idx]);
+                        // expf(S_fa[row_idx * B_c + col_idx] - m_i[row_idx]);
                         row_sum += P_fa[row_idx * B_c + col_idx];
                     }
 
                     // Calculate rescaling factor l
-                    shifted_exp = double_dummy_exp(m_i_prev[row_idx] - m_i[row_idx]);
+                    shifted_exp =
+                        double_dummy_exp(m_i_prev[row_idx] - m_i[row_idx]);
                     if (t_c != 0) {
                         l_i[row_idx] = l_i[row_idx] * shifted_exp + row_sum;
                     } else {
