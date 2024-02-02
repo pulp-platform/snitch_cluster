@@ -66,10 +66,6 @@ static inline int fused_concat_linear_optimized(fused_concat_linear_layer_t l) {
                               l.dtype);
         snrt_dma_wait_all();
         snrt_l1_update_next(a + size_a);
-        // for (int i=0; i<m*k; i++) {
-        //     float tmp = (float)(*(double *)(a + i*8));
-        //     DUMP(tmp);
-        // }
     }
     snrt_cluster_hw_barrier();
 
