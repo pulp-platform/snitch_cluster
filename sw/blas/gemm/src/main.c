@@ -13,8 +13,6 @@
 #include "gemm.h"
 #include "snrt.h"
 
-#undef BIST
-
 int main() {
     int retcode =
         gemm(dtype_size, expand, 1, parallelize_m, parallelize_k, m_tiles,
