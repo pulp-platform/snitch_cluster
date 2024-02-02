@@ -14,23 +14,10 @@ from data.datagen import golden_model
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import bytes_to_float, bytes_to_struct  # noqa: E402
+from data_utils import bytes_to_float, bytes_to_struct, NUMPY_T, PRECISION_T  # noqa: E402
 
 
 ERR_THRESHOLD = 1E-6
-
-PRECISION_T = {
-    8: '64',
-    4: '32',
-    2: '16',
-    1: '8'
-}
-
-NUMPY_T = {
-    '64': np.float64,
-    '32': np.float32,
-    '16': np.float16
-}
 
 
 def main():

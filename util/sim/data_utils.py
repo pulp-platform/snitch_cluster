@@ -9,6 +9,18 @@ from datetime import datetime
 import torch
 import numpy as np
 
+PRECISION_T = {
+    8: '64',
+    4: '32',
+    2: '16',
+    1: '8'
+}
+
+NUMPY_T = {
+    '64': np.float64,
+    '32': np.float32,
+    '16': np.float16
+}
 
 def emit_license():
     s = (f"// Copyright {datetime.now().year} ETH Zurich and University of Bologna.\n"
