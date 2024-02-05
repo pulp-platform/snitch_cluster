@@ -5,6 +5,7 @@
 #pragma once
 
 #include "blas.h"
+#include "dnn.h"
 #include "snrt.h"
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
