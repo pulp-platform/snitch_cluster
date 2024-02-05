@@ -3,10 +3,11 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Gianna Paulin <pauling@iis.ee.ethz.ch>
+# Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
-APP = fusedconv
+APP ?= fusedconv
 
-include ../Makefile
+include ../../../../../../sw/dnn/common.mk
 include ../../common.mk
 
 $(DEP): $(DATA_H)

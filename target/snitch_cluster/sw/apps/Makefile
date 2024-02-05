@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
+# Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
 SUBDIRS  = lto
 SUBDIRS += nop
@@ -10,7 +11,7 @@ SUBDIRS += blas/axpy
 SUBDIRS += blas/gemm
 SUBDIRS += dnn/batchnorm
 SUBDIRS += dnn/conv2d
-# SUBDIRS += dnn/fusedconv
+SUBDIRS += dnn/fusedconv
 SUBDIRS += dnn/gelu
 SUBDIRS += dnn/gemm
 SUBDIRS += dnn/layernorm

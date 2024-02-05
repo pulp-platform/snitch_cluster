@@ -173,6 +173,7 @@ typedef struct {
     int flag_y_accumulate_start;
     int flag_y_accumulate_end;
     unsigned int *memory_chan;
+    precision_t dtype;
 } kernel_fp32;
 
 /**
