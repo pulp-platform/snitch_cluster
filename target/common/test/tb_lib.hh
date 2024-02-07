@@ -126,7 +126,6 @@ struct BootData {
     uint64_t global_mem_start;
     uint64_t global_mem_end;
     uint32_t cluster_count;
-    uint32_t s1_quadrant_count;
     uint32_t clint_base;
 };
 extern const BootData BOOTDATA;
