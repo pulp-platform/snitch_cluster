@@ -22,6 +22,7 @@ NUMPY_T = {
     '16': np.float16
 }
 
+
 def emit_license():
     s = (f"// Copyright {datetime.now().year} ETH Zurich and University of Bologna.\n"
          f"// Licensed under the Apache License, Version 2.0, see LICENSE for details.\n"
