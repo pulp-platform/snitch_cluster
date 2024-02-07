@@ -2113,7 +2113,7 @@ void conv2d_layer(const conv_layer *l) {
     uint32_t cluster_num = snrt_cluster_num();
     uint32_t cluster_id = snrt_cluster_idx();
     uint32_t compute_num = snrt_cluster_compute_core_num();
-    uint32_t compute_id = snrt_cluster_compute_core_num();
+    uint32_t compute_id = snrt_global_core_idx();
 
     const uint32_t cluster_per_quadrant = min(4, cluster_num);
 

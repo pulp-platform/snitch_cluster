@@ -8,6 +8,7 @@
 import sys
 from pathlib import Path
 import numpy as np
+import torch
 from data.datagen import golden_model
 
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
@@ -27,7 +28,7 @@ def main():
                                         snitch_bin=args.snitch_bin,
                                         symbols_bin=args.symbols_bin,
                                         log=args.log,
-                                        output_uids=['linear_output'])
+                                        output_uids=['conv2d_ofmap_dram'])
 
     # Extract input operands from ELF file
     if args.symbols_bin:
@@ -44,6 +45,15 @@ def main():
         'OW': 'I',
         'FH': 'I',
         'FW': 'I',
+        'pad': 'I',
+        'ifmap': 'I',
+        'weights': 'I',
+        'ofmap': 'I',
+        'TILE_CI': 'I',
+        'cluster2cluster': 'I',
+        'im2col': 'I',
+        'gamma': 'I',
+        'beta': 'I',
         'dtype': 'I'
     }
 
@@ -52,17 +62,21 @@ def main():
               elf.get_symbol_contents('conv2d_ifmap_dram'),
               PRECISION_T[layer['dtype']]),
               dtype=NUMPY_T[PRECISION_T[layer['dtype']]])]
+    inputs = torch.from_numpy(
+                inputs[0].reshape(layer['CI'], layer['IH'], layer['IW']))
     filters = [np.array(bytes_to_float(
                elf.get_symbol_contents('conv2d_weights_dram'),
                PRECISION_T[layer['dtype']]),
                dtype=NUMPY_T[PRECISION_T[layer['dtype']]])]
-
+    filters = torch.from_numpy(
+                    filters[0].reshape(
+                        layer['CO'], layer['CI'], layer['FH'], layer['FW']))
     # Verify results
     output_actual = np.array(bytes_to_float(
-                             raw_results['ofmap'],
+                             raw_results['conv2d_ofmap_dram'],
                              PRECISION_T[layer['dtype']]),
                              dtype=NUMPY_T[PRECISION_T[layer['dtype']]])
-    output_golden, _ = golden_model(inputs, filters, padding=0, stride=1)
+    output_golden = golden_model(inputs, filters, padding=1, stride=1)
     output_golden = output_golden.detach().numpy().flatten()
 
     relative_err = np.absolute((output_golden - output_actual) / output_golden)
