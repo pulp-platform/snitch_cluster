@@ -242,7 +242,7 @@ int gemm(gemm_args_t* args) {
                             // Clusters other than the first need to initialize
                             // the C array to zero in their first iteration
                             snrt_dma_start_1d(local_c_partial,
-                                              (void*)snrt_zero_memory_ptr(),
+                                              (void*)snrt_zero_memory_ptr(snrt_cluster_idx()),
                                               frac_m * frac_n * prec);
                         }
                     }
