@@ -14,9 +14,9 @@
 #include "snrt.h"
 
 int main() {
-    int retcode =
-        gemm(dtype_size, expand, 1, parallelize_m, parallelize_k, m_tiles,
-             n_tiles, k_tiles, 1, 1, 1, TA, TB, M, N, K, 1, a, b, BETA, c);
+    int retcode = gemm(dtype_size, expand, 1, parallelize_m, parallelize_k,
+                       m_tiles, n_tiles, k_tiles, 1, 1, 1, TA, TB, M, N, K, 1,
+                       a, b, BETA, c, baseline);
 
     snrt_cluster_hw_barrier();
 
@@ -25,6 +25,19 @@ int main() {
 #ifdef BIST
     void *local_a, *local_b, *local_c;
     void *remote_a, *remote_b, *remote_c;
+
+    // Calculate size and pointers for each cluster
+    uint32_t frac_m = M / snrt_cluster_num();
+    uint32_t frac_a = frac_m * K;
+    uint32_t frac_c = frac_m * N;
+    uint32_t size_frac_a = frac_a * dtype_size;
+    uint32_t size_b = K * N * dtype_size;
+    uint32_t size_frac_c = frac_c * dtype_size;
+    uint32_t offset_a = frac_a * snrt_cluster_idx();
+    uint32_t offset_c = frac_c * snrt_cluster_idx();
+    remote_a = a + offset_a;
+    remote_b = b;
+    remote_c = c + offset_c;
 
     // Allocate space in TCDM
     local_a = (void *)snrt_l1_next();

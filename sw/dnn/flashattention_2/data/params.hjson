@@ -8,4 +8,5 @@
     B_r: 16
     B_c: 8
     dtype: FP64
+    baseline: 0
 }

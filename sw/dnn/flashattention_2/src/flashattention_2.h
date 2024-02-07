@@ -8,8 +8,6 @@
 #include "blas.h"
 #include "snrt.h"
 
-// #define ENABLE_PRINTS
-
 // Taylor series approximation of exp(x)
 // Slow but accurate
 double double_dummy_exp(double x) {
@@ -58,6 +56,7 @@ typedef struct {
     uint32_t d;
     uint32_t B_r;
     uint32_t B_c;
+    uint32_t baseline;
     void *Q;
     void *K;
     void *V;
@@ -71,6 +70,7 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
     uint32_t d = layer.d;
     uint32_t B_r = layer.B_r;
     uint32_t B_c = layer.B_c;
+    uint32_t baseline = layer.baseline;
     double *Q_l3 = layer.Q;
     double *K_l3 = layer.K;
     double *V_l3 = layer.V;
@@ -144,13 +144,6 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                                   B_r);               /* repetitions */
 
             snrt_dma_wait_all();
-
-#ifdef ENABLE_PRINTS
-            printf("Q_fa:\n");
-            for (int i = 0; i < B_r * d; i++) {
-                DUMP((float)(Q_fa[i]));
-            }
-#endif
         }
         uint32_t end_dma = snrt_mcycle();
 
@@ -170,30 +163,11 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
 
         snrt_cluster_hw_barrier();
 
-#ifdef ENABLE_PRINTS
-        if (snrt_cluster_core_idx() == 0) {
-            printf("m_i:\n");
-            for (int i = 0; i < B_r; i++) {
-                DUMP((float)(m_i[i]));
-            }
-            printf("l_i:\n");
-            for (int i = 0; i < B_r; i++) {
-                DUMP((float)(l_i[i]));
-            }
-        }
-#endif
-
         snrt_cluster_hw_barrier();
 
         // Iterate column blocks of K (corresponding to row blocks of V)
         uint32_t start_loop_inner = snrt_mcycle();
         for (int t_c = 0; t_c < T_c; t_c++) {
-#ifdef ENABLE_PRINTS
-            if (snrt_cluster_core_idx() == 0) {
-                printf("(i, j) = (%d, %d)\n", t_r, t_c);
-            }
-#endif
-
             snrt_cluster_hw_barrier();
 
             // DMA copy K column block (d, B_c) and V row block (B_c, d) to
@@ -220,17 +194,6 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                                       B_c);               /* repetitions */
 
                 snrt_dma_wait_all();
-
-#ifdef ENABLE_PRINTS
-                printf("K_fa:\n");
-                for (int i = 0; i < B_c * d; i++) {
-                    DUMP((float)(K_fa[i]));
-                }
-                printf("V_fa:\n");
-                for (int i = 0; i < B_c * d; i++) {
-                    DUMP((float)(V_fa[i]));
-                }
-#endif
             }
             uint32_t end_dma = snrt_mcycle();
 
@@ -243,19 +206,10 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                 // The S tile is of form (B_r, B_c)
                 uint32_t start_gemm = snrt_mcycle();
                 sc_st_gemm(FP64, 0, 0, 0, 0, B_r, B_c, d, 1, Q_fa, d, K_fa, B_c,
-                           0, S_fa, B_c);
+                           0, S_fa, B_c, baseline);
                 uint32_t end_gemm = snrt_mcycle();
 
                 snrt_cluster_hw_barrier();
-
-#ifdef ENABLE_PRINTS
-                if (snrt_cluster_core_idx() == 0) {
-                    printf("S_ij:\n");
-                    for (int i = 0; i < B_r * B_c; i++) {
-                        DUMP((float)(S_fa[i]));
-                    }
-                }
-#endif
 
                 // Iterate over the rows of the S row block, distributing
                 // the rows to the cores
@@ -301,29 +255,6 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
 
                 snrt_cluster_hw_barrier();
 
-#ifdef ENABLE_PRINTS
-                if (snrt_cluster_core_idx() == 0) {
-                    printf("m_i:\n");
-                    for (int i = 0; i < B_r; i++) {
-                        DUMP((float)(m_i[i]));
-                    }
-                    printf("P_ij:\n");
-                    for (int i = 0; i < B_r * B_c; i++) {
-                        DUMP((float)(P_fa[i]));
-                    }
-                    printf("l_i:\n");
-                    for (int i = 0; i < B_r; i++) {
-                        DUMP((float)(l_i[i]));
-                    }
-                    if (t_c != 0) {
-                        printf("O_ij:\n");
-                        for (int i = 0; i < B_r * d; i++) {
-                            DUMP((float)(O_fa[i]));
-                        }
-                    }
-                }
-#endif
-
                 snrt_cluster_hw_barrier();
 
                 // Calculate O tile (O_ij) of size (B_r, d).
@@ -331,25 +262,17 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                 if (t_c == 0) {
                     // In first t_c iteration, initialize O_ij to P_ij * V_j
                     sc_st_gemm(FP64, 0, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c,
-                               V_fa, d, 0.0f, O_fa, d);
+                               V_fa, d, 0.0f, O_fa, d, baseline);
                 } else {
                     // In successive t_c iterations, O_ij += P_ij * V_j
                     sc_st_gemm(FP64, 0, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c,
-                               V_fa, d, 1.0f, O_fa, d);
+                               V_fa, d, 1.0f, O_fa, d, baseline);
                 }
 
                 uint32_t end_stats = snrt_mcycle();
 
                 snrt_cluster_hw_barrier();
 
-#ifdef ENABLE_PRINTS
-                if (snrt_cluster_core_idx() == 0) {
-                    printf("O_ij:\n");
-                    for (int i = 0; i < B_r * d; i++) {
-                        DUMP((float)(O_fa[i]));
-                    }
-                }
-#endif
             } else {
                 snrt_cluster_hw_barrier();
                 snrt_cluster_hw_barrier();
@@ -374,15 +297,6 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
 
         snrt_cluster_hw_barrier();
 
-#ifdef ENABLE_PRINTS
-        if (snrt_cluster_core_idx() == 0) {
-            printf("O_ij:\n");
-            for (int i = 0; i < B_r * d; i++) {
-                DUMP((float)(O_fa[i]));
-            }
-        }
-#endif
-
         snrt_cluster_hw_barrier();
 
         // Write back O row block (B_r, d) to DRAM
@@ -398,13 +312,6 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                                   B_r);               /* repetitions */
 
             snrt_dma_wait_all();
-
-#ifdef ENABLE_PRINTS
-            printf("O_l3:\n");
-            for (int i = 0; i < B_r * d; i++) {
-                DUMP((float)(O_l3[o_fa_offset + i]));
-            }
-#endif
         }
         uint32_t end_dma_write_back = snrt_mcycle();
 
