@@ -6,7 +6,6 @@
 # Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
 import argparse
-import numpy as np
 import pathlib
 import hjson
 import sys
@@ -17,14 +16,14 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/")
 import data_utils  # noqa: E402
 from data_utils import emit_license, \
                        format_struct_definition, format_array_definition, \
-                       format_scalar_definition, format_array_declaration, \
-                       format_ifdef_wrapper, NUMPY_T  # noqa: E402
+                       format_scalar_definition, format_array_declaration  # noqa: E402
 
 torch.manual_seed(42)
 
 # AXI splits bursts crossing 4KB address boundaries. To minimize
 # the occurrence of these splits the data should be aligned to 4KB
 BURST_ALIGNMENT = 4096
+
 
 # FusedConv
 def golden_model(ifmap, weights, bn_k, bn_l, padding, stride, bn, relu, accumulate, depthwise):
@@ -110,21 +109,20 @@ def emit_header(**kwargs):
                              kwargs['dim_kernel_x'], kwargs['ch_out'],
                              requires_grad=False, dtype=torch_type)
 
-    
     bn_k = torch.randn(kwargs['ch_out'], requires_grad=False, dtype=torch_type)
     bn_l = torch.randn(kwargs['ch_out'], requires_grad=False, dtype=torch_type)
 
     flag_y_accumulate_start = kwargs['flags']['flag_y_accumulate_start']
 
-    ofmap, ofmap_before, ifmap_padded = golden_model(ifmap, kernel, 
+    ofmap, ofmap_before, ifmap_padded = golden_model(ifmap, kernel,
                                                      bn_k, bn_l,
-                                                     kwargs['padding'], 
-                                                     kwargs['stride'], 
+                                                     kwargs['padding'],
+                                                     kwargs['stride'],
                                                      kwargs['flags']['flag_batch_norm'],
                                                      kwargs['flags']['flag_relu'],
                                                      not flag_y_accumulate_start,
                                                      kwargs['depthwise'])
-    
+
     if kwargs['chw_layer']:
         ifmap = ifmap.permute(2, 0, 1)
         ifmap_padded = ifmap_padded.permute(2, 0, 1)
@@ -166,22 +164,47 @@ def emit_header(**kwargs):
         'stride_y': kwargs['stride']['stride_y'],
         'flag_relu': kwargs['flags']['flag_relu'],
         'flag_batch_norm': kwargs['flags']['flag_batch_norm'],
+        'depthwise': kwargs['depthwise'],
+        'chw_layer': kwargs['chw_layer'],
         'flag_y_accumulate_start': flag_y_accumulate_start,
         'flag_y_accumulate_end': kwargs['flags']['flag_y_accumulate_end'],
+        'pInBuffer': 'fusedconv_pInBuffer_dram',
+        'pWeight': 'fusedconv_pWeight_dram',
+        'lambda': 'fusedconv_lambda_dram',
+        'kappa': 'fusedconv_kappa_dram',
+        'pOutBuffer': 'fusedconv_pOutBuffer_dram',
         'dtype': 'FP' + prec
     }
 
     data_str = [emit_license()]
-    data_str += [format_struct_definition('kernel_fp32', 'k', layer_cfg)]
+    data_str += [format_array_declaration(ctype, 'fusedconv_pInBuffer_dram',
+                                          ifmap_padded.numpy().shape, BURST_ALIGNMENT)]
+    data_str += [format_array_declaration(ctype, 'fusedconv_pWeight_dram',
+                                          kernel.numpy().shape, BURST_ALIGNMENT)]
+    data_str += [format_array_declaration(ctype, 'fusedconv_lambda_dram',
+                                          bn_l.numpy().shape, BURST_ALIGNMENT)]
+    data_str += [format_array_declaration(ctype, 'fusedconv_kappa_dram',
+                                          bn_k.numpy().shape, BURST_ALIGNMENT)]
+    data_str += [format_array_declaration(ctype, 'fusedconv_pOutBuffer_dram',
+                                          ofmap_before.numpy().shape, BURST_ALIGNMENT)]
+    data_str += [format_array_declaration(ctype, 'fusedconv_pCheckOutBuffer_dram',
+                                          ofmap.numpy().shape, BURST_ALIGNMENT)]
+    data_str += [format_struct_definition('kernel_fp32', 'layer', layer_cfg)]
     data_str += [format_scalar_definition('uint32_t', 'dw', kwargs['depthwise'])]
     data_str += [format_scalar_definition('uint32_t', 'chw_layer', kwargs['chw_layer'])]
-    data_str += [format_array_definition(ctype, f'fusedconv_pInBuffer_dram', ifmap_padded.numpy(), BURST_ALIGNMENT)]
-    data_str += [format_array_definition(ctype, f'fusedconv_pWeight_dram', kernel.numpy(), BURST_ALIGNMENT)]
-    data_str += [format_array_definition(ctype, f'fusedconv_lambda_dram', bn_l.numpy(), BURST_ALIGNMENT)]
-    data_str += [format_array_definition(ctype, f'fusedconv_kappa_dram', bn_k.numpy(), BURST_ALIGNMENT)]
-    data_str += [format_array_definition(ctype, f'fusedconv_pOutBuffer_dram', ofmap_before.numpy(), BURST_ALIGNMENT)]
-    data_str += [format_array_definition(ctype, f'fusedconv_pCheckOutBuffer_dram', ofmap.numpy(), BURST_ALIGNMENT)]
-    
+    data_str += [format_array_definition(ctype, 'fusedconv_pInBuffer_dram',
+                                         ifmap_padded.numpy(), BURST_ALIGNMENT)]
+    data_str += [format_array_definition(ctype, 'fusedconv_pWeight_dram',
+                                         kernel.numpy(), BURST_ALIGNMENT)]
+    data_str += [format_array_definition(ctype, 'fusedconv_lambda_dram',
+                                         bn_l.numpy(), BURST_ALIGNMENT)]
+    data_str += [format_array_definition(ctype, 'fusedconv_kappa_dram',
+                                         bn_k.numpy(), BURST_ALIGNMENT)]
+    data_str += [format_array_definition(ctype, 'fusedconv_pOutBuffer_dram',
+                                         ofmap_before.numpy(), BURST_ALIGNMENT)]
+    data_str += [format_array_definition(ctype, 'fusedconv_pCheckOutBuffer_dram',
+                                         ofmap.numpy(), BURST_ALIGNMENT)]
+
     data_str = '\n\n'.join(data_str)
 
     return data_str

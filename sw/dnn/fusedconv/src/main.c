@@ -10,15 +10,16 @@
 void *share_ptr;
 
 int main() {
-    uint32_t ifmap_size = (k.dim_in_x + k.padding_x_left + k.padding_x_right) *
-                          (k.dim_in_y + k.padding_y_top + k.padding_y_bottom) *
-                          k.ch_in;
+    uint32_t ifmap_size =
+        (layer.dim_in_x + layer.padding_x_left + layer.padding_x_right) *
+        (layer.dim_in_y + layer.padding_y_top + layer.padding_y_bottom) *
+        layer.ch_in;
     uint32_t weights_size =
-        k.dim_kernel_x * k.dim_kernel_y * k.ch_in * k.ch_out;
-    uint32_t ofmap_size = k.dim_out_x * k.dim_out_y * k.ch_out;
+        layer.dim_kernel_x * layer.dim_kernel_y * layer.ch_in * layer.ch_out;
+    uint32_t ofmap_size = layer.dim_out_x * layer.dim_out_y * layer.ch_out;
 
     uint32_t total_size =
-        ifmap_size + weights_size + k.ch_out + k.ch_out + ofmap_size;
+        ifmap_size + weights_size + layer.ch_out + layer.ch_out + ofmap_size;
 
     float *ptr;
 
@@ -36,9 +37,9 @@ int main() {
     float *pWeight = ptr;
     ptr += weights_size;
     float *kappa = ptr;
-    ptr += k.ch_out;
+    ptr += layer.ch_out;
     float *lambda = ptr;
-    ptr += k.ch_out;
+    ptr += layer.ch_out;
     float *pOutBuffer = ptr;
     ptr += ofmap_size;
 
@@ -56,11 +57,11 @@ int main() {
         snrt_dma_wait_all();
     }
 
-    k.pInBuffer = pInBuffer;
-    k.pWeight = pWeight;
-    k.pOutBuffer = pOutBuffer;
-    k.kappa = kappa;
-    k.lambda = lambda;
+    layer.pInBuffer = pInBuffer;
+    layer.pWeight = pWeight;
+    layer.pOutBuffer = pOutBuffer;
+    layer.kappa = kappa;
+    layer.lambda = lambda;
 
     snrt_cluster_hw_barrier();
 
@@ -68,16 +69,16 @@ int main() {
         if (snrt_is_compute_core() || (snrt_cluster_core_num() == 1)) {
             if (dw) {
                 snrt_mcycle();
-                conv2d_dw_fp32(&k);
+                conv2d_dw_fp32(&layer);
                 snrt_mcycle();
 
             } else if (chw_layer) {
                 snrt_mcycle();
-                conv2d_chw_fp32(&k);
+                conv2d_chw_fp32(&layer);
                 snrt_mcycle();
             } else {
                 snrt_mcycle();
-                conv2d_fp32(&k);
+                conv2d_fp32(&layer);
                 snrt_mcycle();
             }
 
@@ -87,24 +88,6 @@ int main() {
         }
     }
     snrt_cluster_hw_barrier();
-
-    uint32_t errors = 0;
-    if (snrt_is_dm_core()) {
-        // Output feature map (H x W x Co)
-        const uint32_t output_w_stride = k.ch_out;
-        const uint32_t output_h_stride = output_w_stride * k.dim_out_x;
-        for (uint32_t i = 0; i < ofmap_size; i++) {
-            if (fabs(pOutBuffer[i] -
-                     ((float *)fusedconv_pCheckOutBuffer_dram)[i]) > 0.01) {
-                errors++;
-                printf("Error at h %d w %d co %d\n", i / output_h_stride,
-                       (i % output_h_stride) / output_w_stride,
-                       i % output_w_stride);
-                printf("Expected: %f, Got: %f\n", ((float *)fusedconv_pCheckOutBuffer_dram)[i], pOutBuffer[i]);
-            }
-        }
-        printf("%d/%d Errors\n", errors, ofmap_size);
-    }
 
     return 0;
 }
