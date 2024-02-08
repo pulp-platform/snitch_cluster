@@ -2340,10 +2340,9 @@ void conv2d_layer(const conv_layer *l) {
                         // Transfer tile from other cluster to memory
                         else {
                             // A cluster always loads from the previous cluster
-                            uint32_t cl_offset = 0x00040000;
                             volatile uint32_t *src_synch_flag =
-                                (void *)synch_flag - cl_offset;
-                            double *src_ifmap = (void *)ifmap - cl_offset;
+                                (void *)synch_flag - SNRT_CLUSTER_OFFSET;
+                            double *src_ifmap = (void *)ifmap - SNRT_CLUSTER_OFFSET;
 
                             // Wait until previous cluster has released data
                             if (l->cluster2cluster &&
