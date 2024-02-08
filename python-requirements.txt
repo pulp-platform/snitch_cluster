@@ -11,6 +11,7 @@ hjson
 jsonref
 jsonschema
 mako
+mkdocs-material
 progressbar2
 tabulate
 yamllint
