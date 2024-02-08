@@ -91,24 +91,6 @@ static inline void layernorm_fp32(float *input, float *output,
     }
 }
 
-// /**
-//  * Implementation of the LayerNorm layer for the Transformer model for FP64.
-//  */
-// static inline void transformer_layernorm_fp64(double *input, int32_t ldI,
-//                                               int32_t seq_len, int32_t
-//                                               embeddings, int32_t eps) {
-//     layernorm_fp64(input, input, ldI, 0, 1, seq_len, embeddings, eps);
-// }
-
-// /**
-//  * Implementation of the LayerNorm layer for the Transformer model for FP32.
-//  */
-// static inline void transformer_layernorm_fp32(float *input, int32_t ldI,
-//                                               int32_t seq_len, int32_t
-//                                               embeddings, int32_t eps) {
-//     layernorm_fp32(input, input, ldI, 0, 1, seq_len, embeddings, eps);
-// }
-
 // Tiles the seq_len axis (assumes seq_len is an integer multiple of n_tiles)
 // Distributes tiles to clusters (assumes n_tiles is an integer multiple of
 // the number of clusters)

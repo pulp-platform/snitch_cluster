@@ -14,8 +14,7 @@ from data.datagen import golden_model
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import bytes_to_float, bytes_to_struct, NUMPY_T, \
-                        PRECISION_T  # noqa: E402
+from data_utils import from_buffer, ctype_from_precision_t  # noqa: E402
 
 
 ERR_THRESHOLD = 1E-6
@@ -57,25 +56,21 @@ def main():
         'dtype': 'I'
     }
 
-    layer = bytes_to_struct(elf.get_symbol_contents('layer'), layer_struct)
-    inputs = [np.array(bytes_to_float(
-              elf.get_symbol_contents('conv2d_ifmap_dram'),
-              PRECISION_T[layer['dtype']]),
-              dtype=NUMPY_T[PRECISION_T[layer['dtype']]])]
-    inputs = torch.from_numpy(
-                inputs[0].reshape(layer['CI'], layer['IH'], layer['IW']))
-    filters = [np.array(bytes_to_float(
-               elf.get_symbol_contents('conv2d_weights_dram'),
-               PRECISION_T[layer['dtype']]),
-               dtype=NUMPY_T[PRECISION_T[layer['dtype']]])]
-    filters = torch.from_numpy(
-                    filters[0].reshape(
-                        layer['CO'], layer['CI'], layer['FH'], layer['FW']))
+    layer = elf.from_buffer('layer', layer_struct)
+    co = layer['CO']
+    ci = layer['CI']
+    ih = layer['IH']
+    iw = layer['IW']
+    fh = layer['FH']
+    fw = layer['FW']
+    prec = layer['dtype']
+
+    inputs = elf.from_symbol('conv2d_ifmap_dram', ctype_from_precision_t(prec))
+    inputs = torch.from_numpy(inputs.reshape(ci, ih, iw))
+    filters = elf.from_symbol('conv2d_weights_dram', ctype_from_precision_t(prec))
+    filters = torch.from_numpy(filters.reshape(co, ci, fh, fw))
     # Verify results
-    output_actual = np.array(bytes_to_float(
-                             raw_results['conv2d_ofmap_dram'],
-                             PRECISION_T[layer['dtype']]),
-                             dtype=NUMPY_T[PRECISION_T[layer['dtype']]])
+    output_actual = from_buffer(raw_results['conv2d_ofmap_dram'], ctype_from_precision_t(prec))
     output_golden = golden_model(inputs, filters, padding=1, stride=1)
     output_golden = output_golden.detach().numpy().flatten()
 

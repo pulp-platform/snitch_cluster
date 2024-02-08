@@ -9,18 +9,6 @@ from datetime import datetime
 import torch
 import numpy as np
 
-PRECISION_T = {
-    8: '64',
-    4: '32',
-    2: '16',
-    1: '8'
-}
-
-NUMPY_T = {
-    '64': np.float64,
-    '32': np.float32,
-    '16': np.float16
-}
 
 
 def emit_license():
@@ -30,25 +18,33 @@ def emit_license():
     return s
 
 
-def floating_point_torch_type(precision):
-    prec_to_torch_type_map = {
-        '64': torch.float64,
-        '32': torch.float32,
-        '16': torch.float16,
-        '8': None
+# Enum value can be a string or an integer, this function uniformizes the result to integers only
+def integer_precision_t(prec):
+    if isinstance(prec, str):
+        return {'FP64': 8, 'FP32': 4, 'FP16': 2, 'FP8': 1}[prec]
+    else:
+        return prec
+
+
+def torch_type_from_precision_t(prec):
+    ctype_to_torch_type_map = {
+        8: torch.float64,
+        4: torch.float32,
+        2: torch.float16,
+        1: None
     }
-    return prec_to_torch_type_map[precision]
+    return ctype_to_torch_type_map[integer_precision_t(prec)]
 
 
 # Returns the C type representing a floating-point value of the specified precision
-def floating_point_ctype(precision):
-    prec_to_fp_type_map = {
-        '64': 'double',
-        '32': 'float',
-        '16': '__fp16',
-        '8': '__fp8'
+def ctype_from_precision_t(prec):
+    precision_t_to_ctype_map = {
+        8: 'double',
+        4: 'float',
+        2: '__fp16',
+        1: '__fp8'
     }
-    return prec_to_fp_type_map[precision]
+    return precision_t_to_ctype_map[integer_precision_t(prec)]
 
 
 def flatten(array):
@@ -130,6 +126,8 @@ def format_struct_definition(dtype, uid, map):
     def format_value(value):
         if isinstance(value, list):
             return format_array_initializer(str, value)
+        elif isinstance(value, bool):
+            return int(value)
         else:
             return str(value)
     s = f'{alias_dtype(dtype)} {uid} = {{\n'
@@ -145,51 +143,35 @@ def format_ifdef_wrapper(macro, body):
     return s
 
 
-# bytearray assumed little-endian
-def bytes_to_struct(byte_array, struct_map):
-    struct_fields = struct_map.keys()
-    fmt_specifiers = struct_map.values()
-    fmt_string = ''.join(fmt_specifiers)
-    field_values = struct.unpack(f'<{fmt_string}', byte_array)
-    return dict(zip(struct_fields, field_values))
+def from_buffer(byte_array, ctype='uint32_t'):
+    # Types which have a direct correspondence in Numpy
+    NP_DTYPE_FROM_CTYPE = {
+        'uint32_t': np.uint32,
+        'double': np.float64,
+        'float': np.float32,
+        '__fp16': np.float16
+    }
 
-
-# bytearray assumed little-endian
-def bytes_to_float(byte_array, prec='64'):
-    if prec == '64':
-        fmt_specifier = 'd'
-    elif prec == '32':
-        fmt_specifier = 'f'
-    else:
-        raise ValueError('Only single and double precision supported so far')
-
-    size = struct.calcsize(fmt_specifier)  # Size of an element
-    num_elements = len(byte_array) // size
-
-    # Unpack the byte array into a list of elements
-    elements = []
-    for i in range(num_elements):
-        element_bytes = byte_array[i * size:(i + 1) * size]
-        element = struct.unpack(f'<{fmt_specifier}', element_bytes)[0]
-        elements.append(element)
-    if len(elements) == 1:
-        return elements[0]
-    else:
-        return elements
-
-
-# bytearray assumed little-endian
-def bytes_to_int(byte_array, prec='32', signedness='unsigned'):
-    assert prec == '32', "Only 32 bit precision supported so far"
-    assert signedness == 'unsigned', "Only unsigned integers supported so far"
-
-    uint32_size = struct.calcsize('I')  # Size of a uint32 in bytes
-    num_uints = len(byte_array) // uint32_size
-
-    # Unpack the byte array into a list of uints
-    uints = []
-    for i in range(num_uints):
-        uint32_bytes = byte_array[i * uint32_size:(i + 1) * uint32_size]
-        uint = struct.unpack('<I', uint32_bytes)[0]
-        uints.append(uint)
-    return uints
+    if isinstance(ctype, dict):
+        # byte_array assumed little-endian
+        struct_fields = ctype.keys()
+        fmt_specifiers = ctype.values()
+        fmt_string = ''.join(fmt_specifiers)
+        field_values = struct.unpack(f'<{fmt_string}', byte_array)
+        return dict(zip(struct_fields, field_values))
+    elif ctype in NP_DTYPE_FROM_CTYPE.keys():
+        dtype = NP_DTYPE_FROM_CTYPE[ctype]
+        return np.frombuffer(byte_array, dtype=dtype)
+    elif ctype == '__fp8':
+        array = []
+        byte_array = np.frombuffer(byte_array, dtype=np.uint8)
+        for byte in byte_array:
+            sign = (byte & 0x80) >> 7  # Extract sign (1 bit)
+            exponent = (byte & 0x7c) >> 2  # Extract exponent (5 bits)
+            mantissa = (byte & 0x03) << 5  # Extract mantissa (2 bits)
+            real_exp = exponent - 15  # Convert exponent from excess-7 to excess-127
+            value = (1 + mantissa / 4) * (2 ** float(real_exp))  # Calculate value
+            if sign:
+                value *= -1
+            array.append(value)
+        return array

@@ -14,7 +14,7 @@ from data.datagen import golden_model
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import bytes_to_float, bytes_to_struct, NUMPY_T, PRECISION_T  # noqa: E402
+from data_utils import from_buffer, ctype_from_precision_t  # noqa: E402
 
 
 ERR_THRESHOLD = 1E-0
@@ -41,14 +41,14 @@ def main():
         'ofmap': 'I',
         'dtype': 'I'
     }
-    layer = bytes_to_struct(elf.get_symbol_contents('layer'), layer_struct)
-    prec = PRECISION_T[layer['dtype']]
+    layer = elf.from_symbol('layer', layer_struct)
+    prec = layer['dtype']
 
-    ifmap = np.array(bytes_to_float(elf.get_symbol_contents('ifmap'), prec), dtype=NUMPY_T[prec])
+    ifmap = elf.from_symbol('ifmap', ctype_from_precision_t(prec))
     ifmap = torch.from_numpy(ifmap)
 
     # Verify results
-    ofmap_actual = np.array(bytes_to_float(raw_results['ofmap'], prec), dtype=NUMPY_T[prec])
+    ofmap_actual = from_buffer(raw_results['ofmap'], ctype_from_precision_t(prec))
     ofmap_golden = golden_model(ifmap).detach().numpy().flatten()
     relative_err = np.absolute((ofmap_golden - ofmap_actual) / ofmap_golden)
     fail = np.any(relative_err > ERR_THRESHOLD)

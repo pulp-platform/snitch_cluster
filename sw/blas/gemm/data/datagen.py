@@ -9,7 +9,7 @@
 import numpy as np
 import argparse
 import pathlib
-import hjson
+import json5
 import sys
 import os
 
@@ -121,7 +121,7 @@ def emit_header(**kwargs):
     data_str += [format_scalar_definition('uint32_t', 'k_tiles', kwargs['k_tiles'])]
     data_str += [format_scalar_definition('uint32_t', 'parallelize_m', kwargs['parallelize_m'])]
     data_str += [format_scalar_definition('uint32_t', 'parallelize_k', kwargs['parallelize_k'])]
-    data_str += [format_scalar_definition('uint32_t', 'baseline', baseline)]
+    data_str += [format_scalar_definition('uint32_t', 'baseline', int(baseline))]
     data_str += [format_array_definition(C_TYPES[str(kwargs['prec'])], 'a', a.flatten(),
                  alignment=BURST_ALIGNMENT, section=kwargs['section'])]
     data_str += [format_array_definition(C_TYPES[str(kwargs['prec'])], 'b', b.flatten(),
@@ -157,7 +157,7 @@ def main():
 
     # Load param config file
     with args.cfg.open() as f:
-        param = hjson.loads(f.read())
+        param = json5.loads(f.read())
     param['section'] = args.section
 
     # Emit header file

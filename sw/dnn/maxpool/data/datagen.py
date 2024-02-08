@@ -9,7 +9,7 @@
 
 import argparse
 import pathlib
-import hjson
+import json5
 import sys
 import os
 import torch
@@ -26,13 +26,6 @@ torch.manual_seed(42)
 # the occurrence of these splits the data should be aligned to 4KB
 BURST_ALIGNMENT = 4096
 
-PRECISION_T = {
-    '64': 'FP64',
-    '32': 'FP32',
-    '16': 'FP16',
-    '8': 'FP8'
-}
-
 
 def golden_model(ifmap, kernel):
     max_pool = torch.nn.MaxPool2d(kernel_size=kernel)
@@ -46,10 +39,10 @@ def emit_header(**kwargs):
     in_width = kwargs['input_dim']['width']
     kernel_size = kwargs['kernel_size']
     tile_ci = kwargs['tile_ci']
-    prec = str(kwargs['prec'])
+    prec = kwargs['prec']
 
-    torch_type = data_utils.floating_point_torch_type(prec)
-    ctype = data_utils.floating_point_ctype(prec)
+    torch_type = data_utils.torch_type_from_precision_t(prec)
+    ctype = data_utils.ctype_from_precision_t(prec)
 
     ifmap = torch.randn(1, in_channels, in_height, in_width, requires_grad=False, dtype=torch_type)
     ofmap = golden_model(ifmap, kernel_size)
@@ -115,7 +108,7 @@ def main():
 
     # Load param config file
     with args.cfg.open() as f:
-        param = hjson.loads(f.read())
+        param = json5.loads(f.read())
     param['section'] = args.section
 
     # Emit header file

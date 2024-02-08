@@ -5,21 +5,20 @@
 // Parameters for a single Conv2d layer
 
 {
-    kernel: "Conv2d"
     channels: {
         out: 8,
         in: 32
-    }
+    },
     input_dim: {
         mini_batch: 1,
         height: 4,
         width: 8
-    }
+    },
     filter: {
         height: 3,
         width: 3,
-        padding: 1, # width//2
-        stride: 1,
-    }
-    prec: '64'
+        padding: 1, // width//2
+        stride: 1
+    },
+    prec: "FP64"
 }

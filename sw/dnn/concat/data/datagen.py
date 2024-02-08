@@ -8,7 +8,7 @@
 import argparse
 import numpy as np
 import pathlib
-import hjson
+import json5
 import sys
 import os
 import torch
@@ -25,13 +25,6 @@ torch.manual_seed(42)
 # the occurrence of these splits the data should be aligned to 4KB
 BURST_ALIGNMENT = 4096
 
-PRECISION = {
-    'FP64': '64',
-    'FP32': '32',
-    'FP16': '16',
-    'FP8': '8'
-}
-
 
 def golden_model(inputs):
     innermost_dim = len(inputs[0].shape) - 1
@@ -41,15 +34,15 @@ def golden_model(inputs):
 def emit_header(section, params):
     num_inputs = params['num_inputs']
     input_shape = params['input_shape']
-    prec = PRECISION[params['dtype']]
+    prec = params['dtype']
 
-    torch_type = data_utils.floating_point_torch_type(prec)
+    torch_type = data_utils.torch_type_from_precision_t(prec)
 
     inputs = [torch.rand(*input_shape, requires_grad=False, dtype=torch_type)
               for _ in range(num_inputs)]
     output = golden_model(inputs)
 
-    ctype = data_utils.floating_point_ctype(prec)
+    ctype = data_utils.ctype_from_precision_t(prec)
 
     layer_cfg = {
         **params,
@@ -94,7 +87,7 @@ def main():
 
     # Load param config file
     with args.cfg.open() as f:
-        param = hjson.loads(f.read())
+        param = json5.loads(f.read())
 
     # Emit header file
     with open(args.output, 'w') as f:

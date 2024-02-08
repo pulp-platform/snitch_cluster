@@ -19,10 +19,10 @@ There are currently a few tests for various layer types. Some additional informa
 - `net-batchnorm.c`: Implementation of a batchnorm layer with SSR streams (both read and write)
 - `net-conv2d.c`: Implementation and tiling of a 2D convolution that can be distributed to multiple clusters. The convolution is implemented as an `im2col` transformation (performed by 2D DMA transfers) + optimized GEMM. The memory layout of input and output feature map is Height x Width x Channels. The convolution is globally parallelized over output channels. Inside a cluster, the output pixels are distributed among the cores. There is an option to load the feature map from a different cluster instead of the main memory by setting `cluster2cluster` in the layer struct to `1`. Currently only `fp64` is implemented, but the data movement for `fp32` or lower precision SIMD should be analogously.
 - `net-gemm.c`: Testbench to benchmark the optimized GEMM implementation for different memory layouts, dimensions and precisions.
-- `net-fusedconv.c`: Implementation of a fused kernel with Conv2d + BatchNorm + ReLU. The interface of the kernel is compatible with DORY. Parameters of a tile can be specified in `data/fusedconv_param.hjson`. Supported paramters are input/output dimension, padding, kernel dimension & stride, flags for BatchNorm and ReLU. Further there are two additional specialized kernels 1) a CHW kernel for input layers with very few input channels, the output of this kernel is in the HWC layout again 2) A depthwise kernel
+- `net-fusedconv.c`: Implementation of a fused kernel with Conv2d + BatchNorm + ReLU. The interface of the kernel is compatible with DORY. Parameters of a tile can be specified in `data/fusedconv_param.json`. Supported paramters are input/output dimension, padding, kernel dimension & stride, flags for BatchNorm and ReLU. Further there are two additional specialized kernels 1) a CHW kernel for input layers with very few input channels, the output of this kernel is in the HWC layout again 2) A depthwise kernel
 
 ## Usage
-To run a specific benchmark, first configure the dimensions and the desired precision `data/app_params.hjson`.
+To run a specific benchmark, first configure the dimensions and the desired precision `data/app_params.json`.
 ```
 {
     kernel: "GEMM"

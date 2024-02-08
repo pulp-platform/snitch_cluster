@@ -236,8 +236,7 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, double* A, uint32_t ldA,
     // Unrolling factor of most inner loop.
     // Should be at least as high as the FMA delay
     // for maximum utilization
-    // const uint32_t unroll = 8;
-    const uint32_t unroll = 4;
+    const uint32_t unroll = 8;
 
     // A is of size MxK, B is of size KxN, C is of size MxN
     // for (uint32_t m = 0; m < M; m++) {
@@ -307,19 +306,19 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, double* A, uint32_t ldA,
                 c[1] = C[m * ldC + n + 1];
                 c[2] = C[m * ldC + n + 2];
                 c[3] = C[m * ldC + n + 3];
-                // c[4] = C[m * ldC + n + 4];
-                // c[5] = C[m * ldC + n + 5];
-                // c[6] = C[m * ldC + n + 6];
-                // c[7] = C[m * ldC + n + 7];
+                c[4] = C[m * ldC + n + 4];
+                c[5] = C[m * ldC + n + 5];
+                c[6] = C[m * ldC + n + 6];
+                c[7] = C[m * ldC + n + 7];
             } else {
                 c[0] = 0.0;
                 c[1] = 0.0;
                 c[2] = 0.0;
                 c[3] = 0.0;
-                // c[4] = 0.0;
-                // c[5] = 0.0;
-                // c[6] = 0.0;
-                // c[7] = 0.0;
+                c[4] = 0.0;
+                c[5] = 0.0;
+                c[6] = 0.0;
+                c[7] = 0.0;
             }
             asm volatile(
                 "frep.o %[n_frep], %[unroll], 0, 0 \n"
@@ -327,10 +326,10 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, double* A, uint32_t ldA,
                 "fmadd.d %[c1], ft0, ft1, %[c1] \n"
                 "fmadd.d %[c2], ft0, ft1, %[c2] \n"
                 "fmadd.d %[c3], ft0, ft1, %[c3] \n"
-                // "fmadd.d %[c4], ft0, ft1, %[c4] \n"
-                // "fmadd.d %[c5], ft0, ft1, %[c5] \n"
-                // "fmadd.d %[c6], ft0, ft1, %[c6] \n"
-                // "fmadd.d %[c7], ft0, ft1, %[c7] \n"
+                "fmadd.d %[c4], ft0, ft1, %[c4] \n"
+                "fmadd.d %[c5], ft0, ft1, %[c5] \n"
+                "fmadd.d %[c6], ft0, ft1, %[c6] \n"
+                "fmadd.d %[c7], ft0, ft1, %[c7] \n"
                 : [ c0 ] "+f"(c[0]), [ c1 ] "+f"(c[1]), [ c2 ] "+f"(c[2]),
                   [ c3 ] "+f"(c[3]), [ c4 ] "+f"(c[4]), [ c5 ] "+f"(c[5]),
                   [ c6 ] "+f"(c[6]), [ c7 ] "+f"(c[7])
@@ -342,10 +341,10 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, double* A, uint32_t ldA,
             C[m * ldC + n + 1] = c[1];
             C[m * ldC + n + 2] = c[2];
             C[m * ldC + n + 3] = c[3];
-            // C[m * ldC + n + 4] = c[4];
-            // C[m * ldC + n + 5] = c[5];
-            // C[m * ldC + n + 6] = c[6];
-            // C[m * ldC + n + 7] = c[7];
+            C[m * ldC + n + 4] = c[4];
+            C[m * ldC + n + 5] = c[5];
+            C[m * ldC + n + 6] = c[6];
+            C[m * ldC + n + 7] = c[7];
             n += unroll;
         }
 

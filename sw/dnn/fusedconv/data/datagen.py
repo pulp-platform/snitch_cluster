@@ -94,7 +94,7 @@ def emit_header(**kwargs):
     # filter = kwargs['filter'] # [height, width, padding, stride]
     prec = kwargs['prec']
 
-    torch_type = data_utils.floating_point_torch_type(prec)
+    torch_type = data_utils.torch_type_from_precision_t(prec)
 
     ifmap = torch.randn(kwargs['dim_in_y'],
                         kwargs['dim_in_x'],
@@ -128,7 +128,7 @@ def emit_header(**kwargs):
         ifmap_padded = ifmap_padded.permute(2, 0, 1)
         kernel = kernel.permute(0, 3, 1, 2)
 
-    ctype = data_utils.floating_point_ctype(prec)
+    ctype = data_utils.ctype_from_precision_t(prec)
 
     if kwargs['depthwise']:
         ih, iw, ci = ifmap.shape
@@ -173,7 +173,7 @@ def emit_header(**kwargs):
         'lambda': 'fusedconv_lambda_dram',
         'kappa': 'fusedconv_kappa_dram',
         'pOutBuffer': 'fusedconv_pOutBuffer_dram',
-        'dtype': 'FP' + prec
+        'dtype': prec
     }
 
     data_str = [emit_license()]

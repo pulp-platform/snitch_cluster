@@ -14,7 +14,7 @@ from data.datagen import exact_golden_model
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import bytes_to_float, bytes_to_struct, NUMPY_T, PRECISION_T  # noqa: E402
+from data_utils import from_buffer, ctype_from_precision_t  # noqa: E402
 
 
 ERR_THRESHOLD = 1E-6
@@ -44,18 +44,19 @@ def main():
         'K': 'I',
         'V': 'I',
         'O': 'I',
-        'dtype': 'I'
+        'dtype': 'I',
+        'baseline': 'I'
     }
-    layer = bytes_to_struct(elf.get_symbol_contents('layer'), layer_struct)
+    layer = elf.from_symbol('layer', layer_struct)
     N = layer['N']
     d = layer['d']
     B_r = layer['B_r']
     B_c = layer['B_c']
-    prec = PRECISION_T[layer['dtype']]
+    prec = layer['dtype']
 
-    Q = np.array(bytes_to_float(elf.get_symbol_contents('Q'), prec), dtype=NUMPY_T[prec])
-    K = np.array(bytes_to_float(elf.get_symbol_contents('K'), prec), dtype=NUMPY_T[prec])
-    V = np.array(bytes_to_float(elf.get_symbol_contents('V'), prec), dtype=NUMPY_T[prec])
+    Q = elf.from_symbol('Q', ctype_from_precision_t(prec))
+    K = elf.from_symbol('K', ctype_from_precision_t(prec))
+    V = elf.from_symbol('V', ctype_from_precision_t(prec))
     Q = torch.from_numpy(Q.reshape(N, d))
     V = torch.from_numpy(V.reshape(N, d))
     # Golden model expects key matrix in (N, d) form, while Snitch binary stores it in (d, N)
@@ -63,7 +64,7 @@ def main():
     K = torch.transpose(K, 0, 1)
 
     # Verify results
-    O_actual = np.array(bytes_to_float(raw_results['O'], prec), dtype=NUMPY_T[prec])
+    O_actual = from_buffer(raw_results['O'], ctype_from_precision_t(prec))
     O_golden = exact_golden_model(Q, K, V, B_r, B_c).flatten()
     # O_golden = torch_golden_model(Q, K, V).detach().numpy().flatten()
 

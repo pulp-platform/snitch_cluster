@@ -14,7 +14,7 @@ from data.datagen import golden_model
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import bytes_to_float, bytes_to_struct, NUMPY_T, PRECISION_T  # noqa: E402
+from data_utils import from_buffer, ctype_from_precision_t  # noqa: E402
 
 
 ERR_THRESHOLD = 1E-6
@@ -45,24 +45,23 @@ def main():
         'weights': 'I',
         'concat_output': 'I',
         'linear_output': 'I',
-        'dtype': 'I'
+        'dtype': 'I',
+        'baseline': 'I'
     }
-    layer = bytes_to_struct(elf.get_symbol_contents('layer'), layer_struct)
+    layer = elf.from_symbol('layer', layer_struct)
     num_inputs = layer['num_inputs']
     input_shape = [layer['in_height'], layer['in_width']]
     weights_shape = [layer['in_width']*num_inputs, layer['out_width']]
-    prec = PRECISION_T[layer['dtype']]
+    prec = layer['dtype']
 
-    inputs = [np.array(bytes_to_float(elf.get_symbol_contents(f'input_{i}'), prec),
-              dtype=NUMPY_T[prec]) for i in range(num_inputs)]
+    inputs = [elf.from_symbol(f'input_{i}', ctype_from_precision_t(prec)) 
+              for i in range(num_inputs)]
     inputs = [torch.from_numpy(tensor.reshape(input_shape)) for tensor in inputs]
-    weights = np.array(bytes_to_float(elf.get_symbol_contents('weights'), prec),
-                       dtype=NUMPY_T[prec])
+    weights = elf.from_symbol('weights', ctype_from_precision_t(prec))
     weights = torch.from_numpy(weights.reshape(weights_shape))
 
     # Verify results
-    output_actual = np.array(bytes_to_float(raw_results['linear_output'], prec),
-                             dtype=NUMPY_T[prec])
+    output_actual = from_buffer(raw_results['linear_output'], ctype_from_precision_t(prec))
     output_golden, _ = golden_model(inputs, weights)
     output_golden = output_golden.detach().numpy().flatten()
 

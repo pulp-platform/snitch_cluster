@@ -9,7 +9,7 @@
 
 import argparse
 import pathlib
-import hjson
+import json5
 import sys
 import os
 import torch
@@ -26,25 +26,18 @@ torch.manual_seed(42)
 # the occurrence of these splits the data should be aligned to 4KB
 BURST_ALIGNMENT = 4096
 
-PRECISION_T = {
-    '64': 'FP64',
-    '32': 'FP32',
-    '16': 'FP16',
-    '8': 'FP8'
-}
-
 
 def rand_data_generator(shape, prec, alt=False):
-    if prec == '64':
+    if prec == 'FP64':
         return torch.randn(shape, requires_grad=False, dtype=torch.float64), {}
-    elif prec == '32':
+    elif prec == 'FP32':
         return torch.randn(shape, requires_grad=False, dtype=torch.float32), {}
-    elif prec == '16':
+    elif prec == 'FP16':
         if alt:
             return torch.randn(shape, requires_grad=False, dtype=torch.bfloat16), {}
         else:
             return torch.randn(shape, requires_grad=False, dtype=torch.float16), {}
-    elif prec == '8':
+    elif prec == 'FP8':
         sign = torch.randint(0, 2, shape,
                              requires_grad=False, dtype=torch.uint8)  # -1 or 1
         exponent = torch.randint(0, 16, shape,
@@ -73,8 +66,9 @@ def emit_header(**kwargs):
     expand = kwargs['expand']
     transpose_A = kwargs['transpose_A']
     transpose_B = kwargs['transpose_B']
-    prec = str(kwargs['prec'])
+    prec = kwargs['prec']
 
+    print(prec)
     mat_A, bits_A = rand_data_generator((M, K), prec)
     mat_B, bits_B = rand_data_generator((K, N), prec)
     mat_C, bits_C = rand_data_generator((M, N), prec)
@@ -86,7 +80,7 @@ def emit_header(**kwargs):
     if transpose_B:
         mat_B = mat_B.T
 
-    ctype = data_utils.floating_point_ctype(prec)
+    ctype = data_utils.ctype_from_precision_t(prec)
 
     A_uid = 'A'
     B_uid = 'B'
@@ -100,7 +94,7 @@ def emit_header(**kwargs):
         'TB': int(transpose_B),
         'ALPHA': alpha,
         'expand': expand,
-        'dtype': PRECISION_T[prec],
+        'dtype': prec,
         'A': A_uid,
         'B': B_uid,
         'C': C_uid
@@ -151,7 +145,7 @@ def main():
 
     # Load param config file
     with args.cfg.open() as f:
-        param = hjson.loads(f.read())
+        param = json5.loads(f.read())
     param['section'] = args.section
 
     # Emit header file

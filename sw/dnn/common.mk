@@ -11,7 +11,7 @@ DATA_DIR       := $(realpath $(MK_DIR)/$(APP)/data)
 SRC_DIR        := $(realpath $(MK_DIR)/$(APP)/src)
 COMMON_SRC_DIR := $(realpath $(MK_DIR)/src)
 
-DATA_CFG ?= $(DATA_DIR)/params.hjson
+DATA_CFG ?= $(DATA_DIR)/params.json
 SECTION  ?=
 
 SRCS    ?= $(realpath $(SRC_DIR)/main.c)

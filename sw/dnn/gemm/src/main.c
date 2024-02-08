@@ -6,7 +6,6 @@
 // floating point precisions (fp64, fp32, fp16), as well as
 // different memory layouts for matrices (transposed/not-transposed)
 
-// TODO(colluca): Add IPC verification and remove
 #define BIST
 
 #include "dnn.h"

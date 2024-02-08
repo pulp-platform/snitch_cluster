@@ -9,7 +9,7 @@
 
 import argparse
 import pathlib
-import hjson
+import json5
 import sys
 import os
 import torch
@@ -25,13 +25,6 @@ torch.manual_seed(42)
 # AXI splits bursts crossing 4KB address boundaries. To minimize
 # the occurrence of these splits the data should be aligned to 4KB
 BURST_ALIGNMENT = 4096
-
-PRECISION_T = {
-    '64': 'FP64',
-    '32': 'FP32',
-    '16': 'FP16',
-    '8': 'FP8'
-}
 
 # Sigmoid based approximation of the GeLU activation function
 # adapted from i-BERT (https://arxiv.org/pdf/2101.01321.pdf)
@@ -54,10 +47,10 @@ def golden_model(ifmap):
 def emit_header(**kwargs):
 
     size = kwargs['size']
-    prec = str(kwargs['prec'])
+    prec = kwargs['prec']
 
-    torch_type = data_utils.floating_point_torch_type(prec)
-    ctype = data_utils.floating_point_ctype(prec)
+    torch_type = data_utils.torch_type_from_precision_t(prec)
+    ctype = data_utils.ctype_from_precision_t(prec)
 
     ifmap = torch.randn(size, requires_grad=False, dtype=torch_type)
     ofmap = golden_model(ifmap)
@@ -69,7 +62,7 @@ def emit_header(**kwargs):
         'size':  size,
         'ifmap': ifmap_uid,
         'ofmap': ofmap_uid,
-        'dtype': PRECISION_T[prec]
+        'dtype': prec
     }
 
     data_str = [emit_license()]
@@ -109,7 +102,7 @@ def main():
 
     # Load param config file
     with args.cfg.open() as f:
-        param = hjson.loads(f.read())
+        param = json5.loads(f.read())
     param['section'] = args.section
 
     # Emit header file

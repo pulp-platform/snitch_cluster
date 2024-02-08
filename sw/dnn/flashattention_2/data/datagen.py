@@ -9,7 +9,7 @@
 import argparse
 import numpy as np
 import pathlib
-import hjson
+import json5
 import sys
 import os
 import torch
@@ -25,13 +25,6 @@ torch.manual_seed(42)
 # AXI splits bursts crossing 4KB address boundaries. To minimize
 # the occurrence of these splits the data should be aligned to 4KB
 BURST_ALIGNMENT = 4096
-
-PRECISION = {
-    'FP64': '64',
-    'FP32': '32',
-    'FP16': '16',
-    'FP8': '8'
-}
 
 
 def torch_golden_model(Q, K, V):
@@ -94,14 +87,15 @@ def emit_header(section, params):
     d = params['d']
     B_r = params['B_r']
     B_c = params['B_c']
-    prec = PRECISION[params['dtype']]
+    prec = params['dtype']
 
     # Verify layer parameters are valid
     assert (N % B_r) == 0, 'N is not an integer multiple of B_r'
     assert (N % B_c) == 0, 'N is not an integer multiple of B_c'
     assert (B_r % 8) == 0, 'B_r must be an integer multiple of the number of cores in a cluster'
 
-    torch_type = data_utils.floating_point_torch_type(prec)
+    torch_type = data_utils.torch_type_from_precision_t(prec)
+    ctype = data_utils.ctype_from_precision_t(prec)
 
     Q = 2 * torch.rand(N, d, requires_grad=False, dtype=torch_type) - 1
     K = 2 * torch.rand(N, d, requires_grad=False, dtype=torch_type) - 1
@@ -111,8 +105,6 @@ def emit_header(section, params):
 
     # Layer implementation assumes K is in (d, N) layout
     K = torch.transpose(K, 0, 1)
-
-    ctype = data_utils.floating_point_ctype(prec)
 
     q_uid = 'Q'
     k_uid = 'K'
@@ -164,7 +156,7 @@ def main():
 
     # Load param config file
     with args.cfg.open() as f:
-        param = hjson.loads(f.read())
+        param = json5.loads(f.read())
 
     # Emit header file
     with open(args.output, 'w') as f:

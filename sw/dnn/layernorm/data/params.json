@@ -3,7 +3,12 @@
 // SPDX-License-Identifier: SHL-0.51
 
 {
-    num_inputs: 1
-    input_shape: [32, 4]
-    dtype: FP64
+    input_dim: {
+        batch_size: 2,
+        seq_len: 64,
+        embeddings: 32
+    },
+    eps: 1e-5,
+    prec: "FP32",
+    n_tiles: 2
 }

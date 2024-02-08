@@ -14,7 +14,7 @@ from data.datagen import golden_model
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import bytes_to_float, bytes_to_struct, NUMPY_T, PRECISION_T  # noqa: E402
+from data_utils import from_buffer, ctype_from_precision_t  # noqa: E402
 
 
 ERR_THRESHOLD = 0.003
@@ -44,19 +44,19 @@ def main():
         'ofmap_ptr': 'I',
         'dtype': 'I'
     }
-    layer = bytes_to_struct(elf.get_symbol_contents('layer'), layer_struct)
+    layer = elf.from_symbol('layer', layer_struct)
     batch_size = layer['batch_size']
     seq_len = layer['seq_len']
     input_samples = layer['input_samples']
     reduce_dim = layer['reduce_dim']
-    prec = PRECISION_T[layer['dtype']]
+    prec = layer['dtype']
 
-    ifmap = np.array(bytes_to_float(elf.get_symbol_contents('ifmap'), prec), dtype=NUMPY_T[prec])
+    ifmap = elf.from_symbol('ifmap', ctype_from_precision_t(prec))
     ifmap = ifmap.reshape(batch_size, seq_len, input_samples)
     ifmap = torch.from_numpy(ifmap)
 
     # Verify results
-    ofmap_actual = np.array(bytes_to_float(raw_results['ofmap'], prec), dtype=NUMPY_T[prec])
+    ofmap_actual = from_buffer(raw_results['ofmap'], ctype_from_precision_t(prec))
     ofmap_golden = golden_model(ifmap, reduce_dim).detach().numpy().flatten()
 
     absolute_err = np.absolute(ofmap_golden - ofmap_actual)

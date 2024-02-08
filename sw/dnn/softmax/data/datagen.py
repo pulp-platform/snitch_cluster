@@ -9,7 +9,7 @@
 
 import argparse
 import pathlib
-import hjson
+import json5
 import sys
 import os
 import torch
@@ -26,13 +26,6 @@ torch.manual_seed(42)
 # the occurrence of these splits the data should be aligned to 4KB
 BURST_ALIGNMENT = 4096
 
-PRECISION_T = {
-    '64': 'FP64',
-    '32': 'FP32',
-    '16': 'FP16',
-    '8': 'FP8'
-}
-
 
 def golden_model(ifmap, axis):
     softmax = torch.nn.Softmax(dim=axis)
@@ -44,15 +37,15 @@ def emit_header(**kwargs):
     seq_len = kwargs['input_dim']['seq_len']
     input_samples = kwargs['input_dim']['input_samples']
     reduce_dim = kwargs['reduce_dim']
-    prec = str(kwargs['prec'])
+    prec = kwargs['prec']
 
-    torch_type = data_utils.floating_point_torch_type(prec)
+    torch_type = data_utils.torch_type_from_precision_t(prec)
     ifmap = torch.randn(batch_size, seq_len, input_samples, requires_grad=False, dtype=torch_type)
 
     ofmap = golden_model(ifmap, reduce_dim)
     ofmap = ofmap.detach().numpy()
 
-    ctype = data_utils.floating_point_ctype(prec)
+    ctype = data_utils.ctype_from_precision_t(prec)
 
     ifmap_uid = 'ifmap'
     ofmap_uid = 'ofmap'
@@ -62,7 +55,7 @@ def emit_header(**kwargs):
         'reduce_dim': reduce_dim,
         'ifmap': ifmap_uid,
         'ofmap': ofmap_uid,
-        'dtype': PRECISION_T[prec]
+        'dtype': prec
     }
 
     data_str = [emit_license()]
@@ -101,7 +94,7 @@ def main():
 
     # Load param config file
     with args.cfg.open() as f:
-        param = hjson.loads(f.read())
+        param = json5.loads(f.read())
     param['section'] = args.section
 
     # Emit header file

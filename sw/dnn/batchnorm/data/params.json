@@ -3,12 +3,11 @@
 // SPDX-License-Identifier: SHL-0.51
 
 {
-    M: 16,
-    N: 16,
-    K: 16,
-    alpha: 0,
-    transpose_A: false,
-    transpose_B: true,
-    prec: 32,
-    expand: 0
+    input_dim: {
+        channels: 32,
+        height: 8,
+        width: 8
+    },
+    tile_ci: 32,
+    prec: "FP64"
 }

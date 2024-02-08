@@ -3,10 +3,7 @@
 // SPDX-License-Identifier: SHL-0.51
 
 {
-    N: 32
-    d: 16
-    B_r: 16
-    B_c: 8
-    dtype: FP64
-    baseline: 0
+    num_inputs: 1,
+    input_shape: [32, 4],
+    dtype: "FP64"
 }

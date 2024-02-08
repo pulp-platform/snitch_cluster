@@ -56,12 +56,12 @@ typedef struct {
     uint32_t d;
     uint32_t B_r;
     uint32_t B_c;
-    uint32_t baseline;
     void *Q;
     void *K;
     void *V;
     void *O;
     precision_t dtype;
+    uint32_t baseline;
 } flashattention_2_layer_t;
 
 static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
@@ -77,7 +77,6 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
     double *O_l3 = layer.O;
 
     // alias system parameters
-    // TODO adapt these for Occamy
     uint32_t compute_id = snrt_global_core_idx();
     uint32_t cluster_id = snrt_cluster_idx();
     uint32_t num_cores = snrt_cluster_compute_core_num();
@@ -121,11 +120,6 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
     tcdm_ptr += l_i_size;
     double shifted_exp;
     double row_sum;
-
-    float used_memory_kB =
-        (float)((uint64_t)tcdm_ptr - (uint64_t)snrt_l1_next()) / 1024.0f;
-
-    // DUMP(used_memory_kB);
 
     // Iterate row blocks of Q
     uint32_t start_loop_outer = snrt_mcycle();
@@ -272,7 +266,6 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                 uint32_t end_stats = snrt_mcycle();
 
                 snrt_cluster_hw_barrier();
-
             } else {
                 snrt_cluster_hw_barrier();
                 snrt_cluster_hw_barrier();

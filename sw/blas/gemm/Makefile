@@ -9,7 +9,7 @@ MK_DIR   := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 DATA_DIR := $(realpath $(MK_DIR)/data)
 SRC_DIR  := $(realpath $(MK_DIR)/src)
 
-DATA_CFG ?= $(DATA_DIR)/params.hjson
+DATA_CFG ?= $(DATA_DIR)/params.json
 SECTION  ?=
 
 APP     ?= gemm

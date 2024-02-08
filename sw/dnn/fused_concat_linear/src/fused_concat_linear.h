@@ -27,8 +27,8 @@ typedef struct {
     void *weights;
     void *concat_output;
     void *linear_output;
-    uint32_t baseline;
     precision_t dtype;
+    uint32_t baseline;
 } fused_concat_linear_layer_t;
 
 static inline int fused_concat_linear_baseline(fused_concat_linear_layer_t l) {

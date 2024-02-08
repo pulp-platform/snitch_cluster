@@ -14,8 +14,7 @@ from data.datagen import golden_model
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import bytes_to_float, bytes_to_struct, NUMPY_T, \
-                        PRECISION_T  # noqa: E402
+from data_utils import from_buffer, ctype_from_precision_t  # noqa: E402
 
 
 ERR_THRESHOLD = 1E-6
@@ -71,7 +70,7 @@ def main():
         'dtype': 'I'
     }
 
-    layer = bytes_to_struct(elf.get_symbol_contents('layer'), layer_struct)
+    layer = elf.from_symbol('layer', layer_struct)
     ifmap = [np.array(bytes_to_float(
               elf.get_symbol_contents('fusedconv_pInBuffer_dram'),
               PRECISION_T[layer['dtype']]),

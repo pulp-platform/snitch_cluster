@@ -3,11 +3,6 @@
 // SPDX-License-Identifier: SHL-0.51
 
 {
-    input_dim: {
-        channels: 32
-        height: 8,
-        width: 8
-    }
-    tile_ci: 32
-    prec: 64
+    size: 128,
+    prec: "FP64"
 }

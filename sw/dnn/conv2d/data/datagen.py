@@ -38,7 +38,7 @@ def emit_header(**kwargs):
     filter = kwargs['filter']  # [height, width, padding, stride]
     prec = kwargs['prec']
 
-    torch_type = data_utils.floating_point_torch_type(prec)
+    torch_type = data_utils.torch_type_from_precision_t(prec)
 
     inputs = [torch.rand(in_channels, input_dim['height'], input_dim['width'],
                          requires_grad=False, dtype=torch_type)][0]
@@ -52,7 +52,7 @@ def emit_header(**kwargs):
     # compute checksum row-wise
     conv2d_checksum = np.sum(conv2d_output.numpy(), axis=1)
 
-    ctype = data_utils.floating_point_ctype(prec)
+    ctype = data_utils.ctype_from_precision_t(prec)
 
     layer_cfg = {
         'CO': out_channels,
@@ -66,7 +66,7 @@ def emit_header(**kwargs):
         'ifmap': 'conv2d_ifmap_dram',
         'weights': 'conv2d_weights_dram',
         'ofmap': 'conv2d_ofmap_dram',
-        'dtype': 'FP' + prec
+        'dtype': prec
     }
 
     data_str = [emit_license()]

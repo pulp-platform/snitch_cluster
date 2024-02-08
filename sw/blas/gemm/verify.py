@@ -13,7 +13,7 @@ from data.datagen import golden_model
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import bytes_to_float, bytes_to_int, NUMPY_T  # noqa: E402
+from data_utils import from_buffer, ctype_from_precision_t  # noqa: E402
 
 
 ERR_THRESHOLD = 0.001
@@ -33,17 +33,15 @@ def main():
         elf = Elf(args.symbols_bin)
     else:
         elf = Elf(args.snitch_bin)
-    dtype_size = bytes_to_int(elf.get_symbol_contents('dtype_size'),
-                              prec='32', signedness='unsigned')[0]
-    prec = str(dtype_size*8)
-    a = np.array(bytes_to_float(elf.get_symbol_contents('a'), prec=prec))
-    b = np.array(bytes_to_float(elf.get_symbol_contents('b'), prec=prec))
-    c = np.array(bytes_to_float(elf.get_symbol_contents('c'), prec=prec))
-    beta = bytes_to_int(elf.get_symbol_contents('BETA'), prec='32', signedness='unsigned')[0]
-    m = bytes_to_int(elf.get_symbol_contents('M'), prec='32', signedness='unsigned')[0]
-    n = bytes_to_int(elf.get_symbol_contents('N'), prec='32', signedness='unsigned')[0]
-    k = bytes_to_int(elf.get_symbol_contents('K'), prec='32', signedness='unsigned')[0]
-    tb = bytes_to_int(elf.get_symbol_contents('TB'), prec='32', signedness='unsigned')[0]
+    prec = elf.from_symbol('dtype_size', 'uint32_t')[0]
+    a = elf.from_symbol('a', ctype_from_precision_t(prec))
+    b = elf.from_symbol('b', ctype_from_precision_t(prec))
+    c = elf.from_symbol('c', ctype_from_precision_t(prec))
+    beta = elf.from_symbol('BETA', 'uint32_t')[0]
+    m = elf.from_symbol('M', 'uint32_t')[0]
+    n = elf.from_symbol('N', 'uint32_t')[0]
+    k = elf.from_symbol('K', 'uint32_t')[0]
+    tb = elf.from_symbol('TB', 'uint32_t')[0]
     a = np.reshape(a, (m, k))
     if tb:
         b = np.reshape(b, (n, k))
@@ -53,7 +51,7 @@ def main():
     c = np.reshape(c, (m, n))
 
     # Verify results
-    c_actual = np.array(bytes_to_float(raw_results['c'], prec), dtype=NUMPY_T[prec])
+    c_actual = from_buffer(raw_results['c'], ctype_from_precision_t(prec))
     c_golden = golden_model(1, a, b, beta, c).flatten()
 
     absolute_err = np.absolute(c_golden - c_actual)

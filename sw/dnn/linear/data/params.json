@@ -4,14 +4,11 @@
 
 {
     channels: {
-        out: 32,
-        in: 32
-    }
+        out: 16
+    },
     input_dim: {
-        height: 8,
-        width: 8
-    }
-    kernel_size: 2
-    tile_ci: 32
-    prec: 64
+        height: 3,
+        width:16
+    },
+    prec: "FP32"
 }
