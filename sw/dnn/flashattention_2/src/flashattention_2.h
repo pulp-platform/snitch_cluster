@@ -8,30 +8,6 @@
 #include "blas.h"
 #include "snrt.h"
 
-// Taylor series approximation of exp(x)
-// Slow but accurate
-double double_dummy_exp(double x) {
-    int n = 100;
-    double sum = 1.0f;
-    for (int i = n - 1; i > 0; --i) {
-        sum = 1 + x * sum / i;
-    }
-    return sum;
-}
-
-// IEEE 754-2008 compliant implementation of exp(x)
-// Fast but less accurate
-double double_fast_exp(double x) {
-    double fx = 0.0f;
-    union {
-        double f;
-        int i;
-    } v = {x};
-    v.i = (1 << 23) * (x / log(2)) + 0x3f800000;
-    fx = v.f;
-    return fx;
-}
-
 /**
  * @struct flashattention_2_layer_t
  * @brief This structure contains all parameters necessary
@@ -66,15 +42,16 @@ typedef struct {
 
 static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
     // alias layer parameters
+    uint32_t dtype = layer.dtype;
     uint32_t N = layer.N;
     uint32_t d = layer.d;
     uint32_t B_r = layer.B_r;
     uint32_t B_c = layer.B_c;
     uint32_t baseline = layer.baseline;
-    double *Q_l3 = layer.Q;
-    double *K_l3 = layer.K;
-    double *V_l3 = layer.V;
-    double *O_l3 = layer.O;
+    float *Q_l3 = layer.Q;
+    float *K_l3 = layer.K;
+    float *V_l3 = layer.V;
+    float *O_l3 = layer.O;
 
     // alias system parameters
     uint32_t compute_id = snrt_global_core_idx();
@@ -87,39 +64,39 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
     uint32_t T_c = N / B_c;  // number of column blocks
 
     // compute the size of the matrices
-    uint32_t q_fa_size = B_r * d * sizeof(double);
-    uint32_t k_fa_size = B_c * d * sizeof(double);
-    uint32_t v_fa_size = B_c * d * sizeof(double);
-    uint32_t s_fa_size = B_r * B_c * sizeof(double);
-    uint32_t p_fa_size = B_r * B_c * sizeof(double);
-    uint32_t o_fa_size = B_r * d * sizeof(double);
-    uint32_t m_i_size = B_r * sizeof(double);
+    uint32_t q_fa_size = B_r * d * sizeof(float);
+    uint32_t k_fa_size = B_c * d * sizeof(float);
+    uint32_t v_fa_size = B_c * d * sizeof(float);
+    uint32_t s_fa_size = B_r * B_c * sizeof(float);
+    uint32_t p_fa_size = B_r * B_c * sizeof(float);
+    uint32_t o_fa_size = B_r * d * sizeof(float);
+    uint32_t m_i_size = B_r * sizeof(float);
     uint32_t m_i_prev_size = m_i_size;
-    uint32_t l_i_size = B_r * sizeof(double);
-    uint32_t shifted_exp_size = B_r * sizeof(double);
+    uint32_t l_i_size = B_r * sizeof(float);
+    uint32_t shifted_exp_size = B_r * sizeof(float);
 
     // allocate memory in TCDM
-    void *tcdm_ptr = (double *)snrt_l1_next();
-    double *Q_fa = tcdm_ptr;
+    void *tcdm_ptr = (float *)snrt_l1_next();
+    float *Q_fa = tcdm_ptr;
     tcdm_ptr += q_fa_size;
-    double *K_fa = tcdm_ptr;
+    float *K_fa = tcdm_ptr;
     tcdm_ptr += k_fa_size;
-    double *V_fa = tcdm_ptr;
+    float *V_fa = tcdm_ptr;
     tcdm_ptr += v_fa_size;
-    double *S_fa = tcdm_ptr;
+    float *S_fa = tcdm_ptr;
     tcdm_ptr += s_fa_size;
-    double *P_fa = tcdm_ptr;
+    float *P_fa = tcdm_ptr;
     tcdm_ptr += p_fa_size;
-    double *O_fa = tcdm_ptr;
+    float *O_fa = tcdm_ptr;
     tcdm_ptr += o_fa_size;
-    double *m_i = tcdm_ptr;
+    float *m_i = tcdm_ptr;
     tcdm_ptr += m_i_size;
-    double *m_i_prev = tcdm_ptr;
+    float *m_i_prev = tcdm_ptr;
     tcdm_ptr += m_i_prev_size;
-    double *l_i = tcdm_ptr;
+    float *l_i = tcdm_ptr;
     tcdm_ptr += l_i_size;
-    double shifted_exp;
-    double row_sum;
+    float shifted_exp;
+    float row_sum;
 
     // Iterate row blocks of Q
     uint32_t start_loop_outer = snrt_mcycle();
@@ -132,9 +109,9 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
             snrt_dma_txid_t txid_q_fa =
                 snrt_dma_start_2d(Q_fa,               /* dst */
                                   Q_l3 + q_fa_offset, /* src */
-                                  d * sizeof(double), /* size */
-                                  d * sizeof(double), /* dst_stride */
-                                  d * sizeof(double), /* src_stride */
+                                  d * sizeof(float), /* size */
+                                  d * sizeof(float), /* dst_stride */
+                                  d * sizeof(float), /* src_stride */
                                   B_r);               /* repetitions */
 
             snrt_dma_wait_all();
@@ -174,17 +151,17 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                 snrt_dma_txid_t txid_k_fa =
                     snrt_dma_start_2d(K_fa,                 /* dst */
                                       K_l3 + k_fa_offset,   /* src */
-                                      B_c * sizeof(double), /* size */
-                                      B_c * sizeof(double), /* dst_stride */
-                                      N * sizeof(double),   /* src_stride */
+                                      B_c * sizeof(float), /* size */
+                                      B_c * sizeof(float), /* dst_stride */
+                                      N * sizeof(float),   /* src_stride */
                                       d);                   /* repetitions */
 
                 snrt_dma_txid_t txid_v_fa =
                     snrt_dma_start_2d(V_fa,               /* dst */
                                       V_l3 + v_fa_offset, /* src */
-                                      d * sizeof(double), /* size */
-                                      d * sizeof(double), /* dst_stride */
-                                      d * sizeof(double), /* src_stride */
+                                      d * sizeof(float), /* size */
+                                      d * sizeof(float), /* dst_stride */
+                                      d * sizeof(float), /* src_stride */
                                       B_c);               /* repetitions */
 
                 snrt_dma_wait_all();
@@ -199,7 +176,7 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                 // column block of K to calculate a tile of S: S = Q * K^T.
                 // The S tile is of form (B_r, B_c)
                 uint32_t start_gemm = snrt_mcycle();
-                sc_st_gemm(FP64, 0, 0, 0, 0, B_r, B_c, d, 1, Q_fa, d, K_fa, B_c,
+                sc_st_gemm(dtype, 0, 0, 0, 0, B_r, B_c, d, 1, Q_fa, d, K_fa, B_c,
                            0, S_fa, B_c, baseline);
                 uint32_t end_gemm = snrt_mcycle();
 
@@ -217,21 +194,19 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                     // Iterate over all columns to calculate maximum for the
                     // current row
                     for (int col_idx = 0; col_idx < B_c; col_idx++) {
-                        double val = S_fa[row_idx * B_c + col_idx];
+                        float val = S_fa[row_idx * B_c + col_idx];
                         if (val > m_i[row_idx]) m_i[row_idx] = val;
                     }
 
                     // Calculate P tile as the "local" softmax of S
                     for (int col_idx = 0; col_idx < B_c; col_idx++) {
-                        P_fa[row_idx * B_c + col_idx] = double_dummy_exp(
-                            S_fa[row_idx * B_c + col_idx] - m_i[row_idx]);
-                        // expf(S_fa[row_idx * B_c + col_idx] - m_i[row_idx]);
+                        P_fa[row_idx * B_c + col_idx] = expf(S_fa[row_idx * B_c + col_idx] - m_i[row_idx]);
                         row_sum += P_fa[row_idx * B_c + col_idx];
                     }
 
                     // Calculate rescaling factor l
                     shifted_exp =
-                        double_dummy_exp(m_i_prev[row_idx] - m_i[row_idx]);
+                        expf(m_i_prev[row_idx] - m_i[row_idx]);
                     if (t_c != 0) {
                         l_i[row_idx] = l_i[row_idx] * shifted_exp + row_sum;
                     } else {
@@ -255,11 +230,11 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                 // The P tile is of size (B_r, B_c) and V of size (B_c, d)
                 if (t_c == 0) {
                     // In first t_c iteration, initialize O_ij to P_ij * V_j
-                    sc_st_gemm(FP64, 0, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c,
+                    sc_st_gemm(dtype, 0, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c,
                                V_fa, d, 0.0f, O_fa, d, baseline);
                 } else {
                     // In successive t_c iterations, O_ij += P_ij * V_j
-                    sc_st_gemm(FP64, 0, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c,
+                    sc_st_gemm(dtype, 0, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c,
                                V_fa, d, 1.0f, O_fa, d, baseline);
                 }
 
@@ -299,9 +274,9 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
             snrt_dma_txid_t txid_o_fa =
                 snrt_dma_start_2d(O_l3 + o_fa_offset, /* dst */
                                   O_fa,               /* src */
-                                  d * sizeof(double), /* size */
-                                  d * sizeof(double), /* dst_stride */
-                                  d * sizeof(double), /* src_stride */
+                                  d * sizeof(float), /* size */
+                                  d * sizeof(float), /* dst_stride */
+                                  d * sizeof(float), /* src_stride */
                                   B_r);               /* repetitions */
 
             snrt_dma_wait_all();
