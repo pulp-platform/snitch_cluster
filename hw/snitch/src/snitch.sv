@@ -55,6 +55,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   parameter int unsigned NumDTLBEntries = 0,
   parameter int unsigned NumITLBEntries = 0,
   parameter snitch_pma_pkg::snitch_pma_t SnitchPMACfg = '{default: 0},
+  /// Consistency Address Queue (CAQ) parameters
+  parameter int unsigned CaqDepth    = 0,
+  parameter int unsigned CaqTagWidth = 0,
   /// Enable debug support.
   parameter bit         DebugSupport = 1,
   /// Derived parameter *Do not override*
@@ -103,6 +106,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   output fpnew_pkg::roundmode_e     fpu_rnd_mode_o,
   output fpnew_pkg::fmt_mode_t      fpu_fmt_mode_o,
   input  fpnew_pkg::status_t        fpu_status_i,
+  /// Consistency Address Queue (CAQ) interface.
+  /// Used by FPU to notify Snitch LSU of retired loads/stores.
+  input  logic          caq_pvalid_i,
   // Core events for performance counters
   output snitch_pkg::core_events_t  core_events_o,
   // Cluster HW barrier
@@ -162,6 +168,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic ld_addr_misaligned;
   logic st_addr_misaligned;
   logic inst_addr_misaligned;
+
+  logic caq_qvalid, caq_qready, caq_ena;
 
   logic  itlb_valid, itlb_ready;
   va_t   itlb_va;
@@ -445,8 +453,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
                       & operands_ready
                       & dst_ready
                       & ((itlb_valid & itlb_ready) | ~trans_active);
-  // the accelerator interface stalled us
-  assign acc_stall = acc_qvalid_o & ~acc_qready_i;
+  // the accelerator interface stalled us. Also wait for CAQ if this is an FP load/store.
+  assign acc_stall = acc_qvalid_o & ~acc_qready_i | (caq_ena & ~caq_qready);
   // the LSU Interface didn't accept our request yet
   assign lsu_stall = lsu_tlb_qvalid & ~lsu_tlb_qready;
   // Stall the stage if we either didn't get a valid instruction or the LSU/Accelerator is not ready
@@ -2001,7 +2009,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           opa_select = Reg;
           opb_select = IImmediate;
           write_rd = 1'b0;
-          acc_qvalid_o = valid_instr & trans_ready;
+          acc_qvalid_o = valid_instr & trans_ready & caq_qready;
           ls_size = Word;
           is_fp_load = 1'b1;
         end else begin
@@ -2013,7 +2021,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           opa_select = Reg;
           opb_select = SFImmediate;
           write_rd = 1'b0;
-          acc_qvalid_o = valid_instr & trans_ready;
+          acc_qvalid_o = valid_instr & trans_ready & caq_qready;
           ls_size = Word;
           is_fp_store = 1'b1;
         end else begin
@@ -2026,7 +2034,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           opa_select = Reg;
           opb_select = IImmediate;
           write_rd = 1'b0;
-          acc_qvalid_o = valid_instr & trans_ready;
+          acc_qvalid_o = valid_instr & trans_ready & caq_qready;
           ls_size = Double;
           is_fp_load = 1'b1;
         end else begin
@@ -2038,7 +2046,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           opa_select = Reg;
           opb_select = SFImmediate;
           write_rd = 1'b0;
-          acc_qvalid_o = valid_instr & trans_ready;
+          acc_qvalid_o = valid_instr & trans_ready & caq_qready;
           ls_size = Double;
           is_fp_store = 1'b1;
         end else begin
@@ -2051,7 +2059,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           opa_select = Reg;
           opb_select = IImmediate;
           write_rd = 1'b0;
-          acc_qvalid_o = valid_instr & trans_ready;
+          acc_qvalid_o = valid_instr & trans_ready & caq_qready;
           ls_size = HalfWord;
           is_fp_load = 1'b1;
         end else begin
@@ -2063,7 +2071,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           opa_select = Reg;
           opb_select = SFImmediate;
           write_rd = 1'b0;
-          acc_qvalid_o = valid_instr & trans_ready;
+          acc_qvalid_o = valid_instr & trans_ready & caq_qready;
           ls_size = HalfWord;
           is_fp_store = 1'b1;
         end else begin
@@ -2076,7 +2084,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           opa_select = Reg;
           opb_select = IImmediate;
           write_rd = 1'b0;
-          acc_qvalid_o = valid_instr & trans_ready;
+          acc_qvalid_o = valid_instr & trans_ready & caq_qready;
           ls_size = Byte;
           is_fp_load = 1'b1;
         end else begin
@@ -2088,7 +2096,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           opa_select = Reg;
           opb_select = SFImmediate;
           write_rd = 1'b0;
-          acc_qvalid_o = valid_instr & trans_ready;
+          acc_qvalid_o = valid_instr & trans_ready & caq_qready;
           ls_size = Byte;
           is_fp_store = 1'b1;
         end else begin
@@ -2804,6 +2812,11 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // sign exten to appropriate length
   assign lsu_qdata = $unsigned(gpr_rdata[1]);
 
+  // Consider CAQ in accelerator handshake when offloading an FPU load or store.
+  assign caq_ena = is_fp_load | is_fp_store;
+  // Make request to CAQ when offloading access and accelerator interface ready.
+  assign caq_qvalid = caq_ena & acc_qready_i;
+
   snitch_lsu #(
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
@@ -2811,7 +2824,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     .drsp_t (drsp_t),
     .tag_t (logic[RegWidth-1:0]),
     .NumOutstandingMem (NumIntOutstandingMem),
-    .NumOutstandingLoads (NumIntOutstandingLoads)
+    .NumOutstandingLoads (NumIntOutstandingLoads),
+    .Caq (FP_EN),
+    .CaqDepth (CaqDepth),
+    .CaqTagWidth (CaqTagWidth)
   ) i_snitch_lsu (
     .clk_i (clk_i),
     .rst_i (rst_i),
@@ -2830,6 +2846,11 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     .lsu_pvalid_o (lsu_pvalid),
     .lsu_pready_i (lsu_pready),
     .lsu_empty_o (lsu_empty),
+    .caq_qaddr_i (ls_paddr),
+    .caq_qwrite_i (is_fp_store),
+    .caq_qvalid_i (caq_qvalid),
+    .caq_qready_o (caq_qready),
+    .caq_pvalid_i,
     .data_req_o,
     .data_rsp_i
   );

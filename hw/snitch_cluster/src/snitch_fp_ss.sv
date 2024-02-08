@@ -73,6 +73,10 @@ module snitch_fp_ss import snitch_pkg::*; #(
   input  logic             streamctl_done_i,
   input  logic             streamctl_valid_i,
   output logic             streamctl_ready_o,
+  // Consistency Address Queue (CAQ) interface.
+  // Notifies the issuing Snitch core of retired loads/stores.
+  // TODO: is it good enough to assert this at issuing time instead?
+  output logic             caq_pvalid_o,
   // Core event strobes
   output core_events_t core_events_o
 );
@@ -2582,6 +2586,9 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // ----------------------
   assign lsu_qvalid = acc_req_valid_q & (&op_ready) & (is_load | is_store) & dst_ready;
 
+  // TODO: verify this does not create timing loops!
+  assign caq_pvalid_o = data_rsp_i.p_valid & data_req_o.p_ready;
+
   snitch_lsu #(
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
@@ -2590,7 +2597,8 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .tag_t (logic [4:0]),
     .NumOutstandingMem (NumFPOutstandingMem),
     .NumOutstandingLoads (NumFPOutstandingLoads),
-    .NaNBox (1'b1)
+    .NaNBox (1'b1),
+    .Caq  (1'b0)
   ) i_snitch_lsu (
     .clk_i (clk_i),
     .rst_i (rst_i),
@@ -2609,6 +2617,12 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .lsu_pvalid_o (lsu_pvalid),
     .lsu_pready_i (lsu_pready),
     .lsu_empty_o (/* unused */),
+    // CAQ is not enabled here
+    .caq_qaddr_i  ('0),
+    .caq_qwrite_i ('0),
+    .caq_qvalid_i (1'b0),
+    .caq_qready_o (),
+    .caq_pvalid_i (1'b0),
     .data_req_o,
     .data_rsp_i
   );

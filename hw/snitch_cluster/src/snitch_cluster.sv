@@ -186,6 +186,9 @@ module snitch_cluster
   // In case you are using the `RegisterTCDMCuts` feature this adds an
   // additional cycle latency, which is taken into account here.
   parameter int unsigned MemoryMacroLatency = 1 + RegisterTCDMCuts,
+  /// Consistency Address Queue (CAQ) parameters.
+  parameter int unsigned CaqDepth     = 0,
+  parameter int unsigned CaqTagWidth  = 0,
   /// Enable debug support.
   parameter bit          DebugSupport = 1,
   /// Optional fixed cluster alias region.
@@ -909,6 +912,8 @@ module snitch_cluster
         .RegisterFPUIn (RegisterFPUIn),
         .RegisterFPUOut (RegisterFPUOut),
         .TCDMAddrWidth (TCDMAddrWidth),
+        .CaqDepth (CaqDepth),
+        .CaqTagWidth (CaqTagWidth),
         .DebugSupport (DebugSupport),
         .TCDMAliasEnable (AliasRegionEnable),
         .TCDMAliasStart (TCDMAliasStart)

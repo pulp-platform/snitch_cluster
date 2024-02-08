@@ -97,6 +97,9 @@ module snitch_cc #(
   /// Insert Pipeline registers immediately after FPU datapath
   parameter bit          RegisterFPUOut     = 0,
   parameter snitch_pma_pkg::snitch_pma_t SnitchPMACfg = '{default: 0},
+  /// Consistency Address Queue (CAQ) parameters.
+  parameter int unsigned CaqDepth     = 0,
+  parameter int unsigned CaqTagWidth  = 0,
   /// Enable debug support.
   parameter bit          DebugSupport = 1,
   /// Optional fixed TCDM alias.
@@ -198,6 +201,9 @@ module snitch_cc #(
 
   logic wake_up;
 
+  // Consistency Address Queue (CAQ) interface
+  logic caq_pvalid;
+
   `SNITCH_VM_TYPEDEF(AddrWidth)
 
   snitch #(
@@ -231,6 +237,8 @@ module snitch_cc #(
     .XFDOTP (XFDOTP),
     .XFAUX (XFauxMerged),
     .FLEN (FLEN),
+    .CaqDepth (CaqDepth),
+    .CaqTagWidth (CaqTagWidth),
     .DebugSupport (DebugSupport)
   ) i_snitch (
     .clk_i ( clk_d2_i ), // if necessary operate on half the frequency
@@ -250,6 +258,7 @@ module snitch_cc #(
     .acc_prsp_i ( acc_demux_snitch ),
     .acc_pvalid_i ( acc_demux_snitch_valid ),
     .acc_pready_o ( acc_demux_snitch_ready ),
+    .caq_pvalid_i ( caq_pvalid ),
     .data_req_o ( snitch_dreq_d ),
     .data_rsp_i ( snitch_drsp_d ),
     .ptw_valid_o (hive_req_o.ptw_valid),
@@ -497,6 +506,7 @@ module snitch_cc #(
       .acc_resp_o       ( acc_seq        ),
       .acc_resp_valid_o ( acc_pvalid     ),
       .acc_resp_ready_i ( acc_pready     ),
+      .caq_pvalid_o     ( caq_pvalid     ),
       .data_req_o       ( fpu_dreq       ),
       .data_rsp_i       ( fpu_drsp       ),
       .fpu_rnd_mode_i   ( fpu_rnd_mode   ),
@@ -557,6 +567,8 @@ module snitch_cc #(
     assign acc_seq.id    = '0;
     assign acc_seq.error = '0;
     assign acc_pvalid    = '0;
+
+    assign caq_pvalid = '0;
 
     assign merged_dreq = snitch_dreq_q;
     assign snitch_drsp_q = merged_drsp;

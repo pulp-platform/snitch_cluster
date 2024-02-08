@@ -169,6 +169,16 @@
             "description": "Number of request entries the DMA can keep",
             "default": 3
         },
+        "caq_depth": {
+            "type": "number",
+            "description": "Depth of consistency address queue (CAQ). At most `num_fp_outstanding_mem` plus offloading round trip time makes sense.",
+            "default": 4
+        },
+        "caq_tag_width": {
+            "type": "number",
+            "description": "Tag width for consistency address queue (CAQ). Reordering of integer/FP loads/stores to words with colliding tags causes stalls.",
+            "default": 8
+        },
         "enable_debug": {
             "type": "boolean",
             "description": "Whether to provide a debug request input and external debug features",
