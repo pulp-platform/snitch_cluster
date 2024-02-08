@@ -49,7 +49,8 @@ def main():
     inputs = layer['inputs']
     prec = layer['dtype']
 
-    inputs = [elf.from_symbol(f'input_{i}', ctype_from_precision_t(prec)) for i in range(num_inputs)]
+    inputs = [elf.from_symbol(f'input_{i}', ctype_from_precision_t(prec))
+              for i in range(num_inputs)]
     inputs = [torch.from_numpy(tensor.reshape(input_shape)) for tensor in inputs]
 
     # Verify results

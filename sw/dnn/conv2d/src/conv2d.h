@@ -2342,7 +2342,8 @@ void conv2d_layer(const conv_layer *l) {
                             // A cluster always loads from the previous cluster
                             volatile uint32_t *src_synch_flag =
                                 (void *)synch_flag - SNRT_CLUSTER_OFFSET;
-                            double *src_ifmap = (void *)ifmap - SNRT_CLUSTER_OFFSET;
+                            double *src_ifmap =
+                                (void *)ifmap - SNRT_CLUSTER_OFFSET;
 
                             // Wait until previous cluster has released data
                             if (l->cluster2cluster &&

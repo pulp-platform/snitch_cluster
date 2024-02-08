@@ -10,7 +10,6 @@ import torch
 import numpy as np
 
 
-
 def emit_license():
     s = (f"// Copyright {datetime.now().year} ETH Zurich and University of Bologna.\n"
          f"// Licensed under the Apache License, Version 2.0, see LICENSE for details.\n"

@@ -54,7 +54,7 @@ def main():
     weights_shape = [layer['in_width']*num_inputs, layer['out_width']]
     prec = layer['dtype']
 
-    inputs = [elf.from_symbol(f'input_{i}', ctype_from_precision_t(prec)) 
+    inputs = [elf.from_symbol(f'input_{i}', ctype_from_precision_t(prec))
               for i in range(num_inputs)]
     inputs = [torch.from_numpy(tensor.reshape(input_shape)) for tensor in inputs]
     weights = elf.from_symbol('weights', ctype_from_precision_t(prec))

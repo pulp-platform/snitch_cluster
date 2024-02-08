@@ -71,43 +71,32 @@ def main():
     }
 
     layer = elf.from_symbol('layer', layer_struct)
-    ifmap = [np.array(bytes_to_float(
-              elf.get_symbol_contents('fusedconv_pInBuffer_dram'),
-              PRECISION_T[layer['dtype']]),
-              dtype=NUMPY_T[PRECISION_T[layer['dtype']]])]
-    ifmap = torch.from_numpy(
-                ifmap[0].reshape(layer['dim_in_y'], layer['dim_in_x'], layer['ch_in']))
-    kernel = [np.array(bytes_to_float(
-               elf.get_symbol_contents('fusedconv_pWeight_dram'),
-               PRECISION_T[layer['dtype']]),
-               dtype=NUMPY_T[PRECISION_T[layer['dtype']]])]
-    if not layer['depthwise']:
-        kernel = torch.from_numpy(
-                    kernel[0].reshape(layer['ch_out'], layer['dim_kernel_y'],
-                                      layer['dim_kernel_x'], layer['ch_in']))
-    else:
-        kernel = torch.from_numpy(
-                    kernel[0].reshape(layer['dim_kernel_y'], layer['dim_kernel_x'],
-                                      layer['ch_out']))
+    dim_in_y = layer['dim_in_y']
+    dim_in_x = layer['dim_in_x']
+    dim_kernel_y = layer['dim_kernel_y']
+    dim_kernel_x = layer['dim_kernel_x']
+    ch_in = layer['ch_in']
+    ch_out = layer['ch_out']
+    prec = layer['dtype']
 
-    bn_k = [np.array(bytes_to_float(
-            elf.get_symbol_contents('fusedconv_kappa_dram'),
-            PRECISION_T[layer['dtype']]),
-            dtype=NUMPY_T[PRECISION_T[layer['dtype']]])]
-    bn_k = torch.from_numpy(bn_k[0])
-    bn_l = [np.array(bytes_to_float(
-            elf.get_symbol_contents('fusedconv_lambda_dram'),
-            PRECISION_T[layer['dtype']]),
-            dtype=NUMPY_T[PRECISION_T[layer['dtype']]])]
-    bn_l = torch.from_numpy(bn_l[0])
+    ifmap = elf.from_symbol('fusedconv_pInBuffer_dram', ctype_from_precision_t(prec))
+    ifmap = torch.from_numpy(ifmap.reshape(dim_in_y, dim_in_x, ch_in))
+    kernel = elf.from_symbol('fusedconv_pWeight_dram', ctype_from_precision_t(prec))
+    if not layer['depthwise']:
+        kernel = torch.from_numpy(kernel.reshape(ch_out, dim_kernel_y, dim_kernel_x, ch_in))
+    else:
+        kernel = torch.from_numpy(kernel.reshape(dim_kernel_y, dim_kernel_x, ch_out))
+
+    bn_k = elf.from_symbol('fusedconv_kappa_dram', ctype_from_precision_t(prec))
+    bn_k = torch.from_numpy(bn_k)
+    bn_l = elf.from_symbol('fusedconv_lambda_dram', ctype_from_precision_t(prec))
+    bn_l = torch.from_numpy(bn_l)
 
     flag_y_accumulate_start = layer['flag_y_accumulate_start']
 
     # Verify results
-    output_actual = np.array(bytes_to_float(
-                             raw_results['fusedconv_pOutBuffer_dram'],
-                             PRECISION_T[layer['dtype']]),
-                             dtype=NUMPY_T[PRECISION_T[layer['dtype']]])
+    output_actual = from_buffer(raw_results['fusedconv_pOutBuffer_dram'],
+                                ctype_from_precision_t(prec))
     output_golden, _, _ = golden_model(ifmap, kernel,
                                        bn_k, bn_l,
                                        layer,

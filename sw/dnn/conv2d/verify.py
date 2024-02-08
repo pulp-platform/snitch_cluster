@@ -56,7 +56,7 @@ def main():
         'dtype': 'I'
     }
 
-    layer = elf.from_buffer('layer', layer_struct)
+    layer = elf.from_symbol('layer', layer_struct)
     co = layer['CO']
     ci = layer['CI']
     ih = layer['IH']
