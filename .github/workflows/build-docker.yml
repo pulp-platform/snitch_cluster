@@ -23,7 +23,7 @@ jobs:
           haskell: true
           large-packages: true
       - name: Disk usage after freeing up space
-        run: df -h        
+        run: df -h
       # Actually build the Docker container
       - uses: actions/checkout@v2
       - uses: docker/setup-buildx-action@v1

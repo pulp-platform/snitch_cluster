@@ -14,7 +14,7 @@ import numpy as np
 
 def emit_license():
     """Emit license header.
-    
+
     Returns:
         A header string.
     """
@@ -68,7 +68,7 @@ def ctype_from_precision_t(prec):
 
 def flatten(array):
     """Flatten various array types with a homogeneous API.
-    
+
     Args:
         array: Can be a Numpy array, a PyTorch tensor or a nested list.
     """
@@ -120,7 +120,7 @@ def format_array_definition(dtype, uid, array, alignment=None, section=None):
 
 
 def format_scalar_definition(dtype, uid, scalar):
-    s = f'{alias_dtype(dtype)} {uid} = {scalar};'
+    s = f'{_alias_dtype(dtype)} {uid} = {scalar};'
     return s
 
 
@@ -154,7 +154,7 @@ def format_struct_definition(dtype, uid, map):
             return int(value)
         else:
             return str(value)
-    s = f'{alias_dtype(dtype)} {uid} = {{\n'
+    s = f'{_alias_dtype(dtype)} {uid} = {{\n'
     s += ',\n'.join([f'\t.{key} = {format_value(value)}' for (key, value) in map.items()])
     s += '\n};'
     return s
@@ -172,7 +172,7 @@ def from_buffer(byte_array, ctype='uint32_t'):
 
     If `ctype` is a C type string, it returns a homogeneous list of the
     specified type from the raw data.
-    
+
     Alternatively, a dictionary can be passed to `ctype` to extract a
     struct from the raw data. In this case, it returns a dictionary with
     the same keys as in `ctype`. The values in the `ctype` dictionary
