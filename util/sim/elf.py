@@ -9,6 +9,7 @@
 
 from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection
+from data_utils import from_buffer
 
 
 class Elf(object):
@@ -33,7 +34,7 @@ class Elf(object):
         symbol = self.symtab.get_symbol_by_name(uid)[0]
         return symbol.entry["st_size"]
 
-    def get_symbol_contents(self, uid):
+    def get_raw_symbol_contents(self, uid):
         addr = self.get_symbol_address(uid)
         size = self.get_symbol_size(uid)
         try:
@@ -48,3 +49,6 @@ class Elf(object):
             # file we assume that the address falls in the .bss section.
             contents = bytearray([0] * size)
         return contents
+
+    def from_symbol(self, uid, ctype):
+        return from_buffer(self.get_raw_symbol_contents(uid), ctype)

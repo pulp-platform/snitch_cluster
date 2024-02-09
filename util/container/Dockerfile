@@ -8,6 +8,7 @@
 FROM ubuntu:18.04 AS builder
 ARG CMAKE_VERSION=3.19.4
 ARG PYTHON_VERSION=3.9.12
+ARG BENDER_VERSION=0.27.1
 # Run dpkg without interactive dialogue
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -51,9 +52,6 @@ ENV PATH "/root/.cargo/bin:${PATH}"
 RUN rustup install 1.70.0
 RUN rustup override set 1.70.0
 
-# Install Bender
-RUN cargo install bender --version 0.27.1
-
 # Get LLVM 12
 RUN wget https://apt.llvm.org/llvm.sh
 RUN chmod +x llvm.sh
@@ -73,6 +71,11 @@ RUN rustup install 1.63.0
 RUN rustup override set 1.63.0
 RUN git clone https://github.com/pulp-platform/banshee.git /tmp/banshee --recurse-submodules
 RUN cargo install --path /tmp/banshee
+
+# Install Bender
+RUN wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz
+RUN tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz
+
 
 # 2. Stage
 FROM ubuntu:18.04 AS snitch_cluster
@@ -137,7 +140,7 @@ RUN apt-get update && apt-get install software-properties-common -y && \
     apt-get install git -y
 
 # Copy artifacts from stage 1.
-COPY --from=builder /root/.cargo/bin/bender bin/
+COPY --from=builder /tools/bender bin/
 COPY --from=builder /root/.cargo/bin/banshee bin/
 COPY --from=builder /opt/python /opt/python
 

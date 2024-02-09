@@ -2,11 +2,11 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 #
-# Gianna Paulin <pauling@iis.ee.ethz.ch>
+# Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-APP = maxpool
+APP ?= maxpool
 
-include ../Makefile
+include ../../../../../../sw/dnn/common.mk
 include ../../common.mk
 
 $(DEP): $(DATA_H)

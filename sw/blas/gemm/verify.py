@@ -13,7 +13,7 @@ from data.datagen import golden_model
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import bytes_to_doubles, bytes_to_uint32s  # noqa: E402
+from data_utils import from_buffer, ctype_from_precision_t  # noqa: E402
 
 
 ERR_THRESHOLD = 0.001
@@ -27,21 +27,21 @@ def main():
                                         symbols_bin=args.symbols_bin,
                                         log=args.log,
                                         output_uids=['c'])
-    c_actual = np.array(bytes_to_doubles(raw_results['c']))
 
     # Extract input operands from ELF file
     if args.symbols_bin:
         elf = Elf(args.symbols_bin)
     else:
         elf = Elf(args.snitch_bin)
-    a = np.array(bytes_to_doubles(elf.get_symbol_contents('a')))
-    b = np.array(bytes_to_doubles(elf.get_symbol_contents('b')))
-    c = np.array(bytes_to_doubles(elf.get_symbol_contents('c')))
-    beta = bytes_to_uint32s(elf.get_symbol_contents('BETA'))[0]
-    m = bytes_to_uint32s(elf.get_symbol_contents('M'))[0]
-    n = bytes_to_uint32s(elf.get_symbol_contents('N'))[0]
-    k = bytes_to_uint32s(elf.get_symbol_contents('K'))[0]
-    tb = bytes_to_uint32s(elf.get_symbol_contents('TB'))[0]
+    prec = elf.from_symbol('dtype_size', 'uint32_t')[0]
+    a = elf.from_symbol('a', ctype_from_precision_t(prec))
+    b = elf.from_symbol('b', ctype_from_precision_t(prec))
+    c = elf.from_symbol('c', ctype_from_precision_t(prec))
+    beta = elf.from_symbol('BETA', 'uint32_t')[0]
+    m = elf.from_symbol('M', 'uint32_t')[0]
+    n = elf.from_symbol('N', 'uint32_t')[0]
+    k = elf.from_symbol('K', 'uint32_t')[0]
+    tb = elf.from_symbol('TB', 'uint32_t')[0]
     a = np.reshape(a, (m, k))
     if tb:
         b = np.reshape(b, (n, k))
@@ -51,13 +51,15 @@ def main():
     c = np.reshape(c, (m, n))
 
     # Verify results
+    c_actual = from_buffer(raw_results['c'], ctype_from_precision_t(prec))
     c_golden = golden_model(1, a, b, beta, c).flatten()
 
     absolute_err = np.absolute(c_golden - c_actual)
     fail = np.any(absolute_err > ERR_THRESHOLD)
     if (fail):
+        print('Simulation results are incorrect.')
         verification.dump_results_to_csv([c_golden, c_actual, absolute_err],
-                                         Path.cwd() / 'gemm_results.csv')
+                                         Path.cwd() / 'results.csv')
 
     return int(fail)
 

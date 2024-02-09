@@ -13,7 +13,7 @@ from data.datagen import golden_model
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import bytes_to_doubles  # noqa: E402
+from data_utils import from_buffer  # noqa: E402
 
 
 ERR_THRESHOLD = 1E-10
@@ -27,16 +27,16 @@ def main():
                                         symbols_bin=args.symbols_bin,
                                         log=args.log,
                                         output_uids=['z'])
-    z_actual = np.array(bytes_to_doubles(raw_results['z']))
+    z_actual = from_buffer(raw_results['z'], 'double')
 
     # Extract input operands from ELF file
     if args.symbols_bin:
         elf = Elf(args.symbols_bin)
     else:
         elf = Elf(args.snitch_bin)
-    a = np.array(bytes_to_doubles(elf.get_symbol_contents('a')))
-    x = np.array(bytes_to_doubles(elf.get_symbol_contents('x')))
-    y = np.array(bytes_to_doubles(elf.get_symbol_contents('y')))
+    a = elf.from_symbol('a', 'double')
+    x = elf.from_symbol('x', 'double')
+    y = elf.from_symbol('y', 'double')
 
     # Verify results
     z_golden = golden_model(a, x, y)

@@ -74,14 +74,13 @@ runs:
   - elf: apps/blas/gemm/build/gemm.elf
     cmd: [../../../sw/blas/gemm/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/dnn/batchnorm/build/batchnorm.elf
-  - elf: apps/dnn/linear/build/linear.elf
   - elf: apps/dnn/maxpool/build/maxpool.elf
-  - elf: apps/dnn/gemm/build/gemm.elf
-  # - elf: apps/dnn/gelu/build/gelu.elf # seems like it stalls
-  # - elf: apps/dnn/conv2d/build/conv2d.elf # fails with exit code 32
-  # - elf: apps/dnn/fusedconv/build/fusedconv.elf # fails newly
-  # - elf: apps/dnn/layernorm/build/layernorm.elf
-  #   throws illegal instruction on FDIV in simulation
-  # - elf: apps/dnn/softmax/build/softmax.elf
-  #   throws illegal instruction on FDIV in simulation
+  # - elf: apps/dnn/conv2d/build/conv2d.elf # Fails with wrong results
+  #   cmd: [../../../sw/dnn/conv2d/verify.py, "${sim_bin}", "${elf}"]
+  # - elf: apps/dnn/fusedconv/build/fusedconv.elf # Fails with wrong results
+  #   cmd: [../../../sw/dnn/fusedconv/verify.py, "${sim_bin}", "${elf}"]
+  - elf: apps/dnn/concat/build/concat.elf
+    cmd: [../../../sw/dnn/concat/verify.py, "${sim_bin}", "${elf}"]
+  - elf: apps/dnn/fused_concat_linear/build/fused_concat_linear.elf
+    cmd: [../../../sw/dnn/fused_concat_linear/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/montecarlo/pi_estimation/build/pi_estimation.elf

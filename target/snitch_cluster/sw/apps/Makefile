@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
+# Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
 SUBDIRS  = lto
 SUBDIRS += nop
@@ -12,11 +13,12 @@ SUBDIRS += dnn/batchnorm
 SUBDIRS += dnn/conv2d
 SUBDIRS += dnn/fusedconv
 SUBDIRS += dnn/gelu
-SUBDIRS += dnn/gemm
 SUBDIRS += dnn/layernorm
-SUBDIRS += dnn/linear
 SUBDIRS += dnn/maxpool
 SUBDIRS += dnn/softmax
+SUBDIRS += dnn/flashattention_2
+SUBDIRS += dnn/concat
+SUBDIRS += dnn/fused_concat_linear
 SUBDIRS += montecarlo/pi_estimation
 
 .PHONY: all clean $(SUBDIRS)
