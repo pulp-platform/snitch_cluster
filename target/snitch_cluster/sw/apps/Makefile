@@ -13,7 +13,6 @@ SUBDIRS += dnn/batchnorm
 SUBDIRS += dnn/conv2d
 SUBDIRS += dnn/fusedconv
 SUBDIRS += dnn/gelu
-SUBDIRS += dnn/gemm
 SUBDIRS += dnn/layernorm
 SUBDIRS += dnn/maxpool
 SUBDIRS += dnn/softmax

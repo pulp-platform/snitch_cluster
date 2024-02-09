@@ -75,7 +75,6 @@ runs:
     cmd: [../../../sw/blas/gemm/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/dnn/batchnorm/build/batchnorm.elf
   - elf: apps/dnn/maxpool/build/maxpool.elf
-  - elf: apps/dnn/gemm/build/gemm.elf
   # - elf: apps/dnn/conv2d/build/conv2d.elf # Fails with wrong results
   #   cmd: [../../../sw/dnn/conv2d/verify.py, "${sim_bin}", "${elf}"]
   # - elf: apps/dnn/fusedconv/build/fusedconv.elf # Fails with wrong results

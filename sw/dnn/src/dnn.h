@@ -200,7 +200,6 @@ typedef struct network_single_cluster_t_ {
 #include "../flashattention_2/src/flashattention_2.h"
 #include "../fused_concat_linear/src/fused_concat_linear.h"
 #include "../gelu/src/gelu.h"
-#include "../gemm/src/gemm.h"
 #include "../layernorm/src/layernorm.h"
 #include "../maxpool/src/maxpool.h"
 #include "../softmax/src/softmax.h"
