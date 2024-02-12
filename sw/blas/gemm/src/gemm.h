@@ -82,8 +82,8 @@ void gemm_fp32_naive(uint32_t M, uint32_t N, uint32_t K, float* A, uint32_t ldA,
 }
 
 void gemm_fp64_naive(uint32_t M, uint32_t N, uint32_t K, double* A,
-                        uint32_t ldA, uint32_t ta, double* B, uint32_t ldB,
-                        uint32_t tb, double* C, uint32_t ldC, double BETA) {
+                     uint32_t ldA, uint32_t ta, double* B, uint32_t ldB,
+                     uint32_t tb, double* C, uint32_t ldC, double BETA) {
     if (!ta && !tb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
@@ -293,10 +293,10 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, double* A, uint32_t ldA,
                 "fmadd.d %[c5], ft0, ft1, %[c5] \n"
                 "fmadd.d %[c6], ft0, ft1, %[c6] \n"
                 "fmadd.d %[c7], ft0, ft1, %[c7] \n"
-                : [ c0 ] "+f"(c[0]), [ c1 ] "+f"(c[1]), [ c2 ] "+f"(c[2]),
-                  [ c3 ] "+f"(c[3]), [ c4 ] "+f"(c[4]), [ c5 ] "+f"(c[5]),
-                  [ c6 ] "+f"(c[6]), [ c7 ] "+f"(c[7])
-                : [ n_frep ] "r"(K - 1), [ unroll ] "i"(unroll)
+                : [c0] "+f"(c[0]), [c1] "+f"(c[1]), [c2] "+f"(c[2]),
+                  [c3] "+f"(c[3]), [c4] "+f"(c[4]), [c5] "+f"(c[5]),
+                  [c6] "+f"(c[6]), [c7] "+f"(c[7])
+                : [n_frep] "r"(K - 1), [unroll] "i"(unroll)
                 : "ft0", "ft1", "ft2");
 
             // Store results back
@@ -382,10 +382,9 @@ void gemm_fp32_baseline(const uint32_t M, const uint32_t N, const uint32_t K,
                 "vfsum.s ft2, ft3 \n"
                 // Store results
                 "fsw ft2, 0(%[C]) \n"
-                : [ a_ptr ] "+r"(a_ptr), [ b_ptr ] "+r"(b_ptr)
-                : [ c ] "f"(c), [ reduce_reg ] "f"(reduce_reg),
-                  [ C ] "r"(c_ptr), [ BETA ] "r"(BETA), [ K ] "r"(K),
-                  [ zero ] "f"(zero)
+                : [a_ptr] "+r"(a_ptr), [b_ptr] "+r"(b_ptr)
+                : [c] "f"(c), [reduce_reg] "f"(reduce_reg), [C] "r"(c_ptr),
+                  [BETA] "r"(BETA), [K] "r"(K), [zero] "f"(zero)
                 : "ft0", "ft1", "ft2", "ft3", "ft4", "t0");
         }
     }
@@ -500,19 +499,19 @@ void gemm_fp32_opt(const uint32_t M, const uint32_t N, const uint32_t K,
                 "vfcpka.s.s %[c1], %[reduce_reg2], %[reduce_reg3] \n"
                 "vfcpka.s.s %[c2], %[reduce_reg4], %[reduce_reg5] \n"
                 "vfcpka.s.s %[c3], %[reduce_reg6], %[reduce_reg7] \n"
-                : [ c0 ] "+f"(c[0]), [ c1 ] "+f"(c[1]), [ c2 ] "+f"(c[2]),
-                  [ c3 ] "+f"(c[3]), [ c4 ] "+f"(c[4]), [ c5 ] "+f"(c[5]),
-                  [ c6 ] "+f"(c[6]), [ c7 ] "+f"(c[7]),
-                  [ reduce_reg0 ] "+f"(reduce_reg[0]),
-                  [ reduce_reg1 ] "+f"(reduce_reg[1]),
-                  [ reduce_reg2 ] "+f"(reduce_reg[2]),
-                  [ reduce_reg3 ] "+f"(reduce_reg[3]),
-                  [ reduce_reg4 ] "+f"(reduce_reg[4]),
-                  [ reduce_reg5 ] "+f"(reduce_reg[5]),
-                  [ reduce_reg6 ] "+f"(reduce_reg[6]),
-                  [ reduce_reg7 ] "+f"(reduce_reg[7])
-                : [ C ] "r"(_C), [ zero ] "f"(zero), [ n_frep ] "r"(n_frep - 1),
-                  [ unroll ] "i"(unroll), [ BETA ] "r"(BETA)
+                : [c0] "+f"(c[0]), [c1] "+f"(c[1]), [c2] "+f"(c[2]),
+                  [c3] "+f"(c[3]), [c4] "+f"(c[4]), [c5] "+f"(c[5]),
+                  [c6] "+f"(c[6]), [c7] "+f"(c[7]),
+                  [reduce_reg0] "+f"(reduce_reg[0]),
+                  [reduce_reg1] "+f"(reduce_reg[1]),
+                  [reduce_reg2] "+f"(reduce_reg[2]),
+                  [reduce_reg3] "+f"(reduce_reg[3]),
+                  [reduce_reg4] "+f"(reduce_reg[4]),
+                  [reduce_reg5] "+f"(reduce_reg[5]),
+                  [reduce_reg6] "+f"(reduce_reg[6]),
+                  [reduce_reg7] "+f"(reduce_reg[7])
+                : [C] "r"(_C), [zero] "f"(zero), [n_frep] "r"(n_frep - 1),
+                  [unroll] "i"(unroll), [BETA] "r"(BETA)
                 : "ft0", "ft1", "ft2");
 
             // Store results
@@ -588,10 +587,9 @@ void gemm_fp16_baseline(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
                 "vfcvt.h.s ft3, ft3\n"
                 // Store results
                 "fsh ft3, 0(%[C]) \n"
-                : [ a_ptr ] "+r"(a_ptr), [ b_ptr ] "+r"(b_ptr)
-                : [ c ] "f"(c), [ reduce_reg ] "f"(reduce_reg),
-                  [ C ] "r"(c_ptr), [ BETA ] "r"(BETA), [ K ] "r"(K),
-                  [ zero ] "f"(zero)
+                : [a_ptr] "+r"(a_ptr), [b_ptr] "+r"(b_ptr)
+                : [c] "f"(c), [reduce_reg] "f"(reduce_reg), [C] "r"(c_ptr),
+                  [BETA] "r"(BETA), [K] "r"(K), [zero] "f"(zero)
                 : "ft0", "ft1", "ft2", "ft3", "ft4", "t0");
         }
     }
@@ -743,19 +741,19 @@ void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A, uint32_t ldA,
                 "vfcpkb.h.s %[c0], %[c2], %[c3] \n"
                 "vfcpka.h.s %[c1], %[c4], %[c5] \n"
                 "vfcpkb.h.s %[c1], %[c6], %[c7] \n"
-                : [ c0 ] "+f"(c[0]), [ c1 ] "+f"(c[1]), [ c2 ] "+f"(c[2]),
-                  [ c3 ] "+f"(c[3]), [ c4 ] "+f"(c[4]), [ c5 ] "+f"(c[5]),
-                  [ c6 ] "+f"(c[6]), [ c7 ] "+f"(c[7]), [ beta ] "=r"(beta),
-                  [ reduce_reg0 ] "+f"(reduce_reg[0]),
-                  [ reduce_reg1 ] "+f"(reduce_reg[1]),
-                  [ reduce_reg2 ] "+f"(reduce_reg[2]),
-                  [ reduce_reg3 ] "+f"(reduce_reg[3]),
-                  [ reduce_reg4 ] "+f"(reduce_reg[4]),
-                  [ reduce_reg5 ] "+f"(reduce_reg[5]),
-                  [ reduce_reg6 ] "+f"(reduce_reg[6]),
-                  [ reduce_reg7 ] "+f"(reduce_reg[7])
-                : [ C ] "r"(_C), [ zero ] "f"(zero), [ n_frep ] "r"(n_frep),
-                  [ BETA ] "r"(BETA)
+                : [c0] "+f"(c[0]), [c1] "+f"(c[1]), [c2] "+f"(c[2]),
+                  [c3] "+f"(c[3]), [c4] "+f"(c[4]), [c5] "+f"(c[5]),
+                  [c6] "+f"(c[6]), [c7] "+f"(c[7]), [beta] "=r"(beta),
+                  [reduce_reg0] "+f"(reduce_reg[0]),
+                  [reduce_reg1] "+f"(reduce_reg[1]),
+                  [reduce_reg2] "+f"(reduce_reg[2]),
+                  [reduce_reg3] "+f"(reduce_reg[3]),
+                  [reduce_reg4] "+f"(reduce_reg[4]),
+                  [reduce_reg5] "+f"(reduce_reg[5]),
+                  [reduce_reg6] "+f"(reduce_reg[6]),
+                  [reduce_reg7] "+f"(reduce_reg[7])
+                : [C] "r"(_C), [zero] "f"(zero), [n_frep] "r"(n_frep),
+                  [BETA] "r"(BETA)
                 : "ft0", "ft1", "ft2");
 
             // Store results back
@@ -907,19 +905,19 @@ void gemm_fp16_ex_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
                 "vfcpkb.h.s %[c0], %[reduce_reg2], %[reduce_reg3] \n"
                 "vfcpka.h.s %[c1], %[reduce_reg4], %[reduce_reg5] \n"
                 "vfcpkb.h.s %[c1], %[reduce_reg6], %[reduce_reg7] \n"
-                : [ c0 ] "+f"(c[0]), [ c1 ] "+f"(c[1]), [ c2 ] "+f"(c[2]),
-                  [ c3 ] "+f"(c[3]), [ c4 ] "+f"(c[4]), [ c5 ] "+f"(c[5]),
-                  [ c6 ] "+f"(c[6]), [ c7 ] "+f"(c[7]), [ beta ] "=r"(beta),
-                  [ reduce_reg0 ] "+f"(reduce_reg[0]),
-                  [ reduce_reg1 ] "+f"(reduce_reg[1]),
-                  [ reduce_reg2 ] "+f"(reduce_reg[2]),
-                  [ reduce_reg3 ] "+f"(reduce_reg[3]),
-                  [ reduce_reg4 ] "+f"(reduce_reg[4]),
-                  [ reduce_reg5 ] "+f"(reduce_reg[5]),
-                  [ reduce_reg6 ] "+f"(reduce_reg[6]),
-                  [ reduce_reg7 ] "+f"(reduce_reg[7])
-                : [ C ] "r"(_C), [ zero ] "f"(zero), [ n_frep ] "r"(n_frep),
-                  [ unroll ] "i"(unroll), [ BETA ] "r"(BETA)
+                : [c0] "+f"(c[0]), [c1] "+f"(c[1]), [c2] "+f"(c[2]),
+                  [c3] "+f"(c[3]), [c4] "+f"(c[4]), [c5] "+f"(c[5]),
+                  [c6] "+f"(c[6]), [c7] "+f"(c[7]), [beta] "=r"(beta),
+                  [reduce_reg0] "+f"(reduce_reg[0]),
+                  [reduce_reg1] "+f"(reduce_reg[1]),
+                  [reduce_reg2] "+f"(reduce_reg[2]),
+                  [reduce_reg3] "+f"(reduce_reg[3]),
+                  [reduce_reg4] "+f"(reduce_reg[4]),
+                  [reduce_reg5] "+f"(reduce_reg[5]),
+                  [reduce_reg6] "+f"(reduce_reg[6]),
+                  [reduce_reg7] "+f"(reduce_reg[7])
+                : [C] "r"(_C), [zero] "f"(zero), [n_frep] "r"(n_frep),
+                  [unroll] "i"(unroll), [BETA] "r"(BETA)
                 : "ft0", "ft1", "ft2");
 
             // Store results back
@@ -991,10 +989,9 @@ void gemm_fp8_baseline(uint32_t M, uint32_t N, uint32_t K, char* A,
                 "vfcvt.b.s ft2, ft2\n"
                 // Store results
                 "fsb ft2, 0(%[C]) \n"
-                : [ a_ptr ] "+r"(a_ptr), [ b_ptr ] "+r"(b_ptr)
-                : [ c ] "f"(c), [ reduce_reg ] "f"(reduce_reg),
-                  [ C ] "r"(c_ptr), [ BETA ] "r"(BETA), [ K ] "r"(K),
-                  [ zero ] "f"(zero)
+                : [a_ptr] "+r"(a_ptr), [b_ptr] "+r"(b_ptr)
+                : [c] "f"(c), [reduce_reg] "f"(reduce_reg), [C] "r"(c_ptr),
+                  [BETA] "r"(BETA), [K] "r"(K), [zero] "f"(zero)
                 : "ft0", "ft1", "ft2", "ft3", "ft4", "t0");
         }
     }
@@ -1153,19 +1150,19 @@ void gemm_fp8_ex_opt(uint32_t M, uint32_t N, uint32_t K, char* A, uint32_t ldA,
                 // "vfcpkb.b.s %[c0], %[reduce_reg2], %[reduce_reg3] \n"
                 // "vfcpkc.b.s %[c0], %[reduce_reg4], %[reduce_reg5] \n"
                 // "vfcpkd.b.s %[c0], %[reduce_reg6], %[reduce_reg7] \n"
-                : [ c0 ] "+f"(c[0]), [ c1 ] "+f"(c[1]), [ c2 ] "+f"(c[2]),
-                  [ c3 ] "+f"(c[3]), [ c4 ] "+f"(c[4]), [ c5 ] "+f"(c[5]),
-                  [ c6 ] "+f"(c[6]), [ c7 ] "+f"(c[7]), [ beta ] "=r"(beta),
-                  [ reduce_reg0 ] "+f"(reduce_reg[0]),
-                  [ reduce_reg1 ] "+f"(reduce_reg[1]),
-                  [ reduce_reg2 ] "+f"(reduce_reg[2]),
-                  [ reduce_reg3 ] "+f"(reduce_reg[3]),
-                  [ reduce_reg4 ] "+f"(reduce_reg[4]),
-                  [ reduce_reg5 ] "+f"(reduce_reg[5]),
-                  [ reduce_reg6 ] "+f"(reduce_reg[6]),
-                  [ reduce_reg7 ] "+f"(reduce_reg[7])
-                : [ C ] "r"(_C), [ n_frep ] "r"(n_frep), [ BETA ] "r"(BETA),
-                  [ unroll ] "i"(unroll), [ zero ] "f"(zero)
+                : [c0] "+f"(c[0]), [c1] "+f"(c[1]), [c2] "+f"(c[2]),
+                  [c3] "+f"(c[3]), [c4] "+f"(c[4]), [c5] "+f"(c[5]),
+                  [c6] "+f"(c[6]), [c7] "+f"(c[7]), [beta] "=r"(beta),
+                  [reduce_reg0] "+f"(reduce_reg[0]),
+                  [reduce_reg1] "+f"(reduce_reg[1]),
+                  [reduce_reg2] "+f"(reduce_reg[2]),
+                  [reduce_reg3] "+f"(reduce_reg[3]),
+                  [reduce_reg4] "+f"(reduce_reg[4]),
+                  [reduce_reg5] "+f"(reduce_reg[5]),
+                  [reduce_reg6] "+f"(reduce_reg[6]),
+                  [reduce_reg7] "+f"(reduce_reg[7])
+                : [C] "r"(_C), [n_frep] "r"(n_frep), [BETA] "r"(BETA),
+                  [unroll] "i"(unroll), [zero] "f"(zero)
                 : "ft0", "ft1", "ft2");
 
             // Store results back
@@ -1260,17 +1257,16 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
                 break;
             case FP8:
                 if (baseline) {
-                    gemm_fp8_baseline(frac_m, n, k, (char*)a + offsetA, lda, (char*)b,
-                                ldb, (char*)c + offsetC, ldc_strided, &beta,
-                                setup_ssr);
+                    gemm_fp8_baseline(frac_m, n, k, (char*)a + offsetA, lda,
+                                      (char*)b, ldb, (char*)c + offsetC,
+                                      ldc_strided, &beta, setup_ssr);
                 } else {
-                    gemm_fp8_ex_opt(frac_m, n, k, (char*)a + offsetA, lda, (char*)b,
-                                ldb, (char*)c + offsetC, ldc_strided, &beta,
-                                setup_ssr);
+                    gemm_fp8_ex_opt(frac_m, n, k, (char*)a + offsetA, lda,
+                                    (char*)b, ldb, (char*)c + offsetC,
+                                    ldc_strided, &beta, setup_ssr);
                 }
                 break;
         }
-
     }
 }
 
