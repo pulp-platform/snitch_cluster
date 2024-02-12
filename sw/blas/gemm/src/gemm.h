@@ -35,9 +35,9 @@ static inline double multiply_opt(double multiplicand, double multiplier) {
         return 0;
 }
 
-void gemm_fp32_baseline(uint32_t M, uint32_t N, uint32_t K, float* A,
-                        uint32_t ldA, uint32_t ta, float* B, uint32_t ldB,
-                        uint32_t tb, float* C, uint32_t ldC, float BETA) {
+void gemm_fp32_naive(uint32_t M, uint32_t N, uint32_t K, float* A, uint32_t ldA,
+                     uint32_t ta, float* B, uint32_t ldB, uint32_t tb, float* C,
+                     uint32_t ldC, float BETA) {
     if (!ta && !tb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
@@ -81,7 +81,7 @@ void gemm_fp32_baseline(uint32_t M, uint32_t N, uint32_t K, float* A,
     }
 }
 
-void gemm_fp64_baseline(uint32_t M, uint32_t N, uint32_t K, double* A,
+void gemm_fp64_naive(uint32_t M, uint32_t N, uint32_t K, double* A,
                         uint32_t ldA, uint32_t ta, double* B, uint32_t ldB,
                         uint32_t tb, double* C, uint32_t ldC, double BETA) {
     if (!ta && !tb) {
@@ -142,11 +142,10 @@ void gemm_fp64_baseline(uint32_t M, uint32_t N, uint32_t K, double* A,
  * BETA: scalar beta
  * A is MxK, B is KxN, C is MxN
  */
-void gemm_fp32_baseline_unrolled(uint32_t M, uint32_t N, uint32_t K, float* A,
-                                 uint32_t ldA, uint32_t ta, float* B,
-                                 uint32_t ldB, uint32_t tb, float* C,
-                                 uint32_t ldC, float BETA) {
     // float c0, c1, c2, c3 = 0;
+void gemm_fp32_naive_unrolled(uint32_t M, uint32_t N, uint32_t K, float* A,
+                              uint32_t ldA, uint32_t ta, float* B, uint32_t ldB,
+                              uint32_t tb, float* C, uint32_t ldC, float BETA) {
     float c0 = 0.0f;
     float c1 = 0.0f;
     float c2 = 0.0f;
