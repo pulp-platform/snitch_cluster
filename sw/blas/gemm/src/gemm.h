@@ -336,7 +336,7 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, double* A, uint32_t ldA,
 void gemm_fp32_baseline(const uint32_t M, const uint32_t N, const uint32_t K,
                         float* A, const uint32_t ldA, float* B,
                         const uint32_t ldB, float* C, const uint32_t ldC,
-                        const uint32_t* BETA, const uint32_t setup_SSR) {
+                        const uint32_t BETA) {
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (; n < N; n++) {
@@ -352,8 +352,7 @@ void gemm_fp32_baseline(const uint32_t M, const uint32_t N, const uint32_t K,
             c_ptr = &C[m * ldC + n];
             // Don't accumulate in first iteration
             asm volatile(
-                "lw      t0, 0(%[BETA]) \n"
-                "beqz    t0, 1f \n"
+                "beqz    %[BETA], 1f \n"
                 // Load intermediate results
                 "flw ft2, 0(%[C]) \n"
                 "vfcpka.s.s ft2, ft2, %[zero]\n"
@@ -1217,7 +1216,7 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
         switch (prec) {
             case FP64:
                 if (baseline) {
-                    gemm_fp64_baseline(frac_m, n, k, (double*)a + offsetA,
+                    gemm_fp64_naive(frac_m, n, k, (double*)a + offsetA,
                                        lda_strided, transa, (double*)b, ldb,
                                        transb, (double*)c + offsetC,
                                        ldc_strided, (double)beta);
@@ -1231,9 +1230,8 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
             case FP32:
                 if (baseline) {
                     gemm_fp32_baseline(frac_m, n, k, (float*)a + offsetA,
-                                       lda_strided, transa, (float*)b, ldb,
-                                       transb, (float*)c + offsetC, ldc_strided,
-                                       (float)beta);
+                                       lda_strided, (float*)b, ldb, (float*)c + offsetC, ldc_strided,
+                                       beta);
                 } else {
                     gemm_fp32_opt(frac_m, n, k, (float*)a + offsetA,
                                   lda_strided, (float*)b, ldb,
