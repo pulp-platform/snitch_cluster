@@ -127,22 +127,6 @@ void gemm_fp64_naive(uint32_t M, uint32_t N, uint32_t K, double* A,
     }
 }
 
-/* params:
- * M: number of rows of A and C
- * N: number of columns of B and C
- * K: number of columns of A and rows of B
- * A: pointer to matrix A
- * ldA: row stride of A
- * ta: transpose A
- * B: pointer to matrix B
- * ldB: row stride of B
- * tb: transpose B
- * C: pointer to matrix C
- * ldC: row stride of C
- * BETA: scalar beta
- * A is MxK, B is KxN, C is MxN
- */
-    // float c0, c1, c2, c3 = 0;
 void gemm_fp32_naive_unrolled(uint32_t M, uint32_t N, uint32_t K, float* A,
                               uint32_t ldA, uint32_t ta, float* B, uint32_t ldB,
                               uint32_t tb, float* C, uint32_t ldC, float BETA) {
@@ -153,8 +137,6 @@ void gemm_fp32_naive_unrolled(uint32_t M, uint32_t N, uint32_t K, float* A,
     if (!ta && !tb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                // register float c0 = BETA * C[m * ldC + n];
-                // c0, c1, c2, c3 = 0;
                 if (BETA == 0.0f) {
                     c0 = 0.0f;
                 } else {
@@ -175,7 +157,6 @@ void gemm_fp32_naive_unrolled(uint32_t M, uint32_t N, uint32_t K, float* A,
     } else if (ta && !tb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                // register float c0 = BETA * C[m * ldC + n];
                 if (BETA == 0.0f) {
                     c0 = 0.0f;
                 } else {
@@ -196,7 +177,6 @@ void gemm_fp32_naive_unrolled(uint32_t M, uint32_t N, uint32_t K, float* A,
     } else if (!ta && tb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                // register float c0 = BETA * C[m * ldC + n];
                 if (BETA == 0.0f) {
                     c0 = 0.0f;
                 } else {
@@ -206,13 +186,11 @@ void gemm_fp32_naive_unrolled(uint32_t M, uint32_t N, uint32_t K, float* A,
                 c2 = 0.0f;
                 c3 = 0.0f;
                 for (uint32_t k = 0; k < K; k += 4) {
-                    // c0 += A[k + m * ldA] * B[k + n * ldB];
                     c0 += A[(k + 0) + m * ldA] * B[(k + 0) + n * ldB];
                     c1 += A[(k + 1) + m * ldA] * B[(k + 1) + n * ldB];
                     c2 += A[(k + 2) + m * ldA] * B[(k + 2) + n * ldB];
                     c3 += A[(k + 3) + m * ldA] * B[(k + 3) + n * ldB];
                 }
-                // C[m * ldC + n] = c0;
                 C[m * ldC + n] = c0 + c1 + c2 + c3;
             }
         }
@@ -237,18 +215,6 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, double* A, uint32_t ldA,
     // for maximum utilization
     const uint32_t unroll = 8;
 
-    // A is of size MxK, B is of size KxN, C is of size MxN
-    // for (uint32_t m = 0; m < M; m++) {
-    //     for (uint32_t n = 0; n < N / unroll; n++) {
-    //         double c0 = BETA * C[m * ldC + n];
-    //         for (uint32_t k = 0; k < K; k++) {
-    //             for (uint32_t j = 0; j < unroll; j++) {
-    //                 c0 += A[k +  m * ldA] * B[k + (n + j) * ldB];
-    //             }
-    //         }
-    //         C[m * ldC + n] = c0;
-    //     }
-    // }
     // SSR strides and bounds only have to be configured
     // once in the beginning
     if (setup_SSR) {
@@ -264,7 +230,6 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, double* A, uint32_t ldA,
             const uint32_t ssr0_b[4] = {unroll, K, N / unroll, M};
             const uint32_t ssr0_i[4] = {0, 8, 0, 8 * ldA};
 
-            // A[k + unroll * m * ldA]
             snrt_ssr_loop_3d(SNRT_SSR_DM0, ssr0_b[1], ssr0_b[2], ssr0_b[3],
                              ssr0_i[1], ssr0_i[2], ssr0_i[3]);
             snrt_ssr_repeat(SNRT_SSR_DM0, unroll);
@@ -282,7 +247,6 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, double* A, uint32_t ldA,
             const uint32_t ssr1_b[4] = {unroll, K, N / unroll, M};
             const uint32_t ssr1_i[4] = {8, 8 * ldB, 8 * unroll, 0};
 
-            // B[k + unroll * n * ldB]
             snrt_ssr_loop_4d(SNRT_SSR_DM1, ssr1_b[0], ssr1_b[1], ssr1_b[2],
                              ssr1_b[3], ssr1_i[0], ssr1_i[1], ssr1_i[2],
                              ssr1_i[3]);
@@ -1255,7 +1219,7 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
 
         switch (prec) {
             case FP64:
-                if (baseline == 1) {
+                if (baseline) {
                     gemm_fp64_baseline(frac_m, n, k, (double*)a + offsetA,
                                        lda_strided, transa, (double*)b, ldb,
                                        transb, (double*)c + offsetC,
@@ -1268,7 +1232,7 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
                 }
                 break;
             case FP32:
-                if (baseline == 1) {
+                if (baseline) {
                     gemm_fp32_baseline(frac_m, n, k, (float*)a + offsetA,
                                        lda_strided, transa, (float*)b, ldb,
                                        transb, (float*)c + offsetC, ldc_strided,
