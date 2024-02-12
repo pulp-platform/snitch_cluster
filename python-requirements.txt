@@ -19,6 +19,7 @@ pyyaml
 pytablewriter
 termcolor
 pandas
+prettytable
 pyelftools
 psutil
 

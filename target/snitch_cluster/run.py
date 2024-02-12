@@ -29,7 +29,8 @@ def main():
                            n_procs=args.n_procs,
                            dry_run=args.dry_run,
                            early_exit=args.early_exit,
-                           verbose=args.verbose)
+                           verbose=args.verbose,
+                           report_path=Path(args.run_dir) / 'report.csv')
 
 
 if __name__ == '__main__':

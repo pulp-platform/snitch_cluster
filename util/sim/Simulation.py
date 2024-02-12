@@ -195,7 +195,7 @@ class QuestaVCSSimulation(RTLSimulation):
     def get_retcode(self):
         if self.ext_verif_logic:
             return super().get_retcode()
-        else:
+        elif self.log is not None:
             # Extract the application's return code from the simulation log
             with open(self.log, 'r') as f:
                 for line in f.readlines():
@@ -214,28 +214,29 @@ class QuestaVCSSimulation(RTLSimulation):
         success = super().successful()
         # If not launched through a custom command, check that the simulator process also
         # terminated correctly
-        if not self.ext_verif_logic and self.process.returncode != 0:
-            return False
-        else:
-            return success
+        if not self.ext_verif_logic:
+            if self.process is None or self.process.returncode != 0:
+                return False
+        return success
 
     def get_simulation_time(self):
         # Extract the simulation time from the simulation log
-        with open(self.log, 'r') as f:
-            for line in f.readlines():
-                regex = r'Time: (\d+) ([a-z]+)\s+'
-                match = re.search(regex, line)
-                if match:
-                    val = int(match.group(1))
-                    unit = match.group(2)
-                    if unit == 'ns':
-                        return val
-                    elif unit == 'us':
-                        return val * 1000
-                    elif unit == 'ps':
-                        return val / 1000
-                    else:
-                        raise ValueError(f'Unsupported time unit {unit}')
+        if self.log is not None:
+            with open(self.log, 'r') as f:
+                for line in f.readlines():
+                    regex = r'Time: (\d+) ([a-z]+)\s+'
+                    match = re.search(regex, line)
+                    if match:
+                        val = int(match.group(1))
+                        unit = match.group(2)
+                        if unit == 'ns':
+                            return val
+                        elif unit == 'us':
+                            return val * 1000
+                        elif unit == 'ps':
+                            return val / 1000
+                        else:
+                            raise ValueError(f'Unsupported time unit {unit}')
 
 
 class QuestaSimulation(QuestaVCSSimulation):
@@ -246,15 +247,16 @@ class QuestaSimulation(QuestaVCSSimulation):
 
     def get_cpu_time(self):
         # Extract the CPU time from the simulation log
-        with open(self.log, 'r') as f:
-            for line in f.readlines():
-                regex = r'Elapsed time: (\d+):(\d+):(\d+)'
-                match = re.search(regex, line)
-                if match:
-                    hours = int(match.group(1))
-                    minutes = int(match.group(2))
-                    seconds = int(match.group(3))
-                    return hours*3600 + minutes*60 + seconds
+        if self.log is not None:
+            with open(self.log, 'r') as f:
+                for line in f.readlines():
+                    regex = r'Elapsed time: (\d+):(\d+):(\d+)'
+                    match = re.search(regex, line)
+                    if match:
+                        hours = int(match.group(1))
+                        minutes = int(match.group(2))
+                        seconds = int(match.group(3))
+                        return hours*3600 + minutes*60 + seconds
 
 
 class VCSSimulation(QuestaVCSSimulation):
@@ -262,13 +264,14 @@ class VCSSimulation(QuestaVCSSimulation):
 
     def get_cpu_time(self):
         # Extract the CPU time from the simulation log
-        with open(self.log, 'r') as f:
-            for line in f.readlines():
-                regex = r'CPU Time: \s*([\d.]+) seconds'
-                match = re.search(regex, line)
-                if match:
-                    seconds = float(match.group(1))
-                    return seconds
+        if self.log is not None:
+            with open(self.log, 'r') as f:
+                for line in f.readlines():
+                    regex = r'CPU Time: \s*([\d.]+) seconds'
+                    match = re.search(regex, line)
+                    if match:
+                        seconds = float(match.group(1))
+                        return seconds
 
 class BansheeSimulation(Simulation):
     """A simulation running on Banshee.
