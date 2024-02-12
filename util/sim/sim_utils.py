@@ -55,8 +55,10 @@ import time
 import yaml
 import signal
 import psutil
+import pandas as pd
 
 POLL_PERIOD = 0.2
+REPORT_FILE = 'sim_report.csv'
 
 
 def parser(default_simulator='vsim', simulator_choices=['vsim']):
@@ -200,6 +202,24 @@ def print_summary(sims, early_exit=False, dry_run=False):
             print(f'{colored("All tests terminated and passed!", "green")}')
 
 
+def dump_report(sims):
+    """Print a detailed report on the simulation suite's execution.
+
+    Args:
+        sims: A list of simulations from the simulation suite.
+    """
+    [sim.process.communicate() for sim in sims]
+    data = [{'elf': sim.elf,
+            'launched': sim.launched(),
+            'completed': sim.completed(),
+            'passed': sim.successful(),
+            'CPU time [s]': sim.get_cpu_time(),
+            'simulation time [ns]': sim.get_simulation_time()} for sim in sims]
+    df = pd.DataFrame(data)
+    df = df.set_index('elf')
+    df.to_csv(REPORT_FILE)
+
+
 def terminate_processes():
     print('Terminate processes')
     # Get PID and PGID of parent process (current Python script)
@@ -250,6 +270,7 @@ def run_simulations(simulations, n_procs=1, dry_run=None, early_exit=False,
     # Spawn a process for every test, wait for all running tests to terminate and check results
     running_sims = []
     failed_sims = []
+    successful_sims = []
     early_exit_requested = False
     try:
         while (len(simulations) or len(running_sims)) and not early_exit_requested:
@@ -264,6 +285,7 @@ def run_simulations(simulations, n_procs=1, dry_run=None, early_exit=False,
             # Check completed sims and report status
             for sim in completed_sims:
                 if sim.successful():
+                    successful_sims.append(sim)
                     sim.print_status()
                 else:
                     failed_sims.append(sim)
@@ -280,6 +302,9 @@ def run_simulations(simulations, n_procs=1, dry_run=None, early_exit=False,
 
     # Print summary
     print_summary(running_sims + failed_sims, early_exit_requested)
+
+    # Dump report
+    dump_report(simulations + running_sims + successful_sims + failed_sims)
 
     # Clean up after early exit
     if early_exit_requested:

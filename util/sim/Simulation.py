@@ -71,6 +71,13 @@ class Simulation(object):
                 self.process = subprocess.Popen(self.cmd, stdout=f, stderr=subprocess.STDOUT,
                                                 cwd=self.run_dir, universal_newlines=True)
 
+    def launched(self):
+        """Return whether the simulation was launched."""
+        if self.process:
+            return True
+        else:
+            return False
+
     def completed(self):
         """Return whether the simulation completed."""
         if self.dry_run:
@@ -96,6 +103,14 @@ class Simulation(object):
         else:
             return False
 
+    def get_simulation_time(self):
+        """Return the execution time [ns] of the binary in simulation."""
+        return None
+
+    def get_cpu_time(self):
+        """Return the CPU time [s] taken to run the simulation."""
+        return None
+
     def print_log(self):
         """Print a log of the simulation to stdout."""
         with open(self.log, 'r') as f:
@@ -112,8 +127,10 @@ class Simulation(object):
                 cprint(f'{self.elf} test passed', 'green', attrs=['bold'], flush=True)
             else:
                 cprint(f'{self.elf} test failed', 'red', attrs=['bold'], flush=True)
-        else:
+        elif self.launched():
             cprint(f'{self.elf} test running', 'yellow', attrs=['bold'], flush=True)
+        else:
+            cprint(f'{self.elf} test not launched', 'yellow', attrs=['bold'], flush=True)
 
 
 class RTLSimulation(Simulation):
@@ -202,6 +219,24 @@ class QuestaVCSSimulation(RTLSimulation):
         else:
             return success
 
+    def get_simulation_time(self):
+        # Extract the simulation time from the simulation log
+        with open(self.log, 'r') as f:
+            for line in f.readlines():
+                regex = r'Time: (\d+) ([a-z]+)\s+'
+                match = re.search(regex, line)
+                if match:
+                    val = int(match.group(1))
+                    unit = match.group(2)
+                    if unit == 'ns':
+                        return val
+                    elif unit == 'us':
+                        return val * 1000
+                    elif unit == 'ps':
+                        return val / 1000
+                    else:
+                        raise ValueError(f'Unsupported time unit {unit}')
+
 
 class QuestaSimulation(QuestaVCSSimulation):
     """An RTL simulation running on QuestaSim."""
@@ -209,11 +244,31 @@ class QuestaSimulation(QuestaVCSSimulation):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    def get_cpu_time(self):
+        # Extract the CPU time from the simulation log
+        with open(self.log, 'r') as f:
+            for line in f.readlines():
+                regex = r'Elapsed time: (\d+):(\d+):(\d+)'
+                match = re.search(regex, line)
+                if match:
+                    hours = int(match.group(1))
+                    minutes = int(match.group(2))
+                    seconds = int(match.group(3))
+                    return hours*3600 + minutes*60 + seconds
+
 
 class VCSSimulation(QuestaVCSSimulation):
     """An RTL simulation running on VCS."""
-    pass
 
+    def get_cpu_time(self):
+        # Extract the CPU time from the simulation log
+        with open(self.log, 'r') as f:
+            for line in f.readlines():
+                regex = r'CPU Time: \s*([\d.]+) seconds'
+                match = re.search(regex, line)
+                if match:
+                    seconds = float(match.group(1))
+                    return seconds
 
 class BansheeSimulation(Simulation):
     """A simulation running on Banshee.
