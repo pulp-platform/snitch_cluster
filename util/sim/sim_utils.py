@@ -48,7 +48,6 @@ The simulation backend is implemented by the
 """
 
 import argparse
-from termcolor import colored, cprint
 from pathlib import Path
 import os
 import time
@@ -223,11 +222,11 @@ def dump_report(sims, path=None):
         sims: A list of simulations from the simulation suite.
     """
     data = [{'elf': sim.elf,
-            'launched': sim.launched(),
-            'completed': sim.completed(),
-            'passed': sim.successful(),
-            'CPU time [s]': sim.get_cpu_time(),
-            'simulation time [ns]': sim.get_simulation_time()} for sim in sims]
+             'launched': sim.launched(),
+             'completed': sim.completed(),
+             'passed': sim.successful(),
+             'CPU time [s]': sim.get_cpu_time(),
+             'simulation time [ns]': sim.get_simulation_time()} for sim in sims]
     df = pd.DataFrame(data)
     df = df.set_index('elf')
     if path is None:

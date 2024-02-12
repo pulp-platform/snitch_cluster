@@ -273,6 +273,7 @@ class VCSSimulation(QuestaVCSSimulation):
                         seconds = float(match.group(1))
                         return seconds
 
+
 class BansheeSimulation(Simulation):
     """A simulation running on Banshee.
 
