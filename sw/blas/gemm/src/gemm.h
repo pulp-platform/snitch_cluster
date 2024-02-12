@@ -1217,9 +1217,9 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
             case FP64:
                 if (baseline) {
                     gemm_fp64_naive(frac_m, n, k, (double*)a + offsetA,
-                                       lda_strided, transa, (double*)b, ldb,
-                                       transb, (double*)c + offsetC,
-                                       ldc_strided, (double)beta);
+                                    lda_strided, transa, (double*)b, ldb,
+                                    transb, (double*)c + offsetC, ldc_strided,
+                                    (double)beta);
                 } else {
                     gemm_fp64_opt(frac_m, n, k, (double*)a + offsetA,
                                   lda_strided, transa, (double*)b, ldb, transb,
@@ -1230,8 +1230,8 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
             case FP32:
                 if (baseline) {
                     gemm_fp32_baseline(frac_m, n, k, (float*)a + offsetA,
-                                       lda_strided, (float*)b, ldb, (float*)c + offsetC, ldc_strided,
-                                       beta);
+                                       lda_strided, (float*)b, ldb,
+                                       (float*)c + offsetC, ldc_strided, beta);
                 } else {
                     gemm_fp32_opt(frac_m, n, k, (float*)a + offsetA,
                                   lda_strided, (float*)b, ldb,
