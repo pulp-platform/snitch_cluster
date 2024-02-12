@@ -4,8 +4,7 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-from Simulation import QuestaSimulation, VCSSimulation, VerilatorSimulation, BansheeSimulation, \
-                       CustomSimulation
+from Simulation import QuestaSimulation, VCSSimulation, VerilatorSimulation, BansheeSimulation
 
 
 class Simulator(object):
@@ -72,9 +71,7 @@ class RTLSimulator(Simulator):
     A test may need to be run with a custom command, itself invoking
     the simulation binary behind the scenes, e.g. for verification
     purposes. Such a test carries the custom command (a list of args)
-    under the `cmd` key. In such case, the RTL simulator constructs a
-    [CustomSimulation][Simulation.CustomSimulation] object from the
-    given test, with the custom command and simulation binary.
+    under the `cmd` key.
     """
 
     def __init__(self, binary, **kwargs):
@@ -89,16 +86,14 @@ class RTLSimulator(Simulator):
 
     def get_simulation(self, test):
         if 'cmd' in test:
-            return super().get_simulation(
-                test,
-                simulation_cls=CustomSimulation,
-                sim_bin=self.binary,
-                cmd=test['cmd'])
+            cmd = test['cmd']
         else:
-            return super().get_simulation(
-                test,
-                sim_bin=self.binary
-            )
+            cmd = None
+        return super().get_simulation(
+            test,
+            sim_bin=self.binary,
+            cmd=cmd
+        )
 
 
 class VCSSimulator(RTLSimulator):
