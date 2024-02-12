@@ -7,14 +7,13 @@
 
 import sys
 from pathlib import Path
-import numpy as np
 import torch
 from data.datagen import golden_model
 
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import from_buffer, ctype_from_precision_t  # noqa: E402
+from data_utils import from_buffer, ctype_from_precision_t, check_result  # noqa: E402
 
 
 ERR_THRESHOLD = 0.001
@@ -61,10 +60,9 @@ def main():
     ofmap_actual = from_buffer(raw_results['ofmap'], ctype_from_precision_t(prec))
     ofmap_golden = golden_model(ifmap, eps, embeddings, prec).detach().numpy().flatten()
 
-    absolute_err = np.absolute(ofmap_golden - ofmap_actual)
-    fail = np.any(absolute_err > ERR_THRESHOLD)
-    if (fail):
-        verification.dump_results_to_csv([ofmap_golden, ofmap_actual, absolute_err],
+    fail, abs_err = check_result(ofmap_golden, ofmap_actual, atol=ERR_THRESHOLD)
+    if fail:
+        verification.dump_results_to_csv([ofmap_golden, ofmap_actual, abs_err],
                                          Path.cwd() / 'layernorm_results.csv')
 
     return int(fail)

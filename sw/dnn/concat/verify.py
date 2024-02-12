@@ -14,7 +14,7 @@ from data.datagen import golden_model
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import from_buffer, ctype_from_precision_t  # noqa: E402
+from data_utils import from_buffer, ctype_from_precision_t, check_result  # noqa: E402
 
 
 ERR_THRESHOLD = 1E-6
@@ -57,12 +57,12 @@ def main():
     output_actual = from_buffer(raw_results['output'], ctype_from_precision_t(prec))
     output_golden = golden_model(inputs).detach().numpy().flatten()
 
-    relative_err = np.absolute((output_golden - output_actual) / output_golden)
-    fail = np.any(relative_err > ERR_THRESHOLD)
-    if (fail):
-        verification.dump_results_to_csv([output_golden, output_actual, relative_err],
+    fail, rel_err = check_result(output_golden, output_actual, rtol=ERR_THRESHOLD)
+
+    if fail:
+        verification.dump_results_to_csv([output_golden, output_actual, rel_err],
                                          Path.cwd() / 'concat_results.csv')
-        print('Maximum relative error:', np.max(relative_err))
+        print('Maximum relative error:', np.max(rel_err))
 
     return int(fail)
 

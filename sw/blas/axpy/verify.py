@@ -7,13 +7,12 @@
 
 import sys
 from pathlib import Path
-import numpy as np
 from data.datagen import golden_model
 
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import from_buffer  # noqa: E402
+from data_utils import from_buffer, check_result  # noqa: E402
 
 
 ERR_THRESHOLD = 1E-10
@@ -40,10 +39,10 @@ def main():
 
     # Verify results
     z_golden = golden_model(a, x, y)
-    relative_err = np.absolute((z_golden - z_actual) / z_golden)
-    fail = np.any(relative_err > ERR_THRESHOLD)
-    if (fail):
-        verification.dump_results_to_csv([z_golden, z_actual, relative_err],
+    fail, rel_err = check_result(z_golden, z_actual, rtol=ERR_THRESHOLD)
+
+    if fail:
+        verification.dump_results_to_csv([z_golden, z_actual, rel_err],
                                          Path.cwd() / 'axpy_results.csv')
 
     return int(fail)

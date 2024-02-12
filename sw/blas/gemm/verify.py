@@ -13,7 +13,7 @@ from data.datagen import golden_model
 sys.path.append(str(Path(__file__).parent / "../../../util/sim/"))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import from_buffer, ctype_from_precision_t  # noqa: E402
+from data_utils import from_buffer, ctype_from_precision_t, check_result  # noqa: E402
 
 
 ERR_THRESHOLD = {8: 1e-6, 4: 1e-6, 2: 1e-2, 1: 1e-1}
@@ -56,11 +56,10 @@ def main():
     c_actual = from_buffer(raw_results['c'], ctype_from_precision_t(prec))
     c_golden = golden_model(1, a, b, beta, c).flatten()
 
-    absolute_err = np.absolute(c_golden - c_actual)
-    fail = np.any(absolute_err > ERR_THRESHOLD[prec])
+    fail, abs_err = check_result(c_golden, c_actual, atol=ERR_THRESHOLD[prec])
     if (fail or args.dump_results):
         print('Simulation results are incorrect.')
-        verification.dump_results_to_csv([c_golden, c_actual, absolute_err],
+        verification.dump_results_to_csv([c_golden, c_actual, abs_err],
                                          Path.cwd() / 'results.csv')
 
     return int(fail)
