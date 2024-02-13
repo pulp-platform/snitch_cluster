@@ -88,12 +88,15 @@ module snitch_lsu #(
 
     logic caq_lsu_gnt, caq_lsu_exists;
     logic caq_out_valid, caq_out_gnt;
-    logic caq_pass;
+    logic caq_pass, caq_alters_mem;
 
     // CAQ passes requests to downstream LSU only once they are known not to collide.
     // This is assumed to be *stable* once given as the Snitch core is stalled on a
     // load/store and elements can only be popped from the queue, not pushed.
     assign caq_pass = caq_lsu_gnt & ~caq_lsu_exists;
+
+    // We need to stall on collisions with anything altering memory, including atomics
+    assign caq_alters_mem = lsu_qwrite_i | (lsu_qamo_i != reqrsp_pkg::AMONone);
 
     // Gate downstream LSU on CAQ pass
     assign lsu_postcaq_qvalid = caq_pass & lsu_qvalid_i;
@@ -115,8 +118,9 @@ module snitch_lsu #(
       // Check if currently presented request collides with any snooped ones.
       // Check address tag in any case. Check the write enable only when it
       // is necessary. If we receive a write, stall on any address match
-      // (mask MSB). If we receive a read, we stall only if a write collides.
-      .exists_mask_i  ( {~lsu_qwrite_i, {(CaqTagWidth){1'b1}}} ),
+      // (i.e. exclude MSB from the collision check, can be 0 or 1). If we
+      // receive a non-altering access, we stall only if a write collides.
+      .exists_mask_i  ( {~caq_alters_mem, {(CaqTagWidth){1'b1}}} ),
       .exists_data_i  ( {1'b1, lsu_qaddr_i[CaqTagWidth+DataAlign-1:DataAlign]} ),
       .exists_req_i   ( lsu_qvalid_i ),
       .exists_gnt_o   ( caq_lsu_gnt ),
