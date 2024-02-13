@@ -25,7 +25,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: util/container/DockerfileChisel
+          file: util/container/Dockerfile
           push: true
           tags: ghcr.io/kuleuven-micas/snax:latest
           build-args: |-

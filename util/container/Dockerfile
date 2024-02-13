@@ -26,8 +26,8 @@ RUN apt-get update && \
 # Build Rust tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH "/root/.cargo/bin:${PATH}"
-RUN rustup install 1.70.0
-RUN rustup override set 1.70.0
+RUN rustup install 1.76.0
+RUN rustup override set 1.76.0
 
 # Install Bender
 RUN cargo install bender --version 0.27.1
@@ -91,8 +91,8 @@ ENV VLT_ROOT "/usr/share/verilator"
 # Install Python requirements
 COPY python-requirements.txt /tmp/python-requirements.txt
 COPY docs/requirements.txt /tmp/docs/requirements.txt
-COPY sw/dnn/requirements.txt /tmp/sw/dnn/requirements.txt
-RUN pip3 install -r /tmp/python-requirements.txt
+# COPY sw/dnn/requirements.txt /tmp/sw/dnn/requirements.txt
+RUN pip3 install -r /tmp/python-requirements.txt --no-cache-dir
 
 # Get the precompiled LLVM toolchain
 RUN latest_tag=`curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/pulp-platform/llvm-project/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'` && \
@@ -125,3 +125,26 @@ COPY --from=builder /root/.cargo/bin/banshee bin/
 # See https://click.palletsprojects.com/en/8.1.x/unicode-support/
 ENV LC_ALL "C.UTF-8"
 ENV LANG   "C.UTF-8"
+
+# Install Chisel Environment
+
+RUN apt-get update && \
+    apt-get install -y openjdk-11-jre-headless openjdk-11-jdk-headless
+
+RUN apt-get install -y curl wget tar gnupg2
+
+RUN echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list && \
+    echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee /etc/apt/sources.list.d/sbt_old.list && \
+    curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | apt-key add && \
+    apt-get update
+
+RUN apt-get install -y sbt
+
+RUN wget https://github.com/llvm/circt/releases/download/firtool-1.42.0/firrtl-bin-ubuntu-20.04.tar.gz && \
+    tar -xvzf firrtl-bin-ubuntu-20.04.tar.gz && \
+    rm firrtl-bin-ubuntu-20.04.tar.gz
+
+# Install generic LLVM toolchain in /usr/bin - latest stable release is 17
+RUN  wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 17 && rm llvm.sh
+
+ENV PATH "/tools/firtool-1.42.0/bin/:${PATH}"

@@ -20,6 +20,3 @@ termcolor
 pandas
 pyelftools
 psutil
-
--r docs/requirements.txt
--r sw/dnn/requirements.txt
