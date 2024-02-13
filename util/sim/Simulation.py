@@ -71,6 +71,13 @@ class Simulation(object):
                 self.process = subprocess.Popen(self.cmd, stdout=f, stderr=subprocess.STDOUT,
                                                 cwd=self.run_dir, universal_newlines=True)
 
+    def launched(self):
+        """Return whether the simulation was launched."""
+        if self.process:
+            return True
+        else:
+            return False
+
     def completed(self):
         """Return whether the simulation completed."""
         if self.dry_run:
@@ -96,6 +103,14 @@ class Simulation(object):
         else:
             return False
 
+    def get_simulation_time(self):
+        """Return the execution time [ns] of the binary in simulation."""
+        return None
+
+    def get_cpu_time(self):
+        """Return the CPU time [s] taken to run the simulation."""
+        return None
+
     def print_log(self):
         """Print a log of the simulation to stdout."""
         with open(self.log, 'r') as f:
@@ -112,18 +127,31 @@ class Simulation(object):
                 cprint(f'{self.elf} test passed', 'green', attrs=['bold'], flush=True)
             else:
                 cprint(f'{self.elf} test failed', 'red', attrs=['bold'], flush=True)
+        elif self.launched():
+            cprint(f'{self.elf} test running', 'yellow', attrs=['bold'], flush=True)
         else:
-            cprint(f'{self.elf} test running', 'black', flush=True)
+            cprint(f'{self.elf} test not launched', 'yellow', attrs=['bold'], flush=True)
 
 
 class RTLSimulation(Simulation):
     """A simulation run on an RTL simulator.
 
     An RTL simulation is launched through a simulation binary built
-    in advance from some RTL design.
+    in advance from some RTL design. The path to the simulation binary
+    is all that is needed to launch a simulation.
+
+    Alternatively, a custom command can be specified to launch the
+    simulation. The custom command generally invokes the RTL simulator
+    binary behind the scenes and executes some additional verification
+    logic at the end of the simulation. As a custom command can implement
+    any verification logic, simulations launched through a custom command
+    are considered unsuccessful if the return code of the custom command
+    is non-null. The custom command may use Mako templating syntax. See
+    the `__init__` method implementation for more details on the dynamic
+    arguments which can be used in the command template.
     """
 
-    def __init__(self, sim_bin=None, **kwargs):
+    def __init__(self, sim_bin=None, cmd=None, **kwargs):
         """Constructor for the RTLSimulation class.
 
         Arguments:
@@ -131,7 +159,17 @@ class RTLSimulation(Simulation):
             kwargs: Arguments passed to the base class constructor.
         """
         super().__init__(**kwargs)
-        self.cmd = [str(sim_bin), str(self.elf)]
+        if cmd is None:
+            self.cmd = [str(sim_bin), str(self.elf)]
+            self.ext_verif_logic = False
+        else:
+            self.dynamic_args = {
+                'sim_bin': str(sim_bin),
+                'elf': str(self.elf),
+                'run_dir': str(self.run_dir)
+            }
+            self.cmd = [Template(arg).render(**self.dynamic_args) for arg in cmd]
+            self.ext_verif_logic = True
 
 
 class VerilatorSimulation(RTLSimulation):
@@ -140,40 +178,65 @@ class VerilatorSimulation(RTLSimulation):
     The return code of the simulation is returned directly as the
     return code of the command launching the simulation.
     """
-
-    def get_retcode(self):
-        return self.process.returncode
+    pass
 
 
 class QuestaVCSSimulation(RTLSimulation):
     """An RTL simulation running on QuestaSim or VCS.
 
     QuestaSim and VCS print out the simulation return code in the
-    simulation log. This is parsed to extract the return code.
+    simulation log. This must be parsed to extract the return code.
+
+    If the simulation is launched through a custom command which
+    implements external verification logic, the return code of the
+    command is used to determine the exit status of the simulation.
     """
 
     def get_retcode(self):
-        # Extract the application's return code from the simulation log
-        with open(self.log, 'r') as f:
-            for line in f.readlines():
-                regex_success = r'\[SUCCESS\] Program finished successfully'
-                match_success = re.search(regex_success, line)
-                if match_success:
-                    return 0
-                else:
-                    regex_fail = r'\[FAILURE\] Finished with exit code\s+(\d+)'
-                    match = re.search(regex_fail, line)
-                    if match:
-                        return int(match.group(1))
+        if self.ext_verif_logic:
+            return super().get_retcode()
+        elif self.log is not None:
+            # Extract the application's return code from the simulation log
+            with open(self.log, 'r') as f:
+                for line in f.readlines():
+                    regex_success = r'\[SUCCESS\] Program finished successfully'
+                    match_success = re.search(regex_success, line)
+                    if match_success:
+                        return 0
+                    else:
+                        regex_fail = r'\[FAILURE\] Finished with exit code\s+(\d+)'
+                        match = re.search(regex_fail, line)
+                        if match:
+                            return int(match.group(1))
 
     def successful(self):
         # Check that simulation return code matches expected value (in super class)
-        # and that the simulation process terminated correctly
         success = super().successful()
-        if self.process.returncode != 0:
-            return False
-        else:
-            return success
+        # If not launched through a custom command, check that the simulator process also
+        # terminated correctly
+        if not self.ext_verif_logic:
+            if self.process is None or self.process.returncode != 0:
+                return False
+        return success
+
+    def get_simulation_time(self):
+        # Extract the simulation time from the simulation log
+        if self.log is not None:
+            with open(self.log, 'r') as f:
+                for line in f.readlines():
+                    regex = r'Time: (\d+) ([a-z]+)\s+'
+                    match = re.search(regex, line)
+                    if match:
+                        val = int(match.group(1))
+                        unit = match.group(2)
+                        if unit == 'ns':
+                            return val
+                        elif unit == 'us':
+                            return val * 1000
+                        elif unit == 'ps':
+                            return val / 1000
+                        else:
+                            raise ValueError(f'Unsupported time unit {unit}')
 
 
 class QuestaSimulation(QuestaVCSSimulation):
@@ -181,12 +244,34 @@ class QuestaSimulation(QuestaVCSSimulation):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.cmd += ['', '-batch']
+
+    def get_cpu_time(self):
+        # Extract the CPU time from the simulation log
+        if self.log is not None:
+            with open(self.log, 'r') as f:
+                for line in f.readlines():
+                    regex = r'Elapsed time: (\d+):(\d+):(\d+)'
+                    match = re.search(regex, line)
+                    if match:
+                        hours = int(match.group(1))
+                        minutes = int(match.group(2))
+                        seconds = int(match.group(3))
+                        return hours*3600 + minutes*60 + seconds
 
 
 class VCSSimulation(QuestaVCSSimulation):
     """An RTL simulation running on VCS."""
-    pass
+
+    def get_cpu_time(self):
+        # Extract the CPU time from the simulation log
+        if self.log is not None:
+            with open(self.log, 'r') as f:
+                for line in f.readlines():
+                    regex = r'CPU Time: \s*([\d.]+) seconds'
+                    match = re.search(regex, line)
+                    if match:
+                        seconds = float(match.group(1))
+                        return seconds
 
 
 class BansheeSimulation(Simulation):
@@ -206,37 +291,3 @@ class BansheeSimulation(Simulation):
         super().__init__(**kwargs)
         self.cmd = ['banshee', '--no-opt-llvm', '--no-opt-jit', '--configuration',
                     str(banshee_cfg), '--trace', str(self.elf)]
-
-
-class CustomSimulation(Simulation):
-    """A simulation which is run through a custom command.
-
-    The custom command generally invokes an RTL simulator binary behind
-    the scenes and executes some additional verification logic after
-    the end of the simulation.
-
-    Custom simulations are considered unsuccessful if the return code
-    of the custom command is non-null. As a custom command can
-    implement any verification logic, there is no reason to implement
-    any additional logic here.
-    """
-
-    def __init__(self, sim_bin=None, cmd=None, **kwargs):
-        """Constructor for the CustomSimulation class.
-
-        Arguments:
-            sim_bin: The simulation binary.
-            cmd: The custom command used to launch the simulation.
-            kwargs: Arguments passed to the base class constructor.
-        """
-        super().__init__(**kwargs)
-        self.dynamic_args = {
-            'sim_bin': str(sim_bin),
-            'elf': str(self.elf),
-            'run_dir': str(self.run_dir)
-        }
-        self.cmd = cmd
-
-    def launch(self, **kwargs):
-        self.cmd = [Template(arg).render(**self.dynamic_args) for arg in self.cmd]
-        super().launch(**kwargs)

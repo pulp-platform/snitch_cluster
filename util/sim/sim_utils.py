@@ -48,15 +48,18 @@ The simulation backend is implemented by the
 """
 
 import argparse
-from termcolor import colored, cprint
 from pathlib import Path
 import os
 import time
 import yaml
 import signal
 import psutil
+import pandas as pd
+from prettytable import PrettyTable
+
 
 POLL_PERIOD = 0.2
+DEFAULT_REPORT_PATH = 'sim_report.csv'
 
 
 def parser(default_simulator='vsim', simulator_choices=['vsim']):
@@ -181,24 +184,54 @@ def get_simulations(testlist, simulator, run_dir=None):
     return simulations
 
 
-def print_summary(failed_sims, early_exit=False, dry_run=False):
+def print_summary(sims, early_exit=False, dry_run=False):
     """Print a summary of the simulation suite's exit status.
 
     Args:
-        failed_sims: A list of failed simulations from the simulation
-            suite.
-        early_exit: Whether the simulation suite was configured to
-            terminate upon the first failing simulation.
-        dry_run: Whether the simulation suite was launched in dry run
-            mode.
+        sims: A list of simulations from the simulation suite.
     """
-    if not dry_run:
-        header = f'==== Test summary {"(early exit)" if early_exit else ""} ===='
-        cprint(header, attrs=['bold'])
-        if failed_sims:
-            [sim.print_status() for sim in failed_sims]
-        else:
-            print(f'{colored("All tests passed!", "green")}')
+    # Header
+    header = '==== Test summary ===='
+    print(header)
+
+    # Table
+    table = PrettyTable()
+    table.field_names = [
+        'test',
+        'launched',
+        'completed',
+        'passed',
+        'CPU time [s]',
+        'simulation time [ns]'
+    ]
+    table.add_rows([[
+        sim.testname,
+        sim.launched(),
+        sim.completed(),
+        sim.successful(),
+        sim.get_cpu_time(),
+        sim.get_simulation_time()
+    ] for sim in sims])
+    print(table)
+
+
+def dump_report(sims, path=None):
+    """Print a detailed report on the simulation suite's execution.
+
+    Args:
+        sims: A list of simulations from the simulation suite.
+    """
+    data = [{'elf': sim.elf,
+             'launched': sim.launched(),
+             'completed': sim.completed(),
+             'passed': sim.successful(),
+             'CPU time [s]': sim.get_cpu_time(),
+             'simulation time [ns]': sim.get_simulation_time()} for sim in sims]
+    df = pd.DataFrame(data)
+    df = df.set_index('elf')
+    if path is None:
+        path = DEFAULT_REPORT_PATH
+    df.to_csv(path)
 
 
 def terminate_processes():
@@ -235,7 +268,7 @@ def get_unique_run_dir(sim, prefix=None):
 
 
 def run_simulations(simulations, n_procs=1, dry_run=None, early_exit=False,
-                    verbose=False):
+                    verbose=False, report_path=None):
     """Run simulations defined by a list of `Simulation` objects.
 
     Args:
@@ -251,6 +284,7 @@ def run_simulations(simulations, n_procs=1, dry_run=None, early_exit=False,
     # Spawn a process for every test, wait for all running tests to terminate and check results
     running_sims = []
     failed_sims = []
+    successful_sims = []
     early_exit_requested = False
     try:
         while (len(simulations) or len(running_sims)) and not early_exit_requested:
@@ -265,6 +299,7 @@ def run_simulations(simulations, n_procs=1, dry_run=None, early_exit=False,
             # Check completed sims and report status
             for sim in completed_sims:
                 if sim.successful():
+                    successful_sims.append(sim)
                     sim.print_status()
                 else:
                     failed_sims.append(sim)
@@ -283,6 +318,8 @@ def run_simulations(simulations, n_procs=1, dry_run=None, early_exit=False,
     if early_exit_requested:
         terminate_processes()
 
-    # Print summary
-    print_summary(failed_sims, early_exit_requested)
+    # Print summary and dump report
+    print_summary(simulations + running_sims + successful_sims + failed_sims)
+    dump_report(simulations + running_sims + successful_sims + failed_sims, report_path)
+
     return len(failed_sims)
