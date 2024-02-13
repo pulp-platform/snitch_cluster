@@ -152,7 +152,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic [31:0] alu_result;
 
   logic [RegWidth-1:0] rd, rs1, rs2;
-  logic stall, lsu_stall;
+  logic stall, lsu_stall, nonacc_stall;
   // Register connections
   logic [1:0][RegWidth-1:0] gpr_raddr;
   logic [1:0][31:0]         gpr_rdata;
@@ -457,16 +457,17 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign acc_stall = acc_qvalid_o & ~acc_qready_i | (caq_ena & ~caq_qready);
   // the LSU Interface didn't accept our request yet
   assign lsu_stall = lsu_tlb_qvalid & ~lsu_tlb_qready;
-  // Stall the stage if we either didn't get a valid instruction or the LSU/Accelerator is not ready
-  assign stall = ~valid_instr
+  // Stall the stage if we either didn't get a valid instruction or the LSU is not ready.
+  // We do not include accelerator stalls in this signal for loop-free CAQ enable control.
+  assign nonacc_stall = ~valid_instr
                 // The LSU is stalling.
                 | lsu_stall
-                // The accelerator port is stalling.
-                | acc_stall
                 // We are waiting on the `fence.i` flush.
                 | (flush_i_valid_o & ~flush_i_ready_i)
                 // We are waiting on the `fence` flush.
                 | (valid_instr & (inst_data_i ==? FENCE) & ~lsu_empty);
+  // To get the signal for all stall conditions, add the accelerator stalls.
+  assign stall = nonacc_stall | acc_stall;
 
   // --------------------
   // Instruction Frontend
@@ -2815,7 +2816,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // Consider CAQ in accelerator handshake when offloading an FPU load or store.
   assign caq_ena = is_fp_load | is_fp_store;
   // Make request to CAQ when offloading access and accelerator interface ready.
-  assign caq_qvalid = caq_ena & acc_qready_i;
+  // Do *not* issue request when a non-accelerator (CAQ-unrelated) stall is blocking progress.
+  assign caq_qvalid = caq_ena & acc_qready_i & ~nonacc_stall;
 
   snitch_lsu #(
     .AddrWidth (AddrWidth),
