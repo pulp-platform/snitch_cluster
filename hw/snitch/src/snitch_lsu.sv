@@ -30,6 +30,11 @@ module snitch_lsu #(
   parameter int unsigned CaqDepth            = 0,
   /// Size of CAQ address LSB tags; provides a pessimism-complexity tradeoff.
   parameter int unsigned CaqTagWidth         = 0,
+  /// Whether this LSU is a source of CAQ responses (e.g. FPSS).
+  parameter bit          CaqRespSrc          = 0,
+  /// Whether the LSU should track repeated instructions issued by a sequencer
+  /// and accordingly filter them from its CAQ responses as is necessary.
+  parameter bit          CaqRespTrackSeq     = 0,
   parameter type         dreq_t              = logic,
   parameter type         drsp_t              = logic,
   /// Derived parameter *Do not override*
@@ -46,6 +51,7 @@ module snitch_lsu #(
   input  data_t                lsu_qdata_i,
   input  logic [1:0]           lsu_qsize_i,
   input  reqrsp_pkg::amo_op_e  lsu_qamo_i,
+  input  logic                 lsu_qrepd_i,  // Whether this is a sequencer repetition
   input  logic                 lsu_qvalid_i,
   output logic                 lsu_qready_o,
   // response channel
@@ -60,9 +66,12 @@ module snitch_lsu #(
   input  logic                 caq_qwrite_i,
   input  logic                 caq_qvalid_i,
   output logic                 caq_qready_o,
-  /// CAQ response snoop channel.
+  /// Incoming CAQ response snoop channel.
   /// Fork responses to offloaded loads/stores to here iff `Caq` is 1.
   input  logic                 caq_pvalid_i,
+  /// Outgoing CAQ response snoop channel.
+  /// Signals whether access response was handshaked iff `CaqResp` is 1.
+  output logic                 caq_pvalid_o,
   /// High if there is currently no transaction pending.
   output logic                 lsu_empty_o,
   // Memory Interface Channel
@@ -193,10 +202,27 @@ module snitch_lsu #(
 
   // For each memory transaction save whether this was a load or a store. We
   // need this information to suppress stores.
+  logic [CaqRespTrackSeq:0] req_queue_in, req_queue_out;
+
+  assign req_queue_in[0] = lsu_qwrite_i;
+  assign mem_out = req_queue_out[0];
+
+  if (CaqRespTrackSeq) begin : gen_caq_resp_track_seq
+    assign req_queue_in[1] = lsu_qrepd_i;
+    // When tracking a sequencer, repeated accesses are masked as the core issues them only once.
+    // Thus, for sequenced loads or stores, only the *first issue* is popped in the CAQ.
+    // This means that the first issue will block on collisions and subsequent repeats will not.
+    // Like SSRs, loads or stores in sequencer loops (i.e. FREP) do *not* guarantee consistency.
+    assign caq_pvalid_o = data_rsp_i.p_valid & data_req_o.p_ready & ~req_queue_out[1];
+  end else begin : gen_no_caq_resp_track_seq
+    // When not tracking a sequencer, simply signal the response handshake.
+    assign caq_pvalid_o = data_rsp_i.p_valid & data_req_o.p_ready;
+  end
+
   fifo_v3 #(
     .FALL_THROUGH (1'b0),
     .DEPTH (NumOutstandingMem),
-    .DATA_WIDTH (1)
+    .DATA_WIDTH (1 + CaqRespTrackSeq)
   ) i_fifo_mem (
     .clk_i,
     .rst_ni (~rst_i),
@@ -205,9 +231,9 @@ module snitch_lsu #(
     .full_o (mem_full),
     .empty_o (lsu_empty_o),
     .usage_o ( /* open */ ),
-    .data_i (lsu_qwrite_i),
+    .data_i (req_queue_in),
     .push_i (data_req_o.q_valid & data_rsp_i.q_ready),
-    .data_o (mem_out),
+    .data_o (req_queue_out),
     .pop_i (data_rsp_i.p_valid & data_req_o.p_ready)
   );
 

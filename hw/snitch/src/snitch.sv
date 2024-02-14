@@ -2829,7 +2829,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     .NumOutstandingLoads (NumIntOutstandingLoads),
     .Caq (FP_EN),
     .CaqDepth (CaqDepth),
-    .CaqTagWidth (CaqTagWidth)
+    .CaqTagWidth (CaqTagWidth),
+    .CaqRespSrc (1'b0),
+    .CaqRespTrackSeq (1'b0)
   ) i_snitch_lsu (
     .clk_i (clk_i),
     .rst_i (rst_i),
@@ -2840,6 +2842,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     .lsu_qdata_i (lsu_qdata),
     .lsu_qsize_i (ls_size),
     .lsu_qamo_i (ls_amo),
+    .lsu_qrepd_i (1'b0),
     .lsu_qvalid_i (lsu_qvalid),
     .lsu_qready_o (lsu_qready),
     .lsu_pdata_o (ld_result),
@@ -2853,6 +2856,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     .caq_qvalid_i (caq_qvalid),
     .caq_qready_o (caq_qready),
     .caq_pvalid_i,
+    .caq_pvalid_o ( ),
     .data_req_o,
     .data_rsp_i
   );
