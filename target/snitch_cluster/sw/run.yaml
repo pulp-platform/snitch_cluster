@@ -61,6 +61,9 @@ runs:
     simulators: [vsim, vcs, verilator] # GVSOC does not model caq
   - elf: tests/build/caq_frep.elf
     simulators: [vsim, vcs, verilator]
+  - elf: tests/build/flt_d_ssr.elf
+  - elf: tests/build/fcvt_d_wu_ssr.elf
+  - elf: tests/build/fcvt_d_w_ssr.elf
   - elf: apps/blas/axpy/build/axpy.elf
     cmd: [../../../sw/blas/axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/blas/gemm/build/gemm.elf
