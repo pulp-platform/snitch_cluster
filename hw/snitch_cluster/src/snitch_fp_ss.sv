@@ -1764,6 +1764,15 @@ module snitch_fp_ss import snitch_pkg::*; #(
         fpu_tag_in.acc = 1'b1;
         rd_is_fp       = 1'b0;
       end
+      // Double Precision Floating-Point, MC extension
+      riscv_instr:: FLT_D_SSR: begin
+        fpu_op = fpnew_pkg::CMP;
+        op_select[0]   = RegA;
+        op_select[1]   = RegB;
+        // op_select[2]   = RegC;
+        src_fmt        = fpnew_pkg::FP64;
+        dst_fmt        = fpnew_pkg::FP64;
+      end
       riscv_instr::FCLASS_D: begin
         fpu_op = fpnew_pkg::CLASSIFY;
         op_select[0]   = RegA;
@@ -2233,6 +2242,16 @@ module snitch_fp_ss import snitch_pkg::*; #(
         src_fmt      = fpnew_pkg::FP64;
         dst_fmt      = fpnew_pkg::FP64;
         if (acc_req_q.data_op inside {riscv_instr::FCVT_D_WU}) op_mode = 1'b1; // unsigned
+      end
+      // Double Precision Floating-Point
+      riscv_instr:: FCVT_D_W_SSR,
+      riscv_instr:: FCVT_D_WU_SSR: begin
+        fpu_op = fpnew_pkg:: I2F;
+        op_select[0] = RegA; // The operand comes from SSR which diverts out of FPR
+        // op_select[1] = RegB;
+        src_fmt      = fpnew_pkg::FP64;
+        dst_fmt      = fpnew_pkg::FP64;
+        if (acc_req_q.data_op inside {riscv_instr::FCVT_D_WU_SSR}) op_mode = 1'b1; // unsigned
       end
       // [Alternate] Half Precision Floating-Point
       riscv_instr::FMV_H_X: begin
