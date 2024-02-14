@@ -1722,6 +1722,15 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           illegal_inst = 1'b1;
         end
       end
+      FLT_D_SSR: begin
+        if(FP_EN && RVD) begin
+          write_rd = 1'b0;
+          //uses_rd? and write_rd?
+          acc_qvalid_o = valid_instr;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
       // Single Precision Floating-Point
       FLE_S,
       FLT_S,
@@ -1910,6 +1919,16 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       FCVT_D_WU: begin
         if (FP_EN && RVD) begin
           opa_select = Reg;
+          write_rd = 1'b0;
+          acc_qvalid_o = valid_instr;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      // Double Precision Floating Point operate on SSRs
+      FCVT_D_W_SSR,
+      FCVT_D_WU_SSR: begin
+        if(FP_EN && RVD) begin
           write_rd = 1'b0;
           acc_qvalid_o = valid_instr;
         end else begin
