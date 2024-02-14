@@ -142,3 +142,11 @@ snitch-cluster-fdiv-vsim:
     - make CFG_OVERRIDE=cfg/fdiv.hjson sw
     - make bin/snitch_cluster.vsim
     - ./run.py sw/fdiv.yaml --simulator vsim -j --run-dir runs/vsim
+
+# Test OmegaNet TCDM interconnect
+snitch-cluster-omega-vsim:
+  script:
+    - cd target/snitch_cluster
+    - make CFG_OVERRIDE=cfg/omega.hjson sw
+    - make bin/snitch_cluster.vsim
+    - ./run.py sw/run.yaml --simulator vsim -j --run-dir runs/vsim
