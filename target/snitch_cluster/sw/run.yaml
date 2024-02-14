@@ -74,6 +74,12 @@ runs:
   - elf: tests/build/caq.elf
   - elf: tests/build/caq_frep.elf
     simulators: [vsim, vcs, verilator] # banshee does not model FREP timing
+  - elf: tests/build/flt_d_ssr.elf
+    simulators: [vsim, vcs, verilator] # banshee does not model COPIFT extensions
+  - elf: tests/build/fcvt_d_wu_ssr.elf
+    simulators: [vsim, vcs, verilator] # banshee does not model COPIFT extensions
+  - elf: tests/build/fcvt_d_w_ssr.elf
+    simulators: [vsim, vcs, verilator] # banshee does not model COPIFT extensions
   - elf: apps/blas/axpy/build/axpy.elf
     cmd: [../../../sw/blas/axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/blas/gemm/build/gemm.elf

@@ -6,6 +6,12 @@
 
 #include <stdint.h>
 
+#define R_TYPE_ENCODE(funct7, rs2, rs1, funct3, rd, opcode)                    \
+    ((funct7 << 25) | (rs2 << 20) | (rs1 << 15) | (funct3 << 12) | (rd << 7) | \
+     (opcode))
+
+#define OP_CUSTOM1 0b0101011
+
 static inline void snrt_wfi();
 
 static inline uint32_t snrt_mcycle();
