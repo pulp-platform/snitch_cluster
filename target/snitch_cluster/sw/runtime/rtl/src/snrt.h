@@ -24,6 +24,7 @@
 #include "alloc_v2.h"
 #include "cls.h"
 #include "cluster_interrupts.h"
+#include "copift.h"
 #include "dm.h"
 #include "dma.h"
 #include "dump.h"
