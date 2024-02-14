@@ -4,6 +4,7 @@
 
 runs:
   - elf: tests/build/alias.elf
+    simulators: [vsim, vcs, verilator] # banshee does not model alias regions
   - elf: tests/build/atomics.elf
     simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x4
   - elf: tests/build/barrier.elf
