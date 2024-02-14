@@ -58,7 +58,7 @@
                     "type": "number",
                     "description": "Radix of switches in switch-based TCDM interconnect topologies (ignored for logarithmic interconnect).",
                     "enum": [2, 4],
-                    "default": 4
+                    "default": 2
                 },
                 "num_switch_nets": {
                     "type": "number",

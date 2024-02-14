@@ -185,8 +185,8 @@ module snitch_tcdm_interconnect #(
     assign rsp_q_ready_flat = in_ready;
 
     // Generate Omega networks (first stage)
-    // TODO: Properly balance tying of unused ports throughout parallel networks;
-    // This should minimize imbalalance and maximize performance.
+    // TODO: Ideally, we should balance the tie-off of unused ports across networks,
+    // minimizing request imbalalance and maximizing performance.
     for (genvar i = 0; i < NumSwitchNets; ++i) begin : gen_omega_nets
       data_t [NumOut-1:0] data_out;
       assign oout_data[i] = data_out;
@@ -203,8 +203,7 @@ module snitch_tcdm_interconnect #(
         .clk_i,
         .rst_ni,
         .flush_i ( 1'b0 ),
-        // TODO: external arbitration is currently *broken* in `stream_omega_net`;
-        // fix this in `common_cells`!
+        // TODO: switch-level arbitration currently unconnected inside `stream_omega_net`
         .rr_i    ( /*rr1*/ '0 ),
         .sel_i   ( in_sel[i] ),
         .data_i  ( data_in[i]  ),
