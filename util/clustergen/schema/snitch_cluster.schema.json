@@ -437,6 +437,12 @@
                                             "description": "Direct memory access (Xdma) custom extension.",
                                             "default": false
                                         },
+                                        "xcopift": {
+                                            "type": "boolean",
+                                            "title": "Enable Xcopift Extension",
+                                            "description": "Co-Operative Parallel Integer and Floating-point Threads (Xcopift) custom extension.",
+                                            "default": false
+                                        },
                                         "xf8": {
                                             "type": "boolean",
                                             "title": "Xf8 8-bit Float Extension",

@@ -66,6 +66,8 @@ module snitch_cc #(
   parameter bit          Xfrep              = 1,
   /// Has `SSR` support.
   parameter bit          Xssr               = 1,
+  /// Has `COPIFT` support.
+  parameter bit          Xcopift            = 1,
   /// Has `IPU` support.
   parameter bit          Xipu               = 1,
   /// Has virtual memory support.
@@ -230,6 +232,7 @@ module snitch_cc #(
     .FP_EN (FPEn),
     .Xdma (Xdma),
     .Xssr (Xssr),
+    .Xcopift (Xcopift),
     .RVF (RVF),
     .RVD (RVD),
     .XDivSqrt (XDivSqrt),
@@ -502,6 +505,7 @@ module snitch_cc #(
       .RegisterFPUOut (RegisterFPUOut),
       .Xfrep (Xfrep),
       .Xssr (Xssr),
+      .Xcopift (Xcopift),
       .RVF (RVF),
       .RVD (RVD),
       .XF16 (XF16),
