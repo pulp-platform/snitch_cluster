@@ -2580,7 +2580,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // ----------------------
   // Load/Store Unit
   // ----------------------
-  assign lsu_qvalid = acc_req_valid_q & (&op_ready) & (is_load | is_store);
+  assign lsu_qvalid = acc_req_valid_q & (&op_ready) & (is_load | is_store) & dst_ready;
 
   snitch_lsu #(
     .AddrWidth (AddrWidth),
