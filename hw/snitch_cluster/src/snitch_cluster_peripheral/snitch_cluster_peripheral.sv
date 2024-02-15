@@ -27,8 +27,6 @@ module snitch_cluster_peripheral
   input  reg_req_t                   reg_req_i,
   output reg_rsp_t                   reg_rsp_o,
 
-  input  addr_t                      tcdm_start_address_i,
-  input  addr_t                      tcdm_end_address_i,
   output logic                       icache_prefetch_enable_o,
   output logic [NrCores-1:0]         cl_clint_o,
   input  logic [9:0]                 cluster_hart_base_id_i,
