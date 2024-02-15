@@ -18,8 +18,6 @@ from data_utils import from_buffer, ctype_from_precision_t  # noqa: E402
 
 ERR_THRESHOLD = {8: 1e-6, 4: 1e-6, 2: 1e-2, 1: 1e-1}
 
-NP_DTYPE = {8: np.float64, 4: np.float32, 2: np.float16, 1: np.uint8}
-
 
 def main():
     # Run simulation and get outputs
