@@ -59,7 +59,7 @@ def main():
     c_golden = golden_model(1, a, b, beta, c).flatten()
 
     absolute_err = np.absolute(c_golden - c_actual)
-    fail = np.any(absolute_err > ERR_THRESHOLD)
+    fail = np.any(absolute_err > ERR_THRESHOLD[prec])
     if (fail):
         print('Simulation results are incorrect.')
         verification.dump_results_to_csv([c_golden, c_actual, absolute_err],
