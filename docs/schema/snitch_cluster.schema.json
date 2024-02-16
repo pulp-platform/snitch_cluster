@@ -47,6 +47,29 @@
                         16,
                         32
                     ]
+                },
+                "topology": {
+                    "type": "string",
+                    "description": "Network topology used for TCDM interconnect.",
+                    "enum": ["LogarithmicInterconnect", "OmegaNet"],
+                    "default": "LogarithmicInterconnect"
+                },
+                "radix": {
+                    "type": "number",
+                    "description": "Radix of switches in switch-based TCDM interconnect topologies (ignored for logarithmic interconnect).",
+                    "enum": [2, 4],
+                    "default": 2
+                },
+                "num_switch_nets": {
+                    "type": "number",
+                    "description": "Number of parallel networks in switch-based TCDM interconnect topologies (ignored for logarithmic interconnect).",
+                    "minimum": 1,
+                    "default": 4
+                },
+                "switch_lfsr_arbiter": {
+                    "type": "boolean",
+                    "description": "Whether to use pseudorandom (LFSR-generated) arbitration in switch-based TCDM interconect topologies instead of pseudo-round-robin (ignored for logarithmic interconnect).",
+                    "default": false
                 }
             }
         },

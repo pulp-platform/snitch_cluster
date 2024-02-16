@@ -17,6 +17,10 @@ module snitch_tcdm_interconnect #(
   /// Radix of the individual switch points of the network.
   /// Currently supported are `32'd2` and `32'd4`.
   parameter int unsigned Radix                 = 32'd2,
+  /// Number of parallel networks for switch-based interconnects.
+  parameter int unsigned NumSwitchNets          = 32'd2,
+  /// Whether to use an LFSR to arbitrate switch-based networks.
+  parameter bit          SwitchLfsrArbiter      = 1'b0,
   /// Payload type of the data request ports.
   parameter type         tcdm_req_t            = logic,
   /// Payload type of the data response ports.
@@ -133,29 +137,117 @@ module snitch_tcdm_interconnect #(
       .ready_i ( mem_q_ready_flat )
     );
   end else if (Topology == snitch_pkg::OmegaNet) begin : gen_omega_net
-    stream_omega_net #(
-      .NumInp      ( NumInp        ),
-      .NumOut      ( NumOut        ),
-      .payload_t   ( mem_req_chan_t ),
-      .SpillReg    ( 1'b0          ),
-      .ExtPrio     ( 1'b0          ),
-      .AxiVldRdy   ( 1'b1          ),
-      .LockIn      ( 1'b1          ),
-      .Radix       ( Radix         )
-    ) i_stream_omega_net (
-      .clk_i,
-      .rst_ni,
-      .flush_i ( 1'b0 ),
-      .rr_i    ( '0 ),
-      .data_i  ( in_req ),
-      .sel_i   ( bank_select ),
-      .valid_i ( req_q_valid_flat ),
-      .ready_o ( rsp_q_ready_flat ),
-      .data_o  ( out_req ),
-      .idx_o   ( ),
-      .valid_o ( mem_q_valid_flat ),
-      .ready_i ( mem_q_ready_flat )
-    );
+    localparam int unsigned NumInpPerNet = cf_math_pkg::ceil_div(NumInp, NumSwitchNets);
+
+    // Intermediate request signals for Omega-to-Xbar interface
+    mem_req_chan_t  [NumSwitchNets-1:0][NumOut-1:0] oout_data;
+    logic           [NumSwitchNets-1:0][NumOut-1:0] oout_valid, oout_ready;
+
+    // Arbitration for Omega and Xbar stages, respectively
+    logic [cf_math_pkg::idx_width(NumOut)-1:0]        rr1;
+    logic [cf_math_pkg::idx_width(NumSwitchNets)-1:0]  rr2;
+
+    // Use pseudorandom arbitration if desired. For reference, see:
+    // https://github.com/pulp-platform/cluster_interconnect/blob/master/rtl/tcdm_interconnect/tcdm_interconnect.sv
+    if (SwitchLfsrArbiter) begin : gen_omega_lsfr
+      logic [cf_math_pkg::idx_width(NumInp)-1:0] rr;
+      lfsr #(
+        .LfsrWidth    ( 64 ),
+        .OutWidth     ( $clog2(NumInp) ),
+        .CipherLayers ( 3 ),
+        .CipherReg    ( 1'b1 )
+      ) i_lfsr (
+        .clk_i,
+        .rst_ni,
+        .en_i     ( |(req_q_valid_flat & rsp_q_ready_flat) ),
+        .out_o    ( rr )
+      );
+      // The upper bits of `rr1` are truncated iff not needed in Butterfly networks.
+      assign rr1 = rr[$high(rr):$clog2(NumSwitchNets)];
+      assign rr2 = rr[$clog2(NumSwitchNets)-1:0];
+    end else begin : gen_no_omega_lsfr
+      assign rr1 = '0;
+      assign rr2 = '0;
+    end
+
+    // Work around enum incompatibility and expand signals for part selects
+    typedef logic  [$bits(mem_req_chan_t)-1:0]          data_t;
+    typedef data_t [NumSwitchNets-1:0][NumInpPerNet-1:0] flat_data_t;
+    typedef logic  [NumSwitchNets-1:0][NumInpPerNet-1:0] flat_hs_t;
+
+    flat_data_t data_in;
+    select_t    [NumSwitchNets-1:0][NumInpPerNet-1:0] in_sel;
+    flat_hs_t   in_valid, in_ready;
+
+    assign data_in  = in_req;
+    assign in_sel   = bank_select;
+    assign in_valid = req_q_valid_flat;
+    assign rsp_q_ready_flat = in_ready;
+
+    // Generate Omega networks (first stage)
+    // TODO: Ideally, we should balance the tie-off of unused ports across networks,
+    // minimizing request imbalalance and maximizing performance.
+    for (genvar i = 0; i < NumSwitchNets; ++i) begin : gen_omega_nets
+      data_t [NumOut-1:0] data_out;
+      assign oout_data[i] = data_out;
+      stream_omega_net #(
+        .NumInp      ( NumInpPerNet ),
+        .NumOut      ( NumOut ),
+        .payload_t   ( data_t ),
+        .ExtPrio     ( SwitchLfsrArbiter ),
+        .SpillReg    ( 1'b0 ),
+        .AxiVldRdy   ( 1'b1 ),
+        .LockIn      ( 1'b1 ),
+        .Radix       ( Radix )
+      ) i_stream_omega_net (
+        .clk_i,
+        .rst_ni,
+        .flush_i ( 1'b0 ),
+        // TODO: switch-level arbitration currently unconnected inside `stream_omega_net`
+        .rr_i    ( /*rr1*/ '0 ),
+        .sel_i   ( in_sel[i] ),
+        .data_i  ( data_in[i]  ),
+        .valid_i ( in_valid[i] ),
+        .ready_o ( in_ready[i] ),
+        .data_o  ( data_out ),
+        .valid_o ( oout_valid[i] ),
+        .ready_i ( oout_ready[i] ),
+        .idx_o   ( )
+      );
+    end
+
+    // Generate per-output multiplexers (second stage)
+    for (genvar i = 0; i < NumOut; ++i) begin : gen_out_arbs
+      mem_req_chan_t  [NumSwitchNets-1:0] rrin_data;
+      logic           [NumSwitchNets-1:0] rrin_valid, rrin_ready;
+
+      // Bundle Omega net request channels for this bank
+      for (genvar k = 0; k < NumSwitchNets; ++k) begin : gen_rrin_in
+        assign rrin_data[k]     = oout_data[k][i];
+        assign rrin_valid[k]    = oout_valid[k][i];
+        assign oout_ready[k][i] = rrin_ready[k];
+      end
+
+      rr_arb_tree #(
+        .NumIn     ( NumSwitchNets ),
+        .DataType  ( mem_req_chan_t ),
+        .ExtPrio   ( SwitchLfsrArbiter ),
+        .AxiVldRdy ( 1'b1 ),
+        .LockIn    ( 1'b1 )
+      ) i_rr_arb_tree (
+        .clk_i,
+        .rst_ni,
+        .flush_i ( 1'b0 ),
+        .rr_i    ( rr2 ),
+        .data_i  ( rrin_data ),
+        .req_i   ( rrin_valid ),
+        .gnt_o   ( rrin_ready ),
+        .data_o  ( out_req[i] ),
+        .req_o   ( mem_q_valid_flat[i] ),
+        .gnt_i   ( mem_q_ready_flat[i] ),
+        .idx_o   (  )
+      );
+    end
   end
 
   // -------------
