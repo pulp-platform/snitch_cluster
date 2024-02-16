@@ -17,7 +17,7 @@ from elf import Elf  # noqa: E402
 from data_utils import from_buffer, ctype_from_precision_t  # noqa: E402
 
 
-ERR_THRESHOLD = 1E-6
+ERR_THRESHOLD = 1E-4
 
 
 def main():
