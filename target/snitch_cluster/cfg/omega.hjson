@@ -23,6 +23,7 @@
         },
         cluster_periph_size: 64, // kB
         zero_mem_size: 64, // kB
+        alias_region_enable: true,
         dma_data_width: 512,
         dma_axi_req_fifo_depth: 3,
         dma_req_fifo_depth: 3,
@@ -37,7 +38,7 @@
             lat_noncomp: 1,
             lat_conv: 2,
             lat_sdotp: 3,
-            fpu_pipe_config: "BEFORE"
+            fpu_pipe_config: "BEFORE",
             narrow_xbar_latency: "CUT_ALL_PORTS",
             wide_xbar_latency: "CUT_ALL_PORTS",
             // Isolate the core.
@@ -107,10 +108,10 @@
     dma_core_template: {
         isa: "rv32imafd",
         // Xdiv_sqrt: true,
-        # isa: "rv32ema",
-        xdma: true
-        xssr: false
-        xfrep: false
+        // isa: "rv32ema",
+        xdma: true,
+        xssr: false,
+        xfrep: false,
         xf16: false,
         xf16alt: false,
         xf8: false,
