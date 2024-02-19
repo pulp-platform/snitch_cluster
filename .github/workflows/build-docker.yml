@@ -21,6 +21,9 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GH_TOKEN }}
+      - name: Install mkdocs modules
+        run: |
+          pip3 install -r docs/requirements.txt
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
