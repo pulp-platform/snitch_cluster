@@ -341,7 +341,7 @@ void bn_relu(const float *pBuffer, const uint16_t dim_x, const uint16_t dim_y,
             volatile register v2s current_kappa = ((v2s *)kappa)[co];
             volatile register v2s zero = (v2s)0.0;
 
-            volatile register v2s tmp[n_unroll];
+            volatile v2s tmp[n_unroll];
 
             snrt_ssr_enable();
 
@@ -422,7 +422,7 @@ void bn_relu(const float *pBuffer, const uint16_t dim_x, const uint16_t dim_y,
             volatile register v2s current_kappa = ((v2s *)kappa)[co];
             volatile register v2s zero = (v2s)0.0;
 
-            volatile register v2s tmp[n_unroll];
+            volatile v2s tmp[n_unroll];
 
             snrt_ssr_enable();
 
@@ -653,7 +653,7 @@ static inline void conv2d_fp64(kernel_fp64 *k) {
             // Output width dimension `k->dim_out_x`
             for (uint32_t w = 0; w < k->dim_out_x; w++) {
                 // TODO: check if initialization needs to be unrolled by hand
-                volatile register double sum[max_unroll];
+                volatile double sum[max_unroll];
                 if (k->flag_y_accumulate_start) {
                     for (uint32_t i = 0; i < max_unroll; i++) {
                         sum[i] = 0.0;
@@ -718,7 +718,7 @@ static inline void conv2d_fp64(kernel_fp64 *k) {
 
             // Output width dimension `k->dim_out_x`
             for (uint32_t w = 0; w < k->dim_out_x; w++) {
-                volatile register double sum[max_unroll];
+                volatile double sum[max_unroll];
                 if (k->flag_y_accumulate_start) {
                     for (uint32_t i = 0; i < cleanup_unroll; i++) {
                         sum[i] = 0.0;
@@ -1009,8 +1009,8 @@ static inline void conv2d_fp32(kernel_fp32 *k) {
         for (h0 = 0; h0 < k->dim_out_y / max_unroll; h0++) {
             // Output width dimension `k->dim_out_x`
             for (uint32_t w = 0; w < k->dim_out_x; w++) {
-                volatile register v2s sum[max_unroll];
-                volatile register float reduce_reg[max_unroll];
+                volatile v2s sum[max_unroll];
+                volatile float reduce_reg[max_unroll];
                 // pointer to output buffer location where intermediate values
                 // are read from and stored
                 float *_pOutBuffer =
@@ -1100,8 +1100,8 @@ static inline void conv2d_fp32(kernel_fp32 *k) {
 
             // Output width dimension `k->dim_out_x`
             for (uint32_t w = 0; w < k->dim_out_x; w++) {
-                volatile register v2s sum[max_unroll];
-                volatile register float reduce_reg[max_unroll];
+                volatile v2s sum[max_unroll];
+                volatile float reduce_reg[max_unroll];
 
                 // pointer to output buffer location where intermediate values
                 // are read from and stored
@@ -1442,7 +1442,7 @@ static inline void conv2d_dw_fp32(kernel_fp32 *k) {
 
             // Output width dimension `k->dim_out_x`
             for (uint32_t w = 0; w < k->dim_out_x; w++) {
-                volatile register v2s sum[max_unroll];
+                volatile v2s sum[max_unroll];
                 // pointer to output buffer location where intermediate values
                 // are read from and stored
                 v2s *_pOutBuffer =
@@ -1511,7 +1511,7 @@ static inline void conv2d_dw_fp32(kernel_fp32 *k) {
 
             // Output width dimension `k->dim_out_x`
             for (uint32_t w = 0; w < k->dim_out_x; w++) {
-                volatile register v2s sum[max_unroll];
+                volatile v2s sum[max_unroll];
 
                 // pointer to output buffer location where intermediate values
                 // are read from and stored
@@ -1788,8 +1788,8 @@ static inline void conv2d_chw_fp32(kernel_fp32 *k) {
 
                 // Output width dimension `k->dim_out_x`
                 for (uint32_t w = 0; w < k->dim_out_x; w++) {
-                    volatile register v2s sum[max_unroll];
-                    volatile register float reduce_reg[max_unroll];
+                    volatile v2s sum[max_unroll];
+                    volatile float reduce_reg[max_unroll];
                     // pointer to output buffer location where intermediate
                     // values are read from and stored
                     float *_pOutBuffer = &k->pOutBuffer[h * output_h_stride +
@@ -1884,8 +1884,8 @@ static inline void conv2d_chw_fp32(kernel_fp32 *k) {
 
                 // Output width dimension `k->dim_out_x`
                 for (uint32_t w = 0; w < k->dim_out_x; w++) {
-                    volatile register v2s sum[max_unroll];
-                    volatile register float reduce_reg[max_unroll];
+                    volatile v2s sum[max_unroll];
+                    volatile float reduce_reg[max_unroll];
 
                     // pointer to output buffer location where intermediate
                     // values are read from and stored
