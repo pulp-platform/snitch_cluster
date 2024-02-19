@@ -23,7 +23,9 @@ jobs:
         with:
           version: 0.27.1
       - name: Install Python requirements
-        run: pip install -r python-requirements.txt
+        run: |
+          pip install -r python-requirements.txt
+          pip install -r docs/requirements.txt
       - name: Generate runtime documentation
         # yamllint disable rule:line-length
         run: |
