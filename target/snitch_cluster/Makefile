@@ -224,9 +224,17 @@ $(VLT_BUILDDIR)/generated/%.o: $(GENERATED_DIR)/%.cc ${VLT_BUILDDIR}/lib/libfesv
 
 # Build compilation script and compile all sources for Verilator simulation
 # Link verilated archive with $(VLT_COBJ)
-bin/snitch_cluster.vlt: $(VLT_AR) $(VLT_COBJ) ${VLT_BUILDDIR}/lib/libfesvr.a
+bin/.snitch_cluster.vlt.elf: $(VLT_AR) $(VLT_COBJ) ${VLT_BUILDDIR}/lib/libfesvr.a
 	mkdir -p $(dir $@)
 	$(CXX) $(LDFLAGS) -std=c++14 -L ${VLT_BUILDDIR}/lib -o $@ $(VLT_COBJ) $(VLT_AR) -lfesvr -lpthread
+
+# Build wrapper around Verilator binary, needed to create .rtlbinary 
+bin/snitch_cluster.vlt: bin/.snitch_cluster.vlt.elf
+	@echo "#!/bin/bash" > $@
+	@echo 'binary=$$(realpath $$1)' >> $@
+	@echo 'echo $$binary > .rtlbinary' >> $@
+	@echo '$(abspath $<) $$binary $$2' >> $@
+	@chmod +x $@
 
 ############
 # Modelsim #
