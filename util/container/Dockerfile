@@ -9,6 +9,7 @@ FROM ubuntu:18.04 AS builder
 ARG CMAKE_VERSION=3.19.4
 ARG PYTHON_VERSION=3.9.12
 ARG BENDER_VERSION=0.27.1
+ARG SPIKE_DASM_VERSION=0.1.0
 # Run dpkg without interactive dialogue
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -76,6 +77,9 @@ RUN cargo install --path /tmp/banshee
 RUN wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz
 RUN tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz
 
+# Install spike-dasm
+RUN wget https://github.com/pulp-platform/riscv-isa-sim/releases/download/snitch-v${SPIKE_DASM_VERSION}/snitch-spike-dasm-${SPIKE_DASM_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz
+RUN tar xzf snitch-spike-dasm-${SPIKE_DASM_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz
 
 # 2. Stage
 FROM ubuntu:18.04 AS snitch_cluster
@@ -141,6 +145,7 @@ RUN apt-get update && apt-get install software-properties-common -y && \
 
 # Copy artifacts from stage 1.
 COPY --from=builder /tools/bender bin/
+COPY --from=builder /tools/spike-dasm bin/
 COPY --from=builder /root/.cargo/bin/banshee bin/
 COPY --from=builder /opt/python /opt/python
 

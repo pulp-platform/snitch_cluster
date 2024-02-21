@@ -45,6 +45,10 @@ jobs:
         working-directory: target/snitch_cluster
         run: |
           ./run.py sw/run.yaml --simulator verilator -j
+      - name: Annotate traces
+        working-directory: target/snitch_cluster
+        run: |
+          make SIM_DIR=./runs/simple annotate -j
 
   # Tests requiring hardware FDIV unit
   sw-snitch-cluster-fdiv-vlt:

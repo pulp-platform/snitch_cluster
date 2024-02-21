@@ -92,7 +92,7 @@ class Simulation(object):
         if self.dry_run:
             return 0
         else:
-            if self.process:
+            if self.completed():
                 return int(self.process.returncode)
 
     def successful(self):

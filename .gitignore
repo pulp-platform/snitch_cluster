@@ -3,7 +3,7 @@ Bender.lock
 .vscode/
 __pycache__
 
-// Modelsim Fiels
+# Modelsim Files
 *.wlf
 modelsim.ini
 *stacktrace*
@@ -11,6 +11,10 @@ transcript
 
 gmon.out
 
-// Docs
+# Docs
 /site/
 /docs/generated/
+
+# Installation directories
+/.venv/
+/tools/

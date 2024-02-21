@@ -11,7 +11,7 @@ git clone https://github.com/pulp-platform/{{ repo  }}.git --recurse-submodules
 
 If you had already cloned the repository without the `--recurse-submodules` flag, clone its submodules:
 ```shell
-git submodule init --recursive
+git submodule update --init --recursive
 ```
 
 ## Tools and environment
@@ -46,38 +46,12 @@ The following instructions are extracted from the Docker container [README.md](h
 
 ## IIS environment setup
 
-To make sure the right versions of each tool are picked up, set the following environment variables, e.g. in a bash shell:
+To make sure the right versions of each tool are picked up on your IIS machine and install additional tools, run:
 
 ```bash
-export PYTHON="/usr/local/anaconda3-2022.05/bin/python3"
-export BENDER="bender-0.27.1"
-export CC="gcc-9.2.0"
-export CXX="g++-9.2.0"
-export LLVM_BINROOT="/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin"
-# As a temporary workaround (until correct tool versions are installed system-wide):
-export PATH=/home/colluca/snitch/bin:$PATH
-export PATH=/usr/scratch/dachstein/colluca/opt/verible/bin:$PATH
+source iis-setup.sh
 ```
 
-Add these commands to your shell startup file (e.g. `~/.bashrc` if you use bash as the default shell) to ensure that the environment is set up correctly every time you open a new shell.
+Have a look inside the script. You will want to add some of the steps contained therein to your shell startup file, e.g. exporting environment variables and activating the Python virtual environment. This way, every time you open a new shell, your environment will be ready for developing on Snitch, and you won't have to repeat the installation steps.
 
-Create a Python virtual environment:
-
-```shell
-$PYTHON -m venv ~/.venvs/snitch_cluster
-```
-
-Activate your environment, e.g. in a bash shell:
-
-```bash
-source ~/.venvs/snitch_cluster/bin/activate
-```
-
-You may want to add the last command to your shell startup file to ensure that the virtual environment is activated on every new shell you open.
-
-Install the required packages in the currently active virtual environment:
-
-```shell
-pip install -r python-requirements.txt
-```
 <!--end-section-2-->
