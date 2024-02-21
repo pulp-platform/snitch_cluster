@@ -48,7 +48,7 @@ jobs:
       - name: Annotate traces
         working-directory: target/snitch_cluster
         run: |
-          make LOGS_DIR=./runs/simple/logs annotate -j
+          make SIM_DIR=./runs/simple annotate -j
 
   # Tests requiring hardware FDIV unit
   sw-snitch-cluster-fdiv-vlt:

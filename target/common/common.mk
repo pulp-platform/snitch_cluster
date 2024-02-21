@@ -6,9 +6,10 @@
 DEBUG ?= OFF  # ON to turn on wave logging
 
 # Directories
-LOGS_DIR ?= logs
+SIM_DIR  ?= $(shell pwd)
 TB_DIR   ?= $(SNITCH_ROOT)/target/common/test
 UTIL_DIR ?= $(SNITCH_ROOT)/util
+LOGS_DIR  = $(SIM_DIR)/logs
 
 # SEPP packages
 QUESTA_SEPP    ?=
@@ -184,16 +185,14 @@ define QUESTASIM
 	@mkdir -p $(dir $@)
 	@echo "#!/bin/bash" > $@
 	@echo 'binary=$$(realpath $$1)' >> $@
-	@echo 'mkdir -p $(LOGS_DIR)' >> $@
-	@echo 'echo $$binary > $(LOGS_DIR)/.rtlbinary' >> $@
+	@echo 'echo $$binary > .rtlbinary' >> $@
 	@echo '${VSIM} +permissive ${VSIM_FLAGS} $$3 -work ${MKFILE_DIR}/${VSIM_BUILDDIR} -c \
 				-ldflags "-Wl,-rpath,${FESVR}/lib -L${FESVR}/lib -lfesvr -lutil" \
 				$(1)_opt +permissive-off ++$$binary ++$$2' >> $@
 	@chmod +x $@
 	@echo "#!/bin/bash" > $@.gui
 	@echo 'binary=$$(realpath $$1)' >> $@.gui
-	@echo 'mkdir -p $(LOGS_DIR)' >> $@.gui
-	@echo 'echo $$binary > $(LOGS_DIR)/.rtlbinary' >> $@.gui
+	@echo 'echo $$binary > .rtlbinary' >> $@.gui
 	@echo '${VSIM} +permissive ${VSIM_FLAGS} -work ${MKFILE_DIR}/${VSIM_BUILDDIR} \
 				-ldflags "-Wl,-rpath,${FESVR}/lib -L${FESVR}/lib -lfesvr -lutil" \
 				$(1)_opt +permissive-off ++$$binary ++$$2' >> $@.gui
@@ -257,7 +256,7 @@ $(LOGS_DIR)/trace_hart_%.txt $(LOGS_DIR)/hart_%_perf.json: $(LOGS_DIR)/trace_har
 
 # Generate source-code interleaved traces for all harts. Reads the binary from
 # the logs/.rtlbinary file that is written at start of simulation in the vsim script
-BINARY ?= $(shell cat $(LOGS_DIR)/.rtlbinary)
+BINARY ?= $(shell cat $(SIM_DIR)/.rtlbinary)
 $(LOGS_DIR)/trace_hart_%.s: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY}
 	$(PYTHON) ${ANNOTATE_PY} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $<
 $(LOGS_DIR)/trace_hart_%.diff: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY}

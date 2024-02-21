@@ -102,7 +102,7 @@ snitch-cluster-vsim:
     - cd target/snitch_cluster
     - make bin/snitch_cluster.vsim
     - ./run.py sw/run.yaml --simulator vsim -j --run-dir runs/vsim
-    - make LOGS_DIR=./runs/vsim/simple/logs annotate -j
+    - make SIM_DIR=./runs/vsim/simple annotate -j
 
 # Banshee
 snitch-cluster-banshee:
