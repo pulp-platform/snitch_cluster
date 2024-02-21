@@ -9,33 +9,12 @@ variables:
   TERM: ansi
   FORCE_COLOR: 1
   # Configure environment
-  PYTHON: /usr/local/anaconda3-2022.05/bin/python3
-  BENDER: bender-0.27.1
-  CC: gcc-9.2.0
-  CXX: g++-9.2.0
-  VCS_SEPP: vcs-2020.12
-  VERILATOR_SEPP: verilator-4.110
-  QUESTA_SEPP: questa-2022.3
-  LLVM_BINROOT: /usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: /usr/pack/gcc-9.2.0-af/linux-x64/bin/gcc
   LLVM_SYS_120_PREFIX: /usr/pack/llvm-12.0.1-af
   CMAKE: cmake-3.18.1
 
 before_script:
-  - $PYTHON -m venv .venv
-  - source .venv/bin/activate
-  # Unpack packages in a local temporary directory which can be safely cleaned
-  # after installation. Also protects against "No space left on device" errors
-  # occurring when the /tmp folder is filled by other processes.
-  - mkdir tmp
-  - TMPDIR=tmp pip install -r python-requirements.txt
-  - rm -rf tmp
-  - $BENDER vendor init
-  # Install spike-dasm
-  # yamllint disable rule:line-length
-  - wget https://github.com/pulp-platform/riscv-isa-sim/releases/download/snitch-v0.1.0/snitch-spike-dasm-0.1.0-x86_64-linux-gnu-almalinux8.7.tar.gz
-  # yamllint enable rule:line-length
-  - tar xzf snitch-spike-dasm-0.1.0-x86_64-linux-gnu-almalinux8.7.tar.gz
+  source iis-setup.sh
 
 ##############
 # Build docs #
