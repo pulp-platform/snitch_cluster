@@ -1,0 +1,9 @@
+@@ -7,8 +7,6 @@
+ 
+ #if defined(__GLIBC__)
+ # undef USE_UCONTEXT
+-# define USE_UCONTEXT
+-# include <ucontext.h>
+ # include <memory>
+ #include <limits.h>
+ 
