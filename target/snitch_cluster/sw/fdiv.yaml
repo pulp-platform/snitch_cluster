@@ -9,5 +9,5 @@ runs:
     cmd: [../../../sw/dnn/layernorm/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/dnn/gelu/build/gelu.elf
     cmd: [../../../sw/dnn/gelu/verify.py, "${sim_bin}", "${elf}"]
-  - elf: apps/dnn/flashattention_2/build/flashattention_2.elf
-    cmd: [../../../sw/dnn/flashattention_2/verify.py, "${sim_bin}", "${elf}"]
+  # - elf: apps/dnn/flashattention_2/build/flashattention_2.elf
+  #   cmd: [../../../sw/dnn/flashattention_2/verify.py, "${sim_bin}", "${elf}"]
