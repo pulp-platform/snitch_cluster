@@ -14,8 +14,7 @@ int main(int argc, char **argv, char **env) {
         fprintf(fd, "%s\n", argv[1]);
         fclose(fd);
     } else {
-        fprintf(stderr,
-                "Warning: Failed to write binary name to .rtlbinary\n");
+        fprintf(stderr, "Warning: Failed to write binary name to .rtlbinary\n");
     }
 
     auto sim = std::make_unique<sim::Sim>(argc, argv);
