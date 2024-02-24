@@ -1233,8 +1233,9 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
             case FP32:
                 if (baseline) {
                     gemm_fp32_naive(frac_m, n, k, (float*)a + offsetA,
-                                       lda_strided, transa, (float*)b, ldb, transb,
-                                       (float*)c + offsetC, ldc_strided, (float)beta);
+                                    lda_strided, transa, (float*)b, ldb, transb,
+                                    (float*)c + offsetC, ldc_strided,
+                                    (float)beta);
                 } else {
                     gemm_fp32_opt(frac_m, n, k, (float*)a + offsetA,
                                   lda_strided, (float*)b, ldb,
