@@ -1379,11 +1379,7 @@ int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
                     volatile uint32_t ldb = frac_n;
                     volatile uint32_t ldc = frac_n;
 
-                    // Transpose of A unsupported
-                    if (transa) return -1;
                     if (transb) {
-                        // Transpose of B supported only in FP64
-                        if (prec != FP64) return -1;
                         ldb = frac_k;
                     }
 
