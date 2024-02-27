@@ -311,7 +311,8 @@ class SnitchCluster(Generator):
 
         self.cfg['nr_hives'] = len(self.cfg['hives'])
         self.cfg['nr_cores'] = len(cores)
-        self.cfg['num_ssrs_max'] = max(len(core['ssrs']) for core in cores)
+        # Minimum 1 element to avoid illegal ranges
+        self.cfg['num_ssrs_max'] = max(max(len(core['ssrs']) for core in cores), 1)
         self.cfg['cores'] = cores
 
     def cfg_validate(self):
