@@ -75,11 +75,6 @@ static inline void layernorm_fp32(float *input, float *output,
                 }
                 mean /= embeddings;
 
-                // DUMP(mean);
-                if (snrt_global_core_idx() == 0) {
-                    DUMP(mean);
-                }
-
                 for (int32_t i = 0; i < embeddings; i++) {
                     var +=
                         (core_itile[b * batch_offset + s * stride + i] - mean) *
