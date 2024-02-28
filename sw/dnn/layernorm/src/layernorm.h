@@ -75,11 +75,6 @@ static inline void layernorm_fp32(float *input, float *output,
                 }
                 mean /= embeddings;
 
-                // DUMP(mean);
-                if (snrt_global_core_idx() == 0) {
-                    DUMP(mean);
-                }
-
                 for (int32_t i = 0; i < embeddings; i++) {
                     var +=
                         (core_itile[b * batch_offset + s * stride + i] - mean) *
@@ -87,8 +82,6 @@ static inline void layernorm_fp32(float *input, float *output,
                 }
                 var /= embeddings;
                 var = sqrtf(var + eps);
-
-                // DUMP(var);
 
                 // compute the shifted value of the current row
                 for (int32_t i = 0; i < embeddings; i++) {
@@ -149,7 +142,8 @@ static inline void layernorm_fp32_opt(float *input, float *output,
                            &core_otile[b * batch_offset]);
 
             // kernel progresses two values in each iteration
-            const uint32_t n_frep = embeddings / (UNROLL * num_elems_per_vector);
+            const uint32_t n_frep =
+                embeddings / (UNROLL * num_elems_per_vector);
 
             for (int32_t s = 0; s < tile_seq_len; s++) {
                 float mean[UNROLL] = {0.0, 0.0};
