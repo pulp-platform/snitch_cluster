@@ -135,3 +135,12 @@ snitch-cluster-omega-vsim:
     - make CFG_OVERRIDE=cfg/omega.hjson sw
     - make bin/snitch_cluster.vsim
     - ./run.py sw/run.yaml --simulator vsim -j --run-dir runs/vsim
+
+############
+# Non-free #
+############
+
+nonfree:
+  script:
+    - make nonfree
+    - make elab

@@ -1,7 +1,9 @@
-.bender/
-Bender.lock
-.vscode/
-__pycache__
+# Nonfree repository
+/nonfree/
+
+# Dependency files
+/.bender/
+/Bender.lock
 
 # Modelsim Files
 *.wlf
@@ -9,6 +11,9 @@ modelsim.ini
 *stacktrace*
 transcript
 
+# Miscellaneous
+.vscode/
+__pycache__
 gmon.out
 
 # Docs
