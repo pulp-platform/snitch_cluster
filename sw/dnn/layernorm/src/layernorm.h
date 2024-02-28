@@ -71,10 +71,6 @@ static inline void layernorm_fp32(float *input, float *output,
                 var = 0.0;
 
                 for (int32_t i = 0; i < embeddings; i++) {
-                    if (snrt_global_core_idx() == 0) {
-                        DUMP(core_itile[b * batch_offset + s * stride + i]);
-                    }
-                    // DUMP(core_itile[b * batch_offset + s * stride + i]);
                     mean += core_itile[b * batch_offset + s * stride + i];
                 }
                 mean /= embeddings;
@@ -123,8 +119,8 @@ static inline void layernorm_fp32_opt(float *input, float *output,
         float mean_tot = 0.0;  // max value of the current core
         float var_tot = 0.0;   // sum of the exp values of the current core
         v2f32 mean_reg = {0.0, 0.0};
+        int num_elems_per_vector = sizeof(double) / sizeof(float);
         for (int32_t b = 0; b < batch_size; b++) {
-            int num_elems_per_vector = sizeof(double) / sizeof(float);
             const uint32_t ssr0_b[4] = {
                 UNROLL, embeddings / (UNROLL * num_elems_per_vector), 2,
                 tile_seq_len};
@@ -153,7 +149,7 @@ static inline void layernorm_fp32_opt(float *input, float *output,
                            &core_otile[b * batch_offset]);
 
             // kernel progresses two values in each iteration
-            const uint32_t n_frep = embeddings / (UNROLL * 2);
+            const uint32_t n_frep = embeddings / (UNROLL * num_elems_per_vector);
 
             for (int32_t s = 0; s < tile_seq_len; s++) {
                 float mean[UNROLL] = {0.0, 0.0};
