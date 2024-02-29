@@ -39,6 +39,7 @@ def emit_header(**kwargs):
     eps = kwargs['eps']
     prec = kwargs['prec']
     n_tiles = kwargs['n_tiles']
+    baseline = kwargs['baseline']
 
     assert (seq_len % n_tiles) == 0, 'Input dimension is not an integer multiple of tile size'
 
@@ -56,6 +57,7 @@ def emit_header(**kwargs):
     layer_cfg = {
         **kwargs['input_dim'],
         'n_tiles': n_tiles,
+        'baseline': baseline,
         'ifmap': ifmap_uid,
         'ofmap': ofmap_uid,
         'eps': eps,

@@ -40,6 +40,7 @@ def main():
         'seq_len': 'I',
         'embeddings': 'I',
         'n_tiles': 'I',
+        'baseline': 'I',
         'eps': 'f',
         'ifmap_ptr': 'I',
         'ofmap_ptr': 'I',
