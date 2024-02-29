@@ -35,6 +35,10 @@ def parse_args():
     parser.add_argument(
         '--log',
         help='Redirect simulation output to this log file')
+    parser.add_argument(
+        '--dump-results',
+        action='store_true',
+        help='Dump results even if the simulation does not fail')
     return parser.parse_args()
 
 

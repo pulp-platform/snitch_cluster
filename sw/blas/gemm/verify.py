@@ -58,7 +58,7 @@ def main():
 
     absolute_err = np.absolute(c_golden - c_actual)
     fail = np.any(absolute_err > ERR_THRESHOLD[prec])
-    if (fail):
+    if (fail or args.dump_results):
         print('Simulation results are incorrect.')
         verification.dump_results_to_csv([c_golden, c_actual, absolute_err],
                                          Path.cwd() / 'results.csv')
