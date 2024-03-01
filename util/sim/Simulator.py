@@ -55,7 +55,8 @@ class Simulator(object):
                 Simulation subclass. Use `self.simulation_cls` by
                 default.
         """
-        kwargs.update({key: test[key] for key in ['elf', 'run_dir', 'retcode', 'name'] if key in test})
+        kwargs.update({key: test[key] for key in ['elf', 'run_dir', 'retcode', 'name']
+                       if key in test})
         if simulation_cls is not None:
             return simulation_cls(**kwargs)
         else:

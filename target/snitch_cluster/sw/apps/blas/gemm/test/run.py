@@ -5,7 +5,6 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-import argparse
 import os
 from pathlib import Path
 import subprocess
