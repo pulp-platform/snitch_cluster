@@ -25,7 +25,7 @@ endif
 MATH_DIR := $(ROOT)/target/snitch_cluster/sw/math
 
 # Paths relative to the app including this Makefile
-BUILDDIR = $(abspath build)
+BUILDDIR ?= $(abspath build)
 
 ###################
 # Build variables #
