@@ -35,9 +35,9 @@ static inline double multiply_opt(double multiplicand, double multiplier) {
         return 0;
 }
 
-#include "gemm_fp64.h"
-#include "gemm_fp32.h"
 #include "gemm_fp16.h"
+#include "gemm_fp32.h"
+#include "gemm_fp64.h"
 #include "gemm_fp8.h"
 
 // BLAS compliant single-cluster single-tile GEMM kernel, with some additional
