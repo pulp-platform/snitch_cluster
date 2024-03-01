@@ -73,6 +73,9 @@ all: $(ALL_OUTPUTS)
 clean:
 	rm -rf $(BUILDDIR)
 
+.PHONY: $(APP)
+$(APP): $(ELF)
+
 $(BUILDDIR):
 	mkdir -p $@
 
