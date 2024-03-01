@@ -7,4 +7,4 @@
 include ../../../../../../sw/blas/gemm/Makefile
 include ../../common.mk
 
-$(DEP): $(ROOT)/sw/blas/gemm/data/data.h
+$(DEP): $(DATA_H)
