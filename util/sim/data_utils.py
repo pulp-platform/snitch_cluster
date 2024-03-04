@@ -223,7 +223,6 @@ class DataGen:
     custom data generator script for any kernel.
     """
 
-
     def parser(self):
         """Default argument parser for data generation scripts.
 
@@ -244,7 +243,6 @@ class DataGen:
             help='Section to store matrices in')
         return parser
 
-
     def parse_args(self):
         """Parse default data generation script arguments.
 
@@ -252,7 +250,6 @@ class DataGen:
         using the by `parser()` method.
         """
         return self.parser().parse_args()
-
 
     def emit_header(self, **kwargs):
         """Emits a C header containing generated data.
@@ -265,7 +262,6 @@ class DataGen:
             A string with the generated C header contents.
         """
         return emit_license()
-
 
     def main(self):
         """Default main function for data generation scripts."""
