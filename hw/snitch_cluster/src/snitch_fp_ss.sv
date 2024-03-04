@@ -73,6 +73,10 @@ module snitch_fp_ss import snitch_pkg::*; #(
   input  logic             streamctl_done_i,
   input  logic             streamctl_valid_i,
   output logic             streamctl_ready_o,
+  // Consistency Address Queue (CAQ) interface.
+  // Notifies the issuing Snitch core of retired loads/stores.
+  // TODO: is it good enough to assert this at issuing time instead?
+  output logic             caq_pvalid_o,
   // Core event strobes
   output core_events_t core_events_o
 );
@@ -158,7 +162,14 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // -------------
   // FPU Sequencer
   // -------------
-  acc_req_t         acc_req, acc_req_q;
+  typedef struct packed {
+    logic     repd;
+    acc_req_t req;
+  } acc_req_repd_t;
+
+  acc_req_repd_t    acc_req;
+  acc_req_t         acc_req_q;
+  logic             acc_req_repd_q;
   logic             acc_req_valid, acc_req_valid_q;
   logic             acc_req_ready, acc_req_ready_q;
   if (Xfrep) begin : gen_fpu_sequencer
@@ -180,12 +191,13 @@ module snitch_fp_ss import snitch_pkg::*; #(
       .inp_qdata_argc_i ( acc_req_i.data_argc ),
       .inp_qvalid_i     ( acc_req_valid_i     ),
       .inp_qready_o     ( acc_req_ready_o     ),
-      .oup_qaddr_o      ( acc_req.addr        ),
-      .oup_qid_o        ( acc_req.id          ),
-      .oup_qdata_op_o   ( acc_req.data_op     ),
-      .oup_qdata_arga_o ( acc_req.data_arga   ),
-      .oup_qdata_argb_o ( acc_req.data_argb   ),
-      .oup_qdata_argc_o ( acc_req.data_argc   ),
+      .oup_qaddr_o      ( acc_req.req.addr        ),
+      .oup_qid_o        ( acc_req.req.id          ),
+      .oup_qdata_op_o   ( acc_req.req.data_op     ),
+      .oup_qdata_arga_o ( acc_req.req.data_arga   ),
+      .oup_qdata_argb_o ( acc_req.req.data_argb   ),
+      .oup_qdata_argc_o ( acc_req.req.data_argc   ),
+      .oup_qdata_repd_o ( acc_req.repd            ),
       .oup_qvalid_o     ( acc_req_valid       ),
       .oup_qready_i     ( acc_req_ready       ),
       .streamctl_done_i,
@@ -198,12 +210,12 @@ module snitch_fp_ss import snitch_pkg::*; #(
     // pragma translate_on
     assign acc_req_ready_o = acc_req_ready;
     assign acc_req_valid = acc_req_valid_i;
-    assign acc_req = acc_req_i;
+    assign acc_req = acc_req_repd_t'{req: acc_req_i, repd: '0};
   end
 
   // Optional spill-register
   spill_register  #(
-    .T      ( acc_req_t                           ),
+    .T      ( acc_req_repd_t ),
     .Bypass ( !RegisterSequencer || !Xfrep )
   ) i_spill_register_acc (
     .clk_i   ,
@@ -213,7 +225,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .data_i  ( acc_req         ),
     .valid_o ( acc_req_valid_q ),
     .ready_i ( acc_req_ready_q ),
-    .data_o  ( acc_req_q       )
+    .data_o  ( {acc_req_repd_q, acc_req_q} )
   );
 
   // Ensure SSR CSR only written on instruction commit
@@ -2590,7 +2602,10 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .tag_t (logic [4:0]),
     .NumOutstandingMem (NumFPOutstandingMem),
     .NumOutstandingLoads (NumFPOutstandingLoads),
-    .NaNBox (1'b1)
+    .NaNBox (1'b1),
+    .Caq  (1'b0),
+    .CaqRespSrc (1'b1),
+    .CaqRespTrackSeq (Xfrep)
   ) i_snitch_lsu (
     .clk_i (clk_i),
     .rst_i (rst_i),
@@ -2601,6 +2616,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .lsu_qdata_i (op[1]),
     .lsu_qsize_i (ls_size),
     .lsu_qamo_i (reqrsp_pkg::AMONone),
+    .lsu_qrepd_i (acc_req_repd_q),
     .lsu_qvalid_i (lsu_qvalid),
     .lsu_qready_o (lsu_qready),
     .lsu_pdata_o (ld_result),
@@ -2609,6 +2625,13 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .lsu_pvalid_o (lsu_pvalid),
     .lsu_pready_i (lsu_pready),
     .lsu_empty_o (/* unused */),
+    // CAQ is not enabled here
+    .caq_qaddr_i  ('0),
+    .caq_qwrite_i ('0),
+    .caq_qvalid_i (1'b0),
+    .caq_qready_o (),
+    .caq_pvalid_i (1'b0),
+    .caq_pvalid_o,
     .data_req_o,
     .data_rsp_i
   );

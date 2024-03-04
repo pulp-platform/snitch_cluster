@@ -35,6 +35,7 @@ module snitch_sequencer import snitch_pkg::*; #(
     output data_t                            oup_qdata_arga_o,
     output data_t                            oup_qdata_argb_o,
     output addr_t                            oup_qdata_argc_o,
+    output logic                             oup_qdata_repd_o,  // Whether this is a repeated issue
     output logic                             oup_qvalid_o,
     input  logic                             oup_qready_i,
     // SSR stream control interface
@@ -420,6 +421,7 @@ module snitch_sequencer import snitch_pkg::*; #(
     oup_qdata_arga_o  = inp_qdata_arga_i;
     oup_qdata_argb_o  = inp_qdata_argb_i;
     oup_qdata_argc_o  = inp_qdata_argc_i;
+    oup_qdata_repd_o  = 1'b0;
 
     core_direct_ready = 1'b0;
     seq_out_ready     = 1'b0;
@@ -432,6 +434,10 @@ module snitch_sequencer import snitch_pkg::*; #(
       oup_qdata_arga_o = '0;
       oup_qdata_argb_o = '0;
       oup_qdata_argc_o = $unsigned(seq_qdata_argc);
+      // If this repeats a previously issued instruction, communicate this
+      // to subsystem (e.g. for single issuing of CAQ responses).
+      oup_qdata_repd_o = (rpt_cnt_q != 0);
+
       seq_out_ready    = oup_qready_i;
     end else begin
       core_direct_ready = oup_qready_i;

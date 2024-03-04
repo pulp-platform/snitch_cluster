@@ -19,6 +19,22 @@ module snitch_lsu #(
   parameter int unsigned NumOutstandingLoads = 1,
   /// Whether to NaN Box values. Used for floating-point load/stores.
   parameter bit          NaNBox              = 0,
+  /// Whether to instantiate a consistency address queue (CAQ). The CAQ enables
+  /// consistency with another LSU in the same hart (i.e. in the FPSS) strictly
+  /// *downstream* of the issuing Snitch core. For all offloaded accesses, the
+  /// word address LSBs are pushed into the Snitch core's CAQ on offload and
+  /// popped when completed by the downstream LSU. Incoming accesses possibly
+  /// overtaking pending downstream accesses in the CAQ are stalled.
+  parameter bit          Caq                 = 0,
+  /// CAQ Depth; should match the number of downstream LSU outstanding requests.
+  parameter int unsigned CaqDepth            = 0,
+  /// Size of CAQ address LSB tags; provides a pessimism-complexity tradeoff.
+  parameter int unsigned CaqTagWidth         = 0,
+  /// Whether this LSU is a source of CAQ responses (e.g. FPSS).
+  parameter bit          CaqRespSrc          = 0,
+  /// Whether the LSU should track repeated instructions issued by a sequencer
+  /// and accordingly filter them from its CAQ responses as is necessary.
+  parameter bit          CaqRespTrackSeq     = 0,
   parameter type         dreq_t              = logic,
   parameter type         drsp_t              = logic,
   /// Derived parameter *Do not override*
@@ -35,6 +51,7 @@ module snitch_lsu #(
   input  data_t                lsu_qdata_i,
   input  logic [1:0]           lsu_qsize_i,
   input  reqrsp_pkg::amo_op_e  lsu_qamo_i,
+  input  logic                 lsu_qrepd_i,  // Whether this is a sequencer repetition
   input  logic                 lsu_qvalid_i,
   output logic                 lsu_qready_o,
   // response channel
@@ -43,6 +60,18 @@ module snitch_lsu #(
   output logic                 lsu_perror_o,
   output logic                 lsu_pvalid_o,
   input  logic                 lsu_pready_i,
+  /// CAQ request snoop channel. Only some address bits will be read.
+  /// Fork offloaded loads/stores to here iff `Caq` is 1.
+  input  addr_t                caq_qaddr_i,
+  input  logic                 caq_qwrite_i,
+  input  logic                 caq_qvalid_i,
+  output logic                 caq_qready_o,
+  /// Incoming CAQ response snoop channel.
+  /// Fork responses to offloaded loads/stores to here iff `Caq` is 1.
+  input  logic                 caq_pvalid_i,
+  /// Outgoing CAQ response snoop channel.
+  /// Signals whether access response was handshaked iff `CaqResp` is 1.
+  output logic                 caq_pvalid_o,
   /// High if there is currently no transaction pending.
   output logic                 lsu_empty_o,
   // Memory Interface Channel
@@ -50,7 +79,93 @@ module snitch_lsu #(
   input  drsp_t                data_rsp_i
 );
 
+  `include "common_cells/assertions.svh"
+
   localparam int unsigned DataAlign = $clog2(DataWidth/8);
+
+  // -------------------------------
+  // Consistency Address Queue (CAQ)
+  // -------------------------------
+
+  // TODO: What about exceptions? We *should* get a response for all offloaded
+  // loads/stores anyways as already issued instructions should conclude, but
+  // if this is not the case, things go south!
+
+  logic lsu_postcaq_qvalid, lsu_postcaq_qready;
+
+  if (Caq) begin : gen_caq
+
+    logic caq_lsu_gnt, caq_lsu_exists;
+    logic caq_out_valid, caq_out_gnt;
+    logic caq_pass, caq_alters_mem;
+
+    // CAQ passes requests to downstream LSU only once they are known not to collide.
+    // This is assumed to be *stable* once given as the Snitch core is stalled on a
+    // load/store and elements can only be popped from the queue, not pushed.
+    assign caq_pass = caq_lsu_gnt & ~caq_lsu_exists;
+
+    // We need to stall on collisions with anything altering memory, including atomics
+    assign caq_alters_mem = lsu_qwrite_i | (lsu_qamo_i != reqrsp_pkg::AMONone);
+
+    // Gate downstream LSU on CAQ pass
+    assign lsu_postcaq_qvalid = caq_pass & lsu_qvalid_i;
+    assign lsu_qready_o = caq_pass & lsu_postcaq_qready;
+
+    id_queue #(
+      .data_t    ( logic [CaqTagWidth:0] ), // Store address tag *and* write enable
+      .ID_WIDTH  ( 1 ),                     // De facto 0: no reorder capability here
+      .CAPACITY  ( CaqDepth ),
+      .FULL_BW   ( 1 )
+    ) i_caq (
+      .clk_i,
+      .rst_ni   ( ~rst_i ),
+      // Push in snooped accesses offloaded to downstream LSU
+      .inp_id_i   ( '0 ),
+      .inp_data_i ( {caq_qwrite_i, caq_qaddr_i[CaqTagWidth+DataAlign-1:DataAlign]} ),
+      .inp_req_i  ( caq_qvalid_i ),
+      .inp_gnt_o  ( caq_qready_o ),
+      // Check if currently presented request collides with any snooped ones.
+      // Check address tag in any case. Check the write enable only when it
+      // is necessary. If we receive a write, stall on any address match
+      // (i.e. exclude MSB from the collision check, can be 0 or 1). If we
+      // receive a non-altering access, we stall only if a write collides.
+      .exists_mask_i  ( {~caq_alters_mem, {(CaqTagWidth){1'b1}}} ),
+      .exists_data_i  ( {1'b1, lsu_qaddr_i[CaqTagWidth+DataAlign-1:DataAlign]} ),
+      .exists_req_i   ( lsu_qvalid_i ),
+      .exists_gnt_o   ( caq_lsu_gnt ),
+      .exists_o       ( caq_lsu_exists ),
+      // Pop output whenever we get a response for a snooped request.
+      // This has no backpressure as we should snoop as many responses as requests.
+      .oup_id_i         ( '0 ),
+      .oup_pop_i        ( caq_pvalid_i ),
+      .oup_req_i        ( caq_pvalid_i ),
+      .oup_data_o       (  ),
+      .oup_data_valid_o ( caq_out_valid ),
+      .oup_gnt_o        ( caq_out_gnt )
+    );
+
+    // Check that we do not pop more snooped responses than we pushed requests.
+    `ASSERT(CaqPopEmpty, (caq_pvalid_i |-> caq_out_gnt && caq_out_valid), clk_i, rst_i)
+
+    // Check that once asserted, `caq_pass` is stable until we handshake the load/store
+    `ASSERT(CaqPassStable, ($rose(caq_pass) |->
+        (caq_pass until_with lsu_qvalid_i & lsu_qready_o)), clk_i, rst_i)
+
+  end else begin : gen_no_caq
+
+    // No CAQ can stall us; forward request handshake to LSU logic
+    assign lsu_postcaq_qvalid = lsu_qvalid_i;
+    assign lsu_qready_o = lsu_postcaq_qready;
+
+    // Tie CAQ interface
+    assign caq_qready_o = '1;
+
+  end
+
+  // --------------
+  // Downstream LSU
+  // --------------
+
   logic [63:0] ld_result;
   logic [63:0] lsu_qdata, data_qdata;
 
@@ -87,10 +202,27 @@ module snitch_lsu #(
 
   // For each memory transaction save whether this was a load or a store. We
   // need this information to suppress stores.
+  logic [CaqRespTrackSeq:0] req_queue_in, req_queue_out;
+
+  assign req_queue_in[0] = lsu_qwrite_i;
+  assign mem_out = req_queue_out[0];
+
+  if (CaqRespTrackSeq) begin : gen_caq_resp_track_seq
+    assign req_queue_in[1] = lsu_qrepd_i;
+    // When tracking a sequencer, repeated accesses are masked as the core issues them only once.
+    // Thus, for sequenced loads or stores, only the *first issue* is popped in the CAQ.
+    // This means that the first issue will block on collisions and subsequent repeats will not.
+    // Like SSRs, loads or stores in sequencer loops (i.e. FREP) do *not* guarantee consistency.
+    assign caq_pvalid_o = data_rsp_i.p_valid & data_req_o.p_ready & ~req_queue_out[1];
+  end else begin : gen_no_caq_resp_track_seq
+    // When not tracking a sequencer, simply signal the response handshake.
+    assign caq_pvalid_o = data_rsp_i.p_valid & data_req_o.p_ready;
+  end
+
   fifo_v3 #(
     .FALL_THROUGH (1'b0),
     .DEPTH (NumOutstandingMem),
-    .DATA_WIDTH (1)
+    .DATA_WIDTH (1 + CaqRespTrackSeq)
   ) i_fifo_mem (
     .clk_i,
     .rst_ni (~rst_i),
@@ -99,9 +231,9 @@ module snitch_lsu #(
     .full_o (mem_full),
     .empty_o (lsu_empty_o),
     .usage_o ( /* open */ ),
-    .data_i (lsu_qwrite_i),
+    .data_i (req_queue_in),
     .push_i (data_req_o.q_valid & data_rsp_i.q_ready),
-    .data_o (mem_out),
+    .data_o (req_queue_out),
     .pop_i (data_rsp_i.p_valid & data_req_o.p_ready)
   );
 
@@ -115,7 +247,7 @@ module snitch_lsu #(
   // Only make a request when we got a valid request and if it is a load also
   // check that we can actually store the necessary information to process it in
   // the upcoming cycle(s).
-  assign data_req_o.q_valid = lsu_qvalid_i & (lsu_qwrite_i | ~laq_full) & ~mem_full;
+  assign data_req_o.q_valid = lsu_postcaq_qvalid & (lsu_qwrite_i | ~laq_full) & ~mem_full;
   assign data_req_o.q.write = lsu_qwrite_i;
   assign data_req_o.q.addr = lsu_qaddr_i;
   assign data_req_o.q.amo  = lsu_qamo_i;
@@ -152,7 +284,7 @@ module snitch_lsu #(
   /* verilator lint_on WIDTH */
 
   // The interface didn't accept our request yet
-  assign lsu_qready_o = ~(data_req_o.q_valid & ~data_rsp_i.q_ready)
+  assign lsu_postcaq_qready = ~(data_req_o.q_valid & ~data_rsp_i.q_ready)
                       & (lsu_qwrite_i | ~laq_full) & ~mem_full;
   assign laq_push = ~lsu_qwrite_i & data_rsp_i.q_ready & data_req_o.q_valid & ~laq_full;
 

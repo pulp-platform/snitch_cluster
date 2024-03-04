@@ -169,6 +169,16 @@
             "description": "Number of request entries the DMA can keep",
             "default": 3
         },
+        "caq_depth": {
+            "type": "number",
+            "description": "Depth of consistency address queue (CAQ). Should cover as many FP load-stores as may be deferred in sequencer to prevent pseudo-dual-issue blocking.",
+            "default": 8
+        },
+        "caq_tag_width": {
+            "type": "number",
+            "description": "Tag width for consistency address queue (CAQ). Reordering of integer/FP loads/stores to words with colliding tags causes stalls. Should cover at least TCDM.",
+            "default": 16
+        },
         "enable_debug": {
             "type": "boolean",
             "description": "Whether to provide a debug request input and external debug features",
