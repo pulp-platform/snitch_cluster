@@ -43,9 +43,7 @@ CLUSTER_GEN_SRC ?= $(wildcard $(ROOT)/util/clustergen/*.py)
 # Files and directories #
 #########################
 
-SW_DIR             = sw
 BIN_DIR           ?= bin
-TARGET_C_HDRS_DIR ?= $(SW_DIR)/runtime/common
 GENERATED_DIR     ?= $(MKFILE_DIR)generated
 
 # Verilated and compiled snitch cluster
@@ -154,32 +152,7 @@ test/bootrom.elf test/bootrom.dump test/bootrom.bin: test/bootrom.S test/bootrom
 # Software #
 ############
 
-CLUSTER_GEN_HEADERS = snitch_cluster_cfg.h \
-					  snitch_cluster_addrmap.h
-
-REGGEN_HEADERS = snitch_cluster_peripheral.h
-
-TARGET_C_HDRS = $(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS) $(REGGEN_HEADERS))
-
-.PHONY: sw clean-headers clean-sw
-
-sw: $(TARGET_C_HDRS)
-	$(MAKE) -C $(SW_DIR)
-
-clean-headers:
-	rm -f $(TARGET_C_HDRS)
-
-clean-sw: clean-headers
-	$(MAKE) -C $(SW_DIR) TARGET=clean
-
-# CLUSTERGEN headers
-$(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS)): %.h: $(CFG) $(CLUSTER_GEN_PREREQ) %.h.tpl
-	@echo "[CLUSTERGEN] Generate $@"
-	$(CLUSTER_GEN) -c $< --outdir $(TARGET_C_HDRS_DIR) --template $@.tpl
-
-# REGGEN headers
-$(TARGET_C_HDRS_DIR)/snitch_cluster_peripheral.h: $(ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.hjson $(REGGEN)
-	$(call reggen_generate_header,$@,$<)
+include $(ROOT)/target/snitch_cluster/sw.mk
 
 #######
 # RTL #
