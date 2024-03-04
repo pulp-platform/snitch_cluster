@@ -41,7 +41,7 @@ def build_sw(cfg):
     env = extend_environment(
         DATA_CFG=cfg,
         DATA_H=Path(f'include/{cfg.stem}/data.h').resolve(),
-        BUILDDIR=Path(f'build/{cfg.stem}').resolve()
+        APP_BUILDDIR=Path(f'build/{cfg.stem}').resolve()
     )
     subprocess.run(['make', '-C', '../../../../../', 'sw/apps/blas/gemm'], check=True, env=env)
 
