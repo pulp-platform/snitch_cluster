@@ -6,6 +6,9 @@
 """Convenience functions for data generation scripts."""
 
 
+import argparse
+import json5
+import pathlib
 import struct
 from datetime import datetime
 import torch
@@ -211,3 +214,67 @@ def from_buffer(byte_array, ctype='uint32_t'):
                 value *= -1
             array.append(value)
         return array
+
+
+class DataGen:
+    """Base data generator class.
+
+    Base data generator class which can be inherited to easily develop a
+    custom data generator script for any kernel.
+    """
+
+
+    def parser(self):
+        """Default argument parser for data generation scripts.
+
+        It is an instance of the `ArgumentParser` class from the `argparse`
+        module. Subclasses can extend this and add custom arguments via
+        the parser's `add_argument()` method.
+        """
+        parser = argparse.ArgumentParser(description='Generate data for kernels')
+        parser.add_argument(
+            "-c", "--cfg",
+            type=pathlib.Path,
+            required=True,
+            help='Select param config file kernel'
+        )
+        parser.add_argument(
+            '--section',
+            type=str,
+            help='Section to store matrices in')
+        return parser
+
+
+    def parse_args(self):
+        """Parse default data generation script arguments.
+
+        Returns the arguments passed to the data generation script, parsed
+        using the by `parser()` method.
+        """
+        return self.parser().parse_args()
+
+
+    def emit_header(self, **kwargs):
+        """Emits a C header containing generated data.
+
+        The base implementation emits a string which only contains a
+        license header. Subclasses should extend this method and append
+        the generated data to the license header.
+
+        Returns:
+            A string with the generated C header contents.
+        """
+        return emit_license()
+
+
+    def main(self):
+        """Default main function for data generation scripts."""
+        args = self.parse_args()
+
+        # Load param config file
+        with args.cfg.open() as f:
+            param = json5.loads(f.read())
+        param['section'] = args.section
+
+        # Emit header file
+        print(self.emit_header(**param))
