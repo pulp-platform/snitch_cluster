@@ -50,7 +50,8 @@ static inline void gelu_fp64(double *input, double *output, uint32_t size) {
     if (snrt_is_compute_core()) {
         for (uint32_t i = 0; i < size; i++) {
             snrt_mcycle();
-            output[i] = sigmoid_gelu_fp64(input[i], -0.2888, -1.769);
+            // output[i] = sigmoid_gelu_fp64(input[i], -0.2888, -1.769);
+            output[i] = gelu_activation_fp64(input[i]);
         }
     }
 }
