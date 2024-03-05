@@ -25,7 +25,7 @@ endif
 MATH_DIR := $(ROOT)/target/snitch_cluster/sw/math
 
 # Paths relative to the app including this Makefile
-BUILDDIR = $(abspath build)
+APP_BUILDDIR ?= $(abspath build)
 
 ###################
 # Build variables #
@@ -56,10 +56,10 @@ RISCV_LDFLAGS += $(addprefix -l,$(LIBNAMES))
 # Outputs #
 ###########
 
-ELF         = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .elf,$(APP))))
-DEP         = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .d,$(APP))))
-DUMP        = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .dump,$(APP))))
-DWARF       = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .dwarf,$(APP))))
+ELF         = $(abspath $(addprefix $(APP_BUILDDIR)/,$(addsuffix .elf,$(APP))))
+DEP         = $(abspath $(addprefix $(APP_BUILDDIR)/,$(addsuffix .d,$(APP))))
+DUMP        = $(abspath $(addprefix $(APP_BUILDDIR)/,$(addsuffix .dump,$(APP))))
+DWARF       = $(abspath $(addprefix $(APP_BUILDDIR)/,$(addsuffix .dwarf,$(APP))))
 ALL_OUTPUTS = $(ELF) $(DEP) $(DUMP) $(DWARF)
 
 #########
@@ -71,21 +71,24 @@ all: $(ALL_OUTPUTS)
 
 .PHONY: clean
 clean:
-	rm -rf $(BUILDDIR)
+	rm -rf $(APP_BUILDDIR)
 
-$(BUILDDIR):
+.PHONY: $(APP)
+$(APP): $(ELF)
+
+$(APP_BUILDDIR):
 	mkdir -p $@
 
-$(DEP): $(SRCS) | $(BUILDDIR)
+$(DEP): $(SRCS) | $(APP_BUILDDIR)
 	$(RISCV_CC) $(RISCV_CFLAGS) -MM -MT '$(ELF)' $< > $@
 
-$(ELF): $(SRCS) $(DEP) $(LIBS) | $(BUILDDIR)
+$(ELF): $(SRCS) $(DEP) $(LIBS) | $(APP_BUILDDIR)
 	$(RISCV_CC) $(RISCV_CFLAGS) $(RISCV_LDFLAGS) $(SRCS) -o $@
 
-$(DUMP): $(ELF) | $(BUILDDIR)
+$(DUMP): $(ELF) | $(APP_BUILDDIR)
 	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_FLAGS) $< > $@
 
-$(DWARF): $(ELF) | $(BUILDDIR)
+$(DWARF): $(ELF) | $(APP_BUILDDIR)
 	$(RISCV_DWARFDUMP) $< > $@
 
 ifneq ($(MAKECMDGOALS),clean)

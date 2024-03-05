@@ -11,6 +11,7 @@ import numpy as np
 import csv
 from elf import Elf
 from pathlib import Path
+from data_utils import flatten
 
 sys.path.append(str(Path(__file__).parent / '../../target/common/test/'))
 from SnitchSim import SnitchSim  # noqa: E402
@@ -34,6 +35,10 @@ def parse_args():
     parser.add_argument(
         '--log',
         help='Redirect simulation output to this log file')
+    parser.add_argument(
+        '--dump-results',
+        action='store_true',
+        help='Dump results even if the simulation does not fail')
     return parser.parse_args()
 
 
@@ -64,12 +69,20 @@ def simulate(sim_bin, snitch_bin, log, output_uids, symbols_bin=None):
     return raw_outputs
 
 
-# Takes a set of Numpy arrays (of the same shape), flattens them, zips them
-# and dumps them to a CSV file. Arrays may for example be: golden results, actual
-# results, absolute errors and relative errors.
 def dump_results_to_csv(results, path):
+    """Dumps a set of arrays to a CSV file.
+
+    Takes a set of arrays (of the same shape or at least, same flattened
+    size), flattens them, and dumps them to a CSV file, with each array
+    mapped to a different column.
+
+    Args:
+        results: A set of arrays to display side-by-side in the output
+            CSV.
+        path: Path of the output CSV file.
+    """
     # Flatten and zip arrays
-    flattened = [arr.flatten() for arr in results]
+    flattened = [flatten(arr) for arr in results]
     zipped = np.column_stack(flattened)
     # Write row-by-row to CSV file
     with open(path, 'w') as csv_file:

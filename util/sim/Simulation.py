@@ -17,7 +17,7 @@ class Simulation(object):
 
     LOG_FILE = 'sim.txt'
 
-    def __init__(self, elf=None, dry_run=False, retcode=0, run_dir=None):
+    def __init__(self, elf=None, dry_run=False, retcode=0, run_dir=None, name=None):
         """Constructor for the Simulation class.
 
         A Simulation object is defined at a minimum by a software
@@ -35,7 +35,10 @@ class Simulation(object):
         self.elf = elf
         self.dry_run = dry_run
         self.run_dir = run_dir if run_dir is not None else Path.cwd()
-        self.testname = Path(self.elf).stem
+        if name is None:
+            self.testname = Path(self.elf).stem
+        else:
+            self.testname = name
         self.cmd = []
         self.log = None
         self.process = None

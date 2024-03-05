@@ -85,7 +85,7 @@ snitch-cluster-vlt:
   script:
     - cd target/snitch_cluster
     - make bin/snitch_cluster.vlt
-    - ./run.py sw/run.yaml --simulator verilator -j --run-dir runs/vlt
+    - ./util/run.py sw/run.yaml --simulator verilator -j --run-dir runs/vlt
 
 # VCS
 snitch-cluster-vcs:
@@ -93,7 +93,7 @@ snitch-cluster-vcs:
   script:
     - cd target/snitch_cluster
     - make bin/snitch_cluster.vcs
-    - ./run.py sw/run.yaml --simulator vcs -j --run-dir runs/vcs
+    - ./util/run.py sw/run.yaml --simulator vcs -j --run-dir runs/vcs
 
 # Questa
 snitch-cluster-vsim:
@@ -101,8 +101,12 @@ snitch-cluster-vsim:
   script:
     - cd target/snitch_cluster
     - make bin/snitch_cluster.vsim
-    - ./run.py sw/run.yaml --simulator vsim -j --run-dir runs/vsim
+    - ./util/run.py sw/run.yaml --simulator vsim -j --run-dir runs/vsim
+    # Test trace annotation
     - make SIM_DIR=./runs/vsim/simple annotate -j
+    # Run additional, more extensive tests
+    - cd sw/apps/blas/gemm/test
+    - ./run.py runs.yaml --cfg $PWD/cfg/* --simulator vsim -j
 
 # Banshee
 snitch-cluster-banshee:
@@ -118,7 +122,7 @@ snitch-cluster-banshee:
     - cd banshee
     - cargo install --debug --path .
     - cd ../target/snitch_cluster
-    - ./run.py sw/run.yaml --simulator banshee -j --run-dir runs/banshee
+    - ./util/run.py sw/run.yaml --simulator banshee -j --run-dir runs/banshee
 
 # Tests requiring hardware FDIV unit
 snitch-cluster-fdiv-vsim:
@@ -126,7 +130,7 @@ snitch-cluster-fdiv-vsim:
     - cd target/snitch_cluster
     - make CFG_OVERRIDE=cfg/fdiv.hjson sw
     - make bin/snitch_cluster.vsim
-    - ./run.py sw/fdiv.yaml --simulator vsim -j --run-dir runs/vsim
+    - ./util/run.py sw/fdiv.yaml --simulator vsim -j --run-dir runs/vsim
 
 # Test OmegaNet TCDM interconnect
 snitch-cluster-omega-vsim:
@@ -134,7 +138,7 @@ snitch-cluster-omega-vsim:
     - cd target/snitch_cluster
     - make CFG_OVERRIDE=cfg/omega.hjson sw
     - make bin/snitch_cluster.vsim
-    - ./run.py sw/run.yaml --simulator vsim -j --run-dir runs/vsim
+    - ./util/run.py sw/run.yaml --simulator vsim -j --run-dir runs/vsim
 
 ############
 # Non-free #

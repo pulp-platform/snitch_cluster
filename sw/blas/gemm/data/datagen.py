@@ -51,7 +51,8 @@ def golden_model(alpha, a, b, beta, c):
 def emit_header(**kwargs):
 
     # Generate random input matrices
-    dtype = NUMPY_TYPES[str(kwargs['prec'])]
+    prec = kwargs['prec']
+    dtype = NUMPY_TYPES[str(prec)]
     M, N, K = kwargs['M'], kwargs['N'], kwargs['K']
     m_tiles = kwargs['m_tiles']
     n_tiles = kwargs['n_tiles']
@@ -64,11 +65,20 @@ def emit_header(**kwargs):
     assert (N % n_tiles) == 0, 'N is not an integer multiple of tile size'
     assert (K % k_tiles) == 0, 'K is not an integer multiple of tile size'
     frac_m = M / m_tiles
+    frac_n = N / n_tiles
     assert (frac_m % 8) == 0, 'frac_m is not an integer multiple of the number of cores per' \
                               'cluster'
     assert not (parallelize_m and parallelize_k), 'Cannot parallelize K and M simultaneously'
+    assert not kwargs['ta'], 'SIMD kernels don\'t support transposed A matrix'
+    assert (prec == 64) or kwargs['tb'], 'SIMD kernels only support transposed B matrix'
+    assert not kwargs['tb'] or n_tiles == 1, 'Tiling in the N dimension supported only if B is' \
+                                             ' not transposed'
+    assert not kwargs['tb'] or k_tiles == 1, 'Tiling in the K dimension supported only if B is' \
+                                             ' not transposed'
+    assert baseline or frac_n >= 8, 'N dimension of tile size must be greater or equal to' \
+                                    ' the unrolling factor (8) when using optimized kernels'
 
-    if (kwargs['prec']) == 8:
+    if prec == 8:
         # sign -1 or 1
         sign_a = np.random.randint(0, 2, (M, K)).astype(dtype)
         # esponent < 0b01111
@@ -115,7 +125,7 @@ def emit_header(**kwargs):
     data_str += [format_scalar_definition('uint32_t', 'TB', int(kwargs['tb']))]
     data_str += [format_scalar_definition('uint32_t', 'BETA', kwargs['beta'])]
     data_str += [format_scalar_definition('uint32_t', 'dtype_size', kwargs['prec']//8)]
-    data_str += [format_scalar_definition('uint32_t', 'expand', kwargs['expand'])]
+    data_str += [format_scalar_definition('uint32_t', 'expand', int(kwargs['expand']))]
     data_str += [format_scalar_definition('uint32_t', 'm_tiles', kwargs['m_tiles'])]
     data_str += [format_scalar_definition('uint32_t', 'n_tiles', kwargs['n_tiles'])]
     data_str += [format_scalar_definition('uint32_t', 'k_tiles', kwargs['k_tiles'])]

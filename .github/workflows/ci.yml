@@ -44,7 +44,7 @@ jobs:
       - name: Run Tests
         working-directory: target/snitch_cluster
         run: |
-          ./run.py sw/run.yaml --simulator verilator -j
+          ./util/run.py sw/run.yaml --simulator verilator -j
       - name: Annotate traces
         working-directory: target/snitch_cluster
         run: |
@@ -72,7 +72,7 @@ jobs:
       - name: Run Tests
         working-directory: target/snitch_cluster
         run: |
-          ./run.py sw/fdiv.yaml --simulator verilator -j
+          ./util/run.py sw/fdiv.yaml --simulator verilator -j
 
   #########################################
   # Build SW on Snitch Cluster w/ Banshee #
@@ -96,4 +96,4 @@ jobs:
           SNITCH_LOG: info
         working-directory: target/snitch_cluster
         run: |
-          ./run.py sw/run.yaml --simulator banshee -j
+          ./util/run.py sw/run.yaml --simulator banshee -j
