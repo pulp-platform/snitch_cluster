@@ -6,76 +6,58 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import sys
-from pathlib import Path
-import numpy as np
 import torch
+from pathlib import Path
 from data.datagen import exact_golden_model
 
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
-import verification  # noqa: E402
-from elf import Elf  # noqa: E402
-from data_utils import from_buffer, ctype_from_precision_t, check_result  # noqa: E402
+from verif_utils import Verifier  # noqa: E402
+from data_utils import ctype_from_precision_t  # noqa: E402
 
 
-ERR_THRESHOLD = 1E-4
+class FlashAttention2Verifier(Verifier):
 
+    OUTPUT_UIDS = ['O']
 
-def main():
-    # Run simulation and get outputs
-    args = verification.parse_args()
-    raw_results = verification.simulate(sim_bin=args.sim_bin,
-                                        snitch_bin=args.snitch_bin,
-                                        symbols_bin=args.symbols_bin,
-                                        log=args.log,
-                                        output_uids=['O'])
+    def __init__(self):
+        super().__init__()
+        self.layer_struct = {
+            'N': 'I',
+            'd': 'I',
+            'B_r': 'I',
+            'B_c': 'I',
+            'Q': 'I',
+            'K': 'I',
+            'V': 'I',
+            'O': 'I',
+            'dtype': 'I',
+            'baseline': 'I'
+        }
+        self.layer = self.get_input_from_symbol('layer', self.layer_struct)
+        self.N = self.layer['N']
+        self.d = self.layer['d']
+        self.B_r = self.layer['B_r']
+        self.B_c = self.layer['B_c']
+        self.prec = self.layer['dtype']
 
-    # Extract input operands from ELF file
-    if args.symbols_bin:
-        elf = Elf(args.symbols_bin)
-    else:
-        elf = Elf(args.snitch_bin)
+    def get_actual_results(self):
+        return self.get_output_from_symbol('O', ctype_from_precision_t(self.prec))
 
-    layer_struct = {
-        'N': 'I',
-        'd': 'I',
-        'B_r': 'I',
-        'B_c': 'I',
-        'Q': 'I',
-        'K': 'I',
-        'V': 'I',
-        'O': 'I',
-        'dtype': 'I',
-        'baseline': 'I'
-    }
-    layer = elf.from_symbol('layer', layer_struct)
-    N = layer['N']
-    d = layer['d']
-    B_r = layer['B_r']
-    B_c = layer['B_c']
-    prec = layer['dtype']
+    def get_expected_results(self):
+        Q = self.get_input_from_symbol('Q', ctype_from_precision_t(self.prec))
+        K = self.get_input_from_symbol('K', ctype_from_precision_t(self.prec))
+        V = self.get_input_from_symbol('V', ctype_from_precision_t(self.prec))
+        Q = torch.from_numpy(Q.reshape(self.N, self.d))
+        V = torch.from_numpy(V.reshape(self.N, self.d))
+        # Golden model expects key matrix in (N, d) form, while Snitch binary stores it in (d, N)
+        K = torch.from_numpy(K.reshape(self.d, self.N))
+        K = torch.transpose(K, 0, 1)
+        # return torch_golden_model(Q, K, V).detach().numpy().flatten()
+        return exact_golden_model(Q, K, V, self.B_r, self.B_c).flatten()
 
-    Q = elf.from_symbol('Q', ctype_from_precision_t(prec))
-    K = elf.from_symbol('K', ctype_from_precision_t(prec))
-    V = elf.from_symbol('V', ctype_from_precision_t(prec))
-    Q = torch.from_numpy(Q.reshape(N, d))
-    V = torch.from_numpy(V.reshape(N, d))
-    # Golden model expects key matrix in (N, d) form, while Snitch binary stores it in (d, N)
-    K = torch.from_numpy(K.reshape(d, N))
-    K = torch.transpose(K, 0, 1)
-
-    # Verify results
-    O_actual = from_buffer(raw_results['O'], ctype_from_precision_t(prec))
-    O_golden = exact_golden_model(Q, K, V, B_r, B_c).flatten()
-    # O_golden = torch_golden_model(Q, K, V).detach().numpy().flatten()
-
-    fail, rel_err = check_result(O_golden, O_actual, rtol=ERR_THRESHOLD)
-    if fail:
-        verification.dump_results_to_csv([O_golden, O_actual, rel_err],
-                                         Path.cwd() / 'flashattention_2_results.csv')
-        print('Maximum relative error:', np.max(rel_err))
-
-    return int(fail)
+    def check_results(self, *args):
+        return super().check_results(*args, rtol=1E-4)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(FlashAttention2Verifier().main())

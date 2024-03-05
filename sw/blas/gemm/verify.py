@@ -5,65 +5,49 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
+import numpy as np
 import sys
 from pathlib import Path
-import numpy as np
 from data.datagen import golden_model
 
-sys.path.append(str(Path(__file__).parent / "../../../util/sim/"))
-import verification  # noqa: E402
-from elf import Elf  # noqa: E402
-from data_utils import from_buffer, ctype_from_precision_t, check_result  # noqa: E402
+sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
+from verif_utils import Verifier  # noqa: E402
+from data_utils import ctype_from_precision_t  # noqa: E402
 
 
-ERR_THRESHOLD = {8: 1e-6, 4: 1e-6, 2: 1e-2, 1: 1e-1}
+class GemmVerifier(Verifier):
 
+    OUTPUT_UIDS = ['c']
+    ERR_THRESHOLD = {8: 1e-6, 4: 1e-6, 2: 1e-2, 1: 1e-1}
 
-def main():
-    # Run simulation and get outputs
-    args = verification.parse_args()
-    raw_results = verification.simulate(
-        sim_bin=args.sim_bin,
-        snitch_bin=args.snitch_bin,
-        symbols_bin=args.symbols_bin,
-        log=args.log,
-        output_uids=["c"],
-    )
+    def __init__(self):
+        super().__init__()
+        self.prec = self.get_input_from_symbol('dtype_size', 'uint32_t')[0]
 
-    # Extract input operands from ELF file
-    if args.symbols_bin:
-        elf = Elf(args.symbols_bin)
-    else:
-        elf = Elf(args.snitch_bin)
-    prec = elf.from_symbol('dtype_size', 'uint32_t')[0]
-    a = elf.from_symbol('a', ctype_from_precision_t(prec))
-    b = elf.from_symbol('b', ctype_from_precision_t(prec))
-    c = elf.from_symbol('c', ctype_from_precision_t(prec))
-    beta = elf.from_symbol('BETA', 'uint32_t')[0]
-    m = elf.from_symbol('M', 'uint32_t')[0]
-    n = elf.from_symbol('N', 'uint32_t')[0]
-    k = elf.from_symbol('K', 'uint32_t')[0]
-    tb = elf.from_symbol('TB', 'uint32_t')[0]
-    a = np.reshape(a, (m, k))
-    if tb:
-        b = np.reshape(b, (n, k))
-        b = b.transpose()
-    else:
-        b = np.reshape(b, (k, n))
-    c = np.reshape(c, (m, n))
+    def get_actual_results(self):
+        return self.get_output_from_symbol('c', ctype_from_precision_t(self.prec))
 
-    # Verify results
-    c_actual = from_buffer(raw_results['c'], ctype_from_precision_t(prec))
-    c_golden = golden_model(1, a, b, beta, c).flatten()
+    def get_expected_results(self):
+        a = self.get_input_from_symbol('a', ctype_from_precision_t(self.prec))
+        b = self.get_input_from_symbol('b', ctype_from_precision_t(self.prec))
+        c = self.get_input_from_symbol('c', ctype_from_precision_t(self.prec))
+        beta = self.get_input_from_symbol('BETA', 'uint32_t')[0]
+        m = self.get_input_from_symbol('M', 'uint32_t')[0]
+        n = self.get_input_from_symbol('N', 'uint32_t')[0]
+        k = self.get_input_from_symbol('K', 'uint32_t')[0]
+        tb = self.get_input_from_symbol('TB', 'uint32_t')[0]
+        a = np.reshape(a, (m, k))
+        if tb:
+            b = np.reshape(b, (n, k))
+            b = b.transpose()
+        else:
+            b = np.reshape(b, (k, n))
+        c = np.reshape(c, (m, n))
+        return golden_model(1, a, b, beta, c).flatten()
 
-    fail, abs_err = check_result(c_golden, c_actual, atol=ERR_THRESHOLD[prec])
-    if (fail or args.dump_results):
-        print('Simulation results are incorrect.')
-        verification.dump_results_to_csv([c_golden, c_actual, abs_err],
-                                         Path.cwd() / 'results.csv')
-
-    return int(fail)
+    def check_results(self, *args):
+        return super().check_results(*args, atol=self.ERR_THRESHOLD[self.prec])
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(GemmVerifier().main())

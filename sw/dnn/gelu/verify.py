@@ -6,61 +6,41 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import sys
-from pathlib import Path
-import numpy as np
 import torch
+from pathlib import Path
 from data.datagen import golden_model
 
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
-import verification  # noqa: E402
-from elf import Elf  # noqa: E402
-from data_utils import from_buffer, ctype_from_precision_t, check_result  # noqa: E402
+from verif_utils import Verifier  # noqa: E402
+from data_utils import ctype_from_precision_t  # noqa: E402
 
 
-ERR_THRESHOLD = 1E-0
+class GeluVerifier(Verifier):
 
+    OUTPUT_UIDS = ['ofmap']
 
-def main():
-    # Run simulation and get outputs
-    args = verification.parse_args()
-    raw_results = verification.simulate(sim_bin=args.sim_bin,
-                                        snitch_bin=args.snitch_bin,
-                                        symbols_bin=args.symbols_bin,
-                                        log=args.log,
-                                        output_uids=['ofmap'])
+    def __init__(self):
+        super().__init__()
+        self.layer_struct = {
+            'size': 'I',
+            'ifmap': 'I',
+            'ofmap': 'I',
+            'dtype': 'I'
+        }
+        self.layer = self.get_input_from_symbol('layer', self.layer_struct)
+        self.prec = self.layer['dtype']
 
-    # Extract input operands from ELF file
-    if args.symbols_bin:
-        elf = Elf(args.symbols_bin)
-    else:
-        elf = Elf(args.snitch_bin)
+    def get_actual_results(self):
+        return self.get_output_from_symbol('ofmap', ctype_from_precision_t(self.prec))
 
-    layer_struct = {
-        'size': 'I',
-        'ifmap': 'I',
-        'ofmap': 'I',
-        'dtype': 'I'
-    }
-    layer = elf.from_symbol('layer', layer_struct)
-    prec = layer['dtype']
+    def get_expected_results(self):
+        ifmap = self.get_input_from_symbol('ifmap', ctype_from_precision_t(self.prec))
+        ifmap = torch.from_numpy(ifmap)
+        return golden_model(ifmap).detach().numpy().flatten()
 
-    ifmap = elf.from_symbol('ifmap', ctype_from_precision_t(prec))
-    ifmap = torch.from_numpy(ifmap)
-
-    # Verify results
-    ofmap_actual = from_buffer(raw_results['ofmap'], ctype_from_precision_t(prec))
-    ofmap_golden = golden_model(ifmap).detach().numpy().flatten()
-
-    fail, rel_err = check_result(ofmap_golden, ofmap_actual, rtol=ERR_THRESHOLD)
-
-    # Print results
-    if fail:
-        verification.dump_results_to_csv([ofmap_golden, ofmap_actual, rel_err],
-                                         Path.cwd() / 'gelu_results.csv')
-        print('Maximum relative error:', np.max(rel_err))
-
-    return int(fail)
+    def check_results(self, *args):
+        return super().check_results(*args, rtol=1E-10)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(GeluVerifier().main())

@@ -6,65 +6,50 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import sys
-from pathlib import Path
 import torch
+from pathlib import Path
 from data.datagen import golden_model
 
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
-import verification  # noqa: E402
-from elf import Elf  # noqa: E402
-from data_utils import from_buffer, ctype_from_precision_t, check_result  # noqa: E402
+from verif_utils import Verifier  # noqa: E402
+from data_utils import ctype_from_precision_t  # noqa: E402
 
 
-ERR_THRESHOLD = 0.003
+class SoftmaxVerifier(Verifier):
+
+    OUTPUT_UIDS = ['ofmap']
+
+    def __init__(self):
+        super().__init__()
+        self.layer_struct = {
+            'batch_size': 'I',
+            'seq_len': 'I',
+            'input_samples': 'I',
+            'reduce_dim': 'i',
+            'ifmap_ptr': 'I',
+            'ofmap_ptr': 'I',
+            'dtype': 'I'
+        }
+        self.layer = self.get_input_from_symbol('layer', self.layer_struct)
+        self.batch_size = self.layer['batch_size']
+        self.seq_len = self.layer['seq_len']
+        self.input_samples = self.layer['input_samples']
+        self.reduce_dim = self.layer['reduce_dim']
+        self.prec = self.layer['dtype']
 
 
-def main():
-    # Run simulation and get outputs
-    args = verification.parse_args()
-    raw_results = verification.simulate(sim_bin=args.sim_bin,
-                                        snitch_bin=args.snitch_bin,
-                                        symbols_bin=args.symbols_bin,
-                                        log=args.log,
-                                        output_uids=['ofmap'])
+    def get_actual_results(self):
+        return self.get_output_from_symbol('ofmap', ctype_from_precision_t(self.prec))
 
-    # Extract input operands from ELF file
-    if args.symbols_bin:
-        elf = Elf(args.symbols_bin)
-    else:
-        elf = Elf(args.snitch_bin)
+    def get_expected_results(self):
+        ifmap = self.get_input_from_symbol('ifmap', ctype_from_precision_t(self.prec))
+        ifmap = ifmap.reshape(self.batch_size, self.seq_len, self.input_samples)
+        ifmap = torch.from_numpy(ifmap)
+        return golden_model(ifmap, self.reduce_dim).detach().numpy().flatten()
 
-    layer_struct = {
-        'batch_size': 'I',
-        'seq_len': 'I',
-        'input_samples': 'I',
-        'reduce_dim': 'i',
-        'ifmap_ptr': 'I',
-        'ofmap_ptr': 'I',
-        'dtype': 'I'
-    }
-    layer = elf.from_symbol('layer', layer_struct)
-    batch_size = layer['batch_size']
-    seq_len = layer['seq_len']
-    input_samples = layer['input_samples']
-    reduce_dim = layer['reduce_dim']
-    prec = layer['dtype']
-
-    ifmap = elf.from_symbol('ifmap', ctype_from_precision_t(prec))
-    ifmap = ifmap.reshape(batch_size, seq_len, input_samples)
-    ifmap = torch.from_numpy(ifmap)
-
-    # Verify results
-    ofmap_actual = from_buffer(raw_results['ofmap'], ctype_from_precision_t(prec))
-    ofmap_golden = golden_model(ifmap, reduce_dim).detach().numpy().flatten()
-
-    fail, abs_err = check_result(ofmap_golden, ofmap_actual, atol=ERR_THRESHOLD)
-    if (fail):
-        verification.dump_results_to_csv([ofmap_golden, ofmap_actual, abs_err],
-                                         Path.cwd() / 'softmax_results.csv')
-
-    return int(fail)
+    def check_results(self, *args):
+        return super().check_results(*args, atol=0.003)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(SoftmaxVerifier().main())

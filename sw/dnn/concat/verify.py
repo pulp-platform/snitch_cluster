@@ -6,66 +6,46 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import sys
-from pathlib import Path
-import numpy as np
 import torch
+from pathlib import Path
 from data.datagen import golden_model
 
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
-import verification  # noqa: E402
-from elf import Elf  # noqa: E402
-from data_utils import from_buffer, ctype_from_precision_t, check_result  # noqa: E402
+from verif_utils import Verifier  # noqa: E402
+from data_utils import ctype_from_precision_t  # noqa: E402
 
 
-ERR_THRESHOLD = 1E-6
+class ConcatVerifier(Verifier):
 
+    OUTPUT_UIDS = ['output']
 
-def main():
-    # Run simulation and get outputs
-    args = verification.parse_args()
-    raw_results = verification.simulate(sim_bin=args.sim_bin,
-                                        snitch_bin=args.snitch_bin,
-                                        symbols_bin=args.symbols_bin,
-                                        log=args.log,
-                                        output_uids=['output'])
+    def __init__(self):
+        super().__init__()
+        self.layer_struct = {
+            'num_inputs': 'I',
+            'height': 'I',
+            'width': 'I',
+            'inputs': 'I',
+            'output': 'I',
+            'dtype': 'I'
+        }
+        self.layer = self.get_input_from_symbol('layer', self.layer_struct)
+        self.num_inputs = self.layer['num_inputs']
+        self.input_shape = [self.layer['height'], self.layer['width']]
+        self.prec = self.layer['dtype']
 
-    # Extract input operands from ELF file
-    if args.symbols_bin:
-        elf = Elf(args.symbols_bin)
-    else:
-        elf = Elf(args.snitch_bin)
+    def get_actual_results(self):
+        return self.get_output_from_symbol('output', ctype_from_precision_t(self.prec))
 
-    layer_struct = {
-        'num_inputs': 'I',
-        'height': 'I',
-        'width': 'I',
-        'inputs': 'I',
-        'output': 'I',
-        'dtype': 'I'
-    }
-    layer = elf.from_symbol('layer', layer_struct)
-    num_inputs = layer['num_inputs']
-    input_shape = [layer['height'], layer['width']]
-    inputs = layer['inputs']
-    prec = layer['dtype']
+    def get_expected_results(self):
+        inputs = [self.get_input_from_symbol(f'input_{i}', ctype_from_precision_t(self.prec))
+                  for i in range(self.num_inputs)]
+        inputs = [torch.from_numpy(tensor.reshape(self.input_shape)) for tensor in inputs]
+        return golden_model(inputs).detach().numpy().flatten()
 
-    inputs = [elf.from_symbol(f'input_{i}', ctype_from_precision_t(prec))
-              for i in range(num_inputs)]
-    inputs = [torch.from_numpy(tensor.reshape(input_shape)) for tensor in inputs]
-
-    # Verify results
-    output_actual = from_buffer(raw_results['output'], ctype_from_precision_t(prec))
-    output_golden = golden_model(inputs).detach().numpy().flatten()
-
-    fail, rel_err = check_result(output_golden, output_actual, rtol=ERR_THRESHOLD)
-
-    if fail:
-        verification.dump_results_to_csv([output_golden, output_actual, rel_err],
-                                         Path.cwd() / 'concat_results.csv')
-        print('Maximum relative error:', np.max(rel_err))
-
-    return int(fail)
+    def check_results(self, *args):
+        return super().check_results(*args, rtol=1E-6)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(ConcatVerifier().main())

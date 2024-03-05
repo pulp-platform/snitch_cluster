@@ -10,43 +10,25 @@ from pathlib import Path
 from data.datagen import golden_model
 
 sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
-import verification  # noqa: E402
-from elf import Elf  # noqa: E402
-from data_utils import from_buffer, check_result  # noqa: E402
+from verif_utils import Verifier  # noqa: E402
 
 
-ERR_THRESHOLD = 1E-10
+class AxpyVerifier(Verifier):
 
+    OUTPUT_UIDS = ['z']
 
-def main():
-    # Run simulation and get outputs
-    args = verification.parse_args()
-    raw_results = verification.simulate(sim_bin=args.sim_bin,
-                                        snitch_bin=args.snitch_bin,
-                                        symbols_bin=args.symbols_bin,
-                                        log=args.log,
-                                        output_uids=['z'])
-    z_actual = from_buffer(raw_results['z'], 'double')
+    def get_actual_results(self):
+        return self.get_output_from_symbol('z', 'double')
 
-    # Extract input operands from ELF file
-    if args.symbols_bin:
-        elf = Elf(args.symbols_bin)
-    else:
-        elf = Elf(args.snitch_bin)
-    a = elf.from_symbol('a', 'double')
-    x = elf.from_symbol('x', 'double')
-    y = elf.from_symbol('y', 'double')
+    def get_expected_results(self):
+        a = self.get_input_from_symbol('a', 'double')
+        x = self.get_input_from_symbol('x', 'double')
+        y = self.get_input_from_symbol('y', 'double')
+        return golden_model(a, x, y)
 
-    # Verify results
-    z_golden = golden_model(a, x, y)
-    fail, rel_err = check_result(z_golden, z_actual, rtol=ERR_THRESHOLD)
-
-    if fail:
-        verification.dump_results_to_csv([z_golden, z_actual, rel_err],
-                                         Path.cwd() / 'axpy_results.csv')
-
-    return int(fail)
+    def check_results(self, *args):
+        return super().check_results(*args, rtol=1e-10)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(AxpyVerifier().main())
