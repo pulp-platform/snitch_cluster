@@ -55,6 +55,7 @@ nav:
       - Software:
           - Simulation Utilities:
               - data_utils: rm/sim/data_utils.md
+              - verif_utils: rm/sim/verif_utils.md
               - sim_utils: rm/sim/sim_utils.md
               - rm/sim/Simulation.md
               - rm/sim/Simulator.md
