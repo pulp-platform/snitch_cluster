@@ -8,14 +8,14 @@
 import sys
 import torch
 from pathlib import Path
-from data.datagen import golden_model
+from datagen import golden_model
 
-sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
+sys.path.append(str(Path(__file__).parent / '../../../../util/sim/'))
 from verif_utils import Verifier  # noqa: E402
 from data_utils import ctype_from_precision_t  # noqa: E402
 
 
-class LayernormVerifier(Verifier):
+class SoftmaxVerifier(Verifier):
 
     OUTPUT_UIDS = ['ofmap']
 
@@ -24,10 +24,8 @@ class LayernormVerifier(Verifier):
         self.layer_struct = {
             'batch_size': 'I',
             'seq_len': 'I',
-            'embeddings': 'I',
-            'n_tiles': 'I',
-            'baseline': 'I',
-            'eps': 'f',
+            'input_samples': 'I',
+            'reduce_dim': 'i',
             'ifmap_ptr': 'I',
             'ofmap_ptr': 'I',
             'dtype': 'I'
@@ -35,8 +33,8 @@ class LayernormVerifier(Verifier):
         self.layer = self.get_input_from_symbol('layer', self.layer_struct)
         self.batch_size = self.layer['batch_size']
         self.seq_len = self.layer['seq_len']
-        self.embeddings = self.layer['embeddings']
-        self.eps = self.layer['eps']
+        self.input_samples = self.layer['input_samples']
+        self.reduce_dim = self.layer['reduce_dim']
         self.prec = self.layer['dtype']
 
     def get_actual_results(self):
@@ -44,13 +42,13 @@ class LayernormVerifier(Verifier):
 
     def get_expected_results(self):
         ifmap = self.get_input_from_symbol('ifmap', ctype_from_precision_t(self.prec))
-        ifmap = ifmap.reshape(self.batch_size, self.seq_len, self.embeddings)
+        ifmap = ifmap.reshape(self.batch_size, self.seq_len, self.input_samples)
         ifmap = torch.from_numpy(ifmap)
-        return golden_model(ifmap, self.eps, self.embeddings, self.prec).detach().numpy().flatten()
+        return golden_model(ifmap, self.reduce_dim).detach().numpy().flatten()
 
     def check_results(self, *args):
-        return super().check_results(*args, atol=0.001)
+        return super().check_results(*args, atol=0.003)
 
 
 if __name__ == "__main__":
-    sys.exit(LayernormVerifier().main())
+    sys.exit(SoftmaxVerifier().main())

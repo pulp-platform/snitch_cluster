@@ -8,9 +8,9 @@
 import numpy as np
 import sys
 from pathlib import Path
-from data.datagen import golden_model
+from datagen import golden_model
 
-sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
+sys.path.append(str(Path(__file__).parent / '../../../../util/sim/'))
 from verif_utils import Verifier  # noqa: E402
 from data_utils import ctype_from_precision_t  # noqa: E402
 

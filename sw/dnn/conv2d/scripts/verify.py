@@ -11,7 +11,7 @@ import numpy as np
 import torch
 from data.datagen import golden_model
 
-sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
+sys.path.append(str(Path(__file__).parent / '../../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
 from data_utils import from_buffer, ctype_from_precision_t, check_result  # noqa: E402

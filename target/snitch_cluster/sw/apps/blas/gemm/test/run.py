@@ -52,7 +52,7 @@ def build_test(cfg):
         'elf': f'build/{cfg.stem}/gemm.elf',
         'name': f'gemm-{cfg.stem}',
         'cmd': [
-            '../../../../../../../sw/blas/gemm/verify.py',
+            '../../../../../../../sw/blas/gemm/scripts/verify.py',
             "${sim_bin}",
             "${elf}",
             '--dump-results'
