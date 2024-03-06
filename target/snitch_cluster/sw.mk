@@ -58,6 +58,7 @@ APPS += sw/apps/correlation
 APPS += sw/apps/covariance
 
 SUBDIRS = sw/runtime/banshee sw/runtime/rtl sw/math $(APPS) sw/tests
+SUBDIRS += sw/apps/axpy
 
 .PHONY: sw clean-sw $(SUBDIRS)
 
