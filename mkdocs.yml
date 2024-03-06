@@ -58,6 +58,7 @@ nav:
               - sim_utils: rm/sim/sim_utils.md
               - rm/sim/Simulation.md
               - rm/sim/Simulator.md
+              - rm/sim/Elf.md
           - Snitch Runtime:
               - Pages: runtime/Pages/index.md
               - Files: runtime/Files/index.md
