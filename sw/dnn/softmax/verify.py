@@ -37,7 +37,6 @@ class SoftmaxVerifier(Verifier):
         self.reduce_dim = self.layer['reduce_dim']
         self.prec = self.layer['dtype']
 
-
     def get_actual_results(self):
         return self.get_output_from_symbol('ofmap', ctype_from_precision_t(self.prec))
 

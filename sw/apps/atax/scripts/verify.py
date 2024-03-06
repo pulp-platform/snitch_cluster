@@ -35,4 +35,3 @@ class AtaxVerifier(Verifier):
 
 if __name__ == "__main__":
     sys.exit(AtaxVerifier().main())
-
