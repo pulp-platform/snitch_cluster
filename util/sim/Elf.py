@@ -3,9 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
-#
-# This class implements a minimal wrapper around pyelftools
-# to easily inspect ELF files.
 
 from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection
@@ -13,8 +10,14 @@ from data_utils import from_buffer
 
 
 class Elf(object):
+    """Minimal wrapper around `pyelftools` to easily inspect ELF files."""
 
     def __init__(self, elf_path):
+        """Default constructor.
+
+        Arguments:
+            elf_path: Path to an ELF binary.
+        """
         self.elf_path = elf_path
         self.stream = open(self.elf_path, 'rb')
         self.elf = ELFFile(self.stream)
@@ -27,14 +30,29 @@ class Elf(object):
             self.symtab = section
 
     def get_symbol_address(self, uid):
+        """Returns the address of a global symbol.
+
+        Arguments:
+            uid: A global symbol.
+        """
         symbol = self.symtab.get_symbol_by_name(uid)[0]
         return symbol.entry["st_value"]
 
     def get_symbol_size(self, uid):
+        """Returns the size of a global symbol.
+
+        Arguments:
+            uid: A global symbol.
+        """
         symbol = self.symtab.get_symbol_by_name(uid)[0]
         return symbol.entry["st_size"]
 
     def get_raw_symbol_contents(self, uid):
+        """Returns a bytearray with the contents of a global symbol.
+
+        Arguments:
+            uid: A global symbol.
+        """
         addr = self.get_symbol_address(uid)
         size = self.get_symbol_size(uid)
         try:
@@ -51,4 +69,15 @@ class Elf(object):
         return contents
 
     def from_symbol(self, uid, ctype):
+        """Returns an array with the contents of a global symbol.
+
+        The array is formatted from the raw byte contents returned by
+        [`get_raw_symbol_contents()`][Elf.Elf.get_raw_symbol_contents]
+        using the [`from_buffer()`][data_utils.from_buffer] function.
+
+        Arguments:
+            uid: A global symbol.
+            ctype: C type identifier passed on to the
+                [`from_buffer()`][data_utils.from_buffer] function.
+        """
         return from_buffer(self.get_raw_symbol_contents(uid), ctype)
