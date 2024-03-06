@@ -7,7 +7,7 @@
 
 import sys
 from pathlib import Path
-from datagen import golden_model
+from datagen import AxpyDataGen
 
 sys.path.append(str(Path(__file__).parent / '../../../../util/sim/'))
 from verif_utils import Verifier  # noqa: E402
@@ -24,7 +24,7 @@ class AxpyVerifier(Verifier):
         a = self.get_input_from_symbol('a', 'double')
         x = self.get_input_from_symbol('x', 'double')
         y = self.get_input_from_symbol('y', 'double')
-        return golden_model(a, x, y)
+        return AxpyDataGen().golden_model(a, x, y)
 
     def check_results(self, *args):
         return super().check_results(*args, rtol=1e-10)
