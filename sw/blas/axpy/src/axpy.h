@@ -4,9 +4,9 @@
 
 #include "snrt.h"
 
-inline void axpy(uint32_t l, double a, double* x, double* y, double* z) {
+inline void axpy(uint32_t n, double a, double* x, double* y, double* z) {
     int core_idx = snrt_cluster_core_idx();
-    int frac = l / snrt_cluster_compute_core_num();
+    int frac = n / snrt_cluster_compute_core_num();
     int offset = core_idx * frac;
 
 #ifndef XSSR

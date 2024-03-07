@@ -5,54 +5,32 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
+import numpy as np
 import sys
 from pathlib import Path
-import numpy as np
 from datagen import CovarianceDataGen
 
-sys.path.append(str(Path(__file__).parent / "../../../util/sim/"))
-import verification  # noqa: E402
-from elf import Elf  # noqa: E402
-from data_utils import from_buffer  # noqa: E402
+sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
+from verif_utils import Verifier  # noqa: E402
 
 
-ERR_THRESHOLD = 1e-10
+class CovarianceVerifier(Verifier):
 
+    OUTPUT_UIDS = ['cov']
 
-def main():
-    # Run simulation and get outputs
-    args = verification.parse_args()
-    raw_results = verification.simulate(
-        sim_bin=args.sim_bin,
-        snitch_bin=args.snitch_bin,
-        symbols_bin=args.symbols_bin,
-        log=args.log,
-        output_uids=['cov'],
-    )
+    def get_actual_results(self):
+        return self.get_output_from_symbol('cov', 'double')
 
-    # Extract input operands from ELF file
-    if args.symbols_bin:
-        elf = Elf(args.symbols_bin)
-    else:
-        elf = Elf(args.snitch_bin)
-    M = elf.from_symbol('M', 'uint32_t')[0]
-    N = elf.from_symbol('N', 'uint32_t')[0]
-    data = elf.from_symbol('data', 'double')
-    data = np.reshape(data, (N, M))
+    def get_expected_results(self):
+        M = self.get_input_from_symbol('M', 'uint32_t')[0]
+        N = self.get_input_from_symbol('N', 'uint32_t')[0]
+        data = self.get_input_from_symbol('data', 'double')
+        data = np.reshape(data, (N, M))
+        return CovarianceDataGen().golden_model(data).flatten()
 
-    # Verify results
-    cov_actual = from_buffer(raw_results['cov'], 'double')
-    cov_golden = CovarianceDataGen().golden_model(data).flatten()
-
-    relative_err = np.absolute((cov_golden - cov_actual) / cov_golden)
-    fail = np.any(relative_err > ERR_THRESHOLD)
-    if (fail):
-        print('Simulation results are incorrect.')
-        verification.dump_results_to_csv([cov_golden, cov_actual, relative_err],
-                                         Path.cwd() / 'results.csv')
-
-    return int(fail)
+    def check_results(self, *args):
+        return super().check_results(*args, rtol=1e-10)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(CovarianceVerifier().main())

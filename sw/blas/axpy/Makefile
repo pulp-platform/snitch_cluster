@@ -9,18 +9,21 @@ MK_DIR   := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 DATA_DIR := $(realpath $(MK_DIR)/data)
 SRC_DIR  := $(realpath $(MK_DIR)/src)
 
-LENGTH  ?= 24
-SECTION ?=
+DATA_CFG ?= $(DATA_DIR)/params.json
+SECTION  ?=
 
 APP     ?= axpy
-SRCS    ?= $(SRC_DIR)/main.c
-INCDIRS += $(DATA_DIR) $(SRC_DIR)
+SRCS    ?= $(realpath $(SRC_DIR)/main.c)
+INCDIRS ?= $(dir $(DATA_H)) $(SRC_DIR)
 
-DATAGEN_PY = $(DATA_DIR)/datagen.py
-DATA_H     = $(DATA_DIR)/data.h
+DATAGEN_PY = $(MK_DIR)/scripts/datagen.py
+DATA_H    ?= $(DATA_DIR)/data.h
 
-$(DATA_H): $(DATAGEN_PY)
-	$< $(LENGTH) --section="$(SECTION)" > $@
+$(dir $(DATA_H)):
+	mkdir -p $@
+
+$(DATA_H): $(DATAGEN_PY) $(DATA_CFG) | $(dir $(DATA_H))
+	$< -c $(DATA_CFG) --section="$(SECTION)" > $@
 
 .PHONY: clean-data clean
 

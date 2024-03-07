@@ -75,19 +75,19 @@ runs:
   - elf: tests/build/caq_frep.elf
     simulators: [vsim, vcs, verilator] # banshee does not model FREP timing
   - elf: apps/blas/axpy/build/axpy.elf
-    cmd: [../../../sw/blas/axpy/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../sw/blas/axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/blas/gemm/build/gemm.elf
-    cmd: [../../../sw/blas/gemm/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../sw/blas/gemm/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/dnn/batchnorm/build/batchnorm.elf
   - elf: apps/dnn/maxpool/build/maxpool.elf
   # - elf: apps/dnn/conv2d/build/conv2d.elf # Fails with wrong results
-  #   cmd: [../../../sw/dnn/conv2d/verify.py, "${sim_bin}", "${elf}"]
+  #   cmd: [../../../sw/dnn/conv2d/scripts/verify.py, "${sim_bin}", "${elf}"]
   # - elf: apps/dnn/fusedconv/build/fusedconv.elf # Fails with wrong results
-  #   cmd: [../../../sw/dnn/fusedconv/verify.py, "${sim_bin}", "${elf}"]
+  #   cmd: [../../../sw/dnn/fusedconv/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/dnn/concat/build/concat.elf
-    cmd: [../../../sw/dnn/concat/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../sw/dnn/concat/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/dnn/fused_concat_linear/build/fused_concat_linear.elf
-    cmd: [../../../sw/dnn/fused_concat_linear/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../sw/dnn/fused_concat_linear/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/montecarlo/pi_estimation/build/pi_estimation.elf
   - elf: apps/atax/build/atax.elf
     cmd: [../../../sw/apps/atax/scripts/verify.py, "${sim_bin}", "${elf}"]

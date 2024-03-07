@@ -39,8 +39,8 @@ def sigmoid_gelu(x):
 
 
 def golden_model(ifmap):
-    # gelu = torch.nn.GELU(approximate='tanh')
-    gelu = sigmoid_gelu
+    gelu = torch.nn.GELU(approximate='tanh')
+    # gelu = sigmoid_gelu
     return gelu(ifmap)
 
 

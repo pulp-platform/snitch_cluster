@@ -5,55 +5,33 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
+import numpy as np
 import sys
 from pathlib import Path
-import numpy as np
 from datagen import AtaxDataGen
 
-sys.path.append(str(Path(__file__).parent / "../../../util/sim/"))
-import verification  # noqa: E402
-from elf import Elf  # noqa: E402
-from data_utils import from_buffer  # noqa: E402
+sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
+from verif_utils import Verifier  # noqa: E402
 
 
-ERR_THRESHOLD = 1e-10
+class AtaxVerifier(Verifier):
 
+    OUTPUT_UIDS = ['y']
 
-def main():
-    # Run simulation and get outputs
-    args = verification.parse_args()
-    raw_results = verification.simulate(
-        sim_bin=args.sim_bin,
-        snitch_bin=args.snitch_bin,
-        symbols_bin=args.symbols_bin,
-        log=args.log,
-        output_uids=["y"],
-    )
+    def get_actual_results(self):
+        return self.get_output_from_symbol('y', 'double')
 
-    # Extract input operands from ELF file
-    if args.symbols_bin:
-        elf = Elf(args.symbols_bin)
-    else:
-        elf = Elf(args.snitch_bin)
-    A = elf.from_symbol('A', 'double')
-    x = elf.from_symbol('x', 'double')
-    M = elf.from_symbol('M', 'uint32_t')[0]
-    N = elf.from_symbol('N', 'uint32_t')[0]
-    A = np.reshape(A, (M, N))
+    def get_expected_results(self):
+        A = self.get_input_from_symbol('A', 'double')
+        x = self.get_input_from_symbol('x', 'double')
+        M = self.get_input_from_symbol('M', 'uint32_t')[0]
+        N = self.get_input_from_symbol('N', 'uint32_t')[0]
+        A = np.reshape(A, (M, N))
+        return AtaxDataGen().golden_model(A, x).flatten()
 
-    # Verify results
-    y_actual = from_buffer(raw_results['y'], 'double')
-    y_golden = AtaxDataGen().golden_model(A, x).flatten()
-
-    relative_err = np.absolute((y_golden - y_actual) / y_golden)
-    fail = np.any(relative_err > ERR_THRESHOLD)
-    if (fail):
-        print('Simulation results are incorrect.')
-        verification.dump_results_to_csv([y_golden, y_actual, relative_err],
-                                         Path.cwd() / 'results.csv')
-
-    return int(fail)
+    def check_results(self, *args):
+        return super().check_results(*args, rtol=1e-10)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(AtaxVerifier().main())

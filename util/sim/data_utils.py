@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Author: Luca Colagrande <colluca@iis.ee.ethz.ch>
-"""Convenience functions for data generation scripts."""
+"""Convenience functions and classes for data generation scripts."""
 
 
 import argparse
@@ -247,7 +247,7 @@ class DataGen:
         """Parse default data generation script arguments.
 
         Returns the arguments passed to the data generation script, parsed
-        using the by `parser()` method.
+        using the `parser()` method.
         """
         return self.parser().parse_args()
 
