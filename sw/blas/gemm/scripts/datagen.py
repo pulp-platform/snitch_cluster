@@ -2,17 +2,17 @@
 # Copyright 2022 ETH Zurich and University of Bologna.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
-
+# 
 # Authors: Tim Fischer     <fischeti@iis.ee.ethz.ch>
 #          Luca Bertaccini <lbertaccini@iis.ee.ethz.ch>
 #          Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 #          Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import numpy as np
-import sys
 import os
 import re
 import pyflexfloat as ff
+import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
 import data_utils  # noqa: E402
@@ -83,6 +83,7 @@ class GemmDataGen(DataGen):
         assert not (dtype == 1 and impl == "OPT"), 'FP8 not supported in' \
             ' optimized implementation' \
             ' (switch to OPT_EX)'
+        assert dtype == 8 or beta == 0, 'beta != 0 supported only in FP64'
 
     def emit_header(self, **kwargs):
         header = [super().emit_header()]
