@@ -103,9 +103,6 @@ def emit_header(section, params):
 
     output = exact_golden_model(Q, K, V, B_r, B_c)
 
-    # Layer implementation assumes K is in (d, N) layout
-    K = torch.transpose(K, 0, 1)
-
     q_uid = 'Q'
     k_uid = 'K'
     v_uid = 'V'

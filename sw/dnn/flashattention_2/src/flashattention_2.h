@@ -141,20 +141,20 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
         for (int t_c = 0; t_c < T_c; t_c++) {
             snrt_cluster_hw_barrier();
 
-            // DMA copy K column block (d, B_c) and V row block (B_c, d) to
-            // TCDM. K is stored in (d, N) form in memory, V in (N, d) form
-            uint32_t k_fa_offset = t_c * B_c;
+            // DMA copy K column block (B_c, d) and V row block (B_c, d) to
+            // TCDM. Both K and V are stored in (N, d) form in memory
+            uint32_t k_fa_offset = t_c * B_c * d;
             uint32_t v_fa_offset = t_c * B_c * d;
             uint32_t start_dma = snrt_mcycle();
             if (!snrt_is_compute_core()) {
-                // K is in (d, N) format in main memory
+                // K is in (N, d) format in main memory
                 snrt_dma_txid_t txid_k_fa =
-                    snrt_dma_start_2d(K_fa,                /* dst */
-                                      K_l3 + k_fa_offset,  /* src */
-                                      B_c * sizeof(float), /* size */
-                                      B_c * sizeof(float), /* dst_stride */
-                                      N * sizeof(float),   /* src_stride */
-                                      d);                  /* repetitions */
+                    snrt_dma_start_2d(K_fa,               /* dst */
+                                      K_l3 + k_fa_offset, /* src */
+                                      d * sizeof(float),  /* size */
+                                      d * sizeof(float),  /* dst_stride */
+                                      d * sizeof(float),  /* src_stride */
+                                      B_c);               /* repetitions */
 
                 snrt_dma_txid_t txid_v_fa =
                     snrt_dma_start_2d(V_fa,               /* dst */
@@ -176,8 +176,8 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                 // column block of K to calculate a tile of S: S = Q * K^T.
                 // The S tile is of form (B_r, B_c)
                 uint32_t start_gemm = snrt_mcycle();
-                sc_st_gemm(dtype, 0, 0, 0, 0, B_r, B_c, d, 1, Q_fa, d, K_fa,
-                           B_c, 0, S_fa, B_c, baseline);
+                sc_st_gemm(dtype, 0, 0, 0, 1, B_r, B_c, d, 1, Q_fa, d, K_fa,
+                           d, 0, S_fa, B_c, baseline);
                 uint32_t end_gemm = snrt_mcycle();
 
                 snrt_cluster_hw_barrier();

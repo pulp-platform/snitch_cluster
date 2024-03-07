@@ -49,9 +49,7 @@ class FlashAttention2Verifier(Verifier):
         V = self.get_input_from_symbol('V', ctype_from_precision_t(self.prec))
         Q = torch.from_numpy(Q.reshape(self.N, self.d))
         V = torch.from_numpy(V.reshape(self.N, self.d))
-        # Golden model expects key matrix in (N, d) form, while Snitch binary stores it in (d, N)
-        K = torch.from_numpy(K.reshape(self.d, self.N))
-        K = torch.transpose(K, 0, 1)
+        K = torch.from_numpy(K.reshape(self.N, self.d))
         # return torch_golden_model(Q, K, V).detach().numpy().flatten()
         return exact_golden_model(Q, K, V, self.B_r, self.B_c).flatten()
 
