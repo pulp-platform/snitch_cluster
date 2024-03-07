@@ -240,6 +240,10 @@ class DataGen:
             '--section',
             type=str,
             help='Section to store matrices in')
+        parser.add_argument(
+            'output',
+            type=pathlib.Path,
+            help='Path of the output header file')
         return parser
 
     def parse_args(self):
@@ -272,4 +276,5 @@ class DataGen:
         param['section'] = args.section
 
         # Emit header file
-        print(self.emit_header(**param))
+        with open(args.output, 'w') as f:
+            f.write(self.emit_header(**param))

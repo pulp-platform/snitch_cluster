@@ -8,7 +8,7 @@
 import numpy as np
 import sys
 from pathlib import Path
-from datagen import golden_model
+from datagen import GemmDataGen
 
 sys.path.append(str(Path(__file__).parent / '../../../../util/sim/'))
 from verif_utils import Verifier  # noqa: E402
@@ -43,7 +43,7 @@ class GemmVerifier(Verifier):
         else:
             b = np.reshape(b, (k, n))
         c = np.reshape(c, (m, n))
-        return golden_model(1, a, b, beta, c).flatten()
+        return GemmDataGen().golden_model(1, a, b, beta, c).flatten()
 
     def check_results(self, *args):
         return super().check_results(*args, rtol=self.ERR_THRESHOLD[self.prec])
