@@ -42,8 +42,11 @@ def emit_header(**kwargs):
     baseline = kwargs['baseline']
 
     assert (seq_len % n_tiles) == 0, 'Input dimension is not an integer multiple of tile size'
-
+    
     torch_type = data_utils.torch_type_from_precision_t(prec)
+    # FIXME: 16-bit precision is not supported by torch.nn.LayerNorm
+    if torch_type == torch.float16:
+        torch_type = torch.float32
     ifmap = torch.randn(batch_size, seq_len, embeddings, requires_grad=False, dtype=torch_type)
 
     ofmap = golden_model(ifmap, eps, embeddings, prec)

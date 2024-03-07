@@ -9,7 +9,7 @@
         embeddings: 32
     },
     eps: 1e-5,
-    prec: "FP32",
+    prec: "FP16",
     n_tiles: 2,
     baseline: 0,
 }
