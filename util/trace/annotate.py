@@ -195,6 +195,9 @@ with open(trace, 'r') as f:
 
         # Split trace line in columns
         cols = re.split(r" +", line.strip())
+        # Break on line starting with "##", to ignore performance metrics following trace
+        if cols[0] == '##':
+            break
         # Get simulation time from first column
         time = cols[0]
         # RTL traces might not contain a PC on each line
