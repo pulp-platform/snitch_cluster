@@ -48,7 +48,31 @@ def golden_model(alpha, a, b, beta, c):
     return alpha * np.matmul(a, b) + beta * c
 
 
+def validate_config(prec, parallelize_m, parallelize_k, m_tiles, n_tiles, k_tiles, ta, tb, M, N, K,
+                    baseline, **kwargs):
+    frac_m = M / m_tiles
+    frac_n = N / n_tiles
+
+    assert (M % m_tiles) == 0, 'M is not an integer multiple of tile size'
+    assert (N % n_tiles) == 0, 'N is not an integer multiple of tile size'
+    assert (K % k_tiles) == 0, 'K is not an integer multiple of tile size'
+    assert (frac_m % 8) == 0, 'frac_m is not an integer multiple of the number of cores per' \
+                              'cluster'
+    assert not (parallelize_m and parallelize_k), 'Cannot parallelize K and M simultaneously'
+    assert not ta, 'SIMD kernels don\'t support transposed A matrix'
+    assert not ((prec != 64) and not baseline and not tb), 'Optimized SIMD kernels only support transposed B matrix'
+    assert not tb or n_tiles == 1, 'Tiling in the N dimension supported only if B is' \
+                                             ' not transposed'
+    assert not tb or k_tiles == 1, 'Tiling in the K dimension supported only if B is' \
+                                             ' not transposed'
+    assert baseline or frac_n >= 8, 'N dimension of tile size must be greater or equal to' \
+                                    ' the unrolling factor (8) when using optimized kernels'
+
+
 def emit_header(**kwargs):
+
+    # Validate parameters
+    validate_config(**kwargs)
 
     # Generate random input matrices
     prec = kwargs['prec']
@@ -60,23 +84,6 @@ def emit_header(**kwargs):
     parallelize_m = kwargs['parallelize_m']
     parallelize_k = kwargs['parallelize_k']
     baseline = kwargs['baseline']
-
-    assert (M % m_tiles) == 0, 'M is not an integer multiple of tile size'
-    assert (N % n_tiles) == 0, 'N is not an integer multiple of tile size'
-    assert (K % k_tiles) == 0, 'K is not an integer multiple of tile size'
-    frac_m = M / m_tiles
-    frac_n = N / n_tiles
-    assert (frac_m % 8) == 0, 'frac_m is not an integer multiple of the number of cores per' \
-                              'cluster'
-    assert not (parallelize_m and parallelize_k), 'Cannot parallelize K and M simultaneously'
-    assert not kwargs['ta'], 'SIMD kernels don\'t support transposed A matrix'
-    assert (prec == 64) or kwargs['tb'], 'SIMD kernels only support transposed B matrix'
-    assert not kwargs['tb'] or n_tiles == 1, 'Tiling in the N dimension supported only if B is' \
-                                             ' not transposed'
-    assert not kwargs['tb'] or k_tiles == 1, 'Tiling in the K dimension supported only if B is' \
-                                             ' not transposed'
-    assert baseline or frac_n >= 8, 'N dimension of tile size must be greater or equal to' \
-                                    ' the unrolling factor (8) when using optimized kernels'
 
     if prec == 8:
         # sign -1 or 1
