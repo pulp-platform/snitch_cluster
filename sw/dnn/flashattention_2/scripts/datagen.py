@@ -15,10 +15,12 @@ import os
 import torch
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
+sys.path.append(os.path.join(os.path.dirname(__file__), "../../../blas/"))
 import data_utils  # noqa: E402
 from data_utils import emit_license, \
                        format_struct_definition, format_array_definition, \
                        format_array_declaration, format_ifdef_wrapper  # noqa: E402
+import gemm
 
 torch.manual_seed(42)
 
@@ -82,17 +84,41 @@ def exact_golden_model(Q, K, V, B_r, B_c):
     return np.concatenate(O_tiles, 0)
 
 
+# Verify layer parameters are valid
+def validate_config(N, d, B_r, B_c, dtype, baseline):
+    assert (N % B_r) == 0, 'N is not an integer multiple of B_r'
+    assert (N % B_c) == 0, 'N is not an integer multiple of B_c'
+    assert (B_r % 8) == 0, 'B_r must be an integer multiple of the number of cores in a cluster'
+
+    # Q*K^t
+    gemm.datagen.validate_config(
+        prec=dtype, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
+        k_tiles=1, ta=0, tb=1, M=B_r, N=B_c, K=d, baseline=baseline
+    )
+
+    # P*V
+    if baseline:
+        gemm.scripts.datagen.validate_config(
+            prec=dtype, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
+            k_tiles=1, ta=0, tb=0, M=B_r, N=d, K=B_c, baseline=baseline
+        )        
+    else:
+        # P*(V^t)^t
+        gemm.scripts.datagen.validate_config(
+            prec=dtype, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
+            k_tiles=1, ta=0, tb=1, M=B_r, N=d, K=B_c, baseline=baseline
+        )
+
+
 def emit_header(section, params):
+
+    validate_config(**params)
+
     N = params['N']
     d = params['d']
     B_r = params['B_r']
     B_c = params['B_c']
     prec = params['dtype']
-
-    # Verify layer parameters are valid
-    assert (N % B_r) == 0, 'N is not an integer multiple of B_r'
-    assert (N % B_c) == 0, 'N is not an integer multiple of B_c'
-    assert (B_r % 8) == 0, 'B_r must be an integer multiple of the number of cores in a cluster'
 
     torch_type = data_utils.torch_type_from_precision_t(prec)
     ctype = data_utils.ctype_from_precision_t(prec)
