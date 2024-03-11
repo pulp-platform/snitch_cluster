@@ -176,7 +176,7 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
                 // column block of K to calculate a tile of S: S = Q * K^T.
                 // The S tile is of form (B_r, B_c)
                 uint32_t start_gemm = snrt_mcycle();
-                sc_st_gemm(dtype, 0, 0, 0, 1, B_r, B_c, d, 1, Q_fa, d, K_fa,
+                sc_st_gemm(dtype, 0, 1, 0, 1, B_r, B_c, d, 1, Q_fa, d, K_fa,
                            d, 0, S_fa, B_c, baseline);
                 uint32_t end_gemm = snrt_mcycle();
 
