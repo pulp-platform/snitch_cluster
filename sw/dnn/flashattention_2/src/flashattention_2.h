@@ -228,14 +228,34 @@ static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
 
                 // Calculate O tile (O_ij) of size (B_r, d).
                 // The P tile is of size (B_r, B_c) and V of size (B_c, d)
-                if (t_c == 0) {
+                if (baseline) {
                     // In first t_c iteration, initialize O_ij to P_ij * V_j
-                    sc_st_gemm(dtype, 0, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c,
-                               V_fa, d, 0.0f, O_fa, d, baseline);
-                } else {
                     // In successive t_c iterations, O_ij += P_ij * V_j
+                    uint32_t beta;
+                    if (t_c == 0) beta = 0;
+                    else beta = 1;
                     sc_st_gemm(dtype, 0, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c,
-                               V_fa, d, 1.0f, O_fa, d, baseline);
+                               V_fa, d, beta, O_fa, d, baseline);
+                } else {
+                    // The SIMD-optimized GEMM kernel performs the A*B^t
+                    // operation. We must transpose V in advance, so
+                    // we can compute P*(V^t)^t with the optimized GEMM.
+
+                    // Allocate space for V^t
+                    float *V_t = tcdm_ptr;
+                    tcdm_ptr += B_c * d * sizeof(float);
+
+                    // Compute V^t
+                    transpose_kernel(FP32, V_fa, V_t, B_c, d, baseline);
+
+                    // In first t_c iteration, initialize O_ij to
+                    // P_ij * (V_j^t)^t. In successive t_c iterations,
+                    // O_ij += P_ij * (V_j^t)^t
+                    uint32_t beta;
+                    if (t_c == 0) beta = 0;
+                    else beta = 1;
+                    sc_st_gemm(dtype, 0, 0, 0, 1, B_r, d, B_c, 1, P_fa, B_c,
+                               V_t, B_c, beta, O_fa, d, baseline);
                 }
 
                 uint32_t end_stats = snrt_mcycle();
