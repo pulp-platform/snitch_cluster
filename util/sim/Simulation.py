@@ -226,7 +226,7 @@ class QuestaVCSSimulation(RTLSimulation):
         # Extract the simulation time from the simulation log
         if self.log is not None:
             with open(self.log, 'r') as f:
-                for line in f.readlines():
+                for line in reversed(f.readlines()):
                     regex = r'Time: (\d+) ([a-z]+)\s+'
                     match = re.search(regex, line)
                     if match:
