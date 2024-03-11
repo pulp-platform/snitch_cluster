@@ -190,12 +190,9 @@ def print_summary(sims, early_exit=False, dry_run=False):
     Args:
         sims: A list of simulations from the simulation suite.
     """
-    # Header
-    header = '==== Test summary ===='
-    print(header)
-
     # Table
     table = PrettyTable()
+    table.title = 'Test summary'
     table.field_names = [
         'test',
         'launched',
