@@ -1,0 +1,27 @@
+// Copyright 2024 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+// Cluster configuration for a simple testbench system.
+{
+    Batch: 1
+    K: 2,
+    N: 4,
+    M: 4,
+    strideInnermostA: 256,
+    strideInnermostB: 256,
+    strideInnermostC: 256,
+    strideHalfC: 0,
+    ldA: 512,
+    ldB: 512,
+    ldC: 1024,
+    strideA: 0,
+    strideB: 0,
+    strideC: 0,
+    tileSize: 8,
+    meshRow: 8,
+    meshCol: 8,
+    delta_local_a: 0,
+    delta_local_b: 64,
+    delta_local_c: 4096
+}
