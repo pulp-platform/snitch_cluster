@@ -54,6 +54,9 @@ def emit_header(**kwargs):
     n, ih, iw, ci = ifmap.shape
     _, oh, ow, co = ofmap.shape
 
+    ifmap = data_utils.flatten(ifmap)
+    ofmap = data_utils.flatten(ofmap)
+
     ifmap_uid = 'ifmap'
     ofmap_uid = 'ofmap'
 

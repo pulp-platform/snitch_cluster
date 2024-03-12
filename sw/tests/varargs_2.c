@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <stdarg.h>
 
-// Use `-O1` for this function and don't inline.
-int __attribute__((noinline)) __attribute__((optimize(1)))
+// Use `-O0` for this function and don't inline.
+int __attribute__((noinline)) __attribute__((optnone))
 sum(int dummy0, int dummy1, int dummy2, int dummy3, int dummy4, int dummy5,
     int dummy6, int N, ...) {
     (void)dummy0;

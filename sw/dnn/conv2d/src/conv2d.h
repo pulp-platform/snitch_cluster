@@ -330,8 +330,8 @@ void bn_relu(const float *pBuffer, const uint16_t dim_x, const uint16_t dim_y,
                      ssr_i[0], ssr_i[1], ssr_i[2], ssr_i[3]);
     snrt_ssr_repeat(SNRT_SSR_DM1, 1);  // Disable repeat from conv2d
 
-    snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_4D, &pBuffer[compute_id * 2]);
-    snrt_ssr_write(SNRT_SSR_DM1, SNRT_SSR_4D, &pBuffer[compute_id * 2]);
+    snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_4D, (volatile void *)&pBuffer[compute_id * 2]);
+    snrt_ssr_write(SNRT_SSR_DM1, SNRT_SSR_4D, (volatile void *)&pBuffer[compute_id * 2]);
 
     // Regular path with max unrolling is only done if dim_y
     // is at least n_unroll
@@ -413,9 +413,9 @@ void bn_relu(const float *pBuffer, const uint16_t dim_x, const uint16_t dim_y,
         uint32_t h_cleanup_index = dim_y - cleanup_unroll;
 
         snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_4D,
-                      &pBuffer[h_cleanup_index * h_stride + compute_id * 2]);
+                      (volatile void*)&pBuffer[h_cleanup_index * h_stride + compute_id * 2]);
         snrt_ssr_write(SNRT_SSR_DM1, SNRT_SSR_4D,
-                       &pBuffer[h_cleanup_index * h_stride + compute_id * 2]);
+                       (volatile void*)&pBuffer[h_cleanup_index * h_stride + compute_id * 2]);
 
         for (uint32_t co = compute_id; co < ch / 2; co += compute_num) {
             volatile register v2s current_lambda = ((v2s *)lambda)[co];

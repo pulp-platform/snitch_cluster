@@ -76,7 +76,7 @@ $(BUILDDIR)/%.elf: $(SRC_DIR)/%.c $(BUILDDIR)/%.d | $(BUILDDIR)
 	$(RISCV_CC) $(RISCV_CFLAGS) $(RISCV_LDFLAGS) $(SRC_DIR)/$*.c -o $@
 
 $(BUILDDIR)/%.dump: $(BUILDDIR)/%.elf | $(BUILDDIR)
-	$(RISCV_OBJDUMP) -D -S $< > $@
+	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_FLAGS) $< > $@
 
 $(BUILDDIR)/%.dwarf: $(BUILDDIR)/%.elf | $(BUILDDIR)
 	$(RISCV_DWARFDUMP) --all $< > $@

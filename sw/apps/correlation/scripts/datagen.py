@@ -29,7 +29,7 @@ class CorrelationDataGen(DataGen):
         header = [super().emit_header()]
 
         M, N = kwargs['M'], kwargs['N']
-        data = np.random.random_integers(-200, 100, size=(N, M))/100
+        data = np.random.randint(-200, 100, size=(N, M))/100
         corr = self.golden_model(data)
 
         data = data.flatten()

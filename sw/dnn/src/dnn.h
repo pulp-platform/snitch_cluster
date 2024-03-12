@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 // Guard to avoid conflict with BLAS header file
-// TODO: move this definition to Snitch math library to solve problem
+// TODO: consider moving this definition to snRuntime to solve problem
 #ifndef PRECISION_T
 #define PRECISION_T
 typedef enum { FP64 = 8, FP32 = 4, FP16 = 2, FP8 = 1 } precision_t;
@@ -29,9 +29,6 @@ typedef union {
     double f64;
     v8f8 vec;
 } v8s;
-
-#define M_PI 3.14159265358979323846
-#define INFINITY 0x7f800000
 
 /**
  * @struct network_t_

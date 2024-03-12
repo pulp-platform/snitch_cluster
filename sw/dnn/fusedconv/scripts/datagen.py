@@ -176,32 +176,36 @@ def emit_header(**kwargs):
         'dtype': prec
     }
 
+    ifmap_padded = data_utils.flatten(ifmap_padded.numpy())
+    kernel = data_utils.flatten(kernel.numpy())
+    ofmap_before = data_utils.flatten(ofmap_before.numpy())
+
     data_str = [emit_license()]
     data_str += [format_array_declaration(ctype, 'fusedconv_pInBuffer_dram',
-                                          ifmap_padded.numpy().shape, BURST_ALIGNMENT)]
+                                          ifmap_padded.shape, BURST_ALIGNMENT)]
     data_str += [format_array_declaration(ctype, 'fusedconv_pWeight_dram',
-                                          kernel.numpy().shape, BURST_ALIGNMENT)]
+                                          kernel.shape, BURST_ALIGNMENT)]
     data_str += [format_array_declaration(ctype, 'fusedconv_lambda_dram',
                                           bn_l.numpy().shape, BURST_ALIGNMENT)]
     data_str += [format_array_declaration(ctype, 'fusedconv_kappa_dram',
                                           bn_k.numpy().shape, BURST_ALIGNMENT)]
     data_str += [format_array_declaration(ctype, 'fusedconv_pOutBuffer_dram',
-                                          ofmap_before.numpy().shape, BURST_ALIGNMENT)]
+                                          ofmap_before.shape, BURST_ALIGNMENT)]
     data_str += [format_array_declaration(ctype, 'fusedconv_pCheckOutBuffer_dram',
                                           ofmap.numpy().shape, BURST_ALIGNMENT)]
     data_str += [format_struct_definition('kernel_fp32', 'layer', layer_cfg)]
     data_str += [format_scalar_definition('uint32_t', 'dw', kwargs['depthwise'])]
     data_str += [format_scalar_definition('uint32_t', 'chw_layer', kwargs['chw_layer'])]
     data_str += [format_array_definition(ctype, 'fusedconv_pInBuffer_dram',
-                                         ifmap_padded.numpy(), BURST_ALIGNMENT)]
+                                         ifmap_padded, BURST_ALIGNMENT)]
     data_str += [format_array_definition(ctype, 'fusedconv_pWeight_dram',
-                                         kernel.numpy(), BURST_ALIGNMENT)]
+                                         kernel, BURST_ALIGNMENT)]
     data_str += [format_array_definition(ctype, 'fusedconv_lambda_dram',
                                          bn_l.numpy(), BURST_ALIGNMENT)]
     data_str += [format_array_definition(ctype, 'fusedconv_kappa_dram',
                                          bn_k.numpy(), BURST_ALIGNMENT)]
     data_str += [format_array_definition(ctype, 'fusedconv_pOutBuffer_dram',
-                                         ofmap_before.numpy(), BURST_ALIGNMENT)]
+                                         ofmap_before, BURST_ALIGNMENT)]
     data_str += [format_array_definition(ctype, 'fusedconv_pCheckOutBuffer_dram',
                                          ofmap.numpy(), BURST_ALIGNMENT)]
 
