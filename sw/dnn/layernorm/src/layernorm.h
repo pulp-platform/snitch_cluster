@@ -178,6 +178,8 @@ static inline void layernorm_fp32_opt(float *input, float *output,
                       [ embeddings ] "f"((float)embeddings)
                     : "ft0", "ft1", "ft2");
 
+                snrt_fpu_fence();
+
                 // Computation of the row variance
                 asm volatile(
                     "vfcpka.s.s %[mean_reg], %[mean_tot], %[mean_tot] \n"
@@ -223,6 +225,8 @@ static inline void layernorm_fp32_opt(float *input, float *output,
                     : "ft0", "ft1", "ft2"
 
                 );
+
+                snrt_fpu_fence();
 
                 snrt_ssr_read(SNRT_SSR_DM2, SNRT_SSR_2D,
                               &core_otile[b * batch_offset + s * stride]);
