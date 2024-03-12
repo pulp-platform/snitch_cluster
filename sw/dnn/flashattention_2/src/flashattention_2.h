@@ -40,8 +40,8 @@ typedef struct {
     uint32_t baseline;
 } flashattention_2_layer_t;
 
-#include "flashattention_2_fp16.h"
-#include "flashattention_2_fp32.h"
+#include "../flashattention_2/src/flashattention_2_fp16.h"
+#include "../flashattention_2/src/flashattention_2_fp32.h"
 
 static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
     switch (layer.dtype) {

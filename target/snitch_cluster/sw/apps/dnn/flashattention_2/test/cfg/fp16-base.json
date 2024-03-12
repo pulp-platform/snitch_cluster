@@ -1,0 +1,12 @@
+// Copyright 2023 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{
+    N: 16,
+    d: 16,
+    B_r: 16,
+    B_c: 16,
+    dtype: "FP16",
+    baseline: true
+}
