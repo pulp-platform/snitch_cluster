@@ -20,7 +20,7 @@ import data_utils  # noqa: E402
 from data_utils import emit_license, \
                        format_struct_definition, format_array_definition, \
                        format_array_declaration, format_ifdef_wrapper  # noqa: E402
-import gemm
+import gemm  # noqa: E402
 
 torch.manual_seed(42)
 
@@ -89,6 +89,7 @@ def validate_config(N, d, B_r, B_c, dtype, baseline):
     assert (N % B_r) == 0, 'N is not an integer multiple of B_r'
     assert (N % B_c) == 0, 'N is not an integer multiple of B_c'
     assert (B_r % 8) == 0, 'B_r must be an integer multiple of the number of cores in a cluster'
+    assert dtype == 'FP32' or dtype == 'FP16', 'Only FP32 anD FP16 precisions are supported'
 
     # Q*K^t
     gemm.datagen.validate_config(
@@ -101,7 +102,7 @@ def validate_config(N, d, B_r, B_c, dtype, baseline):
         gemm.scripts.datagen.validate_config(
             prec=dtype, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
             k_tiles=1, ta=0, tb=0, M=B_r, N=d, K=B_c, baseline=baseline
-        )        
+        )
     else:
         # P*(V^t)^t
         gemm.scripts.datagen.validate_config(

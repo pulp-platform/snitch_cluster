@@ -43,7 +43,8 @@ def build_sw(cfg):
         DATA_H=Path(f'include/{cfg.stem}/data.h').resolve(),
         APP_BUILDDIR=Path(f'build/{cfg.stem}').resolve()
     )
-    subprocess.run(['make', '-C', '../../../../../', 'sw/apps/dnn/flashattention_2'], check=True, env=env)
+    subprocess.run(['make', '-C', '../../../../../', 'sw/apps/dnn/flashattention_2'],
+                   check=True, env=env)
 
 
 # Build test specification for a specific configuration
