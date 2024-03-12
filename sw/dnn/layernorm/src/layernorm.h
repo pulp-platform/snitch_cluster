@@ -43,8 +43,8 @@ typedef struct layernorm_layer_struct {
  * Single-cluster implementation of a layernorm tile (data assumed in TCDM)
  */
 static inline void layernorm_fp32_naive(float *input, float *output,
-                                  int32_t batch_size, int32_t seq_len,
-                                  int32_t embeddings, int32_t eps) {
+                                        int32_t batch_size, int32_t seq_len,
+                                        int32_t embeddings, int32_t eps) {
     if (snrt_is_compute_core()) {
         // Get parameters for every core's tile
         // cores access rows in interleaved fashion
