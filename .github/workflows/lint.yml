@@ -78,13 +78,7 @@ jobs:
           match_regex: true
           exclude_paths: |
             sw/snRuntime/src/omp/interface.h
-            sw/math/arch/generic/*
-            sw/math/arch/riscv64/bits/*
-            sw/math/include/*
-            sw/math/src/include/*
-            sw/math/src/internal/*
-            sw/math/src/math/*
-            sw/math/Makefile
+            target/snitch_cluster/sw/apps/dnn/flashattention_2/tcasai/roi.json.tpl
 
   ##################
   # Lint YML Files #

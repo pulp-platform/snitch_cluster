@@ -34,7 +34,6 @@ snitch-cluster-sw:
     - make sw
   artifacts:
     paths:
-      - sw/math/include/bits/alltypes.h
       - target/snitch_cluster/sw/**/build/*.elf
     expire_in: 1 day
 
@@ -44,7 +43,6 @@ snitch-cluster-sw-banshee:
     - make SELECT_RUNTIME=banshee sw
   artifacts:
     paths:
-      - sw/math/include/bits/alltypes.h
       - target/snitch_cluster/sw/**/build/*.elf
     expire_in: 1 day
 
