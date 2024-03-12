@@ -18,6 +18,7 @@ import argparse
 import json
 from ctypes import c_int32, c_uint32
 from collections import deque, defaultdict
+import pathlib
 
 EXTRA_WB_WARN = 'WARNING: {} transactions still in flight for {}.'
 
@@ -309,7 +310,36 @@ PRIV_LVL = {'3': 'M', '1': 'S', '0': 'U'}
 # -------------------- FPU helpers  --------------------
 
 
-def flt_oper(extras: dict, port: int) -> (str, str):
+def vec_formatter(insn: str, op_type: str, hex_val: int, fmt: int) -> str:
+    # file data:
+    # instruction,source_width,source_vec_len,destination_width,destination_vec_len
+    opcodes_file_name = 'opcodes-flt-occamy_CUSTOM.csv'
+    opcodes_file_path = pathlib.Path(__file__).parent.absolute() / opcodes_file_name
+    # cut the insn after the first space
+    insn = insn.split(' ')[0]
+    # check if operand is a source or a destination
+    is_rd = (op_type == 'rd')
+    return_vec = []
+    # check if the insn is in the opcodes file
+    with open(opcodes_file_path, 'r') as f:
+        for line in f:
+            if insn in line:
+                if not is_rd:
+                    width = line.split(',')[1]
+                    vec_len = line.split(',')[2]
+                else:
+                    width = line.split(',')[3]
+                    vec_len = line.split(',')[4]
+                # divide the hex value into source_vec_len each of width source_width
+                vec = [hex_val >> (int(width) * i) & (2**int(width) - 1) for i in range(int(vec_len))]
+                # decode the source_vec
+                vec_dec = [flt_decode(val, fmt) for val in vec]
+                return_vec = vec_dec
+    return return_vec
+
+
+
+def flt_oper(extras: dict, insn: str, port: int) -> (str, str):
     op_sel = extras['op_sel_{}'.format(port)]
     oper_type = FPU_OPER_TYPES[op_sel]
     if oper_type == 'acc':
@@ -320,8 +350,8 @@ def flt_oper(extras: dict, port: int) -> (str, str):
     else:
         fmt = LS_TO_FLOAT[
             extras['ls_size']] if extras['is_store'] else extras['src_fmt']
-        return REG_ABI_NAMES_F[extras[oper_type]], flt_lit(
-            extras['op_{}'.format(port)], fmt)
+        SIMD_vec = vec_formatter(insn, oper_type, extras['op_{}'.format(port)], fmt)
+        return REG_ABI_NAMES_F[extras[oper_type]], SIMD_vec
 
 
 def flt_decode(val: int, fmt: int) -> float:
@@ -554,6 +584,7 @@ def annotate_snitch(extras: dict,
 
 def annotate_fpu(
         extras: dict,
+        insn: str,
         cycle: int,
         fpr_wb_info: dict,
         perf_metrics: list,
@@ -571,7 +602,8 @@ def annotate_fpu(
         # Operands: omit on store
         if not extras['is_store']:
             for i_op in range(3):
-                oper_name, val = flt_oper(extras, i_op)
+                # operand name and its value
+                oper_name, val = flt_oper(extras, insn, i_op)
                 if oper_name != 'NONE':
                     ret.append('{:<4} = {}'.format(oper_name, val))
         # Load / Store requests
@@ -586,7 +618,7 @@ def annotate_fpu(
                     int_lit(extras['lsu_qaddr'], force_hex=force_hex_addr)))
             if extras['is_store']:
                 perf_metrics[curr_sec]['fpss_stores'] += 1
-                _, val = flt_oper(extras, 1)
+                _, val = flt_oper(extras, insn, 1)
                 ret.append('{} ~~> {}[{}]'.format(
                     val, LS_SIZES[s],
                     int_lit(extras['lsu_qaddr'], force_hex=force_hex_addr)))
@@ -698,7 +730,7 @@ def annotate_insn(
                     annot_list.append('[{} {}:{}]'.format(
                         fseq_pc_str[-4:], *fseq_annot))
             annot_list.append(
-                annotate_fpu(extras, time_info[1], fpr_wb_info, perf_metrics,
+                annotate_fpu(extras, insn, time_info[1], fpr_wb_info, perf_metrics,
                              fseq_info['curr_sec'], force_hex_addr,
                              permissive))
             annot = ', '.join(annot_list)
