@@ -855,6 +855,7 @@ module snitch_cc #(
   // pragma translate_off
   int f;
   string fn;
+  string logs_dir, mkdir_cmd;
   logic [63:0] cycle = 0;
   initial begin
     // We need to schedule the assignment into a safe region, otherwise
@@ -863,8 +864,12 @@ module snitch_cc #(
     /* verilator lint_off STMTDLY */
     #0;
     /* verilator lint_on STMTDLY */
-    $system("mkdir logs -p");
-    $sformat(fn, "logs/trace_hart_%05x.dasm", hart_id_i);
+    if (!$value$plusargs("LOGS_DIR=%s", logs_dir)) begin
+      logs_dir = "logs";
+    end
+    mkdir_cmd = $sformatf("mkdir -p %s", logs_dir);
+    $system(mkdir_cmd);
+    $sformat(fn, "%s/trace_hart_%05x.dasm", logs_dir, hart_id_i);
     f = $fopen(fn, "w");
     $display("[Tracer] Logging Hart %d to %s", hart_id_i, fn);
   end
