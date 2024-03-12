@@ -502,7 +502,8 @@ static inline void layernorm_layer(layernorm_layer_t l) {
     uint32_t n_tiles = l.n_tiles;
     uint32_t n_tiles_per_cluster = l.n_tiles / snrt_cluster_num();
     uint32_t tile_seq_len = l.seq_len / n_tiles;
-    uint32_t tile_size = l.batch_size * tile_seq_len * l.embeddings * data_type_size;
+    uint32_t tile_size =
+        l.batch_size * tile_seq_len * l.embeddings * data_type_size;
     uint32_t tile_offset = tile_seq_len * l.embeddings * data_type_size;
 
     // Allocate space for arrays in TCDM
@@ -553,8 +554,12 @@ static inline void layernorm_layer(layernorm_layer_t l) {
         // Compute layernorm tile
         if (snrt_is_compute_core()) snrt_mcycle();
         if (l.baseline == 1) {
-            layernorm_fp32_naive(local_itile, local_otile, l.batch_size, tile_seq_len,
-                           l.embeddings, l.eps);
+            if (l.dtype == FP32)
+                layernorm_fp32_naive(local_itile, local_otile, l.batch_size,
+                                     tile_seq_len, l.embeddings, l.eps);
+            else if (l.dtype == FP16)
+                layernorm_fp16_naive(local_itile, local_otile, l.batch_size,
+                                     tile_seq_len, l.embeddings, l.eps);
         } else {
             if (l.dtype == FP32) {
                 layernorm_fp32_opt(local_itile, local_otile, l.batch_size,
@@ -562,8 +567,6 @@ static inline void layernorm_layer(layernorm_layer_t l) {
             } else if (l.dtype == FP16) {
                 layernorm_fp16_opt(local_itile, local_otile, l.batch_size,
                                    tile_seq_len, l.embeddings, l.eps);
-                // layernorm_fp16_naive(local_itile, local_otile, l.batch_size,
-                //                     tile_seq_len, l.embeddings, l.eps);
             } else {
                 printf("Unsupported data type\n");
             }
