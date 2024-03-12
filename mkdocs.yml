@@ -27,6 +27,7 @@ plugins:
         python:
           paths:
             - util/sim
+            - util/trace
             - target/snitch_cluster/util
   - macros:
       on_error_fail: true
@@ -64,6 +65,8 @@ nav:
               - rm/sim/Simulation.md
               - rm/sim/Simulator.md
               - rm/sim/Elf.md
+          - Trace Utilities:
+              - gen_trace.py: rm/trace/gen_trace.md
           - Snitch Target Utilities:
               - run.py: rm/snitch_target_utils/run.md
               - build.py: rm/snitch_target_utils/build.md

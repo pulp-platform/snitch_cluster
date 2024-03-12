@@ -2,11 +2,15 @@
 # Copyright 2020 ETH Zurich and University of Bologna.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
-# This script takes a trace generated for a Snitch hart and transforms the
-# additional decode stage info into meaningful annotation. It also counts
-# and computes various performance metrics up to each mcycle CSR read.
-
+#
 # Author: Paul Scheffler <paulsc@iis.ee.ethz.ch>
+#         Luca Colagrande <colluca@iis.ee.ethz.ch>
+"""Human-readable Snitch trace generator script.
+
+This script takes a trace generated for a Snitch hart and transforms the
+additional decode stage info into meaningful annotation. It also counts
+and computes various performance metrics up to each mcycle CSR read.
+"""
 
 # TODO: OPER_TYPES and FPU_OPER_TYPES could break: optimization might alter enum mapping
 # TODO: We annotate all FP16 LSU values as IEEE, not FP16ALT... can we do better?
@@ -18,6 +22,8 @@ import argparse
 import json
 from ctypes import c_int32, c_uint32
 from collections import deque, defaultdict
+import pathlib
+from decimal import Decimal
 
 EXTRA_WB_WARN = 'WARNING: {} transactions still in flight for {}.'
 
@@ -309,22 +315,115 @@ PRIV_LVL = {'3': 'M', '1': 'S', '0': 'U'}
 # -------------------- FPU helpers  --------------------
 
 
-def flt_oper(extras: dict, port: int) -> (str, str):
+_cached_opcodes = None
+
+
+def load_opcodes():
+    global _cached_opcodes
+    opcode_file_name = 'opcodes-flt-occamy_CUSTOM.csv'
+    opcode_file_path = pathlib.Path(__file__).parent.absolute() / opcode_file_name
+
+    _cached_opcodes = {}
+    with open(opcode_file_path, 'r') as f:
+        for line in f:
+            fields = line.strip().split(',')
+            insn_name = fields[0]
+            vec_params = fields[1:5]
+            _cached_opcodes[insn_name] = vec_params
+
+
+def flt_op_vlen(insn: str, op_type: str) -> int:
+    """Get the vector length of a floating-point instruction operand.
+
+    Args:
+        insn: Instruction as extracted from the trace line.
+        op_type: One of the operand types defined in `FPU_OPER_TYPES`.
+    Returns:
+        The vector length of the operand, greater than one if SIMD.
+    """
+    global _cached_opcodes
+    if _cached_opcodes is None:
+        load_opcodes()
+
+    # Cut the instruction after the first space to get the instruction name
+    insn = insn.split(' ')[0]
+
+    # Check if operand is a source or a destination
+    is_rd = (op_type == 'rd')
+
+    # Get operand parameters from the instruction
+    op_params = _cached_opcodes.get(insn, None)
+
+    # Get vector length of operand
+    if op_params is not None and op_params != ([''] * 4):
+        vlen = int(op_params[3]) if is_rd else int(op_params[1])
+    else:
+        vlen = 1
+    return vlen
+
+
+def flt_op_fmt(extras: dict, port: int) -> int:
+    """Extracts the floating-point format of an instruction operand.
+
+    Args:
+        extras: The dictionary containing the instruction's extra
+            information.
+        port: The index of the floating-point operand.
+    """
     op_sel = extras['op_sel_{}'.format(port)]
     oper_type = FPU_OPER_TYPES[op_sel]
-    if oper_type == 'acc':
-        return 'ac{}'.format(port + 1), int_lit(
-            extras['acc_qdata_{}'.format(port)], extras['int_fmt'])
-    elif oper_type == 'NONE':
-        return oper_type, None
+    if extras['is_store']:
+        return LS_TO_FLOAT[extras['ls_size']]
     else:
-        fmt = LS_TO_FLOAT[
-            extras['ls_size']] if extras['is_store'] else extras['src_fmt']
-        return REG_ABI_NAMES_F[extras[oper_type]], flt_lit(
-            extras['op_{}'.format(port)], fmt)
+        if oper_type == 'rd':
+            return extras['dst_fmt']
+        else:
+            return extras['src_fmt']
 
+
+def flt_oper(insn: str, extras: dict, port: int) -> (str, str):
+    """Extracts details on the floating-point operand of an instruction.
+
+    Args:
+        insn: The current instruction mnemonic.
+        extras: The dictionary containing the instruction's extra
+            information.
+        port: The index of the floating-point operand.
+    Returns:
+        A tuple containing the operand's register name and a string
+        literal representing the floating-point value.
+    """
+    op_sel = extras['op_sel_{}'.format(port)]
+    oper_type = FPU_OPER_TYPES[op_sel]
+
+    # Assign default return values
+    reg = oper_type
+    lit = None
+
+    # If operand comes from accelerator interface, format as integer.
+    if oper_type == 'acc':
+        reg = 'ac{}'.format(port + 1)
+        lit = int_lit(extras['acc_qdata_{}'.format(port)], extras['int_fmt'])
+    # If operand is not unspecified, format as floating-point.
+    elif oper_type != 'NONE':
+        # Get operand vector length, FP format and integer encoding
+        vlen = flt_op_vlen(insn, oper_type)
+        fmt = flt_op_fmt(extras, port)
+        enc = extras['op_{}'.format(port)]
+        # Return register name and floating-point literal
+        return REG_ABI_NAMES_F[extras[oper_type]], flt_lit(enc, fmt, vlen=vlen)
+    return reg, lit
 
 def flt_decode(val: int, fmt: int) -> float:
+    """Interprets the binary encoding of an integer as a FP value.
+
+    Args:
+        val: The integer encoding of the FP variable to decode.
+        fmt: The floating point number format, as an index into the
+            `FLOAT_FMTS` array.
+    Returns:
+        The floating point value represented by the input integer.
+    """
     # get format and bit vector
     w_exp, w_mnt = FLOAT_FMTS[fmt]
     width = 1 + w_exp + w_mnt
@@ -349,17 +448,16 @@ def flt_decode(val: int, fmt: int) -> float:
         return float(sgn * bse * (2**exp))
 
 
-def flt_fmt(flt: float, width: int = 7) -> str:
-    # If default literal shorter: use it
-    default_str = str(flt)
-    if len(default_str) - 1 <= width:
-        return default_str
-    # Else: fix significant digits, using exponential if needed
-    exp, _ = math.frexp(flt)
-    fmt = '{:1.' + str(width - 3) + 'e}'
-    if not math.isnan(exp) and -1 < exp <= width:
-        exp = int(exp)
-        fmt = '{:' + str(exp) + '.' + str(width - exp) + 'f}'
+def flt_fmt(flt: float, width: int = 6) -> str:
+    """Formats a floating-point number rounding to a certain decimal precision.
+
+    Args:
+        flt: The floating-point number to format.
+        width: The number of significant decimal digits to round to.
+    Returns:
+        The formatted floating-point number as a string.
+    """
+    fmt = '{:.' + str(width) + '}'
     return fmt.format(flt)
 
 
@@ -377,8 +475,27 @@ def int_lit(num: int, size: int = 2, force_hex: bool = False) -> str:
         return str(num_signed)
 
 
-def flt_lit(num: int, fmt: int, width: int = 7) -> str:
-    return flt_fmt(flt_decode(num, fmt), width)
+def flt_lit(num: int, fmt: int, width: int = 6, vlen: int = 1) -> str:
+    """Formats an integer encoding into a floating-point literal.
+
+    Args:
+        num: The integer encoding of the floating-point number(s).
+        fmt: The floating point number format, as an index into the
+            `FLOAT_FMTS` array.
+        width: The bitwidth of the floating-point type.
+        vlen: The number of floating-point numbers packed in the encoding,
+            >1 for SIMD vectors.
+    """
+    # Divide the binary encoding into individual encodings for each number in the SIMD vector.
+    bitwidth = 1 + FLOAT_FMTS[fmt][0] + FLOAT_FMTS[fmt][1]
+    vec = [num >> (bitwidth * i) & (2**bitwidth - 1) for i in reversed(range(vlen))]
+    # Format each individual float encoding to a string.
+    floats = [flt_fmt(flt_decode(val, fmt), width) for val in vec]
+    # Represent the encodings as a vector if SIMD.
+    if len(floats) > 1:
+        return '[{}]'.format(', '.join(floats))
+    else:
+        return floats[0]
 
 
 # -------------------- FPU Sequencer --------------------
@@ -554,6 +671,7 @@ def annotate_snitch(extras: dict,
 
 def annotate_fpu(
         extras: dict,
+        insn: str,
         cycle: int,
         fpr_wb_info: dict,
         perf_metrics: list,
@@ -564,14 +682,16 @@ def annotate_fpu(
     ret = []
     # On issuing of instruction
     if extras['acc_q_hs']:
-        # If computation initiated: remember FPU destination format
+        # If computation initiated: remember FPU destination format and vector length
         if extras['use_fpu'] and not extras['fpu_in_acc']:
+            vlen = flt_op_vlen(insn, 'rd')
             fpr_wb_info[extras['fpu_in_rd']].appendleft(
-                (extras['dst_fmt'], cycle))
+                (extras['dst_fmt'], vlen, cycle))
         # Operands: omit on store
         if not extras['is_store']:
             for i_op in range(3):
-                oper_name, val = flt_oper(extras, i_op)
+                # operand name and its value
+                oper_name, val = flt_oper(insn, extras, i_op)
                 if oper_name != 'NONE':
                     ret.append('{:<4} = {}'.format(oper_name, val))
         # Load / Store requests
@@ -580,13 +700,14 @@ def annotate_fpu(
             if extras['is_load']:
                 perf_metrics[curr_sec]['fpss_loads'] += 1
                 # Load initiated: remember LSU destination format
-                fpr_wb_info[extras['rd']].appendleft((LS_TO_FLOAT[s], cycle))
+                vlen = 1
+                fpr_wb_info[extras['rd']].appendleft((LS_TO_FLOAT[s], vlen, cycle))
                 ret.append('{:<4} <~~ {}[{}]'.format(
                     REG_ABI_NAMES_F[extras['rd']], LS_SIZES[s],
                     int_lit(extras['lsu_qaddr'], force_hex=force_hex_addr)))
             if extras['is_store']:
                 perf_metrics[curr_sec]['fpss_stores'] += 1
-                _, val = flt_oper(extras, 1)
+                _, val = flt_oper(insn, extras, 1)
                 ret.append('{} ~~> {}[{}]'.format(
                     val, LS_SIZES[s],
                     int_lit(extras['lsu_qaddr'], force_hex=force_hex_addr)))
@@ -601,7 +722,7 @@ def annotate_fpu(
         fmt = 0  # accelerator bus format is 0 for regular float32
         if writer == 'fpu' or writer == 'lsu':
             try:
-                fmt, start_time = fpr_wb_info[extras['fpr_waddr']].pop()
+                fmt, vlen, start_time = fpr_wb_info[extras['fpr_waddr']].pop()
                 if writer == 'lsu':
                     perf_metrics[curr_sec][
                         'fpss_load_latency'] += cycle - start_time
@@ -618,7 +739,7 @@ def annotate_fpu(
                     sys.exit(1)
         ret.append('(f:{}) {:<4} <-- {}'.format(
             writer, REG_ABI_NAMES_F[extras['fpr_waddr']],
-            flt_lit(extras['fpr_wdata'], fmt)))
+            flt_lit(extras['fpr_wdata'], fmt, vlen=vlen)))
     return ', '.join(ret)
 
 
@@ -698,7 +819,7 @@ def annotate_insn(
                     annot_list.append('[{} {}:{}]'.format(
                         fseq_pc_str[-4:], *fseq_annot))
             annot_list.append(
-                annotate_fpu(extras, time_info[1], fpr_wb_info, perf_metrics,
+                annotate_fpu(extras, insn, time_info[1], fpr_wb_info, perf_metrics,
                              fseq_info['curr_sec'], force_hex_addr,
                              permissive))
             annot = ', '.join(annot_list)
@@ -882,7 +1003,7 @@ def main():
             warn_trip = True
             sys.stderr.write(
                 EXTRA_WB_WARN.format(len(que), REG_ABI_NAMES_F[fpr]) + '\n')
-    for gpr, que in fpr_wb_info.items():
+    for gpr, que in gpr_wb_info.items():
         if len(que) != 0:
             warn_trip = True
             sys.stderr.write(
