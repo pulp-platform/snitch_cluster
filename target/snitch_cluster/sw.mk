@@ -58,7 +58,7 @@ APPS += sw/apps/atax
 APPS += sw/apps/correlation
 APPS += sw/apps/covariance
 
-SUBDIRS = sw/runtime/banshee sw/runtime/rtl sw/math $(APPS) sw/tests
+SUBDIRS = sw/runtime/banshee sw/runtime/rtl $(APPS) sw/tests
 
 .PHONY: sw clean-sw $(SUBDIRS)
 
@@ -71,9 +71,6 @@ clean-sw:
 sw/runtime/rtl sw/runtime/banshee: $(TARGET_C_HDRS)
 	$(MAKE) -C $@ $(MK_TARGET)
 
-sw/math:
-	$(MAKE) -C $@ $(MK_TARGET)
-
 # Apps depend on runtime libraries
-$(APPS) sw/tests: $(RUNTIME) sw/math
+$(APPS) sw/tests: $(RUNTIME)
 	$(MAKE) -C $@ $(MK_TARGET)

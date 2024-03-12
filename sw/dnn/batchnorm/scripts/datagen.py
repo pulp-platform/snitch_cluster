@@ -63,7 +63,8 @@ def emit_header(**kwargs):
     ifmap_uid = 'ifmap'
     ofmap_uid = 'ofmap'
     beta_uid = 'beta'
-    gamma_uid = 'gamma'
+    # Underscore is used to disambiguate between this and the gamma function from "math.h"
+    gamma_uid = 'gamma_'
 
     layer_cfg = {
         'CI': ci,

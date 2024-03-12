@@ -42,16 +42,11 @@ RISCV_CFLAGS += -O3
 ifeq ($(DEBUG), ON)
 RISCV_CFLAGS += -g
 endif
-# Required by math library to avoid conflict with stdint definition
-RISCV_CFLAGS += -D__DEFINED_uint64_t
 
 # Linker flags
 RISCV_LDFLAGS += -fuse-ld=$(RISCV_LD)
 RISCV_LDFLAGS += -nostartfiles
-RISCV_LDFLAGS += -nostdlib
-RISCV_LDFLAGS += -lc
-RISCV_LDFLAGS += -L$(LLVM_BINROOT)/../lib/clang/$(LLVM_VER)/lib/
-RISCV_LDFLAGS += -lclang_rt.builtins-riscv32
+RISCV_LDFLAGS += -lm
 
 # Archiver flags
 RISCV_ARFLAGS = rcs
