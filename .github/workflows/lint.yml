@@ -78,7 +78,6 @@ jobs:
           match_regex: true
           exclude_paths: |
             sw/snRuntime/src/omp/interface.h
-            target/snitch_cluster/sw/apps/dnn/flashattention_2/tcasai/roi.json.tpl
 
   ##################
   # Lint YML Files #
