@@ -358,7 +358,7 @@ static inline void layernorm_fp16_opt(__fp16 *input, __fp16 *output,
                 var_tot = 0.0;
 
                 snrt_ssr_enable();
-                
+
                 asm volatile(
                     "vfcpka.s.s %[mean0], %[zero], %[zero] \n"
                     "vfcpka.s.s %[mean1], %[zero], %[zero] \n"
