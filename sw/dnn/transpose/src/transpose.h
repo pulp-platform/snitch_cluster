@@ -37,8 +37,9 @@ typedef struct {
  * @param M First dimension of the matrix
  * @param N Second dimension of the matrix
  */
-static inline void transpose_fp64_baseline(double* input, double* output, uint32_t M,
-                                  uint32_t N, uint32_t M_stride) {
+static inline void transpose_fp64_baseline(double* input, double* output,
+                                           uint32_t M, uint32_t N,
+                                           uint32_t M_stride) {
     for (uint32_t m = 0; m < M; m++) {
         for (uint32_t n = 0; n < N; n++) {
             output[n * M_stride + m] = input[m * N + n];
@@ -102,7 +103,7 @@ static inline void transpose_fp32(float* input, float* output, uint32_t M,
  * @param M First dimension of the matrix
  * @param N Second dimension of the matrix
  */
-static inline void transpose_fp16( __fp16* input,  __fp16* output, uint32_t M,
+static inline void transpose_fp16(__fp16* input, __fp16* output, uint32_t M,
                                   uint32_t N, uint32_t M_stride) {
     for (uint32_t m = 0; m < M; m++) {
         for (uint32_t n = 0; n < N; n++) {
@@ -134,10 +135,11 @@ static inline void transpose_fp8(char* input, char* output, uint32_t M,
  * @param l transpose struct that holds addresses and parameters
  *
  */
-static inline void transpose_kernel(precision_t dtype, void* input, void* output, uint32_t M,
-                                   uint32_t N, uint32_t baseline) {
+static inline void transpose_kernel(precision_t dtype, void* input,
+                                    void* output, uint32_t M, uint32_t N,
+                                    uint32_t baseline) {
     uint32_t frac_M = M / snrt_cluster_compute_core_num();
-    
+
     if (snrt_is_compute_core()) {
         // determine the row offset for each core
         int32_t row_offset = snrt_cluster_core_idx() * frac_M;
@@ -150,24 +152,21 @@ static inline void transpose_kernel(precision_t dtype, void* input, void* output
 
         switch (dtype) {
             case FP8:
-                transpose_fp8(input_offset, output_offset, frac_M,
-                              N, M);
+                transpose_fp8(input_offset, output_offset, frac_M, N, M);
                 break;
             case FP16:
-                transpose_fp16(input_offset, output_offset, frac_M,
-                               N, M);
+                transpose_fp16(input_offset, output_offset, frac_M, N, M);
                 break;
             case FP32:
-                transpose_fp32(input_offset, output_offset, frac_M,
-                               N, M);
+                transpose_fp32(input_offset, output_offset, frac_M, N, M);
                 break;
             case FP64:
                 if (baseline) {
-                    transpose_fp64_baseline(input_offset, output_offset,
-                                            frac_M, N, M);
+                    transpose_fp64_baseline(input_offset, output_offset, frac_M,
+                                            N, M);
                 } else {
-                    transpose_fp64_opt(input_offset, output_offset,
-                                       frac_M, N, M);
+                    transpose_fp64_opt(input_offset, output_offset, frac_M, N,
+                                       M);
                 }
                 break;
             default:
@@ -183,7 +182,6 @@ static inline void transpose_kernel(precision_t dtype, void* input, void* output
  *
  */
 static inline void transpose_layer(transpose_layer_t const l) {
-
     uint32_t matrix_size = l.M * l.N;
 
     void* ptr = snrt_l1_next();

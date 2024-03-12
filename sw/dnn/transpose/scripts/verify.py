@@ -49,4 +49,3 @@ class TransposeVerifier(Verifier):
 
 if __name__ == "__main__":
     sys.exit(TransposeVerifier().main())
-
