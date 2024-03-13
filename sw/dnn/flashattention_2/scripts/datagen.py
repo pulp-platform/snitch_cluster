@@ -124,9 +124,11 @@ def emit_header(section, params):
     torch_type = data_utils.torch_type_from_precision_t(prec)
     ctype = data_utils.ctype_from_precision_t(prec)
 
-    Q = 2 * torch.rand(N, d, requires_grad=False, dtype=torch_type) - 1
-    K = 2 * torch.rand(N, d, requires_grad=False, dtype=torch_type) - 1
-    V = 2 * torch.rand(N, d, requires_grad=False, dtype=torch_type) - 1
+    # Generate same data for all dtypes for easier debugging.
+    # To achieve this, we always generate in FP16 and then convert.
+    Q = torch.rand(N, d, requires_grad=False, dtype=torch.float16).to(dtype=torch_type)
+    K = torch.rand(N, d, requires_grad=False, dtype=torch.float16).to(dtype=torch_type)
+    V = torch.rand(N, d, requires_grad=False, dtype=torch.float16).to(dtype=torch_type)
 
     output = exact_golden_model(Q, K, V, B_r, B_c)
 
