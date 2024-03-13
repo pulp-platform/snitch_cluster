@@ -27,9 +27,9 @@ int main() {
     if (snrt_is_dm_core()) {
         snrt_dma_start_1d(local_A, A, sizeof(double) * M * N);
         snrt_dma_start_1d(local_x, x, sizeof(double) * N);
-        snrt_dma_start_1d(local_y, (void *)snrt_zero_memory_ptr(),
+        snrt_dma_start_1d(local_y, (void *)snrt_zero_memory_ptr(snrt_cluster_idx()),
                           sizeof(double) * N);
-        snrt_dma_start_1d(local_tmp, (void *)snrt_zero_memory_ptr(),
+        snrt_dma_start_1d(local_tmp, (void *)snrt_zero_memory_ptr(snrt_cluster_idx()),
                           sizeof(double) * M);
         snrt_dma_wait_all();
     }
