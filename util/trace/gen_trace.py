@@ -332,7 +332,7 @@ def vec_formatter(insn: str, op_type: str, hex_val: int, fmt: int) -> str:
                     else:
                         width, vec_len = map(int, vec_params[2:4])
                     # divide the hex value into source_vec_len each of width source_width
-                    vec = [hex_val >> (width * i) & (2**width - 1) for i in range(vec_len)]
+                    vec = reversed([hex_val >> (width * i) & (2**width - 1) for i in range(vec_len)])
                     # decode the source_vec
                     return [flt_decode(val, fmt) for val in vec]
                 else:
