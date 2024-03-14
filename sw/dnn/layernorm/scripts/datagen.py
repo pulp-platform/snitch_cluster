@@ -8,17 +8,23 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import argparse
+import array
+from bitstring import Array
 import pathlib
 import json5
 import sys
 import os
 import torch
+import tensorflow as tf
+from tensorflow.python.framework import dtypes
+import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
 import data_utils  # noqa: E402
 from data_utils import emit_license, \
                        format_struct_definition, format_array_definition, \
-                       format_array_declaration, format_ifdef_wrapper  # noqa: E402
+                       format_array_declaration, format_ifdef_wrapper, \
+                       apply_to_tensor, NUMPY_TYPES, FP8_FORMATS  # noqa: E402
 
 torch.manual_seed(42)
 
@@ -26,11 +32,9 @@ torch.manual_seed(42)
 # the occurrence of these splits the data should be aligned to 4KB
 BURST_ALIGNMENT = 4096
 
-
-def golden_model(ifmap, eps, shape, prec):
+def golden_model(ifmap, eps, shape):
     ln = torch.nn.LayerNorm(shape, eps=eps)
     return ln(ifmap)
-
 
 def emit_header(**kwargs):
     batch_size = kwargs['input_dim']['batch_size']
@@ -40,17 +44,40 @@ def emit_header(**kwargs):
     prec = kwargs['prec']
     n_tiles = kwargs['n_tiles']
     baseline = kwargs['baseline']
+    dtype = NUMPY_TYPES[str(prec)]
 
     assert (seq_len % n_tiles) == 0, 'Input dimension is not an integer multiple of tile size'
     
     torch_type = data_utils.torch_type_from_precision_t(prec)
-    # FIXME: 16-bit precision is not supported by torch.nn.LayerNorm
-    if torch_type == torch.float16:
-        torch_type = torch.float32
-    ifmap = torch.randn(batch_size, seq_len, embeddings, requires_grad=False, dtype=torch_type)
+    # TODO: Add flag for FP8 and FP8ALT precision
+    if prec == "FP8" or prec == "FP8ALT":
+        if prec == "FP8":
+            fp8_var = torch.float8_e5m2
+        else:
+            fp8_var = torch.float8_e4m3fn
+            
+        fmt = prec.lower()
+        exp = FP8_FORMATS[fmt]['exp']
+        mant = FP8_FORMATS[fmt]['mant']
 
-    ofmap = golden_model(ifmap, eps, embeddings, prec)
-    ofmap = ofmap.detach().numpy()
+
+        ifmap_rand = np.random.rand(batch_size, seq_len, embeddings).astype(np.float32)
+        ifmap_float8 = torch.tensor(ifmap_rand).to(fp8_var)
+        ifmap_float32 = ifmap_float8.to(torch.float32)
+        ofmap_layernorm = golden_model(ifmap_float32, eps, embeddings)
+        # we have to downcast the output to FP8
+        ofmap_float8 = ofmap_layernorm.to(fp8_var)
+        ofmap_float32 = ofmap_float8.to(torch.float32)
+        ifmap = apply_to_tensor(ifmap_float32, exp, mant)
+        ofmap = apply_to_tensor(ofmap_float32, exp, mant)
+    else:
+        # FIXME: 16-bit precision is not supported by torch.nn.LayerNorm
+        if torch_type != torch.float32:
+            torch_type = torch.float32
+        ifmap = torch.randn(batch_size, seq_len, embeddings, requires_grad=False, dtype=torch_type)
+
+        ofmap = golden_model(ifmap, eps, embeddings)
+        ofmap = ofmap.detach().numpy()
 
     ctype = data_utils.ctype_from_precision_t(prec)
 

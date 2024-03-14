@@ -32,7 +32,7 @@ def emit_license():
 # Enum value can be a string or an integer, this function uniformizes the result to integers only
 def _integer_precision_t(prec):
     if isinstance(prec, str):
-        return {'FP64': 8, 'FP32': 4, 'FP16': 2, 'FP8': 1}[prec]
+        return {'FP64': 8, 'FP32': 4, 'FP16': 2, 'FP8': 1, 'FP8ALT': 1}[prec]
     else:
         return prec
 
@@ -64,7 +64,7 @@ def torch_type_from_precision_t(prec):
         8: torch.float64,
         4: torch.float32,
         2: torch.float16,
-        1: None
+        1: torch.float8_e4m3fn
     }
     return precision_t_to_torch_type_map[_integer_precision_t(prec)]
 

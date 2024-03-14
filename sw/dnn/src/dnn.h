@@ -10,7 +10,7 @@
 // TODO: move this definition to Snitch math library to solve problem
 #ifndef PRECISION_T
 #define PRECISION_T
-typedef enum { FP64 = 8, FP32 = 4, FP16 = 2, FP8 = 1 } precision_t;
+typedef enum { FP64 = 8, FP32 = 4, FP16 = 2, FP8 = 1, FP8ALT = 1 } precision_t;
 
 typedef float v2f32 __attribute__((vector_size(8)));
 typedef __fp16 v4f16 __attribute__((vector_size(8)));
