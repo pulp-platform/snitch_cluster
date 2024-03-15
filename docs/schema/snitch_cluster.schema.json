@@ -428,6 +428,12 @@
                                     "description": "Number of ports dedicated for an accelerator",
                                     "default": 0
                                 },
+                                "snax_acc_wide": {
+                                    "type": "boolean",
+                                    "title": "Connect SNAX TCDM to Wide TCDM MUX",
+                                    "description": "Connects a SNAX accelerator's TCDM ports to the wide TCDM MUX",
+                                    "default": false
+                                },
                                 "num_int_outstanding_loads": {
                                     "type": "number",
                                     "description": "Number of outstanding integer loads. Determines the buffer size in the core's load/store unit.",

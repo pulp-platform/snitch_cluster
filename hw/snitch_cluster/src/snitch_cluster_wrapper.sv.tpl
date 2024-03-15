@@ -369,6 +369,7 @@ module ${cfg['name']}_wrapper (
     .Xssr (${core_cfg_flat('xssr')}),
     .Xfrep (${core_cfg_flat('xfrep')}),
     .TotalSnaxTcdmPorts(${init_offset}),
+    .ConnectSnaxAccWide(${core_cfg_flat('snax_acc_wide')}),
     .FPUImplementation (${cfg['pkg_name']}::FPUImplementation),
     .SnitchPMACfg (${cfg['pkg_name']}::SnitchPMACfg),
     .NumIntOutstandingLoads (NumIntOutstandingLoads),

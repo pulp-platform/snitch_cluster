@@ -88,6 +88,7 @@
         xfvec: true,
         snax_acc: "snax_streamer_gemm_wrapper",
         snax_tcdm_ports: 48,
+        snax_acc_wide: true,
         num_int_outstanding_loads: 1,
         num_int_outstanding_mem: 4,
         num_fp_outstanding_loads: 4,
