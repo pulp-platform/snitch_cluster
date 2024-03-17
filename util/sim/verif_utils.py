@@ -19,24 +19,32 @@ sys.path.append(str(Path(__file__).parent / '../../target/common/test/'))
 from SnitchSim import SnitchSim  # noqa: E402
 
 
-def dump_results_to_csv(results, path):
-    """Dumps a set of arrays to a CSV file.
+def dump_results_to_csv(expected_results, actual_results, error, max_error, path):
+    """Dumps results and errors to a CSV file.
 
-    Takes a set of arrays (of the same shape or at least, same flattened
-    size), flattens them, and dumps them to a CSV file, with each array
-    mapped to a different column.
+    Takes a set of arrays (of the same shape or, at least, same flattened
+    size), flattens them, and dumps them to a CSV file. Each array is
+    mapped to a different column of the CSV, in the same order as they
+    appear as arguments in the function signature.
 
     Args:
-        results: A set of arrays to display side-by-side in the output
-            CSV.
+        expected_results: Array of expected results.
+        actual_results: Array of actual results.
+        error: Array with the absolute error
+            `abs(expected_results - actual_results)`.
+        max_error: Array with the maximum allowed error per element.
+            Can also be a function of `expected_results` e.g. to
+            implement relative error checks.
         path: Path of the output CSV file.
     """
     # Flatten and zip arrays
-    flattened = [flatten(arr) for arr in results]
+    arrays = (expected_results, actual_results, error, max_error)
+    flattened = [flatten(arr) for arr in arrays]
     zipped = np.column_stack(flattened)
     # Write row-by-row to CSV file
     with open(path, 'w') as csv_file:
         csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(['expected', 'actual', 'error', 'max_error'])
         for row in zipped:
             csv_writer.writerow(row)
     # Print path where results were written
@@ -172,26 +180,33 @@ class Verifier:
                 simulation: 1 if the simulation results do not match the
                 expected results, 0 otherwise.
         """
-        # Calculate absolute or relative error
+        # Compute absolute error
+        err = np.abs(expected - actual)
+        # Check absolute or relative error
         if atol is not None and rtol is not None:
             raise ValueError('atol and rtol are mutually exclusive.')
         if atol is not None:
-            success = np.allclose(expected, actual, atol=atol, rtol=0, equal_nan=False)
-            error = np.abs(expected - actual)
             err_type = "absolute"
+            max_err = [atol] * len(flatten(expected))
+            # Handle FlexFloat arrays differently
+            if expected.dtype == np.dtype(object):
+                success = np.all(err <= max_err)
+            else:
+                success = np.allclose(expected, actual, atol=atol, rtol=0, equal_nan=False)
         elif rtol is not None:
-            success = np.allclose(expected, actual, atol=0, rtol=rtol, equal_nan=False)
-            scale = np.maximum(np.abs(expected), np.abs(actual))
-            scale[scale == 0] = 1  # Avoid division by zero, use absolute tolerance instead
-            error = np.abs(expected - actual) / scale
             err_type = "relative"
+            max_err = rtol * np.abs(expected)
+            # Handle FlexFloat arrays differently
+            if expected.dtype == np.dtype(object):
+                success = np.all(err <= max_err)
+            else:
+                success = np.allclose(expected, actual, atol=0, rtol=rtol, equal_nan=False)
         else:
             raise ValueError('Either atol or rtol must be specified.')
 
         # Dump results on failure or if requested
         if not success or self.args.dump_results:
-            dump_results_to_csv([expected, actual, error], Path.cwd() / 'results.csv')
-            print(f'Maximum {err_type} error: {np.max(error)}')
+            dump_results_to_csv(expected, actual, err, max_err, Path.cwd() / 'results.csv')
 
         # Return exit code
         return int(not success)

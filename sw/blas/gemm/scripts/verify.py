@@ -18,7 +18,7 @@ from data_utils import ctype_from_precision_t  # noqa: E402
 class GemmVerifier(Verifier):
 
     OUTPUT_UIDS = ['c']
-    ERR_THRESHOLD = {8: 1e-6, 4: 1e-6, 2: 1e-2, 1: 1e-1}
+    ERR_THRESHOLD = {8: 1e-6, 4: 1e-6, 2: 1e-2, 1: 1e-4}
 
     def __init__(self):
         super().__init__()
@@ -46,7 +46,7 @@ class GemmVerifier(Verifier):
         return golden_model(1, a, b, beta, c).flatten()
 
     def check_results(self, *args):
-        return super().check_results(*args, atol=self.ERR_THRESHOLD[self.prec])
+        return super().check_results(*args, rtol=self.ERR_THRESHOLD[self.prec])
 
 
 if __name__ == "__main__":
