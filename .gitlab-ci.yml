@@ -68,7 +68,6 @@ snitch-ip-tests:
       - IP:
           - mem_interface
           - snitch_cluster
-          - snitch_icache
           - tcdm_interface
   script:
     - cd hw/$IP

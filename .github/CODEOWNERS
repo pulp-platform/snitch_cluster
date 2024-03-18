@@ -6,6 +6,5 @@
 
 hw/snitch_cluster @paulsc96 @lucabertaccini
 hw/snitch_dma @paulsc96 @thommythomaso
-hw/snitch_icache @paulsc96 @SamuelRiedel
 
 sw @colluca @fischeti @viv-eth
