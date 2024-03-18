@@ -186,7 +186,6 @@ class Verifier:
         if atol is not None and rtol is not None:
             raise ValueError('atol and rtol are mutually exclusive.')
         if atol is not None:
-            err_type = "absolute"
             max_err = [atol] * len(flatten(expected))
             # Handle FlexFloat arrays differently
             if expected.dtype == np.dtype(object):
@@ -194,7 +193,6 @@ class Verifier:
             else:
                 success = np.allclose(expected, actual, atol=atol, rtol=0, equal_nan=False)
         elif rtol is not None:
-            err_type = "relative"
             max_err = rtol * np.abs(expected)
             # Handle FlexFloat arrays differently
             if expected.dtype == np.dtype(object):

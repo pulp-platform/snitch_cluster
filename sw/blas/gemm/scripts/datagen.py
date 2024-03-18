@@ -43,12 +43,12 @@ def validate_config(prec, parallelize_m, parallelize_k, m_tiles, n_tiles, k_tile
                               ' cluster'
     assert not (parallelize_m and parallelize_k), 'Cannot parallelize K and M simultaneously'
     assert not ta, 'SIMD kernels don\'t support transposed A matrix'
-    assert not ((prec != "FP64") and not baseline and not tb), 'Optimized SIMD kernels only support' \
-                                                               ' transposed B matrix'
+    assert not ((prec != "FP64") and not baseline and not tb), 'Optimized SIMD kernels only' \
+                                                               ' transposed B matrix support'
     assert not tb or n_tiles == 1, 'Tiling in the N dimension supported only if B is' \
-                                             ' not transposed'
+                                   ' not transposed'
     assert not tb or k_tiles == 1, 'Tiling in the K dimension supported only if B is' \
-                                             ' not transposed'
+                                   ' not transposed'
     assert baseline or frac_n >= 8, 'N dimension of tile size must be greater or equal to' \
                                     ' the unrolling factor (8) when using optimized kernels'
     assert prec == "FP64" or beta == 0, 'beta != 0 supported only in FP64'
@@ -62,12 +62,6 @@ def emit_header(**kwargs):
     # Generate random input matrices
     prec = kwargs['prec']
     M, N, K = kwargs['M'], kwargs['N'], kwargs['K']
-    m_tiles = kwargs['m_tiles']
-    n_tiles = kwargs['n_tiles']
-    k_tiles = kwargs['k_tiles']
-    parallelize_m = kwargs['parallelize_m']
-    parallelize_k = kwargs['parallelize_k']
-    baseline = kwargs['baseline']
 
     ff_desc = data_utils.ff_desc_from_precision_t(prec)
     ctype = data_utils.ctype_from_precision_t(prec)
@@ -95,7 +89,7 @@ def emit_header(**kwargs):
     data_str += [format_scalar_definition('uint32_t', 'k_tiles', kwargs['k_tiles'])]
     data_str += [format_scalar_definition('uint32_t', 'parallelize_m', kwargs['parallelize_m'])]
     data_str += [format_scalar_definition('uint32_t', 'parallelize_k', kwargs['parallelize_k'])]
-    data_str += [format_scalar_definition('uint32_t', 'baseline', int(baseline))]
+    data_str += [format_scalar_definition('uint32_t', 'baseline', int(kwargs['baseline']))]
     data_str += [format_array_definition(ctype, 'a', a.flatten(), alignment=BURST_ALIGNMENT,
                                          section=kwargs['section'])]
     data_str += [format_array_definition(ctype, 'b', b.flatten(), alignment=BURST_ALIGNMENT,
