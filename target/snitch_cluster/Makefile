@@ -61,9 +61,7 @@ CFG         = cfg/lru.hjson
 # Simulator options #
 #####################
 
-VSIM_BENDER += -t snitch_cluster
-VLT_BENDER  += -t snitch_cluster
-VCS_BENDER  += -t snitch_cluster
+COMMON_BENDER_FLAGS += -t snitch_cluster
 
 QUESTA_64BIT = -64
 VLOG_64BIT   = -64

@@ -47,7 +47,9 @@ MATCH_END := '/+incdir+/ s/$$/\/*\/*/'
 MATCH_BGN := 's/+incdir+//g'
 SED_SRCS  := sed -e ${MATCH_END} -e ${MATCH_BGN}
 
-VSIM_BENDER   += -t test -t rtl -t simulation -t vsim
+COMMON_BENDER_FLAGS += -t rtl
+
+VSIM_BENDER   += $(COMMON_BENDER_FLAGS) -t test -t simulation -t vsim
 VSIM_SOURCES   = $(shell ${BENDER} script flist ${VSIM_BENDER} | ${SED_SRCS})
 VSIM_BUILDDIR ?= work-vsim
 VSIM_FLAGS    += -t 1ps
@@ -60,7 +62,7 @@ endif
 
 # VCS_BUILDDIR should to be the same as the `DEFAULT : ./work-vcs`
 # in target/snitch_cluster/synopsys_sim.setup
-VCS_BENDER   += -t test -t rtl -t simulation -t vcs
+VCS_BENDER   += $(COMMON_BENDER_FLAGS) -t test -t simulation -t vcs
 VCS_SOURCES   = $(shell ${BENDER} script flist ${VCS_BENDER} | ${SED_SRCS})
 VCS_BUILDDIR := work-vcs
 
@@ -68,7 +70,7 @@ VCS_BUILDDIR := work-vcs
 FESVR         ?= ${MKFILE_DIR}work
 FESVR_VERSION ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
 
-VLT_BENDER   += -t rtl
+VLT_BENDER   += $(COMMON_BENDER_FLAGS) -DCOMMON_CELLS_ASSERTS_OFF
 VLT_SOURCES   = $(shell ${BENDER} script flist ${VLT_BENDER} | ${SED_SRCS})
 VLT_BUILDDIR := work-vlt
 VLT_FESVR     = $(VLT_BUILDDIR)/riscv-isa-sim

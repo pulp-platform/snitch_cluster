@@ -8,6 +8,7 @@
 MK_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 
 DATA_DIR       := $(realpath $(MK_DIR)/$(APP)/data)
+SCRIPTS_DIR    := $(realpath $(MK_DIR)/$(APP)/scripts)
 SRC_DIR        := $(realpath $(MK_DIR)/$(APP)/src)
 COMMON_SRC_DIR := $(realpath $(MK_DIR)/src)
 
@@ -17,7 +18,7 @@ SECTION  ?=
 SRCS    ?= $(realpath $(SRC_DIR)/main.c)
 INCDIRS ?= $(DATA_DIR) $(SRC_DIR) $(COMMON_SRC_DIR)
 
-DATAGEN_PY := $(DATA_DIR)/datagen.py
+DATAGEN_PY := $(SCRIPTS_DIR)/datagen.py
 DATA_H     := $(DATA_DIR)/data.h
 
 $(DATA_H): $(DATAGEN_PY) $(DATA_CFG)

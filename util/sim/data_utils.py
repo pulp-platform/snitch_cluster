@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Author: Luca Colagrande <colluca@iis.ee.ethz.ch>
-"""Convenience functions for data generation scripts."""
+"""Convenience functions and classes for data generation scripts."""
 
 
 import argparse
@@ -13,6 +13,7 @@ import struct
 from datetime import datetime
 import torch
 import numpy as np
+import pyflexfloat as ff
 
 
 def emit_license():
@@ -36,6 +37,22 @@ def _integer_precision_t(prec):
         return prec
 
 
+def ff_desc_from_precision_t(prec):
+    """Convert `precision_t` type to a FlexFloat descriptor.
+
+    Args:
+        prec: A value of type `precision_t`. Accepts both enum strings
+            (e.g. "FP64") and integer enumeration values (e.g. 8).
+    """
+    precision_t_to_ff_desc_map = {
+        8: 'fp64',
+        4: 'fp32',
+        2: 'fp16',
+        1: 'e5m2'
+    }
+    return precision_t_to_ff_desc_map[_integer_precision_t(prec)]
+
+
 def torch_type_from_precision_t(prec):
     """Convert `precision_t` type to PyTorch type.
 
@@ -43,13 +60,13 @@ def torch_type_from_precision_t(prec):
         prec: A value of type `precision_t`. Accepts both enum strings
             (e.g. "FP64") and integer enumeration values (e.g. 8).
     """
-    ctype_to_torch_type_map = {
+    precision_t_to_torch_type_map = {
         8: torch.float64,
         4: torch.float32,
         2: torch.float16,
         1: None
     }
-    return ctype_to_torch_type_map[_integer_precision_t(prec)]
+    return precision_t_to_torch_type_map[_integer_precision_t(prec)]
 
 
 # Returns the C type representing a floating-point value of the specified precision
@@ -129,19 +146,10 @@ def format_scalar_definition(dtype, uid, scalar):
 
 def format_array_initializer(dtype, array):
     s = '{\n'
-    # Flatten array
-    if dtype == '__fp8':
-        array = zip(flatten(array['sign']),
-                    flatten(array['exponent']),
-                    flatten(array['mantissa']))
-    else:
-        array = flatten(array)
-    # Format array elements
+    array = flatten(array)
     for el in array:
         if dtype == '__fp8':
-            sign, exp, mant = el
-            el = sign * 2**7 + exp * 2**2 + mant
-            el_str = f'0x{el:02x}'
+            el_str = f'{hex(el.bits())}'
         else:
             el_str = f'{el}'
         s += f'\t{el_str},\n'
@@ -174,7 +182,9 @@ def from_buffer(byte_array, ctype='uint32_t'):
     """Get structured data from raw bytes.
 
     If `ctype` is a C type string, it returns a homogeneous list of the
-    specified type from the raw data.
+    specified type from the raw data, using numpy's `from_buffer` method.
+    Note that if `ctype` is equal to `__fp8`, given that there is no
+    native fp8 format in Numpy, an array of FlexFloat objects is returned.
 
     Alternatively, a dictionary can be passed to `ctype` to extract a
     struct from the raw data. In this case, it returns a dictionary with
@@ -202,18 +212,7 @@ def from_buffer(byte_array, ctype='uint32_t'):
         dtype = NP_DTYPE_FROM_CTYPE[ctype]
         return np.frombuffer(byte_array, dtype=dtype)
     elif ctype == '__fp8':
-        array = []
-        byte_array = np.frombuffer(byte_array, dtype=np.uint8)
-        for byte in byte_array:
-            sign = (byte & 0x80) >> 7  # Extract sign (1 bit)
-            exponent = (byte & 0x7c) >> 2  # Extract exponent (5 bits)
-            mantissa = (byte & 0x03) << 5  # Extract mantissa (2 bits)
-            real_exp = exponent - 15  # Convert exponent from excess-7 to excess-127
-            value = (1 + mantissa / 4) * (2 ** float(real_exp))  # Calculate value
-            if sign:
-                value *= -1
-            array.append(value)
-        return array
+        return ff.frombuffer(byte_array, 'e5m2')
 
 
 class DataGen:
@@ -247,7 +246,7 @@ class DataGen:
         """Parse default data generation script arguments.
 
         Returns the arguments passed to the data generation script, parsed
-        using the by `parser()` method.
+        using the `parser()` method.
         """
         return self.parser().parse_args()
 

@@ -9,8 +9,9 @@
 #include <math.h>
 #include <stdint.h>
 
-#include "data.h"
 #include "gemm.h"
+
+#include "data.h"
 #include "snrt.h"
 
 int main() {

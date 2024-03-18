@@ -11,10 +11,10 @@ import numpy as np
 import torch
 from data.datagen import golden_model
 
-sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
+sys.path.append(str(Path(__file__).parent / '../../../../util/sim/'))
 import verification  # noqa: E402
 from elf import Elf  # noqa: E402
-from data_utils import from_buffer, ctype_from_precision_t  # noqa: E402
+from data_utils import from_buffer, ctype_from_precision_t, check_result  # noqa: E402
 
 
 ERR_THRESHOLD = 1E-6
@@ -107,21 +107,12 @@ def main():
                                        layer['depthwise'])
     output_golden = output_golden.detach().numpy().flatten()
 
-    # relative_err = np.absolute((output_golden - output_actual) / output_golden)
-    # compute relative error only for non-zero elements
-    relative_err = np.zeros_like(output_golden)
-    non_zero = output_golden != 0
-    zero_idx = np.where(output_golden == 0)
-    relative_err[non_zero] = np.absolute((output_golden[non_zero] - output_actual[non_zero])
-                                         / output_golden[non_zero])
-    relative_err[zero_idx] = np.absolute(output_golden[zero_idx] - output_actual[zero_idx])
-
-    fail = np.any(relative_err > ERR_THRESHOLD)
-    if (fail):
+    fail, rel_err = check_result(output_golden, output_actual, rtol=ERR_THRESHOLD)
+    if fail:
         verification.dump_results_to_csv(
-                    [output_golden, output_actual, relative_err],
+                    [output_golden, output_actual, rel_err],
                     Path.cwd() / 'results.csv')
-        print('Maximum relative error:', np.max(relative_err))
+        print('Maximum relative error:', np.max(rel_err))
 
     return int(fail)
 

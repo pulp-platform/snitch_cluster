@@ -13,7 +13,7 @@ int main() {
     double *remote_x, *remote_y, *remote_z;
 
     // Calculate size and pointers for each cluster
-    uint32_t frac = l / snrt_cluster_num();
+    uint32_t frac = n / snrt_cluster_num();
     uint32_t offset = frac * snrt_cluster_idx();
     remote_x = x + offset;
     remote_y = y + offset;
@@ -55,11 +55,11 @@ int main() {
 // TODO: currently only works for single cluster otherwise need to
 //       synchronize all cores here
 #ifdef BIST
-    uint32_t nerr = l;
+    uint32_t nerr = n;
 
     // Check computation is correct
     if (snrt_global_core_idx() == 0) {
-        for (int i = 0; i < l; i++) {
+        for (int i = 0; i < n; i++) {
             if (local_z[i] == g[i]) nerr--;
             printf("%d %d\n", local_z[i], g[i]);
         }

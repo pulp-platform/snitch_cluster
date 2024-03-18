@@ -4,13 +4,13 @@
 
 runs:
   - elf: apps/dnn/softmax/build/softmax.elf
-    cmd: [../../../sw/dnn/softmax/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../sw/dnn/softmax/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/dnn/layernorm/build/layernorm.elf
-    cmd: [../../../sw/dnn/layernorm/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../sw/dnn/layernorm/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/dnn/gelu/build/gelu.elf
-    cmd: [../../../sw/dnn/gelu/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../sw/dnn/gelu/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/dnn/flashattention_2/build/flashattention_2.elf
-    cmd: [../../../sw/dnn/flashattention_2/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../sw/dnn/flashattention_2/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/correlation/build/correlation.elf
     cmd: [../../../sw/apps/correlation/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/covariance/build/covariance.elf

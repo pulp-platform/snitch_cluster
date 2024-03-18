@@ -7,9 +7,34 @@
 //         Luca Colagrande <colluca@iis.ee.ethz.ch>
 //         Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
+void gemm_fp8_naive(uint32_t M, uint32_t N, uint32_t K, char* A, uint32_t ldA,
+                    char* B, uint32_t ldB, char* C, uint32_t ldC, float BETA) {
+    // Only works with !ta && tb
+    for (uint32_t m = 0; m < M; m++) {
+        for (uint32_t n = 0; n < N; n++) {
+            char c = 0;
+            for (uint32_t k = 0; k < K; k++) {
+                // c0 += A[k + m * ldA] * B[k + n * ldB];
+                char a = A[k + m * ldA];
+                char b = B[k + n * ldB];
+                asm volatile(
+                    "fmv.b.x ft3, %[a]\n"
+                    "fmv.b.x ft4, %[b]\n"
+                    "fmv.b.x ft5, %[c]\n"
+                    "fmul.b ft6, ft3, ft4 \n"
+                    "fadd.b ft5, ft5, ft6 \n"
+                    "fmv.x.b %[c], ft5\n"
+                    : [ c ] "+r"(c)
+                    : [ a ] "r"(a), [ b ] "r"(b));
+            }
+            C[m * ldC + n] = c;
+        }
+    }
+}
+
 void gemm_fp8_baseline(uint32_t M, uint32_t N, uint32_t K, char* A,
                        uint32_t ldA, char* B, uint32_t ldB, char* C,
-                       uint32_t ldC, const uint32_t* BETA, uint32_t setup_SSR) {
+                       uint32_t ldC, float BETA, uint32_t setup_SSR) {
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (; n < N; n++) {
@@ -63,11 +88,8 @@ void gemm_fp8_baseline(uint32_t M, uint32_t N, uint32_t K, char* A,
 }
 
 void gemm_fp8_ex_opt(uint32_t M, uint32_t N, uint32_t K, char* A, uint32_t ldA,
-                     char* B, uint32_t ldB, char* C, uint32_t ldC,
-                     const uint32_t* BETA, uint32_t setup_SSR) {
-    // Accumulating currently not implemented
-    if (*BETA != 0) return;
-
+                     char* B, uint32_t ldB, char* C, uint32_t ldC, float BETA,
+                     uint32_t setup_SSR) {
     // Unrolling factor of most inner loop.
     // Should be at least as high as the FMA delay
     // for maximum utilization

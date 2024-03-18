@@ -11,7 +11,7 @@
     beta: 0,
     ta: false,
     tb: true, // must be true for SIMD
-    prec: 64,
+    prec: "FP64",
     expand: 0,
     m_tiles: 2, // number of tiles in M dimension
     k_tiles: 1, // number of tiles in K dimension
