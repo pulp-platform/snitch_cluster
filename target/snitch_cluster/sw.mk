@@ -57,8 +57,10 @@ APPS += sw/apps/atax
 APPS += sw/apps/correlation
 APPS += sw/apps/covariance
 
+APPS += sw/apps/axpy
+
 SUBDIRS = sw/runtime/banshee sw/runtime/rtl sw/math $(APPS) sw/tests
-SUBDIRS += sw/apps/axpy
+# SUBDIRS += sw/apps/axpy
 
 .PHONY: sw clean-sw $(SUBDIRS)
 

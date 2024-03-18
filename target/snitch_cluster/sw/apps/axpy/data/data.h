@@ -1,4 +1,4 @@
-#include "snrt.h"
+
 
 uint32_t L = 16;
 double a = 2;
