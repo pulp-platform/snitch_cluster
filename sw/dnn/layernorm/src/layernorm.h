@@ -485,8 +485,8 @@ static inline void layernorm_fp16_opt(__fp16 *input, __fp16 *output,
 }
 
 static inline void layernorm_fp8_opt(char *input, char *output,
-                                      int32_t batch_size, int32_t seq_len,
-                                      int32_t embeddings, int32_t eps) {
+                                     int32_t batch_size, int32_t seq_len,
+                                     int32_t embeddings, int32_t eps) {
     if (snrt_is_compute_core()) {
         uint32_t offset = snrt_cluster_core_idx() * embeddings;
         uint32_t stride = snrt_cluster_compute_core_num() * embeddings;
@@ -524,15 +524,14 @@ static inline void layernorm_fp8_opt(char *input, char *output,
         snrt_ssr_loop_4d(SNRT_SSR_DM0, ssr0_b[0], ssr0_b[1], ssr0_b[2],
                          ssr0_b[3], ssr0_i[0], ssr0_i[1], ssr0_i[2], ssr0_i[3]);
         snrt_ssr_loop_4d(SNRT_SSR_DM1, ssr0_b[0], ssr0_b[1], ssr0_b[2],
-                            ssr0_b[3], ssr0_i[0], ssr0_i[1], ssr0_i[2], ssr0_i[3]);
+                         ssr0_b[3], ssr0_i[0], ssr0_i[1], ssr0_i[2], ssr0_i[3]);
         snrt_ssr_loop_2d(SNRT_SSR_DM2, ssr1_b[0], ssr1_b[1], ssr1_i[0],
-                            ssr1_i[1]);
+                         ssr1_i[1]);
 
         // kernel progresses eight values in each iteration
         const uint32_t n_frep = embeddings / (UNROLL * num_elems_per_vector);
 
         for (int32_t b = 0; b < batch_size; b++) {
-
             snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_4D,
                           &core_itile[b * batch_offset]);
             snrt_ssr_write(SNRT_SSR_DM1, SNRT_SSR_4D,
@@ -644,32 +643,31 @@ static inline void layernorm_fp8_opt(char *input, char *output,
                     "vfcpkb.b.s %[mean_reg], %[var_v2_0], %[var_v2_0] \n"
                     "vfcpkc.b.s %[mean_reg], %[var_v2_0], %[var_v2_0] \n"
                     "vfcpkd.b.s %[mean_reg], %[var_v2_0], %[var_v2_0] \n"
-                      : [ mean_v2_0 ] "+f"(mean_v2[0].f64),
-                        [ mean_v2_1 ] "+f"(mean_v2[1].f64),
-                        [ mean_v2_2 ] "+f"(mean_v2[2].f64),
-                        [ mean_v2_3 ] "+f"(mean_v2[3].f64),
-                        [ mean_v4_0 ] "+f"(mean_v4[0].f64),
-                        [ mean_v4_1 ] "+f"(mean_v4[1].f64),
-                        [ mean_v4_2 ] "+f"(mean_v4[2].f64),
-                        [ mean_v4_3 ] "+f"(mean_v4[3].f64),
-                        [ var_v8_0 ] "+f"(var_v8[0].f64),
-                        [ var_v8_1 ] "+f"(var_v8[1].f64),
-                        [ var_v8_2 ] "+f"(var_v8[2].f64),
-                        [ var_v8_3 ] "+f"(var_v8[3].f64),
-                        [ mean_reg ] "+f"(mean_reg.f64),
-                        [ pow_v8_0 ] "+f"(pow_v8[0].f64),
-                        [ pow_v8_1 ] "+f"(pow_v8[1].f64),
-                        [ pow_v8_2 ] "+f"(pow_v8[2].f64),
-                        [ pow_v8_3 ] "+f"(pow_v8[3].f64),
-                        [ var_v2_0 ] "+f"(var_v2[0].f64),
-                        [ var_v2_1 ] "+f"(var_v2[1].f64),
-                        [ var_v2_2 ] "+f"(var_v2[2].f64),
-                        [ var_v2_3 ] "+f"(var_v2[3].f64)
-                     :  [ zero ] "f"(0.0f), [ n_frep ] "r"(n_frep - 1),
-                        [ embeddings ] "f"((float)embeddings), [ eps ] "f"((float)eps),
-                        [ one ] "f"(1.0f)
-                     : "ft0", "ft1", "ft2"); 
-
+                    : [ mean_v2_0 ] "+f"(mean_v2[0].f64),
+                      [ mean_v2_1 ] "+f"(mean_v2[1].f64),
+                      [ mean_v2_2 ] "+f"(mean_v2[2].f64),
+                      [ mean_v2_3 ] "+f"(mean_v2[3].f64),
+                      [ mean_v4_0 ] "+f"(mean_v4[0].f64),
+                      [ mean_v4_1 ] "+f"(mean_v4[1].f64),
+                      [ mean_v4_2 ] "+f"(mean_v4[2].f64),
+                      [ mean_v4_3 ] "+f"(mean_v4[3].f64),
+                      [ var_v8_0 ] "+f"(var_v8[0].f64),
+                      [ var_v8_1 ] "+f"(var_v8[1].f64),
+                      [ var_v8_2 ] "+f"(var_v8[2].f64),
+                      [ var_v8_3 ] "+f"(var_v8[3].f64),
+                      [ mean_reg ] "+f"(mean_reg.f64),
+                      [ pow_v8_0 ] "+f"(pow_v8[0].f64),
+                      [ pow_v8_1 ] "+f"(pow_v8[1].f64),
+                      [ pow_v8_2 ] "+f"(pow_v8[2].f64),
+                      [ pow_v8_3 ] "+f"(pow_v8[3].f64),
+                      [ var_v2_0 ] "+f"(var_v2[0].f64),
+                      [ var_v2_1 ] "+f"(var_v2[1].f64),
+                      [ var_v2_2 ] "+f"(var_v2[2].f64),
+                      [ var_v2_3 ] "+f"(var_v2[3].f64)
+                    : [ zero ] "f"(0.0f), [ n_frep ] "r"(n_frep - 1),
+                      [ embeddings ] "f"((float)embeddings),
+                      [ eps ] "f"((float)eps), [ one ] "f"(1.0f)
+                    : "ft0", "ft1", "ft2");
 
                 snrt_fpu_fence();
 
@@ -687,7 +685,6 @@ static inline void layernorm_fp8_opt(char *input, char *output,
                     : "ft0", "ft1", "ft2");
                 snrt_ssr_disable();
             }
-
         }
     }
 }
@@ -739,7 +736,6 @@ static inline void layernorm_layer(layernorm_layer_t l) {
         remote_ofmap = (char *)l.ofmap;
     } else {
         printf("Unsupported data type\n");
-    
     }
 
     // Iterate tiles
