@@ -39,3 +39,5 @@ $(BIN_DIR)/$(TARGET).vsim: $(VSIM_BUILDDIR)/compile.vsim.tcl $(VSIM_SOURCES) $(T
 .PHONY: clean-vsim
 clean-vsim: clean-work
 	rm -rf $(BIN_DIR)/$(TARGET).vsim $(BIN_DIR)/$(TARGET).vsim.gui $(VSIM_BUILDDIR) vsim.wlf
+
+clean: clean-vsim

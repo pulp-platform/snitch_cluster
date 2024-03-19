@@ -16,7 +16,7 @@ SELECT_RUNTIME ?=      # Select snRuntime implementation: "banshee" or "rtl" (de
 .DEFAULT_GOAL := help
 .PHONY: all clean
 all: sw
-clean: clean-sw clean-work clean-vsim clean-vlt clean-vcs clean-logs clean-bender clean-generated
+clean: clean-sw clean-work clean-vlt clean-vcs clean-logs clean-bender clean-generated
 
 ##########
 # Common #
