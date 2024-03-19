@@ -171,9 +171,10 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
             case FP8:
                 switch (impl) {
                     case NAIVE:
-                        gemm_fp8_naive(
-                            frac_m, n, k, (char*)a + offsetA, lda_strided, (char*)b,
-                            ldb, (char*)c + offsetC, ldc_strided, (float)beta);
+                        gemm_fp8_naive(frac_m, n, k, (char*)a + offsetA,
+                                       lda_strided, (char*)b, ldb,
+                                       (char*)c + offsetC, ldc_strided,
+                                       (float)beta);
                         break;
                     case NAIVE_UNROLLED:
                         printf(
@@ -181,9 +182,10 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
                             "FP8\n");
                         break;
                     case BASELINE:
-                        gemm_fp8_baseline(frac_m, n, k, (char*)a + offsetA, lda_strided,
-                                          (char*)b, ldb, (char*)c + offsetC,
-                                          ldc_strided, (float)beta);
+                        gemm_fp8_baseline(frac_m, n, k, (char*)a + offsetA,
+                                          lda_strided, (char*)b, ldb,
+                                          (char*)c + offsetC, ldc_strided,
+                                          (float)beta);
                         break;
                     case OPT:
                         printf(
@@ -215,7 +217,7 @@ int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
          uint32_t n_tiles, uint32_t k_tiles, uint32_t load_a, uint32_t load_b,
          uint32_t load_c, uint32_t transa, uint32_t transb, uint32_t m,
          uint32_t n, uint32_t k, double alpha, void* a, void* b, uint32_t beta,
-         void* c, uint32_t baseline) {
+         void* c, implementation_t implementation) {
     // Calculate tile sizes
     uint32_t frac_m = m / m_tiles;
     uint32_t frac_n = n / n_tiles;
@@ -325,7 +327,7 @@ int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
 
                     sc_st_gemm(prec, expand, setup_ssr, transa, transb, frac_m,
                                frac_n, frac_k, 1, local_a, lda, local_b, ldb,
-                               beta_k, local_c_partial, ldc, baseline);
+                               beta_k, local_c_partial, ldc, implementation);
 
                     uint32_t end_cycle = snrt_mcycle();
                 }
