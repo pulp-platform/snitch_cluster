@@ -11,11 +11,18 @@
 
 #include "snrt.h"
 
+#pragma once
+
 // Guard to avoid conflict with DNN header file
 // TODO: move this definition to Snitch math library to solve problem
 #ifndef PRECISION_T
 #define PRECISION_T
 typedef enum { FP64 = 8, FP32 = 4, FP16 = 2, FP8 = 1 } precision_t;
+#endif
+
+#ifndef IMPLEMENTATION_T
+#define IMPLEMENTATION_T
+typedef enum { BASELINE, NAIVE, NAIVE_UNROLLED, OPT, OPT_EX } implementation_t;
 
 typedef float v2f32 __attribute__((vector_size(8)));
 typedef __fp16 v4f16 __attribute__((vector_size(8)));
@@ -51,7 +58,7 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
                 uint32_t transa, uint32_t transb, uint32_t m, uint32_t n,
                 uint32_t k, double alpha, void* a, uint32_t lda, void* b,
                 uint32_t ldb, uint32_t beta, void* c, uint32_t ldc,
-                uint32_t baseline) {
+                implementation_t impl) {
     if (snrt_is_compute_core()) {
         const uint32_t compute_num = snrt_cluster_compute_core_num();
         const uint32_t compute_id = snrt_cluster_core_idx();
@@ -69,55 +76,124 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
 
         switch (prec) {
             case FP64:
-                if (baseline) {
-                    gemm_fp64_naive(frac_m, n, k, (double*)a + offsetA,
-                                    lda_strided, transa, (double*)b, ldb,
-                                    transb, (double*)c + offsetC, ldc_strided,
-                                    (double)beta);
-                } else {
-                    gemm_fp64_opt(frac_m, n, k, (double*)a + offsetA,
-                                  lda_strided, transa, (double*)b, ldb, transb,
-                                  (double*)c + offsetC, ldc_strided, &beta,
-                                  setup_ssr);
+                switch (impl) {
+                    case NAIVE:
+                        gemm_fp64_naive(frac_m, n, k, (double*)a + offsetA,
+                                        lda_strided, transa, (double*)b, ldb,
+                                        transb, (double*)c + offsetC,
+                                        ldc_strided, (double)beta);
+                        break;
+                        break;
+                    case NAIVE_UNROLLED:
+                        printf(
+                            "Naive unrolled implementation not supported for "
+                            "FP64\n");
+                        break;
+                    case BASELINE:
+                        printf(
+                            "Baseline implementation not supported for FP64\n");
+                        break;
+                    case OPT:
+                        gemm_fp64_opt(frac_m, n, k, (double*)a + offsetA,
+                                      lda_strided, transa, (double*)b, ldb,
+                                      transb, (double*)c + offsetC, ldc_strided,
+                                      &beta, setup_ssr);
+                    case OPT_EX:
+                        printf(
+                            "Extended opt implementation not supported for "
+                            "FP64\n");
+                        break;
                 }
                 break;
             case FP32:
-                if (baseline) {
-                    gemm_fp32_naive(frac_m, n, k, (float*)a + offsetA,
-                                    lda_strided, transa, (float*)b, ldb, transb,
-                                    (float*)c + offsetC, ldc_strided,
-                                    (float)beta);
-                } else {
-                    gemm_fp32_opt(frac_m, n, k, (float*)a + offsetA,
-                                  lda_strided, (float*)b, ldb,
-                                  (float*)c + offsetC, ldc_strided, &beta,
-                                  setup_ssr);
+                switch (impl) {
+                    case NAIVE:
+                        gemm_fp32_naive(frac_m, n, k, (float*)a + offsetA,
+                                        lda_strided, transa, (float*)b, ldb,
+                                        transb, (float*)c + offsetC,
+                                        ldc_strided, (float)beta);
+                        break;
+                    case NAIVE_UNROLLED:
+                        gemm_fp32_naive_unrolled(
+                            frac_m, n, k, (float*)a + offsetA, lda_strided,
+                            transa, (float*)b, ldb, transb, (float*)c + offsetC,
+                            ldc_strided, (float)beta);
+                        break;
+                    case BASELINE:
+                        gemm_fp32_baseline(frac_m, n, k, (float*)a + offsetA,
+                                           lda_strided, (float*)b, ldb,
+                                           (float*)c + offsetC, ldc_strided,
+                                           (float)beta);
+                        break;
+                    case OPT:
+                        gemm_fp32_opt(frac_m, n, k, (float*)a + offsetA,
+                                      lda_strided, (float*)b, ldb,
+                                      (float*)c + offsetC, ldc_strided, &beta,
+                                      setup_ssr);
+                        break;
+                    case OPT_EX:
+                        printf(
+                            "Extended opt implementation not supported for "
+                            "FP32\n");
+                        break;
                 }
-
                 break;
             case FP16:
-                if (expand) {
-                    gemm_fp16_ex_opt(frac_m, n, k, (__fp16*)a + offsetA,
-                                     lda_strided, (__fp16*)b, ldb,
-                                     (__fp16*)c + offsetC, ldc_strided, &beta,
-                                     setup_ssr);
-                } else {
-                    gemm_fp16_opt(frac_m, n, k, (__fp16*)a + offsetA,
-                                  lda_strided, (__fp16*)b, ldb,
-                                  (__fp16*)c + offsetC, ldc_strided, &beta,
-                                  setup_ssr);
+                switch (impl) {
+                    case NAIVE:
+                        printf("Naive implementation not supported for FP16\n");
+                        break;
+                    case NAIVE_UNROLLED:
+                        printf(
+                            "Naive unrolled implementation not supported for "
+                            "FP16\n");
+                        break;
+                    case BASELINE:
+                        gemm_fp16_baseline(frac_m, n, k, (__fp16*)a + offsetA,
+                                           lda_strided, (__fp16*)b, ldb,
+                                           (__fp16*)c + offsetC, ldc_strided,
+                                           &beta);
+                        break;
+                    case OPT:
+                        gemm_fp16_opt(frac_m, n, k, (__fp16*)a + offsetA,
+                                      lda_strided, (__fp16*)b, ldb,
+                                      (__fp16*)c + offsetC, ldc_strided, &beta,
+                                      setup_ssr);
+                        break;
+                    case OPT_EX:
+                        gemm_fp16_ex_opt(frac_m, n, k, (__fp16*)a + offsetA,
+                                         lda_strided, (__fp16*)b, ldb,
+                                         (__fp16*)c + offsetC, ldc_strided,
+                                         &beta, setup_ssr);
+                        break;
                 }
                 break;
             case FP8:
-                if (baseline) {
-                    gemm_fp8_naive(
-                        frac_m, n, k, (char*)a + offsetA, lda_strided, (char*)b,
-                        ldb, (char*)c + offsetC, ldc_strided, (float)beta);
-                } else {
-                    gemm_fp8_ex_opt(frac_m, n, k, (char*)a + offsetA,
-                                    lda_strided, (char*)b, ldb,
-                                    (char*)c + offsetC, ldc_strided,
-                                    (float)beta, setup_ssr);
+                switch (impl) {
+                    case NAIVE:
+                        gemm_fp8_naive(
+                            frac_m, n, k, (char*)a + offsetA, lda_strided, (char*)b,
+                            ldb, (char*)c + offsetC, ldc_strided, (float)beta);
+                        break;
+                    case NAIVE_UNROLLED:
+                        printf(
+                            "Naive unrolled implementation not supported for "
+                            "FP8\n");
+                        break;
+                    case BASELINE:
+                        gemm_fp8_baseline(frac_m, n, k, (char*)a + offsetA, lda_strided,
+                                          (char*)b, ldb, (char*)c + offsetC,
+                                          ldc_strided, (float)beta);
+                        break;
+                    case OPT:
+                        printf(
+                            "Optimized implementation not supported for FP8\n");
+                        break;
+                    case OPT_EX:
+                        gemm_fp8_ex_opt(frac_m, n, k, (char*)a + offsetA, lda,
+                                        (char*)b, ldb, (char*)c + offsetC,
+                                        ldc_strided, (float)beta, setup_ssr);
+                        break;
                 }
                 break;
         }

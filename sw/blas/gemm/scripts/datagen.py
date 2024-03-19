@@ -5,6 +5,7 @@
 
 # Authors: Tim Fischer     <fischeti@iis.ee.ethz.ch>
 #          Luca Bertaccini <lbertaccini@iis.ee.ethz.ch>
+#          Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
 import numpy as np
 import argparse
@@ -31,8 +32,8 @@ def golden_model(alpha, a, b, beta, c):
     return alpha * np.matmul(a, b) + beta * c
 
 
-def validate_config(prec, parallelize_m, parallelize_k, m_tiles, n_tiles, k_tiles, ta, tb, M, N, K,
-                    baseline, beta, **kwargs):
+def validate_config(prec, implementation, parallelize_m, parallelize_k, m_tiles, n_tiles, k_tiles,
+                    ta, tb, M, N, K, beta, **kwargs):
     frac_m = M / m_tiles
     frac_n = N / n_tiles
 
@@ -43,14 +44,14 @@ def validate_config(prec, parallelize_m, parallelize_k, m_tiles, n_tiles, k_tile
                               ' cluster'
     assert not (parallelize_m and parallelize_k), 'Cannot parallelize K and M simultaneously'
     assert not ta, 'SIMD kernels don\'t support transposed A matrix'
-    assert not ((prec != "FP64") and not baseline and not tb), 'Optimized SIMD kernels only' \
-                                                               ' transposed B matrix support'
+    assert not ((prec != "FP64") and (implementation != "BASELINE") and not tb), 'Optimized SIMD \
+            kernels support only non-transposed B matrix'
     assert not tb or n_tiles == 1, 'Tiling in the N dimension supported only if B is' \
                                    ' not transposed'
     assert not tb or k_tiles == 1, 'Tiling in the K dimension supported only if B is' \
                                    ' not transposed'
-    assert baseline or frac_n >= 8, 'N dimension of tile size must be greater or equal to' \
-                                    ' the unrolling factor (8) when using optimized kernels'
+    assert implementation or frac_n >= 8, 'N dimension of tile size must be greater or equal to' \
+                                          ' the unrolling factor (8) when using optimized kernels'
     assert prec == "FP64" or beta == 0, 'beta != 0 supported only in FP64'
 
 
@@ -61,6 +62,7 @@ def emit_header(**kwargs):
 
     # Generate random input matrices
     prec = kwargs['prec']
+    implementation = kwargs['implementation']
     M, N, K = kwargs['M'], kwargs['N'], kwargs['K']
 
     ff_desc = data_utils.ff_desc_from_precision_t(prec)
@@ -76,6 +78,8 @@ def emit_header(**kwargs):
     b = b.T if kwargs['tb'] else b
 
     data_str = [emit_license()]
+    # include gemm.h
+    data_str += ['#include "gemm.h"']
     data_str += [format_scalar_definition('uint32_t', 'M', M)]
     data_str += [format_scalar_definition('uint32_t', 'N', N)]
     data_str += [format_scalar_definition('uint32_t', 'K', K)]
@@ -89,7 +93,7 @@ def emit_header(**kwargs):
     data_str += [format_scalar_definition('uint32_t', 'k_tiles', kwargs['k_tiles'])]
     data_str += [format_scalar_definition('uint32_t', 'parallelize_m', kwargs['parallelize_m'])]
     data_str += [format_scalar_definition('uint32_t', 'parallelize_k', kwargs['parallelize_k'])]
-    data_str += [format_scalar_definition('uint32_t', 'baseline', int(kwargs['baseline']))]
+    data_str += [format_scalar_definition('implementation_t', 'implementation', implementation)]
     data_str += [format_array_definition(ctype, 'a', a.flatten(), alignment=BURST_ALIGNMENT,
                                          section=kwargs['section'])]
     data_str += [format_array_definition(ctype, 'b', b.flatten(), alignment=BURST_ALIGNMENT,

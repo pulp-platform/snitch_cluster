@@ -9,8 +9,7 @@
 
 void gemm_fp16_baseline(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
                         uint32_t ldA, __fp16* B, uint32_t ldB, __fp16* C,
-                        uint32_t ldC, const uint32_t* BETA,
-                        uint32_t setup_SSR) {
+                        uint32_t ldC, const uint32_t* BETA) {
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (; n < N; n++) {
