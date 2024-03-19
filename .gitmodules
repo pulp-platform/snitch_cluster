@@ -1,6 +1,7 @@
 [submodule "sw/deps/riscv-opcodes"]
 	path = sw/deps/riscv-opcodes
 	url = https://github.com/LuziLucia/riscv-opcodes.git
+	branch = snitch-shuffle
 [submodule "sw/deps/printf"]
 	path = sw/deps/printf
 	url = https://github.com/mpaland/printf.git
