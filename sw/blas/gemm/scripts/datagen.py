@@ -44,15 +44,17 @@ def validate_config(prec, implementation, parallelize_m, parallelize_k, m_tiles,
                               ' cluster'
     assert not (parallelize_m and parallelize_k), 'Cannot parallelize K and M simultaneously'
     assert not ta, 'SIMD kernels don\'t support transposed A matrix'
-    assert not ((prec != "FP64") and (implementation != "BASELINE") and not tb), 'Optimized SIMD \
-            kernels support only non-transposed B matrix'
+    assert not ((prec != "FP64") and ((implementation != "BASELINE") or
+                                      (implementation != "NAIVE")) and not tb), \
+        'Optimized SIMD kernels support only transposed B matrix'
     assert not tb or n_tiles == 1, 'Tiling in the N dimension supported only if B is' \
                                    ' not transposed'
     assert not tb or k_tiles == 1, 'Tiling in the K dimension supported only if B is' \
                                    ' not transposed'
-    assert (implementation == "BASELINE") or frac_n >= 8, 'N dimension of tile size must be' \
-                                                          ' greater or equal to the unrolling' \
-                                                          ' factor (8) when using optimized kernels'
+    assert (implementation != "BASELINE") or (implementation != "NAIVE") or frac_n >= 8, \
+        'N dimension of tile size must be' \
+        ' greater or equal to the unrolling' \
+        ' factor (8) when using optimized kernels'
     assert prec == "FP64" or beta == 0, 'beta != 0 supported only in FP64'
 
 
