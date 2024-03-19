@@ -83,7 +83,6 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
                                         transb, (double*)c + offsetC,
                                         ldc_strided, (double)beta);
                         break;
-                        break;
                     case NAIVE_UNROLLED:
                         printf(
                             "Naive unrolled implementation not supported for "
@@ -98,9 +97,10 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
                                       lda_strided, transa, (double*)b, ldb,
                                       transb, (double*)c + offsetC, ldc_strided,
                                       &beta, setup_ssr);
+                        break;
                     case OPT_EX:
                         printf(
-                            "Extended opt implementation not supported for "
+                            "Expanding opt implementation not supported for "
                             "FP64\n");
                         break;
                 }
@@ -133,7 +133,7 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
                         break;
                     case OPT_EX:
                         printf(
-                            "Extended opt implementation not supported for "
+                            "Expanding opt implementation not supported for "
                             "FP32\n");
                         break;
                 }
