@@ -170,13 +170,20 @@ def format_array_initializer(dtype, array):
 def format_struct_definition(dtype, uid, map):
     def format_value(value):
         if isinstance(value, list):
-            return format_array_initializer(str, value)
+            return format_array_initializer('str', value)
         elif isinstance(value, bool):
-            return int(value)
+            return str(int(value))
         else:
             return str(value)
+
+    filtered_map = {key: value for key, value in map.items() if value is not None and value != ''}
+
+    formatted_items = [
+        f'\t.{key} = {format_value(value)}'
+        for key, value in filtered_map.items()
+    ]
     s = f'{_alias_dtype(dtype)} {uid} = {{\n'
-    s += ',\n'.join([f'\t.{key} = {format_value(value)}' for (key, value) in map.items()])
+    s += ',\n'.join(formatted_items)
     s += '\n};'
     return s
 
@@ -281,5 +288,4 @@ class DataGen:
             param = json5.loads(f.read())
         param['section'] = args.section
 
-        # Emit header file
         print(self.emit_header(**param))

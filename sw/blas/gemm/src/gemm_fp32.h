@@ -7,9 +7,14 @@
 //         Luca Colagrande <colluca@iis.ee.ethz.ch>
 //         Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
-void gemm_fp32_naive(uint32_t M, uint32_t N, uint32_t K, float* A, uint32_t ldA,
-                     uint32_t ta, float* B, uint32_t ldB, uint32_t tb, float* C,
-                     uint32_t ldC, float BETA) {
+void gemm_fp32_naive(uint32_t M, uint32_t N, uint32_t K, void* A_p,
+                     uint32_t ldA, uint32_t ta, void* B_p, uint32_t ldB,
+                     uint32_t tb, void* C_p, uint32_t ldC, uint32_t BETA,
+                     uint32_t setup_SSR) {
+    float* A = (float*)A_p;
+    float* B = (float*)B_p;
+    float* C = (float*)C_p;
+
     if (!ta && !tb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
@@ -53,9 +58,14 @@ void gemm_fp32_naive(uint32_t M, uint32_t N, uint32_t K, float* A, uint32_t ldA,
     }
 }
 
-void gemm_fp32_naive_unrolled(uint32_t M, uint32_t N, uint32_t K, float* A,
-                              uint32_t ldA, uint32_t ta, float* B, uint32_t ldB,
-                              uint32_t tb, float* C, uint32_t ldC, float BETA) {
+void gemm_fp32_naive_unrolled(uint32_t M, uint32_t N, uint32_t K, void* A_p,
+                              uint32_t ldA, uint32_t ta, void* B_p,
+                              uint32_t ldB, uint32_t tb, void* C_p,
+                              uint32_t ldC, uint32_t BETA, uint32_t setup_SSR) {
+    float* A = (float*)A_p;
+    float* B = (float*)B_p;
+    float* C = (float*)C_p;
+
     float c0 = 0.0f;
     float c1 = 0.0f;
     float c2 = 0.0f;
@@ -63,7 +73,7 @@ void gemm_fp32_naive_unrolled(uint32_t M, uint32_t N, uint32_t K, float* A,
     if (!ta && !tb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                if (BETA == 0.0f) {
+                if (BETA == 0) {
                     c0 = 0.0f;
                 } else {
                     c0 = BETA * C[m * ldC + n];
@@ -83,7 +93,7 @@ void gemm_fp32_naive_unrolled(uint32_t M, uint32_t N, uint32_t K, float* A,
     } else if (ta && !tb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                if (BETA == 0.0f) {
+                if (BETA == 0) {
                     c0 = 0.0f;
                 } else {
                     c0 = BETA * C[m * ldC + n];
@@ -103,7 +113,7 @@ void gemm_fp32_naive_unrolled(uint32_t M, uint32_t N, uint32_t K, float* A,
     } else if (!ta && tb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                if (BETA == 0.0f) {
+                if (BETA == 0) {
                     c0 = 0.0f;
                 } else {
                     c0 = BETA * C[m * ldC + n];
@@ -133,10 +143,14 @@ void gemm_fp32_naive_unrolled(uint32_t M, uint32_t N, uint32_t K, float* A,
     }
 }
 
-void gemm_fp32_baseline(const uint32_t M, const uint32_t N, const uint32_t K,
-                        float* A, const uint32_t ldA, float* B,
-                        const uint32_t ldB, float* C, const uint32_t ldC,
-                        const uint32_t BETA) {
+void gemm_fp32_baseline(uint32_t M, uint32_t N, uint32_t K, void* A_p,
+                        uint32_t ldA, uint32_t ta, void* B_p, uint32_t ldB,
+                        uint32_t tb, void* C_p, uint32_t ldC, uint32_t BETA,
+                        uint32_t setup_SSR) {
+    float* A = (float*)A_p;
+    float* B = (float*)B_p;
+    float* C = (float*)C_p;
+
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (; n < N; n++) {
@@ -190,10 +204,13 @@ void gemm_fp32_baseline(const uint32_t M, const uint32_t N, const uint32_t K,
     }
 }
 
-void gemm_fp32_opt(const uint32_t M, const uint32_t N, const uint32_t K,
-                   float* A, const uint32_t ldA, float* B, const uint32_t ldB,
-                   float* C, const uint32_t ldC, const uint32_t* BETA,
-                   const uint32_t setup_SSR) {
+void gemm_fp32_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
+                   uint32_t ta, void* B_p, uint32_t ldB, uint32_t tb, void* C_p,
+                   uint32_t ldC, uint32_t BETA, uint32_t setup_SSR) {
+    // cast void pointers to float pointers
+    float* A = (float*)A_p;
+    float* B = (float*)B_p;
+    float* C = (float*)C_p;
     // Unrolling factor of most inner loop.
     // Should be at least as high as the FMA delay
     // for maximum utilization
@@ -233,8 +250,7 @@ void gemm_fp32_opt(const uint32_t M, const uint32_t N, const uint32_t K,
             v2f32 c[unroll], reduce_reg[unroll];
 
             asm volatile(
-                "lw      t0, 0(%[BETA]) \n"
-                "beqz    t0, 1f \n"
+                "beqz    %[BETA], 1f \n"
                 // Load intermediate results
                 "flw %[reduce_reg0], 0(%[C]) \n"
                 "flw %[reduce_reg1], 4(%[C]) \n"
@@ -328,7 +344,7 @@ void gemm_fp32_opt(const uint32_t M, const uint32_t N, const uint32_t K,
         snrt_ssr_disable();
 
         for (; n < N; n++) {
-            float c = (*BETA) ? C[m * ldC + n] : 0.0;
+            float c = BETA ? C[m * ldC + n] : 0.0;
             for (uint32_t k = 0; k < K; k++) {
                 c += A[k + m * ldA] * B[k + n * ldB];
             }
