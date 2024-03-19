@@ -225,6 +225,11 @@ perf-csv: $(PERF_CSV)
 event-csv: $(EVENT_CSV)
 layout: $(TRACE_CSV) $(TRACE_JSON)
 
+clean-traces:
+	rm -rf $(GENTRACE_OUTPUTS)
+clean-annotate:
+	rm -rf $(ANNOTATE_OUTPUTS)
+
 $(LOGS_DIR)/trace_hart_%.txt $(LOGS_DIR)/hart_%_perf.json: $(LOGS_DIR)/trace_hart_%.dasm $(GENTRACE_PY)
 	$(DASM) < $< | $(PYTHON) $(GENTRACE_PY) --permissive -d $(LOGS_DIR)/hart_$*_perf.json > $(LOGS_DIR)/trace_hart_$*.txt
 
