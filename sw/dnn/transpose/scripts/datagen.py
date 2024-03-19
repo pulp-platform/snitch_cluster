@@ -7,16 +7,17 @@
 # Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-import torch
+import numpy as np
 import os
+import pyflexfloat as ff
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
-from data_utils import ctype_from_precision_t, torch_type_from_precision_t, \
+from data_utils import ctype_from_precision_t, ff_desc_from_precision_t, \
                        format_struct_definition, format_array_definition, \
                        format_array_declaration, format_ifdef_wrapper, DataGen  # noqa: E402
 
-torch.manual_seed(42)
+np.random.seed(42)
 
 # AXI splits bursts crossing 4KB address boundaries. To minimize
 # the occurrence of these splits the data should be aligned to 4KB
@@ -26,17 +27,19 @@ BURST_ALIGNMENT = 4096
 class TransposeDataGen(DataGen):
 
     def golden_model(self, inp):
-        return inp.t()
+        return np.transpose(inp)
 
     def emit_header(self, **kwargs):
         header = [super().emit_header()]
 
         M, N, prec = kwargs['M'], kwargs['N'], kwargs['prec']
-        inp = torch.randn(M, N, requires_grad=False, dtype=torch_type_from_precision_t(prec))
-        output = self.golden_model(inp)
-        output = output.detach().numpy()
-
         assert (M % 8) == 0, "M must be an integer multiple of the number of cores"
+
+        ff_desc = ff_desc_from_precision_t(prec)
+        ctype = ctype_from_precision_t(prec)
+
+        inp = ff.array(np.random.rand(M, N), ff_desc)
+        output = self.golden_model(inp)
 
         input_uid = 'input'
         output_uid = 'output'
@@ -48,8 +51,6 @@ class TransposeDataGen(DataGen):
             'dtype': prec,
             'baseline': kwargs['baseline']
         }
-
-        ctype = ctype_from_precision_t(prec)
 
         header += [format_array_declaration(ctype, input_uid, inp.shape,
                                             alignment=BURST_ALIGNMENT)]

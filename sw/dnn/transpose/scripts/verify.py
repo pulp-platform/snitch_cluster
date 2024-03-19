@@ -40,8 +40,7 @@ class TransposeVerifier(Verifier):
     def get_expected_results(self):
         inp = self.get_input_from_symbol('input', ctype_from_precision_t(self.prec))
         inp = inp.reshape(self.M, self.N)
-        inp = torch.from_numpy(inp)
-        return TransposeDataGen().golden_model(inp).detach().numpy().flatten()
+        return TransposeDataGen().golden_model(inp)
 
     def check_results(self, *args):
         return super().check_results(*args, atol=0)
