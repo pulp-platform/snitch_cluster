@@ -50,8 +50,9 @@ def validate_config(prec, implementation, parallelize_m, parallelize_k, m_tiles,
                                    ' not transposed'
     assert not tb or k_tiles == 1, 'Tiling in the K dimension supported only if B is' \
                                    ' not transposed'
-    assert implementation or frac_n >= 8, 'N dimension of tile size must be greater or equal to' \
-                                          ' the unrolling factor (8) when using optimized kernels'
+    assert (implementation == "BASELINE") or frac_n >= 8, 'N dimension of tile size must be' \
+                                                          ' greater or equal to the unrolling' \
+                                                          ' factor (8) when using optimized kernels'
     assert prec == "FP64" or beta == 0, 'beta != 0 supported only in FP64'
 
 
