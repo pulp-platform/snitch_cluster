@@ -48,11 +48,24 @@ def golden_model_torch(ifmap, eps, shape):
     return ln(ifmap)
 
 
-def validate_config(seq_len, n_tiles, **kwargs):
-    assert (seq_len % n_tiles) == 0, 'Input dimension is not an integer multiple of tile size'
+def validate_config(**kwargs):
+    assert kwargs['input_dim']['seq_len'] % kwargs['n_tiles'] == 0, 'Input dimension is not' \
+                                                                    ' an integer multiple of' \
+                                                                    ' tile size'
+    assert kwargs['prec'] != "FP64", 'FP64 not supported'
+    assert not (kwargs['implementation'] == "BASELINE"), 'No baseline implementations' \
+                                                         ' (switch to NAIVE)'
+    assert not (kwargs['implementation'] == "OPT_EX"), 'Expanding layernorm kernels not supported'
+    assert not (kwargs['prec'] == "FP8" and kwargs['implementation'] == "NAIVE"), 'FP8 not ' \
+                                                                                  'supported in' \
+                                                                                  'naive ' \
+                                                                                  'implementation'
 
 
 def emit_header(**kwargs):
+
+    # Validate parameters
+    validate_config(**kwargs)
 
     batch_size = kwargs['input_dim']['batch_size']
     seq_len = kwargs['input_dim']['seq_len']
@@ -60,10 +73,7 @@ def emit_header(**kwargs):
     eps = kwargs['eps']
     prec = kwargs['prec']
     n_tiles = kwargs['n_tiles']
-    baseline = kwargs['baseline']
-
-    # Validate parameters
-    validate_config(seq_len, **kwargs)
+    implementation = kwargs['implementation']
 
     ff_desc = data_utils.ff_desc_from_precision_t(prec)
     ctype = data_utils.ctype_from_precision_t(prec)
@@ -78,7 +88,7 @@ def emit_header(**kwargs):
     layer_cfg = {
         **kwargs['input_dim'],
         'n_tiles': n_tiles,
-        'baseline': baseline,
+        'implementation': implementation,
         'ifmap': ifmap_uid,
         'ofmap': ofmap_uid,
         'eps': eps,

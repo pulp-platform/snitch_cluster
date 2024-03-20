@@ -32,7 +32,7 @@ def emit_license():
 # Enum value can be a string or an integer, this function uniformizes the result to integers only
 def _integer_precision_t(prec):
     if isinstance(prec, str):
-        return {'FP64': 8, 'FP32': 4, 'FP16': 2, 'FP8': 1, 'FP8ALT': 1}[prec]
+        return {'FP64': 8, 'FP32': 4, 'FP16': 2, 'FP8': 1}[prec]
     else:
         return prec
 
