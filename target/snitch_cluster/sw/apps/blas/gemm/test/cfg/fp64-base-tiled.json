@@ -16,5 +16,5 @@
     k_tiles: 2,
     parallelize_m: 0,
     parallelize_k: 0,
-    baseline: true
+    implementation: "NAIVE"
 }

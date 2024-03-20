@@ -18,5 +18,5 @@
     n_tiles: 1, // number of tiles in N dimension
     parallelize_k: 0,
     parallelize_m: 0,
-    baseline: false
+    implementation: "NAIVE"
 }

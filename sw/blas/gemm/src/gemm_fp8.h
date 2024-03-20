@@ -34,7 +34,7 @@ void gemm_fp8_naive(uint32_t M, uint32_t N, uint32_t K, char* A, uint32_t ldA,
 
 void gemm_fp8_baseline(uint32_t M, uint32_t N, uint32_t K, char* A,
                        uint32_t ldA, char* B, uint32_t ldB, char* C,
-                       uint32_t ldC, float BETA, uint32_t setup_SSR) {
+                       uint32_t ldC, float BETA) {
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (; n < N; n++) {
