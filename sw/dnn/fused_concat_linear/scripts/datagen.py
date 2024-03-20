@@ -11,7 +11,7 @@ import pathlib
 import json5
 import sys
 import os
-import torch
+import pyflexfloat as ff
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
 import data_utils  # noqa: E402
@@ -28,8 +28,8 @@ BURST_ALIGNMENT = 4096
 
 def golden_model(inputs, weights):
     innermost_dim = len(inputs[0].shape) - 1
-    concat_output = torch.cat(inputs, dim=innermost_dim)
-    linear_output = torch.matmul(concat_output, weights)
+    concat_output = np.concatenate(inputs, axis=innermost_dim)
+    linear_output = np.matmul(concat_output, weights)
     return linear_output, concat_output
 
 
@@ -41,12 +41,11 @@ def emit_header(section, params):
 
     assert input_shape[0] == output_shape[0], 'Inconsistent input and output shapes'
 
-    torch_type = data_utils.torch_type_from_precision_t(prec)
+    ff_desc = data_utils.ff_desc_from_precision_t(prec)
+    ctype = data_utils.ctype_from_precision_t(prec)
 
-    inputs = [torch.rand(*input_shape, requires_grad=False, dtype=torch_type)
-              for _ in range(num_inputs)]
-    weights = torch.rand([input_shape[1]*num_inputs, output_shape[1]],
-                         requires_grad=False, dtype=torch_type)
+    inputs = [ff.array(np.random.rand(*input_shape), ff_desc) for _ in range(num_inputs)]
+    weights = ff.array(np.random.rand(input_shape[1]*num_inputs, output_shape[1]), ff_desc)
     linear_output, concat_output = golden_model(inputs, weights)
 
     ctype = data_utils.ctype_from_precision_t(prec)

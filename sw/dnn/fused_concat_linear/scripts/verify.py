@@ -6,7 +6,6 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import sys
-import torch
 from pathlib import Path
 from datagen import golden_model
 
@@ -46,11 +45,11 @@ class FusedConcatLinearVerifier(Verifier):
     def get_expected_results(self):
         inputs = [self.get_input_from_symbol(f'input_{i}', ctype_from_precision_t(self.prec))
                   for i in range(self.num_inputs)]
-        inputs = [torch.from_numpy(tensor.reshape(self.input_shape)) for tensor in inputs]
+        inputs = [tensor.reshape(self.input_shape) for tensor in inputs]
         weights = self.get_input_from_symbol('weights', ctype_from_precision_t(self.prec))
-        weights = torch.from_numpy(weights.reshape(self.weights_shape))
+        weights = weights.reshape(self.weights_shape)
         output_golden, _ = golden_model(inputs, weights)
-        return output_golden.detach().numpy().flatten()
+        return output_golden.flatten()
 
     def check_results(self, *args):
         return super().check_results(*args, rtol=1E-6)
