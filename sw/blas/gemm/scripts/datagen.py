@@ -56,6 +56,17 @@ def validate_config(prec, implementation, parallelize_m, parallelize_k, m_tiles,
         ' greater or equal to the unrolling' \
         ' factor (8) when using optimized kernels'
     assert prec == "FP64" or beta == 0, 'beta != 0 supported only in FP64'
+    assert not (prec == "FP64" and implementation == "BASELINE"), 'No baseline implemented' \
+                                                                  ' for FP64 (switch to NAIVE)'
+    assert not (((prec == "FP64") or (prec == "FP32")) and implementation == "OPT_EX"), \
+        'Expanding GEMM kernels' \
+        ' not supported for FP64 and FP32'
+    assert not (((prec == "FP16") or (prec == "FP8")) and implementation == "NAIVE"), \
+        'FP16 and FP8 not supported' \
+        ' in naive implementation'
+    assert not (prec == "FP8" and implementation == "OPT"), 'FP8 not supported in' \
+                                                            ' optimized implementation' \
+                                                            ' (switch to OPT_EX)'
 
 
 def emit_header(**kwargs):
