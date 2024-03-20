@@ -4,8 +4,9 @@
 
 {
     num_inputs: 1,
-    input_shape: [32, 4],
-    output_shape: [32, 16],
-    dtype: "FP64",
-    baseline: true
-}    trans_weights: true,
+    input_shape: [64, 16],
+    output_shape: [64, 16],
+    trans_weights: true,
+    dtype: "FP16",
+    implementation: "BASELINE"
+}
