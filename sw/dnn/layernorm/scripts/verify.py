@@ -4,9 +4,9 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
+# Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
 import sys
-import torch
 from pathlib import Path
 from datagen import golden_model
 
@@ -45,8 +45,7 @@ class LayernormVerifier(Verifier):
     def get_expected_results(self):
         ifmap = self.get_input_from_symbol('ifmap', ctype_from_precision_t(self.prec))
         ifmap = ifmap.reshape(self.batch_size, self.seq_len, self.embeddings)
-        ifmap = torch.from_numpy(ifmap)
-        return golden_model(ifmap, self.eps, self.embeddings, self.prec).detach().numpy().flatten()
+        return golden_model(ifmap, self.eps).flatten()
 
     def check_results(self, *args):
         return super().check_results(*args, atol=0.001)
