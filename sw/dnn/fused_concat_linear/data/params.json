@@ -8,4 +8,4 @@
     output_shape: [32, 16],
     dtype: "FP64",
     baseline: true
-}
+}    trans_weights: true,

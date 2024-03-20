@@ -17,9 +17,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/")
 import data_utils  # noqa: E402
 from data_utils import emit_license, \
                        format_struct_definition, format_array_definition, \
-                       format_array_declaration, format_ifdef_wrapper  # noqa: E402
-
-torch.manual_seed(42)
+                       format_array_declaration, format_ifdef_wrapper, \
+                       format_scalar_definition  # noqa: E402
 
 # AXI splits bursts crossing 4KB address boundaries. To minimize
 # the occurrence of these splits the data should be aligned to 4KB
@@ -38,6 +37,7 @@ def emit_header(section, params):
     input_shape = params['input_shape']
     output_shape = params['output_shape']
     prec = params['dtype']
+    trans_weights = params['trans_weights']
 
     assert input_shape[0] == output_shape[0], 'Inconsistent input and output shapes'
 
@@ -49,6 +49,8 @@ def emit_header(section, params):
     linear_output, concat_output = golden_model(inputs, weights)
 
     ctype = data_utils.ctype_from_precision_t(prec)
+
+    weights = weights.T if trans_weights else weights
 
     layer_cfg = {
         **params,
@@ -65,6 +67,7 @@ def emit_header(section, params):
     data_str += [format_array_declaration(ctype, 'concat_output', concat_output.shape)]
     data_str += [format_array_declaration(ctype, 'linear_output', linear_output.shape)]
     data_str += [format_array_declaration(ctype, 'weights', weights.shape)]
+    data_str += [format_scalar_definition('uint32_t', 'trans_weights', int(trans_weights))]
     data_str += [format_struct_definition('fused_concat_linear_layer_t', 'layer', layer_cfg)]
     data_str += [format_array_definition(ctype, f'input_{i}', t)
                  for i, t in enumerate(inputs)]
