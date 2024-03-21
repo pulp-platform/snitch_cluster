@@ -17,6 +17,7 @@ from data_utils import ctype_from_precision_t  # noqa: E402
 class FusedConcatLinearVerifier(Verifier):
 
     OUTPUT_UIDS = ['linear_output']
+    ERR_THRESHOLD = {8: 1e-6, 4: 1e-6, 2: 1e-2, 1: 1e-4}
 
     def __init__(self):
         super().__init__()
@@ -56,7 +57,7 @@ class FusedConcatLinearVerifier(Verifier):
         return output_golden.flatten()
 
     def check_results(self, *args):
-        return super().check_results(*args, rtol=1E-6)
+        return super().check_results(*args, rtol=self.ERR_THRESHOLD[self.prec])
 
 
 if __name__ == "__main__":
