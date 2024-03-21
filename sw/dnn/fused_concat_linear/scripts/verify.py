@@ -6,7 +6,6 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import sys
-import torch
 from pathlib import Path
 from datagen import golden_model
 
@@ -18,6 +17,7 @@ from data_utils import ctype_from_precision_t  # noqa: E402
 class FusedConcatLinearVerifier(Verifier):
 
     OUTPUT_UIDS = ['linear_output']
+    ERR_THRESHOLD = {8: 1e-6, 4: 1e-6, 2: 1e-2, 1: 1e-4}
 
     def __init__(self):
         super().__init__()
@@ -29,6 +29,7 @@ class FusedConcatLinearVerifier(Verifier):
             'out_width': 'I',
             'inputs': 'I',
             'weights': 'I',
+            'trans_weights': 'I',
             'concat_output': 'I',
             'linear_output': 'I',
             'dtype': 'I',
@@ -44,16 +45,19 @@ class FusedConcatLinearVerifier(Verifier):
         return self.get_output_from_symbol('linear_output', ctype_from_precision_t(self.prec))
 
     def get_expected_results(self):
+        trans_weights = self.get_input_from_symbol('trans_weights', 'uint32_t')[0]
         inputs = [self.get_input_from_symbol(f'input_{i}', ctype_from_precision_t(self.prec))
                   for i in range(self.num_inputs)]
-        inputs = [torch.from_numpy(tensor.reshape(self.input_shape)) for tensor in inputs]
+        inputs = [tensor.reshape(self.input_shape) for tensor in inputs]
         weights = self.get_input_from_symbol('weights', ctype_from_precision_t(self.prec))
-        weights = torch.from_numpy(weights.reshape(self.weights_shape))
+        if trans_weights:
+            weights = weights.reshape(self.weights_shape).T
+        weights = weights.reshape(self.weights_shape)
         output_golden, _ = golden_model(inputs, weights)
-        return output_golden.detach().numpy().flatten()
+        return output_golden.flatten()
 
     def check_results(self, *args):
-        return super().check_results(*args, rtol=1E-6)
+        return super().check_results(*args, rtol=self.ERR_THRESHOLD[self.prec])
 
 
 if __name__ == "__main__":

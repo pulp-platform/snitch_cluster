@@ -23,12 +23,13 @@ typedef struct {
     uint32_t num_inputs;
     uint32_t input_shape[2];
     uint32_t output_shape[2];
+    uint32_t trans_weights;
     void **inputs;
     void *weights;
     void *concat_output;
     void *linear_output;
     precision_t dtype;
-    uint32_t baseline;
+    implementation_t implementation;
 } fused_concat_linear_layer_t;
 
 static inline int fused_concat_linear_baseline(fused_concat_linear_layer_t l) {
@@ -41,12 +42,16 @@ static inline int fused_concat_linear_baseline(fused_concat_linear_layer_t l) {
         .dtype = l.dtype};
     int nerr = concat_layer(concat_layer_cfg);
 
+    uint32_t setup_SSR =
+        (l.implementation == OPT) || (l.implementation == OPT_EX);
+
     // Linear layer
     uint32_t m = l.input_shape[0];
     uint32_t k = l.input_shape[1] * l.num_inputs;
     uint32_t n = l.output_shape[1];
-    gemm(l.dtype, 0, 0, 1, 0, snrt_cluster_num(), 1, 1, 1, 1, 1, 0, 0, m, n, k,
-         1.0, l.concat_output, l.weights, 0.0, l.linear_output, l.baseline);
+    gemm(l.dtype, 0, setup_SSR, 1, 0, snrt_cluster_num(), 1, 1, 1, 1, 1, 0,
+         l.trans_weights, m, n, k, 1.0, l.concat_output, l.weights, 0.0,
+         l.linear_output, l.implementation);
 
     snrt_global_barrier();
 
@@ -70,8 +75,12 @@ static inline int fused_concat_linear_optimized(fused_concat_linear_layer_t l) {
     }
     snrt_cluster_hw_barrier();
 
-    gemm(l.dtype, 0, 0, 0, 1, 1, 1, l.num_inputs, 0, 1, 1, 0, 0, m, n, concat_k,
-         1.0, a, l.weights, 0.0, l.linear_output, l.baseline);
+    uint32_t setup_SSR =
+        (l.implementation == OPT) || (l.implementation == OPT_EX);
+
+    gemm(l.dtype, 0, setup_SSR, 0, 1, 1, 1, l.num_inputs, 0, 1, 1, 0,
+         l.trans_weights, m, n, concat_k, 1.0, a, l.weights, 0.0,
+         l.linear_output, l.implementation);
 
     snrt_global_barrier();
 
