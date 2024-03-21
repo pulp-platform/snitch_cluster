@@ -19,7 +19,9 @@ module snitch_cc #(
   parameter int unsigned DMADataWidth       = 0,
   /// Id width of the AXI DMA bus.
   parameter int unsigned DMAIdWidth         = 0,
-  parameter int unsigned DMAAxiReqFifoDepth = 0,
+  /// User width of the AXI DMA bus.
+  parameter int unsigned DMAUserWidth       = 0,
+  parameter int unsigned DMANumAxInFlight   = 0,
   parameter int unsigned DMAReqFifoDepth    = 0,
   /// Data port request type.
   parameter type         dreq_t             = logic,
@@ -33,6 +35,8 @@ module snitch_cc #(
   parameter type         tcdm_rsp_t         = logic,
   /// TCDM User Payload
   parameter type         tcdm_user_t        = logic,
+  parameter type         axi_ar_chan_t      = logic,
+  parameter type         axi_aw_chan_t      = logic,
   parameter type         axi_req_t          = logic,
   parameter type         axi_rsp_t          = logic,
   parameter type         hive_req_t         = logic,
@@ -130,7 +134,6 @@ module snitch_cc #(
   output axi_req_t                   axi_dma_req_o,
   input  axi_rsp_t                   axi_dma_res_i,
   output logic                       axi_dma_busy_o,
-  output axi_dma_pkg::dma_perf_t     axi_dma_perf_o,
   output dma_events_t                axi_dma_events_o,
   // Core event strobes
   output snitch_pkg::core_events_t   core_events_o,
@@ -375,52 +378,46 @@ module snitch_cc #(
   );
 
   if (Xdma) begin : gen_dma
-    axi_dma_tc_snitch_fe #(
-      .AddrWidth (AddrWidth),
-      .DataWidth (DataWidth),
-      .DMADataWidth (DMADataWidth),
-      .IdWidth (DMAIdWidth),
-      .DMAAxiReqFifoDepth (DMAAxiReqFifoDepth),
+    idma_inst64_top #(
+      .AxiAddrWidth (AddrWidth),
+      .AxiDataWidth (DMADataWidth),
+      .AxiIdWidth (DMAIdWidth),
+      .AxiUserWidth (DMAUserWidth),
+      .NumAxInFlight (DMANumAxInFlight),
       .DMAReqFifoDepth (DMAReqFifoDepth),
+      .axi_ar_chan_t (axi_ar_chan_t),
+      .axi_aw_chan_t (axi_aw_chan_t),
       .axi_req_t (axi_req_t),
       .axi_res_t (axi_rsp_t),
-      .acc_resp_t (acc_resp_t),
+      .acc_req_t (acc_req_t),
+      .acc_res_t (acc_resp_t),
       .dma_events_t (dma_events_t)
-    ) i_axi_dma_tc_snitch_fe (
-      .clk_i            ( clk_i                     ),
-      .rst_ni           ( rst_ni                    ),
-      .axi_dma_req_o    ( axi_dma_req_o             ),
-      .axi_dma_res_i    ( axi_dma_res_i             ),
-      .dma_busy_o       ( axi_dma_busy_o            ),
-      .acc_qaddr_i      ( acc_snitch_req.addr       ),
-      .acc_qid_i        ( acc_snitch_req.id         ),
-      .acc_qdata_op_i   ( acc_snitch_req.data_op    ),
-      .acc_qdata_arga_i ( acc_snitch_req.data_arga  ),
-      .acc_qdata_argb_i ( acc_snitch_req.data_argb  ),
-      .acc_qdata_argc_i ( acc_snitch_req.data_argc  ),
-      .acc_qvalid_i     ( dma_qvalid                ),
-      .acc_qready_o     ( dma_qready                ),
-      .acc_pdata_o      ( dma_resp.data             ),
-      .acc_pid_o        ( dma_resp.id               ),
-      .acc_perror_o     ( dma_resp.error            ),
-      .acc_pvalid_o     ( dma_pvalid                ),
-      .acc_pready_i     ( dma_pready                ),
-      .hart_id_i        ( hart_id_i                 ),
-      .dma_perf_o       ( axi_dma_perf_o            ),
-      .dma_events_o     ( axi_dma_events_o          )
+    ) i_idma_inst64_top (
+      .clk_i,
+      .rst_ni,
+      .testmode_i      ( 1'b0             ),
+      .axi_req_o       ( axi_dma_req_o    ),
+      .axi_res_i       ( axi_dma_res_i    ),
+      .busy_o          ( axi_dma_busy_o   ),
+      .acc_req_i       ( acc_snitch_req   ),
+      .acc_req_valid_i ( dma_qvalid       ),
+      .acc_req_ready_o ( dma_qready       ),
+      .acc_res_o       ( dma_resp         ),
+      .acc_res_valid_o ( dma_pvalid       ),
+      .acc_res_ready_i ( dma_pready       ),
+      .hart_id_i       ( hart_id_i        ),
+      .events_o        ( axi_dma_events_o )
     );
 
   // no DMA instanciated
   end else begin : gen_no_dma
     // tie-off unused signals
-    assign axi_dma_req_o   =  '0;
-    assign axi_dma_busy_o  = 1'b0;
-
-    assign dma_qready      =  '0;
-    assign dma_pvalid      =  '0;
-
-    assign dma_resp        =  '0;
-    assign axi_dma_perf_o  = '0;
+    assign axi_dma_req_o    = '0;
+    assign axi_dma_busy_o   = '0;
+    assign dma_qready       = '0;
+    assign dma_resp         = '0;
+    assign dma_pvalid       = '0;
+    assign axi_dma_events_o = '0;
   end
 
   if (Xipu) begin : gen_ipu

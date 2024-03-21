@@ -19,7 +19,7 @@ package:
     - Matheus Cavalcante <matheusd@iis.ee.ethz.ch>
 
 dependencies:
-  axi:                { git: https://github.com/pulp-platform/axi,                version:  0.39.0  }
+  axi:                { git: https://github.com/pulp-platform/axi,                version:  0.39.2  }
   axi_riscv_atomics:  { git: https://github.com/pulp-platform/axi_riscv_atomics,  version:  0.6.0   }
   common_cells:       { git: https://github.com/pulp-platform/common_cells,       version:  1.28.0  }
   FPnew:              { git: "https://github.com/pulp-platform/cvfpu.git",        rev:      pulp-v0.1.3 }
@@ -27,6 +27,7 @@ dependencies:
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.11  }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0   }
   cluster_icache:     { git: https://github.com/pulp-platform/cluster_icache.git, version:  0.1.0   }
+  idma:               { git: https://github.com/pulp-platform/iDMA,               version:  0.6.0   }
 
 vendor_package:
   - name: musl
@@ -86,28 +87,6 @@ export_include_dirs:
   - hw/snitch_ssr/include
 
 sources:
-  # future
-  - files:
-      # Level 0
-      - hw/future/src/mem_to_axi_lite.sv
-      - hw/future/src/idma_reg64_frontend_reg_pkg.sv
-      - hw/future/src/idma_tf_id_gen.sv
-      - hw/future/src/dma/axi_dma_data_path.sv
-      - hw/future/src/axi_interleaved_xbar.sv
-      # Level 1
-      - hw/future/src/axi_zero_mem.sv
-      - hw/future/src/idma_reg64_frontend_reg_top.sv
-      # Level 2
-      - hw/future/src/idma_reg64_frontend.sv
-      - hw/future/src/dma/axi_dma_data_mover.sv
-      - hw/future/src/dma/axi_dma_burst_reshaper.sv
-      # Level 3
-      - hw/future/src/dma/axi_dma_backend.sv
-  - target: test
-    files:
-      - hw/future/test/fixture_axi_dma_backend.sv
-      - hw/future/test/tb_axi_dma_backend.sv
-
   # reqrsp_interface
   - files:
       # Level 0
@@ -186,17 +165,6 @@ sources:
   # snitch_vm
   - files:
       - hw/snitch_vm/src/snitch_ptw.sv
-
-  # snitch_dma
-  - files:
-      # Level 0
-      - hw/snitch_dma/src/axi_dma_pkg.sv
-      # Level 1
-      - hw/snitch_dma/src/axi_dma_error_handler.sv
-      - hw/snitch_dma/src/axi_dma_perf_counters.sv
-      - hw/snitch_dma/src/axi_dma_twod_ext.sv
-      # Level 2:
-      - hw/snitch_dma/src/axi_dma_tc_snitch_fe.sv
 
   # snitch_ipu
   - files:

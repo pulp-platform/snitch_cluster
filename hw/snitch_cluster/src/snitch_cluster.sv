@@ -54,7 +54,7 @@ module snitch_cluster
   /// banks.
   parameter int unsigned NrBanks            = NrCores,
   /// Size of DMA AXI buffer.
-  parameter int unsigned DMAAxiReqFifoDepth = 3,
+  parameter int unsigned DMANumAxInFlight   = 3,
   /// Size of DMA request fifo.
   parameter int unsigned DMAReqFifoDepth    = 3,
   /// Width of a single icache line.
@@ -859,14 +859,17 @@ module snitch_cluster
         .DataWidth (NarrowDataWidth),
         .DMADataWidth (WideDataWidth),
         .DMAIdWidth (WideIdWidthIn),
+        .DMAUserWidth (WideUserWidth),
         .SnitchPMACfg (SnitchPMACfg),
-        .DMAAxiReqFifoDepth (DMAAxiReqFifoDepth),
+        .DMANumAxInFlight (DMANumAxInFlight),
         .DMAReqFifoDepth (DMAReqFifoDepth),
         .dreq_t (reqrsp_req_t),
         .drsp_t (reqrsp_rsp_t),
         .tcdm_req_t (tcdm_req_t),
         .tcdm_rsp_t (tcdm_rsp_t),
         .tcdm_user_t (tcdm_user_t),
+        .axi_ar_chan_t (axi_mst_dma_ar_chan_t),
+        .axi_aw_chan_t (axi_mst_dma_aw_chan_t),
         .axi_req_t (axi_mst_dma_req_t),
         .axi_rsp_t (axi_mst_dma_resp_t),
         .hive_req_t (hive_req_t),
@@ -934,7 +937,6 @@ module snitch_cluster
         .axi_dma_req_o (axi_dma_req),
         .axi_dma_res_i (axi_dma_res),
         .axi_dma_busy_o (),
-        .axi_dma_perf_o (),
         .axi_dma_events_o (dma_core_events),
         .core_events_o (core_events[i]),
         .tcdm_addr_base_i (tcdm_start_address),
