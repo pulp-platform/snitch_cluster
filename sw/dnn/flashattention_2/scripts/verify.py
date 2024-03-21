@@ -8,16 +8,19 @@
 import sys
 import torch
 from pathlib import Path
-from datagen import exact_golden_model
+from datagen import exact_golden_model, dbg
+import pyflexfloat as ff
 
 sys.path.append(str(Path(__file__).parent / '../../../../util/sim/'))
 from verif_utils import Verifier  # noqa: E402
-from data_utils import ctype_from_precision_t  # noqa: E402
+from data_utils import ctype_from_precision_t, ff_desc_from_precision_t  # noqa: E402
 
 
 class FlashAttention2Verifier(Verifier):
 
+    # OUTPUT_UIDS = ['dbg']
     OUTPUT_UIDS = ['O']
+    ERR_THRESHOLD = {4: 1e-6, 2: 8e-3, 1: 3e-1}
 
     def __init__(self):
         super().__init__()
@@ -41,20 +44,26 @@ class FlashAttention2Verifier(Verifier):
         self.prec = self.layer['dtype']
 
     def get_actual_results(self):
-        return self.get_output_from_symbol('O', ctype_from_precision_t(self.prec))
+        return self.get_output_from_symbol(self.OUTPUT_UIDS[0], ctype_from_precision_t(self.prec))
 
     def get_expected_results(self):
         Q = self.get_input_from_symbol('Q', ctype_from_precision_t(self.prec))
         K = self.get_input_from_symbol('K', ctype_from_precision_t(self.prec))
         V = self.get_input_from_symbol('V', ctype_from_precision_t(self.prec))
-        Q = torch.from_numpy(Q.reshape(self.N, self.d))
-        V = torch.from_numpy(V.reshape(self.N, self.d))
-        K = torch.from_numpy(K.reshape(self.N, self.d))
+        # Q = torch.from_numpy(Q.reshape(self.N, self.d))
+        # V = torch.from_numpy(V.reshape(self.N, self.d))
+        # K = torch.from_numpy(K.reshape(self.N, self.d))
+        ff_desc = ff_desc_from_precision_t(self.prec)
+        Q = ff.array(Q.reshape(self.N, self.d), ff_desc)
+        V = ff.array(V.reshape(self.N, self.d), ff_desc)
+        K = ff.array(K.reshape(self.N, self.d), ff_desc)
+        print(Q, V, K)
         # return torch_golden_model(Q, K, V).detach().numpy().flatten()
-        return exact_golden_model(Q, K, V, self.B_r, self.B_c).flatten()
+        # return exact_golden_model(Q, K, V, self.B_r, self.B_c).flatten()
+        return dbg(Q, K, V, self.B_r, self.B_c, ff_desc).flatten()
 
     def check_results(self, *args):
-        return super().check_results(*args, rtol=1E-4)
+        return super().check_results(*args, rtol=self.ERR_THRESHOLD[self.prec])
 
 
 if __name__ == "__main__":

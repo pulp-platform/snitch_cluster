@@ -5,7 +5,28 @@
 // Author: Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 //         Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
+
+static inline float fp8_to_float(char val) {
+    float res;
+    asm volatile (
+        "fmv.b.x %[res], %[val]\n"
+        "fcvt.s.b %[res], %[res]\n"
+        : [res]"=f"(res) : [val]"r"(val)
+    );
+    return res;
+}
+
+static inline char float_to_fp8(float val) {
+    char res;
+    asm volatile (
+        "fcvt.b.s ft3, %[val]\n"
+        "fmv.x.b %[res], ft3\n"
+        : [res]"=r"(res) : [val]"f"(val) : "ft3"
+    );
+    return res;
+}
+
+static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
     // alias layer parameters
     uint32_t dtype = layer.dtype;
     uint32_t N = layer.N;
@@ -13,10 +34,10 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
     uint32_t B_r = layer.B_r;
     uint32_t B_c = layer.B_c;
     uint32_t baseline = layer.baseline;
-    __fp16 *Q_l3 = layer.Q;
-    __fp16 *K_l3 = layer.K;
-    __fp16 *V_l3 = layer.V;
-    __fp16 *O_l3 = layer.O;
+    char *Q_l3 = layer.Q;
+    char *K_l3 = layer.K;
+    char *V_l3 = layer.V;
+    char *O_l3 = layer.O;
 
     // alias system parameters
     uint32_t compute_id = snrt_global_core_idx();
@@ -29,30 +50,30 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
     uint32_t T_c = N / B_c;  // number of column blocks
 
     // compute the size of the matrices
-    uint32_t q_fa_size = B_r * d * sizeof(__fp16);
-    uint32_t k_fa_size = B_c * d * sizeof(__fp16);
-    uint32_t v_fa_size = B_c * d * sizeof(__fp16);
-    uint32_t s_fa_size = B_r * B_c * sizeof(__fp16);
-    uint32_t p_fa_size = B_r * B_c * sizeof(__fp16);
-    uint32_t o_fa_size = B_r * d * sizeof(__fp16);
+    uint32_t q_fa_size = B_r * d * sizeof(char);
+    uint32_t k_fa_size = B_c * d * sizeof(char);
+    uint32_t v_fa_size = B_c * d * sizeof(char);
+    uint32_t s_fa_size = B_r * B_c * sizeof(char);
+    uint32_t p_fa_size = B_r * B_c * sizeof(char);
+    uint32_t o_fa_size = B_r * d * sizeof(char);
     uint32_t m_i_size = B_r * sizeof(float);
     uint32_t m_i_prev_size = m_i_size;
     uint32_t l_i_size = B_r * sizeof(float);
     uint32_t shifted_exp_size = B_r * sizeof(float);
 
     // allocate memory in TCDM
-    void *tcdm_ptr = (__fp16 *)snrt_l1_next();
-    __fp16 *Q_fa = tcdm_ptr;
+    void *tcdm_ptr = (char *)snrt_l1_next();
+    char *Q_fa = tcdm_ptr;
     tcdm_ptr += q_fa_size;
-    __fp16 *K_fa = tcdm_ptr;
+    char *K_fa = tcdm_ptr;
     tcdm_ptr += k_fa_size;
-    __fp16 *V_fa = tcdm_ptr;
+    char *V_fa = tcdm_ptr;
     tcdm_ptr += v_fa_size;
-    __fp16 *S_fa = tcdm_ptr;
+    char *S_fa = tcdm_ptr;
     tcdm_ptr += s_fa_size;
-    __fp16 *P_fa = tcdm_ptr;
+    char *P_fa = tcdm_ptr;
     tcdm_ptr += p_fa_size;
-    __fp16 *O_fa = tcdm_ptr;
+    char *O_fa = tcdm_ptr;
     tcdm_ptr += o_fa_size;
     float *m_i = tcdm_ptr;
     tcdm_ptr += m_i_size;
@@ -74,9 +95,9 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
             snrt_dma_txid_t txid_q_fa =
                 snrt_dma_start_2d(Q_fa,               /* dst */
                                   Q_l3 + q_fa_offset, /* src */
-                                  d * sizeof(__fp16), /* size */
-                                  d * sizeof(__fp16), /* dst_stride */
-                                  d * sizeof(__fp16), /* src_stride */
+                                  d * sizeof(char),   /* size */
+                                  d * sizeof(char),   /* dst_stride */
+                                  d * sizeof(char),   /* src_stride */
                                   B_r);               /* repetitions */
 
             snrt_dma_wait_all();
@@ -117,17 +138,17 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
                 snrt_dma_txid_t txid_k_fa =
                     snrt_dma_start_2d(K_fa,               /* dst */
                                       K_l3 + k_fa_offset, /* src */
-                                      d * sizeof(__fp16), /* size */
-                                      d * sizeof(__fp16), /* dst_stride */
-                                      d * sizeof(__fp16), /* src_stride */
+                                      d * sizeof(char),   /* size */
+                                      d * sizeof(char),   /* dst_stride */
+                                      d * sizeof(char),   /* src_stride */
                                       B_c);               /* repetitions */
 
                 snrt_dma_txid_t txid_v_fa =
                     snrt_dma_start_2d(V_fa,               /* dst */
                                       V_l3 + v_fa_offset, /* src */
-                                      d * sizeof(__fp16), /* size */
-                                      d * sizeof(__fp16), /* dst_stride */
-                                      d * sizeof(__fp16), /* src_stride */
+                                      d * sizeof(char),   /* size */
+                                      d * sizeof(char),   /* dst_stride */
+                                      d * sizeof(char),   /* src_stride */
                                       B_c);               /* repetitions */
 
                 snrt_dma_wait_all();
@@ -160,14 +181,16 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
                     // Iterate over all columns to calculate maximum for the
                     // current row
                     for (int col_idx = 0; col_idx < B_c; col_idx++) {
-                        float val = S_fa[row_idx * B_c + col_idx];
+                        float val = fp8_to_float(S_fa[row_idx * B_c + col_idx]);
                         if (val > m_i[row_idx]) m_i[row_idx] = val;
                     }
 
                     // Calculate P tile as the "local" softmax of S
                     for (int col_idx = 0; col_idx < B_c; col_idx++) {
-                        float val = expf(S_fa[row_idx * B_c + col_idx] - m_i[row_idx]);
-                        P_fa[row_idx * B_c + col_idx] = val;
+                        float val = expf(
+                            fp8_to_float(S_fa[row_idx * B_c + col_idx]) - m_i[row_idx]);
+                        if (snrt_cluster_core_idx() == 0) DUMP(val);
+                        P_fa[row_idx * B_c + col_idx] = float_to_fp8(val);
                         row_sum += val;
                     }
 
@@ -183,7 +206,8 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
                     // O_ij = diag(shifted_exp)^(-1) * O_i(j-1)
                     if (t_c != 0) {
                         for (int col_idx = 0; col_idx < d; col_idx++) {
-                            O_fa[row_idx * d + col_idx] /= shifted_exp;
+                            float val = fp8_to_float(O_fa[row_idx * d + col_idx]);
+                            O_fa[row_idx * d + col_idx] = float_to_fp8(val / shifted_exp);
                         }
                     }
                 }
@@ -208,8 +232,8 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
                     // we can compute P*(V^t)^t with the optimized GEMM.
 
                     // Allocate space for V^t
-                    __fp16 *V_t = tcdm_ptr;
-                    tcdm_ptr += B_c * d * sizeof(__fp16);
+                    char *V_t = tcdm_ptr;
+                    tcdm_ptr += B_c * d * sizeof(char);
 
                     // Compute V^t
                     transpose_kernel(dtype, V_fa, V_t, B_c, d, baseline);
@@ -242,7 +266,9 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
         if (snrt_is_compute_core()) {
             for (int row_idx = start_row; row_idx < end_row; row_idx++) {
                 for (int col_idx = 0; col_idx < d; col_idx++) {
-                    O_fa[row_idx * d + col_idx] /= l_i[row_idx];
+                    float val = fp8_to_float(O_fa[row_idx * d + col_idx]);
+                    if (snrt_cluster_core_idx() == 0) DUMP(val);
+                    O_fa[row_idx * d + col_idx] = float_to_fp8(val / l_i[row_idx]);
                 }
             }
         }
@@ -260,9 +286,9 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
             snrt_dma_txid_t txid_o_fa =
                 snrt_dma_start_2d(O_l3 + o_fa_offset, /* dst */
                                   O_fa,               /* src */
-                                  d * sizeof(__fp16), /* size */
-                                  d * sizeof(__fp16), /* dst_stride */
-                                  d * sizeof(__fp16), /* src_stride */
+                                  d * sizeof(char),   /* size */
+                                  d * sizeof(char),   /* dst_stride */
+                                  d * sizeof(char),   /* src_stride */
                                   B_r);               /* repetitions */
 
             snrt_dma_wait_all();

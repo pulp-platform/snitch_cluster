@@ -43,7 +43,7 @@ def build_sw(cfg):
         DATA_H=Path(f'include/{cfg.stem}/data.h').resolve(),
         APP_BUILDDIR=Path(f'build/{cfg.stem}').resolve()
     )
-    subprocess.run(['make', '-C', '../../../../../', 'sw/apps/dnn/flashattention_2'],
+    subprocess.run(['make', '-C', '../../../../../', 'DEBUG=ON', 'sw/apps/dnn/flashattention_2'],
                    check=True, env=env)
 
 
@@ -79,7 +79,7 @@ def main():
         tests.append(build_test(cfg))
 
     # Build the testlist
-    build_testlist(tests, args.testlist)
+    # build_testlist(tests, args.testlist)
 
     # Run the simulations
     simulations = snitch_cluster.get_simulations(args)
