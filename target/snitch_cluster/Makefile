@@ -41,13 +41,14 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-gemm.hjson)
 	VCS_BENDER  += -t snax-gemm
 endif
 
+# specify target
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm.hjson)
-	SNAX_DEV_ROOT ?= $(shell $(BENDER) path snax-stream-gemm-dev)
+	SNAX_DEV_ROOT ?= $(shell $(BENDER) path snax-streamer-gemm-dev)
 	include $(SNAX_DEV_ROOT)/Makefile
 
-	VSIM_BENDER += -t snax-stream-gemm-dev
-	VLT_BENDER  += -t snax-stream-gemm-dev
-	VCS_BENDER  += -t snax-stream-gemm-dev
+	VSIM_BENDER += -t snax-streamer-gemm-dev
+	VLT_BENDER  += -t snax-streamer-gemm-dev
+	VCS_BENDER  += -t snax-streamer-gemm-dev
 endif
 
 
