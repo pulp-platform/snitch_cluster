@@ -28,6 +28,7 @@ SUBDIRS += snax-gemm-engine
 SUBDIRS += snax-gemm-base
 SUBDIRS += snax-block-gemm
 SUBDIRS += snax-streamer-gemm
+SUBDIRS += snax-mac-mult
 
 .PHONY: all clean $(SUBDIRS)
 

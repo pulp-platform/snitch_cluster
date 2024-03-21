@@ -416,17 +416,36 @@
                                     "description": "Enable Smallfloat vector extension (SIMD).",
                                     "default": false
                                 },
-                                "snax_acc": {
-                                    "type": "string",
-                                    "title": "SNAX Accelerator Extension",
-                                    "description": "Enable specific Snitch Accelerator eXtension (SNAX). Simply put the string name of the accelerator wrapper.",
-                                    "default": "none"
-                                },
-                                "snax_tcdm_ports": {
-                                    "type": "number",
-                                    "title": "SNAX TCDM Port",
-                                    "description": "Number of ports dedicated for an accelerator",
-                                    "default": 0
+                                "snax_acc_set": {
+                                    "type": "object",
+                                    "title": "SNAX Accelerator Set",
+                                    "description": "Set of properties for one core controlling multiple accelerators",
+                                    "properties": {
+                                        "snax_module": {
+                                            "type": "string",
+                                            "title": "Accelerator module name",
+                                            "description": "Specify in this tag the accelerator's top module name. E.g., snax_mac_wrapper.",
+                                            "default": "none"
+                                        },
+                                        "snax_num_csr": {
+                                            "type": "number",
+                                            "title": "Number of CSR Registers",
+                                            "description": "Number of CSR registers required for one instance of this accelerator.",
+                                            "default": 1
+                                        },
+                                        "snax_num_acc": {
+                                            "type": "number",
+                                            "title": "Number of Accelerators",
+                                            "description": "Number of accelerators to be controlled by one core.",
+                                            "default": 1
+                                        },
+                                        "snax_tcdm_ports": {
+                                            "type": "number",
+                                            "title": "SNAX TCDM Port",
+                                            "description": "Number of ports dedicated for an accelerator",
+                                            "default": 0
+                                        }
+                                    }
                                 },
                                 "snax_acc_wide": {
                                     "type": "boolean",

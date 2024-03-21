@@ -54,7 +54,7 @@
                     cacheline: 256 // word size in bits
                 },
                 cores: [
-                    { $ref: "#/snax_streamer_gemm_core_template" },
+                    { $ref: "#/snax_mac_mult_template" },
                     { $ref: "#/dma_core_template" },
                 ]
             }
@@ -75,7 +75,7 @@
         },
     },
     // Templates.
-    snax_streamer_gemm_core_template: {
+    snax_mac_mult_template: {
         isa: "rv32imafd",
         xssr: true,
         xfrep: true,
@@ -87,10 +87,11 @@
         xfdotp: true,
         xfvec: true,
         snax_acc_set: {
-            snax_module: "snax_streamer_gemm_wrapper",
-            snax_tcdm_ports: 48,
-        }
-        snax_acc_wide: true,
+            snax_module: "snax_mac_wrapper",
+            snax_num_csr: 24,
+            snax_num_acc: 4,
+            snax_tcdm_ports: 4,
+        },
         num_int_outstanding_loads: 1,
         num_int_outstanding_mem: 4,
         num_fp_outstanding_loads: 4,
@@ -101,7 +102,7 @@
         // Enable division/square root unit
         // Xdiv_sqrt: true,
     },
-    compute_core_template: {
+    snax_mac_single_template: {
         isa: "rv32imafd",
         xssr: true,
         xfrep: true,
@@ -112,6 +113,12 @@
         xf8alt: true,
         xfdotp: true,
         xfvec: true,
+        snax_acc_set: {
+            snax_module: "snax_mac_wrapper",
+            snax_num_csr: 24,
+            snax_num_acc: 1,
+            snax_tcdm_ports: 4,
+        },
         num_int_outstanding_loads: 1,
         num_int_outstanding_mem: 4,
         num_fp_outstanding_loads: 4,

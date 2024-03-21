@@ -187,6 +187,32 @@ jobs:
           ./run.py --simulator verilator \
           sw/runtime.yaml sw/standard-fp.yaml sw/snax-streamer-gemm-run.yaml -j
 
+  sw-snax-mac-mult-cluster-vlt-generic:
+    name: Simulate SW on SNAX Multiple MAC Cluster w/ Verilator (Generic LLVM)
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/kuleuven-micas/snax:latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - name: Build Software
+        run: |
+          make -C target/snitch_cluster sw \
+          CFG_OVERRIDE=cfg/snax-mac-mult.hjson \
+          SELECT_RUNTIME=rtl-generic \
+          SELECT_TOOLCHAIN=llvm-generic
+      - name: Build Hardware
+        run: |
+          make CFG_OVERRIDE=cfg/snax-mac-mult.hjson \
+          -C target/snitch_cluster bin/snitch_cluster.vlt
+      - name: Run Tests
+        working-directory: target/snitch_cluster
+        run: |-
+          ./run.py --simulator verilator \
+          sw/runtime.yaml sw/standard-fp.yaml sw/snax-mac-run.yaml \
+          sw/snax-mac-mult-run.yaml -j
+
   ############################################
   # Build SW on Snitch Cluster w/ Banshee #
   #########################################
