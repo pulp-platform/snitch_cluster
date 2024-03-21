@@ -18,14 +18,18 @@ from data_utils import ctype_from_precision_t  # noqa: E402
 class GemmVerifier(Verifier):
 
     OUTPUT_UIDS = ['c']
-    ERR_THRESHOLD = {8: 1e-6, 4: 1e-6, 2: 1e-2, 1: 1e-4}
+    ERR_THRESHOLD = {
+        0: {8: 1e-6, 4: 1e-6, 2: 1e-2, 1: 1e-4},
+        1: {8: 0, 4: 0, 2: 0, 1: 0}
+    }
 
     def __init__(self):
         super().__init__()
         self.prec = self.get_input_from_symbol('dtype_size', 'uint32_t')[0]
+        self.baseline = self.get_input_from_symbol('baseline', 'uint32_t')[0]
 
     def get_actual_results(self):
-        return self.get_output_from_symbol('c', ctype_from_precision_t(self.prec))
+        return self.get_output_from_symbol(self.OUTPUT_UIDS[0], ctype_from_precision_t(self.prec))
 
     def get_expected_results(self):
         a = self.get_input_from_symbol('a', ctype_from_precision_t(self.prec))
@@ -43,10 +47,10 @@ class GemmVerifier(Verifier):
         else:
             b = np.reshape(b, (k, n))
         c = np.reshape(c, (m, n))
-        return golden_model(1, a, b, beta, c).flatten()
+        return GemmDataGen().exact_golden_model(1, a, b, beta, c).flatten()
 
     def check_results(self, *args):
-        return super().check_results(*args, rtol=self.ERR_THRESHOLD[self.prec])
+        return super().check_results(*args, rtol=self.ERR_THRESHOLD[self.baseline][self.prec])
 
 
 if __name__ == "__main__":

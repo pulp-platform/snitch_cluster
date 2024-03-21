@@ -141,7 +141,10 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
             case FP16:
                 switch (impl) {
                     case NAIVE:
-                        printf("Naive implementation not supported for FP16\n");
+                        gemm_fp16_naive(frac_m, n, k, (__fp16*)a + offsetA,
+                                        lda_strided, transa, (__fp16*)b, ldb, transb,
+                                        (__fp16*)c + offsetC, ldc_strided,
+                                        (float)beta);
                         break;
                     case NAIVE_UNROLLED:
                         printf(
@@ -152,19 +155,19 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
                         gemm_fp16_baseline(frac_m, n, k, (__fp16*)a + offsetA,
                                            lda_strided, (__fp16*)b, ldb,
                                            (__fp16*)c + offsetC, ldc_strided,
-                                           &beta);
+                                           (float)beta);
                         break;
                     case OPT:
                         gemm_fp16_opt(frac_m, n, k, (__fp16*)a + offsetA,
                                       lda_strided, (__fp16*)b, ldb,
-                                      (__fp16*)c + offsetC, ldc_strided, &beta,
+                                      (__fp16*)c + offsetC, ldc_strided, (float)beta,
                                       setup_ssr);
                         break;
                     case OPT_EX:
                         gemm_fp16_ex_opt(frac_m, n, k, (__fp16*)a + offsetA,
                                          lda_strided, (__fp16*)b, ldb,
                                          (__fp16*)c + offsetC, ldc_strided,
-                                         &beta, setup_ssr);
+                                         (float)beta, setup_ssr);
                         break;
                 }
                 break;
@@ -172,7 +175,7 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
                 switch (impl) {
                     case NAIVE:
                         gemm_fp8_naive(frac_m, n, k, (char*)a + offsetA,
-                                       lda_strided, (char*)b, ldb,
+                                       lda_strided, transa, (char*)b, ldb, transb,
                                        (char*)c + offsetC, ldc_strided,
                                        (float)beta);
                         break;
