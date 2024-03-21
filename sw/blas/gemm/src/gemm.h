@@ -96,23 +96,22 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
 
                 break;
             case FP16:
-                if (expand) {
+                if (baseline) {
+                    gemm_fp16_naive(frac_m, n, k, (__fp16*)a + offsetA,
+                                    lda_strided, transa, (__fp16*)b, ldb, transb,
+                                    (__fp16*)c + offsetC, ldc_strided, (float)beta);
+                } else {
                     gemm_fp16_ex_opt(frac_m, n, k, (__fp16*)a + offsetA,
                                      lda_strided, (__fp16*)b, ldb,
-                                     (__fp16*)c + offsetC, ldc_strided, &beta,
+                                     (__fp16*)c + offsetC, ldc_strided, (float)beta,
                                      setup_ssr);
-                } else {
-                    gemm_fp16_opt(frac_m, n, k, (__fp16*)a + offsetA,
-                                  lda_strided, (__fp16*)b, ldb,
-                                  (__fp16*)c + offsetC, ldc_strided, &beta,
-                                  setup_ssr);
                 }
                 break;
             case FP8:
                 if (baseline) {
-                    gemm_fp8_naive(
-                        frac_m, n, k, (char*)a + offsetA, lda_strided, (char*)b,
-                        ldb, (char*)c + offsetC, ldc_strided, (float)beta);
+                    gemm_fp8_naive(frac_m, n, k, (char*)a + offsetA,
+                                   lda_strided, transa, (char*)b, ldb, transb,
+                                   (char*)c + offsetC, ldc_strided, (float)beta);
                 } else {
                     gemm_fp8_ex_opt(frac_m, n, k, (char*)a + offsetA,
                                     lda_strided, (char*)b, ldb,
