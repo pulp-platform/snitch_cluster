@@ -7,9 +7,35 @@
 //         Luca Colagrande <colluca@iis.ee.ethz.ch>
 //         Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
+void gemm_fp16_naive(uint32_t M, uint32_t N, uint32_t K, __fp16* A, uint32_t ldA, uint32_t ta,
+                    __fp16* B, uint32_t ldB, uint32_t tb, __fp16* C, uint32_t ldC, float beta) {
+    for (uint32_t m = 0; m < M; m++) {
+        for (uint32_t n = 0; n < N; n++) {
+            __fp16 c = 0;
+            for (uint32_t k = 0; k < K; k++) {
+                // c0 += A[k + m * ldA] * B[k + n * ldB];
+                __fp16 a = A[m * ldA + k];
+                __fp16 b;
+                if (tb) b = B[n * ldB + k];
+                else b = B[k * ldB + n];
+                asm volatile(
+                    "fmv.h.x ft3, %[a]\n"
+                    "fmv.h.x ft4, %[b]\n"
+                    "fmv.h.x ft5, %[c]\n"
+                    "fmul.h ft6, ft3, ft4 \n"
+                    "fadd.h ft5, ft5, ft6 \n"
+                    "fmv.x.h %[c], ft5\n"
+                    : [ c ] "+r"(c)
+                    : [ a ] "r"(a), [ b ] "r"(b));
+            }
+            C[m * ldC + n] = c;
+        }
+    }
+}
+
 void gemm_fp16_baseline(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
                         uint32_t ldA, __fp16* B, uint32_t ldB, __fp16* C,
-                        uint32_t ldC, const uint32_t* BETA) {
+                        uint32_t ldC, float beta) {
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (; n < N; n++) {
@@ -25,8 +51,7 @@ void gemm_fp16_baseline(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
             c_ptr = &C[m * ldC + n];
             // Don't accumulate in first iteration
             asm volatile(
-                "lw      t0, 0(%[BETA]) \n"
-                "beqz    t0, 1f \n"
+                "beqz %[beta], 1f \n"
                 // Load intermediate results
                 "flh ft2, 0(%[C]) \n"
                 "vfcvt.s.h ft2, ft2\n"
@@ -54,7 +79,7 @@ void gemm_fp16_baseline(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
                 "fsh ft3, 0(%[C]) \n"
                 : [ a_ptr ] "+r"(a_ptr), [ b_ptr ] "+r"(b_ptr)
                 : [ c ] "f"(c), [ reduce_reg ] "f"(reduce_reg),
-                  [ C ] "r"(c_ptr), [ BETA ] "r"(BETA), [ K ] "r"(K),
+                  [ C ] "r"(c_ptr), [ beta ] "r"(beta), [ K ] "r"(K),
                   [ zero ] "f"(zero)
                 : "ft0", "ft1", "ft2", "ft3", "ft4", "t0");
         }
@@ -63,7 +88,7 @@ void gemm_fp16_baseline(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
 
 void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A, uint32_t ldA,
                    __fp16* B, uint32_t ldB, __fp16* C, uint32_t ldC,
-                   const uint32_t* BETA, uint32_t setup_SSR) {
+                   float beta, uint32_t setup_SSR) {
     // Unrolling factor of most inner loop.
     // Should be at least as high as the FMA delay
     // for maximum utilization
@@ -102,11 +127,9 @@ void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A, uint32_t ldA,
             const register float zero = 0.0;
             v4f16 c[unroll];
             v2f32 reduce_reg[unroll];
-            uint32_t beta;
 
             asm volatile(
-                "lw      %[beta], 0(%[BETA]) \n"
-                "beqz    %[beta], 1f \n"
+                "beqz %[beta], 1f \n"
                 // Load intermediate results
                 "flh %[reduce_reg0], 0(%[C]) \n"
                 "flh %[reduce_reg1], 2(%[C]) \n"
@@ -209,7 +232,7 @@ void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A, uint32_t ldA,
                 "vfcpkb.h.s %[c1], %[c6], %[c7] \n"
                 : [ c0 ] "+f"(c[0]), [ c1 ] "+f"(c[1]), [ c2 ] "+f"(c[2]),
                   [ c3 ] "+f"(c[3]), [ c4 ] "+f"(c[4]), [ c5 ] "+f"(c[5]),
-                  [ c6 ] "+f"(c[6]), [ c7 ] "+f"(c[7]), [ beta ] "=r"(beta),
+                  [ c6 ] "+f"(c[6]), [ c7 ] "+f"(c[7]),
                   [ reduce_reg0 ] "+f"(reduce_reg[0]),
                   [ reduce_reg1 ] "+f"(reduce_reg[1]),
                   [ reduce_reg2 ] "+f"(reduce_reg[2]),
@@ -219,7 +242,7 @@ void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A, uint32_t ldA,
                   [ reduce_reg6 ] "+f"(reduce_reg[6]),
                   [ reduce_reg7 ] "+f"(reduce_reg[7])
                 : [ C ] "r"(_C), [ zero ] "f"(zero), [ n_frep ] "r"(n_frep),
-                  [ BETA ] "r"(BETA)
+                  [ beta ] "r"(beta)
                 : "ft0", "ft1", "ft2");
 
             // Store results back
@@ -247,7 +270,7 @@ void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A, uint32_t ldA,
 
 void gemm_fp16_ex_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
                       uint32_t ldA, __fp16* B, uint32_t ldB, __fp16* C,
-                      uint32_t ldC, const uint32_t* BETA, uint32_t setup_SSR) {
+                      uint32_t ldC, float beta, uint32_t setup_SSR) {
     // Unrolling factor of most inner loop.
     // Should be at least as high as the FMA delay
     // for maximum utilization
@@ -286,11 +309,9 @@ void gemm_fp16_ex_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
             const register float zero = 0.0;
             v4f16 c[unroll];
             v2f32 reduce_reg[unroll];
-            uint32_t beta;
 
             asm volatile(
-                "lw      %[beta], 0(%[BETA]) \n"
-                "beqz    %[beta], 1f \n"
+                "beqz %[beta], 1f \n"
                 "flh %[reduce_reg0], 0(%[C]) \n"
                 "flh %[reduce_reg1], 2(%[C]) \n"
                 "flh %[reduce_reg2], 4(%[C]) \n"
@@ -373,7 +394,7 @@ void gemm_fp16_ex_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
                 "vfcpkb.h.s %[c1], %[reduce_reg6], %[reduce_reg7] \n"
                 : [ c0 ] "+f"(c[0]), [ c1 ] "+f"(c[1]), [ c2 ] "+f"(c[2]),
                   [ c3 ] "+f"(c[3]), [ c4 ] "+f"(c[4]), [ c5 ] "+f"(c[5]),
-                  [ c6 ] "+f"(c[6]), [ c7 ] "+f"(c[7]), [ beta ] "=r"(beta),
+                  [ c6 ] "+f"(c[6]), [ c7 ] "+f"(c[7]),
                   [ reduce_reg0 ] "+f"(reduce_reg[0]),
                   [ reduce_reg1 ] "+f"(reduce_reg[1]),
                   [ reduce_reg2 ] "+f"(reduce_reg[2]),
@@ -383,7 +404,7 @@ void gemm_fp16_ex_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
                   [ reduce_reg6 ] "+f"(reduce_reg[6]),
                   [ reduce_reg7 ] "+f"(reduce_reg[7])
                 : [ C ] "r"(_C), [ zero ] "f"(zero), [ n_frep ] "r"(n_frep),
-                  [ unroll ] "i"(unroll), [ BETA ] "r"(BETA)
+                  [ unroll ] "i"(unroll), [ beta ] "r"(beta)
                 : "ft0", "ft1", "ft2");
 
             // Store results back
