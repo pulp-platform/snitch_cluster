@@ -42,7 +42,7 @@ static inline double multiply_opt(double multiplicand, double multiplier) {
         return 0;
 }
 
-#define EPSILON 1e-3
+#define EPSILON 1e-6
 
 static inline int is_zero(float x) { return x < EPSILON && x > -EPSILON; }
 

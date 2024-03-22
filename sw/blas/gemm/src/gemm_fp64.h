@@ -121,7 +121,6 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
 
             // Load intermediate result
             if (beta_is_zero) {
-                DUMP(8374);
                 c[0] = 0.0;
                 c[1] = 0.0;
                 c[2] = 0.0;
@@ -174,7 +173,6 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
         for (; n < N; n++) {
             double c;
             if (beta_is_zero) {
-                DUMP(8374);
                 c = 0.0;
             } else {
                 c = C[m * ldC + n];
