@@ -1,0 +1,396 @@
+{
+
+  "pb_jacobi_2d_ml_par": {
+    "radius": 1,
+    "grids": {
+      "Ap2ml": {"seed": 1337, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Bp2ml": {"seed": 1338, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Cp2ml": {"seed": 1339, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Dp2xl": {"seed": 1340, "dims": ["2xl", "2xl"]}
+    },
+    "kernels": [
+        [1, "istcp_pb_jacobi_2d<st1,s2ml,sp2>(core_id, &Ap2ml, &Bp2ml)"],
+        [1, "istcp_pb_jacobi_2d<st1,s2ml,sp2>(core_id, &Ap2ml, &Bp2ml)"]
+      ],
+    "touch": ["Ap2ml", "Bp2ml"],
+    "dma": ["Cp2ml", "Dp2xl"]
+  },
+
+  "pb_jacobi_2d_ml_issr": {
+    "radius": 1,
+    "grids": {
+      "Ai2ml": {"seed": 1337, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Bi2ml": {"seed": 1338, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Ci2ml": {"seed": 1339, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Di2xl": {"seed": 1340, "dims": ["2xl", "2xl"]}
+    },
+    "kernels": [
+        [1, "istci_pb_jacobi_2d<st1,s2ml,sp2>(core_id, &Ai2ml, &Bi2ml)"],
+        [1, "istci_pb_jacobi_2d<st1,s2ml,sp2>(core_id, &Ai2ml, &Bi2ml)"]
+      ],
+    "touch": ["Ai2ml", "Bi2ml"],
+    "dma": ["Ci2ml", "Di2xl"]
+  },
+
+
+
+  "an5d_j2d5pt_ml_par": {
+    "radius": 1,
+    "grids": {
+      "Ap2ml": {"seed": 1337, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Bp2ml": {"seed": 1338, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Cp2ml": {"seed": 1339, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Dp2xl": {"seed": 1340, "dims": ["2xl", "2xl"]}
+    },
+    "bundles": {"Ap22ml": ["Ap2ml", "Bp2ml"]},
+    "kernels": [
+      [1, "istcp_an5d_j2d5pt<st1,s2ml,sp2,ct>(core_id, &Ap22ml[0])"],
+      [1, "istcp_an5d_j2d5pt<st1,s2ml,sp2,ct>(core_id, &Ap22ml[0])"]
+    ],
+    "touch": ["Ap2ml", "Bp2ml"],
+    "dma": ["Cp2ml", "Dp2xl"]
+  },
+
+  "an5d_j2d5pt_ml_issr": {
+    "radius": 1,
+    "grids": {
+      "Ai2ml": {"seed": 1337, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Bi2ml": {"seed": 1338, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Ci2ml": {"seed": 1339, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Di2xl": {"seed": 1340, "dims": ["2xl", "2xl"]}
+    },
+    "bundles": {"Ai22ml": ["Ai2ml", "Bi2ml"]},
+    "kernels": [
+      [1, "istci_an5d_j2d5pt<st1,s2ml,sp2,ct>(core_id, &Ai22ml[0])"],
+      [1, "istci_an5d_j2d5pt<st1,s2ml,sp2,ct>(core_id, &Ai22ml[0])"]
+    ],
+    "touch": ["Ai2ml", "Bi2ml"],
+    "dma": ["Ci2ml", "Di2xl"]
+  },
+
+
+
+  "an5d_j2d9pt_ml_par": {
+    "radius": 2,
+    "grids": {
+      "Ap2ml": {"seed": 1337, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Bp2ml": {"seed": 1338, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Cp2ml": {"seed": 1339, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Dp2xl": {"seed": 1340, "dims": ["2xl", "2xl"]}
+    },
+    "bundles": {"Ap22ml": ["Ap2ml", "Bp2ml"]},
+    "kernels": [
+      [1, "istcp_an5d_j2d9pt<st1,s2ml,sp2,ct>(core_id, &Ap22ml[0])"],
+      [1, "istcp_an5d_j2d9pt<st1,s2ml,sp2,ct>(core_id, &Ap22ml[0])"]
+    ],
+    "touch": ["Ap2ml", "Bp2ml"],
+    "dma": ["Cp2ml", "Dp2xl"]
+  },
+
+  "an5d_j2d9pt_ml_issr": {
+    "radius": 2,
+    "grids": {
+      "Ai2ml": {"seed": 1337, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Bi2ml": {"seed": 1338, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Ci2ml": {"seed": 1339, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Di2xl": {"seed": 1340, "dims": ["2xl", "2xl"]}
+    },
+    "bundles": {"Ai22ml": ["Ai2ml", "Bi2ml"]},
+    "kernels": [
+      [1, "istci_an5d_j2d9pt<st1,s2ml,sp2,ct>(core_id, &Ai22ml[0])"],
+      [1, "istci_an5d_j2d9pt<st1,s2ml,sp2,ct>(core_id, &Ai22ml[0])"]
+
+    ],
+    "touch": ["Ai2ml", "Bi2ml"],
+    "dma": ["Ci2ml", "Di2xl"]
+  },
+
+
+
+  "an5d_j2d9pt_gol_ml_par": {
+    "radius": 1,
+    "grids": {
+      "Ap2ml": {"seed": 1337, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Bp2ml": {"seed": 1338, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Cp2ml": {"seed": 1339, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Dp2xl": {"seed": 1340, "dims": ["2xl", "2xl"]}
+    },
+    "bundles": {"Ap22ml": ["Ap2ml", "Bp2ml"]},
+    "kernels": [
+      [1, "istcp_an5d_j2d9pt_gol<st1,s2ml,sp2,ct>(core_id, &Ap22ml[0])"],
+      [1, "istcp_an5d_j2d9pt_gol<st1,s2ml,sp2,ct>(core_id, &Ap22ml[0])"]
+
+    ],
+    "touch": ["Ap2ml", "Bp2ml"],
+    "dma": ["Cp2ml", "Dp2xl"]
+  },
+
+  "an5d_j2d9pt_gol_ml_issr": {
+    "radius": 1,
+    "grids": {
+      "Ai2ml": {"seed": 1337, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Bi2ml": {"seed": 1338, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Ci2ml": {"seed": 1339, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Di2xl": {"seed": 1340, "dims": ["2xl", "2xl"]}
+    },
+    "bundles": {"Ai22ml": ["Ai2ml", "Bi2ml"]},
+    "kernels": [
+      [1, "istci_an5d_j2d9pt_gol<st1,s2ml,sp2,ct>(core_id, &Ai22ml[0])"],
+      [1, "istci_an5d_j2d9pt_gol<st1,s2ml,sp2,ct>(core_id, &Ai22ml[0])"]
+
+    ],
+    "touch": ["Ai2ml", "Bi2ml"],
+    "dma": ["Ci2ml", "Di2xl"]
+  },
+
+
+
+  "an5d_j3d27pt_ml_par": {
+    "radius": 1,
+    "grids": {
+      "Ap3ml": {"seed": 1337, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Bp3ml": {"seed": 1338, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Cp3ml": {"seed": 1339, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Dp3xl": {"seed": 1340, "dims": ["3xl", "3xl", "3xl"]}
+    },
+    "bundles": {"Ap32ml": ["Ap3ml", "Bp3ml"]},
+    "kernels": [
+      [1, "istcp_an5d_j3d27pt<st1,s3ml,sp3,ct>(core_id, &Ap32ml[0])"],
+      [1, "istcp_an5d_j3d27pt<st1,s3ml,sp3,ct>(core_id, &Ap32ml[0])"]
+    ],
+    "touch": ["Ap3ml", "Bp3ml"],
+    "dma": ["Cp3ml", "Dp3xl"]
+  },
+
+  "an5d_j3d27pt_ml_issr": {
+    "radius": 1,
+    "grids": {
+      "Ai3ml": {"seed": 1337, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Bi3ml": {"seed": 1338, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Ci3ml": {"seed": 1339, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Di3xl": {"seed": 1340, "dims": ["3xl", "3xl", "3xl"]}
+    },
+    "bundles": {"Ai32ml": ["Ai3ml", "Bi3ml"]},
+    "kernels": [
+      [1, "istci_an5d_j3d27pt<st1,s3ml,sp3,ct>(core_id, &Ai32ml[0])"],
+      [1, "istci_an5d_j3d27pt<st1,s3ml,sp3,ct>(core_id, &Ai32ml[0])"]
+
+    ],
+    "touch": ["Ai3ml", "Bi3ml"],
+    "dma": ["Ci3ml", "Di3xl"]
+  },
+
+
+
+  "an5d_star2d3r_ml_par": {
+    "radius": 3,
+    "grids": {
+      "Ap2ml": {"seed": 1337, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Bp2ml": {"seed": 1338, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Cp2ml": {"seed": 1339, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Dp2xl": {"seed": 1340, "dims": ["2xl", "2xl"]}
+    },
+    "bundles": {"Ap22ml": ["Ap2ml", "Bp2ml"]},
+    "params": {"r": 3},
+    "kernels": [
+      [1, "istcp_an5d_star2dXr<st1,s2ml,sp2,ct,ci>(core_id, &Ap22ml[0])"],
+      [1, "istcp_an5d_star2dXr<st1,s2ml,sp2,ct,ci>(core_id, &Ap22ml[0])"]
+    ],
+    "touch": ["Ap2ml", "Bp2ml"],
+    "dma": ["Cp2ml", "Dp2xl"]
+  },
+
+  "an5d_star2d3r_ml_issr": {
+    "radius": 3,
+    "grids": {
+      "Ai2ml": {"seed": 1337, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Bi2ml": {"seed": 1338, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Ci2ml": {"seed": 1339, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Di2xl": {"seed": 1340, "dims": ["2xl", "2xl"]}
+    },
+    "bundles": {"Ai22ml": ["Ai2ml", "Bi2ml"]},
+    "params": {"r": 3},
+    "kernels": [
+      [1, "istci_an5d_star2dXr<st1,s2ml,sp2,ct,ci>(core_id, &Ai22ml[0])"],
+      [1, "istci_an5d_star2dXr<st1,s2ml,sp2,ct,ci>(core_id, &Ai22ml[0])"]
+
+    ],
+    "touch": ["Ai2ml", "Bi2ml"],
+    "dma": ["Ci2ml", "Di2xl"]
+  },
+
+
+
+  "an5d_box2d1r_ml_par": {
+    "radius": 1,
+    "grids": {
+      "Ap2ml": {"seed": 1337, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Bp2ml": {"seed": 1338, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Cp2ml": {"seed": 1339, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Dp2xl": {"seed": 1340, "dims": ["2xl", "2xl"]}
+    },
+    "bundles": {"Ap22ml": ["Ap2ml", "Bp2ml"]},
+    "params": {"r": 1},
+    "kernels": [
+      [1, "istcp_an5d_box2dXr<st1,s2ml,sp2,ct,ci>(core_id, &Ap22ml[0])"],
+      [1, "istcp_an5d_box2dXr<st1,s2ml,sp2,ct,ci>(core_id, &Ap22ml[0])"]
+
+    ],
+    "touch": ["Ap2ml", "Bp2ml"],
+    "dma": ["Cp2ml", "Dp2xl"]
+  },
+
+  "an5d_box2d1r_ml_issr": {
+    "radius": 1,
+    "grids": {
+      "Ai2ml": {"seed": 1337, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Bi2ml": {"seed": 1338, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Ci2ml": {"seed": 1339, "dims": ["2ml", "2ml"], "attrs": "TCDMDECL"},
+      "Di2xl": {"seed": 1340, "dims": ["2xl", "2xl"]}
+    },
+    "bundles": {"Ai22ml": ["Ai2ml", "Bi2ml"]},
+    "params": {"r": 1},
+    "kernels": [
+      [1, "istci_an5d_box2dXr<st1,s2ml,sp2,ct,ci>(core_id, &Ai22ml[0])"],
+      [1, "istci_an5d_box2dXr<st1,s2ml,sp2,ct,ci>(core_id, &Ai22ml[0])"]
+    ],
+    "touch": ["Ai2ml", "Bi2ml"],
+    "dma": ["Ci2ml", "Di2xl"]
+  },
+
+
+
+  "an5d_star3d2r_ml_par": {
+    "radius": 2,
+    "grids": {
+      "Ap3ml": {"seed": 1337, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Bp3ml": {"seed": 1338, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Cp3ml": {"seed": 1339, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Dp3xl": {"seed": 1340, "dims": ["3xl", "3xl", "3xl"]}
+    },
+    "bundles": {"Ap32ml": ["Ap3ml", "Bp3ml"]},
+    "params": {"r": 2},
+    "kernels": [
+      [1, "istcp_an5d_star3dXr<st1,s3ml,sp3,ct,ci>(core_id, &Ap32ml[0])"],
+      [1, "istcp_an5d_star3dXr<st1,s3ml,sp3,ct,ci>(core_id, &Ap32ml[0])"]
+    ],
+    "touch": ["Ap3ml", "Bp3ml"],
+    "dma": ["Cp3ml", "Dp3xl"]
+  },
+
+  "an5d_star3d2r_ml_issr": {
+    "radius": 2,
+    "grids": {
+      "Ai3ml": {"seed": 1337, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Bi3ml": {"seed": 1338, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Ci3ml": {"seed": 1339, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Di3xl": {"seed": 1340, "dims": ["3xl", "3xl", "3xl"]}
+    },
+    "bundles": {"Ai32ml": ["Ai3ml", "Bi3ml"]},
+    "params": {"r": 2},
+    "kernels": [
+      [1, "istci_an5d_star3dXr<st1,s3ml,sp3,ct,ci>(core_id, &Ai32ml[0])"],
+      [1, "istci_an5d_star3dXr<st1,s3ml,sp3,ct,ci>(core_id, &Ai32ml[0])"]
+
+    ],
+    "touch": ["Ai3ml", "Bi3ml"],
+    "dma": ["Ci3ml", "Di3xl"]
+  },
+
+
+
+  "an5d_box3d1r_ml_par": {
+    "radius": 1,
+    "grids": {
+      "Ap3ml": {"seed": 1337, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Bp3ml": {"seed": 1338, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Cp3ml": {"seed": 1339, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Dp3xl": {"seed": 1340, "dims": ["3xl", "3xl", "3xl"]}
+    },
+    "bundles": {"Ap32ml": ["Ap3ml", "Bp3ml"]},
+    "params": {"r": 1},
+    "kernels": [
+      [1, "istcp_an5d_box3dXr<st1,s3ml,sp3,ct,ci>(core_id, &Ap32ml[0])"],
+      [1, "istcp_an5d_box3dXr<st1,s3ml,sp3,ct,ci>(core_id, &Ap32ml[0])"]
+    ],
+    "touch": ["Ap3ml", "Bp3ml"],
+    "dma": ["Cp3ml", "Dp3xl"]
+  },
+
+  "an5d_box3d1r_ml_issr": {
+    "radius": 1,
+    "grids": {
+      "Ai3ml": {"seed": 1337, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Bi3ml": {"seed": 1338, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Ci3ml": {"seed": 1339, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Di3xl": {"seed": 1340, "dims": ["3xl", "3xl", "3xl"]}
+    },
+    "bundles": {"Ai32ml": ["Ai3ml", "Bi3ml"]},
+    "params": {"r": 1},
+    "kernels": [
+      [1, "istci_an5d_box3dXr<st1,s3ml,sp3,ct,ci>(core_id, &Ai32ml[0])"],
+      [1, "istci_an5d_box3dXr<st1,s3ml,sp3,ct,ci>(core_id, &Ai32ml[0])"]
+    ],
+    "touch": ["Ai3ml", "Bi3ml"],
+    "dma": ["Ci3ml", "Di3xl"]
+  },
+
+
+
+  "minimod_acoustic_iso_cd_ml_par": {
+    "radius": 4,
+    "grids": {
+      "Ap3ml": {"seed": 1337, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Bp3ml": {"seed": 1338, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Dp3ml": {"seed": 1339, "dims": [8, 8, 8], "attrs": "TCDMDECL"},
+      "F3ml": {"seed": 1338, "dims": [8, 8, 8], "attrs": "TCDMDECL"},
+      "Cp3ml": {"seed": 1339, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "G3ml": {"seed": 1340, "dims": [8, 8, 8], "attrs": "TCDMDECL"},
+      "Hp3xl": {"seed": 1341, "dims": ["3xl", "3xl", "3xl"]},
+      "I3xl": {"seed": 1342, "dims": [16, 16, 16]},
+      "Ep3ml": {"seed": 1343, "dims": [8, 8, 8], "attrs": "TCDMDECL"},
+      "Jp3xl": {"seed": 1344, "dims": [16, 16, 16]}
+    },
+    "bundles": {"Ap32ml": ["Ap3ml", "Bp3ml"]},
+    "kernels": [
+      [1, "istcp_minimod_acoustic_iso_cd<st1,s3ml,sp3,ct>(core_id, &Ap32ml[0], &F3ml)"],
+      [1, "istcp_minimod_acoustic_iso_cd<st1,s3ml,sp3,ct>(core_id, &Ap32ml[0], &F3ml)"]
+    ],
+    "touch": ["Ap3ml", "Bp3ml", "F3ml", "Dp3ml"],
+    "dma": [
+      ["Cp3ml", "Hp3xl", "out"],
+      ["G3ml", "I3xl", "in", 0],
+      ["Cp3ml", "Hp3xl", "in"],
+      ["Ep3ml", "Jp3xl", "in"]
+    ]
+  },
+
+  "minimod_acoustic_iso_cd_ml_issr": {
+    "radius": 4,
+    "grids": {
+      "Ai3ml": {"seed": 1337, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Bi3ml": {"seed": 1338, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "Di3ml": {"seed": 1339, "dims": [8, 8, 8], "attrs": "TCDMDECL"},
+      "F3ml": {"seed": 1338, "dims": [8, 8, 8], "attrs": "TCDMDECL"},
+      "Cp3ml": {"seed": 1339, "dims": ["3ml", "3ml", "3ml"], "attrs": "TCDMDECL"},
+      "G3ml": {"seed": 1340, "dims": [8, 8, 8], "attrs": "TCDMDECL"},
+      "Hp3xl": {"seed": 1341, "dims": ["3xl", "3xl", "3xl"]},
+      "I3xl": {"seed": 1342, "dims": [16, 16, 16]},
+      "Ep3ml": {"seed": 1343, "dims": [8, 8, 8], "attrs": "TCDMDECL"},
+      "Jp3xl": {"seed": 1344, "dims": [16, 16, 16]}
+    },
+    "bundles": {"Ai32ml": ["Ai3ml", "Bi3ml"]},
+    "kernels": [
+      [1, "istci_minimod_acoustic_iso_cd<st1,s3ml,sp3,ct>(core_id, &Ai32ml[0], &F3ml)"],
+      [1, "istci_minimod_acoustic_iso_cd<st1,s3ml,sp3,ct>(core_id, &Ai32ml[0], &F3ml)"]
+    ],
+    "touch": ["Ai3ml", "Bi3ml", "F3ml", "Di3ml"],
+    "dma": [
+      ["Cp3ml", "Hp3xl", "out"],
+      ["G3ml", "I3xl", "in", 0],
+      ["Cp3ml", "Hp3xl", "in"],
+      ["Ep3ml", "Jp3xl", "in"]
+    ]
+  }
+
+}
