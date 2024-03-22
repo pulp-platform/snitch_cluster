@@ -1,8 +1,8 @@
 # Copyright 2023 ETH Zurich and University of Bologna.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
-# SPDX-License-Identifier: Apache-2.0
+# SPDX - License - Identifier : Apache - 2.0
 #
-# Author: Luca Colagrande <colluca@iis.ee.ethz.ch>
+# Author : Luca Colagrande < colluca @iis.ee.ethz.ch>
 """Convenience functions and classes for data generation scripts."""
 
 
@@ -29,7 +29,6 @@ def emit_license():
     return s
 
 
-# Enum value can be a string or an integer, this function uniformizes the result to integers only
 def _integer_precision_t(prec):
     if isinstance(prec, str):
         return {'FP64': 8, 'FP32': 4, 'FP16': 2, 'FP8': 1}[prec]
@@ -69,7 +68,6 @@ def torch_type_from_precision_t(prec):
     return precision_t_to_torch_type_map[_integer_precision_t(prec)]
 
 
-# Returns the C type representing a floating-point value of the specified precision
 def ctype_from_precision_t(prec):
     """Convert `precision_t` type to a C type string.
 
@@ -128,10 +126,7 @@ def format_array_declaration(dtype, uid, shape, alignment=None, section=None):
     return s
 
 
-# In the case of dtype __fp8, array field expects a dictionary of
-# sign, exponent and mantissa arrays
 def format_array_definition(dtype, uid, array, alignment=None, section=None):
-    # Definition starts with the declaration stripped off of the terminating semicolon
     s = format_array_declaration(dtype, uid, array.shape, alignment, section)[:-1]
     s += ' = '
     s += format_array_initializer(dtype, array)
@@ -160,13 +155,20 @@ def format_array_initializer(dtype, array):
 def format_struct_definition(dtype, uid, map):
     def format_value(value):
         if isinstance(value, list):
-            return format_array_initializer(str, value)
+            return format_array_initializer('str', value)
         elif isinstance(value, bool):
-            return int(value)
+            return str(int(value))
         else:
             return str(value)
+
+    filtered_map = {key: value for key, value in map.items() if value is not None and value != ''}
+
+    formatted_items = [
+        f'\t.{key} = {format_value(value)}'
+        for key, value in filtered_map.items()
+    ]
     s = f'{_alias_dtype(dtype)} {uid} = {{\n'
-    s += ',\n'.join([f'\t.{key} = {format_value(value)}' for (key, value) in map.items()])
+    s += ',\n'.join(formatted_items)
     s += '\n};'
     return s
 
@@ -193,7 +195,6 @@ def from_buffer(byte_array, ctype='uint32_t'):
     The order of the keys in the `ctype` dictionary should reflect the
     order in which the variables appear in the raw data.
     """
-    # Types which have a direct correspondence in Numpy
     NP_DTYPE_FROM_CTYPE = {
         'uint32_t': np.uint32,
         'double': np.float64,
@@ -202,7 +203,6 @@ def from_buffer(byte_array, ctype='uint32_t'):
     }
 
     if isinstance(ctype, dict):
-        # byte_array assumed little-endian
         struct_fields = ctype.keys()
         fmt_specifiers = ctype.values()
         fmt_string = ''.join(fmt_specifiers)
@@ -266,10 +266,8 @@ class DataGen:
         """Default main function for data generation scripts."""
         args = self.parse_args()
 
-        # Load param config file
         with args.cfg.open() as f:
             param = json5.loads(f.read())
         param['section'] = args.section
 
-        # Emit header file
         print(self.emit_header(**param))

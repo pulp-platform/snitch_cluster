@@ -19,5 +19,5 @@
     K: 16,
     alpha: 1,
     beta: 0,
-    gemm_fp: "gemm_fp32_opt"
+    gemm_fp: "gemm_fp32_naive"
 }
