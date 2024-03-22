@@ -16,8 +16,8 @@
     transa: false,
     transb: true, // must be true for SIMD
     M: 16,
-    N: 1,
-    K: 1,
+    N: 16,
+    K: 16,
     alpha: 1,
     beta: 0,
     gemm_fp: "gemm_fp32_opt"

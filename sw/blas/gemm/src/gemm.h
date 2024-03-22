@@ -42,6 +42,10 @@ static inline double multiply_opt(double multiplicand, double multiplier) {
         return 0;
 }
 
+#define EPSILON 1e-3
+
+static inline int is_zero(float x) { return x < EPSILON && x > -EPSILON; }
+
 #include "gemm_fp16.h"
 #include "gemm_fp32.h"
 #include "gemm_fp64.h"

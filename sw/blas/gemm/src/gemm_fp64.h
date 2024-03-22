@@ -64,6 +64,7 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
     double* A = (double*)A_p;
     double* B = (double*)B_p;
     double* C = (double*)C_p;
+    int beta_is_zero = is_zero(BETA);
 
     // Unrolling factor of most inner loop.
     // Should be at least as high as the FMA delay
@@ -119,16 +120,8 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
             double c[unroll];
 
             // Load intermediate result
-            if (BETA != 0.0f) {
-                c[0] = C[m * ldC + n + 0];
-                c[1] = C[m * ldC + n + 1];
-                c[2] = C[m * ldC + n + 2];
-                c[3] = C[m * ldC + n + 3];
-                c[4] = C[m * ldC + n + 4];
-                c[5] = C[m * ldC + n + 5];
-                c[6] = C[m * ldC + n + 6];
-                c[7] = C[m * ldC + n + 7];
-            } else {
+            if (beta_is_zero) {
+                DUMP(8374);
                 c[0] = 0.0;
                 c[1] = 0.0;
                 c[2] = 0.0;
@@ -137,6 +130,15 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
                 c[5] = 0.0;
                 c[6] = 0.0;
                 c[7] = 0.0;
+            } else {
+                c[0] = C[m * ldC + n + 0];
+                c[1] = C[m * ldC + n + 1];
+                c[2] = C[m * ldC + n + 2];
+                c[3] = C[m * ldC + n + 3];
+                c[4] = C[m * ldC + n + 4];
+                c[5] = C[m * ldC + n + 5];
+                c[6] = C[m * ldC + n + 6];
+                c[7] = C[m * ldC + n + 7];
             }
             asm volatile(
                 "frep.o %[n_frep], %[unroll], 0, 0 \n"
@@ -171,10 +173,11 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
 
         for (; n < N; n++) {
             double c;
-            if (BETA != 0.0f) {
-                c = C[m * ldC + n];
-            } else {
+            if (beta_is_zero) {
+                DUMP(8374);
                 c = 0.0;
+            } else {
+                c = C[m * ldC + n];
             }
             for (uint32_t k = 0; k < K; k++) {
                 c += A[k + m * ldA] * B[k + n * ldB];
