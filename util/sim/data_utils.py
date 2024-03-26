@@ -64,7 +64,7 @@ def torch_type_from_precision_t(prec):
         8: torch.float64,
         4: torch.float32,
         2: torch.float16,
-        1: None
+        1: torch.float8_e4m3fn
     }
     return precision_t_to_torch_type_map[_integer_precision_t(prec)]
 

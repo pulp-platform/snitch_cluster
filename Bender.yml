@@ -26,6 +26,7 @@ dependencies:
   register_interface: { git: https://github.com/pulp-platform/register_interface, version:  0.4.2   }
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.11  }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0   }
+  cluster_icache:     { git: https://github.com/pulp-platform/cluster_icache.git, version:  0.1.0   }
 
 vendor_package:
   - name: musl
@@ -196,23 +197,6 @@ sources:
       - hw/snitch_dma/src/axi_dma_twod_ext.sv
       # Level 2:
       - hw/snitch_dma/src/axi_dma_tc_snitch_fe.sv
-
-  # snitch_icache
-  - files:
-      # Level 0
-      - hw/snitch_icache/src/snitch_icache_pkg.sv
-      # Level 1
-      - hw/snitch_icache/src/snitch_icache_l0.sv
-      - hw/snitch_icache/src/snitch_icache_refill.sv
-      - hw/snitch_icache/src/snitch_icache_lfsr.sv
-      - hw/snitch_icache/src/snitch_icache_lookup.sv
-      # Level 2
-      - hw/snitch_icache/src/snitch_icache_handler.sv
-      # Level 3
-      - hw/snitch_icache/src/snitch_icache.sv
-      - target: test
-        files:
-          - hw/snitch_icache/test/snitch_icache_l0_tb.sv
 
   # snitch_ipu
   - files:
