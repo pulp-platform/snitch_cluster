@@ -37,6 +37,12 @@ int main() {
             "vfcpka.s.s ft7, ft1, ft2\n"  // ft7 = {-3.14, 1.618}
             : "+r"(i_a), "+r"(i_an), "+r"(i_b), "+r"(i_bn));
 
+        // VFSHUFFLE
+        asm volatile(
+            "vfshuffle.s ft0, ft4, ft4\n"
+            "vfeq.s %0, ft4, ft0\n"
+            : "+r"(res0));
+
         // VFSGNJ
         asm volatile(
             "vfsgnj.s ft0, ft4, ft4\n"

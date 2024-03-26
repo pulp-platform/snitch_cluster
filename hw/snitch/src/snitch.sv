@@ -1597,6 +1597,15 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           illegal_inst = 1'b1;
         end
       end
+      VFSHUFFLE_S: begin
+        if (FP_EN && XFVEC && RVF) begin
+          opa_select = Reg;
+          write_rd = 1'b0;
+          acc_qvalid_o = valid_instr;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
       VFCVT_S_B,
       VFCVTU_S_B: begin
         if (FP_EN && XFVEC && RVF && FLEN >= 16) begin

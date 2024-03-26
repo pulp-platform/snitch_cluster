@@ -1520,6 +1520,16 @@ module snitch_fp_ss import snitch_pkg::*; #(
         set_dyn_rm   = 1'b1;
         if (acc_req_q.data_op inside {riscv_instr::VFCPKD_B_D}) op_mode = 1;
       end
+      riscv_instr::VFSHUFFLE_S: begin
+        op_select[0] = AccBus; //AccBus is always put into op_select[0]
+        op_select[1] = RegB;
+        op_select[2] = RegDest; 
+        src_fmt      = fpnew_pkg::FP32;
+        dst_fmt      = fpnew_pkg::FP32; 
+        vectorial_op = 1'b1;
+        set_dyn_rm   = 1'b1; // ?
+        if (acc_req_q.data_op inside {riscv_instr::VFSHUFFLE_S}) op_mode = 1;      
+      end
       riscv_instr::VFCVT_S_B,
       riscv_instr::VFCVTU_S_B: begin
         fpu_op = fpnew_pkg::F2F;
