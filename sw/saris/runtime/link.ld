@@ -1,3 +1,7 @@
+/* Copyright 2024 ETH Zurich and University of Bologna. */
+/* Licensed under the Apache License, Version 2.0, see LICENSE for details. */
+/* SPDX-License-Identifier: SHL-0.51 */
+
 OUTPUT_ARCH( "riscv" )
 ENTRY(_start)
 
