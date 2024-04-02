@@ -125,6 +125,10 @@ module snitch_fp_ss import snitch_pkg::*; #(
 
   logic csr_instr;
 
+  logic use_shuffle;
+  logic shuffle_wready;
+  logic shuffle_valid;
+
   // FPU Controller
   logic fpu_out_valid, fpu_out_ready;
   logic fpu_in_valid, fpu_in_ready;
@@ -1528,7 +1532,9 @@ module snitch_fp_ss import snitch_pkg::*; #(
         dst_fmt      = fpnew_pkg::FP32; 
         vectorial_op = 1'b1;
         set_dyn_rm   = 1'b1; // ?
-        if (acc_req_q.data_op inside {riscv_instr::VFSHUFFLE_S}) op_mode = 1;      
+        use_fpu      = 1'b0;
+        use_shuffle  = 1'b1;
+        if (acc_req_q.data_op inside {riscv_instr::VFSHUFFLE_S}) op_mode = 1'b1;      
       end
       riscv_instr::VFCVT_S_B,
       riscv_instr::VFCVTU_S_B: begin
@@ -2436,6 +2442,14 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .wdata_i   ( fpr_wdata ),
     .we_i      ( fpr_we    )
   );
+
+  // ----------------------
+  // Shuffling Unit
+  // ----------------------
+  always_comb begin
+    
+    
+  end
 
   // ----------------------
   // Operand Select

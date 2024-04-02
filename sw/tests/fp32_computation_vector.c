@@ -39,9 +39,7 @@ int main() {
 
         // VFSHUFFLE
         asm volatile(
-            "vfshuffle.s ft0, ft4, ft4\n"
-            "vfeq.s %0, ft4, ft0\n"
-            : "+r"(res0));
+            "vfshuffle.s ft0, ft2, %1\n";
 
         // VFSGNJ
         asm volatile(
