@@ -17,9 +17,9 @@ ELEMS_PER_ROW = 4
 
 # Keep these dimensions aligned with code headers
 GRID_DIMS = {
-    1: { 's': 1000,  'sm': 1728,  'm': 2744,  'ml': 4096,  'l': 5832, 'xl': 8192 },
-    2: { 's': 32,    'sm': 42,    'm': 52,    'ml': 64,    'l': 76,   'xl': 128  },
-    3: { 's': 10,    'sm': 12,    'm': 14,    'ml': 16,    'l': 18,   'xl': 32   },
+    1: {'s': 1000, 'sm': 1728, 'm': 2744, 'ml': 4096, 'l': 5832, 'xl': 8192},
+    2: {'s': 32, 'sm': 42, 'm': 52, 'ml': 64, 'l': 76, 'xl': 128},
+    3: {'s': 10, 'sm': 12, 'm': 14, 'ml': 16, 'l': 18, 'xl': 32},
 }
 
 CSTRUCT_FMT = 'struct TCDMSPC {prname} {{\n{body}\n}};\n{dtype} {decls};'
@@ -85,7 +85,8 @@ def resolve_check(check: dict, grids: dict):
             tgt_len = np.product(dims)
             if 'len' in check:
                 assert check['len'] == tgt_len, \
-                       f'Mismatching grid check lengths: {tgt_len} ({grids[gname]}) vs {check["len"]}'
+                       'Mismatching grid check lengths:' \
+                       f'{tgt_len} ({grids[gname]}) vs {check["len"]}'
             else:
                 check['len'] = tgt_len
     # Make sure we have a length now
@@ -109,7 +110,8 @@ def generate_array_level(int_dims: list, zero, pos: int = 0) -> str:
     if (len(int_dims) == 0):
         return str(np.random.normal(size=1)[0] if not zero else 0.0)
     elif pos == len(int_dims)-1:
-        rand_doubles = np.random.normal(size=int_dims[-1]) if not zero else np.zeros(shape=int_dims[-1])
+        rand_doubles = np.random.normal(size=int_dims[-1]) if \
+            not zero else np.zeros(shape=int_dims[-1])
         elems = [str(d) for d in rand_doubles]
         elems_fmt = ",\n".join([", ".join(elems[i:i + ELEMS_PER_ROW])
                                for i in range(0, len(elems), ELEMS_PER_ROW)])
@@ -129,13 +131,15 @@ def generate_grids(grids: dict) -> (str, str):
         int_dims = resolve_dims(args['dims'])
         subscripts = gen_subscripts(int_dims)
         attrs = (args['attrs'] + ' ') if 'attrs' in args else ''
-        decls.append(f'extern __attribute__((visibility("default"))) {attrs}{ELEMTYPE} {name}{subscripts};')
-        inits.append(f'{attrs}{ELEMTYPE} {name}{subscripts} = {generate_array_level(int_dims, args["seed"] == 0)};')
+        decls.append('extern __attribute__((visibility("default")))' +
+                     f' {attrs}{ELEMTYPE} {name}{subscripts};')
+        inits.append(f'{attrs}{ELEMTYPE} {name}{subscripts} =' +
+                     f'{generate_array_level(int_dims, args["seed"] == 0)};')
     return '\n'.join(decls), '\n'.join(inits)
 
 
 # Returns the instantiation of a parameter static class
-def generate_ctstruct(grids: dict, prname = 'ct') -> str:
+def generate_ctstruct(grids: dict, prname='ct') -> str:
     body = []
     decls = []
     for name, args in grids.items():
@@ -143,19 +147,22 @@ def generate_ctstruct(grids: dict, prname = 'ct') -> str:
         set_seed(args['seed'])
         int_dims = resolve_dims(args['dims']) if 'dims' in args else []
         subscripts = gen_subscripts(int_dims)
-        body.append(f'{CTSTRUCT_FTYPE} {name}{subscripts} = {generate_array_level(int_dims, args["seed"] == 0)};')
+        body.append(f'{CTSTRUCT_FTYPE} {name}{subscripts} = ' +
+                    f'{generate_array_level(int_dims, args["seed"] == 0)};')
         decls.append(f'{prname}::{name}{subscripts}')
-    return CSTRUCT_FMT.format(prname=prname, body=indent("\n".join(body), " "*4), dtype=CTSTRUCT_DTYPE, decls=", ".join(decls))
+    return CSTRUCT_FMT.format(prname=prname, body=indent("\n".join(body), " "*4),
+                              dtype=CTSTRUCT_DTYPE, decls=", ".join(decls))
 
 
 # Returns the instantiation of a parameter static class
-def generate_cistruct(params: dict, prname = 'ci') -> str:
+def generate_cistruct(params: dict, prname='ci') -> str:
     body = []
     decls = []
     for lval, rval in params.items():
         body.append(f'{CISTRUCT_FTYPE} {lval} = {rval};')
         decls.append(f'{prname}::{lval}')
-    return CSTRUCT_FMT.format(prname=prname, body=indent("\n".join(body), " "*4), dtype=CISTRUCT_DTYPE, decls=", ".join(decls))
+    return CSTRUCT_FMT.format(prname=prname, body=indent("\n".join(body), " "*4),
+                              dtype=CISTRUCT_DTYPE, decls=", ".join(decls))
 
 
 # Returns declaration and initialization separately
@@ -169,7 +176,8 @@ def generate_bundles(bundles: dict, grids: dict) -> str:
         if any(attrs != grids[g]['attrs'] for g in grid_names[1:]):
             raise ValueError(f'Bundle {name} has mismatching attributes')
         attrs = (attrs + ' ') if attrs else ''
-        decls.append(f'{attrs}{ELEMTYPE} (*{name}[{len(grid_names)}]){gen_subscripts(int_dims)} = {{{", ".join("&" + g for g in grid_names)}}};')
+        decls.append(f'{attrs}{ELEMTYPE} (*{name}[{len(grid_names)}])' +
+                     f'{gen_subscripts(int_dims)} = {{{", ".join("&" + g for g in grid_names)}}};')
     return '\n'.join(decls)
 
 
@@ -197,7 +205,8 @@ def generate_dma_out(dst_grid: tuple, src_grid: tuple, radius: int) -> str:
     dma_transfer = f'{dma_call}\n'
 
     if ndim == 3:
-        loop = f'#pragma clang loop unroll(disable)\nfor (int i = 0; i < {src_dims[2] - radius * 2}; i++) {{\n{indent(dma_transfer, " "*4)}\n}}\n'
+        loop = '#pragma clang loop unroll(disable)\nfor (int i = 0; i < ' + \
+            f'{src_dims[2] - radius * 2}; i++) {{\n{indent(dma_transfer, " "*4)}\n}}\n'
         return loop
     else:
         return dma_transfer
@@ -212,7 +221,7 @@ def generate_dma_in(dst_grid: tuple, src_grid: tuple, radius: int) -> str:
     src_dims = resolve_dims(src_grid['dims'])
 
     args = []
-    subscripts = f'[0][0]'
+    subscripts = '[0][0]'
     if ndim == 3:
         subscripts = f'[i]{subscripts}'
     args.append(f'(void *)&({dst_grid["uid"]}{subscripts})')  # dst
@@ -227,7 +236,8 @@ def generate_dma_in(dst_grid: tuple, src_grid: tuple, radius: int) -> str:
     dma_transfer = f'{dma_call}\n'
 
     if ndim == 3:
-        loop = f'#pragma clang loop unroll(disable)\nfor (int i = 0; i < {dst_dims[2]}; i++) {{\n{indent(dma_transfer, " "*4)}\n}}\n'
+        loop = '#pragma clang loop unroll(disable)\nfor (int i = 0; i < ' + \
+            f'{dst_dims[2]}; i++) {{\n{indent(dma_transfer, " "*4)}\n}}\n'
         return loop
     else:
         return dma_transfer
@@ -289,7 +299,7 @@ def main(cfg_file: str, tpl_file: str, program: str):
     cfg['bundledecls'] = ""
     if 'bundles' in cfg:
         cfg['bundledecls'] = generate_bundles(cfg['bundles'], grids)
-    ctgrids = CTSTRUCT_DEFAULT_GRIDS;
+    ctgrids = CTSTRUCT_DEFAULT_GRIDS
     if 'ctgrids' in cfg:
         ctgrids.update(cfg['ctgrids'])
     cfg['ctgrids'] = generate_ctstruct(ctgrids)
