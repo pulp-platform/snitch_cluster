@@ -11,9 +11,13 @@ all:
 # Environment #
 ###############
 
-# NOTE: This needs to be a specific revision of PULP RISCV LLVM 15:
-# TODO: add commit link here
-LLVM_BINROOT ?= /home/paulsc/dev/llvm-ssr/llvm-iis/install/bin
+# NOTE: the LLVM_BINROOT environment variable must point to a specific revision of PULP RISCV
+# LLVM 15 (see README.md). After compilation, you can set LLVM_BINROOT in your environment, this
+# makefile, or pass it on invocation of `make`.
+ifndef LLVM_BINROOT
+$(error LLVM_BINROOT is not set; please compile the SARIS version of LLVM 15 (see README.md) and set LLVM_BINROOT to its binary location.)
+endif
+
 PYTHON3 ?= python3
 
 SARISDIR ?= .
