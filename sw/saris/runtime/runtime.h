@@ -32,7 +32,7 @@ static inline volatile uint32_t __rt_get_hartid() {
 }
 // Rudimentary string buffer for putchar calls.
 extern uint32_t _putcb;
-#define PUTC_BUFFER_LEN (1024 - sizeof(size_t))
+#define PUTC_BUFFER_LEN (1024 - sizeof(size_t) - 8*sizeof(uint64_t))
 
 typedef struct {
     size_t size;

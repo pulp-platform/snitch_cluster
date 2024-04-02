@@ -30,10 +30,14 @@ _start:
   slli    t0, a0, 3
   sub     sp, sp, t0
 
-  # check if the core has the F-extension
-  csrr    t0, misa
-  andi    t0, t0, (1 << 5)
-  beqz    t0, _clr_ireg
+.globl _putcb
+_init_putcb:
+  la      t0, _putcb
+  # Initialize ptchar buffer size of each core to 0
+  slli    t1, a0, 10
+  add     t0, t0, t1
+  sw      zero, 0(t0)
+  sw      zero, 4(t0)
 
 _skip_dmcc_work:
   # Skip the coming two steps unless we are the DMA core
@@ -77,6 +81,11 @@ _preload_tcdmc:
 _dmcc_work_sync:
   # Synchronize cores so data is ready
   csrr    x0, 0x7C2
+
+  # check if the core has the F-extension
+  csrr    t0, misa
+  andi    t0, t0, (1 << 5)
+  beqz    t0, _clr_ireg
 
   # Reset float regs if present
 _clr_freg:
@@ -158,6 +167,5 @@ _done:
   wfi
 
 
-.globl _putcb
 .section .data._putcb
 _putcb:
