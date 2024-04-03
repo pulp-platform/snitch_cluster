@@ -21,6 +21,20 @@ jobs:
       - name: Build docs
         run: make docs
 
+  #####################
+  # Python unit tests #
+  #####################
+
+  pytest:
+    name: Python unit tests
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/pulp-platform/snitch_cluster:main
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run pytest
+        run: pytest
+
   ##############################################
   # Simulate SW on Snitch Cluster w/ Verilator #
   ##############################################

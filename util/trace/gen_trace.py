@@ -924,6 +924,12 @@ def main():
     )
     parser.add_argument(
         '-o',
+        '--output',
+        required=True,
+        type=argparse.FileType('w'),
+        help='Path to the output file'
+    )
+    parser.add_argument(
         '--offl',
         action='store_true',
         help='Annotate FPSS and sequencer offloads when they happen in core')
@@ -951,42 +957,44 @@ def main():
 
     args = parser.parse_args()
     line_iter = iter(args.infile.readline, b'')
-    # Prepare stateful data structures
-    time_info = None
-    gpr_wb_info = defaultdict(deque)
-    fpr_wb_info = defaultdict(deque)
-    fseq_info = {
-        'curr_sec': 0,
-        'fpss_pcs': deque(),
-        'fseq_pcs': deque(),
-        'cfg_buf': deque(),
-        'curr_cfg': None
-    }
-    perf_metrics = [
-        defaultdict(int)
-    ]  # all values initially 0, also 'start' time of measurement 0
-    perf_metrics[0]['start'] = None
-    # Parse input line by line
-    for line in line_iter:
-        if line:
-            ann_insn, time_info, empty = annotate_insn(
-                line, gpr_wb_info, fpr_wb_info, fseq_info, perf_metrics, False,
-                time_info, args.offl, not args.saddr, args.permissive)
-            if perf_metrics[0]['start'] is None:
-                perf_metrics[0]['tstart'] = time_info[0] / 1000
-                perf_metrics[0]['start'] = time_info[1]
-            if not empty:
-                print(ann_insn)
-        else:
-            break  # Nothing more in pipe, EOF
-    perf_metrics[-1]['tend'] = time_info[0] / 1000
-    perf_metrics[-1]['end'] = time_info[1]
-    # Compute metrics
-    eval_perf_metrics(perf_metrics)
-    # Emit metrics
-    print('\n## Performance metrics')
-    for idx in range(len(perf_metrics)):
-        print('\n' + fmt_perf_metrics(perf_metrics, idx, not args.allkeys))
+
+    with args.output as file:
+        # Prepare stateful data structures
+        time_info = None
+        gpr_wb_info = defaultdict(deque)
+        fpr_wb_info = defaultdict(deque)
+        fseq_info = {
+            'curr_sec': 0,
+            'fpss_pcs': deque(),
+            'fseq_pcs': deque(),
+            'cfg_buf': deque(),
+            'curr_cfg': None
+        }
+        perf_metrics = [
+            defaultdict(int)
+        ]  # all values initially 0, also 'start' time of measurement 0
+        perf_metrics[0]['start'] = None
+        # Parse input line by line
+        for line in line_iter:
+            if line:
+                ann_insn, time_info, empty = annotate_insn(
+                    line, gpr_wb_info, fpr_wb_info, fseq_info, perf_metrics, False,
+                    time_info, args.offl, not args.saddr, args.permissive)
+                if perf_metrics[0]['start'] is None:
+                    perf_metrics[0]['tstart'] = time_info[0] / 1000
+                    perf_metrics[0]['start'] = time_info[1]
+                if not empty:
+                    print(ann_insn, file=file)
+            else:
+                break  # Nothing more in pipe, EOF
+        perf_metrics[-1]['tend'] = time_info[0] / 1000
+        perf_metrics[-1]['end'] = time_info[1]
+        # Compute metrics
+        eval_perf_metrics(perf_metrics)
+        # Emit metrics
+        print('\n## Performance metrics', file=file)
+        for idx in range(len(perf_metrics)):
+            print('\n' + fmt_perf_metrics(perf_metrics, idx, not args.allkeys), file=file)
 
     if args.dump_perf:
         with args.dump_perf as file:

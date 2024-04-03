@@ -3,12 +3,13 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 #
-# This script takes a CVA6 or Snitch trace and it exports the simulation time
-# of all mcycle CSR reads in a format compatible with the gen_trace.py
-# script's JSON output.
-#
 # Author: Luca Colagrande <colluca@iis.ee.ethz.ch>
+"""Export `mcycle` CSR read events from a Snitch or CVA6 trace.
 
+This script takes a CVA6 or Snitch trace and it exports the
+simulation time of all `mcycle` CSR reads to a JSON file in a format
+compatible with [`gen_trace.py`][gen_trace]'s output.
+"""
 
 import sys
 import argparse

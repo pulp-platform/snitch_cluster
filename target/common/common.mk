@@ -36,9 +36,9 @@ ADDR2LINE    ?= $(LLVM_BINROOT)/llvm-addr2line
 GENTRACE_PY      ?= $(UTIL_DIR)/trace/gen_trace.py
 ANNOTATE_PY      ?= $(UTIL_DIR)/trace/annotate.py
 EVENTS_PY        ?= $(UTIL_DIR)/trace/events.py
-PERF_CSV_PY      ?= $(UTIL_DIR)/trace/perf_csv.py
-LAYOUT_EVENTS_PY ?= $(UTIL_DIR)/trace/layout_events.py
-EVENTVIS_PY      ?= $(UTIL_DIR)/trace/eventvis.py
+JOIN_PY          ?= $(UTIL_DIR)/bench/join.py
+ROI_PY           ?= $(UTIL_DIR)/bench/roi.py
+VISUALIZE_PY     ?= $(UTIL_DIR)/bench/visualize.py
 
 # For some reason `$(VERILATOR_SEPP) which verilator` returns a
 # a two-liner with the OS on the first line, hence the tail -n1
@@ -225,8 +225,8 @@ clean-perf:
 clean-visual-trace:
 	rm -f $(VISUAL_TRACE)
 
-$(LOGS_DIR)/trace_hart_%.txt $(LOGS_DIR)/hart_%_perf.json: $(LOGS_DIR)/trace_hart_%.dasm $(GENTRACE_PY)
-	$(DASM) < $< | $(GENTRACE_PY) --permissive -d $(LOGS_DIR)/hart_$*_perf.json > $(LOGS_DIR)/trace_hart_$*.txt
+$(addprefix $(LOGS_DIR)/,trace_hart_%.txt hart_%_perf.json): $(LOGS_DIR)/trace_hart_%.dasm $(GENTRACE_PY)
+	$(DASM) < $< | $(GENTRACE_PY) --permissive -d $(LOGS_DIR)/hart_$*_perf.json -o $(LOGS_DIR)/trace_hart_$*.txt
 
 # Generate source-code interleaved traces for all harts. Reads the binary from
 # the logs/.rtlbinary file that is written at start of simulation in the vsim script
