@@ -58,9 +58,9 @@ module tcdm_mux_tb import reqrsp_pkg::*; #(
     .mst (slave)
   );
 
-  `TCDM_ASSIGN(slave_dv, slave)
+  `TCDM_ASSIGN_CLUSTER(slave_dv, slave)
   for (genvar i = 0; i < NrPorts; i++) begin : gen_if_assignment
-    `TCDM_ASSIGN(master[i], master_dv[i])
+    `TCDM_ASSIGN_CLUSTER(master[i], master_dv[i])
   end
 
   // ----------------
