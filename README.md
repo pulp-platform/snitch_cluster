@@ -161,3 +161,21 @@ If you use the Snitch cluster or its extensions in your work, you can cite us:
 ```
 
 </p>
+
+<details>
+<summary><b>SARIS: Accelerating Stencil Computations on Energy-Efficient RISC-V Compute Clusters with Indirect Stream Registers</b></summary>
+<p>
+
+```
+@misc{scheffler2024saris,
+      title={SARIS: Accelerating Stencil Computations on Energy-Efficient
+             RISC-V Compute Clusters with Indirect Stream Registers},
+      author={Paul Scheffler and Luca Colagrande and Luca Benini},
+      year={2024},
+      eprint={},
+      archivePrefix={arXiv},
+      primaryClass={cs.MS}
+}
+```
+
+</p>

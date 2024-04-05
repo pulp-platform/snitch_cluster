@@ -5,12 +5,20 @@ This directory contains the baseline- and SSSR-accelerated Snitch cluster stenci
 If you use our code or compare against our work, please cite us:
 
 ```
-TODO
+@misc{scheffler2024saris,
+      title={SARIS: Accelerating Stencil Computations on Energy-Efficient
+             RISC-V Compute Clusters with Indirect Stream Registers},
+      author={Paul Scheffler and Luca Colagrande and Luca Benini},
+      year={2024},
+      eprint={},
+      archivePrefix={arXiv},
+      primaryClass={cs.MS}
+}
 ```
 
 > [!IMPORTANT]
 > - Unlike other software in this repository, compiling this code requires a **custom version of the LLVM 15 toolchain** with some extensions and improvements. The source code for this LLVM fork can be found [here](https://github.com/pulp-platform/llvm-project/tree/15.0.0-saris-0.1.0).
-> - The generated example programs are only intended to be used **in RTL simulation of an SSSR-extended cluster**, using the custom cluster configuration `cfg/sssr.json`.
+> - The generated example programs are only intended to be used **in RTL simulation of a default, SSSR-extended cluster**, using the cluster configuration `cfg/default.hjson`.
 
 ## Directory Structure
 
@@ -34,10 +42,10 @@ By default, `eval.json` specifies RV32G and SSSR-accelerated test programs for a
 
 ## Run Evaluation Programs
 
-Evaluation programs can only be run in RTL simulation of a Snitch cluster using the configuration `cfg/sssr.json`. For example, when building a QuestaSim RTL simulation setup from `target/snitch_cluster`:
+Evaluation programs can only be run in RTL simulation of a Snitch cluster using the default, SSSR-enhanced configuration `cfg/default.json`. For example, when building a QuestaSim RTL simulation setup from `target/snitch_cluster`:
 
 ```
-make CFG_OVERRIDE=cfg/sssr.hjson bin/snitch_cluster.vsim
+make CFG_OVERRIDE=cfg/default.hjson bin/snitch_cluster.vsim
 ```
 
 Then, the built evaluation programs can be run on this simulation setup as usual, for example:
