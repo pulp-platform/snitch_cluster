@@ -243,4 +243,4 @@ $(ROI_DUMP): $(JOINT_PERF_DUMP) $(ROI_SPEC) $(ROI_PY)
 	$(ROI_PY) $(JOINT_PERF_DUMP) $(ROI_SPEC) --cfg $(CFG) -o $@
 
 $(VISUAL_TRACE): $(ROI_DUMP) $(VISUALIZE_PY)
-	$(VISUALIZE_PY) $(ROI_DUMP) --traces $(SNITCH_TXT_TRACES) --elf $(BINARY) -o $@
+	$(VISUALIZE_PY) $(ROI_DUMP) --traces $(SNITCH_TXT_TRACES) --elf $(BINARY) --addr2line $(ADDR2LINE) -o $@

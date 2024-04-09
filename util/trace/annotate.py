@@ -212,8 +212,11 @@ with open(trace, 'r') as f:
             if trace_start_col < 0:
                 trace_start_col = line.find(addr)
             # Get addr2line information and format it as an assembly comment
-            a2l_output = elf.addr2line(addr)
-            annot = '\n'.join([f'#; {line}' for line in str(a2l_output).split('\n')])
+            a2l_output = str(elf.addr2line(addr))
+            if a2l_output:
+                annot = '\n'.join([f'#; {line}' for line in a2l_output.split('\n')])
+            else:
+                annot = ''
         except (ValueError, IndexError):
             a2l_output = None
             annot = ''
