@@ -87,6 +87,13 @@ parser.add_argument(
     '--quiet',
     action='store_true',
     help='Quiet output')
+parser.add_argument(
+    '-f',
+    '--format',
+    default='snitch',
+    choices=['cva6', 'snitch'],
+    help='Trace format'
+)
 
 args = parser.parse_args()
 
@@ -97,6 +104,7 @@ diff = args.diff
 addr2line = args.addr2line
 quiet = args.quiet
 keep_time = args.keep_time
+trace_fmt = args.format
 
 if not quiet:
     print('elf:', elf_file, file=sys.stderr)
@@ -170,6 +178,22 @@ def dump_hunk(hunk_tstart, hunk_sstart, hunk_trace, hunk_source):
     of.write(f'{hunk_header}{hunk_trace}{hunk_source}')
 
 
+def parse_line(line, fmt='snitch'):
+    # Regex capturing the timestamp and program counter (if present)
+    if fmt == 'snitch':
+        pattern = r'^\s*(\d+)?\s*.*?M (0x[0-9a-fA-F]+)?'
+    elif fmt == 'cva6':
+        pattern = r'^\s*(\d+ns)?\s*.*?M ([0-9a-fA-F]+)?'
+    else:
+        raise ValueError('Invalid trace format string')
+    match = re.search(pattern, line)
+    if match:
+        timestamp, program_counter = match.group(1), match.group(2)
+    else:
+        timestamp, program_counter = None, None
+    return timestamp, program_counter
+
+
 # Open ELF file for addr2line processing
 elf = a2l.Elf(elf_file, addr2line)
 
@@ -200,41 +224,35 @@ with open(trace, 'r') as f:
     last_prog = 0
     for lino, line in enumerate(trace_lines):
 
-        # Split trace line in columns
-        cols = re.split(r" +", line.strip())
-        # Get simulation time from first column
-        time = cols[0]
-        # RTL traces might not contain a PC on each line
-        try:
-            # Get address from PC column
-            addr = cols[3]
-            # Find index of first character in PC
-            if trace_start_col < 0:
-                trace_start_col = line.find(addr)
-            # Get addr2line information and format it as an assembly comment
-            a2l_output = str(elf.addr2line(addr))
+        # Parse trace line
+        time, pc = parse_line(line, fmt=trace_fmt)
+
+        # In the first line we record the start column of the program counter
+        # so we know where to cut the line, even when the PC is missing
+        if trace_start_col < 0:
+            assert pc is not None, "Program counter is missing in first trace line"
+            trace_start_col = line.find(pc)
+
+        # Filter trace line for printing
+        if keep_time:
+            time = time if time is not None else ""
+            filtered_line = f'{time:>12}    {line[trace_start_col:]}'
+        else:
+            filtered_line = f'{line[trace_start_col:]}'
+
+        # Get addr2line information and format it as an assembly comment
+        annot = ''
+        a2l_output = None
+        if pc is not None:
+            a2l_output = str(elf.addr2line(pc))
             if a2l_output:
                 annot = '\n'.join([f'#; {line}' for line in a2l_output.split('\n')])
-            else:
-                annot = ''
-        except (ValueError, IndexError):
-            a2l_output = None
-            annot = ''
-            if keep_time:
-                filtered_line = f'{time:>12}    {line[trace_start_col:]}'
-            else:
-                filtered_line = f'{line[trace_start_col:]}'
+        else:
             if diff:
                 hunk_trace += f'-{filtered_line}'
             else:
                 of.write(f'      {filtered_line}')
             continue
-
-        # Filter trace line for printing
-        if keep_time:
-            filtered_line = f'{time:>12}    {line[trace_start_col:]}'
-        else:
-            filtered_line = f'{line[trace_start_col:]}'
 
         # Print diff
         if diff:
