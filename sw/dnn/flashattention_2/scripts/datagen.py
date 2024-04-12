@@ -24,6 +24,7 @@ from data_utils import emit_license, \
                        format_array_declaration  # noqa: E402
 
 np.random.seed(42)
+np.random.seed(42)
 torch.manual_seed(42)
 
 # AXI splits bursts crossing 4KB address boundaries. To minimize
@@ -92,6 +93,7 @@ np.set_printoptions(formatter={'object': str})
 def exact_flexfloat_golden_model(Q, K, V, B_r, B_c, desc):
     # Get layer dimensions
     N = Q.shape[0]
+    d = Q.shape[1]
     # Calculate tiling parameters
     T_r = N // B_r
     T_c = N // B_c
@@ -111,7 +113,7 @@ def exact_flexfloat_golden_model(Q, K, V, B_r, B_c, desc):
             start_col = j * B_c
             end_col = start_col + B_c
             K_t_j = K_t[:, start_col:end_col]
-            V_j = V[start_col:end_col, ]
+            V_j = V[start_col:end_col,]
             # Compute O tile update
             S_ij = ff.array(np.zeros((B_r, B_c)), desc)
             S_ij = gemm.datagen.GemmDataGen().exact_golden_model(1, Q_i, K_t_j, 0, S_ij)
@@ -119,7 +121,8 @@ def exact_flexfloat_golden_model(Q, K, V, B_r, B_c, desc):
             m_i = np.maximum(m_i_prev, np.max(S_ij, 1, keepdims=True))
             shifted_exp = np.exp((m_i_prev - m_i).astype(np.float32))
             P_ij = np.exp((S_ij - m_i).astype(np.float32))
-            PxV = gemm.datagen.GemmDataGen().exact_golden_model(1, P_ij, V_j, 0, S_ij)
+            PxV = ff.array(np.zeros((B_r, d)), desc)
+            PxV = gemm.datagen.GemmDataGen().exact_golden_model(1, P_ij, V_j, 0, PxV)
             row_sum = np.sum(P_ij.astype(np.float32), 1, keepdims=True)
             if j == 0:
                 l_i = row_sum
@@ -143,6 +146,7 @@ def validate_config(N, d, B_r, B_c, dtype, baseline, gemm_impl):
     assert (N % B_r) == 0, 'N is not an integer multiple of B_r'
     assert (N % B_c) == 0, 'N is not an integer multiple of B_c'
     assert (B_r % 8) == 0, 'B_r must be an integer multiple of the number of cores in a cluster'
+    assert dtype != 'FP64', 'FP64 precision is not supported yet'
     assert dtype != 'FP64', 'FP64 precision is not supported yet'
 
     # Q*K^t
@@ -222,6 +226,8 @@ def emit_header(section, params):
     data_str += [format_array_definition(ctype, q_uid, Q)]
     data_str += [format_array_definition(ctype, k_uid, K)]
     data_str += [format_array_definition(ctype, v_uid, V)]
+    # result_def = format_array_definition(ctype, 'golden', output)
+    # data_str += [format_ifdef_wrapper('BIST', result_def)]
     # result_def = format_array_definition(ctype, 'golden', output)
     # data_str += [format_ifdef_wrapper('BIST', result_def)]
     data_str = '\n\n'.join(data_str)
