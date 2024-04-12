@@ -37,9 +37,23 @@ int main() {
             "vfcpka.s.s ft7, ft1, ft2\n"  // ft7 = {-3.14, 1.618}
             : "+r"(i_a), "+r"(i_an), "+r"(i_b), "+r"(i_bn));
 
+        uint32_t mask = 0x0;
+        uint32_t mask_a = 0b00000011000000100000000100000000;
+        uint32_t mask_b = 0b00000111000001100000010100000100;
         // VFSHUFFLE
+        // just copy rD
         asm volatile(
-            "vfshuffle.s ft0, ft2, %1\n";
+            "vfshuffle.s ft4, ft5, %0\n"
+            "vfeq.s %0, ft4, ft8\n"
+            : "+r"(mask_a), "+r"(res0));
+        errs += (res0 == 0x0);
+
+        // just copy rA
+        asm volatile(
+            "vfshuffle.s ft4, ft5, %0\n"
+            "vfeq.s %0, ft4, ft8\n"
+            : "+r"(mask_b), "+r"(res0));
+        errs += (res0 == 0x0);
 
         // VFSGNJ
         asm volatile(

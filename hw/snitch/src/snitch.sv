@@ -25,7 +25,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   /// Enable FP in general
   parameter bit          FP_EN     = 1,
   /// Enable F Extension.
-  parameter bit          RVF       = 0,
+  parameter bit          RVF       = 1,
   /// Enable D Extension.
   parameter bit          RVD       = 0,
   parameter bit          XF16      = 0,
@@ -34,7 +34,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   parameter bit          XF8ALT    = 0,
   /// Enable div/sqrt unit (buggy - use with caution)
   parameter bit          XDivSqrt  = 0,
-  parameter bit          XFVEC     = 0,
+  parameter bit          XFVEC     = 1,
   parameter bit          XFDOTP    = 0,
   parameter bit          XFAUX     = 0,
   int unsigned           FLEN      = DataWidth,
@@ -150,6 +150,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic [31:0] opa, opb;
   logic [32:0] adder_result;
   logic [31:0] alu_result;
+
+  logic shuffle;
 
   logic [RegWidth-1:0] rd, rs1, rs2;
   logic stall, lsu_stall, nonacc_stall;
@@ -518,6 +520,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     alu_op = Add;
     opa_select = None;
     opb_select = None;
+
+    shuffle = 1'b0;
 
     flush_i_valid_o = 1'b0;
     tlb_flush = 1'b0;
@@ -1599,9 +1603,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       end
       VFSHUFFLE_S: begin
         if (FP_EN && XFVEC && RVF) begin
-          opa_select = Reg;
+          opb_select = Reg;
           write_rd = 1'b0;
           acc_qvalid_o = valid_instr;
+          shuffle = 1'b1;
         end else begin
           illegal_inst = 1'b1;
         end

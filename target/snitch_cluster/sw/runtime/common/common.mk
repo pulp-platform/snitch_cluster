@@ -30,7 +30,7 @@ INCDIRS += $(SNRT_DIR)/api
 INCDIRS += $(SNRT_DIR)/src/omp
 INCDIRS += $(SNRT_DIR)/api/omp
 INCDIRS += $(SNRT_DIR)/vendor/riscv-opcodes
-INCDIRS += $(ROOT)/sw/math/include
+#INCDIRS += $(ROOT)/sw/math/include
 INCDIRS += $(ROOT)/target/snitch_cluster/sw/runtime/common
 
 ###########
