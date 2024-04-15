@@ -99,7 +99,7 @@ void gemm_fp8_baseline(uint32_t M, uint32_t N, uint32_t K, void* A_p,
     }
 }
 
-void gemm_fp8_ex_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p,
+void gemm_fp8_opt_ex(uint32_t M, uint32_t N, uint32_t K, void* A_p,
                      uint32_t ldA, uint32_t ta, void* B_p, uint32_t ldB,
                      uint32_t tb, void* C_p, uint32_t ldC, uint32_t BETA,
                      uint32_t setup_SSR) {

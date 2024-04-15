@@ -139,7 +139,7 @@ def exact_flexfloat_golden_model(Q, K, V, B_r, B_c, desc):
 
 
 # Verify layer parameters are valid
-def validate_config(N, d, B_r, B_c, dtype, baseline):
+def validate_config(N, d, B_r, B_c, dtype, baseline, gemm_impl):
     assert (N % B_r) == 0, 'N is not an integer multiple of B_r'
     assert (N % B_c) == 0, 'N is not an integer multiple of B_c'
     assert (B_r % 8) == 0, 'B_r must be an integer multiple of the number of cores in a cluster'
@@ -147,33 +147,46 @@ def validate_config(N, d, B_r, B_c, dtype, baseline):
 
     # Q*K^t
     gemm.datagen.GemmDataGen().validate_config(
-        prec=dtype, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
-        k_tiles=1, ta=0, tb=1, M=B_r, N=B_c, K=d, baseline=baseline, beta=0
+        gemm_fp=gemm_impl, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
+        k_tiles=1, transa=0, transb=1, M=B_r, N=B_c, K=d, beta=0
     )
 
     # P*V
     if baseline:
         gemm.datagen.GemmDataGen().validate_config(
-            prec=dtype, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
-            k_tiles=1, ta=0, tb=0, M=B_r, N=d, K=B_c, baseline=baseline, beta=1
+            gemm_fp=gemm_impl, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
+            k_tiles=1, transa=0, transb=0, M=B_r, N=d, K=B_c, beta=1
         )
     else:
         # P*(V^t)^t
         gemm.datagen.GemmDataGen().validate_config(
-            prec=dtype, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
-            k_tiles=1, ta=0, tb=1, M=B_r, N=d, K=B_c, baseline=baseline, beta=1
+            gemm_fp=gemm_impl, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
+            k_tiles=1, transa=0, transb=1, M=B_r, N=d, K=B_c, beta=1
         )
 
 
-def emit_header(section, params):
+def get_gemm_implementation(params):
+    prec = params['dtype'].lower()
+    impl = f'gemm_{prec}_'
+    if params['baseline']:
+        impl += 'naive'
+    else:
+        impl += 'opt'
+        if prec == 'fp8':
+            impl += '_ex'
+    return impl
 
-    validate_config(**params)
+
+def emit_header(section, params):
 
     N = params['N']
     d = params['d']
     B_r = params['B_r']
     B_c = params['B_c']
     prec = params['dtype']
+    gemm_impl = get_gemm_implementation(params)
+
+    validate_config(gemm_impl=gemm_impl, **params)
 
     ff_desc = data_utils.ff_desc_from_precision_t(prec)
     ctype = data_utils.ctype_from_precision_t(prec)
@@ -193,6 +206,7 @@ def emit_header(section, params):
 
     layer_cfg = {
         **params,
+        'gemm_implementation': gemm_impl,
         'Q': q_uid,
         'K': k_uid,
         'V': v_uid,

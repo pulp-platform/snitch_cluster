@@ -20,14 +20,9 @@
 typedef enum { FP64 = 8, FP32 = 4, FP16 = 2, FP8 = 1 } precision_t;
 #endif
 
-#ifndef IMPLEMENTATION_T
-#define IMPLEMENTATION_T
-typedef enum { BASELINE, NAIVE, NAIVE_UNROLLED, OPT, OPT_EX } implementation_t;
-
 typedef float v2f32 __attribute__((vector_size(8)));
 typedef __fp16 v4f16 __attribute__((vector_size(8)));
 typedef char v8f8 __attribute__((vector_size(8)));
-#endif
 
 // Floating-point multiplications by zero cannot be optimized as in some
 // edge cases they do not yield zero:

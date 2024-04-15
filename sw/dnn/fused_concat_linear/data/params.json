@@ -7,5 +7,6 @@
     input_shape: [32, 4],
     output_shape: [32, 16],
     dtype: "FP64",
-    baseline: true
+    baseline: true,
+    gemm_implementation: "gemm_fp64_naive"
 }

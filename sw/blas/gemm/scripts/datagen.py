@@ -2,7 +2,7 @@
 # Copyright 2022 ETH Zurich and University of Bologna.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
-# 
+#
 # Authors: Tim Fischer     <fischeti@iis.ee.ethz.ch>
 #          Luca Bertaccini <lbertaccini@iis.ee.ethz.ch>
 #          Viviane Potocnik <vivianep@iis.ee.ethz.ch>
@@ -74,16 +74,12 @@ class GemmDataGen(DataGen):
         assert beta == 0 or beta == 1, 'Only values of 0 or 1 supported for beta'
         assert not (dtype == 8 and impl == "baseline"), 'No baseline implemented' \
             ' for FP64 (switch to NAIVE)'
-        assert not (((dtype == 8) or (dtype == 4)) and impl == "OPT_EX"), \
+        assert not (((dtype == 8) or (dtype == 4)) and impl == "opt_ex"), \
             'Expanding GEMM kernels' \
             ' not supported for FP64 and FP32'
-        assert not (((dtype == 2) or (dtype == 1)) and impl == "NAIVE"), \
-            'FP16 and FP8 not supported' \
-            ' in naive implementation'
-        assert not (dtype == 1 and impl == "OPT"), 'FP8 not supported in' \
+        assert not (dtype == 1 and impl == "opt"), 'FP8 not supported in' \
             ' optimized implementation' \
-            ' (switch to OPT_EX)'
-        assert dtype == 8 or beta == 0, 'beta != 0 supported only in FP64'
+            ' (switch to opt_ex)'
 
     def emit_header(self, **kwargs):
         header = [super().emit_header()]

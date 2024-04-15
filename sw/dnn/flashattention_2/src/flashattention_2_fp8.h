@@ -34,6 +34,7 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
     uint32_t B_r = layer.B_r;
     uint32_t B_c = layer.B_c;
     uint32_t baseline = layer.baseline;
+    void *gemm_implementation = layer.gemm_implementation;
     char *Q_l3 = layer.Q;
     char *K_l3 = layer.K;
     char *V_l3 = layer.V;
@@ -162,8 +163,8 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
                 // column block of K to calculate a tile of S: S = Q * K^T.
                 // The S tile is of form (B_r, B_c)
                 uint32_t start_gemm = snrt_mcycle();
-                sc_st_gemm(dtype, 0, 1, 0, 1, B_r, B_c, d, 1, Q_fa, d, K_fa, d,
-                           0, S_fa, B_c, baseline);
+                sc_st_gemm(dtype, 1, 0, 1, B_r, B_c, d, 1, Q_fa, d, K_fa, d, 0,
+                           S_fa, B_c, gemm_implementation);
                 uint32_t end_gemm = snrt_mcycle();
 
                 snrt_cluster_hw_barrier();
@@ -189,7 +190,6 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
                         float val =
                             expf(fp8_to_float(S_fa[row_idx * B_c + col_idx]) -
                                  m_i[row_idx]);
-                        if (snrt_cluster_core_idx() == 0) DUMP(val);
                         P_fa[row_idx * B_c + col_idx] = float_to_fp8(val);
                         row_sum += val;
                     }
@@ -228,8 +228,8 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
                         beta = 0;
                     else
                         beta = 1;
-                    sc_st_gemm(dtype, 0, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c,
-                               V_fa, d, beta, O_fa, d, baseline);
+                    sc_st_gemm(dtype, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c, V_fa,
+                               d, beta, O_fa, d, gemm_implementation);
                 } else {
                     // The SIMD-optimized GEMM kernel performs the A*B^t
                     // operation. We must transpose V in advance, so
@@ -250,8 +250,8 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
                         beta = 0;
                     else
                         beta = 1;
-                    sc_st_gemm(dtype, 0, 0, 0, 1, B_r, d, B_c, 1, P_fa, B_c,
-                               V_t, B_c, beta, O_fa, d, baseline);
+                    sc_st_gemm(dtype, 0, 0, 1, B_r, d, B_c, 1, P_fa, B_c, V_t,
+                               B_c, beta, O_fa, d, gemm_implementation);
                 }
 
                 uint32_t end_stats = snrt_mcycle();
@@ -273,7 +273,6 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
             for (int row_idx = start_row; row_idx < end_row; row_idx++) {
                 for (int col_idx = 0; col_idx < d; col_idx++) {
                     float val = fp8_to_float(O_fa[row_idx * d + col_idx]);
-                    if (snrt_cluster_core_idx() == 0) DUMP(val);
                     O_fa[row_idx * d + col_idx] =
                         float_to_fp8(val / l_i[row_idx]);
                 }

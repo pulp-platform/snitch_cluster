@@ -13,6 +13,7 @@ static inline void flashattention_2_fp32(flashattention_2_layer_t layer) {
     uint32_t B_r = layer.B_r;
     uint32_t B_c = layer.B_c;
     uint32_t baseline = layer.baseline;
+    void *gemm_implementation = layer.gemm_implementation;
     float *Q_l3 = layer.Q;
     float *K_l3 = layer.K;
     float *V_l3 = layer.V;
@@ -139,8 +140,8 @@ static inline void flashattention_2_fp32(flashattention_2_layer_t layer) {
                 // column block of K to calculate a tile of S: S = Q * K^T.
                 // The S tile is of form (B_r, B_c)
                 uint32_t start_gemm = snrt_mcycle();
-                sc_st_gemm(dtype, 0, 1, 0, 1, B_r, B_c, d, 1, Q_fa, d, K_fa, d,
-                           0, S_fa, B_c, baseline);
+                sc_st_gemm(dtype, 1, 0, 1, B_r, B_c, d, 1, Q_fa, d, K_fa, d, 0,
+                           S_fa, B_c, gemm_implementation);
                 uint32_t end_gemm = snrt_mcycle();
 
                 snrt_cluster_hw_barrier();
@@ -199,8 +200,8 @@ static inline void flashattention_2_fp32(flashattention_2_layer_t layer) {
                         beta = 0;
                     else
                         beta = 1;
-                    sc_st_gemm(dtype, 0, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c,
-                               V_fa, d, beta, O_fa, d, baseline);
+                    sc_st_gemm(dtype, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c, V_fa,
+                               d, beta, O_fa, d, gemm_implementation);
                 } else {
                     // The SIMD-optimized GEMM kernel performs the A*B^t
                     // operation. We must transpose V in advance, so
@@ -221,8 +222,8 @@ static inline void flashattention_2_fp32(flashattention_2_layer_t layer) {
                         beta = 0;
                     else
                         beta = 1;
-                    sc_st_gemm(dtype, 0, 0, 0, 1, B_r, d, B_c, 1, P_fa, B_c,
-                               V_t, B_c, beta, O_fa, d, baseline);
+                    sc_st_gemm(dtype, 0, 0, 1, B_r, d, B_c, 1, P_fa, B_c, V_t,
+                               B_c, beta, O_fa, d, gemm_implementation);
                 }
 
                 uint32_t end_stats = snrt_mcycle();

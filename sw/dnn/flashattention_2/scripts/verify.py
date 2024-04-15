@@ -32,7 +32,8 @@ class FlashAttention2Verifier(Verifier):
             'V': 'I',
             'O': 'I',
             'dtype': 'I',
-            'baseline': 'I'
+            'baseline': 'I',
+            'gemm_fp': 'I'
         }
         self.layer = self.get_input_from_symbol('layer', self.layer_struct)
         self.N = self.layer['N']
