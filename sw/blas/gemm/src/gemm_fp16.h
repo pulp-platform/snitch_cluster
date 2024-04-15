@@ -7,8 +7,14 @@
 //         Luca Colagrande <colluca@iis.ee.ethz.ch>
 //         Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
-void gemm_fp16_naive(uint32_t M, uint32_t N, uint32_t K, __fp16* A, uint32_t ldA, uint32_t ta,
-                    __fp16* B, uint32_t ldB, uint32_t tb, __fp16* C, uint32_t ldC, float beta) {
+void gemm_fp16_naive(uint32_t M, uint32_t N, uint32_t K, void* A_p,
+                     uint32_t ldA, uint32_t ta, void* B_p, uint32_t ldB,
+                     uint32_t tb, void* C_p, uint32_t ldC, uint32_t BETA,
+                     uint32_t setup_SSR) {
+    __fp16* A = (__fp16*)A_p;
+    __fp16* B = (__fp16*)B_p;
+    __fp16* C = (__fp16*)C_p;
+
     for (uint32_t m = 0; m < M; m++) {
         for (uint32_t n = 0; n < N; n++) {
             __fp16 c = 0;
@@ -16,8 +22,10 @@ void gemm_fp16_naive(uint32_t M, uint32_t N, uint32_t K, __fp16* A, uint32_t ldA
                 // c0 += A[k + m * ldA] * B[k + n * ldB];
                 __fp16 a = A[m * ldA + k];
                 __fp16 b;
-                if (tb) b = B[n * ldB + k];
-                else b = B[k * ldB + n];
+                if (tb)
+                    b = B[n * ldB + k];
+                else
+                    b = B[k * ldB + n];
                 asm volatile(
                     "fmv.h.x ft3, %[a]\n"
                     "fmv.h.x ft4, %[b]\n"
@@ -33,9 +41,14 @@ void gemm_fp16_naive(uint32_t M, uint32_t N, uint32_t K, __fp16* A, uint32_t ldA
     }
 }
 
-void gemm_fp16_baseline(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
-                        uint32_t ldA, __fp16* B, uint32_t ldB, __fp16* C,
-                        uint32_t ldC, float beta) {
+void gemm_fp16_baseline(uint32_t M, uint32_t N, uint32_t K, void* A_p,
+                        uint32_t ldA, uint32_t ta, void* B_p, uint32_t ldB,
+                        uint32_t tb, void* C_p, uint32_t ldC, uint32_t BETA,
+                        uint32_t setup_SSR) {
+    __fp16* A = (__fp16*)A_p;
+    __fp16* B = (__fp16*)B_p;
+    __fp16* C = (__fp16*)C_p;
+
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (; n < N; n++) {
@@ -79,16 +92,20 @@ void gemm_fp16_baseline(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
                 "fsh ft3, 0(%[C]) \n"
                 : [ a_ptr ] "+r"(a_ptr), [ b_ptr ] "+r"(b_ptr)
                 : [ c ] "f"(c), [ reduce_reg ] "f"(reduce_reg),
-                  [ C ] "r"(c_ptr), [ beta ] "r"(beta), [ K ] "r"(K),
+                  [ C ] "r"(c_ptr), [ beta ] "r"(BETA), [ K ] "r"(K),
                   [ zero ] "f"(zero)
                 : "ft0", "ft1", "ft2", "ft3", "ft4", "t0");
         }
     }
 }
 
-void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A, uint32_t ldA,
-                   __fp16* B, uint32_t ldB, __fp16* C, uint32_t ldC,
-                   float beta, uint32_t setup_SSR) {
+void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
+                   uint32_t ta, void* B_p, uint32_t ldB, uint32_t tb, void* C_p,
+                   uint32_t ldC, uint32_t BETA, uint32_t setup_SSR) {
+    __fp16* A = (__fp16*)A_p;
+    __fp16* B = (__fp16*)B_p;
+    __fp16* C = (__fp16*)C_p;
+
     // Unrolling factor of most inner loop.
     // Should be at least as high as the FMA delay
     // for maximum utilization
@@ -242,7 +259,7 @@ void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A, uint32_t ldA,
                   [ reduce_reg6 ] "+f"(reduce_reg[6]),
                   [ reduce_reg7 ] "+f"(reduce_reg[7])
                 : [ C ] "r"(_C), [ zero ] "f"(zero), [ n_frep ] "r"(n_frep),
-                  [ beta ] "r"(beta)
+                  [ beta ] "r"(BETA)
                 : "ft0", "ft1", "ft2");
 
             // Store results back
@@ -268,9 +285,14 @@ void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A, uint32_t ldA,
     snrt_ssr_disable();
 }
 
-void gemm_fp16_ex_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
-                      uint32_t ldA, __fp16* B, uint32_t ldB, __fp16* C,
-                      uint32_t ldC, float beta, uint32_t setup_SSR) {
+void gemm_fp16_ex_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p,
+                      uint32_t ldA, uint32_t ta, void* B_p, uint32_t ldB,
+                      uint32_t tb, void* C_p, uint32_t ldC, uint32_t BETA,
+                      uint32_t setup_SSR) {
+    __fp16* A = (__fp16*)A_p;
+    __fp16* B = (__fp16*)B_p;
+    __fp16* C = (__fp16*)C_p;
+
     // Unrolling factor of most inner loop.
     // Should be at least as high as the FMA delay
     // for maximum utilization
@@ -404,7 +426,7 @@ void gemm_fp16_ex_opt(uint32_t M, uint32_t N, uint32_t K, __fp16* A,
                   [ reduce_reg6 ] "+f"(reduce_reg[6]),
                   [ reduce_reg7 ] "+f"(reduce_reg[7])
                 : [ C ] "r"(_C), [ zero ] "f"(zero), [ n_frep ] "r"(n_frep),
-                  [ unroll ] "i"(unroll), [ beta ] "r"(beta)
+                  [ unroll ] "i"(unroll), [ beta ] "r"(BETA)
                 : "ft0", "ft1", "ft2");
 
             // Store results back

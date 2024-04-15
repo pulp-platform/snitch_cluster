@@ -8,7 +8,7 @@
 import numpy as np
 import sys
 from pathlib import Path
-from datagen import golden_model
+from datagen import GemmDataGen
 
 sys.path.append(str(Path(__file__).parent / '../../../../util/sim/'))
 from verif_utils import Verifier  # noqa: E402
@@ -19,27 +19,54 @@ class GemmVerifier(Verifier):
 
     OUTPUT_UIDS = ['c']
     ERR_THRESHOLD = {
-        0: {8: 1e-6, 4: 1e-6, 2: 1e-2, 1: 1e-4},
-        1: {8: 0, 4: 0, 2: 0, 1: 0}
+        1: 1e-4,
+        2: 1e-2,
+        4: 1e-6,
+        8: 1e-6
     }
 
     def __init__(self):
         super().__init__()
-        self.prec = self.get_input_from_symbol('dtype_size', 'uint32_t')[0]
-        self.baseline = self.get_input_from_symbol('baseline', 'uint32_t')[0]
+        self.func_args = {
+            'alpha': 'd',
+            'prec': 'I',
+            'setup_ssr': 'I',
+            'parallelize_m': 'I',
+            'parallelize_k': 'I',
+            'm_tiles': 'I',
+            'n_tiles': 'I',
+            'k_tiles': 'I',
+            'load_a': 'I',
+            'load_b': 'I',
+            'load_c': 'I',
+            'transa': 'I',
+            'transb': 'I',
+            'M': 'I',
+            'N': 'I',
+            'K': 'I',
+            'a': 'I',
+            'b': 'I',
+            'beta': 'I',
+            'c': 'I',
+            'gemm_fp': 'I'
+        }
+        self.func_args = self.get_input_from_symbol('args', self.func_args)
 
     def get_actual_results(self):
-        return self.get_output_from_symbol(self.OUTPUT_UIDS[0], ctype_from_precision_t(self.prec))
+        prec = self.func_args['prec']
+        return self.get_output_from_symbol(self.OUTPUT_UIDS[0], ctype_from_precision_t(prec))
 
     def get_expected_results(self):
-        a = self.get_input_from_symbol('a', ctype_from_precision_t(self.prec))
-        b = self.get_input_from_symbol('b', ctype_from_precision_t(self.prec))
-        c = self.get_input_from_symbol('c', ctype_from_precision_t(self.prec))
-        beta = self.get_input_from_symbol('BETA', 'uint32_t')[0]
-        m = self.get_input_from_symbol('M', 'uint32_t')[0]
-        n = self.get_input_from_symbol('N', 'uint32_t')[0]
-        k = self.get_input_from_symbol('K', 'uint32_t')[0]
-        tb = self.get_input_from_symbol('TB', 'uint32_t')[0]
+        prec = self.func_args['prec']
+        a = self.get_input_from_symbol('a', ctype_from_precision_t(prec))
+        b = self.get_input_from_symbol('b', ctype_from_precision_t(prec))
+        c = self.get_input_from_symbol('c', ctype_from_precision_t(prec))
+        beta = self.func_args['beta']
+        m = self.func_args['M']
+        n = self.func_args['N']
+        k = self.func_args['K']
+        tb = self.func_args['transb']
+
         a = np.reshape(a, (m, k))
         if tb:
             b = np.reshape(b, (n, k))
@@ -50,7 +77,8 @@ class GemmVerifier(Verifier):
         return GemmDataGen().exact_golden_model(1, a, b, beta, c).flatten()
 
     def check_results(self, *args):
-        return super().check_results(*args, rtol=self.ERR_THRESHOLD[self.baseline][self.prec])
+        prec = self.func_args['prec']
+        return super().check_results(*args, rtol=self.ERR_THRESHOLD[prec])
 
 
 if __name__ == "__main__":

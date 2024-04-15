@@ -7,16 +7,23 @@
 //         Luca Colagrande <colluca@iis.ee.ethz.ch>
 //         Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
-void gemm_fp8_naive(uint32_t M, uint32_t N, uint32_t K, char* A, uint32_t ldA, uint32_t ta,
-                    char* B, uint32_t ldB, uint32_t tb, char* C, uint32_t ldC, float beta) {
+void gemm_fp8_naive(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
+                    uint32_t ta, void* B_p, uint32_t ldB, uint32_t tb,
+                    void* C_p, uint32_t ldC, uint32_t BETA, uint32_t setup_SSR) {
+    char* A = (char*)A_p;
+    char* B = (char*)B_p;
+    char* C = (char*)C_p;
+
     for (uint32_t m = 0; m < M; m++) {
         for (uint32_t n = 0; n < N; n++) {
             char c = 0;
             for (uint32_t k = 0; k < K; k++) {
                 char a = A[k + m * ldA];
                 char b;
-                if (tb) b = B[n * ldB + k];
-                else b = B[k * ldB + n];
+                if (tb)
+                    b = B[n * ldB + k];
+                else
+                    b = B[k * ldB + n];
                 asm volatile(
                     "fmv.b.x ft3, %[a]\n"
                     "fmv.b.x ft4, %[b]\n"
@@ -32,9 +39,14 @@ void gemm_fp8_naive(uint32_t M, uint32_t N, uint32_t K, char* A, uint32_t ldA, u
     }
 }
 
-void gemm_fp8_baseline(uint32_t M, uint32_t N, uint32_t K, char* A,
-                       uint32_t ldA, char* B, uint32_t ldB, char* C,
-                       uint32_t ldC, float beta) {
+void gemm_fp8_baseline(uint32_t M, uint32_t N, uint32_t K, void* A_p,
+                       uint32_t ldA, uint32_t ta, void* B_p, uint32_t ldB,
+                       uint32_t tb, void* C_p, uint32_t ldC, uint32_t BETA,
+                       uint32_t setup_SSR) {
+    char* A = (char*)A_p;
+    char* B = (char*)B_p;
+    char* C = (char*)C_p;
+
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (; n < N; n++) {
@@ -79,16 +91,20 @@ void gemm_fp8_baseline(uint32_t M, uint32_t N, uint32_t K, char* A,
                 "fsb ft2, 0(%[C]) \n"
                 : [ a_ptr ] "+r"(a_ptr), [ b_ptr ] "+r"(b_ptr)
                 : [ c ] "f"(c), [ reduce_reg ] "f"(reduce_reg),
-                  [ C ] "r"(c_ptr), [ beta ] "r"(beta), [ K ] "r"(K),
+                  [ C ] "r"(c_ptr), [ beta ] "r"(BETA), [ K ] "r"(K),
                   [ zero ] "f"(zero)
                 : "ft0", "ft1", "ft2", "ft3", "ft4", "t0");
         }
     }
 }
 
-void gemm_fp8_ex_opt(uint32_t M, uint32_t N, uint32_t K, char* A, uint32_t ldA,
-                     char* B, uint32_t ldB, char* C, uint32_t ldC, float beta,
+void gemm_fp8_ex_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p,
+                     uint32_t ldA, uint32_t ta, void* B_p, uint32_t ldB,
+                     uint32_t tb, void* C_p, uint32_t ldC, uint32_t BETA,
                      uint32_t setup_SSR) {
+    char* A = (char*)A_p;
+    char* B = (char*)B_p;
+    char* C = (char*)C_p;
     // Unrolling factor of most inner loop.
     // Should be at least as high as the FMA delay
     // for maximum utilization
@@ -245,7 +261,7 @@ void gemm_fp8_ex_opt(uint32_t M, uint32_t N, uint32_t K, char* A, uint32_t ldA,
                   [ reduce_reg5 ] "+f"(reduce_reg[5]),
                   [ reduce_reg6 ] "+f"(reduce_reg[6]),
                   [ reduce_reg7 ] "+f"(reduce_reg[7])
-                : [ C ] "r"(_C), [ n_frep ] "r"(n_frep), [ beta ] "r"(beta),
+                : [ C ] "r"(_C), [ n_frep ] "r"(n_frep), [ beta ] "r"(BETA),
                   [ unroll ] "i"(unroll), [ zero ] "f"(zero)
                 : "ft0", "ft1", "ft2");
 

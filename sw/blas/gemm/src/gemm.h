@@ -47,6 +47,36 @@ static inline double multiply_opt(double multiplicand, double multiplier) {
 #include "gemm_fp64.h"
 #include "gemm_fp8.h"
 
+// define the gemm_fp function pointer
+typedef void (*gemm_fp_t)(uint32_t m, uint32_t n, uint32_t k, void* a,
+                          uint32_t lda, uint32_t transa, void* b,
+                          uint32_t transb, uint32_t ldb, void* c, uint32_t ldc,
+                          uint32_t beta, uint32_t setup_ssr);
+
+typedef struct {
+    double alpha;
+    uint32_t prec;
+    uint32_t setup_ssr;
+    uint32_t parallelize_m;
+    uint32_t parallelize_k;
+    uint32_t m_tiles;
+    uint32_t n_tiles;
+    uint32_t k_tiles;
+    uint32_t load_a;
+    uint32_t load_b;
+    uint32_t load_c;
+    uint32_t transa;
+    uint32_t transb;
+    uint32_t M;
+    uint32_t N;
+    uint32_t K;
+    void* a;
+    void* b;
+    uint32_t beta;
+    void* c;
+    void* gemm_fp;
+} gemm_args_t;
+
 // BLAS compliant single-cluster single-tile GEMM kernel, with some additional
 // arguments at the beginning to specify Snitch implementation details. Matrix
 // sizes and pointers are for the whole cluster computation. Within a cluster
@@ -54,11 +84,10 @@ static inline double multiply_opt(double multiplicand, double multiplier) {
 // distinct cores.
 // TODO: beta (and alpha) should be of floating-point type (same precision as
 // operands)
-void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
-                uint32_t transa, uint32_t transb, uint32_t m, uint32_t n,
-                uint32_t k, double alpha, void* a, uint32_t lda, void* b,
-                uint32_t ldb, uint32_t beta, void* c, uint32_t ldc,
-                implementation_t impl) {
+void sc_st_gemm(precision_t prec, uint32_t setup_ssr, uint32_t transa,
+                uint32_t transb, uint32_t m, uint32_t n, uint32_t k,
+                double alpha, void* a, uint32_t lda, void* b, uint32_t ldb,
+                uint32_t beta, void* c, uint32_t ldc, gemm_fp_t impl) {
     if (snrt_is_compute_core()) {
         const uint32_t compute_num = snrt_cluster_compute_core_num();
         const uint32_t compute_id = snrt_cluster_core_idx();
@@ -68,140 +97,14 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
         uint32_t ldc_strided = compute_num * ldc;
 
         // Compute cores access A and C at offsets of one row from each other
-        uint32_t offsetA = compute_id * lda;
-        uint32_t offsetC = compute_id * ldc;
+        uint32_t offsetA = compute_id * lda * prec;
+        uint32_t offsetC = compute_id * ldc * prec;
 
         // Compute fraction of C rows every core computes
         uint32_t frac_m = m / compute_num;
 
-        switch (prec) {
-            case FP64:
-                switch (impl) {
-                    case NAIVE:
-                        gemm_fp64_naive(frac_m, n, k, (double*)a + offsetA,
-                                        lda_strided, transa, (double*)b, ldb,
-                                        transb, (double*)c + offsetC,
-                                        ldc_strided, (double)beta);
-                        break;
-                    case NAIVE_UNROLLED:
-                        printf(
-                            "Naive unrolled implementation not supported for "
-                            "FP64\n");
-                        break;
-                    case BASELINE:
-                        printf(
-                            "Baseline implementation not supported for FP64\n");
-                        break;
-                    case OPT:
-                        gemm_fp64_opt(frac_m, n, k, (double*)a + offsetA,
-                                      lda_strided, transa, (double*)b, ldb,
-                                      transb, (double*)c + offsetC, ldc_strided,
-                                      &beta, setup_ssr);
-                        break;
-                    case OPT_EX:
-                        printf(
-                            "Expanding opt implementation not supported for "
-                            "FP64\n");
-                        break;
-                }
-                break;
-            case FP32:
-                switch (impl) {
-                    case NAIVE:
-                        gemm_fp32_naive(frac_m, n, k, (float*)a + offsetA,
-                                        lda_strided, transa, (float*)b, ldb,
-                                        transb, (float*)c + offsetC,
-                                        ldc_strided, (float)beta);
-                        break;
-                    case NAIVE_UNROLLED:
-                        gemm_fp32_naive_unrolled(
-                            frac_m, n, k, (float*)a + offsetA, lda_strided,
-                            transa, (float*)b, ldb, transb, (float*)c + offsetC,
-                            ldc_strided, (float)beta);
-                        break;
-                    case BASELINE:
-                        gemm_fp32_baseline(frac_m, n, k, (float*)a + offsetA,
-                                           lda_strided, (float*)b, ldb,
-                                           (float*)c + offsetC, ldc_strided,
-                                           (float)beta);
-                        break;
-                    case OPT:
-                        gemm_fp32_opt(frac_m, n, k, (float*)a + offsetA,
-                                      lda_strided, (float*)b, ldb,
-                                      (float*)c + offsetC, ldc_strided, &beta,
-                                      setup_ssr);
-                        break;
-                    case OPT_EX:
-                        printf(
-                            "Expanding opt implementation not supported for "
-                            "FP32\n");
-                        break;
-                }
-                break;
-            case FP16:
-                switch (impl) {
-                    case NAIVE:
-                        gemm_fp16_naive(frac_m, n, k, (__fp16*)a + offsetA,
-                                        lda_strided, transa, (__fp16*)b, ldb, transb,
-                                        (__fp16*)c + offsetC, ldc_strided,
-                                        (float)beta);
-                        break;
-                    case NAIVE_UNROLLED:
-                        printf(
-                            "Naive unrolled implementation not supported for "
-                            "FP16\n");
-                        break;
-                    case BASELINE:
-                        gemm_fp16_baseline(frac_m, n, k, (__fp16*)a + offsetA,
-                                           lda_strided, (__fp16*)b, ldb,
-                                           (__fp16*)c + offsetC, ldc_strided,
-                                           (float)beta);
-                        break;
-                    case OPT:
-                        gemm_fp16_opt(frac_m, n, k, (__fp16*)a + offsetA,
-                                      lda_strided, (__fp16*)b, ldb,
-                                      (__fp16*)c + offsetC, ldc_strided, (float)beta,
-                                      setup_ssr);
-                        break;
-                    case OPT_EX:
-                        gemm_fp16_ex_opt(frac_m, n, k, (__fp16*)a + offsetA,
-                                         lda_strided, (__fp16*)b, ldb,
-                                         (__fp16*)c + offsetC, ldc_strided,
-                                         (float)beta, setup_ssr);
-                        break;
-                }
-                break;
-            case FP8:
-                switch (impl) {
-                    case NAIVE:
-                        gemm_fp8_naive(frac_m, n, k, (char*)a + offsetA,
-                                       lda_strided, transa, (char*)b, ldb, transb,
-                                       (char*)c + offsetC, ldc_strided,
-                                       (float)beta);
-                        break;
-                    case NAIVE_UNROLLED:
-                        printf(
-                            "Naive unrolled implementation not supported for "
-                            "FP8\n");
-                        break;
-                    case BASELINE:
-                        gemm_fp8_baseline(frac_m, n, k, (char*)a + offsetA,
-                                          lda_strided, (char*)b, ldb,
-                                          (char*)c + offsetC, ldc_strided,
-                                          (float)beta);
-                        break;
-                    case OPT:
-                        printf(
-                            "Optimized implementation not supported for FP8\n");
-                        break;
-                    case OPT_EX:
-                        gemm_fp8_ex_opt(frac_m, n, k, (char*)a + offsetA, lda,
-                                        (char*)b, ldb, (char*)c + offsetC,
-                                        ldc_strided, (float)beta, setup_ssr);
-                        break;
-                }
-                break;
-        }
+        impl(frac_m, n, k, a + offsetA, lda_strided, transa, b, ldb, transb,
+             c + offsetC, ldc_strided, (float)beta, setup_ssr);
     }
 }
 
@@ -215,12 +118,38 @@ void sc_st_gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
 // m_tiles: number of tiles in M dimension
 // k_tiles: number of tiles in K dimension
 // n_tiles: number of tiles in N dimension
-int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
-         uint32_t parallelize_m, uint32_t parallelize_k, uint32_t m_tiles,
-         uint32_t n_tiles, uint32_t k_tiles, uint32_t load_a, uint32_t load_b,
-         uint32_t load_c, uint32_t transa, uint32_t transb, uint32_t m,
-         uint32_t n, uint32_t k, double alpha, void* a, void* b, uint32_t beta,
-         void* c, implementation_t implementation) {
+int gemm(gemm_args_t* args) {
+    gemm_args_t* local_args = snrt_l1_next();
+
+    // Copy the arguments to local memory
+    if (snrt_is_dm_core()) {
+        snrt_dma_start_1d(local_args, args, sizeof(gemm_args_t));
+        snrt_dma_wait_all();
+    }
+    snrt_cluster_hw_barrier();
+
+    uint32_t m = local_args->M;
+    uint32_t n = local_args->N;
+    uint32_t k = local_args->K;
+    precision_t prec = (precision_t)local_args->prec;
+    uint32_t setup_ssr = local_args->setup_ssr;
+    uint32_t parallelize_m = local_args->parallelize_m;
+    uint32_t parallelize_k = local_args->parallelize_k;
+    uint32_t m_tiles = local_args->m_tiles;
+    uint32_t n_tiles = local_args->n_tiles;
+    uint32_t k_tiles = local_args->k_tiles;
+    uint32_t load_a = local_args->load_a;
+    uint32_t load_b = local_args->load_b;
+    uint32_t load_c = local_args->load_c;
+    uint32_t transa = local_args->transa;
+    uint32_t transb = local_args->transb;
+    double alpha = local_args->alpha;
+    void* a = local_args->a;
+    void* b = local_args->b;
+    uint32_t beta = local_args->beta;
+    void* c = local_args->c;
+    gemm_fp_t gemm_fp = (gemm_fp_t)local_args->gemm_fp;
+
     // Calculate tile sizes
     uint32_t frac_m = m / m_tiles;
     uint32_t frac_n = n / n_tiles;
@@ -233,7 +162,7 @@ int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
 
     // Allocate space in TCDM
     void *local_a, *local_b, *local_c_partial, *local_c;
-    void* heap_ptr = (void*)snrt_l1_next();
+    void* heap_ptr = (void*)local_args + sizeof(gemm_args_t);
     if (load_a) {
         local_a = heap_ptr;
         heap_ptr += size_frac_a;
@@ -328,9 +257,9 @@ int gemm(precision_t prec, uint32_t expand, uint32_t setup_ssr,
                         beta_k = 1;
                     }
 
-                    sc_st_gemm(prec, expand, setup_ssr, transa, transb, frac_m,
-                               frac_n, frac_k, 1, local_a, lda, local_b, ldb,
-                               beta_k, local_c_partial, ldc, implementation);
+                    sc_st_gemm(prec, setup_ssr, transa, transb, frac_m, frac_n,
+                               frac_k, 1, local_a, lda, local_b, ldb, beta_k,
+                               local_c_partial, ldc, gemm_fp);
 
                     uint32_t end_cycle = snrt_mcycle();
                 }
