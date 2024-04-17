@@ -222,81 +222,91 @@ with open(trace, 'r') as f:
 
     tot_lines = len(trace_lines)
     last_prog = 0
+    end_of_trace_reached = False
     for lino, line in enumerate(trace_lines):
 
-        # Parse trace line
-        time, pc = parse_line(line, fmt=trace_fmt)
+        # Check if we reached the end of the trace, marked by the first empty line, which
+        # is the followed by the performance metrics.
+        if line == '\n':
+            end_of_trace_reached = True
 
-        # In the first line we record the start column of the program counter
-        # so we know where to cut the line, even when the PC is missing
-        if trace_start_col < 0:
-            assert pc is not None, "Program counter is missing in first trace line"
-            trace_start_col = line.find(pc)
-
-        # Filter trace line for printing
-        if keep_time:
-            time = time if time is not None else ""
-            filtered_line = f'{time:>12}    {line[trace_start_col:]}'
+        # Lines after the end of the trace are simply redirected as is to the annotated trace
+        if end_of_trace_reached:
+            of.write(f'{line}')
         else:
-            filtered_line = f'{line[trace_start_col:]}'
+            # Parse regular trace line
+            time, pc = parse_line(line, fmt=trace_fmt)
 
-        # Get addr2line information and format it as an assembly comment
-        annot = ''
-        a2l_output = None
-        if pc is not None:
-            a2l_output = str(elf.addr2line(pc))
-            if a2l_output:
-                annot = '\n'.join([f'#; {line}' for line in a2l_output.split('\n')])
-        else:
+            # In the first line we record the start column of the program counter
+            # so we know where to cut the line, even when the PC is missing
+            if trace_start_col < 0:
+                assert pc is not None, "Program counter is missing in first trace line"
+                trace_start_col = line.find(pc)
+
+            # Filter trace line for printing
+            if keep_time:
+                time = time if time is not None else ""
+                filtered_line = f'{time:>12}    {line[trace_start_col:]}'
+            else:
+                filtered_line = f'{line[trace_start_col:]}'
+
+            # Get addr2line information and format it as an assembly comment
+            annot = ''
+            a2l_output = None
+            if pc is not None:
+                a2l_output = str(elf.addr2line(pc))
+                if a2l_output:
+                    annot = '\n'.join([f'#; {line}' for line in a2l_output.split('\n')])
+            else:
+                if diff:
+                    hunk_trace += f'-{filtered_line}'
+                else:
+                    of.write(f'      {filtered_line}')
+                continue
+
+            # Print diff
             if diff:
+                # Compare current and previous call stacks
+                if a2l_output:
+                    funs, files, lines = zip(*[level.values() for level in a2l_output.function_stack()])
+                else:
+                    funs = files = lines = []
+                next_call_stack = assemble_call_stack(funs, files, lines)
+                matching_cstack_levels = matching_call_stack_levels(next_call_stack, call_stack)
+                matching_src_line = matching_source_line(next_call_stack, call_stack)
+
+                # If this instruction does not map to the same evaluation of the source line
+                # of the last instruction, we finalize and dump the previous hunk
+                if hunk_trace and not matching_src_line:
+                    dump_hunk(hunk_tstart, hunk_sstart, hunk_trace, hunk_source)
+                    # Initialize next hunk
+                    hunk_tstart += len(hunk_trace.splitlines())
+                    hunk_sstart += len(hunk_source.splitlines())
+                    hunk_trace = ''
+                    hunk_source = ''
+
+                # Update state for next iteration
+                call_stack = next_call_stack
+
+                # Assemble source part of hunk
+                src_line = a2l_output.line()
+                if len(funs) and src_line:
+                    for i, call in enumerate(call_stack):
+                        if i >= matching_cstack_levels:
+                            hunk_source += f'+{format_call(i, call)}'
+                    if not matching_src_line:
+                        indentation = '  ' * (len(call_stack) - 1)
+                        hunk_source += f'+{indentation}{lines[0]}: {src_line}\n'
+
+                # Assemble trace part of hunk
                 hunk_trace += f'-{filtered_line}'
+
+            # Default: print trace interleaved with source annotations
             else:
+                if len(annot) and annot != last:
+                    of.write(annot+'\n')
                 of.write(f'      {filtered_line}')
-            continue
-
-        # Print diff
-        if diff:
-            # Compare current and previous call stacks
-            if a2l_output:
-                funs, files, lines = zip(*[level.values() for level in a2l_output.function_stack()])
-            else:
-                funs = files = lines = []
-            next_call_stack = assemble_call_stack(funs, files, lines)
-            matching_cstack_levels = matching_call_stack_levels(next_call_stack, call_stack)
-            matching_src_line = matching_source_line(next_call_stack, call_stack)
-
-            # If this instruction does not map to the same evaluation of the source line
-            # of the last instruction, we finalize and dump the previous hunk
-            if hunk_trace and not matching_src_line:
-                dump_hunk(hunk_tstart, hunk_sstart, hunk_trace, hunk_source)
-                # Initialize next hunk
-                hunk_tstart += len(hunk_trace.splitlines())
-                hunk_sstart += len(hunk_source.splitlines())
-                hunk_trace = ''
-                hunk_source = ''
-
-            # Update state for next iteration
-            call_stack = next_call_stack
-
-            # Assemble source part of hunk
-            src_line = a2l_output.line()
-            if len(funs) and src_line:
-                for i, call in enumerate(call_stack):
-                    if i >= matching_cstack_levels:
-                        hunk_source += f'+{format_call(i, call)}'
-                if not matching_src_line:
-                    indentation = '  ' * (len(call_stack) - 1)
-                    hunk_source += f'+{indentation}{lines[0]}: {src_line}\n'
-
-            # Assemble trace part of hunk
-            hunk_trace += f'-{filtered_line}'
-
-        # Default: print trace interleaved with source annotations
-        else:
-            if len(annot) and annot != last:
-                of.write(annot+'\n')
-            of.write(f'      {filtered_line}')
-            last = annot
+                last = annot
 
         # very simple progress
         if not quiet:
