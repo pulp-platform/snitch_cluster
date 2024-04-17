@@ -2887,8 +2887,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // pragma translate_off
   always_ff @(posedge clk_i) begin
     if (!rst_i && (ld_addr_misaligned || st_addr_misaligned) && valid_instr) begin
-      $display("%t [Misaligned Load/Store Core %0d] PC: %h Data: %h",
-                              $time, hart_id_i, inst_addr_o, inst_data_i);
+      $display("%t [Misaligned Load/Store Core %0d] PC: %h Data: %h Addr: %h",
+                              $time, hart_id_i, inst_addr_o, inst_data_i, alu_result);
     end
   end
   // pragma translate_on
