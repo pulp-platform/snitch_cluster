@@ -42,6 +42,12 @@ RISCV_CFLAGS += -O3
 ifeq ($(DEBUG), ON)
 RISCV_CFLAGS += -g
 endif
+
+ifeq ($(OPENOCD_SEMIHOSTING), ON)
+RISCV_CFLAGS += -DOPENOCD_SEMIHOSTING
+endif
+
+
 # Required by math library to avoid conflict with stdint definition
 RISCV_CFLAGS += -D__DEFINED_uint64_t
 

@@ -60,6 +60,9 @@ make DEBUG=ON sw
 
 # for Banshee simulation (requires slightly different runtime)
 make SELECT_RUNTIME=banshee DEBUG=ON sw
+
+# to use OpenOCD semi-hosting for putchar and termination
+make DEBUG=ON OPENOCD_SEMIHOSTING=ON sw
 ```
 
 The `sw` target first generates some C header files which depend on the hardware configuration. Hence, the need to generate the software for the same configuration as your hardware. Afterwards, it recursively invokes the `make` target in the `sw` subdirectory to build the apps/kernels which have been developed in that directory.
@@ -69,6 +72,8 @@ The `DEBUG=ON` flag is used to tell the compiler to produce debugging symbols. I
 The `SELECT_RUNTIME` flag is set by default to `rtl`. To build the software with the Banshee runtime, set the flag to `banshee`.
 
 ___Note:__ the RTL is not the only source which is generated from the configuration file. The software stack also depends on the configuration file. Make sure you always build the software with the same configuration of the hardware you are going to run it on._
+
+___Note:__ on GVSOC, it is better to use OpenOCD semi-hosting to prevent putchar from disturbing the DRAMSys timing model._
 
 ### Running a simulation
 
