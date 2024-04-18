@@ -2,6 +2,7 @@
 
 .global _snitch_park
 _snitch_park:
+    csrr  a0, mhartid
     # Set trap vector
     la      t0, _snitch_resume
     csrw    mtvec, t0
