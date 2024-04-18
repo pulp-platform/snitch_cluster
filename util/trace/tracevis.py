@@ -19,14 +19,7 @@ import sys
 import json
 import argparse
 from a2l import Elf
-
-has_progressbar = True
-try:
-    import progressbar
-except ImportError as e:
-    # Do not use progressbar
-    print(f'{e} --> No progress bar will be shown.', file=sys.stderr)
-    has_progressbar = False
+from concurrent.futures import ThreadPoolExecutor
 
 
 # line format:
@@ -215,11 +208,15 @@ def offload_lookahead(lines, **kwargs):
 
 # Parses a trace file and returns a list of TraceViewer events.
 # Each event is formatted as a dictionary.
-def parse_trace(filename, **kwargs):
+def parse_trace(filename, kwargs):
 
     start = kwargs['start']
     end = kwargs['end']
     fmt = kwargs['fmt']
+
+    # Extract hartid from filename
+    pattern = r'trace_hart_([0-9a-fA-F]+)\.txt$'
+    hartid = int(re.search(pattern, filename).group(1), 16)
 
     # Open trace
     print(f'parsing trace {filename}', file=sys.stderr)
@@ -238,17 +235,9 @@ def parse_trace(filename, **kwargs):
         if fmt == 'snitch':
             lah = offload_lookahead(all_lines, **kwargs)
 
-        # Use a progress bar iterator if the package is installed
-        if has_progressbar:
-            iterations = progressbar.progressbar(
-                    enumerate(all_lines),
-                    max_value=len(all_lines))
-        else:
-            iterations = enumerate(all_lines)
-
         # Iterate lines
         events = []
-        for lino, line in iterations:
+        for lino, line in enumerate(all_lines):
             # Parse line
             parsed_line = parse_line(line, **kwargs)
             if parsed_line:
@@ -263,6 +252,15 @@ def parse_trace(filename, **kwargs):
         events += flush(lah, buf, **kwargs)
 
         print(f' parsed {lines-fails} of {lines} lines', file=sys.stderr)
+    
+        # Assign a per-trace unique TID or PID to all events
+        for event in events:
+            if kwargs['collapse_call_stack']:
+                event['pid'] = kwargs['pid']
+                event['tid'] = hartid
+            else:
+                event['pid'] = kwargs['pid']+':hartid'+str(hartid)
+
         return events
 
 
@@ -272,28 +270,16 @@ def parse_traces(traces, **kwargs):
     elf_path = kwargs['elf']
     kwargs['elf'] = Elf(elf_path, a2l_binary=kwargs['addr2line'])
 
-    # Iterate traces
-    events = []
-    for filename in traces:
+    # The unique PID to add to the events
+    if 'pid' not in kwargs:
+        kwargs['pid'] = elf_path
 
-        # Extract hartid from filename
-        pattern = r'trace_hart_([0-9a-fA-F]+)\.txt$'
-        hartid = int(re.search(pattern, filename).group(1), 16)
+    # Parse traces in parallel
+    with ThreadPoolExecutor() as executor:
+        results = executor.map(parse_trace, traces, [kwargs]*len(traces))
 
-        # Extract TraceViewer events from trace
-        trace_events = parse_trace(filename, **kwargs)
-
-        # Assign a per-trace unique TID or PID to all events
-        pid = elf_path if 'pid' not in kwargs else kwargs['pid']
-        for event in trace_events:
-            if kwargs['collapse_call_stack']:
-                event['pid'] = pid
-                event['tid'] = hartid
-            else:
-                event['pid'] = pid+':hartid'+str(hartid)
-
-        # Add to events from previous traces
-        events += trace_events
+    # Flatten list of event lists from every trace into a single list
+    events = [event for result in results for event in result]
 
     return events
 
