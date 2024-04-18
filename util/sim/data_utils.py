@@ -37,6 +37,16 @@ def _integer_precision_t(prec):
         return prec
 
 
+def size_from_precision_t(prec):
+    """Return the size in bytes of a `precision_t` type.
+
+    Args:
+        prec: A value of type `precision_t`. Accepts both enum strings
+            (e.g. "FP64") and integer enumeration values (e.g. 8).
+    """
+    return _integer_precision_t(prec)
+
+
 def ff_desc_from_precision_t(prec):
     """Convert `precision_t` type to a FlexFloat descriptor.
 
