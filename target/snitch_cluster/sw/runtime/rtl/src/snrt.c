@@ -5,6 +5,7 @@
 #include "snrt.h"
 
 #include "alloc.c"
+#include "alloc_v2.c"
 #include "cls.c"
 #include "cluster_interrupts.c"
 #include "dm.c"

@@ -21,6 +21,7 @@
 
 // Implementation
 #include "alloc.h"
+#include "alloc_v2.h"
 #include "cls.h"
 #include "cluster_interrupts.h"
 #include "dm.h"
@@ -34,5 +35,6 @@
 #include "riscv.h"
 #include "snitch_cluster_global_interrupts.h"
 #include "ssr.h"
+#include "snitch_cluster_start.h"
 #include "sync.h"
 #include "team.h"
