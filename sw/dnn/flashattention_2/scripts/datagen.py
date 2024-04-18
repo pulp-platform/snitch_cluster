@@ -15,6 +15,7 @@ import os
 import torch
 import gemm  # noqa: E402
 import pyflexfloat as ff
+import humanize
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../blas/"))
@@ -31,6 +32,8 @@ torch.manual_seed(42)
 # the occurrence of these splits the data should be aligned to 4KB
 BURST_ALIGNMENT = 4096
 
+# Maximum available size in TCDM (in bytes)
+L1_HEAP_SIZE = 112 * 1024
 
 def torch_golden_model(Q, K, V):
     return torch.nn.functional.scaled_dot_product_attention(Q, K, V)
@@ -148,6 +151,29 @@ def validate_config(N, d, B_r, B_c, dtype, baseline, gemm_impl):
     assert (B_r % 8) == 0, 'B_r must be an integer multiple of the number of cores in a cluster'
     assert dtype != 'FP64', 'FP64 precision is not supported yet'
     assert dtype != 'FP64', 'FP64 precision is not supported yet'
+
+    # Calculate total TCDM occupation
+    prec = data_utils.size_from_precision_t(dtype)
+    q_fa_size = B_r * d * prec
+    k_fa_size = B_c * d * prec
+    v_fa_size = B_c * d * prec
+    s_fa_size = B_r * B_c * prec
+    p_fa_size = B_r * B_c * prec
+    o_fa_size = B_r * d * prec
+    m_i_size = B_r * prec
+    l_i_size = B_r * prec
+    total_size = q_fa_size
+    total_size += k_fa_size
+    total_size += v_fa_size * 2  # V and V^t
+    total_size += s_fa_size
+    total_size += p_fa_size
+    total_size += o_fa_size
+    total_size += m_i_size * 2  # m_i and m_i_prev
+    total_size += l_i_size
+    assert total_size < L1_HEAP_SIZE, \
+        f'Total heap space required {humanize.naturalsize(total_size, binary=True)} exceeds ' \
+        f'limit of {humanize.naturalsize(L1_HEAP_SIZE, binary=True)}'
+    print(f'Total heap space required {humanize.naturalsize(total_size, binary=True)}')
 
     # Q*K^t
     gemm.datagen.GemmDataGen().validate_config(
