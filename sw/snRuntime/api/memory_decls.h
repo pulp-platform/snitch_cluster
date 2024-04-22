@@ -2,16 +2,20 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-inline uint32_t __attribute__((const)) snrt_l1_start_addr();
+#pragma once
 
-inline uint32_t __attribute__((const)) snrt_l1_end_addr();
+#include <stdint.h>
 
-inline volatile uint32_t* __attribute__((const)) snrt_clint_mutex_ptr();
+uint32_t __attribute__((const)) snrt_l1_start_addr();
 
-inline volatile uint32_t* __attribute__((const)) snrt_clint_msip_ptr();
+uint32_t __attribute__((const)) snrt_l1_end_addr();
 
-inline volatile uint32_t* __attribute__((const)) snrt_cluster_clint_set_ptr();
+volatile uint32_t* __attribute__((const)) snrt_clint_mutex_ptr();
 
-inline volatile uint32_t* __attribute__((const)) snrt_cluster_clint_clr_ptr();
+volatile uint32_t* __attribute__((const)) snrt_clint_msip_ptr();
 
-inline uint32_t __attribute__((const)) snrt_cluster_hw_barrier_addr();
+volatile uint32_t* __attribute__((const)) snrt_cluster_clint_set_ptr();
+
+volatile uint32_t* __attribute__((const)) snrt_cluster_clint_clr_ptr();
+
+uint32_t __attribute__((const)) snrt_cluster_hw_barrier_addr();

@@ -2,8 +2,12 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-inline void snrt_int_sw_clear(uint32_t hartid);
+#pragma once
 
-inline void snrt_int_sw_set(uint32_t hartid);
+#include <stdint.h>
 
-inline uint32_t snrt_int_sw_get(uint32_t hartid);
+void snrt_int_sw_clear(uint32_t hartid);
+
+void snrt_int_sw_set(uint32_t hartid);
+
+uint32_t snrt_int_sw_get(uint32_t hartid);

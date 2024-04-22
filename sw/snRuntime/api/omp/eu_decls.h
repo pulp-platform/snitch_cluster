@@ -2,6 +2,10 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#pragma once
+
+#include <stdint.h>
+
 typedef struct {
     uint32_t workers_in_loop;
     uint32_t exit_flag;
@@ -19,20 +23,20 @@ typedef struct {
 /**
  * @brief Initialize the event unit
  */
-inline void eu_init(void);
+void eu_init(void);
 
 /**
  * @brief send all workers in loop to exit()
  * @param core_idx cluster-local core index
  */
-inline void eu_exit(uint32_t core_idx);
+void eu_exit(uint32_t core_idx);
 
 /**
  * @brief Enter the event unit loop, never exits
  *
  * @param cluster_core_idx cluster-local core index
  */
-inline void eu_event_loop(uint32_t cluster_core_idx);
+void eu_event_loop(uint32_t cluster_core_idx);
 
 /**
  * @brief Set function to execute by `nthreads` number of threads
@@ -43,17 +47,16 @@ inline void eu_event_loop(uint32_t cluster_core_idx);
  * @param argc number of elements in data
  * @param nthreads number of threads that have to execute this event
  */
-inline int eu_dispatch_push(void (*fn)(void *, uint32_t), uint32_t argc,
-                            void *data, uint32_t nthreads);
+int eu_dispatch_push(void (*fn)(void *, uint32_t), uint32_t argc, void *data, uint32_t nthreads);
 
 /**
  * @brief wait for all workers to idle
  * @param core_idx cluster-local core index
  */
-inline void eu_run_empty(uint32_t core_idx);
+void eu_run_empty(uint32_t core_idx);
 
 /**
  * @brief Debugging info to printf
  * @details
  */
-inline void eu_print_status();
+void eu_print_status();

@@ -2,6 +2,11 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#pragma once
+
+#include <stddef.h>
+#include <stdint.h>
+
 typedef struct {
     // Base address from where allocation starts
     uint32_t base;
@@ -11,14 +16,14 @@ typedef struct {
     uint32_t next;
 } snrt_allocator_t;
 
-inline void *snrt_l1_next();
+void *snrt_l1_next();
 
-inline void *snrt_l3_next();
+void *snrt_l3_next();
 
-inline void *snrt_l1alloc(size_t size);
+void *snrt_l1alloc(size_t size);
 
-inline void snrt_l1_update_next(void *next);
+void snrt_l1_update_next(void *next);
 
-inline void *snrt_l3alloc(size_t size);
+void *snrt_l3alloc(size_t size);
 
-inline void snrt_alloc_init();
+void snrt_alloc_init();

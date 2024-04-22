@@ -2,16 +2,18 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-#include "../../deps/riscv-opcodes/encoding.h"
+#pragma once
 
-static inline void snrt_wfi();
+#include <stdint.h>
 
-static inline uint32_t snrt_mcycle();
+void snrt_wfi();
 
-inline void snrt_interrupt_enable(uint32_t irq);
+uint32_t snrt_mcycle();
 
-inline void snrt_interrupt_disable(uint32_t irq);
+void snrt_interrupt_enable(uint32_t irq);
 
-inline void snrt_interrupt_global_enable(void);
+void snrt_interrupt_disable(uint32_t irq);
 
-inline void snrt_interrupt_global_disable(void);
+void snrt_interrupt_global_enable(void);
+
+void snrt_interrupt_global_disable(void);
