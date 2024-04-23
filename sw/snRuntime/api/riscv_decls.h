@@ -6,14 +6,14 @@
 
 #include <stdint.h>
 
-void snrt_wfi();
+static inline void snrt_wfi();
 
-uint32_t snrt_mcycle();
+static inline uint32_t snrt_mcycle();
 
-void snrt_interrupt_enable(uint32_t irq);
+inline void snrt_interrupt_enable(uint32_t irq);
 
-void snrt_interrupt_disable(uint32_t irq);
+inline void snrt_interrupt_disable(uint32_t irq);
 
-void snrt_interrupt_global_enable(void);
+inline void snrt_interrupt_global_enable(void);
 
-void snrt_interrupt_global_disable(void);
+inline void snrt_interrupt_global_disable(void);

@@ -103,7 +103,7 @@ static inline void snrt_exit_default(int exit_code) {
         *(snrt_exit_code_destination()) = (exit_code << 1) | 1;
 }
 #ifndef SNRT_CRT0_ALTERNATE_EXIT
-extern inline void snrt_exit(int exit_code) { snrt_exit_default(exit_code); }
+static inline void snrt_exit(int exit_code) { snrt_exit_default(exit_code); }
 #endif
 #endif
 

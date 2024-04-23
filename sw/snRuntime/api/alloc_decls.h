@@ -16,14 +16,14 @@ typedef struct {
     uint32_t next;
 } snrt_allocator_t;
 
-void *snrt_l1_next();
+inline void *snrt_l1_next();
 
-void *snrt_l3_next();
+inline void *snrt_l3_next();
 
-void *snrt_l1alloc(size_t size);
+inline void *snrt_l1alloc(size_t size);
 
-void snrt_l1_update_next(void *next);
+inline void snrt_l1_update_next(void *next);
 
-void *snrt_l3alloc(size_t size);
+inline void *snrt_l3alloc(size_t size);
 
-void snrt_alloc_init();
+inline void snrt_alloc_init();

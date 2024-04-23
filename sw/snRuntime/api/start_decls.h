@@ -4,4 +4,4 @@
 
 #pragma once
 
-void snrt_exit(int exit_code);
+static inline void snrt_exit(int exit_code);

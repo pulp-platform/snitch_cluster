@@ -6,9 +6,9 @@
 
 #include "riscv.h"
 
-extern inline void snrt_wfi();
+extern void snrt_wfi();
 
-extern inline void snrt_nop();
+extern void snrt_nop();
 
 extern uint32_t snrt_mcycle();
 

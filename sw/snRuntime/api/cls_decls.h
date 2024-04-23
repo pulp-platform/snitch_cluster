@@ -13,4 +13,4 @@ typedef struct {
     snrt_allocator_t l1_allocator;
 } cls_t;
 
-cls_t* cls();
+inline cls_t* cls();

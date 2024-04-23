@@ -23,20 +23,20 @@ typedef struct {
 /**
  * @brief Initialize the event unit
  */
-void eu_init(void);
+inline void eu_init(void);
 
 /**
  * @brief send all workers in loop to exit()
  * @param core_idx cluster-local core index
  */
-void eu_exit(uint32_t core_idx);
+inline void eu_exit(uint32_t core_idx);
 
 /**
  * @brief Enter the event unit loop, never exits
  *
  * @param cluster_core_idx cluster-local core index
  */
-void eu_event_loop(uint32_t cluster_core_idx);
+inline void eu_event_loop(uint32_t cluster_core_idx);
 
 /**
  * @brief Set function to execute by `nthreads` number of threads
@@ -47,17 +47,16 @@ void eu_event_loop(uint32_t cluster_core_idx);
  * @param argc number of elements in data
  * @param nthreads number of threads that have to execute this event
  */
-int eu_dispatch_push(void (*fn)(void *, uint32_t), uint32_t argc, void *data,
-                     uint32_t nthreads);
+inline int eu_dispatch_push(void (*fn)(void *, uint32_t), uint32_t argc, void *data, uint32_t nthreads);
 
 /**
  * @brief wait for all workers to idle
  * @param core_idx cluster-local core index
  */
-void eu_run_empty(uint32_t core_idx);
+inline void eu_run_empty(uint32_t core_idx);
 
 /**
  * @brief Debugging info to printf
  * @details
  */
-void eu_print_status();
+inline void eu_print_status();
