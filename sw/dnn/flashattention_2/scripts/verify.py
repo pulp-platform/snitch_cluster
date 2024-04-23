@@ -23,7 +23,8 @@ class FlashAttention2Verifier(Verifier):
     def __init__(self):
         super().__init__()
         self.layer_struct = {
-            'N': 'I',
+            'L': 'I',
+            'S': 'I',
             'd': 'I',
             'B_r': 'I',
             'B_c': 'I',
@@ -36,7 +37,8 @@ class FlashAttention2Verifier(Verifier):
             'gemm_fp': 'I'
         }
         self.layer = self.get_input_from_symbol('layer', self.layer_struct)
-        self.N = self.layer['N']
+        self.L = self.layer['L']
+        self.S = self.layer['S']
         self.d = self.layer['d']
         self.B_r = self.layer['B_r']
         self.B_c = self.layer['B_c']
@@ -49,13 +51,13 @@ class FlashAttention2Verifier(Verifier):
         Q = self.get_input_from_symbol('Q', ctype_from_precision_t(self.prec))
         K = self.get_input_from_symbol('K', ctype_from_precision_t(self.prec))
         V = self.get_input_from_symbol('V', ctype_from_precision_t(self.prec))
-        # Q = torch.from_numpy(Q.reshape(self.N, self.d))
-        # V = torch.from_numpy(V.reshape(self.N, self.d))
-        # K = torch.from_numpy(K.reshape(self.N, self.d))
+        # Q = torch.from_numpy(Q.reshape(self.L, self.d))
+        # V = torch.from_numpy(V.reshape(self.S, self.d))
+        # K = torch.from_numpy(K.reshape(self.S, self.d))
         ff_desc = ff_desc_from_precision_t(self.prec)
-        Q = ff.array(Q.reshape(self.N, self.d), ff_desc)
-        V = ff.array(V.reshape(self.N, self.d), ff_desc)
-        K = ff.array(K.reshape(self.N, self.d), ff_desc)
+        Q = ff.array(Q.reshape(self.L, self.d), ff_desc)
+        V = ff.array(V.reshape(self.S, self.d), ff_desc)
+        K = ff.array(K.reshape(self.S, self.d), ff_desc)
         # return torch_golden_model(Q, K, V).detach().numpy().flatten()
         # return exact_golden_model(Q, K, V, self.B_r, self.B_c).flatten()
         return exact_flexfloat_golden_model(Q, K, V, self.B_r, self.B_c, ff_desc).flatten()

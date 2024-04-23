@@ -3,7 +3,8 @@
 // SPDX-License-Identifier: SHL-0.51
 
 {
-    N: 16,
+	L: 16,
+	S: 16,
     d: 16,
     B_r: 16,
     B_c: 16,

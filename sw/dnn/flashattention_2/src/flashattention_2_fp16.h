@@ -8,7 +8,8 @@
 static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
     // alias layer parameters
     uint32_t dtype = layer.dtype;
-    uint32_t N = layer.N;
+    uint32_t L = layer.L;
+    uint32_t S = layer.S;
     uint32_t d = layer.d;
     uint32_t B_r = layer.B_r;
     uint32_t B_c = layer.B_c;
@@ -26,8 +27,8 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
     uint32_t num_clusters = snrt_cluster_num();
 
     // compute the tiling parameters
-    uint32_t T_r = N / B_r;  // number of row blocks
-    uint32_t T_c = N / B_c;  // number of column blocks
+    uint32_t T_r = L / B_r;  // number of row blocks
+    uint32_t T_c = S / B_c;  // number of column blocks
 
     // compute the size of the matrices
     uint32_t q_fa_size = B_r * d * sizeof(__fp16);
@@ -85,10 +86,15 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
 
         snrt_cluster_hw_barrier();
 
-        // Initialize m_i, m_i_prev, l_i, row_sum
+        snrt_mcycle();
+
+        // Initialize m_i, m_i_prev, l_i, row_sum.
+        // Distribute rows evenly to the cores in a cluster.
+        // Last core handles remainder rows.
         uint32_t rows_per_core = B_r / num_cores;
         uint32_t start_row = rows_per_core * compute_id;
-        uint32_t end_row = start_row + rows_per_core;
+        char is_last_compute_core = snrt_cluster_core_idx() == (snrt_cluster_compute_core_num() - 1);
+        uint32_t end_row = is_last_compute_core ? B_r : start_row + rows_per_core;
         if (snrt_is_compute_core()) {
             for (int row_idx = start_row; row_idx < end_row; row_idx++) {
                 m_i[row_idx] = -INFINITY;
@@ -109,8 +115,7 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
             snrt_cluster_hw_barrier();
 
             // DMA copy K column block (B_c, d) and V row block (B_c, d) to
-            // TCDM. Both K and V are stored in (N, d) form in memory
-            uint32_t start_dma = snrt_mcycle();
+            // TCDM. Both K and V are stored in (S, d) form in memory
             if (!snrt_is_compute_core()) {
                 snrt_dma_load_2d_tile(K_fa,           // dst
                                       K_l3,           // src

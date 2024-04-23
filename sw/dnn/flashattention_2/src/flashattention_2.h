@@ -13,9 +13,15 @@
  * @brief This structure contains all parameters necessary
  *        for computing a FlashAttention-2 layer. Refer to
  *        "FlashAttention-2: Faster Attention with Better
- *        Parallelism and Work Partitioning" for more info
- * @var flashattention_2_layer_t::N
- * Sequence length in number of tokens
+ *        Parallelism and Work Partitioning" for more info.
+ *        The FlashAttention-2 paper refers to a single sequence
+ *        length N. To support auto-regressive inference we
+ *        define two separate parameters L and S, following the
+ *        PyTorch naming scheme.
+ * @var flashattention_2_layer_t::L
+ * Target sequence length
+ * @var flashattention_2_layer_t::S
+ * Source sequence length
  * @var flashattention_2_layer_t::d
  * Head dimension
  * @var flashattention_2_layer_t::Q
@@ -28,7 +34,8 @@
  * Pointer to output tensor
  */
 typedef struct {
-    uint32_t N;
+    uint32_t L;
+    uint32_t S;
     uint32_t d;
     uint32_t B_r;
     uint32_t B_c;
@@ -41,10 +48,10 @@ typedef struct {
     void *gemm_implementation;
 } flashattention_2_layer_t;
 
-#include "../transpose/src/transpose.h"
-#include "../flashattention_2/src/flashattention_2_fp16.h"
 #include "../flashattention_2/src/flashattention_2_fp32.h"
+#include "../flashattention_2/src/flashattention_2_fp16.h"
 #include "../flashattention_2/src/flashattention_2_fp8.h"
+#include "../transpose/src/transpose.h"
 
 static inline void flashattention_2_layer(flashattention_2_layer_t layer) {
     switch (layer.dtype) {
