@@ -4,6 +4,8 @@
 
 #include "riscv_decls.h"
 
+#pragma once
+
 #include "../../deps/riscv-opcodes/encoding.h"
 
 /**

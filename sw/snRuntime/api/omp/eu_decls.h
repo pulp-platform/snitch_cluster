@@ -47,7 +47,8 @@ void eu_event_loop(uint32_t cluster_core_idx);
  * @param argc number of elements in data
  * @param nthreads number of threads that have to execute this event
  */
-int eu_dispatch_push(void (*fn)(void *, uint32_t), uint32_t argc, void *data, uint32_t nthreads);
+int eu_dispatch_push(void (*fn)(void *, uint32_t), uint32_t argc, void *data,
+                     uint32_t nthreads);
 
 /**
  * @brief wait for all workers to idle

@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#pragma once
+
 /// A DMA transfer identifier.
 typedef uint32_t snrt_dma_txid_t;
 
