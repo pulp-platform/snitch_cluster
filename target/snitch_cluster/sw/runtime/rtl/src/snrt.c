@@ -14,6 +14,7 @@
 #include "omp.c"
 #include "printf.c"
 #include "putchar.c"
+#include "riscv.c"
 #include "snitch_cluster_start.c"
 #include "sync.c"
 #include "team.c"
