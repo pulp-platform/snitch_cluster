@@ -5,9 +5,9 @@
 {
 	L: 64,
 	S: 64,
-    d: 128,
+    d: 80,
     B_r: 16,
     B_c: 64,
-    dtype: "FP32",
+    dtype: "FP16",
     baseline: false
 }
