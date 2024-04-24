@@ -19,6 +19,6 @@ for {set CORE_ID 0} {$CORE_ID < $NR_CORES} {incr CORE_ID} {
     eval "add wave -noupdate -group {LSU Core $CORE_ID} {/tb_bin/i_dut/i_snitch_cluster/i_cluster/gen_core[$CORE_ID]/i_snitch_cc/gen_fpu/i_snitch_fp_ss/i_snitch_lsu/data_req_o}"
     eval "add wave -noupdate -group {LSU Core $CORE_ID} {/tb_bin/i_dut/i_snitch_cluster/i_cluster/gen_core[$CORE_ID]/i_snitch_cc/gen_fpu/i_snitch_fp_ss/i_snitch_lsu/data_rsp_i}"
     }
-
-
+    eval "add wave -group {Spill Register Core 0} -position insertpoint {sim:/tb_bin/i_dut/i_snitch_cluster/i_cluster/gen_core[0]/i_snitch_cc/gen_fpu/i_snitch_fp_ss/i_spill_register_acc/*}"
+    eval "add wave -group {FPU Sequencer Core 0} -position insertpoint {sim:/tb_bin/i_dut/i_snitch_cluster/i_cluster/gen_core[0]/i_snitch_cc/gen_fpu/i_snitch_fp_ss/gen_fpu_sequencer/i_snitch_fpu_sequencer/*}"
 

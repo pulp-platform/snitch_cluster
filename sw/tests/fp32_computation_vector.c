@@ -38,8 +38,8 @@ int main() {
             : "+r"(i_a), "+r"(i_an), "+r"(i_b), "+r"(i_bn));
 
         uint32_t mask = 0x0;
-        uint32_t mask_a = 0b00000011000000100000000100000000;
-        uint32_t mask_b = 0b00000111000001100000010100000100;
+        uint32_t mask_a = 0b00010000; // 0h10
+        uint32_t mask_b = 0b00110010; // 0h32
         // VFSHUFFLE
         // just copy rD
         asm volatile(

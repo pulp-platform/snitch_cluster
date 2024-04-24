@@ -125,13 +125,14 @@ module snitch_fp_ss import snitch_pkg::*; #(
 
   logic csr_instr;
 
-  logic            use_shfl;
+  // Shuffle Unit
+  logic            use_shfl;//, use_shfl_q;
+  logic            shfl_in_valid, shfl_in_ready;
   logic            shfl_wready;
-  logic            shfl_valid;
+  logic            shfl_valid, shfl_out_ready;
   logic [FLEN-1:0] shfl_result;
   logic [4:0]      shfl_rd;
-  logic [3:0]      reg_mask;
-  logic [7:0]      byte_mask;
+  logic [(FLEN/16)-1:0]      reg_mask;
 
   // FPU Controller
   logic fpu_out_valid, fpu_out_ready;
@@ -247,6 +248,8 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // 1. The FPU and all operands are ready
   // 2. The LSU request can be handled
   // 3. The regfile operand is ready
+  // 4. The Shuffle Unit and all operands are ready
+  assign shfl_in_valid = use_shfl & acc_req_valid_q & &(op_ready) & dst_ready;
   assign fpu_in_valid = use_fpu & acc_req_valid_q & (&op_ready) & dst_ready;
                                       // FPU ready
   assign acc_req_ready_q = dst_ready & ((fpu_in_ready & fpu_in_valid)
@@ -254,12 +257,16 @@ module snitch_fp_ss import snitch_pkg::*; #(
                                       | (lsu_qvalid & lsu_qready)
                                       | csr_instr
                                       // Direct Reg Write
-                                      | (acc_req_valid_q && result_select == ResAccBus));
+                                      | (acc_req_valid_q && result_select == ResAccBus)
+                                      // Shuffle Unit ready
+                                      | (shfl_in_ready & shfl_in_valid));
 
   // either the FPU or the regfile produced a result
   assign acc_resp_valid_o = (fpu_tag_out.acc & fpu_out_valid);
   // stall FPU if we forward from reg
   assign fpu_out_ready = ((fpu_tag_out.acc & acc_resp_ready_i) | (~fpu_tag_out.acc & fpr_wready));
+  // stall Shuffling Unit if not finished writing shfl_result
+  assign shfl_out_ready = '1;
 
   // FPU Result
   logic [FLEN-1:0] fpu_result;
@@ -296,6 +303,16 @@ module snitch_fp_ss import snitch_pkg::*; #(
       is_rd_ssr |= (SsrRegs[s] == rd);
   end
 
+  //assign use_shfl_q = '0;
+  // stall Shuffle Unit
+  // always_ff @(posedge clk_i or negedge ~rst_i) begin
+  //   if (!rst_i) begin
+  //     use_shfl_q <= 1'b0;
+  //   end else begin
+  //   use_shfl_q <= use_shfl;
+  //   end
+  // end
+
   always_comb begin
     acc_resp_o.error = 1'b0;
     fpu_op = fpnew_pkg::ADD;
@@ -326,6 +343,8 @@ module snitch_fp_ss import snitch_pkg::*; #(
     is_store = 1'b0;
     is_load = 1'b0;
     ls_size = Word;
+
+    use_shfl = 1'b0;
 
     // Destination register is in FPR
     rd_is_fp = 1'b1;
@@ -1529,16 +1548,16 @@ module snitch_fp_ss import snitch_pkg::*; #(
         if (acc_req_q.data_op inside {riscv_instr::VFCPKD_B_D}) op_mode = 1;
       end
       riscv_instr::VFSHUFFLE_S: begin
-        op_select[0] = AccBus; //AccBus is always put into op_select[0]
-        op_select[1] = RegB;
+        op_select[0] = RegA;
+        op_select[1] = AccBus;
         op_select[2] = RegDest;
         src_fmt      = fpnew_pkg::FP32;
         dst_fmt      = fpnew_pkg::FP32;
         vectorial_op = 1'b1;
-        set_dyn_rm   = 1'b1; // ?
+        set_dyn_rm   = 1'b1;   // fix round mode for vectors and fp16alt
         use_fpu      = 1'b0;
         use_shfl     = 1'b1;
-        if (acc_req_q.data_op inside {riscv_instr::VFSHUFFLE_S}) op_mode = 1'b1;
+        //if (acc_req_q.data_op inside {riscv_instr::VFSHUFFLE_S}) op_mode = 1'b1;
       end
       riscv_instr::VFCVT_S_B,
       riscv_instr::VFCVTU_S_B: begin
@@ -2450,40 +2469,40 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // ----------------------
   // Shuffling Unit
   // ----------------------
-  logic [1:0] byte_msk;
-  logic [3:0][7:0] rA, rD;
-  logic [4:0] indx;
+  logic [1:0] byte_mask;
+  // logic [(FLEN/src_fmt)-1:0][src_fmt-1:0] rA, rD;
+  logic [1:0][31:0] rA, rD;
+
 
   always_comb begin
-    shfl_valid = '0;
+    shfl_in_ready = 1'b1;
+    shfl_valid = 1'b0;
     shfl_rd = '0;
+    shfl_result = '0;
+    reg_mask = '0;
+    byte_mask = 2'b0;
+    rA = '0;
+    rD = '0;
     
-    if (use_shfl & op_ready[0] & op_ready[1] & op_ready[2]) begin
+    //if (use_shfl & &(op_ready) & (~use_shfl_q | (use_shfl_q & shfl_wready))) begin
+    if (use_shfl & &(op_ready)) begin
+      shfl_in_ready = 1'b0;
 
-      reg_mask = {op[0][26], op[0][18], op[0][10], op[0][2]};
-      // byte_mask = {op[0][25:24], op[0][17:16], op[0][9:8], op[0][1:0]};
-
-
-      for (int i = 0; i < 4; i++) begin
-        // Range must be bounded by constant expressions. ??
-        indx = '0;
-        byte_msk = op[0][(i*8) +: 2];
-
-        rA[i] = op[1][(byte_msk*8) +: 8];
-        rD[i] = op[2][(byte_msk*8) +: 8];
-
-        shfl_result[(i*8) +: 8] = reg_mask[i] ? rA[i][(i*8) +: 8] : rD[i][(i*8) +: 8];
-      end
-      
       // TODO: separate S, H, B
-      
-      // shfl_result[31:24] = reg_mask[3] ? op[1][byte_mask[7:6]*8+7 : byte_mask[7:6]*8] : op[2][byte_mask[7:6]*8+7 : byte_mask[7:6]*8];
-      // shfl_result[23:16] = reg_mask[2] ? op[1][byte_mask[5:4]*8+7 : byte_mask[5:4]*8] : op[2][byte_mask[5:4]*8+7 : byte_mask[5:4]*8];
-      // shfl_result[15:8]  = reg_mask[1] ? op[1][byte_mask[3:2]*8+7 : byte_mask[3:2]*8] : op[2][byte_mask[3:2]*8+7 : byte_mask[3:2]*8];
-      // shfl_result[7:0]   = reg_mask[0] ? op[1][byte_mask[1:0]*8+7 : byte_mask[1:0]*8] : op[2][byte_mask[1:0]*8+7 : byte_mask[1:0]*8];
-      // shfl_result[7:0] = reg_mask[0] ? op[1][7:0] : op[2][7:0];
+      if (src_fmt == fpnew_pkg::FP32) begin
+        reg_mask = {1'b0, 1'b0, op[1][5], op[1][1]};
+        byte_mask = {op[1][4], op[1][0]};
 
-      shfl_rd = RegDest;
+        for (int i = 0; i < (FLEN/32); i++) begin
+
+          rA[i] = op[0][(byte_mask[i]*32) +: 32];
+          rD[i] = op[2][(byte_mask[i]*32) +: 32];
+
+          shfl_result[(i*32) +: 32] = reg_mask[i] ? rA[i] : rD[i];
+        end
+      end
+
+      shfl_rd = rd;
       shfl_valid = 1'b1;
     end
   end
@@ -2614,6 +2633,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     fpr_wdata = '0;
     fpr_wvalid = 1'b0;
     lsu_pready = 1'b0;
+    shfl_wready = 1'b0;
     fpr_wready = 1'b1;
     ssr_wvalid_o = 1'b0;
     ssr_wdone_o = 1'b1;
@@ -2653,7 +2673,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
       fpr_wdata = shfl_result;
       fpr_waddr = shfl_rd;
       fpr_wvalid = 1'b1;
-      fpr_wready = 1'b0;
     end
   end
 
