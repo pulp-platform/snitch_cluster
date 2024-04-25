@@ -94,6 +94,19 @@ def get_total_runtime(sim, model):
     # Derived parameters
     Tr = L / Br
     Tc = S / Bc
+    # print(f'Tr: {Tr}')
+    # print(f'Tc: {Tc}')
+
+    # Correct DMA bandwidth by a factor which accounts for contention between
+    # clusters in a group (bwcf = bandwidth correction factor).
+    # We map each head spatially to a unique cluster.
+    bwcf = 1 / math.ceil(H / NR_GROUPS)
+
+    # Define the simulated tc and tr iterations to extract the region runtimes from.
+    # The second tc iteration is the worst case, since upon the first iteration
+    # several calculations are not performed.
+    tc_iteration = 1
+    tr_iteration = 0
 
     # Calculate total runtime
     tc_iter_time = sim.get_metric('hart_8', 'copy K & V', 'cycles') + \
