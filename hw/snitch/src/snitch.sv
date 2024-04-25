@@ -1605,7 +1605,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         if (FP_EN && XFVEC && RVF) begin
           opb_select = Reg;
           write_rd = 1'b0;
-          acc_qvalid_o = valid_instr & trans_ready; // trans_ready?
+          acc_qvalid_o = valid_instr; // trans_ready?
           shuffle = 1'b1;
         end else begin
           illegal_inst = 1'b1;

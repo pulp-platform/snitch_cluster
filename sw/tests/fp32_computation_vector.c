@@ -41,19 +41,28 @@ int main() {
         uint32_t mask_a = 0b00010000; // 0h10
         uint32_t mask_b = 0b00110010; // 0h32
         // VFSHUFFLE
-        // just copy rD
-        asm volatile(
-            "vfshuffle.s ft4, ft5, %0\n"
-            "vfeq.s %0, ft4, ft8\n"
-            : "+r"(mask_a), "+r"(res0));
-        errs += (res0 == 0x0);
+            asm volatile(
+            "vfshuffle.s ft4, ft5, %0\n" // rD = 0x3FCF1AA04048F5C3, rA = 0xBFCF1AA0C048F5C3, rB = 0b00110010 (copies rD)
+            : "+r"(mask_b));
 
-        // just copy rA
-        asm volatile(
-            "vfshuffle.s ft4, ft5, %0\n"
-            "vfeq.s %0, ft4, ft8\n"
-            : "+r"(mask_b), "+r"(res0));
-        errs += (res0 == 0x0);
+            // asm volatile(
+            // "vfshuffle.s ft4, ft5, %0\n" // rD = 0x3FCF1AA04048F5C3, rA = 0xBFCF1AA0C048F5C3, rB = 0b00010000 (copies rA)
+            // : "+r"(mask_a));
+
+
+        // // just copy rD
+        // asm volatile(
+        //     "vfshuffle.s ft4, ft5, %0\n"
+        //     "vfeq.s %1, ft4, %2\n"
+        //     : "+r"(mask_a), "+r"(res0), "+r"());
+        // errs += (res0 == 0x0);
+
+        // // just copy rA
+        // asm volatile(
+        //     "vfshuffle.s ft4, ft5, %0\n"
+        //     "vfeq.s %0, ft4, ft4\n"
+        //     : "+r"(mask_b), "+r"(res0));
+        // errs += (res0 == 0x0);
 
         // VFSGNJ
         asm volatile(

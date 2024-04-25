@@ -126,10 +126,10 @@ module snitch_fp_ss import snitch_pkg::*; #(
   logic csr_instr;
 
   // Shuffle Unit
-  logic            use_shfl;//, use_shfl_q;
+  logic            use_shfl, use_shfl_q;
   logic            shfl_in_valid, shfl_in_ready;
   logic            shfl_wready;
-  logic            shfl_valid, shfl_out_ready;
+  logic            shfl_valid, shfl_valid_q, shfl_out_ready;
   logic [FLEN-1:0] shfl_result;
   logic [4:0]      shfl_rd;
   logic [(FLEN/16)-1:0]      reg_mask;
@@ -266,7 +266,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // stall FPU if we forward from reg
   assign fpu_out_ready = ((fpu_tag_out.acc & acc_resp_ready_i) | (~fpu_tag_out.acc & fpr_wready));
   // stall Shuffling Unit if not finished writing shfl_result
-  assign shfl_out_ready = '1;
+  //assign shfl_out_ready = '1;
 
   // FPU Result
   logic [FLEN-1:0] fpu_result;
@@ -303,15 +303,16 @@ module snitch_fp_ss import snitch_pkg::*; #(
       is_rd_ssr |= (SsrRegs[s] == rd);
   end
 
-  //assign use_shfl_q = '0;
   // stall Shuffle Unit
-  // always_ff @(posedge clk_i or negedge ~rst_i) begin
-  //   if (!rst_i) begin
-  //     use_shfl_q <= 1'b0;
-  //   end else begin
-  //   use_shfl_q <= use_shfl;
-  //   end
-  // end
+  always_ff @(posedge clk_i or negedge ~rst_i) begin
+    if (rst_i) begin
+      use_shfl_q <= 1'b0;
+      shfl_valid_q <= 1'b0;
+    end else begin
+    use_shfl_q <= use_shfl;
+    shfl_valid_q <= shfl_valid;
+    end
+  end
 
   always_comb begin
     acc_resp_o.error = 1'b0;
@@ -2484,8 +2485,8 @@ module snitch_fp_ss import snitch_pkg::*; #(
     rA = '0;
     rD = '0;
     
-    //if (use_shfl & &(op_ready) & (~use_shfl_q | (use_shfl_q & shfl_wready))) begin
-    if (use_shfl & &(op_ready)) begin
+    if (use_shfl & &(op_ready) & (~use_shfl_q | (use_shfl_q & shfl_wready))) begin
+    //if (use_shfl & &(op_ready)) begin
       shfl_in_ready = 1'b0;
 
       // TODO: separate S, H, B
@@ -2667,12 +2668,13 @@ module snitch_fp_ss import snitch_pkg::*; #(
       fpr_waddr = lsu_rd;
       fpr_wvalid = 1'b1;
       fpr_wready = 1'b0;
-    end else if (shfl_valid) begin
+    end else if (shfl_valid | (shfl_valid_q & ~shfl_wready)) begin
       shfl_wready = 1'b1;
       fpr_we = 1'b1;
       fpr_wdata = shfl_result;
       fpr_waddr = shfl_rd;
       fpr_wvalid = 1'b1;
+      fpr_wready = 1'b0;
     end
   end
 
