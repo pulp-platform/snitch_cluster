@@ -41,6 +41,9 @@ else
 RISCV_CFLAGS += --target=riscv32-unknown-elf
 RISCV_CFLAGS += -mcpu=generic-rv32
 RISCV_CFLAGS += -march=rv32imafdzfh
+RISCV_CFLAGS += -fno-builtin-memset
+# Required by printf lib such that svnprintf does not emit __udivdi3
+RISCV_CFLAGS += -DPRINTF_DISABLE_SUPPORT_LONG_LONG
 endif
 # Common flags
 RISCV_CFLAGS += $(addprefix -I,$(INCDIRS))
@@ -63,17 +66,13 @@ RISCV_CFLAGS += -D__DEFINED_uint64_t
 # Linker flags
 ifneq ($(SELECT_TOOLCHAIN), llvm-generic)
 RISCV_LDFLAGS += -nostartfiles
-else
-RISCV_LDFLAGS += -L/tools/riscv-llvm/riscv32-unknown-elf/lib/
+RISCV_LDFLAGS += -lclang_rt.builtins-riscv32
+RISCV_LDFLAGS += -L/tools/riscv-llvm/lib/clang/$(LLVM_VER)/lib/
+RISCV_LDFLAGS += -lc
 endif
 # Common flags
-RISCV_LDFLAGS += -lclang_rt.builtins-riscv32
-# Use custom version here regardless
-RISCV_LDFLAGS += -L/tools/riscv-llvm/lib/clang/$(LLVM_VER)/lib/
 RISCV_LDFLAGS += -fuse-ld=$(RISCV_LD)
 RISCV_LDFLAGS += -nostdlib
-# FIXME Josse: is this flag necessary? in the rtl runtime there's no libc.a?
-RISCV_LDFLAGS += -lc
 
 # Archiver flags
 RISCV_ARFLAGS = rcs
