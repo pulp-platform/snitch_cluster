@@ -64,7 +64,7 @@ jobs:
     name: Simulate SW on SNAX MAC Cluster w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kuleuven-micas/snax:pr-96
+      image: ghcr.io/kuleuven-micas/snax:main
     steps:
       - uses: actions/checkout@v2
         with:
@@ -89,7 +89,7 @@ jobs:
     name: Simulate SW on SNAX GEMM Cluster w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kuleuven-micas/snax:pr-96
+      image: ghcr.io/kuleuven-micas/snax:main
     steps:
       - uses: actions/checkout@v2
         with:
@@ -114,7 +114,7 @@ jobs:
     name: Simulate SW on SNAX Streamer GEMM Cluster w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kuleuven-micas/snax:pr-96
+      image: ghcr.io/kuleuven-micas/snax:main
     steps:
       - uses: actions/checkout@v2
         with:
@@ -139,7 +139,7 @@ jobs:
     name: Simulate SW on SNAX Multiple MAC Cluster w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kuleuven-micas/snax:pr-96
+      image: ghcr.io/kuleuven-micas/snax:main
     steps:
       - uses: actions/checkout@v2
         with:
