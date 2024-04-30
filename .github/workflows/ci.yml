@@ -32,7 +32,7 @@ jobs:
     name: Simulate SW on Snitch Cluster w/ Verilator
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kuleuven-micas/snax:latest
+      image: ghcr.io/pulp-platform/snitch_cluster:main
     steps:
       - uses: actions/checkout@v2
         with:
@@ -60,37 +60,11 @@ jobs:
   # Simulate SW on SNAX Cluster w/ Verilator #
   ##############################################
 
-  sw-snax-mac-cluster-vlt:
-    name: Simulate SW on SNAX MAC Cluster w/ Verilator
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/kuleuven-micas/snax:latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      - name: Install DNN Python Modules
-        run: |
-          pip3 install -r sw/dnn/requirements.txt
-      - name: Build Software
-        run: |
-          make CFG_OVERRIDE=cfg/snax-mac.hjson -C target/snitch_cluster sw
-      - name: Build Hardware
-        run: |
-          make CFG_OVERRIDE=cfg/snax-mac.hjson \
-          -C target/snitch_cluster bin/snitch_cluster.vlt
-      - name: Run Tests
-        working-directory: target/snitch_cluster
-        run: |-
-          ./run.py --simulator verilator \
-          sw/runtime.yaml sw/custom-fp.yaml sw/standard-fp.yaml \
-          sw/openmp.yaml sw/blas.yaml sw/dnn.yaml sw/snax-mac-run.yaml -j
-
   sw-snax-mac-cluster-vlt-generic:
     name: Simulate SW on SNAX MAC Cluster w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kuleuven-micas/snax:latest
+      image: ghcr.io/kuleuven-micas/snax:pr-96
     steps:
       - uses: actions/checkout@v2
         with:
@@ -111,37 +85,11 @@ jobs:
           ./run.py --simulator verilator \
           sw/runtime.yaml sw/standard-fp.yaml sw/snax-mac-run.yaml -j
 
-  sw-snax-gemm-cluster-vlt:
-    name: Simulate SW on SNAX GEMM Cluster w/ Verilator
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/kuleuven-micas/snax:latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      - name: Install DNN Python Modules
-        run: |
-          pip3 install -r sw/dnn/requirements.txt
-      - name: Build Software
-        run: |
-          make CFG_OVERRIDE=cfg/snax-gemm.hjson -C target/snitch_cluster sw
-      - name: Build Hardware
-        run: |
-          make CFG_OVERRIDE=cfg/snax-gemm.hjson \
-          -C target/snitch_cluster bin/snitch_cluster.vlt
-      - name: Run Tests
-        working-directory: target/snitch_cluster
-        run: |-
-          ./run.py --simulator verilator \
-          sw/runtime.yaml sw/custom-fp.yaml sw/standard-fp.yaml \
-          sw/openmp.yaml sw/blas.yaml sw/dnn.yaml sw/snax-gemm-run.yaml -j
-
   sw-snax-gemm-cluster-vlt-generic:
-    name: Simulate SW on SNAX GEMM Cluster w/ Verilator (Generic LLVM
+    name: Simulate SW on SNAX GEMM Cluster w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kuleuven-micas/snax:latest
+      image: ghcr.io/kuleuven-micas/snax:pr-96
     steps:
       - uses: actions/checkout@v2
         with:
@@ -166,7 +114,7 @@ jobs:
     name: Simulate SW on SNAX Streamer GEMM Cluster w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kuleuven-micas/snax:latest
+      image: ghcr.io/kuleuven-micas/snax:pr-96
     steps:
       - uses: actions/checkout@v2
         with:
@@ -191,7 +139,7 @@ jobs:
     name: Simulate SW on SNAX Multiple MAC Cluster w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kuleuven-micas/snax:latest
+      image: ghcr.io/kuleuven-micas/snax:pr-96
     steps:
       - uses: actions/checkout@v2
         with:
