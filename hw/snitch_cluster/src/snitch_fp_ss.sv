@@ -126,13 +126,11 @@ module snitch_fp_ss import snitch_pkg::*; #(
   logic csr_instr;
 
   // Shuffle Unit
-  logic            use_shfl, use_shfl_q;
+  logic            use_shfl;
   logic            shfl_in_valid, shfl_in_ready;
-  logic            shfl_wready;
-  logic            shfl_valid, shfl_valid_q, shfl_out_ready;
+  logic            shfl_valid;
   logic [FLEN-1:0] shfl_result;
-  logic [4:0]      shfl_rd;
-  logic [(FLEN/16)-1:0]      reg_mask;
+  logic [(FLEN/8)-1:0]      vec_mask;
 
   // FPU Controller
   logic fpu_out_valid, fpu_out_ready;
@@ -261,12 +259,15 @@ module snitch_fp_ss import snitch_pkg::*; #(
                                       // Shuffle Unit ready
                                       | (shfl_in_ready & shfl_in_valid));
 
+  // Shuffle Unit is ready to compute when Write Port is ready for shuffle result
+  assign shfl_in_ready = (!(acc_req_valid_q && result_select == ResAccBus) 
+                          & !(fpu_out_valid && !fpu_tag_out.acc) & !lsu_pvalid);
+
   // either the FPU or the regfile produced a result
   assign acc_resp_valid_o = (fpu_tag_out.acc & fpu_out_valid);
   // stall FPU if we forward from reg
   assign fpu_out_ready = ((fpu_tag_out.acc & acc_resp_ready_i) | (~fpu_tag_out.acc & fpr_wready));
-  // stall Shuffling Unit if not finished writing shfl_result
-  //assign shfl_out_ready = '1;
+
 
   // FPU Result
   logic [FLEN-1:0] fpu_result;
@@ -301,17 +302,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
     is_rd_ssr = 1'b0;
     for (int s = 0; s < NumSsrs; s++)
       is_rd_ssr |= (SsrRegs[s] == rd);
-  end
-
-  // stall Shuffle Unit
-  always_ff @(posedge clk_i or negedge ~rst_i) begin
-    if (rst_i) begin
-      use_shfl_q <= 1'b0;
-      shfl_valid_q <= 1'b0;
-    end else begin
-    use_shfl_q <= use_shfl;
-    shfl_valid_q <= shfl_valid;
-    end
   end
 
   always_comb begin
@@ -2470,40 +2460,72 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // ----------------------
   // Shuffling Unit
   // ----------------------
-  logic [1:0] byte_mask;
-  // logic [(FLEN/src_fmt)-1:0][src_fmt-1:0] rA, rD;
-  logic [1:0][31:0] rA, rD;
+
+  //parameter int num_elements = FLEN/8;
+
+  // TODO: change name of masks to vector and element
+  logic [7:0]  element_mask;
+  logic [31:0] num_elements = '0;
+  logic [FLEN/32 : 0][31:0] rA_32, rD_32;
+  logic [FLEN/16 : 0][15:0] rA_16, rD_16;
+  logic [FLEN/8 : 0][7:0]   rA_8, rD_8;
 
 
   always_comb begin
-    shfl_in_ready = 1'b1;
     shfl_valid = 1'b0;
-    shfl_rd = '0;
     shfl_result = '0;
-    reg_mask = '0;
-    byte_mask = 2'b0;
-    rA = '0;
-    rD = '0;
-    
-    if (use_shfl & &(op_ready) & (~use_shfl_q | (use_shfl_q & shfl_wready))) begin
-    //if (use_shfl & &(op_ready)) begin
-      shfl_in_ready = 1'b0;
+    vec_mask = '0;
+    element_mask = '0;
+    rA_32 = '0;
+    rD_32 = '0;
+    rA_16 = '0;
+    rD_16 = '0;
+    rA_8 = '0;
+    rD_8 = '0;
 
-      // TODO: separate S, H, B
-      if (src_fmt == fpnew_pkg::FP32) begin
-        reg_mask = {1'b0, 1'b0, op[1][5], op[1][1]};
-        byte_mask = {op[1][4], op[1][0]};
+    if (shfl_in_valid & shfl_in_ready) begin
 
-        for (int i = 0; i < (FLEN/32); i++) begin
-
-          rA[i] = op[0][(byte_mask[i]*32) +: 32];
-          rD[i] = op[2][(byte_mask[i]*32) +: 32];
-
-          shfl_result[(i*32) +: 32] = reg_mask[i] ? rA[i] : rD[i];
-        end
+      for (int i = 0; i < (FLEN/8); i++) begin
+        vec_mask[i] = op[1][(i*4)+3];
+        element_mask[(i*4)+:3] = op[1][(i*4) +: 3];
       end
 
-      shfl_rd = rd;
+      unique case (src_fmt)
+        fpnew_pkg::FP32: begin
+          num_elements = FLEN/32;
+
+          for (int i = 0; i < (num_elements); i++) begin
+
+            rA_32[i] = op[0][(element_mask[i*4]*32) +: 32];
+            rD_32[i] = op[2][(element_mask[i*4]*32) +: 32];
+
+            shfl_result[(i*32) +: 32] = vec_mask[i] ? rA_32[i] : rD_32[i];
+          end
+        end
+        fpnew_pkg::FP16: begin
+          num_elements = FLEN/16;
+
+          for (int i = 0; i < (num_elements); i++) begin
+
+            rA_16[i][15:0] = op[0][(element_mask[(i*4)+:2]*16) +: 16];
+            rD_16[i][15:0] = op[2][(element_mask[(i*4)+:2]*16) +: 16];
+
+            shfl_result[(i*16) +: 16] = vec_mask[i] ? rA_16[i] : rD_16[i];
+          end
+        end
+        fpnew_pkg::FP8: begin
+          num_elements = FLEN/8;
+
+          for (int i = 0; i < (num_elements); i++) begin
+
+            rA_8[i][7:0] = op[0][(element_mask[(i*4)+:3]*8) +: 8];
+            rD_8[i][7:0] = op[2][(element_mask[(i*4)+:3]*8) +: 8];
+
+            shfl_result[(i*8) +: 8] = vec_mask[i] ? rA_8[i] : rD_8[i];
+          end
+        end 
+      endcase
+
       shfl_valid = 1'b1;
     end
   end
@@ -2634,7 +2656,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
     fpr_wdata = '0;
     fpr_wvalid = 1'b0;
     lsu_pready = 1'b0;
-    shfl_wready = 1'b0;
     fpr_wready = 1'b1;
     ssr_wvalid_o = 1'b0;
     ssr_wdone_o = 1'b1;
@@ -2668,11 +2689,10 @@ module snitch_fp_ss import snitch_pkg::*; #(
       fpr_waddr = lsu_rd;
       fpr_wvalid = 1'b1;
       fpr_wready = 1'b0;
-    end else if (shfl_valid | (shfl_valid_q & ~shfl_wready)) begin
-      shfl_wready = 1'b1;
+    end else if (shfl_valid) begin
       fpr_we = 1'b1;
       fpr_wdata = shfl_result;
-      fpr_waddr = shfl_rd;
+      fpr_waddr = rd;
       fpr_wvalid = 1'b1;
       fpr_wready = 1'b0;
     end

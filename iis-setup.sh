@@ -30,10 +30,11 @@ rm -rf tmp
 $BENDER vendor init
 
 # Install spike-dasm
-mkdir tools/
-cd tools/
-wget https://github.com/pulp-platform/riscv-isa-sim/releases/download/snitch-v0.2.0/snitch-spike-dasm-0.2.0-x86_64-linux-gnu-centos7.4.1708.tar.gz
-tar xzf snitch-spike-dasm-0.2.0-x86_64-linux-gnu-centos7.4.1708.tar.gz
-cd -
-echo $PATH
-export PATH=$(pwd)/tools:$PATH
+# mkdir tools/
+# cd tools/
+# wget https://github.com/pulp-platform/riscv-isa-sim/releases/download/snitch-v0.2.0/snitch-spike-dasm-0.2.0-x86_64-linux-gnu-centos7.4.1708.tar.gz
+# tar xzf snitch-spike-dasm-0.2.0-x86_64-linux-gnu-centos7.4.1708.tar.gz
+# cd -
+# echo $PATH
+# export PATH=$(pwd)/tools:$PATH
+export PATH=~/riscv-isa-sim/build:$PATH

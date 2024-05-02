@@ -1,4 +1,7 @@
 instruction,source_width,source_vec_len,destination_width,destination_vec_len
+vfshuffle.s,32,2,32,2
+vfshuffle.h,16,4,16,4
+vfshuffle.b,8,8,8,8
 flh,16,1,16,1
 fsh,16,1,16,1
 fadd.s,32,1,32,1
