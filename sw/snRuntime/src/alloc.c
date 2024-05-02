@@ -4,7 +4,7 @@
 
 snrt_allocator_t l3_allocator;
 
-extern volatile uint32_t* snrt_zero_memory_ptr();
+extern volatile uint32_t *snrt_zero_memory_ptr();
 
 extern void *snrt_l1_next();
 extern void *snrt_l3_next();
