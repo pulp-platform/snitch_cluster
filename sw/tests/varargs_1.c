@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <stdarg.h>
 
-// Use `-O1` for this function and don't inline.
-int __attribute__((noinline)) __attribute__((optimize(1))) sum(int N, ...) {
+// Use `-O0` for this function and don't inline.
+int __attribute__((noinline)) __attribute__((optnone)) sum(int N, ...) {
     int sum = 0;
     va_list va;
     va_start(va, N);
