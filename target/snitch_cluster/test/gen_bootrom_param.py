@@ -123,7 +123,7 @@ if args.sv_module:
         logic [BootromSize/NumBytes-1:0][DataWidth-1:0] rom_word_addressed;
         assign rom_word_addressed = rom;
 
-        logic [$clog2(BootromSize)-2:WordOffset] aligned_address; // Bootrom is only half size.
+        logic [$clog2(BootromSize)-1:WordOffset] aligned_address;
 
         assign aligned_address = addr_i[$clog2(BootromSize)-1:WordOffset];
 

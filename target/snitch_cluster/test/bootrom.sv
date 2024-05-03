@@ -65501,26 +65501,26 @@
             {8'h00}, /* 0x003a */
             {8'h00}, /* 0x0039 */
             {8'h00}, /* 0x0038 */
-            {8'h00}, /* 0x0037 */
-            {8'h00}, /* 0x0036 */
-            {8'h00}, /* 0x0035 */
-            {8'h00}, /* 0x0034 */
-            {8'hfd}, /* 0x0033 */
-            {8'h1f}, /* 0x0032 */
-            {8'hf0}, /* 0x0031 */
-            {8'h6f}, /* 0x0030 */
+            {8'hfc}, /* 0x0037 */
+            {8'hdf}, /* 0x0036 */
+            {8'hf0}, /* 0x0035 */
+            {8'h6f}, /* 0x0034 */
+            {8'h00}, /* 0x0033 */
+            {8'h02}, /* 0x0032 */
+            {8'h80}, /* 0x0031 */
+            {8'he7}, /* 0x0030 */
             {8'h00}, /* 0x002f */
             {8'h02}, /* 0x002e */
-            {8'h80}, /* 0x002d */
-            {8'he7}, /* 0x002c */
-            {8'h00}, /* 0x002b */
-            {8'h02}, /* 0x002a */
-            {8'ha2}, /* 0x0029 */
-            {8'h83}, /* 0x0028 */
+            {8'ha2}, /* 0x002d */
+            {8'h83}, /* 0x002c */
+            {8'h16}, /* 0x002b */
+            {8'h42}, /* 0x002a */
+            {8'h82}, /* 0x0029 */
+            {8'h93}, /* 0x0028 */
             {8'h18}, /* 0x0027 */
-            {8'h80}, /* 0x0026 */
-            {8'h02}, /* 0x0025 */
-            {8'h93}, /* 0x0024 */
+            {8'h01}, /* 0x0026 */
+            {8'hf2}, /* 0x0025 */
+            {8'h97}, /* 0x0024 */
             {8'h10}, /* 0x0023 */
             {8'h50}, /* 0x0022 */
             {8'h00}, /* 0x0021 */
@@ -65564,7 +65564,7 @@
         logic [BootromSize/NumBytes-1:0][DataWidth-1:0] rom_word_addressed;
         assign rom_word_addressed = rom;
 
-        logic [$clog2(BootromSize)-2:WordOffset] aligned_address; // Bootrom is only half size.
+        logic [$clog2(BootromSize)-1:WordOffset] aligned_address;
 
         assign aligned_address = addr_i[$clog2(BootromSize)-1:WordOffset];
 
