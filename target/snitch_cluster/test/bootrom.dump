@@ -16,7 +16,8 @@ Disassembly of section .text:
     1020:	10500073          	wfi
 
 00001024 <_snitch_resume>:
-    1024:	18800293          	li	t0,392
-    1028:	0002a283          	lw	t0,0(t0)
-    102c:	000280e7          	jalr	t0
-    1030:	fd1ff06f          	j	1000 <_snitch_park>
+    1024:	1801f297          	auipc	t0,0x1801f
+    1028:	16428293          	addi	t0,t0,356 # 18020188 <ctrl_scratch1>
+    102c:	0002a283          	lw	t0,0(t0)
+    1030:	000280e7          	jalr	t0
+    1034:	fcdff06f          	j	1000 <_snitch_park>

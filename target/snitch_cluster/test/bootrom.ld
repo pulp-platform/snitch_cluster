@@ -7,7 +7,7 @@ ENTRY(_snitch_park)
 SECTIONS
 {
   . = 0x1000;
-  ctrl_scratch1 = 0x12000188;
+  ctrl_scratch1 = 0x18020188;
   .text : { *(.text) }
   
   /*
