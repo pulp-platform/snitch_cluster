@@ -38,3 +38,4 @@
 #include "snitch_cluster_start.h"
 #include "sync.h"
 #include "team.h"
+#include "types.h"
