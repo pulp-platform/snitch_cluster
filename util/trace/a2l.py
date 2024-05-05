@@ -19,12 +19,6 @@ def unzip(ls):
     return zip(*ls)
 
 
-def format_function_name(name):
-    if name == '??':
-        return 'unknown function'
-    return name
-
-
 class Addr2LineOutput:
 
     indent_unit = '  '
@@ -40,33 +34,44 @@ class Addr2LineOutput:
     # belonged to after inlining the previous, up to (and including)
     # the last function which was not inlined.
     def function_stack(self):
-        output = self.raw.split('\n')
-
         if self.toolchain == 'llvm':
-            functions = output[::6]
-            if functions[0] == '??':
-                # If function is unknown, there will be no "Function start filename"
-                # and "Function start line" fields
-                filepaths = output[1:2]
-                lines = output[2:3]
-                cols = output[3:4]
-            else:
-                filepaths = output[1::6]
-                lines = output[4::6]
-                cols = output[5::6]
-            filepaths = [re.search(r"Filename: (.+)$", filepath).group(1) for filepath in filepaths]
-            lines = [re.search(r"Line: (\d+)", line).group(1) for line in lines]
-            cols = [re.search(r"Column: (\d+)", col).group(1) for col in cols]
-            cols = [int(col) if col != '0' else None for col in cols]
+            # Define a regex pattern to capture relevant data. The function start filename
+            # and start line are optional, so they are enclosed in ()?.
+            pattern = re.compile(
+                r'^(?P<func>.+?)\s*'
+                r'Filename:\s*(?P<file>[^\n]+)\s*'
+                r'(Function start filename:\s*(?P<func_start_filename>[^\n]+)\s*'
+                r'Function start line:\s*(?P<func_start_line>\d+)\s*)?'
+                r'Line:\s*(?P<line>\d+)\s*'
+                r'Column:\s*(?P<col>\d+)',
+                re.MULTILINE)
         else:
-            functions = output[::2]
-            filepaths, lines = unzip([o.split(':') for o in output[1::2]])
-            cols = [None] * len(lines)
-        functions = map(format_function_name, functions)
-        lines = [int(line) if line != '0' else None for line in lines]
+            # Define a regex pattern to match function names, file paths and line numbers
+            pattern = re.compile(
+                r"^(?P<func>.+)\n(?P<file>.+):(?P<line>\d+)(?: \(discriminator \d+\))?$",
+                re.MULTILINE)
 
-        stack = zip(functions, filepaths, lines, cols)
-        stack = [{'func': s[0], 'file': s[1], 'line': s[2], 'col': s[3]} for s in stack]
+        # Find all matches and organize them into a list of dictionaries
+        stack = [match.groupdict() for match in pattern.finditer(self.raw)]
+        
+        # Format stack entries
+        def format_stack_entry(entry):
+            func, line, col = [entry.get(key, None) for key in ['func', 'line', 'col']]
+            # Rename unknown functions
+            if func == '??':
+                entry['func'] = 'unknown function'
+            # Add column key if missing and convert 0 line and cols to None
+            for key, val in zip(['line', 'col'], [line, col]):
+                if val is not None:
+                    val = int(val)
+                    if val == 0:
+                        entry[key] = None
+                    else:
+                        entry[key] = val
+                else:
+                    entry[key] = val
+            return entry
+        stack = list(map(format_stack_entry, stack))
         # Do not create stack if compiler was unable to associate a line number to the address
         return stack if stack[0]['line'] is not None else None
 
@@ -77,7 +82,7 @@ class Addr2LineOutput:
         if stack is not None:
             stack = reversed(self.function_stack())
             for i, level in enumerate(stack):
-                func, file, line, col = level.values()
+                func, file, line, col = [level.get(key) for key in ["func", "file", "line", "col"]]
                 if short:
                     file = Path(file).name
                 indent = self.indent_unit * i
