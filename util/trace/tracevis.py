@@ -115,7 +115,9 @@ def flush(lah, buf, **kwargs):
         event['dur'] = 1 if fmt == 'banshee' else duration
         # The thread ID is used to group events in a single TraceViewer row
         if not collapse_call_stack:
-            event['tid'] = a2l_info.function_stack[0]['func']
+            stack = a2l_info.function_stack()
+            if stack is not None:
+                event['tid'] = stack[0]['func']
         if fmt == 'banshee':
             # Banshee stores all traces in a single file
             event['tid'] = priv
@@ -272,13 +274,11 @@ def parse_traces(traces, **kwargs):
 
     # Iterate traces
     events = []
-    for i, filename in enumerate(traces):
+    for filename in traces:
 
-        # Extract hartid from filename or use current index
-        # TODO doesn't work with hex numbers
-        # parsed_nums = re.findall(r'\d+', filename)
-        # hartid = int(parsed_nums[-1]) if len(parsed_nums) else i
-        hartid = i
+        # Extract hartid from filename
+        pattern = r'trace_hart_([0-9a-fA-F]+)\.txt$'
+        hartid = int(re.search(pattern, filename).group(1), 16)
 
         # Extract TraceViewer events from trace
         trace_events = parse_trace(filename, **kwargs)
@@ -319,7 +319,7 @@ def main(**kwargs):
 
 
 # Parse command-line args
-def parse_args():
+def parse_args(args=None):
     # Argument parsing
     parser = argparse.ArgumentParser('tracevis', allow_abbrev=True)
     parser.add_argument(
@@ -379,7 +379,7 @@ def parse_args():
         type=int,
         default=-1,
         help='Last line to parse (inclusive)')
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 
 if __name__ == '__main__':

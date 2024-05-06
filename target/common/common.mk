@@ -211,6 +211,8 @@ JOINT_PERF_DUMP   = $(LOGS_DIR)/perf.json
 ROI_DUMP          = $(LOGS_DIR)/roi.json
 VISUAL_TRACE      = $(LOGS_DIR)/trace.json
 
+VISUALIZE_PY_FLAGS += --tracevis "$(BINARY) $(SNITCH_TXT_TRACES) --addr2line $(ADDR2LINE) -f snitch"
+
 .PHONY: traces annotate visual-trace clean-traces clean-annotate clean-perf clean-visual-trace
 traces: $(TXT_TRACES)
 annotate: $(ANNOTATED_TRACES)
@@ -243,4 +245,4 @@ $(ROI_DUMP): $(JOINT_PERF_DUMP) $(ROI_SPEC) $(ROI_PY)
 	$(ROI_PY) $(JOINT_PERF_DUMP) $(ROI_SPEC) --cfg $(CFG) -o $@
 
 $(VISUAL_TRACE): $(ROI_DUMP) $(VISUALIZE_PY)
-	$(VISUALIZE_PY) $(ROI_DUMP) --traces $(SNITCH_TXT_TRACES) --elf $(BINARY) --addr2line $(ADDR2LINE) -o $@
+	$(VISUALIZE_PY) $(ROI_DUMP) $(VISUALIZE_PY_FLAGS) -o $@
