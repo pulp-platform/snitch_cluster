@@ -40,6 +40,16 @@ inline void *snrt_l1_alloc_compute_core_local(size_t size,
     return retval;
 }
 
+// Takes a pointer to a variable allocated using
+// `snrt_l1_alloc_compute_core_local` and returns a pointer to the same
+// variable allocated by another core, as specified by `core_idx`.
+// The `size` argument should be the same used during allocation.
+inline void *snrt_compute_core_local_ptr(void *ptr, uint32_t core_idx,
+                                         size_t size) {
+    size_t offset = (core_idx - snrt_cluster_core_idx()) * size;
+    return (void *)((uintptr_t)ptr + offset);
+}
+
 // Takes a pointer to a variable in the source cluster's L1 memory and returns
 // a pointer to the same offset in the destination cluster's L1 memory.
 inline void *snrt_remote_l1_ptr(void *ptr, uint32_t src_cluster_idx,
