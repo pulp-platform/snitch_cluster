@@ -154,3 +154,29 @@ jobs:
       - uses: actions/checkout@v3
       - uses: editorconfig-checker/action-editorconfig-checker@main
       - run: editorconfig-checker
+
+  ######################
+  # Lint Scala Files #
+  ######################
+  run:
+    name: Lint Scala Files
+    strategy:
+      matrix:
+        java-version: [17]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current branch (full)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java-version }}
+          cache: sbt
+
+      - name: check format
+        working-directory: hw/chisel
+        run: sbt scalafmtCheck
