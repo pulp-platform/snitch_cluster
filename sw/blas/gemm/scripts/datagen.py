@@ -79,7 +79,8 @@ class GemmDataGen(DataGen):
             ' not supported for FP64 and FP32'
         assert not (dtype == 1 and impl == "opt"), 'FP8 not supported in' \
             ' optimized implementation' \
-            ' (switch to opt_ex)'
+            ' (switch to OPT_EX)'
+        assert dtype == 8 or beta == 0, 'beta != 0 supported only in FP64'
 
     def emit_header(self, **kwargs):
         header = [super().emit_header()]
