@@ -15,7 +15,6 @@ import os
 import torch
 import gemm  # noqa: E402
 import pyflexfloat as ff
-import humanize
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../blas/"))
@@ -32,8 +31,6 @@ torch.manual_seed(42)
 # the occurrence of these splits the data should be aligned to 4KB
 BURST_ALIGNMENT = 4096
 
-# Maximum available size in TCDM (in bytes)
-L1_HEAP_SIZE = 112 * 1024
 
 def torch_golden_model(Q, K, V):
     return torch.nn.functional.scaled_dot_product_attention(Q, K, V)
@@ -171,10 +168,7 @@ def validate_config(L, S, d, B_r, B_c, dtype, baseline, gemm_impl):
     total_size += o_fa_size
     total_size += m_i_size * 2  # m_i and m_i_prev
     total_size += l_i_size
-    assert total_size < L1_HEAP_SIZE, \
-        f'Total heap space required {humanize.naturalsize(total_size, binary=True)} exceeds ' \
-        f'limit of {humanize.naturalsize(L1_HEAP_SIZE, binary=True)}'
-    print(f'Total heap space required {humanize.naturalsize(total_size, binary=True)}')
+    data_utils.validate_tcdm_footprint(total_size)
 
     # Q*K^t
     gemm.datagen.GemmDataGen().validate_config(

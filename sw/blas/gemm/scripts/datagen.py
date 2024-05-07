@@ -52,8 +52,20 @@ class GemmDataGen(DataGen):
                         transb, M, N, K, beta, **kwargs):
         frac_m = M / m_tiles
         frac_n = N / n_tiles
+        frac_k = K / k_tiles
 
         dtype, impl = self.infer_implementation(gemm_fp)
+
+        # Calculate total TCDM occupation
+        # Note: doesn't account for double buffering
+        prec = data_utils.size_from_precision_t(dtype)
+        a_size = frac_m * frac_k * prec
+        b_size = frac_k * frac_n * prec
+        c_size = frac_m * frac_n * prec
+        total_size = a_size
+        total_size += b_size
+        total_size += c_size
+        data_utils.validate_tcdm_footprint(total_size)
 
         assert (M % m_tiles) == 0, 'M is not an integer multiple of tile size'
         assert (N % n_tiles) == 0, 'N is not an integer multiple of tile size'

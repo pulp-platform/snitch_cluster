@@ -49,6 +49,17 @@ def golden_model_torch(ifmap, eps, shape):
 
 
 def validate_config(**kwargs):
+    # Aliases
+    batch_size = kwargs['input_dim']['batch_size']
+    seq_len = kwargs['input_dim']['seq_len']
+    embeddings = kwargs['input_dim']['embeddings']
+
+    # Calculate total TCDM occupation
+    prec = data_utils.size_from_precision_t(kwargs['prec'])
+    tiled_seq_len = seq_len / kwargs['n_tiles']
+    total_size = batch_size * tiled_seq_len * embeddings * prec
+    data_utils.validate_tcdm_footprint(total_size)
+
     assert kwargs['input_dim']['seq_len'] % kwargs['n_tiles'] == 0, 'Input dimension is not' \
                                                                     ' an integer multiple of' \
                                                                     ' tile size'
