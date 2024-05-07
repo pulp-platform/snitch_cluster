@@ -14,6 +14,10 @@ from datetime import datetime
 import torch
 import numpy as np
 import pyflexfloat as ff
+import humanize
+
+# Maximum available size in TCDM (in bytes)
+TCDM_HEAP_SIZE = 112 * 1024
 
 
 def emit_license():
@@ -305,3 +309,20 @@ class DataGen:
         # Emit header file
         with open(args.output, 'w') as f:
             f.write(self.emit_header(**param))
+
+
+def validate_tcdm_footprint(size, silent=False):
+    """Check whether data of specified size fits in TCDM.
+
+    Throws an assertion error if the specified size exceeds the space
+    available for the heap in TCDM.
+
+    Args:
+        size: The size of the data in bytes.
+        silent: If True, will not print the size to stdout.
+    """
+    assert size < TCDM_HEAP_SIZE, \
+        f'Total heap space required {humanize.naturalsize(size, binary=True)} exceeds ' \
+        f'limit of {humanize.naturalsize(TCDM_HEAP_SIZE, binary=True)}'
+    if not silent:
+        print(f'Total heap space required {humanize.naturalsize(size, binary=True)}')
