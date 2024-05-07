@@ -8,6 +8,13 @@ inline snrt_allocator_t *snrt_l1_allocator_v2() { return &l1_allocator_v2; }
 
 inline void *snrt_l1_next_v2() { return (void *)snrt_l1_allocator_v2()->next; }
 
+/**
+ * @brief Override the L1 allocator next pointer
+ */
+inline void snrt_l1_update_next_v2(void *next) {
+    snrt_l1_allocator_v2()->next = (uint32_t)next;
+}
+
 // Check that allocation doesn't exceed allocator bounds, and raise an
 // exception otherwise
 inline void snrt_l1_alloc_check_bounds() {
