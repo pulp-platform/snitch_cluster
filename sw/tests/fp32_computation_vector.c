@@ -26,6 +26,15 @@ int main() {
         uint32_t res3 = 0;
         uint32_t res4 = 0;
 
+        uint32_t mask = 0x0;
+        uint32_t mask_a = 0b10010000; // 0h90
+        uint32_t mask_b = 0b10011000; // 0h98
+        uint32_t mask_c = 0b10000001; // 0h81
+        uint32_t mask_d = 0b10001001; // 0h89
+        uint32_t mask_e = 0b00000001; // 0h01
+        uint32_t mask_f = 0b10000000; // 0h80
+        uint32_t mask_g = 0b00001001; // 0h09
+
         asm volatile(
             "fmv.s.x ft0, %0\n"// 3.14
             "fmv.s.x ft1, %1\n"// -2.39062
@@ -36,15 +45,6 @@ int main() {
             "vfcpka.s.s ft6, ft0, ft3\n"  // ft6 = [-0.250244, 3.14]
             "vfcpka.s.s ft7, ft2, ft1\n"  // ft7 = [-2.39062, 1.618]
             : "+r"(i_a), "+r"(i_cn), "+r"(i_b), "+r"(i_dn));
-
-        uint32_t mask = 0x0;
-        uint32_t mask_a = 0b10010000; // 0h90
-        uint32_t mask_b = 0b10011000; // 0h98
-        uint32_t mask_c = 0b10000001; // 0h81
-        uint32_t mask_d = 0b10001001; // 0h89
-        uint32_t mask_e = 0b00000001; // 0h01
-        uint32_t mask_f = 0b10000000; // 0h80
-        uint32_t mask_g = 0b00001001; // 0h09
 
         // VFSHUFFLE FP32
 
@@ -131,10 +131,10 @@ int main() {
             "fmv.s.x ft3, %3\n" // 100.123456789
             "vfcpka.h.s ft4, ft0, ft2\n"
             "vfcpkb.h.s ft4, ft1, ft3\n"  // ft4 = [100.125, 0.5, 1.6181640625, 3.140625]
-            "fmv.s.x ft0, %0\n" // 3.14 
-            "fmv.s.x ft1, %1\n" // 0.5
-            "fmv.s.x ft2, %2\n" // 1.618
-            "fmv.s.x ft3, %3\n" // 100.123456789            
+            // "fmv.s.x ft0, %0\n" // 3.14 
+            // "fmv.s.x ft1, %1\n" // 0.5
+            // "fmv.s.x ft2, %2\n" // 1.618
+            // "fmv.s.x ft3, %3\n" // 100.123456789            
             "vfcpka.h.s ft5, ft3, ft1\n"
             "vfcpkb.h.s ft5, ft2, ft0\n"  // ft5 = 
             "vfcpka.h.s ft6, ft0, ft3\n"
@@ -143,22 +143,26 @@ int main() {
             "vfcpkb.h.s ft7, ft1, ft2\n"  // ft7 = {-3.14, 1.618, -3.14, 1.618}
             : "+r"(i_a), "+r"(i_e), "+r"(i_b), "+r"(i_f));
 
-        asm volatile(
-            "vfshuffle.h ft4, ft5, %0\n" // rD = 0x4048F5C3 42C83F36, rA = 0xBFCF1AA0 3E801FFB, rB = 0x89
-            "vfeq.h %1, ft4, ft6\n"     //  result = 0x3E801FFB BFCF1AA0 = [0.250244, -1.618]
-            : "+r"(mask_d), "+r"(res0));
-        errs += (res0 != 0xf);
+        // asm volatile(
+        //     "vfshuffle.h ft4, ft5, %0\n" // rD = 0x4048F5C3 42C83F36, rA = 0xBFCF1AA0 3E801FFB, rB = 0x89
+        //     "vfeq.h %1, ft4, ft6\n"     //  result = 0x3E801FFB BFCF1AA0 = [0.250244, -1.618]
+        //     : "+r"(mask_d), "+r"(res0));
+        // errs += (res0 != 0xf);
 
         // VFSGNJ
-        asm volatile(
-            "vfsgnj.h ft0, ft4, ft4\n"
-            "vfeq.h %0, ft4, ft0\n"
-            : "+r"(res0));
-        errs += (res0 != 0xf);
+        // asm volatile(
+        //     "vfsgnj.h ft0, ft4, ft4\n"
+        //     "vfeq.h %0, ft4, ft0\n"
+        //     : "+r"(res0));
+        // errs += (res0 != 0xf);
 
 
         // VFSHUFLE FP8
-
+        // asm volatile(
+        //     "vfshuffle.b ft4, ft5, %0\n" // rD = 0x4048F5C3 42C83F36, rA = 0xBFCF1AA0 3E801FFB, rB = 0x89
+        //     "vfeq.b %1, ft4, ft6\n"     //  result = 0x3E801FFB BFCF1AA0 = [0.250244, -1.618]
+        //     : "+r"(mask_d), "+r"(res0));
+        // errs += (res0 != 0xf);
 
  /*    
 

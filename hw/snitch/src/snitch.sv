@@ -1601,7 +1601,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           illegal_inst = 1'b1;
         end
       end
-      VFSHUFFLE_S: begin
+      VFSHUFFLE_S,
+      VFSHUFFLE_H,
+      VFSHUFFLE_B: begin
         if (FP_EN && XFVEC && RVF) begin
           opb_select = Reg;
           write_rd = 1'b0;

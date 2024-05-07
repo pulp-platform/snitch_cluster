@@ -129,8 +129,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   logic            use_shfl;
   logic            shfl_in_valid, shfl_in_ready;
   logic            shfl_valid;
-  logic [FLEN-1:0] shfl_result;
-  logic [(FLEN/8)-1:0]      vec_mask;
+
 
   // FPU Controller
   logic fpu_out_valid, fpu_out_ready;
@@ -546,6 +545,17 @@ module snitch_fp_ss import snitch_pkg::*; #(
         vectorial_op = 1'b1;
         set_dyn_rm   = 1'b1;
       end
+      riscv_instr::VFSHUFFLE_S: begin
+        op_select[0] = RegA;
+        op_select[1] = AccBus;
+        op_select[2] = RegDest;
+        src_fmt      = fpnew_pkg::FP32;
+        dst_fmt      = fpnew_pkg::FP32;
+        vectorial_op = 1'b1;
+        set_dyn_rm   = 1'b1;   // fix round mode for vectors and fp16alt
+        use_fpu      = 1'b0;
+        use_shfl     = 1'b1;
+      end      
       // Double Precision
       riscv_instr::FADD_D: begin
         fpu_op = fpnew_pkg::ADD;
@@ -1114,6 +1124,17 @@ module snitch_fp_ss import snitch_pkg::*; #(
         set_dyn_rm   = 1'b1;
         if (acc_req_q.data_op inside {riscv_instr::VFNSUMEX_S_H}) op_mode = 1'b1;
       end
+      riscv_instr::VFSHUFFLE_H: begin
+        op_select[0] = RegA;
+        op_select[1] = AccBus;
+        op_select[2] = RegDest;
+        src_fmt      = fpnew_pkg::FP16;
+        dst_fmt      = fpnew_pkg::FP16;
+        vectorial_op = 1'b1;
+        set_dyn_rm   = 1'b1;   // fix round mode for vectors and fp16alt
+        use_fpu      = 1'b0;
+        use_shfl     = 1'b1;
+      end
       // [Alternate] Quarter Precision
       riscv_instr::FADD_B: begin
         fpu_op = fpnew_pkg::ADD;
@@ -1538,18 +1559,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
         set_dyn_rm   = 1'b1;
         if (acc_req_q.data_op inside {riscv_instr::VFCPKD_B_D}) op_mode = 1;
       end
-      riscv_instr::VFSHUFFLE_S: begin
-        op_select[0] = RegA;
-        op_select[1] = AccBus;
-        op_select[2] = RegDest;
-        src_fmt      = fpnew_pkg::FP32;
-        dst_fmt      = fpnew_pkg::FP32;
-        vectorial_op = 1'b1;
-        set_dyn_rm   = 1'b1;   // fix round mode for vectors and fp16alt
-        use_fpu      = 1'b0;
-        use_shfl     = 1'b1;
-        //if (acc_req_q.data_op inside {riscv_instr::VFSHUFFLE_S}) op_mode = 1'b1;
-      end
       riscv_instr::VFCVT_S_B,
       riscv_instr::VFCVTU_S_B: begin
         fpu_op = fpnew_pkg::F2F;
@@ -1645,6 +1654,17 @@ module snitch_fp_ss import snitch_pkg::*; #(
         vectorial_op = 1'b1;
         set_dyn_rm   = 1'b1;
         if (acc_req_q.data_op inside {riscv_instr::VFNSUMEX_H_B}) op_mode = 1'b1;
+      end
+      riscv_instr::VFSHUFFLE_B: begin
+        op_select[0] = RegA;
+        op_select[1] = AccBus;
+        op_select[2] = RegDest;
+        src_fmt      = fpnew_pkg::FP8;
+        dst_fmt      = fpnew_pkg::FP8;
+        vectorial_op = 1'b1;
+        set_dyn_rm   = 1'b1;   // fix round mode for vectors and fp16alt
+        use_fpu      = 1'b0;
+        use_shfl     = 1'b1;
       end
       // -------------------
       // From float to int
@@ -2458,18 +2478,21 @@ module snitch_fp_ss import snitch_pkg::*; #(
   );
 
   // ----------------------
-  // Shuffling Unit
+  // Shuffle Unit
   // ----------------------
 
   //parameter int num_elements = FLEN/8;
+  logic [FLEN-1:0]          shfl_result;
+  logic [7:0]               vec_mask;
+  logic [7:0][2:0]          element_mask;
+  logic [31:0]              num_elements;
 
-  // TODO: change name of masks to vector and element
-  logic [7:0]  element_mask;
-  logic [31:0] num_elements = '0;
-  logic [FLEN/32 : 0][31:0] rA_32, rD_32;
-  logic [FLEN/16 : 0][15:0] rA_16, rD_16;
-  logic [FLEN/8 : 0][7:0]   rA_8, rD_8;
-
+  logic [(FLEN/32)-1:0][31:0] rA_32, rD_32;
+  logic [(FLEN/16)-1:0][15:0] rA_16, rD_16;
+  logic [(FLEN/8)-1:0][7:0]   rA_8,  rD_8;
+  logic [(FLEN/32)-1:0][31:0] rA_op_32, rD_op_32;
+  logic [(FLEN/16)-1:0][15:0] rA_op_16, rD_op_16;
+  logic [(FLEN/8)-1:0][7:0]   rA_op_8,  rD_op_8;
 
   always_comb begin
     shfl_valid = 1'b0;
@@ -2485,19 +2508,22 @@ module snitch_fp_ss import snitch_pkg::*; #(
 
     if (shfl_in_valid & shfl_in_ready) begin
 
-      for (int i = 0; i < (FLEN/8); i++) begin
+      for (int i = 0; i < 8; i++) begin
         vec_mask[i] = op[1][(i*4)+3];
-        element_mask[(i*4)+:3] = op[1][(i*4) +: 3];
+        element_mask[i] = op[1][(i*4) +: 3];
       end
 
       unique case (src_fmt)
         fpnew_pkg::FP32: begin
           num_elements = FLEN/32;
 
+          rA_op_32 = op[0];
+          rD_op_32 = op[2];
+
           for (int i = 0; i < (num_elements); i++) begin
 
-            rA_32[i] = op[0][(element_mask[i*4]*32) +: 32];
-            rD_32[i] = op[2][(element_mask[i*4]*32) +: 32];
+            rA_32[i] = rA_op_32[element_mask[i]];
+            rD_32[i] = rD_op_32[element_mask[i]];
 
             shfl_result[(i*32) +: 32] = vec_mask[i] ? rA_32[i] : rD_32[i];
           end
@@ -2505,10 +2531,15 @@ module snitch_fp_ss import snitch_pkg::*; #(
         fpnew_pkg::FP16: begin
           num_elements = FLEN/16;
 
-          for (int i = 0; i < (num_elements); i++) begin
+          rA_op_16 = op[0];
+          rD_op_16 = op[2];
 
-            rA_16[i][15:0] = op[0][(element_mask[(i*4)+:2]*16) +: 16];
-            rD_16[i][15:0] = op[2][(element_mask[(i*4)+:2]*16) +: 16];
+          for (int i = 0; i < (num_elements); i++) begin
+            rA_16[i] = rA_op_16[element_mask[i]];
+            rD_16[i] = rD_op_16[element_mask[i]];
+
+            // rA_16[i] = op[0][(element_mask[(i*3)+:2]*16) +: 16];
+            // rD_16[i] = op[2][(element_mask[(i*3)+:2]*16) +: 16];
 
             shfl_result[(i*16) +: 16] = vec_mask[i] ? rA_16[i] : rD_16[i];
           end
@@ -2516,10 +2547,16 @@ module snitch_fp_ss import snitch_pkg::*; #(
         fpnew_pkg::FP8: begin
           num_elements = FLEN/8;
 
+          rA_op_8 = op[0];
+          rD_op_8 = op[2];
+
           for (int i = 0; i < (num_elements); i++) begin
 
-            rA_8[i][7:0] = op[0][(element_mask[(i*4)+:3]*8) +: 8];
-            rD_8[i][7:0] = op[2][(element_mask[(i*4)+:3]*8) +: 8];
+            rA_8[i] = rA_op_8[element_mask[i]];
+            rD_8[i] = rD_op_8[element_mask[i]];
+
+            // rA_8[i][7:0] = op[0][(element_mask[(i*3)+:3]*8) +: 8];
+            // rD_8[i][7:0] = op[2][(element_mask[(i*3)+:3]*8) +: 8];
 
             shfl_result[(i*8) +: 8] = vec_mask[i] ? rA_8[i] : rD_8[i];
           end
