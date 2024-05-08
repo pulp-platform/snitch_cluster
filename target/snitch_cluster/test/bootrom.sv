@@ -20,7 +20,7 @@
         input  logic [AddrWidth-1:0] addr_i,
         output logic [DataWidth-1:0] data_o
     );
-        logic [BootromSize-1:0][7:0] rom = '{
+        localparam logic [BootromSize-1:0][7:0] rom = '{
             {8'h00}, /* 0xffff */
             {8'h00}, /* 0xfffe */
             {8'h00}, /* 0xfffd */
