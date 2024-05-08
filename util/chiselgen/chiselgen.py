@@ -17,28 +17,32 @@ def main():
     # parse the args
     parser = argparse.ArgumentParser(prog="chiselgen")
     parser.add_argument(
-        "--streamer_cfg_para_name",
-        "-c",
+        "--chisel_param",
         type=str,
         required=True,
-        help="The specific parameter class for the streamer \
-        to generate the system verilog file",
+        help="Parameter class name",
     )
     parser.add_argument(
-        "--outdir",
-        "-o",
+        "--chisel_path",
+        type=pathlib.Path,
+        required=True,
+        help="Points to chisel source path",
+    )
+    parser.add_argument(
+        "--gen_path",
         type=pathlib.Path,
         required=True,
         help="Target directory to put the generated system verilog file.",
     )
 
     args = parser.parse_args()
-    streamer_cfg_para = args.streamer_cfg_para_name
-    outdir = args.outdir
+    chisel_path = args.chisel_path
+    chisel_param = args.chisel_param
+    gen_path = args.gen_path
 
-    # call chisel environment and generate the system verilog file
-    chisel_dir = "../../hw/chisel"
-    cmd = f' cd {chisel_dir} && sbt "runMain snax.streamer.{streamer_cfg_para} {outdir}"'
+    # Call chisel environment and generate the system verilog file
+    cmd = f' cd {chisel_path} && sbt \
+        "runMain {chisel_param} {gen_path}"'
     os.system(cmd)
 
 

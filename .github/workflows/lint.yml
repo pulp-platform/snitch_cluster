@@ -92,6 +92,8 @@ jobs:
             hw/snitch/src/csr_snax_def.sv
             hw/snax_hwpe_mac/src/*
             hw/snax_gemm/src/*
+            hw/templates/csrman_param_gen.scala.tpl
+            hw/templates/stream_param_gen.scala.tpl
             target/snitch_cluster/sw/apps/snax-mac/*
             target/snitch_cluster/sw/apps/snax-mac-simple/*
             target/snitch_cluster/sw/apps/snax-mac-tiled/*

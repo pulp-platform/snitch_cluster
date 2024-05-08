@@ -1,6 +1,4 @@
-package snax
-
-package streamer
+package snax.streamer
 
 import chisel3._
 import org.scalatest.flatspec.AnyFlatSpec

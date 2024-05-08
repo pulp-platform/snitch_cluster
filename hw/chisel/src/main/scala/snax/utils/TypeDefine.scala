@@ -1,6 +1,4 @@
-package snax
-
-package utils
+package snax.utils
 
 import chisel3._
 import chisel3.util._
