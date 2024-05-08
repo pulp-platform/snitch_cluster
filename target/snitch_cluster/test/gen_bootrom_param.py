@@ -114,7 +114,7 @@ if args.sv_module:
         input  logic [AddrWidth-1:0] addr_i,
         output logic [DataWidth-1:0] data_o
     );
-        logic [BootromSize-1:0][7:0] rom = '{{
+        localparam logic [BootromSize-1:0][7:0] rom = '{{
             {bytes}
         }};
         
