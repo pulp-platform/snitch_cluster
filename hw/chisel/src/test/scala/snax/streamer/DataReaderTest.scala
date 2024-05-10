@@ -14,7 +14,7 @@ class DataReaderTest
     with ChiselScalatestTester
     with Matchers {
   "DUT" should "pass" in {
-    test(new DataReader(DataMoverParams())).withAnnotations(
+    test(new DataReader(TestParameters.dataMover)).withAnnotations(
       Seq(WriteVcdAnnotation)
     ) { dut =>
       dut.clock.step(5)
@@ -23,7 +23,7 @@ class DataReaderTest
       dut.io.spatialStrides_csr_i.bits(1).poke(8)
       dut.io.spatialStrides_csr_i.valid.poke(1)
       dut.io.data_fifo_o.ready.poke(1)
-      for (i <- 0 until DataMoverTestParameters.tcdmPortsNum) {
+      for (i <- 0 until TestParameters.dataMover.tcdmPortsNum) {
         dut.io.tcdm_req(i).ready.poke(1)
         dut.io.tcdm_rsp(i).bits.data.poke(1)
       }

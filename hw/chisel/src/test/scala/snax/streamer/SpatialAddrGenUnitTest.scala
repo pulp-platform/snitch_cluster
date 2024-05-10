@@ -14,20 +14,20 @@ class SpatialAddrGenUnitTest
     with ChiselScalatestTester
     with Matchers {
   "DUT" should "pass" in {
-    test(new SpatialAddrGenUnit(SpatialAddrGenUnitParams())).withAnnotations(
+    test(new SpatialAddrGenUnit(TestParameters.spatialAddrGenUnit)).withAnnotations(
       Seq(WriteVcdAnnotation)
     ) { dut =>
       dut.clock.step(5)
       // random config generation
       val strides =
-        Seq.fill(SpatialAddrGenUnitTestParameters.loopDim)(
+        Seq.fill(TestParameters.spatialAddrGenUnit.loopDim)(
           (
             scala.util.Random.nextInt(10)
           )
         )
 
       // sending these configuration to the dut
-      for (i <- 0 until SpatialAddrGenUnitTestParameters.loopDim) {
+      for (i <- 0 until TestParameters.spatialAddrGenUnit.loopDim) {
         val stride = strides(i).U
         dut.io.strides_i(i).poke(stride)
       }
@@ -38,11 +38,11 @@ class SpatialAddrGenUnitTest
 
       // check the result (for loopDim = 2)
       val ptr_0 = 16
-      for (i <- 0 until SpatialAddrGenUnitTestParameters.loopBounds(0)) {
-        for (j <- 0 until SpatialAddrGenUnitTestParameters.loopBounds(1)) {
+      for (i <- 0 until TestParameters.spatialAddrGenUnit.loopBounds(0)) {
+        for (j <- 0 until TestParameters.spatialAddrGenUnit.loopBounds(1)) {
           val ptr = ptr_0 + i * strides(0) + j * strides(1)
           dut.io
-            .ptr_o(i + j * SpatialAddrGenUnitTestParameters.loopBounds(0))
+            .ptr_o(i + j * TestParameters.spatialAddrGenUnit.loopBounds(0))
             .expect(ptr)
         }
       }

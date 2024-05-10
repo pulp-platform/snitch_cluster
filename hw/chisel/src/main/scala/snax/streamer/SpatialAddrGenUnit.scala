@@ -79,7 +79,7 @@ trait WithSpatialLoopIndices {
   *   The bit width of the address.
   */
 class SpatialAddrGenUnit(
-    params: SpatialAddrGenUnitParams = SpatialAddrGenUnitParams(),
+    params: SpatialAddrGenUnitParams,
     tagName: String = ""
 ) extends Module
     with RequireAsyncReset
@@ -156,12 +156,4 @@ class SpatialAddrGenUnit(
     io.ptr_i
   )
 
-}
-
-// Scala main function for generating system verilog file for the SpatialAddrGenUnit module
-object SpatialAddrGenUnit extends App {
-  emitVerilog(
-    new SpatialAddrGenUnit(SpatialAddrGenUnitParams()),
-    Array("--target-dir", "generated/streamer")
-  )
 }

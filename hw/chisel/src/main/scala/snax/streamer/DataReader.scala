@@ -12,7 +12,7 @@ import chisel3.util._
   *   The parameter class contains all the parameters of a data mover module
   */
 class DataReaderIO(
-    params: DataMoverParams = DataMoverParams()
+    params: DataMoverParams
 ) extends DataMoverIO(params) {
 
   // tcdm response
@@ -40,7 +40,7 @@ class DataReaderIO(
   *   The parameter class contains all the parameters of a data mover module
   */
 class DataReader(
-    params: DataMoverParams = DataMoverParams(),
+    params: DataMoverParams,
     tagName: String = ""
 ) extends DataMover(params, tagName) {
   override val desiredName = tagName + "DataReader"
@@ -134,12 +134,4 @@ class DataReader(
       ~tcdm_req_ready_reg(i) && (io.data_fifo_o.ready || ~tcdm_rsp_valid)
   }
 
-}
-
-// Scala main function for generating system verilog file for the DataReader module
-object DataReader extends App {
-  emitVerilog(
-    new DataReader(DataMoverParams()),
-    Array("--target-dir", "generated/streamer")
-  )
 }

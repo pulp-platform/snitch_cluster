@@ -1,0 +1,7 @@
+generated
+project/*
+!project/plugins.sbt
+!project/build.properties
+target
+test_run_dir
+.bsp

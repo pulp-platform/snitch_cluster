@@ -15,7 +15,7 @@ import chisel3.util._
   * @param params
   *   The parameter class contains all the parameters of a data mover module
   */
-class DataMoverIO(params: DataMoverParams = DataMoverParams()) extends Bundle {
+class DataMoverIO(params: DataMoverParams) extends Bundle {
 
   // signals for write request address generation
   val ptr_agu_i = Flipped(Decoupled(UInt(params.addrWidth.W)))
@@ -46,7 +46,7 @@ class DataMoverIO(params: DataMoverParams = DataMoverParams()) extends Bundle {
   *   The parameter class contains all the parameters of a data mover module
   */
 class DataMover(
-    params: DataMoverParams = DataMoverParams(),
+    params: DataMoverParams,
     tagName: String = ""
 ) extends Module
     with RequireAsyncReset {
@@ -222,7 +222,7 @@ class DataMover(
 // classes which extend the DataMover module, but are just
 // set to 0 here for testing purposes.
 class DataMoverTester(
-    params: DataMoverParams = DataMoverParams()
+    params: DataMoverParams
 ) extends DataMover(params) {
 
   for (i <- 0 until params.tcdmPortsNum) {

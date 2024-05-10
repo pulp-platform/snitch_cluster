@@ -13,11 +13,11 @@ class StreamerTopTest
     with ChiselScalatestTester
     with Matchers {
   "DUT" should "pass" in {
-    test(new StreamerTop(new StreamerParams()))
+    test(new StreamerTop(TestParameters.streamer))
       .withAnnotations(
         Seq(WriteVcdAnnotation)
       ) { dut =>
-        dut.clock.step(5)
+       dut.clock.step(5)
 
         // write csr helper function
         def write_csr(addr: Int, data: Int) = {
@@ -66,7 +66,7 @@ class StreamerTopTest
 
         // give valid transaction config
         // temporal loop bound
-        val temporal_loop_bound = 20
+       val temporal_loop_bound = 20
         write_csr(0, temporal_loop_bound)
 
         // temporal loop strides
@@ -107,39 +107,39 @@ class StreamerTopTest
         dut.clock.step(5)
 
         // give tcdm ports signals, no contention scene
-        for (i <- 0 until StreamerParams().dataReaderTcdmPorts.sum) {
+        for (i <- 0 until TestParameters.streamer.dataReaderTcdmPorts.sum) {
           dut.io.data.tcdm_req(i).ready.poke(1.B)
           dut.io.data.tcdm_rsp(i).valid.poke(1.B)
         }
 
         // give accelerator ready to get input signals
-        for (i <- 0 until StreamerParams().dataReaderNum) {
+        for (i <- 0 until TestParameters.streamer.dataReaderNum) {
           dut.io.data.streamer2accelerator.data(i).ready.poke(1.B)
         }
 
         // wait for temporal_loop_bound cycles
         dut.clock.step(temporal_loop_bound * 2)
-        for (i <- 0 until StreamerParams().dataReaderTcdmPorts.sum) {
+        for (i <- 0 until TestParameters.streamer.dataReaderTcdmPorts.sum) {
           dut.io.data.tcdm_req(i).ready.poke(0.B)
           dut.io.data.tcdm_rsp(i).valid.poke(0.B)
         }
 
         // mimic accelerator gives valid data
-        for (i <- 0 until StreamerParams().dataWriterNum) {
+        for (i <- 0 until TestParameters.streamer.dataWriterNum) {
           dut.io.data.accelerator2streamer.data(i).valid.poke(1.B)
         }
 
         // mimic tcdm is ready for write request
-        for (i <- 0 until StreamerParams().dataWriterTcdmPorts.sum) {
+        for (i <- 0 until TestParameters.streamer.dataWriterTcdmPorts.sum) {
           dut.io.data
-            .tcdm_req(i + StreamerParams().dataReaderTcdmPorts.sum)
+            .tcdm_req(i + TestParameters.streamer.dataReaderTcdmPorts.sum)
             .ready
             .poke(1.B)
         }
 
         // wait for temporal_loop_bound cycles
         dut.clock.step(temporal_loop_bound * 2)
-        for (i <- 0 until StreamerParams().dataWriterNum) {
+        for (i <- 0 until TestParameters.streamer.dataWriterNum) {
           dut.io.data.accelerator2streamer.data(i).valid.poke(0.B)
         }
 

@@ -11,7 +11,7 @@ import chisel3.util._
   *   The parameter class contains all the parameters of a data mover module
   */
 class DataWriterIO(
-    params: DataMoverParams = DataMoverParams()
+    params: DataMoverParams
 ) extends DataMoverIO(params) {
 
   // valid data from the queue
@@ -32,7 +32,7 @@ class DataWriterIO(
   *   The parameter class contains all the parameters of a data mover module
   */
 class DataWriter(
-    params: DataMoverParams = DataMoverParams(),
+    params: DataMoverParams,
     tagName: String = ""
 ) extends DataMover(params) {
   override val desiredName = tagName + "DataWriter"
@@ -61,12 +61,4 @@ class DataWriter(
   // with a new TCDM request (= a new input pointer)
   io.data_fifo_i.ready := io.ptr_agu_i.ready
 
-}
-
-// Scala main function for generating system verilog file for the DataWriter module
-object DataWriter extends App {
-  emitVerilog(
-    new DataWriter(DataMoverParams()),
-    Array("--target-dir", "generated/streamer")
-  )
 }

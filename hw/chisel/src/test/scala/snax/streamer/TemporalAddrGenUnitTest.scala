@@ -15,7 +15,7 @@ class TemporalAddrGenUnitTest
     with Matchers
     with WithSpatialLoopIndices {
   "DUT" should "pass" in {
-    test(new TemporalAddrGenUnit(TemporalAddrGenUnitParams())).withAnnotations(
+    test(new TemporalAddrGenUnit(TestParameters.temporalAddrGenUnit)).withAnnotations(
       Seq(WriteVcdAnnotation)
     ) { dut =>
       def test_once() = {
@@ -23,20 +23,20 @@ class TemporalAddrGenUnitTest
         // random config generation
         val base_ptr = scala.util.Random.nextInt(100)
         val loopBounds =
-          Seq.fill(TemporalAddrGenUnitTestParameters.loopDim)(
+          Seq.fill(TestParameters.temporalAddrGenUnit.loopDim)(
             (
               scala.util.Random.nextInt(5) + 1
             )
           )
         val strides =
-          Seq.fill(TemporalAddrGenUnitTestParameters.loopDim)(
+          Seq.fill(TestParameters.temporalAddrGenUnit.loopDim)(
             (
               scala.util.Random.nextInt(10)
             )
           )
 
         // sending these configuration to the dut
-        for (i <- 0 until TemporalAddrGenUnitTestParameters.loopDim) {
+        for (i <- 0 until TestParameters.temporalAddrGenUnit.loopDim) {
           val lb = loopBounds(i).U
           val ts = strides(i).U
           dut.io.loopBounds_i.bits(i).poke(lb)
@@ -65,7 +65,7 @@ class TemporalAddrGenUnitTest
 
         while (dut.io.done.peekBoolean() == false) {
           val indices = genSpatialLoopIndices(
-            TemporalAddrGenUnitTestParameters.loopDim,
+            TestParameters.temporalAddrGenUnit.loopDim,
             loopBounds,
             counter
           )

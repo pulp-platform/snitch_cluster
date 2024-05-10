@@ -26,9 +26,9 @@ trait CommonParams {
   *   The bit width of the address.
   */
 case class TemporalAddrGenUnitParams(
-    loopDim: Int = TemporalAddrGenUnitTestParameters.loopDim,
-    loopBoundWidth: Int = TemporalAddrGenUnitTestParameters.loopBoundWidth,
-    addrWidth: Int = TemporalAddrGenUnitTestParameters.addrWidth
+    loopDim: Int,
+    loopBoundWidth: Int,
+    addrWidth: Int
 )
 
 /** This class represents all the parameters for the Spatial Address Generation
@@ -41,9 +41,9 @@ case class TemporalAddrGenUnitParams(
   *   The bit width of the address.
   */
 case class SpatialAddrGenUnitParams(
-    loopDim: Int = SpatialAddrGenUnitTestParameters.loopDim,
-    loopBounds: Seq[Int] = SpatialAddrGenUnitTestParameters.loopBounds,
-    addrWidth: Int = SpatialAddrGenUnitTestParameters.addrWidth
+    loopDim: Int,
+    loopBounds: Seq[Int],
+    addrWidth: Int
 )
 
 /** This class represents all the parameters for the Data Mover (including Data
@@ -63,11 +63,11 @@ case class SpatialAddrGenUnitParams(
   *   FIFO width
   */
 case class DataMoverParams(
-    tcdmPortsNum: Int = DataMoverTestParameters.tcdmPortsNum,
-    spatialBounds: Seq[Int] = DataMoverTestParameters.spatialBounds,
-    spatialDim: Int = DataMoverTestParameters.spatialDim,
-    elementWidth: Int = DataMoverTestParameters.elementWidth,
-    fifoWidth: Int = DataMoverTestParameters.fifoWidth
+    tcdmPortsNum: Int,
+    spatialBounds: Seq[Int],
+    spatialDim: Int,
+    elementWidth: Int,
+    fifoWidth: Int
 ) extends CommonParams
 
 /** FIFO parameters
@@ -173,15 +173,12 @@ trait HasStreamerInferredParams extends HasStreamerCoreParams {
   *   default value of these parameters is from the StreamerTestConstant object
   */
 case class StreamerParams(
-    temporalAddrGenUnitParams: TemporalAddrGenUnitParams =
-      StreamerTestConstant.temporalAddrGenUnitParams,
-    stationarity: Seq[Int] = StreamerTestConstant.stationarity,
-    dataReaderParams: Seq[DataMoverParams] =
-      StreamerTestConstant.dataReaderParams,
-    dataWriterParams: Seq[DataMoverParams] =
-      StreamerTestConstant.dataWriterParams,
-    fifoReaderParams: Seq[FIFOParams] = StreamerTestConstant.fifoReaderParams,
-    fifoWriterParams: Seq[FIFOParams] = StreamerTestConstant.fifoWriterParams,
-    tagName: String = StreamerTestConstant.tagName
+    temporalAddrGenUnitParams: TemporalAddrGenUnitParams,
+    stationarity: Seq[Int],
+    dataReaderParams: Seq[DataMoverParams],
+    dataWriterParams: Seq[DataMoverParams],
+    fifoReaderParams: Seq[FIFOParams],
+    fifoWriterParams: Seq[FIFOParams],
+    tagName: String = ""
 ) extends HasStreamerCoreParams
     with HasStreamerInferredParams

@@ -27,7 +27,7 @@ class DataFromAcceleratorX(
 
 // csr related io
 class StreamerCsrIO(
-    params: StreamerParams = StreamerParams()
+    params: StreamerParams
 ) extends Bundle {
 
   // configurations interface for a new data operation
@@ -371,57 +371,4 @@ class Streamer(
     ).io.tcdm_req(innerIndex)
   }
 
-}
-
-// Scala main function for generating test streamer system verilog file
-object StreamerTester extends App {
-  emitVerilog(
-    new Streamer(StreamerParams()),
-    Array("--target-dir", "generated/streamer/tester")
-  )
-}
-
-// Scala main function for generating system verilog file for different accelerators
-// including GEMM, Post-processing SIMD and MAC engine
-object GemmStreamer extends App {
-  emitVerilog(
-    new Streamer(
-      StreamerParams(
-        temporalAddrGenUnitParams =
-          GeMMStreamerParameters.temporalAddrGenUnitParams,
-        fifoReaderParams = GeMMStreamerParameters.fifoReaderParams,
-        fifoWriterParams = GeMMStreamerParameters.fifoWriterParams,
-        stationarity = GeMMStreamerParameters.stationarity,
-        dataReaderParams = GeMMStreamerParameters.dataReaderParams,
-        dataWriterParams = GeMMStreamerParameters.dataWriterParams
-      )
-    ),
-    Array("--target-dir", "generated/streamer/gemm")
-  )
-}
-
-object PostProcessingStreamer extends App {
-  emitVerilog(
-    new Streamer(
-      StreamerParams(
-        temporalAddrGenUnitParams =
-          PostProcessingStreamerParameters.temporalAddrGenUnitParams,
-        fifoReaderParams = PostProcessingStreamerParameters.fifoReaderParams,
-        fifoWriterParams = PostProcessingStreamerParameters.fifoWriterParams,
-        stationarity = PostProcessingStreamerParameters.stationarity,
-        dataReaderParams = PostProcessingStreamerParameters.dataReaderParams,
-        dataWriterParams = PostProcessingStreamerParameters.dataWriterParams
-      )
-    ),
-    Array("--target-dir", "generated/streamer/pp")
-  )
-}
-
-object MacStreamer extends App {
-  emitVerilog(
-    new Streamer(
-      StreamerParams()
-    ),
-    Array("--target-dir", "generated/streamer/mac")
-  )
 }

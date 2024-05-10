@@ -14,7 +14,7 @@ import chisel3.experimental.{prefix, noPrefix}
   *   the parameters class instantiation for the streamer top module
   */
 class StreamerTopIO(
-    params: StreamerParams = StreamerParams(),
+    params: StreamerParams,
     csrAddrWidth: Int
 ) extends Bundle {
 
@@ -34,7 +34,7 @@ class StreamerTopIO(
   *   the parameters class instantiation for the streamer top module
   */
 class StreamerTop(
-    params: StreamerParams = StreamerParams()
+    params: StreamerParams
 ) extends Module
     with RequireAsyncReset {
 
@@ -152,84 +152,4 @@ class StreamerTop(
   // io.data and streamer data ports connection
   io.data <> streamer.io.data
 
-}
-
-// Scala main function for generating test streamerTop system verilog file
-object StreamerTopTester extends App {
-  emitVerilog(
-    new StreamerTop(
-      StreamerParams(
-        temporalAddrGenUnitParams =
-          StreamerTestConstant.temporalAddrGenUnitParams,
-        fifoReaderParams = StreamerTestConstant.fifoReaderParams,
-        fifoWriterParams = StreamerTestConstant.fifoWriterParams,
-        stationarity = StreamerTestConstant.stationarity,
-        dataReaderParams = StreamerTestConstant.dataReaderParams,
-        dataWriterParams = StreamerTestConstant.dataWriterParams
-      )
-    ),
-    Array("--target-dir", "generated/streamertop/tester")
-  )
-}
-
-// streamertop for GEMM
-object GeMMStreamerTop {
-  def main(args: Array[String]): Unit = {
-    val outPath = args.headOption.getOrElse("generated/streamertop/gemm")
-    emitVerilog(
-      new StreamerTop(
-        StreamerParams(
-          temporalAddrGenUnitParams =
-            GeMMStreamerParameters.temporalAddrGenUnitParams,
-          fifoReaderParams = GeMMStreamerParameters.fifoReaderParams,
-          fifoWriterParams = GeMMStreamerParameters.fifoWriterParams,
-          stationarity = GeMMStreamerParameters.stationarity,
-          dataReaderParams = GeMMStreamerParameters.dataReaderParams,
-          dataWriterParams = GeMMStreamerParameters.dataWriterParams,
-          tagName = "GeMM"
-        )
-      ),
-      Array("--target-dir", outPath)
-    )
-  }
-}
-
-// streamertop for PP-SIMD
-object PostProcessingStreamerTop {
-  def main(args: Array[String]): Unit = {
-    val outPath = args.headOption.getOrElse("generated/streamertop/simd")
-    emitVerilog(
-      new StreamerTop(
-        StreamerParams(
-          temporalAddrGenUnitParams =
-            PostProcessingStreamerParameters.temporalAddrGenUnitParams,
-          fifoReaderParams = PostProcessingStreamerParameters.fifoReaderParams,
-          fifoWriterParams = PostProcessingStreamerParameters.fifoWriterParams,
-          stationarity = PostProcessingStreamerParameters.stationarity,
-          dataReaderParams = PostProcessingStreamerParameters.dataReaderParams,
-          dataWriterParams = PostProcessingStreamerParameters.dataWriterParams,
-          tagName = "PostProcessingSIMD"
-        )
-      ),
-      Array("--target-dir", outPath)
-    )
-  }
-}
-
-// streamertop for MAC
-object MacStreamerTop extends App {
-  emitVerilog(
-    new StreamerTop(
-      StreamerParams(
-        temporalAddrGenUnitParams =
-          MacStreamerParameters.temporalAddrGenUnitParams,
-        fifoReaderParams = MacStreamerParameters.fifoReaderParams,
-        fifoWriterParams = MacStreamerParameters.fifoWriterParams,
-        stationarity = MacStreamerParameters.stationarity,
-        dataReaderParams = MacStreamerParameters.dataReaderParams,
-        dataWriterParams = MacStreamerParameters.dataWriterParams
-      )
-    ),
-    Array("--target-dir", "generated/streamertop/mac")
-  )
 }
