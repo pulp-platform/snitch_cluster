@@ -2,6 +2,26 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#ifdef OPENOCD_SEMIHOSTING
+
+#include <openocd.h>
+
+#define PUTC_BUFFER_LEN 1024
+static int putchar_index[SNRT_CLUSTER_NUM * SNRT_CLUSTER_CORE_NUM] = {0};
+static char putchar_data[SNRT_CLUSTER_NUM * SNRT_CLUSTER_CORE_NUM]
+                        [PUTC_BUFFER_LEN];
+
+// Provide an implementation for putchar.
+void _putchar(char character) {
+    volatile char *buf = putchar_data[snrt_hartid()];
+    buf[putchar_index[snrt_hartid()]++] = character;
+    if (putchar_index[snrt_hartid()] == PUTC_BUFFER_LEN || character == '\n') {
+        __ocd_semihost_write(1, (uint8_t *)buf, putchar_index[snrt_hartid()]);
+        putchar_index[snrt_hartid()] = 0;
+    }
+}
+
+#else
 extern uintptr_t volatile tohost, fromhost;
 
 // Rudimentary string buffer for putc calls.
@@ -34,3 +54,5 @@ void _putchar(char character) {
         buf->hdr.size = 0;
     }
 }
+
+#endif
