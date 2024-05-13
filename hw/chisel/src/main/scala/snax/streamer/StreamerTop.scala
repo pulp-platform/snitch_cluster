@@ -40,35 +40,43 @@ class StreamerTop(
 
   override val desiredName = params.tagName + "StreamerTop"
 
-  // add extra performance counter
-  val csrNum: Int =
-    params.temporalDim + params.dataMoverNum * params.temporalDim + params.spatialDim.sum + params.dataMoverNum + 1 + 1
-  val csrAddrWidth: Int = log2Up(csrNum)
+  val csrNumReadWrite: Int =
+    params.temporalDim + params.dataMoverNum * params.temporalDim + params.spatialDim.sum + params.dataMoverNum + 1
 
   val io = IO(
     new StreamerTopIO(
       params,
-      csrAddrWidth
+      params.csrAddrWidth
     )
   )
 
   // csrManager instantiation
-  val csr_manager = Module(new CsrManager(csrNum, csrAddrWidth, params.tagName))
+  val csr_manager = Module(
+    new CsrManager(
+      csrNumReadWrite,
+      params.readOnlyCsrNum,
+      params.csrAddrWidth,
+      params.tagName
+    )
+  )
 
   // streamer instantiation
   val streamer = Module(new Streamer(params, params.tagName))
 
+  // connect the csrManager input and streamertop csr req input
+  csr_manager.io.csr_config_in.req <> io.csr.req
+
   // io.csr and csrManager input connection
   csr_manager.io.csr_config_in.rsp <> io.csr.rsp
 
-  val csr_config_in_req_valid = WireInit(false.B)
-  val csr_config_in_req_bits = Wire(new CsrReq(csrAddrWidth))
-  val csr_config_in_req_ready = WireInit(false.B)
+  // connect the streamer and csrManager output
+  // control signals
+  streamer.io.csr.valid := csr_manager.io.csr_config_out.valid
+  csr_manager.io.csr_config_out.ready := streamer.io.csr.ready
 
-  val streamerIdle2Busy = WireInit(false.B)
+  // add performance counter for streamer
   val streamerBusy2Idle = WireInit(false.B)
 
-  streamerIdle2Busy := streamer.io.busy_o && !RegNext(streamer.io.busy_o)
   streamerBusy2Idle := !streamer.io.busy_o && RegNext(streamer.io.busy_o)
 
   val performance_counter = RegInit(0.U(32.W))
@@ -78,28 +86,12 @@ class StreamerTop(
     performance_counter := 0.U
   }
 
-  csr_config_in_req_valid := io.csr.req.valid
-  when(streamerBusy2Idle) {
-    csr_config_in_req_bits.addr := csrNum.U - 2.U
-    csr_config_in_req_bits.data := performance_counter
-    csr_config_in_req_bits.write := true.B
-  }.otherwise {
-    csr_config_in_req_bits := io.csr.req.bits
-  }
-
-  csr_manager.io.csr_config_in.req.valid := csr_config_in_req_valid
-  csr_manager.io.csr_config_in.req.bits := csr_config_in_req_bits
-  io.csr.req.ready := csr_manager.io.csr_config_in.req.ready
-
-  // csr_manager.io.streamerBusy2Idle := streamerBusy2Idle
-
-  // connect the streamer and csrManager output
-  // control signals
-  streamer.io.csr.valid := csr_manager.io.csr_config_out.valid
-  csr_manager.io.csr_config_out.ready := streamer.io.csr.ready
+  // connect the performance counter to the first ready only csr
+  csr_manager.io.read_only_csr(0) := performance_counter
 
   // splitting csrManager data ports to the streamer components
-  // Total number of csr is temporalDim + dataMoverNum * temporalDim + spatialDim.sum + dataMoverNum + 1.
+  //  Total number of csr is temporalDim + dataMoverNum * temporalDim + spatialDim.sum + dataMoverNum
+  // + 1 (launch address) + 1 (performance counter).
 
   // lowest temporalDim address (0 to temporalDim - 1) is for temporal loop bound.
   //  0 is for innermost loop, temporalDim - 1 is for outermost loop

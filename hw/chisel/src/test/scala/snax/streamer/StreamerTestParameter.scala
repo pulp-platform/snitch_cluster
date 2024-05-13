@@ -76,29 +76,28 @@ object TestParameters {
     tagName = "abc"
   )
 
-  val temporalAddrGenUnit =  TemporalAddrGenUnitParams(
+  val temporalAddrGenUnit = TemporalAddrGenUnitParams(
     loopDim = 3,
     loopBoundWidth = 8,
     addrWidth = 32
   )
 
-  val spatialAddrGenUnit = SpatialAddrGenUnitParams (
+  val spatialAddrGenUnit = SpatialAddrGenUnitParams(
     loopBounds = Seq(8, 8),
     loopDim = 2,
     addrWidth = 32
   )
 
-  val dataMover = DataMoverParams (
+  val dataMover = DataMoverParams(
     tcdmPortsNum = 8,
     spatialBounds = Seq(8, 8),
     fifoWidth = 512,
     elementWidth = 8,
-    spatialDim = 2,
-    )
+    spatialDim = 2
+  )
 
-  val fifo = FIFOParams (
+  val fifo = FIFOParams(
     width = 512,
     depth = 4
-  ) 
+  )
 }
-

@@ -4,13 +4,15 @@ import chisel3._
 import org.scalatest.flatspec.AnyFlatSpec
 import chiseltest._
 
-class CsrManagerTopGenerate
-extends AnyFlatSpec {
+class CsrManagerTopGenerate extends AnyFlatSpec {
 
   emitVerilog(
-    new CsrManager(10, 32),
-    Array("--target-dir", "generated/")
-  )    
+    new CsrManager(
+      CsrManagerTestParameters.csrNumReadWrite,
+      CsrManagerTestParameters.csrNumReadOnly,
+      CsrManagerTestParameters.csrAddrWidth
+    ),
+    Array("--target-dir", "generated/csr_manager")
+  )
 
 }
-

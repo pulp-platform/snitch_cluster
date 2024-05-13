@@ -4,13 +4,11 @@ import chisel3._
 import org.scalatest.flatspec.AnyFlatSpec
 import chiseltest._
 
-class StreamerTopGenerate
-extends AnyFlatSpec {
+class StreamerTopGenerate extends AnyFlatSpec {
 
   emitVerilog(
     new StreamerTop(TestParameters.streamer),
-    Array("--target-dir", "generated/")
-  )    
+    Array("--target-dir", "generated/streamer")
+  )
 
 }
-

@@ -17,7 +17,7 @@ class StreamerTopTest
       .withAnnotations(
         Seq(WriteVcdAnnotation)
       ) { dut =>
-       dut.clock.step(5)
+        dut.clock.step(5)
 
         // write csr helper function
         def write_csr(addr: Int, data: Int) = {
@@ -66,7 +66,7 @@ class StreamerTopTest
 
         // give valid transaction config
         // temporal loop bound
-       val temporal_loop_bound = 20
+        val temporal_loop_bound = 20
         write_csr(0, temporal_loop_bound)
 
         // temporal loop strides
