@@ -270,6 +270,7 @@ module ${cfg['name']}_wrapper (
     .NrCores (${cfg['nr_cores']}),
     .TCDMDepth (${cfg['tcdm']['depth']}),
     .ZeroMemorySize (${cfg['zero_mem_size']}),
+    .BootRomSize (${cfg['boot_rom_size']}),
     .ClusterPeriphSize (${cfg['cluster_periph_size']}),
     .NrBanks (${cfg['tcdm']['banks']}),
     .DMANumAxInFlight (${cfg['dma_axi_req_fifo_depth']}),

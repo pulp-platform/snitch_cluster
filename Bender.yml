@@ -159,6 +159,7 @@ sources:
       - hw/snitch_cluster/src/snitch_fpu.sv
       - hw/snitch_cluster/src/snitch_sequencer.sv
       - hw/snitch_cluster/src/snitch_tcdm_interconnect.sv
+      - target/snitch_cluster/test/bootrom.sv
       # Level 1
       - hw/snitch_cluster/src/snitch_barrier.sv
       - hw/snitch_cluster/src/snitch_fp_ss.sv
