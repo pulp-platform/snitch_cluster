@@ -55,40 +55,40 @@ while length < max(len(binary), args.pad):
 
 binary += b"\0" * (length - len(binary))
 
-unpack('>h', binary)
-
-# # Generate the bytes to be emitted.
-# def chunks(seq, size):
-#     return (seq[pos:pos + size] for pos in range(0, len(seq), size))
+# Generate the bytes to be emitted.
+def chunks(seq, size):
+    return (seq[pos:pos + size] for pos in range(0, len(seq), size))
 
 
-# def format_word_bin(word):
-#     hex = ["{:08b}".format(int(x)) for x in word]
-#     return "".join(reversed(hex))
+def format_word_bin(word):
+    hex = ["{:08b}".format(int(x)) for x in word]
+    return "".join(reversed(hex))
 
 
-# def format_word_hex(word):
-#     hex = ["{:02x}".format(int(x)) for x in word]
-#     hex += ["00"] * (4 - len(word))
-#     return "".join(reversed(hex))
+def format_arm_rom(binary):
+    bytes = list(enumerate(chunks(binary, 1)))
+    return "\n".join(("{}".format(format_word_bin(x)) for i, x in bytes))
 
-
-# def format_arm_rom(binary):
-#     bytes = list(enumerate(chunks(binary, 1)))
-#     return "\n".join(("{}".format(format_word_bin(x)) for i, x in bytes))
-
-
-# def format_binary(binary):
-#     bytes = list(enumerate(chunks(binary, 1)))
-#     num_bytes = len(bytes)
-#     return num_bytes, "\n".join(("{:03}: byte_array[7:0] = 8'h{}".format(i, format_word_hex(x), i) for i, x in bytes))
 
 if args.arm_rom:
     bytes = format_arm_rom(binary)
     print(bytes)
 
+def create_rom(binary):
+    b = bytearray(binary).hex()
+    num_bytes = len(b)
+    return int(num_bytes / 2), "\n            ".join(
+        ("{{8'h{}}}, /* 0x{:04x} */".format(
+            str(b[i]) + str(b[i + 1]), int(i / 2)) for i in range(num_bytes - 2, 0, -2))) + "\n            {{8'h{}}}  /* 0x{:04x} */".format(
+                str(b[0]) + str(b[1]), 0)
+
+def assign_word():
+    MaxDataWidth = 512 / 8
+    return "".join("rom[addr_i+{}][7:0],\n                             ".format(i) for i in range(int(MaxDataWidth) - 1, 0, -1))
+
 if args.sv_module:
-    num_bytes, bytes = format_binary(binary)
+    num_bytes, bytes = create_rom(binary)
+    word = assign_word()
 
     # Emit the code.
     print("""
@@ -107,39 +107,33 @@ if args.sv_module:
     module {module_name} #(
         parameter int unsigned AddrWidth = 32,
         parameter int unsigned DataWidth = 32,
-        parameter int unsigned BASE = 3
+        parameter int unsigned BootromSize = 65536
     )(
         input  logic                 clk_i,
         input  logic                 rst_ni,
-        input  logic                 req_i,
         input  logic [AddrWidth-1:0] addr_i,
         output logic [DataWidth-1:0] data_o
     );
-        localparam NumBytes = {num_bytes};
-        logic [$clog2(NumBytes)-1:0][7:0] byte_array;
-          
-        localparam RomSize = $clog2(NumBytes) / (DataWidth / 8);
-        localparam logic [RomSize-1:0][DataWidth-1:0] rom;
-          
-        data_o = rom[addr_i];
-        data_o = {rom[addr_i],rom[addr_i+1]};
+        logic [BootromSize-1:0][7:0] rom = '{{
+            {bytes}
+        }};
+        
+        localparam int unsigned NumBytes = DataWidth/8;
+        localparam int unsigned WordOffset = $clog2(NumBytes);
+        logic [BootromSize/NumBytes-1:0][DataWidth-1:0] rom_word_addressed;
+        assign rom_word_addressed = rom;
 
-        always comb begin
-          unique case ()
-            {bytes};
-                default: byte_array[7:0] = 8'h00;
-            endcase
-          unique case ()
-            {bytes};
-                default: byte_array[7:0] = 8'h00;
-            endcase
-        end    
+        logic [$clog2(BootromSize)-2:WordOffset] aligned_address; // Bootrom is only half size.
 
-        assign data_o = rom;
+        assign aligned_address = addr_i[$clog2(BootromSize)-1:WordOffset];
+
+        assign data_o = rom_word_addressed[aligned_address];
+        
     endmodule
     """.strip().format(
         script=os.path.basename(__file__),
         module_name=args.sv_module,
         num_bytes=num_bytes,
         bytes=bytes,
+        word=word,
     ))
