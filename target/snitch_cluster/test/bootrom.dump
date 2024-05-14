@@ -4,18 +4,18 @@ test/bootrom.elf:     file format elf32-littleriscv
 
 Disassembly of section .text:
 
-00001000 <_start>:
-    1000:	f1402573          	csrr	a0,mhartid
-    1004:	00000597          	auipc	a1,0x0
-    1008:	02058593          	addi	a1,a1,32 # 1024 <device_tree>
-    100c:	00000297          	auipc	t0,0x0
-    1010:	0142a283          	lw	t0,20(t0) # 1020 <entry_addr>
-    1014:	000280e7          	jalr	t0
+00001000 <_snitch_park>:
+    1000:	00000297          	auipc	t0,0x0
+    1004:	02028293          	addi	t0,t0,32 # 1020 <_snitch_resume>
+    1008:	30529073          	csrw	mtvec,t0
+    100c:	30046073          	csrsi	mstatus,8
+    1010:	000802b7          	lui	t0,0x80
+    1014:	00828293          	addi	t0,t0,8 # 80008 <_snitch_resume+0x7efe8>
+    1018:	30429073          	csrw	mie,t0
+    101c:	10500073          	wfi
 
-00001018 <no_payload>:
-    1018:	10500073          	wfi
-    101c:	ffdff06f          	j	1018 <no_payload>
-
-00001020 <entry_addr>:
-    1020:	1018                	addi	a4,sp,32
-	...
+00001020 <_snitch_resume>:
+    1020:	18800293          	li	t0,392
+    1024:	0002a283          	lw	t0,0(t0)
+    1028:	000280e7          	jalr	t0
+    102c:	fd5ff06f          	j	1000 <_snitch_park>
