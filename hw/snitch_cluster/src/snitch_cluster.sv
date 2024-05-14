@@ -1256,6 +1256,17 @@ module snitch_cluster
     .icache_events_i (icache_events)
   );
 
+  // bootrom #(
+  //   .AddrWidth (PhysicalAddrWidth),
+  //   .DataWidth (WideDataWidth)
+  // ) i_bootrom (
+  //   .clk_i(clk_i),
+  //   .rst_ni(rst_ni),
+  //   .req_i(wide_in_req_i),
+  //   .addr_i(BootAddr),
+  //   .data_o()
+  // );
+
   // Optionally decouple the external narrow AXI master ports.
   axi_cut #(
     .Bypass     ( !RegisterExtNarrow ),
