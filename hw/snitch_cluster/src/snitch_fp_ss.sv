@@ -126,9 +126,9 @@ module snitch_fp_ss import snitch_pkg::*; #(
   logic csr_instr;
 
   // Shuffle Unit
-  logic            use_shfl;
-  logic            shfl_in_valid, shfl_in_ready;
-  logic            shfl_valid;
+  logic use_shfl;
+  logic shfl_in_valid, shfl_in_ready;
+  logic shfl_valid;
 
 
   // FPU Controller
@@ -2481,18 +2481,14 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // Shuffle Unit
   // ----------------------
 
-  //parameter int num_elements = FLEN/8;
-  logic [FLEN-1:0]          shfl_result;
-  logic [7:0]               vec_mask;
-  logic [7:0][2:0]          element_mask;
-  logic [31:0]              num_elements;
+  logic [FLEN-1:0]            shfl_result;
+  logic [7:0]                 vec_mask;
+  logic [7:0][2:0]            element_mask;
+  logic [31:0]                num_elements;
 
-  logic [(FLEN/32)-1:0][31:0] rA_32, rD_32;
-  logic [(FLEN/16)-1:0][15:0] rA_16, rD_16;
-  logic [(FLEN/8)-1:0][7:0]   rA_8,  rD_8;
-  logic [(FLEN/32)-1:0][31:0] rA_op_32, rD_op_32;
-  logic [(FLEN/16)-1:0][15:0] rA_op_16, rD_op_16;
-  logic [(FLEN/8)-1:0][7:0]   rA_op_8,  rD_op_8;
+  logic [(FLEN/32)-1:0][31:0] rA_32, rD_32, rA_op_32, rD_op_32;
+  logic [(FLEN/16)-1:0][15:0] rA_16, rD_16, rA_op_16, rD_op_16;
+  logic [(FLEN/8)-1:0][7:0]   rA_8,  rD_8,  rA_op_8,  rD_op_8;
 
   always_comb begin
     shfl_valid = 1'b0;
@@ -2538,9 +2534,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
             rA_16[i] = rA_op_16[element_mask[i]];
             rD_16[i] = rD_op_16[element_mask[i]];
 
-            // rA_16[i] = op[0][(element_mask[(i*3)+:2]*16) +: 16];
-            // rD_16[i] = op[2][(element_mask[(i*3)+:2]*16) +: 16];
-
             shfl_result[(i*16) +: 16] = vec_mask[i] ? rA_16[i] : rD_16[i];
           end
         end
@@ -2554,9 +2547,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
 
             rA_8[i] = rA_op_8[element_mask[i]];
             rD_8[i] = rD_op_8[element_mask[i]];
-
-            // rA_8[i][7:0] = op[0][(element_mask[(i*3)+:3]*8) +: 8];
-            // rD_8[i][7:0] = op[2][(element_mask[(i*3)+:3]*8) +: 8];
 
             shfl_result[(i*8) +: 8] = vec_mask[i] ? rA_8[i] : rD_8[i];
           end

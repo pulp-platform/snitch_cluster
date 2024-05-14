@@ -25,12 +25,7 @@ int main() {
         uint32_t i_j = 0x40866666;   // 4.2
 
         int res0 = 0;
-        uint32_t res1 = 0;
-        uint32_t res2 = 0;
-        uint32_t res3 = 0;
-        uint32_t res4 = 0;
 
-        uint32_t mask_h = 0x0;
         uint32_t mask_a = 0b10010000; // 0h90
         uint32_t mask_b = 0b10011000; // 0h98
         uint32_t mask_c = 0b10000001; // 0h81
@@ -102,12 +97,8 @@ int main() {
 
         // load new data
         asm volatile(
-            // "fmv.s.x ft0, %0\n"           // 3.14
-            // "fmv.s.x ft1, %1\n"           // -1.618
-            // "fmv.s.x ft2, %2\n"           // 0.250244
-            // "fmv.s.x ft3, %3\n"           // 100.123456789
             "vfcpka.s.s ft4, ft3, ft0\n"  // ft4 = [3.14, 100.123456789]
-            // "vfcpka.s.s ft5, ft2, ft1\n"  // ft5 = [-1.618, 0.250244]
+                                          // ft5 = [-1.618, 0.250244]
             "vfcpka.s.s ft6, ft1, ft2\n"  // ft6 = [0.250244, -1.618]
             "vfcpka.s.s ft7, ft0, ft3\n"  // ft7 = [100.123456789, 3.14]
             : "+r"(i_a), "+r"(i_bn), "+r"(i_d), "+r"(i_f));
