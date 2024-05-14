@@ -601,7 +601,7 @@ module snitch_int_ss import riscv_instr::*; import snitch_ipu_pkg::*; import sni
   );
 
   for (genvar i = 0; i < 2; i++) begin : gen_multi_cycle_buffer
-    `FFLNR(imd_val_q[i], imd_val_q[i], imd_val_we[i], clk_i)
+    `FFL(imd_val_q[i], imd_val_q[i], imd_val_we[i], '0, clk_i, rst_i)
   end
 
   // ---------------
@@ -615,6 +615,7 @@ module snitch_int_ss import riscv_instr::*; import snitch_ipu_pkg::*; import sni
     .ADDR_WIDTH     ( 5  )
   ) i_ipu_regfile (
     .clk_i,
+    .rst_ni    (~rst_i),
     .raddr_i   ( int_raddr ),
     .rdata_o   ( int_rdata ),
     .waddr_i   ( int_waddr ),

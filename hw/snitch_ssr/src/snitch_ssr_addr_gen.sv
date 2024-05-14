@@ -158,14 +158,14 @@ module snitch_ssr_addr_gen import snitch_ssr_pkg::*; #(
     };
 
     // Config registers
-    `FFARN(idx_shift_sq, idx_shift_sd, '0, clk_i, rst_ni)
-    `FFLARN(idx_shift_q, idx_shift_sd, config_q.done, '0, clk_i, rst_ni)
-    `FFARN(idx_base_sq, idx_base_sd, '0, clk_i, rst_ni)
-    `FFLARN(idx_base_q, idx_base_sd, config_q.done, '0, clk_i, rst_ni)
-    `FFARN(idx_size_sq, idx_size_sd, '0, clk_i, rst_ni)
-    `FFLARN(idx_size_q, idx_size_sd, config_q.done, '0, clk_i, rst_ni)
-    `FFARN(idx_flags_sq, idx_flags_sd, '0, clk_i, rst_ni)
-    `FFLARN(idx_flags_q, idx_flags_sd, config_q.done, '0, clk_i, rst_ni)
+    `FF(idx_shift_sq, idx_shift_sd, '0, clk_i, rst_ni)
+    `FFL(idx_shift_q, idx_shift_sd, config_q.done, '0, clk_i, rst_ni)
+    `FF(idx_base_sq, idx_base_sd, '0, clk_i, rst_ni)
+    `FFL(idx_base_q, idx_base_sd, config_q.done, '0, clk_i, rst_ni)
+    `FF(idx_size_sq, idx_size_sd, '0, clk_i, rst_ni)
+    `FFL(idx_size_q, idx_size_sd, config_q.done, '0, clk_i, rst_ni)
+    `FF(idx_flags_sq, idx_flags_sd, '0, clk_i, rst_ni)
+    `FFL(idx_flags_q, idx_flags_sd, config_q.done, '0, clk_i, rst_ni)
 
     // Delay register for last iteration of base loop, in case additional iteration needed.
     `FFLARNC(natit_base_last_q, natit_base_last_d, enable, natit_done, 1'b0, clk_i, rst_ni)
@@ -309,10 +309,10 @@ module snitch_ssr_addr_gen import snitch_ssr_pkg::*; #(
         bound_sd[i] = cfg_wdata_i;
     end
 
-    `FFARN(stride_sq[i], stride_sd[i], '0, clk_i, rst_ni)
-    `FFLARN(stride_q[i], stride_sd[i], config_q.done, '0, clk_i, rst_ni)
-    `FFARN(bound_sq[i], bound_sd[i], '0, clk_i, rst_ni)
-    `FFLARN(bound_q[i], bound_sd[i], config_q.done, '0, clk_i, rst_ni)
+    `FF(stride_sq[i], stride_sd[i], '0, clk_i, rst_ni)
+    `FFL(stride_q[i], stride_sd[i], config_q.done, '0, clk_i, rst_ni)
+    `FF(bound_sq[i], bound_sd[i], '0, clk_i, rst_ni)
+    `FFL(bound_q[i], bound_sd[i], config_q.done, '0, clk_i, rst_ni)
 
     assign index_ena = enable & loop_enabled[i];
 
@@ -335,8 +335,8 @@ module snitch_ssr_addr_gen import snitch_ssr_pkg::*; #(
       rep_sd = cfg_wdata_i;
   end
 
-  `FFARN(rep_sq, rep_sd, '0, clk_i, rst_ni)
-  `FFLARN(rep_q, rep_sd, config_q.done, '0, clk_i, rst_ni)
+  `FF(rep_sq, rep_sd, '0, clk_i, rst_ni)
+  `FFL(rep_q, rep_sd, config_q.done, '0, clk_i, rst_ni)
 
   assign reg_rep_o = rep_q;
 
@@ -379,10 +379,10 @@ module snitch_ssr_addr_gen import snitch_ssr_pkg::*; #(
     end
   end
 
-  `FFARN(pointer_q, pointer_qn, '0, clk_i, rst_ni)
-  `FFARN(pointer_sq, pointer_sqn, '0, clk_i, rst_ni)
-  `FFARN(config_q, config_qn, '{done: 1, default: '0}, clk_i, rst_ni)
-  `FFARN(config_sq, config_sqn, '{done: 1, default: '0}, clk_i, rst_ni)
+  `FF(pointer_q, pointer_qn, '0, clk_i, rst_ni)
+  `FF(pointer_sq, pointer_sqn, '0, clk_i, rst_ni)
+  `FF(config_q, config_qn, '{done: 1, default: '0}, clk_i, rst_ni)
+  `FF(config_sq, config_sqn, '{done: 1, default: '0}, clk_i, rst_ni)
 
   always_comb begin
     pointer_qn  = pointer_q;

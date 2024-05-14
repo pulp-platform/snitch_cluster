@@ -2420,6 +2420,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .ADDR_WIDTH     ( 5    )
   ) i_ff_regfile (
     .clk_i,
+    .rst_ni    ( ~rst_i    ),
     .raddr_i   ( fpr_raddr ),
     .rdata_o   ( fpr_rdata ),
     .waddr_i   ( fpr_waddr ),

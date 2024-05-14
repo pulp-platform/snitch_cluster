@@ -824,6 +824,7 @@ module snitch_cluster
   if (IsoCrossing) begin : gen_clk_divider
     snitch_clkdiv2 i_snitch_clkdiv2 (
       .clk_i,
+      .rst_ni (rst_ni),
       .test_mode_i (1'b0),
       .bypass_i ( clk_d2_bypass_i ),
       .clk_o (clk_d2)
@@ -1280,8 +1281,8 @@ module snitch_cluster
   // --------------------
   logic [NrTCDMPortsCores-1:0] flat_acc, flat_con;
   for (genvar i = 0; i < NrTCDMPortsCores; i++) begin  : gen_event_counter
-    `FFARN(flat_acc[i], tcdm_req[i].q_valid, '0, clk_i, rst_ni)
-    `FFARN(flat_con[i], tcdm_req[i].q_valid & ~tcdm_rsp[i].q_ready, '0, clk_i, rst_ni)
+    `FF(flat_acc[i], tcdm_req[i].q_valid, '0, clk_i, rst_ni)
+    `FF(flat_con[i], tcdm_req[i].q_valid & ~tcdm_rsp[i].q_ready, '0, clk_i, rst_ni)
   end
 
   popcount #(
