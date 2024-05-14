@@ -416,7 +416,7 @@
                                     "description": "Enable Smallfloat vector extension (SIMD).",
                                     "default": false
                                 },
-                                "snax_acc_set": {
+                                "snax_acc_cfg": {
                                     "type": "object",
                                     "title": "SNAX Accelerator Set",
                                     "description": "Set of properties for one core controlling multiple accelerators",
@@ -427,11 +427,17 @@
                                             "description": "Specify in this tag the accelerator's top module name. E.g., snax_mac_wrapper.",
                                             "default": "none"
                                         },
-                                        "snax_num_csr": {
+                                        "snax_num_rw_csr": {
                                             "type": "number",
-                                            "title": "Number of CSR Registers",
-                                            "description": "Number of CSR registers required for one instance of this accelerator.",
+                                            "title": "Number of CSR Read-Write Registers",
+                                            "description": "Number of CSR RW registers required for one instance of this accelerator.",
                                             "default": 1
+                                        },
+                                        "snax_num_ro_csr": {
+                                            "type": "number",
+                                            "title": "Number of CSR Read-Only Registers",
+                                            "description": "Number of CSR RO registers required for one instance of this accelerator.",
+                                            "default": 0
                                         },
                                         "snax_num_acc": {
                                             "type": "number",
@@ -451,6 +457,12 @@
                                     "type": "boolean",
                                     "title": "Connect SNAX TCDM to Wide TCDM MUX",
                                     "description": "Connects a SNAX accelerator's TCDM ports to the wide TCDM MUX",
+                                    "default": false
+                                },
+                                "snax_use_custom_ports": {
+                                    "type": "boolean",
+                                    "title": "Use the custom instruction format for connecting accelerators.",
+                                    "description": "Uses the SNAX custom instruction ports format to control accelerators. By default it uses CSR ports format.",
                                     "default": false
                                 },
                                 "num_int_outstanding_loads": {

@@ -20,22 +20,10 @@ jobs:
       image: ghcr.io/kuleuven-micas/snax:main
     steps:
       - uses: actions/checkout@v2
-      - name: Check wrapper and parameter generations
+      - name: Check wrapper, parameter, and chisel generation
         run: |
           ./util/wrappergen/wrappergen.py \
           --cfg_path="./target/snitch_cluster/cfg/snax-alu.hjson" \
           --tpl_path="./hw/templates/" \
-          --chisel_path="./hw/chisel/src/main/scala/snax/" \
+          --chisel_path="./hw/chisel" \
           --gen_path="./target/snitch_cluster/generated/"
-      - name: Check sbt generation for CSR manager
-        run: |
-          ./util/chiselgen/chiselgen.py \
-          --chisel_param="snax.csr_manager.CsrManagerGen" \
-          --chisel_path "./hw/chisel" \
-          --gen_path="./../../target/snitch_cluster/generated/"
-      - name: Check sbt generation for streamer
-        run: |
-          ./util/chiselgen/chiselgen.py \
-          --chisel_param="snax.streamer.StreamerTopGen" \
-          --chisel_path "./hw/chisel" \
-          --gen_path="./../../target/snitch_cluster/generated/"

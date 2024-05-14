@@ -259,8 +259,14 @@ endpackage
 
 // Main snitch or SNAX cluster wrapper
 module ${cfg['name']}_wrapper (
+  //-----------------------------
+  // Clock and reset
+  //-----------------------------
   input  logic                                   clk_i,
   input  logic                                   rst_ni,
+  //-----------------------------
+  // Interrupt ports
+  //-----------------------------
 % if cfg['enable_debug']:
   input  logic [${cfg['pkg_name']}::NrCores-1:0] debug_req_i,
 % endif
@@ -268,19 +274,34 @@ module ${cfg['name']}_wrapper (
   input  logic [${cfg['pkg_name']}::NrCores-1:0] mtip_i,
   input  logic [${cfg['pkg_name']}::NrCores-1:0] msip_i,
 % if not cfg['tie_ports']:
+  //-----------------------------
+  // Cluster base addressing
+  //-----------------------------
   input  logic [9:0]                             hart_base_id_i,
-  input  logic [${cfg['addr_width']-1}:0]                            cluster_base_addr_i,
+  input  logic [${cfg['addr_width']-1}:0]        cluster_base_addr_i,
 % endif
 % if cfg['timing']['iso_crossings']:
+  //-----------------------------
+  // ISO crossings
+  //-----------------------------
   input  logic                                   clk_d2_bypass_i,
 % endif
 % if cfg['sram_cfg_expose']:
+  //-----------------------------
+  // SRAM configurations
+  //-----------------------------
   input  ${cfg['pkg_name']}::sram_cfgs_t         sram_cfgs_i,
 %endif
+  //-----------------------------
+  // Narrow AXI ports
+  //-----------------------------
   input  ${cfg['pkg_name']}::narrow_in_req_t     narrow_in_req_i,
   output ${cfg['pkg_name']}::narrow_in_resp_t    narrow_in_resp_o,
   output ${cfg['pkg_name']}::narrow_out_req_t    narrow_out_req_o,
   input  ${cfg['pkg_name']}::narrow_out_resp_t   narrow_out_resp_i,
+  //-----------------------------
+  //Wide AXI ports
+  //-----------------------------
   output ${cfg['pkg_name']}::wide_out_req_t      wide_out_req_o,
   input  ${cfg['pkg_name']}::wide_out_resp_t     wide_out_resp_i,
   input  ${cfg['pkg_name']}::wide_in_req_t       wide_in_req_i,
@@ -288,24 +309,15 @@ module ${cfg['name']}_wrapper (
 );
 
   // Internal local parameters to be hooked into the Snitch / SNAX cluster
-  localparam int unsigned NumIntOutstandingLoads [${cfg['nr_cores']}] = '{${core_cfg('num_int_outstanding_loads')}};
-  localparam int unsigned NumIntOutstandingMem [${cfg['nr_cores']}] = '{${core_cfg('num_int_outstanding_mem')}};
-  localparam int unsigned NumFPOutstandingLoads [${cfg['nr_cores']}] = '{${core_cfg('num_fp_outstanding_loads')}};
-  localparam int unsigned NumFPOutstandingMem [${cfg['nr_cores']}] = '{${core_cfg('num_fp_outstanding_mem')}};
-  localparam int unsigned NumDTLBEntries [${cfg['nr_cores']}] = '{${core_cfg('num_dtlb_entries')}};
-  localparam int unsigned NumITLBEntries [${cfg['nr_cores']}] = '{${core_cfg('num_itlb_entries')}};
-  localparam int unsigned NumSequencerInstr [${cfg['nr_cores']}] = '{${core_cfg('num_sequencer_instructions')}};
-  localparam int unsigned NumSsrs [${cfg['nr_cores']}] = '{${core_cfg('num_ssrs')}};
-  localparam int unsigned SsrMuxRespDepth [${cfg['nr_cores']}] = '{${core_cfg('ssr_mux_resp_depth')}};
-
-  // SNAX accelerator ports per core
-  ${cfg['pkg_name']}::acc_req_t  [${cfg['pkg_name']}::NrCores-1:0] snax_req;
-  logic      [${cfg['pkg_name']}::NrCores-1:0] snax_qvalid;
-  logic      [${cfg['pkg_name']}::NrCores-1:0] snax_qready;
-  ${cfg['pkg_name']}::acc_resp_t [${cfg['pkg_name']}::NrCores-1:0] snax_resp;
-  logic      [${cfg['pkg_name']}::NrCores-1:0] snax_pvalid;
-  logic      [${cfg['pkg_name']}::NrCores-1:0] snax_pready;
-  logic      [${cfg['pkg_name']}::NrCores-1:0] snax_barrier;
+  localparam int unsigned NumIntOutstandingLoads  [${cfg['nr_cores']}] = '{${core_cfg('num_int_outstanding_loads')}};
+  localparam int unsigned NumIntOutstandingMem    [${cfg['nr_cores']}] = '{${core_cfg('num_int_outstanding_mem')}};
+  localparam int unsigned NumFPOutstandingLoads   [${cfg['nr_cores']}] = '{${core_cfg('num_fp_outstanding_loads')}};
+  localparam int unsigned NumFPOutstandingMem     [${cfg['nr_cores']}] = '{${core_cfg('num_fp_outstanding_mem')}};
+  localparam int unsigned NumDTLBEntries          [${cfg['nr_cores']}] = '{${core_cfg('num_dtlb_entries')}};
+  localparam int unsigned NumITLBEntries          [${cfg['nr_cores']}] = '{${core_cfg('num_itlb_entries')}};
+  localparam int unsigned NumSequencerInstr       [${cfg['nr_cores']}] = '{${core_cfg('num_sequencer_instructions')}};
+  localparam int unsigned NumSsrs                 [${cfg['nr_cores']}] = '{${core_cfg('num_ssrs')}};
+  localparam int unsigned SsrMuxRespDepth         [${cfg['nr_cores']}] = '{${core_cfg('ssr_mux_resp_depth')}};
 <%
 # Just some working variables
 tcdm_offset_start = 0
@@ -324,41 +336,46 @@ for i in range(len(cfg['cores'])):
   snax_acc_dict = {}
   snax_acc_flag = False
   snax_acc_multi_flag = False
+  snax_use_custom_ports = False
   snax_num_acc = None
-  snax_num_csr = None
+  snax_total_num_csr = None
   prefix_snax_nonacc_count = 0
   prefix_snax_count = 0
 
   # If an accelerator setting exists
   # Layout all possible accelerator configurations
   # Per snitch cluster core
-  if ('snax_acc_set' in cfg['cores'][i]):
+  if ('snax_acc_cfg' in cfg['cores'][i]):
     snax_acc_flag = True
 
-    if(cfg['cores'][i]['snax_acc_set']['snax_num_acc'] > 1):
+    if(cfg['cores'][i]['snax_acc_cfg']['snax_num_acc'] > 1):
       snax_acc_multi_flag = True
-      snax_num_csr = cfg['cores'][i]['snax_acc_set']['snax_num_csr']
-      snax_num_acc = cfg['cores'][i]['snax_acc_set']['snax_num_acc']
+      snax_num_rw_csr = cfg['cores'][i]['snax_acc_cfg']['snax_num_rw_csr']
+      snax_num_ro_csr = cfg['cores'][i]['snax_acc_cfg']['snax_num_ro_csr']
+      snax_total_num_csr = snax_num_rw_csr + snax_num_ro_csr
+      snax_num_acc = cfg['cores'][i]['snax_acc_cfg']['snax_num_acc']
 
-    for j in range(cfg['cores'][i]['snax_acc_set']['snax_num_acc']):
+    snax_use_custom_ports = cfg['cores'][i]['snax_use_custom_ports']
+
+    for j in range(cfg['cores'][i]['snax_acc_cfg']['snax_num_acc']):
 
       # Prepare accelerator tags
       curr_snax_acc = ''
-      curr_snax_acc = "i_snax_core_" + str(i) + "_acc_" + str(prefix_snax_count)
+      curr_snax_acc = "i_snax_core_" + str(i) + "_acc_" + str(prefix_snax_count) + "_" + cfg['cores'][i]['snax_acc_cfg']['snax_acc_name']
 
       # Set tcdm offset ports
-      tcdm_offset_stop += cfg['cores'][i]['snax_acc_set']['snax_tcdm_ports']
+      tcdm_offset_stop += cfg['cores'][i]['snax_acc_cfg']['snax_tcdm_ports']
 
       # Save settings in the dictionary
       snax_acc_dict[curr_snax_acc] = {
-            'snax_module': cfg['cores'][i]['snax_acc_set']['snax_module'],
-            'snax_tcdm_ports': cfg['cores'][i]['snax_acc_set']['snax_tcdm_ports'],
+            'snax_acc_name': cfg['cores'][i]['snax_acc_cfg']['snax_acc_name'],
+            'snax_tcdm_ports': cfg['cores'][i]['snax_acc_cfg']['snax_tcdm_ports'],
             'snax_tcdm_offset_start': tcdm_offset_start,
             'snax_tcdm_offset_stop': tcdm_offset_stop
           }
-      tcdm_offset_start += cfg['cores'][i]['snax_acc_set']['snax_tcdm_ports']
+      tcdm_offset_start += cfg['cores'][i]['snax_acc_cfg']['snax_tcdm_ports']
       prefix_snax_count += 1
-      total_snax_tcdm_ports += cfg['cores'][i]['snax_acc_set']['snax_tcdm_ports']
+      total_snax_tcdm_ports += cfg['cores'][i]['snax_acc_cfg']['snax_tcdm_ports']
 
   else:
 
@@ -371,15 +388,49 @@ for i in range(len(cfg['cores'])):
   snax_core_acc[curr_snax_acc_core] = {
     'snax_acc_flag': snax_acc_flag,
     'snax_acc_multi_flag':snax_acc_multi_flag,
-    'snax_num_csr': snax_num_csr,
+    'snax_use_custom_ports': snax_use_custom_ports,
+    'snax_total_num_csr': snax_total_num_csr,
     'snax_num_acc': snax_num_acc,
     'snax_acc_dict':snax_acc_dict
   }
+
 %>
+  //-----------------------------
+  // SNAX Custom Instruction Ports
+  //-----------------------------
+  // Request for custom instruction format
+  ${cfg['pkg_name']}::acc_req_t [${cfg['pkg_name']}::NrCores-1:0] snax_req;
+  logic [${cfg['pkg_name']}::NrCores-1:0] snax_qvalid;
+  logic [${cfg['pkg_name']}::NrCores-1:0] snax_qready;
+  // Response for custom instruction format
+  ${cfg['pkg_name']}::acc_resp_t [${cfg['pkg_name']}::NrCores-1:0] snax_resp;
+  logic [${cfg['pkg_name']}::NrCores-1:0] snax_pvalid;
+  logic [${cfg['pkg_name']}::NrCores-1:0] snax_pready;
+
+  //-----------------------------
+  // SNAX CSR Ports
+  //-----------------------------
+  // Request for CSR format
+  logic [${cfg['pkg_name']}::NrCores-1:0][31:0] snax_csr_req_data;
+  logic [${cfg['pkg_name']}::NrCores-1:0][31:0] snax_csr_req_addr;
+  logic [${cfg['pkg_name']}::NrCores-1:0]       snax_csr_req_write;
+  logic [${cfg['pkg_name']}::NrCores-1:0]       snax_csr_req_valid;
+  logic [${cfg['pkg_name']}::NrCores-1:0]       snax_csr_req_ready;
+  ///Response for CSR format
+  logic [${cfg['pkg_name']}::NrCores-1:0][31:0] snax_csr_rsp_data;
+  logic [${cfg['pkg_name']}::NrCores-1:0]       snax_csr_rsp_valid;
+  logic [${cfg['pkg_name']}::NrCores-1:0]       snax_csr_rsp_ready;
+    
+  //-----------------------------
   // SNAX TCDM wires
-  // Wires need to be declared before use
+  //-----------------------------
   ${cfg['pkg_name']}::tcdm_req_t [${total_snax_tcdm_ports-1}:0] snax_tcdm_req;
   ${cfg['pkg_name']}::tcdm_rsp_t [${total_snax_tcdm_ports-1}:0] snax_tcdm_rsp;
+
+  //-----------------------------
+  // SNAX Barrier Wire
+  //-----------------------------
+  logic [${cfg['pkg_name']}::NrCores-1:0] snax_barrier;
 
   // Snitch cluster under test.
   snitch_cluster #(
@@ -426,6 +477,7 @@ for i in range(len(cfg['cores'])):
     .Xfrep (${core_cfg_flat('xfrep')}),
     .TotalSnaxTcdmPorts(${total_snax_tcdm_ports}),
     .ConnectSnaxAccWide(${core_cfg_flat('snax_acc_wide')}),
+    .SnaxUseCustomPorts (${core_cfg_flat('snax_use_custom_ports')}), // TODO CONNECT ME
     .FPUImplementation (${cfg['pkg_name']}::FPUImplementation),
     .SnitchPMACfg (${cfg['pkg_name']}::SnitchPMACfg),
     .NumIntOutstandingLoads (NumIntOutstandingLoads),
@@ -469,50 +521,93 @@ for i in range(len(cfg['cores'])):
     .tcdm_req_t (${cfg['pkg_name']}::tcdm_req_t),
     .tcdm_rsp_t (${cfg['pkg_name']}::tcdm_rsp_t)
   ) i_cluster (
-    .clk_i,
-    .rst_ni,
+    //-----------------------------
+    // Clock and reset
+    //-----------------------------
+    .clk_i  ( clk_i  ),
+    .rst_ni ( rst_ni ),
+    //-----------------------------
+    // Interrupt ports
+    //----------------------------
 % if cfg['enable_debug']:
-    .debug_req_i,
+    .debug_req_i ( debug_req_i ),
 % else:
     .debug_req_i ('0),
 % endif
-    .meip_i,
-    .mtip_i,
-    .msip_i,
+    .meip_i ( meip_i ),
+    .mtip_i ( mtip_i ),
+    .msip_i ( msip_i ),
+    //-----------------------------
+    // Cluster base addressing
+    //-----------------------------
 % if cfg['tie_ports']:
-    .hart_base_id_i (${to_sv_hex(cfg['cluster_base_hartid'], 10)}),
-    .cluster_base_addr_i (${to_sv_hex(cfg['cluster_base_addr'], cfg['addr_width'])}),
+    .hart_base_id_i ( ${to_sv_hex(cfg['cluster_base_hartid'], 10)} ),
+    .cluster_base_addr_i ( ${to_sv_hex(cfg['cluster_base_addr'], cfg['addr_width'])} ),
 % else:
-    .hart_base_id_i,
-    .cluster_base_addr_i,
+    .hart_base_id_i ( hart_base_id_i ),
+    .cluster_base_addr_i ( cluster_base_addr_i ),
 % endif
+    //-----------------------------
+    // ISO crossings
+    //-----------------------------
 % if cfg['timing']['iso_crossings']:
-    .clk_d2_bypass_i,
+    .clk_d2_bypass_i ( clk_d2_bypass_i ),
 % else:
-    .clk_d2_bypass_i (1'b0),
+    .clk_d2_bypass_i ( 1'b0 ),
 % endif
-    .snax_req_o (snax_req),
-    .snax_qvalid_o (snax_qvalid),
-    .snax_qready_i (snax_qready),
-    .snax_resp_i (snax_resp),
-    .snax_pvalid_i (snax_pvalid),
-    .snax_pready_o (snax_pready),
-    .snax_tcdm_req_i (snax_tcdm_req),
-    .snax_tcdm_rsp_o (snax_tcdm_rsp),
+    //-----------------------------
+    // SNAX Custom Instruction Ports
+    //-----------------------------
+    // Request custom instruction format ports
+    .snax_req_o    ( snax_req    ),
+    .snax_qvalid_o ( snax_qvalid ),
+    .snax_qready_i ( snax_qready ),
+    // Response custom instruction format ports
+    .snax_resp_i   ( snax_resp   ),
+    .snax_pvalid_i ( snax_pvalid ),
+    .snax_pready_o ( snax_pready ),
+    //-----------------------------
+    // SNAX CSR Ports
+    //-----------------------------
+    // Request for CSR format ports
+    .snax_csr_req_bits_data_o   ( snax_csr_req_data  ),
+    .snax_csr_req_bits_addr_o   ( snax_csr_req_addr  ),
+    .snax_csr_req_bits_write_o  ( snax_csr_req_write ),
+    .snax_csr_req_valid_o       ( snax_csr_req_valid ),
+    .snax_csr_req_ready_i       ( snax_csr_req_ready ),
+    // Response for CSR format ports
+    .snax_csr_rsp_bits_data_i   ( snax_csr_rsp_data  ),
+    .snax_csr_rsp_valid_i       ( snax_csr_rsp_valid ),
+    .snax_csr_rsp_ready_o       ( snax_csr_rsp_ready ),
+
+    //-----------------------------
+    // SNAX TCDM wires
+    //-----------------------------
+    .snax_tcdm_req_i ( snax_tcdm_req),
+    .snax_tcdm_rsp_o ( snax_tcdm_rsp),
+    //-----------------------------
+    // SNAX Barrier Wire
+    //-----------------------------
     .snax_barrier_i  (snax_barrier),
 % if cfg['sram_cfg_expose']:
     .sram_cfgs_i (sram_cfgs_i),
 % else:
     .sram_cfgs_i (${cfg['pkg_name']}::sram_cfgs_t'('0)),
 %endif
-    .narrow_in_req_i,
-    .narrow_in_resp_o,
-    .narrow_out_req_o,
-    .narrow_out_resp_i,
-    .wide_out_req_o,
-    .wide_out_resp_i,
-    .wide_in_req_i,
-    .wide_in_resp_o
+    //-----------------------------
+    // Narrow AXI ports
+    //-----------------------------
+    .narrow_in_req_i    ( narrow_in_req_i   ),
+    .narrow_in_resp_o   ( narrow_in_resp_o  ),
+    .narrow_out_req_o   ( narrow_out_req_o  ),
+    .narrow_out_resp_i  ( narrow_out_resp_i ),
+    //-----------------------------
+    // Wide AXI ports
+    //-----------------------------
+    .wide_out_req_o     ( wide_out_req_o    ),
+    .wide_out_resp_i    ( wide_out_resp_i   ),
+    .wide_in_req_i      ( wide_in_req_i     ),
+    .wide_in_resp_o     ( wide_in_resp_o    )
   );
 
 % for idx, idx_key in enumerate(snax_core_acc):
@@ -535,8 +630,9 @@ for i in range(len(cfg['cores'])):
   assign snax_barrier[${idx}] = |snax_core_${idx}_split_barrier;
 
   // MUX-DEMUX declaration
+  // TODO: make a version for the csr ports next time...
   snax_acc_mux_demux #(
-    .NumCsrs              (${snax_core_acc[idx_key]['snax_num_csr']}),
+    .NumCsrs              (${snax_core_acc[idx_key]['snax_total_num_csr']}),
     .NumAcc               (${snax_core_acc[idx_key]['snax_num_acc']}),
     .acc_req_t            (${cfg['pkg_name']}::acc_req_t),
     .acc_rsp_t            (${cfg['pkg_name']}::acc_resp_t)
@@ -570,62 +666,149 @@ for i in range(len(cfg['cores'])):
   // Multiple accelerator instances
   // Controlled with 1 Snitch core
       % for jdx, jdx_key in enumerate(snax_core_acc[idx_key]['snax_acc_dict']):
-
-  ${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_module']} # (
-    .DataWidth ( ${cfg['pkg_name']}::NarrowDataWidth ),
-    .SnaxTcdmPorts ( ${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_ports']} ),
-    .acc_req_t ( ${cfg['pkg_name']}::acc_req_t ),
-    .acc_rsp_t ( ${cfg['pkg_name']}::acc_resp_t ),
-    .tcdm_req_t ( ${cfg['pkg_name']}::tcdm_req_t ),
-    .tcdm_rsp_t ( ${cfg['pkg_name']}::tcdm_rsp_t )
+  // Accelerator ${jdx} for core ${idx}
+  ${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_acc_name']}_wrapper # (
+    .DataWidth       ( ${cfg['pkg_name']}::NarrowDataWidth ),
+    .SnaxTcdmPorts   ( ${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_ports']} ),
+      %if snax_core_acc[idx_key]['snax_use_custom_ports']:
+    .acc_req_t        ( ${cfg['pkg_name']}::acc_req_t ),
+    .acc_rsp_t        ( ${cfg['pkg_name']}::acc_resp_t ),
+      %endif
+    .tcdm_req_t      ( ${cfg['pkg_name']}::tcdm_req_t ),
+    .tcdm_rsp_t      ( ${cfg['pkg_name']}::tcdm_rsp_t )
   ) ${jdx_key}  (
-    .clk_i ( clk_i ),
-    .rst_ni ( rst_ni ),
-    .snax_req_i ( snax_core_${idx}_split_req[${jdx}] ),
-    .snax_qvalid_i ( snax_core_${idx}_split_qvalid[${jdx}] ),
-    .snax_qready_o ( snax_core_${idx}_split_qready[${jdx}] ),
-    .snax_resp_o ( snax_core_${idx}_split_resp[${jdx}] ),
-    .snax_pvalid_o ( snax_core_${idx}_split_pvalid[${jdx}] ),
-    .snax_pready_i ( snax_core_${idx}_split_pready[${jdx}] ),
-    .snax_barrier_o ( snax_core_${idx}_split_barrier[${jdx}] ),
+    //-----------------------------
+    // Clock and reset
+    //-----------------------------
+    .clk_i           ( clk_i ),
+    .rst_ni          ( rst_ni ),
+      %if snax_core_acc[idx_key]['snax_use_custom_ports']:
+    //-----------------------------
+    // Custom instruction format control ports
+    //-----------------------------
+    // Request
+    .snax_req_i      ( snax_core_${idx}_split_req[${jdx}] ),
+    .snax_qvalid_i   ( snax_core_${idx}_split_qvalid[${jdx}] ),
+    .snax_qready_o   ( snax_core_${idx}_split_qready[${jdx}] ),
+    // Response
+    .snax_resp_o     ( snax_core_${idx}_split_resp[${jdx}] ),
+    .snax_pvalid_o   ( snax_core_${idx}_split_pvalid[${jdx}] ),
+    .snax_pready_i   ( snax_core_${idx}_split_pready[${jdx}] ),
+      %else:
+    //-----------------------------
+    // CSR  format control ports
+    //-----------------------------
+    // Request
+    .snax_req_data_i  ( snax_csr_req_data [${idx}] ),
+    .snax_req_addr_i  ( snax_csr_req_addr [${idx}] ),
+    .snax_req_write_i ( snax_csr_req_write[${idx}] ),
+    .snax_req_valid_i ( snax_csr_req_valid[${idx}] ),
+    .snax_req_ready_o ( snax_csr_req_ready[${idx}] ),
+    // Response
+    .snax_rsp_data_o  ( snax_csr_rsp_data [${idx}] ),
+    .snax_rsp_valid_o ( snax_csr_rsp_valid[${idx}] ),
+    .snax_rsp_ready_i ( snax_csr_rsp_ready[${idx}] ),
+      %endif
+    .snax_barrier_o  ( snax_core_${idx}_split_barrier[${jdx}] ),
     .snax_tcdm_req_o ( snax_tcdm_req[${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_stop']}:${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_start']}] ),
     .snax_tcdm_rsp_i ( snax_tcdm_rsp[${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_stop']}:${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_start']}] )
   );
+      %if snax_core_acc[idx_key]['snax_use_custom_ports']:
+
+  assign snax_csr_req_ready [${idx}] = '0;
+  assign snax_csr_rsp_data  [${idx}] = '0;
+  assign snax_csr_rsp_valid [${idx}] = '0;
+
+      %else:
+        // TODO: Not yet supported for multiple CSR ports
+      %endif
       %endfor
     % else:
       % for jdx, jdx_key in enumerate(snax_core_acc[idx_key]['snax_acc_dict']):
 
-  ${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_module']} # (
-    .DataWidth ( ${cfg['pkg_name']}::NarrowDataWidth ),
-    .SnaxTcdmPorts ( ${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_ports']} ),
-    .acc_req_t ( ${cfg['pkg_name']}::acc_req_t ),
-    .acc_rsp_t ( ${cfg['pkg_name']}::acc_resp_t ),
-    .tcdm_req_t ( ${cfg['pkg_name']}::tcdm_req_t ),
-    .tcdm_rsp_t ( ${cfg['pkg_name']}::tcdm_rsp_t )
+  // Accelerators controlled with custom instruction format ports
+  ${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_acc_name']}_wrapper # (
+    .DataWidth        ( ${cfg['pkg_name']}::NarrowDataWidth ),
+    .SnaxTcdmPorts    ( ${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_ports']} ),
+        %if snax_core_acc[idx_key]['snax_use_custom_ports']:
+    .acc_req_t        ( ${cfg['pkg_name']}::acc_req_t ),
+    .acc_rsp_t        ( ${cfg['pkg_name']}::acc_resp_t ),
+        %endif
+    .tcdm_req_t       ( ${cfg['pkg_name']}::tcdm_req_t ),
+    .tcdm_rsp_t       ( ${cfg['pkg_name']}::tcdm_rsp_t )
   ) ${jdx_key}  (
-    .clk_i ( clk_i ),
-    .rst_ni ( rst_ni ),
-    .snax_req_i ( snax_req[${idx}] ),
-    .snax_qvalid_i ( snax_qvalid[${idx}] ),
-    .snax_qready_o ( snax_qready[${idx}] ),
-    .snax_resp_o ( snax_resp[${idx}] ),
-    .snax_pvalid_o ( snax_pvalid[${idx}] ),
-    .snax_pready_i ( snax_pready[${idx}] ),
-    .snax_barrier_o ( snax_barrier[${idx}] ),
-    .snax_tcdm_req_o ( snax_tcdm_req[${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_stop']}:${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_start']}] ),
-    .snax_tcdm_rsp_i ( snax_tcdm_rsp[${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_stop']}:${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_start']}] )
+    //-----------------------------
+    // Clock and reset
+    //-----------------------------
+    .clk_i            ( clk_i  ),
+    .rst_ni           ( rst_ni ),
+        %if snax_core_acc[idx_key]['snax_use_custom_ports']:
+    //-----------------------------
+    // Custom instruction format control ports
+    //-----------------------------
+    // Request
+    .snax_req_i       ( snax_req   [${idx}] ),
+    .snax_qvalid_i    ( snax_qvalid[${idx}] ),
+    .snax_qready_o    ( snax_qready[${idx}] ),
+    // Response
+    .snax_resp_o      ( snax_resp  [${idx}] ),
+    .snax_pvalid_o    ( snax_pvalid[${idx}] ),
+    .snax_pready_i    ( snax_pready[${idx}] ),
+        % else:
+    //-----------------------------
+    // CSR  format control ports
+    //-----------------------------
+    // Request
+    .snax_req_data_i  ( snax_csr_req_data [${idx}] ),
+    .snax_req_addr_i  ( snax_csr_req_addr [${idx}] ),
+    .snax_req_write_i ( snax_csr_req_write[${idx}] ),
+    .snax_req_valid_i ( snax_csr_req_valid[${idx}] ),
+    .snax_req_ready_o ( snax_csr_req_ready[${idx}] ),
+    // Response
+    .snax_rsp_data_o  ( snax_csr_rsp_data [${idx}] ),
+    .snax_rsp_valid_o ( snax_csr_rsp_valid[${idx}] ),
+    .snax_rsp_ready_i ( snax_csr_rsp_ready[${idx}] ),
+        %endif
+    //-----------------------------
+    // Hardware barrier
+    //-----------------------------
+    .snax_barrier_o   ( snax_barrier[${idx}] ),
+    //-----------------------------
+    // TCDM ports
+    //-----------------------------
+    .snax_tcdm_req_o  ( snax_tcdm_req[${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_stop']}:${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_start']}] ),
+    .snax_tcdm_rsp_i  ( snax_tcdm_rsp[${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_stop']}:${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_start']}] )
   );
+
+        %if snax_core_acc[idx_key]['snax_use_custom_ports']:
+  // Tie unused CSR ports to 0
+  assign snax_csr_rsp_valid [${idx}] = '0;
+  assign snax_csr_rsp_data  [${idx}] = '0;
+  assign snax_csr_req_ready [${idx}] = '0;
+        %else:
+  // Tie unused custom instruction ports to 0
+  assign snax_qready  [${idx}] = '0;
+  assign snax_resp    [${idx}] = '0;
+  assign snax_pvalid  [${idx}] = '0;
+        %endif
+
       % endfor
     % endif
-
   % else:
+  
+  // If no accelerator is connected to Snitch core
+  // Tie SNAX custom ports to 0
+  assign snax_qready  [${idx}] = '0;
+  assign snax_resp    [${idx}] = '0;
+  assign snax_pvalid  [${idx}] = '0;
+  // Tie CSR ports to 0
+  assign snax_csr_rsp_data [ ${idx}] = '0;
+  assign snax_csr_rsp_valid [${idx}] = '0;
+  assign snax_csr_req_ready [${idx}] = '0;
+  // Tie barrier to 0
+  assign snax_barrier [${idx}] = '0;
 
-  assign snax_qready[${idx}] = '0;
-  assign snax_resp[${idx}] = '0;
-  assign snax_pvalid[${idx}] = '0;
-  assign snax_barrier[${idx}] = '0;
   % endif
 % endfor
-
 
 endmodule

@@ -161,6 +161,20 @@ jobs:
           sw/runtime.yaml sw/standard-fp.yaml sw/snax-mac-run.yaml \
           sw/snax-mac-mult-run.yaml -j
 
+  snax-alu-cluster-vlt-generic:
+    name: HW build SNAX ALU Cluster w/ Verilator (Generic LLVM)
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/kuleuven-micas/snax:main
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - name: Build Hardware
+        run: |
+          make CFG_OVERRIDE=cfg/snax-alu.hjson \
+          -C target/snitch_cluster bin/snitch_cluster.vlt
+
   ############################################
   # Build SW on Snitch Cluster w/ Banshee #
   #########################################

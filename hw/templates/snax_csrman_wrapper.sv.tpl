@@ -1,16 +1,19 @@
 // Copyright 2024 KU Leuven.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
-
+<%
+  num_tcdm_ports = sum(cfg["snax_streamer_cfg"]["data_reader_params"]["tcdm_ports_num"]) + \
+                   sum(cfg["snax_streamer_cfg"]["data_writer_params"]["tcdm_ports_num"])
+%>
 module ${cfg["tag_name"]}_csrman_wrapper #(
-  parameter int unsigned NumCsr = ${cfg["snax_acc_num_csr"]}
+  parameter int unsigned NumRwCsr = ${cfg["snax_num_rw_csr"]},
+  parameter int unsigned NumRoCsr = ${cfg["snax_num_rw_csr"]}
 )(
   //-----------------------------
   // Clocks and reset
   //-----------------------------
   input  logic clk_i,
   input  logic rst_ni,
-
   //-----------------------------
   // CSR control ports
   //-----------------------------
@@ -20,25 +23,24 @@ module ${cfg["tag_name"]}_csrman_wrapper #(
   input  logic        csr_req_write_i,
   input  logic        csr_req_valid_i,
   output logic        csr_req_ready_o,
-
   // Response
   output logic [31:0] csr_rsp_data_o,
   input  logic        csr_rsp_ready_i,
   output logic        csr_rsp_valid_o,
-
   //-----------------------------
   // Packed CSR register signals
   //-----------------------------
-  output logic [NumCsr-1:0][31:0] csr_reg_set_o,
-  output logic                    csr_reg_set_valid_o,
-  input  logic                    csr_reg_set_ready_i
+  output logic [NumRwCsr-1:0][31:0] csr_reg_rw_set_o,
+  output logic                      csr_reg_set_valid_o,
+  input  logic                      csr_reg_set_ready_i,
+  input  logic [NumRoCsr-1:0][31:0] csr_reg_ro_set_i
 );
 
 
   //-----------------------------
   // Chisel generated CSR manager
   //-----------------------------
-  ${cfg["tag_name"]}CsrManager i_${cfg["tag_name"]}CsrManager (
+  ${cfg["tag_name"]}_csrman_CsrManager i_${cfg["tag_name"]}_csrman_CsrManager (
     //-----------------------------
     // Clocks and reset
     //-----------------------------
@@ -63,8 +65,11 @@ module ${cfg["tag_name"]}_csrman_wrapper #(
     //-----------------------------
     // CSR configurations
     //-----------------------------
-% for i in range(cfg["snax_acc_num_csr"]):
-    .io_csr_config_out_bits_${i}      ( csr_reg_set_o[${i}] ),
+% for i in range(cfg["snax_num_rw_csr"]):
+    .io_csr_config_out_bits_${i}      ( csr_reg_rw_set_o[${i}] ),
+% endfor
+% for i in range(cfg["snax_num_ro_csr"]):
+    .io_read_only_csr_${i}            ( csr_reg_ro_set_i[${i}] ),
 % endfor
     .io_csr_config_out_valid          ( csr_reg_set_valid_o ),
     .io_csr_config_out_ready          ( csr_reg_set_ready_i )

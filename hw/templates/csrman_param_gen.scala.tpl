@@ -15,9 +15,10 @@ object CsrManagerGen {
     val outPath = args.headOption.getOrElse("../../target/snitch_cluster/generated/.")
     emitVerilog(
       new CsrManager(
-        csrNum = ${cfg["snax_acc_num_csr"]},
+        csrNumReadWrite = ${cfg["snax_num_rw_csr"]},
+        csrNumReadOnly = ${cfg["snax_num_ro_csr"]},
         csrAddrWidth = 32,
-        csrModuleTagName = "${cfg["tag_name"]}"
+        csrModuleTagName = "${cfg["tag_name"]}_csrman_"
       ),
       Array("--target-dir", outPath)
     )

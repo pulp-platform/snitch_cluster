@@ -86,12 +86,14 @@
         xf8alt: true,
         xfdotp: true,
         xfvec: true,
-        snax_acc_set: {
+        snax_acc_cfg: {
+            snax_acc_name: "snax_mac",
             snax_module: "snax_mac_wrapper",
-            snax_num_csr: 24,
+            snax_num_rw_csr: 24,
             snax_num_acc: 4,
             snax_tcdm_ports: 4,
         },
+        snax_use_custom_ports: true,
         num_int_outstanding_loads: 1,
         num_int_outstanding_mem: 4,
         num_fp_outstanding_loads: 4,

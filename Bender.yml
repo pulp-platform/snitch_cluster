@@ -187,13 +187,6 @@ sources:
     files:
       - hw/snitch/test/snitch_l0_tlb_tb.sv
 
-  # snax mac
-  - files:
-      # Level 0
-      - hw/snax_hwpe_mac/src/snax_hwpe_ctrl.sv
-      - hw/snax_hwpe_mac/src/snax_hwpe_to_reqrsp.sv
-      - hw/snax_hwpe_mac/src/snax_mac_wrapper.sv
-
   # snitch_vm
   - files:
       - hw/snitch_vm/src/snitch_ptw.sv
@@ -281,9 +274,37 @@ sources:
       # Level 4
       - hw/snitch_cluster/src/snitch_cluster.sv
 
+  #---------------------------
   # SNAX components
+  #---------------------------
   - files:
-      - hw/snax/src/snax_acc_mux_demux.sv
+      - hw/snax_util/src/snax_csr_mux_demux.sv
+      - hw/snax_util/src/snax_acc_mux_demux.sv
+      - hw/snax_util/src/snax_intf_translator.sv
+  #---------------------------
+  # SNAX Accelerators
+  #---------------------------
+  # SNAX HWPE MAC
+  - files:
+      # Level 0
+      - hw/snax_hwpe_mac/src/snax_hwpe_ctrl.sv
+      - hw/snax_hwpe_mac/src/snax_hwpe_to_reqrsp.sv
+      # Level 1
+      - hw/snax_hwpe_mac/src/snax_mac_wrapper.sv
+  # SNAX ALU
+  - target: snax-alu
+    files:
+      # Level 0
+      - hw/snax_alu/src/snax_alu_csr.sv
+      - hw/snax_alu/src/snax_alu_pe.sv
+      - target/snitch_cluster/generated/snax_alu/snax_alu_csrman_CsrManager.sv
+      - target/snitch_cluster/generated/snax_alu/snax_alu_streamer_StreamerTop.sv
+      # Level 1
+      - hw/snax_alu/src/snax_alu_shell_wrapper.sv
+      - target/snitch_cluster/generated/snax_alu/snax_alu_csrman_wrapper.sv
+      - target/snitch_cluster/generated/snax_alu/snax_alu_streamer_wrapper.sv
+      # Level 2
+      - target/snitch_cluster/generated/snax_alu/snax_alu_wrapper.sv
 
   - target: test
     files:

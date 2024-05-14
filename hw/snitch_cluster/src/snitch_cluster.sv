@@ -100,6 +100,8 @@ module snitch_cluster
   parameter int unsigned TotalSnaxTcdmPorts = 0,
   /// SNAX Acc Narrow Wide Selection
   parameter bit [NrCores-1:0] ConnectSnaxAccWide = 0,
+  /// SNAX Use Custom Instruction Ports
+  parameter bit [NrCores-1:0] SnaxUseCustomPorts = 0,
   /// Physical Memory Attribute Configuration
   parameter snitch_pma_pkg::snitch_pma_t SnitchPMACfg = '0,
   /// # Per-core parameters
@@ -226,16 +228,31 @@ module snitch_cluster
   /// Bypass half-frequency clock. (`d2` = divide-by-two). This signal is
   /// pseudo-static.
   input  logic                          clk_d2_bypass_i,
-  /// SNAX ports
+  /// SNAX Custom Instruction Ports
+  /// Request for custom instruction format
   output acc_req_t  [NrCores-1:0]            snax_req_o,
   output logic      [NrCores-1:0]            snax_qvalid_o,
   input  logic      [NrCores-1:0]            snax_qready_i,
+  /// Response for custom instruction format
   input  acc_resp_t [NrCores-1:0]            snax_resp_i,
   input  logic      [NrCores-1:0]            snax_pvalid_i,
   output logic      [NrCores-1:0]            snax_pready_o,
+  /// SNAX CSR Ports
+  /// Request for CSR format
+  output logic      [NrCores-1:0][31:0]      snax_csr_req_bits_data_o,
+  output logic      [NrCores-1:0][31:0]      snax_csr_req_bits_addr_o,
+  output logic      [NrCores-1:0]            snax_csr_req_bits_write_o,
+  output logic      [NrCores-1:0]            snax_csr_req_valid_o,
+  input  logic      [NrCores-1:0]            snax_csr_req_ready_i,
+  /// Response for CSR format
+  input  logic      [NrCores-1:0][31:0]      snax_csr_rsp_bits_data_i,
+  input  logic      [NrCores-1:0]            snax_csr_rsp_valid_i,
+  output logic      [NrCores-1:0]            snax_csr_rsp_ready_o,
+  /// SNAX barrier port
+  input  logic      [NrCores-1:0]            snax_barrier_i,
+  /// SNAX TCDM ports
   input  tcdm_req_t [TotalSnaxTcdmPorts-1:0] snax_tcdm_req_i,
   output tcdm_rsp_t [TotalSnaxTcdmPorts-1:0] snax_tcdm_rsp_o,
-  input  logic      [NrCores-1:0]            snax_barrier_i,
   /// AXI Core cluster in-port.
   input  narrow_in_req_t                narrow_in_req_i,
   output narrow_in_resp_t               narrow_in_resp_o,
@@ -937,6 +954,128 @@ module snitch_cluster
   hive_req_t [NrCores-1:0] hive_req;
   hive_rsp_t [NrCores-1:0] hive_rsp;
 
+  //-------------------------------
+  // SNAX Control Signals
+  //-------------------------------
+  acc_req_t [NrCores-1:0]       snax_req;
+  logic     [NrCores-1:0]       snax_qvalid;
+  logic     [NrCores-1:0]       snax_qready;
+
+  acc_resp_t [NrCores-1:0]       snax_resp;
+  logic     [NrCores-1:0]       snax_pvalid;
+  logic     [NrCores-1:0]       snax_pready;
+
+  logic     [NrCores-1:0][31:0] snax_csr_req_bits_data;
+  logic     [NrCores-1:0][31:0] snax_csr_req_bits_addr;
+  logic     [NrCores-1:0]       snax_csr_req_bits_write;
+  logic     [NrCores-1:0]       snax_csr_req_valid;
+  logic     [NrCores-1:0]       snax_csr_req_ready;
+
+  logic     [NrCores-1:0][31:0] snax_csr_rsp_bits_data;
+  logic     [NrCores-1:0]       snax_csr_rsp_valid;
+  logic     [NrCores-1:0]       snax_csr_rsp_ready;
+
+  // Re-mapping of custom instruction ports
+  for (genvar i = 0; i < NrCores; i++) begin: gen_snax_control_connection
+
+    // or CSR ports
+    if ( SnaxUseCustomPorts[i] ) begin: gen_snax_use_custom_ports
+
+      always_comb begin
+        // SNAX Custom ports
+        // Request
+        snax_req_o   [i] = snax_req     [i];
+        snax_qvalid_o[i] = snax_qvalid  [i];
+        snax_qready  [i] = snax_qready_i[i];
+        // Response
+        snax_resp    [i] = snax_resp_i  [i];
+        snax_pvalid  [i] = snax_pvalid_i[i];
+        snax_pready_o[i] = snax_pready  [i];
+
+        // Unused SNAX CSR ports
+        // Request
+        snax_csr_req_bits_data_o  [i] = '0;
+        snax_csr_req_bits_addr_o  [i] = '0;
+        snax_csr_req_bits_write_o [i] = '0;
+        snax_csr_req_valid_o      [i] = '0;
+        // snax_csr_req_ready     = unconnected
+
+        // Response
+        // snax_csr_rsp_bits_data_i  = unconnected
+        // snax_csr_rsp_valid_i      = unconnected
+        snax_csr_rsp_ready_o[i]      = '0;
+      end
+
+    end else begin: gen_snax_use_csr_ports
+
+      always_comb begin
+        // Unused SNAX Custom ports
+        // Request
+        snax_req_o   [i] = '0;
+        snax_qvalid_o[i] = '0;
+        // snax_qready   = unconnected
+        // Response
+        // snax_resp     = unconnected
+        // snax_pvalid   = unconnected
+        snax_pready_o[i] = '0;
+
+        // SNAX CSR ports
+        // Request
+        snax_csr_req_bits_data_o [i] = snax_csr_req_bits_data  [i];
+        snax_csr_req_bits_addr_o [i] = snax_csr_req_bits_addr  [i];
+        snax_csr_req_bits_write_o[i] = snax_csr_req_bits_write [i];
+        snax_csr_req_valid_o     [i] = snax_csr_req_valid      [i];
+        snax_csr_req_ready       [i] = snax_csr_req_ready_i    [i];
+
+        // Response
+        snax_csr_rsp_bits_data   [i] = snax_csr_rsp_bits_data_i[i];
+        snax_csr_rsp_valid       [i] = snax_csr_rsp_valid_i    [i];
+        snax_csr_rsp_ready_o     [i] = snax_csr_rsp_ready      [i];
+      end
+
+      snax_intf_translator #(
+        .acc_req_t     ( acc_req_t ),
+        .acc_rsp_t     ( acc_resp_t ),
+        // Careful! Sensitive parameter that depends
+        // On the offset of where the CSRs are placed
+        .CsrAddrOffset ( 32'h3c0   )
+      ) i_snax_intf_translator (
+        //-------------------------------
+        // Clocks and reset
+        //-------------------------------
+        .clk_i  ( clk_i ),
+        .rst_ni ( rst_ni),
+        //-------------------------------
+        // Request
+        //-------------------------------
+        .snax_req_i    ( snax_req   [i] ),
+        .snax_qvalid_i ( snax_qvalid[i] ),
+        .snax_qready_o ( snax_qready[i] ),
+        //-------------------------------
+        // Response
+        //-------------------------------
+        .snax_resp_o   ( snax_resp  [i] ),
+        .snax_pvalid_o ( snax_pvalid[i] ),
+        .snax_pready_i ( snax_pready[i] ),
+        //-----------------------------
+        // Simplified CSR control ports
+        //-----------------------------
+        // Request
+        .snax_csr_req_bits_data_o  ( snax_csr_req_bits_data [i] ),
+        .snax_csr_req_bits_addr_o  ( snax_csr_req_bits_addr [i] ),
+        .snax_csr_req_bits_write_o ( snax_csr_req_bits_write[i] ),
+        .snax_csr_req_valid_o      ( snax_csr_req_valid     [i] ),
+        .snax_csr_req_ready_i      ( snax_csr_req_ready     [i] ),
+
+        // Response
+        .snax_csr_rsp_bits_data_i  ( snax_csr_rsp_bits_data [i] ),
+        .snax_csr_rsp_valid_i      ( snax_csr_rsp_valid     [i] ),
+        .snax_csr_rsp_ready_o      ( snax_csr_rsp_ready     [i] )
+      );
+    end
+  end
+
+
   for (genvar i = 0; i < NrCores; i++) begin : gen_core
     localparam int unsigned TcdmPorts = get_tcdm_ports(i);
     localparam int unsigned TcdmPortsOffs = get_tcdm_port_offs(i);
@@ -1036,12 +1175,12 @@ module snitch_cluster
         .axi_dma_busy_o (),
         .axi_dma_perf_o (),
         .axi_dma_events_o (dma_core_events),
-        .snax_req_o (snax_req_o[i]),
-        .snax_qvalid_o (snax_qvalid_o[i]),
-        .snax_qready_i (snax_qready_i[i]),
-        .snax_resp_i (snax_resp_i[i]),
-        .snax_pvalid_i (snax_pvalid_i[i]),
-        .snax_pready_o (snax_pready_o[i]),
+        .snax_req_o (snax_req[i]),
+        .snax_qvalid_o (snax_qvalid[i]),
+        .snax_qready_i (snax_qready[i]),
+        .snax_resp_i (snax_resp[i]),
+        .snax_pvalid_i (snax_pvalid[i]),
+        .snax_pready_o (snax_pready[i]),
         .core_events_o (core_events[i]),
         .tcdm_addr_base_i (tcdm_start_address),
         .snax_barrier_i (snax_barrier_i[i]),

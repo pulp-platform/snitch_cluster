@@ -113,7 +113,7 @@ object StreamerTopGen {
           stationarity = StreamerParametersGen.stationarity,
           dataReaderParams = StreamerParametersGen.dataReaderParams,
           dataWriterParams = StreamerParametersGen.dataWriterParams,
-          tagName = "${cfg["tag_name"]}"
+          tagName = "${cfg["tag_name"]}_streamer_"
         )
       ),
       Array("--target-dir", outPath)

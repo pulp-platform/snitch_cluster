@@ -86,10 +86,12 @@
         xf8alt: true,
         xfdotp: true,
         xfvec: true,
-        snax_acc_set: {
+        snax_acc_cfg: {
+            snax_acc_name: "snax_streamer_gemm",
             snax_module: "snax_streamer_gemm_wrapper",
             snax_tcdm_ports: 48,
         }
+        snax_use_custom_ports: true,
         snax_acc_wide: true,
         num_int_outstanding_loads: 1,
         num_int_outstanding_mem: 4,
