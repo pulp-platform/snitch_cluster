@@ -258,9 +258,12 @@ def terminate_processes():
     iterations = 0
     while get_living_subprocesses() and iterations < 10:
         living_subprocs = get_living_subprocesses()
-        print(f'{len(living_subprocs)} living subprocesses of {ppid}')
-        print(living_subprocs)
-        [os.kill(proc.info['pid'], signal.SIGKILL) for proc in living_subprocs]
+        print(f'{len(living_subprocs)} living subprocesses of {ppid}\n{living_subprocs}')
+        for proc in living_subprocs:
+            try:
+                os.kill(proc.info['pid'], signal.SIGKILL)
+            except ProcessLookupError:
+                pass
         iterations += 1
         time.sleep(1)
     if iterations == 10:
