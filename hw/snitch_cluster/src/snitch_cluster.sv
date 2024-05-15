@@ -37,7 +37,7 @@ module snitch_cluster
   parameter int unsigned NarrowUserWidth    = 1,
   /// AXI: dma user width.
   parameter int unsigned WideUserWidth      = 1,
-  /// Address from which to fetch the first instructions.
+  /// External Boot Address from which to fetch the first instructions.
   parameter logic [31:0] BootAddr           = 32'h0,
   /// Number of Hives. Each Hive can hold 1-many cores.
   parameter int unsigned NrHives            = 1,
@@ -48,7 +48,7 @@ module snitch_cluster
   /// Zero memory address region size (in kB).
   parameter int unsigned ZeroMemorySize     = 64,
   /// Bootrom memory address region size (in kB).
-  parameter int unsigned BootRomSize        = 64,
+  parameter int unsigned BootRomSize        = 4,
   /// Cluster peripheral address region size (in kB).
   parameter int unsigned ClusterPeriphSize  = 64,
   /// Number of TCDM Banks. It is recommended to have twice the number of banks
@@ -465,13 +465,13 @@ module snitch_cluster
   assign cluster_periph_start_address = tcdm_end_address;
   assign cluster_periph_end_address   = tcdm_end_address + ClusterPeriphSize * 1024;
 
+  addr_t bootrom_start_address, bootrom_end_address;
+  assign bootrom_start_address = cluster_periph_start_address + 4 * 1024;
+  assign bootrom_end_address   = cluster_periph_end_address;
+
   addr_t zero_mem_start_address, zero_mem_end_address;
   assign zero_mem_start_address = cluster_periph_end_address;
   assign zero_mem_end_address   = cluster_periph_end_address + ZeroMemorySize * 1024;
-
-  addr_t bootrom_start_address, bootrom_end_address;
-  assign bootrom_start_address = zero_mem_end_address;
-  assign bootrom_end_address   = zero_mem_end_address + BootRomSize * 1024;
 
   localparam addr_t TCDMAliasStart = AliasRegionBase & TCDMMask;
   localparam addr_t TCDMAliasEnd   = (TCDMAliasStart + TCDMSize) & TCDMMask;
@@ -479,11 +479,11 @@ module snitch_cluster
   localparam addr_t PeriphAliasStart = TCDMAliasEnd;
   localparam addr_t PeriphAliasEnd   = TCDMAliasEnd + ClusterPeriphSize * 1024;
 
-  localparam addr_t BootRomAliasStart = PeriphAliasEnd;
-  localparam addr_t BootRomAliasEnd   = PeriphAliasEnd + BootRomSize * 1024;
+  localparam addr_t BootRomAliasStart = PeriphAliasStart + 4 * 1024;
+  localparam addr_t BootRomAliasEnd   = PeriphAliasEnd;
 
-  localparam addr_t ZeroMemAliasStart = BootRomAliasEnd;
-  localparam addr_t ZeroMemAliasEnd   = BootRomAliasEnd + ZeroMemorySize * 1024;
+  localparam addr_t ZeroMemAliasStart = PeriphAliasEnd;
+  localparam addr_t ZeroMemAliasEnd   = PeriphAliasEnd + ZeroMemorySize * 1024;
 
 
   // ----------------

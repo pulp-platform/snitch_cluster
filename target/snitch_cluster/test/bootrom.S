@@ -2,8 +2,6 @@
 
 .global _snitch_park
 _snitch_park:
-    # Set core id
-    csrr    a0, mhartid
     # Set trap vector
     la      t0, _snitch_resume
     csrw    mtvec, t0
@@ -15,7 +13,7 @@ _snitch_park:
     wfi
 
 _snitch_resume:
-    la      t0, ctrl_scratch1
-    lw      t0, 0(t0)
+    lui     t0, 0xfffff    # Peripheral start is 0x1000 before bootrom start.
+    addi    t0, t0, 0x15c  # This is the 0x2c instruction and we want to jump to scratch_1 (0x188).
     jalr    ra, 0(t0)
     j       _snitch_park
