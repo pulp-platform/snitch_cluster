@@ -262,6 +262,15 @@ class QuestaSimulation(QuestaVCSSimulation):
                         return hours*3600 + minutes*60 + seconds
 
 
+class GvsocSimulation(Simulation):
+    """A functional simulation running on GVSOC."""
+
+    def __init__(self, sim_bin=None, cmd=None, **kwargs):
+        super().__init__(**kwargs)
+
+        self.cmd = ['gvsoc', '--target', 'pulp.snitch.snitch_cluster_single', '--binary',
+                    str(self.elf), 'run']
+
 class VCSSimulation(QuestaVCSSimulation):
     """An RTL simulation running on VCS."""
 
