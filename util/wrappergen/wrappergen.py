@@ -117,6 +117,7 @@ def main():
     # Placing the TCDM components again into accelerator configurations
     # Because they are part of the cluster-level configurations
     for i in range(len(acc_cfgs)):
+        # TCDM configurations
         tcdm_data_width = cfg["cluster"]["data_width"]
         acc_cfgs[i]["tcdm_data_width"] = tcdm_data_width
         acc_cfgs[i]["tcdm_dma_data_width"] = cfg["cluster"]["dma_data_width"]
@@ -133,7 +134,15 @@ def main():
             (tcdm_data_width // 8)
         tcdm_addr_width = int(math.log2(tcdm_addr_width))
         acc_cfgs[i]["tcdm_addr_width"] = tcdm_addr_width
+        # Chisel parameter tag names
         acc_cfgs[i]["tag_name"] = acc_cfgs[i]["snax_acc_name"]
+        # Pre-calculate streamer CSRs
+        num_loop_dim = acc_cfgs[i]["snax_streamer_cfg"]["temporal_addrgen_unit_params"]["loop_dim"]  # noqa: E501
+        num_data_mover = len(acc_cfgs[i]["snax_streamer_cfg"]["data_reader_params"]["tcdm_ports_num"]) + len(acc_cfgs[i]["snax_streamer_cfg"]["data_writer_params"]["tcdm_ports_num"])  # noqa: E501
+        num_dmove_x_loop_dim = num_data_mover * num_loop_dim
+        num_spatial_dim = sum(acc_cfgs[i]["snax_streamer_cfg"]["data_reader_params"]["spatial_dim"]) + sum(acc_cfgs[i]["snax_streamer_cfg"]["data_writer_params"]["spatial_dim"])  # noqa: E501
+        streamer_csr_num = num_loop_dim + num_dmove_x_loop_dim + num_data_mover + num_spatial_dim + 1 + 1  # noqa: E501
+        acc_cfgs[i]["streamer_csr_num"] = streamer_csr_num
 
     # Generate template out of given configurations
     # TODO: Make me a generation for the necessary files!

@@ -194,7 +194,7 @@ test/bootrom.elf test/bootrom.dump test/bootrom.bin: test/bootrom.S test/bootrom
 
 
 $(SNAX_GEN):
-	${WRAPPER_GEN} --cfg_path="${SNAX_CFG_PATH}/snax-alu.hjson" \
+	${WRAPPER_GEN} --cfg_path="$(ROOT)/target/snitch_cluster/$(CFG_OVERRIDE)" \
 	--tpl_path="${SNAX_TPL_PATH}" \
 	--chisel_path="${CHISEL_PATH}" \
 	--gen_path="${GENERATED_DIR}/"

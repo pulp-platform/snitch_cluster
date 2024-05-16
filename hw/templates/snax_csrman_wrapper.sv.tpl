@@ -45,7 +45,7 @@ module ${cfg["tag_name"]}_csrman_wrapper #(
     // Clocks and reset
     //-----------------------------
     .clock  ( clk_i  ),
-    .reset  ( rst_ni ),
+    .reset  ( ~rst_ni ),
 
     //-----------------------------
     // CSR ports

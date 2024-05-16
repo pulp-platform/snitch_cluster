@@ -111,7 +111,7 @@ module ${cfg["tag_name"]}_wrapper # (
     // To streamer or the accelerator CSRs
     // If snax_req_addr_i <  AddrSelOffset, it points
     // to the accelerator CSR manager
-    .AddrSelOffSet        ( TotalRegCount     ),
+    .AddrSelOffSet        ( ${cfg["streamer_csr_num"]}     ), // Streamer CSR number
     .RegDataWidth         ( RegDataWidth      ),
     .RegAddrWidth         ( RegAddrWidth      )
   ) i_snax_csr_mux_demux (
@@ -156,16 +156,16 @@ module ${cfg["tag_name"]}_wrapper # (
     // CSR control ports
     //-----------------------------
     // Request
-    .csr_req_addr_i       ( acc_csr_req_addr [0]  ),
-    .csr_req_data_i       ( acc_csr_req_data [0]  ),
-    .csr_req_write_i      ( acc_csr_req_wen  [0]  ),
-    .csr_req_valid_i      ( acc_csr_req_valid[0]  ),
-    .csr_req_ready_o      ( acc_csr_req_ready[0]  ),
+    .csr_req_addr_i       ( acc_csr_req_addr [1]  ),
+    .csr_req_data_i       ( acc_csr_req_data [1]  ),
+    .csr_req_write_i      ( acc_csr_req_wen  [1]  ),
+    .csr_req_valid_i      ( acc_csr_req_valid[1]  ),
+    .csr_req_ready_o      ( acc_csr_req_ready[1]  ),
 
     // Response
-    .csr_rsp_data_o       ( acc_csr_rsp_data [0]  ),
-    .csr_rsp_ready_i      ( acc_csr_rsp_valid[0]  ),
-    .csr_rsp_valid_o      ( acc_csr_rsp_ready[0]  ),
+    .csr_rsp_data_o       ( acc_csr_rsp_data [1]  ),
+    .csr_rsp_ready_i      ( acc_csr_rsp_valid[1]  ),
+    .csr_rsp_valid_o      ( acc_csr_rsp_ready[1]  ),
 
     //-----------------------------
     // Packed CSR register signals
@@ -183,12 +183,11 @@ module ${cfg["tag_name"]}_wrapper # (
   //-----------------------------
   // Note: This is the part that needs to be consistent
   // It needs to have the correct connections to the control and data ports!
-
-  ${cfg["tag_name"]}_shell_wrapper #(
-    .RegRWCount           ( RegRWCount          ),
-    .RegROCount           ( RegROCount          ),
-    .DataWidth            ( DataWidth           )
-  ) i_${cfg["tag_name"]}_shell_wrapper (
+  // Parameter declarations are custom inside the shell
+  // Do not pass it from the top towards here to achieve
+  // Uniform shell wrapping :)
+  
+  ${cfg["tag_name"]}_shell_wrapper i_${cfg["tag_name"]}_shell_wrapper (
     //-------------------------------
     // Clocks and reset
     //-------------------------------
@@ -270,15 +269,15 @@ module ${cfg["tag_name"]}_wrapper # (
     // CSR control ports
     //-----------------------------
     // Request
-    .csr_req_bits_data_i   ( acc_csr_req_data [1] ),
-    .csr_req_bits_addr_i   ( acc_csr_req_addr [1] ),
-    .csr_req_bits_write_i  ( acc_csr_req_wen  [1] ),
-    .csr_req_valid_i       ( acc_csr_req_valid[1] ),
-    .csr_req_ready_o       ( acc_csr_req_ready[1] ),
+    .csr_req_bits_data_i   ( acc_csr_req_data [0] ),
+    .csr_req_bits_addr_i   ( acc_csr_req_addr [0] ),
+    .csr_req_bits_write_i  ( acc_csr_req_wen  [0] ),
+    .csr_req_valid_i       ( acc_csr_req_valid[0] ),
+    .csr_req_ready_o       ( acc_csr_req_ready[0] ),
     // Response
-    .csr_rsp_bits_data_o   ( acc_csr_rsp_data [1] ),
-    .csr_rsp_valid_o       ( acc_csr_rsp_valid[1] ),
-    .csr_rsp_ready_i       ( acc_csr_rsp_ready[1] )
+    .csr_rsp_bits_data_o   ( acc_csr_rsp_data [0] ),
+    .csr_rsp_valid_o       ( acc_csr_rsp_valid[0] ),
+    .csr_rsp_ready_i       ( acc_csr_rsp_ready[0] )
   );
 
   //-----------------------------
