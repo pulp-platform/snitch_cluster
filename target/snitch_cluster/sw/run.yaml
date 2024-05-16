@@ -8,11 +8,15 @@ runs:
   - elf: tests/build/atomics.elf
     simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x4
   - elf: tests/build/barrier.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/data_mover.elf
   - elf: tests/build/dma_empty_transfer.elf
   - elf: tests/build/dma_simple.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/event_unit.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/fence_i.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/fp8_comparison_scalar.elf
     simulators: [vsim, vcs, verilator] # banshee fails with segfault
   - elf: tests/build/fp8_comparison_vector.elf
@@ -46,7 +50,9 @@ runs:
   - elf: tests/build/fp16alt_computation_vector.elf
     simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x16
   - elf: tests/build/fp32_comparison_scalar.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/fp32_comparison_vector.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/fp32_computation_scalar.elf
     simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x2
   - elf: tests/build/fp32_computation_vector.elf
@@ -57,22 +63,38 @@ runs:
   #   simulators: [vsim, vcs, verilator]
   # - elf: tests/build/interrupt.elf
   - elf: tests/build/interrupt_local.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/multi_cluster.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/openmp_parallel.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/openmp_for_static_schedule.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/openmp_double_buffering.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/perf_cnt.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/printf_simple.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/printf_fmtint.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/simple.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/team_global.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/tls.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/varargs_1.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/varargs_2.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/zero_mem.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/non_null_exitcode.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
     retcode: 126
   - elf: tests/build/caq.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: tests/build/caq_frep.elf
     simulators: [vsim, vcs, verilator] # banshee does not model FREP timing
   - elf: apps/blas/axpy/build/axpy.elf
@@ -90,9 +112,11 @@ runs:
   - elf: apps/dnn/concat/build/concat.elf
     cmd: [../../../sw/dnn/concat/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/dnn/fused_concat_linear/build/fused_concat_linear.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
     cmd: [../../../sw/dnn/fused_concat_linear/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/dnn/transpose/build/transpose.elf
     cmd: [../../../sw/dnn/transpose/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/montecarlo/pi_estimation/build/pi_estimation.elf
+    simulators: [vsim, vcs, verilator, banshee] # gvsoc fail
   - elf: apps/atax/build/atax.elf
     cmd: [../../../sw/apps/atax/scripts/verify.py, "${sim_bin}", "${elf}"]
