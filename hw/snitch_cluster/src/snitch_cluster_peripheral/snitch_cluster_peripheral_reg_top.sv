@@ -1669,12 +1669,20 @@ module snitch_cluster_peripheral_reg_top #(
   logic perf_counter_15_we;
   logic perf_counter_15_re;
   logic [63:0] ctrl_scratch_0_qs;
+  logic [63:0] ctrl_scratch_0_wd;
+  logic ctrl_scratch_0_we;
   logic ctrl_scratch_0_re;
   logic [63:0] ctrl_scratch_1_qs;
+  logic [63:0] ctrl_scratch_1_wd;
+  logic ctrl_scratch_1_we;
   logic ctrl_scratch_1_re;
   logic [63:0] ctrl_scratch_2_qs;
+  logic [63:0] ctrl_scratch_2_wd;
+  logic ctrl_scratch_2_we;
   logic ctrl_scratch_2_re;
   logic [63:0] ctrl_scratch_3_qs;
+  logic [63:0] ctrl_scratch_3_wd;
+  logic ctrl_scratch_3_we;
   logic ctrl_scratch_3_re;
   logic [31:0] cl_clint_set_wd;
   logic cl_clint_set_we;
@@ -1850,7 +1858,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_0_retired_instr_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2659,7 +2667,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_1_retired_instr_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3468,7 +3476,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_2_retired_instr_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4277,7 +4285,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_3_retired_instr_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -5086,7 +5094,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_4_retired_instr_4 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -5895,7 +5903,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_5_retired_instr_5 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -6704,7 +6712,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_6_retired_instr_6 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -7513,7 +7521,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_7_retired_instr_7 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -8322,7 +8330,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_8_retired_instr_8 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -9131,7 +9139,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_9_retired_instr_9 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -9940,7 +9948,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_10_retired_instr_10 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -10749,7 +10757,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_11_retired_instr_11 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -11558,7 +11566,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_12_retired_instr_12 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -12367,7 +12375,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_13_retired_instr_13 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -13176,7 +13184,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_14_retired_instr_14 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -13985,7 +13993,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_15_retired_instr_15 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -15332,8 +15340,8 @@ module snitch_cluster_peripheral_reg_top #(
     .DW    (64)
   ) u_ctrl_scratch_0 (
     .re     (ctrl_scratch_0_re),
-    .we     (1'b0),
-    .wd     ('0),
+    .we     (ctrl_scratch_0_we),
+    .wd     (ctrl_scratch_0_wd),
     .d      ('0),
     .qre    (),
     .qe     (),
@@ -15348,8 +15356,8 @@ module snitch_cluster_peripheral_reg_top #(
     .DW    (64)
   ) u_ctrl_scratch_1 (
     .re     (ctrl_scratch_1_re),
-    .we     (1'b0),
-    .wd     ('0),
+    .we     (ctrl_scratch_1_we),
+    .wd     (ctrl_scratch_1_wd),
     .d      ('0),
     .qre    (),
     .qe     (),
@@ -15364,8 +15372,8 @@ module snitch_cluster_peripheral_reg_top #(
     .DW    (64)
   ) u_ctrl_scratch_2 (
     .re     (ctrl_scratch_2_re),
-    .we     (1'b0),
-    .wd     ('0),
+    .we     (ctrl_scratch_2_we),
+    .wd     (ctrl_scratch_2_wd),
     .d      ('0),
     .qre    (),
     .qe     (),
@@ -15380,8 +15388,8 @@ module snitch_cluster_peripheral_reg_top #(
     .DW    (64)
   ) u_ctrl_scratch_3 (
     .re     (ctrl_scratch_3_re),
-    .we     (1'b0),
-    .wd     ('0),
+    .we     (ctrl_scratch_3_we),
+    .wd     (ctrl_scratch_3_wd),
     .d      ('0),
     .qre    (),
     .qe     (),
@@ -17190,12 +17198,20 @@ module snitch_cluster_peripheral_reg_top #(
   assign perf_counter_15_wd = reg_wdata[47:0];
   assign perf_counter_15_re = addr_hit[47] & reg_re & !reg_error;
 
+  assign ctrl_scratch_0_we = addr_hit[48] & reg_we & !reg_error;
+  assign ctrl_scratch_0_wd = reg_wdata[63:0];
   assign ctrl_scratch_0_re = addr_hit[48] & reg_re & !reg_error;
 
+  assign ctrl_scratch_1_we = addr_hit[49] & reg_we & !reg_error;
+  assign ctrl_scratch_1_wd = reg_wdata[63:0];
   assign ctrl_scratch_1_re = addr_hit[49] & reg_re & !reg_error;
 
+  assign ctrl_scratch_2_we = addr_hit[50] & reg_we & !reg_error;
+  assign ctrl_scratch_2_wd = reg_wdata[63:0];
   assign ctrl_scratch_2_re = addr_hit[50] & reg_re & !reg_error;
 
+  assign ctrl_scratch_3_we = addr_hit[51] & reg_we & !reg_error;
+  assign ctrl_scratch_3_wd = reg_wdata[63:0];
   assign ctrl_scratch_3_re = addr_hit[51] & reg_re & !reg_error;
 
   assign cl_clint_set_we = addr_hit[52] & reg_we & !reg_error;

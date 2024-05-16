@@ -94,7 +94,7 @@
             },
             {
                 bits: "6:6",
-                resval: "0",
+                resval: "1",
                 name: "RETIRED_INSTR"
                 desc: '''
                         Instructions retired by the core, both offloaded and not. Does not
@@ -365,7 +365,7 @@
         multireg: {
             name: "CTRL_SCRATCH",
             desc: '''Scratch registers. Used in the bootrom for various purposes.'''
-            swaccess: "ro",
+            swaccess: "rw",
             hwaccess: "none",
             count: "NumCtrlScratch",
             cname: "ctrl_scratch",
