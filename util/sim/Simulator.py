@@ -4,7 +4,8 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-from Simulation import QuestaSimulation, VCSSimulation, VerilatorSimulation, BansheeSimulation
+from Simulation import QuestaSimulation, VCSSimulation, VerilatorSimulation, BansheeSimulation, \
+    GvsocSimulation
 
 
 class Simulator(object):
@@ -83,6 +84,36 @@ class RTLSimulator(Simulator):
             kwargs: Arguments passed to the base class constructor.
         """
         super().__init__(**kwargs)
+        self.binary = binary
+
+    def get_simulation(self, test):
+        if 'cmd' in test:
+            cmd = test['cmd']
+        else:
+            cmd = None
+        return super().get_simulation(
+            test,
+            sim_bin=self.binary,
+            cmd=cmd
+        )
+
+
+class GvsocSimulator(Simulator):
+    """Gvsoc simulator
+
+    A simulator, identified by the name
+    `gvsoc`, tailored to the creation of
+    [Gvsoc simulations][Simulation.GvsocSimulation].
+    """
+
+    def __init__(self, binary):
+        """Constructor for the GvsocSimulator class.
+
+        Arguments:
+            binary: The Gvsoc simulation binary.
+            kwargs: Arguments passed to the base class constructor.
+        """
+        super().__init__(name='gvsoc', simulation_cls=GvsocSimulation)
         self.binary = binary
 
     def get_simulation(self, test):
