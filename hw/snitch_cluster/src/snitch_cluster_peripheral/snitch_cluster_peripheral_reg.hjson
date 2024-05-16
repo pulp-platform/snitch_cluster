@@ -314,7 +314,7 @@
         multireg: {
             name: "CTRL_SCRATCH",
             desc: '''Scratch registers. Used in the bootrom for various purposes.'''
-            swaccess: "ro",
+            swaccess: "rw",
             hwaccess: "none",
             count: "NumCtrlScratch",
             cname: "ctrl_scratch",
