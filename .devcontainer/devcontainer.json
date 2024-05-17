@@ -1,0 +1,14 @@
+{
+  "image": "ghcr.io/kuleuven-micas/snax:main",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "chipsalliance.verible",
+        "wavetrace.wavetrace",
+        "mshr-h.veriloghdl",
+        "ms-python.python",
+        "ms-vscode.cpptools"
+      ]
+    }
+  }
+}
