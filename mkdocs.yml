@@ -33,7 +33,7 @@ nav:
   - User Guide:
       - Getting Started: ug/getting_started.md
       - Repository Structure: ug/directory_structure.md
-      - Tutorial: ug/tutorial.md
+      - Old Tutorial: ug/tutorial.md
       - Documentation: ug/documentation.md
       # Remove
       # - Benchmarking: ug/benchmarking.md
@@ -49,11 +49,23 @@ nav:
           - Reqrsp Interface: rm/reqrsp_interface.md
           - Custom Instructions: rm/custom_instructions.md
           # - Solder: rm/solder.md
-      - Software:
-          - Pages: runtime/Pages/index.md
-          - Files: runtime/Files/index.md
-          - Classes: runtime/Classes/index.md
-          - Examples: runtime/Examples/index.md
-          - Modules: runtime/Modules/index.md
-          - Namespaces: runtime/Namespaces/index.md
+      # Note: These are non-existent in the original repo...
+      # - Software:
+      #     - Pages: runtime/Pages/index.md
+      #     - Files: runtime/Files/index.md
+      #     - Classes: runtime/Classes/index.md
+      #     - Examples: runtime/Examples/index.md
+      #     - Modules: runtime/Modules/index.md
+      #     - Namespaces: runtime/Namespaces/index.md
+  - SNAX Tutorial:
+      - Introduction: tutorial/introduction.md
+      - Architectural Overview: tutorial/architectural_overview.md
+      - Accelerator Design: tutorial/accelerator_design.md
+      - CSR Manager Design: tutorial/csrman_design.md
+      - Streamer Design: tutorial/streamer_design.md
+      - Connecting the Shell: tutorial/connect_shell.md
+      - Building the System: tutorial/build_system.md
+      - Programming the System: tutorial/programming.md
+      - Other Tools: tutorial/other_tools.md
+      - More Designs: tutorial/more_designs.md
   - Publications: publications.md
