@@ -6,3 +6,4 @@
 
 #include "axpy/src/axpy.h"
 #include "gemm/src/gemm.h"
+#include "transpose/src/transpose.h"
