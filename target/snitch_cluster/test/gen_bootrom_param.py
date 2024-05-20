@@ -114,14 +114,14 @@ if args.sv_module:
         input  logic [AddrWidth-1:0] addr_i,
         output logic [DataWidth-1:0] data_o
     );
-        localparam logic [BootromSize-1:0][7:0] rom = '{{
+        localparam logic [{gen_size}-1:0][7:0] rom = '{{
             {bytes}
         }};
         
         localparam int unsigned NumBytes = DataWidth/8;
         localparam int unsigned WordOffset = $clog2(NumBytes);
         logic [BootromSize/NumBytes-1:0][DataWidth-1:0] rom_word_addressed;
-        assign rom_word_addressed = rom;
+        assign rom_word_addressed = rom[{gen_size}-1:({gen_size}-1)-BootromSize];
 
         logic [$clog2(BootromSize)-1:WordOffset] aligned_address;
 
@@ -133,6 +133,7 @@ if args.sv_module:
     """.strip().format(
         script=os.path.basename(__file__),
         module_name=args.sv_module,
+        gen_size=args.pad,
         num_bytes=num_bytes,
         bytes=bytes,
         word=word,

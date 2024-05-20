@@ -20,7 +20,7 @@
         input  logic [AddrWidth-1:0] addr_i,
         output logic [DataWidth-1:0] data_o
     );
-        localparam logic [BootromSize-1:0][7:0] rom = '{
+        localparam logic [65536-1:0][7:0] rom = '{
             {8'h00}, /* 0xffff */
             {8'h00}, /* 0xfffe */
             {8'h00}, /* 0xfffd */
@@ -65562,7 +65562,7 @@
         localparam int unsigned NumBytes = DataWidth/8;
         localparam int unsigned WordOffset = $clog2(NumBytes);
         logic [BootromSize/NumBytes-1:0][DataWidth-1:0] rom_word_addressed;
-        assign rom_word_addressed = rom;
+        assign rom_word_addressed = rom[65536-1:(65536-1)-BootromSize];
 
         logic [$clog2(BootromSize)-1:WordOffset] aligned_address;
 
