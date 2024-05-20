@@ -121,7 +121,7 @@ if args.sv_module:
         localparam int unsigned NumBytes = DataWidth/8;
         localparam int unsigned WordOffset = $clog2(NumBytes);
         logic [BootromSize/NumBytes-1:0][DataWidth-1:0] rom_word_addressed;
-        assign rom_word_addressed = rom[{gen_size}-1:({gen_size}-1)-BootromSize];
+        assign rom_word_addressed = rom[BootromSize-1:0];
 
         logic [$clog2(BootromSize)-1:WordOffset] aligned_address;
 
