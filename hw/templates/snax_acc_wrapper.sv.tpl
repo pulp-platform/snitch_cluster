@@ -164,8 +164,8 @@ module ${cfg["tag_name"]}_wrapper # (
 
     // Response
     .csr_rsp_data_o       ( acc_csr_rsp_data [1]  ),
-    .csr_rsp_ready_i      ( acc_csr_rsp_valid[1]  ),
-    .csr_rsp_valid_o      ( acc_csr_rsp_ready[1]  ),
+    .csr_rsp_valid_o      ( acc_csr_rsp_valid[1]  ),
+    .csr_rsp_ready_i      ( acc_csr_rsp_ready[1]  ),
 
     //-----------------------------
     // Packed CSR register signals

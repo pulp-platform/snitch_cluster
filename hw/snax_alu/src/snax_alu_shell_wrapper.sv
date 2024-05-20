@@ -14,6 +14,7 @@ module snax_alu_shell_wrapper #(
   parameter int unsigned RegROCount   = 2,
   parameter int unsigned NumPE        = 4,
   parameter int unsigned DataWidth    = 64,
+  parameter int unsigned OutDataWidth = DataWidth*2,
   parameter int unsigned RegDataWidth = 32,
   parameter int unsigned RegAddrWidth = 32
 )(
@@ -30,7 +31,7 @@ module snax_alu_shell_wrapper #(
   // just to comply with the top-level wrapper
 
   // Ports from accelerator to streamer
-  output logic [(NumPE*DataWidth*2)-1:0] acc2stream_0_data_o,
+  output logic [(NumPE*OutDataWidth)-1:0] acc2stream_0_data_o,
   output logic acc2stream_0_valid_o,
   input  logic acc2stream_0_ready_i,
 
@@ -57,9 +58,9 @@ module snax_alu_shell_wrapper #(
   //-------------------------------
 
   // Wiring for accelerator ports
-  logic [NumPE-1:0][DataWidth-1  :0] a_split;
-  logic [NumPE-1:0][DataWidth-1  :0] b_split;
-  logic [NumPE-1:0][DataWidth*2-1:0] c_split;
+  logic [NumPE-1:0][DataWidth-1   :0] a_split;
+  logic [NumPE-1:0][DataWidth-1   :0] b_split;
+  logic [NumPE-1:0][OutDataWidth-1:0] c_split;
 
   logic [NumPE-1:0] a_ready;
   logic [NumPE-1:0] b_ready;
@@ -86,7 +87,7 @@ module snax_alu_shell_wrapper #(
       b_split[i] = stream2acc_1_data_i[i*DataWidth+:DataWidth];
 
       // Concatenating the output signals
-      acc2stream_0_data_o[i*DataWidth+:DataWidth] = c_split[i];
+      acc2stream_0_data_o[i*OutDataWidth+:OutDataWidth] = c_split[i];
     end
 
     // Inputs are read when all ready signals are ready

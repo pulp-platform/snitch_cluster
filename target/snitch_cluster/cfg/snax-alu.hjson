@@ -90,7 +90,7 @@
             snax_acc_name: "snax_alu"
             snax_module: "snax_alu_wrapper",
             snax_tcdm_ports: 16,
-            snax_num_rw_csr: 2,
+            snax_num_rw_csr: 3,
             snax_num_ro_csr: 2,
             snax_streamer_cfg: {$ref: "#/snax_alu_streamer_template" }
         },
@@ -135,12 +135,12 @@
 
         fifo_reader_params: {
             fifo_width: [256, 256],
-            fifo_depth: [2, 2],
+            fifo_depth: [8, 8],
         }
 
         fifo_writer_params: {
             fifo_width: [512],
-            fifo_depth: [2],
+            fifo_depth: [8],
         }
 
         data_reader_params:{
