@@ -16,7 +16,7 @@ unsigned __attribute__((noinline)) parallel_section(void) {
         tx = read_csr(minstret) - tx;
         __atomic_add_fetch(&sum, 10, __ATOMIC_RELAXED);
     }
-    return sum != 8 * 10;
+    return sum != snrt_cluster_compute_core_num() * 10;
 }
 
 int main() {

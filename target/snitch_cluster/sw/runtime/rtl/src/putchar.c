@@ -2,19 +2,44 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#ifdef OPENOCD_SEMIHOSTING
+
+#include <openocd.h>
+
+#define PUTC_BUFFER_LEN 1024
+static int putchar_index[SNRT_CLUSTER_NUM * SNRT_CLUSTER_CORE_NUM] = {0};
+static char putchar_data[SNRT_CLUSTER_NUM * SNRT_CLUSTER_CORE_NUM]
+                        [PUTC_BUFFER_LEN];
+
+// Provide an implementation for putchar.
+void _putchar(char character) {
+    volatile char *buf = putchar_data[snrt_hartid()];
+    buf[putchar_index[snrt_hartid()]++] = character;
+    if (putchar_index[snrt_hartid()] == PUTC_BUFFER_LEN || character == '\n') {
+        __ocd_semihost_write(1, (uint8_t *)buf, putchar_index[snrt_hartid()]);
+        putchar_index[snrt_hartid()] = 0;
+    }
+}
+
+#else
 extern uintptr_t volatile tohost, fromhost;
 
 // Rudimentary string buffer for putc calls.
-extern uint32_t _edram;
 #define PUTC_BUFFER_LEN (1024 - sizeof(size_t))
-struct putc_buffer_header {
+
+typedef struct {
     size_t size;
     uint64_t syscall_mem[8];
-};
-static volatile struct putc_buffer {
-    struct putc_buffer_header hdr;
+} putc_buffer_header_t;
+
+typedef struct putc_buffer {
+    putc_buffer_header_t hdr;
     char data[PUTC_BUFFER_LEN];
-} *const putc_buffer = (void *)&_edram;
+} putc_buffer_t;
+
+static volatile putc_buffer_t
+    putc_buffer[SNRT_CLUSTER_NUM * SNRT_CLUSTER_CORE_NUM]
+    __attribute__((section(".dram")));
 
 // Provide an implementation for putchar.
 void _putchar(char character) {
@@ -26,11 +51,15 @@ void _putchar(char character) {
         buf->hdr.syscall_mem[2] = (uintptr_t)&buf->data;  // buffer
         buf->hdr.syscall_mem[3] = buf->hdr.size;          // length
 
+        snrt_mutex_acquire(snrt_mutex());
         tohost = (uintptr_t)buf->hdr.syscall_mem;
         while (fromhost == 0)
             ;
         fromhost = 0;
+        snrt_mutex_release(snrt_mutex());
 
         buf->hdr.size = 0;
     }
 }
+
+#endif

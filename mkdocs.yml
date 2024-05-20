@@ -25,7 +25,11 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: [util/sim]
+          paths:
+            - util/sim
+            - util/trace
+            - util/bench
+            - target/snitch_cluster/util
   - macros:
       on_error_fail: true
 use_directory_urls: false
@@ -37,10 +41,12 @@ nav:
   - User Guide:
       - Getting Started: ug/getting_started.md
       - Repository Structure: ug/directory_structure.md
-      - Tutorial: ug/tutorial.md
+      - Tutorial:
+          - Base: ug/tutorial.md
+          - Advanced:
+              - Trace Analysis: ug/trace_analysis.md
       - Documentation: ug/documentation.md
       # Remove
-      # - Benchmarking: ug/benchmarking.md
       # - Trace Example: ug/example_trace.html
   - Reference Manual:
       - Hardware:
@@ -60,11 +66,16 @@ nav:
               - rm/sim/Simulation.md
               - rm/sim/Simulator.md
               - rm/sim/Elf.md
-          - Snitch Runtime:
-              - Pages: runtime/Pages/index.md
-              - Files: runtime/Files/index.md
-              - Classes: runtime/Classes/index.md
-              - Examples: runtime/Examples/index.md
-              - Modules: runtime/Modules/index.md
-              - Namespaces: runtime/Namespaces/index.md
+          - Trace Utilities:
+              - gen_trace.py: rm/trace/gen_trace.md
+              - annotate.py: rm/trace/annotate.md
+              - events.py: rm/trace/events.md
+          - Benchmarking Utilities:
+              - join.py: rm/bench/join.md
+              - roi.py: rm/bench/roi.md
+              - visualize.py: rm/bench/visualize.md
+          - Snitch Target Utilities:
+              - run.py: rm/snitch_target_utils/run.md
+              - build.py: rm/snitch_target_utils/build.md
+          - Snitch Runtime: doxygen/html/index.html
   - Publications: publications.md

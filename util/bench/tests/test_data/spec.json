@@ -1,0 +1,16 @@
+[
+    {
+        "thread": "hart_0",
+        "roi": [
+            {"idx": 1, "label": "compute"}
+        ]
+    },
+% for i in range(0, num_clusters):
+    {
+        "thread": "${f'dma_{9*(i+1)}'}",
+        "roi": [
+            {"idx": 0, "label": "dma_in"}
+        ]
+    },
+% endfor
+]

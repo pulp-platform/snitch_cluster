@@ -3,7 +3,6 @@
 
 # Dependency files
 /.bender/
-/Bender.lock
 
 # Modelsim Files
 *.wlf
@@ -19,7 +18,10 @@ gmon.out
 # Docs
 /site/
 /docs/generated/
+/docs/doxygen/
 
 # Installation directories
 /.venv/
 /tools/
+/build/
+/snitch.egg-info/

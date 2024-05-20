@@ -26,8 +26,7 @@ RISCV_OBJDUMP   ?= $(LLVM_BINROOT)/llvm-objdump
 RISCV_DWARFDUMP ?= $(LLVM_BINROOT)/llvm-dwarfdump
 
 # Compiler flags
-RISCV_CFLAGS += $(addprefix -I,$(INCDIRS))
-RISCV_CFLAGS += -mcpu=snitch
+RISCV_CFLAGS := -mcpu=snitch
 RISCV_CFLAGS += -menable-experimental-extensions
 RISCV_CFLAGS += -mabi=ilp32d
 RISCV_CFLAGS += -mcmodel=medany
@@ -42,20 +41,18 @@ RISCV_CFLAGS += -O3
 ifeq ($(DEBUG), ON)
 RISCV_CFLAGS += -g
 endif
-# Required by math library to avoid conflict with stdint definition
-RISCV_CFLAGS += -D__DEFINED_uint64_t
+ifeq ($(OPENOCD_SEMIHOSTING), ON)
+RISCV_CFLAGS += -DOPENOCD_SEMIHOSTING
+endif
 
 # Linker flags
-RISCV_LDFLAGS += -fuse-ld=$(RISCV_LD)
+RISCV_LDFLAGS := -fuse-ld=$(RISCV_LD)
 RISCV_LDFLAGS += -nostartfiles
-RISCV_LDFLAGS += -nostdlib
-RISCV_LDFLAGS += -lc
-RISCV_LDFLAGS += -L$(LLVM_BINROOT)/../lib/clang/$(LLVM_VER)/lib/
-RISCV_LDFLAGS += -lclang_rt.builtins-riscv32
+RISCV_LDFLAGS += -lm
 
 # Archiver flags
-RISCV_ARFLAGS = rcs
+RISCV_ARFLAGS := rcs
 
 # Objdump flags
-RISCV_OBJDUMP_FLAGS += --mcpu=snitch
+RISCV_OBJDUMP_FLAGS := --mcpu=snitch
 RISCV_OBJDUMP_FLAGS += -D

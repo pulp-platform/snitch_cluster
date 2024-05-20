@@ -39,14 +39,14 @@ int main() {
     // Prepare data buffers
     const uint32_t n_elem = 128, n_rep = 4;
     uint32_t *l1_a, *l1_b, *l1_c, *l1_d, *l1_2d_a;
-    l1_a = snrt_l1alloc(n_elem * sizeof(uint32_t));
-    l1_b = snrt_l1alloc(n_elem * sizeof(uint32_t));
-    l1_c = snrt_l1alloc(n_elem * sizeof(uint32_t));
-    l1_d = snrt_l1alloc(n_elem * sizeof(uint32_t));
-    l1_2d_a = snrt_l1alloc(n_elem * n_rep * sizeof(uint32_t));
+    l1_a = snrt_l1_alloc(n_elem * sizeof(uint32_t));
+    l1_b = snrt_l1_alloc(n_elem * sizeof(uint32_t));
+    l1_c = snrt_l1_alloc(n_elem * sizeof(uint32_t));
+    l1_d = snrt_l1_alloc(n_elem * sizeof(uint32_t));
+    l1_2d_a = snrt_l1_alloc(n_elem * n_rep * sizeof(uint32_t));
     uint32_t *l3_a, *l3_2d_a;
-    l3_a = snrt_l3alloc(n_elem * sizeof(uint32_t));
-    l3_2d_a = snrt_l3alloc(n_elem * n_rep * sizeof(uint32_t));
+    l3_a = snrt_l3_alloc(n_elem * sizeof(uint32_t));
+    l3_2d_a = snrt_l3_alloc(n_elem * n_rep * sizeof(uint32_t));
 
     printf("-- Test 1: L1 -> L1\n");
     for (uint32_t i = 0; i < n_elem; ++i) l1_a[i] = i;

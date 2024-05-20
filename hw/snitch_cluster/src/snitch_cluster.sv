@@ -31,7 +31,7 @@ module snitch_cluster
   parameter int unsigned WideDataWidth      = 512,
   /// AXI: id width in.
   parameter int unsigned NarrowIdWidthIn    = 2,
-  /// AXI: dma id with in *currently not available*
+  /// AXI: dma id width in.
   parameter int unsigned WideIdWidthIn      = 2,
   /// AXI: user width.
   parameter int unsigned NarrowUserWidth    = 1,
@@ -54,9 +54,11 @@ module snitch_cluster
   /// banks.
   parameter int unsigned NrBanks            = NrCores,
   /// Size of DMA AXI buffer.
-  parameter int unsigned DMAAxiReqFifoDepth = 3,
+  parameter int unsigned DMANumAxInFlight   = 3,
   /// Size of DMA request fifo.
   parameter int unsigned DMAReqFifoDepth    = 3,
+  /// Number of DMA channels.
+  parameter int unsigned DMANumChannels     = 1,
   /// Width of a single icache line.
   parameter int unsigned ICacheLineWidth [NrHives] = '{default: 0},
   /// Number of icache lines per set.
@@ -274,8 +276,8 @@ module snitch_cluster
   localparam int unsigned NrRuleIdcs = NrSlaves - 1;
   localparam int unsigned NrRules = (1 + AliasRegionEnable) * NrRuleIdcs;
 
-  // DMA, SoC Request, `n` instruction caches.
-  localparam int unsigned NrWideMasters = 2 + NrHives;
+  // SoC Request, DMA Channels, `n` instruction caches.
+  localparam int unsigned NrWideMasters = 1 + DMANumChannels + NrHives;
   localparam int unsigned WideIdWidthOut = $clog2(NrWideMasters) + WideIdWidthIn;
   // DMA X-BAR configuration
   localparam int unsigned NrWideSlaves = 3;
@@ -508,9 +510,9 @@ module snitch_cluster
   tcdm_req_t [NrTCDMPortsCores-1:0] tcdm_req;
   tcdm_rsp_t [NrTCDMPortsCores-1:0] tcdm_rsp;
 
-  core_events_t [NrCores-1:0] core_events;
-  tcdm_events_t               tcdm_events;
-  dma_events_t                dma_events;
+  core_events_t [NrCores-1:0]                      core_events;
+  tcdm_events_t                                    tcdm_events;
+  dma_events_t [DMANumChannels-1:0]                dma_events;
   snitch_icache_pkg::icache_events_t [NrCores-1:0] icache_events;
 
   // 4. Memory Subsystem (Core side).
@@ -822,6 +824,7 @@ module snitch_cluster
   if (IsoCrossing) begin : gen_clk_divider
     snitch_clkdiv2 i_snitch_clkdiv2 (
       .clk_i,
+      .rst_ni (rst_ni),
       .test_mode_i (1'b0),
       .bypass_i ( clk_d2_bypass_i ),
       .clk_o (clk_d2)
@@ -837,10 +840,10 @@ module snitch_cluster
     localparam int unsigned TcdmPorts = get_tcdm_ports(i);
     localparam int unsigned TcdmPortsOffs = get_tcdm_port_offs(i);
 
-    axi_mst_dma_req_t   axi_dma_req;
-    axi_mst_dma_resp_t  axi_dma_res;
+    axi_mst_dma_req_t   [DMANumChannels-1:0] axi_dma_req;
+    axi_mst_dma_resp_t  [DMANumChannels-1:0] axi_dma_res;
     interrupts_t irq;
-    dma_events_t        dma_core_events;
+    dma_events_t        [DMANumChannels-1:0] dma_core_events;
 
     sync #(.STAGES (2))
       i_sync_debug (.clk_i, .rst_ni, .serial_i (debug_req_i[i]), .serial_o (irq.debug));
@@ -859,14 +862,18 @@ module snitch_cluster
         .DataWidth (NarrowDataWidth),
         .DMADataWidth (WideDataWidth),
         .DMAIdWidth (WideIdWidthIn),
+        .DMAUserWidth (WideUserWidth),
         .SnitchPMACfg (SnitchPMACfg),
-        .DMAAxiReqFifoDepth (DMAAxiReqFifoDepth),
+        .DMANumAxInFlight (DMANumAxInFlight),
         .DMAReqFifoDepth (DMAReqFifoDepth),
+        .DMANumChannels (DMANumChannels),
         .dreq_t (reqrsp_req_t),
         .drsp_t (reqrsp_rsp_t),
         .tcdm_req_t (tcdm_req_t),
         .tcdm_rsp_t (tcdm_rsp_t),
         .tcdm_user_t (tcdm_user_t),
+        .axi_ar_chan_t (axi_mst_dma_ar_chan_t),
+        .axi_aw_chan_t (axi_mst_dma_aw_chan_t),
         .axi_req_t (axi_mst_dma_req_t),
         .axi_rsp_t (axi_mst_dma_resp_t),
         .hive_req_t (hive_req_t),
@@ -934,7 +941,6 @@ module snitch_cluster
         .axi_dma_req_o (axi_dma_req),
         .axi_dma_res_i (axi_dma_res),
         .axi_dma_busy_o (),
-        .axi_dma_perf_o (),
         .axi_dma_events_o (dma_core_events),
         .core_events_o (core_events[i]),
         .tcdm_addr_base_i (tcdm_start_address),
@@ -949,8 +955,10 @@ module snitch_cluster
         end
       end
       if (Xdma[i]) begin : gen_dma_connection
-        assign wide_axi_mst_req[SDMAMst] = axi_dma_req;
-        assign axi_dma_res = wide_axi_mst_rsp[SDMAMst];
+        for (genvar j = 0; j < DMANumChannels; j++) begin : gen_dma_connection
+          assign wide_axi_mst_req[SDMAMst + j] = axi_dma_req[j];
+          assign axi_dma_res[j] = wide_axi_mst_rsp[SDMAMst + j];
+        end
         assign dma_events = dma_core_events;
       end
   end
@@ -999,8 +1007,8 @@ module snitch_cluster
         .hive_rsp_o (hive_rsp_reshape),
         .ptw_data_req_o (ptw_req[i]),
         .ptw_data_rsp_i (ptw_rsp[i]),
-        .axi_req_o (wide_axi_mst_req[ICache+i]),
-        .axi_rsp_i (wide_axi_mst_rsp[ICache+i]),
+        .axi_req_o (wide_axi_mst_req[SDMAMst+DMANumChannels+i]),
+        .axi_rsp_i (wide_axi_mst_rsp[SDMAMst+DMANumChannels+i]),
         .icache_prefetch_enable_i (icache_prefetch_enable),
         .icache_events_o(icache_events_reshape),
         .sram_cfgs_i
@@ -1229,12 +1237,12 @@ module snitch_cluster
   );
 
   snitch_cluster_peripheral #(
-    .AddrWidth (PhysicalAddrWidth),
     .reg_req_t (reg_req_t),
     .reg_rsp_t (reg_rsp_t),
     .tcdm_events_t (tcdm_events_t),
     .dma_events_t (dma_events_t),
-    .NrCores (NrCores)
+    .NrCores (NrCores),
+    .DMANumChannels (DMANumChannels)
   ) i_snitch_cluster_peripheral (
     .clk_i,
     .rst_ni,
@@ -1242,7 +1250,6 @@ module snitch_cluster
     .reg_rsp_o (reg_rsp),
     .icache_prefetch_enable_o (icache_prefetch_enable),
     .cl_clint_o (cl_interrupt),
-    .cluster_hart_base_id_i (hart_base_id_i),
     .core_events_i (core_events),
     .tcdm_events_i (tcdm_events),
     .dma_events_i (dma_events),
@@ -1273,8 +1280,8 @@ module snitch_cluster
   // --------------------
   logic [NrTCDMPortsCores-1:0] flat_acc, flat_con;
   for (genvar i = 0; i < NrTCDMPortsCores; i++) begin  : gen_event_counter
-    `FFARN(flat_acc[i], tcdm_req[i].q_valid, '0, clk_i, rst_ni)
-    `FFARN(flat_con[i], tcdm_req[i].q_valid & ~tcdm_rsp[i].q_ready, '0, clk_i, rst_ni)
+    `FF(flat_acc[i], tcdm_req[i].q_valid, '0, clk_i, rst_ni)
+    `FF(flat_con[i], tcdm_req[i].q_valid & ~tcdm_rsp[i].q_ready, '0, clk_i, rst_ni)
   end
 
   popcount #(

@@ -10,17 +10,15 @@
 import argparse
 import pathlib
 import json5
-import sys
-import os
 import torch
 import numpy as np
 
 import pyflexfloat as ff
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
-import data_utils  # noqa: E402
-from data_utils import emit_license, format_array_declaration, format_struct_definition, \
-                       format_array_definition, format_ifdef_wrapper  # noqa: E402
+from snitch.util.sim import data_utils
+from snitch.util.sim.data_utils import format_array_declaration, \
+    format_struct_definition, format_array_definition, format_ifdef_wrapper, \
+    emit_license
 
 torch.manual_seed(42)
 
@@ -49,6 +47,17 @@ def golden_model_torch(ifmap, eps, shape):
 
 
 def validate_config(**kwargs):
+    # Aliases
+    batch_size = kwargs['input_dim']['batch_size']
+    seq_len = kwargs['input_dim']['seq_len']
+    embeddings = kwargs['input_dim']['embeddings']
+
+    # Calculate total TCDM occupation
+    prec = data_utils.size_from_precision_t(kwargs['prec'])
+    tiled_seq_len = seq_len / kwargs['n_tiles']
+    total_size = batch_size * tiled_seq_len * embeddings * prec
+    data_utils.validate_tcdm_footprint(total_size)
+
     assert kwargs['input_dim']['seq_len'] % kwargs['n_tiles'] == 0, 'Input dimension is not' \
                                                                     ' an integer multiple of' \
                                                                     ' tile size'

@@ -8,3 +8,4 @@
 /work-vcs/
 /*.log
 /runs/
+.rtlbinary

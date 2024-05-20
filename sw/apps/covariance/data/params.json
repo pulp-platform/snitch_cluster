@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 {
-    M: 16,
-    N: 8
+    "m": 32,
+    "n": 2,
+    "m_tiles": 2,
+    "funcptr": "covariance_opt"
 }

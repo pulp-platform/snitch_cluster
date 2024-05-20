@@ -200,17 +200,20 @@ class QuestaVCSSimulation(RTLSimulation):
             return super().get_retcode()
         elif self.log is not None:
             # Extract the application's return code from the simulation log
-            with open(self.log, 'r') as f:
-                for line in f.readlines():
-                    regex_success = r'\[SUCCESS\] Program finished successfully'
-                    match_success = re.search(regex_success, line)
-                    if match_success:
-                        return 0
-                    else:
-                        regex_fail = r'\[FAILURE\] Finished with exit code\s+(\d+)'
-                        match = re.search(regex_fail, line)
-                        if match:
-                            return int(match.group(1))
+            if not self.dry_run:
+                with open(self.log, 'r') as f:
+                    for line in f.readlines():
+                        regex_success = r'\[SUCCESS\] Program finished successfully'
+                        match_success = re.search(regex_success, line)
+                        if match_success:
+                            return 0
+                        else:
+                            regex_fail = r'\[FAILURE\] Finished with exit code\s+(\d+)'
+                            match = re.search(regex_fail, line)
+                            if match:
+                                return int(match.group(1))
+            else:
+                return 0
 
     def successful(self):
         # Check that simulation return code matches expected value (in super class)
@@ -226,7 +229,9 @@ class QuestaVCSSimulation(RTLSimulation):
         # Extract the simulation time from the simulation log
         if self.log is not None:
             with open(self.log, 'r') as f:
-                for line in f.readlines():
+                # Read lines from the bottom of the file, since warning and error messages may
+                # also print a time to the log.
+                for line in reversed(f.readlines()):
                     regex = r'Time: (\d+) ([a-z]+)\s+'
                     match = re.search(regex, line)
                     if match:
@@ -293,4 +298,4 @@ class BansheeSimulation(Simulation):
         """
         super().__init__(**kwargs)
         self.cmd = ['banshee', '--no-opt-llvm', '--no-opt-jit', '--configuration',
-                    str(banshee_cfg), '--trace', str(self.elf)]
+                    str(banshee_cfg), str(self.elf)]

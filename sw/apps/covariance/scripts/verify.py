@@ -7,25 +7,35 @@
 
 import numpy as np
 import sys
-from pathlib import Path
 from datagen import CovarianceDataGen
 
-sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
-from verif_utils import Verifier  # noqa: E402
+from snitch.util.sim.verif_utils import Verifier
 
 
 class CovarianceVerifier(Verifier):
 
     OUTPUT_UIDS = ['cov']
 
+    def __init__(self):
+        super().__init__()
+        self.func_args = {
+            'm': 'I',
+            'n': 'I',
+            'inv_n': 'd',
+            'inv_n_m1': 'd',
+            'data': 'I',
+            'cov': 'I',
+            'm_tiles': 'I',
+            'funcptr': 'I'
+        }
+        self.func_args = self.get_input_from_symbol('args', self.func_args)
+
     def get_actual_results(self):
-        return self.get_output_from_symbol('cov', 'double')
+        return self.get_output_from_symbol(self.OUTPUT_UIDS[0], 'double')
 
     def get_expected_results(self):
-        M = self.get_input_from_symbol('M', 'uint32_t')[0]
-        N = self.get_input_from_symbol('N', 'uint32_t')[0]
         data = self.get_input_from_symbol('data', 'double')
-        data = np.reshape(data, (N, M))
+        data = np.reshape(data, (self.func_args['m'], self.func_args['n'])).transpose()
         return CovarianceDataGen().golden_model(data).flatten()
 
     def check_results(self, *args):

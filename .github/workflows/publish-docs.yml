@@ -10,32 +10,19 @@ jobs:
   deploy:
     name: Deploy documentation
     runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/pulp-platform/snitch_cluster:main
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-      - uses: mattnotmitt/doxygen-action@v1
-        with:
-          working-directory: sw/
-      - name: bender install
-        uses: pulp-platform/pulp-actions/bender-install@v2
-        with:
-          version: 0.27.1
-      - name: Install Python requirements
-        run: pip install -r python-requirements.txt
-      - name: Generate runtime documentation
-        # yamllint disable rule:line-length
+      # For some reason, the checkout is done by a different user,
+      # than that deploying to Github (root, possibly due to Docker).
+      # So we need to set the repository as a safe directory.
+      - name: Git config safe.directory
         run: |
-          mkdir doxybook2; cd doxybook2
-          wget https://github.com/matusnovak/doxybook2/releases/download/v1.4.0/doxybook2-linux-amd64-v1.4.0.zip
-          unzip doxybook2-linux-amd64-v1.4.0.zip; cd ../
-          chmod +x doxybook2/bin/doxybook2
-          mkdir docs/runtime
-          ./doxybook2/bin/doxybook2 --input sw/doxygen/xml --output docs/runtime --config docs/doxybook2.json
-          rm -rf doxybook2
-        # yamllint enable rule:line-length
+          git config --global --add safe.directory $GITHUB_WORKSPACE
       - name: Generate documentation sources
-        run: make doc-srcs
+        run: |
+          make doc-srcs
+          make doxygen-docs
       - name: Build and deploy documentation
         run: mkdocs gh-deploy --force

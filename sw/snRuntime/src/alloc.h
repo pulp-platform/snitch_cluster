@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#pragma once
+
 #define ALIGN_UP(addr, size) (((addr) + (size)-1) & ~((size)-1))
 #define ALIGN_DOWN(addr, size) ((addr) & ~((size)-1))
 
@@ -26,7 +28,7 @@ inline void *snrt_l3_next() { return (void *)snrt_l3_allocator()->next; }
  * @param size number of bytes to allocate
  * @return pointer to the allocated memory
  */
-inline void *snrt_l1alloc(size_t size) {
+inline void *snrt_l1_alloc(size_t size) {
     snrt_allocator_t *alloc = snrt_l1_allocator();
 
     // TODO colluca: do we need this? What does it imply?
@@ -62,7 +64,7 @@ inline void snrt_l1_update_next(void *next) {
  * @param size number of bytes to allocate
  * @return pointer to the allocated memory
  */
-inline void *snrt_l3alloc(size_t size) {
+inline void *snrt_l3_alloc(size_t size) {
     snrt_allocator_t *alloc = snrt_l3_allocator();
 
     // TODO: L3 alloc size check
@@ -81,14 +83,16 @@ inline void snrt_alloc_init() {
         // occupy a possibly significant portion.
         snrt_l1_allocator()->base =
             ALIGN_UP(snrt_l1_start_addr(), MIN_CHUNK_SIZE);
-        snrt_l1_allocator()->size = snrt_l1_end_addr() - snrt_l1_start_addr();
+        snrt_l1_allocator()->end = snrt_l1_end_addr();
         snrt_l1_allocator()->next = snrt_l1_allocator()->base;
         // Initialize L3 allocator
         extern uint32_t _edram;
         snrt_l3_allocator()->base = ALIGN_UP((uint32_t)&_edram, MIN_CHUNK_SIZE);
-        snrt_l3_allocator()->size = 0;
+        snrt_l3_allocator()->end = snrt_l3_allocator()->base;
         snrt_l3_allocator()->next = snrt_l3_allocator()->base;
     }
+    // Synchronize with other cores
+    snrt_cluster_hw_barrier();
 }
 
 // TODO colluca: optimize by using DMA

@@ -1,96 +1,85 @@
-# Copyright 2023 ETH Zurich and University of Bologna.
+# Copyright 2024 ETH Zurich and University of Bologna.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 #
-# Luca Colagrande <colluca@iis.ee.ethz.ch>
-
-# Usage of absolute paths is required to externally include
-# this Makefile from multiple different locations
-MK_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-include $(MK_DIR)/../toolchain.mk
-
-###############
-# Directories #
-###############
-
-# Fixed paths in repository tree
-ROOT     := $(abspath $(MK_DIR)/../../../..)
-SNRT_DIR := $(ROOT)/sw/snRuntime
-ifeq ($(SELECT_RUNTIME), banshee)
-RUNTIME_DIR  := $(ROOT)/target/snitch_cluster/sw/runtime/banshee
-RISCV_CFLAGS += -DBIST
-else
-RUNTIME_DIR := $(ROOT)/target/snitch_cluster/sw/runtime/rtl
-endif
-MATH_DIR := $(ROOT)/target/snitch_cluster/sw/math
-
-# Paths relative to the app including this Makefile
-APP_BUILDDIR ?= $(abspath build)
+# Luca Colagrande <colluca@iis.ee.ethz.ch
 
 ###################
 # Build variables #
 ###################
 
-INCDIRS += $(RUNTIME_DIR)/src
-INCDIRS += $(RUNTIME_DIR)/../common
-INCDIRS += $(SNRT_DIR)/api
-INCDIRS += $(SNRT_DIR)/api/omp
-INCDIRS += $(SNRT_DIR)/src
-INCDIRS += $(SNRT_DIR)/src/omp
-INCDIRS += $(ROOT)/sw/blas
-INCDIRS += $(ROOT)/sw/deps/riscv-opcodes
-INCDIRS += $(ROOT)/sw/math/include
+$(APP)_HEADERS += $(TARGET_C_HDRS)
 
-LIBS  = $(MATH_DIR)/build/libmath.a
-LIBS += $(RUNTIME_DIR)/build/libsnRuntime.a
+$(APP)_INCDIRS += $(SNRT_INCDIRS)
+$(APP)_INCDIRS += $(ROOT)/sw/deps/riscv-opcodes
 
-LIBDIRS  = $(dir $(LIBS))
-LIBNAMES = $(patsubst lib%,%,$(notdir $(basename $(LIBS))))
+$(APP)_RISCV_CFLAGS += $(RISCV_CFLAGS)
+$(APP)_RISCV_CFLAGS += $(addprefix -I,$($(APP)_INCDIRS))
+ifeq ($(SELECT_RUNTIME), banshee)
+$(APP)_RISCV_CFLAGS += -DBIST
+endif
 
-RISCV_LDFLAGS += -L$(abspath $(RUNTIME_DIR))
-RISCV_LDFLAGS += -T$(abspath $(SNRT_DIR)/base.ld)
-RISCV_LDFLAGS += $(addprefix -L,$(LIBDIRS))
-RISCV_LDFLAGS += $(addprefix -l,$(LIBNAMES))
+$(APP)_LIBS += $(SNRT_TARGET_DIR)/build/libsnRuntime.a
+
+$(APP)_LIBDIRS  = $(dir $($(APP)_LIBS))
+$(APP)_LIBNAMES = $(patsubst lib%,%,$(notdir $(basename $($(APP)_LIBS))))
+
+$(APP)_RISCV_LDFLAGS += $(RISCV_LDFLAGS)
+$(APP)_RISCV_LDFLAGS += -L$(abspath $(SNRT_TARGET_DIR)/..)
+$(APP)_RISCV_LDFLAGS += -T$(abspath $(SNRT_DIR)/base.ld)
+$(APP)_RISCV_LDFLAGS += $(addprefix -L,$($(APP)_LIBDIRS))
+$(APP)_RISCV_LDFLAGS += $(addprefix -l,$($(APP)_LIBNAMES))
 
 ###########
 # Outputs #
 ###########
 
-ELF         = $(abspath $(addprefix $(APP_BUILDDIR)/,$(addsuffix .elf,$(APP))))
-DEP         = $(abspath $(addprefix $(APP_BUILDDIR)/,$(addsuffix .d,$(APP))))
-DUMP        = $(abspath $(addprefix $(APP_BUILDDIR)/,$(addsuffix .dump,$(APP))))
-DWARF       = $(abspath $(addprefix $(APP_BUILDDIR)/,$(addsuffix .dwarf,$(APP))))
-ALL_OUTPUTS = $(ELF) $(DEP) $(DUMP) $(DWARF)
+ELF         := $(abspath $(addprefix $($(APP)_BUILD_DIR)/,$(addsuffix .elf,$(APP))))
+DEP         := $(abspath $(addprefix $($(APP)_BUILD_DIR)/,$(addsuffix .d,$(APP))))
+DUMP        := $(abspath $(addprefix $($(APP)_BUILD_DIR)/,$(addsuffix .dump,$(APP))))
+DWARF       := $(abspath $(addprefix $($(APP)_BUILD_DIR)/,$(addsuffix .dwarf,$(APP))))
+ALL_OUTPUTS := $(ELF) $(DEP) $(DUMP) $(DWARF)
 
 #########
 # Rules #
 #########
 
-.PHONY: all
-all: $(ALL_OUTPUTS)
+.PHONY: $(APP) clean-$(APP)
 
-.PHONY: clean
-clean:
-	rm -rf $(APP_BUILDDIR)
+sw: $(APP)
+clean-sw: clean-$(APP)
 
-.PHONY: $(APP)
-$(APP): $(ELF)
+$(APP): $(ALL_OUTPUTS)
 
-$(APP_BUILDDIR):
+clean-$(APP): BUILD_DIR := $($(APP)_BUILD_DIR)
+clean-$(APP):
+	rm -rf $(BUILD_DIR)
+
+$($(APP)_BUILD_DIR):
 	mkdir -p $@
 
-$(DEP): $(SRCS) | $(APP_BUILDDIR)
+$(DEP): ELF := $(ELF)
+$(ELF): SRCS := $(SRCS)
+# Guarantee that variables used in rule recipes (thus subject to deferred expansion)
+# have unique values, despite depending on variables with the same name across
+# applications, but which could have different values (e.g. the APP variable itself)
+$(DEP) $(ELF): RISCV_CFLAGS := $($(APP)_RISCV_CFLAGS)
+$(ELF): RISCV_LDFLAGS := $($(APP)_RISCV_LDFLAGS)
+
+$(DEP): $(SRCS) | $($(APP)_BUILD_DIR) $($(APP)_HEADERS)
 	$(RISCV_CC) $(RISCV_CFLAGS) -MM -MT '$(ELF)' $< > $@
 
-$(ELF): $(SRCS) $(DEP) $(LIBS) | $(APP_BUILDDIR)
+$(ELF): $(SRCS) $(DEP) $($(APP)_LIBS) | $($(APP)_BUILD_DIR)
 	$(RISCV_CC) $(RISCV_CFLAGS) $(RISCV_LDFLAGS) $(SRCS) -o $@
 
-$(DUMP): $(ELF) | $(APP_BUILDDIR)
+$(DUMP): $(ELF) | $($(APP)_BUILD_DIR)
 	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_FLAGS) $< > $@
 
-$(DWARF): $(ELF) | $(APP_BUILDDIR)
+$(DWARF): $(ELF) | $($(APP)_BUILD_DIR)
 	$(RISCV_DWARFDUMP) $< > $@
 
 ifneq ($(MAKECMDGOALS),clean)
+ifneq ($(MAKECMDGOALS),clean-sw)
 -include $(DEP)
+endif
 endif

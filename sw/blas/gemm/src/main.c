@@ -9,15 +9,13 @@
 #include <math.h>
 #include <stdint.h>
 
-#include "gemm.h"
+#include "blas.h"
 
 #include "data.h"
 #include "snrt.h"
 
 int main() {
-    int retcode = gemm(dtype_size, expand, 1, parallelize_m, parallelize_k,
-                       m_tiles, n_tiles, k_tiles, 1, 1, 1, TA, TB, M, N, K, 1,
-                       a, b, BETA, c, baseline);
+    int retcode = gemm(&args);
 
     snrt_cluster_hw_barrier();
 
@@ -26,6 +24,12 @@ int main() {
 #ifdef BIST
     void *local_a, *local_b, *local_c;
     void *remote_a, *remote_b, *remote_c;
+
+    // Aliases
+    uint32_t M = args.M;
+    uint32_t N = args.N;
+    uint32_t K = args.K;
+    uint32_t dtype_size = args.prec;
 
     // Calculate size and pointers for each cluster
     uint32_t frac_m = M / snrt_cluster_num();

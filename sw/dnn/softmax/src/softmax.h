@@ -117,7 +117,7 @@ static inline void softmax_layer(softmax_layer_t const l) {
 
         // printf("row_offset: %d, ldI: %d\n", row_offset, ldI);
         softmax_fp32(&ifmap[row_offset], &ofmap[row_offset], ldI, batch_offset,
-                     l.batch_size, l.seq_len / 8, l.input_samples);
+                     l.batch_size, l.seq_len / compute_num, l.input_samples);
 
     } else {
         snrt_cluster_hw_barrier();

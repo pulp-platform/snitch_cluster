@@ -12,7 +12,7 @@ namespace sim {
 
 struct GlobalMemory {
     static constexpr size_t ADDR_SHIFT = 12;
-    static constexpr size_t PAGE_SIZE = (size_t)1 << ADDR_SHIFT;
+    static constexpr size_t SIZE_OF_PAGE = (size_t)1 << ADDR_SHIFT;
 
     std::unordered_map<uint64_t, std::unique_ptr<uint8_t[]>> pages;
     std::set<uint64_t> touched;
@@ -49,8 +49,8 @@ struct GlobalMemory {
             if (!page) {
                 // std::cout << "[TB] Allocate page " << std::hex << (addr <<
                 // ADDR_SHIFT) << "\n";
-                page = std::make_unique<uint8_t[]>(PAGE_SIZE);
-                std::fill(&page[0], &page[PAGE_SIZE], 0);
+                page = std::make_unique<uint8_t[]>(SIZE_OF_PAGE);
+                std::fill(&page[0], &page[SIZE_OF_PAGE], 0);
             }
             // std::cout << "[TB] Write to page " << std::hex << (addr <<
             // ADDR_SHIFT)
@@ -67,7 +67,7 @@ struct GlobalMemory {
                     if (host) {
                         *host = data[data_idx];
                     } else {
-                        page[i % PAGE_SIZE] = data[data_idx];
+                        page[i % SIZE_OF_PAGE] = data[data_idx];
                         any_changed = true;
                     }
                 }
@@ -101,7 +101,7 @@ struct GlobalMemory {
                     if (page) {
                         // std::cout << "[TB] Read byte " << std::hex << i <<
                         // "\n";
-                        data[data_idx] = page[i % PAGE_SIZE];
+                        data[data_idx] = page[i % SIZE_OF_PAGE];
                     } else {
                         data[data_idx] = 0;
                     }
@@ -126,7 +126,6 @@ struct BootData {
     uint64_t global_mem_start;
     uint64_t global_mem_end;
     uint32_t cluster_count;
-    uint32_t s1_quadrant_count;
     uint32_t clint_base;
 };
 extern const BootData BOOTDATA;

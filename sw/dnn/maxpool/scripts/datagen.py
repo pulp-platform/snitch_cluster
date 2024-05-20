@@ -10,15 +10,11 @@
 import argparse
 import pathlib
 import json5
-import sys
-import os
 import torch
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
-import data_utils  # noqa: E402
-from data_utils import emit_license, \
-                       format_struct_definition, format_array_definition, \
-                       format_array_declaration, format_ifdef_wrapper  # noqa: E402
+from snitch.util.sim import data_utils
+from snitch.util.sim.data_utils import emit_license, format_struct_definition, \
+    format_array_definition, format_array_declaration, format_ifdef_wrapper
 
 torch.manual_seed(42)
 
@@ -53,6 +49,9 @@ def emit_header(**kwargs):
 
     n, ih, iw, ci = ifmap.shape
     _, oh, ow, co = ofmap.shape
+
+    ifmap = data_utils.flatten(ifmap)
+    ofmap = data_utils.flatten(ofmap)
 
     ifmap_uid = 'ifmap'
     ofmap_uid = 'ofmap'

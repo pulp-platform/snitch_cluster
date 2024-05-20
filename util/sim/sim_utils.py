@@ -190,12 +190,9 @@ def print_summary(sims, early_exit=False, dry_run=False):
     Args:
         sims: A list of simulations from the simulation suite.
     """
-    # Header
-    header = '==== Test summary ===='
-    print(header)
-
     # Table
     table = PrettyTable()
+    table.title = 'Test summary'
     table.field_names = [
         'test',
         'launched',
@@ -236,14 +233,41 @@ def dump_report(sims, path=None):
 
 def terminate_processes():
     print('Terminate processes')
+
     # Get PID and PGID of parent process (current Python script)
     ppid = os.getpid()
     pgid = os.getpgid(0)
-    # Kill processes in current process group, except parent process
-    for proc in psutil.process_iter(['pid', 'name']):
+
+    def is_live_subprocess(proc):
         pid = proc.info['pid']
-        if os.getpgid(pid) == pgid and pid != ppid:
-            os.kill(pid, signal.SIGKILL)
+        status = proc.info['status']
+        return os.getpgid(pid) == pgid and pid != ppid and status != psutil.STATUS_ZOMBIE
+
+    def get_living_subprocesses():
+        return [proc for proc in psutil.process_iter(['pid', 'name', 'status'])
+                if is_live_subprocess(proc)]
+
+    # From the moment we list all subprocesses to be killed and the moment
+    # each process is killed, a process may spawn a new subprocess. To be
+    # sure we do not run into such a situation, we have to check that
+    # there are no remaining subprocesses, and loop until this condition
+    # is true. We loop for a maximum of 10 iterations.
+    iterations = 0
+    while get_living_subprocesses() and iterations < 10:
+        living_subprocs = get_living_subprocesses()
+        print(f'{len(living_subprocs)} living subprocesses of {ppid}\n{living_subprocs}')
+        for proc in living_subprocs:
+            try:
+                os.kill(proc.info['pid'], signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+        iterations += 1
+        time.sleep(1)
+    if iterations == 10:
+        print('TERMINATION ABORTED AFTER 10 ITERATIONS')
+    if get_living_subprocesses():
+        print('THERE ARE STILL LIVING SUBPROCESSES')
+        print(get_living_subprocesses())
 
 
 def get_unique_run_dir(sim, prefix=None):

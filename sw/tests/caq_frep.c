@@ -7,7 +7,7 @@
 
 #include <snrt.h>
 
-#define NUM_WORKERS 8
+#define NUM_WORKERS 4
 
 // To prevent X reads on non-CAQ-proofed systems, we need a sync
 inline void fp_sync() {

@@ -5,6 +5,7 @@
 #include "snrt.h"
 
 #include "alloc.c"
+#include "alloc_v2.c"
 #include "cls.c"
 #include "cluster_interrupts.c"
 #include "dm.c"
@@ -14,6 +15,7 @@
 #include "omp.c"
 #include "printf.c"
 #include "putchar.c"
+#include "riscv.c"
 #include "snitch_cluster_start.c"
 #include "sync.c"
 #include "team.c"

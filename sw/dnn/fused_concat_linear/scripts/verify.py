@@ -4,15 +4,14 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
+# Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
 import sys
 import torch
-from pathlib import Path
 from datagen import golden_model
 
-sys.path.append(str(Path(__file__).parent / '../../../../util/sim/'))
-from verif_utils import Verifier  # noqa: E402
-from data_utils import ctype_from_precision_t  # noqa: E402
+from snitch.util.sim.verif_utils import Verifier
+from snitch.util.sim.data_utils import ctype_from_precision_t
 
 
 class FusedConcatLinearVerifier(Verifier):
@@ -32,7 +31,7 @@ class FusedConcatLinearVerifier(Verifier):
             'concat_output': 'I',
             'linear_output': 'I',
             'dtype': 'I',
-            'baseline': 'I'
+            'gemm_fp': 'I'
         }
         self.layer = self.get_input_from_symbol('layer', self.layer_struct)
         self.num_inputs = self.layer['num_inputs']
