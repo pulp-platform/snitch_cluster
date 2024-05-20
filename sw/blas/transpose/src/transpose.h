@@ -34,15 +34,15 @@ typedef struct {
     uint32_t baseline;
 } transpose_l_t;
 
-void transpose_baseline(float A[M][N], float B[N][M]) {
+// void transpose_baseline(float* A, float* B, const int M, const int N) {
 
-    for (int i=0; i < M; i++) {
-        for (int j = 0; j < N; ++j)
-        {
-            B[j][i] = A[i][j];
-        }
-    }
-}
+//     for (int i=0; i < M; i++) {
+//         for (int j = 0; j < N; ++j)
+//         {
+//             B[j][i] = A[i][j];
+//         }
+//     }
+// }
 
 void transpose_shuffle_fp16(__fp16 *A, __fp16 *B, int M, int N) {
     uint32_t mask_0 = 0x3B2A;
@@ -52,11 +52,11 @@ void transpose_shuffle_fp16(__fp16 *A, __fp16 *B, int M, int N) {
 
     volatile register v4f16 *a0_ptr, *a1_ptr;
     //volatile register v4f16 *t0_ptr, *t1_ptr;   
-    volatile float* b0_ptr, b1_ptr;
+    __fp16* b0_ptr, b1_ptr;
 
 
-        a0_ptr = (v2f32*)(&A[0]);
-        a1_ptr = (v2f32*)(&A[4]);
+        a0_ptr = (v4f16*)(&A[0]);
+        a1_ptr = (v4f16*)(&A[4]);
 
         asm volatile(
             "fld f24, 0(%0) \n"
@@ -73,8 +73,8 @@ void transpose_shuffle_fp16(__fp16 *A, __fp16 *B, int M, int N) {
             : "+r"(mask_0), "+r"(mask_1));    
 
 
-        a0_ptr = (v2f32*)(&A[8]);
-        a1_ptr = (v2f32*)(&A[12]);
+        a0_ptr = (v4f16*)(&A[8]);
+        a1_ptr = (v4f16*)(&A[12]);
         b0_ptr = &B[0];
         b1_ptr = &B[4];
 
@@ -131,8 +131,8 @@ void transpose_shuffle_fp32(float *A, float *B, const int M, const int N) {
 
         a0_ptr = (v2f32*)(&A[0]);
         a1_ptr = (v2f32*)(&A[2]);
-        b0_ptr = &B[0];
-        b1_ptr = &B[2];
+        b0_ptr = B[0];
+        b1_ptr = B[2];
 
         asm volatile(
             "fld f4, 0(%0)"
