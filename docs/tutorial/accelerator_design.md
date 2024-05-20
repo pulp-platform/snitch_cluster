@@ -1,6 +1,11 @@
 # Accelerator Design
 
 Let's first dive into the SNAX shell which is the encapsulated yellow box from the main figure in [Architectural Overview](./architectural_overview.md). The figure below is the same shell but with more signal details:
+<<<<<<< HEAD
+
+![image](https://github.com/KULeuven-MICAS/snitch_cluster/assets/26665295/ea948d6f-44e9-4602-831c-f4ee0d70e851)
+=======
+>>>>>>> 6935ade (doc: typo fix)
 
 ![image](https://github.com/KULeuven-MICAS/snitch_cluster/assets/26665295/ea948d6f-44e9-4602-831c-f4ee0d70e851)
 
@@ -69,4 +74,3 @@ The `snax_acc_cfg`  contains the configurations for the accelerator. The configu
 - `snax_streamer_cfg`: Contains the settings for your streamer. More details are in [SNAX Streamer](./streamer_design.md)
 
 You can find more details in the [Harware Schema](schema-doc/snitch_cluster.md) section. 
-

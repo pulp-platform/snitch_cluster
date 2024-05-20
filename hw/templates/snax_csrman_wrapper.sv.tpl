@@ -7,7 +7,7 @@
 %>
 module ${cfg["tag_name"]}_csrman_wrapper #(
   parameter int unsigned NumRwCsr = ${cfg["snax_num_rw_csr"]},
-  parameter int unsigned NumRoCsr = ${cfg["snax_num_rw_csr"]}
+  parameter int unsigned NumRoCsr = ${cfg["snax_num_ro_csr"]}
 )(
   //-----------------------------
   // Clocks and reset
