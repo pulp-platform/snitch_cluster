@@ -42,6 +42,7 @@ APPS  = sw/apps/lto
 APPS += sw/apps/nop
 APPS += sw/apps/blas/axpy
 APPS += sw/apps/blas/gemm
+APPS += sw/apps/blas/dot
 APPS += sw/apps/dnn/batchnorm
 APPS += sw/apps/dnn/conv2d
 APPS += sw/apps/dnn/fusedconv
@@ -59,8 +60,7 @@ APPS += sw/apps/correlation
 APPS += sw/apps/covariance
 APPS += sw/apps/axpy
 
-SUBDIRS = sw/runtime/banshee sw/runtime/rtl sw/math $(APPS) sw/tests
-# SUBDIRS += sw/apps/axpy
+SUBDIRS = sw/runtime/banshee sw/runtime/rtl $(APPS) sw/tests
 
 .PHONY: sw clean-sw $(SUBDIRS)
 
@@ -73,9 +73,6 @@ clean-sw:
 sw/runtime/rtl sw/runtime/banshee: $(TARGET_C_HDRS)
 	$(MAKE) -C $@ $(MK_TARGET)
 
-sw/math:
-	$(MAKE) -C $@ $(MK_TARGET)
-
 # Apps depend on runtime libraries
-$(APPS) sw/tests: $(RUNTIME) sw/math
+$(APPS) sw/tests: $(RUNTIME)
 	$(MAKE) -C $@ $(MK_TARGET)

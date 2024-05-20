@@ -59,11 +59,14 @@ def emit_header(**kwargs):
     ofmap = ofmap.permute(0, 2, 3, 1)
 
     n, ih, iw, ci = ifmap.shape
+    ifmap = data_utils.flatten(ifmap)
+    ofmap = data_utils.flatten(ofmap)
 
     ifmap_uid = 'ifmap'
     ofmap_uid = 'ofmap'
     beta_uid = 'beta'
-    gamma_uid = 'gamma'
+    # Underscore is used to disambiguate between this and the gamma function from "math.h"
+    gamma_uid = 'gamma_'
 
     layer_cfg = {
         'CI': ci,

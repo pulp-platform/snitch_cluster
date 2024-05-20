@@ -40,7 +40,9 @@ PERF_CSV_PY      ?= $(UTIL_DIR)/trace/perf_csv.py
 LAYOUT_EVENTS_PY ?= $(UTIL_DIR)/trace/layout_events.py
 EVENTVIS_PY      ?= $(UTIL_DIR)/trace/eventvis.py
 
-VERILATOR_ROOT ?= $(dir $(shell $(VERILATOR_SEPP) which verilator))..
+# For some reason `$(VERILATOR_SEPP) which verilator` returns a
+# a two-liner with the OS on the first line, hence the tail -n1
+VERILATOR_ROOT ?= $(dir $(shell $(VERILATOR_SEPP) which verilator | tail -n1))..
 VLT_ROOT       ?= ${VERILATOR_ROOT}
 
 MATCH_END := '/+incdir+/ s/$$/\/*\/*/'
@@ -226,24 +228,24 @@ event-csv: $(EVENT_CSV)
 layout: $(TRACE_CSV) $(TRACE_JSON)
 
 $(LOGS_DIR)/trace_hart_%.txt $(LOGS_DIR)/hart_%_perf.json: $(LOGS_DIR)/trace_hart_%.dasm $(GENTRACE_PY)
-	$(DASM) < $< | $(PYTHON) $(GENTRACE_PY) --permissive -d $(LOGS_DIR)/hart_$*_perf.json > $(LOGS_DIR)/trace_hart_$*.txt
+	$(DASM) < $< | $(GENTRACE_PY) --permissive -d $(LOGS_DIR)/hart_$*_perf.json > $(LOGS_DIR)/trace_hart_$*.txt
 
 # Generate source-code interleaved traces for all harts. Reads the binary from
 # the logs/.rtlbinary file that is written at start of simulation in the vsim script
 BINARY ?= $(shell cat $(SIM_DIR)/.rtlbinary)
 $(LOGS_DIR)/trace_hart_%.s: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY}
-	$(PYTHON) ${ANNOTATE_PY} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $<
+	${ANNOTATE_PY} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $<
 $(LOGS_DIR)/trace_hart_%.diff: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY}
-	$(PYTHON) ${ANNOTATE_PY} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $< -d
+	${ANNOTATE_PY} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $< -d
 
 $(PERF_CSV): $(PERF_TRACES) $(PERF_CSV_PY)
-	$(PYTHON) $(PERF_CSV_PY) -o $@ -i $(PERF_TRACES)
+	$(PERF_CSV_PY) -o $@ -i $(PERF_TRACES)
 
 $(EVENT_CSV): $(PERF_TRACES) $(PERF_CSV_PY)
-	$(PYTHON) $(PERF_CSV_PY) -o $@ -i $(PERF_TRACES) --filter tstart tend
+	$(PERF_CSV_PY) -o $@ -i $(PERF_TRACES) --filter tstart tend
 
 $(TRACE_CSV): $(EVENT_CSV) $(LAYOUT_FILE) $(LAYOUT_EVENTS_PY)
-	$(PYTHON) $(LAYOUT_EVENTS_PY) $(LAYOUT_EVENTS_FLAGS) $(EVENT_CSV) $(LAYOUT_FILE) -o $@
+	$(LAYOUT_EVENTS_PY) $(LAYOUT_EVENTS_FLAGS) $(EVENT_CSV) $(LAYOUT_FILE) -o $@
 
 $(TRACE_JSON): $(TRACE_CSV) $(EVENTVIS_PY)
-	$(PYTHON) $(EVENTVIS_PY) -o $@ $(TRACE_CSV)
+	$(EVENTVIS_PY) -o $@ $(TRACE_CSV)

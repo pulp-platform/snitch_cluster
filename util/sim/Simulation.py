@@ -293,4 +293,4 @@ class BansheeSimulation(Simulation):
         """
         super().__init__(**kwargs)
         self.cmd = ['banshee', '--no-opt-llvm', '--no-opt-jit', '--configuration',
-                    str(banshee_cfg), '--trace', str(self.elf)]
+                    str(banshee_cfg), str(self.elf)]

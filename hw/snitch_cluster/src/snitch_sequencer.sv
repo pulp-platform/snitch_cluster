@@ -43,6 +43,7 @@ module snitch_sequencer import snitch_pkg::*; #(
     input  logic                             streamctl_valid_i,
     output logic                             streamctl_ready_o
 );
+
   localparam int RptBits = 16;
 
   typedef struct packed {
@@ -104,7 +105,7 @@ module snitch_sequencer import snitch_pkg::*; #(
     rb_empty = (rb_rd_pointer ^ rb_wr_pointer) == '0;
   end
 
-  `FFNR(mem_q, mem_d, clk_i)
+  `FFAR(mem_q, mem_d, '0, clk_i, rst_i)
 
   /// Compute ringbuffer addresses.
   logic [DepthBits:0] rd_pointer_d, rd_pointer_q;

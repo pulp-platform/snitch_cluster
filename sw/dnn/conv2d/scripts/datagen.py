@@ -48,19 +48,24 @@ def emit_header(**kwargs):
 
     conv2d_output = golden_model(inputs, filters[0],
                                  padding=filter['padding'], stride=filter['stride'])
+    output_dim = conv2d_output.shape
 
     # compute checksum row-wise
     conv2d_checksum = np.sum(conv2d_output.numpy(), axis=1)
 
     ctype = data_utils.ctype_from_precision_t(prec)
 
+    inputs = data_utils.flatten(inputs.numpy())
+    filters = data_utils.flatten(filters[0].numpy())
+    conv2d_output = data_utils.flatten(conv2d_output.numpy())
+
     layer_cfg = {
         'CO': out_channels,
         'CI': in_channels,
         'IH': input_dim['height'],
         'IW': input_dim['width'],
-        'OH': conv2d_output.shape[1],
-        'OW': conv2d_output.shape[2],
+        'OH': output_dim[1],
+        'OW': output_dim[2],
         'FH': filter['height'],
         'FW': filter['width'],
         'ifmap': 'conv2d_ifmap_dram',
@@ -71,18 +76,18 @@ def emit_header(**kwargs):
 
     data_str = [emit_license()]
     data_str += [format_array_declaration(ctype, 'conv2d_ifmap_dram',
-                                          inputs.numpy().shape, BURST_ALIGNMENT)]
+                                          inputs.shape, BURST_ALIGNMENT)]
     data_str += [format_array_declaration(ctype, 'conv2d_weights_dram',
-                                          filters[0].numpy().shape, BURST_ALIGNMENT)]
+                                          filters.shape, BURST_ALIGNMENT)]
     data_str += [format_array_declaration(ctype, 'conv2d_ofmap_dram',
-                                          conv2d_output.numpy().shape, BURST_ALIGNMENT)]
+                                          conv2d_output.shape, BURST_ALIGNMENT)]
     data_str += [format_struct_definition('conv_layer', 'layer', layer_cfg)]
     data_str += [format_array_definition(ctype, 'conv2d_ifmap_dram',
-                                         inputs.numpy(), BURST_ALIGNMENT)]
+                                         inputs, BURST_ALIGNMENT)]
     data_str += [format_array_definition(ctype, 'conv2d_weights_dram',
-                                         filters[0].numpy(), BURST_ALIGNMENT)]
+                                         filters, BURST_ALIGNMENT)]
     data_str += [format_array_definition(ctype, 'conv2d_ofmap_dram',
-                                         conv2d_output.numpy(), BURST_ALIGNMENT)]
+                                         conv2d_output, BURST_ALIGNMENT)]
     data_str += [format_array_definition(ctype, 'conv2d_checksum',
                                          conv2d_checksum, BURST_ALIGNMENT)]
 

@@ -143,8 +143,8 @@ package snitch_pkg;
   } cluster_slave_dma_e;
 
   typedef enum int unsigned {
-    SDMAMst  = 32'd0,
-    SoCDMAIn = 32'd1,
+    SoCDMAIn = 32'd0,
+    SDMAMst  = 32'd1,
     ICache   = 32'd2
   } cluster_master_dma_e;
 

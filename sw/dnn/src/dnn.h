@@ -36,7 +36,6 @@ typedef union {
 } v8s;
 
 #define M_PI 3.14159265358979323846
-#define INFINITY 0x7f800000
 
 /**
  * @struct network_t_
@@ -199,6 +198,10 @@ typedef struct network_single_cluster_t_ {
 
 } network_single_cluster_t;
 
+// Level 1
+#include "../transpose/src/transpose.h"
+
+// Level 2
 #include "../batchnorm/src/batchnorm.h"
 #include "../concat/src/concat.h"
 #include "../conv2d/src/conv2d.h"

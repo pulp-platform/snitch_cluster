@@ -66,7 +66,7 @@ SECTIONS
   .cbss :
   {
     __cbss_start = .;
-    *(.cbss .cbss.*)
+    KEEP(*(.cbss .cbss.*))
     __cbss_end = .;
   } >L3
 

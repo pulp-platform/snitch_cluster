@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-#include "../../deps/riscv-opcodes/encoding.h"
+#pragma once
+
+#include <stdint.h>
 
 static inline void snrt_wfi();
 

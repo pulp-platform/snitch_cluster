@@ -9,6 +9,7 @@ runs:
     simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x4
   - elf: tests/build/barrier.elf
   - elf: tests/build/data_mover.elf
+  - elf: tests/build/dma_empty_transfer.elf
   - elf: tests/build/dma_simple.elf
   - elf: tests/build/event_unit.elf
   - elf: tests/build/fence_i.elf
@@ -54,9 +55,6 @@ runs:
     simulators: [vsim, vcs, verilator] # banshee fails with illegal instruction
   # - elf: tests/build/fp64_conversions_scalar.elf
   #   simulators: [vsim, vcs, verilator]
-  # - elf: tests/build/interrupt.elf
-  - elf: tests/build/shuffle.elf
-    simulators: [vsim]
   - elf: tests/build/interrupt_local.elf
   - elf: tests/build/multi_cluster.elf
   - elf: tests/build/openmp_parallel.elf
@@ -82,6 +80,8 @@ runs:
     cmd: [../../../sw/blas/gemm/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/blas/transpose/build/transpose.elf
     cmd: [../../../sw/blas/transpose/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: apps/blas/dot/build/dot.elf
+    cmd: [../../../sw/blas/dot/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/dnn/batchnorm/build/batchnorm.elf
   - elf: apps/dnn/maxpool/build/maxpool.elf
   # - elf: apps/dnn/conv2d/build/conv2d.elf # Fails with wrong results

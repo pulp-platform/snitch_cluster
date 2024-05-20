@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#pragma once
+
 #define ALIGN_UP(addr, size) (((addr) + (size)-1) & ~((size)-1))
 #define ALIGN_DOWN(addr, size) ((addr) & ~((size)-1))
 
@@ -89,6 +91,8 @@ inline void snrt_alloc_init() {
         snrt_l3_allocator()->size = 0;
         snrt_l3_allocator()->next = snrt_l3_allocator()->base;
     }
+    // Synchronize with other cores
+    snrt_cluster_hw_barrier();
 }
 
 // TODO colluca: optimize by using DMA

@@ -44,7 +44,7 @@ RISCV_LDFLAGS += -lsnRuntime
 # Outputs #
 ###########
 
-APPS        = $(shell $(MK_DIR)/../../../../util/sim/list_apps.py --in-dir tests/ ../run.yaml)
+APPS        = $(basename $(notdir $(wildcard $(SRC_DIR)/*.c)))
 ELFS        = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .elf,$(APPS))))
 DEPS        = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .d,$(APPS))))
 DUMPS       = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .dump,$(APPS))))
@@ -76,7 +76,7 @@ $(BUILDDIR)/%.elf: $(SRC_DIR)/%.c $(BUILDDIR)/%.d | $(BUILDDIR)
 	$(RISCV_CC) $(RISCV_CFLAGS) $(RISCV_LDFLAGS) $(SRC_DIR)/$*.c -o $@
 
 $(BUILDDIR)/%.dump: $(BUILDDIR)/%.elf | $(BUILDDIR)
-	$(RISCV_OBJDUMP) -D -S $< > $@
+	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_FLAGS) $< > $@
 
 $(BUILDDIR)/%.dwarf: $(BUILDDIR)/%.elf | $(BUILDDIR)
 	$(RISCV_DWARFDUMP) --all $< > $@

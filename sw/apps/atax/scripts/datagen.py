@@ -29,8 +29,8 @@ class AtaxDataGen(DataGen):
         header = [super().emit_header()]
 
         M, N = kwargs['M'], kwargs['N']
-        A = np.random.random_integers(-200, 100, size=(M, N))/100
-        x = np.random.random_integers(-200, 100, size=(N, 1))/100
+        A = np.random.randint(-200, 100, size=(M, N))/100
+        x = np.random.randint(-200, 100, size=(N, 1))/100
         y = self.golden_model(A, x)
 
         assert (M % 8) == 0, "M must be an integer multiple of the number of cores"

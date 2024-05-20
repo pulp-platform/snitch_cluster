@@ -21,8 +21,8 @@ int main() {
     }
 
     // Copy data to main memory.
-    snrt_dma_start_1d(buffer, buffer_src, sizeof(buffer));
-    snrt_dma_wait_all();
+    snrt_dma_txid_t id = snrt_dma_start_1d(buffer, buffer_src, sizeof(buffer));
+    snrt_dma_wait(id);
 
     // Check that the main memory buffer contains the correct data.
     for (uint32_t i = 0; i < 32; i++) {

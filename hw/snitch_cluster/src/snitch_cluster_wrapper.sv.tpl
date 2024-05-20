@@ -54,12 +54,12 @@ package ${cfg['pkg_name']};
   localparam int unsigned WideDataWidth = ${cfg['dma_data_width']};
 
   localparam int unsigned NarrowIdWidthIn = ${cfg['id_width_in']};
-  localparam int unsigned NrMasters = 3;
-  localparam int unsigned NarrowIdWidthOut = $clog2(NrMasters) + NarrowIdWidthIn;
+  localparam int unsigned NrNarrowMasters = 3;
+  localparam int unsigned NarrowIdWidthOut = $clog2(NrNarrowMasters) + NarrowIdWidthIn;
 
-  localparam int unsigned NrDmaMasters = 2 + ${cfg['nr_hives']};
+  localparam int unsigned NrWideMasters = 1 + ${cfg['dma_nr_channels']} + ${cfg['nr_hives']};
   localparam int unsigned WideIdWidthIn = ${cfg['dma_id_width_in']};
-  localparam int unsigned WideIdWidthOut = $clog2(NrDmaMasters) + WideIdWidthIn;
+  localparam int unsigned WideIdWidthOut = $clog2(NrWideMasters) + WideIdWidthIn;
 
   localparam int unsigned NarrowUserWidth = ${cfg['user_width']};
   localparam int unsigned WideUserWidth = ${cfg['dma_user_width']};
@@ -210,28 +210,24 @@ ${ssr_cfg(core, "'{{{indirection:d}, {isect_master:d}, {isect_master_idx:d}, {is
 ${ssr_cfg(core, '{reg_idx}', '/*None*/ 0', ',')}\
   };
 
+  // Forward potentially optional configuration parameters
+  localparam logic [9:0] CfgBaseHartId      =  (${to_sv_hex(cfg['cluster_base_hartid'], 10)});
+  localparam addr_t    	 CfgClusterBaseAddr = (${to_sv_hex(cfg['cluster_base_addr'], cfg['addr_width'])});
+
 endpackage
 // verilog_lint: waive-stop package-filename
 
 module ${cfg['name']}_wrapper (
   input  logic                                   clk_i,
   input  logic                                   rst_ni,
-% if cfg['enable_debug']:
   input  logic [${cfg['pkg_name']}::NrCores-1:0] debug_req_i,
-% endif
   input  logic [${cfg['pkg_name']}::NrCores-1:0] meip_i,
   input  logic [${cfg['pkg_name']}::NrCores-1:0] mtip_i,
   input  logic [${cfg['pkg_name']}::NrCores-1:0] msip_i,
-% if cfg['cluster_base_expose']:
   input  logic [9:0]                             hart_base_id_i,
   input  logic [${cfg['addr_width']-1}:0]                            cluster_base_addr_i,
-% endif
-% if cfg['timing']['iso_crossings']:
   input  logic                                   clk_d2_bypass_i,
-% endif
-% if cfg['sram_cfg_expose']:
   input  ${cfg['pkg_name']}::sram_cfgs_t         sram_cfgs_i,
-%endif
   input  ${cfg['pkg_name']}::narrow_in_req_t     narrow_in_req_i,
   output ${cfg['pkg_name']}::narrow_in_resp_t    narrow_in_resp_o,
   output ${cfg['pkg_name']}::narrow_out_req_t    narrow_out_req_o,
@@ -276,8 +272,9 @@ module ${cfg['name']}_wrapper (
     .ZeroMemorySize (${cfg['zero_mem_size']}),
     .ClusterPeriphSize (${cfg['cluster_periph_size']}),
     .NrBanks (${cfg['tcdm']['banks']}),
-    .DMAAxiReqFifoDepth (${cfg['dma_axi_req_fifo_depth']}),
+    .DMANumAxInFlight (${cfg['dma_axi_req_fifo_depth']}),
     .DMAReqFifoDepth (${cfg['dma_req_fifo_depth']}),
+    .DMANumChannels (${cfg['dma_nr_channels']}),
     .ICacheLineWidth (${cfg['pkg_name']}::ICacheLineWidth),
     .ICacheLineCount (${cfg['pkg_name']}::ICacheLineCount),
     .ICacheSets (${cfg['pkg_name']}::ICacheSets),
@@ -354,8 +351,8 @@ module ${cfg['name']}_wrapper (
     .hart_base_id_i,
     .cluster_base_addr_i,
 % else:
-    .hart_base_id_i (${to_sv_hex(cfg['cluster_base_hartid'], 10)}),
-    .cluster_base_addr_i (${to_sv_hex(cfg['cluster_base_addr'], cfg['addr_width'])}),
+    .hart_base_id_i (snitch_cluster_pkg::CfgBaseHartId),
+    .cluster_base_addr_i (snitch_cluster_pkg::CfgClusterBaseAddr),
 % endif
 % if cfg['timing']['iso_crossings']:
     .clk_d2_bypass_i,

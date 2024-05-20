@@ -29,7 +29,7 @@ class CovarianceDataGen(DataGen):
         header = [super().emit_header()]
 
         M, N = kwargs['M'], kwargs['N']
-        data = np.random.random_integers(-200, 100, size=(N, M))
+        data = np.random.randint(-200, 100, size=(N, M))
         cov = self.golden_model(data)
 
         assert (M % 8) == 0, "M must be an integer multiple of the number of cores"

@@ -14,7 +14,7 @@ module tb_simple_ssr;
   localparam int unsigned NumLoops      = 4;
 
   // Test data parameters
-  localparam string       DataFile = "../test/tb_simple_ssr.hex";
+  localparam string       DataFile = "./test/tb_simple_ssr.hex";
   localparam int unsigned ValBase   = 'h0;
   localparam int unsigned IdxBase   = 'h2000;
   localparam int unsigned IdxStride = 'h800;  // Stride of index arrays of different sizes

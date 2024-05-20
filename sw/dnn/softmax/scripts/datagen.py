@@ -45,6 +45,9 @@ def emit_header(**kwargs):
     ofmap = golden_model(ifmap, reduce_dim)
     ofmap = ofmap.detach().numpy()
 
+    ifmap = data_utils.flatten(ifmap)
+    ofmap = data_utils.flatten(ofmap)
+
     ctype = data_utils.ctype_from_precision_t(prec)
 
     ifmap_uid = 'ifmap'

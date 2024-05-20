@@ -10,6 +10,10 @@ extern uint32_t snrt_global_core_idx();
 
 extern uint32_t snrt_global_core_num();
 
+extern uint32_t snrt_global_compute_core_num();
+
+extern uint32_t snrt_global_compute_core_idx();
+
 extern uint32_t snrt_cluster_idx();
 
 extern uint32_t snrt_cluster_num();

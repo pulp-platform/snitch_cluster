@@ -23,7 +23,7 @@ $(dir $(DATA_H)):
 	mkdir -p $@
 
 $(DATA_H): $(DATAGEN_PY) $(DATA_CFG) | $(dir $(DATA_H))
-	$< -c $(DATA_CFG) --section="$(SECTION)" > $@
+	$< -c $(DATA_CFG) --section="$(SECTION)" $@
 
 .PHONY: clean-data clean
 

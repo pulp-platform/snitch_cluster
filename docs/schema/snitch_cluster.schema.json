@@ -134,6 +134,11 @@
             "description": "Id width of the wide AXI plug into the cluster.",
             "default": 1
         },
+        "dma_nr_channels": {
+            "type": "number",
+            "description": "The number of separate DMA channels to instantiate.",
+            "default": 1
+        },
         "user_width": {
             "type": "number",
             "description": "User width of the narrower AXI plug into the cluster.",

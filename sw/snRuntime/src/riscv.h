@@ -4,15 +4,19 @@
 
 #include "riscv_decls.h"
 
+#pragma once
+
+#include "../../deps/riscv-opcodes/encoding.h"
+
 /**
  * @brief Put the hart into wait for interrupt state
  *
  */
-static inline void snrt_wfi() { asm volatile("wfi"); }
+inline void snrt_wfi() { asm volatile("wfi"); }
 
-static inline void snrt_nop() { asm volatile("nop" : : :); }
+inline void snrt_nop() { asm volatile("nop" : : :); }
 
-static inline uint32_t snrt_mcycle() {
+inline uint32_t snrt_mcycle() {
     uint32_t register r;
     asm volatile("csrr %0, mcycle" : "=r"(r) : : "memory");
     return r;

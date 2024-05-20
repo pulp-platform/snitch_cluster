@@ -181,6 +181,7 @@ class Verifier:
                 expected results, 0 otherwise.
         """
         # Compute absolute error
+        expected, actual = map(flatten, (expected, actual))
         err = np.abs(expected - actual)
         # Check absolute or relative error
         if atol is not None and rtol is not None:

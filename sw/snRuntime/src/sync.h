@@ -5,6 +5,8 @@
 // Luca Colagrande <colluca@iis.ee.ethz.ch>
 // Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
+#pragma once
+
 #include <math.h>
 
 //================================================================================

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 // Luca Colagrande <colluca@iis.ee.ethz.ch>
+// Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
 #include "snrt.h"
 
@@ -28,7 +29,7 @@ typedef struct {
     void *concat_output;
     void *linear_output;
     precision_t dtype;
-    uint32_t baseline;
+    void *gemm_implementation;
 } fused_concat_linear_layer_t;
 
 static inline int fused_concat_linear_baseline(fused_concat_linear_layer_t l) {
@@ -45,8 +46,30 @@ static inline int fused_concat_linear_baseline(fused_concat_linear_layer_t l) {
     uint32_t m = l.input_shape[0];
     uint32_t k = l.input_shape[1] * l.num_inputs;
     uint32_t n = l.output_shape[1];
-    gemm(l.dtype, 0, 0, 1, 0, snrt_cluster_num(), 1, 1, 1, 1, 1, 0, 0, m, n, k,
-         1.0, l.concat_output, l.weights, 0.0, l.linear_output, l.baseline);
+
+    gemm_args_t gemm_args = {.alpha = 1.0,
+                             .prec = l.dtype,
+                             .setup_ssr = 0,
+                             .parallelize_m = 1,
+                             .parallelize_k = 0,
+                             .m_tiles = snrt_cluster_num(),
+                             .n_tiles = 1,
+                             .k_tiles = 1,
+                             .load_a = 0,
+                             .load_b = 1,
+                             .load_c = 1,
+                             .transa = 0,
+                             .transb = 0,
+                             .M = m,
+                             .N = n,
+                             .K = k,
+                             .a = l.concat_output,
+                             .b = l.weights,
+                             .beta = 0,
+                             .c = l.linear_output,
+                             .gemm_fp = l.gemm_implementation};
+
+    gemm(&gemm_args);
 
     snrt_global_barrier();
 
@@ -70,8 +93,29 @@ static inline int fused_concat_linear_optimized(fused_concat_linear_layer_t l) {
     }
     snrt_cluster_hw_barrier();
 
-    gemm(l.dtype, 0, 0, 0, 1, 1, 1, l.num_inputs, 0, 1, 1, 0, 0, m, n, concat_k,
-         1.0, a, l.weights, 0.0, l.linear_output, l.baseline);
+    gemm_args_t gemm_args = {.alpha = 1.0,
+                             .prec = l.dtype,
+                             .setup_ssr = 0,
+                             .parallelize_m = 0,
+                             .parallelize_k = 1,
+                             .m_tiles = 1,
+                             .n_tiles = 1,
+                             .k_tiles = l.num_inputs,
+                             .load_a = 0,
+                             .load_b = 1,
+                             .load_c = 1,
+                             .transa = 0,
+                             .transb = 0,
+                             .M = m,
+                             .N = n,
+                             .K = concat_k,
+                             .a = a,
+                             .b = l.weights,
+                             .beta = 0,
+                             .c = l.linear_output,
+                             .gemm_fp = l.gemm_implementation};
+
+    gemm(&gemm_args);
 
     snrt_global_barrier();
 

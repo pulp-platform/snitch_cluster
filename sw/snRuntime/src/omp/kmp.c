@@ -244,8 +244,8 @@ void __kmpc_for_static_init_4(ident_t *loc, kmp_int32 gtid,
     kmp_int32 globalUpper = *pupper;
 
     KMP_PRINTF(50,
-               "__kmpc_for_static_init_4 gtid %d schedtype %d plast %#x
-               p[%#x, "
+               "__kmpc_for_static_init_4 gtid %d schedtype %d plast %#x"
+               "p[%#x, "
                "%#x, %#x] incr %d chunk %d\n",
                gtid, sched, (uint32_t)plastiter, (uint32_t)plower,
                (uint32_t)pupper, (uint32_t)pstride, incr, chunk);
@@ -287,8 +287,7 @@ void __kmpc_for_static_init_4(ident_t *loc, kmp_int32 gtid,
     }
 
     KMP_PRINTF(10,
-               "__kmpc_for_static_init_4 plast %4d p[l %4d, u %4d, i %4d, str
-               "
+               "__kmpc_for_static_init_4 plast %4d p[l %4d, u %4d, i %4d, str"
                "%4d] chunk %d\n",
                *plastiter, *plower, *pupper, incr, *pstride, chunk);
 }

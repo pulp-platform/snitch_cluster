@@ -2,6 +2,10 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#ifdef OPENOCD_SEMIHOSTING
+#include "openocd.h"
+#endif
+
 #ifdef SNRT_INIT_CLS
 static inline uint32_t snrt_cls_base_addr() {
     extern volatile uint32_t __cdata_start, __cdata_end;
@@ -49,6 +53,7 @@ static inline void snrt_init_tls() {
             snrt_dma_start_1d((void*)(tls_ptr + i * tls_offset),
                               (void*)(snrt_zero_memory_ptr()), size);
         }
+        snrt_dma_wait_all();
     }
 
     snrt_cluster_hw_barrier();
@@ -99,8 +104,12 @@ static inline void snrt_init_libs() { snrt_alloc_init(); }
 #ifdef SNRT_CRT0_EXIT
 static inline void snrt_exit_default(int exit_code) {
     exit_code = snrt_global_all_to_all_reduction(exit_code);
+#ifdef OPENOCD_SEMIHOSTING
+    if (snrt_global_core_idx() == 0) __ocd_semihost_exit(exit_code);
+#else
     if (snrt_global_core_idx() == 0)
         *(snrt_exit_code_destination()) = (exit_code << 1) | 1;
+#endif
 }
 #ifndef SNRT_CRT0_ALTERNATE_EXIT
 static inline void snrt_exit(int exit_code) { snrt_exit_default(exit_code); }
@@ -135,8 +144,10 @@ void snrt_main() {
 #endif
 
 #if defined(SNRT_INIT_BSS) || defined(SNRT_INIT_CLS)
-    // Single DMA wait call for both snrt_init_bss() and snrt_init_cls()
+    // Single DMA wait call and barrier for both snrt_init_bss() and
+    // snrt_init_cls()
     if (snrt_is_dm_core()) snrt_dma_wait_all();
+    snrt_cluster_hw_barrier();
 #endif
 
 #ifdef SNRT_CRT0_CALLBACK3

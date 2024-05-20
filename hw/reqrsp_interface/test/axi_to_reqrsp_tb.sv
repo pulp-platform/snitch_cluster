@@ -136,7 +136,7 @@ module axi_to_reqrsp_tb import reqrsp_pkg::*; #(
       reqrsp_monitor.rsp_mbx.get(rsp);
 
       // Check that we have seen the appropriate transactions on the inputs.
-      if (req.write) begin
+      if (req.write | is_amo(req.amo) | (req.amo == AMOSC)) begin
         axi_monitor.aw_mbx.peek(ax);
         axi_monitor.w_mbx.get(w);
         // Invert bits as this is signalled as a clear condition on AXI.
@@ -149,7 +149,7 @@ module axi_to_reqrsp_tb import reqrsp_pkg::*; #(
           else $error("[Write Strb] Expected `%h` got `%h`", w.w_strb, req.strb);
         assert(req.data == w.w_data)
           else $error("[Write Data] Expected `%h` got `%h`", w.w_data, req.data);
-        assert(req.write == 1);
+        assert(req.write == (req.amo == AMONone));
         assert (
           req.addr ==
             axi_pkg::beat_addr(ax.ax_addr, ax.ax_size, ax.ax_len, ax.ax_burst, id_cnt_write)

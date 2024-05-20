@@ -27,7 +27,7 @@ package reqrsp_test;
       amo inside {
         AMOSwap, AMOAdd, AMOAnd,
         AMOOr, AMOXor, AMOMax,
-        AMOMaxu, AMOMin, AMOMinu, AMOSC} -> write == 1;
+        AMOMaxu, AMOMin, AMOMinu, AMOLR, AMOSC} -> write == 0;
     }
 
     // Reduce the amount of atomics.
@@ -36,7 +36,7 @@ package reqrsp_test;
       is_amo -> amo inside {
         AMOSwap, AMOAdd, AMOAnd,
         AMOOr, AMOXor, AMOMax,
-        AMOMaxu, AMOMin, AMOMinu
+        AMOMaxu, AMOMin, AMOMinu, AMOLR, AMOSC
       };
     }
 

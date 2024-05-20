@@ -110,7 +110,7 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
   // When the SSR reverses direction, the inflight data *must* be vacated before any
   // requests can be issued (i.e. addresses consumed) to prevent stream corruption.
   logic agen_write_q, agen_write_reversing, agen_flush, dm_write;
-  `FFLARN(agen_write_q, agen_write, agen_valid & agen_ready, '0, clk_i, rst_ni)
+  `FFL(agen_write_q, agen_write, agen_valid & agen_ready, '0, clk_i, rst_ni)
 
   // When direction reverses, deassert agen readiness until credits replenished.
   // The datamover must preserve its directional muxing until the flush is complete.
