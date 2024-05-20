@@ -1,23 +1,26 @@
-# SNAX ALU
+# SNAX ALU Accelerator Datapath
 
-This block is a simple ALU accelerator that consists of processing elements that can do +, -, x, and XOR functions. The figure below shows the SNAX ALU architecture:
+The figure below shows the SNAX ALU datapath in more detail:
 
-![image](https://github.com/KULeuven-MICAS/snitch_cluster/assets/26665295/3ec09177-e7ac-4be9-a7b4-60386bc91c62)
+![image](https://github.com/KULeuven-MICAS/snitch_cluster/assets/26665295/53d9f0e7-656a-4754-80ac-674d7af9b2f3)
 
+You can find all accelerator files under `./hw/snax_alu/src/.` directory. The main files are:
 
-# Main Modules
+- `snax_alu_pe.sv` as the SNAX ALU Processing Element (PE)
+- `snax_alu_csr.sv` as the main control-status-register (CSR) component
+- `snax_alu_shell_wrapper.sv` as the top-level shell wrapper encapsulating the SNAX PEs, SNAX CSRs, and glue logic to interface between the CSR manager and the SNAX streamer.
 
-The three main modules for the architecture are **SNAX ALU Processing Element**, the **SNAX ALU CSR Register Set**, and the **SNAX Top Level ALU Shell Wrapper**.
+Again, we label points of interest with numbers. We facilitate the discussion in a bottom-up approach to see how the accelerator is built:
 
+## (1) SNAX ALU Processing Elements (PE)
 
-## SNAX ALU Processing Element
+The `snax_alu_pe` is the computing unit of the accelerator. The PE can do addition (+), subtraction (-), multiplication (X), and a bit-wise XOR (^). Each processing element takes in two data inputs, `a` and `b`. Each input with a parameter data width size `DataWidth`. By default `DataWidth=64`. The output is `c` of data width size `2*DataWidth` to accommodate the multiplication. The other operations leave the upper bits to 0.
 
-The `snax_alu_pe` is the computing unit of the accelerator. Each processing element takes in two data inputs, `a` and `b`, each with a parameter data width size `DataWidth`. The ALU unit can do addition, subtraction, multiplication, and a bit-wise XOR. The output is `c` of data width size `2*DataWidth` to accommodate the multiplication. The other operations leave the upper bits to 0. At the top-most level, these signals are concatenated to accommodate the streamer ports.
+(2) The inputs and outputs of the PE have a simple decoupled interface (valid-ready protocol). The ports only consist of a single `data` channel. The valid signal of the inputs comes from the streamers when the data is valid. The ready signal depends on the busy status register. When the valid signals of inputs `a` and `b` are high, then it combinationally sets the valid signal of output `c`. The ready signal of `c` comes from the streamer when it's ready to load data into the TCDM memory. The entire PE is fully combinational.
 
-## SNAX ALU CSR Register Set
+## (3) SNAX ALU CSR Register Set
 
-The `snax_alu_csr` is a control and status register set with signals to modify the operation of the ALU PEs. It also contains a busy status signal and a simple performance counter. The table below shows the register set with addresses, type of register (RW for read-write and RO for read-only), and functional descriptions.
-
+The `snax_alu_csr` is a control and status register set with signals to modify the operation of the ALU PEs. It also contains a busy status signal and a simple performance counter. The table below shows the register set with addresses, type of register (`RW` for read-write and `RO` for read-only), and functional descriptions.
 
 |  register name  |  register addr  |   type  |                   description                       |
 | :-------------: | :-------------: | :-----: |:--------------------------------------------------: |
@@ -27,36 +30,63 @@ The `snax_alu_csr` is a control and status register set with signals to modify t
 |    busy         |       3         |   RO    | Busy status. 1 - busy, 0 - idle                     |
 |  perf. counter  |       4         |   RO    | Performance counter indicating number of cycles     |
 
-From the outside, a CSR manager (in this case our SNAX CSR manager) handles the read-and-write transactions from and to the accelerator's CSR register set. The `snax_alu_csr` uses a decoupled interface (valid-ready protocol) but with all RW channels linked to the accelerator. The RO channels are wired directly without any decoupled interface. It is up to the receiving end to handle these operations.
+RW registers can be modified or read from by the CSR manager. These are mostly the configurations and start signals that get to the main data path. The RO registers are read-only registers that the CSR manager can read from. These are mostly used for monitoring purposes like status or performance counters.
 
+The mode signal is broadcast to all PEs to configure the kernel that each PE processes. The busy signal acts like an active state also broadcasted to all PEs. If it's high then the PEs set their input ready signals high to allow data to stream continuously. 
 
-## SNAX Top Level ALU Shell Wrapper
+From the outside, a CSR manager (in this case our SNAX CSR manager) handles the read-and-write transactions from and to the accelerator's CSR register set. The `snax_alu_csr` also uses a decoupled interface but with all RW channels linked to the accelerator. The RO channels are wired directly without any decoupled interface. It is up to the accelerator designer to handle these operations.
 
-The `snax_alu_shell_wrapper` is the all-encompassing top-level wrapper that combines the PEs and the CSR register set. From the CSR manager, we have the RW and RO ports directly connected to the `snax_alu_csr`. For the PEs that connect to an external data streamer, the PE data signals (both input and output) are first concatenated together.
+## (4) SNAX ALU Shell Wrapper
 
-For example, consider the example where we have 4 PEs and each PE can only process `DataWidth` size per port (`2*DataWidth` for the output). Then SNAX streamer uses a data width of `4*DataWidth` for both inputs `A` and `B`. Then we split `A` and `B` contigiously into ports `a` and `b` annotated with numbers from the figure. The output `C` is a concatenation of each `c` port. In Verilog, this is:
+The `snax_alu_shell_wrapper` is the main wrapper for encapsulating the processing elements, the CSR manager, and the glue logic to connect to the streamers. The top-level shell has configurable parameters tabulated below:
+
+|  parameter    |       description                      | default values |
+| :-----------: | :------------------------------------: | :------------: |
+|  RegRWCount   | Number of RW registers                 | 3              |
+|  RegROCount   | Number of RO registers                 | 2              |
+|  NumPE        | Number of parallel PEs                 | 4              |
+|  DataWidth    | INput data width of each PE            | 64             |
+|  OutDataWidth | Output data width of each PE           | DataWidth*2    |
+|  RegDataWidth | Data width of each register            | 32             |
+|  RegAddrwidth | Address width for selecting a register | 32             |
+
+For the CSR side, we have the RW and RO ports directly connecting the `snax_alu_csr` to the CSR manager. The RW ports have a decoupled interface to properly handle the register writes. The RO ports are directly wired to the CSR manager. The shell module's ports for the CSR are:
 
 ```verilog
-  for (int i = 0; i < NumPE; i++) begin
-    // De-concatenating the input signals
-    a_split[i] = stream2acc_0_data_i[i*DataWidth+:DataWidth];
-    b_split[i] = stream2acc_1_data_i[i*DataWidth+:DataWidth];
-
-    // Concatenating the output signals
-    acc2stream_0_data_o[i*DataWidth+:DataWidth] = c_split[i];
-  end
+//-------------------------------
+// CSR manager ports
+//-------------------------------
+input  logic [RegRWCount-1:0][RegDataWidth-1:0] csr_reg_set_i,
+input  logic                                    csr_reg_set_valid_i,
+output logic                                    csr_reg_set_ready_o,
+output logic [RegROCount-1:0][RegDataWidth-1:0] csr_reg_ro_set_o
 ```
-The decoupled control signals are broadcasted and AND'd together. For the input side, all `valid` signals from the streamer to the accelerator input ports are broadcasted, while all `ready` signals are AND'd together. For the output side, all `valid` signals are AND'd towards the streamer and all `ready` signals from the streamer to accelerator PEs are broadcasted. The signals in the figure visualize these.
 
-### Top-level Parameters
+The PEs that connect to an external data streamer have data signals (both input and output) concatenated together. (5) For the PEs that connect to an external data streamer, the PE data signals (both input and output) data channels decoupled interfaces. The module ports are:
 
-The top-level shell has configurable parameters tabulated below:
+```verilog
+//-------------------------------
+// Accelerator ports
+//-------------------------------
+// Note, we maintained the form of these signals
+// just to comply with the top-level wrapper
 
-|  parameter    |       description                      |
-| :-----------: | :------------------------------------: |
-|  RegRWCount   | Number of RW registers                 |
-|  RegROCount   | Number of RO registers                 |
-|  NumPE        | Number of parallel PEs                 |
-|  DataWidth    | Data width of each PE element          |
-|  RegDataWidth | Data width of each register            |
-|  RegAddrwidth | Address width for selecting a register |
+// Ports from accelerator to streamer
+output logic [(NumPE*OutDataWidth)-1:0] acc2stream_0_data_o,
+output logic acc2stream_0_valid_o,
+input  logic acc2stream_0_ready_i,
+
+// Ports from streamer to accelerator
+input  logic [(NumPE*DataWidth)-1:0] stream2acc_0_data_i,
+input  logic stream2acc_0_valid_i,
+output logic stream2acc_0_ready_o,
+
+input  logic [(NumPE*DataWidth)-1:0] stream2acc_1_data_i,
+input  logic stream2acc_1_valid_i,
+output logic stream2acc_1_ready_o,
+
+```
+
+Where `stream2acc` and `acc2stream` indicate the input and output ports respectively. These ports are concatenated signals of the PEs. For example, consider the example where we have `NumPE=4` PEs and each PE can process `DataWidth` size per port (`2*DataWidth` for the output). Then SNAX streamer uses a data width of `4*DataWidth` for both inputs `A` (`stream2acc_0`) and `B` (`stream2acc_1`) . Then we split `A` and `B` contigiously into ports `a` and `b`, respectively. These are annotated with (2) and (5) in the figure. The output `C` is a concatenation of each `c` port. 
+
+Any user attaching their accelerator to the SNAX platform must **create their own shell wrapper** with the correct CSR manager and streamer interfaces. This shell should serve as an example on how to attach the interfaces.
