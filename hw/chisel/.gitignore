@@ -5,3 +5,5 @@ project/*
 target
 test_run_dir
 .bsp
+.scala-build
+out

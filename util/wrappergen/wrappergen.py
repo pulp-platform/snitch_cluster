@@ -53,10 +53,9 @@ def gen_file(cfg, tpl, target_path: str, file_name: str) -> None:
 
 
 def gen_chisel_file(chisel_path, chisel_param, gen_path):
-
     # Call chisel environment and generate the system verilog file
-    cmd = f' cd {chisel_path} && sbt \
-        "runMain {chisel_param} {gen_path}"'
+    cmd = f" cd {chisel_path} && \
+        mill Snax.runMain {chisel_param} {gen_path}"
     os.system(cmd)
 
     return
@@ -88,10 +87,7 @@ def main():
         help="Points to the streamer chisel source path",
     )
     parser.add_argument(
-        "--gen_path",
-        type=str,
-        default="./",
-        help="Points to the output directory"
+        "--gen_path", type=str, default="./", help="Points to the output directory"
     )
 
     # Get the list of parsing
@@ -130,8 +126,7 @@ def main():
         acc_cfgs[i]["tcdm_depth"] = tcdm_depth
         tcdm_num_banks = cfg["cluster"]["tcdm"]["banks"]
         acc_cfgs[i]["tcdm_num_banks"] = tcdm_num_banks
-        tcdm_addr_width = tcdm_num_banks * tcdm_depth * \
-            (tcdm_data_width // 8)
+        tcdm_addr_width = tcdm_num_banks * tcdm_depth * (tcdm_data_width // 8)
         tcdm_addr_width = int(math.log2(tcdm_addr_width))
         acc_cfgs[i]["tcdm_addr_width"] = tcdm_addr_width
         # Chisel parameter tag names
@@ -161,8 +156,7 @@ def main():
         )
 
         # CSR manager scala parameter generation
-        chisel_target_path = args.chisel_path + \
-            "src/main/scala/snax/csr_manager/"
+        chisel_target_path = args.chisel_path + "src/main/scala/snax/csr_manager/"
         file_name = "CsrManParamGen.scala"
         tpl_scala_param_file = args.tpl_path + "csrman_param_gen.scala.tpl"
         tpl_scala_param = get_template(tpl_scala_param_file)
@@ -187,10 +181,8 @@ def main():
         )
 
         # This first one generates the streamer wrapper
-        file_name = acc_cfgs[i]["snax_acc_name"] + \
-            "_streamer_wrapper.sv"
-        tpl_streamer_wrapper_file = args.tpl_path + \
-            "snax_streamer_wrapper.sv.tpl"
+        file_name = acc_cfgs[i]["snax_acc_name"] + "_streamer_wrapper.sv"
+        tpl_streamer_wrapper_file = args.tpl_path + "snax_streamer_wrapper.sv.tpl"
         tpl_streamer_wrapper = get_template(tpl_streamer_wrapper_file)
         gen_file(
             cfg=acc_cfgs[i],
@@ -201,8 +193,7 @@ def main():
 
         # This generates the top wrapper
         file_name = acc_cfgs[i]["snax_acc_name"] + "_wrapper.sv"
-        tpl_rtl_wrapper_file = args.tpl_path + \
-            "snax_acc_wrapper.sv.tpl"
+        tpl_rtl_wrapper_file = args.tpl_path + "snax_acc_wrapper.sv.tpl"
         tpl_rtl_wrapper = get_template(tpl_rtl_wrapper_file)
         gen_file(
             cfg=acc_cfgs[i],
@@ -214,15 +205,15 @@ def main():
         # Generate chisel component using chisel generation script
         gen_chisel_file(
             chisel_path=args.chisel_path,
-            chisel_param='snax.csr_manager.CsrManagerGen',
-            gen_path=rtl_target_path
+            chisel_param="snax.csr_manager.CsrManagerGen",
+            gen_path=rtl_target_path,
         )
 
         # Generate chisel component using chisel generation script
         gen_chisel_file(
             chisel_path=args.chisel_path,
-            chisel_param='snax.streamer.StreamerTopGen',
-            gen_path=rtl_target_path
+            chisel_param="snax.streamer.StreamerTopGen",
+            gen_path=rtl_target_path,
         )
 
     print("Generation done!")

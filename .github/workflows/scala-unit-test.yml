@@ -16,10 +16,10 @@ jobs:
     name: Build and Test
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kuleuven-micas/snax:main
+      image: ghcr.io/kuleuven-micas/snax:pr-110
     steps:
       - uses: actions/checkout@v2
       - name: Run the unit tests
         working-directory: hw/chisel
         run: |
-          sbt test
+          mill Snax.test
