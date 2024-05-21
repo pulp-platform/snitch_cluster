@@ -26,7 +26,7 @@ int main() {
         // for preloading the data to the L1 memory
         uint32_t start_dma_load = snrt_mcycle();
 
-        // The LOOP_ITER is found in data.h
+        // The DATA_LEN is found in data.h
         size_t vector_size = DATA_LEN * sizeof(uint64_t);
         snrt_dma_start_1d(local_a, A, vector_size);
         snrt_dma_start_1d(local_b, B, vector_size);
