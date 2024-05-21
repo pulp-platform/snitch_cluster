@@ -1,0 +1,17 @@
+// Copyright 2023 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
+
+{
+    tempLoop0: 2,
+    tempLoop1: 4,
+    tempStride0_in: 256,
+    tempStride1_in: 1024,
+    tempStride0_out: 64,
+    tempStride1_out: 256,
+    delta_local_in: 0,
+    delta_local_out: 4096,
+    VEC_LEN: 64
+}

@@ -60,6 +60,18 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm.hjson)
 
 endif
 
+ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-simd.hjson)
+	SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-postprocessing-simd)
+	include $(SNAX_GEMM_ROOT)/Makefile
+
+	VSIM_BENDER += -t snax-streamer-simd
+	VLT_BENDER  += -t snax-streamer-simd
+	VCS_BENDER  += -t snax-streamer-simd
+
+	SNAX_GEN += ${GENERATED_DIR}/snax-streamer-simd
+
+endif
+
 ifeq (${CFG_OVERRIDE}, cfg/snax-alu.hjson)
 
 	SNAX_GEN += ${GENERATED_DIR}/snax-alu
