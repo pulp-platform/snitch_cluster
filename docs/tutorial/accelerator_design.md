@@ -1,11 +1,6 @@
 # Accelerator Design
 
 Let's first dive into the SNAX shell which is the encapsulated yellow box from the main figure in [Architectural Overview](./architectural_overview.md). The figure below is the same shell but with more signal details:
-<<<<<<< HEAD
-
-![image](https://github.com/KULeuven-MICAS/snitch_cluster/assets/26665295/ea948d6f-44e9-4602-831c-f4ee0d70e851)
-=======
->>>>>>> 6935ade (doc: typo fix)
 
 ![image](https://github.com/KULeuven-MICAS/snitch_cluster/assets/26665295/ea948d6f-44e9-4602-831c-f4ee0d70e851)
 
