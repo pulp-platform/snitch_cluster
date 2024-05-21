@@ -23,8 +23,6 @@ int main() {
     local_b = (int8_t*)(snrt_l1_next() + delta_local_b);
     local_c = (int32_t*)(snrt_l1_next() + delta_local_c);
 
-    uint32_t dma_pre_load = snrt_mcycle();
-
     // Transfer data from L3 to L1
     // Using DMA only
     if (snrt_is_dm_core()) {
@@ -36,13 +34,13 @@ int main() {
     // Wait for DMA to finish
     snrt_cluster_hw_barrier();
 
-    if (snrt_is_compute_core()) {
-        uint32_t gemm_start = snrt_mcycle();
+    if (snrt_global_core_idx() == 0) {
+        // uint32_t gemm_start = snrt_mcycle();
 
         // Set Streamer configuration CSR
-        set_streamer_csr(K, N, M, strideInnermostA, ldA, strideInnermostB, ldB,
-                         strideInnermostC, ldC, delta_local_a, delta_local_b,
-                         delta_local_c);
+        set_streamer_csr(K, N, M, strideInnermostA, ldA, spatialA,
+                         strideInnermostB, ldB, spatialB, strideInnermostC, ldC,
+                         spatialC, delta_local_a, delta_local_b, delta_local_c);
         // Set CSR to start Streamer
         set_streamer_start();
 
@@ -51,13 +49,12 @@ int main() {
             gen_subtraction_config(subtraction_a, subtraction_b);
 
         set_block_gemm_csr(K, N, M, subtraction_setting);
+
         // Set CSR to start GEMM
         set_block_gemm_start();
 
         // Poll until Streamer and GEMM accelerator finish
         wait_streamer_gemm();
-
-        uint32_t gemm_end = snrt_mcycle();
 
         // Compare SNAX GEMM result with golden model
         err += check_result(local_c, C_golden, Batch, M, N, strideInnermostC,

@@ -29,7 +29,7 @@ dependencies:
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.11  }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0   }
   hwpe-mac-engine:    { git: https://github.com/KULeuven-MICAS/hwpe-mac-engine.git, rev: 5d3b4525b665169fc8321c8a811f3c83ad3c72e8 }
-  snax-streamer-gemm-dev: { git: https://github.com/KULeuven-MICAS/snax-dev.git,     rev: snax-streamer-gemm-dev }
+  snax-gemm: { git: "https://github.com/KULeuven-MICAS/snax-gemm", rev: 5a57b66e9b29f51de77dac99fd466c6aee073175 }
 
 vendor_package:
   - name: musl
@@ -305,6 +305,17 @@ sources:
       - target/snitch_cluster/generated/snax_alu/snax_alu_streamer_wrapper.sv
       # Level 2
       - target/snitch_cluster/generated/snax_alu/snax_alu_wrapper.sv
+
+  - target: snax-streamer-gemm
+    files:
+      # Level 0
+      - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_csrman_CsrManager.sv
+      - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_streamer_StreamerTop.sv
+      # Level 1
+      - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_csrman_wrapper.sv
+      - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_streamer_wrapper.sv
+      # Level 2
+      - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_wrapper.sv
 
   - target: test
     files:

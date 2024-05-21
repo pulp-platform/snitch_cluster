@@ -6,8 +6,11 @@
 {
     Batch: 1
     K: 2,
-    N: 4,
-    M: 4,
+    N: 1,
+    M: 3,
+    spatialA: 8,
+    spatialB: 8,
+    spatialC: 32,
     strideInnermostA: 256,
     strideInnermostB: 256,
     strideInnermostC: 256,

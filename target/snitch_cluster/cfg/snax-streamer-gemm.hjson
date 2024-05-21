@@ -90,9 +90,11 @@
             snax_acc_name: "snax_streamer_gemm",
             snax_module: "snax_streamer_gemm_wrapper",
             snax_tcdm_ports: 48,
-        }
-        snax_use_custom_ports: true,
-        snax_acc_wide: true,
+            snax_num_rw_csr: 5,
+            snax_num_ro_csr: 2,
+            snax_streamer_cfg: {$ref: "#/snax_streamer_gemm_streamer_template" }
+        },
+        snax_use_custom_ports: false,
         num_int_outstanding_loads: 1,
         num_int_outstanding_mem: 4,
         num_fp_outstanding_loads: 4,
@@ -144,5 +146,38 @@
         num_sequencer_instructions: 16,
         num_dtlb_entries: 1,
         num_itlb_entries: 1,
+    },
+    // SNAX Streamer Templates
+    snax_streamer_gemm_streamer_template :{
+
+        temporal_addrgen_unit_params: {
+            loop_dim: 3,
+        }
+
+        fifo_reader_params: {
+            fifo_width: [512, 512],
+            fifo_depth: [2, 2],
+        }
+
+        fifo_writer_params: {
+            fifo_width: [2048],
+            fifo_depth: [2],
+        }
+
+        data_reader_params:{
+            tcdm_ports_num: [8, 8],
+            spatial_bounds: [[8, 8], [8, 8]],
+            spatial_dim: [2, 2],
+            element_width: [8, 8],
+        }
+
+        data_writer_params:{
+            tcdm_ports_num: [32],
+            spatial_bounds: [[8, 8]],
+            spatial_dim: [2],
+            element_width: [32],
+        }
+
+        stationarity: [0,0,1]
     }
 }

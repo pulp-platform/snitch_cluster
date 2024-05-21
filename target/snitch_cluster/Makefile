@@ -49,12 +49,15 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-gemm.hjson)
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm.hjson)
-	SNAX_DEV_ROOT ?= $(shell $(BENDER) path snax-streamer-gemm-dev)
-	include $(SNAX_DEV_ROOT)/Makefile
+	SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
+	include $(SNAX_GEMM_ROOT)/Makefile
 
-	VSIM_BENDER += -t snax-streamer-gemm-dev
-	VLT_BENDER  += -t snax-streamer-gemm-dev
-	VCS_BENDER  += -t snax-streamer-gemm-dev
+	VSIM_BENDER += -t snax-streamer-gemm
+	VLT_BENDER  += -t snax-streamer-gemm
+	VCS_BENDER  += -t snax-streamer-gemm
+
+	SNAX_GEN += ${GENERATED_DIR}/snax-streamer-gemm
+
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-alu.hjson)
