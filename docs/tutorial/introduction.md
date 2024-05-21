@@ -26,20 +26,17 @@ In this tutorial, we will explore how to attach your own custom accelerator to t
 - This section guides you on how to generate the streamer which accesses data from the memory for your accelerator.
 - It also contains an overview of the configuration file on how to modify the target streamer.
 
-5 - [Connecting the Shell](./connect_shell.md)
-- There exists wrappers in the system that allow users to connect their accelerators directly to the SNAX shell.
-
-6 - [Building the Architecture](./build_system.md)
+5 - [Building the Architecture](./build_system.md)
 - This guide shows how to build the architecture.
 
-7 - [Programming your Core](./programming.md)
+6 - [Programming your Core](./programming.md)
 - We demonstrate here how to program the accelerator of interest.
 - We also show how to build the program and run simulations.
 
-8 - [Other Tools](./other_tools.md)
+7 - [Other Tools](./other_tools.md)
 - There exists tools that can help profile and analyze your design.
 
-9 - [Other Designs](./more_designs.md)
+8 - [Other Designs](./more_designs.md)
 - We've used our SNAX platform for various accelerators already - In this section, we demonstrate these accelerators and how we profiled them.
 - We also show synthesized results of our work to see how the designs turn out.
 

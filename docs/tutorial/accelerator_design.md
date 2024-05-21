@@ -62,7 +62,7 @@ The first operations before the `snax_acc_cfg` pertain to the Snitch core config
 
 The `snax_acc_cfg`  contains the configurations for the accelerator. The configuration definitions are:
 
-- `snax_acc_name`: Is the name appended to the different wrappers discussed in [Connecting the Shell](./connect_shell.md) section.
+- `snax_acc_name`: Is the name appended to the different wrappers discussed in [Building the Architecture](./build_system.md) section.
 - `snax_tcdm_ports`: Is the number of tightly coupled data memory (TCDM) that your accelerator needs.
 - `snax_num_rw_csr`: Is the number of read-write (RW) registers your accelerators has. This affects the connection ports of the CSR manager. More details in [SNAX CSR Manager](./csrman_design.md).
 - `snax_num_ro_csr`: Is the number of read-only (RO) registers your accelerator has. This affects the connection ports CSR manager. More details in [SNAX CSR Manager](./csrman_design.md).

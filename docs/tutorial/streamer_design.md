@@ -113,7 +113,7 @@ The affine address generation is the working principle of the SNAX streamer. Wit
 
 # Streamer Microarchitecture
 
-The figure below shows a more detailed architecture of the streamer. The **(1) streamer** sits between the TCDM interconnect and the accelerator as a flexible and efficient data movement unit. There is also a **(2) streamer wrapper** to re-wire the Chisel-generated signals. More details of the wrappers are in [Connect The Shell](./connect_shell.md) section.
+The figure below shows a more detailed architecture of the streamer. The **(1) streamer** sits between the TCDM interconnect and the accelerator as a flexible and efficient data movement unit. There is also a **(2) streamer wrapper** to re-wire the Chisel-generated signals. More details of the wrappers are in [Building the Architecture](./build_system.md) section.
 
 ![image](https://github.com/KULeuven-MICAS/snitch_cluster/assets/26665295/e26af3c9-43f8-4de5-b07e-02dbacecc9fd)
 
@@ -281,7 +281,7 @@ Below is a tabulated version of the CSRs of the streamers with the register offs
 
 # Example Streamer Generation
 
-This is a good time to test our wrapper generation and see the changes in the CSR manager. More details about the wrapper generation are in the [Connect The Shell](./connect_shell.md) section. Do the following (this assumes that you are running within the container):
+This is a good time to test our wrapper generation and see the changes in the CSR manager. More details about the wrapper generation are in the [Building the Architecture](./build_system.md) section. Do the following (this assumes that you are running within the container):
 
 1 - Go to the root directory.
 

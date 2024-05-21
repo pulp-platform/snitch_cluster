@@ -4,7 +4,7 @@ The **(1) Control-Status Register (CSR) manager** is a chisel-generated module t
 
 ![image](https://github.com/KULeuven-MICAS/snitch_cluster/assets/26665295/97af01e6-fcb0-48f7-880c-8bfdb1166308)
 
-There is a **(2) `snax_csr_wrapper`** which is a wrapper to combine signals from the Chisel-generated module. As you will see later in [Example CSR Generation](#example-csr-generation), the Chisel-generated SNAX CSR Manager will have several unpacked signals. The purpose of the wrapper is to pack these signals and make it easier to connect to other modules. Section [Connecting the Shell](./connect_shell.md) has more details about the wrappers.
+There is a **(2) `snax_csr_wrapper`** which is a wrapper to combine signals from the Chisel-generated module. As you will see later in [Example CSR Generation](#example-csr-generation), the Chisel-generated SNAX CSR Manager will have several unpacked signals. The purpose of the wrapper is to pack these signals and make it easier to connect to other modules. Section [Building the Architecture](./build_system.md) has more details about the wrappers.
 
 # CSR Manager Interfaces
 
@@ -76,11 +76,11 @@ snax_acc_cfg: {
 },
 ```
 
-The `snax_num_rw_csr` sets the number of RW CSRs while the `snax_num_ro_csr` sets the number of RO CSRs. These settings go into our accelerator wrapper script to generate Chisel parameters for generation. Then it automatically generates the CSR manager and stores it under the `./target/snitch_cluster/generated/snax_alu/` directory. See [Connecting the Shell](./connect_shell.md) for more details later.
+The `snax_num_rw_csr` sets the number of RW CSRs while the `snax_num_ro_csr` sets the number of RO CSRs. These settings go into our accelerator wrapper script to generate Chisel parameters for generation. Then it automatically generates the CSR manager and stores it under the `./target/snitch_cluster/generated/snax_alu/` directory. See [Building the Architecture](./build_system.md) for more details later.
 
 # Example CSR Generation
 
-This is a good time to test our wrapper generation and see the changes in the CSR manager. More details about the wrapper generation are in the [Connect The Shell](./connect_shell.md) section. Do the following (this assumes that you are running within the container):
+This is a good time to test our wrapper generation and see the changes in the CSR manager. More details about the wrapper generation are in the [Building the Architecture](./build_system.md) section. Do the following (this assumes that you are running within the container):
 
 1 - Go to the root directory.
 
