@@ -31,6 +31,7 @@ SUBDIRS += snax-streamer-gemm
 SUBDIRS += snax-streamer-simd
 SUBDIRS += snax-mac-mult
 SUBDIRS += snax-alu
+SUBDIRS += snax-data-reshuffler
 
 .PHONY: all clean $(SUBDIRS)
 

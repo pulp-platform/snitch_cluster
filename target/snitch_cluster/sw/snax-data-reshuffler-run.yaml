@@ -1,0 +1,11 @@
+# Copyright 2024 KU Leuven.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
+
+# This file contains all tests that require hardware to be built with
+# a snax core with a snax-gemm accelerator attached to it
+
+runs:
+  - elf: apps/snax-data-reshuffler/build/snax-data-reshuffler.elf

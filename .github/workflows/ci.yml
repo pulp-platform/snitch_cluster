@@ -133,6 +133,32 @@ jobs:
           ./run.py --simulator verilator \
           sw/runtime.yaml sw/standard-fp.yaml sw/snax-streamer-gemm-run.yaml -j
 
+  sw-snax-data-reshuffler-cluster-vlt-generic:
+    name: Simulate SW on SNAX Data Reshuffler w/ Verilator (Generic LLVM)
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/kuleuven-micas/snax:main
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+      - name: Build Software
+        run: |
+          make -C target/snitch_cluster sw \
+          SELECT_RUNTIME=rtl-generic \
+          SELECT_TOOLCHAIN=llvm-generic \
+          CFG_OVERRIDE=cfg/snax-data-reshuffler.hjson
+      - name: Build Hardware
+        run: |
+          make CFG_OVERRIDE=cfg/snax-data-reshuffler.hjson \
+          -C target/snitch_cluster bin/snitch_cluster.vlt
+      - name: Run Tests
+        working-directory: target/snitch_cluster
+        run: |-
+          ./run.py --simulator verilator \
+          sw/runtime.yaml sw/standard-fp.yaml \
+          sw/snax-data-reshuffler-run.yaml -j
+
   sw-snax-mac-mult-cluster-vlt-generic:
     name: Simulate SW on SNAX Multiple MAC Cluster w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04

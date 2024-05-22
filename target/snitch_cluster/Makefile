@@ -82,6 +82,16 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-alu.hjson)
 
 endif
 
+ifeq (${CFG_OVERRIDE}, cfg/snax-data-reshuffler.hjson)
+
+	SNAX_GEN += ${GENERATED_DIR}/snax-data-reshuffler
+
+	VSIM_BENDER += -t snax-data-reshuffler
+	VLT_BENDER  += -t snax-data-reshuffler
+	VCS_BENDER  += -t snax-data-reshuffler
+
+endif
+
 ############
 # Programs #
 ############
