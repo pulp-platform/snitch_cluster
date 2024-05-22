@@ -1,6 +1,6 @@
 # Review of Architecture
 
-Previously we discussed the [Accelerator Design](./accelerator_design.md), the [CSR Manager Design](./csrman_design.md) and the [Streamer Design](./streamer_design.md). These are the main components that are tightly coupled together in a shell before connecting to the system. The figure below shows the system of interest again but with more labels:
+Previously we discussed the [Accelerator Design](./accelerator_design.md), the [CSR Manager Design](./csrman_design.md) and the [Streamer Design](./streamer_design.md). These are the main components that are tightly coupled together in a shell before connecting to the system. The figure below shows the system of interest again:
 
 ![image](https://github.com/KULeuven-MICAS/snitch_cluster/assets/26665295/0090e1a4-15c5-4852-a351-7c3ee0368e1f)
 
@@ -81,7 +81,9 @@ Where you should substitute `${snax_acc_name}`  with the parameter name you spec
 
 ## Updating the Makefiles!
 
-With the RTL files in place, we only need to make small modifications in the makefile such that we specify the `-target` properly during the build. First, navigate to `./target/snitch_cluster/.` and open the `Makefile` script. There are several settings and configurations because this `Makefile` is used both for hardware and software builds. We will first focus on the hardware build.
+With the RTL files in place, we only need to make small modifications in the makefile such that we specify the `-target` properly during the build.
+
+First, navigate to `./target/snitch_cluster/.` and open the `Makefile` script. There are several settings and configurations because this `Makefile` is used both for hardware and software builds. We will first focus on the hardware build.
 
 Somewhere near the top of the file, you should see the `SNAX Generations` section. There are some existing accelerators already but locate the part where `snax-alu.hjson` is declared:
 
@@ -96,7 +98,9 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-alu.hjson)
 
 endif
 ```
-As you can see, we need to specify `CFG_OVERRIDE=cfg/snax-alu.hjson` later when we build the file because the conditional statement checks the name of the configuration file. The `SNAX_GEN += ${GENERATED_DIR}/snax-alu` sets the target directory for where the build will be placed. The parameters with `*_BENDER += -t snax-alu` tell the build to use bender with the `-target snax-alu` defined. This is in accordance with the `-target` parameter mentioned in the Bender file.
+As you can see, we need to specify `CFG_OVERRIDE=cfg/snax-alu.hjson` later when we build the file because the conditional statement checks the name of the configuration file.
+
+The `SNAX_GEN += ${GENERATED_DIR}/snax-alu` sets the target directory for where the build will be placed. The parameters with `*_BENDER += -t snax-alu` tell the build to use bender with the `-target snax-alu` defined. This is in accordance with the `-target` parameter mentioned in the Bender file.
 
 After adding this to the `Makefile` we are now ready to build the system!
 
@@ -122,7 +126,9 @@ The original [Snitch Platform](https://github.com/pulp-platform/snitch_cluster) 
 
 In principle, both scripts use a specified configuration file like the `snax-alu.hjson` and load those configurations in a templated file `*.tpl`. Once loaded, it generates the target files like System Verilog designs or Chisel parameters.
 
-For example, the **accelerator wrapper** script uses any of the configuration files under the `./target/snitch_cluster/cfg/.` directory. Then load them in wrapper templates found in `./hw/templates/.` directory.
+## Accelerator Wrapper Script
+
+The **accelerator wrapper** script uses any of the configuration files under the `./target/snitch_cluster/cfg/.` directory. Then load them in wrapper templates found in `./hw/templates/.` directory.
 
 Inside the template directory we have:
 - `snax_csrman_wrapper.sv.tpl` - is for the CSR manager wrapper. This is (2) from the figure above.
@@ -131,7 +137,13 @@ Inside the template directory we have:
 - `csrman_param_gen.scala.tpl` - this is a parameter file that Chisel uses for generating the CSR manager.
 - `stream_param_gen.scala.tpl` - this is a parameter file that Chisel uses for generating the streamer.
 
-We have shown previously how to use the `wrappergen` script:
+We have shown previously how to use the `wrappergen` script. If you are working in Codespaces:
+
+```bash
+/workspaces/snax_cluster/util/wrappergen/wrappergen.py --cfg_path="/workspaces/snax_cluster/target/snitch_cluster/cfg/snax-alu.hjson" --tpl_path="/workspaces/snax_cluster/hw/templates/" --chisel_path="/workspaces/snax_cluster/hw/chisel/" --gen_path="/workspaces/snax_cluster/target/snitch_cluster/generated/"
+```
+
+If you are working in a docker container:
 
 ```bash
 /repo/util/wrappergen/wrappergen.py --cfg_path="/repo/target/snitch_cluster/cfg/snax-alu.hjson" --tpl_path="/repo/hw/templates/" --chisel_path="/repo/hw/chisel/" --gen_path="/repo/target/snitch_cluster/generated/"
@@ -143,7 +155,17 @@ Where:
 - `--chisel_path` - points to the chisel directory.
 - `--gen_path` - points to the directory where all the generated files will be placed.
 
-The **cluster wrapper** made by the Snitch platform also does the same mechanism but is tailored towards the system integration. The main template is in `./hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl`. To run the `clustergen` do:
+## Cluster Wrapper Script
+
+The **cluster wrapper** made by the Snitch platform also does the same mechanism but is tailored towards the system integration. The main template is in `./hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl`.
+
+If you are working in Codespaces run the `clustergen` with:
+
+```bash
+/workspaces/snax_cluster/util/clustergen.py -c /workspaces/snax_cluster/target/snitch_cluster/cfg/snax-alu.hjson -o /workspaces/snax_cluster/target/snitch_cluster/generated --wrapper
+```
+
+If you are working in the container do:
 
 ```bash
 /repo/util/clustergen.py -c cfg/snax-alu.hjson -o /repo/target/snitch_cluster/generated --wrapper
@@ -218,3 +240,15 @@ cores: [
 !!! note
 
     It is imperative that the last core should always be the DMA core. Otherwise, the generation scripts will break and you have no way of getting data into the TCDM memory.
+
+## Some Exercises !!!
+
+<details>
+  <summary> What does the `-target` of the Bender.yml file do? </summary>
+  It's used to specify if the components under the target will be included in the filelist generation.
+</details>
+
+<details>
+  <summary> What do you need to update in the Makefile for a new accelerator? </summary>
+  Just add the condition of the new accelerator configuration and make sure to add the appropriate -t tags. Make sure to include the `SNAX_GEN` path so that it creates the correct directory too.
+</details>

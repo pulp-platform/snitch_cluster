@@ -15,9 +15,11 @@ The dumped file will be named as `sim.vcd`. You can view this with your favorite
 gtkwave sim.vcd &
 ```
 
+You can download `gtkwave` with this [link](https://gtkwave.sourceforge.net/).
+
 !!! note
 
-    If you're using the codespace, you need to download the `sim.vcd` file first and open it locally in your personal work space.
+    If you're using the codespace, you need to download the `sim.vcd` file first and open it locally in your personal work space. The built-in waveform viewer in VS code has a hard time loading the system's signals.
 
 # Program Tracing with Spike
 
