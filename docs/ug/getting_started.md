@@ -6,12 +6,12 @@
 
 Clone the repository:
 ```shell
-git clone https://github.com/KULeuven-MICAS/snitch_cluster.git --recurse-submodules
+git clone https://github.com/KULeuven-MICAS/snax_cluster.git --recurse-submodules
 ```
 
 If you had already cloned the repository without the `--recurse-submodules` flag, clone its submodules:
 ```shell
-git submodule init --recursive
+git submodule update --init --recursive
 ```
 
 ## Tools and environment

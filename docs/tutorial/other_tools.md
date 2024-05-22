@@ -2,7 +2,7 @@
 
 There are two useful tools for debugging and verifying your work. (1) Dumping waveform VCD files and (2) program stack tracing.
 
-# Dumping Wavefors with VCD Files
+# Dumping Waveforms with VCD Files
 
 To dump VCD files through simulation we only need to add the `--vcd` when running simulations.
 
@@ -129,7 +129,7 @@ The generated traces are a bit more readable from here. Open `trace_hart_00000.t
 807000      804        M 0x80000278 csrw    unknown_3cd, a4        #; a4  = 80
 808000      805        M 0x8000027c csrwi   unknown_3ce, 1         #; 
 809000      806        M 0x80000280 csrr    a3, mcycle             #; mcycle = 805, (wrb) a3  <-- 805
-  ```
+```
 
 `trace_hart_00000.txt` is the trace file for core 0 which is also controlling the SNAX ALU accelerator. The columns are arranged as follows:
 

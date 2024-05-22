@@ -4,7 +4,7 @@ Previously we discussed the [Accelerator Design](./accelerator_design.md), the [
 
 ![image](https://github.com/KULeuven-MICAS/snitch_cluster/assets/26665295/0090e1a4-15c5-4852-a351-7c3ee0368e1f)
 
-Here there are key wrappers. **(1) The accelerator shell** that needs to comply with the CSR manager and streamer interface. **(2) The CSR manager wrapper** and **(3) streamer wrapper** that converts the Chisel's unpacked signals to packed signals to connect RTL designs developed in SystemVerilog. An **(4) accelerator wrapper** that encapsulates all components together. Finally, the **(5) top-level cluster wrapper** connects the accelerator wrapper to the entire system. Components (2), (3), (4), and (5) are all generated through a script. There are more details in the [Wrapper Generation Script](#wrapper-generation-script) section about the wrapper generation.
+There are key wrappers: **(1) The accelerator shell** that needs to comply with the CSR manager and streamer interface. **(2) The CSR manager wrapper** and **(3) streamer wrapper** that converts the Chisel's unpacked signals to packed signals to connect RTL designs developed in SystemVerilog. An **(4) accelerator wrapper** that encapsulates all components together. Finally, the **(5) top-level cluster wrapper** connects the accelerator wrapper to the entire system. Components (2), (3), (4), and (5) are all generated through a script. There are more details in the [Wrapper Generation Script](#wrapper-generation-script) section about the wrapper generation.
 # Step-by-step Guide to Build
 
 Let's review what we have done so far to prepare the SNAX ALU system:
@@ -79,6 +79,10 @@ This is prefixed at the beginning of each generated file. Moreover, it also sets
 
 Where you should substitute `${snax_acc_name}`  with the parameter name you specified.
 
+!!! note
+
+    When you write the filenames for the `Bender.yml` file, make sure to have the correct top module name of the shell. For example, the `snax_alu_shell_wrapper.sv` should be the top-shell name of your accelerator. Then, the generated Chisel files should also haev the `${snax_acc_namee}` pre-fixed accordingly. Just like it was mentioned above.
+
 ## Updating the Makefiles!
 
 With the RTL files in place, we only need to make small modifications in the makefile such that we specify the `-target` properly during the build.
@@ -131,6 +135,7 @@ In principle, both scripts use a specified configuration file like the `snax-alu
 The **accelerator wrapper** script uses any of the configuration files under the `./target/snitch_cluster/cfg/.` directory. Then load them in wrapper templates found in `./hw/templates/.` directory.
 
 Inside the template directory we have:
+
 - `snax_csrman_wrapper.sv.tpl` - is for the CSR manager wrapper. This is (2) from the figure above.
 - `snax_streamer_wrapper.sv.tpl` - is for the streamer wrapper. This is (3) from the figure above.
 - `snax_acc_wrapper.sv.tpl` - is for the accelerator wrapper. This is (4) from the figure above.

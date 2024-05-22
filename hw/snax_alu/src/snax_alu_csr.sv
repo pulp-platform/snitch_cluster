@@ -19,13 +19,13 @@ module snax_alu_csr #(
   input  logic                                    clk_i,
   input  logic                                    rst_ni,
   //-------------------------------
-  // Register config inputs from CSR manager
+  // Register RW from CSR manager
   //-------------------------------
   input  logic [RegRWCount-1:0][RegDataWidth-1:0] csr_reg_set_i,
   input  logic                                    csr_reg_set_valid_i,
   output logic                                    csr_reg_set_ready_o,
   //-------------------------------
-  // Register config inputs from CSR manager
+  // Register RO to CSR manager
   //-------------------------------
   output logic [RegROCount-1:0][RegDataWidth-1:0] csr_reg_ro_set_o,
   //-------------------------------

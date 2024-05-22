@@ -32,7 +32,7 @@ In this tutorial, we will explore how to attach your custom accelerator to the S
 - This section talks about our design- and run-time configurable streamer.
 - Streamer helps streamline data accesses for an accelerator. It decouples the data access with the acceleration computation datapath and introduces a prefetch mechanism to boost the utilization of the accelerator
 
-5 - [Building the Architecture](./build_system.md)
+5 - [Building the System](./build_system.md)
 
 - This guide shows how to build the architecture.
 
@@ -55,7 +55,7 @@ In this tutorial, we will explore how to attach your custom accelerator to the S
 
 To follow along with the tutorial, we recommend to **create a GitHub Codespace**. Alternatively, you can also **clone the repository locally** and use our prebuilt docker container.
 
-## Github Codespace
+## Option 1: Github Codespace
 
 !!! note
 
@@ -67,13 +67,13 @@ Opening a Github Codespace is the most convenient way to get started quickly. To
 
 This will launch a new window where the container image for the codespace will be built. This can take a couple of minutes but you only run this once. After this, a Visual Studio Code client will be launched in your browser. This system has all the requirements for developing, building, and simulating a SNAX Cluster preinstalled. If you prefer this, you can launch this codespace in the Visual Studio Code desktop client.
 
-Once loaded, you will be starting at the root of the local repository. You need to do the following to ensure a smooth run-through of the tutorial. First, load the git submodules as it isn't automatically pre-loaded:
+After initializing the Codespace, run the following command in VSCode's shell terminal to fetch all necessary sub modules:
 
 ```bash
 git submodule update --init --recursive
 ```
 
-## Cloning the Repository Locally
+## Option 2: Cloning the Repository Locally
 
 First, let's clone the main repository. Do not forget to include the `--recurse-submodules`.
 
@@ -87,7 +87,7 @@ If you have already cloned the repository without the `--recurse-submodules` fla
 git submodule update --init --recursive
 ```
 
-## Docker Container
+### Docker Container
 
 If you locally cloned the repository, we recommend using our pre-built docker container.
 
@@ -106,3 +106,27 @@ This way the container sees the `snax_cluster` directory and you can run the pre
 ## Installing Packages and Programs Locally
 
 There are several required packages and programs in the container. If you insist on installing these yourself, then you may refer to the `Dockerfile` for guidance. You can find this at `./util/container/Dockerfile`.
+
+## Check if The System Works!
+
+To check if the system is working, let's do a quick run for building the HW and SW, then running the program.
+
+1 - Build the HW:
+
+```bash
+make CFG_OVERRIDE=cfg/snax-alu.hjson bin/snitch_cluster.vlt -j
+```
+
+2 - Build the SW:
+
+```bash
+make CFG_OVERRIDE=cfg/snax-alu.hjson SELECT_RUNTIME=rtl-generic SELECT_TOOLCHAIN=llvm-generic sw -j
+```
+
+3 - Run the program:
+
+```bash
+bin/snitch_cluster.vlt sw/apps/snax-alu/build/snax-alu.elf
+```
+
+If it returns 0 errors, then you have the correct setup!

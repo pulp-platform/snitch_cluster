@@ -60,11 +60,10 @@ nav:
   - SNAX Tutorial:
       - Introduction: tutorial/introduction.md
       - Architectural Overview: tutorial/architectural_overview.md
-      - Accelerator Design: tutorial/accelerator_design.md
-      - CSR Manager Design: tutorial/csrman_design.md
-      - Streamer Design: tutorial/streamer_design.md
-      - Building the System: tutorial/build_system.md
-      - Programming the System: tutorial/programming.md
+      - 1. Accelerator Design: tutorial/accelerator_design.md
+      - 2. CSR Manager Design: tutorial/csrman_design.md
+      - 3. Streamer Design: tutorial/streamer_design.md
+      - 4. Building the System: tutorial/build_system.md
+      - 5. Programming the System: tutorial/programming.md
       - Other Tools: tutorial/other_tools.md
-      - More Designs: tutorial/more_designs.md
   - Publications: publications.md

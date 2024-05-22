@@ -30,7 +30,9 @@ The `snax_alu_csr` is a control and status register set with signals to modify t
 |    busy         |       3         |   RO    | Busy status. 1 - busy, 0 - idle                     |
 |  perf. counter  |       4         |   RO    | Performance counter indicating number of cycles     |
 
-RW registers can be modified or read from by the CSR manager. These are mostly the configurations and start signals that get to the main data path. The RO registers are read-only registers that the CSR manager can read from. These are mostly used for monitoring purposes like status or performance counters.
+RW registers can read or write from the snitch core’s perspective. The values of these registers are input signals from the accelerator’s perspective, which can used for configurations and start signals that get to the main data path.
+
+RO registers are read-only from the snitch core’s perspective .The values of these registers are output signals from the accelerator’s perspective. These are mostly used for monitoring purposes like status or performance counters. 
 
 The mode signal is broadcast to all PEs to configure the kernel that each PE processes. The busy signal acts like an active state also broadcasted to all PEs. If it's high then the PEs set their input ready signals high to allow data to stream continuously. 
 
@@ -60,6 +62,20 @@ input  logic [RegRWCount-1:0][RegDataWidth-1:0] csr_reg_set_i,
 input  logic                                    csr_reg_set_valid_i,
 output logic                                    csr_reg_set_ready_o,
 output logic [RegROCount-1:0][RegDataWidth-1:0] csr_reg_ro_set_o
+```
+
+To visualize this better, take note that the CSR register ports are packed signals. Referring to the SNAX ALU's RW register table above then we can "unpack" them to see:
+
+```verilog
+csr_reg_set_i [0] = mode;
+csr_reg_set_i [1] = len;
+csr_reg_set_i [2] = start;
+```
+The same concept goes for the RO register ports:
+
+```verilog
+busy         = csr_reg_ro_set[0];
+perf_counter = csr_reg_ro_set[1];
 ```
 
 The PEs that connect to an external data streamer have data signals (both input and output) concatenated together. (5) For the PEs that connect to an external data streamer, the PE data signals (both input and output) data channels decoupled interfaces. The module ports are:
