@@ -421,11 +421,17 @@
                                     "title": "SNAX Accelerator Set",
                                     "description": "Set of properties for one core controlling multiple accelerators",
                                     "properties": {
-                                        "snax_module": {
+                                        "snax_acc_name": {
                                             "type": "string",
-                                            "title": "Accelerator module name",
-                                            "description": "Specify in this tag the accelerator's top module name. E.g., snax_mac_wrapper.",
+                                            "title": "Accelerator name",
+                                            "description": "The name of your accelerator that gets prefixed into several wrappers.",
                                             "default": "none"
+                                        },
+                                        "snax_tcdm_ports": {
+                                            "type": "number",
+                                            "title": "SNAX TCDM Port",
+                                            "description": "Number of ports dedicated for an accelerator",
+                                            "default": 0
                                         },
                                         "snax_num_rw_csr": {
                                             "type": "number",
@@ -444,12 +450,6 @@
                                             "title": "Number of Accelerators",
                                             "description": "Number of accelerators to be controlled by one core.",
                                             "default": 1
-                                        },
-                                        "snax_tcdm_ports": {
-                                            "type": "number",
-                                            "title": "SNAX TCDM Port",
-                                            "description": "Number of ports dedicated for an accelerator",
-                                            "default": 0
                                         }
                                     }
                                 },

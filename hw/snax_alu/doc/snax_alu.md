@@ -87,6 +87,37 @@ output logic stream2acc_1_ready_o,
 
 ```
 
-Where `stream2acc` and `acc2stream` indicate the input and output ports respectively. These ports are concatenated signals of the PEs. For example, consider the example where we have `NumPE=4` PEs and each PE can process `DataWidth` size per port (`2*DataWidth` for the output). Then SNAX streamer uses a data width of `4*DataWidth` for both inputs `A` (`stream2acc_0`) and `B` (`stream2acc_1`) . Then we split `A` and `B` contigiously into ports `a` and `b`, respectively. These are annotated with (2) and (5) in the figure. The output `C` is a concatenation of each `c` port. 
+Where `stream2acc` and `acc2stream` indicate the input and output ports respectively. You could also treat `stream2acc` as read ports of the streamer and `acc2stream` as write ports to the streamer.
+
+These ports are concatenated signals of the PEs. For example, consider the example where we have `NumPE=4` PEs and each PE can process `DataWidth` size per port (`2*DataWidth` for the output). Then SNAX streamer uses a data width of `4*DataWidth` for both inputs `A` (`stream2acc_0`) and `B` (`stream2acc_1`) . Then we split `A` and `B` contigiously into ports `a` and `b`, respectively. These are annotated with (2) and (5) in the figure. The output `C` is a concatenation of each `c` port. 
 
 Any user attaching their accelerator to the SNAX platform must **create their own shell wrapper** with the correct CSR manager and streamer interfaces. This shell should serve as an example on how to attach the interfaces.
+
+# What is a Decoupled Interface Anyway?
+
+The decoupled interface uses two signals: `valid` and `ready` with the following rules.
+
+- The initiator asserts `valid`. The assertion of `valid` **must not depend on**
+  `ready`. However, `ready` may depend on `valid`.
+- Once `valid` has been asserted all data must remain stable.
+- The receiver asserts `ready` whenever it is ready to receive the transaction.
+- When both `valid` and `ready` are high the transaction is successful.
+
+This is an interface that is common in AXI protocol. You can find more details [here](https://vhdlwhiz.com/how-the-axi-style-ready-valid-handshake-works/).
+
+# Some Exercises!!
+
+<details>
+  <summary> For the CSR interface connecting to the CSR manager, what are the important ports? </summary>
+  We have the RW request and response ports: `csr_reg_set_i`, `csr_reg_set_valid_i`, and `csr_reg_set_ready_o`. Then, we have the RO port: `csr_reg_ro_set_o`. They also use valid-ready responses except for the RO port.
+</details>
+
+<details>
+  <summary> What are the important ports of the accelerator <-> streamer interfaces? </summary>
+  We have reader ports tagged with `stream2acc` names and writer ports tagged with `acc2stream` names. They also use valid-ready responses.
+</details>
+
+<details>
+  <summary> What is the decoupled interface? </summary>
+  The decoupled interface us a valid-ready protocol. A transaction is only successful when both valid and ready are high. 
+</details>
