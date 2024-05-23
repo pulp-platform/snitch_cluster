@@ -269,7 +269,7 @@
             },
                         {
                 bits: "26:26",
-                resval: "0",
+                resval: "1",
                 name: "ICACHE_MISS"
                 desc: '''
                         Incremented for instruction cache misses.
@@ -278,7 +278,7 @@
             },
                         {
                 bits: "27:27",
-                resval: "0",
+                resval: "1",
                 name: "ICACHE_HIT"
                 desc: '''
                         Incremented for instruction cache hits.

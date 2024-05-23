@@ -2362,7 +2362,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_0_icache_miss_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2388,7 +2388,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_0_icache_hit_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3171,7 +3171,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_1_icache_miss_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3197,7 +3197,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_1_icache_hit_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3980,7 +3980,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_2_icache_miss_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4006,7 +4006,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_2_icache_hit_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4789,7 +4789,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_3_icache_miss_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4815,7 +4815,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_3_icache_hit_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -5598,7 +5598,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_4_icache_miss_4 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -5624,7 +5624,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_4_icache_hit_4 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -6407,7 +6407,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_5_icache_miss_5 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -6433,7 +6433,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_5_icache_hit_5 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -7216,7 +7216,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_6_icache_miss_6 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -7242,7 +7242,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_6_icache_hit_6 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -8025,7 +8025,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_7_icache_miss_7 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -8051,7 +8051,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_7_icache_hit_7 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -8834,7 +8834,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_8_icache_miss_8 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -8860,7 +8860,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_8_icache_hit_8 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -9643,7 +9643,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_9_icache_miss_9 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -9669,7 +9669,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_9_icache_hit_9 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -10452,7 +10452,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_10_icache_miss_10 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -10478,7 +10478,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_10_icache_hit_10 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -11261,7 +11261,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_11_icache_miss_11 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -11287,7 +11287,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_11_icache_hit_11 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -12070,7 +12070,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_12_icache_miss_12 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -12096,7 +12096,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_12_icache_hit_12 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -12879,7 +12879,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_13_icache_miss_13 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -12905,7 +12905,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_13_icache_hit_13 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -13688,7 +13688,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_14_icache_miss_14 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -13714,7 +13714,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_14_icache_hit_14 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -14497,7 +14497,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_15_icache_miss_15 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -14523,7 +14523,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+    .RESVAL  (1'h1)
   ) u_perf_counter_enable_15_icache_hit_15 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
