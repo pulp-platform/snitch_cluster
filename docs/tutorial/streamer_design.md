@@ -285,7 +285,7 @@ Below is a tabulated version of the CSRs of the streamers with the register offs
 
 # Example Streamer Generation
 
-This is a good time to test our wrapper generation and see the changes in the CSR manager. More details about the wrapper generation are in the [Building the System](./build_system.md) section. Do the following (this assumes that you are running within the container):
+This is a good time to test our wrapper generation and see the changes in the Streamer. More details about the wrapper generation are in the [Building the System](./build_system.md) section. Do the following:
 
 1 - Go to the root directory.
 
@@ -321,7 +321,7 @@ If you are working in a docker container:
 </details>
 
 <details>
-  <summary> Can you identify which are for the write and read ports? </summary>
+  <summary> Can you identify which are for the write and read ports on the accelerator side? </summary>
   Signals with `*_streamer2accelerator_*` are for read ports and signals with `*_accelerator2streamer_*` are for write ports.
 </details>
 

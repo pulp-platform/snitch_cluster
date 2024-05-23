@@ -27,7 +27,7 @@ What can you expect to find in this repository?
 - A [CSR Manager](https://kuleuven-micas.github.io/snax_cluster/tutorial/csrman_design.html) is included to support a standardized control and management of registers through CSR instructions.
   
 - The [Data Streamer](https://kuleuven-micas.github.io/snax_cluster/tutorial/streamer_design.html) streamlines the data access patterns for the accelerator.
-- Versatile accelerator examples, including a [Chisel-based GEMM accelerator generator](https://github.com/KULeuven-MICAS/snax-gemm), a [rescale SIMD accelerator generator](https://github.com/KULeuven-MICAS/snax-postprocessing-simd), and a [Data Reshuffler]() for data layout transformation, are provided for reference.
+- Versatile accelerator examples, including a [Chisel-based GEMM accelerator generator](https://github.com/KULeuven-MICAS/snax-gemm), a [rescale SIMD accelerator generator](https://github.com/KULeuven-MICAS/snax-postprocessing-simd), and a [Data Reshuffler](https://github.com/KULeuven-MICAS/snax_cluster/blob/main/hw/snax_data_reshuffler/doc/snax_data_reshuffler.md) for data layout transformation, are provided for reference.
 - Software example applications for the SNAX cluster and corresponding accelerators.
 - RTL simulation environments for Verilator, Questa Advanced Simulator, and VCS.
 
