@@ -51,6 +51,10 @@ In this tutorial, we will explore how to attach your custom accelerator to the S
 - In this section, we demonstrate these accelerators and how we profiled them.
 - We also show synthesized results of our work to see how the designs turn out.
 
+9 - [Summary and Exercise](./summary_and_exercise.md)
+- We summarize the steps of this tutorial.
+- We also add an exercise for you to tinker around with.
+
 # Getting Started
 
 To follow along with the tutorial, we recommend to **create a GitHub Codespace**. Alternatively, you can also **clone the repository locally** and use our prebuilt docker container.
