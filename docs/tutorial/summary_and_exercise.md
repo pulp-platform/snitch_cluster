@@ -55,9 +55,9 @@ make CFG_OVERRIDE=cfg/snax-alu.hjson SELECT_RUNTIME=rtl-generic SELECT_TOOLCHAIN
 
 # You Need an Exercise to Get Strong!!!
 
-With everything you've learned, let's do a simple exercise for a new accelerator! The figure below shows the accelerator data path of interest. This accelerator is built for you already but you need to integrate it to the SNAX system.
+With everything you've learned, let's do a simple exercise for a new accelerator! The figure below shows the accelerator data path of interest. This accelerator is built for you already but you need to integrate it into the SNAX system.
 
-![image](https://github.com/KULeuven-MICAS/snax_cluster/assets/26665295/19fb4d48-ff24-4443-b1d8-16cf3db5f60b)
+![image](https://github.com/KULeuven-MICAS/snax_cluster/assets/26665295/28f30943-75e0-455b-bb32-957651ba720e)
 
 You can get the `snax_exercise` RTL files from the `snax-exercise-tutorial` branch.
 
@@ -109,6 +109,43 @@ O += bias
 
 - There is a `snax_exercise_top.sv` which is the top module already of the data path shown above.
 
+- The control side signals are unpacked registers but with the labels per port. They should correspond to the register table above.
+
+```verilog
+//-------------------------------
+// Register RW from CSR manager
+//-------------------------------
+input  logic [RegDataWidth-1:0]   csr_rw_reg_upper_i,
+input  logic [RegDataWidth-1:0]   csr_rw_reg_lower_i,
+input  logic [RegDataWidth-1:0]   csr_rw_reg_len_i,
+input  logic [RegDataWidth-1:0]   csr_rw_reg_start_i,
+input  logic                      csr_rw_reg_valid_i,
+output logic                      csr_rw_reg_ready_o,
+//-------------------------------
+// Register RO to CSR manager
+//-------------------------------
+output logic [RegDataWidth-1:0]   csr_ro_reg_busy_o,
+output logic [RegDataWidth-1:0]   csr_ro_reg_perf_count_o,
+```
+
+- The data ports are packed signals. Observe that we have the 8 input ports of size `DataWidth`. We have only 1 output port of size `2*DataWidth`.
+
+```verilog
+//-------------------------------
+// Data path IO
+//-------------------------------
+input  logic [7:0][DataWidth-1:0] a_i,
+input  logic                      a_valid_i,
+output logic                      a_ready_o,
+input  logic [7:0][DataWidth-1:0] b_i,
+input  logic                      b_valid_i,
+output logic                      b_ready_o,
+output logic [2*DataWidth-1:0]    out_o,
+output logic                      out_valid_o,
+input  logic                      out_ready_i
+```
+
+
 ## CSR Manager and Streamer Specifications
 
 For the CSR manager, you just need to ensure that the register configurations match that of the accelerator's register specs.
@@ -133,7 +170,7 @@ Since the accelerator is already prepared for you, your goals are to:
 
 1. Create the `snax_exercise_shell_wrapper.sv` that complies with the interface of the generated `snax_exericse_wrapper.sv`.
 2. Modify the necessary RTL setups: `snax_exercise.hjson`, `Bender.yml`, and the `Makefile` for handling HW builds.
-3. Create a simple C-code to test this setup, have your own data generation, and modify the necessary `Makefiles` for handling SW builds.
+3. Plan and create a simple C-code test, have your own data generation, and modify the necessary `Makefiles` for handling SW builds.
 4. Run your code and see if it works!
 5. Have fun!
 
