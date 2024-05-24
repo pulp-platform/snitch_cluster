@@ -63,6 +63,12 @@ module snitch_tcdm_interconnect #(
   typedef logic [StrbWidth-1:0] strb_t;
   `MEM_TYPEDEF_REQ_CHAN_T(mem_req_chan_t, addr_t, data_t, strb_t, user_t);
 
+  // Do not assert unconditional stability on write data inside interconnects,
+  // as write data may freely change on (non-atomic) reads. We properly assert
+  // conditional write data stability below.
+  localparam mem_req_chan_t MemReqAsrtMask =
+      '{data: '0, strb: '0, amo: reqrsp_pkg::amo_op_e'('1), default: '1};
+
   // Width of the bank select signal.
   localparam int unsigned SelWidth = cf_math_pkg::idx_width(NumOut);
   typedef logic [SelWidth-1:0] select_t;
@@ -88,7 +94,7 @@ module snitch_tcdm_interconnect #(
   logic [NumInp-1:0] req_q_valid_flat, rsp_q_ready_flat;
   logic [NumOut-1:0] mem_q_valid_flat, mem_q_ready_flat;
 
-  // The usual struct packing unpacking.
+  // The usual struct packing unpacking; also check write stability here.
   for (genvar i = 0; i < NumInp; i++) begin : gen_flat_inp
     assign req_q_valid_flat[i] = req_i[i].q_valid;
     assign rsp_o[i].q_ready = rsp_q_ready_flat[i];
@@ -100,6 +106,22 @@ module snitch_tcdm_interconnect #(
       strb: req_i[i].q.strb,
       user: req_i[i].q.user
     };
+
+    // Write data must also be stable during AMOs, so include this case in assertions.
+    logic in_req_alters_mem;
+    assign in_req_alters_mem = in_req[i].write | (in_req[i].amo != reqrsp_pkg::AMONone);
+
+    // TODO: we could clean this up with an additional common_cells assertion macro.
+    `ifndef VERILATOR
+    `ifndef SYNTHESIS
+    assert property (@(posedge clk_i) disable iff (~rst_ni) (req_q_valid_flat[i] &&
+        !rsp_q_ready_flat[i] && in_req_alters_mem |=> $stable(in_req[i].data))) else
+      $error("write data during non-read is unstable at input: %0d", i);
+    assert property (@(posedge clk_i) disable iff (~rst_ni) (req_q_valid_flat[i] &&
+        !rsp_q_ready_flat[i] && in_req_alters_mem |=> $stable(in_req[i].strb))) else
+      $error("write strobe during non-read is unstable at input: %0d", i);
+    `endif
+    `endif
   end
 
   for (genvar i = 0; i < NumOut; i++) begin : gen_flat_oup
@@ -121,7 +143,8 @@ module snitch_tcdm_interconnect #(
       .OutSpillReg ( 1'b0      ),
       .ExtPrio     ( 1'b0      ),
       .AxiVldRdy   ( 1'b1      ),
-      .LockIn      ( 1'b1      )
+      .LockIn      ( 1'b1      ),
+      .AxiVldMask  ( MemReqAsrtMask )
     ) i_stream_xbar (
       .clk_i,
       .rst_ni,
@@ -200,7 +223,8 @@ module snitch_tcdm_interconnect #(
         .SpillReg    ( 1'b0 ),
         .AxiVldRdy   ( 1'b1 ),
         .LockIn      ( 1'b1 ),
-        .Radix       ( Radix )
+        .Radix       ( Radix ),
+        .AxiVldMask  ( MemReqAsrtMask )
       ) i_stream_omega_net (
         .clk_i,
         .rst_ni,
