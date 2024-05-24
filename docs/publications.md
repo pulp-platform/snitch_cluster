@@ -117,6 +117,7 @@ If you use the Snitch cluster or its extensions in your work, you can cite us:
 ```
 
 </p>
+</details>
 
 <details>
 <summary><b>SARIS: Accelerating Stencil Computations on Energy-Efficient RISC-V Compute Clusters with Indirect Stream Registers</b></summary>
@@ -128,12 +129,13 @@ If you use the Snitch cluster or its extensions in your work, you can cite us:
              RISC-V Compute Clusters with Indirect Stream Registers},
       author={Paul Scheffler and Luca Colagrande and Luca Benini},
       year={2024},
-      eprint={},
+      eprint={2404.05303},
       archivePrefix={arXiv},
       primaryClass={cs.MS}
 }
 ```
 
 </p>
+</details>
 
 <!--end-publications-->
