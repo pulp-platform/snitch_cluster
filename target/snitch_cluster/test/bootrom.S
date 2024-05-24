@@ -13,7 +13,9 @@ _snitch_park:
     wfi
 
 _snitch_resume:
-    lui     t0, 0xfffff    # Peripheral start is 0x1000 before bootrom start.
-    addi    t0, t0, 0x15c  # This is the 0x2c instruction and we want to jump to scratch_1 (0x188).
+    auipc   t0, 0
+    li      t1, -3736 # Jump to scratch register 1 at offset 0x188
+    add     t0, t0, t1
+    lw      t0, 0(t0)
     jalr    ra, 0(t0)
     j       _snitch_park
