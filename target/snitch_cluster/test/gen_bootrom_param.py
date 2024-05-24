@@ -18,7 +18,7 @@ import argparse
 from struct import *
 
 # Parse arguments.
-parser = argparse.ArgumentParser(description="Generate thestral_bootrom.sv")
+parser = argparse.ArgumentParser(description="Generate bootrom.sv")
 parser.add_argument("BINARY",
                     help="Binary image for which to create a bootrom")
 parser.add_argument(

@@ -15,7 +15,10 @@ Disassembly of section .text:
   1c:	10500073          	wfi
 
 00000020 <_snitch_resume>:
-  20:	fffff2b7          	lui	t0,0xfffff
-  24:	15c28293          	addi	t0,t0,348 # fffff15c <_snitch_resume+0xfffff13c>
-  28:	000280e7          	jalr	t0
-  2c:	fd5ff06f          	j	0 <_snitch_park>
+  20:	00000297          	auipc	t0,0x0
+  24:	fffff337          	lui	t1,0xfffff
+  28:	16830313          	addi	t1,t1,360 # fffff168 <_snitch_resume+0xfffff148>
+  2c:	006282b3          	add	t0,t0,t1
+  30:	0002a283          	lw	t0,0(t0) # 20 <_snitch_resume>
+  34:	000280e7          	jalr	t0
+  38:	fc9ff06f          	j	0 <_snitch_park>
