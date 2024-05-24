@@ -10,7 +10,7 @@ If you use our code or compare against our work, please cite us:
              RISC-V Compute Clusters with Indirect Stream Registers},
       author={Paul Scheffler and Luca Colagrande and Luca Benini},
       year={2024},
-      eprint={},
+      eprint={2404.05303},
       archivePrefix={arXiv},
       primaryClass={cs.MS}
 }
