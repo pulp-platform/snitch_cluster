@@ -126,7 +126,7 @@ int main() {
         mask_e = 0x3098;
         mask_f = 0x2B1A;
         mask_g = 0x0832;
-        mask_h = 0x93A1;
+        uint32_t mask_h = 0x93A1;
 
         asm volatile(
             "fmv.s.x f0, %0\n" // 3.14 

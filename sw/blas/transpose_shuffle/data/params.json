@@ -3,9 +3,8 @@
 // SPDX-License-Identifier: SHL-0.51
 
 {
-    kernel: "transpose_shuffle"
-    M: 2,
-    N: 2,
-    prec: "FP32",
+    M: 32,
+    N: 64,
+    prec: 1,
     baseline: false
 }

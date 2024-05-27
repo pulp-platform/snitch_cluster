@@ -16,7 +16,7 @@ APP     ?= transpose_shuffle
 SRCS    ?= $(realpath $(SRC_DIR)/main.c)
 INCDIRS ?= $(dir $(DATA_H)) $(SRC_DIR)
 
-DATAGEN_PY = $(DATA_DIR)/datagen.py
+DATAGEN_PY = $(MK_DIR)scripts/datagen.py
 DATA_H    ?= $(DATA_DIR)/data.h
 
 $(dir $(DATA_H)):
