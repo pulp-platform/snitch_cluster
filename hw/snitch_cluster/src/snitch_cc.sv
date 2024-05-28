@@ -132,10 +132,10 @@ module snitch_cc #(
   input  tcdm_rsp_t [TCDMPorts-1:0]  tcdm_rsp_i,
   // Accelerator Offload port
   // DMA ports
-  output axi_req_t                   axi_dma_req_o,
-  input  axi_rsp_t                   axi_dma_res_i,
-  output logic                       axi_dma_busy_o,
-  output dma_events_t                axi_dma_events_o,
+  output axi_req_t    [DMANumChannels-1:0]  axi_dma_req_o,
+  input  axi_rsp_t    [DMANumChannels-1:0]  axi_dma_res_i,
+  output logic        [DMANumChannels-1:0]  axi_dma_busy_o,
+  output dma_events_t [DMANumChannels-1:0]  axi_dma_events_o,
   // Core event strobes
   output snitch_pkg::core_events_t   core_events_o,
   input  addr_t                      tcdm_addr_base_i,

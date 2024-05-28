@@ -54,11 +54,11 @@ package ${cfg['pkg_name']};
   localparam int unsigned WideDataWidth = ${cfg['dma_data_width']};
 
   localparam int unsigned NarrowIdWidthIn = ${cfg['id_width_in']};
-  localparam int unsigned NrMasters = 3;
-  localparam int unsigned NarrowIdWidthOut = $clog2(NrMasters) + NarrowIdWidthIn;
+  localparam int unsigned NrNarrowMasters = 3;
+  localparam int unsigned NarrowIdWidthOut = $clog2(NrNarrowMasters) + NarrowIdWidthIn;
 
-  localparam int unsigned NrWideMasters = 2 + ${cfg['nr_hives']};
-  localparam int unsigned WideIdWidthIn = cf_math_pkg::idx_width(${cfg['dma_nr_channels']});
+  localparam int unsigned NrWideMasters = 1 + ${cfg['dma_nr_channels']} + ${cfg['nr_hives']};
+  localparam int unsigned WideIdWidthIn = ${cfg['dma_id_width_in']};
   localparam int unsigned WideIdWidthOut = $clog2(NrWideMasters) + WideIdWidthIn;
 
   localparam int unsigned NarrowUserWidth = ${cfg['user_width']};
