@@ -142,9 +142,8 @@ inline snrt_dma_txid_t snrt_dma_start_1d_channel_wideptr(uint64_t dst,
         "dmdst   %[dl], %[dh]\n"
         "dmcpy  %[id], %[sz], %[cfg]"
         : [ id ] "=r"(reg_txid)
-        : [ sh ] "r"(src >> 32), [ sl ] "r"(src),
-          [ dh ] "r"(dst >> 32), [ dl ] "r"(dst),
-          [ sz ] "r"(size), [ cfg ] "r"(cfg));
+        : [ sh ] "r"(src >> 32), [ sl ] "r"(src), [ dh ] "r"(dst >> 32),
+          [ dl ] "r"(dst), [ sz ] "r"(size), [ cfg ] "r"(cfg));
     return reg_txid;
 }
 
@@ -169,9 +168,8 @@ inline snrt_dma_txid_t snrt_dma_start_2d_channel_wideptr(uint64_t dst,
         "dmdst   %[dl], %[dh]\n"
         "dmcpy  %[id], %[sz], %[cfg]"
         : [ id ] "=r"(reg_txid)
-        : [ sh ] "r"(src >> 32), [ sl ] "r"(src),
-          [ dh ] "r"(dst >> 32), [ dl ] "r"(dst),
-          [ sz ] "r"(size), [ cfg ] "r"(cfg));
+        : [ sh ] "r"(src >> 32), [ sl ] "r"(src), [ dh ] "r"(dst >> 32),
+          [ dl ] "r"(dst), [ sz ] "r"(size), [ cfg ] "r"(cfg));
     return reg_txid;
 }
 
