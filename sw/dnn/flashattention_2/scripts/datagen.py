@@ -13,7 +13,6 @@ import json5
 import sys
 import os
 import torch
-import gemm  # noqa: E402
 import pyflexfloat as ff
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
@@ -22,8 +21,8 @@ import data_utils  # noqa: E402
 from data_utils import emit_license, \
                        format_struct_definition, format_array_definition, \
                        format_array_declaration  # noqa: E402
+import gemm  # noqa: E402
 
-np.random.seed(42)
 np.random.seed(42)
 torch.manual_seed(42)
 
@@ -121,7 +120,7 @@ def exact_flexfloat_golden_model(Q, K, V, B_r, B_c, desc):
             S_ij = gemm.datagen.GemmDataGen().exact_golden_model(1, Q_i, K_t_j, 0, S_ij)
             m_i_prev = m_i
             m_i = np.maximum(m_i_prev, np.max(S_ij, 1, keepdims=True))
-            shifted_exp = np.exp((m_i_prev - m_i).astype(np.float32))
+            shifted_exp = np.exp((m_i_prev.astype(np.float32) - m_i.astype(np.float32)))
             P_ij = np.exp((S_ij - m_i).astype(np.float32))
             PxV = ff.array(np.zeros((B_r, d)), desc)
             PxV = gemm.datagen.GemmDataGen().exact_golden_model(1, P_ij, V_j, 0, PxV)
@@ -148,7 +147,6 @@ def validate_config(L, S, d, B_r, B_c, dtype, baseline, gemm_impl):
     assert (L % B_r) == 0, 'L is not an integer multiple of B_r'
     assert (S % B_c) == 0, 'S is not an integer multiple of B_c'
     assert dtype != 'FP64', 'FP64 precision is not supported yet'
-
 
     # Calculate total TCDM occupation
     prec = data_utils.size_from_precision_t(dtype)
@@ -213,6 +211,7 @@ def emit_header(section, params):
 
     validate_config(gemm_impl=gemm_impl, **params)
 
+    # torch_type = data_utils.torch_type_from_precision_t(prec)
     ff_desc = data_utils.ff_desc_from_precision_t(prec)
     ctype = data_utils.ctype_from_precision_t(prec)
 
@@ -250,8 +249,6 @@ def emit_header(section, params):
     data_str += [format_array_definition(ctype, q_uid, Q)]
     data_str += [format_array_definition(ctype, k_uid, K)]
     data_str += [format_array_definition(ctype, v_uid, V)]
-    # result_def = format_array_definition(ctype, 'golden', output)
-    # data_str += [format_ifdef_wrapper('BIST', result_def)]
     # result_def = format_array_definition(ctype, 'golden', output)
     # data_str += [format_ifdef_wrapper('BIST', result_def)]
     data_str = '\n\n'.join(data_str)

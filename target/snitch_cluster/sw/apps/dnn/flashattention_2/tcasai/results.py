@@ -10,34 +10,41 @@ import sys
 import subprocess
 import functools
 import json
+import json5
+from mako.template import Template
+import math
 
 sys.path.append(str(Path(__file__).parent / '../../../../../util/'))
+
+NR_CORES_PER_CLUSTER = 8
+NR_GROUPS = 8
 
 ROI_SPEC = Path.cwd() / 'roi.json.tpl'
 
 EXPERIMENTS = []
 for prec in [8, 16, 32]:
-    EXPERIMENTS.append({'name': f'fp{prec}-opt-vit-base', 'L': 192, 'S': 192})
-    EXPERIMENTS.append({'name': f'fp{prec}-opt-vit-large', 'L': 192, 'S': 192})
-    EXPERIMENTS.append({'name': f'fp{prec}-opt-vit-huge', 'L': 192, 'S': 192})
+    EXPERIMENTS.append({'name': f'fp{prec}-opt-vit-base', 'L': 192, 'S': 192, 'H': 12})
+    EXPERIMENTS.append({'name': f'fp{prec}-opt-vit-large', 'L': 192, 'S': 192, 'H': 16})
+    EXPERIMENTS.append({'name': f'fp{prec}-opt-vit-huge', 'L': 192, 'S': 192, 'H': 16})
     for S in [128, 256, 512, 1024, 2048]:
-        EXPERIMENTS.append({'name': f'fp{prec}-opt-gpt-3-xl-forward-{S}', 'L': S, 'S': S})
-        EXPERIMENTS.append({'name': f'fp{prec}-opt-gpt-j-forward-{S}', 'L': S, 'S': S})
-        EXPERIMENTS.append({'name': f'fp{prec}-opt-gpt-3-xl-inf-{S}', 'L': 1, 'S': S})
-        EXPERIMENTS.append({'name': f'fp{prec}-opt-gpt-j-inf-{S}', 'L': 1, 'S': S})
+        EXPERIMENTS.append({'name': f'fp{prec}-opt-gpt-3-xl-forward-{S}', 'L': S, 'S': S, 'H': 16})
+        EXPERIMENTS.append({'name': f'fp{prec}-opt-gpt-j-forward-{S}', 'L': S, 'S': S, 'H': 16})
+        EXPERIMENTS.append({'name': f'fp{prec}-opt-gpt-3-xl-inf-{S}', 'L': 1, 'S': S, 'H': 16})
+        EXPERIMENTS.append({'name': f'fp{prec}-opt-gpt-j-inf-{S}', 'L': 1, 'S': S, 'H': 16})
 
 
 class Simulation():
 
     def __init__(self, sim_dir):
         """Initializes a simulation object from the run directory."""
-        self.sim_dir = sim_dir
+        self.sim_dir = Path(sim_dir)
+        self.roi_spec = Path(self.sim_dir) / 'roi_spec.json'
+        self.roi_json = Path(self.sim_dir) / 'logs' / 'roi.json'
 
     @functools.cached_property
     def performance_data(self):
         """Returns all performance data logged during simulation."""
-        roi_json = Path(self.sim_dir) / 'logs' / 'roi.json'
-        with open(roi_json, 'r') as f:
+        with open(self.roi_json, 'r') as f:
             return json.load(f)
 
     def get_metric(self, thread, region, metric, label_idx=0):
@@ -72,30 +79,46 @@ class Simulation():
         # Get metric
         return self.performance_data[thread][reg_idx]['attrs'][metric]
 
-    def build_visual_trace(self):
+    def make_perf(self):
+        """Build roi.json file for the simulation."""
+        subprocess.run(['make', '-C', '../../../../../', f'{self.roi_json}',
+                       f'SIM_DIR={self.sim_dir}', f'ROI_SPEC={self.roi_spec}', '-j'], check=True)
+
+    def make_visual_trace(self):
         """Build the visual trace of the simulation."""
-        subprocess.run(['make', '-C', '../../../../../', 'visual-trace',
-                        f'SIM_DIR={self.sim_dir}',
-                        f'ROI_SPEC={ROI_SPEC}', '-j'], check=True)
+        subprocess.run(['make', '-C', '../../../../../', 'visual-trace', f'SIM_DIR={self.sim_dir}',
+                       f'ROI_SPEC={self.roi_spec}', '-j'], check=True)
 
 
-def load_simulation(model):
+def load_simulation(experiment):
     """Returns the simulation object for a given model."""
-    return Simulation(Path.cwd() / f'runs/flashattention_2-fp32-opt-{model}')
+    # Fill out ROI spec template with experiment parameters
+    # and write to simulation directory
+    sim_dir = Path.cwd() / f'runs/flashattention_2-{get_simulation_name(experiment)}'
+    with open(ROI_SPEC, 'r') as f:
+        spec_template = Template(f.read())
+        rendered_spec = spec_template.render(
+            T_r=experiment['simulated_Tr'],
+            T_c=experiment['simulated_Tc']
+        )
+        rendered_spec_path = sim_dir / 'roi_spec.json'
+        with open(rendered_spec_path, 'w') as of:
+            of.write(rendered_spec)
+    # Create simulation object
+    return Simulation(sim_dir)
 
 
-def get_total_runtime(sim, model):
+def get_total_runtime(experiment):
     # Parameters
     L = experiment['L']
     S = experiment['S']
     Br = experiment['Br']
     Bc = experiment['Bc']
+    H = experiment['H']
 
     # Derived parameters
     Tr = L / Br
     Tc = S / Bc
-    # print(f'Tr: {Tr}')
-    # print(f'Tc: {Tc}')
 
     # Correct DMA bandwidth by a factor which accounts for contention between
     # clusters in a group (bwcf = bandwidth correction factor).
@@ -109,17 +132,19 @@ def get_total_runtime(sim, model):
     tr_iteration = 0
 
     # Calculate total runtime
-    tc_iter_time = sim.get_metric('hart_8', 'copy K & V', 'cycles') + \
-        sim.get_metric('hart_0', 'QxKt', 'cycles') + \
-        sim.get_metric('hart_0', 'softmax', 'cycles') + \
-        sim.get_metric('hart_0', 'PxV', 'cycles')
+    sim = experiment['sim']
+    tc_iter_time = sim.get_metric('hart_8', 'copy K & V', 'cycles', tc_iteration) / bwcf + \
+        sim.get_metric('hart_0', 'QxKt', 'cycles', tc_iteration) + \
+        sim.get_metric('hart_0', 'softmax', 'cycles', tc_iteration) + \
+        sim.get_metric('hart_0', 'PxV', 'cycles', tc_iteration)
     tc_loop_time = tc_iter_time * Tc
-    tr_iter_time = sim.get_metric('hart_8', 'copy Q', 'cycles') + \
-        sim.get_metric('hart_0', 'init', 'cycles') + \
+    tr_iter_time = sim.get_metric('hart_8', 'copy Q', 'cycles', tr_iteration) / bwcf + \
+        sim.get_metric('hart_0', 'init', 'cycles', tr_iteration) + \
         tc_loop_time + \
-        sim.get_metric('hart_0', 'rescale', 'cycles') + \
-        sim.get_metric('hart_0', 'rescale', 'cycles')
+        sim.get_metric('hart_0', 'rescale', 'cycles', tr_iteration) + \
+        sim.get_metric('hart_8', 'copy O', 'cycles', tr_iteration) / bwcf
     total_time = tr_iter_time * Tr
+
     return total_time
 
 
@@ -184,10 +209,10 @@ def populate_from_cfg_file(experiment):
 
 def gflop(experiment):
     if 'inf' in experiment['name']:
-        return (2 * experiment['d'] + 5) * experiment['S'] * 10e-9
+        return (2 * experiment['d'] + 5) * experiment['S'] * 1e-9 * experiment['H']
     else:
         assert experiment['S'] == experiment['L'], 'Unsupported GFLOPs calculation for L!=S'
-        return (2 * experiment['d'] + 5) * (experiment['S'] ** 2) * 10e-9
+        return (2 * experiment['d'] + 5) * (experiment['S'] ** 2) * 1e-9 * experiment['H']
 
 
 def main():
@@ -197,18 +222,21 @@ def main():
         # Load performance metrics logged by corresponding simulation
         experiment['sim'] = load_simulation(experiment)
         # experiment['sim'].make_perf()
+        # experiment['sim'].make_visual_trace()
     for experiment in EXPERIMENTS:
         name = experiment['name']
-        time = get_total_runtime(experiment) / 10e9
+        time = get_total_runtime(experiment) / 1e9
         GFLOPs = gflop(experiment)
         GFLOPS = GFLOPs/time
-        peak = 8 * get_fpu_width(experiment)
+        # We are computing the peak performance not based on the total number of clusters
+        # in the system but based on the total number of clusters which the network
+        # effectively uses, as a measure of the efficiency with which the employed clusters
+        # are used.
+        peak = 2 * NR_CORES_PER_CLUSTER * get_fpu_width(experiment) * experiment['H']
         util = GFLOPS / peak
-        print(f'{name}:')
-        print(f'\t{"GFLOPs":<30} {GFLOPs:>10.3f}')
-        print(f'\t{"Total time [ms]":<30} {time * 1000:>10.3f}')
-        print(f'\t{"GFLOPS":<30} {GFLOPS:>10.3f}')
-        print(f'\t{"Utilization":<30} {util:>10.3f}')
+        GFLOPS_over_peak_str = f'{int(GFLOPS)}/{int(peak)}'
+        print(f'| {name} | {util:.2f} | {time:.2f} | \
+              {GFLOPs:.2f} | {GFLOPS:.2f} | {GFLOPS_over_peak_str} |')
 
 
 if __name__ == '__main__':
