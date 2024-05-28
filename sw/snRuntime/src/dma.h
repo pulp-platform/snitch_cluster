@@ -157,27 +157,32 @@ inline snrt_dma_txid_t snrt_dma_start_1d_channel(void *dst, const void *src,
 
 /// Initiate an asynchronous 1D DMA transfer with wide 64-bit pointers and a
 /// specific channel.
-inline snrt_dma_txid_t snrt_dma_start_2d_channel_wideptr(uint64_t dst,
-                                                         uint64_t src,
-                                                         size_t size,
-                                                         uint32_t channel) {
+inline snrt_dma_txid_t snrt_dma_start_2d_channel_wideptr(
+    uint64_t dst, uint64_t src, size_t size, size_t dst_stride,
+    size_t src_stride, size_t repeat, uint32_t channel) {
     register uint32_t reg_txid;  // 10
     register uint32_t cfg = channel << 2 | 2;
     asm volatile(
         "dmsrc   %[sl], %[sh]\n"
         "dmdst   %[dl], %[dh]\n"
-        "dmcpy  %[id], %[sz], %[cfg]"
+        "dmstr   %[rs], %[rd]\n"
+        "dmrep   %[rp]\n"
+        "dmcpyi  %[id], %[sz], 2"
         : [ id ] "=r"(reg_txid)
         : [ sh ] "r"(src >> 32), [ sl ] "r"(src), [ dh ] "r"(dst >> 32),
-          [ dl ] "r"(dst), [ sz ] "r"(size), [ cfg ] "r"(cfg));
+          [ dl ] "r"(dst), [ rd ] "r"(dst_stride), [ rs ] "r"(src_stride),
+          [ rp ] "r"(repeat), [ sz ] "r"(size));
     return reg_txid;
 }
 
 /// Initiate an asynchronous 2D DMA transfer and a specific channel.
 inline snrt_dma_txid_t snrt_dma_start_2d_channel(void *dst, const void *src,
-                                                 size_t size,
+                                                 size_t size, size_t dst_stride,
+                                                 size_t src_stride,
+                                                 size_t repeat,
                                                  uint32_t channel) {
     return snrt_dma_start_2d_channel_wideptr((size_t)dst, (size_t)src, size,
+                                             dst_stride, src_stride, repeat,
                                              channel);
 }
 
