@@ -23,6 +23,7 @@ module snitch_cc #(
   parameter int unsigned DMAUserWidth       = 0,
   parameter int unsigned DMANumAxInFlight   = 0,
   parameter int unsigned DMAReqFifoDepth    = 0,
+  parameter int unsigned DMANumChannels     = 0,
   /// Data port request type.
   parameter type         dreq_t             = logic,
   /// Data port response type.
@@ -385,6 +386,7 @@ module snitch_cc #(
       .AxiUserWidth (DMAUserWidth),
       .NumAxInFlight (DMANumAxInFlight),
       .DMAReqFifoDepth (DMAReqFifoDepth),
+      .NumChannels (DMANumChannels),
       .axi_ar_chan_t (axi_ar_chan_t),
       .axi_aw_chan_t (axi_aw_chan_t),
       .axi_req_t (axi_req_t),

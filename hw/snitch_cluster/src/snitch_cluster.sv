@@ -31,7 +31,7 @@ module snitch_cluster
   parameter int unsigned WideDataWidth      = 512,
   /// AXI: id width in.
   parameter int unsigned NarrowIdWidthIn    = 2,
-  /// AXI: dma id with in *currently not available*
+  /// AXI: dma id with in.
   parameter int unsigned WideIdWidthIn      = 2,
   /// AXI: user width.
   parameter int unsigned NarrowUserWidth    = 1,
@@ -57,6 +57,8 @@ module snitch_cluster
   parameter int unsigned DMANumAxInFlight   = 3,
   /// Size of DMA request fifo.
   parameter int unsigned DMAReqFifoDepth    = 3,
+  /// Number of DMA channels.
+  parameter int unsigned DMANumChannels     = 1,
   /// Width of a single icache line.
   parameter int unsigned ICacheLineWidth [NrHives] = '{default: 0},
   /// Number of icache lines per set.
@@ -863,6 +865,7 @@ module snitch_cluster
         .SnitchPMACfg (SnitchPMACfg),
         .DMANumAxInFlight (DMANumAxInFlight),
         .DMAReqFifoDepth (DMAReqFifoDepth),
+        .DMANumChannels (DMANumChannels),
         .dreq_t (reqrsp_req_t),
         .drsp_t (reqrsp_rsp_t),
         .tcdm_req_t (tcdm_req_t),
