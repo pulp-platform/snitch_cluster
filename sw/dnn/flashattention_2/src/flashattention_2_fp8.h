@@ -114,8 +114,10 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
         // Last core handles remainder rows.
         uint32_t rows_per_core = B_r / num_cores;
         uint32_t start_row = rows_per_core * compute_id;
-        char is_last_compute_core = snrt_cluster_core_idx() == (snrt_cluster_compute_core_num() - 1);
-        uint32_t end_row = is_last_compute_core ? B_r : start_row + rows_per_core;
+        char is_last_compute_core =
+            snrt_cluster_core_idx() == (snrt_cluster_compute_core_num() - 1);
+        uint32_t end_row =
+            is_last_compute_core ? B_r : start_row + rows_per_core;
         if (snrt_is_compute_core()) {
             for (int row_idx = start_row; row_idx < end_row; row_idx++) {
                 m_i[row_idx] = -INFINITY;

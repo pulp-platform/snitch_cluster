@@ -75,13 +75,11 @@ def build_testlist(tests, outfile):
 
 def post_process(cfg):
     sim_dir = Path(f'sw/apps/dnn/flashattention_2/tcasai/runs/flashattention_2-{Path(cfg).stem}')
-    binary = Path(
-        f'sw/apps/dnn/flashattention_2/tcasai/build/{Path(cfg).stem}/flashattention_2.elf')
-    # subprocess.run(['make', '-C', '../../../../../', f'SIM_DIR={sim_dir}', 'clean-traces', 'clean-annotate'], check=True)
-    subprocess.run(['make', '-C', '../../../../../', f'SIM_DIR={sim_dir}', 'annotate', f'BINARY={binary}', '-j'],
+    binary = Path(f'sw/apps/dnn/flashattention_2/tcasai/build/\
+                  {Path(cfg).stem}/flashattention_2.elf')
+    subprocess.run(['make', '-C', '../../../../../', f'SIM_DIR={sim_dir}',
+                    'annotate', f'BINARY={binary}', '-j'],
                    check=True)
-    subprocess.run(['make', '-C', '../../../../../', f'SIM_DIR={sim_dir}', f'ROI_SPEC={ROI_SPEC}',
-                   f'BINARY={binary}', 'visual-trace'], check=True)
 
 
 def main():
