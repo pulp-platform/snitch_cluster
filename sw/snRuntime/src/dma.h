@@ -129,8 +129,43 @@ inline snrt_dma_txid_t snrt_dma_start_2d(void *dst, const void *src,
                                      src_stride, repeat);
 }
 
+/// Initiate an asynchronous 1D DMA transfer with wide 64-bit pointers and a specific channel.
+inline snrt_dma_txid_t snrt_dma_start_1d_channel_wideptr(uint64_t dst, uint64_t src,
+                                                         size_t size, uint32_t channel) {
+        register uint32_t reg_txid;  // 10
+        register uint32_t cfg = channel << 2;
+        asm volatile("dmsrc   %[sl], %[sh]"         :: [sh]"r"(src >> 32), [sl]"r"(src));
+        asm volatile("dmdst   %[dl], %[dh]"         :: [dh]"r"(dst >> 32), [dl]"r"(dst));
+        asm volatile("dmcpy  %[id], %[sz], %[cfg]"  : [id]"=r"(reg_txid) : [sz]"r"(size), [cfg]"r"(cfg));
+        return reg_txid;
+}
+
+/// Initiate an asynchronous 1D DMA transfer and a specific channel.
+inline snrt_dma_txid_t snrt_dma_start_1d_channel(void *dst, const void *src,
+                                         size_t size, uint32_t channel) {
+    return snrt_dma_start_1d_channel_wideptr((size_t)dst, (size_t)src, size, channel);
+}
+
+/// Initiate an asynchronous 1D DMA transfer with wide 64-bit pointers and a specific channel.
+inline snrt_dma_txid_t snrt_dma_start_2d_channel_wideptr(uint64_t dst, uint64_t src,
+                                                         size_t size, uint32_t channel) {
+        register uint32_t reg_txid;  // 10
+        register uint32_t cfg = channel << 2 | 2;
+        asm volatile("dmsrc   %[sl], %[sh]"         :: [sh]"r"(src >> 32), [sl]"r"(src));
+        asm volatile("dmdst   %[dl], %[dh]"         :: [dh]"r"(dst >> 32), [dl]"r"(dst));
+        asm volatile("dmcpy  %[id], %[sz], %[cfg]"  : [id]"=r"(reg_txid) : [sz]"r"(size), [cfg]"r"(cfg));
+        return reg_txid;
+}
+
+/// Initiate an asynchronous 2D DMA transfer and a specific channel.
+inline snrt_dma_txid_t snrt_dma_start_2d_channel(void *dst, const void *src,
+                                         size_t size, uint32_t channel) {
+    return snrt_dma_start_2d_channel_wideptr((size_t)dst, (size_t)src, size, channel);
+}
+
 /// Block until a transfer finishes.
 inline void snrt_dma_wait(snrt_dma_txid_t tid) {
+    register uint32_t tmp;
     // dmstati t0, 0  # 2=status.completed_id
     asm volatile(
         "1: \n"
@@ -145,16 +180,13 @@ inline void snrt_dma_wait(snrt_dma_txid_t tid) {
 
 /// Block until all operation on the DMA ceases.
 inline void snrt_dma_wait_all() {
+    register uint32_t tmp;
     // dmstati t0, 2  # 2=status.busy
     asm volatile(
         "1: \n"
-        ".word (0b0000100 << 25) | \
-               (  0b00010 << 20) | \
-               (    0b000 << 12) | \
-               (      (5) <<  7) | \
-               (0b0101011 <<  0)   \n"
-        "bne t0, zero, 1b \n" ::
-            : "t0");
+        "dmstati  %[tmp], 2 \n"
+        "bne %[tmp], zero, 1b \n"
+        : [tmp]"=&r"(tmp) :: "t0");
 }
 
 /**
