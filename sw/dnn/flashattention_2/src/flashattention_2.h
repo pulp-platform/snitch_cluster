@@ -41,6 +41,7 @@ typedef struct {
     void *gemm_implementation;
 } flashattention_2_layer_t;
 
+#include "../transpose/src/transpose.h"
 #include "../flashattention_2/src/flashattention_2_fp16.h"
 #include "../flashattention_2/src/flashattention_2_fp32.h"
 #include "../flashattention_2/src/flashattention_2_fp8.h"
