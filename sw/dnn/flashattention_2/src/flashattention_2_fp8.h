@@ -83,11 +83,20 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
     tcdm_ptr += m_i_prev_size;
     float *l_i = tcdm_ptr;
     tcdm_ptr += l_i_size;
+
+    // Allocate space for V^t
+    char *V_t;
+    if (!baseline) {
+        V_t = tcdm_ptr;
+        tcdm_ptr += B_c * d * sizeof(char);
+    }
+
     float shifted_exp;
     float row_sum;
 
+    snrt_mcycle();
+
     // Iterate row blocks of Q
-    uint32_t start_loop_outer = snrt_mcycle();
     for (int t_r = 0; t_r < T_r; t_r++) {
         // DMA copy Q row block to TCDM
         uint32_t start_dma = snrt_mcycle();
@@ -103,8 +112,6 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
             );
             snrt_dma_wait_all();
         }
-        uint32_t end_dma = snrt_mcycle();
-
         snrt_cluster_hw_barrier();
 
         snrt_mcycle();
@@ -130,13 +137,10 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
 
         snrt_cluster_hw_barrier();
 
-        snrt_cluster_hw_barrier();
+        snrt_mcycle();
 
         // Iterate column blocks of K (corresponding to row blocks of V)
-        uint32_t start_loop_inner = snrt_mcycle();
         for (int t_c = 0; t_c < T_c; t_c++) {
-            snrt_cluster_hw_barrier();
-
             // DMA copy K column block (B_c, d) and V row block (B_c, d) to
             // TCDM. Both K and V are stored in (S, d) form in memory
             if (!snrt_is_compute_core()) {
@@ -160,21 +164,21 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
                 );
                 snrt_dma_wait_all();
             }
-            uint32_t end_dma = snrt_mcycle();
-
             snrt_cluster_hw_barrier();
+
+            snrt_mcycle();
 
             // Calculate O tile from Q, K and V tiles
             if (snrt_is_compute_core()) {
                 // Matrix multiplication between row block of Q and transposed
                 // column block of K to calculate a tile of S: S = Q * K^T.
                 // The S tile is of form (B_r, B_c)
-                uint32_t start_gemm = snrt_mcycle();
                 sc_st_gemm(dtype, 1, 0, 1, B_r, B_c, d, 1, Q_fa, d, K_fa, d, 0,
                            S_fa, B_c, gemm_implementation);
-                uint32_t end_gemm = snrt_mcycle();
 
                 snrt_cluster_hw_barrier();
+
+                snrt_mcycle();
 
                 // Iterate over the rows of the S row block, distributing
                 // the rows to the cores
@@ -223,7 +227,7 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
 
                 snrt_cluster_hw_barrier();
 
-                snrt_cluster_hw_barrier();
+                snrt_mcycle();
 
                 // Calculate O tile (O_ij) of size (B_r, d).
                 // The P tile is of size (B_r, B_c) and V of size (B_c, d)
@@ -235,16 +239,12 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
                         beta = 0;
                     else
                         beta = 1;
-                    sc_st_gemm(dtype, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c, V_fa,
+                    sc_st_gemm(dtype, 1, 0, 0, B_r, d, B_c, 1, P_fa, B_c, V_fa,
                                d, beta, O_fa, d, gemm_implementation);
                 } else {
                     // The SIMD-optimized GEMM kernel performs the A*B^t
                     // operation. We must transpose V in advance, so
                     // we can compute P*(V^t)^t with the optimized GEMM.
-
-                    // Allocate space for V^t
-                    char *V_t = tcdm_ptr;
-                    tcdm_ptr += B_c * d * sizeof(char);
 
                     // Compute V^t
                     transpose_kernel(dtype, V_fa, V_t, B_c, d, baseline);
@@ -257,22 +257,19 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
                         beta = 0;
                     else
                         beta = 1;
-                    sc_st_gemm(dtype, 0, 0, 1, B_r, d, B_c, 1, P_fa, B_c, V_t,
+                    sc_st_gemm(dtype, 1, 0, 1, B_r, d, B_c, 1, P_fa, B_c, V_t,
                                B_c, beta, O_fa, d, gemm_implementation);
                 }
-
-                uint32_t end_stats = snrt_mcycle();
-
-                snrt_cluster_hw_barrier();
             } else {
                 snrt_cluster_hw_barrier();
                 snrt_cluster_hw_barrier();
-                snrt_cluster_hw_barrier();
-                snrt_cluster_hw_barrier();
+                snrt_mcycle();
+                snrt_mcycle();
             }
-        }  // end of T_c loop
+            snrt_cluster_hw_barrier();
 
-        snrt_cluster_hw_barrier();
+            snrt_mcycle();
+        }  // end of T_c loop
 
         // Rescaling for last t_c iteration
         // O_i = diag(l_i_Tc)^-1 * O_i
@@ -287,13 +284,11 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
         }
 
         snrt_fpu_fence();
-
         snrt_cluster_hw_barrier();
 
-        snrt_cluster_hw_barrier();
+        snrt_mcycle();
 
         // Write back O row block (B_r, d) to DRAM
-        uint32_t start_dma_write_back = snrt_mcycle();
         if (snrt_is_dm_core()) {
             snrt_dma_store_2d_tile(O_l3,         // dst
                                    O_fa,         // src
@@ -306,10 +301,12 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
             );
             snrt_dma_wait_all();
         }
-        uint32_t end_dma_write_back = snrt_mcycle();
+
+        snrt_cluster_hw_barrier();
+
+        snrt_mcycle();
 
     }  // end of T_r loop
-    uint32_t end_loop_outer = snrt_mcycle();
 
     snrt_cluster_hw_barrier();
 }

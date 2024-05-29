@@ -99,8 +99,10 @@ static inline void flashattention_2_fp32(flashattention_2_layer_t layer) {
         // Last core handles remainder rows.
         uint32_t rows_per_core = B_r / num_cores;
         uint32_t start_row = rows_per_core * compute_id;
-        char is_last_compute_core = snrt_cluster_core_idx() == (snrt_cluster_compute_core_num() - 1);
-        uint32_t end_row = is_last_compute_core ? B_r : start_row + rows_per_core;
+        char is_last_compute_core =
+            snrt_cluster_core_idx() == (snrt_cluster_compute_core_num() - 1);
+        uint32_t end_row =
+            is_last_compute_core ? B_r : start_row + rows_per_core;
         if (snrt_is_compute_core()) {
             for (int row_idx = start_row; row_idx < end_row; row_idx++) {
                 m_i[row_idx] = -INFINITY;
@@ -208,7 +210,7 @@ static inline void flashattention_2_fp32(flashattention_2_layer_t layer) {
                         beta = 0;
                     else
                         beta = 1;
-                    sc_st_gemm(dtype, 0, 0, 0, B_r, d, B_c, 1, P_fa, B_c, V_fa,
+                    sc_st_gemm(dtype, 1, 0, 0, B_r, d, B_c, 1, P_fa, B_c, V_fa,
                                d, beta, O_fa, d, gemm_implementation);
                 } else {
                     // The SIMD-optimized GEMM kernel performs the A*B^t
@@ -226,7 +228,7 @@ static inline void flashattention_2_fp32(flashattention_2_layer_t layer) {
                         beta = 0;
                     else
                         beta = 1;
-                    sc_st_gemm(dtype, 0, 0, 1, B_r, d, B_c, 1, P_fa, B_c, V_t,
+                    sc_st_gemm(dtype, 1, 0, 1, B_r, d, B_c, 1, P_fa, B_c, V_t,
                                B_c, beta, O_fa, d, gemm_implementation);
                 }
             } else {
