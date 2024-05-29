@@ -21,7 +21,7 @@ package:
     - Ryan Antonio <ryan.antonio@esat.kuleuven.be>
 
 dependencies:
-  axi:                { git: https://github.com/pulp-platform/axi,                version:  0.39.0  }
+  axi:                { git: https://github.com/pulp-platform/axi,                version:  0.39.1  }
   axi_riscv_atomics:  { git: https://github.com/pulp-platform/axi_riscv_atomics,  version:  0.6.0   }
   common_cells:       { git: https://github.com/pulp-platform/common_cells,       version:  1.28.0  }
   FPnew:              { git: https://github.com/openhwgroup/cvfpu,                rev:      1202ca3 }  # TODO: feature branch `feature/expanding_sdotp`; get merged!
