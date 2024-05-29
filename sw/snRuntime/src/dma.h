@@ -201,6 +201,21 @@ inline void snrt_dma_wait(snrt_dma_txid_t tid) {
         : "t0");
 }
 
+/// Block until a transfer finishes on a specific channel.
+inline void snrt_dma_wait_channel(snrt_dma_txid_t tid, uint32_t channel) {
+    register uint32_t tmp;
+    // dmstati t0, 0  # 2=status.completed_id
+    uint32_t cfg = channel << 2;
+    asm volatile(
+        "1: \n"
+        "dmstat  %[tmp], %[cfg] \n"
+        "sub t0, t0, %0 \n"
+        "blez t0, 1b \n"
+        : [ tmp ] "=&r"(tmp)
+        : "r"(tid), [ cfg ] "r"(cfg)
+        : "t0");
+}
+
 /// Block until all operation on the DMA ceases.
 inline void snrt_dma_wait_all() {
     register uint32_t tmp;
@@ -210,6 +225,32 @@ inline void snrt_dma_wait_all() {
         "dmstati  %[tmp], 2 \n"
         "bne %[tmp], zero, 1b \n"
         : [ tmp ] "=&r"(tmp)::"t0");
+}
+
+/// Block until all operation on the DMA ceases on a specific channel.
+inline void snrt_dma_wait_all_channel(uint32_t channel) {
+    register uint32_t tmp;
+    // dmstati t0, 2  # 2=status.busy
+    uint32_t cfg = channel << 2 | 2;
+    asm volatile(
+        "1: \n"
+        "dmstat  %[tmp], %[cfg] \n"
+        "bne %[tmp], zero, 1b \n"
+        : [ tmp ] "=&r"(tmp) : [ cfg ] "r"(cfg) :"t0");
+}
+
+/// Wait until all channels are idle
+inline void snrt_dma_wait_all_channels(uint32_t num_channels) {
+    register uint32_t tmp;
+    // dmstati t0, 2  # 2=status.busy
+    for (int c = 0; c < num_channels; c++) {
+        uint32_t cfg = c << 2 | 2;
+        asm volatile(
+            "1: \n"
+            "dmstat  %[tmp], %[cfg] \n"
+            "bne %[tmp], zero, 1b \n"
+            : [ tmp ] "=&r"(tmp) : [ cfg ] "r"(cfg) :"t0");
+    }
 }
 
 /**
