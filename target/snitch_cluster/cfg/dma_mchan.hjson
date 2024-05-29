@@ -26,7 +26,6 @@
         alias_region_enable: true,
         dma_data_width: 512,
         dma_nr_channels: 4,
-        dma_nr_channels: 4,
         dma_axi_req_fifo_depth: 24,
         dma_req_fifo_depth: 8,
         narrow_trans: 4,
