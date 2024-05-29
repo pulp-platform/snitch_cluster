@@ -125,8 +125,8 @@ jobs:
       - uses: DoozyX/clang-format-lint-action@v0.16.2
         with:
           exclude: |
-            './sw/saris'
-            './sw/dnn/flashattention_2/src/flashattention_2.h'
+            ./sw/saris
+            ./sw/dnn/flashattention_2/src/flashattention_2.h
           clangFormatVersion: 10
 
   ######################
