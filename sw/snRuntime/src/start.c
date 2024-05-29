@@ -53,6 +53,7 @@ static inline void snrt_init_tls() {
             snrt_dma_start_1d((void*)(tls_ptr + i * tls_offset),
                               (void*)(snrt_zero_memory_ptr()), size);
         }
+        snrt_dma_wait_all();
     }
 
     snrt_cluster_hw_barrier();
@@ -68,6 +69,7 @@ static inline void snrt_init_bss() {
         size_t size = (size_t)(&__bss_end) - (size_t)(&__bss_start);
         snrt_dma_start_1d_wideptr((uint64_t)(&__bss_start),
                                   (uint64_t)(snrt_zero_memory_ptr()), size);
+        snrt_dma_wait_all();
     }
 }
 #endif
@@ -92,6 +94,7 @@ static inline void snrt_init_cls() {
         ptr = (void*)((uint32_t)ptr + size);
         size = (size_t)(&__cbss_end) - (size_t)(&__cbss_start);
         snrt_dma_start_1d(ptr, (void*)(snrt_zero_memory_ptr()), size);
+        snrt_dma_wait_all();
     }
 }
 #endif
