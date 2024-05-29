@@ -167,11 +167,11 @@ inline snrt_dma_txid_t snrt_dma_start_2d_channel_wideptr(
         "dmdst   %[dl], %[dh]\n"
         "dmstr   %[rs], %[rd]\n"
         "dmrep   %[rp]\n"
-        "dmcpyi  %[id], %[sz], 2"
+        "dmcpy  %[id], %[sz], %[cfg]"
         : [ id ] "=r"(reg_txid)
         : [ sh ] "r"(src >> 32), [ sl ] "r"(src), [ dh ] "r"(dst >> 32),
           [ dl ] "r"(dst), [ rd ] "r"(dst_stride), [ rs ] "r"(src_stride),
-          [ rp ] "r"(repeat), [ sz ] "r"(size));
+          [ rp ] "r"(repeat), [ sz ] "r"(size), [ cfg ] "r"(cfg));
     return reg_txid;
 }
 
