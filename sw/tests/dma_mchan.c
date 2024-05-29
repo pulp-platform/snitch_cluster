@@ -28,8 +28,8 @@ int main() {
     }
 
     // Start slow 2D transfer from L3 to L1 on channel 0.
-    snrt_dma_start_2d_channel(buffer_dst_l1_1, buffer_src_l3, TRANSFER_SIZE,
-                                  0, TRANSFER_SIZE, TRANSFER_REP, 0);
+    snrt_dma_start_2d_channel(buffer_dst_l1_1, buffer_src_l3, TRANSFER_SIZE, 0,
+                              TRANSFER_SIZE, TRANSFER_REP, 0);
 
     // Start fast 2D transfer from L1 to L1 on channel 1.
     snrt_dma_start_1d_channel(buffer_dst_l1_2, buffer_src_l1, TRANSFER_SIZE, 1);
@@ -37,11 +37,12 @@ int main() {
     // Check that the fast transfer can finish first.
     uint32_t busy_slow, busy_fast;
     do {
-        asm volatile ("dmstati %0, 2" : "=r"(busy_slow));
-        asm volatile ("dmstati %0, 6" : "=r"(busy_fast));
+        asm volatile("dmstati %0, 2" : "=r"(busy_slow));
+        asm volatile("dmstati %0, 6" : "=r"(busy_fast));
     } while (busy_fast);
 
-    // Check that the fast transfer has finished and the slow transfer is still busy.
+    // Check that the fast transfer has finished and the slow transfer is still
+    // busy.
     if (!busy_slow) {
         errors++;
     }
@@ -51,7 +52,8 @@ int main() {
 
     // Check that the main memory buffer contains the correct data.
     for (uint32_t i = 0; i < TRANSFER_LEN; i++) {
-        errors += (buffer_dst_l1_1[i] != TRANSFER_LEN * (TRANSFER_REP - 1) + i + 1);
+        errors +=
+            (buffer_dst_l1_1[i] != TRANSFER_LEN * (TRANSFER_REP - 1) + i + 1);
         errors += (buffer_dst_l1_2[i] != 0xAAAAAAAA);
     }
 
