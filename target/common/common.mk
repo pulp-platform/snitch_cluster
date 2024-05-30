@@ -40,7 +40,9 @@ PERF_CSV_PY      ?= $(UTIL_DIR)/trace/perf_csv.py
 LAYOUT_EVENTS_PY ?= $(UTIL_DIR)/trace/layout_events.py
 EVENTVIS_PY      ?= $(UTIL_DIR)/trace/eventvis.py
 
-VERILATOR_ROOT ?= $(dir $(shell $(VERILATOR_SEPP) which verilator))..
+# For some reason `$(VERILATOR_SEPP) which verilator` returns a
+# a two-liner with the OS on the first line, hence the tail -n1
+VERILATOR_ROOT ?= $(dir $(shell $(VERILATOR_SEPP) which verilator | tail -n1))..
 VLT_ROOT       ?= ${VERILATOR_ROOT}
 
 MATCH_END := '/+incdir+/ s/$$/\/*\/*/'
