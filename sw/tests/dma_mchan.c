@@ -27,11 +27,11 @@ int main() {
         buffer_src_l3[i] = i + 1;
     }
 
-    // Start slow 2D transfer from L3 to L1 on channel 0.
+    // Start slow/large 2D transfer from L3 to L1 on channel 0.
     snrt_dma_start_2d_channel(buffer_dst_l1_1, buffer_src_l3, TRANSFER_SIZE, 0,
                               TRANSFER_SIZE, TRANSFER_REP, 0);
 
-    // Start fast 2D transfer from L1 to L1 on channel 1.
+    // Start fast/small 1D transfer from L1 to L1 on channel 1.
     snrt_dma_start_1d_channel(buffer_dst_l1_2, buffer_src_l1, TRANSFER_SIZE, 1);
 
     // Check that the fast transfer can finish first.
@@ -41,8 +41,7 @@ int main() {
         asm volatile("dmstati %0, 6" : "=r"(busy_fast));
     } while (busy_fast);
 
-    // Check that the fast transfer has finished and the slow transfer is still
-    // busy.
+    // Check that the fast transfer has finished first.
     if (!busy_slow) {
         errors++;
     }
