@@ -108,8 +108,6 @@ static inline void layernorm_layer(layernorm_layer_t l) {
                                            l.batch_size, tile_seq_len,
                                            l.embeddings, l.eps);
                         break;
-                    default:
-                        break;
                 }
                 break;
             case FP16:
@@ -124,8 +122,6 @@ static inline void layernorm_layer(layernorm_layer_t l) {
                                            l.batch_size, tile_seq_len,
                                            l.embeddings, l.eps);
                         break;
-                    default:
-                        break;
                 }
                 break;
             case FP8:
@@ -135,11 +131,7 @@ static inline void layernorm_layer(layernorm_layer_t l) {
                                           l.batch_size, tile_seq_len,
                                           l.embeddings, l.eps);
                         break;
-                    default:
-                        break;
                 }
-                break;
-            default:
                 break;
         }
 
