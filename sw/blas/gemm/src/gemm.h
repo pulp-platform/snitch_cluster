@@ -97,9 +97,12 @@ void sc_st_gemm(precision_t prec, uint32_t setup_ssr, uint32_t transa,
 
         // Compute fraction of C rows every core computes
         uint32_t frac_m = m / compute_num;
+        uint32_t rem_m = m % compute_num;
+        if (snrt_cluster_core_idx() < rem_m) frac_m++;
 
-        impl(frac_m, n, k, a + offsetA, lda_strided, transa, b, ldb, transb,
-             c + offsetC, ldc_strided, (float)beta, setup_ssr);
+        if (frac_m > 0)
+            impl(frac_m, n, k, a + offsetA, lda_strided, transa, b, ldb, transb,
+                 c + offsetC, ldc_strided, (float)beta, setup_ssr);
     }
 }
 
