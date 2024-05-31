@@ -271,6 +271,18 @@ class GvsocSimulation(Simulation):
         self.cmd = ['gvsoc', '--target', 'pulp.snitch.snitch_cluster_single', '--binary',
                     str(self.elf), 'run']
 
+    def successful(self):
+        """Return whether the simulation was successful."""
+        # On GVSOC, OpenOCD semi-hosting is used which can just report 0 or 1
+        actual_retcode = self.get_retcode()
+        if actual_retcode is not None:
+            if self.expected_retcode != 0:
+                return int(actual_retcode) != 0
+            else:
+                return int(actual_retcode) == 0
+        else:
+            return False
+
 class VCSSimulation(QuestaVCSSimulation):
     """An RTL simulation running on VCS."""
 
