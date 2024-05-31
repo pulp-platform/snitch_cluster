@@ -1,0 +1,148 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+runs:
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp8-opt-gpt-3-xl-inf/flashattention_2.elf
+    name: flashattention_2-fp8-opt-gpt-3-xl-inf
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp8-opt-gpt-3-xl/flashattention_2.elf
+    name: flashattention_2-fp8-opt-gpt-3-xl
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp8-opt-gpt-j-inf/flashattention_2.elf
+    name: flashattention_2-fp8-opt-gpt-j-inf
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp8-opt-gpt-j/flashattention_2.elf
+    name: flashattention_2-fp8-opt-gpt-j
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp8-opt-vit-base/flashattention_2.elf
+    name: flashattention_2-fp8-opt-vit-base
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp8-opt-vit-huge/flashattention_2.elf
+    name: flashattention_2-fp8-opt-vit-huge
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp16-opt-gpt-3-xl-inf/flashattention_2.elf
+    name: flashattention_2-fp16-opt-gpt-3-xl-inf
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp16-opt-gpt-3-xl/flashattention_2.elf
+    name: flashattention_2-fp16-opt-gpt-3-xl
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp16-opt-gpt-j-inf/flashattention_2.elf
+    name: flashattention_2-fp16-opt-gpt-j-inf
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp16-opt-gpt-j/flashattention_2.elf
+    name: flashattention_2-fp16-opt-gpt-j
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp16-opt-vit-base/flashattention_2.elf
+    name: flashattention_2-fp16-opt-vit-base
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp16-opt-vit-huge/flashattention_2.elf
+    name: flashattention_2-fp16-opt-vit-huge
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp32-opt-gpt-3-xl-inf/flashattention_2.elf
+    name: flashattention_2-fp32-opt-gpt-3-xl-inf
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp32-opt-gpt-3-xl/flashattention_2.elf
+    name: flashattention_2-fp32-opt-gpt-3-xl
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp32-opt-gpt-j-inf/flashattention_2.elf
+    name: flashattention_2-fp32-opt-gpt-j-inf
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp32-opt-gpt-j/flashattention_2.elf
+    name: flashattention_2-fp32-opt-gpt-j
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp32-opt-vit-base/flashattention_2.elf
+    name: flashattention_2-fp32-opt-vit-base
+
+  - cmd:
+      - ../../../../../../../sw/dnn/flashattention_2/scripts/verify.py
+      - ${sim_bin}
+      - ${elf}
+      - --dump-results
+    elf: build/fp32-opt-vit-huge/flashattention_2.elf
+    name: flashattention_2-fp32-opt-vit-huge

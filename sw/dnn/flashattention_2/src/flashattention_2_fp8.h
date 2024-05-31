@@ -99,7 +99,6 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
     // Iterate row blocks of Q
     for (int t_r = 0; t_r < T_r; t_r++) {
         // DMA copy Q row block to TCDM
-        uint32_t start_dma = snrt_mcycle();
         if (snrt_is_dm_core()) {
             snrt_dma_load_2d_tile(Q_fa,         // dst
                                   Q_l3,         // src

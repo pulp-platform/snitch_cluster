@@ -1,7 +1,3 @@
-<%
-    T_r = 4
-    T_c = 1
-%>
 [
     // Compute cores
     % for i in range(0, 8):
