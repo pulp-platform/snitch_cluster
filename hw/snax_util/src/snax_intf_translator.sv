@@ -9,6 +9,11 @@
 // Snitch accelerator ports to
 // CSR ports
 //-------------------------------
+`ifdef TARGET_QUESTA_SIM
+import riscv_instr::*;
+import reqrsp_pkg::*;
+`endif
+
 module snax_intf_translator #(
   parameter type                        acc_req_t = logic,
   parameter type                        acc_rsp_t = logic,

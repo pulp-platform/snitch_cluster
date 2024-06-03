@@ -82,9 +82,9 @@ $(eval $(call generate_snax_gen,snax_streamer_gemm))
 	SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
 	include $(SNAX_GEMM_ROOT)/Makefile
 
-	VSIM_BENDER += -t snax-streamer-gemm
-	VLT_BENDER  += -t snax-streamer-gemm
-	VCS_BENDER  += -t snax-streamer-gemm
+	VSIM_BENDER += -t snax_streamer_gemm
+	VLT_BENDER  += -t snax_streamer_gemm
+	VCS_BENDER  += -t snax_streamer_gemm
 
 endif
 
@@ -95,9 +95,9 @@ $(eval $(call generate_snax_gen,snax_streamer_simd))
 	SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-postprocessing-simd)
 	include $(SNAX_GEMM_ROOT)/Makefile
 
-	VSIM_BENDER += -t snax-streamer-simd
-	VLT_BENDER  += -t snax-streamer-simd
-	VCS_BENDER  += -t snax-streamer-simd
+	VSIM_BENDER += -t snax_streamer_simd
+	VLT_BENDER  += -t snax_streamer_simd
+	VCS_BENDER  += -t snax_streamer_simd
 
 
 endif
@@ -106,9 +106,9 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-alu.hjson)
 
 $(eval $(call generate_snax_gen,snax_alu))
 
-	VSIM_BENDER += -t snax-alu
-	VLT_BENDER  += -t snax-alu
-	VCS_BENDER  += -t snax-alu
+	VSIM_BENDER += -t snax_alu
+	VLT_BENDER  += -t snax_alu
+	VCS_BENDER  += -t snax_alu
 
 endif
 
@@ -116,12 +116,13 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-data-reshuffler.hjson)
 
 $(eval $(call generate_snax_gen,snax_data_reshuffler))
 
-	VSIM_BENDER += -t snax-data-reshuffler
-	VLT_BENDER  += -t snax-data-reshuffler
-	VCS_BENDER  += -t snax-data-reshuffler
+	VSIM_BENDER += -t snax_data_reshuffler
+	VLT_BENDER  += -t snax_data_reshuffler
+	VCS_BENDER  += -t snax_data_reshuffler
 
 endif
 
+VSIM_BENDER += -t QUESTA_SIM
 
 # Verilated and compiled snitch cluster
 VLT_AR = ${VLT_BUILDDIR}/Vtestharness__ALL.a

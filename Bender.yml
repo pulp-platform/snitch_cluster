@@ -293,7 +293,7 @@ sources:
       # Level 1
       - hw/snax_hwpe_mac/src/snax_mac_wrapper.sv
   # SNAX ALU
-  - target: snax-alu
+  - target: snax_alu
     files:
       # Level 0
       - hw/snax_alu/src/snax_alu_csr.sv
@@ -307,7 +307,7 @@ sources:
       # Level 2
       - target/snitch_cluster/generated/snax_alu/snax_alu_wrapper.sv
 
-  - target: snax-streamer-gemm
+  - target: snax_streamer_gemm
     files:
       # Level 0
       - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_csrman_CsrManager.sv
@@ -318,7 +318,7 @@ sources:
       # Level 2
       - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_wrapper.sv
 
-  - target: snax-streamer-simd
+  - target: snax_streamer_simd
     files:
       # Level 0
       - target/snitch_cluster/generated/snax_streamer_simd/snax_streamer_simd_csrman_CsrManager.sv
@@ -329,7 +329,7 @@ sources:
       # Level 2
       - target/snitch_cluster/generated/snax_streamer_simd/snax_streamer_simd_wrapper.sv
 
-  - target: snax-data-reshuffler
+  - target: snax_data_reshuffler
     files:
       # Level 0
       - hw/snax_data_reshuffler/src/data_reshuffler.sv
