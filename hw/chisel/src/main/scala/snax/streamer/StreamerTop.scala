@@ -7,6 +7,7 @@ import snax.utils._
 import chisel3._
 import chisel3.util._
 import chisel3.experimental.{prefix, noPrefix}
+import scala.annotation.meta.param
 
 /** This class represents the input and output ports of the streamer top module
   *
@@ -40,8 +41,14 @@ class StreamerTop(
 
   override val desiredName = params.tagName + "StreamerTop"
 
-  val csrNumReadWrite: Int =
-    params.temporalDim + params.dataMoverNum * params.temporalDim + params.spatialDim.sum + params.dataMoverNum + 1
+  var csrNumReadWrite: Int = 0
+  if (params.ifShareTempAddrGenLoopBounds == true) {
+    csrNumReadWrite =
+      params.temporalDimInt + params.dataMoverNum * params.temporalDimInt + params.spatialDim.sum + params.dataMoverNum + 1
+  } else {
+    csrNumReadWrite =
+      params.temporalDimSeq.sum + params.temporalDimSeq.sum + params.spatialDim.sum + params.dataMoverNum + 1
+  }
 
   val io = IO(
     new StreamerTopIO(
@@ -105,40 +112,85 @@ class StreamerTop(
   // Then address (temporalDim +  dataMoverNum * temporalDim, temporalDim + dataMoverNum * temporalDim + spatialDim.sum + dataMoverNum - 1) is for the base pointers for each data mover.
   // the lowest address for teh first data mover.
 
-  // temporal loop bounds
-  for (i <- 0 until params.temporalDim) {
-    streamer.io.csr.bits
-      .loopBounds_i(i) := csr_manager.io.csr_config_out.bits(i)
-  }
-
-  // Connect configuration registers for temporal loop strides
-  for (i <- 0 until params.dataMoverNum) {
-    for (j <- 0 until params.temporalDim) {
+  if (params.ifShareTempAddrGenLoopBounds == true) {
+    // temporal loop bounds
+    for (i <- 0 until params.temporalDimInt) {
       streamer.io.csr.bits
-        .temporalStrides_csr_i(i)(j) := csr_manager.io.csr_config_out.bits(
-        params.temporalDim + i * params.temporalDim + j
-      )
+        .loopBounds_i(0)(i) := csr_manager.io.csr_config_out.bits(i)
+    }
+
+    // Connect configuration registers for temporal loop strides
+    for (i <- 0 until params.dataMoverNum) {
+      for (j <- 0 until params.temporalDimInt) {
+        streamer.io.csr.bits
+          .temporalStrides_csr_i(i)(j) := csr_manager.io.csr_config_out.bits(
+          params.temporalDimInt + i * params.temporalDimInt + j
+        )
+      }
+    }
+  } else {
+    // temporal loop bounds
+    for (i <- 0 until params.dataMoverNum) {
+      for (j <- 0 until params.temporalDimSeq(i)) {
+        streamer.io.csr.bits
+          .loopBounds_i(i)(j) := csr_manager.io.csr_config_out.bits(
+          params.temporalDimSeq.take(i).sum + j
+        )
+      }
+    }
+
+    // Connect configuration registers for temporal loop strides
+    for (i <- 0 until params.dataMoverNum) {
+      for (j <- 0 until params.temporalDimSeq(i)) {
+        streamer.io.csr.bits
+          .temporalStrides_csr_i(i)(j) := csr_manager.io.csr_config_out.bits(
+          params.temporalDimSeq.sum + params.temporalDimSeq.take(i).sum + j
+        )
+      }
     }
   }
 
   // Connect configuration registers for spatial loop strides
-  for (i <- 0 until params.spatialDim.length) {
-    for (j <- 0 until params.spatialDim(i)) {
-      streamer.io.csr.bits
-        .spatialStrides_csr_i(i)(j) := csr_manager.io.csr_config_out.bits(
-        params.temporalDim + params.dataMoverNum * params.temporalDim + i * params
-          .spatialDim(
-            i
-          ) + j
-      )
+  assert(params.spatialDim.length == params.dataMoverNum)
+  if (params.ifShareTempAddrGenLoopBounds == true) {
+    for (i <- 0 until params.spatialDim.length) {
+      for (j <- 0 until params.spatialDim(i)) {
+        streamer.io.csr.bits
+          .spatialStrides_csr_i(i)(j) := csr_manager.io.csr_config_out.bits(
+          params.temporalDimInt + params.dataMoverNum * params.temporalDimInt + params.spatialDim
+            .take(
+              i
+            )
+            .sum + j
+        )
+      }
+    }
+  } else {
+    for (i <- 0 until params.dataMoverNum) {
+      for (j <- 0 until params.spatialDim(i)) {
+        streamer.io.csr.bits
+          .spatialStrides_csr_i(i)(j) := csr_manager.io.csr_config_out.bits(
+          params.temporalDimSeq.sum + params.temporalDimSeq.sum + params.spatialDim
+            .take(i)
+            .sum + j
+        )
+      }
     }
   }
 
   // base ptrs
-  for (i <- 0 until params.dataMoverNum) {
-    streamer.io.csr.bits.ptr_i(i) := csr_manager.io.csr_config_out.bits(
-      params.temporalDim + params.dataMoverNum * params.temporalDim + params.spatialDim.sum + i
-    )
+  if (params.ifShareTempAddrGenLoopBounds == true) {
+    for (i <- 0 until params.dataMoverNum) {
+      streamer.io.csr.bits.ptr_i(i) := csr_manager.io.csr_config_out.bits(
+        params.temporalDimInt + params.dataMoverNum * params.temporalDimInt + params.spatialDim.sum + i
+      )
+    }
+  } else {
+    for (i <- 0 until params.dataMoverNum) {
+      streamer.io.csr.bits.ptr_i(i) := csr_manager.io.csr_config_out.bits(
+        params.temporalDimSeq.sum + params.temporalDimSeq.sum + params.spatialDim.sum + i
+      )
+    }
   }
 
   // io.data and streamer data ports connection

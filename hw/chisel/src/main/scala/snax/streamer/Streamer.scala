@@ -32,13 +32,23 @@ class StreamerCsrIO(
 
   // configurations interface for a new data operation
   val loopBounds_i =
-    Vec(params.temporalDim, UInt(params.temporalBoundWidth.W))
+    if (params.ifShareTempAddrGenLoopBounds == true)
+      Vec(1, Vec(params.temporalDimInt, UInt(params.temporalBoundWidth.W)))
+    else
+      MixedVec((0 until params.temporalDimSeq.length).map { i =>
+        Vec(params.temporalDimSeq(i), UInt(params.temporalBoundWidth.W))
+      })
 
   val temporalStrides_csr_i =
-    Vec(
-      params.dataMoverNum,
-      Vec(params.temporalDim, UInt(params.addrWidth.W))
-    )
+    if (params.ifShareTempAddrGenLoopBounds == true)
+      Vec(
+        params.dataMoverNum,
+        Vec(params.temporalDimInt, UInt(params.addrWidth.W))
+      )
+    else
+      MixedVec((0 until params.temporalDimSeq.length).map { i =>
+        Vec(params.temporalDimSeq(i), UInt(params.addrWidth.W))
+      })
 
   val spatialStrides_csr_i =
     MixedVec((0 until params.spatialDim.length).map { i =>
@@ -157,14 +167,25 @@ class Streamer(
 
   // address generation units instantiation
   // a vector of address generation unit generator instantiation with different parameters for each module
-  val address_gen_unit = Seq((0 until params.dataMoverNum).map { i =>
-    Module(
-      new TemporalAddrGenUnit(
-        params.temporalAddrGenUnitParams,
-        tagName
-      )
-    )
-  }: _*)
+  val address_gen_unit =
+    if (params.ifShareTempAddrGenLoopBounds == true)
+      Seq((0 until params.dataMoverNum).map { i =>
+        Module(
+          new TemporalAddrGenUnit(
+            params.temporalAddrGenUnitParams(0),
+            tagName
+          )
+        )
+      }: _*)
+    else
+      Seq((0 until params.dataMoverNum).map { i =>
+        Module(
+          new TemporalAddrGenUnit(
+            params.temporalAddrGenUnitParams(i),
+            tagName
+          )
+        )
+      }: _*)
 
   // signals for state transition
   val config_valid = WireInit(0.B)
@@ -227,34 +248,69 @@ class Streamer(
   // signals connections for the instantiated modules
   // TODO: try to use case map to connect...
   // address generation units csr configuration interface <> streamer IO
-  for (i <- 0 until params.dataMoverNum) {
-    if (params.stationarity(i) == 1) {
-      for (j <- 0 until params.temporalDim) {
-        if (j == 0) {
-          address_gen_unit(i).io.loopBounds_i.bits(j) := 1.U
-        } else {
-          address_gen_unit(i).io.loopBounds_i
-            .bits(j) := io.csr.bits.loopBounds_i(j)
+  if (params.ifShareTempAddrGenLoopBounds == true) {
+    for (i <- 0 until params.dataMoverNum) {
+      if (params.stationarity(i) == 1) {
+        for (j <- 0 until params.temporalDimInt) {
+          if (j == 0) {
+            address_gen_unit(i).io.loopBounds_i.bits(j) := 1.U
+          } else {
+            address_gen_unit(i).io.loopBounds_i
+              .bits(j) := io.csr.bits.loopBounds_i(0)(j)
+          }
         }
+      } else {
+        address_gen_unit(
+          i
+        ).io.loopBounds_i.bits := io.csr.bits.loopBounds_i(0)
       }
-    } else {
       address_gen_unit(
         i
-      ).io.loopBounds_i.bits := io.csr.bits.loopBounds_i
+      ).io.loopBounds_i.valid := io.csr.valid
+      address_gen_unit(
+        i
+      ).io.strides_i.bits := io.csr.bits.temporalStrides_csr_i(
+        i
+      )
+      address_gen_unit(
+        i
+      ).io.strides_i.valid := io.csr.valid
+      address_gen_unit(i).io.ptr_i.bits := io.csr.bits.ptr_i(i)
+      address_gen_unit(i).io.ptr_i.valid := io.csr.valid
     }
-    address_gen_unit(
-      i
-    ).io.loopBounds_i.valid := io.csr.valid
-    address_gen_unit(
-      i
-    ).io.strides_i.bits := io.csr.bits.temporalStrides_csr_i(
-      i
-    )
-    address_gen_unit(
-      i
-    ).io.strides_i.valid := io.csr.valid
-    address_gen_unit(i).io.ptr_i.bits := io.csr.bits.ptr_i(i)
-    address_gen_unit(i).io.ptr_i.valid := io.csr.valid
+  } else {
+    for (i <- 0 until params.temporalDimSeq.length) {
+      if (params.stationarity(i) == 1) {
+        for (j <- 0 until params.temporalDimSeq(i)) {
+          if (j == 0) {
+            address_gen_unit(i).io.loopBounds_i.bits(j) := 1.U
+          } else {
+            address_gen_unit(i).io.loopBounds_i
+              .bits(j) := io.csr.bits.loopBounds_i(
+              params.temporalDimSeq.take(i).sum + j
+            )
+          }
+        }
+      } else {
+        address_gen_unit(
+          i
+        ).io.loopBounds_i.bits := io.csr.bits.loopBounds_i(i)
+      }
+      address_gen_unit(
+        i
+      ).io.loopBounds_i.valid := io.csr.valid
+      address_gen_unit(
+        i
+      ).io.strides_i.bits := io.csr.bits.temporalStrides_csr_i(
+        i
+      )
+      address_gen_unit(
+        i
+      ).io.strides_i.valid := io.csr.valid
+      address_gen_unit(i).io.ptr_i.bits := io.csr.bits.ptr_i(i)
+      address_gen_unit(i).io.ptr_i.valid := io.csr.valid
+    }
+
   }
 
   // data reader and data writer <> streamer IO
@@ -317,7 +373,6 @@ class Streamer(
     if (i < params.dataReaderNum) {
       ReaderFifo(i).io.in <> data_reader(i).io.data_fifo_o
       ReaderFifo(i).io.out <> io.data.streamer2accelerator.data(i)
-      data_reader(i).io.fifo_almost_full := ReaderFifo(i).io.almost_full
     } else {
       data_writer(
         i - params.dataReaderNum

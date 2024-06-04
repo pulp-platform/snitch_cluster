@@ -27,8 +27,6 @@ class DataReaderIO(
     "fifoWidth should match with TCDM datawidth for now!"
   )
 
-  // this signal should disappear!
-  val fifo_almost_full = Input(Bool())
 }
 
 /** This class is data reader module,.It is responsible for sending read request

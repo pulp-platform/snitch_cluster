@@ -45,12 +45,16 @@ import chisel3.util._
 
 // Streamer parameters
 object StreamerParametersGen extends CommonParams {
-  def temporalAddrGenUnitParams: TemporalAddrGenUnitParams =
+  def temporalAddrGenUnitParams: Seq[TemporalAddrGenUnitParams] =
+  Seq(
+% for idx in range(0,len(cfg["snax_streamer_cfg"]["temporal_addrgen_unit_params"]["loop_dim"])):
     TemporalAddrGenUnitParams(
-      loopDim = ${cfg["snax_streamer_cfg"]["temporal_addrgen_unit_params"]["loop_dim"]},
+      loopDim = ${cfg["snax_streamer_cfg"]["temporal_addrgen_unit_params"]["loop_dim"][idx]},
       loopBoundWidth = 32,
       addrWidth = ${tcdm_addr_width}
-    )
+    )${', ' if not loop.last else ''}
+% endfor
+  )
   def fifoReaderParams: Seq[FIFOParams] = Seq(
 % for idx in range(0,len(cfg["snax_streamer_cfg"]["fifo_reader_params"]["fifo_width"])):
     FIFOParams(\
@@ -98,6 +102,12 @@ ${c}${', ' if not loop.last else ''}\
 % endfor
   )
   def stationarity = Seq(${list_elem('stationarity')})
+%if cfg["snax_streamer_cfg"]["temporal_addrgen_unit_params"]["share_temp_addr_gen_loop_bounds"]:
+  def ifShareTempAddrGenLoopBounds = true
+%else:
+  def ifShareTempAddrGenLoopBounds = false
+%endif
+
 }
 
 object StreamerTopGen {
@@ -113,6 +123,7 @@ object StreamerTopGen {
           stationarity = StreamerParametersGen.stationarity,
           dataReaderParams = StreamerParametersGen.dataReaderParams,
           dataWriterParams = StreamerParametersGen.dataWriterParams,
+          ifShareTempAddrGenLoopBounds = StreamerParametersGen.ifShareTempAddrGenLoopBounds,
           tagName = "${cfg["tag_name"]}_streamer_"
         )
       ),

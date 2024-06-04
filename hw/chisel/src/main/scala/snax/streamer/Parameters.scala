@@ -98,7 +98,7 @@ case class FIFOParams(width: Int, depth: Int)
   */
 trait HasStreamerCoreParams {
 
-  val temporalAddrGenUnitParams: TemporalAddrGenUnitParams
+  val temporalAddrGenUnitParams: Seq[TemporalAddrGenUnitParams]
 
   val stationarity: Seq[Int]
 
@@ -110,6 +110,8 @@ trait HasStreamerCoreParams {
 
   val readOnlyCsrNum: Int
   val csrAddrWidth: Int
+
+  val ifShareTempAddrGenLoopBounds: Boolean
 }
 
 /** trait for Streamer inferred parameters
@@ -143,14 +145,14 @@ trait HasStreamerCoreParams {
   */
 trait HasStreamerInferredParams extends HasStreamerCoreParams {
 
-  val temporalDim: Int = temporalAddrGenUnitParams.loopDim
-  val temporalBoundWidth: Int = temporalAddrGenUnitParams.loopBoundWidth
+  val temporalDimInt: Int =
+    temporalAddrGenUnitParams(0).loopDim.asInstanceOf[Int]
+  val temporalDimSeq: Seq[Int] =
+    temporalAddrGenUnitParams.map(_.loopDim).asInstanceOf[Seq[Int]]
+  val temporalBoundWidth: Int = temporalAddrGenUnitParams(0).loopBoundWidth
 
   val spatialDim: Seq[Int] =
     dataReaderParams.map(_.spatialDim) ++ dataWriterParams.map(_.spatialDim)
-
-  val tcdmDataWidth: Int = dataReaderParams(0).tcdmDataWidth
-  val addrWidth: Int = temporalAddrGenUnitParams.addrWidth
 
   val dataReaderNum: Int = dataReaderParams.length
   val dataWriterNum: Int = dataWriterParams.length
@@ -175,7 +177,7 @@ trait HasStreamerInferredParams extends HasStreamerCoreParams {
   *   default value of these parameters is from the StreamerTestConstant object
   */
 case class StreamerParams(
-    temporalAddrGenUnitParams: TemporalAddrGenUnitParams,
+    temporalAddrGenUnitParams: Seq[TemporalAddrGenUnitParams],
     stationarity: Seq[Int],
     dataReaderParams: Seq[DataMoverParams],
     dataWriterParams: Seq[DataMoverParams],
@@ -183,6 +185,8 @@ case class StreamerParams(
     fifoWriterParams: Seq[FIFOParams],
     readOnlyCsrNum: Int = 1,
     csrAddrWidth: Int = 32,
+    ifShareTempAddrGenLoopBounds: Boolean = true,
     tagName: String = ""
 ) extends HasStreamerCoreParams
     with HasStreamerInferredParams
+    with CommonParams

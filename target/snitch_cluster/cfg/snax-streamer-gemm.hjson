@@ -151,7 +151,8 @@
     snax_streamer_gemm_streamer_template :{
 
         temporal_addrgen_unit_params: {
-            loop_dim: 3,
+            loop_dim: [3],
+            share_temp_addr_gen_loop_bounds: true,
         }
 
         fifo_reader_params: {

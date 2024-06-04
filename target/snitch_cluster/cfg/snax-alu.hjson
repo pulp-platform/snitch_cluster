@@ -129,7 +129,8 @@
     snax_alu_streamer_template :{
 
         temporal_addrgen_unit_params: {
-            loop_dim: 1,
+            loop_dim: [1],
+            share_temp_addr_gen_loop_bounds: true,
         }
 
         fifo_reader_params: {

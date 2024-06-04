@@ -15,14 +15,14 @@ object Snax extends SbtModule with ScalafmtModule { m =>
     "-language:reflectiveCalls",
     "-deprecation",
     "-feature",
-    "-Xcheckinit",
+    "-Xcheckinit"
   )
   override def ivyDeps = Agg(
     ivy"org.chipsalliance::chisel:6.3.0",
-    ivy"edu.berkeley.cs::chiseltest:6.0.0",
+    ivy"edu.berkeley.cs::chiseltest:6.0.0"
   )
   override def scalacPluginIvyDeps = Agg(
-    ivy"org.chipsalliance:::chisel-plugin:6.3.0",
+    ivy"org.chipsalliance:::chisel-plugin:6.3.0"
   )
   object test extends SbtModuleTests with TestModule.ScalaTest {
     override def ivyDeps = m.ivyDeps() ++ Agg(

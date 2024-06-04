@@ -89,7 +89,7 @@ class TemporalAddrGenUnit(
 
   // registers to store the programmable configuration
   val loopBounds = RegInit(
-    VecInit(Seq.fill(params.loopDim)(0.U(params.loopBoundWidth.W)))
+    VecInit(Seq.fill(params.loopDim)(1.U(params.loopBoundWidth.W)))
   )
   val strides = RegInit(
     VecInit(Seq.fill(params.loopDim)(0.U(params.addrWidth.W)))

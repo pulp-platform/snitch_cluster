@@ -20,8 +20,8 @@ class StreamerTest
 
         // give valid transaction config
         dut.io.csr.valid.poke(1.B)
-        for (i <- 0 until TestParameters.streamer.temporalDim) {
-          dut.io.csr.bits.loopBounds_i(i).poke(2)
+        for (i <- 0 until TestParameters.streamer.temporalDimInt) {
+          dut.io.csr.bits.loopBounds_i(0)(i).poke(2)
         }
 
         // give the proper spatial strides so that is a aligned in one TCDM bank

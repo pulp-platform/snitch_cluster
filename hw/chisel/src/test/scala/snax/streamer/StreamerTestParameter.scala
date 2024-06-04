@@ -9,11 +9,13 @@ object StreamerTestConstant extends CommonParams {
 
   def MacScalingFactor = 4
 
-  def temporalAddrGenUnitParams: TemporalAddrGenUnitParams =
-    TemporalAddrGenUnitParams(
-      loopDim = 1,
-      loopBoundWidth = 8,
-      addrWidth
+  def temporalAddrGenUnitParams: Seq[TemporalAddrGenUnitParams] =
+    Seq(
+      TemporalAddrGenUnitParams(
+        loopDim = 1,
+        loopBoundWidth = 8,
+        addrWidth
+      )
     )
 
   def fifoReaderParams: Seq[FIFOParams] = Seq(
@@ -63,6 +65,8 @@ object StreamerTestConstant extends CommonParams {
   )
 
   def tagName: String = ""
+
+  def ifShareTempAddrGenLoopBounds = true
 }
 
 object TestParameters {
