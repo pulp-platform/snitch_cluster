@@ -72,7 +72,7 @@ typedef struct {
 } perf_regs_t;
 
 inline perf_regs_t* snrt_perf_counters() {
-    return (perf_regs_t*)snrt_cluster_perf_counters_addr(snrt_cluster_idx());
+    return (perf_regs_t*)snrt_cluster_perf_counters_addr();
 }
 
 // Enable a specific perf_counter

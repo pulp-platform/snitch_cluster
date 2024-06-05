@@ -11,7 +11,7 @@
  * @param mask set bit at X sets the interrupt of hart X
  */
 inline void snrt_int_cluster_set(uint32_t mask) {
-    *(snrt_cluster_clint_set_ptr(snrt_cluster_idx())) = mask;
+    *(snrt_cluster_clint_set_ptr()) = mask;
 }
 
 /**
@@ -19,7 +19,7 @@ inline void snrt_int_cluster_set(uint32_t mask) {
  * @param mask set bit at X clears the interrupt of hart X
  */
 inline void snrt_int_cluster_clr(uint32_t mask) {
-    *(snrt_cluster_clint_clr_ptr(snrt_cluster_idx())) = mask;
+    *(snrt_cluster_clint_clr_ptr()) = mask;
 }
 
 /**
