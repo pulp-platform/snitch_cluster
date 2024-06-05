@@ -7,7 +7,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-
 // Forward declarations
 #include "alloc_decls.h"
 #include "cls_decls.h"
