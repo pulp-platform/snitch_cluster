@@ -42,6 +42,7 @@ APPS  = sw/apps/lto
 APPS += sw/apps/nop
 APPS += sw/apps/blas/axpy
 APPS += sw/apps/blas/gemm
+APPS += sw/apps/blas/dotp
 APPS += sw/apps/dnn/batchnorm
 APPS += sw/apps/dnn/conv2d
 APPS += sw/apps/dnn/fusedconv
