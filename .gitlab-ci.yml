@@ -35,7 +35,9 @@ snitch-cluster-sw:
   artifacts:
     paths:
       - sw/math/include/bits/alltypes.h
+      - target/snitch_cluster/sw/runtime/common/*.h
       - target/snitch_cluster/sw/**/build/*.elf
+      - target/snitch_cluster/sw/runtime/rtl/build/libsnRuntime.a
     expire_in: 1 day
 
 snitch-cluster-sw-banshee:
