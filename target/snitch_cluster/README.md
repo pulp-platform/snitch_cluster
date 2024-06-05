@@ -23,13 +23,14 @@ make bin/snitch_cluster.vlt
 verilator-4.110 make bin/snitch_cluster.vlt
 
 # Questa (for IIS users)
-questa-2022.3 make bin/snitch_cluster.vsim
+questa-2022.3 make DEBUG=ON bin/snitch_cluster.vsim
 
 # VCS (for IIS users)
 vcs-2020.12 make bin/snitch_cluster.vcs
 ```
 
 These commands compile the RTL sources respectively in `work-vlt`, `work-vsim` and `work-vcs`. Additionally, common C++ testbench sources (e.g. the [frontend server (fesvr)](https://github.com/riscv-software-src/riscv-isa-sim)) are compiled under `work`. Each command will also generate a script or an executable (e.g. `bin/snitch_cluster.vsim`) which you can invoke to simulate the hardware. We will see how to do this in a later section.
+The variable `DEBUG=ON` is used to preserve the visibility of all the internal signals during simulation.
 
 ### Building the Banshee simulator
 Instead of running an RTL simulation, you can use our instruction-accurate simulator called `banshee`. To install the simulator, please follow the instructions of the Banshee repository: [https://github.com/pulp-platform/banshee](https://github.com/pulp-platform/banshee).
