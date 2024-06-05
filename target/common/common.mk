@@ -87,13 +87,11 @@ VLT_FLAGS    += -Wno-UNSIGNED
 VLT_FLAGS    += -Wno-UNOPTFLAT
 VLT_FLAGS    += -Wno-fatal
 VLT_FLAGS    += --unroll-count 1024
-ifneq ($(VLT_NUM_THREADS), 1)
-	VLT_FLAGS	 += --threads $(VLT_NUM_THREADS)
-endif
+VLT_FLAGS	 += --threads $(VLT_NUM_THREADS)
 VLT_CFLAGS   += -std=c++14 -pthread
-ifneq ($(VLT_NUM_THREADS), 1)
-	VLT_CFLAGS	 += -DVL_THREADED=1
-endif
+# Custom test benches including the harness must manually define 'VL_THREADED' if multithreaded.
+# See https://github.com/verilator/verilator/issues/3668#issuecomment-1288989145.
+VLT_CFLAGS	 += -DVL_THREADED
 VLT_CFLAGS   +=-I ${VLT_BUILDDIR} -I $(VLT_ROOT)/include -I $(VLT_ROOT)/include/vltstd -I $(VLT_FESVR)/include -I $(TB_DIR) -I ${MKFILE_DIR}/test
 
 ANNOTATE_FLAGS      ?= -q --keep-time --addr2line=$(ADDR2LINE)
