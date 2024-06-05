@@ -49,10 +49,18 @@ module snax_alu_csr #(
   //-------------------------------
   // Control for updating register set
   //-------------------------------
-
-  // Wires
   logic [RegDataWidth-1:0] csr_reg_rw_len;
   logic                    csr_reg_set_req_success;
+
+  //-------------------------------
+  // Internal registers that become
+  // read only to the CSR manager
+  //-------------------------------
+  logic                    reg_ro_busy;
+  logic [RegDataWidth-1:0] reg_ro_perf_counter;
+
+  logic [RegDataWidth-1:0] len_counter;
+  logic                    len_counter_finish;
 
   // The CSR manager is always ready to take
   // in new configurations
@@ -93,16 +101,6 @@ module snax_alu_csr #(
   // Indicate if accelerator is busy or not
   // Use this signal for the ready side of the PEs
   assign acc_ready_o = reg_ro_busy;
-
-  //-------------------------------
-  // Internal registers that become
-  // read only to the CSR manager
-  //-------------------------------
-  logic                    reg_ro_busy;
-  logic [RegDataWidth-1:0] reg_ro_perf_counter;
-
-  logic [RegDataWidth-1:0] len_counter;
-  logic                    len_counter_finish;
 
   // Some simple logic to indicate the last counter
   assign len_counter_finish = (len_counter == (csr_reg_rw_len - 1));

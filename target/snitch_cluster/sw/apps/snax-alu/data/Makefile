@@ -9,7 +9,7 @@ MK_DIR   := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 DATA_DIR := $(realpath $(MK_DIR))
 
 # Set these as default values
-LENGTH ?= 320
+LENGTH ?= 100
 MODE ?= 0
 
 # File paths

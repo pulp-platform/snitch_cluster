@@ -89,9 +89,13 @@ class CsrManager(
           io.csr_config_in.req.bits.addr < csrNumReadWrite.U,
           "csr write address overflow!"
         )
-      }.otherwise {
+      }
+    }
+
+    when(io.csr_config_in.req.valid) {
+      when(io.csr_config_in.req.bits.write === 0.B) {
         assert(
-          0.U <= io.csr_config_in.req.bits.addr && (io.csr_config_in.req.bits.addr < csrNumReadWrite.U + csrNumReadOnly.U),
+          io.csr_config_in.req.bits.addr < (csrNumReadWrite + csrNumReadOnly).U,
           "csr read address overflow!"
         )
       }
