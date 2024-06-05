@@ -22,7 +22,7 @@ class FIFO(
   val io = IO(new FIFOIO(width))
 
   if (depth > 0) {
-    val fifo = Module(new Queue(UInt(width.W), depth, pipe = true))
+    val fifo = Module(new Queue(UInt(width.W), depth, flow = true))
     fifo.io.enq <> io.in
     fifo.io.deq <> io.out
     io.almost_full := fifo.io.count === (depth - 1).U
