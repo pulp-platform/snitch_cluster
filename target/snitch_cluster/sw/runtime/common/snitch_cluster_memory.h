@@ -30,7 +30,6 @@
 // snRuntime interface functions
 //===============================================================
 
-
 inline uint32_t cluster_base_offset() {
     return snrt_cluster_idx() * SNRT_CLUSTER_OFFSET;
 }
