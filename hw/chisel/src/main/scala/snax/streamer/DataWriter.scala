@@ -41,6 +41,17 @@ class DataWriter(
   override lazy val io = IO(new DataWriterIO(params))
   io.suggestName("io")
 
+  override lazy val spatial_addr_gen_unit = Module(
+    new SpatialAddrGenUnit(
+      SpatialAddrGenUnitParams(
+        params.spatialDim,
+        params.spatialBounds,
+        params.addrWidth
+      ),
+      tagName + "DataWriter"
+    )
+  )
+
   // For a write request, assert the write bit and assign the data
   for (i <- 0 until params.tcdmPortsNum) {
     io.tcdm_req(i).bits.write := 1.B

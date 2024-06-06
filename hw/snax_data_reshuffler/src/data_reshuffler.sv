@@ -29,9 +29,44 @@ module data_reshuffler #(
     output logic                           csr_ready
 );
 
-  // store the configuration
-  reg [31:0] transpose;
+  //-------------------------------
+  // Wires and registers
+  //-------------------------------
+  logic [SpatPar-1:0][SpatPar-1:0][Elems-1:0] a_split;
+  logic [SpatPar-1:0][SpatPar-1:0][Elems-1:0] z_split;
+  logic [(SpatPar*DataWidth)-1:0] z_wide_tmp;
 
+  logic a_success;
+  logic z_success;
+
+  // Store the configuration
+  logic [31:0] transpose;
+
+  //-------------------------------
+  // Combinational logic
+  //-------------------------------
+
+  assign a_success = a_valid_i && a_ready_o;
+  assign z_success = z_valid_o && z_ready_i;
+
+  // Always ready CSR
+  assign csr_ready = 1;
+
+  // Combinational logic to transpose data
+  for (genvar i = 0; i < SpatPar; i++) begin: gen_outer_loop
+    for (genvar j = 0; j < SpatPar; j++) begin: gen_inner_loop
+      assign a_split[i][j] = a_i[(i*SpatPar+j)*Elems+:Elems];
+      // Transpose the data
+      assign z_split[i][j] = a_split[j][i];
+      assign z_wide_tmp[(i*SpatPar+j)*Elems+:Elems] = (transpose) ? z_split[i][j] : a_split[i][j];
+    end
+  end
+
+  //-------------------------------
+  // Registered signals
+  //-------------------------------
+
+  // Saving transpose state
   always_ff @(posedge clk_i or negedge rst_ni) begin
     if (!rst_ni) begin
       transpose <= 0;
@@ -42,64 +77,34 @@ module data_reshuffler #(
     end
   end
 
-  assign csr_ready = 1;
-
-  //-------------------------------
-  // Wires and combinationa logic
-  //-------------------------------
-  logic [SpatPar-1:0][SpatPar-1:0][Elems-1:0] a_split;
-  logic [SpatPar-1:0][SpatPar-1:0][Elems-1:0] z_split;
-  logic [(SpatPar*DataWidth)-1:0] z_wide;
-  logic [(SpatPar*DataWidth)-1:0] z_wide_tmp;
-
-  for (genvar i = 0; i < SpatPar; i++) begin: gen_outer_loop
-    for (genvar j = 0; j < SpatPar; j++) begin: gen_inner_loop
-      assign a_split[i][j] = a_i[(i*SpatPar+j)*Elems+:Elems];
-      // Transpose the data
-      assign z_split[i][j] = a_split[j][i];
-      assign z_wide_tmp[(i*SpatPar+j)*Elems+:Elems] = (transpose) ? z_split[i][j] : a_split[i][j];
-    end
-  end
-
-  logic a_success;
-  logic z_success;
-  logic output_stalled;
-  logic z_valid_init;
-
-  assign a_success = a_valid_i && a_ready_o;
-  assign z_success = z_valid_o && z_ready_i;
-
+  // Output control
   always_ff @(posedge clk_i or negedge rst_ni) begin
+
     if (!rst_ni) begin
-      z_wide <= {(SpatPar * DataWidth) {1'b0}};
+      z_o       <= {(SpatPar * DataWidth) {1'b0}};
+      z_valid_o <= 1'b0;
     end else begin
-      if (a_success) begin
-        z_wide <= z_wide_tmp;
+
+      // Output correctly if output is ready to
+      // acess data, otherwise don't take it
+      if (z_ready_i && a_success) begin
+        z_o       <= z_wide_tmp;
+        z_valid_o <= 1'b1;
+
+      // If output is success and no new inputs
+      // clear the output
+      end else if (z_success) begin
+        z_o       <= {(SpatPar * DataWidth) {1'b0}};
+        z_valid_o <= 1'b0;
+
+      // Retain state if nothing else happens
       end else begin
-        z_wide <= z_wide;
+        z_o       <= z_o;
+        z_valid_o <= z_valid_o;
       end
     end
+
   end
-
-  always_ff @(posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni) begin
-      z_valid_init <= 1'b0;
-    end else begin
-      z_valid_init <= a_success;
-    end
-  end
-
-  always_ff @(posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni) begin
-      output_stalled <= 1'b0;
-    end else begin
-      output_stalled <= z_valid_o && !z_ready_i;
-    end
-  end
-
-  assign a_ready_o = !output_stalled && !(z_valid_o && !z_ready_i);
-
-  assign z_valid_o = z_valid_init || output_stalled;
-  assign z_o       = z_wide;
+  assign a_ready_o = z_ready_i;
 
 endmodule

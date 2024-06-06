@@ -47,6 +47,17 @@ class DataReader(
   override lazy val io = IO(new DataReaderIO(params))
   io.suggestName("io")
 
+  override lazy val spatial_addr_gen_unit = Module(
+    new SpatialAddrGenUnit(
+      SpatialAddrGenUnitParams(
+        params.spatialDim,
+        params.spatialBounds,
+        params.addrWidth
+      ),
+      tagName + "DataReader"
+    )
+  )
+
   // For a read request, data can be set to 0, deassert write bit
   for (i <- 0 until params.tcdmPortsNum) {
     io.tcdm_req(i).bits.data := 0.U

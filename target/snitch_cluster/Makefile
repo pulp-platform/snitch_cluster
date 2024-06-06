@@ -57,7 +57,7 @@ GENERATED_DIR     ?= $(MKFILE_DIR)generated
 ####################
 
 define generate_snax_gen
-SNAX_GEN := \
+SNAX_GEN += \
 	$(GENERATED_DIR)/$(1)/$(1)_csrman_CsrManager.sv \
 	$(GENERATED_DIR)/$(1)/$(1)_streamer_StreamerTop.sv \
 	$(GENERATED_DIR)/$(1)/$(1)_csrman_wrapper.sv \
@@ -132,6 +132,25 @@ $(eval $(call generate_snax_gen,snax_streamer_gemm))
     VSIM_BENDER += -t snax_streamer_gemm
     VLT_BENDER  += -t snax_streamer_gemm
     VCS_BENDER  += -t snax_streamer_gemm
+ 
+endif
+
+ifeq (${CFG_OVERRIDE}, cfg/snax-wide-gemm-data-reshuffler.hjson)
+ 
+$(eval $(call generate_snax_gen,snax_streamer_gemm))
+ 
+    SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
+    include $(SNAX_GEMM_ROOT)/Makefile
+ 
+    VSIM_BENDER += -t snax_streamer_gemm
+    VLT_BENDER  += -t snax_streamer_gemm
+    VCS_BENDER  += -t snax_streamer_gemm
+
+$(eval $(call generate_snax_gen,snax_data_reshuffler))
+
+	VSIM_BENDER += -t snax_data_reshuffler
+	VLT_BENDER  += -t snax_data_reshuffler
+	VCS_BENDER  += -t snax_data_reshuffler
  
 endif
 

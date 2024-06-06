@@ -72,7 +72,7 @@ class DataMover(
   }
 
   // Instantiate the spatial address generation unit
-  val spatial_addr_gen_unit = Module(
+  lazy val spatial_addr_gen_unit = Module(
     new SpatialAddrGenUnit(
       SpatialAddrGenUnitParams(
         params.spatialDim,

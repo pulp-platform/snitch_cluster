@@ -1,0 +1,250 @@
+// Copyright 2024 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
+
+// Cluster configuration for hooking up the gemm ad the data reshuffler to the narrow ports system.
+{
+    nr_s1_quadrant: 1,
+    s1_quadrant: {
+        nr_clusters: 1,
+    },
+
+    cluster: {
+        boot_addr: 4096, // 0x1000
+        cluster_base_addr: 268435456, // 0x1000_0000
+        cluster_base_offset: 0, // 0x0
+        cluster_base_hartid: 0,
+        addr_width: 48,
+        data_width: 64,
+        tcdm: {
+            size: 128,
+            banks: 32,
+        },
+        cluster_periph_size: 64, // kB
+        zero_mem_size: 64, // kB
+        dma_data_width: 512,
+        dma_axi_req_fifo_depth: 3,
+        dma_req_fifo_depth: 3,
+        // Timing parameters
+        timing: {
+            lat_comp_fp32: 3,
+            lat_comp_fp64: 3,
+            lat_comp_fp16: 2,
+            lat_comp_fp16_alt: 2,
+            lat_comp_fp8: 1,
+            lat_comp_fp8_alt: 1,
+            lat_noncomp: 1,
+            lat_conv: 1,
+            lat_sdotp: 2,
+            fpu_pipe_config: "BEFORE"
+            narrow_xbar_latency: "CUT_ALL_PORTS",
+            wide_xbar_latency: "CUT_ALL_PORTS",
+            // Isolate the core.
+            register_core_req: true,
+            register_core_rsp: true,
+            register_offload_req: true,
+            register_offload_rsp: true
+        },
+        hives: [
+            // Hive 0
+            {
+                icache: {
+                    size: 8, // total instruction cache size in kByte
+                    sets: 2, // number of ways
+                    cacheline: 256 // word size in bits
+                },
+                cores: [
+                    { $ref: "#/snax_streamer_gemm_core_template" },
+                    { $ref: "#/snax_data_reshuffler_core_template"},
+                    { $ref: "#/dma_core_template" },
+                ]
+            }
+        ]
+    },
+    dram: {
+        // 0x8000_0000
+        address: 2147483648,
+        // 0x8000_0000
+        length: 2147483648
+    },
+    peripherals: {
+        clint: {
+            // 0xffff_0000
+            address: 4294901760,
+            // 0x0000_1000
+            length: 4096
+        },
+    },
+    // Templates.
+    snax_data_reshuffler_core_template: {
+        isa: "rv32imafd",
+        xssr: false,
+        xfrep: false,
+        xdma: false,
+        xf16: false,
+        xf16alt: false,
+        xf8: false,
+        xf8alt: false,
+        xfdotp: false,
+        xfvec: false,
+        snax_acc_cfg: {
+            snax_acc_name: "snax_data_reshuffler",
+            snax_module: "snax_data_reshuffler_wrapper",
+            snax_tcdm_ports: 16,
+            snax_num_rw_csr: 2,
+            snax_num_ro_csr: 0,
+            snax_streamer_cfg: {$ref: "#/snax_data_reshuffler_streamer_template" }
+        },
+        snax_acc_wide: false,
+        num_int_outstanding_loads: 1,
+        num_int_outstanding_mem: 4,
+        num_fp_outstanding_loads: 4,
+        num_fp_outstanding_mem: 4,
+        num_sequencer_instructions: 16,
+        num_dtlb_entries: 1,
+        num_itlb_entries: 1,
+        // Enable division/square root unit
+        // Xdiv_sqrt: true,
+    },
+    snax_streamer_gemm_core_template: {
+        isa: "rv32imafd",
+        xssr: true,
+        xfrep: true,
+        xdma: false,
+        xf16: true,
+        xf16alt: true,
+        xf8: true,
+        xf8alt: true,
+        xfdotp: true,
+        xfvec: true,
+        snax_acc_cfg: {
+            snax_acc_name: "snax_streamer_gemm",
+            snax_module: "snax_streamer_gemm_wrapper",
+            snax_tcdm_ports: 48,
+            snax_num_rw_csr: 5,
+            snax_num_ro_csr: 2,
+            snax_streamer_cfg: {$ref: "#/snax_streamer_gemm_streamer_template" }
+        },
+        snax_acc_wide: true,
+        num_int_outstanding_loads: 1,
+        num_int_outstanding_mem: 4,
+        num_fp_outstanding_loads: 4,
+        num_fp_outstanding_mem: 4,
+        num_sequencer_instructions: 16,
+        num_dtlb_entries: 1,
+        num_itlb_entries: 1,
+        // Enable division/square root unit
+        // Xdiv_sqrt: true,
+    },
+    compute_core_template: {
+        isa: "rv32imafd",
+        xssr: true,
+        xfrep: true,
+        xdma: false,
+        xf16: true,
+        xf16alt: true,
+        xf8: true,
+        xf8alt: true,
+        xfdotp: true,
+        xfvec: true,
+        num_int_outstanding_loads: 1,
+        num_int_outstanding_mem: 4,
+        num_fp_outstanding_loads: 4,
+        num_fp_outstanding_mem: 4,
+        num_sequencer_instructions: 16,
+        num_dtlb_entries: 1,
+        num_itlb_entries: 1,
+        // Enable division/square root unit
+        // Xdiv_sqrt: true,
+    },
+    dma_core_template: {
+        isa: "rv32imafd",
+        // Xdiv_sqrt: true,
+        # isa: "rv32ema",
+        xdma: true
+        xssr: false
+        xfrep: false
+        xf16: false,
+        xf16alt: false,
+        xf8: false,
+        xf8alt: false,
+        xfdotp: false,
+        xfvec: false,
+        num_int_outstanding_loads: 1,
+        num_int_outstanding_mem: 4,
+        num_fp_outstanding_loads: 4,
+        num_fp_outstanding_mem: 4,
+        num_sequencer_instructions: 16,
+        num_dtlb_entries: 1,
+        num_itlb_entries: 1,
+    },
+    // SNAX Streamer Templates
+    snax_data_reshuffler_streamer_template :{
+
+        temporal_addrgen_unit_params: {
+            loop_dim: [2],
+            share_temp_addr_gen_loop_bounds: true,
+        }
+
+        fifo_reader_params: {
+            fifo_width: [512],
+            fifo_depth: [2],
+        }
+
+        fifo_writer_params: {
+            fifo_width: [512],
+            fifo_depth: [2],
+        }
+
+        data_reader_params:{
+            tcdm_ports_num: [8],
+            spatial_bounds: [[8]],
+            spatial_dim: [1],
+            element_width: [64],
+        }
+
+        data_writer_params:{
+            tcdm_ports_num: [8],
+            spatial_bounds: [[8]],
+            spatial_dim: [1],
+            element_width: [64],
+        }
+
+        stationarity: [0,0]
+    },
+    snax_streamer_gemm_streamer_template :{
+
+        temporal_addrgen_unit_params: {
+            loop_dim: [3],
+            share_temp_addr_gen_loop_bounds: true,
+        }
+
+        fifo_reader_params: {
+            fifo_width: [512, 512],
+            fifo_depth: [2, 2],
+        }
+
+        fifo_writer_params: {
+            fifo_width: [2048],
+            fifo_depth: [2],
+        }
+
+        data_reader_params:{
+            tcdm_ports_num: [8, 8],
+            spatial_bounds: [[8, 8], [8, 8]],
+            spatial_dim: [2, 2],
+            element_width: [8, 8],
+        }
+
+        data_writer_params:{
+            tcdm_ports_num: [32],
+            spatial_bounds: [[8, 8]],
+            spatial_dim: [2],
+            element_width: [32],
+        }
+
+        stationarity: [0,0,1]
+    }
+}
