@@ -3,8 +3,9 @@
 // SPDX-License-Identifier: SHL-0.51
 
 {
-    M: 32,
-    N: 64,
+    M: 104,
+    N: 104,
     prec: 1,
-    baseline: false
+    baseline: false,
+    opt_ssr: true
 }

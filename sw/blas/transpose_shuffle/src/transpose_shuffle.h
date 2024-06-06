@@ -16,47 +16,76 @@ typedef __fp16 v4f16 __attribute__((vector_size(8)));
 typedef char v8f8 __attribute__((vector_size(8)));
 #endif
 
-/**
- * @struct transpose_layer_t
- * @brief This structure contains all parameters necessary
- *       for computing the Transpose of a matrix
- * @var transpose_layer_t::M
- * First dimension of the matrix
- * @var transpose_layer_t::N
- * Second dimension of the matrix
- * @var transpose_layer_t::input
- * Pointer to input feature map
- * @var transpose_layer_t::output
- * Pointer to output feature map
- */
-// #ifndef TRANSPOSE_LAYER_T
-// #define TRANSPOSE_LAYER_T
-// typedef struct {
-//     uint32_t M;
-//     uint32_t N;
-//     void* input;
-//     void* output;
-//     precision_t dtype;
-//     uint32_t baseline;
-// } transpose_layer_t;
-// #endif
+static inline void transpose_fp8_baseline_opt(char* input, char* res, uint32_t M, uint32_t N) {
+
+    const uint32_t ssr_b[2] = {N, M};
+    const uint32_t ssr0_i[2] = {N * sizeof(char), sizeof(char)};
+    const uint32_t ssr1_i[2] = {sizeof(char), M * sizeof(char)};
+    const uint32_t n_frep = M * N - 1;
+
+    snrt_ssr_loop_2d(SNRT_SSR_DM0, ssr_b[1], ssr_b[0], ssr0_i[1], ssr0_i[0]);
+    snrt_ssr_loop_2d(SNRT_SSR_DM1, ssr_b[1], ssr_b[0], ssr1_i[1], ssr1_i[0]);
+
+    snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_2D, input);
+    snrt_ssr_write(SNRT_SSR_DM1, SNRT_SSR_2D, res);
+    snrt_ssr_enable();
+
+    asm volatile(
+        "frep.o  %[n_frep], 1, 0, 0 \n"
+        "fsgnj.b ft1, ft0, ft0 \n" 
+        ::[n_frep] "r"(n_frep)
+        : "ft0", "ft1", "ft2");
+
+    snrt_ssr_disable();
+
+    snrt_fpu_fence();
+}
+
 
 static inline void transpose_fp8_baseline(char* input, char* res, uint32_t M, uint32_t N) {
+
+    volatile register char *a_ptr;
+    volatile char *b_ptr;
 
     for (int m = 0; m < M; m++) {
         for (int n = 0; n < N; n++)
         {
-            res[n * M + m] = input[m * N + n];
+            a_ptr = &input[m * N + n];
+            b_ptr = &res[n * M + m];
+
+            asm volatile(
+                "flb ft2, 0(%[a_ptr]) \n"
+                "fsb ft2, 0(%[b_ptr]) \n"
+                : 
+                : [a_ptr] "r"(a_ptr), [b_ptr] "r"(b_ptr)
+                : "ft0", "ft1", "ft2");
+
+            // res[n * M + m] = input[m * N + n];
         }
     }
 }
 
 static inline void transpose_fp16_baseline(__fp16* input, __fp16* res, uint32_t M, uint32_t N) {
 
+    volatile register __fp16 *a_ptr;
+    volatile __fp16 *b_ptr;
+
     for (int m = 0; m < M; m++) {
         for (int n = 0; n < N; n++)
         {
-            res[n * M + m] = input[m * N + n];
+            uint32_t indx_a = m * N + n;
+            uint32_t indx_b = n * M + m;
+
+            a_ptr = &input[indx_a];
+            b_ptr = &res[indx_b];
+
+            asm volatile(
+                "flh ft2, 0(%[a_ptr]) \n"
+                "fsh ft2, 0(%[b_ptr]) \n"
+                :
+                : [a_ptr] "r"(a_ptr), [b_ptr] "r"(b_ptr)
+                : "ft0", "ft1", "ft2");
+            // res[n * M + m] = input[m * N + n];
         }
     }
 }
@@ -130,11 +159,12 @@ static inline void transpose_shuffle_fp8(char* input, char* res, uint32_t M, uin
                 "vfshuffle.b f7, f8, %[mask_1] \n" 
                 "vfshuffle.b f9, f11, %[mask_0] \n" 
                 "vfshuffle.b f10, f11, %[mask_1] \n" 
-                : [a0_ptr] "+r"(a0_ptr), [a1_ptr] "+r"(a1_ptr),
-                [a2_ptr] "+r"(a2_ptr), [a3_ptr] "+r"(a3_ptr),
-                [a4_ptr] "+r"(a4_ptr), [a5_ptr] "+r"(a5_ptr),
-                [a6_ptr] "+r"(a6_ptr), [a7_ptr] "+r"(a7_ptr),
-                [mask_0] "+r"(mask_0), [mask_1] "+r"(mask_1));     
+                :
+                : [a0_ptr] "r"(a0_ptr), [a1_ptr] "r"(a1_ptr),
+                [a2_ptr] "r"(a2_ptr), [a3_ptr] "r"(a3_ptr),
+                [a4_ptr] "r"(a4_ptr), [a5_ptr] "r"(a5_ptr),
+                [a6_ptr] "r"(a6_ptr), [a7_ptr] "r"(a7_ptr),
+                [mask_0] "r"(mask_0), [mask_1] "r"(mask_1));     
 
             asm volatile(
                 "fmv.d f12, f0 \n" // make copies
@@ -173,12 +203,13 @@ static inline void transpose_shuffle_fp8(char* input, char* res, uint32_t M, uin
                 "fsd f17, 0(%[b5_ptr]) \n" 
                 "fsd f0, 0(%[b6_ptr]) \n" 
                 "fsd f16, 0(%[b7_ptr]) \n" 
-                : [mask_2] "+r"(mask_2), [mask_3] "+r"(mask_3),
-                [mask_4] "+r"(mask_4), [mask_5] "+r"(mask_5),
-                [b0_ptr] "+r"(b0_ptr), [b1_ptr] "+r"(b1_ptr),
-                [b2_ptr] "+r"(b2_ptr), [b3_ptr] "+r"(b3_ptr),
-                [b4_ptr] "+r"(b4_ptr), [b5_ptr] "+r"(b5_ptr),
-                [b6_ptr] "+r"(b6_ptr), [b7_ptr] "+r"(b7_ptr));
+                :
+                : [mask_2] "r"(mask_2), [mask_3] "r"(mask_3),
+                [mask_4] "r"(mask_4), [mask_5] "r"(mask_5),
+                [b0_ptr] "r"(b0_ptr), [b1_ptr] "r"(b1_ptr),
+                [b2_ptr] "r"(b2_ptr), [b3_ptr] "r"(b3_ptr),
+                [b4_ptr] "r"(b4_ptr), [b5_ptr] "r"(b5_ptr),
+                [b6_ptr] "r"(b6_ptr), [b7_ptr] "r"(b7_ptr));
         }
     }
 }
@@ -211,8 +242,8 @@ static inline void transpose_shuffle_fp16(__fp16* input, __fp16* res, uint32_t M
 
             asm volatile(
                 "fld f2, 0(%0) \n" // f0 and f2 are a0
-                "fld f1, 0(%1) \n"
                 "fld f12, 0(%2) \n" // f10 and f12 are a2
+                "fld f1, 0(%1) \n"
                 "fld f11, 0(%3) \n"
                 "fmv.d f0, f2 \n"
                 "fmv.d f10, f12 \n"
@@ -220,9 +251,9 @@ static inline void transpose_shuffle_fp16(__fp16* input, __fp16* res, uint32_t M
                 "vfshuffle.h f2, f1, %[mask_1] \n" 
                 "vfshuffle.h f10, f11, %[mask_0] \n" 
                 "vfshuffle.h f12, f11, %[mask_1] \n" 
-                : "+r"(a0_ptr), "+r"(a1_ptr),
-                "+r"(a2_ptr), "+r"(a3_ptr),
-                [mask_0] "+r"(mask_0), [mask_1] "+r"(mask_1));     
+                :: "r"(a0_ptr), "r"(a1_ptr),
+                "r"(a2_ptr), "r"(a3_ptr),
+                [mask_0] "r"(mask_0), [mask_1] "r"(mask_1));     
 
             asm volatile(
                 "fmv.d f3, f0 \n" // t0 in f4 and f8
@@ -235,9 +266,10 @@ static inline void transpose_shuffle_fp16(__fp16* input, __fp16* res, uint32_t M
                 "fsd f3, 0(%[b1_ptr]) \n" 
                 "fsd f2, 0(%[b2_ptr]) \n" 
                 "fsd f4, 0(%[b3_ptr]) \n"  
-                : [mask_2] "+r"(mask_2), [mask_3] "+r"(mask_3),
-                [b0_ptr] "+r"(b0_ptr), [b1_ptr] "+r"(b1_ptr),
-                [b2_ptr] "+r"(b2_ptr), [b3_ptr] "+r"(b3_ptr));
+                :
+                : [mask_2] "r"(mask_2), [mask_3] "r"(mask_3),
+                [b0_ptr] "r"(b0_ptr), [b1_ptr] "r"(b1_ptr),
+                [b2_ptr] "r"(b2_ptr), [b3_ptr] "r"(b3_ptr));
         }
     }
 }
@@ -268,36 +300,222 @@ static inline void transpose_shuffle_fp32(float *input, float *res, uint32_t M, 
                 "vfshuffle.s f4, f1, %3\n"
                 "fsd f0, 0(%4) \n"
                 "fsd f4, 0(%5) \n"
-                : "+r"(a0_ptr), "+r"(a1_ptr),
-                "+r"(mask_0), "+r"(mask_1),
-                "+r"(b0_ptr), "+r"(b1_ptr));   
+                :
+                : "r"(a0_ptr), "r"(a1_ptr),
+                "r"(mask_0), "r"(mask_1),
+                "r"(b0_ptr), "r"(b1_ptr));   
         }
     }
+}
 
+static inline void transpose_shuffle_fp8_opt(char* A, char* B, const uint32_t M, const uint32_t N) {
+
+    uint32_t mask_0 = 0xF7E6D5C4;
+    uint32_t mask_1 = 0xB3A29180;
+    uint32_t mask_2 = 0xFE76DC54;
+    uint32_t mask_3 = 0xBA329810;
+    uint32_t mask_4 = 0xBA983210;
+    uint32_t mask_5 = 0xFEDC7654;
+
+    snrt_ssr_loop_3d(SNRT_SSR_DM0, 8, N/8, M/8, N*sizeof(char), 8*sizeof(char), 8*N*sizeof(char));
+    snrt_ssr_loop_3d(SNRT_SSR_DM1, 8, N/8, M/8, M*sizeof(char), 8*M*sizeof(char), 8*sizeof(char)); 
+    snrt_ssr_repeat(SNRT_SSR_DM0, 2); 
+
+    // SSR start address need to be configured each time
+    snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_3D, A);
+    snrt_ssr_write(SNRT_SSR_DM1, SNRT_SSR_3D, B);
+    snrt_ssr_enable();
+
+    const uint32_t n_frep = (M * N / 64) - 1;
+
+    for (int m = 0; m < M; m+=8)
+    {
+        for (int n = 0; n < N; n+=8)
+        {
+            asm volatile(
+
+                "fmv.d ft3, ft0 \n"
+                "fmv.d ft4, ft0 \n"
+                "vfshuffle.b ft3, ft0, %[mask_0] \n" 
+                "vfshuffle.b ft4, ft0, %[mask_1] \n" 
+                "fmv.d ft5, ft0 \n"
+                "fmv.d ft6, ft0 \n"
+                "vfshuffle.b ft5, ft0, %[mask_0] \n" 
+                "vfshuffle.b ft6, ft0, %[mask_1] \n" 
+                "fmv.d ft7, ft0 \n"
+                "fmv.d f8, ft0 \n"
+                "vfshuffle.b ft7, ft0, %[mask_0] \n" 
+                "vfshuffle.b f8, ft0, %[mask_1] \n" 
+                "fmv.d f9, ft0 \n"
+                "fmv.d f10, ft0 \n"
+                "vfshuffle.b f9, ft0, %[mask_0] \n" 
+                "vfshuffle.b f10, ft0, %[mask_1] \n" 
+
+                "fmv.d f12, ft3 \n"
+                "fmv.d f13, ft4 \n"
+                "fmv.d f14, ft7 \n"
+                "fmv.d f15, f8 \n"
+
+                "vfshuffle.b ft3, ft5, %[mask_2]\n" 
+                "vfshuffle.b f12, ft5, %[mask_3]\n" 
+                "vfshuffle.b ft4, ft6, %[mask_2]\n" 
+                "vfshuffle.b f13, ft6, %[mask_3]\n" 
+                "vfshuffle.b ft7, f9, %[mask_2]\n" 
+                "vfshuffle.b f14, f9, %[mask_3]\n" 
+                "vfshuffle.b f8, f10, %[mask_2]\n" 
+                "vfshuffle.b f15, f10, %[mask_3]\n" 
+
+                "fmv.d f16, ft3 \n" // make copies
+                "fmv.d f17, f12 \n"
+                "fmv.d f18, ft4 \n" 
+                "fmv.d f19, f13 \n"
+
+                "vfshuffle.b f13, f15, %[mask_4]\n" 
+                "vfshuffle.b f19, f15, %[mask_5]\n" 
+                "vfshuffle.b ft4, f8, %[mask_4]\n" 
+                "vfshuffle.b f18, f8, %[mask_5]\n" 
+                "vfshuffle.b f12, f14, %[mask_4]\n" 
+                "vfshuffle.b f17, f14, %[mask_5]\n" 
+                "vfshuffle.b ft3, ft7, %[mask_4]\n" 
+                "vfshuffle.b f16, ft7, %[mask_5]\n" 
+
+                "fmv.d ft1, f13 \n"
+                "fmv.d ft1, f19 \n"  
+                "fmv.d ft1, ft4 \n"
+                "fmv.d ft1, f18 \n" 
+                "fmv.d ft1, f12 \n"
+                "fmv.d ft1, f17 \n" 
+                "fmv.d ft1, ft3 \n"
+                "fmv.d ft1, f16 \n" 
+                :
+                : [mask_0] "r"(mask_0), [mask_1] "r"(mask_1), 
+                  [mask_2] "r"(mask_2), [mask_3] "r"(mask_3),
+                  [mask_4] "r"(mask_4), [mask_5] "r"(mask_5),
+                  [ n_frep ] "r"(n_frep)
+                : "ft0", "ft1", "ft2");
+        }
+    }   
+
+    // Leave Clean up of leftover columns out for now
+    // only use Matrix that sizes match the "unroll"-shuffle factor (2)
+
+    snrt_ssr_disable();
+}
+
+static inline void transpose_shuffle_fp16_opt(__fp16* A, __fp16* B, const uint32_t M, const uint32_t N) {
+
+    uint32_t mask_0 = 0x9180;
+    uint32_t mask_1 = 0xB3A2;
+    uint32_t mask_2 = 0x9810;
+    uint32_t mask_3 = 0xBA32;
+
+    snrt_ssr_loop_3d(SNRT_SSR_DM0, 4, N/4, M/4, N*sizeof(__fp16), 4*sizeof(__fp16), 4*N*sizeof(__fp16));
+    snrt_ssr_loop_3d(SNRT_SSR_DM1, 4, N/4, M/4, M*sizeof(__fp16), 4*M*sizeof(__fp16), 4*sizeof(__fp16)); 
+    snrt_ssr_repeat(SNRT_SSR_DM0, 2); 
+
+    // SSR start address need to be configured each time
+    snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_3D, A);
+    snrt_ssr_write(SNRT_SSR_DM1, SNRT_SSR_3D, B);
+    snrt_ssr_enable();
+
+    const uint32_t n_frep = (M * N / 16) - 1;
+
+    for (int m = 0; m < M; m+=4)
+    {
+        for (int n = 0; n < N; n+=4)
+        {
+            asm volatile(
+                "fmv.d ft3, ft0 \n"
+                "fmv.d ft4, ft0 \n"
+                "vfshuffle.h ft3, ft0, %[mask_0] \n" 
+                "vfshuffle.h ft4, ft0, %[mask_1] \n" 
+                "fmv.d ft5, ft0 \n"
+                "fmv.d ft6, ft0 \n"
+
+                "fmv.d ft7, ft3 \n" 
+                "fmv.d ft8, ft4 \n"
+
+                "vfshuffle.h ft5, ft0, %[mask_0] \n" 
+                "vfshuffle.h ft6, ft0, %[mask_1] \n" 
+
+                "vfshuffle.h ft3, ft5, %[mask_2]\n" 
+                "vfshuffle.h ft7, ft5, %[mask_3]\n" 
+                "vfshuffle.h ft4, ft6, %[mask_2]\n" 
+                "vfshuffle.h ft8, ft6, %[mask_3]\n" 
+                "fmv.d ft1, ft3 \n"
+                "fmv.d ft1, ft7 \n"
+                "fmv.d ft1, ft4 \n"
+                "fmv.d ft1, ft8 \n"  
+                :
+                : [mask_0] "r"(mask_0), [mask_1] "r"(mask_1), 
+                  [mask_2] "r"(mask_2), [mask_3] "r"(mask_3),
+                  [ n_frep ] "r"(n_frep)
+                : "ft0", "ft1", "ft2");
+        }
+    }   
+
+    // Leave Clean up of leftover columns out for now
+    // only use Matrix that sizes match the "unroll"-shuffle factor (2)
+
+    snrt_ssr_disable();
+}
+
+void transpose_shuffle_fp32_opt(float* A, float* B, const uint32_t M, const uint32_t N) {
+
+    uint32_t mask_0 = 0x80;
+    uint32_t mask_1 = 0x91;
+
+    snrt_ssr_loop_3d(SNRT_SSR_DM0, 2, N/2, M/2, N*sizeof(float), 2*sizeof(float), 2*N*sizeof(float));
+    snrt_ssr_loop_3d(SNRT_SSR_DM1, 2, N/2, M/2, M*sizeof(float), 2*M*sizeof(float), 2*sizeof(float)); 
+    snrt_ssr_repeat(SNRT_SSR_DM0, 2); 
+
+    // SSR start address need to be configured each time
+    snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_3D, A);
+    snrt_ssr_write(SNRT_SSR_DM1, SNRT_SSR_3D, B);
+    snrt_ssr_enable();
+
+    const uint32_t n_frep = (M * N / 4) - 1;
+
+    for (int m = 0; m < M; m+=2)
+    {
+        for (int n = 0; n < N; n+=2)
+        {
+            asm volatile(
+                // "frep.o %[n_frep], 6, 0, 0 \n"
+                "fmv.d ft3, ft0 \n"
+                "fmv.d ft4, ft0 \n"
+                "vfshuffle.s ft3, ft0, %[mask_0] \n"
+                "vfshuffle.s ft4, ft0, %[mask_1] \n"
+                "fmv.d ft1, ft3 \n"
+                "fmv.d ft1, ft4 \n"
+                :
+                : [mask_0] "r"(mask_0), [mask_1] "r"(mask_1),
+                  [ n_frep ] "r"(n_frep)
+                : "ft0", "ft1", "ft2");
+        }
+    }   
+
+    // Leave Clean up of leftover columns out for now
+    // only use Matrix that sizes match the "unroll"-shuffle factor (2)
+
+    snrt_ssr_disable();
 }
 
 static inline void transpose_shuffle_kernel(precision_t dtype, void* input,
                                     void* output, uint32_t M, uint32_t N,
-                                    uint32_t baseline) {
+                                    uint32_t baseline, uint32_t opt_ssr) {
 
     uint32_t frac_M = M / snrt_cluster_compute_core_num();
     
-    if (snrt_cluster_core_idx()==0) {
-
-        // determine the row offset for each core
-        // int32_t row_offset = snrt_cluster_core_idx() * frac_M;
-
-        // // calculate the input address offset
-        // void* input_offset = input + row_offset * N * dtype;
-
-        // // caluclate the output address offset
-        // void* output_offset = output + row_offset * dtype;
-
+    if (snrt_cluster_core_idx() == 0) {
         switch (dtype) {
             case FP8:
                 if (baseline)
                 {
                     transpose_fp8_baseline(input, output, M, N);
+                } else if (opt_ssr)
+                {
+                    transpose_shuffle_fp8_opt(input, output, M, N);
                 } else {
                     transpose_shuffle_fp8(input, output, M, N);
                 }
@@ -306,6 +524,9 @@ static inline void transpose_shuffle_kernel(precision_t dtype, void* input,
                 if (baseline)
                 {
                     transpose_fp16_baseline(input, output, M, N);
+                } else if (opt_ssr)
+                {
+                    transpose_shuffle_fp16_opt(input, output, M, N);
                 } else {
                     transpose_shuffle_fp16(input, output, M, N);
                 }
@@ -314,18 +535,14 @@ static inline void transpose_shuffle_kernel(precision_t dtype, void* input,
                 if (baseline)
                 {
                     transpose_fp32_baseline(input, output, M, N);
+                } else if (opt_ssr)
+                {
+                    transpose_shuffle_fp32_opt(input, output, M, N);
                 } else {
                     transpose_shuffle_fp32(input, output, M, N);
                 }
                 break;
-            // case FP64:
-            //     if (baseline) {
-            //         transpose_fp64_baseline(input_offset, output_offset, frac_M,
-            //                                 N, M);
-            //     } else {
-            //         transpose_fp64_opt(input_offset, output_offset, frac_M, N,
-            //                            M);
-            //     }
+            case FP64:
                 break;
             default:
                 break;
@@ -333,7 +550,7 @@ static inline void transpose_shuffle_kernel(precision_t dtype, void* input,
     }
 }
 
-static inline void transpose_shuffle(void* in, void* out, uint32_t M, uint32_t N, uint32_t dtype, uint32_t baseline) {
+static inline void transpose_shuffle(void* in, void* out, uint32_t M, uint32_t N, uint32_t dtype, uint32_t baseline, uint32_t opt_ssr) {
 
     uint32_t matrix_size = M * N;
 
@@ -351,7 +568,7 @@ static inline void transpose_shuffle(void* in, void* out, uint32_t M, uint32_t N
 
     snrt_cluster_hw_barrier();
 
-    transpose_shuffle_kernel(dtype, input, output, M, N, baseline);
+    transpose_shuffle_kernel(dtype, input, output, M, N, baseline, opt_ssr);
 
     snrt_cluster_hw_barrier();
 
