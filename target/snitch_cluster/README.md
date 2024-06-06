@@ -17,16 +17,14 @@ In the following tutorial you can assume the working directory to be `target/sni
 To compile the hardware for simulation run one of the following commands, depending on the desired simulator:
 
 ```shell
-# Verilator (for Docker users)
+# Verilator
 make bin/snitch_cluster.vlt
-# Verilator (for IIS users)
-verilator-4.110 make bin/snitch_cluster.vlt
 
-# Questa (for IIS users)
-questa-2022.3 make DEBUG=ON bin/snitch_cluster.vsim
+# Questa
+make DEBUG=ON bin/snitch_cluster.vsim
 
-# VCS (for IIS users)
-vcs-2020.12 make bin/snitch_cluster.vcs
+# VCS
+make bin/snitch_cluster.vcs
 ```
 
 These commands compile the RTL sources respectively in `work-vlt`, `work-vsim` and `work-vcs`. Additionally, common C++ testbench sources (e.g. the [frontend server (fesvr)](https://github.com/riscv-software-src/riscv-isa-sim)) are compiled under `work`. Each command will also generate a script or an executable (e.g. `bin/snitch_cluster.vsim`) which you can invoke to simulate the hardware. We will see how to do this in a later section.
@@ -88,16 +86,14 @@ mkdir logs
 Run one of the executables which was compiled in the previous step on your Snitch cluster hardware with your preferred simulator:
 
 ```shell
-# Verilator (for Docker users)
+# Verilator
 bin/snitch_cluster.vlt sw/apps/blas/axpy/build/axpy.elf
-# Verilator (for IIS users)
-verilator-4.110 bin/snitch_cluster.vlt sw/apps/blas/axpy/build/axpy.elf
 
-# Questa (for IIS users)
-questa-2022.3 bin/snitch_cluster.vsim sw/apps/blas/axpy/build/axpy.elf
+# Questa
+bin/snitch_cluster.vsim sw/apps/blas/axpy/build/axpy.elf
 
-# VCS (for IIS users)
-vcs-2020.12 bin/snitch_cluster.vcs sw/apps/blas/axpy/build/axpy.elf
+# VCS
+bin/snitch_cluster.vcs sw/apps/blas/axpy/build/axpy.elf
 
 # Banshee
 banshee --no-opt-llvm --no-opt-jit --configuration src/banshee.yaml --trace sw/apps/blas/axpy/build/axpy.elf
@@ -106,8 +102,8 @@ banshee --no-opt-llvm --no-opt-jit --configuration src/banshee.yaml --trace sw/a
 The previous commands will run the simulation in your current terminal. You can also run the simulation in the QuestaSim GUI by adapting the previous command to:
 
 ```shell
-# Questa (for IIS users)
-questa-2022.3 bin/snitch_cluster.vsim.gui sw/apps/blas/axpy/build/axpy.elf
+# Questa
+bin/snitch_cluster.vsim.gui sw/apps/blas/axpy/build/axpy.elf
 ```
 
 For Banshee, you need to give a specific cluster configuration to the simulator with the flag `--configuration <cluster_config.yaml>`. A default Snitch cluster configuration is given (`src/banshee.yaml`). The flag `--trace` enables the printing of the traces similar to the RTL simulation.
@@ -223,7 +219,7 @@ If you want to dig deeper into how our build system works and how these files we
 You can run your application in simulation as shown in the previous sections. Make sure to pick up the right binary, e.g.:
 
 ```shell
-questa-2022.3 bin/snitch_cluster.vsim sw/apps/axpy/build/axpy.elf
+bin/snitch_cluster.vsim sw/apps/axpy/build/axpy.elf
 ```
 
 ### Debugging and benchmarking
