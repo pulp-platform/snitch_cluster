@@ -10,3 +10,4 @@ runs:
   - elf: tests/build/fp32_comparison_scalar.elf
   - elf: tests/build/fp32_computation_scalar.elf
     simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x2
+  - elf: apps/montecarlo/pi_estimation/build/pi_estimation.elf

@@ -243,6 +243,7 @@ package ${cfg['pkg_name']};
   % endfor
   };
 
+% if cfg['num_ssrs_max'] > 0:
   localparam snitch_ssr_pkg::ssr_cfg_t [${cfg['num_ssrs_max']}-1:0] SsrCfgs [${cfg['nr_cores']}] = '{
 ${ssr_cfg(core, "'{{{indirection:d}, {isect_master:d}, {isect_master_idx:d}, {isect_slave:d}, "\
   "{isect_slave_spill:d}, {indir_out_spill:d}, {num_loops}, {index_width}, {pointer_width}, "\
@@ -253,6 +254,7 @@ ${ssr_cfg(core, "'{{{indirection:d}, {isect_master:d}, {isect_master_idx:d}, {is
   localparam logic [${cfg['num_ssrs_max']}-1:0][4:0] SsrRegs [${cfg['nr_cores']}] = '{
 ${ssr_cfg(core, '{reg_idx}', '/*None*/ 0', ',')}\
   };
+% endif
 
 endpackage
 // verilog_lint: waive-stop package-filename
@@ -489,8 +491,10 @@ for i in range(len(cfg['cores'])):
     .NumSsrsMax (${cfg['num_ssrs_max']}),
     .NumSsrs (NumSsrs),
     .SsrMuxRespDepth (SsrMuxRespDepth),
+% if cfg['num_ssrs_max'] > 0:
     .SsrRegs (${cfg['pkg_name']}::SsrRegs),
     .SsrCfgs (${cfg['pkg_name']}::SsrCfgs),
+% endif
     .NumSequencerInstr (NumSequencerInstr),
     .Hive (${cfg['pkg_name']}::Hive),
     .Topology (snitch_pkg::LogarithmicInterconnect),

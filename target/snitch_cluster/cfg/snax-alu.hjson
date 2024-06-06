@@ -76,16 +76,16 @@
     },
     // SNAX Accelerator Core Templates
     snax_alu_core_template: {
-        isa: "rv32imafd",
-        xssr: true,
-        xfrep: true,
+        isa: "rv32ima",
+        xssr: false,
+        xfrep: false,
         xdma: false,
-        xf16: true,
-        xf16alt: true,
-        xf8: true,
-        xf8alt: true,
-        xfdotp: true,
-        xfvec: true,
+        xf16: false,
+        xf16alt: false,
+        xf8: false,
+        xf8alt: false,
+        xfdotp: false,
+        xfvec: false,
         snax_acc_cfg: {
             snax_acc_name: "snax_alu"
             snax_tcdm_ports: 16,
@@ -105,7 +105,7 @@
         // Xdiv_sqrt: true,
     },
     dma_core_template: {
-        isa: "rv32imafd",
+        isa: "rv32ima",
         // Xdiv_sqrt: true,
         # isa: "rv32ema",
         xdma: true

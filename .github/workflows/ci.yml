@@ -81,7 +81,7 @@ jobs:
         working-directory: target/snitch_cluster
         run: |-
           ./run.py --simulator verilator \
-          sw/runtime.yaml sw/standard-fp.yaml sw/snax-mac-run.yaml -j
+          sw/runtime.yaml sw/snax-mac-run.yaml -j
 
   sw-snax-gemm-cluster-vlt-generic:
     name: Simulate SW on SNAX GEMM Cluster w/ Verilator (Generic LLVM)
@@ -106,7 +106,7 @@ jobs:
         working-directory: target/snitch_cluster
         run: |-
           ./run.py --simulator verilator \
-          sw/runtime.yaml sw/standard-fp.yaml sw/snax-gemm-run.yaml -j
+          sw/runtime.yaml sw/snax-gemm-run.yaml -j
 
   sw-snax-streamer-gemm-cluster-vlt-generic:
     name: Simulate SW on SNAX Streamer GEMM Cluster w/ Verilator (Generic LLVM)
@@ -131,7 +131,7 @@ jobs:
         working-directory: target/snitch_cluster
         run: |-
           ./run.py --simulator verilator \
-          sw/runtime.yaml sw/standard-fp.yaml sw/snax-streamer-gemm-run.yaml -j
+          sw/runtime.yaml sw/snax-streamer-gemm-run.yaml -j
 
   sw-snax-data-reshuffler-cluster-vlt-generic:
     name: Simulate SW on SNAX Data Reshuffler w/ Verilator (Generic LLVM)
@@ -156,7 +156,7 @@ jobs:
         working-directory: target/snitch_cluster
         run: |-
           ./run.py --simulator verilator \
-          sw/runtime.yaml sw/standard-fp.yaml \
+          sw/runtime.yaml \
           sw/snax-data-reshuffler-run.yaml -j
 
   sw-snax-mac-mult-cluster-vlt-generic:
@@ -182,7 +182,7 @@ jobs:
         working-directory: target/snitch_cluster
         run: |-
           ./run.py --simulator verilator \
-          sw/runtime.yaml sw/standard-fp.yaml sw/snax-mac-run.yaml \
+          sw/runtime.yaml sw/snax-mac-run.yaml \
           sw/snax-mac-mult-run.yaml -j
 
   snax-alu-cluster-vlt-generic:
@@ -208,7 +208,7 @@ jobs:
         working-directory: target/snitch_cluster
         run: |-
           ./run.py --simulator verilator \
-          sw/runtime.yaml sw/standard-fp.yaml \
+          sw/runtime.yaml \
           sw/snax-alu-run.yaml -j
 
   snax-streamer-simd-cluster-vlt-generic:
@@ -234,7 +234,7 @@ jobs:
         working-directory: target/snitch_cluster
         run: |-
           ./run.py --simulator verilator \
-          sw/runtime.yaml sw/standard-fp.yaml \
+          sw/runtime.yaml \
           sw/snax-streamer-simd-run.yaml -j
 
   ############################################

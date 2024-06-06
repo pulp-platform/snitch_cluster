@@ -20,4 +20,3 @@ runs:
   - elf: tests/build/zero_mem.elf
   - elf: tests/build/non_null_exitcode.elf
     exit_code: 14
-  - elf: apps/montecarlo/pi_estimation/build/pi_estimation.elf
