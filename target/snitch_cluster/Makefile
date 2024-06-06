@@ -122,6 +122,19 @@ $(eval $(call generate_snax_gen,snax_data_reshuffler))
 
 endif
 
+ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm-conv.hjson)
+ 
+$(eval $(call generate_snax_gen,snax_streamer_gemm))
+ 
+    SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
+    include $(SNAX_GEMM_ROOT)/Makefile
+ 
+    VSIM_BENDER += -t snax_streamer_gemm
+    VLT_BENDER  += -t snax_streamer_gemm
+    VCS_BENDER  += -t snax_streamer_gemm
+ 
+endif
+
 VSIM_BENDER += -t QUESTA_SIM
 
 # Verilated and compiled snitch cluster

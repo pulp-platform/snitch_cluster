@@ -133,6 +133,32 @@ jobs:
           ./run.py --simulator verilator \
           sw/runtime.yaml sw/snax-streamer-gemm-run.yaml -j
 
+  snax-streamer-gemm-conv-cluster-vlt-generic:
+    name: Simulate SW on SNAX GEMM for Conv2d w/ Verilator (Generic LLVM)
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/kuleuven-micas/snax:main
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - name: Build Software
+        run: |
+          make -C target/snitch_cluster sw \
+          CFG_OVERRIDE=cfg/snax-streamer-gemm-conv.hjson \
+          SELECT_RUNTIME=rtl-generic \
+          SELECT_TOOLCHAIN=llvm-generic -j$(nproc)
+      - name: Build Hardware
+        run: |
+          make CFG_OVERRIDE=cfg/snax-streamer-gemm-conv.hjson \
+          -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
+      - name: Run Tests
+        working-directory: target/snitch_cluster
+        run: |-
+          ./run.py --simulator verilator \
+          sw/runtime.yaml sw/standard-fp.yaml \
+          sw/snax-streamer-gemm-conv-run.yaml -j
+
   sw-snax-data-reshuffler-cluster-vlt-generic:
     name: Simulate SW on SNAX Data Reshuffler w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04

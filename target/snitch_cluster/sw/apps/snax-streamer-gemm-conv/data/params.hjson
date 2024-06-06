@@ -1,0 +1,19 @@
+// Copyright 2024 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+// Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
+
+{
+    Nbatch: 1,
+    H: 16,
+    W: 16,
+    Cin: 16,
+    Cout: 16,
+    Kh: 3,
+    Kw: 3,
+    pad_h: 1,
+    pad_w: 1,
+    stride_h: 1,
+    stride_w: 1,
+}

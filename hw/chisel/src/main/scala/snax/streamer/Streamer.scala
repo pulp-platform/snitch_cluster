@@ -286,9 +286,7 @@ class Streamer(
             address_gen_unit(i).io.loopBounds_i.bits(j) := 1.U
           } else {
             address_gen_unit(i).io.loopBounds_i
-              .bits(j) := io.csr.bits.loopBounds_i(
-              params.temporalDimSeq.take(i).sum + j
-            )
+              .bits(j) := io.csr.bits.loopBounds_i(i)(j)
           }
         }
       } else {
