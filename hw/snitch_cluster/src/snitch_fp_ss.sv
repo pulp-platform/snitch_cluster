@@ -129,7 +129,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   logic use_shfl;
   logic shfl_in_valid, shfl_in_ready;
   logic shfl_valid;
-
+  logic shfl_in_ssr;
 
   // FPU Controller
   logic fpu_out_valid, fpu_out_ready;
@@ -335,6 +335,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     ls_size = Word;
 
     use_shfl = 1'b0;
+    shfl_in_ssr = ssr_active_q & is_rd_ssr;
 
     // Destination register is in FPR
     rd_is_fp = 1'b1;
@@ -2719,6 +2720,16 @@ module snitch_fp_ss import snitch_pkg::*; #(
       fpr_wready = 1'b0;
     end else if (shfl_valid) begin
       fpr_we = 1'b1;
+      if (shfl_in_ssr) begin
+        ssr_wvalid_o = 1'b1;
+        // stall write-back to SSR
+        if (!ssr_wready_i) begin
+          fpr_wready = 1'b0;
+          fpr_we = 1'b0;
+        end else begin
+          ssr_wdone_o = 1'b1;
+        end
+      end
       fpr_wdata = shfl_result;
       fpr_waddr = rd;
       fpr_wvalid = 1'b1;

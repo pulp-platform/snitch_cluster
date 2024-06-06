@@ -75,6 +75,7 @@ class TransposeDataGen(DataGen):
         header += [format_scalar_definition('uint32_t', 'N', N)]
         header += [format_scalar_definition('uint32_t', 'dtype', prec)]
         header += [format_scalar_definition('uint32_t', 'baseline', int(kwargs['baseline']))]
+        header += [format_scalar_definition('uint32_t', 'opt_ssr', int(kwargs['opt_ssr']))]
         header += [format_array_definition(ctype, input_uid, inp, alignment=BURST_ALIGNMENT)]
         result_def = format_array_definition(ctype, 'golden', output, alignment=BURST_ALIGNMENT)
         header += [format_ifdef_wrapper('BIST', result_def)]
