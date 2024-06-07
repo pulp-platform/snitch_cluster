@@ -433,6 +433,18 @@
                                             "description": "Number of ports dedicated for an accelerator",
                                             "default": 0
                                         },
+                                        "snax_narrow_tcdm_ports": {
+                                            "type": "number",
+                                            "title": "Number of SNAX narrow TCDM ports",
+                                            "description": "Number of dedicated narrow TCDM ports",
+                                            "default": 0
+                                        },
+                                        "snax_wide_tcdm_ports": {
+                                            "type": "number",
+                                            "title": "Number of SNAX wide TCDM ports",
+                                            "description": "Number of dedicated wide TCDM ports",
+                                            "default": 0
+                                        },
                                         "snax_num_rw_csr": {
                                             "type": "number",
                                             "title": "Number of CSR Read-Write Registers",

@@ -88,7 +88,7 @@
         xfvec: false,
         snax_acc_cfg: {
             snax_acc_name: "snax_alu"
-            snax_tcdm_ports: 16,
+            snax_narrow_tcdm_ports: 16,
             snax_num_rw_csr: 3,
             snax_num_ro_csr: 2,
             snax_streamer_cfg: {$ref: "#/snax_alu_streamer_template" }

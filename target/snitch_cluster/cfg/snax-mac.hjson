@@ -88,8 +88,7 @@
         xfvec: false,
         snax_acc_cfg: {
             snax_acc_name: "snax_mac"
-            snax_module: "snax_mac_wrapper",
-            snax_tcdm_ports: 4,
+            snax_narrow_tcdm_ports: 4,
         },
         snax_use_custom_ports: true,
         num_int_outstanding_loads: 1,

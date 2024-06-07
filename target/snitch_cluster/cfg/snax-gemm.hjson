@@ -88,8 +88,7 @@
         xfvec: false,
         snax_acc_cfg: {
             snax_acc_name: "snax_gemm",
-            snax_module: "snax_gemm_wrapper",
-            snax_tcdm_ports: 24,
+            snax_narrow_tcdm_ports: 24,
         },
         snax_use_custom_ports: true,
         snax_acc_wide: true,

@@ -16,6 +16,12 @@ ${c[prop]}${', ' if not loop.last else ''}\
   % endfor
 </%def>\
 
+<%def name="acc_cfg(prop)">\
+  % for idx in range(len(prop)):
+${prop[idx]}${', ' if not loop.last else ''}\
+  % endfor
+</%def>\
+
 <%def name="core_cfg_flat(prop)">\
 ${cfg['nr_cores']}'b\
   % for c in cfg['cores'][::-1]:
@@ -310,24 +316,16 @@ module ${cfg['name']}_wrapper (
   output ${cfg['pkg_name']}::wide_in_resp_t      wide_in_resp_o
 );
 
-  // Internal local parameters to be hooked into the Snitch / SNAX cluster
-  localparam int unsigned NumIntOutstandingLoads  [${cfg['nr_cores']}] = '{${core_cfg('num_int_outstanding_loads')}};
-  localparam int unsigned NumIntOutstandingMem    [${cfg['nr_cores']}] = '{${core_cfg('num_int_outstanding_mem')}};
-  localparam int unsigned NumFPOutstandingLoads   [${cfg['nr_cores']}] = '{${core_cfg('num_fp_outstanding_loads')}};
-  localparam int unsigned NumFPOutstandingMem     [${cfg['nr_cores']}] = '{${core_cfg('num_fp_outstanding_mem')}};
-  localparam int unsigned NumDTLBEntries          [${cfg['nr_cores']}] = '{${core_cfg('num_dtlb_entries')}};
-  localparam int unsigned NumITLBEntries          [${cfg['nr_cores']}] = '{${core_cfg('num_itlb_entries')}};
-  localparam int unsigned NumSequencerInstr       [${cfg['nr_cores']}] = '{${core_cfg('num_sequencer_instructions')}};
-  localparam int unsigned NumSsrs                 [${cfg['nr_cores']}] = '{${core_cfg('num_ssrs')}};
-  localparam int unsigned SsrMuxRespDepth         [${cfg['nr_cores']}] = '{${core_cfg('ssr_mux_resp_depth')}};
 <%
 # Just some working variables
 tcdm_offset_start = 0
 tcdm_offset_stop = -1
 total_snax_tcdm_ports = 0
 snax_core_acc = {}
-snax_narrow_ports = 0
-snax_wide_ports = 0
+total_snax_narrow_ports = 0
+total_snax_wide_ports = 0
+snax_narrow_tcdm_ports_list = []
+snax_wide_tcdm_ports_list = []
 
 # Cycle through each core
 # and check if an accelerator setting exists
@@ -345,12 +343,17 @@ for i in range(len(cfg['cores'])):
   snax_total_num_csr = None
   prefix_snax_nonacc_count = 0
   prefix_snax_count = 0
+  snax_tcdm_ports = 0
 
   # If an accelerator setting exists
   # Layout all possible accelerator configurations
   # Per snitch cluster core
   if ('snax_acc_cfg' in cfg['cores'][i]):
     snax_acc_flag = True
+
+    # Note that the order is from last core to the first core
+    snax_narrow_tcdm_ports_list.append(cfg['cores'][i]['snax_acc_cfg']['snax_narrow_tcdm_ports'])
+    snax_wide_tcdm_ports_list.append(cfg['cores'][i]['snax_acc_cfg']['snax_wide_tcdm_ports'])
 
     if(cfg['cores'][i]['snax_acc_cfg']['snax_num_acc'] > 1):
       snax_acc_multi_flag = True
@@ -368,21 +371,22 @@ for i in range(len(cfg['cores'])):
       curr_snax_acc = "i_snax_core_" + str(i) + "_acc_" + str(prefix_snax_count) + "_" + cfg['cores'][i]['snax_acc_cfg']['snax_acc_name']
 
       # Set tcdm offset ports
-      tcdm_offset_stop += cfg['cores'][i]['snax_acc_cfg']['snax_tcdm_ports']
+      snax_narrow_tcdm_ports = cfg['cores'][i]['snax_acc_cfg']['snax_narrow_tcdm_ports']
+      snax_wide_tcdm_ports = cfg['cores'][i]['snax_acc_cfg']['snax_wide_tcdm_ports']
+      snax_tcdm_ports = snax_narrow_tcdm_ports + snax_wide_tcdm_ports
+      tcdm_offset_stop += snax_tcdm_ports
 
       # Save settings in the dictionary
       snax_acc_dict[curr_snax_acc] = {
             'snax_acc_name': cfg['cores'][i]['snax_acc_cfg']['snax_acc_name'],
-            'snax_tcdm_ports': cfg['cores'][i]['snax_acc_cfg']['snax_tcdm_ports'],
+            'snax_tcdm_ports': snax_tcdm_ports,
             'snax_tcdm_offset_start': tcdm_offset_start,
             'snax_tcdm_offset_stop': tcdm_offset_stop
           }
-      tcdm_offset_start += cfg['cores'][i]['snax_acc_cfg']['snax_tcdm_ports']
+      tcdm_offset_start += snax_tcdm_ports
       prefix_snax_count += 1
-      if (cfg['cores'][i]['snax_acc_wide']):
-        snax_wide_ports += cfg['cores'][i]['snax_acc_cfg']['snax_tcdm_ports']
-      else:
-        snax_narrow_ports += cfg['cores'][i]['snax_acc_cfg']['snax_tcdm_ports']
+      total_snax_narrow_ports += snax_narrow_tcdm_ports
+      total_snax_wide_ports += snax_wide_tcdm_ports
 
   else:
 
@@ -390,6 +394,10 @@ for i in range(len(cfg['cores'])):
     # Just leave them as none
     curr_snax_acc = "i_snax_core_" + str(i) + "_noacc_" + str(prefix_snax_nonacc_count)
     snax_acc_dict[curr_snax_acc] = None
+
+    # Note that the order is from last core to the first core
+    snax_narrow_tcdm_ports_list.append(0)
+    snax_wide_tcdm_ports_list.append(0)
     
   # This is the packed configuration
   snax_core_acc[curr_snax_acc_core] = {
@@ -401,8 +409,21 @@ for i in range(len(cfg['cores'])):
     'snax_acc_dict':snax_acc_dict
   }
 
-total_snax_tcdm_ports = snax_wide_ports + snax_narrow_ports
-%>
+total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
+%>\
+  // Internal local parameters to be hooked into the Snitch / SNAX cluster
+  localparam int unsigned NumIntOutstandingLoads  [${cfg['nr_cores']}] = '{${core_cfg('num_int_outstanding_loads')}};
+  localparam int unsigned NumIntOutstandingMem    [${cfg['nr_cores']}] = '{${core_cfg('num_int_outstanding_mem')}};
+  localparam int unsigned NumFPOutstandingLoads   [${cfg['nr_cores']}] = '{${core_cfg('num_fp_outstanding_loads')}};
+  localparam int unsigned NumFPOutstandingMem     [${cfg['nr_cores']}] = '{${core_cfg('num_fp_outstanding_mem')}};
+  localparam int unsigned NumDTLBEntries          [${cfg['nr_cores']}] = '{${core_cfg('num_dtlb_entries')}};
+  localparam int unsigned NumITLBEntries          [${cfg['nr_cores']}] = '{${core_cfg('num_itlb_entries')}};
+  localparam int unsigned NumSequencerInstr       [${cfg['nr_cores']}] = '{${core_cfg('num_sequencer_instructions')}};
+  localparam int unsigned NumSsrs                 [${cfg['nr_cores']}] = '{${core_cfg('num_ssrs')}};
+  localparam int unsigned SsrMuxRespDepth         [${cfg['nr_cores']}] = '{${core_cfg('ssr_mux_resp_depth')}};
+  localparam int unsigned SnaxNarrowTcdmPorts     [${cfg['nr_cores']}] = '{${acc_cfg(snax_narrow_tcdm_ports_list)}};
+  localparam int unsigned SnaxWideTcdmPorts       [${cfg['nr_cores']}] = '{${acc_cfg(snax_wide_tcdm_ports_list)}};
+
   //-----------------------------
   // SNAX Custom Instruction Ports
   //-----------------------------
@@ -483,11 +504,11 @@ total_snax_tcdm_ports = snax_wide_ports + snax_narrow_ports
     .Xdma (${core_cfg_flat('xdma')}),
     .Xssr (${core_cfg_flat('xssr')}),
     .Xfrep (${core_cfg_flat('xfrep')}),
-    .SnaxAccNarrowTcdmPorts(${snax_narrow_ports}),
-    .SnaxAccWideTcdmPorts(${snax_wide_ports}),
-    .TotalSnaxTcdmPorts(${total_snax_tcdm_ports}),
-    .ConnectSnaxAccWide(${core_cfg_flat('snax_acc_wide')}),
-    .SnaxUseCustomPorts (${core_cfg_flat('snax_use_custom_ports')}), // TODO CONNECT ME
+    .SnaxNarrowTcdmPorts (SnaxNarrowTcdmPorts),
+    .SnaxWideTcdmPorts (SnaxWideTcdmPorts),
+    .TotalSnaxNarrowTcdmPorts(${total_snax_narrow_ports}),
+    .TotalSnaxWideTcdmPorts(${total_snax_wide_ports}),
+    .SnaxUseCustomPorts (${core_cfg_flat('snax_use_custom_ports')}),
     .FPUImplementation (${cfg['pkg_name']}::FPUImplementation),
     .SnitchPMACfg (${cfg['pkg_name']}::SnitchPMACfg),
     .NumIntOutstandingLoads (NumIntOutstandingLoads),

@@ -88,8 +88,7 @@
         xfvec: false,
         snax_acc_cfg: {
             snax_acc_name: "snax_streamer_simd",
-            snax_module: "snax_streamer_simd_wrapper",
-            snax_tcdm_ports: 40,
+            snax_narrow_tcdm_ports: 40,
             snax_num_rw_csr: 5,
             snax_num_ro_csr: 2,
             snax_streamer_cfg: {$ref: "#/snax_streamer_simd_streamer_template" }
