@@ -8,6 +8,7 @@
 
 volatile uint32_t _snrt_mutex;
 volatile snrt_barrier_t _snrt_barrier;
+volatile uint32_t _reduction_result;
 
 //================================================================================
 // Functions
@@ -26,3 +27,8 @@ extern void snrt_cluster_hw_barrier();
 extern void snrt_global_barrier();
 
 extern void snrt_partial_barrier(snrt_barrier_t *barr, uint32_t n);
+
+extern void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
+                                      size_t len);
+
+extern uint32_t snrt_global_all_to_all_reduction(uint32_t value);

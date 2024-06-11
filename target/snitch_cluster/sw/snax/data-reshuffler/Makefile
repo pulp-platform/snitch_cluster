@@ -39,8 +39,19 @@ INCDIRS += $(SNRT_DIR)/src/omp
 INCDIRS += $(SNRT_DIR)/api/omp
 INCDIRS += $(SNRT_DIR)/vendor/riscv-opcodes
 INCDIRS += $(ROOT)/target/snitch_cluster/sw/runtime/common
+
+# math.h needed by snRuntime
+
+INCDIRS += $(SNRT_DIR)/../math/arch/riscv64/
+INCDIRS += $(SNRT_DIR)/../math/arch/generic
+INCDIRS += $(SNRT_DIR)/../math/src/include
+INCDIRS += $(SNRT_DIR)/../math/src/internal
+INCDIRS += $(SNRT_DIR)/../math/include/bits
+INCDIRS += $(SNRT_DIR)/../math/include
+
 INCDIRS += $(ROOT)/target/snitch_cluster/sw/runtime/$(RUNTIME_DIR)/src
 INCDIRS += $(ROOT)/target/snitch_cluster/sw/runtime/$(RUNTIME_DIR)/include
+
 
 ############
 ## Outputs #

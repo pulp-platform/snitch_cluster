@@ -7,3 +7,5 @@
 runs:
   - elf: tests/build/event_unit.elf
   - elf: tests/build/team_global.elf
+  - elf: tests/build/non_null_exitcode.elf
+    exit_code: 126

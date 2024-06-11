@@ -24,7 +24,7 @@ dependencies:
   axi:                { git: https://github.com/pulp-platform/axi,                version:  0.39.1  }
   axi_riscv_atomics:  { git: https://github.com/pulp-platform/axi_riscv_atomics,  version:  0.6.0   }
   common_cells:       { git: https://github.com/pulp-platform/common_cells,       version:  1.28.0  }
-  FPnew:              { git: https://github.com/openhwgroup/cvfpu,                rev:      1202ca3 }  # TODO: feature branch `feature/expanding_sdotp`; get merged!
+  FPnew:              { git: https://github.com/pulp-platform/cvfpu.git,      rev:      pulp-v0.1.3 }
   register_interface: { git: https://github.com/pulp-platform/register_interface, version:  0.4.2   }
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.11  }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0   }

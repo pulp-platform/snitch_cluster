@@ -18,5 +18,3 @@ runs:
   - elf: tests/build/varargs_1.elf
   - elf: tests/build/varargs_2.elf
   - elf: tests/build/zero_mem.elf
-  - elf: tests/build/non_null_exitcode.elf
-    exit_code: 14

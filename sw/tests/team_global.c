@@ -15,7 +15,7 @@ int main() {
     uint32_t errors = 0;
     errors += (snrt_global_core_idx() != i);
     errors += (snrt_global_core_num() != 9);
-    errors += (snrt_cluster_idx() != i / 1);
+    errors += (snrt_cluster_idx() != i / 9);
     errors += (snrt_cluster_num() != 1);
     errors += (snrt_cluster_core_idx() != i % 9);
     errors += (snrt_cluster_core_num() != 9);

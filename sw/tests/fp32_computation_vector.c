@@ -4,9 +4,9 @@
 #include <snrt.h>
 
 int main() {
-    int errs = 46;
-
     if (snrt_is_compute_core()) {
+        int errs = 46;
+
         uint32_t i_a = 0x4048F5C3;   // 3.14 0
         uint32_t i_an = 0xC048F5C3;  // -3.14
         uint32_t i_b = 0x3FCF1AA0;   // 1.618 2
@@ -531,7 +531,8 @@ int main() {
             "vfeq.s %0, ft7, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x3);
-    }
 
-    return errs;
+        return errs;
+    }
+    return 0;
 }

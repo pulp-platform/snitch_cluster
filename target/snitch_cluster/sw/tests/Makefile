@@ -60,6 +60,15 @@ INCDIRS += $(SNRT_DIR)/src
 INCDIRS += $(SNRT_DIR)/src/omp
 INCDIRS += $(SNRT_DIR)/vendor/riscv-opcodes
 
+# math.h needed by snRuntime
+
+INCDIRS += $(SNRT_DIR)/../math/arch/riscv64/
+INCDIRS += $(SNRT_DIR)/../math/arch/generic
+INCDIRS += $(SNRT_DIR)/../math/src/include
+INCDIRS += $(SNRT_DIR)/../math/src/internal
+INCDIRS += $(SNRT_DIR)/../math/include/bits
+INCDIRS += $(SNRT_DIR)/../math/include
+
 RISCV_LDFLAGS += -L$(abspath $(RUNTIME_DIR))
 RISCV_LDFLAGS += -T$(abspath $(SNRT_DIR)/base.ld)
 RISCV_LDFLAGS += -L$(abspath $(RUNTIME_DIR)/build/)

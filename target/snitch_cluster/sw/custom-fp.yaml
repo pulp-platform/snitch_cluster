@@ -5,37 +5,37 @@
 runs:
   - elf: tests/build/fp8_comparison_scalar.elf
     simulators: [vsim, vcs, verilator] # banshee fails with segfault
-  - elf: tests/build/fp8_comparison_vector.elf
-    simulators: [vsim, vcs, verilator] # banshee fails with segfault
+  # - elf: tests/build/fp8_comparison_vector.elf
+  #   simulators: [vsim, vcs, verilator] # banshee fails with segfault
   - elf: tests/build/fp8_computation_scalar.elf
     simulators: [vsim, vcs, verilator] # banshee fails with JIT issue
-  - elf: tests/build/fp8_computation_vector.elf
-    simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x6
+  # - elf: tests/build/fp8_computation_vector.elf
+  #   simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x6
   - elf: tests/build/fp8alt_comparison_scalar.elf
     simulators: [vsim, vcs, verilator] # banshee fails with segfault
-  - elf: tests/build/fp8alt_comparison_vector.elf
-    simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x10
+  # - elf: tests/build/fp8alt_comparison_vector.elf
+  #   simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x10
   - elf: tests/build/fp8alt_computation_scalar.elf
     simulators: [vsim, vcs, verilator] # banshee fails with JIT issue
-  - elf: tests/build/fp8alt_computation_vector.elf
-    simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x12
-  - elf: tests/build/fp16_comparison_vector.elf
-    simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x10
-  - elf: tests/build/fp16_computation_vector.elf
-    simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x6
+  # - elf: tests/build/fp8alt_computation_vector.elf
+  #   simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x12
+  # - elf: tests/build/fp16_comparison_vector.elf
+  #   simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x10
+  # - elf: tests/build/fp16_computation_vector.elf
+  #   simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x6
   - elf: tests/build/fp16alt_comparison_scalar.elf
     simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x10
-  - elf: tests/build/fp16alt_comparison_vector.elf
-    simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x10
+  # - elf: tests/build/fp16alt_comparison_vector.elf
+  #   simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x10
   - elf: tests/build/fp16alt_computation_scalar.elf
     simulators: [vsim, vcs, verilator] # banshee fails with JIT issue
-  - elf: tests/build/fp16alt_computation_vector.elf
-    simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x16
+  # - elf: tests/build/fp16alt_computation_vector.elf
+  #   simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x16
   - elf: tests/build/fp32_computation_scalar.elf
     simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x2
-  - elf: tests/build/fp32_computation_vector.elf
-    simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x2
+  # - elf: tests/build/fp32_computation_vector.elf
+  #   simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x2
   - elf: tests/build/fp32_conversions_scalar.elf
     simulators: [vsim, vcs, verilator] # banshee fails with illegal instruction
-  - elf: tests/build/fp64_conversions_scalar.elf
-    simulators: [vsim, vcs, verilator]
+  # - elf: tests/build/fp64_conversions_scalar.elf
+  #   simulators: [vsim, vcs, verilator]

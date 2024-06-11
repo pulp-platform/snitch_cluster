@@ -2,6 +2,10 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#pragma once
+
+#include <stdint.h>
+
 typedef struct {
     uint32_t volatile cnt;
     uint32_t volatile iteration;
@@ -9,6 +13,7 @@ typedef struct {
 
 extern volatile uint32_t _snrt_mutex;
 extern volatile snrt_barrier_t _snrt_barrier;
+extern volatile uint32_t _reduction_result;
 
 inline volatile uint32_t *snrt_mutex();
 

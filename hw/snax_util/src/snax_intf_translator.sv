@@ -9,7 +9,7 @@
 // Snitch accelerator ports to
 // CSR ports
 //-------------------------------
-`ifdef TARGET_QUESTA_SIM
+`ifndef TARGET_VERILATOR
 import riscv_instr::*;
 import reqrsp_pkg::*;
 `endif
