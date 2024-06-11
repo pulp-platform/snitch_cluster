@@ -143,14 +143,14 @@ void axpy(uint32_t l, double a, double *x, double *y, double *z) {
 
 int main() {
     // Read the mcycle CSR (this is our way to mark/delimit a specific code region for benchmarking)
-    uint32_t start_cycle = mcycle();
+    uint32_t start_cycle = snrt_mcycle();
 
     // DM core does not participate in the computation
     if(snrt_is_compute_core())
         axpy(L, a, x, y, z);
 
     // Read the mcycle CSR
-    uint32_t end_cycle = mcycle();
+    uint32_t end_cycle = snrt_mcycle();
 }
 
 ```
@@ -159,7 +159,7 @@ The `snrt.h` file implements the snRuntime API, a library of convenience functio
 
 ___Note:__ Have a look at the files inside `sw/snRuntime` in the root of this repository to see what kind of functionality the snRuntime API defines. Note this is only an API, with some base implementations. The Snitch cluster implementation of the snRuntime for RTL simulation can be found under `target/snitch_cluster/sw/runtime/rtl`. It is automatically built and linked with user applications thanks to our compilation scripts._
 
-We will have to instead create the `data.h` file ourselves. Create a `target/snitch_cluster/sw/apps/axpy/data/data` folder to host the data for your kernel to operate on:
+We will have to instead create the `data.h` file ourselves. Create a `target/snitch_cluster/sw/apps/axpy/data` folder to host the data for your kernel to operate on:
 
 ```bash
 mkdir sw/apps/axpy/data
@@ -180,7 +180,7 @@ double z[16];
 
 ```
 
-In this file we hardcode the data to be used by the kernel. This data will be loaded in memory together with your application code. In general, to verify your code you may want to randomly generate the above data. You may also want to test your kernel on different problem sizes, e.g. varying the length of the vectors, without having to manually rewrite the file. This can be achieved by generating the data header file with a Python script. You may have a look at the `sw/blas/axpy/datagen` folder in the root of this repository as an example. You may reuse several of the functions defined in `sw/blas/axpy/datagen/datagen.py`. Eventually, we will promote these functions to a dedicated Python module which can be easily reused.
+In this file we hardcode the data to be used by the kernel. This data will be loaded in memory together with your application code. In general, to verify your code you may want to randomly generate the above data. You may also want to test your kernel on different problem sizes, e.g. varying the length of the vectors, without having to manually rewrite the file. This can be achieved by generating the data header file with a Python script. You may have a look at the `sw/blas/axpy/scripts/datagen.py` script in the root of this repository as an example. As you can see, it reuses many convenience classes and functions for data generation from the `data_utils` module. Documentation for this module can be found [here](https://pulp-platform.github.io/snitch_cluster/rm/sim/data_utils.html).
 
 #### Compiling the C Code
 
@@ -196,10 +196,10 @@ include ../common.mk
 
 This Makefile will be invoked recursively by the top-level Makefile, compiling your source code into an executable with the name provided in the `APP` variable.
 
-In order for the top-level Makefile to find your application, add your application's directory to the `SUBDIRS` variable in `sw/apps/Makefile`:
+In order for the top-level Makefile to find your application, add your application's directory to the `APPS` variable in `sw.mk`:
 
 ```
-SUBDIRS += axpy
+APPS += sw/apps/axpy
 ```
 
 Now you can recompile all software, including your newly added AXPY application:
@@ -240,9 +240,9 @@ make logs/perf.csv
 libreoffice logs/perf.csv
 ```
 
-In this file you can find the `X_tstart` and `X_tend` metrics. These are the cycles in which a particular code region `X` starts and ends, and can hence be used to profile your code. Code regions are defined by calls to `mcycle()`. Every call to this function defines two code regions:
-- the code preceding the call, up to the previous `mcycle()` call or the start of the source file
-- the code following the call, up to the next `mcycle()` call or the end of the source file
+In this file you can find the `X_tstart` and `X_tend` metrics. These are the cycles in which a particular code region `X` starts and ends, and can hence be used to profile your code. Code regions are defined by calls to `snrt_mcycle()`. Every call to this function defines two code regions:
+- the code preceding the call, up to the previous `snrt_mcycle()` call or the start of the source file
+- the code following the call, up to the next `snrt_mcycle()` call or the end of the source file
 
 The CSV file can be useful to automate collection and post-processing of benchmarking data.
 
@@ -321,14 +321,14 @@ void axpy(uint32_t l, double a, double *x, double *y, double *z) {
 
 int main() {
     // Read the mcycle CSR (this is our way to mark/delimit a specific code region for benchmarking)
-    uint32_t start_cycle = mcycle();
+    uint32_t start_cycle = snrt_mcycle();
 
     // DM core does not participate in the computation
     if(snrt_is_compute_core())
         axpy(L / snrt_cluster_compute_core_num(), a, x, y, z);
 
     // Read the mcycle CSR
-    uint32_t end_cycle = mcycle();
+    uint32_t end_cycle = snrt_mcycle();
 }
 ```
 
