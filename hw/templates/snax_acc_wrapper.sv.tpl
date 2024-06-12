@@ -3,8 +3,25 @@
 // SPDX-License-Identifier: SHL-0.51
 
 <%
-  num_tcdm_ports = sum(cfg["snax_streamer_cfg"]["data_reader_params"]["tcdm_ports_num"]) + \
-                   sum(cfg["snax_streamer_cfg"]["data_writer_params"]["tcdm_ports_num"])
+  num_tcdm_reader = 0
+  num_tcdm_writer = 0
+  num_tcdm_reader_writer = 0
+
+  num_reader_offset = 0
+  num_writer_offset = 0
+
+  if("data_reader_params" in cfg["snax_streamer_cfg"]):
+      num_tcdm_reader = sum(cfg["snax_streamer_cfg"]["data_reader_params"]["tcdm_ports_num"])
+      num_reader_offset = len(cfg["snax_streamer_cfg"]["data_reader_params"]["tcdm_ports_num"])
+
+  if("data_writer_params" in cfg["snax_streamer_cfg"]):
+      num_tcdm_writer = sum(cfg["snax_streamer_cfg"]["data_writer_params"]["tcdm_ports_num"])
+      num_writer_offset = len(cfg["snax_streamer_cfg"]["data_reader_params"]["tcdm_ports_num"])
+
+  if("data_reader_writer_params" in cfg["snax_streamer_cfg"]):
+      num_tcdm_reader_writer = sum(cfg["snax_streamer_cfg"]["data_reader_writer_params"]["tcdm_ports_num"])
+
+  num_tcdm_ports = num_tcdm_reader + num_tcdm_writer + num_tcdm_reader_writer
 %>
 
 //-------------------------------
@@ -70,21 +87,42 @@ module ${cfg["tag_name"]}_wrapper # (
   // Note that these have very specific data widths
   // found from the configuration file
 
-  // Ports from accelerator to streamer
+% if "fifo_writer_params" in cfg["snax_streamer_cfg"]:
+  // Ports from accelerator to streamer by writer data movers
 % for idx, dw in enumerate(cfg["snax_streamer_cfg"]["fifo_writer_params"]["fifo_width"]):
   logic [${dw-1}:0] acc2stream_${idx}_data;
   logic acc2stream_${idx}_valid;
   logic acc2stream_${idx}_ready;
 
 % endfor
-  // Ports from streamer to accelerator
+% endif
+% if "fifo_reader_writer_params" in cfg["snax_streamer_cfg"]:
+  // Ports from accelerator to streamer by reader-writer data movers
+% for idx, dw in enumerate(cfg["snax_streamer_cfg"]["fifo_reader_writer_params"]["fifo_width"]):
+  logic [${dw-1}:0] acc2stream_${idx+num_writer_offset}_data;
+  logic acc2stream_${idx+num_writer_offset}_valid;
+  logic acc2stream_${idx+num_writer_offset}_ready;
+
+% endfor
+% endif
+% if "fifo_reader_params" in cfg["snax_streamer_cfg"]:
+  // Ports from streamer to accelerator by reader data movers
 % for idx, dw in enumerate(cfg["snax_streamer_cfg"]["fifo_reader_params"]["fifo_width"]):
   logic [${dw-1}:0] stream2acc_${idx}_data;
   logic stream2acc_${idx}_valid;
   logic stream2acc_${idx}_ready;
 
 % endfor
+% endif
+% if "fifo_reader_writer_params" in cfg["snax_streamer_cfg"]:
+  // Ports from streamer to accelerator by reader-writer data movers
+% for idx, dw in enumerate(cfg["snax_streamer_cfg"]["fifo_reader_writer_params"]["fifo_width"]):
+  logic [${dw-1}:0] stream2acc_${idx+num_reader_offset}_data;
+  logic stream2acc_${idx+num_reader_offset}_valid;
+  logic stream2acc_${idx+num_reader_offset}_ready;
 
+% endfor
+% endif
   // CSR MUXing
   logic [1:0][RegAddrWidth-1:0] acc_csr_req_addr;
   logic [1:0][RegDataWidth-1:0] acc_csr_req_data;
@@ -199,21 +237,43 @@ module ${cfg["tag_name"]}_wrapper # (
     //-----------------------------
     // Note that these have very specific data widths
     // found from the configuration file
-
-    // Ports from accelerator to streamer
+% if "fifo_writer_params" in cfg["snax_streamer_cfg"]:
+    // Ports from accelerator to streamer by writer data movers
 % for idx, dw in enumerate(cfg["snax_streamer_cfg"]["fifo_writer_params"]["fifo_width"]):
     .acc2stream_${idx}_data_o  ( acc2stream_${idx}_data  ),
     .acc2stream_${idx}_valid_o ( acc2stream_${idx}_valid ),
     .acc2stream_${idx}_ready_i ( acc2stream_${idx}_ready ),
 
 % endfor
-    // Ports from streamer to accelerator
+% endif
+% if "fifo_reader_writer_params" in cfg["snax_streamer_cfg"]:
+    // Ports from accelerator to streamer by reader-writer data movers
+% for idx, dw in enumerate(cfg["snax_streamer_cfg"]["fifo_reader_writer_params"]["fifo_width"]):
+    .acc2stream_${idx+num_writer_offset}_data_o  ( acc2stream_${idx+num_writer_offset}_data  ),
+    .acc2stream_${idx+num_writer_offset}_valid_o ( acc2stream_${idx+num_writer_offset}_valid ),
+    .acc2stream_${idx+num_writer_offset}_ready_i ( acc2stream_${idx+num_writer_offset}_ready ),
+
+% endfor
+% endif
+% if "fifo_reader_params" in cfg["snax_streamer_cfg"]:
+    // Ports from streamer to accelerator by reader data movers
 % for idx, dw in enumerate(cfg["snax_streamer_cfg"]["fifo_reader_params"]["fifo_width"]):
     .stream2acc_${idx}_data_i  ( stream2acc_${idx}_data  ),
     .stream2acc_${idx}_valid_i ( stream2acc_${idx}_valid ),
     .stream2acc_${idx}_ready_o ( stream2acc_${idx}_ready ),
 
 % endfor
+% endif
+% if "fifo_reader_writer_params" in cfg["snax_streamer_cfg"]:
+    // Ports from streamer to accelerator by reader-writer data movers
+% for idx, dw in enumerate(cfg["snax_streamer_cfg"]["fifo_reader_writer_params"]["fifo_width"]):
+    .stream2acc_${idx+num_reader_offset}_data_i  ( stream2acc_${idx+num_reader_offset}_data  ),
+    .stream2acc_${idx+num_reader_offset}_valid_i ( stream2acc_${idx+num_reader_offset}_valid ),
+    .stream2acc_${idx+num_reader_offset}_ready_o ( stream2acc_${idx+num_reader_offset}_ready ),
+
+% endfor
+% endif
+
     //-----------------------------
     // Packed CSR register signals
     //-----------------------------
@@ -244,21 +304,42 @@ module ${cfg["tag_name"]}_wrapper # (
     // Note that these have very specific data widths
     // found from the configuration file
 
-    // Ports from accelerator to streamer
+% if "fifo_writer_params" in cfg["snax_streamer_cfg"]:
+    // Ports from accelerator to streamer by writer data movers
 % for idx, dw in enumerate(cfg["snax_streamer_cfg"]["fifo_writer_params"]["fifo_width"]):
     .acc2stream_${idx}_data_i  ( acc2stream_${idx}_data  ),
     .acc2stream_${idx}_valid_i ( acc2stream_${idx}_valid ),
     .acc2stream_${idx}_ready_o ( acc2stream_${idx}_ready ),
 
 % endfor
-    // Ports from streamer to accelerator
+% endif
+% if "fifo_reader_writer_params" in cfg["snax_streamer_cfg"]:
+    // Ports from accelerator to streamer by reader-writer data movers
+% for idx, dw in enumerate(cfg["snax_streamer_cfg"]["fifo_reader_writer_params"]["fifo_width"]):
+    .acc2stream_${idx+num_writer_offset}_data_i  ( acc2stream_${idx+num_writer_offset}_data  ),
+    .acc2stream_${idx+num_writer_offset}_valid_i ( acc2stream_${idx+num_writer_offset}_valid ),
+    .acc2stream_${idx+num_writer_offset}_ready_o ( acc2stream_${idx+num_writer_offset}_ready ),
+
+% endfor
+% endif
+% if "fifo_reader_params" in cfg["snax_streamer_cfg"]:
+    // Ports from streamer to accelerator by reader data movers
 % for idx, dw in enumerate(cfg["snax_streamer_cfg"]["fifo_reader_params"]["fifo_width"]):
     .stream2acc_${idx}_data_o  ( stream2acc_${idx}_data  ),
     .stream2acc_${idx}_valid_o ( stream2acc_${idx}_valid ),
     .stream2acc_${idx}_ready_i ( stream2acc_${idx}_ready ),
 
 % endfor
+% endif
+% if "fifo_reader_writer_params" in cfg["snax_streamer_cfg"]:
+    // Ports from streamer to accelerator by reader-writer data movers
+% for idx, dw in enumerate(cfg["snax_streamer_cfg"]["fifo_reader_writer_params"]["fifo_width"]):
+    .stream2acc_${idx+num_reader_offset}_data_o  ( stream2acc_${idx+num_reader_offset}_data  ),
+    .stream2acc_${idx+num_reader_offset}_valid_o ( stream2acc_${idx+num_reader_offset}_valid ),
+    .stream2acc_${idx+num_reader_offset}_ready_i ( stream2acc_${idx+num_reader_offset}_ready ),
 
+% endfor
+% endif
     //-----------------------------
     // TCDM ports
     //-----------------------------

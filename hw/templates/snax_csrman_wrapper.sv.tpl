@@ -1,10 +1,7 @@
 // Copyright 2024 KU Leuven.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
-<%
-  num_tcdm_ports = sum(cfg["snax_streamer_cfg"]["data_reader_params"]["tcdm_ports_num"]) + \
-                   sum(cfg["snax_streamer_cfg"]["data_writer_params"]["tcdm_ports_num"])
-%>
+
 module ${cfg["tag_name"]}_csrman_wrapper #(
   parameter int unsigned NumRwCsr = ${cfg["snax_num_rw_csr"]},
   parameter int unsigned NumRoCsr = ${cfg["snax_num_ro_csr"]}

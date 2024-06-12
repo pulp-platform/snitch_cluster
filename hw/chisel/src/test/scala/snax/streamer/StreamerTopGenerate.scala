@@ -12,3 +12,12 @@ class StreamerTopGenerate extends AnyFlatSpec {
   )
 
 }
+
+class StreamerWithReaderWriterTopGenerate extends AnyFlatSpec {
+
+  emitVerilog(
+    new StreamerTop(TestParameters.streamerWithReaderWriter),
+    Array("--target-dir", "generated/streamer")
+  )
+
+}

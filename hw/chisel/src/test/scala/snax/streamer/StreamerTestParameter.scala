@@ -28,6 +28,9 @@ object StreamerTestConstant extends CommonParams {
     FIFOParams(64 * MacScalingFactor, 2)
   )
 
+  def fifoReaderWriterParams: Seq[FIFOParams] = Seq(
+  )
+
   def stationarity = Seq(0, 0, 1, 1)
 
   def dataReaderParams: Seq[DataMoverParams] = Seq(
@@ -64,6 +67,67 @@ object StreamerTestConstant extends CommonParams {
     )
   )
 
+  def dataReaderWriterParams: Seq[DataMoverParams] = Seq()
+
+  def tagName: String = ""
+
+  def ifShareTempAddrGenLoopBounds = true
+}
+
+object StreamerWithReaderWriterTestConstant extends CommonParams {
+
+  def temporalAddrGenUnitParams: Seq[TemporalAddrGenUnitParams] =
+    Seq(
+      TemporalAddrGenUnitParams(
+        loopDim = 3,
+        loopBoundWidth = 32,
+        addrWidth
+      )
+    )
+
+  def fifoReaderParams: Seq[FIFOParams] = Seq(
+    FIFOParams(512, 2),
+    FIFOParams(512, 2)
+  )
+
+  def fifoWriterParams: Seq[FIFOParams] = Seq()
+
+  def fifoReaderWriterParams: Seq[FIFOParams] = Seq(
+    FIFOParams(2048, 2)
+  )
+
+  def stationarity = Seq(0, 0, 1, 1)
+
+  def dataReaderParams: Seq[DataMoverParams] = Seq(
+    DataMoverParams(
+      tcdmPortsNum = 8,
+      spatialBounds = Seq(8, 8),
+      spatialDim = 2,
+      elementWidth = 8,
+      fifoWidth = fifoReaderParams(0).width
+    ),
+    DataMoverParams(
+      tcdmPortsNum = 8,
+      spatialBounds = Seq(8, 8),
+      spatialDim = 2,
+      elementWidth = 8,
+      fifoWidth = fifoReaderParams(1).width
+    )
+  )
+
+  def dataWriterParams: Seq[DataMoverParams] = Seq()
+
+  // spatial unrolling should be the same
+  def dataReaderWriterParams: Seq[DataMoverParams] = Seq(
+    DataMoverParams(
+      tcdmPortsNum = 32,
+      spatialBounds = Seq(8, 8),
+      spatialDim = 2,
+      elementWidth = 32,
+      fifoWidth = fifoReaderWriterParams(0).width
+    )
+  )
+
   def tagName: String = ""
 
   def ifShareTempAddrGenLoopBounds = true
@@ -75,9 +139,26 @@ object TestParameters {
     stationarity = StreamerTestConstant.stationarity,
     dataReaderParams = StreamerTestConstant.dataReaderParams,
     dataWriterParams = StreamerTestConstant.dataWriterParams,
+    dataReaderWriterParams = StreamerTestConstant.dataReaderWriterParams,
     fifoReaderParams = StreamerTestConstant.fifoReaderParams,
     fifoWriterParams = StreamerTestConstant.fifoWriterParams,
+    fifoReaderWriterParams = StreamerTestConstant.fifoReaderWriterParams,
     tagName = "abc"
+  )
+
+  val streamerWithReaderWriter = StreamerParams(
+    temporalAddrGenUnitParams =
+      StreamerWithReaderWriterTestConstant.temporalAddrGenUnitParams,
+    stationarity = StreamerWithReaderWriterTestConstant.stationarity,
+    dataReaderParams = StreamerWithReaderWriterTestConstant.dataReaderParams,
+    dataWriterParams = StreamerWithReaderWriterTestConstant.dataWriterParams,
+    dataReaderWriterParams =
+      StreamerWithReaderWriterTestConstant.dataReaderWriterParams,
+    fifoReaderParams = StreamerWithReaderWriterTestConstant.fifoReaderParams,
+    fifoWriterParams = StreamerWithReaderWriterTestConstant.fifoWriterParams,
+    fifoReaderWriterParams =
+      StreamerWithReaderWriterTestConstant.fifoReaderWriterParams,
+    tagName = "withReaderWriter"
   )
 
   val temporalAddrGenUnit = TemporalAddrGenUnitParams(

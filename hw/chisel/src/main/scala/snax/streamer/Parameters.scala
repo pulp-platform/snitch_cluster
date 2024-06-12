@@ -104,9 +104,11 @@ trait HasStreamerCoreParams {
 
   val dataReaderParams: Seq[DataMoverParams]
   val dataWriterParams: Seq[DataMoverParams]
+  val dataReaderWriterParams: Seq[DataMoverParams]
 
   val fifoReaderParams: Seq[FIFOParams]
   val fifoWriterParams: Seq[FIFOParams]
+  val fifoReaderWriterParams: Seq[FIFOParams]
 
   val readOnlyCsrNum: Int
   val csrAddrWidth: Int
@@ -152,17 +154,30 @@ trait HasStreamerInferredParams extends HasStreamerCoreParams {
   val temporalBoundWidth: Int = temporalAddrGenUnitParams(0).loopBoundWidth
 
   val spatialDim: Seq[Int] =
-    dataReaderParams.map(_.spatialDim) ++ dataWriterParams.map(_.spatialDim)
+    dataReaderParams.map(_.spatialDim) ++ dataWriterParams.map(
+      _.spatialDim
+    ) ++ dataReaderWriterParams.map(
+      _.spatialDim
+    ) ++ dataReaderWriterParams.map(
+      _.spatialDim
+    )
 
   val dataReaderNum: Int = dataReaderParams.length
   val dataWriterNum: Int = dataWriterParams.length
-  val dataMoverNum: Int = dataReaderNum + dataWriterNum
+  val dataReaderWriterNum: Int = dataReaderWriterParams.length
+  val dataMoverNum: Int =
+    dataReaderNum + dataWriterNum + 2 * dataReaderWriterNum
+
   val dataReaderTcdmPorts: Seq[Int] = dataReaderParams.map(_.tcdmPortsNum)
   val dataWriterTcdmPorts: Seq[Int] = dataWriterParams.map(_.tcdmPortsNum)
-  val tcdmPortsNum: Int = dataReaderTcdmPorts.sum + dataWriterTcdmPorts.sum
+  val dataReaderWriterTcdmPorts: Seq[Int] =
+    dataReaderWriterParams.map(_.tcdmPortsNum)
+  val tcdmPortsNum: Int =
+    dataReaderTcdmPorts.sum + dataWriterTcdmPorts.sum + dataReaderWriterTcdmPorts.sum
 
   val fifoWidthReader: Seq[Int] = fifoReaderParams.map(_.width)
   val fifoWidthWriter: Seq[Int] = fifoWriterParams.map(_.width)
+  val fifoWidthReaderWriter: Seq[Int] = fifoReaderWriterParams.map(_.width)
 
 }
 
@@ -181,8 +196,10 @@ case class StreamerParams(
     stationarity: Seq[Int],
     dataReaderParams: Seq[DataMoverParams],
     dataWriterParams: Seq[DataMoverParams],
+    dataReaderWriterParams: Seq[DataMoverParams],
     fifoReaderParams: Seq[FIFOParams],
     fifoWriterParams: Seq[FIFOParams],
+    fifoReaderWriterParams: Seq[FIFOParams],
     readOnlyCsrNum: Int = 1,
     csrAddrWidth: Int = 32,
     ifShareTempAddrGenLoopBounds: Boolean = true,
