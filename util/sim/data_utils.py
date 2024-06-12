@@ -144,6 +144,16 @@ def format_scalar_definition(dtype, uid, scalar):
     return s
 
 
+def format_scalar_declaration(dtype, uid, alignment=None, section=None):
+    attributes = _variable_attributes(alignment, section)
+    s = f'{_alias_dtype(dtype)} {uid}'
+    if attributes:
+        s += f' {attributes};'
+    else:
+        s += ';'
+    return s
+
+
 def format_array_initializer(dtype, array):
     s = '{\n'
     array = flatten(array)

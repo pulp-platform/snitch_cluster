@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright 2023 ETH Zurich and University of Bologna.
+# Copyright 2024 ETH Zurich and University of Bologna.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
@@ -9,10 +9,10 @@ import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
 from data_utils import format_scalar_definition, format_array_definition, \
-                       format_array_declaration, format_ifdef_wrapper, DataGen  # noqa: E402
+                       format_scalar_declaration, format_ifdef_wrapper, DataGen  # noqa: E402
 
 
-class AxpyDataGen(DataGen):
+class DotDataGen(DataGen):
 
     MIN = -1000
     MAX = +1000
@@ -31,15 +31,16 @@ class AxpyDataGen(DataGen):
         y = np.random.uniform(self.MIN, self.MAX, n)
         g = self.golden_model(x, y)
 
-        assert (n % 8) == 0, "n must be an integer multiple of the number of cores"
+        assert (n % (8 * 4)) == 0, "n must be an integer multiple of the number of cores times " \
+                                   "the unrolling factor"
 
         header += [format_scalar_definition('const uint32_t', 'n', n)]
         header += [format_array_definition('double', 'x', x, alignment=self.BURST_ALIGNMENT,
                                            section=kwargs['section'])]
         header += [format_array_definition('double', 'y', y, alignment=self.BURST_ALIGNMENT,
                                            section=kwargs['section'])]
-        header += [format_array_declaration('double', 'z', [n], alignment=self.BURST_ALIGNMENT,
-                                            section=kwargs['section'])]
+        header += [format_scalar_declaration('double', 'result', alignment=self.BURST_ALIGNMENT,
+                                             section=kwargs['section'])]
         result_def = format_scalar_definition('double', 'g', g)
         header += [format_ifdef_wrapper('BIST', result_def)]
         header = '\n\n'.join(header)
@@ -48,4 +49,4 @@ class AxpyDataGen(DataGen):
 
 
 if __name__ == '__main__':
-    sys.exit(AxpyDataGen().main())
+    sys.exit(DotDataGen().main())

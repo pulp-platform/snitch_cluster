@@ -5,5 +5,5 @@
 #pragma once
 
 #include "axpy/src/axpy.h"
+#include "dot/src/dot.h"
 #include "gemm/src/gemm.h"
-#include "dotp/src/dotp.h"

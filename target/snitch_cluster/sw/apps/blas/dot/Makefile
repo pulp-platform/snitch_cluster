@@ -4,7 +4,7 @@
 #
 # Matteo Perotti <mperotti@iis.ee.ethz.ch>
 
-include ../../../../../../sw/blas/dotp/Makefile
+include ../../../../../../sw/blas/dot/Makefile
 include ../../common.mk
 
 $(DEP): $(DATA_H)
