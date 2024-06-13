@@ -2,14 +2,19 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-FROM ubuntu:22.04 AS builder
+FROM ubuntu:22.04 AS base
 
 # apt update and upgrade
-RUN apt-get update && apt-get upgrade -y && \
+RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg curl && \
+  wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 17 && rm llvm.sh && \
+  echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list && \
+  echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee /etc/apt/sources.list.d/sbt_old.list && \
+  curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | apt-key add && \
+  apt-get update && \
+  apt-get upgrade -y && \
   apt-get install -y \
   build-essential \
   device-tree-compiler \
-  curl \
   git \
   gnupg2 \
   lsb-release \
@@ -20,22 +25,22 @@ RUN apt-get update && apt-get upgrade -y && \
   zlib1g-dev \
   zsh \
   vim \
-  nano 
+  nano \
+  openjdk-11-jre-headless openjdk-11-jdk-headless \
+  mlir-17-tools clang-format-17 python3 \
+  help2man perl make autoconf g++ flex bison ccache \
+  libgoogle-perftools-dev numactl perl-doc \
+  libfl2 libfl-dev zlib1g zlib1g-dev \
+  sbt \
+  python3-pip && \
+  # create symbolic links for all *-17 binaries
+  for f in /usr/bin/*-17; do ln -s $f ${f%-17}; done && \
+  # Update pip for git installs
+  pip3 install --upgrade pip
 
-# Install Rust
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
-RUN rustup install 1.77.2
-RUN rustup override set 1.77.2
 
-# Install Bender
-RUN cargo install bender --version 0.28.1
 
 # Install Verilator
-RUN apt-get install -y \
-  git help2man perl make autoconf g++ flex bison ccache \
-  libgoogle-perftools-dev numactl perl-doc
-RUN apt-get install -y libfl2 libfl-dev zlibc zlib1g zlib1g-dev || true
 RUN git clone https://github.com/verilator/verilator && \
   cd verilator && \
   git checkout stable && \
@@ -45,57 +50,104 @@ RUN git clone https://github.com/verilator/verilator && \
   make -j$(nproc) && \
   make install && \
   cd .. && \
-  rm -rf verilator
+  rm -rf verilator && \
+  rm -rf /root/.cache
+
 ENV VLT_ROOT /usr/local/share/verilator
-
-# Install Verible
 ENV VERIBLE_VERSION 0.0-3644-g6882622d
-RUN wget https://github.com/chipsalliance/verible/releases/download/v${VERIBLE_VERSION}/verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz && \
-  mkdir tempdir && \
-  tar -x -f verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz --strip-components=1 -C tempdir && \
-  cp -rn tempdir/bin/* ./bin/ && \
-  rm -rf verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz tempdir
 
-# Install LLVM 17 + MLIR + clang-format
-RUN wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 17 && rm llvm.sh
-RUN apt-get -y install mlir-17-tools
-RUN apt-get -y install clang-format-17
+# Install pre-builts:
+# Bender
+RUN cd /usr/bin && curl --proto '=https' --tlsv1.2 https://pulp-platform.github.io/bender/init -sSf | sh -s 0.28.1 && cd /
 
-# create symbolic links for all *-17 binaries
-RUN for f in /usr/bin/*-17; do ln -s $f ${f%-17}; done
-
-# Install the Chisel Environment
-RUN apt-get update && \
-  apt-get install -y openjdk-11-jre-headless openjdk-11-jdk-headless
-
+# spike-dasm
+RUN wget https://github.com/pulp-platform/riscv-isa-sim/releases/download/snitch-v0.1.0/snitch-spike-dasm-0.1.0-x86_64-linux-gnu-ubuntu18.04.tar.gz && \
+    tar xzf snitch-spike-dasm-0.1.0-x86_64-linux-gnu-ubuntu18.04.tar.gz && \
+    rm snitch-spike-dasm-0.1.0-x86_64-linux-gnu-ubuntu18.04.tar.gz && \
+# Verible
+    wget https://github.com/chipsalliance/verible/releases/download/v${VERIBLE_VERSION}/verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz && \
+    mkdir tempdir && \
+    tar -x -f verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz --strip-components=1 -C tempdir && \
+    cp -rn tempdir/bin/* ./bin/ && \
+    rm -rf verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz tempdir && \
 # Install scala-cli
-RUN curl -sSLf https://scala-cli.virtuslab.org/get | sh
-
+    curl -sSLf https://scala-cli.virtuslab.org/get | sh && \
 # Install mill build tool
-RUN curl -L https://raw.githubusercontent.com/lefou/millw/0.4.11/millw > mill && chmod +x mill && mv mill /usr/local/bin
+    curl -L https://raw.githubusercontent.com/lefou/millw/0.4.11/millw > mill && chmod +x mill && mv mill /usr/local/bin && \
+# Remove cache
+    rm -rf /root/.cache
 
-# Install sbt
-RUN echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list && \
-  echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee /etc/apt/sources.list.d/sbt_old.list && \
-  curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | apt-key add && \
-  apt-get update
+# Install Python Requirements from kuleuven-micas/snax_cluster
+RUN git clone https://github.com/kuleuven-micas/snax_cluster.git && \
+    cd snax_cluster && pip3 install --no-cache-dir -r python-requirements.txt && \
+    cd .. && \
+    rm -rf snax_cluster && \
+# Install Python Requirements from kuleuven-micas/snax-mlir
+    git clone https://github.com/kuleuven-micas/snax-mlir.git && \
+    cd snax-mlir && pip3 install --no-cache-dir -r requirements.txt && \
+    cd .. && \
+    rm -rf snax-mlir
 
-RUN apt-get install -y sbt
-
-# Install pip3
-RUN apt-get install -y python3-pip
-
-# Install Python Requirements from kuleuven-micas/snitch_cluster
-RUN git clone https://github.com/kuleuven-micas/snitch_cluster.git
-RUN cd snitch_cluster && pip3 install -r python-requirements.txt
-RUN cd ..
-RUN rm -rf snitch_cluster
 
 # Install Oh-My-Zsh and Autocomplete Plugin
-RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-RUN git clone https://github.com/zsh-users/zsh-autosuggestions.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
-RUN echo "source ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh" >> ~/.zshrc
-RUN chsh -s $(which zsh)
+RUN sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended && \
+    git clone https://github.com/zsh-users/zsh-autosuggestions.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions && \
+    echo "source ~/.oh-my-zsh/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh" >> ~/.zshrc && \
+    chsh -s $(which zsh)
 
 # Zsh as default shell
 CMD ["zsh"]
+
+# Default systems
+FROM base as snax-mac
+
+RUN git clone https://github.com/kuleuven-micas/snitch_cluster /src && \
+    cd /src && git submodule update --init && \
+    cd /src && sbt package && \
+    cd /src && \
+    make DEBUG=ON sw -j$(nproc) \
+    -C target/snitch_cluster \
+    SELECT_TOOLCHAIN=llvm-generic \
+    SELECT_RUNTIME=rtl-generic \
+    CFG_OVERRIDE=cfg/snax-mac.hjson && \
+    cd /src && \
+    make -C target/snitch_cluster bin/snitch_cluster.vlt \
+    CFG_OVERRIDE=cfg/snax-mac.hjson -j $(nproc)
+
+FROM base as snax-gemm
+
+RUN git clone https://github.com/kuleuven-micas/snitch_cluster /src && \
+    cd /src && git submodule update --init && \
+    cd /src && sbt package && \
+    cd /src && \
+    make DEBUG=ON sw -j$(nproc) \
+    -C target/snitch_cluster \
+    SELECT_TOOLCHAIN=llvm-generic \
+    SELECT_RUNTIME=rtl-generic \
+    CFG_OVERRIDE=cfg/snax-gemm.hjson && \
+    cd /src && \
+    make -C target/snitch_cluster bin/snitch_cluster.vlt \
+    CFG_OVERRIDE=cfg/snax-gemm.hjson -j $(nproc)
+
+# Copy Hardware to final image
+FROM base as target
+
+COPY --from=snax-mac /src/target/snitch_cluster/bin/snitch_cluster.vlt /opt/snax-mac-rtl/bin/snitch_cluster.vlt
+COPY --from=snax-mac /src/sw/snRuntime /opt/snax-mac/sw/snRuntime
+COPY --from=snax-mac /src/target/snitch_cluster/sw/runtime/rtl /opt/snax-mac/target/snitch_cluster/sw/runtime/rtl
+COPY --from=snax-mac /src/target/snitch_cluster/sw/runtime/rtl-generic /opt/snax-mac/target/snitch_cluster/sw/runtime/rtl-generic
+COPY --from=snax-mac /src/target/snitch_cluster/sw/runtime/common /opt/snax-mac/target/snitch_cluster/sw/runtime/common
+COPY --from=snax-mac /src/target/snitch_cluster/sw/snax/ /opt/snax-mac/target/snitch_cluster/sw/snax
+COPY --from=snax-mac /src/sw/math/ /opt/snax-mac/sw/math/
+COPY --from=snax-mac /src/sw/deps/riscv-opcodes /opt/snax-mac/sw/deps/riscv-opcodes
+COPY --from=snax-mac /src/sw/deps/printf /opt/snax-mac/sw/deps/printf
+
+COPY --from=snax-gemm /src/target/snitch_cluster/bin/snitch_cluster.vlt /opt/snax-gemm-rtl/bin/snitch_cluster.vlt
+COPY --from=snax-gemm /src/sw/snRuntime /opt/snax-gemm/sw/snRuntime
+COPY --from=snax-gemm /src/target/snitch_cluster/sw/runtime/rtl /opt/snax-gemm/target/snitch_cluster/sw/runtime/rtl
+COPY --from=snax-gemm /src/target/snitch_cluster/sw/runtime/rtl-generic /opt/snax-gemm/target/snitch_cluster/sw/runtime/rtl-generic
+COPY --from=snax-gemm /src/target/snitch_cluster/sw/runtime/common /opt/snax-gemm/target/snitch_cluster/sw/runtime/common
+COPY --from=snax-gemm /src/target/snitch_cluster/sw/snax/ /opt/snax-gemm/target/snitch_cluster/sw/snax
+COPY --from=snax-gemm /src/sw/math/ /opt/snax-gemm/sw/math/
+COPY --from=snax-gemm /src/sw/deps/riscv-opcodes /opt/snax-gemm/sw/deps/riscv-opcodes
+COPY --from=snax-gemm /src/sw/deps/printf /opt/snax-gemm/sw/deps/printf
