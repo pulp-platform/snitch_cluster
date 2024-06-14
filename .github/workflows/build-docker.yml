@@ -11,6 +11,8 @@ on:
     paths:
       - 'util/container/Dockerfile'
   workflow_dispatch:
+  release:
+    types: [published]
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: kuleuven-micas/snax
