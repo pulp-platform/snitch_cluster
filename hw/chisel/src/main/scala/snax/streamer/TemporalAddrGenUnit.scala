@@ -52,6 +52,9 @@ class TemporalAddrGenUnitIO(
 
   // done signal indicating current transaction is done, ready for next config and transaction
   val done = Output(Bool())
+
+  // signal to indicate the case when any of the loop bounds are zero
+  val zeroLoopBoundCase = Output(Bool())
 }
 
 /** TemporalAddrGenUnit is a module that generates addresses based on a nested
@@ -95,6 +98,9 @@ class TemporalAddrGenUnit(
     VecInit(Seq.fill(params.loopDim)(0.U(params.addrWidth.W)))
   )
   val ptr = RegInit(0.U((params.addrWidth).W))
+
+  // signal to indicate the case when any of the loop bounds are zero
+  val zeroLoopBoundCase = WireInit(0.B)
 
   /** The following code is the FSM for the TemporalAddrGenUnit module.
     *
@@ -142,6 +148,10 @@ class TemporalAddrGenUnit(
     strides := io.strides_i.bits
     ptr := io.ptr_i.bits
   }
+
+  // special case test for when any loop bound is zero
+  zeroLoopBoundCase := cstate === sBUSY && loopBounds.exists(_ === 0.U)
+  io.zeroLoopBoundCase := zeroLoopBoundCase
 
   /** Generates a nested loop counter based on the provided parameters.
     */
@@ -196,10 +206,12 @@ class TemporalAddrGenUnit(
     .map { case (a, b) => a * b })
     .reduce(_ +& _) +& ptr
 
-  addr_gen_finish := loop_counters_last.reduce(_ & _) && io.ptr_o.fire
+  addr_gen_finish := (loop_counters_last.reduce(
+    _ & _
+  ) && io.ptr_o.fire) || zeroLoopBoundCase
 
   // the decoupled interface is driven by the module state
-  io.ptr_o.valid := cstate === sBUSY
+  io.ptr_o.valid := cstate === sBUSY && !zeroLoopBoundCase
 
   io.loopBounds_i.ready := cstate === sIDLE
   io.strides_i.ready := cstate === sIDLE

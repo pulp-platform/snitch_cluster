@@ -34,6 +34,9 @@ class DataMoverIO(params: DataMoverParams) extends Bundle {
   // all the temporal addresses have been produced
   val addr_gen_done = Input(Bool())
 
+  // signal to indicate the case when any of the loop bounds are zero
+  val zeroLoopBoundCase = Input(Bool())
+
   // output signal to indicate the data movement process is done
   val data_movement_done = Output(Bool())
 }
@@ -98,6 +101,8 @@ class DataMover(
   // State changes
   cstate := nstate
 
+  val data_movement_done = WireInit(0.B)
+
   chisel3.dontTouch(cstate)
   switch(cstate) {
     is(sIDLE) {
@@ -109,7 +114,7 @@ class DataMover(
 
     }
     is(sBUSY) {
-      when(io.addr_gen_done) {
+      when(data_movement_done) {
         nstate := sIDLE
       }.otherwise {
         nstate := sBUSY
@@ -211,8 +216,7 @@ class DataMover(
 
   // finally, we can signal the data movement process is finished when all requests
   // have been acknowledged and all temporal addresses have been processed
-  val data_movement_done = WireInit(0.B)
-  data_movement_done := io.addr_gen_done && tcdm_req_ready
+  data_movement_done := (io.addr_gen_done && tcdm_req_ready) || io.zeroLoopBoundCase
   io.data_movement_done := data_movement_done
 
 }

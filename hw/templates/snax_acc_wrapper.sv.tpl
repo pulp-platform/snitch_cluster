@@ -16,7 +16,7 @@
 
   if("data_writer_params" in cfg["snax_streamer_cfg"]):
       num_tcdm_writer = sum(cfg["snax_streamer_cfg"]["data_writer_params"]["tcdm_ports_num"])
-      num_writer_offset = len(cfg["snax_streamer_cfg"]["data_reader_params"]["tcdm_ports_num"])
+      num_writer_offset = len(cfg["snax_streamer_cfg"]["data_writer_params"]["tcdm_ports_num"])
 
   if("data_reader_writer_params" in cfg["snax_streamer_cfg"]):
       num_tcdm_reader_writer = sum(cfg["snax_streamer_cfg"]["data_reader_writer_params"]["tcdm_ports_num"])
