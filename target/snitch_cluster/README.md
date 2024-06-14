@@ -76,14 +76,7 @@ ___Note:__ on GVSOC, it is better to use OpenOCD semi-hosting to prevent putchar
 
 ### Running a simulation
 
-Create the `logs` directory to host the simulation traces:
-
-```shell
-# If it's the first time you run this the logs/ folder won't exist and you will have to create it
-mkdir logs
-```
-
-Run one of the executables which was compiled in the previous step on your Snitch cluster hardware with your preferred simulator:
+Run one of the executables which was compiled in the previous step on your Snitch cluster simulator of choice:
 
 ```shell
 # Verilator
@@ -99,7 +92,9 @@ bin/snitch_cluster.vcs sw/apps/blas/axpy/build/axpy.elf
 banshee --no-opt-llvm --no-opt-jit --configuration src/banshee.yaml --trace sw/apps/blas/axpy/build/axpy.elf
 ```
 
-The previous commands will run the simulation in your current terminal. You can also run the simulation in the QuestaSim GUI by adapting the previous command to:
+The Snitch cluster simulator binaries can be invoked from any directory, just adapt the relative paths in the preceding commands accordingly, or use absolute paths. We refer to the working directory where the simulation is launched as the simulation directory. Within it, you will find several log files produced by the RTL simulation.
+
+The previous commands will launch the simulation on the console. QuestaSim simulations can also be launched with the QuestaSim GUI, by adapting the previous command to:
 
 ```shell
 # Questa
@@ -224,13 +219,21 @@ bin/snitch_cluster.vsim sw/apps/axpy/build/axpy.elf
 
 ### Debugging and benchmarking
 
-When you run the simulation, every core will log all the instructions it executes (along with additional information, such as the value of the registers before/after the instruction) in a trace file, located in the `target/snitch_cluster/logs` directory. The traces are identified by their hart ID, that is a unique ID for every hardware thread (hart) in a RISC-V system (and since all our cores have a single thread that is a unique ID per core)
+When you run the simulation, every core will log all the instructions it executes (along with additional information, such as the value of the registers before/after the instruction) in a trace file. The traces are located in the `logs` folder within the simulation directory. The traces are identified by their hart ID, that is a unique ID for every hardware thread (hart) in a RISC-V system (and since all our cores have a single thread that is a unique ID per core).
 
 The simulation logs the traces in a non-human readable format with `.dasm` extension. To convert these to a human-readable form run:
 
 ```bash
 make -j traces
 ```
+
+If the simulation directory does not coincide with the current working directory, you will have to specify the path explicitly:
+
+```bash
+make -j traces SIM_DIR=<path_to_simulation_directory>
+```
+
+Detailed information on how to interpret the generated traces can be found [here](../../docs/ug/trace_analysis.md).
 
 In addition to generating readable traces (`.txt` format), the above command also computes several performance metrics from the trace and appends them at the end of the trace. These can be collected into a single CSV file with the following target:
 
