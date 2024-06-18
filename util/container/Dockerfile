@@ -101,7 +101,7 @@ CMD ["zsh"]
 # Default systems
 FROM base as snax-mac
 
-RUN git clone https://github.com/kuleuven-micas/snitch_cluster /src && \
+RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
     cd /src && git submodule update --init && \
     cd /src && sbt package && \
     cd /src && \
@@ -116,7 +116,7 @@ RUN git clone https://github.com/kuleuven-micas/snitch_cluster /src && \
 
 FROM base as snax-gemm
 
-RUN git clone https://github.com/kuleuven-micas/snitch_cluster /src && \
+RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
     cd /src && git submodule update --init && \
     cd /src && sbt package && \
     cd /src && \
@@ -128,6 +128,21 @@ RUN git clone https://github.com/kuleuven-micas/snitch_cluster /src && \
     cd /src && \
     make -C target/snitch_cluster bin/snitch_cluster.vlt \
     CFG_OVERRIDE=cfg/snax-gemm.hjson -j $(nproc)
+
+FROM base as snax-alu
+
+RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
+    cd /src && git submodule update --init && \
+    cd /src && sbt package && \
+    cd /src && \
+    make DEBUG=ON sw -j$(nproc) \
+    -C target/snitch_cluster \
+    SELECT_TOOLCHAIN=llvm-generic \
+    SELECT_RUNTIME=rtl-generic \
+    CFG_OVERRIDE=cfg/snax-alu.hjson && \
+    cd /src && \
+    make -C target/snitch_cluster bin/snitch_cluster.vlt \
+    CFG_OVERRIDE=cfg/snax-alu.hjson -j $(nproc)
 
 # Copy Hardware to final image
 FROM base as target
@@ -151,3 +166,13 @@ COPY --from=snax-gemm /src/target/snitch_cluster/sw/snax/ /opt/snax-gemm/target/
 COPY --from=snax-gemm /src/sw/math/ /opt/snax-gemm/sw/math/
 COPY --from=snax-gemm /src/sw/deps/riscv-opcodes /opt/snax-gemm/sw/deps/riscv-opcodes
 COPY --from=snax-gemm /src/sw/deps/printf /opt/snax-gemm/sw/deps/printf
+
+COPY --from=snax-alu /src/target/snitch_cluster/bin/snitch_cluster.vlt /opt/snax-alu-rtl/bin/snitch_cluster.vlt
+COPY --from=snax-alu /src/sw/snRuntime /opt/snax-alu/sw/snRuntime
+COPY --from=snax-alu /src/target/snitch_cluster/sw/runtime/rtl /opt/snax-alu/target/snitch_cluster/sw/runtime/rtl
+COPY --from=snax-alu /src/target/snitch_cluster/sw/runtime/rtl-generic /opt/snax-alu/target/snitch_cluster/sw/runtime/rtl-generic
+COPY --from=snax-alu /src/target/snitch_cluster/sw/runtime/common /opt/snax-alu/target/snitch_cluster/sw/runtime/common
+COPY --from=snax-alu /src/target/snitch_cluster/sw/snax/ /opt/snax-alu/target/snitch_cluster/sw/snax
+COPY --from=snax-alu /src/sw/math/ /opt/snax-alu/sw/math/
+COPY --from=snax-alu /src/sw/deps/riscv-opcodes /opt/snax-alu/sw/deps/riscv-opcodes
+COPY --from=snax-alu /src/sw/deps/printf /opt/snax-alu/sw/deps/printf
