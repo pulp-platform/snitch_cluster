@@ -5,6 +5,7 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
+import numpy as np
 import sys
 from pathlib import Path
 from datagen import exact_flexfloat_golden_model
@@ -51,13 +52,17 @@ class FlashAttention2Verifier(Verifier):
         Q = self.get_input_from_symbol('Q', ctype_from_precision_t(self.prec))
         K = self.get_input_from_symbol('K', ctype_from_precision_t(self.prec))
         V = self.get_input_from_symbol('V', ctype_from_precision_t(self.prec))
+        # convert Q, K, V to float using ff.FlexFloat.__float__
+        Q_f = np.array([q.__float__() for q in Q])
+        K_f = np.array([k.__float__() for k in K])
+        V_f = np.array([v.__float__() for v in V])
         # Q = torch.from_numpy(Q.reshape(self.L, self.d))
         # V = torch.from_numpy(V.reshape(self.S, self.d))
         # K = torch.from_numpy(K.reshape(self.S, self.d))
         ff_desc = ff_desc_from_precision_t(self.prec)
-        Q = ff.array(Q.reshape(self.L, self.d), ff_desc)
-        V = ff.array(V.reshape(self.S, self.d), ff_desc)
-        K = ff.array(K.reshape(self.S, self.d), ff_desc)
+        Q = ff.array(Q_f.reshape(self.L, self.d), ff_desc)
+        V = ff.array(V_f.reshape(self.S, self.d), ff_desc)
+        K = ff.array(K_f.reshape(self.S, self.d), ff_desc)
         # return torch_golden_model(Q, K, V).detach().numpy().flatten()
         # return exact_golden_model(Q, K, V, self.B_r, self.B_c).flatten()
         return exact_flexfloat_golden_model(Q, K, V, self.B_r, self.B_c, ff_desc).flatten()
