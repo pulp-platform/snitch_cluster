@@ -9,7 +9,7 @@ DEBUG ?= OFF  # ON to turn on wave logging
 SIM_DIR  ?= $(shell pwd)
 TB_DIR   ?= $(SNITCH_ROOT)/target/common/test
 UTIL_DIR ?= $(SNITCH_ROOT)/util
-LOGS_DIR  = $(SIM_DIR)/logs
+LOGS_DIR ?= $(SIM_DIR)/logs
 
 # Files
 BENDER_LOCK ?= $(ROOT)/Bender.lock
