@@ -37,10 +37,12 @@ nav:
   - User Guide:
       - Getting Started: ug/getting_started.md
       - Repository Structure: ug/directory_structure.md
-      - Tutorial: ug/tutorial.md
+      - Tutorial:
+          - Base: ug/tutorial.md
+          - Advanced:
+              - Trace Analysis: ug/trace_analysis.md
       - Documentation: ug/documentation.md
       # Remove
-      # - Benchmarking: ug/benchmarking.md
       # - Trace Example: ug/example_trace.html
   - Reference Manual:
       - Hardware:
