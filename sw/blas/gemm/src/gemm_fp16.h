@@ -14,12 +14,17 @@ void gemm_fp16_naive(uint32_t M, uint32_t N, uint32_t K, void* A_p,
     __fp16* A = (__fp16*)A_p;
     __fp16* B = (__fp16*)B_p;
     __fp16* C = (__fp16*)C_p;
+    __fp16 beta = (__fp16)BETA;
 
     for (uint32_t m = 0; m < M; m++) {
         for (uint32_t n = 0; n < N; n++) {
-            __fp16 c = 0;
+            __fp16 c;
+            if (beta  != 0) {
+                c = C[m * ldC + n] * beta;
+            } else {
+                c = 0.0;
+            }
             for (uint32_t k = 0; k < K; k++) {
-                // c0 += A[k + m * ldA] * B[k + n * ldB];
                 __fp16 a = A[m * ldA + k];
                 __fp16 b;
                 if (tb)
