@@ -7,6 +7,8 @@ import chisel3.util._
 
 object StreamerTestConstant extends CommonParams {
 
+  def addrWidth = 17
+
   def MacScalingFactor = 4
 
   def temporalAddrGenUnitParams: Seq[TemporalAddrGenUnitParams] =
@@ -14,7 +16,7 @@ object StreamerTestConstant extends CommonParams {
       TemporalAddrGenUnitParams(
         loopDim = 1,
         loopBoundWidth = 8,
-        addrWidth
+        addrWidth = 17
       )
     )
 
@@ -36,6 +38,7 @@ object StreamerTestConstant extends CommonParams {
   def dataReaderParams: Seq[DataMoverParams] = Seq(
     DataMoverParams(
       tcdmPortsNum = 1 * MacScalingFactor,
+      addrWidth,
       spatialBounds = Seq(2 * MacScalingFactor),
       spatialDim = 1,
       elementWidth = 32,
@@ -43,6 +46,7 @@ object StreamerTestConstant extends CommonParams {
     ),
     DataMoverParams(
       tcdmPortsNum = 1 * MacScalingFactor,
+      addrWidth,
       spatialBounds = Seq(2 * MacScalingFactor),
       spatialDim = 1,
       elementWidth = 32,
@@ -50,6 +54,7 @@ object StreamerTestConstant extends CommonParams {
     ),
     DataMoverParams(
       tcdmPortsNum = 1,
+      addrWidth,
       spatialBounds = Seq(2),
       spatialDim = 1,
       elementWidth = 32,
@@ -60,6 +65,7 @@ object StreamerTestConstant extends CommonParams {
   def dataWriterParams: Seq[DataMoverParams] = Seq(
     DataMoverParams(
       tcdmPortsNum = 1 * MacScalingFactor,
+      addrWidth,
       spatialBounds = Seq(2 * MacScalingFactor),
       spatialDim = 1,
       elementWidth = 32,
@@ -76,6 +82,8 @@ object StreamerTestConstant extends CommonParams {
 
 object StreamerWithReaderWriterTestConstant extends CommonParams {
 
+  def addrWidth = 17
+  
   def temporalAddrGenUnitParams: Seq[TemporalAddrGenUnitParams] =
     Seq(
       TemporalAddrGenUnitParams(
@@ -101,6 +109,7 @@ object StreamerWithReaderWriterTestConstant extends CommonParams {
   def dataReaderParams: Seq[DataMoverParams] = Seq(
     DataMoverParams(
       tcdmPortsNum = 8,
+      addrWidth,
       spatialBounds = Seq(8, 8),
       spatialDim = 2,
       elementWidth = 8,
@@ -108,6 +117,7 @@ object StreamerWithReaderWriterTestConstant extends CommonParams {
     ),
     DataMoverParams(
       tcdmPortsNum = 8,
+      addrWidth,
       spatialBounds = Seq(8, 8),
       spatialDim = 2,
       elementWidth = 8,
@@ -121,6 +131,7 @@ object StreamerWithReaderWriterTestConstant extends CommonParams {
   def dataReaderWriterParams: Seq[DataMoverParams] = Seq(
     DataMoverParams(
       tcdmPortsNum = 32,
+      addrWidth,
       spatialBounds = Seq(8, 8),
       spatialDim = 2,
       elementWidth = 32,
@@ -175,6 +186,7 @@ object TestParameters {
 
   val dataMover = DataMoverParams(
     tcdmPortsNum = 8,
+    addrWidth = 32,
     spatialBounds = Seq(8, 8),
     fifoWidth = 512,
     elementWidth = 8,

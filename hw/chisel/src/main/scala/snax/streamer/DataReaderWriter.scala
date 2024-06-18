@@ -136,6 +136,7 @@ class DataReaderWriter(
 object DataReaderWriter {
   val dataMover = DataMoverParams(
     tcdmPortsNum = 8,
+    addrWidth = 17,
     spatialBounds = Seq(8, 8),
     fifoWidth = 512,
     elementWidth = 8,

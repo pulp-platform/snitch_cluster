@@ -48,13 +48,16 @@ import chisel3.util._
 
 // Streamer parameters
 object StreamerParametersGen extends CommonParams {
+
+  def addrWidth = ${tcdm_addr_width}
+
   def temporalAddrGenUnitParams: Seq[TemporalAddrGenUnitParams] =
   Seq(
 % for idx in range(0,len(cfg["snax_streamer_cfg"]["temporal_addrgen_unit_params"]["loop_dim"])):
     TemporalAddrGenUnitParams(
       loopDim = ${cfg["snax_streamer_cfg"]["temporal_addrgen_unit_params"]["loop_dim"][idx]},
       loopBoundWidth = 32,
-      addrWidth = ${tcdm_addr_width}
+      addrWidth
     )${', ' if not loop.last else ''}
 % endfor
   )
@@ -105,6 +108,7 @@ ${', ' if not loop.last else ''}
 % for idx in range(0,len(cfg["snax_streamer_cfg"]["data_reader_params"]["tcdm_ports_num"])):
     DataMoverParams(
       tcdmPortsNum = ${cfg["snax_streamer_cfg"]["data_reader_params"]["tcdm_ports_num"][idx]},
+      addrWidth,
       spatialBounds = Seq(\
   % for c in cfg["snax_streamer_cfg"]["data_reader_params"]["spatial_bounds"][idx]:
 ${c}${', ' if not loop.last else ''}\
@@ -125,6 +129,7 @@ ${c}${', ' if not loop.last else ''}\
  % for idx in range(0,len(cfg["snax_streamer_cfg"]["data_writer_params"]["tcdm_ports_num"])):
     DataMoverParams(
       tcdmPortsNum = ${cfg["snax_streamer_cfg"]["data_writer_params"]["tcdm_ports_num"][idx]},
+      addrWidth,
       spatialBounds = Seq(\
   % for c in cfg["snax_streamer_cfg"]["data_writer_params"]["spatial_bounds"][idx]:
 ${c}${', ' if not loop.last else ''}\
@@ -145,6 +150,7 @@ ${c}${', ' if not loop.last else ''}\
 % for idx in range(0,len(cfg["snax_streamer_cfg"]["data_reader_writer_params"]["tcdm_ports_num"])):
     DataMoverParams(
       tcdmPortsNum = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["tcdm_ports_num"][idx]},
+      addrWidth,
       spatialBounds = Seq(\
   % for c in cfg["snax_streamer_cfg"]["data_reader_writer_params"]["spatial_bounds"][idx]:
 ${c}${', ' if not loop.last else ''}\
@@ -182,6 +188,7 @@ object StreamerTopGen {
           dataReaderParams = StreamerParametersGen.dataReaderParams,
           dataWriterParams = StreamerParametersGen.dataWriterParams,
           dataReaderWriterParams = StreamerParametersGen.dataReaderWriterParams,
+          addrWidth = StreamerParametersGen.addrWidth,
           stationarity = StreamerParametersGen.stationarity,
           ifShareTempAddrGenLoopBounds = StreamerParametersGen.ifShareTempAddrGenLoopBounds,
           tagName = "${cfg["tag_name"]}_streamer_"

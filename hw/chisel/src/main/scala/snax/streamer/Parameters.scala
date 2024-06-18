@@ -11,7 +11,6 @@ import chisel3.util._
   */
 trait CommonParams {
 
-  def addrWidth = 32
   def tcdmDataWidth = 64
 
 }
@@ -64,6 +63,7 @@ case class SpatialAddrGenUnitParams(
   */
 case class DataMoverParams(
     tcdmPortsNum: Int,
+    addrWidth: Int,
     spatialBounds: Seq[Int],
     spatialDim: Int,
     elementWidth: Int,
@@ -114,6 +114,8 @@ trait HasStreamerCoreParams {
   val csrAddrWidth: Int
 
   val ifShareTempAddrGenLoopBounds: Boolean
+
+  val addrWidth: Int
 }
 
 /** trait for Streamer inferred parameters
@@ -200,6 +202,7 @@ case class StreamerParams(
     fifoReaderParams: Seq[FIFOParams],
     fifoWriterParams: Seq[FIFOParams],
     fifoReaderWriterParams: Seq[FIFOParams],
+    addrWidth: Int = 17,
     readOnlyCsrNum: Int = 1,
     csrAddrWidth: Int = 32,
     ifShareTempAddrGenLoopBounds: Boolean = true,

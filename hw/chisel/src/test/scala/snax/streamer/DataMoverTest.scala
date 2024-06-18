@@ -18,6 +18,7 @@ class DataMoverTest
       new DataMoverTester(
         DataMoverParams(
           tcdmPortsNum = 2,
+          addrWidth = 17,
           spatialBounds = Seq(8, 2),
           spatialDim = 2,
           elementWidth = 8,
