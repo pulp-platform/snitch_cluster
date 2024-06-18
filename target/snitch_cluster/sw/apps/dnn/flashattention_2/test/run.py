@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
+# Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
 import os
 from pathlib import Path
@@ -14,6 +15,8 @@ import yaml
 sys.path.append(str(Path(__file__).parent / '../../../../../util/'))
 import snitch_cluster  # noqa: E402
 
+ROI_SPEC = Path.cwd() / 'roi.json.tpl'
+
 
 def parser():
     # Argument parsing
@@ -22,6 +25,10 @@ def parser():
         '--cfg',
         nargs='*',
         help='List of configurations')
+    parser.add_argument(
+        '--post-process-only',
+        action='store_true',
+        help='Only post-process simulation logs')
     return parser
 
 
@@ -67,23 +74,37 @@ def build_testlist(tests, outfile):
         yaml.dump({'runs': tests}, f)
 
 
+def post_process(cfg):
+    sim_dir = Path(f'sw/apps/dnn/flashattention_2/tests/runs/flashattention_2-{Path(cfg).stem}')
+    binary = Path(f'sw/apps/dnn/flashattention_2/tests/build/\
+                  {Path(cfg).stem}/flashattention_2.elf')
+    subprocess.run(['make', '-C', '../../../../../', f'SIM_DIR={sim_dir}',
+                    'annotate', f'BINARY={binary}', '-j'],
+                   check=True)
+
+
 def main():
 
     args = parse_args()
 
-    # Build software and test specifications
-    tests = []
+    if not args.post_process_only:
+
+        # Build software and test specifications
+        tests = []
+        for cfg in args.cfg:
+            cfg = Path(cfg)
+            build_sw(cfg)
+            tests.append(build_test(cfg))
+
+        # Build the testlist
+        build_testlist(tests, args.testlist)
+
+        # Run the simulations
+        simulations = snitch_cluster.get_simulations(args)
+        snitch_cluster.run_simulations(simulations, args)
+
     for cfg in args.cfg:
-        cfg = Path(cfg)
-        build_sw(cfg)
-        tests.append(build_test(cfg))
-
-    # Build the testlist
-    build_testlist(tests, args.testlist)
-
-    # Run the simulations
-    simulations = snitch_cluster.get_simulations(args)
-    snitch_cluster.run_simulations(simulations, args)
+        post_process(cfg)
 
 
 if __name__ == '__main__':
