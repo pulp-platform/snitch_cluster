@@ -33,6 +33,7 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
   // Register lanes from switch.
   output data_t       lane_rdata_o,
   input  data_t       lane_wdata_i,
+  input  logic        lane_write_i,
   output logic        lane_valid_o,
   input  logic        lane_ready_i,
   // Ports into memory.
@@ -158,9 +159,13 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
 
   always_comb begin
     if (dm_write) begin
-      lane_valid_o = ~fifo_full;
+      // Accept only writes and only when there is space in the FIFO.
+      // Note this blocks read accesses until the current write stream is over;
+      // This means that reads in the midst of write streams are *deadlocking*
+      // just like excess reads past finished read streams are.
+      lane_valid_o = lane_write_i & ~fifo_full;
       data_req_qvalid = agen_valid & ~fifo_empty & has_credit & ~agen_flush;
-      fifo_push = lane_ready_i & ~fifo_full;
+      fifo_push = lane_valid_o & lane_ready_i;
       fifo_in = lane_wdata_i;
       rep_enable = 0;
       fifo_pop = data_req_qvalid & data_rsp.q_ready;

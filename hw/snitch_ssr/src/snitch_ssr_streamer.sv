@@ -155,6 +155,7 @@ module snitch_ssr_streamer import snitch_ssr_pkg::*; #(
       .cfg_wready_o   ( dmcfg_wready [i]  ),
       .lane_rdata_o   ( lane_rdata   [i]  ),
       .lane_wdata_i   ( lane_wdata   [i]  ),
+      .lane_write_i   ( lane_write   [i]  ),
       .lane_valid_o   ( lane_valid   [i]  ),
       .lane_ready_i   ( lane_ready   [i]  ),
       .mem_req_o      ( mem_req_o    [i]  ),

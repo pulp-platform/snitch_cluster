@@ -102,6 +102,7 @@ module fixture_ssr import snitch_ssr_pkg::*; #(
   tcdm_rsp_t    mem_rsp_i;
   logic [DataWidth-1:0] lane_rdata_o;
   logic [DataWidth-1:0] lane_wdata_i;
+  logic [DataWidth-1:0] lane_write_i;
   logic [AddrWidth-1:0] tcdm_start_address_i = '0;    // (currently) required for test flow
 
   // Device Under Test (DUT)
@@ -126,6 +127,7 @@ module fixture_ssr import snitch_ssr_pkg::*; #(
     .cfg_wready_o,
     .lane_rdata_o,
     .lane_wdata_i,
+    .lane_write_i,
     .lane_valid_o,
     .lane_ready_i,
     .mem_req_o,
@@ -304,6 +306,7 @@ module fixture_ssr import snitch_ssr_pkg::*; #(
 
   // Swap valid and ready to emulate 3-way handshake
   assign lane_wdata_i   = ssr_bus.wdata;
+  assign lane_write_i   = ssr_bus.write;
   assign lane_ready_i   = ssr_bus.valid;
   assign ssr_bus.rdata  = lane_rdata_o;
   assign ssr_bus.ready  = lane_valid_o;
