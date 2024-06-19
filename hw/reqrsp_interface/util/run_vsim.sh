@@ -16,7 +16,7 @@ call_vsim() {
     grep "Errors: 0," vsim.log
 }
 
-#call_vsim axi_to_reqrsp_tb
+call_vsim axi_to_reqrsp_tb
 call_vsim reqrsp_to_axi_tb
 call_vsim reqrsp_mux_tb
 call_vsim reqrsp_demux_tb
