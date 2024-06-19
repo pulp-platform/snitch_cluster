@@ -116,7 +116,8 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
   // The datamover must preserve its directional muxing until the flush is complete.
   // This will *not* block write preloading of the FIFO.
   assign agen_write_reversing = agen_write ^ agen_write_q;
-  assign agen_flush = agen_write_reversing & ~credit_full;
+  // When switching from writes to reads, the FIFO must be *fully* read too.
+  assign agen_flush = agen_write_reversing & (~credit_full | (agen_write_q & ~fifo_empty));
   assign dm_write = agen_flush ? agen_write_q : agen_write;
 
   assign agen_ready = ~agen_flush & (agen_zero ?
