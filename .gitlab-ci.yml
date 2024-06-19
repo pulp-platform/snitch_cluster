@@ -60,7 +60,6 @@ snitch-cluster-sw-banshee:
 # - snitch
 # Currently failing IP tests/scripts:
 # - reqrsp_interface
-# - snitch_ssr
 snitch-ip-tests:
   needs: []
   parallel:
@@ -69,6 +68,7 @@ snitch-ip-tests:
           - mem_interface
           - snitch_cluster
           - tcdm_interface
+          - snitch_ssr
   script:
     - cd hw/$IP
     - ./util/compile.sh

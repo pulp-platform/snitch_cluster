@@ -16,7 +16,7 @@ module tb_simple_ssr_streamer;
   localparam int unsigned WPorts    = 1;
 
   // Test data parameters
-  localparam string       DataFile = "../test/tb_simple_ssr_streamer.hex";
+  localparam string       DataFile = "./test/tb_simple_ssr_streamer.hex";
   localparam int unsigned ValBase   = 'h0;
   localparam int unsigned IdxBase   = 'h2000;
   localparam int unsigned IdxStride = 'h800;  // Stride of index arrays of different sizes
