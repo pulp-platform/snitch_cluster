@@ -112,6 +112,11 @@ def flatten(array):
         return array.numpy().flatten()
     elif isinstance(array, list):
         return np.array(array).flatten()
+    # if scalar return it as a list
+    elif isinstance(array, np.generic):
+        return np.array([array]).flatten()
+    else:
+        raise TypeError(f"Unsupported type: {type(array)}")
 
 
 def _variable_attributes(alignment=None, section=None):
