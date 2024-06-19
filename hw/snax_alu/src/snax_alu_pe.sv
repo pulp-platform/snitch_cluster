@@ -63,8 +63,8 @@ module snax_alu_pe #(
   //-------------------------------
   // Input ports are ready when the output ready
   // is also ready and when busy state is high
-  assign a_ready_o = acc_ready_i && c_ready_i;
-  assign b_ready_o = acc_ready_i && c_ready_i;
+  assign a_ready_o = acc_ready_i && c_ready_i && (a_valid_i && b_valid_i);
+  assign b_ready_o = acc_ready_i && c_ready_i && (a_valid_i && b_valid_i);
   assign c_valid_o = input_success;
   assign c_o       = result_wide;
 

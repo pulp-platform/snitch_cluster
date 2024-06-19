@@ -72,7 +72,6 @@ int main() {
         write_csr(0x3c7, (uint64_t)local_a);
         write_csr(0x3c8, (uint64_t)local_b);
         write_csr(0x3c9, (uint64_t)local_o);
-        write_csr(0x3ca, 1);
 
         //------------------------------
         // 2nd set the CSRs of the accelerator
@@ -85,6 +84,9 @@ int main() {
         //------------------------------
         write_csr(0x3cc, MODE);
         write_csr(0x3cd, LOOP_ITER);
+
+        // Start streamer then start ALU
+        write_csr(0x3ca, 1);
         write_csr(0x3ce, 1);
 
         // Mark the end of the CSR setup cycles
