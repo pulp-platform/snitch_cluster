@@ -19,7 +19,7 @@ void gemm_fp16_naive(uint32_t M, uint32_t N, uint32_t K, void* A_p,
     for (uint32_t m = 0; m < M; m++) {
         for (uint32_t n = 0; n < N; n++) {
             __fp16 c;
-            if (beta  != 0) {
+            if (beta != 0) {
                 c = C[m * ldC + n] * beta;
             } else {
                 c = 0.0;

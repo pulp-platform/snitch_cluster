@@ -103,6 +103,11 @@ snitch-cluster-vsim:
     # Run additional, more extensive tests
     - cd sw/apps/blas/gemm/test
     - ./run.py runs.yaml --cfg $PWD/cfg/* --simulator vsim -j
+    - cd ../../../dnn/flashattention_2/test
+    # FP8 FA-2 tests are failing with precision mismatch
+    # due to operand ordering
+    - ./run.py runs.yaml --cfg $PWD/cfg/fp32* --simulator vsim -j
+    - ./run.py runs.yaml --cfg $PWD/cfg/fp16* --simulator vsim -j
 
 # Banshee
 snitch-cluster-banshee:
