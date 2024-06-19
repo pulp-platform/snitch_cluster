@@ -18,21 +18,19 @@ void gemm_fp8_naive(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
     for (uint32_t m = 0; m < M; m++) {
         for (uint32_t n = 0; n < N; n++) {
             char c;
-            if (BETA != 0){
+            if (BETA != 0) {
                 c = C[m * ldC + n];
                 // FIXME: get the correct beta value
-                asm volatile (
+                asm volatile(
                     // "fmv.b.x    ft0, %[beta]\n"
                     "fcvt.b.s   ft0, %[beta]\n"
                     "fmv.b.x    ft1, %[c]\n"
                     "fmul.b     ft2, ft0, ft1\n"
                     "fmv.x.b    %[c], ft2\n"
-                    : [c] "+r"(c)
-                    : [beta] "f"(1.0f)
-                    : "ft0", "ft1", "ft2"
-                );
-            }
-            else{
+                    : [ c ] "+r"(c)
+                    : [ beta ] "f"(1.0f)
+                    : "ft0", "ft1", "ft2");
+            } else {
                 c = 0.0;
             }
             for (uint32_t k = 0; k < K; k++) {
