@@ -10,21 +10,21 @@
 module snax_alu_pe #(
   parameter int unsigned DataWidth = 64
 )(
-  input  logic                   clk_i,
-  input  logic                   rst_ni,
-  input  logic [  DataWidth-1:0] a_i,
-  input  logic                   a_valid_i,
-  output logic                   a_ready_o,
-  input  logic [  DataWidth-1:0] b_i,
-  input  logic                   b_valid_i,
-  output logic                   b_ready_o,
-  output logic [2*DataWidth-1:0] c_o,
-  output logic                   c_valid_o,
-  input  logic                   c_ready_i,
+  input  logic                 clk_i,
+  input  logic                 rst_ni,
+  input  logic [DataWidth-1:0] a_i,
+  input  logic                 a_valid_i,
+  output logic                 a_ready_o,
+  input  logic [DataWidth-1:0] b_i,
+  input  logic                 b_valid_i,
+  output logic                 b_ready_o,
+  output logic [DataWidth-1:0] c_o,
+  output logic                 c_valid_o,
+  input  logic                 c_ready_i,
   // Fix this to 2 bits only
   // Let's do 4 ALU operations for simplicity
-  input  logic                   acc_ready_i,
-  input  logic [            1:0] alu_config_i
+  input  logic                 acc_ready_i,
+  input  logic [          1:0] alu_config_i
 );
 
   //-------------------------------
@@ -38,7 +38,7 @@ module snax_alu_pe #(
   //-------------------------------
   // Wires and combinational logic
   //-------------------------------
-  logic [2*DataWidth-1:0] result_wide;
+  logic [DataWidth-1:0] result_wide;
 
   logic input_success;
 

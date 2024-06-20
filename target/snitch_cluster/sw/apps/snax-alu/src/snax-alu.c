@@ -65,7 +65,7 @@ int main() {
         write_csr(0x3c0, LOOP_ITER);
         write_csr(0x3c1, 32);
         write_csr(0x3c2, 32);
-        write_csr(0x3c3, 64);
+        write_csr(0x3c3, 32);
         write_csr(0x3c4, 8);
         write_csr(0x3c5, 8);
         write_csr(0x3c6, 8);
@@ -99,13 +99,8 @@ int main() {
         // Compare results and check if the
         // accelerator returns correct answers
         // For every incorrect answer, increment err
-        uint64_t check_val;
-
         for (uint32_t i = 0; i < DATA_LEN; i++) {
-            // Need to combine upper 64bit bank
-            // with the lower 64 bit bank
-            check_val = *(local_o + i * 2) + *(local_o + i * 2 + 1);
-            if (check_val != OUT[i]) {
+            if (OUT[i] != *(local_o + i)) {
                 err++;
             }
         }
