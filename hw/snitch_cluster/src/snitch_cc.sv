@@ -23,6 +23,7 @@ module snitch_cc #(
   parameter int unsigned DMAUserWidth       = 0,
   parameter int unsigned DMANumAxInFlight   = 0,
   parameter int unsigned DMAReqFifoDepth    = 0,
+  parameter int unsigned DMANumChannels     = 0,
   /// Data port request type.
   parameter type         dreq_t             = logic,
   /// Data port response type.
@@ -131,10 +132,10 @@ module snitch_cc #(
   input  tcdm_rsp_t [TCDMPorts-1:0]  tcdm_rsp_i,
   // Accelerator Offload port
   // DMA ports
-  output axi_req_t                   axi_dma_req_o,
-  input  axi_rsp_t                   axi_dma_res_i,
-  output logic                       axi_dma_busy_o,
-  output dma_events_t                axi_dma_events_o,
+  output axi_req_t    [DMANumChannels-1:0]  axi_dma_req_o,
+  input  axi_rsp_t    [DMANumChannels-1:0]  axi_dma_res_i,
+  output logic        [DMANumChannels-1:0]  axi_dma_busy_o,
+  output dma_events_t [DMANumChannels-1:0]  axi_dma_events_o,
   // Core event strobes
   output snitch_pkg::core_events_t   core_events_o,
   input  addr_t                      tcdm_addr_base_i,
@@ -385,6 +386,7 @@ module snitch_cc #(
       .AxiUserWidth (DMAUserWidth),
       .NumAxInFlight (DMANumAxInFlight),
       .DMAReqFifoDepth (DMAReqFifoDepth),
+      .NumChannels (DMANumChannels),
       .axi_ar_chan_t (axi_ar_chan_t),
       .axi_aw_chan_t (axi_aw_chan_t),
       .axi_req_t (axi_req_t),

@@ -14,6 +14,11 @@
             "description": "Optional name for the generated wrapper.",
             "default": "snitch_cluster"
         },
+        "nr_clusters": {
+            "type": "number",
+            "description": "Number of clusters. Only relevant for the SW runtime.",
+            "default": 1
+        },
         "boot_addr": {
             "type": "number",
             "description": "Address from which all harts of the cluster start to boot. The default setting is `0x8000_0000`.",
@@ -132,6 +137,11 @@
         "dma_id_width_in": {
             "type": "number",
             "description": "Id width of the wide AXI plug into the cluster.",
+            "default": 1
+        },
+        "dma_nr_channels": {
+            "type": "number",
+            "description": "The number of separate DMA channels to instantiate.",
             "default": 1
         },
         "user_width": {

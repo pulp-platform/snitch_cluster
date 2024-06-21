@@ -7,18 +7,15 @@
 MK_TARGET ?= all
 SELECT_RUNTIME ?= rtl
 
-ifeq ($(SELECT_RUNTIME), banshee)
-RUNTIME = sw/runtime/banshee
-else
-RUNTIME = sw/runtime/rtl
-endif
+RUNTIME = sw/runtime/$(SELECT_RUNTIME)
 
 ####################
 # Platform headers #
 ####################
 
 CLUSTER_GEN_HEADERS = snitch_cluster_cfg.h \
-					  snitch_cluster_addrmap.h
+					  snitch_cluster_addrmap.h \
+						snitch_cluster_defs.h
 
 REGGEN_HEADERS = snitch_cluster_peripheral.h
 

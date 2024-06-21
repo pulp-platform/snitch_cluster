@@ -10,6 +10,8 @@ runs:
   - elf: tests/build/barrier.elf
   - elf: tests/build/data_mover.elf
   - elf: tests/build/dma_simple.elf
+  - elf: tests/build/dma_mchan.elf
+    simulators: []
   - elf: tests/build/event_unit.elf
   - elf: tests/build/fence_i.elf
   - elf: tests/build/fp8_comparison_scalar.elf
