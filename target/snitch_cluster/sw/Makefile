@@ -15,19 +15,19 @@ else
 RUNTIME = runtime/rtl
 endif
 
-SUBDIRS += math $(RUNTIME) snax/mac snax/gemm snax/streamer-gemm snax/streamer-simd snax/data-reshuffler snax/streamer-gemm-conv apps tests
+SUBDIRS += math $(RUNTIME) snax/mac snax/gemm snax/streamer-gemm snax/streamer-simd snax/data-reshuffler snax/streamer-gemm-conv snax/streamer-gemm-conv-simd  apps tests
 
 .PHONY: all $(SUBDIRS)
 
 all: $(SUBDIRS)
 
 # Explicit dependency of apps on runtime
-apps: math $(RUNTIME) snax/mac snax/gemm snax/streamer-gemm snax/streamer-simd snax/data-reshuffler snax/streamer-gemm-conv
+apps: math $(RUNTIME) snax/mac snax/gemm snax/streamer-gemm snax/streamer-simd snax/data-reshuffler snax/streamer-gemm-conv snax/streamer-gemm-conv-simd  
 	$(MAKE) -C $@ TARGET=$(TARGET)
 
 # Explicit dependency of tests on runtime
-tests: math $(RUNTIME) snax/mac snax/gemm snax/streamer-gemm snax/streamer-simd snax/data-reshuffler snax/streamer-gemm-conv
+tests: math $(RUNTIME) snax/mac snax/gemm snax/streamer-gemm snax/streamer-simd snax/data-reshuffler snax/streamer-gemm-conv snax/streamer-gemm-conv-simd  
 	$(MAKE) -C $@ $(TARGET)
 
-runtime/rtl runtime/banshee runtime/rtl-generic math snax/mac snax/gemm snax/streamer-gemm snax/streamer-simd snax/data-reshuffler snax/streamer-gemm-conv:
+runtime/rtl runtime/banshee runtime/rtl-generic math snax/mac snax/gemm snax/streamer-gemm snax/streamer-simd snax/data-reshuffler snax/streamer-gemm-conv snax/streamer-gemm-conv-simd  :
 	$(MAKE) -C $@ $(TARGET)
