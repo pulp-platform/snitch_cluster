@@ -345,7 +345,7 @@ sources:
   - target: snax_streamer_gemmX
     files:
       # Level 0
-      - hw/chisel_acc/generated/gemm_simd/BlockGemmSIMD.sv
+      - hw/chisel_acc/generated/gemm_simd/BlockGemmRescaleSIMD.sv
       - hw/chisel_acc/src/snax_streamer_gemmX_shell_wrapper.sv
       - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_csrman_CsrManager.sv
       - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_streamer_StreamerTop.sv

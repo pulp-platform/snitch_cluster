@@ -4,76 +4,76 @@ import chisel3._
 import chisel3.util._
 
 // The BlockGemm's control port declaration.
-class BlockGemmCtrlIO extends Bundle {
+class BlockGemmCtrlIO(params: GemmParams) extends Bundle {
 
-  val K_i = (UInt(GemmConstant.sizeConfigWidth.W))
-  val N_i = (UInt(GemmConstant.sizeConfigWidth.W))
-  val M_i = (UInt(GemmConstant.sizeConfigWidth.W))
-  val subtraction_constant_i = (UInt(GemmConstant.subtractionCfgWidth.W))
+  val K_i = (UInt(params.sizeConfigWidth.W))
+  val N_i = (UInt(params.sizeConfigWidth.W))
+  val M_i = (UInt(params.sizeConfigWidth.W))
+  val subtraction_constant_i = (UInt(params.subtractionCfgWidth.W))
 
 }
 
 // The BlockGemm's data port declaration. Decoupled interface connected to the streamer
-class BlockGemmDataIO extends Bundle {
+class BlockGemmDataIO(params: GemmParams) extends Bundle {
   val a_i = Flipped(
     DecoupledIO(
       UInt(
-        (GemmConstant.meshRow * GemmConstant.tileSize * GemmConstant.dataWidthA).W
+        (params.meshRow * params.tileSize * params.dataWidthA).W
       )
     )
   )
   val b_i = Flipped(
     DecoupledIO(
       UInt(
-        (GemmConstant.tileSize * GemmConstant.meshCol * GemmConstant.dataWidthB).W
+        (params.tileSize * params.meshCol * params.dataWidthB).W
       )
     )
   )
   val c_i = Flipped(
     DecoupledIO(
       UInt(
-        (GemmConstant.meshRow * GemmConstant.meshCol * GemmConstant.dataWidthC).W
+        (params.meshRow * params.meshCol * params.dataWidthC).W
       )
     )
   )
   val d_o = DecoupledIO(
     UInt(
-      (GemmConstant.meshRow * GemmConstant.meshCol * GemmConstant.dataWidthC).W
+      (params.meshRow * params.meshCol * params.dataWidthC).W
     )
   )
 }
 
 // BlockGemmIO declaration, including control and data as well as two extra output signal
-class BlockGemmIO extends Bundle {
+class BlockGemmIO(params: GemmParams) extends Bundle {
 
-  val ctrl = Flipped(DecoupledIO(new BlockGemmCtrlIO()))
-  val data = new BlockGemmDataIO()
+  val ctrl = Flipped(DecoupledIO(new BlockGemmCtrlIO(params)))
+  val data = new BlockGemmDataIO(params)
   val busy_o = Output(Bool())
   val performance_counter = Output(UInt(32.W))
 
 }
 
 // BlockGemm module
-class BlockGemm extends Module with RequireAsyncReset {
+class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
 
-  val io = IO(new BlockGemmIO())
+  val io = IO(new BlockGemmIO(params))
 
-  val gemm_array = Module(new GemmArray())
+  val gemm_array = Module(new GemmArray(params))
 
   // Registers to store the configurations
-  val M = RegInit(0.U(GemmConstant.sizeConfigWidth.W))
-  val K = RegInit(0.U(GemmConstant.sizeConfigWidth.W))
-  val N = RegInit(0.U(GemmConstant.sizeConfigWidth.W))
+  val M = RegInit(0.U(params.sizeConfigWidth.W))
+  val K = RegInit(0.U(params.sizeConfigWidth.W))
+  val N = RegInit(0.U(params.sizeConfigWidth.W))
 
-  val subtraction_a = RegInit(0.U(GemmConstant.dataWidthA.W))
-  val subtraction_b = RegInit(0.U(GemmConstant.dataWidthB.W))
+  val subtraction_a = RegInit(0.U(params.dataWidthA.W))
+  val subtraction_b = RegInit(0.U(params.dataWidthB.W))
 
   // useful counters
-  val accumulation_counter = RegInit(0.U((3 * GemmConstant.sizeConfigWidth).W))
+  val accumulation_counter = RegInit(0.U((3 * params.sizeConfigWidth).W))
 
-  val d_output_ifvalid_counter = RegInit(0.U(GemmConstant.sizeConfigWidth.W))
+  val d_output_ifvalid_counter = RegInit(0.U(params.sizeConfigWidth.W))
 
-  val d_output_counter = RegInit(0.U((3 * GemmConstant.sizeConfigWidth).W))
+  val d_output_counter = RegInit(0.U((3 * params.sizeConfigWidth).W))
 
   val performance_counter = RegInit(0.U(32.W))
 
@@ -259,7 +259,7 @@ class BlockGemm extends Module with RequireAsyncReset {
 // Scala main function for generating system verilog file for the BlockGemm module
 object BlockGemm extends App {
   emitVerilog(
-    new (BlockGemm),
+    new BlockGemm(DefaultConfig.gemmConfig),
     Array("--target-dir", "generated/gemm")
   )
 }

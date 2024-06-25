@@ -6,7 +6,7 @@
 
 MK_DIR   := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 
-CHISEL_MODULE = BlockGemmSIMD
+CHISEL_MODULE = BlockGemmRescaleSIMD
 pkg_name = gemm_simd
 
 define gen_sv_file

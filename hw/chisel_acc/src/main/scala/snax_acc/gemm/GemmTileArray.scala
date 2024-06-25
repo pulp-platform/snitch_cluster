@@ -3,7 +3,7 @@ import chisel3._
 import chisel3.util._
 import chisel3.VecInit
 
-class GemmArrayCtrlIO extends Bundle {
+class GemmArrayCtrlIO(params: GemmParams) extends Bundle {
   val dotprod_a_b = Input(Bool())
   val add_c_i = Input(Bool())
   val a_b_c_ready_o = Output(Bool())
@@ -13,34 +13,34 @@ class GemmArrayCtrlIO extends Bundle {
   val d_valid_o = Output(Bool())
   val d_ready_i = Input(Bool())
 
-  val subtraction_a_i = Input(UInt(GemmConstant.dataWidthA.W))
-  val subtraction_b_i = Input(UInt(GemmConstant.dataWidthB.W))
+  val subtraction_a_i = Input(UInt(params.dataWidthA.W))
+  val subtraction_b_i = Input(UInt(params.dataWidthB.W))
 
 }
 
 // Tile IO definition
-class TileIO extends Bundle {
+class TileIO(params: GemmParams) extends Bundle {
   val data_a_i = Input(
-    Vec(GemmConstant.tileSize, UInt(GemmConstant.dataWidthA.W))
+    Vec(params.tileSize, UInt(params.dataWidthA.W))
   )
   val data_b_i = Input(
-    Vec(GemmConstant.tileSize, UInt(GemmConstant.dataWidthB.W))
+    Vec(params.tileSize, UInt(params.dataWidthB.W))
   )
   val data_c_i = Input(
-    UInt(GemmConstant.dataWidthC.W)
+    UInt(params.dataWidthC.W)
   )
-  val data_d_o = Output(SInt(GemmConstant.dataWidthC.W))
+  val data_d_o = Output(SInt(params.dataWidthC.W))
 
-  val ctrl = new GemmArrayCtrlIO()
+  val ctrl = new GemmArrayCtrlIO(params)
 
 }
 
 // Tile implementation, do a vector dot product of two vector
 // !!! When dotprod_a_b and a_b_c_ready_o assert, do the computation, and give the result next cycle, with a d_valid_o assert
-class Tile extends Module with RequireAsyncReset {
-  val io = IO(new TileIO())
+class Tile(params: GemmParams) extends Module with RequireAsyncReset {
+  val io = IO(new TileIO(params))
 
-  val accumulation_reg = RegInit(0.S(GemmConstant.dataWidthAccum.W))
+  val accumulation_reg = RegInit(0.S(params.dataWidthAccum.W))
 
   val data_i_fire = WireInit(0.B)
   val data_i_fire_reg = RegInit(0.B)
@@ -48,15 +48,15 @@ class Tile extends Module with RequireAsyncReset {
   val keep_output = RegInit(false.B)
 
   val data_a_i_subtracted = Wire(
-    Vec(GemmConstant.tileSize, SInt((GemmConstant.dataWidthA + 1).W))
+    Vec(params.tileSize, SInt((params.dataWidthA + 1).W))
   )
   val data_b_i_subtracted = Wire(
-    Vec(GemmConstant.tileSize, SInt((GemmConstant.dataWidthB + 1).W))
+    Vec(params.tileSize, SInt((params.dataWidthB + 1).W))
   )
   val mul_add_result_vec = Wire(
-    Vec(GemmConstant.tileSize, SInt(GemmConstant.dataWidthMul.W))
+    Vec(params.tileSize, SInt(params.dataWidthMul.W))
   )
-  val mul_add_result = Wire(SInt(GemmConstant.dataWidthAccum.W))
+  val mul_add_result = Wire(SInt(params.dataWidthAccum.W))
 
   chisel3.dontTouch(mul_add_result)
 
@@ -74,7 +74,7 @@ class Tile extends Module with RequireAsyncReset {
   keep_output := io.ctrl.d_valid_o && !io.ctrl.d_ready_i
 
   // Subtraction computation
-  for (i <- 0 until GemmConstant.tileSize) {
+  for (i <- 0 until params.tileSize) {
     data_a_i_subtracted(i) := (io
       .data_a_i(i)
       .asSInt -& io.ctrl.subtraction_a_i.asSInt).asSInt
@@ -84,7 +84,7 @@ class Tile extends Module with RequireAsyncReset {
   }
 
   // Element-wise multiply
-  for (i <- 0 until GemmConstant.tileSize) {
+  for (i <- 0 until params.tileSize) {
     mul_add_result_vec(i) := (data_a_i_subtracted(i)) * (data_b_i_subtracted(i))
   }
 
@@ -116,50 +116,50 @@ class Tile extends Module with RequireAsyncReset {
 }
 
 // Mesh IO definition, an extended version of Tile IO
-class MeshIO extends Bundle {
+class MeshIO(params: GemmParams) extends Bundle {
   val data_a_i = Input(
     Vec(
-      GemmConstant.meshRow,
-      Vec(GemmConstant.tileSize, UInt(GemmConstant.dataWidthA.W))
+      params.meshRow,
+      Vec(params.tileSize, UInt(params.dataWidthA.W))
     )
   )
   val data_b_i = Input(
     Vec(
-      GemmConstant.meshCol,
-      Vec(GemmConstant.tileSize, UInt(GemmConstant.dataWidthB.W))
+      params.meshCol,
+      Vec(params.tileSize, UInt(params.dataWidthB.W))
     )
   )
   val data_c_i = Input(
     Vec(
-      GemmConstant.meshRow,
-      Vec(GemmConstant.meshCol, UInt(GemmConstant.dataWidthC.W))
+      params.meshRow,
+      Vec(params.meshCol, UInt(params.dataWidthC.W))
     )
   )
   val data_d_o = Output(
     (Vec(
-      GemmConstant.meshRow,
-      Vec(GemmConstant.meshCol, SInt(GemmConstant.dataWidthC.W))
+      params.meshRow,
+      Vec(params.meshCol, SInt(params.dataWidthC.W))
     ))
   )
 
-  val ctrl = new GemmArrayCtrlIO()
+  val ctrl = new GemmArrayCtrlIO(params)
 
 }
 
 // Mesh implementation, just create a mesh of TIles and do the connection
-class Mesh extends Module with RequireAsyncReset {
+class Mesh(params: GemmParams) extends Module with RequireAsyncReset {
 
-  val io = IO(new MeshIO())
+  val io = IO(new MeshIO(params))
 
   chisel3.dontTouch(io)
 
   val mesh =
-    Seq.fill(GemmConstant.meshRow, GemmConstant.meshCol)(
-      Module(new Tile())
+    Seq.fill(params.meshRow, params.meshCol)(
+      Module(new Tile(params))
     )
 
-  for (r <- 0 until GemmConstant.meshRow) {
-    for (c <- 0 until GemmConstant.meshCol) {
+  for (r <- 0 until params.meshRow) {
+    for (c <- 0 until params.meshCol) {
       // data connect
       mesh(r)(c).io.data_a_i <> io.data_a_i(r)
       mesh(r)(c).io.data_b_i <> io.data_b_i(c)
@@ -184,104 +184,104 @@ class Mesh extends Module with RequireAsyncReset {
   io.ctrl.a_b_c_ready_o := mesh(0)(0).io.ctrl.a_b_c_ready_o
 }
 
-class GemmDataIO extends Bundle {
+class GemmDataIO(params: GemmParams) extends Bundle {
   val a_i = Input(
     UInt(
-      (GemmConstant.meshRow * GemmConstant.tileSize * GemmConstant.dataWidthA).W
+      (params.meshRow * params.tileSize * params.dataWidthA).W
     )
   )
   val b_i = Input(
     UInt(
-      (GemmConstant.tileSize * GemmConstant.meshCol * GemmConstant.dataWidthB).W
+      (params.tileSize * params.meshCol * params.dataWidthB).W
     )
   )
   val c_i = Input(
     UInt(
-      (GemmConstant.meshRow * GemmConstant.meshCol * GemmConstant.dataWidthC).W
+      (params.meshRow * params.meshCol * params.dataWidthC).W
     )
   )
   val d_o = Output(
     UInt(
-      (GemmConstant.meshRow * GemmConstant.meshCol * GemmConstant.dataWidthC).W
+      (params.meshRow * params.meshCol * params.dataWidthC).W
     )
   )
 }
 
 // Gemm IO definition
-class GemmArrayIO extends Bundle {
-  val ctrl = new GemmArrayCtrlIO()
-  val data = new GemmDataIO()
+class GemmArrayIO(params: GemmParams) extends Bundle {
+  val ctrl = new GemmArrayCtrlIO(params)
+  val data = new GemmDataIO(params)
 }
 
 // Gemm implementation, create a Mesh and give out input data and collect results of each Tile
-class GemmArray extends Module with RequireAsyncReset {
+class GemmArray(params: GemmParams) extends Module with RequireAsyncReset {
 
-  val io = IO(new GemmArrayIO())
+  val io = IO(new GemmArrayIO(params))
 
-  val mesh = Module(new Mesh())
+  val mesh = Module(new Mesh(params))
 
   // define wires for data partition
   val a_i_wire = Wire(
     Vec(
-      GemmConstant.meshRow,
-      Vec(GemmConstant.tileSize, UInt(GemmConstant.dataWidthA.W))
+      params.meshRow,
+      Vec(params.tileSize, UInt(params.dataWidthA.W))
     )
   )
   val b_i_wire = Wire(
     Vec(
-      GemmConstant.meshCol,
-      Vec(GemmConstant.tileSize, UInt(GemmConstant.dataWidthB.W))
+      params.meshCol,
+      Vec(params.tileSize, UInt(params.dataWidthB.W))
     )
   )
   val c_i_wire = Wire(
     Vec(
-      GemmConstant.meshRow,
-      Vec(GemmConstant.meshCol, UInt(GemmConstant.dataWidthC.W))
+      params.meshRow,
+      Vec(params.meshCol, UInt(params.dataWidthC.W))
     )
   )
   val d_out_wire = Wire(
     Vec(
-      GemmConstant.meshRow,
-      Vec(GemmConstant.meshCol, SInt(GemmConstant.dataWidthC.W))
+      params.meshRow,
+      Vec(params.meshCol, SInt(params.dataWidthC.W))
     )
   )
   val d_out_wire_2 = Wire(
     Vec(
-      GemmConstant.meshRow,
-      UInt((GemmConstant.meshCol * GemmConstant.dataWidthC).W)
+      params.meshRow,
+      UInt((params.meshCol * params.dataWidthC).W)
     )
   )
 
   // data partition
-  for (r <- 0 until GemmConstant.meshRow) {
-    for (c <- 0 until GemmConstant.tileSize) {
+  for (r <- 0 until params.meshRow) {
+    for (c <- 0 until params.tileSize) {
       a_i_wire(r)(c) := io.data.a_i(
-        (r * GemmConstant.tileSize + c + 1) * GemmConstant.dataWidthA - 1,
-        (r * GemmConstant.tileSize + c) * GemmConstant.dataWidthA
+        (r * params.tileSize + c + 1) * params.dataWidthA - 1,
+        (r * params.tileSize + c) * params.dataWidthA
       )
     }
   }
 
-  for (r <- 0 until GemmConstant.meshCol) {
-    for (c <- 0 until GemmConstant.tileSize) {
+  for (r <- 0 until params.meshCol) {
+    for (c <- 0 until params.tileSize) {
       b_i_wire(r)(c) := io.data.b_i(
-        (r * GemmConstant.tileSize + c + 1) * GemmConstant.dataWidthB - 1,
-        (r * GemmConstant.tileSize + c) * GemmConstant.dataWidthB
+        (r * params.tileSize + c + 1) * params.dataWidthB - 1,
+        (r * params.tileSize + c) * params.dataWidthB
       )
     }
   }
 
-  for (r <- 0 until GemmConstant.meshRow) {
-    for (c <- 0 until GemmConstant.meshCol) {
+  for (r <- 0 until params.meshRow) {
+    for (c <- 0 until params.meshCol) {
       c_i_wire(r)(c) := io.data.c_i(
-        (r * GemmConstant.meshCol + c + 1) * GemmConstant.dataWidthC - 1,
-        (r * GemmConstant.meshCol + c) * GemmConstant.dataWidthC
+        (r * params.meshCol + c + 1) * params.dataWidthC - 1,
+        (r * params.meshCol + c) * params.dataWidthC
       )
     }
   }
 
-  for (r <- 0 until GemmConstant.meshRow) {
-    for (c <- 0 until GemmConstant.meshCol) {
+  for (r <- 0 until params.meshRow) {
+    for (c <- 0 until params.meshCol) {
       d_out_wire(r)(c) := mesh.io.data_d_o(r)(c)
     }
     d_out_wire_2(r) := Cat(d_out_wire(r).reverse)
@@ -299,14 +299,15 @@ class GemmArray extends Module with RequireAsyncReset {
 }
 
 object GemmArray extends App {
+  val params = DefaultConfig.gemmConfig
   val dir_name = "GemmArray_%s_%s_%s_%s".format(
-    GemmConstant.meshRow,
-    GemmConstant.tileSize,
-    GemmConstant.meshCol,
-    GemmConstant.dataWidthA
+    params.meshRow,
+    params.tileSize,
+    params.meshCol,
+    params.dataWidthA
   )
   emitVerilog(
-    new GemmArray,
+    new GemmArray(params),
     Array("--target-dir", "generated/%s".format(dir_name))
   )
 }
