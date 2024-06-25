@@ -18,41 +18,10 @@ sys.path.append(
 )
 from data_utils import (format_scalar_definition, format_vector_definition)  # noqa E402
 
+# Add golden model path
+from snax_utils import block_gemm_golden_model  # noqa E402
+
 np.random.seed(42)
-
-
-# Golden model in python
-def block_gemm_golden_model(m, k, n, row, size, col, a, b,
-                            subtraction_a, subtraction_b):
-    c = np.zeros(m * row * n * col, dtype=(np.int32))
-    for mm in range(m):
-        for nn in range(n):
-            for kk in range(k):
-                for rr in range(row):
-                    for cc in range(col):
-                        for ss in range(size):
-                            c_index = (
-                                mm * n * row * col
-                                + nn * row * col
-                                + rr * col
-                                + cc
-                            )
-                            a_index = (
-                                mm * k * row * size
-                                + kk * row * size
-                                + rr * size
-                                + ss
-                            )
-                            b_index = (
-                                nn * k * size * col
-                                + kk * size * col
-                                + cc * size
-                                + ss
-                            )
-                            c[c_index] = c[c_index] + \
-                                (a[a_index] - subtraction_a) * \
-                                (b[b_index] - subtraction_b)
-    return c
 
 
 # Add stdint.h header
@@ -157,6 +126,7 @@ def emit_gemm_data(**kwargs):
     )
     a = np.random.randint(MIN, MAX, length_a)
     b = np.random.randint(MIN, MAX, length_b)
+    c_zero = np.zeros(kwargs["M"] * kwargs["N"] * kwargs["meshCol"] * kwargs["tileSize"])
 
     # Generating golden data
     c_golden = block_gemm_golden_model(
@@ -169,7 +139,8 @@ def emit_gemm_data(**kwargs):
         a,
         b,
         subtraction_a,
-        subtraction_b
+        subtraction_b,
+        c_zero
     )
     c_init = np.zeros(c_golden.shape)
     c_cpu = np.zeros(c_golden.shape)

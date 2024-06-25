@@ -18,65 +18,10 @@ sys.path.append(
     os.path.join(os.path.dirname(__file__), "../../../../../../util/sim/"))
 from data_utils import format_scalar_definition, format_vector_definition  # noqa E402
 
+# Add golden model path
+from snax_utils import data_reshuffler_golden_model  # noqa E402
+
 np.random.seed(42)
-
-
-def data_reshuffler_golden_model(
-    tempLoop0,
-    tempLoop1,
-    spatial_len_0,
-    spatial_len_1,
-    tempStride0,
-    tempStride1,
-    spatialStride0,
-    spatialStride1,
-    data,
-):
-    # abstract illusion: k innermost loop, m second innermost loop,
-    # K third innermost loop, M outermost loop
-
-    # total loop bounds = spatial loop bounds * temporal loop bounds
-    K = tempLoop0 * spatial_len_0
-    M = tempLoop1 * spatial_len_1
-
-    # loop bounds settings
-    matrix_size = {"K": K, "M": M, "k": spatial_len_0, "m": spatial_len_1}
-
-    # stride settings
-    strides = {
-        "M": tempStride1,
-        "K": tempStride0,
-        "m": spatialStride1,
-        "k": spatialStride0,
-    }
-
-    result_array = np.zeros((matrix_size["M"] * matrix_size["K"]), np.int8)
-
-    # apply strided layout mapping for the golden model of data reshuffler
-    for M in range(matrix_size["M"] // matrix_size["m"]):
-        for K in range(matrix_size["K"] // matrix_size["k"]):
-            for m in range(matrix_size["m"]):
-                for k in range(matrix_size["k"]):
-                    result_array[
-                        # output address calculation with coutinued increment
-                        matrix_size["K"]
-                        // matrix_size["k"]
-                        * matrix_size["k"]
-                        * matrix_size["m"]
-                        * M
-                        + matrix_size["k"] * matrix_size["m"] * K
-                        + m * matrix_size["k"]
-                        + k
-                    ] = data[
-                        # input address calculation with
-                        # strided layout mapping eqaution
-                        strides["M"] * M
-                        + strides["K"] * K
-                        + strides["m"] * m
-                        + strides["k"] * k
-                    ]
-
-    return result_array.ravel()
 
 
 # Add stdint.h header
