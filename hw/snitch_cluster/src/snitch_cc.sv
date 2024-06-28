@@ -41,8 +41,6 @@ module snitch_cc #(
   parameter type         acc_resp_t         = logic,
   parameter type         dma_events_t       = logic,
   parameter fpnew_pkg::fpu_implementation_t FPUImplementation = '0,
-  /// Boot address of core.
-  parameter logic [31:0] BootAddr           = 32'h0000_1000,
   /// Reduced-register extension
   parameter bit          RVE                = 0,
   /// Enable F and D Extension
@@ -113,6 +111,8 @@ module snitch_cc #(
   input  snitch_pkg::interrupts_t    irq_i,
   output hive_req_t                  hive_req_o,
   input  hive_rsp_t                  hive_rsp_i,
+  // Boot address port
+  input  logic [31:0]                boot_addr_i,
   // Core data ports
   output dreq_t                      data_req_o,
   input  drsp_t                      data_rsp_i,
@@ -217,7 +217,6 @@ module snitch_cc #(
     .drsp_t (drsp_t),
     .pa_t (pa_t),
     .l0_pte_t (l0_pte_t),
-    .BootAddr (BootAddr),
     .SnitchPMACfg (SnitchPMACfg),
     .NumIntOutstandingLoads (NumIntOutstandingLoads),
     .NumIntOutstandingMem (NumIntOutstandingMem),
@@ -245,6 +244,7 @@ module snitch_cc #(
     .rst_i ( ~rst_ni ),
     .hart_id_i,
     .irq_i,
+    .boot_addr_i(boot_addr_i),
     .flush_i_valid_o (hive_req_o.flush_i_valid),
     .flush_i_ready_i (hive_rsp_i.flush_i_ready),
     .inst_addr_o (hive_req_o.inst_addr),
@@ -957,6 +957,6 @@ module snitch_cc #(
   // verilog_lint: waive-stop always-ff-non-blocking
   // pragma translate_on
 
-  `ASSERT_INIT(BootAddrAligned, BootAddr[1:0] == 2'b00)
+  `ASSERT_INIT(BootAddrAligned, boot_addr_i[1:0] == 2'b00)
 
 endmodule

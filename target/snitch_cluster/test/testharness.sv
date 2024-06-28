@@ -25,6 +25,9 @@ module testharness import snitch_cluster_pkg::*; (
   snitch_cluster_wrapper i_snitch_cluster (
     .clk_i,
     .rst_ni,
+    .hart_base_id_i ( HartBaseID ),
+    .cluster_base_addr_i ( ClusterBaseAddr ),
+    .boot_addr_i  (BootAddr),
     .debug_req_i ('0),
     .meip_i ('0),
     .mtip_i ('0),

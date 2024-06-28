@@ -11,8 +11,6 @@
 // `SNITCH_ENABLE_PERF Enables mcycle, minstret performance counters (read only)
 
 module snitch import snitch_pkg::*; import riscv_instr::*; #(
-  /// Boot address of core.
-  parameter logic [31:0] BootAddr  = 32'h0000_1000,
   /// Physical Address width of the core.
   parameter int unsigned AddrWidth = 48,
   /// Data width of memory interface.
@@ -66,6 +64,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   input  logic [31:0]   hart_id_i,
   /// Interrupts
   input  interrupts_t   irq_i,
+  /// Boot address port
+  input  logic [31:0]   boot_addr_i,
   /// Instruction cache flush request
   output logic          flush_i_valid_o,
   /// Flush has completed when the signal goes to `1`.
@@ -329,7 +329,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign fpu_fmt_mode_o = fcsr_q.fmode;
 
   // Registers
-  `FFAR(pc_q, pc_d, BootAddr, clk_i, rst_i)
+  `FFAR(pc_q, pc_d, boot_addr_i, clk_i, rst_i)
   `FFAR(wfi_q, wfi_d, '0, clk_i, rst_i)
   `FFAR(sb_q, sb_d, '0, clk_i, rst_i)
   `FFAR(fcsr_q, fcsr_d, '0, clk_i, rst_i)

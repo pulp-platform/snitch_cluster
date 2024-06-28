@@ -38,7 +38,6 @@ module snitch_cluster
   /// AXI: dma user width.
   parameter int unsigned WideUserWidth      = 1,
   /// Address from which to fetch the first instructions.
-  parameter logic [31:0] BootAddr           = 32'h0,
   /// Number of Hives. Each Hive can hold 1-many cores.
   parameter int unsigned NrHives            = 1,
   /// The total (not per Hive) amount of cores.
@@ -229,6 +228,8 @@ module snitch_cluster
   /// Base address of cluster. TCDM and cluster peripheral location are derived from
   /// it. This signal is pseudo-static.
   input  logic [PhysicalAddrWidth-1:0]  cluster_base_addr_i,
+  /// Boot address
+  input  logic [31:0]                   boot_addr_i,
   /// Configuration inputs for the memory cuts used in implementation.
   /// These signals are pseudo-static.
   input  sram_cfgs_t                    sram_cfgs_i,
@@ -1202,7 +1203,6 @@ module snitch_cluster
         .acc_req_t (acc_req_t),
         .acc_resp_t (acc_resp_t),
         .dma_events_t (dma_events_t),
-        .BootAddr (BootAddr),
         .RVE (RVE[i]),
         .RVF (RVF[i]),
         .RVD (RVD[i]),
@@ -1250,6 +1250,7 @@ module snitch_cluster
         .hart_id_i (hart_base_id_i + i),
         .hive_req_o (hive_req[i]),
         .hive_rsp_i (hive_rsp[i]),
+        .boot_addr_i  (boot_addr_i),
         .irq_i (irq),
         .data_req_o (core_req[i]),
         .data_rsp_i (core_rsp[i]),
