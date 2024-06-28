@@ -1,4 +1,4 @@
-package snax_acc.gemm_simd
+package snax_acc.gemmx
 
 import chisel3._
 import chisel3.util._
@@ -119,6 +119,6 @@ object BlockGemmRescaleSIMD extends App {
     new BlockGemmRescaleSIMD(
       BlockGemmRescaleSIMDDefaultConfig.blockGemmRescaleSIMDConfig
     ),
-    Array("--target-dir", "generated/gemm_simd")
+    Array("--target-dir", "generated/gemmx")
   )
 }

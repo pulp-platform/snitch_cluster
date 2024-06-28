@@ -1,4 +1,4 @@
-package snax_acc.gemm_simd
+package snax_acc.gemmx
 
 import chisel3._
 import chisel3.util._
