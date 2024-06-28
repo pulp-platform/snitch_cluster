@@ -332,14 +332,14 @@ sources:
   - target: snax_data_reshuffler
     files:
       # Level 0
-      - hw/snax_data_reshuffler/src/data_reshuffler.sv
+      - hw/chisel_acc/generated/reshuffle/Reshuffler.sv
       - target/snitch_cluster/generated/snax_data_reshuffler/snax_data_reshuffler_csrman_CsrManager.sv
       - target/snitch_cluster/generated/snax_data_reshuffler/snax_data_reshuffler_streamer_StreamerTop.sv
       # Level 1
       - target/snitch_cluster/generated/snax_data_reshuffler/snax_data_reshuffler_csrman_wrapper.sv
       - target/snitch_cluster/generated/snax_data_reshuffler/snax_data_reshuffler_streamer_wrapper.sv
       # Level 2
-      - hw/snax_data_reshuffler/src/snax_data_reshuffler_shell_wrapper.sv
+      - hw/chisel_acc/src/snax_data_reshuffler_shell_wrapper.sv
       - target/snitch_cluster/generated/snax_data_reshuffler/snax_data_reshuffler_wrapper.sv
 
   - target: snax_streamer_gemmX

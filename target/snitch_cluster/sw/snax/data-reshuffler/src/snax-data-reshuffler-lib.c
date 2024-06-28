@@ -7,50 +7,71 @@
 #include "snax-data-reshuffler-lib.h"
 
 // Set STREAMER configuration CSR
-void set_data_reshuffler_csr(int tempLoop0, int tempLoop1, int tempStride0_in,
-                             int tempStride1_in, int spatialStride1_in,
+void set_data_reshuffler_csr(int tempLoop0_in, int tempLoop1_in,
+                             int tempLoop2_in, int tempLoop3_in,
+                             int tempLoop4_in, int tempStride0_in,
+                             int tempStride1_in, int tempStride2_in,
+                             int tempStride3_in, int tempStride4_in,
+                             int spatialStride1_in, int tempLoop0_out,
+                             int tempLoop1_out, int tempLoop2_out,
                              int tempStride0_out, int tempStride1_out,
-                             int spatialStride1_out, int32_t delta_local_in,
-                             int32_t delta_local_out, bool transpose) {
-    // temporal loop bounds, from innermost to outermost
-    write_csr(960 + 0, tempLoop0);
-    write_csr(960 + 1, tempLoop1);
+                             int tempStride2_out, int spatialStride1_out,
+                             int32_t delta_local_in, int32_t delta_local_out) {
+    // temporal loop bounds, from innermost to outermost for data reader (In)
+    write_csr(960, tempLoop0_in);
+    write_csr(961, tempLoop1_in);
+    write_csr(962, tempLoop2_in);
+    write_csr(963, tempLoop3_in);
+    write_csr(964, tempLoop4_in);
+
+    // temporal loop bounds, from innermost to outermost for data writer (Out)
+    write_csr(965, tempLoop0_out);
+    write_csr(966, tempLoop1_out);
+    write_csr(967, tempLoop2_out);
 
     // temporal strides for data reader (In)
-    write_csr(960 + 2, tempStride0_in);
-    write_csr(960 + 3, tempStride1_in);
+    write_csr(968, tempStride0_in);
+    write_csr(969, tempStride1_in);
+    write_csr(970, tempStride2_in);
+    write_csr(971, tempStride3_in);
+    write_csr(972, tempStride4_in);
 
     // temporal strides for data writer (Out)
-    write_csr(960 + 4, tempStride0_out);
-    write_csr(960 + 5, tempStride1_out);
+    write_csr(973, tempStride0_out);
+    write_csr(974, tempStride1_out);
+    write_csr(975, tempStride2_out);
 
     // fixed spatial strides for data reader (In)
-    write_csr(960 + 6, spatialStride1_in);
+    write_csr(976, spatialStride1_in);
 
     // fixed spatial strides for data writer (Out)
-    write_csr(960 + 7, spatialStride1_out);
+    write_csr(977, spatialStride1_out);
 
     // base ptr for data reader (In)
-    write_csr(960 + 8, (uint32_t)(delta_local_in + snrt_l1_next()));
+    write_csr(978, (uint32_t)(delta_local_in + snrt_l1_next()));
 
     // base ptr for data writer (Out)
-    write_csr(960 + 9, (uint32_t)(delta_local_out + snrt_l1_next()));
-
-    // set transpose or not
-    write_csr(960 + 12, transpose);
+    write_csr(979, (uint32_t)(delta_local_out + snrt_l1_next()));
 }
 
 // Set CSR to start STREAMER
-void start_streamer() { write_csr(960 + 10, 1); }
+void start_streamer() { write_csr(980, 1); }
 
-void wait_streamer() { write_csr(960 + 10, 0); }
+void wait_streamer() { write_csr(980, 0); }
 
-void start_data_reshuffler() { write_csr(960 + 13, 1); }
+void set_data_reshuffler(int T2Len, int reduceLen, int opcode) {
+    // set transpose or not
+    uint32_t csr0 = ((uint32_t)T2Len << 7) | ((uint32_t)reduceLen << 2) |
+                    ((uint32_t)opcode);
+    write_csr(982, csr0);
+}
 
-void wait_data_reshuffler() { write_csr(960 + 13, 0); }
+void start_data_reshuffler() { write_csr(983, 1); }
+
+void wait_data_reshuffler() { write_csr(983, 0); }
 
 uint32_t read_data_reshuffler_perf_counter() {
-    uint32_t perf_counter = read_csr(960 + 11);
+    uint32_t perf_counter = read_csr(981);
     return perf_counter;
 }
 
@@ -98,8 +119,11 @@ uint32_t check_data_reshuffler_result(int tempLoop0, int tempLoop1,
                                loop0 * spatial_len +
                                spatial_i_1 * spatial_len_1 + spatial_i_0;
                     if ((int8_t)*addr_out != (int8_t)*addr_Out) {
-                        // printf("Error: addr_out = %d, addr_Out = %d\n",
-                        // (int8_t)*addr_out, (int8_t)*addr_Out);
+                        printf(
+                            "Error: after reshuffle addr_out = %d at address "
+                            "%x, golden addr_Out = %d at address %x \n",
+                            (int8_t)*addr_out, addr_out, (int8_t)*addr_Out,
+                            addr_Out);
                         error++;
                     }
                 }
@@ -107,5 +131,25 @@ uint32_t check_data_reshuffler_result(int tempLoop0, int tempLoop1,
         }
     }
 
+    return error;
+}
+
+void load_a_chrunk_of_data(int8_t* base_ptr_local, int8_t* base_ptr_l2,
+                           int len) {
+    snrt_dma_start_1d(base_ptr_local, base_ptr_l2, len * sizeof(int8_t));
+}
+
+uint32_t test_a_chrunk_of_data(int8_t* base_ptr_local, int8_t* base_ptr_l2,
+                               int len) {
+    uint32_t error = 0;
+    for (int i = 0; i < len; i++) {
+        if ((int8_t)base_ptr_local[i] != (int8_t)base_ptr_l2[i]) {
+            printf(
+                "Error: after reshuffle base_ptr_local[%d] = %d, golden "
+                "base_ptr_l2[%d] = %d \n",
+                i, (int8_t)base_ptr_local[i], i, (int8_t)base_ptr_l2[i]);
+            error++;
+        }
+    }
     return error;
 }

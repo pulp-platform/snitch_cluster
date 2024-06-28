@@ -90,7 +90,7 @@
             snax_acc_name: "snax_data_reshuffler",
             snax_narrow_tcdm_ports: 16,
             snax_num_rw_csr: 2,
-            snax_num_ro_csr: 0,
+            snax_num_ro_csr: 2,
             snax_streamer_cfg: {$ref: "#/snax_data_reshuffler_streamer_template" }
         },
         snax_use_custom_ports: false,
@@ -129,8 +129,8 @@
     snax_data_reshuffler_streamer_template :{
 
         temporal_addrgen_unit_params: {
-            loop_dim: [2],
-            share_temp_addr_gen_loop_bounds: true,
+            loop_dim: [5, 3],
+            share_temp_addr_gen_loop_bounds: false,
         }
 
         fifo_reader_params: {

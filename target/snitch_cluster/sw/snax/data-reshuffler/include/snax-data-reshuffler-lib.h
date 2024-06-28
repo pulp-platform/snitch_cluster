@@ -15,16 +15,23 @@
 #define spatial_len (spatial_len_0 * spatial_len_1)
 
 // Set STREAMER configuration CSR
-void set_data_reshuffler_csr(int tempLoop0, int tempLoop1, int tempStride0_in,
-                             int tempStride1_in, int spatialStride1_in,
+void set_data_reshuffler_csr(int tempLoop0_in, int tempLoop1_in,
+                             int tempLoop2_in, int tempLoop3_in,
+                             int tempLoop4_in, int tempStride0_in,
+                             int tempStride1_in, int tempStride2_in,
+                             int tempStride3_in, int tempStride4_in,
+                             int spatialStride1_in, int tempLoop0_out,
+                             int tempLoop1_out, int tempLoop2_out,
                              int tempStride0_out, int tempStride1_out,
-                             int spatialStride1_out, int32_t delta_local_in,
-                             int32_t delta_local_out, bool transpose);
+                             int tempStride2_out, int spatialStride1_out,
+                             int32_t delta_local_in, int32_t delta_local_out);
 
 // Set CSR to start STREAMER
 void start_streamer();
 
 void wait_streamer();
+
+void set_data_reshuffler(int T2Len, int reduceLen, int opcode);
 
 void start_data_reshuffler();
 
@@ -42,3 +49,9 @@ uint32_t check_data_reshuffler_result(int tempLoop0, int tempLoop1,
                                       int spatialStride1,
                                       int8_t* base_ptr_local,
                                       int8_t* base_ptr_l2);
+
+void load_a_chrunk_of_data(int8_t* base_ptr_local, int8_t* base_ptr_l2,
+                           int len);
+
+uint32_t test_a_chrunk_of_data(int8_t* base_ptr_local, int8_t* base_ptr_l2,
+                               int len);

@@ -116,6 +116,9 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-data-reshuffler.hjson)
 
 $(eval $(call generate_snax_gen,snax_data_reshuffler))
 
+	SNAX_DR_ROOT ?= $(ROOT)/hw/chisel_acc
+	include $(SNAX_DR_ROOT)/Makefile
+
 	VSIM_BENDER += -t snax_data_reshuffler
 	VLT_BENDER  += -t snax_data_reshuffler
 	VCS_BENDER  += -t snax_data_reshuffler
@@ -160,6 +163,9 @@ $(eval $(call generate_snax_gen,snax_streamer_gemm))
     VCS_BENDER  += -t snax_streamer_gemm
 
 $(eval $(call generate_snax_gen,snax_data_reshuffler))
+
+	SNAX_DR_ROOT ?= $(ROOT)/hw/chisel_acc
+	include $(SNAX_DR_ROOT)/Makefile
 
 	VSIM_BENDER += -t snax_data_reshuffler
 	VLT_BENDER  += -t snax_data_reshuffler

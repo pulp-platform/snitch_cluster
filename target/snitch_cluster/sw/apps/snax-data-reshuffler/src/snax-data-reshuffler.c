@@ -28,9 +28,7 @@ int main() {
     // Transfer data from L3 to L1
     // Using DMA only
     if (snrt_is_dm_core()) {
-        load_data_reshuffler_test_data(tempLoop0, tempLoop1, DMAtempStride0_in,
-                                       DMAtempStride1_in, DMAspatialStride1_in,
-                                       local_in, DataIn);
+        load_a_chrunk_of_data(local_in, DataIn, input_data_len);
     }
 
     // Wait for DMA to finish
@@ -40,24 +38,27 @@ int main() {
 
     if (CORE_IDX == 0) {
         // Set data-reshuffler configuration CSR
-        set_data_reshuffler_csr(tempLoop0, tempLoop1, tempStride0_in,
-                                tempStride1_in, spatialStride1_in,
-                                tempStride0_out, tempStride1_out,
-                                spatialStride1_out, (int32_t)delta_local_in,
-                                (int32_t)delta_local_out, transpose);
+        set_data_reshuffler_csr(
+            tempLoop0_in, tempLoop1_in, tempLoop2_in, tempLoop3_in,
+            tempLoop4_in, tempStride0_in, tempStride1_in, tempStride2_in,
+            tempStride3_in, tempStride4_in, spatialStride1_in, tempLoop0_out,
+            tempLoop1_out, tempLoop2_out, tempStride0_out, tempStride1_out,
+            tempStride2_out, spatialStride1_out, (int32_t)delta_local_in,
+            (int32_t)delta_local_out);
+
+        start_streamer();
 
         // Set CSR to start data-reshuffler
+        set_data_reshuffler(TloopLen, reduceLen, opcode);
         start_data_reshuffler();
-        start_streamer();
 
         // Wait for data-reshuffler to finish
         wait_data_reshuffler();
         wait_streamer();
 
         // Compare SNAX data-reshuffler result with golden python model
-        err += check_data_reshuffler_result(
-            tempLoop0, tempLoop1, tempStride0_out, tempStride1_out,
-            spatialStride1_out, local_out, C_golden);
+        err += test_a_chrunk_of_data(local_out, C_golden, output_data_len);
+        printf("Data reshuffler finished. Error: %d \n", err);
     };
 
     return err;

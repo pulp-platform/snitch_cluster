@@ -5,6 +5,26 @@
 // Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
 
 {
+    // ifMaxPool: false,
+    // ifMaxPool: true,
+    ifMaxPool: false,
+
+    // parameters for maxpool
+    // ifC8HW8datalayout: true,
+    ifC8HW8datalayout: false,
+    Nbatch: 1,
+    H: 32,
+    W: 32,
+    Cin: 8,
+    
+    Kh: 3,
+    Kw: 3,
+    pad_h: 1,
+    pad_w: 1,
+    stride_h: 1,
+    stride_w: 1,
+
+    // parameters for data layout reshuffling
     op: 'rowmajor2tiledrowmajor',
     tempLoop0: 8,
     tempLoop1: 8,

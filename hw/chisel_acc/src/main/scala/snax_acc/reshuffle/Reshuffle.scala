@@ -247,7 +247,7 @@ class Reshuffler(params: ReshufflerParams)
 }
 
 // Scala main function for generating system verilog file for the Reshuffler module
-object ReshufflerGen extends App {
+object Reshuffler extends App {
   emitVerilog(
     new Reshuffler(DefaultConfig.ReshufflerConfig),
     Array("--target-dir", "generated/reshuffle")
