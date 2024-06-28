@@ -151,8 +151,7 @@ inline void snrt_dma_wait(snrt_dma_txid_t tid) {
                (    0b000 << 12) | \
                (      (5) <<  7) | \
                (0b0101011 <<  0)   \n"
-        "sub t0, t0, %0 \n"
-        "blez t0, 1b \n" ::"r"(tid)
+        "bltu t0, %0, 1b \n" ::"r"(tid)
         : "t0");
 }
 

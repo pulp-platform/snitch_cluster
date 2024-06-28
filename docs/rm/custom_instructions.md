@@ -104,7 +104,7 @@ The DMSTATI instruction can be used to implement a blocking wait for the complet
 
         dmcpyi a0, ...
     1:  dmstati t0, 0
-        bltu a0, t0, 1b
+        bltu t0, a0, 1b
 
 Similarly, waiting for the completion of *all* DMA transfers:
 
