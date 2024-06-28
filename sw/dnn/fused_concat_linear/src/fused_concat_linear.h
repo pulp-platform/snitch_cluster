@@ -48,32 +48,29 @@ static inline int fused_concat_linear_baseline(fused_concat_linear_layer_t l) {
     uint32_t k = l.input_shape[1] * l.num_inputs;
     uint32_t n = l.output_shape[1];
 
-    gemm_args_t gemm_args;
-    gemm_args_t *local_args = (gemm_args_t *)&gemm_args;
+    gemm_args_t gemm_args = {.alpha = 1.0,
+                             .prec = l.dtype,
+                             .setup_ssr = 0,
+                             .parallelize_m = 1,
+                             .parallelize_k = 0,
+                             .m_tiles = snrt_cluster_num(),
+                             .n_tiles = 1,
+                             .k_tiles = 1,
+                             .load_a = 0,
+                             .load_b = 1,
+                             .load_c = 1,
+                             .transa = 0,
+                             .transb = 0,
+                             .M = m,
+                             .N = n,
+                             .K = k,
+                             .a = l.concat_output,
+                             .b = l.weights,
+                             .beta = 0,
+                             .c = l.linear_output,
+                             .gemm_fp = l.gemm_implementation};
 
-    local_args->alpha = 1.0;
-    local_args->prec = l.dtype;
-    local_args->setup_ssr = 0;
-    local_args->parallelize_m = 1;
-    local_args->parallelize_k = 0;
-    local_args->m_tiles = snrt_cluster_core_num();
-    local_args->n_tiles = 1;
-    local_args->k_tiles = 1;
-    local_args->load_a = 0;
-    local_args->load_b = 1;
-    local_args->load_c = 1;
-    local_args->transa = 0;
-    local_args->transb = 0;
-    local_args->M = m;
-    local_args->N = n;
-    local_args->K = k;
-    local_args->a = l.concat_output;
-    local_args->b = l.weights;
-    local_args->beta = 0;
-    local_args->c = l.linear_output;
-    local_args->gemm_fp = l.gemm_implementation;
-
-    gemm(&local_args);
+    gemm(&gemm_args);
 
     snrt_global_barrier();
 
@@ -97,32 +94,29 @@ static inline int fused_concat_linear_optimized(fused_concat_linear_layer_t l) {
     }
     snrt_cluster_hw_barrier();
 
-    gemm_args_t gemm_args;
-    gemm_args_t *local_args = (gemm_args_t *)&gemm_args;
+    gemm_args_t gemm_args = {.alpha = 1.0,
+                             .prec = l.dtype,
+                             .setup_ssr = 0,
+                             .parallelize_m = 0,
+                             .parallelize_k = 1,
+                             .m_tiles = 1,
+                             .n_tiles = 1,
+                             .k_tiles = l.num_inputs,
+                             .load_a = 0,
+                             .load_b = 1,
+                             .load_c = 1,
+                             .transa = 0,
+                             .transb = 0,
+                             .M = m,
+                             .N = n,
+                             .K = concat_k,
+                             .a = a,
+                             .b = l.weights,
+                             .beta = 0,
+                             .c = l.linear_output,
+                             .gemm_fp = l.gemm_implementation};
 
-    local_args->alpha = 1.0;
-    local_args->prec = l.dtype;
-    local_args->setup_ssr = 0;
-    local_args->parallelize_m = 0;
-    local_args->parallelize_k = 1;
-    local_args->m_tiles = 1;
-    local_args->n_tiles = 1;
-    local_args->k_tiles = l.num_inputs;
-    local_args->load_a = 0;
-    local_args->load_b = 1;
-    local_args->load_c = 1;
-    local_args->transa = 0;
-    local_args->transb = 0;
-    local_args->M = m;
-    local_args->N = n;
-    local_args->K = concat_k;
-    local_args->a = a;
-    local_args->b = l.weights;
-    local_args->beta = 0;
-    local_args->c = l.linear_output;
-    local_args->gemm_fp = l.gemm_implementation;
-
-    gemm(&local_args);
+    gemm(&gemm_args);
 
     snrt_global_barrier();
 

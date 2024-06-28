@@ -77,7 +77,6 @@ jobs:
           # yamllint enable rule:line-length
           match_regex: true
           exclude_paths: |
-            sw/dnn/flashattention_2/src/flashattention_2.h
             sw/snRuntime/src/omp/interface.h
             target/snitch_cluster/sw/apps/dnn/flashattention_2/tcasai/roi.json.tpl
 
@@ -126,7 +125,7 @@ jobs:
         with:
           exclude: |
             ./sw/saris
-            ./sw/dnn/flashattention_2/src/flashattention_2.h
+            ./sw/dnn/src/dnn.h
           clangFormatVersion: 10
 
   ######################
