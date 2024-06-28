@@ -79,10 +79,30 @@ typedef struct {
 // distinct cores.
 // TODO: beta (and alpha) should be of floating-point type (same precision as
 // operands)
-void sc_st_gemm(precision_t prec, uint32_t setup_ssr, uint32_t transa,
-                uint32_t transb, uint32_t m, uint32_t n, uint32_t k,
-                double alpha, void* a, uint32_t lda, void* b, uint32_t ldb,
-                uint32_t beta, void* c, uint32_t ldc, gemm_fp_t impl) {
+void sc_st_gemm(gemm_args_t* gemm_args, void* a, void* b,
+                uint32_t beta, void* c) {
+    
+    gemm_fp_t impl = (gemm_fp_t)gemm_args->gemm_fp;
+    precision_t prec = gemm_args->prec;
+    uint32_t setup_ssr = gemm_args->setup_ssr;
+    uint32_t transa = gemm_args->transa;
+    uint32_t transb = gemm_args->transb;
+
+    uint32_t m = gemm_args->M / gemm_args->m_tiles;
+    uint32_t n = gemm_args->N / gemm_args->n_tiles;
+    uint32_t k = gemm_args->K / gemm_args->k_tiles;
+
+    uint32_t lda = k;
+    uint32_t ldb;
+    if(transb) {
+        ldb = k;
+    } else {
+        ldb = n;
+    }
+    uint32_t ldc = n;
+
+    double alpha = gemm_args->alpha;
+
     if (snrt_is_compute_core()) {
         const uint32_t compute_num = snrt_cluster_compute_core_num();
         const uint32_t compute_id = snrt_cluster_core_idx();
@@ -146,7 +166,6 @@ int gemm(gemm_args_t* args) {
     void* b = local_args->b;
     uint32_t beta = local_args->beta;
     void* c = local_args->c;
-    gemm_fp_t gemm_fp = (gemm_fp_t)local_args->gemm_fp;
 
     // Calculate tile sizes
     uint32_t frac_m = m / m_tiles;
@@ -237,7 +256,6 @@ int gemm(gemm_args_t* args) {
                 if (!snrt_is_dm_core()) {
                     uint32_t start_cycle = snrt_mcycle();
 
-                    volatile uint32_t lda = frac_k;
                     volatile uint32_t ldb = frac_n;
                     volatile uint32_t ldc = frac_n;
 
@@ -255,9 +273,8 @@ int gemm(gemm_args_t* args) {
                         beta_k = 1;
                     }
 
-                    sc_st_gemm(prec, setup_ssr, transa, transb, frac_m, frac_n,
-                               frac_k, 1, local_a, lda, local_b, ldb, beta_k,
-                               local_c_partial, ldc, gemm_fp);
+                    sc_st_gemm(local_args, local_a, local_b, beta_k,
+                               local_c_partial);
 
                     uint32_t end_cycle = snrt_mcycle();
                 }
