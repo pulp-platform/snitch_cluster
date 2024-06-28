@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 {
-	L: 32,
-	S: 128,
+    L: 32,
+    S: 128,
     d: 64,
     B_r: 16,
     B_c: 64,
