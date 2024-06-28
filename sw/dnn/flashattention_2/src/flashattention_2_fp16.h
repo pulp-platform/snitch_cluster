@@ -20,6 +20,25 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
     __fp16 *V_l3 = layer.V;
     __fp16 *O_l3 = layer.O;
 
+    // gemm specific parameters
+    gemm_args_t gemm_args;
+    gemm_args_t *local_args = (gemm_args_t *)&gemm_args;
+
+    local_args->prec = dtype;
+    if (!baseline) {
+        local_args->setup_ssr = 1;
+    } else {
+        local_args->setup_ssr = 0;
+    }
+    local_args->transa = 0;
+    local_args->transb = 1;
+    local_args->M = B_r;
+    local_args->m_tiles = 1;
+    local_args->n_tiles = 1;
+    local_args->k_tiles = 1;
+    local_args->alpha = 1;
+    local_args->gemm_fp = gemm_implementation;
+
     // alias system parameters
     uint32_t compute_id = snrt_global_core_idx();
     uint32_t cluster_id = snrt_cluster_idx();
@@ -151,8 +170,9 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
                 // Matrix multiplication between row block of Q and transposed
                 // column block of K to calculate a tile of S: S = Q * K^T.
                 // The S tile is of form (B_r, B_c)
-                sc_st_gemm(dtype, 1, 0, 1, B_r, B_c, d, 1, Q_fa, d, K_fa, d, 0,
-                           S_fa, B_c, gemm_implementation);
+                local_args->N = B_c;
+                local_args->K = d;
+                sc_st_gemm(local_args, Q_fa, K_fa, 0, S_fa);
 
                 snrt_cluster_hw_barrier();
 
@@ -213,8 +233,12 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
                         beta = 0;
                     else
                         beta = 1;
-                    sc_st_gemm(dtype, 1, 0, 0, B_r, d, B_c, 1, P_fa, B_c, V_fa,
-                               d, beta, O_fa, d, gemm_implementation);
+
+                    local_args->N = d;
+                    local_args->K = B_c;
+                    local_args->transb = 0;
+                    sc_st_gemm(local_args, P_fa, V_fa, beta, O_fa);
+                    local_args->transb = 1;
                 } else {
                     // The SIMD-optimized GEMM kernel performs the A*B^t
                     // operation. We must transpose V in advance, so
@@ -231,8 +255,9 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
                         beta = 0;
                     else
                         beta = 1;
-                    sc_st_gemm(dtype, 1, 0, 1, B_r, d, B_c, 1, P_fa, B_c, V_t,
-                               B_c, beta, O_fa, d, gemm_implementation);
+                    local_args->N = d;
+                    local_args->K = B_c;
+                    sc_st_gemm(local_args, P_fa, V_t, beta, O_fa);
                 }
             } else {
                 snrt_cluster_hw_barrier();
