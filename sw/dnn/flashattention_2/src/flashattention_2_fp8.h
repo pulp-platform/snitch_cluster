@@ -10,8 +10,8 @@ static inline float fp8_to_float(char val) {
     asm volatile(
         "fmv.b.x %[res], %[val]\n"
         "fcvt.s.b %[res], %[res]\n"
-        : [res] "=f"(res)
-        : [val] "r"(val));
+        : [ res ] "=f"(res)
+        : [ val ] "r"(val));
     return res;
 }
 
@@ -20,8 +20,8 @@ static inline char float_to_fp8(float val) {
     asm volatile(
         "fcvt.b.s ft3, %[val]\n"
         "fmv.x.b %[res], ft3\n"
-        : [res] "=r"(res)
-        : [val] "f"(val)
+        : [ res ] "=r"(res)
+        : [ val ] "f"(val)
         : "ft3");
     return res;
 }

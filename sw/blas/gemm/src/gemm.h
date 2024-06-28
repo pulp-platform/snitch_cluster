@@ -79,9 +79,8 @@ typedef struct {
 // distinct cores.
 // TODO: beta (and alpha) should be of floating-point type (same precision as
 // operands)
-void sc_st_gemm(gemm_args_t* gemm_args, void* a, void* b,
-                uint32_t beta, void* c) {
-    
+void sc_st_gemm(gemm_args_t* gemm_args, void* a, void* b, uint32_t beta,
+                void* c) {
     gemm_fp_t impl = (gemm_fp_t)gemm_args->gemm_fp;
     precision_t prec = gemm_args->prec;
     uint32_t setup_ssr = gemm_args->setup_ssr;
@@ -94,7 +93,7 @@ void sc_st_gemm(gemm_args_t* gemm_args, void* a, void* b,
 
     uint32_t lda = k;
     uint32_t ldb;
-    if(transb) {
+    if (transb) {
         ldb = k;
     } else {
         ldb = n;
