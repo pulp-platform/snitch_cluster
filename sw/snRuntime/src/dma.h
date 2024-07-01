@@ -51,7 +51,7 @@ inline snrt_dma_txid_t snrt_dma_start_1d_wideptr(uint64_t dst, uint64_t src,
 
         return reg_txid;
     } else {
-        return -1;
+        return 0;
     }
 }
 
@@ -129,7 +129,7 @@ inline snrt_dma_txid_t snrt_dma_start_2d_wideptr(uint64_t dst, uint64_t src,
 
         return reg_txid;
     } else {
-        return -1;
+        return 0;
     }
 }
 
