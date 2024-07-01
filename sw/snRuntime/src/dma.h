@@ -51,7 +51,7 @@ inline snrt_dma_txid_t snrt_dma_start_1d_wideptr(uint64_t dst, uint64_t src,
 
         return reg_txid;
     } else {
-        return -1;
+        return 0;
     }
 }
 
@@ -129,7 +129,7 @@ inline snrt_dma_txid_t snrt_dma_start_2d_wideptr(uint64_t dst, uint64_t src,
 
         return reg_txid;
     } else {
-        return -1;
+        return 0;
     }
 }
 
@@ -151,8 +151,7 @@ inline void snrt_dma_wait(snrt_dma_txid_t tid) {
                (    0b000 << 12) | \
                (      (5) <<  7) | \
                (0b0101011 <<  0)   \n"
-        "sub t0, t0, %0 \n"
-        "blez t0, 1b \n" ::"r"(tid)
+        "bltu t0, %0, 1b \n" ::"r"(tid)
         : "t0");
 }
 

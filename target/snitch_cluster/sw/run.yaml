@@ -9,6 +9,7 @@ runs:
     simulators: [vsim, vcs, verilator] # banshee fails with exit code 0x4
   - elf: tests/build/barrier.elf
   - elf: tests/build/data_mover.elf
+  - elf: tests/build/dma_empty_transfer.elf
   - elf: tests/build/dma_simple.elf
   - elf: tests/build/event_unit.elf
   - elf: tests/build/fence_i.elf
