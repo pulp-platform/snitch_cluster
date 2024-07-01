@@ -44,6 +44,7 @@ EVENTVIS_PY      ?= $(UTIL_DIR)/trace/eventvis.py
 # a two-liner with the OS on the first line, hence the tail -n1
 VERILATOR_ROOT ?= $(dir $(shell $(VERILATOR_SEPP) which verilator | tail -n1))..
 VLT_ROOT       ?= ${VERILATOR_ROOT}
+VLT_NUM_THREADS ?= 1
 
 MATCH_END := '/+incdir+/ s/$$/\/*\/*/'
 MATCH_BGN := 's/+incdir+//g'
@@ -86,7 +87,11 @@ VLT_FLAGS    += -Wno-UNSIGNED
 VLT_FLAGS    += -Wno-UNOPTFLAT
 VLT_FLAGS    += -Wno-fatal
 VLT_FLAGS    += --unroll-count 1024
+VLT_FLAGS	 += --threads $(VLT_NUM_THREADS)
 VLT_CFLAGS   += -std=c++14 -pthread
+# Custom test benches including the harness must manually define 'VL_THREADED' if multithreaded.
+# See https://github.com/verilator/verilator/issues/3668#issuecomment-1288989145.
+VLT_CFLAGS	 += -DVL_THREADED
 VLT_CFLAGS   +=-I ${VLT_BUILDDIR} -I $(VLT_ROOT)/include -I $(VLT_ROOT)/include/vltstd -I $(VLT_FESVR)/include -I $(TB_DIR) -I ${MKFILE_DIR}/test
 
 ANNOTATE_FLAGS      ?= -q --keep-time --addr2line=$(ADDR2LINE)

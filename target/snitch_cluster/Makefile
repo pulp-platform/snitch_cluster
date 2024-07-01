@@ -103,6 +103,7 @@ VLT_COBJ += $(VLT_BUILDDIR)/tb/tb_bin.o
 VLT_COBJ += $(VLT_BUILDDIR)/vlt/verilated.o
 VLT_COBJ += $(VLT_BUILDDIR)/vlt/verilated_dpi.o
 VLT_COBJ += $(VLT_BUILDDIR)/vlt/verilated_vcd_c.o
+VLT_COBJ += $(VLT_BUILDDIR)/vlt/verilated_threads.o
 # Bootdata
 VLT_COBJ += $(VLT_BUILDDIR)/generated/bootdata.o
 
