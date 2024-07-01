@@ -1,0 +1,2743 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.27">
+    
+    
+      
+        <title>Peripherals - Snitch Cluster</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.6543a935.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#summary" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="Snitch Cluster" class="md-header__button md-logo" aria-label="Snitch Cluster" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Snitch Cluster
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Peripherals
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pulp-platform/snitch_cluster" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pulp-platform/snitch_cluster
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="Snitch Cluster" class="md-nav__button md-logo" aria-label="Snitch Cluster" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Snitch Cluster
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pulp-platform/snitch_cluster" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pulp-platform/snitch_cluster
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    User Guide
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ug/getting_started.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ug/directory_structure.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Repository Structure
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tutorial
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorial
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ug/tutorial.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Base
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3_2" id="__nav_2_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Advanced
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ug/trace_analysis.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Trace Analysis
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ug/documentation.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Documentation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Reference Manual
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Reference Manual
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Hardware
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            Hardware
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/snitch.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Snitch
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_2" id="__nav_3_1_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Snitch Cluster
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            Snitch Cluster
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/snitch_cluster.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/peripherals.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Peripherals
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schema-doc/snitch_cluster.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Schema
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/reqrsp_interface.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reqrsp Interface
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/custom_instructions.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Custom Instructions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Software
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Software
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_1" id="__nav_3_2_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Simulation Utilities
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            Simulation Utilities
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sim/data_utils.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    data_utils
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sim/verif_utils.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    verif_utils
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sim/sim_utils.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    sim_utils
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sim/Simulation.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Simulation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sim/Simulator.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Simulator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sim/Elf.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Elf
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_2" id="__nav_3_2_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Snitch Runtime
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Snitch Runtime
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/Pages/index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pages
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/Files/index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Files
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/Classes/index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Classes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/Examples/index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Examples
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/Modules/index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Modules
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/Namespaces/index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Namespaces
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../publications.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Publications
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Summary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#perf_counter_enable" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PERF_COUNTER_ENABLE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#instances" class="md-nav__link">
+    <span class="md-ellipsis">
+      Instances
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-icache_stall" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . ICACHE_STALL
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-icache_double_hit" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . ICACHE_DOUBLE_HIT
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-icache_prefetch" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . ICACHE_PREFETCH
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-icache_hit" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . ICACHE_HIT
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-icache_miss" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . ICACHE_MISS
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-dma_busy" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . DMA_BUSY
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-dma_b_done" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . DMA_B_DONE
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-dma_w_bw" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . DMA_W_BW
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-dma_w_done" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . DMA_W_DONE
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-dma_r_bw" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . DMA_R_BW
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-dma_r_done" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . DMA_R_DONE
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-dma_ar_bw" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . DMA_AR_BW
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-dma_ar_done" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . DMA_AR_DONE
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-dma_aw_bw" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . DMA_AW_BW
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-dma_aw_done" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . DMA_AW_DONE
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-dma_buf_r_stall" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . DMA_BUF_R_STALL
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-dma_buf_w_stall" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . DMA_BUF_W_STALL
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-dma_w_stall" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . DMA_W_STALL
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-dma_r_stall" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . DMA_R_STALL
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-dma_ar_stall" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . DMA_AR_STALL
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-dma_aw_stall" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . DMA_AW_STALL
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-retired_acc" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . RETIRED_ACC
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-retired_i" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . RETIRED_I
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-retired_load" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . RETIRED_LOAD
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-retired_instr" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . RETIRED_INSTR
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-issue_core_to_fpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . ISSUE_CORE_TO_FPU
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-issue_fpu_seq" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . ISSUE_FPU_SEQ
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-issue_fpu" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . ISSUE_FPU
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-tcdm_congested" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . TCDM_CONGESTED
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-tcdm_accessed" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . TCDM_ACCESSED
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter_enable-cycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER_ENABLE . CYCLE
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hart_select" class="md-nav__link">
+    <span class="md-ellipsis">
+      HART_SELECT
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="HART_SELECT">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#instances_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Instances
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fields_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#perf_counter" class="md-nav__link">
+    <span class="md-ellipsis">
+      PERF_COUNTER
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="PERF_COUNTER">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#instances_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Instances
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fields_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cl_clint_set" class="md-nav__link">
+    <span class="md-ellipsis">
+      CL_CLINT_SET
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CL_CLINT_SET">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fields_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cl_clint_clear" class="md-nav__link">
+    <span class="md-ellipsis">
+      CL_CLINT_CLEAR
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="CL_CLINT_CLEAR">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fields_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hw_barrier" class="md-nav__link">
+    <span class="md-ellipsis">
+      HW_BARRIER
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="HW_BARRIER">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fields_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#icache_prefetch_enable" class="md-nav__link">
+    <span class="md-ellipsis">
+      ICACHE_PREFETCH_ENABLE
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ICACHE_PREFETCH_ENABLE">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#fields_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fields
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>Peripherals</h1>
+
+<h2 id="summary">Summary</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Offset</th>
+<th style="text-align: right;">Length</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter_enable"><code>PERF_COUNTER_ENABLE_0</code></a></td>
+<td style="text-align: left;">0x0</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Enable particular performance counter and start tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter_enable"><code>PERF_COUNTER_ENABLE_1</code></a></td>
+<td style="text-align: left;">0x8</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Enable particular performance counter and start tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter_enable"><code>PERF_COUNTER_ENABLE_2</code></a></td>
+<td style="text-align: left;">0x10</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Enable particular performance counter and start tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter_enable"><code>PERF_COUNTER_ENABLE_3</code></a></td>
+<td style="text-align: left;">0x18</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Enable particular performance counter and start tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter_enable"><code>PERF_COUNTER_ENABLE_4</code></a></td>
+<td style="text-align: left;">0x20</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Enable particular performance counter and start tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter_enable"><code>PERF_COUNTER_ENABLE_5</code></a></td>
+<td style="text-align: left;">0x28</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Enable particular performance counter and start tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter_enable"><code>PERF_COUNTER_ENABLE_6</code></a></td>
+<td style="text-align: left;">0x30</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Enable particular performance counter and start tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter_enable"><code>PERF_COUNTER_ENABLE_7</code></a></td>
+<td style="text-align: left;">0x38</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Enable particular performance counter and start tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter_enable"><code>PERF_COUNTER_ENABLE_8</code></a></td>
+<td style="text-align: left;">0x40</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Enable particular performance counter and start tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter_enable"><code>PERF_COUNTER_ENABLE_9</code></a></td>
+<td style="text-align: left;">0x48</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Enable particular performance counter and start tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter_enable"><code>PERF_COUNTER_ENABLE_10</code></a></td>
+<td style="text-align: left;">0x50</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Enable particular performance counter and start tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter_enable"><code>PERF_COUNTER_ENABLE_11</code></a></td>
+<td style="text-align: left;">0x58</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Enable particular performance counter and start tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter_enable"><code>PERF_COUNTER_ENABLE_12</code></a></td>
+<td style="text-align: left;">0x60</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Enable particular performance counter and start tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter_enable"><code>PERF_COUNTER_ENABLE_13</code></a></td>
+<td style="text-align: left;">0x68</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Enable particular performance counter and start tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter_enable"><code>PERF_COUNTER_ENABLE_14</code></a></td>
+<td style="text-align: left;">0x70</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Enable particular performance counter and start tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter_enable"><code>PERF_COUNTER_ENABLE_15</code></a></td>
+<td style="text-align: left;">0x78</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Enable particular performance counter and start tracking.</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hart_select"><code>HART_SELECT_0</code></a></td>
+<td style="text-align: left;">0x80</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Select from which hart in the cluster, starting from <code>0</code>,</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hart_select"><code>HART_SELECT_1</code></a></td>
+<td style="text-align: left;">0x88</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Select from which hart in the cluster, starting from <code>0</code>,</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hart_select"><code>HART_SELECT_2</code></a></td>
+<td style="text-align: left;">0x90</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Select from which hart in the cluster, starting from <code>0</code>,</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hart_select"><code>HART_SELECT_3</code></a></td>
+<td style="text-align: left;">0x98</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Select from which hart in the cluster, starting from <code>0</code>,</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hart_select"><code>HART_SELECT_4</code></a></td>
+<td style="text-align: left;">0xa0</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Select from which hart in the cluster, starting from <code>0</code>,</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hart_select"><code>HART_SELECT_5</code></a></td>
+<td style="text-align: left;">0xa8</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Select from which hart in the cluster, starting from <code>0</code>,</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hart_select"><code>HART_SELECT_6</code></a></td>
+<td style="text-align: left;">0xb0</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Select from which hart in the cluster, starting from <code>0</code>,</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hart_select"><code>HART_SELECT_7</code></a></td>
+<td style="text-align: left;">0xb8</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Select from which hart in the cluster, starting from <code>0</code>,</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hart_select"><code>HART_SELECT_8</code></a></td>
+<td style="text-align: left;">0xc0</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Select from which hart in the cluster, starting from <code>0</code>,</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hart_select"><code>HART_SELECT_9</code></a></td>
+<td style="text-align: left;">0xc8</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Select from which hart in the cluster, starting from <code>0</code>,</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hart_select"><code>HART_SELECT_10</code></a></td>
+<td style="text-align: left;">0xd0</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Select from which hart in the cluster, starting from <code>0</code>,</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hart_select"><code>HART_SELECT_11</code></a></td>
+<td style="text-align: left;">0xd8</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Select from which hart in the cluster, starting from <code>0</code>,</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hart_select"><code>HART_SELECT_12</code></a></td>
+<td style="text-align: left;">0xe0</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Select from which hart in the cluster, starting from <code>0</code>,</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hart_select"><code>HART_SELECT_13</code></a></td>
+<td style="text-align: left;">0xe8</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Select from which hart in the cluster, starting from <code>0</code>,</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hart_select"><code>HART_SELECT_14</code></a></td>
+<td style="text-align: left;">0xf0</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Select from which hart in the cluster, starting from <code>0</code>,</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hart_select"><code>HART_SELECT_15</code></a></td>
+<td style="text-align: left;">0xf8</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Select from which hart in the cluster, starting from <code>0</code>,</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter"><code>PERF_COUNTER_0</code></a></td>
+<td style="text-align: left;">0x100</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter"><code>PERF_COUNTER_1</code></a></td>
+<td style="text-align: left;">0x108</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter"><code>PERF_COUNTER_2</code></a></td>
+<td style="text-align: left;">0x110</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter"><code>PERF_COUNTER_3</code></a></td>
+<td style="text-align: left;">0x118</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter"><code>PERF_COUNTER_4</code></a></td>
+<td style="text-align: left;">0x120</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter"><code>PERF_COUNTER_5</code></a></td>
+<td style="text-align: left;">0x128</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter"><code>PERF_COUNTER_6</code></a></td>
+<td style="text-align: left;">0x130</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter"><code>PERF_COUNTER_7</code></a></td>
+<td style="text-align: left;">0x138</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter"><code>PERF_COUNTER_8</code></a></td>
+<td style="text-align: left;">0x140</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter"><code>PERF_COUNTER_9</code></a></td>
+<td style="text-align: left;">0x148</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter"><code>PERF_COUNTER_10</code></a></td>
+<td style="text-align: left;">0x150</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter"><code>PERF_COUNTER_11</code></a></td>
+<td style="text-align: left;">0x158</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter"><code>PERF_COUNTER_12</code></a></td>
+<td style="text-align: left;">0x160</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter"><code>PERF_COUNTER_13</code></a></td>
+<td style="text-align: left;">0x168</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter"><code>PERF_COUNTER_14</code></a></td>
+<td style="text-align: left;">0x170</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#perf_counter"><code>PERF_COUNTER_15</code></a></td>
+<td style="text-align: left;">0x178</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#cl_clint_set"><code>CL_CLINT_SET</code></a></td>
+<td style="text-align: left;">0x180</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Set bits in the cluster-local CLINT. Writing a 1 at location i sets the cluster-local interrupt</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#cl_clint_clear"><code>CL_CLINT_CLEAR</code></a></td>
+<td style="text-align: left;">0x188</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Clear bits in the cluster-local CLINT. Writing a 1 at location i clears the cluster-local interrupt</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#hw_barrier"><code>HW_BARRIER</code></a></td>
+<td style="text-align: left;">0x190</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Hardware barrier register. Loads to this register will block until all cores have</td>
+</tr>
+<tr>
+<td style="text-align: left;">snitch_cluster_peripheral.<a href="#icache_prefetch_enable"><code>ICACHE_PREFETCH_ENABLE</code></a></td>
+<td style="text-align: left;">0x198</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: left;">Controls prefetching of the instruction cache.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="perf_counter_enable">PERF_COUNTER_ENABLE</h2>
+<p>Enable particular performance counter and start tracking.
+- Reset default: <code>0x0</code>
+- Reset mask: <code>0x7fffffff</code></p>
+<h3 id="instances">Instances</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Offset</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_ENABLE_0</td>
+<td style="text-align: left;">0x0</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_ENABLE_1</td>
+<td style="text-align: left;">0x8</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_ENABLE_2</td>
+<td style="text-align: left;">0x10</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_ENABLE_3</td>
+<td style="text-align: left;">0x18</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_ENABLE_4</td>
+<td style="text-align: left;">0x20</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_ENABLE_5</td>
+<td style="text-align: left;">0x28</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_ENABLE_6</td>
+<td style="text-align: left;">0x30</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_ENABLE_7</td>
+<td style="text-align: left;">0x38</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_ENABLE_8</td>
+<td style="text-align: left;">0x40</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_ENABLE_9</td>
+<td style="text-align: left;">0x48</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_ENABLE_10</td>
+<td style="text-align: left;">0x50</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_ENABLE_11</td>
+<td style="text-align: left;">0x58</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_ENABLE_12</td>
+<td style="text-align: left;">0x60</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_ENABLE_13</td>
+<td style="text-align: left;">0x68</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_ENABLE_14</td>
+<td style="text-align: left;">0x70</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_ENABLE_15</td>
+<td style="text-align: left;">0x78</td>
+</tr>
+</tbody>
+</table>
+<h3 id="fields">Fields</h3>
+<div class="highlight"><pre><span></span><code>{&quot;reg&quot;: [{&quot;name&quot;: &quot;CYCLE&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;TCDM_ACCESSED&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;TCDM_CONGESTED&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;ISSUE_FPU&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;ISSUE_FPU_SEQ&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;ISSUE_CORE_TO_FPU&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;RETIRED_INSTR&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;RETIRED_LOAD&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;RETIRED_I&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;RETIRED_ACC&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;DMA_AW_STALL&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;DMA_AR_STALL&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;DMA_R_STALL&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;DMA_W_STALL&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;DMA_BUF_W_STALL&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;DMA_BUF_R_STALL&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;DMA_AW_DONE&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;DMA_AW_BW&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;DMA_AR_DONE&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;DMA_AR_BW&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;DMA_R_DONE&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;DMA_R_BW&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;DMA_W_DONE&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;DMA_W_BW&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;DMA_B_DONE&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;DMA_BUSY&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;ICACHE_MISS&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;ICACHE_HIT&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;ICACHE_PREFETCH&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;ICACHE_DOUBLE_HIT&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;name&quot;: &quot;ICACHE_STALL&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;bits&quot;: 33}], &quot;config&quot;: {&quot;lanes&quot;: 1, &quot;fontsize&quot;: 10, &quot;vspace&quot;: 190}}
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Bits</th>
+<th style="text-align: center;">Type</th>
+<th style="text-align: center;">Reset</th>
+<th style="text-align: left;">Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">63:31</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;">Reserved</td>
+</tr>
+<tr>
+<td style="text-align: center;">30</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--icache_stall">ICACHE_STALL</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">29</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--icache_double_hit">ICACHE_DOUBLE_HIT</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">28</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--icache_prefetch">ICACHE_PREFETCH</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">27</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--icache_hit">ICACHE_HIT</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">26</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--icache_miss">ICACHE_MISS</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">25</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--dma_busy">DMA_BUSY</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">24</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--dma_b_done">DMA_B_DONE</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">23</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--dma_w_bw">DMA_W_BW</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">22</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--dma_w_done">DMA_W_DONE</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">21</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--dma_r_bw">DMA_R_BW</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--dma_r_done">DMA_R_DONE</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">19</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--dma_ar_bw">DMA_AR_BW</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--dma_ar_done">DMA_AR_DONE</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--dma_aw_bw">DMA_AW_BW</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">16</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--dma_aw_done">DMA_AW_DONE</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">15</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--dma_buf_r_stall">DMA_BUF_R_STALL</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">14</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--dma_buf_w_stall">DMA_BUF_W_STALL</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">13</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--dma_w_stall">DMA_W_STALL</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--dma_r_stall">DMA_R_STALL</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">11</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--dma_ar_stall">DMA_AR_STALL</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">10</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--dma_aw_stall">DMA_AW_STALL</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">9</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--retired_acc">RETIRED_ACC</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">8</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--retired_i">RETIRED_I</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">7</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--retired_load">RETIRED_LOAD</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">6</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--retired_instr">RETIRED_INSTR</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--issue_core_to_fpu">ISSUE_CORE_TO_FPU</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--issue_fpu_seq">ISSUE_FPU_SEQ</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--issue_fpu">ISSUE_FPU</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--tcdm_congested">TCDM_CONGESTED</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--tcdm_accessed">TCDM_ACCESSED</a></td>
+</tr>
+<tr>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">0x0</td>
+<td style="text-align: left;"><a href="#perf_counter_enable--cycle">CYCLE</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="perf_counter_enable-icache_stall">PERF_COUNTER_ENABLE . ICACHE_STALL</h3>
+<p>Incremented for instruction cache stalls.
+  <em>This is a hart-local signal</em></p>
+<h3 id="perf_counter_enable-icache_double_hit">PERF_COUNTER_ENABLE . ICACHE_DOUBLE_HIT</h3>
+<p>Incremented for instruction cache double hit.
+  <em>This is a hart-local signal</em></p>
+<h3 id="perf_counter_enable-icache_prefetch">PERF_COUNTER_ENABLE . ICACHE_PREFETCH</h3>
+<p>Incremented for instruction cache prefetches.
+  <em>This is a hart-local signal</em></p>
+<h3 id="perf_counter_enable-icache_hit">PERF_COUNTER_ENABLE . ICACHE_HIT</h3>
+<p>Incremented for instruction cache hits.
+  <em>This is a hart-local signal</em></p>
+<h3 id="perf_counter_enable-icache_miss">PERF_COUNTER_ENABLE . ICACHE_MISS</h3>
+<p>Incremented for instruction cache misses.
+  <em>This is a hart-local signal</em></p>
+<h3 id="perf_counter_enable-dma_busy">PERF_COUNTER_ENABLE . DMA_BUSY</h3>
+<p>Incremented whenever DMA is busy.
+  <em>This is a DMA-local signal</em></p>
+<h3 id="perf_counter_enable-dma_b_done">PERF_COUNTER_ENABLE . DMA_B_DONE</h3>
+<p>Incremented whenever B handshake occurs.
+  <em>This is a DMA-local signal</em></p>
+<h3 id="perf_counter_enable-dma_w_bw">PERF_COUNTER_ENABLE . DMA_W_BW</h3>
+<p>Whenever W handshake occurs, the counter is incremented
+  by the number of bytes transfered in this cycle
+  <em>This is a DMA-local signal</em></p>
+<h3 id="perf_counter_enable-dma_w_done">PERF_COUNTER_ENABLE . DMA_W_DONE</h3>
+<p>Incremented whenvever W handshake occurs.
+  <em>This is a DMA-local signal</em></p>
+<h3 id="perf_counter_enable-dma_r_bw">PERF_COUNTER_ENABLE . DMA_R_BW</h3>
+<p>Whenever R handshake occurs, the counter is incremented
+  by the number of bytes transfered in this cycle
+  <em>This is a DMA-local signal</em></p>
+<h3 id="perf_counter_enable-dma_r_done">PERF_COUNTER_ENABLE . DMA_R_DONE</h3>
+<p>Incremented whenever R handshake occurs.
+  <em>This is a DMA-local signal</em></p>
+<h3 id="perf_counter_enable-dma_ar_bw">PERF_COUNTER_ENABLE . DMA_AR_BW</h3>
+<p>Whenever AR handshake occurs, the counter is incremented
+  by the number of bytes transfered for this transaction
+  <em>This is a DMA-local signal</em></p>
+<h3 id="perf_counter_enable-dma_ar_done">PERF_COUNTER_ENABLE . DMA_AR_DONE</h3>
+<p>Incremented whenever AR handshake occurs.
+  <em>This is a DMA-local signal</em></p>
+<h3 id="perf_counter_enable-dma_aw_bw">PERF_COUNTER_ENABLE . DMA_AW_BW</h3>
+<p>Whenever AW handshake occurs, the counter is incremented
+  by the number of bytes transfered for this transaction
+  <em>This is a DMA-local signal</em></p>
+<h3 id="perf_counter_enable-dma_aw_done">PERF_COUNTER_ENABLE . DMA_AW_DONE</h3>
+<p>Incremented whenever AW handshake occurs.
+  <em>This is a DMA-local signal</em></p>
+<h3 id="perf_counter_enable-dma_buf_r_stall">PERF_COUNTER_ENABLE . DMA_BUF_R_STALL</h3>
+<p>Incremented whenever r_valid = 1 but r_ready = 0.
+  <em>This is a DMA-local signal</em></p>
+<h3 id="perf_counter_enable-dma_buf_w_stall">PERF_COUNTER_ENABLE . DMA_BUF_W_STALL</h3>
+<p>Incremented whenever w_ready = 1 but w_valid = 0.
+  <em>This is a DMA-local signal</em></p>
+<h3 id="perf_counter_enable-dma_w_stall">PERF_COUNTER_ENABLE . DMA_W_STALL</h3>
+<p>Incremented whenever w_valid = 1 but w_ready = 0.
+  <em>This is a DMA-local signal</em></p>
+<h3 id="perf_counter_enable-dma_r_stall">PERF_COUNTER_ENABLE . DMA_R_STALL</h3>
+<p>Incremented whenever r_ready = 1 but r_valid = 0.
+  <em>This is a DMA-local signal</em></p>
+<h3 id="perf_counter_enable-dma_ar_stall">PERF_COUNTER_ENABLE . DMA_AR_STALL</h3>
+<p>Incremented whenever ar_valid = 1 but ar_ready = 0.
+  <em>This is a DMA-local signal</em></p>
+<h3 id="perf_counter_enable-dma_aw_stall">PERF_COUNTER_ENABLE . DMA_AW_STALL</h3>
+<p>Incremented whenever aw_valid = 1 but aw_ready = 0.
+  <em>This is a DMA-local signal</em></p>
+<h3 id="perf_counter_enable-retired_acc">PERF_COUNTER_ENABLE . RETIRED_ACC</h3>
+<p>Offloaded instructions retired by the core. <em>This is a hart-local signal.</em></p>
+<h3 id="perf_counter_enable-retired_i">PERF_COUNTER_ENABLE . RETIRED_I</h3>
+<p>Base instructions retired by the core. <em>This is a hart-local signal.</em></p>
+<h3 id="perf_counter_enable-retired_load">PERF_COUNTER_ENABLE . RETIRED_LOAD</h3>
+<p>Load instructions retired by the core. <em>This is a hart-local signal.</em></p>
+<h3 id="perf_counter_enable-retired_instr">PERF_COUNTER_ENABLE . RETIRED_INSTR</h3>
+<p>Instructions retired by the core, both offloaded and not. Does not
+  count instructions issued independently by the FPU sequencer.
+  <em>This is a hart-local signal.</em></p>
+<h3 id="perf_counter_enable-issue_core_to_fpu">PERF_COUNTER_ENABLE . ISSUE_CORE_TO_FPU</h3>
+<p>Incremented whenever the core issues an FPU instruction.
+  <em>This is a hart-local signal.</em></p>
+<h3 id="perf_counter_enable-issue_fpu_seq">PERF_COUNTER_ENABLE . ISSUE_FPU_SEQ</h3>
+<p>Incremented whenever the FPU Sequencer issues an FPU instruction.
+  Might not be available if the hardware doesn't support FREP.
+  Note that all FP instructions offloaded by the core to the FPU are routed
+  through the sequencer (although not necessarily buffered) and thus are also counted.
+  The instructions issued independently by the FPU sequencer could thus be
+  calculated as ISSUE_FPU_SEQ_PROPER = ISSUE_FPU_SEQ - ISSUE_CORE_TO_FPU.
+  <em>This is a hart-local signal.</em></p>
+<h3 id="perf_counter_enable-issue_fpu">PERF_COUNTER_ENABLE . ISSUE_FPU</h3>
+<p>Operations performed in the FPU. Includes both operations initiated by the
+  sequencer and by the core. When the Xfrep extension is available, this counter is
+  equivalent to ISSUE_FPU_SEQ (see description of ISSUE_FPU_SEQ). If the Xfrep extension
+  is not supported, then it is equivalent to ISSUE_CORE_TO_FPU. <em>This is a hart-local signal.</em></p>
+<h3 id="perf_counter_enable-tcdm_congested">PERF_COUNTER_ENABLE . TCDM_CONGESTED</h3>
+<p>Incremented whenever an access towards the TCDM is made but the arbitration
+  logic didn't grant the access (due to congestion). It's strictly less than TCDM_ACCESSED.
+  <em>This is a cluster-global signal.</em></p>
+<h3 id="perf_counter_enable-tcdm_accessed">PERF_COUNTER_ENABLE . TCDM_ACCESSED</h3>
+<p>Increased whenever the TCDM is accessed. Each individual access is tracked,
+  so if <code>n</code> cores access the TCDM, <code>n</code> will be added. Accesses are tracked at the TCDM,
+  so it doesn't matter whether the cores or for example the SSR hardware accesses
+  the TCDM. <em>This is a cluster-global signal.</em></p>
+<h3 id="perf_counter_enable-cycle">PERF_COUNTER_ENABLE . CYCLE</h3>
+<p>Cycle counter. Counts up as long as the cluster is powered.</p>
+<h2 id="hart_select">HART_SELECT</h2>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+   the event should be counted. For each performance counter
+   the cores can be selected individually. If a hart greater
+   than the clusters total hart size is selected the selection
+   will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+   will be selected.
+- Reset default: <code>0x0</code>
+- Reset mask: <code>0x3ff</code></p>
+<h3 id="instances_1">Instances</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Offset</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">HART_SELECT_0</td>
+<td style="text-align: left;">0x80</td>
+</tr>
+<tr>
+<td style="text-align: left;">HART_SELECT_1</td>
+<td style="text-align: left;">0x88</td>
+</tr>
+<tr>
+<td style="text-align: left;">HART_SELECT_2</td>
+<td style="text-align: left;">0x90</td>
+</tr>
+<tr>
+<td style="text-align: left;">HART_SELECT_3</td>
+<td style="text-align: left;">0x98</td>
+</tr>
+<tr>
+<td style="text-align: left;">HART_SELECT_4</td>
+<td style="text-align: left;">0xa0</td>
+</tr>
+<tr>
+<td style="text-align: left;">HART_SELECT_5</td>
+<td style="text-align: left;">0xa8</td>
+</tr>
+<tr>
+<td style="text-align: left;">HART_SELECT_6</td>
+<td style="text-align: left;">0xb0</td>
+</tr>
+<tr>
+<td style="text-align: left;">HART_SELECT_7</td>
+<td style="text-align: left;">0xb8</td>
+</tr>
+<tr>
+<td style="text-align: left;">HART_SELECT_8</td>
+<td style="text-align: left;">0xc0</td>
+</tr>
+<tr>
+<td style="text-align: left;">HART_SELECT_9</td>
+<td style="text-align: left;">0xc8</td>
+</tr>
+<tr>
+<td style="text-align: left;">HART_SELECT_10</td>
+<td style="text-align: left;">0xd0</td>
+</tr>
+<tr>
+<td style="text-align: left;">HART_SELECT_11</td>
+<td style="text-align: left;">0xd8</td>
+</tr>
+<tr>
+<td style="text-align: left;">HART_SELECT_12</td>
+<td style="text-align: left;">0xe0</td>
+</tr>
+<tr>
+<td style="text-align: left;">HART_SELECT_13</td>
+<td style="text-align: left;">0xe8</td>
+</tr>
+<tr>
+<td style="text-align: left;">HART_SELECT_14</td>
+<td style="text-align: left;">0xf0</td>
+</tr>
+<tr>
+<td style="text-align: left;">HART_SELECT_15</td>
+<td style="text-align: left;">0xf8</td>
+</tr>
+</tbody>
+</table>
+<h3 id="fields_1">Fields</h3>
+<div class="highlight"><pre><span></span><code>{&quot;reg&quot;: [{&quot;name&quot;: &quot;HART_SELECT&quot;, &quot;bits&quot;: 10, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: -90}, {&quot;bits&quot;: 54}], &quot;config&quot;: {&quot;lanes&quot;: 1, &quot;fontsize&quot;: 10, &quot;vspace&quot;: 130}}
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Bits</th>
+<th style="text-align: center;">Type</th>
+<th style="text-align: center;">Reset</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">63:10</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Reserved</td>
+</tr>
+<tr>
+<td style="text-align: center;">9:0</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">x</td>
+<td style="text-align: left;">HART_SELECT</td>
+<td style="text-align: left;">Select source of per-hart performance counter</td>
+</tr>
+</tbody>
+</table>
+<h2 id="perf_counter">PERF_COUNTER</h2>
+<p>Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what
+performance metric you would like to track.
+- Reset default: <code>0x0</code>
+- Reset mask: <code>0xffffffffffff</code></p>
+<h3 id="instances_2">Instances</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Offset</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_0</td>
+<td style="text-align: left;">0x100</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_1</td>
+<td style="text-align: left;">0x108</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_2</td>
+<td style="text-align: left;">0x110</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_3</td>
+<td style="text-align: left;">0x118</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_4</td>
+<td style="text-align: left;">0x120</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_5</td>
+<td style="text-align: left;">0x128</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_6</td>
+<td style="text-align: left;">0x130</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_7</td>
+<td style="text-align: left;">0x138</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_8</td>
+<td style="text-align: left;">0x140</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_9</td>
+<td style="text-align: left;">0x148</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_10</td>
+<td style="text-align: left;">0x150</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_11</td>
+<td style="text-align: left;">0x158</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_12</td>
+<td style="text-align: left;">0x160</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_13</td>
+<td style="text-align: left;">0x168</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_14</td>
+<td style="text-align: left;">0x170</td>
+</tr>
+<tr>
+<td style="text-align: left;">PERF_COUNTER_15</td>
+<td style="text-align: left;">0x178</td>
+</tr>
+</tbody>
+</table>
+<h3 id="fields_2">Fields</h3>
+<div class="highlight"><pre><span></span><code>{&quot;reg&quot;: [{&quot;name&quot;: &quot;PERF_COUNTER&quot;, &quot;bits&quot;: 48, &quot;attr&quot;: [&quot;rw&quot;], &quot;rotate&quot;: 0}, {&quot;bits&quot;: 16}], &quot;config&quot;: {&quot;lanes&quot;: 1, &quot;fontsize&quot;: 10, &quot;vspace&quot;: 80}}
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Bits</th>
+<th style="text-align: center;">Type</th>
+<th style="text-align: center;">Reset</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">63:48</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Reserved</td>
+</tr>
+<tr>
+<td style="text-align: center;">47:0</td>
+<td style="text-align: center;">rw</td>
+<td style="text-align: center;">x</td>
+<td style="text-align: left;">PERF_COUNTER</td>
+<td style="text-align: left;">Performance counter</td>
+</tr>
+</tbody>
+</table>
+<h2 id="cl_clint_set">CL_CLINT_SET</h2>
+<p>Set bits in the cluster-local CLINT. Writing a 1 at location i sets the cluster-local interrupt
+of hart i, where i is relative to the first hart in the cluster, ignoring the cluster base hart ID.
+- Offset: <code>0x180</code>
+- Reset default: <code>0x0</code>
+- Reset mask: <code>0xffffffff</code></p>
+<h3 id="fields_3">Fields</h3>
+<div class="highlight"><pre><span></span><code>{&quot;reg&quot;: [{&quot;name&quot;: &quot;CL_CLINT_SET&quot;, &quot;bits&quot;: 32, &quot;attr&quot;: [&quot;wo&quot;], &quot;rotate&quot;: 0}, {&quot;bits&quot;: 32}], &quot;config&quot;: {&quot;lanes&quot;: 1, &quot;fontsize&quot;: 10, &quot;vspace&quot;: 80}}
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Bits</th>
+<th style="text-align: center;">Type</th>
+<th style="text-align: center;">Reset</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">63:32</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Reserved</td>
+</tr>
+<tr>
+<td style="text-align: center;">31:0</td>
+<td style="text-align: center;">wo</td>
+<td style="text-align: center;">x</td>
+<td style="text-align: left;">CL_CLINT_SET</td>
+<td style="text-align: left;">Set cluster-local interrupt of hart i</td>
+</tr>
+</tbody>
+</table>
+<h2 id="cl_clint_clear">CL_CLINT_CLEAR</h2>
+<p>Clear bits in the cluster-local CLINT. Writing a 1 at location i clears the cluster-local interrupt
+of hart i, where i is relative to the first hart in the cluster, ignoring the cluster base hart ID.
+- Offset: <code>0x188</code>
+- Reset default: <code>0x0</code>
+- Reset mask: <code>0xffffffff</code></p>
+<h3 id="fields_4">Fields</h3>
+<div class="highlight"><pre><span></span><code>{&quot;reg&quot;: [{&quot;name&quot;: &quot;CL_CLINT_CLEAR&quot;, &quot;bits&quot;: 32, &quot;attr&quot;: [&quot;wo&quot;], &quot;rotate&quot;: 0}, {&quot;bits&quot;: 32}], &quot;config&quot;: {&quot;lanes&quot;: 1, &quot;fontsize&quot;: 10, &quot;vspace&quot;: 80}}
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Bits</th>
+<th style="text-align: center;">Type</th>
+<th style="text-align: center;">Reset</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">63:32</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Reserved</td>
+</tr>
+<tr>
+<td style="text-align: center;">31:0</td>
+<td style="text-align: center;">wo</td>
+<td style="text-align: center;">x</td>
+<td style="text-align: left;">CL_CLINT_CLEAR</td>
+<td style="text-align: left;">Clear cluster-local interrupt of hart i</td>
+</tr>
+</tbody>
+</table>
+<h2 id="hw_barrier">HW_BARRIER</h2>
+<p>Hardware barrier register. Loads to this register will block until all cores have
+performed the load. At this stage we know that they reached the same point in the control flow,
+i.e., the cores are synchronized.
+- Offset: <code>0x190</code>
+- Reset default: <code>0x0</code>
+- Reset mask: <code>0xffffffff</code></p>
+<h3 id="fields_5">Fields</h3>
+<div class="highlight"><pre><span></span><code>{&quot;reg&quot;: [{&quot;name&quot;: &quot;HW_BARRIER&quot;, &quot;bits&quot;: 32, &quot;attr&quot;: [&quot;ro&quot;], &quot;rotate&quot;: 0}, {&quot;bits&quot;: 32}], &quot;config&quot;: {&quot;lanes&quot;: 1, &quot;fontsize&quot;: 10, &quot;vspace&quot;: 80}}
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Bits</th>
+<th style="text-align: center;">Type</th>
+<th style="text-align: center;">Reset</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">63:32</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Reserved</td>
+</tr>
+<tr>
+<td style="text-align: center;">31:0</td>
+<td style="text-align: center;">ro</td>
+<td style="text-align: center;">x</td>
+<td style="text-align: left;">HW_BARRIER</td>
+<td style="text-align: left;">Hardware barrier register.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="icache_prefetch_enable">ICACHE_PREFETCH_ENABLE</h2>
+<p>Controls prefetching of the instruction cache.
+- Offset: <code>0x198</code>
+- Reset default: <code>0x1</code>
+- Reset mask: <code>0x1</code></p>
+<h3 id="fields_6">Fields</h3>
+<div class="highlight"><pre><span></span><code>{&quot;reg&quot;: [{&quot;name&quot;: &quot;ICACHE_PREFETCH_ENABLE&quot;, &quot;bits&quot;: 1, &quot;attr&quot;: [&quot;wo&quot;], &quot;rotate&quot;: -90}, {&quot;bits&quot;: 63}], &quot;config&quot;: {&quot;lanes&quot;: 1, &quot;fontsize&quot;: 10, &quot;vspace&quot;: 240}}
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">Bits</th>
+<th style="text-align: center;">Type</th>
+<th style="text-align: center;">Reset</th>
+<th style="text-align: left;">Name</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">63:1</td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Reserved</td>
+</tr>
+<tr>
+<td style="text-align: center;">0</td>
+<td style="text-align: center;">wo</td>
+<td style="text-align: center;">0x1</td>
+<td style="text-align: left;">ICACHE_PREFETCH_ENABLE</td>
+<td style="text-align: left;">Enable instruction prefetching.</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.ad660dcc.min.js"></script>
+      
+    
+  </body>
+</html>

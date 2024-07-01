@@ -1,0 +1,1689 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="directory_structure.html">
+      
+      
+        <link rel="next" href="trace_analysis.html">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.27">
+    
+    
+      
+        <title>Base - Snitch Cluster</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.6543a935.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#tutorial" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="Snitch Cluster" class="md-header__button md-logo" aria-label="Snitch Cluster" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Snitch Cluster
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Base
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pulp-platform/snitch_cluster" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pulp-platform/snitch_cluster
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="Snitch Cluster" class="md-nav__button md-logo" aria-label="Snitch Cluster" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Snitch Cluster
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pulp-platform/snitch_cluster" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.5.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pulp-platform/snitch_cluster
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    User Guide
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting_started.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="directory_structure.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Repository Structure
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tutorial
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorial
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Base
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="tutorial.html" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Base
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#building-the-hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building the hardware
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-the-banshee-simulator" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building the Banshee simulator
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cluster-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cluster configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-the-software" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building the software
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-a-simulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running a simulation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-your-first-snitch-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating your first Snitch app
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating your first Snitch app">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#writing-the-c-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      Writing the C Code
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compiling-the-c-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      Compiling the C Code
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-your-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Run your application
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugging-and-benchmarking" class="md-nav__link">
+    <span class="md-ellipsis">
+      Debugging and benchmarking
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-reuse" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Reuse
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-verilator-with-llvm" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Verilator with LLVM
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3_2" id="__nav_2_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Advanced
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="trace_analysis.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Trace Analysis
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="documentation.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Documentation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Reference Manual
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Reference Manual
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Hardware
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            Hardware
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/snitch.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Snitch
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_2" id="__nav_3_1_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Snitch Cluster
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            Snitch Cluster
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/snitch_cluster.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/peripherals.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Peripherals
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schema-doc/snitch_cluster.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Schema
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/reqrsp_interface.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reqrsp Interface
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/custom_instructions.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Custom Instructions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Software
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Software
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_1" id="__nav_3_2_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Simulation Utilities
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            Simulation Utilities
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sim/data_utils.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    data_utils
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sim/verif_utils.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    verif_utils
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sim/sim_utils.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    sim_utils
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sim/Simulation.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Simulation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sim/Simulator.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Simulator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sim/Elf.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Elf
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_2" id="__nav_3_2_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Snitch Runtime
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Snitch Runtime
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/Pages/index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Pages
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/Files/index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Files
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/Classes/index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Classes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/Examples/index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Examples
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/Modules/index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Modules
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runtime/Namespaces/index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Namespaces
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../publications.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Publications
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#building-the-hardware" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building the hardware
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-the-banshee-simulator" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building the Banshee simulator
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cluster-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cluster configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-the-software" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building the software
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-a-simulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running a simulation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-your-first-snitch-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating your first Snitch app
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Creating your first Snitch app">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#writing-the-c-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      Writing the C Code
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compiling-the-c-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      Compiling the C Code
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-your-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Run your application
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugging-and-benchmarking" class="md-nav__link">
+    <span class="md-ellipsis">
+      Debugging and benchmarking
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-reuse" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code Reuse
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-verilator-with-llvm" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using Verilator with LLVM
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="tutorial">Tutorial</h1>
+<p>The following tutorial will guide you through the use of the Snitch cluster. You will learn how to develop, simulate, debug and benchmark software for the Snitch cluster architecture.</p>
+<!---
+The following documentation is directly included from `../../target/snitch_cluster/README.md`
+-->
+
+<p>In the following tutorial you can assume the working directory to be <code>target/snitch_cluster</code>. All paths are to be assumed relative to this directory. Paths relative to the root of the repository are prefixed with a slash.</p>
+<h3 id="building-the-hardware">Building the hardware</h3>
+<p>To compile the hardware for simulation run one of the following commands, depending on the desired simulator:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Verilator</span>
+make<span class="w"> </span>bin/snitch_cluster.vlt
+
+<span class="c1"># Questa</span>
+make<span class="w"> </span><span class="nv">DEBUG</span><span class="o">=</span>ON<span class="w"> </span>bin/snitch_cluster.vsim
+
+<span class="c1"># VCS</span>
+make<span class="w"> </span>bin/snitch_cluster.vcs
+</code></pre></div>
+<p>These commands compile the RTL sources respectively in <code>work-vlt</code>, <code>work-vsim</code> and <code>work-vcs</code>. Additionally, common C++ testbench sources (e.g. the <a href="https://github.com/riscv-software-src/riscv-isa-sim">frontend server (fesvr)</a>) are compiled under <code>work</code>. Each command will also generate a script or an executable (e.g. <code>bin/snitch_cluster.vsim</code>) which you can invoke to simulate the hardware. We will see how to do this in a later section.
+The variable <code>DEBUG=ON</code> is used to preserve the visibility of all the internal signals during simulation.</p>
+<h3 id="building-the-banshee-simulator">Building the Banshee simulator</h3>
+<p>Instead of running an RTL simulation, you can use our instruction-accurate simulator called <code>banshee</code>. To install the simulator, please follow the instructions of the Banshee repository: <a href="https://github.com/pulp-platform/banshee">https://github.com/pulp-platform/banshee</a>.</p>
+<h3 id="cluster-configuration">Cluster configuration</h3>
+<p>Note that the Snitch cluster RTL sources are partly automatically generated from a configuration file provided in <code>.hjson</code> format. Several RTL files are templated and use the <code>.hjson</code> configuration file to fill the template entries. An example is <code>/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl</code>.</p>
+<p>Under the <code>cfg</code> folder, different configurations are provided. The <code>cfg/default.hjson</code> configuration instantiates 8 compute cores + 1 DMA core in the cluster. If you need a specific configuration you can create your own configuration file.</p>
+<p>The command you executed previously automatically generated the templated RTL sources. It implicitly used the default configuration file.
+To override the default configuration file, define the following variable when you invoke <code>make</code>:
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span><span class="nv">CFG_OVERRIDE</span><span class="o">=</span>cfg/custom.hjson<span class="w"> </span>bin/snitch_cluster.vlt
+</code></pre></div></p>
+<p><em><strong>Note:</strong> whenever you override the configuration file on the <code>make</code> command-line, the configuration will be stored in the <code>cfg/lru.hjson</code> file. Successive invocations of <code>make</code> will automatically pick up the <code>cfg/lru.hjson</code> file. You can therefore omit the <code>CFG_OVERRIDE</code> definition in successive commands unless you want to override the least-recently used configuration.</em></p>
+<p>Banshee uses also a cluster configuration file, however, that is given directly when simulating a specific binary with banshee with the help of <code>--configuration &lt;cluster_config.yaml&gt;</code>.</p>
+<h3 id="building-the-software">Building the software</h3>
+<p>To build all of the software for the Snitch cluster, run the following command:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># for RTL simulation</span>
+make<span class="w"> </span><span class="nv">DEBUG</span><span class="o">=</span>ON<span class="w"> </span>sw
+
+<span class="c1"># for Banshee simulation (requires slightly different runtime)</span>
+make<span class="w"> </span><span class="nv">SELECT_RUNTIME</span><span class="o">=</span>banshee<span class="w"> </span><span class="nv">DEBUG</span><span class="o">=</span>ON<span class="w"> </span>sw
+
+<span class="c1"># to use OpenOCD semi-hosting for putchar and termination</span>
+make<span class="w"> </span><span class="nv">DEBUG</span><span class="o">=</span>ON<span class="w"> </span><span class="nv">OPENOCD_SEMIHOSTING</span><span class="o">=</span>ON<span class="w"> </span>sw
+</code></pre></div>
+<p>The <code>sw</code> target first generates some C header files which depend on the hardware configuration. Hence, the need to generate the software for the same configuration as your hardware. Afterwards, it recursively invokes the <code>make</code> target in the <code>sw</code> subdirectory to build the apps/kernels which have been developed in that directory.</p>
+<p>The <code>DEBUG=ON</code> flag is used to tell the compiler to produce debugging symbols. It is necessary for the <code>annotate</code> target, showcased in the Debugging section of this guide, to work.</p>
+<p>The <code>SELECT_RUNTIME</code> flag is set by default to <code>rtl</code>. To build the software with the Banshee runtime, set the flag to <code>banshee</code>.</p>
+<p><em><strong>Note:</strong> the RTL is not the only source which is generated from the configuration file. The software stack also depends on the configuration file. Make sure you always build the software with the same configuration of the hardware you are going to run it on.</em></p>
+<p><em><strong>Note:</strong> on GVSOC, it is better to use OpenOCD semi-hosting to prevent putchar from disturbing the DRAMSys timing model.</em></p>
+<h3 id="running-a-simulation">Running a simulation</h3>
+<p>Run one of the executables which was compiled in the previous step on your Snitch cluster simulator of choice:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Verilator</span>
+bin/snitch_cluster.vlt<span class="w"> </span>sw/apps/blas/axpy/build/axpy.elf
+
+<span class="c1"># Questa</span>
+bin/snitch_cluster.vsim<span class="w"> </span>sw/apps/blas/axpy/build/axpy.elf
+
+<span class="c1"># VCS</span>
+bin/snitch_cluster.vcs<span class="w"> </span>sw/apps/blas/axpy/build/axpy.elf
+
+<span class="c1"># Banshee</span>
+banshee<span class="w"> </span>--no-opt-llvm<span class="w"> </span>--no-opt-jit<span class="w"> </span>--configuration<span class="w"> </span>src/banshee.yaml<span class="w"> </span>--trace<span class="w"> </span>sw/apps/blas/axpy/build/axpy.elf
+</code></pre></div>
+<p>The Snitch cluster simulator binaries can be invoked from any directory, just adapt the relative paths in the preceding commands accordingly, or use absolute paths. We refer to the working directory where the simulation is launched as the simulation directory. Within it, you will find several log files produced by the RTL simulation.</p>
+<p>The previous commands will launch the simulation on the console. QuestaSim simulations can also be launched with the QuestaSim GUI, by adapting the previous command to:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Questa</span>
+bin/snitch_cluster.vsim.gui<span class="w"> </span>sw/apps/blas/axpy/build/axpy.elf
+</code></pre></div>
+<p>For Banshee, you need to give a specific cluster configuration to the simulator with the flag <code>--configuration &lt;cluster_config.yaml&gt;</code>. A default Snitch cluster configuration is given (<code>src/banshee.yaml</code>). The flag <code>--trace</code> enables the printing of the traces similar to the RTL simulation.
+For more information and debug options, please have a look at the Banshee repository: <a href="https://github.com/pulp-platform/banshee">https://github.com/pulp-platform/banshee</a>.</p>
+<h3 id="creating-your-first-snitch-app">Creating your first Snitch app</h3>
+<p>In the following you will create your own AXPY kernel implementation as an example how to develop software for Snitch.</p>
+<h4 id="writing-the-c-code">Writing the C Code</h4>
+<p>Create a directory for your AXPY kernel under <code>sw/</code>:</p>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>sw/apps/axpy
+</code></pre></div>
+<p>And a <code>src</code> subdirectory to host your source code:</p>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>sw/apps/axpy/src
+</code></pre></div>
+<p>Here, create a new file named <code>axpy.c</code> inside the <code>src</code> directory with the following contents:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;snrt.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;data.h&quot;</span>
+
+<span class="c1">// Define your kernel</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">axpy</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">l</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">l</span><span class="w"> </span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">snrt_fpu_fence</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Read the mcycle CSR (this is our way to mark/delimit a specific code region for benchmarking)</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">start_cycle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">snrt_mcycle</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// DM core does not participate in the computation</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">snrt_is_compute_core</span><span class="p">())</span>
+<span class="w">        </span><span class="n">axpy</span><span class="p">(</span><span class="n">L</span><span class="p">,</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">z</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Read the mcycle CSR</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">end_cycle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">snrt_mcycle</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>The <code>snrt.h</code> file implements the snRuntime API, a library of convenience functions to program Snitch cluster based systems. These sources are located under <code>target/snitch_cluster/sw/runtime/rtl</code> and are automatically referenced by our compilation scripts.</p>
+<p><em><strong>Note:</strong> Have a look at the files inside <code>sw/snRuntime</code> in the root of this repository to see what kind of functionality the snRuntime API defines. Note this is only an API, with some base implementations. The Snitch cluster implementation of the snRuntime for RTL simulation can be found under <code>target/snitch_cluster/sw/runtime/rtl</code>. It is automatically built and linked with user applications thanks to our compilation scripts.</em></p>
+<p>We will have to instead create the <code>data.h</code> file ourselves. Create a <code>target/snitch_cluster/sw/apps/axpy/data</code> folder to host the data for your kernel to operate on:</p>
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>sw/apps/axpy/data
+</code></pre></div>
+<p>Here, create a C file named <code>data.h</code> with the following contents:</p>
+<div class="highlight"><pre><span></span><code><span class="kt">uint32_t</span><span class="w"> </span><span class="n">L</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">16</span><span class="p">;</span>
+
+<span class="kt">double</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span><span class="p">;</span>
+
+<span class="kt">double</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="mi">16</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="mi">8</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="mi">11</span><span class="p">,</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span><span class="w"> </span><span class="mi">13</span><span class="p">,</span><span class="w"> </span><span class="mi">14</span><span class="p">,</span><span class="w"> </span><span class="mi">15</span><span class="p">};</span>
+
+<span class="kt">double</span><span class="w"> </span><span class="n">y</span><span class="p">[</span><span class="mi">16</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="mi">1</span><span class="p">};</span>
+
+<span class="kt">double</span><span class="w"> </span><span class="n">z</span><span class="p">[</span><span class="mi">16</span><span class="p">];</span>
+</code></pre></div>
+<p>In this file we hardcode the data to be used by the kernel. This data will be loaded in memory together with your application code. In general, to verify your code you may want to randomly generate the above data. You may also want to test your kernel on different problem sizes, e.g. varying the length of the vectors, without having to manually rewrite the file. This can be achieved by generating the data header file with a Python script. You may have a look at the <code>sw/blas/axpy/scripts/datagen.py</code> script in the root of this repository as an example. As you can see, it reuses many convenience classes and functions for data generation from the <code>data_utils</code> module. Documentation for this module can be found <a href="https://pulp-platform.github.io/snitch_cluster/rm/sim/data_utils.html">here</a>.</p>
+<h4 id="compiling-the-c-code">Compiling the C Code</h4>
+<p>In your <code>axpy</code> folder, create a new file named <code>Makefile</code> with the following contents:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">APP</span><span class="w">     </span><span class="o">=</span><span class="w"> </span>axpy
+<span class="nv">SRCS</span><span class="w">    </span><span class="o">=</span><span class="w"> </span>src/axpy.c
+<span class="nv">INCDIRS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>data
+
+<span class="cp">include ../common.mk</span>
+</code></pre></div>
+<p>This Makefile will be invoked recursively by the top-level Makefile, compiling your source code into an executable with the name provided in the <code>APP</code> variable.</p>
+<p>In order for the top-level Makefile to find your application, add your application's directory to the <code>APPS</code> variable in <code>sw.mk</code>:</p>
+<div class="highlight"><pre><span></span><code>APPS += sw/apps/axpy
+</code></pre></div>
+<p>Now you can recompile all software, including your newly added AXPY application:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span><span class="nv">DEBUG</span><span class="o">=</span>ON<span class="w"> </span>sw
+</code></pre></div>
+<p>Note, only the targets depending on the sources you have added/modified will be recompiled.</p>
+<p>In the <code>sw/apps/axpy/build</code> directory, you will now find your <code>axpy.elf</code> executable and some other files which were automatically generated to aid debugging. Open <code>axpy.dump</code> and search for <code>&lt;x&gt;</code>, <code>&lt;y&gt;</code> and <code>&lt;z&gt;</code>. You will see the addresses where the respective vectors defined in <code>data.h</code> have been allocated by the compiler. This file can also be very useful to see what assembly instructions your source code was compiled to, and correlate the traces (we will later see) with the source code.</p>
+<p>If you want to dig deeper into how our build system works and how these files were generated you can follow the recursive Makefile invocations starting from the <code>sw</code> target in <code>snitch_cluster/Makefile</code>.</p>
+<h4 id="run-your-application">Run your application</h4>
+<p>You can run your application in simulation as shown in the previous sections. Make sure to pick up the right binary, e.g.:</p>
+<div class="highlight"><pre><span></span><code>bin/snitch_cluster.vsim<span class="w"> </span>sw/apps/axpy/build/axpy.elf
+</code></pre></div>
+<h3 id="debugging-and-benchmarking">Debugging and benchmarking</h3>
+<p>When you run the simulation, every core will log all the instructions it executes (along with additional information, such as the value of the registers before/after the instruction) in a trace file. The traces are located in the <code>logs</code> folder within the simulation directory. The traces are identified by their hart ID, that is a unique ID for every hardware thread (hart) in a RISC-V system (and since all our cores have a single thread that is a unique ID per core).</p>
+<p>The simulation logs the traces in a non-human readable format with <code>.dasm</code> extension. To convert these to a human-readable form run:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>-j<span class="w"> </span>traces
+</code></pre></div>
+<p>If the simulation directory does not coincide with the current working directory, you will have to specify the path explicitly:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>-j<span class="w"> </span>traces<span class="w"> </span><span class="nv">SIM_DIR</span><span class="o">=</span>&lt;path_to_simulation_directory&gt;
+</code></pre></div>
+<p>Detailed information on how to interpret the generated traces can be found <a href="trace_analysis.html">here</a>.</p>
+<p>In addition to generating readable traces (<code>.txt</code> format), the above command also computes several performance metrics from the trace and appends them at the end of the trace. These can be collected into a single CSV file with the following target:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>logs/perf.csv
+<span class="c1"># View the CSV file</span>
+libreoffice<span class="w"> </span>logs/perf.csv
+</code></pre></div>
+<p>In this file you can find the <code>X_tstart</code> and <code>X_tend</code> metrics. These are the cycles in which a particular code region <code>X</code> starts and ends, and can hence be used to profile your code. Code regions are defined by calls to <code>snrt_mcycle()</code>. Every call to this function defines two code regions:
+- the code preceding the call, up to the previous <code>snrt_mcycle()</code> call or the start of the source file
+- the code following the call, up to the next <code>snrt_mcycle()</code> call or the end of the source file</p>
+<p>The CSV file can be useful to automate collection and post-processing of benchmarking data.</p>
+<p>Finally, debugging your program from the trace alone can be quite tedious and time-consuming. You would have to manually understand which instructions in the trace correspond to which lines in your source code. Surely, you can help yourself with the disassembly.</p>
+<p>Alternatively, you can automatically annotate the traces with that information. With the following commands you can view the trace instructions side-by-side with the corresponding source code lines they were compiled from:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>-j<span class="w"> </span>annotate
+kompare<span class="w"> </span>-o<span class="w"> </span>logs/trace_hart_00000.diff
+</code></pre></div>
+<p>If you prefer to view this information in a regular text editor (e.g. for search), you can open the <code>logs/trace_hart_xxxxx.s</code> files. Here, the annotations are interleaved with the trace rather than being presented side-by-side.</p>
+<p><em><strong>Note:</strong> the <code>annotate</code> target uses the <code>addr2line</code> binutil behind the scenes, which needs debugging symbols to correlate instruction addresses with originating source code lines. The <code>DEBUG=ON</code> flag you specified when building the software is used to tell the compiler to produce debugging symbols when compiling your code.</em></p>
+<p>The traces contain a lot of information which we might not be interested at first. To simply visualize the runtime of the compute region in our code, first create a file named <code>layout.csv</code> in <code>sw/apps/axpy</code> with the following contents:</p>
+<div class="highlight"><pre><span></span><code>            , compute
+&quot;range(0,8)&quot;,       1
+8           ,
+</code></pre></div>
+<p>Then run the following commands:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Similar to logs/perf.csv but filters all but tstart and tend metrics</span>
+make<span class="w"> </span>logs/event.csv
+<span class="c1"># Labels, filters and reorders the event regions as specified by an application-specific layout file</span>
+../../util/trace/layout_events.py<span class="w"> </span>logs/event.csv<span class="w"> </span>sw/apps/axpy/layout.csv<span class="w"> </span>-o<span class="w"> </span>logs/trace.csv
+<span class="c1"># Creates a trace file which can be visualized with Chrome&#39;s TraceViewer</span>
+../../util/trace/eventvis.py<span class="w"> </span>-o<span class="w"> </span>logs/trace.json<span class="w"> </span>logs/trace.csv
+</code></pre></div>
+<p>Go to <code>http://ui.perfetto.dev/</code>. Here you can load the <code>logs/trace.json</code> file and graphically view the runtime of the compute region in your code. To learn more about the layout file syntax and what the Python scripts do you can have a look at the description comment at the start of the scripts themselves.</p>
+<p><strong>Great, but, have you noticed a problem?</strong></p>
+<p>Look into <code>sw/apps/axpy/build/axpy.dump</code> and search for the address of the output variable <code>&lt;z&gt;</code> :</p>
+<div class="highlight"><pre><span></span><code>Disassembly of section .bss:
+
+80000960 &lt;z&gt;:
+    ...
+</code></pre></div>
+<p>Now grep this address in your traces:</p>
+<div class="highlight"><pre><span></span><code>grep<span class="w"> </span><span class="m">80000960</span><span class="w"> </span>logs/*.txt
+...
+</code></pre></div>
+<p>It appears in every trace! All the cores issue a <code>fsd</code> (float store double) to this address. You are not parallelizing your kernel but executing it 8 times!</p>
+<p>Modify <code>sw/apps/axpy/src/axpy.c</code> to truly parallelize your kernel:</p>
+<div class="highlight"><pre><span></span><code><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;snrt.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;data.h&quot;</span>
+
+<span class="c1">// Define your kernel</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">axpy</span><span class="p">(</span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">l</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">z</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">core_idx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">snrt_cluster_core_idx</span><span class="p">();</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">core_idx</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">l</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">l</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">z</span><span class="p">[</span><span class="n">offset</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">offset</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">y</span><span class="p">[</span><span class="n">offset</span><span class="p">];</span>
+<span class="w">        </span><span class="n">offset</span><span class="o">++</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">snrt_fpu_fence</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// Read the mcycle CSR (this is our way to mark/delimit a specific code region for benchmarking)</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">start_cycle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">snrt_mcycle</span><span class="p">();</span>
+
+<span class="w">    </span><span class="c1">// DM core does not participate in the computation</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">snrt_is_compute_core</span><span class="p">())</span>
+<span class="w">        </span><span class="n">axpy</span><span class="p">(</span><span class="n">L</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">snrt_cluster_compute_core_num</span><span class="p">(),</span><span class="w"> </span><span class="n">a</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">y</span><span class="p">,</span><span class="w"> </span><span class="n">z</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// Read the mcycle CSR</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">end_cycle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">snrt_mcycle</span><span class="p">();</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Now re-run your kernel and compare the execution time of the compute region with the previous version.</p>
+<h2 id="code-reuse">Code Reuse</h2>
+<p>As you may have noticed, there is a good deal of code which is independent of the hardware platform we execute our AXPY kernel on. This is true for the <code>data.h</code> file and possible data generation scripts. The Snitch AXPY kernel itself is not specific to the Snitch cluster, but can be ported to any platform which provides an implementation of the snRuntime API. An example is Occamy, with its own testbench and SW development environment.</p>
+<p>It is thus preferable to develop the data generation scripts and Snitch kernels in a shared location, from which multiple platforms can take and include the code. The <code>sw</code> directory in the root of this repository was created with this goal in mind. For the AXPY example, shared sources are hosted under the <code>sw/blas/axpy</code> directory. As an example of how these shared sources are used to build an AXPY application for a specific platform (in this case the standalone Snitch cluster) you can have a look at the <code>target/snitch_cluster/sw/apps/blas/axpy</code>.</p>
+<p>We recommend that you follow this approach also in your own developments for as much of the code which can be reused.</p>
+<h2 id="using-verilator-with-llvm">Using Verilator with LLVM</h2>
+<p>LLVM+clang can be used to build the Verilator model. Optionally specify a path
+to the LLVM toolchain in <code>CLANG_PATH</code> and set <code>VLT_USE_LLVM=ON</code>.
+For the verilated model itself to be complied with LLVM, verilator must be built
+with LLVM (<code>CC=clang CXX=clang++ ./configure</code>). The <code>VLT</code> environment variable
+can then be used to point to the verilator binary.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Optional: Specify which llvm to use</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">CLANG_PATH</span><span class="o">=</span>/path/to/llvm-12.0.1
+<span class="c1"># Optional: Point to a verilator binary compiled with LLVM</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">VLT</span><span class="o">=</span>/path/to/verilator-llvm/bin/verilator
+make<span class="w"> </span><span class="nv">VLT_USE_LLVM</span><span class="o">=</span>ON<span class="w"> </span>bin/snitch_cluster.vlt
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.ad660dcc.min.js"></script>
+      
+    
+  </body>
+</html>
