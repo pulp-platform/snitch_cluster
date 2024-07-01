@@ -29,7 +29,7 @@ dependencies:
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.11  }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0   }
   hwpe-mac-engine:    { git: https://github.com/KULeuven-MICAS/hwpe-mac-engine.git, rev: 5d3b4525b665169fc8321c8a811f3c83ad3c72e8 }
-  snax-gemm: { git: "https://github.com/KULeuven-MICAS/snax-gemm", rev: main }
+  snax-gemm:          { git: "https://github.com/KULeuven-MICAS/snax-gemm", rev: main }
   snax-postprocessing-simd: { git: "https://github.com/KULeuven-MICAS/snax-postprocessing-simd", rev: main }
 
 vendor_package:
@@ -307,7 +307,7 @@ sources:
       # Level 2
       - target/snitch_cluster/generated/snax_alu/snax_alu_wrapper.sv
 
-  - target: snax_streamer_gemm
+  - target: any(snax_streamer_gemm, snax_wide_gemm_data_reshuffler)
     files:
       # Level 0
       - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_csrman_CsrManager.sv
@@ -329,7 +329,7 @@ sources:
       # Level 2
       - target/snitch_cluster/generated/snax_streamer_simd/snax_streamer_simd_wrapper.sv
 
-  - target: snax_data_reshuffler
+  - target: any(snax_data_reshuffler, snax_wide_gemm_data_reshuffler)
     files:
       # Level 0
       - hw/chisel_acc/generated/reshuffle/Reshuffler.sv
@@ -368,10 +368,42 @@ sources:
     files:
       - target/common/test/tb_bin.sv
 
-  # target/snitch_cluster
+  #---------------------------
+  # Cluster wrapper selections
+  #---------------------------
   - target: snitch_cluster
     files:
       - target/snitch_cluster/generated/snitch_cluster_wrapper.sv
-  - target: all(snitch_cluster, any(simulation, verilator))
+  - target: snax_mac
+    files:
+      - target/snitch_cluster/generated/snax_mac_cluster_wrapper.sv
+  - target: snax_alu
+    files:
+      - target/snitch_cluster/generated/snax_alu_cluster_wrapper.sv
+  # Note: this is about to be obsolete
+  # but it uses the old snax-gemm still
+  - target: snax-gemm
+    files:
+      - target/snitch_cluster/generated/snax_gemm_cluster_wrapper.sv
+  - target: any(snax_streamer_gemm, snax_wide_gemm_data_reshuffler)
+    files:
+      - target/snitch_cluster/generated/snax_streamer_gemm_cluster_wrapper.sv
+  - target: snax_streamer_simd
+    files:
+      - target/snitch_cluster/generated/snax_streamer_simd_cluster_wrapper.sv
+  - target: snax_data_reshuffler
+    files:
+      - target/snitch_cluster/generated/snax_data_reshuffler_cluster_wrapper.sv
+  - target: snax_data_reshuffler
+    files:
+      - target/snitch_cluster/generated/snax_data_reshuffler_cluster_wrapper.sv
+  - target: snax_streamer_gemmX
+    files:
+      - target/snitch_cluster/generated/snax_streamer_gemmX_cluster_wrapper.sv
+
+  #---------------------------
+  # Test harness declaration
+  #---------------------------
+  - target: any(simulation, verilator)
     files:
       - target/snitch_cluster/test/testharness.sv

@@ -154,10 +154,22 @@ def main():
         help="Points to the streamer template file path",
     )
     parser.add_argument(
+        "--test_path",
+        type=str,
+        default="./",
+        help="Points to the testharness path",
+    )
+    parser.add_argument(
         "--chisel_path",
         type=str,
         default="./",
         help="Points to the streamer chisel source path",
+    )
+    parser.add_argument(
+        "--bypass_accgen",
+        type=str,
+        default="false",
+        help="Bypass default accelerator generation",
     )
     parser.add_argument(
         "--gen_path", type=str, default="./",
@@ -179,113 +191,128 @@ def main():
     num_core_w_acc = 0
     acc_cfgs = []
 
-    for i in range(num_cores):
-        if "snax_acc_cfg" in cfg_cores[i]:
-            num_core_w_acc += 1
-            acc_cfgs.append(cfg_cores[i]["snax_acc_cfg"].copy())
+    if (args.bypass_accgen == "false"):
+        for i in range(num_cores):
+            if "snax_acc_cfg" in cfg_cores[i]:
+                num_core_w_acc += 1
+                acc_cfgs.append(cfg_cores[i]["snax_acc_cfg"].copy())
 
-    # Placing the TCDM components again into accelerator configurations
-    # Because they are part of the cluster-level configurations
-    for i in range(len(acc_cfgs)):
-        # TCDM configurations
-        tcdm_data_width = cfg["cluster"]["data_width"]
-        acc_cfgs[i]["tcdm_data_width"] = tcdm_data_width
-        acc_cfgs[i]["tcdm_dma_data_width"] = cfg["cluster"]["dma_data_width"]
-        tcdm_depth = (
-            cfg["cluster"]["tcdm"]["size"]
-            * 1024
-            // cfg["cluster"]["tcdm"]["banks"]
-            // 8
-        )
-        acc_cfgs[i]["tcdm_depth"] = tcdm_depth
-        tcdm_num_banks = cfg["cluster"]["tcdm"]["banks"]
-        acc_cfgs[i]["tcdm_num_banks"] = tcdm_num_banks
-        tcdm_addr_width = tcdm_num_banks * tcdm_depth * (tcdm_data_width // 8)
-        tcdm_addr_width = int(math.log2(tcdm_addr_width))
-        acc_cfgs[i]["tcdm_addr_width"] = tcdm_addr_width
-        # Chisel parameter tag names
-        acc_cfgs[i]["tag_name"] = acc_cfgs[i]["snax_acc_name"]
-        # Calculating number of registers for streamer
-        acc_cfgs[i]["streamer_csr_num"] = streamer_csr_num(acc_cfgs[i])
+        # Placing the TCDM components again into accelerator configurations
+        # Because they are part of the cluster-level configurations
+        for i in range(len(acc_cfgs)):
+            # TCDM configurations
+            tcdm_data_width = cfg["cluster"]["data_width"]
+            acc_cfgs[i]["tcdm_data_width"] = tcdm_data_width
+            acc_cfgs[i]["tcdm_dma_data_width"] = cfg["cluster"]["dma_data_width"]
+            tcdm_depth = (
+                cfg["cluster"]["tcdm"]["size"]
+                * 1024
+                // cfg["cluster"]["tcdm"]["banks"]
+                // 8
+            )
+            acc_cfgs[i]["tcdm_depth"] = tcdm_depth
+            tcdm_num_banks = cfg["cluster"]["tcdm"]["banks"]
+            acc_cfgs[i]["tcdm_num_banks"] = tcdm_num_banks
+            tcdm_addr_width = tcdm_num_banks * tcdm_depth * (tcdm_data_width // 8)
+            tcdm_addr_width = int(math.log2(tcdm_addr_width))
+            acc_cfgs[i]["tcdm_addr_width"] = tcdm_addr_width
+            # Chisel parameter tag names
+            acc_cfgs[i]["tag_name"] = acc_cfgs[i]["snax_acc_name"]
+            # Calculating number of registers for streamer
+            acc_cfgs[i]["streamer_csr_num"] = streamer_csr_num(acc_cfgs[i])
 
-    # Generate template out of given configurations
-    # TODO: Make me a generation for the necessary files!
-    for i in range(len(acc_cfgs)):
-        # First part is for chisel generation
-        # Generate the parameter files for chisel streamer generation
-        chisel_target_path = args.chisel_path + "src/main/scala/snax/streamer/"
-        file_name = "StreamParamGen.scala"
-        tpl_scala_param_file = args.tpl_path + "stream_param_gen.scala.tpl"
-        tpl_scala_param = get_template(tpl_scala_param_file)
-        gen_file(
-            cfg=acc_cfgs[i],
-            tpl=tpl_scala_param,
-            target_path=chisel_target_path,
-            file_name=file_name,
-        )
+        # Generate template out of given configurations
+        for i in range(len(acc_cfgs)):
+            # First part is for chisel generation
+            # Generate the parameter files for chisel streamer generation
+            chisel_target_path = args.chisel_path + "src/main/scala/snax/streamer/"
+            file_name = "StreamParamGen.scala"
+            tpl_scala_param_file = args.tpl_path + "stream_param_gen.scala.tpl"
+            tpl_scala_param = get_template(tpl_scala_param_file)
+            gen_file(
+                cfg=acc_cfgs[i],
+                tpl=tpl_scala_param,
+                target_path=chisel_target_path,
+                file_name=file_name,
+            )
 
-        # CSR manager scala parameter generation
-        chisel_target_path = args.chisel_path + "src/main/scala/snax/csr_manager/"  # noqa: E501
-        file_name = "CsrManParamGen.scala"
-        tpl_scala_param_file = args.tpl_path + "csrman_param_gen.scala.tpl"
-        tpl_scala_param = get_template(tpl_scala_param_file)
-        gen_file(
-            cfg=acc_cfgs[i],
-            tpl=tpl_scala_param,
-            target_path=chisel_target_path,
-            file_name=file_name,
-        )
+            # CSR manager scala parameter generation
+            chisel_target_path = args.chisel_path + "src/main/scala/snax/csr_manager/"  # noqa: E501
+            file_name = "CsrManParamGen.scala"
+            tpl_scala_param_file = args.tpl_path + "csrman_param_gen.scala.tpl"
+            tpl_scala_param = get_template(tpl_scala_param_file)
+            gen_file(
+                cfg=acc_cfgs[i],
+                tpl=tpl_scala_param,
+                target_path=chisel_target_path,
+                file_name=file_name,
+            )
 
-        # This is for RTL wrapper and chisel generation
-        # This first one generates the CSR manager wrapper
-        rtl_target_path = args.gen_path + acc_cfgs[i]["snax_acc_name"] + "/"
-        file_name = acc_cfgs[i]["snax_acc_name"] + "_csrman_wrapper.sv"
-        tpl_csrman_wrapper_file = args.tpl_path + "snax_csrman_wrapper.sv.tpl"
-        tpl_csrman_wrapper = get_template(tpl_csrman_wrapper_file)
-        gen_file(
-            cfg=acc_cfgs[i],
-            tpl=tpl_csrman_wrapper,
-            target_path=rtl_target_path,
-            file_name=file_name,
-        )
+            # This is for RTL wrapper and chisel generation
+            # This first one generates the CSR manager wrapper
+            rtl_target_path = args.gen_path + acc_cfgs[i]["snax_acc_name"] + "/"
+            file_name = acc_cfgs[i]["snax_acc_name"] + "_csrman_wrapper.sv"
+            tpl_csrman_wrapper_file = args.tpl_path + "snax_csrman_wrapper.sv.tpl"
+            tpl_csrman_wrapper = get_template(tpl_csrman_wrapper_file)
+            gen_file(
+                cfg=acc_cfgs[i],
+                tpl=tpl_csrman_wrapper,
+                target_path=rtl_target_path,
+                file_name=file_name,
+            )
 
-        # This first one generates the streamer wrapper
-        file_name = acc_cfgs[i]["snax_acc_name"] + "_streamer_wrapper.sv"
-        tpl_streamer_wrapper_file = args.tpl_path + "snax_streamer_wrapper.sv.tpl"  # noqa: E501
-        tpl_streamer_wrapper = get_template(tpl_streamer_wrapper_file)
-        gen_file(
-            cfg=acc_cfgs[i],
-            tpl=tpl_streamer_wrapper,
-            target_path=rtl_target_path,
-            file_name=file_name,
-        )
+            # This first one generates the streamer wrapper
+            file_name = acc_cfgs[i]["snax_acc_name"] + "_streamer_wrapper.sv"
+            tpl_streamer_wrapper_file = args.tpl_path + "snax_streamer_wrapper.sv.tpl"  # noqa: E501
+            tpl_streamer_wrapper = get_template(tpl_streamer_wrapper_file)
+            gen_file(
+                cfg=acc_cfgs[i],
+                tpl=tpl_streamer_wrapper,
+                target_path=rtl_target_path,
+                file_name=file_name,
+            )
 
-        # This generates the top wrapper
-        file_name = acc_cfgs[i]["snax_acc_name"] + "_wrapper.sv"
-        tpl_rtl_wrapper_file = args.tpl_path + "snax_acc_wrapper.sv.tpl"
-        tpl_rtl_wrapper = get_template(tpl_rtl_wrapper_file)
-        gen_file(
-            cfg=acc_cfgs[i],
-            tpl=tpl_rtl_wrapper,
-            target_path=rtl_target_path,
-            file_name=file_name,
-        )
+            # This generates the top wrapper
+            file_name = acc_cfgs[i]["snax_acc_name"] + "_wrapper.sv"
+            tpl_rtl_wrapper_file = args.tpl_path + "snax_acc_wrapper.sv.tpl"
+            tpl_rtl_wrapper = get_template(tpl_rtl_wrapper_file)
+            gen_file(
+                cfg=acc_cfgs[i],
+                tpl=tpl_rtl_wrapper,
+                target_path=rtl_target_path,
+                file_name=file_name,
+            )
 
-        # Generate chisel component using chisel generation script
-        gen_chisel_file(
-            chisel_path=args.chisel_path,
-            chisel_param="snax.csr_manager.CsrManagerGen",
-            gen_path=rtl_target_path,
-        )
+            # Generate chisel component using chisel generation script
+            gen_chisel_file(
+                chisel_path=args.chisel_path,
+                chisel_param="snax.csr_manager.CsrManagerGen",
+                gen_path=rtl_target_path,
+            )
 
-        # Generate chisel component using chisel generation script
-        gen_chisel_file(
-            chisel_path=args.chisel_path,
-            chisel_param="snax.streamer.StreamerTopGen",
-            gen_path=rtl_target_path,
-        )
+            # Generate chisel component using chisel generation script
+            gen_chisel_file(
+                chisel_path=args.chisel_path,
+                chisel_param="snax.streamer.StreamerTopGen",
+                gen_path=rtl_target_path,
+            )
 
-    print("Generation done!")
+        print("Generation of accelerator specific wrapeprs done!")
+    else:
+        print("Skipping accelerator generation!")
+
+    # Generation of testharness
+    test_target_path = args.test_path
+    file_name = "testharness.sv"
+    tpl_testharness_file = args.tpl_path + "testharness.sv.tpl"  # noqa: E501
+    tpl_testharness = get_template(tpl_testharness_file)
+    gen_file(
+        cfg=cfg,
+        tpl=tpl_testharness,
+        target_path=test_target_path,
+        file_name=file_name,
+    )
+    print("Testharness generation done!")
 
 
 if __name__ == "__main__":

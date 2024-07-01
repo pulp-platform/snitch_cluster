@@ -31,6 +31,7 @@ ROOT        := ${MKFILE_DIR}../..
 SNITCH_ROOT := $(ROOT)
 SNAX_CFG_PATH := $(ROOT)/target/snitch_cluster/cfg/
 SNAX_TPL_PATH := $(ROOT)/hw/templates/
+SNAX_TEST_PATH := $(ROOT)/target/snitch_cluster/test/
 CHISEL_PATH := $(ROOT)/hw/chisel/
 
 include $(ROOT)/target/common/common.mk
@@ -53,6 +54,14 @@ TARGET_C_HDRS_DIR ?= $(SW_DIR)/runtime/common
 GENERATED_DIR     ?= $(MKFILE_DIR)generated
 
 ####################
+#  Default Values  #
+####################
+BYPASS_ACCGEN = false
+CLUSTER_NAME = snitch_cluster
+CSRMAN_PARAM_SCALA_PATH = $(ROOT)/hw/chisel/src/main/scala/snax/csr_manager/CsrManParamGen.scala
+STREAM_PARAM_SCALA_PATH = $(ROOT)/hw/chisel/src/main/scala/snax/streamer/StreamParamGen.scala
+
+####################
 # SNAX Generations #
 ####################
 
@@ -65,8 +74,12 @@ SNAX_GEN += \
 	$(GENERATED_DIR)/$(1)/$(1)_wrapper.sv
 endef
 
-# Usage example
+# List manual conditions for different configurations
 ifeq (${CFG_OVERRIDE}, cfg/snax-gemm.hjson)
+
+	CLUSTER_NAME = snax_gemm_cluster
+	BYPASS_ACCGEN = true
+
 	SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
 	include $(SNAX_GEMM_ROOT)/Makefile	
 
@@ -76,6 +89,8 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-gemm.hjson)
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm.hjson)
+
+	CLUSTER_NAME = snax_streamer_gemm_cluster
 
 $(eval $(call generate_snax_gen,snax_streamer_gemm))
 
@@ -89,6 +104,8 @@ $(eval $(call generate_snax_gen,snax_streamer_gemm))
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-simd.hjson)
+
+	CLUSTER_NAME = snax_streamer_simd_cluster
 
 $(eval $(call generate_snax_gen,snax_streamer_simd))
 
@@ -104,6 +121,8 @@ endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-alu.hjson)
 
+	CLUSTER_NAME = snax_alu_cluster
+
 $(eval $(call generate_snax_gen,snax_alu))
 
 	VSIM_BENDER += -t snax_alu
@@ -113,6 +132,8 @@ $(eval $(call generate_snax_gen,snax_alu))
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-data-reshuffler.hjson)
+
+	CLUSTER_NAME = snax_data_reshuffler_cluster
 
 $(eval $(call generate_snax_gen,snax_data_reshuffler))
 
@@ -126,7 +147,9 @@ $(eval $(call generate_snax_gen,snax_data_reshuffler))
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm-conv.hjson)
- 
+
+	CLUSTER_NAME = snax_streamer_gemm_cluster
+	
 $(eval $(call generate_snax_gen,snax_streamer_gemm))
  
     SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
@@ -139,7 +162,9 @@ $(eval $(call generate_snax_gen,snax_streamer_gemm))
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemmX.hjson)
- 
+
+	CLUSTER_NAME = snax_streamer_gemmX_cluster
+
 $(eval $(call generate_snax_gen,snax_streamer_gemmX))
 
 	SNAX_GEMMX_ROOT ?= $(ROOT)/hw/chisel_acc
@@ -153,25 +178,61 @@ endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-wide-gemm-data-reshuffler.hjson)
  
+ 	CLUSTER_NAME = snax_streamer_gemm_cluster
+
 $(eval $(call generate_snax_gen,snax_streamer_gemm))
  
     SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
     include $(SNAX_GEMM_ROOT)/Makefile
- 
-    VSIM_BENDER += -t snax_streamer_gemm
-    VLT_BENDER  += -t snax_streamer_gemm
-    VCS_BENDER  += -t snax_streamer_gemm
 
 $(eval $(call generate_snax_gen,snax_data_reshuffler))
 
 	SNAX_DR_ROOT ?= $(ROOT)/hw/chisel_acc
 	include $(SNAX_DR_ROOT)/Makefile
 
-	VSIM_BENDER += -t snax_data_reshuffler
-	VLT_BENDER  += -t snax_data_reshuffler
-	VCS_BENDER  += -t snax_data_reshuffler
+	VSIM_BENDER += -t snax_wide_gemm_data_reshuffler
+	VLT_BENDER  += -t snax_wide_gemm_data_reshuffler
+	VCS_BENDER  += -t snax_wide_gemm_data_reshuffler
  
 endif
+
+ifeq (${CFG_OVERRIDE}, cfg/snax-mac.hjson)
+
+	CLUSTER_NAME  = snax_mac_cluster
+
+	BYPASS_ACCGEN = true
+	
+	VSIM_BENDER += -t snax_mac
+	VLT_BENDER  += -t snax_mac
+	VCS_BENDER  += -t snax_mac
+
+endif
+
+ifeq (${CFG_OVERRIDE}, cfg/snax-mac-mult.hjson)
+
+	CLUSTER_NAME  = snax_mac_cluster
+
+	BYPASS_ACCGEN = true
+	
+	VSIM_BENDER += -t snax_mac
+	VLT_BENDER  += -t snax_mac
+	VCS_BENDER  += -t snax_mac
+
+endif
+
+ifeq (${CFG_OVERRIDE}, cfg/default.hjson)
+
+	CLUSTER_NAME = snitch_cluster
+
+	BYPASS_ACCGEN = true
+
+	VSIM_BENDER += -t snitch_cluster
+	VLT_BENDER  += -t snitch_cluster
+	VCS_BENDER  += -t snitch_cluster
+
+endif
+
+SNAX_GEN += $(SNAX_TEST_PATH)testharness.sv
 
 VSIM_BENDER += -t QUESTA_SIM
 
@@ -189,10 +250,6 @@ CFG         = cfg/lru.hjson
 #####################
 # Simulator options #
 #####################
-
-VSIM_BENDER += -t snitch_cluster
-VLT_BENDER  += -t snitch_cluster
-VCS_BENDER  += -t snitch_cluster
 
 QUESTA_64BIT = -64
 VLOG_64BIT   = -64
@@ -283,8 +340,8 @@ test/bootrom.elf test/bootrom.dump test/bootrom.bin: test/bootrom.S test/bootrom
 	riscv64-unknown-elf-objdump -d test/bootrom.elf > test/bootrom.dump
 	riscv64-unknown-elf-objcopy -j .text -O binary test/bootrom.elf test/bootrom.bin
 
-
 SNAX_TEMPLATE_SOURCES = $(wildcard $(SNAX_TPL_PATH)*.tpl)
+
 CFG_FILE = $(ROOT)/target/snitch_cluster/$(CFG_OVERRIDE)
 SNAX_SCALA_SOURCES = \
 	$(wildcard ${CHISEL_PATH}/src/main/scala/snax/streamer/*.scala) \
@@ -302,7 +359,9 @@ OTHER_SNAX_GEN := $(filter-out $(FIRST_SNAX),$(SNAX_GEN))
 $(FIRST_SNAX_GEN) : $(SNAX_TEMPLATE_SOURCES) $(CFG_FILE) $(SNAX_SCALA_SOURCES)
 	${WRAPPER_GEN} --cfg_path="$(CFG_FILE)" \
 	--tpl_path="${SNAX_TPL_PATH}" \
+	--test_path="${SNAX_TEST_PATH}" \
 	--chisel_path="${CHISEL_PATH}" \
+	--bypass_accgen="${BYPASS_ACCGEN}" \
 	--gen_path="${GENERATED_DIR}/"
 
 # This is a fake job that forces parallel make to wait for the first thing to be generated
@@ -346,8 +405,8 @@ $(TARGET_C_HDRS_DIR)/snitch_cluster_peripheral.h: $(ROOT)/hw/snitch_cluster/src/
 $(GENERATED_DIR):
 	mkdir -p $@
 
-$(GENERATED_DIR)/snitch_cluster_wrapper.sv: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --wrapper
+$(GENERATED_DIR)/$(CLUSTER_NAME)_wrapper.sv: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
+	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --wrapper --wrapper_name="$(CLUSTER_NAME)"
 
 $(GENERATED_DIR)/link.ld: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --linker
@@ -366,9 +425,9 @@ $(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 
 # Clean all build directories and temporary files for Questasim simulation
 clean-vlt: clean-work
-	rm -rf bin/snitch_cluster.vlt $(VLT_BUILDDIR)
+	rm -rf bin $(VLT_BUILDDIR) $(SNAX_TEST_PATH)testharness.sv $(CSRMAN_PARAM_SCALA_PATH) $(STREAM_PARAM_SCALA_PATH)
 
-$(VLT_AR): ${VLT_SOURCES} ${TB_SRCS}
+$(VLT_AR): ${OTHER_SNAX_GEN} ${VLT_SOURCES} ${TB_SRCS} 
 	+$(call VERILATE,testharness)
 verilate: $(VLT_AR)
 
