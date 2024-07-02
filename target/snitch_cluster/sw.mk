@@ -14,8 +14,7 @@ RUNTIME = sw/runtime/$(SELECT_RUNTIME)
 ####################
 
 CLUSTER_GEN_HEADERS = snitch_cluster_cfg.h \
-					  snitch_cluster_addrmap.h \
-						snitch_cluster_defs.h
+					  snitch_cluster_addrmap.h
 
 REGGEN_HEADERS = snitch_cluster_peripheral.h
 

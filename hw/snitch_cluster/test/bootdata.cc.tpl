@@ -14,7 +14,7 @@ const BootData BOOTDATA = {.boot_addr = ${hex(cfg['cluster']['boot_addr'])},
                            .tcdm_offset = ${hex(cfg['cluster']['cluster_base_offset'])},
                            .global_mem_start = ${hex(cfg['dram']['address'])},
                            .global_mem_end = ${hex(cfg['dram']['address'] + cfg['dram']['length'])},
-                           .cluster_count = ${cfg['cluster']['nr_clusters']},
+                           .cluster_count = ${cfg['nr_clusters']},
                            .clint_base = ${hex(cfg['peripherals']['clint']['address'])}};
 
 }  // namespace sim
