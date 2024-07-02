@@ -29,7 +29,6 @@ typedef struct {
     void *concat_output;
     void *linear_output;
     precision_t dtype;
-    uint32_t baseline;
     void *gemm_implementation;
 } fused_concat_linear_layer_t;
 

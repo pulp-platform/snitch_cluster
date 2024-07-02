@@ -32,7 +32,6 @@ class FusedConcatLinearVerifier(Verifier):
             'concat_output': 'I',
             'linear_output': 'I',
             'dtype': 'I',
-            'baseline': 'I',
             'gemm_fp': 'I'
         }
         self.layer = self.get_input_from_symbol('layer', self.layer_struct)
