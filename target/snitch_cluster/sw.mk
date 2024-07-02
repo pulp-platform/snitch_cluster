@@ -53,6 +53,7 @@ APPS += sw/apps/dnn/softmax
 APPS += sw/apps/dnn/flashattention_2
 APPS += sw/apps/dnn/concat
 APPS += sw/apps/dnn/fused_concat_linear
+APPS += sw/apps/dnn/transpose
 APPS += sw/apps/montecarlo/pi_estimation
 APPS += sw/apps/atax
 APPS += sw/apps/correlation

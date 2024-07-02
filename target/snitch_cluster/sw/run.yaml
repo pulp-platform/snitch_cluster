@@ -91,6 +91,8 @@ runs:
     cmd: [../../../sw/dnn/concat/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/dnn/fused_concat_linear/build/fused_concat_linear.elf
     cmd: [../../../sw/dnn/fused_concat_linear/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: apps/dnn/transpose/build/transpose.elf
+    cmd: [../../../sw/dnn/transpose/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/montecarlo/pi_estimation/build/pi_estimation.elf
   - elf: apps/atax/build/atax.elf
     cmd: [../../../sw/apps/atax/scripts/verify.py, "${sim_bin}", "${elf}"]
