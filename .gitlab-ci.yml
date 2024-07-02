@@ -102,7 +102,10 @@ snitch-cluster-vsim:
     - make SIM_DIR=./runs/vsim/simple annotate -j
     # Run additional, more extensive tests
     - cd sw/apps/blas/gemm/test
-    - ./run.py runs.yaml --cfg $PWD/cfg/* --simulator vsim -j
+    - ./run.py run.yaml --cfg $PWD/cfg/* --simulator vsim -j
+    - cd -
+    - cd sw/apps/dnn/transpose/test
+    - ./run.py run.yaml --cfg $PWD/cfg/* --simulator vsim -j
 
 # Banshee
 snitch-cluster-banshee:
@@ -129,7 +132,7 @@ snitch-cluster-fdiv-vsim:
     - ./util/run.py sw/fdiv.yaml --simulator vsim -j --run-dir runs/vsim
     # Extensive FlashAttention-2 tests
     - cd sw/apps/dnn/flashattention_2/test
-    - ./run.py runs.yaml --cfg $PWD/cfg/* --simulator vsim -j
+    - ./run.py run.yaml --cfg $PWD/cfg/* --simulator vsim -j
 
 # Test OmegaNet TCDM interconnect
 snitch-cluster-omega-vsim:
