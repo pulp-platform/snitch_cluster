@@ -198,10 +198,13 @@ typedef struct network_single_cluster_t_ {
 
 } network_single_cluster_t;
 
+// Level 1
+#include "../transpose/src/transpose.h"
+
+// Level 2
 #include "../batchnorm/src/batchnorm.h"
 #include "../concat/src/concat.h"
 #include "../conv2d/src/conv2d.h"
-#include "../transpose/src/transpose.h"
 #include "../flashattention_2/src/flashattention_2.h"
 #include "../fused_concat_linear/src/fused_concat_linear.h"
 #include "../gelu/src/gelu.h"
