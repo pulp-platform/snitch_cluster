@@ -249,8 +249,6 @@ def emit_header(section, params):
     data_str += [format_array_definition(ctype, q_uid, Q)]
     data_str += [format_array_definition(ctype, k_uid, K)]
     data_str += [format_array_definition(ctype, v_uid, V)]
-    # result_def = format_array_definition(ctype, 'golden', output)
-    # data_str += [format_ifdef_wrapper('BIST', result_def)]
     data_str = '\n\n'.join(data_str)
 
     return data_str

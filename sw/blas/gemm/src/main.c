@@ -15,7 +15,6 @@
 #include "snrt.h"
 
 int main() {
-    // int gemm(gemm_args_t* args)
     int retcode = gemm(&args);
 
     snrt_cluster_hw_barrier();
