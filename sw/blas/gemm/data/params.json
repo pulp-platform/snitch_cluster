@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 {
-    prec: "FP32",
     setup_ssr: 1,
     parallelize_m: 0,
     parallelize_k: 0,
