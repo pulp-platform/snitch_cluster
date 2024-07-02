@@ -7,11 +7,7 @@
 MK_TARGET ?= all
 SELECT_RUNTIME ?= rtl
 
-ifeq ($(SELECT_RUNTIME), banshee)
-RUNTIME = sw/runtime/banshee
-else
-RUNTIME = sw/runtime/rtl
-endif
+RUNTIME = sw/runtime/$(SELECT_RUNTIME)
 
 ####################
 # Platform headers #
