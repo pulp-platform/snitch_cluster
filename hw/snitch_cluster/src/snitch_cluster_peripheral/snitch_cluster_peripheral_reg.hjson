@@ -19,7 +19,7 @@
     registers: [
     {
         multireg: {
-            name: "PERF_COUNTER_ENABLE",
+            name: "PERF_CNT_EN",
             desc: "Enable a particular performance counter to start tracking."
             swaccess: "rw",
             hwaccess: "hro",
@@ -28,24 +28,34 @@
             compact: "false",
             fields: [{
                 bits: "0:0",
-                name: "PERF_COUNTER_ENABLE",
-                desc: "Enable performance counter"
+                name: "ENABLE",
+                desc: "Enable a particular performance counter to start tracking."
             }]
         }
     },
     {
         multireg: {
-            name: "PERF_COUNTER_SELECT",
+            name: "PERF_CNT_SEL",
             desc: "Select the metric that is tracked for each performance counter.",
             swaccess: "rw",
             hwaccess: "hrw",
             count: "NumPerfCounters",
             cname: "perf_cnt_sel",
-            compact: "false",
             hwext: "true",
             hwqe: "true",
             fields: [{
-                bits: "9:0", name: "PERF_COUNTER_SELECT",
+                bits: "15:0",
+                name: "HART",
+                desc: '''Select from which hart in the cluster, starting from `0`,
+                     the event should be counted. For each performance counter
+                     the cores can be selected individually. If a hart greater
+                     than the clusters total hart size is selected the selection
+                     will wrap and the hart corresponding to `hart_select % total_harts_in_cluster`
+                     will be selected.'''
+            },
+            {
+                bits: "31:16",
+                name: "METRIC",
                 desc: "Select the metric that is tracked for each performance counter",
                 enum: [{
                             value: "0",
@@ -276,34 +286,13 @@
     },
     {
         multireg: {
-            name: "PERF_COUNTER_HART_SELECT",
-            desc: '''Select from which hart in the cluster, starting from `0`,
-                     the event should be counted. For each performance counter
-                     the cores can be selected individually. If a hart greater
-                     than the clusters total hart size is selected the selection
-                     will wrap and the hart corresponding to `hart_select % total_harts_in_cluster`
-                     will be selected.'''
-            swaccess: "rw",
-            hwaccess: "hro",
-            count: "NumPerfCounters",
-            cname: "perf_cnt_hart_select",
-            compact: "false",
-            fields: [{
-                bits: "9:0",
-                name: "PERF_COUNTER_HART_SELECT",
-                desc: "Select source of per-hart performance counter"
-            }]
-        }
-    }
-    {
-        multireg: {
-            name: "PERF_COUNTER",
+            name: "PERF_CNT",
             desc: '''Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what
             performance metric you would like to track.'''
             swaccess: "rw",
             hwaccess: "hrw",
             count: "NumPerfCounters",
-            cname: "performance_counter",
+            cname: "perf_cnt",
             hwext: "true",
             hwqe: "true",
             fields: [{

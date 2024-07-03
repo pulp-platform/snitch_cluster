@@ -10,7 +10,7 @@
 module snitch_cluster_peripheral_reg_top #(
     parameter type reg_req_t = logic,
     parameter type reg_rsp_t = logic,
-    parameter int AW = 10
+    parameter int AW = 9
 ) (
     input logic clk_i,
     input logic rst_ni,
@@ -68,230 +68,246 @@ module snitch_cluster_peripheral_reg_top #(
   // Define SW related signals
   // Format: <reg>_<field>_{wd|we|qs}
   //        or <reg>_{wd|we|qs} if field == 1 or 0
-  logic perf_counter_enable_0_qs;
-  logic perf_counter_enable_0_wd;
-  logic perf_counter_enable_0_we;
-  logic perf_counter_enable_1_qs;
-  logic perf_counter_enable_1_wd;
-  logic perf_counter_enable_1_we;
-  logic perf_counter_enable_2_qs;
-  logic perf_counter_enable_2_wd;
-  logic perf_counter_enable_2_we;
-  logic perf_counter_enable_3_qs;
-  logic perf_counter_enable_3_wd;
-  logic perf_counter_enable_3_we;
-  logic perf_counter_enable_4_qs;
-  logic perf_counter_enable_4_wd;
-  logic perf_counter_enable_4_we;
-  logic perf_counter_enable_5_qs;
-  logic perf_counter_enable_5_wd;
-  logic perf_counter_enable_5_we;
-  logic perf_counter_enable_6_qs;
-  logic perf_counter_enable_6_wd;
-  logic perf_counter_enable_6_we;
-  logic perf_counter_enable_7_qs;
-  logic perf_counter_enable_7_wd;
-  logic perf_counter_enable_7_we;
-  logic perf_counter_enable_8_qs;
-  logic perf_counter_enable_8_wd;
-  logic perf_counter_enable_8_we;
-  logic perf_counter_enable_9_qs;
-  logic perf_counter_enable_9_wd;
-  logic perf_counter_enable_9_we;
-  logic perf_counter_enable_10_qs;
-  logic perf_counter_enable_10_wd;
-  logic perf_counter_enable_10_we;
-  logic perf_counter_enable_11_qs;
-  logic perf_counter_enable_11_wd;
-  logic perf_counter_enable_11_we;
-  logic perf_counter_enable_12_qs;
-  logic perf_counter_enable_12_wd;
-  logic perf_counter_enable_12_we;
-  logic perf_counter_enable_13_qs;
-  logic perf_counter_enable_13_wd;
-  logic perf_counter_enable_13_we;
-  logic perf_counter_enable_14_qs;
-  logic perf_counter_enable_14_wd;
-  logic perf_counter_enable_14_we;
-  logic perf_counter_enable_15_qs;
-  logic perf_counter_enable_15_wd;
-  logic perf_counter_enable_15_we;
-  logic [9:0] perf_counter_select_0_qs;
-  logic [9:0] perf_counter_select_0_wd;
-  logic perf_counter_select_0_we;
-  logic perf_counter_select_0_re;
-  logic [9:0] perf_counter_select_1_qs;
-  logic [9:0] perf_counter_select_1_wd;
-  logic perf_counter_select_1_we;
-  logic perf_counter_select_1_re;
-  logic [9:0] perf_counter_select_2_qs;
-  logic [9:0] perf_counter_select_2_wd;
-  logic perf_counter_select_2_we;
-  logic perf_counter_select_2_re;
-  logic [9:0] perf_counter_select_3_qs;
-  logic [9:0] perf_counter_select_3_wd;
-  logic perf_counter_select_3_we;
-  logic perf_counter_select_3_re;
-  logic [9:0] perf_counter_select_4_qs;
-  logic [9:0] perf_counter_select_4_wd;
-  logic perf_counter_select_4_we;
-  logic perf_counter_select_4_re;
-  logic [9:0] perf_counter_select_5_qs;
-  logic [9:0] perf_counter_select_5_wd;
-  logic perf_counter_select_5_we;
-  logic perf_counter_select_5_re;
-  logic [9:0] perf_counter_select_6_qs;
-  logic [9:0] perf_counter_select_6_wd;
-  logic perf_counter_select_6_we;
-  logic perf_counter_select_6_re;
-  logic [9:0] perf_counter_select_7_qs;
-  logic [9:0] perf_counter_select_7_wd;
-  logic perf_counter_select_7_we;
-  logic perf_counter_select_7_re;
-  logic [9:0] perf_counter_select_8_qs;
-  logic [9:0] perf_counter_select_8_wd;
-  logic perf_counter_select_8_we;
-  logic perf_counter_select_8_re;
-  logic [9:0] perf_counter_select_9_qs;
-  logic [9:0] perf_counter_select_9_wd;
-  logic perf_counter_select_9_we;
-  logic perf_counter_select_9_re;
-  logic [9:0] perf_counter_select_10_qs;
-  logic [9:0] perf_counter_select_10_wd;
-  logic perf_counter_select_10_we;
-  logic perf_counter_select_10_re;
-  logic [9:0] perf_counter_select_11_qs;
-  logic [9:0] perf_counter_select_11_wd;
-  logic perf_counter_select_11_we;
-  logic perf_counter_select_11_re;
-  logic [9:0] perf_counter_select_12_qs;
-  logic [9:0] perf_counter_select_12_wd;
-  logic perf_counter_select_12_we;
-  logic perf_counter_select_12_re;
-  logic [9:0] perf_counter_select_13_qs;
-  logic [9:0] perf_counter_select_13_wd;
-  logic perf_counter_select_13_we;
-  logic perf_counter_select_13_re;
-  logic [9:0] perf_counter_select_14_qs;
-  logic [9:0] perf_counter_select_14_wd;
-  logic perf_counter_select_14_we;
-  logic perf_counter_select_14_re;
-  logic [9:0] perf_counter_select_15_qs;
-  logic [9:0] perf_counter_select_15_wd;
-  logic perf_counter_select_15_we;
-  logic perf_counter_select_15_re;
-  logic [9:0] perf_counter_hart_select_0_qs;
-  logic [9:0] perf_counter_hart_select_0_wd;
-  logic perf_counter_hart_select_0_we;
-  logic [9:0] perf_counter_hart_select_1_qs;
-  logic [9:0] perf_counter_hart_select_1_wd;
-  logic perf_counter_hart_select_1_we;
-  logic [9:0] perf_counter_hart_select_2_qs;
-  logic [9:0] perf_counter_hart_select_2_wd;
-  logic perf_counter_hart_select_2_we;
-  logic [9:0] perf_counter_hart_select_3_qs;
-  logic [9:0] perf_counter_hart_select_3_wd;
-  logic perf_counter_hart_select_3_we;
-  logic [9:0] perf_counter_hart_select_4_qs;
-  logic [9:0] perf_counter_hart_select_4_wd;
-  logic perf_counter_hart_select_4_we;
-  logic [9:0] perf_counter_hart_select_5_qs;
-  logic [9:0] perf_counter_hart_select_5_wd;
-  logic perf_counter_hart_select_5_we;
-  logic [9:0] perf_counter_hart_select_6_qs;
-  logic [9:0] perf_counter_hart_select_6_wd;
-  logic perf_counter_hart_select_6_we;
-  logic [9:0] perf_counter_hart_select_7_qs;
-  logic [9:0] perf_counter_hart_select_7_wd;
-  logic perf_counter_hart_select_7_we;
-  logic [9:0] perf_counter_hart_select_8_qs;
-  logic [9:0] perf_counter_hart_select_8_wd;
-  logic perf_counter_hart_select_8_we;
-  logic [9:0] perf_counter_hart_select_9_qs;
-  logic [9:0] perf_counter_hart_select_9_wd;
-  logic perf_counter_hart_select_9_we;
-  logic [9:0] perf_counter_hart_select_10_qs;
-  logic [9:0] perf_counter_hart_select_10_wd;
-  logic perf_counter_hart_select_10_we;
-  logic [9:0] perf_counter_hart_select_11_qs;
-  logic [9:0] perf_counter_hart_select_11_wd;
-  logic perf_counter_hart_select_11_we;
-  logic [9:0] perf_counter_hart_select_12_qs;
-  logic [9:0] perf_counter_hart_select_12_wd;
-  logic perf_counter_hart_select_12_we;
-  logic [9:0] perf_counter_hart_select_13_qs;
-  logic [9:0] perf_counter_hart_select_13_wd;
-  logic perf_counter_hart_select_13_we;
-  logic [9:0] perf_counter_hart_select_14_qs;
-  logic [9:0] perf_counter_hart_select_14_wd;
-  logic perf_counter_hart_select_14_we;
-  logic [9:0] perf_counter_hart_select_15_qs;
-  logic [9:0] perf_counter_hart_select_15_wd;
-  logic perf_counter_hart_select_15_we;
-  logic [47:0] perf_counter_0_qs;
-  logic [47:0] perf_counter_0_wd;
-  logic perf_counter_0_we;
-  logic perf_counter_0_re;
-  logic [47:0] perf_counter_1_qs;
-  logic [47:0] perf_counter_1_wd;
-  logic perf_counter_1_we;
-  logic perf_counter_1_re;
-  logic [47:0] perf_counter_2_qs;
-  logic [47:0] perf_counter_2_wd;
-  logic perf_counter_2_we;
-  logic perf_counter_2_re;
-  logic [47:0] perf_counter_3_qs;
-  logic [47:0] perf_counter_3_wd;
-  logic perf_counter_3_we;
-  logic perf_counter_3_re;
-  logic [47:0] perf_counter_4_qs;
-  logic [47:0] perf_counter_4_wd;
-  logic perf_counter_4_we;
-  logic perf_counter_4_re;
-  logic [47:0] perf_counter_5_qs;
-  logic [47:0] perf_counter_5_wd;
-  logic perf_counter_5_we;
-  logic perf_counter_5_re;
-  logic [47:0] perf_counter_6_qs;
-  logic [47:0] perf_counter_6_wd;
-  logic perf_counter_6_we;
-  logic perf_counter_6_re;
-  logic [47:0] perf_counter_7_qs;
-  logic [47:0] perf_counter_7_wd;
-  logic perf_counter_7_we;
-  logic perf_counter_7_re;
-  logic [47:0] perf_counter_8_qs;
-  logic [47:0] perf_counter_8_wd;
-  logic perf_counter_8_we;
-  logic perf_counter_8_re;
-  logic [47:0] perf_counter_9_qs;
-  logic [47:0] perf_counter_9_wd;
-  logic perf_counter_9_we;
-  logic perf_counter_9_re;
-  logic [47:0] perf_counter_10_qs;
-  logic [47:0] perf_counter_10_wd;
-  logic perf_counter_10_we;
-  logic perf_counter_10_re;
-  logic [47:0] perf_counter_11_qs;
-  logic [47:0] perf_counter_11_wd;
-  logic perf_counter_11_we;
-  logic perf_counter_11_re;
-  logic [47:0] perf_counter_12_qs;
-  logic [47:0] perf_counter_12_wd;
-  logic perf_counter_12_we;
-  logic perf_counter_12_re;
-  logic [47:0] perf_counter_13_qs;
-  logic [47:0] perf_counter_13_wd;
-  logic perf_counter_13_we;
-  logic perf_counter_13_re;
-  logic [47:0] perf_counter_14_qs;
-  logic [47:0] perf_counter_14_wd;
-  logic perf_counter_14_we;
-  logic perf_counter_14_re;
-  logic [47:0] perf_counter_15_qs;
-  logic [47:0] perf_counter_15_wd;
-  logic perf_counter_15_we;
-  logic perf_counter_15_re;
+  logic perf_cnt_en_0_qs;
+  logic perf_cnt_en_0_wd;
+  logic perf_cnt_en_0_we;
+  logic perf_cnt_en_1_qs;
+  logic perf_cnt_en_1_wd;
+  logic perf_cnt_en_1_we;
+  logic perf_cnt_en_2_qs;
+  logic perf_cnt_en_2_wd;
+  logic perf_cnt_en_2_we;
+  logic perf_cnt_en_3_qs;
+  logic perf_cnt_en_3_wd;
+  logic perf_cnt_en_3_we;
+  logic perf_cnt_en_4_qs;
+  logic perf_cnt_en_4_wd;
+  logic perf_cnt_en_4_we;
+  logic perf_cnt_en_5_qs;
+  logic perf_cnt_en_5_wd;
+  logic perf_cnt_en_5_we;
+  logic perf_cnt_en_6_qs;
+  logic perf_cnt_en_6_wd;
+  logic perf_cnt_en_6_we;
+  logic perf_cnt_en_7_qs;
+  logic perf_cnt_en_7_wd;
+  logic perf_cnt_en_7_we;
+  logic perf_cnt_en_8_qs;
+  logic perf_cnt_en_8_wd;
+  logic perf_cnt_en_8_we;
+  logic perf_cnt_en_9_qs;
+  logic perf_cnt_en_9_wd;
+  logic perf_cnt_en_9_we;
+  logic perf_cnt_en_10_qs;
+  logic perf_cnt_en_10_wd;
+  logic perf_cnt_en_10_we;
+  logic perf_cnt_en_11_qs;
+  logic perf_cnt_en_11_wd;
+  logic perf_cnt_en_11_we;
+  logic perf_cnt_en_12_qs;
+  logic perf_cnt_en_12_wd;
+  logic perf_cnt_en_12_we;
+  logic perf_cnt_en_13_qs;
+  logic perf_cnt_en_13_wd;
+  logic perf_cnt_en_13_we;
+  logic perf_cnt_en_14_qs;
+  logic perf_cnt_en_14_wd;
+  logic perf_cnt_en_14_we;
+  logic perf_cnt_en_15_qs;
+  logic perf_cnt_en_15_wd;
+  logic perf_cnt_en_15_we;
+  logic [15:0] perf_cnt_sel_0_hart_0_qs;
+  logic [15:0] perf_cnt_sel_0_hart_0_wd;
+  logic perf_cnt_sel_0_hart_0_we;
+  logic perf_cnt_sel_0_hart_0_re;
+  logic [15:0] perf_cnt_sel_0_metric_0_qs;
+  logic [15:0] perf_cnt_sel_0_metric_0_wd;
+  logic perf_cnt_sel_0_metric_0_we;
+  logic perf_cnt_sel_0_metric_0_re;
+  logic [15:0] perf_cnt_sel_1_hart_1_qs;
+  logic [15:0] perf_cnt_sel_1_hart_1_wd;
+  logic perf_cnt_sel_1_hart_1_we;
+  logic perf_cnt_sel_1_hart_1_re;
+  logic [15:0] perf_cnt_sel_1_metric_1_qs;
+  logic [15:0] perf_cnt_sel_1_metric_1_wd;
+  logic perf_cnt_sel_1_metric_1_we;
+  logic perf_cnt_sel_1_metric_1_re;
+  logic [15:0] perf_cnt_sel_2_hart_2_qs;
+  logic [15:0] perf_cnt_sel_2_hart_2_wd;
+  logic perf_cnt_sel_2_hart_2_we;
+  logic perf_cnt_sel_2_hart_2_re;
+  logic [15:0] perf_cnt_sel_2_metric_2_qs;
+  logic [15:0] perf_cnt_sel_2_metric_2_wd;
+  logic perf_cnt_sel_2_metric_2_we;
+  logic perf_cnt_sel_2_metric_2_re;
+  logic [15:0] perf_cnt_sel_3_hart_3_qs;
+  logic [15:0] perf_cnt_sel_3_hart_3_wd;
+  logic perf_cnt_sel_3_hart_3_we;
+  logic perf_cnt_sel_3_hart_3_re;
+  logic [15:0] perf_cnt_sel_3_metric_3_qs;
+  logic [15:0] perf_cnt_sel_3_metric_3_wd;
+  logic perf_cnt_sel_3_metric_3_we;
+  logic perf_cnt_sel_3_metric_3_re;
+  logic [15:0] perf_cnt_sel_4_hart_4_qs;
+  logic [15:0] perf_cnt_sel_4_hart_4_wd;
+  logic perf_cnt_sel_4_hart_4_we;
+  logic perf_cnt_sel_4_hart_4_re;
+  logic [15:0] perf_cnt_sel_4_metric_4_qs;
+  logic [15:0] perf_cnt_sel_4_metric_4_wd;
+  logic perf_cnt_sel_4_metric_4_we;
+  logic perf_cnt_sel_4_metric_4_re;
+  logic [15:0] perf_cnt_sel_5_hart_5_qs;
+  logic [15:0] perf_cnt_sel_5_hart_5_wd;
+  logic perf_cnt_sel_5_hart_5_we;
+  logic perf_cnt_sel_5_hart_5_re;
+  logic [15:0] perf_cnt_sel_5_metric_5_qs;
+  logic [15:0] perf_cnt_sel_5_metric_5_wd;
+  logic perf_cnt_sel_5_metric_5_we;
+  logic perf_cnt_sel_5_metric_5_re;
+  logic [15:0] perf_cnt_sel_6_hart_6_qs;
+  logic [15:0] perf_cnt_sel_6_hart_6_wd;
+  logic perf_cnt_sel_6_hart_6_we;
+  logic perf_cnt_sel_6_hart_6_re;
+  logic [15:0] perf_cnt_sel_6_metric_6_qs;
+  logic [15:0] perf_cnt_sel_6_metric_6_wd;
+  logic perf_cnt_sel_6_metric_6_we;
+  logic perf_cnt_sel_6_metric_6_re;
+  logic [15:0] perf_cnt_sel_7_hart_7_qs;
+  logic [15:0] perf_cnt_sel_7_hart_7_wd;
+  logic perf_cnt_sel_7_hart_7_we;
+  logic perf_cnt_sel_7_hart_7_re;
+  logic [15:0] perf_cnt_sel_7_metric_7_qs;
+  logic [15:0] perf_cnt_sel_7_metric_7_wd;
+  logic perf_cnt_sel_7_metric_7_we;
+  logic perf_cnt_sel_7_metric_7_re;
+  logic [15:0] perf_cnt_sel_8_hart_8_qs;
+  logic [15:0] perf_cnt_sel_8_hart_8_wd;
+  logic perf_cnt_sel_8_hart_8_we;
+  logic perf_cnt_sel_8_hart_8_re;
+  logic [15:0] perf_cnt_sel_8_metric_8_qs;
+  logic [15:0] perf_cnt_sel_8_metric_8_wd;
+  logic perf_cnt_sel_8_metric_8_we;
+  logic perf_cnt_sel_8_metric_8_re;
+  logic [15:0] perf_cnt_sel_9_hart_9_qs;
+  logic [15:0] perf_cnt_sel_9_hart_9_wd;
+  logic perf_cnt_sel_9_hart_9_we;
+  logic perf_cnt_sel_9_hart_9_re;
+  logic [15:0] perf_cnt_sel_9_metric_9_qs;
+  logic [15:0] perf_cnt_sel_9_metric_9_wd;
+  logic perf_cnt_sel_9_metric_9_we;
+  logic perf_cnt_sel_9_metric_9_re;
+  logic [15:0] perf_cnt_sel_10_hart_10_qs;
+  logic [15:0] perf_cnt_sel_10_hart_10_wd;
+  logic perf_cnt_sel_10_hart_10_we;
+  logic perf_cnt_sel_10_hart_10_re;
+  logic [15:0] perf_cnt_sel_10_metric_10_qs;
+  logic [15:0] perf_cnt_sel_10_metric_10_wd;
+  logic perf_cnt_sel_10_metric_10_we;
+  logic perf_cnt_sel_10_metric_10_re;
+  logic [15:0] perf_cnt_sel_11_hart_11_qs;
+  logic [15:0] perf_cnt_sel_11_hart_11_wd;
+  logic perf_cnt_sel_11_hart_11_we;
+  logic perf_cnt_sel_11_hart_11_re;
+  logic [15:0] perf_cnt_sel_11_metric_11_qs;
+  logic [15:0] perf_cnt_sel_11_metric_11_wd;
+  logic perf_cnt_sel_11_metric_11_we;
+  logic perf_cnt_sel_11_metric_11_re;
+  logic [15:0] perf_cnt_sel_12_hart_12_qs;
+  logic [15:0] perf_cnt_sel_12_hart_12_wd;
+  logic perf_cnt_sel_12_hart_12_we;
+  logic perf_cnt_sel_12_hart_12_re;
+  logic [15:0] perf_cnt_sel_12_metric_12_qs;
+  logic [15:0] perf_cnt_sel_12_metric_12_wd;
+  logic perf_cnt_sel_12_metric_12_we;
+  logic perf_cnt_sel_12_metric_12_re;
+  logic [15:0] perf_cnt_sel_13_hart_13_qs;
+  logic [15:0] perf_cnt_sel_13_hart_13_wd;
+  logic perf_cnt_sel_13_hart_13_we;
+  logic perf_cnt_sel_13_hart_13_re;
+  logic [15:0] perf_cnt_sel_13_metric_13_qs;
+  logic [15:0] perf_cnt_sel_13_metric_13_wd;
+  logic perf_cnt_sel_13_metric_13_we;
+  logic perf_cnt_sel_13_metric_13_re;
+  logic [15:0] perf_cnt_sel_14_hart_14_qs;
+  logic [15:0] perf_cnt_sel_14_hart_14_wd;
+  logic perf_cnt_sel_14_hart_14_we;
+  logic perf_cnt_sel_14_hart_14_re;
+  logic [15:0] perf_cnt_sel_14_metric_14_qs;
+  logic [15:0] perf_cnt_sel_14_metric_14_wd;
+  logic perf_cnt_sel_14_metric_14_we;
+  logic perf_cnt_sel_14_metric_14_re;
+  logic [15:0] perf_cnt_sel_15_hart_15_qs;
+  logic [15:0] perf_cnt_sel_15_hart_15_wd;
+  logic perf_cnt_sel_15_hart_15_we;
+  logic perf_cnt_sel_15_hart_15_re;
+  logic [15:0] perf_cnt_sel_15_metric_15_qs;
+  logic [15:0] perf_cnt_sel_15_metric_15_wd;
+  logic perf_cnt_sel_15_metric_15_we;
+  logic perf_cnt_sel_15_metric_15_re;
+  logic [47:0] perf_cnt_0_qs;
+  logic [47:0] perf_cnt_0_wd;
+  logic perf_cnt_0_we;
+  logic perf_cnt_0_re;
+  logic [47:0] perf_cnt_1_qs;
+  logic [47:0] perf_cnt_1_wd;
+  logic perf_cnt_1_we;
+  logic perf_cnt_1_re;
+  logic [47:0] perf_cnt_2_qs;
+  logic [47:0] perf_cnt_2_wd;
+  logic perf_cnt_2_we;
+  logic perf_cnt_2_re;
+  logic [47:0] perf_cnt_3_qs;
+  logic [47:0] perf_cnt_3_wd;
+  logic perf_cnt_3_we;
+  logic perf_cnt_3_re;
+  logic [47:0] perf_cnt_4_qs;
+  logic [47:0] perf_cnt_4_wd;
+  logic perf_cnt_4_we;
+  logic perf_cnt_4_re;
+  logic [47:0] perf_cnt_5_qs;
+  logic [47:0] perf_cnt_5_wd;
+  logic perf_cnt_5_we;
+  logic perf_cnt_5_re;
+  logic [47:0] perf_cnt_6_qs;
+  logic [47:0] perf_cnt_6_wd;
+  logic perf_cnt_6_we;
+  logic perf_cnt_6_re;
+  logic [47:0] perf_cnt_7_qs;
+  logic [47:0] perf_cnt_7_wd;
+  logic perf_cnt_7_we;
+  logic perf_cnt_7_re;
+  logic [47:0] perf_cnt_8_qs;
+  logic [47:0] perf_cnt_8_wd;
+  logic perf_cnt_8_we;
+  logic perf_cnt_8_re;
+  logic [47:0] perf_cnt_9_qs;
+  logic [47:0] perf_cnt_9_wd;
+  logic perf_cnt_9_we;
+  logic perf_cnt_9_re;
+  logic [47:0] perf_cnt_10_qs;
+  logic [47:0] perf_cnt_10_wd;
+  logic perf_cnt_10_we;
+  logic perf_cnt_10_re;
+  logic [47:0] perf_cnt_11_qs;
+  logic [47:0] perf_cnt_11_wd;
+  logic perf_cnt_11_we;
+  logic perf_cnt_11_re;
+  logic [47:0] perf_cnt_12_qs;
+  logic [47:0] perf_cnt_12_wd;
+  logic perf_cnt_12_we;
+  logic perf_cnt_12_re;
+  logic [47:0] perf_cnt_13_qs;
+  logic [47:0] perf_cnt_13_wd;
+  logic perf_cnt_13_we;
+  logic perf_cnt_13_re;
+  logic [47:0] perf_cnt_14_qs;
+  logic [47:0] perf_cnt_14_wd;
+  logic perf_cnt_14_we;
+  logic perf_cnt_14_re;
+  logic [47:0] perf_cnt_15_qs;
+  logic [47:0] perf_cnt_15_wd;
+  logic perf_cnt_15_we;
+  logic perf_cnt_15_re;
   logic [31:0] cl_clint_set_wd;
   logic cl_clint_set_we;
   logic [31:0] cl_clint_clear_wd;
@@ -303,20 +319,20 @@ module snitch_cluster_peripheral_reg_top #(
 
   // Register instances
 
-  // Subregister 0 of Multireg perf_counter_enable
-  // R[perf_counter_enable_0]: V(False)
+  // Subregister 0 of Multireg perf_cnt_en
+  // R[perf_cnt_en_0]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_perf_counter_enable_0 (
+  ) u_perf_cnt_en_0 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(perf_counter_enable_0_we),
-      .wd(perf_counter_enable_0_wd),
+      .we(perf_cnt_en_0_we),
+      .wd(perf_cnt_en_0_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -324,26 +340,26 @@ module snitch_cluster_peripheral_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.perf_counter_enable[0].q),
+      .q (reg2hw.perf_cnt_en[0].q),
 
       // to register interface (read)
-      .qs(perf_counter_enable_0_qs)
+      .qs(perf_cnt_en_0_qs)
   );
 
-  // Subregister 1 of Multireg perf_counter_enable
-  // R[perf_counter_enable_1]: V(False)
+  // Subregister 1 of Multireg perf_cnt_en
+  // R[perf_cnt_en_1]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_perf_counter_enable_1 (
+  ) u_perf_cnt_en_1 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(perf_counter_enable_1_we),
-      .wd(perf_counter_enable_1_wd),
+      .we(perf_cnt_en_1_we),
+      .wd(perf_cnt_en_1_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -351,26 +367,26 @@ module snitch_cluster_peripheral_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.perf_counter_enable[1].q),
+      .q (reg2hw.perf_cnt_en[1].q),
 
       // to register interface (read)
-      .qs(perf_counter_enable_1_qs)
+      .qs(perf_cnt_en_1_qs)
   );
 
-  // Subregister 2 of Multireg perf_counter_enable
-  // R[perf_counter_enable_2]: V(False)
+  // Subregister 2 of Multireg perf_cnt_en
+  // R[perf_cnt_en_2]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_perf_counter_enable_2 (
+  ) u_perf_cnt_en_2 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(perf_counter_enable_2_we),
-      .wd(perf_counter_enable_2_wd),
+      .we(perf_cnt_en_2_we),
+      .wd(perf_cnt_en_2_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -378,26 +394,26 @@ module snitch_cluster_peripheral_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.perf_counter_enable[2].q),
+      .q (reg2hw.perf_cnt_en[2].q),
 
       // to register interface (read)
-      .qs(perf_counter_enable_2_qs)
+      .qs(perf_cnt_en_2_qs)
   );
 
-  // Subregister 3 of Multireg perf_counter_enable
-  // R[perf_counter_enable_3]: V(False)
+  // Subregister 3 of Multireg perf_cnt_en
+  // R[perf_cnt_en_3]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_perf_counter_enable_3 (
+  ) u_perf_cnt_en_3 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(perf_counter_enable_3_we),
-      .wd(perf_counter_enable_3_wd),
+      .we(perf_cnt_en_3_we),
+      .wd(perf_cnt_en_3_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -405,26 +421,26 @@ module snitch_cluster_peripheral_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.perf_counter_enable[3].q),
+      .q (reg2hw.perf_cnt_en[3].q),
 
       // to register interface (read)
-      .qs(perf_counter_enable_3_qs)
+      .qs(perf_cnt_en_3_qs)
   );
 
-  // Subregister 4 of Multireg perf_counter_enable
-  // R[perf_counter_enable_4]: V(False)
+  // Subregister 4 of Multireg perf_cnt_en
+  // R[perf_cnt_en_4]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_perf_counter_enable_4 (
+  ) u_perf_cnt_en_4 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(perf_counter_enable_4_we),
-      .wd(perf_counter_enable_4_wd),
+      .we(perf_cnt_en_4_we),
+      .wd(perf_cnt_en_4_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -432,26 +448,26 @@ module snitch_cluster_peripheral_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.perf_counter_enable[4].q),
+      .q (reg2hw.perf_cnt_en[4].q),
 
       // to register interface (read)
-      .qs(perf_counter_enable_4_qs)
+      .qs(perf_cnt_en_4_qs)
   );
 
-  // Subregister 5 of Multireg perf_counter_enable
-  // R[perf_counter_enable_5]: V(False)
+  // Subregister 5 of Multireg perf_cnt_en
+  // R[perf_cnt_en_5]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_perf_counter_enable_5 (
+  ) u_perf_cnt_en_5 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(perf_counter_enable_5_we),
-      .wd(perf_counter_enable_5_wd),
+      .we(perf_cnt_en_5_we),
+      .wd(perf_cnt_en_5_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -459,26 +475,26 @@ module snitch_cluster_peripheral_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.perf_counter_enable[5].q),
+      .q (reg2hw.perf_cnt_en[5].q),
 
       // to register interface (read)
-      .qs(perf_counter_enable_5_qs)
+      .qs(perf_cnt_en_5_qs)
   );
 
-  // Subregister 6 of Multireg perf_counter_enable
-  // R[perf_counter_enable_6]: V(False)
+  // Subregister 6 of Multireg perf_cnt_en
+  // R[perf_cnt_en_6]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_perf_counter_enable_6 (
+  ) u_perf_cnt_en_6 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(perf_counter_enable_6_we),
-      .wd(perf_counter_enable_6_wd),
+      .we(perf_cnt_en_6_we),
+      .wd(perf_cnt_en_6_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -486,26 +502,26 @@ module snitch_cluster_peripheral_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.perf_counter_enable[6].q),
+      .q (reg2hw.perf_cnt_en[6].q),
 
       // to register interface (read)
-      .qs(perf_counter_enable_6_qs)
+      .qs(perf_cnt_en_6_qs)
   );
 
-  // Subregister 7 of Multireg perf_counter_enable
-  // R[perf_counter_enable_7]: V(False)
+  // Subregister 7 of Multireg perf_cnt_en
+  // R[perf_cnt_en_7]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_perf_counter_enable_7 (
+  ) u_perf_cnt_en_7 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(perf_counter_enable_7_we),
-      .wd(perf_counter_enable_7_wd),
+      .we(perf_cnt_en_7_we),
+      .wd(perf_cnt_en_7_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -513,26 +529,26 @@ module snitch_cluster_peripheral_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.perf_counter_enable[7].q),
+      .q (reg2hw.perf_cnt_en[7].q),
 
       // to register interface (read)
-      .qs(perf_counter_enable_7_qs)
+      .qs(perf_cnt_en_7_qs)
   );
 
-  // Subregister 8 of Multireg perf_counter_enable
-  // R[perf_counter_enable_8]: V(False)
+  // Subregister 8 of Multireg perf_cnt_en
+  // R[perf_cnt_en_8]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_perf_counter_enable_8 (
+  ) u_perf_cnt_en_8 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(perf_counter_enable_8_we),
-      .wd(perf_counter_enable_8_wd),
+      .we(perf_cnt_en_8_we),
+      .wd(perf_cnt_en_8_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -540,26 +556,26 @@ module snitch_cluster_peripheral_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.perf_counter_enable[8].q),
+      .q (reg2hw.perf_cnt_en[8].q),
 
       // to register interface (read)
-      .qs(perf_counter_enable_8_qs)
+      .qs(perf_cnt_en_8_qs)
   );
 
-  // Subregister 9 of Multireg perf_counter_enable
-  // R[perf_counter_enable_9]: V(False)
+  // Subregister 9 of Multireg perf_cnt_en
+  // R[perf_cnt_en_9]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_perf_counter_enable_9 (
+  ) u_perf_cnt_en_9 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(perf_counter_enable_9_we),
-      .wd(perf_counter_enable_9_wd),
+      .we(perf_cnt_en_9_we),
+      .wd(perf_cnt_en_9_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -567,26 +583,26 @@ module snitch_cluster_peripheral_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.perf_counter_enable[9].q),
+      .q (reg2hw.perf_cnt_en[9].q),
 
       // to register interface (read)
-      .qs(perf_counter_enable_9_qs)
+      .qs(perf_cnt_en_9_qs)
   );
 
-  // Subregister 10 of Multireg perf_counter_enable
-  // R[perf_counter_enable_10]: V(False)
+  // Subregister 10 of Multireg perf_cnt_en
+  // R[perf_cnt_en_10]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_perf_counter_enable_10 (
+  ) u_perf_cnt_en_10 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(perf_counter_enable_10_we),
-      .wd(perf_counter_enable_10_wd),
+      .we(perf_cnt_en_10_we),
+      .wd(perf_cnt_en_10_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -594,26 +610,26 @@ module snitch_cluster_peripheral_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.perf_counter_enable[10].q),
+      .q (reg2hw.perf_cnt_en[10].q),
 
       // to register interface (read)
-      .qs(perf_counter_enable_10_qs)
+      .qs(perf_cnt_en_10_qs)
   );
 
-  // Subregister 11 of Multireg perf_counter_enable
-  // R[perf_counter_enable_11]: V(False)
+  // Subregister 11 of Multireg perf_cnt_en
+  // R[perf_cnt_en_11]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_perf_counter_enable_11 (
+  ) u_perf_cnt_en_11 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(perf_counter_enable_11_we),
-      .wd(perf_counter_enable_11_wd),
+      .we(perf_cnt_en_11_we),
+      .wd(perf_cnt_en_11_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -621,26 +637,26 @@ module snitch_cluster_peripheral_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.perf_counter_enable[11].q),
+      .q (reg2hw.perf_cnt_en[11].q),
 
       // to register interface (read)
-      .qs(perf_counter_enable_11_qs)
+      .qs(perf_cnt_en_11_qs)
   );
 
-  // Subregister 12 of Multireg perf_counter_enable
-  // R[perf_counter_enable_12]: V(False)
+  // Subregister 12 of Multireg perf_cnt_en
+  // R[perf_cnt_en_12]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_perf_counter_enable_12 (
+  ) u_perf_cnt_en_12 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(perf_counter_enable_12_we),
-      .wd(perf_counter_enable_12_wd),
+      .we(perf_cnt_en_12_we),
+      .wd(perf_cnt_en_12_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -648,26 +664,26 @@ module snitch_cluster_peripheral_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.perf_counter_enable[12].q),
+      .q (reg2hw.perf_cnt_en[12].q),
 
       // to register interface (read)
-      .qs(perf_counter_enable_12_qs)
+      .qs(perf_cnt_en_12_qs)
   );
 
-  // Subregister 13 of Multireg perf_counter_enable
-  // R[perf_counter_enable_13]: V(False)
+  // Subregister 13 of Multireg perf_cnt_en
+  // R[perf_cnt_en_13]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_perf_counter_enable_13 (
+  ) u_perf_cnt_en_13 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(perf_counter_enable_13_we),
-      .wd(perf_counter_enable_13_wd),
+      .we(perf_cnt_en_13_we),
+      .wd(perf_cnt_en_13_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -675,26 +691,26 @@ module snitch_cluster_peripheral_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.perf_counter_enable[13].q),
+      .q (reg2hw.perf_cnt_en[13].q),
 
       // to register interface (read)
-      .qs(perf_counter_enable_13_qs)
+      .qs(perf_cnt_en_13_qs)
   );
 
-  // Subregister 14 of Multireg perf_counter_enable
-  // R[perf_counter_enable_14]: V(False)
+  // Subregister 14 of Multireg perf_cnt_en
+  // R[perf_cnt_en_14]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_perf_counter_enable_14 (
+  ) u_perf_cnt_en_14 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(perf_counter_enable_14_we),
-      .wd(perf_counter_enable_14_wd),
+      .we(perf_cnt_en_14_we),
+      .wd(perf_cnt_en_14_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -702,26 +718,26 @@ module snitch_cluster_peripheral_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.perf_counter_enable[14].q),
+      .q (reg2hw.perf_cnt_en[14].q),
 
       // to register interface (read)
-      .qs(perf_counter_enable_14_qs)
+      .qs(perf_cnt_en_14_qs)
   );
 
-  // Subregister 15 of Multireg perf_counter_enable
-  // R[perf_counter_enable_15]: V(False)
+  // Subregister 15 of Multireg perf_cnt_en
+  // R[perf_cnt_en_15]: V(False)
 
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
       .RESVAL  (1'h0)
-  ) u_perf_counter_enable_15 (
+  ) u_perf_cnt_en_15 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
 
       // from register interface
-      .we(perf_counter_enable_15_we),
-      .wd(perf_counter_enable_15_wd),
+      .we(perf_cnt_en_15_we),
+      .wd(perf_cnt_en_15_wd),
 
       // from internal hardware
       .de(1'b0),
@@ -729,960 +745,798 @@ module snitch_cluster_peripheral_reg_top #(
 
       // to internal hardware
       .qe(),
-      .q (reg2hw.perf_counter_enable[15].q),
+      .q (reg2hw.perf_cnt_en[15].q),
 
       // to register interface (read)
-      .qs(perf_counter_enable_15_qs)
+      .qs(perf_cnt_en_15_qs)
   );
 
 
 
-  // Subregister 0 of Multireg perf_counter_select
-  // R[perf_counter_select_0]: V(True)
+  // Subregister 0 of Multireg perf_cnt_sel
+  // R[perf_cnt_sel_0]: V(True)
 
+  // F[hart_0]: 15:0
   prim_subreg_ext #(
-      .DW(10)
-  ) u_perf_counter_select_0 (
-      .re (perf_counter_select_0_re),
-      .we (perf_counter_select_0_we),
-      .wd (perf_counter_select_0_wd),
-      .d  (hw2reg.perf_counter_select[0].d),
+      .DW(16)
+  ) u_perf_cnt_sel_0_hart_0 (
+      .re (perf_cnt_sel_0_hart_0_re),
+      .we (perf_cnt_sel_0_hart_0_we),
+      .wd (perf_cnt_sel_0_hart_0_wd),
+      .d  (hw2reg.perf_cnt_sel[0].hart.d),
       .qre(),
-      .qe (reg2hw.perf_counter_select[0].qe),
-      .q  (reg2hw.perf_counter_select[0].q),
-      .qs (perf_counter_select_0_qs)
+      .qe (reg2hw.perf_cnt_sel[0].hart.qe),
+      .q  (reg2hw.perf_cnt_sel[0].hart.q),
+      .qs (perf_cnt_sel_0_hart_0_qs)
   );
 
-  // Subregister 1 of Multireg perf_counter_select
-  // R[perf_counter_select_1]: V(True)
 
+  // F[metric_0]: 31:16
   prim_subreg_ext #(
-      .DW(10)
-  ) u_perf_counter_select_1 (
-      .re (perf_counter_select_1_re),
-      .we (perf_counter_select_1_we),
-      .wd (perf_counter_select_1_wd),
-      .d  (hw2reg.perf_counter_select[1].d),
+      .DW(16)
+  ) u_perf_cnt_sel_0_metric_0 (
+      .re (perf_cnt_sel_0_metric_0_re),
+      .we (perf_cnt_sel_0_metric_0_we),
+      .wd (perf_cnt_sel_0_metric_0_wd),
+      .d  (hw2reg.perf_cnt_sel[0].metric.d),
       .qre(),
-      .qe (reg2hw.perf_counter_select[1].qe),
-      .q  (reg2hw.perf_counter_select[1].q),
-      .qs (perf_counter_select_1_qs)
+      .qe (reg2hw.perf_cnt_sel[0].metric.qe),
+      .q  (reg2hw.perf_cnt_sel[0].metric.q),
+      .qs (perf_cnt_sel_0_metric_0_qs)
   );
 
-  // Subregister 2 of Multireg perf_counter_select
-  // R[perf_counter_select_2]: V(True)
 
+  // Subregister 1 of Multireg perf_cnt_sel
+  // R[perf_cnt_sel_1]: V(True)
+
+  // F[hart_1]: 15:0
   prim_subreg_ext #(
-      .DW(10)
-  ) u_perf_counter_select_2 (
-      .re (perf_counter_select_2_re),
-      .we (perf_counter_select_2_we),
-      .wd (perf_counter_select_2_wd),
-      .d  (hw2reg.perf_counter_select[2].d),
+      .DW(16)
+  ) u_perf_cnt_sel_1_hart_1 (
+      .re (perf_cnt_sel_1_hart_1_re),
+      .we (perf_cnt_sel_1_hart_1_we),
+      .wd (perf_cnt_sel_1_hart_1_wd),
+      .d  (hw2reg.perf_cnt_sel[1].hart.d),
       .qre(),
-      .qe (reg2hw.perf_counter_select[2].qe),
-      .q  (reg2hw.perf_counter_select[2].q),
-      .qs (perf_counter_select_2_qs)
+      .qe (reg2hw.perf_cnt_sel[1].hart.qe),
+      .q  (reg2hw.perf_cnt_sel[1].hart.q),
+      .qs (perf_cnt_sel_1_hart_1_qs)
   );
 
-  // Subregister 3 of Multireg perf_counter_select
-  // R[perf_counter_select_3]: V(True)
 
+  // F[metric_1]: 31:16
   prim_subreg_ext #(
-      .DW(10)
-  ) u_perf_counter_select_3 (
-      .re (perf_counter_select_3_re),
-      .we (perf_counter_select_3_we),
-      .wd (perf_counter_select_3_wd),
-      .d  (hw2reg.perf_counter_select[3].d),
+      .DW(16)
+  ) u_perf_cnt_sel_1_metric_1 (
+      .re (perf_cnt_sel_1_metric_1_re),
+      .we (perf_cnt_sel_1_metric_1_we),
+      .wd (perf_cnt_sel_1_metric_1_wd),
+      .d  (hw2reg.perf_cnt_sel[1].metric.d),
       .qre(),
-      .qe (reg2hw.perf_counter_select[3].qe),
-      .q  (reg2hw.perf_counter_select[3].q),
-      .qs (perf_counter_select_3_qs)
+      .qe (reg2hw.perf_cnt_sel[1].metric.qe),
+      .q  (reg2hw.perf_cnt_sel[1].metric.q),
+      .qs (perf_cnt_sel_1_metric_1_qs)
   );
 
-  // Subregister 4 of Multireg perf_counter_select
-  // R[perf_counter_select_4]: V(True)
 
+  // Subregister 2 of Multireg perf_cnt_sel
+  // R[perf_cnt_sel_2]: V(True)
+
+  // F[hart_2]: 15:0
   prim_subreg_ext #(
-      .DW(10)
-  ) u_perf_counter_select_4 (
-      .re (perf_counter_select_4_re),
-      .we (perf_counter_select_4_we),
-      .wd (perf_counter_select_4_wd),
-      .d  (hw2reg.perf_counter_select[4].d),
+      .DW(16)
+  ) u_perf_cnt_sel_2_hart_2 (
+      .re (perf_cnt_sel_2_hart_2_re),
+      .we (perf_cnt_sel_2_hart_2_we),
+      .wd (perf_cnt_sel_2_hart_2_wd),
+      .d  (hw2reg.perf_cnt_sel[2].hart.d),
       .qre(),
-      .qe (reg2hw.perf_counter_select[4].qe),
-      .q  (reg2hw.perf_counter_select[4].q),
-      .qs (perf_counter_select_4_qs)
+      .qe (reg2hw.perf_cnt_sel[2].hart.qe),
+      .q  (reg2hw.perf_cnt_sel[2].hart.q),
+      .qs (perf_cnt_sel_2_hart_2_qs)
   );
 
-  // Subregister 5 of Multireg perf_counter_select
-  // R[perf_counter_select_5]: V(True)
 
+  // F[metric_2]: 31:16
   prim_subreg_ext #(
-      .DW(10)
-  ) u_perf_counter_select_5 (
-      .re (perf_counter_select_5_re),
-      .we (perf_counter_select_5_we),
-      .wd (perf_counter_select_5_wd),
-      .d  (hw2reg.perf_counter_select[5].d),
+      .DW(16)
+  ) u_perf_cnt_sel_2_metric_2 (
+      .re (perf_cnt_sel_2_metric_2_re),
+      .we (perf_cnt_sel_2_metric_2_we),
+      .wd (perf_cnt_sel_2_metric_2_wd),
+      .d  (hw2reg.perf_cnt_sel[2].metric.d),
       .qre(),
-      .qe (reg2hw.perf_counter_select[5].qe),
-      .q  (reg2hw.perf_counter_select[5].q),
-      .qs (perf_counter_select_5_qs)
+      .qe (reg2hw.perf_cnt_sel[2].metric.qe),
+      .q  (reg2hw.perf_cnt_sel[2].metric.q),
+      .qs (perf_cnt_sel_2_metric_2_qs)
   );
 
-  // Subregister 6 of Multireg perf_counter_select
-  // R[perf_counter_select_6]: V(True)
 
+  // Subregister 3 of Multireg perf_cnt_sel
+  // R[perf_cnt_sel_3]: V(True)
+
+  // F[hart_3]: 15:0
   prim_subreg_ext #(
-      .DW(10)
-  ) u_perf_counter_select_6 (
-      .re (perf_counter_select_6_re),
-      .we (perf_counter_select_6_we),
-      .wd (perf_counter_select_6_wd),
-      .d  (hw2reg.perf_counter_select[6].d),
+      .DW(16)
+  ) u_perf_cnt_sel_3_hart_3 (
+      .re (perf_cnt_sel_3_hart_3_re),
+      .we (perf_cnt_sel_3_hart_3_we),
+      .wd (perf_cnt_sel_3_hart_3_wd),
+      .d  (hw2reg.perf_cnt_sel[3].hart.d),
       .qre(),
-      .qe (reg2hw.perf_counter_select[6].qe),
-      .q  (reg2hw.perf_counter_select[6].q),
-      .qs (perf_counter_select_6_qs)
+      .qe (reg2hw.perf_cnt_sel[3].hart.qe),
+      .q  (reg2hw.perf_cnt_sel[3].hart.q),
+      .qs (perf_cnt_sel_3_hart_3_qs)
   );
 
-  // Subregister 7 of Multireg perf_counter_select
-  // R[perf_counter_select_7]: V(True)
 
+  // F[metric_3]: 31:16
   prim_subreg_ext #(
-      .DW(10)
-  ) u_perf_counter_select_7 (
-      .re (perf_counter_select_7_re),
-      .we (perf_counter_select_7_we),
-      .wd (perf_counter_select_7_wd),
-      .d  (hw2reg.perf_counter_select[7].d),
+      .DW(16)
+  ) u_perf_cnt_sel_3_metric_3 (
+      .re (perf_cnt_sel_3_metric_3_re),
+      .we (perf_cnt_sel_3_metric_3_we),
+      .wd (perf_cnt_sel_3_metric_3_wd),
+      .d  (hw2reg.perf_cnt_sel[3].metric.d),
       .qre(),
-      .qe (reg2hw.perf_counter_select[7].qe),
-      .q  (reg2hw.perf_counter_select[7].q),
-      .qs (perf_counter_select_7_qs)
+      .qe (reg2hw.perf_cnt_sel[3].metric.qe),
+      .q  (reg2hw.perf_cnt_sel[3].metric.q),
+      .qs (perf_cnt_sel_3_metric_3_qs)
   );
 
-  // Subregister 8 of Multireg perf_counter_select
-  // R[perf_counter_select_8]: V(True)
 
+  // Subregister 4 of Multireg perf_cnt_sel
+  // R[perf_cnt_sel_4]: V(True)
+
+  // F[hart_4]: 15:0
   prim_subreg_ext #(
-      .DW(10)
-  ) u_perf_counter_select_8 (
-      .re (perf_counter_select_8_re),
-      .we (perf_counter_select_8_we),
-      .wd (perf_counter_select_8_wd),
-      .d  (hw2reg.perf_counter_select[8].d),
+      .DW(16)
+  ) u_perf_cnt_sel_4_hart_4 (
+      .re (perf_cnt_sel_4_hart_4_re),
+      .we (perf_cnt_sel_4_hart_4_we),
+      .wd (perf_cnt_sel_4_hart_4_wd),
+      .d  (hw2reg.perf_cnt_sel[4].hart.d),
       .qre(),
-      .qe (reg2hw.perf_counter_select[8].qe),
-      .q  (reg2hw.perf_counter_select[8].q),
-      .qs (perf_counter_select_8_qs)
+      .qe (reg2hw.perf_cnt_sel[4].hart.qe),
+      .q  (reg2hw.perf_cnt_sel[4].hart.q),
+      .qs (perf_cnt_sel_4_hart_4_qs)
   );
 
-  // Subregister 9 of Multireg perf_counter_select
-  // R[perf_counter_select_9]: V(True)
 
+  // F[metric_4]: 31:16
   prim_subreg_ext #(
-      .DW(10)
-  ) u_perf_counter_select_9 (
-      .re (perf_counter_select_9_re),
-      .we (perf_counter_select_9_we),
-      .wd (perf_counter_select_9_wd),
-      .d  (hw2reg.perf_counter_select[9].d),
+      .DW(16)
+  ) u_perf_cnt_sel_4_metric_4 (
+      .re (perf_cnt_sel_4_metric_4_re),
+      .we (perf_cnt_sel_4_metric_4_we),
+      .wd (perf_cnt_sel_4_metric_4_wd),
+      .d  (hw2reg.perf_cnt_sel[4].metric.d),
       .qre(),
-      .qe (reg2hw.perf_counter_select[9].qe),
-      .q  (reg2hw.perf_counter_select[9].q),
-      .qs (perf_counter_select_9_qs)
+      .qe (reg2hw.perf_cnt_sel[4].metric.qe),
+      .q  (reg2hw.perf_cnt_sel[4].metric.q),
+      .qs (perf_cnt_sel_4_metric_4_qs)
   );
 
-  // Subregister 10 of Multireg perf_counter_select
-  // R[perf_counter_select_10]: V(True)
 
+  // Subregister 5 of Multireg perf_cnt_sel
+  // R[perf_cnt_sel_5]: V(True)
+
+  // F[hart_5]: 15:0
   prim_subreg_ext #(
-      .DW(10)
-  ) u_perf_counter_select_10 (
-      .re (perf_counter_select_10_re),
-      .we (perf_counter_select_10_we),
-      .wd (perf_counter_select_10_wd),
-      .d  (hw2reg.perf_counter_select[10].d),
+      .DW(16)
+  ) u_perf_cnt_sel_5_hart_5 (
+      .re (perf_cnt_sel_5_hart_5_re),
+      .we (perf_cnt_sel_5_hart_5_we),
+      .wd (perf_cnt_sel_5_hart_5_wd),
+      .d  (hw2reg.perf_cnt_sel[5].hart.d),
       .qre(),
-      .qe (reg2hw.perf_counter_select[10].qe),
-      .q  (reg2hw.perf_counter_select[10].q),
-      .qs (perf_counter_select_10_qs)
+      .qe (reg2hw.perf_cnt_sel[5].hart.qe),
+      .q  (reg2hw.perf_cnt_sel[5].hart.q),
+      .qs (perf_cnt_sel_5_hart_5_qs)
   );
 
-  // Subregister 11 of Multireg perf_counter_select
-  // R[perf_counter_select_11]: V(True)
 
+  // F[metric_5]: 31:16
   prim_subreg_ext #(
-      .DW(10)
-  ) u_perf_counter_select_11 (
-      .re (perf_counter_select_11_re),
-      .we (perf_counter_select_11_we),
-      .wd (perf_counter_select_11_wd),
-      .d  (hw2reg.perf_counter_select[11].d),
+      .DW(16)
+  ) u_perf_cnt_sel_5_metric_5 (
+      .re (perf_cnt_sel_5_metric_5_re),
+      .we (perf_cnt_sel_5_metric_5_we),
+      .wd (perf_cnt_sel_5_metric_5_wd),
+      .d  (hw2reg.perf_cnt_sel[5].metric.d),
       .qre(),
-      .qe (reg2hw.perf_counter_select[11].qe),
-      .q  (reg2hw.perf_counter_select[11].q),
-      .qs (perf_counter_select_11_qs)
+      .qe (reg2hw.perf_cnt_sel[5].metric.qe),
+      .q  (reg2hw.perf_cnt_sel[5].metric.q),
+      .qs (perf_cnt_sel_5_metric_5_qs)
   );
 
-  // Subregister 12 of Multireg perf_counter_select
-  // R[perf_counter_select_12]: V(True)
 
+  // Subregister 6 of Multireg perf_cnt_sel
+  // R[perf_cnt_sel_6]: V(True)
+
+  // F[hart_6]: 15:0
   prim_subreg_ext #(
-      .DW(10)
-  ) u_perf_counter_select_12 (
-      .re (perf_counter_select_12_re),
-      .we (perf_counter_select_12_we),
-      .wd (perf_counter_select_12_wd),
-      .d  (hw2reg.perf_counter_select[12].d),
+      .DW(16)
+  ) u_perf_cnt_sel_6_hart_6 (
+      .re (perf_cnt_sel_6_hart_6_re),
+      .we (perf_cnt_sel_6_hart_6_we),
+      .wd (perf_cnt_sel_6_hart_6_wd),
+      .d  (hw2reg.perf_cnt_sel[6].hart.d),
       .qre(),
-      .qe (reg2hw.perf_counter_select[12].qe),
-      .q  (reg2hw.perf_counter_select[12].q),
-      .qs (perf_counter_select_12_qs)
+      .qe (reg2hw.perf_cnt_sel[6].hart.qe),
+      .q  (reg2hw.perf_cnt_sel[6].hart.q),
+      .qs (perf_cnt_sel_6_hart_6_qs)
   );
 
-  // Subregister 13 of Multireg perf_counter_select
-  // R[perf_counter_select_13]: V(True)
 
+  // F[metric_6]: 31:16
   prim_subreg_ext #(
-      .DW(10)
-  ) u_perf_counter_select_13 (
-      .re (perf_counter_select_13_re),
-      .we (perf_counter_select_13_we),
-      .wd (perf_counter_select_13_wd),
-      .d  (hw2reg.perf_counter_select[13].d),
+      .DW(16)
+  ) u_perf_cnt_sel_6_metric_6 (
+      .re (perf_cnt_sel_6_metric_6_re),
+      .we (perf_cnt_sel_6_metric_6_we),
+      .wd (perf_cnt_sel_6_metric_6_wd),
+      .d  (hw2reg.perf_cnt_sel[6].metric.d),
       .qre(),
-      .qe (reg2hw.perf_counter_select[13].qe),
-      .q  (reg2hw.perf_counter_select[13].q),
-      .qs (perf_counter_select_13_qs)
+      .qe (reg2hw.perf_cnt_sel[6].metric.qe),
+      .q  (reg2hw.perf_cnt_sel[6].metric.q),
+      .qs (perf_cnt_sel_6_metric_6_qs)
   );
 
-  // Subregister 14 of Multireg perf_counter_select
-  // R[perf_counter_select_14]: V(True)
 
+  // Subregister 7 of Multireg perf_cnt_sel
+  // R[perf_cnt_sel_7]: V(True)
+
+  // F[hart_7]: 15:0
   prim_subreg_ext #(
-      .DW(10)
-  ) u_perf_counter_select_14 (
-      .re (perf_counter_select_14_re),
-      .we (perf_counter_select_14_we),
-      .wd (perf_counter_select_14_wd),
-      .d  (hw2reg.perf_counter_select[14].d),
+      .DW(16)
+  ) u_perf_cnt_sel_7_hart_7 (
+      .re (perf_cnt_sel_7_hart_7_re),
+      .we (perf_cnt_sel_7_hart_7_we),
+      .wd (perf_cnt_sel_7_hart_7_wd),
+      .d  (hw2reg.perf_cnt_sel[7].hart.d),
       .qre(),
-      .qe (reg2hw.perf_counter_select[14].qe),
-      .q  (reg2hw.perf_counter_select[14].q),
-      .qs (perf_counter_select_14_qs)
+      .qe (reg2hw.perf_cnt_sel[7].hart.qe),
+      .q  (reg2hw.perf_cnt_sel[7].hart.q),
+      .qs (perf_cnt_sel_7_hart_7_qs)
   );
 
-  // Subregister 15 of Multireg perf_counter_select
-  // R[perf_counter_select_15]: V(True)
 
+  // F[metric_7]: 31:16
   prim_subreg_ext #(
-      .DW(10)
-  ) u_perf_counter_select_15 (
-      .re (perf_counter_select_15_re),
-      .we (perf_counter_select_15_we),
-      .wd (perf_counter_select_15_wd),
-      .d  (hw2reg.perf_counter_select[15].d),
+      .DW(16)
+  ) u_perf_cnt_sel_7_metric_7 (
+      .re (perf_cnt_sel_7_metric_7_re),
+      .we (perf_cnt_sel_7_metric_7_we),
+      .wd (perf_cnt_sel_7_metric_7_wd),
+      .d  (hw2reg.perf_cnt_sel[7].metric.d),
       .qre(),
-      .qe (reg2hw.perf_counter_select[15].qe),
-      .q  (reg2hw.perf_counter_select[15].q),
-      .qs (perf_counter_select_15_qs)
+      .qe (reg2hw.perf_cnt_sel[7].metric.qe),
+      .q  (reg2hw.perf_cnt_sel[7].metric.q),
+      .qs (perf_cnt_sel_7_metric_7_qs)
+  );
+
+
+  // Subregister 8 of Multireg perf_cnt_sel
+  // R[perf_cnt_sel_8]: V(True)
+
+  // F[hart_8]: 15:0
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_perf_cnt_sel_8_hart_8 (
+      .re (perf_cnt_sel_8_hart_8_re),
+      .we (perf_cnt_sel_8_hart_8_we),
+      .wd (perf_cnt_sel_8_hart_8_wd),
+      .d  (hw2reg.perf_cnt_sel[8].hart.d),
+      .qre(),
+      .qe (reg2hw.perf_cnt_sel[8].hart.qe),
+      .q  (reg2hw.perf_cnt_sel[8].hart.q),
+      .qs (perf_cnt_sel_8_hart_8_qs)
+  );
+
+
+  // F[metric_8]: 31:16
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_perf_cnt_sel_8_metric_8 (
+      .re (perf_cnt_sel_8_metric_8_re),
+      .we (perf_cnt_sel_8_metric_8_we),
+      .wd (perf_cnt_sel_8_metric_8_wd),
+      .d  (hw2reg.perf_cnt_sel[8].metric.d),
+      .qre(),
+      .qe (reg2hw.perf_cnt_sel[8].metric.qe),
+      .q  (reg2hw.perf_cnt_sel[8].metric.q),
+      .qs (perf_cnt_sel_8_metric_8_qs)
+  );
+
+
+  // Subregister 9 of Multireg perf_cnt_sel
+  // R[perf_cnt_sel_9]: V(True)
+
+  // F[hart_9]: 15:0
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_perf_cnt_sel_9_hart_9 (
+      .re (perf_cnt_sel_9_hart_9_re),
+      .we (perf_cnt_sel_9_hart_9_we),
+      .wd (perf_cnt_sel_9_hart_9_wd),
+      .d  (hw2reg.perf_cnt_sel[9].hart.d),
+      .qre(),
+      .qe (reg2hw.perf_cnt_sel[9].hart.qe),
+      .q  (reg2hw.perf_cnt_sel[9].hart.q),
+      .qs (perf_cnt_sel_9_hart_9_qs)
+  );
+
+
+  // F[metric_9]: 31:16
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_perf_cnt_sel_9_metric_9 (
+      .re (perf_cnt_sel_9_metric_9_re),
+      .we (perf_cnt_sel_9_metric_9_we),
+      .wd (perf_cnt_sel_9_metric_9_wd),
+      .d  (hw2reg.perf_cnt_sel[9].metric.d),
+      .qre(),
+      .qe (reg2hw.perf_cnt_sel[9].metric.qe),
+      .q  (reg2hw.perf_cnt_sel[9].metric.q),
+      .qs (perf_cnt_sel_9_metric_9_qs)
+  );
+
+
+  // Subregister 10 of Multireg perf_cnt_sel
+  // R[perf_cnt_sel_10]: V(True)
+
+  // F[hart_10]: 15:0
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_perf_cnt_sel_10_hart_10 (
+      .re (perf_cnt_sel_10_hart_10_re),
+      .we (perf_cnt_sel_10_hart_10_we),
+      .wd (perf_cnt_sel_10_hart_10_wd),
+      .d  (hw2reg.perf_cnt_sel[10].hart.d),
+      .qre(),
+      .qe (reg2hw.perf_cnt_sel[10].hart.qe),
+      .q  (reg2hw.perf_cnt_sel[10].hart.q),
+      .qs (perf_cnt_sel_10_hart_10_qs)
+  );
+
+
+  // F[metric_10]: 31:16
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_perf_cnt_sel_10_metric_10 (
+      .re (perf_cnt_sel_10_metric_10_re),
+      .we (perf_cnt_sel_10_metric_10_we),
+      .wd (perf_cnt_sel_10_metric_10_wd),
+      .d  (hw2reg.perf_cnt_sel[10].metric.d),
+      .qre(),
+      .qe (reg2hw.perf_cnt_sel[10].metric.qe),
+      .q  (reg2hw.perf_cnt_sel[10].metric.q),
+      .qs (perf_cnt_sel_10_metric_10_qs)
+  );
+
+
+  // Subregister 11 of Multireg perf_cnt_sel
+  // R[perf_cnt_sel_11]: V(True)
+
+  // F[hart_11]: 15:0
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_perf_cnt_sel_11_hart_11 (
+      .re (perf_cnt_sel_11_hart_11_re),
+      .we (perf_cnt_sel_11_hart_11_we),
+      .wd (perf_cnt_sel_11_hart_11_wd),
+      .d  (hw2reg.perf_cnt_sel[11].hart.d),
+      .qre(),
+      .qe (reg2hw.perf_cnt_sel[11].hart.qe),
+      .q  (reg2hw.perf_cnt_sel[11].hart.q),
+      .qs (perf_cnt_sel_11_hart_11_qs)
+  );
+
+
+  // F[metric_11]: 31:16
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_perf_cnt_sel_11_metric_11 (
+      .re (perf_cnt_sel_11_metric_11_re),
+      .we (perf_cnt_sel_11_metric_11_we),
+      .wd (perf_cnt_sel_11_metric_11_wd),
+      .d  (hw2reg.perf_cnt_sel[11].metric.d),
+      .qre(),
+      .qe (reg2hw.perf_cnt_sel[11].metric.qe),
+      .q  (reg2hw.perf_cnt_sel[11].metric.q),
+      .qs (perf_cnt_sel_11_metric_11_qs)
+  );
+
+
+  // Subregister 12 of Multireg perf_cnt_sel
+  // R[perf_cnt_sel_12]: V(True)
+
+  // F[hart_12]: 15:0
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_perf_cnt_sel_12_hart_12 (
+      .re (perf_cnt_sel_12_hart_12_re),
+      .we (perf_cnt_sel_12_hart_12_we),
+      .wd (perf_cnt_sel_12_hart_12_wd),
+      .d  (hw2reg.perf_cnt_sel[12].hart.d),
+      .qre(),
+      .qe (reg2hw.perf_cnt_sel[12].hart.qe),
+      .q  (reg2hw.perf_cnt_sel[12].hart.q),
+      .qs (perf_cnt_sel_12_hart_12_qs)
+  );
+
+
+  // F[metric_12]: 31:16
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_perf_cnt_sel_12_metric_12 (
+      .re (perf_cnt_sel_12_metric_12_re),
+      .we (perf_cnt_sel_12_metric_12_we),
+      .wd (perf_cnt_sel_12_metric_12_wd),
+      .d  (hw2reg.perf_cnt_sel[12].metric.d),
+      .qre(),
+      .qe (reg2hw.perf_cnt_sel[12].metric.qe),
+      .q  (reg2hw.perf_cnt_sel[12].metric.q),
+      .qs (perf_cnt_sel_12_metric_12_qs)
+  );
+
+
+  // Subregister 13 of Multireg perf_cnt_sel
+  // R[perf_cnt_sel_13]: V(True)
+
+  // F[hart_13]: 15:0
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_perf_cnt_sel_13_hart_13 (
+      .re (perf_cnt_sel_13_hart_13_re),
+      .we (perf_cnt_sel_13_hart_13_we),
+      .wd (perf_cnt_sel_13_hart_13_wd),
+      .d  (hw2reg.perf_cnt_sel[13].hart.d),
+      .qre(),
+      .qe (reg2hw.perf_cnt_sel[13].hart.qe),
+      .q  (reg2hw.perf_cnt_sel[13].hart.q),
+      .qs (perf_cnt_sel_13_hart_13_qs)
+  );
+
+
+  // F[metric_13]: 31:16
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_perf_cnt_sel_13_metric_13 (
+      .re (perf_cnt_sel_13_metric_13_re),
+      .we (perf_cnt_sel_13_metric_13_we),
+      .wd (perf_cnt_sel_13_metric_13_wd),
+      .d  (hw2reg.perf_cnt_sel[13].metric.d),
+      .qre(),
+      .qe (reg2hw.perf_cnt_sel[13].metric.qe),
+      .q  (reg2hw.perf_cnt_sel[13].metric.q),
+      .qs (perf_cnt_sel_13_metric_13_qs)
+  );
+
+
+  // Subregister 14 of Multireg perf_cnt_sel
+  // R[perf_cnt_sel_14]: V(True)
+
+  // F[hart_14]: 15:0
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_perf_cnt_sel_14_hart_14 (
+      .re (perf_cnt_sel_14_hart_14_re),
+      .we (perf_cnt_sel_14_hart_14_we),
+      .wd (perf_cnt_sel_14_hart_14_wd),
+      .d  (hw2reg.perf_cnt_sel[14].hart.d),
+      .qre(),
+      .qe (reg2hw.perf_cnt_sel[14].hart.qe),
+      .q  (reg2hw.perf_cnt_sel[14].hart.q),
+      .qs (perf_cnt_sel_14_hart_14_qs)
+  );
+
+
+  // F[metric_14]: 31:16
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_perf_cnt_sel_14_metric_14 (
+      .re (perf_cnt_sel_14_metric_14_re),
+      .we (perf_cnt_sel_14_metric_14_we),
+      .wd (perf_cnt_sel_14_metric_14_wd),
+      .d  (hw2reg.perf_cnt_sel[14].metric.d),
+      .qre(),
+      .qe (reg2hw.perf_cnt_sel[14].metric.qe),
+      .q  (reg2hw.perf_cnt_sel[14].metric.q),
+      .qs (perf_cnt_sel_14_metric_14_qs)
+  );
+
+
+  // Subregister 15 of Multireg perf_cnt_sel
+  // R[perf_cnt_sel_15]: V(True)
+
+  // F[hart_15]: 15:0
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_perf_cnt_sel_15_hart_15 (
+      .re (perf_cnt_sel_15_hart_15_re),
+      .we (perf_cnt_sel_15_hart_15_we),
+      .wd (perf_cnt_sel_15_hart_15_wd),
+      .d  (hw2reg.perf_cnt_sel[15].hart.d),
+      .qre(),
+      .qe (reg2hw.perf_cnt_sel[15].hart.qe),
+      .q  (reg2hw.perf_cnt_sel[15].hart.q),
+      .qs (perf_cnt_sel_15_hart_15_qs)
+  );
+
+
+  // F[metric_15]: 31:16
+  prim_subreg_ext #(
+      .DW(16)
+  ) u_perf_cnt_sel_15_metric_15 (
+      .re (perf_cnt_sel_15_metric_15_re),
+      .we (perf_cnt_sel_15_metric_15_we),
+      .wd (perf_cnt_sel_15_metric_15_wd),
+      .d  (hw2reg.perf_cnt_sel[15].metric.d),
+      .qre(),
+      .qe (reg2hw.perf_cnt_sel[15].metric.qe),
+      .q  (reg2hw.perf_cnt_sel[15].metric.q),
+      .qs (perf_cnt_sel_15_metric_15_qs)
   );
 
 
 
-  // Subregister 0 of Multireg perf_counter_hart_select
-  // R[perf_counter_hart_select_0]: V(False)
 
-  prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h0)
-  ) u_perf_counter_hart_select_0 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(perf_counter_hart_select_0_we),
-      .wd(perf_counter_hart_select_0_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_counter_hart_select[0].q),
-
-      // to register interface (read)
-      .qs(perf_counter_hart_select_0_qs)
-  );
-
-  // Subregister 1 of Multireg perf_counter_hart_select
-  // R[perf_counter_hart_select_1]: V(False)
-
-  prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h0)
-  ) u_perf_counter_hart_select_1 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(perf_counter_hart_select_1_we),
-      .wd(perf_counter_hart_select_1_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_counter_hart_select[1].q),
-
-      // to register interface (read)
-      .qs(perf_counter_hart_select_1_qs)
-  );
-
-  // Subregister 2 of Multireg perf_counter_hart_select
-  // R[perf_counter_hart_select_2]: V(False)
-
-  prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h0)
-  ) u_perf_counter_hart_select_2 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(perf_counter_hart_select_2_we),
-      .wd(perf_counter_hart_select_2_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_counter_hart_select[2].q),
-
-      // to register interface (read)
-      .qs(perf_counter_hart_select_2_qs)
-  );
-
-  // Subregister 3 of Multireg perf_counter_hart_select
-  // R[perf_counter_hart_select_3]: V(False)
-
-  prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h0)
-  ) u_perf_counter_hart_select_3 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(perf_counter_hart_select_3_we),
-      .wd(perf_counter_hart_select_3_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_counter_hart_select[3].q),
-
-      // to register interface (read)
-      .qs(perf_counter_hart_select_3_qs)
-  );
-
-  // Subregister 4 of Multireg perf_counter_hart_select
-  // R[perf_counter_hart_select_4]: V(False)
-
-  prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h0)
-  ) u_perf_counter_hart_select_4 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(perf_counter_hart_select_4_we),
-      .wd(perf_counter_hart_select_4_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_counter_hart_select[4].q),
-
-      // to register interface (read)
-      .qs(perf_counter_hart_select_4_qs)
-  );
-
-  // Subregister 5 of Multireg perf_counter_hart_select
-  // R[perf_counter_hart_select_5]: V(False)
-
-  prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h0)
-  ) u_perf_counter_hart_select_5 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(perf_counter_hart_select_5_we),
-      .wd(perf_counter_hart_select_5_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_counter_hart_select[5].q),
-
-      // to register interface (read)
-      .qs(perf_counter_hart_select_5_qs)
-  );
-
-  // Subregister 6 of Multireg perf_counter_hart_select
-  // R[perf_counter_hart_select_6]: V(False)
-
-  prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h0)
-  ) u_perf_counter_hart_select_6 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(perf_counter_hart_select_6_we),
-      .wd(perf_counter_hart_select_6_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_counter_hart_select[6].q),
-
-      // to register interface (read)
-      .qs(perf_counter_hart_select_6_qs)
-  );
-
-  // Subregister 7 of Multireg perf_counter_hart_select
-  // R[perf_counter_hart_select_7]: V(False)
-
-  prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h0)
-  ) u_perf_counter_hart_select_7 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(perf_counter_hart_select_7_we),
-      .wd(perf_counter_hart_select_7_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_counter_hart_select[7].q),
-
-      // to register interface (read)
-      .qs(perf_counter_hart_select_7_qs)
-  );
-
-  // Subregister 8 of Multireg perf_counter_hart_select
-  // R[perf_counter_hart_select_8]: V(False)
-
-  prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h0)
-  ) u_perf_counter_hart_select_8 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(perf_counter_hart_select_8_we),
-      .wd(perf_counter_hart_select_8_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_counter_hart_select[8].q),
-
-      // to register interface (read)
-      .qs(perf_counter_hart_select_8_qs)
-  );
-
-  // Subregister 9 of Multireg perf_counter_hart_select
-  // R[perf_counter_hart_select_9]: V(False)
-
-  prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h0)
-  ) u_perf_counter_hart_select_9 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(perf_counter_hart_select_9_we),
-      .wd(perf_counter_hart_select_9_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_counter_hart_select[9].q),
-
-      // to register interface (read)
-      .qs(perf_counter_hart_select_9_qs)
-  );
-
-  // Subregister 10 of Multireg perf_counter_hart_select
-  // R[perf_counter_hart_select_10]: V(False)
-
-  prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h0)
-  ) u_perf_counter_hart_select_10 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(perf_counter_hart_select_10_we),
-      .wd(perf_counter_hart_select_10_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_counter_hart_select[10].q),
-
-      // to register interface (read)
-      .qs(perf_counter_hart_select_10_qs)
-  );
-
-  // Subregister 11 of Multireg perf_counter_hart_select
-  // R[perf_counter_hart_select_11]: V(False)
-
-  prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h0)
-  ) u_perf_counter_hart_select_11 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(perf_counter_hart_select_11_we),
-      .wd(perf_counter_hart_select_11_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_counter_hart_select[11].q),
-
-      // to register interface (read)
-      .qs(perf_counter_hart_select_11_qs)
-  );
-
-  // Subregister 12 of Multireg perf_counter_hart_select
-  // R[perf_counter_hart_select_12]: V(False)
-
-  prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h0)
-  ) u_perf_counter_hart_select_12 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(perf_counter_hart_select_12_we),
-      .wd(perf_counter_hart_select_12_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_counter_hart_select[12].q),
-
-      // to register interface (read)
-      .qs(perf_counter_hart_select_12_qs)
-  );
-
-  // Subregister 13 of Multireg perf_counter_hart_select
-  // R[perf_counter_hart_select_13]: V(False)
-
-  prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h0)
-  ) u_perf_counter_hart_select_13 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(perf_counter_hart_select_13_we),
-      .wd(perf_counter_hart_select_13_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_counter_hart_select[13].q),
-
-      // to register interface (read)
-      .qs(perf_counter_hart_select_13_qs)
-  );
-
-  // Subregister 14 of Multireg perf_counter_hart_select
-  // R[perf_counter_hart_select_14]: V(False)
-
-  prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h0)
-  ) u_perf_counter_hart_select_14 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(perf_counter_hart_select_14_we),
-      .wd(perf_counter_hart_select_14_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_counter_hart_select[14].q),
-
-      // to register interface (read)
-      .qs(perf_counter_hart_select_14_qs)
-  );
-
-  // Subregister 15 of Multireg perf_counter_hart_select
-  // R[perf_counter_hart_select_15]: V(False)
-
-  prim_subreg #(
-      .DW      (10),
-      .SWACCESS("RW"),
-      .RESVAL  (10'h0)
-  ) u_perf_counter_hart_select_15 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
-
-      // from register interface
-      .we(perf_counter_hart_select_15_we),
-      .wd(perf_counter_hart_select_15_wd),
-
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
-
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_counter_hart_select[15].q),
-
-      // to register interface (read)
-      .qs(perf_counter_hart_select_15_qs)
-  );
-
-
-
-  // Subregister 0 of Multireg perf_counter
-  // R[perf_counter_0]: V(True)
+  // Subregister 0 of Multireg perf_cnt
+  // R[perf_cnt_0]: V(True)
 
   prim_subreg_ext #(
       .DW(48)
-  ) u_perf_counter_0 (
-      .re (perf_counter_0_re),
-      .we (perf_counter_0_we),
-      .wd (perf_counter_0_wd),
-      .d  (hw2reg.perf_counter[0].d),
+  ) u_perf_cnt_0 (
+      .re (perf_cnt_0_re),
+      .we (perf_cnt_0_we),
+      .wd (perf_cnt_0_wd),
+      .d  (hw2reg.perf_cnt[0].d),
       .qre(),
-      .qe (reg2hw.perf_counter[0].qe),
-      .q  (reg2hw.perf_counter[0].q),
-      .qs (perf_counter_0_qs)
+      .qe (reg2hw.perf_cnt[0].qe),
+      .q  (reg2hw.perf_cnt[0].q),
+      .qs (perf_cnt_0_qs)
   );
 
-  // Subregister 1 of Multireg perf_counter
-  // R[perf_counter_1]: V(True)
+  // Subregister 1 of Multireg perf_cnt
+  // R[perf_cnt_1]: V(True)
 
   prim_subreg_ext #(
       .DW(48)
-  ) u_perf_counter_1 (
-      .re (perf_counter_1_re),
-      .we (perf_counter_1_we),
-      .wd (perf_counter_1_wd),
-      .d  (hw2reg.perf_counter[1].d),
+  ) u_perf_cnt_1 (
+      .re (perf_cnt_1_re),
+      .we (perf_cnt_1_we),
+      .wd (perf_cnt_1_wd),
+      .d  (hw2reg.perf_cnt[1].d),
       .qre(),
-      .qe (reg2hw.perf_counter[1].qe),
-      .q  (reg2hw.perf_counter[1].q),
-      .qs (perf_counter_1_qs)
+      .qe (reg2hw.perf_cnt[1].qe),
+      .q  (reg2hw.perf_cnt[1].q),
+      .qs (perf_cnt_1_qs)
   );
 
-  // Subregister 2 of Multireg perf_counter
-  // R[perf_counter_2]: V(True)
+  // Subregister 2 of Multireg perf_cnt
+  // R[perf_cnt_2]: V(True)
 
   prim_subreg_ext #(
       .DW(48)
-  ) u_perf_counter_2 (
-      .re (perf_counter_2_re),
-      .we (perf_counter_2_we),
-      .wd (perf_counter_2_wd),
-      .d  (hw2reg.perf_counter[2].d),
+  ) u_perf_cnt_2 (
+      .re (perf_cnt_2_re),
+      .we (perf_cnt_2_we),
+      .wd (perf_cnt_2_wd),
+      .d  (hw2reg.perf_cnt[2].d),
       .qre(),
-      .qe (reg2hw.perf_counter[2].qe),
-      .q  (reg2hw.perf_counter[2].q),
-      .qs (perf_counter_2_qs)
+      .qe (reg2hw.perf_cnt[2].qe),
+      .q  (reg2hw.perf_cnt[2].q),
+      .qs (perf_cnt_2_qs)
   );
 
-  // Subregister 3 of Multireg perf_counter
-  // R[perf_counter_3]: V(True)
+  // Subregister 3 of Multireg perf_cnt
+  // R[perf_cnt_3]: V(True)
 
   prim_subreg_ext #(
       .DW(48)
-  ) u_perf_counter_3 (
-      .re (perf_counter_3_re),
-      .we (perf_counter_3_we),
-      .wd (perf_counter_3_wd),
-      .d  (hw2reg.perf_counter[3].d),
+  ) u_perf_cnt_3 (
+      .re (perf_cnt_3_re),
+      .we (perf_cnt_3_we),
+      .wd (perf_cnt_3_wd),
+      .d  (hw2reg.perf_cnt[3].d),
       .qre(),
-      .qe (reg2hw.perf_counter[3].qe),
-      .q  (reg2hw.perf_counter[3].q),
-      .qs (perf_counter_3_qs)
+      .qe (reg2hw.perf_cnt[3].qe),
+      .q  (reg2hw.perf_cnt[3].q),
+      .qs (perf_cnt_3_qs)
   );
 
-  // Subregister 4 of Multireg perf_counter
-  // R[perf_counter_4]: V(True)
+  // Subregister 4 of Multireg perf_cnt
+  // R[perf_cnt_4]: V(True)
 
   prim_subreg_ext #(
       .DW(48)
-  ) u_perf_counter_4 (
-      .re (perf_counter_4_re),
-      .we (perf_counter_4_we),
-      .wd (perf_counter_4_wd),
-      .d  (hw2reg.perf_counter[4].d),
+  ) u_perf_cnt_4 (
+      .re (perf_cnt_4_re),
+      .we (perf_cnt_4_we),
+      .wd (perf_cnt_4_wd),
+      .d  (hw2reg.perf_cnt[4].d),
       .qre(),
-      .qe (reg2hw.perf_counter[4].qe),
-      .q  (reg2hw.perf_counter[4].q),
-      .qs (perf_counter_4_qs)
+      .qe (reg2hw.perf_cnt[4].qe),
+      .q  (reg2hw.perf_cnt[4].q),
+      .qs (perf_cnt_4_qs)
   );
 
-  // Subregister 5 of Multireg perf_counter
-  // R[perf_counter_5]: V(True)
+  // Subregister 5 of Multireg perf_cnt
+  // R[perf_cnt_5]: V(True)
 
   prim_subreg_ext #(
       .DW(48)
-  ) u_perf_counter_5 (
-      .re (perf_counter_5_re),
-      .we (perf_counter_5_we),
-      .wd (perf_counter_5_wd),
-      .d  (hw2reg.perf_counter[5].d),
+  ) u_perf_cnt_5 (
+      .re (perf_cnt_5_re),
+      .we (perf_cnt_5_we),
+      .wd (perf_cnt_5_wd),
+      .d  (hw2reg.perf_cnt[5].d),
       .qre(),
-      .qe (reg2hw.perf_counter[5].qe),
-      .q  (reg2hw.perf_counter[5].q),
-      .qs (perf_counter_5_qs)
+      .qe (reg2hw.perf_cnt[5].qe),
+      .q  (reg2hw.perf_cnt[5].q),
+      .qs (perf_cnt_5_qs)
   );
 
-  // Subregister 6 of Multireg perf_counter
-  // R[perf_counter_6]: V(True)
+  // Subregister 6 of Multireg perf_cnt
+  // R[perf_cnt_6]: V(True)
 
   prim_subreg_ext #(
       .DW(48)
-  ) u_perf_counter_6 (
-      .re (perf_counter_6_re),
-      .we (perf_counter_6_we),
-      .wd (perf_counter_6_wd),
-      .d  (hw2reg.perf_counter[6].d),
+  ) u_perf_cnt_6 (
+      .re (perf_cnt_6_re),
+      .we (perf_cnt_6_we),
+      .wd (perf_cnt_6_wd),
+      .d  (hw2reg.perf_cnt[6].d),
       .qre(),
-      .qe (reg2hw.perf_counter[6].qe),
-      .q  (reg2hw.perf_counter[6].q),
-      .qs (perf_counter_6_qs)
+      .qe (reg2hw.perf_cnt[6].qe),
+      .q  (reg2hw.perf_cnt[6].q),
+      .qs (perf_cnt_6_qs)
   );
 
-  // Subregister 7 of Multireg perf_counter
-  // R[perf_counter_7]: V(True)
+  // Subregister 7 of Multireg perf_cnt
+  // R[perf_cnt_7]: V(True)
 
   prim_subreg_ext #(
       .DW(48)
-  ) u_perf_counter_7 (
-      .re (perf_counter_7_re),
-      .we (perf_counter_7_we),
-      .wd (perf_counter_7_wd),
-      .d  (hw2reg.perf_counter[7].d),
+  ) u_perf_cnt_7 (
+      .re (perf_cnt_7_re),
+      .we (perf_cnt_7_we),
+      .wd (perf_cnt_7_wd),
+      .d  (hw2reg.perf_cnt[7].d),
       .qre(),
-      .qe (reg2hw.perf_counter[7].qe),
-      .q  (reg2hw.perf_counter[7].q),
-      .qs (perf_counter_7_qs)
+      .qe (reg2hw.perf_cnt[7].qe),
+      .q  (reg2hw.perf_cnt[7].q),
+      .qs (perf_cnt_7_qs)
   );
 
-  // Subregister 8 of Multireg perf_counter
-  // R[perf_counter_8]: V(True)
+  // Subregister 8 of Multireg perf_cnt
+  // R[perf_cnt_8]: V(True)
 
   prim_subreg_ext #(
       .DW(48)
-  ) u_perf_counter_8 (
-      .re (perf_counter_8_re),
-      .we (perf_counter_8_we),
-      .wd (perf_counter_8_wd),
-      .d  (hw2reg.perf_counter[8].d),
+  ) u_perf_cnt_8 (
+      .re (perf_cnt_8_re),
+      .we (perf_cnt_8_we),
+      .wd (perf_cnt_8_wd),
+      .d  (hw2reg.perf_cnt[8].d),
       .qre(),
-      .qe (reg2hw.perf_counter[8].qe),
-      .q  (reg2hw.perf_counter[8].q),
-      .qs (perf_counter_8_qs)
+      .qe (reg2hw.perf_cnt[8].qe),
+      .q  (reg2hw.perf_cnt[8].q),
+      .qs (perf_cnt_8_qs)
   );
 
-  // Subregister 9 of Multireg perf_counter
-  // R[perf_counter_9]: V(True)
+  // Subregister 9 of Multireg perf_cnt
+  // R[perf_cnt_9]: V(True)
 
   prim_subreg_ext #(
       .DW(48)
-  ) u_perf_counter_9 (
-      .re (perf_counter_9_re),
-      .we (perf_counter_9_we),
-      .wd (perf_counter_9_wd),
-      .d  (hw2reg.perf_counter[9].d),
+  ) u_perf_cnt_9 (
+      .re (perf_cnt_9_re),
+      .we (perf_cnt_9_we),
+      .wd (perf_cnt_9_wd),
+      .d  (hw2reg.perf_cnt[9].d),
       .qre(),
-      .qe (reg2hw.perf_counter[9].qe),
-      .q  (reg2hw.perf_counter[9].q),
-      .qs (perf_counter_9_qs)
+      .qe (reg2hw.perf_cnt[9].qe),
+      .q  (reg2hw.perf_cnt[9].q),
+      .qs (perf_cnt_9_qs)
   );
 
-  // Subregister 10 of Multireg perf_counter
-  // R[perf_counter_10]: V(True)
+  // Subregister 10 of Multireg perf_cnt
+  // R[perf_cnt_10]: V(True)
 
   prim_subreg_ext #(
       .DW(48)
-  ) u_perf_counter_10 (
-      .re (perf_counter_10_re),
-      .we (perf_counter_10_we),
-      .wd (perf_counter_10_wd),
-      .d  (hw2reg.perf_counter[10].d),
+  ) u_perf_cnt_10 (
+      .re (perf_cnt_10_re),
+      .we (perf_cnt_10_we),
+      .wd (perf_cnt_10_wd),
+      .d  (hw2reg.perf_cnt[10].d),
       .qre(),
-      .qe (reg2hw.perf_counter[10].qe),
-      .q  (reg2hw.perf_counter[10].q),
-      .qs (perf_counter_10_qs)
+      .qe (reg2hw.perf_cnt[10].qe),
+      .q  (reg2hw.perf_cnt[10].q),
+      .qs (perf_cnt_10_qs)
   );
 
-  // Subregister 11 of Multireg perf_counter
-  // R[perf_counter_11]: V(True)
+  // Subregister 11 of Multireg perf_cnt
+  // R[perf_cnt_11]: V(True)
 
   prim_subreg_ext #(
       .DW(48)
-  ) u_perf_counter_11 (
-      .re (perf_counter_11_re),
-      .we (perf_counter_11_we),
-      .wd (perf_counter_11_wd),
-      .d  (hw2reg.perf_counter[11].d),
+  ) u_perf_cnt_11 (
+      .re (perf_cnt_11_re),
+      .we (perf_cnt_11_we),
+      .wd (perf_cnt_11_wd),
+      .d  (hw2reg.perf_cnt[11].d),
       .qre(),
-      .qe (reg2hw.perf_counter[11].qe),
-      .q  (reg2hw.perf_counter[11].q),
-      .qs (perf_counter_11_qs)
+      .qe (reg2hw.perf_cnt[11].qe),
+      .q  (reg2hw.perf_cnt[11].q),
+      .qs (perf_cnt_11_qs)
   );
 
-  // Subregister 12 of Multireg perf_counter
-  // R[perf_counter_12]: V(True)
+  // Subregister 12 of Multireg perf_cnt
+  // R[perf_cnt_12]: V(True)
 
   prim_subreg_ext #(
       .DW(48)
-  ) u_perf_counter_12 (
-      .re (perf_counter_12_re),
-      .we (perf_counter_12_we),
-      .wd (perf_counter_12_wd),
-      .d  (hw2reg.perf_counter[12].d),
+  ) u_perf_cnt_12 (
+      .re (perf_cnt_12_re),
+      .we (perf_cnt_12_we),
+      .wd (perf_cnt_12_wd),
+      .d  (hw2reg.perf_cnt[12].d),
       .qre(),
-      .qe (reg2hw.perf_counter[12].qe),
-      .q  (reg2hw.perf_counter[12].q),
-      .qs (perf_counter_12_qs)
+      .qe (reg2hw.perf_cnt[12].qe),
+      .q  (reg2hw.perf_cnt[12].q),
+      .qs (perf_cnt_12_qs)
   );
 
-  // Subregister 13 of Multireg perf_counter
-  // R[perf_counter_13]: V(True)
+  // Subregister 13 of Multireg perf_cnt
+  // R[perf_cnt_13]: V(True)
 
   prim_subreg_ext #(
       .DW(48)
-  ) u_perf_counter_13 (
-      .re (perf_counter_13_re),
-      .we (perf_counter_13_we),
-      .wd (perf_counter_13_wd),
-      .d  (hw2reg.perf_counter[13].d),
+  ) u_perf_cnt_13 (
+      .re (perf_cnt_13_re),
+      .we (perf_cnt_13_we),
+      .wd (perf_cnt_13_wd),
+      .d  (hw2reg.perf_cnt[13].d),
       .qre(),
-      .qe (reg2hw.perf_counter[13].qe),
-      .q  (reg2hw.perf_counter[13].q),
-      .qs (perf_counter_13_qs)
+      .qe (reg2hw.perf_cnt[13].qe),
+      .q  (reg2hw.perf_cnt[13].q),
+      .qs (perf_cnt_13_qs)
   );
 
-  // Subregister 14 of Multireg perf_counter
-  // R[perf_counter_14]: V(True)
+  // Subregister 14 of Multireg perf_cnt
+  // R[perf_cnt_14]: V(True)
 
   prim_subreg_ext #(
       .DW(48)
-  ) u_perf_counter_14 (
-      .re (perf_counter_14_re),
-      .we (perf_counter_14_we),
-      .wd (perf_counter_14_wd),
-      .d  (hw2reg.perf_counter[14].d),
+  ) u_perf_cnt_14 (
+      .re (perf_cnt_14_re),
+      .we (perf_cnt_14_we),
+      .wd (perf_cnt_14_wd),
+      .d  (hw2reg.perf_cnt[14].d),
       .qre(),
-      .qe (reg2hw.perf_counter[14].qe),
-      .q  (reg2hw.perf_counter[14].q),
-      .qs (perf_counter_14_qs)
+      .qe (reg2hw.perf_cnt[14].qe),
+      .q  (reg2hw.perf_cnt[14].q),
+      .qs (perf_cnt_14_qs)
   );
 
-  // Subregister 15 of Multireg perf_counter
-  // R[perf_counter_15]: V(True)
+  // Subregister 15 of Multireg perf_cnt
+  // R[perf_cnt_15]: V(True)
 
   prim_subreg_ext #(
       .DW(48)
-  ) u_perf_counter_15 (
-      .re (perf_counter_15_re),
-      .we (perf_counter_15_we),
-      .wd (perf_counter_15_wd),
-      .d  (hw2reg.perf_counter[15].d),
+  ) u_perf_cnt_15 (
+      .re (perf_cnt_15_re),
+      .we (perf_cnt_15_we),
+      .wd (perf_cnt_15_wd),
+      .d  (hw2reg.perf_cnt[15].d),
       .qre(),
-      .qe (reg2hw.perf_counter[15].qe),
-      .q  (reg2hw.perf_counter[15].q),
-      .qs (perf_counter_15_qs)
+      .qe (reg2hw.perf_cnt[15].qe),
+      .q  (reg2hw.perf_cnt[15].q),
+      .qs (perf_cnt_15_qs)
   );
 
 
@@ -1762,77 +1616,61 @@ module snitch_cluster_peripheral_reg_top #(
 
 
 
-  logic [67:0] addr_hit;
+  logic [51:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[0] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_0_OFFSET);
-    addr_hit[1] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_1_OFFSET);
-    addr_hit[2] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_2_OFFSET);
-    addr_hit[3] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_3_OFFSET);
-    addr_hit[4] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_4_OFFSET);
-    addr_hit[5] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_5_OFFSET);
-    addr_hit[6] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_6_OFFSET);
-    addr_hit[7] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_7_OFFSET);
-    addr_hit[8] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_8_OFFSET);
-    addr_hit[9] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_9_OFFSET);
-    addr_hit[10] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_10_OFFSET);
-    addr_hit[11] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_11_OFFSET);
-    addr_hit[12] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_12_OFFSET);
-    addr_hit[13] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_13_OFFSET);
-    addr_hit[14] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_14_OFFSET);
-    addr_hit[15] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_15_OFFSET);
-    addr_hit[16] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_SELECT_0_OFFSET);
-    addr_hit[17] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_SELECT_1_OFFSET);
-    addr_hit[18] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_SELECT_2_OFFSET);
-    addr_hit[19] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_SELECT_3_OFFSET);
-    addr_hit[20] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_SELECT_4_OFFSET);
-    addr_hit[21] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_SELECT_5_OFFSET);
-    addr_hit[22] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_SELECT_6_OFFSET);
-    addr_hit[23] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_SELECT_7_OFFSET);
-    addr_hit[24] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_SELECT_8_OFFSET);
-    addr_hit[25] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_SELECT_9_OFFSET);
-    addr_hit[26] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_SELECT_10_OFFSET);
-    addr_hit[27] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_SELECT_11_OFFSET);
-    addr_hit[28] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_SELECT_12_OFFSET);
-    addr_hit[29] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_SELECT_13_OFFSET);
-    addr_hit[30] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_SELECT_14_OFFSET);
-    addr_hit[31] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_SELECT_15_OFFSET);
-    addr_hit[32] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_HART_SELECT_0_OFFSET);
-    addr_hit[33] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_HART_SELECT_1_OFFSET);
-    addr_hit[34] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_HART_SELECT_2_OFFSET);
-    addr_hit[35] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_HART_SELECT_3_OFFSET);
-    addr_hit[36] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_HART_SELECT_4_OFFSET);
-    addr_hit[37] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_HART_SELECT_5_OFFSET);
-    addr_hit[38] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_HART_SELECT_6_OFFSET);
-    addr_hit[39] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_HART_SELECT_7_OFFSET);
-    addr_hit[40] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_HART_SELECT_8_OFFSET);
-    addr_hit[41] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_HART_SELECT_9_OFFSET);
-    addr_hit[42] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_HART_SELECT_10_OFFSET);
-    addr_hit[43] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_HART_SELECT_11_OFFSET);
-    addr_hit[44] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_HART_SELECT_12_OFFSET);
-    addr_hit[45] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_HART_SELECT_13_OFFSET);
-    addr_hit[46] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_HART_SELECT_14_OFFSET);
-    addr_hit[47] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_HART_SELECT_15_OFFSET);
-    addr_hit[48] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_0_OFFSET);
-    addr_hit[49] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_1_OFFSET);
-    addr_hit[50] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_2_OFFSET);
-    addr_hit[51] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_3_OFFSET);
-    addr_hit[52] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_4_OFFSET);
-    addr_hit[53] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_5_OFFSET);
-    addr_hit[54] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_6_OFFSET);
-    addr_hit[55] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_7_OFFSET);
-    addr_hit[56] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_8_OFFSET);
-    addr_hit[57] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_9_OFFSET);
-    addr_hit[58] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_10_OFFSET);
-    addr_hit[59] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_11_OFFSET);
-    addr_hit[60] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_12_OFFSET);
-    addr_hit[61] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_13_OFFSET);
-    addr_hit[62] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_14_OFFSET);
-    addr_hit[63] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_15_OFFSET);
-    addr_hit[64] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_SET_OFFSET);
-    addr_hit[65] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_CLEAR_OFFSET);
-    addr_hit[66] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_HW_BARRIER_OFFSET);
-    addr_hit[67] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_ICACHE_PREFETCH_ENABLE_OFFSET);
+    addr_hit[0] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_0_OFFSET);
+    addr_hit[1] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_1_OFFSET);
+    addr_hit[2] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_2_OFFSET);
+    addr_hit[3] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_3_OFFSET);
+    addr_hit[4] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_4_OFFSET);
+    addr_hit[5] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_5_OFFSET);
+    addr_hit[6] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_6_OFFSET);
+    addr_hit[7] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_7_OFFSET);
+    addr_hit[8] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_8_OFFSET);
+    addr_hit[9] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_9_OFFSET);
+    addr_hit[10] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_10_OFFSET);
+    addr_hit[11] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_11_OFFSET);
+    addr_hit[12] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_12_OFFSET);
+    addr_hit[13] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_13_OFFSET);
+    addr_hit[14] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_14_OFFSET);
+    addr_hit[15] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_15_OFFSET);
+    addr_hit[16] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_OFFSET);
+    addr_hit[17] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_1_OFFSET);
+    addr_hit[18] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_2_OFFSET);
+    addr_hit[19] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_3_OFFSET);
+    addr_hit[20] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_4_OFFSET);
+    addr_hit[21] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_5_OFFSET);
+    addr_hit[22] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_6_OFFSET);
+    addr_hit[23] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_7_OFFSET);
+    addr_hit[24] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_8_OFFSET);
+    addr_hit[25] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_9_OFFSET);
+    addr_hit[26] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_10_OFFSET);
+    addr_hit[27] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_11_OFFSET);
+    addr_hit[28] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_12_OFFSET);
+    addr_hit[29] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_13_OFFSET);
+    addr_hit[30] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_14_OFFSET);
+    addr_hit[31] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_15_OFFSET);
+    addr_hit[32] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_0_OFFSET);
+    addr_hit[33] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_1_OFFSET);
+    addr_hit[34] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_2_OFFSET);
+    addr_hit[35] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_3_OFFSET);
+    addr_hit[36] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_4_OFFSET);
+    addr_hit[37] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_5_OFFSET);
+    addr_hit[38] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_6_OFFSET);
+    addr_hit[39] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_7_OFFSET);
+    addr_hit[40] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_8_OFFSET);
+    addr_hit[41] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_9_OFFSET);
+    addr_hit[42] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_10_OFFSET);
+    addr_hit[43] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_11_OFFSET);
+    addr_hit[44] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_12_OFFSET);
+    addr_hit[45] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_13_OFFSET);
+    addr_hit[46] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_14_OFFSET);
+    addr_hit[47] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_15_OFFSET);
+    addr_hit[48] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_SET_OFFSET);
+    addr_hit[49] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_CLEAR_OFFSET);
+    addr_hit[50] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_HW_BARRIER_OFFSET);
+    addr_hit[51] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_ICACHE_PREFETCH_ENABLE_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
@@ -1891,258 +1729,258 @@ module snitch_cluster_peripheral_reg_top #(
                (addr_hit[48] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[48] & ~reg_be))) |
                (addr_hit[49] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[49] & ~reg_be))) |
                (addr_hit[50] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[50] & ~reg_be))) |
-               (addr_hit[51] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[51] & ~reg_be))) |
-               (addr_hit[52] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[52] & ~reg_be))) |
-               (addr_hit[53] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[53] & ~reg_be))) |
-               (addr_hit[54] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[54] & ~reg_be))) |
-               (addr_hit[55] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[55] & ~reg_be))) |
-               (addr_hit[56] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[56] & ~reg_be))) |
-               (addr_hit[57] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[57] & ~reg_be))) |
-               (addr_hit[58] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[58] & ~reg_be))) |
-               (addr_hit[59] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[59] & ~reg_be))) |
-               (addr_hit[60] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[60] & ~reg_be))) |
-               (addr_hit[61] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[61] & ~reg_be))) |
-               (addr_hit[62] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[62] & ~reg_be))) |
-               (addr_hit[63] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[63] & ~reg_be))) |
-               (addr_hit[64] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[64] & ~reg_be))) |
-               (addr_hit[65] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[65] & ~reg_be))) |
-               (addr_hit[66] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[66] & ~reg_be))) |
-               (addr_hit[67] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[67] & ~reg_be)))));
+               (addr_hit[51] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[51] & ~reg_be)))));
   end
 
-  assign perf_counter_enable_0_we = addr_hit[0] & reg_we & !reg_error;
-  assign perf_counter_enable_0_wd = reg_wdata[0];
+  assign perf_cnt_en_0_we = addr_hit[0] & reg_we & !reg_error;
+  assign perf_cnt_en_0_wd = reg_wdata[0];
 
-  assign perf_counter_enable_1_we = addr_hit[1] & reg_we & !reg_error;
-  assign perf_counter_enable_1_wd = reg_wdata[0];
+  assign perf_cnt_en_1_we = addr_hit[1] & reg_we & !reg_error;
+  assign perf_cnt_en_1_wd = reg_wdata[0];
 
-  assign perf_counter_enable_2_we = addr_hit[2] & reg_we & !reg_error;
-  assign perf_counter_enable_2_wd = reg_wdata[0];
+  assign perf_cnt_en_2_we = addr_hit[2] & reg_we & !reg_error;
+  assign perf_cnt_en_2_wd = reg_wdata[0];
 
-  assign perf_counter_enable_3_we = addr_hit[3] & reg_we & !reg_error;
-  assign perf_counter_enable_3_wd = reg_wdata[0];
+  assign perf_cnt_en_3_we = addr_hit[3] & reg_we & !reg_error;
+  assign perf_cnt_en_3_wd = reg_wdata[0];
 
-  assign perf_counter_enable_4_we = addr_hit[4] & reg_we & !reg_error;
-  assign perf_counter_enable_4_wd = reg_wdata[0];
+  assign perf_cnt_en_4_we = addr_hit[4] & reg_we & !reg_error;
+  assign perf_cnt_en_4_wd = reg_wdata[0];
 
-  assign perf_counter_enable_5_we = addr_hit[5] & reg_we & !reg_error;
-  assign perf_counter_enable_5_wd = reg_wdata[0];
+  assign perf_cnt_en_5_we = addr_hit[5] & reg_we & !reg_error;
+  assign perf_cnt_en_5_wd = reg_wdata[0];
 
-  assign perf_counter_enable_6_we = addr_hit[6] & reg_we & !reg_error;
-  assign perf_counter_enable_6_wd = reg_wdata[0];
+  assign perf_cnt_en_6_we = addr_hit[6] & reg_we & !reg_error;
+  assign perf_cnt_en_6_wd = reg_wdata[0];
 
-  assign perf_counter_enable_7_we = addr_hit[7] & reg_we & !reg_error;
-  assign perf_counter_enable_7_wd = reg_wdata[0];
+  assign perf_cnt_en_7_we = addr_hit[7] & reg_we & !reg_error;
+  assign perf_cnt_en_7_wd = reg_wdata[0];
 
-  assign perf_counter_enable_8_we = addr_hit[8] & reg_we & !reg_error;
-  assign perf_counter_enable_8_wd = reg_wdata[0];
+  assign perf_cnt_en_8_we = addr_hit[8] & reg_we & !reg_error;
+  assign perf_cnt_en_8_wd = reg_wdata[0];
 
-  assign perf_counter_enable_9_we = addr_hit[9] & reg_we & !reg_error;
-  assign perf_counter_enable_9_wd = reg_wdata[0];
+  assign perf_cnt_en_9_we = addr_hit[9] & reg_we & !reg_error;
+  assign perf_cnt_en_9_wd = reg_wdata[0];
 
-  assign perf_counter_enable_10_we = addr_hit[10] & reg_we & !reg_error;
-  assign perf_counter_enable_10_wd = reg_wdata[0];
+  assign perf_cnt_en_10_we = addr_hit[10] & reg_we & !reg_error;
+  assign perf_cnt_en_10_wd = reg_wdata[0];
 
-  assign perf_counter_enable_11_we = addr_hit[11] & reg_we & !reg_error;
-  assign perf_counter_enable_11_wd = reg_wdata[0];
+  assign perf_cnt_en_11_we = addr_hit[11] & reg_we & !reg_error;
+  assign perf_cnt_en_11_wd = reg_wdata[0];
 
-  assign perf_counter_enable_12_we = addr_hit[12] & reg_we & !reg_error;
-  assign perf_counter_enable_12_wd = reg_wdata[0];
+  assign perf_cnt_en_12_we = addr_hit[12] & reg_we & !reg_error;
+  assign perf_cnt_en_12_wd = reg_wdata[0];
 
-  assign perf_counter_enable_13_we = addr_hit[13] & reg_we & !reg_error;
-  assign perf_counter_enable_13_wd = reg_wdata[0];
+  assign perf_cnt_en_13_we = addr_hit[13] & reg_we & !reg_error;
+  assign perf_cnt_en_13_wd = reg_wdata[0];
 
-  assign perf_counter_enable_14_we = addr_hit[14] & reg_we & !reg_error;
-  assign perf_counter_enable_14_wd = reg_wdata[0];
+  assign perf_cnt_en_14_we = addr_hit[14] & reg_we & !reg_error;
+  assign perf_cnt_en_14_wd = reg_wdata[0];
 
-  assign perf_counter_enable_15_we = addr_hit[15] & reg_we & !reg_error;
-  assign perf_counter_enable_15_wd = reg_wdata[0];
+  assign perf_cnt_en_15_we = addr_hit[15] & reg_we & !reg_error;
+  assign perf_cnt_en_15_wd = reg_wdata[0];
 
-  assign perf_counter_select_0_we = addr_hit[16] & reg_we & !reg_error;
-  assign perf_counter_select_0_wd = reg_wdata[9:0];
-  assign perf_counter_select_0_re = addr_hit[16] & reg_re & !reg_error;
+  assign perf_cnt_sel_0_hart_0_we = addr_hit[16] & reg_we & !reg_error;
+  assign perf_cnt_sel_0_hart_0_wd = reg_wdata[15:0];
+  assign perf_cnt_sel_0_hart_0_re = addr_hit[16] & reg_re & !reg_error;
 
-  assign perf_counter_select_1_we = addr_hit[17] & reg_we & !reg_error;
-  assign perf_counter_select_1_wd = reg_wdata[9:0];
-  assign perf_counter_select_1_re = addr_hit[17] & reg_re & !reg_error;
+  assign perf_cnt_sel_0_metric_0_we = addr_hit[16] & reg_we & !reg_error;
+  assign perf_cnt_sel_0_metric_0_wd = reg_wdata[31:16];
+  assign perf_cnt_sel_0_metric_0_re = addr_hit[16] & reg_re & !reg_error;
 
-  assign perf_counter_select_2_we = addr_hit[18] & reg_we & !reg_error;
-  assign perf_counter_select_2_wd = reg_wdata[9:0];
-  assign perf_counter_select_2_re = addr_hit[18] & reg_re & !reg_error;
+  assign perf_cnt_sel_1_hart_1_we = addr_hit[17] & reg_we & !reg_error;
+  assign perf_cnt_sel_1_hart_1_wd = reg_wdata[15:0];
+  assign perf_cnt_sel_1_hart_1_re = addr_hit[17] & reg_re & !reg_error;
 
-  assign perf_counter_select_3_we = addr_hit[19] & reg_we & !reg_error;
-  assign perf_counter_select_3_wd = reg_wdata[9:0];
-  assign perf_counter_select_3_re = addr_hit[19] & reg_re & !reg_error;
+  assign perf_cnt_sel_1_metric_1_we = addr_hit[17] & reg_we & !reg_error;
+  assign perf_cnt_sel_1_metric_1_wd = reg_wdata[31:16];
+  assign perf_cnt_sel_1_metric_1_re = addr_hit[17] & reg_re & !reg_error;
 
-  assign perf_counter_select_4_we = addr_hit[20] & reg_we & !reg_error;
-  assign perf_counter_select_4_wd = reg_wdata[9:0];
-  assign perf_counter_select_4_re = addr_hit[20] & reg_re & !reg_error;
+  assign perf_cnt_sel_2_hart_2_we = addr_hit[18] & reg_we & !reg_error;
+  assign perf_cnt_sel_2_hart_2_wd = reg_wdata[15:0];
+  assign perf_cnt_sel_2_hart_2_re = addr_hit[18] & reg_re & !reg_error;
 
-  assign perf_counter_select_5_we = addr_hit[21] & reg_we & !reg_error;
-  assign perf_counter_select_5_wd = reg_wdata[9:0];
-  assign perf_counter_select_5_re = addr_hit[21] & reg_re & !reg_error;
+  assign perf_cnt_sel_2_metric_2_we = addr_hit[18] & reg_we & !reg_error;
+  assign perf_cnt_sel_2_metric_2_wd = reg_wdata[31:16];
+  assign perf_cnt_sel_2_metric_2_re = addr_hit[18] & reg_re & !reg_error;
 
-  assign perf_counter_select_6_we = addr_hit[22] & reg_we & !reg_error;
-  assign perf_counter_select_6_wd = reg_wdata[9:0];
-  assign perf_counter_select_6_re = addr_hit[22] & reg_re & !reg_error;
+  assign perf_cnt_sel_3_hart_3_we = addr_hit[19] & reg_we & !reg_error;
+  assign perf_cnt_sel_3_hart_3_wd = reg_wdata[15:0];
+  assign perf_cnt_sel_3_hart_3_re = addr_hit[19] & reg_re & !reg_error;
 
-  assign perf_counter_select_7_we = addr_hit[23] & reg_we & !reg_error;
-  assign perf_counter_select_7_wd = reg_wdata[9:0];
-  assign perf_counter_select_7_re = addr_hit[23] & reg_re & !reg_error;
+  assign perf_cnt_sel_3_metric_3_we = addr_hit[19] & reg_we & !reg_error;
+  assign perf_cnt_sel_3_metric_3_wd = reg_wdata[31:16];
+  assign perf_cnt_sel_3_metric_3_re = addr_hit[19] & reg_re & !reg_error;
 
-  assign perf_counter_select_8_we = addr_hit[24] & reg_we & !reg_error;
-  assign perf_counter_select_8_wd = reg_wdata[9:0];
-  assign perf_counter_select_8_re = addr_hit[24] & reg_re & !reg_error;
+  assign perf_cnt_sel_4_hart_4_we = addr_hit[20] & reg_we & !reg_error;
+  assign perf_cnt_sel_4_hart_4_wd = reg_wdata[15:0];
+  assign perf_cnt_sel_4_hart_4_re = addr_hit[20] & reg_re & !reg_error;
 
-  assign perf_counter_select_9_we = addr_hit[25] & reg_we & !reg_error;
-  assign perf_counter_select_9_wd = reg_wdata[9:0];
-  assign perf_counter_select_9_re = addr_hit[25] & reg_re & !reg_error;
+  assign perf_cnt_sel_4_metric_4_we = addr_hit[20] & reg_we & !reg_error;
+  assign perf_cnt_sel_4_metric_4_wd = reg_wdata[31:16];
+  assign perf_cnt_sel_4_metric_4_re = addr_hit[20] & reg_re & !reg_error;
 
-  assign perf_counter_select_10_we = addr_hit[26] & reg_we & !reg_error;
-  assign perf_counter_select_10_wd = reg_wdata[9:0];
-  assign perf_counter_select_10_re = addr_hit[26] & reg_re & !reg_error;
+  assign perf_cnt_sel_5_hart_5_we = addr_hit[21] & reg_we & !reg_error;
+  assign perf_cnt_sel_5_hart_5_wd = reg_wdata[15:0];
+  assign perf_cnt_sel_5_hart_5_re = addr_hit[21] & reg_re & !reg_error;
 
-  assign perf_counter_select_11_we = addr_hit[27] & reg_we & !reg_error;
-  assign perf_counter_select_11_wd = reg_wdata[9:0];
-  assign perf_counter_select_11_re = addr_hit[27] & reg_re & !reg_error;
+  assign perf_cnt_sel_5_metric_5_we = addr_hit[21] & reg_we & !reg_error;
+  assign perf_cnt_sel_5_metric_5_wd = reg_wdata[31:16];
+  assign perf_cnt_sel_5_metric_5_re = addr_hit[21] & reg_re & !reg_error;
 
-  assign perf_counter_select_12_we = addr_hit[28] & reg_we & !reg_error;
-  assign perf_counter_select_12_wd = reg_wdata[9:0];
-  assign perf_counter_select_12_re = addr_hit[28] & reg_re & !reg_error;
+  assign perf_cnt_sel_6_hart_6_we = addr_hit[22] & reg_we & !reg_error;
+  assign perf_cnt_sel_6_hart_6_wd = reg_wdata[15:0];
+  assign perf_cnt_sel_6_hart_6_re = addr_hit[22] & reg_re & !reg_error;
 
-  assign perf_counter_select_13_we = addr_hit[29] & reg_we & !reg_error;
-  assign perf_counter_select_13_wd = reg_wdata[9:0];
-  assign perf_counter_select_13_re = addr_hit[29] & reg_re & !reg_error;
-
-  assign perf_counter_select_14_we = addr_hit[30] & reg_we & !reg_error;
-  assign perf_counter_select_14_wd = reg_wdata[9:0];
-  assign perf_counter_select_14_re = addr_hit[30] & reg_re & !reg_error;
-
-  assign perf_counter_select_15_we = addr_hit[31] & reg_we & !reg_error;
-  assign perf_counter_select_15_wd = reg_wdata[9:0];
-  assign perf_counter_select_15_re = addr_hit[31] & reg_re & !reg_error;
-
-  assign perf_counter_hart_select_0_we = addr_hit[32] & reg_we & !reg_error;
-  assign perf_counter_hart_select_0_wd = reg_wdata[9:0];
-
-  assign perf_counter_hart_select_1_we = addr_hit[33] & reg_we & !reg_error;
-  assign perf_counter_hart_select_1_wd = reg_wdata[9:0];
-
-  assign perf_counter_hart_select_2_we = addr_hit[34] & reg_we & !reg_error;
-  assign perf_counter_hart_select_2_wd = reg_wdata[9:0];
-
-  assign perf_counter_hart_select_3_we = addr_hit[35] & reg_we & !reg_error;
-  assign perf_counter_hart_select_3_wd = reg_wdata[9:0];
-
-  assign perf_counter_hart_select_4_we = addr_hit[36] & reg_we & !reg_error;
-  assign perf_counter_hart_select_4_wd = reg_wdata[9:0];
-
-  assign perf_counter_hart_select_5_we = addr_hit[37] & reg_we & !reg_error;
-  assign perf_counter_hart_select_5_wd = reg_wdata[9:0];
-
-  assign perf_counter_hart_select_6_we = addr_hit[38] & reg_we & !reg_error;
-  assign perf_counter_hart_select_6_wd = reg_wdata[9:0];
-
-  assign perf_counter_hart_select_7_we = addr_hit[39] & reg_we & !reg_error;
-  assign perf_counter_hart_select_7_wd = reg_wdata[9:0];
-
-  assign perf_counter_hart_select_8_we = addr_hit[40] & reg_we & !reg_error;
-  assign perf_counter_hart_select_8_wd = reg_wdata[9:0];
-
-  assign perf_counter_hart_select_9_we = addr_hit[41] & reg_we & !reg_error;
-  assign perf_counter_hart_select_9_wd = reg_wdata[9:0];
-
-  assign perf_counter_hart_select_10_we = addr_hit[42] & reg_we & !reg_error;
-  assign perf_counter_hart_select_10_wd = reg_wdata[9:0];
-
-  assign perf_counter_hart_select_11_we = addr_hit[43] & reg_we & !reg_error;
-  assign perf_counter_hart_select_11_wd = reg_wdata[9:0];
-
-  assign perf_counter_hart_select_12_we = addr_hit[44] & reg_we & !reg_error;
-  assign perf_counter_hart_select_12_wd = reg_wdata[9:0];
-
-  assign perf_counter_hart_select_13_we = addr_hit[45] & reg_we & !reg_error;
-  assign perf_counter_hart_select_13_wd = reg_wdata[9:0];
-
-  assign perf_counter_hart_select_14_we = addr_hit[46] & reg_we & !reg_error;
-  assign perf_counter_hart_select_14_wd = reg_wdata[9:0];
-
-  assign perf_counter_hart_select_15_we = addr_hit[47] & reg_we & !reg_error;
-  assign perf_counter_hart_select_15_wd = reg_wdata[9:0];
-
-  assign perf_counter_0_we = addr_hit[48] & reg_we & !reg_error;
-  assign perf_counter_0_wd = reg_wdata[47:0];
-  assign perf_counter_0_re = addr_hit[48] & reg_re & !reg_error;
-
-  assign perf_counter_1_we = addr_hit[49] & reg_we & !reg_error;
-  assign perf_counter_1_wd = reg_wdata[47:0];
-  assign perf_counter_1_re = addr_hit[49] & reg_re & !reg_error;
-
-  assign perf_counter_2_we = addr_hit[50] & reg_we & !reg_error;
-  assign perf_counter_2_wd = reg_wdata[47:0];
-  assign perf_counter_2_re = addr_hit[50] & reg_re & !reg_error;
-
-  assign perf_counter_3_we = addr_hit[51] & reg_we & !reg_error;
-  assign perf_counter_3_wd = reg_wdata[47:0];
-  assign perf_counter_3_re = addr_hit[51] & reg_re & !reg_error;
-
-  assign perf_counter_4_we = addr_hit[52] & reg_we & !reg_error;
-  assign perf_counter_4_wd = reg_wdata[47:0];
-  assign perf_counter_4_re = addr_hit[52] & reg_re & !reg_error;
-
-  assign perf_counter_5_we = addr_hit[53] & reg_we & !reg_error;
-  assign perf_counter_5_wd = reg_wdata[47:0];
-  assign perf_counter_5_re = addr_hit[53] & reg_re & !reg_error;
-
-  assign perf_counter_6_we = addr_hit[54] & reg_we & !reg_error;
-  assign perf_counter_6_wd = reg_wdata[47:0];
-  assign perf_counter_6_re = addr_hit[54] & reg_re & !reg_error;
-
-  assign perf_counter_7_we = addr_hit[55] & reg_we & !reg_error;
-  assign perf_counter_7_wd = reg_wdata[47:0];
-  assign perf_counter_7_re = addr_hit[55] & reg_re & !reg_error;
-
-  assign perf_counter_8_we = addr_hit[56] & reg_we & !reg_error;
-  assign perf_counter_8_wd = reg_wdata[47:0];
-  assign perf_counter_8_re = addr_hit[56] & reg_re & !reg_error;
-
-  assign perf_counter_9_we = addr_hit[57] & reg_we & !reg_error;
-  assign perf_counter_9_wd = reg_wdata[47:0];
-  assign perf_counter_9_re = addr_hit[57] & reg_re & !reg_error;
-
-  assign perf_counter_10_we = addr_hit[58] & reg_we & !reg_error;
-  assign perf_counter_10_wd = reg_wdata[47:0];
-  assign perf_counter_10_re = addr_hit[58] & reg_re & !reg_error;
-
-  assign perf_counter_11_we = addr_hit[59] & reg_we & !reg_error;
-  assign perf_counter_11_wd = reg_wdata[47:0];
-  assign perf_counter_11_re = addr_hit[59] & reg_re & !reg_error;
-
-  assign perf_counter_12_we = addr_hit[60] & reg_we & !reg_error;
-  assign perf_counter_12_wd = reg_wdata[47:0];
-  assign perf_counter_12_re = addr_hit[60] & reg_re & !reg_error;
-
-  assign perf_counter_13_we = addr_hit[61] & reg_we & !reg_error;
-  assign perf_counter_13_wd = reg_wdata[47:0];
-  assign perf_counter_13_re = addr_hit[61] & reg_re & !reg_error;
-
-  assign perf_counter_14_we = addr_hit[62] & reg_we & !reg_error;
-  assign perf_counter_14_wd = reg_wdata[47:0];
-  assign perf_counter_14_re = addr_hit[62] & reg_re & !reg_error;
-
-  assign perf_counter_15_we = addr_hit[63] & reg_we & !reg_error;
-  assign perf_counter_15_wd = reg_wdata[47:0];
-  assign perf_counter_15_re = addr_hit[63] & reg_re & !reg_error;
-
-  assign cl_clint_set_we = addr_hit[64] & reg_we & !reg_error;
+  assign perf_cnt_sel_6_metric_6_we = addr_hit[22] & reg_we & !reg_error;
+  assign perf_cnt_sel_6_metric_6_wd = reg_wdata[31:16];
+  assign perf_cnt_sel_6_metric_6_re = addr_hit[22] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_7_hart_7_we = addr_hit[23] & reg_we & !reg_error;
+  assign perf_cnt_sel_7_hart_7_wd = reg_wdata[15:0];
+  assign perf_cnt_sel_7_hart_7_re = addr_hit[23] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_7_metric_7_we = addr_hit[23] & reg_we & !reg_error;
+  assign perf_cnt_sel_7_metric_7_wd = reg_wdata[31:16];
+  assign perf_cnt_sel_7_metric_7_re = addr_hit[23] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_8_hart_8_we = addr_hit[24] & reg_we & !reg_error;
+  assign perf_cnt_sel_8_hart_8_wd = reg_wdata[15:0];
+  assign perf_cnt_sel_8_hart_8_re = addr_hit[24] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_8_metric_8_we = addr_hit[24] & reg_we & !reg_error;
+  assign perf_cnt_sel_8_metric_8_wd = reg_wdata[31:16];
+  assign perf_cnt_sel_8_metric_8_re = addr_hit[24] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_9_hart_9_we = addr_hit[25] & reg_we & !reg_error;
+  assign perf_cnt_sel_9_hart_9_wd = reg_wdata[15:0];
+  assign perf_cnt_sel_9_hart_9_re = addr_hit[25] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_9_metric_9_we = addr_hit[25] & reg_we & !reg_error;
+  assign perf_cnt_sel_9_metric_9_wd = reg_wdata[31:16];
+  assign perf_cnt_sel_9_metric_9_re = addr_hit[25] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_10_hart_10_we = addr_hit[26] & reg_we & !reg_error;
+  assign perf_cnt_sel_10_hart_10_wd = reg_wdata[15:0];
+  assign perf_cnt_sel_10_hart_10_re = addr_hit[26] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_10_metric_10_we = addr_hit[26] & reg_we & !reg_error;
+  assign perf_cnt_sel_10_metric_10_wd = reg_wdata[31:16];
+  assign perf_cnt_sel_10_metric_10_re = addr_hit[26] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_11_hart_11_we = addr_hit[27] & reg_we & !reg_error;
+  assign perf_cnt_sel_11_hart_11_wd = reg_wdata[15:0];
+  assign perf_cnt_sel_11_hart_11_re = addr_hit[27] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_11_metric_11_we = addr_hit[27] & reg_we & !reg_error;
+  assign perf_cnt_sel_11_metric_11_wd = reg_wdata[31:16];
+  assign perf_cnt_sel_11_metric_11_re = addr_hit[27] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_12_hart_12_we = addr_hit[28] & reg_we & !reg_error;
+  assign perf_cnt_sel_12_hart_12_wd = reg_wdata[15:0];
+  assign perf_cnt_sel_12_hart_12_re = addr_hit[28] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_12_metric_12_we = addr_hit[28] & reg_we & !reg_error;
+  assign perf_cnt_sel_12_metric_12_wd = reg_wdata[31:16];
+  assign perf_cnt_sel_12_metric_12_re = addr_hit[28] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_13_hart_13_we = addr_hit[29] & reg_we & !reg_error;
+  assign perf_cnt_sel_13_hart_13_wd = reg_wdata[15:0];
+  assign perf_cnt_sel_13_hart_13_re = addr_hit[29] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_13_metric_13_we = addr_hit[29] & reg_we & !reg_error;
+  assign perf_cnt_sel_13_metric_13_wd = reg_wdata[31:16];
+  assign perf_cnt_sel_13_metric_13_re = addr_hit[29] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_14_hart_14_we = addr_hit[30] & reg_we & !reg_error;
+  assign perf_cnt_sel_14_hart_14_wd = reg_wdata[15:0];
+  assign perf_cnt_sel_14_hart_14_re = addr_hit[30] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_14_metric_14_we = addr_hit[30] & reg_we & !reg_error;
+  assign perf_cnt_sel_14_metric_14_wd = reg_wdata[31:16];
+  assign perf_cnt_sel_14_metric_14_re = addr_hit[30] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_15_hart_15_we = addr_hit[31] & reg_we & !reg_error;
+  assign perf_cnt_sel_15_hart_15_wd = reg_wdata[15:0];
+  assign perf_cnt_sel_15_hart_15_re = addr_hit[31] & reg_re & !reg_error;
+
+  assign perf_cnt_sel_15_metric_15_we = addr_hit[31] & reg_we & !reg_error;
+  assign perf_cnt_sel_15_metric_15_wd = reg_wdata[31:16];
+  assign perf_cnt_sel_15_metric_15_re = addr_hit[31] & reg_re & !reg_error;
+
+  assign perf_cnt_0_we = addr_hit[32] & reg_we & !reg_error;
+  assign perf_cnt_0_wd = reg_wdata[47:0];
+  assign perf_cnt_0_re = addr_hit[32] & reg_re & !reg_error;
+
+  assign perf_cnt_1_we = addr_hit[33] & reg_we & !reg_error;
+  assign perf_cnt_1_wd = reg_wdata[47:0];
+  assign perf_cnt_1_re = addr_hit[33] & reg_re & !reg_error;
+
+  assign perf_cnt_2_we = addr_hit[34] & reg_we & !reg_error;
+  assign perf_cnt_2_wd = reg_wdata[47:0];
+  assign perf_cnt_2_re = addr_hit[34] & reg_re & !reg_error;
+
+  assign perf_cnt_3_we = addr_hit[35] & reg_we & !reg_error;
+  assign perf_cnt_3_wd = reg_wdata[47:0];
+  assign perf_cnt_3_re = addr_hit[35] & reg_re & !reg_error;
+
+  assign perf_cnt_4_we = addr_hit[36] & reg_we & !reg_error;
+  assign perf_cnt_4_wd = reg_wdata[47:0];
+  assign perf_cnt_4_re = addr_hit[36] & reg_re & !reg_error;
+
+  assign perf_cnt_5_we = addr_hit[37] & reg_we & !reg_error;
+  assign perf_cnt_5_wd = reg_wdata[47:0];
+  assign perf_cnt_5_re = addr_hit[37] & reg_re & !reg_error;
+
+  assign perf_cnt_6_we = addr_hit[38] & reg_we & !reg_error;
+  assign perf_cnt_6_wd = reg_wdata[47:0];
+  assign perf_cnt_6_re = addr_hit[38] & reg_re & !reg_error;
+
+  assign perf_cnt_7_we = addr_hit[39] & reg_we & !reg_error;
+  assign perf_cnt_7_wd = reg_wdata[47:0];
+  assign perf_cnt_7_re = addr_hit[39] & reg_re & !reg_error;
+
+  assign perf_cnt_8_we = addr_hit[40] & reg_we & !reg_error;
+  assign perf_cnt_8_wd = reg_wdata[47:0];
+  assign perf_cnt_8_re = addr_hit[40] & reg_re & !reg_error;
+
+  assign perf_cnt_9_we = addr_hit[41] & reg_we & !reg_error;
+  assign perf_cnt_9_wd = reg_wdata[47:0];
+  assign perf_cnt_9_re = addr_hit[41] & reg_re & !reg_error;
+
+  assign perf_cnt_10_we = addr_hit[42] & reg_we & !reg_error;
+  assign perf_cnt_10_wd = reg_wdata[47:0];
+  assign perf_cnt_10_re = addr_hit[42] & reg_re & !reg_error;
+
+  assign perf_cnt_11_we = addr_hit[43] & reg_we & !reg_error;
+  assign perf_cnt_11_wd = reg_wdata[47:0];
+  assign perf_cnt_11_re = addr_hit[43] & reg_re & !reg_error;
+
+  assign perf_cnt_12_we = addr_hit[44] & reg_we & !reg_error;
+  assign perf_cnt_12_wd = reg_wdata[47:0];
+  assign perf_cnt_12_re = addr_hit[44] & reg_re & !reg_error;
+
+  assign perf_cnt_13_we = addr_hit[45] & reg_we & !reg_error;
+  assign perf_cnt_13_wd = reg_wdata[47:0];
+  assign perf_cnt_13_re = addr_hit[45] & reg_re & !reg_error;
+
+  assign perf_cnt_14_we = addr_hit[46] & reg_we & !reg_error;
+  assign perf_cnt_14_wd = reg_wdata[47:0];
+  assign perf_cnt_14_re = addr_hit[46] & reg_re & !reg_error;
+
+  assign perf_cnt_15_we = addr_hit[47] & reg_we & !reg_error;
+  assign perf_cnt_15_wd = reg_wdata[47:0];
+  assign perf_cnt_15_re = addr_hit[47] & reg_re & !reg_error;
+
+  assign cl_clint_set_we = addr_hit[48] & reg_we & !reg_error;
   assign cl_clint_set_wd = reg_wdata[31:0];
 
-  assign cl_clint_clear_we = addr_hit[65] & reg_we & !reg_error;
+  assign cl_clint_clear_we = addr_hit[49] & reg_we & !reg_error;
   assign cl_clint_clear_wd = reg_wdata[31:0];
 
-  assign hw_barrier_re = addr_hit[66] & reg_re & !reg_error;
+  assign hw_barrier_re = addr_hit[50] & reg_re & !reg_error;
 
-  assign icache_prefetch_enable_we = addr_hit[67] & reg_we & !reg_error;
+  assign icache_prefetch_enable_we = addr_hit[51] & reg_we & !reg_error;
   assign icache_prefetch_enable_wd = reg_wdata[0];
 
   // Read data return
@@ -2150,274 +1988,226 @@ module snitch_cluster_peripheral_reg_top #(
     reg_rdata_next = '0;
     unique case (1'b1)
       addr_hit[0]: begin
-        reg_rdata_next[0] = perf_counter_enable_0_qs;
+        reg_rdata_next[0] = perf_cnt_en_0_qs;
       end
 
       addr_hit[1]: begin
-        reg_rdata_next[0] = perf_counter_enable_1_qs;
+        reg_rdata_next[0] = perf_cnt_en_1_qs;
       end
 
       addr_hit[2]: begin
-        reg_rdata_next[0] = perf_counter_enable_2_qs;
+        reg_rdata_next[0] = perf_cnt_en_2_qs;
       end
 
       addr_hit[3]: begin
-        reg_rdata_next[0] = perf_counter_enable_3_qs;
+        reg_rdata_next[0] = perf_cnt_en_3_qs;
       end
 
       addr_hit[4]: begin
-        reg_rdata_next[0] = perf_counter_enable_4_qs;
+        reg_rdata_next[0] = perf_cnt_en_4_qs;
       end
 
       addr_hit[5]: begin
-        reg_rdata_next[0] = perf_counter_enable_5_qs;
+        reg_rdata_next[0] = perf_cnt_en_5_qs;
       end
 
       addr_hit[6]: begin
-        reg_rdata_next[0] = perf_counter_enable_6_qs;
+        reg_rdata_next[0] = perf_cnt_en_6_qs;
       end
 
       addr_hit[7]: begin
-        reg_rdata_next[0] = perf_counter_enable_7_qs;
+        reg_rdata_next[0] = perf_cnt_en_7_qs;
       end
 
       addr_hit[8]: begin
-        reg_rdata_next[0] = perf_counter_enable_8_qs;
+        reg_rdata_next[0] = perf_cnt_en_8_qs;
       end
 
       addr_hit[9]: begin
-        reg_rdata_next[0] = perf_counter_enable_9_qs;
+        reg_rdata_next[0] = perf_cnt_en_9_qs;
       end
 
       addr_hit[10]: begin
-        reg_rdata_next[0] = perf_counter_enable_10_qs;
+        reg_rdata_next[0] = perf_cnt_en_10_qs;
       end
 
       addr_hit[11]: begin
-        reg_rdata_next[0] = perf_counter_enable_11_qs;
+        reg_rdata_next[0] = perf_cnt_en_11_qs;
       end
 
       addr_hit[12]: begin
-        reg_rdata_next[0] = perf_counter_enable_12_qs;
+        reg_rdata_next[0] = perf_cnt_en_12_qs;
       end
 
       addr_hit[13]: begin
-        reg_rdata_next[0] = perf_counter_enable_13_qs;
+        reg_rdata_next[0] = perf_cnt_en_13_qs;
       end
 
       addr_hit[14]: begin
-        reg_rdata_next[0] = perf_counter_enable_14_qs;
+        reg_rdata_next[0] = perf_cnt_en_14_qs;
       end
 
       addr_hit[15]: begin
-        reg_rdata_next[0] = perf_counter_enable_15_qs;
+        reg_rdata_next[0] = perf_cnt_en_15_qs;
       end
 
       addr_hit[16]: begin
-        reg_rdata_next[9:0] = perf_counter_select_0_qs;
+        reg_rdata_next[15:0]  = perf_cnt_sel_0_hart_0_qs;
+        reg_rdata_next[31:16] = perf_cnt_sel_0_metric_0_qs;
       end
 
       addr_hit[17]: begin
-        reg_rdata_next[9:0] = perf_counter_select_1_qs;
+        reg_rdata_next[15:0]  = perf_cnt_sel_1_hart_1_qs;
+        reg_rdata_next[31:16] = perf_cnt_sel_1_metric_1_qs;
       end
 
       addr_hit[18]: begin
-        reg_rdata_next[9:0] = perf_counter_select_2_qs;
+        reg_rdata_next[15:0]  = perf_cnt_sel_2_hart_2_qs;
+        reg_rdata_next[31:16] = perf_cnt_sel_2_metric_2_qs;
       end
 
       addr_hit[19]: begin
-        reg_rdata_next[9:0] = perf_counter_select_3_qs;
+        reg_rdata_next[15:0]  = perf_cnt_sel_3_hart_3_qs;
+        reg_rdata_next[31:16] = perf_cnt_sel_3_metric_3_qs;
       end
 
       addr_hit[20]: begin
-        reg_rdata_next[9:0] = perf_counter_select_4_qs;
+        reg_rdata_next[15:0]  = perf_cnt_sel_4_hart_4_qs;
+        reg_rdata_next[31:16] = perf_cnt_sel_4_metric_4_qs;
       end
 
       addr_hit[21]: begin
-        reg_rdata_next[9:0] = perf_counter_select_5_qs;
+        reg_rdata_next[15:0]  = perf_cnt_sel_5_hart_5_qs;
+        reg_rdata_next[31:16] = perf_cnt_sel_5_metric_5_qs;
       end
 
       addr_hit[22]: begin
-        reg_rdata_next[9:0] = perf_counter_select_6_qs;
+        reg_rdata_next[15:0]  = perf_cnt_sel_6_hart_6_qs;
+        reg_rdata_next[31:16] = perf_cnt_sel_6_metric_6_qs;
       end
 
       addr_hit[23]: begin
-        reg_rdata_next[9:0] = perf_counter_select_7_qs;
+        reg_rdata_next[15:0]  = perf_cnt_sel_7_hart_7_qs;
+        reg_rdata_next[31:16] = perf_cnt_sel_7_metric_7_qs;
       end
 
       addr_hit[24]: begin
-        reg_rdata_next[9:0] = perf_counter_select_8_qs;
+        reg_rdata_next[15:0]  = perf_cnt_sel_8_hart_8_qs;
+        reg_rdata_next[31:16] = perf_cnt_sel_8_metric_8_qs;
       end
 
       addr_hit[25]: begin
-        reg_rdata_next[9:0] = perf_counter_select_9_qs;
+        reg_rdata_next[15:0]  = perf_cnt_sel_9_hart_9_qs;
+        reg_rdata_next[31:16] = perf_cnt_sel_9_metric_9_qs;
       end
 
       addr_hit[26]: begin
-        reg_rdata_next[9:0] = perf_counter_select_10_qs;
+        reg_rdata_next[15:0]  = perf_cnt_sel_10_hart_10_qs;
+        reg_rdata_next[31:16] = perf_cnt_sel_10_metric_10_qs;
       end
 
       addr_hit[27]: begin
-        reg_rdata_next[9:0] = perf_counter_select_11_qs;
+        reg_rdata_next[15:0]  = perf_cnt_sel_11_hart_11_qs;
+        reg_rdata_next[31:16] = perf_cnt_sel_11_metric_11_qs;
       end
 
       addr_hit[28]: begin
-        reg_rdata_next[9:0] = perf_counter_select_12_qs;
+        reg_rdata_next[15:0]  = perf_cnt_sel_12_hart_12_qs;
+        reg_rdata_next[31:16] = perf_cnt_sel_12_metric_12_qs;
       end
 
       addr_hit[29]: begin
-        reg_rdata_next[9:0] = perf_counter_select_13_qs;
+        reg_rdata_next[15:0]  = perf_cnt_sel_13_hart_13_qs;
+        reg_rdata_next[31:16] = perf_cnt_sel_13_metric_13_qs;
       end
 
       addr_hit[30]: begin
-        reg_rdata_next[9:0] = perf_counter_select_14_qs;
+        reg_rdata_next[15:0]  = perf_cnt_sel_14_hart_14_qs;
+        reg_rdata_next[31:16] = perf_cnt_sel_14_metric_14_qs;
       end
 
       addr_hit[31]: begin
-        reg_rdata_next[9:0] = perf_counter_select_15_qs;
+        reg_rdata_next[15:0]  = perf_cnt_sel_15_hart_15_qs;
+        reg_rdata_next[31:16] = perf_cnt_sel_15_metric_15_qs;
       end
 
       addr_hit[32]: begin
-        reg_rdata_next[9:0] = perf_counter_hart_select_0_qs;
+        reg_rdata_next[47:0] = perf_cnt_0_qs;
       end
 
       addr_hit[33]: begin
-        reg_rdata_next[9:0] = perf_counter_hart_select_1_qs;
+        reg_rdata_next[47:0] = perf_cnt_1_qs;
       end
 
       addr_hit[34]: begin
-        reg_rdata_next[9:0] = perf_counter_hart_select_2_qs;
+        reg_rdata_next[47:0] = perf_cnt_2_qs;
       end
 
       addr_hit[35]: begin
-        reg_rdata_next[9:0] = perf_counter_hart_select_3_qs;
+        reg_rdata_next[47:0] = perf_cnt_3_qs;
       end
 
       addr_hit[36]: begin
-        reg_rdata_next[9:0] = perf_counter_hart_select_4_qs;
+        reg_rdata_next[47:0] = perf_cnt_4_qs;
       end
 
       addr_hit[37]: begin
-        reg_rdata_next[9:0] = perf_counter_hart_select_5_qs;
+        reg_rdata_next[47:0] = perf_cnt_5_qs;
       end
 
       addr_hit[38]: begin
-        reg_rdata_next[9:0] = perf_counter_hart_select_6_qs;
+        reg_rdata_next[47:0] = perf_cnt_6_qs;
       end
 
       addr_hit[39]: begin
-        reg_rdata_next[9:0] = perf_counter_hart_select_7_qs;
+        reg_rdata_next[47:0] = perf_cnt_7_qs;
       end
 
       addr_hit[40]: begin
-        reg_rdata_next[9:0] = perf_counter_hart_select_8_qs;
+        reg_rdata_next[47:0] = perf_cnt_8_qs;
       end
 
       addr_hit[41]: begin
-        reg_rdata_next[9:0] = perf_counter_hart_select_9_qs;
+        reg_rdata_next[47:0] = perf_cnt_9_qs;
       end
 
       addr_hit[42]: begin
-        reg_rdata_next[9:0] = perf_counter_hart_select_10_qs;
+        reg_rdata_next[47:0] = perf_cnt_10_qs;
       end
 
       addr_hit[43]: begin
-        reg_rdata_next[9:0] = perf_counter_hart_select_11_qs;
+        reg_rdata_next[47:0] = perf_cnt_11_qs;
       end
 
       addr_hit[44]: begin
-        reg_rdata_next[9:0] = perf_counter_hart_select_12_qs;
+        reg_rdata_next[47:0] = perf_cnt_12_qs;
       end
 
       addr_hit[45]: begin
-        reg_rdata_next[9:0] = perf_counter_hart_select_13_qs;
+        reg_rdata_next[47:0] = perf_cnt_13_qs;
       end
 
       addr_hit[46]: begin
-        reg_rdata_next[9:0] = perf_counter_hart_select_14_qs;
+        reg_rdata_next[47:0] = perf_cnt_14_qs;
       end
 
       addr_hit[47]: begin
-        reg_rdata_next[9:0] = perf_counter_hart_select_15_qs;
+        reg_rdata_next[47:0] = perf_cnt_15_qs;
       end
 
       addr_hit[48]: begin
-        reg_rdata_next[47:0] = perf_counter_0_qs;
+        reg_rdata_next[31:0] = '0;
       end
 
       addr_hit[49]: begin
-        reg_rdata_next[47:0] = perf_counter_1_qs;
+        reg_rdata_next[31:0] = '0;
       end
 
       addr_hit[50]: begin
-        reg_rdata_next[47:0] = perf_counter_2_qs;
-      end
-
-      addr_hit[51]: begin
-        reg_rdata_next[47:0] = perf_counter_3_qs;
-      end
-
-      addr_hit[52]: begin
-        reg_rdata_next[47:0] = perf_counter_4_qs;
-      end
-
-      addr_hit[53]: begin
-        reg_rdata_next[47:0] = perf_counter_5_qs;
-      end
-
-      addr_hit[54]: begin
-        reg_rdata_next[47:0] = perf_counter_6_qs;
-      end
-
-      addr_hit[55]: begin
-        reg_rdata_next[47:0] = perf_counter_7_qs;
-      end
-
-      addr_hit[56]: begin
-        reg_rdata_next[47:0] = perf_counter_8_qs;
-      end
-
-      addr_hit[57]: begin
-        reg_rdata_next[47:0] = perf_counter_9_qs;
-      end
-
-      addr_hit[58]: begin
-        reg_rdata_next[47:0] = perf_counter_10_qs;
-      end
-
-      addr_hit[59]: begin
-        reg_rdata_next[47:0] = perf_counter_11_qs;
-      end
-
-      addr_hit[60]: begin
-        reg_rdata_next[47:0] = perf_counter_12_qs;
-      end
-
-      addr_hit[61]: begin
-        reg_rdata_next[47:0] = perf_counter_13_qs;
-      end
-
-      addr_hit[62]: begin
-        reg_rdata_next[47:0] = perf_counter_14_qs;
-      end
-
-      addr_hit[63]: begin
-        reg_rdata_next[47:0] = perf_counter_15_qs;
-      end
-
-      addr_hit[64]: begin
-        reg_rdata_next[31:0] = '0;
-      end
-
-      addr_hit[65]: begin
-        reg_rdata_next[31:0] = '0;
-      end
-
-      addr_hit[66]: begin
         reg_rdata_next[31:0] = hw_barrier_qs;
       end
 
-      addr_hit[67]: begin
+      addr_hit[51]: begin
         reg_rdata_next[0] = '0;
       end
 
@@ -2442,7 +2232,7 @@ module snitch_cluster_peripheral_reg_top #(
 endmodule
 
 module snitch_cluster_peripheral_reg_top_intf #(
-    parameter  int AW = 10,
+    parameter  int AW = 9,
     localparam int DW = 64
 ) (
     input logic clk_i,
