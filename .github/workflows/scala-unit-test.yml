@@ -16,7 +16,7 @@ jobs:
     name: Build and Test
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/kuleuven-micas/snax:pr-110
+      image: ghcr.io/kuleuven-micas/snax:main
     steps:
       - uses: actions/checkout@v2
       - name: Run the unit tests

@@ -64,6 +64,7 @@ RUN cd /usr/bin && curl --proto '=https' --tlsv1.2 https://pulp-platform.github.
 RUN wget https://github.com/pulp-platform/riscv-isa-sim/releases/download/snitch-v0.1.0/snitch-spike-dasm-0.1.0-x86_64-linux-gnu-ubuntu18.04.tar.gz && \
     tar xzf snitch-spike-dasm-0.1.0-x86_64-linux-gnu-ubuntu18.04.tar.gz && \
     rm snitch-spike-dasm-0.1.0-x86_64-linux-gnu-ubuntu18.04.tar.gz && \
+    mv /spike-dasm /usr/bin/spike-dasm && \
 # Verible
     wget https://github.com/chipsalliance/verible/releases/download/v${VERIBLE_VERSION}/verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz && \
     mkdir tempdir && \
@@ -156,6 +157,7 @@ COPY --from=snax-mac /src/target/snitch_cluster/sw/snax/ /opt/snax-mac/target/sn
 COPY --from=snax-mac /src/sw/math/ /opt/snax-mac/sw/math/
 COPY --from=snax-mac /src/sw/deps/riscv-opcodes /opt/snax-mac/sw/deps/riscv-opcodes
 COPY --from=snax-mac /src/sw/deps/printf /opt/snax-mac/sw/deps/printf
+COPY --from=snax-mac /src/util/trace/gen_trace.py /opt/gen_trace.py
 
 COPY --from=snax-gemm /src/target/snitch_cluster/bin/snitch_cluster.vlt /opt/snax-gemm-rtl/bin/snitch_cluster.vlt
 COPY --from=snax-gemm /src/sw/snRuntime /opt/snax-gemm/sw/snRuntime
