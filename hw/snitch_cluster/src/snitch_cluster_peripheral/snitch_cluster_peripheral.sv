@@ -141,7 +141,6 @@ module snitch_cluster_peripheral
   assign hw2reg.hw_barrier.d = 0;
 
   always_comb begin
-    perf_counter_d = perf_counter_q;
     perf_metrics_d = perf_metrics_q;
     for (int i = 0; i < NumPerfCounters; i++) begin
       automatic core_events_t sel_core_events;
@@ -149,7 +148,7 @@ module snitch_cluster_peripheral
       hart_select = reg2hw.perf_counter_hart_select[i].q[$clog2(NrCores):0];
       sel_core_events = core_events_i[hart_select];
       unique case (perf_metrics_q[i])
-        Cycle: perf_counter_d[i]++;
+        Cycle: perf_counter_d[i] += 1;
         TcdmAccessed: perf_counter_d[i] += tcdm_events_q.inc_accessed;
         TcdmCongested: perf_counter_d[i] += tcdm_events_q.inc_congested;
         IssueFpu: perf_counter_d[i] += sel_core_events.issue_fpu;
@@ -180,7 +179,7 @@ module snitch_cluster_peripheral
         IcachePrefetch: perf_counter_d[i] += icache_events_q[hart_select].l0_prefetch;
         IcacheDoubleHit: perf_counter_d[i] += icache_events_q[hart_select].l0_double_hit;
         IcacheStall: perf_counter_d[i] += icache_events_q[hart_select].l0_stall;
-        default: perf_counter_d[i] = perf_counter_d[i];
+        default: perf_counter_d[i] = perf_counter_q[i];
       endcase
       // Reset performance counter.
       if (reg2hw.perf_counter[i].qe) begin
