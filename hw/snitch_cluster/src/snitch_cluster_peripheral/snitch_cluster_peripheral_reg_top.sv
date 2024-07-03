@@ -8,44 +8,44 @@
 `include "common_cells/assertions.svh"
 
 module snitch_cluster_peripheral_reg_top #(
-  parameter type reg_req_t = logic,
-  parameter type reg_rsp_t = logic,
-  parameter int AW = 10
+    parameter type reg_req_t = logic,
+    parameter type reg_rsp_t = logic,
+    parameter int AW = 10
 ) (
-  input logic clk_i,
-  input logic rst_ni,
-  input  reg_req_t reg_req_i,
-  output reg_rsp_t reg_rsp_o,
-  // To HW
-  output snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_reg2hw_t reg2hw, // Write
-  input  snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_hw2reg_t hw2reg, // Read
+    input logic clk_i,
+    input logic rst_ni,
+    input reg_req_t reg_req_i,
+    output reg_rsp_t reg_rsp_o,
+    // To HW
+    output snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_reg2hw_t reg2hw,  // Write
+    input snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_hw2reg_t hw2reg,  // Read
 
 
-  // Config
-  input devmode_i // If 1, explicit error return for unmapped register access
+    // Config
+    input devmode_i  // If 1, explicit error return for unmapped register access
 );
 
-  import snitch_cluster_peripheral_reg_pkg::* ;
+  import snitch_cluster_peripheral_reg_pkg::*;
 
   localparam int DW = 64;
-  localparam int DBW = DW/8;                    // Byte Width
+  localparam int DBW = DW / 8;  // Byte Width
 
   // register signals
-  logic           reg_we;
-  logic           reg_re;
-  logic [BlockAw-1:0]  reg_addr;
-  logic [DW-1:0]  reg_wdata;
-  logic [DBW-1:0] reg_be;
-  logic [DW-1:0]  reg_rdata;
-  logic           reg_error;
+  logic               reg_we;
+  logic               reg_re;
+  logic [BlockAw-1:0] reg_addr;
+  logic [     DW-1:0] reg_wdata;
+  logic [    DBW-1:0] reg_be;
+  logic [     DW-1:0] reg_rdata;
+  logic               reg_error;
 
-  logic          addrmiss, wr_err;
+  logic addrmiss, wr_err;
 
   logic [DW-1:0] reg_rdata_next;
 
   // Below register interface can be changed
-  reg_req_t  reg_intf_req;
-  reg_rsp_t  reg_intf_rsp;
+  reg_req_t reg_intf_req;
+  reg_rsp_t reg_intf_rsp;
 
 
   assign reg_intf_req = reg_req_i;
@@ -61,7 +61,7 @@ module snitch_cluster_peripheral_reg_top #(
   assign reg_intf_rsp.error = reg_error;
   assign reg_intf_rsp.ready = 1'b1;
 
-  assign reg_rdata = reg_rdata_next ;
+  assign reg_rdata = reg_rdata_next;
   assign reg_error = (devmode_i & addrmiss) | wr_err;
 
 
@@ -307,432 +307,432 @@ module snitch_cluster_peripheral_reg_top #(
   // R[perf_counter_enable_0]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_perf_counter_enable_0 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_enable_0_we),
-    .wd     (perf_counter_enable_0_wd),
+      // from register interface
+      .we(perf_counter_enable_0_we),
+      .wd(perf_counter_enable_0_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_enable[0].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_enable[0].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_enable_0_qs)
+      // to register interface (read)
+      .qs(perf_counter_enable_0_qs)
   );
 
   // Subregister 1 of Multireg perf_counter_enable
   // R[perf_counter_enable_1]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_perf_counter_enable_1 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_enable_1_we),
-    .wd     (perf_counter_enable_1_wd),
+      // from register interface
+      .we(perf_counter_enable_1_we),
+      .wd(perf_counter_enable_1_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_enable[1].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_enable[1].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_enable_1_qs)
+      // to register interface (read)
+      .qs(perf_counter_enable_1_qs)
   );
 
   // Subregister 2 of Multireg perf_counter_enable
   // R[perf_counter_enable_2]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_perf_counter_enable_2 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_enable_2_we),
-    .wd     (perf_counter_enable_2_wd),
+      // from register interface
+      .we(perf_counter_enable_2_we),
+      .wd(perf_counter_enable_2_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_enable[2].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_enable[2].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_enable_2_qs)
+      // to register interface (read)
+      .qs(perf_counter_enable_2_qs)
   );
 
   // Subregister 3 of Multireg perf_counter_enable
   // R[perf_counter_enable_3]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_perf_counter_enable_3 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_enable_3_we),
-    .wd     (perf_counter_enable_3_wd),
+      // from register interface
+      .we(perf_counter_enable_3_we),
+      .wd(perf_counter_enable_3_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_enable[3].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_enable[3].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_enable_3_qs)
+      // to register interface (read)
+      .qs(perf_counter_enable_3_qs)
   );
 
   // Subregister 4 of Multireg perf_counter_enable
   // R[perf_counter_enable_4]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_perf_counter_enable_4 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_enable_4_we),
-    .wd     (perf_counter_enable_4_wd),
+      // from register interface
+      .we(perf_counter_enable_4_we),
+      .wd(perf_counter_enable_4_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_enable[4].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_enable[4].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_enable_4_qs)
+      // to register interface (read)
+      .qs(perf_counter_enable_4_qs)
   );
 
   // Subregister 5 of Multireg perf_counter_enable
   // R[perf_counter_enable_5]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_perf_counter_enable_5 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_enable_5_we),
-    .wd     (perf_counter_enable_5_wd),
+      // from register interface
+      .we(perf_counter_enable_5_we),
+      .wd(perf_counter_enable_5_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_enable[5].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_enable[5].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_enable_5_qs)
+      // to register interface (read)
+      .qs(perf_counter_enable_5_qs)
   );
 
   // Subregister 6 of Multireg perf_counter_enable
   // R[perf_counter_enable_6]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_perf_counter_enable_6 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_enable_6_we),
-    .wd     (perf_counter_enable_6_wd),
+      // from register interface
+      .we(perf_counter_enable_6_we),
+      .wd(perf_counter_enable_6_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_enable[6].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_enable[6].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_enable_6_qs)
+      // to register interface (read)
+      .qs(perf_counter_enable_6_qs)
   );
 
   // Subregister 7 of Multireg perf_counter_enable
   // R[perf_counter_enable_7]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_perf_counter_enable_7 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_enable_7_we),
-    .wd     (perf_counter_enable_7_wd),
+      // from register interface
+      .we(perf_counter_enable_7_we),
+      .wd(perf_counter_enable_7_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_enable[7].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_enable[7].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_enable_7_qs)
+      // to register interface (read)
+      .qs(perf_counter_enable_7_qs)
   );
 
   // Subregister 8 of Multireg perf_counter_enable
   // R[perf_counter_enable_8]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_perf_counter_enable_8 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_enable_8_we),
-    .wd     (perf_counter_enable_8_wd),
+      // from register interface
+      .we(perf_counter_enable_8_we),
+      .wd(perf_counter_enable_8_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_enable[8].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_enable[8].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_enable_8_qs)
+      // to register interface (read)
+      .qs(perf_counter_enable_8_qs)
   );
 
   // Subregister 9 of Multireg perf_counter_enable
   // R[perf_counter_enable_9]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_perf_counter_enable_9 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_enable_9_we),
-    .wd     (perf_counter_enable_9_wd),
+      // from register interface
+      .we(perf_counter_enable_9_we),
+      .wd(perf_counter_enable_9_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_enable[9].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_enable[9].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_enable_9_qs)
+      // to register interface (read)
+      .qs(perf_counter_enable_9_qs)
   );
 
   // Subregister 10 of Multireg perf_counter_enable
   // R[perf_counter_enable_10]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_perf_counter_enable_10 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_enable_10_we),
-    .wd     (perf_counter_enable_10_wd),
+      // from register interface
+      .we(perf_counter_enable_10_we),
+      .wd(perf_counter_enable_10_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_enable[10].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_enable[10].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_enable_10_qs)
+      // to register interface (read)
+      .qs(perf_counter_enable_10_qs)
   );
 
   // Subregister 11 of Multireg perf_counter_enable
   // R[perf_counter_enable_11]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_perf_counter_enable_11 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_enable_11_we),
-    .wd     (perf_counter_enable_11_wd),
+      // from register interface
+      .we(perf_counter_enable_11_we),
+      .wd(perf_counter_enable_11_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_enable[11].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_enable[11].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_enable_11_qs)
+      // to register interface (read)
+      .qs(perf_counter_enable_11_qs)
   );
 
   // Subregister 12 of Multireg perf_counter_enable
   // R[perf_counter_enable_12]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_perf_counter_enable_12 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_enable_12_we),
-    .wd     (perf_counter_enable_12_wd),
+      // from register interface
+      .we(perf_counter_enable_12_we),
+      .wd(perf_counter_enable_12_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_enable[12].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_enable[12].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_enable_12_qs)
+      // to register interface (read)
+      .qs(perf_counter_enable_12_qs)
   );
 
   // Subregister 13 of Multireg perf_counter_enable
   // R[perf_counter_enable_13]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_perf_counter_enable_13 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_enable_13_we),
-    .wd     (perf_counter_enable_13_wd),
+      // from register interface
+      .we(perf_counter_enable_13_we),
+      .wd(perf_counter_enable_13_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_enable[13].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_enable[13].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_enable_13_qs)
+      // to register interface (read)
+      .qs(perf_counter_enable_13_qs)
   );
 
   // Subregister 14 of Multireg perf_counter_enable
   // R[perf_counter_enable_14]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_perf_counter_enable_14 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_enable_14_we),
-    .wd     (perf_counter_enable_14_wd),
+      // from register interface
+      .we(perf_counter_enable_14_we),
+      .wd(perf_counter_enable_14_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_enable[14].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_enable[14].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_enable_14_qs)
+      // to register interface (read)
+      .qs(perf_counter_enable_14_qs)
   );
 
   // Subregister 15 of Multireg perf_counter_enable
   // R[perf_counter_enable_15]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("RW"),
-    .RESVAL  (1'h0)
+      .DW      (1),
+      .SWACCESS("RW"),
+      .RESVAL  (1'h0)
   ) u_perf_counter_enable_15 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_enable_15_we),
-    .wd     (perf_counter_enable_15_wd),
+      // from register interface
+      .we(perf_counter_enable_15_we),
+      .wd(perf_counter_enable_15_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_enable[15].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_enable[15].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_enable_15_qs)
+      // to register interface (read)
+      .qs(perf_counter_enable_15_qs)
   );
 
 
@@ -741,256 +741,256 @@ module snitch_cluster_peripheral_reg_top #(
   // R[perf_counter_select_0]: V(True)
 
   prim_subreg_ext #(
-    .DW    (10)
+      .DW(10)
   ) u_perf_counter_select_0 (
-    .re     (perf_counter_select_0_re),
-    .we     (perf_counter_select_0_we),
-    .wd     (perf_counter_select_0_wd),
-    .d      (hw2reg.perf_counter_select[0].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter_select[0].qe),
-    .q      (reg2hw.perf_counter_select[0].q ),
-    .qs     (perf_counter_select_0_qs)
+      .re (perf_counter_select_0_re),
+      .we (perf_counter_select_0_we),
+      .wd (perf_counter_select_0_wd),
+      .d  (hw2reg.perf_counter_select[0].d),
+      .qre(),
+      .qe (reg2hw.perf_counter_select[0].qe),
+      .q  (reg2hw.perf_counter_select[0].q),
+      .qs (perf_counter_select_0_qs)
   );
 
   // Subregister 1 of Multireg perf_counter_select
   // R[perf_counter_select_1]: V(True)
 
   prim_subreg_ext #(
-    .DW    (10)
+      .DW(10)
   ) u_perf_counter_select_1 (
-    .re     (perf_counter_select_1_re),
-    .we     (perf_counter_select_1_we),
-    .wd     (perf_counter_select_1_wd),
-    .d      (hw2reg.perf_counter_select[1].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter_select[1].qe),
-    .q      (reg2hw.perf_counter_select[1].q ),
-    .qs     (perf_counter_select_1_qs)
+      .re (perf_counter_select_1_re),
+      .we (perf_counter_select_1_we),
+      .wd (perf_counter_select_1_wd),
+      .d  (hw2reg.perf_counter_select[1].d),
+      .qre(),
+      .qe (reg2hw.perf_counter_select[1].qe),
+      .q  (reg2hw.perf_counter_select[1].q),
+      .qs (perf_counter_select_1_qs)
   );
 
   // Subregister 2 of Multireg perf_counter_select
   // R[perf_counter_select_2]: V(True)
 
   prim_subreg_ext #(
-    .DW    (10)
+      .DW(10)
   ) u_perf_counter_select_2 (
-    .re     (perf_counter_select_2_re),
-    .we     (perf_counter_select_2_we),
-    .wd     (perf_counter_select_2_wd),
-    .d      (hw2reg.perf_counter_select[2].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter_select[2].qe),
-    .q      (reg2hw.perf_counter_select[2].q ),
-    .qs     (perf_counter_select_2_qs)
+      .re (perf_counter_select_2_re),
+      .we (perf_counter_select_2_we),
+      .wd (perf_counter_select_2_wd),
+      .d  (hw2reg.perf_counter_select[2].d),
+      .qre(),
+      .qe (reg2hw.perf_counter_select[2].qe),
+      .q  (reg2hw.perf_counter_select[2].q),
+      .qs (perf_counter_select_2_qs)
   );
 
   // Subregister 3 of Multireg perf_counter_select
   // R[perf_counter_select_3]: V(True)
 
   prim_subreg_ext #(
-    .DW    (10)
+      .DW(10)
   ) u_perf_counter_select_3 (
-    .re     (perf_counter_select_3_re),
-    .we     (perf_counter_select_3_we),
-    .wd     (perf_counter_select_3_wd),
-    .d      (hw2reg.perf_counter_select[3].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter_select[3].qe),
-    .q      (reg2hw.perf_counter_select[3].q ),
-    .qs     (perf_counter_select_3_qs)
+      .re (perf_counter_select_3_re),
+      .we (perf_counter_select_3_we),
+      .wd (perf_counter_select_3_wd),
+      .d  (hw2reg.perf_counter_select[3].d),
+      .qre(),
+      .qe (reg2hw.perf_counter_select[3].qe),
+      .q  (reg2hw.perf_counter_select[3].q),
+      .qs (perf_counter_select_3_qs)
   );
 
   // Subregister 4 of Multireg perf_counter_select
   // R[perf_counter_select_4]: V(True)
 
   prim_subreg_ext #(
-    .DW    (10)
+      .DW(10)
   ) u_perf_counter_select_4 (
-    .re     (perf_counter_select_4_re),
-    .we     (perf_counter_select_4_we),
-    .wd     (perf_counter_select_4_wd),
-    .d      (hw2reg.perf_counter_select[4].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter_select[4].qe),
-    .q      (reg2hw.perf_counter_select[4].q ),
-    .qs     (perf_counter_select_4_qs)
+      .re (perf_counter_select_4_re),
+      .we (perf_counter_select_4_we),
+      .wd (perf_counter_select_4_wd),
+      .d  (hw2reg.perf_counter_select[4].d),
+      .qre(),
+      .qe (reg2hw.perf_counter_select[4].qe),
+      .q  (reg2hw.perf_counter_select[4].q),
+      .qs (perf_counter_select_4_qs)
   );
 
   // Subregister 5 of Multireg perf_counter_select
   // R[perf_counter_select_5]: V(True)
 
   prim_subreg_ext #(
-    .DW    (10)
+      .DW(10)
   ) u_perf_counter_select_5 (
-    .re     (perf_counter_select_5_re),
-    .we     (perf_counter_select_5_we),
-    .wd     (perf_counter_select_5_wd),
-    .d      (hw2reg.perf_counter_select[5].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter_select[5].qe),
-    .q      (reg2hw.perf_counter_select[5].q ),
-    .qs     (perf_counter_select_5_qs)
+      .re (perf_counter_select_5_re),
+      .we (perf_counter_select_5_we),
+      .wd (perf_counter_select_5_wd),
+      .d  (hw2reg.perf_counter_select[5].d),
+      .qre(),
+      .qe (reg2hw.perf_counter_select[5].qe),
+      .q  (reg2hw.perf_counter_select[5].q),
+      .qs (perf_counter_select_5_qs)
   );
 
   // Subregister 6 of Multireg perf_counter_select
   // R[perf_counter_select_6]: V(True)
 
   prim_subreg_ext #(
-    .DW    (10)
+      .DW(10)
   ) u_perf_counter_select_6 (
-    .re     (perf_counter_select_6_re),
-    .we     (perf_counter_select_6_we),
-    .wd     (perf_counter_select_6_wd),
-    .d      (hw2reg.perf_counter_select[6].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter_select[6].qe),
-    .q      (reg2hw.perf_counter_select[6].q ),
-    .qs     (perf_counter_select_6_qs)
+      .re (perf_counter_select_6_re),
+      .we (perf_counter_select_6_we),
+      .wd (perf_counter_select_6_wd),
+      .d  (hw2reg.perf_counter_select[6].d),
+      .qre(),
+      .qe (reg2hw.perf_counter_select[6].qe),
+      .q  (reg2hw.perf_counter_select[6].q),
+      .qs (perf_counter_select_6_qs)
   );
 
   // Subregister 7 of Multireg perf_counter_select
   // R[perf_counter_select_7]: V(True)
 
   prim_subreg_ext #(
-    .DW    (10)
+      .DW(10)
   ) u_perf_counter_select_7 (
-    .re     (perf_counter_select_7_re),
-    .we     (perf_counter_select_7_we),
-    .wd     (perf_counter_select_7_wd),
-    .d      (hw2reg.perf_counter_select[7].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter_select[7].qe),
-    .q      (reg2hw.perf_counter_select[7].q ),
-    .qs     (perf_counter_select_7_qs)
+      .re (perf_counter_select_7_re),
+      .we (perf_counter_select_7_we),
+      .wd (perf_counter_select_7_wd),
+      .d  (hw2reg.perf_counter_select[7].d),
+      .qre(),
+      .qe (reg2hw.perf_counter_select[7].qe),
+      .q  (reg2hw.perf_counter_select[7].q),
+      .qs (perf_counter_select_7_qs)
   );
 
   // Subregister 8 of Multireg perf_counter_select
   // R[perf_counter_select_8]: V(True)
 
   prim_subreg_ext #(
-    .DW    (10)
+      .DW(10)
   ) u_perf_counter_select_8 (
-    .re     (perf_counter_select_8_re),
-    .we     (perf_counter_select_8_we),
-    .wd     (perf_counter_select_8_wd),
-    .d      (hw2reg.perf_counter_select[8].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter_select[8].qe),
-    .q      (reg2hw.perf_counter_select[8].q ),
-    .qs     (perf_counter_select_8_qs)
+      .re (perf_counter_select_8_re),
+      .we (perf_counter_select_8_we),
+      .wd (perf_counter_select_8_wd),
+      .d  (hw2reg.perf_counter_select[8].d),
+      .qre(),
+      .qe (reg2hw.perf_counter_select[8].qe),
+      .q  (reg2hw.perf_counter_select[8].q),
+      .qs (perf_counter_select_8_qs)
   );
 
   // Subregister 9 of Multireg perf_counter_select
   // R[perf_counter_select_9]: V(True)
 
   prim_subreg_ext #(
-    .DW    (10)
+      .DW(10)
   ) u_perf_counter_select_9 (
-    .re     (perf_counter_select_9_re),
-    .we     (perf_counter_select_9_we),
-    .wd     (perf_counter_select_9_wd),
-    .d      (hw2reg.perf_counter_select[9].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter_select[9].qe),
-    .q      (reg2hw.perf_counter_select[9].q ),
-    .qs     (perf_counter_select_9_qs)
+      .re (perf_counter_select_9_re),
+      .we (perf_counter_select_9_we),
+      .wd (perf_counter_select_9_wd),
+      .d  (hw2reg.perf_counter_select[9].d),
+      .qre(),
+      .qe (reg2hw.perf_counter_select[9].qe),
+      .q  (reg2hw.perf_counter_select[9].q),
+      .qs (perf_counter_select_9_qs)
   );
 
   // Subregister 10 of Multireg perf_counter_select
   // R[perf_counter_select_10]: V(True)
 
   prim_subreg_ext #(
-    .DW    (10)
+      .DW(10)
   ) u_perf_counter_select_10 (
-    .re     (perf_counter_select_10_re),
-    .we     (perf_counter_select_10_we),
-    .wd     (perf_counter_select_10_wd),
-    .d      (hw2reg.perf_counter_select[10].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter_select[10].qe),
-    .q      (reg2hw.perf_counter_select[10].q ),
-    .qs     (perf_counter_select_10_qs)
+      .re (perf_counter_select_10_re),
+      .we (perf_counter_select_10_we),
+      .wd (perf_counter_select_10_wd),
+      .d  (hw2reg.perf_counter_select[10].d),
+      .qre(),
+      .qe (reg2hw.perf_counter_select[10].qe),
+      .q  (reg2hw.perf_counter_select[10].q),
+      .qs (perf_counter_select_10_qs)
   );
 
   // Subregister 11 of Multireg perf_counter_select
   // R[perf_counter_select_11]: V(True)
 
   prim_subreg_ext #(
-    .DW    (10)
+      .DW(10)
   ) u_perf_counter_select_11 (
-    .re     (perf_counter_select_11_re),
-    .we     (perf_counter_select_11_we),
-    .wd     (perf_counter_select_11_wd),
-    .d      (hw2reg.perf_counter_select[11].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter_select[11].qe),
-    .q      (reg2hw.perf_counter_select[11].q ),
-    .qs     (perf_counter_select_11_qs)
+      .re (perf_counter_select_11_re),
+      .we (perf_counter_select_11_we),
+      .wd (perf_counter_select_11_wd),
+      .d  (hw2reg.perf_counter_select[11].d),
+      .qre(),
+      .qe (reg2hw.perf_counter_select[11].qe),
+      .q  (reg2hw.perf_counter_select[11].q),
+      .qs (perf_counter_select_11_qs)
   );
 
   // Subregister 12 of Multireg perf_counter_select
   // R[perf_counter_select_12]: V(True)
 
   prim_subreg_ext #(
-    .DW    (10)
+      .DW(10)
   ) u_perf_counter_select_12 (
-    .re     (perf_counter_select_12_re),
-    .we     (perf_counter_select_12_we),
-    .wd     (perf_counter_select_12_wd),
-    .d      (hw2reg.perf_counter_select[12].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter_select[12].qe),
-    .q      (reg2hw.perf_counter_select[12].q ),
-    .qs     (perf_counter_select_12_qs)
+      .re (perf_counter_select_12_re),
+      .we (perf_counter_select_12_we),
+      .wd (perf_counter_select_12_wd),
+      .d  (hw2reg.perf_counter_select[12].d),
+      .qre(),
+      .qe (reg2hw.perf_counter_select[12].qe),
+      .q  (reg2hw.perf_counter_select[12].q),
+      .qs (perf_counter_select_12_qs)
   );
 
   // Subregister 13 of Multireg perf_counter_select
   // R[perf_counter_select_13]: V(True)
 
   prim_subreg_ext #(
-    .DW    (10)
+      .DW(10)
   ) u_perf_counter_select_13 (
-    .re     (perf_counter_select_13_re),
-    .we     (perf_counter_select_13_we),
-    .wd     (perf_counter_select_13_wd),
-    .d      (hw2reg.perf_counter_select[13].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter_select[13].qe),
-    .q      (reg2hw.perf_counter_select[13].q ),
-    .qs     (perf_counter_select_13_qs)
+      .re (perf_counter_select_13_re),
+      .we (perf_counter_select_13_we),
+      .wd (perf_counter_select_13_wd),
+      .d  (hw2reg.perf_counter_select[13].d),
+      .qre(),
+      .qe (reg2hw.perf_counter_select[13].qe),
+      .q  (reg2hw.perf_counter_select[13].q),
+      .qs (perf_counter_select_13_qs)
   );
 
   // Subregister 14 of Multireg perf_counter_select
   // R[perf_counter_select_14]: V(True)
 
   prim_subreg_ext #(
-    .DW    (10)
+      .DW(10)
   ) u_perf_counter_select_14 (
-    .re     (perf_counter_select_14_re),
-    .we     (perf_counter_select_14_we),
-    .wd     (perf_counter_select_14_wd),
-    .d      (hw2reg.perf_counter_select[14].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter_select[14].qe),
-    .q      (reg2hw.perf_counter_select[14].q ),
-    .qs     (perf_counter_select_14_qs)
+      .re (perf_counter_select_14_re),
+      .we (perf_counter_select_14_we),
+      .wd (perf_counter_select_14_wd),
+      .d  (hw2reg.perf_counter_select[14].d),
+      .qre(),
+      .qe (reg2hw.perf_counter_select[14].qe),
+      .q  (reg2hw.perf_counter_select[14].q),
+      .qs (perf_counter_select_14_qs)
   );
 
   // Subregister 15 of Multireg perf_counter_select
   // R[perf_counter_select_15]: V(True)
 
   prim_subreg_ext #(
-    .DW    (10)
+      .DW(10)
   ) u_perf_counter_select_15 (
-    .re     (perf_counter_select_15_re),
-    .we     (perf_counter_select_15_we),
-    .wd     (perf_counter_select_15_wd),
-    .d      (hw2reg.perf_counter_select[15].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter_select[15].qe),
-    .q      (reg2hw.perf_counter_select[15].q ),
-    .qs     (perf_counter_select_15_qs)
+      .re (perf_counter_select_15_re),
+      .we (perf_counter_select_15_we),
+      .wd (perf_counter_select_15_wd),
+      .d  (hw2reg.perf_counter_select[15].d),
+      .qre(),
+      .qe (reg2hw.perf_counter_select[15].qe),
+      .q  (reg2hw.perf_counter_select[15].q),
+      .qs (perf_counter_select_15_qs)
   );
 
 
@@ -999,432 +999,432 @@ module snitch_cluster_peripheral_reg_top #(
   // R[perf_counter_hart_select_0]: V(False)
 
   prim_subreg #(
-    .DW      (10),
-    .SWACCESS("RW"),
-    .RESVAL  (10'h0)
+      .DW      (10),
+      .SWACCESS("RW"),
+      .RESVAL  (10'h0)
   ) u_perf_counter_hart_select_0 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_hart_select_0_we),
-    .wd     (perf_counter_hart_select_0_wd),
+      // from register interface
+      .we(perf_counter_hart_select_0_we),
+      .wd(perf_counter_hart_select_0_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_hart_select[0].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_hart_select[0].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_hart_select_0_qs)
+      // to register interface (read)
+      .qs(perf_counter_hart_select_0_qs)
   );
 
   // Subregister 1 of Multireg perf_counter_hart_select
   // R[perf_counter_hart_select_1]: V(False)
 
   prim_subreg #(
-    .DW      (10),
-    .SWACCESS("RW"),
-    .RESVAL  (10'h0)
+      .DW      (10),
+      .SWACCESS("RW"),
+      .RESVAL  (10'h0)
   ) u_perf_counter_hart_select_1 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_hart_select_1_we),
-    .wd     (perf_counter_hart_select_1_wd),
+      // from register interface
+      .we(perf_counter_hart_select_1_we),
+      .wd(perf_counter_hart_select_1_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_hart_select[1].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_hart_select[1].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_hart_select_1_qs)
+      // to register interface (read)
+      .qs(perf_counter_hart_select_1_qs)
   );
 
   // Subregister 2 of Multireg perf_counter_hart_select
   // R[perf_counter_hart_select_2]: V(False)
 
   prim_subreg #(
-    .DW      (10),
-    .SWACCESS("RW"),
-    .RESVAL  (10'h0)
+      .DW      (10),
+      .SWACCESS("RW"),
+      .RESVAL  (10'h0)
   ) u_perf_counter_hart_select_2 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_hart_select_2_we),
-    .wd     (perf_counter_hart_select_2_wd),
+      // from register interface
+      .we(perf_counter_hart_select_2_we),
+      .wd(perf_counter_hart_select_2_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_hart_select[2].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_hart_select[2].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_hart_select_2_qs)
+      // to register interface (read)
+      .qs(perf_counter_hart_select_2_qs)
   );
 
   // Subregister 3 of Multireg perf_counter_hart_select
   // R[perf_counter_hart_select_3]: V(False)
 
   prim_subreg #(
-    .DW      (10),
-    .SWACCESS("RW"),
-    .RESVAL  (10'h0)
+      .DW      (10),
+      .SWACCESS("RW"),
+      .RESVAL  (10'h0)
   ) u_perf_counter_hart_select_3 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_hart_select_3_we),
-    .wd     (perf_counter_hart_select_3_wd),
+      // from register interface
+      .we(perf_counter_hart_select_3_we),
+      .wd(perf_counter_hart_select_3_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_hart_select[3].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_hart_select[3].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_hart_select_3_qs)
+      // to register interface (read)
+      .qs(perf_counter_hart_select_3_qs)
   );
 
   // Subregister 4 of Multireg perf_counter_hart_select
   // R[perf_counter_hart_select_4]: V(False)
 
   prim_subreg #(
-    .DW      (10),
-    .SWACCESS("RW"),
-    .RESVAL  (10'h0)
+      .DW      (10),
+      .SWACCESS("RW"),
+      .RESVAL  (10'h0)
   ) u_perf_counter_hart_select_4 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_hart_select_4_we),
-    .wd     (perf_counter_hart_select_4_wd),
+      // from register interface
+      .we(perf_counter_hart_select_4_we),
+      .wd(perf_counter_hart_select_4_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_hart_select[4].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_hart_select[4].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_hart_select_4_qs)
+      // to register interface (read)
+      .qs(perf_counter_hart_select_4_qs)
   );
 
   // Subregister 5 of Multireg perf_counter_hart_select
   // R[perf_counter_hart_select_5]: V(False)
 
   prim_subreg #(
-    .DW      (10),
-    .SWACCESS("RW"),
-    .RESVAL  (10'h0)
+      .DW      (10),
+      .SWACCESS("RW"),
+      .RESVAL  (10'h0)
   ) u_perf_counter_hart_select_5 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_hart_select_5_we),
-    .wd     (perf_counter_hart_select_5_wd),
+      // from register interface
+      .we(perf_counter_hart_select_5_we),
+      .wd(perf_counter_hart_select_5_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_hart_select[5].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_hart_select[5].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_hart_select_5_qs)
+      // to register interface (read)
+      .qs(perf_counter_hart_select_5_qs)
   );
 
   // Subregister 6 of Multireg perf_counter_hart_select
   // R[perf_counter_hart_select_6]: V(False)
 
   prim_subreg #(
-    .DW      (10),
-    .SWACCESS("RW"),
-    .RESVAL  (10'h0)
+      .DW      (10),
+      .SWACCESS("RW"),
+      .RESVAL  (10'h0)
   ) u_perf_counter_hart_select_6 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_hart_select_6_we),
-    .wd     (perf_counter_hart_select_6_wd),
+      // from register interface
+      .we(perf_counter_hart_select_6_we),
+      .wd(perf_counter_hart_select_6_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_hart_select[6].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_hart_select[6].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_hart_select_6_qs)
+      // to register interface (read)
+      .qs(perf_counter_hart_select_6_qs)
   );
 
   // Subregister 7 of Multireg perf_counter_hart_select
   // R[perf_counter_hart_select_7]: V(False)
 
   prim_subreg #(
-    .DW      (10),
-    .SWACCESS("RW"),
-    .RESVAL  (10'h0)
+      .DW      (10),
+      .SWACCESS("RW"),
+      .RESVAL  (10'h0)
   ) u_perf_counter_hart_select_7 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_hart_select_7_we),
-    .wd     (perf_counter_hart_select_7_wd),
+      // from register interface
+      .we(perf_counter_hart_select_7_we),
+      .wd(perf_counter_hart_select_7_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_hart_select[7].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_hart_select[7].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_hart_select_7_qs)
+      // to register interface (read)
+      .qs(perf_counter_hart_select_7_qs)
   );
 
   // Subregister 8 of Multireg perf_counter_hart_select
   // R[perf_counter_hart_select_8]: V(False)
 
   prim_subreg #(
-    .DW      (10),
-    .SWACCESS("RW"),
-    .RESVAL  (10'h0)
+      .DW      (10),
+      .SWACCESS("RW"),
+      .RESVAL  (10'h0)
   ) u_perf_counter_hart_select_8 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_hart_select_8_we),
-    .wd     (perf_counter_hart_select_8_wd),
+      // from register interface
+      .we(perf_counter_hart_select_8_we),
+      .wd(perf_counter_hart_select_8_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_hart_select[8].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_hart_select[8].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_hart_select_8_qs)
+      // to register interface (read)
+      .qs(perf_counter_hart_select_8_qs)
   );
 
   // Subregister 9 of Multireg perf_counter_hart_select
   // R[perf_counter_hart_select_9]: V(False)
 
   prim_subreg #(
-    .DW      (10),
-    .SWACCESS("RW"),
-    .RESVAL  (10'h0)
+      .DW      (10),
+      .SWACCESS("RW"),
+      .RESVAL  (10'h0)
   ) u_perf_counter_hart_select_9 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_hart_select_9_we),
-    .wd     (perf_counter_hart_select_9_wd),
+      // from register interface
+      .we(perf_counter_hart_select_9_we),
+      .wd(perf_counter_hart_select_9_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_hart_select[9].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_hart_select[9].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_hart_select_9_qs)
+      // to register interface (read)
+      .qs(perf_counter_hart_select_9_qs)
   );
 
   // Subregister 10 of Multireg perf_counter_hart_select
   // R[perf_counter_hart_select_10]: V(False)
 
   prim_subreg #(
-    .DW      (10),
-    .SWACCESS("RW"),
-    .RESVAL  (10'h0)
+      .DW      (10),
+      .SWACCESS("RW"),
+      .RESVAL  (10'h0)
   ) u_perf_counter_hart_select_10 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_hart_select_10_we),
-    .wd     (perf_counter_hart_select_10_wd),
+      // from register interface
+      .we(perf_counter_hart_select_10_we),
+      .wd(perf_counter_hart_select_10_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_hart_select[10].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_hart_select[10].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_hart_select_10_qs)
+      // to register interface (read)
+      .qs(perf_counter_hart_select_10_qs)
   );
 
   // Subregister 11 of Multireg perf_counter_hart_select
   // R[perf_counter_hart_select_11]: V(False)
 
   prim_subreg #(
-    .DW      (10),
-    .SWACCESS("RW"),
-    .RESVAL  (10'h0)
+      .DW      (10),
+      .SWACCESS("RW"),
+      .RESVAL  (10'h0)
   ) u_perf_counter_hart_select_11 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_hart_select_11_we),
-    .wd     (perf_counter_hart_select_11_wd),
+      // from register interface
+      .we(perf_counter_hart_select_11_we),
+      .wd(perf_counter_hart_select_11_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_hart_select[11].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_hart_select[11].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_hart_select_11_qs)
+      // to register interface (read)
+      .qs(perf_counter_hart_select_11_qs)
   );
 
   // Subregister 12 of Multireg perf_counter_hart_select
   // R[perf_counter_hart_select_12]: V(False)
 
   prim_subreg #(
-    .DW      (10),
-    .SWACCESS("RW"),
-    .RESVAL  (10'h0)
+      .DW      (10),
+      .SWACCESS("RW"),
+      .RESVAL  (10'h0)
   ) u_perf_counter_hart_select_12 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_hart_select_12_we),
-    .wd     (perf_counter_hart_select_12_wd),
+      // from register interface
+      .we(perf_counter_hart_select_12_we),
+      .wd(perf_counter_hart_select_12_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_hart_select[12].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_hart_select[12].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_hart_select_12_qs)
+      // to register interface (read)
+      .qs(perf_counter_hart_select_12_qs)
   );
 
   // Subregister 13 of Multireg perf_counter_hart_select
   // R[perf_counter_hart_select_13]: V(False)
 
   prim_subreg #(
-    .DW      (10),
-    .SWACCESS("RW"),
-    .RESVAL  (10'h0)
+      .DW      (10),
+      .SWACCESS("RW"),
+      .RESVAL  (10'h0)
   ) u_perf_counter_hart_select_13 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_hart_select_13_we),
-    .wd     (perf_counter_hart_select_13_wd),
+      // from register interface
+      .we(perf_counter_hart_select_13_we),
+      .wd(perf_counter_hart_select_13_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_hart_select[13].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_hart_select[13].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_hart_select_13_qs)
+      // to register interface (read)
+      .qs(perf_counter_hart_select_13_qs)
   );
 
   // Subregister 14 of Multireg perf_counter_hart_select
   // R[perf_counter_hart_select_14]: V(False)
 
   prim_subreg #(
-    .DW      (10),
-    .SWACCESS("RW"),
-    .RESVAL  (10'h0)
+      .DW      (10),
+      .SWACCESS("RW"),
+      .RESVAL  (10'h0)
   ) u_perf_counter_hart_select_14 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_hart_select_14_we),
-    .wd     (perf_counter_hart_select_14_wd),
+      // from register interface
+      .we(perf_counter_hart_select_14_we),
+      .wd(perf_counter_hart_select_14_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_hart_select[14].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_hart_select[14].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_hart_select_14_qs)
+      // to register interface (read)
+      .qs(perf_counter_hart_select_14_qs)
   );
 
   // Subregister 15 of Multireg perf_counter_hart_select
   // R[perf_counter_hart_select_15]: V(False)
 
   prim_subreg #(
-    .DW      (10),
-    .SWACCESS("RW"),
-    .RESVAL  (10'h0)
+      .DW      (10),
+      .SWACCESS("RW"),
+      .RESVAL  (10'h0)
   ) u_perf_counter_hart_select_15 (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (perf_counter_hart_select_15_we),
-    .wd     (perf_counter_hart_select_15_wd),
+      // from register interface
+      .we(perf_counter_hart_select_15_we),
+      .wd(perf_counter_hart_select_15_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.perf_counter_hart_select[15].q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.perf_counter_hart_select[15].q),
 
-    // to register interface (read)
-    .qs     (perf_counter_hart_select_15_qs)
+      // to register interface (read)
+      .qs(perf_counter_hart_select_15_qs)
   );
 
 
@@ -1433,330 +1433,330 @@ module snitch_cluster_peripheral_reg_top #(
   // R[perf_counter_0]: V(True)
 
   prim_subreg_ext #(
-    .DW    (48)
+      .DW(48)
   ) u_perf_counter_0 (
-    .re     (perf_counter_0_re),
-    .we     (perf_counter_0_we),
-    .wd     (perf_counter_0_wd),
-    .d      (hw2reg.perf_counter[0].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter[0].qe),
-    .q      (reg2hw.perf_counter[0].q ),
-    .qs     (perf_counter_0_qs)
+      .re (perf_counter_0_re),
+      .we (perf_counter_0_we),
+      .wd (perf_counter_0_wd),
+      .d  (hw2reg.perf_counter[0].d),
+      .qre(),
+      .qe (reg2hw.perf_counter[0].qe),
+      .q  (reg2hw.perf_counter[0].q),
+      .qs (perf_counter_0_qs)
   );
 
   // Subregister 1 of Multireg perf_counter
   // R[perf_counter_1]: V(True)
 
   prim_subreg_ext #(
-    .DW    (48)
+      .DW(48)
   ) u_perf_counter_1 (
-    .re     (perf_counter_1_re),
-    .we     (perf_counter_1_we),
-    .wd     (perf_counter_1_wd),
-    .d      (hw2reg.perf_counter[1].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter[1].qe),
-    .q      (reg2hw.perf_counter[1].q ),
-    .qs     (perf_counter_1_qs)
+      .re (perf_counter_1_re),
+      .we (perf_counter_1_we),
+      .wd (perf_counter_1_wd),
+      .d  (hw2reg.perf_counter[1].d),
+      .qre(),
+      .qe (reg2hw.perf_counter[1].qe),
+      .q  (reg2hw.perf_counter[1].q),
+      .qs (perf_counter_1_qs)
   );
 
   // Subregister 2 of Multireg perf_counter
   // R[perf_counter_2]: V(True)
 
   prim_subreg_ext #(
-    .DW    (48)
+      .DW(48)
   ) u_perf_counter_2 (
-    .re     (perf_counter_2_re),
-    .we     (perf_counter_2_we),
-    .wd     (perf_counter_2_wd),
-    .d      (hw2reg.perf_counter[2].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter[2].qe),
-    .q      (reg2hw.perf_counter[2].q ),
-    .qs     (perf_counter_2_qs)
+      .re (perf_counter_2_re),
+      .we (perf_counter_2_we),
+      .wd (perf_counter_2_wd),
+      .d  (hw2reg.perf_counter[2].d),
+      .qre(),
+      .qe (reg2hw.perf_counter[2].qe),
+      .q  (reg2hw.perf_counter[2].q),
+      .qs (perf_counter_2_qs)
   );
 
   // Subregister 3 of Multireg perf_counter
   // R[perf_counter_3]: V(True)
 
   prim_subreg_ext #(
-    .DW    (48)
+      .DW(48)
   ) u_perf_counter_3 (
-    .re     (perf_counter_3_re),
-    .we     (perf_counter_3_we),
-    .wd     (perf_counter_3_wd),
-    .d      (hw2reg.perf_counter[3].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter[3].qe),
-    .q      (reg2hw.perf_counter[3].q ),
-    .qs     (perf_counter_3_qs)
+      .re (perf_counter_3_re),
+      .we (perf_counter_3_we),
+      .wd (perf_counter_3_wd),
+      .d  (hw2reg.perf_counter[3].d),
+      .qre(),
+      .qe (reg2hw.perf_counter[3].qe),
+      .q  (reg2hw.perf_counter[3].q),
+      .qs (perf_counter_3_qs)
   );
 
   // Subregister 4 of Multireg perf_counter
   // R[perf_counter_4]: V(True)
 
   prim_subreg_ext #(
-    .DW    (48)
+      .DW(48)
   ) u_perf_counter_4 (
-    .re     (perf_counter_4_re),
-    .we     (perf_counter_4_we),
-    .wd     (perf_counter_4_wd),
-    .d      (hw2reg.perf_counter[4].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter[4].qe),
-    .q      (reg2hw.perf_counter[4].q ),
-    .qs     (perf_counter_4_qs)
+      .re (perf_counter_4_re),
+      .we (perf_counter_4_we),
+      .wd (perf_counter_4_wd),
+      .d  (hw2reg.perf_counter[4].d),
+      .qre(),
+      .qe (reg2hw.perf_counter[4].qe),
+      .q  (reg2hw.perf_counter[4].q),
+      .qs (perf_counter_4_qs)
   );
 
   // Subregister 5 of Multireg perf_counter
   // R[perf_counter_5]: V(True)
 
   prim_subreg_ext #(
-    .DW    (48)
+      .DW(48)
   ) u_perf_counter_5 (
-    .re     (perf_counter_5_re),
-    .we     (perf_counter_5_we),
-    .wd     (perf_counter_5_wd),
-    .d      (hw2reg.perf_counter[5].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter[5].qe),
-    .q      (reg2hw.perf_counter[5].q ),
-    .qs     (perf_counter_5_qs)
+      .re (perf_counter_5_re),
+      .we (perf_counter_5_we),
+      .wd (perf_counter_5_wd),
+      .d  (hw2reg.perf_counter[5].d),
+      .qre(),
+      .qe (reg2hw.perf_counter[5].qe),
+      .q  (reg2hw.perf_counter[5].q),
+      .qs (perf_counter_5_qs)
   );
 
   // Subregister 6 of Multireg perf_counter
   // R[perf_counter_6]: V(True)
 
   prim_subreg_ext #(
-    .DW    (48)
+      .DW(48)
   ) u_perf_counter_6 (
-    .re     (perf_counter_6_re),
-    .we     (perf_counter_6_we),
-    .wd     (perf_counter_6_wd),
-    .d      (hw2reg.perf_counter[6].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter[6].qe),
-    .q      (reg2hw.perf_counter[6].q ),
-    .qs     (perf_counter_6_qs)
+      .re (perf_counter_6_re),
+      .we (perf_counter_6_we),
+      .wd (perf_counter_6_wd),
+      .d  (hw2reg.perf_counter[6].d),
+      .qre(),
+      .qe (reg2hw.perf_counter[6].qe),
+      .q  (reg2hw.perf_counter[6].q),
+      .qs (perf_counter_6_qs)
   );
 
   // Subregister 7 of Multireg perf_counter
   // R[perf_counter_7]: V(True)
 
   prim_subreg_ext #(
-    .DW    (48)
+      .DW(48)
   ) u_perf_counter_7 (
-    .re     (perf_counter_7_re),
-    .we     (perf_counter_7_we),
-    .wd     (perf_counter_7_wd),
-    .d      (hw2reg.perf_counter[7].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter[7].qe),
-    .q      (reg2hw.perf_counter[7].q ),
-    .qs     (perf_counter_7_qs)
+      .re (perf_counter_7_re),
+      .we (perf_counter_7_we),
+      .wd (perf_counter_7_wd),
+      .d  (hw2reg.perf_counter[7].d),
+      .qre(),
+      .qe (reg2hw.perf_counter[7].qe),
+      .q  (reg2hw.perf_counter[7].q),
+      .qs (perf_counter_7_qs)
   );
 
   // Subregister 8 of Multireg perf_counter
   // R[perf_counter_8]: V(True)
 
   prim_subreg_ext #(
-    .DW    (48)
+      .DW(48)
   ) u_perf_counter_8 (
-    .re     (perf_counter_8_re),
-    .we     (perf_counter_8_we),
-    .wd     (perf_counter_8_wd),
-    .d      (hw2reg.perf_counter[8].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter[8].qe),
-    .q      (reg2hw.perf_counter[8].q ),
-    .qs     (perf_counter_8_qs)
+      .re (perf_counter_8_re),
+      .we (perf_counter_8_we),
+      .wd (perf_counter_8_wd),
+      .d  (hw2reg.perf_counter[8].d),
+      .qre(),
+      .qe (reg2hw.perf_counter[8].qe),
+      .q  (reg2hw.perf_counter[8].q),
+      .qs (perf_counter_8_qs)
   );
 
   // Subregister 9 of Multireg perf_counter
   // R[perf_counter_9]: V(True)
 
   prim_subreg_ext #(
-    .DW    (48)
+      .DW(48)
   ) u_perf_counter_9 (
-    .re     (perf_counter_9_re),
-    .we     (perf_counter_9_we),
-    .wd     (perf_counter_9_wd),
-    .d      (hw2reg.perf_counter[9].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter[9].qe),
-    .q      (reg2hw.perf_counter[9].q ),
-    .qs     (perf_counter_9_qs)
+      .re (perf_counter_9_re),
+      .we (perf_counter_9_we),
+      .wd (perf_counter_9_wd),
+      .d  (hw2reg.perf_counter[9].d),
+      .qre(),
+      .qe (reg2hw.perf_counter[9].qe),
+      .q  (reg2hw.perf_counter[9].q),
+      .qs (perf_counter_9_qs)
   );
 
   // Subregister 10 of Multireg perf_counter
   // R[perf_counter_10]: V(True)
 
   prim_subreg_ext #(
-    .DW    (48)
+      .DW(48)
   ) u_perf_counter_10 (
-    .re     (perf_counter_10_re),
-    .we     (perf_counter_10_we),
-    .wd     (perf_counter_10_wd),
-    .d      (hw2reg.perf_counter[10].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter[10].qe),
-    .q      (reg2hw.perf_counter[10].q ),
-    .qs     (perf_counter_10_qs)
+      .re (perf_counter_10_re),
+      .we (perf_counter_10_we),
+      .wd (perf_counter_10_wd),
+      .d  (hw2reg.perf_counter[10].d),
+      .qre(),
+      .qe (reg2hw.perf_counter[10].qe),
+      .q  (reg2hw.perf_counter[10].q),
+      .qs (perf_counter_10_qs)
   );
 
   // Subregister 11 of Multireg perf_counter
   // R[perf_counter_11]: V(True)
 
   prim_subreg_ext #(
-    .DW    (48)
+      .DW(48)
   ) u_perf_counter_11 (
-    .re     (perf_counter_11_re),
-    .we     (perf_counter_11_we),
-    .wd     (perf_counter_11_wd),
-    .d      (hw2reg.perf_counter[11].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter[11].qe),
-    .q      (reg2hw.perf_counter[11].q ),
-    .qs     (perf_counter_11_qs)
+      .re (perf_counter_11_re),
+      .we (perf_counter_11_we),
+      .wd (perf_counter_11_wd),
+      .d  (hw2reg.perf_counter[11].d),
+      .qre(),
+      .qe (reg2hw.perf_counter[11].qe),
+      .q  (reg2hw.perf_counter[11].q),
+      .qs (perf_counter_11_qs)
   );
 
   // Subregister 12 of Multireg perf_counter
   // R[perf_counter_12]: V(True)
 
   prim_subreg_ext #(
-    .DW    (48)
+      .DW(48)
   ) u_perf_counter_12 (
-    .re     (perf_counter_12_re),
-    .we     (perf_counter_12_we),
-    .wd     (perf_counter_12_wd),
-    .d      (hw2reg.perf_counter[12].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter[12].qe),
-    .q      (reg2hw.perf_counter[12].q ),
-    .qs     (perf_counter_12_qs)
+      .re (perf_counter_12_re),
+      .we (perf_counter_12_we),
+      .wd (perf_counter_12_wd),
+      .d  (hw2reg.perf_counter[12].d),
+      .qre(),
+      .qe (reg2hw.perf_counter[12].qe),
+      .q  (reg2hw.perf_counter[12].q),
+      .qs (perf_counter_12_qs)
   );
 
   // Subregister 13 of Multireg perf_counter
   // R[perf_counter_13]: V(True)
 
   prim_subreg_ext #(
-    .DW    (48)
+      .DW(48)
   ) u_perf_counter_13 (
-    .re     (perf_counter_13_re),
-    .we     (perf_counter_13_we),
-    .wd     (perf_counter_13_wd),
-    .d      (hw2reg.perf_counter[13].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter[13].qe),
-    .q      (reg2hw.perf_counter[13].q ),
-    .qs     (perf_counter_13_qs)
+      .re (perf_counter_13_re),
+      .we (perf_counter_13_we),
+      .wd (perf_counter_13_wd),
+      .d  (hw2reg.perf_counter[13].d),
+      .qre(),
+      .qe (reg2hw.perf_counter[13].qe),
+      .q  (reg2hw.perf_counter[13].q),
+      .qs (perf_counter_13_qs)
   );
 
   // Subregister 14 of Multireg perf_counter
   // R[perf_counter_14]: V(True)
 
   prim_subreg_ext #(
-    .DW    (48)
+      .DW(48)
   ) u_perf_counter_14 (
-    .re     (perf_counter_14_re),
-    .we     (perf_counter_14_we),
-    .wd     (perf_counter_14_wd),
-    .d      (hw2reg.perf_counter[14].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter[14].qe),
-    .q      (reg2hw.perf_counter[14].q ),
-    .qs     (perf_counter_14_qs)
+      .re (perf_counter_14_re),
+      .we (perf_counter_14_we),
+      .wd (perf_counter_14_wd),
+      .d  (hw2reg.perf_counter[14].d),
+      .qre(),
+      .qe (reg2hw.perf_counter[14].qe),
+      .q  (reg2hw.perf_counter[14].q),
+      .qs (perf_counter_14_qs)
   );
 
   // Subregister 15 of Multireg perf_counter
   // R[perf_counter_15]: V(True)
 
   prim_subreg_ext #(
-    .DW    (48)
+      .DW(48)
   ) u_perf_counter_15 (
-    .re     (perf_counter_15_re),
-    .we     (perf_counter_15_we),
-    .wd     (perf_counter_15_wd),
-    .d      (hw2reg.perf_counter[15].d),
-    .qre    (),
-    .qe     (reg2hw.perf_counter[15].qe),
-    .q      (reg2hw.perf_counter[15].q ),
-    .qs     (perf_counter_15_qs)
+      .re (perf_counter_15_re),
+      .we (perf_counter_15_we),
+      .wd (perf_counter_15_wd),
+      .d  (hw2reg.perf_counter[15].d),
+      .qre(),
+      .qe (reg2hw.perf_counter[15].qe),
+      .q  (reg2hw.perf_counter[15].q),
+      .qs (perf_counter_15_qs)
   );
 
 
   // R[cl_clint_set]: V(True)
 
   prim_subreg_ext #(
-    .DW    (32)
+      .DW(32)
   ) u_cl_clint_set (
-    .re     (1'b0),
-    .we     (cl_clint_set_we),
-    .wd     (cl_clint_set_wd),
-    .d      ('0),
-    .qre    (),
-    .qe     (reg2hw.cl_clint_set.qe),
-    .q      (reg2hw.cl_clint_set.q ),
-    .qs     ()
+      .re (1'b0),
+      .we (cl_clint_set_we),
+      .wd (cl_clint_set_wd),
+      .d  ('0),
+      .qre(),
+      .qe (reg2hw.cl_clint_set.qe),
+      .q  (reg2hw.cl_clint_set.q),
+      .qs ()
   );
 
 
   // R[cl_clint_clear]: V(True)
 
   prim_subreg_ext #(
-    .DW    (32)
+      .DW(32)
   ) u_cl_clint_clear (
-    .re     (1'b0),
-    .we     (cl_clint_clear_we),
-    .wd     (cl_clint_clear_wd),
-    .d      ('0),
-    .qre    (),
-    .qe     (reg2hw.cl_clint_clear.qe),
-    .q      (reg2hw.cl_clint_clear.q ),
-    .qs     ()
+      .re (1'b0),
+      .we (cl_clint_clear_we),
+      .wd (cl_clint_clear_wd),
+      .d  ('0),
+      .qre(),
+      .qe (reg2hw.cl_clint_clear.qe),
+      .q  (reg2hw.cl_clint_clear.q),
+      .qs ()
   );
 
 
   // R[hw_barrier]: V(True)
 
   prim_subreg_ext #(
-    .DW    (32)
+      .DW(32)
   ) u_hw_barrier (
-    .re     (hw_barrier_re),
-    .we     (1'b0),
-    .wd     ('0),
-    .d      (hw2reg.hw_barrier.d),
-    .qre    (),
-    .qe     (),
-    .q      (reg2hw.hw_barrier.q ),
-    .qs     (hw_barrier_qs)
+      .re (hw_barrier_re),
+      .we (1'b0),
+      .wd ('0),
+      .d  (hw2reg.hw_barrier.d),
+      .qre(),
+      .qe (),
+      .q  (reg2hw.hw_barrier.q),
+      .qs (hw_barrier_qs)
   );
 
 
   // R[icache_prefetch_enable]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("WO"),
-    .RESVAL  (1'h1)
+      .DW      (1),
+      .SWACCESS("WO"),
+      .RESVAL  (1'h1)
   ) u_icache_prefetch_enable (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (icache_prefetch_enable_we),
-    .wd     (icache_prefetch_enable_wd),
+      // from register interface
+      .we(icache_prefetch_enable_we),
+      .wd(icache_prefetch_enable_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.icache_prefetch_enable.q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.icache_prefetch_enable.q),
 
-    .qs     ()
+      .qs()
   );
 
 
@@ -1765,16 +1765,16 @@ module snitch_cluster_peripheral_reg_top #(
   logic [67:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[ 0] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_0_OFFSET);
-    addr_hit[ 1] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_1_OFFSET);
-    addr_hit[ 2] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_2_OFFSET);
-    addr_hit[ 3] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_3_OFFSET);
-    addr_hit[ 4] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_4_OFFSET);
-    addr_hit[ 5] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_5_OFFSET);
-    addr_hit[ 6] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_6_OFFSET);
-    addr_hit[ 7] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_7_OFFSET);
-    addr_hit[ 8] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_8_OFFSET);
-    addr_hit[ 9] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_9_OFFSET);
+    addr_hit[0] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_0_OFFSET);
+    addr_hit[1] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_1_OFFSET);
+    addr_hit[2] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_2_OFFSET);
+    addr_hit[3] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_3_OFFSET);
+    addr_hit[4] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_4_OFFSET);
+    addr_hit[5] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_5_OFFSET);
+    addr_hit[6] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_6_OFFSET);
+    addr_hit[7] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_7_OFFSET);
+    addr_hit[8] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_8_OFFSET);
+    addr_hit[9] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_9_OFFSET);
     addr_hit[10] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_10_OFFSET);
     addr_hit[11] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_11_OFFSET);
     addr_hit[12] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_12_OFFSET);
@@ -1835,7 +1835,7 @@ module snitch_cluster_peripheral_reg_top #(
     addr_hit[67] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_ICACHE_PREFETCH_ENABLE_OFFSET);
   end
 
-  assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
+  assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
 
   // Check sub-word write is permitted
   always_comb begin
@@ -2441,24 +2441,23 @@ module snitch_cluster_peripheral_reg_top #(
 
 endmodule
 
-module snitch_cluster_peripheral_reg_top_intf
-#(
-  parameter int AW = 10,
-  localparam int DW = 64
+module snitch_cluster_peripheral_reg_top_intf #(
+    parameter  int AW = 10,
+    localparam int DW = 64
 ) (
-  input logic clk_i,
-  input logic rst_ni,
-  REG_BUS.in  regbus_slave,
-  // To HW
-  output snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_reg2hw_t reg2hw, // Write
-  input  snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_hw2reg_t hw2reg, // Read
-  // Config
-  input devmode_i // If 1, explicit error return for unmapped register access
+    input logic clk_i,
+    input logic rst_ni,
+    REG_BUS.in regbus_slave,
+    // To HW
+    output snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_reg2hw_t reg2hw,  // Write
+    input snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_hw2reg_t hw2reg,  // Read
+    // Config
+    input devmode_i  // If 1, explicit error return for unmapped register access
 );
- localparam int unsigned STRB_WIDTH = DW/8;
+  localparam int unsigned STRB_WIDTH = DW / 8;
 
-`include "register_interface/typedef.svh"
-`include "register_interface/assign.svh"
+  `include "register_interface/typedef.svh"
+  `include "register_interface/assign.svh"
 
   // Define structs for reg_bus
   typedef logic [AW-1:0] addr_t;
@@ -2468,27 +2467,27 @@ module snitch_cluster_peripheral_reg_top_intf
 
   reg_bus_req_t s_reg_req;
   reg_bus_rsp_t s_reg_rsp;
-  
+
   // Assign SV interface to structs
   `REG_BUS_ASSIGN_TO_REQ(s_reg_req, regbus_slave)
   `REG_BUS_ASSIGN_FROM_RSP(regbus_slave, s_reg_rsp)
 
-  
+
 
   snitch_cluster_peripheral_reg_top #(
-    .reg_req_t(reg_bus_req_t),
-    .reg_rsp_t(reg_bus_rsp_t),
-    .AW(AW)
+      .reg_req_t(reg_bus_req_t),
+      .reg_rsp_t(reg_bus_rsp_t),
+      .AW(AW)
   ) i_regs (
-    .clk_i,
-    .rst_ni,
-    .reg_req_i(s_reg_req),
-    .reg_rsp_o(s_reg_rsp),
-    .reg2hw, // Write
-    .hw2reg, // Read
-    .devmode_i
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(s_reg_req),
+      .reg_rsp_o(s_reg_rsp),
+      .reg2hw,  // Write
+      .hw2reg,  // Read
+      .devmode_i
   );
-  
+
 endmodule
 
 
