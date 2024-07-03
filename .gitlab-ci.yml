@@ -101,11 +101,9 @@ snitch-cluster-vsim:
     # Test trace annotation
     - make SIM_DIR=./runs/vsim/simple annotate -j
     # Run additional, more extensive tests
-    - cd sw/apps/blas/gemm/test
-    - ./run.py run.yaml --cfg $PWD/cfg/* --simulator vsim -j
-    - cd -
-    - cd sw/apps/dnn/transpose/test
-    - ./run.py run.yaml --cfg $PWD/cfg/* --simulator vsim -j
+    - cd sw/apps/blas/gemm/test && ./test.sh && cd -
+    - cd sw/apps/dnn/transpose/test && ./test.sh && cd -
+    - cd sw/apps/dnn/flashattention_2/test && ./test.sh && cd -
 
 # Banshee
 snitch-cluster-banshee:

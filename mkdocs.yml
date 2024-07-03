@@ -25,7 +25,9 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: [util/sim]
+          paths:
+            - util/sim
+            - target/snitch_cluster/util
   - macros:
       on_error_fail: true
 use_directory_urls: false
@@ -62,6 +64,9 @@ nav:
               - rm/sim/Simulation.md
               - rm/sim/Simulator.md
               - rm/sim/Elf.md
+          - Snitch Target Utilities:
+              - run.py: rm/snitch_target_utils/run.md
+              - build.py: rm/snitch_target_utils/build.md
           - Snitch Runtime:
               - Pages: runtime/Pages/index.md
               - Files: runtime/Files/index.md
