@@ -41,11 +41,11 @@ module snitch_regfile #(
 
   // loop from 1 to NumWords-1 as R0 is nil
   always_ff @(posedge clk_i, negedge rst_ni) begin : register_write_behavioral
-    for (int unsigned j = 0; j < NrWritePorts; j++) begin
-      for (int unsigned i = 0; i < NumWords; i++) begin
-        if (~rst_ni) begin
-          mem[i] <= '0;
-        end else begin
+    if (~rst_ni) begin
+      mem <= '0;
+    end else begin
+      for (int unsigned j = 0; j < NrWritePorts; j++) begin
+        for (int unsigned i = 0; i < NumWords; i++) begin
           if (we_dec[j][i]) begin
             mem[i] <= wdata_i[j];
           end
