@@ -4,7 +4,8 @@
 #
 # Noah Huetter <huettern@iis.ee.ethz.ch>
 
-REGTOOL=../../../../../util/regtool.py
+BENDER?=bender
+REGTOOL=$(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
 PYTHON3=$(shell which python)
 CLANG_FORMAT=$(shell which clang-format-12.0.1)
 
@@ -12,7 +13,7 @@ SCHEMA=snitch_cluster_peripheral_reg.hjson
 
 PKG=snitch_cluster_peripheral_reg_pkg.sv
 TOP=snitch_cluster_peripheral_reg_top.sv
-CDEF=../../../../../sw/snRuntime/include/snitch_cluster_peripheral.h
+CDEF=../../../../target/snitch_cluster/sw/runtime/common/snitch_cluster_peripheral.h
 
 all: $(PKG) $(TOP) $(CDEF)
 
