@@ -5,7 +5,6 @@
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 
 `include "common_cells/registers.svh"
-`include "common_cells/assertions.svh"
 
 // MMU w/ L0 TLB
 module snitch_l0_tlb import snitch_pkg::*; #(
