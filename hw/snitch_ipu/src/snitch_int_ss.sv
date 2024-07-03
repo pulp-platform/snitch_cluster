@@ -608,11 +608,11 @@ module snitch_int_ss import riscv_instr::*; import snitch_ipu_pkg::*; import sni
   // Integer Regfile
   // ---------------
   snitch_regfile #(
-    .DATA_WIDTH     ( 32 ),
-    .NR_READ_PORTS  ( 3  ),
-    .NR_WRITE_PORTS ( 1  ),
-    .ZERO_REG_ZERO  ( 0  ),
-    .ADDR_WIDTH     ( 5  )
+    .DataWidth    ( 32 ),
+    .NrReadPorts  ( 3  ),
+    .NrWritePorts ( 1  ),
+    .ZeroRegZero  ( 0  ),
+    .AddrWidth    ( 5  )
   ) i_ipu_regfile (
     .clk_i,
     .rst_ni    (~rst_i),

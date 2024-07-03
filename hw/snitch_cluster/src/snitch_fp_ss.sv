@@ -2413,11 +2413,11 @@ module snitch_fp_ss import snitch_pkg::*; #(
   end
 
   snitch_regfile #(
-    .DATA_WIDTH     ( FLEN ),
-    .NR_READ_PORTS  ( 3    ),
-    .NR_WRITE_PORTS ( 1    ),
-    .ZERO_REG_ZERO  ( 0    ),
-    .ADDR_WIDTH     ( 5    )
+    .DataWidth    ( FLEN ),
+    .NrReadPorts  ( 3    ),
+    .NrWritePorts ( 1    ),
+    .ZeroRegZero  ( 0    ),
+    .AddrWidth    ( 5    )
   ) i_ff_regfile (
     .clk_i,
     .rst_ni    ( ~rst_i    ),

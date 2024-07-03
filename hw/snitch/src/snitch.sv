@@ -2623,11 +2623,11 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // pragma translate_on
 
   snitch_regfile #(
-    .DATA_WIDTH     ( 32       ),
-    .NR_READ_PORTS  ( 2        ),
-    .NR_WRITE_PORTS ( 1        ),
-    .ZERO_REG_ZERO  ( 1        ),
-    .ADDR_WIDTH     ( RegWidth )
+    .DataWidth    ( 32       ),
+    .NrReadPorts  ( 2        ),
+    .NrWritePorts ( 1        ),
+    .ZeroRegZero  ( 1        ),
+    .AddrWidth    ( RegWidth )
   ) i_snitch_regfile (
     .clk_i,
     .rst_ni    ( ~rst_i    ),
