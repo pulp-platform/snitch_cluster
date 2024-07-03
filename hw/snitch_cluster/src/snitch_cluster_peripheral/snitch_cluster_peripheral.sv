@@ -100,7 +100,7 @@ module snitch_cluster_peripheral
 
   // The metrics that should be tracked immediately after reset.
   // TODO: Choose reasonable metrics.
-  localparam NumPerfMetricRstValues = 6;
+  localparam int unsigned NumPerfMetricRstValues = 6;
   localparam perf_metrics_e PerfMetricRstValues[NumPerfMetricRstValues] = '{
     Cycle,
     RetiredInstr,
@@ -192,9 +192,9 @@ module snitch_cluster_peripheral
 
   // Set reset values for the metrics that should be tracked immediately after reset.
   for (genvar i = 0; i < NumPerfCounters; i++) begin : gen_perf_metrics_assign
-    if (i < NumPerfMetricRstValues) begin
+    if (i < NumPerfMetricRstValues) begin : gen_perf_metrics_rst_value
       `FF(perf_metrics_q[i], perf_metrics_d[i], PerfMetricRstValues[i], clk_i, rst_ni)
-    end else begin
+    end else begin : gen_perf_metrics_default
       `FF(perf_metrics_q[i], perf_metrics_d[i], Cycle, clk_i, rst_ni)
     end
   end
