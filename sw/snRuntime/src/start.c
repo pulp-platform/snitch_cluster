@@ -139,8 +139,10 @@ void snrt_main() {
 #endif
 
 #if defined(SNRT_INIT_BSS) || defined(SNRT_INIT_CLS)
-    // Single DMA wait call for both snrt_init_bss() and snrt_init_cls()
+    // Single DMA wait call and barrier for both snrt_init_bss() and
+    // snrt_init_cls()
     if (snrt_is_dm_core()) snrt_dma_wait_all();
+    snrt_cluster_hw_barrier();
 #endif
 
 #ifdef SNRT_CRT0_CALLBACK3
