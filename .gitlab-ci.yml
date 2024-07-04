@@ -103,7 +103,6 @@ snitch-cluster-vsim:
     # Run additional, more extensive tests
     - cd sw/apps/blas/gemm/test && ./test.sh && cd -
     - cd sw/apps/dnn/transpose/test && ./test.sh && cd -
-    - cd sw/apps/dnn/flashattention_2/test && ./test.sh && cd -
 
 # Banshee
 snitch-cluster-banshee:
@@ -128,9 +127,8 @@ snitch-cluster-fdiv-vsim:
     - make CFG_OVERRIDE=cfg/fdiv.hjson sw
     - make bin/snitch_cluster.vsim
     - ./util/run.py sw/fdiv.yaml --simulator vsim -j --run-dir runs/vsim
-    # Extensive FlashAttention-2 tests
-    - cd sw/apps/dnn/flashattention_2/test
-    - ./run.py run.yaml --cfg $PWD/cfg/* --simulator vsim -j
+    # Run additional, more extensive tests
+    - cd sw/apps/dnn/flashattention_2/test && ./test.sh && cd -
 
 # Test OmegaNet TCDM interconnect
 snitch-cluster-omega-vsim:
