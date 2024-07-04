@@ -122,9 +122,6 @@ jobs:
       - uses: actions/checkout@v3
       - uses: DoozyX/clang-format-lint-action@v0.16.2
         with:
-          exclude: |
-            ./sw/saris
-            ./sw/dnn/src/dnn.h
           clangFormatVersion: 10
 
   ######################

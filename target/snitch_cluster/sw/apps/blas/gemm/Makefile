@@ -8,8 +8,3 @@ include ../../../../../../sw/blas/gemm/Makefile
 include ../../common.mk
 
 $(DEP): $(DATA_H)
-
-# Add test target to the Makefile
-.PHONY: test
-test:
-	./test/run.sh $(CFG_PATTERN) $(YAML_FILE)
