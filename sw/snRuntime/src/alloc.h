@@ -91,6 +91,8 @@ inline void snrt_alloc_init() {
         snrt_l3_allocator()->size = 0;
         snrt_l3_allocator()->next = snrt_l3_allocator()->base;
     }
+    // Synchronize with other cores
+    snrt_cluster_hw_barrier();
 }
 
 // TODO colluca: optimize by using DMA
