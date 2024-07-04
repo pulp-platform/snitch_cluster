@@ -78,13 +78,6 @@ jobs:
           match_regex: true
           exclude_paths: |
             sw/snRuntime/src/omp/interface.h
-            sw/math/arch/generic/*
-            sw/math/arch/riscv64/bits/*
-            sw/math/include/*
-            sw/math/src/include/*
-            sw/math/src/internal/*
-            sw/math/src/math/*
-            sw/math/Makefile
 
   ##################
   # Lint YML Files #
@@ -129,7 +122,6 @@ jobs:
       - uses: actions/checkout@v3
       - uses: DoozyX/clang-format-lint-action@v0.16.2
         with:
-          exclude: './sw/saris'
           clangFormatVersion: 10
 
   ######################

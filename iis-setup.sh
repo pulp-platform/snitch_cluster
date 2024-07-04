@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Define environment variables
-export PYTHON=/usr/local/anaconda3-2022.05/bin/python3
 export BENDER=bender-0.27.1
 export CC=gcc-9.2.0
 export CXX=g++-9.2.0
@@ -14,7 +13,7 @@ export QUESTA_SEPP=questa-2022.3
 export LLVM_BINROOT=/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
 
 # Create Python virtual environment with required packages
-$PYTHON -m venv .venv
+/usr/local/anaconda3-2022.05/bin/python3 -m venv .venv
 source .venv/bin/activate
 # Unpack packages in a local temporary directory which can be safely cleaned
 # after installation. Also protects against "No space left on device" errors

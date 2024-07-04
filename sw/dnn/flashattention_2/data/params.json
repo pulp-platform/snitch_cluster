@@ -3,10 +3,11 @@
 // SPDX-License-Identifier: SHL-0.51
 
 {
-    N: 16,
+	L: 16,
+	S: 16,
     d: 16,
-    B_r: 8,
-    B_c: 8,
-    dtype: "FP32",
+    B_r: 16,
+    B_c: 16,
+    dtype: "FP16",
     baseline: true
 }

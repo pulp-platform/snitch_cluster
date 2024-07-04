@@ -14,6 +14,10 @@ from datetime import datetime
 import torch
 import numpy as np
 import pyflexfloat as ff
+import humanize
+
+# Maximum available size in TCDM (in bytes)
+TCDM_HEAP_SIZE = 112 * 1024
 
 
 def emit_license():
@@ -35,6 +39,16 @@ def _integer_precision_t(prec):
         return {'FP64': 8, 'FP32': 4, 'FP16': 2, 'FP8': 1}[prec]
     else:
         return prec
+
+
+def size_from_precision_t(prec):
+    """Return the size in bytes of a `precision_t` type.
+
+    Args:
+        prec: A value of type `precision_t`. Accepts both enum strings
+            (e.g. "FP64") and integer enumeration values (e.g. 8).
+    """
+    return _integer_precision_t(prec)
 
 
 def ff_desc_from_precision_t(prec):
@@ -98,6 +112,11 @@ def flatten(array):
         return array.numpy().flatten()
     elif isinstance(array, list):
         return np.array(array).flatten()
+    # if scalar return it as a list
+    elif isinstance(array, np.generic):
+        return np.array([array]).flatten()
+    else:
+        raise TypeError(f"Unsupported type: {type(array)}")
 
 
 def _variable_attributes(alignment=None, section=None):
@@ -170,13 +189,20 @@ def format_array_initializer(dtype, array):
 def format_struct_definition(dtype, uid, map):
     def format_value(value):
         if isinstance(value, list):
-            return format_array_initializer(str, value)
+            return format_array_initializer('str', value)
         elif isinstance(value, bool):
-            return int(value)
+            return str(int(value))
         else:
             return str(value)
+
+    filtered_map = {key: value for key, value in map.items() if value is not None and value != ''}
+
+    formatted_items = [
+        f'\t.{key} = {format_value(value)}'
+        for key, value in filtered_map.items()
+    ]
     s = f'{_alias_dtype(dtype)} {uid} = {{\n'
-    s += ',\n'.join([f'\t.{key} = {format_value(value)}' for (key, value) in map.items()])
+    s += ',\n'.join(formatted_items)
     s += '\n};'
     return s
 
@@ -250,6 +276,10 @@ class DataGen:
             '--section',
             type=str,
             help='Section to store matrices in')
+        parser.add_argument(
+            'output',
+            type=pathlib.Path,
+            help='Path of the output header file')
         return parser
 
     def parse_args(self):
@@ -282,4 +312,22 @@ class DataGen:
         param['section'] = args.section
 
         # Emit header file
-        print(self.emit_header(**param))
+        with open(args.output, 'w') as f:
+            f.write(self.emit_header(**param))
+
+
+def validate_tcdm_footprint(size, silent=False):
+    """Check whether data of specified size fits in TCDM.
+
+    Throws an assertion error if the specified size exceeds the space
+    available for the heap in TCDM.
+
+    Args:
+        size: The size of the data in bytes.
+        silent: If True, will not print the size to stdout.
+    """
+    assert size < TCDM_HEAP_SIZE, \
+        f'Total heap space required {humanize.naturalsize(size, binary=True)} exceeds ' \
+        f'limit of {humanize.naturalsize(TCDM_HEAP_SIZE, binary=True)}'
+    if not silent:
+        print(f'Total heap space required {humanize.naturalsize(size, binary=True)}')

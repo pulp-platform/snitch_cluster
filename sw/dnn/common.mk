@@ -16,12 +16,15 @@ DATA_CFG ?= $(DATA_DIR)/params.json
 SECTION  ?=
 
 SRCS    ?= $(realpath $(SRC_DIR)/main.c)
-INCDIRS ?= $(DATA_DIR) $(SRC_DIR) $(COMMON_SRC_DIR)
+INCDIRS ?= $(dir $(DATA_H)) $(SRC_DIR) $(COMMON_SRC_DIR)
 
-DATAGEN_PY := $(SCRIPTS_DIR)/datagen.py
-DATA_H     := $(DATA_DIR)/data.h
+DATAGEN_PY = $(SCRIPTS_DIR)/datagen.py
+DATA_H    ?= $(DATA_DIR)/data.h
 
-$(DATA_H): $(DATAGEN_PY) $(DATA_CFG)
+$(dir $(DATA_H)):
+	mkdir -p $@
+
+$(DATA_H): $(DATAGEN_PY) $(DATA_CFG) | $(dir $(DATA_H))
 	$< -c $(DATA_CFG) --section="$(SECTION)" $@
 
 .PHONY: clean-data clean

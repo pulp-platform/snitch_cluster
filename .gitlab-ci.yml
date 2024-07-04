@@ -34,7 +34,6 @@ snitch-cluster-sw:
     - make sw
   artifacts:
     paths:
-      - sw/math/include/bits/alltypes.h
       - target/snitch_cluster/sw/**/build/*.elf
     expire_in: 1 day
 
@@ -44,7 +43,6 @@ snitch-cluster-sw-banshee:
     - make SELECT_RUNTIME=banshee sw
   artifacts:
     paths:
-      - sw/math/include/bits/alltypes.h
       - target/snitch_cluster/sw/**/build/*.elf
     expire_in: 1 day
 
@@ -103,8 +101,8 @@ snitch-cluster-vsim:
     # Test trace annotation
     - make SIM_DIR=./runs/vsim/simple annotate -j
     # Run additional, more extensive tests
-    - cd sw/apps/blas/gemm/test
-    - ./run.py runs.yaml --cfg $PWD/cfg/* --simulator vsim -j
+    - cd sw/apps/blas/gemm/test && ./test.sh && cd -
+    - cd sw/apps/dnn/transpose/test && ./test.sh && cd -
 
 # Banshee
 snitch-cluster-banshee:
@@ -129,6 +127,8 @@ snitch-cluster-fdiv-vsim:
     - make CFG_OVERRIDE=cfg/fdiv.hjson sw
     - make bin/snitch_cluster.vsim
     - ./util/run.py sw/fdiv.yaml --simulator vsim -j --run-dir runs/vsim
+    # Run additional, more extensive tests
+    - cd sw/apps/dnn/flashattention_2/test && ./test.sh && cd -
 
 # Test OmegaNet TCDM interconnect
 snitch-cluster-omega-vsim:
