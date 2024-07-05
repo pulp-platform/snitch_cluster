@@ -2,11 +2,6 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-# Required by Github checkout action on Ubuntu 18.04-based container,
-# see https://github.com/actions/checkout/issues/1590
-env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-
 # Run functional regression checks
 name: ci
 on: [push, pull_request]
