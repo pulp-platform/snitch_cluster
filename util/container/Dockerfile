@@ -2,11 +2,19 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-FROM ubuntu:22.04 AS base
+
+FROM ubuntu:24.04 AS build-bender
+
+RUN apt-get update && apt-get install -y curl build-essential
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN cargo install bender --version 0.28.1
+
+FROM ubuntu:24.04 AS base
 
 # apt update and upgrade
 RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg curl && \
-  wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 17 && rm llvm.sh && \
+  wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 18 && rm llvm.sh && \
   echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list && \
   echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee /etc/apt/sources.list.d/sbt_old.list && \
   curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | apt-key add && \
@@ -27,16 +35,16 @@ RUN apt-get update && apt-get install -y lsb-release wget software-properties-co
   vim \
   nano \
   openjdk-11-jre-headless openjdk-11-jdk-headless \
-  mlir-17-tools clang-format-17 python3 \
+  mlir-18-tools clang-format-18 python3 \
   help2man perl make autoconf g++ flex bison ccache \
   libgoogle-perftools-dev numactl perl-doc \
   libfl2 libfl-dev zlib1g zlib1g-dev \
   sbt \
   python3-pip && \
-  # create symbolic links for all *-17 binaries
-  for f in /usr/bin/*-17; do ln -s $f ${f%-17}; done && \
-  # Update pip for git installs
-  pip3 install --upgrade pip
+  # create symbolic links for all *-18 binaries
+  for f in /usr/bin/*-18; do ln -s $f ${f%-18}; done && \
+  # Enable break-system-packages for non-venv package installs
+  python3 -m pip config set global.break-system-packages true
 
 
 
@@ -58,7 +66,7 @@ ENV VERIBLE_VERSION 0.0-3644-g6882622d
 
 # Install pre-builts:
 # Bender
-RUN cd /usr/bin && curl --proto '=https' --tlsv1.2 https://pulp-platform.github.io/bender/init -sSf | sh -s 0.28.1 && cd /
+COPY --from=build-bender /root/.cargo/bin/bender /usr/bin/bender
 
 # spike-dasm
 RUN wget https://github.com/pulp-platform/riscv-isa-sim/releases/download/snitch-v0.1.0/snitch-spike-dasm-0.1.0-x86_64-linux-gnu-ubuntu18.04.tar.gz && \
@@ -85,7 +93,7 @@ RUN git clone https://github.com/kuleuven-micas/snax_cluster.git && \
     rm -rf snax_cluster && \
 # Install Python Requirements from kuleuven-micas/snax-mlir
     git clone https://github.com/kuleuven-micas/snax-mlir.git && \
-    cd snax-mlir && pip3 install --no-cache-dir -r requirements.txt && \
+    cd snax-mlir && git checkout joren/bump-tensorflow && pip3 install --no-cache-dir -r requirements.txt && \
     cd .. && \
     rm -rf snax-mlir
 
