@@ -278,7 +278,7 @@ TB_CC_SOURCES += \
 	$(GENERATED_DIR)/bootdata.cc
 
 TB_CC_FLAGS += \
-	-std=c++14 \
+	-std=c++17 \
 	-I${MKFILE_DIR}/test \
 	-I${FESVR}/include \
 	-I${TB_DIR}

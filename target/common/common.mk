@@ -52,7 +52,7 @@ VCS_BUILDDIR := work-vcs
 
 # fesvr is being installed here
 FESVR         ?= ${MKFILE_DIR}work
-FESVR_VERSION ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
+FESVR_VERSION ?= 98d2c29e431f3b14feefbda48c5f70c2f451acf2
 
 VLT_BENDER   += -t rtl
 VLT_SOURCES   = $(shell ${BENDER} script flist ${VLT_BENDER} | ${SED_SRCS})
@@ -75,7 +75,7 @@ VLT_FLAGS    += --unroll-count 1024
 ifeq ($(VERILATOR_VERSION), 5)
 	VLT_CXXSTD_FLAGS += -std=c++20 -pthread -latomic
 else 
-	VLT_CXXSTD_FLAGS += -std=c++14 -pthread
+	VLT_CXXSTD_FLAGS += -std=c++17 -pthread
 endif
 VLT_CFLAGS   += ${VLT_CXXSTD_FLAGS} -I ${VLT_BUILDDIR} -I $(VLT_ROOT)/include -I $(VLT_ROOT)/include/vltstd -I $(VLT_FESVR)/include -I $(TB_DIR) -I ${MKFILE_DIR}/test
 
