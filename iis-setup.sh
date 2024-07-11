@@ -28,8 +28,7 @@ $BENDER vendor init
 # Install spike-dasm
 mkdir tools/
 cd tools/
-wget https://github.com/pulp-platform/riscv-isa-sim/releases/download/snitch-v0.1.0/snitch-spike-dasm-0.1.0-x86_64-linux-gnu-almalinux8.7.tar.gz
-tar xzf snitch-spike-dasm-0.1.0-x86_64-linux-gnu-almalinux8.7.tar.gz
+wget https://raw.githubusercontent.com/pulp-platform/riscv-isa-sim/snitch/iis-install-spike-dasm.sh
+chmod +x iis-install-spike-dasm.sh && ./iis-install-spike-dasm.sh && rm iis-install-spike-dasm.sh
 cd -
-echo $PATH
 export PATH=$(pwd)/tools:$PATH
