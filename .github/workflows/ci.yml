@@ -317,10 +317,18 @@ jobs:
         working-directory: hw/chisel
         run: |-
           sbt "testOnly snax.xdma.xdmaStreamer.*"
-      - name: Test xdma DataPath
+      - name: Test xdma DataPath and Controller
         working-directory: hw/chisel
         run: |-
-          sbt "testOnly snax.xdma.xdmaFrontend.DMADataPathTester"
+          sbt "testOnly snax.xdma.xdmaFrontend.*"
+      - name: Test xdma Extension Framework + MaxPool
+        working-directory: hw/chisel
+        run: |-
+          sbt "testOnly snax.xdma.snax.xdma.xdmaExtension.*"
+      - name: Test xdma Top Module
+        working-directory: hw/chisel
+        run: |-
+          sbt "testOnly snax.xdma.xdmaTop.*"
 
   ############################################
   # Build SW on Snitch Cluster w/ Banshee #
