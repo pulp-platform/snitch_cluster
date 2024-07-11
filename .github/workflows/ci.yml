@@ -304,6 +304,20 @@ jobs:
           sw/runtime.yaml \
           sw/snax-streamer-gemm-conv-simd-run.yaml -j
 
+  snax-xdma-unittest:
+    name: Run several unit tests for xdma
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/kuleuven-micas/snax:main
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - name: Test xdma streamer
+        working-directory: hw/chisel
+        run: |-
+          sbt "testOnly snax.xdma.xdmaStreamer.*"
+
   ############################################
   # Build SW on Snitch Cluster w/ Banshee #
   #########################################
