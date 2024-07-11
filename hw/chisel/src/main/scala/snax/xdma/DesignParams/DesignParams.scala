@@ -1,6 +1,7 @@
 package snax.xdma.DesignParams
 
 import chisel3.util.log2Up
+import snax.xdma.xdmaExtension._
 
 /*
  *  This is the collection of all design Params
@@ -85,13 +86,10 @@ class ReaderWriterParam(
 }
 
 // DMA Params
-// import snax.xdma.xdmaExtension._
-// class DMADataPathParam(
-//     val rwParam: ReaderWriterParam,
-//     // val writerparam: ReaderWriterParam,
-//     val extParam: Seq[HasDMAExtension] = Seq[HasDMAExtension]()
-//     // val writerext: Seq[DMAExtension] = Seq[DMAExtension]()
-// )
+class DMADataPathParam(
+    val rwParam: ReaderWriterParam,
+    val extParam: Seq[HasDMAExtension] = Seq[HasDMAExtension]()
+)
 
 class DMAExtensionParam(
     val moduleName: String,

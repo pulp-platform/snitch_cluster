@@ -94,8 +94,8 @@ class ComplexQueueConcat(inputWidth: Int, outputWidth: Int, depth: Int)
   * params include:
   * @param dataType:
   *   the type of one channel
-  * @param N
-  *
+  * @param N:
+  *   the number of seperated channels at the input
   * @param depth:
   *   the depth of the FIFO If inputWidth is smaller than outputWidth, then it
   *   will be the first option If inputWidth is larger than outputWidth, then it
