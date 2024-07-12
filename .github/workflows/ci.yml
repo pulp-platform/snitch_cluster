@@ -324,7 +324,7 @@ jobs:
       - name: Test xdma Extension Framework + MaxPool
         working-directory: hw/chisel
         run: |-
-          sbt "testOnly snax.xdma.snax.xdma.xdmaExtension.*"
+          sbt "testOnly snax.xdma.xdmaExtension.*"
       - name: Test xdma Top Module
         working-directory: hw/chisel
         run: |-
