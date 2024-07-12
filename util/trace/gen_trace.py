@@ -17,13 +17,11 @@ and computes various performance metrics up to each mcycle CSR read.
 
 import sys
 import re
-import math
 import argparse
 import json
 from ctypes import c_int32, c_uint32
 from collections import deque, defaultdict
 import pathlib
-from decimal import Decimal
 
 EXTRA_WB_WARN = 'WARNING: {} transactions still in flight for {}.'
 
@@ -413,6 +411,7 @@ def flt_oper(insn: str, extras: dict, port: int) -> (str, str):
         # Return register name and floating-point literal
         return REG_ABI_NAMES_F[extras[oper_type]], flt_lit(enc, fmt, vlen=vlen)
     return reg, lit
+
 
 def flt_decode(val: int, fmt: int) -> float:
     """Interprets the binary encoding of an integer as a FP value.
