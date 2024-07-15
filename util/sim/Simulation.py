@@ -268,7 +268,7 @@ class GvsocSimulation(Simulation):
     def __init__(self, sim_bin=None, cmd=None, **kwargs):
         super().__init__(**kwargs)
 
-        self.cmd = ['gvsoc', '--target', 'pulp.snitch.snitch_cluster_single', '--binary',
+        self.cmd = ['gvsoc', '--target', os.environ.get('GVSOC_TARGET'), '--binary',
                     str(self.elf), 'run']
 
     def successful(self):
