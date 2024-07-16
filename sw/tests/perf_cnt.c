@@ -8,7 +8,6 @@
 #define WIDE_WORD_SIZE 64
 
 int main() {
-
     uint32_t errors = 0;
     uint32_t core_idx = snrt_cluster_core_idx();
 
@@ -35,7 +34,10 @@ int main() {
     if (core_idx == 0) {
         for (int i = 0; i < SNRT_NUM_PERF_CNTS; i++) {
             // Configure and start the performance counter
-            snrt_cfg_perf_counter(i, SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_CYCLE, 0);
+            snrt_cfg_perf_counter(
+                i,
+                SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_CYCLE,
+                0);
             snrt_start_perf_counter(i);
         }
 
@@ -61,12 +63,20 @@ int main() {
     // Test 4: Check DMA performance with simple 1D test
     if (snrt_is_dm_core()) {
         // Configure performance counters to track DMA read and writes
-        snrt_cfg_perf_counter(0, SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_DMA_AW_DONE, 0);
-        snrt_cfg_perf_counter(1, SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_DMA_AR_DONE, 0);
+        snrt_cfg_perf_counter(
+            0,
+            SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_DMA_AW_DONE,
+            0);
+        snrt_cfg_perf_counter(
+            1,
+            SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_DMA_AR_DONE,
+            0);
 
         // Transfer around some data
-        uint32_t *dst = (void *)ALIGN_UP((uintptr_t)snrt_l1_next(), WIDE_WORD_SIZE);
-        uint32_t *src = (void *)ALIGN_UP((uintptr_t)snrt_l3_next(), WIDE_WORD_SIZE);
+        uint32_t *dst =
+            (void *)ALIGN_UP((uintptr_t)snrt_l1_next(), WIDE_WORD_SIZE);
+        uint32_t *src =
+            (void *)ALIGN_UP((uintptr_t)snrt_l3_next(), WIDE_WORD_SIZE);
 
         // Start performance counters
         snrt_start_perf_counter(0);
@@ -87,24 +97,32 @@ int main() {
         // Reset counter
         snrt_reset_perf_counter(0);
         snrt_reset_perf_counter(1);
-
     }
     // Test 5: Check DMA performance with misaligned 1D test
     if (snrt_is_dm_core()) {
         // Configure performance counters to track DMA read and write beats
-        snrt_cfg_perf_counter(0, SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_DMA_W_DONE, 0);
-        snrt_cfg_perf_counter(1, SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_DMA_R_DONE, 0);
+        snrt_cfg_perf_counter(
+            0,
+            SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_DMA_W_DONE,
+            0);
+        snrt_cfg_perf_counter(
+            1,
+            SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_DMA_R_DONE,
+            0);
 
         // Transfer around some data
-        uint32_t *dst = (void *)ALIGN_UP((uintptr_t)snrt_l1_next(), WIDE_WORD_SIZE);
-        uint32_t *src_misaligned = (void *)ALIGN_UP((uintptr_t)snrt_l3_next(), WIDE_WORD_SIZE) + 0x8;
+        uint32_t *dst =
+            (void *)ALIGN_UP((uintptr_t)snrt_l1_next(), WIDE_WORD_SIZE);
+        uint32_t *src_misaligned =
+            (void *)ALIGN_UP((uintptr_t)snrt_l3_next(), WIDE_WORD_SIZE) + 0x8;
 
         // Start performance counters
         snrt_start_perf_counter(0);
         snrt_start_perf_counter(1);
 
         // Start misaligned DMA transfer and wait for completion
-        snrt_dma_txid_t txid_1d_misaligned = snrt_dma_start_1d(dst, src_misaligned, WIDE_WORD_SIZE);
+        snrt_dma_txid_t txid_1d_misaligned =
+            snrt_dma_start_1d(dst, src_misaligned, WIDE_WORD_SIZE);
         snrt_dma_wait_all();
 
         // Stop performance counter

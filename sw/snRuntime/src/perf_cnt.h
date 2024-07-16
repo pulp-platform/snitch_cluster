@@ -26,7 +26,8 @@ inline perf_regs_t* snrt_perf_counters() {
 }
 
 // Configure a specific perf_counter
-inline void snrt_cfg_perf_counter(uint32_t perf_cnt, uint16_t metric, uint16_t hart) {
+inline void snrt_cfg_perf_counter(uint32_t perf_cnt, uint16_t metric,
+                                  uint16_t hart) {
     // Make sure the configuration is written in a single write
     perf_reg32_t cfg_reg;
     cfg_reg.cfg = (perf_cnt_cfg_t){.metric = metric, .hart = hart};
