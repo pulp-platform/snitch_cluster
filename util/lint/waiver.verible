@@ -13,3 +13,4 @@ waive --rule=unpacked-dimensions-range-ordering --location="hw/future/src/axi_in
 # Auto-generated configuration registers are waived
 waive --rule=typedef-structs-unions --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv"
 waive --rule=line-length --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv"
+waive --rule=parameter-name-style --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_top.sv"
