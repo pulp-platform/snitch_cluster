@@ -5,110 +5,116 @@
 #include "printf.h"
 #include "snrt.h"
 
+#define WIDE_WORD_SIZE 64
+
 int main() {
+
+    uint32_t errors = 0;
     uint32_t core_idx = snrt_cluster_core_idx();
 
+    // Test 1: Check that the performance counters immediately
+    // starts tracking `Cycle` and `RetiredInstr`
     if (core_idx == 0) {
-        uint32_t counter;
+        errors += (snrt_get_perf_counter(0) == 0);
+        errors += (snrt_get_perf_counter(1) == 0);
+    }
 
-        printf("Measuring cycles\n");
-        counter = snrt_get_perf_counter(SNRT_PERF_CNT0);
-        printf("Start: %d cycles\n", counter);
+    // Test 2: Check that all performance counters can be reset
+    if (core_idx == 0) {
+        for (int i = 0; i < SNRT_NUM_PERF_CNTS; i++) {
+            // Stop and reset the performance counter
+            snrt_stop_perf_counter(i);
+            snrt_reset_perf_counter(i);
 
-        // Start performance counter
-        snrt_start_perf_counter(SNRT_PERF_CNT0, SNRT_PERF_CNT_CYCLES, 0);
+            // Check that the performance counter is reset
+            errors += (snrt_get_perf_counter(i) != 0);
+        }
+    }
+
+    // Test 3: Check that the performance counters can configured and started
+    if (core_idx == 0) {
+        for (int i = 0; i < SNRT_NUM_PERF_CNTS; i++) {
+            // Configure and start the performance counter
+            snrt_cfg_perf_counter(i, SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_CYCLE, 0);
+            snrt_start_perf_counter(i);
+        }
 
         // Wait for some cycles
         for (int i = 0; i < 100; i++) {
             asm volatile("nop");
         }
 
-        // Stop performance counter
-        snrt_stop_perf_counter(SNRT_PERF_CNT0);
+        for (int i = 0; i < SNRT_NUM_PERF_CNTS; i++) {
+            // Stop the performance counter
+            snrt_stop_perf_counter(i);
 
-        // Get performance counters
-        counter = snrt_get_perf_counter(SNRT_PERF_CNT0);
-        printf("End: %d cycles\n", counter);
+            // Check that the performance counter is started
+            errors += (snrt_get_perf_counter(i) < 100);
 
-        // Reset counter
-        snrt_reset_perf_counter(SNRT_PERF_CNT0);
+            // Reset the performance counter again
+            snrt_reset_perf_counter(i);
+        }
     }
 
     snrt_cluster_hw_barrier();
 
+    // Test 4: Check DMA performance with simple 1D test
     if (snrt_is_dm_core()) {
-        uint32_t read_bytes, write_bytes;
-
-        printf("Measuring DMA perf\n");
-        read_bytes = snrt_get_perf_counter(SNRT_PERF_CNT0);
-        write_bytes = snrt_get_perf_counter(SNRT_PERF_CNT1);
-        printf("Start: %d/%d bytes read, written\n", read_bytes, write_bytes);
-
-        // Start performance counter
-        snrt_start_perf_counter(SNRT_PERF_CNT0, SNRT_PERF_CNT_DMA_AR_BW, 0);
-        snrt_start_perf_counter(SNRT_PERF_CNT1, SNRT_PERF_CNT_DMA_AW_BW, 0);
+        // Configure performance counters to track DMA read and writes
+        snrt_cfg_perf_counter(0, SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_DMA_AW_DONE, 0);
+        snrt_cfg_perf_counter(1, SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_DMA_AR_DONE, 0);
 
         // Transfer around some data
-        uint32_t *dst = (void *)snrt_l1_next();
-        uint32_t *src =
-            (void *)snrt_l3_next() + 0x4;  // Induce misaligned access
-        printf("Transfering from %p to %p\n", src, dst);
-        snrt_dma_txid_t txid_1d = snrt_dma_start_1d(dst, src, 128);
-        snrt_dma_txid_t txid_2d = snrt_dma_start_2d(dst, src, 128, 128, 0, 4);
+        uint32_t *dst = (void *)ALIGN_UP((uintptr_t)snrt_l1_next(), WIDE_WORD_SIZE);
+        uint32_t *src = (void *)ALIGN_UP((uintptr_t)snrt_l3_next(), WIDE_WORD_SIZE);
 
-        // Wait until completion
+        // Start performance counters
+        snrt_start_perf_counter(0);
+        snrt_start_perf_counter(1);
+
+        // Start DMA transfer and wait for completion
+        snrt_dma_txid_t txid_1d = snrt_dma_start_1d(dst, src, WIDE_WORD_SIZE);
         snrt_dma_wait_all();
 
         // Stop performance counter
-        snrt_stop_perf_counter(SNRT_PERF_CNT0);
-        snrt_stop_perf_counter(SNRT_PERF_CNT1);
+        snrt_stop_perf_counter(0);
+        snrt_stop_perf_counter(1);
 
-        // Get performance counters
-        read_bytes = snrt_get_perf_counter(SNRT_PERF_CNT0);
-        write_bytes = snrt_get_perf_counter(SNRT_PERF_CNT1);
-        printf("End: %d/%d bytes read, written\n", read_bytes, write_bytes);
+        // There should be one AR and one AW
+        errors += (snrt_get_perf_counter(0) != 1);
+        errors += (snrt_get_perf_counter(1) != 1);
 
         // Reset counter
-        snrt_reset_perf_counter(SNRT_PERF_CNT0);
-        snrt_reset_perf_counter(SNRT_PERF_CNT1);
+        snrt_reset_perf_counter(0);
+        snrt_reset_perf_counter(1);
+
     }
+    // Test 5: Check DMA performance with misaligned 1D test
+    if (snrt_is_dm_core()) {
+        // Configure performance counters to track DMA read and write beats
+        snrt_cfg_perf_counter(0, SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_DMA_W_DONE, 0);
+        snrt_cfg_perf_counter(1, SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_DMA_R_DONE, 0);
 
-    snrt_cluster_hw_barrier();
-
-    uint32_t tcdm_accesses, tcdm_congestion;
-
-    if (core_idx == 0) {
-        printf("Measuring TCDM congestion\n");
-        tcdm_accesses = snrt_get_perf_counter(SNRT_PERF_CNT0);
-        tcdm_congestion = snrt_get_perf_counter(SNRT_PERF_CNT1);
-        printf("Start: %d/%d Congestion/Accesses\n", tcdm_congestion,
-               tcdm_accesses);
+        // Transfer around some data
+        uint32_t *dst = (void *)ALIGN_UP((uintptr_t)snrt_l1_next(), WIDE_WORD_SIZE);
+        uint32_t *src_misaligned = (void *)ALIGN_UP((uintptr_t)snrt_l3_next(), WIDE_WORD_SIZE) + 0x8;
 
         // Start performance counters
-        snrt_start_perf_counter(SNRT_PERF_CNT0, SNRT_PERF_CNT_TCDM_ACCESSED, 0);
-        snrt_start_perf_counter(SNRT_PERF_CNT1, SNRT_PERF_CNT_TCDM_CONGESTED,
-                                0);
-    }
+        snrt_start_perf_counter(0);
+        snrt_start_perf_counter(1);
 
-    snrt_cluster_hw_barrier();
+        // Start misaligned DMA transfer and wait for completion
+        snrt_dma_txid_t txid_1d_misaligned = snrt_dma_start_1d(dst, src_misaligned, WIDE_WORD_SIZE);
+        snrt_dma_wait_all();
 
-    // Keep TCDM busy
-    volatile uint32_t *ptr = (void *)snrt_l1_next();
-    for (uint32_t i = 0; i < 100; i++) {
-        *ptr = 0xdeadbeef;
-    }
-
-    if (core_idx == 0) {
         // Stop performance counter
-        snrt_stop_perf_counter(SNRT_PERF_CNT0);
-        snrt_stop_perf_counter(SNRT_PERF_CNT1);
+        snrt_stop_perf_counter(0);
+        snrt_stop_perf_counter(1);
 
-        // Get performance counters
-        tcdm_accesses = snrt_get_perf_counter(SNRT_PERF_CNT0);
-        tcdm_congestion = snrt_get_perf_counter(SNRT_PERF_CNT1);
-        printf("End: %d/%d Congestion/Accesses\n", tcdm_congestion,
-               tcdm_accesses);
+        // There should be two R and one W beat from the DMA
+        errors += (snrt_get_perf_counter(0) != 1);
+        errors += (snrt_get_perf_counter(1) != 2);
     }
 
-    return 0;
+    return errors;
 }
