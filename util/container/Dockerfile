@@ -14,7 +14,7 @@ FROM ubuntu:24.04 AS base
 
 # apt update and upgrade
 RUN apt-get update && apt-get install -y lsb-release wget software-properties-common gnupg curl && \
-  wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 18 && rm llvm.sh && \
+  wget https://apt.llvm.org/llvm.sh && chmod +x llvm.sh && ./llvm.sh 17 && rm llvm.sh && \
   echo "deb https://repo.scala-sbt.org/scalasbt/debian all main" | tee /etc/apt/sources.list.d/sbt.list && \
   echo "deb https://repo.scala-sbt.org/scalasbt/debian /" | tee /etc/apt/sources.list.d/sbt_old.list && \
   curl -sL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x2EE0EA64E40A89B84B2DF73499E82A75642AC823" | apt-key add && \
@@ -35,18 +35,24 @@ RUN apt-get update && apt-get install -y lsb-release wget software-properties-co
   vim \
   nano \
   openjdk-11-jre-headless openjdk-11-jdk-headless \
-  mlir-18-tools clang-format-18 python3 \
+  mlir-17-tools clang-format-17 python3 \
   help2man perl make autoconf g++ flex bison ccache \
   libgoogle-perftools-dev numactl perl-doc \
   libfl2 libfl-dev zlib1g zlib1g-dev \
   sbt \
   python3-pip && \
-  # create symbolic links for all *-18 binaries
-  for f in /usr/bin/*-18; do ln -s $f ${f%-18}; done && \
+  # create symbolic links for all *-17 binaries
+  for f in /usr/bin/*-17; do ln -s $f ${f%-17}; done && \
   # Enable break-system-packages for non-venv package installs
   python3 -m pip config set global.break-system-packages true
 
 
+# Temporarily install python3.10 until xdsl has moved to newer MLIR version
+RUN add-apt-repository -y ppa:deadsnakes/ppa && \
+  apt update && \
+  apt install -y python3.10 && \
+  ln -fs /usr/bin/python3.10 /usr/bin/python3 && \
+  ln -fs /bin/python3.10 /bin/python3
 
 # Install Verilator
 RUN git clone https://github.com/verilator/verilator && \
@@ -93,7 +99,7 @@ RUN git clone https://github.com/kuleuven-micas/snax_cluster.git && \
     rm -rf snax_cluster && \
 # Install Python Requirements from kuleuven-micas/snax-mlir
     git clone https://github.com/kuleuven-micas/snax-mlir.git && \
-    cd snax-mlir && git checkout joren/bump-tensorflow && pip3 install --no-cache-dir -r requirements.txt && \
+    cd snax-mlir && pip3 install --no-cache-dir -r requirements.txt && \
     cd .. && \
     rm -rf snax-mlir
 
@@ -153,6 +159,21 @@ RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
     make -C target/snitch_cluster bin/snitch_cluster.vlt \
     CFG_OVERRIDE=cfg/snax-alu.hjson -j $(nproc)
 
+FROM base as snax-streamer-gemm
+
+RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
+    cd /src && git submodule update --init && \
+    cd /src && sbt package && \
+    cd /src && \
+    make DEBUG=ON sw -j$(nproc) \
+    -C target/snitch_cluster \
+    SELECT_TOOLCHAIN=llvm-generic \
+    SELECT_RUNTIME=rtl-generic \
+    CFG_OVERRIDE=cfg/snax-streamer-gemm.hjson && \
+    cd /src && \
+    make -C target/snitch_cluster bin/snitch_cluster.vlt \
+    CFG_OVERRIDE=cfg/snax-streamer-gemm.hjson -j $(nproc)
+
 # Copy Hardware to final image
 FROM base as target
 
@@ -186,3 +207,13 @@ COPY --from=snax-alu /src/target/snitch_cluster/sw/snax/ /opt/snax-alu/target/sn
 COPY --from=snax-alu /src/sw/math/ /opt/snax-alu/sw/math/
 COPY --from=snax-alu /src/sw/deps/riscv-opcodes /opt/snax-alu/sw/deps/riscv-opcodes
 COPY --from=snax-alu /src/sw/deps/printf /opt/snax-alu/sw/deps/printf
+
+COPY --from=snax-streamer-gemm /src/target/snitch_cluster/bin/snitch_cluster.vlt /opt/snax-streamer-gemm-rtl/bin/snitch_cluster.vlt
+COPY --from=snax-streamer-gemm /src/sw/snRuntime /opt/snax-streamer-gemm/sw/snRuntime
+COPY --from=snax-streamer-gemm /src/target/snitch_cluster/sw/runtime/rtl /opt/snax-streamer-gemm/target/snitch_cluster/sw/runtime/rtl
+COPY --from=snax-streamer-gemm /src/target/snitch_cluster/sw/runtime/rtl-generic /opt/snax-streamer-gemm/target/snitch_cluster/sw/runtime/rtl-generic
+COPY --from=snax-streamer-gemm /src/target/snitch_cluster/sw/runtime/common /opt/snax-streamer-gemm/target/snitch_cluster/sw/runtime/common
+COPY --from=snax-streamer-gemm /src/target/snitch_cluster/sw/snax/ /opt/snax-streamer-gemm/target/snitch_cluster/sw/snax
+COPY --from=snax-streamer-gemm /src/sw/math/ /opt/snax-streamer-gemm/sw/math/
+COPY --from=snax-streamer-gemm /src/sw/deps/riscv-opcodes /opt/snax-streamer-gemm/sw/deps/riscv-opcodes
+COPY --from=snax-streamer-gemm /src/sw/deps/printf /opt/snax-streamer-gemm/sw/deps/printf
