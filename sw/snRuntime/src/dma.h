@@ -192,8 +192,8 @@ inline snrt_dma_txid_t snrt_dma_start_2d_channel_wideptr(
     asm volatile(
         ".word %1\n"
         : "=r"(reg_txid)
-        : "i"(R_TYPE_ENCODE(DMCPY_FUNCT7, 7, 14, XDMA_FUNCT3, 10, OP_CUSTOM1)), "r"(cfg),
-          "r"(reg_size));
+        : "i"(R_TYPE_ENCODE(DMCPY_FUNCT7, 7, 14, XDMA_FUNCT3, 10, OP_CUSTOM1)),
+          "r"(cfg), "r"(reg_size));
 
     return reg_txid;
 }
