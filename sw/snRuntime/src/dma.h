@@ -4,12 +4,26 @@
 
 #pragma once
 
+#define OP_CUSTOM1 0b0101011
+#define XDMA_FUNCT3 0b000
+#define DMSRC_FUNCT7 0b0000000
+#define DMDST_FUNCT7 0b0000001
+#define DMCPYI_FUNCT7 0b0000010
+#define DMCPY_FUNCT7 0b0000011
+#define DMSTATI_FUNCT7 0b0000100
+#define DMSTAT_FUNCT7 0b0000101
+#define DMSTR_FUNCT7 0b0000110
+#define DMREP_FUNCT7 0b0000111
+
+#define R_TYPE_ENCODE(funct7, rs2, rs1, funct3, rd, opcode)                    \
+    ((funct7 << 25) | (rs2 << 20) | (rs1 << 15) | (funct3 << 12) | (rd << 7) | \
+     (opcode))
+
 /// A DMA transfer identifier.
 typedef uint32_t snrt_dma_txid_t;
 
-/// Initiate an asynchronous 1D DMA transfer with wide 64-bit pointers.
-inline snrt_dma_txid_t snrt_dma_start_1d_wideptr(uint64_t dst, uint64_t src,
-                                                 size_t size) {
+inline uint32_t snrt_dma_start_1d_wideptr(uint64_t dst, uint64_t src,
+                                          size_t size) {
     register uint32_t reg_dst_low asm("a0") = dst >> 0;    // 10
     register uint32_t reg_dst_high asm("a1") = dst >> 32;  // 11
     register uint32_t reg_src_low asm("a2") = src >> 0;    // 12
@@ -17,34 +31,22 @@ inline snrt_dma_txid_t snrt_dma_start_1d_wideptr(uint64_t dst, uint64_t src,
     register uint32_t reg_size asm("a4") = size;           // 14
 
     // dmsrc a2, a3
-    asm volatile(
-        ".word (0b0000000 << 25) | \
-            (     (13) << 20) | \
-            (     (12) << 15) | \
-            (    0b000 << 12) | \
-            (0b0101011 <<  0)   \n" ::"r"(reg_src_high),
-        "r"(reg_src_low));
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMSRC_FUNCT7, 13, 12,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_src_high), "r"(reg_src_low));
 
     // dmdst a0, a1
-    asm volatile(
-        ".word (0b0000001 << 25) | \
-            (     (11) << 20) | \
-            (     (10) << 15) | \
-            (    0b000 << 12) | \
-            (0b0101011 <<  0)   \n" ::"r"(reg_dst_high),
-        "r"(reg_dst_low));
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMDST_FUNCT7, 11, 10,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_dst_high), "r"(reg_dst_low));
 
     // dmcpyi a0, a4, 0b00
     register uint32_t reg_txid asm("a0");  // 10
-    asm volatile(
-        ".word (0b0000010 << 25) | \
-            (  0b00000 << 20) | \
-            (     (14) << 15) | \
-            (    0b000 << 12) | \
-            (     (10) <<  7) | \
-            (0b0101011 <<  0)   \n"
-        : "=r"(reg_txid)
-        : "r"(reg_size));
+    asm volatile(".word %1\n"
+                 : "=r"(reg_txid)
+                 : "i"(R_TYPE_ENCODE(DMCPYI_FUNCT7, 0b00000, 14, XDMA_FUNCT3,
+                                     10, OP_CUSTOM1)),
+                   "r"(reg_size));
 
     return reg_txid;
 }
@@ -70,53 +72,32 @@ inline snrt_dma_txid_t snrt_dma_start_2d_wideptr(uint64_t dst, uint64_t src,
     register uint32_t reg_repeat asm("a7") = repeat;          // 17
 
     // dmsrc a0, a1
-    asm volatile(
-        ".word (0b0000000 << 25) | \
-            (     (13) << 20) | \
-            (     (12) << 15) | \
-            (    0b000 << 12) | \
-            (0b0101011 <<  0)   \n" ::"r"(reg_src_high),
-        "r"(reg_src_low));
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMSRC_FUNCT7, 13, 12,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_src_high), "r"(reg_src_low));
 
     // dmdst a0, a1
-    asm volatile(
-        ".word (0b0000001 << 25) | \
-            (     (11) << 20) | \
-            (     (10) << 15) | \
-            (    0b000 << 12) | \
-            (0b0101011 <<  0)   \n" ::"r"(reg_dst_high),
-        "r"(reg_dst_low));
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMDST_FUNCT7, 11, 10,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_dst_high), "r"(reg_dst_low));
 
     // dmstr a5, a6
-    asm volatile(
-        ".word (0b0000110 << 25) | \
-            (     (15) << 20) | \
-            (     (16) << 15) | \
-            (    0b000 << 12) | \
-            (0b0101011 <<  0)   \n"
-        :
-        : "r"(reg_dst_stride), "r"(reg_src_stride));
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMSTR_FUNCT7, 15, 16,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_src_stride), "r"(reg_dst_stride));
 
     // dmrep a7
-    asm volatile(
-        ".word (0b0000111 << 25) | \
-            (     (17) << 15) | \
-            (    0b000 << 12) | \
-            (0b0101011 <<  0)   \n"
-        :
-        : "r"(reg_repeat));
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMREP_FUNCT7, 0, 17,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_repeat));
 
     // dmcpyi a0, a4, 0b10
     register uint32_t reg_txid asm("a0");  // 10
-    asm volatile(
-        ".word (0b0000010 << 25) | \
-            (  0b00010 << 20) | \
-            (     (14) << 15) | \
-            (    0b000 << 12) | \
-            (     (10) <<  7) | \
-            (0b0101011 <<  0)   \n"
-        : "=r"(reg_txid)
-        : "r"(reg_size));
+    asm volatile(".word %1\n"
+                 : "=r"(reg_txid)
+                 : "i"(R_TYPE_ENCODE(DMCPYI_FUNCT7, 0b00010, 14, XDMA_FUNCT3,
+                                     10, OP_CUSTOM1)),
+                   "r"(reg_size));
 
     return reg_txid;
 }
@@ -135,15 +116,31 @@ inline snrt_dma_txid_t snrt_dma_start_1d_channel_wideptr(uint64_t dst,
                                                          uint64_t src,
                                                          size_t size,
                                                          uint32_t channel) {
-    register uint32_t reg_txid;  // 10
-    register uint32_t cfg = channel << 2;
+    register uint32_t reg_dst_low asm("a0") = dst >> 0;    // 10
+    register uint32_t reg_dst_high asm("a1") = dst >> 32;  // 11
+    register uint32_t reg_src_low asm("a2") = src >> 0;    // 12
+    register uint32_t reg_src_high asm("a3") = src >> 32;  // 13
+    register uint32_t reg_size asm("a4") = size;           // 14
+    register uint32_t cfg asm("a5") = channel << 2;        // 15
+
+    // dmsrc a2, a3
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMSRC_FUNCT7, 13, 12,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_src_high), "r"(reg_src_low));
+
+    // dmdst a0, a1
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMDST_FUNCT7, 11, 10,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_dst_high), "r"(reg_dst_low));
+
+    // dmcpy a0, a4, a5
+    register uint32_t reg_txid asm("a0");  // 10
     asm volatile(
-        "dmsrc   %[sl], %[sh]\n"
-        "dmdst   %[dl], %[dh]\n"
-        "dmcpy  %[id], %[sz], %[cfg]"
-        : [ id ] "=r"(reg_txid)
-        : [ sh ] "r"(src >> 32), [ sl ] "r"(src), [ dh ] "r"(dst >> 32),
-          [ dl ] "r"(dst), [ sz ] "r"(size), [ cfg ] "r"(cfg));
+        ".word %1\n"
+        : "=r"(reg_txid)
+        : "i"(R_TYPE_ENCODE(DMCPY_FUNCT7, 15, 14, XDMA_FUNCT3, 10, OP_CUSTOM1)),
+          "r"(reg_size), "r"(cfg));
+
     return reg_txid;
 }
 
@@ -160,18 +157,44 @@ inline snrt_dma_txid_t snrt_dma_start_1d_channel(void *dst, const void *src,
 inline snrt_dma_txid_t snrt_dma_start_2d_channel_wideptr(
     uint64_t dst, uint64_t src, size_t size, size_t dst_stride,
     size_t src_stride, size_t repeat, uint32_t channel) {
-    register uint32_t reg_txid;  // 10
-    register uint32_t cfg = channel << 2 | 2;
+    register uint32_t reg_dst_low asm("a0") = dst >> 0;       // 10
+    register uint32_t reg_dst_high asm("a1") = dst >> 32;     // 11
+    register uint32_t reg_src_low asm("a2") = src >> 0;       // 12
+    register uint32_t reg_src_high asm("a3") = src >> 32;     // 13
+    register uint32_t reg_size asm("a4") = size;              // 14
+    register uint32_t reg_dst_stride asm("a5") = dst_stride;  // 15
+    register uint32_t reg_src_stride asm("a6") = src_stride;  // 16
+    register uint32_t reg_repeat asm("a7") = repeat;          // 17
+    register uint32_t cfg asm("t2") = channel << 2 | 2;       // 7
+
+    // dmsrc a0, a1
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMSRC_FUNCT7, 13, 12,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_src_high), "r"(reg_src_low));
+
+    // dmdst a0, a1
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMDST_FUNCT7, 11, 10,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_dst_high), "r"(reg_dst_low));
+
+    // dmstr a5, a6
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMSTR_FUNCT7, 15, 16,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_src_stride), "r"(reg_dst_stride));
+
+    // dmrep a7
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMREP_FUNCT7, 0, 17,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_repeat));
+
+    // dmcpy a0, a4, t2
+    register uint32_t reg_txid asm("a0");  // 10
     asm volatile(
-        "dmsrc   %[sl], %[sh]\n"
-        "dmdst   %[dl], %[dh]\n"
-        "dmstr   %[rs], %[rd]\n"
-        "dmrep   %[rp]\n"
-        "dmcpy  %[id], %[sz], %[cfg]"
-        : [ id ] "=r"(reg_txid)
-        : [ sh ] "r"(src >> 32), [ sl ] "r"(src), [ dh ] "r"(dst >> 32),
-          [ dl ] "r"(dst), [ rd ] "r"(dst_stride), [ rs ] "r"(src_stride),
-          [ rp ] "r"(repeat), [ sz ] "r"(size), [ cfg ] "r"(cfg));
+        ".word %1\n"
+        : "=r"(reg_txid)
+        : "i"(R_TYPE_ENCODE(DMCPY_FUNCT7, 7, 14, XDMA_FUNCT3, 10, OP_CUSTOM1)),
+          "r"(reg_size));
+
     return reg_txid;
 }
 
@@ -188,56 +211,52 @@ inline snrt_dma_txid_t snrt_dma_start_2d_channel(void *dst, const void *src,
 
 /// Block until a transfer finishes.
 inline void snrt_dma_wait(snrt_dma_txid_t tid) {
-    register uint32_t tmp;
-    // dmstati t0, 0  # 2=status.completed_id
+    // dmstati t0, 0  # 0=status.completed_id
     asm volatile(
         "1: \n"
-        ".word (0b0000100 << 25) | \
-               (  0b00000 << 20) | \
-               (    0b000 << 12) | \
-               (      (5) <<  7) | \
-               (0b0101011 <<  0)   \n"
-        "bltu t0, %0, 1b \n" ::"r"(tid)
+        ".word %0\n"
+        "bltu t0, %1, 1b \n" ::"i"(
+            R_TYPE_ENCODE(DMSTATI_FUNCT7, 0b00, 0, XDMA_FUNCT3, 5, OP_CUSTOM1)),
+        "r"(tid)
         : "t0");
 }
 
 /// Block until a transfer finishes on a specific channel.
 inline void snrt_dma_wait_channel(snrt_dma_txid_t tid, uint32_t channel) {
-    register uint32_t tmp;
-    // dmstati t0, 0  # 2=status.completed_id
-    uint32_t cfg = channel << 2;
+    // dmstati t0, 0  # 0=status.completed_id
+    register uint32_t cfg asm("t1") = channel << 2;
     asm volatile(
         "1: \n"
-        "dmstat  %[tmp], %[cfg] \n"
-        "sub t0, t0, %0 \n"
-        "blez t0, 1b \n"
-        : [ tmp ] "=&r"(tmp)
-        : "r"(tid), [ cfg ] "r"(cfg)
-        : "t0");
+        ".word %0\n"
+        "sub t0, t0, %1 \n"
+        "blez t0, 1b \n" ::"i"(
+            R_TYPE_ENCODE(DMSTAT_FUNCT7, 6, 0, XDMA_FUNCT3, 5, OP_CUSTOM1)),
+        "r"(tid), "r"(cfg)
+        : "t0", "t1");
 }
 
 /// Block until all operation on the DMA ceases.
 inline void snrt_dma_wait_all() {
-    register uint32_t tmp;
     // dmstati t0, 2  # 2=status.busy
     asm volatile(
         "1: \n"
-        "dmstati  %[tmp], 2 \n"
-        "bne %[tmp], zero, 1b \n"
-        : [ tmp ] "=&r"(tmp)::"t0");
+        ".word %0\n"
+        "bne t0, zero, 1b \n" ::"i"(
+            R_TYPE_ENCODE(DMSTATI_FUNCT7, 0b10, 0, XDMA_FUNCT3, 5, OP_CUSTOM1))
+        : "t0");
 }
 
 /// Block until all operation on the DMA ceases on a specific channel.
 inline void snrt_dma_wait_all_channel(uint32_t channel) {
     register uint32_t tmp;
     // dmstati t0, 2  # 2=status.busy
-    uint32_t cfg = channel << 2 | 2;
+    register uint32_t cfg asm("t1") = channel << 2 | 2;
     asm volatile(
         "1: \n"
-        "dmstat  %[tmp], %[cfg] \n"
-        "bne %[tmp], zero, 1b \n"
-        : [ tmp ] "=&r"(tmp)
-        : [ cfg ] "r"(cfg)
+        ".word %0\n"
+        "bne t0, zero, 1b \n" ::"i"(
+            R_TYPE_ENCODE(DMSTATI_FUNCT7, 6, 0, XDMA_FUNCT3, 5, OP_CUSTOM1)),
+        "r"(cfg)
         : "t0");
 }
 
@@ -246,14 +265,7 @@ inline void snrt_dma_wait_all_channels(uint32_t num_channels) {
     register uint32_t tmp;
     // dmstati t0, 2  # 2=status.busy
     for (int c = 0; c < num_channels; c++) {
-        uint32_t cfg = c << 2 | 2;
-        asm volatile(
-            "1: \n"
-            "dmstat  %[tmp], %[cfg] \n"
-            "bne %[tmp], zero, 1b \n"
-            : [ tmp ] "=&r"(tmp)
-            : [ cfg ] "r"(cfg)
-            : "t0");
+        snrt_dma_wait_all_channel(c);
     }
 }
 
@@ -263,7 +275,11 @@ inline void snrt_dma_wait_all_channels(uint32_t num_channels) {
  * analyzed
  *
  */
-inline void snrt_dma_start_tracking() { asm volatile("dmstati zero, 1"); }
+inline void snrt_dma_start_tracking() {
+    // dmstati zero, 0
+    asm volatile(".word %0\n" ::"i"(
+        R_TYPE_ENCODE(DMSTATI_FUNCT7, 0b00, 0, XDMA_FUNCT3, 0, OP_CUSTOM1)));
+}
 
 /**
  * @brief stop tracking of dma performance region. Does not have any
@@ -271,7 +287,10 @@ inline void snrt_dma_start_tracking() { asm volatile("dmstati zero, 1"); }
  * analyzed
  *
  */
-inline void snrt_dma_stop_tracking() { asm volatile("dmstati zero, 3"); }
+inline void snrt_dma_stop_tracking() {
+    asm volatile(".word %0\n" ::"i"(
+        R_TYPE_ENCODE(DMSTATI_FUNCT7, 0b00, 0, XDMA_FUNCT3, 3, OP_CUSTOM1)));
+}
 
 /**
  * @brief fast memset function performed by DMA
