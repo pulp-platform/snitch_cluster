@@ -31,7 +31,7 @@ module snitch_cluster
   parameter int unsigned WideDataWidth      = 512,
   /// AXI: id width in.
   parameter int unsigned NarrowIdWidthIn    = 2,
-  /// AXI: dma id with in.
+  /// AXI: dma id width in.
   parameter int unsigned WideIdWidthIn      = 2,
   /// AXI: user width.
   parameter int unsigned NarrowUserWidth    = 1,
