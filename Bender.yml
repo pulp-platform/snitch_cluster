@@ -318,6 +318,19 @@ sources:
       # Level 2
       - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_wrapper.sv
 
+  - target: snax_streamer_gemm_add_c
+    files:
+      # Level 0
+      - hw/chisel_acc/generated/gemm/BlockGemm.sv
+      - hw/chisel_acc/src/snax_streamer_gemm_add_c_shell_wrapper.sv
+      - target/snitch_cluster/generated/snax_streamer_gemm_add_c/snax_streamer_gemm_add_c_csrman_CsrManager.sv
+      - target/snitch_cluster/generated/snax_streamer_gemm_add_c/snax_streamer_gemm_add_c_streamer_StreamerTop.sv
+      # Level 1
+      - target/snitch_cluster/generated/snax_streamer_gemm_add_c/snax_streamer_gemm_add_c_csrman_wrapper.sv
+      - target/snitch_cluster/generated/snax_streamer_gemm_add_c/snax_streamer_gemm_add_c_streamer_wrapper.sv
+      # Level 2
+      - target/snitch_cluster/generated/snax_streamer_gemm_add_c/snax_streamer_gemm_add_c_wrapper.sv
+
   - target: snax_streamer_simd
     files:
       # Level 0
@@ -400,6 +413,9 @@ sources:
   - target: snax_streamer_gemmX
     files:
       - target/snitch_cluster/generated/snax_streamer_gemmX_cluster_wrapper.sv
+  - target: snax_streamer_gemm_add_c
+    files:
+      - target/snitch_cluster/generated/snax_streamer_gemm_add_c_cluster_wrapper.sv
 
   #---------------------------
   # Test harness declaration

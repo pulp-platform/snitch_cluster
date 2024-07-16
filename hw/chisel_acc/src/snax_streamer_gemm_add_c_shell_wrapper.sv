@@ -7,7 +7,7 @@
 //-------------------------------
 // Accelerator wrapper
 //-------------------------------
-module snax_streamer_gemm_shell_wrapper #(
+module snax_streamer_gemm_add_c_shell_wrapper #(
     // Custom parameters. As much as possible,
     // these parameters should not be taken from outside
     parameter int unsigned RegRWCount   = 5,

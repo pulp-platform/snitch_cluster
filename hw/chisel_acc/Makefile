@@ -12,6 +12,15 @@ define gen_snax_acc_sv_file
 	mkdir -p $(MK_CUR_DIR)generated/$(1) && cd $(MK_CUR_DIR) && sbt "runMain snax_acc.$(1).$(2)"
 endef
 
+GEMM = BlockGemm
+GEMM_PKG_NAME = gemm
+
+GEMM_GENERATED_FILES = $(MK_CUR_DIR)generated/$(GEMM_PKG_NAME)/$(GEMM).sv
+GEMM_SCALA_SOURCES := $(wildcard src/main/scala/snax_acc/$(GEMM_PKG_NAME)/*.scala)
+
+$(GEMM_GENERATED_FILES): $(GEMM_SCALA_SOURCES)
+	$(call gen_snax_acc_sv_file,$(GEMM_PKG_NAME),$(GEMM))
+
 GEMMX = BlockGemmRescaleSIMD
 GEMMX_PKG_NAME = gemmx
 

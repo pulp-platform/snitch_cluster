@@ -1,8 +1,9 @@
-// Copyright 2023 ETH Zurich and University of Bologna.
-// Licensed under the Apache License, Version 2.0, see LICENSE for details.
-// SPDX-License-Identifier: Apache-2.0
+// Copyright 2024 KU Leuven.
+// Solderpad Hardware License, Version 0.51, see LICENSE for details.
+// SPDX-License-Identifier: SHL-0.51
 
-// Cluster configuration for a simple testbench system.
+// Author: Xiaoling Yi (xiaoling.yi@kuleuven.be)
+
 {
     nr_s1_quadrant: 1,
     s1_quadrant: {
@@ -10,7 +11,7 @@
     },
 
     cluster: {
-        name: "snax_gemm_cluster",
+        name: "snax_streamer_gemm_add_c_cluster",
         boot_addr: 4096, // 0x1000
         cluster_base_addr: 268435456, // 0x1000_0000
         cluster_base_offset: 0, // 0x0
@@ -55,7 +56,7 @@
                     cacheline: 256 // word size in bits
                 },
                 cores: [
-                    { $ref: "#/snax_streamer_gemm_core_template" },
+                    { $ref: "#/snax_streamer_gemm_add_c_core_template" },
                     { $ref: "#/dma_core_template" },
                 ]
             }
@@ -76,7 +77,7 @@
         },
     },
     // Templates.
-    snax_streamer_gemm_core_template: {
+    snax_streamer_gemm_add_c_core_template: {
         isa: "rv32ima",
         xssr: false,
         xfrep: false,
@@ -88,11 +89,11 @@
         xfdotp: false,
         xfvec: false,
         snax_acc_cfg: {
-            snax_acc_name: "snax_streamer_gemm",
+            snax_acc_name: "snax_streamer_gemm_add_c",
             snax_narrow_tcdm_ports: 48,
             snax_num_rw_csr: 5,
             snax_num_ro_csr: 2,
-            snax_streamer_cfg: {$ref: "#/snax_streamer_gemm_streamer_template" }
+            snax_streamer_cfg: {$ref: "#/snax_streamer_gemm_add_c_streamer_template" }
         },
         snax_use_custom_ports: false,
         num_int_outstanding_loads: 1,
@@ -127,7 +128,7 @@
         num_itlb_entries: 1,
     },
     // SNAX Streamer Templates
-    snax_streamer_gemm_streamer_template :{
+    snax_streamer_gemm_add_c_streamer_template :{
 
         temporal_addrgen_unit_params: {
             loop_dim: [3],

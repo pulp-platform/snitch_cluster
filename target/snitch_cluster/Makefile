@@ -146,6 +146,20 @@ $(eval $(call generate_snax_gen,snax_data_reshuffler))
 
 endif
 
+ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm-add-c.hjson)
+	CLUSTER_NAME = snax_streamer_gemm_add_c_cluster
+ 
+$(eval $(call generate_snax_gen,snax_streamer_gemm_add_c))
+
+    SNAX_POOLINGSIMD_ROOT ?= $(ROOT)/hw/chisel_acc
+    include $(SNAX_POOLINGSIMD_ROOT)/Makefile
+ 
+    VSIM_BENDER += -t snax_streamer_gemm_add_c
+    VLT_BENDER  += -t snax_streamer_gemm_add_c
+    VCS_BENDER  += -t snax_streamer_gemm_add_c
+ 
+endif
+
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm-conv.hjson)
 
 	CLUSTER_NAME = snax_streamer_gemm_cluster

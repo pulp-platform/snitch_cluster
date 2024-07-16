@@ -135,6 +135,20 @@ jobs:
           ./run.py --simulator verilator \
           sw/runtime.yaml sw/snax-streamer-gemm-run.yaml -j
 
+  sw-snax-streamer-gemm-add-c-cluster-vlt-generic:
+    name: Simulate SW on GEMM Add C w/ Verilator (Generic LLVM)
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/kuleuven-micas/snax:main
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+      - name: Build Hardware
+        run: |
+          make CFG_OVERRIDE=cfg/snax-streamer-gemm-add-c.hjson \
+          -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
+
   snax-streamer-gemm-conv-cluster-vlt-generic:
     name: Simulate SW on SNAX GEMM for Conv2d w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04
