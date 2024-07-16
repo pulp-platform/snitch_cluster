@@ -143,6 +143,7 @@ module snitch_cluster_peripheral
   assign hw2reg.hw_barrier.d = 0;
 
   always_comb begin
+    perf_cnt_d = perf_cnt_q;
     perf_metrics_d = perf_metrics_q;
     perf_hart_sel_d = perf_hart_sel_q;
     for (int i = 0; i < NumPerfCounters; i++) begin
@@ -182,7 +183,7 @@ module snitch_cluster_peripheral
         IcachePrefetch: perf_cnt_d[i] += icache_events_q[hart_select].l0_prefetch;
         IcacheDoubleHit: perf_cnt_d[i] += icache_events_q[hart_select].l0_double_hit;
         IcacheStall: perf_cnt_d[i] += icache_events_q[hart_select].l0_stall;
-        default: perf_cnt_d[i] = perf_cnt_q[i];
+        default:;
       endcase
       // Reset performance counter.
       if (reg2hw.perf_cnt[i].qe) begin
@@ -200,7 +201,9 @@ module snitch_cluster_peripheral
   end
 
   // Actual performance counters.
-  `FF(perf_cnt_q, perf_cnt_d, '0, clk_i, rst_ni)
+  for (genvar i = 0; i < NumPerfCounters; i++) begin : gen_perf_cnt
+    `FFL(perf_cnt_q[i], perf_cnt_d[i], reg2hw.perf_cnt_en[i] | reg2hw.perf_cnt[i].qe, '0, clk_i, rst_ni)
+  end
 
   // Set reset values for the metrics that should be tracked immediately after reset.
   for (genvar i = 0; i < NumPerfCounters; i++) begin : gen_perf_metrics_assign
