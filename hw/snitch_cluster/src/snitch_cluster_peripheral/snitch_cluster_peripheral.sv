@@ -185,10 +185,6 @@ module snitch_cluster_peripheral
         IcacheStall: perf_cnt_d[i] += icache_events_q[hart_select].l0_stall;
         default:;
       endcase
-      // Reset performance counter.
-      if (reg2hw.perf_cnt[i].qe) begin
-        perf_cnt_d[i] = reg2hw.perf_cnt[i].q;
-      end
       // Set performance metric.
       if (reg2hw.perf_cnt_sel[i].metric.qe) begin
         perf_metrics_d[i] = perf_metrics_e'(reg2hw.perf_cnt_sel[i].metric.q);
@@ -202,7 +198,8 @@ module snitch_cluster_peripheral
 
   // Actual performance counters.
   for (genvar i = 0; i < NumPerfCounters; i++) begin : gen_perf_cnt
-    `FFL(perf_cnt_q[i], perf_cnt_d[i], reg2hw.perf_cnt_en[i] | reg2hw.perf_cnt[i].qe, '0, clk_i, rst_ni)
+    `FFLARNC(perf_cnt_q[i], perf_cnt_d[i],
+             reg2hw.perf_cnt_en[i], reg2hw.perf_cnt[i].qe, '0, clk_i, rst_ni)
   end
 
   // Set reset values for the metrics that should be tracked immediately after reset.
