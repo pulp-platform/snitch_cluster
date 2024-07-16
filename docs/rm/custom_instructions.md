@@ -90,6 +90,7 @@ DMCPY and DMCPYI initiate an asynchronous data movement with the parameters conf
 |--------------|-------------|-------------
 | config[0]    | decouple_rw | Decouple the handshakes of the read and write channels
 | config[1]    | enable_2d   | Enable two-dimensional transfer
+| config[4:2]  | channel_sel | Selects the DMA backend if a multi-channel DMA is used
 
 DMSTAT and DMSTATI place the selected *status* flag of the DMA into register *rd*. The following *status* flags are supported:
 
