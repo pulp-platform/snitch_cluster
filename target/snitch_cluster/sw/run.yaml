@@ -61,6 +61,7 @@ runs:
   - elf: tests/build/openmp_for_static_schedule.elf
   - elf: tests/build/openmp_double_buffering.elf
   - elf: tests/build/perf_cnt.elf
+    simulators: [vsim, vcs, verilator] # banshee does have HW performance counters
   - elf: tests/build/printf_simple.elf
   - elf: tests/build/printf_fmtint.elf
   - elf: tests/build/simple.elf
