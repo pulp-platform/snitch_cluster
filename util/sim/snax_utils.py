@@ -11,45 +11,101 @@ import numpy as np
 
 # Function to perform 2D convolution on the input data using the specified kernel,
 # stride, and padding. It returns the output feature map.
-def conv2d(input_data, kernel, stride=(1, 1), padding=(0, 0)):
-    batch_size, in_height, in_width, in_channels = input_data.shape
-    out_channels, kernel_height, kernel_width, _ = kernel.shape
-    stride_h, stride_w = stride
-    pad_h, pad_w = padding
+def conv2d(input_data, kernel, stride=(1, 1), padding=(0, 0), mode="NHWC"):
+    if mode == "NHWC":
+        batch_size, in_height, in_width, in_channels = input_data.shape
+        out_channels, kernel_height, kernel_width, _ = kernel.shape
+        stride_h, stride_w = stride
+        pad_h, pad_w = padding
 
-    # Calculate the output feature map dimensions
-    out_height = (in_height - kernel_height + 2 * pad_h) // stride_h + 1
-    out_width = (in_width - kernel_width + 2 * pad_w) // stride_w + 1
+        # Calculate the output feature map dimensions
+        out_height = (in_height - kernel_height + 2 * pad_h) // stride_h + 1
+        out_width = (in_width - kernel_width + 2 * pad_w) // stride_w + 1
 
-    # Add padding
-    input_data_padded = np.pad(
-        input_data, ((0, 0), (pad_h, pad_h), (pad_w, pad_w), (0, 0)), mode="constant"
-    )
+        # Add padding
+        input_data_padded = np.pad(
+            input_data,
+            ((0, 0), (pad_h, pad_h), (pad_w, pad_w), (0, 0)),
+            mode="constant",
+        )
 
-    # Initialize the output feature map
-    output_data = np.zeros((batch_size, out_height, out_width, out_channels), np.int32)
+        # Initialize the output feature map
+        output_data = np.zeros(
+            (batch_size, out_height, out_width, out_channels), np.int32
+        )
 
-    # Perform the convolution operation
-    for b in range(batch_size):
-        for oc in range(out_channels):
-            for oh in range(out_height):
-                for ow in range(out_width):
-                    # Calculate the input region
-                    ih_start = oh * stride_h
-                    ih_end = ih_start + kernel_height
-                    iw_start = ow * stride_w
-                    iw_end = iw_start + kernel_width
+        # Perform the convolution operation
+        for b in range(batch_size):
+            for oc in range(out_channels):
+                for oh in range(out_height):
+                    for ow in range(out_width):
+                        # Calculate the input region
+                        ih_start = oh * stride_h
+                        ih_end = ih_start + kernel_height
+                        iw_start = ow * stride_w
+                        iw_end = iw_start + kernel_width
 
-                    # Slice to extract the input region
-                    input_region = input_data_padded[
-                        b, ih_start:ih_end, iw_start:iw_end, :
-                    ]
+                        # Slice to extract the input region
+                        input_region = input_data_padded[
+                            b, ih_start:ih_end, iw_start:iw_end, :
+                        ]
 
-                    # Slice to extract the corresponding convolution kernel
-                    conv_kernel = kernel[oc, :, :, :]
+                        # Slice to extract the corresponding convolution kernel
+                        conv_kernel = kernel[oc, :, :, :]
 
-                    # Perform the convolution calculation
-                    output_data[b, oh, ow, oc] = np.sum(input_region * conv_kernel)
+                        # Perform the convolution calculation
+                        output_data[b, oh, ow, oc] = np.sum(input_region * conv_kernel)
+    else:
+        batch_size, Cin8, in_height, in_width, t = input_data.shape
+        assert t == 8
+        Cout8, Cin8, kernel_height, kernel_width, t1, t2 = kernel.shape
+        assert t1 == 8
+        assert t2 == 8
+        stride_h, stride_w = stride
+        pad_h, pad_w = padding
+
+        # Calculate the output feature map dimensions
+        out_height = (in_height - kernel_height + 2 * pad_h) // stride_h + 1
+        out_width = (in_width - kernel_width + 2 * pad_w) // stride_w + 1
+
+        # Add padding
+        input_data_padded = np.pad(
+            input_data,
+            ((0, 0), (0, 0), (pad_h, pad_h), (pad_w, pad_w), (0, 0)),
+            mode="constant",
+        )
+
+        # Initialize the output feature map
+        output_data = np.zeros(
+            (batch_size, Cout8, out_height, out_width // 8, 8, 8), np.int32
+        )
+
+        # Perform the convolution operation
+        for b in range(batch_size):
+            for oc in range(Cout8):
+                for oc8 in range(8):
+                    for oh in range(out_height):
+                        for ow in range(out_width // 8):
+                            for ow8 in range(8):
+                                # Calculate the input region
+                                iw_start = (ow * 8 + ow8) * stride_w
+                                iw_end = iw_start + kernel_width
+
+                                ih_start = oh * stride_h
+                                ih_end = ih_start + kernel_height
+
+                                # Slice to extract the input region
+                                input_region = input_data_padded[
+                                    b, :, ih_start:ih_end, iw_start:iw_end, :
+                                ]
+
+                                # Slice to extract the corresponding convolution kernel
+                                conv_kernel = kernel[oc, :, :, :, oc8, :]
+
+                                # Perform the convolution calculation
+                                output_data[b, oc, oh, ow, ow8, oc8] = np.sum(
+                                    input_region * conv_kernel
+                                )
 
     return output_data
 

@@ -5,6 +5,8 @@
 // Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
 
 {
+    ifC8HW8datalayout: true,
+    // ifC8HW8datalayout: false,
     Nbatch: 1,
     H: 16,
     W: 16,
