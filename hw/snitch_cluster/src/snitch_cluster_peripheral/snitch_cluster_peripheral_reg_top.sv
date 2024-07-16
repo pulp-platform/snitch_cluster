@@ -325,7 +325,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (1'h1)
   ) u_perf_cnt_en_0 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -352,7 +352,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (1'h1)
   ) u_perf_cnt_en_1 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -379,7 +379,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (1'h1)
   ) u_perf_cnt_en_2 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -406,7 +406,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (1'h1)
   ) u_perf_cnt_en_3 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -433,7 +433,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (1'h1)
   ) u_perf_cnt_en_4 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -460,7 +460,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (1'h1)
   ) u_perf_cnt_en_5 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -487,7 +487,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (1'h1)
   ) u_perf_cnt_en_6 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -514,7 +514,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (1'h1)
   ) u_perf_cnt_en_7 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -541,7 +541,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (1'h1)
   ) u_perf_cnt_en_8 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -568,7 +568,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (1'h1)
   ) u_perf_cnt_en_9 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -595,7 +595,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (1'h1)
   ) u_perf_cnt_en_10 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -622,7 +622,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (1'h1)
   ) u_perf_cnt_en_11 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -649,7 +649,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (1'h1)
   ) u_perf_cnt_en_12 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -676,7 +676,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (1'h1)
   ) u_perf_cnt_en_13 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -703,7 +703,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (1'h1)
   ) u_perf_cnt_en_14 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
@@ -730,7 +730,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
       .DW      (1),
       .SWACCESS("RW"),
-      .RESVAL  (1'h0)
+      .RESVAL  (1'h1)
   ) u_perf_cnt_en_15 (
       .clk_i (clk_i),
       .rst_ni(rst_ni),

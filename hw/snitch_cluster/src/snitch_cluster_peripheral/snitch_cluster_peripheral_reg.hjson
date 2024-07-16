@@ -28,6 +28,7 @@
             compact: "false",
             fields: [{
                 bits: "0:0",
+                resval: "1",
                 name: "ENABLE",
                 desc: "Enable a particular performance counter to start tracking."
             }]
