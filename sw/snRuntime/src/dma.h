@@ -192,7 +192,7 @@ inline snrt_dma_txid_t snrt_dma_start_2d_channel_wideptr(
     asm volatile(
         ".word %1\n"
         : "=r"(reg_txid)
-        : "i"(R_TYPE_ENCODE(DMCPY_FUNCT7, 7, 14, XDMA_FUNCT3, 10, OP_CUSTOM1)),
+        : "i"(R_TYPE_ENCODE(DMCPY_FUNCT7, 7, 14, XDMA_FUNCT3, 10, OP_CUSTOM1)), "r"(cfg),
           "r"(reg_size));
 
     return reg_txid;
@@ -255,7 +255,7 @@ inline void snrt_dma_wait_all_channel(uint32_t channel) {
         "1: \n"
         ".word %0\n"
         "bne t0, zero, 1b \n" ::"i"(
-            R_TYPE_ENCODE(DMSTATI_FUNCT7, 6, 0, XDMA_FUNCT3, 5, OP_CUSTOM1)),
+            R_TYPE_ENCODE(DMSTAT_FUNCT7, 6, 0, XDMA_FUNCT3, 5, OP_CUSTOM1)),
         "r"(cfg)
         : "t0");
 }
