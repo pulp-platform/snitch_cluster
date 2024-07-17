@@ -2,6 +2,10 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#ifdef OPENOCD_SEMIHOSTING
+#include "openocd.h"
+#endif
+
 #ifdef SNRT_INIT_CLS
 static inline uint32_t snrt_cls_base_addr() {
     extern volatile uint32_t __cdata_start, __cdata_end;
@@ -100,7 +104,7 @@ static inline void snrt_init_libs() { snrt_alloc_init(); }
 static inline void snrt_exit_default(int exit_code) {
     exit_code = snrt_global_all_to_all_reduction(exit_code);
 #ifdef OPENOCD_SEMIHOSTING
-    if (snrt_global_core_idx() == 0) __ocd_semihost(0x18, (long)exit_code);
+    if (snrt_global_core_idx() == 0) __ocd_semihost_exit(exit_code);
 #else
     if (snrt_global_core_idx() == 0)
         *(snrt_exit_code_destination()) = (exit_code << 1) | 1;

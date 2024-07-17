@@ -5,6 +5,11 @@
 
 #include <stdint.h>
 
+#pragma once
+
+#define SEMIHOST_EXIT_SUCCESS 0x20026
+#define SEMIHOST_EXIT_ERROR 0x20023
+
 /* riscv semihosting standard:
  * IN: a0 holds syscall number
  * IN: a1 holds pointer to arg struct
@@ -31,4 +36,9 @@ static inline int __ocd_semihost_write(int fd, uint8_t *buffer, int len) {
     uint32_t args[3] = {(long)fd, (long)buffer, (long)len};
     __asm__ __volatile__("" : : : "memory");
     return __ocd_semihost(0x05, (long)args);
+}
+
+static inline void __ocd_semihost_exit(int status) {
+    __ocd_semihost(0x18,
+                   status == 0 ? SEMIHOST_EXIT_SUCCESS : SEMIHOST_EXIT_ERROR);
 }
