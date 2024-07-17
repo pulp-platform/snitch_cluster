@@ -554,49 +554,56 @@ def eval_dma_metrics(dma_trans, dma_trace):
             # Initialize variables
             compl_transfers = []
             outst_transfers = []
-            req_transfer_idx = 0
+            transfer_idx = 0
+            exp_bytes = 0
             req_bytes = 0
+            bursts_in_transfer = 0
+            rec_bursts = 0
             # Iterate lines in DMA trace
             for line in f.readlines():
                 dma = ast.literal_eval(line)
-                if 'backend_burst_req_valid' in dma:
-                    # When the first burst in a transfer is granted, we record a new transfer in
-                    # the outstanding transfers queue, with the information obtained from the core
-                    # trace. We record the number of bytes moved by each burst in a transfer, and
-                    # compare the total to the number of bytes moved by the transfer, to count how
-                    # many bursts belong to the current DMA transfer (a number which is difficult
-                    # to pre-compute from the core trace as it depends on address alignments, etc.)
-                    if dma['backend_burst_req_valid'] and dma['backend_burst_req_ready']:
-                        if req_bytes == 0:
-                            n_bytes = dma_trans[req_transfer_idx]['rep'] * \
-                                    dma_trans[req_transfer_idx]['size']
-                            outst_transfers.append({'tstart': dma['time'],
-                                                    'exp_bursts': 0,
-                                                    'rec_bursts': 0,
-                                                    'bytes': n_bytes})
-                        req_bytes += dma['backend_burst_req_num_bytes']
-                        outst_transfers[-1]['exp_bursts'] += 1
-                    # We move on to the next transfer when the bytes requested by the previous
-                    # bursts match the current transfer size.
-                    if req_bytes == outst_transfers[-1]['bytes']:
+                time = dma['meta']['time']
+                # When the first burst in a transfer is granted, we record a new transfer in
+                # the outstanding transfers queue, with the information obtained from the core
+                # trace. We record the number of bytes moved by each burst in a transfer, and
+                # compare the total to the number of bytes moved by the transfer, to count how
+                # many bursts belong to the current DMA transfer (a number which is difficult
+                # to pre-compute from the core trace as it depends on address alignments, etc.)
+                if dma['backend']['req_valid'] and dma['backend']['req_ready']:
+                    if req_bytes == 0:
+                        exp_bytes = dma_trans[transfer_idx]['rep'] * \
+                                    dma_trans[transfer_idx]['size']
+                        outst_transfers.append({'tstart': time,
+                                                'bytes': exp_bytes})
+                    req_bytes += dma['backend']['req_length']
+                    bursts_in_transfer += 1
+                    # When the aggregate size of the issued bursts matches the size of the current
+                    # transfer, we record the number of bursts in the transfer. This info is later
+                    # needed to count responses and determine the end time of the transfer.
+                    if req_bytes == exp_bytes:
+                        outst_transfers[-1]['bursts'] = bursts_in_transfer
+                        # Reset the state for the next transfer.
                         req_bytes = 0
-                        req_transfer_idx += 1
-                    # Upon a burst completion, we increment the received bursts count. When this
-                    # count matches the expected bursts count of the current transfer we record the
-                    # end time of the transfer and promote the transfer from the outstanding to the
-                    # completed transfers' queue.
-                    if dma['transfer_completed']:
-                        outst_transfers[0]['rec_bursts'] += 1
-                        if outst_transfers[0]['rec_bursts'] == outst_transfers[0]['exp_bursts']:
-                            outst_transfers[0]['tend'] = dma['time']
-                            compl_transfer = outst_transfers.pop(0)
-                            compl_transfer.pop('exp_bursts')
-                            compl_transfer.pop('rec_bursts')
-                            compl_transfers.append(compl_transfer)
+                        bursts_in_transfer = 0
+                        transfer_idx += 1
+                # Upon a burst completion, we increment the received bursts count.
+                if dma['backend']['rsp_valid'] and dma['backend']['rsp_ready']:
+                    rec_bursts += 1
+                    # When the received bursts count matches the expected bursts for the current
+                    # transfer we record the end time of the transfer and promote the transfer
+                    # from the outstanding to the completed transfers' queue. The first response
+                    # may arrive before the last request is issued. To allow for this condition
+                    # we default to -1.
+                    if rec_bursts == outst_transfers[0].get('bursts', -1):
+                        outst_transfers[0]['tend'] = time
+                        compl_transfers.append(outst_transfers.pop(0))
+                        # Reset the state for the next transfer.
+                        rec_bursts = 0
             # Calculate bandwidth of individual transfers
             for transfer in compl_transfers:
                 transfer['cycles'] = transfer['tend'] - transfer['tstart']
-                transfer['bw'] = transfer['bytes'] / transfer['cycles']
+                if transfer['bytes'] > 0:
+                    transfer['bw'] = transfer['bytes'] / transfer['cycles']
             # Calculate aggregate bandwidth: total number of bytes transferred while any transfer is
             # active (accounts for overlaps between transfers).
             prev_trans_end = 0
@@ -1112,7 +1119,7 @@ def main():
             if line:
                 ann_insn, time_info, empty = annotate_insn(
                     line, gpr_wb_info, fpr_wb_info, fseq_info, perf_metrics, False,
-                    time_info, args.offl, not args.saddr, args.permissive)
+                    time_info, args.offl, not args.saddr, args.permissive, dma_trans)
                 if perf_metrics[0]['start'] is None:
                     perf_metrics[0]['tstart'] = time_info[0] / 1000
                     perf_metrics[0]['start'] = time_info[1]
