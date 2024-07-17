@@ -361,8 +361,8 @@ for i in range(len(cfg['cores'])):
 
     if(cfg['cores'][i]['snax_acc_cfg']['snax_num_acc'] > 1):
       snax_acc_multi_flag = True
-      snax_num_rw_csr = cfg['cores'][i]['snax_acc_cfg']['snax_num_rw_csr']
-      snax_num_ro_csr = cfg['cores'][i]['snax_acc_cfg']['snax_num_ro_csr']
+      snax_num_rw_csr = cfg['cores'][i]['snax_acc_cfg'].get('snax_num_rw_csr', 0)
+      snax_num_ro_csr = cfg['cores'][i]['snax_acc_cfg'].get('snax_num_ro_csr', 0)
       snax_total_num_csr = snax_num_rw_csr + snax_num_ro_csr
       snax_num_acc = cfg['cores'][i]['snax_acc_cfg']['snax_num_acc']
 

@@ -237,29 +237,32 @@ def main():
             )
 
             # CSR manager scala parameter generation
-            chisel_target_path = args.chisel_path + "src/main/scala/snax/csr_manager/"  # noqa: E501
-            file_name = "CsrManParamGen.scala"
-            tpl_scala_param_file = args.tpl_path + "csrman_param_gen.scala.tpl"
-            tpl_scala_param = get_template(tpl_scala_param_file)
-            gen_file(
-                cfg=acc_cfgs[i],
-                tpl=tpl_scala_param,
-                target_path=chisel_target_path,
-                file_name=file_name,
-            )
+            if not acc_cfgs[i].get("snax_disable_csr_manager", False):
+                chisel_target_path = args.chisel_path + "src/main/scala/snax/csr_manager/"  # noqa: E501
+                file_name = "CsrManParamGen.scala"
+                tpl_scala_param_file = args.tpl_path + "csrman_param_gen.scala.tpl"
+                tpl_scala_param = get_template(tpl_scala_param_file)
+                gen_file(
+                    cfg=acc_cfgs[i],
+                    tpl=tpl_scala_param,
+                    target_path=chisel_target_path,
+                    file_name=file_name,
+                )
+
+            rtl_target_path = args.gen_path + acc_cfgs[i]["snax_acc_name"] + "/"
 
             # This is for RTL wrapper and chisel generation
             # This first one generates the CSR manager wrapper
-            rtl_target_path = args.gen_path + acc_cfgs[i]["snax_acc_name"] + "/"
-            file_name = acc_cfgs[i]["snax_acc_name"] + "_csrman_wrapper.sv"
-            tpl_csrman_wrapper_file = args.tpl_path + "snax_csrman_wrapper.sv.tpl"
-            tpl_csrman_wrapper = get_template(tpl_csrman_wrapper_file)
-            gen_file(
-                cfg=acc_cfgs[i],
-                tpl=tpl_csrman_wrapper,
-                target_path=rtl_target_path,
-                file_name=file_name,
-            )
+            if not acc_cfgs[i].get("snax_disable_csr_manager", False):
+                file_name = acc_cfgs[i]["snax_acc_name"] + "_csrman_wrapper.sv"
+                tpl_csrman_wrapper_file = args.tpl_path + "snax_csrman_wrapper.sv.tpl"
+                tpl_csrman_wrapper = get_template(tpl_csrman_wrapper_file)
+                gen_file(
+                    cfg=acc_cfgs[i],
+                    tpl=tpl_csrman_wrapper,
+                    target_path=rtl_target_path,
+                    file_name=file_name,
+                )
 
             # This first one generates the streamer wrapper
             file_name = acc_cfgs[i]["snax_acc_name"] + "_streamer_wrapper.sv"
@@ -284,11 +287,12 @@ def main():
             )
 
             # Generate chisel component using chisel generation script
-            gen_chisel_file(
-                chisel_path=args.chisel_path,
-                chisel_param="snax.csr_manager.CsrManagerGen",
-                gen_path=rtl_target_path,
-            )
+            if not acc_cfgs[i].get("snax_disable_csr_manager", False):
+                gen_chisel_file(
+                    chisel_path=args.chisel_path,
+                    chisel_param="snax.csr_manager.CsrManagerGen",
+                    gen_path=rtl_target_path,
+                )
 
             # Generate chisel component using chisel generation script
             gen_chisel_file(
@@ -297,7 +301,7 @@ def main():
                 gen_path=rtl_target_path,
             )
 
-        print("Generation of accelerator specific wrapeprs done!")
+        print("Generation of accelerator specific wrappers done!")
     else:
         print("Skipping accelerator generation!")
 

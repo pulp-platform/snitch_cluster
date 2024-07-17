@@ -40,9 +40,6 @@ module ${cfg["tag_name"]}_wrapper # (
   // TCDMAddrWidth = log2(TCDMBankNum * TCDMDepth * (TCDMDataWidth/8))
   parameter int unsigned TCDMAddrWidth      = ${cfg["tcdm_addr_width"]},
   // Don't touch parameters (or modify at your own risk)
-  parameter int unsigned RegRWCount         = ${cfg["snax_num_rw_csr"]},
-  parameter int unsigned RegROCount         = ${cfg["snax_num_ro_csr"]},
-  parameter int unsigned TotalRegCount      = RegRWCount + RegROCount,
   parameter int unsigned RegDataWidth       = 32,
   parameter int unsigned RegAddrWidth       = 32
 )(
@@ -75,11 +72,13 @@ module ${cfg["tag_name"]}_wrapper # (
   input  tcdm_rsp_t [SnaxTcdmPorts-1:0] snax_tcdm_rsp_i
 );
 
+% if not cfg.get("snax_disable_csr_manager", False):
   //-----------------------------
   // Internal local parameters
   //-----------------------------
   localparam int unsigned NumRwCsr = ${cfg["snax_num_rw_csr"]};
   localparam int unsigned NumRoCsr = ${cfg["snax_num_ro_csr"]};
+% endif
 
   //-----------------------------
   // Accelerator ports
@@ -133,11 +132,13 @@ module ${cfg["tag_name"]}_wrapper # (
   logic [1:0]                   acc_csr_rsp_valid;
   logic [1:0]                   acc_csr_rsp_ready;
 
+% if not cfg.get("snax_disable_csr_manager", False):
   // Register set signals
   logic [NumRwCsr-1:0][31:0]    acc_csr_reg_rw_set;
   logic                         acc_csr_reg_set_valid;
   logic                         acc_csr_reg_set_ready;
   logic [NumRoCsr-1:0][31:0]    acc_csr_reg_ro_set;
+% endif
 
   //-------------------------------
   // MUX and DEMUX for control signals
@@ -178,6 +179,7 @@ module ${cfg["tag_name"]}_wrapper # (
     .acc_csr_rsp_ready_o  ( acc_csr_rsp_ready )
   );
 
+% if not cfg.get("snax_disable_csr_manager", False):
   //-----------------------------
   // CSR Manager to control the accelerator
   //-----------------------------
@@ -215,6 +217,7 @@ module ${cfg["tag_name"]}_wrapper # (
     // Read-only CSRs
     .csr_reg_ro_set_i     ( acc_csr_reg_ro_set    )  
   );
+% endif
 
   //-----------------------------
   // Accelerator
@@ -274,6 +277,7 @@ module ${cfg["tag_name"]}_wrapper # (
 % endfor
 % endif
 
+% if not cfg.get("snax_disable_csr_manager", False):
     //-----------------------------
     // Packed CSR register signals
     //-----------------------------
@@ -281,6 +285,21 @@ module ${cfg["tag_name"]}_wrapper # (
     .csr_reg_set_valid_i  ( acc_csr_reg_set_valid ),
     .csr_reg_set_ready_o  ( acc_csr_reg_set_ready ),
     .csr_reg_ro_set_o     ( acc_csr_reg_ro_set    )
+% else:
+    //-----------------------------
+    // CSR control ports
+    //-----------------------------
+    // Request
+    .csr_req_addr_i       ( acc_csr_req_addr [1]  ),
+    .csr_req_data_i       ( acc_csr_req_data [1]  ),
+    .csr_req_write_i      ( acc_csr_req_wen  [1]  ),
+    .csr_req_valid_i      ( acc_csr_req_valid[1]  ),
+    .csr_req_ready_o      ( acc_csr_req_ready[1]  ),
+    // Response
+    .csr_rsp_data_o       ( acc_csr_rsp_data [1]  ),
+    .csr_rsp_valid_o      ( acc_csr_rsp_valid[1]  ),
+    .csr_rsp_ready_i      ( acc_csr_rsp_ready[1]  )
+% endif
   );
 
   //-----------------------------
