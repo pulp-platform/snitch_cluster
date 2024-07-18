@@ -4,7 +4,8 @@
 #
 # Noah Huetter <huettern@iis.ee.ethz.ch>
 
-REGTOOL=../../../../.bender/git/checkouts/register_interface-685f972b288d8eac/vendor/lowrisc_opentitan/util/regtool.py
+BENDER=$(shell which bender)
+REGTOOL=$(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
 PYTHON3=$(shell which python)
 CLANG_FORMAT=$(shell which clang-format-12.0.1)
 
