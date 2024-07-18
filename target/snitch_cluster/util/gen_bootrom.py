@@ -22,13 +22,14 @@ parser.add_argument(
     "--sv-module",
     "-m",
     metavar="BINARY",
-    help="Combinatorial SystemVerilog module with `reg_interface`. Name of the SystemVerilog module",
+    help="Name of the combinatorial SystemVerilog bootrom module",
 )
 args = parser.parse_args()
 
 # Read the bootrom binary.
 with open(args.BINARY, "rb") as file:
     binary = file.read()
+
 
 def format_binary(binary):
     num_words = len(binary) // 4
