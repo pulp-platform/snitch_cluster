@@ -1,3 +1,7 @@
+# Copyright 2024 ETH Zurich and University of Bologna.
+# Solderpad Hardware License, Version 0.51, see LICENSE for details.
+# SPDX-License-Identifier: SHL-0.51
+
 #define MSTATUS_MIE 8
 
 .global _snitch_park
@@ -6,7 +10,7 @@ _snitch_park:
     la      t0, _snitch_resume
     csrw    mtvec, t0
     # Enable software and cluster interrupts
-    csrsi   mstatus, MSTATUS_MIE # CSR set (uimm) 
+    csrsi   mstatus, MSTATUS_MIE # CSR set (uimm)
     lui     t0, 0x80  # (1 << 19) cluster interrupts
     addi    t0, t0, 8 # (1 << 3) software interrupts
     csrw    mie, t0
