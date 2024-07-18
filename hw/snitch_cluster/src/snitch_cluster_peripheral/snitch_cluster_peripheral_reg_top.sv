@@ -1668,22 +1668,18 @@ module snitch_cluster_peripheral_reg_top #(
   logic [47:0] perf_counter_15_wd;
   logic perf_counter_15_we;
   logic perf_counter_15_re;
-  logic [63:0] ctrl_scratch_0_qs;
-  logic [63:0] ctrl_scratch_0_wd;
-  logic ctrl_scratch_0_we;
-  logic ctrl_scratch_0_re;
-  logic [63:0] ctrl_scratch_1_qs;
-  logic [63:0] ctrl_scratch_1_wd;
-  logic ctrl_scratch_1_we;
-  logic ctrl_scratch_1_re;
-  logic [63:0] ctrl_scratch_2_qs;
-  logic [63:0] ctrl_scratch_2_wd;
-  logic ctrl_scratch_2_we;
-  logic ctrl_scratch_2_re;
-  logic [63:0] ctrl_scratch_3_qs;
-  logic [63:0] ctrl_scratch_3_wd;
-  logic ctrl_scratch_3_we;
-  logic ctrl_scratch_3_re;
+  logic [31:0] scratch_0_qs;
+  logic [31:0] scratch_0_wd;
+  logic scratch_0_we;
+  logic [31:0] scratch_1_qs;
+  logic [31:0] scratch_1_wd;
+  logic scratch_1_we;
+  logic [31:0] scratch_2_qs;
+  logic [31:0] scratch_2_wd;
+  logic scratch_2_we;
+  logic [31:0] scratch_3_qs;
+  logic [31:0] scratch_3_wd;
+  logic scratch_3_we;
   logic [31:0] cl_clint_set_wd;
   logic cl_clint_set_we;
   logic [31:0] cl_clint_clear_wd;
@@ -15333,68 +15329,112 @@ module snitch_cluster_peripheral_reg_top #(
 
 
 
-  // Subregister 0 of Multireg ctrl_scratch
-  // R[ctrl_scratch_0]: V(True)
+  // Subregister 0 of Multireg scratch
+  // R[scratch_0]: V(False)
 
-  prim_subreg_ext #(
-    .DW    (64)
-  ) u_ctrl_scratch_0 (
-    .re     (ctrl_scratch_0_re),
-    .we     (ctrl_scratch_0_we),
-    .wd     (ctrl_scratch_0_wd),
-    .d      ('0),
-    .qre    (),
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_scratch_0 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (scratch_0_we),
+    .wd     (scratch_0_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
     .qe     (),
     .q      (),
-    .qs     (ctrl_scratch_0_qs)
+
+    // to register interface (read)
+    .qs     (scratch_0_qs)
   );
 
-  // Subregister 1 of Multireg ctrl_scratch
-  // R[ctrl_scratch_1]: V(True)
+  // Subregister 1 of Multireg scratch
+  // R[scratch_1]: V(False)
 
-  prim_subreg_ext #(
-    .DW    (64)
-  ) u_ctrl_scratch_1 (
-    .re     (ctrl_scratch_1_re),
-    .we     (ctrl_scratch_1_we),
-    .wd     (ctrl_scratch_1_wd),
-    .d      ('0),
-    .qre    (),
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_scratch_1 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (scratch_1_we),
+    .wd     (scratch_1_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
     .qe     (),
     .q      (),
-    .qs     (ctrl_scratch_1_qs)
+
+    // to register interface (read)
+    .qs     (scratch_1_qs)
   );
 
-  // Subregister 2 of Multireg ctrl_scratch
-  // R[ctrl_scratch_2]: V(True)
+  // Subregister 2 of Multireg scratch
+  // R[scratch_2]: V(False)
 
-  prim_subreg_ext #(
-    .DW    (64)
-  ) u_ctrl_scratch_2 (
-    .re     (ctrl_scratch_2_re),
-    .we     (ctrl_scratch_2_we),
-    .wd     (ctrl_scratch_2_wd),
-    .d      ('0),
-    .qre    (),
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_scratch_2 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (scratch_2_we),
+    .wd     (scratch_2_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
     .qe     (),
     .q      (),
-    .qs     (ctrl_scratch_2_qs)
+
+    // to register interface (read)
+    .qs     (scratch_2_qs)
   );
 
-  // Subregister 3 of Multireg ctrl_scratch
-  // R[ctrl_scratch_3]: V(True)
+  // Subregister 3 of Multireg scratch
+  // R[scratch_3]: V(False)
 
-  prim_subreg_ext #(
-    .DW    (64)
-  ) u_ctrl_scratch_3 (
-    .re     (ctrl_scratch_3_re),
-    .we     (ctrl_scratch_3_we),
-    .wd     (ctrl_scratch_3_wd),
-    .d      ('0),
-    .qre    (),
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_scratch_3 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (scratch_3_we),
+    .wd     (scratch_3_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
     .qe     (),
     .q      (),
-    .qs     (ctrl_scratch_3_qs)
+
+    // to register interface (read)
+    .qs     (scratch_3_qs)
   );
 
 
@@ -15525,10 +15565,10 @@ module snitch_cluster_peripheral_reg_top #(
     addr_hit[45] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_13_OFFSET);
     addr_hit[46] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_14_OFFSET);
     addr_hit[47] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_15_OFFSET);
-    addr_hit[48] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_CTRL_SCRATCH_0_OFFSET);
-    addr_hit[49] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_CTRL_SCRATCH_1_OFFSET);
-    addr_hit[50] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_CTRL_SCRATCH_2_OFFSET);
-    addr_hit[51] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_CTRL_SCRATCH_3_OFFSET);
+    addr_hit[48] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_SCRATCH_0_OFFSET);
+    addr_hit[49] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_SCRATCH_1_OFFSET);
+    addr_hit[50] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_SCRATCH_2_OFFSET);
+    addr_hit[51] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_SCRATCH_3_OFFSET);
     addr_hit[52] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_SET_OFFSET);
     addr_hit[53] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_CLEAR_OFFSET);
     addr_hit[54] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_HW_BARRIER_OFFSET);
@@ -17198,21 +17238,17 @@ module snitch_cluster_peripheral_reg_top #(
   assign perf_counter_15_wd = reg_wdata[47:0];
   assign perf_counter_15_re = addr_hit[47] & reg_re & !reg_error;
 
-  assign ctrl_scratch_0_we = addr_hit[48] & reg_we & !reg_error;
-  assign ctrl_scratch_0_wd = reg_wdata[63:0];
-  assign ctrl_scratch_0_re = addr_hit[48] & reg_re & !reg_error;
+  assign scratch_0_we = addr_hit[48] & reg_we & !reg_error;
+  assign scratch_0_wd = reg_wdata[31:0];
 
-  assign ctrl_scratch_1_we = addr_hit[49] & reg_we & !reg_error;
-  assign ctrl_scratch_1_wd = reg_wdata[63:0];
-  assign ctrl_scratch_1_re = addr_hit[49] & reg_re & !reg_error;
+  assign scratch_1_we = addr_hit[49] & reg_we & !reg_error;
+  assign scratch_1_wd = reg_wdata[31:0];
 
-  assign ctrl_scratch_2_we = addr_hit[50] & reg_we & !reg_error;
-  assign ctrl_scratch_2_wd = reg_wdata[63:0];
-  assign ctrl_scratch_2_re = addr_hit[50] & reg_re & !reg_error;
+  assign scratch_2_we = addr_hit[50] & reg_we & !reg_error;
+  assign scratch_2_wd = reg_wdata[31:0];
 
-  assign ctrl_scratch_3_we = addr_hit[51] & reg_we & !reg_error;
-  assign ctrl_scratch_3_wd = reg_wdata[63:0];
-  assign ctrl_scratch_3_re = addr_hit[51] & reg_re & !reg_error;
+  assign scratch_3_we = addr_hit[51] & reg_we & !reg_error;
+  assign scratch_3_wd = reg_wdata[31:0];
 
   assign cl_clint_set_we = addr_hit[52] & reg_we & !reg_error;
   assign cl_clint_set_wd = reg_wdata[31:0];
@@ -17902,19 +17938,19 @@ module snitch_cluster_peripheral_reg_top #(
       end
 
       addr_hit[48]: begin
-        reg_rdata_next[63:0] = ctrl_scratch_0_qs;
+        reg_rdata_next[31:0] = scratch_0_qs;
       end
 
       addr_hit[49]: begin
-        reg_rdata_next[63:0] = ctrl_scratch_1_qs;
+        reg_rdata_next[31:0] = scratch_1_qs;
       end
 
       addr_hit[50]: begin
-        reg_rdata_next[63:0] = ctrl_scratch_2_qs;
+        reg_rdata_next[31:0] = scratch_2_qs;
       end
 
       addr_hit[51]: begin
-        reg_rdata_next[63:0] = ctrl_scratch_3_qs;
+        reg_rdata_next[31:0] = scratch_3_qs;
       end
 
       addr_hit[52]: begin
