@@ -8,7 +8,6 @@ BENDER=$(shell which bender)
 REGTOOL=$(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
 PYTHON3=$(shell which python)
 CLANG_FORMAT=$(shell which clang-format-12.0.1)
-VERIBLE_FORMAT=$(shell which verible-verilog-format)
 
 SCHEMA=snitch_cluster_peripheral_reg.hjson
 
@@ -20,10 +19,8 @@ all: $(PKG) $(TOP) $(CDEF)
 
 $(PKG): $(SCHEMA)
 	$(PYTHON3) $(REGTOOL) -r -t $(dir $@) $<
-	$(VERIBLE_FORMAT) --inplace $@
 $(TOP): $(SCHEMA)
 	$(PYTHON3) $(REGTOOL) -r -t $(dir $@) $<
-	$(VERIBLE_FORMAT) --inplace $@
 
 %.h: $(SCHEMA)
 	$(PYTHON3) $(REGTOOL) -D -o $@ $<
