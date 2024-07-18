@@ -8,44 +8,44 @@
 `include "common_cells/assertions.svh"
 
 module snitch_cluster_peripheral_reg_top #(
-  parameter type reg_req_t = logic,
-  parameter type reg_rsp_t = logic,
-  parameter int AW = 9
+    parameter type reg_req_t = logic,
+    parameter type reg_rsp_t = logic,
+    parameter int AW = 9
 ) (
-  input logic clk_i,
-  input logic rst_ni,
-  input  reg_req_t reg_req_i,
-  output reg_rsp_t reg_rsp_o,
-  // To HW
-  output snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_reg2hw_t reg2hw, // Write
-  input  snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_hw2reg_t hw2reg, // Read
+    input logic clk_i,
+    input logic rst_ni,
+    input reg_req_t reg_req_i,
+    output reg_rsp_t reg_rsp_o,
+    // To HW
+    output snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_reg2hw_t reg2hw,  // Write
+    input snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_hw2reg_t hw2reg,  // Read
 
 
-  // Config
-  input devmode_i // If 1, explicit error return for unmapped register access
+    // Config
+    input devmode_i  // If 1, explicit error return for unmapped register access
 );
 
-  import snitch_cluster_peripheral_reg_pkg::* ;
+  import snitch_cluster_peripheral_reg_pkg::*;
 
   localparam int DW = 64;
-  localparam int DBW = DW/8;                    // Byte Width
+  localparam int DBW = DW / 8;  // Byte Width
 
   // register signals
-  logic           reg_we;
-  logic           reg_re;
-  logic [BlockAw-1:0]  reg_addr;
-  logic [DW-1:0]  reg_wdata;
-  logic [DBW-1:0] reg_be;
-  logic [DW-1:0]  reg_rdata;
-  logic           reg_error;
+  logic               reg_we;
+  logic               reg_re;
+  logic [BlockAw-1:0] reg_addr;
+  logic [     DW-1:0] reg_wdata;
+  logic [    DBW-1:0] reg_be;
+  logic [     DW-1:0] reg_rdata;
+  logic               reg_error;
 
-  logic          addrmiss, wr_err;
+  logic addrmiss, wr_err;
 
   logic [DW-1:0] reg_rdata_next;
 
   // Below register interface can be changed
-  reg_req_t  reg_intf_req;
-  reg_rsp_t  reg_intf_rsp;
+  reg_req_t reg_intf_req;
+  reg_rsp_t reg_intf_rsp;
 
 
   assign reg_intf_req = reg_req_i;
@@ -61,7 +61,7 @@ module snitch_cluster_peripheral_reg_top #(
   assign reg_intf_rsp.error = reg_error;
   assign reg_intf_rsp.ready = 1'b1;
 
-  assign reg_rdata = reg_rdata_next ;
+  assign reg_rdata = reg_rdata_next;
   assign reg_error = (devmode_i & addrmiss) | wr_err;
 
 
@@ -332,9 +332,9 @@ module snitch_cluster_peripheral_reg_top #(
     .we     (perf_cnt_en_0_we),
     .wd     (perf_cnt_en_0_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
     // to internal hardware
     .qe     (),
@@ -359,9 +359,9 @@ module snitch_cluster_peripheral_reg_top #(
     .we     (perf_cnt_en_1_we),
     .wd     (perf_cnt_en_1_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
     // to internal hardware
     .qe     (),
@@ -386,9 +386,9 @@ module snitch_cluster_peripheral_reg_top #(
     .we     (perf_cnt_en_2_we),
     .wd     (perf_cnt_en_2_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
     // to internal hardware
     .qe     (),
@@ -413,9 +413,9 @@ module snitch_cluster_peripheral_reg_top #(
     .we     (perf_cnt_en_3_we),
     .wd     (perf_cnt_en_3_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
     // to internal hardware
     .qe     (),
@@ -440,9 +440,9 @@ module snitch_cluster_peripheral_reg_top #(
     .we     (perf_cnt_en_4_we),
     .wd     (perf_cnt_en_4_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
     // to internal hardware
     .qe     (),
@@ -467,9 +467,9 @@ module snitch_cluster_peripheral_reg_top #(
     .we     (perf_cnt_en_5_we),
     .wd     (perf_cnt_en_5_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
     // to internal hardware
     .qe     (),
@@ -494,9 +494,9 @@ module snitch_cluster_peripheral_reg_top #(
     .we     (perf_cnt_en_6_we),
     .wd     (perf_cnt_en_6_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
     // to internal hardware
     .qe     (),
@@ -521,9 +521,9 @@ module snitch_cluster_peripheral_reg_top #(
     .we     (perf_cnt_en_7_we),
     .wd     (perf_cnt_en_7_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
     // to internal hardware
     .qe     (),
@@ -548,9 +548,9 @@ module snitch_cluster_peripheral_reg_top #(
     .we     (perf_cnt_en_8_we),
     .wd     (perf_cnt_en_8_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
     // to internal hardware
     .qe     (),
@@ -575,9 +575,9 @@ module snitch_cluster_peripheral_reg_top #(
     .we     (perf_cnt_en_9_we),
     .wd     (perf_cnt_en_9_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
     // to internal hardware
     .qe     (),
@@ -602,9 +602,9 @@ module snitch_cluster_peripheral_reg_top #(
     .we     (perf_cnt_en_10_we),
     .wd     (perf_cnt_en_10_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
     // to internal hardware
     .qe     (),
@@ -629,9 +629,9 @@ module snitch_cluster_peripheral_reg_top #(
     .we     (perf_cnt_en_11_we),
     .wd     (perf_cnt_en_11_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
     // to internal hardware
     .qe     (),
@@ -656,9 +656,9 @@ module snitch_cluster_peripheral_reg_top #(
     .we     (perf_cnt_en_12_we),
     .wd     (perf_cnt_en_12_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
     // to internal hardware
     .qe     (),
@@ -683,9 +683,9 @@ module snitch_cluster_peripheral_reg_top #(
     .we     (perf_cnt_en_13_we),
     .wd     (perf_cnt_en_13_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
     // to internal hardware
     .qe     (),
@@ -710,9 +710,9 @@ module snitch_cluster_peripheral_reg_top #(
     .we     (perf_cnt_en_14_we),
     .wd     (perf_cnt_en_14_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
     // to internal hardware
     .qe     (),
@@ -737,9 +737,9 @@ module snitch_cluster_peripheral_reg_top #(
     .we     (perf_cnt_en_15_we),
     .wd     (perf_cnt_en_15_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
     // to internal hardware
     .qe     (),
@@ -1541,58 +1541,58 @@ module snitch_cluster_peripheral_reg_top #(
   // R[cl_clint_set]: V(True)
 
   prim_subreg_ext #(
-    .DW    (32)
+      .DW(32)
   ) u_cl_clint_set (
-    .re     (1'b0),
-    .we     (cl_clint_set_we),
-    .wd     (cl_clint_set_wd),
-    .d      ('0),
-    .qre    (),
-    .qe     (reg2hw.cl_clint_set.qe),
-    .q      (reg2hw.cl_clint_set.q ),
-    .qs     ()
+      .re (1'b0),
+      .we (cl_clint_set_we),
+      .wd (cl_clint_set_wd),
+      .d  ('0),
+      .qre(),
+      .qe (reg2hw.cl_clint_set.qe),
+      .q  (reg2hw.cl_clint_set.q),
+      .qs ()
   );
 
 
   // R[cl_clint_clear]: V(True)
 
   prim_subreg_ext #(
-    .DW    (32)
+      .DW(32)
   ) u_cl_clint_clear (
-    .re     (1'b0),
-    .we     (cl_clint_clear_we),
-    .wd     (cl_clint_clear_wd),
-    .d      ('0),
-    .qre    (),
-    .qe     (reg2hw.cl_clint_clear.qe),
-    .q      (reg2hw.cl_clint_clear.q ),
-    .qs     ()
+      .re (1'b0),
+      .we (cl_clint_clear_we),
+      .wd (cl_clint_clear_wd),
+      .d  ('0),
+      .qre(),
+      .qe (reg2hw.cl_clint_clear.qe),
+      .q  (reg2hw.cl_clint_clear.q),
+      .qs ()
   );
 
 
   // R[icache_prefetch_enable]: V(False)
 
   prim_subreg #(
-    .DW      (1),
-    .SWACCESS("WO"),
-    .RESVAL  (1'h1)
+      .DW      (1),
+      .SWACCESS("WO"),
+      .RESVAL  (1'h1)
   ) u_icache_prefetch_enable (
-    .clk_i   (clk_i    ),
-    .rst_ni  (rst_ni  ),
+      .clk_i (clk_i),
+      .rst_ni(rst_ni),
 
-    // from register interface
-    .we     (icache_prefetch_enable_we),
-    .wd     (icache_prefetch_enable_wd),
+      // from register interface
+      .we(icache_prefetch_enable_we),
+      .wd(icache_prefetch_enable_wd),
 
-    // from internal hardware
-    .de     (1'b0),
-    .d      ('0  ),
+      // from internal hardware
+      .de(1'b0),
+      .d ('0),
 
-    // to internal hardware
-    .qe     (),
-    .q      (reg2hw.icache_prefetch_enable.q ),
+      // to internal hardware
+      .qe(),
+      .q (reg2hw.icache_prefetch_enable.q),
 
-    .qs     ()
+      .qs()
   );
 
 
@@ -1654,7 +1654,7 @@ module snitch_cluster_peripheral_reg_top #(
     addr_hit[50] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_ICACHE_PREFETCH_ENABLE_OFFSET);
   end
 
-  assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
+  assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
 
   // Check sub-word write is permitted
   always_comb begin
@@ -2205,24 +2205,23 @@ module snitch_cluster_peripheral_reg_top #(
 
 endmodule
 
-module snitch_cluster_peripheral_reg_top_intf
-#(
-  parameter int AW = 9,
-  localparam int DW = 64
+module snitch_cluster_peripheral_reg_top_intf #(
+    parameter  int AW = 9,
+    localparam int DW = 64
 ) (
-  input logic clk_i,
-  input logic rst_ni,
-  REG_BUS.in  regbus_slave,
-  // To HW
-  output snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_reg2hw_t reg2hw, // Write
-  input  snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_hw2reg_t hw2reg, // Read
-  // Config
-  input devmode_i // If 1, explicit error return for unmapped register access
+    input logic clk_i,
+    input logic rst_ni,
+    REG_BUS.in regbus_slave,
+    // To HW
+    output snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_reg2hw_t reg2hw,  // Write
+    input snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_hw2reg_t hw2reg,  // Read
+    // Config
+    input devmode_i  // If 1, explicit error return for unmapped register access
 );
- localparam int unsigned STRB_WIDTH = DW/8;
+  localparam int unsigned STRB_WIDTH = DW / 8;
 
-`include "register_interface/typedef.svh"
-`include "register_interface/assign.svh"
+  `include "register_interface/typedef.svh"
+  `include "register_interface/assign.svh"
 
   // Define structs for reg_bus
   typedef logic [AW-1:0] addr_t;
@@ -2232,27 +2231,27 @@ module snitch_cluster_peripheral_reg_top_intf
 
   reg_bus_req_t s_reg_req;
   reg_bus_rsp_t s_reg_rsp;
-  
+
   // Assign SV interface to structs
   `REG_BUS_ASSIGN_TO_REQ(s_reg_req, regbus_slave)
   `REG_BUS_ASSIGN_FROM_RSP(regbus_slave, s_reg_rsp)
 
-  
+
 
   snitch_cluster_peripheral_reg_top #(
-    .reg_req_t(reg_bus_req_t),
-    .reg_rsp_t(reg_bus_rsp_t),
-    .AW(AW)
+      .reg_req_t(reg_bus_req_t),
+      .reg_rsp_t(reg_bus_rsp_t),
+      .AW(AW)
   ) i_regs (
-    .clk_i,
-    .rst_ni,
-    .reg_req_i(s_reg_req),
-    .reg_rsp_o(s_reg_rsp),
-    .reg2hw, // Write
-    .hw2reg, // Read
-    .devmode_i
+      .clk_i,
+      .rst_ni,
+      .reg_req_i(s_reg_req),
+      .reg_rsp_o(s_reg_rsp),
+      .reg2hw,  // Write
+      .hw2reg,  // Read
+      .devmode_i
   );
-  
+
 endmodule
 
 
