@@ -15,8 +15,10 @@
 import os
 import argparse
 
+from struct import *
+
 # Parse arguments.
-parser = argparse.ArgumentParser(description="Generate thestral_bootrom.sv")
+parser = argparse.ArgumentParser(description="Generate bootrom.sv")
 parser.add_argument("BINARY",
                     help="Binary image for which to create a bootrom")
 parser.add_argument(
@@ -53,8 +55,7 @@ while length < max(len(binary), args.pad):
 
 binary += b"\0" * (length - len(binary))
 
-
-# Generate the words to be emitted.
+# Generate the bytes to be emitted.
 def chunks(seq, size):
     return (seq[pos:pos + size] for pos in range(0, len(seq), size))
 
@@ -64,32 +65,31 @@ def format_word_bin(word):
     return "".join(reversed(hex))
 
 
-def format_word_hex(word):
-    hex = ["{:02x}".format(int(x)) for x in word]
-    hex += ["00"] * (4 - len(word))
-    return "".join(reversed(hex))
-
-
 def format_arm_rom(binary):
-    words = list(enumerate(chunks(binary, 4)))
-    return "\n".join(("{}".format(format_word_bin(x)) for i, x in words))
-
-
-def format_binary(binary):
-    words = list(enumerate(chunks(binary, 4)))
-    num_words = len(words)
-    return num_words, ";\n            ".join(
-        ("    {:03}: data_o = DataWidth'h{} /* 0x{:04x} */".format(
-            i, format_word_hex(x), i * 4) for i, x in words))
+    bytes = list(enumerate(chunks(binary, 1)))
+    return "\n".join(("{}".format(format_word_bin(x)) for i, x in bytes))
 
 
 if args.arm_rom:
-    words = format_arm_rom(binary)
-    print(words)
+    bytes = format_arm_rom(binary)
+    print(bytes)
+
+def create_rom(binary):
+    b = bytearray(binary).hex()
+    num_bytes = len(b)
+    return int(num_bytes / 2), "\n            ".join(
+        ("{{8'h{}}}, /* 0x{:04x} */".format(
+            str(b[i]) + str(b[i + 1]), int(i / 2)) for i in range(num_bytes - 2, 0, -2))) + "\n            {{8'h{}}}  /* 0x{:04x} */".format(
+                str(b[0]) + str(b[1]), 0)
+
+def assign_word():
+    MaxDataWidth = 512 / 8
+    return "".join("rom[addr_i+{}][7:0],\n                             ".format(i) for i in range(int(MaxDataWidth) - 1, 0, -1))
 
 if args.sv_module:
-    num_words, words = format_binary(binary)
-    
+    num_bytes, bytes = create_rom(binary)
+    word = assign_word()
+
     # Emit the code.
     print("""
     // Copyright 2020 ETH Zurich
@@ -106,31 +106,35 @@ if args.sv_module:
 
     module {module_name} #(
         parameter int unsigned AddrWidth = 32,
-        parameter int unsigned DataWidth = 32
+        parameter int unsigned DataWidth = 32,
+        parameter int unsigned BootromSize = 65536
     )(
         input  logic                 clk_i,
         input  logic                 rst_ni,
-        input  logic                 req_i,
         input  logic [AddrWidth-1:0] addr_i,
         output logic [DataWidth-1:0] data_o
     );
-        localparam NumWords   = {num_words};
-        logic [$clog2(NumWords)-1:0] word;
+        localparam logic [{gen_size}-1:0][7:0] rom = '{{
+            {bytes}
+        }};
+        
+        localparam int unsigned NumBytes = DataWidth/8;
+        localparam int unsigned WordOffset = $clog2(NumBytes);
+        logic [BootromSize/NumBytes-1:0][DataWidth-1:0] rom_word_addressed;
+        assign rom_word_addressed = rom[BootromSize-1:0];
 
-        assign word = addr_i / (DataWidth / 8);
+        logic [$clog2(BootromSize)-1:WordOffset] aligned_address;
 
-        always_comb begin
-            data_o = '0;
-            unique case (word)
-            {words};
-                default: data_o = '0;
-            endcase
-        end
+        assign aligned_address = addr_i[$clog2(BootromSize)-1:WordOffset];
 
+        assign data_o = rom_word_addressed[aligned_address];
+        
     endmodule
     """.strip().format(
         script=os.path.basename(__file__),
         module_name=args.sv_module,
-        num_words=num_words,
-        words=words,
+        gen_size=args.pad,
+        num_bytes=num_bytes,
+        bytes=bytes,
+        word=word,
     ))
