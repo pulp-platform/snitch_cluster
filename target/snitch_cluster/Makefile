@@ -140,7 +140,7 @@ test/bootrom.elf test/bootrom.dump test/bootrom.bin test/bootrom.sv: test/bootro
 	riscv riscv32-unknown-elf-gcc -mabi=ilp32d -march=rv32imafd -static -nostartfiles -Ttest/bootrom.ld $< -o test/bootrom.elf
 	riscv riscv32-unknown-elf-objdump -d test/bootrom.elf > test/bootrom.dump
 	riscv riscv32-unknown-elf-objcopy -j .text -O binary test/bootrom.elf test/bootrom.bin
-	test/gen_bootrom.py --sv-module bootrom test/bootrom.bin > test/bootrom.sv
+	util/gen_bootrom.py --sv-module bootrom test/bootrom.bin > test/bootrom.sv
 
 ############
 # Software #
