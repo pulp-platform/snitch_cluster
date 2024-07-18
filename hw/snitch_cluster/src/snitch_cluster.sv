@@ -1315,7 +1315,7 @@ module snitch_cluster
     .icache_events_i (icache_events)
   );
 
-  bootrom #(
+  snitch_bootrom #(
     .AddrWidth (PhysicalAddrWidth),
     .DataWidth (WideDataWidth),
     .BootromSize (BootRomSize * 1024)
