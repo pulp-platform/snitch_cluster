@@ -34,6 +34,7 @@ struct Sim : htif_t {
     bool is_address_preloaded(addr_t taddr, size_t len) override {
         return disable_preloading;
     }
+    uint32_t get_bin_entry() { return get_entry_point(); }
 
     void idle();
 
