@@ -34,11 +34,9 @@ def format_binary(binary):
     num_words = len(binary) // 4
     sv_code = ""
     for i in range(num_words):
-        # Extract each 32-bit word and unpack it as an unsigned integer
-        # '>I' for big-endian, '<I' for little-endian
+        # Extract each 32-bit word as little-endian and unpack it as an unsigned integer
         word = struct.unpack_from('<I', binary, 4*i)[0]
-        if word != 0:  # Only add non-zero words to the output
-            sv_code += f"            bootrom[{i}] = 32'h{word:08x}; /* 0x{4*i:04x} */\n"
+        sv_code += f"            bootrom[{i}] = 32'h{word:08x}; /* 0x{4*i:04x} */\n"
     return sv_code[:-1]
 
 
