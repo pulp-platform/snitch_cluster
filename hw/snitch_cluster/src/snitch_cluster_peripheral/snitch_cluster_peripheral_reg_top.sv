@@ -1858,7 +1858,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h1)
+    .RESVAL  (1'h0)
   ) u_perf_counter_enable_0_retired_instr_0 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -2667,7 +2667,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h1)
+    .RESVAL  (1'h0)
   ) u_perf_counter_enable_1_retired_instr_1 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -3476,7 +3476,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h1)
+    .RESVAL  (1'h0)
   ) u_perf_counter_enable_2_retired_instr_2 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -4285,7 +4285,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h1)
+    .RESVAL  (1'h0)
   ) u_perf_counter_enable_3_retired_instr_3 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -5094,7 +5094,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h1)
+    .RESVAL  (1'h0)
   ) u_perf_counter_enable_4_retired_instr_4 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -5903,7 +5903,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h1)
+    .RESVAL  (1'h0)
   ) u_perf_counter_enable_5_retired_instr_5 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -6712,7 +6712,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h1)
+    .RESVAL  (1'h0)
   ) u_perf_counter_enable_6_retired_instr_6 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -7521,7 +7521,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h1)
+    .RESVAL  (1'h0)
   ) u_perf_counter_enable_7_retired_instr_7 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -8330,7 +8330,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h1)
+    .RESVAL  (1'h0)
   ) u_perf_counter_enable_8_retired_instr_8 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -9139,7 +9139,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h1)
+    .RESVAL  (1'h0)
   ) u_perf_counter_enable_9_retired_instr_9 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -9948,7 +9948,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h1)
+    .RESVAL  (1'h0)
   ) u_perf_counter_enable_10_retired_instr_10 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -10757,7 +10757,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h1)
+    .RESVAL  (1'h0)
   ) u_perf_counter_enable_11_retired_instr_11 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -11566,7 +11566,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h1)
+    .RESVAL  (1'h0)
   ) u_perf_counter_enable_12_retired_instr_12 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -12375,7 +12375,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h1)
+    .RESVAL  (1'h0)
   ) u_perf_counter_enable_13_retired_instr_13 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -13184,7 +13184,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h1)
+    .RESVAL  (1'h0)
   ) u_perf_counter_enable_14_retired_instr_14 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
@@ -13993,7 +13993,7 @@ module snitch_cluster_peripheral_reg_top #(
   prim_subreg #(
     .DW      (1),
     .SWACCESS("RW"),
-    .RESVAL  (1'h1)
+    .RESVAL  (1'h0)
   ) u_perf_counter_enable_15_retired_instr_15 (
     .clk_i   (clk_i    ),
     .rst_ni  (rst_ni  ),
