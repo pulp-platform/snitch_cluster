@@ -49,6 +49,11 @@ package ${cfg['pkg_name']};
   localparam int unsigned NrCores = ${cfg['nr_cores']};
   localparam int unsigned NrHives = ${cfg['nr_hives']};
 
+  localparam int unsigned TcdmSize = ${cfg['tcdm']['size']};
+  localparam int unsigned ZeroMemorySize = ${cfg['zero_mem_size']};
+  localparam int unsigned BootRomSize = ${cfg['boot_rom_size']};
+  localparam int unsigned ClusterPeriphSize = ${cfg['cluster_periph_size']};
+
   localparam int unsigned AddrWidth = ${cfg['addr_width']};
   localparam int unsigned NarrowDataWidth = ${cfg['data_width']};
   localparam int unsigned WideDataWidth = ${cfg['dma_data_width']};
@@ -269,9 +274,9 @@ module ${cfg['name']}_wrapper (
     .NrHives (${cfg['nr_hives']}),
     .NrCores (${cfg['nr_cores']}),
     .TCDMDepth (${cfg['tcdm']['depth']}),
-    .ZeroMemorySize (${cfg['zero_mem_size']}),
-    .BootRomSize (${cfg['boot_rom_size']}),
-    .ClusterPeriphSize (${cfg['cluster_periph_size']}),
+    .ZeroMemorySize (${cfg['pkg_name']}::ZeroMemorySize),
+    .BootRomSize (${cfg['pkg_name']}::BootRomSize),
+    .ClusterPeriphSize (${cfg['pkg_name']}::ClusterPeriphSize),
     .NrBanks (${cfg['tcdm']['banks']}),
     .DMANumAxInFlight (${cfg['dma_axi_req_fifo_depth']}),
     .DMAReqFifoDepth (${cfg['dma_req_fifo_depth']}),
