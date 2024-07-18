@@ -37,7 +37,7 @@ def format_binary(binary):
     sv_code = ""
     for i in range(num_words):
         # Extract each 32-bit word as little-endian and unpack it as an unsigned integer
-        word = struct.unpack_from('<I', binary, 4*i)[0]
+        word = struct.unpack_from("<I", binary, 4 * i)[0]
         sv_code += f"            bootrom[{i}] = 32'h{word:08x}; /* 0x{4*i:04x} */\n"
     return sv_code[:-1]
 
@@ -87,6 +87,6 @@ endmodule
     """.strip().format(
             script=os.path.basename(__file__),
             module_name=args.sv_module,
-            words=format_binary(binary)
+            words=format_binary(binary),
         )
     )
