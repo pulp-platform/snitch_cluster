@@ -11,14 +11,17 @@ _snitch_park:
     csrw    mtvec, t0
     # Enable software and cluster interrupts
     csrsi   mstatus, MSTATUS_MIE # CSR set (uimm)
-    lui     t0, 0x80  # (1 << 19) cluster interrupts
-    addi    t0, t0, 8 # (1 << 3) software interrupts
+    lui     t0, 0x80     # (1 << 19) cluster interrupts
+    addi    t0, t0, 8    # (1 << 3) software interrupts
+    addi    t1, zero, 1  # (1 << 11) external interrupts
+    slli    t1, t1, 11
+    or      t0, t0, t1
     csrw    mie, t0
     wfi
 
 _snitch_resume:
     auipc   t0, 0
-    li      t1, -3736 # Jump to scratch register 1 at offset 0x188
+    li      t1, -3748 # Jump to scratch register 1 at offset 0x188
     add     t0, t0, t1
     lw      t0, 0(t0)
     jalr    ra, 0(t0)

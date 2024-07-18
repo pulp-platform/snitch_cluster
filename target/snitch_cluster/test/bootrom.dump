@@ -6,19 +6,22 @@ Disassembly of section .text:
 
 00000000 <_snitch_park>:
    0:	00000297          	auipc	t0,0x0
-   4:	02028293          	addi	t0,t0,32 # 20 <_snitch_resume>
+   4:	02c28293          	addi	t0,t0,44 # 2c <_snitch_resume>
    8:	30529073          	csrw	mtvec,t0
    c:	30046073          	csrsi	mstatus,8
   10:	000802b7          	lui	t0,0x80
-  14:	00828293          	addi	t0,t0,8 # 80008 <_snitch_resume+0x7ffe8>
-  18:	30429073          	csrw	mie,t0
-  1c:	10500073          	wfi
+  14:	00828293          	addi	t0,t0,8 # 80008 <_snitch_resume+0x7ffdc>
+  18:	00100313          	li	t1,1
+  1c:	00b31313          	slli	t1,t1,0xb
+  20:	0062e2b3          	or	t0,t0,t1
+  24:	30429073          	csrw	mie,t0
+  28:	10500073          	wfi
 
-00000020 <_snitch_resume>:
-  20:	00000297          	auipc	t0,0x0
-  24:	fffff337          	lui	t1,0xfffff
-  28:	16830313          	addi	t1,t1,360 # fffff168 <_snitch_resume+0xfffff148>
-  2c:	006282b3          	add	t0,t0,t1
-  30:	0002a283          	lw	t0,0(t0) # 20 <_snitch_resume>
-  34:	000280e7          	jalr	t0
-  38:	fc9ff06f          	j	0 <_snitch_park>
+0000002c <_snitch_resume>:
+  2c:	00000297          	auipc	t0,0x0
+  30:	fffff337          	lui	t1,0xfffff
+  34:	15c30313          	addi	t1,t1,348 # fffff15c <_snitch_resume+0xfffff130>
+  38:	006282b3          	add	t0,t0,t1
+  3c:	0002a283          	lw	t0,0(t0) # 2c <_snitch_resume>
+  40:	000280e7          	jalr	t0
+  44:	fbdff06f          	j	0 <_snitch_park>
