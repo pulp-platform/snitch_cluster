@@ -312,17 +312,16 @@
     },
     {
         multireg: {
-            name: "CTRL_SCRATCH",
+            name: "SCRATCH",
             desc: '''Scratch registers. Used in the bootrom for various purposes.'''
             swaccess: "rw",
             hwaccess: "none",
             count: "NumCtrlScratch",
             cname: "ctrl_scratch",
-            hwext: "true",
-            hwqe: "true",
+            compact: "false",
             fields: [{
-                bits: "63:0",
-                name: "CTRL_SCRATCH",
+                bits: "31:0",
+                name: "SCRATCH",
                 desc: "Scratch register"
             }]
         }
