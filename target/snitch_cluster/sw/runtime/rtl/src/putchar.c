@@ -51,10 +51,12 @@ void _putchar(char character) {
         buf->hdr.syscall_mem[2] = (uintptr_t)&buf->data;  // buffer
         buf->hdr.syscall_mem[3] = buf->hdr.size;          // length
 
+        snrt_mutex_acquire(snrt_mutex());
         tohost = (uintptr_t)buf->hdr.syscall_mem;
         while (fromhost == 0)
             ;
         fromhost = 0;
+        snrt_mutex_release(snrt_mutex());
 
         buf->hdr.size = 0;
     }
