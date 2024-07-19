@@ -25,16 +25,21 @@ void _putchar(char character) {
 extern uintptr_t volatile tohost, fromhost;
 
 // Rudimentary string buffer for putc calls.
-extern uint32_t _edram;
 #define PUTC_BUFFER_LEN (1024 - sizeof(size_t))
-struct putc_buffer_header {
+
+typedef struct {
     size_t size;
     uint64_t syscall_mem[8];
-};
-static volatile struct putc_buffer {
-    struct putc_buffer_header hdr;
+} putc_buffer_header_t;
+
+typedef struct putc_buffer {
+    putc_buffer_header_t hdr;
     char data[PUTC_BUFFER_LEN];
-} *const putc_buffer = (void *)&_edram;
+} putc_buffer_t;
+
+static volatile putc_buffer_t
+    putc_buffer[SNRT_CLUSTER_NUM * SNRT_CLUSTER_CORE_NUM]
+    __attribute__((section(".dram")));
 
 // Provide an implementation for putchar.
 void _putchar(char character) {
@@ -46,10 +51,12 @@ void _putchar(char character) {
         buf->hdr.syscall_mem[2] = (uintptr_t)&buf->data;  // buffer
         buf->hdr.syscall_mem[3] = buf->hdr.size;          // length
 
+        snrt_mutex_acquire(snrt_mutex());
         tohost = (uintptr_t)buf->hdr.syscall_mem;
         while (fromhost == 0)
             ;
         fromhost = 0;
+        snrt_mutex_release(snrt_mutex());
 
         buf->hdr.size = 0;
     }
