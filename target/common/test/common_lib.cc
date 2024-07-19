@@ -20,9 +20,7 @@ GlobalMemory MEM;
 
 // Override HTIF to populate bootloader with system specification and entry
 // symbol.
-void Sim::start() {
-    htif_t::start();
-}
+void Sim::start() { htif_t::start(); }
 
 void Sim::read_chunk(addr_t taddr, size_t len, void *dst) {
     MEM.read(taddr, len, reinterpret_cast<uint8_t *>(dst));
