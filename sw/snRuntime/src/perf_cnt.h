@@ -20,12 +20,13 @@ typedef struct {
     volatile perf_reg32_t perf_counter[SNRT_NUM_PERF_CNTS];
 } perf_regs_t;
 
-// Return the pointer to the perf_counters
+// Return the pointer to the performance counter cfg registers
 inline perf_regs_t* snrt_perf_counters() {
     return (perf_regs_t*)snrt_cluster_perf_counters_addr();
 }
 
-// Configure a specific perf_counter
+// Configure a perf_counter, the metrics which can be set
+// are defined in `snitch_cluster_peripheral.h`
 inline void snrt_cfg_perf_counter(uint32_t perf_cnt, uint16_t metric,
                                   uint16_t hart) {
     // Make sure the configuration is written in a single write
@@ -34,7 +35,7 @@ inline void snrt_cfg_perf_counter(uint32_t perf_cnt, uint16_t metric,
     snrt_perf_counters()->select[perf_cnt].value = cfg_reg.value;
 }
 
-// Enable a specific perf_counter
+// Enable a performance counter
 inline void snrt_start_perf_counter(uint32_t perf_cnt) {
     snrt_perf_counters()->enable[perf_cnt].value = 0x1;
 }
@@ -44,12 +45,12 @@ inline void snrt_stop_perf_counter(uint32_t perf_cnt) {
     snrt_perf_counters()->enable[perf_cnt].value = 0x0;
 }
 
-// Resets the counter completely
+// Resets the counter to zero
 inline void snrt_reset_perf_counter(uint32_t perf_cnt) {
     snrt_perf_counters()->perf_counter[perf_cnt].value = 0x0;
 }
 
-// Get counter of specified perf_counter
+// Get counter value of a perf_counter
 inline uint32_t snrt_get_perf_counter(uint32_t perf_cnt) {
     return snrt_perf_counters()->perf_counter[perf_cnt].value;
 }

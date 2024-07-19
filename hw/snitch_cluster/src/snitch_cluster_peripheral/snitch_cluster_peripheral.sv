@@ -60,42 +60,42 @@ module snitch_cluster_peripheral
     .hw2reg (hw2reg)
   );
 
-  // As defined in the `.hjson` file. Unforunately,
+  // As defined in the `.hjson` file. Unfortunately,
   // The regtool does not generate enums for SV,
   // only for C. So we have to define them here.
-  typedef enum logic[9:0] {
-    Cycle           = 10'd0,
-    TcdmAccessed    = 10'd1,
-    TcdmCongested   = 10'd2,
-    IssueFpu        = 10'd3,
-    IssueFpuSeq     = 10'd4,
-    IssueCoreToFpu  = 10'd5,
-    RetiredInstr    = 10'd6,
-    RetiredLoad     = 10'd7,
-    RetiredI        = 10'd8,
-    RetiredAcc      = 10'd9,
-    DmaAwStall      = 10'd10,
-    DmaArStall      = 10'd11,
-    DmaRStall       = 10'd12,
-    DmaWStall       = 10'd13,
-    DmaBufWStall    = 10'd14,
-    DmaBufRStall    = 10'd15,
-    DmaAwDone       = 10'd16,
-    DmaAwBw         = 10'd17,
-    DmaArDone       = 10'd18,
-    DmaArBw         = 10'd19,
-    DmaRDone        = 10'd20,
-    DmaRBw          = 10'd21,
-    DmaWDone        = 10'd22,
-    DmaWBw          = 10'd23,
-    DmaBDone        = 10'd24,
-    DmaBusy         = 10'd25,
-    IcacheMiss      = 10'd26,
-    IcacheHit       = 10'd27,
-    IcachePrefetch  = 10'd28,
-    IcacheDoubleHit = 10'd29,
-    IcacheStall     = 10'd30,
-    NumMetrics      = 10'd31
+  typedef enum logic[4:0] {
+    Cycle           = 5'd0,
+    TcdmAccessed    = 5'd1,
+    TcdmCongested   = 5'd2,
+    IssueFpu        = 5'd3,
+    IssueFpuSeq     = 5'd4,
+    IssueCoreToFpu  = 5'd5,
+    RetiredInstr    = 5'd6,
+    RetiredLoad     = 5'd7,
+    RetiredI        = 5'd8,
+    RetiredAcc      = 5'd9,
+    DmaAwStall      = 5'd10,
+    DmaArStall      = 5'd11,
+    DmaRStall       = 5'd12,
+    DmaWStall       = 5'd13,
+    DmaBufWStall    = 5'd14,
+    DmaBufRStall    = 5'd15,
+    DmaAwDone       = 5'd16,
+    DmaAwBw         = 5'd17,
+    DmaArDone       = 5'd18,
+    DmaArBw         = 5'd19,
+    DmaRDone        = 5'd20,
+    DmaRBw          = 5'd21,
+    DmaWDone        = 5'd22,
+    DmaWBw          = 5'd23,
+    DmaBDone        = 5'd24,
+    DmaBusy         = 5'd25,
+    IcacheMiss      = 5'd26,
+    IcacheHit       = 5'd27,
+    IcachePrefetch  = 5'd28,
+    IcacheDoubleHit = 5'd29,
+    IcacheStall     = 5'd30,
+    NumMetrics      = 5'd31
   } perf_metrics_e;
 
   // The metrics that should be tracked immediately after reset.
@@ -195,7 +195,7 @@ module snitch_cluster_peripheral
     end
   end
 
-  // Actual performance counters.
+  // Performance counter FFs.
   for (genvar i = 0; i < NumPerfCounters; i++) begin : gen_perf_cnt
     `FFLARNC(perf_cnt_q[i], perf_cnt_d[i],
              reg2hw.perf_cnt_en[i], reg2hw.perf_cnt[i].qe, '0, clk_i, rst_ni)
