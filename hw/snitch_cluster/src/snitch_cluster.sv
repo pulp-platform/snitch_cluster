@@ -1271,13 +1271,7 @@ module snitch_cluster
     .AddrWidth (PhysicalAddrWidth),
     .DataWidth (WideDataWidth),
     .IdWidth (WideIdWidthOut),
-    .NumBanks (1),
-    .BufDepth (MemoryMacroLatency + 1),
-    .HideStrb (),
-    .OutFifoDepth (),
-    .addr_t (),                              // Dependent parameter, do not override.
-    .mem_data_t (),                          // Dependent parameter, do not override.
-    .mem_strb_t ()                           // Dependent parameter, do not override.
+    .NumBanks (1)
   ) i_axi_to_mem (
     .clk_i (clk_i),
     .rst_ni (rst_ni),
