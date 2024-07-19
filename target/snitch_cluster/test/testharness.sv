@@ -78,45 +78,26 @@ module testharness import snitch_cluster_pkg::*; (
     .rsp_o (wide_out_resp)
   );
 
-  AXI_BUS_DV #(
-    .AXI_ADDR_WIDTH ( AddrWidth       ),
-    .AXI_DATA_WIDTH ( NarrowDataWidth ),
-    .AXI_ID_WIDTH   ( NarrowIdWidthIn ),
-    .AXI_USER_WIDTH ( NarrowUserWidth )
-  ) narrow_in (clk_i);
-
-  `AXI_ASSIGN_TO_REQ(narrow_in_req, narrow_in)
-  `AXI_ASSIGN_FROM_RESP(narrow_in, narrow_in_resp)
-
-  typedef axi_test::axi_driver #(
-    .AW ( AddrWidth       ),
-    .DW ( NarrowDataWidth ),
-    .IW ( NarrowIdWidthIn ),
-    .UW ( NarrowUserWidth )
-  ) narrow_drv_t;
-
-  narrow_drv_t narrow_drv_in = new(narrow_in);
-
-
-  task automatic narrow_write(
+  task narrow_write(
     input logic [AddrWidth-1:0] addr,
-    input logic [NarrowDataWidth-1:0] data
+    input logic [NarrowDataWidth-1:0] data,
+    output axi_pkg::resp_t resp
   );
-    automatic narrow_drv_t::ax_beat_t ax = new();
-    automatic narrow_drv_t::w_beat_t w = new();
-    automatic narrow_drv_t::b_beat_t b;
-    @(posedge clk_i);
-    ax.ax_addr  = addr;
-    ax.ax_id    = '0;
-    ax.ax_len   = '0;
-    ax.ax_size  = $clog2(NarrowDataWidth/8);
-    ax.ax_burst = axi_pkg::BURST_INCR;
-    narrow_drv_in.send_aw(ax);
-    w.w_strb = '1;
-    w.w_data = data;
-    w.w_last = 1'b1;
-    narrow_drv_in.send_w(w);
-    narrow_drv_in.recv_b(b);
+    narrow_in_req.aw.addr = addr;
+    narrow_in_req.aw.size = $clog2(NarrowDataWidth/8);
+    narrow_in_req.aw.burst = axi_pkg::BURST_INCR;
+    narrow_in_req.aw_valid = 1'b1;
+    do @(posedge clk_i); while (!narrow_in_resp.aw_ready);
+    narrow_in_req.aw_valid = 1'b0;
+    narrow_in_req.w.data = data;
+    narrow_in_req.w.strb = '1;
+    narrow_in_req.w_valid = 1'b1;
+    do @(posedge clk_i); while (!narrow_in_resp.w_ready);
+    narrow_in_req.w_valid = 1'b0;
+    narrow_in_req.b_ready = 1'b1;
+    do @(posedge clk_i); while (!narrow_in_resp.b_valid);
+    resp = narrow_in_resp.b.resp;
+    narrow_in_req.b_ready = 1'b0;
   endtask
 
   localparam int unsigned PeriphBaseAddr = snitch_cluster_pkg::CfgClusterBaseAddr +
@@ -125,13 +106,20 @@ module testharness import snitch_cluster_pkg::*; (
     snitch_cluster_peripheral_reg_pkg::SNITCH_CLUSTER_PERIPHERAL_SCRATCH_1_OFFSET;
 
   initial begin
+    axi_pkg::resp_t resp;
     meip = '0;
+    narrow_in_req = '0;
+    narrow_in_req.aw.burst = axi_pkg::BURST_INCR;
+    narrow_in_req.ar.burst = axi_pkg::BURST_INCR;
+    narrow_in_req.aw.cache = axi_pkg::CACHE_MODIFIABLE;
+    narrow_in_req.ar.cache = axi_pkg::CACHE_MODIFIABLE;
     @(negedge rst_ni);
-    narrow_drv_in.reset_master();
     // Wait for some time
     #300ns;
     // Write to the scratch1 register
-    narrow_write(Scratch1Addr, get_bin_entry());
+    @(posedge clk_i);
+    narrow_write(Scratch1Addr, get_bin_entry(), resp);
+    assert(resp == axi_pkg::RESP_OKAY);
     $display("[NarrowAxi] Writing entry point %x to scratch1", get_bin_entry());
     // Assert the external interrupt for a single cycle
     // to start the cores
