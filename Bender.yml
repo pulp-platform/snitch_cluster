@@ -208,6 +208,8 @@ sources:
       # Level 0
       - hw/snitch_icache/src/snitch_icache_pkg.sv
       # Level 1
+      - hw/snitch_icache/src/snitch_icache_data.sv
+      - hw/snitch_icache/src/snitch_icache_tag.sv
       - hw/snitch_icache/src/snitch_icache_l0.sv
       - hw/snitch_icache/src/snitch_icache_refill.sv
       - hw/snitch_icache/src/snitch_icache_lfsr.sv
@@ -256,6 +258,7 @@ sources:
   # snitch_cluster
   - files:
       # Level 0
+      - hw/snitch_cluster/src/snitch_data_mem.sv
       - hw/snitch_cluster/src/snitch_amo_shim.sv
       - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv
       - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_top.sv

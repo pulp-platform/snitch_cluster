@@ -51,8 +51,8 @@ module snitch_icache_lookup #(
     // write accesses.
     logic [CFG.COUNT_ALIGN-1:0] ram_addr                             ;
     logic [CFG.SET_COUNT-1:0]   ram_enable                           ;
-    logic [CFG.LINE_WIDTH-1:0]  ram_wdata, ram_rdata [CFG.SET_COUNT] ;
-    logic [CFG.TAG_WIDTH+1:0]   ram_wtag,  ram_rtag  [CFG.SET_COUNT] ;
+    logic [CFG.SET_COUNT-1:0][CFG.LINE_WIDTH-1:0]  ram_wdata, ram_rdata  ;
+    logic [CFG.SET_COUNT-1:0][CFG.TAG_WIDTH+1:0]   ram_wtag,  ram_rtag  ;
     logic                       ram_write                            ;
     logic                       ram_write_q;
     logic [CFG.COUNT_ALIGN:0]   init_count_q;
@@ -144,47 +144,33 @@ module snitch_icache_lookup #(
     end
 
     // Instantiate the RAM sets.
-    for (genvar i = 0; i < CFG.SET_COUNT; i++) begin : g_sets
-        tc_sram_impl #(
-          .NumWords (CFG.LINE_COUNT),
-          .DataWidth (CFG.TAG_WIDTH+2),
-          .ByteWidth (8),
-          .NumPorts (1),
-          .Latency (1),
-          .impl_in_t (sram_cfg_tag_t)
-        ) i_tag (
-          .clk_i (clk_i),
-          .rst_ni (rst_ni),
-          .impl_i (sram_cfg_tag_i),
-          .impl_o (  ),
-          .req_i (ram_enable[i]),
-          .we_i (ram_write),
-          .addr_i (ram_addr),
-          .wdata_i (ram_wtag),
-          .be_i ('1),
-          .rdata_o (ram_rtag[i])
-        );
+    snitch_icache_data #(
+        .CFG             ( CFG              ),
+        .sram_cfg_data_t ( sram_cfg_data_t  )
+    ) i_snitch_icache_data (
+        .clk_i           ( clk_i            ),
+        .rst_ni          ( rst_ni           ),
+        .sram_cfg_data_i ( sram_cfg_data_i  ),
+        .ram_enable_i    ( ram_enable       ),
+        .ram_write_i     ( ram_write        ),
+        .ram_addr_i      ( ram_addr         ),
+        .ram_wdata_i     ( ram_wdata        ),
+        .ram_rdata_o     ( ram_rdata        )
+    );
 
-        tc_sram_impl #(
-          .NumWords (CFG.LINE_COUNT),
-          .DataWidth (CFG.LINE_WIDTH),
-          .ByteWidth (8),
-          .NumPorts (1),
-          .Latency (1),
-          .impl_in_t (sram_cfg_data_t)
-        ) i_data (
-          .clk_i (clk_i),
-          .rst_ni (rst_ni),
-          .impl_i (sram_cfg_data_i),
-          .impl_o (  ),
-          .req_i (ram_enable[i]),
-          .we_i (ram_write),
-          .addr_i (ram_addr),
-          .wdata_i (ram_wdata),
-          .be_i ('1),
-          .rdata_o (ram_rdata[i])
-        );
-    end
+    snitch_icache_tag #(
+        .CFG             ( CFG             ),
+        .sram_cfg_tag_t  ( sram_cfg_tag_t  )
+    ) i_snitch_icache_tag (
+        .clk_i           ( clk_i           ),
+        .rst_ni          ( rst_ni          ),
+        .sram_cfg_tag_i  ( sram_cfg_tag_i  ),
+        .ram_enable_i    ( ram_enable      ),
+        .ram_write_i     ( ram_write       ),
+        .ram_addr_i      ( ram_addr        ),
+        .ram_wtag_i      ( ram_wtag        ),
+        .ram_rtag_o      ( ram_rtag        )
+    );
 
     // Determine which RAM line hit, and multiplex that data to the output.
     logic [CFG.TAG_WIDTH-1:0] required_tag;

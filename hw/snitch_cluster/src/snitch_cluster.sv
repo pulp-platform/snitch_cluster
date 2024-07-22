@@ -299,6 +299,7 @@ module snitch_cluster
   localparam int unsigned TCDMAddrWidth = $clog2(TCDMSize);
   localparam int unsigned BanksPerSuperBank = WideDataWidth / NarrowDataWidth;
   localparam int unsigned NrSuperBanks = NrBanks / BanksPerSuperBank;
+  localparam int unsigned NumTotalBanks = BanksPerSuperBank*NrSuperBanks;
 
   localparam int unsigned NrTCDMPortsCores = get_tcdm_port_offs(NrCores);
   localparam int unsigned NumTCDMIn = NrTCDMPortsCores + 1;
@@ -879,6 +880,35 @@ module snitch_cluster
   // ----------------
   // Memory Subsystem
   // ----------------
+  logic           [NumTotalBanks-1:0] mem_cs;
+  logic           [NumTotalBanks-1:0] mem_wen;
+  tcdm_mem_addr_t [NumTotalBanks-1:0] mem_add;
+  strb_t          [NumTotalBanks-1:0] mem_be;
+  data_t          [NumTotalBanks-1:0] mem_wdata;
+  data_t          [NumTotalBanks-1:0] mem_rdata;
+
+  snitch_data_mem #(
+    .TCDMDepth        ( TCDMDepth       ),
+    .NarrowDataWidth  ( NarrowDataWidth ),
+    .NumTotalBanks    ( NumTotalBanks   ),
+    .sram_cfg_t       ( sram_cfg_t      ),
+    .sram_cfgs_t      ( sram_cfgs_t     ),
+    .tcdm_mem_addr_t  ( tcdm_mem_addr_t ),
+    .strb_t           ( strb_t          ),
+    .data_t           ( data_t          )
+  ) i_snitch_data_mem (
+    .clk_i            ( clk_i           ),
+    .rst_ni           ( rst_ni          ),
+    .sram_cfgs_i      ( sram_cfgs_i     ),
+    .mem_cs_i         ( mem_cs          ),
+    .mem_add_i        ( mem_add         ),
+    .mem_wen_i        ( mem_wen         ),
+
+    .mem_be_i         ( mem_be          ),
+    .mem_wdata_i      ( mem_wdata       ),
+    .mem_rdata_o      ( mem_rdata       )
+  );
+
   for (genvar i = 0; i < NrSuperBanks; i++) begin : gen_tcdm_super_bank
 
     mem_req_t [BanksPerSuperBank-1:0] amo_req;
@@ -906,31 +936,6 @@ module snitch_cluster
     // generate banks of the superbank
     for (genvar j = 0; j < BanksPerSuperBank; j++) begin : gen_tcdm_bank
 
-      logic mem_cs, mem_wen;
-      tcdm_mem_addr_t mem_add;
-      strb_t mem_be;
-      data_t mem_rdata, mem_wdata;
-
-      tc_sram_impl #(
-        .NumWords (TCDMDepth),
-        .DataWidth (NarrowDataWidth),
-        .ByteWidth (8),
-        .NumPorts (1),
-        .Latency (1),
-        .impl_in_t (sram_cfg_t)
-      ) i_data_mem (
-        .clk_i,
-        .rst_ni,
-        .impl_i (sram_cfgs_i.tcdm),
-        .impl_o (  ),
-        .req_i (mem_cs),
-        .we_i (mem_wen),
-        .addr_i (mem_add),
-        .wdata_i (mem_wdata),
-        .be_i (mem_be),
-        .rdata_o (mem_rdata)
-      );
-
       data_t amo_rdata_local;
 
       // TODO(zarubaf): Share atomic units between mutltiple cuts
@@ -951,12 +956,12 @@ module snitch_cluster
         .is_core_i ( amo_req[j].q.user.is_core ),
         .rdata_o ( amo_rdata_local ),
         .amo_i ( amo_req[j].q.amo ),
-        .mem_req_o ( mem_cs ),
-        .mem_add_o ( mem_add ),
-        .mem_wen_o ( mem_wen ),
-        .mem_wdata_o ( mem_wdata ),
-        .mem_be_o ( mem_be ),
-        .mem_rdata_i ( mem_rdata ),
+        .mem_req_o ( mem_cs[i*BanksPerSuperBank+j] ),
+        .mem_add_o ( mem_add [i*BanksPerSuperBank+j]),
+        .mem_wen_o ( mem_wen[i*BanksPerSuperBank+j] ),
+        .mem_wdata_o ( mem_wdata[i*BanksPerSuperBank+j] ),
+        .mem_be_o ( mem_be[i*BanksPerSuperBank+j] ),
+        .mem_rdata_i ( mem_rdata[i*BanksPerSuperBank+j] ),
         .dma_access_i ( sb_dma_req[i].q_valid ),
         // TODO(zarubaf): Signal AMO conflict somewhere. Socregs?
         .amo_conflict_o (  )
