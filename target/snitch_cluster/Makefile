@@ -84,7 +84,6 @@ VLOG_FLAGS += ${VLOG_64BIT}
 ###############
 
 TB_CC_SOURCES += \
-	${TB_DIR}/bootrom.cc \
 	${TB_DIR}/ipc.cc \
 	${TB_DIR}/common_lib.cc \
 	$(GENERATED_DIR)/bootdata.cc
