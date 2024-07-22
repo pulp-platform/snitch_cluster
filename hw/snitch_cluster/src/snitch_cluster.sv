@@ -37,7 +37,8 @@ module snitch_cluster
   parameter int unsigned NarrowUserWidth    = 1,
   /// AXI: dma user width.
   parameter int unsigned WideUserWidth      = 1,
-  /// External Boot Address from which to fetch the first instructions.
+  /// Boot Address from which to fetch the first instructions.
+  /// Only used if `AliasRegionEnable` is not set.
   parameter logic [31:0] BootAddr           = 32'h0,
   /// Number of Hives. Each Hive can hold 1-many cores.
   parameter int unsigned NrHives            = 1,

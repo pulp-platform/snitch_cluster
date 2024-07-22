@@ -16,7 +16,7 @@
         },
         "boot_addr": {
             "type": "number",
-            "description": "Address from which all harts of the cluster start to boot. The default setting is `0x8000_0000`.",
+            "description": "Address from which all harts of the cluster start to boot. The default setting is `0x8000_0000`. Unused if `alias_region_enable` is set.",
             "default": 2147483648
         },
         "cluster_base_addr": {
