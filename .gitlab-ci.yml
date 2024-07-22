@@ -142,7 +142,7 @@ snitch-cluster-omega-vsim:
 snitch-cluster-mchan-vsim:
   script:
     - cd target/snitch_cluster
-    - make CFG_OVERRIDE=cfg/dma_mchan.hjson TEST_LIST=dma_mchan.yaml sw
+    - make CFG_OVERRIDE=cfg/dma_mchan.hjson sw
     - make bin/snitch_cluster.vsim
     - ./util/run.py sw/dma_mchan.yaml --simulator vsim -j --run-dir runs/vsim
 

@@ -44,7 +44,6 @@ RISCV_LDFLAGS += -lsnRuntime
 # Outputs #
 ###########
 
-TEST_LIST  ?= run.yaml
 APPS        = $(basename $(notdir $(wildcard $(SRC_DIR)/*.c)))
 ELFS        = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .elf,$(APPS))))
 DEPS        = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .d,$(APPS))))
