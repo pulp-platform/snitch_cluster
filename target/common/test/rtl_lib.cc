@@ -20,7 +20,6 @@ void clint_tick(const svOpenArrayHandle msip);
 void tb_memory_read(long long addr, int len, const svOpenArrayHandle data);
 void tb_memory_write(long long addr, int len, const svOpenArrayHandle data,
                      const svOpenArrayHandle strb);
-uint32_t get_bin_entry();
 }
 
 namespace sim {
@@ -111,8 +110,6 @@ int fesvr_tick() {
 
 // Destroy simulation object, synchronizes the IPC thread
 void fesvr_cleanup() { s.reset(); }
-
-uint32_t get_bin_entry() { return s->get_bin_entry(); }
 
 // DPI calls.
 void tb_memory_read(long long addr, int len, const svOpenArrayHandle data) {

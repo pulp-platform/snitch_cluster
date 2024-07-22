@@ -21,13 +21,13 @@ module testharness import snitch_cluster_pkg::*; (
   wide_out_resp_t wide_out_resp;
   wide_in_req_t wide_in_req;
   wide_in_resp_t wide_in_resp;
-  logic [snitch_cluster_pkg::NrCores-1:0] msip, meip;
+  logic [snitch_cluster_pkg::NrCores-1:0] msip;
 
   snitch_cluster_wrapper i_snitch_cluster (
     .clk_i,
     .rst_ni,
     .debug_req_i ('0),
-    .meip_i (meip),
+    .meip_i ('0),
     .mtip_i ('0),
     .msip_i (msip),
     .hart_base_id_i (CfgBaseHartId),
