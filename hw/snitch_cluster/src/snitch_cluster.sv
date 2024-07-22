@@ -878,7 +878,7 @@ module snitch_cluster
 
       tcdm_req_t [TcdmPorts-1:0] tcdm_req_wo_user;
 
-      parameter logic [31:0] BootOrigin = AliasRegionEnable ? BootRomAliasStart : BootAddr;
+      parameter logic [31:0] BootAddrInternal = AliasRegionEnable ? BootRomAliasStart : BootAddr;
 
       snitch_cc #(
         .AddrWidth (PhysicalAddrWidth),
@@ -904,7 +904,7 @@ module snitch_cluster
         .acc_req_t (acc_req_t),
         .acc_resp_t (acc_resp_t),
         .dma_events_t (dma_events_t),
-        .BootAddr (BootOrigin),
+        .BootAddr (BootAddrInternal),
         .RVE (RVE[i]),
         .RVF (RVF[i]),
         .RVD (RVD[i]),
