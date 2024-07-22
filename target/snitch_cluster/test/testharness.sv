@@ -9,7 +9,6 @@ module testharness import snitch_cluster_pkg::*; (
   input  logic        clk_i,
   input  logic        rst_ni
 );
-  import "DPI-C" function int unsigned get_bin_entry();
   import "DPI-C" function void clint_tick(
     output byte msip[]
   );
@@ -77,56 +76,6 @@ module testharness import snitch_cluster_pkg::*; (
     .req_i (wide_out_req),
     .rsp_o (wide_out_resp)
   );
-
-  task narrow_write(
-    input logic [AddrWidth-1:0] addr,
-    input logic [NarrowDataWidth-1:0] data,
-    output axi_pkg::resp_t resp
-  );
-    narrow_in_req.aw.addr = addr;
-    narrow_in_req.aw.size = $clog2(NarrowDataWidth/8);
-    narrow_in_req.aw.burst = axi_pkg::BURST_INCR;
-    narrow_in_req.aw_valid = 1'b1;
-    do @(posedge clk_i); while (!narrow_in_resp.aw_ready);
-    narrow_in_req.aw_valid = 1'b0;
-    narrow_in_req.w.data = data;
-    narrow_in_req.w.strb = '1;
-    narrow_in_req.w_valid = 1'b1;
-    do @(posedge clk_i); while (!narrow_in_resp.w_ready);
-    narrow_in_req.w_valid = 1'b0;
-    narrow_in_req.b_ready = 1'b1;
-    do @(posedge clk_i); while (!narrow_in_resp.b_valid);
-    resp = narrow_in_resp.b.resp;
-    narrow_in_req.b_ready = 1'b0;
-  endtask
-
-  localparam int unsigned PeriphBaseAddr = snitch_cluster_pkg::CfgClusterBaseAddr +
-    (snitch_cluster_pkg::TcdmSize * 1024);
-  localparam int unsigned Scratch1Addr = PeriphBaseAddr +
-    snitch_cluster_peripheral_reg_pkg::SNITCH_CLUSTER_PERIPHERAL_SCRATCH_1_OFFSET;
-
-  initial begin
-    axi_pkg::resp_t resp;
-    meip = '0;
-    narrow_in_req = '0;
-    narrow_in_req.aw.burst = axi_pkg::BURST_INCR;
-    narrow_in_req.ar.burst = axi_pkg::BURST_INCR;
-    narrow_in_req.aw.cache = axi_pkg::CACHE_MODIFIABLE;
-    narrow_in_req.ar.cache = axi_pkg::CACHE_MODIFIABLE;
-    @(negedge rst_ni);
-    // Wait for some time
-    #300ns;
-    // Write to the scratch1 register
-    @(posedge clk_i);
-    narrow_write(Scratch1Addr, get_bin_entry(), resp);
-    assert(resp == axi_pkg::RESP_OKAY);
-    $display("[NarrowAxi] Writing entry point %x to scratch1", get_bin_entry());
-    // Assert the external interrupt for a single cycle
-    // to start the cores
-    meip = '1;
-    @(posedge clk_i);
-    meip = '0;
-  end
 
   // CLINT
   // verilog_lint: waive-start always-ff-non-blocking
