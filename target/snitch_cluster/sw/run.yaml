@@ -55,7 +55,6 @@ runs:
     simulators: [vsim, vcs, verilator] # banshee fails with illegal instruction
   # - elf: tests/build/fp64_conversions_scalar.elf
   #   simulators: [vsim, vcs, verilator]
-  # - elf: tests/build/interrupt.elf
   - elf: tests/build/interrupt_local.elf
   - elf: tests/build/multi_cluster.elf
   - elf: tests/build/openmp_parallel.elf
