@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: SHL-0.51
 
 `include "axi/typedef.svh"
-`include "axi/assign.svh"
 
 module testharness import snitch_cluster_pkg::*; (
   input  logic        clk_i,
@@ -45,6 +44,7 @@ module testharness import snitch_cluster_pkg::*; (
   );
 
   // Tie-off unused input ports.
+  assign narrow_in_req = '0;
   assign wide_in_req = '0;
 
   // Narrow port into simulation memory.
