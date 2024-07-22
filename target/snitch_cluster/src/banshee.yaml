@@ -6,9 +6,9 @@
 
 ---
 address:
-  # Snitch: cl_peripherals + 0x190
+  # Snitch: cl_peripherals + 0x1b0
   barrier_reg:
-    start: 0x10020190
+    start: 0x100201b0
     offset: 0x40000
   # Snitch/Occamy: SOC_CTRL + 0x14
   # in Banshee also used as exit code location
@@ -17,7 +17,7 @@ address:
   # Snitch: Bootdata.clint_base
   clint: 0xFFFF0000
   # Snitch: cl_peripherals + 0x180
-  cl_clint: 0x10020180
+  cl_clint: 0x100201a0
   ## These parameters are not used, but Banshee requires them being defined
   tcdm_end: 0x00000000
   tcdm_start: 0x00000000
