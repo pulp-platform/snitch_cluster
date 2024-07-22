@@ -2,27 +2,13 @@
 # Solderpad Hardware License, Version 0.51, see LICENSE for details.
 # SPDX-License-Identifier: SHL-0.51
 
-#define MSTATUS_MIE 8
+.global _start
+.extern _l3_base
 
-.global _snitch_park
-_snitch_park:
-    # Set trap vector
-    la      t0, _snitch_resume
-    csrw    mtvec, t0
-    # Enable software and cluster interrupts
-    csrsi   mstatus, MSTATUS_MIE # CSR set (uimm)
-    lui     t0, 0x80     # (1 << 19) cluster interrupts
-    addi    t0, t0, 8    # (1 << 3) software interrupts
-    addi    t1, zero, 1  # (1 << 11) external interrupts
-    slli    t1, t1, 11
-    or      t0, t0, t1
-    csrw    mie, t0
+_start:
+    lui   t0, %hi(_l3_base)        /* Load upper 20 bits of _l3_base into t0 */
+    addi  t0, t0, %lo(_l3_base)    /* Add lower 12 bits to get the full address in t0 */
+    jalr  zero, t0, 0              /* Absolute jump to the address in t0 */
+wfi_loop:
     wfi
-
-_snitch_resume:
-    auipc   t0, 0
-    li      t1, -3748 # Jump to scratch register 1 at offset 0x188
-    add     t0, t0, t1
-    lw      t0, 0(t0)
-    jalr    ra, 0(t0)
-    j       _snitch_park
+    j     wfi_loop
