@@ -12,5 +12,5 @@ TEST_LIST=$(pwd)/run.yaml
 CFG_FILES=$(pwd)/cfg/"*"
 CMD="$ROOT/sw/dnn/flashattention_2/scripts/verify.py \${sim_bin} \${elf} --dump-results"
 
-$BUILD_PY sw/apps/dnn/flashattention_2 --cfg $CFG_FILES --testlist $TEST_LIST --testlist-cmd "$CMD"
+$BUILD_PY flashattention_2 --cfg $CFG_FILES --testlist $TEST_LIST --testlist-cmd "$CMD"
 $RUN_PY $TEST_LIST --simulator vsim -j

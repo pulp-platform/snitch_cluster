@@ -13,15 +13,14 @@ provided with different data.
 It assumes a build system with a specific interface which most existing
 kernels comply with. In particular, it assumes the following:
 
-- the data generation can be configured through a YAML file. The path to
-this file is provided to the build system in the `DATA_CFG` environment
-variable.
-- the generated data is written to a header file at the path specified by
-the `DATA_H` environment variable.
-- all build artifacts are created in the directory specified by the
-`APP_BUILDDIR` environment variable.
 - the build command should be a make target defined by the Snitch cluster
 target.
+- the data generation can be configured through a JSON file. The path to
+this file is provided to the build system in the `$(APP)_DATA_CFG`
+environment variable, where `$(APP)` coincides with the build command
+name.
+- all build artifacts are created in the directory specified by the
+`$(APP)_BUILD_DIR` environment variable.
 
 This utility takes a list of data configuration files as input and builds
 the application with the data generated from each configuration. Build
@@ -59,21 +58,20 @@ def parser():
     return parser
 
 
-def extend_environment(env=None, **kwargs):
+def extend_environment(vars, env=None):
     if env is None:
         env = os.environ.copy()
-    env.update(kwargs)
+    env.update(vars)
     return env
 
 
 # Build software target with a specific data configuration
 def build(target, cfg):
     # Define configuration-specific variables for build system
-    env = extend_environment(
-        DATA_CFG=cfg,
-        DATA_H=Path(f'include/{cfg.stem}/data.h').resolve(),
-        APP_BUILDDIR=Path(f'build/{cfg.stem}').resolve()
-    )
+    env = extend_environment({
+        f'{target}_DATA_CFG': cfg,
+        f'{target}_BUILD_DIR': Path(f'build/{cfg.stem}').resolve()
+    })
 
     # Build the software
     mk_dir = Path(__file__).resolve().parent.parent
