@@ -53,6 +53,7 @@ static inline void snrt_init_tls() {
             snrt_dma_start_1d((void*)(tls_ptr + i * tls_offset),
                               (void*)(snrt_zero_memory_ptr()), size);
         }
+        snrt_dma_wait_all();
     }
 
     snrt_cluster_hw_barrier();

@@ -23,6 +23,7 @@ module snitch_cc #(
   parameter int unsigned DMAUserWidth       = 0,
   parameter int unsigned DMANumAxInFlight   = 0,
   parameter int unsigned DMAReqFifoDepth    = 0,
+  parameter int unsigned DMANumChannels     = 0,
   /// Data port request type.
   parameter type         dreq_t             = logic,
   /// Data port response type.
@@ -114,33 +115,33 @@ module snitch_cc #(
   parameter type addr_t = logic [AddrWidth-1:0],
   parameter type data_t = logic [DataWidth-1:0]
 ) (
-  input  logic                       clk_i,
-  input  logic                       clk_d2_i,
-  input  logic                       rst_ni,
-  input  logic                       rst_int_ss_ni,
-  input  logic                       rst_fp_ss_ni,
-  input  logic [31:0]                hart_id_i,
-  input  snitch_pkg::interrupts_t    irq_i,
-  output hive_req_t                  hive_req_o,
-  input  hive_rsp_t                  hive_rsp_i,
+  input  logic                              clk_i,
+  input  logic                              clk_d2_i,
+  input  logic                              rst_ni,
+  input  logic                              rst_int_ss_ni,
+  input  logic                              rst_fp_ss_ni,
+  input  logic [31:0]                       hart_id_i,
+  input  snitch_pkg::interrupts_t           irq_i,
+  output hive_req_t                         hive_req_o,
+  input  hive_rsp_t                         hive_rsp_i,
   // Core data ports
-  output dreq_t                      data_req_o,
-  input  drsp_t                      data_rsp_i,
+  output dreq_t                             data_req_o,
+  input  drsp_t                             data_rsp_i,
   // TCDM Streamer Ports
-  output tcdm_req_t [TCDMPorts-1:0]  tcdm_req_o,
-  input  tcdm_rsp_t [TCDMPorts-1:0]  tcdm_rsp_i,
+  output tcdm_req_t [TCDMPorts-1:0]         tcdm_req_o,
+  input  tcdm_rsp_t [TCDMPorts-1:0]         tcdm_rsp_i,
   // Accelerator Offload port
   // DMA ports
-  output axi_req_t                   axi_dma_req_o,
-  input  axi_rsp_t                   axi_dma_res_i,
-  output logic                       axi_dma_busy_o,
-  output dma_events_t                axi_dma_events_o,
+  output axi_req_t    [DMANumChannels-1:0]  axi_dma_req_o,
+  input  axi_rsp_t    [DMANumChannels-1:0]  axi_dma_res_i,
+  output logic        [DMANumChannels-1:0]  axi_dma_busy_o,
+  output dma_events_t [DMANumChannels-1:0]  axi_dma_events_o,
   // Core event strobes
-  output snitch_pkg::core_events_t   core_events_o,
-  input  addr_t                      tcdm_addr_base_i,
+  output snitch_pkg::core_events_t          core_events_o,
+  input  addr_t                             tcdm_addr_base_i,
   // Cluster HW barrier
-  output logic                       barrier_o,
-  input  logic                       barrier_i
+  output logic                              barrier_o,
+  input  logic                              barrier_i
 );
 
   // FMA architecture is "merged" -> mulexp and macexp instructions are supported
@@ -385,6 +386,7 @@ module snitch_cc #(
       .AxiUserWidth (DMAUserWidth),
       .NumAxInFlight (DMANumAxInFlight),
       .DMAReqFifoDepth (DMAReqFifoDepth),
+      .NumChannels (DMANumChannels),
       .axi_ar_chan_t (axi_ar_chan_t),
       .axi_aw_chan_t (axi_aw_chan_t),
       .axi_req_t (axi_req_t),

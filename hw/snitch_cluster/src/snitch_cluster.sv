@@ -31,7 +31,7 @@ module snitch_cluster
   parameter int unsigned WideDataWidth      = 512,
   /// AXI: id width in.
   parameter int unsigned NarrowIdWidthIn    = 2,
-  /// AXI: dma id with in *currently not available*
+  /// AXI: dma id width in.
   parameter int unsigned WideIdWidthIn      = 2,
   /// AXI: user width.
   parameter int unsigned NarrowUserWidth    = 1,
@@ -57,6 +57,8 @@ module snitch_cluster
   parameter int unsigned DMANumAxInFlight   = 3,
   /// Size of DMA request fifo.
   parameter int unsigned DMAReqFifoDepth    = 3,
+  /// Number of DMA channels.
+  parameter int unsigned DMANumChannels     = 1,
   /// Width of a single icache line.
   parameter int unsigned ICacheLineWidth [NrHives] = '{default: 0},
   /// Number of icache lines per set.
@@ -274,8 +276,8 @@ module snitch_cluster
   localparam int unsigned NrRuleIdcs = NrSlaves - 1;
   localparam int unsigned NrRules = (1 + AliasRegionEnable) * NrRuleIdcs;
 
-  // DMA, SoC Request, `n` instruction caches.
-  localparam int unsigned NrWideMasters = 2 + NrHives;
+  // SoC Request, DMA Channels, `n` instruction caches.
+  localparam int unsigned NrWideMasters = 1 + DMANumChannels + NrHives;
   localparam int unsigned WideIdWidthOut = $clog2(NrWideMasters) + WideIdWidthIn;
   // DMA X-BAR configuration
   localparam int unsigned NrWideSlaves = 3;
@@ -837,10 +839,10 @@ module snitch_cluster
     localparam int unsigned TcdmPorts = get_tcdm_ports(i);
     localparam int unsigned TcdmPortsOffs = get_tcdm_port_offs(i);
 
-    axi_mst_dma_req_t   axi_dma_req;
-    axi_mst_dma_resp_t  axi_dma_res;
+    axi_mst_dma_req_t   [DMANumChannels-1:0] axi_dma_req;
+    axi_mst_dma_resp_t  [DMANumChannels-1:0] axi_dma_res;
     interrupts_t irq;
-    dma_events_t        dma_core_events;
+    dma_events_t        [DMANumChannels-1:0] dma_core_events;
 
     sync #(.STAGES (2))
       i_sync_debug (.clk_i, .rst_ni, .serial_i (debug_req_i[i]), .serial_o (irq.debug));
@@ -863,6 +865,7 @@ module snitch_cluster
         .SnitchPMACfg (SnitchPMACfg),
         .DMANumAxInFlight (DMANumAxInFlight),
         .DMAReqFifoDepth (DMAReqFifoDepth),
+        .DMANumChannels (DMANumChannels),
         .dreq_t (reqrsp_req_t),
         .drsp_t (reqrsp_rsp_t),
         .tcdm_req_t (tcdm_req_t),
@@ -951,9 +954,11 @@ module snitch_cluster
         end
       end
       if (Xdma[i]) begin : gen_dma_connection
-        assign wide_axi_mst_req[SDMAMst] = axi_dma_req;
-        assign axi_dma_res = wide_axi_mst_rsp[SDMAMst];
-        assign dma_events = dma_core_events;
+        for (genvar j = 0; j < DMANumChannels; j++) begin : gen_dma_connection
+          assign wide_axi_mst_req[SDMAMst + j] = axi_dma_req[j];
+          assign axi_dma_res[j] = wide_axi_mst_rsp[SDMAMst + j];
+        end
+        assign dma_events = dma_core_events[0]; // Only first channel is tracked
       end
   end
 
@@ -1001,8 +1006,8 @@ module snitch_cluster
         .hive_rsp_o (hive_rsp_reshape),
         .ptw_data_req_o (ptw_req[i]),
         .ptw_data_rsp_i (ptw_rsp[i]),
-        .axi_req_o (wide_axi_mst_req[ICache+i]),
-        .axi_rsp_i (wide_axi_mst_rsp[ICache+i]),
+        .axi_req_o (wide_axi_mst_req[SDMAMst+DMANumChannels+i]),
+        .axi_rsp_i (wide_axi_mst_rsp[SDMAMst+DMANumChannels+i]),
         .icache_prefetch_enable_i (icache_prefetch_enable),
         .icache_events_o(icache_events_reshape),
         .sram_cfgs_i
