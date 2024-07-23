@@ -27,10 +27,10 @@
 // The channel assignments `TCDM_ASSIGN_XX(dst, src)` assign all payload and
 // the valid signal of the `XX` channel from the `src` to the `dst` interface
 // and they assign the ready signal from the `src` to the `dst` interface. The
-// interface assignment `TCDM_ASSIGN_CLUSTER(dst, src)` assigns all channels including
+// interface assignment `TCDM_ASSIGN(dst, src)` assigns all channels including
 // handshakes as if `src` was the master of `dst`.
 //
-// Usage Example: `TCDM_ASSIGN_CLUSTER(slv, mst) `TCDM_ASSIGN_Q(dst, src, aw)
+// Usage Example: `TCDM_ASSIGN(slv, mst) `TCDM_ASSIGN_Q(dst, src, aw)
 // `TCDM_ASSIGN_P(dst, src)
 `define TCDM_ASSIGN_Q_CHAN(__opt_as, dst, src, __sep_dst, __sep_src) \
   __opt_as dst.q``__sep_dst``addr  = src.q``__sep_src``addr;           \
@@ -41,7 +41,7 @@
   __opt_as dst.q``__sep_dst``user  = src.q``__sep_src``user;
 `define TCDM_ASSIGN_P_CHAN(__opt_as, dst, src, __sep_dst, __sep_src) \
   __opt_as dst.p``__sep_dst``data   = src.p``__sep_src``data;
-`define TCDM_ASSIGN_CLUSTER(slv, mst)                 \
+`define TCDM_ASSIGN(slv, mst)                 \
   `TCDM_ASSIGN_Q_CHAN(assign, slv, mst, _, _) \
   `TCDM_ASSIGN_HANDSHAKE(assign, slv, mst, q) \
   `TCDM_ASSIGN_P_CHAN(assign, mst, slv, _, _) \
