@@ -60,7 +60,7 @@ module reqrsp_to_tcdm_tb import reqrsp_pkg::*; #(
   );
 
   `REQRSP_ASSIGN(master, master_dv)
-  `TCDM_ASSIGN_CLUSTER(slave_dv, slave)
+  `TCDM_ASSIGN(slave_dv, slave)
 
   // ----------------
   // Clock generation
