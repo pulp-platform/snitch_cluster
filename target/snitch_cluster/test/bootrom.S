@@ -6,9 +6,9 @@
 .extern _l3_base
 
 _start:
-    lui   t0, %hi(_l3_base)        /* Load upper 20 bits of _l3_base into t0 */
-    addi  t0, t0, %lo(_l3_base)    /* Add lower 12 bits to get the full address in t0 */
-    jalr  zero, t0, 0              /* Absolute jump to the address in t0 */
+    lui   t0, %hi(_l3_base) // Load the L3 base address
+    addi  t0, t0, %lo(_l3_base)
+    jalr  zero, t0, 0  // Jump to the L3 base address
 wfi_loop:
     wfi
     j     wfi_loop

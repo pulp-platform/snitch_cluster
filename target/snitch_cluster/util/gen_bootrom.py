@@ -38,7 +38,7 @@ def format_binary(binary):
     for i in range(num_words):
         # Extract each 32-bit word as little-endian and unpack it as an unsigned integer
         word = struct.unpack_from("<I", binary, 4 * i)[0]
-        sv_code += f"            bootrom[{i}] = 32'h{word:08x}; /* 0x{4*i:04x} */\n"
+        sv_code += f"        bootrom[{i}] = 32'h{word:08x}; /* 0x{4*i:04x} */\n"
     return sv_code[:-1]
 
 
@@ -63,13 +63,13 @@ module {module_name} #(
     output logic [DataWidth-1:0] data_o
 );
 
+    // The bootrom is stored as 32-bit instruction words.
+    // However, the data bus can have a different width.
     logic [BootromSize/4-1:0][31:0] bootrom;
     logic [BootromSize/DataWidth*8-1:0][DataWidth-1:0] bootrom_aligned;
-    logic [$clog2(BootromSize)-1:$clog2(DataWidth/8)] addr_aligned;
 
     assign bootrom_aligned = bootrom;
-    assign addr_aligned = addr_i[$clog2(BootromSize)-1:$clog2(DataWidth/8)];
-    assign data_o = bootrom_aligned[addr_aligned];
+    assign data_o = bootrom_aligned[addr_i[$clog2(BootromSize)-1:$clog2(DataWidth/8)]];
 
     always_comb begin : gen_bootrom
         bootrom = '0;

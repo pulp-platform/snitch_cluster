@@ -15,21 +15,21 @@ module snitch_bootrom #(
     output logic [DataWidth-1:0] data_o
 );
 
+    // The bootrom is stored as 32-bit instruction words.
+    // However, the data bus can have a different width.
     logic [BootromSize/4-1:0][31:0] bootrom;
     logic [BootromSize/DataWidth*8-1:0][DataWidth-1:0] bootrom_aligned;
-    logic [$clog2(BootromSize)-1:$clog2(DataWidth/8)] addr_aligned;
 
     assign bootrom_aligned = bootrom;
-    assign addr_aligned = addr_i[$clog2(BootromSize)-1:$clog2(DataWidth/8)];
-    assign data_o = bootrom_aligned[addr_aligned];
+    assign data_o = bootrom_aligned[addr_i[$clog2(BootromSize)-1:$clog2(DataWidth/8)]];
 
     always_comb begin : gen_bootrom
         bootrom = '0;
-            bootrom[0] = 32'h800002b7; /* 0x0000 */
-            bootrom[1] = 32'h00028293; /* 0x0004 */
-            bootrom[2] = 32'h00028067; /* 0x0008 */
-            bootrom[3] = 32'h10500073; /* 0x000c */
-            bootrom[4] = 32'hffdff06f; /* 0x0010 */
+        bootrom[0] = 32'h800002b7; /* 0x0000 */
+        bootrom[1] = 32'h00028293; /* 0x0004 */
+        bootrom[2] = 32'h00028067; /* 0x0008 */
+        bootrom[3] = 32'h10500073; /* 0x000c */
+        bootrom[4] = 32'hffdff06f; /* 0x0010 */
     end
 
 endmodule
