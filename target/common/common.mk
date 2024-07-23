@@ -79,6 +79,7 @@ VLT_SOURCES   = $(shell ${BENDER} script flist ${VLT_BENDER} | ${SED_SRCS})
 VLT_BUILDDIR := $(abspath work-vlt)
 VLT_FESVR     = $(VLT_BUILDDIR)/riscv-isa-sim
 VLT_FLAGS    += --timing
+VLT_FLAGS    += --timescale 1ns/1ps
 VLT_FLAGS    += -Wno-BLKANDNBLK
 VLT_FLAGS    += -Wno-LITENDIAN
 VLT_FLAGS    += -Wno-CASEINCOMPLETE
