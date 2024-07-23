@@ -341,6 +341,7 @@ for i in range(len(cfg['cores'])):
   curr_snax_acc_core = 'snax_core_' + str(i)
   snax_acc_dict = {}
   snax_acc_flag = False
+  snax_xdma_flag = False
   snax_acc_multi_flag = False
   snax_use_custom_ports = False
   snax_num_acc = None
@@ -392,6 +393,38 @@ for i in range(len(cfg['cores'])):
       total_snax_narrow_ports += snax_narrow_tcdm_ports
       total_snax_wide_ports += snax_wide_tcdm_ports
 
+  elif ('snax_xdma_cfg' in cfg['cores'][i]):
+    snax_xdma_flag = True
+    xdma_cfg = cfg['cores'][i]['snax_xdma_cfg']
+    # Note that the order is from last core to the first core
+    snax_narrow_tcdm_ports_list.append(round(cfg['dma_data_width'] / cfg['data_width']) << 1)
+    snax_wide_tcdm_ports_list.append(0)
+
+    # Prepare accelerator tags
+    xdma_instance_name = "xdma"
+    for key, value in xdma_cfg.items():
+      if key.startswith('has_'):
+        xdma_instance_name += ("_" + key[4:])
+    curr_snax_acc = ''
+    curr_snax_acc = "i_snax_core_" + str(i) + "_" + xdma_instance_name
+
+    # Set tcdm offset ports
+    snax_narrow_tcdm_ports = round(cfg['dma_data_width'] / cfg['data_width']) * 2
+    snax_wide_tcdm_ports = 0
+    snax_tcdm_ports = snax_narrow_tcdm_ports + snax_wide_tcdm_ports
+    tcdm_offset_stop += snax_tcdm_ports
+
+    # Save settings in the dictionary
+    snax_acc_dict[curr_snax_acc] = {
+          'snax_acc_name': xdma_instance_name,
+          'snax_tcdm_ports': snax_tcdm_ports,
+          'snax_tcdm_offset_start': tcdm_offset_start,
+          'snax_tcdm_offset_stop': tcdm_offset_stop
+        }
+    tcdm_offset_start += snax_tcdm_ports
+    total_snax_narrow_ports += snax_narrow_tcdm_ports
+    total_snax_wide_ports += snax_wide_tcdm_ports
+
   else:
 
     # Consider cases without accelerators
@@ -406,6 +439,7 @@ for i in range(len(cfg['cores'])):
   # This is the packed configuration
   snax_core_acc[curr_snax_acc_core] = {
     'snax_acc_flag': snax_acc_flag,
+    'snax_xdma_flag': snax_xdma_flag,
     'snax_acc_multi_flag':snax_acc_multi_flag,
     'snax_use_custom_ports': snax_use_custom_ports,
     'snax_total_num_csr': snax_total_num_csr,
@@ -826,6 +860,55 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
 
       % endfor
     % endif
+  
+  % elif snax_core_acc[idx_key]['snax_xdma_flag']:
+    % for jdx, jdx_key in enumerate(snax_core_acc[idx_key]['snax_acc_dict']):
+  // Instantiation of xdma wrapper
+  ${cfg['name']}_xdma_wrapper # (
+    .tcdm_req_t       ( ${cfg['pkg_name']}::tcdm_req_t ),
+    .tcdm_rsp_t       ( ${cfg['pkg_name']}::tcdm_rsp_t )
+  ) ${jdx_key}  (
+    //-----------------------------
+    // Clock and reset
+    //-----------------------------
+    .clk_i            ( clk_i  ),
+    .rst_ni           ( rst_ni ),
+    //-----------------------------
+    // Cluster Base Address
+    //-----------------------------
+    .cluster_base_addr_i( cluster_base_addr_i ),
+    //-----------------------------
+    // CSR  format control ports
+    //-----------------------------
+    // Request
+    .csr_req_bits_data_i  ( snax_csr_req_data [${idx}] ),
+    .csr_req_bits_addr_i  ( snax_csr_req_addr [${idx}] ),
+    .csr_req_bits_write_i ( snax_csr_req_write[${idx}] ),
+    .csr_req_valid_i ( snax_csr_req_valid[${idx}] ),
+    .csr_req_ready_o ( snax_csr_req_ready[${idx}] ),
+    // Response
+    .csr_rsp_bits_data_o  ( snax_csr_rsp_data [${idx}] ),
+    .csr_rsp_valid_o ( snax_csr_rsp_valid[${idx}] ),
+    .csr_rsp_ready_i ( snax_csr_rsp_ready[${idx}] ),
+    //-----------------------------
+    // Hardware barrier is not supported by xdma at the moment
+    //-----------------------------
+    //-----------------------------
+    // TCDM ports
+    //-----------------------------
+    .tcdm_req_o  ( snax_tcdm_req[${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_stop']}:${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_start']}] ),
+    .tcdm_rsp_i  ( snax_tcdm_rsp[${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_stop']}:${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_start']}] )
+  );
+
+  // Tie unused custom instruction ports to 0
+  assign snax_qready  [${idx}] = '0;
+  assign snax_resp    [${idx}] = '0;
+  assign snax_pvalid  [${idx}] = '0;
+  // Tie barrier to 0
+  assign snax_barrier [${idx}] = '0;
+
+    % endfor
+
   % else:
   
   // If no accelerator is connected to Snitch core

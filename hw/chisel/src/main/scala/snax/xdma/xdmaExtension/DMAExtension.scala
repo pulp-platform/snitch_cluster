@@ -6,6 +6,7 @@ import chisel3.util._
 import snax.utils._
 import snax.xdma.CommonCells._
 import snax.xdma.DesignParams._
+import os.copy.over
 
 /** The parent (abstract) Class for the DMA Extension Generation Params This
   * class template is used to isolate the definition of class (when user provide
@@ -24,7 +25,8 @@ abstract class HasDMAExtension {
   implicit val extensionParam: DMAExtensionParam
 
   def totalCsrNum = extensionParam.userCsrNum + 1
-  def instantiate: DMAExtension
+  def namePostfix = "_xdma_extension_" + extensionParam.moduleName
+  def instantiate(clusterName: String): DMAExtension
 }
 
 /** The parent (abstract) Class for the DMA Extension Implementation (Circuit)
@@ -44,8 +46,6 @@ abstract class HasDMAExtension {
 abstract class DMAExtension(implicit extensionParam: DMAExtensionParam)
     extends Module
     with RequireAsyncReset {
-
-  override def desiredName: String = extensionParam.moduleName
 
   val io = IO(new Bundle {
     val csr_i = Input(
@@ -74,7 +74,9 @@ abstract class DMAExtension(implicit extensionParam: DMAExtensionParam)
 
   // Structure to bypass extension: Demux
   private[this] val inputDemux = Module(
-    new DemuxDecoupled(UInt(extensionParam.dataWidth.W), numOutput = 2)
+    new DemuxDecoupled(UInt(extensionParam.dataWidth.W), numOutput = 2) {
+      override def desiredName = s"xdma_extension_inputDemux"
+    }
   )
   inputDemux.io.sel := bypass
   inputDemux.io.in <> io.data_i
@@ -85,7 +87,9 @@ abstract class DMAExtension(implicit extensionParam: DMAExtensionParam)
 
   // Structure to bypass extension: Mux
   private[this] val outputMux = Module(
-    new MuxDecoupled(UInt(extensionParam.dataWidth.W), numInput = 2)
+    new MuxDecoupled(UInt(extensionParam.dataWidth.W), numInput = 2) {
+      override def desiredName = s"xdma_extension_outputMux"
+    }
   )
   outputMux.io.sel := bypass
   outputMux.io.out <> io.data_o

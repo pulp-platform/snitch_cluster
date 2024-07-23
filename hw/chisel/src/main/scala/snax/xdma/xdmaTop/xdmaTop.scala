@@ -7,10 +7,9 @@ import snax.csr_manager._
 import snax.utils._
 
 import snax.xdma.xdmaFrontend._
-import snax.xdma.xdmaExtension.HasMemset
-import snax.xdma.xdmaExtension.HasTransposer
-import snax.xdma.xdmaExtension.HasMaxPool
+import snax.xdma.xdmaExtension._
 import snax.xdma.DesignParams._
+import os.write
 
 class xdmaTopIO(
     readerparam: DMADataPathParam,
@@ -78,9 +77,11 @@ class xdmaTop(
     readerparam: DMADataPathParam,
     writerparam: DMADataPathParam,
     axiWidth: Int = 512,
-    csrAddrWidth: Int = 32
+    csrAddrWidth: Int = 32,
+    clusterName: String = "unnamed_cluster"
 ) extends Module
     with RequireAsyncReset {
+  override val desiredName = s"${clusterName}_xdma"
   val io = IO(
     new xdmaTopIO(
       readerparam = readerparam,
@@ -92,6 +93,7 @@ class xdmaTop(
 
   val i_dmactrl = Module(
     new DMACtrl(
+      clusterName = clusterName,
       readerparam = readerparam,
       writerparam = writerparam,
       axiWidth = axiWidth,
@@ -101,6 +103,7 @@ class xdmaTop(
 
   val i_dmadatapath = Module(
     new DMADataPath(
+      clusterName = clusterName,
       readerparam = readerparam,
       writerparam = writerparam
     )
@@ -138,15 +141,74 @@ class xdmaTop(
 
 }
 
-object xdmaTopTester extends App {
+object xdmaTopEmitter extends App {
   emitVerilog(
     new xdmaTop(
+      clusterName = "test_cluster",
       readerparam = new DMADataPathParam(new ReaderWriterParam, Seq()),
       writerparam = new DMADataPathParam(
         new ReaderWriterParam,
-        Seq(HasMemset, HasTransposer, HasMaxPool)
+        Seq(HasMaxPool, HasMemset, HasTransposer)
       )
     ),
     args = Array("--target-dir", "generated")
+  )
+}
+
+object xdmaTopGen extends App {
+  val parsed_args = snax.utils.ArgParser.parse(args)
+
+  /*
+  Needed Parameters:
+    tcdmDataWidth: Int
+    axiDataWidth: Int
+    addressWidth: Int
+    tcdmSize: Int
+
+    readerDimension: Int
+    writerDimension: Int
+    readerBufferDepth: Int
+    writerBufferDepth: Int
+    HasMemset
+    HasMaxPool
+    HasTranspopser
+   */
+
+  val readerparam = new ReaderWriterParam(
+    dimension = parsed_args("readerDimension").toInt,
+    tcdmDataWidth = parsed_args("tcdmDataWidth").toInt,
+    tcdmSize = parsed_args("tcdmSize").toInt,
+    tcdmAddressWidth = parsed_args("addressWidth").toInt,
+    numChannel =
+      parsed_args("axiDataWidth").toInt / parsed_args("tcdmDataWidth").toInt,
+    addressBufferDepth = parsed_args("readerBufferDepth").toInt
+  )
+
+  val writerparam = new ReaderWriterParam(
+    dimension = parsed_args("writerDimension").toInt,
+    tcdmDataWidth = parsed_args("tcdmDataWidth").toInt,
+    tcdmSize = parsed_args("tcdmSize").toInt,
+    tcdmAddressWidth = parsed_args("addressWidth").toInt,
+    numChannel =
+      parsed_args("axiDataWidth").toInt / parsed_args("tcdmDataWidth").toInt,
+    addressBufferDepth = parsed_args("writerBufferDepth").toInt
+  )
+
+  var extensionparam = Seq[HasDMAExtension]()
+  if (parsed_args.contains("HasMemset"))
+    extensionparam = extensionparam :+ HasMemset
+  if (parsed_args.contains("HasMaxPool"))
+    extensionparam = extensionparam :+ HasMaxPool
+  if (parsed_args.contains("HasTransposer"))
+    extensionparam = extensionparam :+ HasTransposer
+
+  emitVerilog(
+    new xdmaTop(
+      clusterName = parsed_args.getOrElse("clusterName", ""),
+      readerparam = new DMADataPathParam(readerparam, Seq()),
+      writerparam = new DMADataPathParam(writerparam, extensionparam)
+    ),
+    args =
+      Array("--target-dir", parsed_args.getOrElse("target-dir", "generated"))
   )
 }

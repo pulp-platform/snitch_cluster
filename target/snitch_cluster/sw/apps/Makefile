@@ -34,6 +34,7 @@ SUBDIRS += snax-alu
 SUBDIRS += snax-data-reshuffler
 SUBDIRS += snax-streamer-gemm-conv-simd
 SUBDIRS += snax-streamer-gemm-conv
+SUBDIRS += snax-xdma-memset
 
 .PHONY: all clean $(SUBDIRS)
 

@@ -371,6 +371,26 @@ sources:
       # Level 2
       - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_wrapper.sv
 
+  - target: snax_streamer_gemmX_xdma
+    files:
+      # Level 0
+      - hw/chisel_acc/generated/gemmx/BlockGemmRescaleSIMD.sv
+      - hw/chisel_acc/src/snax_streamer_gemmX_shell_wrapper.sv
+      - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_csrman_CsrManager.sv
+      - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_streamer_StreamerTop.sv
+      # Level 1
+      - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_csrman_wrapper.sv
+      - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_streamer_wrapper.sv
+      # Level 2
+      - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_wrapper.sv
+
+      # xdma source
+      # Level 0
+      - target/snitch_cluster/generated/snax_streamer_gemmX_xdma_cluster_xdma/snax_streamer_gemmX_xdma_cluster_xdma.sv
+      # Level 1
+      - target/snitch_cluster/generated/snax_streamer_gemmX_xdma_cluster_xdma/snax_streamer_gemmX_xdma_cluster_xdma_wrapper.sv
+
+
   - target: test
     files:
       - hw/snitch_cluster/test/snitch_tcdm_interconnect_tb.sv
@@ -416,6 +436,9 @@ sources:
   - target: snax_streamer_gemmX
     files:
       - target/snitch_cluster/generated/snax_streamer_gemmX_cluster_wrapper.sv
+  - target: snax_streamer_gemmX_xdma
+    files:
+      - target/snitch_cluster/generated/snax_streamer_gemmX_xdma_cluster_wrapper.sv
   - target: snax_streamer_gemm_add_c
     files:
       - target/snitch_cluster/generated/snax_streamer_gemm_add_c_cluster_wrapper.sv

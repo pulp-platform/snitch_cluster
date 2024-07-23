@@ -23,7 +23,7 @@ import scala.util.Random
 class DMAExtensionHarness(extension: HasDMAExtension)
     extends Module
     with RequireAsyncReset {
-  val dut = extension.instantiate
+  val dut = extension.instantiate("dma_extension_dut")
   val io = IO(chiselTypeOf(dut.io))
 
   io.busy_o := dut.io.busy_o

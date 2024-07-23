@@ -10,7 +10,9 @@ object HasMemset extends HasDMAExtension {
     userCsrNum = 1,
     dataWidth = 512
   )
-  def instantiate: Memset = Module(new Memset)
+  def instantiate(clusterName: String): Memset = Module(new Memset {
+    override def desiredName = clusterName + namePostfix
+  })
 }
 
 class Memset()(implicit extensionParam: DMAExtensionParam)

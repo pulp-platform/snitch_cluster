@@ -94,15 +94,19 @@ class DataRequestors(
     tcdmDataWidth: Int,
     tcdmAddressWidth: Int,
     isReader: Boolean,
-    numChannel: Int
+    numChannel: Int,
+    module_name_prefix: String = "unnamed_cluster"
 ) extends Module
     with RequireAsyncReset {
+  override val desiredName = s"${module_name_prefix}_DataRequestors"
   val io = IO(
     new DataRequestorsIO(tcdmDataWidth, tcdmAddressWidth, isReader, numChannel)
   )
   val DataRequestor = for (i <- 0 until numChannel) yield {
     val module = Module(
-      new DataRequestor(tcdmDataWidth, tcdmAddressWidth, isReader)
+      new DataRequestor(tcdmDataWidth, tcdmAddressWidth, isReader) {
+        override def desiredName = s"${module_name_prefix}_DataRequestor"
+      }
     )
 
     // Address is unconditionally connected

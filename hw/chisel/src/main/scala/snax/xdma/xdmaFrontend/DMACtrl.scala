@@ -46,9 +46,15 @@ class DMACtrlIO(
   val csrIO = new SnaxCsrIO(csrAddrWidth = 32)
 }
 
-class SrcConfigRouter(dataType: DMADataPathCfgInternalIO, tcdmSize: Int)
-    extends Module
+class SrcConfigRouter(
+    dataType: DMADataPathCfgInternalIO,
+    tcdmSize: Int,
+    clusterName: String = "unnamed_cluster"
+) extends Module
     with RequireAsyncReset {
+
+  override val desiredName = s"${clusterName}_xdma_ctrl_srcConfigRouter"
+
   val io = IO(new Bundle {
     val clusterBaseAddress = Input(dataType.agu_cfg.Ptr)
     val from = Flipped(new Bundle {
@@ -61,12 +67,18 @@ class SrcConfigRouter(dataType: DMADataPathCfgInternalIO, tcdmSize: Int)
     }
   })
 
-  val i_from_arbiter = Module(new Arbiter(dataType, 2))
+  val i_from_arbiter = Module(new Arbiter(dataType, 2) {
+    override val desiredName =
+      s"${clusterName}_xdma_ctrl_SrcConfigRouter_Arbiter"
+  })
   i_from_arbiter.io.in(0) <> io.from.local
   i_from_arbiter.io.in(1) <> io.from.remote
 
   val i_to_demux = Module(
-    new DemuxDecoupled(dataType = dataType, numOutput = 3)
+    new DemuxDecoupled(dataType = dataType, numOutput = 3) {
+      override val desiredName =
+        s"${clusterName}_xdma_ctrl_SrcConfigRouter_Demux"
+    }
   )
   i_from_arbiter.io.out -|> i_to_demux.io.in
 
@@ -101,9 +113,15 @@ class SrcConfigRouter(dataType: DMADataPathCfgInternalIO, tcdmSize: Int)
   i_to_demux.io.out(cType_discard.litValue.toInt).ready := true.B
 }
 
-class DstConfigRouter(dataType: DMADataPathCfgInternalIO, tcdmSize: Int)
-    extends Module
+class DstConfigRouter(
+    dataType: DMADataPathCfgInternalIO,
+    tcdmSize: Int,
+    clusterName: String = "unnamed_cluster"
+) extends Module
     with RequireAsyncReset {
+
+  override val desiredName = s"${clusterName}_xdma_ctrl_dstConfigRouter"
+
   val io = IO(new Bundle {
     val clusterBaseAddress = Input(dataType.agu_cfg.Ptr)
     val from = Flipped(new Bundle {
@@ -114,7 +132,10 @@ class DstConfigRouter(dataType: DMADataPathCfgInternalIO, tcdmSize: Int)
     }
   })
   val i_to_demux = Module(
-    new DemuxDecoupled(dataType = dataType, numOutput = 2)
+    new DemuxDecoupled(dataType = dataType, numOutput = 2) {
+      override val desiredName =
+        s"${clusterName}_xdma_ctrl_dstConfigRouter_Demux"
+    }
   )
   io.from.local <> i_to_demux.io.in
 
@@ -149,7 +170,8 @@ class DMACtrl(
     readerparam: DMADataPathParam,
     writerparam: DMADataPathParam,
     axiWidth: Int = 512,
-    csrAddrWidth: Int = 32
+    csrAddrWidth: Int = 32,
+    clusterName: String = "unnamed_cluster"
 ) extends Module
     with RequireAsyncReset {
   val io = IO(
@@ -159,6 +181,8 @@ class DMACtrl(
       axiWidth = axiWidth
     )
   )
+
+  override val desiredName = s"${clusterName}_xdma_ctrl"
 
   val i_csrmanager = Module(
     new CsrManager(
@@ -179,7 +203,7 @@ class DMACtrl(
       // Set to two at current, 1) The number of submitted request; 2) The number of finished request. Since the reader path may be forward to remote, here I only count the writer branch
       csrAddrWidth = csrAddrWidth,
       // Set a name for the module class so that it will not overlapped with other csrManagers in user-defined accelerators
-      csrModuleTagName = "xDMA"
+      csrModuleTagName = s"${clusterName}_xdma_"
     )
   )
 
@@ -281,7 +305,8 @@ class DMACtrl(
   val i_srcCfgRouter = Module(
     new SrcConfigRouter(
       dataType = chiselTypeOf(preRoute_src_local.bits),
-      tcdmSize = readerparam.rwParam.tcdm_param.tcdmSize
+      tcdmSize = readerparam.rwParam.tcdm_param.tcdmSize,
+      clusterName = clusterName
     )
   )
   i_srcCfgRouter.io.clusterBaseAddress := io.clusterBaseAddress
@@ -308,7 +333,8 @@ class DMACtrl(
   val i_dstCfgRouter = Module(
     new DstConfigRouter(
       dataType = chiselTypeOf(preRoute_dst_local.bits),
-      tcdmSize = writerparam.rwParam.tcdm_param.tcdmSize
+      tcdmSize = writerparam.rwParam.tcdm_param.tcdmSize,
+      clusterName = clusterName
     )
   )
   i_dstCfgRouter.io.clusterBaseAddress := io.clusterBaseAddress
@@ -322,10 +348,14 @@ class DMACtrl(
 
   // Loopback / Non-loopback seperation for pseudo-OoO commit
   val i_src_LoopbackDemux = Module(
-    new DemuxDecoupled(chiselTypeOf(postRoute_src_local.bits), numOutput = 2)
+    new DemuxDecoupled(chiselTypeOf(postRoute_src_local.bits), numOutput = 2) {
+      override val desiredName = s"${clusterName}_xdma_ctrl_src_LoopbackDemux"
+    }
   )
   val i_dst_LoopbackDemux = Module(
-    new DemuxDecoupled(chiselTypeOf(postRoute_dst_local.bits), numOutput = 2)
+    new DemuxDecoupled(chiselTypeOf(postRoute_dst_local.bits), numOutput = 2) {
+      override val desiredName = s"${clusterName}_xdma_ctrl_dst_LoopbackDemux"
+    }
   )
 
   // (1) is loopback; (0) is non-loopback
@@ -335,7 +365,9 @@ class DMACtrl(
   i_dst_LoopbackDemux.io.in <> postRoute_dst_local
 
   val i_srcCfgArbiter = Module(
-    new Arbiter(chiselTypeOf(postRoute_src_local.bits), 2)
+    new Arbiter(chiselTypeOf(postRoute_src_local.bits), 2) {
+      override val desiredName = s"${clusterName}_xdma_ctrl_srcCfgArbiter"
+    }
   )
   // Non-loopback has lower priority, so that it is connect to 1st port of arbiter
   // Optional FIFO for non-loopback cfg is added (depth = 2)
@@ -345,7 +377,9 @@ class DMACtrl(
   i_src_LoopbackDemux.io.out(1) <> i_srcCfgArbiter.io.in(0)
 
   val i_dstCfgArbiter = Module(
-    new Arbiter(chiselTypeOf(postRoute_dst_local.bits), 2)
+    new Arbiter(chiselTypeOf(postRoute_dst_local.bits), 2) {
+      override val desiredName = s"${clusterName}_xdma_ctrl_dstCfgArbiter"
+    }
   )
   // Non-loopback has lower priority, so that it is connect to 1st port of arbiter
   // Optional FIFO for non-loopback cfg is added (depth = 2)
@@ -425,13 +459,17 @@ class DMACtrl(
   io.localDMADataPath.writer_cfg_o := current_cfg_dst.bits
 
   // Counter for submitted cfg and finished cfg (With these two values, the control core knows which task is finished)
-  val i_submittedTaskCounter = Module(new BasicCounter(32, hasCeil = false))
+  val i_submittedTaskCounter = Module(new BasicCounter(32, hasCeil = false) {
+    override val desiredName = s"${clusterName}_xdma_ctrl_submittedTaskCounter"
+  })
   i_submittedTaskCounter.io.ceil := DontCare
   i_submittedTaskCounter.io.reset := false.B
   i_submittedTaskCounter.io.tick := i_csrmanager.io.csr_config_out.fire
   i_csrmanager.io.read_only_csr(0) := i_submittedTaskCounter.io.value
 
-  val i_finishedTaskCounter = Module(new BasicCounter(32, hasCeil = false))
+  val i_finishedTaskCounter = Module(new BasicCounter(32, hasCeil = false) {
+    override val desiredName = s"${clusterName}_xdma_ctrl_finishedTaskCounter"
+  })
   i_finishedTaskCounter.io.ceil := DontCare
   i_finishedTaskCounter.io.reset := false.B
   i_finishedTaskCounter.io.tick := (RegNext(

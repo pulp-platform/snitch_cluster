@@ -92,9 +92,15 @@ class DMADataPathCfgInternalIO(param: DMADataPathParam)
 
 }
 
-class DMADataPath(readerparam: DMADataPathParam, writerparam: DMADataPathParam)
-    extends Module
+class DMADataPath(
+    readerparam: DMADataPathParam,
+    writerparam: DMADataPathParam,
+    clusterName: String = "unnamed_cluster"
+) extends Module
     with RequireAsyncReset {
+
+  override val desiredName = s"${clusterName}_xdma_datapath"
+
   val io = IO(new Bundle {
     // All config signal for reader and writer
     val reader_cfg_i = Input(new DMADataPathCfgInternalIO(readerparam))
@@ -163,8 +169,12 @@ class DMADataPath(readerparam: DMADataPathParam, writerparam: DMADataPathParam)
     }
   })
 
-  val i_reader = Module(new Reader(readerparam.rwParam))
-  val i_writer = Module(new Writer(writerparam.rwParam))
+  val i_reader = Module(
+    new Reader(readerparam.rwParam, clusterName = clusterName)
+  )
+  val i_writer = Module(
+    new Writer(writerparam.rwParam, clusterName = clusterName)
+  )
 
   // Connect TCDM memory to reader and writer
   i_reader.io.tcdm_req <> io.tcdm_reader.req
@@ -194,7 +204,7 @@ class DMADataPath(readerparam: DMADataPathParam, writerparam: DMADataPathParam)
     var remainingCSR =
       io.reader_cfg_i.ext_cfg.toIndexedSeq // Give an alias to all extension's csr for a easier manipulation
     val i_reader_extentionList = for (i <- readerparam.extParam) yield {
-      val extension = i.instantiate
+      val extension = i.instantiate(clusterName = clusterName)
       extension.io.csr_i := remainingCSR.take(extension.io.csr_i.length)
       remainingCSR = remainingCSR.drop(extension.io.csr_i.length)
       extension
@@ -248,7 +258,7 @@ class DMADataPath(readerparam: DMADataPathParam, writerparam: DMADataPathParam)
     var remainingCSR =
       io.writer_cfg_i.ext_cfg.toIndexedSeq // Give an alias to all extension's csr for a easier manipulation
     val i_writer_extentionList = for (i <- writerparam.extParam) yield {
-      val extension = i.instantiate
+      val extension = i.instantiate(clusterName = clusterName)
       extension.io.csr_i := remainingCSR.take(extension.io.csr_i.length)
       remainingCSR = remainingCSR.drop(extension.io.csr_i.length)
       extension

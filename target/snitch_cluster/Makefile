@@ -190,6 +190,27 @@ $(eval $(call generate_snax_gen,snax_streamer_gemmX))
  
 endif
 
+ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemmX-xdma.hjson)
+
+	CLUSTER_NAME = snax_streamer_gemmX_xdma_cluster
+
+$(eval $(call generate_snax_gen,snax_streamer_gemmX))
+
+	SNAX_GEMMX_ROOT ?= $(ROOT)/hw/chisel_acc
+    include $(SNAX_GEMMX_ROOT)/Makefile
+
+# This is a temporary solution before integrating xdma into snitch_cluster.sv
+
+	SNAX_GEN += \
+	$(GENERATED_DIR)/$(CLUSTER_NAME)_xdma/$(CLUSTER_NAME)_xdma.sv \
+	$(GENERATED_DIR)/$(CLUSTER_NAME)_xdma/$(CLUSTER_NAME)_xdma_wrapper.sv
+ 
+    VSIM_BENDER += -t snax_streamer_gemmX_xdma
+    VLT_BENDER  += -t snax_streamer_gemmX_xdma
+    VCS_BENDER  += -t snax_streamer_gemmX_xdma
+ 
+endif
+
 ifeq (${CFG_OVERRIDE}, cfg/snax-wide-gemm-data-reshuffler.hjson)
  
  	CLUSTER_NAME = snax_streamer_gemm_cluster

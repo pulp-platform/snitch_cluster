@@ -9,7 +9,12 @@ import snax.xdma.DesignParams._
 
 // The reader takes the address from the AGU, offer to requestor, and responser collect the data from TCDM and pushed to FIFO packer to recombine into 512 bit data
 
-class Reader(param: ReaderWriterParam) extends Module with RequireAsyncReset {
+class Reader(param: ReaderWriterParam, clusterName: String = "unnamed_cluster")
+    extends Module
+    with RequireAsyncReset {
+
+  override val desiredName = s"${clusterName}_xdma_Reader"
+
   val io = IO(new Bundle {
     val cfg = Input(new AddressGenUnitCfgIO(param.agu_param))
     val tcdm_req = Vec(
@@ -38,7 +43,12 @@ class Reader(param: ReaderWriterParam) extends Module with RequireAsyncReset {
   })
 
   // Address Generator
-  val addressgen = Module(new AddressGenUnit(param.agu_param))
+  val addressgen = Module(
+    new AddressGenUnit(
+      param.agu_param,
+      module_name_prefix = s"${clusterName}_xdma_Reader"
+    )
+  )
 
   // Requestors to send address to TCDM
   val requestors = Module(
@@ -46,7 +56,8 @@ class Reader(param: ReaderWriterParam) extends Module with RequireAsyncReset {
       tcdmDataWidth = param.tcdm_param.dataWidth,
       tcdmAddressWidth = param.tcdm_param.addrWidth,
       numChannel = param.tcdm_param.numChannel,
-      isReader = true
+      isReader = true,
+      module_name_prefix = s"${clusterName}_xdma_Reader"
     )
   )
 
@@ -54,7 +65,8 @@ class Reader(param: ReaderWriterParam) extends Module with RequireAsyncReset {
   val responsers = Module(
     new DataResponsers(
       tcdmDataWidth = param.tcdm_param.dataWidth,
-      numChannel = param.tcdm_param.numChannel
+      numChannel = param.tcdm_param.numChannel,
+      module_name_prefix = s"${clusterName}_xdma_Reader"
     )
   )
 
@@ -64,7 +76,9 @@ class Reader(param: ReaderWriterParam) extends Module with RequireAsyncReset {
       inputWidth = param.tcdm_param.dataWidth,
       outputWidth = param.tcdm_param.dataWidth * param.tcdm_param.numChannel,
       depth = param.bufferDepth
-    )
+    ) {
+      override val desiredName = s"${clusterName}_xdma_Reader_DataBuffer"
+    }
   )
 
   addressgen.io.cfg := io.cfg

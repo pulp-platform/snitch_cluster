@@ -46,15 +46,21 @@ class DataResponsersIO(tcdmDataWidth: Int = 64, numChannel: Int = 8)
   }
 }
 
-class DataResponsers(tcdmDataWidth: Int = 64, numChannel: Int = 8)
-    extends Module
+class DataResponsers(
+    tcdmDataWidth: Int = 64,
+    numChannel: Int = 8,
+    module_name_prefix: String = "unnamed_cluster"
+) extends Module
     with RequireAsyncReset {
   val io = IO(
     new DataResponsersIO(tcdmDataWidth = tcdmDataWidth, numChannel = numChannel)
   )
+  override val desiredName = s"${module_name_prefix}_DataResponsers"
   // Instantiation and connection
   val DataResponser = for (i <- 0 until numChannel) yield {
-    val module = Module(new DataResponser(tcdmDataWidth = tcdmDataWidth))
+    val module = Module(new DataResponser(tcdmDataWidth = tcdmDataWidth) {
+      override val desiredName = s"${module_name_prefix}_DataResponser"
+    })
     io.tcdm_rsp(i) <> module.io.tcdm_rsp
     io.out.data(i) <> module.io.out.data
     io.out.ResponsorReady(i) := module.io.out.ResponsorReady

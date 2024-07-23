@@ -32,8 +32,10 @@ object HasMaxPool extends HasDMAExtension {
     userCsrNum = 1,
     dataWidth = 512
   )
-  def instantiate: MaxPool = Module(
-    new MaxPool(elementWidth = 8)
+  def instantiate(clusterName: String): MaxPool = Module(
+    new MaxPool(elementWidth = 8) {
+      override def desiredName = clusterName + namePostfix
+    }
   )
 }
 
@@ -43,11 +45,13 @@ class MaxPool(elementWidth: Int)(implicit extensionParam: DMAExtensionParam)
 
   // Counter to record the steps
   // 256-element MaxPool maximum
-  val counters = Module(new snax.xdma.xdmaStreamer.BasicCounter(8))
-  counters.io.ceil := ext_csr_i(0)
-  counters.io.reset := ext_start_i
-  counters.io.tick := ext_data_i.fire
-  ext_busy_o := counters.io.value =/= 0.U
+  val counter = Module(new snax.xdma.xdmaStreamer.BasicCounter(8) {
+    override val desiredName = "xdma_extension_MaxPoolCounter"
+  })
+  counter.io.ceil := ext_csr_i(0)
+  counter.io.reset := ext_start_i
+  counter.io.tick := ext_data_i.fire
+  ext_busy_o := counter.io.value =/= 0.U
 
   // The wire to connect the output result
   val ext_data_o_bits = Wire(
@@ -57,7 +61,7 @@ class MaxPool(elementWidth: Int)(implicit extensionParam: DMAExtensionParam)
 
   val PEs = for (i <- 0 until extensionParam.dataWidth / elementWidth) yield {
     val PE = Module(new MAXPoolPE(dataWidth = elementWidth))
-    PE.io.init_i := counters.io.value === 0.U
+    PE.io.init_i := counter.io.value === 0.U
     PE.io.data_i.valid := ext_data_i.fire
     PE.io.data_i.bits := ext_data_i
       .bits((i + 1) * elementWidth - 1, i * elementWidth)
@@ -79,7 +83,7 @@ class MaxPool(elementWidth: Int)(implicit extensionParam: DMAExtensionParam)
       // Under this condition, the system does not need to send the sum to the next stage
       ext_data_i.ready := true.B
       ext_data_o.valid := false.B
-      when(ext_data_i.fire && counters.io.lastVal) {
+      when(ext_data_i.fire && counter.io.lastVal) {
         // The result is about to be ready, switching state to output
         current_state := s_output
       }

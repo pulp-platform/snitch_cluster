@@ -11,7 +11,9 @@ object HasTransposer extends HasDMAExtension {
     dataWidth = 512
   )
 
-  def instantiate: Transposer = Module(new Transposer)
+  def instantiate(clusterName: String): Transposer = Module(new Transposer {
+    override def desiredName = clusterName + namePostfix
+  })
 }
 
 class Transposer()(implicit extensionParam: DMAExtensionParam)
