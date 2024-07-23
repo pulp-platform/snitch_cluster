@@ -26,10 +26,13 @@
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 // Author: Fabian Schuiki <fschuiki@iis.ee.ethz.ch>
 
+`include "common_cells/registers.svh"
+
 (* no_ungroup *)
 (* no_boundary_optimization *)
 module snitch_clkdiv2 (
   input  logic clk_i,
+  input  logic rst_ni,
   input  logic test_mode_i,
   input  logic bypass_i,
   output logic clk_o
@@ -53,7 +56,8 @@ module snitch_clkdiv2 (
   assign clk_div_del = clk_div;
   `endif
 
-  always_ff @(posedge clk_i) clk_div <= ~clk_div;
+  `FF(clk_div, ~clk_div, '0, clk_i, rst_ni)
+
   assign clk_o = (test_mode_i | bypass_i) ? clk_i : clk_div_del;
 
 endmodule

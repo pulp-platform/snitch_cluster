@@ -136,7 +136,7 @@ module snitch_ssr_indirector import snitch_ssr_pkg::*; #(
     index_t isect_cnt;
     assign isect_slv_up_hs = isect_slv_rsp_i.valid & isect_slv_req_o.ready;
     assign isect_cnt_swap  = isect_slv_up_hs & isect_slv_rsp_i.done;
-    `FFLARN(cfg_idx_isect_o, isect_cnt, isect_cnt_swap, '0, clk_i, rst_ni)
+    `FFL(cfg_idx_isect_o, isect_cnt, isect_cnt_swap, '0, clk_i, rst_ni)
 
     // Counter for number of elements emitted by intersector
     counter #(
@@ -200,8 +200,8 @@ module snitch_ssr_indirector import snitch_ssr_pkg::*; #(
     assign idx_word_valid_d = idx_bytecnt_rovr | (~idx_bytecnt_rovr_q & isect_slv_done);
     assign idx_word_clr     = idx_q_hs & ~isect_slv_hs;
 
-    `FFLARN(idx_data_q, idx_data_d, idx_bytecnt_ena,  1'b0, clk_i, rst_ni)
-    `FFLARN(idx_strb_q, idx_strb_d, idx_bytecnt_ena,  1'b0, clk_i, rst_ni)
+    `FFL(idx_data_q, idx_data_d, idx_bytecnt_ena,  1'b0, clk_i, rst_ni)
+    `FFL(idx_strb_q, idx_strb_d, idx_bytecnt_ena,  1'b0, clk_i, rst_ni)
     `FFLARNC(idx_word_valid_q, idx_word_valid_d, isect_slv_hs, idx_word_clr, 1'b0, clk_i, rst_ni)
 
     // Track done and decouple address emission from index write
@@ -442,7 +442,7 @@ module snitch_ssr_indirector import snitch_ssr_pkg::*; #(
       if (cfg_done_i)         idx_isect_d = '0;
       else if (idx_isect_ena) idx_isect_d = idx_isect_q + 1;
     end
-    `FFARN(idx_isect_q, idx_isect_d, '0, clk_i, rst_ni)
+    `FF(idx_isect_q, idx_isect_d, '0, clk_i, rst_ni)
   end else begin : gen_no_isect_ctr
     assign idx_isect_q = '0;
   end
@@ -461,7 +461,7 @@ module snitch_ssr_indirector import snitch_ssr_pkg::*; #(
     else if (idx_bytecnt_ena) idx_bytecnt_d = idx_bytecnt_next;
   end
 
-  `FFARN(idx_bytecnt_q, idx_bytecnt_d, '0, clk_i, rst_ni)
+  `FF(idx_bytecnt_q, idx_bytecnt_d, '0, clk_i, rst_ni)
 
   assign idx_bytecnt_next = idx_bytecnt_q + bytecnt_t'(1 << cfg_size_i);
 

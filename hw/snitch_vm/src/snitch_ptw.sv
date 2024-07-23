@@ -51,16 +51,16 @@ module snitch_ptw import snitch_pkg::*; #(
 
   logic [1:0] lvl_d, lvl_q;
 
-  `FFARN(state_q, state_d, Idle, clk_i, rst_ni)
+  `FF(state_q, state_d, Idle, clk_i, rst_ni)
 
   pte_sv32_t pte;
   l0_pte_t pte_d, pte_q;
   logic is_4mega_d, is_4mega_q;
   assign pte = pte_sv32_t'(data_rsp_i.p.data[$size(pte_sv32_t)-1:0]);
-  `FFLNR(pte_q, pte_d, (data_rsp_i.p_valid & data_req_o.p_ready), clk_i)
-  `FFNR(is_4mega_q, is_4mega_d, clk_i)
+  `FFL(pte_q, pte_d, (data_rsp_i.p_valid & data_req_o.p_ready), '0, clk_i, rst_ni)
+  `FF(is_4mega_q, is_4mega_d, '0, clk_i, rst_ni)
 
-  `FFNR(lvl_q, lvl_d, clk_i)
+  `FF(lvl_q, lvl_d, '0, clk_i, rst_ni)
 
   assign pte_o = pte_q;
   assign is_4mega_o = is_4mega_q;
