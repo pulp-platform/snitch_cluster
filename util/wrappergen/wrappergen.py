@@ -341,8 +341,9 @@ def main():
             (" --HasMemset " if snax_xdma_cfg["has_memset"] else "") +
             (" --HasMaxPool " if snax_xdma_cfg["has_maxpool"] else "") +
             (" --HasTransposer " if snax_xdma_cfg["has_transposer"] else "") +
-            " --target-dir " + args.gen_path +
-            cfg["cluster"]["name"] + "_xdma/"
+            " --hw-target-dir " + args.gen_path +
+            cfg["cluster"]["name"] + "_xdma/" +
+            " --sw-target-dir " + args.gen_path + "../sw/snax/xdma"
         )
 
     # Generation of testharness
