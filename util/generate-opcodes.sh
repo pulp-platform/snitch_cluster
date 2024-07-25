@@ -23,8 +23,5 @@ cat > $INSTR_SV <<- EOM
 
 EOM
 echo -e "// verilog_lint: waive-start parameter-name-style" >> $INSTR_SV
-#echo -e "// verilog_lint: waive-start parameter-name-style" >> $ROOT/sw/deps/riscv-opcodes/encoding.h
-#cd $RISCV_OPCODES && cat ${OPCODES[@]} | ./parse_opcodes -c >> $ROOT/sw/deps/riscv-opcodes/encoding.h
 cd $RISCV_OPCODES && cat ${OPCODES[@]} | ./parse_opcodes -sverilog >> $INSTR_SV
 echo -e "// verilog_lint: waive-stop parameter-name-style" >> $INSTR_SV
-#echo -e "// verilog_lint: waive-stop parameter-name-style" >> $ROOT/sw/deps/riscv-opcodes/encoding.h
