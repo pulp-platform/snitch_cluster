@@ -23,6 +23,7 @@
 #include "alloc.h"
 #include "cls.h"
 #include "cluster_interrupts.h"
+#include "csr.h"
 // #include "dm.h"
 #include "dma.h"
 #include "dump.h"
