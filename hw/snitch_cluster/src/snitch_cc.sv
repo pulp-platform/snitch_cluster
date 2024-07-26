@@ -859,9 +859,9 @@ module snitch_cc #(
     // We need to schedule the assignment into a safe region, otherwise
     // `hart_id_i` won't have a value assigned at the beginning of the first
     // delta cycle.
-    /* verilator lint_off STMTDLY */
+`ifndef VERILATOR
     #0;
-    /* verilator lint_on STMTDLY */
+`endif
     $system("mkdir logs -p");
     $sformat(fn, "logs/trace_hart_%05x.dasm", hart_id_i);
     f = $fopen(fn, "w");
