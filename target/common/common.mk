@@ -44,6 +44,7 @@ EVENTVIS_PY      ?= $(UTIL_DIR)/trace/eventvis.py
 # a two-liner with the OS on the first line, hence the tail -n1
 VERILATOR_ROOT  ?= $(dir $(shell $(VERILATOR_SEPP) which verilator | tail -n1))..
 VLT_ROOT        ?= ${VERILATOR_ROOT}
+VLT_JOBS        ?= $(shell nproc)
 VLT_NUM_THREADS ?= 1
 
 MATCH_END := '/+incdir+/ s/$$/\/*\/*/'
@@ -175,7 +176,7 @@ define VERILATE
 	$(BENDER) script verilator ${VLT_BENDER} > $(dir $@)files
 	$(VLT) \
 		--Mdir $(dir $@) -f $(dir $@)files $(VLT_FLAGS) \
-		-j $(shell nproc) --cc --build --top-module $(1)
+		-j $(VLT_JOBS) --cc --build --top-module $(1)
 	touch $@
 endef
 
