@@ -167,19 +167,6 @@ $(VLT_BUILDDIR)/lib/libfesvr.a: $(VLT_FESVR)/${FESVR_VERSION}_unzip
 	mkdir -p $(dir $@)
 	cp $(dir $<)libfesvr.a $@
 
-#############
-# Verilator #
-#############
-# Takes the top module name as an argument.
-define VERILATE
-	mkdir -p $(dir $@)
-	$(BENDER) script verilator ${VLT_BENDER} > $(dir $@)files
-	$(VLT) \
-		--Mdir $(dir $@) -f $(dir $@)files $(VLT_FLAGS) \
-		-j $(VLT_JOBS) --cc --build --top-module $(1)
-	touch $@
-endef
-
 #######
 # VCS #
 #######

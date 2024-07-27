@@ -16,7 +16,7 @@ SELECT_RUNTIME ?=      # Select snRuntime implementation: "banshee" or "rtl" (de
 .DEFAULT_GOAL := help
 .PHONY: all clean
 all: sw
-clean: clean-sw clean-work clean-vlt clean-vcs clean-logs clean-bender clean-generated
+clean: clean-sw clean-work clean-vcs clean-logs clean-bender clean-generated
 
 ##########
 # Common #
@@ -46,9 +46,6 @@ CLUSTER_GEN_SRC ?= $(wildcard $(ROOT)/util/clustergen/*.py)
 BIN_DIR           ?= bin
 GENERATED_DIR     ?= $(MKFILE_DIR)generated
 
-# Verilated and compiled snitch cluster
-VLT_AR = ${VLT_BUILDDIR}/Vtestharness__ALL.a
-
 # If the configuration file is overriden on the command-line (through
 # CFG_OVERRIDE) and this file differs from the least recently used
 # (LRU) config, all targets depending on the configuration file have
@@ -56,6 +53,10 @@ VLT_AR = ${VLT_BUILDDIR}/Vtestharness__ALL.a
 # prerequisite for other rules.
 DEFAULT_CFG = cfg/default.hjson
 CFG         = cfg/lru.hjson
+
+# Common dependency for all RTL simulators
+$(BIN_DIR):
+	mkdir -p $@
 
 #####################
 # Simulator options #
@@ -73,8 +74,6 @@ VLOG_FLAGS += -override_timescale 1ns/1ps
 VLOG_FLAGS += -suppress 2583
 VLOG_FLAGS += -suppress 13314
 VLOG_FLAGS += ${VLOG_64BIT}
-
-VLT_FLAGS  += --trace
 
 ###############
 # C testbench #
@@ -114,7 +113,7 @@ CLUSTER_GEN_PREREQ = ${CLUSTER_GEN} ${CLUSTER_GEN_SRC}
 $(CFG): FORCE
 	@# If the LRU config file doesn't exist, we use the default config.
 	@if [ ! -e "$@" ] ; then \
-		echo "Using default config file: $(DEFAULT_CFG) $@"; \
+		echo "Using default config file: $(DEFAULT_CFG)"; \
 		ln -s --relative $(DEFAULT_CFG) $@; \
 		touch $(DEFAULT_CFG); \
 	fi
@@ -167,19 +166,10 @@ $(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 # Verilator #
 #############
 
-.PHONY: clean-vlt
+VLT_FLAGS  += --trace
+VLT_LDFLAGS = -Llib -lfesvr -lpthread
 
-clean-vlt: clean-work
-	rm -rf $(BIN_DIR)/$(TARGET).vlt $(VLT_BUILDDIR)
-
-$(BIN_DIR)/$(TARGET).vlt: ${VLT_SOURCES} ${TB_CC_SOURCES} ${VLT_CC_SOURCES} ${VLT_BUILDDIR}/lib/libfesvr.a
-	mkdir -p $(dir $@)
-	$(VLT) $(shell $(BENDER) script verilator $(VLT_BENDER)) \
-		$(VLT_FLAGS) -Mdir $(VLT_BUILDDIR) \
-		-CFLAGS "$(VLT_CFLAGS)" \
-		-LDFLAGS "-Llib -lfesvr -lpthread" \
-		-o ../$@ --cc --exe --top-module testharness $(TB_CC_SOURCES) $(VLT_CC_SOURCES)
-	$(MAKE) -C $(VLT_BUILDDIR) -j $(shell nproc) -f Vtestharness.mk
+include $(ROOT)/target/common/verilator.mk
 
 ############
 # Modelsim #
