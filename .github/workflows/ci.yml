@@ -35,44 +35,23 @@ jobs:
         with:
           submodules: 'recursive'
       - name: Build Software
+        working-directory: target/snitch_cluster
         run: |
           bender vendor init
-          make -C target/snitch_cluster sw
+          make CFG_OVERRIDE=cfg/github-ci.hjson sw
       - name: Build Hardware
+        working-directory: target/snitch_cluster
         run: |
-          make -C target/snitch_cluster VLT_JOBS=2 bin/snitch_cluster.vlt
+          make CFG_OVERRIDE=cfg/github-ci.hjson VLT_JOBS=1 bin/snitch_cluster.vlt
       - name: Run Tests
         working-directory: target/snitch_cluster
         run: |
           ./util/run.py sw/run.yaml --simulator verilator -j
+          ./util/run.py sw/fdiv.yaml --simulator verilator -j
       - name: Annotate traces
         working-directory: target/snitch_cluster
         run: |
           make SIM_DIR=./runs/simple annotate -j
-
-  # Tests requiring hardware FDIV unit
-  sw-snitch-cluster-fdiv-vlt:
-    name: Simulate FDIV SW on Snitch Cluster w/ Verilator
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/pulp-platform/snitch_cluster:main
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      - name: Build Software
-        working-directory: target/snitch_cluster
-        run: |
-          bender vendor init
-          make CFG_OVERRIDE=cfg/fdiv.hjson sw
-      - name: Build Hardware
-        working-directory: target/snitch_cluster
-        run: |
-          make CFG_OVERRIDE=cfg/fdiv.hjson VLT_JOBS=2 bin/snitch_cluster.vlt
-      - name: Run Tests
-        working-directory: target/snitch_cluster
-        run: |
-          ./util/run.py sw/fdiv.yaml --simulator verilator -j
 
   #########################################
   # Build SW on Snitch Cluster w/ Banshee #
