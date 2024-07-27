@@ -8,4 +8,11 @@
 // Should be used as a test to check that the simulator or whoever
 // is running the program actually captures an error when it occurs.
 
-int main() { return 14; }
+#include "snrt.h"
+
+// Minimum number of cores the hardware must have for this test to pass
+#define MIN_CORES 4
+
+int main() {
+    if (snrt_cluster_core_idx() < MIN_CORES) return 14;
+}

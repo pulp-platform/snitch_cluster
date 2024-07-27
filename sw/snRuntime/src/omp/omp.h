@@ -157,6 +157,10 @@ static inline unsigned omp_get_thread_num(void) {
     return snrt_cluster_core_idx();
 }
 
+static inline unsigned omp_get_num_threads(void) {
+    return snrt_cluster_compute_core_num();
+}
+
 static inline void parallelRegion(int32_t argc, void *data,
                                   void (*fn)(void *, uint32_t),
                                   int num_threads) {
