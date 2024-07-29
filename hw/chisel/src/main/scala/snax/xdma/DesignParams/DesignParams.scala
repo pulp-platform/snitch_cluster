@@ -33,7 +33,7 @@ object TCDMParam {
 class AddressGenUnitParam(
     val dimension: Int,
     val addressWidth: Int,
-    val spatialUnrollingFactor: Int,
+    val channels: Int,
     val outputBufferDepth: Int
 )
 
@@ -42,7 +42,7 @@ object AddressGenUnitParam {
   def apply() = new AddressGenUnitParam(
     dimension = 2,
     addressWidth = 48,
-    spatialUnrollingFactor = 8,
+    channels = 8,
     outputBufferDepth = 8
   )
   def apply(
@@ -53,7 +53,7 @@ object AddressGenUnitParam {
   ) = new AddressGenUnitParam(
     dimension = dimension,
     addressWidth = addressWidth,
-    spatialUnrollingFactor = spatialUnrollingFactor,
+    channels = spatialUnrollingFactor,
     outputBufferDepth = outputBufferDepth
   )
 }

@@ -16,8 +16,7 @@
 #define XDMA_DEBUG_PRINT(...)
 #endif
 
-int32_t xdma_memcpy_nd(uint8_t* src, uint8_t* dst, uint32_t unit_size_src,
-                       uint32_t unit_size_dst, uint32_t dim_src,
+int32_t xdma_memcpy_nd(uint8_t* src, uint8_t* dst, uint32_t dim_src,
                        uint32_t dim_dst, uint32_t* stride_src,
                        uint32_t* stride_dst, uint32_t* bound_src,
                        uint32_t* bound_dst) {
@@ -27,24 +26,28 @@ int32_t xdma_memcpy_nd(uint8_t* src, uint8_t* dst, uint32_t unit_size_src,
     csrw_ss(XDMA_DST_ADDR_PTR_LSB, (uint32_t)(uint64_t)dst);
     csrw_ss(XDMA_DST_ADDR_PTR_MSB, (uint32_t)((uint64_t)dst >> 32));
     // Rule check
-    // unit size only support 8 bytes or n * 64 bytes
-    XDMA_DEBUG_PRINT("unit size src: %d\n", unit_size_src);
-    XDMA_DEBUG_PRINT("unit size dst: %d\n", unit_size_dst);
-
-    if ((unit_size_src % 64 != 0) && (unit_size_src != 8)) {
-        XDMA_DEBUG_PRINT("unit size src error\n");
+    // The enabled spatial bound for input should be equal to the enabled
+    // spatial bound for output
+    if (bound_src[0] != bound_dst[0]) {
+        XDMA_DEBUG_PRINT(
+            "Enabled channels at src is not equal to enabled channels at "
+            "dst\n");
         return -1;
     }
-    if ((unit_size_dst % 64 != 0) && (unit_size_dst != 8)) {
-        XDMA_DEBUG_PRINT("unit size dst error\n");
+
+    // The innermost bound should be smaller than / equal to the # of channels
+    if (bound_src[0] > XDMA_SPATIAL_CHAN) {
+        XDMA_DEBUG_PRINT(
+            "Innermost bound at src is larger than the # of channels\n");
         return -2;
     }
+
     // Src size and dst size should be equal
-    uint32_t src_size = unit_size_src;
+    uint32_t src_size = 1;
     for (uint32_t i = 0; i < dim_src - 1; i++) {
         src_size *= bound_src[i];
     }
-    uint32_t dst_size = unit_size_dst;
+    uint32_t dst_size = 1;
     for (uint32_t i = 0; i < dim_dst - 1; i++) {
         dst_size *= bound_dst[i];
     }
@@ -53,55 +56,46 @@ int32_t xdma_memcpy_nd(uint8_t* src, uint8_t* dst, uint32_t unit_size_src,
         return -3;
     }
 
-    // Dimension 1 at src
-    uint32_t i = 0;
-    if (unit_size_src % 64 == 0) {
-        csrw_ss(XDMA_SRC_STRIDE_PTR + i, 8);
-        csrw_ss(XDMA_SRC_BOUND_PTR + i, unit_size_src >> 3);
-        i++;
-    }
-    // Dimension 2 to n at src
-    for (uint32_t j = 0; j < dim_src - 1; j++) {
-        if (i + j >= XDMA_SRC_DIM) {
+    // Dimension 0 to n at src
+    for (uint32_t i = 0; i < dim_src; i++) {
+        if (i >= XDMA_SRC_DIM) {
             XDMA_DEBUG_PRINT("Source dimension is too high for xdma\n");
             return -4;
         }
-        csrw_ss(XDMA_SRC_BOUND_PTR + i + j, bound_src[j]);
-        csrw_ss(XDMA_SRC_STRIDE_PTR + i + j, stride_src[j]);
+        csrw_ss(XDMA_SRC_BOUND_PTR + i, bound_src[i]);
+        csrw_ss(XDMA_SRC_STRIDE_PTR + i, stride_src[i]);
     }
     // Dimension n to MAX at src
-    for (uint32_t j = dim_src - 1; (i + j) < XDMA_SRC_DIM; j++) {
-        csrw_ss(XDMA_SRC_BOUND_PTR + i + j, 1);
-        csrw_ss(XDMA_SRC_STRIDE_PTR + i + j, 0);
+    for (uint32_t i = dim_src; i < XDMA_SRC_DIM; i++) {
+        csrw_ss(XDMA_SRC_BOUND_PTR + i, 1);
+        csrw_ss(XDMA_SRC_STRIDE_PTR + i, 0);
     }
 
-    // Dimension 1 at dst
-    i = 0;
-    if (unit_size_dst % 64 == 0) {
-        csrw_ss(XDMA_DST_STRIDE_PTR + i, 8);
-        csrw_ss(XDMA_DST_BOUND_PTR + i, unit_size_dst >> 3);
-        i++;
-    }
-    // Dimension 2 to n at dst
-    for (uint32_t j = 0; j < dim_dst - 1; j++) {
-        if (i + j >= XDMA_DST_DIM) {
-            XDMA_DEBUG_PRINT("Destination dimension is too high for xdma\n");
-            return -5;
+    // Dimension 0 to n at dst
+    for (uint32_t i = 0; i < dim_dst; i++) {
+        if (i >= XDMA_DST_DIM) {
+            XDMA_DEBUG_PRINT("Source dimension is too high for xdma\n");
+            return -4;
         }
-        csrw_ss(XDMA_DST_BOUND_PTR + i + j, bound_dst[j]);
-        csrw_ss(XDMA_DST_STRIDE_PTR + i + j, stride_dst[j]);
+        csrw_ss(XDMA_DST_BOUND_PTR + i, bound_dst[i]);
+        csrw_ss(XDMA_DST_STRIDE_PTR + i, stride_dst[i]);
     }
     // Dimension n to MAX at dst
-    for (uint32_t j = dim_dst - 1; (i + j) < XDMA_DST_DIM; j++) {
-        csrw_ss(XDMA_DST_BOUND_PTR + i + j, 1);
-        csrw_ss(XDMA_DST_STRIDE_PTR + i + j, 0);
+    for (uint32_t i = dim_dst; i < XDMA_DST_DIM; i++) {
+        csrw_ss(XDMA_DST_BOUND_PTR + i, 1);
+        csrw_ss(XDMA_DST_STRIDE_PTR + i, 0);
     }
     return 0;
 }
 
 int32_t xdma_memcpy_1d(uint8_t* src, uint8_t* dst, uint32_t size) {
-    return xdma_memcpy_nd(src, dst, size, size, 1, 1, (uint32_t*)NULL,
-                          (uint32_t*)NULL, (uint32_t*)NULL, (uint32_t*)NULL);
+    if (size % XDMA_WIDTH != 0) {
+        XDMA_DEBUG_PRINT("Size is not multiple of XDMA_WIDTH\n");
+        return -1;
+    }
+    uint32_t stride[2] = {XDMA_WIDTH / XDMA_SPATIAL_CHAN, XDMA_WIDTH};
+    uint32_t bound[2] = {XDMA_SPATIAL_CHAN, size / XDMA_WIDTH};
+    return xdma_memcpy_nd(src, dst, 2, 2, stride, stride, bound, bound);
 }
 
 // xdma extension interface

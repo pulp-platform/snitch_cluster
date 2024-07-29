@@ -7,7 +7,6 @@
 APP     = snax-xdma-memset
 SRCS    = src/snax-xdma-memset.c
 INCDIRS += ../../snax/xdma/include
-INCDIRS += data
 
 RISCV_LDFLAGS += ../../snax/xdma/build/snax-xdma-lib.o
 

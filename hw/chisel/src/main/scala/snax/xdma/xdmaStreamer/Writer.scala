@@ -69,6 +69,7 @@ class Writer(param: ReaderWriterParam, clusterName: String = "unnamed_cluster")
   addressgen.io.cfg := io.cfg
   addressgen.io.start := io.start
 
+  requestors.io.enable := addressgen.io.enabled_channels
   requestors.io.in.addr <> addressgen.io.addr
   requestors.io.in.data.get <> dataBuffer.io.out
   requestors.io.out.tcdm_req <> io.tcdm_req

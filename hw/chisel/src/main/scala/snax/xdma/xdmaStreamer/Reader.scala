@@ -84,9 +84,12 @@ class Reader(param: ReaderWriterParam, clusterName: String = "unnamed_cluster")
   addressgen.io.cfg := io.cfg
   addressgen.io.start := io.start
   requestors.io.in.addr <> addressgen.io.addr
-  requestors.io.in.ResponsorReady.get := responsers.io.out.ResponsorReady
+  requestors.io.enable := addressgen.io.enabled_channels
+  responsers.io.enable := addressgen.io.enabled_channels
+  requestors.io.RequestorResponserLink.ResponsorReady.get := responsers.io.RequestorResponserLink.ResponsorReady
+  responsers.io.RequestorResponserLink.RequestorSubmit := requestors.io.RequestorResponserLink.RequestorSubmit.get
   requestors.io.out.tcdm_req <> io.tcdm_req
-  responsers.io.tcdm_rsp <> io.tcdm_rsp
+  responsers.io.in.tcdm_rsp <> io.tcdm_rsp
   dataBuffer.io.in <> responsers.io.out.data
   dataBuffer.io.out.head <> io.data
 

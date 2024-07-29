@@ -75,7 +75,8 @@ class AddressGenUnit(
     val bufferEmpty = Output(Bool())
     // The calculated address. This equals to # of output channels (64-bit narrow TCDM)
     val addr =
-      Vec(param.spatialUnrollingFactor, Decoupled(UInt(param.addressWidth.W)))
+      Vec(param.channels, Decoupled(UInt(param.addressWidth.W)))
+    val enabled_channels = Vec(param.channels, Output(Bool()))
   })
 
   override val desiredName = s"${module_name_prefix}_AddressGenUnit"
@@ -90,7 +91,7 @@ class AddressGenUnit(
   // Create the outputBuffer to store the generated address: one input + spatialUnrollingFactor outputs
   val outputBuffer = Module(
     new ComplexQueueConcat(
-      inputWidth = io.addr.head.bits.getWidth * param.spatialUnrollingFactor,
+      inputWidth = io.addr.head.bits.getWidth * param.channels,
       outputWidth = io.addr.head.bits.getWidth,
       depth = param.outputBufferDepth
     ) {
@@ -115,31 +116,33 @@ class AddressGenUnit(
   io.busy := currentState === sBUSY
 
   // Connect the ceil from config to inside
-  // The innermost part needs spatial unrolling, but other pats does not needed
-  counter.io.ceil := io.cfg.Bounds.reduceTree(
-    _ * _
-  ) / param.spatialUnrollingFactor.U
+  // The innermost one is the spatial bound, so it should not be multiplied with other bounds. It should be used to generate enabled_channels signal
+  io.enabled_channels.zipWithIndex.foreach { case (a, b) =>
+    a := io.cfg.Bounds.head > b.U
+  }
+  assert(
+    io.cfg.Bounds.head <= param.channels.U,
+    "[AddressGenUnit] The innermost bound is spatial bound, so it should be less than or equal to the number of channels"
+  )
+  counter.io.ceil := VecInit(io.cfg.Bounds.tail).reduceTree(_ * _)
 
   // The counter's tick is the enable signal
   counter.io.tick := currentState === sBUSY && outputBuffer.io.in.head.fire // FIFO still have the space to take the new address
 
   // The counter's value is split to different rolls and connected to outside
-  val currentLoop = Wire(chiselTypeOf(io.cfg.Bounds))
+  val currentLoop = Wire(chiselTypeOf(VecInit(io.cfg.Bounds.tail)))
   // temp value is a iterated value, so it is var here.
   var temp = counter.io.value
-
-  // currentLoop(0), is the one need to be divided by the right-shifted loopBound(0)
-  currentLoop(0) := temp % (io.cfg.Bounds(0) / param.spatialUnrollingFactor.U)
-  temp = temp / (io.cfg.Bounds(0) / param.spatialUnrollingFactor.U)
-  // The other loop can be calculated directly
-  for (i <- currentLoop.zipWithIndex.tail) {
-    i._1 := temp % io.cfg.Bounds(i._2)
-    temp = temp / io.cfg.Bounds(i._2)
+  // The counter's value is split to different dimensions, and connected to outside
+  for (i <- currentLoop.zipWithIndex) {
+    // The first dimension is spatial bound / stride, so should be skipped
+    i._1 := temp % io.cfg.Bounds(i._2 + 1)
+    temp = temp / io.cfg.Bounds(i._2 + 1)
   }
 
   // Calculate the current base address: the first stride need to be left-shifted
   val currentPointer =
-    io.cfg.Ptr + currentLoop.head * io.cfg.Strides.head * param.spatialUnrollingFactor.U + currentLoop.tail
+    io.cfg.Ptr + currentLoop
       .zip(io.cfg.Strides.tail)
       .map { case (a, b) => a * b }
       .reduce(_ + _)

@@ -14,18 +14,30 @@ import snax.utils._
 
 class DataResponserIO(tcdmDataWidth: Int = 64, numChannel: Int = 8)
     extends Bundle {
-  val tcdm_rsp = Flipped(Valid(new TcdmRsp(tcdmDataWidth = tcdmDataWidth)))
+  val in = new Bundle {
+    val tcdm_rsp = Flipped(Valid(new TcdmRsp(tcdmDataWidth = tcdmDataWidth)))
+  }
   val out = new Bundle {
     val data = Decoupled(UInt(tcdmDataWidth.W))
+  }
+  val enable = Input(Bool())
+  val RequestorResponserLink = new Bundle {
     val ResponsorReady = Output(Bool())
+    val RequestorSubmit = Input(Bool())
   }
 }
 
 class DataResponser(tcdmDataWidth: Int) extends Module with RequireAsyncReset {
   val io = IO(new DataResponserIO(tcdmDataWidth = tcdmDataWidth))
-  io.out.data.valid := io.tcdm_rsp.valid // io.out's validity is determined by TCDM's side
-  io.out.data.bits := io.tcdm_rsp.bits.data
-  io.out.ResponsorReady := io.out.data.ready // If io.out.data.ready is high, the new request can be issued
+  when(io.enable) {
+    io.out.data.valid := io.in.tcdm_rsp.valid // io.out's validity is determined by TCDM's side
+    io.out.data.bits := io.in.tcdm_rsp.bits.data
+  } otherwise {
+    io.out.data.valid := io.RequestorResponserLink.RequestorSubmit // io.out's validity is determined by whether the Requestor submit the fake request
+    io.out.data.bits := 0.U
+  }
+  io.RequestorResponserLink.ResponsorReady := io.out.data.ready // If io.out.data.ready is high, the new request can be issued
+
 }
 
 /** DataResponsers' IO definition: io.in: From TCDM, see Xiaoling's definition
@@ -38,12 +50,21 @@ class DataResponser(tcdmDataWidth: Int) extends Module with RequireAsyncReset {
 
 class DataResponsersIO(tcdmDataWidth: Int = 64, numChannel: Int = 8)
     extends Bundle {
-  val tcdm_rsp =
-    Vec(numChannel, Flipped(Valid(new TcdmRsp(tcdmDataWidth = tcdmDataWidth))))
+  val in = new Bundle {
+    val tcdm_rsp = Vec(
+      numChannel,
+      Flipped(Valid(new TcdmRsp(tcdmDataWidth = tcdmDataWidth)))
+    )
+  }
   val out = new Bundle {
     val data = Vec(numChannel, Decoupled(UInt(tcdmDataWidth.W)))
-    val ResponsorReady = Vec(numChannel, Output(Bool()))
   }
+  val enable = Vec(numChannel, Input(Bool()))
+  val RequestorResponserLink = new Bundle {
+    val ResponsorReady = Vec(numChannel, Output(Bool()))
+    val RequestorSubmit = Vec(numChannel, Input(Bool()))
+  }
+
 }
 
 class DataResponsers(
@@ -61,9 +82,14 @@ class DataResponsers(
     val module = Module(new DataResponser(tcdmDataWidth = tcdmDataWidth) {
       override val desiredName = s"${module_name_prefix}_DataResponser"
     })
-    io.tcdm_rsp(i) <> module.io.tcdm_rsp
+    io.in.tcdm_rsp(i) <> module.io.in.tcdm_rsp
     io.out.data(i) <> module.io.out.data
-    io.out.ResponsorReady(i) := module.io.out.ResponsorReady
+    io.RequestorResponserLink.ResponsorReady(
+      i
+    ) := module.io.RequestorResponserLink.ResponsorReady
+    module.io.RequestorResponserLink.RequestorSubmit := io.RequestorResponserLink
+      .RequestorSubmit(i)
+    module.io.enable := io.enable(i)
     module
   }
 }

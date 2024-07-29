@@ -4,7 +4,7 @@
 //
 // Yunhao Deng <yunhao.deng@kuleuven.be>
 
-#include "data.h"
+#include <stdint.h>
 #include "snax-xdma-lib.h"
 #include "snrt.h"
 

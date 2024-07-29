@@ -15,13 +15,17 @@ class DataRequestorIO(
 ) extends Bundle {
   val in = new Bundle {
     val addr = Flipped(Decoupled(UInt(tcdmAddressWidth.W)))
-    val ResponsorReady = if (isReader) Some(Input(Bool())) else None
     val data =
       if (!isReader) Some(Flipped(Decoupled(UInt(tcdmDataWidth.W)))) else None
   }
 
   val out = new Bundle {
     val tcdm_req = Decoupled(new TcdmReq(tcdmAddressWidth, tcdmDataWidth))
+  }
+  val enable = Input(Bool())
+  val RequestorResponserLink = new Bundle {
+    val ResponsorReady = if (isReader) Some(Input(Bool())) else None
+    val RequestorSubmit = if (isReader) Some(Output(Bool())) else None
   }
 
 }
@@ -34,17 +38,23 @@ class DataRequestorsIO(
 ) extends Bundle {
   val in = new Bundle {
     val addr = Vec(numChannel, Flipped(Decoupled(UInt(tcdmAddressWidth.W))))
-    val ResponsorReady =
-      if (isReader) Some(Vec(numChannel, Input(Bool()))) else None
     val data =
       if (!isReader)
         Some(Vec(numChannel, Flipped(Decoupled(UInt(tcdmDataWidth.W)))))
       else None
   }
-
   val out = new Bundle {
     val tcdm_req =
       Vec(numChannel, Decoupled(new TcdmReq(tcdmAddressWidth, tcdmDataWidth)))
+  }
+
+  val enable = Vec(numChannel, Input(Bool()))
+
+  val RequestorResponserLink = new Bundle {
+    val ResponsorReady =
+      if (isReader) Some(Vec(numChannel, Input(Bool()))) else None
+    val RequestorSubmit =
+      if (isReader) Some(Vec(numChannel, Output(Bool()))) else None
   }
 
 }
@@ -62,9 +72,23 @@ class DataRequestor(
     with RequireAsyncReset {
   val io = IO(new DataRequestorIO(tcdmDataWidth, tcdmAddressWidth, isReader))
   // address queue is popped out if responser is ready and current is acknowldged by the tcdm
-  io.in.addr.ready := {
-    if (isReader) io.in.ResponsorReady.get && io.out.tcdm_req.fire
-    else io.out.tcdm_req.fire
+  // Or this channel is disabled
+  // Because if enable is 0, Reader will always write 0 to databuffer and writer does nothing at all, so the address is popped out if there is place to write 0 (reader case) or unconditionally (writer case)
+  when(io.enable) {
+    io.in.addr.ready := {
+      if (isReader)
+        io.RequestorResponserLink.ResponsorReady.get && io.out.tcdm_req.fire
+      else io.out.tcdm_req.fire
+    }
+  }.otherwise {
+    io.in.addr.ready := {
+      if (isReader) io.RequestorResponserLink.ResponsorReady.get
+      else true.B
+    }
+  }
+
+  if (isReader) {
+    io.RequestorResponserLink.RequestorSubmit.get := io.in.addr.fire
   }
 
   // If is writer, data is poped out with address (synchronous)
@@ -77,11 +101,15 @@ class DataRequestor(
   io.out.tcdm_req.bits.data := { if (isReader) 0.U else io.in.data.get.bits }
 
   // If is reader, tcdm's valid signal depends on address queue and the responser's ready queue; otherwise, it depends on address queue and the requestor's data queue
-  io.out.tcdm_req.valid := {
-    if (isReader) (io.in.addr.valid && io.in.ResponsorReady.get)
-    else (io.in.addr.valid && io.in.data.get.valid)
+  when(io.enable) {
+    io.out.tcdm_req.valid := {
+      if (isReader)
+        (io.in.addr.valid && io.RequestorResponserLink.ResponsorReady.get)
+      else (io.in.addr.valid && io.in.data.get.valid)
+    }
+  }.otherwise {
+    io.out.tcdm_req.valid := false.B
   }
-
 }
 
 /** DataRequestors' IO definition: io.in.address: Vec(Decoupled(UInt))
@@ -111,9 +139,16 @@ class DataRequestors(
 
     // Address is unconditionally connected
     io.in.addr(i) <> module.io.in.addr
-    // For readers, the responser ready signal is connected
-    if (isReader) module.io.in.ResponsorReady.get := io.in.ResponsorReady.get(i)
-
+    // Enable signal is unconditionally connected
+    module.io.enable := io.enable(i)
+    // For readers, the responser ready and requestor submit signal is connected
+    if (isReader) {
+      module.io.RequestorResponserLink.ResponsorReady.get := io.RequestorResponserLink.ResponsorReady
+        .get(i)
+      io.RequestorResponserLink.RequestorSubmit.get(
+        i
+      ) := module.io.RequestorResponserLink.RequestorSubmit.get
+    }
     // For writers, the data interface is connected
     if (!isReader) module.io.in.data.get <> io.in.data.get(i)
     io.out.tcdm_req(i) <> module.io.out.tcdm_req

@@ -115,18 +115,17 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
 
       // The controller for the xdmaTop
       concurrent_threads = concurrent_threads.fork {
-        val readerAGUParam = new AGUParam(
-          address = 0,
-          Strides = Array(8, 0, 0),
-          Bounds = Array(2048, 1, 1)
-        )
-
-        // Test 1: Duplicate the data once
+        // Test 1: Duplicate the data once with only one channel
         println("[Memcopy test]")
+        var readerAGUParam = new AGUParam(
+          address = 0,
+          Strides = Array(8, 8, 0),
+          Bounds = Array(1, 2048, 1)
+        )
         var writerAGUParam = new AGUParam(
           address = 16 * 1024,
-          Strides = Array(8, 0, 0),
-          Bounds = Array(2048, 1, 1)
+          Strides = Array(8, 8, 0),
+          Bounds = Array(1, 2048, 1)
         )
 
         var writerExtParam = new ExtParam(
@@ -278,10 +277,15 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
 
         // Test 2: Set the memory to 0x00
         println("[Memset test 0x00]")
+        readerAGUParam = new AGUParam(
+          address = 0,
+          Strides = Array(8, 64, 0),
+          Bounds = Array(8, 256, 1)
+        )
         writerAGUParam = new AGUParam(
           address = 16 * 1024,
-          Strides = Array(8, 0, 0),
-          Bounds = Array(2048, 1, 1)
+          Strides = Array(8, 64, 0),
+          Bounds = Array(8, 256, 1)
         )
 
         writerExtParam = new ExtParam(
@@ -429,10 +433,15 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
 
         // Test 3: Set the memory to 0xFF
         println("[Memset test 0xFF]")
+        readerAGUParam = new AGUParam(
+          address = 0,
+          Strides = Array(8, 64, 0),
+          Bounds = Array(8, 256, 1)
+        )
         writerAGUParam = new AGUParam(
           address = 16 * 1024,
-          Strides = Array(8, 0, 0),
-          Bounds = Array(2048, 1, 1)
+          Strides = Array(8, 64, 0),
+          Bounds = Array(8, 256, 1)
         )
 
         writerExtParam = new ExtParam(
@@ -588,7 +597,7 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           if (i._1 >= 16384) tcdm_mem.remove(i._1)
         })
 
-        val expected_result_3 = collection.mutable.Map[Int, BigInt]()
+        val expected_result_4 = collection.mutable.Map[Long, BigInt]()
         input_data
           .map { element =>
             var temp_element = element
@@ -610,15 +619,20 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           .reduce(_ ++ _)
           .zipWithIndex
           .foreach { case (a, b) =>
-            expected_result_3.addOne((b * 8 + 16 * 1024, a))
+            expected_result_4.addOne((b * 8 + 16 * 1024, a))
           }
 
         println("[Transposer Test] Data preparation is finished. ")
         println("[Transposer Test] Test Started")
+        readerAGUParam = new AGUParam(
+          address = 0,
+          Strides = Array(8, 64, 0),
+          Bounds = Array(8, 256, 1)
+        )
         writerAGUParam = new AGUParam(
           address = 16 * 1024,
-          Strides = Array(8, 0, 0),
-          Bounds = Array(2048, 1, 1)
+          Strides = Array(8, 64, 0),
+          Bounds = Array(8, 256, 1)
         )
 
         writerExtParam = new ExtParam(
@@ -760,7 +774,7 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
 
         // Check the result's correctness
         mem_to_be_checked = tcdm_mem.filter(_._1 >= 1024 * 16)
-        if (mem_to_be_checked == expected_result_3)
+        if (mem_to_be_checked == expected_result_4)
           println("[Transposer test] The test passes. ")
         else throw new Exception("[Transposer test] The test fails. ")
 
