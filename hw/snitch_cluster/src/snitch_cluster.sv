@@ -510,10 +510,10 @@ module snitch_cluster
   tcdm_req_t [NrTCDMPortsCores-1:0] tcdm_req;
   tcdm_rsp_t [NrTCDMPortsCores-1:0] tcdm_rsp;
 
-  core_events_t [NrCores-1:0] core_events;
-  tcdm_events_t               tcdm_events;
-  dma_events_t                dma_events;
-  snitch_icache_pkg::icache_events_t [NrCores-1:0] icache_events;
+  core_events_t [NrCores-1:0]                       core_events;
+  tcdm_events_t                                     tcdm_events;
+  dma_events_t [DMANumChannels-1:0]                 dma_events;
+  snitch_icache_pkg::icache_events_t [NrCores-1:0]  icache_events;
 
   // 4. Memory Subsystem (Core side).
   reqrsp_req_t [NrCores-1:0] core_req;
@@ -959,7 +959,7 @@ module snitch_cluster
           assign wide_axi_mst_req[SDMAMst + j] = axi_dma_req[j];
           assign axi_dma_res[j] = wide_axi_mst_rsp[SDMAMst + j];
         end
-        assign dma_events = dma_core_events[0]; // Only first channel is tracked
+        assign dma_events = dma_core_events;
       end
   end
 
@@ -1241,7 +1241,8 @@ module snitch_cluster
     .reg_rsp_t (reg_rsp_t),
     .tcdm_events_t (tcdm_events_t),
     .dma_events_t (dma_events_t),
-    .NrCores (NrCores)
+    .NrCores (NrCores),
+    .DMANumChannels (DMANumChannels)
   ) i_snitch_cluster_peripheral (
     .clk_i,
     .rst_ni,

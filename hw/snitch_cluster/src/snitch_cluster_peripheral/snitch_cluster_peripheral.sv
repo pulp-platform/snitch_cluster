@@ -12,6 +12,8 @@ module snitch_cluster_peripheral
 #(
   // Nr of course in the cluster
   parameter int unsigned NrCores = 0,
+  // Nr of DMA channels
+  parameter int unsigned DMANumChannels = 0,
   parameter int unsigned DMADataWidth = 0,
   parameter type reg_req_t = logic,
   parameter type reg_rsp_t = logic,
@@ -26,15 +28,15 @@ module snitch_cluster_peripheral
 
   output logic                       icache_prefetch_enable_o,
   output logic [NrCores-1:0]         cl_clint_o,
-  input  dma_events_t                dma_events_i,
   input  core_events_t [NrCores-1:0]                      core_events_i,
   input  tcdm_events_t                                    tcdm_events_i,
+  input  dma_events_t [DMANumChannels-1:0]                dma_events_i,
   input  snitch_icache_pkg::icache_events_t [NrCores-1:0] icache_events_i
 );
 
   // Pipeline register to ease timing.
   tcdm_events_t tcdm_events_q;
-  dma_events_t dma_events_q;
+  dma_events_t [DMANumChannels-1:0] dma_events_q;
   snitch_icache_pkg::icache_events_t [NrCores-1:0] icache_events_q;
   `FF(tcdm_events_q, tcdm_events_i, '0)
   `FF(dma_events_q, dma_events_i, '0)
@@ -143,9 +145,11 @@ module snitch_cluster_peripheral
     perf_hart_sel_d = perf_hart_sel_q;
     for (int i = 0; i < NumPerfCounters; i++) begin
       automatic core_events_t sel_core_events;
+      automatic dma_events_t sel_dma_events;
       automatic logic [$clog2(NrCores)-1:0] hart_select;
-      hart_select = reg2hw.perf_cnt_sel[i].hart.q[$clog2(NrCores):0];
+      hart_select = reg2hw.perf_cnt_sel[i].hart.q[$clog2(NrCores)-1:0];
       sel_core_events = core_events_i[hart_select];
+      sel_dma_events = dma_events_q[hart_select];
       unique case (perf_metrics_q[i])
         Cycle: perf_cnt_d[i] += 1;
         TcdmAccessed: perf_cnt_d[i] += tcdm_events_q.inc_accessed;
@@ -157,22 +161,22 @@ module snitch_cluster_peripheral
         RetiredLoad: perf_cnt_d[i] += sel_core_events.retired_load;
         RetiredI: perf_cnt_d[i] += sel_core_events.retired_i;
         RetiredAcc: perf_cnt_d[i] += sel_core_events.retired_acc;
-        DmaAwStall: perf_cnt_d[i] += dma_events_q.aw_stall;
-        DmaArStall: perf_cnt_d[i] += dma_events_q.ar_stall;
-        DmaRStall: perf_cnt_d[i] += dma_events_q.r_stall;
-        DmaWStall: perf_cnt_d[i] += dma_events_q.w_stall;
-        DmaBufWStall: perf_cnt_d[i] += dma_events_q.buf_w_stall;
-        DmaBufRStall: perf_cnt_d[i] += dma_events_q.buf_r_stall;
-        DmaAwDone: perf_cnt_d[i] += dma_events_q.aw_done;
-        DmaAwBw: perf_cnt_d[i] += ((dma_events_q.aw_len + 1) << (dma_events_q.aw_size));
-        DmaArDone: perf_cnt_d[i] += dma_events_q.ar_done;
-        DmaArBw: perf_cnt_d[i] += ((dma_events_q.ar_len + 1) << (dma_events_q.ar_size));
-        DmaRDone: perf_cnt_d[i] += dma_events_q.r_done;
+        DmaAwStall: perf_cnt_d[i] += sel_dma_events.aw_stall;
+        DmaArStall: perf_cnt_d[i] += sel_dma_events.ar_stall;
+        DmaRStall: perf_cnt_d[i] += sel_dma_events.r_stall;
+        DmaWStall: perf_cnt_d[i] += sel_dma_events.w_stall;
+        DmaBufWStall: perf_cnt_d[i] += sel_dma_events.buf_w_stall;
+        DmaBufRStall: perf_cnt_d[i] += sel_dma_events.buf_r_stall;
+        DmaAwDone: perf_cnt_d[i] += sel_dma_events.aw_done;
+        DmaAwBw: perf_cnt_d[i] += ((sel_dma_events.aw_len + 1) << (sel_dma_events.aw_size));
+        DmaArDone: perf_cnt_d[i] += sel_dma_events.ar_done;
+        DmaArBw: perf_cnt_d[i] += ((sel_dma_events.ar_len + 1) << (sel_dma_events.ar_size));
+        DmaRDone: perf_cnt_d[i] += sel_dma_events.r_done;
         DmaRBw: perf_cnt_d[i] += DMADataWidth/8;
-        DmaWDone: perf_cnt_d[i] += dma_events_q.w_done;
-        DmaWBw: perf_cnt_d[i] += dma_events_q.num_bytes_written;
-        DmaBDone: perf_cnt_d[i] += dma_events_q.b_done;
-        DmaBusy: perf_cnt_d[i] += dma_events_q.dma_busy;
+        DmaWDone: perf_cnt_d[i] += sel_dma_events.w_done;
+        DmaWBw: perf_cnt_d[i] += sel_dma_events.num_bytes_written;
+        DmaBDone: perf_cnt_d[i] += sel_dma_events.b_done;
+        DmaBusy: perf_cnt_d[i] += sel_dma_events.dma_busy;
         IcacheMiss: perf_cnt_d[i] += icache_events_q[hart_select].l0_miss;
         IcacheHit: perf_cnt_d[i] += icache_events_q[hart_select].l0_hit;
         IcachePrefetch: perf_cnt_d[i] += icache_events_q[hart_select].l0_prefetch;
