@@ -142,7 +142,10 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                 write_csr(dut, dut.io.csrIO, addr = currentCSR, data = i)
                 currentCSR += 1
               })
-
+              // Writer: strobe / mask
+              write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 0)
+              currentCSR += 1
+              
               // Commit the config
               write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 1)
               println(

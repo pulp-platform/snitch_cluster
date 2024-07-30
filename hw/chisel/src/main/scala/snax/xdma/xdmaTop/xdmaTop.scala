@@ -126,7 +126,7 @@ class xdmaTop(
   // IO3: Start to connect ctrl to remoteDMADataPath
   io.remoteDMADataPathCfg <> i_dmactrl.io.remoteDMADataPathCfg
 
-  // Intercoonection between ctrl and datapath
+  // Interconnection between ctrl and datapath
   i_dmactrl.io.localDMADataPath.reader_cfg_o <> i_dmadatapath.io.reader_cfg_i
 
   i_dmactrl.io.localDMADataPath.writer_cfg_o <> i_dmadatapath.io.writer_cfg_i
@@ -248,7 +248,8 @@ object xdmaTopGen extends App {
 #define XDMA_DST_DIM ${writerparam.agu_param.dimension}
 #define XDMA_DST_BOUND_PTR XDMA_DST_ADDR_PTR_MSB + 1
 #define XDMA_DST_STRIDE_PTR XDMA_DST_BOUND_PTR + XDMA_DST_DIM
-#define XDMA_DST_EXT_CSR_PTR XDMA_DST_STRIDE_PTR + XDMA_DST_DIM
+#define XDMA_DST_STRB_PTR XDMA_DST_STRIDE_PTR + XDMA_DST_DIM
+#define XDMA_DST_EXT_CSR_PTR XDMA_DST_STRB_PTR + 1
 #define XDMA_DST_EXT_NUM ${writerextensionparam.length}
 #define XDMA_DST_EXT_CSR_NUM ${writerextensionparam
         .map(_.extensionParam.userCsrNum)

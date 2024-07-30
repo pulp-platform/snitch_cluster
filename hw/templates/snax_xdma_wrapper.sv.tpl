@@ -79,8 +79,6 @@ module ${cfg["name"]}_xdma_wrapper #(
       tcdm_req_amo          [i] = '0;
       tcdm_req_user_core_id [i] = '0;
       tcdm_req_user_is_core [i] = '0;
-      tcdm_req_strb         [i] = '1;
-      // Be aware that if we need the bit-level granularity, this part needs to be modified
     end
   end
 
@@ -91,7 +89,7 @@ module ${cfg["name"]}_xdma_wrapper #(
       tcdm_req_o[i].q.write        = tcdm_req_write  [i];
       tcdm_req_o[i].q.amo          = reqrsp_pkg::AMONone;
       tcdm_req_o[i].q.data         = tcdm_req_data   [i];
-      tcdm_req_o[i].q.strb         = '1;
+      tcdm_req_o[i].q.strb         = tcdm_req_strb   [i];
       tcdm_req_o[i].q.user.core_id = '0;
       tcdm_req_o[i].q.user.is_core = '0;
       tcdm_req_o[i].q_valid        = tcdm_req_q_valid[i];
@@ -127,6 +125,7 @@ module ${cfg["name"]}_xdma_wrapper #(
     .io_tcdm_reader_req_${idx}_bits_addr  ( tcdm_req_addr   [${idx}] ),
     .io_tcdm_reader_req_${idx}_bits_write ( tcdm_req_write  [${idx}] ),
     .io_tcdm_reader_req_${idx}_bits_data  ( tcdm_req_data   [${idx}] ),
+    .io_tcdm_reader_req_${idx}_bits_strb  ( tcdm_req_strb   [${idx}] ),
 % endfor
     // Writer's Request
 % for idx in range(0, num_tcdm_ports >> 1):
@@ -135,6 +134,7 @@ module ${cfg["name"]}_xdma_wrapper #(
     .io_tcdm_writer_req_${idx}_bits_addr  ( tcdm_req_addr   [${idx + (num_tcdm_ports >> 1)}] ),
     .io_tcdm_writer_req_${idx}_bits_write ( tcdm_req_write  [${idx + (num_tcdm_ports >> 1)}] ),
     .io_tcdm_writer_req_${idx}_bits_data  ( tcdm_req_data   [${idx + (num_tcdm_ports >> 1)}] ),
+    .io_tcdm_writer_req_${idx}_bits_strb  ( tcdm_req_strb   [${idx + (num_tcdm_ports >> 1)}] ),
 % endfor
     // Reader's Respose
 % for idx in range(num_tcdm_ports >> 1):
@@ -162,7 +162,7 @@ module ${cfg["name"]}_xdma_wrapper #(
     // Remote data
     .io_remoteDMADataPath_fromRemote_valid ('0),
     .io_remoteDMADataPath_fromRemote_ready (  ),
-    .io_remoteDMADataPath_fromRemote_bits  (  ),
+    .io_remoteDMADataPath_fromRemote_bits  ('0),
 
     .io_remoteDMADataPath_toRemote_ready ('0),
     .io_remoteDMADataPath_toRemote_valid (  ),
@@ -171,7 +171,7 @@ module ${cfg["name"]}_xdma_wrapper #(
     // Remote cfg
     .io_remoteDMADataPathCfg_fromRemote_valid ('0),
     .io_remoteDMADataPathCfg_fromRemote_ready (  ),
-    .io_remoteDMADataPathCfg_fromRemote_bits  (  ),
+    .io_remoteDMADataPathCfg_fromRemote_bits  ('0),
 
     .io_remoteDMADataPathCfg_toRemote_ready ('0),
     .io_remoteDMADataPathCfg_toRemote_valid (  ),

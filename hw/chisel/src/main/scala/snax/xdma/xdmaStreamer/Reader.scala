@@ -33,6 +33,8 @@ class Reader(param: ReaderWriterParam, clusterName: String = "unnamed_cluster")
     val data = Decoupled(
       UInt((param.tcdm_param.dataWidth * param.tcdm_param.numChannel).W)
     )
+    // The signal to control which byte is written to TCDM
+    val strb = Input(UInt((param.tcdm_param.dataWidth / 8).W))
     // The signal trigger the start of Address Generator. The non-empty of address generator will cause data requestor to read the data
     val start = Input(Bool())
     // The module is busy if addressgen is busy or fifo in addressgen is not empty
@@ -86,6 +88,7 @@ class Reader(param: ReaderWriterParam, clusterName: String = "unnamed_cluster")
   requestors.io.in.addr <> addressgen.io.addr
   requestors.io.enable := addressgen.io.enabled_channels
   responsers.io.enable := addressgen.io.enabled_channels
+  requestors.io.in.strb := io.strb
   requestors.io.RequestorResponserLink.ResponsorReady.get := responsers.io.RequestorResponserLink.ResponsorReady
   responsers.io.RequestorResponserLink.RequestorSubmit := requestors.io.RequestorResponserLink.RequestorSubmit.get
   requestors.io.out.tcdm_req <> io.tcdm_req

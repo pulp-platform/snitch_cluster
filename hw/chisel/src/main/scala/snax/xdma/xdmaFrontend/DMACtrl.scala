@@ -187,13 +187,15 @@ class DMACtrl(
   val i_csrmanager = Module(
     new CsrManager(
       csrNumReadWrite = 2 + // Reader Pointer needs two CSRs
-        readerparam.rwParam.agu_param.dimension * 2 + // Strides + Bounds for read
+        readerparam.rwParam.agu_param.dimension * 2 + // Strides + Bounds for reader
+        0 + // The strb for reader: non-effective, so donot assign CSR
         {
           if (readerparam.extParam.length == 0) 0
           else readerparam.extParam.map { i => i.totalCsrNum }.reduce(_ + _)
         } + // The total num of param on reader extension
         2 + // Writer Pointer needs two CSRs
-        writerparam.rwParam.agu_param.dimension * 2 + // Strides + Bounds for write
+        writerparam.rwParam.agu_param.dimension * 2 + // Strides + Bounds for writer
+        1 + // The strb for writer: effective, so assign one CSR
         {
           if (writerparam.extParam.length == 0) 0
           else writerparam.extParam.map { i => i.totalCsrNum }.reduce(_ + _)
@@ -230,6 +232,11 @@ class DMACtrl(
     remainingCSR = remainingCSR.tail
   }
 
+  // Connect strb signal. As the strb is not effective, so assign all true, and not take any value from CSR right now
+  structuredCfg_src.streamer_cfg.strb := VecInit(
+    Seq.fill(readerparam.rwParam.tcdm_param.dataWidth / 8)(true.B)
+  ).asUInt
+
   // Connect extension signal
   for (i <- 0 until structuredCfg_src.ext_cfg.length) {
     structuredCfg_src.ext_cfg(i) := remainingCSR.head
@@ -252,6 +259,10 @@ class DMACtrl(
     structuredCfg_dst.agu_cfg.Strides(i) := remainingCSR.head
     remainingCSR = remainingCSR.tail
   }
+
+  // Connect strb signal. As the strb is effective, so assign the value from CSR
+  structuredCfg_dst.streamer_cfg.strb := remainingCSR.head
+  remainingCSR = remainingCSR.tail
 
   // Connect extension signal
   for (i <- 0 until structuredCfg_dst.ext_cfg.length) {
@@ -280,8 +291,10 @@ class DMACtrl(
 
   // Connect bits
   preRoute_src_local.bits.agu_cfg := structuredCfg_src.agu_cfg
+  preRoute_src_local.bits.streamer_cfg := structuredCfg_src.streamer_cfg
   preRoute_src_local.bits.ext_cfg := structuredCfg_src.ext_cfg
   preRoute_dst_local.bits.agu_cfg := structuredCfg_dst.agu_cfg
+  preRoute_dst_local.bits.streamer_cfg := structuredCfg_dst.streamer_cfg
   preRoute_dst_local.bits.ext_cfg := structuredCfg_dst.ext_cfg
   preRoute_src_local.bits.loopBack := preRoute_loopBack
   preRoute_dst_local.bits.loopBack := preRoute_loopBack

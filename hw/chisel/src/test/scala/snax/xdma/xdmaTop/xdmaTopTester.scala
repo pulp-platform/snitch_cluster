@@ -206,6 +206,15 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           currentAddress += 1
         }
 
+        // Strb of writer
+        write_csr(
+          dut = dut,
+          port = dut.io.csrIO,
+          addr = currentAddress,
+          data = 0xff
+        )
+        currentAddress += 1
+
         // Data Extension Region
         write_csr(
           dut = dut,
@@ -366,6 +375,15 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           currentAddress += 1
         }
 
+        // Strb of writer
+        write_csr(
+          dut = dut,
+          port = dut.io.csrIO,
+          addr = currentAddress,
+          data = 0xff
+        )
+        currentAddress += 1
+
         // Data Extension Region
         write_csr(
           dut = dut,
@@ -431,7 +449,7 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           println("[Memset test] The test passes. ")
         else throw new Exception("[Memset test] The test fails. ")
 
-        // Test 3: Set the memory to 0xFF
+        // Test 3: Set the memory to 0x0000_00ff. This can be done by setting the strb to 0x01 with Memset to 0xff
         println("[Memset test 0xFF]")
         readerAGUParam = new AGUParam(
           address = 0,
@@ -522,6 +540,15 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           currentAddress += 1
         }
 
+        // Strb of writer
+        write_csr(
+          dut = dut,
+          port = dut.io.csrIO,
+          addr = currentAddress,
+          data = 0x01
+        )
+        currentAddress += 1
+
         // Data Extension Region
         write_csr(
           dut = dut,
@@ -585,7 +612,7 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         mem_to_be_checked = tcdm_mem.filter(_._1 >= 1024 * 16)
         if (
           mem_to_be_checked
-            .map(_._2 == BigInt("ffffffffffffffff", radix = 16))
+            .map(_._2 == BigInt("ff", radix = 16))
             .reduce(_ & _)
         )
           println("[Memset test 0xFF] The test passes. ")
@@ -712,6 +739,15 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           )
           currentAddress += 1
         }
+
+        // Strb of writer
+        write_csr(
+          dut = dut,
+          port = dut.io.csrIO,
+          addr = currentAddress,
+          data = 0xff
+        )
+        currentAddress += 1
 
         // Data Extension Region
         write_csr(
@@ -878,11 +914,25 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
                   dut.io.tcdm_writer.req(i).ready.poke(true)
                 } else dut.io.tcdm_writer.req(i).ready.poke(true)
 
+                val previous_data =
+                  if (tcdm_mem.contains(writer_req_addr))
+                    tcdm_mem(writer_req_addr)
+                  else BigInt(0)
+                val Strb = dut.io.tcdm_writer.req(i).bits.strb.peekInt().toInt
+                var bitStrb = BigInt(0)
+                for (i <- 7 to 0 by -1) {
+                  val bit = (Strb >> i) & 1
+                  val block = (BigInt(255) * bit) << (i * 8)
+                  bitStrb |= block
+                }
+
+                val new_data =
+                  (previous_data & (~bitStrb)) | (writer_req_data & bitStrb)
+                tcdm_mem(writer_req_addr) = new_data
                 println(
-                  f"[Writer Req] Writes to TCDM with Addr: 0x${writer_req_addr.toHexString} and Data = 0x${writer_req_data
+                  f"[Writer Req] Writes to TCDM with Addr: 0x${writer_req_addr.toHexString} and Data = 0x${new_data
                       .toString(radix = 16)}"
                 )
-                tcdm_mem(writer_req_addr) = writer_req_data
                 dut.clock.step()
               } else dut.clock.step()
 

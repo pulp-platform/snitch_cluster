@@ -219,6 +219,12 @@ class DataMover(
   data_movement_done := (io.addr_gen_done && tcdm_req_ready) || io.zeroLoopBoundCase
   io.data_movement_done := data_movement_done
 
+  // TcdmReq is modified to include the strobe signal, so it should be assigned
+  for (i <- 0 until params.tcdmPortsNum) {
+    io.tcdm_req(i).bits.strb := VecInit(
+      Seq.fill(io.tcdm_req(i).bits.strb.getWidth)(true.B)
+    ).asUInt
+  }
 }
 
 // A small class which asserts the non-initialized signals

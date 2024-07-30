@@ -18,6 +18,9 @@ class DMADataPathCfgIO(param: DMADataPathParam) extends Bundle {
     new AddressGenUnitCfgIO(param =
       param.rwParam.agu_param
     ) // Buffered within AGU
+  val streamer_cfg = new Bundle {
+    val strb = UInt((param.rwParam.tcdm_param.dataWidth / 8).W)
+  }
   val ext_cfg = if (param.extParam.length != 0) {
     Vec(
       param.extParam.map { i => i.totalCsrNum }.reduce(_ + _),
@@ -29,7 +32,7 @@ class DMADataPathCfgIO(param: DMADataPathParam) extends Bundle {
   // However, the data forwarding is still challenging: Shall we use the current DMA to move the data? (I suggest that we do this in the initial implementation)
   // Serialize function to convert config into one long UInt
   def serialize(): UInt = {
-    ext_cfg.asUInt ++ agu_cfg.Bounds.asUInt ++ agu_cfg.Strides.asUInt ++ agu_cfg.Ptr
+    ext_cfg.asUInt ++ streamer_cfg.asUInt ++ agu_cfg.Bounds.asUInt ++ agu_cfg.Strides.asUInt ++ agu_cfg.Ptr
   }
 
   // Deserialize function to convert long UInt back to config
@@ -55,6 +58,10 @@ class DMADataPathCfgIO(param: DMADataPathParam) extends Bundle {
     remainingData =
       remainingData(remainingData.getWidth - 1, agu_cfg.Bounds.asUInt.getWidth)
 
+    // Assigning streamer_cfg
+    streamer_cfg.strb := remainingData(streamer_cfg.strb.getWidth - 1, 0)
+    remainingData =
+      remainingData(remainingData.getWidth - 1, streamer_cfg.strb.getWidth)
     // Assigning ext_cfg
     ext_cfg := remainingData(ext_cfg.asUInt.getWidth - 1, 0).asTypeOf(ext_cfg)
     remainingData =
@@ -183,10 +190,12 @@ class DMADataPath(
 
   // Connect the wire (ctrl plane)
   i_reader.io.cfg := io.reader_cfg_i.agu_cfg
+  i_reader.io.strb := io.reader_cfg_i.streamer_cfg.strb
   i_reader.io.start := io.reader_start_i
   // reader_busy_o is connected later as the busy signal from the signal is needed
 
   i_writer.io.cfg := io.writer_cfg_i.agu_cfg
+  i_writer.io.strb := io.writer_cfg_i.streamer_cfg.strb
   i_writer.io.start := io.writer_start_i
   // writer_busy_o is connected later as the busy signal from the signal is needed
 
@@ -242,7 +251,6 @@ class DMADataPath(
             .extensionParam
             .moduleName
         )
-
   }
 
   // Writer side

@@ -23,19 +23,3 @@ jobs:
         working-directory: hw/chisel
         run: |
           mill Snax.test
-      - name: Test xdma streamer
-        working-directory: hw/chisel
-        run: |-
-          sbt "testOnly snax.xdma.xdmaStreamer.*"
-      - name: Test xdma DataPath and Controller
-        working-directory: hw/chisel
-        run: |-
-          sbt "testOnly snax.xdma.xdmaFrontend.*"
-      - name: Test xdma Extension Framework + MaxPool
-        working-directory: hw/chisel
-        run: |-
-          sbt "testOnly snax.xdma.xdmaExtension.*"
-      - name: Test xdma Top Module
-        working-directory: hw/chisel
-        run: |-
-          sbt "testOnly snax.xdma.xdmaTop.*"

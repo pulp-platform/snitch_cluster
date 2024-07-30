@@ -26,6 +26,9 @@ int main() {
     // Using xdma core only
     if (snrt_cluster_core_idx() == snrt_cluster_compute_core_num() - 1) {
         // The xdma core is the last compute core in the cluster
+
+        // Test 1: Setting the 0-16KB region to 0xFF
+        printf("Test 1: Setting the 0-16KB region to 0xFF\n");
         if (xdma_memcpy_1d(tcdm_0, tcdm_0, 0x4000 * sizeof(uint8_t)) != 0) {
             printf("Error in xdma agu configuration\n");
             err++;
@@ -33,8 +36,8 @@ int main() {
             printf("The xdma agu is configured\n");
         }
 
-        uint32_t ext_param[1] = {0xFFFFFFFF};
-        if (xdma_enable_dst_ext(0, ext_param) != 0) {
+        uint32_t ext_param_t1[1] = {0xFFFFFFFF};
+        if (xdma_enable_dst_ext(0, ext_param_t1) != 0) {
             printf("Error in enabling xdma extension 0\n");
             err++;
         } else {
@@ -76,21 +79,30 @@ int main() {
         }
         printf("The memset of 0KB - 16KB is correct\n");
 
-        // Setting the 4K-12K region back to 0
-        if (xdma_memcpy_1d(tcdm_0, tcdm_0 + 0x1000 * sizeof(uint8_t),
-                           0x2000 * sizeof(uint8_t)) != 0) {
+        // Test 2: Setting the 4K-12K region back to 0. Instead of using the
+        // memset, this test do this by disabling all the readers.
+        printf(
+            "Test 2: Setting the 4K-12K region back to 0 by disabling all "
+            "reader channels\n");
+        uint32_t stride_src_t2[2] = {0, 64};
+        uint32_t stride_dst_t2[2] = {8, 64};
+        uint32_t bound_src_t2[2] = {0, 128};
+        uint32_t bound_dst_t2[2] = {8, 128};
+
+        if (xdma_memcpy_nd(tcdm_0, tcdm_0 + 0x1000 * sizeof(uint8_t), 2, 2,
+                           stride_src_t2, stride_dst_t2, bound_src_t2,
+                           bound_dst_t2, 0xff) != 0) {
             printf("Error in xdma agu configuration\n");
             err++;
         } else {
             printf("The xdma agu is configured\n");
         }
 
-        ext_param[0] = 0;
-        if (xdma_enable_dst_ext(0, ext_param) != 0) {
+        if (xdma_disable_dst_ext(0) != 0) {
             printf("Error in enabling xdma extension 0\n");
             err++;
         } else {
-            printf("The xdma extension 0 is enabled\n");
+            printf("The xdma extension 0 is disabled\n");
         }
 
         if (err != 0) {
@@ -126,6 +138,53 @@ int main() {
         }
         printf("The memset of 4KB - 12KB is correct\n");
 
+        // Test 3: Setting the 4-12KB region to 0x0000000000000001 (uint64_t 1)
+        // This test is to validate the byte mask by shielding all other bits,
+        // so only LSB 8 bits are set.
+        printf(
+            "Test 3: Setting the 4-12KB region to 0x0000000000000001 (uint64_t "
+            "1)\n");
+        uint32_t stride_src_t3[2] = {8, 64};
+        uint32_t stride_dst_t3[2] = {8, 64};
+        uint32_t bound_src_t3[2] = {8, 128};
+        uint32_t bound_dst_t3[2] = {8, 128};
+
+        if (xdma_memcpy_nd(tcdm_0, tcdm_0 + 0x1000 * sizeof(uint8_t), 2, 2,
+                           stride_src_t3, stride_dst_t3, bound_src_t3,
+                           bound_dst_t3, 0x01) != 0) {
+            printf("Error in xdma agu configuration\n");
+            err++;
+        } else {
+            printf("The xdma agu is configured\n");
+        }
+
+        uint32_t ext_param_t3[1] = {0x1};
+        if (xdma_enable_dst_ext(0, ext_param_t3) != 0) {
+            printf("Error in enabling xdma extension 0\n");
+            err++;
+        } else {
+            printf("The xdma extension 0 is disabled\n");
+        }
+
+        if (err != 0) {
+            return err;
+        }
+
+        task_id = xdma_start();
+        printf(
+            "The xdma is started, setting memory region to 0x0000000000000001 "
+            "(uint64_t 1). The task id is %d\n",
+            task_id);
+        xdma_wait(task_id);
+
+        printf("The xdma is finished\n");
+        uint64_t *result_t3 = (uint64_t *)(tcdm_0 + 0x1000 * sizeof(uint8_t));
+        for (int i = 0; i < 0x2000 / 8; i++) {
+            if (result_t3[i] != 1) {
+                printf("Error in memset (region 0)\n");
+                return -1;
+            }
+        }
     } else {
         printf("Core %d is not xdma core. \n", snrt_cluster_core_idx());
     }

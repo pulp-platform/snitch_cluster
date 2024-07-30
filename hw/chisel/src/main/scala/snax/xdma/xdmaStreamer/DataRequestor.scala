@@ -17,6 +17,7 @@ class DataRequestorIO(
     val addr = Flipped(Decoupled(UInt(tcdmAddressWidth.W)))
     val data =
       if (!isReader) Some(Flipped(Decoupled(UInt(tcdmDataWidth.W)))) else None
+    val strb = Input(UInt((tcdmDataWidth / 8).W))
   }
 
   val out = new Bundle {
@@ -42,6 +43,7 @@ class DataRequestorsIO(
       if (!isReader)
         Some(Vec(numChannel, Flipped(Decoupled(UInt(tcdmDataWidth.W)))))
       else None
+    val strb = Input(UInt((tcdmDataWidth / 8).W))
   }
   val out = new Bundle {
     val tcdm_req =
@@ -92,6 +94,15 @@ class DataRequestor(
   }
 
   // If is writer, data is poped out with address (synchronous)
+  if (!isReader) {
+    io.in.data.get.ready := io.in.addr.ready
+  }
+
+  // If is reader, the mask is always 1 because tcdm ignore it;
+  // Else, the mask is connected to the tcdm requestor to indicate which byte is valid
+  io.out.tcdm_req.bits.strb := io.in.strb
+
+  // If is writer, the data port is ready to receive data when there is a valid address
   if (!isReader) {
     io.in.data.get.ready := io.in.addr.ready
   }
@@ -151,7 +162,14 @@ class DataRequestors(
     }
     // For writers, the data interface is connected
     if (!isReader) module.io.in.data.get <> io.in.data.get(i)
+
+    // Connect the strobe signal
+    module.io.in.strb := io.in.strb
+
+    // Connect the output to the tcdm request
     io.out.tcdm_req(i) <> module.io.out.tcdm_req
+
+    // Return the module for the future usage
     module
   }
 }

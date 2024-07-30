@@ -139,7 +139,7 @@ module ${cfg["tag_name"]}_streamer_wrapper #(
       tcdm_req_o[i].q.write        = tcdm_req_write  [i];
       tcdm_req_o[i].q.amo          = reqrsp_pkg::AMONone;
       tcdm_req_o[i].q.data         = tcdm_req_data   [i];
-      tcdm_req_o[i].q.strb         = '1;
+      tcdm_req_o[i].q.strb         = tcdm_req_strb   [i];
       tcdm_req_o[i].q.user.core_id = '0;
       tcdm_req_o[i].q.user.is_core = '0;
       tcdm_req_o[i].q_valid        = tcdm_req_q_valid[i];
@@ -215,6 +215,7 @@ module ${cfg["tag_name"]}_streamer_wrapper #(
     .io_data_tcdm_req_${idx}_bits_addr  ( tcdm_req_addr   [${idx}] ),
     .io_data_tcdm_req_${idx}_bits_write ( tcdm_req_write  [${idx}] ),
     .io_data_tcdm_req_${idx}_bits_data  ( tcdm_req_data   [${idx}] ),
+    .io_data_tcdm_req_${idx}_bits_strb  ( tcdm_req_strb   [${idx}] ),
 
 % endfor
     //-----------------------------
