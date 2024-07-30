@@ -10,16 +10,13 @@ module snitch_cluster_peripheral
   import snitch_pkg::*;
   import snitch_cluster_peripheral_reg_pkg::*;
 #(
-  parameter int unsigned AddrWidth = 0,
+  // Nr of course in the cluster
+  parameter int unsigned NrCores = 0,
   parameter int unsigned DMADataWidth = 0,
   parameter type reg_req_t = logic,
   parameter type reg_rsp_t = logic,
-  parameter type         tcdm_events_t = logic,
-  parameter type         dma_events_t = logic,
-  // Nr of course in the cluster
-  parameter logic [31:0] NrCores       = 0,
-  /// Derived parameter *Do not override*
-  parameter type addr_t = logic [AddrWidth-1:0]
+  parameter type tcdm_events_t = logic,
+  parameter type dma_events_t = logic
 ) (
   input  logic                       clk_i,
   input  logic                       rst_ni,
@@ -29,10 +26,9 @@ module snitch_cluster_peripheral
 
   output logic                       icache_prefetch_enable_o,
   output logic [NrCores-1:0]         cl_clint_o,
-  input  logic [9:0]                 cluster_hart_base_id_i,
-  input  core_events_t [NrCores-1:0] core_events_i,
-  input  tcdm_events_t               tcdm_events_i,
   input  dma_events_t                dma_events_i,
+  input  core_events_t [NrCores-1:0]                      core_events_i,
+  input  tcdm_events_t                                    tcdm_events_i,
   input  snitch_icache_pkg::icache_events_t [NrCores-1:0] icache_events_i
 );
 

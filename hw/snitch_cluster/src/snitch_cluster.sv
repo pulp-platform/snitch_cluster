@@ -1237,7 +1237,6 @@ module snitch_cluster
   );
 
   snitch_cluster_peripheral #(
-    .AddrWidth (PhysicalAddrWidth),
     .reg_req_t (reg_req_t),
     .reg_rsp_t (reg_rsp_t),
     .tcdm_events_t (tcdm_events_t),
@@ -1250,7 +1249,6 @@ module snitch_cluster
     .reg_rsp_o (reg_rsp),
     .icache_prefetch_enable_o (icache_prefetch_enable),
     .cl_clint_o (cl_interrupt),
-    .cluster_hart_base_id_i (hart_base_id_i),
     .core_events_i (core_events),
     .tcdm_events_i (tcdm_events),
     .dma_events_i (dma_events),
