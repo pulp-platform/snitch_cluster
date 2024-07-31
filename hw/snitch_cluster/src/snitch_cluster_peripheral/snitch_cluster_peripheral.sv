@@ -147,7 +147,7 @@ module snitch_cluster_peripheral
       automatic core_events_t sel_core_events;
       automatic dma_events_t sel_dma_events;
       automatic logic [$clog2(NrCores)-1:0] hart_select;
-      hart_select = reg2hw.perf_cnt_sel[i].hart.q[$clog2(NrCores)-1:0];
+      hart_select = perf_hart_sel_q[i][$clog2(NrCores)-1:0];
       sel_core_events = core_events_i[hart_select];
       sel_dma_events = dma_events_q[hart_select];
       unique case (perf_metrics_q[i])
