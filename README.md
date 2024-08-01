@@ -20,11 +20,6 @@ What can you expect to find in this repository?
 
 This code was previously hosted in the [Snitch monorepo](https://github.com/pulp-platform/snitch) and was spun off into its own repository to simplify maintenance and dependency handling. Note that our Snitch-based manycore system [Occamy](https://github.com/pulp-platform/occamy) has also moved.
 
-## Tool Requirements
-
-* `verilator >= v4.1`
-* `bender >= v0.27.0`
-
 ## License
 
 Snitch is being made available under permissive open source licenses.

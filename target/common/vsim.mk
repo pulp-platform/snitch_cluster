@@ -8,14 +8,11 @@ $(VSIM_BUILDDIR):
 $(VSIM_BUILDDIR)/compile.vsim.tcl: $(BENDER_LOCK) | $(VSIM_BUILDDIR)
 	$(VLIB) $(dir $@)
 	$(BENDER) script vsim $(VSIM_BENDER) --vlog-arg="$(VLOG_FLAGS) -work $(dir $@) " > $@
-	echo '$(VLOG) -work $(dir $@) $(TB_CC_SOURCES) -vv -ccflags "$(TB_CC_FLAGS)"' >> $@
+	echo '$(VLOG) -work $(dir $@) $(TB_CC_SOURCES) $(RTL_CC_SOURCES) -vv -ccflags "$(TB_CC_FLAGS)"' >> $@
 	echo 'return 0' >> $@
 
-$(BIN_DIR):
-	mkdir -p $@
-
 # Build compilation script and compile all sources for Questasim simulation
-$(BIN_DIR)/$(TARGET).vsim: $(VSIM_BUILDDIR)/compile.vsim.tcl $(VSIM_SOURCES) $(TB_SRCS) $(TB_CC_SOURCES) work/lib/libfesvr.a | $(BIN_DIR)
+$(BIN_DIR)/$(TARGET).vsim: $(VSIM_BUILDDIR)/compile.vsim.tcl $(VSIM_SOURCES) $(TB_SRCS) $(TB_CC_SOURCES) $(RTL_CC_SOURCES) work/lib/libfesvr.a | $(BIN_DIR)
 	$(VSIM) -c -do "source $<; quit" | tee $(dir $<)vlog.log
 	@! grep -P "Errors: [1-9]*," $(dir $<)vlog.log
 	$(VOPT) $(VOPT_FLAGS) -work $(VSIM_BUILDDIR) tb_bin -o tb_bin_opt | tee $(dir $<)vopt.log

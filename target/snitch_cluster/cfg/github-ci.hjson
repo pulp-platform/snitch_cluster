@@ -77,10 +77,6 @@
                     { $ref: "#/compute_core_template" },
                     { $ref: "#/compute_core_template" },
                     { $ref: "#/compute_core_template" },
-                    { $ref: "#/compute_core_template" },
-                    { $ref: "#/compute_core_template" },
-                    { $ref: "#/compute_core_template" },
-                    { $ref: "#/compute_core_template" },
                     { $ref: "#/dma_core_template" },
                 ]
             }
@@ -128,9 +124,12 @@
             {indirection: true},    // Master 1
             {},                     // Slave
         ],
+        // Enable division/square root unit
+        Xdiv_sqrt: true,
     },
     dma_core_template: {
         isa: "rv32imafd",
+        Xdiv_sqrt: true,
         xdma: true,
         xssr: false,
         xfrep: false,

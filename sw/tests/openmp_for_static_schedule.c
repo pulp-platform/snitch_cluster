@@ -5,7 +5,6 @@
 #include "snrt.h"
 
 #define AXPY_N 64
-#define NTHREADS 8
 
 unsigned __attribute__((noinline)) static_schedule(void) {
     static double *data_x, *data_y, data_a;
@@ -24,13 +23,17 @@ unsigned __attribute__((noinline)) static_schedule(void) {
     // Compute AXPY
 #pragma omp parallel firstprivate(data_a, data_x, data_y)
     {
+        int nthreads = omp_get_num_threads();
         // DM, rep, bound, stride, data
-        __builtin_ssr_setup_1d_r(0, 0, AXPY_N / NTHREADS - 1, sizeof(double),
-                                 &data_x[AXPY_N / 8 * omp_get_thread_num()]);
-        __builtin_ssr_setup_1d_r(1, 0, AXPY_N / NTHREADS - 1, sizeof(double),
-                                 &data_y[AXPY_N / 8 * omp_get_thread_num()]);
-        __builtin_ssr_setup_1d_w(2, 0, AXPY_N / NTHREADS - 1, sizeof(double),
-                                 &data_y[AXPY_N / 8 * omp_get_thread_num()]);
+        __builtin_ssr_setup_1d_r(
+            0, 0, AXPY_N / nthreads - 1, sizeof(double),
+            &data_x[AXPY_N / nthreads * omp_get_thread_num()]);
+        __builtin_ssr_setup_1d_r(
+            1, 0, AXPY_N / nthreads - 1, sizeof(double),
+            &data_y[AXPY_N / nthreads * omp_get_thread_num()]);
+        __builtin_ssr_setup_1d_w(
+            2, 0, AXPY_N / nthreads - 1, sizeof(double),
+            &data_y[AXPY_N / nthreads * omp_get_thread_num()]);
         __builtin_ssr_enable();
 #pragma omp for schedule(static)
         for (unsigned i = 0; i < AXPY_N; i++) {

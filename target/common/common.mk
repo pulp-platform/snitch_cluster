@@ -42,8 +42,10 @@ EVENTVIS_PY      ?= $(UTIL_DIR)/trace/eventvis.py
 
 # For some reason `$(VERILATOR_SEPP) which verilator` returns a
 # a two-liner with the OS on the first line, hence the tail -n1
-VERILATOR_ROOT ?= $(dir $(shell $(VERILATOR_SEPP) which verilator | tail -n1))..
-VLT_ROOT       ?= ${VERILATOR_ROOT}
+VERILATOR_ROOT  ?= $(dir $(shell $(VERILATOR_SEPP) which verilator | tail -n1))..
+VLT_ROOT        ?= ${VERILATOR_ROOT}
+VLT_JOBS        ?= $(shell nproc)
+VLT_NUM_THREADS ?= 1
 
 MATCH_END := '/+incdir+/ s/$$/\/*\/*/'
 MATCH_BGN := 's/+incdir+//g'
@@ -74,8 +76,9 @@ FESVR_VERSION ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
 
 VLT_BENDER   += $(COMMON_BENDER_FLAGS) -DCOMMON_CELLS_ASSERTS_OFF
 VLT_SOURCES   = $(shell ${BENDER} script flist ${VLT_BENDER} | ${SED_SRCS})
-VLT_BUILDDIR := work-vlt
+VLT_BUILDDIR := $(abspath work-vlt)
 VLT_FESVR     = $(VLT_BUILDDIR)/riscv-isa-sim
+VLT_FLAGS    += --timing
 VLT_FLAGS    += -Wno-BLKANDNBLK
 VLT_FLAGS    += -Wno-LITENDIAN
 VLT_FLAGS    += -Wno-CASEINCOMPLETE
@@ -86,8 +89,9 @@ VLT_FLAGS    += -Wno-UNSIGNED
 VLT_FLAGS    += -Wno-UNOPTFLAT
 VLT_FLAGS    += -Wno-fatal
 VLT_FLAGS    += --unroll-count 1024
-VLT_CFLAGS   += -std=c++14 -pthread
-VLT_CFLAGS   +=-I ${VLT_BUILDDIR} -I $(VLT_ROOT)/include -I $(VLT_ROOT)/include/vltstd -I $(VLT_FESVR)/include -I $(TB_DIR) -I ${MKFILE_DIR}/test
+VLT_FLAGS	 += --threads $(VLT_NUM_THREADS)
+VLT_CFLAGS   += -std=c++20 -pthread
+VLT_CFLAGS   += -I $(VLT_ROOT)/include -I $(VLT_ROOT)/include/vltstd -I $(VLT_FESVR)/include -I $(TB_DIR) -I ${MKFILE_DIR}test
 
 ANNOTATE_FLAGS      ?= -q --keep-time --addr2line=$(ADDR2LINE)
 LAYOUT_EVENTS_FLAGS ?= --cfg=$(CFG)
@@ -162,19 +166,6 @@ $(VLT_BUILDDIR)/lib/libfesvr.a: $(VLT_FESVR)/${FESVR_VERSION}_unzip
 	$(MAKE) -C $(dir $<) install-config-hdrs install-hdrs libfesvr.a
 	mkdir -p $(dir $@)
 	cp $(dir $<)libfesvr.a $@
-
-#############
-# Verilator #
-#############
-# Takes the top module name as an argument.
-define VERILATE
-	mkdir -p $(dir $@)
-	$(BENDER) script verilator ${VLT_BENDER} > $(dir $@)files
-	$(VLT) \
-		--Mdir $(dir $@) -f $(dir $@)files $(VLT_FLAGS) \
-		-j $(shell nproc) --cc --build --top-module $(1)
-	touch $@
-endef
 
 #######
 # VCS #
