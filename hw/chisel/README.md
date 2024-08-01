@@ -6,3 +6,6 @@ This directory contains SNAX framework components developed in Chisel. You can f
 
 ### CSR Manager
 TODO
+
+### XDMA
+[documentation](doc/xdma.md)
