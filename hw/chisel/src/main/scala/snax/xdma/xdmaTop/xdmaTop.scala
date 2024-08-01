@@ -11,6 +11,10 @@ import snax.xdma.xdmaExtension._
 import snax.xdma.DesignParams._
 import os.write
 
+import scala.reflect.runtime.currentMirror
+import scala.tools.reflect.ToolBox
+import scala.reflect.runtime.universe._
+
 class xdmaTopIO(
     readerparam: DMADataPathParam,
     writerparam: DMADataPathParam,
@@ -195,12 +199,28 @@ object xdmaTopGen extends App {
   )
   var readerextensionparam = Seq[HasDMAExtension]()
   var writerextensionparam = Seq[HasDMAExtension]()
-  if (parsed_args.contains("HasMemset"))
-    writerextensionparam = writerextensionparam :+ HasMemset
-  if (parsed_args.contains("HasMaxPool"))
-    writerextensionparam = writerextensionparam :+ HasMaxPool
-  if (parsed_args.contains("HasTransposer"))
-    writerextensionparam = writerextensionparam :+ HasTransposer
+
+  // The following complex code is to dynamically load the extension modules
+  // The target is that: 1) the sequence of the extension can be specified by the user 2) users can add their own extensions in the minimal effort (Does not need to modify the generation code)
+  // The mechanism is that a small and temporary scala binary is compiled during the execution, to retrieve the instantiation object from the name
+  // E.g. "HasMaxPool" -> HasMaxPool object
+  // Thus, the generation function does not need to be modified by the extension developers.
+  // Extension developers only need to 1) Add the Extension source code 2) Add Has...: #priority in hjson configuration file
+
+  val toolbox = currentMirror.mkToolBox()
+  parsed_args
+    .filter(i => i._1.startsWith("Has") && i._2.toInt > 0)
+    .toSeq
+    .map(i => (i._1, i._2.toInt))
+    .sortWith(_._2 < _._2)
+    .foreach(i => {
+      writerextensionparam = writerextensionparam :+ toolbox
+        .compile(toolbox.parse(s"""
+import snax.xdma.xdmaExtension._
+return ${i._1}
+      """))()
+        .asInstanceOf[HasDMAExtension]
+    })
 
   // Generation of the hardware
   emitVerilog(

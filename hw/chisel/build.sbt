@@ -10,6 +10,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "snax-streamer",
     libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala-compiler" % "2.13.14",
       "org.chipsalliance" %% "chisel" % chiselVersion,
       "edu.berkeley.cs" %% "chiseltest" % "6.0.0" % "test"
     ),

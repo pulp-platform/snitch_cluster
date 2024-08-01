@@ -136,9 +136,9 @@
             writer_buffer: 8, 
             reader_agu_dimension: 3, 
             writer_agu_dimension: 3, 
-            has_transposer: true, 
-            has_maxpool: true, 
-            has_memset: true
+            HasTransposer: 3, 
+            HasMemset: 1, 
+            HasMaxPool: 2
         }
         xdma: false
         xssr: false

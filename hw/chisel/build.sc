@@ -18,6 +18,7 @@ object Snax extends SbtModule with ScalafmtModule { m =>
     "-Xcheckinit"
   )
   override def ivyDeps = Agg(
+    ivy"org.scala-lang:scala-compiler:2.13.14",
     ivy"org.chipsalliance::chisel:6.4.0",
     ivy"edu.berkeley.cs::chiseltest:6.0.0"
   )

@@ -325,7 +325,11 @@ def main():
             file_name=cfg["cluster"]["name"] + "_xdma_wrapper.sv",
         )
 
-        print(args.gen_path)
+        xdma_extension_arg = ""
+        for key, value in snax_xdma_cfg.items():
+            if key.startswith("Has"):
+                xdma_extension_arg += f" --{key} {value}"
+
         gen_chisel_file(
             chisel_path=args.chisel_path,
             chisel_param="snax.xdma.xdmaTop.xdmaTopGen",
@@ -338,9 +342,7 @@ def main():
             " --writerDimension " + str(snax_xdma_cfg["writer_agu_dimension"]) +
             " --readerBufferDepth " + str(snax_xdma_cfg["reader_buffer"]) +
             " --writerBufferDepth " + str(snax_xdma_cfg["writer_buffer"]) +
-            (" --HasMemset " if snax_xdma_cfg["has_memset"] else "") +
-            (" --HasMaxPool " if snax_xdma_cfg["has_maxpool"] else "") +
-            (" --HasTransposer " if snax_xdma_cfg["has_transposer"] else "") +
+            xdma_extension_arg +
             " --hw-target-dir " + args.gen_path +
             cfg["cluster"]["name"] + "_xdma/" +
             " --sw-target-dir " + args.gen_path + "../sw/snax/xdma"
