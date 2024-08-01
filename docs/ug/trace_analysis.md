@@ -2,9 +2,9 @@
 
 ## Trace generation
 
-During RTL simulation, the Snitch core complex (CC) dumps a wide set of information to the `logs/trace_hart_XXXXX.dasm` file (see [snitch_cc.sv](../../hw/snitch_cluster/src/snitch_cc.sv)), `XXXXX` denoting the index of the Snitch core in the system.
+During RTL simulation, the Snitch core complex (CC) dumps a wide set of information to the `logs/trace_hart_XXXXX.dasm` file (see [snitch_cc.sv](https://github.com/pulp-platform/snitch_cluster/blob/main/hw/snitch_cluster/src/snitch_cc.sv)), `XXXXX` denoting the index of the Snitch core in the system.
 
-The [gen_trace.py](../../util/trace/gen_trace.py) script can be used to elaborate this information into a human-readable form, and is invoked by the `make traces` target to generate `logs/trace_hart_XXXXX.txt`.
+The [gen_trace.py](../rm/trace/gen_trace.md) script can be used to elaborate this information into a human-readable form, and is invoked by the `make traces` target to generate `logs/trace_hart_XXXXX.txt`.
 
 ## Trace walkthrough
 
