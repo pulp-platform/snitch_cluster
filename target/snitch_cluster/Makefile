@@ -9,14 +9,16 @@
 # Makefile invocation #
 #######################
 
-DEBUG          ?= OFF  # ON to turn on debugging symbols and wave logging
-CFG_OVERRIDE   ?=      # Override default config file
-SELECT_RUNTIME ?=      # Select snRuntime implementation: "banshee" or "rtl" (default)
+# ON to turn on debugging symbols and wave logging
+DEBUG ?= OFF
+# Override default config file
+CFG_OVERRIDE ?=
+# Select snRuntime implementation: "banshee" or "rtl" (default)
+SELECT_RUNTIME ?= rtl
 
 .DEFAULT_GOAL := help
 .PHONY: all clean
-all: sw
-clean: clean-sw clean-work clean-vcs clean-logs clean-bender clean-generated
+clean: clean-work clean-vcs clean-logs clean-bender clean-generated
 
 ##########
 # Common #
@@ -24,7 +26,7 @@ clean: clean-sw clean-work clean-vcs clean-logs clean-bender clean-generated
 
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 MKFILE_DIR  := $(dir $(MKFILE_PATH))
-ROOT        := ${MKFILE_DIR}../..
+ROOT        := $(realpath ${MKFILE_DIR}../..)
 SNITCH_ROOT := $(ROOT)
 
 TARGET = snitch_cluster
@@ -204,7 +206,7 @@ clean-work:
 	rm -rf work
 
 clean-bender:
-	rm -rf $(ROOT)/Bender.lock $(ROOT)/.bender/
+	rm -rf $(ROOT)/.bender/
 
 clean-logs:
 	rm -rf $(LOGS_DIR)

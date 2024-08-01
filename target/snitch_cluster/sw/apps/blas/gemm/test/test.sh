@@ -13,5 +13,5 @@ TEST_LIST=$(pwd)/run.yaml
 CFG_FILES=$(pwd)/cfg/"*"
 CMD="$ROOT/sw/blas/gemm/scripts/verify.py \${sim_bin} \${elf} --dump-results"
 
-$BUILD_PY sw/apps/blas/gemm --cfg $CFG_FILES --testlist $TEST_LIST --testlist-cmd "$CMD"
+$BUILD_PY gemm --cfg $CFG_FILES --testlist $TEST_LIST --testlist-cmd "$CMD"
 $RUN_PY $TEST_LIST --simulator vsim -j
