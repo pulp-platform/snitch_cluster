@@ -1,7 +1,0 @@
-# Copyright 2020 ETH Zurich and University of Bologna.
-# Licensed under the Apache License, Version 2.0, see LICENSE for details.
-# SPDX-License-Identifier: Apache-2.0
-
-overrides:
-    # Some of our dependencies have false conflicts with our new AXI version; force our version.
-    axi: {git: https://github.com/pulp-platform/axi.git, version:  0.39.2 }

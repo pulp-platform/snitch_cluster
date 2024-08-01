@@ -3,7 +3,6 @@
 
 # Dependency files
 /.bender/
-/Bender.lock
 
 # Modelsim Files
 *.wlf
