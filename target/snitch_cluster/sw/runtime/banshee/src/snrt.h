@@ -7,10 +7,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-// Snitch cluster specific
-#include "banshee_snitch_cluster_defs.h"
-#include "snitch_cluster_memory.h"
-
 // Forward declarations
 #include "alloc_decls.h"
 #include "cls_decls.h"
@@ -18,6 +14,10 @@
 #include "start_decls.h"
 #include "sync_decls.h"
 #include "team_decls.h"
+
+// Snitch cluster specific
+#include "banshee_snitch_cluster_defs.h"
+#include "snitch_cluster_memory.h"
 
 // Implementation
 #include "alloc.h"
