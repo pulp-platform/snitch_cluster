@@ -51,8 +51,10 @@ module snitch_icache_lookup #(
     // write accesses.
     logic [CFG.COUNT_ALIGN-1:0] ram_addr                             ;
     logic [CFG.SET_COUNT-1:0]   ram_enable                           ;
-    logic [CFG.SET_COUNT-1:0][CFG.LINE_WIDTH-1:0]  ram_wdata, ram_rdata  ;
-    logic [CFG.SET_COUNT-1:0][CFG.TAG_WIDTH+1:0]   ram_wtag,  ram_rtag  ;
+    logic [CFG.SET_COUNT-1:0][CFG.LINE_WIDTH-1:0]  ram_rdata         ;
+    logic [CFG.SET_COUNT-1:0][CFG.TAG_WIDTH+1:0]   ram_rtag          ;
+    logic                    [CFG.LINE_WIDTH-1:0]  ram_wdata         ;
+    logic                    [CFG.TAG_WIDTH+1:0]   ram_wtag          ;
     logic                       ram_write                            ;
     logic                       ram_write_q;
     logic [CFG.COUNT_ALIGN:0]   init_count_q;

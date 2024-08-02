@@ -18,7 +18,7 @@ module snitch_icache_data #(
   input  logic [  CFG.SET_COUNT-1:0]                     ram_enable_i,
   input  logic                                           ram_write_i,
   input  logic [CFG.COUNT_ALIGN-1:0]                     ram_addr_i,
-  input  logic [  CFG.SET_COUNT-1:0][CFG.LINE_WIDTH-1:0] ram_wdata_i,
+  input  logic                      [CFG.LINE_WIDTH-1:0] ram_wdata_i,
   output logic [  CFG.SET_COUNT-1:0][CFG.LINE_WIDTH-1:0] ram_rdata_o
 );
 

@@ -18,7 +18,7 @@ module snitch_icache_tag #(
   input  logic [  CFG.SET_COUNT-1:0]                    ram_enable_i,
   input  logic                                          ram_write_i,
   input  logic [CFG.COUNT_ALIGN-1:0]                    ram_addr_i,
-  input  logic [  CFG.SET_COUNT-1:0][CFG.TAG_WIDTH+1:0] ram_wtag_i,
+  input  logic                      [CFG.TAG_WIDTH+1:0] ram_wtag_i,
   output logic [  CFG.SET_COUNT-1:0][CFG.TAG_WIDTH+1:0] ram_rtag_o
 );
 
