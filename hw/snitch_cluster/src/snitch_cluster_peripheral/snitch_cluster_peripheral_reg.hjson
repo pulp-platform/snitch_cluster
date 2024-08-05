@@ -50,7 +50,7 @@
                 desc: '''Select from which hart in the cluster, starting from `0`,
                     the event should be counted. For each performance counter
                     the cores can be selected individually. If a hart greater
-                    than the clusters total hart size is selected the selection
+                    than the cluster's total hart size is selected the selection
                     will wrap and the hart corresponding to `hart_select % total_harts_in_cluster`
                     will be selected.'''
             },
