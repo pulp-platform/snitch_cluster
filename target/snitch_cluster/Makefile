@@ -47,6 +47,7 @@ CLUSTER_GEN_SRC ?= $(wildcard $(ROOT)/util/clustergen/*.py)
 
 BIN_DIR           ?= bin
 GENERATED_DIR     ?= $(MKFILE_DIR)generated
+PERIPH_DIR        ?= $(ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral
 
 # If the configuration file is overriden on the command-line (through
 # CFG_OVERRIDE) and this file differs from the least recently used
@@ -163,6 +164,11 @@ $(GENERATED_DIR)/memories.json: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 
 $(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --bootdata
+
+# REGGEN regfile
+$(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg.hjson
+	@echo "[REGGEN] Generating $@"
+	$(REGGEN) -r -t $(PERIPH_DIR) $<
 
 #############
 # Verilator #
