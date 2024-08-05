@@ -82,7 +82,6 @@ VLOG_FLAGS += ${VLOG_64BIT}
 ###############
 
 TB_CC_SOURCES += \
-	${TB_DIR}/bootrom.cc \
 	${TB_DIR}/ipc.cc \
 	${TB_DIR}/common_lib.cc \
 	$(GENERATED_DIR)/bootdata.cc
@@ -134,10 +133,13 @@ $(CFG): FORCE
 	fi
 FORCE:
 
-test/bootrom.elf test/bootrom.dump test/bootrom.bin: test/bootrom.S test/bootrom.ld
-	riscv64-unknown-elf-gcc -mabi=ilp32d -march=rv32imafd -static -nostartfiles -Ttest/bootrom.ld $< -o test/bootrom.elf
-	riscv64-unknown-elf-objdump -d test/bootrom.elf > test/bootrom.dump
-	riscv64-unknown-elf-objcopy -j .text -O binary test/bootrom.elf test/bootrom.bin
+.PHONY: bootrom
+bootrom: test/snitch_bootrom.sv
+test/bootrom.elf test/bootrom.dump test/bootrom.bin test/snitch_bootrom.sv: test/bootrom.S test/bootrom.ld
+	riscv riscv32-unknown-elf-gcc -mabi=ilp32d -march=rv32imafd -static -nostartfiles -Lsw/runtime/rtl -Ttest/bootrom.ld test/bootrom.S -o test/bootrom.elf
+	riscv riscv32-unknown-elf-objdump -d test/bootrom.elf > test/bootrom.dump
+	riscv riscv32-unknown-elf-objcopy -j .text -O binary test/bootrom.elf test/bootrom.bin
+	util/gen_bootrom.py --sv-module snitch_bootrom test/bootrom.bin > test/snitch_bootrom.sv
 
 ############
 # Software #

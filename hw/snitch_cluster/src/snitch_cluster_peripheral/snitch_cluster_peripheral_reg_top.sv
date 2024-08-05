@@ -8,12 +8,12 @@
 `include "common_cells/assertions.svh"
 
 module snitch_cluster_peripheral_reg_top #(
-    parameter type reg_req_t = logic,
-    parameter type reg_rsp_t = logic,
-    parameter int AW = 9
+  parameter type reg_req_t = logic,
+  parameter type reg_rsp_t = logic,
+  parameter int AW = 9
 ) (
-  input clk_i,
-  input rst_ni,
+  input logic clk_i,
+  input logic rst_ni,
   input  reg_req_t reg_req_i,
   output reg_rsp_t reg_rsp_o,
   // To HW
@@ -33,7 +33,7 @@ module snitch_cluster_peripheral_reg_top #(
   // register signals
   logic           reg_we;
   logic           reg_re;
-  logic [AW-1:0]  reg_addr;
+  logic [BlockAw-1:0]  reg_addr;
   logic [DW-1:0]  reg_wdata;
   logic [DBW-1:0] reg_be;
   logic [DW-1:0]  reg_rdata;
@@ -54,7 +54,7 @@ module snitch_cluster_peripheral_reg_top #(
 
   assign reg_we = reg_intf_req.valid & reg_intf_req.write;
   assign reg_re = reg_intf_req.valid & ~reg_intf_req.write;
-  assign reg_addr = reg_intf_req.addr;
+  assign reg_addr = reg_intf_req.addr[BlockAw-1:0];
   assign reg_wdata = reg_intf_req.wdata;
   assign reg_be = reg_intf_req.wstrb;
   assign reg_intf_rsp.rdata = reg_rdata;
@@ -1668,6 +1668,18 @@ module snitch_cluster_peripheral_reg_top #(
   logic [47:0] perf_counter_15_wd;
   logic perf_counter_15_we;
   logic perf_counter_15_re;
+  logic [31:0] scratch_0_qs;
+  logic [31:0] scratch_0_wd;
+  logic scratch_0_we;
+  logic [31:0] scratch_1_qs;
+  logic [31:0] scratch_1_wd;
+  logic scratch_1_we;
+  logic [31:0] scratch_2_qs;
+  logic [31:0] scratch_2_wd;
+  logic scratch_2_we;
+  logic [31:0] scratch_3_qs;
+  logic [31:0] scratch_3_wd;
+  logic scratch_3_we;
   logic [31:0] cl_clint_set_wd;
   logic cl_clint_set_we;
   logic [31:0] cl_clint_clear_wd;
@@ -15316,6 +15328,116 @@ module snitch_cluster_peripheral_reg_top #(
   );
 
 
+
+  // Subregister 0 of Multireg scratch
+  // R[scratch_0]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_scratch_0 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (scratch_0_we),
+    .wd     (scratch_0_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (scratch_0_qs)
+  );
+
+  // Subregister 1 of Multireg scratch
+  // R[scratch_1]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_scratch_1 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (scratch_1_we),
+    .wd     (scratch_1_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (scratch_1_qs)
+  );
+
+  // Subregister 2 of Multireg scratch
+  // R[scratch_2]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_scratch_2 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (scratch_2_we),
+    .wd     (scratch_2_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (scratch_2_qs)
+  );
+
+  // Subregister 3 of Multireg scratch
+  // R[scratch_3]: V(False)
+
+  prim_subreg #(
+    .DW      (32),
+    .SWACCESS("RW"),
+    .RESVAL  (32'h0)
+  ) u_scratch_3 (
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
+
+    // from register interface
+    .we     (scratch_3_we),
+    .wd     (scratch_3_wd),
+
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
+
+    // to internal hardware
+    .qe     (),
+    .q      (),
+
+    // to register interface (read)
+    .qs     (scratch_3_qs)
+  );
+
+
   // R[cl_clint_set]: V(True)
 
   prim_subreg_ext #(
@@ -15392,7 +15514,7 @@ module snitch_cluster_peripheral_reg_top #(
 
 
 
-  logic [51:0] addr_hit;
+  logic [55:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[ 0] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_ENABLE_0_OFFSET);
@@ -15443,10 +15565,14 @@ module snitch_cluster_peripheral_reg_top #(
     addr_hit[45] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_13_OFFSET);
     addr_hit[46] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_14_OFFSET);
     addr_hit[47] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_COUNTER_15_OFFSET);
-    addr_hit[48] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_SET_OFFSET);
-    addr_hit[49] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_CLEAR_OFFSET);
-    addr_hit[50] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_HW_BARRIER_OFFSET);
-    addr_hit[51] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_ICACHE_PREFETCH_ENABLE_OFFSET);
+    addr_hit[48] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_SCRATCH_0_OFFSET);
+    addr_hit[49] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_SCRATCH_1_OFFSET);
+    addr_hit[50] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_SCRATCH_2_OFFSET);
+    addr_hit[51] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_SCRATCH_3_OFFSET);
+    addr_hit[52] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_SET_OFFSET);
+    addr_hit[53] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_CLEAR_OFFSET);
+    addr_hit[54] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_HW_BARRIER_OFFSET);
+    addr_hit[55] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_ICACHE_PREFETCH_ENABLE_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -15505,7 +15631,11 @@ module snitch_cluster_peripheral_reg_top #(
                (addr_hit[48] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[48] & ~reg_be))) |
                (addr_hit[49] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[49] & ~reg_be))) |
                (addr_hit[50] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[50] & ~reg_be))) |
-               (addr_hit[51] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[51] & ~reg_be)))));
+               (addr_hit[51] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[51] & ~reg_be))) |
+               (addr_hit[52] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[52] & ~reg_be))) |
+               (addr_hit[53] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[53] & ~reg_be))) |
+               (addr_hit[54] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[54] & ~reg_be))) |
+               (addr_hit[55] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[55] & ~reg_be)))));
   end
 
   assign perf_counter_enable_0_cycle_0_we = addr_hit[0] & reg_we & !reg_error;
@@ -17108,15 +17238,27 @@ module snitch_cluster_peripheral_reg_top #(
   assign perf_counter_15_wd = reg_wdata[47:0];
   assign perf_counter_15_re = addr_hit[47] & reg_re & !reg_error;
 
-  assign cl_clint_set_we = addr_hit[48] & reg_we & !reg_error;
+  assign scratch_0_we = addr_hit[48] & reg_we & !reg_error;
+  assign scratch_0_wd = reg_wdata[31:0];
+
+  assign scratch_1_we = addr_hit[49] & reg_we & !reg_error;
+  assign scratch_1_wd = reg_wdata[31:0];
+
+  assign scratch_2_we = addr_hit[50] & reg_we & !reg_error;
+  assign scratch_2_wd = reg_wdata[31:0];
+
+  assign scratch_3_we = addr_hit[51] & reg_we & !reg_error;
+  assign scratch_3_wd = reg_wdata[31:0];
+
+  assign cl_clint_set_we = addr_hit[52] & reg_we & !reg_error;
   assign cl_clint_set_wd = reg_wdata[31:0];
 
-  assign cl_clint_clear_we = addr_hit[49] & reg_we & !reg_error;
+  assign cl_clint_clear_we = addr_hit[53] & reg_we & !reg_error;
   assign cl_clint_clear_wd = reg_wdata[31:0];
 
-  assign hw_barrier_re = addr_hit[50] & reg_re & !reg_error;
+  assign hw_barrier_re = addr_hit[54] & reg_re & !reg_error;
 
-  assign icache_prefetch_enable_we = addr_hit[51] & reg_we & !reg_error;
+  assign icache_prefetch_enable_we = addr_hit[55] & reg_we & !reg_error;
   assign icache_prefetch_enable_wd = reg_wdata[0];
 
   // Read data return
@@ -17796,18 +17938,34 @@ module snitch_cluster_peripheral_reg_top #(
       end
 
       addr_hit[48]: begin
-        reg_rdata_next[31:0] = '0;
+        reg_rdata_next[31:0] = scratch_0_qs;
       end
 
       addr_hit[49]: begin
-        reg_rdata_next[31:0] = '0;
+        reg_rdata_next[31:0] = scratch_1_qs;
       end
 
       addr_hit[50]: begin
-        reg_rdata_next[31:0] = hw_barrier_qs;
+        reg_rdata_next[31:0] = scratch_2_qs;
       end
 
       addr_hit[51]: begin
+        reg_rdata_next[31:0] = scratch_3_qs;
+      end
+
+      addr_hit[52]: begin
+        reg_rdata_next[31:0] = '0;
+      end
+
+      addr_hit[53]: begin
+        reg_rdata_next[31:0] = '0;
+      end
+
+      addr_hit[54]: begin
+        reg_rdata_next[31:0] = hw_barrier_qs;
+      end
+
+      addr_hit[55]: begin
         reg_rdata_next[0] = '0;
       end
 
@@ -17830,3 +17988,55 @@ module snitch_cluster_peripheral_reg_top #(
   `ASSERT(en2addrHit, (reg_we || reg_re) |-> $onehot0(addr_hit))
 
 endmodule
+
+module snitch_cluster_peripheral_reg_top_intf
+#(
+  parameter int AW = 9,
+  localparam int DW = 64
+) (
+  input logic clk_i,
+  input logic rst_ni,
+  REG_BUS.in  regbus_slave,
+  // To HW
+  output snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_reg2hw_t reg2hw, // Write
+  input  snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_hw2reg_t hw2reg, // Read
+  // Config
+  input devmode_i // If 1, explicit error return for unmapped register access
+);
+ localparam int unsigned STRB_WIDTH = DW/8;
+
+`include "register_interface/typedef.svh"
+`include "register_interface/assign.svh"
+
+  // Define structs for reg_bus
+  typedef logic [AW-1:0] addr_t;
+  typedef logic [DW-1:0] data_t;
+  typedef logic [STRB_WIDTH-1:0] strb_t;
+  `REG_BUS_TYPEDEF_ALL(reg_bus, addr_t, data_t, strb_t)
+
+  reg_bus_req_t s_reg_req;
+  reg_bus_rsp_t s_reg_rsp;
+  
+  // Assign SV interface to structs
+  `REG_BUS_ASSIGN_TO_REQ(s_reg_req, regbus_slave)
+  `REG_BUS_ASSIGN_FROM_RSP(regbus_slave, s_reg_rsp)
+
+  
+
+  snitch_cluster_peripheral_reg_top #(
+    .reg_req_t(reg_bus_req_t),
+    .reg_rsp_t(reg_bus_rsp_t),
+    .AW(AW)
+  ) i_regs (
+    .clk_i,
+    .rst_ni,
+    .reg_req_i(s_reg_req),
+    .reg_rsp_o(s_reg_rsp),
+    .reg2hw, // Write
+    .hw2reg, // Read
+    .devmode_i
+  );
+  
+endmodule
+
+
