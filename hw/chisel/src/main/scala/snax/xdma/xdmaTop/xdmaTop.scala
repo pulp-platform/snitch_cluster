@@ -146,16 +146,16 @@ class xdmaTop(
 }
 
 object xdmaTopEmitter extends App {
-  emitVerilog(
+  _root_.circt.stage.ChiselStage.emitSystemVerilogFile(
     new xdmaTop(
       clusterName = "test_cluster",
       readerparam = new DMADataPathParam(new ReaderWriterParam, Seq()),
       writerparam = new DMADataPathParam(
         new ReaderWriterParam,
-        Seq(HasMaxPool, HasMemset, HasTransposer)
+        Seq(HasMaxPool, HasVerilogMemset, HasTransposer)
       )
     ),
-    args = Array("--target-dir", "generated")
+    args = Array("--split-verilog", "--target-dir", "generated/xdma")
   )
 }
 
@@ -223,15 +223,32 @@ return ${i._1}
     })
 
   // Generation of the hardware
-  emitVerilog(
+  var sv_string = getVerilogString(
     new xdmaTop(
       clusterName = parsed_args.getOrElse("clusterName", ""),
       readerparam = new DMADataPathParam(readerparam, readerextensionparam),
       writerparam = new DMADataPathParam(writerparam, writerextensionparam)
-    ),
-    args =
-      Array("--target-dir", parsed_args.getOrElse("hw-target-dir", "generated"))
+    )
   )
+
+  // Perform dirty fix on the Chisel's bug that append the file list at the end of the file
+  sv_string = sv_string
+    .split("\n")
+    .takeWhile(
+      !_.contains(
+        """// ----- 8< ----- FILE "firrtl_black_box_resource_files.f" ----- 8< -----"""
+      )
+    )
+    .mkString("\n")
+
+  // Write the sv_string to the SystemVerilog file
+  val outputFile = parsed_args.getOrElse(
+    "hw-target-dir",
+    "generated"
+  ) + "/" + s"${parsed_args.getOrElse("clusterName", "")}_xdma.sv"
+  val writer = new java.io.PrintWriter(outputFile)
+  writer.write(sv_string)
+  writer.close()
 
   // Generation of the software #define macros
   val macro_dir = parsed_args.getOrElse(

@@ -104,7 +104,7 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
       ),
       writerparam = new DMADataPathParam(
         rwParam = new ReaderWriterParam,
-        extParam = Seq(HasMemset, HasMaxPool, HasTransposer)
+        extParam = Seq(HasVerilogMemset, HasMaxPool, HasTransposer)
       )
     )
   ).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) {
@@ -943,14 +943,4 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
 
       concurrent_threads.joinAndStep()
   }
-}
-
-object DMADataPathTester extends App {
-  emitVerilog(
-    new DMADataPath(
-      readerparam = new DMADataPathParam(new ReaderWriterParam, Seq()),
-      writerparam = new DMADataPathParam(new ReaderWriterParam, Seq())
-    ),
-    Array("--target-dir", "generated")
-  )
 }

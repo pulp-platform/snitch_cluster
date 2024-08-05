@@ -137,7 +137,7 @@
             reader_agu_dimension: 3, 
             writer_agu_dimension: 3, 
             HasTransposer: 3, 
-            HasMemset: 1, 
+            HasVerilogMemset: 1, 
             HasMaxPool: 2
         }
         xdma: false
