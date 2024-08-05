@@ -150,6 +150,9 @@ include $(ROOT)/target/snitch_cluster/sw.mk
 # RTL #
 #######
 
+.PHONY: rtl
+rtl: $(GENERATED_DIR)/snitch_cluster_wrapper.sv $(GENERATED_DIR)/snitch_cluster_peripheral_reg_pkg.sv
+
 $(GENERATED_DIR):
 	mkdir -p $@
 
