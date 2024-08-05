@@ -10,7 +10,7 @@ module snitch_cluster_peripheral
   import snitch_pkg::*;
   import snitch_cluster_peripheral_reg_pkg::*;
 #(
-  // Nr of course in the cluster
+  // Nr of cores in the cluster
   parameter int unsigned NrCores = 0,
   // Nr of DMA channels
   parameter int unsigned DMANumChannels = 0,

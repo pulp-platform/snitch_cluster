@@ -48,11 +48,11 @@
                 bits: "15:0",
                 name: "HART",
                 desc: '''Select from which hart in the cluster, starting from `0`,
-                     the event should be counted. For each performance counter
-                     the cores can be selected individually. If a hart greater
-                     than the clusters total hart size is selected the selection
-                     will wrap and the hart corresponding to `hart_select % total_harts_in_cluster`
-                     will be selected.'''
+                    the event should be counted. For each performance counter
+                    the cores can be selected individually. If a hart greater
+                    than the clusters total hart size is selected the selection
+                    will wrap and the hart corresponding to `hart_select % total_harts_in_cluster`
+                    will be selected.'''
             },
             {
                 bits: "31:16",
@@ -288,8 +288,8 @@
     {
         multireg: {
             name: "PERF_CNT",
-            desc: '''Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what
-            performance metric you would like to track.'''
+            desc: '''Performance counter. Set corresponding PERF_CNT_SEL register depending on what
+            performance metric and hart you would like to track.'''
             swaccess: "rw",
             hwaccess: "hrw",
             count: "NumPerfCounters",
