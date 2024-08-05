@@ -47,10 +47,6 @@ package snitch_cluster_peripheral_reg_pkg;
   } snitch_cluster_peripheral_reg2hw_cl_clint_clear_reg_t;
 
   typedef struct packed {
-    logic [31:0] q;
-  } snitch_cluster_peripheral_reg2hw_hw_barrier_reg_t;
-
-  typedef struct packed {
     logic        q;
   } snitch_cluster_peripheral_reg2hw_icache_prefetch_enable_reg_t;
 
@@ -67,26 +63,20 @@ package snitch_cluster_peripheral_reg_pkg;
     logic [47:0] d;
   } snitch_cluster_peripheral_hw2reg_perf_cnt_mreg_t;
 
-  typedef struct packed {
-    logic [31:0] d;
-  } snitch_cluster_peripheral_hw2reg_hw_barrier_reg_t;
-
   // Register -> HW type
   typedef struct packed {
-    snitch_cluster_peripheral_reg2hw_perf_cnt_en_mreg_t [15:0] perf_cnt_en; // [1442:1427]
-    snitch_cluster_peripheral_reg2hw_perf_cnt_sel_mreg_t [15:0] perf_cnt_sel; // [1426:883]
-    snitch_cluster_peripheral_reg2hw_perf_cnt_mreg_t [15:0] perf_cnt; // [882:99]
-    snitch_cluster_peripheral_reg2hw_cl_clint_set_reg_t cl_clint_set; // [98:66]
-    snitch_cluster_peripheral_reg2hw_cl_clint_clear_reg_t cl_clint_clear; // [65:33]
-    snitch_cluster_peripheral_reg2hw_hw_barrier_reg_t hw_barrier; // [32:1]
+    snitch_cluster_peripheral_reg2hw_perf_cnt_en_mreg_t [15:0] perf_cnt_en; // [1410:1395]
+    snitch_cluster_peripheral_reg2hw_perf_cnt_sel_mreg_t [15:0] perf_cnt_sel; // [1394:851]
+    snitch_cluster_peripheral_reg2hw_perf_cnt_mreg_t [15:0] perf_cnt; // [850:67]
+    snitch_cluster_peripheral_reg2hw_cl_clint_set_reg_t cl_clint_set; // [66:34]
+    snitch_cluster_peripheral_reg2hw_cl_clint_clear_reg_t cl_clint_clear; // [33:1]
     snitch_cluster_peripheral_reg2hw_icache_prefetch_enable_reg_t icache_prefetch_enable; // [0:0]
   } snitch_cluster_peripheral_reg2hw_t;
 
   // HW -> register type
   typedef struct packed {
-    snitch_cluster_peripheral_hw2reg_perf_cnt_sel_mreg_t [15:0] perf_cnt_sel; // [1311:800]
-    snitch_cluster_peripheral_hw2reg_perf_cnt_mreg_t [15:0] perf_cnt; // [799:32]
-    snitch_cluster_peripheral_hw2reg_hw_barrier_reg_t hw_barrier; // [31:0]
+    snitch_cluster_peripheral_hw2reg_perf_cnt_sel_mreg_t [15:0] perf_cnt_sel; // [1279:768]
+    snitch_cluster_peripheral_hw2reg_perf_cnt_mreg_t [15:0] perf_cnt; // [767:0]
   } snitch_cluster_peripheral_hw2reg_t;
 
   // Register offsets
@@ -140,8 +130,7 @@ package snitch_cluster_peripheral_reg_pkg;
   parameter logic [BlockAw-1:0] SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_15_OFFSET = 9'h 178;
   parameter logic [BlockAw-1:0] SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_SET_OFFSET = 9'h 180;
   parameter logic [BlockAw-1:0] SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_CLEAR_OFFSET = 9'h 188;
-  parameter logic [BlockAw-1:0] SNITCH_CLUSTER_PERIPHERAL_HW_BARRIER_OFFSET = 9'h 190;
-  parameter logic [BlockAw-1:0] SNITCH_CLUSTER_PERIPHERAL_ICACHE_PREFETCH_ENABLE_OFFSET = 9'h 198;
+  parameter logic [BlockAw-1:0] SNITCH_CLUSTER_PERIPHERAL_ICACHE_PREFETCH_ENABLE_OFFSET = 9'h 190;
 
   // Reset values for hwext registers and their fields
   parameter logic [31:0] SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_RESVAL = 32'h 0;
@@ -178,7 +167,6 @@ package snitch_cluster_peripheral_reg_pkg;
   parameter logic [47:0] SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_15_RESVAL = 48'h 0;
   parameter logic [31:0] SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_SET_RESVAL = 32'h 0;
   parameter logic [31:0] SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_CLEAR_RESVAL = 32'h 0;
-  parameter logic [31:0] SNITCH_CLUSTER_PERIPHERAL_HW_BARRIER_RESVAL = 32'h 0;
 
   // Register index
   typedef enum int {
@@ -232,12 +220,11 @@ package snitch_cluster_peripheral_reg_pkg;
     SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_15,
     SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_SET,
     SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_CLEAR,
-    SNITCH_CLUSTER_PERIPHERAL_HW_BARRIER,
     SNITCH_CLUSTER_PERIPHERAL_ICACHE_PREFETCH_ENABLE
   } snitch_cluster_peripheral_id_e;
 
   // Register width information to check illegal writes
-  parameter logic [3:0] SNITCH_CLUSTER_PERIPHERAL_PERMIT [52] = '{
+  parameter logic [3:0] SNITCH_CLUSTER_PERIPHERAL_PERMIT [51] = '{
     4'b 0001, // index[ 0] SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_0
     4'b 0001, // index[ 1] SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_1
     4'b 0001, // index[ 2] SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_2
@@ -288,8 +275,7 @@ package snitch_cluster_peripheral_reg_pkg;
     4'b 1111, // index[47] SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_15
     4'b 1111, // index[48] SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_SET
     4'b 1111, // index[49] SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_CLEAR
-    4'b 1111, // index[50] SNITCH_CLUSTER_PERIPHERAL_HW_BARRIER
-    4'b 0001  // index[51] SNITCH_CLUSTER_PERIPHERAL_ICACHE_PREFETCH_ENABLE
+    4'b 0001  // index[50] SNITCH_CLUSTER_PERIPHERAL_ICACHE_PREFETCH_ENABLE
   };
 
 endpackage

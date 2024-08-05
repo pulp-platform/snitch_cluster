@@ -312,8 +312,6 @@ module snitch_cluster_peripheral_reg_top #(
   logic cl_clint_set_we;
   logic [31:0] cl_clint_clear_wd;
   logic cl_clint_clear_we;
-  logic [31:0] hw_barrier_qs;
-  logic hw_barrier_re;
   logic icache_prefetch_enable_wd;
   logic icache_prefetch_enable_we;
 
@@ -1572,22 +1570,6 @@ module snitch_cluster_peripheral_reg_top #(
   );
 
 
-  // R[hw_barrier]: V(True)
-
-  prim_subreg_ext #(
-    .DW    (32)
-  ) u_hw_barrier (
-    .re     (hw_barrier_re),
-    .we     (1'b0),
-    .wd     ('0),
-    .d      (hw2reg.hw_barrier.d),
-    .qre    (),
-    .qe     (),
-    .q      (reg2hw.hw_barrier.q ),
-    .qs     (hw_barrier_qs)
-  );
-
-
   // R[icache_prefetch_enable]: V(False)
 
   prim_subreg #(
@@ -1616,7 +1598,7 @@ module snitch_cluster_peripheral_reg_top #(
 
 
 
-  logic [51:0] addr_hit;
+  logic [50:0] addr_hit;
   always_comb begin
     addr_hit = '0;
     addr_hit[ 0] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_0_OFFSET);
@@ -1669,8 +1651,7 @@ module snitch_cluster_peripheral_reg_top #(
     addr_hit[47] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_15_OFFSET);
     addr_hit[48] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_SET_OFFSET);
     addr_hit[49] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_CLEAR_OFFSET);
-    addr_hit[50] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_HW_BARRIER_OFFSET);
-    addr_hit[51] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_ICACHE_PREFETCH_ENABLE_OFFSET);
+    addr_hit[50] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_ICACHE_PREFETCH_ENABLE_OFFSET);
   end
 
   assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
@@ -1728,8 +1709,7 @@ module snitch_cluster_peripheral_reg_top #(
                (addr_hit[47] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[47] & ~reg_be))) |
                (addr_hit[48] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[48] & ~reg_be))) |
                (addr_hit[49] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[49] & ~reg_be))) |
-               (addr_hit[50] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[50] & ~reg_be))) |
-               (addr_hit[51] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[51] & ~reg_be)))));
+               (addr_hit[50] & (|(SNITCH_CLUSTER_PERIPHERAL_PERMIT[50] & ~reg_be)))));
   end
 
   assign perf_cnt_en_0_we = addr_hit[0] & reg_we & !reg_error;
@@ -1978,9 +1958,7 @@ module snitch_cluster_peripheral_reg_top #(
   assign cl_clint_clear_we = addr_hit[49] & reg_we & !reg_error;
   assign cl_clint_clear_wd = reg_wdata[31:0];
 
-  assign hw_barrier_re = addr_hit[50] & reg_re & !reg_error;
-
-  assign icache_prefetch_enable_we = addr_hit[51] & reg_we & !reg_error;
+  assign icache_prefetch_enable_we = addr_hit[50] & reg_we & !reg_error;
   assign icache_prefetch_enable_wd = reg_wdata[0];
 
   // Read data return
@@ -2204,10 +2182,6 @@ module snitch_cluster_peripheral_reg_top #(
       end
 
       addr_hit[50]: begin
-        reg_rdata_next[31:0] = hw_barrier_qs;
-      end
-
-      addr_hit[51]: begin
         reg_rdata_next[0] = '0;
       end
 
