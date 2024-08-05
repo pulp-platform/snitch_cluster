@@ -400,7 +400,7 @@ $(FIRST_SNAX_GEN) : $(SNAX_TEMPLATE_SOURCES) $(CFG_FILE) $(SNAX_SCALA_SOURCES)
 	--gen_path="${GENERATED_DIR}/"
 
 # This is a fake job that forces parallel make to wait for the first thing to be generated
-$(OTHER_SNAX_GEN): $(FIRST_SNAX_GEN)
+$(OTHER_SNAX_GEN): $(FIRST_SNAX_GEN) $(CHISEL_GENERATED_FILES)
 
 ############
 # Software #
@@ -462,7 +462,7 @@ $(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 clean-vlt: clean-work
 	rm -rf bin $(VLT_BUILDDIR) $(SNAX_TEST_PATH)testharness.sv $(CSRMAN_PARAM_SCALA_PATH) $(STREAM_PARAM_SCALA_PATH)
 
-$(VLT_AR): ${OTHER_SNAX_GEN} ${VLT_SOURCES} ${TB_SRCS} 
+$(VLT_AR): ${OTHER_SNAX_GEN} ${VLT_SOURCES} ${TB_SRCS}
 	+$(call VERILATE,testharness)
 verilate: $(VLT_AR)
 
