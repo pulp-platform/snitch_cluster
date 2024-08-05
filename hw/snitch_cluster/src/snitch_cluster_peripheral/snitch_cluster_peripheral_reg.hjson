@@ -336,20 +336,6 @@
           }]
     },
     {
-        name: "HW_BARRIER",
-        desc: '''Hardware barrier register. Loads to this register will block until all cores have
-        performed the load. At this stage we know that they reached the same point in the control flow,
-        i.e., the cores are synchronized.'''
-        swaccess: "ro",
-        hwaccess: "hrw",
-        hwext: "true",
-        fields: [{
-            bits: "31:0",
-            name: "HW_BARRIER",
-            desc: "Hardware barrier register."
-        }]
-    },
-    {
         name: "ICACHE_PREFETCH_ENABLE",
         desc: '''Controls prefetching of the instruction cache.'''
         swaccess: "wo",

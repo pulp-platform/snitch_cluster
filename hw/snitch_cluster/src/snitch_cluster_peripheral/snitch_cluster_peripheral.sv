@@ -136,9 +136,6 @@ module snitch_cluster_peripheral
     assign hw2reg.perf_cnt_sel[i].hart.d = perf_hart_sel_q[i];
   end
 
-  // The hardware barrier is external and always reads `0`.
-  assign hw2reg.hw_barrier.d = 0;
-
   always_comb begin
     perf_cnt_d = perf_cnt_q;
     perf_metrics_d = perf_metrics_q;

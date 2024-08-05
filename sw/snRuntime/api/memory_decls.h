@@ -17,5 +17,3 @@ inline volatile uint32_t* __attribute__((const)) snrt_clint_msip_ptr();
 inline volatile uint32_t* __attribute__((const)) snrt_cluster_clint_set_ptr();
 
 inline volatile uint32_t* __attribute__((const)) snrt_cluster_clint_clr_ptr();
-
-inline uint32_t __attribute__((const)) snrt_cluster_hw_barrier_addr();
