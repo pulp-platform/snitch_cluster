@@ -8,44 +8,44 @@
 `include "common_cells/assertions.svh"
 
 module snitch_cluster_peripheral_reg_top #(
-    parameter type reg_req_t = logic,
-    parameter type reg_rsp_t = logic,
-    parameter int AW = 9
+  parameter type reg_req_t = logic,
+  parameter type reg_rsp_t = logic,
+  parameter int AW = 9
 ) (
-    input logic clk_i,
-    input logic rst_ni,
-    input reg_req_t reg_req_i,
-    output reg_rsp_t reg_rsp_o,
-    // To HW
-    output snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_reg2hw_t reg2hw,  // Write
-    input snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_hw2reg_t hw2reg,  // Read
+  input logic clk_i,
+  input logic rst_ni,
+  input  reg_req_t reg_req_i,
+  output reg_rsp_t reg_rsp_o,
+  // To HW
+  output snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_reg2hw_t reg2hw, // Write
+  input  snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_hw2reg_t hw2reg, // Read
 
 
-    // Config
-    input devmode_i  // If 1, explicit error return for unmapped register access
+  // Config
+  input devmode_i // If 1, explicit error return for unmapped register access
 );
 
-  import snitch_cluster_peripheral_reg_pkg::*;
+  import snitch_cluster_peripheral_reg_pkg::* ;
 
   localparam int DW = 64;
-  localparam int DBW = DW / 8;  // Byte Width
+  localparam int DBW = DW/8;                    // Byte Width
 
   // register signals
-  logic               reg_we;
-  logic               reg_re;
-  logic [BlockAw-1:0] reg_addr;
-  logic [     DW-1:0] reg_wdata;
-  logic [    DBW-1:0] reg_be;
-  logic [     DW-1:0] reg_rdata;
-  logic               reg_error;
+  logic           reg_we;
+  logic           reg_re;
+  logic [BlockAw-1:0]  reg_addr;
+  logic [DW-1:0]  reg_wdata;
+  logic [DBW-1:0] reg_be;
+  logic [DW-1:0]  reg_rdata;
+  logic           reg_error;
 
-  logic addrmiss, wr_err;
+  logic          addrmiss, wr_err;
 
   logic [DW-1:0] reg_rdata_next;
 
   // Below register interface can be changed
-  reg_req_t reg_intf_req;
-  reg_rsp_t reg_intf_rsp;
+  reg_req_t  reg_intf_req;
+  reg_rsp_t  reg_intf_rsp;
 
 
   assign reg_intf_req = reg_req_i;
@@ -61,7 +61,7 @@ module snitch_cluster_peripheral_reg_top #(
   assign reg_intf_rsp.error = reg_error;
   assign reg_intf_rsp.ready = 1'b1;
 
-  assign reg_rdata = reg_rdata_next;
+  assign reg_rdata = reg_rdata_next ;
   assign reg_error = (devmode_i & addrmiss) | wr_err;
 
 
@@ -323,432 +323,432 @@ module snitch_cluster_peripheral_reg_top #(
   // R[perf_cnt_en_0]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_perf_cnt_en_0 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(perf_cnt_en_0_we),
-      .wd(perf_cnt_en_0_wd),
+    // from register interface
+    .we     (perf_cnt_en_0_we),
+    .wd     (perf_cnt_en_0_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_cnt_en[0].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.perf_cnt_en[0].q ),
 
-      // to register interface (read)
-      .qs(perf_cnt_en_0_qs)
+    // to register interface (read)
+    .qs     (perf_cnt_en_0_qs)
   );
 
   // Subregister 1 of Multireg perf_cnt_en
   // R[perf_cnt_en_1]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_perf_cnt_en_1 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(perf_cnt_en_1_we),
-      .wd(perf_cnt_en_1_wd),
+    // from register interface
+    .we     (perf_cnt_en_1_we),
+    .wd     (perf_cnt_en_1_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_cnt_en[1].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.perf_cnt_en[1].q ),
 
-      // to register interface (read)
-      .qs(perf_cnt_en_1_qs)
+    // to register interface (read)
+    .qs     (perf_cnt_en_1_qs)
   );
 
   // Subregister 2 of Multireg perf_cnt_en
   // R[perf_cnt_en_2]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_perf_cnt_en_2 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(perf_cnt_en_2_we),
-      .wd(perf_cnt_en_2_wd),
+    // from register interface
+    .we     (perf_cnt_en_2_we),
+    .wd     (perf_cnt_en_2_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_cnt_en[2].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.perf_cnt_en[2].q ),
 
-      // to register interface (read)
-      .qs(perf_cnt_en_2_qs)
+    // to register interface (read)
+    .qs     (perf_cnt_en_2_qs)
   );
 
   // Subregister 3 of Multireg perf_cnt_en
   // R[perf_cnt_en_3]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_perf_cnt_en_3 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(perf_cnt_en_3_we),
-      .wd(perf_cnt_en_3_wd),
+    // from register interface
+    .we     (perf_cnt_en_3_we),
+    .wd     (perf_cnt_en_3_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_cnt_en[3].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.perf_cnt_en[3].q ),
 
-      // to register interface (read)
-      .qs(perf_cnt_en_3_qs)
+    // to register interface (read)
+    .qs     (perf_cnt_en_3_qs)
   );
 
   // Subregister 4 of Multireg perf_cnt_en
   // R[perf_cnt_en_4]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_perf_cnt_en_4 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(perf_cnt_en_4_we),
-      .wd(perf_cnt_en_4_wd),
+    // from register interface
+    .we     (perf_cnt_en_4_we),
+    .wd     (perf_cnt_en_4_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_cnt_en[4].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.perf_cnt_en[4].q ),
 
-      // to register interface (read)
-      .qs(perf_cnt_en_4_qs)
+    // to register interface (read)
+    .qs     (perf_cnt_en_4_qs)
   );
 
   // Subregister 5 of Multireg perf_cnt_en
   // R[perf_cnt_en_5]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_perf_cnt_en_5 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(perf_cnt_en_5_we),
-      .wd(perf_cnt_en_5_wd),
+    // from register interface
+    .we     (perf_cnt_en_5_we),
+    .wd     (perf_cnt_en_5_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_cnt_en[5].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.perf_cnt_en[5].q ),
 
-      // to register interface (read)
-      .qs(perf_cnt_en_5_qs)
+    // to register interface (read)
+    .qs     (perf_cnt_en_5_qs)
   );
 
   // Subregister 6 of Multireg perf_cnt_en
   // R[perf_cnt_en_6]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_perf_cnt_en_6 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(perf_cnt_en_6_we),
-      .wd(perf_cnt_en_6_wd),
+    // from register interface
+    .we     (perf_cnt_en_6_we),
+    .wd     (perf_cnt_en_6_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_cnt_en[6].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.perf_cnt_en[6].q ),
 
-      // to register interface (read)
-      .qs(perf_cnt_en_6_qs)
+    // to register interface (read)
+    .qs     (perf_cnt_en_6_qs)
   );
 
   // Subregister 7 of Multireg perf_cnt_en
   // R[perf_cnt_en_7]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_perf_cnt_en_7 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(perf_cnt_en_7_we),
-      .wd(perf_cnt_en_7_wd),
+    // from register interface
+    .we     (perf_cnt_en_7_we),
+    .wd     (perf_cnt_en_7_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_cnt_en[7].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.perf_cnt_en[7].q ),
 
-      // to register interface (read)
-      .qs(perf_cnt_en_7_qs)
+    // to register interface (read)
+    .qs     (perf_cnt_en_7_qs)
   );
 
   // Subregister 8 of Multireg perf_cnt_en
   // R[perf_cnt_en_8]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_perf_cnt_en_8 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(perf_cnt_en_8_we),
-      .wd(perf_cnt_en_8_wd),
+    // from register interface
+    .we     (perf_cnt_en_8_we),
+    .wd     (perf_cnt_en_8_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_cnt_en[8].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.perf_cnt_en[8].q ),
 
-      // to register interface (read)
-      .qs(perf_cnt_en_8_qs)
+    // to register interface (read)
+    .qs     (perf_cnt_en_8_qs)
   );
 
   // Subregister 9 of Multireg perf_cnt_en
   // R[perf_cnt_en_9]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_perf_cnt_en_9 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(perf_cnt_en_9_we),
-      .wd(perf_cnt_en_9_wd),
+    // from register interface
+    .we     (perf_cnt_en_9_we),
+    .wd     (perf_cnt_en_9_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_cnt_en[9].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.perf_cnt_en[9].q ),
 
-      // to register interface (read)
-      .qs(perf_cnt_en_9_qs)
+    // to register interface (read)
+    .qs     (perf_cnt_en_9_qs)
   );
 
   // Subregister 10 of Multireg perf_cnt_en
   // R[perf_cnt_en_10]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_perf_cnt_en_10 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(perf_cnt_en_10_we),
-      .wd(perf_cnt_en_10_wd),
+    // from register interface
+    .we     (perf_cnt_en_10_we),
+    .wd     (perf_cnt_en_10_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_cnt_en[10].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.perf_cnt_en[10].q ),
 
-      // to register interface (read)
-      .qs(perf_cnt_en_10_qs)
+    // to register interface (read)
+    .qs     (perf_cnt_en_10_qs)
   );
 
   // Subregister 11 of Multireg perf_cnt_en
   // R[perf_cnt_en_11]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_perf_cnt_en_11 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(perf_cnt_en_11_we),
-      .wd(perf_cnt_en_11_wd),
+    // from register interface
+    .we     (perf_cnt_en_11_we),
+    .wd     (perf_cnt_en_11_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_cnt_en[11].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.perf_cnt_en[11].q ),
 
-      // to register interface (read)
-      .qs(perf_cnt_en_11_qs)
+    // to register interface (read)
+    .qs     (perf_cnt_en_11_qs)
   );
 
   // Subregister 12 of Multireg perf_cnt_en
   // R[perf_cnt_en_12]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_perf_cnt_en_12 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(perf_cnt_en_12_we),
-      .wd(perf_cnt_en_12_wd),
+    // from register interface
+    .we     (perf_cnt_en_12_we),
+    .wd     (perf_cnt_en_12_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_cnt_en[12].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.perf_cnt_en[12].q ),
 
-      // to register interface (read)
-      .qs(perf_cnt_en_12_qs)
+    // to register interface (read)
+    .qs     (perf_cnt_en_12_qs)
   );
 
   // Subregister 13 of Multireg perf_cnt_en
   // R[perf_cnt_en_13]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_perf_cnt_en_13 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(perf_cnt_en_13_we),
-      .wd(perf_cnt_en_13_wd),
+    // from register interface
+    .we     (perf_cnt_en_13_we),
+    .wd     (perf_cnt_en_13_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_cnt_en[13].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.perf_cnt_en[13].q ),
 
-      // to register interface (read)
-      .qs(perf_cnt_en_13_qs)
+    // to register interface (read)
+    .qs     (perf_cnt_en_13_qs)
   );
 
   // Subregister 14 of Multireg perf_cnt_en
   // R[perf_cnt_en_14]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_perf_cnt_en_14 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(perf_cnt_en_14_we),
-      .wd(perf_cnt_en_14_wd),
+    // from register interface
+    .we     (perf_cnt_en_14_we),
+    .wd     (perf_cnt_en_14_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_cnt_en[14].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.perf_cnt_en[14].q ),
 
-      // to register interface (read)
-      .qs(perf_cnt_en_14_qs)
+    // to register interface (read)
+    .qs     (perf_cnt_en_14_qs)
   );
 
   // Subregister 15 of Multireg perf_cnt_en
   // R[perf_cnt_en_15]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("RW"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("RW"),
+    .RESVAL  (1'h1)
   ) u_perf_cnt_en_15 (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(perf_cnt_en_15_we),
-      .wd(perf_cnt_en_15_wd),
+    // from register interface
+    .we     (perf_cnt_en_15_we),
+    .wd     (perf_cnt_en_15_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.perf_cnt_en[15].q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.perf_cnt_en[15].q ),
 
-      // to register interface (read)
-      .qs(perf_cnt_en_15_qs)
+    // to register interface (read)
+    .qs     (perf_cnt_en_15_qs)
   );
 
 
@@ -758,31 +758,31 @@ module snitch_cluster_peripheral_reg_top #(
 
   // F[hart_0]: 15:0
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_0_hart_0 (
-      .re (perf_cnt_sel_0_hart_0_re),
-      .we (perf_cnt_sel_0_hart_0_we),
-      .wd (perf_cnt_sel_0_hart_0_wd),
-      .d  (hw2reg.perf_cnt_sel[0].hart.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[0].hart.qe),
-      .q  (reg2hw.perf_cnt_sel[0].hart.q),
-      .qs (perf_cnt_sel_0_hart_0_qs)
+    .re     (perf_cnt_sel_0_hart_0_re),
+    .we     (perf_cnt_sel_0_hart_0_we),
+    .wd     (perf_cnt_sel_0_hart_0_wd),
+    .d      (hw2reg.perf_cnt_sel[0].hart.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[0].hart.qe),
+    .q      (reg2hw.perf_cnt_sel[0].hart.q ),
+    .qs     (perf_cnt_sel_0_hart_0_qs)
   );
 
 
   // F[metric_0]: 31:16
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_0_metric_0 (
-      .re (perf_cnt_sel_0_metric_0_re),
-      .we (perf_cnt_sel_0_metric_0_we),
-      .wd (perf_cnt_sel_0_metric_0_wd),
-      .d  (hw2reg.perf_cnt_sel[0].metric.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[0].metric.qe),
-      .q  (reg2hw.perf_cnt_sel[0].metric.q),
-      .qs (perf_cnt_sel_0_metric_0_qs)
+    .re     (perf_cnt_sel_0_metric_0_re),
+    .we     (perf_cnt_sel_0_metric_0_we),
+    .wd     (perf_cnt_sel_0_metric_0_wd),
+    .d      (hw2reg.perf_cnt_sel[0].metric.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[0].metric.qe),
+    .q      (reg2hw.perf_cnt_sel[0].metric.q ),
+    .qs     (perf_cnt_sel_0_metric_0_qs)
   );
 
 
@@ -791,31 +791,31 @@ module snitch_cluster_peripheral_reg_top #(
 
   // F[hart_1]: 15:0
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_1_hart_1 (
-      .re (perf_cnt_sel_1_hart_1_re),
-      .we (perf_cnt_sel_1_hart_1_we),
-      .wd (perf_cnt_sel_1_hart_1_wd),
-      .d  (hw2reg.perf_cnt_sel[1].hart.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[1].hart.qe),
-      .q  (reg2hw.perf_cnt_sel[1].hart.q),
-      .qs (perf_cnt_sel_1_hart_1_qs)
+    .re     (perf_cnt_sel_1_hart_1_re),
+    .we     (perf_cnt_sel_1_hart_1_we),
+    .wd     (perf_cnt_sel_1_hart_1_wd),
+    .d      (hw2reg.perf_cnt_sel[1].hart.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[1].hart.qe),
+    .q      (reg2hw.perf_cnt_sel[1].hart.q ),
+    .qs     (perf_cnt_sel_1_hart_1_qs)
   );
 
 
   // F[metric_1]: 31:16
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_1_metric_1 (
-      .re (perf_cnt_sel_1_metric_1_re),
-      .we (perf_cnt_sel_1_metric_1_we),
-      .wd (perf_cnt_sel_1_metric_1_wd),
-      .d  (hw2reg.perf_cnt_sel[1].metric.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[1].metric.qe),
-      .q  (reg2hw.perf_cnt_sel[1].metric.q),
-      .qs (perf_cnt_sel_1_metric_1_qs)
+    .re     (perf_cnt_sel_1_metric_1_re),
+    .we     (perf_cnt_sel_1_metric_1_we),
+    .wd     (perf_cnt_sel_1_metric_1_wd),
+    .d      (hw2reg.perf_cnt_sel[1].metric.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[1].metric.qe),
+    .q      (reg2hw.perf_cnt_sel[1].metric.q ),
+    .qs     (perf_cnt_sel_1_metric_1_qs)
   );
 
 
@@ -824,31 +824,31 @@ module snitch_cluster_peripheral_reg_top #(
 
   // F[hart_2]: 15:0
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_2_hart_2 (
-      .re (perf_cnt_sel_2_hart_2_re),
-      .we (perf_cnt_sel_2_hart_2_we),
-      .wd (perf_cnt_sel_2_hart_2_wd),
-      .d  (hw2reg.perf_cnt_sel[2].hart.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[2].hart.qe),
-      .q  (reg2hw.perf_cnt_sel[2].hart.q),
-      .qs (perf_cnt_sel_2_hart_2_qs)
+    .re     (perf_cnt_sel_2_hart_2_re),
+    .we     (perf_cnt_sel_2_hart_2_we),
+    .wd     (perf_cnt_sel_2_hart_2_wd),
+    .d      (hw2reg.perf_cnt_sel[2].hart.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[2].hart.qe),
+    .q      (reg2hw.perf_cnt_sel[2].hart.q ),
+    .qs     (perf_cnt_sel_2_hart_2_qs)
   );
 
 
   // F[metric_2]: 31:16
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_2_metric_2 (
-      .re (perf_cnt_sel_2_metric_2_re),
-      .we (perf_cnt_sel_2_metric_2_we),
-      .wd (perf_cnt_sel_2_metric_2_wd),
-      .d  (hw2reg.perf_cnt_sel[2].metric.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[2].metric.qe),
-      .q  (reg2hw.perf_cnt_sel[2].metric.q),
-      .qs (perf_cnt_sel_2_metric_2_qs)
+    .re     (perf_cnt_sel_2_metric_2_re),
+    .we     (perf_cnt_sel_2_metric_2_we),
+    .wd     (perf_cnt_sel_2_metric_2_wd),
+    .d      (hw2reg.perf_cnt_sel[2].metric.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[2].metric.qe),
+    .q      (reg2hw.perf_cnt_sel[2].metric.q ),
+    .qs     (perf_cnt_sel_2_metric_2_qs)
   );
 
 
@@ -857,31 +857,31 @@ module snitch_cluster_peripheral_reg_top #(
 
   // F[hart_3]: 15:0
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_3_hart_3 (
-      .re (perf_cnt_sel_3_hart_3_re),
-      .we (perf_cnt_sel_3_hart_3_we),
-      .wd (perf_cnt_sel_3_hart_3_wd),
-      .d  (hw2reg.perf_cnt_sel[3].hart.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[3].hart.qe),
-      .q  (reg2hw.perf_cnt_sel[3].hart.q),
-      .qs (perf_cnt_sel_3_hart_3_qs)
+    .re     (perf_cnt_sel_3_hart_3_re),
+    .we     (perf_cnt_sel_3_hart_3_we),
+    .wd     (perf_cnt_sel_3_hart_3_wd),
+    .d      (hw2reg.perf_cnt_sel[3].hart.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[3].hart.qe),
+    .q      (reg2hw.perf_cnt_sel[3].hart.q ),
+    .qs     (perf_cnt_sel_3_hart_3_qs)
   );
 
 
   // F[metric_3]: 31:16
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_3_metric_3 (
-      .re (perf_cnt_sel_3_metric_3_re),
-      .we (perf_cnt_sel_3_metric_3_we),
-      .wd (perf_cnt_sel_3_metric_3_wd),
-      .d  (hw2reg.perf_cnt_sel[3].metric.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[3].metric.qe),
-      .q  (reg2hw.perf_cnt_sel[3].metric.q),
-      .qs (perf_cnt_sel_3_metric_3_qs)
+    .re     (perf_cnt_sel_3_metric_3_re),
+    .we     (perf_cnt_sel_3_metric_3_we),
+    .wd     (perf_cnt_sel_3_metric_3_wd),
+    .d      (hw2reg.perf_cnt_sel[3].metric.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[3].metric.qe),
+    .q      (reg2hw.perf_cnt_sel[3].metric.q ),
+    .qs     (perf_cnt_sel_3_metric_3_qs)
   );
 
 
@@ -890,31 +890,31 @@ module snitch_cluster_peripheral_reg_top #(
 
   // F[hart_4]: 15:0
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_4_hart_4 (
-      .re (perf_cnt_sel_4_hart_4_re),
-      .we (perf_cnt_sel_4_hart_4_we),
-      .wd (perf_cnt_sel_4_hart_4_wd),
-      .d  (hw2reg.perf_cnt_sel[4].hart.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[4].hart.qe),
-      .q  (reg2hw.perf_cnt_sel[4].hart.q),
-      .qs (perf_cnt_sel_4_hart_4_qs)
+    .re     (perf_cnt_sel_4_hart_4_re),
+    .we     (perf_cnt_sel_4_hart_4_we),
+    .wd     (perf_cnt_sel_4_hart_4_wd),
+    .d      (hw2reg.perf_cnt_sel[4].hart.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[4].hart.qe),
+    .q      (reg2hw.perf_cnt_sel[4].hart.q ),
+    .qs     (perf_cnt_sel_4_hart_4_qs)
   );
 
 
   // F[metric_4]: 31:16
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_4_metric_4 (
-      .re (perf_cnt_sel_4_metric_4_re),
-      .we (perf_cnt_sel_4_metric_4_we),
-      .wd (perf_cnt_sel_4_metric_4_wd),
-      .d  (hw2reg.perf_cnt_sel[4].metric.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[4].metric.qe),
-      .q  (reg2hw.perf_cnt_sel[4].metric.q),
-      .qs (perf_cnt_sel_4_metric_4_qs)
+    .re     (perf_cnt_sel_4_metric_4_re),
+    .we     (perf_cnt_sel_4_metric_4_we),
+    .wd     (perf_cnt_sel_4_metric_4_wd),
+    .d      (hw2reg.perf_cnt_sel[4].metric.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[4].metric.qe),
+    .q      (reg2hw.perf_cnt_sel[4].metric.q ),
+    .qs     (perf_cnt_sel_4_metric_4_qs)
   );
 
 
@@ -923,31 +923,31 @@ module snitch_cluster_peripheral_reg_top #(
 
   // F[hart_5]: 15:0
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_5_hart_5 (
-      .re (perf_cnt_sel_5_hart_5_re),
-      .we (perf_cnt_sel_5_hart_5_we),
-      .wd (perf_cnt_sel_5_hart_5_wd),
-      .d  (hw2reg.perf_cnt_sel[5].hart.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[5].hart.qe),
-      .q  (reg2hw.perf_cnt_sel[5].hart.q),
-      .qs (perf_cnt_sel_5_hart_5_qs)
+    .re     (perf_cnt_sel_5_hart_5_re),
+    .we     (perf_cnt_sel_5_hart_5_we),
+    .wd     (perf_cnt_sel_5_hart_5_wd),
+    .d      (hw2reg.perf_cnt_sel[5].hart.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[5].hart.qe),
+    .q      (reg2hw.perf_cnt_sel[5].hart.q ),
+    .qs     (perf_cnt_sel_5_hart_5_qs)
   );
 
 
   // F[metric_5]: 31:16
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_5_metric_5 (
-      .re (perf_cnt_sel_5_metric_5_re),
-      .we (perf_cnt_sel_5_metric_5_we),
-      .wd (perf_cnt_sel_5_metric_5_wd),
-      .d  (hw2reg.perf_cnt_sel[5].metric.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[5].metric.qe),
-      .q  (reg2hw.perf_cnt_sel[5].metric.q),
-      .qs (perf_cnt_sel_5_metric_5_qs)
+    .re     (perf_cnt_sel_5_metric_5_re),
+    .we     (perf_cnt_sel_5_metric_5_we),
+    .wd     (perf_cnt_sel_5_metric_5_wd),
+    .d      (hw2reg.perf_cnt_sel[5].metric.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[5].metric.qe),
+    .q      (reg2hw.perf_cnt_sel[5].metric.q ),
+    .qs     (perf_cnt_sel_5_metric_5_qs)
   );
 
 
@@ -956,31 +956,31 @@ module snitch_cluster_peripheral_reg_top #(
 
   // F[hart_6]: 15:0
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_6_hart_6 (
-      .re (perf_cnt_sel_6_hart_6_re),
-      .we (perf_cnt_sel_6_hart_6_we),
-      .wd (perf_cnt_sel_6_hart_6_wd),
-      .d  (hw2reg.perf_cnt_sel[6].hart.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[6].hart.qe),
-      .q  (reg2hw.perf_cnt_sel[6].hart.q),
-      .qs (perf_cnt_sel_6_hart_6_qs)
+    .re     (perf_cnt_sel_6_hart_6_re),
+    .we     (perf_cnt_sel_6_hart_6_we),
+    .wd     (perf_cnt_sel_6_hart_6_wd),
+    .d      (hw2reg.perf_cnt_sel[6].hart.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[6].hart.qe),
+    .q      (reg2hw.perf_cnt_sel[6].hart.q ),
+    .qs     (perf_cnt_sel_6_hart_6_qs)
   );
 
 
   // F[metric_6]: 31:16
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_6_metric_6 (
-      .re (perf_cnt_sel_6_metric_6_re),
-      .we (perf_cnt_sel_6_metric_6_we),
-      .wd (perf_cnt_sel_6_metric_6_wd),
-      .d  (hw2reg.perf_cnt_sel[6].metric.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[6].metric.qe),
-      .q  (reg2hw.perf_cnt_sel[6].metric.q),
-      .qs (perf_cnt_sel_6_metric_6_qs)
+    .re     (perf_cnt_sel_6_metric_6_re),
+    .we     (perf_cnt_sel_6_metric_6_we),
+    .wd     (perf_cnt_sel_6_metric_6_wd),
+    .d      (hw2reg.perf_cnt_sel[6].metric.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[6].metric.qe),
+    .q      (reg2hw.perf_cnt_sel[6].metric.q ),
+    .qs     (perf_cnt_sel_6_metric_6_qs)
   );
 
 
@@ -989,31 +989,31 @@ module snitch_cluster_peripheral_reg_top #(
 
   // F[hart_7]: 15:0
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_7_hart_7 (
-      .re (perf_cnt_sel_7_hart_7_re),
-      .we (perf_cnt_sel_7_hart_7_we),
-      .wd (perf_cnt_sel_7_hart_7_wd),
-      .d  (hw2reg.perf_cnt_sel[7].hart.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[7].hart.qe),
-      .q  (reg2hw.perf_cnt_sel[7].hart.q),
-      .qs (perf_cnt_sel_7_hart_7_qs)
+    .re     (perf_cnt_sel_7_hart_7_re),
+    .we     (perf_cnt_sel_7_hart_7_we),
+    .wd     (perf_cnt_sel_7_hart_7_wd),
+    .d      (hw2reg.perf_cnt_sel[7].hart.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[7].hart.qe),
+    .q      (reg2hw.perf_cnt_sel[7].hart.q ),
+    .qs     (perf_cnt_sel_7_hart_7_qs)
   );
 
 
   // F[metric_7]: 31:16
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_7_metric_7 (
-      .re (perf_cnt_sel_7_metric_7_re),
-      .we (perf_cnt_sel_7_metric_7_we),
-      .wd (perf_cnt_sel_7_metric_7_wd),
-      .d  (hw2reg.perf_cnt_sel[7].metric.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[7].metric.qe),
-      .q  (reg2hw.perf_cnt_sel[7].metric.q),
-      .qs (perf_cnt_sel_7_metric_7_qs)
+    .re     (perf_cnt_sel_7_metric_7_re),
+    .we     (perf_cnt_sel_7_metric_7_we),
+    .wd     (perf_cnt_sel_7_metric_7_wd),
+    .d      (hw2reg.perf_cnt_sel[7].metric.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[7].metric.qe),
+    .q      (reg2hw.perf_cnt_sel[7].metric.q ),
+    .qs     (perf_cnt_sel_7_metric_7_qs)
   );
 
 
@@ -1022,31 +1022,31 @@ module snitch_cluster_peripheral_reg_top #(
 
   // F[hart_8]: 15:0
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_8_hart_8 (
-      .re (perf_cnt_sel_8_hart_8_re),
-      .we (perf_cnt_sel_8_hart_8_we),
-      .wd (perf_cnt_sel_8_hart_8_wd),
-      .d  (hw2reg.perf_cnt_sel[8].hart.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[8].hart.qe),
-      .q  (reg2hw.perf_cnt_sel[8].hart.q),
-      .qs (perf_cnt_sel_8_hart_8_qs)
+    .re     (perf_cnt_sel_8_hart_8_re),
+    .we     (perf_cnt_sel_8_hart_8_we),
+    .wd     (perf_cnt_sel_8_hart_8_wd),
+    .d      (hw2reg.perf_cnt_sel[8].hart.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[8].hart.qe),
+    .q      (reg2hw.perf_cnt_sel[8].hart.q ),
+    .qs     (perf_cnt_sel_8_hart_8_qs)
   );
 
 
   // F[metric_8]: 31:16
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_8_metric_8 (
-      .re (perf_cnt_sel_8_metric_8_re),
-      .we (perf_cnt_sel_8_metric_8_we),
-      .wd (perf_cnt_sel_8_metric_8_wd),
-      .d  (hw2reg.perf_cnt_sel[8].metric.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[8].metric.qe),
-      .q  (reg2hw.perf_cnt_sel[8].metric.q),
-      .qs (perf_cnt_sel_8_metric_8_qs)
+    .re     (perf_cnt_sel_8_metric_8_re),
+    .we     (perf_cnt_sel_8_metric_8_we),
+    .wd     (perf_cnt_sel_8_metric_8_wd),
+    .d      (hw2reg.perf_cnt_sel[8].metric.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[8].metric.qe),
+    .q      (reg2hw.perf_cnt_sel[8].metric.q ),
+    .qs     (perf_cnt_sel_8_metric_8_qs)
   );
 
 
@@ -1055,31 +1055,31 @@ module snitch_cluster_peripheral_reg_top #(
 
   // F[hart_9]: 15:0
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_9_hart_9 (
-      .re (perf_cnt_sel_9_hart_9_re),
-      .we (perf_cnt_sel_9_hart_9_we),
-      .wd (perf_cnt_sel_9_hart_9_wd),
-      .d  (hw2reg.perf_cnt_sel[9].hart.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[9].hart.qe),
-      .q  (reg2hw.perf_cnt_sel[9].hart.q),
-      .qs (perf_cnt_sel_9_hart_9_qs)
+    .re     (perf_cnt_sel_9_hart_9_re),
+    .we     (perf_cnt_sel_9_hart_9_we),
+    .wd     (perf_cnt_sel_9_hart_9_wd),
+    .d      (hw2reg.perf_cnt_sel[9].hart.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[9].hart.qe),
+    .q      (reg2hw.perf_cnt_sel[9].hart.q ),
+    .qs     (perf_cnt_sel_9_hart_9_qs)
   );
 
 
   // F[metric_9]: 31:16
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_9_metric_9 (
-      .re (perf_cnt_sel_9_metric_9_re),
-      .we (perf_cnt_sel_9_metric_9_we),
-      .wd (perf_cnt_sel_9_metric_9_wd),
-      .d  (hw2reg.perf_cnt_sel[9].metric.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[9].metric.qe),
-      .q  (reg2hw.perf_cnt_sel[9].metric.q),
-      .qs (perf_cnt_sel_9_metric_9_qs)
+    .re     (perf_cnt_sel_9_metric_9_re),
+    .we     (perf_cnt_sel_9_metric_9_we),
+    .wd     (perf_cnt_sel_9_metric_9_wd),
+    .d      (hw2reg.perf_cnt_sel[9].metric.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[9].metric.qe),
+    .q      (reg2hw.perf_cnt_sel[9].metric.q ),
+    .qs     (perf_cnt_sel_9_metric_9_qs)
   );
 
 
@@ -1088,31 +1088,31 @@ module snitch_cluster_peripheral_reg_top #(
 
   // F[hart_10]: 15:0
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_10_hart_10 (
-      .re (perf_cnt_sel_10_hart_10_re),
-      .we (perf_cnt_sel_10_hart_10_we),
-      .wd (perf_cnt_sel_10_hart_10_wd),
-      .d  (hw2reg.perf_cnt_sel[10].hart.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[10].hart.qe),
-      .q  (reg2hw.perf_cnt_sel[10].hart.q),
-      .qs (perf_cnt_sel_10_hart_10_qs)
+    .re     (perf_cnt_sel_10_hart_10_re),
+    .we     (perf_cnt_sel_10_hart_10_we),
+    .wd     (perf_cnt_sel_10_hart_10_wd),
+    .d      (hw2reg.perf_cnt_sel[10].hart.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[10].hart.qe),
+    .q      (reg2hw.perf_cnt_sel[10].hart.q ),
+    .qs     (perf_cnt_sel_10_hart_10_qs)
   );
 
 
   // F[metric_10]: 31:16
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_10_metric_10 (
-      .re (perf_cnt_sel_10_metric_10_re),
-      .we (perf_cnt_sel_10_metric_10_we),
-      .wd (perf_cnt_sel_10_metric_10_wd),
-      .d  (hw2reg.perf_cnt_sel[10].metric.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[10].metric.qe),
-      .q  (reg2hw.perf_cnt_sel[10].metric.q),
-      .qs (perf_cnt_sel_10_metric_10_qs)
+    .re     (perf_cnt_sel_10_metric_10_re),
+    .we     (perf_cnt_sel_10_metric_10_we),
+    .wd     (perf_cnt_sel_10_metric_10_wd),
+    .d      (hw2reg.perf_cnt_sel[10].metric.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[10].metric.qe),
+    .q      (reg2hw.perf_cnt_sel[10].metric.q ),
+    .qs     (perf_cnt_sel_10_metric_10_qs)
   );
 
 
@@ -1121,31 +1121,31 @@ module snitch_cluster_peripheral_reg_top #(
 
   // F[hart_11]: 15:0
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_11_hart_11 (
-      .re (perf_cnt_sel_11_hart_11_re),
-      .we (perf_cnt_sel_11_hart_11_we),
-      .wd (perf_cnt_sel_11_hart_11_wd),
-      .d  (hw2reg.perf_cnt_sel[11].hart.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[11].hart.qe),
-      .q  (reg2hw.perf_cnt_sel[11].hart.q),
-      .qs (perf_cnt_sel_11_hart_11_qs)
+    .re     (perf_cnt_sel_11_hart_11_re),
+    .we     (perf_cnt_sel_11_hart_11_we),
+    .wd     (perf_cnt_sel_11_hart_11_wd),
+    .d      (hw2reg.perf_cnt_sel[11].hart.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[11].hart.qe),
+    .q      (reg2hw.perf_cnt_sel[11].hart.q ),
+    .qs     (perf_cnt_sel_11_hart_11_qs)
   );
 
 
   // F[metric_11]: 31:16
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_11_metric_11 (
-      .re (perf_cnt_sel_11_metric_11_re),
-      .we (perf_cnt_sel_11_metric_11_we),
-      .wd (perf_cnt_sel_11_metric_11_wd),
-      .d  (hw2reg.perf_cnt_sel[11].metric.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[11].metric.qe),
-      .q  (reg2hw.perf_cnt_sel[11].metric.q),
-      .qs (perf_cnt_sel_11_metric_11_qs)
+    .re     (perf_cnt_sel_11_metric_11_re),
+    .we     (perf_cnt_sel_11_metric_11_we),
+    .wd     (perf_cnt_sel_11_metric_11_wd),
+    .d      (hw2reg.perf_cnt_sel[11].metric.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[11].metric.qe),
+    .q      (reg2hw.perf_cnt_sel[11].metric.q ),
+    .qs     (perf_cnt_sel_11_metric_11_qs)
   );
 
 
@@ -1154,31 +1154,31 @@ module snitch_cluster_peripheral_reg_top #(
 
   // F[hart_12]: 15:0
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_12_hart_12 (
-      .re (perf_cnt_sel_12_hart_12_re),
-      .we (perf_cnt_sel_12_hart_12_we),
-      .wd (perf_cnt_sel_12_hart_12_wd),
-      .d  (hw2reg.perf_cnt_sel[12].hart.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[12].hart.qe),
-      .q  (reg2hw.perf_cnt_sel[12].hart.q),
-      .qs (perf_cnt_sel_12_hart_12_qs)
+    .re     (perf_cnt_sel_12_hart_12_re),
+    .we     (perf_cnt_sel_12_hart_12_we),
+    .wd     (perf_cnt_sel_12_hart_12_wd),
+    .d      (hw2reg.perf_cnt_sel[12].hart.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[12].hart.qe),
+    .q      (reg2hw.perf_cnt_sel[12].hart.q ),
+    .qs     (perf_cnt_sel_12_hart_12_qs)
   );
 
 
   // F[metric_12]: 31:16
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_12_metric_12 (
-      .re (perf_cnt_sel_12_metric_12_re),
-      .we (perf_cnt_sel_12_metric_12_we),
-      .wd (perf_cnt_sel_12_metric_12_wd),
-      .d  (hw2reg.perf_cnt_sel[12].metric.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[12].metric.qe),
-      .q  (reg2hw.perf_cnt_sel[12].metric.q),
-      .qs (perf_cnt_sel_12_metric_12_qs)
+    .re     (perf_cnt_sel_12_metric_12_re),
+    .we     (perf_cnt_sel_12_metric_12_we),
+    .wd     (perf_cnt_sel_12_metric_12_wd),
+    .d      (hw2reg.perf_cnt_sel[12].metric.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[12].metric.qe),
+    .q      (reg2hw.perf_cnt_sel[12].metric.q ),
+    .qs     (perf_cnt_sel_12_metric_12_qs)
   );
 
 
@@ -1187,31 +1187,31 @@ module snitch_cluster_peripheral_reg_top #(
 
   // F[hart_13]: 15:0
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_13_hart_13 (
-      .re (perf_cnt_sel_13_hart_13_re),
-      .we (perf_cnt_sel_13_hart_13_we),
-      .wd (perf_cnt_sel_13_hart_13_wd),
-      .d  (hw2reg.perf_cnt_sel[13].hart.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[13].hart.qe),
-      .q  (reg2hw.perf_cnt_sel[13].hart.q),
-      .qs (perf_cnt_sel_13_hart_13_qs)
+    .re     (perf_cnt_sel_13_hart_13_re),
+    .we     (perf_cnt_sel_13_hart_13_we),
+    .wd     (perf_cnt_sel_13_hart_13_wd),
+    .d      (hw2reg.perf_cnt_sel[13].hart.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[13].hart.qe),
+    .q      (reg2hw.perf_cnt_sel[13].hart.q ),
+    .qs     (perf_cnt_sel_13_hart_13_qs)
   );
 
 
   // F[metric_13]: 31:16
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_13_metric_13 (
-      .re (perf_cnt_sel_13_metric_13_re),
-      .we (perf_cnt_sel_13_metric_13_we),
-      .wd (perf_cnt_sel_13_metric_13_wd),
-      .d  (hw2reg.perf_cnt_sel[13].metric.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[13].metric.qe),
-      .q  (reg2hw.perf_cnt_sel[13].metric.q),
-      .qs (perf_cnt_sel_13_metric_13_qs)
+    .re     (perf_cnt_sel_13_metric_13_re),
+    .we     (perf_cnt_sel_13_metric_13_we),
+    .wd     (perf_cnt_sel_13_metric_13_wd),
+    .d      (hw2reg.perf_cnt_sel[13].metric.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[13].metric.qe),
+    .q      (reg2hw.perf_cnt_sel[13].metric.q ),
+    .qs     (perf_cnt_sel_13_metric_13_qs)
   );
 
 
@@ -1220,31 +1220,31 @@ module snitch_cluster_peripheral_reg_top #(
 
   // F[hart_14]: 15:0
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_14_hart_14 (
-      .re (perf_cnt_sel_14_hart_14_re),
-      .we (perf_cnt_sel_14_hart_14_we),
-      .wd (perf_cnt_sel_14_hart_14_wd),
-      .d  (hw2reg.perf_cnt_sel[14].hart.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[14].hart.qe),
-      .q  (reg2hw.perf_cnt_sel[14].hart.q),
-      .qs (perf_cnt_sel_14_hart_14_qs)
+    .re     (perf_cnt_sel_14_hart_14_re),
+    .we     (perf_cnt_sel_14_hart_14_we),
+    .wd     (perf_cnt_sel_14_hart_14_wd),
+    .d      (hw2reg.perf_cnt_sel[14].hart.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[14].hart.qe),
+    .q      (reg2hw.perf_cnt_sel[14].hart.q ),
+    .qs     (perf_cnt_sel_14_hart_14_qs)
   );
 
 
   // F[metric_14]: 31:16
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_14_metric_14 (
-      .re (perf_cnt_sel_14_metric_14_re),
-      .we (perf_cnt_sel_14_metric_14_we),
-      .wd (perf_cnt_sel_14_metric_14_wd),
-      .d  (hw2reg.perf_cnt_sel[14].metric.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[14].metric.qe),
-      .q  (reg2hw.perf_cnt_sel[14].metric.q),
-      .qs (perf_cnt_sel_14_metric_14_qs)
+    .re     (perf_cnt_sel_14_metric_14_re),
+    .we     (perf_cnt_sel_14_metric_14_we),
+    .wd     (perf_cnt_sel_14_metric_14_wd),
+    .d      (hw2reg.perf_cnt_sel[14].metric.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[14].metric.qe),
+    .q      (reg2hw.perf_cnt_sel[14].metric.q ),
+    .qs     (perf_cnt_sel_14_metric_14_qs)
   );
 
 
@@ -1253,31 +1253,31 @@ module snitch_cluster_peripheral_reg_top #(
 
   // F[hart_15]: 15:0
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_15_hart_15 (
-      .re (perf_cnt_sel_15_hart_15_re),
-      .we (perf_cnt_sel_15_hart_15_we),
-      .wd (perf_cnt_sel_15_hart_15_wd),
-      .d  (hw2reg.perf_cnt_sel[15].hart.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[15].hart.qe),
-      .q  (reg2hw.perf_cnt_sel[15].hart.q),
-      .qs (perf_cnt_sel_15_hart_15_qs)
+    .re     (perf_cnt_sel_15_hart_15_re),
+    .we     (perf_cnt_sel_15_hart_15_we),
+    .wd     (perf_cnt_sel_15_hart_15_wd),
+    .d      (hw2reg.perf_cnt_sel[15].hart.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[15].hart.qe),
+    .q      (reg2hw.perf_cnt_sel[15].hart.q ),
+    .qs     (perf_cnt_sel_15_hart_15_qs)
   );
 
 
   // F[metric_15]: 31:16
   prim_subreg_ext #(
-      .DW(16)
+    .DW    (16)
   ) u_perf_cnt_sel_15_metric_15 (
-      .re (perf_cnt_sel_15_metric_15_re),
-      .we (perf_cnt_sel_15_metric_15_we),
-      .wd (perf_cnt_sel_15_metric_15_wd),
-      .d  (hw2reg.perf_cnt_sel[15].metric.d),
-      .qre(),
-      .qe (reg2hw.perf_cnt_sel[15].metric.qe),
-      .q  (reg2hw.perf_cnt_sel[15].metric.q),
-      .qs (perf_cnt_sel_15_metric_15_qs)
+    .re     (perf_cnt_sel_15_metric_15_re),
+    .we     (perf_cnt_sel_15_metric_15_we),
+    .wd     (perf_cnt_sel_15_metric_15_wd),
+    .d      (hw2reg.perf_cnt_sel[15].metric.d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt_sel[15].metric.qe),
+    .q      (reg2hw.perf_cnt_sel[15].metric.q ),
+    .qs     (perf_cnt_sel_15_metric_15_qs)
   );
 
 
@@ -1287,330 +1287,330 @@ module snitch_cluster_peripheral_reg_top #(
   // R[perf_cnt_0]: V(True)
 
   prim_subreg_ext #(
-      .DW(48)
+    .DW    (48)
   ) u_perf_cnt_0 (
-      .re (perf_cnt_0_re),
-      .we (perf_cnt_0_we),
-      .wd (perf_cnt_0_wd),
-      .d  (hw2reg.perf_cnt[0].d),
-      .qre(),
-      .qe (reg2hw.perf_cnt[0].qe),
-      .q  (reg2hw.perf_cnt[0].q),
-      .qs (perf_cnt_0_qs)
+    .re     (perf_cnt_0_re),
+    .we     (perf_cnt_0_we),
+    .wd     (perf_cnt_0_wd),
+    .d      (hw2reg.perf_cnt[0].d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt[0].qe),
+    .q      (reg2hw.perf_cnt[0].q ),
+    .qs     (perf_cnt_0_qs)
   );
 
   // Subregister 1 of Multireg perf_cnt
   // R[perf_cnt_1]: V(True)
 
   prim_subreg_ext #(
-      .DW(48)
+    .DW    (48)
   ) u_perf_cnt_1 (
-      .re (perf_cnt_1_re),
-      .we (perf_cnt_1_we),
-      .wd (perf_cnt_1_wd),
-      .d  (hw2reg.perf_cnt[1].d),
-      .qre(),
-      .qe (reg2hw.perf_cnt[1].qe),
-      .q  (reg2hw.perf_cnt[1].q),
-      .qs (perf_cnt_1_qs)
+    .re     (perf_cnt_1_re),
+    .we     (perf_cnt_1_we),
+    .wd     (perf_cnt_1_wd),
+    .d      (hw2reg.perf_cnt[1].d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt[1].qe),
+    .q      (reg2hw.perf_cnt[1].q ),
+    .qs     (perf_cnt_1_qs)
   );
 
   // Subregister 2 of Multireg perf_cnt
   // R[perf_cnt_2]: V(True)
 
   prim_subreg_ext #(
-      .DW(48)
+    .DW    (48)
   ) u_perf_cnt_2 (
-      .re (perf_cnt_2_re),
-      .we (perf_cnt_2_we),
-      .wd (perf_cnt_2_wd),
-      .d  (hw2reg.perf_cnt[2].d),
-      .qre(),
-      .qe (reg2hw.perf_cnt[2].qe),
-      .q  (reg2hw.perf_cnt[2].q),
-      .qs (perf_cnt_2_qs)
+    .re     (perf_cnt_2_re),
+    .we     (perf_cnt_2_we),
+    .wd     (perf_cnt_2_wd),
+    .d      (hw2reg.perf_cnt[2].d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt[2].qe),
+    .q      (reg2hw.perf_cnt[2].q ),
+    .qs     (perf_cnt_2_qs)
   );
 
   // Subregister 3 of Multireg perf_cnt
   // R[perf_cnt_3]: V(True)
 
   prim_subreg_ext #(
-      .DW(48)
+    .DW    (48)
   ) u_perf_cnt_3 (
-      .re (perf_cnt_3_re),
-      .we (perf_cnt_3_we),
-      .wd (perf_cnt_3_wd),
-      .d  (hw2reg.perf_cnt[3].d),
-      .qre(),
-      .qe (reg2hw.perf_cnt[3].qe),
-      .q  (reg2hw.perf_cnt[3].q),
-      .qs (perf_cnt_3_qs)
+    .re     (perf_cnt_3_re),
+    .we     (perf_cnt_3_we),
+    .wd     (perf_cnt_3_wd),
+    .d      (hw2reg.perf_cnt[3].d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt[3].qe),
+    .q      (reg2hw.perf_cnt[3].q ),
+    .qs     (perf_cnt_3_qs)
   );
 
   // Subregister 4 of Multireg perf_cnt
   // R[perf_cnt_4]: V(True)
 
   prim_subreg_ext #(
-      .DW(48)
+    .DW    (48)
   ) u_perf_cnt_4 (
-      .re (perf_cnt_4_re),
-      .we (perf_cnt_4_we),
-      .wd (perf_cnt_4_wd),
-      .d  (hw2reg.perf_cnt[4].d),
-      .qre(),
-      .qe (reg2hw.perf_cnt[4].qe),
-      .q  (reg2hw.perf_cnt[4].q),
-      .qs (perf_cnt_4_qs)
+    .re     (perf_cnt_4_re),
+    .we     (perf_cnt_4_we),
+    .wd     (perf_cnt_4_wd),
+    .d      (hw2reg.perf_cnt[4].d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt[4].qe),
+    .q      (reg2hw.perf_cnt[4].q ),
+    .qs     (perf_cnt_4_qs)
   );
 
   // Subregister 5 of Multireg perf_cnt
   // R[perf_cnt_5]: V(True)
 
   prim_subreg_ext #(
-      .DW(48)
+    .DW    (48)
   ) u_perf_cnt_5 (
-      .re (perf_cnt_5_re),
-      .we (perf_cnt_5_we),
-      .wd (perf_cnt_5_wd),
-      .d  (hw2reg.perf_cnt[5].d),
-      .qre(),
-      .qe (reg2hw.perf_cnt[5].qe),
-      .q  (reg2hw.perf_cnt[5].q),
-      .qs (perf_cnt_5_qs)
+    .re     (perf_cnt_5_re),
+    .we     (perf_cnt_5_we),
+    .wd     (perf_cnt_5_wd),
+    .d      (hw2reg.perf_cnt[5].d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt[5].qe),
+    .q      (reg2hw.perf_cnt[5].q ),
+    .qs     (perf_cnt_5_qs)
   );
 
   // Subregister 6 of Multireg perf_cnt
   // R[perf_cnt_6]: V(True)
 
   prim_subreg_ext #(
-      .DW(48)
+    .DW    (48)
   ) u_perf_cnt_6 (
-      .re (perf_cnt_6_re),
-      .we (perf_cnt_6_we),
-      .wd (perf_cnt_6_wd),
-      .d  (hw2reg.perf_cnt[6].d),
-      .qre(),
-      .qe (reg2hw.perf_cnt[6].qe),
-      .q  (reg2hw.perf_cnt[6].q),
-      .qs (perf_cnt_6_qs)
+    .re     (perf_cnt_6_re),
+    .we     (perf_cnt_6_we),
+    .wd     (perf_cnt_6_wd),
+    .d      (hw2reg.perf_cnt[6].d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt[6].qe),
+    .q      (reg2hw.perf_cnt[6].q ),
+    .qs     (perf_cnt_6_qs)
   );
 
   // Subregister 7 of Multireg perf_cnt
   // R[perf_cnt_7]: V(True)
 
   prim_subreg_ext #(
-      .DW(48)
+    .DW    (48)
   ) u_perf_cnt_7 (
-      .re (perf_cnt_7_re),
-      .we (perf_cnt_7_we),
-      .wd (perf_cnt_7_wd),
-      .d  (hw2reg.perf_cnt[7].d),
-      .qre(),
-      .qe (reg2hw.perf_cnt[7].qe),
-      .q  (reg2hw.perf_cnt[7].q),
-      .qs (perf_cnt_7_qs)
+    .re     (perf_cnt_7_re),
+    .we     (perf_cnt_7_we),
+    .wd     (perf_cnt_7_wd),
+    .d      (hw2reg.perf_cnt[7].d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt[7].qe),
+    .q      (reg2hw.perf_cnt[7].q ),
+    .qs     (perf_cnt_7_qs)
   );
 
   // Subregister 8 of Multireg perf_cnt
   // R[perf_cnt_8]: V(True)
 
   prim_subreg_ext #(
-      .DW(48)
+    .DW    (48)
   ) u_perf_cnt_8 (
-      .re (perf_cnt_8_re),
-      .we (perf_cnt_8_we),
-      .wd (perf_cnt_8_wd),
-      .d  (hw2reg.perf_cnt[8].d),
-      .qre(),
-      .qe (reg2hw.perf_cnt[8].qe),
-      .q  (reg2hw.perf_cnt[8].q),
-      .qs (perf_cnt_8_qs)
+    .re     (perf_cnt_8_re),
+    .we     (perf_cnt_8_we),
+    .wd     (perf_cnt_8_wd),
+    .d      (hw2reg.perf_cnt[8].d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt[8].qe),
+    .q      (reg2hw.perf_cnt[8].q ),
+    .qs     (perf_cnt_8_qs)
   );
 
   // Subregister 9 of Multireg perf_cnt
   // R[perf_cnt_9]: V(True)
 
   prim_subreg_ext #(
-      .DW(48)
+    .DW    (48)
   ) u_perf_cnt_9 (
-      .re (perf_cnt_9_re),
-      .we (perf_cnt_9_we),
-      .wd (perf_cnt_9_wd),
-      .d  (hw2reg.perf_cnt[9].d),
-      .qre(),
-      .qe (reg2hw.perf_cnt[9].qe),
-      .q  (reg2hw.perf_cnt[9].q),
-      .qs (perf_cnt_9_qs)
+    .re     (perf_cnt_9_re),
+    .we     (perf_cnt_9_we),
+    .wd     (perf_cnt_9_wd),
+    .d      (hw2reg.perf_cnt[9].d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt[9].qe),
+    .q      (reg2hw.perf_cnt[9].q ),
+    .qs     (perf_cnt_9_qs)
   );
 
   // Subregister 10 of Multireg perf_cnt
   // R[perf_cnt_10]: V(True)
 
   prim_subreg_ext #(
-      .DW(48)
+    .DW    (48)
   ) u_perf_cnt_10 (
-      .re (perf_cnt_10_re),
-      .we (perf_cnt_10_we),
-      .wd (perf_cnt_10_wd),
-      .d  (hw2reg.perf_cnt[10].d),
-      .qre(),
-      .qe (reg2hw.perf_cnt[10].qe),
-      .q  (reg2hw.perf_cnt[10].q),
-      .qs (perf_cnt_10_qs)
+    .re     (perf_cnt_10_re),
+    .we     (perf_cnt_10_we),
+    .wd     (perf_cnt_10_wd),
+    .d      (hw2reg.perf_cnt[10].d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt[10].qe),
+    .q      (reg2hw.perf_cnt[10].q ),
+    .qs     (perf_cnt_10_qs)
   );
 
   // Subregister 11 of Multireg perf_cnt
   // R[perf_cnt_11]: V(True)
 
   prim_subreg_ext #(
-      .DW(48)
+    .DW    (48)
   ) u_perf_cnt_11 (
-      .re (perf_cnt_11_re),
-      .we (perf_cnt_11_we),
-      .wd (perf_cnt_11_wd),
-      .d  (hw2reg.perf_cnt[11].d),
-      .qre(),
-      .qe (reg2hw.perf_cnt[11].qe),
-      .q  (reg2hw.perf_cnt[11].q),
-      .qs (perf_cnt_11_qs)
+    .re     (perf_cnt_11_re),
+    .we     (perf_cnt_11_we),
+    .wd     (perf_cnt_11_wd),
+    .d      (hw2reg.perf_cnt[11].d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt[11].qe),
+    .q      (reg2hw.perf_cnt[11].q ),
+    .qs     (perf_cnt_11_qs)
   );
 
   // Subregister 12 of Multireg perf_cnt
   // R[perf_cnt_12]: V(True)
 
   prim_subreg_ext #(
-      .DW(48)
+    .DW    (48)
   ) u_perf_cnt_12 (
-      .re (perf_cnt_12_re),
-      .we (perf_cnt_12_we),
-      .wd (perf_cnt_12_wd),
-      .d  (hw2reg.perf_cnt[12].d),
-      .qre(),
-      .qe (reg2hw.perf_cnt[12].qe),
-      .q  (reg2hw.perf_cnt[12].q),
-      .qs (perf_cnt_12_qs)
+    .re     (perf_cnt_12_re),
+    .we     (perf_cnt_12_we),
+    .wd     (perf_cnt_12_wd),
+    .d      (hw2reg.perf_cnt[12].d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt[12].qe),
+    .q      (reg2hw.perf_cnt[12].q ),
+    .qs     (perf_cnt_12_qs)
   );
 
   // Subregister 13 of Multireg perf_cnt
   // R[perf_cnt_13]: V(True)
 
   prim_subreg_ext #(
-      .DW(48)
+    .DW    (48)
   ) u_perf_cnt_13 (
-      .re (perf_cnt_13_re),
-      .we (perf_cnt_13_we),
-      .wd (perf_cnt_13_wd),
-      .d  (hw2reg.perf_cnt[13].d),
-      .qre(),
-      .qe (reg2hw.perf_cnt[13].qe),
-      .q  (reg2hw.perf_cnt[13].q),
-      .qs (perf_cnt_13_qs)
+    .re     (perf_cnt_13_re),
+    .we     (perf_cnt_13_we),
+    .wd     (perf_cnt_13_wd),
+    .d      (hw2reg.perf_cnt[13].d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt[13].qe),
+    .q      (reg2hw.perf_cnt[13].q ),
+    .qs     (perf_cnt_13_qs)
   );
 
   // Subregister 14 of Multireg perf_cnt
   // R[perf_cnt_14]: V(True)
 
   prim_subreg_ext #(
-      .DW(48)
+    .DW    (48)
   ) u_perf_cnt_14 (
-      .re (perf_cnt_14_re),
-      .we (perf_cnt_14_we),
-      .wd (perf_cnt_14_wd),
-      .d  (hw2reg.perf_cnt[14].d),
-      .qre(),
-      .qe (reg2hw.perf_cnt[14].qe),
-      .q  (reg2hw.perf_cnt[14].q),
-      .qs (perf_cnt_14_qs)
+    .re     (perf_cnt_14_re),
+    .we     (perf_cnt_14_we),
+    .wd     (perf_cnt_14_wd),
+    .d      (hw2reg.perf_cnt[14].d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt[14].qe),
+    .q      (reg2hw.perf_cnt[14].q ),
+    .qs     (perf_cnt_14_qs)
   );
 
   // Subregister 15 of Multireg perf_cnt
   // R[perf_cnt_15]: V(True)
 
   prim_subreg_ext #(
-      .DW(48)
+    .DW    (48)
   ) u_perf_cnt_15 (
-      .re (perf_cnt_15_re),
-      .we (perf_cnt_15_we),
-      .wd (perf_cnt_15_wd),
-      .d  (hw2reg.perf_cnt[15].d),
-      .qre(),
-      .qe (reg2hw.perf_cnt[15].qe),
-      .q  (reg2hw.perf_cnt[15].q),
-      .qs (perf_cnt_15_qs)
+    .re     (perf_cnt_15_re),
+    .we     (perf_cnt_15_we),
+    .wd     (perf_cnt_15_wd),
+    .d      (hw2reg.perf_cnt[15].d),
+    .qre    (),
+    .qe     (reg2hw.perf_cnt[15].qe),
+    .q      (reg2hw.perf_cnt[15].q ),
+    .qs     (perf_cnt_15_qs)
   );
 
 
   // R[cl_clint_set]: V(True)
 
   prim_subreg_ext #(
-      .DW(32)
+    .DW    (32)
   ) u_cl_clint_set (
-      .re (1'b0),
-      .we (cl_clint_set_we),
-      .wd (cl_clint_set_wd),
-      .d  ('0),
-      .qre(),
-      .qe (reg2hw.cl_clint_set.qe),
-      .q  (reg2hw.cl_clint_set.q),
-      .qs ()
+    .re     (1'b0),
+    .we     (cl_clint_set_we),
+    .wd     (cl_clint_set_wd),
+    .d      ('0),
+    .qre    (),
+    .qe     (reg2hw.cl_clint_set.qe),
+    .q      (reg2hw.cl_clint_set.q ),
+    .qs     ()
   );
 
 
   // R[cl_clint_clear]: V(True)
 
   prim_subreg_ext #(
-      .DW(32)
+    .DW    (32)
   ) u_cl_clint_clear (
-      .re (1'b0),
-      .we (cl_clint_clear_we),
-      .wd (cl_clint_clear_wd),
-      .d  ('0),
-      .qre(),
-      .qe (reg2hw.cl_clint_clear.qe),
-      .q  (reg2hw.cl_clint_clear.q),
-      .qs ()
+    .re     (1'b0),
+    .we     (cl_clint_clear_we),
+    .wd     (cl_clint_clear_wd),
+    .d      ('0),
+    .qre    (),
+    .qe     (reg2hw.cl_clint_clear.qe),
+    .q      (reg2hw.cl_clint_clear.q ),
+    .qs     ()
   );
 
 
   // R[hw_barrier]: V(True)
 
   prim_subreg_ext #(
-      .DW(32)
+    .DW    (32)
   ) u_hw_barrier (
-      .re (hw_barrier_re),
-      .we (1'b0),
-      .wd ('0),
-      .d  (hw2reg.hw_barrier.d),
-      .qre(),
-      .qe (),
-      .q  (reg2hw.hw_barrier.q),
-      .qs (hw_barrier_qs)
+    .re     (hw_barrier_re),
+    .we     (1'b0),
+    .wd     ('0),
+    .d      (hw2reg.hw_barrier.d),
+    .qre    (),
+    .qe     (),
+    .q      (reg2hw.hw_barrier.q ),
+    .qs     (hw_barrier_qs)
   );
 
 
   // R[icache_prefetch_enable]: V(False)
 
   prim_subreg #(
-      .DW      (1),
-      .SWACCESS("WO"),
-      .RESVAL  (1'h1)
+    .DW      (1),
+    .SWACCESS("WO"),
+    .RESVAL  (1'h1)
   ) u_icache_prefetch_enable (
-      .clk_i (clk_i),
-      .rst_ni(rst_ni),
+    .clk_i   (clk_i    ),
+    .rst_ni  (rst_ni  ),
 
-      // from register interface
-      .we(icache_prefetch_enable_we),
-      .wd(icache_prefetch_enable_wd),
+    // from register interface
+    .we     (icache_prefetch_enable_we),
+    .wd     (icache_prefetch_enable_wd),
 
-      // from internal hardware
-      .de(1'b0),
-      .d ('0),
+    // from internal hardware
+    .de     (1'b0),
+    .d      ('0  ),
 
-      // to internal hardware
-      .qe(),
-      .q (reg2hw.icache_prefetch_enable.q),
+    // to internal hardware
+    .qe     (),
+    .q      (reg2hw.icache_prefetch_enable.q ),
 
-      .qs()
+    .qs     ()
   );
 
 
@@ -1619,16 +1619,16 @@ module snitch_cluster_peripheral_reg_top #(
   logic [51:0] addr_hit;
   always_comb begin
     addr_hit = '0;
-    addr_hit[0] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_0_OFFSET);
-    addr_hit[1] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_1_OFFSET);
-    addr_hit[2] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_2_OFFSET);
-    addr_hit[3] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_3_OFFSET);
-    addr_hit[4] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_4_OFFSET);
-    addr_hit[5] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_5_OFFSET);
-    addr_hit[6] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_6_OFFSET);
-    addr_hit[7] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_7_OFFSET);
-    addr_hit[8] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_8_OFFSET);
-    addr_hit[9] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_9_OFFSET);
+    addr_hit[ 0] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_0_OFFSET);
+    addr_hit[ 1] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_1_OFFSET);
+    addr_hit[ 2] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_2_OFFSET);
+    addr_hit[ 3] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_3_OFFSET);
+    addr_hit[ 4] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_4_OFFSET);
+    addr_hit[ 5] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_5_OFFSET);
+    addr_hit[ 6] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_6_OFFSET);
+    addr_hit[ 7] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_7_OFFSET);
+    addr_hit[ 8] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_8_OFFSET);
+    addr_hit[ 9] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_9_OFFSET);
     addr_hit[10] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_10_OFFSET);
     addr_hit[11] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_11_OFFSET);
     addr_hit[12] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_12_OFFSET);
@@ -1673,7 +1673,7 @@ module snitch_cluster_peripheral_reg_top #(
     addr_hit[51] = (reg_addr == SNITCH_CLUSTER_PERIPHERAL_ICACHE_PREFETCH_ENABLE_OFFSET);
   end
 
-  assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0;
+  assign addrmiss = (reg_re || reg_we) ? ~|addr_hit : 1'b0 ;
 
   // Check sub-word write is permitted
   always_comb begin
@@ -2052,82 +2052,82 @@ module snitch_cluster_peripheral_reg_top #(
       end
 
       addr_hit[16]: begin
-        reg_rdata_next[15:0]  = perf_cnt_sel_0_hart_0_qs;
+        reg_rdata_next[15:0] = perf_cnt_sel_0_hart_0_qs;
         reg_rdata_next[31:16] = perf_cnt_sel_0_metric_0_qs;
       end
 
       addr_hit[17]: begin
-        reg_rdata_next[15:0]  = perf_cnt_sel_1_hart_1_qs;
+        reg_rdata_next[15:0] = perf_cnt_sel_1_hart_1_qs;
         reg_rdata_next[31:16] = perf_cnt_sel_1_metric_1_qs;
       end
 
       addr_hit[18]: begin
-        reg_rdata_next[15:0]  = perf_cnt_sel_2_hart_2_qs;
+        reg_rdata_next[15:0] = perf_cnt_sel_2_hart_2_qs;
         reg_rdata_next[31:16] = perf_cnt_sel_2_metric_2_qs;
       end
 
       addr_hit[19]: begin
-        reg_rdata_next[15:0]  = perf_cnt_sel_3_hart_3_qs;
+        reg_rdata_next[15:0] = perf_cnt_sel_3_hart_3_qs;
         reg_rdata_next[31:16] = perf_cnt_sel_3_metric_3_qs;
       end
 
       addr_hit[20]: begin
-        reg_rdata_next[15:0]  = perf_cnt_sel_4_hart_4_qs;
+        reg_rdata_next[15:0] = perf_cnt_sel_4_hart_4_qs;
         reg_rdata_next[31:16] = perf_cnt_sel_4_metric_4_qs;
       end
 
       addr_hit[21]: begin
-        reg_rdata_next[15:0]  = perf_cnt_sel_5_hart_5_qs;
+        reg_rdata_next[15:0] = perf_cnt_sel_5_hart_5_qs;
         reg_rdata_next[31:16] = perf_cnt_sel_5_metric_5_qs;
       end
 
       addr_hit[22]: begin
-        reg_rdata_next[15:0]  = perf_cnt_sel_6_hart_6_qs;
+        reg_rdata_next[15:0] = perf_cnt_sel_6_hart_6_qs;
         reg_rdata_next[31:16] = perf_cnt_sel_6_metric_6_qs;
       end
 
       addr_hit[23]: begin
-        reg_rdata_next[15:0]  = perf_cnt_sel_7_hart_7_qs;
+        reg_rdata_next[15:0] = perf_cnt_sel_7_hart_7_qs;
         reg_rdata_next[31:16] = perf_cnt_sel_7_metric_7_qs;
       end
 
       addr_hit[24]: begin
-        reg_rdata_next[15:0]  = perf_cnt_sel_8_hart_8_qs;
+        reg_rdata_next[15:0] = perf_cnt_sel_8_hart_8_qs;
         reg_rdata_next[31:16] = perf_cnt_sel_8_metric_8_qs;
       end
 
       addr_hit[25]: begin
-        reg_rdata_next[15:0]  = perf_cnt_sel_9_hart_9_qs;
+        reg_rdata_next[15:0] = perf_cnt_sel_9_hart_9_qs;
         reg_rdata_next[31:16] = perf_cnt_sel_9_metric_9_qs;
       end
 
       addr_hit[26]: begin
-        reg_rdata_next[15:0]  = perf_cnt_sel_10_hart_10_qs;
+        reg_rdata_next[15:0] = perf_cnt_sel_10_hart_10_qs;
         reg_rdata_next[31:16] = perf_cnt_sel_10_metric_10_qs;
       end
 
       addr_hit[27]: begin
-        reg_rdata_next[15:0]  = perf_cnt_sel_11_hart_11_qs;
+        reg_rdata_next[15:0] = perf_cnt_sel_11_hart_11_qs;
         reg_rdata_next[31:16] = perf_cnt_sel_11_metric_11_qs;
       end
 
       addr_hit[28]: begin
-        reg_rdata_next[15:0]  = perf_cnt_sel_12_hart_12_qs;
+        reg_rdata_next[15:0] = perf_cnt_sel_12_hart_12_qs;
         reg_rdata_next[31:16] = perf_cnt_sel_12_metric_12_qs;
       end
 
       addr_hit[29]: begin
-        reg_rdata_next[15:0]  = perf_cnt_sel_13_hart_13_qs;
+        reg_rdata_next[15:0] = perf_cnt_sel_13_hart_13_qs;
         reg_rdata_next[31:16] = perf_cnt_sel_13_metric_13_qs;
       end
 
       addr_hit[30]: begin
-        reg_rdata_next[15:0]  = perf_cnt_sel_14_hart_14_qs;
+        reg_rdata_next[15:0] = perf_cnt_sel_14_hart_14_qs;
         reg_rdata_next[31:16] = perf_cnt_sel_14_metric_14_qs;
       end
 
       addr_hit[31]: begin
-        reg_rdata_next[15:0]  = perf_cnt_sel_15_hart_15_qs;
+        reg_rdata_next[15:0] = perf_cnt_sel_15_hart_15_qs;
         reg_rdata_next[31:16] = perf_cnt_sel_15_metric_15_qs;
       end
 
@@ -2231,23 +2231,24 @@ module snitch_cluster_peripheral_reg_top #(
 
 endmodule
 
-module snitch_cluster_peripheral_reg_top_intf #(
-    parameter  int AW = 9,
-    localparam int DW = 64
+module snitch_cluster_peripheral_reg_top_intf
+#(
+  parameter int AW = 9,
+  localparam int DW = 64
 ) (
-    input logic clk_i,
-    input logic rst_ni,
-    REG_BUS.in regbus_slave,
-    // To HW
-    output snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_reg2hw_t reg2hw,  // Write
-    input snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_hw2reg_t hw2reg,  // Read
-    // Config
-    input devmode_i  // If 1, explicit error return for unmapped register access
+  input logic clk_i,
+  input logic rst_ni,
+  REG_BUS.in  regbus_slave,
+  // To HW
+  output snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_reg2hw_t reg2hw, // Write
+  input  snitch_cluster_peripheral_reg_pkg::snitch_cluster_peripheral_hw2reg_t hw2reg, // Read
+  // Config
+  input devmode_i // If 1, explicit error return for unmapped register access
 );
-  localparam int unsigned STRB_WIDTH = DW / 8;
+ localparam int unsigned STRB_WIDTH = DW/8;
 
-  `include "register_interface/typedef.svh"
-  `include "register_interface/assign.svh"
+`include "register_interface/typedef.svh"
+`include "register_interface/assign.svh"
 
   // Define structs for reg_bus
   typedef logic [AW-1:0] addr_t;
@@ -2257,27 +2258,27 @@ module snitch_cluster_peripheral_reg_top_intf #(
 
   reg_bus_req_t s_reg_req;
   reg_bus_rsp_t s_reg_rsp;
-
+  
   // Assign SV interface to structs
   `REG_BUS_ASSIGN_TO_REQ(s_reg_req, regbus_slave)
   `REG_BUS_ASSIGN_FROM_RSP(regbus_slave, s_reg_rsp)
 
-
+  
 
   snitch_cluster_peripheral_reg_top #(
-      .reg_req_t(reg_bus_req_t),
-      .reg_rsp_t(reg_bus_rsp_t),
-      .AW(AW)
+    .reg_req_t(reg_bus_req_t),
+    .reg_rsp_t(reg_bus_rsp_t),
+    .AW(AW)
   ) i_regs (
-      .clk_i,
-      .rst_ni,
-      .reg_req_i(s_reg_req),
-      .reg_rsp_o(s_reg_rsp),
-      .reg2hw,  // Write
-      .hw2reg,  // Read
-      .devmode_i
+    .clk_i,
+    .rst_ni,
+    .reg_req_i(s_reg_req),
+    .reg_rsp_o(s_reg_rsp),
+    .reg2hw, // Write
+    .hw2reg, // Read
+    .devmode_i
   );
-
+  
 endmodule
 
 
