@@ -89,7 +89,7 @@
                 64
             ]
         },
-        "boot_rom_size": {
+        "bootrom_size": {
             "type": "number",
             "description": "Address region size reserved for the Bootrom-Memory in KiByte.",
             "examples": [

@@ -17,7 +17,7 @@
         },
         cluster_periph_size: 64, // kB
         zero_mem_size: 64, // kB
-        boot_rom_size: 4, // kB
+        bootrom_size: 4, // kB
         alias_region_enable: true,
         dma_data_width: 512,
         dma_nr_channels: 4,
