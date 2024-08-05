@@ -166,9 +166,9 @@ $(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --bootdata
 
 # REGGEN regfile
-$(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg.hjson
+$(GENERATED_DIR)/snitch_cluster_peripheral_reg_top.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg.hjson
 	@echo "[REGGEN] Generating $@"
-	$(REGGEN) -r -t $(PERIPH_DIR) $<
+	$(REGGEN) -r -t $(GENERATED_DIR) $<
 
 #############
 # Verilator #
