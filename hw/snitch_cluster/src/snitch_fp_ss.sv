@@ -528,6 +528,16 @@ module snitch_fp_ss import snitch_pkg::*; #(
         vectorial_op = 1'b1;
         set_dyn_rm   = 1'b1;
       end
+      riscv_instr::VFCVT_D_S,
+      riscv_instr::VFCVTU_D_S: begin
+        fpu_op = fpnew_pkg::F2F;
+        op_select[0] = RegA;
+        src_fmt      = fpnew_pkg::FP32;
+        dst_fmt      = fpnew_pkg::FP64;
+        vectorial_op = 1'b1;
+        set_dyn_rm   = 1'b1;
+        if (acc_req_q.data_op inside {riscv_instr::VFCVTU_D_S}) op_mode = 1'b1;
+      end
       // Double Precision
       riscv_instr::FADD_D: begin
         fpu_op = fpnew_pkg::ADD;
