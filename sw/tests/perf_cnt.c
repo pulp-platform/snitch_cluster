@@ -30,7 +30,7 @@ int main() {
         }
     }
 
-    // Test 3: Check that the performance counters can configured and started
+    // Test 3: Check that the performance counters can be configured and started
     if (core_idx == 0) {
         for (int i = 0; i < SNRT_NUM_PERF_CNTS; i++) {
             // Configure and start the performance counter
