@@ -239,6 +239,7 @@ help:
 	@echo -e "${Blue}$(BIN_DIR)/$(TARGET).vsim ${Black}Build compilation script and compile all sources for Questasim simulation."
 	@echo -e ""
 	@echo -e "${Blue}sw               ${Black}Build all software."
+	@echo -e "${Blue}rtl              ${Black}Build all RTL."
 	@echo -e ""
 	@echo -e "${Blue}clean            ${Black}Clean everything except traces in logs directory."
 	@echo -e "${Blue}clean-bender     ${Black}Clean Bender dependencies."
