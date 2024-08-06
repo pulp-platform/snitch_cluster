@@ -56,7 +56,6 @@
                 },
                 cores: [
                     { $ref: "#/snax_streamer_gemmX_core_template" },
-                    { $ref: "#/snax_xdma_core_template" },
                     { $ref: "#/dma_core_template" },
                 ]
             }
@@ -110,27 +109,6 @@
     },
     dma_core_template: {
         isa: "rv32ima",
-        // Xdiv_sqrt: true,
-        # isa: "rv32ema",
-        xdma: true
-        xssr: false
-        xfrep: false
-        xf16: false,
-        xf16alt: false,
-        xf8: false,
-        xf8alt: false,
-        xfdotp: false,
-        xfvec: false,
-        num_int_outstanding_loads: 1,
-        num_int_outstanding_mem: 4,
-        num_fp_outstanding_loads: 4,
-        num_fp_outstanding_mem: 4,
-        num_sequencer_instructions: 16,
-        num_dtlb_entries: 1,
-        num_itlb_entries: 1,
-    },
-    snax_xdma_core_template: {
-        isa: "rv32ima",
         snax_xdma_cfg: {
             reader_buffer: 8, 
             writer_buffer: 8, 
@@ -140,7 +118,7 @@
             HasVerilogMemset: 1, 
             HasMaxPool: 2
         }
-        xdma: false
+        xdma: true
         xssr: false
         xfrep: false
         xf16: false,

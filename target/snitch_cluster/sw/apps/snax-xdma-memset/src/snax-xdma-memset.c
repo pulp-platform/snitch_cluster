@@ -24,7 +24,7 @@ int main() {
     uint8_t *tcdm_112 = tcdm_baseaddress + 0x1c000 * sizeof(uint8_t);
 
     // Using xdma core only
-    if (snrt_cluster_core_idx() == snrt_cluster_compute_core_num() - 1) {
+    if (snrt_is_dm_core()) {
         // The xdma core is the last compute core in the cluster
 
         // Test 1: Setting the 0-16KB region to 0xFF
