@@ -170,7 +170,7 @@ $(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 
 # REGGEN regfile
 $(GENERATED_DIR)/snitch_cluster_peripheral_reg_pkg.sv: $(GENERATED_DIR)/snitch_cluster_peripheral_reg_top.sv
-$(GENERATED_DIR)/snitch_cluster_peripheral_reg_top.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg.hjson
+$(GENERATED_DIR)/snitch_cluster_peripheral_reg_top.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg.hjson | $(GENERATED_DIR)
 	@echo "[REGGEN] Generating peripheral regfile"
 	$(REGGEN) -r -t $(GENERATED_DIR) $<
 
