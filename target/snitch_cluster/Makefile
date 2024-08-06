@@ -152,7 +152,7 @@ include $(ROOT)/target/snitch_cluster/sw.mk
 #######
 
 .PHONY: rtl
-rtl: $(GENERATED_DIR)/snitch_cluster_wrapper.sv $(GENERATED_DIR)/snitch_cluster_peripheral_reg_pkg.sv
+rtl: $(GENERATED_DIR)/snitch_cluster_wrapper.sv $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv
 
 $(GENERATED_DIR):
 	mkdir -p $@
@@ -170,10 +170,10 @@ $(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --bootdata
 
 # REGGEN regfile
-$(GENERATED_DIR)/snitch_cluster_peripheral_reg_pkg.sv: $(GENERATED_DIR)/snitch_cluster_peripheral_reg_top.sv
-$(GENERATED_DIR)/snitch_cluster_peripheral_reg_top.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg.hjson | $(GENERATED_DIR)
+$(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv
+$(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg.hjson
 	@echo "[REGGEN] Generating peripheral regfile"
-	$(REGGEN) -r -t $(GENERATED_DIR) $<
+	$(REGGEN) -r -t $(PERIPH_DIR) $<
 
 #############
 # Verilator #
