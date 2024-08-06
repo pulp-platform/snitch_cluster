@@ -31,6 +31,7 @@ ROOT        := $(realpath ${MKFILE_DIR}../..)
 SNITCH_ROOT := $(ROOT)
 
 TARGET = snitch_cluster
+COMMON_BENDER_FLAGS += -t snitch_cluster
 
 include $(ROOT)/target/common/common.mk
 
@@ -65,8 +66,6 @@ $(BIN_DIR):
 #####################
 # Simulator options #
 #####################
-
-COMMON_BENDER_FLAGS += -t snitch_cluster
 
 QUESTA_64BIT = -64
 VLOG_64BIT   = -64
