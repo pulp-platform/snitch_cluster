@@ -28,6 +28,7 @@ class DMAExtensionHarness(extension: HasDMAExtension)
 
   io.busy_o := dut.io.busy_o
   dut.io.csr_i := io.csr_i
+  dut.io.bypass_i := io.bypass_i
   dut.io.start_i := io.start_i
 
   io.data_i -||> dut.io.data_i
@@ -46,10 +47,10 @@ abstract class DMAExtensionTester
     test(new DMAExtensionHarness(hasExtension))
       .withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) {
         dut =>
-          dut.io.csr_i.head.poke(0) // Bypass disabled
-          dut.io.csr_i.tail.zip(csr_vec).foreach { case (csrPort, csrData) =>
+          dut.io.csr_i.zip(csr_vec).foreach { case (csrPort, csrData) =>
             csrPort.poke(csrData)
           }
+          dut.io.bypass_i.poke(false) // Bypass disabled
 
           var concurrent_threads =
             new chiseltest.internal.TesterThreadList(Seq())

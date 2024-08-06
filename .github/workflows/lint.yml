@@ -144,6 +144,7 @@ jobs:
       - uses: DoozyX/clang-format-lint-action@v0.16.2
         with:
           clangFormatVersion: 10
+          exclude: './target/snitch_cluster/sw/snax/xdma/include/snax-xdma-csr-addr.h'
 
   ######################
   # Lint Editor Config #

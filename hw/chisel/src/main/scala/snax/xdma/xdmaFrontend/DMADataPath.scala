@@ -23,9 +23,9 @@ class DMADataPathCfgIO(param: DMADataPathParam) extends Bundle {
   }
   val ext_cfg = if (param.extParam.length != 0) {
     Vec(
-      param.extParam.map { i => i.totalCsrNum }.reduce(_ + _),
+      param.extParam.map { i => i.totalCsrNum }.reduce(_ + _) + 1,
       UInt(32.W)
-    ) // Buffered within Extension Base Module
+    ) // The total csr required by all extension + 1 for the bypass signal
   } else Vec(0, UInt(32.W))
 
   // The config forwarding technics is easy to be implemented: Just by reading agu_cfg.Ptr, the destination can be determined
@@ -210,12 +210,19 @@ class DMADataPath(
   } else {
     // There is some extension available: connect them
     // Connect CSR interface
+    var bypassCSR = io.reader_cfg_i.ext_cfg.head.asBools
     var remainingCSR =
-      io.reader_cfg_i.ext_cfg.toIndexedSeq // Give an alias to all extension's csr for a easier manipulation
+      io.reader_cfg_i.ext_cfg.tail // Give an alias to all extension's csr for a easier manipulation
     val i_reader_extentionList = for (i <- readerparam.extParam) yield {
+      // Instantiate the extension
       val extension = i.instantiate(clusterName = clusterName)
+      // Connect the CSR
       extension.io.csr_i := remainingCSR.take(extension.io.csr_i.length)
       remainingCSR = remainingCSR.drop(extension.io.csr_i.length)
+      // Connect the bypass signal
+      extension.io.bypass_i := bypassCSR.head
+      bypassCSR = bypassCSR.tail
+      // Return the extension for the future usage
       extension
     }
     if (remainingCSR.length != 0)
@@ -263,12 +270,19 @@ class DMADataPath(
   } else {
     // There is some extension available: connect them
     // Connect CSR interface
+    var bypassCSR = io.writer_cfg_i.ext_cfg.head.asBools
     var remainingCSR =
-      io.writer_cfg_i.ext_cfg.toIndexedSeq // Give an alias to all extension's csr for a easier manipulation
+      io.writer_cfg_i.ext_cfg.tail // Give an alias to all extension's csr for a easier manipulation
     val i_writer_extentionList = for (i <- writerparam.extParam) yield {
+      // Instantiate the extension
       val extension = i.instantiate(clusterName = clusterName)
+      // Connect the CSR
       extension.io.csr_i := remainingCSR.take(extension.io.csr_i.length)
       remainingCSR = remainingCSR.drop(extension.io.csr_i.length)
+      // Connect the bypass signal
+      extension.io.bypass_i := bypassCSR.head
+      bypassCSR = bypassCSR.tail
+      // Return the extension for the future usage
       extension
     }
     if (remainingCSR.length != 0)

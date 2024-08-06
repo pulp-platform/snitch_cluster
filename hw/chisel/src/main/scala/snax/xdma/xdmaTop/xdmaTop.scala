@@ -242,13 +242,14 @@ return ${i._1}
     .mkString("\n")
 
   // Write the sv_string to the SystemVerilog file
-  val outputFile = parsed_args.getOrElse(
+  val hardware_dir = parsed_args.getOrElse(
     "hw-target-dir",
     "generated"
   ) + "/" + s"${parsed_args.getOrElse("clusterName", "")}_xdma.sv"
-  val writer = new java.io.PrintWriter(outputFile)
-  writer.write(sv_string)
-  writer.close()
+  java.nio.file.Files.write(
+    java.nio.file.Paths.get(hardware_dir),
+    sv_string.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+  )
 
   // Generation of the software #define macros
   val macro_dir = parsed_args.getOrElse(
@@ -273,24 +274,35 @@ return ${i._1}
 #define XDMA_SRC_DIM ${readerparam.agu_param.dimension}
 #define XDMA_SRC_BOUND_PTR XDMA_SRC_ADDR_PTR_MSB + 1
 #define XDMA_SRC_STRIDE_PTR XDMA_SRC_BOUND_PTR + XDMA_SRC_DIM
-#define XDMA_SRC_EXT_CSR_PTR XDMA_SRC_STRIDE_PTR + XDMA_SRC_DIM
+#define XDMA_SRC_BYPASS_PTR XDMA_SRC_STRIDE_PTR + XDMA_SRC_DIM
 #define XDMA_SRC_EXT_NUM ${readerextensionparam.length}
+#if XDMA_SRC_EXT_NUM > 0
+#define XDMA_SRC_EXT_CSR_PTR XDMA_SRC_BYPASS_PTR + 1
+#else
+#define XDMA_SRC_EXT_CSR_PTR XDMA_SRC_BYPASS_PTR
+#endif
 #define XDMA_SRC_EXT_CSR_NUM ${readerextensionparam
         .map(_.extensionParam.userCsrNum)
-        .sum + readerextensionparam.length}
+        .sum}
 #define XDMA_SRC_EXT_CUSTOM_CSR_NUM \\
     { ${readerextensionparam.map(_.extensionParam.userCsrNum).mkString(", ")} }
+
 #define XDMA_DST_ADDR_PTR_LSB XDMA_SRC_EXT_CSR_PTR + XDMA_SRC_EXT_CSR_NUM
 #define XDMA_DST_ADDR_PTR_MSB XDMA_DST_ADDR_PTR_LSB + 1
 #define XDMA_DST_DIM ${writerparam.agu_param.dimension}
 #define XDMA_DST_BOUND_PTR XDMA_DST_ADDR_PTR_MSB + 1
 #define XDMA_DST_STRIDE_PTR XDMA_DST_BOUND_PTR + XDMA_DST_DIM
 #define XDMA_DST_STRB_PTR XDMA_DST_STRIDE_PTR + XDMA_DST_DIM
-#define XDMA_DST_EXT_CSR_PTR XDMA_DST_STRB_PTR + 1
+#define XDMA_DST_BYPASS_PTR XDMA_DST_STRB_PTR + 1
 #define XDMA_DST_EXT_NUM ${writerextensionparam.length}
+#if XDMA_DST_EXT_NUM > 0
+#define XDMA_DST_EXT_CSR_PTR XDMA_DST_BYPASS_PTR + 1
+#else
+#define XDMA_DST_EXT_CSR_PTR XDMA_DST_BYPASS_PTR
+#endif
 #define XDMA_DST_EXT_CSR_NUM ${writerextensionparam
         .map(_.extensionParam.userCsrNum)
-        .sum + writerextensionparam.length}
+        .sum}
 #define XDMA_DST_EXT_CUSTOM_CSR_NUM \\
     { ${writerextensionparam.map(_.extensionParam.userCsrNum).mkString(", ")} }
 #define XDMA_START_PTR XDMA_DST_EXT_CSR_PTR + XDMA_DST_EXT_CSR_NUM

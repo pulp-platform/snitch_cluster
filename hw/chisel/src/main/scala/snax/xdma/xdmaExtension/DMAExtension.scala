@@ -27,7 +27,7 @@ import snax.xdma.DesignParams._
 abstract class HasDMAExtension {
   implicit val extensionParam: DMAExtensionParam
 
-  def totalCsrNum = extensionParam.userCsrNum + 1
+  def totalCsrNum = extensionParam.userCsrNum
   def namePostfix = "_xdma_extension_" + extensionParam.moduleName
   def instantiate(clusterName: String): DMAExtension
 }
@@ -60,17 +60,19 @@ abstract class DMAExtension(implicit extensionParam: DMAExtensionParam)
 
   val io = IO(new Bundle {
     val csr_i = Input(
-      Vec(extensionParam.userCsrNum + 1, UInt(32.W))
+      Vec(extensionParam.userCsrNum, UInt(32.W))
     ) // CSR with the first one always byPass signal
     val start_i = Input(
       Bool()
     ) // The start signal triggers the local register to buffer the csr information
+    val bypass_i = Input(
+      Bool()
+    ) // The signal controlling a pair of mux / demux to bypass the extension
     val data_i = Flipped(Decoupled(UInt(extensionParam.dataWidth.W)))
     val data_o = Decoupled(UInt(extensionParam.dataWidth.W))
     val busy_o = Output(Bool())
   })
 
-  private[this] val bypass = io.csr_i.head(0)
   private[this] val bypass_data = Wire(
     Decoupled(UInt(extensionParam.dataWidth.W))
   )
@@ -78,7 +80,7 @@ abstract class DMAExtension(implicit extensionParam: DMAExtensionParam)
   // Signals under user's namespace
   val ext_data_i = Wire(Decoupled(UInt(extensionParam.dataWidth.W)))
   val ext_data_o = Wire(Decoupled(UInt(extensionParam.dataWidth.W)))
-  val ext_csr_i = io.csr_i.tail
+  val ext_csr_i = io.csr_i
   val ext_start_i = io.start_i
   val ext_busy_o = Wire(Bool())
   io.busy_o := ext_busy_o || ext_data_i.valid
@@ -89,7 +91,7 @@ abstract class DMAExtension(implicit extensionParam: DMAExtensionParam)
       override def desiredName = s"xdma_extension_inputDemux"
     }
   )
-  inputDemux.io.sel := bypass
+  inputDemux.io.sel := io.bypass_i
   inputDemux.io.in <> io.data_i
   // When bypass is 0, io.out(0) is connected with extension's input
   inputDemux.io.out(0) <> ext_data_i
@@ -102,7 +104,7 @@ abstract class DMAExtension(implicit extensionParam: DMAExtensionParam)
       override def desiredName = s"xdma_extension_outputMux"
     }
   )
-  outputMux.io.sel := bypass
+  outputMux.io.sel := io.bypass_i
   outputMux.io.out <> io.data_o
   // When bypass is 0, io.in(0) is connected with extension's output
   outputMux.io.in(0) <> ext_data_o

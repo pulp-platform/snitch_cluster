@@ -216,11 +216,13 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         currentAddress += 1
 
         // Data Extension Region
+        // Bypass signals
         write_csr(
           dut = dut,
           port = dut.io.csrIO,
           addr = currentAddress,
-          data = writerExtParam.bypassMemset
+          data =
+            (writerExtParam.bypassMemset << 0) + (writerExtParam.bypassMaxPool << 1) + (writerExtParam.bypassTransposer << 2)
         )
         currentAddress += 1
 
@@ -236,23 +238,7 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           dut = dut,
           port = dut.io.csrIO,
           addr = currentAddress,
-          data = writerExtParam.bypassMaxPool
-        )
-        currentAddress += 1
-
-        write_csr(
-          dut = dut,
-          port = dut.io.csrIO,
-          addr = currentAddress,
           data = writerExtParam.MaxPoolPeriod
-        )
-        currentAddress += 1
-
-        write_csr(
-          dut = dut,
-          port = dut.io.csrIO,
-          addr = currentAddress,
-          data = writerExtParam.bypassTransposer
         )
         currentAddress += 1
 
@@ -385,11 +371,13 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         currentAddress += 1
 
         // Data Extension Region
+        // Bypass signals
         write_csr(
           dut = dut,
           port = dut.io.csrIO,
           addr = currentAddress,
-          data = writerExtParam.bypassMemset
+          data =
+            (writerExtParam.bypassMemset << 0) + (writerExtParam.bypassMaxPool << 1) + (writerExtParam.bypassTransposer << 2)
         )
         currentAddress += 1
 
@@ -405,23 +393,7 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           dut = dut,
           port = dut.io.csrIO,
           addr = currentAddress,
-          data = writerExtParam.bypassMaxPool
-        )
-        currentAddress += 1
-
-        write_csr(
-          dut = dut,
-          port = dut.io.csrIO,
-          addr = currentAddress,
           data = writerExtParam.MaxPoolPeriod
-        )
-        currentAddress += 1
-
-        write_csr(
-          dut = dut,
-          port = dut.io.csrIO,
-          addr = currentAddress,
-          data = writerExtParam.bypassTransposer
         )
         currentAddress += 1
 
@@ -550,11 +522,13 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         currentAddress += 1
 
         // Data Extension Region
+        // Bypass signals
         write_csr(
           dut = dut,
           port = dut.io.csrIO,
           addr = currentAddress,
-          data = writerExtParam.bypassMemset
+          data =
+            (writerExtParam.bypassMemset << 0) + (writerExtParam.bypassMaxPool << 1) + (writerExtParam.bypassTransposer << 2)
         )
         currentAddress += 1
 
@@ -570,23 +544,7 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           dut = dut,
           port = dut.io.csrIO,
           addr = currentAddress,
-          data = writerExtParam.bypassMaxPool
-        )
-        currentAddress += 1
-
-        write_csr(
-          dut = dut,
-          port = dut.io.csrIO,
-          addr = currentAddress,
           data = writerExtParam.MaxPoolPeriod
-        )
-        currentAddress += 1
-
-        write_csr(
-          dut = dut,
-          port = dut.io.csrIO,
-          addr = currentAddress,
-          data = writerExtParam.bypassTransposer
         )
         currentAddress += 1
 
@@ -750,11 +708,13 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         currentAddress += 1
 
         // Data Extension Region
+        // Bypass signals
         write_csr(
           dut = dut,
           port = dut.io.csrIO,
           addr = currentAddress,
-          data = writerExtParam.bypassMemset
+          data =
+            (writerExtParam.bypassMemset << 0) + (writerExtParam.bypassMaxPool << 1) + (writerExtParam.bypassTransposer << 2)
         )
         currentAddress += 1
 
@@ -770,23 +730,7 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           dut = dut,
           port = dut.io.csrIO,
           addr = currentAddress,
-          data = writerExtParam.bypassMaxPool
-        )
-        currentAddress += 1
-
-        write_csr(
-          dut = dut,
-          port = dut.io.csrIO,
-          addr = currentAddress,
           data = writerExtParam.MaxPoolPeriod
-        )
-        currentAddress += 1
-
-        write_csr(
-          dut = dut,
-          port = dut.io.csrIO,
-          addr = currentAddress,
-          data = writerExtParam.bypassTransposer
         )
         currentAddress += 1
 

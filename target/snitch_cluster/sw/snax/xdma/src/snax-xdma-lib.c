@@ -101,36 +101,35 @@ int32_t xdma_memcpy_1d(uint8_t* src, uint8_t* dst, uint32_t size) {
 
 // xdma extension interface
 int32_t xdma_enable_src_ext(uint8_t ext, uint32_t* csr_value) {
-    if (ext >= XDMA_SRC_EXT_NUM) {
+    if (ext >= XDMA_SRC_EXT_NUM || XDMA_SRC_EXT_NUM == 0) {
         return -1;
     }
     uint8_t custom_csr_list[XDMA_SRC_EXT_NUM] = XDMA_SRC_EXT_CUSTOM_CSR_NUM;
     uint32_t csr_offset = XDMA_SRC_EXT_CSR_PTR;
     for (uint8_t i = 0; i < ext; i++) {
-        csr_offset += custom_csr_list[i] + 1;
+        csr_offset += custom_csr_list[i];
     }
 
-    // Not bypass the xdma extension -> set the first CSR to 0
-    csrw_ss(csr_offset, 0);
-    csr_offset++;
+    // Not bypass the xdma extension -> set the corresponding CSR bit to 0
+    csrw_ss(XDMA_SRC_BYPASS_PTR, csrr_ss(XDMA_SRC_BYPASS_PTR) & ~(1 << ext));
+
     for (uint8_t i = 0; i < custom_csr_list[ext]; i++) {
         csrw_ss(csr_offset + i, csr_value[i]);
     }
     return 0;
 }
 int32_t xdma_enable_dst_ext(uint8_t ext, uint32_t* csr_value) {
-    if (ext >= XDMA_DST_EXT_NUM) {
+    if (ext >= XDMA_DST_EXT_NUM || XDMA_DST_EXT_NUM == 0) {
         return -1;
     }
     uint8_t custom_csr_list[XDMA_DST_EXT_NUM] = XDMA_DST_EXT_CUSTOM_CSR_NUM;
     uint32_t csr_offset = XDMA_DST_EXT_CSR_PTR;
     for (uint8_t i = 0; i < ext; i++) {
-        csr_offset += custom_csr_list[i] + 1;
+        csr_offset += custom_csr_list[i];
     }
 
-    // Not bypass the xdma extension -> set the first CSR to 0
-    csrw_ss(csr_offset, 0);
-    csr_offset++;
+    // Not bypass the xdma extension -> set the corresponding CSR bit to 0
+    csrw_ss(XDMA_DST_BYPASS_PTR, csrr_ss(XDMA_DST_BYPASS_PTR) & ~(1 << ext));
     for (uint8_t i = 0; i < custom_csr_list[ext]; i++) {
         csrw_ss(csr_offset + i, csr_value[i]);
     }
@@ -138,32 +137,20 @@ int32_t xdma_enable_dst_ext(uint8_t ext, uint32_t* csr_value) {
 }
 
 int32_t xdma_disable_src_ext(uint8_t ext) {
-    if (ext >= XDMA_SRC_EXT_NUM) {
-        return -1;
+    if (ext >= XDMA_SRC_EXT_NUM || XDMA_SRC_EXT_NUM == 0) {
+        return 0;
     }
-    uint8_t custom_csr_list[XDMA_SRC_EXT_NUM] = XDMA_SRC_EXT_CUSTOM_CSR_NUM;
-    uint32_t csr_offset = XDMA_SRC_EXT_CSR_PTR;
-    for (uint8_t i = 0; i < ext; i++) {
-        csr_offset += custom_csr_list[i] + 1;
-    }
-
-    // Bypass the xdma extension -> set the first CSR to 1
-    csrw_ss(csr_offset, 1);
+    // Bypass the xdma extension -> set the corresponding CSR bit to 1
+    csrw_ss(XDMA_SRC_BYPASS_PTR, csrr_ss(XDMA_SRC_BYPASS_PTR) | (1 << ext));
     return 0;
 }
 
 int32_t xdma_disable_dst_ext(uint8_t ext) {
-    if (ext >= XDMA_DST_EXT_NUM) {
-        return -1;
+    if (ext >= XDMA_DST_EXT_NUM || XDMA_DST_EXT_NUM == 0) {
+        return 0;
     }
-    uint8_t custom_csr_list[XDMA_DST_EXT_NUM] = XDMA_DST_EXT_CUSTOM_CSR_NUM;
-    uint32_t csr_offset = XDMA_DST_EXT_CSR_PTR;
-    for (uint8_t i = 0; i < ext; i++) {
-        csr_offset += custom_csr_list[i] + 1;
-    }
-
-    // Bypass the xdma extension -> set the first CSR to 1
-    csrw_ss(csr_offset, 1);
+    // Bypass the xdma extension -> set the corresponding CSR bit to 1
+    csrw_ss(XDMA_DST_BYPASS_PTR, csrr_ss(XDMA_DST_BYPASS_PTR) | (1 << ext));
     return 0;
 }
 

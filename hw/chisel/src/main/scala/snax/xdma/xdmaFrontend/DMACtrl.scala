@@ -191,15 +191,15 @@ class DMACtrl(
         0 + // The strb for reader: non-effective, so donot assign CSR
         {
           if (readerparam.extParam.length == 0) 0
-          else readerparam.extParam.map { i => i.totalCsrNum }.reduce(_ + _)
-        } + // The total num of param on reader extension
+          else readerparam.extParam.map { i => i.totalCsrNum }.reduce(_ + _) + 1
+        } + // The total num of param on reader extension (custom CSR + bypass CSR)
         2 + // Writer Pointer needs two CSRs
         writerparam.rwParam.agu_param.dimension * 2 + // Strides + Bounds for writer
         1 + // The strb for writer: effective, so assign one CSR
         {
           if (writerparam.extParam.length == 0) 0
-          else writerparam.extParam.map { i => i.totalCsrNum }.reduce(_ + _)
-        } + // The total num of param on writer
+          else writerparam.extParam.map { i => i.totalCsrNum }.reduce(_ + _) + 1
+        } + // The total num of param on writer (custom CSR + bypass CSR)
         1, // The start CSR
       csrNumReadOnly = 2,
       // Set to two at current, 1) The number of submitted request; 2) The number of finished request. Since the reader path may be forward to remote, here I only count the writer branch
