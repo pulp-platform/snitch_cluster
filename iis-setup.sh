@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Define environment variables
-export BENDER=bender-0.28.1
+export BENDER=bender-0.27.1
 export CC=gcc-9.2.0
 export CXX=g++-9.2.0
 export VCS_SEPP=vcs-2020.12
