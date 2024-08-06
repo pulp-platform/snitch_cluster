@@ -56,6 +56,25 @@ jobs:
         with:
           message: Found differences, please update all opcode
 
+  ######################
+  # Sources Up-to-Date #
+  ######################
+  check-sources:
+    name: Check Sources Up-to-Date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Generate RTL sources
+        working-directory: target/snitch_cluster
+        run: |
+          make rtl
+      - name: Diff porcelain
+        uses: mmontes11/diff-porcelain@v0.0.1
+        with:
+          message: Found differences, please update all sources
+
   #################
   # Check License #
   #################
