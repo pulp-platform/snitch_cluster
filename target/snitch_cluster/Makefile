@@ -18,6 +18,7 @@ SELECT_RUNTIME ?= rtl
 
 .DEFAULT_GOAL := help
 .PHONY: all clean
+all: rtl sw
 clean: clean-work clean-vcs clean-logs clean-bender clean-generated
 
 ##########
