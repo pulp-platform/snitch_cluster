@@ -149,17 +149,13 @@ sources:
       - hw/snitch_ssr/test/tb_simple_ssr.sv
       - hw/snitch_ssr/test/tb_simple_ssr_streamer.sv
 
-  # cluster peripherals
-  - target: snitch_cluster
-    files:
-      - target/snitch_cluster/generated/snitch_cluster_peripheral_reg_pkg.sv
-      - target/snitch_cluster/generated/snitch_cluster_peripheral_reg_top.sv
-      - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral.sv
-
   # snitch_cluster
   - files:
       # Level 0
       - hw/snitch_cluster/src/snitch_amo_shim.sv
+      - target/snitch_cluster/generated/snitch_cluster_peripheral_reg_pkg.sv
+      - target/snitch_cluster/generated/snitch_cluster_peripheral_reg_top.sv
+      - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral.sv
       - hw/snitch_cluster/src/snitch_fpu.sv
       - hw/snitch_cluster/src/snitch_sequencer.sv
       - hw/snitch_cluster/src/snitch_tcdm_interconnect.sv
