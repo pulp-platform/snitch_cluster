@@ -74,7 +74,8 @@ jobs:
           make rtl
       - name: Check git safe directories
         run: |
-          git config --global --get-all safe.directory
+          ls -al /__w/snitch_cluster/snitch_cluster
+          echo $GITHUB_WORKSPACE
       - name: Diff porcelain
         uses: mmontes11/diff-porcelain@v0.0.1
         with:
