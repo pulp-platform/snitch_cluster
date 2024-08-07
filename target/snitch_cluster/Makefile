@@ -19,7 +19,7 @@ SELECT_RUNTIME ?= rtl
 .DEFAULT_GOAL := help
 .PHONY: all clean
 all: rtl sw
-clean: clean-work clean-vcs clean-logs clean-bender clean-generated
+clean: clean-rtl clean-work clean-vcs clean-logs clean-bender clean-generated
 
 ##########
 # Common #
@@ -151,8 +151,16 @@ include $(ROOT)/target/snitch_cluster/sw.mk
 # RTL #
 #######
 
-.PHONY: rtl
-rtl: $(GENERATED_DIR)/snitch_cluster_wrapper.sv $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv
+GENERATED_RTL_SOURCES  = $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv
+GENERATED_RTL_SOURCES += $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv
+GENERATED_RTL_SOURCES += $(GENERATED_DIR)/snitch_cluster_wrapper.sv
+
+.PHONY: rtl clean-rtl
+
+rtl: $(GENERATED_RTL_SOURCES)
+
+clean-rtl:
+	rm -f $(GENERATED_RTL_SOURCES)
 
 $(GENERATED_DIR):
 	mkdir -p $@
@@ -243,6 +251,7 @@ help:
 	@echo -e ""
 	@echo -e "${Blue}clean            ${Black}Clean everything except traces in logs directory."
 	@echo -e "${Blue}clean-bender     ${Black}Clean Bender dependencies."
+	@echo -e "${Blue}clean-rtl        ${Black}Clean all generated RTL sources."
 	@echo -e "${Blue}clean-sw         ${Black}Clean all software."
 	@echo -e "${Blue}clean-generated  ${Black}Delete all generated files in the generated directory."
 	@echo -e "${Blue}clean-logs       ${Black}Delete all traces in logs directory."
