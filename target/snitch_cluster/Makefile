@@ -34,7 +34,7 @@ SNAX_TPL_PATH := $(ROOT)/hw/templates/
 SNAX_TEST_PATH := $(ROOT)/target/snitch_cluster/test/
 SNAX_CHISEL_ACC_PATH := $(ROOT)/hw/chisel_acc
 SNAX_CHISEL_PATH := $(ROOT)/hw/chisel/
-CFG_FILE := $(ROOT)/target/snitch_cluster/$(CFG_OVERRIDE)
+CFG_FILE = $(shell realpath $(CFG_OVERRIDE))
 
 include $(ROOT)/target/common/common.mk
 
