@@ -73,8 +73,9 @@ jobs:
         run: |
           make rtl
       - name: Diff porcelain
-        run: |
-          git status && test -z "$(git status --porcelain)"
+        uses: mmontes11/diff-porcelain@v0.0.1
+        with:
+          message: Found differences, please update all sources
 
   #################
   # Check License #
