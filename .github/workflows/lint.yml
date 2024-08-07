@@ -72,9 +72,10 @@ jobs:
         working-directory: target/snitch_cluster
         run: |
           make rtl
+      # For some reason, the checkout is done with a different user,
+      # so we need to set the repository as a safe directory (again).
       - name: Git config safe.directory
         run: |
-          ls -al $GITHUB_WORKSPACE/../
           git config --global --add safe.directory $GITHUB_WORKSPACE
       - name: Diff porcelain
         uses: mmontes11/diff-porcelain@v0.0.1
