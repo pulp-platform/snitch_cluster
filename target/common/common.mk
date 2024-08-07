@@ -47,14 +47,10 @@ VLT_ROOT        ?= ${VERILATOR_ROOT}
 VLT_JOBS        ?= $(shell nproc)
 VLT_NUM_THREADS ?= 1
 
-MATCH_END := '/+incdir+/ s/$$/\/*\/*/'
-MATCH_BGN := 's/+incdir+//g'
-SED_SRCS  := sed -e ${MATCH_END} -e ${MATCH_BGN}
-
 COMMON_BENDER_FLAGS += -t rtl
 
 VSIM_BENDER   += $(COMMON_BENDER_FLAGS) -t test -t simulation -t vsim
-VSIM_SOURCES   = $(shell ${BENDER} script flist ${VSIM_BENDER} | ${SED_SRCS})
+VSIM_SOURCES   = $(shell ${BENDER} script flist ${VSIM_BENDER})
 VSIM_BUILDDIR ?= work-vsim
 VSIM_FLAGS    += -t 1ps
 ifeq ($(DEBUG), ON)
@@ -67,7 +63,7 @@ endif
 # VCS_BUILDDIR should to be the same as the `DEFAULT : ./work-vcs`
 # in target/snitch_cluster/synopsys_sim.setup
 VCS_BENDER   += $(COMMON_BENDER_FLAGS) -t test -t simulation -t vcs
-VCS_SOURCES   = $(shell ${BENDER} script flist ${VCS_BENDER} | ${SED_SRCS})
+VCS_SOURCES   = $(shell ${BENDER} script flist ${VCS_BENDER})
 VCS_BUILDDIR := work-vcs
 
 # fesvr is being installed here
@@ -75,7 +71,7 @@ FESVR         ?= ${MKFILE_DIR}work
 FESVR_VERSION ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
 
 VLT_BENDER   += $(COMMON_BENDER_FLAGS) -DCOMMON_CELLS_ASSERTS_OFF
-VLT_SOURCES   = $(shell ${BENDER} script flist ${VLT_BENDER} | ${SED_SRCS})
+VLT_SOURCES   = $(shell ${BENDER} script flist ${VLT_BENDER})
 VLT_BUILDDIR := $(abspath work-vlt)
 VLT_FESVR     = $(VLT_BUILDDIR)/riscv-isa-sim
 VLT_FLAGS    += --timing
