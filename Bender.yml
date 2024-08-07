@@ -410,36 +410,42 @@ sources:
   - target: snitch_cluster
     files:
       - target/snitch_cluster/generated/snitch_cluster_wrapper.sv
-  - target: snax_mac
+  - target: snax_mac_cluster
     files:
       - target/snitch_cluster/generated/snax_mac_cluster_wrapper.sv
-  - target: snax_alu
+  - target: snax_mac_mult_cluster
+    files:
+      - target/snitch_cluster/generated/snax_mac_mult_cluster_wrapper.sv
+  - target: snax_alu_cluster
     files:
       - target/snitch_cluster/generated/snax_alu_cluster_wrapper.sv
   # Note: this is about to be obsolete
   # but it uses the old snax-gemm still
-  - target: snax-gemm
+  - target: snax_gemm_cluster
     files:
       - target/snitch_cluster/generated/snax_gemm_cluster_wrapper.sv
-  - target: any(snax_streamer_gemm, snax_wide_gemm_data_reshuffler)
+  - target: snax_streamer_gemm_conv_cluster
+    files:
+      - target/snitch_cluster/generated/snax_streamer_gemm_conv_cluster_wrapper.sv
+  - target: snax_wide_gemm_data_reshuffler_cluster
+    files:
+      - target/snitch_cluster/generated/snax_wide_gemm_data_reshuffler_cluster_wrapper.sv
+  - target: snax_streamer_gemm_cluster
     files:
       - target/snitch_cluster/generated/snax_streamer_gemm_cluster_wrapper.sv
-  - target: snax_streamer_simd
+  - target: snax_streamer_simd_cluster
     files:
       - target/snitch_cluster/generated/snax_streamer_simd_cluster_wrapper.sv
-  - target: snax_data_reshuffler
+  - target: snax_data_reshuffler_cluster
     files:
       - target/snitch_cluster/generated/snax_data_reshuffler_cluster_wrapper.sv
-  - target: snax_data_reshuffler
-    files:
-      - target/snitch_cluster/generated/snax_data_reshuffler_cluster_wrapper.sv
-  - target: snax_streamer_gemmX
+  - target: snax_streamer_gemmX_cluster
     files:
       - target/snitch_cluster/generated/snax_streamer_gemmX_cluster_wrapper.sv
-  - target: snax_streamer_gemmX_xdma
+  - target: snax_streamer_gemmX_xdma_cluster
     files:
       - target/snitch_cluster/generated/snax_streamer_gemmX_xdma_cluster_wrapper.sv
-  - target: snax_streamer_gemm_add_c
+  - target: snax_streamer_gemm_add_c_cluster
     files:
       - target/snitch_cluster/generated/snax_streamer_gemm_add_c_cluster_wrapper.sv
 

@@ -77,9 +77,9 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-gemm.hjson)
 	SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
 	include $(SNAX_GEMM_ROOT)/Makefile	
 
-	VSIM_BENDER += -t snax-gemm
-	VLT_BENDER  += -t snax-gemm
-	VCS_BENDER  += -t snax-gemm
+	VSIM_BENDER += -t snax-gemm -t snax_gemm_cluster
+	VLT_BENDER  += -t snax-gemm -t snax_gemm_cluster
+	VCS_BENDER  += -t snax-gemm -t snax_gemm_cluster
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm.hjson)
@@ -89,9 +89,9 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm.hjson)
 	SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
 	include $(SNAX_GEMM_ROOT)/Makefile
 
-	VSIM_BENDER += -t snax_streamer_gemm
-	VLT_BENDER  += -t snax_streamer_gemm
-	VCS_BENDER  += -t snax_streamer_gemm
+	VSIM_BENDER += -t snax_streamer_gemm -t snax_streamer_gemm_cluster
+	VLT_BENDER  += -t snax_streamer_gemm -t snax_streamer_gemm_cluster
+	VCS_BENDER  += -t snax_streamer_gemm -t snax_streamer_gemm_cluster
 
 endif
 
@@ -102,9 +102,9 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-simd.hjson)
 	SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-postprocessing-simd)
 	include $(SNAX_GEMM_ROOT)/Makefile
 
-	VSIM_BENDER += -t snax_streamer_simd
-	VLT_BENDER  += -t snax_streamer_simd
-	VCS_BENDER  += -t snax_streamer_simd
+	VSIM_BENDER += -t snax_streamer_simd -t snax_streamer_simd_cluster
+	VLT_BENDER  += -t snax_streamer_simd -t snax_streamer_simd_cluster
+	VCS_BENDER  += -t snax_streamer_simd -t snax_streamer_simd_cluster
 
 
 endif
@@ -113,9 +113,9 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-alu.hjson)
 
 	CLUSTER_NAME = snax_alu_cluster
 
-	VSIM_BENDER += -t snax_alu
-	VLT_BENDER  += -t snax_alu
-	VCS_BENDER  += -t snax_alu
+	VSIM_BENDER += -t snax_alu -t snax_alu_cluster
+	VLT_BENDER  += -t snax_alu -t snax_alu_cluster
+	VCS_BENDER  += -t snax_alu -t snax_alu_cluster
 
 endif
 
@@ -126,9 +126,9 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-data-reshuffler.hjson)
 	SNAX_CHISEL_ACC_GEN = true
 	include $(SNAX_CHISEL_ACC_PATH)/Makefile
 
-	VSIM_BENDER += -t snax_data_reshuffler
-	VLT_BENDER  += -t snax_data_reshuffler
-	VCS_BENDER  += -t snax_data_reshuffler
+	VSIM_BENDER += -t snax_data_reshuffler -t snax_data_reshuffler_cluster
+	VLT_BENDER  += -t snax_data_reshuffler -t snax_data_reshuffler_cluster
+	VCS_BENDER  += -t snax_data_reshuffler -t snax_data_reshuffler_cluster
 
 endif
 
@@ -138,22 +138,22 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm-add-c.hjson)
 	SNAX_CHISEL_ACC_GEN = true
     include $(SNAX_CHISEL_ACC_PATH)/Makefile
  
-    VSIM_BENDER += -t snax_streamer_gemm_add_c
-    VLT_BENDER  += -t snax_streamer_gemm_add_c
-    VCS_BENDER  += -t snax_streamer_gemm_add_c
+    VSIM_BENDER += -t snax_streamer_gemm_add_c -t snax_streamer_gemm_add_c_cluster
+    VLT_BENDER  += -t snax_streamer_gemm_add_c -t snax_streamer_gemm_add_c_cluster
+    VCS_BENDER  += -t snax_streamer_gemm_add_c -t snax_streamer_gemm_add_c_cluster
  
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm-conv.hjson)
 
-	CLUSTER_NAME = snax_streamer_gemm_cluster
+	CLUSTER_NAME = snax_streamer_gemm_conv_cluster
  
     SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
     include $(SNAX_GEMM_ROOT)/Makefile
 
-    VSIM_BENDER += -t snax_streamer_gemm
-    VLT_BENDER  += -t snax_streamer_gemm
-    VCS_BENDER  += -t snax_streamer_gemm
+    VSIM_BENDER += -t snax_streamer_gemm -t snax_streamer_gemm_conv_cluster
+    VLT_BENDER  += -t snax_streamer_gemm -t snax_streamer_gemm_conv_cluster
+    VCS_BENDER  += -t snax_streamer_gemm -t snax_streamer_gemm_conv_cluster
  
 endif
 
@@ -164,9 +164,9 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemmX.hjson)
 	SNAX_CHISEL_ACC_GEN = true
     include $(SNAX_CHISEL_ACC_PATH)/Makefile
  
-    VSIM_BENDER += -t snax_streamer_gemmX
-    VLT_BENDER  += -t snax_streamer_gemmX
-    VCS_BENDER  += -t snax_streamer_gemmX
+    VSIM_BENDER += -t snax_streamer_gemmX -t snax_streamer_gemmX_cluster
+    VLT_BENDER  += -t snax_streamer_gemmX -t snax_streamer_gemmX_cluster
+    VCS_BENDER  += -t snax_streamer_gemmX -t snax_streamer_gemmX_cluster
  
 endif
 
@@ -183,15 +183,15 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemmX-xdma.hjson)
 	$(GENERATED_DIR)/$(CLUSTER_NAME)_xdma/$(CLUSTER_NAME)_xdma.sv \
 	$(GENERATED_DIR)/$(CLUSTER_NAME)_xdma/$(CLUSTER_NAME)_xdma_wrapper.sv
  
-    VSIM_BENDER += -t snax_streamer_gemmX_xdma
-    VLT_BENDER  += -t snax_streamer_gemmX_xdma
-    VCS_BENDER  += -t snax_streamer_gemmX_xdma
+    VSIM_BENDER += -t snax_streamer_gemmX_xdma -t snax_streamer_gemmX_xdma_cluster
+    VLT_BENDER  += -t snax_streamer_gemmX_xdma -t snax_streamer_gemmX_xdma_cluster
+    VCS_BENDER  += -t snax_streamer_gemmX_xdma -t snax_streamer_gemmX_xdma_cluster
  
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-wide-gemm-data-reshuffler.hjson)
  
- 	CLUSTER_NAME = snax_streamer_gemm_cluster
+ 	CLUSTER_NAME = snax_wide_gemm_data_reshuffler_cluster
  
     SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
     include $(SNAX_GEMM_ROOT)/Makefile
@@ -199,9 +199,9 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-wide-gemm-data-reshuffler.hjson)
 	SNAX_CHISEL_ACC_GEN = true
 	include $(SNAX_CHISEL_ACC_PATH)/Makefile
 
-	VSIM_BENDER += -t snax_wide_gemm_data_reshuffler
-	VLT_BENDER  += -t snax_wide_gemm_data_reshuffler
-	VCS_BENDER  += -t snax_wide_gemm_data_reshuffler
+	VSIM_BENDER += -t snax_wide_gemm_data_reshuffler -t snax_wide_gemm_data_reshuffler_cluster
+	VLT_BENDER  += -t snax_wide_gemm_data_reshuffler -t snax_wide_gemm_data_reshuffler_cluster
+	VCS_BENDER  += -t snax_wide_gemm_data_reshuffler -t snax_wide_gemm_data_reshuffler_cluster
  
 endif
 
@@ -211,21 +211,21 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-mac.hjson)
 
 	BYPASS_ACCGEN = true
 	
-	VSIM_BENDER += -t snax_mac
-	VLT_BENDER  += -t snax_mac
-	VCS_BENDER  += -t snax_mac
+	VSIM_BENDER += -t snax_mac -t snax_mac_cluster
+	VLT_BENDER  += -t snax_mac -t snax_mac_cluster
+	VCS_BENDER  += -t snax_mac -t snax_mac_cluster
 
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-mac-mult.hjson)
 
-	CLUSTER_NAME  = snax_mac_cluster
+	CLUSTER_NAME  = snax_mac_mult_cluster
 
 	BYPASS_ACCGEN = true
 	
-	VSIM_BENDER += -t snax_mac
-	VLT_BENDER  += -t snax_mac
-	VCS_BENDER  += -t snax_mac
+	VSIM_BENDER += -t snax_mac -t snax_mac_mult_cluster
+	VLT_BENDER  += -t snax_mac -t snax_mac_mult_cluster
+	VCS_BENDER  += -t snax_mac -t snax_mac_mult_cluster
 
 endif
 
