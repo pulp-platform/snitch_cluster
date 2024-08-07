@@ -32,7 +32,9 @@ SNITCH_ROOT := $(ROOT)
 SNAX_CFG_PATH := $(ROOT)/target/snitch_cluster/cfg/
 SNAX_TPL_PATH := $(ROOT)/hw/templates/
 SNAX_TEST_PATH := $(ROOT)/target/snitch_cluster/test/
-CHISEL_PATH := $(ROOT)/hw/chisel/
+SNAX_CHISEL_ACC_PATH := $(ROOT)/hw/chisel_acc
+SNAX_CHISEL_PATH := $(ROOT)/hw/chisel/
+CFG_FILE := $(ROOT)/target/snitch_cluster/$(CFG_OVERRIDE)
 
 include $(ROOT)/target/common/common.mk
 
@@ -57,6 +59,7 @@ GENERATED_DIR     ?= $(MKFILE_DIR)generated
 #  Default Values  #
 ####################
 BYPASS_ACCGEN = false
+SNAX_CHISEL_ACC_GEN = false
 CLUSTER_NAME = snitch_cluster
 CSRMAN_PARAM_SCALA_PATH = $(ROOT)/hw/chisel/src/main/scala/snax/csr_manager/CsrManParamGen.scala
 STREAM_PARAM_SCALA_PATH = $(ROOT)/hw/chisel/src/main/scala/snax/streamer/StreamParamGen.scala
@@ -64,15 +67,6 @@ STREAM_PARAM_SCALA_PATH = $(ROOT)/hw/chisel/src/main/scala/snax/streamer/StreamP
 ####################
 # SNAX Generations #
 ####################
-
-define generate_snax_gen
-SNAX_GEN += \
-	$(GENERATED_DIR)/$(1)/$(1)_csrman_CsrManager.sv \
-	$(GENERATED_DIR)/$(1)/$(1)_streamer_StreamerTop.sv \
-	$(GENERATED_DIR)/$(1)/$(1)_csrman_wrapper.sv \
-	$(GENERATED_DIR)/$(1)/$(1)_streamer_wrapper.sv \
-	$(GENERATED_DIR)/$(1)/$(1)_wrapper.sv
-endef
 
 # List manual conditions for different configurations
 ifeq (${CFG_OVERRIDE}, cfg/snax-gemm.hjson)
@@ -92,8 +86,6 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm.hjson)
 
 	CLUSTER_NAME = snax_streamer_gemm_cluster
 
-$(eval $(call generate_snax_gen,snax_streamer_gemm))
-
 	SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
 	include $(SNAX_GEMM_ROOT)/Makefile
 
@@ -106,8 +98,6 @@ endif
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-simd.hjson)
 
 	CLUSTER_NAME = snax_streamer_simd_cluster
-
-$(eval $(call generate_snax_gen,snax_streamer_simd))
 
 	SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-postprocessing-simd)
 	include $(SNAX_GEMM_ROOT)/Makefile
@@ -123,8 +113,6 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-alu.hjson)
 
 	CLUSTER_NAME = snax_alu_cluster
 
-$(eval $(call generate_snax_gen,snax_alu))
-
 	VSIM_BENDER += -t snax_alu
 	VLT_BENDER  += -t snax_alu
 	VCS_BENDER  += -t snax_alu
@@ -135,10 +123,8 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-data-reshuffler.hjson)
 
 	CLUSTER_NAME = snax_data_reshuffler_cluster
 
-$(eval $(call generate_snax_gen,snax_data_reshuffler))
-
-	SNAX_DR_ROOT ?= $(ROOT)/hw/chisel_acc
-	include $(SNAX_DR_ROOT)/Makefile
+	SNAX_CHISEL_ACC_GEN = true
+	include $(SNAX_CHISEL_ACC_PATH)/Makefile
 
 	VSIM_BENDER += -t snax_data_reshuffler
 	VLT_BENDER  += -t snax_data_reshuffler
@@ -148,11 +134,9 @@ endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm-add-c.hjson)
 	CLUSTER_NAME = snax_streamer_gemm_add_c_cluster
- 
-$(eval $(call generate_snax_gen,snax_streamer_gemm_add_c))
 
-    SNAX_POOLINGSIMD_ROOT ?= $(ROOT)/hw/chisel_acc
-    include $(SNAX_POOLINGSIMD_ROOT)/Makefile
+	SNAX_CHISEL_ACC_GEN = true
+    include $(SNAX_CHISEL_ACC_PATH)/Makefile
  
     VSIM_BENDER += -t snax_streamer_gemm_add_c
     VLT_BENDER  += -t snax_streamer_gemm_add_c
@@ -163,8 +147,6 @@ endif
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm-conv.hjson)
 
 	CLUSTER_NAME = snax_streamer_gemm_cluster
-	
-$(eval $(call generate_snax_gen,snax_streamer_gemm))
  
     SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
     include $(SNAX_GEMM_ROOT)/Makefile
@@ -179,10 +161,8 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemmX.hjson)
 
 	CLUSTER_NAME = snax_streamer_gemmX_cluster
 
-$(eval $(call generate_snax_gen,snax_streamer_gemmX))
-
-	SNAX_GEMMX_ROOT ?= $(ROOT)/hw/chisel_acc
-    include $(SNAX_GEMMX_ROOT)/Makefile
+	SNAX_CHISEL_ACC_GEN = true
+    include $(SNAX_CHISEL_ACC_PATH)/Makefile
  
     VSIM_BENDER += -t snax_streamer_gemmX
     VLT_BENDER  += -t snax_streamer_gemmX
@@ -194,10 +174,8 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemmX-xdma.hjson)
 
 	CLUSTER_NAME = snax_streamer_gemmX_xdma_cluster
 
-$(eval $(call generate_snax_gen,snax_streamer_gemmX))
-
-	SNAX_GEMMX_ROOT ?= $(ROOT)/hw/chisel_acc
-    include $(SNAX_GEMMX_ROOT)/Makefile
+	SNAX_CHISEL_ACC_GEN = true
+    include $(SNAX_CHISEL_ACC_PATH)/Makefile
 
 # This is a temporary solution before integrating xdma into snitch_cluster.sv
 
@@ -214,16 +192,12 @@ endif
 ifeq (${CFG_OVERRIDE}, cfg/snax-wide-gemm-data-reshuffler.hjson)
  
  	CLUSTER_NAME = snax_streamer_gemm_cluster
-
-$(eval $(call generate_snax_gen,snax_streamer_gemm))
  
     SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
     include $(SNAX_GEMM_ROOT)/Makefile
 
-$(eval $(call generate_snax_gen,snax_data_reshuffler))
-
-	SNAX_DR_ROOT ?= $(ROOT)/hw/chisel_acc
-	include $(SNAX_DR_ROOT)/Makefile
+	SNAX_CHISEL_ACC_GEN = true
+	include $(SNAX_CHISEL_ACC_PATH)/Makefile
 
 	VSIM_BENDER += -t snax_wide_gemm_data_reshuffler
 	VLT_BENDER  += -t snax_wide_gemm_data_reshuffler
@@ -267,7 +241,38 @@ ifeq (${CFG_OVERRIDE}, cfg/default.hjson)
 
 endif
 
-SNAX_GEN += $(SNAX_TEST_PATH)testharness.sv
+.PHONY: rtl-snax-gen rtl-chisel-acc-gen rtl-gen
+
+rtl-snax-gen:
+
+	mkdir -p $(GENERATED_DIR)
+
+	@echo "-------------------------------------------------------------"
+	@echo "Generating streamers, CSR managers, wrappers, and testharness"
+	@echo "-------------------------------------------------------------"
+
+	${WRAPPER_GEN} --cfg_path="$(CFG_FILE)" \
+		--tpl_path="${SNAX_TPL_PATH}" \
+		--test_path="${SNAX_TEST_PATH}" \
+		--chisel_path="${SNAX_CHISEL_PATH}" \
+		--bypass_accgen="${BYPASS_ACCGEN}" \
+		--gen_path="${GENERATED_DIR}/"
+
+# TODO: Modify this later as we will combine
+# the chisel generations inside the wrappers
+ifeq ($(SNAX_CHISEL_ACC_GEN), true)
+	$(MAKE) rtl-chisel-acc-gen
+endif
+
+
+rtl-cluster-gen:
+	@echo "-------------------------------------------------------------"
+	@echo "Generating ${CLUSTER_NAME} module"
+	@echo "-------------------------------------------------------------"
+
+	$(CLUSTER_GEN) -c ${CFG_OVERRIDE} -o $(GENERATED_DIR) --wrapper --wrapper_name="$(CLUSTER_NAME)"
+
+rtl-gen: rtl-snax-gen rtl-cluster-gen
 
 VSIM_BENDER += -t QUESTA_SIM
 
@@ -375,32 +380,6 @@ test/bootrom.elf test/bootrom.dump test/bootrom.bin: test/bootrom.S test/bootrom
 	riscv64-unknown-elf-objdump -d test/bootrom.elf > test/bootrom.dump
 	riscv64-unknown-elf-objcopy -j .text -O binary test/bootrom.elf test/bootrom.bin
 
-SNAX_TEMPLATE_SOURCES = $(wildcard $(SNAX_TPL_PATH)*.tpl)
-
-CFG_FILE = $(ROOT)/target/snitch_cluster/$(CFG_OVERRIDE)
-SNAX_SCALA_SOURCES = \
-	$(wildcard ${CHISEL_PATH}/src/main/scala/snax/streamer/*.scala) \
-	$(wildcard ${CHISEL_PATH}/src/main/scala/snax/csr_manager/*.scala)
-
-# Pick the first file
-FIRST_SNAX_GEN := $(firstword $(SNAX_GEN))
-# Pick all the files but the first file, if there are more than one
-OTHER_SNAX_GEN := $(filter-out $(FIRST_SNAX),$(SNAX_GEN))
-
-# Force a serialized build in parallel make through a circular dependency
-# Implemented as documented in:
-# https://www.gnu.org/software/automake/manual/html_node/Multiple-Outputs.html
-# Please note the limitations of this method over there
-$(FIRST_SNAX_GEN) : $(SNAX_TEMPLATE_SOURCES) $(CFG_FILE) $(SNAX_SCALA_SOURCES)
-	${WRAPPER_GEN} --cfg_path="$(CFG_FILE)" \
-	--tpl_path="${SNAX_TPL_PATH}" \
-	--test_path="${SNAX_TEST_PATH}" \
-	--chisel_path="${CHISEL_PATH}" \
-	--bypass_accgen="${BYPASS_ACCGEN}" \
-	--gen_path="${GENERATED_DIR}/"
-
-# This is a fake job that forces parallel make to wait for the first thing to be generated
-$(OTHER_SNAX_GEN): $(FIRST_SNAX_GEN) $(CHISEL_GENERATED_FILES)
 
 ############
 # Software #
@@ -433,15 +412,9 @@ $(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS)): %.h: $(CFG) $(CLUSTER
 $(TARGET_C_HDRS_DIR)/snitch_cluster_peripheral.h: $(ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.hjson $(REGGEN)
 	$(call reggen_generate_header,$@,$<)
 
-#######
-# RTL #
-#######
-
-$(GENERATED_DIR):
-	mkdir -p $@
-
-$(GENERATED_DIR)/$(CLUSTER_NAME)_wrapper.sv: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --wrapper --wrapper_name="$(CLUSTER_NAME)"
+#####################
+# Boot and Memories #
+#####################
 
 $(GENERATED_DIR)/link.ld: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --linker
@@ -460,9 +433,9 @@ $(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 
 # Clean all build directories and temporary files for Questasim simulation
 clean-vlt: clean-work
-	rm -rf bin $(VLT_BUILDDIR) $(SNAX_TEST_PATH)testharness.sv $(CSRMAN_PARAM_SCALA_PATH) $(STREAM_PARAM_SCALA_PATH)
+	rm -rf bin $(VLT_BUILDDIR)
 
-$(VLT_AR): ${OTHER_SNAX_GEN} ${VLT_SOURCES} ${TB_SRCS}
+$(VLT_AR): ${VLT_SOURCES} ${TB_SRCS}
 	+$(call VERILATE,testharness)
 verilate: $(VLT_AR)
 
@@ -536,7 +509,7 @@ clean-logs:
 	rm -rf $(LOGS_DIR)
 
 clean-generated:
-	rm -rf $(GENERATED_DIR)
+	rm -rf $(GENERATED_DIR) $(SNAX_TEST_PATH)testharness.sv $(CSRMAN_PARAM_SCALA_PATH) $(STREAM_PARAM_SCALA_PATH) $(CHISEL_GENERATED_DIR)
 
 # Help command
 Blue=\033[1;34m

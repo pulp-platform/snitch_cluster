@@ -53,7 +53,7 @@ ${',' if not loop.last else ''}
 
 // Main cluster package
 // verilog_lint: waive-start package-filename
-package ${cfg['pkg_name']};
+package ${cfg['name']}_pkg;
 
   // Addressing Parameters
   localparam int unsigned HartBaseID = ${to_sv_hex(cfg['cluster_base_hartid'], 10)};

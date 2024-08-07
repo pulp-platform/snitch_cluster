@@ -4,10 +4,18 @@
 #
 # Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
 
+
+####################
+# Path Definitions #
+####################
+
 MK_CUR_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 
 CHISEL_GENERATED_DIR = $(MK_CUR_DIR)generated
 
+#######################
+# Function Definition #
+#######################
 define gen_snax_acc_sv_file
 	mkdir -p $(MK_CUR_DIR)generated/$(1) && cd $(MK_CUR_DIR) && sbt "runMain snax_acc.$(1).$(2)"
 endef
@@ -37,6 +45,13 @@ DR_GENERATED_FILES = $(MK_CUR_DIR)generated/$(DR_PKG_NAME)/$(DR).sv
 DR_SCALA_SOURCES := $(wildcard src/main/scala/snax_acc/$(DR_PKG_NAME)/*.scala)
 
 $(DR_GENERATED_FILES): $(DR_SCALA_SOURCES)
+	$(call gen_snax_acc_sv_file,$(DR_PKG_NAME),$(DR))
+
+.PHONY: rtl-chisel-acc-gen
+
+rtl-chisel-acc-gen:
+	$(call gen_snax_acc_sv_file,$(GEMM_PKG_NAME),$(GEMM))
+	$(call gen_snax_acc_sv_file,$(GEMMX_PKG_NAME),$(GEMMX))
 	$(call gen_snax_acc_sv_file,$(DR_PKG_NAME),$(DR))
 
 .PHONY: clean-data clean
