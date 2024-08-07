@@ -57,7 +57,7 @@ RUN add-apt-repository -y ppa:deadsnakes/ppa && \
 # Install Verilator
 RUN git clone https://github.com/verilator/verilator && \
   cd verilator && \
-  git checkout v5.006 && \
+  git checkout stable && \
   unset VERILATOR_ROOT && \
   autoconf && \
   ./configure && \
