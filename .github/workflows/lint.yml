@@ -74,6 +74,8 @@ jobs:
           make rtl
       - name: Diff porcelain
         run: |
+          which git
+          git --version
           git status && test -z "$(git status --porcelain)"
 
   #################
