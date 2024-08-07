@@ -32,8 +32,8 @@ module snitch_shuffle_unit #(
   // Mask
   // ----------------------
 
-  logic [FLEN/8:0]                 vec_mask;
-  logic [FLEN/8:0][2:0]            element_mask;
+  logic [FLEN/8-1:0]                 vec_mask;
+  logic [FLEN/8-1:0][2:0]            element_mask;
 
   for (genvar i = 0; i < FLEN/8; i++) begin
     assign vec_mask[i] = operands_i[1][(i*4)+3];
