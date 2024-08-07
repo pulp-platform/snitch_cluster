@@ -72,6 +72,9 @@ jobs:
         working-directory: target/snitch_cluster
         run: |
           make rtl
+      - name: Check git safe directories
+        run: |
+          git config --global --get-all safe.directory
       - name: Diff porcelain
         uses: mmontes11/diff-porcelain@v0.0.1
         with:
