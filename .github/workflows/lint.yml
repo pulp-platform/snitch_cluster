@@ -76,6 +76,7 @@ jobs:
         run: |
           ls -al /__w/snitch_cluster/snitch_cluster
           echo $GITHUB_WORKSPACE
+          whoami
       - name: Diff porcelain
         uses: mmontes11/diff-porcelain@v0.0.1
         with:
