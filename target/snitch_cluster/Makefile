@@ -60,7 +60,6 @@ GENERATED_DIR     ?= $(MKFILE_DIR)generated
 ####################
 BYPASS_ACCGEN = false
 SNAX_CHISEL_ACC_GEN = false
-CLUSTER_NAME = snitch_cluster
 CSRMAN_PARAM_SCALA_PATH = $(ROOT)/hw/chisel/src/main/scala/snax/csr_manager/CsrManParamGen.scala
 STREAM_PARAM_SCALA_PATH = $(ROOT)/hw/chisel/src/main/scala/snax/streamer/StreamParamGen.scala
 
@@ -70,8 +69,6 @@ STREAM_PARAM_SCALA_PATH = $(ROOT)/hw/chisel/src/main/scala/snax/streamer/StreamP
 
 # List manual conditions for different configurations
 ifeq (${CFG_OVERRIDE}, cfg/snax-gemm.hjson)
-
-	CLUSTER_NAME = snax_gemm_cluster
 	BYPASS_ACCGEN = true
 
 	SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
@@ -84,8 +81,6 @@ endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm.hjson)
 
-	CLUSTER_NAME = snax_streamer_gemm_cluster
-
 	SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
 	include $(SNAX_GEMM_ROOT)/Makefile
 
@@ -96,8 +91,6 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm.hjson)
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-simd.hjson)
-
-	CLUSTER_NAME = snax_streamer_simd_cluster
 
 	SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-postprocessing-simd)
 	include $(SNAX_GEMM_ROOT)/Makefile
@@ -111,8 +104,6 @@ endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-alu.hjson)
 
-	CLUSTER_NAME = snax_alu_cluster
-
 	VSIM_BENDER += -t snax_alu -t snax_alu_cluster
 	VLT_BENDER  += -t snax_alu -t snax_alu_cluster
 	VCS_BENDER  += -t snax_alu -t snax_alu_cluster
@@ -120,8 +111,6 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-alu.hjson)
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-data-reshuffler.hjson)
-
-	CLUSTER_NAME = snax_data_reshuffler_cluster
 
 	SNAX_CHISEL_ACC_GEN = true
 	include $(SNAX_CHISEL_ACC_PATH)/Makefile
@@ -133,7 +122,6 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-data-reshuffler.hjson)
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm-add-c.hjson)
-	CLUSTER_NAME = snax_streamer_gemm_add_c_cluster
 
 	SNAX_CHISEL_ACC_GEN = true
     include $(SNAX_CHISEL_ACC_PATH)/Makefile
@@ -145,8 +133,6 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm-add-c.hjson)
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm-conv.hjson)
-
-	CLUSTER_NAME = snax_streamer_gemm_conv_cluster
  
     SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
     include $(SNAX_GEMM_ROOT)/Makefile
@@ -159,8 +145,6 @@ endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemmX.hjson)
 
-	CLUSTER_NAME = snax_streamer_gemmX_cluster
-
 	SNAX_CHISEL_ACC_GEN = true
     include $(SNAX_CHISEL_ACC_PATH)/Makefile
  
@@ -171,18 +155,9 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemmX.hjson)
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemmX-xdma.hjson)
-
-	CLUSTER_NAME = snax_streamer_gemmX_xdma_cluster
-
 	SNAX_CHISEL_ACC_GEN = true
     include $(SNAX_CHISEL_ACC_PATH)/Makefile
 
-# This is a temporary solution before integrating xdma into snitch_cluster.sv
-
-	SNAX_GEN += \
-	$(GENERATED_DIR)/$(CLUSTER_NAME)_xdma/$(CLUSTER_NAME)_xdma.sv \
-	$(GENERATED_DIR)/$(CLUSTER_NAME)_xdma/$(CLUSTER_NAME)_xdma_wrapper.sv
- 
     VSIM_BENDER += -t snax_streamer_gemmX_xdma -t snax_streamer_gemmX_xdma_cluster
     VLT_BENDER  += -t snax_streamer_gemmX_xdma -t snax_streamer_gemmX_xdma_cluster
     VCS_BENDER  += -t snax_streamer_gemmX_xdma -t snax_streamer_gemmX_xdma_cluster
@@ -190,9 +165,7 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemmX-xdma.hjson)
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-wide-gemm-data-reshuffler.hjson)
- 
- 	CLUSTER_NAME = snax_wide_gemm_data_reshuffler_cluster
- 
+  
     SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
     include $(SNAX_GEMM_ROOT)/Makefile
 
@@ -207,8 +180,6 @@ endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-mac.hjson)
 
-	CLUSTER_NAME  = snax_mac_cluster
-
 	BYPASS_ACCGEN = true
 	
 	VSIM_BENDER += -t snax_mac -t snax_mac_cluster
@@ -219,8 +190,6 @@ endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-mac-mult.hjson)
 
-	CLUSTER_NAME  = snax_mac_mult_cluster
-
 	BYPASS_ACCGEN = true
 	
 	VSIM_BENDER += -t snax_mac -t snax_mac_mult_cluster
@@ -230,8 +199,6 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-mac-mult.hjson)
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/default.hjson)
-
-	CLUSTER_NAME = snitch_cluster
 
 	BYPASS_ACCGEN = true
 
@@ -267,10 +234,10 @@ endif
 
 rtl-cluster-gen:
 	@echo "-------------------------------------------------------------"
-	@echo "Generating ${CLUSTER_NAME} module"
+	@echo "Generating Cluster Wrapper"
 	@echo "-------------------------------------------------------------"
 
-	$(CLUSTER_GEN) -c ${CFG_OVERRIDE} -o $(GENERATED_DIR) --wrapper --wrapper_name="$(CLUSTER_NAME)"
+	$(CLUSTER_GEN) -c ${CFG_OVERRIDE} -o $(GENERATED_DIR) --wrapper
 
 rtl-gen: rtl-snax-gen rtl-cluster-gen
 
