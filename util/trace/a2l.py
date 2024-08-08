@@ -103,7 +103,7 @@ class Elf:
 
     @lru_cache(maxsize=1024)
     def addr2line(self, addr):
-        if type(addr) == str:
+        if isinstance(addr, str):
             addr = int(addr, 16)
         cmd = f'{self.a2l} -e {self.elf} -f -i {addr:x}'
         return Addr2LineOutput(os.popen(cmd).read())

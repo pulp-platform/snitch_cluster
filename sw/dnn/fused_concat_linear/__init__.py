@@ -4,4 +4,6 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-from .scripts.datagen import *
+from .scripts.datagen import golden_model, emit_header
+
+__all__ = ['golden_model', 'emit_header']
