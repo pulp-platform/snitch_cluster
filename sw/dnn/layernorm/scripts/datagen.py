@@ -10,7 +10,6 @@
 import argparse
 import pathlib
 import json5
-import sys
 import torch
 import numpy as np
 
