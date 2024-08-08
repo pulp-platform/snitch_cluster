@@ -159,6 +159,7 @@ COPY python-requirements.txt /tmp/python-requirements.txt
 COPY docs/requirements.txt /tmp/docs/requirements.txt
 COPY sw/dnn/requirements.txt /tmp/sw/dnn/requirements.txt
 RUN pip install -r /tmp/python-requirements.txt
+RUN pip install -e .
 
 # Add Verilator to PATH
 ENV PATH "/tools/verilator/bin:${PATH}"
