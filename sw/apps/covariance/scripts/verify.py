@@ -7,11 +7,9 @@
 
 import numpy as np
 import sys
-from pathlib import Path
 from datagen import CovarianceDataGen
 
-sys.path.append(str(Path(__file__).parent / '../../../util/sim/'))
-from verif_utils import Verifier  # noqa: E402
+from snitch.util.sim.verif_utils import Verifier
 
 
 class CovarianceVerifier(Verifier):

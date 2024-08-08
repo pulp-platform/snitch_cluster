@@ -22,6 +22,9 @@ mkdir tmp
 TMPDIR=tmp pip install -r python-requirements.txt
 rm -rf tmp
 
+# Install local packages in editable mode.
+pip install -e .
+
 # Bender initialization
 $BENDER vendor init
 

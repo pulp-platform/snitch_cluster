@@ -9,15 +9,13 @@
 #          Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import numpy as np
-import os
 import re
 import pyflexfloat as ff
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
-import data_utils  # noqa: E402
-from data_utils import DataGen, format_array_declaration, format_struct_definition, \
-                       format_array_definition, format_ifdef_wrapper  # noqa: E402
+from snitch.util.sim import data_utils
+from snitch.util.sim.data_utils import DataGen, format_array_declaration, \
+    format_struct_definition, format_array_definition, format_ifdef_wrapper
 
 
 np.random.seed(42)
@@ -47,55 +45,49 @@ class GemmDataGen(DataGen):
         prec, impl = re.search(r'gemm_fp(\d+)_(\w+)', gemm_fp).group(1, 2)
         return (int(prec) / 8), impl
 
-    def validate_config(self, gemm_fp, parallelize_m,
-                        parallelize_k, m_tiles, n_tiles, k_tiles, transa,
-                        transb, M, N, K, beta, **kwargs):
-        frac_m = M / m_tiles
-        frac_n = N / n_tiles
-        frac_k = K / k_tiles
+    def load_params(self, params):
+        self.M = params.get('M')
+        self.N = params.get('N')
+        self.K = params.get('K')
+        self.m_tiles = params.get('m_tiles')
+        self.n_tiles = params.get('n_tiles')
+        self.k_tiles = params.get('k_tiles')
+        self.load_a = params.get('load_a')
+        self.load_b = params.get('load_b')
+        self.load_c = params.get('load_c')
+        self.setup_ssr = params.get('setup_ssr')
+        self.parallelize_m = params.get('parallelize_m')
+        self.parallelize_k = params.get('parallelize_k')
+        self.gemm_fp = params.get('gemm_fp')
+        self.transa = params.get('transa')
+        self.transb = params.get('transb')
+        self.alpha = params.get('alpha', 1)
+        self.beta = params.get('beta')
+        self.section = params.get('section')
+        self.dtype, self.impl = self.infer_implementation(self.gemm_fp)
+        self.prec = data_utils.size_from_precision_t(self.dtype)
+        self.ff_desc = data_utils.ff_desc_from_precision_t(self.dtype)
+        self.ctype = data_utils.ctype_from_precision_t(self.dtype)
 
-        dtype, impl = self.infer_implementation(gemm_fp)
+    def validate(self):
+        frac_m = self.M / self.m_tiles
+        frac_n = self.N / self.n_tiles
+        frac_k = self.K / self.k_tiles
 
-        # Calculate total TCDM occupation
-        # Note: doesn't account for double buffering
-        prec = data_utils.size_from_precision_t(dtype)
-        a_size = frac_m * frac_k * prec
-        b_size = frac_k * frac_n * prec
-        c_size = frac_m * frac_n * prec
+        a_size = frac_m * frac_k * self.prec
+        b_size = frac_k * frac_n * self.prec
+        c_size = frac_m * frac_n * self.prec
         total_size = a_size
         total_size += b_size
         total_size += c_size
         data_utils.validate_tcdm_footprint(total_size)
 
-        assert (M % m_tiles) == 0, 'M is not an integer multiple of tile size'
-        assert (N % n_tiles) == 0, 'N is not an integer multiple of tile size'
-        assert (K % k_tiles) == 0, 'K is not an integer multiple of tile size'
-        assert not (parallelize_m and parallelize_k), 'Cannot parallelize K and M simultaneously'
-        assert not transa, 'SIMD kernels don\'t support transposed A matrix'
-        assert (dtype == 8) or (impl == 'baseline') or (impl == 'naive') \
-            or transb, 'Optimized SIMD kernels only support transposed B matrix'
-        assert not transb or n_tiles == 1, 'Tiling in the N dimension not supported' \
-            ' if B is transposed'
-        assert not transb or k_tiles == 1, 'Tiling in the K dimension not supported' \
-            ' if B is transposed'
-        assert (impl == 'baseline') or (impl == 'naive') or frac_n >= 8, \
-            'N dimension of tile size must be greater or equal to the unrolling factor (8) ' \
-            'when using optimized kernels'
-        assert beta == 0 or beta == 1, 'Only values of 0 or 1 supported for beta'
-        assert not (dtype == 8 and impl == "baseline"), 'No baseline implemented' \
-            ' for FP64 (switch to NAIVE)'
-        assert not (((dtype == 8) or (dtype == 4)) and impl == "opt_ex"), \
-            'Expanding GEMM kernels' \
-            ' not supported for FP64 and FP32'
-        assert not (dtype == 1 and impl == "opt"), 'FP8 not supported in' \
-            ' optimized implementation' \
-            ' (switch to opt_ex)'
-
     def emit_header(self, **kwargs):
         header = [super().emit_header()]
+        self.load_params(kwargs)
 
         # Validate parameters
-        self.validate_config(**kwargs)
+        self.validate()
 
         M, N, K = kwargs['M'], kwargs['N'], kwargs['K']
 
@@ -119,7 +111,23 @@ class GemmDataGen(DataGen):
 
         cfg = {
             'prec': prec,
-            **kwargs,
+            'setup_ssr': kwargs['setup_ssr'],
+            'parallelize_m': kwargs['parallelize_m'],
+            'parallelize_k': kwargs['parallelize_k'],
+            'm_tiles': kwargs['m_tiles'],
+            'n_tiles': kwargs['n_tiles'],
+            'k_tiles': kwargs['k_tiles'],
+            'load_a': kwargs['load_a'],
+            'load_b': kwargs['load_b'],
+            'load_c': kwargs['load_c'],
+            'transa': kwargs['transa'],
+            'transb': kwargs['transb'],
+            'M': M,
+            'N': N,
+            'K': K,
+            'alpha': kwargs['alpha'],
+            'beta': kwargs['beta'],
+            'gemm_fp': kwargs['gemm_fp'],
             'a': a_uid,
             'b': b_uid,
             'c': c_uid,

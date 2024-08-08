@@ -4,4 +4,6 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-from .scripts.datagen import *
+from . import gemm
+
+__all__ = ['gemm']
