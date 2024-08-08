@@ -7,6 +7,9 @@
 // The actual data memory. This memory is made into a module
 // to support multiple power domain needed by the floor plan tool
 
+(* no_ungroup *)
+(* no_boundary_optimization *)
+
 module snitch_data_mem #(
   parameter int unsigned TCDMDepth       = 1024,
   parameter int unsigned NarrowDataWidth = 64,
@@ -30,6 +33,9 @@ module snitch_data_mem #(
 );
 
   for (genvar i = 0; i < NumTotalBanks; i++) begin: gen_banks
+
+`ifndef TARGET_TAPEOUT
+
     tc_sram_impl #(
       .NumWords   ( TCDMDepth         ),
       .DataWidth  ( NarrowDataWidth   ),
@@ -49,6 +55,37 @@ module snitch_data_mem #(
       .wdata_i    ( mem_wdata_i[i]    ),
       .rdata_o    ( mem_rdata_o[i]    )
     );
+
+`else
+
+    //----------------------------------------------------
+    // This is just a place holder for the synthesis tool
+    // The cache memory is wide hence we break it into two
+    //----------------------------------------------------
+
+    // Memory implementation for synthesis
+    // Converting the byte enable to bit enable
+    logic [NarrowDataWidth - 1 : 0] bit_en;
+
+    always_comb begin
+      for (int j = 0; j < NarrowDataWidth / 8; j = j + 1) begin
+        bit_en[j*8+:8] = {8{mem_be_i[j]}};
+      end
+    end
+
+    syn_data_mem i_data_mem(
+              .CLK    ( clk_i                               ),
+              .CEB    ( ~mem_cs_i[i]                        ),
+              .WEB    ( ~mem_wen_i[i]                       ),
+              .A      ( mem_add_i[i][$clog2(TCDMDepth)-1:0] ),
+              .D      ( mem_wdata_i[i]                      ),
+              .BWEB   ( ~bit_en                             ),
+              .RTSEL  ( 2'b01                               ),
+              .WTSEL  ( 2'b01                               ),
+              .Q      ( mem_rdata_o[i]                      )
+    );
+
+`endif
   end
 
 endmodule

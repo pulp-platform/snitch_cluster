@@ -7,6 +7,9 @@
 // The actual cache tag memory. This memory is made into a module
 // to support multiple power domain needed by the floor plan tool
 
+(* no_ungroup *)
+(* no_boundary_optimization *)
+
 module snitch_icache_tag #(
   parameter snitch_icache_pkg::config_t CFG = '0,
   /// Configuration input types for SRAMs used in implementation.
@@ -23,25 +26,48 @@ module snitch_icache_tag #(
 );
 
   for (genvar i = 0; i < CFG.SET_COUNT; i++) begin: g_cache_tag_sets
-    tc_sram_impl #(
-      .NumWords   ( CFG.LINE_COUNT  ),
-      .DataWidth  ( CFG.TAG_WIDTH+2 ),
-      .ByteWidth  ( 8               ),
-      .NumPorts   ( 1               ),
-      .Latency    ( 1               ),
-      .impl_in_t  ( sram_cfg_tag_t  )
-    ) i_tag (
-      .clk_i      ( clk_i           ),
-      .rst_ni     ( rst_ni          ),
-      .impl_i     ( sram_cfg_tag_i  ),
-      .impl_o     ( /*Unused*/      ),
-      .req_i      ( ram_enable_i[i] ),
-      .we_i       ( ram_write_i     ),
-      .addr_i     ( ram_addr_i      ),
-      .wdata_i    ( ram_wtag_i      ),
-      .be_i       ( '1              ),
-      .rdata_o    ( ram_rtag_o[i]   )
-    );
+
+`ifndef TARGET_TAPEOUT
+
+      tc_sram_impl #(
+        .NumWords   ( CFG.LINE_COUNT  ),
+        .DataWidth  ( CFG.TAG_WIDTH+2 ),
+        .ByteWidth  ( 8               ),
+        .NumPorts   ( 1               ),
+        .Latency    ( 1               ),
+        .impl_in_t  ( sram_cfg_tag_t  )
+      ) i_tag (
+        .clk_i      ( clk_i           ),
+        .rst_ni     ( rst_ni          ),
+        .impl_i     ( sram_cfg_tag_i  ),
+        .impl_o     ( /*Unused*/      ),
+        .req_i      ( ram_enable_i[i] ),
+        .we_i       ( ram_write_i     ),
+        .addr_i     ( ram_addr_i      ),
+        .wdata_i    ( ram_wtag_i      ),
+        .be_i       ( '1              ),
+        .rdata_o    ( ram_rtag_o[i]   )
+      );
+
+`else
+
+    //----------------------------------------------------
+    // This is just a place holder for the synthesis tool
+    //----------------------------------------------------
+    syn_cache_tag_mem i_tag_mem(
+                .CLK   ( clk_i            ),
+                .CEB   ( ~ram_enable_i[i] ),
+                .WEB   ( ~ram_write_i     ),
+                .A     ( ram_addr_i       ),
+                .D     ( ram_wtag_i       ),
+                .BWEB  ( '0               ),
+                .RTSEL ( 2'b01            ),
+                .WTSEL ( 2'b01            ),
+                .Q     ( ram_rtag_o[i]    )
+      );
+
+`endif
+
   end
 
 endmodule
