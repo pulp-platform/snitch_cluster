@@ -4,11 +4,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import sys
-from pathlib import Path
 from datagen import DotDataGen
 
-sys.path.append(str(Path(__file__).parent / '../../../../util/sim/'))
-from verif_utils import Verifier  # noqa: E402
+from snitch.util.sim.verif_utils import Verifier
 
 
 class DotVerifier(Verifier):

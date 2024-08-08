@@ -6,12 +6,10 @@
 # Author: Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import numpy as np
-import os
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
-from data_utils import format_scalar_definition, format_array_definition, \
-                       format_array_declaration, format_ifdef_wrapper, DataGen  # noqa: E402
+from snitch.util.sim.data_utils import format_scalar_definition, format_array_definition, \
+    format_array_declaration, format_ifdef_wrapper, DataGen
 
 
 class AxpyDataGen(DataGen):

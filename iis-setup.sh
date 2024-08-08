@@ -23,6 +23,9 @@ TMPDIR=tmp pip install -r python-requirements.txt
 TMPDIR=tmp pip install -r $($BENDER path idma)/requirements.txt
 rm -rf tmp
 
+# Install local packages in editable mode.
+pip install -e .
+
 # Install spike-dasm
 mkdir tools/
 cd tools/
