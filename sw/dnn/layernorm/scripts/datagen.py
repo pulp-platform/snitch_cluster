@@ -17,7 +17,7 @@ import numpy as np
 import pyflexfloat as ff
 
 from snitch.util.sim import data_utils
-from snitch.util.sim.data_utils import DataGen, format_array_declaration, \
+from snitch.util.sim.data_utils import format_array_declaration, \
     format_struct_definition, format_array_definition, format_ifdef_wrapper, \
     emit_license
 
