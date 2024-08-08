@@ -13,7 +13,7 @@ import json5
 import torch
 
 from snitch.util.sim import data_utils
-from snitch.util.sim.data_utils import DataGen, format_struct_definition, \
+from snitch.util.sim.data_utils import format_struct_definition, \
     format_array_definition, format_array_declaration, format_ifdef_wrapper, \
     emit_license
 

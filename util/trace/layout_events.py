@@ -100,7 +100,7 @@ def main():
             # Symbols must be added to globals to be used in list comprehensions
             # see https://bugs.python.org/issue36300
             tids = eval(code, {'cfg': cfg}, {'cfg': cfg})
-            if type(tids) == int:
+            if isinstance(tids, int):
                 tids = [tids]
 
             # Iterate hart IDs
@@ -120,9 +120,9 @@ def main():
                         row_idx = tid
                         col_idx = 1 + reg_idx * 2
                         assert row_idx < df.shape[0], f'Hart ID {row_idx} out of bounds'
-                        assert (col_idx + 1) < df.shape[1],\
+                        assert (col_idx + 1) < df.shape[1], \
                             f'Region index {reg_idx} out of bounds for hart {tid}'
-                        assert not isnan(df.iat[row_idx, col_idx]),\
+                        assert not isnan(df.iat[row_idx, col_idx]), \
                             (f'Region {reg_idx} looks empty for hart {tid},'
                              f'check whether it was simulated')
                         orow.append(int(df.iat[row_idx, col_idx]))
