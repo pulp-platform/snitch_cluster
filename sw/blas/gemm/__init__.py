@@ -4,4 +4,6 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-from .scripts.datagen import *
+from .scripts.datagen import GemmDataGen
+
+__all__ = ['GemmDataGen']

@@ -14,7 +14,7 @@ import torch
 import pyflexfloat as ff
 
 from snitch.util.sim import data_utils
-from snitch.util.sim.data_utils import DataGen, format_struct_definition, \
+from snitch.util.sim.data_utils import format_struct_definition, \
     format_array_definition, format_array_declaration, emit_license
 from snitch.blas import gemm
 
@@ -135,18 +135,6 @@ def exact_flexfloat_golden_model(Q, K, V, B_r, B_c, desc):
     return np.concatenate(O_tiles, 0)
 
 
-def get_gemm_implementation(self, params):
-    prec = params['dtype'].lower()
-    impl = f'gemm_{prec}_'
-    if params['baseline']:
-        impl += 'naive'
-    else:
-        impl += 'opt'
-        if prec == 'fp8':
-            impl += '_ex'
-    return impl
-
-
 def load_params(self, params):
     self.L = params['L']
     self.S = params['S']
@@ -162,9 +150,8 @@ def load_params(self, params):
     self.ctype = data_utils.ctype_from_precision_t(self.dtype)
     self.prec = data_utils.size_from_precision_t(self.dtype)
 
+
 # Verify layer parameters are valid
-
-
 def validate(self):
     assert (self.L % self.B_r) == 0, 'L is not an integer multiple of B_r'
     assert (self.S % self.B_c) == 0, 'S is not an integer multiple of B_c'
