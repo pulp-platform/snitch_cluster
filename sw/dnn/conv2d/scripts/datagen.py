@@ -9,15 +9,11 @@ import argparse
 import numpy as np
 import pathlib
 import hjson
-import sys
-import os
 import torch
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
-import data_utils  # noqa: E402
-from data_utils import emit_license, \
-                       format_struct_definition, format_array_definition, \
-                       format_array_declaration  # noqa: E402
+from snitch.util.sim import data_utils
+from snitch.util.sim.data_utils import emit_license, format_struct_definition, \
+    format_array_definition, format_array_declaration
 
 torch.manual_seed(42)
 

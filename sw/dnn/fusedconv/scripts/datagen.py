@@ -8,15 +8,11 @@
 import argparse
 import pathlib
 import hjson
-import sys
-import os
 import torch
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
-import data_utils  # noqa: E402
-from data_utils import emit_license, \
-                       format_struct_definition, format_array_definition, \
-                       format_scalar_definition, format_array_declaration  # noqa: E402
+from snitch.util.sim import data_utils
+from snitch.util.sim.data_utils import emit_license, format_struct_definition, \
+    format_array_definition, format_scalar_definition, format_array_declaration
 
 torch.manual_seed(42)
 
@@ -62,8 +58,8 @@ def golden_model(ifmap, weights, bn_k, bn_l, padding, stride, bn, relu, accumula
                 for c in range(co):
                     ofmap[h//stride['stride_y'], w//stride['stride_x'],
                           c] = torch.dot(
-                            ifmap_padded[h:h+fh, w:w+fw, c].flatten(),
-                            weights[:, :, c].flatten())
+                        ifmap_padded[h:h+fh, w:w+fw, c].flatten(),
+                        weights[:, :, c].flatten())
     else:
         # Conv2d
         for h in range(0, ifmap_padded.shape[0] - (fh - 1), stride['stride_y']):
@@ -71,8 +67,8 @@ def golden_model(ifmap, weights, bn_k, bn_l, padding, stride, bn, relu, accumula
                 for c in range(co):
                     ofmap[h//stride['stride_y'], w//stride['stride_x'],
                           c] = torch.dot(
-                            ifmap_padded[h:h+fh, w:w+fw].flatten(),
-                            weights[c].flatten())
+                        ifmap_padded[h:h+fh, w:w+fw].flatten(),
+                        weights[c].flatten())
 
     ofmap += ofmap_before
 
