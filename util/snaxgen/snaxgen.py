@@ -56,6 +56,7 @@ def gen_file(cfg, tpl, target_path: str, file_name: str) -> None:
 def gen_chisel_file(chisel_path, chisel_param, gen_path):
     cmd = f" cd {chisel_path} && \
         mill Snax.runMain {chisel_param} {gen_path}"
+    print(f"Running command: {cmd}")
     if os.system(cmd) != 0:
         raise ChildProcessError('Chisel generation error. ')
 
@@ -107,7 +108,8 @@ def streamer_csr_num(acc_cfgs):
         )
 
     # This sets the total number of base pointers
-    num_data_mover = num_data_reader + num_data_writer + num_data_reader_writer * 2
+    num_data_mover = num_data_reader + num_data_writer \
+        + num_data_reader_writer * 2
     num_spatial_dim = (
         num_spatial_reader + num_spatial_writer + num_spatial_reader_writer * 2
     )
@@ -192,6 +194,13 @@ def main():
     num_core_w_acc = 0
     acc_cfgs = []
 
+    # ---------------------------------------
+    # Generate the accelerator specific wrappers
+    # ---------------------------------------
+    print("------------------------------------------------")
+    print("    Generating accelerator specific wrappers")
+    print("------------------------------------------------")
+
     if (args.bypass_accgen == "false"):
         for i in range(num_cores):
             if "snax_acc_cfg" in cfg_cores[i]:
@@ -204,7 +213,8 @@ def main():
             # TCDM configurations
             tcdm_data_width = cfg["cluster"]["data_width"]
             acc_cfgs[i]["tcdm_data_width"] = tcdm_data_width
-            acc_cfgs[i]["tcdm_dma_data_width"] = cfg["cluster"]["dma_data_width"]
+            acc_cfgs[i]["tcdm_dma_data_width"] = \
+                cfg["cluster"]["dma_data_width"]
             tcdm_depth = (
                 cfg["cluster"]["tcdm"]["size"]
                 * 1024
@@ -227,7 +237,8 @@ def main():
         for i in range(len(acc_cfgs)):
             # First part is for chisel generation
             # Generate the parameter files for chisel streamer generation
-            chisel_target_path = args.chisel_path + "src/main/scala/snax/streamer/"
+            chisel_target_path = args.chisel_path + \
+                "src/main/scala/snax/streamer/"
             file_name = "StreamParamGen.scala"
             tpl_scala_param_file = args.tpl_path + "stream_param_gen.scala.tpl"
             tpl_scala_param = get_template(tpl_scala_param_file)
@@ -240,9 +251,11 @@ def main():
 
             # CSR manager scala parameter generation
             if not acc_cfgs[i].get("snax_disable_csr_manager", False):
-                chisel_target_path = args.chisel_path + "src/main/scala/snax/csr_manager/"  # noqa: E501
+                chisel_target_path = args.chisel_path + \
+                    "src/main/scala/snax/csr_manager/"
                 file_name = "CsrManParamGen.scala"
-                tpl_scala_param_file = args.tpl_path + "csrman_param_gen.scala.tpl"
+                tpl_scala_param_file = args.tpl_path + \
+                    "csrman_param_gen.scala.tpl"
                 tpl_scala_param = get_template(tpl_scala_param_file)
                 gen_file(
                     cfg=acc_cfgs[i],
@@ -258,7 +271,8 @@ def main():
             # This first one generates the CSR manager wrapper
             if not acc_cfgs[i].get("snax_disable_csr_manager", False):
                 file_name = acc_cfgs[i]["snax_acc_name"] + "_csrman_wrapper.sv"
-                tpl_csrman_wrapper_file = args.tpl_path + "snax_csrman_wrapper.sv.tpl"
+                tpl_csrman_wrapper_file = args.tpl_path + \
+                    "snax_csrman_wrapper.sv.tpl"
                 tpl_csrman_wrapper = get_template(tpl_csrman_wrapper_file)
                 gen_file(
                     cfg=acc_cfgs[i],
@@ -306,9 +320,49 @@ def main():
 
         print("Generation of accelerator specific wrappers done!")
     else:
-        print("Skipping accelerator generation!")
+        print("Skipping wrapper generation!")
 
+    # ---------------------------------------
+    # Generate SNAX Chisel Accelerators
+    # ---------------------------------------
+    # TODO: We need to improve this when Xyi is back
+    # refactor the accelerator and XDMA generation
+    # but the idea is that it needs to come from the
+    # configuration file only
+    print("------------------------------------------------")
+    print("    Generate SNAX Chisel Accelerators")
+    print("------------------------------------------------")
+    for i in range(len(acc_cfgs)):
+        chisel_acc_path = args.chisel_path + "../chisel_acc"
+        rtl_target_path = args.gen_path + acc_cfgs[i]["snax_acc_name"] + "/"
+
+        if (acc_cfgs[i]["snax_acc_name"] == "snax_streamer_gemmX"):
+            gen_chisel_file(
+                        chisel_path=chisel_acc_path,
+                        chisel_param="snax_acc.gemmx.BlockGemmRescaleSIMD",
+                        gen_path=rtl_target_path,
+                    )
+        elif (acc_cfgs[i]["snax_acc_name"] == "snax_streamer_gemm_add_c"):
+            gen_chisel_file(
+                        chisel_path=chisel_acc_path,
+                        chisel_param="snax_acc.gemm.BlockGemm",
+                        gen_path=rtl_target_path,
+                    )
+        elif (acc_cfgs[i]["snax_acc_name"] == "snax_data_reshuffler"):
+            gen_chisel_file(
+                        chisel_path=chisel_acc_path,
+                        chisel_param="snax_acc.reshuffle.Reshuffler",
+                        gen_path=rtl_target_path,
+                    )
+        else:
+            print("Nothing to generate ")
+
+    # ---------------------------------------
     # Generate xdma for the whole cluster
+    # ---------------------------------------
+    print("------------------------------------------------")
+    print("    Generate xDMA")
+    print("------------------------------------------------")
     snax_xdma_cfg = None
     for i in range(num_cores):
         if "snax_xdma_cfg" in cfg_cores[i]:
@@ -338,8 +392,10 @@ def main():
             " --axiDataWidth " + str(cfg["cluster"]["dma_data_width"]) +
             " --addressWidth " + str(cfg["cluster"]["addr_width"]) +
             " --tcdmSize " + str(cfg["cluster"]["tcdm"]["size"]) +
-            " --readerDimension " + str(snax_xdma_cfg["reader_agu_dimension"]) +
-            " --writerDimension " + str(snax_xdma_cfg["writer_agu_dimension"]) +
+            " --readerDimension " +
+            str(snax_xdma_cfg["reader_agu_dimension"]) +
+            " --writerDimension " +
+            str(snax_xdma_cfg["writer_agu_dimension"]) +
             " --readerBufferDepth " + str(snax_xdma_cfg["reader_buffer"]) +
             " --writerBufferDepth " + str(snax_xdma_cfg["writer_buffer"]) +
             xdma_extension_arg +

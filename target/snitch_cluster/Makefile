@@ -45,7 +45,7 @@ include $(ROOT)/target/common/common.mk
 REGGEN          ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
 CLUSTER_GEN     ?= $(ROOT)/util/clustergen.py
 CLUSTER_GEN_SRC ?= $(wildcard $(ROOT)/util/clustergen/*.py)
-WRAPPER_GEN     ?= $(ROOT)/util/wrappergen/wrappergen.py
+WRAPPER_GEN     ?= $(ROOT)/util/snaxgen/snaxgen.py
 
 #########################
 # Files and directories #
@@ -112,9 +112,6 @@ endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-data-reshuffler.hjson)
 
-	SNAX_CHISEL_ACC_GEN = true
-	include $(SNAX_CHISEL_ACC_PATH)/Makefile
-
 	VSIM_BENDER += -t snax_data_reshuffler -t snax_data_reshuffler_cluster
 	VLT_BENDER  += -t snax_data_reshuffler -t snax_data_reshuffler_cluster
 	VCS_BENDER  += -t snax_data_reshuffler -t snax_data_reshuffler_cluster
@@ -123,9 +120,6 @@ endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm-add-c.hjson)
 
-	SNAX_CHISEL_ACC_GEN = true
-    include $(SNAX_CHISEL_ACC_PATH)/Makefile
- 
     VSIM_BENDER += -t snax_streamer_gemm_add_c -t snax_streamer_gemm_add_c_cluster
     VLT_BENDER  += -t snax_streamer_gemm_add_c -t snax_streamer_gemm_add_c_cluster
     VCS_BENDER  += -t snax_streamer_gemm_add_c -t snax_streamer_gemm_add_c_cluster
@@ -145,9 +139,6 @@ endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemmX.hjson)
 
-	SNAX_CHISEL_ACC_GEN = true
-    include $(SNAX_CHISEL_ACC_PATH)/Makefile
- 
     VSIM_BENDER += -t snax_streamer_gemmX -t snax_streamer_gemmX_cluster
     VLT_BENDER  += -t snax_streamer_gemmX -t snax_streamer_gemmX_cluster
     VCS_BENDER  += -t snax_streamer_gemmX -t snax_streamer_gemmX_cluster
@@ -155,8 +146,6 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemmX.hjson)
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemmX-xdma.hjson)
-	SNAX_CHISEL_ACC_GEN = true
-    include $(SNAX_CHISEL_ACC_PATH)/Makefile
 
     VSIM_BENDER += -t snax_streamer_gemmX_xdma -t snax_streamer_gemmX_xdma_cluster
     VLT_BENDER  += -t snax_streamer_gemmX_xdma -t snax_streamer_gemmX_xdma_cluster
@@ -208,7 +197,7 @@ ifeq (${CFG_OVERRIDE}, cfg/default.hjson)
 
 endif
 
-.PHONY: rtl-snax-gen rtl-chisel-acc-gen rtl-gen
+.PHONY: rtl-snax-gen rtl-gen
 
 rtl-snax-gen:
 
@@ -224,12 +213,6 @@ rtl-snax-gen:
 		--chisel_path="${SNAX_CHISEL_PATH}" \
 		--bypass_accgen="${BYPASS_ACCGEN}" \
 		--gen_path="${GENERATED_DIR}/"
-
-# TODO: Modify this later as we will combine
-# the chisel generations inside the wrappers
-ifeq ($(SNAX_CHISEL_ACC_GEN), true)
-	$(MAKE) rtl-chisel-acc-gen
-endif
 
 
 rtl-cluster-gen:
