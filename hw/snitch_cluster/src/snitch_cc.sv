@@ -387,6 +387,7 @@ module snitch_cc #(
       .NumAxInFlight (DMANumAxInFlight),
       .DMAReqFifoDepth (DMAReqFifoDepth),
       .NumChannels (DMANumChannels),
+      .DMATracing (1),
       .axi_ar_chan_t (axi_ar_chan_t),
       .axi_aw_chan_t (axi_aw_chan_t),
       .axi_req_t (axi_req_t),

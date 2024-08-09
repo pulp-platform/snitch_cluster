@@ -7,7 +7,7 @@ packages:
     dependencies:
     - common_cells
   axi:
-    revision: 41859549968db0147062b6c3cdbe4af00080cc09
+    revision: 4e54ac6766b160217a83a74d5a23af9bbf59e6ee
     version: null
     source:
       Git: https://github.com/pulp-platform/axi
@@ -71,8 +71,8 @@ packages:
     dependencies:
     - common_cells
   idma:
-    revision: c12caf59bb482fe44b27361f6924ad346b2d22fe
-    version: 0.6.3
+    revision: 0a0c113434aee743923d9e85631de009b4f00847
+    version: null
     source:
       Git: https://github.com/pulp-platform/iDMA
     dependencies:
