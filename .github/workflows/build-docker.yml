@@ -6,7 +6,7 @@
 name: build-docker
 on:
   push:
-    branches: [jssc/double-buffering]
+    branches: [jssc-pyproject]
   pull_request:
   workflow_dispatch:
 jobs:
@@ -40,6 +40,6 @@ jobs:
           context: .
           file: util/container/Dockerfile
           push: true
-          tags: ghcr.io/pulp-platform/snitch_cluster:double-buffering
+          tags: ghcr.io/pulp-platform/snitch_cluster:jssc-pyproject
           build-args: |-
             SNITCH_LLVM_VERSION=latest
