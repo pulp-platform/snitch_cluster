@@ -18,7 +18,8 @@ SELECT_RUNTIME ?= rtl
 
 .DEFAULT_GOAL := help
 .PHONY: all clean
-clean: clean-work clean-vcs clean-logs clean-bender clean-generated
+all: rtl sw
+clean: clean-rtl clean-work clean-vcs clean-logs clean-bender clean-generated
 
 ##########
 # Common #
@@ -47,6 +48,7 @@ CLUSTER_GEN_SRC ?= $(wildcard $(ROOT)/util/clustergen/*.py)
 
 BIN_DIR           ?= bin
 GENERATED_DIR     ?= $(MKFILE_DIR)generated
+PERIPH_DIR        ?= $(ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral
 
 # If the configuration file is overriden on the command-line (through
 # CFG_OVERRIDE) and this file differs from the least recently used
@@ -149,6 +151,17 @@ include $(ROOT)/target/snitch_cluster/sw.mk
 # RTL #
 #######
 
+GENERATED_RTL_SOURCES  = $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv
+GENERATED_RTL_SOURCES += $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv
+GENERATED_RTL_SOURCES += $(GENERATED_DIR)/snitch_cluster_wrapper.sv
+
+.PHONY: rtl clean-rtl
+
+rtl: $(GENERATED_RTL_SOURCES)
+
+clean-rtl:
+	rm -f $(GENERATED_RTL_SOURCES)
+
 $(GENERATED_DIR):
 	mkdir -p $@
 
@@ -163,6 +176,12 @@ $(GENERATED_DIR)/memories.json: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 
 $(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --bootdata
+
+# REGGEN regfile
+$(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv
+$(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg.hjson
+	@echo "[REGGEN] Generating peripheral regfile"
+	$(REGGEN) -r -t $(PERIPH_DIR) $<
 
 #############
 # Verilator #
@@ -228,9 +247,11 @@ help:
 	@echo -e "${Blue}$(BIN_DIR)/$(TARGET).vsim ${Black}Build compilation script and compile all sources for Questasim simulation."
 	@echo -e ""
 	@echo -e "${Blue}sw               ${Black}Build all software."
+	@echo -e "${Blue}rtl              ${Black}Build all RTL."
 	@echo -e ""
 	@echo -e "${Blue}clean            ${Black}Clean everything except traces in logs directory."
 	@echo -e "${Blue}clean-bender     ${Black}Clean Bender dependencies."
+	@echo -e "${Blue}clean-rtl        ${Black}Clean all generated RTL sources."
 	@echo -e "${Blue}clean-sw         ${Black}Clean all software."
 	@echo -e "${Blue}clean-generated  ${Black}Delete all generated files in the generated directory."
 	@echo -e "${Blue}clean-logs       ${Black}Delete all traces in logs directory."

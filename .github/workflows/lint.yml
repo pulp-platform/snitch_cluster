@@ -20,8 +20,6 @@ jobs:
         with:
           paths: |
             ./hw
-          exclude_paths: |
-            ./hw/future/test
           github_token: ${{ secrets.GITHUB_TOKEN }}
           fail_on_error: true
           reviewdog_reporter: github-check
@@ -39,22 +37,34 @@ jobs:
         uses: pulp-platform/pulp-actions/bender-vendor-up-to-date@v2.1.0
 
   ######################
-  # Opcodes Up-to-Date #
+  # Sources Up-to-Date #
   ######################
-  check-opcodes:
-    name: Check Opcodes Up-to-Date
-    runs-on: ubuntu-latest
+  sources-up-to-date:
+    name: Check Sources Up-to-Date
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/pulp-platform/snitch_cluster:main
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Update opcodes and diff
+      - name: Generate opcodes
         run: |
           ./util/generate-opcodes.sh
+      - name: Generate RTL sources
+        working-directory: target/snitch_cluster
+        run: |
+          make rtl
+      # For some reason, the checkout is done by a different user,
+      # than that running `git diff` (root, possibly due to Docker).
+      # So we need to set the repository as a safe directory.
+      - name: Git config safe.directory
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
       - name: Diff porcelain
         uses: mmontes11/diff-porcelain@v0.0.1
         with:
-          message: Found differences, please update all opcode
+          message: Found differences, please update all sources
 
   #################
   # Check License #

@@ -10,6 +10,4 @@ extern volatile uint32_t* snrt_cluster_clint_set_ptr();
 
 extern volatile uint32_t* snrt_cluster_clint_clr_ptr();
 
-extern uint32_t snrt_cluster_hw_barrier_addr();
-
 extern volatile uint32_t* snrt_zero_memory_ptr();
