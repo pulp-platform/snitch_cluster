@@ -151,9 +151,19 @@ include $(ROOT)/target/snitch_cluster/sw.mk
 # RTL #
 #######
 
+# Include iDMA Makefile to generate prerequisite iDMA sources
+include $(shell $(BENDER) path idma)/idma.mk
+
 GENERATED_RTL_SOURCES  = $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv
 GENERATED_RTL_SOURCES += $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv
 GENERATED_RTL_SOURCES += $(GENERATED_DIR)/snitch_cluster_wrapper.sv
+GENERATED_RTL_SOURCES += $(IDMA_ROOT)/target/rtl/idma_inst64_top.sv
+GENERATED_RTL_SOURCES += $(IDMA_ROOT)/target/rtl/include/idma/tracer.svh
+
+# Add dependency on DMA header files
+VSIM_SOURCES += $(IDMA_ROOT)/target/rtl/include/idma/tracer.svh
+VLT_SOURCES  += $(IDMA_ROOT)/target/rtl/include/idma/tracer.svh
+VCS_SOURCES  += $(IDMA_ROOT)/target/rtl/include/idma/tracer.svh
 
 .PHONY: rtl clean-rtl
 
