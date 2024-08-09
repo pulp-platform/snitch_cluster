@@ -47,9 +47,8 @@ VLT_ROOT        ?= ${VERILATOR_ROOT}
 VLT_JOBS        ?= $(shell nproc)
 VLT_NUM_THREADS ?= 1
 
-MATCH_END := '/+incdir+/ s/$$/\/*\/*/'
-MATCH_BGN := 's/+incdir+//g'
-SED_SRCS  := sed -e ${MATCH_END} -e ${MATCH_BGN}
+MATCH_REMOVE := 's/+incdir+\/[^ ]*//g'
+SED_SRCS     := sed -e ${MATCH_REMOVE}
 
 COMMON_BENDER_FLAGS += -t rtl
 
