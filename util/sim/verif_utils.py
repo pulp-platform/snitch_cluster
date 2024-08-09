@@ -11,9 +11,9 @@ import sys
 import argparse
 import numpy as np
 import csv
-from Elf import Elf
+from snitch.util.sim.Elf import Elf
 from pathlib import Path
-from data_utils import flatten, from_buffer
+from snitch.util.sim.data_utils import flatten, from_buffer
 
 sys.path.append(str(Path(__file__).parent / '../../target/common/test/'))
 from SnitchSim import SnitchSim  # noqa: E402

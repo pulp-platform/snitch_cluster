@@ -4,6 +4,7 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-from .scripts.datagen import GemmDataGen
+from .scripts.datagen import golden_model, golden_model_torch, \
+                             validate_config, emit_header
 
-__all__ = ['GemmDataGen']
+__all__ = ['golden_model', 'golden_model_torch', 'validate_config', 'emit_header']

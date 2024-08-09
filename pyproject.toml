@@ -1,0 +1,19 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Solderpad Hardware License, Version 0.51, see LICENSE for details.
+# SPDX-License-Identifier: SHL-0.51
+
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "snitch"
+authors = [
+    {name = "Luca Colagrande", email = "colluca@iis.ee.ethz.ch"}
+]
+dynamic = ["version"]
+
+[tool.setuptools.package-dir]
+"snitch.dnn" = "sw/dnn"
+"snitch.blas" = "sw/blas"
+"snitch.util" = "util"

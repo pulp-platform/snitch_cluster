@@ -4,15 +4,15 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
+# Tim Fischer <fischeti@iis.ee.ethz.ch>
+# Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
 import sys
 import torch
-from pathlib import Path
 from datagen import golden_model
 
-sys.path.append(str(Path(__file__).parent / '../../../../util/sim/'))
-from verif_utils import Verifier  # noqa: E402
-from data_utils import ctype_from_precision_t  # noqa: E402
+from snitch.util.sim.verif_utils import Verifier
+from snitch.util.sim.data_utils import ctype_from_precision_t
 
 
 class FusedConcatLinearVerifier(Verifier):
