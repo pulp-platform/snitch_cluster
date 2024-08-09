@@ -10,16 +10,15 @@ module snitch_cluster_peripheral
   import snitch_pkg::*;
   import snitch_cluster_peripheral_reg_pkg::*;
 #(
-  parameter int unsigned AddrWidth = 0,
+  // Nr of cores in the cluster
+  parameter int unsigned NrCores = 0,
+  // Nr of DMA channels
+  parameter int unsigned DMANumChannels = 0,
   parameter int unsigned DMADataWidth = 0,
   parameter type reg_req_t = logic,
   parameter type reg_rsp_t = logic,
-  parameter type         tcdm_events_t = logic,
-  parameter type         dma_events_t = logic,
-  // Nr of course in the cluster
-  parameter logic [31:0] NrCores       = 0,
-  /// Derived parameter *Do not override*
-  parameter type addr_t = logic [AddrWidth-1:0]
+  parameter type tcdm_events_t = logic,
+  parameter type dma_events_t = logic
 ) (
   input  logic                       clk_i,
   input  logic                       rst_ni,
@@ -29,16 +28,15 @@ module snitch_cluster_peripheral
 
   output logic                       icache_prefetch_enable_o,
   output logic [NrCores-1:0]         cl_clint_o,
-  input  logic [9:0]                 cluster_hart_base_id_i,
-  input  core_events_t [NrCores-1:0] core_events_i,
-  input  tcdm_events_t               tcdm_events_i,
-  input  dma_events_t                dma_events_i,
+  input  core_events_t [NrCores-1:0]                      core_events_i,
+  input  tcdm_events_t                                    tcdm_events_i,
+  input  dma_events_t [DMANumChannels-1:0]                dma_events_i,
   input  snitch_icache_pkg::icache_events_t [NrCores-1:0] icache_events_i
 );
 
   // Pipeline register to ease timing.
   tcdm_events_t tcdm_events_q;
-  dma_events_t dma_events_q;
+  dma_events_t [DMANumChannels-1:0] dma_events_q;
   snitch_icache_pkg::icache_events_t [NrCores-1:0] icache_events_q;
   `FF(tcdm_events_q, tcdm_events_i, '0)
   `FF(dma_events_q, dma_events_i, '0)
@@ -60,7 +58,59 @@ module snitch_cluster_peripheral
     .hw2reg (hw2reg)
   );
 
-  logic [NumPerfCounters-1:0][47:0] perf_counter_d, perf_counter_q;
+  // As defined in the `.hjson` file. Unfortunately,
+  // The regtool does not generate enums for SV,
+  // only for C. So we have to define them here.
+  typedef enum logic[4:0] {
+    Cycle           = 5'd0,
+    TcdmAccessed    = 5'd1,
+    TcdmCongested   = 5'd2,
+    IssueFpu        = 5'd3,
+    IssueFpuSeq     = 5'd4,
+    IssueCoreToFpu  = 5'd5,
+    RetiredInstr    = 5'd6,
+    RetiredLoad     = 5'd7,
+    RetiredI        = 5'd8,
+    RetiredAcc      = 5'd9,
+    DmaAwStall      = 5'd10,
+    DmaArStall      = 5'd11,
+    DmaRStall       = 5'd12,
+    DmaWStall       = 5'd13,
+    DmaBufWStall    = 5'd14,
+    DmaBufRStall    = 5'd15,
+    DmaAwDone       = 5'd16,
+    DmaAwBw         = 5'd17,
+    DmaArDone       = 5'd18,
+    DmaArBw         = 5'd19,
+    DmaRDone        = 5'd20,
+    DmaRBw          = 5'd21,
+    DmaWDone        = 5'd22,
+    DmaWBw          = 5'd23,
+    DmaBDone        = 5'd24,
+    DmaBusy         = 5'd25,
+    IcacheMiss      = 5'd26,
+    IcacheHit       = 5'd27,
+    IcachePrefetch  = 5'd28,
+    IcacheDoubleHit = 5'd29,
+    IcacheStall     = 5'd30,
+    NumMetrics      = 5'd31
+  } perf_metrics_e;
+
+  // The metrics that should be tracked immediately after reset.
+  localparam int unsigned NumPerfMetricRstValues = 7;
+  localparam perf_metrics_e PerfMetricRstValues[NumPerfMetricRstValues] = '{
+    Cycle,
+    RetiredInstr,
+    TcdmAccessed,
+    IcacheMiss,
+    IcacheHit,
+    IcachePrefetch,
+    IcacheStall
+  };
+
+  logic [NumPerfCounters-1:0][47:0] perf_cnt_q, perf_cnt_d;
+  perf_metrics_e [NumPerfCounters-1:0] perf_metrics_q, perf_metrics_d;
+  logic [NumPerfCounters-1:0][$clog2(NrCores)-1:0] perf_hart_sel_q, perf_hart_sel_d;
   logic [31:0] cl_clint_d, cl_clint_q;
 
   // Wake-up logic: Bits in cl_clint_q can be set/cleared with writes to
@@ -81,160 +131,83 @@ module snitch_cluster_peripheral
 
   // Continuously assign the perf values.
   for (genvar i = 0; i < NumPerfCounters; i++) begin : gen_perf_assign
-    assign hw2reg.perf_counter[i].d = perf_counter_q[i];
+    assign hw2reg.perf_cnt[i].d = perf_cnt_q[i];
+    assign hw2reg.perf_cnt_sel[i].metric.d = perf_metrics_q[i];
+    assign hw2reg.perf_cnt_sel[i].hart.d = perf_hart_sel_q[i];
   end
 
-  // The hardware barrier is external and always reads `0`.
-  assign hw2reg.hw_barrier.d = 0;
-
   always_comb begin
-    perf_counter_d = perf_counter_q;
+    perf_cnt_d = perf_cnt_q;
+    perf_metrics_d = perf_metrics_q;
+    perf_hart_sel_d = perf_hart_sel_q;
     for (int i = 0; i < NumPerfCounters; i++) begin
       automatic core_events_t sel_core_events;
-      sel_core_events = core_events_i[reg2hw.hart_select[i].q[$clog2(NrCores):0]];
-      // Cycle
-      if (reg2hw.perf_counter_enable[i].cycle.q) begin
-        perf_counter_d[i]++;
+      automatic dma_events_t sel_dma_events;
+      automatic logic [$clog2(NrCores)-1:0] hart_select;
+      hart_select = perf_hart_sel_q[i][$clog2(NrCores)-1:0];
+      sel_core_events = core_events_i[hart_select];
+      sel_dma_events = dma_events_q[hart_select];
+      unique case (perf_metrics_q[i])
+        Cycle: perf_cnt_d[i] += 1;
+        TcdmAccessed: perf_cnt_d[i] += tcdm_events_q.inc_accessed;
+        TcdmCongested: perf_cnt_d[i] += tcdm_events_q.inc_congested;
+        IssueFpu: perf_cnt_d[i] += sel_core_events.issue_fpu;
+        IssueFpuSeq: perf_cnt_d[i] += sel_core_events.issue_fpu_seq;
+        IssueCoreToFpu: perf_cnt_d[i] += sel_core_events.issue_core_to_fpu;
+        RetiredInstr: perf_cnt_d[i] += sel_core_events.retired_instr;
+        RetiredLoad: perf_cnt_d[i] += sel_core_events.retired_load;
+        RetiredI: perf_cnt_d[i] += sel_core_events.retired_i;
+        RetiredAcc: perf_cnt_d[i] += sel_core_events.retired_acc;
+        DmaAwStall: perf_cnt_d[i] += sel_dma_events.aw_stall;
+        DmaArStall: perf_cnt_d[i] += sel_dma_events.ar_stall;
+        DmaRStall: perf_cnt_d[i] += sel_dma_events.r_stall;
+        DmaWStall: perf_cnt_d[i] += sel_dma_events.w_stall;
+        DmaBufWStall: perf_cnt_d[i] += sel_dma_events.buf_w_stall;
+        DmaBufRStall: perf_cnt_d[i] += sel_dma_events.buf_r_stall;
+        DmaAwDone: perf_cnt_d[i] += sel_dma_events.aw_done;
+        DmaAwBw: perf_cnt_d[i] += ((sel_dma_events.aw_len + 1) << (sel_dma_events.aw_size));
+        DmaArDone: perf_cnt_d[i] += sel_dma_events.ar_done;
+        DmaArBw: perf_cnt_d[i] += ((sel_dma_events.ar_len + 1) << (sel_dma_events.ar_size));
+        DmaRDone: perf_cnt_d[i] += sel_dma_events.r_done;
+        DmaRBw: perf_cnt_d[i] += DMADataWidth/8;
+        DmaWDone: perf_cnt_d[i] += sel_dma_events.w_done;
+        DmaWBw: perf_cnt_d[i] += sel_dma_events.num_bytes_written;
+        DmaBDone: perf_cnt_d[i] += sel_dma_events.b_done;
+        DmaBusy: perf_cnt_d[i] += sel_dma_events.dma_busy;
+        IcacheMiss: perf_cnt_d[i] += icache_events_q[hart_select].l0_miss;
+        IcacheHit: perf_cnt_d[i] += icache_events_q[hart_select].l0_hit;
+        IcachePrefetch: perf_cnt_d[i] += icache_events_q[hart_select].l0_prefetch;
+        IcacheDoubleHit: perf_cnt_d[i] += icache_events_q[hart_select].l0_double_hit;
+        IcacheStall: perf_cnt_d[i] += icache_events_q[hart_select].l0_stall;
+        default:;
+      endcase
+      // Set performance metric.
+      if (reg2hw.perf_cnt_sel[i].metric.qe) begin
+        perf_metrics_d[i] = perf_metrics_e'(reg2hw.perf_cnt_sel[i].metric.q);
       end
-      // TCDM Accessed
-      else if (reg2hw.perf_counter_enable[i].tcdm_accessed.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + tcdm_events_q.inc_accessed;
-      end
-      // TCDM Congested
-      else if (reg2hw.perf_counter_enable[i].tcdm_congested.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + tcdm_events_q.inc_congested;
-      end
-      // Per-hart performance counter.
-      // Issue FPU
-      else if (reg2hw.perf_counter_enable[i].issue_fpu.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + sel_core_events.issue_fpu;
-      end
-      // Issue FPU Sequencer
-      else if (reg2hw.perf_counter_enable[i].issue_fpu_seq.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + sel_core_events.issue_fpu_seq;
-      end
-      // Issue Core to FPU
-      else if (reg2hw.perf_counter_enable[i].issue_core_to_fpu.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + sel_core_events.issue_core_to_fpu;
-      end
-      // Retired instructions
-      else if (reg2hw.perf_counter_enable[i].retired_instr.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + sel_core_events.retired_instr;
-      end
-      // Retired load instructions
-      else if (reg2hw.perf_counter_enable[i].retired_load.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + sel_core_events.retired_load;
-      end
-      // Retired base instructions
-      else if (reg2hw.perf_counter_enable[i].retired_i.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + sel_core_events.retired_i;
-      end
-      // Retired offloaded instructions
-      else if (reg2hw.perf_counter_enable[i].retired_acc.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + sel_core_events.retired_acc;
-      end
-      // DMA AW stall
-      else if (reg2hw.perf_counter_enable[i].dma_aw_stall.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + dma_events_q.aw_stall;
-      end
-      // DMA AR stall
-      else if (reg2hw.perf_counter_enable[i].dma_ar_stall.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + dma_events_q.ar_stall;
-      end
-      // DMA R stall
-      else if (reg2hw.perf_counter_enable[i].dma_r_stall.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + dma_events_q.r_stall;
-      end
-      // DMA W stall
-      else if (reg2hw.perf_counter_enable[i].dma_w_stall.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + dma_events_q.w_stall;
-      end
-      // DMA BUF W stall
-      else if (reg2hw.perf_counter_enable[i].dma_buf_w_stall.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + dma_events_q.buf_w_stall;
-      end
-      // DMA BUF R stall
-      else if (reg2hw.perf_counter_enable[i].dma_buf_r_stall.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + dma_events_q.buf_r_stall;
-      end
-      // DMA AW done
-      else if (reg2hw.perf_counter_enable[i].dma_aw_done.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + dma_events_q.aw_done;
-      end
-      // DMA AW BW
-      else if (reg2hw.perf_counter_enable[i].dma_aw_bw.q &&
-                dma_events_q.aw_done) begin
-        perf_counter_d[i] = perf_counter_d[i] +
-              ((dma_events_q.aw_len + 1) << (dma_events_q.aw_size));
-      end
-      // DMA AR done
-      else if (reg2hw.perf_counter_enable[i].dma_ar_done.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + dma_events_q.ar_done;
-      end
-      // DMA AR BW
-      else if (reg2hw.perf_counter_enable[i].dma_ar_bw.q &&
-                dma_events_q.ar_done) begin
-          perf_counter_d[i] = perf_counter_d[i] +
-                ((dma_events_q.ar_len + 1) << (dma_events_q.ar_size));
-      end
-      // DMA R done
-      else if (reg2hw.perf_counter_enable[i].dma_r_done.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + dma_events_q.r_done;
-      end
-      // DMA R BW
-      else if (reg2hw.perf_counter_enable[i].dma_r_bw.q &&
-                dma_events_q.r_done) begin
-        perf_counter_d[i] = perf_counter_d[i] + DMADataWidth/8;
-      end
-      // DMA W done
-      else if (reg2hw.perf_counter_enable[i].dma_w_done.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + dma_events_q.w_done;
-      end
-      // DMA W BW
-      else if (reg2hw.perf_counter_enable[i].dma_w_bw.q &&
-                dma_events_q.w_done) begin
-        perf_counter_d[i] = perf_counter_d[i] + dma_events_q.num_bytes_written;
-      end
-      // DMA B done
-      else if (reg2hw.perf_counter_enable[i].dma_b_done.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + dma_events_q.b_done;
-      end
-      // DMA busy
-      else if (reg2hw.perf_counter_enable[i].dma_busy.q) begin
-        perf_counter_d[i] = perf_counter_d[i] + dma_events_q.dma_busy;
-      end
-      // icache miss
-      else if (reg2hw.perf_counter_enable[i].icache_miss.q) begin
-        perf_counter_d[i] = perf_counter_d[i] +
-              icache_events_q[reg2hw.hart_select[i].q].l0_miss;
-      end
-      // icache hit
-      else if (reg2hw.perf_counter_enable[i].icache_hit.q) begin
-        perf_counter_d[i] = perf_counter_d[i] +
-              icache_events_q[reg2hw.hart_select[i].q].l0_hit;
-      end
-      // icache prefetch
-      else if (reg2hw.perf_counter_enable[i].icache_prefetch.q) begin
-        perf_counter_d[i] = perf_counter_d[i] +
-              icache_events_q[reg2hw.hart_select[i].q].l0_prefetch;
-      end
-      // icache double hit
-        else if (reg2hw.perf_counter_enable[i].icache_double_hit.q) begin
-        perf_counter_d[i] = perf_counter_d[i] +
-              icache_events_q[reg2hw.hart_select[i].q].l0_double_hit;
-      end
-      // icache stall
-      else if (reg2hw.perf_counter_enable[i].icache_stall.q) begin
-        perf_counter_d[i] = perf_counter_d[i] +
-              icache_events_q[reg2hw.hart_select[i].q].l0_stall;
-      end
-      // Reset performance counter.
-      if (reg2hw.perf_counter[i].qe) begin
-        perf_counter_d[i] = reg2hw.perf_counter[i].q;
+      // Set hart select.
+      if (reg2hw.perf_cnt_sel[i].hart.qe) begin
+        perf_hart_sel_d[i] = reg2hw.perf_cnt_sel[i].hart.q;
       end
     end
   end
 
-  `FF(perf_counter_q, perf_counter_d, '0, clk_i, rst_ni)
+  // Performance counter FFs.
+  for (genvar i = 0; i < NumPerfCounters; i++) begin : gen_perf_cnt
+    `FFLARNC(perf_cnt_q[i], perf_cnt_d[i],
+             reg2hw.perf_cnt_en[i], reg2hw.perf_cnt[i].qe, '0, clk_i, rst_ni)
+  end
+
+  // Set reset values for the metrics that should be tracked immediately after reset.
+  for (genvar i = 0; i < NumPerfCounters; i++) begin : gen_perf_metrics_assign
+    if (i < NumPerfMetricRstValues) begin : gen_perf_metrics_rst_value
+      `FF(perf_metrics_q[i], perf_metrics_d[i], PerfMetricRstValues[i], clk_i, rst_ni)
+    end else begin : gen_perf_metrics_default
+      `FF(perf_metrics_q[i], perf_metrics_d[i], Cycle, clk_i, rst_ni)
+    end
+  end
+
+  // Use hart `0` as default.
+  `FF(perf_hart_sel_q, perf_hart_sel_d, 0, clk_i, rst_ni)
 
 endmodule

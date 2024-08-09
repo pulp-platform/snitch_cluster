@@ -16,335 +16,284 @@
         { protocol: "reg_iface", direction: "device"}
     ]
     regwidth: 64,
-    registers: [{
+    registers: [
+    {
         multireg: {
-            name: "PERF_COUNTER_ENABLE",
-            desc: "Enable particular performance counter and start tracking.",
+            name: "PERF_CNT_EN",
+            desc: "Enable a particular performance counter to start tracking."
             swaccess: "rw",
             hwaccess: "hro",
             count: "NumPerfCounters",
-            cname: "performance_counter_enable",
+            cname: "perf_cnt_en",
+            compact: "false",
             fields: [{
                 bits: "0:0",
-                resval: "0",
-                name: "CYCLE",
-                desc: '''
-                    Cycle counter. Counts up as long as the cluster is powered.
-                    '''
-            },
-            {
-                bits: "1:1",
-                resval: "0",
-                name: "TCDM_ACCESSED"
-                desc: '''
-                        Increased whenever the TCDM is accessed. Each individual access is tracked,
-                        so if `n` cores access the TCDM, `n` will be added. Accesses are tracked at the TCDM,
-                        so it doesn't matter whether the cores or for example the SSR hardware accesses
-                        the TCDM. _This is a cluster-global signal._
-                        '''
-            },
-            {
-                bits: "2:2",
-                resval: "0",
-                name: "TCDM_CONGESTED"
-                desc: '''
-                        Incremented whenever an access towards the TCDM is made but the arbitration
-                        logic didn't grant the access (due to congestion). It's strictly less than TCDM_ACCESSED.
-                        _This is a cluster-global signal._
-                        '''
-            },
-            {
-                bits: "3:3",
-                resval: "0",
-                name: "ISSUE_FPU"
-                desc: '''
-                        Operations performed in the FPU. Includes both operations initiated by the
-                        sequencer and by the core. When the Xfrep extension is available, this counter is
-                        equivalent to ISSUE_FPU_SEQ (see description of ISSUE_FPU_SEQ). If the Xfrep extension
-                        is not supported, then it is equivalent to ISSUE_CORE_TO_FPU. _This is a hart-local signal._
-                        '''
-            },
-            {
-                bits: "4:4",
-                resval: "0",
-                name: "ISSUE_FPU_SEQ"
-                desc: '''
-                        Incremented whenever the FPU Sequencer issues an FPU instruction.
-                        Might not be available if the hardware doesn't support FREP.
-                        Note that all FP instructions offloaded by the core to the FPU are routed
-                        through the sequencer (although not necessarily buffered) and thus are also counted.
-                        The instructions issued independently by the FPU sequencer could thus be
-                        calculated as ISSUE_FPU_SEQ_PROPER = ISSUE_FPU_SEQ - ISSUE_CORE_TO_FPU.
-                        _This is a hart-local signal._
-                        '''
-            },
-            {
-                bits: "5:5",
-                resval: "0",
-                name: "ISSUE_CORE_TO_FPU"
-                desc: '''Incremented whenever the core issues an FPU instruction.
-                        _This is a hart-local signal._'''
-            },
-            {
-                bits: "6:6",
-                resval: "0",
-                name: "RETIRED_INSTR"
-                desc: '''
-                        Instructions retired by the core, both offloaded and not. Does not
-                        count instructions issued independently by the FPU sequencer.
-                        _This is a hart-local signal._
-                        '''
-            },
-            {
-                bits: "7:7",
-                resval: "0",
-                name: "RETIRED_LOAD"
-                desc: '''
-                        Load instructions retired by the core. _This is a hart-local signal._
-                        '''
-            },
-            {
-                bits: "8:8",
-                resval: "0",
-                name: "RETIRED_I"
-                desc: '''
-                        Base instructions retired by the core. _This is a hart-local signal._
-                        '''
-            },
-            {
-                bits: "9:9",
-                resval: "0",
-                name: "RETIRED_ACC"
-                desc: '''
-                        Offloaded instructions retired by the core. _This is a hart-local signal._
-                        '''
-            },
-            {
-                bits: "10:10",
-                resval: "0",
-                name: "DMA_AW_STALL"
-                desc: '''
-                        Incremented whenever aw_valid = 1 but aw_ready = 0.
-                        _This is a DMA-local signal_
-                        '''
-            },
-            {
-                bits: "11:11",
-                resval: "0",
-                name: "DMA_AR_STALL"
-                desc: '''
-                        Incremented whenever ar_valid = 1 but ar_ready = 0.
-                        _This is a DMA-local signal_
-                        '''
-            },
-            {
-                bits: "12:12",
-                resval: "0",
-                name: "DMA_R_STALL"
-                desc: '''
-                        Incremented whenever r_ready = 1 but r_valid = 0.
-                        _This is a DMA-local signal_
-                        '''
-            },
-            {
-                bits: "13:13",
-                resval: "0",
-                name: "DMA_W_STALL"
-                desc: '''
-                        Incremented whenever w_valid = 1 but w_ready = 0.
-                        _This is a DMA-local signal_
-                        '''
-            },
-            {
-                bits: "14:14",
-                resval: "0",
-                name: "DMA_BUF_W_STALL"
-                desc: '''
-                        Incremented whenever w_ready = 1 but w_valid = 0.
-                        _This is a DMA-local signal_
-                        '''
-            },
-            {
-                bits: "15:15",
-                resval: "0",
-                name: "DMA_BUF_R_STALL"
-                desc: '''
-                        Incremented whenever r_valid = 1 but r_ready = 0.
-                        _This is a DMA-local signal_
-                        '''
-            },
-            {
-                bits: "16:16",
-                resval: "0",
-                name: "DMA_AW_DONE"
-                desc: '''
-                        Incremented whenever AW handshake occurs.
-                        _This is a DMA-local signal_
-                        '''
-            },
-            {
-                bits: "17:17",
-                resval: "0",
-                name: "DMA_AW_BW"
-                desc: '''
-                        Whenever AW handshake occurs, the counter is incremented
-                        by the number of bytes transfered for this transaction
-                        _This is a DMA-local signal_
-                        '''
-            },
-            {
-                bits: "18:18",
-                resval: "0",
-                name: "DMA_AR_DONE"
-                desc: '''
-                        Incremented whenever AR handshake occurs.
-                        _This is a DMA-local signal_
-                        '''
-            },
-            {
-                bits: "19:19",
-                resval: "0",
-                name: "DMA_AR_BW"
-                desc: '''
-                        Whenever AR handshake occurs, the counter is incremented
-                        by the number of bytes transfered for this transaction
-                        _This is a DMA-local signal_
-                        '''
-            },
-            {
-                bits: "20:20",
-                resval: "0",
-                name: "DMA_R_DONE"
-                desc: '''
-                        Incremented whenever R handshake occurs.
-                        _This is a DMA-local signal_
-                        '''
-            },
-            {
-                bits: "21:21",
-                resval: "0",
-                name: "DMA_R_BW"
-                desc: '''
-                        Whenever R handshake occurs, the counter is incremented
-                        by the number of bytes transfered in this cycle
-                        _This is a DMA-local signal_
-                        '''
-            },
-            {
-                bits: "22:22",
-                resval: "0",
-                name: "DMA_W_DONE"
-                desc: '''
-                        Incremented whenvever W handshake occurs.
-                        _This is a DMA-local signal_
-                        '''
-            },
-            {
-                bits: "23:23",
-                resval: "0",
-                name: "DMA_W_BW"
-                desc: '''
-                        Whenever W handshake occurs, the counter is incremented
-                        by the number of bytes transfered in this cycle
-                        _This is a DMA-local signal_
-                        '''
-            },
-            {
-                bits: "24:24",
-                resval: "0",
-                name: "DMA_B_DONE"
-                desc: '''
-                        Incremented whenever B handshake occurs.
-                        _This is a DMA-local signal_
-                        '''
-            },
-            {
-                bits: "25:25",
-                resval: "0",
-                name: "DMA_BUSY"
-                desc: '''
-                        Incremented whenever DMA is busy.
-                        _This is a DMA-local signal_
-                        '''
-            },
-                        {
-                bits: "26:26",
-                resval: "0",
-                name: "ICACHE_MISS"
-                desc: '''
-                        Incremented for instruction cache misses.
-                        _This is a hart-local signal_
-                        '''
-            },
-                        {
-                bits: "27:27",
-                resval: "0",
-                name: "ICACHE_HIT"
-                desc: '''
-                        Incremented for instruction cache hits.
-                        _This is a hart-local signal_
-                        '''
-            },
-                        {
-                bits: "28:28",
-                resval: "0",
-                name: "ICACHE_PREFETCH"
-                desc: '''
-                        Incremented for instruction cache prefetches.
-                        _This is a hart-local signal_
-                        '''
-            },
-                        {
-                bits: "29:29",
-                resval: "0",
-                name: "ICACHE_DOUBLE_HIT"
-                desc: '''
-                        Incremented for instruction cache double hit.
-                        _This is a hart-local signal_
-                        '''
-            },
-                        {
-                bits: "30:30",
-                resval: "0",
-                name: "ICACHE_STALL"
-                desc: '''
-                        Incremented for instruction cache stalls.
-                        _This is a hart-local signal_
-                        '''
-            },
-            ]
+                resval: "1",
+                name: "ENABLE",
+                desc: "Enable a particular performance counter to start tracking."
+            }]
         }
     },
     {
         multireg: {
-            name: "HART_SELECT",
-            desc: '''Select from which hart in the cluster, starting from `0`,
-                     the event should be counted. For each performance counter
-                     the cores can be selected individually. If a hart greater
-                     than the clusters total hart size is selected the selection
-                     will wrap and the hart corresponding to `hart_select % total_harts_in_cluster`
-                     will be selected.'''
-            swaccess: "rw",
-            hwaccess: "hro",
-            count: "NumPerfCounters",
-            cname: "hart_select",
-            compact: "false",
-            fields: [{
-                bits: "9:0",
-                name: "HART_SELECT",
-                desc: "Select source of per-hart performance counter"
-            }]
-        }
-    }
-    {
-        multireg: {
-            name: "PERF_COUNTER",
-            desc: '''Performance counter. Set corresponding PERF_COUNTER_ENABLE bits depending on what
-            performance metric you would like to track.'''
+            name: "PERF_CNT_SEL",
+            desc: "Select the metric that is tracked for each performance counter.",
             swaccess: "rw",
             hwaccess: "hrw",
             count: "NumPerfCounters",
-            cname: "performance_counter",
+            cname: "perf_cnt_sel",
+            hwext: "true",
+            hwqe: "true",
+            fields: [{
+                bits: "15:0",
+                name: "HART",
+                desc: '''Select from which hart in the cluster, starting from `0`,
+                    the event should be counted. For each performance counter
+                    the cores can be selected individually. If a hart greater
+                    than the cluster's total hart size is selected the selection
+                    will wrap and the hart corresponding to `hart_select % total_harts_in_cluster`
+                    will be selected.'''
+            },
+            {
+                bits: "31:16",
+                name: "METRIC",
+                desc: "Select the metric that is tracked for each performance counter",
+                enum: [{
+                            value: "0",
+                            name: "CYCLE",
+                            desc: "Cycle counter. Counts up as long as the cluster is powered."
+                        },
+                        {
+                            value: "1",
+                            name: "TCDM_ACCESSED",
+                            desc: '''
+                                Increased whenever the TCDM is accessed. Each individual access is tracked,
+                                so if `n` cores access the TCDM, `n` will be added. Accesses are tracked at the TCDM,
+                                so it doesn't matter whether the cores or for example the SSR hardware accesses
+                                the TCDM. _This is a cluster-global signal._'''
+                        },
+                        {
+                            value: "2",
+                            name: "TCDM_CONGESTED",
+                            desc: '''
+                                Incremented whenever an access towards the TCDM is made but the arbitration
+                                logic didn't grant the access (due to congestion). It's strictly less than TCDM_ACCESSED.
+                                _This is a cluster-global signal._'''
+                        },
+                        {
+                            value: "3",
+                            name: "ISSUE_FPU",
+                            desc: '''
+                                Operations performed in the FPU. Includes both operations initiated by the
+                                sequencer and by the core. When the Xfrep extension is available, this counter is
+                                equivalent to ISSUE_FPU_SEQ (see description of ISSUE_FPU_SEQ). If the Xfrep extension
+                                is not supported, then it is equivalent to ISSUE_CORE_TO_FPU. _This is a hart-local signal._'''
+                        },
+                        {
+                            value: "4",
+                            name: "ISSUE_FPU_SEQ",
+                            desc: '''
+                                Incremented whenever the FPU Sequencer issues an FPU instruction.
+                                Might not be available if the hardware doesn't support FREP.
+                                Note that all FP instructions offloaded by the core to the FPU are routed
+                                through the sequencer (although not necessarily buffered) and thus are also counted.
+                                The instructions issued independently by the FPU sequencer could thus be
+                                calculated as ISSUE_FPU_SEQ_PROPER = ISSUE_FPU_SEQ - ISSUE_CORE_TO_FPU.
+                                _This is a hart-local signal._'''
+                        },
+                        {
+                            value: "5",
+                            name: "ISSUE_CORE_TO_FPU",
+                            desc: '''Incremented whenever the core issues an FPU instruction.
+                                _This is a hart-local signal._'''
+                        },
+                        {
+                            value: "6",
+                            name: "RETIRED_INSTR",
+                            desc: '''
+                                Instructions retired by the core, both offloaded and not. Does not
+                                count instructions issued independently by the FPU sequencer.
+                                _This is a hart-local signal._'''
+                        },
+                        {
+                            value: "7",
+                            name: "RETIRED_LOAD",
+                            desc: '''Load instructions retired by the core. _This is a hart-local signal._'''
+                        },
+                        {
+                            value: "8",
+                            name: "RETIRED_I",
+                            desc: '''Base instructions retired by the core. _This is a hart-local signal._'''
+                        },
+                        {
+                            value: "9",
+                            name: "RETIRED_ACC",
+                            desc: '''Offloaded instructions retired by the core. _This is a hart-local signal._'''
+                        },
+                        {
+                            value: "10",
+                            name: "DMA_AW_STALL",
+                            desc: '''
+                                Incremented whenever aw_valid = 1 but aw_ready = 0.
+                                _This is a DMA-local signal_'''
+                        },
+                        {
+                            value: "11",
+                            name: "DMA_AR_STALL",
+                            desc: '''
+                                Incremented whenever ar_valid = 1 but ar_ready = 0.
+                                _This is a DMA-local signal_'''
+                        },
+                        {
+                            value: "12",
+                            name: "DMA_R_STALL",
+                            desc: '''
+                                Incremented whenever r_ready = 1 but r_valid = 0.
+                                _This is a DMA-local signal_'''
+                        },
+                        {
+                            value: "13",
+                            name: "DMA_W_STALL",
+                            desc: '''
+                                Incremented whenever w_valid = 1 but w_ready = 0.
+                                _This is a DMA-local signal_'''
+                        },
+                        {
+                            value: "14",
+                            name: "DMA_BUF_W_STALL",
+                            desc: '''
+                                Incremented whenever w_ready = 1 but w_valid = 0.
+                                _This is a DMA-local signal_'''
+                        },
+                        {
+                            value: "15",
+                            name: "DMA_BUF_R_STALL",
+                            desc: '''
+                                Incremented whenever r_valid = 1 but r_ready = 0.
+                                _This is a DMA-local signal_'''
+                        },
+                        {
+                            value: "16",
+                            name: "DMA_AW_DONE",
+                            desc: '''
+                                Incremented whenever AW handshake occurs.
+                                _This is a DMA-local signal_'''
+                        },
+                        {
+                            value: "17",
+                            name: "DMA_AW_BW",
+                            desc: '''
+                                Whenever AW handshake occurs, the counter is incremented
+                                by the number of bytes transfered for this transaction
+                                _This is a DMA-local signal_'''
+                        },
+                        {
+                            value: "18",
+                            name: "DMA_AR_DONE",
+                            desc: '''
+                                Incremented whenever AR handshake occurs.
+                                _This is a DMA-local signal_'''
+                        },
+                        {
+                            value: "19",
+                            name: "DMA_AR_BW",
+                            desc: '''
+                                Whenever AR handshake occurs, the counter is incremented
+                                by the number of bytes transfered for this transaction
+                                _This is a DMA-local signal_'''
+                        },
+                        {
+                            value: "20",
+                            name: "DMA_R_DONE",
+                            desc: '''
+                                Incremented whenever R handshake occurs.
+                                _This is a DMA-local signal_'''
+                        },
+                        {
+                            value: "21",
+                            name: "DMA_R_BW",
+                            desc: '''
+                                Whenever R handshake occurs, the counter is incremented
+                                by the number of bytes transfered in this cycle
+                                _This is a DMA-local signal_'''
+                        },
+                        {
+                            value: "22",
+                            name: "DMA_W_DONE",
+                            desc: '''
+                                Incremented whenvever W handshake occurs.
+                                _This is a DMA-local signal_'''
+                        },
+                        {
+                            value: "23",
+                            name: "DMA_W_BW",
+                            desc: '''
+                                Whenever W handshake occurs, the counter is incremented
+                                by the number of bytes transfered in this cycle
+                                _This is a DMA-local signal_'''
+                        },
+                        {
+                            value: "24",
+                            name: "DMA_B_DONE",
+                            desc: '''
+                                Incremented whenever B handshake occurs.
+                                _This is a DMA-local signal_'''
+                        },
+                        {
+                            value: "25",
+                            name: "DMA_BUSY",
+                            desc: '''
+                                Incremented whenever DMA is busy.
+                                _This is a DMA-local signal_'''
+                        },
+                        {
+                            value: "26",
+                            name: "ICACHE_MISS",
+                            desc: '''
+                                Incremented for instruction cache misses.
+                                _This is a hart-local signal_'''
+                        },
+                        {
+                            value: "27",
+                            name: "ICACHE_HIT",
+                            desc: '''
+                                Incremented for instruction cache hits.
+                                _This is a hart-local signal_'''
+                        },
+                        {
+                            value: "28",
+                            name: "ICACHE_PREFETCH",
+                            desc: '''
+                                Incremented for instruction cache prefetches.
+                                _This is a hart-local signal_'''
+                        },
+                        {
+                            value: "29",
+                            name: "ICACHE_DOUBLE_HIT",
+                            desc: '''
+                                Incremented for instruction cache double hit.
+                                _This is a hart-local signal_'''
+                        },
+                        {
+                            value: "30",
+                            name: "ICACHE_STALL",
+                            desc: '''
+                                Incremented for instruction cache stalls.
+                                _This is a hart-local signal_'''
+                        },
+                ]
+            }]
+        }
+    },
+    {
+        multireg: {
+            name: "PERF_CNT",
+            desc: '''Performance counter. Set corresponding PERF_CNT_SEL register depending on what
+            performance metric and hart you would like to track.'''
+            swaccess: "rw",
+            hwaccess: "hrw",
+            count: "NumPerfCounters",
+            cname: "perf_cnt",
             hwext: "true",
             hwqe: "true",
             fields: [{
@@ -385,20 +334,6 @@
               name: "CL_CLINT_CLEAR",
               desc: "Clear cluster-local interrupt of hart i"
           }]
-    },
-    {
-        name: "HW_BARRIER",
-        desc: '''Hardware barrier register. Loads to this register will block until all cores have
-        performed the load. At this stage we know that they reached the same point in the control flow,
-        i.e., the cores are synchronized.'''
-        swaccess: "ro",
-        hwaccess: "hrw",
-        hwext: "true",
-        fields: [{
-            bits: "31:0",
-            name: "HW_BARRIER",
-            desc: "Hardware barrier register."
-        }]
     },
     {
         name: "ICACHE_PREFETCH_ENABLE",
