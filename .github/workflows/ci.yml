@@ -288,6 +288,24 @@ jobs:
           sw/runtime.yaml \
           sw/snax-alu-run.yaml -j
 
+  snax-hypercorex-cluster-vlt-generic:
+    name: SNAX Hypercorex w/ Verilator (Generic LLVM)
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/kuleuven-micas/snax:main
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - name: Generate RTL
+        run: |
+          make -C target/snitch_cluster rtl-gen \
+          CFG_OVERRIDE=cfg/snax-hypercorex.hjson
+      - name: Build Hardware
+        run: |
+          make CFG_OVERRIDE=cfg/snax-hypercorex.hjson \
+          -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
+
   snax-streamer-simd-cluster-vlt-generic:
     name: Simulate SW on SNAX SIMD Cluster w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04

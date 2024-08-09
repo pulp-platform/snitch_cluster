@@ -110,6 +110,14 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-alu.hjson)
 
 endif
 
+ifeq (${CFG_OVERRIDE}, cfg/snax-hypercorex.hjson)
+
+	VSIM_BENDER += -t hypercorex -t snax_hypercorex_cluster
+	VLT_BENDER  += -t hypercorex -t snax_hypercorex_cluster
+	VCS_BENDER  += -t hypercorex -t snax_hypercorex_cluster
+
+endif
+
 ifeq (${CFG_OVERRIDE}, cfg/snax-data-reshuffler.hjson)
 
 	VSIM_BENDER += -t snax_data_reshuffler -t snax_data_reshuffler_cluster

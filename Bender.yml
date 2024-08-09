@@ -31,6 +31,7 @@ dependencies:
   hwpe-mac-engine:    { git: https://github.com/KULeuven-MICAS/hwpe-mac-engine.git, rev: 5d3b4525b665169fc8321c8a811f3c83ad3c72e8 }
   snax-gemm:          { git: "https://github.com/KULeuven-MICAS/snax-gemm", rev: main }
   snax-postprocessing-simd: { git: "https://github.com/KULeuven-MICAS/snax-postprocessing-simd", rev: main }
+  hypercorex:         { git: "https://github.com/KULeuven-MICAS/hypercorex.git", rev: main }
 
 vendor_package:
   - name: musl
@@ -310,6 +311,17 @@ sources:
       # Level 2
       - target/snitch_cluster/generated/snax_alu/snax_alu_wrapper.sv
 
+  # Hypercorex
+  - target: hypercorex
+    files:
+      # Level 0
+      - target/snitch_cluster/generated/snax_hypercorex/snax_hypercorex_streamer_StreamerTop.sv
+      # Level 1
+      - hw/snax_hypercorex/snax_hypercorex_shell_wrapper.sv
+      - target/snitch_cluster/generated/snax_hypercorex/snax_hypercorex_streamer_wrapper.sv
+      # Level 2
+      - target/snitch_cluster/generated/snax_hypercorex/snax_hypercorex_wrapper.sv
+
   - target: any(snax_streamer_gemm, snax_wide_gemm_data_reshuffler)
     files:
       # Level 0
@@ -419,6 +431,9 @@ sources:
   - target: snax_alu_cluster
     files:
       - target/snitch_cluster/generated/snax_alu_cluster_wrapper.sv
+  - target: snax_hypercorex_cluster
+    files:
+      - target/snitch_cluster/generated/snax_hypercorex_cluster_wrapper.sv
   # Note: this is about to be obsolete
   # but it uses the old snax-gemm still
   - target: snax_gemm_cluster
