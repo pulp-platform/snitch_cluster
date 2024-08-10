@@ -21,6 +21,20 @@ jobs:
       - name: Build docs
         run: make docs
 
+  #####################
+  # Python unit tests #
+  #####################
+
+  pytest:
+    name: Python unit tests
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/pulp-platform/snitch_cluster:main
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run pytest
+        run: pytest
+
   ##############################################
   # Simulate SW on Snitch Cluster w/ Verilator #
   ##############################################
@@ -42,6 +56,7 @@ jobs:
       - name: Build Hardware
         working-directory: target/snitch_cluster
         run: |
+          pip install -r $(bender path idma)/requirements.txt
           make CFG_OVERRIDE=cfg/github-ci.hjson VLT_JOBS=1 bin/snitch_cluster.vlt
       - name: Run Tests
         working-directory: target/snitch_cluster

@@ -20,10 +20,8 @@ source .venv/bin/activate
 # occurring when the /tmp folder is filled by other processes.
 mkdir tmp
 TMPDIR=tmp pip install -r python-requirements.txt
+TMPDIR=tmp pip install -r $($BENDER path idma)/requirements.txt
 rm -rf tmp
-
-# Bender initialization
-$BENDER vendor init
 
 # Install spike-dasm
 mkdir tools/
