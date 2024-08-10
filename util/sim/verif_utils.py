@@ -7,16 +7,14 @@
 """Convenience functions and classes for verification scripts."""
 
 
-import sys
 import argparse
 import numpy as np
 import csv
-from snitch.util.sim.Elf import Elf
 from pathlib import Path
-from snitch.util.sim.data_utils import flatten, from_buffer
 
-sys.path.append(str(Path(__file__).parent / '../../target/common/test/'))
-from SnitchSim import SnitchSim  # noqa: E402
+from snitch.util.sim.Elf import Elf
+from snitch.util.sim.data_utils import flatten, from_buffer
+from snitch.util.sim import SnitchSim
 
 
 def dump_results_to_csv(expected_results, actual_results, error, max_error, path):
