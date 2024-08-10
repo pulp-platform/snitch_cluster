@@ -158,6 +158,7 @@ ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 COPY . /tmp/snitch_cluster
 RUN pip install -r /tmp/snitch_cluster/python-requirements.txt
 RUN pip install /tmp/snitch_cluster/
+RUN rm -rf /tmp/snitch_cluster
 
 # Add Verilator to PATH
 ENV PATH "/tools/verilator/bin:${PATH}"

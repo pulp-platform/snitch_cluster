@@ -21,7 +21,9 @@ from snitch.blas import gemm
 np.random.seed(42)
 torch.manual_seed(42)
 
-np.set_printoptions(formatter={'object': str})
+# AXI splits bursts crossing 4KB address boundaries. To minimize
+# the occurrence of these splits the data should be aligned to 4KB
+BURST_ALIGNMENT = 4096
 
 
 def torch_golden_model(Q, K, V):
@@ -135,38 +137,22 @@ def exact_flexfloat_golden_model(Q, K, V, B_r, B_c, desc):
     return np.concatenate(O_tiles, 0)
 
 
-def load_params(self, params):
-    self.L = params['L']
-    self.S = params['S']
-    self.d = params['d']
-    self.B_r = params['B_r']
-    self.B_c = params['B_c']
-    self.dtype = params['dtype']
-    self.baseline = params['baseline']
-    self.use_mask = params['use_mask']
-    self.gemm_impl = self.get_gemm_implementation(params)
-    # self.torch_type = data_utils.torch_type_from_precision_t(self.dtype)
-    self.ff_desc = data_utils.ff_desc_from_precision_t(self.dtype)
-    self.ctype = data_utils.ctype_from_precision_t(self.dtype)
-    self.prec = data_utils.size_from_precision_t(self.dtype)
-
-
 # Verify layer parameters are valid
-def validate(self):
-    assert (self.L % self.B_r) == 0, 'L is not an integer multiple of B_r'
-    assert (self.S % self.B_c) == 0, 'S is not an integer multiple of B_c'
-    assert self.dtype != 'FP64', 'FP64 precision is not supported yet'
+def validate_config(L, S, d, B_r, B_c, dtype, baseline, gemm_impl):
+    assert (L % B_r) == 0, 'L is not an integer multiple of B_r'
+    assert (S % B_c) == 0, 'S is not an integer multiple of B_c'
+    assert dtype != 'FP64', 'FP64 precision is not supported yet'
 
     # Calculate total TCDM occupation
-    q_fa_size = self.B_r * self.d * self.prec
-    k_fa_size = self.B_c * self.d * self.prec
-    v_fa_size = self.B_c * self.d * self.prec
-    s_fa_size = self.B_r * self.B_c * self.prec
-    p_fa_size = self.B_r * self.B_c * self.prec
-    o_fa_size = self.B_r * self.d * self.prec
-    m_i_size = self.B_r * self.prec
-    l_i_size = self.B_r * self.prec
-    mask_size = self.B_r * self.B_c * self.prec if self.use_mask else 0
+    prec = data_utils.size_from_precision_t(dtype)
+    q_fa_size = B_r * d * prec
+    k_fa_size = B_c * d * prec
+    v_fa_size = B_c * d * prec
+    s_fa_size = B_r * B_c * prec
+    p_fa_size = B_r * B_c * prec
+    o_fa_size = B_r * d * prec
+    m_i_size = B_r * prec
+    l_i_size = B_r * prec
     total_size = q_fa_size
     total_size += k_fa_size
     total_size += v_fa_size * 2  # V and V^t
@@ -175,51 +161,26 @@ def validate(self):
     total_size += o_fa_size
     total_size += m_i_size * 2  # m_i and m_i_prev
     total_size += l_i_size
-    total_size += mask_size
     data_utils.validate_tcdm_footprint(total_size)
 
     # Q*K^t
-    gemm_gen = gemm.GemmDataGen()
-    gemm_params = {
-        'gemm_fp': self.gemm_impl,
-        'parallelize_m': 0,
-        'parallelize_k': 0,
-        'm_tiles': 1,
-        'n_tiles': 1,
-        'k_tiles': 1,
-        'transa': 0,
-        'transb': 1,
-        'M': self.B_r,
-        'N': self.B_c,
-        'K': self.d,
-        'beta': 0
-    }
-    gemm_gen.load_params(gemm_params)
-    gemm_gen.validate()
+    gemm.GemmDataGen().validate_config(
+        gemm_fp=gemm_impl, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
+        k_tiles=1, transa=0, transb=1, M=B_r, N=B_c, K=d, beta=0
+    )
 
     # P*V
-    gemm_params = {
-        'gemm_fp': self.gemm_impl,
-        'parallelize_m': 0,
-        'parallelize_k': 0,
-        'm_tiles': 1,
-        'n_tiles': 1,
-        'k_tiles': 1,
-        'transa': 0,
-        'M': self.B_r,
-        'N': self.d,
-        'K': self.B_c,
-        'beta': 1
-    }
-    if self.baseline:
-        gemm_params['transb'] = 0
-        gemm_gen.load_params(gemm_params)
-        gemm_gen.validate()
+    if baseline:
+        gemm.GemmDataGen().validate_config(
+            gemm_fp=gemm_impl, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
+            k_tiles=1, transa=0, transb=0, M=B_r, N=d, K=B_c, beta=1
+        )
     else:
         # P*(V^t)^t
-        gemm_params['transb'] = 1
-        gemm_gen.load_params(gemm_params)
-        gemm_gen.validate()
+        gemm.GemmDataGen().validate_config(
+            gemm_fp=gemm_impl, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
+            k_tiles=1, transa=0, transb=1, M=B_r, N=d, K=B_c, beta=1
+        )
 
 
 def get_gemm_implementation(params):
@@ -243,7 +204,7 @@ def emit_header(section, params):
     prec = params['dtype']
     gemm_impl = get_gemm_implementation(params)
 
-    # TODO: Add validation (vivianep)
+    validate_config(gemm_impl=gemm_impl, **params)
 
     # torch_type = data_utils.torch_type_from_precision_t(prec)
     ff_desc = data_utils.ff_desc_from_precision_t(prec)
