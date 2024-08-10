@@ -155,10 +155,10 @@ ENV VIRTUAL_ENV "/root/.venvs/snitch_cluster"
 RUN /opt/python/bin/python3 -m venv ${VIRTUAL_ENV}
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 # Install Python requirements
-COPY . /tmp/snitch_cluster
-RUN pip install -r /tmp/snitch_cluster/python-requirements.txt
-RUN pip install /tmp/snitch_cluster/
-RUN rm -rf /tmp/snitch_cluster
+COPY python-requirements.txt /tmp/python-requirements.txt
+COPY docs/requirements.txt /tmp/docs/requirements.txt
+COPY sw/dnn/requirements.txt /tmp/sw/dnn/requirements.txt
+RUN pip install -r /tmp/python-requirements.txt
 
 # Add Verilator to PATH
 ENV PATH "/tools/verilator/bin:${PATH}"
