@@ -53,7 +53,7 @@ class Addr2LineOutput:
 
         # Find all matches and organize them into a list of dictionaries
         stack = [match.groupdict() for match in pattern.finditer(self.raw)]
-        
+
         # Format stack entries
         def format_stack_entry(entry):
             func, line, col = [entry.get(key, None) for key in ['func', 'line', 'col']]

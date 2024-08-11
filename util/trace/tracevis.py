@@ -252,7 +252,7 @@ def parse_trace(filename, kwargs):
         events += flush(lah, buf, **kwargs)
 
         print(f' parsed {lines-fails} of {lines} lines', file=sys.stderr)
-    
+
         # Assign a per-trace unique TID or PID to all events
         for event in events:
             if kwargs['collapse_call_stack']:

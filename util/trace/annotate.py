@@ -268,7 +268,8 @@ with open(trace, 'r') as f:
             if diff:
                 # Compare current and previous call stacks
                 if a2l_output:
-                    funs, files, lines = zip(*[level.values() for level in a2l_output.function_stack()])
+                    funs, files, lines = zip(
+                        *[level.values() for level in a2l_output.function_stack()])
                 else:
                     funs = files = lines = []
                 next_call_stack = assemble_call_stack(funs, files, lines)
