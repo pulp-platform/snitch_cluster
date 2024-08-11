@@ -15,7 +15,7 @@ jobs:
     name: Build documentation
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster:jssc-pyproject
+      image: ghcr.io/pulp-platform/snitch_cluster:main
     steps:
       - uses: actions/checkout@v2
       - name: Build docs
@@ -43,7 +43,7 @@ jobs:
     name: Simulate SW on Snitch Cluster w/ Verilator
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster:jssc-pyproject
+      image: ghcr.io/pulp-platform/snitch_cluster:main
     steps:
       - uses: actions/checkout@v2
         with:
@@ -78,7 +78,7 @@ jobs:
     name: Simulate SW on Snitch Cluster w/ Banshee
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster:jssc-pyproject
+      image: ghcr.io/pulp-platform/snitch_cluster:main
     steps:
       - uses: actions/checkout@v2
         with:

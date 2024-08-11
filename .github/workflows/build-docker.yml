@@ -6,8 +6,7 @@
 name: build-docker
 on:
   push:
-    branches: [jssc-pyproject]
-  pull_request:
+    branches: [main]
   workflow_dispatch:
 jobs:
   build-docker:
@@ -40,6 +39,6 @@ jobs:
           context: .
           file: util/container/Dockerfile
           push: true
-          tags: ghcr.io/pulp-platform/snitch_cluster:jssc-pyproject
+          tags: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
           build-args: |-
             SNITCH_LLVM_VERSION=latest
