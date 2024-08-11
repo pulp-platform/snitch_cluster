@@ -6,11 +6,9 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import sys
-from pathlib import Path
 from datagen import AxpyDataGen
 
-sys.path.append(str(Path(__file__).parent / '../../../../util/sim/'))
-from verif_utils import Verifier  # noqa: E402
+from snitch.util.sim.verif_utils import Verifier
 
 
 class AxpyVerifier(Verifier):

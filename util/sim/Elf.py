@@ -6,7 +6,7 @@
 
 from elftools.elf.elffile import ELFFile
 from elftools.elf.sections import SymbolTableSection
-from data_utils import from_buffer
+from snitch.util.sim.data_utils import from_buffer
 
 
 class Elf(object):

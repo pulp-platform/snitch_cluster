@@ -22,3 +22,5 @@ gmon.out
 # Installation directories
 /.venv/
 /tools/
+/build/
+/snitch.egg-info/

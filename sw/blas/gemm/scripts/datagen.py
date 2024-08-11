@@ -9,15 +9,13 @@
 #          Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import numpy as np
-import os
 import re
 import pyflexfloat as ff
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
-import data_utils  # noqa: E402
-from data_utils import DataGen, format_array_declaration, format_struct_definition, \
-                       format_array_definition, format_ifdef_wrapper  # noqa: E402
+from snitch.util.sim import data_utils
+from snitch.util.sim.data_utils import DataGen, format_array_declaration, \
+    format_struct_definition, format_array_definition, format_ifdef_wrapper
 
 
 np.random.seed(42)

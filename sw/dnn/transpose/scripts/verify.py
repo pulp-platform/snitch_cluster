@@ -6,12 +6,10 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import sys
-from pathlib import Path
 from datagen import TransposeDataGen
 
-sys.path.append(str(Path(__file__).parent / '../../../../util/sim/'))
-from verif_utils import Verifier  # noqa: E402
-from data_utils import ctype_from_precision_t  # noqa: E402
+from snitch.util.sim.verif_utils import Verifier
+from snitch.util.sim.data_utils import ctype_from_precision_t
 
 
 class TransposeVerifier(Verifier):

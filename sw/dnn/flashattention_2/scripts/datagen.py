@@ -10,18 +10,13 @@ import argparse
 import numpy as np
 import pathlib
 import json5
-import sys
-import os
 import torch
 import pyflexfloat as ff
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../../blas/"))
-import data_utils  # noqa: E402
-from data_utils import emit_license, \
-                       format_struct_definition, format_array_definition, \
-                       format_array_declaration  # noqa: E402
-import gemm  # noqa: E402
+from snitch.util.sim import data_utils
+from snitch.util.sim.data_utils import format_struct_definition, \
+    format_array_definition, format_array_declaration, emit_license
+from snitch.blas import gemm
 
 np.random.seed(42)
 torch.manual_seed(42)
@@ -117,13 +112,13 @@ def exact_flexfloat_golden_model(Q, K, V, B_r, B_c, desc):
             V_j = V[start_col:end_col,]
             # Compute O tile update
             S_ij = ff.array(np.zeros((B_r, B_c)), desc)
-            S_ij = gemm.datagen.GemmDataGen().exact_golden_model(1, Q_i, K_t_j, 0, S_ij)
+            S_ij = gemm.GemmDataGen().exact_golden_model(1, Q_i, K_t_j, 0, S_ij)
             m_i_prev = m_i
             m_i = np.maximum(m_i_prev, np.max(S_ij, 1, keepdims=True))
             shifted_exp = np.exp((m_i_prev.astype(np.float32) - m_i.astype(np.float32)))
             P_ij = np.exp((S_ij - m_i).astype(np.float32))
             PxV = ff.array(np.zeros((B_r, d)), desc)
-            PxV = gemm.datagen.GemmDataGen().exact_golden_model(1, P_ij, V_j, 0, PxV)
+            PxV = gemm.GemmDataGen().exact_golden_model(1, P_ij, V_j, 0, PxV)
             row_sum = np.sum(P_ij.astype(np.float32), 1, keepdims=True)
             if j == 0:
                 l_i = row_sum
@@ -169,20 +164,20 @@ def validate_config(L, S, d, B_r, B_c, dtype, baseline, gemm_impl):
     data_utils.validate_tcdm_footprint(total_size)
 
     # Q*K^t
-    gemm.datagen.GemmDataGen().validate_config(
+    gemm.GemmDataGen().validate_config(
         gemm_fp=gemm_impl, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
         k_tiles=1, transa=0, transb=1, M=B_r, N=B_c, K=d, beta=0
     )
 
     # P*V
     if baseline:
-        gemm.datagen.GemmDataGen().validate_config(
+        gemm.GemmDataGen().validate_config(
             gemm_fp=gemm_impl, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
             k_tiles=1, transa=0, transb=0, M=B_r, N=d, K=B_c, beta=1
         )
     else:
         # P*(V^t)^t
-        gemm.datagen.GemmDataGen().validate_config(
+        gemm.GemmDataGen().validate_config(
             gemm_fp=gemm_impl, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
             k_tiles=1, transa=0, transb=1, M=B_r, N=d, K=B_c, beta=1
         )

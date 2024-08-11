@@ -8,14 +8,12 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import numpy as np
-import os
 import pyflexfloat as ff
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../util/sim/"))
-from data_utils import ctype_from_precision_t, ff_desc_from_precision_t, \
-                       format_struct_definition, format_array_definition, \
-                       format_array_declaration, format_ifdef_wrapper, DataGen  # noqa: E402
+from snitch.util.sim.data_utils import ctype_from_precision_t, ff_desc_from_precision_t, \
+    format_struct_definition, format_array_definition, format_array_declaration, \
+    format_ifdef_wrapper, DataGen
 
 np.random.seed(42)
 
