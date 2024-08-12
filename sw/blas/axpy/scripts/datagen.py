@@ -8,6 +8,7 @@
 import numpy as np
 import sys
 
+from snitch.util.sim import data_utils
 from snitch.util.sim.data_utils import format_scalar_definition, format_array_definition, \
     format_array_declaration, format_ifdef_wrapper, format_struct_definition, DataGen
 
@@ -32,9 +33,9 @@ class AxpyDataGen(DataGen):
         assert kwargs['funcptr'] in self.FUNCPTRS, f"Function pointer must be among {self.FUNCPTRS}"
 
         # Calculate total TCDM occupation
-        # Note: doesn't account for double buffering
+        # Note: doesn't account for gaps created by data alignment
         vec_size = n_per_tile * 8
-        total_size = 3 * vec_size
+        total_size = 2 * 3 * vec_size
         data_utils.validate_tcdm_footprint(total_size)
 
     def emit_header(self, **kwargs):

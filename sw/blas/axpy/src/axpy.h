@@ -5,6 +5,8 @@
 #include "args.h"
 #include "snrt.h"
 
+#define DOUBLE_BUFFER 1
+
 #define BANK_ALIGNMENT 8
 #define TCDM_ALIGNMENT (32 * BANK_ALIGNMENT)
 #define ALIGN_UP_TCDM(addr) ALIGN_UP(addr, TCDM_ALIGNMENT)
@@ -64,9 +66,14 @@ static inline void axpy_opt(uint32_t n, double a, double* x, double* y, double* 
 
 static inline void axpy_job(axpy_args_t *args) {
     uint32_t frac, offset, size;
-    uint64_t local_x_addr, local_y_addr, local_z_addr;
-    double *local_x, *local_y, *local_z;
+    uint64_t local_x0_addr, local_y0_addr, local_z0_addr,
+             local_x1_addr, local_y1_addr, local_z1_addr;
+    double *local_x[2];
+    double *local_y[2];
+    double *local_z[2];
     double *remote_x, *remote_y, *remote_z;
+    uint32_t iterations, i, i_dma_in, i_compute, i_dma_out, buff_idx;
+
 
 #ifndef JOB_ARGS_PRELOADED
     // Allocate space for job arguments in TCDM
@@ -83,54 +90,102 @@ static inline void axpy_job(axpy_args_t *args) {
 
     // Calculate size of each tile
     frac = args->n / args->n_tiles;
+    size = frac * sizeof(double);
 
     // Allocate space for job operands in TCDM
     // Align X with the 1st bank in TCDM, Y with the 8th and Z with the 16th.
-    local_x_addr = ALIGN_UP_TCDM((uint64_t)args + sizeof(axpy_args_t));
-    local_y_addr = ALIGN_UP_TCDM(local_x_addr + frac * sizeof(double)) + 8 * BANK_ALIGNMENT;
-    local_z_addr = ALIGN_UP_TCDM(local_y_addr + frac * sizeof(double)) + 16 * BANK_ALIGNMENT;
-    local_x = (double *)local_x_addr;
-    local_y = (double *)local_y_addr;
-    local_z = (double *)local_z_addr;
+    local_x0_addr = ALIGN_UP_TCDM((uint64_t)args + sizeof(axpy_args_t));
+    local_y0_addr = ALIGN_UP_TCDM(local_x0_addr + size) + 8 * BANK_ALIGNMENT;
+    local_z0_addr = ALIGN_UP_TCDM(local_y0_addr + size) + 16 * BANK_ALIGNMENT;
+    local_x[0] = (double *)local_x0_addr;
+    local_y[0] = (double *)local_y0_addr;
+    local_z[0] = (double *)local_z0_addr;
+    if (DOUBLE_BUFFER) {
+        local_x1_addr = ALIGN_UP_TCDM(local_z0_addr + size);
+        local_y1_addr = ALIGN_UP_TCDM(local_x1_addr + size) + 8 * BANK_ALIGNMENT;
+        local_z1_addr = ALIGN_UP_TCDM(local_y1_addr + size) + 16 * BANK_ALIGNMENT;
+        local_x[1] = (double *)local_x1_addr;
+        local_y[1] = (double *)local_y1_addr;
+        local_z[1] = (double *)local_z1_addr;
+    }
 
-    // Iterate over multiple tiles
-    for (int i = 0; i < args->n_tiles; i++) {
+    // Calculate number of iterations
+    iterations = args->n_tiles;
+    if (DOUBLE_BUFFER) iterations += 2;
 
-        // DMA in
+    // Iterate over all tiles
+    for (i = 0; i < iterations; i++) {
+
         if (snrt_is_dm_core()) {
+            // DMA in
+            if (!DOUBLE_BUFFER || (i < args->n_tiles)) {
+                snrt_mcycle();
 
-            // Calculate size and pointers to current tile
-            size = frac * sizeof(double);
-            offset = i * frac;
-            remote_x = args->x + offset;
-            remote_y = args->y + offset;
+                // Compute tile and buffer indices
+                i_dma_in = i;
+                buff_idx = DOUBLE_BUFFER ? i_dma_in % 2 : 0;
 
-            // Copy job operands in TCDM
-            snrt_dma_start_1d(local_x, remote_x, size);
-            snrt_dma_start_1d(local_y, remote_y, size);
-            snrt_dma_wait_all();
+                // Calculate size and pointers to current tile
+                offset = i_dma_in * frac;
+                remote_x = args->x + offset;
+                remote_y = args->y + offset;
+
+                // Copy job operands in TCDM
+                snrt_dma_start_1d(local_x[buff_idx], remote_x, size);
+                snrt_dma_start_1d(local_y[buff_idx], remote_y, size);
+                snrt_dma_wait_all();
+
+                snrt_mcycle();
+            }
+
+            // Additional barriers required when not double buffering
+            if (!DOUBLE_BUFFER) snrt_cluster_hw_barrier();
+            if (!DOUBLE_BUFFER) snrt_cluster_hw_barrier();
+
+            // DMA out
+            if (!DOUBLE_BUFFER || (i > 1)) {
+                snrt_mcycle();
+
+                // Compute tile and buffer indices
+                i_dma_out = DOUBLE_BUFFER ? i - 2 : i;
+                buff_idx = DOUBLE_BUFFER ? i_dma_out % 2 : 0;
+
+                // Calculate pointers to current tile
+                offset = i_dma_out * frac;
+                remote_z = args->z + offset;
+
+                // Copy job outputs from TCDM
+                snrt_dma_start_1d(remote_z, local_z[buff_idx], size);
+                snrt_dma_wait_all();
+
+                snrt_mcycle();
+            }
         }
-        snrt_cluster_hw_barrier();
 
         // Compute
-        if (!snrt_is_dm_core()) {
-            axpy_fp_t fp = args->funcptr;
-            uint32_t start_cycle = snrt_mcycle();
-            fp(frac, args->a, local_x, local_y, local_z);
-            uint32_t end_cycle = snrt_mcycle();
-        }
-        snrt_cluster_hw_barrier();
+        if (snrt_is_compute_core()) {
+            // Additional barrier required when not double buffering
+            if (!DOUBLE_BUFFER) snrt_cluster_hw_barrier();
 
-        // DMA out
-        if (snrt_is_dm_core()) {
+            if (!DOUBLE_BUFFER || (i > 0 && i < (args->n_tiles + 1))) {
+                snrt_mcycle();
 
-            // Calculate pointers to current tile
-            remote_z = args->z + offset;
-            
-            // Copy job outputs from TCDM
-            snrt_dma_start_1d(remote_z, local_z, size);
-            snrt_dma_wait_all();
+                // Compute tile and buffer indices
+                i_compute = DOUBLE_BUFFER ? i - 1 : i;
+                buff_idx = DOUBLE_BUFFER ? i_compute % 2 : 0;
+
+                // Perform tile computation
+                axpy_fp_t fp = args->funcptr;
+                fp(frac, args->a, local_x[buff_idx], local_y[buff_idx], local_z[buff_idx]);
+
+                snrt_mcycle();
+            }
+
+            // Additional barrier required when not double buffering
+            if (!DOUBLE_BUFFER) snrt_cluster_hw_barrier();
         }
+
+        // Synchronize cores after every iteration
         snrt_cluster_hw_barrier();
     }
 }
