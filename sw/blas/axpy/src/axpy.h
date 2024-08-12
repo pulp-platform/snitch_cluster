@@ -63,6 +63,7 @@ static inline void axpy_opt(uint32_t n, double a, double* x, double* y, double* 
 }
 
 static inline void axpy_job(axpy_args_t *args) {
+    uint32_t frac, offset, size;
     uint64_t local_x_addr, local_y_addr, local_z_addr;
     double *local_x, *local_y, *local_z;
     double *remote_x, *remote_y, *remote_z;
@@ -80,12 +81,8 @@ static inline void axpy_job(axpy_args_t *args) {
     args = local_args;
 #endif
 
-    // Calculate size and pointers for each cluster
-    uint32_t frac = args->n / snrt_cluster_num();
-    uint32_t offset = frac * snrt_cluster_idx();
-    remote_x = args->x + offset;
-    remote_y = args->y + offset;
-    remote_z = args->z + offset;
+    // Calculate size of each tile
+    frac = args->n / args->n_tiles;
 
     // Allocate space for job operands in TCDM
     // Align X with the 1st bank in TCDM, Y with the 8th and Z with the 16th.
@@ -96,29 +93,44 @@ static inline void axpy_job(axpy_args_t *args) {
     local_y = (double *)local_y_addr;
     local_z = (double *)local_z_addr;
 
-    // Copy job operands in TCDM
-    if (snrt_is_dm_core()) {
-        size_t size = frac * sizeof(double);
-        snrt_dma_start_1d(local_x, remote_x, size);
-        snrt_dma_start_1d(local_y, remote_y, size);
-        snrt_dma_wait_all();
-    }
-    snrt_cluster_hw_barrier();
+    // Iterate over multiple tiles
+    for (int i = 0; i < args->n_tiles; i++) {
 
-    // Compute
-    if (!snrt_is_dm_core()) {
-        axpy_fp_t fp = args->funcptr;
-        uint32_t start_cycle = snrt_mcycle();
-        fp(frac, args->a, local_x, local_y, local_z);
-        uint32_t end_cycle = snrt_mcycle();
-    }
-    snrt_cluster_hw_barrier();
+        // DMA in
+        if (snrt_is_dm_core()) {
 
-    // Copy data out of TCDM
-    if (snrt_is_dm_core()) {
-        size_t size = frac * sizeof(double);
-        snrt_dma_start_1d(remote_z, local_z, size);
-        snrt_dma_wait_all();
+            // Calculate size and pointers to current tile
+            size = frac * sizeof(double);
+            offset = i * frac;
+            remote_x = args->x + offset;
+            remote_y = args->y + offset;
+
+            // Copy job operands in TCDM
+            snrt_dma_start_1d(local_x, remote_x, size);
+            snrt_dma_start_1d(local_y, remote_y, size);
+            snrt_dma_wait_all();
+        }
+        snrt_cluster_hw_barrier();
+
+        // Compute
+        if (!snrt_is_dm_core()) {
+            axpy_fp_t fp = args->funcptr;
+            uint32_t start_cycle = snrt_mcycle();
+            fp(frac, args->a, local_x, local_y, local_z);
+            uint32_t end_cycle = snrt_mcycle();
+        }
+        snrt_cluster_hw_barrier();
+
+        // DMA out
+        if (snrt_is_dm_core()) {
+
+            // Calculate pointers to current tile
+            remote_z = args->z + offset;
+            
+            // Copy job outputs from TCDM
+            snrt_dma_start_1d(remote_z, local_z, size);
+            snrt_dma_wait_all();
+        }
+        snrt_cluster_hw_barrier();
     }
-    snrt_cluster_hw_barrier();
 }

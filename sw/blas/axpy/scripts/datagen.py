@@ -26,12 +26,14 @@ class AxpyDataGen(DataGen):
         return a*x + y
 
     def validate_config(self, **kwargs):
-        assert (kwargs['n'] % 8) == 0, "n must be an integer multiple of the number of cores"
+        assert kwargs['n'] % kwargs['n_tiles'] == 0, "n must be an integer multiple of n_tiles"
+        n_per_tile = kwargs['n'] // kwargs['n_tiles']
+        assert (n_per_tile % 8) == 0, "n must be an integer multiple of the number of cores"
         assert kwargs['funcptr'] in self.FUNCPTRS, f"Function pointer must be among {self.FUNCPTRS}"
 
         # Calculate total TCDM occupation
         # Note: doesn't account for double buffering
-        vec_size = kwargs['n'] * 8
+        vec_size = n_per_tile * 8
         total_size = 3 * vec_size
         data_utils.validate_tcdm_footprint(total_size)
 
@@ -55,6 +57,7 @@ class AxpyDataGen(DataGen):
             'x': x_uid,
             'y': y_uid,
             'z': z_uid,
+            'n_tiles': kwargs['n_tiles'],
             'funcptr': kwargs['funcptr']
         }
 

@@ -13,5 +13,6 @@ typedef struct {
     double *x;
     double *y;
     double *z;
+    uint32_t n_tiles;
     axpy_fp_t funcptr;
 } axpy_args_t;
