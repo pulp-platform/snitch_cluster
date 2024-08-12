@@ -41,6 +41,8 @@ import ast
 from ctypes import c_int32, c_uint32
 from collections import deque, defaultdict
 from pathlib import Path
+import traceback
+from itertools import tee, islice, chain
 
 EXTRA_WB_WARN = 'WARNING: {} transactions still in flight for {}.'
 
@@ -1038,6 +1040,15 @@ def fmt_perf_metrics(perf_metrics: list, idx: int, omit_keys: bool = True):
     return '\n'.join(ret)
 
 
+# -------------------- Utils --------------------
+
+
+def current_and_next(iterable):
+    currs, nexts = tee(iterable, 2)
+    nexts = chain(islice(nexts, 1, None), [None])
+    return zip(currs, nexts)
+
+
 # -------------------- Main --------------------
 
 
@@ -1115,16 +1126,26 @@ def main():
         ]  # all values initially 0, also 'start' time of measurement 0
         perf_metrics[0]['start'] = None
         # Parse input line by line
-        for line in line_iter:
+        for lineno, (line, nextl) in enumerate(current_and_next(line_iter)):
             if line:
-                ann_insn, time_info, empty = annotate_insn(
-                    line, gpr_wb_info, fpr_wb_info, fseq_info, perf_metrics, False,
-                    time_info, args.offl, not args.saddr, args.permissive, dma_trans)
-                if perf_metrics[0]['start'] is None:
-                    perf_metrics[0]['tstart'] = time_info[0] / 1000
-                    perf_metrics[0]['start'] = time_info[1]
-                if not empty:
-                    print(ann_insn, file=file)
+                try:
+                    ann_insn, time_info, empty = annotate_insn(
+                        line, gpr_wb_info, fpr_wb_info, fseq_info, perf_metrics, False,
+                        time_info, args.offl, not args.saddr, args.permissive, dma_trans)
+                    if perf_metrics[0]['start'] is None:
+                        perf_metrics[0]['tstart'] = time_info[0] / 1000
+                        perf_metrics[0]['start'] = time_info[1]
+                    if not empty:
+                        print(ann_insn, file=file)
+                except Exception:
+                    message = 'Exception occured while processing '
+                    if not nextl:
+                        message += 'last line. Did the simulation terminate?'
+                    else:
+                        message += 'line {lineno}.'
+                    print(traceback.format_exc(), file=sys.stderr)
+                    print(message, file=sys.stderr)
+                    return 1
             else:
                 break  # Nothing more in pipe, EOF
         perf_metrics[-1]['tend'] = time_info[0] / 1000

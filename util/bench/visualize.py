@@ -41,14 +41,10 @@ def main():
         metavar='<input>',
         help='Input JSON file')
     parser.add_argument(
-        '--traces',
-        metavar='<trace>',
-        nargs='*',
-        help='Simulation traces to process')
-    parser.add_argument(
-        '--elf',
-        nargs='?',
-        help='ELF from which the traces were generated')
+        '--tracevis',
+        action='append',
+        default=[],
+        help='Argument string to pass down to tracevis, to generate additional events.')
     parser.add_argument(
         '-o',
         '--output',
@@ -98,10 +94,16 @@ def main():
 
     # Optionally extract also instruction-level events
     # from the simulation traces
-    if args.traces and args.elf:
-        events += tracevis.parse_traces(args.traces, start=0, end=-1, fmt='snitch',
-                                        addr2line='addr2line', use_time=True, pid=1,
-                                        cache=True, elf=args.elf, collapse_call_stack=True)
+    for tvargs in args.tracevis:
+        # Break tracevis argument string into a list of arguments
+        tvargs = tvargs.split()
+        # Add default arguments, and parse all tracevis arguments
+        tvargs.append('--time')
+        tvargs.append('--collapse-call-stack')
+        tvargs = vars(tracevis.parse_args(tvargs))
+        # Add more arguments, and get tracevis events
+        tvargs['pid'] = 1
+        events += tracevis.parse_traces(**tvargs)
 
     # Create TraceViewer JSON object
     tvobj = {}
