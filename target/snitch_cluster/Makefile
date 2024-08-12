@@ -373,6 +373,8 @@ $(TARGET_C_HDRS_DIR)/snitch_cluster_peripheral.h: $(ROOT)/hw/snitch_cluster/src/
 #####################
 # Boot and Memories #
 #####################
+$(GENERATED_DIR):
+	mkdir -p $(GENERATED_DIR)
 
 $(GENERATED_DIR)/link.ld: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --linker

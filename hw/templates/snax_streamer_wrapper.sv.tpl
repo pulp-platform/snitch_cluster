@@ -128,7 +128,6 @@ module ${cfg["tag_name"]}_streamer_wrapper #(
       tcdm_req_amo          [i] = '0;
       tcdm_req_user_core_id [i] = '0;
       tcdm_req_user_is_core [i] = '0;
-      tcdm_req_strb         [i] = '1;
     end
   end
 
