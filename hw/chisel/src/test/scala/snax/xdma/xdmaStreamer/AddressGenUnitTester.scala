@@ -72,3 +72,79 @@ class AddressGenUnitTester extends AnyFlatSpec with ChiselScalatestTester {
         }
     }
 }
+
+class AddressGenUnitNoMulDivTester
+    extends AnyFlatSpec
+    with ChiselScalatestTester {
+
+  println(
+    getVerilogString(new AddressGenUnitNoMulDiv(AddressGenUnitNoMulDivParam()))
+  )
+
+  "AddressGenUnitNoMulDiv: continuous fetch with first temporal loop disabled" should " pass" in test(
+    new AddressGenUnitNoMulDiv(
+      AddressGenUnitNoMulDivParam(
+        dimension = 3,
+        addressWidth = 48,
+        channels = 8,
+        outputBufferDepth = 2,
+        memorySize = 128
+      )
+    )
+  )
+    .withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) {
+      dut =>
+        dut.io.cfg.Ptr.poke(0x100000.U)
+        dut.io.cfg.Bounds(0).poke(8)
+        dut.io.cfg.Bounds(1).poke(1)
+        dut.io.cfg.Bounds(2).poke(16)
+        dut.io.cfg.Strides(0).poke(8)
+        dut.io.cfg.Strides(1).poke(64)
+        dut.io.cfg.Strides(2).poke(64)
+        dut.io.start.poke(true)
+        dut.clock.step()
+        dut.io.start.poke(false)
+        for (i <- 0 until 16) {
+          dut.clock.step()
+        }
+
+        dut.io.addr.foreach(_.ready.poke(true.B))
+        for (i <- 0 until 48) {
+          dut.clock.step()
+        }
+
+    }
+
+  "AddressGenUnitNoMulDiv: continuous fetch with first temporal loop enabled" should " pass" in test(
+    new AddressGenUnitNoMulDiv(
+      AddressGenUnitNoMulDivParam(
+        dimension = 3,
+        addressWidth = 48,
+        channels = 8,
+        outputBufferDepth = 2,
+        memorySize = 128
+      )
+    )
+  )
+    .withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) {
+      dut =>
+        dut.io.cfg.Ptr.poke(0x100000.U)
+        dut.io.cfg.Bounds(0).poke(8)
+        dut.io.cfg.Bounds(1).poke(4)
+        dut.io.cfg.Bounds(2).poke(4)
+        dut.io.cfg.Strides(0).poke(8)
+        dut.io.cfg.Strides(1).poke(64)
+        dut.io.cfg.Strides(2).poke(256)
+        dut.io.start.poke(true)
+        dut.clock.step()
+        dut.io.start.poke(false)
+        for (i <- 0 until 16) {
+          dut.clock.step()
+        }
+
+        dut.io.addr.foreach(_.ready.poke(true.B))
+        for (i <- 0 until 48) {
+          dut.clock.step()
+        }
+    }
+}

@@ -48,13 +48,62 @@ object AddressGenUnitParam {
   def apply(
       dimension: Int,
       addressWidth: Int,
-      spatialUnrollingFactor: Int,
+      channels: Int,
       outputBufferDepth: Int
   ) = new AddressGenUnitParam(
     dimension = dimension,
     addressWidth = addressWidth,
-    channels = spatialUnrollingFactor,
+    channels = channels,
     outputBufferDepth = outputBufferDepth
+  )
+}
+
+class AddressGenUnitNoMulDivParam(
+    val dimension: Int,
+    val addressWidth: Int,
+    val channels: Int,
+    val outputBufferDepth: Int,
+    val memorySize: Int
+) {
+  def toAddressGenUnitParam = AddressGenUnitParam(
+    dimension = dimension,
+    addressWidth = addressWidth,
+    channels = channels,
+    outputBufferDepth = outputBufferDepth
+  )
+}
+
+object AddressGenUnitNoMulDivParam {
+  // The Very Simple instantiation of the Param
+  def apply() = new AddressGenUnitNoMulDivParam(
+    dimension = 3,
+    addressWidth = 48,
+    channels = 8,
+    outputBufferDepth = 8,
+    memorySize = 128
+  )
+  def apply(
+      dimension: Int,
+      addressWidth: Int,
+      channels: Int,
+      outputBufferDepth: Int,
+      memorySize: Int
+  ) = new AddressGenUnitNoMulDivParam(
+    dimension = dimension,
+    addressWidth = addressWidth,
+    channels = channels,
+    outputBufferDepth = outputBufferDepth,
+    memorySize = memorySize
+  )
+  def apply(
+      agu_param: AddressGenUnitParam,
+      memorySize: Int
+  ) = new AddressGenUnitNoMulDivParam(
+    dimension = agu_param.dimension,
+    addressWidth = agu_param.addressWidth,
+    channels = agu_param.channels,
+    outputBufferDepth = agu_param.outputBufferDepth,
+    memorySize = memorySize
   )
 }
 
@@ -70,7 +119,7 @@ class ReaderWriterParam(
   val agu_param = AddressGenUnitParam(
     dimension = dimension,
     addressWidth = tcdmAddressWidth,
-    spatialUnrollingFactor = numChannel,
+    channels = numChannel,
     outputBufferDepth = addressBufferDepth
   )
 
