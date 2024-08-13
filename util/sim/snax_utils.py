@@ -183,6 +183,102 @@ def block_gemm_golden_model(
     return d
 
 
+# This function Performs a tiled block General Matrix Multiply (GEMM) operation.
+#
+# This function breaks down large matrix multiplication into smaller submatrices
+# (tiles) and performs GEMM on these submatrices. The results are then accumulated
+# into a final result matrix.
+#
+# Parameters:
+# m2, k2, n2: int
+#     The number of tiles in each dimension.
+# m, k, n: int
+#     The dimensions of the submatrices for block matrix multiplication.
+# row, size, col: int
+#     Size parameters for the submatrices in the hardware gemm accelerator.
+# a, b, c: numpy.ndarray
+#     The input matrices.
+# subtraction_a, subtraction_b: bool
+#     Flags indicating whether to perform subtraction in the GEMM computation.
+#
+# Returns:
+# numpy.ndarray
+#     The result of the tiled GEMM operation as a flattened array.
+def tiled_block_gemm_golden_model(
+    m2, k2, n2, m, k, n, row, size, col, a, b, subtraction_a, subtraction_b, c
+):
+    # Create an empty array for the result with the appropriate size
+    result = np.zeros((m2 * m * row * n2 * n * col), dtype=np.int32)
+
+    # Loop over the tiles
+    for mm2 in range(m2):
+        for nn2 in range(n2):
+            for kk2 in range(k2):
+                # Create submatrices for this tile
+                sub_a = a[
+                    (mm2 * k2 + kk2)
+                    * m
+                    * k
+                    * row
+                    * size: (mm2 * k2 + kk2 + 1)
+                    * m
+                    * k
+                    * row
+                    * size
+                ]
+                sub_b = b[
+                    (nn2 * k2 + kk2)
+                    * n
+                    * k
+                    * size
+                    * col: (nn2 * k2 + kk2 + 1)
+                    * n
+                    * k
+                    * size
+                    * col
+                ]
+                sub_c = c[
+                    (mm2 * n2 + nn2)
+                    * m
+                    * row
+                    * n
+                    * col: (mm2 * n2 + nn2 + 1)
+                    * m
+                    * row
+                    * n
+                    * col
+                ]
+
+                # Perform block GEMM on the submatrices
+                sub_d = block_gemm_golden_model(
+                    m,
+                    k,
+                    n,
+                    row,
+                    size,
+                    col,
+                    sub_a,
+                    sub_b,
+                    subtraction_a,
+                    subtraction_b,
+                    sub_c,
+                )
+                # Accumulate the result into the final result matrix at the correct position
+                result[
+                    (mm2 * n2 + nn2)
+                    * m
+                    * row
+                    * n
+                    * col: (mm2 * n2 + nn2 + 1)
+                    * m
+                    * row
+                    * n
+                    * col
+                ] += sub_d
+
+    return result
+
+
 # Golden model function for reshuffling data with specified parameters. It applies
 # strided layout mapping to the input data and returns the reshuffled data array.
 def data_reshuffler_golden_model(
