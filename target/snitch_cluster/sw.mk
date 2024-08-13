@@ -63,6 +63,7 @@ APPS += sw/apps/dnn/concat
 APPS += sw/apps/dnn/fused_concat_linear
 APPS += sw/apps/dnn/transpose
 APPS += sw/apps/montecarlo/pi_estimation
+APPS += sw/apps/ata
 APPS += sw/apps/atax
 APPS += sw/apps/correlation
 APPS += sw/apps/covariance
