@@ -108,6 +108,7 @@ module snitch_cc #(
   input  logic                       rst_int_ss_ni,
   input  logic                       rst_fp_ss_ni,
   input  logic [31:0]                hart_id_i,
+  input  logic [31:0]                cluster_core_id_i,
   input  snitch_pkg::interrupts_t    irq_i,
   output hive_req_t                  hive_req_o,
   input  hive_rsp_t                  hive_rsp_i,
@@ -135,6 +136,7 @@ module snitch_cc #(
   output logic                      snax_pready_o,
   // Core event strobes
   output snitch_pkg::core_events_t   core_events_o,
+  // TCDM base address, which also is the Base Address of the Snitch Cluster that the core belongs to
   input  addr_t                      tcdm_addr_base_i,
   // Cluster HW barrier
   input  logic                       snax_barrier_i,
@@ -242,9 +244,11 @@ module snitch_cc #(
   ) i_snitch (
     .clk_i ( clk_d2_i ), // if necessary operate on half the frequency
     .rst_i ( ~rst_ni ),
-    .hart_id_i,
-    .irq_i,
+    .hart_id_i (hart_id_i),
+    .cluster_core_id_i(cluster_core_id_i),
+    .irq_i(irq_i),
     .boot_addr_i(boot_addr_i),
+    .cluster_base_addr_i(tcdm_addr_base_i),
     .flush_i_valid_o (hive_req_o.flush_i_valid),
     .flush_i_ready_i (hive_rsp_i.flush_i_ready),
     .inst_addr_o (hive_req_o.inst_addr),

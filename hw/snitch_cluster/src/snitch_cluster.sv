@@ -1253,6 +1253,7 @@ module snitch_cluster
         .rst_int_ss_ni (1'b1),
         .rst_fp_ss_ni (1'b1),
         .hart_id_i (hart_base_id_i + i),
+        .cluster_core_id_i ({NrCores[15:0], i[15:0]}),
         .hive_req_o (hive_req[i]),
         .hive_rsp_i (hive_rsp[i]),
         .boot_addr_i  (boot_addr_i),

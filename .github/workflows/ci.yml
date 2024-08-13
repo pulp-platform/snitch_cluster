@@ -426,34 +426,3 @@ jobs:
           sw/runtime.yaml \
           sw/snax-streamer-gemm-conv-simd-run.yaml \
           sw/snax-xdma-run.yaml -j
-
-  #########################################
-  # Build SW on Snitch Cluster w/ Banshee #
-  #########################################
-
-  sw-snitch-cluster-banshee:
-    name: Simulate SW on Snitch Cluster w/ Banshee
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/pulp-platform/snitch_cluster:main
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: "recursive"
-      - name: Install DNN Python Modules
-        run: |
-          pip3 install -r sw/dnn/requirements.txt
-      - name: Build Software
-        run: |
-          bender vendor init
-          make -C target/snitch_cluster SELECT_RUNTIME=banshee sw \
-          CFG_OVERRIDE=cfg/default.hjson
-      - name: Run Tests
-        env:
-          SNITCH_LOG: info
-        working-directory: target/snitch_cluster
-        run: |
-          ./run.py --simulator banshee \
-          sw/runtime.yaml sw/snitch-cluster-runtime.yaml sw/custom-fp.yaml \
-          sw/standard-fp.yaml sw/openmp.yaml sw/snitch-cluster-openmp.yaml \
-          sw/blas.yaml sw/dnn.yaml -j

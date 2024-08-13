@@ -170,8 +170,16 @@ package snitch_pkg;
     logic retired_acc;        // number of offloaded instructions retired by the core
   } core_events_t;
 
-  // SSRs
+  // Additional CSR definitions for large system integration
+  // CsrMSeg: R/W, Set the MSeg to define the 16b MSB of request address to LSU
+  // Be careful that changing this value will cause Instruction & Data not in the same address space
   localparam logic [11:0] CsrMseg = 12'hBC0;
+  // CsrBaseAddrL: RO, The 32b LSB of Cluster Base Address
+  localparam logic [11:0] CsrBaseAddrL = 12'hBC1;
+  // CsrBaseAddrH: RO, The 16b MSB of Cluster Base Address
+  localparam logic [11:0] CsrBaseAddrH = 12'hBC2;
+  // CSRClusterCoreID: RO, The Core ID locally inside the Cluster
+  localparam logic [11:0] CsrClusterCoreId = 12'hBC3;
 
   // --------------------
   // Trace Infrastructure

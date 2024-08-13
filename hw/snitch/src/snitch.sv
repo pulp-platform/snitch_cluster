@@ -62,10 +62,12 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   input  logic          clk_i,
   input  logic          rst_i,
   input  logic [31:0]   hart_id_i,
+  input  logic [31:0]   cluster_core_id_i,
   /// Interrupts
   input  interrupts_t   irq_i,
   /// Boot address port
   input  logic [31:0]   boot_addr_i,
+  input  addr_t         cluster_base_addr_i,
   /// Instruction cache flush request
   output logic          flush_i_valid_o,
   /// Flush has completed when the signal goes to `1`.
@@ -357,7 +359,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   `endif
 
   logic [AddrWidth-32-1:0] mseg_q, mseg_d;
-  `FFAR(mseg_q, mseg_d, '0, clk_i, rst_i)
+  `FFAR(mseg_q, mseg_d, cluster_base_addr_i[AddrWidth - 1 : 32], clk_i, rst_i)
 
   // accelerator offloading interface
   // register int destination in scoreboard
@@ -418,9 +420,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // ---------------------------
   // TODO(paulsc) Add CSR-based segmentation solution for case without VM without sudden jump.
   // Mulitplexer using and/or as this signal is likely timing critical.
+  // If trans_active is high (under VM mode), the virtual memory is replaced by translated hardware address; otherwise, the address is prepended by the chiplet base address.
   assign inst_addr_o[PPNSize+PageShift-1:PageShift] =
       ({(PPNSize){trans_active}} & itlb_pa)
-    | (~{(PPNSize){trans_active}} & {{{AddrWidth-32}{1'b0}}, pc_q[31:PageShift]});
+    | (~{(PPNSize){trans_active}} & {cluster_base_addr_i[AddrWidth-1:32], pc_q[31:PageShift]});
   assign inst_addr_o[PageShift-1:0] = pc_q[PageShift-1:0];
   assign inst_cacheable_o = snitch_pma_pkg::is_inside_cacheable_regions(SnitchPMACfg, inst_addr_o);
   assign inst_valid_o = ~wfi_q && ~csr_stall_q;
@@ -2458,6 +2461,15 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           CsrMseg: begin
             csr_rvalue = mseg_q;
             if (!exception) mseg_d = alu_result[$bits(mseg_q)-1:0];
+          end
+          CsrBaseAddrL: begin
+            csr_rvalue = cluster_base_addr_i[31:0];
+          end
+          CsrBaseAddrH: begin
+            csr_rvalue = {{(64 - AddrWidth){1'b0}}, cluster_base_addr_i[AddrWidth - 1:32]};
+          end
+          CsrClusterCoreId: begin
+            csr_rvalue = cluster_core_id_i;
           end
           // Privleged Extension:
           CSR_MSTATUS: begin
