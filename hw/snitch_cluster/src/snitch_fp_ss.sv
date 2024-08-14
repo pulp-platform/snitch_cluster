@@ -125,13 +125,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
 
   logic csr_instr;
 
-  // Shuffle Unit
-  logic use_shfl;
-  logic shfl_in_valid, shfl_in_ready;
-  logic shfl_out_valid, shfl_out_ready;
-  logic [FLEN-1:0] shfl_result;
-  tag_t shfl_tag_in, shfl_tag_out;
-
   // FPU Controller
   logic fpu_out_valid, fpu_out_ready;
   logic fpu_in_valid, fpu_in_ready;
@@ -246,8 +239,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // 1. The FPU and all operands are ready
   // 2. The LSU request can be handled
   // 3. The regfile operand is ready
-  // 4. The Shuffle Unit and all operands are ready
-  assign shfl_in_valid = use_shfl & (&op_ready) & dst_ready;
   assign fpu_in_valid = use_fpu & acc_req_valid_q & (&op_ready) & dst_ready;
                                       // FPU ready
   assign acc_req_ready_q = dst_ready & ((fpu_in_ready & fpu_in_valid)
@@ -255,13 +246,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
                                       | (lsu_qvalid & lsu_qready)
                                       | csr_instr
                                       // Direct Reg Write
-                                      | (acc_req_valid_q && result_select == ResAccBus)
-                                      // Shuffle Unit ready
-                                      | (shfl_in_ready & shfl_in_valid));
-
-  // Shuffle Unit is ready to compute when Write Port is ready for shuffle result
-  assign shfl_out_ready = (!(acc_req_valid_q && result_select == ResAccBus)
-                          & !(fpu_out_valid && !fpu_tag_out.acc) & !lsu_pvalid);
+                                      | (acc_req_valid_q && result_select == ResAccBus));
 
   // either the FPU or the regfile produced a result
   assign acc_resp_valid_o = (fpu_tag_out.acc & fpu_out_valid);
@@ -330,13 +315,11 @@ module snitch_fp_ss import snitch_pkg::*; #(
     fpu_tag_in.rd = rd;
     fpu_tag_in.acc = 1'b0; // RD is on accelerator bus
     fpu_tag_in.ssr = ssr_active_q & is_rd_ssr;
-    shfl_tag_in = fpu_tag_in;
 
     is_store = 1'b0;
     is_load = 1'b0;
     ls_size = Word;
 
-    use_shfl = 1'b0;
 
     // Destination register is in FPR
     rd_is_fp = 1'b1;
@@ -557,7 +540,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
         dst_fmt      = fpnew_pkg::FP32;
         vectorial_op = 1'b1;
         use_fpu      = 1'b1;
-        use_shfl     = 1'b0;
         if (acc_req_q.data_op inside {riscv_instr::VFSHUFFLE2_S}) op_mode = 1'b1;
       end
       // Double Precision
@@ -1138,7 +1120,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
         dst_fmt      = fpnew_pkg::FP16;
         vectorial_op = 1'b1;
         use_fpu      = 1'b1;
-        use_shfl     = 1'b0;
         if (acc_req_q.data_op inside {riscv_instr::VFSHUFFLE2_H}) op_mode = 1'b1;
       end
       // [Alternate] Quarter Precision
@@ -1671,7 +1652,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
         dst_fmt      = fpnew_pkg::FP8;
         vectorial_op = 1'b1;
         use_fpu      = 1'b1;
-        use_shfl     = 1'b0;
         if (acc_req_q.data_op inside {riscv_instr::VFSHUFFLE2_B}) op_mode = 1'b1;
       end
       // -------------------
@@ -2487,29 +2467,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
   );
 
   // ----------------------
-  // Shuffle Unit
-  // ----------------------
-
-  snitch_shuffle_unit #(
-    .XFVEC(XFVEC),
-    .FLEN (FLEN)
-  ) i_snitch_shuffle_unit (
-    .clk_i,
-    .rst_ni   ( ~rst_i    ),
-    .operands_i (op),
-    .op_mod_i   (op_mode),
-    .src_fmt_i  (src_fmt),
-    .dst_fmt_i  (dst_fmt),
-    .tag_i      (shfl_tag_in),
-    .in_valid_i (shfl_in_valid),
-    .in_ready_o (shfl_in_ready),
-    .result_o   (shfl_result),
-    .tag_o      (shfl_tag_out),
-    .out_valid_o(shfl_out_valid),
-    .out_ready_i(shfl_out_ready)
-  );
-
-  // ----------------------
   // Operand Select
   // ----------------------
   logic [2:0][FLEN-1:0] acc_qdata;
@@ -2666,22 +2623,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
       fpr_we = 1'b1;
       fpr_wdata = ld_result;
       fpr_waddr = lsu_rd;
-      fpr_wvalid = 1'b1;
-      fpr_wready = 1'b0;
-    end else if (shfl_out_valid) begin
-      fpr_we = 1'b1;
-      if (shfl_tag_out.ssr) begin
-        ssr_wvalid_o = 1'b1;
-        // stall write-back to SSR
-        if (!ssr_wready_i) begin
-          fpr_wready = 1'b0;
-          fpr_we = 1'b0;
-        end else begin
-          ssr_wdone_o = 1'b1;
-        end
-      end
-      fpr_wdata = shfl_result;
-      fpr_waddr = rd;
       fpr_wvalid = 1'b1;
       fpr_wready = 1'b0;
     end
