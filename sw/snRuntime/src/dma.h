@@ -232,7 +232,7 @@ inline void snrt_dma_wait_channel(snrt_dma_txid_t tid, uint32_t channel) {
         "blez t0, 1b \n" ::"i"(
             R_TYPE_ENCODE(DMSTAT_FUNCT7, 6, 0, XDMA_FUNCT3, 5, OP_CUSTOM1)),
         "r"(tid), "r"(cfg)
-        : "t0", "t1");
+        : "t0");
 }
 
 /// Block until all operation on the DMA ceases.
