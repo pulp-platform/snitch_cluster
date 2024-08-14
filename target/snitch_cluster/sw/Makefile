@@ -15,19 +15,19 @@ else
 RUNTIME = runtime/rtl
 endif
 
-SUBDIRS += math $(RUNTIME) snax/mac snax/gemm snax/streamer-gemm snax/streamer-simd snax/data-reshuffler snax/streamer-gemm-add-c snax/streamer-gemm-conv snax/streamer-gemm-conv-simd snax/xdma apps tests
+SUBDIRS += math $(RUNTIME) snax/mac snax/gemm snax/streamer-gemm snax/streamer-simd snax/data-reshuffler snax/streamer-gemm-add-c snax/streamer-gemm-conv snax/streamer-gemm-conv-simd snax/xdma snax/hypercorex apps tests
 
 .PHONY: all $(SUBDIRS)
 
 all: $(SUBDIRS)
 
 # Explicit dependency of apps on runtime
-apps: math $(RUNTIME) snax/mac snax/gemm snax/streamer-gemm snax/streamer-simd snax/data-reshuffler snax/streamer-gemm-add-c snax/streamer-gemm-conv snax/streamer-gemm-conv-simd snax/xdma 
+apps: math $(RUNTIME) snax/mac snax/gemm snax/streamer-gemm snax/streamer-simd snax/data-reshuffler snax/streamer-gemm-add-c snax/streamer-gemm-conv snax/streamer-gemm-conv-simd snax/xdma snax/hypercorex
 	$(MAKE) -C $@ TARGET=$(TARGET)
 
 # Explicit dependency of tests on runtime
-tests: math $(RUNTIME) snax/mac snax/gemm snax/streamer-gemm snax/streamer-simd snax/data-reshuffler snax/streamer-gemm-add-c snax/streamer-gemm-conv snax/streamer-gemm-conv-simd snax/xdma
+tests: math $(RUNTIME) snax/mac snax/gemm snax/streamer-gemm snax/streamer-simd snax/data-reshuffler snax/streamer-gemm-add-c snax/streamer-gemm-conv snax/streamer-gemm-conv-simd snax/xdma snax/hypercorex
 	$(MAKE) -C $@ $(TARGET)
 
-runtime/rtl runtime/banshee runtime/rtl-generic math snax/mac snax/gemm snax/streamer-gemm snax/streamer-simd snax/data-reshuffler snax/streamer-gemm-add-c snax/streamer-gemm-conv snax/streamer-gemm-conv-simd snax/xdma:
+runtime/rtl runtime/banshee runtime/rtl-generic math snax/mac snax/gemm snax/streamer-gemm snax/streamer-simd snax/data-reshuffler snax/streamer-gemm-add-c snax/streamer-gemm-conv snax/streamer-gemm-conv-simd snax/xdma snax/hypercorex:
 	$(MAKE) -C $@ $(TARGET)

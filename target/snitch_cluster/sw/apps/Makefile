@@ -37,6 +37,7 @@ SUBDIRS += snax-streamer-gemm-conv
 SUBDIRS += snax-streamer-gemm-add-c
 SUBDIRS += snax-xdma-memset
 SUBDIRS += snax-multi-cluster-playground
+SUBDIRS += snax-hypercorex/test-csr
 
 .PHONY: all clean $(SUBDIRS)
 

@@ -151,6 +151,86 @@ static uint32_t csrr_ss(uint32_t csr_address) {
             return read_csr(1022);
         case 1023:
             return read_csr(1023);
+        case 1024:
+            return read_csr(1024);
+        case 1025:
+            return read_csr(1025);
+        case 1026:
+            return read_csr(1026);
+        case 1027:
+            return read_csr(1027);
+        case 1028:
+            return read_csr(1028);
+        case 1029:
+            return read_csr(1029);
+        case 1030:
+            return read_csr(1030);
+        case 1031:
+            return read_csr(1031);
+        case 1032:
+            return read_csr(1032);
+        case 1033:
+            return read_csr(1033);
+        case 1034:
+            return read_csr(1034);
+        case 1035:
+            return read_csr(1035);
+        case 1036:
+            return read_csr(1036);
+        case 1037:
+            return read_csr(1037);
+        case 1038:
+            return read_csr(1038);
+        case 1039:
+            return read_csr(1039);
+        case 1040:
+            return read_csr(1040);
+        case 1041:
+            return read_csr(1041);
+        case 1042:
+            return read_csr(1042);
+        case 1043:
+            return read_csr(1043);
+        case 1044:
+            return read_csr(1044);
+        case 1045:
+            return read_csr(1045);
+        case 1046:
+            return read_csr(1046);
+        case 1047:
+            return read_csr(1047);
+        case 1048:
+            return read_csr(1048);
+        case 1049:
+            return read_csr(1049);
+        case 1050:
+            return read_csr(1050);
+        case 1051:
+            return read_csr(1051);
+        case 1052:
+            return read_csr(1052);
+        case 1053:
+            return read_csr(1053);
+        case 1054:
+            return read_csr(1054);
+        case 1055:
+            return read_csr(1055);
+        case 1056:
+            return read_csr(1056);
+        case 1057:
+            return read_csr(1057);
+        case 1058:
+            return read_csr(1058);
+        case 1059:
+            return read_csr(1059);
+        case 1060:
+            return read_csr(1060);
+        case 1061:
+            return read_csr(1061);
+        case 1062:
+            return read_csr(1062);
+        case 1063:
+            return read_csr(1063);
 #endif
     }
     return 0;
@@ -350,6 +430,126 @@ static void csrw_ss(uint32_t csr_address, uint32_t value) {
             break;
         case 1023:
             write_csr(1023, value);
+            break;
+        case 1024:
+            write_csr(1024, value);
+            break;
+        case 1025:
+            write_csr(1025, value);
+            break;
+        case 1026:
+            write_csr(1026, value);
+            break;
+        case 1027:
+            write_csr(1027, value);
+            break;
+        case 1028:
+            write_csr(1028, value);
+            break;
+        case 1029:
+            write_csr(1029, value);
+            break;
+        case 1030:
+            write_csr(1030, value);
+            break;
+        case 1031:
+            write_csr(1031, value);
+            break;
+        case 1032:
+            write_csr(1032, value);
+            break;
+        case 1033:
+            write_csr(1033, value);
+            break;
+        case 1034:
+            write_csr(1034, value);
+            break;
+        case 1035:
+            write_csr(1035, value);
+            break;
+        case 1036:
+            write_csr(1036, value);
+            break;
+        case 1037:
+            write_csr(1037, value);
+            break;
+        case 1038:
+            write_csr(1038, value);
+            break;
+        case 1039:
+            write_csr(1039, value);
+            break;
+        case 1040:
+            write_csr(1040, value);
+            break;
+        case 1041:
+            write_csr(1041, value);
+            break;
+        case 1042:
+            write_csr(1042, value);
+            break;
+        case 1043:
+            write_csr(1043, value);
+            break;
+        case 1044:
+            write_csr(1044, value);
+            break;
+        case 1045:
+            write_csr(1045, value);
+            break;
+        case 1046:
+            write_csr(1046, value);
+            break;
+        case 1047:
+            write_csr(1047, value);
+            break;
+        case 1048:
+            write_csr(1048, value);
+            break;
+        case 1049:
+            write_csr(1049, value);
+            break;
+        case 1050:
+            write_csr(1050, value);
+            break;
+        case 1051:
+            write_csr(1051, value);
+            break;
+        case 1052:
+            write_csr(1052, value);
+            break;
+        case 1053:
+            write_csr(1053, value);
+            break;
+        case 1054:
+            write_csr(1054, value);
+            break;
+        case 1055:
+            write_csr(1055, value);
+            break;
+        case 1056:
+            write_csr(1056, value);
+            break;
+        case 1057:
+            write_csr(1057, value);
+            break;
+        case 1058:
+            write_csr(1058, value);
+            break;
+        case 1059:
+            write_csr(1059, value);
+            break;
+        case 1060:
+            write_csr(1060, value);
+            break;
+        case 1061:
+            write_csr(1061, value);
+            break;
+        case 1062:
+            write_csr(1062, value);
+            break;
+        case 1063:
+            write_csr(1063, value);
             break;
 #endif
     }
