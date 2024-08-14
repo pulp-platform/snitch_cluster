@@ -547,25 +547,18 @@ module snitch_fp_ss import snitch_pkg::*; #(
         vectorial_op = 1'b1;
         set_dyn_rm   = 1'b1;
       end
-      riscv_instr::VFSHUFFLE_S: begin
-        op_select[0] = RegA;
-        op_select[1] = RegB;
-        src_fmt      = fpnew_pkg::FP32;
-        dst_fmt      = fpnew_pkg::FP32;
-        vectorial_op = 1'b1;
-        use_fpu      = 1'b0;
-        use_shfl     = 1'b1;
-      end
+      riscv_instr::VFSHUFFLE_S,
       riscv_instr::VFSHUFFLE2_S: begin
+        fpu_op = fpnew_pkg::VFSHFL;
         op_select[0] = RegA;
         op_select[1] = RegB;
         op_select[2] = RegDest;
         src_fmt      = fpnew_pkg::FP32;
         dst_fmt      = fpnew_pkg::FP32;
         vectorial_op = 1'b1;
-        use_fpu      = 1'b0;
-        use_shfl     = 1'b1;
-        op_mode      = 1'b1;
+        use_fpu      = 1'b1;
+        use_shfl     = 1'b0;
+        if (acc_req_q.data_op inside {riscv_instr::VFSHUFFLE2_S}) op_mode = 1'b1;
       end
       // Double Precision
       riscv_instr::FADD_D: begin
@@ -1135,25 +1128,18 @@ module snitch_fp_ss import snitch_pkg::*; #(
         set_dyn_rm   = 1'b1;
         if (acc_req_q.data_op inside {riscv_instr::VFNSUMEX_S_H}) op_mode = 1'b1;
       end
-      riscv_instr::VFSHUFFLE_H: begin
-        op_select[0] = RegA;
-        op_select[1] = RegB;
-        src_fmt      = fpnew_pkg::FP16;
-        dst_fmt      = fpnew_pkg::FP16;
-        vectorial_op = 1'b1;
-        use_fpu      = 1'b0;
-        use_shfl     = 1'b1;
-      end
+      riscv_instr::VFSHUFFLE_H,
       riscv_instr::VFSHUFFLE2_H: begin
+        fpu_op = fpnew_pkg::VFSHFL;
         op_select[0] = RegA;
         op_select[1] = RegB;
         op_select[2] = RegDest;
         src_fmt      = fpnew_pkg::FP16;
         dst_fmt      = fpnew_pkg::FP16;
         vectorial_op = 1'b1;
-        use_fpu      = 1'b0;
-        use_shfl     = 1'b1;
-        op_mode      = 1'b1;
+        use_fpu      = 1'b1;
+        use_shfl     = 1'b0;
+        if (acc_req_q.data_op inside {riscv_instr::VFSHUFFLE2_H}) op_mode = 1'b1;
       end
       // [Alternate] Quarter Precision
       riscv_instr::FADD_B: begin
@@ -1675,25 +1661,18 @@ module snitch_fp_ss import snitch_pkg::*; #(
         set_dyn_rm   = 1'b1;
         if (acc_req_q.data_op inside {riscv_instr::VFNSUMEX_H_B}) op_mode = 1'b1;
       end
-      riscv_instr::VFSHUFFLE_B: begin
-        op_select[0] = RegA;
-        op_select[1] = RegB;
-        src_fmt      = fpnew_pkg::FP8;
-        dst_fmt      = fpnew_pkg::FP8;
-        vectorial_op = 1'b1;
-        use_fpu      = 1'b0;
-        use_shfl     = 1'b1;
-      end
+      riscv_instr::VFSHUFFLE_B,
       riscv_instr::VFSHUFFLE2_B: begin
+        fpu_op = fpnew_pkg::VFSHFL;
         op_select[0] = RegA;
         op_select[1] = RegB;
         op_select[2] = RegDest;
         src_fmt      = fpnew_pkg::FP8;
         dst_fmt      = fpnew_pkg::FP8;
         vectorial_op = 1'b1;
-        use_fpu      = 1'b0;
-        use_shfl     = 1'b1;
-        op_mode      = 1'b1;
+        use_fpu      = 1'b1;
+        use_shfl     = 1'b0;
+        if (acc_req_q.data_op inside {riscv_instr::VFSHUFFLE2_B}) op_mode = 1'b1;
       end
       // -------------------
       // From float to int
