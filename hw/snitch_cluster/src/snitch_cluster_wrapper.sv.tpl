@@ -144,7 +144,8 @@ package ${cfg['pkg_name']};
                       ${cfg['timing']['lat_sdotp']},
                       ${cfg['timing']['lat_sdotp']},
                       ${cfg['timing']['lat_sdotp']},
-                      ${cfg['timing']['lat_sdotp']}}    // DOTP
+                      ${cfg['timing']['lat_sdotp']}},    // DOTP
+                    '{0, 0, 0, 0, 0, 0}   // SHFL TODO: Make configurable
                     },
         UnitTypes: '{'{fpnew_pkg::MERGED,
                        fpnew_pkg::MERGED,
@@ -185,14 +186,29 @@ package ${cfg['pkg_name']};
                         fpnew_pkg::MERGED,
                         fpnew_pkg::MERGED,
                         fpnew_pkg::MERGED,
-                        fpnew_pkg::MERGED}},  // DOTP
+                        fpnew_pkg::MERGED},  // DOTP
 % else:
                     '{fpnew_pkg::DISABLED,
                         fpnew_pkg::DISABLED,
                         fpnew_pkg::DISABLED,
                         fpnew_pkg::DISABLED,
                         fpnew_pkg::DISABLED,
-                        fpnew_pkg::DISABLED}}, // DOTP
+                        fpnew_pkg::DISABLED}, // DOTP
+% endif
+% if c["xfvec"]:
+                    '{fpnew_pkg::MERGED,
+                        fpnew_pkg::MERGED,
+                        fpnew_pkg::MERGED,
+                        fpnew_pkg::MERGED,
+                        fpnew_pkg::MERGED,
+                        fpnew_pkg::MERGED}},  // SHFL
+% else:
+                    '{fpnew_pkg::DISABLED,
+                        fpnew_pkg::DISABLED,
+                        fpnew_pkg::DISABLED,
+                        fpnew_pkg::DISABLED,
+                        fpnew_pkg::DISABLED,
+                        fpnew_pkg::DISABLED}}, // SHFL
 % endif
         PipeConfig: fpnew_pkg::${cfg['timing']['fpu_pipe_config']}
     }${',\n' if not loop.last else '\n'}\
