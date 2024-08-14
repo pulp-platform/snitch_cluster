@@ -234,6 +234,12 @@ rtl-gen: rtl-snax-gen rtl-cluster-gen
 
 VSIM_BENDER += -t QUESTA_SIM
 
+# Add these targets for 
+# SNAX cluster simulations only
+VSIM_BENDER += -t snax_test_harness
+VLT_BENDER  += -t snax_test_harness
+VCS_BENDER  += -t snax_test_harness
+
 # Verilated and compiled snitch cluster
 VLT_AR = ${VLT_BUILDDIR}/Vtestharness__ALL.a
 

@@ -467,6 +467,6 @@ sources:
   #---------------------------
   # Test harness declaration
   #---------------------------
-  - target: any(simulation, verilator)
+  - target: snax_test_harness
     files:
       - target/snitch_cluster/test/testharness.sv
