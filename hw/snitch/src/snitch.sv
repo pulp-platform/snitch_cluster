@@ -151,8 +151,6 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic [32:0] adder_result;
   logic [31:0] alu_result;
 
-  logic shuffle;
-
   logic [RegWidth-1:0] rd, rs1, rs2;
   logic stall, lsu_stall, nonacc_stall;
   // Register connections
@@ -520,8 +518,6 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     alu_op = Add;
     opa_select = None;
     opb_select = None;
-
-    shuffle = 1'b0;
 
     flush_i_valid_o = 1'b0;
     tlb_flush = 1'b0;

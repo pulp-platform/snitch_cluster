@@ -253,7 +253,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // stall FPU if we forward from reg
   assign fpu_out_ready = ((fpu_tag_out.acc & acc_resp_ready_i) | (~fpu_tag_out.acc & fpr_wready));
 
-
   // FPU Result
   logic [FLEN-1:0] fpu_result;
 
@@ -319,7 +318,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
     is_store = 1'b0;
     is_load = 1'b0;
     ls_size = Word;
-
 
     // Destination register is in FPR
     rd_is_fp = 1'b1;

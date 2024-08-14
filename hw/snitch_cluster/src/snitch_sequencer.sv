@@ -391,9 +391,6 @@ module snitch_sequencer import snitch_pkg::*; #(
       riscv_instr::VFMV_B_X,
       riscv_instr::VFCVT_B_X,
       riscv_instr::VFCVT_B_XU,
-      riscv_instr::VFSHUFFLE_S,
-      riscv_instr::VFSHUFFLE_H,
-      riscv_instr::VFSHUFFLE_B,
 
       riscv_instr::IMV_X_W,
       riscv_instr::IMV_W_X,
