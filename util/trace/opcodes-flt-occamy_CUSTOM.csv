@@ -1,7 +1,4 @@
 instruction,source_width,source_vec_len,destination_width,destination_vec_len
-vfshuffle.s,32,2,32,2
-vfshuffle.h,16,4,16,4
-vfshuffle.b,8,8,8,8
 fadd.d,64,1,64,1
 fsub.d,64,1,64,1
 fmul.d,64,1,64,1
@@ -556,3 +553,9 @@ vfdotpex.ah.ab,8,8,16,4
 vfdotpex.ah.r.ab,8,8,16,4
 vfndotpex.ah.ab,8,8,16,4
 vfndotpex.ah.r.ab,8,8,16,4
+vfshuffle.s,32,2,32,2
+vfshuffle.h,16,4,16,4
+vfshuffle.b,8,8,8,8
+vfshuffle2.s,32,2,32,2
+vfshuffle2.h,16,4,16,4
+vfshuffle2.b,8,8,8,8
