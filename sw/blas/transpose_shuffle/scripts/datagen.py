@@ -30,7 +30,6 @@ class TransposeDataGen(DataGen):
 # def validate_config(p**kwargs):
 #     pass
 
-
     def emit_header(self, **kwargs):
         header = [super().emit_header()]
 

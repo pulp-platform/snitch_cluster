@@ -27,7 +27,9 @@ class TransposeVerifier(Verifier):
         self.prec = self.get_input_from_symbol('dtype', 'uint32_t')[0]
 
     def get_actual_results(self):
-        return self.get_output_from_symbol('output', ctype_from_precision_t(self.prec)).reshape(self.N, self.M)
+        return self.get_output_from_symbol(
+            "output", ctype_from_precision_t(self.prec)
+        ).reshape(self.N, self.M)
 
     def get_expected_results(self):
         inp = self.get_input_from_symbol('input', ctype_from_precision_t(self.prec))
