@@ -14,14 +14,11 @@ import snax.xdma.xdmaStreamer.BasicCounter
 import snax.xdma.CommonCells.DemuxDecoupled
 import snax.xdma.DesignParams.DMADataPathParam
 
-class DMACtrlIO(
-    readerparam: DMADataPathParam,
-    writerparam: DMADataPathParam,
-    axiWidth: Int = 512
-) extends Bundle {
+class DMACtrlIO(readerparam: DMADataPathParam, writerparam: DMADataPathParam)
+    extends Bundle {
   // clusterBaseAddress to determine if it is the local command or remote command
   val clusterBaseAddress = Input(
-    UInt(readerparam.rwParam.agu_param.addressWidth.W)
+    UInt(writerparam.axiParam.addrWidth.W)
   )
   // Local DMADatapath control signal (Which is connected to DMADataPath)
   val localDMADataPath = new Bundle {
@@ -39,8 +36,8 @@ class DMACtrlIO(
   // Remote control signal, which include the signal from other cluster or signal to other cluster. Both of them is AXI related, serialized signal
   // The remote control signal will contain only src information, in other words, the DMA system can proceed remote read or local read, but only local write
   val remoteDMADataPathCfg = new Bundle {
-    val fromRemote = Flipped(Decoupled(UInt(axiWidth.W)))
-    val toRemote = Decoupled(UInt(axiWidth.W))
+    val fromRemote = Flipped(Decoupled(UInt(readerparam.axiParam.dataWidth.W)))
+    val toRemote = Decoupled(UInt(readerparam.axiParam.dataWidth.W))
   }
   // This is the port for CSR Manager to SNAX port
   val csrIO = new SnaxCsrIO(csrAddrWidth = 32)
@@ -48,7 +45,6 @@ class DMACtrlIO(
 
 class SrcConfigRouter(
     dataType: DMADataPathCfgInternalIO,
-    tcdmSize: Int,
     clusterName: String = "unnamed_cluster"
 ) extends Module
     with RequireAsyncReset {
@@ -56,7 +52,7 @@ class SrcConfigRouter(
   override val desiredName = s"${clusterName}_xdma_ctrl_srcConfigRouter"
 
   val io = IO(new Bundle {
-    val clusterBaseAddress = Input(dataType.agu_cfg.Ptr)
+    val clusterBaseAddress = Input(dataType.readerPtr)
     val from = Flipped(new Bundle {
       val remote = Decoupled(dataType)
       val local = Decoupled(dataType)
@@ -87,18 +83,17 @@ class SrcConfigRouter(
   val cValue = Wire(chiselTypeOf(cType_discard))
 
   when(
-    i_to_demux.io.in.bits.agu_cfg
-      .Ptr(
-        i_to_demux.io.in.bits.agu_cfg.Ptr.getWidth - 1,
-        log2Up(tcdmSize) + 10
-      ) === io
+    i_to_demux.io.in.bits.readerPtr(
+      i_to_demux.io.in.bits.readerPtr.getWidth - 1,
+      i_to_demux.io.in.bits.agu_cfg.Ptr.getWidth
+    ) === io
       .clusterBaseAddress(
-        i_to_demux.io.in.bits.agu_cfg.Ptr.getWidth - 1,
-        log2Up(tcdmSize) + 10
+        i_to_demux.io.in.bits.readerPtr.getWidth - 1,
+        i_to_demux.io.in.bits.agu_cfg.Ptr.getWidth
       )
   ) {
     cValue := cType_local // When cfg has the Ptr that fall within local TCDM, the data should be forwarded to the local ctrl path
-  }.elsewhen(i_to_demux.io.in.bits.agu_cfg.Ptr === 0.U) {
+  }.elsewhen(i_to_demux.io.in.bits.readerPtr === 0.U) {
     cValue := cType_discard // When cfg has the Ptr that is zero, This means that the frame need to be thrown away. This is important as when the data is moved from DRAM to TCDM or vice versa, DRAM part is handled by iDMA, thus only one config instead of two is submitted
   }.otherwise {
     cValue := cType_remote // For the remaining condition, the config is forward to remote DMA
@@ -115,7 +110,6 @@ class SrcConfigRouter(
 
 class DstConfigRouter(
     dataType: DMADataPathCfgInternalIO,
-    tcdmSize: Int,
     clusterName: String = "unnamed_cluster"
 ) extends Module
     with RequireAsyncReset {
@@ -123,7 +117,7 @@ class DstConfigRouter(
   override val desiredName = s"${clusterName}_xdma_ctrl_dstConfigRouter"
 
   val io = IO(new Bundle {
-    val clusterBaseAddress = Input(dataType.agu_cfg.Ptr)
+    val clusterBaseAddress = Input(dataType.writerPtr)
     val from = Flipped(new Bundle {
       val local = Decoupled(dataType)
     })
@@ -144,14 +138,13 @@ class DstConfigRouter(
   val cValue = Wire(chiselTypeOf(cType_discard))
 
   when(
-    i_to_demux.io.in.bits.agu_cfg
-      .Ptr(
-        i_to_demux.io.in.bits.agu_cfg.Ptr.getWidth - 1,
-        log2Up(tcdmSize) + 10
-      ) === io
+    i_to_demux.io.in.bits.writerPtr(
+      i_to_demux.io.in.bits.writerPtr.getWidth - 1,
+      i_to_demux.io.in.bits.agu_cfg.Ptr.getWidth
+    ) === io
       .clusterBaseAddress(
-        i_to_demux.io.in.bits.agu_cfg.Ptr.getWidth - 1,
-        log2Up(tcdmSize) + 10
+        i_to_demux.io.in.bits.writerPtr.getWidth - 1,
+        i_to_demux.io.in.bits.agu_cfg.Ptr.getWidth
       )
   ) {
     cValue := cType_local // When cfg has the Ptr that fall within local TCDM, the data should be forwarded to the local ctrl path
@@ -169,16 +162,13 @@ class DstConfigRouter(
 class DMACtrl(
     readerparam: DMADataPathParam,
     writerparam: DMADataPathParam,
-    axiWidth: Int = 512,
-    csrAddrWidth: Int = 32,
     clusterName: String = "unnamed_cluster"
 ) extends Module
     with RequireAsyncReset {
   val io = IO(
     new DMACtrlIO(
       readerparam = readerparam,
-      writerparam = writerparam,
-      axiWidth = axiWidth
+      writerparam = writerparam
     )
   )
 
@@ -203,7 +193,7 @@ class DMACtrl(
         1, // The start CSR
       csrNumReadOnly = 2,
       // Set to two at current, 1) The number of submitted request; 2) The number of finished request. Since the reader path may be forward to remote, here I only count the writer branch
-      csrAddrWidth = csrAddrWidth,
+      csrAddrWidth = 32,
       // Set a name for the module class so that it will not overlapped with other csrManagers in user-defined accelerators
       csrModuleTagName = s"${clusterName}_xdma_"
     )
@@ -211,95 +201,88 @@ class DMACtrl(
 
   i_csrmanager.io.csr_config_in <> io.csrIO
 
-  val structuredCfg_src = Wire(new DMADataPathCfgIO(readerparam))
-  val structuredCfg_dst = Wire(new DMADataPathCfgIO(writerparam))
-  var remainingCSR = i_csrmanager.io.csr_config_out.bits.toIndexedSeq
-
-  // Pack the unstructured signal from csrManager to structured signal: Src side
-  // Connect agu_cfg.Ptr
-  structuredCfg_src.agu_cfg.Ptr := Cat(remainingCSR(1), remainingCSR(0))
-  remainingCSR = remainingCSR.tail.tail
-
-  // Connect agu_cfg.Bounds
-  for (i <- 0 until structuredCfg_src.agu_cfg.Bounds.length) {
-    structuredCfg_src.agu_cfg.Bounds(i) := remainingCSR.head
-    remainingCSR = remainingCSR.tail
-  }
-
-  // Connect agu_cfg.Strides
-  for (i <- 0 until structuredCfg_src.agu_cfg.Strides.length) {
-    structuredCfg_src.agu_cfg.Strides(i) := remainingCSR.head
-    remainingCSR = remainingCSR.tail
-  }
-
-  // Connect strb signal. As the strb is not effective, so assign all true, and not take any value from CSR right now
-  structuredCfg_src.streamer_cfg.strb := VecInit(
-    Seq.fill(readerparam.rwParam.tcdm_param.dataWidth / 8)(true.B)
-  ).asUInt
-
-  // Connect extension signal
-  for (i <- 0 until structuredCfg_src.ext_cfg.length) {
-    structuredCfg_src.ext_cfg(i) := remainingCSR.head
-    remainingCSR = remainingCSR.tail
-  }
-
-  // Pack the unstructured signal from csrManager to structured signal: Dst side
-  // Connect agu_cfg.Ptr
-  structuredCfg_dst.agu_cfg.Ptr := Cat(remainingCSR(1), remainingCSR(0))
-  remainingCSR = remainingCSR.tail.tail
-
-  // Connect agu_cfg.Bounds
-  for (i <- 0 until structuredCfg_dst.agu_cfg.Bounds.length) {
-    structuredCfg_dst.agu_cfg.Bounds(i) := remainingCSR.head
-    remainingCSR = remainingCSR.tail
-  }
-
-  // Connect agu_cfg.Strides
-  for (i <- 0 until structuredCfg_dst.agu_cfg.Strides.length) {
-    structuredCfg_dst.agu_cfg.Strides(i) := remainingCSR.head
-    remainingCSR = remainingCSR.tail
-  }
-
-  // Connect strb signal. As the strb is effective, so assign the value from CSR
-  structuredCfg_dst.streamer_cfg.strb := remainingCSR.head
-  remainingCSR = remainingCSR.tail
-
-  // Connect extension signal
-  for (i <- 0 until structuredCfg_dst.ext_cfg.length) {
-    structuredCfg_dst.ext_cfg(i) := remainingCSR.head
-    remainingCSR = remainingCSR.tail
-  }
-
-  if (remainingCSR.length > 1)
-    println("There is some error in CSR -> Structured CFG assigning")
-
-  // New class that pack the loopBack signal with the ReaderWriterCfg -> ReaderWriterCfgInternal (Local command)
   val preRoute_src_local = Wire(
     Decoupled(new DMADataPathCfgInternalIO(readerparam))
   )
   val preRoute_dst_local = Wire(
     Decoupled(new DMADataPathCfgInternalIO(writerparam))
   )
-  val preRoute_loopBack =
-    structuredCfg_src.agu_cfg.Ptr(
-      structuredCfg_src.agu_cfg.Ptr.getWidth - 1,
-      log2Up(readerparam.rwParam.tcdm_param.tcdmSize) + 10
-    ) === structuredCfg_dst.agu_cfg.Ptr(
-      structuredCfg_dst.agu_cfg.Ptr.getWidth - 1,
-      log2Up(readerparam.rwParam.tcdm_param.tcdmSize) + 10
-    )
+  var remainingCSR = i_csrmanager.io.csr_config_out.bits.toIndexedSeq
 
-  // Connect bits
-  preRoute_src_local.bits.agu_cfg := structuredCfg_src.agu_cfg
-  preRoute_src_local.bits.streamer_cfg := structuredCfg_src.streamer_cfg
-  preRoute_src_local.bits.ext_cfg := structuredCfg_src.ext_cfg
-  preRoute_dst_local.bits.agu_cfg := structuredCfg_dst.agu_cfg
-  preRoute_dst_local.bits.streamer_cfg := structuredCfg_dst.streamer_cfg
-  preRoute_dst_local.bits.ext_cfg := structuredCfg_dst.ext_cfg
-  preRoute_src_local.bits.loopBack := preRoute_loopBack
-  preRoute_dst_local.bits.loopBack := preRoute_loopBack
-  preRoute_src_local.bits.oppositePtr := preRoute_dst_local.bits.agu_cfg.Ptr
-  preRoute_dst_local.bits.oppositePtr := preRoute_src_local.bits.agu_cfg.Ptr
+  // Pack the unstructured signal from csrManager to structured signal: Src side
+  // Connect agu_cfg.Ptr & readerPtr
+  preRoute_src_local.bits.agu_cfg.Ptr := Cat(remainingCSR(1), remainingCSR(0))
+  preRoute_src_local.bits.readerPtr := Cat(remainingCSR(1), remainingCSR(0))
+  preRoute_dst_local.bits.readerPtr := Cat(remainingCSR(1), remainingCSR(0))
+  remainingCSR = remainingCSR.tail.tail
+
+  // Connect agu_cfg.Bounds
+  for (i <- 0 until preRoute_src_local.bits.agu_cfg.Bounds.length) {
+    preRoute_src_local.bits.agu_cfg.Bounds(i) := remainingCSR.head
+    remainingCSR = remainingCSR.tail
+  }
+
+  // Connect agu_cfg.Strides
+  for (i <- 0 until preRoute_src_local.bits.agu_cfg.Strides.length) {
+    preRoute_src_local.bits.agu_cfg.Strides(i) := remainingCSR.head
+    remainingCSR = remainingCSR.tail
+  }
+
+  // Connect strb signal. As the strb is not effective, so assign all true, and not take any value from CSR right now
+  preRoute_src_local.bits.streamer_cfg.strb := VecInit(
+    Seq.fill(readerparam.rwParam.tcdm_param.dataWidth / 8)(true.B)
+  ).asUInt
+
+  // Connect extension signal
+  for (i <- 0 until preRoute_src_local.bits.ext_cfg.length) {
+    preRoute_src_local.bits.ext_cfg(i) := remainingCSR.head
+    remainingCSR = remainingCSR.tail
+  }
+
+  // Pack the unstructured signal from csrManager to structured signal: Dst side
+  // Connect agu_cfg.Ptr & writerPtr
+  preRoute_dst_local.bits.agu_cfg.Ptr := Cat(remainingCSR(1), remainingCSR(0))
+  preRoute_src_local.bits.writerPtr := Cat(remainingCSR(1), remainingCSR(0))
+  preRoute_dst_local.bits.writerPtr := Cat(remainingCSR(1), remainingCSR(0))
+  remainingCSR = remainingCSR.tail.tail
+
+  // Connect agu_cfg.Bounds
+  for (i <- 0 until preRoute_dst_local.bits.agu_cfg.Bounds.length) {
+    preRoute_dst_local.bits.agu_cfg.Bounds(i) := remainingCSR.head
+    remainingCSR = remainingCSR.tail
+  }
+
+  // Connect agu_cfg.Strides
+  for (i <- 0 until preRoute_dst_local.bits.agu_cfg.Strides.length) {
+    preRoute_dst_local.bits.agu_cfg.Strides(i) := remainingCSR.head
+    remainingCSR = remainingCSR.tail
+  }
+
+  // Connect strb signal. As the strb is effective, so assign the value from CSR
+  preRoute_dst_local.bits.streamer_cfg.strb := remainingCSR.head
+  remainingCSR = remainingCSR.tail
+
+  // Connect extension signal
+  for (i <- 0 until preRoute_dst_local.bits.ext_cfg.length) {
+    preRoute_dst_local.bits.ext_cfg(i) := remainingCSR.head
+    remainingCSR = remainingCSR.tail
+  }
+
+  if (remainingCSR.length > 1)
+    println("There is some error in CSR -> Structured CFG assigning")
+
+  // Connect the loopBack signal: The loopBack signal is generated by comparing the Ptr of two side
+
+  val loopBack =
+    preRoute_dst_local.bits.readerPtr(
+      preRoute_dst_local.bits.readerPtr.getWidth - 1,
+      preRoute_dst_local.bits.agu_cfg.Ptr.getWidth
+    ) === preRoute_dst_local.bits.writerPtr(
+      preRoute_dst_local.bits.writerPtr.getWidth - 1,
+      preRoute_dst_local.bits.agu_cfg.Ptr.getWidth
+    )
+  preRoute_src_local.bits.loopBack := loopBack
+  preRoute_dst_local.bits.loopBack := loopBack
 
   // Connect Valid and bits: Only when both preRoutes are ready, postRulecheck is ready
   i_csrmanager.io.csr_config_out.ready := preRoute_src_local.ready & preRoute_dst_local.ready
@@ -318,7 +301,6 @@ class DMACtrl(
   val i_srcCfgRouter = Module(
     new SrcConfigRouter(
       dataType = chiselTypeOf(preRoute_src_local.bits),
-      tcdmSize = readerparam.rwParam.tcdm_param.tcdmSize,
       clusterName = clusterName
     )
   )
@@ -346,7 +328,6 @@ class DMACtrl(
   val i_dstCfgRouter = Module(
     new DstConfigRouter(
       dataType = chiselTypeOf(preRoute_dst_local.bits),
-      tcdmSize = writerparam.rwParam.tcdm_param.tcdmSize,
       clusterName = clusterName
     )
   )

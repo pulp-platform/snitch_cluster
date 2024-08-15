@@ -17,19 +17,18 @@ import scala.reflect.runtime.universe._
 
 class xdmaTopIO(
     readerparam: DMADataPathParam,
-    writerparam: DMADataPathParam,
-    axiWidth: Int = 512,
-    csrAddrWidth: Int = 32
+    writerparam: DMADataPathParam
 ) extends Bundle {
   val clusterBaseAddress = Input(
-    UInt(readerparam.rwParam.agu_param.addressWidth.W)
+    UInt(writerparam.axiParam.addrWidth.W)
   )
-  val csrIO = new SnaxCsrIO(csrAddrWidth)
+  val csrIO = new SnaxCsrIO(32)
 
   val remoteDMADataPathCfg = new Bundle {
-    val fromRemote = Flipped(Decoupled(UInt(axiWidth.W)))
-    val toRemote = Decoupled(UInt(axiWidth.W))
+    val fromRemote = Flipped(Decoupled(UInt(writerparam.axiParam.dataWidth.W)))
+    val toRemote = Decoupled(UInt(writerparam.axiParam.dataWidth.W))
   }
+
   val tcdm_reader = new Bundle {
     val req = Vec(
       readerparam.rwParam.tcdm_param.numChannel,
@@ -80,8 +79,6 @@ class xdmaTopIO(
 class xdmaTop(
     readerparam: DMADataPathParam,
     writerparam: DMADataPathParam,
-    axiWidth: Int = 512,
-    csrAddrWidth: Int = 32,
     clusterName: String = "unnamed_cluster"
 ) extends Module
     with RequireAsyncReset {
@@ -89,27 +86,23 @@ class xdmaTop(
   val io = IO(
     new xdmaTopIO(
       readerparam = readerparam,
-      writerparam = writerparam,
-      axiWidth = axiWidth,
-      csrAddrWidth = csrAddrWidth
+      writerparam = writerparam
     )
   )
 
   val i_dmactrl = Module(
     new DMACtrl(
-      clusterName = clusterName,
       readerparam = readerparam,
       writerparam = writerparam,
-      axiWidth = axiWidth,
-      csrAddrWidth = csrAddrWidth
+      clusterName = clusterName
     )
   )
 
   val i_dmadatapath = Module(
     new DMADataPath(
-      clusterName = clusterName,
       readerparam = readerparam,
-      writerparam = writerparam
+      writerparam = writerparam,
+      clusterName = clusterName
     )
   )
 
@@ -145,20 +138,6 @@ class xdmaTop(
 
 }
 
-object xdmaTopEmitter extends App {
-  _root_.circt.stage.ChiselStage.emitSystemVerilogFile(
-    new xdmaTop(
-      clusterName = "test_cluster",
-      readerparam = new DMADataPathParam(new ReaderWriterParam, Seq()),
-      writerparam = new DMADataPathParam(
-        new ReaderWriterParam,
-        Seq(HasMaxPool, HasVerilogMemset, HasTransposer)
-      )
-    ),
-    args = Array("--split-verilog", "--target-dir", "generated/xdma")
-  )
-}
-
 object xdmaTopGen extends App {
   val parsed_args = snax.utils.ArgParser.parse(args)
 
@@ -177,12 +156,15 @@ object xdmaTopGen extends App {
     HasMaxPool
     HasTranspopser
    */
+  val axiParam = new AXIParam(
+    dataWidth = parsed_args("axiDataWidth").toInt,
+    addrWidth = parsed_args("axiAddrWidth").toInt
+  )
 
   val readerparam = new ReaderWriterParam(
     dimension = parsed_args("readerDimension").toInt,
     tcdmDataWidth = parsed_args("tcdmDataWidth").toInt,
     tcdmSize = parsed_args("tcdmSize").toInt,
-    tcdmAddressWidth = parsed_args("addressWidth").toInt,
     numChannel =
       parsed_args("axiDataWidth").toInt / parsed_args("tcdmDataWidth").toInt,
     addressBufferDepth = parsed_args("readerBufferDepth").toInt
@@ -192,7 +174,6 @@ object xdmaTopGen extends App {
     dimension = parsed_args("writerDimension").toInt,
     tcdmDataWidth = parsed_args("tcdmDataWidth").toInt,
     tcdmSize = parsed_args("tcdmSize").toInt,
-    tcdmAddressWidth = parsed_args("addressWidth").toInt,
     numChannel =
       parsed_args("axiDataWidth").toInt / parsed_args("tcdmDataWidth").toInt,
     addressBufferDepth = parsed_args("writerBufferDepth").toInt
@@ -226,8 +207,10 @@ return ${i._1}
   var sv_string = getVerilogString(
     new xdmaTop(
       clusterName = parsed_args.getOrElse("clusterName", ""),
-      readerparam = new DMADataPathParam(readerparam, readerextensionparam),
-      writerparam = new DMADataPathParam(writerparam, writerextensionparam)
+      readerparam =
+        new DMADataPathParam(axiParam, readerparam, readerextensionparam),
+      writerparam =
+        new DMADataPathParam(axiParam, writerparam, writerextensionparam)
     )
   )
 

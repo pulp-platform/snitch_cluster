@@ -100,9 +100,11 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
   "The bahavior of XDMA is as expected" in test(
     new xdmaTop(
       readerparam = new DMADataPathParam(
+        axiParam = new AXIParam,
         rwParam = new ReaderWriterParam
       ),
       writerparam = new DMADataPathParam(
+        axiParam = new AXIParam,
         rwParam = new ReaderWriterParam,
         extParam = Seq(HasVerilogMemset, HasMaxPool, HasTransposer)
       )
@@ -887,4 +889,20 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
 
       concurrent_threads.joinAndStep()
   }
+}
+
+object xdmaTopEmitter extends App {
+  _root_.circt.stage.ChiselStage.emitSystemVerilogFile(
+    new xdmaTop(
+      clusterName = "test_cluster",
+      readerparam =
+        new DMADataPathParam(new AXIParam, new ReaderWriterParam, Seq()),
+      writerparam = new DMADataPathParam(
+        new AXIParam,
+        new ReaderWriterParam,
+        Seq(HasMaxPool, HasVerilogMemset, HasTransposer)
+      )
+    ),
+    args = Array("--target-dir", "generated/xdma")
+  )
 }

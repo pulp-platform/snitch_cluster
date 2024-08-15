@@ -11,7 +11,8 @@ import scala.util.Random
 // Import break support for loops
 import scala.util.control.Breaks.{break, breakable}
 import snax.xdma.xdmaFrontend.DMADataPath
-import snax.xdma.DesignParams.{DMADataPathParam, ReaderWriterParam}
+import snax.xdma.DesignParams.{DMADataPathParam, ReaderWriterParam, AXIParam}
+import snax.xdma.xdmaTop.xdmaTopGen.axiParam
 
 class ReaderWriterTesterParam(
     val address: Int,
@@ -26,9 +27,11 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
   "DMA Data Path behavior is as expected" in test(
     new DMADataPath(
       readerparam = new DMADataPathParam(
+        axiParam = new AXIParam,
         rwParam = new ReaderWriterParam
       ),
       writerparam = new DMADataPathParam(
+        axiParam = new AXIParam,
         rwParam = new ReaderWriterParam
       )
     )
@@ -267,11 +270,11 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
   }
 }
 
-object DMADataPathTester extends App {
+object DMADataPathEmitter extends App {
   emitVerilog(
     new DMADataPath(
-      readerparam = new DMADataPathParam(new ReaderWriterParam, Seq()),
-      writerparam = new DMADataPathParam(new ReaderWriterParam, Seq())
+      readerparam = new DMADataPathParam(new AXIParam, new ReaderWriterParam),
+      writerparam = new DMADataPathParam(new AXIParam, new ReaderWriterParam)
     ),
     Array("--target-dir", "generated")
   )

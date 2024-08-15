@@ -2,6 +2,7 @@ package snax.xdma.DesignParams
 
 import chisel3.util.log2Up
 import snax.xdma.xdmaExtension._
+import chisel3.util.log2Ceil
 
 /*
  *  This is the collection of all design Params
@@ -18,8 +19,8 @@ class TCDMParam(
 )
 
 object TCDMParam {
-  def apply(addrWidth: Int, dataWidth: Int, numChannel: Int, tcdmSize: Int) =
-    new TCDMParam(addrWidth, dataWidth, numChannel, tcdmSize)
+  def apply(dataWidth: Int, numChannel: Int, tcdmSize: Int) =
+    new TCDMParam(log2Ceil(tcdmSize) + 10, dataWidth, numChannel, tcdmSize)
   def apply() = new TCDMParam(
     addrWidth = 17,
     dataWidth = 64,
@@ -33,77 +34,31 @@ object TCDMParam {
 class AddressGenUnitParam(
     val dimension: Int,
     val addressWidth: Int,
-    val channels: Int,
-    val outputBufferDepth: Int
+    val numChannel: Int,
+    val outputBufferDepth: Int,
+    val tcdmSize: Int
 )
 
 object AddressGenUnitParam {
   // The Very Simple instantiation of the Param
   def apply() = new AddressGenUnitParam(
     dimension = 2,
-    addressWidth = 48,
-    channels = 8,
-    outputBufferDepth = 8
+    addressWidth = 17, // For the address of 128kB tcdm size
+    numChannel = 8,
+    outputBufferDepth = 8,
+    tcdmSize = 128
   )
   def apply(
       dimension: Int,
-      addressWidth: Int,
-      channels: Int,
-      outputBufferDepth: Int
+      numChannel: Int,
+      outputBufferDepth: Int,
+      tcdmSize: Int
   ) = new AddressGenUnitParam(
     dimension = dimension,
-    addressWidth = addressWidth,
-    channels = channels,
-    outputBufferDepth = outputBufferDepth
-  )
-}
-
-class AddressGenUnitNoMulDivParam(
-    val dimension: Int,
-    val addressWidth: Int,
-    val channels: Int,
-    val outputBufferDepth: Int,
-    val memorySize: Int
-) {
-  def toAddressGenUnitParam = AddressGenUnitParam(
-    dimension = dimension,
-    addressWidth = addressWidth,
-    channels = channels,
-    outputBufferDepth = outputBufferDepth
-  )
-}
-
-object AddressGenUnitNoMulDivParam {
-  // The Very Simple instantiation of the Param
-  def apply() = new AddressGenUnitNoMulDivParam(
-    dimension = 3,
-    addressWidth = 48,
-    channels = 8,
-    outputBufferDepth = 8,
-    memorySize = 128
-  )
-  def apply(
-      dimension: Int,
-      addressWidth: Int,
-      channels: Int,
-      outputBufferDepth: Int,
-      memorySize: Int
-  ) = new AddressGenUnitNoMulDivParam(
-    dimension = dimension,
-    addressWidth = addressWidth,
-    channels = channels,
+    addressWidth = log2Ceil(tcdmSize) + 10,
+    numChannel = numChannel,
     outputBufferDepth = outputBufferDepth,
-    memorySize = memorySize
-  )
-  def apply(
-      agu_param: AddressGenUnitParam,
-      memorySize: Int
-  ) = new AddressGenUnitNoMulDivParam(
-    dimension = agu_param.dimension,
-    addressWidth = agu_param.addressWidth,
-    channels = agu_param.channels,
-    outputBufferDepth = agu_param.outputBufferDepth,
-    memorySize = memorySize
+    tcdmSize = tcdmSize
   )
 }
 
@@ -111,20 +66,18 @@ class ReaderWriterParam(
     dimension: Int = 3,
     tcdmDataWidth: Int = 64,
     tcdmSize: Int = 128,
-    tcdmAddressWidth: Int = 48,
     numChannel: Int = 8,
     addressBufferDepth: Int = 8,
     dataBufferDepth: Int = 8
 ) {
   val agu_param = AddressGenUnitParam(
     dimension = dimension,
-    addressWidth = tcdmAddressWidth,
-    channels = numChannel,
-    outputBufferDepth = addressBufferDepth
+    numChannel = numChannel,
+    outputBufferDepth = addressBufferDepth,
+    tcdmSize = tcdmSize
   )
 
   val tcdm_param = TCDMParam(
-    addrWidth = tcdmAddressWidth,
     dataWidth = tcdmDataWidth,
     numChannel = numChannel,
     tcdmSize = tcdmSize
@@ -134,8 +87,20 @@ class ReaderWriterParam(
   val bufferDepth = dataBufferDepth
 }
 
+// AXI Params
+class AXIParam(
+    val dataWidth: Int = 512,
+    val addrWidth: Int = 48
+)
+
+object AXIParam {
+  def apply() = new AXIParam()
+  def apply(dataWidth: Int, addrWidth: Int) = new AXIParam(dataWidth, addrWidth)
+}
+
 // DMA Params
 class DMADataPathParam(
+    val axiParam: AXIParam,
     val rwParam: ReaderWriterParam,
     val extParam: Seq[HasDMAExtension] = Seq[HasDMAExtension]()
 )

@@ -44,8 +44,10 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
   "The DMACtrl" should " pass" in {
     test(
       new DMACtrl(
-        readerparam = new DMADataPathParam(new ReaderWriterParam, Seq()),
-        writerparam = new DMADataPathParam(new ReaderWriterParam, Seq())
+        readerparam =
+          new DMADataPathParam(new AXIParam, new ReaderWriterParam, Seq()),
+        writerparam =
+          new DMADataPathParam(new AXIParam, new ReaderWriterParam, Seq())
       )
     ).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) {
       dut =>
@@ -145,7 +147,7 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               // Writer: strobe / mask
               write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 0)
               currentCSR += 1
-              
+
               // Commit the config
               write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 1)
               println(
@@ -162,8 +164,8 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                 (Reader_PointerAddress + 0x0000_1000 + i).toInt
               )
               val remoteConfig: BigInt =
-                BigInt(0x2000_0000) +
-                  ((Reader_PointerAddress + 0x0000_1000 + i) << 48) +
+                (Reader_PointerAddress + 0x0000_1000 + i) +
+                  (BigInt(0x2000_0000) << 48) +
                   (BigInt(Reader_Strides(0)) << 96) +
                   (BigInt(Reader_Strides(1)) << 128) +
                   (BigInt(Reader_Strides(2)) << 160) +
@@ -202,20 +204,20 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               dut.clock.step(Random.between(1, 16) + 32)
               dut.io.localDMADataPath.reader_busy_i.poke(true)
               println(
-                "[Local Reader Checker] " + dut.io.localDMADataPath.reader_cfg_o.agu_cfg.Ptr
+                "[Local Reader Checker] " + dut.io.localDMADataPath.reader_cfg_o.readerPtr
                   .peekInt()
                   .toInt
                   .toHexString
               )
               if (
                 !unreceived_reader_cfg.remove(
-                  dut.io.localDMADataPath.reader_cfg_o.agu_cfg.Ptr
+                  dut.io.localDMADataPath.reader_cfg_o.readerPtr
                     .peekInt()
                     .toInt
                 )
               )
                 throw new Exception(
-                  "[Local Reader Checker] The received pointer " + dut.io.localDMADataPath.reader_cfg_o.agu_cfg.Ptr
+                  "[Local Reader Checker] The received pointer " + dut.io.localDMADataPath.reader_cfg_o.readerPtr
                     .peekInt()
                     .toInt
                     .toHexString + " is not in the buffer"
@@ -236,20 +238,20 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                 if (testTerminated) break()
               }
               println(
-                "[Local Writer Checker] " + dut.io.localDMADataPath.writer_cfg_o.agu_cfg.Ptr
+                "[Local Writer Checker] " + dut.io.localDMADataPath.writer_cfg_o.writerPtr
                   .peekInt()
                   .toInt
                   .toHexString
               )
               if (
                 !unreceived_writer_cfg.remove(
-                  dut.io.localDMADataPath.writer_cfg_o.agu_cfg.Ptr
+                  dut.io.localDMADataPath.writer_cfg_o.writerPtr
                     .peekInt()
                     .toInt
                 )
               )
                 throw new Exception(
-                  "[Local Writer Checker] The received pointer " + dut.io.localDMADataPath.writer_cfg_o.agu_cfg.Ptr
+                  "[Local Writer Checker] The received pointer " + dut.io.localDMADataPath.writer_cfg_o.writerPtr
                     .peekInt()
                     .toInt
                     .toHexString + " is not in the buffer"
@@ -281,16 +283,16 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                   !unreceived_reader_cfg.remove(
                     extractBits(
                       dut.io.remoteDMADataPathCfg.toRemote.bits.peekInt(),
-                      95,
-                      48
+                      47,
+                      0
                     ).toInt
                   )
                 )
                   throw new Exception(
                     "[Remote Reader Checker] The received pointer " + extractBits(
                       dut.io.remoteDMADataPathCfg.toRemote.bits.peekInt(),
-                      95,
-                      48
+                      47,
+                      0
                     ).toInt.toHexString + " is not in the buffer"
                   )
                 dut.clock.step(Random.between(1, 16) + 32)

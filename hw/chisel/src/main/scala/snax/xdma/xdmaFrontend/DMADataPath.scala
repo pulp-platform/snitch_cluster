@@ -13,6 +13,7 @@ import snax.xdma.CommonCells._
 import snax.xdma.DesignParams._
 
 // The ReaderWriterCfg Class that used for interface between local Datapath and DMA Ctrl
+// The length of addresses is the short version, which is just enough to reside TCDM
 class DMADataPathCfgIO(param: DMADataPathParam) extends Bundle {
   val agu_cfg =
     new AddressGenUnitCfgIO(param =
@@ -72,22 +73,28 @@ class DMADataPathCfgIO(param: DMADataPathParam) extends Bundle {
 
 // The internal sturctured class that used to store the CFG of reader and writer
 // The serialized version of this class will be the actual output and input of the DMACtrl (which is to AXI)
-// It is the ReaderWriterCfg class, with loopBack signal (early judgement) and Ptr of the opposite side (So that the Data can be forwarded to the remote side)
+// The full address is included in this class, for the purpose of cross-cluster communication
+// Loopback signal is also included in this class, for the purpose of early judgement
 class DMADataPathCfgInternalIO(param: DMADataPathParam)
     extends DMADataPathCfgIO(param: DMADataPathParam) {
   val loopBack = Bool()
-  val oppositePtr = UInt(param.rwParam.tcdm_param.addrWidth.W)
+  val readerPtr = UInt(param.axiParam.addrWidth.W)
+  val writerPtr = UInt(param.axiParam.addrWidth.W)
   override def serialize(): UInt = {
-    super.serialize() ++ oppositePtr
+    super.serialize() ++ writerPtr ++ readerPtr
   }
 
   override def deserialize(data: UInt): UInt = {
     var remainingData = data;
 
-    // Assigning oppositePtr
-    oppositePtr := remainingData(oppositePtr.getWidth - 1, 0)
+    // Assigning readerPtr + writerPtr
+    readerPtr := remainingData(readerPtr.getWidth - 1, 0)
     remainingData =
-      remainingData(remainingData.getWidth - 1, oppositePtr.getWidth)
+      remainingData(remainingData.getWidth - 1, readerPtr.getWidth)
+
+    writerPtr := remainingData(writerPtr.getWidth - 1, 0)
+    remainingData =
+      remainingData(remainingData.getWidth - 1, writerPtr.getWidth)
 
     // Assigning loopBack
     loopBack := false.B
@@ -351,10 +358,12 @@ object DMADataPathEmitter extends App {
     getVerilogString(
       new DMADataPath(
         readerparam = new DMADataPathParam(
+          axiParam = new AXIParam,
           rwParam = new ReaderWriterParam,
           extParam = Seq()
         ),
         writerparam = new DMADataPathParam(
+          axiParam = new AXIParam,
           rwParam = new ReaderWriterParam,
           extParam = Seq()
         )

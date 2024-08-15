@@ -390,7 +390,7 @@ def main():
             gen_path=" --clusterName " + str(cfg["cluster"]["name"]) +
             " --tcdmDataWidth " + str(cfg["cluster"]["data_width"]) +
             " --axiDataWidth " + str(cfg["cluster"]["dma_data_width"]) +
-            " --addressWidth " + str(cfg["cluster"]["addr_width"]) +
+            " --axiAddrWidth " + str(cfg["cluster"]["addr_width"]) +
             " --tcdmSize " + str(cfg["cluster"]["tcdm"]["size"]) +
             " --readerDimension " +
             str(snax_xdma_cfg["reader_agu_dimension"]) +

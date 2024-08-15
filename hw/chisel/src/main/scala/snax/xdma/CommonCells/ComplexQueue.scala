@@ -51,10 +51,12 @@ class ComplexQueueConcat(inputWidth: Int, outputWidth: Int, depth: Int)
     Module(new Queue(UInt(smallWidth.W), depth))
   }
 
-  if (io.in.length != 1) { // The input port has small width so that the valid signal and ready signal should be connected directly to the input
+  if (io.in.length != 1 || (io.in.length == 1 && io.out.length == 1)) {
+    // Cond 1: io.in is not equals to 1, thus it is a complexQueue
+    // Cond 2: io.in is equals to 1 and io.out is equals to 1, thus it is a simpleQueue
     io.in.zip(queues).foreach { case (i, j) => i <> j.io.enq }
   } else {
-    // only ready when all signals are ready
+    // It is a complexQueue with 1 input and multiple output
     val enq_all_ready = queues.map(_.io.enq.ready).reduce(_ & _)
     io.in.head.ready := enq_all_ready
     // Only when all signals are ready, then valid signals in each channels can be passed to FIFO
@@ -69,10 +71,12 @@ class ComplexQueueConcat(inputWidth: Int, outputWidth: Int, depth: Int)
   }
 
   // The same thing for the output
-  if (io.out.length != 1) { // The output port has small width so that the valid signal and ready signal should be connected directly to the input
+  if (io.out.length != 1 || (io.in.length == 1 && io.out.length == 1)) {
+    // Cond 1: io.out is not equals to 1, thus it is a complexQueue
+    // Cond 2: io.in is equals to 1 and io.out is equals to 1, thus it is a simpleQueue
     io.out.zip(queues).foreach { case (i, j) => i <> j.io.deq }
   } else {
-    // only valid when all signals are valid
+    // It is a complexQueue with 1 output and multiple input
     val deq_all_valid = queues.map(_.io.deq.valid).reduce(_ & _)
     io.out.head.valid := deq_all_valid
     // Only when all signals are valid, then ready signals in each channels can be passed to FIFO
@@ -165,7 +169,7 @@ class ComplexQueueOnetoN[T <: Data](dataType: T, N: Int, depth: Int)
   })
 
   val queues = for (i <- 0 until N) yield {
-    Module(new Queue(dataType, depth))
+    Module(new Queue(dataType, depth, pipe = true))
   }
 
   io.out.zip(queues).foreach { case (i, j) => i <> j.io.deq }
@@ -179,4 +183,10 @@ class ComplexQueueOnetoN[T <: Data](dataType: T, N: Int, depth: Int)
 
   // Any full signal is a debug signal and derived from sub channels: if any fifo is full, then this signal is full
   io.anyFull := queues.map(queue => ~(queue.io.enq.ready)).reduce(_ | _)
+}
+
+object ComplexQueueEmitter extends App {
+  println(getVerilogString(new ComplexQueueConcat(64, 512, 16)))
+  println(getVerilogString(new ComplexQueueConcat(512, 64, 16)))
+  println(getVerilogString(new ComplexQueueConcat(64, 64, 16)))
 }
