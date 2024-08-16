@@ -58,8 +58,8 @@ module snax_data_reshuffler_shell_wrapper #(
         .io_ctrl_valid              ( csr_reg_set_valid_i      ),
         .io_ctrl_ready              ( csr_reg_set_ready_o      ),
         // ro rsc
-        .io_performance_counter     ( csr_reg_ro_set_o[0]      ),
-        .io_busy_o                  ( csr_reg_ro_set_o[1][0]   )
+        .io_busy_o                  ( csr_reg_ro_set_o[0][0]   ),
+        .io_performance_counter     ( csr_reg_ro_set_o[1]      )
     );
 
 endmodule
