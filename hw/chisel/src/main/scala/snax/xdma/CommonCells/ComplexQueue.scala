@@ -169,7 +169,7 @@ class ComplexQueueOnetoN[T <: Data](dataType: T, N: Int, depth: Int)
   })
 
   val queues = for (i <- 0 until N) yield {
-    Module(new Queue(dataType, depth, pipe = true))
+    Module(new Queue(dataType, depth))
   }
 
   io.out.zip(queues).foreach { case (i, j) => i <> j.io.deq }
