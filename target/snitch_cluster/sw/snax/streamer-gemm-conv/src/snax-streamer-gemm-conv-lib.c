@@ -122,7 +122,7 @@ uint32_t read_conv_gemm_streamer_perf_counter() {
 
 // Read performance counter of GEMM, a read-only CSR
 uint32_t read_conv_gemm_perf_counter() {
-    uint32_t perf_counter = read_csr(1000);
+    uint32_t perf_counter = read_csr(1001);
     return perf_counter;
 }
 
