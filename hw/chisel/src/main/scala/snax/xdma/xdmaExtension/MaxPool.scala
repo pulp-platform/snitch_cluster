@@ -60,7 +60,9 @@ class MaxPool(elementWidth: Int)(implicit extensionParam: DMAExtensionParam)
   ext_data_o.bits := ext_data_o_bits.asUInt
 
   val PEs = for (i <- 0 until extensionParam.dataWidth / elementWidth) yield {
-    val PE = Module(new MAXPoolPE(dataWidth = elementWidth))
+    val PE = Module(new MAXPoolPE(dataWidth = elementWidth) {
+      override val desiredName = "xdma_extension_MaxPoolPE"
+    })
     PE.io.init_i := counter.io.value === 0.U
     PE.io.data_i.valid := ext_data_i.fire
     PE.io.data_i.bits := ext_data_i
