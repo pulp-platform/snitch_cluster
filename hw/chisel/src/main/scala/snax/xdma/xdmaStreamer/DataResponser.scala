@@ -15,7 +15,7 @@ import snax.utils._
 class DataResponserIO(tcdmDataWidth: Int = 64, numChannel: Int = 8)
     extends Bundle {
   val in = new Bundle {
-    val tcdm_rsp = Flipped(Valid(new TcdmRsp(tcdmDataWidth = tcdmDataWidth)))
+    val tcdmRsp = Flipped(Valid(new TcdmRsp(tcdmDataWidth = tcdmDataWidth)))
   }
   val out = new Bundle {
     val data = Decoupled(UInt(tcdmDataWidth.W))
@@ -30,8 +30,8 @@ class DataResponserIO(tcdmDataWidth: Int = 64, numChannel: Int = 8)
 class DataResponser(tcdmDataWidth: Int) extends Module with RequireAsyncReset {
   val io = IO(new DataResponserIO(tcdmDataWidth = tcdmDataWidth))
   when(io.enable) {
-    io.out.data.valid := io.in.tcdm_rsp.valid // io.out's validity is determined by TCDM's side
-    io.out.data.bits := io.in.tcdm_rsp.bits.data
+    io.out.data.valid := io.in.tcdmRsp.valid // io.out's validity is determined by TCDM's side
+    io.out.data.bits := io.in.tcdmRsp.bits.data
   } otherwise {
     io.out.data.valid := io.RequestorResponserLink.RequestorSubmit // io.out's validity is determined by whether the Requestor submit the fake request
     io.out.data.bits := 0.U
@@ -51,7 +51,7 @@ class DataResponser(tcdmDataWidth: Int) extends Module with RequireAsyncReset {
 class DataResponsersIO(tcdmDataWidth: Int = 64, numChannel: Int = 8)
     extends Bundle {
   val in = new Bundle {
-    val tcdm_rsp = Vec(
+    val tcdmRsp = Vec(
       numChannel,
       Flipped(Valid(new TcdmRsp(tcdmDataWidth = tcdmDataWidth)))
     )
@@ -82,7 +82,7 @@ class DataResponsers(
     val module = Module(new DataResponser(tcdmDataWidth = tcdmDataWidth) {
       override val desiredName = s"${module_name_prefix}_DataResponser"
     })
-    io.in.tcdm_rsp(i) <> module.io.in.tcdm_rsp
+    io.in.tcdmRsp(i) <> module.io.in.tcdmRsp
     io.out.data(i) <> module.io.out.data
     io.RequestorResponserLink.ResponsorReady(
       i

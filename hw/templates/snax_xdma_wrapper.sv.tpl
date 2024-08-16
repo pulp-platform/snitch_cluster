@@ -120,26 +120,26 @@ module ${cfg["name"]}_xdma_wrapper #(
     // Ready signal is very strange... ETH defines ready at rsp side, but we think it should at request-side (imagine system with outstanding request support)
 
 % for idx in range(0, num_tcdm_ports >> 1):
-    .io_tcdm_reader_req_${idx}_ready      ( tcdm_rsp_q_ready[${idx}] ),
-    .io_tcdm_reader_req_${idx}_valid      ( tcdm_req_q_valid[${idx}] ),
-    .io_tcdm_reader_req_${idx}_bits_addr  ( tcdm_req_addr   [${idx}] ),
-    .io_tcdm_reader_req_${idx}_bits_write ( tcdm_req_write  [${idx}] ),
-    .io_tcdm_reader_req_${idx}_bits_data  ( tcdm_req_data   [${idx}] ),
-    .io_tcdm_reader_req_${idx}_bits_strb  ( tcdm_req_strb   [${idx}] ),
+    .io_tcdmReader_req_${idx}_ready      ( tcdm_rsp_q_ready[${idx}] ),
+    .io_tcdmReader_req_${idx}_valid      ( tcdm_req_q_valid[${idx}] ),
+    .io_tcdmReader_req_${idx}_bits_addr  ( tcdm_req_addr   [${idx}] ),
+    .io_tcdmReader_req_${idx}_bits_write ( tcdm_req_write  [${idx}] ),
+    .io_tcdmReader_req_${idx}_bits_data  ( tcdm_req_data   [${idx}] ),
+    .io_tcdmReader_req_${idx}_bits_strb  ( tcdm_req_strb   [${idx}] ),
 % endfor
     // Writer's Request
 % for idx in range(0, num_tcdm_ports >> 1):
-    .io_tcdm_writer_req_${idx}_ready      ( tcdm_rsp_q_ready[${idx + (num_tcdm_ports >> 1)}] ),
-    .io_tcdm_writer_req_${idx}_valid      ( tcdm_req_q_valid[${idx + (num_tcdm_ports >> 1)}] ),
-    .io_tcdm_writer_req_${idx}_bits_addr  ( tcdm_req_addr   [${idx + (num_tcdm_ports >> 1)}] ),
-    .io_tcdm_writer_req_${idx}_bits_write ( tcdm_req_write  [${idx + (num_tcdm_ports >> 1)}] ),
-    .io_tcdm_writer_req_${idx}_bits_data  ( tcdm_req_data   [${idx + (num_tcdm_ports >> 1)}] ),
-    .io_tcdm_writer_req_${idx}_bits_strb  ( tcdm_req_strb   [${idx + (num_tcdm_ports >> 1)}] ),
+    .io_tcdmWriter_req_${idx}_ready      ( tcdm_rsp_q_ready[${idx + (num_tcdm_ports >> 1)}] ),
+    .io_tcdmWriter_req_${idx}_valid      ( tcdm_req_q_valid[${idx + (num_tcdm_ports >> 1)}] ),
+    .io_tcdmWriter_req_${idx}_bits_addr  ( tcdm_req_addr   [${idx + (num_tcdm_ports >> 1)}] ),
+    .io_tcdmWriter_req_${idx}_bits_write ( tcdm_req_write  [${idx + (num_tcdm_ports >> 1)}] ),
+    .io_tcdmWriter_req_${idx}_bits_data  ( tcdm_req_data   [${idx + (num_tcdm_ports >> 1)}] ),
+    .io_tcdmWriter_req_${idx}_bits_strb  ( tcdm_req_strb   [${idx + (num_tcdm_ports >> 1)}] ),
 % endfor
     // Reader's Respose
 % for idx in range(num_tcdm_ports >> 1):
-    .io_tcdm_reader_rsp_${idx}_valid    ( tcdm_rsp_p_valid[${idx}] ),
-    .io_tcdm_reader_rsp_${idx}_bits_data( tcdm_rsp_data   [${idx}] ),
+    .io_tcdmReader_rsp_${idx}_valid    ( tcdm_rsp_p_valid[${idx}] ),
+    .io_tcdmReader_rsp_${idx}_bits_data( tcdm_rsp_data   [${idx}] ),
 % endfor
     // Writer has no Respose
     //-----------------------------

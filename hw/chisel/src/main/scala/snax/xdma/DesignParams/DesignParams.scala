@@ -70,14 +70,14 @@ class ReaderWriterParam(
     addressBufferDepth: Int = 8,
     dataBufferDepth: Int = 8
 ) {
-  val agu_param = AddressGenUnitParam(
+  val aguParam = AddressGenUnitParam(
     dimension = dimension,
     numChannel = numChannel,
     outputBufferDepth = addressBufferDepth,
     tcdmSize = tcdmSize
   )
 
-  val tcdm_param = TCDMParam(
+  val tcdmParam = TCDMParam(
     dataWidth = tcdmDataWidth,
     numChannel = numChannel,
     tcdmSize = tcdmSize

@@ -99,11 +99,11 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
 
   "The bahavior of XDMA is as expected" in test(
     new xdmaTop(
-      readerparam = new DMADataPathParam(
+      readerParam = new DMADataPathParam(
         axiParam = new AXIParam,
         rwParam = new ReaderWriterParam
       ),
-      writerparam = new DMADataPathParam(
+      writerParam = new DMADataPathParam(
         axiParam = new AXIParam,
         rwParam = new ReaderWriterParam,
         extParam = Seq(HasVerilogMemset, HasMaxPool, HasTransposer)
@@ -782,13 +782,13 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
               if (testTerminated) break()
               val random_delay = Random.between(0, 1)
               if (random_delay > 1) {
-                dut.io.tcdm_reader.req(i).ready.poke(false)
+                dut.io.tcdmReader.req(i).ready.poke(false)
                 dut.clock.step(random_delay)
-                dut.io.tcdm_reader.req(i).ready.poke(true)
-              } else dut.io.tcdm_reader.req(i).ready.poke(true)
+                dut.io.tcdmReader.req(i).ready.poke(true)
+              } else dut.io.tcdmReader.req(i).ready.poke(true)
               val reader_req_addr =
-                dut.io.tcdm_reader.req(i).bits.addr.peekInt().toInt
-              if (dut.io.tcdm_reader.req(i).valid.peekBoolean()) {
+                dut.io.tcdmReader.req(i).bits.addr.peekInt().toInt
+              if (dut.io.tcdmReader.req(i).valid.peekBoolean()) {
                 queues(i).enqueue(reader_req_addr)
 
                 println(
@@ -816,16 +816,16 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
               if (testTerminated) break()
               if (queues(i).isEmpty) dut.clock.step()
               else {
-                dut.io.tcdm_reader.rsp(i).valid.poke(true)
+                dut.io.tcdmReader.rsp(i).valid.poke(true)
                 val reader_addr = queues(i).dequeue()
                 val reader_resp_data = tcdm_mem(reader_addr)
                 println(
                   f"[Reader Resp] TCDM Response to Reader with Addr = 0x${reader_addr.toHexString} Data = 0x${reader_resp_data
                       .toString(radix = 16)}"
                 )
-                dut.io.tcdm_reader.rsp(i).bits.data.poke(reader_resp_data.U)
+                dut.io.tcdmReader.rsp(i).bits.data.poke(reader_resp_data.U)
                 dut.clock.step()
-                dut.io.tcdm_reader.rsp(i).valid.poke(false)
+                dut.io.tcdmReader.rsp(i).valid.poke(false)
               }
 
             }
@@ -847,24 +847,24 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
             while (true) {
               if (testTerminated) break()
 
-              if (dut.io.tcdm_writer.req(i).valid.peekBoolean()) {
+              if (dut.io.tcdmWriter.req(i).valid.peekBoolean()) {
                 val writer_req_addr =
-                  dut.io.tcdm_writer.req(i).bits.addr.peekInt().toInt
+                  dut.io.tcdmWriter.req(i).bits.addr.peekInt().toInt
                 val writer_req_data =
-                  dut.io.tcdm_writer.req(i).bits.data.peekInt()
+                  dut.io.tcdmWriter.req(i).bits.data.peekInt()
 
                 val random_delay = Random.between(0, 2)
                 if (random_delay > 1) {
-                  dut.io.tcdm_writer.req(i).ready.poke(false)
+                  dut.io.tcdmWriter.req(i).ready.poke(false)
                   dut.clock.step(random_delay)
-                  dut.io.tcdm_writer.req(i).ready.poke(true)
-                } else dut.io.tcdm_writer.req(i).ready.poke(true)
+                  dut.io.tcdmWriter.req(i).ready.poke(true)
+                } else dut.io.tcdmWriter.req(i).ready.poke(true)
 
                 val previous_data =
                   if (tcdm_mem.contains(writer_req_addr))
                     tcdm_mem(writer_req_addr)
                   else BigInt(0)
-                val Strb = dut.io.tcdm_writer.req(i).bits.strb.peekInt().toInt
+                val Strb = dut.io.tcdmWriter.req(i).bits.strb.peekInt().toInt
                 var bitStrb = BigInt(0)
                 for (i <- 7 to 0 by -1) {
                   val bit = (Strb >> i) & 1
@@ -895,9 +895,9 @@ object xdmaTopEmitter extends App {
   _root_.circt.stage.ChiselStage.emitSystemVerilogFile(
     new xdmaTop(
       clusterName = "test_cluster",
-      readerparam =
+      readerParam =
         new DMADataPathParam(new AXIParam, new ReaderWriterParam, Seq()),
-      writerparam = new DMADataPathParam(
+      writerParam = new DMADataPathParam(
         new AXIParam,
         new ReaderWriterParam,
         Seq(HasMaxPool, HasVerilogMemset, HasTransposer)

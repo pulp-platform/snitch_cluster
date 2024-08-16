@@ -58,16 +58,16 @@ class WriterTester extends AnyFreeSpec with ChiselScalatestTester {
       // The accessed address is 1KB (0x0 - 0x400)
       // Configure AGU
       val testingParams = ReaderWriterTesterParam()
-      dut.io.cfg.Ptr.poke(testingParams.address)
+      dut.io.cfg.ptr.poke(testingParams.address)
       // 8 parfor, 4 tempfor x 4 tempfor
-      dut.io.cfg.Bounds(0).poke(testingParams.spatial_bound)
-      dut.io.cfg.Bounds(1).poke(testingParams.temporal_bound(0))
-      dut.io.cfg.Bounds(2).poke(testingParams.temporal_bound(1))
+      dut.io.cfg.bounds(0).poke(testingParams.spatial_bound)
+      dut.io.cfg.bounds(1).poke(testingParams.temporal_bound(0))
+      dut.io.cfg.bounds(2).poke(testingParams.temporal_bound(1))
       // 8 parfor continuous, 4 tempfor having the distance of 128B (read one superbank skip one superbank)
       // 4 tempfor having the distance of 1024B (finish read 4 SB in 8 SB, skip the consiquent 8SB)
-      dut.io.cfg.Strides(0).poke(testingParams.spatial_stride)
-      dut.io.cfg.Strides(1).poke(testingParams.temporal_stride(0))
-      dut.io.cfg.Strides(2).poke(testingParams.temporal_stride(1))
+      dut.io.cfg.strides(0).poke(testingParams.spatial_stride)
+      dut.io.cfg.strides(1).poke(testingParams.temporal_stride(0))
+      dut.io.cfg.strides(2).poke(testingParams.temporal_stride(1))
 
       dut.io.start.poke(true)
       dut.clock.step()
@@ -140,21 +140,21 @@ class WriterTester extends AnyFreeSpec with ChiselScalatestTester {
 
               if (
                 dut.io
-                  .tcdm_req(i)
+                  .tcdmReq(i)
                   .valid
-                  .peekBoolean() && dut.io.tcdm_req(i).bits.write.peekBoolean()
+                  .peekBoolean() && dut.io.tcdmReq(i).bits.write.peekBoolean()
               ) {
                 val random_delay = Random.between(0, 3)
 
                 if (random_delay > 1) {
-                  dut.io.tcdm_req(i).ready.poke(false)
+                  dut.io.tcdmReq(i).ready.poke(false)
                   dut.clock.step(random_delay)
-                  dut.io.tcdm_req(i).ready.poke(true)
-                } else dut.io.tcdm_req(i).ready.poke(true)
+                  dut.io.tcdmReq(i).ready.poke(true)
+                } else dut.io.tcdmReq(i).ready.poke(true)
 
-                val req_addr = dut.io.tcdm_req(i).bits.addr.peekInt().toInt
+                val req_addr = dut.io.tcdmReq(i).bits.addr.peekInt().toInt
                 val req_data =
-                  dut.io.tcdm_req(i).bits.data.peek().litValue.toLong
+                  dut.io.tcdmReq(i).bits.data.peek().litValue.toLong
                 println(
                   f"[TCDM] Write to Addr: $req_addr%d with Data = 0x${req_data}%016x"
                 )

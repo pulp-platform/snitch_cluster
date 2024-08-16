@@ -79,58 +79,58 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
       // Start up the system
       dut.clock.step(10)
       // Poke the reader agu
-      dut.io.reader_cfg_i.agu_cfg.Ptr.poke(readerTestingParams.address)
-      dut.io.reader_cfg_i.agu_cfg
-        .Bounds(0)
+      dut.io.readerCfg.aguCfg.ptr.poke(readerTestingParams.address)
+      dut.io.readerCfg.aguCfg
+        .bounds(0)
         .poke(readerTestingParams.spatial_bound)
-      dut.io.reader_cfg_i.agu_cfg
-        .Bounds(1)
+      dut.io.readerCfg.aguCfg
+        .bounds(1)
         .poke(readerTestingParams.temporal_bound(0))
-      dut.io.reader_cfg_i.agu_cfg
-        .Bounds(2)
+      dut.io.readerCfg.aguCfg
+        .bounds(2)
         .poke(readerTestingParams.temporal_bound(1))
-      dut.io.reader_cfg_i.agu_cfg
-        .Strides(0)
+      dut.io.readerCfg.aguCfg
+        .strides(0)
         .poke(readerTestingParams.spatial_stride)
-      dut.io.reader_cfg_i.agu_cfg
-        .Strides(1)
+      dut.io.readerCfg.aguCfg
+        .strides(1)
         .poke(readerTestingParams.temporal_stride(0))
-      dut.io.reader_cfg_i.agu_cfg
-        .Strides(2)
+      dut.io.readerCfg.aguCfg
+        .strides(2)
         .poke(readerTestingParams.temporal_stride(1))
       // Poke the write agu
-      dut.io.writer_cfg_i.agu_cfg.Ptr.poke(writerTestingParams.address)
-      dut.io.writer_cfg_i.agu_cfg
-        .Bounds(0)
+      dut.io.writerCfg.aguCfg.ptr.poke(writerTestingParams.address)
+      dut.io.writerCfg.aguCfg
+        .bounds(0)
         .poke(writerTestingParams.spatial_bound)
-      dut.io.writer_cfg_i.agu_cfg
-        .Bounds(1)
+      dut.io.writerCfg.aguCfg
+        .bounds(1)
         .poke(writerTestingParams.temporal_bound(0))
-      dut.io.writer_cfg_i.agu_cfg
-        .Bounds(2)
+      dut.io.writerCfg.aguCfg
+        .bounds(2)
         .poke(writerTestingParams.temporal_bound(1))
-      dut.io.writer_cfg_i.agu_cfg
-        .Strides(0)
+      dut.io.writerCfg.aguCfg
+        .strides(0)
         .poke(writerTestingParams.spatial_stride)
-      dut.io.writer_cfg_i.agu_cfg
-        .Strides(1)
+      dut.io.writerCfg.aguCfg
+        .strides(1)
         .poke(writerTestingParams.temporal_stride(0))
-      dut.io.writer_cfg_i.agu_cfg
-        .Strides(2)
+      dut.io.writerCfg.aguCfg
+        .strides(2)
         .poke(writerTestingParams.temporal_stride(1))
       // Poke the loop back to ture since we are only testing w/o any axi transactions
-      dut.io.reader_cfg_i.loopBack.poke(true)
-      dut.io.writer_cfg_i.loopBack.poke(true)
+      dut.io.readerCfg.loopBack.poke(true)
+      dut.io.writerCfg.loopBack.poke(true)
 
       // Start the reader and writer
-      dut.io.reader_start_i.poke(true)
-      dut.io.writer_start_i.poke(true)
+      dut.io.readerStart.poke(true)
+      dut.io.writerStart.poke(true)
       dut.clock.step()
-      dut.io.reader_start_i.poke(false)
-      dut.io.writer_start_i.poke(false)
+      dut.io.readerStart.poke(false)
+      dut.io.writerStart.poke(false)
       // Waiting for the AGU to begin
       if (
-        !(dut.io.reader_busy_o.peekBoolean() && dut.io.writer_busy_o
+        !(dut.io.readerBusy.peekBoolean() && dut.io.writerBusy
           .peekBoolean())
       )
         dut.clock.step()
@@ -152,13 +152,13 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
               if (testTerminated) break()
               val random_delay = Random.between(0, 3)
               if (random_delay > 1) {
-                dut.io.tcdm_reader.req(i).ready.poke(false)
+                dut.io.tcdmReader.req(i).ready.poke(false)
                 dut.clock.step(random_delay)
-                dut.io.tcdm_reader.req(i).ready.poke(true)
-              } else dut.io.tcdm_reader.req(i).ready.poke(true)
+                dut.io.tcdmReader.req(i).ready.poke(true)
+              } else dut.io.tcdmReader.req(i).ready.poke(true)
               val reader_req_addr =
-                dut.io.tcdm_reader.req(i).bits.addr.peekInt().toInt
-              if (dut.io.tcdm_reader.req(i).valid.peekBoolean()) {
+                dut.io.tcdmReader.req(i).bits.addr.peekInt().toInt
+              if (dut.io.tcdmReader.req(i).valid.peekBoolean()) {
                 queues(i).enqueue(reader_req_addr)
 
                 println(
@@ -186,7 +186,7 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
               if (testTerminated) break()
               if (queues(i).isEmpty) dut.clock.step()
               else {
-                dut.io.tcdm_reader.rsp(i).valid.poke(true)
+                dut.io.tcdmReader.rsp(i).valid.poke(true)
                 val reader_addr = queues(i).dequeue()
                 val reader_resp_data = tcdm_mem(reader_addr)
                 //   println(
@@ -195,9 +195,9 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
                 println(
                   f"[Reader Resp] TCDM Response to Reader with Addr = $reader_addr%d Data = $reader_resp_data%d"
                 )
-                dut.io.tcdm_reader.rsp(i).bits.data.poke(reader_resp_data.U)
+                dut.io.tcdmReader.rsp(i).bits.data.poke(reader_resp_data.U)
                 dut.clock.step()
-                dut.io.tcdm_reader.rsp(i).valid.poke(false)
+                dut.io.tcdmReader.rsp(i).valid.poke(false)
               }
 
             }
@@ -219,18 +219,18 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
             while (true) {
               if (testTerminated) break()
 
-              if (dut.io.tcdm_writer.req(i).valid.peekBoolean()) {
+              if (dut.io.tcdmWriter.req(i).valid.peekBoolean()) {
                 val writer_req_addr =
-                  dut.io.tcdm_writer.req(i).bits.addr.peekInt().toInt
+                  dut.io.tcdmWriter.req(i).bits.addr.peekInt().toInt
                 val writer_req_data =
-                  dut.io.tcdm_writer.req(i).bits.data.peek().litValue.toLong
+                  dut.io.tcdmWriter.req(i).bits.data.peek().litValue.toLong
 
                 val random_delay = Random.between(0, 3)
                 if (random_delay > 1) {
-                  dut.io.tcdm_writer.req(i).ready.poke(false)
+                  dut.io.tcdmWriter.req(i).ready.poke(false)
                   dut.clock.step(random_delay)
-                  dut.io.tcdm_writer.req(i).ready.poke(true)
-                } else dut.io.tcdm_writer.req(i).ready.poke(true)
+                  dut.io.tcdmWriter.req(i).ready.poke(true)
+                } else dut.io.tcdmWriter.req(i).ready.poke(true)
 
                 val writer_expected_data = (writer_req_addr - 2048) / 8
                 println(
@@ -253,7 +253,7 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
         dut.clock.step(20)
         // After the dut is start, we poll the busy signal of both writer and reader
         while (
-          dut.io.reader_busy_o.peekBoolean() && dut.io.writer_busy_o
+          dut.io.readerBusy.peekBoolean() && dut.io.writerBusy
             .peekBoolean()
         )
           dut.clock.step()

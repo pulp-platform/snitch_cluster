@@ -46,7 +46,7 @@ class DataRequestorsIO(
     val strb = Input(UInt((tcdmDataWidth / 8).W))
   }
   val out = new Bundle {
-    val tcdm_req =
+    val tcdmReq =
       Vec(numChannel, Decoupled(new TcdmReq(tcdmAddressWidth, tcdmDataWidth)))
   }
 
@@ -167,7 +167,7 @@ class DataRequestors(
     module.io.in.strb := io.in.strb
 
     // Connect the output to the tcdm request
-    io.out.tcdm_req(i) <> module.io.out.tcdm_req
+    io.out.tcdmReq(i) <> module.io.out.tcdm_req
 
     // Return the module for the future usage
     module

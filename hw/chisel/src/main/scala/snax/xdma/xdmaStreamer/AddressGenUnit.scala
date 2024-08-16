@@ -106,9 +106,9 @@ class ProgrammableCounter(width: Int, hasCeil: Boolean = true)
   */
 
 class AddressGenUnitCfgIO(param: AddressGenUnitParam) extends Bundle {
-  val Ptr = UInt(param.addressWidth.W)
-  val Strides = Vec(param.dimension, UInt(param.addressWidth.W))
-  val Bounds = Vec(param.dimension, UInt(param.addressWidth.W))
+  val ptr = UInt(param.addressWidth.W)
+  val strides = Vec(param.dimension, UInt(param.addressWidth.W))
+  val bounds = Vec(param.dimension, UInt(param.addressWidth.W))
 }
 
 /** AGU is the module to automatically generate the address for all ports.
@@ -160,8 +160,8 @@ class AddressGenUnit(
     )
     counter.io.reset := io.start
     // counter.io.tick is conenected later, when all necessary signal becomes available
-    counter.io.ceil := io.cfg.Bounds(i)
-    counter.io.step := io.cfg.Strides(i)
+    counter.io.ceil := io.cfg.bounds(i)
+    counter.io.step := io.cfg.strides(i)
     counter
   }
 
@@ -179,14 +179,14 @@ class AddressGenUnit(
   // Calculate the current base address: the first stride need to be left-shifted
   val temporalOffset = VecInit(counters.map(_.io.value)).reduceTree(_ + _)
   val spatialOffsets = for (i <- 0 until param.numChannel) yield {
-    val spatialOffset = temporalOffset + io.cfg.Strides.head * i.U
+    val spatialOffset = temporalOffset + io.cfg.strides.head * i.U
     spatialOffset
   }
 
   // Calculate all addresses for different channels together
   val currentAddress = Wire(Vec(io.addr.length, UInt(param.addressWidth.W)))
   currentAddress.zipWithIndex.foreach { case (address, index) =>
-    address := io.cfg.Ptr + spatialOffsets(index)
+    address := io.cfg.ptr + spatialOffsets(index)
   }
 
   // Connect it to the input of outputBuffer
@@ -219,10 +219,10 @@ class AddressGenUnit(
   // Spatial bound
   // The innermost one is the spatial bound, so it should not be multiplied with other bounds. It should be used to generate enabled_channels signal
   io.enabled_channels.zipWithIndex.foreach { case (a, b) =>
-    a := io.cfg.Bounds.head > b.U
+    a := io.cfg.bounds.head > b.U
   }
   assert(
-    io.cfg.Bounds.head <= param.numChannel.U,
+    io.cfg.bounds.head <= param.numChannel.U,
     "[AddressGenUnit] The innermost bound is spatial bound, so it should be less than or equal to the number of channels"
   )
 

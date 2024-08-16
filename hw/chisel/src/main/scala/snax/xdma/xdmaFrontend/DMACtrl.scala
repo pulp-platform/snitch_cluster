@@ -85,11 +85,11 @@ class SrcConfigRouter(
   when(
     i_to_demux.io.in.bits.readerPtr(
       i_to_demux.io.in.bits.readerPtr.getWidth - 1,
-      i_to_demux.io.in.bits.agu_cfg.Ptr.getWidth
+      i_to_demux.io.in.bits.aguCfg.ptr.getWidth
     ) === io
       .clusterBaseAddress(
         i_to_demux.io.in.bits.readerPtr.getWidth - 1,
-        i_to_demux.io.in.bits.agu_cfg.Ptr.getWidth
+        i_to_demux.io.in.bits.aguCfg.ptr.getWidth
       )
   ) {
     cValue := cType_local // When cfg has the Ptr that fall within local TCDM, the data should be forwarded to the local ctrl path
@@ -140,11 +140,11 @@ class DstConfigRouter(
   when(
     i_to_demux.io.in.bits.writerPtr(
       i_to_demux.io.in.bits.writerPtr.getWidth - 1,
-      i_to_demux.io.in.bits.agu_cfg.Ptr.getWidth
+      i_to_demux.io.in.bits.aguCfg.ptr.getWidth
     ) === io
       .clusterBaseAddress(
         i_to_demux.io.in.bits.writerPtr.getWidth - 1,
-        i_to_demux.io.in.bits.agu_cfg.Ptr.getWidth
+        i_to_demux.io.in.bits.aguCfg.ptr.getWidth
       )
   ) {
     cValue := cType_local // When cfg has the Ptr that fall within local TCDM, the data should be forwarded to the local ctrl path
@@ -177,14 +177,14 @@ class DMACtrl(
   val i_csrmanager = Module(
     new CsrManager(
       csrNumReadWrite = 2 + // Reader Pointer needs two CSRs
-        readerparam.rwParam.agu_param.dimension * 2 + // Strides + Bounds for reader
+        readerparam.rwParam.aguParam.dimension * 2 + // Strides + Bounds for reader
         0 + // The strb for reader: non-effective, so donot assign CSR
         {
           if (readerparam.extParam.length == 0) 0
           else readerparam.extParam.map { i => i.totalCsrNum }.reduce(_ + _) + 1
         } + // The total num of param on reader extension (custom CSR + bypass CSR)
         2 + // Writer Pointer needs two CSRs
-        writerparam.rwParam.agu_param.dimension * 2 + // Strides + Bounds for writer
+        writerparam.rwParam.aguParam.dimension * 2 + // Strides + Bounds for writer
         1 + // The strb for writer: effective, so assign one CSR
         {
           if (writerparam.extParam.length == 0) 0
@@ -211,60 +211,60 @@ class DMACtrl(
 
   // Pack the unstructured signal from csrManager to structured signal: Src side
   // Connect agu_cfg.Ptr & readerPtr
-  preRoute_src_local.bits.agu_cfg.Ptr := Cat(remainingCSR(1), remainingCSR(0))
+  preRoute_src_local.bits.aguCfg.ptr := Cat(remainingCSR(1), remainingCSR(0))
   preRoute_src_local.bits.readerPtr := Cat(remainingCSR(1), remainingCSR(0))
   preRoute_dst_local.bits.readerPtr := Cat(remainingCSR(1), remainingCSR(0))
   remainingCSR = remainingCSR.tail.tail
 
   // Connect agu_cfg.Bounds
-  for (i <- 0 until preRoute_src_local.bits.agu_cfg.Bounds.length) {
-    preRoute_src_local.bits.agu_cfg.Bounds(i) := remainingCSR.head
+  for (i <- 0 until preRoute_src_local.bits.aguCfg.bounds.length) {
+    preRoute_src_local.bits.aguCfg.bounds(i) := remainingCSR.head
     remainingCSR = remainingCSR.tail
   }
 
   // Connect agu_cfg.Strides
-  for (i <- 0 until preRoute_src_local.bits.agu_cfg.Strides.length) {
-    preRoute_src_local.bits.agu_cfg.Strides(i) := remainingCSR.head
+  for (i <- 0 until preRoute_src_local.bits.aguCfg.strides.length) {
+    preRoute_src_local.bits.aguCfg.strides(i) := remainingCSR.head
     remainingCSR = remainingCSR.tail
   }
 
   // Connect strb signal. As the strb is not effective, so assign all true, and not take any value from CSR right now
-  preRoute_src_local.bits.streamer_cfg.strb := VecInit(
-    Seq.fill(readerparam.rwParam.tcdm_param.dataWidth / 8)(true.B)
+  preRoute_src_local.bits.streamerCfg.strb := VecInit(
+    Seq.fill(readerparam.rwParam.tcdmParam.dataWidth / 8)(true.B)
   ).asUInt
 
   // Connect extension signal
-  for (i <- 0 until preRoute_src_local.bits.ext_cfg.length) {
-    preRoute_src_local.bits.ext_cfg(i) := remainingCSR.head
+  for (i <- 0 until preRoute_src_local.bits.extCfg.length) {
+    preRoute_src_local.bits.extCfg(i) := remainingCSR.head
     remainingCSR = remainingCSR.tail
   }
 
   // Pack the unstructured signal from csrManager to structured signal: Dst side
   // Connect agu_cfg.Ptr & writerPtr
-  preRoute_dst_local.bits.agu_cfg.Ptr := Cat(remainingCSR(1), remainingCSR(0))
+  preRoute_dst_local.bits.aguCfg.ptr := Cat(remainingCSR(1), remainingCSR(0))
   preRoute_src_local.bits.writerPtr := Cat(remainingCSR(1), remainingCSR(0))
   preRoute_dst_local.bits.writerPtr := Cat(remainingCSR(1), remainingCSR(0))
   remainingCSR = remainingCSR.tail.tail
 
   // Connect agu_cfg.Bounds
-  for (i <- 0 until preRoute_dst_local.bits.agu_cfg.Bounds.length) {
-    preRoute_dst_local.bits.agu_cfg.Bounds(i) := remainingCSR.head
+  for (i <- 0 until preRoute_dst_local.bits.aguCfg.bounds.length) {
+    preRoute_dst_local.bits.aguCfg.bounds(i) := remainingCSR.head
     remainingCSR = remainingCSR.tail
   }
 
   // Connect agu_cfg.Strides
-  for (i <- 0 until preRoute_dst_local.bits.agu_cfg.Strides.length) {
-    preRoute_dst_local.bits.agu_cfg.Strides(i) := remainingCSR.head
+  for (i <- 0 until preRoute_dst_local.bits.aguCfg.strides.length) {
+    preRoute_dst_local.bits.aguCfg.strides(i) := remainingCSR.head
     remainingCSR = remainingCSR.tail
   }
 
   // Connect strb signal. As the strb is effective, so assign the value from CSR
-  preRoute_dst_local.bits.streamer_cfg.strb := remainingCSR.head
+  preRoute_dst_local.bits.streamerCfg.strb := remainingCSR.head
   remainingCSR = remainingCSR.tail
 
   // Connect extension signal
-  for (i <- 0 until preRoute_dst_local.bits.ext_cfg.length) {
-    preRoute_dst_local.bits.ext_cfg(i) := remainingCSR.head
+  for (i <- 0 until preRoute_dst_local.bits.extCfg.length) {
+    preRoute_dst_local.bits.extCfg(i) := remainingCSR.head
     remainingCSR = remainingCSR.tail
   }
 
@@ -276,10 +276,10 @@ class DMACtrl(
   val loopBack =
     preRoute_dst_local.bits.readerPtr(
       preRoute_dst_local.bits.readerPtr.getWidth - 1,
-      preRoute_dst_local.bits.agu_cfg.Ptr.getWidth
+      preRoute_dst_local.bits.aguCfg.ptr.getWidth
     ) === preRoute_dst_local.bits.writerPtr(
       preRoute_dst_local.bits.writerPtr.getWidth - 1,
-      preRoute_dst_local.bits.agu_cfg.Ptr.getWidth
+      preRoute_dst_local.bits.aguCfg.ptr.getWidth
     )
   preRoute_src_local.bits.loopBack := loopBack
   preRoute_dst_local.bits.loopBack := loopBack

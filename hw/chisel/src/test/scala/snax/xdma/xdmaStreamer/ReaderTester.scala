@@ -19,16 +19,16 @@ class ReaderTester extends AnyFreeSpec with ChiselScalatestTester {
     dut =>
       // The accessed address is 1KB (0x0 - 0x400)
       // Configure AGU
-      dut.io.cfg.Ptr.poke(0x0.U)
+      dut.io.cfg.ptr.poke(0x0.U)
       // 8 parfor, 4 tempfor x 4 tempfor
-      dut.io.cfg.Bounds(0).poke(8)
-      dut.io.cfg.Bounds(1).poke(4)
-      dut.io.cfg.Bounds(2).poke(16)
+      dut.io.cfg.bounds(0).poke(8)
+      dut.io.cfg.bounds(1).poke(4)
+      dut.io.cfg.bounds(2).poke(16)
       // 8 parfor continuous, 4 tempfor having the distance of 128B (read one superbank skip one superbank)
       // 4 tempfor having the distance of 1024B (finish read 4 SB in 8 SB, skip the consiquent 8SB)
-      dut.io.cfg.Strides(0).poke(8)
-      dut.io.cfg.Strides(1).poke(64)
-      dut.io.cfg.Strides(2).poke(256)
+      dut.io.cfg.strides(0).poke(8)
+      dut.io.cfg.strides(1).poke(64)
+      dut.io.cfg.strides(2).poke(256)
 
       dut.io.start.poke(true)
       dut.clock.step()
@@ -57,34 +57,34 @@ class ReaderTester extends AnyFreeSpec with ChiselScalatestTester {
               // Emulate the contention at the TCDM Req side
               val random_delay = Random.between(0, 3)
               if (random_delay > 1) {
-                dut.io.tcdm_req(i).ready.poke(false)
+                dut.io.tcdmReq(i).ready.poke(false)
                 dut.clock.step(random_delay)
-                dut.io.tcdm_req(i).ready.poke(true)
-              } else dut.io.tcdm_req(i).ready.poke(true)
+                dut.io.tcdmReq(i).ready.poke(true)
+              } else dut.io.tcdmReq(i).ready.poke(true)
 
               // If valid is high: the request is enqueue into a list, waiting for the consumption of response side
-              if (dut.io.tcdm_req(i).valid.peekBoolean()) {
+              if (dut.io.tcdmReq(i).valid.peekBoolean()) {
                 mem.addOne(
                   (
-                    dut.io.tcdm_req(i).bits.addr.peekInt().toInt,
+                    dut.io.tcdmReq(i).bits.addr.peekInt().toInt,
                     BigInt(64, Random)
                   )
                 )
                 println(
                   "[Generator] Data: "
                     + mem(
-                      dut.io.tcdm_req(i).bits.addr.peekInt().toInt
+                      dut.io.tcdmReq(i).bits.addr.peekInt().toInt
                     )
                     + " is saved at address: "
-                    + dut.io.tcdm_req(i).bits.addr.peekInt().toInt
+                    + dut.io.tcdmReq(i).bits.addr.peekInt().toInt
                 )
                 // The request is sent to response side
                 queues(i).enqueue(
-                  dut.io.tcdm_req(i).bits.addr.peekInt().toInt
+                  dut.io.tcdmReq(i).bits.addr.peekInt().toInt
                 )
                 println(
                   "[Generator] Request with Address: "
-                    + dut.io.tcdm_req(i).bits.addr.peekInt().toInt
+                    + dut.io.tcdmReq(i).bits.addr.peekInt().toInt
                     + " is sending to TCDM response side"
                 )
 
@@ -111,16 +111,16 @@ class ReaderTester extends AnyFreeSpec with ChiselScalatestTester {
                     + " is responded"
                 )
 
-                dut.io.tcdm_rsp(i).valid.poke(true)
+                dut.io.tcdmRsp(i).valid.poke(true)
                 dut.io
-                  .tcdm_rsp(i)
+                  .tcdmRsp(i)
                   .bits
                   .data
                   .poke(
                     mem(queues(i).dequeue())
                   )
                 dut.clock.step()
-                dut.io.tcdm_rsp(i).valid.poke(false)
+                dut.io.tcdmRsp(i).valid.poke(false)
               }
             }
           }

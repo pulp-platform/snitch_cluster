@@ -16,45 +16,45 @@ import scala.tools.reflect.ToolBox
 import scala.reflect.runtime.universe._
 
 class xdmaTopIO(
-    readerparam: DMADataPathParam,
-    writerparam: DMADataPathParam
+    readerParam: DMADataPathParam,
+    writerParam: DMADataPathParam
 ) extends Bundle {
   val clusterBaseAddress = Input(
-    UInt(writerparam.axiParam.addrWidth.W)
+    UInt(writerParam.axiParam.addrWidth.W)
   )
   val csrIO = new SnaxCsrIO(32)
 
   val remoteDMADataPathCfg = new Bundle {
-    val fromRemote = Flipped(Decoupled(UInt(writerparam.axiParam.dataWidth.W)))
-    val toRemote = Decoupled(UInt(writerparam.axiParam.dataWidth.W))
+    val fromRemote = Flipped(Decoupled(UInt(writerParam.axiParam.dataWidth.W)))
+    val toRemote = Decoupled(UInt(writerParam.axiParam.dataWidth.W))
   }
 
-  val tcdm_reader = new Bundle {
+  val tcdmReader = new Bundle {
     val req = Vec(
-      readerparam.rwParam.tcdm_param.numChannel,
+      readerParam.rwParam.tcdmParam.numChannel,
       Decoupled(
         new TcdmReq(
-          readerparam.rwParam.tcdm_param.addrWidth,
-          readerparam.rwParam.tcdm_param.dataWidth
+          readerParam.rwParam.tcdmParam.addrWidth,
+          readerParam.rwParam.tcdmParam.dataWidth
         )
       )
     )
     val rsp = Vec(
-      readerparam.rwParam.tcdm_param.numChannel,
+      readerParam.rwParam.tcdmParam.numChannel,
       Flipped(
         Valid(
-          new TcdmRsp(tcdmDataWidth = readerparam.rwParam.tcdm_param.dataWidth)
+          new TcdmRsp(tcdmDataWidth = readerParam.rwParam.tcdmParam.dataWidth)
         )
       )
     )
   }
-  val tcdm_writer = new Bundle {
+  val tcdmWriter = new Bundle {
     val req = Vec(
-      writerparam.rwParam.tcdm_param.numChannel,
+      writerParam.rwParam.tcdmParam.numChannel,
       Decoupled(
         new TcdmReq(
-          writerparam.rwParam.tcdm_param.addrWidth,
-          writerparam.rwParam.tcdm_param.dataWidth
+          writerParam.rwParam.tcdmParam.addrWidth,
+          writerParam.rwParam.tcdmParam.dataWidth
         )
       )
     )
@@ -64,82 +64,82 @@ class xdmaTopIO(
     val fromRemote = Flipped(
       Decoupled(
         UInt(
-          (writerparam.rwParam.tcdm_param.dataWidth * writerparam.rwParam.tcdm_param.numChannel).W
+          (writerParam.rwParam.tcdmParam.dataWidth * writerParam.rwParam.tcdmParam.numChannel).W
         )
       )
     )
     val toRemote = Decoupled(
       UInt(
-        (writerparam.rwParam.tcdm_param.dataWidth * writerparam.rwParam.tcdm_param.numChannel).W
+        (writerParam.rwParam.tcdmParam.dataWidth * writerParam.rwParam.tcdmParam.numChannel).W
       )
     )
   }
 }
 
 class xdmaTop(
-    readerparam: DMADataPathParam,
-    writerparam: DMADataPathParam,
+    readerParam: DMADataPathParam,
+    writerParam: DMADataPathParam,
     clusterName: String = "unnamed_cluster"
 ) extends Module
     with RequireAsyncReset {
   override val desiredName = s"${clusterName}_xdma"
   val io = IO(
     new xdmaTopIO(
-      readerparam = readerparam,
-      writerparam = writerparam
+      readerParam = readerParam,
+      writerParam = writerParam
     )
   )
 
-  val i_dmactrl = Module(
+  val dmaCtrl = Module(
     new DMACtrl(
-      readerparam = readerparam,
-      writerparam = writerparam,
+      readerparam = readerParam,
+      writerparam = writerParam,
       clusterName = clusterName
     )
   )
 
-  val i_dmadatapath = Module(
+  val dmaDatapath = Module(
     new DMADataPath(
-      readerparam = readerparam,
-      writerparam = writerparam,
+      readerparam = readerParam,
+      writerparam = writerParam,
       clusterName = clusterName
     )
   )
 
   // Give the dmactrl the current cluster address
-  i_dmactrl.io.clusterBaseAddress := io.clusterBaseAddress
+  dmaCtrl.io.clusterBaseAddress := io.clusterBaseAddress
 
   // IO0: Start to connect datapath to TCDM
-  io.tcdm_reader <> i_dmadatapath.io.tcdm_reader
-  io.tcdm_writer <> i_dmadatapath.io.tcdm_writer
+  io.tcdmReader <> dmaDatapath.io.tcdmReader
+  io.tcdmWriter <> dmaDatapath.io.tcdmWriter
 
   // IO1: Start to connect datapath to axi
-  io.remoteDMADataPath.fromRemote <> i_dmadatapath.io.remoteDMADataPath.fromRemote
-  io.remoteDMADataPath.toRemote <> i_dmadatapath.io.remoteDMADataPath.toRemote
+  io.remoteDMADataPath.fromRemote <> dmaDatapath.io.remoteDMADataPath.fromRemote
+  io.remoteDMADataPath.toRemote <> dmaDatapath.io.remoteDMADataPath.toRemote
 
   // IO2: Start to coonect ctrl to csr
-  io.csrIO <> i_dmactrl.io.csrIO
+  io.csrIO <> dmaCtrl.io.csrIO
 
   // IO3: Start to connect ctrl to remoteDMADataPath
-  io.remoteDMADataPathCfg <> i_dmactrl.io.remoteDMADataPathCfg
+  io.remoteDMADataPathCfg <> dmaCtrl.io.remoteDMADataPathCfg
 
   // Interconnection between ctrl and datapath
-  i_dmactrl.io.localDMADataPath.reader_cfg_o <> i_dmadatapath.io.reader_cfg_i
+  dmaCtrl.io.localDMADataPath.reader_cfg_o <> dmaDatapath.io.readerCfg
 
-  i_dmactrl.io.localDMADataPath.writer_cfg_o <> i_dmadatapath.io.writer_cfg_i
+  dmaCtrl.io.localDMADataPath.writer_cfg_o <> dmaDatapath.io.writerCfg
 
-  i_dmadatapath.io.reader_start_i := i_dmactrl.io.localDMADataPath.reader_start_o
+  dmaDatapath.io.readerStart := dmaCtrl.io.localDMADataPath.reader_start_o
 
-  i_dmadatapath.io.writer_start_i := i_dmactrl.io.localDMADataPath.writer_start_o
+  dmaDatapath.io.writerStart := dmaCtrl.io.localDMADataPath.writer_start_o
 
-  i_dmactrl.io.localDMADataPath.reader_busy_i := i_dmadatapath.io.reader_busy_o
+  dmaCtrl.io.localDMADataPath.reader_busy_i := dmaDatapath.io.readerBusy
 
-  i_dmactrl.io.localDMADataPath.writer_busy_i := i_dmadatapath.io.writer_busy_o
+  dmaCtrl.io.localDMADataPath.writer_busy_i := dmaDatapath.io.writerBusy
 
 }
 
 object xdmaTopGen extends App {
-  val parsed_args = snax.utils.ArgParser.parse(args)
+  val parsedArgs = snax.utils.ArgParser.parse(args)
 
   /*
   Needed Parameters:
@@ -157,26 +157,26 @@ object xdmaTopGen extends App {
     HasTranspopser
    */
   val axiParam = new AXIParam(
-    dataWidth = parsed_args("axiDataWidth").toInt,
-    addrWidth = parsed_args("axiAddrWidth").toInt
+    dataWidth = parsedArgs("axiDataWidth").toInt,
+    addrWidth = parsedArgs("axiAddrWidth").toInt
   )
 
   val readerparam = new ReaderWriterParam(
-    dimension = parsed_args("readerDimension").toInt,
-    tcdmDataWidth = parsed_args("tcdmDataWidth").toInt,
-    tcdmSize = parsed_args("tcdmSize").toInt,
+    dimension = parsedArgs("readerDimension").toInt,
+    tcdmDataWidth = parsedArgs("tcdmDataWidth").toInt,
+    tcdmSize = parsedArgs("tcdmSize").toInt,
     numChannel =
-      parsed_args("axiDataWidth").toInt / parsed_args("tcdmDataWidth").toInt,
-    addressBufferDepth = parsed_args("readerBufferDepth").toInt
+      parsedArgs("axiDataWidth").toInt / parsedArgs("tcdmDataWidth").toInt,
+    addressBufferDepth = parsedArgs("readerBufferDepth").toInt
   )
 
   val writerparam = new ReaderWriterParam(
-    dimension = parsed_args("writerDimension").toInt,
-    tcdmDataWidth = parsed_args("tcdmDataWidth").toInt,
-    tcdmSize = parsed_args("tcdmSize").toInt,
+    dimension = parsedArgs("writerDimension").toInt,
+    tcdmDataWidth = parsedArgs("tcdmDataWidth").toInt,
+    tcdmSize = parsedArgs("tcdmSize").toInt,
     numChannel =
-      parsed_args("axiDataWidth").toInt / parsed_args("tcdmDataWidth").toInt,
-    addressBufferDepth = parsed_args("writerBufferDepth").toInt
+      parsedArgs("axiDataWidth").toInt / parsedArgs("tcdmDataWidth").toInt,
+    addressBufferDepth = parsedArgs("writerBufferDepth").toInt
   )
   var readerextensionparam = Seq[HasDMAExtension]()
   var writerextensionparam = Seq[HasDMAExtension]()
@@ -189,7 +189,7 @@ object xdmaTopGen extends App {
   // Extension developers only need to 1) Add the Extension source code 2) Add Has...: #priority in hjson configuration file
 
   val toolbox = currentMirror.mkToolBox()
-  parsed_args
+  parsedArgs
     .filter(i => i._1.startsWith("Has") && i._2.toInt > 0)
     .toSeq
     .map(i => (i._1, i._2.toInt))
@@ -206,10 +206,10 @@ return ${i._1}
   // Generation of the hardware
   var sv_string = getVerilogString(
     new xdmaTop(
-      clusterName = parsed_args.getOrElse("clusterName", ""),
-      readerparam =
+      clusterName = parsedArgs.getOrElse("clusterName", ""),
+      readerParam =
         new DMADataPathParam(axiParam, readerparam, readerextensionparam),
-      writerparam =
+      writerParam =
         new DMADataPathParam(axiParam, writerparam, writerextensionparam)
     )
   )
@@ -225,17 +225,17 @@ return ${i._1}
     .mkString("\n")
 
   // Write the sv_string to the SystemVerilog file
-  val hardware_dir = parsed_args.getOrElse(
+  val hardware_dir = parsedArgs.getOrElse(
     "hw-target-dir",
     "generated"
-  ) + "/" + s"${parsed_args.getOrElse("clusterName", "")}_xdma.sv"
+  ) + "/" + s"${parsedArgs.getOrElse("clusterName", "")}_xdma.sv"
   java.nio.file.Files.write(
     java.nio.file.Paths.get(hardware_dir),
     sv_string.getBytes(java.nio.charset.StandardCharsets.UTF_8)
   )
 
   // Generation of the software #define macros
-  val macro_dir = parsed_args.getOrElse(
+  val macro_dir = parsedArgs.getOrElse(
     "sw-target-dir",
     "generated"
   ) + "/include/snax-xdma-csr-addr.h"
@@ -250,11 +250,11 @@ return ${i._1}
 // This file is generated by Chisel in hw/chisel, do not modify it manually
 
 #define XDMA_BASE_ADDR 960
-#define XDMA_WIDTH ${writerparam.tcdm_param.numChannel * writerparam.tcdm_param.dataWidth / 8}
-#define XDMA_SPATIAL_CHAN ${writerparam.tcdm_param.numChannel}
+#define XDMA_WIDTH ${writerparam.tcdmParam.numChannel * writerparam.tcdmParam.dataWidth / 8}
+#define XDMA_SPATIAL_CHAN ${writerparam.tcdmParam.numChannel}
 #define XDMA_SRC_ADDR_PTR_LSB XDMA_BASE_ADDR
 #define XDMA_SRC_ADDR_PTR_MSB XDMA_SRC_ADDR_PTR_LSB + 1
-#define XDMA_SRC_DIM ${readerparam.agu_param.dimension}
+#define XDMA_SRC_DIM ${readerparam.aguParam.dimension}
 #define XDMA_SRC_BOUND_PTR XDMA_SRC_ADDR_PTR_MSB + 1
 #define XDMA_SRC_STRIDE_PTR XDMA_SRC_BOUND_PTR + XDMA_SRC_DIM
 #define XDMA_SRC_BYPASS_PTR XDMA_SRC_STRIDE_PTR + XDMA_SRC_DIM
@@ -272,7 +272,7 @@ return ${i._1}
 
 #define XDMA_DST_ADDR_PTR_LSB XDMA_SRC_EXT_CSR_PTR + XDMA_SRC_EXT_CSR_NUM
 #define XDMA_DST_ADDR_PTR_MSB XDMA_DST_ADDR_PTR_LSB + 1
-#define XDMA_DST_DIM ${writerparam.agu_param.dimension}
+#define XDMA_DST_DIM ${writerparam.aguParam.dimension}
 #define XDMA_DST_BOUND_PTR XDMA_DST_ADDR_PTR_MSB + 1
 #define XDMA_DST_STRIDE_PTR XDMA_DST_BOUND_PTR + XDMA_DST_DIM
 #define XDMA_DST_STRB_PTR XDMA_DST_STRIDE_PTR + XDMA_DST_DIM
