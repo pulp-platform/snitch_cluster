@@ -36,7 +36,8 @@ class AddressGenUnitParam(
     val addressWidth: Int,
     val numChannel: Int,
     val outputBufferDepth: Int,
-    val tcdmSize: Int
+    val tcdmSize: Int,
+    val configurableSpatialBound: Boolean
 )
 
 object AddressGenUnitParam {
@@ -46,19 +47,22 @@ object AddressGenUnitParam {
     addressWidth = 17, // For the address of 128kB tcdm size
     numChannel = 8,
     outputBufferDepth = 8,
-    tcdmSize = 128
+    tcdmSize = 128,
+    configurableSpatialBound = true
   )
   def apply(
       dimension: Int,
       numChannel: Int,
       outputBufferDepth: Int,
-      tcdmSize: Int
+      tcdmSize: Int,
+      configurableSpatialBound: Boolean = true
   ) = new AddressGenUnitParam(
     dimension = dimension,
     addressWidth = log2Ceil(tcdmSize) + 10,
     numChannel = numChannel,
     outputBufferDepth = outputBufferDepth,
-    tcdmSize = tcdmSize
+    tcdmSize = tcdmSize,
+    configurableSpatialBound = configurableSpatialBound
   )
 }
 
@@ -68,13 +72,16 @@ class ReaderWriterParam(
     tcdmSize: Int = 128,
     numChannel: Int = 8,
     addressBufferDepth: Int = 8,
-    dataBufferDepth: Int = 8
+    dataBufferDepth: Int = 8,
+    configurableSpatialBound: Boolean = true,
+    val configurableByteMask: Boolean = true
 ) {
   val aguParam = AddressGenUnitParam(
     dimension = dimension,
     numChannel = numChannel,
     outputBufferDepth = addressBufferDepth,
-    tcdmSize = tcdmSize
+    tcdmSize = tcdmSize,
+    configurableSpatialBound = configurableSpatialBound
   )
 
   val tcdmParam = TCDMParam(

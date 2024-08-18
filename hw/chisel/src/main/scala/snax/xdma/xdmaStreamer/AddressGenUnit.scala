@@ -217,14 +217,19 @@ class AddressGenUnit(
   io.busy := currentState === sBUSY
 
   // Spatial bound
-  // The innermost one is the spatial bound, so it should not be multiplied with other bounds. It should be used to generate enabled_channels signal
-  io.enabled_channels.zipWithIndex.foreach { case (a, b) =>
-    a := io.cfg.bounds.head > b.U
+  // The innermost one is the spatial bound, so it should not be multiplied with other bounds.
+  // If param.configurableSpatialBound is true, then the spatial bound is configurable
+  if (param.configurableSpatialBound) {
+    io.enabled_channels.zipWithIndex.foreach { case (a, b) =>
+      a := io.cfg.bounds.head > b.U
+    }
+    assert(
+      io.cfg.bounds.head <= param.numChannel.U,
+      "[AddressGenUnit] The innermost bound is spatial bound, so it should be less than or equal to the number of channels"
+    )
+  } else {
+    io.enabled_channels.foreach(_ := true.B)
   }
-  assert(
-    io.cfg.bounds.head <= param.numChannel.U,
-    "[AddressGenUnit] The innermost bound is spatial bound, so it should be less than or equal to the number of channels"
-  )
 
   // Temporal bounds' tick signal (enable signal)
   val counters_tick =

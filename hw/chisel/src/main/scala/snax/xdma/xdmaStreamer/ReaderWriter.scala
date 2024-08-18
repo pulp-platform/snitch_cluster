@@ -19,54 +19,7 @@ class ReaderWriter(
 
   override val desiredName = s"${clusterName}_xdma_ReaderWriter"
 
-  // As they share the same TCDM interface, different number of channel is meaningless
-  require(
-    readerParam.tcdmParam.numChannel == writerParam.tcdmParam.numChannel
-  )
-
-  val io = IO(new Bundle {
-    val readerCfg = Input(new AddressGenUnitCfgIO(readerParam.aguParam))
-    val writerCfg = Input(new AddressGenUnitCfgIO(writerParam.aguParam))
-    val tcdmReq = Vec(
-      readerParam.tcdmParam.numChannel,
-      Decoupled(
-        new TcdmReq(
-          addrWidth = readerParam.tcdmParam.addrWidth,
-          tcdmDataWidth = readerParam.tcdmParam.dataWidth
-        )
-      )
-    )
-    val tcdmRsp = Vec(
-      readerParam.tcdmParam.numChannel,
-      Flipped(
-        Valid(new TcdmRsp(tcdmDataWidth = readerParam.tcdmParam.dataWidth))
-      )
-    )
-    val readerData = Decoupled(
-      UInt(
-        (readerParam.tcdmParam.dataWidth * readerParam.tcdmParam.numChannel).W
-      )
-    )
-    val writerData = Flipped(
-      Decoupled(
-        UInt(
-          (writerParam.tcdmParam.dataWidth * writerParam.tcdmParam.numChannel).W
-        )
-      )
-    )
-    // The signal to control which byte is read from or written to TCDM
-    val readerStrb = Input(UInt((readerParam.tcdmParam.dataWidth / 8).W))
-    val writerStrb = Input(UInt((writerParam.tcdmParam.dataWidth / 8).W))
-    // The signal trigger the start of Address Generator. The non-empty of address generator will cause data requestor to read the data
-    val readerStart = Input(Bool())
-    val writerStart = Input(Bool())
-    // The module is busy if addressgen is busy or fifo in addressgen is not empty
-    val readerBusy = Output(Bool())
-    val writerBusy = Output(Bool())
-    // The data buffer is empty
-    val readerBufferEmpty = Output(Bool())
-    val writerBufferEmpty = Output(Bool())
-  })
+  val io = IO(new ReaderWriterIO(readerParam, writerParam))
 
   // Reader
   val reader = Module(
@@ -76,12 +29,12 @@ class ReaderWriter(
     )
   )
 
-  reader.io.cfg := io.readerCfg
-  reader.io.data <> io.readerData
-  reader.io.strb := io.readerStrb
-  reader.io.start := io.readerStart
-  io.readerBusy := reader.io.busy
-  io.readerBufferEmpty := reader.io.bufferEmpty
+  reader.io.cfg := io.readerInterface.cfg
+  reader.io.data <> io.readerInterface.data
+  reader.io.strb := io.readerInterface.strb
+  reader.io.start := io.readerInterface.start
+  io.readerInterface.busy := reader.io.busy
+  io.readerInterface.busy := reader.io.bufferEmpty
 
   // Writer
   val writer = Module(
@@ -91,12 +44,12 @@ class ReaderWriter(
     )
   )
 
-  writer.io.cfg := io.writerCfg
-  writer.io.data <> io.writerData
-  writer.io.strb := io.writerStrb
-  writer.io.start := io.writerStart
-  io.writerBusy := writer.io.busy
-  io.writerBufferEmpty := writer.io.bufferEmpty
+  writer.io.cfg := io.writerInterface.cfg
+  writer.io.data <> io.writerInterface.data
+  writer.io.strb := io.writerInterface.strb
+  writer.io.start := io.writerInterface.start
+  io.writerInterface.busy := writer.io.busy
+  io.writerInterface.bufferEmpty := writer.io.bufferEmpty
 
   // Both reader and writer share the same Request interface
   val readerwriterArbiter = Seq.fill(readerParam.tcdmParam.numChannel)(
@@ -122,12 +75,13 @@ class ReaderWriter(
   }
 
   // Connect the arbiter to the TCDM interface
-  readerwriterArbiter.zip(io.tcdmReq).foreach { case (arbiter, tcdmReq) =>
-    tcdmReq <> arbiter.io.out
+  readerwriterArbiter.zip(io.readerInterface.tcdmReq).foreach {
+    case (arbiter, tcdmReq) =>
+      tcdmReq <> arbiter.io.out
   }
 
   // Connect the response from TCDM to the reader
-  io.tcdmRsp <> reader.io.tcdmRsp
+  io.readerInterface.tcdmRsp <> reader.io.tcdmRsp
 }
 
 object ReaderWriterEmitter extends App {

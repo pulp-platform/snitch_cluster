@@ -15,34 +15,7 @@ class Reader(param: ReaderWriterParam, clusterName: String = "unnamed_cluster")
 
   override val desiredName = s"${clusterName}_xdma_Reader"
 
-  val io = IO(new Bundle {
-    val cfg = Input(new AddressGenUnitCfgIO(param.aguParam))
-    val tcdmReq = Vec(
-      param.tcdmParam.numChannel,
-      Decoupled(
-        new TcdmReq(
-          addrWidth = param.tcdmParam.addrWidth,
-          tcdmDataWidth = param.tcdmParam.dataWidth
-        )
-      )
-    )
-    val tcdmRsp = Vec(
-      param.tcdmParam.numChannel,
-      Flipped(Valid(new TcdmRsp(tcdmDataWidth = param.tcdmParam.dataWidth)))
-    )
-    val data = Decoupled(
-      UInt((param.tcdmParam.dataWidth * param.tcdmParam.numChannel).W)
-    )
-    // The signal to control which byte is written to TCDM
-    val strb = Input(UInt((param.tcdmParam.dataWidth / 8).W))
-    // The signal trigger the start of Address Generator. The non-empty of address generator will cause data requestor to read the data
-    val start = Input(Bool())
-    // The module is busy if addressgen is busy or fifo in addressgen is not empty
-    val busy = Output(Bool())
-    // The reader's buffer is empty
-    val bufferEmpty = Output(Bool())
-
-  })
+  val io = IO(new ReaderIO(param))
 
   // New Address Generator
   val addressgen = Module(
@@ -88,7 +61,10 @@ class Reader(param: ReaderWriterParam, clusterName: String = "unnamed_cluster")
   requestors.io.in.addr <> addressgen.io.addr
   requestors.io.enable := addressgen.io.enabled_channels
   responsers.io.enable := addressgen.io.enabled_channels
-  requestors.io.in.strb := io.strb
+
+  if (param.configurableByteMask) requestors.io.in.strb := io.strb
+  else requestors.io.in.strb.asBools.foreach(_ := true.B)
+
   requestors.io.RequestorResponserLink.ResponsorReady.get := responsers.io.RequestorResponserLink.ResponsorReady
   responsers.io.RequestorResponserLink.RequestorSubmit := requestors.io.RequestorResponserLink.RequestorSubmit.get
   requestors.io.out.tcdmReq <> io.tcdmReq
