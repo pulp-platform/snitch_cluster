@@ -175,6 +175,23 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-wide-gemm-data-reshuffler.hjson)
  
 endif
 
+ifeq (${CFG_OVERRIDE}, cfg/snax-kul-cluster-all-narrow.hjson)
+
+ 	CLUSTER_NAME = snax_KUL_cluster
+
+$(eval $(call generate_snax_gen,snax_streamer_gemmX))
+
+	SNAX_GEMMX_ROOT ?= $(ROOT)/hw/chisel_acc
+    include $(SNAX_GEMMX_ROOT)/Makefile
+
+$(eval $(call generate_snax_gen,snax_data_reshuffler))
+
+	VSIM_BENDER += -t snax_KUL_cluster
+	VLT_BENDER  += -t snax_KUL_cluster
+	VCS_BENDER  += -t snax_KUL_cluster
+
+endif
+
 ifeq (${CFG_OVERRIDE}, cfg/snax-mac.hjson)
 
 	BYPASS_ACCGEN = true
