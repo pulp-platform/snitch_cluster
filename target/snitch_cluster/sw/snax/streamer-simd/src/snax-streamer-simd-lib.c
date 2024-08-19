@@ -56,35 +56,35 @@ void start_streamer_simd() { write_csr(960 + 12, 1); }
 void set_simd_csr(uint32_t csr0, uint32_t csr1, uint32_t csr2,
                   uint32_t temporal_loop_bound) {
     // set the constants for the SIMD unit
-    write_csr(960 + 14, csr0);
-    write_csr(960 + 15, csr1);
-    write_csr(960 + 16, csr2);
+    write_csr(960 + 15, csr0);
+    write_csr(960 + 16, csr1);
+    write_csr(960 + 17, csr2);
 
     // set the temporal loop bound
-    write_csr(960 + 17, temporal_loop_bound);
+    write_csr(960 + 18, temporal_loop_bound);
 }
 
-void start_simd() { write_csr(960 + 18, 1); }
+void start_simd() { write_csr(960 + 19, 1); }
 
 void wait_streamer_simd() {
-    write_csr(960 + 18, 0);
+    write_csr(960 + 19, 0);
     write_csr(960 + 12, 0);
 }
 
 uint32_t read_simd_streamer_perf_counter() {
-    uint32_t perf_counter = read_csr(960 + 13);
+    uint32_t perf_counter = read_csr(960 + 14);
     return perf_counter;
 }
 
 // Read status of SIMD, a read-only CSR. If this resgiter is one, the SIMD is
 // still working
 uint32_t read_simd_state() {
-    uint32_t status = read_csr(960 + 19);
+    uint32_t status = read_csr(960 + 20);
     return status;
 }
 
 uint32_t read_simd_perf_counter() {
-    uint32_t perf_counter = read_csr(960 + 20);
+    uint32_t perf_counter = read_csr(960 + 21);
     return perf_counter;
 }
 

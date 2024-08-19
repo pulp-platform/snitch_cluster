@@ -126,12 +126,13 @@ def streamer_csr_num(acc_cfgs):
             + num_data_mover
             + 1
             + 1
+            + 1
         )
     else:
         # 2x num_loop_dim is because 1 is for the loop bound
         # while the other is for number of strides
         streamer_csr_num = (
-            2 * num_loop_dim + num_spatial_dim + num_data_mover + 1 + 1
+            2 * num_loop_dim + num_spatial_dim + num_data_mover + 1 + 1 + 1
         )  # noqa: E501
 
     return streamer_csr_num

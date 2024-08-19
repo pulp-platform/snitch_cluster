@@ -94,7 +94,8 @@ class StreamerTop(
   }
 
   // connect the performance counter to the first ready only csr
-  csr_manager.io.read_only_csr(0) := performance_counter
+  csr_manager.io.read_only_csr(0) := streamer.io.busy_o
+  csr_manager.io.read_only_csr(1) := performance_counter
 
   // splitting csrManager data ports to the streamer components
   //  Total number of csr is temporalDim + dataMoverNum * temporalDim + spatialDim.sum + dataMoverNum

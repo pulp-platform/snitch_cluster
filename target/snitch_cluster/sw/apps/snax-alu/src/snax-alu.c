@@ -60,7 +60,8 @@ int main() {
         // 0x3c8 - base pointer for input B (RW)
         // 0x3c9 - base pointer for input O (RW)
         // 0x3ca - send configurations to streamer (RW)
-        // 0x3cb - performance counter of streamer (RO)
+        // 0x3cb - busy state of the ALU (RO)
+        // 0x3cc - performance counter of streamer (RO)
         //------------------------------
         write_csr(0x3c0, LOOP_ITER);
         write_csr(0x3c1, 32);
@@ -75,25 +76,29 @@ int main() {
 
         //------------------------------
         // 2nd set the CSRs of the accelerator
-        // 0x3cc - mode of the ALU (RW)
+        // 0x3cd - mode of the ALU (RW)
         //       - 0 for add, 1 for sub, 2 for mul, 3 for XOR
-        // 0x3cd - length of data (RW)
-        // 0x3ce - send configurations to accelerator (RW)
-        // 0x3cf - busy status (RO)
-        // 0x3d0 - performance counter (RO)
+        // 0x3ce - length of data (RW)
+        // 0x3cf - send configurations to accelerator (RW)
+        // 0x3d0 - busy status (RO)
+        // 0x3d1 - performance counter (RO)
         //------------------------------
-        write_csr(0x3cc, MODE);
-        write_csr(0x3cd, LOOP_ITER);
+        write_csr(0x3cd, MODE);
+        write_csr(0x3ce, LOOP_ITER);
 
         // Start streamer then start ALU
         write_csr(0x3ca, 1);
-        write_csr(0x3ce, 1);
+        write_csr(0x3cf, 1);
 
         // Mark the end of the CSR setup cycles
         uint32_t end_csr_setup = snrt_mcycle();
 
         // Do this to poll the accelerator
-        while (read_csr(0x3cf)) {
+        while (read_csr(0x3d0)) {
+        };
+
+        // Do this to poll the streamer state
+        while (read_csr(0x3cb)) {
         };
 
         // Compare results and check if the

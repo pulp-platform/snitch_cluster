@@ -63,15 +63,15 @@ void set_data_reshuffler(int T2Len, int reduceLen, int opcode) {
     // set transpose or not
     uint32_t csr0 = ((uint32_t)T2Len << 7) | ((uint32_t)reduceLen << 2) |
                     ((uint32_t)opcode);
-    write_csr(982, csr0);
+    write_csr(983, csr0);
 }
 
-void start_data_reshuffler() { write_csr(983, 1); }
+void start_data_reshuffler() { write_csr(984, 1); }
 
-void wait_data_reshuffler() { write_csr(983, 0); }
+void wait_data_reshuffler() { write_csr(984, 0); }
 
 uint32_t read_data_reshuffler_perf_counter() {
-    uint32_t perf_counter = read_csr(981);
+    uint32_t perf_counter = read_csr(982);
     return perf_counter;
 }
 
