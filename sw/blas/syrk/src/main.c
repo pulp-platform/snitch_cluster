@@ -10,7 +10,6 @@
 #include "data.h"
 
 int main() {
-
     syrk_job(&args);
 
     return 0;

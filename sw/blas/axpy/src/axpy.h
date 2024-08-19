@@ -11,7 +11,8 @@
 #define TCDM_ALIGNMENT (32 * BANK_ALIGNMENT)
 #define ALIGN_UP_TCDM(addr) ALIGN_UP(addr, TCDM_ALIGNMENT)
 
-static inline void axpy_naive(uint32_t n, double a, double* x, double* y, double* z) {
+static inline void axpy_naive(uint32_t n, double a, double *x, double *y,
+                              double *z) {
     int core_idx = snrt_cluster_core_idx();
     int frac = n / snrt_cluster_compute_core_num();
     int offset = core_idx;
@@ -22,28 +23,27 @@ static inline void axpy_naive(uint32_t n, double a, double* x, double* y, double
     snrt_fpu_fence();
 }
 
-static inline void axpy_fma(uint32_t n, double a, double* x, double* y, double* z) {
+static inline void axpy_fma(uint32_t n, double a, double *x, double *y,
+                            double *z) {
     int core_idx = snrt_cluster_core_idx();
     int frac = n / snrt_cluster_compute_core_num();
     int offset = core_idx;
 
     for (int i = offset; i < n; i += snrt_cluster_compute_core_num()) {
-        asm volatile (
-            "fmadd.d %[z], %[a], %[x], %[y] \n"
-            : [ z ]"=f"(z[i])
-            : [ a ]"f"(a), [ x ]"f"(x[i]), [ y ]"f"(y[i])
-        );
+        asm volatile("fmadd.d %[z], %[a], %[x], %[y] \n"
+                     : [ z ] "=f"(z[i])
+                     : [ a ] "f"(a), [ x ] "f"(x[i]), [ y ] "f"(y[i]));
     }
     snrt_fpu_fence();
 }
 
-static inline void axpy_opt(uint32_t n, double a, double* x, double* y, double* z) {
+static inline void axpy_opt(uint32_t n, double a, double *x, double *y,
+                            double *z) {
     int core_idx = snrt_cluster_core_idx();
     int frac = n / snrt_cluster_compute_core_num();
     int offset = core_idx;
 
-    snrt_ssr_loop_1d(SNRT_SSR_DM_ALL,
-                     frac,
+    snrt_ssr_loop_1d(SNRT_SSR_DM_ALL, frac,
                      snrt_cluster_compute_core_num() * sizeof(double));
 
     snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_1D, x + offset);
@@ -57,23 +57,21 @@ static inline void axpy_opt(uint32_t n, double a, double* x, double* y, double* 
         "fmadd.d ft2, %[a], ft0, ft1\n"
         :
         : [ n_frep ] "r"(frac - 1), [ a ] "f"(a)
-        : "ft0", "ft1", "ft2", "memory"
-    );
-    
+        : "ft0", "ft1", "ft2", "memory");
+
     snrt_fpu_fence();
     snrt_ssr_disable();
 }
 
 static inline void axpy_job(axpy_args_t *args) {
     uint32_t frac, offset, size;
-    uint64_t local_x0_addr, local_y0_addr, local_z0_addr,
-             local_x1_addr, local_y1_addr, local_z1_addr;
+    uint64_t local_x0_addr, local_y0_addr, local_z0_addr, local_x1_addr,
+        local_y1_addr, local_z1_addr;
     double *local_x[2];
     double *local_y[2];
     double *local_z[2];
     double *remote_x, *remote_y, *remote_z;
     uint32_t iterations, i, i_dma_in, i_compute, i_dma_out, buff_idx;
-
 
 #ifndef JOB_ARGS_PRELOADED
     // Allocate space for job arguments in TCDM
@@ -102,8 +100,10 @@ static inline void axpy_job(axpy_args_t *args) {
     local_z[0] = (double *)local_z0_addr;
     if (DOUBLE_BUFFER) {
         local_x1_addr = ALIGN_UP_TCDM(local_z0_addr + size);
-        local_y1_addr = ALIGN_UP_TCDM(local_x1_addr + size) + 8 * BANK_ALIGNMENT;
-        local_z1_addr = ALIGN_UP_TCDM(local_y1_addr + size) + 16 * BANK_ALIGNMENT;
+        local_y1_addr =
+            ALIGN_UP_TCDM(local_x1_addr + size) + 8 * BANK_ALIGNMENT;
+        local_z1_addr =
+            ALIGN_UP_TCDM(local_y1_addr + size) + 16 * BANK_ALIGNMENT;
         local_x[1] = (double *)local_x1_addr;
         local_y[1] = (double *)local_y1_addr;
         local_z[1] = (double *)local_z1_addr;
@@ -115,7 +115,6 @@ static inline void axpy_job(axpy_args_t *args) {
 
     // Iterate over all tiles
     for (i = 0; i < iterations; i++) {
-
         if (snrt_is_dm_core()) {
             // DMA in
             if (!DOUBLE_BUFFER || (i < args->n_tiles)) {
@@ -176,7 +175,8 @@ static inline void axpy_job(axpy_args_t *args) {
 
                 // Perform tile computation
                 axpy_fp_t fp = args->funcptr;
-                fp(frac, args->a, local_x[buff_idx], local_y[buff_idx], local_z[buff_idx]);
+                fp(frac, args->a, local_x[buff_idx], local_y[buff_idx],
+                   local_z[buff_idx]);
 
                 snrt_mcycle();
             }

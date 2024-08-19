@@ -8,7 +8,6 @@
 #include "data.h"
 
 int main() {
-
     axpy_job(&args);
 
 // TODO: currently only works for single cluster otherwise need to

@@ -8,11 +8,11 @@
 import numpy as np
 
 from snitch.util.sim import data_utils
-from snitch.util.sim.data_utils import format_array_definition, format_array_declaration, \
-    format_struct_definition, DataGen
+from snitch.util.sim.data_utils import format_array_definition, format_struct_definition, DataGen
 
 
 DOUBLE_BUFFER = True
+
 
 class SyrkDataGen(DataGen):
 
@@ -55,7 +55,6 @@ class SyrkDataGen(DataGen):
 
         A = np.random.randint(-200, 100, size=(kwargs['m'], kwargs['n']))/100
         C_in = np.random.randint(-200, 100, size=(kwargs['m'], kwargs['m']))/100
-        C_out = self.golden_model(alpha, A, beta, C_in)
 
         A = A.flatten()
         C_in = C_in.flatten()

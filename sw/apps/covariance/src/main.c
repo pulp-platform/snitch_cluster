@@ -10,7 +10,6 @@
 #include "data.h"
 
 int main() {
-
     covariance_job(&args);
 
     return 0;

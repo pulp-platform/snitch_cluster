@@ -8,7 +8,8 @@
 #include <stdint.h>
 
 typedef void (*covariance_fp_t)(uint32_t m, uint32_t n, double inv_n,
-    double inv_n_m1, double *data, double *datat,double *cov);
+                                double inv_n_m1, double *data, double *datat,
+                                double *cov);
 
 typedef struct {
     uint32_t m;

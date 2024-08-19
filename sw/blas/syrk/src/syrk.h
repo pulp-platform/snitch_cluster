@@ -39,7 +39,6 @@ void syrk_baseline(uint32_t m, uint32_t n, double alpha, double *a, double *at,
 
     for (uint32_t i = offset; i < m; i += stride) {
         for (uint32_t j = 0; j < m; j += unroll1) {
-
             double acc[4];
             acc[0] = 0;
             acc[1] = 0;
@@ -66,28 +65,26 @@ void syrk_baseline(uint32_t m, uint32_t n, double alpha, double *a, double *at,
                     "fmadd.d %[acc3], %[a3], %[at15], %[acc3] \n"
                     : [ acc0 ] "+f"(acc[0]), [ acc1 ] "+f"(acc[1]),
                       [ acc2 ] "+f"(acc[2]), [ acc3 ] "+f"(acc[3])
-                    : [ a0 ] "f"(a[i * n + k + 0]),
-                      [ a1 ] "f"(a[i * n + k + 1]),
-                      [ a2 ] "f"(a[i * n + k + 2]),
-                      [ a3 ] "f"(a[i * n + k + 3]),
-                      [ at0 ] "f"(at[(j + 0) * n + k]),
-                      [ at1 ] "f"(at[(j + 1) * n + k]),
-                      [ at2 ] "f"(at[(j + 2) * n + k]),
-                      [ at3 ] "f"(at[(j + 3) * n + k]),
-                      [ at4 ] "f"(at[(j + 0) * n + k + 1]),
-                      [ at5 ] "f"(at[(j + 1) * n + k + 1]),
-                      [ at6 ] "f"(at[(j + 2) * n + k + 1]),
-                      [ at7 ] "f"(at[(j + 3) * n + k + 1]),
-                      [ at8 ] "f"(at[(j + 0) * n + k + 2]),
-                      [ at9 ] "f"(at[(j + 1) * n + k + 2]),
-                      [ at10 ] "f"(at[(j + 2) * n + k + 2]),
-                      [ at11 ] "f"(at[(j + 3) * n + k + 2]),
-                      [ at12 ] "f"(at[(j + 0) * n + k + 3]),
-                      [ at13 ] "f"(at[(j + 1) * n + k + 3]),
-                      [ at14 ] "f"(at[(j + 2) * n + k + 3]),
-                      [ at15 ] "f"(at[(j + 3) * n + k + 3])
                     :
-                );
+                    [ a0 ] "f"(a[i * n + k + 0]), [ a1 ] "f"(a[i * n + k + 1]),
+                    [ a2 ] "f"(a[i * n + k + 2]), [ a3 ] "f"(a[i * n + k + 3]),
+                    [ at0 ] "f"(at[(j + 0) * n + k]),
+                    [ at1 ] "f"(at[(j + 1) * n + k]),
+                    [ at2 ] "f"(at[(j + 2) * n + k]),
+                    [ at3 ] "f"(at[(j + 3) * n + k]),
+                    [ at4 ] "f"(at[(j + 0) * n + k + 1]),
+                    [ at5 ] "f"(at[(j + 1) * n + k + 1]),
+                    [ at6 ] "f"(at[(j + 2) * n + k + 1]),
+                    [ at7 ] "f"(at[(j + 3) * n + k + 1]),
+                    [ at8 ] "f"(at[(j + 0) * n + k + 2]),
+                    [ at9 ] "f"(at[(j + 1) * n + k + 2]),
+                    [ at10 ] "f"(at[(j + 2) * n + k + 2]),
+                    [ at11 ] "f"(at[(j + 3) * n + k + 2]),
+                    [ at12 ] "f"(at[(j + 0) * n + k + 3]),
+                    [ at13 ] "f"(at[(j + 1) * n + k + 3]),
+                    [ at14 ] "f"(at[(j + 2) * n + k + 3]),
+                    [ at15 ] "f"(at[(j + 3) * n + k + 3])
+                    :);
             }
 
             c[i * m + j + 0] = multiply_opt(c[i * m + j + 0], beta);
@@ -122,15 +119,16 @@ void syrk_opt(uint32_t m, uint32_t n, double alpha, double *a, double *at,
         //                 ft0.push(a[i * n + k])
         //                 ft1.push(at[j * n + k])
         const uint32_t ssr0_b[4] = {unroll, n, m / unroll, m / stride};
-        const uint32_t ssr0_i[4] = {0, sizeof(double), 0, stride * n * sizeof(double)};
+        const uint32_t ssr0_i[4] = {0, sizeof(double), 0,
+                                    stride * n * sizeof(double)};
         snrt_ssr_loop_3d(SNRT_SSR_DM0, ssr0_b[1], ssr0_b[2], ssr0_b[3],
                          ssr0_i[1], ssr0_i[2], ssr0_i[3]);
         snrt_ssr_repeat(SNRT_SSR_DM0, unroll);
         const uint32_t ssr1_b[4] = {unroll, n, m / unroll, m / stride};
-        const uint32_t ssr1_i[4] = {n * sizeof(double), sizeof(double), unroll * n * sizeof(double), 0};
+        const uint32_t ssr1_i[4] = {n * sizeof(double), sizeof(double),
+                                    unroll * n * sizeof(double), 0};
         snrt_ssr_loop_4d(SNRT_SSR_DM1, ssr1_b[0], ssr1_b[1], ssr1_b[2],
-                         ssr1_b[3], ssr1_i[0], ssr1_i[1], ssr1_i[2],
-                         ssr1_i[3]);
+                         ssr1_b[3], ssr1_i[0], ssr1_i[1], ssr1_i[2], ssr1_i[3]);
         setup_ssr = 0;
     }
 
@@ -141,7 +139,6 @@ void syrk_opt(uint32_t m, uint32_t n, double alpha, double *a, double *at,
 
     for (uint32_t i = offset; i < m; i += stride) {
         for (uint32_t j = 0; j < m; j += unroll) {
-
             double acc[unroll];
             acc[0] = 0;
             acc[1] = 0;
@@ -178,8 +175,8 @@ void syrk_opt(uint32_t m, uint32_t n, double alpha, double *a, double *at,
 
 void syrk_job(syrk_args_t *args) {
     uint32_t m_frac, a_tile_size, a_tile_bytes, c_tile_size, c_tile_bytes;
-    uint64_t local_a0_addr, local_at0_addr, local_c0_addr,
-             local_a1_addr, local_at1_addr, local_c1_addr;
+    uint64_t local_a0_addr, local_at0_addr, local_c0_addr, local_a1_addr,
+        local_at1_addr, local_c1_addr;
     double *local_a[2];
     double *local_at[2];
     double *local_c[2];
@@ -227,7 +224,6 @@ void syrk_job(syrk_args_t *args) {
 
     // Iterate over all tiles
     for (i = 0; i < iterations; i++) {
-        
         if (snrt_is_dm_core()) {
             // DMA out
             // (out before in to avoid overwriting data)
@@ -241,15 +237,8 @@ void syrk_job(syrk_args_t *args) {
                 i_col = i_dma_out % args->m_tiles;
 
                 // Copy job outputs from TCDM
-                snrt_dma_store_2d_tile(
-                    args->c,
-                    local_c[buff_idx],
-                    i_row,
-                    i_col,
-                    m_frac,
-                    m_frac,
-                    args->m,
-                    sizeof(double));
+                snrt_dma_store_2d_tile(args->c, local_c[buff_idx], i_row, i_col,
+                                       m_frac, m_frac, args->m, sizeof(double));
                 snrt_dma_wait_all();
 
                 snrt_mcycle();
@@ -266,28 +255,14 @@ void syrk_job(syrk_args_t *args) {
                 i_col = i_dma_in % args->m_tiles;
 
                 // Copy job operands in TCDM
-                snrt_dma_load_1d_tile(
-                    local_a[buff_idx],
-                    args->a,
-                    i_row,
-                    a_tile_size,
-                    sizeof(double));
-                snrt_dma_load_1d_tile(
-                    local_at[buff_idx],
-                    args->a,
-                    i_col,
-                    a_tile_size,
-                    sizeof(double));
+                snrt_dma_load_1d_tile(local_a[buff_idx], args->a, i_row,
+                                      a_tile_size, sizeof(double));
+                snrt_dma_load_1d_tile(local_at[buff_idx], args->a, i_col,
+                                      a_tile_size, sizeof(double));
                 if (args->funcptr == syrk_opt || args->beta != 0) {
-                    snrt_dma_load_2d_tile(
-                        local_c[buff_idx],
-                        args->c,
-                        i_row,
-                        i_col,
-                        m_frac,
-                        m_frac,
-                        args->m,
-                        sizeof(double));
+                    snrt_dma_load_2d_tile(local_c[buff_idx], args->c, i_row,
+                                          i_col, m_frac, m_frac, args->m,
+                                          sizeof(double));
                 }
                 snrt_dma_wait_all();
 

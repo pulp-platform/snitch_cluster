@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 typedef void (*syrk_fp_t)(uint32_t m, uint32_t n, double alpha, double *a,
-    double *at, double beta, double *b);
+                          double *at, double beta, double *b);
 
 typedef struct {
     uint32_t m;
