@@ -26,6 +26,14 @@
         dma_data_width: 512,
         dma_axi_req_fifo_depth: 3,
         dma_req_fifo_depth: 3,
+        // SNAX custom cluster TCDM assignment
+        snax_custom_tcdm_assign: {
+            snax_enable_assign_tcdm_idx: true,
+            snax_narrow_assign_start_idx: [0,26],
+            snax_narrow_assign_end_idx: [1,26],
+            snax_wide_assign_start_idx: [2,27],
+            snax_wide_assign_end_idx: [25,34],
+        },
         // Timing parameters
         timing: {
             lat_comp_fp32: 3,

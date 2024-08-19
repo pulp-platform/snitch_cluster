@@ -154,6 +154,58 @@
             "propertyNames": { "pattern": "^[A-Za-z_][A-Za-z0-9_]*$" },
             "additionalProperties": { "type": "number", "minimum": 1 }
         },
+        "snax_custom_tcdm_assign":{
+            "type": "object",
+            "title": "SNAX Custom TCDM Assignments",
+            "properties": {
+                "snax_enable_assign_tcdm_idx": {
+                    "type": "boolean",
+                    "title": "Use index assignment for TCDM",
+                    "description": "This enables the custom use of index assignment for TCDM ports. WARNING! Use this only when needed.",
+                    "default": false
+                },
+                "snax_narrow_assign_start_idx": {
+                    "type": "array",
+                    "title": "Narrow TCDM Start Index Assignments",
+                    "description": "Start indices for the custom narrow TCDM assignments.",
+                    "minItems": 1,
+                    "default": [0],
+                      "items": {
+                        "type": "number"
+                      }
+                },
+                "snax_narrow_assign_end_idx": {
+                    "type": "array",
+                    "title": "Narrow TCDM End Index Assignments",
+                    "description": "End indices for the custom narrow TCDM assignments.",
+                    "minItems": 1,
+                    "default": [0],
+                      "items": {
+                        "type": "number"
+                      }
+                },
+                "snax_wide_assign_start_idx": {
+                    "type": "array",
+                    "title": "Wide TCDM Start Index Assignments",
+                    "description": "Start indices for the custom wide TCDM assignments.",
+                    "minItems": 1,
+                    "default": [0],
+                      "items": {
+                        "type": "number"
+                      }
+                },
+                "snax_wide_assign_end_idx": {
+                    "type": "array",
+                    "title": "Wide TCDM End Index Assignments",
+                    "description": "End indices for the custom wide TCDM assignments.",
+                    "minItems": 1,
+                    "default": [0],
+                      "items": {
+                        "type": "number"
+                      }
+                }
+            }
+        },
         "timing": {
             "type": "object",
             "title": "Timing and Latency Tuning Parameter",

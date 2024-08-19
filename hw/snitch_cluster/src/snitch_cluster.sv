@@ -105,7 +105,18 @@ module snitch_cluster
   parameter int unsigned TotalSnaxWideTcdmPorts = 0,
   /// Total Number of SNAX TCDM ports
   parameter int unsigned TotalSnaxTcdmPorts = TotalSnaxNarrowTcdmPorts + TotalSnaxWideTcdmPorts,
-  /// SNAX Acc Narrow Wide Selection
+  /// SNAX TCDM Custom Index Assignment
+  parameter bit          SnaxUseIdxTcdmAssign = 1'b0,
+  /// SNAX Number of Narrow Index Assignments
+  parameter int unsigned SnaxNumNarrowAssignIdx = 0,
+  /// SNAX Number of Wide Index Assignments
+  parameter int unsigned SnaxNumWideAssignIdx = 0,
+  /// SNAX Narrow Custom Index Assignment
+  parameter int unsigned SnaxNarrowStartIdx [SnaxNumNarrowAssignIdx] = '{default: 0},
+  parameter int unsigned SnaxNarrowEndIdx [SnaxNumNarrowAssignIdx] = '{default: 0},
+  /// SNAX Wide Custom Index Assignment
+  parameter int unsigned SnaxWideStartIdx [SnaxNumWideAssignIdx] = '{default: 0},
+  parameter int unsigned SnaxWideEndIdx [SnaxNumWideAssignIdx] = '{default: 0},
   /// SNAX Use Custom Instruction Ports
   parameter bit [NrCores-1:0] SnaxUseCustomPorts = 0,
   /// Physical Memory Attribute Configuration
@@ -705,34 +716,87 @@ module snitch_cluster
     // That is the technique used in the procedural block below
     //------------------------
 
-    always_comb begin
+    if (SnaxUseIdxTcdmAssign) begin: gen_custom_tcdm_assign
 
-      total_offset = 0;
-      wide_offset = 0;
-      narrow_offset = 0;
+      integer start_wide_idx, end_wide_idx, wide_len;
+      integer start_narrow_idx, end_narrow_idx, narrow_len;
 
-      for (int i = 0; i < NrCores; i++) begin
+      always_comb begin
 
-        curr_wide = SnaxWideTcdmPorts[i];
-        curr_narrow = SnaxNarrowTcdmPorts[i];
+        wide_offset = 0;
+        narrow_offset = 0;
 
-        // Wide re-mapping
-        for(int j = 0; j < curr_wide; j++) begin
-          snax_tcdm_req_wide[j+wide_offset] = snax_tcdm_req_i[j+total_offset];
-          snax_tcdm_rsp_o[j+total_offset] = snax_tcdm_rsp_wide[j+wide_offset];
+        // Re-map the custom wide ports
+        // We make the assumption that the number of narrow
+        // per wide port is equal to BanksPerSuperBank
+
+        // For this part we cycle through the starting
+        // and end points for the TCDM slices
+        for (int i = 0; i < SnaxNumWideAssignIdx; i++) begin
+
+          // Note that indices are indexed starting from 0
+          start_wide_idx = SnaxWideStartIdx[i];
+          end_wide_idx = SnaxWideEndIdx[i];
+          wide_len = end_wide_idx - start_wide_idx + 1;
+
+          for (int j =0; j < wide_len; j++) begin
+            snax_tcdm_req_wide[j+wide_offset] = snax_tcdm_req_i[j+start_wide_idx];
+            snax_tcdm_rsp_o[j+start_wide_idx] = snax_tcdm_rsp_wide[j+wide_offset];
+          end
+
+          wide_offset += wide_len;
+
         end
 
-        // Narrow re-mapping
-        for(int j = 0; j < curr_narrow; j++) begin
-          snax_tcdm_req_narrow[j+narrow_offset] = snax_tcdm_req_i[j+curr_wide+total_offset];
-          snax_tcdm_rsp_o[j+curr_wide+total_offset] = snax_tcdm_rsp_narrow[j+narrow_offset];
+        // Re-map the custom narrow ports
+        for (int i = 0; i < SnaxNumNarrowAssignIdx; i++) begin
+
+          // Note that indices are indexed starting from 0
+          start_narrow_idx = SnaxNarrowStartIdx[i];
+          end_narrow_idx = SnaxNarrowEndIdx[i];
+          narrow_len = end_narrow_idx - start_narrow_idx + 1;
+
+          for (int j =0; j < narrow_len; j++) begin
+            snax_tcdm_req_narrow[j+narrow_offset] = snax_tcdm_req_i[j+start_narrow_idx];
+            snax_tcdm_rsp_o[j+start_narrow_idx] = snax_tcdm_rsp_narrow[j+narrow_offset];
+          end
+
+          narrow_offset += narrow_len;
+
         end
 
-        wide_offset += curr_wide;
-        narrow_offset += curr_narrow;
-        total_offset += (curr_wide + curr_narrow);
       end
+    end else begin: gen_non_custom_tcdm_assign
 
+      always_comb begin
+
+        total_offset = 0;
+        wide_offset = 0;
+        narrow_offset = 0;
+
+        for (int i = 0; i < NrCores; i++) begin
+
+          curr_wide = SnaxWideTcdmPorts[i];
+          curr_narrow = SnaxNarrowTcdmPorts[i];
+
+          // Wide re-mapping
+          for(int j = 0; j < curr_wide; j++) begin
+            snax_tcdm_req_wide[j+wide_offset] = snax_tcdm_req_i[j+total_offset];
+            snax_tcdm_rsp_o[j+total_offset] = snax_tcdm_rsp_wide[j+wide_offset];
+          end
+
+          // Narrow re-mapping
+          for(int j = 0; j < curr_narrow; j++) begin
+            snax_tcdm_req_narrow[j+narrow_offset] = snax_tcdm_req_i[j+curr_wide+total_offset];
+            snax_tcdm_rsp_o[j+curr_wide+total_offset] = snax_tcdm_rsp_narrow[j+narrow_offset];
+          end
+
+          wide_offset += curr_wide;
+          narrow_offset += curr_narrow;
+          total_offset += (curr_wide + curr_narrow);
+        end
+
+      end
     end
 
   end else if (NumSnaxWideTcdmPorts > 0) begin: gen_wide_only_map
