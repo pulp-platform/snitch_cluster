@@ -66,7 +66,7 @@ module snax_streamer_gemmX_shell_wrapper #(
   wire io_ctrl_gemm_ctrl_ready;
   wire io_ctrl_simd_ctrl_ready;
   assign csr_reg_set_ready_o = io_ctrl_gemm_ctrl_ready & io_ctrl_simd_ctrl_ready;
-  assign csr_reg_ro_set_o[1][31:1] = 0;
+  assign csr_reg_ro_set_o[0][31:1] = 0;
 
   BlockGemmRescaleSIMD inst_block_gemm_simd (
     .clock(clk_i),
