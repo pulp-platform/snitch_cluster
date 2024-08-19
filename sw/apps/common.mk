@@ -13,7 +13,7 @@ DATA_H          := $($(APP)_BUILD_DIR)/data.h
 DATAGEN_PY       = $(SCRIPTS_DIR)/datagen.py
 
 $(APP)_HEADERS := $(DATA_H)
-$(APP)_INCDIRS := $(dir $(DATA_H)) $(SRC_DIR)
+$(APP)_INCDIRS += $(dir $(DATA_H)) $(SRC_DIR)
 
 $(dir $(DATA_H)):
 	mkdir -p $@
