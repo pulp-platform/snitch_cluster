@@ -21,6 +21,14 @@
 // Test values
 //-------------------------------
 
+// Test values for streamer RW
+uint32_t test_streamer_test_val1 = 0xffffffff;
+uint32_t test_streamer_test_val2 = 0x1234abcd;
+uint32_t test_streamer_test_val3 = 0xdeadbeef;
+uint32_t test_streamer_test_val4 = 0x01010101;
+uint32_t test_streamer_test_val5 = 0x55551111;
+uint32_t test_streamer_test_val6 = 0x7189cdef;
+
 // Need to leave core_config LSB as 0
 // Since it starts the core
 // All the rest should be okay
@@ -59,6 +67,14 @@ uint32_t test_seed_ortho_7 = 0x12345678;
 //-------------------------------
 // Golden values
 //-------------------------------
+
+// Test values for streamer RW
+uint32_t golden_streamer_test_val1 = 0xffffffff;
+uint32_t golden_streamer_test_val2 = 0x1234abcd;
+uint32_t golden_streamer_test_val3 = 0xdeadbeef;
+uint32_t golden_streamer_test_val4 = 0x01010101;
+uint32_t golden_streamer_test_val5 = 0x55551111;
+uint32_t golden_streamer_test_val6 = 0x7189cdef;
 
 uint32_t golden_core_config = 0x0000003c;
 uint32_t golden_am_num_predict = 0xffffffff;

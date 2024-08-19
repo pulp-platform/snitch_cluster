@@ -14,6 +14,55 @@
 #include "snrt.h"
 #include "stdint.h"
 
+//-------------------------------
+// Streamer functions
+//-------------------------------
+void hypercorex_set_streamer_lowdim_a(uint32_t loop_bound_0,
+                                      uint32_t loop_bound_1,
+                                      uint32_t temp_stride_0,
+                                      uint32_t temp_stride_1,
+                                      uint32_t spat_stride, uint32_t base_ptr);
+
+void hypercorex_set_streamer_lowdim_b(uint32_t loop_bound_0,
+                                      uint32_t loop_bound_1,
+                                      uint32_t temp_stride_0,
+                                      uint32_t temp_stride_1,
+                                      uint32_t spat_stride, uint32_t base_ptr);
+
+void hypercorex_set_streamer_highdim_a(uint32_t loop_bound_0,
+                                       uint32_t loop_bound_1,
+                                       uint32_t temp_stride_0,
+                                       uint32_t temp_stride_1,
+                                       uint32_t spat_stride, uint32_t base_ptr);
+
+void hypercorex_set_streamer_highdim_b(uint32_t loop_bound_0,
+                                       uint32_t loop_bound_1,
+                                       uint32_t temp_stride_0,
+                                       uint32_t temp_stride_1,
+                                       uint32_t spat_stride, uint32_t base_ptr);
+
+void hypercorex_set_streamer_highdim_am(
+    uint32_t loop_bound_0, uint32_t loop_bound_1, uint32_t temp_stride_0,
+    uint32_t temp_stride_1, uint32_t spat_stride, uint32_t base_ptr);
+
+void hypercorex_set_streamer_lowdim_predict(
+    uint32_t loop_bound_0, uint32_t loop_bound_1, uint32_t temp_stride_0,
+    uint32_t temp_stride_1, uint32_t spat_stride, uint32_t base_ptr);
+
+void hypercorex_set_streamer_highdim_qhv(
+    uint32_t loop_bound_0, uint32_t loop_bound_1, uint32_t temp_stride_0,
+    uint32_t temp_stride_1, uint32_t spat_stride, uint32_t base_ptr);
+
+void hypercorex_start_streamer(void);
+
+uint32_t hypercorex_read_perf_counter(void);
+
+uint32_t hypercorex_is_streamer_busy(void);
+
+//-------------------------------
+// HyperCoreX accelerator functions
+//-------------------------------
+
 uint32_t hypercorex_set_inst_loop_jump_addr(uint8_t config1, uint8_t config2,
                                             uint8_t config3);
 
