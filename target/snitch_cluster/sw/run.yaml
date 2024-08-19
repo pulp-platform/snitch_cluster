@@ -80,6 +80,8 @@ runs:
     cmd: [../../../sw/blas/gemm/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/blas/dot/build/dot.elf
     cmd: [../../../sw/blas/dot/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: apps/blas/syrk/build/syrk.elf
+    cmd: [../../../sw/blas/syrk/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/dnn/batchnorm/build/batchnorm.elf
   - elf: apps/dnn/maxpool/build/maxpool.elf
   # - elf: apps/dnn/conv2d/build/conv2d.elf # Fails with wrong results
@@ -95,3 +97,5 @@ runs:
   - elf: apps/montecarlo/pi_estimation/build/pi_estimation.elf
   # - elf: apps/atax/build/atax.elf
   #   cmd: [../../../sw/apps/atax/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: apps/covariance/build/covariance.elf
+    cmd: [../../../sw/apps/covariance/scripts/verify.py, "${sim_bin}", "${elf}"]
