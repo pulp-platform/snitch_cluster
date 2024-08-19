@@ -19,6 +19,7 @@ class AtaVerifier(Verifier):
     def __init__(self):
         super().__init__()
         self.func_args = {
+            'alpha': 'd',
             'm': 'I',
             'n': 'I',
             'A': 'I',
@@ -34,7 +35,7 @@ class AtaVerifier(Verifier):
     def get_expected_results(self):
         A = self.get_input_from_symbol('A', 'double')
         A = np.reshape(A, (self.func_args['m'], self.func_args['n']))
-        return AtaDataGen().golden_model(A).flatten()
+        return AtaDataGen().golden_model(self.func_args['alpha'], A).flatten()
 
     def check_results(self, *args):
         return super().check_results(*args, rtol=1e-10)

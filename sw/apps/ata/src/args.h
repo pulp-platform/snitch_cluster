@@ -7,9 +7,11 @@
 #pragma once
 #include <stdint.h>
 
-typedef void (*ata_fp_t)(uint32_t m, uint32_t n, double *a, double *at,double *b);
+typedef void (*ata_fp_t)(double alpha, uint32_t m, uint32_t n, double *a,
+    double *at, double *b);
 
 typedef struct {
+    double alpha;
     uint32_t m;
     uint32_t n;
     double *a;

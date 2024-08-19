@@ -11,7 +11,7 @@
 
 __thread int setup_ssr = 1;
 
-void ata_naive(uint32_t m, uint32_t n, double *a, double *at, double *b) {
+void ata_naive(double alpha, uint32_t m, uint32_t n, double *a, double *at, double *b) {
     uint32_t offset = snrt_cluster_core_idx();
     uint32_t stride = snrt_cluster_compute_core_num();
 
@@ -21,53 +21,83 @@ void ata_naive(uint32_t m, uint32_t n, double *a, double *at, double *b) {
             for (uint32_t k = 0; k < n; k++) {
                 b[i * m + j] += a[i * n + k] * at[j * n + k];
             }
+            b[i * m + j] *= alpha;
         }
     }
 }
 
-void ata_baseline(uint32_t m, uint32_t n, double *a, double *at, double *b) {
+void ata_baseline(double alpha, uint32_t m, uint32_t n, double *a, double *at, double *b) {
     uint32_t offset = snrt_cluster_core_idx();
     uint32_t stride = snrt_cluster_compute_core_num();
 
-    // Unrolling factor of innermost loop
+    // Unrolling factors
     // Note: changes must be reflected in the inline assembly code
     //       and datagen script
-    const uint32_t unroll = 8;
+    const uint32_t unroll1 = 4;
+    const uint32_t unroll0 = 4;
 
     for (uint32_t i = offset; i < m; i += stride) {
-        for (uint32_t j = 0; j < m; j++) {
+        for (uint32_t j = 0; j < m; j += unroll1) {
 
-            double acc = 0;
+            double acc[4];
+            acc[0] = 0;
+            acc[1] = 0;
+            acc[2] = 0;
+            acc[3] = 0;
 
-            for (uint32_t k = 0; k < n; k += unroll) {
+            for (uint32_t k = 0; k < n; k += unroll0) {
                 asm volatile(
-                    "fmadd.d %[acc], %[a0], %[at0], %[acc] \n"
-                    "fmadd.d %[acc], %[a1], %[at1], %[acc] \n"
-                    "fmadd.d %[acc], %[a2], %[at2], %[acc] \n"
-                    "fmadd.d %[acc], %[a3], %[at3], %[acc] \n"
-                    "fmadd.d %[acc], %[a4], %[at4], %[acc] \n"
-                    "fmadd.d %[acc], %[a5], %[at5], %[acc] \n"
-                    "fmadd.d %[acc], %[a6], %[at6], %[acc] \n"
-                    "fmadd.d %[acc], %[a7], %[at7], %[acc] \n"
-                    : [ acc ] "+f"(acc)
-                    : [ a0 ] "f"(a[i * n + k + 0]), [ a1 ] "f"(a[i * n + k + 1]),
-                      [ a2 ] "f"(a[i * n + k + 2]), [ a3 ] "f"(a[i * n + k + 3]),
-                      [ a4 ] "f"(a[i * n + k + 4]), [ a5 ] "f"(a[i * n + k + 5]),
-                      [ a6 ] "f"(a[i * n + k + 6]), [ a7 ] "f"(a[i * n + k + 7]),
-                      [ at0 ] "f"(at[j * n + k + 0]), [ at1 ] "f"(at[j * n + k + 1]),
-                      [ at2 ] "f"(at[j * n + k + 2]), [ at3 ] "f"(at[j * n + k + 3]),
-                      [ at4 ] "f"(at[j * n + k + 4]), [ at5 ] "f"(at[j * n + k + 5]),
-                      [ at6 ] "f"(at[j * n + k + 6]), [ at7 ] "f"(at[j * n + k + 7])
+                    "fmadd.d %[acc0], %[a0], %[at0], %[acc0] \n"
+                    "fmadd.d %[acc1], %[a0], %[at1], %[acc1] \n"
+                    "fmadd.d %[acc2], %[a0], %[at2], %[acc2] \n"
+                    "fmadd.d %[acc3], %[a0], %[at3], %[acc3] \n"
+                    "fmadd.d %[acc0], %[a1], %[at4], %[acc0] \n"
+                    "fmadd.d %[acc1], %[a1], %[at5], %[acc1] \n"
+                    "fmadd.d %[acc2], %[a1], %[at6], %[acc2] \n"
+                    "fmadd.d %[acc3], %[a1], %[at7], %[acc3] \n"
+                    "fmadd.d %[acc0], %[a2], %[at8], %[acc0] \n"
+                    "fmadd.d %[acc1], %[a2], %[at9], %[acc1] \n"
+                    "fmadd.d %[acc2], %[a2], %[at10], %[acc2] \n"
+                    "fmadd.d %[acc3], %[a2], %[at11], %[acc3] \n"
+                    "fmadd.d %[acc0], %[a3], %[at12], %[acc0] \n"
+                    "fmadd.d %[acc1], %[a3], %[at13], %[acc1] \n"
+                    "fmadd.d %[acc2], %[a3], %[at14], %[acc2] \n"
+                    "fmadd.d %[acc3], %[a3], %[at15], %[acc3] \n"
+                    : [ acc0 ] "+f"(acc[0]), [ acc1 ] "+f"(acc[1]),
+                      [ acc2 ] "+f"(acc[2]), [ acc3 ] "+f"(acc[3])
+                    : [ a0 ] "f"(a[i * n + k + 0]),
+                      [ a1 ] "f"(a[i * n + k + 1]),
+                      [ a2 ] "f"(a[i * n + k + 2]),
+                      [ a3 ] "f"(a[i * n + k + 3]),
+                      [ at0 ] "f"(at[(j + 0) * n + k]),
+                      [ at1 ] "f"(at[(j + 1) * n + k]),
+                      [ at2 ] "f"(at[(j + 2) * n + k]),
+                      [ at3 ] "f"(at[(j + 3) * n + k]),
+                      [ at4 ] "f"(at[(j + 0) * n + k + 1]),
+                      [ at5 ] "f"(at[(j + 1) * n + k + 1]),
+                      [ at6 ] "f"(at[(j + 2) * n + k + 1]),
+                      [ at7 ] "f"(at[(j + 3) * n + k + 1]),
+                      [ at8 ] "f"(at[(j + 0) * n + k + 2]),
+                      [ at9 ] "f"(at[(j + 1) * n + k + 2]),
+                      [ at10 ] "f"(at[(j + 2) * n + k + 2]),
+                      [ at11 ] "f"(at[(j + 3) * n + k + 2]),
+                      [ at12 ] "f"(at[(j + 0) * n + k + 3]),
+                      [ at13 ] "f"(at[(j + 1) * n + k + 3]),
+                      [ at14 ] "f"(at[(j + 2) * n + k + 3]),
+                      [ at15 ] "f"(at[(j + 3) * n + k + 3])
                     :
                 );
             }
 
-            b[i * m + j] = acc;
+            b[i * m + j + 0] = alpha * acc[0];
+            b[i * m + j + 1] = alpha * acc[1];
+            b[i * m + j + 2] = alpha * acc[2];
+            b[i * m + j + 3] = alpha * acc[3];
         }
     }
 }
 
-void ata_opt(uint32_t m, uint32_t n, double *a, double *at, double *b) {
+void ata_opt(double alpha, uint32_t m, uint32_t n, double *a, double *at, double *b) {
     uint32_t offset = snrt_cluster_core_idx();
     uint32_t stride = snrt_cluster_compute_core_num();
 
@@ -114,19 +144,21 @@ void ata_opt(uint32_t m, uint32_t n, double *a, double *at, double *b) {
 
             asm volatile(
                 "frep.o %[n_frep], %[unroll], 0, 0 \n"
-                "fmadd.d %[b0], ft0, ft1, %[b0] \n"
-                "fmadd.d %[b1], ft0, ft1, %[b1] \n"
-                "fmadd.d %[b2], ft0, ft1, %[b2] \n"
-                "fmadd.d %[b3], ft0, ft1, %[b3] \n"
-                : [ b0 ] "+f"(acc[0]), [ b1 ] "+f"(acc[1]),
-                  [ b2 ] "+f"(acc[2]), [ b3 ] "+f"(acc[3])
-                : [ n_frep ] "r"(n - 1), [ unroll ] "i"(unroll)
+                "fmadd.d %[acc0], ft0, ft1, %[acc0] \n"
+                "fmadd.d %[acc1], ft0, ft1, %[acc1] \n"
+                "fmadd.d %[acc2], ft0, ft1, %[acc2] \n"
+                "fmadd.d %[acc3], ft0, ft1, %[acc3] \n"
+                "fmul.d %[b0], %[acc0], %[alpha] \n"
+                "fmul.d %[b1], %[acc1], %[alpha] \n"
+                "fmul.d %[b2], %[acc2], %[alpha] \n"
+                "fmul.d %[b3], %[acc3], %[alpha] \n"
+                : [ acc0 ] "+f"(acc[0]), [ acc1 ] "+f"(acc[1]),
+                  [ acc2 ] "+f"(acc[2]), [ acc3 ] "+f"(acc[3]),
+                  [ b0 ] "=f"(b[i * m + j + 0]), [ b1 ] "=f"(b[i * m + j + 1]),
+                  [ b2 ] "=f"(b[i * m + j + 2]), [ b3 ] "=f"(b[i * m + j + 3])
+                : [ n_frep ] "r"(n - 1), [ unroll ] "i"(unroll),
+                  [ alpha ] "f"(alpha)
                 : "ft0", "ft1", "ft2");
-
-            b[i * m + j + 0] = acc[0];
-            b[i * m + j + 1] = acc[1];
-            b[i * m + j + 2] = acc[2];
-            b[i * m + j + 3] = acc[3];
         }
     }
 
@@ -262,7 +294,7 @@ void ata_job(ata_args_t *args) {
 
                 // Perform tile computation
                 ata_fp_t fp = args->funcptr;
-                fp(m_frac, args->n, local_a[buff_idx], 
+                fp(args->alpha, m_frac, args->n, local_a[buff_idx],
                    local_at[buff_idx], local_b[buff_idx]);
 
                 snrt_mcycle();

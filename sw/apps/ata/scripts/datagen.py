@@ -17,10 +17,10 @@ DOUBLE_BUFFER = True
 class AtaDataGen(DataGen):
 
     # Function pointers to alternative implementations
-    FUNCPTRS = ["ata_baseline", "ata_opt"]
+    FUNCPTRS = ["ata_naive", "ata_baseline", "ata_opt"]
 
-    def golden_model(self, A):
-        return np.matmul(A, A.transpose())
+    def golden_model(self, alpha, A):
+        return alpha * np.matmul(A, A.transpose())
 
     def validate(self, **kwargs):
         assert (kwargs['m'] % kwargs['m_tiles']) == 0, "m must be an integer multiple of m_tiles"
@@ -43,7 +43,8 @@ class AtaDataGen(DataGen):
         self.validate(**kwargs)
 
         A = np.random.randint(-200, 100, size=(kwargs['m'], kwargs['n']))/100
-        B = self.golden_model(A)
+        alpha = np.random.randint(-200, 100)/100
+        B = self.golden_model(alpha, A)
 
         A = A.flatten()
         B = B.flatten()
@@ -52,6 +53,7 @@ class AtaDataGen(DataGen):
         B_uid = 'B'
 
         cfg = {
+            'alpha': alpha,
             'm': kwargs['m'],
             'n': kwargs['n'],
             'a': A_uid,
