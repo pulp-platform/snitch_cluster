@@ -7,6 +7,7 @@
 
 #include "args.h"
 #include "snrt.h"
+#include "ata.h"
 
 #define DOUBLE_BUFFER 1
 
@@ -40,15 +41,40 @@ void covariance_naive(uint32_t m, uint32_t n, double inv_n,
     snrt_cluster_hw_barrier();
 
     // Compute covariance matrix
+    ata_naive(inv_n_m1, m, n, data, datat, cov);
+}
+
+void covariance_baseline(uint32_t m, uint32_t n, double inv_n,
+                         double inv_n_m1, double *data, double *datat,
+                         double *cov) {
+    uint32_t offset = snrt_cluster_core_idx();
+    uint32_t stride = snrt_cluster_compute_core_num();
+
+    // Center data
     for (uint32_t i = offset; i < m; i += stride) {
-        for (uint32_t j = 0; j < m; j++) {
-            cov[i * m + j] = 0.0;
-            for (uint32_t k = 0; k < n; k++) {
-                cov[i * m + j] += data[i * n + k] * datat[j * n + k];
-            }
-            cov[i * m + j] *= inv_n_m1;
+
+        // Calculate row mean
+        double data_mean = 0.0;
+        double datat_mean = 0.0;
+        for (uint32_t j = 0; j < n; j++) {
+            data_mean += data[i * n + j];
+            datat_mean += datat[i * n + j];
+        }
+        data_mean = data_mean * inv_n;
+        datat_mean = datat_mean * inv_n;
+
+        // Center row around zero
+        for (uint32_t j = 0; j < n; j++) {
+            data[i * n + j] -= data_mean;
+            datat[i * n + j] -= datat_mean;
         }
     }
+
+    snrt_fpu_fence();
+    snrt_cluster_hw_barrier();
+
+    // Compute covariance matrix
+    ata_baseline(inv_n_m1, m, n, data, datat, cov);
 }
 
 void covariance_opt(uint32_t m, uint32_t n, double inv_n,
@@ -79,6 +105,7 @@ void covariance_opt(uint32_t m, uint32_t n, double inv_n,
     snrt_ssr_loop_4d(SNRT_SSR_DM1,
                      ssr01_b[0], ssr01_b[1], ssr01_b[2], ssr01_b[3],
                      ssr01_i[0], ssr01_i[1], ssr01_i[2], ssr01_i[3]);
+    snrt_ssr_repeat(SNRT_SSR_DM0, 1);
     // Configure ft2 to store data and datat elements
     // for (i1 = offset; i1 < m; i1 += stride * unroll0)
     //     for (j = 0; j < n; j++)
@@ -145,8 +172,8 @@ void covariance_opt(uint32_t m, uint32_t n, double inv_n,
     snrt_fpu_fence();
     snrt_cluster_hw_barrier();
 
-    // The following is taken from the AtA kernel, apart from the normalization
-    // by 1/(n - 1).
+    // The following is taken from the AtA kernel, where alpha is set to
+    // the factor 1/(n - 1).
     // Here data stands for A and datat for At.
 
     // Unrolling factor of innermost loop
@@ -175,7 +202,7 @@ void covariance_opt(uint32_t m, uint32_t n, double inv_n,
         ssr1_i[0], ssr1_i[1], ssr1_i[2], ssr1_i[3]);
 
     // SSR start address need to be configured each time
-    snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_4D, data + offset * n);
+    snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_3D, data + offset * n);
     snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_4D, datat);
     snrt_ssr_enable();
 
@@ -190,23 +217,21 @@ void covariance_opt(uint32_t m, uint32_t n, double inv_n,
 
             asm volatile(
                 "frep.o %[n_frep], %[unroll1], 0, 0 \n"
-                "fmadd.d %[b0], ft0, ft1, %[b0] \n"
-                "fmadd.d %[b1], ft0, ft1, %[b1] \n"
-                "fmadd.d %[b2], ft0, ft1, %[b2] \n"
-                "fmadd.d %[b3], ft0, ft1, %[b3] \n"
-                : [ b0 ] "+f"(acc[0]), [ b1 ] "+f"(acc[1]),
-                  [ b2 ] "+f"(acc[2]), [ b3 ] "+f"(acc[3])
-                : [ n_frep ] "r"(n - 1), [ unroll1 ] "i"(unroll1)
+                "fmadd.d %[acc0], ft0, ft1, %[acc0] \n"
+                "fmadd.d %[acc1], ft0, ft1, %[acc1] \n"
+                "fmadd.d %[acc2], ft0, ft1, %[acc2] \n"
+                "fmadd.d %[acc3], ft0, ft1, %[acc3] \n"
+                "fmul.d %[b0], %[acc0], %[alpha] \n"
+                "fmul.d %[b1], %[acc1], %[alpha] \n"
+                "fmul.d %[b2], %[acc2], %[alpha] \n"
+                "fmul.d %[b3], %[acc3], %[alpha] \n"
+                : [ acc0 ] "+f"(acc[0]), [ acc1 ] "+f"(acc[1]),
+                  [ acc2 ] "+f"(acc[2]), [ acc3 ] "+f"(acc[3]),
+                  [ b0 ] "=f"(cov[i * m + j + 0]), [ b1 ] "=f"(cov[i * m + j + 1]),
+                  [ b2 ] "=f"(cov[i * m + j + 2]), [ b3 ] "=f"(cov[i * m + j + 3])
+                : [ n_frep ] "r"(n - 1), [ unroll1 ] "i"(unroll1),
+                  [ alpha ] "f"(inv_n_m1)
                 : "ft0", "ft1", "ft2");
-
-            snrt_ssr_disable();
-
-            cov[i * m + j + 0] = acc[0] * inv_n_m1;
-            cov[i * m + j + 1] = acc[1] * inv_n_m1;
-            cov[i * m + j + 2] = acc[2] * inv_n_m1;
-            cov[i * m + j + 3] = acc[3] * inv_n_m1;
-
-            snrt_ssr_enable();
         }
     }
 
@@ -245,7 +270,6 @@ void covariance_job(covariance_args_t *args) {
     b_tile_bytes = b_tile_size * sizeof(double);
 
     // Allocate space for job operands in TCDM
-    // Align X with the 1st bank in TCDM, Y with the 8th and Z with the 16th.
     local_a0_addr = (uint64_t)args + sizeof(covariance_args_t);
     local_at0_addr = local_a0_addr + a_tile_bytes;
     local_b0_addr = local_at0_addr + a_tile_bytes;

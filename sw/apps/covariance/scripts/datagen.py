@@ -12,6 +12,7 @@ from snitch.util.sim import data_utils
 from snitch.util.sim.data_utils import format_array_definition, \
     format_array_declaration, format_struct_definition, DataGen
 
+np.random.seed(42)
 
 DOUBLE_BUFFER = True
 
@@ -19,17 +20,19 @@ DOUBLE_BUFFER = True
 class CovarianceDataGen(DataGen):
 
     # Function pointers to alternative implementations
-    FUNCPTRS = ["covariance_naive", "covariance_opt"]
+    FUNCPTRS = ["covariance_naive", "covariance_baseline", "covariance_opt"]
 
     def golden_model(self, data):
         return np.cov(data, rowvar=False)
 
     def validate(self, **kwargs):
+        n_cores = 8
         assert (kwargs['m'] % kwargs['m_tiles']) == 0, "m must be an integer multiple of m_tiles"
         m_per_tile = kwargs['m'] / kwargs['m_tiles']
-        assert (m_per_tile % 8) == 0, "m_per_tile must be an integer multiple of the number of cores"
+        assert (m_per_tile % n_cores) == 0, \
+            "m_per_tile must be an integer multiple of the number of cores"
         assert (m_per_tile % 4) == 0, "m_per_tile must be an integer multiple of unroll1 = 4"
-        m_per_core = m_per_tile / 8
+        m_per_core = m_per_tile / n_cores
         assert (m_per_core % 2) == 0, "m_per_core must be an integer multiple of the unroll0 = 2"
         assert kwargs['funcptr'] in self.FUNCPTRS, f"Function pointer must be among {self.FUNCPTRS}"
 

@@ -8,6 +8,7 @@ APP              := covariance
 $(APP)_BUILD_DIR ?= $(ROOT)/target/snitch_cluster/sw/apps/$(APP)/build
 SRC_DIR          := $(ROOT)/sw/apps/$(APP)/src
 SRCS             := $(SRC_DIR)/main.c
+$(APP)_INCDIRS   := $(ROOT)/sw/apps/ata/src/
 
 include $(ROOT)/sw/apps/common.mk
 include $(ROOT)/target/snitch_cluster/sw/apps/common.mk
