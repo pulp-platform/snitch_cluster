@@ -7,23 +7,24 @@
 
 import numpy as np
 import sys
-from datagen import AtaDataGen
+from datagen import SyrkDataGen
 
 from snitch.util.sim.verif_utils import Verifier
 
 
-class AtaVerifier(Verifier):
+class SyrkVerifier(Verifier):
 
-    OUTPUT_UIDS = ['B']
+    OUTPUT_UIDS = ['C']
 
     def __init__(self):
         super().__init__()
         self.func_args = {
-            'alpha': 'd',
             'm': 'I',
             'n': 'I',
+            'alpha': 'd',
+            'beta': 'd',
             'A': 'I',
-            'B': 'I',
+            'C': 'I',
             'm_tiles': 'I',
             'funcptr': 'I'
         }
@@ -34,12 +35,17 @@ class AtaVerifier(Verifier):
 
     def get_expected_results(self):
         A = self.get_input_from_symbol('A', 'double')
+        C = self.get_input_from_symbol('C', 'double')
         A = np.reshape(A, (self.func_args['m'], self.func_args['n']))
-        return AtaDataGen().golden_model(self.func_args['alpha'], A).flatten()
+        C = np.reshape(C, (self.func_args['m'], self.func_args['m']))
+        return SyrkDataGen().golden_model(
+            self.func_args['alpha'], A,
+            self.func_args['beta'], C
+        ).flatten()
 
     def check_results(self, *args):
         return super().check_results(*args, rtol=1e-10)
 
 
 if __name__ == "__main__":
-    sys.exit(AtaVerifier().main())
+    sys.exit(SyrkVerifier().main())

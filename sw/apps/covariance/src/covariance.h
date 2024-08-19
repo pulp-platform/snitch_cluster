@@ -6,8 +6,8 @@
 //         Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 #include "args.h"
+#include "blas.h"
 #include "snrt.h"
-#include "ata.h"
 
 #define DOUBLE_BUFFER 1
 
@@ -41,7 +41,7 @@ void covariance_naive(uint32_t m, uint32_t n, double inv_n,
     snrt_cluster_hw_barrier();
 
     // Compute covariance matrix
-    ata_naive(inv_n_m1, m, n, data, datat, cov);
+    syrk_naive(m, n, inv_n_m1, data, datat, 0, cov);
 }
 
 void covariance_baseline(uint32_t m, uint32_t n, double inv_n,
@@ -74,7 +74,7 @@ void covariance_baseline(uint32_t m, uint32_t n, double inv_n,
     snrt_cluster_hw_barrier();
 
     // Compute covariance matrix
-    ata_baseline(inv_n_m1, m, n, data, datat, cov);
+    syrk_baseline(m, n, inv_n_m1, data, datat, 0, cov);
 }
 
 void covariance_opt(uint32_t m, uint32_t n, double inv_n,

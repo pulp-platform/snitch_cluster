@@ -7,15 +7,16 @@
 #pragma once
 #include <stdint.h>
 
-typedef void (*ata_fp_t)(double alpha, uint32_t m, uint32_t n, double *a,
-    double *at, double *b);
+typedef void (*syrk_fp_t)(uint32_t m, uint32_t n, double alpha, double *a,
+    double *at, double beta, double *b);
 
 typedef struct {
-    double alpha;
     uint32_t m;
     uint32_t n;
+    double alpha;
+    double beta;
     double *a;
-    double *b;
+    double *c;
     uint32_t m_tiles;
-    ata_fp_t funcptr;
-} ata_args_t;
+    syrk_fp_t funcptr;
+} syrk_args_t;

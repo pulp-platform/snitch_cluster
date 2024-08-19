@@ -9,7 +9,7 @@
 #include <math.h>
 #include <stdint.h>
 
-#include "gemm.h"
+#include "blas.h"
 
 #include "data.h"
 #include "snrt.h"

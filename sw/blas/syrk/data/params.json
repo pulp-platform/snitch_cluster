@@ -3,8 +3,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 {
-    "m": 16,
-    "n": 4,
-    "m_tiles": 2,
-    "funcptr": "ata_opt"
+    "m": 8,
+    "n": 2,
+    "alpha": 1.5,
+    "beta": 3.2,
+    "m_tiles": 1,
+    "funcptr": "syrk_opt"
 }

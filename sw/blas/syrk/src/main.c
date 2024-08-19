@@ -6,12 +6,12 @@
 
 #include "snrt.h"
 
-#include "ata.h"
+#include "blas.h"
 #include "data.h"
 
 int main() {
 
-    ata_job(&args);
+    syrk_job(&args);
 
     return 0;
 }

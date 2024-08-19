@@ -14,25 +14,27 @@ from snitch.util.sim.data_utils import format_array_definition, format_array_dec
 
 DOUBLE_BUFFER = True
 
-class AtaDataGen(DataGen):
+class SyrkDataGen(DataGen):
 
     # Function pointers to alternative implementations
-    FUNCPTRS = ["ata_naive", "ata_baseline", "ata_opt"]
+    FUNCPTRS = ["syrk_naive", "syrk_baseline", "syrk_opt"]
 
-    def golden_model(self, alpha, A):
-        return alpha * np.matmul(A, A.transpose())
+    def golden_model(self, alpha, A, beta, C):
+        return alpha * np.matmul(A, A.transpose()) + beta * C
 
     def validate(self, **kwargs):
+        n_cores = 8
         assert (kwargs['m'] % kwargs['m_tiles']) == 0, "m must be an integer multiple of m_tiles"
         m_frac = kwargs['m'] / kwargs['m_tiles']
-        assert (m_frac % 8) == 0, "m_frac must be an integer multiple of the number of cores"
-        assert (m_frac % 4) == 0, "m_frac must be an integer multiple of the unroll factor 4"
+        assert (m_frac % n_cores) == 0, "m_frac must be an integer multiple of the number of cores"
+        if kwargs['funcptr'] != "syrk_naive":
+            assert (m_frac % 4) == 0, "m_frac must be an integer multiple of the unroll factor 4"
         assert kwargs['funcptr'] in self.FUNCPTRS, f"Function pointer must be among {self.FUNCPTRS}"
 
         # Calculate total TCDM occupation
         a_tile_size = m_frac * kwargs['n'] * 8
-        b_tile_size = m_frac * m_frac * 8
-        total_size = 2 * a_tile_size + b_tile_size
+        c_tile_size = m_frac * m_frac * 8
+        total_size = 2 * a_tile_size + c_tile_size
         if DOUBLE_BUFFER:
             total_size *= 2
         data_utils.validate_tcdm_footprint(total_size)
@@ -42,33 +44,43 @@ class AtaDataGen(DataGen):
 
         self.validate(**kwargs)
 
+        if 'alpha' in kwargs:
+            alpha = kwargs['alpha']
+        else:
+            alpha = np.random.randint(-200, 100)/100
+        if 'beta' in kwargs:
+            beta = kwargs['beta']
+        else:
+            beta = np.random.randint(-200, 100)/100
+
         A = np.random.randint(-200, 100, size=(kwargs['m'], kwargs['n']))/100
-        alpha = np.random.randint(-200, 100)/100
-        B = self.golden_model(alpha, A)
+        C_in = np.random.randint(-200, 100, size=(kwargs['m'], kwargs['m']))/100
+        C_out = self.golden_model(alpha, A, beta, C_in)
 
         A = A.flatten()
-        B = B.flatten()
+        C_in = C_in.flatten()
 
         A_uid = 'A'
-        B_uid = 'B'
+        C_uid = 'C'
 
         cfg = {
-            'alpha': alpha,
             'm': kwargs['m'],
             'n': kwargs['n'],
+            'alpha': alpha,
+            'beta': beta,
             'a': A_uid,
-            'b': B_uid,
+            'c': C_uid,
             'm_tiles': kwargs['m_tiles'],
             'funcptr': kwargs['funcptr']
         }
 
         header += [format_array_definition('double', A_uid, A)]
-        header += [format_array_declaration('double', B_uid, B.shape)]
-        header += [format_struct_definition('ata_args_t', 'args', cfg)]
+        header += [format_array_definition('double', C_uid, C_in)]
+        header += [format_struct_definition('syrk_args_t', 'args', cfg)]
         header = '\n\n'.join(header)
 
         return header
 
 
 if __name__ == '__main__':
-    AtaDataGen().main()
+    SyrkDataGen().main()
