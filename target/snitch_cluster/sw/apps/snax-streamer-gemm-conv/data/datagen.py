@@ -72,8 +72,8 @@ def emit_gemm_data(**kwargs):
         input_data = np.random.randint(-10, 10, size=(Nbatch, H, W, Cin))
         kernel = np.random.randint(-10, 10, size=(Cout, Kh, Kw, Cin))
 
-    pad_h, pad_w = (kwargs["stride_h"], kwargs["stride_w"])
-    stride_h, stride_w = (kwargs["pad_h"], kwargs["pad_w"])
+    stride_h, stride_w = (kwargs["stride_h"], kwargs["stride_w"])
+    pad_h, pad_w = (kwargs["pad_h"], kwargs["pad_w"])
 
     # inferred config from the input data and kernel
     padding = pad_h, pad_w
@@ -189,15 +189,26 @@ def emit_gemm_data(**kwargs):
         Atlstride3 = 0
 
         # M dim
-        Atlbound4 = W // 8
+        Atlbound4 = out_width // 8
         Atlstride4 = Cin * 8
 
-        Atlbound5 = H
+        Atlbound5 = out_height
         Atlstride5 = Cin * (W + 2 * pad_w) * stride_h
 
         # Batch dim
         Atlbound6 = Nbatch
         Atlstride6 = Cin * (H + 2 * pad_h) * (W + 2 * pad_w)
+
+    assert (
+        M * K * N
+        == Atlbound0
+        * Atlbound1
+        * Atlbound2
+        * Atlbound3
+        * Atlbound4
+        * Atlbound5
+        * Atlbound6
+    )
 
     data_str += [
         format_scalar_definition("int32_t", "Aslstride0", Aslstride0),
@@ -254,12 +265,19 @@ def emit_gemm_data(**kwargs):
         Btlstride1 = Cin * Kw * Kh * 8
 
         # M dim
-        Btlbound2 = H * W // 8
+        Btlbound2 = out_width * out_height // 8
         Btlstride2 = 0
 
         # Batch dim
         Btlbound3 = Nbatch
         Btlstride3 = 0
+
+    assert K * N * M == Btlbound0 * Btlbound1 * Btlbound2 * Btlbound3, (
+        "K * N * M",
+        K * N * M,
+        "Loopbounds multipliers ",
+        Btlbound0 * Btlbound1 * Btlbound2 * Btlbound3,
+    )
 
     data_str += [
         format_scalar_definition("int32_t", "Bslstride0", Bslstride0),
@@ -307,15 +325,17 @@ def emit_gemm_data(**kwargs):
 
         # M dim
         # K is merged because of the block gemm output stationarity
-        Ctlbound1 = W // 8
+        Ctlbound1 = out_width // 8
         Ctlstride1 = Cout * 8 * 4
 
-        Ctlbound2 = H
+        Ctlbound2 = out_height
         Ctlstride2 = Cout * W * 4
 
         # Batch dim
         Ctlbound3 = Nbatch
         Ctlstride3 = Cout * H * W * 4
+
+    assert M * N == Ctlbound0 * Ctlbound1 * Ctlbound2 * Ctlbound3
 
     data_str += [
         format_scalar_definition("int32_t", "Cslstride0", Cslstride0),
