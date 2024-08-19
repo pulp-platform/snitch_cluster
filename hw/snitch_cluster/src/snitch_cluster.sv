@@ -108,9 +108,9 @@ module snitch_cluster
   /// SNAX TCDM Custom Index Assignment
   parameter bit          SnaxUseIdxTcdmAssign = 1'b0,
   /// SNAX Number of Narrow Index Assignments
-  parameter int unsigned SnaxNumNarrowAssignIdx = 0,
+  parameter int unsigned SnaxNumNarrowAssignIdx = 1,
   /// SNAX Number of Wide Index Assignments
-  parameter int unsigned SnaxNumWideAssignIdx = 0,
+  parameter int unsigned SnaxNumWideAssignIdx = 1,
   /// SNAX Narrow Custom Index Assignment
   parameter int unsigned SnaxNarrowStartIdx [SnaxNumNarrowAssignIdx] = '{default: 0},
   parameter int unsigned SnaxNarrowEndIdx [SnaxNumNarrowAssignIdx] = '{default: 0},
