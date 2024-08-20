@@ -67,6 +67,7 @@ APPS += sw/apps/montecarlo/pi_estimation
 APPS += sw/apps/atax
 APPS += sw/apps/correlation
 APPS += sw/apps/covariance
+APPS += sw/apps/doitgen
 
 # Include Makefile from each app subdirectory
 $(foreach app,$(APPS), \

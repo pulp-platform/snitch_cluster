@@ -99,3 +99,5 @@ runs:
   #   cmd: [../../../sw/apps/atax/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/covariance/build/covariance.elf
     cmd: [../../../sw/apps/covariance/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: apps/doitgen/build/doitgen.elf
+    cmd: [../../../sw/apps/doitgen/scripts/verify.py, "${sim_bin}", "${elf}"]
