@@ -41,33 +41,65 @@ MAX = 127
 
 
 def emit_gemm_data(**kwargs):
+    Cin = kwargs["Cin"]
+    Cout = kwargs["Cout"]
+    if kwargs["ifC8HW8datalayout"] is True:
+        Nbatch, Cin8, H, W, _ = (
+            kwargs["Nbatch"],
+            kwargs["Cin"] // 8,
+            kwargs["H"],
+            kwargs["W"],
+            8,
+        )
+        Cout8, Cin8, Kh, Kw, _, _ = (
+            kwargs["Cout"] // 8,
+            kwargs["Cin"] // 8,
+            kwargs["Kh"],
+            kwargs["Kw"],
+            8,
+            8,
+        )
 
-    # conv2d settings
-    Nbatch, H, W, Cin = (kwargs["Nbatch"], kwargs["H"], kwargs["W"], kwargs["Cin"])
-    Cout, Kh, Kw, Cin = (kwargs["Cout"], kwargs["Kh"], kwargs["Kw"], kwargs["Cin"])
+        # test data generation
+        input_data = np.random.randint(-10, 10, size=(Nbatch, Cin8, H, W, 8))
+        kernel = np.random.randint(-10, 10, size=(Cout8, Cin8, Kh, Kw, 8, 8))
+    else:
+        # conv2d settings
+        Nbatch, H, W, Cin = (kwargs["Nbatch"], kwargs["H"], kwargs["W"], kwargs["Cin"])
+        Cout, Kh, Kw, Cin = (kwargs["Cout"], kwargs["Kh"], kwargs["Kw"], kwargs["Cin"])
 
-    pad_h, pad_w = (kwargs["stride_h"], kwargs["stride_w"])
-    stride_h, stride_w = (kwargs["pad_h"], kwargs["pad_w"])
-
-    # test data generation
-    input_data = np.random.randint(MIN, MAX, size=(Nbatch, H, W, Cin))
-    kernel = np.random.randint(MIN, MAX, size=(Cout, Kh, Kw, Cin))
+        # test data generation
+        input_data = np.random.randint(MIN, MAX, size=(Nbatch, H, W, Cin))
+        kernel = np.random.randint(MIN, MAX, size=(Cout, Kh, Kw, Cin))
+    stride_h, stride_w = (kwargs["stride_h"], kwargs["stride_w"])
+    pad_h, pad_w = (kwargs["pad_h"], kwargs["pad_w"])
 
     # inferred config from the input data and kernel
     padding = pad_h, pad_w
     stride = stride_h, stride_w
 
-    input_padding = np.pad(
-        input_data, ((0, 0), (pad_h, pad_h), (pad_w, pad_w), (0, 0)), mode="constant"
-    )
+    # Padding the input data
 
-    im2col_matrix, im2col_kernel = im2col(
-        input_data, kernel, stride=stride, padding=padding
-    )
+    if kwargs["ifC8HW8datalayout"] is True:
+        input_padding = np.pad(
+            input_data,
+            ((0, 0), (0, 0), (pad_h, pad_h), (pad_w, pad_w), (0, 0)),
+            mode="constant",
+        )
+    else:
+        input_padding = np.pad(
+            input_data,
+            ((0, 0), (pad_h, pad_h), (pad_w, pad_w), (0, 0)),
+            mode="constant",
+        )
 
-    M = im2col_matrix.shape[0] // 8
-    K = im2col_matrix.shape[1] // 8
-    N = im2col_kernel.shape[1] // 8
+    # Calculate the size of the output feature map
+    out_height = (H + 2 * pad_h - Kh) // stride_h + 1
+    out_width = (W + 2 * pad_w - Kw) // stride_w + 1
+
+    M = out_height * out_width // 8
+    K = Cin // 8 * Kh * Kw
+    N = Cout // 8
 
     length_c = M * N * 8 * 8
     bias = np.random.randint(-(2**30), 2**30 - 1, length_c)
@@ -113,33 +145,76 @@ def emit_gemm_data(**kwargs):
 
     # for streamer cfg
     # streamer setting for data mover A
-    Aslstride0 = 1
-    Aslstride1 = Cin
+    if kwargs["ifC8HW8datalayout"] is True:
+        # NC8HW8
+        Aslstride0 = 1
+        Aslstride1 = 8
 
-    # K dim
-    Atlbound0 = Cin // 8
-    Atlstride0 = 8
+        # K dim
+        Atlbound0 = Kw
+        Atlstride0 = 8 * stride_w
 
-    Atlbound1 = Kw
-    Atlstride1 = Cin * stride_w
+        Atlbound1 = Kh
+        Atlstride1 = 8 * (W + 2 * pad_w)
 
-    Atlbound2 = Kh
-    Atlstride2 = Cin * (W + 2 * pad_w)
+        Atlbound2 = Cin8
+        Atlstride2 = 8 * (W + 2 * pad_w) * (H + 2 * pad_h)
 
-    # N dim
-    Atlbound3 = Cout // 8
-    Atlstride3 = 0
+        # N dim
+        Atlbound3 = Cout // 8
+        Atlstride3 = 0
 
-    # M dim
-    Atlbound4 = W // 8
-    Atlstride4 = Cin * 8
+        # M dim
+        Atlbound4 = out_width // 8
+        Atlstride4 = 8 * 8
 
-    Atlbound5 = H
-    Atlstride5 = Cin * (W + 2 * pad_w) * stride_h
+        Atlbound5 = out_height
+        Atlstride5 = 8 * (W + 2 * pad_w) * stride_h
 
-    # Batch dim
-    Atlbound6 = Nbatch
-    Atlstride6 = Cin * (H + 2 * pad_h) * (W + 2 * pad_w)
+        # Batch dim
+        Atlbound6 = Nbatch
+        Atlstride6 = 8 * Cin8 * (H + 2 * pad_h) * (W + 2 * pad_w)
+
+    else:
+        # NHWC
+        Aslstride0 = 1
+        Aslstride1 = Cin
+
+        # K dim
+        Atlbound0 = Cin // 8
+        Atlstride0 = 8
+
+        Atlbound1 = Kw
+        Atlstride1 = Cin * stride_w
+
+        Atlbound2 = Kh
+        Atlstride2 = Cin * (W + 2 * pad_w)
+
+        # N dim
+        Atlbound3 = Cout // 8
+        Atlstride3 = 0
+
+        # M dim
+        Atlbound4 = out_width // 8
+        Atlstride4 = Cin * 8
+
+        Atlbound5 = out_height
+        Atlstride5 = Cin * (W + 2 * pad_w) * stride_h
+
+        # Batch dim
+        Atlbound6 = Nbatch
+        Atlstride6 = Cin * (H + 2 * pad_h) * (W + 2 * pad_w)
+
+    assert (
+        M * K * N
+        == Atlbound0
+        * Atlbound1
+        * Atlbound2
+        * Atlbound3
+        * Atlbound4
+        * Atlbound5
+        * Atlbound6
+    )
 
     data_str += [
         format_scalar_definition("int32_t", "Aslstride0", Aslstride0),
@@ -160,25 +235,55 @@ def emit_gemm_data(**kwargs):
         format_scalar_definition("int32_t", "Atlstride6", Atlstride6),
     ]
 
-    # streamer setting for data mover B
-    Bslstride0 = 1
-    Bslstride1 = Cin * Kw * Kh
+    if kwargs["ifC8HW8datalayout"] is True:
+        # Cout8Cin8FyFx88
+        # streamer setting for data mover B
+        Bslstride0 = 1
+        Bslstride1 = 8
 
-    # K dim
-    Btlbound0 = Cin * Kw * Kh // 8
-    Btlstride0 = 8
+        # K dim
+        Btlbound0 = Kw * Kh * Cin8
+        Btlstride0 = 8 * 8
 
-    # N dim
-    Btlbound1 = Cout // 8
-    Btlstride1 = Cin * Kw * Kh * 8
+        # N dim
+        Btlbound1 = Cout // 8
+        Btlstride1 = 8 * 8 * Kw * Kh * Cin8
 
-    # M dim
-    Btlbound2 = H * W // 8
-    Btlstride2 = 0
+        # M dim
+        Btlbound2 = out_width * out_height // 8
+        Btlstride2 = 0
 
-    # Batch dim
-    Btlbound3 = Nbatch
-    Btlstride3 = 0
+        # Batch dim
+        Btlbound3 = Nbatch
+        Btlstride3 = 0
+    else:
+        # NCoutFyFxCin
+        # streamer setting for data mover B
+        Bslstride0 = 1
+        Bslstride1 = Cin * Kw * Kh
+
+        # K dim
+        Btlbound0 = Cin * Kw * Kh // 8
+        Btlstride0 = 8
+
+        # N dim
+        Btlbound1 = Cout // 8
+        Btlstride1 = Cin * Kw * Kh * 8
+
+        # M dim
+        Btlbound2 = out_width * out_height // 8
+        Btlstride2 = 0
+
+        # Batch dim
+        Btlbound3 = Nbatch
+        Btlstride3 = 0
+
+    assert K * N * M == Btlbound0 * Btlbound1 * Btlbound2 * Btlbound3, (
+        "K * N * M",
+        K * N * M,
+        "Loopbounds multipliers ",
+        Btlbound0 * Btlbound1 * Btlbound2 * Btlbound3,
+    )
 
     data_str += [
         format_scalar_definition("int32_t", "Bslstride0", Bslstride0),
@@ -195,24 +300,48 @@ def emit_gemm_data(**kwargs):
 
     # streamer setting for data mover C
     # C is int32_t so the stride is 4 times of the int8_t
-    Cslstride0 = 1 * 4
-    Cslstride1 = Cout * 4
+    if kwargs["ifC8HW8datalayout"] is True:
+        # NHWC
+        Cslstride0 = 4
+        Cslstride1 = 32
 
-    # N dim
-    Ctlbound0 = Cout // 8
-    Ctlstride0 = 8 * 4
+        # N dim
+        Ctlbound0 = Cout // 8
+        Ctlstride0 = out_height * out_width // 8 * 8 * 8 * 4
 
-    # M dim
-    # K is merged because of the block gemm output stationarity
-    Ctlbound1 = W // 8
-    Ctlstride1 = Cout * 8 * 4
+        # M dim
+        # K is merged because of the block gemm output stationarity
+        Ctlbound1 = out_width // 8
+        Ctlstride1 = 8 * 8 * 4
 
-    Ctlbound2 = H
-    Ctlstride2 = Cout * W * 4
+        Ctlbound2 = out_height
+        Ctlstride2 = out_width // 8 * 8 * 8 * 4
 
-    # Batch dim
-    Ctlbound3 = Nbatch
-    Ctlstride3 = Cout * H * W * 4
+        # Batch dim
+        Ctlbound3 = Nbatch
+        Ctlstride3 = Cout * out_height * out_width * 4
+
+    else:
+        Cslstride0 = 4
+        Cslstride1 = Cout * 4
+
+        # N dim
+        Ctlbound0 = Cout // 8
+        Ctlstride0 = 8 * 4
+
+        # M dim
+        # K is merged because of the block gemm output stationarity
+        Ctlbound1 = out_width // 8
+        Ctlstride1 = Cout * 8 * 4
+
+        Ctlbound2 = out_height
+        Ctlstride2 = Cout * W * 4
+
+        # Batch dim
+        Ctlbound3 = Nbatch
+        Ctlstride3 = Cout * H * W * 4
+
+    assert M * N == Ctlbound0 * Ctlbound1 * Ctlbound2 * Ctlbound3
 
     data_str += [
         format_scalar_definition("int32_t", "Cslstride0", Cslstride0),
@@ -227,26 +356,46 @@ def emit_gemm_data(**kwargs):
         format_scalar_definition("int32_t", "Ctlstride3", Ctlstride3),
     ]
 
-    # D32 is int32_t so the stride is 4 times of the int8_t
-    D32out = Cout
-    D32slstride0 = 1 * 4
-    D32slstride1 = D32out * 4
+    if kwargs["ifC8HW8datalayout"] is True:
+        D32slstride0 = 1 * 4
+        D32slstride1 = 8 * 4
 
-    # N dim
-    D32tlbound0 = D32out // 8
-    D32tlstride0 = 8 * 4
+        # N dim
+        D32tlbound0 = Cout // 8
+        D32tlstride0 = out_height * out_width // 8 * 8 * 8 * 4
 
-    # M dim
-    # K is merged because of the block gemm output stationarity
-    D32tlbound1 = W // 8
-    D32tlstride1 = D32out * 8 * 4
+        # M dim
+        # K is merged because of the block gemm output stationarity
+        D32tlbound1 = out_width // 8
+        D32tlstride1 = 8 * 8 * 4
 
-    D32tlbound2 = H
-    D32tlstride2 = D32out * W * 4
+        D32tlbound2 = out_height
+        D32tlstride2 = out_width // 8 * 8 * 8 * 4
 
-    # Batch dim
-    D32tlbound3 = Nbatch
-    D32tlstride3 = D32out * H * W * 4
+        # Batch dim
+        D32tlbound3 = Nbatch
+        D32tlstride3 = Cout * out_height * out_width * 4
+    else:
+        # D32 is int32_t so the stride is 4 times of the int8_t
+        D32out = Cout
+        D32slstride0 = 1 * 4
+        D32slstride1 = D32out * 4
+
+        # N dim
+        D32tlbound0 = D32out // 8
+        D32tlstride0 = 8 * 4
+
+        # M dim
+        # K is merged because of the block gemm output stationarity
+        D32tlbound1 = out_width // 8
+        D32tlstride1 = D32out * 8 * 4
+
+        D32tlbound2 = out_height
+        D32tlstride2 = D32out * out_width * 4
+
+        # Batch dim
+        D32tlbound3 = Nbatch
+        D32tlstride3 = D32out * out_height * out_width * 4
 
     data_str += [
         format_scalar_definition("int32_t", "D32slstride0", D32slstride0),
@@ -262,25 +411,45 @@ def emit_gemm_data(**kwargs):
     ]
 
     # postprocessing D8 settings
-    D8out = Cout
-    D8slstride0 = 1
-    D8slstride1 = D8out
+    if kwargs["ifC8HW8datalayout"] is True:
+        D8slstride0 = 1
+        D8slstride1 = 8
 
-    # N dim
-    D8tlbound0 = D8out // 8
-    D8tlstride0 = 8
+        # N dim
+        D8tlbound0 = Cout // 8
+        D8tlstride0 = out_height * out_width // 8 * 8 * 8
 
-    # M dim
-    # K is merged because of the block gemm output stationarity
-    D8tlbound1 = W // 8
-    D8tlstride1 = D8out * 8
+        # M dim
+        # K is merged because of the block gemm output stationarity
+        D8tlbound1 = out_width // 8
+        D8tlstride1 = 8 * 8
 
-    D8tlbound2 = H
-    D8tlstride2 = D8out * W
+        D8tlbound2 = out_height
+        D8tlstride2 = out_width // 8 * 8 * 8
 
-    # Batch dim
-    D8tlbound3 = Nbatch
-    D8tlstride3 = D8out * H * W
+        # Batch dim
+        D8tlbound3 = Nbatch
+        D8tlstride3 = Cout * out_height * out_width
+    else:
+        D8out = Cout
+        D8slstride0 = 1
+        D8slstride1 = D8out
+
+        # N dim
+        D8tlbound0 = D8out // 8
+        D8tlstride0 = 8
+
+        # M dim
+        # K is merged because of the block gemm output stationarity
+        D8tlbound1 = out_width // 8
+        D8tlstride1 = D8out * 8
+
+        D8tlbound2 = out_height
+        D8tlstride2 = D8out * out_width
+
+        # Batch dim
+        D8tlbound3 = Nbatch
+        D8tlstride3 = D8out * out_height * out_width
 
     data_str += [
         format_scalar_definition("int32_t", "D8slstride0", D8slstride0),
@@ -305,23 +474,16 @@ def emit_gemm_data(**kwargs):
         format_scalar_definition("int8_t", "subtraction_b", subtraction_b),
     ]
 
-    # conv2d using im2col
-    im2col_matrix = data_reshuffler_golden_model(
-        K, M, 8, 8, 8, 8 * 8 * K, 1, 8 * K, im2col_matrix.reshape(-1)
-    )
-    # row major to column major for B
-    im2col_kernel = im2col_kernel.T
-    im2col_kernel = data_reshuffler_golden_model(
-        K, N, 8, 8, 8, 8 * 8 * K, 1, 8 * K, im2col_kernel.reshape(-1)
-    )
-    # im2col_conv2d_res = block_gemm_golden_model(
-    #     M, K, N, 8, 8, 8, im2col_matrix, im2col_kernel, 0, 0, bias
-    # )
-    # im2col_conv2d_res = data_reshuffler_golden_model(N, M, 8, 8, 8, 8 * 8 * N,
-    # 1, 8 * N, im2col_conv2d_res, 1)
-
     # direct conv2d
-    direct_conv2d_res = conv2d(input_data, kernel, stride=stride, padding=padding)
+    if kwargs["ifC8HW8datalayout"] is True:
+        direct_conv2d_res = conv2d(
+            input_data, kernel, stride=stride, padding=padding, mode="C8HW8"
+        )
+    else:
+        direct_conv2d_res = conv2d(
+            input_data, kernel, stride=stride, padding=padding, mode="NHWC"
+        )
+
     # output in NHWC format
     direct_conv2d_res = direct_conv2d_res.reshape(-1)
 
@@ -330,11 +492,6 @@ def emit_gemm_data(**kwargs):
     data_str += [format_vector_definition("int8_t", "A", input_padding.reshape(-1))]
     data_str += [format_vector_definition("int8_t", "B", kernel.reshape(-1))]
     data_str += [format_vector_definition("int32_t", "C", bias.reshape(-1))]
-
-    # explicit im2col matrix and kernel, store the columned input data
-    # for comparing with the implicit im2col method
-    # data_str += [format_vector_definition("int8_t", "A", im2col_matrix)]
-    # data_str += [format_vector_definition("int8_t", "B", im2col_kernel)]
 
     # -----------------------------------------------------------
     # Postprocessing
@@ -369,20 +526,19 @@ def emit_gemm_data(**kwargs):
         )
     ]
 
-    if bypassSIMD == 0:
-        direct_conv2d_res = postprocessing_simd_golden_model(
-            np.add(direct_conv2d_res, bias),
-            input_zp_i,
-            output_zp_i,
-            shift_i,
-            max_int_i,
-            min_int_i,
-            double_round_i,
-            multiplier_i,
-        )
-        data_str += [
-            format_vector_definition("int8_t", "D8_direct_conv2d", direct_conv2d_res)
-        ]
+    direct_conv2d_res = postprocessing_simd_golden_model(
+        np.add(direct_conv2d_res, bias),
+        input_zp_i,
+        output_zp_i,
+        shift_i,
+        max_int_i,
+        min_int_i,
+        double_round_i,
+        multiplier_i,
+    )
+    data_str += [
+        format_vector_definition("int8_t", "D8_direct_conv2d", direct_conv2d_res)
+    ]
 
     data_str = "\n\n".join(data_str)
 
