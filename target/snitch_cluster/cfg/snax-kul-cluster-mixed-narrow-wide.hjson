@@ -26,6 +26,13 @@
         dma_data_width: 512,
         dma_axi_req_fifo_depth: 3,
         dma_req_fifo_depth: 3,
+        snax_custom_tcdm_assign: {
+            snax_enable_assign_tcdm_idx: true,
+            snax_narrow_assign_start_idx: [0,56],
+            snax_narrow_assign_end_idx: [7,71],
+            snax_wide_assign_start_idx: [8],
+            snax_wide_assign_end_idx: [55],
+        },
         // AXI bandwidth switcher
         use_ax_bw_converter: true,
         converted_axi_bandwidth: 256,
@@ -95,7 +102,8 @@
             snax_acc_name: "snax_streamer_gemmX",
             // add a checker here?
             // some of the tcdm ports specificed here?
-            snax_narrow_tcdm_ports: 56,
+            snax_narrow_tcdm_ports: 8,
+            snax_wide_tcdm_ports: 48,
             snax_num_rw_csr: 10,
             snax_num_ro_csr: 2,
             snax_streamer_cfg: {$ref: "#/snax_streamer_gemmX_streamer_template" }
