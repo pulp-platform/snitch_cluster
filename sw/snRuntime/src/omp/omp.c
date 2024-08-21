@@ -48,8 +48,8 @@ static inline void initTeam(omp_t *_this, omp_team_t *team) {
 void omp_init(void) {
     if (snrt_cluster_core_idx() == 0) {
         // allocate space for kmp arguments
-        kmpc_args =
-            (_kmp_ptr32 *)snrt_l1_alloc(sizeof(_kmp_ptr32) * KMP_FORK_MAX_NARGS);
+        kmpc_args = (_kmp_ptr32 *)snrt_l1_alloc(sizeof(_kmp_ptr32) *
+                                                KMP_FORK_MAX_NARGS);
 #ifndef OMPSTATIC_NUMTHREADS
         omp_p = (omp_t *)snrt_l1_alloc(sizeof(omp_t));
         unsigned int nbCores = snrt_cluster_compute_core_num();

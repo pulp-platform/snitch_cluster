@@ -19,14 +19,15 @@ inline void snrt_l1_update_next_v2(void *next) {
 // exception otherwise
 inline void snrt_l1_alloc_check_bounds() {
     if (snrt_l1_allocator_v2()->next > snrt_l1_allocator_v2()->end)
-        asm volatile ("ecall \n");
+        asm volatile("ecall \n");
 }
 
 // Dynamically allocate space for a variable of size `size` in the cluster's L1
 // memory. This function should be invoked by every core in a cluster. Every
 // core receives a pointer to the allocated variable.
 inline void *snrt_l1_alloc_cluster_local(size_t size, const size_t alignment) {
-    snrt_l1_allocator_v2()->next = ALIGN_UP(snrt_l1_allocator_v2()->next, alignment);
+    snrt_l1_allocator_v2()->next =
+        ALIGN_UP(snrt_l1_allocator_v2()->next, alignment);
     void *retval = snrt_l1_next_v2();
     snrt_l1_allocator_v2()->next += size;
     snrt_l1_alloc_check_bounds();
@@ -40,7 +41,8 @@ inline void *snrt_l1_alloc_cluster_local(size_t size, const size_t alignment) {
 // return value for the DM core is undefined.
 inline void *snrt_l1_alloc_compute_core_local(size_t size,
                                               const size_t alignment) {
-    snrt_l1_allocator_v2()->next = ALIGN_UP(snrt_l1_allocator_v2()->next, alignment);
+    snrt_l1_allocator_v2()->next =
+        ALIGN_UP(snrt_l1_allocator_v2()->next, alignment);
     void *retval = snrt_l1_next_v2() + size * snrt_cluster_core_idx();
     snrt_l1_allocator_v2()->next += size * snrt_cluster_compute_core_num();
     snrt_l1_alloc_check_bounds();
@@ -65,7 +67,7 @@ inline void *snrt_remote_l1_ptr(void *ptr, uint32_t src_cluster_idx,
                     (dst_cluster_idx - src_cluster_idx) * SNRT_CLUSTER_OFFSET);
 }
 
-inline void snrt_alloc_init_v2() {      
+inline void snrt_alloc_init_v2() {
     // Calculate end address of the heap. The top of the TCDM address space is
     // reserved for the cluster-local storage (CLS) and the stack of every
     // core. We further provision a safety margin of 128B. The rest of the
