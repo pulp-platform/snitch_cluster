@@ -62,9 +62,9 @@ ${',' if not loop.last else ''}
 package ${cfg['name']}_pkg;
 
   // Addressing Parameters
-  localparam int unsigned HartBaseID = ${to_sv_hex(cfg['cluster_base_hartid'], 10)};
-  localparam int unsigned ClusterBaseAddr = ${to_sv_hex(cfg['cluster_base_addr'], cfg['addr_width'])};
-  localparam int unsigned BootAddr = ${to_sv_hex(cfg['boot_addr'], 32)};
+  localparam logic [ 9:0] HartBaseID = ${to_sv_hex(cfg['cluster_base_hartid'], 10)};
+  localparam logic [${cfg['addr_width']-1}:0] ClusterBaseAddr = ${to_sv_hex(cfg['cluster_base_addr'], cfg['addr_width'])};
+  localparam logic [31:0] BootAddr = ${to_sv_hex(cfg['boot_addr'], 32)};
 
   // Base and pre-calculated parameters
   localparam int unsigned NrCores = ${cfg['nr_cores']};
