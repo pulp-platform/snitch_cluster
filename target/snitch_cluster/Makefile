@@ -175,7 +175,7 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-wide-gemm-data-reshuffler.hjson)
  
 endif
 
-ifeq (${CFG_OVERRIDE}, cfg/snax-kul-cluster-all-narrow.hjson)
+ifeq (${CFG_OVERRIDE}, cfg/snax-kul-cluster-mixed-narrow-wide.hjson)
 
  	CLUSTER_NAME = snax_KUL_cluster
 

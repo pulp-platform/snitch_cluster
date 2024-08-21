@@ -412,6 +412,24 @@ jobs:
           sw/runtime.yaml \
           sw/snax-streamer-gemm-conv-simd-run.yaml -j
 
+  sw-snax-KUL-cluster-vlt-generic:
+    name: Build KUL-cluster HW w/ Verilator (Generic LLVM)
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/kuleuven-micas/snax:main
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+      - name: RTL GEN
+        run: |
+          make CFG_OVERRIDE=cfg/snax-kul-cluster-mixed-narrow-wide.hjson \
+          -C target/snitch_cluster rtl-gen
+      - name: Build Hardware
+        run: |
+          make CFG_OVERRIDE=cfg/snax-kul-cluster-mixed-narrow-wide.hjson \
+          -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
+
   snax-xdma-vlt-generic:
     name: Simulate SW on xdma w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04
