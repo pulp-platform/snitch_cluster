@@ -69,7 +69,7 @@ module snitch_data_mem #(
 
     always_comb begin
       for (int j = 0; j < NarrowDataWidth / 8; j = j + 1) begin
-        bit_en[j*8+:8] = {8{mem_be_i[j]}};
+        bit_en[j*8+:8] = {8{mem_be_i[i][j]}};
       end
     end
 
