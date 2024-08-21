@@ -7,3 +7,4 @@
 
 runs:
   - elf: apps/snax-hypercorex/test-csr/build/test-csr.elf
+  - elf: apps/snax-hypercorex/char-recog/build/char-recog.elf
