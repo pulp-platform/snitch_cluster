@@ -309,6 +309,10 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: 'recursive'
+      # Need this for the hypercorex packages
+      - name: Install prerequisites
+        run: |
+          pip install tqdm matplotlib
       - name: Build Software
         run: |
           make -C target/snitch_cluster sw \

@@ -63,13 +63,16 @@ uint32_t hypercorex_is_streamer_busy(void);
 // HyperCoreX accelerator functions
 //-------------------------------
 
-uint32_t hypercorex_set_inst_loop_jump_addr(uint8_t config1, uint8_t config2,
-                                            uint8_t config3);
+void hypercorex_load_inst(uint32_t inst_size, uint32_t start_addr,
+                          uint32_t* inst_list);
 
-uint32_t hypercorex_set_inst_loop_end_addr(uint8_t config1, uint8_t config2,
-                                           uint8_t config3);
-
-uint32_t hypercorex_set_inst_loop_count(uint8_t config1, uint8_t config2,
+void hypercorex_set_inst_loop_jump_addr(uint8_t config1, uint8_t config2,
                                         uint8_t config3);
 
-uint32_t hypercorex_set_im_base_seed(uint32_t im_idx, uint32_t config);
+void hypercorex_set_inst_loop_end_addr(uint8_t config1, uint8_t config2,
+                                       uint8_t config3);
+
+void hypercorex_set_inst_loop_count(uint8_t config1, uint8_t config2,
+                                    uint8_t config3);
+
+void hypercorex_set_im_base_seed(uint32_t im_idx, uint32_t config);

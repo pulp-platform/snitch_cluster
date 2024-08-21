@@ -37,7 +37,10 @@ SUBDIRS += snax-streamer-gemm-conv
 SUBDIRS += snax-streamer-gemm-add-c
 SUBDIRS += snax-xdma-memset
 SUBDIRS += snax-multi-cluster-playground
+ifeq ($(CFG_OVERRIDE), cfg/snax-hypercorex.hjson)
 SUBDIRS += snax-hypercorex/test-csr
+SUBDIRS += snax-hypercorex/char-recog
+endif
 
 .PHONY: all clean $(SUBDIRS)
 

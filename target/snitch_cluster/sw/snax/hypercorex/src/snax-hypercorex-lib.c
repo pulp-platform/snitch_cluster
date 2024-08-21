@@ -121,6 +121,29 @@ uint32_t hypercorex_is_streamer_busy(void) {
 };
 
 //-------------------------------
+// Instruction loading functions
+//-------------------------------
+
+void hypercorex_load_inst(uint32_t inst_size, uint32_t start_addr,
+                          uint32_t* inst_list) {
+    // First enable instruction write mode
+    csrw_ss(HYPERCOREX_INST_CTRL_REG_ADDR, 0x00000001);
+
+    // Set starting address
+    csrw_ss(HYPERCOREX_INST_WRITE_ADDR_REG_ADDR, start_addr);
+
+    // Load all instructions
+    for (uint32_t i = 0; i < inst_size; i++) {
+        csrw_ss(HYPERCOREX_INST_WRITE_DATA_REG_ADDR, inst_list[i]);
+    };
+
+    // Disable instruction write mode and reset PC
+    csrw_ss(HYPERCOREX_INST_CTRL_REG_ADDR, 0x00000004);
+
+    return;
+};
+
+//-------------------------------
 // Instruction loop control functions
 //
 // These isntructions take in 7 bits per configuration
