@@ -110,7 +110,7 @@ int main() {
                                             1,            // Outer loop bound
                                             256,          // Inner loop stride
                                             0,            // Outer loop stride
-                                            1,            // Spatial stride
+                                            8,            // Spatial stride
                                             (uint32_t)qhv_start  // Base address
         );
 
@@ -178,7 +178,7 @@ int main() {
                                            num_classes,  // Outer loop bound
                                            256,          // Inner loop stride
                                            0,            // Outer loop stride
-                                           1,            // Spatial stride
+                                           8,            // Spatial stride
                                            (uint32_t)qhv_start  // Base address
         );
 

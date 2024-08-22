@@ -28,7 +28,7 @@ module snax_hypercorex_shell_wrapper # (
   //---------------------------
   parameter int unsigned NumTotIm        = 1024,
   parameter int unsigned NumPerImBank    = 128,
-  parameter int unsigned ImAddrWidth     = CsrDataWidth,
+  parameter int unsigned ImAddrWidth     = $clog2(NumTotIm),
   parameter int unsigned SeedWidth       = CsrDataWidth,
   parameter int unsigned HoldFifoDepth   = 2,
   //---------------------------
@@ -101,6 +101,23 @@ module snax_hypercorex_shell_wrapper # (
 );
 
   //---------------------------
+  // Assignments to take out bit-width warnings
+  //---------------------------
+  logic [ ImAddrWidth-1:0] lowdim_a_data;
+  logic [ ImAddrWidth-1:0] lowdim_b_data;
+  logic [CsrDataWidth-1:0] predict_data;
+
+  // Inputs
+  assign lowdim_a_data = stream2acc_0_data_i[ImAddrWidth-1:0];
+  assign lowdim_b_data = stream2acc_1_data_i[ImAddrWidth-1:0];
+
+  // Outputs
+  assign acc2stream_0_data_o =
+    {{(NarrowDataWidth-CsrDataWidth){1'b0}},
+    predict_data};
+
+
+  //---------------------------
   // Hypercore Top Module
   //---------------------------
   hypercorex_top # (
@@ -118,7 +135,6 @@ module snax_hypercorex_shell_wrapper # (
     //---------------------------
     .NumTotIm           ( NumTotIm             ),
     .NumPerImBank       ( NumPerImBank         ),
-    .ImAddrWidth        ( ImAddrWidth          ),
     .SeedWidth          ( SeedWidth            ),
     .HoldFifoDepth      ( HoldFifoDepth        ),
     //---------------------------
@@ -157,11 +173,11 @@ module snax_hypercorex_shell_wrapper # (
     //---------------------------
     // IM ports
     //---------------------------
-    .lowdim_a_data_i    ( stream2acc_0_data_i  ),
+    .lowdim_a_data_i    ( lowdim_a_data        ),
     .lowdim_a_valid_i   ( stream2acc_0_valid_i ),
     .lowdim_a_ready_o   ( stream2acc_0_ready_o ),
 
-    .lowdim_b_data_i    ( stream2acc_1_data_i  ),
+    .lowdim_b_data_i    ( lowdim_b_data        ),
     .lowdim_b_valid_i   ( stream2acc_1_valid_i ),
     .lowdim_b_ready_o   ( stream2acc_1_ready_o ),
 
@@ -185,11 +201,12 @@ module snax_hypercorex_shell_wrapper # (
     .class_hv_valid_i   ( stream2acc_4_valid_i ),
     .class_hv_ready_o   ( stream2acc_4_ready_o ),
     //---------------------------
-      // Low-dim prediction
-      //---------------------------
-    .predict_o          ( acc2stream_0_data_o  ),
+    // Low-dim prediction
+    //---------------------------
+    .predict_o          ( predict_data         ),
     .predict_valid_o    ( acc2stream_0_valid_o ),
     .predict_ready_i    ( acc2stream_0_ready_i )
   );
+
 
 endmodule
