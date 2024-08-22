@@ -101,3 +101,5 @@ runs:
     cmd: [../../../sw/apps/covariance/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/doitgen/build/doitgen.elf
     cmd: [../../../sw/apps/doitgen/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: apps/blas/gemv/build/gemv.elf
+    cmd: [../../../sw/blas/gemv/scripts/verify.py, "${sim_bin}", "${elf}"]
