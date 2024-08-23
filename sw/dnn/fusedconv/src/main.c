@@ -24,7 +24,7 @@ int main() {
     float *ptr;
 
     if (snrt_is_dm_core() == 0) {
-        ptr = snrt_l1alloc(total_size * sizeof(float));
+        ptr = snrt_l1_alloc(total_size * sizeof(float));
         share_ptr = ptr;
     }
 

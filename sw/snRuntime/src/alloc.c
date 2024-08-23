@@ -12,8 +12,8 @@ extern void *snrt_l3_next();
 extern uint32_t snrt_l1_start_addr();
 extern uint32_t snrt_l1_end_addr();
 
-extern void *snrt_l1alloc(size_t size);
-extern void *snrt_l3alloc(size_t size);
+extern void *snrt_l1_alloc(size_t size);
+extern void *snrt_l3_alloc(size_t size);
 
 extern snrt_allocator_t *snrt_l1_allocator();
 extern snrt_allocator_t *snrt_l3_allocator();

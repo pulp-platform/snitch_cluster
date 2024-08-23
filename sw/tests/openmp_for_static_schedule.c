@@ -10,8 +10,8 @@ unsigned __attribute__((noinline)) static_schedule(void) {
     static double *data_x, *data_y, data_a;
 
     // Allocate AXPY input vectors
-    data_x = snrt_l1alloc(sizeof(double) * AXPY_N);
-    data_y = snrt_l1alloc(sizeof(double) * AXPY_N);
+    data_x = snrt_l1_alloc(sizeof(double) * AXPY_N);
+    data_y = snrt_l1_alloc(sizeof(double) * AXPY_N);
 
     // Initialize AXPY input vectors
     data_a = 10.0;

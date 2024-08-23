@@ -48,10 +48,10 @@ static inline void initTeam(omp_t *_this, omp_team_t *team) {
 void omp_init(void) {
     if (snrt_cluster_core_idx() == 0) {
         // allocate space for kmp arguments
-        kmpc_args =
-            (_kmp_ptr32 *)snrt_l1alloc(sizeof(_kmp_ptr32) * KMP_FORK_MAX_NARGS);
+        kmpc_args = (_kmp_ptr32 *)snrt_l1_alloc(sizeof(_kmp_ptr32) *
+                                                KMP_FORK_MAX_NARGS);
 #ifndef OMPSTATIC_NUMTHREADS
-        omp_p = (omp_t *)snrt_l1alloc(sizeof(omp_t));
+        omp_p = (omp_t *)snrt_l1_alloc(sizeof(omp_t));
         unsigned int nbCores = snrt_cluster_compute_core_num();
         omp_p->numThreads = nbCores;
         omp_p->maxThreads = nbCores;
@@ -67,20 +67,20 @@ void omp_init(void) {
 
         initTeam((omp_t *)omp_p, (omp_team_t *)&omp_p->plainTeam);
         omp_p->kmpc_barrier =
-            (snrt_barrier_t *)snrt_l1alloc(sizeof(snrt_barrier_t));
+            (snrt_barrier_t *)snrt_l1_alloc(sizeof(snrt_barrier_t));
         snrt_memset(omp_p->kmpc_barrier, 0, sizeof(snrt_barrier_t));
         // Exchange omp pointer with other cluster cores
         omp_p_global = omp_p;
 #else
         omp_p.kmpc_barrier =
-            (snrt_barrier_t *)snrt_l1alloc(sizeof(snrt_barrier_t));
+            (snrt_barrier_t *)snrt_l1_alloc(sizeof(snrt_barrier_t));
         snrt_memset(omp_p.kmpc_barrier, 0, sizeof(snrt_barrier_t));
         // Exchange omp pointer with other cluster cores
         omp_p_global = &omp_p;
 #endif
 
 #ifdef OPENMP_PROFILE
-        omp_prof = (omp_prof_t *)snrt_l1alloc(sizeof(omp_prof_t));
+        omp_prof = (omp_prof_t *)snrt_l1_alloc(sizeof(omp_prof_t));
 #endif
 
     } else {

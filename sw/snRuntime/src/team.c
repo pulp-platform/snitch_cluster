@@ -26,6 +26,8 @@ extern uint32_t snrt_cluster_compute_core_num();
 
 extern int snrt_is_compute_core();
 
+extern int snrt_cluster_is_last_compute_core();
+
 extern int snrt_is_dm_core();
 
 extern uint32_t snrt_cluster_dm_core_num();

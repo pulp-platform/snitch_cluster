@@ -157,7 +157,7 @@ inline void dm_init(void) {
 #else
         snrt_interrupt_enable(IRQ_M_CLUSTER);
 #endif
-        dm_p = (dm_t *)snrt_l1alloc(sizeof(dm_t));
+        dm_p = (dm_t *)snrt_l1_alloc(sizeof(dm_t));
         snrt_memset((void *)dm_p, 0, sizeof(dm_t));
         dm_p_global = dm_p;
     } else {

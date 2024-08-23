@@ -66,25 +66,31 @@ inline void snrt_cluster_hw_barrier() {
     asm volatile("csrr x0, 0x7C2" ::: "memory");
 }
 
+// Synchronizes one core from every cluster with the others.
+// One core per cluster is expected to invoke this function.
+inline void snrt_inter_cluster_barrier() {
+    // Remember previous iteration
+    uint32_t prev_barrier_iteration = _snrt_barrier.iteration;
+    uint32_t cnt =
+        __atomic_add_fetch(&(_snrt_barrier.cnt), 1, __ATOMIC_RELAXED);
+
+    // Increment the barrier counter
+    if (cnt == snrt_cluster_num()) {
+        _snrt_barrier.cnt = 0;
+        __atomic_add_fetch(&(_snrt_barrier.iteration), 1, __ATOMIC_RELAXED);
+    } else {
+        while (prev_barrier_iteration == _snrt_barrier.iteration)
+            ;
+    }
+}
+
 /// Synchronize clusters globally with a global software barrier
 inline void snrt_global_barrier() {
     snrt_cluster_hw_barrier();
 
     // Synchronize all DM cores in software
     if (snrt_is_dm_core()) {
-        // Remember previous iteration
-        uint32_t prev_barrier_iteration = _snrt_barrier.iteration;
-        uint32_t cnt =
-            __atomic_add_fetch(&(_snrt_barrier.cnt), 1, __ATOMIC_RELAXED);
-
-        // Increment the barrier counter
-        if (cnt == snrt_cluster_num()) {
-            _snrt_barrier.cnt = 0;
-            __atomic_add_fetch(&(_snrt_barrier.iteration), 1, __ATOMIC_RELAXED);
-        } else {
-            while (prev_barrier_iteration == _snrt_barrier.iteration)
-                ;
-        }
+        snrt_inter_cluster_barrier();
     }
     // Synchronize cores in a cluster with the HW barrier
     snrt_cluster_hw_barrier();

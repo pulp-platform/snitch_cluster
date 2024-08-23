@@ -6,12 +6,7 @@
 
 #include <stdint.h>
 
-// Guard to avoid conflict with BLAS header file
-// TODO: move this definition to Snitch math library to solve problem
-#ifndef PRECISION_T
-#define PRECISION_T
-typedef enum { FP64 = 8, FP32 = 4, FP16 = 2, FP8 = 1 } precision_t;
-#endif
+#include "snrt.h"
 
 #ifndef IMPLEMENTATION_T
 #define IMPLEMENTATION_T
