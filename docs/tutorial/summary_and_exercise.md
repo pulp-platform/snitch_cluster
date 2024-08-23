@@ -40,6 +40,12 @@ Congratulations! You're now an expert in using the SNAX shell. Let's review the 
 
 # Summarizing Commands
 
+For generating the RTL files you do:
+
+```bash
+make CFG_OVERRIDE=cfg/snax-alu.hjson rtl-gen
+```
+
 For building hardware you do:
 
 ```bash

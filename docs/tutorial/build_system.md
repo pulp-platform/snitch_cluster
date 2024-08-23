@@ -112,21 +112,37 @@ After adding this to the `Makefile` we are now ready to build the system!
 
 1 - From the root of the repo navigate to `./target/snitch_cluster/`
 
-2 - Build the system:
+2 - Generate the RTL files
+
+```bash
+make CFG_OVERRIDE=cfg/snax-alu.hjson rtl-gen
+```
+
+3 - Build the system:
 
 ```bash
 make CFG_OVERRIDE=cfg/snax-alu.hjson bin/snitch_cluster.vlt
 ```
 
-3 - Wait 5 to 10 minutes until the build finishes.
+4 - Wait 5 to 10 minutes until the build finishes.
 
-4 - Success!!!
+5 - Success!!!
 
 That was easy, right?
 
+# Seeing the Generated RTL Files
+
+You can do step 2 whithout having to build the system yet. This becomes especially useful for designers to do a manual (eye-ball) sanity check on the connections.
+
+```bash
+make CFG_OVERRIDE=cfg/snax-alu.hjson rtl-gen
+```
+
+Generates all RTL files including the wrappers and the Chisel-generated CSR manager, streamers, (and possibly accelerators if need be).
+
 # (Optional) Wrapper Generation Scripts
 
-The original [Snitch Platform](https://github.com/pulp-platform/snitch_cluster) uses templated generation Python scripts. First, you have the accelerator wrapper script (`./util/wrappergen/wrappergen.py`) and then the cluster generation script (`./util/clustergen/cluster.py`).
+The original [Snitch Platform](https://github.com/pulp-platform/snitch_cluster) uses templated generation Python scripts. First, you have the accelerator wrapper script (`./util/snaxgen/snaxgen.py`) and then the cluster generation script (`./util/clustergen/cluster.py`).
 
 In principle, both scripts use a specified configuration file like the `snax-alu.hjson` and load those configurations in a templated file `*.tpl`. Once loaded, it generates the target files like System Verilog designs or Chisel parameters.
 
@@ -142,16 +158,16 @@ Inside the template directory we have:
 - `csrman_param_gen.scala.tpl` - this is a parameter file that Chisel uses for generating the CSR manager.
 - `stream_param_gen.scala.tpl` - this is a parameter file that Chisel uses for generating the streamer.
 
-We have shown previously how to use the `wrappergen` script. If you are working in Codespaces:
+We have shown previously how to use the `snaxgen` script. If you are working in Codespaces:
 
 ```bash
-/workspaces/snax_cluster/util/wrappergen/wrappergen.py --cfg_path="/workspaces/snax_cluster/target/snitch_cluster/cfg/snax-alu.hjson" --tpl_path="/workspaces/snax_cluster/hw/templates/" --chisel_path="/workspaces/snax_cluster/hw/chisel/" --gen_path="/workspaces/snax_cluster/target/snitch_cluster/generated/"
+/workspaces/snax_cluster/util/snaxgen/snaxgen.py --cfg_path="/workspaces/snax_cluster/target/snitch_cluster/cfg/snax-alu.hjson" --tpl_path="/workspaces/snax_cluster/hw/templates/" --chisel_path="/workspaces/snax_cluster/hw/chisel/" --gen_path="/workspaces/snax_cluster/target/snitch_cluster/generated/"
 ```
 
 If you are working in a docker container:
 
 ```bash
-/repo/util/wrappergen/wrappergen.py --cfg_path="/repo/target/snitch_cluster/cfg/snax-alu.hjson" --tpl_path="/repo/hw/templates/" --chisel_path="/repo/hw/chisel/" --gen_path="/repo/target/snitch_cluster/generated/"
+/repo/util/snaxgen/snaxgen.py --cfg_path="/repo/target/snitch_cluster/cfg/snax-alu.hjson" --tpl_path="/repo/hw/templates/" --chisel_path="/repo/hw/chisel/" --gen_path="/repo/target/snitch_cluster/generated/"
 ```
 
 Where:

@@ -287,25 +287,13 @@ Below is a tabulated version of the CSRs of the streamers with the register offs
 
 This is a good time to test our wrapper generation and see the changes in the Streamer. More details about the wrapper generation are in the [Building the System](./build_system.md) section. Do the following:
 
-1 - Go to the root directory.
+1 - Go to the `$(ROOT)/target/snitch_cluster/` directory. Where `$(ROOT)` is the github root.
 
-2 - Run the command:
-
-If you are working in Codespaces:
+2 - Run the RTL generation make target.
 
 ```bash
-/workspaces/snax_cluster/util/wrappergen/wrappergen.py --cfg_path="/workspaces/snax_cluster/target/snitch_cluster/cfg/snax-alu.hjson" --tpl_path="/workspaces/snax_cluster/hw/templates/" --chisel_path="/workspaces/snax_cluster/hw/chisel/" --gen_path="/workspaces/snax_cluster/target/snitch_cluster/generated/"
+make CFG_OVERRIDE=cfg/snax-alu.hjson rtl-gen
 ```
-
-If you are working in a docker container:
-
-```bash
-/repo/util/wrappergen/wrappergen.py --cfg_path="/repo/target/snitch_cluster/cfg/snax-alu.hjson" --tpl_path="/repo/hw/templates/" --chisel_path="/repo/hw/chisel/" --gen_path="/repo/target/snitch_cluster/generated/"
-```
-
-!!! note
-
-    If you are working outside of the container, note that the `/repo` pertains to the root of the repository.
 
 3 - Wait a while since this generates the CSR manager, streamer, and all other wrappers.
 

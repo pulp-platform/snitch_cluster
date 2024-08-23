@@ -179,3 +179,51 @@ write_csr(0x3c2, 32);
     Starts at `mcycle=620` and ends at `mcycle=657`. A total of 37 clock cycles.
 </details>
 
+# Questasim Simulation
+
+We also support simulations using QuestaSim. This tool is more powerful than Verilator, because you can also trace signals that may have been unconnected. Moreoever, it offers a more useful sanity-checking of the connections or designs you made. If you opt to use QuestaSim, the steps below will guide you through.
+
+!!! note
+
+    There are options where you can mount the QuestaSim to the container, or you have installed, the necessary packages to make the Makefiles work without a container. The steps below assume you don't do either of this, but if ever you do, it's okay to just run the commands directly.
+
+Steps 1, 2, 3, and 4 need to run inside the container first. Make sure to navigate to `/target/snitch_cluster/`
+
+1 - Generate all necessary RTL files
+
+```bash
+make CFG_OVERRIDE=cfg/snax-alu.hjson rtl-gen
+```
+
+2 - Build the `bootdata.cc`. Note that to change the path accordingly.
+
+```bash
+make /repo/target/snitch_cluster/generated/bootdata.cc
+```
+
+3 - Build the `libfesvr.a`
+
+```bash
+make work/lib/libfesvr.a
+```
+
+4 - While still in the container, you can build the software too:
+
+```bash
+make sw CFG_OVERRIDE=cfg/snax-alu.hjson SELECT_RUNTIME=rtl-generic SELECT_TOOLCHAIN=llvm-generic
+```
+
+5 - Exit the container. (This step is not needed if you can mount QuestaSim to the container or you can run everything without a container.)
+
+
+6 - Build the hardware with QuestaSim
+
+```bash
+make CFG_OVERRIDE=snax-alu.hjson bin/snitch_cluster.vsim
+```
+
+Done! This builds the system for QuestaSim. To simulate some built binaries (`.elf` files) you can just do:
+
+```bash
+make bin/snitch_cluster.vsim sw/apps/snax-alu/build/snax-alu.elf
+```
