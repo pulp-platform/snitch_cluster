@@ -405,7 +405,18 @@ def main():
             " --sw-target-dir " + args.gen_path + "../sw/snax/xdma"
         )
 
+    # ---------------------------------------
     # Generation of testharness
+    # ---------------------------------------
+    if ("enable_debug" not in cfg["cluster"]):
+        cfg["cluster"]["enable_debug"] = False
+
+    if ("iso_crossings" not in cfg["cluster"]["timing"]):
+        cfg["cluster"]["timing"]["iso_crossings"] = False
+
+    if ("sram_cfg_expose" not in cfg["cluster"]):
+        cfg["cluster"]["sram_cfg_expose"] = False
+
     test_target_path = args.test_path
     file_name = "testharness.sv"
     tpl_testharness_file = args.tpl_path + "testharness.sv.tpl"  # noqa: E501
