@@ -14,6 +14,7 @@ from mako.lookup import TemplateLookup
 from mako.template import Template
 from jsonref import JsonRef
 import hjson
+import json
 import argparse
 import os
 import math
@@ -28,6 +29,17 @@ def get_config(cfg_path: str):
     cfg = hjson.loads(srcfull, use_decimal=True)
     cfg = JsonRef.replace_refs(cfg)
     return cfg
+
+
+def read_schema(path):
+    """Read a single schema file and return the parsed JSON content.
+    Aborts if the JSON file could not be decoed."""
+    with open(path, "r") as f:
+        try:
+            schema = json.load(f)
+        except json.decoder.JSONDecodeError as e:
+            exit("Invalid schema file: {}".format(e))
+    return schema
 
 
 # Read template
@@ -408,14 +420,20 @@ def main():
     # ---------------------------------------
     # Generation of testharness
     # ---------------------------------------
+    cluster_schema_path = "../../docs/schema/snitch_cluster.schema.json"
+    harness_cfg = read_schema(cluster_schema_path)
+
     if ("enable_debug" not in cfg["cluster"]):
-        cfg["cluster"]["enable_debug"] = False
+        cfg["cluster"]["enable_debug"] = \
+            harness_cfg["properties"]["enable_debug"]["default"]
 
     if ("iso_crossings" not in cfg["cluster"]["timing"]):
-        cfg["cluster"]["timing"]["iso_crossings"] = False
+        cfg["cluster"]["timing"]["iso_crossings"] = \
+            harness_cfg["properties"]["timing"]["properties"]["iso_crossings"]["default"]  # noqa: E501
 
     if ("sram_cfg_expose" not in cfg["cluster"]):
-        cfg["cluster"]["sram_cfg_expose"] = False
+        cfg["cluster"]["sram_cfg_expose"] = \
+            harness_cfg["properties"]["sram_cfg_expose"]["default"]
 
     test_target_path = args.test_path
     file_name = "testharness.sv"
