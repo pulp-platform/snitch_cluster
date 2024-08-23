@@ -8,15 +8,13 @@
 import numpy as np
 import sys
 
-from snitch.util.sim import data_utils
+import snitch.util.sim.data_utils as du
 from snitch.util.sim.data_utils import format_scalar_definition, format_array_definition, \
     format_array_declaration, format_ifdef_wrapper, format_struct_definition, DataGen
 
 
 class AxpyDataGen(DataGen):
 
-    MIN = -1000
-    MAX = +1000
     # AXI splits bursts crossing 4KB address boundaries. To minimize
     # the occurrence of these splits the data should be aligned to 4KB
     BURST_ALIGNMENT = 4096
@@ -36,16 +34,16 @@ class AxpyDataGen(DataGen):
         # Note: doesn't account for gaps created by data alignment
         vec_size = n_per_tile * 8
         total_size = 2 * 3 * vec_size
-        data_utils.validate_tcdm_footprint(total_size)
+        du.validate_tcdm_footprint(total_size)
 
     def emit_header(self, **kwargs):
         header = [super().emit_header()]
 
         self.validate_config(**kwargs)
 
-        a = np.random.uniform(self.MIN, self.MAX, 1)[0]
-        x = np.random.uniform(self.MIN, self.MAX, kwargs['n'])
-        y = np.random.uniform(self.MIN, self.MAX, kwargs['n'])
+        a = du.generate_random_array(1)[0]
+        x = du.generate_random_array(kwargs['n'])
+        y = du.generate_random_array(kwargs['n'])
         g = self.golden_model(a, x, y)
 
         x_uid = 'x'

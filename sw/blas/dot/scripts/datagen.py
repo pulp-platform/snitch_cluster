@@ -6,14 +6,13 @@
 import numpy as np
 import sys
 
+import snitch.util.sim.data_utils as du
 from snitch.util.sim.data_utils import format_scalar_definition, format_array_definition, \
     format_scalar_declaration, format_ifdef_wrapper, DataGen
 
 
 class DotDataGen(DataGen):
 
-    MIN = -1000
-    MAX = +1000
     # AXI splits bursts crossing 4KB address boundaries. To minimize
     # the occurrence of these splits the data should be aligned to 4KB
     BURST_ALIGNMENT = 4096
@@ -25,8 +24,8 @@ class DotDataGen(DataGen):
         header = [super().emit_header()]
 
         n = kwargs['n']
-        x = np.random.uniform(self.MIN, self.MAX, n)
-        y = np.random.uniform(self.MIN, self.MAX, n)
+        x = du.generate_random_array(n)
+        y = du.generate_random_array(n)
         g = self.golden_model(x, y)
 
         assert (n % (8 * 4)) == 0, "n must be an integer multiple of the number of cores times " \

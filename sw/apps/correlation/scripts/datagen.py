@@ -8,6 +8,7 @@
 
 import numpy as np
 
+import snitch.util.sim.data_utils as du
 from snitch.util.sim.data_utils import format_scalar_definition, format_array_definition, \
     format_array_declaration, format_ifdef_wrapper, DataGen
 
@@ -26,7 +27,7 @@ class CorrelationDataGen(DataGen):
         header = [super().emit_header()]
 
         M, N = kwargs['M'], kwargs['N']
-        data = np.random.randint(-200, 100, size=(N, M))/100
+        data = du.generate_random_array((N, M))
         corr = self.golden_model(data)
 
         data = data.flatten()

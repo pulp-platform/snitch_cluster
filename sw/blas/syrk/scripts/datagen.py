@@ -7,7 +7,7 @@
 
 import numpy as np
 
-from snitch.util.sim import data_utils
+import snitch.util.sim.data_utils as du
 from snitch.util.sim.data_utils import format_array_definition, format_struct_definition, DataGen
 
 
@@ -37,7 +37,7 @@ class SyrkDataGen(DataGen):
         total_size = 2 * a_tile_size + c_tile_size
         if DOUBLE_BUFFER:
             total_size *= 2
-        data_utils.validate_tcdm_footprint(total_size)
+        du.validate_tcdm_footprint(total_size)
 
     def emit_header(self, **kwargs):
         header = [super().emit_header()]
@@ -47,14 +47,14 @@ class SyrkDataGen(DataGen):
         if 'alpha' in kwargs:
             alpha = kwargs['alpha']
         else:
-            alpha = np.random.randint(-200, 100)/100
+            alpha = du.generate_random_array(1)[0]
         if 'beta' in kwargs:
             beta = kwargs['beta']
         else:
-            beta = np.random.randint(-200, 100)/100
+            beta = du.generate_random_array(1)[0]
 
-        A = np.random.randint(-200, 100, size=(kwargs['m'], kwargs['n']))/100
-        C_in = np.random.randint(-200, 100, size=(kwargs['m'], kwargs['m']))/100
+        A = du.generate_random_array((kwargs['m'], kwargs['n']))
+        C_in = du.generate_random_array((kwargs['m'], kwargs['m']))
 
         A = A.flatten()
         C_in = C_in.flatten()

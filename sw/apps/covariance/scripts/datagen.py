@@ -8,7 +8,7 @@
 
 import numpy as np
 
-from snitch.util.sim import data_utils
+import snitch.util.sim.data_utils as du
 from snitch.util.sim.data_utils import format_array_definition, \
     format_array_declaration, format_struct_definition, DataGen
 
@@ -42,14 +42,14 @@ class CovarianceDataGen(DataGen):
         total_size = 2 * a_tile_size + b_tile_size
         if DOUBLE_BUFFER:
             total_size *= 2
-        data_utils.validate_tcdm_footprint(total_size)
+        du.validate_tcdm_footprint(total_size)
 
     def emit_header(self, **kwargs):
         header = [super().emit_header()]
 
         self.validate(**kwargs)
 
-        data = np.random.randint(-200, 100, size=(kwargs['n'], kwargs['m']))
+        data = du.generate_random_array((kwargs['n'], kwargs['m']))
         cov = self.golden_model(data)
 
         data = data.transpose().flatten()

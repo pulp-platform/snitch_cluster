@@ -8,6 +8,7 @@
 
 import numpy as np
 
+import snitch.util.sim.data_utils as du
 from snitch.util.sim.data_utils import format_scalar_definition, format_array_definition, \
     format_array_declaration, format_ifdef_wrapper, DataGen
 
@@ -26,8 +27,8 @@ class AtaxDataGen(DataGen):
         header = [super().emit_header()]
 
         M, N = kwargs['M'], kwargs['N']
-        A = np.random.randint(-200, 100, size=(M, N))/100
-        x = np.random.randint(-200, 100, size=(N, 1))/100
+        A = du.generate_random_array((M, N))
+        x = du.generate_random_array((N, 1))
         y = self.golden_model(A, x)
 
         assert (M % 8) == 0, "M must be an integer multiple of the number of cores"

@@ -7,7 +7,7 @@
 
 import numpy as np
 
-from snitch.util.sim import data_utils
+import snitch.util.sim.data_utils as du
 from snitch.util.sim.data_utils import format_array_definition, format_struct_definition, DataGen
 
 np.random.seed(42)
@@ -49,15 +49,15 @@ class DoitgenDataGen(DataGen):
         total_size = 2 * a_tile_size + x_size
         if DOUBLE_BUFFER:
             total_size *= 2
-        data_utils.validate_tcdm_footprint(total_size)
+        du.validate_tcdm_footprint(total_size)
 
     def emit_header(self, **kwargs):
         header = [super().emit_header()]
 
         self.validate(**kwargs)
 
-        A = np.random.randint(-100, 100, size=(kwargs['r'], kwargs['q'], kwargs['s']))
-        x = np.random.randint(-100, 100, size=(kwargs['s'], kwargs['s']))
+        A = du.generate_random_array((kwargs['r'], kwargs['q'], kwargs['s']))
+        x = du.generate_random_array((kwargs['s'], kwargs['s']))
 
         _ = self.golden_model(A, x)
 
