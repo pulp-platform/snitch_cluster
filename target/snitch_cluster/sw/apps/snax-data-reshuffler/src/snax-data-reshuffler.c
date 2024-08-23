@@ -36,7 +36,7 @@ int main() {
 
     uint32_t data_reshuffler_cycle;
 
-    if (CORE_IDX == 0) {
+    if (CORE_IDX == 1) {
         // Set data-reshuffler configuration CSR
         set_data_reshuffler_csr(
             tempLoop0_in, tempLoop1_in, tempLoop2_in, tempLoop3_in,

@@ -93,35 +93,6 @@ jobs:
           ./run.py --simulator verilator \
           sw/runtime.yaml sw/snax-mac-run.yaml -j
 
-  sw-snax-gemm-cluster-vlt-generic:
-    name: Simulate SW on SNAX GEMM Cluster w/ Verilator (Generic LLVM)
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/kuleuven-micas/snax:main
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: "recursive"
-      - name: Build Software
-        run: |
-          make -C target/snitch_cluster sw \
-          SELECT_RUNTIME=rtl-generic \
-          SELECT_TOOLCHAIN=llvm-generic \
-          CFG_OVERRIDE=cfg/snax-gemm.hjson
-      - name: Generate RTL
-        run: |
-          make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/snax-gemm.hjson
-      - name: Build Hardware
-        run: |
-          make CFG_OVERRIDE=cfg/snax-gemm.hjson \
-          -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
-      - name: Run Tests
-        working-directory: target/snitch_cluster
-        run: |-
-          ./run.py --simulator verilator \
-          sw/runtime.yaml sw/snax-gemm-run.yaml -j
-
   sw-snax-streamer-gemm-cluster-vlt-generic:
     name: Simulate SW on SNAX Streamer GEMM Cluster w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04
@@ -131,12 +102,6 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: "recursive"
-      - name: Build Software
-        run: |
-          make -C target/snitch_cluster sw \
-          SELECT_RUNTIME=rtl-generic \
-          SELECT_TOOLCHAIN=llvm-generic \
-          CFG_OVERRIDE=cfg/snax-streamer-gemm.hjson
       - name: Generate RTL
         run: |
           make -C target/snitch_cluster rtl-gen \
@@ -145,11 +110,6 @@ jobs:
         run: |
           make CFG_OVERRIDE=cfg/snax-streamer-gemm.hjson \
           -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
-      - name: Run Tests
-        working-directory: target/snitch_cluster
-        run: |-
-          ./run.py --simulator verilator \
-          sw/runtime.yaml sw/snax-streamer-gemm-run.yaml -j
 
   sw-snax-streamer-gemm-add-c-cluster-vlt-generic:
     name: Simulate SW on GEMM Add C w/ Verilator (Generic LLVM)
@@ -168,77 +128,6 @@ jobs:
         run: |
           make CFG_OVERRIDE=cfg/snax-streamer-gemm-add-c.hjson \
           -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
-      - name: Build Software
-        run: |
-          make -C target/snitch_cluster sw \
-          CFG_OVERRIDE=cfg/snax-streamer-gemm-add-c.hjson \
-          SELECT_RUNTIME=rtl-generic \
-          SELECT_TOOLCHAIN=llvm-generic
-      - name: Run Tests
-        working-directory: target/snitch_cluster
-        run: |-
-          ./run.py --simulator verilator \
-          sw/runtime.yaml \
-          sw/snax-streamer-gemm-add-c-run.yaml -j
-
-  snax-streamer-gemm-conv-cluster-vlt-generic:
-    name: Simulate SW on SNAX GEMM for Conv2d w/ Verilator (Generic LLVM)
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/kuleuven-micas/snax:main
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      - name: Build Software
-        run: |
-          make -C target/snitch_cluster sw \
-          CFG_OVERRIDE=cfg/snax-streamer-gemm-conv.hjson \
-          SELECT_RUNTIME=rtl-generic \
-          SELECT_TOOLCHAIN=llvm-generic -j$(nproc)
-      - name: Generate RTL
-        run: |
-          make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/snax-streamer-gemm-conv.hjson
-      - name: Build Hardware
-        run: |
-          make CFG_OVERRIDE=cfg/snax-streamer-gemm-conv.hjson \
-          -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
-      - name: Run Tests
-        working-directory: target/snitch_cluster
-        run: |-
-          ./run.py --simulator verilator \
-          sw/runtime.yaml sw/snax-streamer-gemm-conv-run.yaml -j
-
-  sw-snax-data-reshuffler-cluster-vlt-generic:
-    name: Simulate SW on SNAX Data Reshuffler w/ Verilator (Generic LLVM)
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/kuleuven-micas/snax:main
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: "recursive"
-      - name: Build Software
-        run: |
-          make -C target/snitch_cluster sw \
-          SELECT_RUNTIME=rtl-generic \
-          SELECT_TOOLCHAIN=llvm-generic \
-          CFG_OVERRIDE=cfg/snax-data-reshuffler.hjson
-      - name: Generate RTL
-        run: |
-          make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/snax-data-reshuffler.hjson
-      - name: Build Hardware
-        run: |
-          make CFG_OVERRIDE=cfg/snax-data-reshuffler.hjson \
-          -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
-      - name: Run Tests
-        working-directory: target/snitch_cluster
-        run: |-
-          ./run.py --simulator verilator \
-          sw/runtime.yaml \
-          sw/snax-data-reshuffler-run.yaml -j
 
   sw-snax-mac-mult-cluster-vlt-generic:
     name: Simulate SW on SNAX Multiple MAC Cluster w/ Verilator (Generic LLVM)
@@ -333,84 +222,6 @@ jobs:
           ./run.py --simulator verilator \
           sw/runtime.yaml \
           sw/snax-hypercorex-run.yaml -j
-
-  snax-streamer-simd-cluster-vlt-generic:
-    name: Simulate SW on SNAX SIMD Cluster w/ Verilator (Generic LLVM)
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/kuleuven-micas/snax:main
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      - name: Build Software
-        run: |
-          make -C target/snitch_cluster sw \
-          CFG_OVERRIDE=cfg/snax-streamer-simd.hjson \
-          SELECT_RUNTIME=rtl-generic \
-          SELECT_TOOLCHAIN=llvm-generic
-      - name: Generate RTL
-        run: |
-          make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/snax-streamer-simd.hjson
-      - name: Build Hardware
-        run: |
-          make CFG_OVERRIDE=cfg/snax-streamer-simd.hjson \
-          -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
-      - name: Run Tests
-        working-directory: target/snitch_cluster
-        run: |-
-          ./run.py --simulator verilator \
-          sw/runtime.yaml \
-          sw/snax-streamer-simd-run.yaml -j
-
-  sw-snax-wide-gemm-data-reshuffler-cluster-vlt-generic:
-    name: Simulate SW on Wide GEMM and Reshuffler w/ Verilator (Generic LLVM)
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/kuleuven-micas/snax:main
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: "recursive"
-      - name: Generate RTL
-        run: |
-          make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/snax-wide-gemm-data-reshuffler.hjson
-      - name: Build Hardware
-        run: |
-          make CFG_OVERRIDE=cfg/snax-wide-gemm-data-reshuffler.hjson \
-          -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
-
-  sw-snax-gemmX-cluster-vlt-generic:
-    name: Simulate SW on GEMMX w/ Verilator (Generic LLVM)
-    runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/kuleuven-micas/snax:main
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: "recursive"
-      - name: Build Software
-        run: |
-          make -C target/snitch_cluster sw \
-          CFG_OVERRIDE=cfg/snax-streamer-gemmX.hjson \
-          SELECT_RUNTIME=rtl-generic \
-          SELECT_TOOLCHAIN=llvm-generic
-      - name: Generate RTL
-        run: |
-          make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/snax-streamer-gemmX.hjson
-      - name: Build Hardware
-        run: |
-          make CFG_OVERRIDE=cfg/snax-streamer-gemmX.hjson \
-          -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
-      - name: Run Tests
-        working-directory: target/snitch_cluster
-        run: |-
-          ./run.py --simulator verilator \
-          sw/runtime.yaml \
-          sw/snax-streamer-gemm-conv-simd-run.yaml -j
 
   sw-snax-KUL-cluster-vlt-generic:
     name: Build KUL-cluster HW w/ Verilator (Generic LLVM)

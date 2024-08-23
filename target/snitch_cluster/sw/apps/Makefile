@@ -24,17 +24,10 @@ SUBDIRS += montecarlo/pi_estimation
 SUBDIRS += snax-mac
 SUBDIRS += snax-mac-simple/untiled
 SUBDIRS += snax-mac-simple/tiled
-SUBDIRS += snax-gemm-engine
-SUBDIRS += snax-gemm-base
-SUBDIRS += snax-block-gemm
-SUBDIRS += snax-streamer-gemm
-SUBDIRS += snax-streamer-simd
 SUBDIRS += snax-mac-mult
 SUBDIRS += snax-alu
 SUBDIRS += snax-data-reshuffler
 SUBDIRS += snax-streamer-gemm-conv-simd
-SUBDIRS += snax-streamer-gemm-conv
-SUBDIRS += snax-streamer-gemm-add-c
 SUBDIRS += snax-xdma-memset
 SUBDIRS += snax-multi-cluster-playground
 ifeq ($(CFG_OVERRIDE), cfg/snax-hypercorex.hjson)
