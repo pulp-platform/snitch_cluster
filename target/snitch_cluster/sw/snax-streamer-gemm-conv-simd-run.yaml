@@ -6,4 +6,3 @@
 
 runs:
   - elf: apps/snax-streamer-gemm-conv-simd/build/snax-streamer-gemm-conv-simd.elf
-  - elf: apps/snax-data-reshuffler/build/snax-data-reshuffler.elf
