@@ -3,7 +3,7 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 #
-# Author: Jose Pedro Castro Fonseca <jose.pc.fonseca@gmail, jcastro@ethz.ch>
+# Author: Jose Pedro Castro Fonseca <jcastro@ethz.ch>
 #         Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import numpy as np
@@ -21,8 +21,23 @@ class CorrelationDataGen(du.DataGen):
     def golden_model(self, data):
         return np.corrcoef(data, rowvar=False)
 
+    def validate_config(self, M, N, **kwargs):
+        assert (M % 8) == 0, "M must be an integer multiple of the number of cores"
+
+        # Calculate total TCDM occupation
+        data_size = N * M * 8
+        corr_size = M * M * 8
+        stddev_size = M * 8
+        total_size = data_size
+        total_size += corr_size
+        total_size += stddev_size
+        du.validate_tcdm_footprint(total_size)
+
     def emit_header(self, **kwargs):
         header = [super().emit_header()]
+
+        # Validate parameters
+        self.validate_config(**kwargs)
 
         M, N = kwargs['M'], kwargs['N']
         data = du.generate_random_array((N, M))
