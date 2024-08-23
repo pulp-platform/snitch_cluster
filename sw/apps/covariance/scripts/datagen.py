@@ -9,15 +9,13 @@
 import numpy as np
 
 import snitch.util.sim.data_utils as du
-from snitch.util.sim.data_utils import format_array_definition, \
-    format_array_declaration, format_struct_definition, DataGen
 
 np.random.seed(42)
 
 DOUBLE_BUFFER = True
 
 
-class CovarianceDataGen(DataGen):
+class CovarianceDataGen(du.DataGen):
 
     # Function pointers to alternative implementations
     FUNCPTRS = ["covariance_naive", "covariance_baseline", "covariance_opt"]
@@ -69,9 +67,9 @@ class CovarianceDataGen(DataGen):
             'funcptr': kwargs['funcptr']
         }
 
-        header += [format_array_definition('double', data_uid, data)]
-        header += [format_array_declaration('double', cov_uid, cov.shape)]
-        header += [format_struct_definition('covariance_args_t', 'args', cfg)]
+        header += [du.format_array_definition('double', data_uid, data)]
+        header += [du.format_array_declaration('double', cov_uid, cov.shape)]
+        header += [du.format_struct_definition('covariance_args_t', 'args', cfg)]
         header = '\n\n'.join(header)
 
         return header

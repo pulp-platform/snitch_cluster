@@ -8,14 +8,13 @@
 import numpy as np
 
 import snitch.util.sim.data_utils as du
-from snitch.util.sim.data_utils import format_array_definition, format_struct_definition, DataGen
 
 np.random.seed(42)
 
 DOUBLE_BUFFER = True
 
 
-class DoitgenDataGen(DataGen):
+class DoitgenDataGen(du.DataGen):
 
     # Function pointers to alternative implementations
     FUNCPTRS = ["doitgen_naive", "doitgen_baseline", "doitgen_opt"]
@@ -78,9 +77,9 @@ class DoitgenDataGen(DataGen):
             'funcptr': kwargs['funcptr']
         }
 
-        header += [format_array_definition('double', A_uid, A)]
-        header += [format_array_definition('double', x_uid, x)]
-        header += [format_struct_definition('doitgen_args_t', 'args', cfg)]
+        header += [du.format_array_definition('double', A_uid, A)]
+        header += [du.format_array_definition('double', x_uid, x)]
+        header += [du.format_struct_definition('doitgen_args_t', 'args', cfg)]
         header = '\n\n'.join(header)
 
         return header

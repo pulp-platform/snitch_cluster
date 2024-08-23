@@ -5,15 +5,12 @@
 #
 # Author: Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-import numpy as np
 import sys
 
 import snitch.util.sim.data_utils as du
-from snitch.util.sim.data_utils import format_scalar_definition, format_array_definition, \
-    format_array_declaration, format_ifdef_wrapper, format_struct_definition, DataGen
 
 
-class AxpyDataGen(DataGen):
+class AxpyDataGen(du.DataGen):
 
     # AXI splits bursts crossing 4KB address boundaries. To minimize
     # the occurrence of these splits the data should be aligned to 4KB
@@ -60,16 +57,16 @@ class AxpyDataGen(DataGen):
             'funcptr': kwargs['funcptr']
         }
 
-        header += [format_scalar_definition('const double', 'a', a)]
-        header += [format_array_definition('double', x_uid, x,
+        header += [du.format_scalar_definition('const double', 'a', a)]
+        header += [du.format_array_definition('double', x_uid, x,
                    alignment=self.BURST_ALIGNMENT, section=kwargs['section'])]
-        header += [format_array_definition('double', y_uid, y,
+        header += [du.format_array_definition('double', y_uid, y,
                    alignment=self.BURST_ALIGNMENT, section=kwargs['section'])]
-        header += [format_array_declaration('double', z_uid, x.shape,
+        header += [du.format_array_declaration('double', z_uid, x.shape,
                    alignment=self.BURST_ALIGNMENT, section=kwargs['section'])]
-        header += [format_struct_definition('axpy_args_t', 'args', cfg)]
-        result_def = format_array_definition('double', 'g', g)
-        header += [format_ifdef_wrapper('BIST', result_def)]
+        header += [du.format_struct_definition('axpy_args_t', 'args', cfg)]
+        result_def = du.format_array_definition('double', 'g', g)
+        header += [du.format_ifdef_wrapper('BIST', result_def)]
         header = '\n\n'.join(header)
 
         return header

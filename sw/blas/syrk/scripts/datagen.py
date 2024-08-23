@@ -8,13 +8,12 @@
 import numpy as np
 
 import snitch.util.sim.data_utils as du
-from snitch.util.sim.data_utils import format_array_definition, format_struct_definition, DataGen
 
 
 DOUBLE_BUFFER = True
 
 
-class SyrkDataGen(DataGen):
+class SyrkDataGen(du.DataGen):
 
     # Function pointers to alternative implementations
     FUNCPTRS = ["syrk_naive", "syrk_baseline", "syrk_opt"]
@@ -73,9 +72,9 @@ class SyrkDataGen(DataGen):
             'funcptr': kwargs['funcptr']
         }
 
-        header += [format_array_definition('double', A_uid, A)]
-        header += [format_array_definition('double', C_uid, C_in)]
-        header += [format_struct_definition('syrk_args_t', 'args', cfg)]
+        header += [du.format_array_definition('double', A_uid, A)]
+        header += [du.format_array_definition('double', C_uid, C_in)]
+        header += [du.format_struct_definition('syrk_args_t', 'args', cfg)]
         header = '\n\n'.join(header)
 
         return header

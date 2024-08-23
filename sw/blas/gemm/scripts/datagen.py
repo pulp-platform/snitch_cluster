@@ -13,14 +13,12 @@ import re
 import sys
 
 import snitch.util.sim.data_utils as du
-from snitch.util.sim.data_utils import DataGen, format_array_declaration, \
-    format_struct_definition, format_array_definition, format_ifdef_wrapper
 
 
 np.random.seed(42)
 
 
-class GemmDataGen(DataGen):
+class GemmDataGen(du.DataGen):
 
     # AXI splits bursts crossing 4KB address boundaries. To minimize
     # the occurrence of these splits the data should be aligned to 4KB
@@ -125,18 +123,18 @@ class GemmDataGen(DataGen):
         b = b.flatten()
         c = c.flatten()
 
-        header += [format_array_declaration(ctype, a_uid, a.shape)]
-        header += [format_array_declaration(ctype, b_uid, b.shape)]
-        header += [format_array_declaration(ctype, c_uid, c.shape)]
-        header += [format_struct_definition('gemm_args_t', 'args', cfg)]
-        header += [format_array_definition(ctype, a_uid, a,
-                                           section=kwargs['section'])]
-        header += [format_array_definition(ctype, b_uid, b,
-                                           section=kwargs['section'])]
-        header += [format_array_definition(ctype, c_uid, c,
-                                           section=kwargs['section'])]
-        result_def = format_array_definition(ctype, 'result', result.flatten())
-        header += [format_ifdef_wrapper('BIST', result_def)]
+        header += [du.format_array_declaration(ctype, a_uid, a.shape)]
+        header += [du.format_array_declaration(ctype, b_uid, b.shape)]
+        header += [du.format_array_declaration(ctype, c_uid, c.shape)]
+        header += [du.format_struct_definition('gemm_args_t', 'args', cfg)]
+        header += [du.format_array_definition(ctype, a_uid, a,
+                                              section=kwargs['section'])]
+        header += [du.format_array_definition(ctype, b_uid, b,
+                                              section=kwargs['section'])]
+        header += [du.format_array_definition(ctype, c_uid, c,
+                                              section=kwargs['section'])]
+        result_def = du.format_array_definition(ctype, 'result', result.flatten())
+        header += [du.format_ifdef_wrapper('BIST', result_def)]
         header = '\n\n'.join(header)
 
         return header
