@@ -83,8 +83,8 @@ class BlockGemmRescaleSIMD(params: BlockGemmRescaleSIMDParams)
 
   }.otherwise {
     // insert a register to improve frequency
-    simd.io.data.input_i.valid := RegNext(gemm.io.data.d_o.valid)
-    simd.io.data.input_i.bits := RegNext(gemm.io.data.d_o.bits)
+    simd.io.data.input_i.valid := gemm.io.data.d_o.valid
+    simd.io.data.input_i.bits := gemm.io.data.d_o.bits
     // directly connect the ready signal
     gemm.io.data.d_o.ready := simd.io.data.input_i.ready
 

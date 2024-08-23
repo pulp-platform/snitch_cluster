@@ -119,10 +119,10 @@ class PipelinedRescaleSIMD(params: RescaleSIMDParams)
     )
   }
 
-  // always valid for new input on less is sending last output
+  // valid for new input if pipeline is empty and output is not stalled
   val output_stall = WireInit(0.B)
   output_stall := io.data.output_o.valid & !io.data.output_o.ready
-  io.data.input_i.ready := !keep_output && !output_stall && cstate === sBUSY && (pipe_out_counter === 0.U || pipe_out_counter === (lane_comp_cycle.U - 1.U))
+  io.data.input_i.ready := !keep_output && !output_stall && cstate === sBUSY && (pipe_input_counter === 0.U && pipe_out_counter === 0.U)
 
   // if out valid but not ready, keep sneding output valid signal
   keep_output := output_stall

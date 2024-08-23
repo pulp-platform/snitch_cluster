@@ -70,9 +70,9 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
 
   // useful counters
   val accumulation_counter = RegInit(0.U((3 * params.sizeConfigWidth).W))
-
+  // counter used to record if need to output to outside
   val d_output_ifvalid_counter = RegInit(0.U(params.sizeConfigWidth.W))
-
+  // counter to record how many output data has been written
   val d_output_counter = RegInit(0.U((3 * params.sizeConfigWidth).W))
 
   val performance_counter = RegInit(0.U(32.W))
@@ -205,7 +205,7 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
   }
 
   // add c control signal generation
-  when(add_c) {
+  when(add_c_fire) {
     needs_add_c := 0.B
   }.elsewhen(
     io.data.d_o.valid

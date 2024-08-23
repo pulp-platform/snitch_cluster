@@ -55,6 +55,8 @@ class RescaleSIMD(params: RescaleSIMDParams)
 
   val simd_output_fire = WireInit(0.B)
 
+  val read_counter = RegInit(0.U(32.W))
+
   val write_counter = RegInit(0.U(32.W))
 
   // State declaration
@@ -118,6 +120,14 @@ class RescaleSIMD(params: RescaleSIMDParams)
   // length of the data
   ctrl_csr.len := io.ctrl.bits(3)
 
+  val simd_input_fire = WireInit(0.B)
+  simd_input_fire := io.data.input_i.fire
+  when(simd_input_fire) {
+    read_counter := read_counter + 1.U
+  }.elsewhen(cstate === sIDLE) {
+    read_counter := 0.U
+  }
+
   simd_output_fire := io.data.output_o.fire
   when(simd_output_fire) {
     write_counter := write_counter + 1.U
@@ -125,7 +135,7 @@ class RescaleSIMD(params: RescaleSIMDParams)
     write_counter := 0.U
   }
 
-  computation_finish := (write_counter === ctrl_csr.len - 1.U) && simd_output_fire && cstate === sBUSY
+  computation_finish := (read_counter === ctrl_csr.len) && (write_counter === ctrl_csr.len - 1.U) && simd_output_fire && cstate === sBUSY
 
   // always ready for configuration
   io.ctrl.ready := cstate === sIDLE
