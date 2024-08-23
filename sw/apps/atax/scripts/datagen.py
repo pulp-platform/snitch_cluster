@@ -3,7 +3,7 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 #
-# Author: Jose Pedro Castro Fonseca <jose.pc.fonseca@gmail, jcastro@ethz.ch>
+# Author: Jose Pedro Castro Fonseca <jcastro@ethz.ch>
 #         Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import numpy as np
@@ -21,16 +21,30 @@ class AtaxDataGen(du.DataGen):
     def golden_model(self, A, x):
         return np.matmul(A.transpose(), np.matmul(A, x))
 
+    def validate_config(self, M, N, **kwargs):
+        assert (N % 8) == 0, "N must be an integer multiple of the number of cores"
+
+        # Calculate total TCDM occupation
+        a_size = M * N * 8
+        x_size = N * 8
+        y_size = N * 8
+        tmp_size = M * 8
+        total_size = a_size
+        total_size += x_size
+        total_size += y_size
+        total_size += tmp_size
+        du.validate_tcdm_footprint(total_size)
+
     def emit_header(self, **kwargs):
         header = [super().emit_header()]
+
+        # Validate parameters
+        self.validate_config(**kwargs)
 
         M, N = kwargs['M'], kwargs['N']
         A = du.generate_random_array((M, N))
         x = du.generate_random_array((N, 1))
         y = self.golden_model(A, x)
-
-        assert (M % 8) == 0, "M must be an integer multiple of the number of cores"
-        assert (N % 8) == 0, "N must be an integer multiple of the number of cores"
 
         A = A.flatten()
         x = x.flatten()
