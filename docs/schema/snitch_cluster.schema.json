@@ -104,12 +104,12 @@
         "user_width": {
             "type": "number",
             "description": "User width of the narrower AXI plug into the cluster.",
-            "default": 1
+            "default": 2
         },
         "dma_user_width": {
             "type": "number",
             "description": "User width of the wide AXI plug into the cluster.",
-            "default": 1
+            "default": 2
         },
         "hart_base_id": {
             "type": "number",
