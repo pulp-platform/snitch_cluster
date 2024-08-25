@@ -28,6 +28,7 @@ int main() {
         // The xdma core is the last compute core in the cluster
 
         // Test 1: Setting the 0-16KB region to 0xFF
+        printf("Core %d is xdma core. \n", snrt_cluster_core_idx());
         printf("Test 1: Setting the 0-16KB region to 0xFF\n");
         if (xdma_memcpy_1d(tcdm_0, tcdm_0, 0x4000 * sizeof(uint8_t)) != 0) {
             printf("Error in xdma agu configuration\n");

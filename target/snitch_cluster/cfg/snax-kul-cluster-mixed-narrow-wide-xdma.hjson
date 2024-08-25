@@ -10,7 +10,7 @@
     },
 
     cluster: {
-        name: "snax_streamer_gemmX_xdma_cluster",
+        name: "snax_KUL_xdma_cluster",
         boot_addr: 4096, // 0x1000
         cluster_base_addr: 268435456, // 0x1000_0000
         cluster_base_offset: 0, // 0x0
@@ -26,6 +26,16 @@
         dma_data_width: 512,
         dma_axi_req_fifo_depth: 3,
         dma_req_fifo_depth: 3,
+        snax_custom_tcdm_assign: {
+            snax_enable_assign_tcdm_idx: true,
+            snax_narrow_assign_start_idx: [0,56],
+            snax_narrow_assign_end_idx: [7,71],
+            snax_wide_assign_start_idx: [8],
+            snax_wide_assign_end_idx: [55],
+        },
+        // AXI bandwidth switcher
+        use_ax_bw_converter: true,
+        converted_axi_bandwidth: 256,
         // Timing parameters
         timing: {
             lat_comp_fp32: 3,
@@ -91,7 +101,8 @@
             snax_acc_name: "snax_streamer_gemmX",
             // add a checker here?
             // some of the tcdm ports specificed here?
-            snax_narrow_tcdm_ports: 56,
+            snax_narrow_tcdm_ports: 8,
+            snax_wide_tcdm_ports: 48,
             snax_num_rw_csr: 10,
             snax_num_ro_csr: 2,
             snax_streamer_cfg: {$ref: "#/snax_streamer_gemmX_streamer_template" }
@@ -107,17 +118,20 @@
         // Enable division/square root unit
         // Xdiv_sqrt: true,
     },
+    // Templates.
     dma_core_template: {
         isa: "rv32ima",
         snax_xdma_cfg: {
-            reader_buffer: 8, 
-            writer_buffer: 8, 
-            reader_agu_dimension: 3, 
-            writer_agu_dimension: 3, 
+            reader_buffer: 4, 
+            writer_buffer: 4, 
+            reader_agu_dimension: 7, 
+            writer_agu_dimension: 7, 
             HasTransposer: 3, 
             HasVerilogMemset: 1, 
             HasMaxPool: 2
         }
+        // Xdiv_sqrt: true,
+        # isa: "rv32ema",
         xdma: true
         xssr: false
         xfrep: false
@@ -180,5 +194,39 @@
         }
 
         stationarity: [0,0,0,0,0]
+    },
+    // SNAX Streamer Templates
+    snax_data_reshuffler_streamer_template :{
+
+        temporal_addrgen_unit_params: {
+            loop_dim: [5, 3],
+            share_temp_addr_gen_loop_bounds: false,
+        }
+
+        fifo_reader_params: {
+            fifo_width: [512],
+            fifo_depth: [2],
+        }
+
+        fifo_writer_params: {
+            fifo_width: [512],
+            fifo_depth: [2],
+        }
+
+        data_reader_params:{
+            tcdm_ports_num: [8],
+            spatial_bounds: [[8]],
+            spatial_dim: [1],
+            element_width: [64],
+        }
+
+        data_writer_params:{
+            tcdm_ports_num: [8],
+            spatial_bounds: [[8]],
+            spatial_dim: [1],
+            element_width: [64],
+        }
+
+        stationarity: [0,0]
     }
 }
