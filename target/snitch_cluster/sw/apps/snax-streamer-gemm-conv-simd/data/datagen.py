@@ -32,7 +32,7 @@ np.random.seed(42)
 # Add stdint.h header
 def emit_header_file(**kwargs):
     emit_str = "#include <stdint.h>\n\n"
-    emit_str += emit_gemm_data(**kwargs)
+    emit_str += emit_gemmx_data(**kwargs)
     return emit_str
 
 
@@ -40,7 +40,7 @@ MIN = -128
 MAX = 127
 
 
-def emit_gemm_data(**kwargs):
+def emit_conv_data(**kwargs):
     Cin = kwargs["Cin"]
     Cout = kwargs["Cout"]
     if kwargs["ifC8HW8datalayout"] is True:
@@ -485,7 +485,7 @@ def emit_gemm_data(**kwargs):
         )
 
     # output in NHWC format
-    direct_conv2d_res = direct_conv2d_res.reshape(-1)
+    direct_conv2d_res = np.add(direct_conv2d_res.reshape(-1), bias)
 
     # Writing testing data and golden data into data.h
     # implicit im2col matrix and kernel, store original input data and kernel
@@ -493,9 +493,151 @@ def emit_gemm_data(**kwargs):
     data_str += [format_vector_definition("int8_t", "B", kernel.reshape(-1))]
     data_str += [format_vector_definition("int32_t", "C", bias.reshape(-1))]
 
+    return data_str, direct_conv2d_res
+
+
+def emit_matmul_data(**kwargs):
+    # matmul settings
+    data_str = []
+
+    data_str += [format_scalar_definition("int", "Batch", 1)]
+    data_str += [format_scalar_definition("int", "M", kwargs["M"])]
+    data_str += [format_scalar_definition("int", "K", kwargs["K"])]
+    data_str += [format_scalar_definition("int", "N", kwargs["N"])]
+
+    data_str += [format_scalar_definition("int32_t", "Aslstride0", 1)]
+    data_str += [format_scalar_definition("int32_t", "Aslstride1", 8)]
+    data_str += [format_scalar_definition("int32_t", "Atlbound0", kwargs["K"])]
+    data_str += [format_scalar_definition("int32_t", "Atlstride0", 64)]
+    data_str += [format_scalar_definition("int32_t", "Atlbound1", kwargs["N"])]
+    data_str += [format_scalar_definition("int32_t", "Atlstride1", 0)]
+    data_str += [format_scalar_definition("int32_t", "Atlbound2", kwargs["M"])]
+    data_str += [format_scalar_definition("int32_t", "Atlstride2", kwargs["K"] * 64)]
+    data_str += [format_scalar_definition("int32_t", "Atlbound3", 1)]
+    data_str += [format_scalar_definition("int32_t", "Atlstride3", 0)]
+    data_str += [format_scalar_definition("int32_t", "Atlbound4", 1)]
+    data_str += [format_scalar_definition("int32_t", "Atlstride4", 0)]
+    data_str += [format_scalar_definition("int32_t", "Atlbound5", 1)]
+    data_str += [format_scalar_definition("int32_t", "Atlstride5", 0)]
+
+    data_str += [format_scalar_definition("int32_t", "Bslstride0", 1)]
+    data_str += [format_scalar_definition("int32_t", "Bslstride1", 8)]
+    data_str += [format_scalar_definition("int32_t", "Btlbound0", kwargs["K"])]
+    data_str += [format_scalar_definition("int32_t", "Btlstride0", 64)]
+    data_str += [format_scalar_definition("int32_t", "Btlbound1", kwargs["N"])]
+    data_str += [format_scalar_definition("int32_t", "Btlstride1", 64 * kwargs["K"])]
+    data_str += [format_scalar_definition("int32_t", "Btlbound2", kwargs["M"])]
+    data_str += [format_scalar_definition("int32_t", "Btlstride2", 0)]
+
+    data_str += [format_scalar_definition("int32_t", "Cslstride0", 4)]
+    data_str += [format_scalar_definition("int32_t", "Cslstride1", 32)]
+    data_str += [format_scalar_definition("int32_t", "Ctlbound0", kwargs["N"])]
+    data_str += [format_scalar_definition("int32_t", "Ctlstride0", 256)]
+    data_str += [format_scalar_definition("int32_t", "Ctlbound1", kwargs["M"])]
+    data_str += [format_scalar_definition("int32_t", "Ctlstride1", 256 * kwargs["N"])]
+    data_str += [format_scalar_definition("int32_t", "Ctlbound2", 1)]
+    data_str += [format_scalar_definition("int32_t", "Ctlstride2", 0)]
+
+    data_str += [format_scalar_definition("int32_t", "D32slstride0", 4)]
+    data_str += [format_scalar_definition("int32_t", "D32slstride1", 32)]
+    data_str += [format_scalar_definition("int32_t", "D32tlbound0", kwargs["N"])]
+    data_str += [format_scalar_definition("int32_t", "D32tlstride0", 256)]
+    data_str += [format_scalar_definition("int32_t", "D32tlbound1", kwargs["M"])]
+    data_str += [format_scalar_definition("int32_t", "D32tlstride1", 256 * kwargs["N"])]
+    data_str += [format_scalar_definition("int32_t", "D32tlbound2", 1)]
+    data_str += [format_scalar_definition("int32_t", "D32tlstride2", 0)]
+
+    data_str += [format_scalar_definition("int32_t", "D8slstride0", 1)]
+    data_str += [format_scalar_definition("int32_t", "D8slstride1", 8)]
+    data_str += [format_scalar_definition("int32_t", "D8tlbound0", kwargs["N"])]
+    data_str += [format_scalar_definition("int32_t", "D8tlstride0", 64)]
+    data_str += [format_scalar_definition("int32_t", "D8tlbound1", kwargs["M"])]
+    data_str += [format_scalar_definition("int32_t", "D8tlstride1", 64 * kwargs["N"])]
+    data_str += [format_scalar_definition("int32_t", "D8tlbound2", 1)]
+    data_str += [format_scalar_definition("int32_t", "D8tlstride2", 0)]
+
+    data_str += [format_scalar_definition("int32_t", "delta_local_a", 0)]
+    data_str += [
+        format_scalar_definition(
+            "int32_t", "delta_local_b", 64 * kwargs["K"] * kwargs["M"]
+        )
+    ]
+    data_str += [
+        format_scalar_definition(
+            "int32_t",
+            "delta_local_c",
+            64 * kwargs["K"] * kwargs["M"] + 64 * kwargs["K"] * kwargs["N"],
+        )
+    ]
+    data_str += [
+        format_scalar_definition(
+            "int32_t",
+            "delta_local_d32",
+            64 * kwargs["K"] * kwargs["M"]
+            + 64 * kwargs["K"] * kwargs["N"]
+            + 256 * kwargs["M"] * kwargs["N"],
+        )
+    ]
+    data_str += [
+        format_scalar_definition(
+            "int32_t",
+            "delta_local_d8",
+            64 * kwargs["K"] * kwargs["M"]
+            + 64 * kwargs["K"] * kwargs["N"]
+            + 256 * kwargs["M"] * kwargs["N"],
+        )
+    ]
+
+    # Generating random 8 integer a and b for subtraction
+    subtraction_a = np.random.randint(MIN, MAX)
+    subtraction_b = np.random.randint(MIN, MAX)
+
+    # Writing the subtraction value to data.h
+    data_str += [format_scalar_definition("int8_t", "subtraction_a", subtraction_a)]
+    data_str += [format_scalar_definition("int8_t", "subtraction_b", subtraction_b)]
+
+    A = np.random.randint(MIN, MAX, size=(kwargs["M"], kwargs["K"], 8, 8)).reshape(-1)
+    data_str += [format_vector_definition("int8_t", "A", A)]
+    B = np.random.randint(MIN, MAX, size=(kwargs["K"], kwargs["N"], 8, 8)).reshape(-1)
+    data_str += [format_vector_definition("int8_t", "B", B)]
+    C = np.random.randint(MIN, MAX, size=(kwargs["M"], kwargs["N"], 8, 8)).reshape(-1)
+    data_str += [format_vector_definition("int32_t", "C", C)]
+
+    D32 = block_gemm_golden_model(
+        kwargs["M"],
+        kwargs["K"],
+        kwargs["N"],
+        8,
+        8,
+        8,
+        A,
+        B,
+        subtraction_a,
+        subtraction_b,
+        C,
+    )
+
+    return data_str, D32
+
+
+def emit_gemmx_data(**kwargs):
+
+    ifTestMatmul = kwargs["ifTestMatmul"]
+
+    if ifTestMatmul == 1:
+        data_str, D32 = emit_matmul_data(**kwargs)
+        data_str += ["#define TEST_MATMUL"]
+    else:
+        data_str, D32 = emit_conv_data(**kwargs)
+
+    data_str += [format_vector_definition("int32_t", "D32", D32)]
+
     # -----------------------------------------------------------
     # Postprocessing
     # -----------------------------------------------------------
+
+    bypassSIMD = kwargs["bypassSIMD"]
+    data_str += [format_scalar_definition("int32_t", "bypassSIMD", bypassSIMD)]
 
     # Generating random constant values
     input_zp_i = np.random.randint(MIN, MAX)
@@ -517,17 +659,8 @@ def emit_gemm_data(**kwargs):
         format_scalar_definition("int32_t", "multiplier_i", multiplier_i),
     ]
 
-    bypassSIMD = kwargs["bypassSIMD"]
-    data_str += [format_scalar_definition("int32_t", "bypassSIMD", bypassSIMD)]
-
-    data_str += [
-        format_vector_definition(
-            "int32_t", "D32_direct_conv2d", np.add(direct_conv2d_res, bias)
-        )
-    ]
-
-    direct_conv2d_res = postprocessing_simd_golden_model(
-        np.add(direct_conv2d_res, bias),
+    D8 = postprocessing_simd_golden_model(
+        D32,
         input_zp_i,
         output_zp_i,
         shift_i,
@@ -536,9 +669,7 @@ def emit_gemm_data(**kwargs):
         double_round_i,
         multiplier_i,
     )
-    data_str += [
-        format_vector_definition("int8_t", "D8_direct_conv2d", direct_conv2d_res)
-    ]
+    data_str += [format_vector_definition("int8_t", "D8", D8)]
 
     data_str = "\n\n".join(data_str)
 

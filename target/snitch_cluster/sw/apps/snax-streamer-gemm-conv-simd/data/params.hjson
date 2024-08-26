@@ -2,21 +2,24 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-// Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
-
+// Cluster configuration for a simple testbench system.
 {
-    ifC8HW8datalayout: true,
-    // ifC8HW8datalayout: false,
-    Nbatch: 1,
-    H: 16,
-    W: 16,
-    Cin: 16,
-    Cout: 16,
-    Kh: 3,
-    Kw: 3,
-    pad_h: 1,
-    pad_w: 1,
-    stride_h: 1,
-    stride_w: 1,
-    bypassSIMD: 0,
+  ifC8HW8datalayout: true,
+  // ifC8HW8datalayout: false,
+  Nbatch: 1,
+  W: 8,
+  H: 2,
+  Cin: 16,
+  Cout: 16,
+  Kh: 3,
+  Kw: 3,
+  pad_h: 1,
+  pad_w: 1,
+  stride_h: 1,
+  stride_w: 1,
+  K: 18,
+  N: 2,
+  M: 1,
+  bypassSIMD: 1,
+  ifTestMatmul: 0,
 }
