@@ -61,7 +61,7 @@ inline uint32_t __attribute__((const)) snrt_global_compute_core_idx() {
 
 inline uint32_t __attribute__((const)) snrt_cluster_idx() {
     // return snrt_global_core_idx() / snrt_cluster_core_num();
-    return (snrt_cluster_base_addrl() & 0xfc0000) >> 18;
+    return (snrt_cluster_base_addrl() & 0xfc0000) >> CLUSTER_ADDRWIDTH;
 }
 
 inline uint32_t __attribute__((const)) snrt_cluster_core_idx() {
