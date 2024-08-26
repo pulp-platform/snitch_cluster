@@ -28,7 +28,7 @@ int main() {
     // Transfer data from L3 to L1
     // Using DMA only
     if (snrt_is_dm_core()) {
-        load_a_chrunk_of_data(local_in, DataIn, input_data_len);
+        snrt_dma_start_1d(local_in, DataIn, input_data_len * sizeof(int8_t));
     }
 
     // Wait for DMA to finish

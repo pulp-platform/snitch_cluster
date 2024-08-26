@@ -10,12 +10,21 @@
 
 #pragma once
 
-// load input data from L3 to L1
-void load_conv_input_data(int N, int H, int W, int C, int8_t* base_ptr_local,
-                          int8_t* base_ptr_l2);
+// Pack matrix size setting to one CSR
+int32_t gen_size_config(uint8_t Batch, uint8_t M, uint8_t K, uint8_t N);
 
-void load_weight_data(int K, int Fy, int Fx, int C, int8_t* base_ptr_local,
-                      int8_t* base_ptr_l2);
+// Pack two subtraction values to one CSR
+int32_t gen_subtraction_config(int8_t subtraction_a, int8_t subtraction_b);
+
+// generate the configuration for CSR0
+int32_t gen_csr0_config(uint8_t input_zp_i, uint8_t output_zp_i,
+                        uint8_t shift_i, uint8_t max_int_i);
+
+// generate the configuration for CSR1
+int32_t gen_csr1_config(uint8_t min_int_i, bool double_round_i);
+
+// generate the configuration for CSR2
+int32_t gen_csr2_config(uint32_t multiplier_i);
 
 // Set STREAMER configuration CSR
 void set_gemmx_streamer_csr(

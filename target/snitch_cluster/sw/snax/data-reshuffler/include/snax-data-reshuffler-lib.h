@@ -10,10 +10,6 @@
 
 #pragma once
 
-#define spatial_len_0 8
-#define spatial_len_1 8
-#define spatial_len (spatial_len_0 * spatial_len_1)
-
 // Set STREAMER configuration CSR
 void set_data_reshuffler_csr(int tempLoop0_in, int tempLoop1_in,
                              int tempLoop2_in, int tempLoop3_in,
@@ -38,20 +34,6 @@ void start_data_reshuffler();
 void wait_data_reshuffler();
 
 uint32_t read_data_reshuffler_perf_counter();
-
-void load_data_reshuffler_test_data(int tempLoop0, int tempLoop1,
-                                    int tempStride0, int tempStride1,
-                                    int spatialStride1, int8_t* base_ptr_local,
-                                    int8_t* base_ptr_l2);
-
-uint32_t check_data_reshuffler_result(int tempLoop0, int tempLoop1,
-                                      int tempStride0, int tempStride1,
-                                      int spatialStride1,
-                                      int8_t* base_ptr_local,
-                                      int8_t* base_ptr_l2);
-
-void load_a_chrunk_of_data(int8_t* base_ptr_local, int8_t* base_ptr_l2,
-                           int len);
 
 uint32_t test_a_chrunk_of_data(int8_t* base_ptr_local, int8_t* base_ptr_l2,
                                int len);

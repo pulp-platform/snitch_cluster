@@ -9,18 +9,28 @@
 #include "snrt.h"
 #include "stdint.h"
 
-// load input data from L3 to L1
-void load_conv_input_data(int N, int H, int W, int C, int8_t* base_ptr_local,
-                          int8_t* base_ptr_l2) {
-    snrt_dma_start_1d(base_ptr_local, base_ptr_l2,
-                      N * H * W * C * sizeof(int8_t));
+int32_t gen_size_config(uint8_t Batch, uint8_t M, uint8_t K, uint8_t N) {
+    return ((int32_t)Batch << 24) | ((int32_t)M << 16) | ((int32_t)K << 8) |
+           (int32_t)N;
 }
 
-void load_weight_data(int K, int Fy, int Fx, int C, int8_t* base_ptr_local,
-                      int8_t* base_ptr_l2) {
-    snrt_dma_start_1d(base_ptr_local, base_ptr_l2,
-                      K * Fy * Fx * C * sizeof(int8_t));
+int32_t gen_subtraction_config(int8_t subtraction_a, int8_t subtraction_b) {
+    return ((uint8_t)subtraction_b << 8) | (uint8_t)subtraction_a;
 }
+
+int32_t gen_csr0_config(uint8_t input_zp_i, uint8_t output_zp_i,
+                        uint8_t shift_i, uint8_t max_int_i) {
+    // encode the configuration into a single 32-bit integer
+    return ((int32_t)max_int_i << 24) | ((int32_t)shift_i << 16) |
+           ((int32_t)output_zp_i << 8) | (int32_t)input_zp_i;
+}
+
+int32_t gen_csr1_config(uint8_t min_int_i, bool double_round_i) {
+    // encode the configuration into a single 32-bit integer
+    return ((uint8_t)double_round_i << 8) | (uint8_t)min_int_i;
+}
+
+int32_t gen_csr2_config(uint32_t multiplier_i) { return multiplier_i; }
 
 // Set STREAMER configuration CSR
 void set_gemmx_streamer_csr(

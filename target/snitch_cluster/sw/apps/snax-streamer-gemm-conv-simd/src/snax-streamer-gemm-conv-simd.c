@@ -6,11 +6,7 @@
 
 #include "data.h"
 
-#include "snax-gemm-lib.h"
-#include "snax-gemm-params.h"
-
-#include "snax-streamer-gemm-lib.h"
-#include "snax-streamer-simd-lib.h"
+#include "snax-gemmx-params.h"
 
 #include "snax-streamer-gemm-conv-simd-lib.h"
 
@@ -36,9 +32,10 @@ int main() {
     // Transfer data from L3 to L1
     // Using DMA only
     if (snrt_is_dm_core()) {
-        load_conv_input_data(Nbatch, H + 2 * pad_h, W + 2 * pad_w, Cin, local_a,
-                             A);
-        load_weight_data(Cout, Kh, Kw, Cin, local_b, B);
+        snrt_dma_start_1d(
+            local_a, A,
+            Nbatch * (H + 2 * pad_h) * (W + 2 * pad_w) * Cin * sizeof(int8_t));
+        snrt_dma_start_1d(local_b, B, Cout * Kh * Kw * Cin * sizeof(int8_t));
     }
 
     // Wait for DMA to finish
