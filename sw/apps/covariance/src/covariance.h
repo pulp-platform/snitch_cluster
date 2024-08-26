@@ -244,8 +244,9 @@ void covariance_job(covariance_args_t *args) {
 
 #ifndef JOB_ARGS_PRELOADED
     // Allocate space for job arguments in TCDM
-    covariance_args_t *local_args = (covariance_args_t *)snrt_l1_alloc_cluster_local(
-        sizeof(covariance_args_t), sizeof(double));
+    covariance_args_t *local_args =
+        (covariance_args_t *)snrt_l1_alloc_cluster_local(
+            sizeof(covariance_args_t), sizeof(double));
 
     // Copy job arguments to TCDM
     if (snrt_is_dm_core()) {

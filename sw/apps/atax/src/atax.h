@@ -10,8 +10,8 @@
 #include "blas.h"
 #include "snrt.h"
 
-static inline void atax(uint32_t M, uint32_t N, double *A, double *x,
-                        double *y, double *tmp) {
+static inline void atax(uint32_t M, uint32_t N, double *A, double *x, double *y,
+                        double *tmp) {
     double tmp_fs;
     int core_range, core_offset, cluster_core_offset;
 
@@ -56,7 +56,8 @@ void atax_job(void *args) {
 
 #ifndef JOB_ARGS_PRELOADED
     // Allocate space for job arguments in TCDM
-    local_args = (atax_args_t *)snrt_l1_alloc_cluster_local(sizeof(atax_args_t), sizeof(double));
+    local_args = (atax_args_t *)snrt_l1_alloc_cluster_local(sizeof(atax_args_t),
+                                                            sizeof(double));
 
     // Copy job arguments to TCDM
     if (snrt_is_dm_core()) {
@@ -102,7 +103,8 @@ void atax_job(void *args) {
 
     // Writeback results
     if (snrt_is_dm_core()) {
-        snrt_dma_store_1d_tile(y, local_y, snrt_cluster_idx(), N / snrt_cluster_num(), sizeof(double));
+        snrt_dma_store_1d_tile(y, local_y, snrt_cluster_idx(),
+                               N / snrt_cluster_num(), sizeof(double));
         snrt_dma_wait_all();
         snrt_mcycle();
     }

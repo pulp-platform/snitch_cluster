@@ -18,7 +18,6 @@ static inline void correlation_step1(uint32_t N, uint32_t M, double *data,
 
     // Compute deviations
     if (snrt_is_compute_core()) {
-
         snrt_mcycle();
 
         // Distribute different attributes to the different cores
@@ -61,7 +60,6 @@ static inline void correlation_step2(uint32_t N, uint32_t M, double *data,
 
     // Compute correlation
     if (snrt_is_compute_core()) {
-
         snrt_mcycle();
 
         // Distribute different attributes to the different cores
@@ -125,15 +123,14 @@ void correlation_job(void *args) {
 
     // Load input matrix tile
     if (snrt_is_dm_core()) {
-        snrt_dma_load_2d_tile(
-            local_data,          // dst
-            data,                // src
-            0,                   // tile_x1_idx
-            snrt_cluster_idx(),  // tile_x0_idx
-            N,                   // tile_x1_size
-            tile_M,              // tile_x0_size
-            M,                   // full_x0_size
-            sizeof(double)       // prec
+        snrt_dma_load_2d_tile(local_data,          // dst
+                              data,                // src
+                              0,                   // tile_x1_idx
+                              snrt_cluster_idx(),  // tile_x0_idx
+                              N,                   // tile_x1_size
+                              tile_M,              // tile_x0_size
+                              M,                   // full_x0_size
+                              sizeof(double)       // prec
         );
         snrt_dma_wait_all();
     }
@@ -146,36 +143,34 @@ void correlation_job(void *args) {
 
     // The rest of the computation is done only on cluster 0
     if (snrt_cluster_idx() == 0) {
-
         // Aggregate data in cluster 0
-        if (snrt_is_dm_core() ) {
-        
+        if (snrt_is_dm_core()) {
             snrt_mcycle();
-        
+
             // Theoretically speaking, moving the data in cluster 0's TCDM
             // is not required. However we need to reshape it because
             // `correlation_step1` is currently implemented in a way such
             // that it stores the output tile as contiguous data, not with
             // the proper stride it would have in the full matrix.
             for (unsigned int i = 0; i < snrt_cluster_num(); i++) {
-                double *remote_data = snrt_remote_l1_ptr(local_data, snrt_cluster_idx(), i);
-                snrt_dma_store_2d_tile(
-                    local_data,     // dst
-                    remote_data,    // src
-                    0,              // tile_x1_idx
-                    i,              // tile_x0_idx
-                    N,              // tile_x1_size
-                    tile_M,         // tile_x0_size
-                    M,              // full_x0_size
-                    sizeof(double)  // prec
+                double *remote_data =
+                    snrt_remote_l1_ptr(local_data, snrt_cluster_idx(), i);
+                snrt_dma_store_2d_tile(local_data,     // dst
+                                       remote_data,    // src
+                                       0,              // tile_x1_idx
+                                       i,              // tile_x0_idx
+                                       N,              // tile_x1_size
+                                       tile_M,         // tile_x0_size
+                                       M,              // full_x0_size
+                                       sizeof(double)  // prec
                 );
-                double *remote_stddev = snrt_remote_l1_ptr(local_stddev, snrt_cluster_idx(), i);
-                snrt_dma_store_1d_tile(
-                    local_stddev,   // dst
-                    remote_stddev,  // src
-                    i,              // tile_idx
-                    tile_M,         // tile_size
-                    sizeof(double)  // prec
+                double *remote_stddev =
+                    snrt_remote_l1_ptr(local_stddev, snrt_cluster_idx(), i);
+                snrt_dma_store_1d_tile(local_stddev,   // dst
+                                       remote_stddev,  // src
+                                       i,              // tile_idx
+                                       tile_M,         // tile_size
+                                       sizeof(double)  // prec
                 );
             }
             snrt_dma_wait_all();

@@ -15,27 +15,29 @@ typedef struct {
     uint32_t trans;
     uint32_t m;
     uint32_t n;
-    double* a;
-    double* x;
-    double* y;
+    double *a;
+    double *x;
+    double *y;
 } gemv_args_t;
 
 static inline void single_core_gemv(uint32_t trans, uint32_t m, uint32_t n,
-    double alpha, double *a, uint32_t lda, double *x, uint32_t incx, double *y) {
-
+                                    double alpha, double *a, uint32_t lda,
+                                    double *x, uint32_t incx, double *y) {
     // Configure SSR 0 to stream a
     uint32_t ssr0_b[2] = {n, m};
     if (trans) {
-        uint32_t ssr0_i[2] = {lda*8, 8};
-        snrt_ssr_loop_2d(SNRT_SSR_DM0, ssr0_b[0], ssr0_b[1], ssr0_i[0], ssr0_i[1]);
+        uint32_t ssr0_i[2] = {lda * 8, 8};
+        snrt_ssr_loop_2d(SNRT_SSR_DM0, ssr0_b[0], ssr0_b[1], ssr0_i[0],
+                         ssr0_i[1]);
     } else {
-        uint32_t ssr0_i[2] = {8, lda*8};
-        snrt_ssr_loop_2d(SNRT_SSR_DM0, ssr0_b[0], ssr0_b[1], ssr0_i[0], ssr0_i[1]);
+        uint32_t ssr0_i[2] = {8, lda * 8};
+        snrt_ssr_loop_2d(SNRT_SSR_DM0, ssr0_b[0], ssr0_b[1], ssr0_i[0],
+                         ssr0_i[1]);
     }
 
     // Configure SSR 1 to stream x
     uint32_t ssr1_b[2] = {n, m};
-    uint32_t ssr1_i[2] = {8*incx, 0};
+    uint32_t ssr1_i[2] = {8 * incx, 0};
     snrt_ssr_loop_2d(SNRT_SSR_DM1, ssr1_b[0], ssr1_b[1], ssr1_i[0], ssr1_i[1]);
 
     // Enable SSRs
@@ -63,9 +65,8 @@ static inline void single_core_gemv(uint32_t trans, uint32_t m, uint32_t n,
 
 // In contrast with BLAS we accept incx==0, as could be used e.g.
 // to compress vectors with a single value.
-static inline void gemv(uint32_t trans, uint32_t m, uint32_t n,
-    double alpha, double *a, double *x, uint32_t incx, double *y) {
-
+static inline void gemv(uint32_t trans, uint32_t m, uint32_t n, double alpha,
+                        double *a, double *x, uint32_t incx, double *y) {
     uint32_t frac_m, rem_m, start_m, core_m, lda;
     double *core_a;
 
@@ -74,9 +75,9 @@ static inline void gemv(uint32_t trans, uint32_t m, uint32_t n,
     frac_m = m / snrt_cluster_compute_core_num();
     rem_m = m % snrt_cluster_compute_core_num();
     start_m = snrt_cluster_core_idx() * frac_m;
-    core_m =
-        snrt_cluster_core_idx() == (snrt_cluster_compute_core_num() - 1) ?
-        frac_m + rem_m : frac_m;
+    core_m = snrt_cluster_core_idx() == (snrt_cluster_compute_core_num() - 1)
+                 ? frac_m + rem_m
+                 : frac_m;
     if (trans) {
         lda = m;
         core_a = &a[start_m];
@@ -87,5 +88,6 @@ static inline void gemv(uint32_t trans, uint32_t m, uint32_t n,
 
     // Every core computes its portion of rows
     if (core_m > 0)
-        single_core_gemv(trans, core_m, n, alpha, core_a, lda, x, incx, &y[start_m]);
+        single_core_gemv(trans, core_m, n, alpha, core_a, lda, x, incx,
+                         &y[start_m]);
 }

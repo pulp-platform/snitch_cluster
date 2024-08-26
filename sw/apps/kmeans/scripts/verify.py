@@ -42,7 +42,8 @@ class KmeansVerifier(Verifier):
         self.initial_centroids = self.initial_centroids.reshape((self.n_clusters, self.n_features))
         self.samples = self.samples.reshape((n_samples, self.n_features))
         # Calculate expected results
-        final_centroids, _ = KmeansDataGen().golden_model(self.samples, self.n_clusters, self.initial_centroids, max_iter)
+        final_centroids, _ = KmeansDataGen().golden_model(self.samples, self.n_clusters,
+                                                          self.initial_centroids, max_iter)
         return final_centroids.flatten()
 
     def check_results(self, *args):
@@ -55,9 +56,12 @@ class KmeansVerifier(Verifier):
         expected_centroids = self.get_expected_results().reshape((self.n_clusters, self.n_features))
         actual_centroids = self.get_actual_results().reshape((self.n_clusters, self.n_features))
         if self.n_features == 2 and not self.args.no_gui:
-            KmeansDataGen().visualize_clusters(self.samples, self.initial_centroids, "Initial centroids")
-            KmeansDataGen().visualize_clusters(self.samples, expected_centroids, "Expected centroids")
-            KmeansDataGen().visualize_clusters(self.samples, actual_centroids, "Actual centroids")
+            KmeansDataGen().visualize_clusters(self.samples, self.initial_centroids,
+                                               "Initial centroids")
+            KmeansDataGen().visualize_clusters(self.samples, expected_centroids,
+                                               "Expected centroids")
+            KmeansDataGen().visualize_clusters(self.samples, actual_centroids,
+                                               "Actual centroids")
 
         return retcode
 

@@ -10,7 +10,8 @@
 #include "kmeans.h"
 
 int main() {
-    kmeans_args_t args = {n_samples, n_features, n_clusters, n_iter, (uint64_t)samples, (uint64_t)centroids};
+    kmeans_args_t args = {n_samples, n_features,        n_clusters,
+                          n_iter,    (uint64_t)samples, (uint64_t)centroids};
     kmeans_job(&args);
     return 0;
 }
