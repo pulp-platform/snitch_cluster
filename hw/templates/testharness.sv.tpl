@@ -37,7 +37,7 @@ module testharness import ${cfg["cluster"]["name"]}_pkg::*; (
     .debug_req_i          ( '0              ),
 % endif
 % if cfg["cluster"]["sram_cfg_expose"]:
-    .sram_cfgs_i          ( '0'             ),
+    .sram_cfgs_i          ( '0             ),
 % endif
     .meip_i               ( '0              ),
     .mtip_i               ( '0              ),
