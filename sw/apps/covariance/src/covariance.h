@@ -244,7 +244,8 @@ void covariance_job(covariance_args_t *args) {
 
 #ifndef JOB_ARGS_PRELOADED
     // Allocate space for job arguments in TCDM
-    covariance_args_t *local_args = (covariance_args_t *)snrt_l1_next();
+    covariance_args_t *local_args = (covariance_args_t *)snrt_l1_alloc_cluster_local(
+        sizeof(covariance_args_t), sizeof(double));
 
     // Copy job arguments to TCDM
     if (snrt_is_dm_core()) {
@@ -263,19 +264,13 @@ void covariance_job(covariance_args_t *args) {
     b_tile_bytes = b_tile_size * sizeof(double);
 
     // Allocate space for job operands in TCDM
-    local_a0_addr = (uint64_t)args + sizeof(covariance_args_t);
-    local_at0_addr = local_a0_addr + a_tile_bytes;
-    local_b0_addr = local_at0_addr + a_tile_bytes;
-    local_a[0] = (double *)local_a0_addr;
-    local_at[0] = (double *)local_at0_addr;
-    local_b[0] = (double *)local_b0_addr;
+    local_a[0] = snrt_l1_alloc_cluster_local(a_tile_bytes, sizeof(double));
+    local_at[0] = snrt_l1_alloc_cluster_local(a_tile_bytes, sizeof(double));
+    local_b[0] = snrt_l1_alloc_cluster_local(b_tile_bytes, sizeof(double));
     if (DOUBLE_BUFFER) {
-        local_a1_addr = local_b0_addr + b_tile_bytes;
-        local_at1_addr = local_a1_addr + a_tile_bytes;
-        local_b1_addr = local_at1_addr + a_tile_bytes;
-        local_a[1] = (double *)local_a1_addr;
-        local_at[1] = (double *)local_at1_addr;
-        local_b[1] = (double *)local_b1_addr;
+        local_a[1] = snrt_l1_alloc_cluster_local(a_tile_bytes, sizeof(double));
+        local_at[1] = snrt_l1_alloc_cluster_local(a_tile_bytes, sizeof(double));
+        local_b[1] = snrt_l1_alloc_cluster_local(b_tile_bytes, sizeof(double));
     }
 
     // Calculate number of iterations
@@ -364,4 +359,11 @@ void covariance_job(covariance_args_t *args) {
         // Synchronize cores after every iteration
         snrt_cluster_hw_barrier();
     }
+
+    // Free memory
+#ifndef JOB_ARGS_PRELOADED
+    snrt_l1_update_next_v2(args);
+#else
+    snrt_l1_update_next_v2(local_a[0]);
+#endif
 }
