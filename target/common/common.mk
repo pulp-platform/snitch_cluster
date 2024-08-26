@@ -21,7 +21,6 @@ VERILATOR_SEPP ?=
 
 # External executables
 BENDER       ?= bender
-DASM         ?= spike-dasm
 VLT          ?= $(VERILATOR_SEPP) verilator
 VCS          ?= $(VCS_SEPP) vcs
 VERIBLE_FMT  ?= verible-verilog-format
@@ -30,6 +29,7 @@ VSIM         ?= $(QUESTA_SEPP) vsim
 VOPT         ?= $(QUESTA_SEPP) vopt
 VLOG         ?= $(QUESTA_SEPP) vlog
 VLIB         ?= $(QUESTA_SEPP) vlib
+RISCV_MC     ?= $(LLVM_BINROOT)/llvm-mc
 ADDR2LINE    ?= $(LLVM_BINROOT)/llvm-addr2line
 
 # Internal executables
@@ -93,6 +93,7 @@ VLT_FLAGS	 += --threads $(VLT_NUM_THREADS)
 VLT_CFLAGS   += -std=c++20 -pthread
 VLT_CFLAGS   += -I $(VLT_ROOT)/include -I $(VLT_ROOT)/include/vltstd -I $(VLT_FESVR)/include -I $(TB_DIR) -I ${MKFILE_DIR}test
 
+RISCV_MC_FLAGS      ?= -disassemble -mcpu=snitch
 ANNOTATE_FLAGS      ?= -q --keep-time --addr2line=$(ADDR2LINE)
 LAYOUT_EVENTS_FLAGS ?= --cfg=$(CFG)
 
@@ -229,7 +230,7 @@ clean-visual-trace:
 	rm -f $(VISUAL_TRACE)
 
 $(addprefix $(LOGS_DIR)/,trace_hart_%.txt hart_%_perf.json dma_%_perf.json): $(LOGS_DIR)/trace_hart_%.dasm $(GENTRACE_PY)
-	$(DASM) < $< | $(GENTRACE_PY) --permissive --dma-trace $(SIM_DIR)/dma_trace_$*_00000.log --dump-hart-perf $(LOGS_DIR)/hart_$*_perf.json --dump-dma-perf $(LOGS_DIR)/dma_$*_perf.json -o $(LOGS_DIR)/trace_hart_$*.txt
+	$(GENTRACE_PY) $< --mc-exec $(RISCV_MC) --mc-flags "$(RISCV_MC_FLAGS)" --permissive --dma-trace $(SIM_DIR)/dma_trace_$*_00000.log --dump-hart-perf $(LOGS_DIR)/hart_$*_perf.json --dump-dma-perf $(LOGS_DIR)/dma_$*_perf.json -o $(LOGS_DIR)/trace_hart_$*.txt
 
 # Generate source-code interleaved traces for all harts. Reads the binary from
 # the logs/.rtlbinary file that is written at start of simulation in the vsim script

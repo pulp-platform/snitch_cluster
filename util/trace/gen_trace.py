@@ -36,6 +36,7 @@ DMA performance metrics are dumped to a separate JSON file.
 import sys
 import re
 import argparse
+import subprocess
 import json
 import ast
 from ctypes import c_int32, c_uint32
@@ -43,11 +44,14 @@ from collections import deque, defaultdict
 from pathlib import Path
 import traceback
 from itertools import tee, islice, chain
+from functools import lru_cache
 
 EXTRA_WB_WARN = 'WARNING: {} transactions still in flight for {}.'
 
 GENERAL_WARN = """WARNING: Inconsistent final state; performance metrics
 may be inaccurate. Is this trace complete?\n"""
+
+DASM_IN_REGEX = r'DASM\(([0-9a-fA-F]+)\)'
 
 TRACE_IN_REGEX = r'(\d+)\s+(\d+)\s+(\d+)\s+(0x[0-9A-Fa-fz]+)\s+([^#;]*)(\s*#;\s*(.*))?'
 
@@ -349,6 +353,25 @@ def load_opcodes():
             insn_name = fields[0]
             vec_params = fields[1:5]
             _cached_opcodes[insn_name] = vec_params
+
+
+@lru_cache
+def disasm_inst(hex_inst, mc_exec='llvm-mc', mc_flags='-disassemble -mcpu=snitch'):
+    """Disassemble a single RISC-V instruction using llvm-mc."""
+    # Reverse the endianness of the hex instruction
+    inst_fmt = ' '.join(
+        [f'0x{hex_inst[i:i+2]}' for i in range(0, len(hex_inst), 2)][::-1]
+    )
+
+    # Use llvm-mc to disassemble the binary instruction
+    result = subprocess.run(
+        f'echo {inst_fmt} | {mc_exec} {mc_flags}',
+        shell=True,
+        capture_output=True,
+    )
+
+    # Extract disassembled instruction from llvm-mc output
+    return result.stdout.decode().splitlines()[-1].strip().replace('\t', ' ')
 
 
 def flt_op_vlen(insn: str, op_type: str) -> int:
@@ -883,6 +906,8 @@ def annotate_insn(
     fseq_info:
     dict,  # Info on the sequencer to properly map tunneled instruction PCs
     perf_metrics: list,  # A list performance metric dicts
+    mc_exec: str,  # Path to the llvm-mc executable
+    mc_flags: str,  # Flags to pass to the llvm-mc executable
     dupl_time_info:
     bool = True,  # Show sim time and cycle again if same as previous line?
     last_time_info:
@@ -894,6 +919,15 @@ def annotate_insn(
     dma_trans: list = []
 ) -> (str, tuple, bool
       ):  # Return time info, whether trace line contains no info, and fseq_len
+
+    # Disassemble instruction
+    match = re.search(DASM_IN_REGEX, line)
+    if match is not None:
+        line = re.sub(
+            DASM_IN_REGEX,
+            disasm_inst(match.groups()[0], mc_exec, mc_flags),
+            line,
+        )
     match = re.search(TRACE_IN_REGEX, line.strip('\n'))
     if match is None:
         raise ValueError('Not a valid trace line:\n{}'.format(line))
@@ -1104,6 +1138,16 @@ def main():
         '--dump-dma-perf',
         help='Dump DMA performance metrics as json text.'
     )
+    parser.add_argument(
+        '--mc-exec',
+        default='llvm-mc',
+        help='Path to the llvm-mc executable'
+    )
+    parser.add_argument(
+        '--mc-flags',
+        default='-mcpu=snitch',
+        help='Flags to pass to the llvm-mc executable'
+    )
 
     args = parser.parse_args()
     line_iter = iter(args.infile.readline, b'')
@@ -1130,8 +1174,20 @@ def main():
             if line:
                 try:
                     ann_insn, time_info, empty = annotate_insn(
-                        line, gpr_wb_info, fpr_wb_info, fseq_info, perf_metrics, False,
-                        time_info, args.offl, not args.saddr, args.permissive, dma_trans)
+                        line,
+                        gpr_wb_info,
+                        fpr_wb_info,
+                        fseq_info,
+                        perf_metrics,
+                        args.mc_exec,
+                        args.mc_flags,
+                        False,
+                        time_info,
+                        args.offl,
+                        not args.saddr,
+                        args.permissive,
+                        dma_trans,
+                    )
                     if perf_metrics[0]['start'] is None:
                         perf_metrics[0]['tstart'] = time_info[0] / 1000
                         perf_metrics[0]['start'] = time_info[1]
@@ -1142,7 +1198,7 @@ def main():
                     if not nextl:
                         message += 'last line. Did the simulation terminate?'
                     else:
-                        message += 'line {lineno}.'
+                        message += f'line {lineno}.'
                     print(traceback.format_exc(), file=sys.stderr)
                     print(message, file=sys.stderr)
             else:
