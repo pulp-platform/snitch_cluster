@@ -24,18 +24,9 @@ jobs:
           version: 0.27.1
       - name: Install Python requirements
         run: pip install -r python-requirements.txt
-      - name: Generate runtime documentation
-        # yamllint disable rule:line-length
-        run: |
-          mkdir doxybook2; cd doxybook2
-          wget https://github.com/matusnovak/doxybook2/releases/download/v1.4.0/doxybook2-linux-amd64-v1.4.0.zip
-          unzip doxybook2-linux-amd64-v1.4.0.zip; cd ../
-          chmod +x doxybook2/bin/doxybook2
-          mkdir docs/runtime
-          ./doxybook2/bin/doxybook2 --input sw/doxygen/xml --output docs/runtime --config docs/doxybook2.json
-          rm -rf doxybook2
-        # yamllint enable rule:line-length
       - name: Generate documentation sources
-        run: make doc-srcs
+        run: |
+          make doc-srcs
+          make doxygen-docs
       - name: Build and deploy documentation
         run: mkdocs gh-deploy --force
