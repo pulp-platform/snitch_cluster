@@ -19,9 +19,11 @@ include $(MK_DIR)/../toolchain.mk
 APPS        = $(shell $(MK_DIR)/../../../../util/sim/list_apps.py --in-dir tests/ ../runtime.yaml)
 APPS        += $(shell $(MK_DIR)/../../../../util/sim/list_apps.py --in-dir tests/ ../standard-fp.yaml)
 # These tests only need custom riscv instructions, no custom builtins
-ifneq ($(SELECT_TOOLCHAIN), llvm-generic)
+ifneq ($(filter $(SELECT_TOOLCHAIN),llvm-snitch),)
+$(info Toolchain is llvm-snitch)
 APPS        += $(shell $(MK_DIR)/../../../../util/sim/list_apps.py --in-dir tests/ ../custom-fp.yaml)
-ifneq ($(SELECT_RUNTIME), rtl-generic)
+ifneq ($(filter $(SELECT_RUNTIME),rtl banshee),)
+$(info Runtime is either rtl or banshee)
 # These tests need custom builtins in the runtime
 APPS        += $(shell $(MK_DIR)/../../../../util/sim/list_apps.py --in-dir tests/ ../openmp.yaml)
 APPS        += $(shell $(MK_DIR)/../../../../util/sim/list_apps.py --in-dir tests/ ../snitch-cluster-openmp.yaml)
@@ -42,10 +44,10 @@ SRC_DIR     = $(ROOT)/sw/tests
 BUILDDIR    = $(ROOT)/target/snitch_cluster/sw/tests/build
 ifeq ($(SELECT_RUNTIME), banshee)
 RUNTIME_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/banshee
-else ifeq ($(SELECT_RUNTIME), rtl-generic)
-RUNTIME_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/rtl-generic
-else
+else ifeq ($(SELECT_RUNTIME), rtl)
 RUNTIME_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/rtl
+else
+RUNTIME_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/rtl-generic
 endif
 
 ###################

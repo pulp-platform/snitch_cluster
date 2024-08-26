@@ -7,7 +7,7 @@
 SUBDIRS  = lto
 SUBDIRS += nop
 # Tests below don't work with the generic runtime
-ifneq ($(SELECT_RUNTIME), rtl-generic)
+ifneq ($(filter $(SELECT_RUNTIME),rtl banshee),)
 SUBDIRS += blas/axpy
 SUBDIRS += blas/gemm
 SUBDIRS += dnn/batchnorm

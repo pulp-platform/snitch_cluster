@@ -11,10 +11,10 @@ MK_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
 include $(MK_DIR)/../../toolchain.mk
 
 # Banshee runtime is not supported
-ifeq ($(SELECT_RUNTIME), rtl-generic)
-RUNTIME_DIR := rtl-generic
-else
+ifeq ($(SELECT_RUNTIME), rtl)
 RUNTIME_DIR := rtl
+else
+RUNTIME_DIR := rtl-generic
 endif
 
 

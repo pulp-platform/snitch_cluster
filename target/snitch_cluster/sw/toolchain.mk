@@ -16,7 +16,7 @@ DEBUG ?= OFF # ON to turn on debugging symbols
 ###################
 
 # Compiler toolchain
-ifneq ($(SELECT_TOOLCHAIN), llvm-generic)
+ifeq ($(SELECT_TOOLCHAIN), llvm-snitch)
 # specialized version does not use a version specifier in the binary
 LLVM_BINROOT    = /tools/riscv-llvm/bin
 LLVM_VERSION    = 
@@ -31,10 +31,12 @@ RISCV_OBJCOPY   ?= $(LLVM_BINROOT)/llvm-objcopy$(LLVM_VERSION)
 RISCV_OBJDUMP   ?= $(LLVM_BINROOT)/llvm-objdump$(LLVM_VERSION)
 RISCV_DWARFDUMP ?= $(LLVM_BINROOT)/llvm-dwarfdump$(LLVM_VERSION)
 
+ifeq ($(SELECT_TOOLCHAIN), llvm-snitch)
 LLVM_VER        ?= $(shell /tools/riscv-llvm/bin/llvm-config --version | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
+endif
 
 # Compiler flags
-ifneq ($(SELECT_TOOLCHAIN), llvm-generic)
+ifeq ($(SELECT_TOOLCHAIN), llvm-snitch)
 RISCV_CFLAGS += -mcpu=snitch
 RISCV_CFLAGS += -menable-experimental-extensions
 else
@@ -64,7 +66,7 @@ endif
 RISCV_CFLAGS += -D__DEFINED_uint64_t
 
 # Linker flags
-ifneq ($(SELECT_TOOLCHAIN), llvm-generic)
+ifeq ($(SELECT_TOOLCHAIN), llvm-snitch)
 RISCV_LDFLAGS += -nostartfiles
 RISCV_LDFLAGS += -lclang_rt.builtins-riscv32
 RISCV_LDFLAGS += -L/tools/riscv-llvm/lib/clang/$(LLVM_VER)/lib/
