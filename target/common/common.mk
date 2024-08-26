@@ -50,6 +50,15 @@ VCS_BENDER   += -t test -t rtl -t simulation -t vcs
 VCS_SOURCES   = $(shell ${BENDER} script flist ${VCS_BENDER} | ${SED_SRCS})
 VCS_BUILDDIR := work-vcs
 
+# For synthesis with DC compiler
+SYN_FLIST ?= flist.tcl
+SYN_BENDER += -t test -t synthesis -t simulation
+ifeq ($(MEM_TYPE), exclude_tcsram)
+	SYN_BENDER += -t tech_cells_generic_exclude_tc_sram
+endif 
+SYN_SOURCES = $(shell ${BENDER} script synopsys ${SYN_BENDER})
+SYN_BUILDDIR := work-syn
+
 # fesvr is being installed here
 FESVR         ?= ${MKFILE_DIR}work
 FESVR_VERSION ?= 98d2c29e431f3b14feefbda48c5f70c2f451acf2
