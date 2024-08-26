@@ -5,6 +5,11 @@
 // Luca Colagrande <colluca@iis.ee.ethz.ch>
 // Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
+/**
+ * @file
+ * @brief This file provides functions to synchronize Snitch cores.
+ */
+
 #pragma once
 
 #include <math.h>
@@ -13,11 +18,18 @@
 // Mutex functions
 //================================================================================
 
+/**
+ * @brief Get a pointer to a mutex variable.
+ */
 inline volatile uint32_t *snrt_mutex() { return &_snrt_mutex; }
 
 /**
- * @brief lock a mutex, blocking
- * @details declare mutex with `static volatile uint32_t mtx = 0;`
+ * @brief Acquire a mutex, blocking.
+ * @details Test-and-set (TAS) implementation of a lock.
+ * @param pmtx A pointer to a variable which can be used as a mutex, i.e. to
+ *             which all cores have a reference and at a memory location to
+ *             which atomic accesses can be made. This can be declared e.g. as
+ *             `static volatile uint32_t mtx = 0;`.
  */
 inline void snrt_mutex_acquire(volatile uint32_t *pmtx) {
     asm volatile(
@@ -31,9 +43,9 @@ inline void snrt_mutex_acquire(volatile uint32_t *pmtx) {
 }
 
 /**
- * @brief lock a mutex, blocking
- * @details test and test-and-set (ttas) implementation of a lock.
- *          Declare mutex with `static volatile uint32_t mtx = 0;`
+ * @brief Acquire a mutex, blocking.
+ * @details Same as @ref snrt_mutex_acquire but acquires the lock using a test
+ *          and test-and-set (TTAS) strategy.
  */
 inline void snrt_mutex_ttas_acquire(volatile uint32_t *pmtx) {
     asm volatile(
@@ -50,7 +62,7 @@ inline void snrt_mutex_ttas_acquire(volatile uint32_t *pmtx) {
 }
 
 /**
- * @brief Release the mutex
+ * @brief Release a previously-acquired mutex.
  */
 inline void snrt_mutex_release(volatile uint32_t *pmtx) {
     asm volatile("amoswap.w.rl  x0,x0,(%0)   # Release lock by storing 0\n"
@@ -61,13 +73,21 @@ inline void snrt_mutex_release(volatile uint32_t *pmtx) {
 // Barrier functions
 //================================================================================
 
-/// Synchronize cores in a cluster with a hardware barrier
+/**
+ * @brief Synchronize cores in a cluster with a hardware barrier, blocking.
+ * @note Synchronizes all (both DM and compute) cores. All cores must invoke
+ *       this function, or the calling cores will stall indefinitely.
+ */
 inline void snrt_cluster_hw_barrier() {
     asm volatile("csrr x0, 0x7C2" ::: "memory");
 }
 
-// Synchronizes one core from every cluster with the others.
-// One core per cluster is expected to invoke this function.
+/**
+ * @brief Synchronize one core from every cluster with the others.
+ * @details Implemented as a software barrier.
+ * @note One core per cluster must invoke this function, or the calling cores
+ *       will stall indefinitely.
+ */
 inline void snrt_inter_cluster_barrier() {
     // Remember previous iteration
     uint32_t prev_barrier_iteration = _snrt_barrier.iteration;
@@ -84,7 +104,15 @@ inline void snrt_inter_cluster_barrier() {
     }
 }
 
-/// Synchronize clusters globally with a global software barrier
+/**
+ * @brief Synchronize all Snitch cores.
+ * @details Synchronization is performed hierarchically. Within a cluster,
+ *          cores are synchronized through a hardware barrier (see
+ *          @ref snrt_cluster_hw_barrier). Clusters are synchronized through
+ *          a software barrier (see @ref snrt_inter_cluster_barrier).
+ * @note Every Snitch core must invoke this function, or the calling cores
+ *       will stall indefinitely.
+ */
 inline void snrt_global_barrier() {
     snrt_cluster_hw_barrier();
 
@@ -96,17 +124,12 @@ inline void snrt_global_barrier() {
     snrt_cluster_hw_barrier();
 }
 
-inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
-    __atomic_add_fetch(&_reduction_result, value, __ATOMIC_RELAXED);
-    snrt_global_barrier();
-    return _reduction_result;
-}
-
 /**
- * @brief Generic barrier
- *
- * @param barr pointer to a barrier
- * @param n number of harts that have to enter before released
+ * @brief Generic software barrier.
+ * @param barr pointer to a barrier variable.
+ * @param n number of harts that have to enter before released.
+ * @note Exactly the specified number of harts must invoke this function, or
+ *       the calling cores will stall indefinitely.
  */
 inline void snrt_partial_barrier(snrt_barrier_t *barr, uint32_t n) {
     // Remember previous iteration
@@ -128,8 +151,37 @@ inline void snrt_partial_barrier(snrt_barrier_t *barr, uint32_t n) {
 // Reduction functions
 //================================================================================
 
-// Assumes the dst and src buffers are at the same offset in the TCDM of every
-// cluster
+/**
+ * @brief Perform a global sum reduction, blocking.
+ * @details All cores participate in the reduction and synchronize globally
+ *          to wait for the reduction to complete.
+ *          The synchronization is performed via @ref snrt_global_barrier.
+ * @param value The value to be summed.
+ * @return The result of the sum reduction.
+ * @note Every Snitch core must invoke this function, or the calling cores
+ *       will stall indefinitely.
+ */
+inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
+    __atomic_add_fetch(&_reduction_result, value, __ATOMIC_RELAXED);
+    snrt_global_barrier();
+    return _reduction_result;
+}
+
+/**
+ * @brief Perform a sum reduction among clusters, blocking.
+ * @details The reduction is performed in a logarithmic fashion. Half of the
+ *          clusters active in every level of the binary-tree participate as
+ *          as senders, the other half as receivers. Senders use the DMA to
+ *          send their data to the respective receiver's destination buffer.
+ *          The receiver then reduces each element in its destination buffer
+ *          with the respective element in its source buffer. It then proceeds
+ *          to the next level in the binary tree.
+ * @param dst_buffer The pointer to the calling cluster's destination buffer.
+ * @param src_buffer The pointer to the calling cluster's source buffer.
+ * @param len The amount of data in each buffer.
+ * @note The destination buffers must lie at the same offset in every cluster's
+ *       TCDM.
+ */
 inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
                                       size_t len) {
     // If we have a single cluster the reduction degenerates to a memcpy
