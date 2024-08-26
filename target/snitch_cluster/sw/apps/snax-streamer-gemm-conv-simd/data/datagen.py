@@ -493,6 +493,9 @@ def emit_conv_data(**kwargs):
     data_str += [format_vector_definition("int8_t", "B", kernel.reshape(-1))]
     data_str += [format_vector_definition("int32_t", "C", bias.reshape(-1))]
 
+    data_str += [format_scalar_definition("int32_t", "transposed_A", 0)]
+    data_str += [format_scalar_definition("int32_t", "transposed_B", 0)]
+
     return data_str, direct_conv2d_res
 
 
@@ -602,6 +605,20 @@ def emit_matmul_data(**kwargs):
     data_str += [format_vector_definition("int8_t", "B", B)]
     C = np.random.randint(MIN, MAX, size=(kwargs["M"], kwargs["N"], 8, 8)).reshape(-1)
     data_str += [format_vector_definition("int32_t", "C", C)]
+
+    if kwargs["transposed_A"] == 1:
+        A = A.reshape(kwargs["M"], kwargs["K"], 8, 8)
+        A = A.transpose(0, 1, 3, 2).reshape(-1)
+    if kwargs["transposed_B"] == 1:
+        B = B.reshape(kwargs["K"], kwargs["N"], 8, 8)
+        B = B.transpose(0, 1, 3, 2).reshape(-1)
+
+    data_str += [
+        format_scalar_definition("int32_t", "transposed_A", kwargs["transposed_A"])
+    ]
+    data_str += [
+        format_scalar_definition("int32_t", "transposed_B", kwargs["transposed_B"])
+    ]
 
     D32 = block_gemm_golden_model(
         kwargs["M"],

@@ -398,10 +398,10 @@ class Streamer(
 
   // the cfg for transpose for only reader
   val transpose_cfg = RegInit(0.U.asTypeOf(Vec(params.dataReaderNum, Bool())))
-  // store the transpose configuration when the cfg is valid
 
   if (params.hasTranspose) {
-    when(io.csr.valid) {
+    // store the transpose configuration when the cfg is valid
+    when(config_valid === true.B) {
       transpose_cfg := io.csr.bits.ifTranspose.get
     }
     for (i <- 0 until params.dataReaderNum) {

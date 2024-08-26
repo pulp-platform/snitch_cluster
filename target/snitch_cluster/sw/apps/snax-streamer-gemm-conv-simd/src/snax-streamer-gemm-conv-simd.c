@@ -75,7 +75,7 @@ int main() {
             D32tlstride1, D32tlbound2, D32tlstride2,
 
             delta_local_a, delta_local_b, delta_local_d8, delta_local_c,
-            delta_local_d32, bypassSIMD);
+            delta_local_d32, bypassSIMD, transposed_A, transposed_B);
 
         // Set CSR to start Streamer for conv2d
         set_gemmx_streamer_start();

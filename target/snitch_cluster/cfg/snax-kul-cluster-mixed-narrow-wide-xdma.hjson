@@ -194,6 +194,8 @@
         }
 
         stationarity: [0,0,0,0,0]
+
+        has_transpose: true
     },
     // SNAX Streamer Templates
     snax_data_reshuffler_streamer_template :{

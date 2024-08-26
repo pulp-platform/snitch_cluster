@@ -195,12 +195,12 @@ class StreamerTop(
     }
   }
 
-  // transpose configruations
+  // the last csr (except start) is for transpose configruations
   require(params.dataReaderNum <= 32, "dataMoverNum should be less than 32")
   if (params.hasTranspose) {
     for (i <- 0 until params.dataReaderNum) {
       streamer.io.csr.bits.ifTranspose
-        .get(i) := csr_manager.io.csr_config_out.bits.last(i)
+        .get(i) := csr_manager.io.csr_config_out.bits(csrNumReadWrite - 2)(i)
     }
   }
 
