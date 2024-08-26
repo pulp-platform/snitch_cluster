@@ -51,6 +51,12 @@ object StreamerParametersGen extends CommonParams {
 
   def addrWidth = ${tcdm_addr_width}
 
+% if "has_transpose" in cfg["snax_streamer_cfg"] and cfg["snax_streamer_cfg"]["has_transpose"]:
+  def hasTranspose = true
+% else:
+  def hasTranspose = false
+% endif
+
   def temporalAddrGenUnitParams: Seq[TemporalAddrGenUnitParams] =
   Seq(
 % for idx in range(0,len(cfg["snax_streamer_cfg"]["temporal_addrgen_unit_params"]["loop_dim"])):
@@ -109,6 +115,7 @@ ${', ' if not loop.last else ''}
     DataMoverParams(
       tcdmPortsNum = ${cfg["snax_streamer_cfg"]["data_reader_params"]["tcdm_ports_num"][idx]},
       addrWidth,
+      hasTranspose,
       spatialBounds = Seq(\
   % for c in cfg["snax_streamer_cfg"]["data_reader_params"]["spatial_bounds"][idx]:
 ${c}${', ' if not loop.last else ''}\
@@ -130,6 +137,7 @@ ${c}${', ' if not loop.last else ''}\
     DataMoverParams(
       tcdmPortsNum = ${cfg["snax_streamer_cfg"]["data_writer_params"]["tcdm_ports_num"][idx]},
       addrWidth,
+      hasTranspose = false,
       spatialBounds = Seq(\
   % for c in cfg["snax_streamer_cfg"]["data_writer_params"]["spatial_bounds"][idx]:
 ${c}${', ' if not loop.last else ''}\
@@ -151,6 +159,7 @@ ${c}${', ' if not loop.last else ''}\
     DataMoverParams(
       tcdmPortsNum = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["tcdm_ports_num"][idx]},
       addrWidth,
+      hasTranspose = false,
       spatialBounds = Seq(\
   % for c in cfg["snax_streamer_cfg"]["data_reader_writer_params"]["spatial_bounds"][idx]:
 ${c}${', ' if not loop.last else ''}\
@@ -191,7 +200,8 @@ object StreamerTopGen {
           addrWidth = StreamerParametersGen.addrWidth,
           stationarity = StreamerParametersGen.stationarity,
           ifShareTempAddrGenLoopBounds = StreamerParametersGen.ifShareTempAddrGenLoopBounds,
-          tagName = "${cfg["tag_name"]}_streamer_"
+          tagName = "${cfg["tag_name"]}_streamer_",
+          hasTranspose = StreamerParametersGen.hasTranspose
         )
       ),
       Array("--target-dir", outPath)

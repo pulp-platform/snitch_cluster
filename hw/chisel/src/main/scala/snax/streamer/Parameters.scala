@@ -64,6 +64,7 @@ case class SpatialAddrGenUnitParams(
 case class DataMoverParams(
     tcdmPortsNum: Int,
     addrWidth: Int,
+    hasTranspose: Boolean = false,
     spatialBounds: Seq[Int],
     spatialDim: Int,
     elementWidth: Int,
@@ -116,6 +117,8 @@ trait HasStreamerCoreParams {
   val ifShareTempAddrGenLoopBounds: Boolean
 
   val addrWidth: Int
+
+  val hasTranspose: Boolean
 }
 
 /** trait for Streamer inferred parameters
@@ -206,7 +209,8 @@ case class StreamerParams(
     readOnlyCsrNum: Int = 2,
     csrAddrWidth: Int = 32,
     ifShareTempAddrGenLoopBounds: Boolean = true,
-    tagName: String = ""
+    tagName: String = "",
+    hasTranspose: Boolean = false
 ) extends HasStreamerCoreParams
     with HasStreamerInferredParams
     with CommonParams

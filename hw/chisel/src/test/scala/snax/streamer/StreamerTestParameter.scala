@@ -83,7 +83,7 @@ object StreamerTestConstant extends CommonParams {
 object StreamerWithReaderWriterTestConstant extends CommonParams {
 
   def addrWidth = 17
-  
+
   def temporalAddrGenUnitParams: Seq[TemporalAddrGenUnitParams] =
     Seq(
       TemporalAddrGenUnitParams(

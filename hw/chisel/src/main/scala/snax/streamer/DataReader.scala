@@ -27,6 +27,8 @@ class DataReaderIO(
     "fifoWidth should match with TCDM datawidth for now!"
   )
 
+  val ifTranspose = if (params.hasTranspose) Some(Input(Bool())) else None
+
 }
 
 /** This class is data reader module,.It is responsible for sending read request
@@ -120,8 +122,42 @@ class DataReader(
     )
   }
 
+  // transpose the data
+  // !!!attention: only works for 8x8 matrix!!!
+  val data_fifo_input_concat = Cat(data_fifo_input.reverse)
+  val data_fifo_input_transpose = Wire(Vec(8, Vec(8, UInt(8.W))))
+  if (params.hasTranspose) {
+    require(
+      params.tcdmDataWidth == 64,
+      "transposeInWidth must be tcdmDataWidth = 64 for now"
+    )
+    require(
+      params.tcdmPortsNum == 8,
+      "transposeOutWidth must be params.tcdmPortsNum = 8 for now"
+    )
+  }
+
   // gether all the response data
-  io.data_fifo_o.bits := Cat(data_fifo_input.reverse)
+  if (params.hasTranspose) {
+    for (i <- 0 until 8) {
+      for (j <- 0 until 8) {
+        data_fifo_input_transpose(i)(j) := data_fifo_input_concat(
+          i * 8 + j * 8 * 8 + 7,
+          i * 8 + j * 8 * 8 + 0
+        )
+      }
+    }
+    when(io.ifTranspose.get === true.B) {
+      io.data_fifo_o.bits := data_fifo_input_transpose.asUInt
+    }.otherwise {
+      io.data_fifo_o.bits := Cat(data_fifo_input.reverse)
+    }
+  } else {
+    io.data_fifo_o.bits := Cat(data_fifo_input.reverse)
+    data_fifo_input_transpose := VecInit(
+      Seq.fill(8)(VecInit(Seq.fill(8)(0.U(8.W))))
+    )
+  }
 
   // ************************************************************
   // ********** Logic for handling fifo handshake ***************

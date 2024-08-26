@@ -42,12 +42,13 @@ class StreamerTop(
   override val desiredName = params.tagName + "StreamerTop"
 
   var csrNumReadWrite: Int = 0
+  val transposeCSRNum = if (params.hasTranspose) 1 else 0
   if (params.ifShareTempAddrGenLoopBounds == true) {
     csrNumReadWrite =
-      params.temporalDimInt + params.dataMoverNum * params.temporalDimInt + params.spatialDim.sum + params.dataMoverNum + 1
+      params.temporalDimInt + params.dataMoverNum * params.temporalDimInt + params.spatialDim.sum + params.dataMoverNum + transposeCSRNum + 1
   } else {
     csrNumReadWrite =
-      params.temporalDimSeq.sum + params.temporalDimSeq.sum + params.spatialDim.sum + params.dataMoverNum + 1
+      params.temporalDimSeq.sum + params.temporalDimSeq.sum + params.spatialDim.sum + params.dataMoverNum + transposeCSRNum + 1
   }
 
   val io = IO(
@@ -191,6 +192,15 @@ class StreamerTop(
       streamer.io.csr.bits.ptr_i(i) := csr_manager.io.csr_config_out.bits(
         params.temporalDimSeq.sum + params.temporalDimSeq.sum + params.spatialDim.sum + i
       )
+    }
+  }
+
+  // transpose configruations
+  require(params.dataReaderNum <= 32, "dataMoverNum should be less than 32")
+  if (params.hasTranspose) {
+    for (i <- 0 until params.dataReaderNum) {
+      streamer.io.csr.bits.ifTranspose
+        .get(i) := csr_manager.io.csr_config_out.bits.last(i)
     }
   }
 

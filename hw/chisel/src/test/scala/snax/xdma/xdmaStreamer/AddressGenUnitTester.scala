@@ -21,9 +21,7 @@ class basicCounterTester extends AnyFlatSpec with ChiselScalatestTester {
   }
 }
 
-class AddressGenUnitTester
-    extends AnyFlatSpec
-    with ChiselScalatestTester {
+class AddressGenUnitTester extends AnyFlatSpec with ChiselScalatestTester {
 
   println(
     getVerilogString(new AddressGenUnit(AddressGenUnitParam()))

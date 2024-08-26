@@ -62,6 +62,9 @@ class StreamerCsrIO(
   val ptr_i =
     Vec(params.dataMoverNum, UInt(params.addrWidth.W))
 
+  // only has transpose function for the data readers
+  val ifTranspose =
+    if (params.hasTranspose) Some(Vec(params.dataReaderNum, Bool())) else None
 }
 
 // data related io
@@ -390,6 +393,19 @@ class Streamer(
           reader_writer_idx
         ).io.spatialStrides_csr_i(reader_writer_idx_rw).valid := io.csr.valid
       }
+    }
+  }
+
+  // the cfg for transpose for only reader
+  val transpose_cfg = RegInit(0.U.asTypeOf(Vec(params.dataReaderNum, Bool())))
+  // store the transpose configuration when the cfg is valid
+
+  if (params.hasTranspose) {
+    when(io.csr.valid) {
+      transpose_cfg := io.csr.bits.ifTranspose.get
+    }
+    for (i <- 0 until params.dataReaderNum) {
+      data_reader(i).io.ifTranspose.get := transpose_cfg(i)
     }
   }
 

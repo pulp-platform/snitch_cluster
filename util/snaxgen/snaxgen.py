@@ -147,6 +147,11 @@ def streamer_csr_num(acc_cfgs):
             2 * num_loop_dim + num_spatial_dim + num_data_mover + 1 + 1 + 1
         )  # noqa: E501
 
+    # transpose csr
+    if "has_transpose" in acc_cfgs["snax_streamer_cfg"]:
+        if acc_cfgs["snax_streamer_cfg"]["has_transpose"]:
+            streamer_csr_num += 1
+
     return streamer_csr_num
 
 

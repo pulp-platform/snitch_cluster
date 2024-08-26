@@ -155,10 +155,13 @@ void set_gemmx_streamer_csr(
 
     // base ptr for D32
     write_csr(1010, (uint32_t)(delta_local_d32 + snrt_l1_next()));
+
+    // transpose or not
+    write_csr(1011, 0);
 }
 
 // Set CSR to start STREAMER
-void set_gemmx_streamer_start() { write_csr(1011, 1); }
+void set_gemmx_streamer_start() { write_csr(1012, 1); }
 
 // Set GEMM configuration CSR
 void set_gemmx_csr(int tempLoop0, int tempLoop1, int tempLoop2,
@@ -166,42 +169,42 @@ void set_gemmx_csr(int tempLoop0, int tempLoop1, int tempLoop2,
                    uint32_t csr2, uint32_t temporal_loop_bound,
                    uint32_t bypassSIMD) {
     // set loop bounds, from innermost to outermost, aka from K to N to M
-    write_csr(1014, tempLoop0);
-    write_csr(1015, tempLoop1);
-    write_csr(1016, tempLoop2);
+    write_csr(1015, tempLoop0);
+    write_csr(1016, tempLoop1);
+    write_csr(1017, tempLoop2);
 
     // set subtraction a and b
-    write_csr(1017, subtractions);
+    write_csr(1018, subtractions);
 
     // set the constants for the SIMD unit
-    write_csr(1018, csr0);
-    write_csr(1019, csr1);
-    write_csr(1020, csr2);
+    write_csr(1019, csr0);
+    write_csr(1020, csr1);
+    write_csr(1021, csr2);
 
     // set the temporal loop bound
-    write_csr(1021, temporal_loop_bound);
-    write_csr(1022, bypassSIMD);
+    write_csr(1022, temporal_loop_bound);
+    write_csr(1023, bypassSIMD);
 }
 
 // Set CSR to start GEMM
-void set_gemmx_start() { write_csr(1023, 1); }
+void set_gemmx_start() { write_csr(1024, 1); }
 
 // Stall until Streamer and GEMM accelerator finish
 void wait_gemmx_and_streamer() {
-    write_csr(1011, 0);
-    write_csr(1011, 0);
-    write_csr(1023, 0);
+    write_csr(1012, 0);
+    write_csr(1012, 0);
+    write_csr(1024, 0);
 }
 
 // Read performance counter of the Streamer, a read-only CSR
 uint32_t read_gemmx_streamer_perf_counter() {
-    uint32_t perf_counter = read_csr(1013);
+    uint32_t perf_counter = read_csr(1014);
     return perf_counter;
 }
 
 // Read performance counter of GEMM, a read-only CSR
 uint32_t read_gemmx_perf_counter() {
-    uint32_t perf_counter = read_csr(1025);
+    uint32_t perf_counter = read_csr(1026);
     return perf_counter;
 }
 
