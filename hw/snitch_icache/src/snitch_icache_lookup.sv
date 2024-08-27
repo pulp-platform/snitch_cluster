@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: SHL-0.51
 
 // Fabian Schuiki <fschuiki@iis.ee.ethz.ch>
+// Guilherme Paim <gppaim@ieee.org>
 
 /// An actual cache lookup.
 module snitch_icache_lookup #(

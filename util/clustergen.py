@@ -33,7 +33,10 @@ def write_template(tpl_path, outdir, fname=None, **kwargs):
 
 
 def main():
-    """Generate a Snitch cluster TB and all corresponding configuration files."""
+    """
+        Generate a Snitch cluster TB and
+        all corresponding configuration files.
+    """
     parser = argparse.ArgumentParser(prog="clustergen")
     parser.add_argument("--clustercfg",
                         "-c",
@@ -49,6 +52,13 @@ def main():
     parser.add_argument("--wrapper",
                         action="store_true",
                         help="Generate Snitch cluster wrapper")
+    parser.add_argument("--wrapper_name",
+                        type=str,
+                        default="snitch_cluster",
+                        help="Name of the cluster wrapper")
+    parser.add_argument("--mem",
+                        action="store_true",
+                        help="Generate the config.txt for memory compiler")
     parser.add_argument("--linker",
                         action="store_true",
                         help="Generate linker script")
@@ -89,6 +99,12 @@ def main():
         complete_filename = obj["cluster"]["name"] + "_wrapper.sv"
         with open(outdir / complete_filename, "w") as f:
             f.write(cluster_tb.render_wrapper())
+
+    if args.mem:
+        with open(outdir / "config_impl.txt", "w") as f:
+            f.write(cluster_tb.render_mem_impl())
+        with open(outdir / "config_spec.txt", "w") as f:
+            f.write(cluster_tb.render_mem_spec())
 
     if args.linker:
         with open(outdir / "link.ld", "w") as f:

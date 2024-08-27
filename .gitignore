@@ -3,7 +3,10 @@ Bender.lock
 .vscode/
 __pycache__
 
-// Modelsim Fiels
+// File List Synthesis Files
+*_flist.tcl
+
+// Modelsim Files
 *.wlf
 modelsim.ini
 *stacktrace*
@@ -14,3 +17,7 @@ gmon.out
 // Docs
 /site/
 /docs/generated/
+
+target/streams/
+target/scala*
+

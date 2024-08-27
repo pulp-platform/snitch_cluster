@@ -19,6 +19,7 @@ package:
     - Matheus Cavalcante <matheusd@iis.ee.ethz.ch>
     - Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
     - Ryan Antonio <ryan.antonio@esat.kuleuven.be>
+    - Guilherme Paim <gppaim@ieee.org>
 
 dependencies:
   axi:                { git: https://github.com/pulp-platform/axi,                version:  0.39.1  }

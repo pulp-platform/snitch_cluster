@@ -412,13 +412,17 @@ bin/snitch_cluster.vcs: ${VCS_SOURCES} ${TB_SRCS} $(TB_CC_SOURCES) $(TB_ASM_SOUR
 # DC Compiler #
 ###############
 
-.PHONY: gen-syn clean-syn
+.PHONY: gen-syn clean-syn gen-mem-cfg
 
 gen-syn:
 	mkdir -p $(SYN_BUILDDIR)
 	${BENDER} script synopsys ${SYN_BENDER} > $(SYN_BUILDDIR)/$(SYN_FLIST)
 	sed -i '2c\set ROOT "$(SYN_ROOT)"' $(SYN_BUILDDIR)/$(SYN_FLIST)
 	chmod +x $(SYN_BUILDDIR)/$(SYN_FLIST)
+
+gen-mem-cfg:
+	mkdir -p $(SYN_BUILDDIR)
+	$(CLUSTER_GEN) -c ${CFG_OVERRIDE} -o $(SYN_BUILDDIR) --mem
 
 clean-syn: clean-work
 	rm -rf $(SYN_BUILDDIR)
