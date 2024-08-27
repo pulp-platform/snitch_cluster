@@ -9,10 +9,9 @@
 // Snitch accelerator ports to
 // CSR ports
 //-------------------------------
-`ifndef TARGET_VERILATOR
+
 import riscv_instr::*;
 import reqrsp_pkg::*;
-`endif
 
 module snax_intf_translator #(
   parameter type                        acc_req_t = logic,

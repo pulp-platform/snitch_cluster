@@ -287,16 +287,19 @@ sources:
       - hw/snax_util/src/snax_csr_mux_demux.sv
       - hw/snax_util/src/snax_acc_mux_demux.sv
       - hw/snax_util/src/snax_intf_translator.sv
+
   #---------------------------
   # SNAX Accelerators
   #---------------------------
   # SNAX HWPE MAC
-  - files:
+  - target: snax_mac
+    files:
       # Level 0
       - hw/snax_hwpe_mac/src/snax_hwpe_ctrl.sv
       - hw/snax_hwpe_mac/src/snax_hwpe_to_reqrsp.sv
       # Level 1
       - hw/snax_hwpe_mac/src/snax_mac_wrapper.sv
+
   # SNAX ALU
   - target: snax_alu
     files:
