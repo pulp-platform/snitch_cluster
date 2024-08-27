@@ -6,8 +6,8 @@ import chisel3.util._
 class ReshufflerCtrl(params: ReshufflerParams) extends Bundle {
 
   // packed CRS configuration
-  val reduceLen_i = UInt(5.W)
-  val tloop2Len_i = UInt(25.W)
+  val reduceLen_i = UInt(6.W)
+  val tloop2Len_i = UInt(24.W)
   val opcode_i = UInt(2.W)
 
   require(params.sizeConfigWidth == 32, "sizeConfigWidth must be 32")
@@ -119,8 +119,8 @@ class Reshuffler(params: ReshufflerParams)
   // when config valid, store the configuration for later computation
   when(config_valid) {
     ctrl_csr.opcode_i := io.ctrl.bits(0)(1, 0)
-    ctrl_csr.reduceLen_i := io.ctrl.bits(0)(6, 2)
-    ctrl_csr.tloop2Len_i := io.ctrl.bits(0)(31, 7)
+    ctrl_csr.reduceLen_i := io.ctrl.bits(0)(7, 2)
+    ctrl_csr.tloop2Len_i := io.ctrl.bits(0)(31, 8)
   }
 
   // when opcode is 2, do MAXPool

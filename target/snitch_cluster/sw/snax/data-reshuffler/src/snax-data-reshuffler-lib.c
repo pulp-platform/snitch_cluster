@@ -61,7 +61,7 @@ void wait_streamer() { write_csr(980, 0); }
 
 void set_data_reshuffler(int T2Len, int reduceLen, int opcode) {
     // set transpose or not
-    uint32_t csr0 = ((uint32_t)T2Len << 7) | ((uint32_t)reduceLen << 2) |
+    uint32_t csr0 = ((uint32_t)T2Len << 8) | ((uint32_t)reduceLen << 2) |
                     ((uint32_t)opcode);
     write_csr(983, csr0);
 }
@@ -80,10 +80,10 @@ uint32_t test_a_chrunk_of_data(int8_t* base_ptr_local, int8_t* base_ptr_l2,
     uint32_t error = 0;
     for (int i = 0; i < len; i++) {
         if ((int8_t)base_ptr_local[i] != (int8_t)base_ptr_l2[i]) {
-            printf(
-                "Error: after reshuffle base_ptr_local[%d] = %d, golden "
-                "base_ptr_l2[%d] = %d \n",
-                i, (int8_t)base_ptr_local[i], i, (int8_t)base_ptr_l2[i]);
+            // printf(
+            //     "Error: after reshuffle base_ptr_local[%d] = %d, golden "
+            //     "base_ptr_l2[%d] = %d \n",
+            //     i, (int8_t)base_ptr_local[i], i, (int8_t)base_ptr_l2[i]);
             error++;
         }
     }

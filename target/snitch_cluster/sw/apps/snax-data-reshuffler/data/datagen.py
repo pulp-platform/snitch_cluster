@@ -208,8 +208,8 @@ def emit_gemm_data(**kwargs):
             padded_output_tensor_w * padded_output_tensor_h * kwargs["Cin"]
         )
 
-        assert padded_output_tensor_w == kwargs["W"]
-        assert padded_output_tensor_h == kwargs["H"]
+        assert padded_output_tensor_w % 8 == 0
+        assert kwargs["Cin"] % 8 == 0
 
         data_str += [
             # input data reshuffler loop bounds settings
@@ -246,9 +246,9 @@ def emit_gemm_data(**kwargs):
         assert padded_output_tensor_w * 8 == 8 * 8 * (padded_output_tensor_w // 8)
         data_str += [
             # data reshuffler input strides
-            format_scalar_definition("int32_t", "spatialStride1_in", 8),
+            format_scalar_definition("int32_t", "spatialStride1_in", kwargs["stride_w"] * 8),
             format_scalar_definition(
-                "int32_t", "tempStride0_in", kwargs["stride_w"] * 8
+                "int32_t", "tempStride0_in", 8
             ),
             format_scalar_definition(
                 "int32_t", "tempStride1_in", padded_input_tensor_w * 8
