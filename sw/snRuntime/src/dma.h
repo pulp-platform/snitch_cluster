@@ -24,7 +24,6 @@
     ((funct7 << 25) | (rs2 << 20) | (rs1 << 15) | (funct3 << 12) | (rd << 7) | \
      (opcode))
 
-
 /// A DMA transfer identifier.
 typedef uint32_t snrt_dma_txid_t;
 

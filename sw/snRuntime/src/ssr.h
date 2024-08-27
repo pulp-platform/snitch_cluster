@@ -35,9 +35,9 @@ inline void snrt_fpu_fence() {
  * @brief The different SSRs.
  */
 enum snrt_ssr_dm {
-    SNRT_SSR_DM0 = 0, /**< SSR data mover 0 */
-    SNRT_SSR_DM1 = 1, /**< SSR data mover 1 */
-    SNRT_SSR_DM2 = 2, /**< SSR data mover 2 */
+    SNRT_SSR_DM0 = 0,    /**< SSR data mover 0 */
+    SNRT_SSR_DM1 = 1,    /**< SSR data mover 1 */
+    SNRT_SSR_DM2 = 2,    /**< SSR data mover 2 */
     SNRT_SSR_DM_ALL = 31 /**< Write to all SSRs */
 };
 
@@ -48,19 +48,19 @@ enum snrt_ssr_dim {
     SNRT_SSR_1D = 0, /**< 1D stream */
     SNRT_SSR_2D = 1, /**< 2D stream */
     SNRT_SSR_3D = 2, /**< 3D stream */
-    SNRT_SSR_4D = 3 /**< 4D stream */
+    SNRT_SSR_4D = 3  /**< 4D stream */
 };
 
 /**
  * @brief The SSR configuration registers.
  */
 enum {
-    REG_STATUS = 0, /**< SSR status register */
-    REG_REPEAT = 1, /**< SSR repeat register */
-    REG_BOUNDS = 2, /**< SSR bounds register */
+    REG_STATUS = 0,  /**< SSR status register */
+    REG_REPEAT = 1,  /**< SSR repeat register */
+    REG_BOUNDS = 2,  /**< SSR bounds register */
     REG_STRIDES = 6, /**< SSR strides register */
-    REG_RPTR = 24, /**< SSR read pointer register */
-    REG_WPTR = 28 /**< SSR write pointer register */
+    REG_RPTR = 24,   /**< SSR read pointer register */
+    REG_WPTR = 28    /**< SSR write pointer register */
 };
 
 /**
@@ -92,7 +92,6 @@ inline void snrt_ssr_disable() {
  * @return The value of the register.
  */
 inline uint32_t read_ssr_cfg(uint32_t reg, uint32_t dm) {
-
     uint32_t value;
     asm volatile("scfgri %[value], %[dm] | %[reg]<<5\n"
                  : [ value ] "=r"(value)

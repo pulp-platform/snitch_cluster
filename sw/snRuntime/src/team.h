@@ -4,11 +4,13 @@
 
 /**
  * @file
- * @brief This file contains functions and macros related to Snitch team management.
+ * @brief This file contains functions and macros related to Snitch team
+ * management.
  *
- * The functions in this file provide information about the Snitch hardware configuration,
- * such as the number of clusters, cores per cluster, and the current core's index within
- * the system. These functions can be used for team management and core-specific operations.
+ * The functions in this file provide information about the Snitch hardware
+ * configuration, such as the number of clusters, cores per cluster, and the
+ * current core's index within the system. These functions can be used for team
+ * management and core-specific operations.
  */
 
 #pragma once
