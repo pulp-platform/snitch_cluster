@@ -52,7 +52,7 @@ int32_t xdma_memcpy_nd(uint8_t* src, uint8_t* dst, uint32_t dim_src,
     }
     if (src_size != dst_size) {
         XDMA_DEBUG_PRINT("src loop and dst loop is not equal\n");
-        return -3;
+        // return -3;
     }
 
     // Dimension 0 to n at src

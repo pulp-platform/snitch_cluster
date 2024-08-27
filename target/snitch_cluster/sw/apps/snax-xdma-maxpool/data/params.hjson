@@ -1,0 +1,16 @@
+// Copyright 2023 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Fanchen Kong <fanchen.kong@kuleuven.be>
+{
+    H: 32,
+    W: 32,
+    Cin: 8,
+    Kh: 3,
+    Kw: 3,
+    pad_h: 1,
+    pad_w: 1,
+    stride_h: 1,
+    stride_w: 1
+}
