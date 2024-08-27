@@ -180,7 +180,7 @@
 
         fifo_reader_params: {
             fifo_width: [512, 512],
-            fifo_depth: [2, 2],
+            fifo_depth: [5, 5],
         }
 
         fifo_writer_params: {
