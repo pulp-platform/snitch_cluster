@@ -27,7 +27,7 @@ dependencies:
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.11  }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0   }
   cluster_icache:     { git: https://github.com/pulp-platform/cluster_icache.git, version:  0.1.0   }
-  idma:               { git: https://github.com/pulp-platform/iDMA,               rev:      snitch-tracing }
+  idma:               { git: https://github.com/pulp-platform/iDMA,               rev: __deploy__9cbcd30__snitch-tracing }
 
 export_include_dirs:
   - hw/reqrsp_interface/include
