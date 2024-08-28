@@ -49,23 +49,36 @@ clean-nonfree:
 # Docs #
 ########
 
-GENERATED_DOCS_DIR = docs/generated
+DOCS_DIR = docs
+
+GENERATED_DOCS_DIR = $(DOCS_DIR)/generated
 GENERATED_DOC_SRCS = $(GENERATED_DOCS_DIR)/peripherals.md
+
+DOXYGEN_DOCS_DIR = $(DOCS_DIR)/doxygen
+DOXYGEN_INPUTS   = $(DOCS_DIR)/rm/snRuntime.md
+DOXYGEN_INPUTS  += $(shell find sw/snRuntime -name '*.c' -o -name '*.h')
+DOXYFILE         = $(DOCS_DIR)/Doxyfile
 
 all: docs
 clean: clean-docs
-.PHONY: doc-srcs docs clean-docs
+.PHONY: doc-srcs doxygen-docs docs clean-docs
 
 doc-srcs: $(GENERATED_DOC_SRCS)
 
-docs: doc-srcs
+doxygen-docs: $(DOXYGEN_DOCS_DIR)
+
+docs: doc-srcs doxygen-docs
 	mkdocs build
 
 clean-docs:
 	rm -rf $(GENERATED_DOCS_DIR)
+	rm -rf $(DOXYGEN_DOCS_DIR)
 
 $(GENERATED_DOCS_DIR):
 	mkdir -p $@
 
 $(GENERATED_DOCS_DIR)/peripherals.md: hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.hjson | $(GENERATED_DOCS_DIR)
 	$(REGGEN) -d $< > $@
+
+$(DOXYGEN_DOCS_DIR): $(DOXYFILE) $(DOXYGEN_INPUTS)
+	doxygen $<

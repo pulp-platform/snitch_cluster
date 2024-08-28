@@ -1,0 +1,11 @@
+PROJECT_NAME = "Snitch Runtime"
+INPUT = docs/rm/snRuntime.md sw/snRuntime
+RECURSIVE = YES
+FILE_PATTERNS = *.h *.c
+OUTPUT_DIRECTORY = docs/doxygen/
+USE_MDFILE_AS_MAINPAGE = docs/rm/snRuntime.md
+GENERATE_LATEX = NO
+ENABLE_PREPROCESSING = YES
+MACRO_EXPANSION = YES
+EXPAND_ONLY_PREDEF = YES
+PREDEFINED = __attribute__(x)=
