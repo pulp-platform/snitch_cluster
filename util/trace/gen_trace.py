@@ -359,9 +359,7 @@ def load_opcodes():
 def disasm_inst(hex_inst, mc_exec='llvm-mc', mc_flags='-disassemble -mcpu=snitch'):
     """Disassemble a single RISC-V instruction using llvm-mc."""
     # Reverse the endianness of the hex instruction
-    inst_fmt = ' '.join(
-        [f'0x{hex_inst[i:i+2]}' for i in range(0, len(hex_inst), 2)][::-1]
-    )
+    inst_fmt = ' '.join(f'0x{byte:02x}' for byte in bytes.fromhex(hex_inst)[::-1])
 
     # Use llvm-mc to disassemble the binary instruction
     result = subprocess.run(
