@@ -27,7 +27,7 @@ ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 ############
 
 NONFREE_REMOTE ?= git@iis-git.ee.ethz.ch:pulp-restricted/snitch-cluster-nonfree.git
-NONFREE_COMMIT ?= 214380a8c6af4cdd3d53a5b74cfaf462da877be2
+NONFREE_COMMIT ?= e30961e20a23a76442da27d2ba07c9fe20f3b575
 NONFREE_DIR = $(ROOT)/nonfree
 
 all: nonfree

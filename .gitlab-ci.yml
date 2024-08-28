@@ -159,7 +159,7 @@ snitch-cluster-mchan-vsim:
 # Non-free #
 ############
 
-# nonfree:
-#   script:
-#     - make nonfree
-#     - make elab
+nonfree:
+  script:
+    - make nonfree
+    - make elab
