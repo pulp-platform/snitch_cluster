@@ -15,7 +15,6 @@ variables:
 
 before_script:
   source iis-setup.sh
-  pip install $($BENDER path idma)/requirements.txt
 
 ##############
 # Build docs #
