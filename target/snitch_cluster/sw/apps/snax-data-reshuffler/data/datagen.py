@@ -190,6 +190,7 @@ def emit_gemm_data(**kwargs):
 
         data_str = "\n\n".join(data_str)
 
+    # max pooling then
     elif kwargs["ifC8HW8datalayout"] is True:
         # data layout, C8HW8
         # Generating loop bounds settings
@@ -211,7 +212,12 @@ def emit_gemm_data(**kwargs):
         assert padded_output_tensor_w % 8 == 0
         assert kwargs["Cin"] % 8 == 0
 
+        assert (
+            input_data_len + output_data_len < 128 * 1024
+        ), "Data size too large for 128 KB TCDM"
+
         data_str += [
+            format_scalar_definition("int32_t", "input_data_len", input_data_len),
             # input data reshuffler loop bounds settings
             format_scalar_definition("int8_t", "tempLoop0_in", kwargs["Kw"]),
             format_scalar_definition("int8_t", "tempLoop1_in", kwargs["Kh"]),
@@ -220,6 +226,36 @@ def emit_gemm_data(**kwargs):
             ),
             format_scalar_definition("int8_t", "tempLoop3_in", padded_output_tensor_h),
             format_scalar_definition("int8_t", "tempLoop4_in", kwargs["Cin"] // 8),
+        ]
+
+        assert padded_output_tensor_w % 8 == 0
+
+        # data reshuffler input strides
+        spatialStride1_in = kwargs["stride_w"] * 8
+        tempStride0_in = 8
+        tempStride1_in = padded_input_tensor_w * 8
+        tempStride2_in = 8 * 8 * kwargs["stride_w"]
+        tempStride3_in = padded_input_tensor_w * 8 * kwargs["stride_h"]
+        tempStride4_in = padded_input_tensor_w * padded_input_tensor_h * 8
+        data_str += [
+            format_scalar_definition("int32_t", "delta_local_in", 0),
+            format_scalar_definition("int32_t", "spatialStride1_in", spatialStride1_in),
+            format_scalar_definition("int32_t", "tempStride0_in", tempStride0_in),
+            format_scalar_definition("int32_t", "tempStride1_in", tempStride1_in),
+            format_scalar_definition("int32_t", "tempStride2_in", tempStride2_in),
+            format_scalar_definition(
+                "int32_t",
+                "tempStride3_in",
+                tempStride3_in,
+            ),
+            format_scalar_definition(
+                "int32_t",
+                "tempStride4_in",
+                tempStride4_in,
+            ),
+        ]
+
+        data_str += [
             # output data reshuffler loop bounds settings
             format_scalar_definition(
                 "int8_t", "tempLoop0_out", padded_output_tensor_w // 8
@@ -227,66 +263,47 @@ def emit_gemm_data(**kwargs):
             format_scalar_definition("int8_t", "tempLoop1_out", padded_output_tensor_h),
             format_scalar_definition("int8_t", "tempLoop2_out", kwargs["Cin"] // 8),
             # data length setting
-            format_scalar_definition("int32_t", "input_data_len", input_data_len),
             format_scalar_definition("int32_t", "output_data_len", output_data_len),
-            format_scalar_definition(
-                "int32_t",
-                "TloopLen",
-                padded_output_tensor_w
-                * padded_output_tensor_h
-                * kwargs["Cin"]
-                // 8
-                // 8,
-            ),
-            format_scalar_definition(
-                "int32_t", "reduceLen", kwargs["Kw"] * kwargs["Kh"]
-            ),
         ]
 
-        assert padded_output_tensor_w * 8 == 8 * 8 * (padded_output_tensor_w // 8)
+        # data reshuffler output strides
+        delta_local_out = padded_input_tensor_h * padded_input_tensor_w * kwargs["Cin"]
+        spatialStride1_out = 8
+        tempStride0_out = 8 * 8
+        tempStride1_out = padded_output_tensor_w * 8
+        tempStride2_out = padded_output_tensor_w * padded_output_tensor_h * 8
         data_str += [
-            # data reshuffler input strides
-            format_scalar_definition("int32_t", "spatialStride1_in", kwargs["stride_w"] * 8),
-            format_scalar_definition(
-                "int32_t", "tempStride0_in", 8
-            ),
-            format_scalar_definition(
-                "int32_t", "tempStride1_in", padded_input_tensor_w * 8
-            ),
-            format_scalar_definition("int32_t", "tempStride2_in", 8 * 8),
-            format_scalar_definition(
-                "int32_t",
-                "tempStride3_in",
-                padded_input_tensor_w * 8 * kwargs["stride_h"],
-            ),
-            format_scalar_definition(
-                "int32_t",
-                "tempStride4_in",
-                padded_input_tensor_w * padded_input_tensor_h * 8,
-            ),
-            # data reshuffler output strides
-            format_scalar_definition("int32_t", "spatialStride1_out", 8),
-            format_scalar_definition(
-                "int32_t",
-                "tempStride0_out",
-                8 * 8,
-            ),
-            format_scalar_definition(
-                "int32_t", "tempStride1_out", padded_output_tensor_w * 8
-            ),
-            format_scalar_definition(
-                "int32_t",
-                "tempStride2_out",
-                padded_output_tensor_w * padded_output_tensor_h * 8,
-            ),
             # Generating base address pointers
-            format_scalar_definition("int32_t", "delta_local_in", 0),
             format_scalar_definition(
                 "int32_t",
                 "delta_local_out",
-                padded_input_tensor_h * padded_input_tensor_w * kwargs["Cin"],
+                delta_local_out,
+            ),
+            format_scalar_definition(
+                "int32_t", "spatialStride1_out", spatialStride1_out
+            ),
+            format_scalar_definition(
+                "int32_t",
+                "tempStride0_out",
+                tempStride0_out,
+            ),
+            format_scalar_definition("int32_t", "tempStride1_out", tempStride1_out),
+            format_scalar_definition(
+                "int32_t",
+                "tempStride2_out",
+                tempStride2_out,
             ),
         ]
+
+        assert delta_local_out % 8 == 0
+        assert tempStride0_in % 8 == 0
+        assert tempStride1_in % 8 == 0
+        assert tempStride2_in % 8 == 0
+        assert tempStride3_in % 8 == 0
+        assert tempStride4_in % 8 == 0
+        assert tempStride0_out % 8 == 0
+        assert tempStride1_out % 8 == 0
+        assert tempStride2_out % 8 == 0
 
         # Generating random input data vector
         data_in = np.random.randint(
@@ -316,8 +333,24 @@ def emit_gemm_data(**kwargs):
             "constant",
         )
 
+        # datapath setting
         # set opcode
         data_str += [format_scalar_definition("int", "opcode", 2)]
+        # set TloopLen and reduceLen
+        data_str += [
+            format_scalar_definition(
+                "int32_t",
+                "TloopLen",
+                padded_output_tensor_w
+                * padded_output_tensor_h
+                * kwargs["Cin"]
+                // 8
+                // 8,
+            ),
+            format_scalar_definition(
+                "int32_t", "reduceLen", kwargs["Kw"] * kwargs["Kh"]
+            ),
+        ]
 
         # Writing testing data and golden data into data.h
         assert padded_data_in.shape == (
