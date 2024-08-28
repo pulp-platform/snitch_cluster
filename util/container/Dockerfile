@@ -94,6 +94,7 @@ RUN tar xzf snitch-spike-dasm-${SPIKE_DASM_VERSION}-x86_64-linux-gnu-ubuntu18.04
 # Install Doxygen
 RUN wget https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
 RUN tar xzf doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
+RUN mv doxygen-${DOXYGEN_VERSION} doxygen
 
 # 2. Stage
 FROM ubuntu:22.04 AS snitch_cluster
@@ -154,7 +155,7 @@ COPY --from=builder /tools/spike-dasm bin/
 COPY --from=builder /root/.cargo/bin/banshee bin/
 COPY --from=builder /opt/python /opt/python
 COPY --from=builder /tools/verilator /tools/verilator/
-COPY --from=builder /tools/doxygen-${DOXYGEN_VERSION}/bin/doxygen bin/
+COPY --from=builder /tools/doxygen/bin/doxygen bin/
 
 # Create and activate virtual environment
 ENV VIRTUAL_ENV "/root/.venvs/snitch_cluster"
