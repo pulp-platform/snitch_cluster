@@ -365,13 +365,15 @@ def disasm_inst(hex_inst, mc_exec='llvm-mc', mc_flags='-disassemble -mcpu=snitch
 
     # Use llvm-mc to disassemble the binary instruction
     result = subprocess.run(
-        f'echo {inst_fmt} | {mc_exec} {mc_flags}',
-        shell=True,
+        [mc_exec] + mc_flags.split(),
+        input=inst_fmt,
         capture_output=True,
+        text=True,
+        check=True,
     )
 
     # Extract disassembled instruction from llvm-mc output
-    return result.stdout.decode().splitlines()[-1].strip().replace('\t', ' ')
+    return result.stdout.splitlines()[-1].strip().replace('\t', ' ')
 
 
 def flt_op_vlen(insn: str, op_type: str) -> int:
