@@ -1147,7 +1147,7 @@ def main():
     )
     parser.add_argument(
         '--mc-flags',
-        default='-mcpu=snitch',
+        default='-disassemble -mcpu=snitch',
         help='Flags to pass to the llvm-mc executable'
     )
 
