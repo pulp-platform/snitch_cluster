@@ -67,6 +67,7 @@ def conv2d(input_data, kernel, stride=(1, 1), padding=(0, 0), mode="NHWC"):
         # Calculate the output feature map dimensions
         out_height = (in_height - kernel_height + 2 * pad_h) // stride_h + 1
         out_width = (in_width - kernel_width + 2 * pad_w) // stride_w + 1
+        assert out_width % 8 == 0
 
         # Add padding
         input_data_padded = np.pad(
@@ -425,3 +426,9 @@ def max_pooling(
                     )
 
     return pooled_tensor
+
+
+def align_wide_addr(addr, alignment=64):
+    if addr % alignment:
+        addr = ((addr // alignment) + 1) * alignment
+    return addr

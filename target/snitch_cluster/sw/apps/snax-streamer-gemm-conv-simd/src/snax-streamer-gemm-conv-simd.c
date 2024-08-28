@@ -43,14 +43,15 @@ int main() {
             Nbatch * (H + 2 * pad_h) * (W + 2 * pad_w) * Cin * sizeof(int8_t));
         snrt_dma_start_1d(local_b, B, Cout * Kh * Kw * Cin * sizeof(int8_t));
 #endif
+        snrt_dma_wait_all();
     }
 
     // Wait for DMA to finish
     snrt_cluster_hw_barrier();
-
     if (snrt_is_dm_core()) {
         snrt_dma_start_1d(local_c, C,
                           M * N * meshRow * meshCol * sizeof(int32_t));
+        snrt_dma_wait_all();
     }
 
     snrt_cluster_hw_barrier();
@@ -105,10 +106,10 @@ int main() {
             err += check_gemmx_result_D32(local_d32, D32, Batch, M, N);
         }
 #ifdef TEST_MATMUL
-        printf("SNAX GEMM Matmul: %s, err = %d . bypassSIMD = %d .\n",
+        printf("SNAX GEMM Matmul: %s, Error: %d . bypassSIMD = %d .\n",
                err ? "FAIL" : "PASS", err, bypassSIMD);
 #else
-        printf("SNAX GEMM Conv2d: %s, err = %d . bypassSIMD = %d .\n",
+        printf("SNAX GEMM Conv2d: %s, Error: %d . bypassSIMD = %d .\n",
                err ? "FAIL" : "PASS", err, bypassSIMD);
 #endif
     };
