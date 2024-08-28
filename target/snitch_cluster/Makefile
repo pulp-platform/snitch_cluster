@@ -331,13 +331,13 @@ $(TARGET_C_HDRS_DIR)/snitch_cluster_peripheral.h: $(ROOT)/hw/snitch_cluster/src/
 $(GENERATED_DIR):
 	mkdir -p $(GENERATED_DIR)
 
-$(GENERATED_DIR)/link.ld: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
+$(GENERATED_DIR)/link.ld: ${CFG} |  ${CLUSTER_GEN_PREREQ} $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --linker
 
-$(GENERATED_DIR)/memories.json: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
+$(GENERATED_DIR)/memories.json: ${CFG} |  ${CLUSTER_GEN_PREREQ} $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --memories
 
-$(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
+$(GENERATED_DIR)/bootdata.cc: ${CFG} |  ${CLUSTER_GEN_PREREQ} $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --bootdata
 
 #############
