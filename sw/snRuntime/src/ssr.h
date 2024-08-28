@@ -98,6 +98,7 @@ inline uint32_t read_ssr_cfg(uint32_t reg, uint32_t dm) {
                  : [ dm ] "i"(dm), [ reg ] "i"(reg));
     return value;
 }
+
 /**
  * @brief Write a value to an SSR configuration register.
  * @param reg The register index.
@@ -108,6 +109,7 @@ inline void write_ssr_cfg(uint32_t reg, uint32_t dm, uint32_t value) {
     asm volatile("scfgwi %[value], %[dm] | %[reg]<<5\n" ::[value] "r"(value),
                  [ dm ] "i"(dm), [ reg ] "i"(reg));
 }
+
 /**
  * @brief Configure an SSR data mover for a 1D loop nest.
  * @param dm The SSR index.
@@ -121,6 +123,7 @@ inline void snrt_ssr_loop_1d(enum snrt_ssr_dm dm, size_t b0, size_t s0) {
     write_ssr_cfg(REG_STRIDES + 0, dm, s0 - a);
     a += s0 * b0;
 }
+
 /**
  * @brief Configure an SSR data mover for a 2D loop nest.
  * @param dm The SSR index.
@@ -202,6 +205,7 @@ inline void snrt_ssr_loop_4d(enum snrt_ssr_dm dm, size_t b0, size_t b1,
     write_ssr_cfg(REG_STRIDES + 3, dm, s3 - a);
     a += s3 * b3;
 }
+
 /**
  * @brief Configure the repetition count for a stream.
  * @param dm The SSR index.
@@ -210,6 +214,7 @@ inline void snrt_ssr_loop_4d(enum snrt_ssr_dm dm, size_t b0, size_t b1,
 inline void snrt_ssr_repeat(enum snrt_ssr_dm dm, size_t count) {
     write_ssr_cfg(REG_REPEAT, dm, count - 1);
 }
+
 /**
  * @brief Start a streaming read.
  * @param dm The SSR index.
@@ -220,6 +225,7 @@ inline void snrt_ssr_read(enum snrt_ssr_dm dm, enum snrt_ssr_dim dim,
                           volatile void *ptr) {
     write_ssr_cfg(REG_RPTR + dim, dm, (uintptr_t)ptr);
 }
+
 /**
  * @brief Start a streaming write.
  * @param dm The SSR index.

@@ -151,7 +151,6 @@ RUN apt-get update && apt-get install software-properties-common -y && \
 # Copy artifacts from stage 1.
 COPY --from=builder /tools/bender bin/
 COPY --from=builder /tools/spike-dasm bin/
-COPY --from=builder /tools/spike-dasm bin/
 COPY --from=builder /root/.cargo/bin/banshee bin/
 COPY --from=builder /opt/python /opt/python
 COPY --from=builder /tools/verilator /tools/verilator/
