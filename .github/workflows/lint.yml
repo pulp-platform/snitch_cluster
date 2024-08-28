@@ -56,7 +56,6 @@ jobs:
       - name: Generate RTL sources
         working-directory: target/snitch_cluster
         run: |
-          pip install -r $(bender path idma)/requirements.txt
           make rtl
       # For some reason, the checkout is done by a different user,
       # than that running `git diff` (root, possibly due to Docker).
