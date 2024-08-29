@@ -24,11 +24,3 @@ rm -rf tmp
 
 # Install local packages in editable mode.
 pip install -e .
-
-# Install spike-dasm
-mkdir tools/
-cd tools/
-wget https://raw.githubusercontent.com/pulp-platform/riscv-isa-sim/snitch/iis-install-spike-dasm.sh
-chmod +x iis-install-spike-dasm.sh && ./iis-install-spike-dasm.sh && rm iis-install-spike-dasm.sh
-cd -
-export PATH=$(pwd)/tools:$PATH
