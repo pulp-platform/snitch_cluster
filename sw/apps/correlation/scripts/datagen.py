@@ -21,7 +21,7 @@ class CorrelationDataGen(du.DataGen):
     def golden_model(self, data):
         return np.corrcoef(data, rowvar=False)
 
-    def validate_config(self, M, N, **kwargs):
+    def validate(self, M, N, **kwargs):
         assert (M % 8) == 0, "M must be an integer multiple of the number of cores"
 
         # Calculate total TCDM occupation
@@ -37,7 +37,7 @@ class CorrelationDataGen(du.DataGen):
         header = [super().emit_header()]
 
         # Validate parameters
-        self.validate_config(**kwargs)
+        self.validate(**kwargs)
 
         M, N = kwargs['M'], kwargs['N']
         data = du.generate_random_array((N, M))

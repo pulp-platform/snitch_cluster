@@ -21,7 +21,7 @@ class AtaxDataGen(du.DataGen):
     def golden_model(self, A, x):
         return np.matmul(A.transpose(), np.matmul(A, x))
 
-    def validate_config(self, M, N, **kwargs):
+    def validate(self, M, N, **kwargs):
         assert (N % 8) == 0, "N must be an integer multiple of the number of cores"
 
         # Calculate total TCDM occupation
@@ -39,7 +39,7 @@ class AtaxDataGen(du.DataGen):
         header = [super().emit_header()]
 
         # Validate parameters
-        self.validate_config(**kwargs)
+        self.validate(**kwargs)
 
         M, N = kwargs['M'], kwargs['N']
         A = du.generate_random_array((M, N))

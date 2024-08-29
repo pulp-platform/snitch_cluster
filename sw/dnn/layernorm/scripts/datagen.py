@@ -46,7 +46,7 @@ def golden_model_torch(ifmap, eps, shape):
     return ln(ifmap)
 
 
-def validate_config(**kwargs):
+def validate(**kwargs):
     # Aliases
     batch_size = kwargs['input_dim']['batch_size']
     seq_len = kwargs['input_dim']['seq_len']
@@ -74,7 +74,7 @@ def validate_config(**kwargs):
 def emit_header(**kwargs):
 
     # Validate parameters
-    validate_config(**kwargs)
+    validate(**kwargs)
 
     batch_size = kwargs['input_dim']['batch_size']
     seq_len = kwargs['input_dim']['seq_len']
