@@ -1,14 +1,14 @@
 
-test/bootrom.elf:     file format elf32-littleriscv
+test/bootrom.elf:	file format elf32-littleriscv
 
 
 Disassembly of section .text:
 
-80000000 <_l3_base>:
-80000000:	800002b7          	lui	t0,0x80000
-80000004:	00028293          	mv	t0,t0
-80000008:	00028067          	jr	t0 # 80000000 <wfi_loop+0xfffffff4>
+80000000 <_start>:
+80000000: b7 02 00 80  	lui	t0, 524288
+80000004: 93 82 02 00  	mv	t0, t0
+80000008: 67 80 02 00  	jr	t0
 
 8000000c <wfi_loop>:
-8000000c:	10500073          	wfi
-80000010:	ffdff06f          	j	8000000c <wfi_loop>
+8000000c: 73 00 50 10  	wfi	
+80000010: 6f f0 df ff  	j	0x8000000c <wfi_loop>

@@ -181,10 +181,10 @@ $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv: $(PERIPH_DIR)/snitch_cluster
 # Bootrom
 .PHONY: bootrom
 bootrom: test/snitch_bootrom.sv
-test/bootrom.elf test/bootrom.dump test/bootrom.bin test/snitch_bootrom.sv: test/bootrom.S test/bootrom.ld
-	riscv riscv32-unknown-elf-gcc -mabi=ilp32d -march=rv32imafd -static -nostartfiles -Lsw/runtime/rtl -Ttest/bootrom.ld test/bootrom.S -o test/bootrom.elf
-	riscv riscv32-unknown-elf-objdump -d test/bootrom.elf > test/bootrom.dump
-	riscv riscv32-unknown-elf-objcopy -j .text -O binary test/bootrom.elf test/bootrom.bin
+test/bootrom.elf test/bootrom.dump test/bootrom.bin test/snitch_bootrom.sv: test/bootrom.S test/bootrom.ld util/gen_bootrom.py
+	$(RISCV_CC) -mabi=ilp32d -march=rv32imafd -static -nostartfiles -fuse-ld=$(RISCV_LD) -Lsw/runtime -Ttest/bootrom.ld $< -o $@
+	$(RISCV_OBJDUMP) -d test/bootrom.elf > test/bootrom.dump
+	$(RISCV_OBJCOPY) -j .text -O binary test/bootrom.elf test/bootrom.bin
 	util/gen_bootrom.py --sv-module snitch_bootrom test/bootrom.bin > test/snitch_bootrom.sv
 
 #############
