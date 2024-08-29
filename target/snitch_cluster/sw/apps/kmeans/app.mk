@@ -4,11 +4,11 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-APP              := atax
-$(APP)_BUILD_DIR ?= $(ROOT)/target/snitch_cluster/sw/apps/$(APP)/build
-SRC_DIR          := $(ROOT)/sw/apps/$(APP)/src
-SRCS             := $(SRC_DIR)/main.c
-$(APP)_INCDIRS   := $(ROOT)/sw/blas
+APP                 := kmeans
+$(APP)_BUILD_DIR    ?= $(ROOT)/target/snitch_cluster/sw/apps/$(APP)/build
+SRC_DIR             := $(ROOT)/sw/apps/$(APP)/src
+SRCS                := $(SRC_DIR)/main.c
+$(APP)_DATAGEN_ARGS  = --no-gui
 
 include $(ROOT)/sw/apps/common.mk
 include $(ROOT)/target/snitch_cluster/sw/apps/common.mk

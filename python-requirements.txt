@@ -25,6 +25,7 @@ pyflexfloat
 pytablewriter
 pytest
 pyyaml
+scikit-learn
 tabulate
 termcolor
 yamllint

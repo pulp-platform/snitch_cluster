@@ -95,9 +95,11 @@ runs:
   - elf: apps/dnn/transpose/build/transpose.elf
     cmd: [../../../sw/dnn/transpose/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/montecarlo/pi_estimation/build/pi_estimation.elf
-  # - elf: apps/atax/build/atax.elf
-  #   cmd: [../../../sw/apps/atax/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: apps/atax/build/atax.elf
+    cmd: [../../../sw/apps/atax/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/covariance/build/covariance.elf
     cmd: [../../../sw/apps/covariance/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/doitgen/build/doitgen.elf
     cmd: [../../../sw/apps/doitgen/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: apps/blas/gemv/build/gemv.elf
+    cmd: [../../../sw/blas/gemv/scripts/verify.py, "${sim_bin}", "${elf}"]

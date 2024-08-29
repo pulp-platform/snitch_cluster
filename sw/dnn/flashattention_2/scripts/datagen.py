@@ -138,7 +138,7 @@ def exact_flexfloat_golden_model(Q, K, V, B_r, B_c, desc):
 
 
 # Verify layer parameters are valid
-def validate_config(L, S, d, B_r, B_c, dtype, baseline, gemm_impl):
+def validate(L, S, d, B_r, B_c, dtype, baseline, gemm_impl):
     assert (L % B_r) == 0, 'L is not an integer multiple of B_r'
     assert (S % B_c) == 0, 'S is not an integer multiple of B_c'
     assert dtype != 'FP64', 'FP64 precision is not supported yet'
@@ -164,20 +164,20 @@ def validate_config(L, S, d, B_r, B_c, dtype, baseline, gemm_impl):
     data_utils.validate_tcdm_footprint(total_size)
 
     # Q*K^t
-    gemm.GemmDataGen().validate_config(
+    gemm.GemmDataGen().validate(
         gemm_fp=gemm_impl, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
         k_tiles=1, transa=0, transb=1, M=B_r, N=B_c, K=d, beta=0
     )
 
     # P*V
     if baseline:
-        gemm.GemmDataGen().validate_config(
+        gemm.GemmDataGen().validate(
             gemm_fp=gemm_impl, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
             k_tiles=1, transa=0, transb=0, M=B_r, N=d, K=B_c, beta=1
         )
     else:
         # P*(V^t)^t
-        gemm.GemmDataGen().validate_config(
+        gemm.GemmDataGen().validate(
             gemm_fp=gemm_impl, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
             k_tiles=1, transa=0, transb=1, M=B_r, N=d, K=B_c, beta=1
         )
@@ -204,7 +204,7 @@ def emit_header(section, params):
     prec = params['dtype']
     gemm_impl = get_gemm_implementation(params)
 
-    validate_config(gemm_impl=gemm_impl, **params)
+    validate(gemm_impl=gemm_impl, **params)
 
     # torch_type = data_utils.torch_type_from_precision_t(prec)
     ff_desc = data_utils.ff_desc_from_precision_t(prec)

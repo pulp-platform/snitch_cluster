@@ -24,6 +24,8 @@ def dump_results_to_csv(expected_results, actual_results, error, max_error, path
     size), flattens them, and dumps them to a CSV file. Each array is
     mapped to a different column of the CSV, in the same order as they
     appear as arguments in the function signature.
+    Also dumps an additional column, indicating pass (or failure) status,
+    calculated as `error <= max_error`.
 
     Args:
         expected_results: Array of expected results.
@@ -38,11 +40,12 @@ def dump_results_to_csv(expected_results, actual_results, error, max_error, path
     # Flatten and zip arrays
     arrays = (expected_results, actual_results, error, max_error)
     flattened = [flatten(arr) for arr in arrays]
+    flattened.append((flattened[2] <= flattened[3]).astype(bool).astype(str))
     zipped = np.column_stack(flattened)
     # Write row-by-row to CSV file
     with open(path, 'w') as csv_file:
         csv_writer = csv.writer(csv_file)
-        csv_writer.writerow(['expected', 'actual', 'error', 'max_error'])
+        csv_writer.writerow(['expected', 'actual', 'error', 'max_error', 'pass'])
         for row in zipped:
             csv_writer.writerow(row)
     # Print path where results were written

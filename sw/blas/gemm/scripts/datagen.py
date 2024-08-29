@@ -42,9 +42,9 @@ class GemmDataGen(du.DataGen):
         prec, impl = re.search(r'gemm_fp(\d+)_(\w+)', gemm_fp).group(1, 2)
         return (int(prec) / 8), impl
 
-    def validate_config(self, gemm_fp, parallelize_m,
-                        parallelize_k, m_tiles, n_tiles, k_tiles, transa,
-                        transb, M, N, K, beta, **kwargs):
+    def validate(self, gemm_fp, parallelize_m,
+                 parallelize_k, m_tiles, n_tiles, k_tiles, transa,
+                 transb, M, N, K, beta, **kwargs):
         frac_m = M / m_tiles
         frac_n = N / n_tiles
         frac_k = K / k_tiles
@@ -90,7 +90,7 @@ class GemmDataGen(du.DataGen):
         header = [super().emit_header()]
 
         # Validate parameters
-        self.validate_config(**kwargs)
+        self.validate(**kwargs)
 
         M, N, K = kwargs['M'], kwargs['N'], kwargs['K']
 
@@ -98,9 +98,9 @@ class GemmDataGen(du.DataGen):
 
         ctype = du.ctype_from_precision_t(prec)
 
-        a = du.generate_random_array((M, K), prec)
-        b = du.generate_random_array((K, N), prec)
-        c = du.generate_random_array((M, N), prec)
+        a = du.generate_random_array((M, K), prec, seed=42)
+        b = du.generate_random_array((K, N), prec, seed=42)
+        c = du.generate_random_array((M, N), prec, seed=42)
         result = self.exact_golden_model(1, a, b, kwargs['beta'], c)
 
         # Store matrices in transposed form if requested

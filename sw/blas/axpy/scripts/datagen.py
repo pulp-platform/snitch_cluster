@@ -21,7 +21,7 @@ class AxpyDataGen(du.DataGen):
     def golden_model(self, a, x, y):
         return a*x + y
 
-    def validate_config(self, **kwargs):
+    def validate(self, **kwargs):
         assert kwargs['n'] % kwargs['n_tiles'] == 0, "n must be an integer multiple of n_tiles"
         n_per_tile = kwargs['n'] // kwargs['n_tiles']
         assert (n_per_tile % 8) == 0, "n must be an integer multiple of the number of cores"
@@ -36,7 +36,7 @@ class AxpyDataGen(du.DataGen):
     def emit_header(self, **kwargs):
         header = [super().emit_header()]
 
-        self.validate_config(**kwargs)
+        self.validate(**kwargs)
 
         a = du.generate_random_array(1)[0]
         x = du.generate_random_array(kwargs['n'])

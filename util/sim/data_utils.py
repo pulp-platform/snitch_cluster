@@ -118,7 +118,7 @@ def ctype_from_precision_t(prec):
     return precision_t_to_ctype_map[_integer_precision_t(prec)]
 
 
-def generate_random_array(size, prec='FP64'):
+def generate_random_array(size, prec='FP64', seed=None):
     """Consistent random array generation for Snitch experiments.
 
     Samples values between -1 and 1 from a uniform distribution and
@@ -133,7 +133,7 @@ def generate_random_array(size, prec='FP64'):
             (e.g. "FP64") and integer enumeration values (e.g. 8).
     """
     # Generate in 64b precision and then cast down
-    rand = np.random.default_rng().random(size=size, dtype=np.float64) * 2 - 1
+    rand = np.random.default_rng(seed=seed).random(size=size, dtype=np.float64) * 2 - 1
     # Generate FlexFloat array for 8b floats, casted from 16b Numpy array
     if _integer_precision_t(prec) == 1:
         return ff.array(rand.astype(np.float16), ff_desc_from_precision_t(prec))

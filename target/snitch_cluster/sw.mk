@@ -50,6 +50,7 @@ include sw/tests/tests.mk
 APPS  = sw/apps/nop
 APPS += sw/apps/blas/axpy
 APPS += sw/apps/blas/gemm
+APPS += sw/apps/blas/gemv
 APPS += sw/apps/blas/dot
 APPS += sw/apps/blas/syrk
 APPS += sw/apps/dnn/batchnorm
@@ -68,6 +69,7 @@ APPS += sw/apps/atax
 APPS += sw/apps/correlation
 APPS += sw/apps/covariance
 APPS += sw/apps/doitgen
+APPS += sw/apps/kmeans
 
 # Include Makefile from each app subdirectory
 $(foreach app,$(APPS), \
