@@ -98,9 +98,9 @@ class GemmDataGen(du.DataGen):
 
         ctype = du.ctype_from_precision_t(prec)
 
-        a = du.generate_random_array((M, K), prec)
-        b = du.generate_random_array((K, N), prec)
-        c = du.generate_random_array((M, N), prec)
+        a = du.generate_random_array((M, K), prec, seed=42)
+        b = du.generate_random_array((K, N), prec, seed=42)
+        c = du.generate_random_array((M, N), prec, seed=42)
         result = self.exact_golden_model(1, a, b, kwargs['beta'], c)
 
         # Store matrices in transposed form if requested
