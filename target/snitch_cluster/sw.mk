@@ -50,7 +50,6 @@ include sw/tests/tests.mk
 APPS  = sw/apps/nop
 APPS += sw/apps/blas/axpy
 APPS += sw/apps/blas/gemm
-# APPS += sw/apps/blas/transpose_shuffle
 APPS += sw/apps/blas/dot
 APPS += sw/apps/blas/syrk
 APPS += sw/apps/dnn/batchnorm
