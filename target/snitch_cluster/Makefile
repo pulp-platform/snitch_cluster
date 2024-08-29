@@ -135,14 +135,6 @@ $(CFG): FORCE
 	fi
 FORCE:
 
-.PHONY: bootrom
-bootrom: test/snitch_bootrom.sv
-test/bootrom.elf test/bootrom.dump test/bootrom.bin test/snitch_bootrom.sv: test/bootrom.S test/bootrom.ld
-	riscv riscv32-unknown-elf-gcc -mabi=ilp32d -march=rv32imafd -static -nostartfiles -Lsw/runtime/rtl -Ttest/bootrom.ld test/bootrom.S -o test/bootrom.elf
-	riscv riscv32-unknown-elf-objdump -d test/bootrom.elf > test/bootrom.dump
-	riscv riscv32-unknown-elf-objcopy -j .text -O binary test/bootrom.elf test/bootrom.bin
-	util/gen_bootrom.py --sv-module snitch_bootrom test/bootrom.bin > test/snitch_bootrom.sv
-
 ############
 # Software #
 ############
@@ -156,6 +148,7 @@ include $(ROOT)/target/snitch_cluster/sw.mk
 GENERATED_RTL_SOURCES  = $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv
 GENERATED_RTL_SOURCES += $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv
 GENERATED_RTL_SOURCES += $(GENERATED_DIR)/snitch_cluster_wrapper.sv
+GENERATED_RTL_SOURCES += test/snitch_bootrom.sv
 
 .PHONY: rtl clean-rtl
 
@@ -184,6 +177,15 @@ $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv: $(PERIPH_DIR)/snitch_cluster
 $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg.hjson
 	@echo "[REGGEN] Generating peripheral regfile"
 	$(REGGEN) -r -t $(PERIPH_DIR) $<
+
+# Bootrom
+.PHONY: bootrom
+bootrom: test/snitch_bootrom.sv
+test/bootrom.elf test/bootrom.dump test/bootrom.bin test/snitch_bootrom.sv: test/bootrom.S test/bootrom.ld
+	riscv riscv32-unknown-elf-gcc -mabi=ilp32d -march=rv32imafd -static -nostartfiles -Lsw/runtime/rtl -Ttest/bootrom.ld test/bootrom.S -o test/bootrom.elf
+	riscv riscv32-unknown-elf-objdump -d test/bootrom.elf > test/bootrom.dump
+	riscv riscv32-unknown-elf-objcopy -j .text -O binary test/bootrom.elf test/bootrom.bin
+	util/gen_bootrom.py --sv-module snitch_bootrom test/bootrom.bin > test/snitch_bootrom.sv
 
 #############
 # Verilator #
