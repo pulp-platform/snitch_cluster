@@ -43,8 +43,8 @@ class GemmDataGen(du.DataGen):
         return (int(prec) / 8), impl
 
     def validate(self, gemm_fp, parallelize_m,
-                        parallelize_k, m_tiles, n_tiles, k_tiles, transa,
-                        transb, M, N, K, beta, **kwargs):
+                 parallelize_k, m_tiles, n_tiles, k_tiles, transa,
+                 transb, M, N, K, beta, **kwargs):
         frac_m = M / m_tiles
         frac_n = N / n_tiles
         frac_k = K / k_tiles
