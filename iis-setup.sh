@@ -10,10 +10,7 @@ export CXX=g++-9.2.0
 export VCS_SEPP=vcs-2020.12
 export VERILATOR_SEPP=verilator-5.006
 export QUESTA_SEPP=questa-2022.3
-# on badile 23:
-#export LLVM_BINROOT=/scratch/sem24f2/llvm-project/.gitlab-ci.d/work/install/bin
-export LLVM_BINROOT=/usr/scratch/badile23/sem24f2/llvm-project/.gitlab-ci.d/work/install/bin
-#export LLVM_BINROOT=/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
+export LLVM_BINROOT=/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
 
 # Create Python virtual environment with required packages
 /usr/local/anaconda3-2022.05/bin/python3 -m venv .venv
