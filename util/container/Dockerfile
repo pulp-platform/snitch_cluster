@@ -162,6 +162,7 @@ ENV VIRTUAL_ENV "/root/.venvs/snitch_cluster"
 RUN /opt/python/bin/python3 -m venv ${VIRTUAL_ENV}
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 # Install Python requirements
+COPY pyproject.toml .
 RUN pip install .[docs]
 
 # Add Verilator to PATH
