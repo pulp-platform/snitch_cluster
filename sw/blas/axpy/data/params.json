@@ -3,5 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 {
-    n: 384
+    "n_tiles": 3,
+    "n": 384,
+    "funcptr": "axpy_opt"
 }

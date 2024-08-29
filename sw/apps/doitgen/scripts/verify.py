@@ -7,25 +7,25 @@
 
 import numpy as np
 import sys
-from datagen import CovarianceDataGen
+from datagen import DoitgenDataGen
 
 from snitch.util.sim.verif_utils import Verifier
 
 
-class CovarianceVerifier(Verifier):
+class DoitgenVerifier(Verifier):
 
-    OUTPUT_UIDS = ['cov']
+    OUTPUT_UIDS = ['A']
 
     def __init__(self):
         super().__init__()
         self.func_args = {
-            'm': 'I',
-            'n': 'I',
-            'inv_n': 'd',
-            'inv_n_m1': 'd',
-            'data': 'I',
-            'cov': 'I',
-            'm_tiles': 'I',
+            'r': 'I',
+            'q': 'I',
+            's': 'I',
+            'A': 'I',
+            'x': 'I',
+            'r_tiles': 'I',
+            'q_tiles': 'I',
             'funcptr': 'I'
         }
         self.func_args = self.get_input_from_symbol('args', self.func_args)
@@ -34,13 +34,15 @@ class CovarianceVerifier(Verifier):
         return self.get_output_from_symbol(self.OUTPUT_UIDS[0], 'double')
 
     def get_expected_results(self):
-        data = self.get_input_from_symbol('data', 'double')
-        data = np.reshape(data, (self.func_args['m'], self.func_args['n'])).transpose()
-        return CovarianceDataGen().golden_model(data).flatten()
+        A = self.get_input_from_symbol('A', 'double')
+        A = np.reshape(A, (self.func_args['r'], self.func_args['q'], self.func_args['s']))
+        x = self.get_input_from_symbol('x', 'double')
+        x = np.reshape(x, (self.func_args['s'], self.func_args['s']))
+        return DoitgenDataGen().golden_model(A, x).flatten()
 
     def check_results(self, *args):
         return super().check_results(*args, rtol=1e-10)
 
 
 if __name__ == "__main__":
-    sys.exit(CovarianceVerifier().main())
+    sys.exit(DoitgenVerifier().main())

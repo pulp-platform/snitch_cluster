@@ -83,6 +83,24 @@ def torch_type_from_precision_t(prec):
     return precision_t_to_torch_type_map[_integer_precision_t(prec)]
 
 
+def numpy_type_from_precision_t(prec):
+    """Convert `precision_t` type to PyTorch type.
+
+    Args:
+        prec: A value of type `precision_t`. Accepts both enum strings
+            (e.g. "FP64") and integer enumeration values (e.g. 8).
+    """
+    # Types which have a direct correspondence in Numpy
+    precision_t_to_numpy_type_map = {
+        8: np.float64,
+        4: np.float32,
+        2: np.float16
+    }
+    prec = _integer_precision_t(prec)
+    assert prec != 1, "No direct correspondence between FP8 and Numpy"
+    return precision_t_to_numpy_type_map[prec]
+
+
 # Returns the C type representing a floating-point value of the specified precision
 def ctype_from_precision_t(prec):
     """Convert `precision_t` type to a C type string.
@@ -98,6 +116,29 @@ def ctype_from_precision_t(prec):
         1: '__fp8'
     }
     return precision_t_to_ctype_map[_integer_precision_t(prec)]
+
+
+def generate_random_array(size, prec='FP64'):
+    """Consistent random array generation for Snitch experiments.
+
+    Samples values between -1 and 1 from a uniform distribution and
+    of the exact specified type, e.g. actual 64-bit doubles.
+
+    This function ensures that e.g. power measurements are not skewed
+    by using integer values in the FPU.
+
+    Args:
+        size: Tuple of array dimensions.
+        prec: A value of type `precision_t`. Accepts both enum strings
+            (e.g. "FP64") and integer enumeration values (e.g. 8).
+    """
+    # Generate in 64b precision and then cast down
+    rand = np.random.default_rng().random(size=size, dtype=np.float64) * 2 - 1
+    # Generate FlexFloat array for 8b floats, casted from 16b Numpy array
+    if _integer_precision_t(prec) == 1:
+        return ff.array(rand.astype(np.float16), ff_desc_from_precision_t(prec))
+    else:
+        return rand.astype(numpy_type_from_precision_t(prec))
 
 
 def flatten(array):

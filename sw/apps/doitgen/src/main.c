@@ -6,11 +6,12 @@
 
 #include "snrt.h"
 
-#include "covariance.h"
+#include "doitgen.h"
+
 #include "data.h"
 
 int main() {
-    covariance_job(&args);
+    doitgen_job(&args);
 
     return 0;
 }

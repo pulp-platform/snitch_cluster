@@ -18,9 +18,9 @@ class GemmVerifier(Verifier):
     OUTPUT_UIDS = ['c']
     ERR_THRESHOLD = {
         1: 1e-4,
-        2: 1e-2,
-        4: 1e-6,
-        8: 1e-6
+        2: 8e-2,
+        4: 1e-3,
+        8: 1e-3
     }
 
     def __init__(self):

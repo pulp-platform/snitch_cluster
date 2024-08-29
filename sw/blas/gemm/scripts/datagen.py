@@ -10,18 +10,15 @@
 
 import numpy as np
 import re
-import pyflexfloat as ff
 import sys
 
-from snitch.util.sim import data_utils
-from snitch.util.sim.data_utils import DataGen, format_array_declaration, \
-    format_struct_definition, format_array_definition, format_ifdef_wrapper
+import snitch.util.sim.data_utils as du
 
 
 np.random.seed(42)
 
 
-class GemmDataGen(DataGen):
+class GemmDataGen(du.DataGen):
 
     # AXI splits bursts crossing 4KB address boundaries. To minimize
     # the occurrence of these splits the data should be aligned to 4KB
@@ -56,14 +53,14 @@ class GemmDataGen(DataGen):
 
         # Calculate total TCDM occupation
         # Note: doesn't account for double buffering
-        prec = data_utils.size_from_precision_t(dtype)
+        prec = du.size_from_precision_t(dtype)
         a_size = frac_m * frac_k * prec
         b_size = frac_k * frac_n * prec
         c_size = frac_m * frac_n * prec
         total_size = a_size
         total_size += b_size
         total_size += c_size
-        data_utils.validate_tcdm_footprint(total_size)
+        du.validate_tcdm_footprint(total_size)
 
         assert (M % m_tiles) == 0, 'M is not an integer multiple of tile size'
         assert (N % n_tiles) == 0, 'N is not an integer multiple of tile size'
@@ -99,12 +96,11 @@ class GemmDataGen(DataGen):
 
         prec, _ = self.infer_implementation(kwargs['gemm_fp'])
 
-        ff_desc = data_utils.ff_desc_from_precision_t(prec)
-        ctype = data_utils.ctype_from_precision_t(prec)
+        ctype = du.ctype_from_precision_t(prec)
 
-        a = ff.array(np.random.rand(M, K), ff_desc)
-        b = ff.array(np.random.rand(K, N), ff_desc)
-        c = ff.array(np.random.rand(M, N), ff_desc)
+        a = du.generate_random_array((M, K), prec)
+        b = du.generate_random_array((K, N), prec)
+        c = du.generate_random_array((M, N), prec)
         result = self.exact_golden_model(1, a, b, kwargs['beta'], c)
 
         # Store matrices in transposed form if requested
@@ -127,18 +123,18 @@ class GemmDataGen(DataGen):
         b = b.flatten()
         c = c.flatten()
 
-        header += [format_array_declaration(ctype, a_uid, a.shape)]
-        header += [format_array_declaration(ctype, b_uid, b.shape)]
-        header += [format_array_declaration(ctype, c_uid, c.shape)]
-        header += [format_struct_definition('gemm_args_t', 'args', cfg)]
-        header += [format_array_definition(ctype, a_uid, a,
-                                           section=kwargs['section'])]
-        header += [format_array_definition(ctype, b_uid, b,
-                                           section=kwargs['section'])]
-        header += [format_array_definition(ctype, c_uid, c,
-                                           section=kwargs['section'])]
-        result_def = format_array_definition(ctype, 'result', result.flatten())
-        header += [format_ifdef_wrapper('BIST', result_def)]
+        header += [du.format_array_declaration(ctype, a_uid, a.shape)]
+        header += [du.format_array_declaration(ctype, b_uid, b.shape)]
+        header += [du.format_array_declaration(ctype, c_uid, c.shape)]
+        header += [du.format_struct_definition('gemm_args_t', 'args', cfg)]
+        header += [du.format_array_definition(ctype, a_uid, a,
+                                              section=kwargs['section'])]
+        header += [du.format_array_definition(ctype, b_uid, b,
+                                              section=kwargs['section'])]
+        header += [du.format_array_definition(ctype, c_uid, c,
+                                              section=kwargs['section'])]
+        result_def = du.format_array_definition(ctype, 'result', result.flatten())
+        header += [du.format_ifdef_wrapper('BIST', result_def)]
         header = '\n\n'.join(header)
 
         return header

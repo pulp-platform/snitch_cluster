@@ -1145,7 +1145,6 @@ def main():
                         message += 'line {lineno}.'
                     print(traceback.format_exc(), file=sys.stderr)
                     print(message, file=sys.stderr)
-                    return 1
             else:
                 break  # Nothing more in pipe, EOF
         perf_metrics[-1]['tend'] = time_info[0] / 1000

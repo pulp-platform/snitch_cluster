@@ -7,24 +7,24 @@
 
 import numpy as np
 import sys
-from datagen import CovarianceDataGen
+from datagen import SyrkDataGen
 
 from snitch.util.sim.verif_utils import Verifier
 
 
-class CovarianceVerifier(Verifier):
+class SyrkVerifier(Verifier):
 
-    OUTPUT_UIDS = ['cov']
+    OUTPUT_UIDS = ['C']
 
     def __init__(self):
         super().__init__()
         self.func_args = {
             'm': 'I',
             'n': 'I',
-            'inv_n': 'd',
-            'inv_n_m1': 'd',
-            'data': 'I',
-            'cov': 'I',
+            'alpha': 'd',
+            'beta': 'd',
+            'A': 'I',
+            'C': 'I',
             'm_tiles': 'I',
             'funcptr': 'I'
         }
@@ -34,13 +34,18 @@ class CovarianceVerifier(Verifier):
         return self.get_output_from_symbol(self.OUTPUT_UIDS[0], 'double')
 
     def get_expected_results(self):
-        data = self.get_input_from_symbol('data', 'double')
-        data = np.reshape(data, (self.func_args['m'], self.func_args['n'])).transpose()
-        return CovarianceDataGen().golden_model(data).flatten()
+        A = self.get_input_from_symbol('A', 'double')
+        C = self.get_input_from_symbol('C', 'double')
+        A = np.reshape(A, (self.func_args['m'], self.func_args['n']))
+        C = np.reshape(C, (self.func_args['m'], self.func_args['m']))
+        return SyrkDataGen().golden_model(
+            self.func_args['alpha'], A,
+            self.func_args['beta'], C
+        ).flatten()
 
     def check_results(self, *args):
         return super().check_results(*args, rtol=1e-10)
 
 
 if __name__ == "__main__":
-    sys.exit(CovarianceVerifier().main())
+    sys.exit(SyrkVerifier().main())

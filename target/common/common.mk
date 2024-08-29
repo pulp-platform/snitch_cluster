@@ -203,6 +203,7 @@ SNITCH_DASM_TRACES      = $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null)
 SNITCH_TXT_TRACES       = $(shell (echo $(SNITCH_DASM_TRACES) | sed 's/\.dasm/\.txt/g'))
 SNITCH_ANNOTATED_TRACES = $(shell (echo $(SNITCH_DASM_TRACES) | sed 's/\.dasm/\.s/g'))
 SNITCH_PERF_DUMPS       = $(shell (echo $(SNITCH_DASM_TRACES) | sed 's/trace_hart/hart/g' | sed 's/.dasm/_perf.json/g'))
+DMA_PERF_DUMPS          = $(LOGS_DIR)/dma_*_perf.json
 
 TXT_TRACES       += $(SNITCH_TXT_TRACES)
 ANNOTATED_TRACES += $(SNITCH_ANNOTATED_TRACES)
@@ -219,7 +220,7 @@ annotate: $(ANNOTATED_TRACES)
 perf: $(JOINT_PERF_DUMP)
 visual-trace: $(VISUAL_TRACE)
 clean-traces:
-	rm -f $(TXT_TRACES)
+	rm -f $(TXT_TRACES) $(SNITCH_PERF_DUMPS) $(DMA_PERF_DUMPS)
 clean-annotate:
 	rm -f $(ANNOTATED_TRACES)
 clean-perf:
