@@ -7,7 +7,7 @@ theme](https://squidfunk.github.io/mkdocs-material/). Before building the
 documentation, make sure you have the required dependencies installed:
 
 ```shell
-pip install -r docs/requirements.txt
+pip install .[docs]
 ```
 
 After everything is installed, you can build a static copy of the `html` documentation by
