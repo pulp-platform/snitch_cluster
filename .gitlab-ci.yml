@@ -16,6 +16,14 @@ variables:
 before_script:
   source iis-setup.sh
 
+##############
+# Build docs #
+##############
+
+docs:
+  script:
+    - make docs
+
 #####################
 # Python unit tests #
 #####################
