@@ -87,10 +87,6 @@ RUN cargo install --path /tmp/banshee
 RUN wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz
 RUN tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz
 
-# Install spike-dasm
-RUN wget https://github.com/pulp-platform/riscv-isa-sim/releases/download/snitch-v${SPIKE_DASM_VERSION}/snitch-spike-dasm-${SPIKE_DASM_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz
-RUN tar xzf snitch-spike-dasm-${SPIKE_DASM_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz
-
 # Install Doxygen
 RUN wget https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
 RUN tar xzf doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
@@ -151,7 +147,6 @@ RUN apt-get update && apt-get install software-properties-common -y && \
 
 # Copy artifacts from stage 1.
 COPY --from=builder /tools/bender bin/
-COPY --from=builder /tools/spike-dasm bin/
 COPY --from=builder /root/.cargo/bin/banshee bin/
 COPY --from=builder /opt/python /opt/python
 COPY --from=builder /tools/verilator /tools/verilator/
