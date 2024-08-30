@@ -161,8 +161,7 @@ COPY pyproject.toml .
 COPY sw/dnn ./sw/dnn
 COPY sw/blas ./sw/blas
 COPY util ./util
-RUN pip install -e .
-
+RUN pip install .[docs]
 # Add Verilator to PATH
 ENV PATH="/tools/verilator/bin:${PATH}"
 ENV VLT_ROOT="/tools/verilator/share/verilator/"
