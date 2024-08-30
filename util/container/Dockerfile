@@ -55,7 +55,7 @@ RUN cd Python-${PYTHON_VERSION} && \
 
 # Build Rust tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH "/root/.cargo/bin:${PATH}"
+ENV PATH="/root/.cargo/bin:${PATH}"
 RUN rustup install 1.70.0
 RUN rustup override set 1.70.0
 
@@ -75,7 +75,7 @@ WORKDIR /tools
 RUN wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz && \
     tar -x -f cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz --strip-components=1 -C . && \
     rm -rf cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz
-ENV PATH "/tools/bin:${PATH}"
+ENV PATH="/tools/bin:${PATH}"
 
 # Install `banshee` (needs cmake)
 RUN rustup install 1.67.0
@@ -100,7 +100,7 @@ ARG VERIBLE_VERSION=0.0-3318-g8d254167
 LABEL version="0.1"
 LABEL description="Snitch container for hardware and software development."
 LABEL maintainer="zarubaf@iis.ee.ethz.ch"
-LABEL org.opencontainers.image.source https://github.com/pulp-platform/snitch_cluster
+LABEL org.opencontainers.image.source=https://github.com/pulp-platform/snitch_cluster
 
 WORKDIR /tools
 
@@ -131,13 +131,13 @@ RUN latest_tag=`curl -s -H "Accept: application/vnd.github.v3+json" https://api.
     echo "SNITCH_LLVM_VERSION=${SNITCH_LLVM_VERSION} LLVM_TAR=${LLVM_TAR} latest_tag=${latest_tag}" && \
     wget -qO- https://github.com/pulp-platform/llvm-project/releases/download/${SNITCH_LLVM_VERSION}/${LLVM_TAR} | \
     tar xvz --strip-components=1 -C riscv-llvm
-ENV LLVM_BINROOT "/tools/riscv-llvm/bin"
+ENV LLVM_BINROOT="/tools/riscv-llvm/bin"
 
 # Install Verible
 RUN wget https://github.com/chipsalliance/verible/releases/download/v${VERIBLE_VERSION}/verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz && \
     tar -x -f verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz --strip-components=1 -C . && \
     rm -rf verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
-ENV PATH "/tools/bin:${PATH}"
+ENV PATH="/tools/bin:${PATH}"
 
 # Install git>=2.18, required by Github checkout action to recurse submodules
 RUN apt-get update && apt-get install software-properties-common -y && \
@@ -153,7 +153,7 @@ COPY --from=builder /tools/verilator /tools/verilator/
 COPY --from=builder /tools/doxygen/bin/doxygen bin/
 
 # Create and activate virtual environment
-ENV VIRTUAL_ENV "/root/.venvs/snitch_cluster"
+ENV VIRTUAL_ENV="/root/.venvs/snitch_cluster"
 RUN /opt/python/bin/python3 -m venv ${VIRTUAL_ENV}
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 # Install Python requirements
@@ -164,10 +164,10 @@ COPY util ./util
 RUN pip install -e .
 
 # Add Verilator to PATH
-ENV PATH "/tools/verilator/bin:${PATH}"
-ENV VLT_ROOT "/tools/verilator/share/verilator/"
+ENV PATH="/tools/verilator/bin:${PATH}"
+ENV VLT_ROOT="/tools/verilator/share/verilator/"
 
 # Set locale to UTF-8, required because Python 3.6 defaults on ASCII encoding.
 # See https://click.palletsprojects.com/en/8.1.x/unicode-support/
-ENV LC_ALL "C.UTF-8"
-ENV LANG   "C.UTF-8"
+ENV LC_ALL="C.UTF-8"
+ENV LANG="C.UTF-8"
