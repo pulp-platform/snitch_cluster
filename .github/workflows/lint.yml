@@ -43,7 +43,7 @@ jobs:
     name: Check Sources Up-to-Date
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster:main
+      image: ghcr.io/pulp-platform/snitch_cluster:pyproject
     steps:
       - uses: actions/checkout@v4
         with:

@@ -11,7 +11,7 @@ jobs:
     name: Deploy documentation
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster:main
+      image: ghcr.io/pulp-platform/snitch_cluster:pyproject
     steps:
       - uses: actions/checkout@v2
       # For some reason, the checkout is done by a different user,
