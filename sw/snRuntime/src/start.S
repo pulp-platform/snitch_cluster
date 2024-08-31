@@ -95,14 +95,39 @@ snrt.crt0.init_core_info:
     # Initialize information needed by the following routines
 
     # Calculate cluster idx
-    csrr a0, mhartid
-    li   t0, SNRT_BASE_HARTID
-    sub  a0, a0, t0
-    li   a1, SNRT_CLUSTER_CORE_NUM
-    div  t0, a0, a1
+    #csrr a0, mhartid
+    #li   t0, SNRT_BASE_HARTID
+    #sub  a0, a0, t0
+    #li   a1, SNRT_CLUSTER_CORE_NUM
+    #div  t0, a0, a1
+
+    # The cluster idx is calculated as snrt_cluster_idx()
+    # we use the lower 24bits as cluster base_address
+    # 0000 0000 1111 1111 1111 1111 1111 1111
+    # a0 holds the cluster start addr
+    csrr a0, 0xbc1
+    # a1 holds the cluster addr width
+    li a1, CLUSTER_ADDRWIDTH
+    addi a1, a1, 8
+    # first we left shift a0 by 8 bits
+    slli a0, a0, 8
+    # then we shift right a0 by a1 (8 + cluster_addrwidth) bits
+    srl t0, a0, a1
 
     # Calculate cluster-local core ID
-    remu a0, a0, a1
+    # remu a0, a0, a1
+
+    # The cluster-local core id is calculated as snrt_cluster_core_idx()
+    # we read the lower 16bits of register 0xbc3
+    csrr a0, 0xbc3
+    slli a0, a0, 16
+    srli a0, a0, 16
+
+    # The cluster core number is previosly stored in a1
+    # now we need to do the same as snrt_cluster_core_num()
+    # we shift the a1 by 16bits
+    csrr a1, 0xbc3
+    srli a1, a1, 16
 
     # Calculate cluster's TCDM start address
     li   a2, SNRT_TCDM_START_ADDR
