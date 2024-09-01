@@ -2,7 +2,6 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-
 FROM ubuntu:24.04 AS build-bender
 
 RUN apt-get update && apt-get install -y curl build-essential
@@ -35,7 +34,7 @@ RUN apt-get update && apt-get install -y lsb-release wget software-properties-co
   vim \
   nano \
   openjdk-11-jre-headless openjdk-11-jdk-headless \
-  mlir-17-tools clang-format-17 python3 \
+  clang-format-17 python3 \
   help2man perl make autoconf g++ flex bison ccache \
   libgoogle-perftools-dev numactl perl-doc \
   libfl2 libfl-dev zlib1g zlib1g-dev \
@@ -46,6 +45,17 @@ RUN apt-get update && apt-get install -y lsb-release wget software-properties-co
   # Enable break-system-packages for non-venv package installs
   python3 -m pip config set global.break-system-packages true
 
+# Get prebuilt mlir
+# Set the URL for the download
+ENV MLIR_URL=https://github.com/KULeuven-MICAS/llvm-build/releases/latest/download/mlir.tar.gz
+
+# Download, extract, and install the specified files
+RUN curl -L $MLIR_URL -o /tmp/mlir.tar.gz && \
+    mkdir /tmp/mlir && \
+    tar -xzvf /tmp/mlir.tar.gz -C /tmp/mlir && \
+    cp /tmp/mlir/build/bin/mlir-opt /usr/bin/ && \
+    cp /tmp/mlir/build/bin/mlir-translate /usr/bin/ && \
+    rm -rf /tmp/mlir /tmp/mlir.tar.gz
 
 # Temporarily install python3.10 until xdsl has moved to newer MLIR version
 RUN add-apt-repository -y ppa:deadsnakes/ppa && \
@@ -53,6 +63,18 @@ RUN add-apt-repository -y ppa:deadsnakes/ppa && \
   apt install -y python3.10 && \
   ln -fs /usr/bin/python3.10 /usr/bin/python3 && \
   ln -fs /bin/python3.10 /bin/python3
+
+
+# Get the CVA6 GCC toolchain
+ARG RISCV_GCC_VERSION=8.3.0-2020.04.0
+WORKDIR /tools
+RUN curl -Ls -o riscv-gcc.tar.gz https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-${RISCV_GCC_VERSION}-x86_64-linux-ubuntu14.tar.gz && \
+    mkdir -p /tools/riscv && chmod 777 /tools/riscv && \
+    tar -C /tools/riscv -xf riscv-gcc.tar.gz --strip-components=1 && \
+    rm -rf riscv-gcc.tar
+ENV RISCV_GCC_BINROOT="/tools/riscv/bin"
+WORKDIR /
+
 
 # Install Verilator
 RUN git clone https://github.com/verilator/verilator && \
@@ -148,6 +170,24 @@ RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
     make -C target/snitch_cluster bin/snitch_cluster.vlt \
     CFG_OVERRIDE=cfg/snax-alu.hjson -j $(nproc)
 
+FROM base as snax-streamer-gemm
+
+RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
+    cd /src && git submodule update --init && \
+    cd /src && sbt package && \
+    cd /src && \
+    make DEBUG=ON sw -j$(nproc) \
+    -C target/snitch_cluster \
+    SELECT_TOOLCHAIN=llvm-generic \
+    SELECT_RUNTIME=rtl-generic \
+    CFG_OVERRIDE=cfg/snax-streamer-gemm.hjson && \
+    cd /src && \
+    make -C target/snitch_cluster rtl-gen \
+    CFG_OVERRIDE=cfg/snax-streamer-gemm.hjson && \
+    make -C target/snitch_cluster bin/snitch_cluster.vlt \
+    CFG_OVERRIDE=cfg/snax-streamer-gemm.hjson -j $(nproc)
+
+
 FROM base as snax-streamer-gemm-add-c
 
 RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
@@ -164,6 +204,24 @@ RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
     CFG_OVERRIDE=cfg/snax-streamer-gemm-add-c.hjson && \
     make -C target/snitch_cluster bin/snitch_cluster.vlt \
     CFG_OVERRIDE=cfg/snax-streamer-gemm-add-c.hjson -j $(nproc)
+
+FROM base as snax-kul-cluster-mixed-narrow-wide
+
+RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
+    cd /src && git submodule update --init && \
+    cd /src && sbt package && \
+    cd /src && \
+    make DEBUG=ON sw -j$(nproc) \
+    -C target/snitch_cluster \
+    SELECT_TOOLCHAIN=llvm-generic \
+    SELECT_RUNTIME=rtl-generic \
+    CFG_OVERRIDE=cfg/snax-kul-cluster-mixed-narrow-wide.hjson && \
+    cd /src && \
+    make -C target/snitch_cluster rtl-gen \
+    CFG_OVERRIDE=cfg/snax-kul-cluster-mixed-narrow-wide.hjson && \
+    make -C target/snitch_cluster bin/snitch_cluster.vlt \
+    CFG_OVERRIDE=cfg/snax-kul-cluster-mixed-narrow-wide.hjson -j $(nproc)
+
 
 # Copy Hardware to final image
 FROM base as target
@@ -189,6 +247,16 @@ COPY --from=snax-alu /src/sw/math/ /opt/snax-alu/sw/math/
 COPY --from=snax-alu /src/sw/deps/riscv-opcodes /opt/snax-alu/sw/deps/riscv-opcodes
 COPY --from=snax-alu /src/sw/deps/printf /opt/snax-alu/sw/deps/printf
 
+COPY --from=snax-streamer-gemm /src/target/snitch_cluster/bin/snitch_cluster.vlt /opt/snax-streamer-gemm-rtl/bin/snitch_cluster.vlt
+COPY --from=snax-streamer-gemm /src/sw/snRuntime /opt/snax-streamer-gemm/sw/snRuntime
+COPY --from=snax-streamer-gemm /src/target/snitch_cluster/sw/runtime/rtl /opt/snax-streamer-gemm/target/snitch_cluster/sw/runtime/rtl
+COPY --from=snax-streamer-gemm /src/target/snitch_cluster/sw/runtime/rtl-generic /opt/snax-streamer-gemm/target/snitch_cluster/sw/runtime/rtl-generic
+COPY --from=snax-streamer-gemm /src/target/snitch_cluster/sw/runtime/common /opt/snax-streamer-gemm/target/snitch_cluster/sw/runtime/common
+COPY --from=snax-streamer-gemm /src/target/snitch_cluster/sw/snax/ /opt/snax-streamer-gemm/target/snitch_cluster/sw/snax
+COPY --from=snax-streamer-gemm /src/sw/math/ /opt/snax-streamer-gemm/sw/math/
+COPY --from=snax-streamer-gemm /src/sw/deps/riscv-opcodes /opt/snax-streamer-gemm/sw/deps/riscv-opcodes
+COPY --from=snax-streamer-gemm /src/sw/deps/printf /opt/snax-streamer-gemm/sw/deps/printf
+
 COPY --from=snax-streamer-gemm-add-c /src/target/snitch_cluster/bin/snitch_cluster.vlt /opt/snax-streamer-gemm-add-c-rtl/bin/snitch_cluster.vlt
 COPY --from=snax-streamer-gemm-add-c /src/sw/snRuntime /opt/snax-streamer-gemm-add-c/sw/snRuntime
 COPY --from=snax-streamer-gemm-add-c /src/target/snitch_cluster/sw/runtime/rtl /opt/snax-streamer-gemm-add-c/target/snitch_cluster/sw/runtime/rtl
@@ -198,3 +266,13 @@ COPY --from=snax-streamer-gemm-add-c /src/target/snitch_cluster/sw/snax/ /opt/sn
 COPY --from=snax-streamer-gemm-add-c /src/sw/math/ /opt/snax-streamer-gemm-add-c/sw/math/
 COPY --from=snax-streamer-gemm-add-c /src/sw/deps/riscv-opcodes /opt/snax-streamer-gemm-add-c/sw/deps/riscv-opcodes
 COPY --from=snax-streamer-gemm-add-c /src/sw/deps/printf /opt/snax-streamer-gemm-add-c/sw/deps/printf
+
+COPY --from=snax-kul-cluster-mixed-narrow-wide /src/target/snitch_cluster/bin/snitch_cluster.vlt /opt/snax-kul-cluster-mixed-narrow-wide-rtl/bin/snitch_cluster.vlt
+COPY --from=snax-kul-cluster-mixed-narrow-wide /src/sw/snRuntime /opt/snax-kul-cluster-mixed-narrow-wide/sw/snRuntime
+COPY --from=snax-kul-cluster-mixed-narrow-wide /src/target/snitch_cluster/sw/runtime/rtl /opt/snax-kul-cluster-mixed-narrow-wide/target/snitch_cluster/sw/runtime/rtl
+COPY --from=snax-kul-cluster-mixed-narrow-wide /src/target/snitch_cluster/sw/runtime/rtl-generic /opt/snax-kul-cluster-mixed-narrow-wide/target/snitch_cluster/sw/runtime/rtl-generic
+COPY --from=snax-kul-cluster-mixed-narrow-wide /src/target/snitch_cluster/sw/runtime/common /opt/snax-kul-cluster-mixed-narrow-wide/target/snitch_cluster/sw/runtime/common
+COPY --from=snax-kul-cluster-mixed-narrow-wide /src/target/snitch_cluster/sw/snax/ /opt/snax-kul-cluster-mixed-narrow-wide/target/snitch_cluster/sw/snax
+COPY --from=snax-kul-cluster-mixed-narrow-wide /src/sw/math/ /opt/snax-kul-cluster-mixed-narrow-wide/sw/math/
+COPY --from=snax-kul-cluster-mixed-narrow-wide /src/sw/deps/riscv-opcodes /opt/snax-kul-cluster-mixed-narrow-wide/sw/deps/riscv-opcodes
+COPY --from=snax-kul-cluster-mixed-narrow-wide /src/sw/deps/printf /opt/snax-kul-cluster-mixed-narrow-wide/sw/deps/printf
