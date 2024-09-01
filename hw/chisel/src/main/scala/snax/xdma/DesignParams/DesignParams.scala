@@ -32,56 +32,57 @@ object TCDMParam {
 // Streamer Params
 
 class AddressGenUnitParam(
-    val dimension: Int,
+    val spatialBounds: List[Int],
+    val temporalDimension: Int,
     val addressWidth: Int,
     val numChannel: Int,
     val outputBufferDepth: Int,
-    val tcdmSize: Int,
-    val configurableSpatialBound: Boolean
+    val tcdmSize: Int
 )
 
 object AddressGenUnitParam {
   // The Very Simple instantiation of the Param
   def apply() = new AddressGenUnitParam(
-    dimension = 2,
+    spatialBounds = List(8),
+    temporalDimension = 2,
     addressWidth = 17, // For the address of 128kB tcdm size
     numChannel = 8,
     outputBufferDepth = 8,
-    tcdmSize = 128,
-    configurableSpatialBound = true
+    tcdmSize = 128
   )
   def apply(
-      dimension: Int,
+      spatialBounds: List[Int],
+      temporalDimension: Int,
       numChannel: Int,
       outputBufferDepth: Int,
-      tcdmSize: Int,
-      configurableSpatialBound: Boolean = true
+      tcdmSize: Int
   ) = new AddressGenUnitParam(
-    dimension = dimension,
+    spatialBounds = spatialBounds,
+    temporalDimension = temporalDimension,
     addressWidth = log2Ceil(tcdmSize) + 10,
     numChannel = numChannel,
     outputBufferDepth = outputBufferDepth,
-    tcdmSize = tcdmSize,
-    configurableSpatialBound = configurableSpatialBound
+    tcdmSize = tcdmSize
   )
 }
 
 class ReaderWriterParam(
-    dimension: Int = 3,
+    spatialBounds: List[Int] = List(8),
+    temporalDimension: Int = 2,
     tcdmDataWidth: Int = 64,
     tcdmSize: Int = 128,
     numChannel: Int = 8,
     addressBufferDepth: Int = 8,
     dataBufferDepth: Int = 8,
-    configurableSpatialBound: Boolean = true,
+    val configurableChannel: Boolean = true,
     val configurableByteMask: Boolean = true
 ) {
   val aguParam = AddressGenUnitParam(
-    dimension = dimension,
+    spatialBounds = spatialBounds,
+    temporalDimension = temporalDimension,
     numChannel = numChannel,
     outputBufferDepth = addressBufferDepth,
-    tcdmSize = tcdmSize,
-    configurableSpatialBound = configurableSpatialBound
+    tcdmSize = tcdmSize
   )
 
   val tcdmParam = TCDMParam(

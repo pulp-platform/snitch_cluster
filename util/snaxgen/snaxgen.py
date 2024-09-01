@@ -410,14 +410,13 @@ def main():
             " --axiDataWidth " + str(cfg["cluster"]["dma_data_width"]) +
             " --axiAddrWidth " + str(cfg["cluster"]["addr_width"]) +
             " --tcdmSize " + str(cfg["cluster"]["tcdm"]["size"]) +
-            " --readerDimension " +
-            str(snax_xdma_cfg["reader_agu_dimension"]) +
-            " --writerDimension " +
-            str(snax_xdma_cfg["writer_agu_dimension"]) +
+            " --readerSpatialBounds " + str(snax_xdma_cfg["reader_agu_spatial_bounds"]) +
+            " --readerTemporalDimension " + str(snax_xdma_cfg["reader_agu_temporal_dimension"]) +
+            " --writerSpatialBounds " + str(snax_xdma_cfg["writer_agu_spatial_bounds"]) +
+            " --writerTemporalDimension " + str(snax_xdma_cfg["writer_agu_temporal_dimension"]) +
             " --readerBufferDepth " + str(snax_xdma_cfg["reader_buffer"]) +
             " --writerBufferDepth " + str(snax_xdma_cfg["writer_buffer"]) +
-            xdma_extension_arg +
-            " --hw-target-dir " + args.gen_path +
+            xdma_extension_arg + " --hw-target-dir " + args.gen_path +
             cfg["cluster"]["name"] + "_xdma/" +
             " --sw-target-dir " + args.gen_path + "../sw/snax/xdma"
         )

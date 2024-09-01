@@ -11,10 +11,12 @@
 #include "snax-xdma-csr-addr.h"
 
 // Set CSR for xdma
-int32_t xdma_memcpy_nd(uint8_t* src, uint8_t* dst, uint32_t dim_src,
-                       uint32_t dim_dst, uint32_t* stride_src,
-                       uint32_t* stride_dst, uint32_t* bound_src,
-                       uint32_t* bound_dst, uint32_t byte_strobe);
+int32_t xdma_memcpy_nd(uint8_t* src, uint8_t* dst, uint32_t* spatial_stride_src,
+                       uint32_t* spatial_stride_dst, uint32_t temp_dim_src,
+                       uint32_t* temp_stride_src, uint32_t* temp_bound_src,
+                       uint32_t temp_dim_dst, uint32_t* temp_stride_dst,
+                       uint32_t* temp_bound_dst, uint32_t enabled_chan_src,
+                       uint32_t enabled_chan_dst, uint32_t enabled_byte_dst);
 int32_t xdma_memcpy_1d(uint8_t* src, uint8_t* dst, uint32_t size);
 int32_t xdma_enable_src_ext(uint8_t ext, uint32_t* csr_value);
 int32_t xdma_disable_src_ext(uint8_t ext);

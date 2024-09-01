@@ -22,10 +22,10 @@ int main() {
 
     if (snrt_is_dm_core()) {
         // The xdma core is the last compute core in the cluster
-        uint32_t stride_src[3] = {8, 8, 512};
-        uint32_t bound_src[3] = {8, 3, 3};
-        uint32_t stride_dst[1] = {8};
-        uint32_t bound_dst[1] = {8};
+        uint32_t sstride_src[1] = {8};
+        uint32_t sstride_dst[1] = {8};
+        uint32_t tstride_src[2] = {8, 512};
+        uint32_t tbound_src[2] = {3, 3};
 
         // First we need to transfer the input data from L3->TCDM
         // Here we use the 2d iDMA transfer
@@ -75,9 +75,10 @@ int main() {
             for (int j = 0; j < out_W / 8; j++) {
                 local_src_pointer = tcdm_in + j * 64 + i * 512;
                 local_dst_pointer = tcdm_out + j * 64 + i * 256;
-                if (xdma_memcpy_nd(local_src_pointer, local_dst_pointer, 3, 1,
-                                   stride_src, stride_dst, bound_src, bound_dst,
-                                   0xFF) != 0) {
+                if (xdma_memcpy_nd(local_src_pointer, local_dst_pointer,
+                                   sstride_src, sstride_dst, 2, tstride_src,
+                                   tbound_src, 0, NULL, NULL, 0xFFFFFFFF,
+                                   0xFFFFFFFF, 0xFFFFFFFF) != 0) {
                     printf("Error in xdma agu configuration\n");
                     err++;
                 } else {

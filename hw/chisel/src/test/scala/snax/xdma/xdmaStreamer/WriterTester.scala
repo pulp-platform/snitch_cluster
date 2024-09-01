@@ -16,7 +16,6 @@ case class DmaWriteTransaction(data: BigInt, delay: Int)
 
 class ReaderWriterTesterParam(
     val address: Int,
-    val dimension: Int,
     val spatial_bound: Int,
     val temporal_bound: Array[Int],
     val spatial_stride: Int,
@@ -26,7 +25,6 @@ class ReaderWriterTesterParam(
 object ReaderWriterTesterParam {
   def apply() = new ReaderWriterTesterParam(
     address = 0,
-    dimension = 3,
     spatial_bound = 8,
     temporal_bound = Array(4, 16),
     spatial_stride = 8,
@@ -41,7 +39,6 @@ object ReaderWriterTesterParam {
       temporal_stride: Array[Int]
   ) = new ReaderWriterTesterParam(
     address = address,
-    dimension = dimension,
     spatial_bound = spatial_bound,
     temporal_bound = temporal_bound,
     spatial_stride = spatial_stride,
@@ -58,16 +55,17 @@ class WriterTester extends AnyFreeSpec with ChiselScalatestTester {
       // The accessed address is 1KB (0x0 - 0x400)
       // Configure AGU
       val testingParams = ReaderWriterTesterParam()
-      dut.io.cfg.ptr.poke(testingParams.address)
+      dut.io.aguCfg.ptr.poke(testingParams.address)
       // 8 parfor, 4 tempfor x 4 tempfor
-      dut.io.cfg.bounds(0).poke(testingParams.spatial_bound)
-      dut.io.cfg.bounds(1).poke(testingParams.temporal_bound(0))
-      dut.io.cfg.bounds(2).poke(testingParams.temporal_bound(1))
+      dut.io.aguCfg.spatialStrides(0).poke(testingParams.spatial_stride)
+      dut.io.aguCfg.temporalBounds(0).poke(testingParams.temporal_bound(0))
+      dut.io.aguCfg.temporalBounds(1).poke(testingParams.temporal_bound(1))
+      dut.io.aguCfg.temporalBounds(0).poke(testingParams.temporal_bound(0))
+      dut.io.aguCfg.temporalBounds(1).poke(testingParams.temporal_bound(1))
+      dut.io.readerwriterCfg.enabledChannel.poke(0xff.U)
+      dut.io.readerwriterCfg.enabledByte.poke(0xff.U)
       // 8 parfor continuous, 4 tempfor having the distance of 128B (read one superbank skip one superbank)
       // 4 tempfor having the distance of 1024B (finish read 4 SB in 8 SB, skip the consiquent 8SB)
-      dut.io.cfg.strides(0).poke(testingParams.spatial_stride)
-      dut.io.cfg.strides(1).poke(testingParams.temporal_stride(0))
-      dut.io.cfg.strides(2).poke(testingParams.temporal_stride(1))
 
       dut.io.start.poke(true)
       dut.clock.step()

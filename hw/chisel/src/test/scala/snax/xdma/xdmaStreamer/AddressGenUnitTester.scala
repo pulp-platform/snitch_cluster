@@ -30,7 +30,8 @@ class AddressGenUnitTester extends AnyFlatSpec with ChiselScalatestTester {
   "AddressGenUnit: continuous fetch with first temporal loop disabled" should " pass" in test(
     new AddressGenUnit(
       AddressGenUnitParam(
-        dimension = 3,
+        spatialBounds = List(8),
+        temporalDimension = 2,
         numChannel = 8,
         outputBufferDepth = 2,
         tcdmSize = 128
@@ -40,12 +41,12 @@ class AddressGenUnitTester extends AnyFlatSpec with ChiselScalatestTester {
     .withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) {
       dut =>
         dut.io.cfg.ptr.poke(0x1000.U)
-        dut.io.cfg.bounds(0).poke(8)
-        dut.io.cfg.bounds(1).poke(1)
-        dut.io.cfg.bounds(2).poke(16)
-        dut.io.cfg.strides(0).poke(8)
-        dut.io.cfg.strides(1).poke(64)
-        dut.io.cfg.strides(2).poke(64)
+        dut.io.cfg.spatialStrides(0).poke(8)
+        dut.io.cfg.temporalStrides(0).poke(64)
+        dut.io.cfg.temporalStrides(1).poke(64)
+        dut.io.cfg.temporalBounds(0).poke(1)
+        dut.io.cfg.temporalBounds(1).poke(16)
+
         dut.io.start.poke(true)
         dut.clock.step()
         dut.io.start.poke(false)
@@ -63,7 +64,8 @@ class AddressGenUnitTester extends AnyFlatSpec with ChiselScalatestTester {
   "AddressGenUnit: continuous fetch with first temporal loop enabled" should " pass" in test(
     new AddressGenUnit(
       AddressGenUnitParam(
-        dimension = 3,
+        spatialBounds = List(8),
+        temporalDimension = 2,
         numChannel = 8,
         outputBufferDepth = 2,
         tcdmSize = 128
@@ -73,12 +75,12 @@ class AddressGenUnitTester extends AnyFlatSpec with ChiselScalatestTester {
     .withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) {
       dut =>
         dut.io.cfg.ptr.poke(0x1000.U)
-        dut.io.cfg.bounds(0).poke(8)
-        dut.io.cfg.bounds(1).poke(4)
-        dut.io.cfg.bounds(2).poke(4)
-        dut.io.cfg.strides(0).poke(8)
-        dut.io.cfg.strides(1).poke(64)
-        dut.io.cfg.strides(2).poke(256)
+        dut.io.cfg.spatialStrides(0).poke(8)
+        dut.io.cfg.temporalStrides(0).poke(64)
+        dut.io.cfg.temporalStrides(1).poke(256)
+        dut.io.cfg.temporalBounds(0).poke(4)
+        dut.io.cfg.temporalBounds(1).poke(4)
+
         dut.io.start.poke(true)
         dut.clock.step()
         dut.io.start.poke(false)

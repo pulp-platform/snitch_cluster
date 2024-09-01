@@ -80,43 +80,43 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
       dut.clock.step(10)
       // Poke the reader agu
       dut.io.readerCfg.aguCfg.ptr.poke(readerTestingParams.address)
+      dut.io.readerCfg.readerwriterCfg.enabledChannel.poke(0xff.U)
+      dut.io.readerCfg.readerwriterCfg.enabledByte.poke(0xff.U)
       dut.io.readerCfg.aguCfg
-        .bounds(0)
-        .poke(readerTestingParams.spatial_bound)
-      dut.io.readerCfg.aguCfg
-        .bounds(1)
+        .temporalBounds(0)
         .poke(readerTestingParams.temporal_bound(0))
       dut.io.readerCfg.aguCfg
-        .bounds(2)
+        .temporalBounds(1)
         .poke(readerTestingParams.temporal_bound(1))
       dut.io.readerCfg.aguCfg
-        .strides(0)
+        .spatialStrides(0)
         .poke(readerTestingParams.spatial_stride)
       dut.io.readerCfg.aguCfg
-        .strides(1)
+        .temporalStrides(0)
         .poke(readerTestingParams.temporal_stride(0))
       dut.io.readerCfg.aguCfg
-        .strides(2)
+        .temporalStrides(1)
         .poke(readerTestingParams.temporal_stride(1))
+
+
       // Poke the write agu
       dut.io.writerCfg.aguCfg.ptr.poke(writerTestingParams.address)
+      dut.io.writerCfg.readerwriterCfg.enabledChannel.poke(0xff.U)
+      dut.io.writerCfg.readerwriterCfg.enabledByte.poke(0xff.U)
       dut.io.writerCfg.aguCfg
-        .bounds(0)
-        .poke(writerTestingParams.spatial_bound)
-      dut.io.writerCfg.aguCfg
-        .bounds(1)
+        .temporalBounds(0)
         .poke(writerTestingParams.temporal_bound(0))
       dut.io.writerCfg.aguCfg
-        .bounds(2)
+        .temporalBounds(1)
         .poke(writerTestingParams.temporal_bound(1))
       dut.io.writerCfg.aguCfg
-        .strides(0)
+        .spatialStrides(0)
         .poke(writerTestingParams.spatial_stride)
       dut.io.writerCfg.aguCfg
-        .strides(1)
+        .temporalStrides(0)
         .poke(writerTestingParams.temporal_stride(0))
       dut.io.writerCfg.aguCfg
-        .strides(2)
+        .temporalStrides(1)
         .poke(writerTestingParams.temporal_stride(1))
       // Poke the loop back to ture since we are only testing w/o any axi transactions
       dut.io.readerCfg.loopBack.poke(true)

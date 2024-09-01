@@ -19,16 +19,19 @@ class ReaderTester extends AnyFreeSpec with ChiselScalatestTester {
     dut =>
       // The accessed address is 1KB (0x0 - 0x400)
       // Configure AGU
-      dut.io.cfg.ptr.poke(0x0.U)
-      // 8 parfor, 4 tempfor x 4 tempfor
-      dut.io.cfg.bounds(0).poke(8)
-      dut.io.cfg.bounds(1).poke(4)
-      dut.io.cfg.bounds(2).poke(16)
+      dut.io.aguCfg.ptr.poke(0x0.U)
       // 8 parfor continuous, 4 tempfor having the distance of 128B (read one superbank skip one superbank)
       // 4 tempfor having the distance of 1024B (finish read 4 SB in 8 SB, skip the consiquent 8SB)
-      dut.io.cfg.strides(0).poke(8)
-      dut.io.cfg.strides(1).poke(64)
-      dut.io.cfg.strides(2).poke(256)
+      // 8 parfor, 4 tempfor x 4 tempfor
+      dut.io.aguCfg.spatialStrides(0).poke(8)
+      dut.io.aguCfg.temporalStrides(0).poke(64)
+      dut.io.aguCfg.temporalStrides(1).poke(256)
+
+      dut.io.aguCfg.temporalBounds(0).poke(4)
+      dut.io.aguCfg.temporalBounds(1).poke(16)
+
+      dut.io.readerwriterCfg.enabledChannel.poke(0xff.U)
+      dut.io.readerwriterCfg.enabledByte.poke(0xff.U)
 
       dut.io.start.poke(true)
       dut.clock.step()

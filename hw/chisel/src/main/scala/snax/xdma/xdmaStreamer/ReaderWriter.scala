@@ -29,9 +29,9 @@ class ReaderWriter(
     )
   )
 
-  reader.io.cfg := io.readerInterface.cfg
+  reader.io.aguCfg := io.readerInterface.aguCfg
+  reader.io.readerwriterCfg := io.readerInterface.readerwriterCfg
   reader.io.data <> io.readerInterface.data
-  reader.io.strb := io.readerInterface.strb
   reader.io.start := io.readerInterface.start
   io.readerInterface.busy := reader.io.busy
   io.readerInterface.busy := reader.io.bufferEmpty
@@ -44,9 +44,9 @@ class ReaderWriter(
     )
   )
 
-  writer.io.cfg := io.writerInterface.cfg
+  writer.io.aguCfg := io.writerInterface.aguCfg
+  writer.io.readerwriterCfg := io.writerInterface.readerwriterCfg
   writer.io.data <> io.writerInterface.data
-  writer.io.strb := io.writerInterface.strb
   writer.io.start := io.writerInterface.start
   io.writerInterface.busy := writer.io.busy
   io.writerInterface.bufferEmpty := writer.io.bufferEmpty

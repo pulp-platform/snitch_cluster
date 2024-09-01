@@ -19,9 +19,7 @@ class DMADataPathCfgIO(param: DMADataPathParam) extends Bundle {
     new AddressGenUnitCfgIO(param =
       param.rwParam.aguParam
     ) // Buffered within AGU
-  val streamerCfg = new Bundle {
-    val strb = UInt((param.rwParam.tcdmParam.dataWidth / 8).W)
-  }
+  val readerwriterCfg = new ReaderWriterCfgIO(param.rwParam)
   val extCfg = if (param.extParam.length != 0) {
     Vec(
       param.extParam.map { i => i.totalCsrNum }.reduce(_ + _) + 1,
@@ -33,7 +31,7 @@ class DMADataPathCfgIO(param: DMADataPathParam) extends Bundle {
   // However, the data forwarding is still challenging: Shall we use the current DMA to move the data? (I suggest that we do this in the initial implementation)
   // Serialize function to convert config into one long UInt
   def serialize(): UInt = {
-    extCfg.asUInt ++ streamerCfg.asUInt ++ aguCfg.bounds.asUInt ++ aguCfg.strides.asUInt ++ aguCfg.ptr
+    extCfg.asUInt ++ readerwriterCfg.asUInt ++ aguCfg.asUInt
   }
 
   // Deserialize function to convert long UInt back to config
@@ -42,28 +40,18 @@ class DMADataPathCfgIO(param: DMADataPathParam) extends Bundle {
   def deserialize(data: UInt): UInt = {
     var remainingData = data
 
-    // Assigning Ptr
-    aguCfg.ptr := remainingData(aguCfg.ptr.getWidth - 1, 0)
-    remainingData =
-      remainingData(remainingData.getWidth - 1, aguCfg.ptr.getWidth)
+    // Assigning aguCfg
+    aguCfg := remainingData(aguCfg.asUInt.getWidth - 1, 0).asTypeOf(aguCfg)
+    remainingData = remainingData(remainingData.getWidth - 1, aguCfg.getWidth)
 
-    // Assigning Strides
-    aguCfg.strides := remainingData(aguCfg.strides.asUInt.getWidth - 1, 0)
-      .asTypeOf(aguCfg.strides)
+    // Assigning readerwriterCfg
+    readerwriterCfg := remainingData(readerwriterCfg.asUInt.getWidth - 1, 0)
+      .asTypeOf(readerwriterCfg)
+      .asTypeOf(readerwriterCfg)
     remainingData =
-      remainingData(remainingData.getWidth - 1, aguCfg.strides.asUInt.getWidth)
+      remainingData(remainingData.getWidth - 1, readerwriterCfg.asUInt.getWidth)
 
-    // Assigning Bounds
-    aguCfg.bounds := remainingData(aguCfg.strides.asUInt.getWidth - 1, 0)
-      .asTypeOf(aguCfg.bounds)
-    remainingData =
-      remainingData(remainingData.getWidth - 1, aguCfg.bounds.asUInt.getWidth)
-
-    // Assigning streamer_cfg
-    streamerCfg.strb := remainingData(streamerCfg.strb.getWidth - 1, 0)
-    remainingData =
-      remainingData(remainingData.getWidth - 1, streamerCfg.strb.getWidth)
-    // Assigning ext_cfg
+    // Assigning extCfg
     extCfg := remainingData(extCfg.asUInt.getWidth - 1, 0).asTypeOf(extCfg)
     remainingData =
       remainingData(remainingData.getWidth - 1, extCfg.asUInt.getWidth)
@@ -194,13 +182,13 @@ class DMADataPath(
   i_writer.io.tcdmReq <> io.tcdmWriter.req
 
   // Connect the wire (ctrl plane)
-  reader.io.cfg := io.readerCfg.aguCfg
-  reader.io.strb := io.readerCfg.streamerCfg.strb
+  reader.io.aguCfg := io.readerCfg.aguCfg
+  reader.io.readerwriterCfg := io.readerCfg.readerwriterCfg
   reader.io.start := io.readerStart
   // reader_busy_o is connected later as the busy signal from the signal is needed
 
-  i_writer.io.cfg := io.writerCfg.aguCfg
-  i_writer.io.strb := io.writerCfg.streamerCfg.strb
+  i_writer.io.aguCfg := io.writerCfg.aguCfg
+  i_writer.io.readerwriterCfg := io.writerCfg.readerwriterCfg
   i_writer.io.start := io.writerStart
   // writer_busy_o is connected later as the busy signal from the signal is needed
 

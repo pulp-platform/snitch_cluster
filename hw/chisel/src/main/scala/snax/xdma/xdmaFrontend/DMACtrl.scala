@@ -177,15 +177,25 @@ class DMACtrl(
   val i_csrmanager = Module(
     new CsrManager(
       csrNumReadWrite = 2 + // Reader Pointer needs two CSRs
-        readerparam.rwParam.aguParam.dimension * 2 + // Strides + Bounds for reader
-        0 + // The strb for reader: non-effective, so donot assign CSR
+        readerparam.rwParam.aguParam.spatialBounds.length + // Spatiaial Strides for reader
+        readerparam.rwParam.aguParam.temporalDimension * 2 + // Temporal Strides + Bounds for reader
+        {
+          if (readerparam.rwParam.configurableChannel) 1 else 0
+        } + // Enabled Channel for reader
+        0 + // Enabled Byte for reader: non-effective, so donot assign CSR
         {
           if (readerparam.extParam.length == 0) 0
           else readerparam.extParam.map { i => i.totalCsrNum }.reduce(_ + _) + 1
         } + // The total num of param on reader extension (custom CSR + bypass CSR)
         2 + // Writer Pointer needs two CSRs
-        writerparam.rwParam.aguParam.dimension * 2 + // Strides + Bounds for writer
-        1 + // The strb for writer: effective, so assign one CSR
+        writerparam.rwParam.aguParam.spatialBounds.length + // Spatiaial Strides for writer
+        writerparam.rwParam.aguParam.temporalDimension * 2 + // Strides + Bounds for writer
+        {
+          if (writerparam.rwParam.configurableChannel) 1 else 0
+        } + // Enabled Channel for writer
+        {
+          if (writerparam.rwParam.configurableByteMask) 1 else 0
+        } + // Enabled Byte for writer
         {
           if (writerparam.extParam.length == 0) 0
           else writerparam.extParam.map { i => i.totalCsrNum }.reduce(_ + _) + 1
@@ -216,20 +226,29 @@ class DMACtrl(
   preRoute_dst_local.bits.readerPtr := Cat(remainingCSR(1), remainingCSR(0))
   remainingCSR = remainingCSR.tail.tail
 
-  // Connect agu_cfg.Bounds
-  for (i <- 0 until preRoute_src_local.bits.aguCfg.bounds.length) {
-    preRoute_src_local.bits.aguCfg.bounds(i) := remainingCSR.head
+  // Connect aguCfg.spatialStrides
+  for (i <- 0 until preRoute_src_local.bits.aguCfg.spatialStrides.length) {
+    preRoute_src_local.bits.aguCfg.spatialStrides(i) := remainingCSR.head
     remainingCSR = remainingCSR.tail
   }
 
-  // Connect agu_cfg.Strides
-  for (i <- 0 until preRoute_src_local.bits.aguCfg.strides.length) {
-    preRoute_src_local.bits.aguCfg.strides(i) := remainingCSR.head
+  // Connect aguCfg.temporalStrides
+  for (i <- 0 until preRoute_src_local.bits.aguCfg.temporalStrides.length) {
+    preRoute_src_local.bits.aguCfg.temporalStrides(i) := remainingCSR.head
     remainingCSR = remainingCSR.tail
   }
 
-  // Connect strb signal. As the strb is not effective, so assign all true, and not take any value from CSR right now
-  preRoute_src_local.bits.streamerCfg.strb := VecInit(
+  // Connect aguCfg.temporalBounds
+  for (i <- 0 until preRoute_src_local.bits.aguCfg.temporalBounds.length) {
+    preRoute_src_local.bits.aguCfg.temporalBounds(i) := remainingCSR.head
+    remainingCSR = remainingCSR.tail
+  }
+  // Connect enabledChannel signal
+  preRoute_src_local.bits.readerwriterCfg.enabledChannel := remainingCSR.head
+  remainingCSR = remainingCSR.tail
+
+  // Connect enabledByte signal. As the enabledByte is not effective, so assign all true, and not take any value from CSR right now
+  preRoute_src_local.bits.readerwriterCfg.enabledByte := VecInit(
     Seq.fill(readerparam.rwParam.tcdmParam.dataWidth / 8)(true.B)
   ).asUInt
 
@@ -246,20 +265,30 @@ class DMACtrl(
   preRoute_dst_local.bits.writerPtr := Cat(remainingCSR(1), remainingCSR(0))
   remainingCSR = remainingCSR.tail.tail
 
-  // Connect agu_cfg.Bounds
-  for (i <- 0 until preRoute_dst_local.bits.aguCfg.bounds.length) {
-    preRoute_dst_local.bits.aguCfg.bounds(i) := remainingCSR.head
+  // Connect aguCfg.spatialStrides
+  for (i <- 0 until preRoute_dst_local.bits.aguCfg.spatialStrides.length) {
+    preRoute_dst_local.bits.aguCfg.spatialStrides(i) := remainingCSR.head
     remainingCSR = remainingCSR.tail
   }
 
-  // Connect agu_cfg.Strides
-  for (i <- 0 until preRoute_dst_local.bits.aguCfg.strides.length) {
-    preRoute_dst_local.bits.aguCfg.strides(i) := remainingCSR.head
+  // Connect aguCfg.temporalStrides
+  for (i <- 0 until preRoute_dst_local.bits.aguCfg.temporalStrides.length) {
+    preRoute_dst_local.bits.aguCfg.temporalStrides(i) := remainingCSR.head
     remainingCSR = remainingCSR.tail
   }
 
-  // Connect strb signal. As the strb is effective, so assign the value from CSR
-  preRoute_dst_local.bits.streamerCfg.strb := remainingCSR.head
+  // Connect aguCfg.temporalBounds
+  for (i <- 0 until preRoute_dst_local.bits.aguCfg.temporalBounds.length) {
+    preRoute_dst_local.bits.aguCfg.temporalBounds(i) := remainingCSR.head
+    remainingCSR = remainingCSR.tail
+  }
+
+  // Connect enabledChannel signal
+  preRoute_dst_local.bits.readerwriterCfg.enabledChannel := remainingCSR.head
+  remainingCSR = remainingCSR.tail
+
+  // Connect enabledByte signal. As the strb is effective, so assign the value from CSR
+  preRoute_dst_local.bits.readerwriterCfg.enabledByte := remainingCSR.head
   remainingCSR = remainingCSR.tail
 
   // Connect extension signal

@@ -68,13 +68,15 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
         concurrent_threads = concurrent_threads.fork {
           val Reader_PointerAddress = BigInt(0x1000_0000)
           // Under This Configurations, the full TCDM will be copied
-          val Reader_Bounds = List(8, 32, 64)
-          val Reader_Strides = List(8, 64, 2048)
+          val Reader_Spatial_Strides = List(8)
+          val Reader_Temporal_Bounds = List(32, 64)
+          val Reader_Temporal_Strides = List(64, 2048)
 
           val Writer_PointerAddress = BigInt(0x1000_0000)
           // Under This Configurations, the full TCDM will be copied
-          val Writer_Bounds = List(8, 32, 16)
-          val Writer_Strides = List(32, 256, 8192)
+          val Writer_Spatial_Strides = List(32)
+          val Writer_Temporal_Bounds = List(32, 16)
+          val Writer_Temporal_Strides = List(256, 8192)
 
           for (i <- 0 until 256) {
             if (testTerminated) break()
@@ -106,16 +108,24 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               )
               currentCSR += 1
 
-              // Reader: Bounds D0 -> D3
-              Reader_Bounds.foreach({ i =>
+              // Reader: Spatial Strides D0
+              Reader_Spatial_Strides.foreach({ i =>
                 write_csr(dut, dut.io.csrIO, addr = currentCSR, data = i)
                 currentCSR += 1
               })
-              // Reader: Strides D0 -> D3
-              Reader_Strides.foreach({ i =>
+              // Reader: Temporal Strides D0 -> D1
+              Reader_Temporal_Strides.foreach({ i =>
                 write_csr(dut, dut.io.csrIO, addr = currentCSR, data = i)
                 currentCSR += 1
               })
+              // Reader: Temporal Bounds D0 -> D1
+              Reader_Temporal_Bounds.foreach({ i =>
+                write_csr(dut, dut.io.csrIO, addr = currentCSR, data = i)
+                currentCSR += 1
+              })
+              // Enabled Channels
+              write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 0xff)
+              currentCSR += 1
 
               // Writer: Pointers LSB + MSB
               write_csr(
@@ -134,20 +144,27 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               )
               currentCSR += 1
 
-              // Writer: Bounds D0 -> D3
-              Reader_Bounds.foreach({ i =>
+              // Writer: Spatial Strides D0
+              Writer_Spatial_Strides.foreach({ i =>
                 write_csr(dut, dut.io.csrIO, addr = currentCSR, data = i)
                 currentCSR += 1
               })
-              // Writer: Strides D0 -> D3
-              Reader_Strides.foreach({ i =>
+              // Writer: Temporal Strides D0 -> D1
+              Writer_Temporal_Strides.foreach({ i =>
                 write_csr(dut, dut.io.csrIO, addr = currentCSR, data = i)
                 currentCSR += 1
               })
-              // Writer: strobe / mask
-              write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 0)
+              // Writer: Temporal Bounds D0 -> D1
+              Writer_Temporal_Bounds.foreach({ i =>
+                write_csr(dut, dut.io.csrIO, addr = currentCSR, data = i)
+                currentCSR += 1
+              })
+              // Enabled Channels
+              write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 0xff)
               currentCSR += 1
-
+              // Enabled Byte
+              write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 0xff)
+              currentCSR += 1
               // Commit the config
               write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 1)
               println(
@@ -166,12 +183,12 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               val remoteConfig: BigInt =
                 (Reader_PointerAddress + 0x0000_1000 + i) +
                   (BigInt(0x2000_0000) << 48) +
-                  (BigInt(Reader_Strides(0)) << 96) +
-                  (BigInt(Reader_Strides(1)) << 128) +
-                  (BigInt(Reader_Strides(2)) << 160) +
-                  (BigInt(Reader_Bounds(0)) << 192) +
-                  (BigInt(Reader_Bounds(1)) << 208) +
-                  (BigInt(Reader_Bounds(2)) << 224)
+                  (BigInt(Reader_Spatial_Strides(0)) << 96) +
+                  (BigInt(Reader_Temporal_Strides(0)) << 113) +
+                  (BigInt(Reader_Temporal_Strides(1)) << 130) +
+                  (BigInt(Reader_Temporal_Bounds(0)) << 147) +
+                  (BigInt(Reader_Temporal_Bounds(1)) << 164)
+
               // 240b for AGU, 272b / 34B / 17 INT16 for Extension
 
               dut.io.remoteDMADataPathCfg.fromRemote.bits.poke(remoteConfig)

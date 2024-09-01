@@ -107,8 +107,10 @@ class ProgrammableCounter(width: Int, hasCeil: Boolean = true)
 
 class AddressGenUnitCfgIO(param: AddressGenUnitParam) extends Bundle {
   val ptr = UInt(param.addressWidth.W)
-  val strides = Vec(param.dimension, UInt(param.addressWidth.W))
-  val bounds = Vec(param.dimension, UInt(param.addressWidth.W))
+  val spatialStrides =
+    Vec(param.spatialBounds.length, UInt(param.addressWidth.W))
+  val temporalStrides = Vec(param.temporalDimension, UInt(param.addressWidth.W))
+  val temporalBounds = Vec(param.temporalDimension, UInt(param.addressWidth.W))
 }
 
 /** AGU is the module to automatically generate the address for all ports.
@@ -144,14 +146,20 @@ class AddressGenUnit(
     // The calculated address. This equals to # of output channels (64-bit narrow TCDM)
     val addr =
       Vec(param.numChannel, Decoupled(UInt(param.addressWidth.W)))
-    val enabled_channels = Vec(param.numChannel, Output(Bool()))
   })
+
+  require(param.spatialBounds.reduce(_ * _) <= param.numChannel)
+  if (param.spatialBounds.reduce(_ * _) > param.numChannel) {
+    Console.err.print(
+      s"The multiplication of temporal bounds (${param.spatialBounds
+          .reduce(_ * _)}) is larger than the number of channels(${param.numChannel}). Check the design parameter if you do not design it intentionally."
+    )
+  }
 
   override val desiredName = s"${module_name_prefix}_AddressGenUnitNoMulDiv"
 
   // Create counters for each dimension
-  // Be aware that counter is not needed for the first dimension, because it is the spatial bound
-  val counters = for (i <- 1 until param.dimension) yield {
+  val counters = for (i <- 0 until param.temporalDimension) yield {
     val counter = Module(
       new ProgrammableCounter(param.addressWidth, hasCeil = true) {
         override val desiredName =
@@ -160,12 +168,12 @@ class AddressGenUnit(
     )
     counter.io.reset := io.start
     // counter.io.tick is conenected later, when all necessary signal becomes available
-    counter.io.ceil := io.cfg.bounds(i)
-    counter.io.step := io.cfg.strides(i)
+    counter.io.ceil := io.cfg.temporalBounds(i)
+    counter.io.step := io.cfg.temporalStrides(i)
     counter
   }
 
-  // Create the outputBuffer to store the generated address: one input + spatialUnrollingFactor outputs
+  // Create the outputBuffer to store the generated address
   val outputBuffer = Module(
     new ComplexQueueConcat(
       inputWidth = io.addr.head.bits.getWidth * param.numChannel,
@@ -178,8 +186,19 @@ class AddressGenUnit(
 
   // Calculate the current base address: the first stride need to be left-shifted
   val temporalOffset = VecInit(counters.map(_.io.value)).reduceTree(_ + _)
+  // This is a table for all possible values that the spatial offset can take
+  val spatialOffsetTable = for (i <- 0 until param.spatialBounds.length) yield {
+    (0 until param.spatialBounds(i)).map(io.cfg.spatialStrides(i) * _.U)
+  }
   val spatialOffsets = for (i <- 0 until param.numChannel) yield {
-    val spatialOffset = temporalOffset + io.cfg.strides.head * i.U
+    var remainder = i
+    var spatialOffset = temporalOffset
+    for (j <- 0 until param.spatialBounds.length) {
+      spatialOffset = spatialOffset + spatialOffsetTable(j)(
+        remainder % param.spatialBounds(j)
+      )
+      remainder = remainder / param.spatialBounds(j)
+    }
     spatialOffset
   }
 
@@ -215,21 +234,6 @@ class AddressGenUnit(
   outputBuffer.io.in.head.valid := currentState === sBUSY
   // io.busy also determined by currentState
   io.busy := currentState === sBUSY
-
-  // Spatial bound
-  // The innermost one is the spatial bound, so it should not be multiplied with other bounds.
-  // If param.configurableSpatialBound is true, then the spatial bound is configurable
-  if (param.configurableSpatialBound) {
-    io.enabled_channels.zipWithIndex.foreach { case (a, b) =>
-      a := io.cfg.bounds.head > b.U
-    }
-    assert(
-      io.cfg.bounds.head <= param.numChannel.U,
-      "[AddressGenUnit] The innermost bound is spatial bound, so it should be less than or equal to the number of channels"
-    )
-  } else {
-    io.enabled_channels.foreach(_ := true.B)
-  }
 
   // Temporal bounds' tick signal (enable signal)
   val counters_tick =

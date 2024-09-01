@@ -124,8 +124,10 @@
         snax_xdma_cfg: {
             reader_buffer: 4, 
             writer_buffer: 4, 
-            reader_agu_dimension: 7, 
-            writer_agu_dimension: 7, 
+            reader_agu_spatial_bounds: "8",
+            reader_agu_temporal_dimension: 6, 
+            writer_agu_spatial_bounds: "8",
+            writer_agu_temporal_dimension: 6, 
             HasTransposer: 3, 
             HasVerilogMemset: 1, 
             HasMaxPool: 2

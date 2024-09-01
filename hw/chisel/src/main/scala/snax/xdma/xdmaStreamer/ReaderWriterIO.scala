@@ -6,15 +6,23 @@ import chisel3.util._
 import snax.utils._
 import snax.xdma.DesignParams._
 
+class ReaderWriterCfgIO(val param: ReaderWriterParam) extends Bundle {
+  val enabledByte =
+    if (param.configurableByteMask)
+      UInt((param.tcdmParam.dataWidth / 8).W)
+    else UInt(0.W)
+  val enabledChannel =
+    if (param.configurableChannel)
+      UInt(param.tcdmParam.numChannel.W)
+    else UInt(0.W)
+}
+
 abstract class ReaderWriterCommomIO(val param: ReaderWriterParam)
     extends Bundle {
   // The signal to control address generator
-  val cfg = Input(new AddressGenUnitCfgIO(param.aguParam))
+  val aguCfg = Input(new AddressGenUnitCfgIO(param.aguParam))
   // The signal to control which byte is written to TCDM
-  val strb =
-    if (param.configurableByteMask)
-      Input(UInt((param.tcdmParam.dataWidth / 8).W))
-    else Input(UInt(0.W))
+  val readerwriterCfg = Input(new ReaderWriterCfgIO(param))
 
   // The signal trigger the start of Address Generator. The non-empty of address generator will cause data requestor to read the data
   val start = Input(Bool())

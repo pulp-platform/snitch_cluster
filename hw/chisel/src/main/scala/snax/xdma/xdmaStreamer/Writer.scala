@@ -46,16 +46,17 @@ class Writer(param: ReaderWriterParam, clusterName: String = "unnamed_cluster")
     }
   )
 
-  addressgen.io.cfg := io.cfg
+  addressgen.io.cfg := io.aguCfg
   addressgen.io.start := io.start
 
-  requestors.io.enable := addressgen.io.enabled_channels
+  requestors.io.enable := io.readerwriterCfg.enabledChannel.asBools
   requestors.io.in.addr <> addressgen.io.addr
   requestors.io.in.data.get <> dataBuffer.io.out
   requestors.io.out.tcdmReq <> io.tcdmReq
 
-  if (param.configurableByteMask) requestors.io.in.strb := io.strb
-  else requestors.io.in.strb.asBools.foreach(_ := true.B)
+  if (param.configurableByteMask)
+    requestors.io.in.strb := io.readerwriterCfg.enabledByte
+  else requestors.io.in.strb := Fill(requestors.io.in.strb.getWidth, 1.U)
 
   dataBuffer.io.in.head <> io.data
   io.busy := addressgen.io.busy | (~addressgen.io.bufferEmpty)

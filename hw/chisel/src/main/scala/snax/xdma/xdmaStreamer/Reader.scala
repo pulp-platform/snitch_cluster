@@ -56,14 +56,15 @@ class Reader(param: ReaderWriterParam, clusterName: String = "unnamed_cluster")
     }
   )
 
-  addressgen.io.cfg := io.cfg
+  addressgen.io.cfg := io.aguCfg
   addressgen.io.start := io.start
   requestors.io.in.addr <> addressgen.io.addr
-  requestors.io.enable := addressgen.io.enabled_channels
-  responsers.io.enable := addressgen.io.enabled_channels
+  requestors.io.enable := io.readerwriterCfg.enabledChannel.asBools
+  responsers.io.enable := io.readerwriterCfg.enabledChannel.asBools
 
-  if (param.configurableByteMask) requestors.io.in.strb := io.strb
-  else requestors.io.in.strb.asBools.foreach(_ := true.B)
+  if (param.configurableByteMask)
+    requestors.io.in.strb := io.readerwriterCfg.enabledByte
+  else requestors.io.in.strb := Fill(requestors.io.in.strb.getWidth, 1.U)
 
   requestors.io.RequestorResponserLink.ResponsorReady.get := responsers.io.RequestorResponserLink.ResponsorReady
   responsers.io.RequestorResponserLink.RequestorSubmit := requestors.io.RequestorResponserLink.RequestorSubmit.get
