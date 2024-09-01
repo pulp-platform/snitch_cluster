@@ -28,11 +28,17 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
     new DMADataPath(
       readerparam = new DMADataPathParam(
         axiParam = new AXIParam,
-        rwParam = new ReaderWriterParam(configurableByteMask = false)
+        rwParam = new ReaderWriterParam(
+          configurableByteMask = false,
+          configurableChannel = true
+        )
       ),
       writerparam = new DMADataPathParam(
         axiParam = new AXIParam,
-        rwParam = new ReaderWriterParam(configurableByteMask = true)
+        rwParam = new ReaderWriterParam(
+          configurableByteMask = true,
+          configurableChannel = true
+        )
       )
     )
   ).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) {
@@ -96,7 +102,6 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
       dut.io.readerCfg.aguCfg
         .temporalStrides(1)
         .poke(readerTestingParams.temporal_stride(1))
-
 
       // Poke the write agu
       dut.io.writerCfg.aguCfg.ptr.poke(writerTestingParams.address)

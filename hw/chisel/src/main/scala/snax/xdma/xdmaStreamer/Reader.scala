@@ -64,8 +64,18 @@ class Reader(param: ReaderWriterParam, clusterName: String = "unnamed_cluster")
   addressgen.io.cfg := io.aguCfg
   addressgen.io.start := io.start
   requestors.io.in.addr <> addressgen.io.addr
-  requestors.io.enable := io.readerwriterCfg.enabledChannel.asBools
-  responsers.io.enable := io.readerwriterCfg.enabledChannel.asBools
+
+  if (param.configurableChannel) {
+    requestors.io.enable := io.readerwriterCfg.enabledChannel.asBools
+    responsers.io.enable := io.readerwriterCfg.enabledChannel.asBools
+  } else {
+    requestors.io.enable := VecInit(
+      Seq.fill(param.tcdmParam.numChannel)(true.B)
+    )
+    responsers.io.enable := VecInit(
+      Seq.fill(param.tcdmParam.numChannel)(true.B)
+    )
+  }
 
   if (param.configurableByteMask)
     requestors.io.in.strb := io.readerwriterCfg.enabledByte

@@ -14,7 +14,12 @@ import snax.xdma.DesignParams._
 
 class ReaderTester extends AnyFreeSpec with ChiselScalatestTester {
   "Reader's behavior is as expected" in test(
-    new Reader(new ReaderWriterParam(configurableByteMask = false))
+    new Reader(
+      new ReaderWriterParam(
+        configurableByteMask = false,
+        configurableChannel = true
+      )
+    )
   ).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) {
     dut =>
       // The accessed address is 1KB (0x0 - 0x400)

@@ -48,7 +48,12 @@ object ReaderWriterTesterParam {
 
 class WriterTester extends AnyFreeSpec with ChiselScalatestTester {
   "Writer's behavior is as expected" in test(
-    new Writer(new ReaderWriterParam)
+    new Writer(
+      new ReaderWriterParam(
+        configurableByteMask = true,
+        configurableChannel = true
+      )
+    )
   ).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) {
     dut =>
       dut.clock.step(10)

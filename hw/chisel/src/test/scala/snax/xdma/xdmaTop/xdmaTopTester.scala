@@ -107,11 +107,17 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
     new xdmaTop(
       readerParam = new DMADataPathParam(
         axiParam = new AXIParam,
-        rwParam = new ReaderWriterParam(configurableByteMask = false)
+        rwParam = new ReaderWriterParam(
+          configurableByteMask = false,
+          configurableChannel = true
+        )
       ),
       writerParam = new DMADataPathParam(
         axiParam = new AXIParam,
-        rwParam = new ReaderWriterParam(configurableByteMask = true),
+        rwParam = new ReaderWriterParam(
+          configurableByteMask = true,
+          configurableChannel = true
+        ),
         extParam = Seq(HasVerilogMemset, HasMaxPool, HasTransposer)
       )
     )
