@@ -20,6 +20,16 @@ class DMADataPathCfgIO(param: DMADataPathParam) extends Bundle {
       param.rwParam.aguParam
     ) // Buffered within AGU
   val readerwriterCfg = new ReaderWriterCfgIO(param.rwParam)
+
+  def connectReaderWriterCfgWithList(
+      csrList: IndexedSeq[UInt]
+  ): IndexedSeq[UInt] = {
+    var remaincsrList = csrList
+    remaincsrList = aguCfg.connectWithList(remaincsrList)
+    remaincsrList = readerwriterCfg.connectWithList(remaincsrList)
+    remaincsrList
+  }
+
   val extCfg = if (param.extParam.length != 0) {
     Vec(
       param.extParam.map { i => i.totalCsrNum }.reduce(_ + _) + 1,
@@ -68,6 +78,15 @@ class DMADataPathCfgInternalIO(param: DMADataPathParam)
   val loopBack = Bool()
   val readerPtr = UInt(param.axiParam.addrWidth.W)
   val writerPtr = UInt(param.axiParam.addrWidth.W)
+  override def connectReaderWriterCfgWithList(
+      csrList: IndexedSeq[UInt]
+  ): IndexedSeq[UInt] = {
+    var remainingCSR = csrList
+    readerPtr := Cat(remainingCSR(1), remainingCSR(0))
+    writerPtr := Cat(remainingCSR(1), remainingCSR(0))
+    remainingCSR = super.connectReaderWriterCfgWithList(remainingCSR)
+    remainingCSR
+  }
   override def serialize(): UInt = {
     super.serialize() ++ writerPtr ++ readerPtr
   }

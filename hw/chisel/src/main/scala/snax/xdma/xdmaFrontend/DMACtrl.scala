@@ -219,79 +219,21 @@ class DMACtrl(
   )
   var remainingCSR = i_csrmanager.io.csr_config_out.bits.toIndexedSeq
 
-  // Pack the unstructured signal from csrManager to structured signal: Src side
-  // Connect agu_cfg.Ptr & readerPtr
-  preRoute_src_local.bits.aguCfg.ptr := Cat(remainingCSR(1), remainingCSR(0))
-  preRoute_src_local.bits.readerPtr := Cat(remainingCSR(1), remainingCSR(0))
-  preRoute_dst_local.bits.readerPtr := Cat(remainingCSR(1), remainingCSR(0))
-  remainingCSR = remainingCSR.tail.tail
+  // Connect reader + writer cfg to the structured signal: Src side
+  remainingCSR =
+    preRoute_src_local.bits.connectReaderWriterCfgWithList(remainingCSR)
 
-  // Connect aguCfg.spatialStrides
-  for (i <- 0 until preRoute_src_local.bits.aguCfg.spatialStrides.length) {
-    preRoute_src_local.bits.aguCfg.spatialStrides(i) := remainingCSR.head
-    remainingCSR = remainingCSR.tail
-  }
-
-  // Connect aguCfg.temporalStrides
-  for (i <- 0 until preRoute_src_local.bits.aguCfg.temporalStrides.length) {
-    preRoute_src_local.bits.aguCfg.temporalStrides(i) := remainingCSR.head
-    remainingCSR = remainingCSR.tail
-  }
-
-  // Connect aguCfg.temporalBounds
-  for (i <- 0 until preRoute_src_local.bits.aguCfg.temporalBounds.length) {
-    preRoute_src_local.bits.aguCfg.temporalBounds(i) := remainingCSR.head
-    remainingCSR = remainingCSR.tail
-  }
-  // Connect enabledChannel signal
-  preRoute_src_local.bits.readerwriterCfg.enabledChannel := remainingCSR.head
-  remainingCSR = remainingCSR.tail
-
-  // Connect enabledByte signal. As the enabledByte is not effective, so assign all true, and not take any value from CSR right now
-  preRoute_src_local.bits.readerwriterCfg.enabledByte := VecInit(
-    Seq.fill(readerparam.rwParam.tcdmParam.dataWidth / 8)(true.B)
-  ).asUInt
-
-  // Connect extension signal
+  // Connect extension signal: Src side
   for (i <- 0 until preRoute_src_local.bits.extCfg.length) {
     preRoute_src_local.bits.extCfg(i) := remainingCSR.head
     remainingCSR = remainingCSR.tail
   }
 
-  // Pack the unstructured signal from csrManager to structured signal: Dst side
-  // Connect agu_cfg.Ptr & writerPtr
-  preRoute_dst_local.bits.aguCfg.ptr := Cat(remainingCSR(1), remainingCSR(0))
-  preRoute_src_local.bits.writerPtr := Cat(remainingCSR(1), remainingCSR(0))
-  preRoute_dst_local.bits.writerPtr := Cat(remainingCSR(1), remainingCSR(0))
-  remainingCSR = remainingCSR.tail.tail
+  // Connect reader + writer cfg to the structured signal: Dst side
+  remainingCSR =
+    preRoute_dst_local.bits.connectReaderWriterCfgWithList(remainingCSR)
 
-  // Connect aguCfg.spatialStrides
-  for (i <- 0 until preRoute_dst_local.bits.aguCfg.spatialStrides.length) {
-    preRoute_dst_local.bits.aguCfg.spatialStrides(i) := remainingCSR.head
-    remainingCSR = remainingCSR.tail
-  }
-
-  // Connect aguCfg.temporalStrides
-  for (i <- 0 until preRoute_dst_local.bits.aguCfg.temporalStrides.length) {
-    preRoute_dst_local.bits.aguCfg.temporalStrides(i) := remainingCSR.head
-    remainingCSR = remainingCSR.tail
-  }
-
-  // Connect aguCfg.temporalBounds
-  for (i <- 0 until preRoute_dst_local.bits.aguCfg.temporalBounds.length) {
-    preRoute_dst_local.bits.aguCfg.temporalBounds(i) := remainingCSR.head
-    remainingCSR = remainingCSR.tail
-  }
-
-  // Connect enabledChannel signal
-  preRoute_dst_local.bits.readerwriterCfg.enabledChannel := remainingCSR.head
-  remainingCSR = remainingCSR.tail
-
-  // Connect enabledByte signal. As the strb is effective, so assign the value from CSR
-  preRoute_dst_local.bits.readerwriterCfg.enabledByte := remainingCSR.head
-  remainingCSR = remainingCSR.tail
-
-  // Connect extension signal
+  // Connect extension signal: Dst side
   for (i <- 0 until preRoute_dst_local.bits.extCfg.length) {
     preRoute_dst_local.bits.extCfg(i) := remainingCSR.head
     remainingCSR = remainingCSR.tail

@@ -15,6 +15,11 @@ class Reader(param: ReaderWriterParam, clusterName: String = "unnamed_cluster")
 
   override val desiredName = s"${clusterName}_xdma_Reader"
 
+  require(
+    param.configurableByteMask == false,
+    "Byte Mask is not supported in Reader"
+  )
+
   val io = IO(new ReaderIO(param))
 
   // New Address Generator

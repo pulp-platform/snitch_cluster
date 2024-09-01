@@ -107,11 +107,11 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
     new xdmaTop(
       readerParam = new DMADataPathParam(
         axiParam = new AXIParam,
-        rwParam = new ReaderWriterParam
+        rwParam = new ReaderWriterParam(configurableByteMask = false)
       ),
       writerParam = new DMADataPathParam(
         axiParam = new AXIParam,
-        rwParam = new ReaderWriterParam,
+        rwParam = new ReaderWriterParam(configurableByteMask = true),
         extParam = Seq(HasVerilogMemset, HasMaxPool, HasTransposer)
       )
     )
@@ -129,13 +129,13 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           address = 0,
           spatialStrides = Array(8),
           temporalStrides = Array(8, 0),
-          temporalBounds = Array(2048, 1),
+          temporalBounds = Array(2048, 1)
         )
         var writerAGUParam = new AGUParamTest(
           address = 16 * 1024,
           spatialStrides = Array(8),
           temporalStrides = Array(8, 0),
-          temporalBounds = Array(2048, 1),
+          temporalBounds = Array(2048, 1)
         )
 
         var readerRWParam = new RWParamTest(
@@ -337,13 +337,13 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           address = 0,
           spatialStrides = Array(8),
           temporalStrides = Array(64, 0),
-          temporalBounds = Array(256, 1),
+          temporalBounds = Array(256, 1)
         )
         writerAGUParam = new AGUParamTest(
           address = 16 * 1024,
           spatialStrides = Array(8),
           temporalStrides = Array(64, 0),
-          temporalBounds = Array(256, 1),
+          temporalBounds = Array(256, 1)
         )
 
         readerRWParam = new RWParamTest(
@@ -529,7 +529,6 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           ) != 2
         ) {}
 
-
         // Check whether the data in memory is coincide with the expectation
         mem_to_be_checked = tcdm_mem.filter(_._1 >= 1024 * 16)
         if (mem_to_be_checked.map(_._2 == 0).reduce(_ & _))
@@ -542,13 +541,13 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           address = 0,
           spatialStrides = Array(8),
           temporalStrides = Array(64, 0),
-          temporalBounds = Array(256, 1),
+          temporalBounds = Array(256, 1)
         )
         writerAGUParam = new AGUParamTest(
           address = 16 * 1024,
           spatialStrides = Array(8),
           temporalStrides = Array(64, 0),
-          temporalBounds = Array(256, 1),
+          temporalBounds = Array(256, 1)
         )
 
         readerRWParam = new RWParamTest(
@@ -559,7 +558,7 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           enabledChannel = Integer.parseInt("11111111", 2),
           enabledByte = Integer.parseInt("00000001", 2)
         )
-        
+
         writerExtParam = new ExtParam(
           bypassMemset = 0,
           MemsetValue = 0xff,
@@ -781,13 +780,13 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           address = 0,
           spatialStrides = Array(8),
           temporalStrides = Array(64, 0),
-          temporalBounds = Array(256, 1),
+          temporalBounds = Array(256, 1)
         )
         writerAGUParam = new AGUParamTest(
           address = 16 * 1024,
           spatialStrides = Array(8),
           temporalStrides = Array(64, 0),
-          temporalBounds = Array(256, 1),
+          temporalBounds = Array(256, 1)
         )
 
         readerRWParam = new RWParamTest(

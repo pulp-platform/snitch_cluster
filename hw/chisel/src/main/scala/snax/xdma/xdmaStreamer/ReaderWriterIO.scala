@@ -15,6 +15,23 @@ class ReaderWriterCfgIO(val param: ReaderWriterParam) extends Bundle {
     if (param.configurableChannel)
       UInt(param.tcdmParam.numChannel.W)
     else UInt(0.W)
+
+  def connectWithList(csrList: IndexedSeq[UInt]): IndexedSeq[UInt] = {
+    var remaincsrList = csrList
+    if (param.configurableChannel) {
+      enabledChannel := remaincsrList.head
+      remaincsrList = remaincsrList.tail
+    } else {
+      enabledChannel := Fill(param.tcdmParam.numChannel, 1.U)
+    }
+    if (param.configurableByteMask) {
+      enabledByte := remaincsrList.head
+      remaincsrList = remaincsrList.tail
+    } else {
+      enabledByte := Fill(param.tcdmParam.dataWidth / 8, 1.U)
+    }
+    remaincsrList
+  }
 }
 
 abstract class ReaderWriterCommomIO(val param: ReaderWriterParam)
@@ -23,6 +40,13 @@ abstract class ReaderWriterCommomIO(val param: ReaderWriterParam)
   val aguCfg = Input(new AddressGenUnitCfgIO(param.aguParam))
   // The signal to control which byte is written to TCDM
   val readerwriterCfg = Input(new ReaderWriterCfgIO(param))
+
+  def connectCfgWithList(csrList: IndexedSeq[UInt]): IndexedSeq[UInt] = {
+    var remaincsrList = csrList
+    remaincsrList = aguCfg.connectWithList(remaincsrList)
+    remaincsrList = readerwriterCfg.connectWithList(remaincsrList)
+    remaincsrList
+  }
 
   // The signal trigger the start of Address Generator. The non-empty of address generator will cause data requestor to read the data
   val start = Input(Bool())

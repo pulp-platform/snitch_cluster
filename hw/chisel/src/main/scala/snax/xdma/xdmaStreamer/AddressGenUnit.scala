@@ -111,6 +111,29 @@ class AddressGenUnitCfgIO(param: AddressGenUnitParam) extends Bundle {
     Vec(param.spatialBounds.length, UInt(param.addressWidth.W))
   val temporalStrides = Vec(param.temporalDimension, UInt(param.addressWidth.W))
   val temporalBounds = Vec(param.temporalDimension, UInt(param.addressWidth.W))
+
+  def connectWithList(csrList: IndexedSeq[UInt]): IndexedSeq[UInt] = {
+    var remainingCSR = csrList
+    // Connect the ptr
+    ptr := Cat(remainingCSR(1), remainingCSR(0))
+    remainingCSR = remainingCSR.drop(2)
+    // Connect the spatial strides
+    for (i <- 0 until spatialStrides.length) {
+      spatialStrides(i) := remainingCSR.head
+      remainingCSR = remainingCSR.tail
+    }
+    // Connect the temporal strides
+    for (i <- 0 until temporalStrides.length) {
+      temporalStrides(i) := remainingCSR.head
+      remainingCSR = remainingCSR.tail
+    }
+    // Connect the temporal bounds
+    for (i <- 0 until temporalBounds.length) {
+      temporalBounds(i) := remainingCSR.head
+      remainingCSR = remainingCSR.tail
+    }
+    remainingCSR
+  }
 }
 
 /** AGU is the module to automatically generate the address for all ports.
