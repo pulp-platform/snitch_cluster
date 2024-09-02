@@ -22,22 +22,22 @@ CLUSTER_GEN_HEADERS = snitch_cluster_cfg.h \
 
 REGGEN_HEADERS = snitch_cluster_peripheral.h
 
-TARGET_C_HDRS_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/common
-TARGET_C_HDRS     = $(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS) $(REGGEN_HEADERS))
+SNRT_HAL_HDRS_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/common
+SNRT_HAL_HDRS     = $(addprefix $(SNRT_HAL_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS) $(REGGEN_HEADERS))
 
 # CLUSTERGEN headers
-$(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS)): %.h: $(CFG) $(CLUSTER_GEN_PREREQ) %.h.tpl
+$(addprefix $(SNRT_HAL_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS)): %.h: $(CFG) $(CLUSTER_GEN_PREREQ) %.h.tpl
 	@echo "[CLUSTERGEN] Generate $@"
-	$(CLUSTER_GEN) -c $< --outdir $(TARGET_C_HDRS_DIR) --template $@.tpl
+	$(CLUSTER_GEN) -c $< --outdir $(SNRT_HAL_HDRS_DIR) --template $@.tpl
 
 # REGGEN headers
-$(TARGET_C_HDRS_DIR)/snitch_cluster_peripheral.h: $(ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.hjson $(REGGEN)
+$(SNRT_HAL_HDRS_DIR)/snitch_cluster_peripheral.h: $(ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.hjson $(REGGEN)
 	$(call reggen_generate_header,$@,$<)
 
 .PHONY: clean-headers
 clean-sw: clean-headers
 clean-headers:
-	rm -f $(TARGET_C_HDRS)
+	rm -f $(SNRT_HAL_HDRS)
 
 ##################
 # Subdirectories #
