@@ -10,16 +10,24 @@ ARG CMAKE_VERSION=3.19.4
 ARG BENDER_VERSION=0.27.1
 ARG VERILATOR_VERSION=5.020
 ARG DOXYGEN_VERSION=1.12.0
+ARG RUST_VERSION=1.67.0
 
 # Install APT requirements
 RUN apt update && \
     apt install -y \
-        build-essential \
+        # General tools
         curl \
         wget \
         git \
         tar \
-        software-properties-common
+        # Required for rust
+        build-essential \
+        # Required for python 3.11
+        software-properties-common \
+        # Required for banshee
+        llvm-12-dev \
+        libclang-common-12-dev \
+        zlib1g-dev \
 
 # Install python 3.11
 RUN add-apt-repository ppa:deadsnakes/ppa && \
@@ -29,8 +37,8 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
 # Build Rust tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
-RUN rustup install 1.70.0
-RUN rustup override set 1.70.0
+RUN rustup install ${RUST_VERSION}
+RUN rustup override set ${RUST_VERSION}
 
 # Install Verilator
 RUN apt list -a verilator
@@ -46,8 +54,6 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cm
 ENV PATH="/tools/bin:${PATH}"
 
 # Install `banshee` (needs cmake)
-RUN rustup install 1.67.0
-RUN rustup override set 1.67.0
 RUN git clone https://github.com/pulp-platform/banshee.git /tmp/banshee --recurse-submodules
 RUN cargo install --path /tmp/banshee
 
