@@ -6,7 +6,6 @@
 
 # 1. Stage
 FROM ubuntu:24.04 AS builder
-ARG CMAKE_VERSION=3.19.4
 ARG BENDER_VERSION=0.27.1
 ARG VERILATOR_VERSION=5.020
 ARG DOXYGEN_VERSION=1.12.0
@@ -57,7 +56,6 @@ WORKDIR /tools
 ENV LLVM_SYS_150_PREFIX="/usr/lib/llvm-15"
 RUN git clone https://github.com/pulp-platform/banshee.git /tmp/banshee --recurse-submodules && \
 cd /tmp/banshee && git checkout llvm-15
-RUN echo $LLVM_SYS_150_PREFIX
 RUN cargo install --path /tmp/banshee
 
 # Install Bender
@@ -81,14 +79,7 @@ LABEL org.opencontainers.image.source=https://github.com/pulp-platform/snitch_cl
 
 WORKDIR /tools
 
-# Install (and cleanup) required packages (from apt-requirements.txt)
-# The list of extra packages is leftover from before this Dockerfile used
-# apt-requirements.txt
-#
-COPY apt-requirements.txt /tmp/apt-requirements.txt
 RUN apt update && \
-    sed 's/#.*//' /tmp/apt-requirements.txt \
-        | xargs apt install -y && \
     apt install -y --no-install-recommends \
         ca-certificates \
         gnupg2 \
