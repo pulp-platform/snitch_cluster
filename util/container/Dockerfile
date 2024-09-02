@@ -37,9 +37,6 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt update && \
     apt install -y python3.11
 
-# Check python installation folder
-RUN which python3.11 && which python
-
 # Build Rust tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
@@ -110,7 +107,7 @@ ENV PATH="/tools/bin:${PATH}"
 # Copy artifacts from stage 1.
 COPY --from=builder /tools/bender bin/
 COPY --from=builder /root/.cargo/bin/banshee bin/
-COPY --from=builder /opt/python /opt/python
+COPY --from=builder /usr/bin/python3.11 /usr/bin/python
 COPY --from=builder /tools/verilator /tools/verilator/
 COPY --from=builder /tools/doxygen/bin/doxygen bin/
 
