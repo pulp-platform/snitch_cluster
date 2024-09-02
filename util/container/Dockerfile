@@ -8,7 +8,7 @@
 FROM ubuntu:24.04 AS builder
 ARG CMAKE_VERSION=3.19.4
 ARG BENDER_VERSION=0.27.1
-ARG VERILATOR_VERSION=5.006
+ARG VERILATOR_VERSION=5.020
 ARG DOXYGEN_VERSION=1.12.0
 
 # Install APT requirements
@@ -33,7 +33,7 @@ RUN rustup override set 1.70.0
 
 # Install Verilator
 RUN apt list -a verilator
-RUN apt install -y verilator=${VERILATOR_VERSION}
+RUN apt install -y verilator=${VERILATOR_VERSION}-1
 
 # Change working directory
 WORKDIR /tools
