@@ -23,8 +23,6 @@ RUN apt update && \
         tar \
         # Required for rust
         build-essential \
-        # Required for python 3.11
-        software-properties-common \
         # Required for banshee
         cmake \
         llvm-15-dev \
@@ -32,19 +30,11 @@ RUN apt update && \
         zlib1g-dev \
         libzstd-dev
 
-# Install python 3.11
-RUN add-apt-repository ppa:deadsnakes/ppa && \
-    apt update && \
-    apt install -y python3.11
-
 # Build Rust tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN rustup install ${RUST_VERSION}
 RUN rustup override set ${RUST_VERSION}
-
-# Install Verilator
-RUN apt install -y verilator=${VERILATOR_VERSION}-1
 
 # Change working directory
 WORKDIR /tools
@@ -78,14 +68,26 @@ WORKDIR /tools
 
 RUN apt update && \
     apt install -y --no-install-recommends \
-        ca-certificates \
-        gnupg2 \
+        # General requirements
         curl \
         wget \
         build-essential \
-        git && \
+        git \
+        # Required for getting LLVM toolchain
+        ca-certificates \
+        gnupg2 \
+        # Required for python 3.11
+        software-properties-common && \
     apt clean ; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+
+# Install python 3.11
+RUN add-apt-repository ppa:deadsnakes/ppa && \
+    apt update && \
+    apt install -y python3.11
+
+# Install verilator
+RUN apt install -y verilator=${VERILATOR_VERSION}-1
 
 # Get the precompiled LLVM toolchain
 RUN latest_tag=`curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/pulp-platform/llvm-project/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'` && \
@@ -107,20 +109,16 @@ ENV PATH="/tools/bin:${PATH}"
 # Copy artifacts from stage 1.
 COPY --from=builder /tools/bender bin/
 COPY --from=builder /root/.cargo/bin/banshee bin/
-COPY --from=builder /usr/bin/python3.11 /usr/bin/python
-COPY --from=builder /tools/verilator /tools/verilator/
 COPY --from=builder /tools/doxygen/bin/doxygen bin/
 
 # Create and activate virtual environment
 ENV VIRTUAL_ENV="/root/.venvs/snitch_cluster"
 RUN /opt/python/bin/python3 -m venv ${VIRTUAL_ENV}
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
+
 # Install Python requirements
 COPY pyproject.toml .
 COPY sw/dnn ./sw/dnn
 COPY sw/blas ./sw/blas
 COPY util ./util
 RUN pip install .
-# Add Verilator to PATH
-ENV PATH="/tools/verilator/bin:${PATH}"
-ENV VLT_ROOT="/tools/verilator/share/verilator/"
