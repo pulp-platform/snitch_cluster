@@ -107,7 +107,7 @@ COPY --from=builder /usr/bin/verilator /usr/bin/verilator
 
 # Create and activate virtual environment
 ENV VIRTUAL_ENV="/root/.venvs/snitch_cluster"
-RUN python -m venv ${VIRTUAL_ENV} && source ${VIRTUAL_ENV}/bin/activate
+RUN python3 -m venv ${VIRTUAL_ENV} && source ${VIRTUAL_ENV}/bin/activate
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 
 # Install Python requirements
@@ -115,4 +115,4 @@ COPY pyproject.toml .
 COPY sw/dnn ./sw/dnn
 COPY sw/blas ./sw/blas
 COPY util ./util
-RUN pip install .
+RUN pip3 install .
