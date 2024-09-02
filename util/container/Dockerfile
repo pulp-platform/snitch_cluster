@@ -5,7 +5,7 @@
 # Docker container for Snitch development.
 
 # 1. Stage
-FROM ubuntu:22.04 AS builder
+FROM ubuntu:24.04 AS builder
 ARG CMAKE_VERSION=3.19.4
 ARG BENDER_VERSION=0.27.1
 ARG VERILATOR_VERSION=5.020
@@ -27,11 +27,11 @@ RUN apt update && \
         # Required for verilator
         autoconf \
         # Required for python 3.11
-        software-properties-common \
+        software-properties-common
         # Required for banshee
-        cmake \
-        llvm-12-dev \
-        libclang-common-12-dev \
+RUN apt install -y cmake \
+        llvm-15-dev \
+        libclang-common-15-dev \
         zlib1g-dev
 
 # Install python 3.11
@@ -71,7 +71,7 @@ RUN tar xzf doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
 RUN mv doxygen-${DOXYGEN_VERSION} doxygen
 
 # 2. Stage
-FROM ubuntu:22.04 AS snitch_cluster
+FROM ubuntu:24.04 AS snitch_cluster
 ARG SNITCH_LLVM_VERSION=latest
 ARG VERIBLE_VERSION=0.0-3318-g8d254167
 
