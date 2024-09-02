@@ -113,6 +113,10 @@ COPY --from=builder /tools/doxygen/bin/doxygen bin/
 COPY --from=builder /usr/bin/python3.11 /usr/bin/python
 COPY --from=builder /usr/bin/verilator /usr/bin/verilator
 
+RUN which python
+RUN python --version
+RUN /usr/bin/python --version
+
 # Create and activate virtual environment
 ENV VIRTUAL_ENV="/root/.venvs/snitch_cluster"
 RUN /opt/python/bin/python3 -m venv ${VIRTUAL_ENV}
