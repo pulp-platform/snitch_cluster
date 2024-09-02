@@ -21,7 +21,7 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
         tar \
         software-properties-common
 # python needs `software-properties-common` to add the deadsnakes PPA
-RUN add-apt-repository ppa:deadsnakes/ppa -y && \
+RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt update && \
     apt install -y python3.11
 
