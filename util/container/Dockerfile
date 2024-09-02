@@ -5,7 +5,7 @@
 # Docker container for Snitch development.
 
 # 1. Stage
-FROM ubuntu:22.04 AS builder
+FROM ubuntu:24.04 AS builder
 ARG CMAKE_VERSION=3.19.4
 ARG PYTHON_VERSION=3.9.12
 ARG BENDER_VERSION=0.27.1
@@ -59,14 +59,8 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 RUN rustup install 1.70.0
 RUN rustup override set 1.70.0
 
-# Build Verilator
-RUN git clone https://github.com/verilator/verilator && \
-    cd verilator && \
-    git checkout "v${VERILATOR_VERSION}" && \
-    autoconf && \
-    ./configure --prefix /tools/verilator && \
-    make && \
-    make install
+# Install Verilator
+RUN apt-get install -y verilator=${VERILATOR_VERSION}
 
 # Change working directory
 WORKDIR /tools
@@ -93,7 +87,7 @@ RUN tar xzf doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
 RUN mv doxygen-${DOXYGEN_VERSION} doxygen
 
 # 2. Stage
-FROM ubuntu:22.04 AS snitch_cluster
+FROM ubuntu:24.04 AS snitch_cluster
 ARG SNITCH_LLVM_VERSION=latest
 ARG VERIBLE_VERSION=0.0-3318-g8d254167
 
