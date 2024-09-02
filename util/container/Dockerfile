@@ -26,8 +26,8 @@ RUN apt update && \
         build-essential \
         # Required for banshee
         cmake \
-        llvm-15-dev \
-        libpolly-15-dev \
+        llvm-12-dev \
+        libpolly-12-dev \
         zlib1g-dev \
         libzstd-dev \
         # Required for python
@@ -39,9 +39,9 @@ RUN apt update && \
         libffi-dev
 
 # Install Python
-RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
-RUN tar xzf Python-${PYTHON_VERSION}.tgz
-RUN cd Python-${PYTHON_VERSION} && \
+RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz && \
+    tar xzf Python-${PYTHON_VERSION}.tgz && \
+    cd Python-${PYTHON_VERSION} && \
     ./configure --enable-optimizations --prefix=/opt/python/ && \
     make install -j
 
@@ -57,26 +57,24 @@ RUN git clone https://github.com/verilator/verilator && \
 # Build Rust tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
-RUN rustup install ${RUST_VERSION}
-RUN rustup override set ${RUST_VERSION}
+RUN rustup install ${RUST_VERSION} && \
+    rustup override set ${RUST_VERSION}
 
 # Change working directory
 WORKDIR /tools
 
 # Install `banshee` (needs cmake)
-ENV LLVM_SYS_150_PREFIX="/usr/lib/llvm-15"
 RUN git clone https://github.com/pulp-platform/banshee.git /tmp/banshee --recurse-submodules && \
-cd /tmp/banshee && git checkout llvm-15
-RUN cargo install --path /tmp/banshee
+    cargo install --path /tmp/banshee
 
 # Install Bender
-RUN wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz
-RUN tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz
+RUN wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz && \
+    tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz
 
 # Install Doxygen
-RUN wget https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
-RUN tar xzf doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
-RUN mv doxygen-${DOXYGEN_VERSION} doxygen
+RUN wget https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz && \
+    tar xzf doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz && \
+    mv doxygen-${DOXYGEN_VERSION} doxygen
 
 # 2. Stage
 FROM ubuntu:22.04 AS snitch_cluster
