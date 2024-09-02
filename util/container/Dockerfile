@@ -24,6 +24,8 @@ RUN apt update && \
         tar \
         # Required for rust
         build-essential \
+        # Required for verilator
+        autoconf \
         # Required for python 3.11
         software-properties-common \
         # Required for banshee
@@ -43,8 +45,14 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 RUN rustup install ${RUST_VERSION}
 RUN rustup override set ${RUST_VERSION}
 
-# Install Verilator
-RUN apt install -y verilator=${VERILATOR_VERSION}-1
+# Build Verilator
+RUN git clone https://github.com/verilator/verilator && \
+    cd verilator && \
+    git checkout "v${VERILATOR_VERSION}" && \
+    autoconf && \
+    ./configure --prefix /tools/verilator && \
+    make && \
+    make install
 
 # Change working directory
 WORKDIR /tools
