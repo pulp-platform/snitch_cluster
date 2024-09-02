@@ -14,6 +14,7 @@ ARG DOXYGEN_VERSION=1.12.0
 # Install APT requirements
 RUN apt update && \
     apt install -y \
+        build-essential \
         curl \
         wget \
         git \
