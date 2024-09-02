@@ -31,6 +31,7 @@ RUN apt update && \
         # Required for python
         libncurses5-dev \
         libgdbm-dev \
+        libgdbm-compat-dev \
         libnss3-dev \
         libssl-dev \
         libreadline-dev \
@@ -38,7 +39,8 @@ RUN apt update && \
         libsqlite3-dev \
         tk-dev \
         libc6-dev \
-        libbz2-dev
+        libbz2-dev \
+        liblzma-dev
 
 # Install Python
 RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz && \
