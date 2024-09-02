@@ -7,51 +7,19 @@
 # 1. Stage
 FROM ubuntu:24.04 AS builder
 ARG CMAKE_VERSION=3.19.4
-ARG PYTHON_VERSION=3.9.12
 ARG BENDER_VERSION=0.27.1
-ARG SPIKE_DASM_VERSION=0.1.0
 ARG VERILATOR_VERSION=5.006
 ARG DOXYGEN_VERSION=1.12.0
-# Run dpkg without interactive dialogue
-ARG DEBIAN_FRONTEND=noninteractive
 
 # Install APT requirements
-COPY apt-requirements.txt /tmp/apt-requirements.txt
-RUN apt-get update && \
-    sed 's/#.*//' /tmp/apt-requirements.txt \
-        | xargs apt-get install -y && \
+RUN add-apt-repository ppa:deadsnakes/ppa && \
+    apt-get update && \
     apt-get install -y \
-        build-essential \
         curl \
-        git \
-        gnupg2 \
-        lsb-release \
-        software-properties-common \
-        unzip \
         wget \
-        zlib1g-dev \
-        autoconf \
-        help2man \
-        flex \
-        bison \
-        llvm-12-dev \
-        libclang-common-12-dev \
-        libreadline-dev \
-        libncursesw5-dev \
-        libssl-dev \
-        libsqlite3-dev \
-        tk-dev \
-        libgdbm-dev \
-        libc6-dev \
-        libbz2-dev \
-        libffi-dev
-
-# Install Python
-RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
-RUN tar xzf Python-${PYTHON_VERSION}.tgz
-RUN cd Python-${PYTHON_VERSION} && \
-    ./configure --enable-optimizations --prefix=/opt/python/ && \
-    make install -j
+        git \
+        tar \
+        python3.11 \
 
 # Build Rust tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
