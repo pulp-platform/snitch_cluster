@@ -9,6 +9,7 @@ jobs:
   gitlab-ci:
     name: Internal Gitlab CI
     runs-on: ubuntu-22.04
+    if: github.event.pull_request.draft == false
     steps:
       - name: Check Gitlab CI
         uses: pulp-platform/pulp-actions/gitlab-ci@v2.1.0
