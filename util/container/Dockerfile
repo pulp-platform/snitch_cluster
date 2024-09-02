@@ -38,6 +38,9 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt update && \
     apt install -y python3.11
 
+# Check python installation folder
+RUN which python3.11 && which python
+
 # Build Rust tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
