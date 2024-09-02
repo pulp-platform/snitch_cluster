@@ -17,17 +17,17 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Install APT requirements
 RUN apt update && \
     apt install -y \
-        # General tools
+        # General requirements
         curl \
         wget \
         git \
         tar \
-        cmake \
         # Required for rust
         build-essential \
         # Required for python 3.11
         software-properties-common \
         # Required for banshee
+        cmake \
         llvm-12-dev \
         libclang-common-12-dev \
         zlib1g-dev
@@ -44,7 +44,6 @@ RUN rustup install ${RUST_VERSION}
 RUN rustup override set ${RUST_VERSION}
 
 # Install Verilator
-RUN apt list -a verilator
 RUN apt install -y verilator=${VERILATOR_VERSION}-1
 
 # Change working directory
@@ -130,8 +129,3 @@ RUN pip install .
 # Add Verilator to PATH
 ENV PATH="/tools/verilator/bin:${PATH}"
 ENV VLT_ROOT="/tools/verilator/share/verilator/"
-
-# Set locale to UTF-8, required because Python 3.6 defaults on ASCII encoding.
-# See https://click.palletsprojects.com/en/8.1.x/unicode-support/
-ENV LC_ALL="C.UTF-8"
-ENV LANG="C.UTF-8"
