@@ -27,9 +27,9 @@ RUN apt update && \
         # Required for python 3.11
         software-properties-common \
         # Required for banshee
-        cmake \
         llvm-15-dev \
-        libpolly-15-dev
+        libpolly-15-dev \
+        zlib1g-dev
 
 # Install python 3.11
 RUN add-apt-repository ppa:deadsnakes/ppa && \
