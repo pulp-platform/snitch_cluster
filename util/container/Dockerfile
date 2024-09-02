@@ -19,10 +19,10 @@ RUN add-apt-repository ppa:deadsnakes/ppa && \
         wget \
         git \
         tar \
-        software-properties-common && \
-    add-apt-repository ppa:deadsnakes/ppa -y && \
+        software-properties-common
+# python needs `software-properties-common` to add the deadsnakes PPA
+RUN add-apt-repository ppa:deadsnakes/ppa -y && \
     apt update && \
-    # python needs `software-properties-common` to add the deadsnakes PPA
     apt install -y python3.11
 
 # Build Rust tools
