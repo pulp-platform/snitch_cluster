@@ -50,7 +50,8 @@ RUN apt install -y verilator=${VERILATOR_VERSION}-1
 WORKDIR /tools
 
 # Install `banshee` (needs cmake)
-RUN git clone https://github.com/pulp-platform/banshee.git /tmp/banshee --recurse-submodules
+RUN git clone https://github.com/pulp-platform/banshee.git /tmp/banshee --recurse-submodules && \
+    cd /tmp/banshee && git checkout llvm-15
 RUN cargo install --path /tmp/banshee
 
 # Install Bender
