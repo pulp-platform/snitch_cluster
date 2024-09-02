@@ -12,8 +12,7 @@ ARG VERILATOR_VERSION=5.006
 ARG DOXYGEN_VERSION=1.12.0
 
 # Install APT requirements
-RUN add-apt-repository ppa:deadsnakes/ppa && \
-    apt update && \
+RUN apt update && \
     apt install -y \
         curl \
         wget \
