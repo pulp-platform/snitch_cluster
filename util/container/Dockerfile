@@ -13,13 +13,17 @@ ARG DOXYGEN_VERSION=1.12.0
 
 # Install APT requirements
 RUN add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install -y \
+    apt update && \
+    apt install -y \
         curl \
         wget \
         git \
         tar \
-        python3.11 \
+        software-properties-common && \
+    add-apt-repository ppa:deadsnakes/ppa -y && \
+    apt update && \
+    # python needs `software-properties-common` to add the deadsnakes PPA
+    apt install -y python3.11
 
 # Build Rust tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -28,7 +32,7 @@ RUN rustup install 1.70.0
 RUN rustup override set 1.70.0
 
 # Install Verilator
-RUN apt-get install -y verilator=${VERILATOR_VERSION}
+RUN apt install -y verilator=${VERILATOR_VERSION}
 
 # Change working directory
 WORKDIR /tools
@@ -71,17 +75,17 @@ WORKDIR /tools
 # apt-requirements.txt
 #
 COPY apt-requirements.txt /tmp/apt-requirements.txt
-RUN apt-get update && \
+RUN apt update && \
     sed 's/#.*//' /tmp/apt-requirements.txt \
-        | xargs apt-get install -y && \
-    apt-get install -y --no-install-recommends \
+        | xargs apt install -y && \
+    apt install -y --no-install-recommends \
         ca-certificates \
         gnupg2 \
         curl \
         wget \
         build-essential \
         git && \
-    apt-get clean ; \
+    apt clean ; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 # Get the precompiled LLVM toolchain
@@ -100,12 +104,6 @@ RUN wget https://github.com/chipsalliance/verible/releases/download/v${VERIBLE_V
     tar -x -f verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz --strip-components=1 -C . && \
     rm -rf verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
 ENV PATH="/tools/bin:${PATH}"
-
-# Install git>=2.18, required by Github checkout action to recurse submodules
-RUN apt-get update && apt-get install software-properties-common -y && \
-    add-apt-repository -y ppa:git-core/ppa && \
-    apt-get update && \
-    apt-get install git -y
 
 # Copy artifacts from stage 1.
 COPY --from=builder /tools/bender bin/
