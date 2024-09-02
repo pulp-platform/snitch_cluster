@@ -119,7 +119,7 @@ RUN /usr/bin/python --version
 
 # Create and activate virtual environment
 ENV VIRTUAL_ENV="/root/.venvs/snitch_cluster"
-RUN /opt/python/bin/python3 -m venv ${VIRTUAL_ENV}
+RUN python -m venv ${VIRTUAL_ENV} && source ${VIRTUAL_ENV}/bin/activate
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 
 # Install Python requirements
