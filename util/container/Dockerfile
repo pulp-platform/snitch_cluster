@@ -5,9 +5,10 @@
 # Docker container for Snitch development.
 
 # 1. Stage
-FROM ubuntu:24.04 AS builder
+FROM ubuntu:22.04 AS builder
 ARG BENDER_VERSION=0.27.1
 ARG VERILATOR_VERSION=5.020
+ARG PYTHON_VERSION=3.11.9
 ARG DOXYGEN_VERSION=1.12.0
 ARG RUST_VERSION=1.67.0
 # Run dpkg without interactive dialogue
@@ -28,10 +29,30 @@ RUN apt update && \
         llvm-15-dev \
         libpolly-15-dev \
         zlib1g-dev \
-        libzstd-dev
+        libzstd-dev \
+        # Required for python
+        libncurses5-dev \
+        libgdbm-dev \
+        libnss3-dev \
+        libssl-dev \
+        libreadline-dev \
+        libffi-dev
 
-# Install verilator
-RUN apt install -y verilator=${VERILATOR_VERSION}-1
+# Install Python
+RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
+RUN tar xzf Python-${PYTHON_VERSION}.tgz
+RUN cd Python-${PYTHON_VERSION} && \
+    ./configure --enable-optimizations --prefix=/opt/python/ && \
+    make install -j
+
+# Build Verilator
+RUN git clone https://github.com/verilator/verilator && \
+    cd verilator && \
+    git checkout "v${VERILATOR_VERSION}" && \
+    autoconf && \
+    ./configure --prefix /tools/verilator && \
+    make -j && \
+    make install
 
 # Build Rust tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -58,7 +79,7 @@ RUN tar xzf doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz
 RUN mv doxygen-${DOXYGEN_VERSION} doxygen
 
 # 2. Stage
-FROM ubuntu:24.04 AS snitch_cluster
+FROM ubuntu:22.04 AS snitch_cluster
 ARG SNITCH_LLVM_VERSION=latest
 ARG VERIBLE_VERSION=0.0-3318-g8d254167
 
@@ -102,12 +123,19 @@ ENV PATH="/tools/bin:${PATH}"
 # Copy artifacts from stage 1.
 COPY --from=builder /tools/bender bin/
 COPY --from=builder /root/.cargo/bin/banshee bin/
+COPY --from=builder /opt/python /opt/python
 COPY --from=builder /tools/doxygen/bin/doxygen bin/
-COPY --from=builder /usr/bin/verilator /usr/bin/verilator
+COPY --from=builder /tools/verilator /tools/verilator/
+
+# Add Verilator to PATH
+ENV PATH "/tools/verilator/bin:${PATH}"
+ENV VLT_ROOT "/tools/verilator/share/verilator/"
+
+RUN which python && python --version
 
 # Create and activate virtual environment
 ENV VIRTUAL_ENV="/root/.venvs/snitch_cluster"
-RUN python3 -m venv ${VIRTUAL_ENV} && source ${VIRTUAL_ENV}/bin/activate
+RUN python -m venv ${VIRTUAL_ENV} && source ${VIRTUAL_ENV}/bin/activate
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 
 # Install Python requirements
@@ -115,4 +143,4 @@ COPY pyproject.toml .
 COPY sw/dnn ./sw/dnn
 COPY sw/blas ./sw/blas
 COPY util ./util
-RUN pip3 install .
+RUN pip install .
