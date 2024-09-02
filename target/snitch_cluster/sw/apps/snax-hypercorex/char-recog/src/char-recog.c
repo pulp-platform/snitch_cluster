@@ -120,10 +120,6 @@ int main() {
         //-------------------------------
         // Configuring the Hypercorex
         //-------------------------------
-        // Load orthogonal IM seeds
-        for (uint32_t i = 0; i < 8; i++) {
-            hypercorex_set_im_base_seed(i, im_seed_list[i]);
-        }
 
         // Load instructions for hypercorex
         hypercorex_load_inst(4, 0, train_inst_code);

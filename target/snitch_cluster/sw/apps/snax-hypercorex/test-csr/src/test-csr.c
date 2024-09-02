@@ -328,18 +328,6 @@ int main() {
                                        test_inst_loop_count2,
                                        test_inst_loop_count3);
 
-        // Write to seed configurations
-        csrw_ss(HYPERCOREX_CIM_SEED_REG_ADDR, test_seed_cim);
-
-        hypercorex_set_im_base_seed(0, test_seed_ortho_0);
-        hypercorex_set_im_base_seed(1, test_seed_ortho_1);
-        hypercorex_set_im_base_seed(2, test_seed_ortho_2);
-        hypercorex_set_im_base_seed(3, test_seed_ortho_3);
-        hypercorex_set_im_base_seed(4, test_seed_ortho_4);
-        hypercorex_set_im_base_seed(5, test_seed_ortho_5);
-        hypercorex_set_im_base_seed(6, test_seed_ortho_6);
-        hypercorex_set_im_base_seed(7, test_seed_ortho_7);
-
         //-------------------------------
         // Read from registers if they have correct values
         // All golden values are synthetic just to see
@@ -408,49 +396,6 @@ int main() {
             golden_inst_loop_count) {
             err += 1;
         }
-
-        if (csrr_ss(HYPERCOREX_CIM_SEED_REG_ADDR) != golden_seed_cim) {
-            err += 1;
-        };
-
-        if (csrr_ss(HYPERCOREX_IM_BASE_SEED_REG_ADDR) != golden_seed_ortho_0) {
-            err += 1;
-        };
-
-        if (csrr_ss(HYPERCOREX_IM_BASE_SEED_REG_ADDR + 1) !=
-            golden_seed_ortho_1) {
-            err += 1;
-        };
-
-        if (csrr_ss(HYPERCOREX_IM_BASE_SEED_REG_ADDR + 2) !=
-            golden_seed_ortho_2) {
-            err += 1;
-        };
-
-        if (csrr_ss(HYPERCOREX_IM_BASE_SEED_REG_ADDR + 3) !=
-            golden_seed_ortho_3) {
-            err += 1;
-        };
-
-        if (csrr_ss(HYPERCOREX_IM_BASE_SEED_REG_ADDR + 4) !=
-            golden_seed_ortho_4) {
-            err += 1;
-        };
-
-        if (csrr_ss(HYPERCOREX_IM_BASE_SEED_REG_ADDR + 5) !=
-            golden_seed_ortho_5) {
-            err += 1;
-        };
-
-        if (csrr_ss(HYPERCOREX_IM_BASE_SEED_REG_ADDR + 6) !=
-            golden_seed_ortho_6) {
-            err += 1;
-        };
-
-        if (csrr_ss(HYPERCOREX_IM_BASE_SEED_REG_ADDR + 7) !=
-            golden_seed_ortho_7) {
-            err += 1;
-        };
     };
 
     return err;

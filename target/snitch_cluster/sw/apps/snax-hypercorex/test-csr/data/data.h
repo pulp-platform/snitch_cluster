@@ -54,16 +54,6 @@ uint32_t test_inst_loop_count1 = 0xff;
 uint32_t test_inst_loop_count2 = 0xff;
 uint32_t test_inst_loop_count3 = 0xff;
 
-uint32_t test_seed_cim = 0x1234abcd;
-uint32_t test_seed_ortho_0 = 0xffffffff;
-uint32_t test_seed_ortho_1 = 0x01010101;
-uint32_t test_seed_ortho_2 = 0xabcd1234;
-uint32_t test_seed_ortho_3 = 0xaaaabbbb;
-uint32_t test_seed_ortho_4 = 0x99999999;
-uint32_t test_seed_ortho_5 = 0xc0debeef;
-uint32_t test_seed_ortho_6 = 0xbebebaba;
-uint32_t test_seed_ortho_7 = 0x12345678;
-
 //-------------------------------
 // Golden values
 //-------------------------------
@@ -91,13 +81,3 @@ uint32_t golden_inst_loop_ctrl = 0x00000003;
 uint32_t golden_inst_loop_jump_addr = 0x001fffff;
 uint32_t golden_inst_loop_end_addr = 0x001fffff;
 uint32_t golden_inst_loop_count = 0x001fffff;
-
-uint32_t golden_seed_cim = 0x1234abcd;
-uint32_t golden_seed_ortho_0 = 0xffffffff;
-uint32_t golden_seed_ortho_1 = 0x01010101;
-uint32_t golden_seed_ortho_2 = 0xabcd1234;
-uint32_t golden_seed_ortho_3 = 0xaaaabbbb;
-uint32_t golden_seed_ortho_4 = 0x99999999;
-uint32_t golden_seed_ortho_5 = 0xc0debeef;
-uint32_t golden_seed_ortho_6 = 0xbebebaba;
-uint32_t golden_seed_ortho_7 = 0x12345678;

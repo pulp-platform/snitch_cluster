@@ -180,11 +180,3 @@ void hypercorex_set_inst_loop_count(uint8_t config1, uint8_t config2,
     csrw_ss(HYPERCOREX_INST_LOOP_COUNT_REG_ADDR, config);
     return;
 };
-
-//-------------------------------
-// Writing to orthogonal IM seeds
-//-------------------------------
-void hypercorex_set_im_base_seed(uint32_t im_idx, uint32_t config) {
-    csrw_ss(HYPERCOREX_IM_BASE_SEED_REG_ADDR + im_idx, config);
-    return;
-};

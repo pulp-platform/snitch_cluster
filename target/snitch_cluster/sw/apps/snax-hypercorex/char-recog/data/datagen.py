@@ -32,7 +32,6 @@ char_recog_dataset_path = hypercorex_path + \
 sys.path.append(hypercorex_path + "/hdc_exp/")
 sys.path.append(hypercorex_path + "/sw/")
 
-from hdc_util import gen_ca90_im_set  # noqa: E402
 from char_recog import (  # noqa: E402
     convert_to_data_indices,
     char_recog_dataset,
@@ -96,14 +95,6 @@ def main():
     for i in range(len(test_code_list)):
         test_code_list[i] = hvlist2num(np.array(test_code_list[i]))
 
-    # Get a CA90 seed that's working
-    im_seed_list, ortho_im, conf_mat = gen_ca90_im_set(
-        seed_size=SEED_DIM,
-        hv_dim=HV_DIM,
-        num_total_im=NUM_TOT_IM,
-        num_per_im_bank=NUM_PER_IM_BANK,
-    )
-
     # Extract data set
     dataset = char_recog_dataset(char_recog_dataset_path)
     # Convert data set to index-based encoding
@@ -123,16 +114,13 @@ def main():
         'uint32_t', 'train_inst_code', train_code_list)
     test_inst_str = format_vector_definition(
         'uint32_t', 'test_inst_code', test_code_list)
-    im_seed_list_str = format_vector_definition(
-        'uint32_t', 'im_seed_list', im_seed_list)
     char_data_str = format_vector_definition(
         'uint64_t', 'char_data', flat_char_dataset)
 
     # Preparing string to load
     f_str = '\n\n'.join([num_classes_str, num_test_items_str,
                          num_features_str, train_inst_str,
-                         test_inst_str, im_seed_list_str,
-                         char_data_str])
+                         test_inst_str, char_data_str])
     f_str += '\n'
 
     # Write to stdout
