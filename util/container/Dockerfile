@@ -11,6 +11,8 @@ ARG BENDER_VERSION=0.27.1
 ARG VERILATOR_VERSION=5.020
 ARG DOXYGEN_VERSION=1.12.0
 ARG RUST_VERSION=1.67.0
+# Run dpkg without interactive dialogue
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Install APT requirements
 RUN apt update && \
