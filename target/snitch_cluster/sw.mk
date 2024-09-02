@@ -17,13 +17,13 @@ clean: clean-sw
 # Platform headers #
 ####################
 
-TARGET_C_HDRS_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/common
+SNRT_HAL_HDRS_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/common
 
-SNITCH_CLUSTER_CFG_H        = $(TARGET_C_HDRS_DIR)/snitch_cluster_cfg.h
-SNITCH_CLUSTER_ADDRMAP_H    = $(TARGET_C_HDRS_DIR)/snitch_cluster_addrmap.h
-SNITCH_CLUSTER_PERIPHERAL_H = $(TARGET_C_HDRS_DIR)/snitch_cluster_peripheral.h
+SNITCH_CLUSTER_CFG_H        = $(SNRT_HAL_HDRS_DIR)/snitch_cluster_cfg.h
+SNITCH_CLUSTER_ADDRMAP_H    = $(SNRT_HAL_HDRS_DIR)/snitch_cluster_addrmap.h
+SNITCH_CLUSTER_PERIPHERAL_H = $(SNRT_HAL_HDRS_DIR)/snitch_cluster_peripheral.h
 
-TARGET_C_HDRS = $(SNITCH_CLUSTER_CFG_H) $(SNITCH_CLUSTER_ADDRMAP_H) $(SNITCH_CLUSTER_PERIPHERAL_H)
+SNRT_HAL_HDRS = $(SNITCH_CLUSTER_CFG_H) $(SNITCH_CLUSTER_ADDRMAP_H) $(SNITCH_CLUSTER_PERIPHERAL_H)
 
 # CLUSTERGEN headers
 $(eval $(call cluster_gen_rule,$(SNITCH_CLUSTER_CFG_H),$(SNITCH_CLUSTER_CFG_H).tpl))
@@ -36,7 +36,7 @@ $(SNITCH_CLUSTER_PERIPHERAL_H): $(ROOT)/hw/snitch_cluster/src/snitch_cluster_per
 .PHONY: clean-headers
 clean-sw: clean-headers
 clean-headers:
-	rm -f $(TARGET_C_HDRS)
+	rm -f $(SNRT_HAL_HDRS)
 
 ##################
 # Subdirectories #
