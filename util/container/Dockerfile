@@ -25,12 +25,11 @@ RUN apt update && \
         # Required for rust
         build-essential \
         # Required for python 3.11
-        software-properties-common
+        software-properties-common \
         # Required for banshee
-RUN apt install -y cmake \
+        cmake \
         llvm-15-dev \
-        libclang-common-15-dev \
-        zlib1g-dev
+        libpolly-15-dev
 
 # Install python 3.11
 RUN add-apt-repository ppa:deadsnakes/ppa && \
@@ -52,7 +51,6 @@ WORKDIR /tools
 # Install `banshee` (needs cmake)
 RUN git clone https://github.com/pulp-platform/banshee.git /tmp/banshee --recurse-submodules && \
     cd /tmp/banshee && git checkout llvm-15
-ENV LLVM_SYS_150_PREFIX=$(llvm-configs-15 --prefix)
 RUN cargo install --path /tmp/banshee
 
 # Install Bender
