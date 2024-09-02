@@ -27,9 +27,8 @@ RUN apt update && \
         # Required for banshee
         cmake \
         llvm-12-dev \
-        libpolly-12-dev \
-        zlib1g-dev \
-        libzstd-dev \
+        libclang-common-12-dev \
+        # zlib1g-dev \
         # Required for python
         libncurses5-dev \
         libgdbm-dev \
