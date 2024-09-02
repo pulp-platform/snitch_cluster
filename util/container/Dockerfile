@@ -28,19 +28,22 @@ RUN apt update && \
         cmake \
         llvm-12-dev \
         libclang-common-12-dev \
-        # zlib1g-dev \
         # Required for python
         libncurses5-dev \
         libgdbm-dev \
         libnss3-dev \
         libssl-dev \
         libreadline-dev \
-        libffi-dev
+        libffi-dev \
+        libsqlite3-dev \
+        tk-dev \
+        libc6-dev \
+        libbz2-dev
 
 # Install Python
 RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz && \
-    tar xzf Python-${PYTHON_VERSION}.tgz && \
-    cd Python-${PYTHON_VERSION} && \
+    tar xzf Python-${PYTHON_VERSION}.tgz
+RUN cd Python-${PYTHON_VERSION} && \
     ./configure --enable-optimizations --prefix=/opt/python/ && \
     make install -j
 
