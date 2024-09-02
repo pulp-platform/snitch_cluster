@@ -23,12 +23,22 @@ RUN apt update && \
         tar \
         # Required for rust
         build-essential \
+        # Required for python 3.11
+        software-properties-common\
         # Required for banshee
         cmake \
         llvm-15-dev \
         libpolly-15-dev \
         zlib1g-dev \
         libzstd-dev
+
+# Install python 3.11
+RUN add-apt-repository ppa:deadsnakes/ppa && \
+    apt update && \
+    apt install -y python3.11
+
+# Install verilator
+RUN apt install -y verilator=${VERILATOR_VERSION}-1
 
 # Build Rust tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -75,19 +85,9 @@ RUN apt update && \
         git \
         # Required for getting LLVM toolchain
         ca-certificates \
-        gnupg2 \
-        # Required for python 3.11
-        software-properties-common && \
+        gnupg2 && \
     apt clean ; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
-
-# Install python 3.11
-RUN add-apt-repository ppa:deadsnakes/ppa && \
-    apt update && \
-    apt install -y python3.11
-
-# Install verilator
-RUN apt install -y verilator=${VERILATOR_VERSION}-1
 
 # Get the precompiled LLVM toolchain
 RUN latest_tag=`curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/pulp-platform/llvm-project/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'` && \
@@ -110,6 +110,8 @@ ENV PATH="/tools/bin:${PATH}"
 COPY --from=builder /tools/bender bin/
 COPY --from=builder /root/.cargo/bin/banshee bin/
 COPY --from=builder /tools/doxygen/bin/doxygen bin/
+COPY --from=builder /usr/bin/python3.11 /usr/bin/python
+COPY --from=builder /usr/bin/verilator /usr/bin/verilator
 
 # Create and activate virtual environment
 ENV VIRTUAL_ENV="/root/.venvs/snitch_cluster"
