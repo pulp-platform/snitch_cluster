@@ -20,6 +20,7 @@ RUN apt update && \
         wget \
         git \
         tar \
+        cmake \
         # Required for rust
         build-essential \
         # Required for python 3.11
@@ -46,12 +47,6 @@ RUN apt install -y verilator=${VERILATOR_VERSION}-1
 
 # Change working directory
 WORKDIR /tools
-
-# Install a newer version of cmake (we need this for banshee)
-RUN wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz && \
-    tar -x -f cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz --strip-components=1 -C . && \
-    rm -rf cmake-${CMAKE_VERSION}-Linux-x86_64.tar.gz
-ENV PATH="/tools/bin:${PATH}"
 
 # Install `banshee` (needs cmake)
 RUN git clone https://github.com/pulp-platform/banshee.git /tmp/banshee --recurse-submodules
