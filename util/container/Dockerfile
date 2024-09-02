@@ -30,7 +30,8 @@ RUN apt update && \
         cmake \
         llvm-15-dev \
         libpolly-15-dev \
-        zlib1g-dev
+        zlib1g-dev \
+        libzstd-dev
 
 # Install python 3.11
 RUN add-apt-repository ppa:deadsnakes/ppa && \
