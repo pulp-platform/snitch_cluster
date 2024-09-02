@@ -19,7 +19,8 @@ RUN apt update && \
         git \
         tar \
         software-properties-common
-# python needs `software-properties-common` to add the deadsnakes PPA
+
+# Install python 3.11
 RUN add-apt-repository ppa:deadsnakes/ppa && \
     apt update && \
     apt install -y python3.11
@@ -31,6 +32,7 @@ RUN rustup install 1.70.0
 RUN rustup override set 1.70.0
 
 # Install Verilator
+RUN apt list -a verilator
 RUN apt install -y verilator=${VERILATOR_VERSION}
 
 # Change working directory
