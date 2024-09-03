@@ -5,12 +5,13 @@
 # Docker container for Snitch development.
 
 ARG VERILATOR_VERSION=5.020
+ARG UBUNTU_VERSION=22.04
 FROM verilator/verilator:v${VERILATOR_VERSION} AS verilator
 
 RUN which verilator && verilator --version
 
 # 1. Stage
-FROM ubuntu:22.04 AS builder
+FROM ubuntu:${UBUNTU_VERSION} AS builder
 ARG BENDER_VERSION=0.27.1
 ARG DOXYGEN_VERSION=1.12.0
 ARG RUST_VERSION=1.67.0
@@ -54,8 +55,8 @@ RUN git clone https://github.com/pulp-platform/banshee.git /tmp/banshee --recurs
     cargo install --path /tmp/banshee
 
 # Install Bender
-RUN wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz && \
-    tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu18.04.tar.gz
+RUN wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
+    tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz
 
 # Install Doxygen
 RUN wget https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz && \
@@ -63,7 +64,7 @@ RUN wget https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.g
     mv doxygen-${DOXYGEN_VERSION} doxygen
 
 # 2. Stage
-FROM ubuntu:22.04 AS snitch_cluster
+FROM ubuntu:${UBUNTU_VERSION} AS snitch_cluster
 ARG SNITCH_LLVM_VERSION=latest
 ARG VERIBLE_VERSION=0.0-3318-g8d254167
 ARG PYTHON_VERSION=3.11
