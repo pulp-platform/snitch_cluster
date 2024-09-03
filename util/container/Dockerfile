@@ -8,7 +8,7 @@
 FROM ubuntu:22.04 AS builder
 ARG BENDER_VERSION=0.27.1
 ARG VERILATOR_VERSION=5.020
-ARG PYTHON_VERSION=3.11.9
+ARG PYTHON_VERSION=3.11
 ARG DOXYGEN_VERSION=1.12.0
 ARG RUST_VERSION=1.67.0
 # Run dpkg without interactive dialogue
@@ -27,27 +27,7 @@ RUN apt update && \
         # Required for banshee
         cmake \
         llvm-12-dev \
-        libclang-common-12-dev \
-        # Required for python
-        libncurses5-dev \
-        libgdbm-dev \
-        libgdbm-compat-dev \
-        libnss3-dev \
-        libssl-dev \
-        libreadline-dev \
-        libffi-dev \
-        libsqlite3-dev \
-        tk-dev \
-        libc6-dev \
-        libbz2-dev \
-        liblzma-dev
-
-# Install Python
-RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz && \
-    tar xzf Python-${PYTHON_VERSION}.tgz
-RUN cd Python-${PYTHON_VERSION} && \
-    ./configure --enable-optimizations --prefix=/opt/python/ && \
-    make install -j
+        libclang-common-12-dev
 
 # Build Verilator
 RUN git clone https://github.com/verilator/verilator && \
@@ -99,11 +79,11 @@ RUN apt update && \
         wget \
         build-essential \
         git \
+        # Required for python
+        software-properties-common \
         # Required for getting LLVM toolchain
         ca-certificates \
-        gnupg2 && \
-    apt clean ; \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+        gnupg2
 
 # Get the precompiled LLVM toolchain
 RUN latest_tag=`curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/pulp-platform/llvm-project/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'` && \
@@ -122,10 +102,17 @@ RUN wget https://github.com/chipsalliance/verible/releases/download/v${VERIBLE_V
     rm -rf verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
 ENV PATH="/tools/bin:${PATH}"
 
+# Install Python
+RUN apt-add-repository ppa:deadsnakes/ppa && \
+    apt update && \
+    apt install -y --no-install-recommends \
+        python${PYTHON_VERSION} && \
+    apt clean ; \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+
 # Copy artifacts from stage 1.
 COPY --from=builder /tools/bender bin/
 COPY --from=builder /root/.cargo/bin/banshee bin/
-COPY --from=builder /opt/python /opt/python
 COPY --from=builder /tools/doxygen/bin/doxygen bin/
 COPY --from=builder /tools/verilator /tools/verilator/
 
@@ -133,11 +120,11 @@ COPY --from=builder /tools/verilator /tools/verilator/
 ENV PATH "/tools/verilator/bin:${PATH}"
 ENV VLT_ROOT "/tools/verilator/share/verilator/"
 
-RUN which python && python --version
+RUN which python${PYTHON_VERSION} && python${PYTHON_VERSION} --version
 
 # Create and activate virtual environment
 ENV VIRTUAL_ENV="/root/.venvs/snitch_cluster"
-RUN python -m venv ${VIRTUAL_ENV} && source ${VIRTUAL_ENV}/bin/activate
+RUN python${PYTHON_VERSION} -m venv ${VIRTUAL_ENV} && source ${VIRTUAL_ENV}/bin/activate
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 
 # Install Python requirements
