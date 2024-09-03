@@ -25,12 +25,12 @@ RUN apt update && \
         curl wget git tar \
         # Required for Verilator
         # autoconf flex bison help2man \
-        # libfl2 libfl-dev zlib1g zlib1g-dev \
+        # libfl2 libfl-dev zlib1g  \
         # mold libgoogle-perftools-dev numactl \
         # Required for rust
         build-essential \
         # Required for banshee
-        cmake llvm-12-dev libclang-common-12-dev
+        cmake llvm-12-dev libclang-common-12-dev zlib1g-dev
 
 # # Build Verilator
 # RUN git clone https://github.com/verilator/verilator && \
