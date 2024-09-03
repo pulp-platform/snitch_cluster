@@ -9,6 +9,9 @@ ARG UBUNTU_VERSION=22.04
 FROM verilator/verilator:v${VERILATOR_VERSION} AS verilator
 
 RUN which verilator && verilator --version
+RUN ./usr/local/bin/verilator-wrap.sh
+RUN which verilator && verilator --version
+RUN echo $VERILATOR_ROOT
 
 # 1. Stage
 FROM ubuntu:${UBUNTU_VERSION} AS builder
@@ -118,12 +121,11 @@ RUN apt-add-repository ppa:deadsnakes/ppa && \
 COPY --from=builder /tools/bender bin/
 COPY --from=builder /root/.cargo/bin/banshee bin/
 COPY --from=builder /tools/doxygen/bin/doxygen bin/
-# COPY --from=builder /tools/verilator /tools/verilator/
+COPY --from=verilator /usr/local/bin/verilator /usr/local/bin/verilator
 COPY --from=verilator /usr/local/bin/verilator-wrap.sh /usr/local/bin/verilator-wrap.sh
 
 # Add Verilator to PATH
-ENV PATH "/tools/verilator/bin:${PATH}"
-ENV VLT_ROOT "/tools/verilator/share/verilator/"
+ENV VLT_ROOT "/usr/local/bin/verilator/"
 
 RUN which python${PYTHON_VERSION} && python${PYTHON_VERSION} --version
 
