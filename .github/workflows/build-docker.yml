@@ -26,8 +26,8 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          cache-from: type=gha
-          cache-to: type=gha,mode=max`
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max`
           file: util/container/Dockerfile
           push: true
           tags: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
