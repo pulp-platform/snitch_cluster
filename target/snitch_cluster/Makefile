@@ -68,15 +68,11 @@ STREAM_PARAM_SCALA_PATH = $(ROOT)/hw/chisel/src/main/scala/snax/streamer/StreamP
 # SNAX Generations #
 ####################
 
-# This "function" simply adds
-# the tags necessary for each tool
-
-define add_tags
-	$(eval VSIM_BENDER += -t $1)
-	$(eval VLT_BENDER  += -t $1)
-	$(eval VCS_BENDER  += -t $1)
-	$(eval SYN_BENDER  += -t $1)
-endef
+# Adds targets from the generated bender target file
+VSIM_BENDER := $(VSIM_BENDER) $(shell cat $(GENERATED_DIR)/bender_targets.tmp)
+VLT_BENDER  := $(VLT_BENDER)  $(shell cat $(GENERATED_DIR)/bender_targets.tmp)
+VCS_BENDER  := $(VCS_BENDER)  $(shell cat $(GENERATED_DIR)/bender_targets.tmp)
+SYN_BENDER  := $(SYN_BENDER)  $(shell cat $(GENERATED_DIR)/bender_targets.tmp)
 
 # List manual conditions for different configurations
 
@@ -86,54 +82,12 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm.hjson)
 	SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
 	include $(SNAX_GEMM_ROOT)/Makefile
 
-$(call add_tags,snax_streamer_gemm)
-$(call add_tags,snax_streamer_gemm_cluster)
-
 endif
 
-ifeq (${CFG_OVERRIDE}, cfg/snax-alu.hjson)
-
-$(call add_tags,snax_alu)
-$(call add_tags,snax_alu_cluster)
-
-endif
-
-ifeq (${CFG_OVERRIDE}, cfg/snax-hypercorex.hjson)
-
-$(call add_tags,hypercorex)
-$(call add_tags,snax_hypercorex_cluster)
-
-endif
-
-ifeq (${CFG_OVERRIDE}, cfg/snax-streamer-gemm-add-c.hjson)
-
-$(call add_tags,snax_streamer_gemm_add_c)
-$(call add_tags,snax_streamer_gemm_add_c_cluster)
- 
-endif
-
-ifeq (${CFG_OVERRIDE}, cfg/snax-kul-cluster-mixed-narrow-wide-xdma.hjson)
-
-$(call add_tags,snax_gemmX)
-$(call add_tags,snax_KUL_xdma_cluster_xdma)
-$(call add_tags,snax_KUL_xdma_cluster)
-
-endif
-
-ifeq (${CFG_OVERRIDE}, cfg/snax-kul-cluster-mixed-narrow-wide.hjson)
-
-$(call add_tags,snax_gemmX)
-$(call add_tags,snax_data_reshuffler)
-$(call add_tags,snax_KUL_cluster)
-
-endif
 
 ifeq (${CFG_OVERRIDE}, cfg/snax-mac.hjson)
 
 	BYPASS_ACCGEN = true
-
-$(call add_tags,snax_mac)
-$(call add_tags,snax_mac_cluster)
 
 endif
 
@@ -141,25 +95,17 @@ ifeq (${CFG_OVERRIDE}, cfg/snax-mac-mult.hjson)
 
 	BYPASS_ACCGEN = true
 
-$(call add_tags,snax_mac)
-$(call add_tags,snax_mac_mult_cluster)
-
 endif
 
 ifeq (${CFG_OVERRIDE}, cfg/default.hjson)
 
 	BYPASS_ACCGEN = true
 
-$(call add_tags,snitch_cluster)
-
 endif
 
 .PHONY: rtl-snax-gen rtl-gen
 
-rtl-snax-gen:
-
-	mkdir -p $(GENERATED_DIR)
-
+rtl-snax-gen: | $(GENERATED_DIR)
 	@echo "-------------------------------------------------------------"
 	@echo "Generating streamers, CSR managers, wrappers, and testharness"
 	@echo "-------------------------------------------------------------"
@@ -172,14 +118,17 @@ rtl-snax-gen:
 		--gen_path="${GENERATED_DIR}/"
 
 
-rtl-cluster-gen:
+rtl-cluster-gen: | $(GENERATED_DIR)
 	@echo "-------------------------------------------------------------"
 	@echo "Generating Cluster Wrapper"
 	@echo "-------------------------------------------------------------"
 
 	$(CLUSTER_GEN) -c ${CFG_OVERRIDE} -o $(GENERATED_DIR) --wrapper
 
-rtl-gen: rtl-snax-gen rtl-cluster-gen
+$(GENERATED_DIR)/bender_targets.tmp: | $(GENERATED_DIR)
+	${WRAPPER_GEN} --cfg_path="$(CFG_FILE)" --get_bender_targets > $(GENERATED_DIR)/bender_targets.tmp
+
+rtl-gen: $(GENERATED_DIR)/bender_targets.tmp rtl-snax-gen rtl-cluster-gen
 
 VSIM_BENDER += -t QUESTA_SIM
 

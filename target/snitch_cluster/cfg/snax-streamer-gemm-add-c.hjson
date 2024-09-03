@@ -12,6 +12,7 @@
 
     cluster: {
         name: "snax_streamer_gemm_add_c_cluster",
+        bender_target: ["snax_streamer_gemm_add_c_cluster"],
         boot_addr: 4096, // 0x1000
         cluster_base_addr: 268435456, // 0x1000_0000
         cluster_base_offset: 262144,  // 256KB
@@ -90,6 +91,7 @@
         xfvec: false,
         snax_acc_cfg: {
             snax_acc_name: "snax_streamer_gemm_add_c",
+            bender_target: ["snax_streamer_gemm_add_c"],
             snax_narrow_tcdm_ports: 48,
             snax_num_rw_csr: 5,
             snax_num_ro_csr: 2,

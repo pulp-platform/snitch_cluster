@@ -11,6 +11,7 @@
 
     cluster: {
         name: "snax_mac_cluster",
+        bender_target: ["snax_mac_cluster"],
         boot_addr: 4096, // 0x1000
         cluster_base_addr: 268435456, // 0x1000_0000
         cluster_base_offset: 262144,  // 256KB
@@ -88,7 +89,8 @@
         xfdotp: false,
         xfvec: false,
         snax_acc_cfg: {
-            snax_acc_name: "snax_mac"
+            snax_acc_name: "snax_mac",
+            bender_target: ["snax_mac"],
             snax_narrow_tcdm_ports: 4,
         },
         snax_use_custom_ports: true,

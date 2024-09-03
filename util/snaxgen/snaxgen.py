@@ -196,6 +196,11 @@ def main():
         "--gen_path", type=str, default="./",
         help="Points to the output directory"
     )
+    parser.add_argument(
+        "--get_bender_targets",
+        action="store_true",
+        help="Get the bender targets for the whole system",
+    )
 
     # Get the list of parsing
     args = parser.parse_args()
@@ -211,6 +216,31 @@ def main():
     # Then dump them into a dictionary set
     num_core_w_acc = 0
     acc_cfgs = []
+
+    # For generating all bender targets
+    if args.get_bender_targets:
+        def get_bender_targets(cfg):
+            targets = []
+            # If cfg is dictionary, then first check if it has
+            # bender_target, then iterate over the rest
+            if isinstance(cfg, dict):
+                for name, content in cfg.items():
+                    if name == "bender_target":
+                        targets.extend(content)
+                    else:
+                        targets.extend(get_bender_targets(content))
+            # If cfg is a list, then iterate over the list
+            elif isinstance(cfg, list):
+                for item in cfg:
+                    targets.extend(get_bender_targets(item))
+            # Return the list of targets with removing duplicates
+            return list(set(targets))
+
+        bender_targets = get_bender_targets(cfg)
+        for i in bender_targets:
+            print(" -t " + i, end="")
+        print()
+        return
 
     # ---------------------------------------
     # Generate the accelerator specific wrappers

@@ -11,6 +11,7 @@
 
     cluster: {
         name: "snax_hypercorex_cluster",
+        bender_target: ["snax_hypercorex_cluster"],
         boot_addr: 4096, // 0x1000
         cluster_base_addr: 268435456, // 0x1000_0000
         cluster_base_offset: 262144,  // 256KB
@@ -96,7 +97,8 @@
         xfdotp: false,
         xfvec: false,
         snax_acc_cfg: {
-            snax_acc_name: "snax_hypercorex"
+            snax_acc_name: "snax_hypercorex",
+            bender_target: ["hypercorex"],
             snax_narrow_tcdm_ports: 3,
             snax_wide_tcdm_ports: 32,
             snax_disable_csr_manager: true,

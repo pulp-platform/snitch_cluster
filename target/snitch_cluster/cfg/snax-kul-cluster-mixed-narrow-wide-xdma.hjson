@@ -11,6 +11,7 @@
 
     cluster: {
         name: "snax_KUL_xdma_cluster",
+        bender_target: ["snax_KUL_xdma_cluster"],
         boot_addr: 4096, // 0x1000
         cluster_base_addr: 268435456, // 0x1000_0000
         cluster_base_offset: 262144,  // 256KB
@@ -99,6 +100,7 @@
         xfvec: false,
         snax_acc_cfg: {
             snax_acc_name: "snax_streamer_gemmX",
+            bender_target: ["snax_gemmX","snax_KUL_xdma_cluster_xdma"],
             // add a checker here?
             // some of the tcdm ports specificed here?
             snax_narrow_tcdm_ports: 8,
