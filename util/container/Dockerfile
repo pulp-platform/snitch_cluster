@@ -112,7 +112,7 @@ RUN apt-add-repository ppa:deadsnakes/ppa && \
     apt update && \
     apt install -y --no-install-recommends \
         python${PYTHON_VERSION} && \
-        python${PYTHON_VERSION}-venv && \
+        python3-venv && \
     apt clean ; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
