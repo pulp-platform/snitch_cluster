@@ -40,33 +40,7 @@ class DataResponser(tcdmDataWidth: Int) extends Module with RequireAsyncReset {
   io.reqrspLink.rspReady := ~io.out.dataFifoNearlyFull // If dataBuffer is not full, then the Responsor is ready to intake more data
 }
 
-/** DataResponsers' IO definition: io.in: From TCDM, see Xiaoling's definition
-  * to compatible with her wrapper io.out.data: Vec(Decoupled(UInt)), to store
-  * the data to FIFO at the outside io.out.ResponsorReady: Vec(Bool()), to
-  * determine whether the Requestor can intake more data (dpending on whether
-  * the output FIFO is full)
-  */
 // In this module is the multiple instantiation of DataRequestor. No Buffer is required from the data requestor's side, as it will be done at the outside.
-
-// class DataResponsersIO(tcdmDataWidth: Int = 64, numChannel: Int = 8)
-//     extends Bundle {
-//   val in = new Bundle {
-//     val tcdmRsp = Vec(
-//       numChannel,
-//       Flipped(Valid(new TcdmRsp(tcdmDataWidth = tcdmDataWidth)))
-//     )
-//   }
-//   val out = new Bundle {
-//     val data = Vec(numChannel, Decoupled(UInt(tcdmDataWidth.W)))
-//     val dataFifoNearlyFull = Input(Vec(numChannel, Bool()))
-//   }
-//   val enable = Vec(numChannel, Input(Bool()))
-//   val RequestorResponserLink = new Bundle {
-//     val ResponsorReady = Vec(numChannel, Output(Bool()))
-//     val RequestorSubmit = Vec(numChannel, Input(Bool()))
-//   }
-
-// }
 
 class DataResponsers(
     tcdmDataWidth: Int = 64,

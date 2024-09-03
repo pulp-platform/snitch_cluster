@@ -52,9 +52,9 @@ class ReaderWriter(
   io.writerInterface.bufferEmpty := writer.io.bufferEmpty
 
   // Both reader and writer share the same Request interface
-  val readerwriterArbiter = Seq.fill(readerParam.tcdmParam.numChannel)(
+  val readerwriterMux = Seq.fill(readerParam.tcdmParam.numChannel)(
     Module(
-      new Arbiter(
+      new MuxDecoupled(
         new TcdmReq(
           readerParam.tcdmParam.addrWidth,
           readerParam.tcdmParam.dataWidth
@@ -64,21 +64,24 @@ class ReaderWriter(
     )
   )
 
-  // Writer has the higher priority, and reversely connected to avoid contention when some channels are turned off
-  readerwriterArbiter.reverse.zip(writer.io.tcdmReq).foreach {
-    case (arbiter, writerReq) => arbiter.io.in(0) <> writerReq
+  // Writer is put at 0th input
+  readerwriterMux.zip(writer.io.tcdmReq).foreach { case (mux, writerReq) =>
+    mux.io.in(0) <> writerReq
   }
 
-  // Reader has the lower priority
-  readerwriterArbiter.zip(reader.io.tcdmReq).foreach {
-    case (arbiter, readerReq) => arbiter.io.in(1) <> readerReq
+  // Reader is put at 1st input
+  readerwriterMux.zip(reader.io.tcdmReq).foreach { case (mux, readerReq) =>
+    mux.io.in(1) <> readerReq
   }
 
-  // Connect the arbiter to the TCDM interface
-  readerwriterArbiter.zip(io.readerInterface.tcdmReq).foreach {
-    case (arbiter, tcdmReq) =>
-      tcdmReq <> arbiter.io.out
+  // Connect the DecoupledMux to the TCDM interface
+  readerwriterMux.zip(io.readerInterface.tcdmReq).foreach {
+    case (mux, tcdmReq) => tcdmReq <> mux.io.out
   }
+
+  // Channel Selection Logic
+  val sel = Mux(writer.io.tcdmReq.map(_.valid).reduce(_ || _), 0.U, 1.U)
+  readerwriterMux.foreach(_.io.sel := sel)
 
   // Connect the response from TCDM to the reader
   io.readerInterface.tcdmRsp <> reader.io.tcdmRsp

@@ -91,10 +91,8 @@ class Reader(param: ReaderWriterParam, clusterName: String = "unnamed_cluster")
   if (param.configurableByteMask)
     requestors.io.foreach(_.in.strb := io.readerwriterCfg.enabledByte)
   else
-    requestors.io.zipWithIndex.foreach {
-      case (requestor, i) => {
-        requestor.in.strb := Fill(requestor.in.strb.getWidth, 1.U)
-      }
+    requestors.io.foreach { case requestor =>
+      requestor.in.strb := Fill(requestor.in.strb.getWidth, 1.U)
     }
 
   // ReqRsp Link to exchange necessary data

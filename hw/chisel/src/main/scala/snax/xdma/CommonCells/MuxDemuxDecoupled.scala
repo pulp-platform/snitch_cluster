@@ -40,7 +40,7 @@ class MuxDecoupled[T <: Data](dataType: T, numInput: Int)
   })
   // Default assigns
   io.out.valid := false.B
-  io.out.bits := 0.U
+  io.out.bits := 0.U.asTypeOf(dataType)
   // Mux logic
   for (i <- 0 until numInput) {
     when(io.sel === i.U) {
