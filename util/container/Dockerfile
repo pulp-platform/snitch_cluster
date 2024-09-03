@@ -112,6 +112,7 @@ RUN apt-add-repository ppa:deadsnakes/ppa && \
     apt update && \
     apt install -y --no-install-recommends \
         python${PYTHON_VERSION} && \
+        python3-venv
     apt clean ; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
@@ -134,5 +135,5 @@ COPY --from=builder /tools/doxygen/bin/doxygen bin/
 COPY --from=verilator /usr/local/bin/verilator* /usr/local/bin/
 
 # Modify environment and path variables
-ENV VLT_ROOT "/usr/local/bin/verilator/"
+ENV VLT_ROOT="/usr/local/bin/verilator/"
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
