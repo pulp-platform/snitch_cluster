@@ -100,7 +100,7 @@ ENV PATH="/tools/bin:${PATH}"
 RUN apt-add-repository ppa:deadsnakes/ppa && \
     apt update && \
     apt install -y --no-install-recommends \
-        python${PYTHON_VERSION} && \
+        python${PYTHON_VERSION}-venv && \
     apt clean ; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
@@ -118,7 +118,7 @@ RUN which python${PYTHON_VERSION} && python${PYTHON_VERSION} --version
 
 # Create and activate virtual environment
 ENV VIRTUAL_ENV="/root/.venvs/snitch_cluster"
-RUN python${PYTHON_VERSION} -m venv ${VIRTUAL_ENV} && source ${VIRTUAL_ENV}/bin/activate
+RUN python${PYTHON_VERSION} -m venv ${VIRTUAL_ENV} && ${VIRTUAL_ENV}/bin/activate
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 
 # Install Python requirements
