@@ -4,6 +4,7 @@
 
 # Docker container for Snitch development.
 
+# 1. Stage: Use the verilator container to get the Verilator binary.
 ARG VERILATOR_VERSION=5.020
 ARG UBUNTU_VERSION=22.04
 
@@ -12,7 +13,7 @@ FROM verilator/verilator:v${VERILATOR_VERSION} AS verilator
 RUN which verilator && verilator --version && \
     echo $VERILATOR_ROOT
 
-# 1. Stage
+# 2. Stage: Install additional IIS tools
 FROM ubuntu:${UBUNTU_VERSION} AS builder
 ARG BENDER_VERSION=0.27.1
 ARG DOXYGEN_VERSION=1.12.0
@@ -51,7 +52,17 @@ RUN wget https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.g
     tar xzf doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz && \
     mv doxygen-${DOXYGEN_VERSION} doxygen
 
-# 2. Stage
+# 3. Stage: Filter python files to improve caching of the final container
+FROM ubuntu:${UBUNTU_VERSION} AS python_filter
+
+# Copy all files in `sw` and `util` and remove all non-python files
+COPY sw ./sw
+COPY util ./util
+
+RUN find sw -type f ! -name "*.py" -delete && \
+    find util -type f ! -name "*.py" -delete
+
+# 4. Stage: Create the final container
 FROM ubuntu:${UBUNTU_VERSION} AS snitch_cluster
 ARG SNITCH_LLVM_VERSION=latest
 ARG VERIBLE_VERSION=0.0-3318-g8d254167
@@ -104,26 +115,24 @@ RUN apt-add-repository ppa:deadsnakes/ppa && \
     apt clean ; \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
-# Copy artifacts from stage 1.
+# Create and activate virtual environment
+ARG VIRTUAL_ENV="/root/.venvs/snitch_cluster"
+RUN python${PYTHON_VERSION} -m venv ${VIRTUAL_ENV}
+RUN chmod +x ${VIRTUAL_ENV}/bin/activate
+RUN ${VIRTUAL_ENV}/bin/activate
+
+# Copy all needed files to install the package
+COPY pyproject.toml .
+COPY --from=python_filter sw ./sw
+COPY --from=python_filter util ./util
+RUN pip install .
+
+# Copy the tools from the builder stage
 COPY --from=builder /tools/bender bin/
 COPY --from=builder /root/.cargo/bin/banshee bin/
 COPY --from=builder /tools/doxygen/bin/doxygen bin/
-COPY --from=verilator /usr/local/bin/verilator /usr/local/bin/verilator
-COPY --from=verilator /usr/local/bin/verilator-wrap.sh /usr/local/bin/verilator-wrap.sh
+COPY --from=verilator /usr/local/bin/verilator* /usr/local/bin/
 
-# Add Verilator to PATH
+# Modify environment and path variables
 ENV VLT_ROOT "/usr/local/bin/verilator/"
-
-RUN which python${PYTHON_VERSION} && python${PYTHON_VERSION} --version
-
-# Create and activate virtual environment
-ENV VIRTUAL_ENV="/root/.venvs/snitch_cluster"
-RUN python${PYTHON_VERSION} -m venv ${VIRTUAL_ENV} && ${VIRTUAL_ENV}/bin/activate
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
-
-# Install Python requirements
-COPY pyproject.toml .
-COPY sw/dnn ./sw/dnn
-COPY sw/blas ./sw/blas
-COPY util ./util
-RUN pip install .
