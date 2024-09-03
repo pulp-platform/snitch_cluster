@@ -21,45 +21,54 @@ class DataRequestorIO(
   }
 
   val out = new Bundle {
-    val tcdm_req = Decoupled(new TcdmReq(tcdmAddressWidth, tcdmDataWidth))
+    val tcdmReq = Decoupled(new TcdmReq(tcdmAddressWidth, tcdmDataWidth))
   }
   val enable = Input(Bool())
-  val RequestorResponserLink = new Bundle {
-    val ResponsorReady = if (isReader) Some(Input(Bool())) else None
-    val RequestorSubmit = if (isReader) Some(Output(Bool())) else None
+  val reqrspLink = new Bundle {
+    val rspReady = if (isReader) Some(Input(Bool())) else None
+    val reqSubmit = if (isReader) Some(Output(Bool())) else None
   }
 
 }
 
-class DataRequestorsIO(
-    tcdmDataWidth: Int,
-    tcdmAddressWidth: Int,
-    isReader: Boolean,
-    numChannel: Int
-) extends Bundle {
-  val in = new Bundle {
-    val addr = Vec(numChannel, Flipped(Decoupled(UInt(tcdmAddressWidth.W))))
-    val data =
-      if (!isReader)
-        Some(Vec(numChannel, Flipped(Decoupled(UInt(tcdmDataWidth.W)))))
-      else None
-    val strb = Input(UInt((tcdmDataWidth / 8).W))
-  }
-  val out = new Bundle {
-    val tcdmReq =
-      Vec(numChannel, Decoupled(new TcdmReq(tcdmAddressWidth, tcdmDataWidth)))
-  }
+// class DataRequestorsIO(
+//     tcdmDataWidth: Int,
+//     tcdmAddressWidth: Int,
+//     isReader: Boolean,
+//     numChannel: Int
+// ) extends Bundle {
+//   val dataReq
+// }
 
-  val enable = Vec(numChannel, Input(Bool()))
+// class DataRequestorsIO(
+//     tcdmDataWidth: Int,
+//     tcdmAddressWidth: Int,
+//     isReader: Boolean,
+//     numChannel: Int
+// ) extends Bundle {
+//   val in = new Bundle {
+//     val addr = Vec(numChannel, Flipped(Decoupled(UInt(tcdmAddressWidth.W))))
+//     val data =
+//       if (!isReader)
+//         Some(Vec(numChannel, Flipped(Decoupled(UInt(tcdmDataWidth.W)))))
+//       else None
+//     val strb = Input(UInt((tcdmDataWidth / 8).W))
+//   }
+//   val out = new Bundle {
+//     val tcdmReq =
+//       Vec(numChannel, Decoupled(new TcdmReq(tcdmAddressWidth, tcdmDataWidth)))
+//   }
 
-  val RequestorResponserLink = new Bundle {
-    val ResponsorReady =
-      if (isReader) Some(Vec(numChannel, Input(Bool()))) else None
-    val RequestorSubmit =
-      if (isReader) Some(Vec(numChannel, Output(Bool()))) else None
-  }
+//   val enable = Vec(numChannel, Input(Bool()))
 
-}
+//   val RequestorResponserLink = new Bundle {
+//     val ResponsorReady =
+//       if (isReader) Some(Vec(numChannel, Input(Bool()))) else None
+//     val RequestorSubmit =
+//       if (isReader) Some(Vec(numChannel, Output(Bool()))) else None
+//   }
+
+// }
 
 /** DataRequestor's IO definition: io.in.address: Decoupled(UInt) io.in.data:
   * Some(Decoupled(UInt)) or None io.in.ResponsorReady: Some(Bool()) or None
@@ -79,18 +88,18 @@ class DataRequestor(
   when(io.enable) {
     io.in.addr.ready := {
       if (isReader)
-        io.RequestorResponserLink.ResponsorReady.get && io.out.tcdm_req.fire
-      else io.out.tcdm_req.fire
+        io.reqrspLink.rspReady.get && io.out.tcdmReq.fire
+      else io.out.tcdmReq.fire
     }
   }.otherwise {
     io.in.addr.ready := {
-      if (isReader) io.RequestorResponserLink.ResponsorReady.get
+      if (isReader) io.reqrspLink.rspReady.get
       else true.B
     }
   }
 
   if (isReader) {
-    io.RequestorResponserLink.RequestorSubmit.get := io.in.addr.fire
+    io.reqrspLink.reqSubmit.get := io.in.addr.fire
   }
 
   // If is writer, data is poped out with address (synchronous)
@@ -100,26 +109,26 @@ class DataRequestor(
 
   // If is reader, the mask is always 1 because tcdm ignore it;
   // Else, the mask is connected to the tcdm requestor to indicate which byte is valid
-  io.out.tcdm_req.bits.strb := io.in.strb
+  io.out.tcdmReq.bits.strb := io.in.strb
 
   // If is writer, the data port is ready to receive data when there is a valid address
   if (!isReader) {
     io.in.data.get.ready := io.in.addr.ready
   }
 
-  io.out.tcdm_req.bits.addr := io.in.addr.bits
-  io.out.tcdm_req.bits.write := { if (isReader) 0.U else 1.U }
-  io.out.tcdm_req.bits.data := { if (isReader) 0.U else io.in.data.get.bits }
+  io.out.tcdmReq.bits.addr := io.in.addr.bits
+  io.out.tcdmReq.bits.write := { if (isReader) 0.U else 1.U }
+  io.out.tcdmReq.bits.data := { if (isReader) 0.U else io.in.data.get.bits }
 
   // If is reader, tcdm's valid signal depends on address queue and the responser's ready queue; otherwise, it depends on address queue and the requestor's data queue
   when(io.enable) {
-    io.out.tcdm_req.valid := {
+    io.out.tcdmReq.valid := {
       if (isReader)
-        (io.in.addr.valid && io.RequestorResponserLink.ResponsorReady.get)
+        (io.in.addr.valid && io.reqrspLink.rspReady.get)
       else (io.in.addr.valid && io.in.data.get.valid)
     }
   }.otherwise {
-    io.out.tcdm_req.valid := false.B
+    io.out.tcdmReq.valid := false.B
   }
 }
 
@@ -139,8 +148,12 @@ class DataRequestors(
     with RequireAsyncReset {
   override val desiredName = s"${module_name_prefix}_DataRequestors"
   val io = IO(
-    new DataRequestorsIO(tcdmDataWidth, tcdmAddressWidth, isReader, numChannel)
+    Vec(
+      numChannel,
+      new DataRequestorIO(tcdmDataWidth, tcdmAddressWidth, isReader)
+    )
   )
+  // new DataRequestorsIO(tcdmDataWidth, tcdmAddressWidth, isReader, numChannel)
   val DataRequestor = for (i <- 0 until numChannel) yield {
     val module = Module(
       new DataRequestor(tcdmDataWidth, tcdmAddressWidth, isReader) {
@@ -148,28 +161,8 @@ class DataRequestors(
       }
     )
 
-    // Address is unconditionally connected
-    io.in.addr(i) <> module.io.in.addr
-    // Enable signal is unconditionally connected
-    module.io.enable := io.enable(i)
-    // For readers, the responser ready and requestor submit signal is connected
-    if (isReader) {
-      module.io.RequestorResponserLink.ResponsorReady.get := io.RequestorResponserLink.ResponsorReady
-        .get(i)
-      io.RequestorResponserLink.RequestorSubmit.get(
-        i
-      ) := module.io.RequestorResponserLink.RequestorSubmit.get
-    }
-    // For writers, the data interface is connected
-    if (!isReader) module.io.in.data.get <> io.in.data.get(i)
-
-    // Connect the strobe signal
-    module.io.in.strb := io.in.strb
-
-    // Connect the output to the tcdm request
-    io.out.tcdmReq(i) <> module.io.out.tcdm_req
-
-    // Return the module for the future usage
+    // Connect the IO
+    io(i) <> module.io
     module
   }
 }

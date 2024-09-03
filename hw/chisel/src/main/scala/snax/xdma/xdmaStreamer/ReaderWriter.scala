@@ -34,7 +34,7 @@ class ReaderWriter(
   reader.io.data <> io.readerInterface.data
   reader.io.start := io.readerInterface.start
   io.readerInterface.busy := reader.io.busy
-  io.readerInterface.busy := reader.io.bufferEmpty
+  io.readerInterface.bufferEmpty := reader.io.bufferEmpty
 
   // Writer
   val writer = Module(

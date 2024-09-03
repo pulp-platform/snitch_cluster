@@ -12,21 +12,17 @@ import chisel3.util.log2Ceil
 // TCDM Params
 
 class TCDMParam(
-    val addrWidth: Int = 17, // 128kB tcdm size
-    val dataWidth: Int = 64, // Connect to narrow xbar
-    val numChannel: Int = 8, // With eight channels
-    val tcdmSize: Int = 128 // The size of tcdm
+    val addrWidth: Int,
+    val dataWidth: Int,
+    val numChannel: Int,
+    val tcdmSize: Int
 )
 
 object TCDMParam {
-  def apply(dataWidth: Int, numChannel: Int, tcdmSize: Int) =
+  def apply(dataWidth: Int, numChannel: Int, tcdmSize: Int): TCDMParam =
     new TCDMParam(log2Ceil(tcdmSize) + 10, dataWidth, numChannel, tcdmSize)
-  def apply() = new TCDMParam(
-    addrWidth = 17,
-    dataWidth = 64,
-    numChannel = 8,
-    tcdmSize = 128
-  )
+  // By default, the TCDM is 128kB, 64bit data width, 8 channels
+  def apply(): TCDMParam = apply(dataWidth = 64, numChannel = 8, tcdmSize = 128)
 }
 
 // Streamer Params
@@ -41,28 +37,28 @@ class AddressGenUnitParam(
 )
 
 object AddressGenUnitParam {
-  // The Very Simple instantiation of the Param
-  def apply() = new AddressGenUnitParam(
-    spatialBounds = List(8),
-    temporalDimension = 2,
-    addressWidth = 17, // For the address of 128kB tcdm size
-    numChannel = 8,
-    outputBufferDepth = 8,
-    tcdmSize = 128
-  )
   def apply(
       spatialBounds: List[Int],
       temporalDimension: Int,
       numChannel: Int,
       outputBufferDepth: Int,
       tcdmSize: Int
-  ) = new AddressGenUnitParam(
+  ): AddressGenUnitParam = new AddressGenUnitParam(
     spatialBounds = spatialBounds,
     temporalDimension = temporalDimension,
     addressWidth = log2Ceil(tcdmSize) + 10,
     numChannel = numChannel,
     outputBufferDepth = outputBufferDepth,
     tcdmSize = tcdmSize
+  )
+
+  // The Very Simple instantiation of the Param
+  def apply(): AddressGenUnitParam = apply(
+    spatialBounds = List(8),
+    temporalDimension = 2,
+    numChannel = 8,
+    outputBufferDepth = 8,
+    tcdmSize = 128
   )
 }
 
@@ -100,11 +96,6 @@ class AXIParam(
     val dataWidth: Int = 512,
     val addrWidth: Int = 48
 )
-
-object AXIParam {
-  def apply() = new AXIParam()
-  def apply(dataWidth: Int, addrWidth: Int) = new AXIParam(dataWidth, addrWidth)
-}
 
 // DMA Params
 class DMADataPathParam(

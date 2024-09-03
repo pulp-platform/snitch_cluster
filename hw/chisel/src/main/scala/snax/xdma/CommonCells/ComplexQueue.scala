@@ -43,12 +43,17 @@ class ComplexQueueConcat(inputWidth: Int, outputWidth: Int, depth: Int)
       },
       Decoupled(UInt(outputWidth.W))
     )
+    val nearlyEmpty = Output(Vec(numChannel, Bool()))
+    val nearlyFull = Output(Vec(numChannel, Bool()))
     val allEmpty = Output(Bool())
     val anyFull = Output(Bool())
   })
 
   val queues = for (i <- 0 until numChannel) yield {
-    Module(new Queue(UInt(smallWidth.W), depth))
+    val queue = Module(new Queue(UInt(smallWidth.W), depth))
+    io.nearlyEmpty(i) := queue.io.count < 2.U
+    io.nearlyFull(i) := queue.io.count > (depth - 2).U
+    queue
   }
 
   if (io.in.length != 1 || (io.in.length == 1 && io.out.length == 1)) {

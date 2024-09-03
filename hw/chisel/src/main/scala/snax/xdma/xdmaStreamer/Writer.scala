@@ -49,19 +49,51 @@ class Writer(param: ReaderWriterParam, clusterName: String = "unnamed_cluster")
   addressgen.io.cfg := io.aguCfg
   addressgen.io.start := io.start
 
-  requestors.io.in.addr <> addressgen.io.addr
-  requestors.io.in.data.get <> dataBuffer.io.out
-  requestors.io.out.tcdmReq <> io.tcdmReq
-  if (param.configurableChannel)
-    requestors.io.enable := io.readerwriterCfg.enabledChannel.asBools
-  else requestors.io.enable := Seq.fill(param.tcdmParam.numChannel)(true.B)
-  if (param.configurableByteMask)
-    requestors.io.in.strb := io.readerwriterCfg.enabledByte
-  else requestors.io.in.strb := Fill(requestors.io.in.strb.getWidth, 1.U)
+  // addrgen <> requestors
+  requestors.io.zip(addressgen.io.addr).foreach {
+    case (requestor, addrgen) => {
+      requestor.in.addr <> addrgen
+    }
+  }
 
+  // enabledChannel & enabledByteMask
+  if (param.configurableChannel)
+    requestors.io.zip(io.readerwriterCfg.enabledChannel.asBools).foreach {
+      case (requestor, enable) => {
+        requestor.enable := enable
+      }
+    }
+  else requestors.io.foreach(_.enable := true.B)
+
+  if (param.configurableByteMask)
+    requestors.io.foreach(_.in.strb := io.readerwriterCfg.enabledByte)
+  else
+    requestors.io.zipWithIndex.foreach {
+      case (requestor, i) => {
+        requestor.in.strb := Fill(requestor.in.strb.getWidth, 1.U)
+      }
+    }
+
+  // Requestor <> TCDM
+  requestors.io.zip(io.tcdmReq).foreach {
+    case (requestor, tcdmReq) => {
+      requestor.out.tcdmReq <> tcdmReq
+    }
+  }
+
+  // Requestor <> DataBuffer, Data Link
+  requestors.io.zip(dataBuffer.io.out).foreach {
+    case (requestor, dataBuffer) => {
+      requestor.in.data.get <> dataBuffer
+    }
+  }
+
+  // DataBuffer <> Input
   dataBuffer.io.in.head <> io.data
+  // Busy Signal
   io.busy := addressgen.io.busy | (~addressgen.io.bufferEmpty)
-  // Debug Signal
+
+  // The debug signal from the dataBuffer to see if AGU and requestor work correctly: It should be high when valid signal at the combined output is low
   io.bufferEmpty := addressgen.io.bufferEmpty & dataBuffer.io.allEmpty
 }
 
