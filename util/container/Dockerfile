@@ -4,10 +4,14 @@
 
 # Docker container for Snitch development.
 
+ARG VERILATOR_VERSION=5.020
+FROM verilator/verilator:v${VERILATOR_VERSION} AS verilator
+
+RUN which verilator && verilator --version
+
 # 1. Stage
 FROM ubuntu:22.04 AS builder
 ARG BENDER_VERSION=0.27.1
-ARG VERILATOR_VERSION=5.020
 ARG DOXYGEN_VERSION=1.12.0
 ARG RUST_VERSION=1.67.0
 # Run dpkg without interactive dialogue
@@ -19,22 +23,22 @@ RUN apt update && \
         # General requirements
         curl wget git tar \
         # Required for Verilator
-        autoconf flex bison help2man \
-        libfl2 libfl-dev zlib1g zlib1g-dev \
-        mold libgoogle-perftools-dev numactl \
+        # autoconf flex bison help2man \
+        # libfl2 libfl-dev zlib1g zlib1g-dev \
+        # mold libgoogle-perftools-dev numactl \
         # Required for rust
         build-essential \
         # Required for banshee
         cmake llvm-12-dev libclang-common-12-dev
 
-# Build Verilator
-RUN git clone https://github.com/verilator/verilator && \
-    cd verilator && \
-    git checkout "v${VERILATOR_VERSION}" && \
-    autoconf && \
-    ./configure --prefix /tools/verilator && \
-    make -j && \
-    make install
+# # Build Verilator
+# RUN git clone https://github.com/verilator/verilator && \
+#     cd verilator && \
+#     git checkout "v${VERILATOR_VERSION}" && \
+#     autoconf && \
+#     ./configure --prefix /tools/verilator && \
+#     make -j && \
+#     make install
 
 # Build Rust tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -113,7 +117,8 @@ RUN apt-add-repository ppa:deadsnakes/ppa && \
 COPY --from=builder /tools/bender bin/
 COPY --from=builder /root/.cargo/bin/banshee bin/
 COPY --from=builder /tools/doxygen/bin/doxygen bin/
-COPY --from=builder /tools/verilator /tools/verilator/
+# COPY --from=builder /tools/verilator /tools/verilator/
+COPY --from=verilator /usr/local/bin/verilator-wrap.sh /usr/local/bin/verilator-wrap.sh
 
 # Add Verilator to PATH
 ENV PATH "/tools/verilator/bin:${PATH}"
