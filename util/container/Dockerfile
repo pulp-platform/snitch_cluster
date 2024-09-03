@@ -22,6 +22,11 @@ RUN apt update && \
         wget \
         git \
         tar \
+        # Required for Verilator
+        autoconf \
+        flex \
+        bison \
+        ccache \
         # Required for rust
         build-essential \
         # Required for banshee
