@@ -6,43 +6,28 @@
 
 ARG VERILATOR_VERSION=5.020
 ARG UBUNTU_VERSION=22.04
+
 FROM verilator/verilator:v${VERILATOR_VERSION} AS verilator
 
-RUN which verilator && verilator --version
-RUN ./usr/local/bin/verilator-wrap.sh
-RUN which verilator && verilator --version
-RUN echo $VERILATOR_ROOT
+RUN which verilator && verilator --version && \
+    echo $VERILATOR_ROOT
 
 # 1. Stage
 FROM ubuntu:${UBUNTU_VERSION} AS builder
 ARG BENDER_VERSION=0.27.1
 ARG DOXYGEN_VERSION=1.12.0
-ARG RUST_VERSION=1.67.0
-# Run dpkg without interactive dialogue
-ARG DEBIAN_FRONTEND=noninteractive
+ARG RUST_VERSION=1.63.0
+ARG UBUNTU_VERSION
 
 # Install APT requirements
 RUN apt update && \
     apt install -y \
         # General requirements
         curl wget git tar \
-        # Required for Verilator
-        # autoconf flex bison help2man \
-        # libfl2 libfl-dev zlib1g  \
-        # mold libgoogle-perftools-dev numactl \
         # Required for rust
         build-essential \
         # Required for banshee
         cmake llvm-12-dev libclang-common-12-dev zlib1g-dev
-
-# # Build Verilator
-# RUN git clone https://github.com/verilator/verilator && \
-#     cd verilator && \
-#     git checkout "v${VERILATOR_VERSION}" && \
-#     autoconf && \
-#     ./configure --prefix /tools/verilator && \
-#     make -j && \
-#     make install
 
 # Build Rust tools
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -71,6 +56,8 @@ FROM ubuntu:${UBUNTU_VERSION} AS snitch_cluster
 ARG SNITCH_LLVM_VERSION=latest
 ARG VERIBLE_VERSION=0.0-3318-g8d254167
 ARG PYTHON_VERSION=3.11
+# Run dpkg without interactive dialogue
+ARG DEBIAN_FRONTEND=noninteractive
 
 LABEL version="0.1"
 LABEL description="Snitch container for hardware and software development."
