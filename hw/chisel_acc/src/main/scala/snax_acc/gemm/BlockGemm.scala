@@ -69,7 +69,7 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
   val subtraction_b = RegInit(0.U(params.dataWidthB.W))
 
   // useful counters
-  val accumulation_counter = RegInit(0.U((3 * params.sizeConfigWidth).W))
+  val compute_fire_counter = RegInit(0.U((3 * params.sizeConfigWidth).W))
   // counter used to record if need to output to outside
   val d_output_ifvalid_counter = RegInit(0.U(params.sizeConfigWidth.W))
   // counter to record how many output data has been written
@@ -165,22 +165,23 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
 
   // accumulation counter for generating the accumulation signal for Gemm Array
   // value change according to gemm_a_b_input_fire and add_c_fire
+  // (K + 1) computation for 1 reset compute_fire_counter
   compute_fire := gemm_a_b_input_fire || add_c_fire
   when(
-    compute_fire && accumulation_counter =/= K && cstate =/= sIDLE
+    compute_fire && compute_fire_counter =/= K && cstate =/= sIDLE
   ) {
-    accumulation_counter := accumulation_counter + 1.U
+    compute_fire_counter := compute_fire_counter + 1.U
   }.elsewhen(
-    compute_fire && accumulation_counter === K && cstate =/= sIDLE
+    compute_fire && compute_fire_counter === K && cstate =/= sIDLE
   ) {
-    accumulation_counter := 0.U
+    compute_fire_counter := 0.U
   }.elsewhen(cstate === sIDLE) {
-    accumulation_counter := 0.U
+    compute_fire_counter := 0.U
   }
 
   // accumulation control signal
   // only clean the accumulation register once
-  accumulation := accumulation_counter =/= 0.U
+  accumulation := compute_fire_counter =/= 0.U
 
   when(cstate === sBUSY) {
     performance_counter := performance_counter + 1.U
@@ -192,6 +193,7 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
   gemm_output_fire := gemm_array.io.ctrl.d_valid_o && gemm_array.io.ctrl.d_ready_i
 
   // with add C support, now needs K + 1 times acclumation for 1 write
+  // (K + 1) computation for 1 reset d_output_ifvalid_counter
   when(
     gemm_output_fire && d_output_ifvalid_counter =/= K && cstate =/= sIDLE
   ) {
@@ -208,13 +210,15 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
   when(add_c_fire) {
     needs_add_c := 0.B
   }.elsewhen(
+    // shift needs_add_c to 1 after d valid. it's safe to shift after one cycle as K == 1 at minimum.
     io.data.d_o.valid
   ) {
     needs_add_c := 1.B
   }
 
   // after K a b dotprod, must need to add c before continue
-  must_add_c := needs_add_c && ((d_output_ifvalid_counter === (K - 1.U) && gemm_output_fire) || d_output_ifvalid_counter === K)
+  // related to input situation
+  must_add_c := needs_add_c && (compute_fire_counter === K)
 
   add_c := cstate === sBUSY && ((needs_add_c && !a_b_data_valid) || must_add_c) && io.data.c_i.valid
   add_c_fire := add_c && gemm_array.io.ctrl.a_b_c_ready_o
