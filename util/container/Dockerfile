@@ -18,21 +18,15 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt update && \
     apt install -y \
         # General requirements
-        curl \
-        wget \
-        git \
-        tar \
+        curl wget git tar \
         # Required for Verilator
-        autoconf \
-        flex \
-        bison \
-        ccache \
+        autoconf flex bison help2man \
+        libfl2 libfl-dev zlib1g zlib1g-dev \
+        mold libgoogle-perftools-dev numactl \
         # Required for rust
         build-essential \
         # Required for banshee
-        cmake \
-        llvm-12-dev \
-        libclang-common-12-dev
+        cmake llvm-12-dev libclang-common-12-dev
 
 # Build Verilator
 RUN git clone https://github.com/verilator/verilator && \
