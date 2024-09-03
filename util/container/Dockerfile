@@ -8,7 +8,6 @@
 FROM ubuntu:22.04 AS builder
 ARG BENDER_VERSION=0.27.1
 ARG VERILATOR_VERSION=5.020
-ARG PYTHON_VERSION=3.11
 ARG DOXYGEN_VERSION=1.12.0
 ARG RUST_VERSION=1.67.0
 # Run dpkg without interactive dialogue
@@ -63,6 +62,7 @@ RUN wget https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.g
 FROM ubuntu:22.04 AS snitch_cluster
 ARG SNITCH_LLVM_VERSION=latest
 ARG VERIBLE_VERSION=0.0-3318-g8d254167
+ARG PYTHON_VERSION=3.11
 
 LABEL version="0.1"
 LABEL description="Snitch container for hardware and software development."
