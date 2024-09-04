@@ -25,6 +25,7 @@ RUN apt update && \
     apt install -y \
         # General requirements
         curl wget git tar \
+        ca-certificates gnupg2 \
         # Required for rust
         build-essential \
         # Required for banshee
@@ -46,6 +47,11 @@ RUN git clone https://github.com/pulp-platform/banshee.git /tmp/banshee --recurs
 # Install Bender
 RUN wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
     tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz
+
+# Install Verible
+RUN wget https://github.com/chipsalliance/verible/releases/download/v${VERIBLE_VERSION}/verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz && \
+    tar -x -f verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz --strip-components=1 -C . && \
+    rm -rf verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
 
 # Install Doxygen
 RUN wget https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz && \
@@ -101,37 +107,32 @@ RUN latest_tag=`curl -s -H "Accept: application/vnd.github.v3+json" https://api.
     tar xvz --strip-components=1 -C riscv-llvm
 ENV LLVM_BINROOT="/tools/riscv-llvm/bin"
 
-# Install Verible
-RUN wget https://github.com/chipsalliance/verible/releases/download/v${VERIBLE_VERSION}/verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz && \
-    tar -x -f verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz --strip-components=1 -C . && \
-    rm -rf verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
-ENV PATH="/tools/bin:${PATH}"
-
 # Install Python
 RUN apt-add-repository ppa:deadsnakes/ppa && \
     apt update && \
     apt install -y --no-install-recommends \
-        python${PYTHON_VERSION} && \
-        python3-venv && \
-    apt clean ; \
+        python${PYTHON_VERSION}-venv && \
+    apt clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
-
-# Create and activate virtual environment
-ARG VIRTUAL_ENV="/root/.venvs/snitch_cluster"
-RUN python${PYTHON_VERSION} -m venv ${VIRTUAL_ENV}
-RUN chmod +x ${VIRTUAL_ENV}/bin/activate
-RUN ${VIRTUAL_ENV}/bin/activate
 
 # Copy all needed files to install the package
 COPY pyproject.toml .
 COPY --from=python_filter sw ./sw
 COPY --from=python_filter util ./util
-RUN pip install .
+
+# Create and activate virtual environment
+ARG VIRTUAL_ENV="/root/.venvs/snitch_cluster"
+RUN python${PYTHON_VERSION} -m venv ${VIRTUAL_ENV}
+
+# Upgrade pip and install packages using the virtual environment's pip
+RUN ${VIRTUAL_ENV}/bin/pip install --upgrade pip && \
+    ${VIRTUAL_ENV}/bin/pip install .
 
 # Copy the tools from the builder stage
 COPY --from=builder /tools/bender bin/
 COPY --from=builder /root/.cargo/bin/banshee bin/
 COPY --from=builder /tools/doxygen/bin/doxygen bin/
+COPY --from=builder /tools/verible* bin/
 COPY --from=verilator /usr/local/bin/verilator* /usr/local/bin/
 
 # Modify environment and path variables
