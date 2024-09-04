@@ -18,6 +18,7 @@ FROM ubuntu:${UBUNTU_VERSION} AS builder
 ARG BENDER_VERSION=0.27.1
 ARG DOXYGEN_VERSION=1.12.0
 ARG VERIBLE_VERSION=0.0-3318-g8d254167
+ARG SNITCH_LLVM_VERSION=latest
 ARG RUST_VERSION=1.63.0
 ARG UBUNTU_VERSION
 
@@ -26,7 +27,6 @@ RUN apt update && \
     apt install -y \
         # General requirements
         curl wget git tar \
-        ca-certificates gnupg2 \
         # Required for rust
         build-essential \
         # Required for banshee
@@ -59,6 +59,16 @@ RUN wget https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.g
     tar xzf doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz && \
     mv doxygen-${DOXYGEN_VERSION} doxygen
 
+# Get the precompiled LLVM toolchain
+RUN latest_tag=`curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/pulp-platform/llvm-project/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'` && \
+echo "SNITCH_LLVM_VERSION=${SNITCH_LLVM_VERSION} LLVM_TAR=${LLVM_TAR} latest_tag=${latest_tag}" && \
+test "${SNITCH_LLVM_VERSION}" = "latest" && SNITCH_LLVM_VERSION=${latest_tag} || : ; \
+LLVM_TAR=riscv32-pulp-llvm-ubuntu2004-$(echo $SNITCH_LLVM_VERSION | cut -d '-' -f3-).tar.gz && \
+mkdir -p riscv-llvm && \
+echo "SNITCH_LLVM_VERSION=${SNITCH_LLVM_VERSION} LLVM_TAR=${LLVM_TAR} latest_tag=${latest_tag}" && \
+wget -qO- https://github.com/pulp-platform/llvm-project/releases/download/${SNITCH_LLVM_VERSION}/${LLVM_TAR} | \
+tar xvz --strip-components=1 -C riscv-llvm
+
 # 3. Stage: Filter python files to improve caching of the final container
 FROM ubuntu:${UBUNTU_VERSION} AS python_filter
 
@@ -71,7 +81,6 @@ RUN find sw -type f ! -name "*.py" -delete && \
 
 # 4. Stage: Create the final container
 FROM ubuntu:${UBUNTU_VERSION} AS snitch_cluster
-ARG SNITCH_LLVM_VERSION=latest
 ARG PYTHON_VERSION=3.11
 # Run dpkg without interactive dialogue
 ARG DEBIAN_FRONTEND=noninteractive
@@ -86,26 +95,9 @@ WORKDIR /tools
 RUN apt update && \
     apt install -y --no-install-recommends \
         # General requirements
-        curl \
-        wget \
-        build-essential \
-        git \
+        curl wget build-essential git \
         # Required for python
-        software-properties-common \
-        # Required for getting LLVM toolchain
-        ca-certificates \
-        gnupg2
-
-# Get the precompiled LLVM toolchain
-RUN latest_tag=`curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/pulp-platform/llvm-project/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'` && \
-    echo "SNITCH_LLVM_VERSION=${SNITCH_LLVM_VERSION} LLVM_TAR=${LLVM_TAR} latest_tag=${latest_tag}" && \
-    test "${SNITCH_LLVM_VERSION}" = "latest" && SNITCH_LLVM_VERSION=${latest_tag} || : ; \
-    LLVM_TAR=riscv32-pulp-llvm-ubuntu2004-$(echo $SNITCH_LLVM_VERSION | cut -d '-' -f3-).tar.gz && \
-    mkdir -p riscv-llvm && \
-    echo "SNITCH_LLVM_VERSION=${SNITCH_LLVM_VERSION} LLVM_TAR=${LLVM_TAR} latest_tag=${latest_tag}" && \
-    wget -qO- https://github.com/pulp-platform/llvm-project/releases/download/${SNITCH_LLVM_VERSION}/${LLVM_TAR} | \
-    tar xvz --strip-components=1 -C riscv-llvm
-ENV LLVM_BINROOT="/tools/riscv-llvm/bin"
+        software-properties-common gnupg2
 
 # Install Python
 RUN apt-add-repository ppa:deadsnakes/ppa && \
@@ -133,9 +125,11 @@ COPY --from=builder /tools/bender /tools/bin/
 COPY --from=builder /root/.cargo/bin/banshee /tools/bin/
 COPY --from=builder /tools/doxygen/bin/doxygen /tools/bin/
 COPY --from=builder /tools/verible* /tools/bin/
+COPY --from=builder /tools/riscv-llvm /tools/riscv-llvm
 COPY --from=verilator /usr/local/bin/verilator* /usr/local/bin/
 
 # Modify environment and path variables
 ENV VLT_ROOT="/usr/local/bin/verilator/"
+ENV LLVM_BINROOT="/tools/riscv-llvm/bin"
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 ENV PATH="/tools/bin:${PATH}"
