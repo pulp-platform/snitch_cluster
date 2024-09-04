@@ -84,7 +84,14 @@ class ReaderWriter(
   readerwriterMux.foreach(_.io.sel := sel)
 
   // Connect the response from TCDM to the reader
-  io.readerInterface.tcdmRsp <> reader.io.tcdmRsp
+  reader.io.tcdmRsp.zip(io.readerInterface.tcdmRsp).foreach {
+    case (reader, interface) => {
+      // Bits is connected directly
+      reader.bits := interface.bits
+      // Valid is connected with the interface valid, under the condition that the last request is from the reader
+      reader.valid := interface.valid && RegNext(sel === 1.U)
+    }
+  }
 }
 
 object ReaderWriterEmitter extends App {

@@ -44,7 +44,7 @@ class AddressGenUnitTester extends AnyFlatSpec with ChiselScalatestTester {
         dut.io.cfg.spatialStrides(0).poke(8)
         dut.io.cfg.temporalStrides(0).poke(64)
         dut.io.cfg.temporalStrides(1).poke(64)
-        dut.io.cfg.temporalBounds(0).poke(1)
+        dut.io.cfg.temporalBounds(0).poke(0)
         dut.io.cfg.temporalBounds(1).poke(16)
 
         dut.io.start.poke(true)

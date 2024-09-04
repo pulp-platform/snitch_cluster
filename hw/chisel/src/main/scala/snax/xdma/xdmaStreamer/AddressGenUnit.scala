@@ -243,7 +243,7 @@ class AddressGenUnit(
   // The FSM to record if the AddressGenUnit is busy
   val sIDLE :: sBUSY :: Nil = Enum(2)
   val currentState = RegInit(sIDLE)
-  when(io.start) {
+  when(io.start && io.cfg.temporalBounds.map(_ =/= 0.U).reduce(_ && _)) { // The cfg is valid, and the start signal is high
     currentState := sBUSY
   }.elsewhen(
     counters.map(_.io.lastVal).reduce(_ & _) && outputBuffer.io.in.head.fire
