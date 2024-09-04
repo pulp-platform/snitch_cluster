@@ -107,7 +107,7 @@ jobs:
         id: verilator-cache
         uses: actions/cache@v3
         with:
-          path: target/snitch_cluster/bin  # Cache the directory where the simulator binary is stored
+          path: target/snitch_cluster/bin
           key: verilator-${{ hashFiles(env.VLT_SOURCES) }}
           restore-keys: |
             verilator-
