@@ -32,11 +32,10 @@ TEST_NAMES   = $(basename $(notdir $(wildcard $(TESTS_SRCDIR)/*.c)))
 TEST_ELFS    = $(abspath $(addprefix $(TESTS_BUILDDIR)/,$(addsuffix .elf,$(TEST_NAMES))))
 TEST_DEPS    = $(abspath $(addprefix $(TESTS_BUILDDIR)/,$(addsuffix .d,$(TEST_NAMES))))
 TEST_DUMPS   = $(abspath $(addprefix $(TESTS_BUILDDIR)/,$(addsuffix .dump,$(TEST_NAMES))))
-TEST_DWARFS  = $(abspath $(addprefix $(TESTS_BUILDDIR)/,$(addsuffix .dwarf,$(TEST_NAMES))))
 TEST_OUTPUTS = $(TEST_ELFS)
 
-ifeq ($(DEBUG), ON)
-TEST_OUTPUTS += $(DUMPS) $(DWARFS)
+ifeq ($(DEBUG),ON)
+TEST_OUTPUTS += $(TEST_DUMPS)
 endif
 
 #########
@@ -64,9 +63,6 @@ $(TESTS_BUILDDIR)/%.elf: $(TESTS_SRCDIR)/%.c $(SNRT_LIB) $(TESTS_BUILDDIR)/%.d |
 
 $(TESTS_BUILDDIR)/%.dump: $(TESTS_BUILDDIR)/%.elf | $(TESTS_BUILDDIR)
 	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_FLAGS) $< > $@
-
-$(TESTS_BUILDDIR)/%.dwarf: $(TESTS_BUILDDIR)/%.elf | $(TESTS_BUILDDIR)
-	$(RISCV_DWARFDUMP) $< > $@
 
 $(TEST_DEPS): | $(TARGET_C_HDRS)
 
