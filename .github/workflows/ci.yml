@@ -18,6 +18,7 @@ jobs:
   build-docker:
     name: Deploy Docker image
     runs-on: ubuntu-22.04
+    if: github.event.pull_request.draft == false
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
