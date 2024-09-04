@@ -34,8 +34,11 @@ $(APP)_RISCV_LDFLAGS += $(addprefix -l,$($(APP)_LIBNAMES))
 ELF         := $(abspath $(addprefix $($(APP)_BUILD_DIR)/,$(addsuffix .elf,$(APP))))
 DEP         := $(abspath $(addprefix $($(APP)_BUILD_DIR)/,$(addsuffix .d,$(APP))))
 DUMP        := $(abspath $(addprefix $($(APP)_BUILD_DIR)/,$(addsuffix .dump,$(APP))))
-DWARF       := $(abspath $(addprefix $($(APP)_BUILD_DIR)/,$(addsuffix .dwarf,$(APP))))
-ALL_OUTPUTS := $(ELF) $(DEP) $(DUMP) $(DWARF)
+ALL_OUTPUTS := $(ELF)
+
+ifeq ($(DEBUG), ON)
+ALL_OUTPUTS += $(DUMP)
+endif
 
 #########
 # Rules #
@@ -71,9 +74,6 @@ $(ELF): $(SRCS) $(DEP) $($(APP)_LIBS) | $($(APP)_BUILD_DIR)
 
 $(DUMP): $(ELF) | $($(APP)_BUILD_DIR)
 	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_FLAGS) $< > $@
-
-$(DWARF): $(ELF) | $($(APP)_BUILD_DIR)
-	$(RISCV_DWARFDUMP) $< > $@
 
 ifneq ($(filter-out clean%,$(MAKECMDGOALS)),)
 -include $(DEP)

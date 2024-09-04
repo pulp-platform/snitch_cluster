@@ -39,7 +39,12 @@ SNRT_OBJS    = $(addprefix $(SNRT_BUILDDIR)/,$(addsuffix .o,$(basename $(notdir 
 SNRT_DEPS    = $(addprefix $(SNRT_BUILDDIR)/,$(addsuffix .d,$(basename $(notdir $(SNRT_SRCS)))))
 SNRT_LIB     = $(SNRT_BUILDDIR)/libsnRuntime.a
 SNRT_DUMP    = $(SNRT_BUILDDIR)/libsnRuntime.dump
-SNRT_OUTPUTS = $(SNRT_LIB) $(SNRT_DUMP)
+SNRT_OUTPUTS = $(SNRT_LIB)
+
+ifeq ($(DEBUG), ON)
+SNRT_OUTPUTS += $(SNRT_DUMP)
+endif
+
 
 #########
 # Rules #

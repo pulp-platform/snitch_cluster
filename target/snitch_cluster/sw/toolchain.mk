@@ -23,7 +23,6 @@ RISCV_LD        ?= $(LLVM_BINROOT)/ld.lld
 RISCV_AR        ?= $(LLVM_BINROOT)/llvm-ar
 RISCV_OBJCOPY   ?= $(LLVM_BINROOT)/llvm-objcopy
 RISCV_OBJDUMP   ?= $(LLVM_BINROOT)/llvm-objdump
-RISCV_DWARFDUMP ?= $(LLVM_BINROOT)/llvm-dwarfdump
 
 # Compiler flags
 RISCV_CFLAGS := -mcpu=snitch
