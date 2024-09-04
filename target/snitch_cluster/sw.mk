@@ -25,7 +25,7 @@ REGGEN_HEADERS = snitch_cluster_peripheral.h
 TARGET_C_HDRS_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/common
 TARGET_C_HDRS     = $(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS) $(REGGEN_HEADERS))
 
-# CLUSTERGEN headers,
+# CLUSTERGEN headers
 $(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS)): %.h: $(CFG) $(CLUSTER_GEN_PREREQ) %.h.tpl
 	@echo "[CLUSTERGEN] Generate $@"
 	$(CLUSTER_GEN) -c $< --outdir $(TARGET_C_HDRS_DIR) --template $@.tpl
