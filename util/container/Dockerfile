@@ -129,12 +129,13 @@ RUN ${VIRTUAL_ENV}/bin/pip install --upgrade pip && \
     ${VIRTUAL_ENV}/bin/pip install .
 
 # Copy the tools from the builder stage
-COPY --from=builder /tools/bender bin/
-COPY --from=builder /root/.cargo/bin/banshee bin/
-COPY --from=builder /tools/doxygen/bin/doxygen bin/
-COPY --from=builder /tools/verible* bin/
+COPY --from=builder /tools/bender /tools/bin/
+COPY --from=builder /root/.cargo/bin/banshee /tools/bin/
+COPY --from=builder /tools/doxygen/bin/doxygen /tools/bin/
+COPY --from=builder /tools/verible* /tools/bin/
 COPY --from=verilator /usr/local/bin/verilator* /usr/local/bin/
 
 # Modify environment and path variables
 ENV VLT_ROOT="/usr/local/bin/verilator/"
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
+ENV PATH="/tools/bin:${PATH}"
