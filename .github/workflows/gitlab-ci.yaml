@@ -1,0 +1,28 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Some CI tests run on our GitLab servers due to licenses and tools
+name: gitlab-ci
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  gitlab-ci:
+    name: Internal Gitlab CI
+    runs-on: ubuntu-22.04
+    if: github.event.pull_request.draft == false
+    steps:
+      - name: Check Gitlab CI
+        uses: pulp-platform/pulp-actions/gitlab-ci@v2.1.0
+        # Skip on forks or pull requests from forks due to missing secrets.
+        if:
+          # yamllint disable rule:line-length
+          github.repository == 'pulp-platform/snitch_cluster' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+          # yamllint enable rule:line-length
+        with:
+          domain: iis-git.ee.ethz.ch
+          repo: github-mirror/snitch_cluster
+          token: ${{ secrets.GITLAB_TOKEN }}
+          poll-period: 20
+          poll-count: 1000
+          retry-count: 100
+          retry-period: 50
