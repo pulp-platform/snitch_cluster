@@ -89,7 +89,25 @@ jobs:
         run: |
           bender vendor init
           make CFG_OVERRIDE=cfg/github-ci.hjson sw
+      - name: Generate the RTL
+        working-directory: target/snitch_cluster
+        run: |
+          make CFG_OVERRIDE=cfg/github-ci.hjson rtl
+      - name: Extract file list for Verilator build
+        run: |
+          echo "VLT_SOURCES=$(make echo-vlt-flist) >> $GITHUB_ENV
+          echo $VLT_SOURCES
+          echo $GITHUB_ENV
+      - name: Set up cache for Verilator build
+        id: verilator-cache
+        uses: actions/cache@v3
+        with:
+          path: target/snitch_cluster/bin  # Cache the directory where the simulator binary is stored
+          key: verilator-${{ hashFiles(env.VLT_SOURCES) }}
+          restore-keys: |
+            verilator-
       - name: Build Hardware
+        if: steps.verilator-cache.outputs.cache-hit != 'true'
         working-directory: target/snitch_cluster
         run: |
           make CFG_OVERRIDE=cfg/github-ci.hjson VLT_JOBS=1 bin/snitch_cluster.vlt
