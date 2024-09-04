@@ -92,7 +92,6 @@ jobs:
       - name: Build Software
         working-directory: target/snitch_cluster
         run: |
-          bender vendor init
           make CFG_OVERRIDE=cfg/github-ci.hjson sw
       - name: Generate the RTL
         working-directory: target/snitch_cluster
