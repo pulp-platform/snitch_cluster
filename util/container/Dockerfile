@@ -17,6 +17,7 @@ RUN which verilator && verilator --version && \
 FROM ubuntu:${UBUNTU_VERSION} AS builder
 ARG BENDER_VERSION=0.27.1
 ARG DOXYGEN_VERSION=1.12.0
+ARG VERIBLE_VERSION=0.0-3318-g8d254167
 ARG RUST_VERSION=1.63.0
 ARG UBUNTU_VERSION
 
@@ -71,7 +72,6 @@ RUN find sw -type f ! -name "*.py" -delete && \
 # 4. Stage: Create the final container
 FROM ubuntu:${UBUNTU_VERSION} AS snitch_cluster
 ARG SNITCH_LLVM_VERSION=latest
-ARG VERIBLE_VERSION=0.0-3318-g8d254167
 ARG PYTHON_VERSION=3.11
 # Run dpkg without interactive dialogue
 ARG DEBIAN_FRONTEND=noninteractive
