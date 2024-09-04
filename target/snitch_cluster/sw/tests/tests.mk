@@ -70,8 +70,6 @@ $(TESTS_BUILDDIR)/%.dwarf: $(TESTS_BUILDDIR)/%.elf | $(TESTS_BUILDDIR)
 
 $(TEST_DEPS): | $(TARGET_C_HDRS)
 
-ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(MAKECMDGOALS),clean-sw)
--include $(TEST_DEPS)
-endif
+ifneq ($(filter-out clean%,$(MAKECMDGOALS)),)
+-include $(DEP)
 endif

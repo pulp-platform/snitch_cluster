@@ -78,8 +78,6 @@ $(DUMP): $(ELF) | $($(APP)_BUILD_DIR)
 $(DWARF): $(ELF) | $($(APP)_BUILD_DIR)
 	$(RISCV_DWARFDUMP) $< > $@
 
-ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(MAKECMDGOALS),clean-sw)
+ifneq ($(filter-out clean%,$(MAKECMDGOALS)),)
 -include $(DEP)
-endif
 endif
