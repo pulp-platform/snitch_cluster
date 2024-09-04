@@ -17,8 +17,8 @@ SNRT_SRCDIR      = $(SNRT_TARGET_DIR)/src
 # Build variables #
 ###################
 
-SNRT_SRCS  = snitch_cluster_start.S
-SNRT_SRCS += snrt.c
+SNRT_S_SRCS = snrt.S
+SNRT_C_SRCS = snrt.c
 
 SNRT_INCDIRS += $(SNRT_DIR)/src
 SNRT_INCDIRS += $(SNRT_DIR)/api
@@ -35,8 +35,8 @@ SNRT_RISCV_CFLAGS += $(addprefix -I,$(SNRT_INCDIRS))
 # Outputs #
 ###########
 
-SNRT_OBJS    = $(addprefix $(SNRT_BUILDDIR)/,$(addsuffix .o,$(basename $(notdir $(SNRT_SRCS)))))
-SNRT_DEPS    = $(addprefix $(SNRT_BUILDDIR)/,$(addsuffix .d,$(basename $(notdir $(SNRT_SRCS)))))
+SNRT_OBJS    = $(addprefix $(SNRT_BUILDDIR)/,$(addsuffix .o,$(notdir $(SNRT_S_SRCS) $(SNRT_C_SRCS))))
+SNRT_DEPS    = $(addprefix $(SNRT_BUILDDIR)/,$(addsuffix .d,$(notdir $(SNRT_S_SRCS) $(SNRT_C_SRCS))))
 SNRT_LIB     = $(SNRT_BUILDDIR)/libsnRuntime.a
 SNRT_DUMP    = $(SNRT_BUILDDIR)/libsnRuntime.dump
 SNRT_OUTPUTS = $(SNRT_LIB)
@@ -63,13 +63,10 @@ clean-runtime:
 $(SNRT_BUILDDIR):
 	mkdir -p $@
 
-$(SNRT_BUILDDIR)/%.o: $(SNRT_SRCDIR)/%.S | $(SNRT_BUILDDIR)
+$(SNRT_BUILDDIR)/%.o: $(SNRT_SRCDIR)/% $(SNRT_BUILDDIR)/%.d | $(SNRT_BUILDDIR)
 	$(RISCV_CC) $(SNRT_RISCV_CFLAGS) -c $< -o $@
 
-$(SNRT_BUILDDIR)/%.o: $(SNRT_SRCDIR)/%.c | $(SNRT_BUILDDIR)
-	$(RISCV_CC) $(SNRT_RISCV_CFLAGS) -c $< -o $@
-
-$(SNRT_BUILDDIR)/%.d: $(SNRT_SRCDIR)/%.c | $(SNRT_BUILDDIR)
+$(SNRT_BUILDDIR)/%.d: $(SNRT_SRCDIR)/% | $(SNRT_BUILDDIR)
 	$(RISCV_CC) $(SNRT_RISCV_CFLAGS) -MM -MT '$(@:.d=.o)' $< > $@
 
 $(SNRT_LIB): $(SNRT_OBJS) | $(SNRT_BUILDDIR)
