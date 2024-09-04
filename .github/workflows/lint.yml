@@ -45,14 +45,19 @@ jobs:
     name: Check Sources Up-to-Date
     runs-on: ubuntu-22.04
     if: github.event.pull_request.draft == false
-    container:
-      image: ghcr.io/pulp-platform/snitch_cluster:pyproject
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Install local Python packages
-        run: pip install .
+      - name: Install bender
+        uses: pulp-platform/pulp-actions/bender-install@v2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+      - name: Install pip dependencies
+        run: |
+          pip install .
       - name: Generate opcodes
         run: |
           ./util/generate-opcodes.sh
@@ -60,12 +65,6 @@ jobs:
         working-directory: target/snitch_cluster
         run: |
           make rtl
-      # For some reason, the checkout is done by a different user,
-      # than that running `git diff` (root, possibly due to Docker).
-      # So we need to set the repository as a safe directory.
-      - name: Git config safe.directory
-        run: |
-          git config --global --add safe.directory $GITHUB_WORKSPACE
       - name: Diff porcelain
         uses: mmontes11/diff-porcelain@v0.0.1
         with:
