@@ -75,8 +75,6 @@ $(SNRT_DUMP): $(SNRT_LIB) | $(SNRT_BUILDDIR)
 
 $(SNRT_DEPS): | $(TARGET_C_HDRS)
 
-ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(MAKECMDGOALS),clean-sw)
+ifneq ($(filter-out clean%,$(MAKECMDGOALS)),)
 -include $(SNRT_DEPS)
-endif
 endif
