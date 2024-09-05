@@ -14,6 +14,9 @@ jobs:
   verible-lint:
     name: Lint Verilog sources
     runs-on: ubuntu-latest
+    if: >
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - uses: actions/checkout@v3
       - uses: chipsalliance/verible-linter-action@main
@@ -32,6 +35,9 @@ jobs:
   bender-vendor-up-to-date:
     name: Check bender vendor up-to-date
     runs-on: ubuntu-latest
+    if: >
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - name: Check bender vendor up-to-date
         uses: pulp-platform/pulp-actions/bender-vendor-up-to-date@v2.1.0
@@ -42,6 +48,9 @@ jobs:
   sources-up-to-date:
     name: Check Sources Up-to-Date
     runs-on: ubuntu-22.04
+    if: >
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - uses: actions/checkout@v4
         with:
@@ -73,6 +82,9 @@ jobs:
   license-lint:
     name: Check License headers
     runs-on: ubuntu-latest
+    if: >
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - name: Check License
         uses: pulp-platform/pulp-actions/lint-license@v2.1.0
@@ -96,6 +108,9 @@ jobs:
   yaml-lint:
     name: Lint YAML Sources
     runs-on: ubuntu-latest
+    if: >
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - uses: actions/checkout@v3
       - name: yaml-lint
@@ -108,6 +123,9 @@ jobs:
   ########################
   python-lint:
     runs-on: ubuntu-latest
+    if: >
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
     name: Lint Python Sources
     steps:
       - name: Check out source repository
@@ -129,6 +147,9 @@ jobs:
   clangfmt:
     name: Lint C/C++ Sources
     runs-on: ubuntu-latest
+    if: >
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - uses: actions/checkout@v3
       - uses: DoozyX/clang-format-lint-action@v0.18.1
@@ -142,6 +163,9 @@ jobs:
   editorconfig-lint:
     name: Lint Editorconfig
     runs-on: ubuntu-latest
+    if: >
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
     steps:
       - uses: actions/checkout@v3
       - uses: editorconfig-checker/action-editorconfig-checker@main
