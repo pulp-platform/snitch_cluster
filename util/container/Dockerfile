@@ -8,12 +8,7 @@
 ARG VERILATOR_VERSION=5.020
 ARG UBUNTU_VERSION=22.04
 
-FROM verilator/verilator:v${VERILATOR_VERSION} AS verilator
-
-RUN which verilator && verilator --version && \
-    echo $VERILATOR_ROOT
-
-# 2. Stage: Install additional IIS tools
+# 1. Stage: Install additional IIS tools
 FROM ubuntu:${UBUNTU_VERSION} AS builder
 ARG BENDER_VERSION=0.27.1
 ARG DOXYGEN_VERSION=1.12.0
@@ -69,7 +64,7 @@ echo "SNITCH_LLVM_VERSION=${SNITCH_LLVM_VERSION} LLVM_TAR=${LLVM_TAR} latest_tag
 wget -qO- https://github.com/pulp-platform/llvm-project/releases/download/${SNITCH_LLVM_VERSION}/${LLVM_TAR} | \
 tar xvz --strip-components=1 -C riscv-llvm
 
-# 3. Stage: Filter python files to improve caching of the final container
+# 2. Stage: Filter python files to improve caching of the final container
 FROM ubuntu:${UBUNTU_VERSION} AS python_filter
 
 # Copy all files in `sw` and `util` and remove all non-python files
@@ -79,8 +74,8 @@ COPY util ./util
 RUN find sw -type f ! -name "*.py" -delete && \
     find util -type f ! -name "*.py" -delete
 
-# 4. Stage: Create the final container
-FROM ubuntu:${UBUNTU_VERSION} AS snitch_cluster
+# 3. Stage: Create the final container
+FROM verilator/verilator:v${VERILATOR_VERSION} AS snitch_cluster
 ARG PYTHON_VERSION=3.11
 # Run dpkg without interactive dialogue
 ARG DEBIAN_FRONTEND=noninteractive
@@ -126,10 +121,9 @@ COPY --from=builder /root/.cargo/bin/banshee /tools/bin/
 COPY --from=builder /tools/doxygen/bin/doxygen /tools/bin/
 COPY --from=builder /tools/verible* /tools/bin/
 COPY --from=builder /tools/riscv-llvm /tools/riscv-llvm
-COPY --from=verilator /usr/local/bin/verilator* /usr/local/bin/
 
 # Modify environment and path variables
-ENV VLT_ROOT="/usr/local/bin/verilator/"
+ENV VLT="verilator-wrap.sh"
 ENV LLVM_BINROOT="/tools/riscv-llvm/bin"
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 ENV PATH="/tools/bin:${PATH}"
