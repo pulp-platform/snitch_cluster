@@ -97,17 +97,12 @@ jobs:
         working-directory: target/snitch_cluster
         run: |
           make CFG_OVERRIDE=cfg/github-ci.hjson rtl
-      - name: Extract file list for Verilator build
-        working-directory: target/snitch_cluster
-        run: |
-          echo "VLT_SOURCES=$(make vlt-flist)" >> $GITHUB_ENV
-          echo $(make vlt-flist)
       - name: Set up cache for Verilator build
         id: verilator-cache
         uses: actions/cache@v3
         with:
           path: target/snitch_cluster/bin
-          key: verilator-${{ hashFiles(env.VLT_SOURCES) }}
+          key: verilator-${{ hashFiles('Bender.lock', 'hw/**/*.sv', 'target/**/*.sv') }}
           restore-keys: |
             verilator-
       - name: Build Hardware
