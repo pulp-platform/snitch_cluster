@@ -101,7 +101,7 @@ jobs:
           make CFG_OVERRIDE=cfg/github-ci.hjson rtl
       - name: Extract file list for Verilator build
         run: |
-          echo "VLT_SOURCES=$(make echo-vlt-flist)" >> $GITHUB_ENV
+          echo "VLT_SOURCES=$(make vlt-flist)" >> $GITHUB_ENV
           echo $VLT_SOURCES
           echo $GITHUB_ENV
       - name: Set up cache for Verilator build
