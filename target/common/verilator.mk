@@ -6,6 +6,9 @@ VLT_FLIST = $(VLT_SOURCES)
 VLT_FLIST += $(TB_CC_SOURCES)
 VLT_FLIST += $(VLT_CC_SOURCES)
 
+space := $(subst ,, )
+comma := ,
+# Dumps file list separated by commas, for Github caching of verilator build
 .PHONY: vlt-flist
 vlt-flist:
 	@echo $(subst $(space),$(comma),$(VLT_FLIST))
