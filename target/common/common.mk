@@ -89,9 +89,9 @@ VLT_FLAGS    += -Wno-UNSIGNED
 VLT_FLAGS    += -Wno-UNOPTFLAT
 VLT_FLAGS    += -Wno-fatal
 VLT_FLAGS    += --unroll-count 1024
-VLT_FLAGS	 += --threads $(VLT_NUM_THREADS)
+VLT_FLAGS	   += --threads $(VLT_NUM_THREADS)
 VLT_CFLAGS   += -std=c++20 -pthread
-VLT_CFLAGS   += -I $(VLT_ROOT)/include -I $(VLT_ROOT)/include/vltstd -I $(VLT_FESVR)/include -I $(TB_DIR) -I ${MKFILE_DIR}test
+VLT_CFLAGS   += -I $(VLT_FESVR)/include -I $(TB_DIR) -I ${MKFILE_DIR}test
 
 RISCV_MC_FLAGS      ?= -disassemble -mcpu=snitch
 ANNOTATE_FLAGS      ?= -q --keep-time --addr2line=$(ADDR2LINE)
