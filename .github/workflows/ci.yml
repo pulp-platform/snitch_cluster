@@ -101,8 +101,7 @@ jobs:
         working-directory: target/snitch_cluster
         run: |
           echo "VLT_SOURCES=$(make vlt-flist)" >> $GITHUB_ENV
-          echo $VLT_SOURCES
-          echo $GITHUB_ENV
+          echo $(make vlt-flist)
       - name: Set up cache for Verilator build
         id: verilator-cache
         uses: actions/cache@v3
