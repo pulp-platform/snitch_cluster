@@ -4,10 +4,7 @@
 
 # Run functional regression checks
 name: ci
-on:
-  push:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+on: [push, pull_request]
 
 jobs:
 
@@ -18,7 +15,6 @@ jobs:
   build-docker:
     name: Deploy Docker image
     runs-on: ubuntu-22.04
-    if: github.event.pull_request.draft == false
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
@@ -50,7 +46,6 @@ jobs:
     name: Build documentation
     runs-on: ubuntu-22.04
     needs: build-docker
-    if: github.event.pull_request.draft == false
     container:
       image: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
     steps:
@@ -66,7 +61,6 @@ jobs:
     name: Python unit tests
     runs-on: ubuntu-22.04
     needs: build-docker
-    if: github.event.pull_request.draft == false
     container:
       image: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
     steps:
@@ -82,7 +76,6 @@ jobs:
     name: Simulate SW on Snitch Cluster w/ Verilator
     runs-on: ubuntu-22.04
     needs: build-docker
-    if: github.event.pull_request.draft == false
     container:
       image: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
     steps:
@@ -128,7 +121,6 @@ jobs:
     name: Simulate SW on Snitch Cluster w/ Banshee
     runs-on: ubuntu-22.04
     needs: build-docker
-    if: github.event.pull_request.draft == false
     container:
       image: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
     steps:
