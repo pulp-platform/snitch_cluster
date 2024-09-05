@@ -19,14 +19,33 @@ module tb_bin;
     .rst_ni
   );
 
+  // Function to generate a random delay between min and max
+  function int random_delay(int min, int max);
+    automatic int range;
+    begin
+      if (min > max) begin
+        // Swap if min is greater than max
+        automatic int temp = min;
+        min = max;
+        max = temp;
+      end
+      range = max - min + 1;
+      return min + ($urandom % range);
+    end
+  endfunction
+
   // Generate reset
   initial begin
+    automatic real rst_delay;
     rst_ni = 0;
-    #10ns;
+    rst_delay = random_delay(10,20);
+    #rst_delay;
     rst_ni = 1;
-    #10ns;
+    rst_delay = random_delay(10,20);
+    #rst_delay;
     rst_ni = 0;
-    #10ns;
+    rst_delay = random_delay(10,20);
+    #rst_delay;
     rst_ni = 1;
   end
 
