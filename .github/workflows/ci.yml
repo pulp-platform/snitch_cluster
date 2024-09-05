@@ -100,6 +100,7 @@ jobs:
         run: |
           make CFG_OVERRIDE=cfg/github-ci.hjson rtl
       - name: Extract file list for Verilator build
+        working-directory: target/snitch_cluster
         run: |
           echo "VLT_SOURCES=$(make vlt-flist)" >> $GITHUB_ENV
           echo $VLT_SOURCES
