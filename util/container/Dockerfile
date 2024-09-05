@@ -95,7 +95,9 @@ RUN apt update && \
         # General requirements
         curl wget build-essential git \
         # Required for python
-        software-properties-common gnupg2
+        software-properties-common gnupg2 \
+        # Required for fesvr
+        device-tree-compiler
 
 # Install Python
 RUN apt-add-repository ppa:deadsnakes/ppa && \
