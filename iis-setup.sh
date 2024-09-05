@@ -8,12 +8,12 @@ export BENDER=bender-0.27.1
 export CC=gcc-9.2.0
 export CXX=g++-9.2.0
 export VCS_SEPP=vcs-2020.12
-export VERILATOR_SEPP=verilator-5.006
+export VERILATOR_SEPP=verilator-5.020
 export QUESTA_SEPP=questa-2022.3
 export LLVM_BINROOT=/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
 
 # Create Python virtual environment with required packages
-/usr/local/anaconda3-2022.05/bin/python3 -m venv .venv
+/usr/local/anaconda3/bin/python -m venv .venv
 source .venv/bin/activate
 # Install local packages in editable mode and unpack packages in a
 # local temporary directory which can be safely cleaned after installation.
