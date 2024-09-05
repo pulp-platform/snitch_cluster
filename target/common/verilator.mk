@@ -11,7 +11,7 @@ comma := ,
 # Dumps file list separated by commas, for Github caching of verilator build
 .PHONY: vlt-flist
 vlt-flist:
-	@echo $(subst $(space),$(comma),$(VLT_FLIST))
+	@echo $(subst $(space),$(comma),$(strip $(VLT_FLIST)))
 
 $(BIN_DIR)/$(TARGET).vlt: $(VLT_SOURCES) $(TB_CC_SOURCES) $(VLT_CC_SOURCES) $(VLT_BUILDDIR)/lib/libfesvr.a | $(BIN_DIR)
 	$(VLT) $(shell $(BENDER) script verilator $(VLT_BENDER)) \
