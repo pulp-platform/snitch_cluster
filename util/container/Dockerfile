@@ -90,8 +90,6 @@ LABEL description="Snitch container for hardware and software development."
 LABEL maintainer="zarubaf@iis.ee.ethz.ch"
 LABEL org.opencontainers.image.source=https://github.com/pulp-platform/snitch_cluster
 
-WORKDIR /tools
-
 RUN apt update && \
     apt install -y --no-install-recommends \
         # General requirements
