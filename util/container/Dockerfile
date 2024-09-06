@@ -64,17 +64,7 @@ echo "SNITCH_LLVM_VERSION=${SNITCH_LLVM_VERSION} LLVM_TAR=${LLVM_TAR} latest_tag
 wget -qO- https://github.com/pulp-platform/llvm-project/releases/download/${SNITCH_LLVM_VERSION}/${LLVM_TAR} | \
 tar xvz --strip-components=1 -C riscv-llvm
 
-# 2. Stage: Filter python files to improve caching of the final container
-FROM ubuntu:${UBUNTU_VERSION} AS python_filter
-
-# Copy all files in `sw` and `util` and remove all non-python files
-COPY sw ./sw
-COPY util ./util
-
-RUN find sw -type f ! -name "*.py" -delete && \
-    find util -type f ! -name "*.py" -delete
-
-# 3. Stage: Create the final container
+# 2. Stage: Create the final container
 FROM verilator/verilator:v${VERILATOR_VERSION} AS snitch_cluster
 ARG PYTHON_VERSION=3.11
 # Run dpkg without interactive dialogue
@@ -103,8 +93,8 @@ RUN apt update && \
 
 # Copy all needed files to install the package
 COPY pyproject.toml .
-COPY --from=python_filter sw ./sw
-COPY --from=python_filter util ./util
+COPY sw ./sw
+COPY util ./util
 
 # Create and activate virtual environment
 ARG VIRTUAL_ENV="/root/.venvs/snitch_cluster"
