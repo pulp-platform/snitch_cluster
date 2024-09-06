@@ -101,6 +101,7 @@ jobs:
         run: |
           wget https://raw.githubusercontent.com/colluca/list-make-prerequisites/main/list-make-prerequisites.py
           chmod +x list-make-prerequisites.py
+          ./list-make-prerequisites.py bin/snitch_cluster.vlt --recursive --hash --debug
           VLT_HASH=$(./list-make-prerequisites.py bin/snitch_cluster.vlt --recursive --hash 2>/dev/null)
           echo "VLT_HASH=$VLT_HASH" >> $GITHUB_ENV
         # yamllint enable rule:line-length
