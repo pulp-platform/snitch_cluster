@@ -51,11 +51,20 @@ VCS_SOURCES   = $(shell ${BENDER} script flist ${VCS_BENDER} | ${SED_SRCS})
 VCS_BUILDDIR := work-vcs
 
 # For synthesis with DC compiler
-SYN_FLIST ?= flist.tcl
+SYN_FLIST ?= syn_flist.tcl
 SYN_BENDER += -t test -t synthesis -t simulation
 ifeq ($(MEM_TYPE), exclude_tcsram)
-	SYN_BENDER += -t tech_cells_generic_exclude_tc_sram
-endif 
+	VSIM_BENDER += -t tech_cells_generic_exclude_tc_sram
+	SYN_BENDER  += -t tech_cells_generic_exclude_tc_sram
+endif
+ifeq ($(MEM_TYPE), prep_syn_mem)
+        VSIM_BENDER += -t tech_cells_generic_exclude_tc_sram
+        SYN_BENDER  += -t tech_cells_generic_exclude_tc_sram
+        SYN_BENDER  += -t prep_syn_mem
+endif
+ifeq ($(SIM_TYPE), gate_level_sim)
+        VSIM_BENDER += -t gate_level_sim
+endif
 SYN_SOURCES = $(shell ${BENDER} script synopsys ${SYN_BENDER})
 SYN_BUILDDIR := work-syn
 

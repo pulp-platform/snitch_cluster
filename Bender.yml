@@ -92,6 +92,11 @@ export_include_dirs:
   - hw/snitch_ssr/include
 
 sources:
+  # Note: These tapeout tags are for internal use only
+  # tapeout tags:
+  - target: tech_cells_generic_exclude_tc_sram
+    files:
+      - /users/micas/shares/project_snax/tapeout_modules/rtl/tc_sram_impl.sv
   # future
   - files:
       # Level 0
