@@ -92,10 +92,9 @@ RUN apt update && \
         # Required for python
         software-properties-common gnupg2 \
         # Required for fesvr
-        device-tree-compiler
-
-# Install Python
-RUN apt-add-repository ppa:deadsnakes/ppa && \
+        device-tree-compiler && \
+    # Install Python
+    apt-add-repository ppa:deadsnakes/ppa && \
     apt update && \
     apt install -y --no-install-recommends \
         python${PYTHON_VERSION}-venv && \
