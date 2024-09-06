@@ -33,6 +33,7 @@ dependencies:
   snax-gemm:          { git: "https://github.com/KULeuven-MICAS/snax-gemm", rev: main }
   snax-postprocessing-simd: { git: "https://github.com/KULeuven-MICAS/snax-postprocessing-simd", rev: main }
   hypercorex:         { git: "https://github.com/KULeuven-MICAS/hypercorex.git", rev: main }
+  dimc:               { git: "https://github.com/KULeuven-MICAS/snax-dimc.git", rev: main }
 
 vendor_package:
   - name: musl
@@ -331,6 +332,19 @@ sources:
       # Level 2
       - target/snitch_cluster/generated/snax_hypercorex/snax_hypercorex_wrapper.sv
 
+  # dimc
+  - target: dimc
+    files:
+      # Level 0
+      - target/snitch_cluster/generated/snax_dimc/snax_dimc_streamer_StreamerTop.sv
+      # Level 1
+      # TODO: implement this wrapepr file
+      - hw/snax_dimc/snax_dimc_shell_wrapper.sv
+      - target/snitch_cluster/generated/snax_dimc/snax_dimc_streamer_wrapper.sv
+      # Level 2
+      - target/snitch_cluster/generated/snax_dimc/snax_dimc_wrapper.sv
+
+
   - target: snax_streamer_gemm
     files:
       # Level 0
@@ -437,6 +451,9 @@ sources:
   - target: snax_hypercorex_cluster
     files:
       - target/snitch_cluster/generated/snax_hypercorex_cluster_wrapper.sv
+  - target: snax_dimc_cluster
+    files:
+      - target/snitch_cluster/generated/snax_dimc_cluster_wrapper.sv
   # Note: this is about to be obsolete
   # but it uses the old snax-gemm still
   - target: snax_gemm_cluster
