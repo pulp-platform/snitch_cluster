@@ -94,23 +94,19 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: 'recursive'
-      - name: Get Verilator simulation binary hash
+      - name: Hash Verilator prerequisites
         id: verilator-hash
-        working-directory: target/snitch_cluster
-        # yamllint disable rule:line-length
-        run: |
-          wget https://raw.githubusercontent.com/colluca/list-make-prerequisites/main/list-make-prerequisites.py
-          chmod +x list-make-prerequisites.py
-          ./list-make-prerequisites.py bin/snitch_cluster.vlt --recursive --hash --debug
-          VLT_HASH=$(./list-make-prerequisites.py bin/snitch_cluster.vlt --recursive --hash 2>/dev/null)
-          echo "VLT_HASH=$VLT_HASH" >> $GITHUB_ENV
-        # yamllint enable rule:line-length
+        uses: colluca/list-make-prerequisites@v1.0.1
+        with:
+          working-directory: target/snitch_cluster
+          target: bin/snitch_cluster.vlt
+          flags: --recursive
       - name: Set up cache for Verilator build
         id: verilator-cache
         uses: actions/cache@v3
         with:
           path: target/snitch_cluster/bin
-          key: verilator-${{ env.VLT_HASH }}
+          key: verilator-${{ steps.verilator-hash.outputs.hash }}
           restore-keys: |
             verilator-
       - name: Build Hardware
