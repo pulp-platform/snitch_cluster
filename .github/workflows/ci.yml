@@ -94,20 +94,22 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: 'recursive'
-      - name: Build Software
+      - name: Get Verilator simulation binary hash
+        id: verilator-hash
         working-directory: target/snitch_cluster
+        # yamllint disable rule:line-length
         run: |
-          make CFG_OVERRIDE=cfg/github-ci.hjson sw
-      - name: Generate the RTL
-        working-directory: target/snitch_cluster
-        run: |
-          make CFG_OVERRIDE=cfg/github-ci.hjson rtl
+          wget https://raw.githubusercontent.com/colluca/list-make-prerequisites/main/list-make-prerequisites.py
+          chmod +x list-make-prerequisites.py
+          VLT_HASH=$(./list-make-prerequisites.py bin/snitch_cluster.vlt --recursive --hash 2>/dev/null)
+          echo "VLT_HASH=$VLT_HASH" >> $GITHUB_ENV
+        # yamllint enable rule:line-length
       - name: Set up cache for Verilator build
         id: verilator-cache
         uses: actions/cache@v3
         with:
           path: target/snitch_cluster/bin
-          key: verilator-${{ hashFiles('Bender.lock', 'hw/**/*.sv', 'target/**/*.sv') }}
+          key: verilator-${{ env.VLT_HASH }}
           restore-keys: |
             verilator-
       - name: Build Hardware
@@ -115,6 +117,10 @@ jobs:
         working-directory: target/snitch_cluster
         run: |
           make CFG_OVERRIDE=cfg/github-ci.hjson VLT_JOBS=1 bin/snitch_cluster.vlt
+      - name: Build Software
+        working-directory: target/snitch_cluster
+        run: |
+          make CFG_OVERRIDE=cfg/github-ci.hjson sw
       - name: Run Tests
         working-directory: target/snitch_cluster
         run: |
