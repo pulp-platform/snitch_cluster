@@ -13,7 +13,7 @@ export QUESTA_SEPP=questa-2022.3
 export LLVM_BINROOT=/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
 
 # Create Python virtual environment with required packages
-/usr/local/anaconda3/bin/python -m venv .venv
+/usr/local/anaconda3-2023.07/bin/python -m venv .venv
 source .venv/bin/activate
 # Install local packages in editable mode and unpack packages in a
 # local temporary directory which can be safely cleaned after installation.
