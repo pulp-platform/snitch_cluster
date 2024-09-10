@@ -175,7 +175,7 @@ $(VLT_BUILDDIR)/lib/libfesvr.a: $(VLT_FESVR)/${FESVR_VERSION}_unzip
 define VERILATE
 	mkdir -p $(dir $@)
 	$(BENDER) script verilator ${VLT_BENDER} > $(dir $@)files
-	$(VLT) \
+	+$(VLT) \
 		--Mdir $(dir $@) -f $(dir $@)files $(VLT_FLAGS) \
 		-j $(shell nproc) --cc --build --top-module $(1)
 	touch $@
