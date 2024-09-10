@@ -20,8 +20,8 @@ ARG UBUNTU_VERSION
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Install APT requirements
-RUN apt update && \
-    apt install -y \
+RUN apt-get update && \
+    apt-get install -y \
         # General requirements
         curl wget git tar \
         # Required for rust
@@ -77,8 +77,8 @@ LABEL description="Snitch container for hardware and software development."
 LABEL maintainer="zarubaf@iis.ee.ethz.ch"
 LABEL org.opencontainers.image.source=https://github.com/pulp-platform/snitch_cluster
 
-RUN apt update && \
-    apt install -y --no-install-recommends \
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
         # General requirements
         curl wget build-essential git \
         # Required for python
@@ -87,10 +87,10 @@ RUN apt update && \
         device-tree-compiler && \
     # Install Python
     apt-add-repository ppa:deadsnakes/ppa && \
-    apt update && \
-    apt install -y --no-install-recommends \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
         python${PYTHON_VERSION}-venv && \
-    apt clean && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 # Copy all needed files to install the package
