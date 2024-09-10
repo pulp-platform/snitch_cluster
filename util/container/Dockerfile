@@ -16,6 +16,8 @@ ARG VERIBLE_VERSION=0.0-3318-g8d254167
 ARG SNITCH_LLVM_VERSION=latest
 ARG RUST_VERSION=1.63.0
 ARG UBUNTU_VERSION
+# Run dpkg without interactive dialogue
+ARG DEBIAN_FRONTEND=noninteractive
 
 # Install APT requirements
 RUN apt update && \
