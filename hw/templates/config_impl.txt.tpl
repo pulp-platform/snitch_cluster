@@ -1,7 +1,3 @@
-// Copyright 2024 KU Leuven.
-// Solderpad Hardware License, Version 0.51, see LICENSE for details.
-// SPDX-License-Identifier: SHL-0.51
-
 <%def name="icache_cfg(prop)">\
   % for lw in cfg['hives']:
 ${lw['icache'][prop]}${',' if not loop.last else ''}\
