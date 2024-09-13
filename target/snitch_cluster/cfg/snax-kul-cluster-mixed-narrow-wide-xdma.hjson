@@ -101,10 +101,8 @@
         snax_acc_cfg: {
             snax_acc_name: "snax_streamer_gemmX",
             bender_target: ["snax_gemmX","snax_KUL_xdma_cluster_xdma"],
-            // add a checker here?
-            // some of the tcdm ports specificed here?
-            snax_narrow_tcdm_ports: 56,
-            // snax_wide_tcdm_ports: 48,
+            snax_narrow_tcdm_ports: 8,
+            snax_wide_tcdm_ports: 48,
             snax_num_rw_csr: 10,
             snax_num_ro_csr: 2,
             snax_streamer_cfg: {$ref: "#/snax_streamer_gemmX_streamer_template" }
