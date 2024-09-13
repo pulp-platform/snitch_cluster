@@ -28,6 +28,7 @@ uint32_t test_streamer_test_val3 = 0xdeadbeef;
 uint32_t test_streamer_test_val4 = 0x01010101;
 uint32_t test_streamer_test_val5 = 0x55551111;
 uint32_t test_streamer_test_val6 = 0x7189cdef;
+uint32_t test_streamer_test_val7 = 0x1f9d39a0;
 
 // Need to leave core_config LSB as 0
 // Since it starts the core
@@ -65,6 +66,7 @@ uint32_t golden_streamer_test_val3 = 0xdeadbeef;
 uint32_t golden_streamer_test_val4 = 0x01010101;
 uint32_t golden_streamer_test_val5 = 0x55551111;
 uint32_t golden_streamer_test_val6 = 0x7189cdef;
+uint32_t golden_streamer_test_val7 = 0x1f9d39a0;
 
 uint32_t golden_core_config = 0x0000003c;
 uint32_t golden_am_num_predict = 0xffffffff;

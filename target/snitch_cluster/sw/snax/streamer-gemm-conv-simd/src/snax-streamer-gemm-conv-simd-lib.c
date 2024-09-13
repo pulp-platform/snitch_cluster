@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include "snrt.h"
 #include "stdint.h"
+#include "streamer_csr_addr_map.h"
 
 int32_t gen_size_config(uint8_t Batch, uint8_t M, uint8_t K, uint8_t N) {
     return ((int32_t)Batch << 24) | ((int32_t)M << 16) | ((int32_t)K << 8) |
@@ -54,115 +55,127 @@ void set_gemmx_streamer_csr(
     int delta_local_a, int delta_local_b, int delta_local_d8, int delta_local_c,
     int delta_local_d32, int bypassSIMD, int32_t transpose_A,
     int32_t transpose_B) {
+    // base ptr for A
+    csrw_ss(BASE_PTR_READER_0_LOW, (uint32_t)(delta_local_a + snrt_l1_next()));
+
+    // spatial strides for A
+    csrw_ss(S_STRIDE_READER_0_0, Aslstride1);
+
     // loop bounds, from innermost to outermost, for data mover A
-    write_csr(960, Atlbound0);
-    write_csr(961, Atlbound1);
-    write_csr(962, Atlbound2);
-    write_csr(963, Atlbound3);
-    write_csr(964, Atlbound4);
-    write_csr(965, Atlbound5);
+    csrw_ss(T_BOUND_READER_0_0, Atlbound0);
+    csrw_ss(T_BOUND_READER_0_1, Atlbound1);
+    csrw_ss(T_BOUND_READER_0_2, Atlbound2);
+    csrw_ss(T_BOUND_READER_0_3, Atlbound3);
+    csrw_ss(T_BOUND_READER_0_4, Atlbound4);
+    csrw_ss(T_BOUND_READER_0_5, Atlbound5);
+
+    // temporal strides for A
+    csrw_ss(T_STRIDE_READER_0_0, Atlstride0);
+    csrw_ss(T_STRIDE_READER_0_1, Atlstride1);
+    csrw_ss(T_STRIDE_READER_0_2, Atlstride2);
+    csrw_ss(T_STRIDE_READER_0_3, Atlstride3);
+    csrw_ss(T_STRIDE_READER_0_4, Atlstride4);
+    csrw_ss(T_STRIDE_READER_0_5, Atlstride5);
+
+    // base ptr for B
+    csrw_ss(BASE_PTR_READER_1_LOW, (uint32_t)(delta_local_b + snrt_l1_next()));
+
+    // spatial strides for B
+    csrw_ss(S_STRIDE_READER_1_0, Bslstride1);
 
     // loop bounds, from innermost to outermost, for data mover B
-    write_csr(966, Btlbound0);
-    write_csr(967, Btlbound1);
-    write_csr(968, Btlbound2);
+    csrw_ss(T_BOUND_READER_1_0, Btlbound0);
+    csrw_ss(T_BOUND_READER_1_1, Btlbound1);
+    csrw_ss(T_BOUND_READER_1_2, Btlbound2);
+
+    // temporal strides for B
+    csrw_ss(T_STRIDE_READER_1_0, Btlstride0);
+    csrw_ss(T_STRIDE_READER_1_1, Btlstride1);
+    csrw_ss(T_STRIDE_READER_1_2, Btlstride2);
+
+    // base ptr for D8
+    csrw_ss(BASE_PTR_WRITER_0_LOW, (uint32_t)(delta_local_d8 + snrt_l1_next()));
+
+    // spatial strides for D8
+    csrw_ss(S_STRIDE_WRITER_0_0, D8slstride1);
 
     // for D8, from N to M
     if (bypassSIMD == 0) {
-        write_csr(969, D8tlbound0);
-        write_csr(970, D8tlbound1);
-        write_csr(971, D8tlbound2);
+        csrw_ss(T_BOUND_WRITER_0_0, D8tlbound0);
+        csrw_ss(T_BOUND_WRITER_0_1, D8tlbound1);
+        csrw_ss(T_BOUND_WRITER_0_2, D8tlbound2);
     } else {
-        write_csr(969, 0);
-        write_csr(970, 0);
-        write_csr(971, 0);
+        csrw_ss(T_BOUND_WRITER_0_0, 0);
+        csrw_ss(T_BOUND_WRITER_0_1, 0);
+        csrw_ss(T_BOUND_WRITER_0_2, 0);
     }
 
+    // temporal strides for D8
+    csrw_ss(T_STRIDE_WRITER_0_0, D8tlstride0);
+    csrw_ss(T_STRIDE_WRITER_0_1, D8tlstride1);
+    csrw_ss(T_STRIDE_WRITER_0_2, D8tlstride2);
+
+    // base ptr for C
+    csrw_ss(BASE_PTR_READER_WRITER_0_LOW,
+            (uint32_t)(delta_local_c + snrt_l1_next()));
+
+    // spatial strides for C
+    csrw_ss(S_STRIDE_READER_WRITER_0_0, Cslstride1);
+
     // loop bounds, from innermost to outermost, for data mover C
-    write_csr(972, Ctlbound0);
-    write_csr(973, Ctlbound1);
-    write_csr(974, Ctlbound2);
+    csrw_ss(T_BOUND_READER_WRITER_0_0, Ctlbound0);
+    csrw_ss(T_BOUND_READER_WRITER_0_1, Ctlbound1);
+    csrw_ss(T_BOUND_READER_WRITER_0_2, Ctlbound2);
+
+    // temporal strides for C
+    csrw_ss(T_STRIDE_READER_WRITER_0_0, Ctlstride0);
+    csrw_ss(T_STRIDE_READER_WRITER_0_1, Ctlstride1);
+    csrw_ss(T_STRIDE_READER_WRITER_0_2, Ctlstride2);
+
+    // base ptr for D32
+    csrw_ss(BASE_PTR_READER_WRITER_1_LOW,
+            (uint32_t)(delta_local_d32 + snrt_l1_next()));
+
+    // spatial strides for D32
+    csrw_ss(S_STRIDE_READER_WRITER_1_0, D32slstride1);
 
     // for D32, from N to M
     if (bypassSIMD == 0) {
-        write_csr(975, 0);
-        write_csr(976, 0);
-        write_csr(977, 0);
+        csrw_ss(T_BOUND_READER_WRITER_1_0, 0);
+        csrw_ss(T_BOUND_READER_WRITER_1_1, 0);
+        csrw_ss(T_BOUND_READER_WRITER_1_2, 0);
     } else {
-        write_csr(975, D32tlbound0);
-        write_csr(976, D32tlbound1);
-        write_csr(977, D32tlbound2);
+        csrw_ss(T_BOUND_READER_WRITER_1_0, D32tlbound0);
+        csrw_ss(T_BOUND_READER_WRITER_1_1, D32tlbound1);
+        csrw_ss(T_BOUND_READER_WRITER_1_2, D32tlbound2);
     }
 
-    // temporal strides for A
-    write_csr(978, Atlstride0);
-    write_csr(979, Atlstride1);
-    write_csr(980, Atlstride2);
-    write_csr(981, Atlstride3);
-    write_csr(982, Atlstride4);
-    write_csr(983, Atlstride5);
-
-    // temporal strides for B
-    write_csr(984, Btlstride0);
-    write_csr(985, Btlstride1);
-    write_csr(986, Btlstride2);
-
-    // temporal strides for D8
-    write_csr(987, D8tlstride0);
-    write_csr(988, D8tlstride1);
-    write_csr(989, D8tlstride2);
-
-    // temporal strides for C
-    write_csr(990, Ctlstride0);
-    write_csr(991, Ctlstride1);
-    write_csr(992, Ctlstride2);
-
     // temporal strides for D32
-    write_csr(993, D32tlstride0);
-    write_csr(994, D32tlstride1);
-    write_csr(995, D32tlstride2);
-
-    // spatial strides for A
-    write_csr(996, Aslstride0);
-    write_csr(997, Aslstride1);
-
-    // spatial strides for B
-    write_csr(998, Bslstride0);
-    write_csr(999, Bslstride1);
-
-    // spatial strides for D8
-    write_csr(1000, D8slstride0);
-    write_csr(1001, D8slstride1);
-
-    // spatial strides for C
-    write_csr(1002, Cslstride0);
-    write_csr(1003, Cslstride1);
-
-    // spatial strides for D32
-    write_csr(1004, D32slstride0);
-    write_csr(1005, D32slstride1);
-
-    // base ptr for A
-    write_csr(1006, (uint32_t)(delta_local_a + snrt_l1_next()));
-
-    // base ptr for B
-    write_csr(1007, (uint32_t)(delta_local_b + snrt_l1_next()));
-
-    // base ptr for D8
-    write_csr(1008, (uint32_t)(delta_local_d8 + snrt_l1_next()));
-
-    // base ptr for C
-    write_csr(1009, (uint32_t)(delta_local_c + snrt_l1_next()));
-
-    // base ptr for D32
-    write_csr(1010, (uint32_t)(delta_local_d32 + snrt_l1_next()));
-
-    // transpose or not
-    write_csr(1011, (transpose_B) << 1 | transpose_A);
+    csrw_ss(T_STRIDE_READER_WRITER_1_0, D32tlstride0);
+    csrw_ss(T_STRIDE_READER_WRITER_1_1, D32tlstride1);
+    csrw_ss(T_STRIDE_READER_WRITER_1_2, D32tlstride2);
 }
 
 // Set CSR to start STREAMER
-void set_gemmx_streamer_start() { write_csr(1012, 1); }
+void set_gemmx_streamer_start() { csrw_ss(STREAMER_START_CSR, 1); }
+
+#define GEMMX_CSR_ADDR_BASE (STREAMER_PERFORMANCE_COUNTER_CSR + 1)
+#define T_BOUND_K (GEMMX_CSR_ADDR_BASE + 0)
+#define T_BOUND_N (GEMMX_CSR_ADDR_BASE + 1)
+#define T_BOUND_M (GEMMX_CSR_ADDR_BASE + 2)
+
+#define SUBTRACTIONS (GEMMX_CSR_ADDR_BASE + 3)
+
+#define SIMD_CSR0 (GEMMX_CSR_ADDR_BASE + 4)
+#define SIMD_CSR1 (GEMMX_CSR_ADDR_BASE + 5)
+#define SIMD_CSR2 (GEMMX_CSR_ADDR_BASE + 6)
+
+#define TEMPORAL_LOOP_BOUND (GEMMX_CSR_ADDR_BASE + 7)
+#define BYPASS_SIMD (GEMMX_CSR_ADDR_BASE + 8)
+
+#define GEMMX_START (GEMMX_CSR_ADDR_BASE + 9)
+#define GEMMX_BUSY (GEMMX_CSR_ADDR_BASE + 10)
+#define GEMMX_PERFORMANCE_COUNTER (GEMMX_CSR_ADDR_BASE + 11)
 
 // Set GEMM configuration CSR
 void set_gemmx_csr(int tempLoop0, int tempLoop1, int tempLoop2,
@@ -170,42 +183,46 @@ void set_gemmx_csr(int tempLoop0, int tempLoop1, int tempLoop2,
                    uint32_t csr2, uint32_t temporal_loop_bound,
                    uint32_t bypassSIMD) {
     // set loop bounds, from innermost to outermost, aka from K to N to M
-    write_csr(1015, tempLoop0);
-    write_csr(1016, tempLoop1);
-    write_csr(1017, tempLoop2);
+    csrw_ss(T_BOUND_K, tempLoop0);
+    csrw_ss(T_BOUND_N, tempLoop1);
+    csrw_ss(T_BOUND_M, tempLoop2);
 
     // set subtraction a and b
-    write_csr(1018, subtractions);
+    csrw_ss(SUBTRACTIONS, subtractions);
 
     // set the constants for the SIMD unit
-    write_csr(1019, csr0);
-    write_csr(1020, csr1);
-    write_csr(1021, csr2);
+    csrw_ss(SIMD_CSR0, csr0);
+    csrw_ss(SIMD_CSR1, csr1);
+    csrw_ss(SIMD_CSR2, csr2);
 
     // set the temporal loop bound
-    write_csr(1022, temporal_loop_bound);
-    write_csr(1023, bypassSIMD);
+    csrw_ss(TEMPORAL_LOOP_BOUND, temporal_loop_bound);
+    csrw_ss(BYPASS_SIMD, bypassSIMD);
 }
 
 // Set CSR to start GEMM
-void set_gemmx_start() { write_csr(1024, 1); }
+void set_gemmx_start() { csrw_ss(GEMMX_START, 1); }
 
 // Stall until Streamer and GEMM accelerator finish
 void wait_gemmx_and_streamer() {
-    write_csr(1012, 0);
-    write_csr(1012, 0);
-    write_csr(1024, 0);
+    csrw_ss(STREAMER_START_CSR, 0);
+    csrw_ss(STREAMER_START_CSR, 0);
+    while (csrr_ss(GEMMX_BUSY)) {
+    }
+    while (csrr_ss(STREAMER_BUSY_CSR)) {
+    }
+    csrw_ss(GEMMX_START, 0);
 }
 
 // Read performance counter of the Streamer, a read-only CSR
 uint32_t read_gemmx_streamer_perf_counter() {
-    uint32_t perf_counter = read_csr(1014);
+    uint32_t perf_counter = csrr_ss(STREAMER_PERFORMANCE_COUNTER_CSR);
     return perf_counter;
 }
 
 // Read performance counter of GEMM, a read-only CSR
 uint32_t read_gemmx_perf_counter() {
-    uint32_t perf_counter = read_csr(1026);
+    uint32_t perf_counter = csrr_ss(GEMMX_PERFORMANCE_COUNTER);
     return perf_counter;
 }
 

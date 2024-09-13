@@ -2,7 +2,7 @@ package snax.xdma.xdmaExtension
 
 import chisel3._
 import chisel3.util._
-import snax.xdma.CommonCells.DecoupledCut._
+import snax.utils.DecoupledCut._
 import snax.xdma.DesignParams._
 
 // MAXPoolPE module
@@ -45,7 +45,7 @@ class MaxPool(elementWidth: Int)(implicit extensionParam: DMAExtensionParam)
 
   // Counter to record the steps
   // 256-element MaxPool maximum
-  val counter = Module(new snax.xdma.xdmaStreamer.BasicCounter(8) {
+  val counter = Module(new snax.readerWriter.BasicCounter(8) {
     override val desiredName = "xdma_extension_MaxPoolCounter"
   })
   counter.io.ceil := ext_csr_i(0)

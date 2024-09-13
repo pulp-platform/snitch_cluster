@@ -313,7 +313,7 @@ sources:
       - hw/snax_alu/src/snax_alu_csr.sv
       - hw/snax_alu/src/snax_alu_pe.sv
       - target/snitch_cluster/generated/snax_alu/snax_alu_csrman_CsrManager.sv
-      - target/snitch_cluster/generated/snax_alu/snax_alu_streamer_StreamerTop.sv
+      - target/snitch_cluster/generated/snax_alu/snax_alu_Streamer.sv
       # Level 1
       - hw/snax_alu/src/snax_alu_shell_wrapper.sv
       - target/snitch_cluster/generated/snax_alu/snax_alu_csrman_wrapper.sv
@@ -325,7 +325,7 @@ sources:
   - target: hypercorex
     files:
       # Level 0
-      - target/snitch_cluster/generated/snax_hypercorex/snax_hypercorex_streamer_StreamerTop.sv
+      - target/snitch_cluster/generated/snax_hypercorex/snax_hypercorex_Streamer.sv
       # Level 1
       - hw/snax_hypercorex/snax_hypercorex_shell_wrapper.sv
       - target/snitch_cluster/generated/snax_hypercorex/snax_hypercorex_streamer_wrapper.sv
@@ -336,7 +336,7 @@ sources:
   - target: dimc
     files:
       # Level 0
-      - target/snitch_cluster/generated/snax_dimc/snax_dimc_streamer_StreamerTop.sv
+      - target/snitch_cluster/generated/snax_dimc/snax_dimc_Streamer.sv
       # Level 1
       # TODO: implement this wrapepr file
       - hw/snax_dimc/snax_dimc_shell_wrapper.sv
@@ -349,7 +349,7 @@ sources:
     files:
       # Level 0
       - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_csrman_CsrManager.sv
-      - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_streamer_StreamerTop.sv
+      - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_Streamer.sv
       # Level 1
       - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_csrman_wrapper.sv
       - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_streamer_wrapper.sv
@@ -362,7 +362,7 @@ sources:
       - hw/chisel_acc/generated/gemm/BlockGemm.sv
       - hw/chisel_acc/src/snax_streamer_gemm_add_c_shell_wrapper.sv
       - target/snitch_cluster/generated/snax_streamer_gemm_add_c/snax_streamer_gemm_add_c_csrman_CsrManager.sv
-      - target/snitch_cluster/generated/snax_streamer_gemm_add_c/snax_streamer_gemm_add_c_streamer_StreamerTop.sv
+      - target/snitch_cluster/generated/snax_streamer_gemm_add_c/snax_streamer_gemm_add_c_Streamer.sv
       # Level 1
       - target/snitch_cluster/generated/snax_streamer_gemm_add_c/snax_streamer_gemm_add_c_csrman_wrapper.sv
       - target/snitch_cluster/generated/snax_streamer_gemm_add_c/snax_streamer_gemm_add_c_streamer_wrapper.sv
@@ -373,7 +373,7 @@ sources:
     files:
       # Level 0
       - target/snitch_cluster/generated/snax_streamer_simd/snax_streamer_simd_csrman_CsrManager.sv
-      - target/snitch_cluster/generated/snax_streamer_simd/snax_streamer_simd_streamer_StreamerTop.sv
+      - target/snitch_cluster/generated/snax_streamer_simd/snax_streamer_simd_Streamer.sv
       # Level 1
       - target/snitch_cluster/generated/snax_streamer_simd/snax_streamer_simd_csrman_wrapper.sv
       - target/snitch_cluster/generated/snax_streamer_simd/snax_streamer_simd_streamer_wrapper.sv
@@ -385,7 +385,7 @@ sources:
       # Level 0
       - hw/chisel_acc/generated/reshuffle/Reshuffler.sv
       - target/snitch_cluster/generated/snax_data_reshuffler/snax_data_reshuffler_csrman_CsrManager.sv
-      - target/snitch_cluster/generated/snax_data_reshuffler/snax_data_reshuffler_streamer_StreamerTop.sv
+      - target/snitch_cluster/generated/snax_data_reshuffler/snax_data_reshuffler_Streamer.sv
       # Level 1
       - target/snitch_cluster/generated/snax_data_reshuffler/snax_data_reshuffler_csrman_wrapper.sv
       - target/snitch_cluster/generated/snax_data_reshuffler/snax_data_reshuffler_streamer_wrapper.sv
@@ -399,7 +399,7 @@ sources:
       - hw/chisel_acc/generated/gemmx/BlockGemmRescaleSIMD.sv
       - hw/chisel_acc/src/snax_streamer_gemmX_shell_wrapper.sv
       - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_csrman_CsrManager.sv
-      - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_streamer_StreamerTop.sv
+      - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_Streamer.sv
       # Level 1
       - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_csrman_wrapper.sv
       - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_streamer_wrapper.sv

@@ -131,35 +131,20 @@
     // SNAX Streamer Templates
     snax_alu_streamer_template :{
 
-        temporal_addrgen_unit_params: {
-            loop_dim: [1],
-            share_temp_addr_gen_loop_bounds: true,
-        }
-
-        fifo_reader_params: {
-            fifo_width: [256, 256],
-            fifo_depth: [8, 8],
-        }
-
-        fifo_writer_params: {
-            fifo_width: [256],
-            fifo_depth: [8],
-        }
-
-        data_reader_params:{
-            tcdm_ports_num: [4, 4],
+        data_reader_params: {
             spatial_bounds: [[4], [4]],
-            spatial_dim: [1,1],
-            element_width: [64,64],
-        }
+            temporal_dim: [1, 1],
+            num_channel: [4, 4],
+            fifo_depth: [8, 8],
+        },
 
         data_writer_params:{
-            tcdm_ports_num: [4],
             spatial_bounds: [[4]],
-            spatial_dim: [1],
-            element_width: [64],
-        }
+            temporal_dim: [1],
+            num_channel: [4],
+            fifo_depth: [8],
+        },
 
-        stationarity: [0,0,0]
+        snax_library_name: "snax-alu",
     }
 }

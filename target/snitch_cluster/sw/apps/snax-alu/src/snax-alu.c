@@ -5,6 +5,8 @@
 #include "snrt.h"
 
 #include "data.h"
+#include "snax-alu-lib.h"
+#include "streamer_csr_addr_map.h"
 
 int main() {
     // Set err value for checking
@@ -46,59 +48,29 @@ int main() {
         // setting of CSRs for the accelerator
         uint32_t start_csr_setup = snrt_mcycle();
 
-        //------------------------------
-        // 1st set the streamer CSRs
-        // The list of CSRs are:
-        // 0x3c0 - loop bound for all components (RW)
-        // 0x3c1 - temporal stride for input A (RW)
-        // 0x3c2 - temporal stride for input B (RW)
-        // 0x3c3 - temporal stride for output O (RW)
-        // 0x3c4 - spatial stride for input A (RW)
-        // 0x3c5 - spatial stride for input B (RW)
-        // 0x3c6 - spatial stride for input O (RW)
-        // 0x3c7 - base pointer for input A (RW)
-        // 0x3c8 - base pointer for input B (RW)
-        // 0x3c9 - base pointer for input O (RW)
-        // 0x3ca - send configurations to streamer (RW)
-        // 0x3cb - busy state of the ALU (RO)
-        // 0x3cc - performance counter of streamer (RO)
-        //------------------------------
-        write_csr(0x3c0, LOOP_ITER);
-        write_csr(0x3c1, 32);
-        write_csr(0x3c2, 32);
-        write_csr(0x3c3, 32);
-        write_csr(0x3c4, 8);
-        write_csr(0x3c5, 8);
-        write_csr(0x3c6, 8);
-        write_csr(0x3c7, (uint64_t)local_a);
-        write_csr(0x3c8, (uint64_t)local_b);
-        write_csr(0x3c9, (uint64_t)local_o);
+        // Configure streamer settings
+        configure_streamer_a((uint64_t)local_a, 0, 8, LOOP_ITER, 32);
 
-        //------------------------------
-        // 2nd set the CSRs of the accelerator
-        // 0x3cd - mode of the ALU (RW)
-        //       - 0 for add, 1 for sub, 2 for mul, 3 for XOR
-        // 0x3ce - length of data (RW)
-        // 0x3cf - send configurations to accelerator (RW)
-        // 0x3d0 - busy status (RO)
-        // 0x3d1 - performance counter (RO)
-        //------------------------------
-        write_csr(0x3cd, MODE);
-        write_csr(0x3ce, LOOP_ITER);
+        configure_streamer_b((uint64_t)local_b, 0, 8, LOOP_ITER, 32);
+
+        configure_streamer_o((uint64_t)local_o, 0, 8, LOOP_ITER, 32);
+
+        // Configure ALU settings
+        configure_alu(MODE, LOOP_ITER);
 
         // Start streamer then start ALU
-        write_csr(0x3ca, 1);
-        write_csr(0x3cf, 1);
+        start_streamer();
+        start_alu();
 
         // Mark the end of the CSR setup cycles
         uint32_t end_csr_setup = snrt_mcycle();
 
         // Do this to poll the accelerator
-        while (read_csr(0x3d0)) {
+        while (read_busy_alu()) {
         };
 
         // Do this to poll the streamer state
-        while (read_csr(0x3cb)) {
+        while (read_busy_streamer()) {
         };
 
         // Compare results and check if the
@@ -111,7 +83,7 @@ int main() {
         }
 
         // Read performance counter
-        uint32_t perf_count = read_csr(0x3d0);
+        uint32_t perf_count = csrr_ss(ALU_RO_PERF_COUNT);
 
         printf("Accelerator Done! \n");
         printf("Accelerator Cycles: %d \n", perf_count);

@@ -103,8 +103,8 @@
             bender_target: ["snax_gemmX","snax_KUL_xdma_cluster_xdma"],
             // add a checker here?
             // some of the tcdm ports specificed here?
-            snax_narrow_tcdm_ports: 8,
-            snax_wide_tcdm_ports: 48,
+            snax_narrow_tcdm_ports: 56,
+            // snax_wide_tcdm_ports: 48,
             snax_num_rw_csr: 10,
             snax_num_ro_csr: 2,
             snax_streamer_cfg: {$ref: "#/snax_streamer_gemmX_streamer_template" }
@@ -156,83 +156,27 @@
     // SNAX Streamer Templates
     snax_streamer_gemmX_streamer_template :{
 
-        temporal_addrgen_unit_params: {
-            loop_dim: [6, 3, 3, 3, 3],
-            share_temp_addr_gen_loop_bounds: false,
-        }
-
-        fifo_reader_params: {
-            fifo_width: [512, 512],
+        data_reader_params: {
+            spatial_bounds: [[8], [8]],
+            temporal_dim: [6, 3],
+            num_channel: [8, 8],
             fifo_depth: [2, 2],
-        }
-
-        fifo_writer_params: {
-            fifo_width: [512],
-            fifo_depth: [2],
-        }
-
-        fifo_reader_writer_params: {
-            fifo_width: [2048],
-            fifo_depth: [2],
-        }
-
-        data_reader_params:{
-            tcdm_ports_num: [8, 8],
-            spatial_bounds: [[8, 8], [8, 8]],
-            spatial_dim: [2, 2],
-            element_width: [8, 8],
-        }
+        },
 
         data_writer_params:{
-            tcdm_ports_num: [8],
-            spatial_bounds: [[8, 8]],
-            spatial_dim: [2],
-            element_width: [8],
-        }
+            spatial_bounds: [[8]],
+            temporal_dim: [3],
+            num_channel: [8],
+            fifo_depth: [2],
+        },
 
         data_reader_writer_params:{
-            tcdm_ports_num: [32],
-            spatial_bounds: [[8, 8]],
-            spatial_dim: [2],
-            element_width: [32],
-        }
+            spatial_bounds: [[32], [32]],
+            temporal_dim: [3, 3],
+            num_channel: [32, 32],
+            fifo_depth: [2, 2],
+        },
 
-        stationarity: [0,0,0,0,0]
-
-        has_transpose: true
-    },
-    // SNAX Streamer Templates
-    snax_data_reshuffler_streamer_template :{
-
-        temporal_addrgen_unit_params: {
-            loop_dim: [5, 3],
-            share_temp_addr_gen_loop_bounds: false,
-        }
-
-        fifo_reader_params: {
-            fifo_width: [512],
-            fifo_depth: [2],
-        }
-
-        fifo_writer_params: {
-            fifo_width: [512],
-            fifo_depth: [2],
-        }
-
-        data_reader_params:{
-            tcdm_ports_num: [8],
-            spatial_bounds: [[8]],
-            spatial_dim: [1],
-            element_width: [64],
-        }
-
-        data_writer_params:{
-            tcdm_ports_num: [8],
-            spatial_bounds: [[8]],
-            spatial_dim: [1],
-            element_width: [64],
-        }
-
-        stationarity: [0,0]
+        snax_library_name: "streamer-gemm-conv-simd",
     }
 }

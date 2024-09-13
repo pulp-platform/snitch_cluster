@@ -337,7 +337,7 @@ def emit_conv_data(**kwargs):
     if kwargs["ifC8HW8datalayout"] is True:
         # NHWC
         Cslstride0 = 4
-        Cslstride1 = 32
+        Cslstride1 = 8
 
         # N dim
         Ctlbound0 = Cout // 8
@@ -357,7 +357,7 @@ def emit_conv_data(**kwargs):
 
     else:
         Cslstride0 = 4
-        Cslstride1 = Cout * 4
+        Cslstride1 = 8
 
         # N dim
         Ctlbound0 = Cout // 8
@@ -398,7 +398,7 @@ def emit_conv_data(**kwargs):
 
     if kwargs["ifC8HW8datalayout"] is True:
         D32slstride0 = 1 * 4
-        D32slstride1 = 8 * 4
+        D32slstride1 = 8
 
         # N dim
         D32tlbound0 = Cout // 8
@@ -419,7 +419,7 @@ def emit_conv_data(**kwargs):
         # D32 is int32_t so the stride is 4 times of the int8_t
         D32out = Cout
         D32slstride0 = 1 * 4
-        D32slstride1 = D32out * 4
+        D32slstride1 = 8
 
         # N dim
         D32tlbound0 = D32out // 8
@@ -586,7 +586,7 @@ def emit_matmul_data(**kwargs):
     data_str += [format_scalar_definition("int32_t", "Btlstride2", 0)]
 
     data_str += [format_scalar_definition("int32_t", "Cslstride0", 4)]
-    data_str += [format_scalar_definition("int32_t", "Cslstride1", 32)]
+    data_str += [format_scalar_definition("int32_t", "Cslstride1", 8)]
     data_str += [format_scalar_definition("int32_t", "Ctlbound0", kwargs["N"])]
     data_str += [format_scalar_definition("int32_t", "Ctlstride0", 256)]
     data_str += [format_scalar_definition("int32_t", "Ctlbound1", kwargs["M"])]
@@ -595,7 +595,7 @@ def emit_matmul_data(**kwargs):
     data_str += [format_scalar_definition("int32_t", "Ctlstride2", 0)]
 
     data_str += [format_scalar_definition("int32_t", "D32slstride0", 4)]
-    data_str += [format_scalar_definition("int32_t", "D32slstride1", 32)]
+    data_str += [format_scalar_definition("int32_t", "D32slstride1", 8)]
     data_str += [format_scalar_definition("int32_t", "D32tlbound0", kwargs["N"])]
     data_str += [format_scalar_definition("int32_t", "D32tlstride0", 256)]
     data_str += [format_scalar_definition("int32_t", "D32tlbound1", kwargs["M"])]

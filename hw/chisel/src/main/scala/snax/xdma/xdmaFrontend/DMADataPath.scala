@@ -5,11 +5,17 @@ import chisel3.util._
 
 import snax.utils._
 
-import snax.xdma.CommonCells.DecoupledCut._
-import snax.xdma.CommonCells.BitsConcat._
+import snax.utils.DecoupledCut._
+import snax.utils.BitsConcat._
 
-import snax.xdma.xdmaStreamer._
-import snax.xdma.CommonCells._
+import snax.readerWriter.{
+  AddressGenUnitCfgIO,
+  ReaderWriterCfgIO,
+  Reader,
+  Writer,
+  ReaderWriterParam
+}
+import snax.readerWriter._
 import snax.xdma.DesignParams._
 
 // The ReaderWriterCfg Class that used for interface between local Datapath and DMA Ctrl
@@ -189,10 +195,10 @@ class DMADataPath(
   })
 
   val reader = Module(
-    new Reader(readerparam.rwParam, clusterName = clusterName)
+    new Reader(readerparam.rwParam, moduleNamePrefix = clusterName)
   )
   val i_writer = Module(
-    new Writer(writerparam.rwParam, clusterName = clusterName)
+    new Writer(writerparam.rwParam, moduleNamePrefix = clusterName)
   )
 
   // Connect TCDM memory to reader and writer

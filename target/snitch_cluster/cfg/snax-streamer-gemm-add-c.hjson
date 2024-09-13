@@ -132,35 +132,20 @@
     // SNAX Streamer Templates
     snax_streamer_gemm_add_c_streamer_template :{
 
-        temporal_addrgen_unit_params: {
-            loop_dim: [3],
-            share_temp_addr_gen_loop_bounds: true,
-        }
-
-        fifo_reader_params: {
-            fifo_width: [512, 512],
+        data_reader_params: {
+            spatial_bounds: [[8], [8]],
+            temporal_dim: [3, 3],
+            num_channel: [8, 8],
             fifo_depth: [2, 2],
         }
 
-        fifo_reader_writer_params: {
-            fifo_width: [2048],
-            fifo_depth: [2],
-        }
-
-        data_reader_params:{
-            tcdm_ports_num: [8, 8],
-            spatial_bounds: [[8, 8], [8, 8]],
-            spatial_dim: [2, 2],
-            element_width: [8, 8],
-        }
-
         data_reader_writer_params:{
-            tcdm_ports_num: [32],
-            spatial_bounds: [[8, 8]],
-            spatial_dim: [2],
-            element_width: [32],
+            spatial_bounds: [[32], [32]],
+            temporal_dim: [3, 3],
+            num_channel: [32, 32],
+            fifo_depth: [2, 2],
         }
 
-        stationarity: [0,0,1,1]
+        snax_library_name: "streamer-gemm-add-c"
     }
 }

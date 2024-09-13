@@ -2,17 +2,22 @@ package snax.xdma.xdmaFrontend
 
 import chisel3._
 import chisel3.util._
+
+// Hardware and its Generation Param
+import snax.xdma.xdmaFrontend.DMADataPath
+import snax.xdma.DesignParams.{DMADataPathParam, AXIParam}
+import snax.readerWriter.ReaderWriterParam
+import snax.xdma.xdmaTop.xdmaTopGen.axiParam
+
 // Import Chiseltest
 import chiseltest._
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.flatspec.AnyFlatSpec
+
 // Import Random number generator
 import scala.util.Random
 // Import break support for loops
 import scala.util.control.Breaks.{break, breakable}
-import snax.xdma.xdmaFrontend.DMADataPath
-import snax.xdma.DesignParams.{DMADataPathParam, ReaderWriterParam, AXIParam}
-import snax.xdma.xdmaTop.xdmaTopGen.axiParam
 
 class ReaderWriterTesterParam(
     val address: Int,

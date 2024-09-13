@@ -2,7 +2,7 @@ package snax.xdma.xdmaExtension
 
 import chisel3._
 import chisel3.util._
-import snax.xdma.DesignParams.DMAExtensionParam
+import snax.xdma.DesignParams._
 
 object HasMemset extends HasDMAExtension {
   implicit val extensionParam: DMAExtensionParam = new DMAExtensionParam(

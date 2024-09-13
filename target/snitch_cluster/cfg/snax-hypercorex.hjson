@@ -139,35 +139,20 @@
     // SNAX Streamer Templates
     snax_hypercorex_streamer_template :{
 
-        temporal_addrgen_unit_params: {
-            loop_dim: [2,2,2,2,2,2,2],
-            share_temp_addr_gen_loop_bounds: false,
-        }
-
-        fifo_reader_params: {
-            fifo_width: [64,64,512,512,512],
-            fifo_depth: [4,4,4,4,4],
-        }
-
-        fifo_writer_params: {
-            fifo_width: [64, 512],
-            fifo_depth: [4, 4],
-        }
-
-        data_reader_params:{
-            tcdm_ports_num: [1,1,8,8,8],
-            spatial_bounds: [[1],[1],[8],[8],[8]],
-            spatial_dim: [1,1,1,1,1],
-            element_width: [64,64,64,64,64],
-        }
+        data_reader_params: {
+            spatial_bounds: [[1], [1], [8], [8], [8]],
+            temporal_dim: [2, 2, 2, 2, 2],
+            num_channel: [1, 1, 8, 8, 8],
+            fifo_depth: [4, 4, 4, 4, 4],
+        },
 
         data_writer_params:{
-            tcdm_ports_num: [1,8],
-            spatial_bounds: [[1],[8]],
-            spatial_dim: [1,1],
-            element_width: [64,64],
-        }
+            spatial_bounds: [[1], [8]],
+            temporal_dim: [2, 2],
+            num_channel: [1, 8],
+            fifo_depth: [4, 4],
+        },
 
-        stationarity: [0,0,0,0,0,0,0]
+        snax_library_name: "hypercorex",
     }
 }

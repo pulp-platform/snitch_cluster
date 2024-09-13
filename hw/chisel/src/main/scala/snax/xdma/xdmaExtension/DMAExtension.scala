@@ -4,7 +4,6 @@ import chisel3._
 import chisel3.util._
 
 import snax.utils._
-import snax.xdma.CommonCells._
 import snax.xdma.DesignParams._
 
 /** The parent (abstract) Class for the DMA Extension Generation Params This

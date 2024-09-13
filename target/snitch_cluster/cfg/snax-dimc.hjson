@@ -132,35 +132,21 @@
     // SNAX Streamer Templates
     snax_dimc_streamer_template :{
 
-        temporal_addrgen_unit_params: {
-            loop_dim: [2,2,2,2,2],
-            share_temp_addr_gen_loop_bounds: false,
-        }
-
-        fifo_reader_params: {
-            fifo_width: [512, 512, 512, 512],
-            fifo_depth: [4, 4, 4, 4],
-        }
-
-        fifo_writer_params: {
-            fifo_width: [512],
-            fifo_depth: [4],
-        }
-
-        data_reader_params:{
-            tcdm_ports_num: [8, 8, 8, 8],
+        data_reader_params: {
             spatial_bounds: [[8], [8], [8], [8]],
-            spatial_dim: [1,1,1,1],
-            element_width: [64,64,64,64],
-        }
+            temporal_dim: [2, 2, 2, 2],
+            num_channel: [8, 8, 8, 8],
+            fifo_depth: [4, 4, 4, 4],
+        },
 
         data_writer_params:{
-            tcdm_ports_num: [8],
             spatial_bounds: [[8]],
-            spatial_dim: [1],
-            element_width: [64],
-        }
+            temporal_dim: [2],
+            num_channel: [8],
+            fifo_depth: [4],
+        },
 
-        stationarity: [0,0,0,0,0]
+        snax_library_name: "dimc",
+
     }
 }

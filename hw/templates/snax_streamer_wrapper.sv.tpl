@@ -11,17 +11,17 @@
   num_writer_offset = 0
 
   if("data_reader_params" in cfg["snax_streamer_cfg"]):
-      num_tcdm_reader = sum(cfg["snax_streamer_cfg"]["data_reader_params"]["tcdm_ports_num"])
-      num_reader_offset = len(cfg["snax_streamer_cfg"]["data_reader_params"]["tcdm_ports_num"])
+      num_tcdm_reader = sum(cfg["snax_streamer_cfg"]["data_reader_params"]["num_channel"])
+      num_reader_offset = len(cfg["snax_streamer_cfg"]["data_reader_params"]["num_channel"])
 
   if("data_writer_params" in cfg["snax_streamer_cfg"]):
-      num_tcdm_writer = sum(cfg["snax_streamer_cfg"]["data_writer_params"]["tcdm_ports_num"])
-      num_writer_offset = len(cfg["snax_streamer_cfg"]["data_writer_params"]["tcdm_ports_num"])
+      num_tcdm_writer = sum(cfg["snax_streamer_cfg"]["data_writer_params"]["num_channel"])
+      num_writer_offset = len(cfg["snax_streamer_cfg"]["data_writer_params"]["num_channel"])
 
   if("data_reader_writer_params" in cfg["snax_streamer_cfg"]):
-      num_tcdm_reader_writer = sum(cfg["snax_streamer_cfg"]["data_reader_writer_params"]["tcdm_ports_num"])
+      num_tcdm_reader_writer = sum(cfg["snax_streamer_cfg"]["data_reader_writer_params"]["num_channel"])
 
-  num_tcdm_ports = num_tcdm_reader + num_tcdm_writer + num_tcdm_reader_writer
+  num_tcdm_ports = num_tcdm_reader + num_tcdm_writer + int(num_tcdm_reader_writer / 2)
 %>
 //-----------------------------
 // Streamer wrapper
@@ -43,40 +43,45 @@ module ${cfg["tag_name"]}_streamer_wrapper #(
   //-----------------------------
   // Accelerator ports
   //-----------------------------
-% if "fifo_writer_params" in cfg["snax_streamer_cfg"]:
+% if "data_writer_params" in cfg["snax_streamer_cfg"]:
   // Ports from accelerator to streamer by writer data movers
-% for idx, dw in enumerate(cfg["snax_streamer_cfg"]["fifo_writer_params"]["fifo_width"]):
-  input  logic [${dw-1}:0] acc2stream_${idx}_data_i,
+% for idx, dw in enumerate(cfg["snax_streamer_cfg"]["data_writer_params"]["num_channel"]):
+  input  logic [${dw*cfg["tcdm_data_width"]-1}:0] acc2stream_${idx}_data_i,
   input  logic acc2stream_${idx}_valid_i,
   output logic acc2stream_${idx}_ready_o,
 
 % endfor
 % endif
-% if "fifo_reader_writer_params" in cfg["snax_streamer_cfg"]:
+% if "data_reader_writer_params" in cfg["snax_streamer_cfg"]:
   // Ports from accelerator to streamer by reader-writer data movers
-% for idx, dw in enumerate(cfg["snax_streamer_cfg"]["fifo_reader_writer_params"]["fifo_width"]):
-  input  logic [${dw-1}:0] acc2stream_${idx+num_writer_offset}_data_i,
-  input  logic acc2stream_${idx+num_writer_offset}_valid_i,
-  output logic acc2stream_${idx+num_writer_offset}_ready_o,
+% for idx, dw in enumerate(cfg["snax_streamer_cfg"]["data_reader_writer_params"]["num_channel"]):
+% if idx % 2 == 0:
+  input  logic [${dw*cfg["tcdm_data_width"]-1}:0] acc2stream_${int(idx/2+num_writer_offset)}_data_i,
+  input  logic acc2stream_${int(idx/2+num_writer_offset)}_valid_i,
+  output logic acc2stream_${int(idx/2+num_writer_offset)}_ready_o,
 
-% endfor
 % endif
-% if "fifo_reader_params" in cfg["snax_streamer_cfg"]:
+% endfor
+
+% endif
+% if "data_reader_params" in cfg["snax_streamer_cfg"]:
   // Ports from streamer to accelerator by reader data movers
-% for idx, dw in enumerate(cfg["snax_streamer_cfg"]["fifo_reader_params"]["fifo_width"]):
-  output logic [${dw-1}:0] stream2acc_${idx}_data_o,
+% for idx, dw in enumerate(cfg["snax_streamer_cfg"]["data_reader_params"]["num_channel"]):
+  output logic [${dw*cfg["tcdm_data_width"]-1}:0] stream2acc_${idx}_data_o,
   output logic stream2acc_${idx}_valid_o,
   input  logic stream2acc_${idx}_ready_i,
 
 % endfor
 % endif
-% if "fifo_reader_writer_params" in cfg["snax_streamer_cfg"]:
+% if "data_reader_writer_params" in cfg["snax_streamer_cfg"]:
   // Ports from streamer to accelerator by reader-writer data movers
-% for idx, dw in enumerate(cfg["snax_streamer_cfg"]["fifo_reader_writer_params"]["fifo_width"]):
-  output logic [${dw-1}:0] stream2acc_${idx+num_reader_offset}_data_o,
-  output logic stream2acc_${idx+num_reader_offset}_valid_o,
-  input  logic stream2acc_${idx+num_reader_offset}_ready_i,
+% for idx, dw in enumerate(cfg["snax_streamer_cfg"]["data_reader_writer_params"]["num_channel"]):
+% if idx % 2 == 0:
+  output logic [${dw*cfg["tcdm_data_width"]-1}:0] stream2acc_${int(idx/2+num_reader_offset)}_data_o,
+  output logic stream2acc_${int(idx/2+num_reader_offset)}_valid_o,
+  input  logic stream2acc_${int(idx/2+num_reader_offset)}_ready_i,
 
+% endif
 % endfor
 % endif
   //-----------------------------
@@ -152,7 +157,7 @@ module ${cfg["tag_name"]}_streamer_wrapper #(
 
   // Streamer module that is generated
   // with template mechanics
-  ${cfg["tag_name"]}_streamer_StreamerTop i_${cfg["tag_name"]}_streamer_top (	
+  ${cfg["tag_name"]}_Streamer i_${cfg["tag_name"]}_streamer_top (	
     //-----------------------------
     // Clocks and reset
     //-----------------------------
@@ -162,40 +167,44 @@ module ${cfg["tag_name"]}_streamer_wrapper #(
     //-----------------------------
     // Accelerator ports
     //-----------------------------
-% if "fifo_writer_params" in cfg["snax_streamer_cfg"]:
+% if "data_writer_params" in cfg["snax_streamer_cfg"]:
     // Ports from accelerator to streamer by writer data movers
-% for idx in range(len(cfg["snax_streamer_cfg"]["fifo_writer_params"]["fifo_width"])):
+% for idx in range(len(cfg["snax_streamer_cfg"]["data_writer_params"]["num_channel"])):
     .io_data_accelerator2streamer_data_${idx}_bits  (  acc2stream_${idx}_data_i ),
     .io_data_accelerator2streamer_data_${idx}_valid ( acc2stream_${idx}_valid_i ),
     .io_data_accelerator2streamer_data_${idx}_ready ( acc2stream_${idx}_ready_o ),
 
 % endfor
 % endif
-% if "fifo_reader_writer_params" in cfg["snax_streamer_cfg"]:
+% if "data_reader_writer_params" in cfg["snax_streamer_cfg"]:
     // Ports from accelerator to streamer by reader-writer data movers
-% for idx in range(len(cfg["snax_streamer_cfg"]["fifo_reader_writer_params"]["fifo_width"])):
-  .io_data_accelerator2streamer_data_${idx+num_writer_offset}_bits  (  acc2stream_${idx+num_writer_offset}_data_i ),
-  .io_data_accelerator2streamer_data_${idx+num_writer_offset}_valid ( acc2stream_${idx+num_writer_offset}_valid_i ),
-  .io_data_accelerator2streamer_data_${idx+num_writer_offset}_ready ( acc2stream_${idx+num_writer_offset}_ready_o ),
+% for idx in range(len(cfg["snax_streamer_cfg"]["data_reader_writer_params"]["num_channel"])):
+% if idx % 2 == 0:
+    .io_data_accelerator2streamer_data_${int(idx/2+num_writer_offset)}_bits  (  acc2stream_${int(idx/2+num_writer_offset)}_data_i ),
+    .io_data_accelerator2streamer_data_${int(idx/2+num_writer_offset)}_valid ( acc2stream_${int(idx/2+num_writer_offset)}_valid_i ),
+    .io_data_accelerator2streamer_data_${int(idx/2+num_writer_offset)}_ready ( acc2stream_${int(idx/2+num_writer_offset)}_ready_o ),
 
+% endif
 % endfor
 % endif
-% if "fifo_reader_params" in cfg["snax_streamer_cfg"]:
+% if "data_reader_params" in cfg["snax_streamer_cfg"]:
     // Ports from streamer to accelerator by reader data movers
-% for idx in range(len(cfg["snax_streamer_cfg"]["fifo_reader_params"]["fifo_width"])):
+% for idx in range(len(cfg["snax_streamer_cfg"]["data_reader_params"]["num_channel"])):
     .io_data_streamer2accelerator_data_${idx}_bits  (  stream2acc_${idx}_data_o ),
     .io_data_streamer2accelerator_data_${idx}_valid ( stream2acc_${idx}_valid_o ),
     .io_data_streamer2accelerator_data_${idx}_ready ( stream2acc_${idx}_ready_i ),
 
 % endfor
 % endif
-% if "fifo_reader_writer_params" in cfg["snax_streamer_cfg"]:
+% if "data_reader_writer_params" in cfg["snax_streamer_cfg"]:
     // Ports from streamer to accelerator by reader-writer data movers
-% for idx in range(len(cfg["snax_streamer_cfg"]["fifo_reader_writer_params"]["fifo_width"])):
-    .io_data_streamer2accelerator_data_${idx+num_reader_offset}_bits  (  stream2acc_${idx+num_reader_offset}_data_o ),
-    .io_data_streamer2accelerator_data_${idx+num_reader_offset}_valid ( stream2acc_${idx+num_reader_offset}_valid_o ),
-    .io_data_streamer2accelerator_data_${idx+num_reader_offset}_ready ( stream2acc_${idx+num_reader_offset}_ready_i ),
+% for idx in range(len(cfg["snax_streamer_cfg"]["data_reader_writer_params"]["num_channel"])):
+% if idx % 2 == 0:
+    .io_data_streamer2accelerator_data_${int(idx/2+num_reader_offset)}_bits  (  stream2acc_${int(idx/2+num_reader_offset)}_data_o ),
+    .io_data_streamer2accelerator_data_${int(idx/2+num_reader_offset)}_valid ( stream2acc_${int(idx/2+num_reader_offset)}_valid_o ),
+    .io_data_streamer2accelerator_data_${int(idx/2+num_reader_offset)}_ready ( stream2acc_${int(idx/2+num_reader_offset)}_ready_i ),
 
+% endif
 % endfor
 % endif
     //-----------------------------

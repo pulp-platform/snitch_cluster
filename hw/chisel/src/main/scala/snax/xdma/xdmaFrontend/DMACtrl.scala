@@ -4,14 +4,14 @@ import chisel3._
 import chisel3.util._
 
 import snax.utils._
-import snax.xdma.CommonCells.DecoupledCut._
-import snax.xdma.CommonCells.BitsConcat._
+import snax.utils.DecoupledCut._
+import snax.utils.BitsConcat._
+import snax.utils.DemuxDecoupled
 
-import snax.xdma.xdmaStreamer.{AddressGenUnitCfgIO, Reader, Writer}
+import snax.readerWriter.{BasicCounter, AddressGenUnitCfgIO, Reader, Writer}
 
 import snax.csr_manager._
-import snax.xdma.xdmaStreamer.BasicCounter
-import snax.xdma.CommonCells.DemuxDecoupled
+
 import snax.xdma.DesignParams.DMADataPathParam
 
 class DMACtrlIO(readerparam: DMADataPathParam, writerparam: DMADataPathParam)

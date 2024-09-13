@@ -2,14 +2,16 @@ package snax.xdma.xdmaExtension
 
 import chisel3._
 import chisel3.util._
+
+// Hardware and its Generation Param
+import snax.xdma.DesignParams._
+import snax.utils.DecoupledCut._
+
+// Import Chiseltest
 import org.scalatest.flatspec.AnyFlatSpec
 import chiseltest._
 
-import snax.xdma.CommonCells.DecoupledCut._
-
-import snax.xdma.DesignParams._
 import scala.util.Random
-import org.scalatest.Args
 
 class MaxPoolTester extends DMAExtensionTester {
 
@@ -21,7 +23,7 @@ class MaxPoolTester extends DMAExtensionTester {
 
   // Testing Val
   val num_testing_data = 1024
-  // pooling_ratio = 8 means we select the max number from 8 consecutive inputs 
+  // pooling_ratio = 8 means we select the max number from 8 consecutive inputs
   val pooling_ratio = 8
   // We have 512bits input for each CC
   // Hence at most we can process 512/8 = 64 input
@@ -50,7 +52,7 @@ class MaxPoolTester extends DMAExtensionTester {
     }
   }
   // Transpose the input_data
-  //--- |<-8->|
+  // --- |<-8->|
   // |  [     ]
   // |  [     ]
   // |  [     ]
@@ -58,7 +60,7 @@ class MaxPoolTester extends DMAExtensionTester {
   // |  [     ]
   // |  [     ]
   // |  [     ]
-  //--- [     ]
+  // --- [     ]
   val output_data_pre_compare = for (i <- 0 until num_testing_data) yield {
     for (k <- 0 until maxpool_PE_num) yield {
       for (j <- 0 until pooling_ratio) yield {

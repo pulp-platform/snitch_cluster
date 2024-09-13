@@ -5,6 +5,7 @@
 // Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
 
 #include "snax-data-reshuffler-lib.h"
+#include "streamer_csr_addr_map.h"
 
 // Set STREAMER configuration CSR
 void set_data_reshuffler_csr(int tempLoop0_in, int tempLoop1_in,
@@ -17,61 +18,68 @@ void set_data_reshuffler_csr(int tempLoop0_in, int tempLoop1_in,
                              int tempStride0_out, int tempStride1_out,
                              int tempStride2_out, int spatialStride1_out,
                              int32_t delta_local_in, int32_t delta_local_out) {
-    // temporal loop bounds, from innermost to outermost for data reader (In)
-    write_csr(960, tempLoop0_in);
-    write_csr(961, tempLoop1_in);
-    write_csr(962, tempLoop2_in);
-    write_csr(963, tempLoop3_in);
-    write_csr(964, tempLoop4_in);
-
-    // temporal loop bounds, from innermost to outermost for data writer (Out)
-    write_csr(965, tempLoop0_out);
-    write_csr(966, tempLoop1_out);
-    write_csr(967, tempLoop2_out);
-
-    // temporal strides for data reader (In)
-    write_csr(968, tempStride0_in);
-    write_csr(969, tempStride1_in);
-    write_csr(970, tempStride2_in);
-    write_csr(971, tempStride3_in);
-    write_csr(972, tempStride4_in);
-
-    // temporal strides for data writer (Out)
-    write_csr(973, tempStride0_out);
-    write_csr(974, tempStride1_out);
-    write_csr(975, tempStride2_out);
+    // base ptr for data reader (In)
+    csrw_ss(BASE_PTR_READER_0_LOW, (uint32_t)(delta_local_in + snrt_l1_next()));
 
     // fixed spatial strides for data reader (In)
-    write_csr(976, spatialStride1_in);
+    csrw_ss(S_STRIDE_READER_0_0, spatialStride1_in);
 
-    // fixed spatial strides for data writer (Out)
-    write_csr(977, spatialStride1_out);
+    // temporal loop bounds, from innermost to outermost for data reader (In)
+    csrw_ss(T_BOUND_READER_0_0, tempLoop0_in);
+    csrw_ss(T_BOUND_READER_0_1, tempLoop1_in);
+    csrw_ss(T_BOUND_READER_0_2, tempLoop2_in);
+    csrw_ss(T_BOUND_READER_0_3, tempLoop3_in);
+    csrw_ss(T_BOUND_READER_0_4, tempLoop4_in);
 
-    // base ptr for data reader (In)
-    write_csr(978, (uint32_t)(delta_local_in + snrt_l1_next()));
+    // temporal strides for data reader (In)
+    csrw_ss(T_STRIDE_READER_0_0, tempStride0_in);
+    csrw_ss(T_STRIDE_READER_0_1, tempStride1_in);
+    csrw_ss(T_STRIDE_READER_0_2, tempStride2_in);
+    csrw_ss(T_STRIDE_READER_0_3, tempStride3_in);
+    csrw_ss(T_STRIDE_READER_0_4, tempStride4_in);
 
     // base ptr for data writer (Out)
-    write_csr(979, (uint32_t)(delta_local_out + snrt_l1_next()));
+    csrw_ss(BASE_PTR_WRITER_0_LOW,
+            (uint32_t)(delta_local_out + snrt_l1_next()));
+
+    // fixed spatial strides for data writer (Out)
+    csrw_ss(S_STRIDE_WRITER_0_0, spatialStride1_out);
+
+    // temporal loop bounds, from innermost to outermost for data writer (Out)
+    csrw_ss(T_BOUND_WRITER_0_0, tempLoop0_out);
+    csrw_ss(T_BOUND_WRITER_0_1, tempLoop1_out);
+    csrw_ss(T_BOUND_WRITER_0_2, tempLoop2_out);
+
+    // temporal strides for data writer (Out)
+    csrw_ss(T_STRIDE_WRITER_0_0, tempStride0_out);
+    csrw_ss(T_STRIDE_WRITER_0_1, tempStride1_out);
+    csrw_ss(T_STRIDE_WRITER_0_2, tempStride2_out);
 }
 
 // Set CSR to start STREAMER
-void start_streamer() { write_csr(980, 1); }
+void start_streamer() { csrw_ss(STREAMER_START_CSR, 1); }
 
-void wait_streamer() { write_csr(980, 0); }
+void wait_streamer() { csrw_ss(STREAMER_START_CSR, 0); }
+
+#define DATA_RESHUFFLER_CSR_ADDR_BASE (STREAMER_PERFORMANCE_COUNTER_CSR + 1)
+#define DATA_RESHUFFLER_SETTING (DATA_RESHUFFLER_CSR_ADDR_BASE + 0)
+#define DATA_RESHUFFLER_START (DATA_RESHUFFLER_CSR_ADDR_BASE + 1)
+#define DATA_RESHUFFLER_BUSY (DATA_RESHUFFLER_CSR_ADDR_BASE + 2)
+#define DATA_RESHUFFLER_PERFORMANCE_COUNTER (DATA_RESHUFFLER_CSR_ADDR_BASE + 3)
 
 void set_data_reshuffler(int T2Len, int reduceLen, int opcode) {
     // set transpose or not
     uint32_t csr0 = ((uint32_t)T2Len << 8) | ((uint32_t)reduceLen << 2) |
                     ((uint32_t)opcode);
-    write_csr(983, csr0);
+    csrw_ss(DATA_RESHUFFLER_SETTING, csr0);
 }
 
-void start_data_reshuffler() { write_csr(984, 1); }
+void start_data_reshuffler() { csrw_ss(DATA_RESHUFFLER_START, 1); }
 
-void wait_data_reshuffler() { write_csr(984, 0); }
+void wait_data_reshuffler() { csrw_ss(DATA_RESHUFFLER_START, 0); }
 
 uint32_t read_data_reshuffler_perf_counter() {
-    uint32_t perf_counter = read_csr(983);
+    uint32_t perf_counter = csrr_ss(DATA_RESHUFFLER_PERFORMANCE_COUNTER);
     return perf_counter;
 }
 

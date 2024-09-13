@@ -279,7 +279,7 @@ TARGET_C_HDRS = $(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS) $(REGGE
 .PHONY: sw clean-headers clean-sw
 
 sw: $(TARGET_C_HDRS)
-	$(MAKE) -C $(SW_DIR)
+	$(MAKE) -C $(SW_DIR) CFG_OVERRIDE=$(CFG_OVERRIDE)
 
 clean-headers:
 	rm -f $(TARGET_C_HDRS)

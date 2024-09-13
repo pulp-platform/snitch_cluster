@@ -2,16 +2,21 @@ package snax.xdma.xdmaFrontend
 
 import chisel3._
 import chisel3.util._
+
+// Hardware and its Generation Param
+import snax.csr_manager._
+import snax.xdma.DesignParams._
+import snax.readerWriter.ReaderWriterParam
+
 // Import Chiseltest
 import chiseltest._
-import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.flatspec.AnyFlatSpec
+
 // Import Random number generator
 import scala.util.Random
+
 // Import break support for loops
 import scala.util.control.Breaks.{break, breakable}
-import snax.xdma.DesignParams._
-import snax.csr_manager._
 
 class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
 

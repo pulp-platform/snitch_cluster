@@ -17,194 +17,112 @@ ${c}${', ' if not loop.last else ''}\
   % endfor
 </%def>\
 package snax.streamer
-
+ 
+import snax.readerWriter._
 import snax.csr_manager._
-
 import snax.utils._
-
+ 
 import chisel3._
 import chisel3.util._
 
-/*
-  * Parameter definitions
-  * fifoWidthReader - FIFO width for the data readers
-  * fifoDepthReader - FIFO depth for the data readers fifoWidthWriter - FIFO
-  * width for the data writers fifoDepthWriter - FIFO depth for the data writers
-  * dataReaderNum - number of data readers dataWriterNum - number of data
-  * writers dataReaderTcdmPorts - the number of connections to TCDM ports for
-  * each data reader dataWriterTcdmPorts - the number of connections to TCDM
-  * ports for each data writer readElementWidth - single data element width for
-  * each data reader, useful for generating unrolling addresses
-  * writeElementWidth - single data element width for each data writer, useful
-  * for generating unrolling addresses tcdmDataWidth - data width for each TCDm
-  * port spatialBoundsReader - spatial unrolling factors (your parfor) for
-  * each data reader spatialBoundsWriter - spatial unrolling factors (your
-  * parfor) for each data writer temporalLoopDim - the dimension of the temporal
-  * loop temporalLoopBoundWidth - the register width for storing the temporal
-  * loop bound addrWidth - the address width stationarity - accelerator
-  * stationarity feature for each data mover (data reader and data writer)
-*/
-
-
 // Streamer parameters
-object StreamerParametersGen extends CommonParams {
-
-  def addrWidth = ${tcdm_addr_width}
-
-% if "has_transpose" in cfg["snax_streamer_cfg"] and cfg["snax_streamer_cfg"]["has_transpose"]:
-  def hasTranspose = true
-% else:
-  def hasTranspose = false
-% endif
-
-  def temporalAddrGenUnitParams: Seq[TemporalAddrGenUnitParams] =
-  Seq(
-% for idx in range(0,len(cfg["snax_streamer_cfg"]["temporal_addrgen_unit_params"]["loop_dim"])):
-    TemporalAddrGenUnitParams(
-      loopDim = ${cfg["snax_streamer_cfg"]["temporal_addrgen_unit_params"]["loop_dim"][idx]},
-      loopBoundWidth = 32,
-      addrWidth
-    )${', ' if not loop.last else ''}
-% endfor
-  )
-
-% if "fifo_reader_params" not in cfg["snax_streamer_cfg"]:
-  def fifoReaderParams: Seq[FIFOParams] = Seq()
-% else:
-  def fifoReaderParams: Seq[FIFOParams] = Seq(
-% for idx in range(0,len(cfg["snax_streamer_cfg"]["fifo_reader_params"]["fifo_width"])):
-    FIFOParams(\
-${cfg["snax_streamer_cfg"]["fifo_reader_params"]["fifo_width"][idx]},\
-${cfg["snax_streamer_cfg"]["fifo_reader_params"]["fifo_depth"][idx]})\
-${', ' if not loop.last else ''}
-% endfor
-  )
-% endif
-
-% if "fifo_writer_params" not in cfg["snax_streamer_cfg"]:
-  def fifoWriterParams: Seq[FIFOParams] = Seq()
-% else:
-  def fifoWriterParams: Seq[FIFOParams] = Seq(
-% for idx in range(0,len(cfg["snax_streamer_cfg"]["fifo_writer_params"]["fifo_width"])):
-    FIFOParams(\
-${cfg["snax_streamer_cfg"]["fifo_writer_params"]["fifo_width"][idx]},\
-${cfg["snax_streamer_cfg"]["fifo_writer_params"]["fifo_depth"][idx]})\
-${', ' if not loop.last else ''}
-% endfor
-  )
-% endif
-
-% if "fifo_reader_writer_params" not in cfg["snax_streamer_cfg"]:
-  def fifoReaderWriterParams: Seq[FIFOParams] = Seq()
-% else:
-  def fifoReaderWriterParams: Seq[FIFOParams] = Seq(
-% for idx in range(0,len(cfg["snax_streamer_cfg"]["fifo_reader_writer_params"]["fifo_width"])):
-    FIFOParams(\
-${cfg["snax_streamer_cfg"]["fifo_reader_writer_params"]["fifo_width"][idx]},\
-${cfg["snax_streamer_cfg"]["fifo_reader_writer_params"]["fifo_depth"][idx]})\
-${', ' if not loop.last else ''}
-% endfor
-  )
-% endif
+object StreamerParametersGen {
 
 % if "data_reader_params" not in cfg["snax_streamer_cfg"]:
-  def dataReaderParams: Seq[DataMoverParams] = Seq()
+  def readerParams = Seq()
 % else:
-  def dataReaderParams: Seq[DataMoverParams] = Seq(
-% for idx in range(0,len(cfg["snax_streamer_cfg"]["data_reader_params"]["tcdm_ports_num"])):
-    DataMoverParams(
-      tcdmPortsNum = ${cfg["snax_streamer_cfg"]["data_reader_params"]["tcdm_ports_num"][idx]},
-      addrWidth,
-      hasTranspose,
-      spatialBounds = Seq(\
-  % for c in cfg["snax_streamer_cfg"]["data_reader_params"]["spatial_bounds"][idx]:
-${c}${', ' if not loop.last else ''}\
-  % endfor
-),
-      spatialDim = ${cfg["snax_streamer_cfg"]["data_reader_params"]["spatial_dim"][idx]},
-      elementWidth = ${cfg["snax_streamer_cfg"]["data_reader_params"]["element_width"][idx]},
-      fifoWidth = fifoReaderParams(${idx}).width
-    )${', ' if not loop.last else ''}
+  def readerParams = Seq(
+% for idx in range(0,len(cfg["snax_streamer_cfg"]["data_reader_params"]["spatial_bounds"])):
+    new ReaderWriterParam(
+      spatialBounds = List(
+% for jdx in range(0,len(cfg["snax_streamer_cfg"]["data_reader_params"]["spatial_bounds"][idx])):
+        ${cfg["snax_streamer_cfg"]["data_reader_params"]["spatial_bounds"][idx][jdx]}${',' if not loop.last else ''}
+% endfor
+      ),
+      temporalDimension = ${cfg["snax_streamer_cfg"]["data_reader_params"]["temporal_dim"][idx]},
+      numChannel = ${cfg["snax_streamer_cfg"]["data_reader_params"]["num_channel"][idx]},
+      addressBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_params"]["fifo_depth"][idx]},
+      dataBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_params"]["fifo_depth"][idx]}
+${'   ), ' if not loop.last else '    )'}
 % endfor
   )
 % endif
 
 % if "data_writer_params" not in cfg["snax_streamer_cfg"]:
-  def dataWriterParams: Seq[DataMoverParams] = Seq()
+  def writerParams = Seq()
 % else:
-  def dataWriterParams: Seq[DataMoverParams] = Seq(
- % for idx in range(0,len(cfg["snax_streamer_cfg"]["data_writer_params"]["tcdm_ports_num"])):
-    DataMoverParams(
-      tcdmPortsNum = ${cfg["snax_streamer_cfg"]["data_writer_params"]["tcdm_ports_num"][idx]},
-      addrWidth,
-      hasTranspose = false,
-      spatialBounds = Seq(\
-  % for c in cfg["snax_streamer_cfg"]["data_writer_params"]["spatial_bounds"][idx]:
-${c}${', ' if not loop.last else ''}\
-  % endfor
-),
-      spatialDim = ${cfg["snax_streamer_cfg"]["data_writer_params"]["spatial_dim"][idx]},
-      elementWidth = ${cfg["snax_streamer_cfg"]["data_writer_params"]["element_width"][idx]},
-      fifoWidth = fifoWriterParams(${idx}).width
-    )${', ' if not loop.last else ''}
+  def writerParams = Seq(
+% for idx in range(0,len(cfg["snax_streamer_cfg"]["data_writer_params"]["spatial_bounds"])):
+    new ReaderWriterParam(
+      spatialBounds = List(
+% for jdx in range(0,len(cfg["snax_streamer_cfg"]["data_writer_params"]["spatial_bounds"][idx])):
+        ${cfg["snax_streamer_cfg"]["data_writer_params"]["spatial_bounds"][idx][jdx]}${',' if not loop.last else ''}
+% endfor
+      ),
+      temporalDimension = ${cfg["snax_streamer_cfg"]["data_writer_params"]["temporal_dim"][idx]},
+      numChannel = ${cfg["snax_streamer_cfg"]["data_writer_params"]["num_channel"][idx]},
+      addressBufferDepth = ${cfg["snax_streamer_cfg"]["data_writer_params"]["fifo_depth"][idx]},
+      dataBufferDepth = ${cfg["snax_streamer_cfg"]["data_writer_params"]["fifo_depth"][idx]}
+${'   ), ' if not loop.last else '    )'}
 % endfor
   )
 % endif
 
 % if "data_reader_writer_params" not in cfg["snax_streamer_cfg"]:
-  def dataReaderWriterParams: Seq[DataMoverParams] = Seq()
+  def readerWriterParams = Seq()
 % else:
-  def dataReaderWriterParams: Seq[DataMoverParams] = Seq(
-% for idx in range(0,len(cfg["snax_streamer_cfg"]["data_reader_writer_params"]["tcdm_ports_num"])):
-    DataMoverParams(
-      tcdmPortsNum = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["tcdm_ports_num"][idx]},
-      addrWidth,
-      hasTranspose = false,
-      spatialBounds = Seq(\
-  % for c in cfg["snax_streamer_cfg"]["data_reader_writer_params"]["spatial_bounds"][idx]:
-${c}${', ' if not loop.last else ''}\
-  % endfor
-),
-      spatialDim = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["spatial_dim"][idx]},
-      elementWidth = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["element_width"][idx]},
-      fifoWidth = fifoReaderWriterParams(${idx}).width
-    )${', ' if not loop.last else ''}
+  def readerWriterParams = Seq(
+% for idx in range(0,len(cfg["snax_streamer_cfg"]["data_reader_writer_params"]["spatial_bounds"])):
+    new ReaderWriterParam(
+      spatialBounds = List(
+% for jdx in range(0,len(cfg["snax_streamer_cfg"]["data_reader_writer_params"]["spatial_bounds"][idx])):
+        ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["spatial_bounds"][idx][jdx]}${',' if not loop.last else ''}
+% endfor
+      ),
+      temporalDimension = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["temporal_dim"][idx]},
+      numChannel = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["num_channel"][idx]},
+      addressBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["fifo_depth"][idx]},
+      dataBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["fifo_depth"][idx]}
+${'   ), ' if not loop.last else '    )'}
 % endfor
   )
 % endif
 
-  def stationarity = Seq(${list_elem('stationarity')})
-
-%if cfg["snax_streamer_cfg"]["temporal_addrgen_unit_params"]["share_temp_addr_gen_loop_bounds"]:
-  def ifShareTempAddrGenLoopBounds = true
-%else:
-  def ifShareTempAddrGenLoopBounds = false
-%endif
-
+  def headerFilepath = "../../target/snitch_cluster/sw/snax/${cfg["snax_streamer_cfg"]["snax_library_name"]}/include"
 }
 
-object StreamerTopGen {
-  def main(args: Array[String]) : Unit = {
-    val outPath = args.headOption.getOrElse("../../target/snitch_cluster/generated/.")
+
+object StreamerGen {
+  def main(args: Array[String]): Unit = {
+    val outPath =
+      args.headOption.getOrElse("../../target/snitch_cluster/generated")
     emitVerilog(
-      new StreamerTop(
-        StreamerParams(
-          temporalAddrGenUnitParams =
-            StreamerParametersGen.temporalAddrGenUnitParams,
-          fifoReaderParams = StreamerParametersGen.fifoReaderParams,
-          fifoWriterParams = StreamerParametersGen.fifoWriterParams,
-          fifoReaderWriterParams = StreamerParametersGen.fifoReaderWriterParams,
-          dataReaderParams = StreamerParametersGen.dataReaderParams,
-          dataWriterParams = StreamerParametersGen.dataWriterParams,
-          dataReaderWriterParams = StreamerParametersGen.dataReaderWriterParams,
-          addrWidth = StreamerParametersGen.addrWidth,
-          stationarity = StreamerParametersGen.stationarity,
-          ifShareTempAddrGenLoopBounds = StreamerParametersGen.ifShareTempAddrGenLoopBounds,
-          tagName = "${cfg["tag_name"]}_streamer_",
-          hasTranspose = StreamerParametersGen.hasTranspose
+      new Streamer(
+        StreamerParam(
+          readerParams = StreamerParametersGen.readerParams,
+          writerParams = StreamerParametersGen.writerParams,
+          readerWriterParams = StreamerParametersGen.readerWriterParams,
+          csrAddrWidth = 32,
+          tagName = "${cfg["tag_name"]}_",
+          headerFilepath = StreamerParametersGen.headerFilepath
         )
       ),
       Array("--target-dir", outPath)
+    )
+  }
+}
+
+object StreamerHeaderFileGen {
+  def main(args: Array[String]): Unit = {
+    new StreamerHeaderFile(
+      StreamerParam(
+        readerParams = StreamerParametersGen.readerParams,
+        writerParams = StreamerParametersGen.writerParams,
+        readerWriterParams = StreamerParametersGen.readerWriterParams,
+        csrAddrWidth = 32,
+        tagName = "${cfg["tag_name"]}_",
+        headerFilepath = StreamerParametersGen.headerFilepath
+      )
     )
   }
 }

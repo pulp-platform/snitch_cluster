@@ -14,9 +14,11 @@
 // This includes checking for RW, RO, and WO registers.
 //-------------------------------
 
+#include "snrt.h"
+
 #include "data.h"
 #include "snax-hypercorex-lib.h"
-#include "snrt.h"
+#include "streamer_csr_addr_map.h"
 
 int main() {
     // Set err value for checking
@@ -29,259 +31,249 @@ int main() {
         hypercorex_set_streamer_lowdim_a(
             test_streamer_test_val1, test_streamer_test_val2,
             test_streamer_test_val3, test_streamer_test_val4,
-            test_streamer_test_val5, test_streamer_test_val6);
+            test_streamer_test_val5, test_streamer_test_val6,
+            test_streamer_test_val7);
 
         hypercorex_set_streamer_lowdim_b(
             test_streamer_test_val1, test_streamer_test_val2,
             test_streamer_test_val3, test_streamer_test_val4,
-            test_streamer_test_val5, test_streamer_test_val6);
+            test_streamer_test_val5, test_streamer_test_val6,
+            test_streamer_test_val7);
 
         hypercorex_set_streamer_highdim_a(
             test_streamer_test_val1, test_streamer_test_val2,
             test_streamer_test_val3, test_streamer_test_val4,
-            test_streamer_test_val5, test_streamer_test_val6);
+            test_streamer_test_val5, test_streamer_test_val6,
+            test_streamer_test_val7);
 
         hypercorex_set_streamer_highdim_b(
             test_streamer_test_val1, test_streamer_test_val2,
             test_streamer_test_val3, test_streamer_test_val4,
-            test_streamer_test_val5, test_streamer_test_val6);
+            test_streamer_test_val5, test_streamer_test_val6,
+            test_streamer_test_val7);
 
         hypercorex_set_streamer_highdim_am(
             test_streamer_test_val1, test_streamer_test_val2,
             test_streamer_test_val3, test_streamer_test_val4,
-            test_streamer_test_val5, test_streamer_test_val6);
+            test_streamer_test_val5, test_streamer_test_val6,
+            test_streamer_test_val7);
 
         hypercorex_set_streamer_lowdim_predict(
             test_streamer_test_val1, test_streamer_test_val2,
             test_streamer_test_val3, test_streamer_test_val4,
-            test_streamer_test_val5, test_streamer_test_val6);
+            test_streamer_test_val5, test_streamer_test_val6,
+            test_streamer_test_val7);
 
         hypercorex_set_streamer_highdim_qhv(
             test_streamer_test_val1, test_streamer_test_val2,
             test_streamer_test_val3, test_streamer_test_val4,
-            test_streamer_test_val5, test_streamer_test_val6);
+            test_streamer_test_val5, test_streamer_test_val6,
+            test_streamer_test_val7);
 
         //-------------------------------
         // Read from streamer RW registers
         //-------------------------------
 
         // Lowdim A
-        if (csrr_ss(HYPERCOREX_LOOP_BOUND0_LOWDIM_A) !=
-            golden_streamer_test_val1) {
+        if (csrr_ss(BASE_PTR_READER_0_LOW) != golden_streamer_test_val1) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_LOOP_BOUND1_LOWDIM_A) !=
-            golden_streamer_test_val2) {
+        if (csrr_ss(BASE_PTR_READER_0_HIGH) != golden_streamer_test_val2) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_TEMP_STRIDE0_LOWDIM_A) !=
-            golden_streamer_test_val3) {
+        if (csrr_ss(S_STRIDE_READER_0_0) != golden_streamer_test_val3) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_TEMP_STRIDE1_LOWDIM_A) !=
-            golden_streamer_test_val4) {
+        if (csrr_ss(T_BOUND_READER_0_0) != golden_streamer_test_val4) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_SPAT_STRIDE_LOWDIM_A) !=
-            golden_streamer_test_val5) {
+        if (csrr_ss(T_BOUND_READER_0_1) != golden_streamer_test_val5) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_BASE_PTR_LOWDIM_A) !=
-            golden_streamer_test_val6) {
+        if (csrr_ss(T_STRIDE_READER_0_0) != golden_streamer_test_val6) {
+            err += 1;
+        };
+
+        if (csrr_ss(T_STRIDE_READER_0_1) != golden_streamer_test_val7) {
             err += 1;
         };
 
         // Lowdim B
-        if (csrr_ss(HYPERCOREX_LOOP_BOUND0_LOWDIM_B) !=
-            golden_streamer_test_val1) {
+        if (csrr_ss(BASE_PTR_READER_1_LOW) != golden_streamer_test_val1) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_LOOP_BOUND1_LOWDIM_B) !=
-            golden_streamer_test_val2) {
+        if (csrr_ss(BASE_PTR_READER_1_HIGH) != golden_streamer_test_val2) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_TEMP_STRIDE0_LOWDIM_B) !=
-            golden_streamer_test_val3) {
+        if (csrr_ss(S_STRIDE_READER_1_0) != golden_streamer_test_val3) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_TEMP_STRIDE1_LOWDIM_B) !=
-            golden_streamer_test_val4) {
+        if (csrr_ss(T_BOUND_READER_1_0) != golden_streamer_test_val4) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_SPAT_STRIDE_LOWDIM_B) !=
-            golden_streamer_test_val5) {
+        if (csrr_ss(T_BOUND_READER_1_1) != golden_streamer_test_val5) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_BASE_PTR_LOWDIM_B) !=
-            golden_streamer_test_val6) {
+        if (csrr_ss(T_STRIDE_READER_1_0) != golden_streamer_test_val6) {
+            err += 1;
+        };
+
+        if (csrr_ss(T_STRIDE_READER_1_1) != golden_streamer_test_val7) {
             err += 1;
         };
 
         // Highdim A
-        if (csrr_ss(HYPERCOREX_LOOP_BOUND0_HIGHDIM_A) !=
-            golden_streamer_test_val1) {
+        if (csrr_ss(BASE_PTR_READER_2_LOW) != golden_streamer_test_val1) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_LOOP_BOUND1_HIGHDIM_A) !=
-            golden_streamer_test_val2) {
+        if (csrr_ss(BASE_PTR_READER_2_HIGH) != golden_streamer_test_val2) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_TEMP_STRIDE0_HIGHDIM_A) !=
-            golden_streamer_test_val3) {
+        if (csrr_ss(S_STRIDE_READER_2_0) != golden_streamer_test_val3) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_TEMP_STRIDE1_HIGHDIM_A) !=
-            golden_streamer_test_val4) {
+        if (csrr_ss(T_BOUND_READER_2_0) != golden_streamer_test_val4) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_SPAT_STRIDE_HIGHDIM_A) !=
-            golden_streamer_test_val5) {
+        if (csrr_ss(T_BOUND_READER_2_1) != golden_streamer_test_val5) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_BASE_PTR_HIGHDIM_A) !=
-            golden_streamer_test_val6) {
+        if (csrr_ss(T_STRIDE_READER_2_0) != golden_streamer_test_val6) {
+            err += 1;
+        };
+
+        if (csrr_ss(T_STRIDE_READER_2_1) != golden_streamer_test_val7) {
             err += 1;
         };
 
         // Highdim B
-
-        if (csrr_ss(HYPERCOREX_LOOP_BOUND0_HIGHDIM_B) !=
-            golden_streamer_test_val1) {
+        if (csrr_ss(BASE_PTR_READER_3_LOW) != golden_streamer_test_val1) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_LOOP_BOUND1_HIGHDIM_B) !=
-            golden_streamer_test_val2) {
+        if (csrr_ss(BASE_PTR_READER_3_HIGH) != golden_streamer_test_val2) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_TEMP_STRIDE0_HIGHDIM_B) !=
-            golden_streamer_test_val3) {
+        if (csrr_ss(S_STRIDE_READER_3_0) != golden_streamer_test_val3) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_TEMP_STRIDE1_HIGHDIM_B) !=
-            golden_streamer_test_val4) {
+        if (csrr_ss(T_BOUND_READER_3_0) != golden_streamer_test_val4) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_SPAT_STRIDE_HIGHDIM_B) !=
-            golden_streamer_test_val5) {
+        if (csrr_ss(T_BOUND_READER_3_1) != golden_streamer_test_val5) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_BASE_PTR_HIGHDIM_B) !=
-            golden_streamer_test_val6) {
+        if (csrr_ss(T_STRIDE_READER_3_0) != golden_streamer_test_val6) {
+            err += 1;
+        };
+
+        if (csrr_ss(T_STRIDE_READER_3_1) != golden_streamer_test_val7) {
             err += 1;
         };
 
         // Highdim AM
-        if (csrr_ss(HYPERCOREX_LOOP_BOUND0_HIGHDIM_AM) !=
-            golden_streamer_test_val1) {
+        if (csrr_ss(BASE_PTR_READER_4_LOW) != golden_streamer_test_val1) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_LOOP_BOUND1_HIGHDIM_AM) !=
-            golden_streamer_test_val2) {
+        if (csrr_ss(BASE_PTR_READER_4_HIGH) != golden_streamer_test_val2) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_TEMP_STRIDE0_HIGHDIM_AM) !=
-            golden_streamer_test_val3) {
+        if (csrr_ss(S_STRIDE_READER_4_0) != golden_streamer_test_val3) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_TEMP_STRIDE1_HIGHDIM_AM) !=
-            golden_streamer_test_val4) {
+        if (csrr_ss(T_BOUND_READER_4_0) != golden_streamer_test_val4) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_SPAT_STRIDE_HIGHDIM_AM) !=
-            golden_streamer_test_val5) {
+        if (csrr_ss(T_BOUND_READER_4_1) != golden_streamer_test_val5) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_BASE_PTR_HIGHDIM_AM) !=
-            golden_streamer_test_val6) {
+        if (csrr_ss(T_STRIDE_READER_4_0) != golden_streamer_test_val6) {
+            err += 1;
+        };
+
+        if (csrr_ss(T_STRIDE_READER_4_1) != golden_streamer_test_val7) {
             err += 1;
         };
 
         // Lowdim Predict
-
-        if (csrr_ss(HYPERCOREX_LOOP_BOUND0_LOWDIM_PREDICT) !=
-            golden_streamer_test_val1) {
+        if (csrr_ss(BASE_PTR_WRITER_0_LOW) != golden_streamer_test_val1) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_LOOP_BOUND1_LOWDIM_PREDICT) !=
-            golden_streamer_test_val2) {
+        if (csrr_ss(BASE_PTR_WRITER_0_HIGH) != golden_streamer_test_val2) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_TEMP_STRIDE0_LOWDIM_PREDICT) !=
-            golden_streamer_test_val3) {
+        if (csrr_ss(S_STRIDE_WRITER_0_0) != golden_streamer_test_val3) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_TEMP_STRIDE1_LOWDIM_PREDICT) !=
-            golden_streamer_test_val4) {
+        if (csrr_ss(T_BOUND_WRITER_0_0) != golden_streamer_test_val4) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_SPAT_STRIDE_LOWDIM_PREDICT) !=
-            golden_streamer_test_val5) {
+        if (csrr_ss(T_BOUND_WRITER_0_1) != golden_streamer_test_val5) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_BASE_PTR_LOWDIM_PREDICT) !=
-            golden_streamer_test_val6) {
+        if (csrr_ss(T_STRIDE_WRITER_0_0) != golden_streamer_test_val6) {
+            err += 1;
+        };
+
+        if (csrr_ss(T_STRIDE_WRITER_0_1) != golden_streamer_test_val7) {
             err += 1;
         };
 
         // Highdim QHV
-
-        if (csrr_ss(HYPERCOREX_LOOP_BOUND0_HIGHDIM_QHV) !=
-            golden_streamer_test_val1) {
+        if (csrr_ss(BASE_PTR_WRITER_1_LOW) != golden_streamer_test_val1) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_LOOP_BOUND1_HIGHDIM_QHV) !=
-            golden_streamer_test_val2) {
+        if (csrr_ss(BASE_PTR_WRITER_1_HIGH) != golden_streamer_test_val2) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_TEMP_STRIDE0_HIGHDIM_QHV) !=
-            golden_streamer_test_val3) {
+        if (csrr_ss(S_STRIDE_WRITER_1_0) != golden_streamer_test_val3) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_TEMP_STRIDE1_HIGHDIM_QHV) !=
-            golden_streamer_test_val4) {
+        if (csrr_ss(T_BOUND_WRITER_1_0) != golden_streamer_test_val4) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_SPAT_STRIDE_HIGHDIM_QHV) !=
-            golden_streamer_test_val5) {
+        if (csrr_ss(T_BOUND_WRITER_1_1) != golden_streamer_test_val5) {
             err += 1;
         };
 
-        if (csrr_ss(HYPERCOREX_BASE_PTR_HIGHDIM_QHV) !=
-            golden_streamer_test_val6) {
+        if (csrr_ss(T_STRIDE_WRITER_1_0) != golden_streamer_test_val6) {
+            err += 1;
+        };
+
+        if (csrr_ss(T_STRIDE_WRITER_1_1) != golden_streamer_test_val7) {
             err += 1;
         };
 

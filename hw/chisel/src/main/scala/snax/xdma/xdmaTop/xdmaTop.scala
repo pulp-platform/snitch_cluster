@@ -6,6 +6,7 @@ import chisel3.util._
 import snax.csr_manager._
 import snax.utils._
 
+import snax.readerWriter.ReaderWriterParam
 import snax.xdma.xdmaFrontend._
 import snax.xdma.xdmaExtension._
 import snax.xdma.DesignParams._
@@ -265,9 +266,9 @@ return ${i._1}
 #define XDMA_SRC_SPATIAL_DIM ${readerparam.aguParam.spatialBounds.length}
 #define XDMA_SRC_TEMP_DIM ${readerparam.aguParam.temporalDimension}
 #define XDMA_SRC_SPATIAL_STRIDE_PTR XDMA_SRC_ADDR_PTR_MSB + 1
-#define XDMA_SRC_TEMP_STRIDE_PTR XDMA_SRC_SPATIAL_STRIDE_PTR + XDMA_SRC_SPATIAL_DIM
-#define XDMA_SRC_TEMP_BOUND_PTR XDMA_SRC_TEMP_STRIDE_PTR + XDMA_SRC_TEMP_DIM
-#define XDMA_SRC_ENABLED_CHAN_PTR XDMA_SRC_TEMP_BOUND_PTR + XDMA_SRC_TEMP_DIM
+#define XDMA_SRC_TEMP_BOUND_PTR XDMA_SRC_SPATIAL_STRIDE_PTR + XDMA_SRC_SPATIAL_DIM
+#define XDMA_SRC_TEMP_STRIDE_PTR XDMA_SRC_TEMP_BOUND_PTR + XDMA_SRC_TEMP_DIM
+#define XDMA_SRC_ENABLED_CHAN_PTR XDMA_SRC_TEMP_STRIDE_PTR + XDMA_SRC_TEMP_DIM
 #define XDMA_SRC_BYPASS_PTR XDMA_SRC_ENABLED_CHAN_PTR + ${if (
         readerparam.configurableChannel
       ) 1
@@ -289,9 +290,9 @@ return ${i._1}
 #define XDMA_DST_SPATIAL_DIM ${writerparam.aguParam.spatialBounds.length}
 #define XDMA_DST_TEMP_DIM ${writerparam.aguParam.temporalDimension}
 #define XDMA_DST_SPATIAL_STRIDE_PTR XDMA_DST_ADDR_PTR_MSB + 1
-#define XDMA_DST_TEMP_STRIDE_PTR XDMA_DST_SPATIAL_STRIDE_PTR + XDMA_DST_SPATIAL_DIM
-#define XDMA_DST_TEMP_BOUND_PTR XDMA_DST_TEMP_STRIDE_PTR + XDMA_DST_TEMP_DIM
-#define XDMA_DST_ENABLED_CHAN_PTR XDMA_DST_TEMP_BOUND_PTR + XDMA_DST_TEMP_DIM
+#define XDMA_DST_TEMP_BOUND_PTR XDMA_DST_SPATIAL_STRIDE_PTR + XDMA_DST_SPATIAL_DIM
+#define XDMA_DST_TEMP_STRIDE_PTR XDMA_DST_TEMP_BOUND_PTR + XDMA_DST_TEMP_DIM
+#define XDMA_DST_ENABLED_CHAN_PTR XDMA_DST_TEMP_STRIDE_PTR + XDMA_DST_TEMP_DIM
 #define XDMA_DST_ENABLED_BYTE_PTR XDMA_DST_ENABLED_CHAN_PTR + ${if (
         writerparam.configurableChannel
       ) 1

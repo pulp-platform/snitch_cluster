@@ -18,6 +18,7 @@
 
 #include "data.h"
 #include "snax-hypercorex-lib.h"
+#include "streamer_csr_addr_map.h"
 
 int main() {
     // Set err value for checking
@@ -98,20 +99,24 @@ int main() {
         // Configuring the streamers
         //-------------------------------
         // Configure streamer lowdim streamer A
-        hypercorex_set_streamer_lowdim_a(num_elem_size,  // Inner loop bound
-                                         2,              // Outer loop bound
-                                         256,            // Inner loop stride
-                                         8,              // Outer loop stride
-                                         1,              // Spatial stride
-                                         (uint32_t)local_data_0  // Base address
+        hypercorex_set_streamer_lowdim_a(
+            (uint32_t)local_data_0,  // Base pointer low
+            0,                       // Base pointer high
+            1,                       // Spatial stride
+            num_elem_size,           // Inner loop bound
+            2,                       // Outer loop bound
+            256,                     // Inner loop stride
+            8                        // Outer loop stride
         );
 
-        hypercorex_set_streamer_highdim_qhv(num_classes,  // Inner loop bound
-                                            1,            // Outer loop bound
-                                            256,          // Inner loop stride
-                                            0,            // Outer loop stride
-                                            8,            // Spatial stride
-                                            (uint32_t)qhv_start  // Base address
+        hypercorex_set_streamer_highdim_qhv(
+            (uint32_t)qhv_start,  // Base pointer low
+            0,                    // Base pointer high
+            8,                    // Spatial stride
+            num_classes,          // Inner loop bound
+            1,                    // Outer loop bound
+            256,                  // Inner loop stride
+            0                     // Outer loop stride
         );
 
         // Start the streamers
@@ -137,12 +142,11 @@ int main() {
         hypercorex_set_inst_loop_count(num_features, 26, 0);
 
         // Start hypercorex
-        csrw_ss(HYPERCOREX_CORE_SET_REG_ADDR, 1);
+        hypercorex_start_core();
 
         // Poll the busy-state of Hypercorex
         // Check both the Hypercorex and Streamer
-        while (csrr_ss(HYPERCOREX_CORE_SET_REG_ADDR) |
-               csrr_ss(HYPERCORES_STREAMER_BUSY)) {
+        while (csrr_ss(STREAMER_BUSY_CSR)) {
         };
 
         //-------------------------------
@@ -157,12 +161,13 @@ int main() {
         // the same hence we do not need to process
 
         // Disable the QHV streamer by setting all to 0
-        hypercorex_set_streamer_highdim_qhv(0,  // Inner loop bound
+        hypercorex_set_streamer_highdim_qhv(0,  // Base pointer low
+                                            0,  // Base pointer high
+                                            0,  // Spatial stride
+                                            0,  // Inner loop bound
                                             0,  // Outer loop bound
                                             0,  // Inner loop stride
-                                            0,  // Outer loop stride
-                                            0,  // Spatial stride
-                                            0   // Base address
+                                            0   // Outer loop stride
         );
 
         // Enable the AM streamer
@@ -170,22 +175,25 @@ int main() {
         // where the QHV streamer data was stored
         // It needs to loop 26 times for all classes
         // and we also check all 26 classes at the same time
-        hypercorex_set_streamer_highdim_am(num_classes,  // Inner loop bound
-                                           num_classes,  // Outer loop bound
-                                           256,          // Inner loop stride
-                                           0,            // Outer loop stride
-                                           8,            // Spatial stride
-                                           (uint32_t)qhv_start  // Base address
+        hypercorex_set_streamer_highdim_am(
+            (uint32_t)qhv_start,  // Base pointer low
+            0,                    // Base pointer high
+            8,                    // Spatial stride
+            num_classes,          // Inner loop bound
+            num_classes,          // Outer loop bound
+            256,                  // Inner loop stride
+            0                     // Outer loop stride
         );
 
         // Enable the predict output streamer
         hypercorex_set_streamer_lowdim_predict(
-            num_classes,             // Inner loop bound
-            1,                       // Outer loop bound
-            256,                     // Inner loop stride
-            0,                       // Outer loop stride
-            1,                       // Spatial stride
-            (uint32_t)predict_start  // Base address
+            (uint32_t)predict_start,  // Base pointer low
+            0,                        // Base pointer high
+            1,                        // Spatial stride
+            num_classes,              // Inner loop bound
+            1,                        // Outer loop bound
+            256,                      // Inner loop stride
+            0                         // Outer loop stride
         );
 
         // Start the streamers
@@ -209,8 +217,7 @@ int main() {
 
         // Poll the busy-state of Hypercorex
         // Check both the Hypercorex and Streamer
-        while (csrr_ss(HYPERCOREX_CORE_SET_REG_ADDR) |
-               csrr_ss(HYPERCORES_STREAMER_BUSY)) {
+        while (hypercorex_is_core_busy() | hypercorex_is_streamer_busy()) {
         };
 
         // Check if prediction results are correct
