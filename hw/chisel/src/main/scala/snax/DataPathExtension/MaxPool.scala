@@ -1,4 +1,4 @@
-package snax.xdma.xdmaExtension
+package snax.DataPathExtension
 
 import chisel3._
 import chisel3.util._
@@ -26,12 +26,13 @@ class MAXPoolPE(dataWidth: Int) extends Module with RequireAsyncReset {
   io.data_o := tempValue
 }
 
-object HasMaxPool extends HasDMAExtension {
-  implicit val extensionParam: DMAExtensionParam = new DMAExtensionParam(
-    moduleName = "MaxPool",
-    userCsrNum = 1,
-    dataWidth = 512
-  )
+object HasMaxPool extends HasDataPathExtension {
+  implicit val extensionParam: DataPathExtensionParam =
+    new DataPathExtensionParam(
+      moduleName = "MaxPool",
+      userCsrNum = 1,
+      dataWidth = 512
+    )
   def instantiate(clusterName: String): MaxPool = Module(
     new MaxPool(elementWidth = 8) {
       override def desiredName = clusterName + namePostfix
@@ -39,8 +40,9 @@ object HasMaxPool extends HasDMAExtension {
   )
 }
 
-class MaxPool(elementWidth: Int)(implicit extensionParam: DMAExtensionParam)
-    extends DMAExtension {
+class MaxPool(elementWidth: Int)(implicit
+    extensionParam: DataPathExtensionParam
+) extends DataPathExtension {
   require(extensionParam.dataWidth % elementWidth == 0)
 
   // Counter to record the steps

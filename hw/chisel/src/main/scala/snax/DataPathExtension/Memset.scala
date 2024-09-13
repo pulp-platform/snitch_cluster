@@ -1,22 +1,23 @@
-package snax.xdma.xdmaExtension
+package snax.DataPathExtension
 
 import chisel3._
 import chisel3.util._
 import snax.xdma.DesignParams._
 
-object HasMemset extends HasDMAExtension {
-  implicit val extensionParam: DMAExtensionParam = new DMAExtensionParam(
-    moduleName = "Memset",
-    userCsrNum = 1,
-    dataWidth = 512
-  )
+object HasMemset extends HasDataPathExtension {
+  implicit val extensionParam: DataPathExtensionParam =
+    new DataPathExtensionParam(
+      moduleName = "Memset",
+      userCsrNum = 1,
+      dataWidth = 512
+    )
   def instantiate(clusterName: String): Memset = Module(new Memset {
     override def desiredName = clusterName + namePostfix
   })
 }
 
-class Memset()(implicit extensionParam: DMAExtensionParam)
-    extends DMAExtension {
+class Memset()(implicit extensionParam: DataPathExtensionParam)
+    extends DataPathExtension {
   val out = WireInit(
     VecInit(Seq.fill(extensionParam.dataWidth / 8)(ext_csr_i(0)(7, 0)))
   )
@@ -30,7 +31,7 @@ object MemsetEmitter extends App {
   println(
     getVerilogString(
       new Memset()(
-        new DMAExtensionParam(
+        new DataPathExtensionParam(
           moduleName = "Memset",
           userCsrNum = 1,
           dataWidth = 512

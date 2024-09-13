@@ -1,23 +1,24 @@
-package snax.xdma.xdmaExtension
+package snax.DataPathExtension
 
 import chisel3._
 import chisel3.util._
 import snax.xdma.DesignParams._
 
-object HasTransposer extends HasDMAExtension {
-  implicit val extensionParam: DMAExtensionParam = new DMAExtensionParam(
-    moduleName = "Transposer",
-    userCsrNum = 0,
-    dataWidth = 512
-  )
+object HasTransposer extends HasDataPathExtension {
+  implicit val extensionParam: DataPathExtensionParam =
+    new DataPathExtensionParam(
+      moduleName = "Transposer",
+      userCsrNum = 0,
+      dataWidth = 512
+    )
 
   def instantiate(clusterName: String): Transposer = Module(new Transposer {
     override def desiredName = clusterName + namePostfix
   })
 }
 
-class Transposer()(implicit extensionParam: DMAExtensionParam)
-    extends DMAExtension {
+class Transposer()(implicit extensionParam: DataPathExtensionParam)
+    extends DataPathExtension {
 
   require(
     extensionParam.dataWidth == 512 && 512 == extensionParam.dataWidth,
@@ -45,7 +46,7 @@ object TransposerEmitter extends App {
   println(
     getVerilogString(
       new Transposer()(
-        extensionParam = new DMAExtensionParam(
+        extensionParam = new DataPathExtensionParam(
           moduleName = "Transposer",
           userCsrNum = 1,
           dataWidth = 512

@@ -16,10 +16,10 @@ import scala.util.Random
 // Import break support for loops
 import scala.util.control.Breaks.{break, breakable}
 import snax.xdma.xdmaFrontend._
-import snax.xdma.xdmaExtension._
 import snax.csr_manager.SnaxCsrIO
 import java.util.HashMap
 import snax.xdma.DesignParams._
+import snax.DataPathExtension.{HasMaxPool, HasTransposer, HasVerilogMemset}
 
 class AGUParamTest(
     val address: Long,

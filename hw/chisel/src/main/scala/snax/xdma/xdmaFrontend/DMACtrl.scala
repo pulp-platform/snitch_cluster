@@ -185,7 +185,10 @@ class DMACtrl(
         0 + // Enabled Byte for reader: non-effective, so donot assign CSR
         {
           if (readerparam.extParam.length == 0) 0
-          else readerparam.extParam.map { i => i.totalCsrNum }.reduce(_ + _) + 1
+          else
+            readerparam.extParam
+              .map { i => i.extensionParam.userCsrNum }
+              .reduce(_ + _) + 1
         } + // The total num of param on reader extension (custom CSR + bypass CSR)
         2 + // Writer Pointer needs two CSRs
         writerparam.rwParam.aguParam.spatialBounds.length + // Spatiaial Strides for writer
@@ -198,7 +201,10 @@ class DMACtrl(
         } + // Enabled Byte for writer
         {
           if (writerparam.extParam.length == 0) 0
-          else writerparam.extParam.map { i => i.totalCsrNum }.reduce(_ + _) + 1
+          else
+            writerparam.extParam
+              .map { i => i.extensionParam.userCsrNum }
+              .reduce(_ + _) + 1
         } + // The total num of param on writer (custom CSR + bypass CSR)
         1, // The start CSR
       csrNumReadOnly = 2,

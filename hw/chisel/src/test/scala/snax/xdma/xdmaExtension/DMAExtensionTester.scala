@@ -12,6 +12,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import chiseltest._
 
 import scala.util.Random
+import snax.DataPathExtension.HasDataPathExtension
 
 /** The parent (abstract) Class for the DMA Extension Testbench It includes two
   * things: 1) A Testharness to wrap the extension 2) A Testbench to emulate
@@ -23,7 +24,7 @@ import scala.util.Random
   * and verify output data's correctness.
   */
 
-class DMAExtensionHarness(extension: HasDMAExtension)
+class DMAExtensionHarness(extension: HasDataPathExtension)
     extends Module
     with RequireAsyncReset {
   val dut = extension.instantiate("dma_extension_dut")
@@ -44,7 +45,7 @@ abstract class DMAExtensionTester
   val csr_vec: Seq[Int]
   val input_data_vec: Seq[BigInt]
   val output_data_vec: Seq[BigInt]
-  def hasExtension: HasDMAExtension
+  def hasExtension: HasDataPathExtension
 
   hasExtension.extensionParam.moduleName should "pass" in {
     test(new DMAExtensionHarness(hasExtension))

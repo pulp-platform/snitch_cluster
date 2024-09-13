@@ -12,6 +12,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import chiseltest._
 
 import scala.util.Random
+import snax.DataPathExtension.HasMaxPool
 
 class MaxPoolTester extends DMAExtensionTester {
 

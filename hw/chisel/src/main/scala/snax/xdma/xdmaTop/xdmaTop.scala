@@ -7,8 +7,8 @@ import snax.csr_manager._
 import snax.utils._
 
 import snax.readerWriter.ReaderWriterParam
+import snax.DataPathExtension._
 import snax.xdma.xdmaFrontend._
-import snax.xdma.xdmaExtension._
 import snax.xdma.DesignParams._
 import os.write
 
@@ -187,8 +187,8 @@ object xdmaTopGen extends App {
     configurableChannel = true,
     configurableByteMask = true
   )
-  var readerextensionparam = Seq[HasDMAExtension]()
-  var writerextensionparam = Seq[HasDMAExtension]()
+  var readerextensionparam = Seq[HasDataPathExtension]()
+  var writerextensionparam = Seq[HasDataPathExtension]()
 
   // The following complex code is to dynamically load the extension modules
   // The target is that: 1) the sequence of the extension can be specified by the user 2) users can add their own extensions in the minimal effort (Does not need to modify the generation code)
@@ -206,10 +206,10 @@ object xdmaTopGen extends App {
     .foreach(i => {
       writerextensionparam = writerextensionparam :+ toolbox
         .compile(toolbox.parse(s"""
-import snax.xdma.xdmaExtension._
+import snax.DataPathExtension._
 return ${i._1}
       """))()
-        .asInstanceOf[HasDMAExtension]
+        .asInstanceOf[HasDataPathExtension]
     })
 
   // Generation of the hardware
