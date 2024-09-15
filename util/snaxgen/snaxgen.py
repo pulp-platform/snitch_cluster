@@ -138,7 +138,7 @@ def streamer_csr_num(acc_cfgs):
     # transpose csr
     if "has_transpose" in acc_cfgs["snax_streamer_cfg"]:
         if acc_cfgs["snax_streamer_cfg"]["has_transpose"]:
-            streamer_csr_num += 1
+            streamer_csr_num += 2
 
     return streamer_csr_num
 

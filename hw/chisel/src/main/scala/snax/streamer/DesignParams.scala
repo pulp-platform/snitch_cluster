@@ -1,6 +1,7 @@
 package snax.streamer
 
 import snax.readerWriter._
+import snax.DataPathExtension._
 
 import chisel3.util.log2Up
 import chisel3.util.log2Ceil
@@ -17,6 +18,9 @@ class StreamerParam(
     val readerParams: Seq[ReaderWriterParam],
     val writerParams: Seq[ReaderWriterParam],
     val readerWriterParams: Seq[ReaderWriterParam],
+
+    // transpose params
+    val hasTranspose: Boolean = false,
 
     // csr manager params
     val csrAddrWidth: Int,
@@ -69,6 +73,30 @@ class StreamerParam(
     )
   }
 
+  // transpose parameters
+  if (hasTranspose) {
+    require(
+      readerNum == 2,
+      "Transpose only supports for gemm with 2 readers"
+    )
+    require(
+      fifoWidthReader(0) == fifoWidthReader(1) && fifoWidthReader(0) == 512,
+      "Transpose only supports for gemm with 2 readers with the same 512 data width"
+    )
+  }
+
+  require(
+    readerNum >= 1,
+    "Only support at least 1 readers for now"
+  )
+
+  val dataPathExtensionParam: Seq[HasDataPathExtension] =
+    (if (hasTranspose)
+       Seq[HasDataPathExtension](
+         HasTransposer
+       )
+     else
+       Seq[HasDataPathExtension]())
 }
 
 object StreamerParam {
@@ -96,6 +124,7 @@ object StreamerParam {
       readerParams: Seq[ReaderWriterParam],
       writerParams: Seq[ReaderWriterParam],
       readerWriterParams: Seq[ReaderWriterParam],
+      hasTranspose: Boolean,
       csrAddrWidth: Int,
       tagName: String,
       headerFilepath: String
@@ -103,6 +132,7 @@ object StreamerParam {
     readerParams = readerParams,
     writerParams = writerParams,
     readerWriterParams = readerWriterParams,
+    hasTranspose = hasTranspose,
     csrAddrWidth = csrAddrWidth,
     tagName = tagName,
     headerFilepath = headerFilepath

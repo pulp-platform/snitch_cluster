@@ -3,6 +3,7 @@ package snax.streamer
 import snax.readerWriter._
 import snax.csr_manager._
 import snax.utils._
+import snax.DataPathExtension._
 
 import chisel3._
 import chisel3.util._
@@ -102,7 +103,8 @@ class Streamer(
 
   // extra one is the start csr
   val csrNumReadWrite =
-    reader_csr + writer_csr + reader_writer_csr + 1
+    reader_csr + writer_csr + reader_writer_csr + (if (param.hasTranspose) 2
+                                                   else 0) + 1
 
   // csrManager instantiation
   val csrManager = Module(
@@ -151,6 +153,17 @@ class Streamer(
       )
     )
   }: _*)
+
+  // transpose module instantiation
+  val readerExtensions = Seq.fill(2)(
+    Module(
+      new DataPathExtensionHost(
+        extensionList = param.dataPathExtensionParam,
+        dataWidth = param.fifoWidthReader.head,
+        moduleNamePrefix = param.tagName
+      )
+    )
+  )
 
   // --------------------------------------------------------------------------------
   // ---------------------- streamer state machine-----------------------------------
@@ -231,6 +244,14 @@ class Streamer(
         ).io.writerInterface.start := streamer_config_fire
       }
     }
+  }
+
+  // --------------------------------------------------------------------------------
+  // -----------------------extension start-----------------------------------------
+  // --------------------------------------------------------------------------------
+
+  for (i <- 0 until 2) {
+    readerExtensions(i).io.start := streamer_config_fire
   }
 
   // --------------------------------------------------------------------------------
@@ -338,6 +359,21 @@ class Streamer(
     }
   }
 
+  // transpose
+  val extensions_csr_base = param.readerParams
+    .map(_.csrNum)
+    .sum + param.writerParams.map(_.csrNum).sum + param.readerWriterParams
+    .map(_.csrNum)
+    .sum
+
+  var remainingCSR = csrCfg.drop(extensions_csr_base)
+  // connect the csr configuration to the extension
+  for (i <- 0 until 2) {
+    remainingCSR = readerExtensions(i).io.connectCfgWithList(
+      remainingCSR
+    )
+  }
+
   // --------------------------------------------------------------------------------
   // ---------------------- data reader/writer <> TCDM connection-------------------
   // --------------------------------------------------------------------------------
@@ -406,7 +442,22 @@ class Streamer(
   for (i <- 0 until param.dataMoverNum) {
     // reader
     if (i < param.readerNum) {
-      reader(i).io.data <> io.data.streamer2accelerator.data(i)
+      // --------------------------------------------------------------------------------
+      // connect the data path extension
+      // --------------------------------------------------------------------------------
+      if (param.hasTranspose) {
+        readerExtensions(i).io.data.in <> reader(i).io.data
+        readerExtensions(i).io.data.out <> io.data.streamer2accelerator.data(
+          i
+        )
+      } else {
+        for (i <- 0 until 2) {
+          readerExtensions(i).io.data.in.valid := false.B
+          readerExtensions(i).io.data.in.bits := 0.U
+          readerExtensions(i).io.data.out.ready := false.B
+        }
+        reader(i).io.data <> io.data.streamer2accelerator.data(i)
+      }
     } else {
       // writer
       if (i < param.readerNum + param.writerNum) {
@@ -526,12 +577,25 @@ class StreamerHeaderFile(param: StreamerParam) {
     )
   }
 
+  // extension csr configuration
+  if (param.hasTranspose) {
+    for (i <- 0 until 2) {
+      csrBase = 960 + param.readerParams.map(_.csrNum).sum + param.writerParams
+        .map(_.csrNum)
+        .sum + param.readerWriterParams.map(_.csrNum).sum + i
+      csrMap =
+        csrMap + "#define TRANSPOSE_CSR_READER_" + i + " " + csrBase + "\n"
+    }
+  }
+
   // start csr
   csrMap = csrMap + "// Other resgiters\n"
   csrMap = csrMap + "// Status register\n"
   csrBase = 960 + param.readerParams.map(_.csrNum).sum + param.writerParams
     .map(_.csrNum)
-    .sum + param.readerWriterParams.map(_.csrNum).sum
+    .sum + param.readerWriterParams.map(_.csrNum).sum + (if (param.hasTranspose)
+                                                           2
+                                                         else 0)
   csrMap = csrMap + "#define STREAMER_START_CSR " + csrBase + "\n"
 
   // streamer busy csr

@@ -154,6 +154,10 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_READER_WRITER_1_0, D32tlstride0);
     csrw_ss(T_STRIDE_READER_WRITER_1_1, D32tlstride1);
     csrw_ss(T_STRIDE_READER_WRITER_1_2, D32tlstride2);
+
+    // set the transpose
+    csrw_ss(TRANSPOSE_CSR_READER_0, transpose_A == 0 ? 1 : 0);
+    csrw_ss(TRANSPOSE_CSR_READER_0, transpose_B == 0 ? 1 : 0);
 }
 
 // Set CSR to start STREAMER
