@@ -2,7 +2,6 @@ package snax.DataPathExtension
 
 import chisel3._
 import chisel3.util._
-import snax.xdma.DesignParams.DataPathExtensionParam
 
 object HasVerilogMemset extends HasDataPathExtension {
   implicit val extensionParam: DataPathExtensionParam =

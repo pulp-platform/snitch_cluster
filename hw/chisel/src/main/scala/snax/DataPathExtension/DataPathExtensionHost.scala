@@ -16,7 +16,7 @@ class DataPathExtensionHostIO(
   }
   val cfg = new Bundle {
     val bypass = Input(UInt(extensionList.length.W))
-    val csr = Input(
+    val userCsr = Input(
       Vec(extensionList.map(_.extensionParam.userCsrNum).sum, UInt(32.W))
     )
   }
@@ -32,7 +32,7 @@ class DataPathExtensionHostIO(
     }
     cfg.bypass := remaincsrList.head
     remaincsrList = remaincsrList.tail
-    cfg.csr := remaincsrList.take(
+    cfg.userCsr := remaincsrList.take(
       extensionList.map(_.extensionParam.userCsrNum).sum
     )
     remaincsrList =
@@ -53,7 +53,7 @@ class DataPathExtensionHost(
     io.data.out <> io.data.in
     io.busy := false.B
   } else {
-    var remainingCSR = io.cfg.csr.toIndexedSeq
+    var remainingCSR = io.cfg.userCsr.toIndexedSeq
     var remaingBypass = io.cfg.bypass.asBools.toIndexedSeq
 
     val extensions = extensionList.zipWithIndex.map {

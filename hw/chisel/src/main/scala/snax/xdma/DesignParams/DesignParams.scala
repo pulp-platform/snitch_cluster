@@ -2,6 +2,7 @@ package snax.xdma.DesignParams
 
 import chisel3.util.log2Up
 import chisel3.util.log2Ceil
+import snax.DataPathExtension.DataPathExtensionParam
 import snax.readerWriter.ReaderWriterParam
 import snax.DataPathExtension.HasDataPathExtension
 import snax.DataPathExtension.HasDataPathExtension
@@ -23,15 +24,6 @@ class DMADataPathParam(
     val rwParam: ReaderWriterParam,
     val extParam: Seq[HasDataPathExtension] = Seq[HasDataPathExtension]()
 )
-
-class DataPathExtensionParam(
-    val moduleName: String,
-    val userCsrNum: Int,
-    val dataWidth: Int = 512
-) {
-  require(dataWidth > 0)
-  require(userCsrNum >= 0)
-}
 
 class DMACtrlParam(
     val readerparam: ReaderWriterParam,
