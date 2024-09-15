@@ -31,6 +31,7 @@ module snax_hypercorex_shell_wrapper # (
   parameter int unsigned ImAddrWidth     = $clog2(NumTotIm),
   parameter int unsigned SeedWidth       = CsrDataWidth,
   parameter int unsigned HoldFifoDepth   = 2,
+  parameter bit          EnableRomIM     = 1'b1,
   //---------------------------
   // Instruction Memory Parameters
   //---------------------------
@@ -137,6 +138,7 @@ module snax_hypercorex_shell_wrapper # (
     .NumPerImBank       ( NumPerImBank         ),
     .SeedWidth          ( SeedWidth            ),
     .HoldFifoDepth      ( HoldFifoDepth        ),
+    .EnableRomIM        ( EnableRomIM          ),
     //---------------------------
     // Instruction Memory Parameters
     //---------------------------
