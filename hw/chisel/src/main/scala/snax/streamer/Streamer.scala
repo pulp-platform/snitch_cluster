@@ -103,7 +103,8 @@ class Streamer(
 
   // extra one is the start csr
   val csrNumReadWrite =
-    reader_csr + writer_csr + reader_writer_csr + (if (param.hasTranspose) 2
+    reader_csr + writer_csr + reader_writer_csr + (if (param.hasTranspose)
+                                                     param.readerParams.length
                                                    else 0) + 1
 
   // csrManager instantiation
@@ -155,7 +156,7 @@ class Streamer(
   }: _*)
 
   // transpose module instantiation
-  val readerExtensions = Seq.fill(2)(
+  val readerExtensions = Seq.fill(param.readerParams.length)(
     Module(
       new DataPathExtensionHost(
         extensionList = param.dataPathExtensionParam,
@@ -250,7 +251,7 @@ class Streamer(
   // -----------------------extension start-----------------------------------------
   // --------------------------------------------------------------------------------
 
-  for (i <- 0 until 2) {
+  for (i <- 0 until param.readerParams.length) {
     readerExtensions(i).io.start := streamer_config_fire
   }
 
@@ -368,7 +369,7 @@ class Streamer(
 
   var remainingCSR = csrCfg.drop(extensions_csr_base)
   // connect the csr configuration to the extension
-  for (i <- 0 until 2) {
+  for (i <- 0 until param.readerParams.length) {
     remainingCSR = readerExtensions(i).io.connectCfgWithList(
       remainingCSR
     )
@@ -445,19 +446,10 @@ class Streamer(
       // --------------------------------------------------------------------------------
       // connect the data path extension
       // --------------------------------------------------------------------------------
-      if (param.hasTranspose) {
-        readerExtensions(i).io.data.in <> reader(i).io.data
-        readerExtensions(i).io.data.out <> io.data.streamer2accelerator.data(
-          i
-        )
-      } else {
-        for (i <- 0 until 2) {
-          readerExtensions(i).io.data.in.valid := false.B
-          readerExtensions(i).io.data.in.bits := 0.U
-          readerExtensions(i).io.data.out.ready := false.B
-        }
-        reader(i).io.data <> io.data.streamer2accelerator.data(i)
-      }
+      readerExtensions(i).io.data.in <> reader(i).io.data
+      readerExtensions(i).io.data.out <> io.data.streamer2accelerator.data(
+        i
+      )
     } else {
       // writer
       if (i < param.readerNum + param.writerNum) {
@@ -579,7 +571,7 @@ class StreamerHeaderFile(param: StreamerParam) {
 
   // extension csr configuration
   if (param.hasTranspose) {
-    for (i <- 0 until 2) {
+    for (i <- 0 until param.readerParams.length) {
       csrBase = 960 + param.readerParams.map(_.csrNum).sum + param.writerParams
         .map(_.csrNum)
         .sum + param.readerWriterParams.map(_.csrNum).sum + i
@@ -593,9 +585,11 @@ class StreamerHeaderFile(param: StreamerParam) {
   csrMap = csrMap + "// Status register\n"
   csrBase = 960 + param.readerParams.map(_.csrNum).sum + param.writerParams
     .map(_.csrNum)
-    .sum + param.readerWriterParams.map(_.csrNum).sum + (if (param.hasTranspose)
-                                                           2
-                                                         else 0)
+    .sum + param.readerWriterParams
+    .map(_.csrNum)
+    .sum + (if (param.hasTranspose)
+              param.readerParams.length
+            else 0)
   csrMap = csrMap + "#define STREAMER_START_CSR " + csrBase + "\n"
 
   // streamer busy csr

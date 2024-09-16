@@ -76,19 +76,15 @@ class StreamerParam(
   // transpose parameters
   if (hasTranspose) {
     require(
-      readerNum == 2,
-      "Transpose only supports for gemm with 2 readers"
+      fifoWidthReader.forall(_ == 512),
+      "Transpose only supports for readers with the same 512 data width"
     )
+
     require(
-      fifoWidthReader(0) == fifoWidthReader(1) && fifoWidthReader(0) == 512,
-      "Transpose only supports for gemm with 2 readers with the same 512 data width"
+      readerNum >= 1,
+      "Only support at least 1 readers for now"
     )
   }
-
-  require(
-    readerNum >= 1,
-    "Only support at least 1 readers for now"
-  )
 
   val dataPathExtensionParam: Seq[HasDataPathExtension] =
     (if (hasTranspose)

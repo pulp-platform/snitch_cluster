@@ -157,7 +157,7 @@ void set_gemmx_streamer_csr(
 
     // set the transpose
     csrw_ss(TRANSPOSE_CSR_READER_0, transpose_A == 0 ? 1 : 0);
-    csrw_ss(TRANSPOSE_CSR_READER_0, transpose_B == 0 ? 1 : 0);
+    csrw_ss(TRANSPOSE_CSR_READER_1, transpose_B == 0 ? 1 : 0);
 }
 
 // Set CSR to start STREAMER
