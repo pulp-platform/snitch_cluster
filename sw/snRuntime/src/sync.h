@@ -162,9 +162,23 @@ inline void snrt_partial_barrier(snrt_barrier_t *barr, uint32_t n) {
  *       will stall indefinitely.
  */
 inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
-    __atomic_add_fetch(&_reduction_result, value, __ATOMIC_RELAXED);
-    snrt_global_barrier();
-    return _reduction_result;
+    // Reduce cores within cluster in TCDM
+    uint32_t *cluster_result = &(cls()->reduction);
+    uint32_t tmp = __atomic_fetch_add(cluster_result, value, __ATOMIC_RELAXED);
+
+    // Wait for writeback to ensure AMO is seen by all cores after barrier
+    snrt_wait_writeback(tmp);
+    snrt_cluster_hw_barrier();
+
+    // Reduce DM cores across clusters in global memory
+    if (snrt_is_dm_core()) {
+        __atomic_add_fetch(&_reduction_result, *cluster_result,
+                           __ATOMIC_RELAXED);
+        snrt_inter_cluster_barrier();
+        *cluster_result = _reduction_result;
+    }
+    snrt_cluster_hw_barrier();
+    return *cluster_result;
 }
 
 /**
@@ -235,4 +249,18 @@ inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
             snrt_cluster_hw_barrier();
         }
     }
+}
+
+//================================================================================
+// Memory consistency
+//================================================================================
+
+/**
+ * @brief Ensure value is written back to the register file.
+ * @details This function introduces a RAW dependency on val to stall the
+ *          core until val is written back to the register file.
+ * @param val The variable we want to wait on.
+ */
+inline void snrt_wait_writeback(uint32_t val) {
+    asm volatile("mv %0, %0" : "+r"(val)::);
 }
