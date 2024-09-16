@@ -36,7 +36,8 @@ class Simulation(object):
         self.dry_run = dry_run
         self.run_dir = run_dir if run_dir is not None else Path.cwd()
         if name is None:
-            self.testname = Path(self.elf).stem
+            if self.elf is not None:
+                self.testname = Path(self.elf).stem
         else:
             self.testname = name
         self.cmd = []
