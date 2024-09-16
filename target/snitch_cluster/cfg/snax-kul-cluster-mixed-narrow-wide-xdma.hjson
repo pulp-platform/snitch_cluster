@@ -175,6 +175,6 @@
             fifo_depth: [2, 2],
         },
         has_transpose: true
-        snax_library_name: "streamer-gemm-conv-simd",
+        snax_library_name: "gemmx",
     }
 }

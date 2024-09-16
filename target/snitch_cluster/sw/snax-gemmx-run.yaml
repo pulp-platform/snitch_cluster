@@ -5,4 +5,4 @@
 # Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
 
 runs:
-  - elf: apps/snax-streamer-gemm-conv-simd/build/snax-streamer-gemm-conv-simd.elf
+  - elf: apps/snax-gemmx/build/snax-gemmx.elf

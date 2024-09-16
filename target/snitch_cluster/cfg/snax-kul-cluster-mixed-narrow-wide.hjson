@@ -196,7 +196,7 @@
 
         has_transpose: true,
 
-        snax_library_name: "streamer-gemm-conv-simd",
+        snax_library_name: "gemmx",
     },
     // SNAX Streamer Templates
     snax_data_reshuffler_streamer_template :{

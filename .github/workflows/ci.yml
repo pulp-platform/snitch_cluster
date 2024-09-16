@@ -261,7 +261,7 @@ jobs:
         run: |-
           ./run.py --simulator verilator \
           sw/runtime.yaml \
-          sw/snax-streamer-gemm-conv-simd-run.yaml \
+          sw/snax-gemmx-run.yaml \
           sw/snax-data-reshuffler-run.yaml -j
 
   snax-xdma-vlt-generic:
@@ -290,5 +290,5 @@ jobs:
         run: |-
           ./run.py --simulator verilator \
           sw/runtime.yaml \
-          sw/snax-streamer-gemm-conv-simd-run.yaml \
+          sw/snax-gemmx-run.yaml \
           sw/snax-xdma-run.yaml -j

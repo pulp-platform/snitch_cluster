@@ -4,16 +4,16 @@
 #
 # Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
 
-APP     = snax-streamer-gemm-conv-simd
+APP     = snax-gemmx
 
 INCDIRS = data
 
-INCDIRS += ../../snax/streamer-gemm-conv-simd/include
+INCDIRS += ../../snax/gemmx/include
 
 # Include this binary in the final build
-RISCV_LDFLAGS += ../../snax/streamer-gemm-conv-simd/build/snax-streamer-gemm-conv-simd-lib.o
+RISCV_LDFLAGS += ../../snax/gemmx/build/snax-gemmx-lib.o
 
-SRCS    = src/snax-streamer-gemm-conv-simd.c
+SRCS    = src/snax-gemmx.c
 
 include ../common.mk
 include ./data/Makefile

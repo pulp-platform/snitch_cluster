@@ -8,7 +8,7 @@
 
 #include "snax-gemmx-params.h"
 
-#include "snax-streamer-gemm-conv-simd-lib.h"
+#include "snax-gemmx-lib.h"
 
 // This is the main function for the SNAX GEMM for Conv2d
 // We use several nested loops to iterate over the input data and weights,
