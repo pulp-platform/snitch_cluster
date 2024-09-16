@@ -156,15 +156,15 @@ class Streamer(
   }: _*)
 
   // transpose module instantiation
-  val readerExtensions = Seq.fill(param.readerParams.length)(
+  val readerExtensions = (0 until param.readerParams.length).map { i =>
     Module(
       new DataPathExtensionHost(
         extensionList = param.dataPathExtensionParam,
-        dataWidth = param.fifoWidthReader.head,
+        dataWidth = param.fifoWidthReader(i),
         moduleNamePrefix = param.tagName
       )
     )
-  )
+  }
 
   // --------------------------------------------------------------------------------
   // ---------------------- streamer state machine-----------------------------------
@@ -578,6 +578,7 @@ class StreamerHeaderFile(param: StreamerParam) {
       csrMap =
         csrMap + "#define TRANSPOSE_CSR_READER_" + i + " " + csrBase + "\n"
     }
+    csrMap = csrMap + "#define TRANSPOSE_EXTENSION_ENABLE \n"
   }
 
   // start csr
