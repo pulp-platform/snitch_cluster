@@ -20,7 +20,7 @@
         addr_width: 48,
         data_width: 64,
         tcdm: {
-            size: 128,
+            size: 4096,
             banks: 32,
         },
         cluster_periph_size: 64, // kB
