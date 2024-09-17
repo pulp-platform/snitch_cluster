@@ -70,7 +70,7 @@ def gen_chisel_file(chisel_path, chisel_param, gen_path):
         mill Snax.runMain {chisel_param} {gen_path}"
     print(f"Running command: {cmd}")
     if os.system(cmd) != 0:
-        raise ChildProcessError('Chisel generation error. ')
+        raise ChildProcessError("Chisel generation error. ")
 
     return
 
@@ -80,20 +80,20 @@ def streamer_csr_num(acc_cfgs):
     # Regardless if shared or not, it is the same total
     # This is the total number of loop dimension registers
     num_loop_dim = 0
-    if ("data_reader_params" in acc_cfgs["snax_streamer_cfg"]):
+    if "data_reader_params" in acc_cfgs["snax_streamer_cfg"]:
         num_loop_dim += sum(
             acc_cfgs["snax_streamer_cfg"]["data_reader_params"]["temporal_dim"]
-            )
+        )
 
-    if ("data_writer_params" in acc_cfgs["snax_streamer_cfg"]):
+    if "data_writer_params" in acc_cfgs["snax_streamer_cfg"]:
         num_loop_dim += sum(
             acc_cfgs["snax_streamer_cfg"]["data_writer_params"]["temporal_dim"]
-            )
+        )
 
-    if ("data_reader_writer_params" in acc_cfgs["snax_streamer_cfg"]):
+    if "data_reader_writer_params" in acc_cfgs["snax_streamer_cfg"]:
         num_loop_dim += sum(
             acc_cfgs["snax_streamer_cfg"]["data_reader_writer_params"]["temporal_dim"]
-            )
+        )
 
     # Calculation of data movers
     num_data_reader = 0
@@ -103,36 +103,36 @@ def streamer_csr_num(acc_cfgs):
 
     if "data_reader_params" in acc_cfgs["snax_streamer_cfg"]:
         num_data_reader = len(
-            acc_cfgs["snax_streamer_cfg"]["data_reader_params"]["num_channel"]  # noqa: E501
+            acc_cfgs["snax_streamer_cfg"]["data_reader_params"][
+                "num_channel"
+            ]  # noqa: E501
         )
 
     if "data_writer_params" in acc_cfgs["snax_streamer_cfg"]:
         num_data_writer = len(
-            acc_cfgs["snax_streamer_cfg"]["data_writer_params"]["num_channel"]  # noqa: E501
+            acc_cfgs["snax_streamer_cfg"]["data_writer_params"][
+                "num_channel"
+            ]  # noqa: E501
         )
 
     if "data_reader_writer_params" in acc_cfgs["snax_streamer_cfg"]:
         num_data_reader_writer = len(
-            acc_cfgs["snax_streamer_cfg"]["data_reader_writer_params"]["num_channel"]  # noqa: E501
+            acc_cfgs["snax_streamer_cfg"]["data_reader_writer_params"][
+                "num_channel"
+            ]  # noqa: E501
         )
 
     # This sets the total number of base pointers
-    num_data_mover = num_data_reader + num_data_writer \
-        + num_data_reader_writer
+    num_data_mover = num_data_reader + num_data_writer + num_data_reader_writer
 
     streamer_csr_num = (
-            # Total temporal loop dimensions and strides
-            2 * num_loop_dim + \
-            # Number of spatial strides
-            num_data_mover + \
-            # Number of base pointers
-            2 * num_data_mover + \
-            # Start register
-            1 + \
-            # Performance counter
-            1 + \
-            # Busy register
-            1
+        # Total temporal loop dimensions and strides
+        2 * num_loop_dim  # Number of spatial strides
+        + num_data_mover  # Number of base pointers
+        + 2 * num_data_mover  # Start register
+        + 1  # Performance counter
+        + 1  # Busy register
+        + 1
     )
 
     # transpose csr
@@ -181,8 +181,7 @@ def main():
         help="Bypass default accelerator generation",
     )
     parser.add_argument(
-        "--gen_path", type=str, default="./",
-        help="Points to the output directory"
+        "--gen_path", type=str, default="./", help="Points to the output directory"
     )
     parser.add_argument(
         "--get_bender_targets",
@@ -207,6 +206,7 @@ def main():
 
     # For generating all bender targets
     if args.get_bender_targets:
+
         def get_bender_targets(cfg):
             targets = []
             # If cfg is dictionary, then first check if it has
@@ -234,7 +234,7 @@ def main():
     print("    Generating accelerator specific wrappers    ")
     print("------------------------------------------------")
 
-    if (args.bypass_accgen == "false"):
+    if args.bypass_accgen == "false":
         for i in range(num_cores):
             if "snax_acc_cfg" in cfg_cores[i]:
                 num_core_w_acc += 1
@@ -246,8 +246,7 @@ def main():
             # TCDM configurations
             tcdm_data_width = cfg["cluster"]["data_width"]
             acc_cfgs[i]["tcdm_data_width"] = tcdm_data_width
-            acc_cfgs[i]["tcdm_dma_data_width"] = \
-                cfg["cluster"]["dma_data_width"]
+            acc_cfgs[i]["tcdm_dma_data_width"] = cfg["cluster"]["dma_data_width"]
             tcdm_depth = (
                 cfg["cluster"]["tcdm"]["size"]
                 * 1024
@@ -257,8 +256,7 @@ def main():
             acc_cfgs[i]["tcdm_depth"] = tcdm_depth
             tcdm_num_banks = cfg["cluster"]["tcdm"]["banks"]
             acc_cfgs[i]["tcdm_num_banks"] = tcdm_num_banks
-            tcdm_addr_width = tcdm_num_banks * \
-                tcdm_depth * (tcdm_data_width // 8)
+            tcdm_addr_width = tcdm_num_banks * tcdm_depth * (tcdm_data_width // 8)
             tcdm_addr_width = int(math.log2(tcdm_addr_width))
             acc_cfgs[i]["tcdm_addr_width"] = tcdm_addr_width
             # Chisel parameter tag names
@@ -270,8 +268,7 @@ def main():
         for i in range(len(acc_cfgs)):
             # First part is for chisel generation
             # Generate the parameter files for chisel streamer generation
-            chisel_target_path = args.chisel_path + \
-                "src/main/scala/snax/streamer/"
+            chisel_target_path = args.chisel_path + "src/main/scala/snax/streamer/"
             file_name = "StreamParamGen.scala"
             tpl_scala_param_file = args.tpl_path + "stream_param_gen.scala.tpl"
             tpl_scala_param = get_template(tpl_scala_param_file)
@@ -284,11 +281,11 @@ def main():
 
             # CSR manager scala parameter generation
             if not acc_cfgs[i].get("snax_disable_csr_manager", False):
-                chisel_target_path = args.chisel_path + \
-                    "src/main/scala/snax/csr_manager/"
+                chisel_target_path = (
+                    args.chisel_path + "src/main/scala/snax/csr_manager/"
+                )
                 file_name = "CsrManParamGen.scala"
-                tpl_scala_param_file = args.tpl_path + \
-                    "csrman_param_gen.scala.tpl"
+                tpl_scala_param_file = args.tpl_path + "csrman_param_gen.scala.tpl"
                 tpl_scala_param = get_template(tpl_scala_param_file)
                 gen_file(
                     cfg=acc_cfgs[i],
@@ -297,15 +294,13 @@ def main():
                     file_name=file_name,
                 )
 
-            rtl_target_path = args.gen_path + \
-                acc_cfgs[i]["snax_acc_name"] + "/"
+            rtl_target_path = args.gen_path + acc_cfgs[i]["snax_acc_name"] + "/"
 
             # This is for RTL wrapper and chisel generation
             # This first one generates the CSR manager wrapper
             if not acc_cfgs[i].get("snax_disable_csr_manager", False):
                 file_name = acc_cfgs[i]["snax_acc_name"] + "_csrman_wrapper.sv"
-                tpl_csrman_wrapper_file = args.tpl_path + \
-                    "snax_csrman_wrapper.sv.tpl"
+                tpl_csrman_wrapper_file = args.tpl_path + "snax_csrman_wrapper.sv.tpl"
                 tpl_csrman_wrapper = get_template(tpl_csrman_wrapper_file)
                 gen_file(
                     cfg=acc_cfgs[i],
@@ -316,7 +311,9 @@ def main():
 
             # This first one generates the streamer wrapper
             file_name = acc_cfgs[i]["snax_acc_name"] + "_streamer_wrapper.sv"
-            tpl_streamer_wrapper_file = args.tpl_path + "snax_streamer_wrapper.sv.tpl"  # noqa: E501
+            tpl_streamer_wrapper_file = (
+                args.tpl_path + "snax_streamer_wrapper.sv.tpl"
+            )  # noqa: E501
             tpl_streamer_wrapper = get_template(tpl_streamer_wrapper_file)
             gen_file(
                 cfg=acc_cfgs[i],
@@ -376,24 +373,43 @@ def main():
         chisel_acc_path = args.chisel_path + "../chisel_acc"
         rtl_target_path = args.gen_path + acc_cfgs[i]["snax_acc_name"] + "/"
 
-        if (acc_cfgs[i]["snax_acc_name"] == "snax_streamer_gemmX"):
+        if acc_cfgs[i]["snax_acc_name"] == "snax_streamer_gemmX":
+            if not (
+                "snax_gemmx_tile_size" in acc_cfgs[i]
+                and "snax_gemmx_mesh_row" in acc_cfgs[i]
+                and "snax_gemmx_mesh_col" in acc_cfgs[i]
+                and "with_pipeline" in acc_cfgs[i]
+            ):
+                raise ValueError(
+                    "Missing gemmX configuration. \n"
+                    "Please set snax_gemmx_mesh_row, snax_gemmx_mesh_col, "
+                    "snax_gemmx_tile_size, with_pipeline"
+                )
             gen_chisel_file(
-                        chisel_path=chisel_acc_path,
-                        chisel_param="snax_acc.gemmx.BlockGemmRescaleSIMD",
-                        gen_path=rtl_target_path,
-                    )
-        elif (acc_cfgs[i]["snax_acc_name"] == "snax_streamer_gemm_add_c"):
+                chisel_path=chisel_acc_path,
+                chisel_param="snax_acc.gemmx.BlockGemmRescaleSIMDGen "
+                + " --meshRow "
+                + str(acc_cfgs[i]["snax_gemmx_mesh_row"])
+                + " --meshCol "
+                + str(acc_cfgs[i]["snax_gemmx_mesh_col"])
+                + " --tileSize "
+                + str(acc_cfgs[i]["snax_gemmx_tile_size"])
+                + " --withPipeline "
+                + str(acc_cfgs[i]["with_pipeline"]),
+                gen_path=rtl_target_path,
+            )
+        elif acc_cfgs[i]["snax_acc_name"] == "snax_streamer_gemm_add_c":
             gen_chisel_file(
-                        chisel_path=chisel_acc_path,
-                        chisel_param="snax_acc.gemm.BlockGemm",
-                        gen_path=rtl_target_path,
-                    )
-        elif (acc_cfgs[i]["snax_acc_name"] == "snax_data_reshuffler"):
+                chisel_path=chisel_acc_path,
+                chisel_param="snax_acc.gemm.BlockGemm",
+                gen_path=rtl_target_path,
+            )
+        elif acc_cfgs[i]["snax_acc_name"] == "snax_data_reshuffler":
             gen_chisel_file(
-                        chisel_path=chisel_acc_path,
-                        chisel_param="snax_acc.reshuffle.Reshuffler",
-                        gen_path=rtl_target_path,
-                    )
+                chisel_path=chisel_acc_path,
+                chisel_param="snax_acc.reshuffle.Reshuffler",
+                gen_path=rtl_target_path,
+            )
         else:
             print("Nothing to generate ")
 
@@ -407,7 +423,7 @@ def main():
     for i in range(num_cores):
         if "snax_xdma_cfg" in cfg_cores[i]:
             snax_xdma_cfg = cfg_cores[i]["snax_xdma_cfg"]
-    if (snax_xdma_cfg is not None):
+    if snax_xdma_cfg is not None:
         tpl_rtl_wrapper_file = args.tpl_path + "snax_xdma_wrapper.sv.tpl"
 
         tpl_rtl_wrapper = get_template(tpl_rtl_wrapper_file)
@@ -427,20 +443,36 @@ def main():
         gen_chisel_file(
             chisel_path=args.chisel_path,
             chisel_param="snax.xdma.xdmaTop.xdmaTopGen",
-            gen_path=" --clusterName " + str(cfg["cluster"]["name"]) +
-            " --tcdmDataWidth " + str(cfg["cluster"]["data_width"]) +
-            " --axiDataWidth " + str(cfg["cluster"]["dma_data_width"]) +
-            " --axiAddrWidth " + str(cfg["cluster"]["addr_width"]) +
-            " --tcdmSize " + str(cfg["cluster"]["tcdm"]["size"]) +
-            " --readerSpatialBounds " + str(snax_xdma_cfg["reader_agu_spatial_bounds"]) +
-            " --readerTemporalDimension " + str(snax_xdma_cfg["reader_agu_temporal_dimension"]) +
-            " --writerSpatialBounds " + str(snax_xdma_cfg["writer_agu_spatial_bounds"]) +
-            " --writerTemporalDimension " + str(snax_xdma_cfg["writer_agu_temporal_dimension"]) +
-            " --readerBufferDepth " + str(snax_xdma_cfg["reader_buffer"]) +
-            " --writerBufferDepth " + str(snax_xdma_cfg["writer_buffer"]) +
-            xdma_extension_arg + " --hw-target-dir " + args.gen_path +
-            cfg["cluster"]["name"] + "_xdma/" +
-            " --sw-target-dir " + args.gen_path + "../sw/snax/xdma"
+            gen_path=" --clusterName "
+            + str(cfg["cluster"]["name"])
+            + " --tcdmDataWidth "
+            + str(cfg["cluster"]["data_width"])
+            + " --axiDataWidth "
+            + str(cfg["cluster"]["dma_data_width"])
+            + " --axiAddrWidth "
+            + str(cfg["cluster"]["addr_width"])
+            + " --tcdmSize "
+            + str(cfg["cluster"]["tcdm"]["size"])
+            + " --readerSpatialBounds "
+            + str(snax_xdma_cfg["reader_agu_spatial_bounds"])
+            + " --readerTemporalDimension "
+            + str(snax_xdma_cfg["reader_agu_temporal_dimension"])
+            + " --writerSpatialBounds "
+            + str(snax_xdma_cfg["writer_agu_spatial_bounds"])
+            + " --writerTemporalDimension "
+            + str(snax_xdma_cfg["writer_agu_temporal_dimension"])
+            + " --readerBufferDepth "
+            + str(snax_xdma_cfg["reader_buffer"])
+            + " --writerBufferDepth "
+            + str(snax_xdma_cfg["writer_buffer"])
+            + xdma_extension_arg
+            + " --hw-target-dir "
+            + args.gen_path
+            + cfg["cluster"]["name"]
+            + "_xdma/"
+            + " --sw-target-dir "
+            + args.gen_path
+            + "../sw/snax/xdma",
         )
 
     # ---------------------------------------
@@ -449,17 +481,22 @@ def main():
     cluster_schema_path = "../../docs/schema/snitch_cluster.schema.json"
     harness_cfg = read_schema(cluster_schema_path)
 
-    if ("enable_debug" not in cfg["cluster"]):
-        cfg["cluster"]["enable_debug"] = \
-            harness_cfg["properties"]["enable_debug"]["default"]
+    if "enable_debug" not in cfg["cluster"]:
+        cfg["cluster"]["enable_debug"] = harness_cfg["properties"]["enable_debug"][
+            "default"
+        ]
 
-    if ("iso_crossings" not in cfg["cluster"]["timing"]):
-        cfg["cluster"]["timing"]["iso_crossings"] = \
-            harness_cfg["properties"]["timing"]["properties"]["iso_crossings"]["default"]  # noqa: E501
+    if "iso_crossings" not in cfg["cluster"]["timing"]:
+        cfg["cluster"]["timing"]["iso_crossings"] = harness_cfg["properties"]["timing"][
+            "properties"
+        ]["iso_crossings"][
+            "default"
+        ]  # noqa: E501
 
-    if ("sram_cfg_expose" not in cfg["cluster"]):
-        cfg["cluster"]["sram_cfg_expose"] = \
-            harness_cfg["properties"]["sram_cfg_expose"]["default"]
+    if "sram_cfg_expose" not in cfg["cluster"]:
+        cfg["cluster"]["sram_cfg_expose"] = harness_cfg["properties"][
+            "sram_cfg_expose"
+        ]["default"]
 
     test_target_path = args.test_path
     file_name = "testharness.sv"

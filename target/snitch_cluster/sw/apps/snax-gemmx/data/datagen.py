@@ -40,6 +40,11 @@ def emit_header_file(**kwargs):
 MIN = -128
 MAX = 127
 
+bankWidth = 64
+input_data_width = 8
+output_data_width = 32
+quantized_output_data_width = 8
+
 
 def emit_conv_data(**kwargs):
     Cin = kwargs["Cin"]
@@ -553,6 +558,11 @@ def emit_conv_data(**kwargs):
 
 
 def emit_matmul_data(**kwargs):
+
+    meshRow = kwargs["meshRow"]
+    tileSize = kwargs["tileSize"]
+    meshCol = kwargs["meshCol"]
+
     # matmul settings
     data_str = []
 
@@ -562,13 +572,23 @@ def emit_matmul_data(**kwargs):
     data_str += [format_scalar_definition("int", "N", kwargs["N"])]
 
     data_str += [format_scalar_definition("int32_t", "Aslstride0", 1)]
-    data_str += [format_scalar_definition("int32_t", "Aslstride1", 8)]
+    data_str += [format_scalar_definition("int32_t", "Aslstride1", bankWidth / 8)]
     data_str += [format_scalar_definition("int32_t", "Atlbound0", kwargs["K"])]
-    data_str += [format_scalar_definition("int32_t", "Atlstride0", 64)]
+    data_str += [
+        format_scalar_definition(
+            "int32_t", "Atlstride0", input_data_width * tileSize * meshRow / 8
+        )
+    ]
     data_str += [format_scalar_definition("int32_t", "Atlbound1", kwargs["N"])]
     data_str += [format_scalar_definition("int32_t", "Atlstride1", 0)]
     data_str += [format_scalar_definition("int32_t", "Atlbound2", kwargs["M"])]
-    data_str += [format_scalar_definition("int32_t", "Atlstride2", kwargs["K"] * 64)]
+    data_str += [
+        format_scalar_definition(
+            "int32_t",
+            "Atlstride2",
+            kwargs["K"] * input_data_width * tileSize * meshRow / 8,
+        )
+    ]
     data_str += [format_scalar_definition("int32_t", "Atlbound3", 1)]
     data_str += [format_scalar_definition("int32_t", "Atlstride3", 0)]
     data_str += [format_scalar_definition("int32_t", "Atlbound4", 1)]
@@ -577,70 +597,115 @@ def emit_matmul_data(**kwargs):
     data_str += [format_scalar_definition("int32_t", "Atlstride5", 0)]
 
     data_str += [format_scalar_definition("int32_t", "Bslstride0", 1)]
-    data_str += [format_scalar_definition("int32_t", "Bslstride1", 8)]
+    data_str += [format_scalar_definition("int32_t", "Bslstride1", bankWidth / 8)]
     data_str += [format_scalar_definition("int32_t", "Btlbound0", kwargs["K"])]
-    data_str += [format_scalar_definition("int32_t", "Btlstride0", 64)]
+    data_str += [
+        format_scalar_definition(
+            "int32_t", "Btlstride0", input_data_width * tileSize * meshCol / 8
+        )
+    ]
     data_str += [format_scalar_definition("int32_t", "Btlbound1", kwargs["N"])]
-    data_str += [format_scalar_definition("int32_t", "Btlstride1", 64 * kwargs["K"])]
+    data_str += [
+        format_scalar_definition(
+            "int32_t",
+            "Btlstride1",
+            kwargs["K"] * input_data_width * tileSize * meshCol / 8,
+        )
+    ]
     data_str += [format_scalar_definition("int32_t", "Btlbound2", kwargs["M"])]
     data_str += [format_scalar_definition("int32_t", "Btlstride2", 0)]
 
     data_str += [format_scalar_definition("int32_t", "Cslstride0", 4)]
-    data_str += [format_scalar_definition("int32_t", "Cslstride1", 8)]
+    data_str += [format_scalar_definition("int32_t", "Cslstride1", bankWidth / 8)]
     data_str += [format_scalar_definition("int32_t", "Ctlbound0", kwargs["N"])]
-    data_str += [format_scalar_definition("int32_t", "Ctlstride0", 256)]
+    data_str += [
+        format_scalar_definition(
+            "int32_t", "Ctlstride0", output_data_width * meshRow * meshCol / 8
+        )
+    ]
     data_str += [format_scalar_definition("int32_t", "Ctlbound1", kwargs["M"])]
-    data_str += [format_scalar_definition("int32_t", "Ctlstride1", 256 * kwargs["N"])]
+    data_str += [
+        format_scalar_definition(
+            "int32_t",
+            "Ctlstride1",
+            kwargs["N"] * output_data_width * meshRow * meshCol / 8,
+        )
+    ]
     data_str += [format_scalar_definition("int32_t", "Ctlbound2", 1)]
     data_str += [format_scalar_definition("int32_t", "Ctlstride2", 0)]
 
     data_str += [format_scalar_definition("int32_t", "D32slstride0", 4)]
-    data_str += [format_scalar_definition("int32_t", "D32slstride1", 8)]
+    data_str += [format_scalar_definition("int32_t", "D32slstride1", bankWidth / 8)]
     data_str += [format_scalar_definition("int32_t", "D32tlbound0", kwargs["N"])]
-    data_str += [format_scalar_definition("int32_t", "D32tlstride0", 256)]
+    data_str += [
+        format_scalar_definition(
+            "int32_t", "D32tlstride0", output_data_width * meshRow * meshCol / 8
+        )
+    ]
     data_str += [format_scalar_definition("int32_t", "D32tlbound1", kwargs["M"])]
-    data_str += [format_scalar_definition("int32_t", "D32tlstride1", 256 * kwargs["N"])]
+    data_str += [
+        format_scalar_definition(
+            "int32_t",
+            "D32tlstride1",
+            kwargs["N"] * output_data_width * meshRow * meshCol / 8,
+        )
+    ]
     data_str += [format_scalar_definition("int32_t", "D32tlbound2", 1)]
     data_str += [format_scalar_definition("int32_t", "D32tlstride2", 0)]
 
     data_str += [format_scalar_definition("int32_t", "D8slstride0", 1)]
-    data_str += [format_scalar_definition("int32_t", "D8slstride1", 8)]
+    data_str += [format_scalar_definition("int32_t", "D8slstride1", bankWidth / 8)]
     data_str += [format_scalar_definition("int32_t", "D8tlbound0", kwargs["N"])]
-    data_str += [format_scalar_definition("int32_t", "D8tlstride0", 64)]
+    data_str += [
+        format_scalar_definition(
+            "int32_t",
+            "D8tlstride0",
+            quantized_output_data_width * meshRow * meshCol / 8,
+        )
+    ]
     data_str += [format_scalar_definition("int32_t", "D8tlbound1", kwargs["M"])]
-    data_str += [format_scalar_definition("int32_t", "D8tlstride1", 64 * kwargs["N"])]
+    data_str += [
+        format_scalar_definition(
+            "int32_t",
+            "D8tlstride1",
+            kwargs["N"] * quantized_output_data_width * meshRow * meshCol / 8,
+        )
+    ]
     data_str += [format_scalar_definition("int32_t", "D8tlbound2", 1)]
     data_str += [format_scalar_definition("int32_t", "D8tlstride2", 0)]
 
-    data_str += [format_scalar_definition("int32_t", "delta_local_a", 0)]
-    data_str += [
-        format_scalar_definition(
-            "int32_t", "delta_local_b", 64 * kwargs["K"] * kwargs["M"]
-        )
-    ]
+    delta_local_a = 0
+    delta_local_b = (
+        kwargs["K"] * kwargs["M"] * (meshRow * tileSize * input_data_width / 8)
+    )
+    delta_local_c = delta_local_b + kwargs["K"] * kwargs["N"] * (
+        meshCol * tileSize * input_data_width / 8
+    )
+    delta_local_d32 = delta_local_c + kwargs["M"] * kwargs["N"] * (
+        meshRow * meshCol * output_data_width / 8
+    )
+    delta_local_d8 = delta_local_d32
+    data_str += [format_scalar_definition("int32_t", "delta_local_a", delta_local_a)]
+    data_str += [format_scalar_definition("int32_t", "delta_local_b", delta_local_b)]
     data_str += [
         format_scalar_definition(
             "int32_t",
             "delta_local_c",
-            64 * kwargs["K"] * kwargs["M"] + 64 * kwargs["K"] * kwargs["N"],
+            delta_local_c,
         )
     ]
     data_str += [
         format_scalar_definition(
             "int32_t",
             "delta_local_d32",
-            64 * kwargs["K"] * kwargs["M"]
-            + 64 * kwargs["K"] * kwargs["N"]
-            + 256 * kwargs["M"] * kwargs["N"],
+            delta_local_d32,
         )
     ]
     data_str += [
         format_scalar_definition(
             "int32_t",
             "delta_local_d8",
-            64 * kwargs["K"] * kwargs["M"]
-            + 64 * kwargs["K"] * kwargs["N"]
-            + 256 * kwargs["M"] * kwargs["N"],
+            delta_local_d8,
         )
     ]
 
@@ -652,18 +717,24 @@ def emit_matmul_data(**kwargs):
     data_str += [format_scalar_definition("int8_t", "subtraction_a", subtraction_a)]
     data_str += [format_scalar_definition("int8_t", "subtraction_b", subtraction_b)]
 
-    A = np.random.randint(MIN, MAX, size=(kwargs["M"], kwargs["K"], 8, 8)).reshape(-1)
+    A = np.random.randint(
+        MIN, MAX, size=(kwargs["M"], kwargs["K"], meshRow, tileSize)
+    ).reshape(-1)
     data_str += [format_vector_definition("int8_t", "A", A)]
-    B = np.random.randint(MIN, MAX, size=(kwargs["K"], kwargs["N"], 8, 8)).reshape(-1)
+    B = np.random.randint(
+        MIN, MAX, size=(kwargs["K"], kwargs["N"], tileSize, meshCol)
+    ).reshape(-1)
     data_str += [format_vector_definition("int8_t", "B", B)]
-    C = np.random.randint(MIN, MAX, size=(kwargs["M"], kwargs["N"], 8, 8)).reshape(-1)
+    C = np.random.randint(
+        MIN, MAX, size=(kwargs["M"], kwargs["N"], meshRow, meshCol)
+    ).reshape(-1)
     data_str += [format_vector_definition("int32_t", "C", C)]
 
     if kwargs["transposed_A"] == 1:
-        A = A.reshape(kwargs["M"], kwargs["K"], 8, 8)
+        A = A.reshape(kwargs["M"], kwargs["K"], meshRow, tileSize)
         A = A.transpose(0, 1, 3, 2).reshape(-1)
     if kwargs["transposed_B"] == 1:
-        B = B.reshape(kwargs["K"], kwargs["N"], 8, 8)
+        B = B.reshape(kwargs["K"], kwargs["N"], tileSize, meshCol)
         B = B.transpose(0, 1, 3, 2).reshape(-1)
 
     data_str += [
@@ -677,9 +748,9 @@ def emit_matmul_data(**kwargs):
         kwargs["M"],
         kwargs["K"],
         kwargs["N"],
-        8,
-        8,
-        8,
+        meshRow,
+        tileSize,
+        meshCol,
         A,
         B,
         subtraction_a,

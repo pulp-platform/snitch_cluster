@@ -122,3 +122,62 @@ object BlockGemmRescaleSIMD extends App {
     Array("--target-dir", "generated/gemmx")
   )
 }
+
+object BlockGemmRescaleSIMDGen {
+  def main(args: Array[String]): Unit = {
+    // Helper function to parse command-line arguments into a Map
+    def parseArgs(args: Array[String]): Map[String, String] = {
+      val parsed_args = args
+        .sliding(2, 2)
+        .collect {
+          case Array(key, value) if key.startsWith("--") => key.drop(2) -> value
+        }
+        .toMap
+      if (parsed_args.size != 4) {
+        throw new Exception(
+          "Please provide the meshRow, meshCol, tileSize, and withPipeline. Example usage: sbt 'runMain snax_acc.gemmx.BlockGemmRescaleSIMDGen --meshRow 2 --meshCol 2 --tileSize 16 --withPipeline true'"
+        )
+      }
+      parsed_args
+    }
+
+    // Parse the arguments
+    val argMap = parseArgs(args)
+
+    // Retrieve the specific values, providing defaults or error handling
+    val meshRow = argMap("meshRow")
+    val meshCol = argMap("meshCol")
+    val tileSize = argMap("tileSize")
+
+    // set the parameters for the gemm module
+    // other parameters are set to default values
+    val gemmParams = GemmParams(
+      GemmConstant.dataWidthA,
+      GemmConstant.dataWidthB,
+      GemmConstant.dataWidthMul,
+      GemmConstant.dataWidthC,
+      GemmConstant.dataWidthAccum,
+      GemmConstant.subtractionCfgWidth,
+      meshRow.toInt,
+      tileSize.toInt,
+      meshCol.toInt,
+      GemmConstant.addrWidth,
+      GemmConstant.sizeConfigWidth
+    )
+
+    val withPipeline = argMap("withPipeline").toBoolean
+
+    emitVerilog(
+      new BlockGemmRescaleSIMD(
+        BlockGemmRescaleSIMDParams(
+          gemmParams,
+          (if (withPipeline == true)
+             snax_acc.simd.PipelinedConfig.rescaleSIMDConfig
+           else snax_acc.simd.DefaultConfig.rescaleSIMDConfig),
+          false
+        )
+      ),
+      Array("--target-dir", "generated/gemmx")
+    )
+  }
+}

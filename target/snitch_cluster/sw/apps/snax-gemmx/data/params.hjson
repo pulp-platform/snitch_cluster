@@ -24,4 +24,9 @@
   M: 1,
   bypassSIMD: 1,
   ifTestMatmul: 1,
+
+  // hardware parameters
+  meshRow : 8,
+  tileSize: 8,
+  meshCol : 8,
 }

@@ -6,6 +6,7 @@
 
 #include "snax-gemmx-lib.h"
 #include <stdbool.h>
+#include "snax-gemmx-params.h"
 #include "snrt.h"
 #include "stdint.h"
 #include "streamer_csr_addr_map.h"
@@ -156,8 +157,10 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_READER_WRITER_1_2, D32tlstride2);
 
     // set the transpose
+#ifdef TRANSPOSE_EXTENSION_ENABLE
     csrw_ss(TRANSPOSE_CSR_READER_0, transpose_A == 0 ? 1 : 0);
     csrw_ss(TRANSPOSE_CSR_READER_1, transpose_B == 0 ? 1 : 0);
+#endif
 }
 
 // Set CSR to start STREAMER
@@ -234,7 +237,7 @@ uint32_t check_gemmx_result_D8(int8_t* output, int8_t* output_golden,
                                int32_t Batch, int32_t M, int32_t N) {
     uint32_t err = 0;
     uint32_t size = 0;
-    size = Batch * M * N * 8 * 8;
+    size = Batch * M * N * meshRow * meshCol;
 
     for (int i = 0; i < size; i++) {
         if (output[i] != output_golden[i]) {
@@ -248,7 +251,7 @@ uint32_t check_gemmx_result_D32(int32_t* output, int32_t* output_golden,
                                 int32_t Batch, int32_t M, int32_t N) {
     uint32_t err = 0;
     uint32_t size = 0;
-    size = Batch * M * N * 8 * 8;
+    size = Batch * M * N * meshRow * meshCol;
 
     for (int i = 0; i < size; i++) {
         if (output[i] != output_golden[i]) {
