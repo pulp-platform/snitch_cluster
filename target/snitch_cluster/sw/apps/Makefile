@@ -25,20 +25,20 @@ SUBDIRS += snax-mac
 SUBDIRS += snax-mac-simple/untiled
 SUBDIRS += snax-mac-simple/tiled
 SUBDIRS += snax-mac-mult
-ifeq ($(CFG_OVERRIDE), cfg/snax-alu.hjson)
+ifeq ($(CFG_OVERRIDE), cfg/snax_alu.hjson)
 SUBDIRS += snax-alu
 endif
-ifeq ($(CFG_OVERRIDE), cfg/snax-kul-cluster-mixed-narrow-wide.hjson)
+ifeq ($(CFG_OVERRIDE), cfg/snax_kul_cluster_mixed_narrow_wide.hjson)
 SUBDIRS += snax-data-reshuffler
 SUBDIRS += snax-gemmx
 endif
-ifeq ($(CFG_OVERRIDE), cfg/snax-kul-cluster-mixed-narrow-wide-xdma.hjson)
+ifeq ($(CFG_OVERRIDE), cfg/snax_kul_cluster_mixed_narrow_wide_xdma.hjson)
 SUBDIRS += snax-gemmx
 SUBDIRS += snax-xdma-memset
 SUBDIRS += snax-xdma-maxpool
 endif
 SUBDIRS += snax-multi-cluster-playground
-ifeq ($(CFG_OVERRIDE), cfg/snax-hypercorex.hjson)
+ifeq ($(CFG_OVERRIDE), cfg/snax_hypercorex.hjson)
 SUBDIRS += snax-hypercorex/test-csr
 SUBDIRS += snax-hypercorex/char-recog
 endif

@@ -17,18 +17,18 @@ endif
 
 SUBDIRS += math $(RUNTIME) snax/mac apps tests
 
-ifeq (${CFG_OVERRIDE}, cfg/snax-kul-cluster-mixed-narrow-wide.hjson)
+ifeq (${CFG_OVERRIDE}, cfg/snax_kul_cluster_mixed_narrow_wide.hjson)
 SUBDIRS += snax/gemmx snax/data-reshuffler
 endif
-ifeq ($(CFG_OVERRIDE), cfg/snax-kul-cluster-mixed-narrow-wide-xdma.hjson)
+ifeq ($(CFG_OVERRIDE), cfg/snax_kul_cluster_mixed_narrow_wide_xdma.hjson)
 SUBDIRS += snax/gemmx snax/xdma
 endif
 
-ifeq (${CFG_OVERRIDE}, cfg/snax-alu.hjson)
+ifeq (${CFG_OVERRIDE}, cfg/snax_alu.hjson)
 SUBDIRS += snax/snax-alu
 endif
 
-ifeq (${CFG_OVERRIDE}, cfg/snax-hypercorex.hjson)
+ifeq (${CFG_OVERRIDE}, cfg/snax_hypercorex.hjson)
 SUBDIRS += snax/hypercorex
 endif
 
