@@ -59,8 +59,9 @@ GENERATED_DIR     ?= $(MKFILE_DIR)generated
 ####################
 #  Default Values  #
 ####################
-BYPASS_ACCGEN = false
-SNAX_CHISEL_ACC_GEN = false
+BYPASS_ACCGEN ?= false
+DISABLE_HEADER_GEN ?= false
+SNAX_CHISEL_ACC_GEN ?= false
 CSRMAN_PARAM_SCALA_PATH = $(ROOT)/hw/chisel/src/main/scala/snax/csr_manager/CsrManParamGen.scala
 STREAM_PARAM_SCALA_PATH = $(ROOT)/hw/chisel/src/main/scala/snax/streamer/StreamParamGen.scala
 
@@ -115,6 +116,7 @@ rtl-snax-gen: | $(GENERATED_DIR)
 		--test_path="${SNAX_TEST_PATH}" \
 		--chisel_path="${SNAX_CHISEL_PATH}" \
 		--bypass_accgen="${BYPASS_ACCGEN}" \
+		--disable_header_gen="${DISABLE_HEADER_GEN}" \
 		--gen_path="${GENERATED_DIR}/"
 
 

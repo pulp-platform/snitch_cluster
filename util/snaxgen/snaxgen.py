@@ -188,6 +188,12 @@ def main():
         action="store_true",
         help="Get the bender targets for the whole system",
     )
+    parser.add_argument(
+        "--disable_header_gen",
+        type=str,
+        default="false",
+        help="Disable the generation of header files for the streamer.",
+    )
 
     # Get the list of parsing
     args = parser.parse_args()
@@ -348,12 +354,13 @@ def main():
                 gen_path=rtl_target_path,
             )
 
-            # Generate headerfile of streamer
-            gen_chisel_file(
-                chisel_path=args.chisel_path,
-                chisel_param="snax.streamer.StreamerHeaderFileGen",
-                gen_path=rtl_target_path,
-            )
+            if args.disable_header_gen == "false":
+                # Generate headerfile of streamer
+                gen_chisel_file(
+                    chisel_path=args.chisel_path,
+                    chisel_param="snax.streamer.StreamerHeaderFileGen",
+                    gen_path=rtl_target_path,
+                )
 
         print("Generation of accelerator specific wrappers done!")
     else:
