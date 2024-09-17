@@ -143,15 +143,15 @@ RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
     cd /src && sbt package && \
     cd /src && \
     make -C target/snitch_cluster rtl-gen \
-    CFG_OVERRIDE=cfg/snax-mac.hjson && \
+    CFG_OVERRIDE=cfg/snax_mac.hjson && \
     make DEBUG=ON sw -j$(nproc) \
     -C target/snitch_cluster \
     SELECT_TOOLCHAIN=llvm-generic \
     SELECT_RUNTIME=rtl-generic \
-    CFG_OVERRIDE=cfg/snax-mac.hjson && \
+    CFG_OVERRIDE=cfg/snax_mac.hjson && \
     cd /src && \
     make -C target/snitch_cluster bin/snitch_cluster.vlt \
-    CFG_OVERRIDE=cfg/snax-mac.hjson -j $(nproc)
+    CFG_OVERRIDE=cfg/snax_mac.hjson -j $(nproc)
 
 FROM base as snax-alu
 
@@ -160,15 +160,15 @@ RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
     cd /src && sbt package && \
     cd /src && \
     make -C target/snitch_cluster rtl-gen \
-    CFG_OVERRIDE=cfg/snax-alu.hjson && \
+    CFG_OVERRIDE=cfg/snax_alu.hjson && \
     make DEBUG=ON sw -j$(nproc) \
     -C target/snitch_cluster \
     SELECT_TOOLCHAIN=llvm-generic \
     SELECT_RUNTIME=rtl-generic \
-    CFG_OVERRIDE=cfg/snax-alu.hjson && \
+    CFG_OVERRIDE=cfg/snax_alu.hjson && \
     cd /src && \
     make -C target/snitch_cluster bin/snitch_cluster.vlt \
-    CFG_OVERRIDE=cfg/snax-alu.hjson -j $(nproc)
+    CFG_OVERRIDE=cfg/snax_alu.hjson -j $(nproc)
 
 FROM base as snax-streamer-gemm
 
@@ -177,15 +177,15 @@ RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
     cd /src && sbt package && \
     cd /src && \
     make -C target/snitch_cluster rtl-gen \
-    CFG_OVERRIDE=cfg/snax-streamer-gemm.hjson && \
+    CFG_OVERRIDE=cfg/snax_streamer_gemm.hjson && \
     make DEBUG=ON sw -j$(nproc) \
     -C target/snitch_cluster \
     SELECT_TOOLCHAIN=llvm-generic \
     SELECT_RUNTIME=rtl-generic \
-    CFG_OVERRIDE=cfg/snax-streamer-gemm.hjson && \
+    CFG_OVERRIDE=cfg/snax_streamer_gemm.hjson && \
     cd /src && \
     make -C target/snitch_cluster bin/snitch_cluster.vlt \
-    CFG_OVERRIDE=cfg/snax-streamer-gemm.hjson -j $(nproc)
+    CFG_OVERRIDE=cfg/snax_streamer_gemm.hjson -j $(nproc)
 
 
 FROM base as snax-streamer-gemm-add-c
@@ -195,15 +195,15 @@ RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
     cd /src && sbt package && \
     cd /src && \
     make -C target/snitch_cluster rtl-gen \
-    CFG_OVERRIDE=cfg/snax-streamer-gemm-add-c.hjson && \
+    CFG_OVERRIDE=cfg/snax_streamer_gemm_add_c.hjson && \
     make DEBUG=ON sw -j$(nproc) \
     -C target/snitch_cluster \
     SELECT_TOOLCHAIN=llvm-generic \
     SELECT_RUNTIME=rtl-generic \
-    CFG_OVERRIDE=cfg/snax-streamer-gemm-add-c.hjson && \
+    CFG_OVERRIDE=cfg/snax_streamer_gemm_add_c.hjson && \
     cd /src && \
     make -C target/snitch_cluster bin/snitch_cluster.vlt \
-    CFG_OVERRIDE=cfg/snax-streamer-gemm-add-c.hjson -j $(nproc)
+    CFG_OVERRIDE=cfg/snax_streamer_gemm_add_c.hjson -j $(nproc)
 
 FROM base as snax-kul-cluster-mixed-narrow-wide
 
@@ -212,15 +212,15 @@ RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
     cd /src && sbt package && \
     cd /src && \
     make -C target/snitch_cluster rtl-gen \
-    CFG_OVERRIDE=cfg/snax-kul-cluster-mixed-narrow-wide.hjson && \
+    CFG_OVERRIDE=cfg/snax_kul_cluster_mixed_narrow_wide.hjson && \
     make DEBUG=ON sw -j$(nproc) \
     -C target/snitch_cluster \
     SELECT_TOOLCHAIN=llvm-generic \
     SELECT_RUNTIME=rtl-generic \
-    CFG_OVERRIDE=cfg/snax-kul-cluster-mixed-narrow-wide.hjson && \
+    CFG_OVERRIDE=cfg/snax_kul_cluster_mixed_narrow_wide.hjson && \
     cd /src && \
     make -C target/snitch_cluster bin/snitch_cluster.vlt \
-    CFG_OVERRIDE=cfg/snax-kul-cluster-mixed-narrow-wide.hjson -j $(nproc)
+    CFG_OVERRIDE=cfg/snax_kul_cluster_mixed_narrow_wide.hjson -j $(nproc)
 
 
 # Copy Hardware to final image
