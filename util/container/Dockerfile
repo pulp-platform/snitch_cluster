@@ -2,6 +2,7 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
+
 FROM ubuntu:24.04 AS build-bender
 
 RUN apt-get update && apt-get install -y curl build-essential
@@ -114,9 +115,12 @@ RUN wget https://github.com/pulp-platform/riscv-isa-sim/releases/download/snitch
 # Remove cache
     rm -rf /root/.cache
 
+# Copy snax_cluster contents to /snax_cluster
+COPY . /snax_cluster
+
 # Install Python Requirements from kuleuven-micas/snax_cluster
-RUN git clone https://github.com/kuleuven-micas/snax_cluster.git && \
-    cd snax_cluster && pip3 install --no-cache-dir -r python-requirements.txt && \
+WORKDIR /snax_cluster/
+RUN pip3 install --no-cache-dir -r python-requirements.txt && \
     cd .. && \
     rm -rf snax_cluster && \
 # Install Python Requirements from kuleuven-micas/snax-mlir
@@ -138,9 +142,8 @@ CMD ["zsh"]
 # Default systems
 FROM base as snax-mac
 
-RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
-    cd /src && git submodule update --init && \
-    cd /src && sbt package && \
+COPY . /src/
+RUN cd /src && sbt package && \
     cd /src && \
     make -C target/snitch_cluster rtl-gen \
     CFG_OVERRIDE=cfg/snax_mac.hjson && \
@@ -155,9 +158,8 @@ RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
 
 FROM base as snax-alu
 
-RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
-    cd /src && git submodule update --init && \
-    cd /src && sbt package && \
+COPY . /src/
+RUN cd /src && sbt package && \
     cd /src && \
     make -C target/snitch_cluster rtl-gen \
     CFG_OVERRIDE=cfg/snax_alu.hjson && \
@@ -172,9 +174,8 @@ RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
 
 FROM base as snax-streamer-gemm
 
-RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
-    cd /src && git submodule update --init && \
-    cd /src && sbt package && \
+COPY . /src/
+RUN cd /src && sbt package && \
     cd /src && \
     make -C target/snitch_cluster rtl-gen \
     CFG_OVERRIDE=cfg/snax_streamer_gemm.hjson && \
@@ -190,9 +191,8 @@ RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
 
 FROM base as snax-streamer-gemm-add-c
 
-RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
-    cd /src && git submodule update --init && \
-    cd /src && sbt package && \
+COPY . /src/
+RUN cd /src && sbt package && \
     cd /src && \
     make -C target/snitch_cluster rtl-gen \
     CFG_OVERRIDE=cfg/snax_streamer_gemm_add_c.hjson && \
@@ -207,9 +207,8 @@ RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
 
 FROM base as snax-kul-cluster-mixed-narrow-wide
 
-RUN git clone https://github.com/kuleuven-micas/snax_cluster /src && \
-    cd /src && git submodule update --init && \
-    cd /src && sbt package && \
+COPY . /src/
+RUN cd /src && sbt package && \
     cd /src && \
     make -C target/snitch_cluster rtl-gen \
     CFG_OVERRIDE=cfg/snax_kul_cluster_mixed_narrow_wide.hjson && \
@@ -276,3 +275,5 @@ COPY --from=snax-kul-cluster-mixed-narrow-wide /src/target/snitch_cluster/sw/sna
 COPY --from=snax-kul-cluster-mixed-narrow-wide /src/sw/math/ /opt/snax-kul-cluster-mixed-narrow-wide/sw/math/
 COPY --from=snax-kul-cluster-mixed-narrow-wide /src/sw/deps/riscv-opcodes /opt/snax-kul-cluster-mixed-narrow-wide/sw/deps/riscv-opcodes
 COPY --from=snax-kul-cluster-mixed-narrow-wide /src/sw/deps/printf /opt/snax-kul-cluster-mixed-narrow-wide/sw/deps/printf
+
+WORKDIR /
