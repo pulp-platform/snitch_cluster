@@ -197,14 +197,14 @@
             spatial_bounds: [[8], [8]],
             temporal_dim: [6, 3],
             num_channel: [8, 8],
-            fifo_depth: [2, 2],
+            fifo_depth: [8, 8],
         },
 
         data_writer_params:{
             spatial_bounds: [[8]],
             temporal_dim: [3],
             num_channel: [8],
-            fifo_depth: [2],
+            fifo_depth: [8],
         },
 
         data_reader_writer_params:{

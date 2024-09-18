@@ -272,15 +272,15 @@ class Streamer(
   csrManager.io.csr_config_out.ready := streamer_ready
 
   // add performance counter for streamer
-  val streamerBusy2Idle = WireInit(false.B)
+  val streamerIdle2Busy = WireInit(false.B)
 
-  streamerBusy2Idle := !streamer_busy && RegNext(streamer_busy)
+  streamerIdle2Busy := streamer_busy && !RegNext(streamer_busy)
 
   val performance_counter = RegInit(0.U(32.W))
-  when(streamer_busy) {
-    performance_counter := performance_counter + 1.U
-  }.elsewhen(streamerBusy2Idle) {
+  when(streamerIdle2Busy) {
     performance_counter := 0.U
+  }.elsewhen(streamer_busy) {
+    performance_counter := performance_counter + 1.U
   }
 
   // connect the performance counter to the first ready only csr
