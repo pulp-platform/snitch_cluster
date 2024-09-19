@@ -22,16 +22,16 @@ class DMACtrlIO(readerparam: DMADataPathParam, writerparam: DMADataPathParam)
   )
   // Local DMADatapath control signal (Which is connected to DMADataPath)
   val localDMADataPath = new Bundle {
-    val reader_cfg_o = Output(new DMADataPathCfgInternalIO(readerparam))
-    val writer_cfg_o = Output(new DMADataPathCfgInternalIO(writerparam))
+    val readerCfg = Output(new DMADataPathCfgInternalIO(readerparam))
+    val writerCfg = Output(new DMADataPathCfgInternalIO(writerparam))
 
     // Two start signal will inform the new cfg is available, trigger agu, and inform all extension that a stream is coming
-    val reader_start_o = Output(Bool())
-    val writer_start_o = Output(Bool())
+    val readerStart = Output(Bool())
+    val writerStart = Output(Bool())
     // Two busy signal only go down if a stream fully passthrough the reader / writter, which is provided by DataPath
     // These signals should be readable by the outside; these two will also be used to determine whether the next task can be executed.
-    val reader_busy_i = Input(Bool())
-    val writer_busy_i = Input(Bool())
+    val readerBusy = Input(Bool())
+    val writerBusy = Input(Bool())
   }
   // Remote control signal, which include the signal from other cluster or signal to other cluster. Both of them is AXI related, serialized signal
   // The remote control signal will contain only src information, in other words, the DMA system can proceed remote read or local read, but only local write
@@ -360,15 +360,15 @@ class DMACtrl(
   i_dst_LoopbackDemux.io.out(1) <> i_dstCfgArbiter.io.in(0)
 
   // Connect these two cfg to the actual input: Need two small (Mealy) FSMs to manage the start signal and pop out the consumed cfg
-  val s_idle :: s_waitbusy :: s_busy :: Nil = Enum(3)
+  val sIdle :: sWaitBusy :: sBusy :: Nil = Enum(3)
 
-  s_idle.suggestName("s_idle")
-  s_waitbusy.suggestName("s_waitbusy")
-  s_busy.suggestName("s_busy")
+  sIdle.suggestName("sIdle")
+  sWaitBusy.suggestName("sWaitBusy")
+  sBusy.suggestName("sBusy")
 
   // Two registers to store the current state
-  val current_state_src = RegInit(s_idle)
-  val current_state_dst = RegInit(s_idle)
+  val current_state_src = RegInit(sIdle)
+  val current_state_dst = RegInit(sIdle)
 
   // Two Data Cut to store the buffer the current cfg
   val current_cfg_src = Wire(chiselTypeOf(i_srcCfgArbiter.io.out))
@@ -377,27 +377,27 @@ class DMACtrl(
   i_dstCfgArbiter.io.out -|> current_cfg_dst
 
   // Default value: Not pop out config, not start reader/writer, not change state
-  io.localDMADataPath.reader_start_o := false.B
-  io.localDMADataPath.writer_start_o := false.B
+  io.localDMADataPath.readerStart := false.B
+  io.localDMADataPath.writerStart := false.B
   current_cfg_src.ready := false.B
   current_cfg_dst.ready := false.B
 
   // Control signals in Src Path
   switch(current_state_src) {
-    is(s_idle) {
-      when(current_cfg_src.valid & (~io.localDMADataPath.reader_busy_i)) {
-        current_state_src := s_waitbusy
-        io.localDMADataPath.reader_start_o := true.B
+    is(sIdle) {
+      when(current_cfg_src.valid & (~io.localDMADataPath.readerBusy)) {
+        current_state_src := sWaitBusy
+        io.localDMADataPath.readerStart := true.B
       }
     }
-    is(s_waitbusy) {
-      when(io.localDMADataPath.reader_busy_i) {
-        current_state_src := s_busy
+    is(sWaitBusy) {
+      when(io.localDMADataPath.readerBusy) {
+        current_state_src := sBusy
       }
     }
-    is(s_busy) {
-      when(~io.localDMADataPath.reader_busy_i) {
-        current_state_src := s_idle
+    is(sBusy) {
+      when(~io.localDMADataPath.readerBusy) {
+        current_state_src := sIdle
         current_cfg_src.ready := true.B
       }
     }
@@ -405,29 +405,29 @@ class DMACtrl(
 
   // Control signals in Dst Path
   switch(current_state_dst) {
-    is(s_idle) {
-      when(current_cfg_dst.valid & (~io.localDMADataPath.writer_busy_i)) {
-        current_state_dst := s_waitbusy
-        io.localDMADataPath.writer_start_o := true.B
+    is(sIdle) {
+      when(current_cfg_dst.valid & (~io.localDMADataPath.writerBusy)) {
+        current_state_dst := sWaitBusy
+        io.localDMADataPath.writerStart := true.B
       }
     }
-    is(s_waitbusy) {
-      when(io.localDMADataPath.writer_busy_i) {
-        current_state_dst := s_busy
+    is(sWaitBusy) {
+      when(io.localDMADataPath.writerBusy) {
+        current_state_dst := sBusy
       }
     }
-    is(s_busy) {
-      when(~io.localDMADataPath.writer_busy_i) {
-        current_state_dst := s_idle
+    is(sBusy) {
+      when(~io.localDMADataPath.writerBusy) {
+        current_state_dst := sIdle
         current_cfg_dst.ready := true.B
       }
     }
   }
 
   // Data Signals in Src Path
-  io.localDMADataPath.reader_cfg_o := current_cfg_src.bits
+  io.localDMADataPath.readerCfg := current_cfg_src.bits
   // Data Signals in Dst Path
-  io.localDMADataPath.writer_cfg_o := current_cfg_dst.bits
+  io.localDMADataPath.writerCfg := current_cfg_dst.bits
 
   // Counter for submitted cfg and finished cfg (With these two values, the control core knows which task is finished)
   val i_submittedTaskCounter = Module(new BasicCounter(32, hasCeil = false) {
@@ -444,8 +444,8 @@ class DMACtrl(
   i_finishedTaskCounter.io.ceil := DontCare
   i_finishedTaskCounter.io.reset := false.B
   i_finishedTaskCounter.io.tick := (RegNext(
-    io.localDMADataPath.writer_busy_i,
+    io.localDMADataPath.writerBusy,
     init = false.B
-  ) === true.B) && (io.localDMADataPath.writer_busy_i === false.B)
+  ) === true.B) && (io.localDMADataPath.writerBusy === false.B)
   i_csrmanager.io.read_only_csr(1) := i_finishedTaskCounter.io.value
 }

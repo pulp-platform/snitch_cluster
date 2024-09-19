@@ -231,33 +231,33 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
         concurrent_threads = concurrent_threads.fork {
           breakable(
             while (true) {
-              while (!dut.io.localDMADataPath.reader_start_o.peekBoolean()) {
+              while (!dut.io.localDMADataPath.readerStart.peekBoolean()) {
                 dut.clock.step()
                 if (testTerminated) break()
               }
               dut.clock.step(Random.between(1, 16) + 32)
-              dut.io.localDMADataPath.reader_busy_i.poke(true)
+              dut.io.localDMADataPath.readerBusy.poke(true)
               println(
-                "[Local Reader Checker] " + dut.io.localDMADataPath.reader_cfg_o.readerPtr
+                "[Local Reader Checker] " + dut.io.localDMADataPath.readerCfg.readerPtr
                   .peekInt()
                   .toInt
                   .toHexString
               )
               if (
                 !unreceived_reader_cfg.remove(
-                  dut.io.localDMADataPath.reader_cfg_o.readerPtr
+                  dut.io.localDMADataPath.readerCfg.readerPtr
                     .peekInt()
                     .toInt
                 )
               )
                 throw new Exception(
-                  "[Local Reader Checker] The received pointer " + dut.io.localDMADataPath.reader_cfg_o.readerPtr
+                  "[Local Reader Checker] The received pointer " + dut.io.localDMADataPath.readerCfg.readerPtr
                     .peekInt()
                     .toInt
                     .toHexString + " is not in the buffer"
                 )
               dut.clock.step(Random.between(1, 16) + 32)
-              dut.io.localDMADataPath.reader_busy_i.poke(false)
+              dut.io.localDMADataPath.readerBusy.poke(false)
             }
           )
           println("Local Reader Checker is terminated. ")
@@ -267,33 +267,33 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
         concurrent_threads = concurrent_threads.fork {
           breakable(
             while (true) {
-              while (!dut.io.localDMADataPath.writer_start_o.peekBoolean()) {
+              while (!dut.io.localDMADataPath.writerStart.peekBoolean()) {
                 dut.clock.step()
                 if (testTerminated) break()
               }
               println(
-                "[Local Writer Checker] " + dut.io.localDMADataPath.writer_cfg_o.writerPtr
+                "[Local Writer Checker] " + dut.io.localDMADataPath.writerCfg.writerPtr
                   .peekInt()
                   .toInt
                   .toHexString
               )
               if (
                 !unreceived_writer_cfg.remove(
-                  dut.io.localDMADataPath.writer_cfg_o.writerPtr
+                  dut.io.localDMADataPath.writerCfg.writerPtr
                     .peekInt()
                     .toInt
                 )
               )
                 throw new Exception(
-                  "[Local Writer Checker] The received pointer " + dut.io.localDMADataPath.writer_cfg_o.writerPtr
+                  "[Local Writer Checker] The received pointer " + dut.io.localDMADataPath.writerCfg.writerPtr
                     .peekInt()
                     .toInt
                     .toHexString + " is not in the buffer"
                 )
               dut.clock.step(Random.between(1, 16) + 32)
-              dut.io.localDMADataPath.writer_busy_i.poke(true)
+              dut.io.localDMADataPath.writerBusy.poke(true)
               dut.clock.step(Random.between(1, 16) + 32)
-              dut.io.localDMADataPath.writer_busy_i.poke(false)
+              dut.io.localDMADataPath.writerBusy.poke(false)
             }
           )
           println("Local Writer Checker is terminated. ")

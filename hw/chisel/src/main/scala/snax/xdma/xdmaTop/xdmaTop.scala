@@ -35,7 +35,8 @@ class xdmaTopIO(
       readerParam.rwParam.tcdmParam.numChannel,
       Decoupled(
         new TcdmReq(
-          readerParam.rwParam.tcdmParam.addrWidth,
+          // The address width of the TCDM => Should be equal to axiAddrWidth
+          readerParam.axiParam.addrWidth,
           readerParam.rwParam.tcdmParam.dataWidth
         )
       )
@@ -54,7 +55,8 @@ class xdmaTopIO(
       writerParam.rwParam.tcdmParam.numChannel,
       Decoupled(
         new TcdmReq(
-          writerParam.rwParam.tcdmParam.addrWidth,
+          // The address width of the TCDM => Should be equal to axiAddrWidth
+          writerParam.axiParam.addrWidth,
           writerParam.rwParam.tcdmParam.dataWidth
         )
       )
@@ -125,17 +127,17 @@ class xdmaTop(
   io.remoteDMADataPathCfg <> dmaCtrl.io.remoteDMADataPathCfg
 
   // Interconnection between ctrl and datapath
-  dmaCtrl.io.localDMADataPath.reader_cfg_o <> dmaDatapath.io.readerCfg
+  dmaCtrl.io.localDMADataPath.readerCfg <> dmaDatapath.io.readerCfg
 
-  dmaCtrl.io.localDMADataPath.writer_cfg_o <> dmaDatapath.io.writerCfg
+  dmaCtrl.io.localDMADataPath.writerCfg <> dmaDatapath.io.writerCfg
 
-  dmaDatapath.io.readerStart := dmaCtrl.io.localDMADataPath.reader_start_o
+  dmaDatapath.io.readerStart := dmaCtrl.io.localDMADataPath.readerStart
 
-  dmaDatapath.io.writerStart := dmaCtrl.io.localDMADataPath.writer_start_o
+  dmaDatapath.io.writerStart := dmaCtrl.io.localDMADataPath.writerStart
 
-  dmaCtrl.io.localDMADataPath.reader_busy_i := dmaDatapath.io.readerBusy
+  dmaCtrl.io.localDMADataPath.readerBusy := dmaDatapath.io.readerBusy
 
-  dmaCtrl.io.localDMADataPath.writer_busy_i := dmaDatapath.io.writerBusy
+  dmaCtrl.io.localDMADataPath.writerBusy := dmaDatapath.io.writerBusy
 
 }
 
