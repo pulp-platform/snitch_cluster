@@ -6,9 +6,9 @@
 
 #include <stdint.h>
 
-static inline void snrt_wfi();
+inline void snrt_wfi();
 
-static inline uint32_t snrt_mcycle();
+inline uint32_t snrt_mcycle();
 
 inline void snrt_interrupt_enable(uint32_t irq);
 
