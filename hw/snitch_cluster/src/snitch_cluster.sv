@@ -533,7 +533,7 @@ module snitch_cluster
   core_events_t [NrCores-1:0] core_events;
   tcdm_events_t               tcdm_events;
   dma_events_t                dma_events;
-  snitch_icache_pkg::icache_events_t [NrCores-1:0] icache_events;
+  snitch_icache_pkg::icache_l0_events_t [NrCores-1:0] icache_events;
 
   // 4. Memory Subsystem (Core side).
   reqrsp_req_t [NrCores-1:0] core_req;
@@ -1363,7 +1363,7 @@ module snitch_cluster
       hive_req_t [HiveSize-1:0] hive_req_reshape;
       hive_rsp_t [HiveSize-1:0] hive_rsp_reshape;
 
-      snitch_icache_pkg::icache_events_t [HiveSize-1:0] icache_events_reshape;
+      snitch_icache_pkg::icache_l0_events_t [HiveSize-1:0] icache_events_reshape;
 
       for (genvar j = 0; j < NrCores; j++) begin : gen_hive_matrix
         // Check whether the core actually belongs to the current hive.

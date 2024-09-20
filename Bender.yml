@@ -29,6 +29,7 @@ dependencies:
   register_interface: { git: https://github.com/pulp-platform/register_interface, version:  0.4.2   }
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.11  }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0   }
+  cluster_icache:     { git:  https://github.com/KULeuven-MICAS/cluster_icache,     rev: main }
   hwpe-mac-engine:    { git: https://github.com/KULeuven-MICAS/hwpe-mac-engine.git, rev: 5d3b4525b665169fc8321c8a811f3c83ad3c72e8 }
   snax-gemm:          { git: "https://github.com/KULeuven-MICAS/snax-gemm", rev: main }
   snax-postprocessing-simd: { git: "https://github.com/KULeuven-MICAS/snax-postprocessing-simd", rev: main }
@@ -95,9 +96,9 @@ export_include_dirs:
 sources:
   # Note: These tapeout tags are for internal use only
   # tapeout tags:
-  - target: tech_cells_generic_exclude_tc_sram
+  - target: all(tech_cells_generic_exclude_tc_sram, tc_sram_cluster_only)
     files:
-      - /users/micas/shares/project_snax/tapeout_modules/rtl/tc_sram_impl.sv
+      - /users/micas/shares/project_snax/tapeout_modules/snax_cluster/tc_sram_impl.sv
   # future
   - files:
       # Level 0
@@ -210,25 +211,6 @@ sources:
       - hw/snitch_dma/src/axi_dma_twod_ext.sv
       # Level 2:
       - hw/snitch_dma/src/axi_dma_tc_snitch_fe.sv
-
-  # snitch_icache
-  - files:
-      # Level 0
-      - hw/snitch_icache/src/snitch_icache_pkg.sv
-      # Level 1
-      - hw/snitch_icache/src/snitch_icache_data.sv
-      - hw/snitch_icache/src/snitch_icache_tag.sv
-      - hw/snitch_icache/src/snitch_icache_l0.sv
-      - hw/snitch_icache/src/snitch_icache_refill.sv
-      - hw/snitch_icache/src/snitch_icache_lfsr.sv
-      - hw/snitch_icache/src/snitch_icache_lookup.sv
-      # Level 2
-      - hw/snitch_icache/src/snitch_icache_handler.sv
-      # Level 3
-      - hw/snitch_icache/src/snitch_icache.sv
-      - target: test
-        files:
-          - hw/snitch_icache/test/snitch_icache_l0_tb.sv
 
   # snitch_ipu
   - files:
