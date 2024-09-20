@@ -44,6 +44,9 @@ class DataPathExtensionHostIO(
 class DataPathExtensionHost(
     extensionList: Seq[HasDataPathExtension],
     dataWidth: Int = 512,
+    headCut: Boolean = false,
+    tailCut: Boolean = false,
+    halfCut: Boolean = false,
     moduleNamePrefix: String = "unnamed_cluster"
 ) extends Module {
   override def desiredName = s"${moduleNamePrefix}_DataPathExtensionHost"
@@ -98,11 +101,35 @@ class DataPathExtensionHost(
       )
 
     // Connect the data path
+    if (headCut) {
+      if (halfCut) {
+        io.data.in -/> extensions.head.io.data_i
+      } else {
+        io.data.in -||> extensions.head.io.data_i
+      }
+    } else {
+      io.data.in <> extensions.head.io.data_i
+    }
+
+    if (tailCut) {
+      if (halfCut) {
+        extensions.last.io.data_o -/> io.data.out
+      } else {
+        extensions.last.io.data_o -||> io.data.out
+      }
+    } else {
+      extensions.last.io.data_o <> io.data.out
+    }
+
     extensions.head.io.data_i <> io.data.in
     extensions.last.io.data_o <> io.data.out
     extensions.zip(extensions.tail).foreach {
       case (a, b) => {
-        a.io.data_o -||> b.io.data_i
+        if (halfCut) {
+          a.io.data_o -/> b.io.data_i
+        } else {
+          a.io.data_o -||> b.io.data_i
+        }
       }
     }
   }

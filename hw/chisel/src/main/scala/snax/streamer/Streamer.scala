@@ -161,6 +161,9 @@ class Streamer(
       new DataPathExtensionHost(
         extensionList = param.dataPathExtensionParam,
         dataWidth = param.fifoWidthReader(i),
+        headCut = false,
+        tailCut = true,
+        halfCut = true,
         moduleNamePrefix = param.tagName
       )
     )

@@ -225,6 +225,9 @@ class DMADataPath(
       readerparam.extParam,
       dataWidth =
         readerparam.rwParam.tcdmParam.dataWidth * readerparam.rwParam.tcdmParam.numChannel,
+      headCut = false,
+      tailCut = false,
+      halfCut = false,
       moduleNamePrefix = clusterName
     )
   )
@@ -242,6 +245,9 @@ class DMADataPath(
       writerparam.extParam,
       dataWidth =
         writerparam.rwParam.tcdmParam.dataWidth * writerparam.rwParam.tcdmParam.numChannel,
+      headCut = false,
+      tailCut = false,
+      halfCut = false,
       moduleNamePrefix = clusterName
     )
   )

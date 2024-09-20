@@ -21,7 +21,7 @@ object DecoupledCut {
       val buffer = Module(
         new Queue(chiselTypeOf(left.bits), entries = 1, pipe = false)
       )
-      buffer.suggestName("cut1")
+      buffer.suggestName("fullCut1")
 
       left <> buffer.io.enq
       buffer.io.deq <> right
@@ -33,7 +33,7 @@ object DecoupledCut {
       val buffer = Module(
         new Queue(chiselTypeOf(left.bits), entries = 2, pipe = false)
       )
-      buffer.suggestName("cut2")
+      buffer.suggestName("fullCut2")
       left <> buffer.io.enq
       buffer.io.deq <> right
     }
@@ -44,7 +44,18 @@ object DecoupledCut {
       val buffer = Module(
         new Queue(chiselTypeOf(left.bits), entries = 3, pipe = false)
       )
-      buffer.suggestName("cut3")
+      buffer.suggestName("fullCut3")
+      left <> buffer.io.enq
+      buffer.io.deq <> right
+    }
+
+    def -/>(
+        right: DecoupledIO[T]
+    )(implicit sourceInfo: chisel3.experimental.SourceInfo): Unit = {
+      val buffer = Module(
+        new Queue(chiselTypeOf(left.bits), entries = 1, pipe = true)
+      )
+      buffer.suggestName("halfCut1")
       left <> buffer.io.enq
       buffer.io.deq <> right
     }
