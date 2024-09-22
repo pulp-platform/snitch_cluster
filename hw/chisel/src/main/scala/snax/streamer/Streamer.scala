@@ -162,8 +162,8 @@ class Streamer(
         extensionList = param.dataPathExtensionParam,
         dataWidth = param.fifoWidthReader(i),
         headCut = false,
-        tailCut = true,
-        halfCut = true,
+        tailCut = false,
+        halfCut = false,
         moduleNamePrefix = param.tagName
       )
     )
