@@ -48,7 +48,7 @@ class DataRequestor(
   when(io.enable) {
     io.in.addr.ready := io.out.tcdmReq.fire
   }.otherwise {
-    io.in.addr.ready := true.B
+    io.in.addr.ready := { if (isReader) io.reqrspLink.rspReady.get else true.B }
   }
 
   if (isReader) {
