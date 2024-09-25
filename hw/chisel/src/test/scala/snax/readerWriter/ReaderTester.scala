@@ -17,7 +17,8 @@ class ReaderTester extends AnyFreeSpec with ChiselScalatestTester {
     new Reader(
       new ReaderWriterParam(
         configurableByteMask = false,
-        configurableChannel = true
+        configurableChannel = true,
+        pipeFifo = false
       )
     )
   ).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) {

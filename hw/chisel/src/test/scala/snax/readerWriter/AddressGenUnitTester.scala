@@ -34,7 +34,8 @@ class AddressGenUnitTester extends AnyFlatSpec with ChiselScalatestTester {
         temporalDimension = 2,
         numChannel = 8,
         outputBufferDepth = 2,
-        tcdmSize = 128
+        tcdmSize = 128, 
+        pipeFifo = false
       )
     )
   )
@@ -68,7 +69,8 @@ class AddressGenUnitTester extends AnyFlatSpec with ChiselScalatestTester {
         temporalDimension = 2,
         numChannel = 8,
         outputBufferDepth = 2,
-        tcdmSize = 128
+        tcdmSize = 128, 
+        pipeFifo = false
       )
     )
   )

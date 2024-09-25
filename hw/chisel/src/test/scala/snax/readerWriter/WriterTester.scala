@@ -51,7 +51,8 @@ class WriterTester extends AnyFreeSpec with ChiselScalatestTester {
     new Writer(
       new ReaderWriterParam(
         configurableByteMask = true,
-        configurableChannel = true
+        configurableChannel = true,
+        pipeFifo = false
       )
     )
   ).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) {

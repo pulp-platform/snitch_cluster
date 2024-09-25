@@ -32,7 +32,8 @@ class AddressGenUnitParam(
     val addressWidth: Int,
     val numChannel: Int,
     val outputBufferDepth: Int,
-    val tcdmSize: Int
+    val tcdmSize: Int,
+    val pipeFifo: Boolean
 )
 
 object AddressGenUnitParam {
@@ -41,14 +42,16 @@ object AddressGenUnitParam {
       temporalDimension: Int,
       numChannel: Int,
       outputBufferDepth: Int,
-      tcdmSize: Int
+      tcdmSize: Int,
+      pipeFifo: Boolean
   ): AddressGenUnitParam = new AddressGenUnitParam(
     spatialBounds = spatialBounds,
     temporalDimension = temporalDimension,
     addressWidth = log2Ceil(tcdmSize) + 10,
     numChannel = numChannel,
     outputBufferDepth = outputBufferDepth,
-    tcdmSize = tcdmSize
+    tcdmSize = tcdmSize,
+    pipeFifo = pipeFifo
   )
 
   // The Very Simple instantiation of the Param
@@ -57,7 +60,8 @@ object AddressGenUnitParam {
     temporalDimension = 2,
     numChannel = 8,
     outputBufferDepth = 8,
-    tcdmSize = 128
+    tcdmSize = 128,
+    pipeFifo = true
   )
 }
 
@@ -70,14 +74,16 @@ class ReaderWriterParam(
     addressBufferDepth: Int = 8,
     dataBufferDepth: Int = 8,
     val configurableChannel: Boolean = false,
-    val configurableByteMask: Boolean = false
+    val configurableByteMask: Boolean = false,
+    val pipeFifo: Boolean = true
 ) {
   val aguParam = AddressGenUnitParam(
     spatialBounds = spatialBounds,
     temporalDimension = temporalDimension,
     numChannel = numChannel,
     outputBufferDepth = addressBufferDepth,
-    tcdmSize = tcdmSize
+    tcdmSize = tcdmSize,
+    pipeFifo = pipeFifo
   )
 
   val tcdmParam = TCDMParam(

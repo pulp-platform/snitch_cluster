@@ -16,8 +16,12 @@ import chisel3.util._
   *   will be the second option No matter which case, the big width one should
   *   equal to integer times of the small width one
   */
-class ComplexQueueConcat(inputWidth: Int, outputWidth: Int, depth: Int)
-    extends Module
+class ComplexQueueConcat(
+    inputWidth: Int,
+    outputWidth: Int,
+    depth: Int,
+    pipe: Boolean = false
+) extends Module
     with RequireAsyncReset {
   val bigWidth = Seq(inputWidth, outputWidth).max
   val smallWidth = Seq(inputWidth, outputWidth).min
@@ -50,7 +54,7 @@ class ComplexQueueConcat(inputWidth: Int, outputWidth: Int, depth: Int)
   })
 
   val queues = for (i <- 0 until numChannel) yield {
-    val queue = Module(new Queue(UInt(smallWidth.W), depth))
+    val queue = Module(new Queue(UInt(smallWidth.W), depth, pipe))
     io.nearlyEmpty(i) := queue.io.count < 2.U
     io.nearlyFull(i) := queue.io.count > (depth - 2).U
     queue

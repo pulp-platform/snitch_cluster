@@ -55,7 +55,8 @@ class Reader(
     new ComplexQueueConcat(
       inputWidth = param.tcdmParam.dataWidth,
       outputWidth = param.tcdmParam.dataWidth * param.tcdmParam.numChannel,
-      depth = param.bufferDepth
+      depth = param.bufferDepth,
+      pipe = param.pipeFifo
     ) {
       override val desiredName = s"${moduleNamePrefix}_Reader_DataBuffer"
     }
