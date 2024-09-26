@@ -62,7 +62,9 @@
             register_core_req: true,
             register_core_rsp: true,
             register_offload_req: true,
-            register_offload_rsp: true
+            register_offload_rsp: true,
+            register_ext_narrow: true,
+            register_ext_wide: true,
         },
         hives: [
             // Hive 0

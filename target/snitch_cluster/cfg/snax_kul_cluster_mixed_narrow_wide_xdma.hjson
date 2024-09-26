@@ -19,7 +19,7 @@
         addr_width: 48,
         data_width: 64,
         tcdm: {
-            size: 4096,
+            size: 128,
             banks: 32,
         },
         cluster_periph_size: 64, // kB
@@ -71,7 +71,9 @@
             register_core_req: true,
             register_core_rsp: true,
             register_offload_req: true,
-            register_offload_rsp: true
+            register_offload_rsp: true,
+            register_ext_narrow: true,
+            register_ext_wide: true,
         },
         hives: [
             // Hive 0

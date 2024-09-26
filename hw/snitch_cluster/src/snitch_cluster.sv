@@ -1599,7 +1599,7 @@ module snitch_cluster
     .DATA_WIDTH (NarrowDataWidth),
     .AXI_MAX_WRITE_TXNS (1),
     .AXI_MAX_READ_TXNS (1),
-    .DECOUPLE_W (0),
+    .DECOUPLE_W (1),
     .ID_WIDTH (NarrowIdWidthOut),
     .USER_WIDTH (NarrowUserWidth),
     .axi_req_t (axi_slv_req_t),
