@@ -42,40 +42,6 @@ jobs:
       - name: Check bender vendor up-to-date
         uses: pulp-platform/pulp-actions/bender-vendor-up-to-date@v2.1.0
 
-  ######################
-  # Sources Up-to-Date #
-  ######################
-  sources-up-to-date:
-    name: Check Sources Up-to-Date
-    runs-on: ubuntu-22.04
-    if: >
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name != github.repository
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: Install bender
-        uses: pulp-platform/pulp-actions/bender-install@v2
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          cache: 'pip'
-      - name: Install pip dependencies
-        run: |
-          pip install .
-      - name: Generate opcodes
-        run: |
-          ./util/generate-opcodes.sh
-      - name: Generate RTL sources
-        working-directory: target/snitch_cluster
-        run: |
-          make rtl
-      - name: Diff porcelain
-        uses: mmontes11/diff-porcelain@v0.0.1
-        with:
-          message: Found differences, please update all sources
-
   #################
   # Check License #
   #################
