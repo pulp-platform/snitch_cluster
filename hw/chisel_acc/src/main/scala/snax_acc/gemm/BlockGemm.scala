@@ -2,6 +2,8 @@ package snax_acc.gemm
 
 import chisel3._
 import chisel3.util._
+import snax_acc.utils._
+import snax_acc.utils.DecoupledCut._
 
 // The BlockGemm's control port declaration.
 class BlockGemmCtrlIO(params: GemmParams) extends Bundle {
@@ -80,6 +82,7 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
   // control signals for the counter incremental
   val accumulation = WireInit(0.B)
   val a_b_data_valid = WireInit(0.B)
+  val a_b_data_ready = WireInit(0.B)
 
   val gemm_a_b_input_fire = WireInit(0.B)
   val gemm_output_fire = WireInit(0.B)
@@ -94,6 +97,30 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
   val add_c_fire = WireInit(0.B)
 
   val compute_fire = WireInit(0.B)
+
+  // -----------------------------------
+  // resgiter insert
+  // -----------------------------------
+
+  def a_bits_len = params.meshRow * params.tileSize * params.dataWidthA
+  def b_bits_len = params.tileSize * params.meshCol * params.dataWidthB
+  def a_b_bits_len = a_bits_len + b_bits_len
+
+  val combined_decoupled_a_b_in = Wire(Decoupled(UInt(a_b_bits_len.W)))
+  val combined_decoupled_a_b_out = Wire(Decoupled(UInt(a_b_bits_len.W)))
+  val a_split_out = Wire(Decoupled(UInt(a_bits_len.W)))
+  val b_split_out = Wire(Decoupled(UInt(b_bits_len.W)))
+
+  val a_b_cat = Module(new DecoupledCat2to1(a_bits_len, b_bits_len))
+  val a_b_split = Module(new DecoupledSplit1to2(a_b_bits_len, a_bits_len, b_bits_len))
+
+  a_b_cat.io.in1 <> io.data.a_i
+  a_b_cat.io.in2 <> io.data.b_i
+  a_b_cat.io.out <> combined_decoupled_a_b_in
+  combined_decoupled_a_b_in -\\> combined_decoupled_a_b_out
+  a_b_split.io.in <> combined_decoupled_a_b_out
+  a_split_out <> a_b_split.io.out1
+  b_split_out <> a_b_split.io.out2
 
   // State declaration
   val sIDLE :: sBUSY :: Nil = Enum(2)
@@ -158,10 +185,12 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
   }
 
   // input data valid signal, when both a and b are valid, the input data is valid
-  a_b_data_valid := io.data.a_i.valid && io.data.b_i.valid && cstate === sBUSY
+  a_b_data_valid := a_split_out.valid && b_split_out.valid && cstate === sBUSY
+  a_b_data_ready := gemm_array.io.ctrl.a_b_c_ready_o && cstate === sBUSY
+
   // gemm input fire signal, when both a and b are valid and gemm is ready for new input data
   // stall the a b compute if add c
-  gemm_a_b_input_fire := gemm_array.io.ctrl.a_b_c_ready_o && a_b_data_valid && !add_c && !must_add_c
+  gemm_a_b_input_fire := a_b_data_ready && a_b_data_valid && !add_c && !must_add_c
 
   // accumulation counter for generating the accumulation signal for Gemm Array
   // value change according to gemm_a_b_input_fire and add_c_fire
@@ -244,13 +273,13 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
   gemm_array.io.ctrl.subtraction_b_i := subtraction_b
 
   // data signals
-  gemm_array.io.data.a_i := io.data.a_i.bits
-  gemm_array.io.data.b_i := io.data.b_i.bits
+  gemm_array.io.data.a_i := a_split_out.bits
+  gemm_array.io.data.b_i := b_split_out.bits
   gemm_array.io.data.c_i := io.data.c_i.bits
 
-  // ready for pop out the data from outside
-  io.data.a_i.ready := cstate === sBUSY && gemm_a_b_input_fire
-  io.data.b_i.ready := cstate === sBUSY && gemm_a_b_input_fire
+  a_split_out.ready := cstate === sBUSY && gemm_a_b_input_fire
+  b_split_out.ready := cstate === sBUSY && gemm_a_b_input_fire
+
   io.data.c_i.ready := cstate === sBUSY && add_c_fire
 
   // gemm output signals
