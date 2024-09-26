@@ -45,7 +45,12 @@ object StreamerParametersGen {
       tcdmSize = ${tcdm_size},
       numChannel = ${cfg["snax_streamer_cfg"]["data_reader_params"]["num_channel"][idx]},
       addressBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_params"]["fifo_depth"][idx]},
-      dataBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_params"]["fifo_depth"][idx]}
+      dataBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_params"]["fifo_depth"][idx]},
+      % if "configurable_channel" in cfg["snax_streamer_cfg"]["data_reader_params"] and cfg["snax_streamer_cfg"]["data_reader_params"]["configurable_channel"][idx]:
+      configurableChannel = true
+      % else:
+      configurableChannel = false
+      % endif
 ${'   ), ' if not loop.last else '    )'}
 % endfor
   )
@@ -67,7 +72,12 @@ ${'   ), ' if not loop.last else '    )'}
       tcdmSize = ${tcdm_size},
       numChannel = ${cfg["snax_streamer_cfg"]["data_writer_params"]["num_channel"][idx]},
       addressBufferDepth = ${cfg["snax_streamer_cfg"]["data_writer_params"]["fifo_depth"][idx]},
-      dataBufferDepth = ${cfg["snax_streamer_cfg"]["data_writer_params"]["fifo_depth"][idx]}
+      dataBufferDepth = ${cfg["snax_streamer_cfg"]["data_writer_params"]["fifo_depth"][idx]},
+      % if "configurable_channel" in cfg["snax_streamer_cfg"]["data_writer_params"] and cfg["snax_streamer_cfg"]["data_writer_params"]["configurable_channel"][idx]:
+      configurableChannel = true
+      % else:
+      configurableChannel = false
+      % endif
 ${'   ), ' if not loop.last else '    )'}
 % endfor
   )
@@ -89,7 +99,12 @@ ${'   ), ' if not loop.last else '    )'}
       tcdmSize = ${tcdm_size},
       numChannel = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["num_channel"][idx]},
       addressBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["fifo_depth"][idx]},
-      dataBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["fifo_depth"][idx]}
+      dataBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["fifo_depth"][idx]},
+      % if "configurable_channel" in cfg["snax_streamer_cfg"]["data_reader_writer_params"] and cfg["snax_streamer_cfg"]["data_reader_writer_params"]["configurable_channel"][idx]:
+      configurableChannel = true
+      % else:
+      configurableChannel = false
+      % endif
 ${'   ), ' if not loop.last else '    )'}
 % endfor
   )

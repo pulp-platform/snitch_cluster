@@ -306,80 +306,46 @@ class Streamer(
   // ------------------------------------ csr mapping -------------------------------
   // --------------------------------------------------------------------------------
 
+  var remainingCSR = csrCfg.toIndexedSeq
+
   // reader
-  var reader_csr_base = 0
   for (i <- 0 until param.readerNum) {
-    reader_csr_base = param.readerParams
-      .take(i)
-      .map(_.csrNum)
-      .reduceLeftOption(_ + _)
-      .getOrElse(0)
-    reader(i).io.connectCfgWithList(
-      csrCfg.slice(
-        reader_csr_base,
-        reader_csr_base + param.readerParams(i).csrNum
-      )
+    remainingCSR = reader(i).io.connectCfgWithList(
+      remainingCSR
     )
   }
 
   // writer
-  var writer_csr_base = param.readerParams.map(_.csrNum).sum
   for (i <- 0 until param.writerNum) {
-    writer_csr_base = param.readerParams.map(_.csrNum).sum + param.writerParams
-      .take(i)
-      .map(_.csrNum)
-      .reduceLeftOption(_ + _)
-      .getOrElse(0)
-    writer(i).io.connectCfgWithList(
-      csrCfg.slice(
-        writer_csr_base,
-        writer_csr_base + param.writerParams(i).csrNum
-      )
+    remainingCSR = writer(i).io.connectCfgWithList(
+      remainingCSR
     )
   }
 
   // reader_writer
-  var reader_writer_csr_base =
-    param.readerParams.map(_.csrNum).sum + param.writerParams.map(_.csrNum).sum
   for (i <- 0 until param.readerWriterNum) {
-    reader_writer_csr_base = param.readerParams
-      .map(_.csrNum)
-      .sum + param.writerParams.map(_.csrNum).sum + param.readerWriterParams
-      .take(i)
-      .map(_.csrNum)
-      .reduceLeftOption(_ + _)
-      .getOrElse(0)
     if (i % 2 == 0) {
-      reader_writer(i / 2).io.readerInterface.connectCfgWithList(
-        csrCfg.slice(
-          reader_writer_csr_base,
-          reader_writer_csr_base + param.readerWriterParams(i).csrNum
-        )
+      remainingCSR = reader_writer(i / 2).io.readerInterface.connectCfgWithList(
+        remainingCSR
       )
     } else {
-      reader_writer(i / 2).io.writerInterface.connectCfgWithList(
-        csrCfg.slice(
-          reader_writer_csr_base,
-          reader_writer_csr_base + param.readerWriterParams(i).csrNum
-        )
+      remainingCSR = reader_writer(i / 2).io.writerInterface.connectCfgWithList(
+        remainingCSR
       )
     }
   }
 
   // transpose
-  val extensions_csr_base = param.readerParams
-    .map(_.csrNum)
-    .sum + param.writerParams.map(_.csrNum).sum + param.readerWriterParams
-    .map(_.csrNum)
-    .sum
 
-  var remainingCSR = csrCfg.drop(extensions_csr_base)
   // connect the csr configuration to the extension
   for (i <- 0 until param.readerParams.length) {
     remainingCSR = readerExtensions(i).io.connectCfgWithList(
       remainingCSR
     )
   }
+
+  // 1 left csr for start signal
+  require(remainingCSR.length == 1)
 
   // --------------------------------------------------------------------------------
   // ---------------------- data reader/writer <> TCDM connection-------------------

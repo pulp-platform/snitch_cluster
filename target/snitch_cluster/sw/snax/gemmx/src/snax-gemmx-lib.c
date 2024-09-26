@@ -55,7 +55,7 @@ void set_gemmx_streamer_csr(
 
     int delta_local_a, int delta_local_b, int delta_local_d8, int delta_local_c,
     int delta_local_d32, int bypassSIMD, int32_t transpose_A,
-    int32_t transpose_B) {
+    int32_t transpose_B, int32_t channel_en_C) {
     // base ptr for A
     csrw_ss(BASE_PTR_READER_0_LOW, (uint32_t)(delta_local_a + snrt_l1_next()));
 
@@ -132,6 +132,10 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_READER_WRITER_0_0, Ctlstride0);
     csrw_ss(T_STRIDE_READER_WRITER_0_1, Ctlstride1);
     csrw_ss(T_STRIDE_READER_WRITER_0_2, Ctlstride2);
+
+#ifdef ENABLED_CHANNEL_READER_WRITER_0
+    csrw_ss(ENABLED_CHANNEL_READER_WRITER_0, channel_en_C);
+#endif
 
     // base ptr for D32
     csrw_ss(BASE_PTR_READER_WRITER_1_LOW,
