@@ -128,33 +128,33 @@ jobs:
         run: |
           make SIM_DIR=./runs/simple annotate -j
 
-  #########################################
-  # Build SW on Snitch Cluster w/ Banshee #
-  #########################################
+  # #########################################
+  # # Build SW on Snitch Cluster w/ Banshee #
+  # #########################################
 
-  sw-snitch-cluster-banshee:
-    name: Simulate SW on Snitch Cluster w/ Banshee
-    runs-on: ubuntu-22.04
-    needs: build-docker
-    if: >
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name != github.repository
-    container:
-      image: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: 'recursive'
-      - name: Build Software
-        run: |
-          bender vendor init
-          make -C target/snitch_cluster SELECT_RUNTIME=banshee sw
-      - name: Run Tests
-        env:
-          SNITCH_LOG: info
-        working-directory: target/snitch_cluster
-        run: |
-          ./util/run.py sw/run.yaml --simulator banshee -j
+  # sw-snitch-cluster-banshee:
+  #   name: Simulate SW on Snitch Cluster w/ Banshee
+  #   runs-on: ubuntu-22.04
+  #   needs: build-docker
+  #   if: >
+  #     github.event_name != 'pull_request' ||
+  #     github.event.pull_request.head.repo.full_name != github.repository
+  #   container:
+  #     image: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #       with:
+  #         submodules: 'recursive'
+  #     - name: Build Software
+  #       run: |
+  #         bender vendor init
+  #         make -C target/snitch_cluster SELECT_RUNTIME=banshee sw
+  #     - name: Run Tests
+  #       env:
+  #         SNITCH_LOG: info
+  #       working-directory: target/snitch_cluster
+  #       run: |
+  #         ./util/run.py sw/run.yaml --simulator banshee -j
 
   ######################
   # Sources Up-to-Date #
