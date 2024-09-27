@@ -4,7 +4,7 @@
 
 $(BIN_DIR)/$(TARGET).vlt: $(VLT_SOURCES) $(TB_CC_SOURCES) $(VLT_CC_SOURCES) $(VLT_BUILDDIR)/lib/libfesvr.a | $(BIN_DIR)
 	$(VLT) $(shell $(BENDER) script verilator $(VLT_BENDER)) \
-		$(VLT_FLAGS) -Mdir $(VLT_BUILDDIR) \
+		$(VLT_FLAGS) --Mdir $(VLT_BUILDDIR) \
 		-CFLAGS "$(VLT_CFLAGS)" \
 		-LDFLAGS "$(VLT_LDFLAGS)" \
 		-j $(VLT_JOBS) \

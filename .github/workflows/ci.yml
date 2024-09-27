@@ -5,7 +5,41 @@
 # Run functional regression checks
 name: ci
 on: [push, pull_request]
+
 jobs:
+
+  ##########################
+  # Build Docker Container #
+  ##########################
+
+  build-docker:
+    name: Deploy Docker image
+    runs-on: ubuntu-22.04
+    if: >
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
+    steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          docker-images: false
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: GHCR Log-in
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          cache-from: type=gha
+          cache-to: type=gha,mode=max`
+          file: util/container/Dockerfile
+          push: true
+          tags: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
 
   ########
   # Docs #
@@ -14,8 +48,12 @@ jobs:
   docs:
     name: Build documentation
     runs-on: ubuntu-22.04
+    needs: build-docker
+    if: >
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster:main
+      image: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v2
       - name: Build docs
@@ -28,8 +66,12 @@ jobs:
   pytest:
     name: Python unit tests
     runs-on: ubuntu-22.04
+    needs: build-docker
+    if: >
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster:main
+      image: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v2
       - name: Run pytest
@@ -42,23 +84,40 @@ jobs:
   sw-snitch-cluster-vlt:
     name: Simulate SW on Snitch Cluster w/ Verilator
     runs-on: ubuntu-22.04
+    needs: build-docker
+    if: >
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster:main
+      image: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: 'recursive'
-      - name: Install local Python packages
-        run: pip install .
-      - name: Build Software
-        working-directory: target/snitch_cluster
-        run: |
-          bender vendor init
-          make CFG_OVERRIDE=cfg/github-ci.hjson sw
+      - name: Hash Verilator prerequisites
+        id: verilator-hash
+        uses: colluca/list-make-prerequisites@v1.0.1
+        with:
+          working-directory: target/snitch_cluster
+          target: bin/snitch_cluster.vlt
+          flags: --recursive
+      - name: Set up cache for Verilator build
+        id: verilator-cache
+        uses: actions/cache@v3
+        with:
+          path: target/snitch_cluster/bin
+          key: verilator-${{ steps.verilator-hash.outputs.hash }}
+          restore-keys: |
+            verilator-
       - name: Build Hardware
+        if: steps.verilator-cache.outputs.cache-hit != 'true'
         working-directory: target/snitch_cluster
         run: |
           make CFG_OVERRIDE=cfg/github-ci.hjson VLT_JOBS=1 bin/snitch_cluster.vlt
+      - name: Build Software
+        working-directory: target/snitch_cluster
+        run: |
+          make CFG_OVERRIDE=cfg/github-ci.hjson sw
       - name: Run Tests
         working-directory: target/snitch_cluster
         run: |
@@ -69,28 +128,64 @@ jobs:
         run: |
           make SIM_DIR=./runs/simple annotate -j
 
-  #########################################
-  # Build SW on Snitch Cluster w/ Banshee #
-  #########################################
+  # #########################################
+  # # Build SW on Snitch Cluster w/ Banshee #
+  # #########################################
 
-  sw-snitch-cluster-banshee:
-    name: Simulate SW on Snitch Cluster w/ Banshee
+  # sw-snitch-cluster-banshee:
+  #   name: Simulate SW on Snitch Cluster w/ Banshee
+  #   runs-on: ubuntu-22.04
+  #   needs: build-docker
+  #   if: >
+  #     github.event_name != 'pull_request' ||
+  #     github.event.pull_request.head.repo.full_name != github.repository
+  #   container:
+  #     image: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #       with:
+  #         submodules: 'recursive'
+  #     - name: Build Software
+  #       run: |
+  #         bender vendor init
+  #         make -C target/snitch_cluster SELECT_RUNTIME=banshee sw
+  #     - name: Run Tests
+  #       env:
+  #         SNITCH_LOG: info
+  #       working-directory: target/snitch_cluster
+  #       run: |
+  #         ./util/run.py sw/run.yaml --simulator banshee -j
+
+  ######################
+  # Sources Up-to-Date #
+  ######################
+  sources-up-to-date:
+    name: Check Sources Up-to-Date
     runs-on: ubuntu-22.04
+    needs: build-docker
+    if: >
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name != github.repository
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster:main
+      image: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
-          submodules: 'recursive'
-      - name: Install local Python packages
-        run: pip install .
-      - name: Build Software
+          submodules: true
+      - name: Generate opcodes
         run: |
-          bender vendor init
-          make -C target/snitch_cluster SELECT_RUNTIME=banshee sw
-      - name: Run Tests
-        env:
-          SNITCH_LOG: info
+          ./util/generate-opcodes.sh
+      - name: Generate RTL sources
         working-directory: target/snitch_cluster
         run: |
-          ./util/run.py sw/run.yaml --simulator banshee -j
+          make rtl
+      # For some reason, the checkout is done by a different user,
+      # than that running `git diff` (root, possibly due to Docker).
+      # So we need to set the repository as a safe directory.
+      - name: Git config safe.directory
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+      - name: Diff porcelain
+        uses: mmontes11/diff-porcelain@v0.0.1
+        with:
+          message: Found differences, please update all sources

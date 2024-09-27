@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: SHL-0.51
 
 [build-system]
-requires = ["setuptools>=42"]
+requires = ["setuptools>=64"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -12,6 +12,42 @@ authors = [
     {name = "Luca Colagrande", email = "colluca@iis.ee.ethz.ch"}
 ]
 dynamic = ["version"]
+dependencies = [
+    # Keep sorted.
+    "bin2coe",
+    "dataclasses",
+    "editorconfig-checker==2.3.51",
+    "flake8",
+    "gitpython",
+    "hjson",
+    "humanize",
+    "json5",
+    "jsonref",
+    "jsonschema",
+    "mako",
+    "matplotlib",
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocs-include-markdown-plugin",
+    "mkdocs-macros-plugin",
+    "mkdocstrings",
+    "mkdocstrings-python",
+    "numpy",
+    "pandas",
+    "prettytable",
+    "progressbar2",
+    "psutil",
+    "pyelftools",
+    "pyflexfloat",
+    "pytablewriter",
+    "pytest",
+    "pyyaml",
+    "scikit-learn",
+    "tabulate",
+    "termcolor",
+    "torch",
+    "yamllint"
+]
 
 [tool.setuptools.package-dir]
 "snitch.dnn" = "sw/dnn"

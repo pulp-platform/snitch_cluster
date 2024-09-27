@@ -28,7 +28,7 @@ In case you cannot use the pre-built container, e.g. if you need to make changes
 container locally by running the following command in the root of the repository:
 
 ```shell
-$ sudo docker build -t ghcr.io/pulp-platform/snitch_cluster:main -f util/container/Dockerfile .
+$ sudo docker buildx build -t ghcr.io/pulp-platform/snitch_cluster:main -f util/container/Dockerfile .
 ```
 
 ## Usage
