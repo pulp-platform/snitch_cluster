@@ -55,8 +55,8 @@ class DoitgenDataGen(du.DataGen):
 
         self.validate(**kwargs)
 
-        A = du.generate_random_array((kwargs['r'], kwargs['q'], kwargs['s']))
-        x = du.generate_random_array((kwargs['s'], kwargs['s']))
+        A = du.generate_random_array((kwargs['r'], kwargs['q'], kwargs['s']), seed=42)
+        x = du.generate_random_array((kwargs['s'], kwargs['s']), seed=42)
 
         _ = self.golden_model(A, x)
 
