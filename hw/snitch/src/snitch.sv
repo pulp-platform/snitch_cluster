@@ -2241,8 +2241,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // pragma translate_off
   always_ff @(posedge clk_i) begin
     if (!rst_i && illegal_inst && valid_instr) begin
-      $display("%t [Illegal Instruction Core %0d] PC: %h Data: %h",
-               $time, hart_id_i, inst_addr_o, inst_data_i);
+      $info("[Illegal Instruction Core %0d] PC: %h Data: %h",
+            hart_id_i, inst_addr_o, inst_data_i);
     end
   end
   // pragma translate_on
@@ -2616,8 +2616,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     // Display CSR write if the CSR does not exist
     if (!rst_i && csr_dump && inst_valid_o && inst_ready_i && !stall) begin
       // $timeformat(-9, 0, " ns", 0);
-      $display("[DUMP] %t Core %3d: 0x%3h = 0x%08h, %d, %f",
-        $time, hart_id_i, inst_data_i[31:20], alu_result, alu_result, $bitstoshortreal(alu_result));
+      $display("[Dump Core %0d] %t 0x%3h = 0x%08h, %d, %f", hart_id_i,
+               $time, inst_data_i[31:20], alu_result, alu_result, $bitstoshortreal(alu_result));
     end
   end
   // pragma translate_on
@@ -2887,8 +2887,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // pragma translate_off
   always_ff @(posedge clk_i) begin
     if (!rst_i && (ld_addr_misaligned || st_addr_misaligned) && valid_instr) begin
-      $display("%t [Misaligned Load/Store Core %0d] PC: %h Data: %h Addr: %h",
-                              $time, hart_id_i, inst_addr_o, inst_data_i, alu_result);
+      $info("[Misaligned Load/Store Core %0d] PC: %h Data: %h Addr: %h",
+            hart_id_i, inst_addr_o, inst_data_i, alu_result);
     end
   end
   // pragma translate_on
