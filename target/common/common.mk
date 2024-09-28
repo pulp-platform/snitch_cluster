@@ -251,7 +251,7 @@ endef
 # Traces #
 ##########
 
-DASM_TRACES      = $(shell (ls $(LOGS_DIR)/trace_hart_*.dasm 2>/dev/null))
+DASM_TRACES      = $(shell (ls $(LOGS_DIR)/trace_chip_????_hart_*.dasm 2>/dev/null))
 TXT_TRACES       = $(shell (echo $(DASM_TRACES) | sed 's/\.dasm/\.txt/g'))
 PERF_TRACES      = $(shell (echo $(DASM_TRACES) | sed 's/trace_hart/hart/g' | sed 's/.dasm/_perf.json/g'))
 ANNOTATED_TRACES = $(shell (echo $(DASM_TRACES) | sed 's/\.dasm/\.s/g'))
@@ -271,16 +271,24 @@ perf-csv: $(PERF_CSV)
 event-csv: $(EVENT_CSV)
 layout: $(TRACE_CSV) $(TRACE_JSON)
 
-$(LOGS_DIR)/trace_hart_%.txt $(LOGS_DIR)/hart_%_perf.json: $(LOGS_DIR)/trace_hart_%.dasm $(GENTRACE_PY)
-	$(DASM) < $< | $(PYTHON) $(GENTRACE_PY) --permissive -d $(LOGS_DIR)/hart_$*_perf.json > $(LOGS_DIR)/trace_hart_$*.txt
-
+$(LOGS_DIR)/trace_%.txt $(LOGS_DIR)/%_perf.json: $(LOGS_DIR)/%.dasm $(GENTRACE_PY)
+	@CHIP=$(word 3,$(subst _, ,$*)) && \
+	HART=$(word 5,$(subst _, ,$*)) && \
+	echo "Processing Chip $$CHIP Hart $$HART" && \
+	$(DASM) < $< | $(PYTHON) $(GENTRACE_PY) --permissive -d $(LOGS_DIR)/chip_$$CHIP\_hart_$$HART\_perf.json > $(LOGS_DIR)/trace_chip_$$CHIP\_hart_$$HART.txt
 # Generate source-code interleaved traces for all harts. Reads the binary from
 # the logs/.rtlbinary file that is written at start of simulation in the vsim script
 BINARY ?= $(shell cat $(LOGS_DIR)/.rtlbinary)
-$(LOGS_DIR)/trace_hart_%.s: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY}
-	$(PYTHON) ${ANNOTATE_PY} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $<
-$(LOGS_DIR)/trace_hart_%.diff: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY}
-	$(PYTHON) ${ANNOTATE_PY} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $< -d
+
+$(LOGS_DIR)/%.s: $(LOGS_DIR)/%.txt $(ANNOTATE_PY)
+	$(PYTHON) $(ANNOTATE_PY) $(ANNOTATE_FLAGS) -o $@ $(BINARY) $<
+$(LOGS_DIR)/%.diff: $(LOGS_DIR)/%.txt $(ANNOTATE_PY)
+	$(PYTHON) $(ANNOTATE_PY) $(ANNOTATE_FLAGS) -o $@ $(BINARY) $< -d
+
+# $(LOGS_DIR)/trace_chip_%_hart_%.s: $(LOGS_DIR)/trace_chip_%_hart_%.txt $(ANNOTATE_PY)
+# 	$(PYTHON) $(ANNOTATE_PY) $(ANNOTATE_FLAGS) -o $@ $(BINARY) $<
+# $(LOGS_DIR)/trace_chip_%_hart_%.diff: $(LOGS_DIR)/trace_chip_%_hart_%.txt $(ANNOTATE_PY)
+# 	$(PYTHON) $(ANNOTATE_PY) $(ANNOTATE_FLAGS) -o $@ $(BINARY) $< -d
 
 $(PERF_CSV): $(PERF_TRACES) $(PERF_CSV_PY)
 	$(PYTHON) $(PERF_CSV_PY) -o $@ -i $(PERF_TRACES)

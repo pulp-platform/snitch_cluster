@@ -26,6 +26,7 @@ module axi_dma_tc_snitch_fe #(
 ) (
     input  logic           clk_i,
     input  logic           rst_ni,
+    input  addr_t          cluster_base_addr_i,
     // AXI4 bus
     output axi_req_t       axi_dma_req_o,
     input  axi_res_t       axi_dma_res_i,
@@ -102,6 +103,8 @@ module axi_dma_tc_snitch_fe #(
     ) i_axi_dma_backend (
         .clk_i            ( clk_i               ),
         .rst_ni           ( rst_ni              ),
+        // Chip ID is retrieved from base_addr, and is hard coded here
+        .chip_id_i        (cluster_base_addr_i[47:40]),
         .axi_dma_req_o    ( axi_dma_req_o       ),
         .axi_dma_res_i    ( axi_dma_res_i       ),
         .burst_req_i      ( burst_req           ),

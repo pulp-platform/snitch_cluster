@@ -388,6 +388,7 @@ module snitch_cc #(
     ) i_axi_dma_tc_snitch_fe (
       .clk_i            ( clk_i                     ),
       .rst_ni           ( rst_ni                    ),
+      .cluster_base_addr_i ( tcdm_addr_base_i       ),
       .axi_dma_req_o    ( axi_dma_req_o             ),
       .axi_dma_res_i    ( axi_dma_res_i             ),
       .dma_busy_o       ( axi_dma_busy_o            ),
@@ -849,10 +850,11 @@ module snitch_cc #(
     // `hart_id_i` won't have a value assigned at the beginning of the first
     // delta cycle.
 `ifndef VERILATOR
-    #0;
+    #1;
 `endif
-    $system("mkdir logs -p");
-    $sformat(fn, "logs/trace_hart_%05x.dasm", hart_id_i);
+    $system("mkdir -p logs");
+    $sformat(fn, "logs/trace_chip_%01x%01x_hart_%05x.dasm", tcdm_addr_base_i[47:44],
+             tcdm_addr_base_i[43:40], hart_id_i);
     f = $fopen(fn, "w");
     $display("[Tracer] Logging Hart %d to %s", hart_id_i, fn);
   end

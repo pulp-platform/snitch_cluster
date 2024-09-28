@@ -48,13 +48,16 @@ module axi_dma_backend #(
     /// Give each DMA backend a unique id
     parameter int unsigned DmaIdWidth     = -1,
     /// Enable or disable tracing
-    parameter bit          DmaTracing     = 0
-
+    parameter bit          DmaTracing     = 0,
+    /// Address type
+    parameter type            addr_t      = logic [AddrWidth-1:0]
 ) (
     /// Clock
     input  logic                        clk_i,
     /// Asynchronous reset, active low
     input  logic                        rst_ni,
+    /// Cluster base address, just for correct logging
+    input  [7:0]                        chip_id_i,
     /// AXI4+ATOP master request
     output axi_req_t                    axi_dma_req_o,
     /// AXI4+ATOP master response
@@ -79,8 +82,6 @@ module axi_dma_backend #(
   localparam int unsigned OffsetWidth = $clog2(StrobeWidth);
   /// Offset type
   typedef logic [OffsetWidth-1:0] offset_t;
-  /// Address Type
-  typedef logic [AddrWidth-1:0] addr_t;
   /// AXI ID Type
   typedef logic [IdWidth-1:0] axi_id_t;
 
@@ -299,7 +300,8 @@ module axi_dma_backend #(
       // open file
       initial begin
         #1;
-        $sformat(fn, "dma_trace_%05x.log", dma_id_i);
+        $sformat(fn, "logs/trace_chip_%01x%01x_dma_%05x.log", chip_id_i[7:4],
+                 chip_id_i[3:0], dma_id_i);
         f = $fopen(fn, "w");
         $display("[Tracer] Logging DMA %d to %s", dma_id_i, fn);
       end
