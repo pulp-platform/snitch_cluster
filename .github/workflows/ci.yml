@@ -96,7 +96,7 @@ jobs:
           submodules: 'recursive'
       - name: Hash Verilator prerequisites
         id: verilator-hash
-        uses: colluca/list-make-prerequisites@v1.0.1
+        uses: colluca/list-make-prerequisites@v1.0.2
         with:
           working-directory: target/snitch_cluster
           target: bin/snitch_cluster.vlt
