@@ -1082,7 +1082,7 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
                 val writer_req_data =
                   dut.io.tcdmWriter.req(i).bits.data.peekInt()
 
-                val random_delay = Random.between(0, 2)
+                val random_delay = Random.between(10, 20)
                 if (random_delay > 1) {
                   dut.io.tcdmWriter.req(i).ready.poke(false)
                   dut.clock.step(random_delay)

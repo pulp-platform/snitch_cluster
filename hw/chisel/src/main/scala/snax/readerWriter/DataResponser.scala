@@ -19,7 +19,7 @@ class DataResponserIO(tcdmDataWidth: Int = 64, numChannel: Int = 8)
   }
   val out = new Bundle {
     val data = Decoupled(UInt(tcdmDataWidth.W))
-    val dataFifoNearlyFull = Input(Bool())
+    val dataFifoPopped = Input(Bool())
   }
   val enable = Input(Bool())
   val reqrspLink = new Bundle {
@@ -28,7 +28,9 @@ class DataResponserIO(tcdmDataWidth: Int = 64, numChannel: Int = 8)
   }
 }
 
-class DataResponser(tcdmDataWidth: Int) extends Module with RequireAsyncReset {
+class DataResponser(tcdmDataWidth: Int, fifoDepth: Int)
+    extends Module
+    with RequireAsyncReset {
   val io = IO(new DataResponserIO(tcdmDataWidth = tcdmDataWidth))
   when(io.enable) {
     io.out.data.valid := io.in.tcdmRsp.valid // io.out's validity is determined by TCDM's side
@@ -37,7 +39,16 @@ class DataResponser(tcdmDataWidth: Int) extends Module with RequireAsyncReset {
     io.out.data.valid := io.reqrspLink.reqSubmit // io.out's validity is determined by whether the Requestor submit the fake request
     io.out.data.bits := 0.U
   }
-  io.reqrspLink.rspReady := ~io.out.dataFifoNearlyFull // If dataBuffer is not full, then the Responsor is ready to intake more data
+
+  // The responsorReady Ctrl Logic
+  // Implemented by a bi-directional counter
+  // If the dataBuffer is full and there is no data sent from the output, then the Responsor is not ready to intake more data
+  val fifoUtilizationCounter = Module(new UpDownCounter(log2Up(fifoDepth + 1)))
+  fifoUtilizationCounter.io.ceil := (fifoDepth + 1).U
+  fifoUtilizationCounter.io.reset := 0.U
+  fifoUtilizationCounter.io.tickUp := io.reqrspLink.reqSubmit
+  fifoUtilizationCounter.io.tickDown := io.out.dataFifoPopped
+  io.reqrspLink.rspReady := ~fifoUtilizationCounter.io.lastVal || io.out.dataFifoPopped
 }
 
 // In this module is the multiple instantiation of DataRequestor. No Buffer is required from the data requestor's side, as it will be done at the outside.
@@ -45,6 +56,7 @@ class DataResponser(tcdmDataWidth: Int) extends Module with RequireAsyncReset {
 class DataResponsers(
     tcdmDataWidth: Int = 64,
     numChannel: Int = 8,
+    fifoDepth: Int,
     moduleNamePrefix: String = "unnamed_cluster"
 ) extends Module
     with RequireAsyncReset {
@@ -54,9 +66,11 @@ class DataResponsers(
   override val desiredName = s"${moduleNamePrefix}_DataResponsers"
   // Instantiation and connection
   val DataResponser = for (i <- 0 until numChannel) yield {
-    val module = Module(new DataResponser(tcdmDataWidth = tcdmDataWidth) {
-      override val desiredName = s"${moduleNamePrefix}_DataResponser"
-    })
+    val module = Module(
+      new DataResponser(tcdmDataWidth = tcdmDataWidth, fifoDepth = fifoDepth) {
+        override val desiredName = s"${moduleNamePrefix}_DataResponser"
+      }
+    )
     io(i) <> module.io
     module
   }
@@ -64,6 +78,8 @@ class DataResponsers(
 
 object DataResponserEmitter extends App {
   println(
-    getVerilogString(new DataResponsers(tcdmDataWidth = 64, numChannel = 8))
+    getVerilogString(
+      new DataResponsers(tcdmDataWidth = 64, numChannel = 8, fifoDepth = 8)
+    )
   )
 }

@@ -174,8 +174,7 @@ object xdmaTopGen extends App {
       parsedArgs("axiDataWidth").toInt / parsedArgs("tcdmDataWidth").toInt,
     addressBufferDepth = parsedArgs("readerBufferDepth").toInt,
     configurableChannel = true,
-    configurableByteMask = false,
-    pipeFifo = true
+    configurableByteMask = false
   )
 
   val writerparam = new ReaderWriterParam(
@@ -188,8 +187,7 @@ object xdmaTopGen extends App {
       parsedArgs("axiDataWidth").toInt / parsedArgs("tcdmDataWidth").toInt,
     addressBufferDepth = parsedArgs("writerBufferDepth").toInt,
     configurableChannel = true,
-    configurableByteMask = true,
-    pipeFifo = true
+    configurableByteMask = true
   )
   var readerextensionparam = Seq[HasDataPathExtension]()
   var writerextensionparam = Seq[HasDataPathExtension]()

@@ -8,7 +8,7 @@ import snax.utils.DecoupledCut._
 import snax.utils.BitsConcat._
 import snax.utils.DemuxDecoupled
 
-import snax.readerWriter.{BasicCounter, AddressGenUnitCfgIO, Reader, Writer}
+import snax.readerWriter.{AddressGenUnitCfgIO, Reader, Writer}
 
 import snax.csr_manager._
 

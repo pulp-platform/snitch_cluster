@@ -18,6 +18,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import scala.util.Random
 // Import break support for loops
 import scala.util.control.Breaks.{break, breakable}
+import snax.DataPathExtension.HasMemset
 
 class ReaderWriterTesterParam(
     val address: Int,
@@ -42,8 +43,9 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
         axiParam = new AXIParam,
         rwParam = new ReaderWriterParam(
           configurableByteMask = true,
-          configurableChannel = true
-        )
+          configurableChannel = true, 
+        ), 
+        extParam = Seq(HasMemset, HasMemset)
       )
     )
   ).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) {
@@ -130,6 +132,9 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
       // Poke the loop back to ture since we are only testing w/o any axi transactions
       dut.io.readerCfg.loopBack.poke(true)
       dut.io.writerCfg.loopBack.poke(true)
+
+      // Poke to bypass the extension
+      dut.io.writerCfg.extCfg(0).poke(0xf.U)
 
       // Start the reader and writer
       dut.io.readerStart.poke(true)

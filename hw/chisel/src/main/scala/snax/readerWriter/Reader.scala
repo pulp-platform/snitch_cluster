@@ -46,6 +46,7 @@ class Reader(
     new DataResponsers(
       tcdmDataWidth = param.tcdmParam.dataWidth,
       numChannel = param.tcdmParam.numChannel,
+      fifoDepth = param.bufferDepth,
       moduleNamePrefix = s"${moduleNamePrefix}_Reader"
     )
   )
@@ -56,7 +57,7 @@ class Reader(
       inputWidth = param.tcdmParam.dataWidth,
       outputWidth = param.tcdmParam.dataWidth * param.tcdmParam.numChannel,
       depth = param.bufferDepth,
-      pipe = param.pipeFifo
+      pipe = true
     ) {
       override val desiredName = s"${moduleNamePrefix}_Reader_DataBuffer"
     }
@@ -115,17 +116,13 @@ class Reader(
       responser.in.tcdmRsp <> tcdmRsp
     }
   }
-  // Responser <> DataBuffer, Data Link + NearlyFull
+  // Responser <> DataBuffer, Data Link + dataFifoPopped
   dataBuffer.io.in.zip(responsers.io).foreach {
     case (buffer, responser) => {
       buffer <> responser.out.data
     }
   }
-  responsers.io.zip((dataBuffer.io.nearlyFull)).foreach {
-    case (responser, nearlyFull) => {
-      responser.out.dataFifoNearlyFull := nearlyFull
-    }
-  }
+  responsers.io.foreach(_.out.dataFifoPopped := dataBuffer.io.out.head.fire)
 
   // DataBuffer <> Output
   dataBuffer.io.out.head <> io.data

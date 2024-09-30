@@ -47,7 +47,7 @@ class MaxPool(elementWidth: Int)(implicit
 
   // Counter to record the steps
   // 256-element MaxPool maximum
-  val counter = Module(new snax.readerWriter.BasicCounter(8) {
+  val counter = Module(new snax.utils.BasicCounter(8) {
     override val desiredName = "xdma_extension_MaxPoolCounter"
   })
   counter.io.ceil := ext_csr_i(0)
