@@ -79,9 +79,6 @@ int main() {
             delta_local_d32, bypassSIMD, transposed_A, transposed_B,
             channel_en_C);
 
-        // Set CSR to start Streamer for conv2d
-        set_gemmx_streamer_start();
-
         // Set GEMMX configuration CSR
         uint32_t subtraction_setting =
             gen_subtraction_config(subtraction_a, subtraction_b);
@@ -96,6 +93,9 @@ int main() {
             shared_multiplier2, shared_multiplier3, shared_multiplier4,
             shared_multiplier5, shared_multiplier6, shared_multiplier7, M * N,
             bypassSIMD);
+
+        // Set CSR to start Streamer for conv2d
+        set_gemmx_streamer_start();
 
         // Set CSR to start GEMM
         set_gemmx_start();

@@ -165,9 +165,6 @@ void set_gemmx_streamer_csr(
 #endif
 }
 
-// Set CSR to start STREAMER
-void set_gemmx_streamer_start() { csrw_ss(STREAMER_START_CSR, 1); }
-
 // Set GEMM configuration CSR
 void set_gemmx_csr(int tempLoop0, int tempLoop1, int tempLoop2,
                    int subtractions, uint32_t csr0, uint32_t csr1,
@@ -208,9 +205,6 @@ void set_gemmx_csr(int tempLoop0, int tempLoop1, int tempLoop2,
 
     csrw_ss(BYPASS_SIMD, bypassSIMD);
 }
-
-// Set CSR to start GEMM
-void set_gemmx_start() { csrw_ss(GEMMX_START, 1); }
 
 // Stall until Streamer and GEMM accelerator finish
 void wait_gemmx_and_streamer() {

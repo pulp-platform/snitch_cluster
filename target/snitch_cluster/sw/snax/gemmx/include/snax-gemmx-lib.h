@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include "snrt.h"
 #include "stdint.h"
+#include "streamer_csr_addr_map.h"
 
 #pragma once
 
@@ -76,7 +77,7 @@ void set_gemmx_streamer_csr(
     int32_t transpose_B, int32_t channel_en_C);
 
 // Set CSR to start STREAMER
-void set_gemmx_streamer_start();
+inline void set_gemmx_streamer_start() { csrw_ss(STREAMER_START_CSR, 1); }
 
 // Set GEMM configuration CSR
 void set_gemmx_csr(int tempLoop0, int tempLoop1, int tempLoop2,
@@ -89,7 +90,7 @@ void set_gemmx_csr(int tempLoop0, int tempLoop1, int tempLoop2,
                    uint32_t temporal_loop_bound, uint32_t bypassSIMD);
 
 // Set CSR to start GEMM
-void set_gemmx_start();
+inline void set_gemmx_start() { csrw_ss(GEMMX_START, 1); }
 
 // Poll until Streamer and GEMM accelerator finish
 void wait_gemmx_and_streamer();
