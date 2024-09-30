@@ -10,7 +10,7 @@
 module snax_streamer_gemmX_shell_wrapper #(
     // Custom parameters. As much as possible,
     // these parameters should not be taken from outside
-    parameter int unsigned RegRWCount   = 10,
+    parameter int unsigned RegRWCount   = 19,
     parameter int unsigned RegROCount   = 2,
     parameter int unsigned DataWidthA   = 512,
     parameter int unsigned DataWidthB   = 512,
@@ -84,8 +84,17 @@ module snax_streamer_gemmX_shell_wrapper #(
     .io_ctrl_simd_ctrl_bits_1(csr_reg_set_i[5]),
     .io_ctrl_simd_ctrl_bits_2(csr_reg_set_i[6]),
     .io_ctrl_simd_ctrl_bits_3(csr_reg_set_i[7]),
+    .io_ctrl_simd_ctrl_bits_4(csr_reg_set_i[8]),
+    .io_ctrl_simd_ctrl_bits_5(csr_reg_set_i[9]),
+    .io_ctrl_simd_ctrl_bits_6(csr_reg_set_i[10]),
+    .io_ctrl_simd_ctrl_bits_7(csr_reg_set_i[11]),
+    .io_ctrl_simd_ctrl_bits_8(csr_reg_set_i[12]),
+    .io_ctrl_simd_ctrl_bits_9(csr_reg_set_i[13]),
+    .io_ctrl_simd_ctrl_bits_10(csr_reg_set_i[14]),
+    .io_ctrl_simd_ctrl_bits_11(csr_reg_set_i[15]),
+    .io_ctrl_simd_ctrl_bits_12(csr_reg_set_i[16]),
 
-    .io_ctrl_bypassSIMD(csr_reg_set_i[8][0]),
+    .io_ctrl_bypassSIMD(csr_reg_set_i[17][0]),
 
     .io_ctrl_busy_o(csr_reg_ro_set_o[0][0]),
     .io_ctrl_performance_counter(csr_reg_ro_set_o[1]),

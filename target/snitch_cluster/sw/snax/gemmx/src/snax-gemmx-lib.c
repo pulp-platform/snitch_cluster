@@ -21,18 +21,16 @@ int32_t gen_subtraction_config(int8_t subtraction_a, int8_t subtraction_b) {
 }
 
 int32_t gen_csr0_config(uint8_t input_zp_i, uint8_t output_zp_i,
-                        uint8_t shift_i, uint8_t max_int_i) {
+                        uint8_t max_int_i, uint8_t min_int_i) {
     // encode the configuration into a single 32-bit integer
-    return ((int32_t)max_int_i << 24) | ((int32_t)shift_i << 16) |
+    return ((int32_t)min_int_i << 24) | ((int32_t)max_int_i << 16) |
            ((int32_t)output_zp_i << 8) | (int32_t)input_zp_i;
 }
 
-int32_t gen_csr1_config(uint8_t min_int_i, bool double_round_i) {
+int32_t gen_csr1_config(bool double_round_i) {
     // encode the configuration into a single 32-bit integer
-    return ((uint8_t)double_round_i << 8) | (uint8_t)min_int_i;
+    return (uint32_t)double_round_i;
 }
-
-int32_t gen_csr2_config(uint32_t multiplier_i) { return multiplier_i; }
 
 // Set STREAMER configuration CSR
 void set_gemmx_streamer_csr(
@@ -170,29 +168,15 @@ void set_gemmx_streamer_csr(
 // Set CSR to start STREAMER
 void set_gemmx_streamer_start() { csrw_ss(STREAMER_START_CSR, 1); }
 
-#define GEMMX_CSR_ADDR_BASE (STREAMER_PERFORMANCE_COUNTER_CSR + 1)
-#define T_BOUND_K (GEMMX_CSR_ADDR_BASE + 0)
-#define T_BOUND_N (GEMMX_CSR_ADDR_BASE + 1)
-#define T_BOUND_M (GEMMX_CSR_ADDR_BASE + 2)
-
-#define SUBTRACTIONS (GEMMX_CSR_ADDR_BASE + 3)
-
-#define SIMD_CSR0 (GEMMX_CSR_ADDR_BASE + 4)
-#define SIMD_CSR1 (GEMMX_CSR_ADDR_BASE + 5)
-#define SIMD_CSR2 (GEMMX_CSR_ADDR_BASE + 6)
-
-#define TEMPORAL_LOOP_BOUND (GEMMX_CSR_ADDR_BASE + 7)
-#define BYPASS_SIMD (GEMMX_CSR_ADDR_BASE + 8)
-
-#define GEMMX_START (GEMMX_CSR_ADDR_BASE + 9)
-#define GEMMX_BUSY (GEMMX_CSR_ADDR_BASE + 10)
-#define GEMMX_PERFORMANCE_COUNTER (GEMMX_CSR_ADDR_BASE + 11)
-
 // Set GEMM configuration CSR
 void set_gemmx_csr(int tempLoop0, int tempLoop1, int tempLoop2,
                    int subtractions, uint32_t csr0, uint32_t csr1,
-                   uint32_t csr2, uint32_t temporal_loop_bound,
-                   uint32_t bypassSIMD) {
+                   int shared_bitpacked_shift0, int shared_bitpacked_shift1,
+                   int shared_multiplier0, int shared_multiplier1,
+                   int shared_multiplier2, int shared_multiplier3,
+                   int shared_multiplier4, int shared_multiplier5,
+                   int shared_multiplier6, int shared_multiplier7,
+                   uint32_t temporal_loop_bound, uint32_t bypassSIMD) {
     // set loop bounds, from innermost to outermost, aka from K to N to M
     csrw_ss(T_BOUND_K, tempLoop0);
     csrw_ss(T_BOUND_N, tempLoop1);
@@ -204,10 +188,24 @@ void set_gemmx_csr(int tempLoop0, int tempLoop1, int tempLoop2,
     // set the constants for the SIMD unit
     csrw_ss(SIMD_CSR0, csr0);
     csrw_ss(SIMD_CSR1, csr1);
-    csrw_ss(SIMD_CSR2, csr2);
+
+    // set the shared bitpacked shift
+    csrw_ss(SIMD_SHARED_BITPACKED_SHIFT0, shared_bitpacked_shift0);
+    csrw_ss(SIMD_SHARED_BITPACKED_SHIFT1, shared_bitpacked_shift1);
+
+    // set the shared multipliers
+    csrw_ss(SIMD_SHARED_MULTIPLIER0, shared_multiplier0);
+    csrw_ss(SIMD_SHARED_MULTIPLIER1, shared_multiplier1);
+    csrw_ss(SIMD_SHARED_MULTIPLIER2, shared_multiplier2);
+    csrw_ss(SIMD_SHARED_MULTIPLIER3, shared_multiplier3);
+    csrw_ss(SIMD_SHARED_MULTIPLIER4, shared_multiplier4);
+    csrw_ss(SIMD_SHARED_MULTIPLIER5, shared_multiplier5);
+    csrw_ss(SIMD_SHARED_MULTIPLIER6, shared_multiplier6);
+    csrw_ss(SIMD_SHARED_MULTIPLIER7, shared_multiplier7);
 
     // set the temporal loop bound
     csrw_ss(TEMPORAL_LOOP_BOUND, temporal_loop_bound);
+
     csrw_ss(BYPASS_SIMD, bypassSIMD);
 }
 

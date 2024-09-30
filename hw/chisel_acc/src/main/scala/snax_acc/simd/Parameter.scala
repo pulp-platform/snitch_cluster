@@ -10,7 +10,8 @@ case class RescaleSIMDParams(
     constantMulType: Int,
     dataLen: Int,
     laneLen: Int,
-    readWriteCsrNum: Int
+    readWriteCsrNum: Int,
+    sharedScaleFactorPerGroupSize: Int
 )
 
 // parameters for Rescale SIMD accelerator
@@ -26,9 +27,11 @@ object RescaleSIMDConstant {
   def dataLen = 64
   def laneLen = 64
 
-  // csrManager parameters, we use 3 CSR for Post-processing SIMD configuration,
-  // CSR 4 for the vector length,
-  def readWriteCsrNum: Int = 4
+  // csrManager parameters, refer to the SIMD spec for more details
+  def readWriteCsrNum: Int = 13
+
+  // sharedScaleFactorPerGroupSize
+  def sharedScaleFactorPerGroupSize = 8
 
 }
 
@@ -40,7 +43,9 @@ object DefaultConfig {
     constantMulType = RescaleSIMDConstant.constantMulType,
     dataLen = RescaleSIMDConstant.dataLen,
     laneLen = RescaleSIMDConstant.laneLen,
-    readWriteCsrNum = RescaleSIMDConstant.readWriteCsrNum
+    readWriteCsrNum = RescaleSIMDConstant.readWriteCsrNum,
+    sharedScaleFactorPerGroupSize =
+      RescaleSIMDConstant.sharedScaleFactorPerGroupSize
   )
 }
 
@@ -52,6 +57,7 @@ object PipelinedConfig {
     constantMulType = RescaleSIMDConstant.constantMulType,
     dataLen = RescaleSIMDConstant.dataLen,
     laneLen = 8,
-    readWriteCsrNum = RescaleSIMDConstant.readWriteCsrNum
+    readWriteCsrNum = RescaleSIMDConstant.readWriteCsrNum,
+    sharedScaleFactorPerGroupSize = 1
   )
 }

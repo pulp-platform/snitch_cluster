@@ -174,7 +174,7 @@ object BlockGemmRescaleSIMDGen {
           (if (withPipeline == true)
              snax_acc.simd.PipelinedConfig.rescaleSIMDConfig
            else snax_acc.simd.DefaultConfig.rescaleSIMDConfig),
-          false
+          withPipeline
         )
       ),
       Array("--target-dir", "generated/gemmx")

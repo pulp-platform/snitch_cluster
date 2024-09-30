@@ -3,10 +3,12 @@ package snax_acc.utils
 import chisel3._
 import chisel3.util._
 
-class DecoupledCat2to1[T <: Data](aWidth: Int, bWidth: Int) extends Module{
-      val io = IO(new Bundle {
-    val in1 = Flipped(Decoupled(UInt(aWidth.W)))  // First decoupled input interface
-    val in2 = Flipped(Decoupled(UInt(bWidth.W)))  // Second decoupled input interface
+class DecoupledCat2to1[T <: Data](aWidth: Int, bWidth: Int) extends Module {
+  val io = IO(new Bundle {
+    val in1 =
+      Flipped(Decoupled(UInt(aWidth.W))) // First decoupled input interface
+    val in2 =
+      Flipped(Decoupled(UInt(bWidth.W))) // Second decoupled input interface
     val out = Decoupled(UInt((aWidth + bWidth).W)) // Decoupled output interface
   })
 
@@ -23,17 +25,20 @@ class DecoupledCat2to1[T <: Data](aWidth: Int, bWidth: Int) extends Module{
 }
 
 class DecoupledSplit1to2(cWidth: Int, aWidth: Int, bWidth: Int) extends Module {
-  require(cWidth == aWidth + bWidth, "cWidth must be the sum of aWidth and bWidth")
+  require(
+    cWidth == aWidth + bWidth,
+    "cWidth must be the sum of aWidth and bWidth"
+  )
 
   val io = IO(new Bundle {
     val in = Flipped(Decoupled(UInt(cWidth.W))) // Large decoupled input (c)
-    val out1 = Decoupled(UInt(aWidth.W))        // Smaller decoupled output (a)
-    val out2 = Decoupled(UInt(bWidth.W))        // Smaller decoupled output (b)
+    val out1 = Decoupled(UInt(aWidth.W)) // Smaller decoupled output (a)
+    val out2 = Decoupled(UInt(bWidth.W)) // Smaller decoupled output (b)
   })
 
   // Split the input bits into two parts
   io.out1.bits := io.in.bits(cWidth - 1, bWidth) // Upper bits go to out1 (a)
-  io.out2.bits := io.in.bits(bWidth - 1, 0)      // Lower bits go to out2 (b)
+  io.out2.bits := io.in.bits(bWidth - 1, 0) // Lower bits go to out2 (b)
 
   // Both outputs are valid when the input is valid
   io.out1.valid := io.in.valid

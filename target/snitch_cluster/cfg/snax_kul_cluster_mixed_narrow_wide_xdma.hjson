@@ -121,7 +121,7 @@
             bender_target: ["snax_gemmX","snax_KUL_xdma_cluster_xdma"],
             snax_narrow_tcdm_ports: 8,
             snax_wide_tcdm_ports: 48,
-            snax_num_rw_csr: 10,
+            snax_num_rw_csr: 19,
             snax_num_ro_csr: 2,
             snax_gemmx_mesh_row: 8,
             snax_gemmx_tile_size: 8,
@@ -180,14 +180,16 @@
             spatial_bounds: [[8], [8]],
             temporal_dim: [6, 3],
             num_channel: [8, 8],
-            fifo_depth: [2, 2],
+            fifo_depth: [8, 8],
+            configurable_channel: [0, 0],
         },
 
         data_writer_params:{
             spatial_bounds: [[8]],
             temporal_dim: [3],
             num_channel: [8],
-            fifo_depth: [2],
+            fifo_depth: [8],
+            configurable_channel: [0],
         },
 
         data_reader_writer_params:{
@@ -195,8 +197,11 @@
             temporal_dim: [3, 3],
             num_channel: [32, 32],
             fifo_depth: [2, 2],
+            configurable_channel: [1, 0],
         },
-        has_transpose: true
+
+        has_transpose: true,
+
         snax_library_name: "gemmx",
     }
 }

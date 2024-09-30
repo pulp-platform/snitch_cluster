@@ -112,7 +112,9 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
   val b_split_out = Wire(Decoupled(UInt(b_bits_len.W)))
 
   val a_b_cat = Module(new DecoupledCat2to1(a_bits_len, b_bits_len))
-  val a_b_split = Module(new DecoupledSplit1to2(a_b_bits_len, a_bits_len, b_bits_len))
+  val a_b_split = Module(
+    new DecoupledSplit1to2(a_b_bits_len, a_bits_len, b_bits_len)
+  )
 
   a_b_cat.io.in1 <> io.data.a_i
   a_b_cat.io.in2 <> io.data.b_i

@@ -122,7 +122,7 @@
             bender_target: ["snax_gemmX","snax_data_reshuffler"],
             snax_narrow_tcdm_ports: 8,
             snax_wide_tcdm_ports: 48,
-            snax_num_rw_csr: 10,
+            snax_num_rw_csr: 19,
             snax_num_ro_csr: 2,
             snax_gemmx_mesh_row: 8,
             snax_gemmx_tile_size: 8,

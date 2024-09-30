@@ -88,8 +88,6 @@ class PipelinedRescaleSIMD(params: RescaleSIMDParams)
       lane(i).io.input_i := 0.S
       lane(i).io.valid_i := false.B
     }
-    lane(i).io.ctrl_i := ctrl_csr
-    result(i) := lane(i).io.output_o
   }
 
   // lane output valid process counter

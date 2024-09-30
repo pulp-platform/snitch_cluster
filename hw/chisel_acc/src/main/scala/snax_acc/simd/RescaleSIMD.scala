@@ -39,7 +39,12 @@ class RescaleSIMD(params: RescaleSIMDParams)
   val lane = Seq.fill(params.laneLen)(Module(new RescalePE(params)))
 
   // control csr registers for storing the control data
-  val ctrl_csr = Reg(new RescalePECtrl(params))
+  def ctrl_csr_set_num = params.laneLen / params.sharedScaleFactorPerGroupSize
+
+  // Create a Vec of ctrl_csr_set_num instances of RescalePECtrl(params)
+  val ctrl_csr = VecInit(Seq.fill(ctrl_csr_set_num) {
+    Reg(new RescalePECtrl(params))
+  })
 
   // result from different RescalePEs
   val result = Wire(
@@ -103,22 +108,36 @@ class RescaleSIMD(params: RescaleSIMDParams)
   config_valid := io.ctrl.fire
 
   // when config valid, store the configuration for later computation
-  ctrl_csr.input_zp_i := io.ctrl.bits(0)(7, 0).asSInt
-  ctrl_csr.output_zp_i := io.ctrl.bits(0)(15, 8).asSInt
+  for (i <- 0 until ctrl_csr_set_num) {
+    // common control input ports
+    ctrl_csr(i).input_zp_i := io.ctrl.bits(0)(7, 0).asSInt
+    ctrl_csr(i).output_zp_i := io.ctrl.bits(0)(15, 8).asSInt
+    ctrl_csr(i).max_int_i := io.ctrl.bits(0)(23, 16).asSInt
+    ctrl_csr(i).min_int_i := io.ctrl.bits(0)(31, 24).asSInt
 
-  // this control input port is 32 bits, so it needs 1 csr
-  ctrl_csr.multiplier_i := io.ctrl.bits(2).asSInt
+    // this control input port is only 1 bit
+    ctrl_csr(i).double_round_i := io.ctrl.bits(1)(0).asBool
 
-  ctrl_csr.shift_i := io.ctrl.bits(0)(23, 16).asSInt
-  ctrl_csr.max_int_i := io.ctrl.bits(0)(31, 24).asSInt
+    // ---------------------
+    // sharedScaleFactorPerGroup
+    def packed_shift_num = 32 / params.constantType
+    ctrl_csr(i).shift_i := io.ctrl
+      .bits(2 + i / packed_shift_num)(
+        i % packed_shift_num * params.constantType + params.constantType - 1,
+        i % packed_shift_num * params.constantType
+      )
+      .asSInt
 
-  ctrl_csr.min_int_i := io.ctrl.bits(1)(7, 0).asSInt
+    // this control input port is 32 bits, so it needs 1 csr
+    ctrl_csr(i).multiplier_i := io.ctrl.bits(4 + i).asSInt
+    // ---------------------
 
-  // this control input port is only 1 bit
-  ctrl_csr.double_round_i := io.ctrl.bits(1)(8).asBool
+    // length of the data
+    ctrl_csr(i).len := io.ctrl
+      .bits(2 + ctrl_csr_set_num / 4 + ctrl_csr_set_num)
+      .asUInt
 
-  // length of the data
-  ctrl_csr.len := io.ctrl.bits(3)
+  }
 
   val simd_input_fire = WireInit(0.B)
   simd_input_fire := io.data.input_i.fire
@@ -135,7 +154,11 @@ class RescaleSIMD(params: RescaleSIMDParams)
     write_counter := 0.U
   }
 
-  computation_finish := (read_counter === ctrl_csr.len) && (write_counter === ctrl_csr.len - 1.U) && simd_output_fire && cstate === sBUSY
+  computation_finish := (read_counter === ctrl_csr(
+    0
+  ).len) && (write_counter === ctrl_csr(
+    0
+  ).len - 1.U) && simd_output_fire && cstate === sBUSY
 
   // always ready for configuration
   io.ctrl.ready := cstate === sIDLE
@@ -143,7 +166,11 @@ class RescaleSIMD(params: RescaleSIMDParams)
   // give each RescalePE right control signal and data
   // collect the result of each RescalePE
   for (i <- 0 until params.laneLen) {
-    lane(i).io.ctrl_i := ctrl_csr
+    lane(i).io.ctrl_i := ctrl_csr(i % ctrl_csr_set_num)
+    result(i) := lane(i).io.output_o
+  }
+  
+  for (i <- 0 until params.laneLen) {
     lane(i).io.input_i := io.data.input_i
       .bits(
         (i + 1) * params.inputType - 1,
@@ -151,7 +178,6 @@ class RescaleSIMD(params: RescaleSIMDParams)
       )
       .asSInt
     lane(i).io.valid_i := io.data.input_i.valid && io.data.input_i.ready
-    result(i) := lane(i).io.output_o
   }
 
   // always valid for new input on less is sending last output
