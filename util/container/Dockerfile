@@ -97,6 +97,9 @@ ENV VERIBLE_VERSION 0.0-3644-g6882622d
 # Bender
 COPY --from=build-bender /root/.cargo/bin/bender /usr/bin/bender
 
+# vcd-to-csv
+RUN wget https://github.com/KULeuven-MICAS/vcd-to-csv/releases/latest/download/vcd-to-csv -P /usr/bin && chmod +x /usr/bin/vcd-to-csv
+
 # spike-dasm
 RUN wget https://github.com/pulp-platform/riscv-isa-sim/releases/download/snitch-v0.1.0/snitch-spike-dasm-0.1.0-x86_64-linux-gnu-ubuntu18.04.tar.gz && \
     tar xzf snitch-spike-dasm-0.1.0-x86_64-linux-gnu-ubuntu18.04.tar.gz && \
