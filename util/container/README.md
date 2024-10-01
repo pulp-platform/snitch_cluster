@@ -10,7 +10,7 @@ There is a pre-built version of the container available online. This version is 
 
 To download the container, first login to the GitHub container registry:
 ```shell
-$ docker login ghcr.io
+docker login ghcr.io
 ```
 You will be asked for a username (your GitHub username).
 As a password you should use a
@@ -19,16 +19,15 @@ that at least has package registry read permission.
 
 You can then install the container by running:
 ```shell
-$ docker pull ghcr.io/pulp-platform/snitch_cluster:main
+docker pull ghcr.io/pulp-platform/snitch_cluster:main
 ```
 
 ### Build instructions
 
-In case you cannot use the pre-built container, e.g. if you need to make changes to the Dockerfile, you can build the
-container locally by running the following command in the root of the repository:
+In case you cannot use the pre-built container, e.g. if you need to make changes to the Dockerfile, you can build the container locally by running the following command in the root of the repository:
 
 ```shell
-$ sudo docker buildx build -t ghcr.io/pulp-platform/snitch_cluster:main -f util/container/Dockerfile .
+sudo docker buildx build -t ghcr.io/pulp-platform/snitch_cluster:main -f util/container/Dockerfile .
 ```
 
 ## Usage
@@ -36,7 +35,7 @@ $ sudo docker buildx build -t ghcr.io/pulp-platform/snitch_cluster:main -f util/
 To run the container in interactive mode:
 
 ```shell
-$ docker run -it -v $REPO_TOP:/repo -w /repo ghcr.io/pulp-platform/snitch_cluster:main
+docker run -it -v <path_to_repository_root>:/repo -w /repo ghcr.io/pulp-platform/snitch_cluster:main
 ```
 
 ## Limitations

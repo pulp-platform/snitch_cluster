@@ -73,6 +73,7 @@ docs: doc-srcs doxygen-docs
 clean-docs:
 	rm -rf $(GENERATED_DOCS_DIR)
 	rm -rf $(DOXYGEN_DOCS_DIR)
+	rm -rf site
 
 $(GENERATED_DOCS_DIR):
 	mkdir -p $@

@@ -40,20 +40,24 @@ licenses. See the respective folder for the licenses used.
 
 ## Publications
 
+<!--start-publications-->
 
 If you use the Snitch cluster or its extensions in your work, you can cite us:
 
 <details>
-<summary><b>Snitch: A tiny Pseudo Dual-Issue Processor for Area and Energy Efficient Execution of Floating-Point Intensive Workloads</b></summary>
+<summary><b><a href="https://doi.org/10.1109/TC.2020.3027900">Snitch: A Tiny Pseudo Dual-Issue Processor for Area and Energy Efficient Execution of Floating-Point Intensive Workloads</a></a></b></summary>
 <p>
 
 ```
-@article{zaruba2020snitch,
-  title={Snitch: A tiny Pseudo Dual-Issue Processor for Area and Energy Efficient Execution of Floating-Point Intensive Workloads},
+@ARTICLE{zaruba2021snitch,
   author={Zaruba, Florian and Schuiki, Fabian and Hoefler, Torsten and Benini, Luca},
-  journal={IEEE Transactions on Computers},
-  year={2020},
-  publisher={IEEE}
+  journal={IEEE Transactions on Computers}, 
+  title={Snitch: A Tiny Pseudo Dual-Issue Processor for Area and Energy Efficient Execution of Floating-Point Intensive Workloads}, 
+  year={2021},
+  volume={70},
+  number={11},
+  pages={1845-1860},
+  doi={10.1109/TC.2020.3027900}
 }
 ```
 
@@ -61,19 +65,19 @@ If you use the Snitch cluster or its extensions in your work, you can cite us:
 </details>
 
 <details>
-<summary><b>Stream semantic registers: A lightweight risc-v isa extension achieving full compute utilization in single-issue cores</b></summary>
+<summary><b><a href="https://doi.org/10.1109/TC.2020.2987314">Stream Semantic Registers: A Lightweight RISC-V ISA Extension Achieving Full Compute Utilization in Single-Issue Cores</a></b></summary>
 <p>
 
 ```
-@article{schuiki2020stream,
-  title={Stream semantic registers: A lightweight risc-v isa extension achieving full compute utilization in single-issue cores},
+@ARTICLE{schuiki2021ssr,
   author={Schuiki, Fabian and Zaruba, Florian and Hoefler, Torsten and Benini, Luca},
-  journal={IEEE Transactions on Computers},
+  journal={IEEE Transactions on Computers}, 
+  title={Stream Semantic Registers: A Lightweight RISC-V ISA Extension Achieving Full Compute Utilization in Single-Issue Cores}, 
+  year={2021},
   volume={70},
   number={2},
-  pages={212--227},
-  year={2020},
-  publisher={IEEE}
+  pages={212-227},
+  doi={10.1109/TC.2020.2987314}
 }
 ```
 
@@ -81,14 +85,14 @@ If you use the Snitch cluster or its extensions in your work, you can cite us:
 </details>
 
 <details>
-<summary><b>Sparse Stream Semantic Registers: A Lightweight ISA Extension Accelerating General Sparse Linear Algebra</b></summary>
+<summary><b><a href="https://doi.org/10.1109/TPDS.2023.3322029">Sparse Stream Semantic Registers: A Lightweight ISA Extension Accelerating General Sparse Linear Algebra</a></b></summary>
 <p>
 
 ```
-@article{scheffler2023sparsessr,
+@ARTICLE{scheffler2023sparsessr,
   author={Scheffler, Paul and Zaruba, Florian and Schuiki, Fabian and Hoefler, Torsten and Benini, Luca},
-  journal={IEEE Transactions on Parallel and Distributed Systems},
-  title={Sparse Stream Semantic Registers: A Lightweight ISA Extension Accelerating General Sparse Linear Algebra},
+  journal={IEEE Transactions on Parallel and Distributed Systems}, 
+  title={Sparse Stream Semantic Registers: A Lightweight ISA Extension Accelerating General Sparse Linear Algebra}, 
   year={2023},
   volume={34},
   number={12},
@@ -101,37 +105,19 @@ If you use the Snitch cluster or its extensions in your work, you can cite us:
 </details>
 
 <details>
-<summary><b>A High-performance, Energy-efficient Modular DMA Engine Architecture</b></summary>
+<summary><b><a href="https://doi.org/10.1109/TC.2023.3329930">A High-Performance, Energy-Efficient Modular DMA Engine Architecture</a></b></summary>
 <p>
 
 ```
-@ARTICLE{benz2023idma,
+@ARTICLE{benz2024idma,
   author={Benz, Thomas and Rogenmoser, Michael and Scheffler, Paul and Riedel, Samuel and Ottaviano, Alessandro and Kurth, Andreas and Hoefler, Torsten and Benini, Luca},
-  journal={IEEE Transactions on Computers},
-  title={A High-performance, Energy-efficient Modular DMA Engine Architecture},
-  year={2023},
-  volume={},
-  number={},
-  pages={1-14},
-  doi={10.1109/TC.2023.3329930}}
-```
-
-</p>
-</details>
-
-<details>
-<summary><b>MiniFloat-NN and ExSdotp: An ISA Extension and a Modular Open Hardware Unit for Low-Precision Training on RISC-V Cores</b></summary>
-<p>
-
-```
-@inproceedings{bertaccini2022minifloat,
-  author={Bertaccini, Luca and Paulin, Gianna and Fischer, Tim and Mach, Stefan and Benini, Luca},
-  booktitle={2022 IEEE 29th Symposium on Computer Arithmetic (ARITH)},
-  title={MiniFloat-NN and ExSdotp: An ISA Extension and a Modular Open Hardware Unit for Low-Precision Training on RISC-V Cores},
-  year={2022},
-  volume={},
-  number={},
-  pages={1-8}
+  journal={IEEE Transactions on Computers}, 
+  title={A High-Performance, Energy-Efficient Modular DMA Engine Architecture}, 
+  year={2024},
+  volume={73},
+  number={1},
+  pages={263-277},
+  doi={10.1109/TC.2023.3329930}
 }
 ```
 
@@ -139,14 +125,34 @@ If you use the Snitch cluster or its extensions in your work, you can cite us:
 </details>
 
 <details>
-<summary><b>Soft Tiles: Capturing Physical Implementation Flexibility for Tightly-Coupled Parallel Processing Clusters</b></summary>
+<summary><b><a href="https://doi.org/10.1109/ARITH54963.2022.00010">MiniFloat-NN and ExSdotp: An ISA Extension and a Modular Open Hardware Unit for Low-Precision Training on RISC-V Cores</a></b></summary>
 <p>
 
 ```
-@inproceedings{paulin2022softtiles,
+@INPROCEEDINGS{bertaccini2022minifloat,
+  author={Bertaccini, Luca and Paulin, Gianna and Fischer, Tim and Mach, Stefan and Benini, Luca},
+  booktitle={2022 IEEE 29th Symposium on Computer Arithmetic (ARITH)}, 
+  title={MiniFloat-NN and ExSdotp: An ISA Extension and a Modular Open Hardware Unit for Low-Precision Training on RISC-V Cores}, 
+  year={2022},
+  volume={},
+  number={},
+  pages={1-8},
+  doi={10.1109/ARITH54963.2022.00010}
+}
+```
+
+</p>
+</details>
+
+<details>
+<summary><b><a href="https://doi.org/10.1109/ISVLSI54635.2022.00021">Soft Tiles: Capturing Physical Implementation Flexibility for Tightly-Coupled Parallel Processing Clusters</a></b></summary>
+<p>
+
+```
+@INPROCEEDINGS{paulin2022softtiles,
   author={Paulin, Gianna and Cavalcante, Matheus and Scheffler, Paul and Bertaccini, Luca and Zhang, Yichao and Gürkaynak, Frank and Benini, Luca},
-  booktitle={2022 IEEE Computer Society Annual Symposium on VLSI (ISVLSI)},
-  title={Soft Tiles: Capturing Physical Implementation Flexibility for Tightly-Coupled Parallel Processing Clusters},
+  booktitle={2022 IEEE Computer Society Annual Symposium on VLSI (ISVLSI)}, 
+  title={Soft Tiles: Capturing Physical Implementation Flexibility for Tightly-Coupled Parallel Processing Clusters}, 
   year={2022},
   volume={},
   number={},
@@ -159,20 +165,23 @@ If you use the Snitch cluster or its extensions in your work, you can cite us:
 </details>
 
 <details>
-<summary><b>SARIS: Accelerating Stencil Computations on Energy-Efficient RISC-V Compute Clusters with Indirect Stream Registers</b></summary>
+<summary><b><a href="https://doi.org/10.48550/arXiv.2404.05303">SARIS: Accelerating Stencil Computations on Energy-Efficient RISC-V Compute Clusters with Indirect Stream Registers</a></b></summary>
 <p>
 
 ```
 @misc{scheffler2024saris,
-      title={SARIS: Accelerating Stencil Computations on Energy-Efficient
-             RISC-V Compute Clusters with Indirect Stream Registers},
-      author={Paul Scheffler and Luca Colagrande and Luca Benini},
-      year={2024},
-      eprint={2404.05303},
-      archivePrefix={arXiv},
-      primaryClass={cs.MS}
+  title={SARIS: Accelerating Stencil Computations on Energy-Efficient
+         RISC-V Compute Clusters with Indirect Stream Registers},
+  author={Paul Scheffler and Luca Colagrande and Luca Benini},
+  year={2024},
+  eprint={2404.05303},
+  archivePrefix={arXiv},
+  primaryClass={cs.MS},
+  url={https://arxiv.org/abs/2404.05303}
 }
 ```
 
 </p>
 </details>
+
+<!--end-publications-->

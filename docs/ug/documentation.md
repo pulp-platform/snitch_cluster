@@ -1,21 +1,22 @@
 # Documentation
 
-Documentation of the generator and related infrastructure is hosted under
-`docs`. Static `html` documentation is build from the latest `main` branch by
-the CI. We use [mkdocs](https://www.mkdocs.org/) together with the [material
-theme](https://squidfunk.github.io/mkdocs-material/). Before building the
-documentation, make sure you have the required dependencies installed:
+Documentation pages for the Snitch cluster are hosted under `docs`. Static
+`html` documentation is built and deployed from the latest `main` branch by the
+CI. We use [mkdocs](https://www.mkdocs.org/) together with the [material
+theme](https://squidfunk.github.io/mkdocs-material/).
 
-```shell
-pip install .
-```
-
-After everything is installed, you can build a static copy of the `html` documentation by
-executing (in the root directory):
+You can build a static copy of the `html` documentation by
+executing (in the root of this repository):
 
 ```shell
 make docs
 ```
+
+Documentation for the Python sources in this repository is generated from the
+docstrings contained within the sources themselves, using
+[mkdocstrings](https://mkdocstrings.github.io/).
+Documentation for the C sources in this repository is generated from the
+Doxygen-style comments within the sources themselves, using Doxygen.
 
 ## Organization
 
@@ -24,19 +25,3 @@ The `docs` folder is organized as follows:
 * `rm`: Reference manuals, listings and detailed design decisions.
 * `ug`: User guides, more tutorial style texts to get contributors and user
   up-to-speed.
-* `schema`: Contains the JSON schema used for data validation and generation.
-* `schema-doc`: Contains auto-generated documentation from the schema in the
-  `schema` folder. The documentation is generated using
-  [`adobe/jsonschema2md`](https://github.com/adobe/jsonschema2md).
-
-<!-- ## IP Documentation -->
-
-## Re-generate Documentation
-
-Unfortunately, there isn't a good Python tool that generates schema to markdown
-documents, hence, we rely on `adobe/jsonschema2md` which requires `node` and
-`npm`. To re-generate the documentation execute (in the repository root):
-
-```bash
-jsonschema2md -d docs/schema/ -o docs/schema-doc -n
-```
