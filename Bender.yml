@@ -35,6 +35,7 @@ dependencies:
   snax-postprocessing-simd: { git: "https://github.com/KULeuven-MICAS/snax-postprocessing-simd", rev: main }
   hypercorex:         { git: "https://github.com/KULeuven-MICAS/hypercorex.git", rev: main }
   dimc:               { git: "https://github.com/KULeuven-MICAS/snax-dimc.git", rev: main }
+  cgra:               { git: "https://github.com/KULeuven-MICAS/snax_cgra.git", rev: main}
 
 vendor_package:
   - name: musl
@@ -314,6 +315,19 @@ sources:
       # Level 2
       - target/snitch_cluster/generated/snax_hypercorex/snax_hypercorex_wrapper.sv
 
+  # CGRA
+  - target: cgra
+    files:
+      # Level 0
+      - target/snitch_cluster/generated/snax_cgra/snax_cgra_csrman_CsrManager.sv
+      - target/snitch_cluster/generated/snax_cgra/snax_cgra_Streamer.sv
+      # Level 1
+      - hw/snax_cgra/src/snax_cgra_shell_wrapper.sv
+      - target/snitch_cluster/generated/snax_cgra/snax_cgra_csrman_wrapper.sv
+      - target/snitch_cluster/generated/snax_cgra/snax_cgra_streamer_wrapper.sv
+      # Level 2
+      - target/snitch_cluster/generated/snax_cgra/snax_cgra_wrapper.sv
+
   # dimc
   - target: dimc
     files:
@@ -436,6 +450,9 @@ sources:
   - target: snax_dimc_cluster
     files:
       - target/snitch_cluster/generated/snax_dimc_cluster_wrapper.sv
+  - target: snax_cgra_cluster
+    files:
+      - target/snitch_cluster/generated/snax_cgra_cluster_wrapper.sv
   # Note: this is about to be obsolete
   # but it uses the old snax-gemm still
   - target: snax_gemm_cluster
