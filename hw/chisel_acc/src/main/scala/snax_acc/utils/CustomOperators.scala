@@ -2,6 +2,7 @@ package snax_acc.utils
 
 import chisel3._
 import chisel3.util._
+import chisel3.reflect.DataMirror
 
 /** The definition of -|> / -||> / -|||> connector for decoupled signal it
   * connects leftward Decoupled signal (Decoupled port) and rightward Decoupled
@@ -52,10 +53,12 @@ object DecoupledCut {
         right: DecoupledIO[T]
     )(implicit sourceInfo: chisel3.experimental.SourceInfo): DecoupledIO[T] = {
       val buffer = Module(
-        new Queue(chiselTypeOf(left.bits), entries = 1, pipe = false)
+        new Queue(chiselTypeOf(left.bits), entries = 1, pipe = false) {
+          override val desiredName =
+            "FullCutHalfBandwidth_W_" + left.bits.getWidth.toString + "_T_" + left.bits.getClass.getSimpleName
+        }
       )
-      buffer.suggestName("fullCutHalfBandwidth")
-
+      buffer.suggestName(left.circuitName + "_fullCutHalfBandwidth")
       left <> buffer.io.enq
       buffer.io.deq <> right
       right
@@ -65,9 +68,12 @@ object DecoupledCut {
         right: DecoupledIO[T]
     )(implicit sourceInfo: chisel3.experimental.SourceInfo): DecoupledIO[T] = {
       val buffer = Module(
-        new Queue(chiselTypeOf(left.bits), entries = 2, pipe = false)
+        new Queue(chiselTypeOf(left.bits), entries = 2, pipe = false) {
+          override val desiredName =
+            "FullCutFullBandwidth_W_" + left.bits.getWidth.toString + "_T_" + left.bits.getClass.getSimpleName
+        }
       )
-      buffer.suggestName("fullCutFullBandwidth")
+      buffer.suggestName(left.circuitName + "_fullCutFullBandwidth")
       left <> buffer.io.enq
       buffer.io.deq <> right
       right
@@ -77,10 +83,12 @@ object DecoupledCut {
         right: DecoupledIO[T]
     )(implicit sourceInfo: chisel3.experimental.SourceInfo): DecoupledIO[T] = {
       val buffer = Module(
-        new DataCut(chiselTypeOf(left.bits), delay = 1)
+        new DataCut(chiselTypeOf(left.bits), delay = 1) {
+          override val desiredName =
+            "DataCut1_W_" + left.bits.getWidth.toString + "_T_" + left.bits.getClass.getSimpleName
+        }
       )
-      buffer.suggestName("dataCut1")
-
+      buffer.suggestName(left.circuitName + "_dataCut1")
       left <> buffer.io.in
       buffer.io.out <> right
       right
@@ -90,10 +98,12 @@ object DecoupledCut {
         right: DecoupledIO[T]
     )(implicit sourceInfo: chisel3.experimental.SourceInfo): DecoupledIO[T] = {
       val buffer = Module(
-        new DataCut(chiselTypeOf(left.bits), delay = 2)
+        new DataCut(chiselTypeOf(left.bits), delay = 2) {
+          override val desiredName =
+            "DataCut2_W_" + left.bits.getWidth.toString + "_T_" + left.bits.getClass.getSimpleName
+        }
       )
-      buffer.suggestName("dataCut2")
-
+      buffer.suggestName(left.circuitName + "_dataCut2")
       left <> buffer.io.in
       buffer.io.out <> right
       right
@@ -103,10 +113,12 @@ object DecoupledCut {
         right: DecoupledIO[T]
     )(implicit sourceInfo: chisel3.experimental.SourceInfo): DecoupledIO[T] = {
       val buffer = Module(
-        new DataCut(chiselTypeOf(left.bits), delay = 3)
+        new DataCut(chiselTypeOf(left.bits), delay = 3) {
+          override val desiredName =
+            "DataCut3_W_" + left.bits.getWidth.toString + "_T_" + left.bits.getClass.getSimpleName
+        }
       )
-      buffer.suggestName("dataCut3")
-
+      buffer.suggestName(left.circuitName + "_dataCut3")
       left <> buffer.io.in
       buffer.io.out <> right
       right

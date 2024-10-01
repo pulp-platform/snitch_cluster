@@ -48,7 +48,7 @@ class MaxPool(elementWidth: Int)(implicit
   // Counter to record the steps
   // 256-element MaxPool maximum
   val counter = Module(new snax.utils.BasicCounter(8) {
-    override val desiredName = "xdma_extension_MaxPoolCounter"
+    override val desiredName = "MaxPoolCounter"
   })
   counter.io.ceil := ext_csr_i(0)
   counter.io.reset := ext_start_i
@@ -63,7 +63,7 @@ class MaxPool(elementWidth: Int)(implicit
 
   val PEs = for (i <- 0 until extensionParam.dataWidth / elementWidth) yield {
     val PE = Module(new MAXPoolPE(dataWidth = elementWidth) {
-      override val desiredName = "xdma_extension_MaxPoolPE"
+      override val desiredName = "MaxPoolPE"
     })
     PE.io.init_i := counter.io.value === 0.U
     PE.io.data_i.valid := ext_data_i.fire

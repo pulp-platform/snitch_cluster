@@ -27,7 +27,7 @@ import snax.xdma.DesignParams._
 abstract class HasDataPathExtension {
   implicit val extensionParam: DataPathExtensionParam
 
-  def namePostfix = "_xdma_extension_" + extensionParam.moduleName
+  def namePostfix = "_DataPathExtension_" + extensionParam.moduleName
   def instantiate(clusterName: String): DataPathExtension
 }
 
@@ -88,7 +88,8 @@ abstract class DataPathExtension(implicit
   // Structure to bypass extension: Demux
   private[this] val inputDemux = Module(
     new DemuxDecoupled(UInt(extensionParam.dataWidth.W), numOutput = 2) {
-      override def desiredName = s"xdma_extension_inputDemux"
+      override def desiredName =
+        "DataPathExtension_Demux_W" + extensionParam.dataWidth.toString
     }
   )
   inputDemux.io.sel := io.bypass_i
@@ -101,7 +102,8 @@ abstract class DataPathExtension(implicit
   // Structure to bypass extension: Mux
   private[this] val outputMux = Module(
     new MuxDecoupled(UInt(extensionParam.dataWidth.W), numInput = 2) {
-      override def desiredName = s"xdma_extension_outputMux"
+      override def desiredName =
+        "DataPathExtension_Mux_W" + extensionParam.dataWidth.toString
     }
   )
   outputMux.io.sel := io.bypass_i

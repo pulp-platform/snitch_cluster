@@ -83,9 +83,13 @@ class UpDownCounter(width: Int) extends Module with RequireAsyncReset {
   io.firstVal := value === 0.U
 }
 
-class ProgrammableCounter(width: Int, hasCeil: Boolean = true)
-    extends Module
+class ProgrammableCounter(
+    width: Int,
+    hasCeil: Boolean = true,
+    moduleName: String = "unnamed_counter"
+) extends Module
     with RequireAsyncReset {
+  override val desiredName = moduleName
   val io = IO(new Bundle {
     val tick = Input(Bool())
     val reset = Input(Bool())
@@ -102,7 +106,7 @@ class ProgrammableCounter(width: Int, hasCeil: Boolean = true)
   // The small counter's function is to determine whether the ceil is reached, and a reset is needed.
   if (hasCeil) {
     val smallCounter = Module(new BasicCounter(width, hasCeil) {
-      override val desiredName = "ProgrammableCounter_SmallCounter"
+      override val desiredName = s"${moduleName}_SmallCounter"
     })
 
     smallCounter.io.tick := io.tick

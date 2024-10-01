@@ -263,13 +263,17 @@ class DMADataPath(
     new DemuxDecoupled(
       chiselTypeOf(readerDataAfterExtension.bits),
       numOutput = 2
-    )
+    ) {
+      override def desiredName = clusterName + "_xdma_datapath_demux"
+    }
   )
   val writerMux = Module(
     new MuxDecoupled(
       chiselTypeOf(writerDataBeforeExtension.bits),
       numInput = 2
-    )
+    ) {
+      override def desiredName = clusterName + "_xdma_datapath_mux"
+    }
   )
 
   readerDemux.io.sel := io.readerCfg.loopBack

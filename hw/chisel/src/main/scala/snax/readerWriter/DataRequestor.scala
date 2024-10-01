@@ -38,9 +38,12 @@ class DataRequestorIO(
 class DataRequestor(
     tcdmDataWidth: Int,
     tcdmAddressWidth: Int,
-    isReader: Boolean
+    isReader: Boolean,
+    moduleNamePrefix: String = "unnamed_cluster"
 ) extends Module
     with RequireAsyncReset {
+  override val desiredName = s"${moduleNamePrefix}_DataRequestor"
+
   val io = IO(new DataRequestorIO(tcdmDataWidth, tcdmAddressWidth, isReader))
   // address queue is popped out if responser is ready and current is acknowldged by the tcdm
   // Or this channel is disabled
@@ -99,9 +102,12 @@ class DataRequestors(
   // new DataRequestorsIO(tcdmDataWidth, tcdmAddressWidth, isReader, numChannel)
   val DataRequestor = for (i <- 0 until numChannel) yield {
     val module = Module(
-      new DataRequestor(tcdmDataWidth, tcdmAddressWidth, isReader) {
-        override def desiredName = s"${moduleNamePrefix}_DataRequestor"
-      }
+      new DataRequestor(
+        tcdmDataWidth,
+        tcdmAddressWidth,
+        isReader,
+        moduleNamePrefix = moduleNamePrefix
+      )
     )
 
     // Connect the IO
