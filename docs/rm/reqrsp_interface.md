@@ -1,1 +1,0 @@
-../../hw/reqrsp_interface/doc/index.md

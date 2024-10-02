@@ -2,9 +2,12 @@
 
 ## Trace generation
 
-During RTL simulation, the Snitch core complex (CC) dumps a wide set of information to the `logs/trace_hart_XXXXX.dasm` file (see [snitch_cc.sv](https://github.com/pulp-platform/snitch_cluster/blob/main/hw/snitch_cluster/src/snitch_cc.sv)), `XXXXX` denoting the index of the Snitch core in the system.
+During RTL simulation, the Snitch _core complex (CC)_ dumps a wide set of information to the `logs/trace_hart_XXXXX.dasm` file (see [snitch_cc.sv](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/hw/snitch_cluster/src/snitch_cc.sv)), `XXXXX` denoting the hart ID of the Snitch core in the system.
 
-The [gen_trace.py](../rm/trace/gen_trace.md) script can be used to elaborate this information into a human-readable form, and is invoked by the `make traces` target to generate `logs/trace_hart_XXXXX.txt`.
+The [gen_trace.py](../rm/sw/trace/gen_trace.md) script can be used to elaborate this information into a human-readable form, and is invoked by the `make traces` target to generate `logs/trace_hart_XXXXX.txt`.
+
+!!! info
+    For more information on the topics covered in this page have a look inside the [gen_trace.py](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/trace/gen_trace.py) script.
 
 ## Trace walkthrough
 
@@ -79,7 +82,7 @@ One last note should be made about `frep` loops. While not visible from this tra
 
 ## Performance metrics
 
-Finally, at the end of the trace, a collection of performance metrics automatically computed from the trace is reported. The performance metrics are associated to regions defined in your code. More information on how to define these regions can be found in the Snitch [tutorial](../../target/snitch_cluster/README.md).
+Finally, at the end of the trace, a collection of performance metrics automatically computed from the trace is reported. The performance metrics are associated to regions defined in your code. More information on how to define these regions can be found in the [tutorial](tutorial.md#debugging-and-benchmarking).
 
 ```
 ## Performance metrics
@@ -104,7 +107,7 @@ cycles                                          87
 total_ipc                                   0.8046
 ```
 
-The trace will contain the most relevant performance metrics for manual inspection. These and additional performance metrics can also be dumped to a JSON file for further processing (see [gen_trace.py](../../util/trace/gen_trace.py)).
+The trace will contain the most relevant performance metrics for manual inspection. These and additional performance metrics are also dumped to a `.json` file for further processing.
 In the following table you can find a complete list of all the performance metrics extracted from the trace along with their description:
 
 |Metric                    |Description                                                                                                                                                                                         |

@@ -153,7 +153,7 @@ class SnitchCluster(Generator):
         Initialize with a given configuration. The constructor checks conformans
         to the cluster schema and constructs a `cfg` object.
         """
-        super().__init__(Path(__file__).parent / "../../docs/schema/snitch_cluster.schema.json")
+        super().__init__(Path(__file__).parent / "schema/snitch_cluster.schema.json")
         self.mems = set()
         self.mems_desc = dict()
         self.validate(cfg)
@@ -362,8 +362,8 @@ class SnitchClusterTB(Generator):
     complex systems.
     """
     def __init__(self, cfg):
-        schema = Path(__file__).parent / "../../docs/schema/snitch_cluster_tb.schema.json"
-        remote_schemas = [Path(__file__).parent / "../../docs/schema/snitch_cluster.schema.json"]
+        schema = Path(__file__).parent / "schema/snitch_cluster_tb.schema.json"
+        remote_schemas = [Path(__file__).parent / "schema/snitch_cluster.schema.json"]
         super().__init__(schema, remote_schemas)
         # Validate the schema.
         self.validate(cfg)

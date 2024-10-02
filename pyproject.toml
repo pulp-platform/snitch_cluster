@@ -27,6 +27,7 @@ dependencies = [
     "mako",
     "matplotlib",
     "mkdocs",
+    "mkdocs-exclude",
     "mkdocs-material",
     "mkdocs-include-markdown-plugin",
     "mkdocs-macros-plugin",
