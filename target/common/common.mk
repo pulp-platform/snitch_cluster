@@ -23,7 +23,6 @@ VERILATOR_SEPP ?=
 BENDER       ?= bender
 VLT          ?= $(VERILATOR_SEPP) verilator
 VCS          ?= $(VCS_SEPP) vcs
-VERIBLE_FMT  ?= verible-verilog-format
 CLANG_FORMAT ?= clang-format
 VSIM         ?= $(QUESTA_SEPP) vsim
 VOPT         ?= $(QUESTA_SEPP) vopt
