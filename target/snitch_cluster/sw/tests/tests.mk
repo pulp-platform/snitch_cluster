@@ -36,7 +36,7 @@ TEST_DWARFS  = $(abspath $(addprefix $(TESTS_BUILDDIR)/,$(addsuffix .dwarf,$(TES
 TEST_OUTPUTS = $(TEST_ELFS)
 
 ifeq ($(DEBUG), ON)
-TEST_OUTPUTS += $(DUMPS) $(DWARFS)
+TEST_OUTPUTS += $(TEST_DUMPS) $(TEST_DWARFS)
 endif
 
 #########

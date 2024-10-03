@@ -2457,7 +2457,7 @@ void conv2d_layer(const conv_layer *l) {
                                     l->FH * l->FW * l->TILE_CI + 1, 1,
                                     &ofmap[write_buf * ofmap_stride +
                                            compute_id * ofmap_co_stride],
-                                    0, &alpha, setup_SSR);
+                                    0, alpha, setup_SSR);
 
                             } else {
                                 const uint32_t alpha = 1;
@@ -2469,7 +2469,7 @@ void conv2d_layer(const conv_layer *l) {
                                     l->FH * l->FW * l->TILE_CI + 1, 1,
                                     &ofmap[write_buf * ofmap_stride +
                                            compute_id * ofmap_co_stride],
-                                    0, &alpha, setup_SSR);
+                                    0, alpha, setup_SSR);
                             }
                         }
                         // Toggle read and write buffer
