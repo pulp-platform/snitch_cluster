@@ -4,7 +4,7 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-from Simulation import QuestaSimulation, VCSSimulation, VerilatorSimulation, BansheeSimulation
+from snitch.util.sim import Simulation
 
 
 class Simulator(object):
@@ -111,7 +111,7 @@ class VCSSimulator(RTLSimulator):
         Arguments:
             binary: The VCS simulation binary.
         """
-        super().__init__(binary, name='vcs', simulation_cls=VCSSimulation)
+        super().__init__(binary, name='vcs', simulation_cls=Simulation.VCSSimulation)
 
 
 class QuestaSimulator(RTLSimulator):
@@ -128,7 +128,7 @@ class QuestaSimulator(RTLSimulator):
         Arguments:
             binary: The QuestaSim simulation binary.
         """
-        super().__init__(binary, name='vsim', simulation_cls=QuestaSimulation)
+        super().__init__(binary, name='vsim', simulation_cls=Simulation.QuestaSimulation)
 
 
 class VerilatorSimulator(RTLSimulator):
@@ -145,7 +145,7 @@ class VerilatorSimulator(RTLSimulator):
         Arguments:
             binary: The Verilator simulation binary.
         """
-        super().__init__(binary, name='verilator', simulation_cls=VerilatorSimulation)
+        super().__init__(binary, name='verilator', simulation_cls=Simulation.VerilatorSimulation)
 
 
 class BansheeSimulator(Simulator):
@@ -161,7 +161,7 @@ class BansheeSimulator(Simulator):
         Arguments:
             cfg: A Banshee config file.
         """
-        super().__init__(name='banshee', simulation_cls=BansheeSimulation)
+        super().__init__(name='banshee', simulation_cls=Simulation.BansheeSimulation)
         self.cfg = cfg
 
     def supports(self, test):

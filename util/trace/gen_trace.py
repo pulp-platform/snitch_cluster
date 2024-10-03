@@ -585,8 +585,17 @@ def eval_dma_metrics(dma_trans, dma_trace):
             bursts_in_transfer = 0
             rec_bursts = 0
             # Iterate lines in DMA trace
-            for line in f.readlines():
-                dma = ast.literal_eval(line)
+            for lineno, (line, nextl) in enumerate(current_and_next(f.readlines())):
+                try:
+                    dma = ast.literal_eval(line)
+                except SyntaxError:
+                    message = 'Exception occured while processing '
+                    if not nextl:
+                        message += 'last line. Did the simulation terminate?'
+                    else:
+                        message += f'line {lineno}.'
+                    print(traceback.format_exc(), file=sys.stderr)
+                    print(message, file=sys.stderr)
                 time = dma['meta']['time']
                 # When the first burst in a transfer is granted, we record a new transfer in
                 # the outstanding transfers queue, with the information obtained from the core

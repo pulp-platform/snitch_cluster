@@ -32,3 +32,5 @@ extern void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
                                       size_t len);
 
 extern uint32_t snrt_global_all_to_all_reduction(uint32_t value);
+
+extern void snrt_wait_writeback(uint32_t val);
