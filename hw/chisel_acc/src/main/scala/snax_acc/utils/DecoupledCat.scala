@@ -41,8 +41,8 @@ class DecoupledSplit1to2(cWidth: Int, aWidth: Int, bWidth: Int) extends Module {
   io.out2.bits := io.in.bits(bWidth - 1, 0) // Lower bits go to out2 (b)
 
   // Both outputs are valid when the input is valid
-  io.out1.valid := io.in.valid
-  io.out2.valid := io.in.valid
+  io.out1.valid := io.in.valid && io.out1.ready && io.out2.ready
+  io.out2.valid := io.in.valid && io.out1.ready && io.out2.ready
 
   // Input is ready when both outputs are ready
   io.in.ready := io.out1.ready && io.out2.ready

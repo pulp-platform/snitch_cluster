@@ -15,22 +15,24 @@ class DataCut[T <: Data](gen: T, delay: Int) extends Module {
     val in = Flipped(Decoupled(gen))
     val out = Decoupled(gen)
   })
-
-  val in = Wire(ValidIO(gen))
-  val out = Wire(ValidIO(gen))
+  val in = Wire(gen)
+  val inValid = Wire(Bool())
+  val out = Wire(gen)
+  val outValid = Wire(Bool())
   val shiftPermission = Wire(Bool())
   val shiftSuggestion = Wire(Bool())
   val shift =
     shiftPermission && shiftSuggestion // shift is true when both shiftPermission and shiftSuggestion are true
-  in.bits := io.in.bits
-  in.valid := io.in.valid
+  inValid := io.in.valid
+  in := io.in.bits
   io.in.ready := shiftPermission
-  io.out.valid := out.valid
-  io.out.bits := out.bits
+  io.out.valid := outValid
+  io.out.bits := out
   out := ShiftRegister(in, delay, shift)
+  outValid := ShiftRegister(inValid, delay, false.B, shift)
 
   // shiftPermission is true when last item's valid is true and io.out.ready is true or last item's valid is false
-  shiftPermission := (out.valid && io.out.ready) || !out.valid
+  shiftPermission := (outValid && io.out.ready) || !outValid
 
   val dataInsideShiftRegister = Wire(Bool())
 
@@ -40,7 +42,6 @@ class DataCut[T <: Data](gen: T, delay: Int) extends Module {
   // When the counter is abbout to overflow, data does not inside the shift register
   val insideCounter = Counter(0 to delay, shift, io.in.valid)
   dataInsideShiftRegister := insideCounter._1 =/= delay.U
-
 }
 
 object DecoupledCut {
