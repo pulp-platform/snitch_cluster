@@ -45,7 +45,7 @@ jobs:
   # Docs #
   ########
 
-  docs:
+  build-docs:
     name: Build documentation
     runs-on: ubuntu-22.04
     needs: build-docker
@@ -58,6 +58,28 @@ jobs:
       - uses: actions/checkout@v2
       - name: Build docs
         run: make docs
+
+  deploy-docs:
+    name: Deploy documentation
+    runs-on: ubuntu-22.04
+    needs: build-docker
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    container:
+      image: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v2
+      # For some reason, the checkout is done by a different user,
+      # than that deploying to Github (root, possibly due to Docker).
+      # So we need to set the repository as a safe directory.
+      - name: Git config safe.directory
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+      - name: Generate documentation sources
+        run: |
+          make doc-srcs
+          make doxygen-docs
+      - name: Build and deploy documentation
+        run: mkdocs gh-deploy --force
 
   #####################
   # Python unit tests #
