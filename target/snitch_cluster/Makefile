@@ -202,18 +202,7 @@ include $(ROOT)/target/common/vsim.mk
 # VCS #
 #######
 
-.PHONY: clean-vcs
-
-# Clean all build directories and temporary files for VCS simulation
-clean-vcs: clean-work
-	rm -rf $(BIN_DIR)/$(TARGET).vcs $(VCS_BUILDDIR) vc_hdrs.h
-
-# Build compilation script and compile all sources for VCS simulation
-$(BIN_DIR)/$(TARGET).vcs: ${VCS_SOURCES} ${TB_SRCS} $(TB_CC_SOURCES) $(RTL_CC_SOURCES) $(VCS_BUILDDIR)/compile.sh work/lib/libfesvr.a
-	mkdir -p $(BIN_DIR)
-	$(VCS) -Mlib=$(VCS_BUILDDIR) -Mdir=$(VCS_BUILDDIR) -o $(BIN_DIR)/$(TARGET).vcs -cc $(CC) -cpp $(CXX) \
-		-assert disable_cover -override_timescale=1ns/1ps -full64 tb_bin $(TB_CC_SOURCES) $(RTL_CC_SOURCES) \
-		-CFLAGS "$(TB_CC_FLAGS)" -LDFLAGS "-L${FESVR}/lib" -lfesvr
+include $(ROOT)/target/common/vcs.mk
 
 ########
 # Util #

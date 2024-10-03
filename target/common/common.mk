@@ -12,7 +12,8 @@ UTIL_DIR ?= $(SNITCH_ROOT)/util
 LOGS_DIR  = $(SIM_DIR)/logs
 
 # Files
-BENDER_LOCK ?= $(ROOT)/Bender.lock
+BENDER_LOCK = $(ROOT)/Bender.lock
+BENDER_YML  = $(ROOT)/Bender.yml
 
 # SEPP packages
 QUESTA_SEPP    ?=
@@ -47,15 +48,9 @@ VLT_ROOT        ?= ${VERILATOR_ROOT}
 VLT_JOBS        ?= $(shell nproc)
 VLT_NUM_THREADS ?= 1
 
-MATCH_END := '/+incdir+/ s/$$/\/*\/*/'
-MATCH_BGN := 's/+incdir+//g'
-MATCH_DEF := '/+define+/d'
-SED_SRCS  := sed -e ${MATCH_END} -e ${MATCH_BGN} -e ${MATCH_DEF}
-
-COMMON_BENDER_FLAGS += -t rtl
+COMMON_BENDER_FLAGS += -t rtl -t snitch_cluster
 
 VSIM_BENDER   += $(COMMON_BENDER_FLAGS) -t test -t simulation -t vsim
-VSIM_SOURCES   = $(shell ${BENDER} script flist-plus ${VSIM_BENDER} | ${SED_SRCS})
 VSIM_BUILDDIR ?= work-vsim
 VSIM_FLAGS    += -t 1ps
 ifeq ($(DEBUG), ON)
@@ -68,7 +63,6 @@ endif
 # VCS_BUILDDIR should to be the same as the `DEFAULT : ./work-vcs`
 # in target/snitch_cluster/synopsys_sim.setup
 VCS_BENDER   += $(COMMON_BENDER_FLAGS) -t test -t simulation -t vcs
-VCS_SOURCES   = $(shell ${BENDER} script flist-plus ${VCS_BENDER} | ${SED_SRCS})
 VCS_BUILDDIR := work-vcs
 
 # fesvr is being installed here
@@ -76,7 +70,6 @@ FESVR         ?= ${MKFILE_DIR}work
 FESVR_VERSION ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
 
 VLT_BENDER   += $(COMMON_BENDER_FLAGS) -DCOMMON_CELLS_ASSERTS_OFF
-VLT_SOURCES   = $(shell ${BENDER} script flist-plus ${VLT_BENDER} | ${SED_SRCS})
 VLT_BUILDDIR := $(abspath work-vlt)
 VLT_FESVR     = $(VLT_BUILDDIR)/riscv-isa-sim
 VLT_FLAGS    += --timing
@@ -91,7 +84,7 @@ VLT_FLAGS    += -Wno-UNSIGNED
 VLT_FLAGS    += -Wno-UNOPTFLAT
 VLT_FLAGS    += -Wno-fatal
 VLT_FLAGS    += --unroll-count 1024
-VLT_FLAGS	   += --threads $(VLT_NUM_THREADS)
+VLT_FLAGS    += --threads $(VLT_NUM_THREADS)
 VLT_CFLAGS   += -std=c++20 -pthread
 VLT_CFLAGS   += -I $(VLT_FESVR)/include -I $(TB_DIR) -I ${MKFILE_DIR}test
 
@@ -169,15 +162,6 @@ $(VLT_BUILDDIR)/lib/libfesvr.a: $(VLT_FESVR)/${FESVR_VERSION}_unzip
 	$(MAKE) -C $(dir $<) install-config-hdrs install-hdrs libfesvr.a
 	mkdir -p $(dir $@)
 	cp $(dir $<)libfesvr.a $@
-
-#######
-# VCS #
-#######
-$(VCS_BUILDDIR)/compile.sh:
-	mkdir -p $(VCS_BUILDDIR)
-	${BENDER} script vcs ${VCS_BENDER} --vlog-arg="${VLOGAN_FLAGS}" --vcom-arg="${VHDLAN_FLAGS}" > $@
-	chmod +x $@
-	$(VCS_SEPP) $@ > $(VCS_BUILDDIR)/compile.log
 
 ########
 # Util #
