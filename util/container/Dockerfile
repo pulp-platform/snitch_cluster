@@ -56,6 +56,7 @@ RUN curl -L $MLIR_URL -o /tmp/mlir.tar.gz && \
     tar -xzvf /tmp/mlir.tar.gz -C /tmp/mlir && \
     cp /tmp/mlir/build/bin/mlir-opt /usr/bin/ && \
     cp /tmp/mlir/build/bin/mlir-translate /usr/bin/ && \
+    cp /tmp/mlir/build/bin/mlir-cpu-runner /usr/bin/ && \
     rm -rf /tmp/mlir /tmp/mlir.tar.gz
 
 # Temporarily install python3.10 until xdsl has moved to newer MLIR version
