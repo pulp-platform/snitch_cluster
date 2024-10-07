@@ -20,3 +20,5 @@ termcolor
 pandas
 pyelftools
 psutil
+tqdm
+matplotlib
