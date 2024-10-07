@@ -22,6 +22,9 @@ class StreamerParam(
     // transpose params
     val hasTranspose: Boolean = false,
 
+    // c broadcast params
+    val hasCBroadcast: Boolean = false,
+
     // csr manager params
     val csrAddrWidth: Int,
     val tagName: String = "Test",
@@ -86,13 +89,28 @@ class StreamerParam(
     )
   }
 
-  val dataPathExtensionParam: Seq[HasDataPathExtension] =
+  val dataPathABExtensionParam: Seq[HasDataPathExtension] =
     (if (hasTranspose)
        Seq[HasDataPathExtension](
          HasTransposer
        )
      else
        Seq[HasDataPathExtension]())
+
+  val dataPathCExtensionParam: Seq[HasDataPathExtension] =
+    (if (hasCBroadcast)
+       Seq[HasDataPathExtension](
+         HasBroadcaster256to2048
+       )
+     else
+       Seq[HasDataPathExtension]())
+  if (hasCBroadcast) {
+    require(
+      fifoWidthReaderWriter.forall(_ == 2048),
+      "CBroadcast only supports for readers with the same 2048 data width"
+    )
+  }
+
 }
 
 object StreamerParam {
@@ -121,6 +139,7 @@ object StreamerParam {
       writerParams: Seq[ReaderWriterParam],
       readerWriterParams: Seq[ReaderWriterParam],
       hasTranspose: Boolean,
+      hasCBroadcast: Boolean,
       csrAddrWidth: Int,
       tagName: String,
       headerFilepath: String
@@ -129,6 +148,7 @@ object StreamerParam {
     writerParams = writerParams,
     readerWriterParams = readerWriterParams,
     hasTranspose = hasTranspose,
+    hasCBroadcast = hasCBroadcast,
     csrAddrWidth = csrAddrWidth,
     tagName = tagName,
     headerFilepath = headerFilepath

@@ -727,7 +727,18 @@ def emit_matmul_data(**kwargs):
     ).reshape(-1)
     data_str += [format_vector_definition("int8_t", "B", B)]
 
-    if kwargs["channel_en_C"] == 1:
+    broadcast_C = kwargs["broadcast_C"] == 1 and kwargs["channel_en_C"] == 1
+    disable_C = kwargs["broadcast_C"] == 0 and kwargs["channel_en_C"] == 0
+    enable_full_C = kwargs["broadcast_C"] == 0 and kwargs["channel_en_C"] == 1
+
+    assert broadcast_C or disable_C or enable_full_C, "Invalid C settings"
+
+    if broadcast_C == 1:
+        C = np.random.randint(
+            MIN, MAX, size=(kwargs["M"], kwargs["N"], 1, meshCol)
+        )
+        C = np.repeat(C, repeats=8, axis=1).reshape(-1)
+    elif enable_full_C == 1:
         C = np.random.randint(
             MIN, MAX, size=(kwargs["M"], kwargs["N"], meshRow, meshCol)
         ).reshape(-1)
@@ -735,12 +746,19 @@ def emit_matmul_data(**kwargs):
         C = np.random.randint(
             0, 1, size=(kwargs["M"], kwargs["N"], meshRow, meshCol)
         ).reshape(-1)
-    if kwargs["channel_en_C"] == 1:
+
+    if broadcast_C == 1:
+        data_str += [
+            format_scalar_definition("int32_t", "channel_en_C", 0b11111111)
+        ]
+    elif enable_full_C == 1:
         data_str += [
             format_scalar_definition("int32_t", "channel_en_C", ((1 << 32) - 1))
         ]
     else:
         data_str += [format_scalar_definition("int32_t", "channel_en_C", 0)]
+
+    data_str += [format_scalar_definition("int32_t", "broadcast_C", kwargs["broadcast_C"])]
     data_str += [format_vector_definition("int32_t", "C", C)]
 
     if kwargs["transposed_A"] == 1:

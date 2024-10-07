@@ -221,6 +221,8 @@
 
         has_transpose: true,
 
+        has_C_broadcast: true,
+
         snax_library_name: "gemmx",
     },
     // SNAX Streamer Templates

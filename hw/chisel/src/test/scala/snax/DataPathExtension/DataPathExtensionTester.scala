@@ -1,4 +1,4 @@
-package snax.xdma.xdmaExtension
+package snax.DataPathExtension
 
 import chisel3._
 import chisel3.util._
@@ -24,7 +24,7 @@ import snax.DataPathExtension.HasDataPathExtension
   * and verify output data's correctness.
   */
 
-class DMAExtensionHarness(extension: HasDataPathExtension)
+class DataPathExtensionHarness(extension: HasDataPathExtension)
     extends Module
     with RequireAsyncReset {
   val dut = extension.instantiate("dma_extension_dut")
@@ -39,7 +39,7 @@ class DMAExtensionHarness(extension: HasDataPathExtension)
   dut.io.data_o -||> io.data_o
 }
 
-abstract class DMAExtensionTester
+abstract class DataPathExtensionTester
     extends AnyFlatSpec
     with ChiselScalatestTester {
   val csr_vec: Seq[Int]
@@ -48,7 +48,7 @@ abstract class DMAExtensionTester
   def hasExtension: HasDataPathExtension
 
   hasExtension.extensionParam.moduleName should "pass" in {
-    test(new DMAExtensionHarness(hasExtension))
+    test(new DataPathExtensionHarness(hasExtension))
       .withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) {
         dut =>
           dut.io.csr_i.zip(csr_vec).foreach { case (csrPort, csrData) =>

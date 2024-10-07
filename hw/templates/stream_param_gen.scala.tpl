@@ -116,6 +116,12 @@ ${'   ), ' if not loop.last else '    )'}
   def hasTranspose = false
 % endif
 
+% if "has_C_broadcast" in cfg["snax_streamer_cfg"] and cfg["snax_streamer_cfg"]["has_C_broadcast"]:
+  def hasCBroadcast = true
+% else:
+  def hasCBroadcast = false
+% endif
+
   def headerFilepath = "../../target/snitch_cluster/sw/snax/${cfg["snax_streamer_cfg"]["snax_library_name"]}/include"
 }
 
@@ -131,6 +137,7 @@ object StreamerGen {
           writerParams = StreamerParametersGen.writerParams,
           readerWriterParams = StreamerParametersGen.readerWriterParams,
           hasTranspose = StreamerParametersGen.hasTranspose,
+          hasCBroadcast = StreamerParametersGen.hasCBroadcast,
           csrAddrWidth = 32,
           tagName = "${cfg["tag_name"]}_",
           headerFilepath = StreamerParametersGen.headerFilepath
@@ -149,6 +156,7 @@ object StreamerHeaderFileGen {
         writerParams = StreamerParametersGen.writerParams,
         readerWriterParams = StreamerParametersGen.readerWriterParams,
         hasTranspose = StreamerParametersGen.hasTranspose,
+        hasCBroadcast = StreamerParametersGen.hasCBroadcast,
         csrAddrWidth = 32,
         tagName = "${cfg["tag_name"]}_",
         headerFilepath = StreamerParametersGen.headerFilepath

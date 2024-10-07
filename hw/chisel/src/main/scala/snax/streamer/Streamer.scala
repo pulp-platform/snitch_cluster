@@ -105,7 +105,11 @@ class Streamer(
   val csrNumReadWrite =
     reader_csr + writer_csr + reader_writer_csr + (if (param.hasTranspose)
                                                      param.readerParams.length
-                                                   else 0) + 1
+                                                   else
+                                                     0) + (if (
+                                                             param.hasCBroadcast
+                                                           ) param.readerWriterParams.length / 2
+                                                           else 0) + 1
 
   // csrManager instantiation
   val csrManager = Module(
@@ -159,7 +163,7 @@ class Streamer(
   val readerExtensions = (0 until param.readerParams.length).map { i =>
     Module(
       new DataPathExtensionHost(
-        extensionList = param.dataPathExtensionParam,
+        extensionList = param.dataPathABExtensionParam,
         dataWidth = param.fifoWidthReader(i),
         headCut = false,
         tailCut = false,
@@ -167,6 +171,21 @@ class Streamer(
         moduleNamePrefix = param.tagName
       )
     )
+  }
+
+  // c broadcast module instantiation for reader
+  val readerCExtention = (0 until param.readerWriterParams.length / 2).map {
+    i =>
+      Module(
+        new DataPathExtensionHost(
+          extensionList = param.dataPathCExtensionParam,
+          dataWidth = param.fifoWidthReaderWriter(i),
+          headCut = false,
+          tailCut = false,
+          halfCut = false,
+          moduleNamePrefix = param.tagName
+        )
+      )
   }
 
   // --------------------------------------------------------------------------------
@@ -261,6 +280,10 @@ class Streamer(
     readerExtensions(i).io.start := streamer_config_fire
   }
 
+  for (i <- 0 until param.readerWriterParams.length / 2) {
+    readerCExtention(i).io.start := streamer_config_fire
+  }
+
   // --------------------------------------------------------------------------------
   // ---------------------- csr manager connection----------------------------------------------
   // --------------------------------------------------------------------------------
@@ -342,6 +365,11 @@ class Streamer(
     remainingCSR = readerExtensions(i).io.connectCfgWithList(
       remainingCSR
     )
+  }
+
+  // c broadcast
+  for (i <- 0 until param.readerWriterParams.length / 2) {
+    remainingCSR = readerCExtention(i).io.connectCfgWithList(remainingCSR)
   }
 
   // 1 left csr for start signal
@@ -431,12 +459,19 @@ class Streamer(
           .data(i - param.readerNum)
       } else {
         // reader_writer
+        // reader C broadcast extension
         reader_writer_idx = (i - param.readerNum - param.writerNum) / 2
         reader_writer(
           reader_writer_idx
-        ).io.readerInterface.data <> io.data.streamer2accelerator.data(
+        ).io.readerInterface.data <> readerCExtention(
+          reader_writer_idx
+        ).io.data.in
+        readerCExtention(
+          reader_writer_idx
+        ).io.data.out <> io.data.streamer2accelerator.data(
           reader_writer_idx + param.readerNum
         )
+
         reader_writer(
           reader_writer_idx
         ).io.writerInterface.data <> io.data.accelerator2streamer
@@ -503,66 +538,80 @@ class StreamerHeaderFile(param: StreamerParam) {
   }
 
   var csrBase = 0
+  var csrBase_i = 0
   var csrMap = ""
 
   // reader csr configuration
+  csrBase = 960
   for (i <- 0 until param.readerNum) {
-    csrBase = 960 + param.readerParams
+    csrBase_i = csrBase + param.readerParams
       .take(i)
       .map(_.csrNum)
       .reduceLeftOption(_ + _)
       .getOrElse(0)
-    csrMap = csrMap + genCSRMap(csrBase, param.readerParams(i), "READER_" + i)
+    csrMap = csrMap + genCSRMap(csrBase_i, param.readerParams(i), "READER_" + i)
   }
 
   // writer csr configuration
+  csrBase = 960 + param.readerParams.map(_.csrNum).sum
   for (i <- 0 until param.writerNum) {
-    csrBase = 960 + param.readerParams.map(_.csrNum).sum + param.writerParams
+    csrBase_i = csrBase + param.writerParams
       .take(i)
       .map(_.csrNum)
       .reduceLeftOption(_ + _)
       .getOrElse(0)
-    csrMap = csrMap + genCSRMap(csrBase, param.writerParams(i), "WRITER_" + i)
+    csrMap = csrMap + genCSRMap(csrBase_i, param.writerParams(i), "WRITER_" + i)
   }
 
   // reader_writer csr configuration
+  csrBase = csrBase + param.writerParams
+    .map(_.csrNum)
+    .sum
   for (i <- 0 until param.readerWriterNum) {
-    csrBase = 960 + param.readerParams.map(_.csrNum).sum + param.writerParams
-      .map(_.csrNum)
-      .sum + param.readerWriterParams
+    csrBase_i = csrBase + param.readerWriterParams
       .take(i)
       .map(_.csrNum)
       .reduceLeftOption(_ + _)
       .getOrElse(0)
     csrMap = csrMap + genCSRMap(
-      csrBase,
+      csrBase_i,
       param.readerWriterParams(i),
       "READER_WRITER_" + i
     )
   }
 
   // extension csr configuration
+  csrBase = csrBase + param.readerWriterParams
+    .map(_.csrNum)
+    .sum
   if (param.hasTranspose) {
-    for (i <- 0 until param.readerParams.length) {
-      csrBase = 960 + param.readerParams.map(_.csrNum).sum + param.writerParams
-        .map(_.csrNum)
-        .sum + param.readerWriterParams.map(_.csrNum).sum + i
-      csrMap =
-        csrMap + "#define TRANSPOSE_CSR_READER_" + i + " " + csrBase + "\n"
-    }
     csrMap = csrMap + "#define TRANSPOSE_EXTENSION_ENABLE \n"
+    for (i <- 0 until param.readerParams.length) {
+      csrBase_i = csrBase + i
+      csrMap =
+        csrMap + "#define TRANSPOSE_CSR_READER_" + i + " " + csrBase_i + "\n"
+    }
+  }
+
+  // c broadcast csr configuration
+  csrBase = csrBase + (if (param.hasTranspose)
+                         param.readerParams.length
+                       else 0)
+  if (param.hasCBroadcast) {
+    csrMap = csrMap + "#define C_BROADCAST_EXTENSION_ENABLE \n"
+    for (i <- 0 until param.readerWriterParams.length / 2) {
+      csrBase_i = csrBase + i
+      csrMap =
+        csrMap + "#define C_BROADCAST_CSR_READER_WRITER_" + i + " " + csrBase_i + "\n"
+    }
   }
 
   // start csr
   csrMap = csrMap + "// Other resgiters\n"
   csrMap = csrMap + "// Status register\n"
-  csrBase = 960 + param.readerParams.map(_.csrNum).sum + param.writerParams
-    .map(_.csrNum)
-    .sum + param.readerWriterParams
-    .map(_.csrNum)
-    .sum + (if (param.hasTranspose)
-              param.readerParams.length
-            else 0)
+  csrBase = csrBase + (if (param.hasCBroadcast)
+                         param.readerWriterParams.length / 2
+                       else 0)
   csrMap = csrMap + "#define STREAMER_START_CSR " + csrBase + "\n"
 
   // streamer busy csr

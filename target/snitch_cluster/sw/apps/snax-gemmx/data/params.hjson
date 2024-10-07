@@ -23,7 +23,8 @@
   N: 2,
   M: 1,
   bypassSIMD: 0,
-  channel_en_C: 0,
+  broadcast_C: 1,
+  channel_en_C: 1,
   ifTestMatmul: 1,
 
   // hardware parameters

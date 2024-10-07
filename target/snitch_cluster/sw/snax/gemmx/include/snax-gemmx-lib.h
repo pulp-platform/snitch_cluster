@@ -74,7 +74,7 @@ void set_gemmx_streamer_csr(
 
     int delta_local_a, int delta_local_b, int delta_local_d8, int delta_local_c,
     int delta_local_d32, int bypassSIMD, int32_t transpose_A,
-    int32_t transpose_B, int32_t channel_en_C);
+    int32_t transpose_B, int32_t channel_en_C, int32_t broadcast_C);
 
 // Set CSR to start STREAMER
 inline void set_gemmx_streamer_start() { csrw_ss(STREAMER_START_CSR, 1); }

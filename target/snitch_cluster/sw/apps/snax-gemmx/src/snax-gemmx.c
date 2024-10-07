@@ -77,7 +77,7 @@ int main() {
 
             delta_local_a, delta_local_b, delta_local_d8, delta_local_c,
             delta_local_d32, bypassSIMD, transposed_A, transposed_B,
-            channel_en_C);
+            channel_en_C, broadcast_C);
 
         // Set GEMMX configuration CSR
         uint32_t subtraction_setting =
