@@ -40,7 +40,7 @@ class Writer(
       inputWidth = param.tcdmParam.dataWidth * param.tcdmParam.numChannel,
       outputWidth = param.tcdmParam.dataWidth,
       depth = param.bufferDepth,
-      pipe = true
+      pipe = false
     ) {
       override val desiredName = s"${moduleNamePrefix}_Writer_DataBuffer"
     }

@@ -25,6 +25,10 @@ class TransposeMux(params: ReshufflerParams) extends Module {
   // fixed pattern: transpose 8x8 matrix
   val out_data_array = Wire(Vec(8, Vec(8, UInt(8.W))))
 
+  val input_fire = WireInit(false.B)
+
+  input_fire := io.input.valid && io.input.ready
+
   for (i <- 0 until 8) {
     for (j <- 0 until 8) {
       out_data_array(i)(j) := io.input.bits(
@@ -34,9 +38,9 @@ class TransposeMux(params: ReshufflerParams) extends Module {
     }
   }
 
-  when(io.transpose && io.input.valid) {
+  when(io.transpose && input_fire) {
     data_reg := out_data_array.asUInt
-  }.elsewhen(!io.transpose && io.input.valid) {
+  }.elsewhen(!io.transpose && input_fire) {
     data_reg := io.input.bits
   }
 
@@ -47,7 +51,7 @@ class TransposeMux(params: ReshufflerParams) extends Module {
   val keep_output = RegInit(false.B)
   keep_output := output_stall
 
-  io.output.valid := RegNext(io.input.valid) || keep_output
+  io.output.valid := RegNext(input_fire) || keep_output
   io.input.ready := !keep_output && !output_stall
 
   io.output.bits := data_reg
