@@ -39,6 +39,8 @@ abstract class ReaderWriterCommomIO(val param: ReaderWriterParam)
   val aguCfg = Input(new AddressGenUnitCfgIO(param.aguParam))
   // The signal to control which byte is written to TCDM
   val readerwriterCfg = Input(new ReaderWriterCfgIO(param))
+  // The port to feed in the clock signal from acc
+  val accClock = if (param.crossClockDomain) Some(Input(Clock())) else None
 
   def connectCfgWithList(csrList: IndexedSeq[UInt]): IndexedSeq[UInt] = {
     var remaincsrList = csrList

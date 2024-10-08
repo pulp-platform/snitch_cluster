@@ -70,7 +70,8 @@ class ReaderWriterParam(
     addressBufferDepth: Int = 8,
     dataBufferDepth: Int = 8,
     val configurableChannel: Boolean = false,
-    val configurableByteMask: Boolean = false
+    val configurableByteMask: Boolean = false,
+    val crossClockDomain: Boolean = false
 ) {
   val aguParam = AddressGenUnitParam(
     spatialBounds = spatialBounds,

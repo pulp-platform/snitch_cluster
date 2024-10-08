@@ -125,7 +125,22 @@ class Reader(
   responsers.io.foreach(_.out.dataFifoPopped := dataBuffer.io.out.head.fire)
 
   // DataBuffer <> Output
-  dataBuffer.io.out.head <> io.data
+  if (param.crossClockDomain == false) {
+    // Condition 1: When there is no clock crossing
+    dataBuffer.io.out.head <> io.data
+  } else {
+    // Condition 2: When there is clock crossing
+    val clockDomainCrosser = Module(
+      new AsyncQueue(chiselTypeOf(dataBuffer.io.out.head)) {
+        override val desiredName =
+          s"${moduleNamePrefix}_Reader_ClockDomainCrosser"
+      }
+    )
+    clockDomainCrosser.io.enq.clock := clock
+    clockDomainCrosser.io.deq.clock := io.accClock.get
+    dataBuffer.io.out.head <> clockDomainCrosser.io.enq.data
+    io.data <> clockDomainCrosser.io.deq.data
+  }
   // Busy Signal
   io.busy := addressgen.io.busy | (~addressgen.io.bufferEmpty)
 

@@ -89,7 +89,19 @@ class Writer(
   }
 
   // DataBuffer <> Input
-  dataBuffer.io.in.head <> io.data
+  if (param.crossClockDomain == false) { dataBuffer.io.in.head <> io.data }
+  else {
+    val clockDomainCrosser = Module(
+      new AsyncQueue(chiselTypeOf(dataBuffer.io.in.head)) {
+        override val desiredName =
+          s"${moduleNamePrefix}_Writer_ClockDomainCrosser"
+      }
+    )
+    clockDomainCrosser.io.enq.clock := io.accClock.get
+    clockDomainCrosser.io.deq.clock := clock
+    clockDomainCrosser.io.enq <> io.data
+    dataBuffer.io.in.head <> clockDomainCrosser.io.deq
+  }
   // Busy Signal
   io.busy := addressgen.io.busy | (~addressgen.io.bufferEmpty)
 
