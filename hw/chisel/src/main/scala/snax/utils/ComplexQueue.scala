@@ -16,6 +16,7 @@ import chisel3.util._
   *   will be the second option No matter which case, the big width one should
   *   equal to integer times of the small width one
   */
+
 class ComplexQueueConcat(
     inputWidth: Int,
     outputWidth: Int,
@@ -25,6 +26,13 @@ class ComplexQueueConcat(
     with RequireAsyncReset {
   val bigWidth = Seq(inputWidth, outputWidth).max
   val smallWidth = Seq(inputWidth, outputWidth).min
+
+  val queueModuleName =
+    "Queue_W" + smallWidth.toString + "_D" + depth.toString + "_H" + BigInt(
+      numbits = 30,
+      scala.util.Random
+    ).toString(radix = 32)
+
   require(
     bigWidth % smallWidth == 0,
     message = "The Bigger datawidth should be interger times of smaller width! "
@@ -52,7 +60,9 @@ class ComplexQueueConcat(
   })
 
   val queues = for (i <- 0 until numChannel) yield {
-    val queue = Module(new Queue(UInt(smallWidth.W), depth, pipe))
+    val queue = Module(new Queue(UInt(smallWidth.W), depth, pipe) {
+      override val desiredName = queueModuleName
+    })
     queue
   }
 
@@ -120,6 +130,12 @@ class ComplexQueueNtoOne[T <: Data](dataType: T, N: Int, depth: Int)
   )
   require(depth > 0)
 
+  val queueModuleName =
+    "Queue_W" + dataType.getWidth.toString + "_D" + depth.toString + "_H" + BigInt(
+      numbits = 30,
+      scala.util.Random
+    ).toString(radix = 32)
+
   val io = IO(new Bundle {
     val in = Flipped(Vec(N, Decoupled(dataType)))
     val out = Decoupled(Vec(N, dataType))
@@ -128,7 +144,9 @@ class ComplexQueueNtoOne[T <: Data](dataType: T, N: Int, depth: Int)
   })
 
   val queues = for (i <- 0 until N) yield {
-    Module(new Queue(dataType, depth))
+    Module(new Queue(dataType, depth) {
+      override val desiredName = queueModuleName
+    })
   }
 
   io.in.zip(queues).foreach { case (i, j) => i <> j.io.enq }
@@ -166,6 +184,12 @@ class ComplexQueueOnetoN[T <: Data](dataType: T, N: Int, depth: Int)
   )
   require(depth > 0)
 
+  val queueModuleName =
+    "Queue_W" + dataType.getWidth.toString + "_D" + depth.toString + "_H" + BigInt(
+      numbits = 30,
+      scala.util.Random
+    ).toString(radix = 32)
+
   val io = IO(new Bundle {
     val in = Flipped(Decoupled(Vec(N, dataType)))
     val out = Vec(N, Decoupled(dataType))
@@ -174,7 +198,9 @@ class ComplexQueueOnetoN[T <: Data](dataType: T, N: Int, depth: Int)
   })
 
   val queues = for (i <- 0 until N) yield {
-    Module(new Queue(dataType, depth))
+    Module(new Queue(dataType, depth) {
+      override val desiredName = queueModuleName
+    })
   }
 
   io.out.zip(queues).foreach { case (i, j) => i <> j.io.deq }
