@@ -166,7 +166,7 @@
 
         snax_library_name: "dimc",
 
-        has_crossClockDomain: true,
+        has_crossClockDomain: false,
 
     }
 }
