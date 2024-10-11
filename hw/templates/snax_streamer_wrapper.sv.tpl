@@ -38,6 +38,10 @@ module ${cfg["tag_name"]}_streamer_wrapper #(
   //-----------------------------
   // Clocks and reset
   //-----------------------------
+  // clock from accelerator domain
+% if "has_crossClockDomain" in cfg["snax_streamer_cfg"] and cfg["snax_streamer_cfg"]["has_crossClockDomain"]:
+  input logic acc_clk_i,
+% endif
   input  logic clk_i,
   input  logic rst_ni,
   //-----------------------------
@@ -161,6 +165,10 @@ module ${cfg["tag_name"]}_streamer_wrapper #(
     //-----------------------------
     // Clocks and reset
     //-----------------------------
+    // clock from accelerator domain
+% if "has_crossClockDomain" in cfg["snax_streamer_cfg"] and cfg["snax_streamer_cfg"]["has_crossClockDomain"]:
+    .io_accClock ( acc_clk_i ),
+% endif
     .clock ( clk_i   ),
     .reset ( ~rst_ni ),
 

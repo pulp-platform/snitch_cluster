@@ -131,7 +131,7 @@ class Reader(
   } else {
     // Condition 2: When there is clock crossing
     val clockDomainCrosser = Module(
-      new AsyncQueue(chiselTypeOf(dataBuffer.io.out.head)) {
+      new AsyncQueue(chiselTypeOf(dataBuffer.io.out.head.bits)) {
         override val desiredName =
           s"${moduleNamePrefix}_Reader_ClockDomainCrosser"
       }

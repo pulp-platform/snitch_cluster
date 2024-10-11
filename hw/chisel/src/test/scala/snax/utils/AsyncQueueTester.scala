@@ -92,9 +92,8 @@ class AsyncQueueTester extends AnyFlatSpec with ChiselScalatestTester {
   }
 }
 
-
-// This test is aiming to emulate Mace's condition where the relationship between two clocks is 4:1, to see if the AsyncQueue can work without bottleneck. 
-// Target: The slower clock side's transmission is continuous. 
+// This test is aiming to emulate Mace's condition where the relationship between two clocks is 4:1, to see if the AsyncQueue can work without bottleneck.
+// Target: The slower clock side's transmission is continuous.
 class AsyncQueueMaceTester extends AnyFlatSpec with ChiselScalatestTester {
   "AsyncQueue Test Slow -> Fast" should "pass" in {
     test(new AsyncQueueMultiClockShell(UInt(8.W), 4))

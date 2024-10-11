@@ -67,6 +67,9 @@ class StreamerIO(
     param: StreamerParam
 ) extends Bundle {
 
+  // cross clock domain clock from the accelerator
+  val accClock = if (param.hasCrossClockDomain) Some(Input(Clock())) else None
+
   // ports for csr configuration
   val csr = new SnaxCsrIO(param.csrAddrWidth)
 
@@ -478,6 +481,30 @@ class Streamer(
           .data(
             reader_writer_idx + param.writerNum
           )
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------------------
+  // ---------------------- data reader/writer <> clock from accelerator connection--
+  // --------------------------------------------------------------------------------
+
+  if (param.hasCrossClockDomain) {
+    for (i <- 0 until param.dataMoverNum) {
+      if (i < param.readerNum) {
+        reader(i).io.accClock.get := io.accClock.get
+      } else {
+        if (i < param.readerNum + param.writerNum) {
+          writer(i - param.readerNum).io.accClock.get := io.accClock.get
+        } else {
+          reader_writer_idx = (i - param.readerNum - param.writerNum) / 2
+          reader_writer(
+            reader_writer_idx
+          ).io.readerInterface.accClock.get := io.accClock.get
+          reader_writer(
+            reader_writer_idx
+          ).io.writerInterface.accClock.get := io.accClock.get
+        }
       }
     }
   }

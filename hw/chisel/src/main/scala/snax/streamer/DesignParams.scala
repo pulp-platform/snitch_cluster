@@ -25,6 +25,9 @@ class StreamerParam(
     // c broadcast params
     val hasCBroadcast: Boolean = false,
 
+    // cross clock domain params
+    val hasCrossClockDomain: Boolean = false,
+
     // csr manager params
     val csrAddrWidth: Int,
     val tagName: String = "Test",
@@ -140,6 +143,7 @@ object StreamerParam {
       readerWriterParams: Seq[ReaderWriterParam],
       hasTranspose: Boolean,
       hasCBroadcast: Boolean,
+      hasCrossClockDomain: Boolean,
       csrAddrWidth: Int,
       tagName: String,
       headerFilepath: String
@@ -149,6 +153,7 @@ object StreamerParam {
     readerWriterParams = readerWriterParams,
     hasTranspose = hasTranspose,
     hasCBroadcast = hasCBroadcast,
+    hasCrossClockDomain = hasCrossClockDomain,
     csrAddrWidth = csrAddrWidth,
     tagName = tagName,
     headerFilepath = headerFilepath

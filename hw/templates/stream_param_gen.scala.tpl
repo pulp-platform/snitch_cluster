@@ -29,6 +29,13 @@ import chisel3.util._
 // tcdm_size in KB
 object StreamerParametersGen {
 
+// constrain: all the reader and writer needs to have same config of crossClockDomain
+% if "has_crossClockDomain" in cfg["snax_streamer_cfg"] and cfg["snax_streamer_cfg"]["has_crossClockDomain"]:
+  def hasCrossClockDomain = true
+% else:
+  def hasCrossClockDomain = false
+% endif
+
 % if "data_reader_params" not in cfg["snax_streamer_cfg"]:
   def readerParams = Seq()
 % else:
@@ -47,10 +54,11 @@ object StreamerParametersGen {
       addressBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_params"]["fifo_depth"][idx]},
       dataBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_params"]["fifo_depth"][idx]},
       % if "configurable_channel" in cfg["snax_streamer_cfg"]["data_reader_params"] and cfg["snax_streamer_cfg"]["data_reader_params"]["configurable_channel"][idx]:
-      configurableChannel = true
+      configurableChannel = true,
       % else:
-      configurableChannel = false
+      configurableChannel = false,
       % endif
+      crossClockDomain = hasCrossClockDomain
 ${'   ), ' if not loop.last else '    )'}
 % endfor
   )
@@ -74,10 +82,11 @@ ${'   ), ' if not loop.last else '    )'}
       addressBufferDepth = ${cfg["snax_streamer_cfg"]["data_writer_params"]["fifo_depth"][idx]},
       dataBufferDepth = ${cfg["snax_streamer_cfg"]["data_writer_params"]["fifo_depth"][idx]},
       % if "configurable_channel" in cfg["snax_streamer_cfg"]["data_writer_params"] and cfg["snax_streamer_cfg"]["data_writer_params"]["configurable_channel"][idx]:
-      configurableChannel = true
+      configurableChannel = true,
       % else:
-      configurableChannel = false
+      configurableChannel = false,
       % endif
+      crossClockDomain = hasCrossClockDomain
 ${'   ), ' if not loop.last else '    )'}
 % endfor
   )
@@ -101,10 +110,11 @@ ${'   ), ' if not loop.last else '    )'}
       addressBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["fifo_depth"][idx]},
       dataBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["fifo_depth"][idx]},
       % if "configurable_channel" in cfg["snax_streamer_cfg"]["data_reader_writer_params"] and cfg["snax_streamer_cfg"]["data_reader_writer_params"]["configurable_channel"][idx]:
-      configurableChannel = true
+      configurableChannel = true,
       % else:
-      configurableChannel = false
+      configurableChannel = false,
       % endif
+      crossClockDomain = hasCrossClockDomain
 ${'   ), ' if not loop.last else '    )'}
 % endfor
   )
@@ -138,6 +148,7 @@ object StreamerGen {
           readerWriterParams = StreamerParametersGen.readerWriterParams,
           hasTranspose = StreamerParametersGen.hasTranspose,
           hasCBroadcast = StreamerParametersGen.hasCBroadcast,
+          hasCrossClockDomain = StreamerParametersGen.hasCrossClockDomain,
           csrAddrWidth = 32,
           tagName = "${cfg["tag_name"]}_",
           headerFilepath = StreamerParametersGen.headerFilepath
@@ -157,6 +168,7 @@ object StreamerHeaderFileGen {
         readerWriterParams = StreamerParametersGen.readerWriterParams,
         hasTranspose = StreamerParametersGen.hasTranspose,
         hasCBroadcast = StreamerParametersGen.hasCBroadcast,
+        hasCrossClockDomain = StreamerParametersGen.hasCrossClockDomain,
         csrAddrWidth = 32,
         tagName = "${cfg["tag_name"]}_",
         headerFilepath = StreamerParametersGen.headerFilepath
