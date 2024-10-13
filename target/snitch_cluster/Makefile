@@ -354,6 +354,9 @@ bin/snitch_cluster.vlt: $(VLT_AR) $(VLT_COBJ) ${VLT_BUILDDIR}/lib/libfesvr.a
 clean-vsim: clean-work
 	rm -rf bin/snitch_cluster.vsim bin/snitch_cluster.vsim.gui $(VSIM_BUILDDIR) vsim.wlf
 
+vsim_preparation: $(GENERATED_DIR)/bootdata.cc work/lib/libfesvr.a
+	@echo "VSIM preparation done"
+
 ${VSIM_BUILDDIR}/compile.vsim.tcl:
 	$(VLIB) $(dir $@)
 	${BENDER} script vsim ${VSIM_BENDER} --vlog-arg="${VLOG_FLAGS} -work $(dir $@) " > $@

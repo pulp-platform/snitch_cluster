@@ -52,7 +52,7 @@ VCS_BUILDDIR := work-vcs
 
 # For synthesis with DC compiler
 SYN_FLIST ?= syn_flist.tcl
-SYN_BENDER += -t test -t synthesis -t simulation
+SYN_BENDER += -t synthesis
 ifeq ($(MEM_TYPE), exclude_tcsram)
 	VSIM_BENDER += -t tech_cells_generic_exclude_tc_sram
 	VSIM_BENDER += -t tc_sram_cluster_only
