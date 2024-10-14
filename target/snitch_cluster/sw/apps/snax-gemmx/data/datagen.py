@@ -366,8 +366,8 @@ def emit_conv_data(**kwargs):
     # C is int32_t so the stride is 4 times of the int8_t
     if kwargs["ifC8HW8datalayout"] is True:
         # NHWC
-        Cslstride0 = 4
-        Cslstride1 = 8
+        Cslstride0 = 8
+        Cslstride1 = 32
 
         # N dim
         Ctlbound0 = Cout // 8
@@ -427,8 +427,8 @@ def emit_conv_data(**kwargs):
     ]
 
     if kwargs["ifC8HW8datalayout"] is True:
-        D32slstride0 = 1 * 4
-        D32slstride1 = 8
+        D32slstride0 = 8
+        D32slstride1 = 32
 
         # N dim
         D32tlbound0 = Cout // 8
@@ -640,8 +640,13 @@ def emit_matmul_data(**kwargs):
     data_str += [format_scalar_definition("int32_t", "Btlbound2", kwargs["M"])]
     data_str += [format_scalar_definition("int32_t", "Btlstride2", 0)]
 
-    data_str += [format_scalar_definition("int32_t", "Cslstride0", 4)]
-    data_str += [format_scalar_definition("int32_t", "Cslstride1", bankWidth / 8)]
+    data_str += [format_scalar_definition("int32_t", "Cslstride0", bankWidth / 8)]
+    c32_spatial_bound_0 = 4
+    data_str += [
+        format_scalar_definition(
+            "int32_t", "Cslstride1", c32_spatial_bound_0 * (bankWidth / 8)
+        )
+    ]
     data_str += [format_scalar_definition("int32_t", "Ctlbound0", kwargs["N"])]
     data_str += [
         format_scalar_definition(
@@ -659,8 +664,13 @@ def emit_matmul_data(**kwargs):
     data_str += [format_scalar_definition("int32_t", "Ctlbound2", 1)]
     data_str += [format_scalar_definition("int32_t", "Ctlstride2", 0)]
 
-    data_str += [format_scalar_definition("int32_t", "D32slstride0", 4)]
-    data_str += [format_scalar_definition("int32_t", "D32slstride1", bankWidth / 8)]
+    data_str += [format_scalar_definition("int32_t", "D32slstride0", bankWidth / 8)]
+    d32_spatial_bound_0 = 4
+    data_str += [
+        format_scalar_definition(
+            "int32_t", "D32slstride1", d32_spatial_bound_0 * (bankWidth / 8)
+        )
+    ]
     data_str += [format_scalar_definition("int32_t", "D32tlbound0", kwargs["N"])]
     data_str += [
         format_scalar_definition(

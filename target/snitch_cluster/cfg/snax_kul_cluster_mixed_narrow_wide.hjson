@@ -212,7 +212,7 @@
         },
 
         data_reader_writer_params:{
-            spatial_bounds: [[32], [32]],
+            spatial_bounds: [[4, 8], [4, 8]],
             temporal_dim: [3, 3],
             num_channel: [32, 32],
             fifo_depth: [2, 2],

@@ -119,7 +119,8 @@ void set_gemmx_streamer_csr(
             (uint32_t)(delta_local_c + snrt_l1_next()));
 
     // spatial strides for C
-    csrw_ss(S_STRIDE_READER_WRITER_0_0, Cslstride1);
+    csrw_ss(S_STRIDE_READER_WRITER_0_0, Cslstride0);
+    csrw_ss(S_STRIDE_READER_WRITER_0_1, Cslstride1);
 
     // loop bounds, from innermost to outermost, for data mover C
     csrw_ss(T_BOUND_READER_WRITER_0_0, Ctlbound0);
@@ -144,7 +145,8 @@ void set_gemmx_streamer_csr(
             (uint32_t)(delta_local_d32 + snrt_l1_next()));
 
     // spatial strides for D32
-    csrw_ss(S_STRIDE_READER_WRITER_1_0, D32slstride1);
+    csrw_ss(S_STRIDE_READER_WRITER_1_0, D32slstride0);
+    csrw_ss(S_STRIDE_READER_WRITER_1_1, D32slstride1);
 
     // for D32, from N to M
     if (bypassSIMD == 0) {
