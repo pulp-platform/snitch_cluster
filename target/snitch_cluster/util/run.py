@@ -13,26 +13,19 @@ so it inherits the same command-line interface.
 from pathlib import Path
 import sys
 
-sys.path.append(str(Path(__file__).parent / '../../../util/sim'))
-import sim_utils  # noqa: E402
-from Simulator import QuestaSimulator, VCSSimulator, VerilatorSimulator, \
-                      BansheeSimulator  # noqa: E402
+from snitch.util.sim import sim_utils, Simulator
 
-
+TARGET_DIR = Path(__file__).parent.resolve() / '../'
 SIMULATORS = {
-    'vsim': QuestaSimulator(Path(__file__).parent.resolve() / '../bin/snitch_cluster.vsim'),
-    'vcs': VCSSimulator(Path(__file__).parent.resolve() / '../bin/snitch_cluster.vcs'),
-    'verilator': VerilatorSimulator(Path(__file__).parent.resolve() / '../bin/snitch_cluster.vlt'),
-    'banshee': BansheeSimulator(Path(__file__).parent.resolve() / '../src/banshee.yaml')
+    'vsim': Simulator.QuestaSimulator(TARGET_DIR / 'bin/snitch_cluster.vsim'),
+    'vcs': Simulator.VCSSimulator(TARGET_DIR / 'bin/snitch_cluster.vcs'),
+    'verilator': Simulator.VerilatorSimulator(TARGET_DIR / 'bin/snitch_cluster.vlt'),
+    'banshee': Simulator.BansheeSimulator(TARGET_DIR / 'src/banshee.yaml')
 }
 
 
-def parser():
+def get_parser():
     return sim_utils.parser('vsim', SIMULATORS.keys())
-
-
-def get_simulations(args):
-    return sim_utils.get_simulations(args.testlist, SIMULATORS[args.simulator], args.run_dir)
 
 
 def run_simulations(simulations, args):
@@ -45,8 +38,16 @@ def run_simulations(simulations, args):
 
 
 def main():
-    args = parser().parse_args()
-    simulations = get_simulations(args)
+    # Parse args
+    args = get_parser().parse_args()
+    testlist = args.testlist
+    simulator = SIMULATORS[args.simulator]
+    run_dir = args.run_dir
+
+    # Get simulations
+    simulations = sim_utils.get_simulations_from_file(testlist, simulator, run_dir)
+
+    # Run simulations
     return run_simulations(simulations, args)
 
 

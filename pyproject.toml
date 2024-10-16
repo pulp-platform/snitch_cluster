@@ -54,3 +54,4 @@ dependencies = [
 "snitch.dnn" = "sw/dnn"
 "snitch.blas" = "sw/blas"
 "snitch.util" = "util"
+"snitch.target" = "target/snitch_cluster/util"
