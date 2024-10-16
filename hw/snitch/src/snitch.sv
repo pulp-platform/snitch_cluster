@@ -53,6 +53,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   parameter int unsigned NumDTLBEntries = 0,
   parameter int unsigned NumITLBEntries = 0,
   parameter snitch_pma_pkg::snitch_pma_t SnitchPMACfg = '{default: 0},
+  /// Width of observable register
+  parameter int unsigned ObsWidth = 8,
   /// Enable debug support.
   parameter bit         DebugSupport = 1,
   /// Derived parameter *Do not override*
@@ -107,6 +109,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   input  fpnew_pkg::status_t        fpu_status_i,
   // Core events for performance counters
   output snitch_pkg::core_events_t  core_events_o,
+  // Observability register
+  output logic [ObsWidth-1:0] obs_o,
   // Cluster SNAX HW barrier
   input  logic          snax_barrier_i,
   // Cluster HW barrier
@@ -248,6 +252,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic csr_stall_d, csr_stall_q;
   logic snax_csr_stall_d, snax_csr_stall_q;
   logic snax_csr_barr_en_d, snax_csr_barr_en_q;
+  logic [31:0] csr_obs_d, csr_obs_q;
 
   localparam logic M = 0;
   localparam logic S = 1;
@@ -316,9 +321,13 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     assign debug_q = '0;
   end
 
+  // Built-in barriers
   `FFAR(csr_stall_q, csr_stall_d, '0, clk_i, rst_i)
   `FFAR(snax_csr_stall_q, snax_csr_stall_d, '0, clk_i, rst_i)
   `FFAR(snax_csr_barr_en_q, snax_csr_barr_en_d, '0, clk_i, rst_i)
+
+  // Observable register
+  `FFAR(csr_obs_q, csr_obs_d, '0, clk_i, rst_i)
 
   typedef struct packed {
     fpnew_pkg::fmt_mode_t  fmode;
@@ -2371,6 +2380,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     csr_stall_d = csr_stall_q;
     snax_csr_stall_d = snax_csr_stall_q;
     snax_csr_barr_en_d = snax_csr_barr_en_q;
+    csr_obs_d = csr_obs_q;
 
     // Snitch barrier
     if (barrier_i) csr_stall_d = 1'b0;
@@ -2610,6 +2620,11 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
 
           csr_snax_def::SNAX_CSR_BARRIER: begin
             snax_csr_stall_d = 1'b1;
+          end
+          // Observable register
+          CsrObsRegister: begin
+            csr_rvalue = csr_obs_q;
+            csr_obs_d = alu_result;
           end
           // HW cluster barrier
           CSR_BARRIER: begin
@@ -3022,6 +3037,11 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     BGE,
     BGEU
   }) && (consec_pc[1:0] != 2'b0);
+
+  // ----------
+  // Observability pin
+  // ----------
+  assign obs_o = csr_obs_q[ObsWidth-1:0];
 
   // ----------
   // Assertions

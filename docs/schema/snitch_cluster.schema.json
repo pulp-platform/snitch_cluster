@@ -136,6 +136,11 @@
             "description": "Number of request entries the DMA can keep",
             "default": 3
         },
+        "observable_pin_width": {
+            "type": "number",
+            "description": "Number of observable pin width",
+            "default": 0
+        },
         "enable_debug": {
             "type": "boolean",
             "description": "Whether to provide a debug request input and external debug features",

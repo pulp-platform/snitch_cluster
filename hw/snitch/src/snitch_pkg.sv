@@ -180,6 +180,8 @@ package snitch_pkg;
   localparam logic [11:0] CsrBaseAddrH = 12'hBC2;
   // CSRClusterCoreID: RO, The Core ID locally inside the Cluster
   localparam logic [11:0] CsrClusterCoreId = 12'hBC3;
+  // CsrObsRegister: RW, a simple observability register
+  localparam logic [11:0] CsrObsRegister = 12'h7c5;
 
   // --------------------
   // Trace Infrastructure

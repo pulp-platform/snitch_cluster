@@ -95,6 +95,9 @@ package ${cfg['name']}_pkg;
   localparam int unsigned ICacheSets [NrHives] = '{${icache_cfg('sets')}};
 
   localparam int unsigned Hive [NrCores] = '{${core_cfg('hive')}};
+% if cfg['observable_pin_width'] > 0:
+  parameter int unsigned ObsWidth = ${cfg['observable_pin_width']};
+% endif
 
   // SRAM configurations
   typedef struct packed {
@@ -283,6 +286,12 @@ module ${cfg['name']}_wrapper (
   //-----------------------------
   input  logic                                   clk_i,
   input  logic                                   rst_ni,
+% if cfg['observable_pin_width'] > 0:
+  //-----------------------------
+  // Observable pins
+  //-----------------------------
+  output logic [snax_hypercorex_cluster_pkg::ObsWidth-1:0] obs_o,
+% endif
   //-----------------------------
   // Interrupt ports
   //-----------------------------
@@ -610,6 +619,9 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
     .NarrowMaxSlvTrans (${cfg['narrow_trans']}),
     .sram_cfg_t (${cfg['pkg_name']}::sram_cfg_t),
     .sram_cfgs_t (${cfg['pkg_name']}::sram_cfgs_t),
+% if cfg['observable_pin_width'] > 0:
+    .ObsWidth (${cfg['pkg_name']}::ObsWidth),
+% endif
     .DebugSupport (${int(cfg['enable_debug'])}),
     .acc_req_t (${cfg['pkg_name']}::acc_req_t),
     .acc_resp_t (${cfg['pkg_name']}::acc_resp_t),
@@ -621,6 +633,12 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
     //-----------------------------
     .clk_i  ( clk_i  ),
     .rst_ni ( rst_ni ),
+% if cfg['observable_pin_width'] > 0:
+    //-----------------------------
+    // Observable pins
+    //-----------------------------
+    .obs_o  ( obs_o  ),
+% endif
     //-----------------------------
     // Interrupt ports
     //----------------------------

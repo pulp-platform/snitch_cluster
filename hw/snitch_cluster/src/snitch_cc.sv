@@ -95,6 +95,8 @@ module snitch_cc #(
   /// Insert Pipeline registers immediately after FPU datapath
   parameter bit          RegisterFPUOut     = 0,
   parameter snitch_pma_pkg::snitch_pma_t SnitchPMACfg = '{default: 0},
+  /// Width of observable register
+  parameter int unsigned ObsWidth = 8,
   /// Enable debug support.
   parameter bit          DebugSupport = 1,
   /// Derived parameter *Do not override*
@@ -138,6 +140,8 @@ module snitch_cc #(
   output snitch_pkg::core_events_t   core_events_o,
   // TCDM base address, which also is the Base Address of the Snitch Cluster that the core belongs to
   input  addr_t                      tcdm_addr_base_i,
+  // Observability register
+  output logic [ObsWidth-1:0]        obs_o,
   // Cluster HW barrier
   input  logic                       snax_barrier_i,
   output logic                       barrier_o,
@@ -274,6 +278,7 @@ module snitch_cc #(
     .fpu_fmt_mode_o ( fpu_fmt_mode ),
     .fpu_status_i ( fpu_status ),
     .core_events_o ( snitch_events),
+    .obs_o ( obs_o ),
     .snax_barrier_i (snax_barrier_i ),
     .barrier_o ( barrier_o ),
     .barrier_i ( barrier_i )

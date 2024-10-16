@@ -210,14 +210,19 @@ module snitch_cluster
   // In case you are using the `RegisterTCDMCuts` feature this adds an
   // additional cycle latency, which is taken into account here.
   parameter int unsigned MemoryMacroLatency = 1 + RegisterTCDMCuts,
+  /// Width of observable register
+  parameter int unsigned ObsWidth = 8,
   /// Enable debug support.
-  parameter bit         DebugSupport = 1
+  parameter bit          DebugSupport = 1
 ) (
   /// System clock. If `IsoCrossing` is enabled this port is the _fast_ clock.
   /// The slower, half-frequency clock, is derived internally.
   input  logic                          clk_i,
   /// Asynchronous active high reset. This signal is assumed to be _async_.
   input  logic                          rst_ni,
+  /// Observability register for the cluster. This register is assumed to be
+  /// sticky and only useful for observing signals from the outside.
+  output logic [ObsWidth-1:0]           obs_o,
   /// Per-core debug request signal. Asserting this signals puts the
   /// corresponding core into debug mode. This signal is assumed to be _async_.
   input  logic [NrCores-1:0]            debug_req_i,
@@ -550,6 +555,13 @@ module snitch_cluster
   logic [NrCores-1:0] cl_interrupt;
   logic [NrCores-1:0] barrier_in;
   logic barrier_out;
+  logic [ObsWidth-1:0] obs_signal [NrCores];
+
+  //--------------
+  // Observability register
+  // Only applicable for the very 1st core
+  //--------------
+  assign obs_o = obs_signal[0];
 
   // -------------
   // DMA Subsystem
@@ -1339,6 +1351,7 @@ module snitch_cluster
         .snax_pready_o (snax_pready[i]),
         .core_events_o (core_events[i]),
         .tcdm_addr_base_i (tcdm_start_address),
+        .obs_o (obs_signal[i]),
         .snax_barrier_i (snax_barrier_i[i]),
         .barrier_o (barrier_in[i]),
         .barrier_i (barrier_out)
