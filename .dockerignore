@@ -1,4 +1,6 @@
 *
 !sw/**/*.py
 !util/**/*.py
+!nonfree/util/*
+!target/snitch_cluster/util/*.py
 !pyproject.toml

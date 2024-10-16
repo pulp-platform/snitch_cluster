@@ -74,9 +74,12 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 # Copy all needed files to install the package
+# (.dockerignore is used to filter only the necessary files)
 COPY pyproject.toml .
 COPY sw ./sw
 COPY util ./util
+COPY nonfree/util ./nonfree/util
+COPY target/snitch_cluster/util ./target/snitch_cluster/util
 
 # Create and activate virtual environment
 ARG VIRTUAL_ENV="/root/.venvs/snitch_cluster"

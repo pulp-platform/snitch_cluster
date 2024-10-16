@@ -45,6 +45,7 @@ class Simulation(object):
         self.process = None
         self.interrupted = False
         self.expected_retcode = int(retcode)
+        self.env = None
 
     def launch(self, dry_run=None):
         """Launch the simulation.
@@ -74,7 +75,8 @@ class Simulation(object):
             # Launch simulation subprocess
             with open(self.log, 'w') as f:
                 self.process = subprocess.Popen(self.cmd, stdout=f, stderr=subprocess.STDOUT,
-                                                cwd=self.run_dir, universal_newlines=True)
+                                                cwd=self.run_dir, universal_newlines=True,
+                                                env=self.env)
 
     def launched(self):
         """Return whether the simulation was launched."""

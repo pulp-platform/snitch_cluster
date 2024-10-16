@@ -1,5 +1,7 @@
 # Nonfree repository
-/nonfree/
+/nonfree/**
+!/nonfree/util
+!/nonfree/util/.gitignore
 
 # Dependency files
 /.bender/
