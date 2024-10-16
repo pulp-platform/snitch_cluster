@@ -3,92 +3,91 @@
 # SPDX-License-Identifier: Apache-2.0
 
 runs:
-  - elf: tests/build/alias.elf
+  - elf: ./tests/build/alias.elf
     simulators: [vsim, vcs, verilator]
-  - elf: tests/build/atomics.elf
-  - elf: tests/build/barrier.elf
-  - elf: tests/build/data_mover.elf
+  - elf: ./tests/build/atomics.elf
+  - elf: ./tests/build/barrier.elf
+  - elf: ./tests/build/data_mover.elf
     simulators: [vsim, vcs, verilator]
-  - elf: tests/build/dma_empty_transfer.elf
-  - elf: tests/build/dma_simple.elf
-  - elf: tests/build/event_unit.elf
+  - elf: ./tests/build/dma_empty_transfer.elf
+  - elf: ./tests/build/dma_simple.elf
+  - elf: ./tests/build/event_unit.elf
     simulators: [vsim, vcs, verilator]
-  - elf: tests/build/fence_i.elf
-  - elf: tests/build/fp8_comparison_scalar.elf
-  - elf: tests/build/fp8_comparison_vector.elf
-  - elf: tests/build/fp8_computation_scalar.elf
-  - elf: tests/build/fp8_computation_vector.elf
-  - elf: tests/build/fp8alt_comparison_scalar.elf
-  - elf: tests/build/fp8alt_comparison_vector.elf
-  - elf: tests/build/fp8alt_computation_scalar.elf
-  - elf: tests/build/fp8alt_computation_vector.elf
-  - elf: tests/build/fp16_comparison_scalar.elf
-  - elf: tests/build/fp16_comparison_vector.elf
-  - elf: tests/build/fp16_computation_scalar.elf
-  - elf: tests/build/fp16_computation_vector.elf
-  - elf: tests/build/fp16alt_comparison_scalar.elf
-  - elf: tests/build/fp16alt_comparison_vector.elf
-  - elf: tests/build/fp16alt_computation_scalar.elf
-  - elf: tests/build/fp16alt_computation_vector.elf
-  - elf: tests/build/fp32_comparison_scalar.elf
-  - elf: tests/build/fp32_comparison_vector.elf
-  - elf: tests/build/fp32_computation_scalar.elf
-  - elf: tests/build/fp32_computation_vector.elf
-  - elf: tests/build/fp32_conversions_scalar.elf
-  # - elf: tests/build/fp64_conversions_scalar.elf
+  - elf: ./tests/build/fence_i.elf
+  - elf: ./tests/build/fp8_comparison_scalar.elf
+  - elf: ./tests/build/fp8_comparison_vector.elf
+  - elf: ./tests/build/fp8_computation_scalar.elf
+  - elf: ./tests/build/fp8_computation_vector.elf
+  - elf: ./tests/build/fp8alt_comparison_scalar.elf
+  - elf: ./tests/build/fp8alt_comparison_vector.elf
+  - elf: ./tests/build/fp8alt_computation_scalar.elf
+  - elf: ./tests/build/fp8alt_computation_vector.elf
+  - elf: ./tests/build/fp16_comparison_scalar.elf
+  - elf: ./tests/build/fp16_comparison_vector.elf
+  - elf: ./tests/build/fp16_computation_scalar.elf
+  - elf: ./tests/build/fp16_computation_vector.elf
+  - elf: ./tests/build/fp16alt_comparison_scalar.elf
+  - elf: ./tests/build/fp16alt_comparison_vector.elf
+  - elf: ./tests/build/fp16alt_computation_scalar.elf
+  - elf: ./tests/build/fp16alt_computation_vector.elf
+  - elf: ./tests/build/fp32_comparison_scalar.elf
+  - elf: ./tests/build/fp32_comparison_vector.elf
+  - elf: ./tests/build/fp32_computation_scalar.elf
+  - elf: ./tests/build/fp32_computation_vector.elf
+  - elf: ./tests/build/fp32_conversions_scalar.elf
+  # - elf: ./tests/build/fp64_conversions_scalar.elf
   #   simulators: [vsim, vcs, verilator]
-  - elf: tests/build/interrupt_local.elf
+  - elf: ./tests/build/interrupt_local.elf
     simulators: [vsim, vcs, verilator]
-  - elf: tests/build/multi_cluster.elf
-  - elf: tests/build/openmp_parallel.elf
+  - elf: ./tests/build/multi_cluster.elf
+  - elf: ./tests/build/openmp_parallel.elf
     simulators: [vsim, vcs, verilator]
-  - elf: tests/build/openmp_for_static_schedule.elf
+  - elf: ./tests/build/openmp_for_static_schedule.elf
     simulators: [vsim, vcs, verilator]
-  - elf: tests/build/openmp_double_buffering.elf
+  - elf: ./tests/build/openmp_double_buffering.elf
     simulators: [vsim, vcs, verilator]
-  - elf: tests/build/perf_cnt.elf
+  - elf: ./tests/build/perf_cnt.elf
     simulators: [vsim, vcs, verilator]
-  - elf: tests/build/printf_simple.elf
-  - elf: tests/build/printf_fmtint.elf
-  - elf: tests/build/simple.elf
-  - elf: tests/build/tls.elf
-  - elf: tests/build/varargs_1.elf
-  - elf: tests/build/varargs_2.elf
-  - elf: tests/build/zero_mem.elf
-  - elf: tests/build/non_null_exitcode.elf
+  - elf: ./tests/build/printf_simple.elf
+  - elf: ./tests/build/printf_fmtint.elf
+  - elf: ./tests/build/simple.elf
+  - elf: ./tests/build/tls.elf
+  - elf: ./tests/build/varargs_1.elf
+  - elf: ./tests/build/varargs_2.elf
+  - elf: ./tests/build/zero_mem.elf
+  - elf: ./tests/build/non_null_exitcode.elf
     retcode: 56
-  - elf: tests/build/caq.elf
+  - elf: ./tests/build/caq.elf
     simulators: [vsim, vcs, verilator] # GVSOC does not model caq
-  - elf: tests/build/caq_frep.elf
+  - elf: ./tests/build/caq_frep.elf
     simulators: [vsim, vcs, verilator]
-  - elf: apps/blas/axpy/build/axpy.elf
+  - elf: ./apps/blas/axpy/build/axpy.elf
     cmd: [../../../sw/blas/axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: apps/blas/gemm/build/gemm.elf
-    cmd: [../../../sw/blas/gemm/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: apps/blas/dot/build/dot.elf
+  - elf: ./apps/blas/gemm/build/gemm.elf
+  - elf: ./apps/blas/dot/build/dot.elf
     cmd: [../../../sw/blas/dot/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: apps/blas/syrk/build/syrk.elf
+  - elf: ./apps/blas/syrk/build/syrk.elf
     cmd: [../../../sw/blas/syrk/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: apps/dnn/batchnorm/build/batchnorm.elf
-  - elf: apps/dnn/maxpool/build/maxpool.elf
-  # - elf: apps/dnn/conv2d/build/conv2d.elf # Fails with wrong results
+  - elf: ./apps/dnn/batchnorm/build/batchnorm.elf
+  - elf: ./apps/dnn/maxpool/build/maxpool.elf
+  # - elf: ./apps/dnn/conv2d/build/conv2d.elf # Fails with wrong results
   #   cmd: [../../../sw/dnn/conv2d/scripts/verify.py, "${sim_bin}", "${elf}"]
-  # - elf: apps/dnn/fusedconv/build/fusedconv.elf # Fails with wrong results
+  # - elf: ./apps/dnn/fusedconv/build/fusedconv.elf # Fails with wrong results
   #   cmd: [../../../sw/dnn/fusedconv/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: apps/dnn/concat/build/concat.elf
+  - elf: ./apps/dnn/concat/build/concat.elf
     cmd: [../../../sw/dnn/concat/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: apps/dnn/fused_concat_linear/build/fused_concat_linear.elf
+  - elf: ./apps/dnn/fused_concat_linear/build/fused_concat_linear.elf
     cmd: [../../../sw/dnn/fused_concat_linear/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: apps/dnn/transpose/build/transpose.elf
+  - elf: ./apps/dnn/transpose/build/transpose.elf
     simulators: [vsim, vcs, verilator]
     cmd: [../../../sw/dnn/transpose/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: apps/montecarlo/pi_estimation/build/pi_estimation.elf
-  - elf: apps/atax/build/atax.elf
+  - elf: ./apps/montecarlo/pi_estimation/build/pi_estimation.elf
+  - elf: ./apps/atax/build/atax.elf
     cmd: [../../../sw/apps/atax/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: apps/covariance/build/covariance.elf
+  - elf: ./apps/covariance/build/covariance.elf
     simulators: [vsim, vcs, verilator]
     cmd: [../../../sw/apps/covariance/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: apps/doitgen/build/doitgen.elf
+  - elf: ./apps/doitgen/build/doitgen.elf
     cmd: [../../../sw/apps/doitgen/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: apps/blas/gemv/build/gemv.elf
+  - elf: ./apps/blas/gemv/build/gemv.elf
     cmd: [../../../sw/blas/gemv/scripts/verify.py, "${sim_bin}", "${elf}"]

@@ -128,9 +128,11 @@ def _resolve_relative_path(base_path, s):
 
     Args:
         s: The input string
-        base_path: The base path
+        base_path: The base path. If None, then just return s.
     """
     try:
+        if base_path is None:
+            return s
         base_path = Path(base_path).resolve()  # Get the absolute path of the base directory
         input_path = Path(s)
         if input_path.is_absolute() or not s.startswith(("./", "../")):
@@ -148,11 +150,45 @@ def _resolve_relative_path(base_path, s):
         return s
 
 
-def get_simulations(testlist, simulator, run_dir=None):
+def get_simulations(tests, simulator, run_dir=None, base_path=None):
+    """Create simulation objects from a list of tests.
+
+    Args:
+        tests: A list of tests.
+        simulator: The simulator to use to run the tests. A test run on
+            a specific simulator defines a simulation.
+        run_dir: A directory under which all tests should be run. If
+            provided, a unique subdirectory for each test will be
+            created under this directory, based on the test name.
+
+    Returns:
+        A list of `Simulation` objects. The list contains a
+            `Simulation` object for every test which supports the given
+            `simulator`. This object defines a simulation of the test on
+            that particular `simulator`.
+    """
+    # Convert relative paths in testlist to absolute paths
+    for test in tests:
+        test['elf'] = _resolve_relative_path(base_path, test['elf'])
+        if 'cmd' in test:
+            test['cmd'] = [_resolve_relative_path(base_path, arg) for arg in test['cmd']]
+
+    # Create simulation object for every test which supports the specified simulator
+    simulations = [simulator.get_simulation(test) for test in tests if simulator.supports(test)]
+
+    # Set simulation run directory
+    if run_dir is not None:
+        for sim in simulations:
+            sim.run_dir = Path(run_dir) / sim.testname
+
+    return simulations
+
+
+def get_simulations_from_file(file, simulator, run_dir=None):
     """Create simulation objects from a test list file.
 
     Args:
-        testlist: Path to a test list file. A test list file is a YAML
+        file: Path to a test list file. A test list file is a YAML
             file describing a set of tests.
         simulator: The simulator to use to run the tests. A test run on
             a specific simulator defines a simulation.
@@ -167,21 +203,12 @@ def get_simulations(testlist, simulator, run_dir=None):
             that particular `simulator`.
     """
     # Get tests from test list file
-    testlist_path = Path(testlist).absolute()
+    testlist_path = Path(file).absolute()
     with open(testlist_path, 'r') as f:
         tests = yaml.safe_load(f)['runs']
-    # Convert relative paths in testlist file to absolute paths
-    for test in tests:
-        test['elf'] = testlist_path.parent / test['elf']
-        if 'cmd' in test:
-            test['cmd'] = [_resolve_relative_path(testlist_path.parent, arg) for arg in test['cmd']]
-    # Create simulation object for every test which supports the specified simulator
-    simulations = [simulator.get_simulation(test) for test in tests if simulator.supports(test)]
-    # Set simulation run directory
-    if run_dir is not None:
-        for sim in simulations:
-            sim.run_dir = Path(run_dir) / sim.testname
-    return simulations
+
+    # Get simulations from test list
+    return get_simulations(tests, simulator, run_dir, base_path=testlist_path.parent)
 
 
 def print_summary(sims, early_exit=False, dry_run=False):
