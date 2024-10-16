@@ -31,10 +31,11 @@ run the generated executables using the [`run.py`][run] utility.
 """
 
 import argparse
-import os
 from pathlib import Path
-import subprocess
+from termcolor import colored
 import yaml
+
+from snitch.target import common
 
 
 def parser():
@@ -58,25 +59,24 @@ def parser():
     return parser
 
 
-def extend_environment(vars, env=None):
-    if env is None:
-        env = os.environ.copy()
-    env.update(vars)
-    return env
-
-
 # Build software target with a specific data configuration
-def build(target, cfg):
-    # Define configuration-specific variables for build system
-    env = extend_environment({
-        f'{target}_DATA_CFG': cfg,
-        f'{target}_BUILD_DIR': Path(f'build/{cfg.stem}').resolve()
-    })
+def build(target, build_dir, data_cfg=None, defines=None):
+    # Define variables for build system
+    vars = {
+        'DEBUG': 'ON',
+        f'{target}_BUILD_DIR': build_dir,
+    }
+    if data_cfg is not None:
+        vars[f'{target}_DATA_CFG'] = data_cfg
+    if defines:
+        cflags = ' '.join([f'-D{name}={value}' for name, value in defines.items()])
+        vars[f'{target}_RISCV_CFLAGS'] = cflags
 
-    # Build the software
-    mk_dir = Path(__file__).resolve().parent.parent
-    subprocess.run(['make', '-C', mk_dir, 'DEBUG=ON', target],
-                   check=True, env=env)
+    # Build software
+    print(colored('Build app', 'black', attrs=['bold']), colored(target, 'cyan', attrs=['bold']),
+          colored('in', 'black', attrs=['bold']), colored(build_dir, 'cyan', attrs=['bold']))
+    env = common.extend_environment(vars)
+    common.make(target, env=env)
 
 
 # Create test specification for a specific configuration
@@ -100,6 +100,25 @@ def dump_testlist(tests, outfile):
             yaml.dump({'runs': tests}, f)
 
 
+def annotate_traces(run_dir):
+    print(colored('Annotate traces', 'black', attrs=['bold']),
+          colored(run_dir, 'cyan', attrs=['bold']))
+    vars = {'SIM_DIR': run_dir}
+    flags = ['-j']
+    common.make('annotate', vars, flags=flags)
+
+
+def build_visual_trace(run_dir, roi_spec):
+    print(colored('Build visual trace', 'black', attrs=['bold']),
+          colored(run_dir / 'logs/trace.json', 'cyan', attrs=['bold']))
+    vars = {
+        'SIM_DIR': run_dir,
+        'ROI_SPEC': roi_spec
+    }
+    flags = ['-j']
+    common.make('visual-trace', vars, flags=flags)
+
+
 def main():
 
     # Parse arguments
@@ -108,7 +127,8 @@ def main():
 
     # Build software
     for cfg in cfgs:
-        build(args.target, cfg)
+        build_dir = Path(f'build/{cfg.stem}').resolve()
+        build(args.target, build_dir, data_cfg=cfg)
 
     # Build testlist
     tests = [create_test(args.target, cfg, args.testlist_cmd) for cfg in cfgs]
