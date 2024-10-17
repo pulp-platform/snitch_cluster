@@ -43,6 +43,7 @@ class Simulation(object):
         self.cmd = []
         self.log = None
         self.process = None
+        self.interrupted = False
         self.expected_retcode = int(retcode)
 
     def launch(self, dry_run=None):
@@ -87,7 +88,7 @@ class Simulation(object):
         if self.dry_run:
             return True
         elif self.process:
-            return self.process.poll() is not None
+            return self.process.poll() is not None and not self.interrupted
         else:
             return False
 
