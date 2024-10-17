@@ -13,7 +13,7 @@ OPCODES=(opcodes-pseudo opcodes-rv32i opcodes-rv64i opcodes-rv32m opcodes-rv64m 
 #######
 # RTL #
 #######
-OPCODES+=(opcodes-ipu_CUSTOM)
+# OPCODES+=(opcodes-ipu_CUSTOM)
 INSTR_SV=$ROOT/hw/snitch/src/riscv_instr.sv
 
 cat > $INSTR_SV <<- EOM

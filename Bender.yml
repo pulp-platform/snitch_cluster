@@ -116,14 +116,14 @@ sources:
   - files:
       - hw/snitch_vm/src/snitch_ptw.sv
 
-  # snitch_ipu
-  - files:
-      # Level 0
-      - hw/snitch_ipu/src/snitch_ipu_pkg.sv
-      # Level 1
-      - hw/snitch_ipu/src/snitch_ipu_alu.sv
-      # Level 2
-      - hw/snitch_ipu/src/snitch_int_ss.sv
+  # # snitch_ipu
+  # - files:
+  #     # Level 0
+  #     - hw/snitch_ipu/src/snitch_ipu_pkg.sv
+  #     # Level 1
+  #     - hw/snitch_ipu/src/snitch_ipu_alu.sv
+  #     # Level 2
+  #     - hw/snitch_ipu/src/snitch_int_ss.sv
 
   # snitch_ssr
   - files:

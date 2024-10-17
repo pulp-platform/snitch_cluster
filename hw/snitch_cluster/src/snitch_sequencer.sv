@@ -392,8 +392,8 @@ module snitch_sequencer import snitch_pkg::*; #(
       riscv_instr::VFCVT_B_X,
       riscv_instr::VFCVT_B_XU,
 
-      riscv_instr::IMV_X_W,
-      riscv_instr::IMV_W_X,
+      // riscv_instr::IMV_X_W,
+      // riscv_instr::IMV_W_X,
       // CSR accesses
       riscv_instr::CSRRW,
       riscv_instr::CSRRS,
