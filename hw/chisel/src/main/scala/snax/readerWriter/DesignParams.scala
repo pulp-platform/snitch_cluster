@@ -32,10 +32,31 @@ class AddressGenUnitParam(
     val addressWidth: Int,
     val numChannel: Int,
     val outputBufferDepth: Int,
-    val tcdmSize: Int
+    val tcdmSize: Int,
+    val tcdmPhysWordSize: Int,
+    val tcdmLogicWordSize: Seq[Int]
 )
 
 object AddressGenUnitParam {
+  def apply(
+      spatialBounds: List[Int],
+      temporalDimension: Int,
+      numChannel: Int,
+      outputBufferDepth: Int,
+      tcdmSize: Int,
+      tcdmPhysWordSize: Int,
+      tcdmLogicWordSize: Seq[Int]
+  ): AddressGenUnitParam = new AddressGenUnitParam(
+    spatialBounds = spatialBounds,
+    temporalDimension = temporalDimension,
+    addressWidth = log2Ceil(tcdmSize) + 10,
+    numChannel = numChannel,
+    outputBufferDepth = outputBufferDepth,
+    tcdmSize = tcdmSize,
+    tcdmPhysWordSize = tcdmPhysWordSize,
+    tcdmLogicWordSize = tcdmLogicWordSize
+  )
+
   def apply(
       spatialBounds: List[Int],
       temporalDimension: Int,
@@ -48,7 +69,9 @@ object AddressGenUnitParam {
     addressWidth = log2Ceil(tcdmSize) + 10,
     numChannel = numChannel,
     outputBufferDepth = outputBufferDepth,
-    tcdmSize = tcdmSize
+    tcdmSize = tcdmSize,
+    tcdmPhysWordSize = 256,
+    tcdmLogicWordSize = Seq(256)
   )
 
   // The Very Simple instantiation of the Param
@@ -57,7 +80,9 @@ object AddressGenUnitParam {
     temporalDimension = 2,
     numChannel = 8,
     outputBufferDepth = 8,
-    tcdmSize = 128
+    tcdmSize = 128,
+    tcdmPhysWordSize = 256,
+    tcdmLogicWordSize = Seq(256)
   )
 }
 
@@ -66,6 +91,8 @@ class ReaderWriterParam(
     temporalDimension: Int = 2,
     tcdmDataWidth: Int = 64,
     tcdmSize: Int = 128,
+    tcdmPhysWordSize: Int = 256,
+    tcdmLogicWordSize: Seq[Int] = Seq(256),
     numChannel: Int = 8,
     addressBufferDepth: Int = 8,
     dataBufferDepth: Int = 8,
@@ -78,7 +105,9 @@ class ReaderWriterParam(
     temporalDimension = temporalDimension,
     numChannel = numChannel,
     outputBufferDepth = addressBufferDepth,
-    tcdmSize = tcdmSize
+    tcdmSize = tcdmSize,
+    tcdmPhysWordSize = tcdmPhysWordSize,
+    tcdmLogicWordSize = tcdmLogicWordSize
   )
 
   val tcdmParam = TCDMParam(
@@ -98,5 +127,9 @@ class ReaderWriterParam(
                                                                   configurableByteMask
                                                                 ) 1
                                                                 else
-                                                                  0)
+                                                                  0) + (if (
+                                                                          tcdmLogicWordSize.length > 1
+                                                                        ) 1
+                                                                        else
+                                                                          0)
 }

@@ -547,6 +547,13 @@ class StreamerHeaderFile(param: StreamerParam) {
       csrOffset = csrOffset + 1
     }
 
+    // address remap index
+    if (param.aguParam.tcdmLogicWordSize.length > 1) {
+      csrMap =
+        csrMap + "#define " + "ADDR_REMAP_INDEX_" + tag + " " + csrOffset + "\n"
+      csrOffset = csrOffset + 1
+    }
+
     // channel enable
     if (param.configurableChannel) {
       csrMap =

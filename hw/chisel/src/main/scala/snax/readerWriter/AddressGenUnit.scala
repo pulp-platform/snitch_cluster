@@ -26,6 +26,7 @@ class AddressGenUnitCfgIO(param: AddressGenUnitParam) extends Bundle {
     Vec(param.spatialBounds.length, UInt(param.addressWidth.W))
   val temporalBounds = Vec(param.temporalDimension, UInt(param.addressWidth.W))
   val temporalStrides = Vec(param.temporalDimension, UInt(param.addressWidth.W))
+  val addressRemapIndex = UInt(log2Ceil(param.tcdmLogicWordSize.length).W)
 
   def connectWithList(csrList: IndexedSeq[UInt]): IndexedSeq[UInt] = {
     var remainingCSR = csrList
@@ -47,6 +48,15 @@ class AddressGenUnitCfgIO(param: AddressGenUnitParam) extends Bundle {
       temporalStrides(i) := remainingCSR.head
       remainingCSR = remainingCSR.tail
     }
+
+    // Connect the address remap index
+    if (param.tcdmLogicWordSize.length > 1) {
+      addressRemapIndex := remainingCSR.head
+      remainingCSR = remainingCSR.tail
+    } else {
+      addressRemapIndex := 0.U
+    }
+
     remainingCSR
   }
 }
@@ -151,7 +161,57 @@ class AddressGenUnit(
   }
 
   // Connect it to the input of outputBuffer
-  outputBuffer.io.in.head.bits := currentAddress.reduce((a, b) => Cat(b, a))
+  // Before the connecting to outputBuffer, the address can be remapped to another address space
+  // The Function to do the mapping is defined below:
+  def AffineAddressMapping(
+      inputAddress: UInt,
+      physWordSize: Int,
+      logicalWordSize: Int
+  ): UInt = {
+    import snax.utils.BitsConcat._
+    require(logicalWordSize <= physWordSize)
+    require(physWordSize % logicalWordSize == 0)
+    require(isPow2(logicalWordSize))
+    require(isPow2(physWordSize))
+    if (logicalWordSize == physWordSize) {
+      return inputAddress
+    } else {
+      return inputAddress(
+        inputAddress.getWidth - (log2Ceil(physWordSize) - log2Ceil(
+          logicalWordSize
+        )) - 1,
+        log2Ceil(logicalWordSize)
+      ) ++ inputAddress(
+        // inputAddress.getWidth - 1,
+        inputAddress.getWidth - 1,
+        inputAddress.getWidth - (log2Ceil(physWordSize) - log2Ceil(
+          logicalWordSize
+        ))
+      ) ++ inputAddress(log2Ceil(logicalWordSize) - 1, 0)
+    }
+  }
+
+  // The calling of the functions
+  val remappedAddress = param.tcdmLogicWordSize.map { logicalWordSize =>
+    currentAddress
+      .map(i =>
+        AffineAddressMapping(
+          i,
+          param.tcdmPhysWordSize,
+          logicalWordSize
+        )
+      )
+      .reduce((a, b) => Cat(b, a))
+  }
+
+  // Which mapping is used can be configured at the runtime. The default is the first mapping
+  outputBuffer.io.in.head.bits := MuxLookup(
+    io.cfg.addressRemapIndex,
+    remappedAddress.head
+  )(
+    (0 until param.tcdmLogicWordSize.length).map(i => i.U -> remappedAddress(i))
+  )
+  // outputBuffer.io.in.head.bits := currentAddress.reduce((a, b) => Cat(b, a))
 
   // Connect the outputs of the buffer out
   outputBuffer.io.out.zip(io.addr).foreach { case (a, b) => a <> b }

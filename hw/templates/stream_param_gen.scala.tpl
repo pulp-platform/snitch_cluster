@@ -50,6 +50,15 @@ object StreamerParametersGen {
       temporalDimension = ${cfg["snax_streamer_cfg"]["data_reader_params"]["temporal_dim"][idx]},
       tcdmDataWidth = ${tcdm_data_width},
       tcdmSize = ${tcdm_size},
+% if "tcdm_logic_word_size" in cfg["snax_streamer_cfg"]["data_reader_params"]:
+      tcdmLogicWordSize = Seq(
+% for jdx in range(0,len(cfg["snax_streamer_cfg"]["data_reader_params"]["tcdm_logic_word_size"][idx])):
+        ${cfg["snax_streamer_cfg"]["data_reader_params"]["tcdm_logic_word_size"][idx][jdx]}${',' if not loop.last else ''}
+% endfor
+      ),
+% else:
+      tcdmLogicWordSize = Seq(256),
+% endif
       numChannel = ${cfg["snax_streamer_cfg"]["data_reader_params"]["num_channel"][idx]},
       addressBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_params"]["fifo_depth"][idx]},
       dataBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_params"]["fifo_depth"][idx]},
@@ -78,6 +87,15 @@ ${'   ), ' if not loop.last else '    )'}
       temporalDimension = ${cfg["snax_streamer_cfg"]["data_writer_params"]["temporal_dim"][idx]},
       tcdmDataWidth = ${tcdm_data_width},
       tcdmSize = ${tcdm_size},
+% if "tcdm_logic_word_size" in cfg["snax_streamer_cfg"]["data_writer_params"]:
+      tcdmLogicWordSize = Seq(
+% for jdx in range(0,len(cfg["snax_streamer_cfg"]["data_writer_params"]["tcdm_logic_word_size"][idx])):
+        ${cfg["snax_streamer_cfg"]["data_writer_params"]["tcdm_logic_word_size"][idx][jdx]}${',' if not loop.last else ''}
+% endfor
+      ),
+% else:
+      tcdmLogicWordSize = Seq(256),
+% endif
       numChannel = ${cfg["snax_streamer_cfg"]["data_writer_params"]["num_channel"][idx]},
       addressBufferDepth = ${cfg["snax_streamer_cfg"]["data_writer_params"]["fifo_depth"][idx]},
       dataBufferDepth = ${cfg["snax_streamer_cfg"]["data_writer_params"]["fifo_depth"][idx]},
@@ -106,6 +124,15 @@ ${'   ), ' if not loop.last else '    )'}
       temporalDimension = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["temporal_dim"][idx]},
       tcdmDataWidth = ${tcdm_data_width},
       tcdmSize = ${tcdm_size},
+% if "tcdm_logic_word_size" in cfg["snax_streamer_cfg"]["data_reader_writer_params"]:
+      tcdmLogicWordSize = Seq(
+% for jdx in range(0,len(cfg["snax_streamer_cfg"]["data_reader_writer_params"]["tcdm_logic_word_size"][idx])):
+        ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["tcdm_logic_word_size"][idx][jdx]}${',' if not loop.last else ''}
+% endfor
+      ),
+% else:
+      tcdmLogicWordSize = Seq(256),
+% endif
       numChannel = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["num_channel"][idx]},
       addressBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["fifo_depth"][idx]},
       dataBufferDepth = ${cfg["snax_streamer_cfg"]["data_reader_writer_params"]["fifo_depth"][idx]},

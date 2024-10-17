@@ -61,19 +61,19 @@ int main() {
         set_gemmx_streamer_csr(
             Aslstride0, Aslstride1, Atlbound0, Atlstride0, Atlbound1,
             Atlstride1, Atlbound2, Atlstride2, Atlbound3, Atlstride3, Atlbound4,
-            Atlstride4, Atlbound5, Atlstride5,
+            Atlstride4, Atlbound5, Atlstride5, set_addr_remap_index_A,
 
             Bslstride0, Bslstride1, Btlbound0, Btlstride0, Btlbound1,
-            Btlstride1, Btlbound2, Btlstride2,
+            Btlstride1, Btlbound2, Btlstride2, set_addr_remap_index_B,
 
             D8slstride0, D8slstride1, D8tlbound0, D8tlstride0, D8tlbound1,
-            D8tlstride1, D8tlbound2, D8tlstride2,
+            D8tlstride1, D8tlbound2, D8tlstride2, set_addr_remap_index_D8,
 
             Cslstride0, Cslstride1, Ctlbound0, Ctlstride0, Ctlbound1,
-            Ctlstride1, Ctlbound2, Ctlstride2,
+            Ctlstride1, Ctlbound2, Ctlstride2, set_addr_remap_index_C,
 
             D32slstride0, D32slstride1, D32tlbound0, D32tlstride0, D32tlbound1,
-            D32tlstride1, D32tlbound2, D32tlstride2,
+            D32tlstride1, D32tlbound2, D32tlstride2, set_addr_remap_index_D32,
 
             delta_local_a, delta_local_b, delta_local_d8, delta_local_c,
             delta_local_d32, bypassSIMD, transposed_A, transposed_B,
@@ -107,7 +107,7 @@ int main() {
         if (!bypassSIMD) {
             err += check_gemmx_result_D8(local_d8, D8, Batch, M, N);
         } else {
-            err += check_gemmx_result_D32(local_d32, D32, Batch, M, N);
+            err += check_gemmx_result_D32(local_d32, D32, Batch, M, N, false);
         }
 #ifdef TEST_MATMUL
         printf("SNAX GEMM Matmul: %s, Error: %d . bypassSIMD = %d .\n",

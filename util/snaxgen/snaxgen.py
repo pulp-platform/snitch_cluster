@@ -124,6 +124,34 @@ def streamer_csr_num(acc_cfgs):
             )
         )
 
+    address_remapper_csr_num = 0
+    if (
+        "data_reader_params" in acc_cfgs["snax_streamer_cfg"]
+        and "tcdm_logic_word_size"
+        in acc_cfgs["snax_streamer_cfg"]["data_reader_params"]
+    ):
+        address_remapper_csr_num += len(
+            acc_cfgs["snax_streamer_cfg"]["data_reader_params"]["tcdm_logic_word_size"]
+        )
+    if (
+        "data_writer_params" in acc_cfgs["snax_streamer_cfg"]
+        and "tcdm_logic_word_size"
+        in acc_cfgs["snax_streamer_cfg"]["data_writer_params"]
+    ):
+        address_remapper_csr_num += len(
+            acc_cfgs["snax_streamer_cfg"]["data_writer_params"]["tcdm_logic_word_size"]
+        )
+    if (
+        "data_reader_writer_params" in acc_cfgs["snax_streamer_cfg"]
+        and "tcdm_logic_word_size"
+        in acc_cfgs["snax_streamer_cfg"]["data_reader_writer_params"]
+    ):
+        address_remapper_csr_num += len(
+            acc_cfgs["snax_streamer_cfg"]["data_reader_writer_params"][
+                "tcdm_logic_word_size"
+            ]
+        )
+
     # Calculation of data movers
     num_data_reader = 0
     num_data_writer = 0
@@ -193,6 +221,7 @@ def streamer_csr_num(acc_cfgs):
         + num_s_loop_dim  # Number of spatial strides
         + 2 * num_data_mover  # Number of base pointers, 2 for each
         + num_configurable_channel  # Number of configurable channels
+        + address_remapper_csr_num  # Number of address remapper
         + 1  # Performance counter
         + 1  # Busy register
         + 1  # Start register

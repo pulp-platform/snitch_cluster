@@ -58,19 +58,23 @@ void set_gemmx_streamer_csr(
     int Aslstride0, int Aslstride1, int Atlbound0, int Atlstride0,
     int Atlbound1, int Atlstride1, int Atlbound2, int Atlstride2, int Atlbound3,
     int Atlstride3, int Atlbound4, int Atlstride4, int Atlbound5,
-    int Atlstride5,
+    int Atlstride5, int set_addr_remap_index_A,
 
     int Bslstride0, int Bslstride1, int Btlbound0, int Btlstride0,
     int Btlbound1, int Btlstride1, int Btlbound2, int Btlstride2,
+    int set_addr_remap_index_B,
 
     int D8slstride0, int D8slstride1, int D8tlbound0, int D8tlstride0,
     int D8tlbound1, int D8tlstride1, int D8tlbound2, int D8tlstride2,
+    int set_addr_remap_index_D8,
 
     int Cslstride0, int Cslstride1, int Ctlbound0, int Ctlstride0,
     int Ctlbound1, int Ctlstride1, int Ctlbound2, int Ctlstride2,
+    int set_addr_remap_index_C,
 
     int D32slstride0, int D32slstride1, int D32tlbound0, int D32tlstride0,
     int D32tlbound1, int D32tlstride1, int D32tlbound2, int D32tlstride2,
+    int set_addr_remap_index_D32,
 
     int delta_local_a, int delta_local_b, int delta_local_d8, int delta_local_c,
     int delta_local_d32, int bypassSIMD, int32_t transpose_A,
@@ -106,4 +110,5 @@ uint32_t check_gemmx_result_D8(int8_t* output, int8_t* output_golden,
                                int32_t Batch, int32_t M, int32_t N);
 
 uint32_t check_gemmx_result_D32(int32_t* output, int32_t* output_golden,
-                                int32_t Batch, int32_t M, int32_t N);
+                                int32_t Batch, int32_t M, int32_t N,
+                                bool banked_data_layout);

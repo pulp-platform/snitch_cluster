@@ -37,19 +37,23 @@ void set_gemmx_streamer_csr(
     int Aslstride0, int Aslstride1, int Atlbound0, int Atlstride0,
     int Atlbound1, int Atlstride1, int Atlbound2, int Atlstride2, int Atlbound3,
     int Atlstride3, int Atlbound4, int Atlstride4, int Atlbound5,
-    int Atlstride5,
+    int Atlstride5, int set_addr_remap_index_A,
 
     int Bslstride0, int Bslstride1, int Btlbound0, int Btlstride0,
     int Btlbound1, int Btlstride1, int Btlbound2, int Btlstride2,
+    int set_addr_remap_index_B,
 
     int D8slstride0, int D8slstride1, int D8tlbound0, int D8tlstride0,
     int D8tlbound1, int D8tlstride1, int D8tlbound2, int D8tlstride2,
+    int set_addr_remap_index_D8,
 
     int Cslstride0, int Cslstride1, int Ctlbound0, int Ctlstride0,
     int Ctlbound1, int Ctlstride1, int Ctlbound2, int Ctlstride2,
+    int set_addr_remap_index_C,
 
     int D32slstride0, int D32slstride1, int D32tlbound0, int D32tlstride0,
     int D32tlbound1, int D32tlstride1, int D32tlbound2, int D32tlstride2,
+    int set_addr_remap_index_D32,
 
     int delta_local_a, int delta_local_b, int delta_local_d8, int delta_local_c,
     int delta_local_d32, int bypassSIMD, int32_t transpose_A,
@@ -76,6 +80,9 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_READER_0_4, Atlstride4);
     csrw_ss(T_STRIDE_READER_0_5, Atlstride5);
 
+    // set the address remap index for A
+    csrw_ss(ADDR_REMAP_INDEX_READER_0, set_addr_remap_index_A);
+
     // base ptr for B
     csrw_ss(BASE_PTR_READER_1_LOW, (uint32_t)(delta_local_b + snrt_l1_next()));
 
@@ -91,6 +98,9 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_READER_1_0, Btlstride0);
     csrw_ss(T_STRIDE_READER_1_1, Btlstride1);
     csrw_ss(T_STRIDE_READER_1_2, Btlstride2);
+
+    // set the address remap index for B
+    csrw_ss(ADDR_REMAP_INDEX_READER_1, set_addr_remap_index_B);
 
     // base ptr for D8
     csrw_ss(BASE_PTR_WRITER_0_LOW, (uint32_t)(delta_local_d8 + snrt_l1_next()));
@@ -114,6 +124,9 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_WRITER_0_1, D8tlstride1);
     csrw_ss(T_STRIDE_WRITER_0_2, D8tlstride2);
 
+    // set the address remap index for D8
+    csrw_ss(ADDR_REMAP_INDEX_WRITER_0, set_addr_remap_index_D8);
+
     // base ptr for C
     csrw_ss(BASE_PTR_READER_WRITER_0_LOW,
             (uint32_t)(delta_local_c + snrt_l1_next()));
@@ -131,6 +144,9 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_READER_WRITER_0_0, Ctlstride0);
     csrw_ss(T_STRIDE_READER_WRITER_0_1, Ctlstride1);
     csrw_ss(T_STRIDE_READER_WRITER_0_2, Ctlstride2);
+
+    // set the address remap index for C
+    csrw_ss(ADDR_REMAP_INDEX_READER_WRITER_0, set_addr_remap_index_C);
 
 #ifdef ENABLED_CHANNEL_READER_WRITER_0
     csrw_ss(ENABLED_CHANNEL_READER_WRITER_0, channel_en_C);
@@ -163,6 +179,9 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_READER_WRITER_1_0, D32tlstride0);
     csrw_ss(T_STRIDE_READER_WRITER_1_1, D32tlstride1);
     csrw_ss(T_STRIDE_READER_WRITER_1_2, D32tlstride2);
+
+    // set the address remap index for D32
+    csrw_ss(ADDR_REMAP_INDEX_READER_WRITER_1, set_addr_remap_index_D32);
 
     // set the transpose
 #ifdef TRANSPOSE_EXTENSION_ENABLE
@@ -250,15 +269,32 @@ uint32_t check_gemmx_result_D8(int8_t* output, int8_t* output_golden,
 }
 
 uint32_t check_gemmx_result_D32(int32_t* output, int32_t* output_golden,
-                                int32_t Batch, int32_t M, int32_t N) {
+                                int32_t Batch, int32_t M, int32_t N,
+                                bool banked_data_layout) {
     uint32_t err = 0;
     uint32_t size = 0;
     size = Batch * M * N * meshRow * meshCol;
 
-    for (int i = 0; i < size; i++) {
-        if (output[i] != output_golden[i]) {
-            err++;
+    if (banked_data_layout) {
+        for (int i = 0; i < size / 16; i += 1) {
+            for (int j = 0; j < 16; j++) {
+                if (*(output + i * (256 / 4) + j) !=
+                    output_golden[i * 16 + j]) {
+                    printf("Error at %0x, %0x, %0x, %0x\n",
+                           output + i * (256 / 4) + j,
+                           *(output + i * (256 / 4) + j), i * 16 + j,
+                           output_golden[i * 16 + j]);
+                    err++;
+                }
+            }
+        }
+    } else {
+        for (int i = 0; i < size; i++) {
+            if (output[i] != output_golden[i]) {
+                err++;
+            }
         }
     }
+
     return err;
 }

@@ -367,7 +367,7 @@ def emit_conv_data(**kwargs):
     if kwargs["ifC8HW8datalayout"] is True:
         # NHWC
         Cslstride0 = 8
-        Cslstride1 = 32
+        Cslstride1 = 8 * 8
 
         # N dim
         Ctlbound0 = Cout // 8
@@ -428,7 +428,7 @@ def emit_conv_data(**kwargs):
 
     if kwargs["ifC8HW8datalayout"] is True:
         D32slstride0 = 8
-        D32slstride1 = 32
+        D32slstride1 = 8 * 8
 
         # N dim
         D32tlbound0 = Cout // 8
@@ -641,7 +641,7 @@ def emit_matmul_data(**kwargs):
     data_str += [format_scalar_definition("int32_t", "Btlstride2", 0)]
 
     data_str += [format_scalar_definition("int32_t", "Cslstride0", bankWidth / 8)]
-    c32_spatial_bound_0 = 4
+    c32_spatial_bound_0 = 8
     data_str += [
         format_scalar_definition(
             "int32_t", "Cslstride1", c32_spatial_bound_0 * (bankWidth / 8)
@@ -665,7 +665,7 @@ def emit_matmul_data(**kwargs):
     data_str += [format_scalar_definition("int32_t", "Ctlstride2", 0)]
 
     data_str += [format_scalar_definition("int32_t", "D32slstride0", bankWidth / 8)]
-    d32_spatial_bound_0 = 4
+    d32_spatial_bound_0 = 8
     data_str += [
         format_scalar_definition(
             "int32_t", "D32slstride1", d32_spatial_bound_0 * (bankWidth / 8)
@@ -921,6 +921,12 @@ def emit_gemmx_data(**kwargs):
         )
 
     data_str += [format_vector_definition("int8_t", "D8", D8)]
+
+    data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_A", 0)]
+    data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_B", 0)]
+    data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_C", 0)]
+    data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_D32", 0)]
+    data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_D8", 0)]
 
     data_str = "\n\n".join(data_str)
 
