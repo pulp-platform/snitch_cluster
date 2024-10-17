@@ -52,9 +52,9 @@ The Snitch cluster RTL sources are partly automatically generated from a configu
 In the [`cfg`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/snitch_cluster/cfg) folder, different configurations are provided. The [`cfg/default.json`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/snitch_cluster/cfg/default.json) configuration instantiates 8 compute cores + 1 DMA core in the cluster.
 
 The command you previously executed automatically generated the RTL sources from the templates, and it implicitly used the default configuration file. In this configuration the FPU is not equipped with a floating-point divide and square-root unit.
-To override the default configuration file, e.g. to use the configuration with FDIV/FSQRT unit, define the following variable when you invoke `make`:
+To override the default configuration file, e.g. to use the omega TCDM interconnect, define the following variable when you invoke `make`:
 ```shell
-make CFG_OVERRIDE=cfg/fdiv.hjson bin/snitch_cluster.vlt
+make CFG_OVERRIDE=cfg/omega.json bin/snitch_cluster.vlt
 ```
 
 If you want to use a custom configuration, just point `CFG_OVERRIDE` to the path of your configuration file.
