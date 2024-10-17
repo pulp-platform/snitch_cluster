@@ -282,7 +282,7 @@ def terminate_processes():
     iterations = 0
     while get_living_subprocesses() and iterations < 10:
         living_subprocs = get_living_subprocesses()
-        print(f'{len(living_subprocs)} living subprocesses of {ppid}\n{living_subprocs}')
+        print(f'{len(living_subprocs)} living subprocesses of {ppid}')
         for proc in living_subprocs:
             try:
                 os.kill(proc.info['pid'], signal.SIGKILL)
@@ -295,6 +295,8 @@ def terminate_processes():
     if get_living_subprocesses():
         print('THERE ARE STILL LIVING SUBPROCESSES')
         print(get_living_subprocesses())
+    else:
+        print('All subprocesses successfully killed')
 
 
 def get_unique_run_dir(sim, prefix=None):
@@ -363,6 +365,8 @@ def run_simulations(simulations, n_procs=1, dry_run=None, early_exit=False,
                         break
             time.sleep(POLL_PERIOD)
     except KeyboardInterrupt:
+        for sim in running_sims:
+            sim.interrupted = True
         early_exit_requested = True
 
     # Clean up after early exit
