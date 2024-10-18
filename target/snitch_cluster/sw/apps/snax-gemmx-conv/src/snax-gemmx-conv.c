@@ -17,12 +17,24 @@ int main() {
     // Set err value for checking
     int err = 0;
 
-    // Prepare addresses in TCDM
+    // Prepare addresses pointers in TCDM for DMA
+    int8_t *local_a_dma, *local_b_dma;
+    int32_t *local_c_dma, *local_d32_dma;
+    int8_t *local_d8_dma;
+
+    // Allocate space in TCDM for DMA
+    local_a_dma = (int8_t *)(snrt_l1_next() + delta_physical_a);
+    local_b_dma = (int8_t *)(snrt_l1_next() + delta_physical_b);
+    local_c_dma = (int32_t *)(snrt_l1_next() + delta_physical_c);
+    local_d32_dma = (int32_t *)(snrt_l1_next() + delta_physical_d32);
+    local_d8_dma = (int8_t *)(snrt_l1_next() + delta_physical_d8);
+
+    // Prepare addresses pointers in TCDM for streamer
     int8_t *local_a, *local_b;
     int32_t *local_c, *local_d32;
     int8_t *local_d8;
 
-    // Allocate space in TCDM
+    // Allocate space in TCDM for streamer
     local_a = (int8_t *)(snrt_l1_next() + delta_local_a);
     local_b = (int8_t *)(snrt_l1_next() + delta_local_b);
     local_c = (int32_t *)(snrt_l1_next() + delta_local_c);
@@ -32,18 +44,33 @@ int main() {
     // Transfer data from L3 to L1
     // Using DMA only
     if (snrt_is_dm_core()) {
-        snrt_dma_start_1d(
-            local_a, A,
-            Nbatch * (H + 2 * pad_h) * (W + 2 * pad_w) * Cin * sizeof(int8_t));
-        snrt_dma_start_1d(local_b, B, Cout * Kh * Kw * Cin * sizeof(int8_t));
+        if (interleaved_address == 1) {
+            snrt_dma_start_1d(local_a, A,
+                              Nbatch * (H + 2 * pad_h) * (W + 2 * pad_w) * Cin *
+                                  sizeof(int8_t));
+            snrt_dma_start_1d(local_b, B,
+                              Cout * Kh * Kw * Cin * sizeof(int8_t));
+        } else {
+            snrt_dma_start_2d(
+                local_a_dma, A, 64 * sizeof(int8_t), 256, 64,
+                Nbatch * (H + 2 * pad_h) * (W + 2 * pad_w) * Cin / 64);
+            snrt_dma_start_2d(local_b_dma, B, 64 * sizeof(int8_t), 256, 64,
+                              Cout * Kh * Kw * Cin / 64);
+        }
         snrt_dma_wait_all();
     }
 
     // Wait for DMA to finish
     snrt_cluster_hw_barrier();
     if (snrt_is_dm_core()) {
-        snrt_dma_start_1d(local_c, C,
-                          M * N * meshRow * meshCol * sizeof(int32_t));
+        if (interleaved_address == 1) {
+            snrt_dma_start_1d(local_c, C,
+                              M * N * meshRow * meshCol * sizeof(int32_t));
+        } else {
+            snrt_dma_start_2d(local_c_dma, C, 16 * sizeof(int32_t), 256,
+                              16 * sizeof(int32_t),
+                              M * N * meshRow * meshCol / 16);
+        }
         snrt_dma_wait_all();
     }
 
@@ -97,10 +124,21 @@ int main() {
         wait_gemmx_and_streamer();
 
         // check the result of the implicit im2col convolution
-        if (!bypassSIMD) {
-            err += check_gemmx_result_D8(local_d8, D8, Batch, M, N);
+        if (interleaved_address == 1) {
+            if (!bypassSIMD) {
+                err += check_gemmx_result_D8(local_d8, D8, Batch, M, N, false);
+            } else {
+                err +=
+                    check_gemmx_result_D32(local_d32, D32, Batch, M, N, false);
+            }
         } else {
-            err += check_gemmx_result_D32(local_d32, D32, Batch, M, N, false);
+            if (!bypassSIMD) {
+                err +=
+                    check_gemmx_result_D8(local_d8_dma, D8, Batch, M, N, true);
+            } else {
+                err += check_gemmx_result_D32(local_d32_dma, D32, Batch, M, N,
+                                              true);
+            }
         }
 
         printf("SNAX GEMM Conv2d: %s, Error: %d . bypassSIMD = %d .\n",

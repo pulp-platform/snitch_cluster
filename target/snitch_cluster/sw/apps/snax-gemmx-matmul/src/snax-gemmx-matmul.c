@@ -99,7 +99,7 @@ int main() {
 
         // check the result of the implicit im2col convolution
         if (!bypassSIMD) {
-            err += check_gemmx_result_D8(local_d8, D8, Batch, M, N);
+            err += check_gemmx_result_D8(local_d8, D8, Batch, M, N, false);
         } else {
             err += check_gemmx_result_D32(local_d32, D32, Batch, M, N, false);
         }

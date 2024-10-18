@@ -148,24 +148,81 @@ def emit_conv_data(**kwargs):
     ]
 
     # Generating base pointer settings
-    delta_local_a = 0
 
-    delta_local_b = input_padding.size
-    assert input_padding.size == (Nbatch * Cin8 * (H + 2 * pad_h) * (W + 2 * pad_w) * 8)
+    if kwargs["interleaved_address"] == 1:
+        # Generating base pointer settings, interleaved memory
+        delta_local_a = 0
 
-    delta_local_b = align_wide_addr(delta_local_b, 64)
-    assert delta_local_b % 64 == 0
+        delta_local_b = input_padding.size
+        assert input_padding.size == (
+            Nbatch * Cin8 * (H + 2 * pad_h) * (W + 2 * pad_w) * 8
+        )
 
-    delta_local_c = delta_local_b + kernel.size
-    assert kernel.size == (Cout8 * Cin8 * Kh * Kw * 8 * 8)
-    delta_local_c = align_wide_addr(delta_local_c, 64)
-    assert delta_local_c % 64 == 0
+        delta_local_b = align_wide_addr(delta_local_b, 64)
+        assert delta_local_b % 64 == 0
 
-    delta_local_d8 = delta_local_c + length_c * 4
-    delta_local_d8 = align_wide_addr(delta_local_d8, 64)
-    assert delta_local_d8 % 64 == 0
+        delta_local_c = delta_local_b + kernel.size
+        assert kernel.size == (Cout8 * Cin8 * Kh * Kw * 8 * 8)
+        delta_local_c = align_wide_addr(delta_local_c, 64)
+        assert delta_local_c % 64 == 0
 
-    delta_local_d32 = delta_local_d8
+        delta_local_d8 = delta_local_c + length_c * 4
+        delta_local_d8 = align_wide_addr(delta_local_d8, 64)
+        assert delta_local_d8 % 64 == 0
+
+        delta_local_d32 = delta_local_d8
+
+        # logical address is the same as physical address
+        delta_physical_a = delta_local_a
+        delta_physical_b = delta_local_b
+        delta_physical_c = delta_local_c
+        delta_physical_d8 = delta_local_d8
+        delta_physical_d32 = delta_local_d32
+    else:
+        # Generating base pointer settings
+        base_logical_addr_delta = kwargs["memory_size"] / 4 * 1024
+        delta_local_a = 0
+        delta_local_b = base_logical_addr_delta
+        delta_local_c = base_logical_addr_delta * 2
+        delta_local_d32 = base_logical_addr_delta * 3
+        delta_local_d8 = base_logical_addr_delta * 3
+
+        base_pyhsical_addr_delta = 64
+        delta_physical_a = 0
+        delta_physical_b = base_pyhsical_addr_delta
+        delta_physical_c = base_pyhsical_addr_delta * 2
+        delta_physical_d32 = base_pyhsical_addr_delta * 3
+        delta_physical_d8 = base_pyhsical_addr_delta * 3
+
+    if kwargs["interleaved_address"] == 1:
+        # logical address is the same as physical address
+        data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_A", 0)]
+        data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_B", 0)]
+        data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_C", 0)]
+        data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_D32", 0)]
+        data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_D8", 0)]
+    else:
+        # open the address remap
+        data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_A", 2)]
+        data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_B", 2)]
+        data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_C", 2)]
+        data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_D32", 2)]
+        data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_D8", 2)]
+
+    data_str += [
+        format_scalar_definition(
+            "int32_t", "interleaved_address", kwargs["interleaved_address"]
+        )
+    ]
+
+    data_str += [
+        format_scalar_definition("int32_t", "delta_physical_a", delta_physical_a),
+        format_scalar_definition("int32_t", "delta_physical_b", delta_physical_b),
+        format_scalar_definition("int32_t", "delta_physical_d8", delta_physical_d8),
+        format_scalar_definition("int32_t", "delta_physical_c", delta_physical_c),
+        format_scalar_definition("int32_t", "delta_physical_d32", delta_physical_d32),
+    ]
+
     data_str += [
         format_scalar_definition("int32_t", "delta_local_a", delta_local_a),
         format_scalar_definition("int32_t", "delta_local_b", delta_local_b),
@@ -534,12 +591,6 @@ def emit_gemmx_data(**kwargs):
         )
 
     data_str += [format_vector_definition("int8_t", "D8", D8)]
-
-    data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_A", 0)]
-    data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_B", 0)]
-    data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_C", 0)]
-    data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_D32", 0)]
-    data_str += [format_scalar_definition("int32_t", "set_addr_remap_index_D8", 0)]
 
     data_str = "\n\n".join(data_str)
 

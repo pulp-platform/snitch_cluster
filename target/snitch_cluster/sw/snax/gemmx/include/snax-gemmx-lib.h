@@ -107,7 +107,8 @@ uint32_t read_gemmx_perf_counter();
 
 // Check the result of the implicit im2col convolution
 uint32_t check_gemmx_result_D8(int8_t* output, int8_t* output_golden,
-                               int32_t Batch, int32_t M, int32_t N);
+                               int32_t Batch, int32_t M, int32_t N,
+                               bool banked_data_layout);
 
 uint32_t check_gemmx_result_D32(int32_t* output, int32_t* output_golden,
                                 int32_t Batch, int32_t M, int32_t N,

@@ -22,6 +22,10 @@
   broadcast_C: 1,
   channel_en_C: 1,
 
+  // memory space configurations
+  interleaved_address: 0,
+  memory_size: 4096,
+
   // hardware parameters
   meshRow : 8,
   tileSize: 8,

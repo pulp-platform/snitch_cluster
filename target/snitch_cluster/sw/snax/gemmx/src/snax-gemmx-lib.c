@@ -255,16 +255,28 @@ uint32_t read_gemmx_perf_counter() {
 }
 
 uint32_t check_gemmx_result_D8(int8_t* output, int8_t* output_golden,
-                               int32_t Batch, int32_t M, int32_t N) {
+                               int32_t Batch, int32_t M, int32_t N,
+                               bool banked_data_layout) {
     uint32_t err = 0;
     uint32_t size = 0;
     size = Batch * M * N * meshRow * meshCol;
 
-    for (int i = 0; i < size; i++) {
-        if (output[i] != output_golden[i]) {
-            err++;
+    if (banked_data_layout) {
+        for (int i = 0; i < size / 64; i += 1) {
+            for (int j = 0; j < 64; j++) {
+                if (*(output + i * 256 + j) != output_golden[i * 64 + j]) {
+                    err++;
+                }
+            }
+        }
+    } else {
+        for (int i = 0; i < size; i++) {
+            if (output[i] != output_golden[i]) {
+                err++;
+            }
         }
     }
+
     return err;
 }
 
@@ -280,10 +292,6 @@ uint32_t check_gemmx_result_D32(int32_t* output, int32_t* output_golden,
             for (int j = 0; j < 16; j++) {
                 if (*(output + i * (256 / 4) + j) !=
                     output_golden[i * 16 + j]) {
-                    printf("Error at %0x, %0x, %0x, %0x\n",
-                           output + i * (256 / 4) + j,
-                           *(output + i * (256 / 4) + j), i * 16 + j,
-                           output_golden[i * 16 + j]);
                     err++;
                 }
             }
