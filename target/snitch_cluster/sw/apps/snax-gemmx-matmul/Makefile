@@ -4,7 +4,7 @@
 #
 # Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
 
-APP     = snax-gemmx
+APP     = snax-gemmx-matmul
 
 INCDIRS = data
 
@@ -13,7 +13,7 @@ INCDIRS += ../../snax/gemmx/include
 # Include this binary in the final build
 RISCV_LDFLAGS += ../../snax/gemmx/build/snax-gemmx-lib.o
 
-SRCS    = src/snax-gemmx.c
+SRCS    = src/snax-gemmx-matmul.c
 
 include ../common.mk
 include ./data/Makefile

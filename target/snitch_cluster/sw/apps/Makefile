@@ -30,10 +30,12 @@ SUBDIRS += snax-alu
 endif
 ifeq ($(CFG_OVERRIDE), cfg/snax_kul_cluster_mixed_narrow_wide.hjson)
 SUBDIRS += snax-data-reshuffler
-SUBDIRS += snax-gemmx
+SUBDIRS += snax-gemmx-matmul
+SUBDIRS += snax-gemmx-conv
 endif
 ifeq ($(CFG_OVERRIDE), cfg/snax_kul_cluster_mixed_narrow_wide_xdma.hjson)
-SUBDIRS += snax-gemmx
+SUBDIRS += snax-gemmx-matmul
+SUBDIRS += snax-gemmx-conv
 SUBDIRS += snax-xdma-memset
 SUBDIRS += snax-xdma-maxpool
 endif

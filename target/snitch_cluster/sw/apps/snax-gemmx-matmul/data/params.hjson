@@ -1,0 +1,21 @@
+// Copyright 2024 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+// Cluster configuration for a matmul testbench system.
+{
+  // gemm configurations
+  transposed_A: 1,
+  transposed_B: 0,
+  K: 18,
+  N: 2,
+  M: 1,
+  bypassSIMD: 0,
+  broadcast_C: 1,
+  channel_en_C: 1,
+
+  // hardware parameters
+  meshRow : 8,
+  tileSize: 8,
+  meshCol : 8,
+}

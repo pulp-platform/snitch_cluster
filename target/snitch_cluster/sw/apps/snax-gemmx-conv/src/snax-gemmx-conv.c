@@ -32,17 +32,10 @@ int main() {
     // Transfer data from L3 to L1
     // Using DMA only
     if (snrt_is_dm_core()) {
-#ifdef TEST_MATMUL
-        snrt_dma_start_1d(local_a, A,
-                          M * K * meshRow * tileSize * sizeof(int8_t));
-        snrt_dma_start_1d(local_b, B,
-                          N * K * tileSize * meshCol * sizeof(int8_t));
-#else
         snrt_dma_start_1d(
             local_a, A,
             Nbatch * (H + 2 * pad_h) * (W + 2 * pad_w) * Cin * sizeof(int8_t));
         snrt_dma_start_1d(local_b, B, Cout * Kh * Kw * Cin * sizeof(int8_t));
-#endif
         snrt_dma_wait_all();
     }
 
@@ -109,13 +102,9 @@ int main() {
         } else {
             err += check_gemmx_result_D32(local_d32, D32, Batch, M, N, false);
         }
-#ifdef TEST_MATMUL
-        printf("SNAX GEMM Matmul: %s, Error: %d . bypassSIMD = %d .\n",
-               err ? "FAIL" : "PASS", err, bypassSIMD);
-#else
+
         printf("SNAX GEMM Conv2d: %s, Error: %d . bypassSIMD = %d .\n",
                err ? "FAIL" : "PASS", err, bypassSIMD);
-#endif
     };
 
     return err;

@@ -5,4 +5,5 @@
 # Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
 
 runs:
-  - elf: apps/snax-gemmx/build/snax-gemmx.elf
+  - elf: apps/snax-gemmx-matmul/build/snax-gemmx-matmul.elf
+  - elf: apps/snax-gemmx-conv/build/snax-gemmx-conv.elf
