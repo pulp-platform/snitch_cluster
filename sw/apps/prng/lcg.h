@@ -6,11 +6,8 @@
 // Hakim Filali <hfilali@student.ee.ethz.ch>
 // Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-#include "snrt.h"
-
 // Numerical Recipes from the "quick and dirty generators" list, Chapter 7.1,
 // Eq. 7.1.6 parameters from Knuth and H. W. Lewis
-#define MAX_UINT_PLUS1 4294967296.0
 #define LCG_A 1664525
 #define LCG_C 1013904223
 
@@ -19,8 +16,6 @@ typedef struct {
     uint32_t A;
     uint32_t C;
 } lcg_t;
-
-__thread double max_uint_plus_1_inverse = (double)1.0 / (double)MAX_UINT_PLUS1;
 
 lcg_t lcg_init_default(uint32_t seed) {
     lcg_t lcg = {.state = seed, .A = LCG_A, .C = LCG_C};
@@ -35,11 +30,6 @@ lcg_t lcg_init(uint32_t seed, uint32_t A, uint32_t C) {
 uint32_t lcg_next(lcg_t* lcg) {
     lcg->state = lcg->state * lcg->A + lcg->C;
     return lcg->state;
-}
-
-// Normalize integer PRN to [0, 1) range
-double rand_int_to_unit_double(uint32_t x) {
-    return (double)x * max_uint_plus_1_inverse;
 }
 
 void lcg_init_n(uint32_t seed, uint32_t A, uint32_t C, uint32_t n, lcg_t* lcg) {

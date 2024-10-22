@@ -1,0 +1,151 @@
+# Copyright 2024 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Luca Colagrande <colluca@iis.ee.ethz.ch>
+
+experiments:
+    - app: pi
+      prng: lcg
+      funcptr: calculate_psum_naive
+      n_cores: 8
+      n_samples: 8192
+      batch_size: 256
+    - app: pi
+      prng: lcg
+      funcptr: calculate_psum_naive
+      n_cores: 1
+      n_samples: 8192
+      batch_size: 256
+    - app: pi
+      prng: lcg
+      funcptr: calculate_psum_baseline
+      n_cores: 8
+      n_samples: 8192
+      batch_size: 256
+    - app: pi
+      prng: lcg
+      funcptr: calculate_psum_baseline
+      n_cores: 1
+      n_samples: 8192
+      batch_size: 256
+    - app: pi
+      prng: lcg
+      funcptr: calculate_psum_optimized
+      n_cores: 8
+      n_samples: 8192
+      batch_size: 256
+    - app: pi
+      prng: lcg
+      funcptr: calculate_psum_optimized
+      n_cores: 1
+      n_samples: 8192
+      batch_size: 256
+    - app: poly
+      prng: lcg
+      funcptr: calculate_psum_naive
+      n_cores: 8
+      n_samples: 8192
+      batch_size: 256
+    - app: poly
+      prng: lcg
+      funcptr: calculate_psum_naive
+      n_cores: 1
+      n_samples: 8192
+      batch_size: 256
+    - app: poly
+      prng: lcg
+      funcptr: calculate_psum_baseline
+      n_cores: 8
+      n_samples: 8192
+      batch_size: 256
+    - app: poly
+      prng: lcg
+      funcptr: calculate_psum_baseline
+      n_cores: 1
+      n_samples: 8192
+      batch_size: 256
+    - app: poly
+      prng: lcg
+      funcptr: calculate_psum_optimized
+      n_cores: 8
+      n_samples: 8192
+      batch_size: 256
+    - app: poly
+      prng: lcg
+      funcptr: calculate_psum_optimized
+      n_cores: 1
+      n_samples: 8192
+      batch_size: 256
+    - app: pi
+      prng: xoshiro128p
+      funcptr: calculate_psum_naive
+      n_cores: 8
+      n_samples: 8192
+      batch_size: 256
+    - app: pi
+      prng: xoshiro128p
+      funcptr: calculate_psum_naive
+      n_cores: 1
+      n_samples: 8192
+      batch_size: 256
+    - app: pi
+      prng: xoshiro128p
+      funcptr: calculate_psum_baseline
+      n_cores: 8
+      n_samples: 8192
+      batch_size: 256
+    - app: pi
+      prng: xoshiro128p
+      funcptr: calculate_psum_baseline
+      n_cores: 1
+      n_samples: 8192
+      batch_size: 256
+    - app: pi
+      prng: xoshiro128p
+      funcptr: calculate_psum_optimized
+      n_cores: 8
+      n_samples: 8192
+      batch_size: 256
+    - app: pi
+      prng: xoshiro128p
+      funcptr: calculate_psum_optimized
+      n_cores: 1
+      n_samples: 8192
+      batch_size: 256
+    - app: poly
+      prng: xoshiro128p
+      funcptr: calculate_psum_naive
+      n_cores: 8
+      n_samples: 8192
+      batch_size: 256
+    - app: poly
+      prng: xoshiro128p
+      funcptr: calculate_psum_naive
+      n_cores: 1
+      n_samples: 8192
+      batch_size: 256
+    - app: poly
+      prng: xoshiro128p
+      funcptr: calculate_psum_baseline
+      n_cores: 8
+      n_samples: 8192
+      batch_size: 256
+    - app: poly
+      prng: xoshiro128p
+      funcptr: calculate_psum_baseline
+      n_cores: 1
+      n_samples: 8192
+      batch_size: 256
+    - app: poly
+      prng: xoshiro128p
+      funcptr: calculate_psum_optimized
+      n_cores: 8
+      n_samples: 8192
+      batch_size: 256
+    - app: poly
+      prng: xoshiro128p
+      funcptr: calculate_psum_optimized
+      n_cores: 1
+      n_samples: 8192
+      batch_size: 256

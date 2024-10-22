@@ -1,0 +1,27 @@
+[
+    <% n_batches = (n_samples // n_cores) // batch_size %>
+    <% n_iterations = n_batches + 2 %>
+
+    // Compute cores
+% for j in range(n_cores):
+    {
+        "thread": "${f'hart_{j}'}",
+
+    // ROIs in optimized implementation (shows individual batches)
+    % if funcptr == 'calculate_psum_optimized':
+        "roi": [
+            {"idx": 1, "label": "init"},
+        % for i in range(n_iterations):
+            {"idx": ${2 + i}, "label": "iteration"},
+        % endfor
+        ]
+    // ROIs in other implementations (show computation as a whole)
+    % else:
+        "roi": [
+            {"idx": 1, "label": "init"},
+            {"idx": 2, "label": "psum"},
+        ]
+    % endif
+    },
+% endfor
+]
