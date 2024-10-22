@@ -290,7 +290,7 @@ module ${cfg['name']}_wrapper (
   //-----------------------------
   // Observable pins
   //-----------------------------
-  output logic [snax_hypercorex_cluster_pkg::ObsWidth-1:0] obs_o,
+  output logic [${cfg['pkg_name']}::ObsWidth-1:0] obs_o,
 % endif
   //-----------------------------
   // Interrupt ports

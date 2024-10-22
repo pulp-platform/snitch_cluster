@@ -28,6 +28,9 @@
         dma_axi_req_fifo_depth: 3,
         dma_req_fifo_depth: 3,
 
+        // Observable pins parameter
+        observable_pin_width: 8,
+
         // Additional parameters for Hemaia integration
         narrow_trans: 4,
         wide_trans: 32,
