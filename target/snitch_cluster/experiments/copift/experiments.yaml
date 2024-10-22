@@ -1,0 +1,79 @@
+# Copyright 2024 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Luca Colagrande <colluca@iis.ee.ethz.ch>
+
+experiments:
+  - app: pi_estimation
+    integrand: pi
+    prng: lcg
+    impl: baseline
+    n_cores: 1
+    n_samples: 8192
+    batch_size: 256
+  - app: pi_estimation
+    integrand: pi
+    prng: lcg
+    impl: optimized
+    n_cores: 1
+    n_samples: 8192
+    batch_size: 256
+  - app: exp
+    impl: baseline
+    length: 4096
+    batch_size: 128
+  - app: exp
+    impl: optimized
+    length: 4096
+    batch_size: 128
+  - app: log
+    impl: baseline
+    length: 4096
+    batch_size: 256
+  - app: log
+    impl: issr
+    length: 4096
+    batch_size: 256
+  - app: pi_estimation
+    integrand: poly
+    prng: lcg
+    impl: baseline
+    n_cores: 1
+    n_samples: 8192
+    batch_size: 256
+  - app: pi_estimation
+    integrand: poly
+    prng: lcg
+    impl: optimized
+    n_cores: 1
+    n_samples: 8192
+    batch_size: 256
+  - app: pi_estimation
+    integrand: poly
+    prng: xoshiro128p
+    impl: baseline
+    n_cores: 1
+    n_samples: 8192
+    batch_size: 256
+  - app: pi_estimation
+    integrand: poly
+    prng: xoshiro128p
+    impl: optimized
+    n_cores: 1
+    n_samples: 8192
+    batch_size: 256
+  - app: pi_estimation
+    integrand: pi
+    prng: xoshiro128p
+    impl: baseline
+    n_cores: 1
+    n_samples: 8192
+    batch_size: 256
+  - app: pi_estimation
+    integrand: pi
+    prng: xoshiro128p
+    impl: optimized
+    n_cores: 1
+    n_samples: 8192
+    batch_size: 256

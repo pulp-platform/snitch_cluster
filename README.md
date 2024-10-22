@@ -181,4 +181,23 @@ If you use the Snitch cluster or its extensions in your work, you can cite us:
 </p>
 </details>
 
+<details>
+<summary><b><a href="https://arxiv.org/abs/2503.20590">Dual-Issue Execution of Mixed Integer and Floating-Point Workloads on Energy-Efficient In-Order RISC-V Cores</a></b></summary>
+<p>
+
+```
+@misc{colagrande2025copift,
+  title={Dual-Issue Execution of Mixed Integer and Floating-Point Workloads on Energy-Efficient In-Order RISC-V Cores},
+  author={Luca Colagrande and Luca Benini},
+  year={2025},
+  eprint={2503.20590},
+  archivePrefix={arXiv},
+  primaryClass={cs.AR},
+  url={https://arxiv.org/abs/2503.20590}
+}
+```
+
+</p>
+</details>
+
 <!--end-publications-->
