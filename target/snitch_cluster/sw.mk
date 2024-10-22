@@ -70,6 +70,7 @@ APPS += sw/apps/correlation
 APPS += sw/apps/covariance
 APPS += sw/apps/doitgen
 APPS += sw/apps/kmeans
+APPS += sw/apps/exp
 
 # Include Makefile from each app subdirectory
 $(foreach app,$(APPS), \
