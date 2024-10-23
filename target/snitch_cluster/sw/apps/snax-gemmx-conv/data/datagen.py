@@ -67,12 +67,16 @@ def emit_conv_data(**kwargs):
         8,
     )
 
+    stride_h, stride_w = (kwargs["stride_h"], kwargs["stride_w"])
+    pad_h, pad_w = (kwargs["pad_h"], kwargs["pad_w"])
+
+    # make sure the output width is multiple of 8
+    if W // stride_w % 8 != 0:
+        W = W + (stride_w * (8 - (W // stride_w) % 8)) % (stride_w * 8)
+
     # test data generation
     input_data = np.random.randint(-10, 10, size=(Nbatch, Cin8, H, W, 8))
     kernel = np.random.randint(-10, 10, size=(Cout8, Cin8, Kh, Kw, 8, 8))
-
-    stride_h, stride_w = (kwargs["stride_h"], kwargs["stride_w"])
-    pad_h, pad_w = (kwargs["pad_h"], kwargs["pad_w"])
 
     # inferred config from the input data and kernel
     padding = pad_h, pad_w
@@ -178,6 +182,11 @@ def emit_conv_data(**kwargs):
         delta_physical_c = delta_local_c
         delta_physical_d8 = delta_local_d8
         delta_physical_d32 = delta_local_d32
+
+        assert (
+            input_padding.size + kernel.size + length_c * 4 * 2
+            < kwargs["memory_size"] * 1024
+        )
     else:
         # Generating base pointer settings
         base_logical_addr_delta = kwargs["memory_size"] / 4 * 1024
@@ -193,6 +202,12 @@ def emit_conv_data(**kwargs):
         delta_physical_c = base_pyhsical_addr_delta * 2
         delta_physical_d32 = base_pyhsical_addr_delta * 3
         delta_physical_d8 = base_pyhsical_addr_delta * 3
+
+        assert (
+            input_padding.size < base_logical_addr_delta
+            and kernel.size < base_logical_addr_delta
+            and M * N * 8 * 8 * 4 < base_logical_addr_delta
+        )
 
     if kwargs["interleaved_address"] == 1:
         # logical address is the same as physical address

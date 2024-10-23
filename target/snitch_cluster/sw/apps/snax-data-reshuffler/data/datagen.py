@@ -18,7 +18,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../../../util/
 from data_utils import format_scalar_definition, format_vector_definition  # noqa E402
 
 # Add golden model path
-from snax_utils import data_reshuffler_golden_model, max_pooling  # noqa E402
+from snax_utils import data_reshuffler_golden_model, max_pooling, im2col  # noqa E402
 
 np.random.seed(42)
 
@@ -27,7 +27,7 @@ np.random.seed(42)
 def emit_header_file(**kwargs):
     emit_str = "#include <stdint.h>\n\n"
     emit_str += "#include <stdbool.h> \n\n"
-    emit_str += emit_gemm_data(**kwargs)
+    emit_str += emit_data_reshuffler(**kwargs)
     return emit_str
 
 
@@ -35,20 +35,24 @@ MIN = -128
 MAX = 127
 
 
-def emit_gemm_data(**kwargs):
+def emit_data_reshuffler(**kwargs):
     data_str = []
 
-    if kwargs["ifMaxPool"] is False:
+    assert (
+        kwargs["ifMaxPool"] + kwargs["iftestIm2Col"] + kwargs["ifTestTransposer"] == 1
+    ), "Only one kernel can be tested at a time"
+
+    if kwargs["ifTestTransposer"] is True:
         # Generating loop bounds settings
         data_str += [
-            format_scalar_definition("int8_t", "tempLoop0_in", kwargs["tempLoop0"]),
-            format_scalar_definition("int8_t", "tempLoop1_in", kwargs["tempLoop1"]),
-            format_scalar_definition("int8_t", "tempLoop2_in", 1),
-            format_scalar_definition("int8_t", "tempLoop3_in", 1),
-            format_scalar_definition("int8_t", "tempLoop4_in", 1),
-            format_scalar_definition("int8_t", "tempLoop0_out", kwargs["tempLoop0"]),
-            format_scalar_definition("int8_t", "tempLoop1_out", kwargs["tempLoop1"]),
-            format_scalar_definition("int8_t", "tempLoop2_out", 1),
+            format_scalar_definition("int32_t", "tempLoop0_in", kwargs["tempLoop0"]),
+            format_scalar_definition("int32_t", "tempLoop1_in", kwargs["tempLoop1"]),
+            format_scalar_definition("int32_t", "tempLoop2_in", 1),
+            format_scalar_definition("int32_t", "tempLoop3_in", 1),
+            format_scalar_definition("int32_t", "tempLoop4_in", 1),
+            format_scalar_definition("int32_t", "tempLoop0_out", kwargs["tempLoop0"]),
+            format_scalar_definition("int32_t", "tempLoop1_out", kwargs["tempLoop1"]),
+            format_scalar_definition("int32_t", "tempLoop2_out", 1),
             format_scalar_definition(
                 "int32_t",
                 "input_data_len",
@@ -62,17 +66,7 @@ def emit_gemm_data(**kwargs):
         ]
 
         # Generating temporal strides settings
-        # DMA strides (from L3 to L1)
         data_str += [
-            format_scalar_definition(
-                "int32_t", "DMAtempStride0_in", kwargs["DMAtempStride0_in"]
-            ),
-            format_scalar_definition(
-                "int32_t", "DMAtempStride1_in", kwargs["DMAtempStride1_in"]
-            ),
-            format_scalar_definition(
-                "int32_t", "DMAspatialStride1_in", kwargs["DMAspatialStride1_in"]
-            ),
             # data reshuffler input strides
             format_scalar_definition(
                 "int32_t", "tempStride0_in", kwargs["tempStride0_in"]
@@ -188,7 +182,120 @@ def emit_gemm_data(**kwargs):
         data_str += [format_vector_definition("int8_t", "DataIn", data_in)]
         data_str += [format_vector_definition("int8_t", "C_golden", c_golden)]
 
-        data_str = "\n\n".join(data_str)
+    elif kwargs["iftestIm2Col"] is True:
+        assert (
+            kwargs["ifC8HW8datalayout"] is True
+        ), "Only C8HW8 data layout is supported for im2col testing"
+
+        # Generating layer settings
+        Nbatch = kwargs["Nbatch"]
+        Cin8 = kwargs["Cin"] // 8
+        H = kwargs["H"]
+        W = kwargs["W"]
+        Kh = kwargs["Kh"]
+        Kw = kwargs["Kw"]
+        stride_h, stride_w = (kwargs["stride_h"], kwargs["stride_w"])
+        pad_h, pad_w = (kwargs["pad_h"], kwargs["pad_w"])
+
+        # make sure the output width is multiple of 8
+        if W // stride_w % 8 != 0:
+            W = W + (stride_w * (8 - (W // stride_w) % 8)) % (stride_w * 8)
+
+        # generate random input and kernel data
+        input_data = np.random.randint(-10, 10, size=(Nbatch, Cin8, H, W, 8))
+        kernel = np.random.randint(-10, 10, size=(1, Cin8, Kh, Kw, 8, 8))
+
+        # Padding the input data
+        input_padding = np.pad(
+            input_data,
+            ((0, 0), (0, 0), (pad_h, pad_h), (pad_w, pad_w), (0, 0)),
+            mode="constant",
+        )
+
+        # Calculate the size of the output feature map
+        out_height = (H + 2 * pad_h - Kh) // stride_h + 1
+        out_width = (W + 2 * pad_w - Kw) // stride_w + 1
+
+        assert out_width % 8 == 0, "out_width must be multiple of 8"
+
+        tempLoop0_in = Kw
+        tempLoop1_in = Kh
+        tempLoop2_in = Cin8
+        tempLoop3_in = out_width // 8
+        tempLoop4_in = out_height
+
+        spatialStride1_in = 8 * stride_w
+
+        tempStride0_in = 8
+        tempStride1_in = 8 * (W + 2 * pad_w)
+        tempStride2_in = 8 * (W + 2 * pad_w) * (H + 2 * pad_h)
+        tempStride3_in = 8 * 8 * stride_w
+        tempStride4_in = 8 * (W + 2 * pad_w) * stride_h
+
+        tempLoop0_out = Cin8 * Kw * Kh
+        tempLoop1_out = out_width // 8 * out_height
+        tempLoop2_out = 1
+
+        spatialStride1_out = 8
+        tempStride0_out = 8 * 8
+        tempStride1_out = 8 * 8 * Cin8 * Kw * Kh
+        tempStride2_out = 0
+
+        assert (
+            tempLoop0_in * tempLoop1_in * tempLoop2_in * tempLoop3_in * tempLoop4_in
+            == tempLoop0_out * tempLoop1_out * tempLoop2_out
+        )
+
+        input_data_len = input_padding.size
+
+        explicit_im2col, _ = im2col(
+            input_data, kernel, stride=(stride_h, stride_w), padding=(pad_h, pad_w)
+        )
+        output_data_len = explicit_im2col.size
+
+        delta_local_in = 0
+        delta_local_out = input_data_len
+
+        data_str += [
+            format_scalar_definition("int32_t", "tempLoop0_in", tempLoop0_in),
+            format_scalar_definition("int32_t", "tempLoop1_in", tempLoop1_in),
+            format_scalar_definition("int32_t", "tempLoop2_in", tempLoop2_in),
+            format_scalar_definition("int32_t", "tempLoop3_in", tempLoop3_in),
+            format_scalar_definition("int32_t", "tempLoop4_in", tempLoop4_in),
+            format_scalar_definition("int32_t", "tempLoop0_out", tempLoop0_out),
+            format_scalar_definition("int32_t", "tempLoop1_out", tempLoop1_out),
+            format_scalar_definition("int32_t", "tempLoop2_out", tempLoop2_out),
+            format_scalar_definition("int32_t", "input_data_len", input_data_len),
+            format_scalar_definition("int32_t", "output_data_len", output_data_len),
+            format_scalar_definition("int32_t", "spatialStride1_in", spatialStride1_in),
+            format_scalar_definition("int32_t", "tempStride0_in", tempStride0_in),
+            format_scalar_definition("int32_t", "tempStride1_in", tempStride1_in),
+            format_scalar_definition("int32_t", "tempStride2_in", tempStride2_in),
+            format_scalar_definition("int32_t", "tempStride3_in", tempStride3_in),
+            format_scalar_definition("int32_t", "tempStride4_in", tempStride4_in),
+            format_scalar_definition(
+                "int32_t", "spatialStride1_out", spatialStride1_out
+            ),
+            format_scalar_definition("int32_t", "tempStride0_out", tempStride0_out),
+            format_scalar_definition("int32_t", "tempStride1_out", tempStride1_out),
+            format_scalar_definition("int32_t", "tempStride2_out", tempStride2_out),
+            format_scalar_definition("int32_t", "delta_local_in", delta_local_in),
+            format_scalar_definition("int32_t", "delta_local_out", delta_local_out),
+            format_vector_definition("int8_t", "DataIn", input_padding.reshape(-1)),
+            format_vector_definition("int8_t", "C_golden", explicit_im2col.reshape(-1)),
+        ]
+
+        TloopLen = (
+            tempLoop0_in * tempLoop1_in * tempLoop2_in * tempLoop3_in * tempLoop4_in
+        )
+        reduceLen = 1
+        opcode = 0
+
+        data_str += [
+            format_scalar_definition("int", "TloopLen", TloopLen),
+            format_scalar_definition("int", "reduceLen", reduceLen),
+            format_scalar_definition("int", "opcode", opcode),
+        ]
 
     # max pooling then
     elif kwargs["ifC8HW8datalayout"] is True:
@@ -219,13 +326,13 @@ def emit_gemm_data(**kwargs):
         data_str += [
             format_scalar_definition("int32_t", "input_data_len", input_data_len),
             # input data reshuffler loop bounds settings
-            format_scalar_definition("int8_t", "tempLoop0_in", kwargs["Kw"]),
-            format_scalar_definition("int8_t", "tempLoop1_in", kwargs["Kh"]),
+            format_scalar_definition("int32_t", "tempLoop0_in", kwargs["Kw"]),
+            format_scalar_definition("int32_t", "tempLoop1_in", kwargs["Kh"]),
             format_scalar_definition(
-                "int8_t", "tempLoop2_in", padded_output_tensor_w // 8
+                "int32_t", "tempLoop2_in", padded_output_tensor_w // 8
             ),
-            format_scalar_definition("int8_t", "tempLoop3_in", padded_output_tensor_h),
-            format_scalar_definition("int8_t", "tempLoop4_in", kwargs["Cin"] // 8),
+            format_scalar_definition("int32_t", "tempLoop3_in", padded_output_tensor_h),
+            format_scalar_definition("int32_t", "tempLoop4_in", kwargs["Cin"] // 8),
         ]
 
         assert padded_output_tensor_w % 8 == 0
@@ -258,10 +365,12 @@ def emit_gemm_data(**kwargs):
         data_str += [
             # output data reshuffler loop bounds settings
             format_scalar_definition(
-                "int8_t", "tempLoop0_out", padded_output_tensor_w // 8
+                "int32_t", "tempLoop0_out", padded_output_tensor_w // 8
             ),
-            format_scalar_definition("int8_t", "tempLoop1_out", padded_output_tensor_h),
-            format_scalar_definition("int8_t", "tempLoop2_out", kwargs["Cin"] // 8),
+            format_scalar_definition(
+                "int32_t", "tempLoop1_out", padded_output_tensor_h
+            ),
+            format_scalar_definition("int32_t", "tempLoop2_out", kwargs["Cin"] // 8),
             # data length setting
             format_scalar_definition("int32_t", "output_data_len", output_data_len),
         ]
@@ -376,7 +485,6 @@ def emit_gemm_data(**kwargs):
             format_vector_definition("int8_t", "C_golden", c_golden.reshape(-1))
         ]
 
-        data_str = "\n\n".join(data_str)
     else:
         # data layout HWCin
         # Generating loop bounds settings
@@ -400,19 +508,21 @@ def emit_gemm_data(**kwargs):
 
         data_str += [
             # input data reshuffler loop bounds settings
-            format_scalar_definition("int8_t", "tempLoop0_in", kwargs["Kw"]),
-            format_scalar_definition("int8_t", "tempLoop1_in", kwargs["Kh"]),
-            format_scalar_definition("int8_t", "tempLoop2_in", kwargs["Cin"] // 8),
+            format_scalar_definition("int32_t", "tempLoop0_in", kwargs["Kw"]),
+            format_scalar_definition("int32_t", "tempLoop1_in", kwargs["Kh"]),
+            format_scalar_definition("int32_t", "tempLoop2_in", kwargs["Cin"] // 8),
             format_scalar_definition(
-                "int8_t", "tempLoop3_in", padded_output_tensor_w // 8
+                "int32_t", "tempLoop3_in", padded_output_tensor_w // 8
             ),
-            format_scalar_definition("int8_t", "tempLoop4_in", padded_output_tensor_h),
+            format_scalar_definition("int32_t", "tempLoop4_in", padded_output_tensor_h),
             # output data reshuffler loop bounds settings
-            format_scalar_definition("int8_t", "tempLoop0_out", kwargs["Cin"] // 8),
+            format_scalar_definition("int32_t", "tempLoop0_out", kwargs["Cin"] // 8),
             format_scalar_definition(
-                "int8_t", "tempLoop1_out", padded_output_tensor_w // 8
+                "int32_t", "tempLoop1_out", padded_output_tensor_w // 8
             ),
-            format_scalar_definition("int8_t", "tempLoop2_out", padded_output_tensor_h),
+            format_scalar_definition(
+                "int32_t", "tempLoop2_out", padded_output_tensor_h
+            ),
             # data length setting
             format_scalar_definition("int32_t", "input_data_len", input_data_len),
             format_scalar_definition("int32_t", "output_data_len", output_data_len),
@@ -515,7 +625,7 @@ def emit_gemm_data(**kwargs):
             format_vector_definition("int8_t", "C_golden", c_golden.reshape(-1))
         ]
 
-        data_str = "\n\n".join(data_str)
+    data_str = "\n\n".join(data_str)
 
     return data_str
 

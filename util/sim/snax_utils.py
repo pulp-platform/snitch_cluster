@@ -113,9 +113,10 @@ def conv2d(input_data, kernel, stride=(1, 1), padding=(0, 0), mode="NHWC"):
 
 # Function to transform input data into columns for efficient convolution operations.
 # It returns the transformed input data and reshaped kernel.
-def im2col(input_data, kernel, stride=(1, 1), padding=(0, 0)):
-    batch_size, in_height, in_width, in_channels = input_data.shape
-    out_channels, kernel_height, kernel_width, _ = kernel.shape
+def im2col(input_data, kernel, stride=(1, 1), padding=(0, 0), mode="NC8HW8"):
+    assert mode == "NC8HW8"
+    batch_size, in_channels_8, in_height, in_width, _ = input_data.shape
+    _, out_channels, kernel_height, kernel_width, _, _ = kernel.shape
     stride_h, stride_w = stride
     pad_h, pad_w = padding
 
@@ -125,32 +126,48 @@ def im2col(input_data, kernel, stride=(1, 1), padding=(0, 0)):
 
     # Apply zero padding to the input data
     input_data_padded = np.pad(
-        input_data, ((0, 0), (pad_h, pad_h), (pad_w, pad_w), (0, 0)), mode="constant"
+        input_data,
+        ((0, 0), (0, 0), (pad_h, pad_h), (pad_w, pad_w), (0, 0)),
+        mode="constant",
     )
 
     # Initialize the im2col matrix
     im2col_matrix = np.zeros(
-        (batch_size, out_height * out_width, in_channels * kernel_height * kernel_width)
+        (
+            batch_size,
+            out_height,
+            out_width // 8,
+            in_channels_8,
+            kernel_height,
+            kernel_width,
+            # ow in 8
+            8,
+            # cin in 8
+            8,
+        )
     )
 
     # Perform the im2col transformation on the input data
     for b in range(batch_size):
         for oh in range(out_height):
-            for ow in range(out_width):
-                # Calculate the input region
-                ih_start = oh * stride_h
-                ih_end = ih_start + kernel_height
-                iw_start = ow * stride_w
-                iw_end = iw_start + kernel_width
+            for ow in range(out_width // 8):
+                for ow8 in range(8):
+                    for ic in range(in_channels_8):
+                        for ic8 in range(8):
+                            # Calculate the input region
+                            iw_start = (ow * 8 + ow8) * stride_w
+                            iw_end = iw_start + kernel_width
 
-                # Slice and extract the input region
-                input_region = input_data_padded[b, ih_start:ih_end, iw_start:iw_end, :]
+                            ih_start = oh * stride_h
+                            ih_end = ih_start + kernel_height
 
-                # Flatten the input region into a 1D vector and add it to the
-                # corresponding position in the im2col matrix
-                im2col_matrix[b, oh * out_width + ow, :] = input_region.reshape(-1)
+                            # Slice to extract the input region
+                            input_region = input_data_padded[
+                                b, ic, ih_start:ih_end, iw_start:iw_end, ic8
+                            ]
 
-    im2col_matrix = im2col_matrix.reshape(batch_size * out_height * out_width, -1)
+                            im2col_matrix[b, oh, ow, ic, :, :, ow8, ic8] = input_region
+
     im2col_kernel = kernel.reshape(out_channels, -1).T
 
     return im2col_matrix, im2col_kernel

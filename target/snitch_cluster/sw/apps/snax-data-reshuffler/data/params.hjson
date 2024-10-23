@@ -5,18 +5,16 @@
 // Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
 
 {
-    // ifMaxPool: false,
-    // ifMaxPool: true,
     ifMaxPool: false,
-
+    iftestIm2Col: true,
+    ifTestTransposer: false,
+    
     // parameters for maxpool
-    // ifC8HW8datalayout: true,
-    ifC8HW8datalayout: false,
+    ifC8HW8datalayout: true,
     Nbatch: 1,
     H: 32,
     W: 32,
     Cin: 8,
-    
     Kh: 3,
     Kw: 3,
     pad_h: 1,
@@ -28,9 +26,6 @@
     op: 'rowmajor2tiledrowmajor',
     tempLoop0: 8,
     tempLoop1: 8,
-    DMAspatialStride1_in: 8,
-    DMAtempStride0_in: 64,
-    DMAtempStride1_in: 512,
     spatialStride1_in: 64,
     tempStride0_in: 8,
     tempStride1_in: 512,
