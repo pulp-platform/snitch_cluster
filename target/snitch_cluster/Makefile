@@ -78,7 +78,7 @@ SYN_BENDER  := $(SYN_BENDER)  $(shell cat $(GENERATED_DIR)/bender_targets.tmp)
 # List manual conditions for different configurations
 
 # TODO: This config should be removed in the future, as the accelerator is in the seperate repo
-ifeq (${CFG_OVERRIDE}, cfg/snax_streamer_gemm.hjson)
+ifeq (${CFG_OVERRIDE}, cfg/snax_streamer_gemm_cluster.hjson)
 
 	SNAX_GEMM_ROOT ?= $(shell $(BENDER) path snax-gemm)
 	include $(SNAX_GEMM_ROOT)/Makefile
@@ -86,19 +86,19 @@ ifeq (${CFG_OVERRIDE}, cfg/snax_streamer_gemm.hjson)
 endif
 
 
-ifeq (${CFG_OVERRIDE}, cfg/snax_mac.hjson)
+ifeq (${CFG_OVERRIDE}, cfg/snax_mac_cluster.hjson)
 
 	BYPASS_ACCGEN = true
 
 endif
 
-ifeq (${CFG_OVERRIDE}, cfg/snax_mac_mult.hjson)
+ifeq (${CFG_OVERRIDE}, cfg/snax_mac_mult_cluster.hjson)
 
 	BYPASS_ACCGEN = true
 
 endif
 
-ifeq (${CFG_OVERRIDE}, cfg/default.hjson)
+ifeq (${CFG_OVERRIDE}, cfg/snitch_cluster.hjson)
 
 	BYPASS_ACCGEN = true
 

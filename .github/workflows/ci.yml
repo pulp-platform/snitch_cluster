@@ -43,17 +43,17 @@ jobs:
         run: |
           bender vendor init
           make -C target/snitch_cluster sw \
-          CFG_OVERRIDE=cfg/default.hjson \
+          CFG_OVERRIDE=cfg/snitch_cluster.hjson \
           SELECT_RUNTIME=rtl \
           SELECT_TOOLCHAIN=llvm-snitch
       - name: Generate RTL
         run: |
           make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/default.hjson
+          CFG_OVERRIDE=cfg/snitch_cluster.hjson
       - name: Build Hardware
         run: |
           make -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc) \
-          CFG_OVERRIDE=cfg/default.hjson
+          CFG_OVERRIDE=cfg/snitch_cluster.hjson
       - name: Run Tests
         working-directory: target/snitch_cluster
         run: |
@@ -78,14 +78,14 @@ jobs:
       - name: Generate RTL
         run: |
           make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/snax_mac.hjson
+          CFG_OVERRIDE=cfg/snax_mac_cluster.hjson
       - name: Build Software
         run: |
           make -C target/snitch_cluster sw \
-          CFG_OVERRIDE=cfg/snax_mac.hjson
+          CFG_OVERRIDE=cfg/snax_mac_cluster.hjson
       - name: Build Hardware
         run: |
-          make CFG_OVERRIDE=cfg/snax_mac.hjson \
+          make CFG_OVERRIDE=cfg/snax_mac_cluster.hjson \
           -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
       - name: Run Tests
         working-directory: target/snitch_cluster
@@ -105,10 +105,10 @@ jobs:
       - name: Generate RTL
         run: |
           make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/snax_streamer_gemm.hjson
+          CFG_OVERRIDE=cfg/snax_streamer_gemm_cluster.hjson
       - name: Build Hardware
         run: |
-          make CFG_OVERRIDE=cfg/snax_streamer_gemm.hjson \
+          make CFG_OVERRIDE=cfg/snax_streamer_gemm_cluster.hjson \
           -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
 
   sw-snax-streamer-gemm-add-c-cluster-vlt-generic:
@@ -123,10 +123,10 @@ jobs:
       - name: Generate RTL
         run: |
           make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/snax_streamer_gemm_add_c.hjson
+          CFG_OVERRIDE=cfg/snax_streamer_gemm_add_c_cluster.hjson
       - name: Build Hardware
         run: |
-          make CFG_OVERRIDE=cfg/snax_streamer_gemm_add_c.hjson \
+          make CFG_OVERRIDE=cfg/snax_streamer_gemm_add_c_cluster.hjson \
           -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
 
   sw-snax-mac-mult-cluster-vlt-generic:
@@ -141,14 +141,14 @@ jobs:
       - name: Generate RTL
         run: |
           make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/snax_mac_mult.hjson
+          CFG_OVERRIDE=cfg/snax_mac_mult_cluster.hjson
       - name: Build Software
         run: |
           make -C target/snitch_cluster sw \
-          CFG_OVERRIDE=cfg/snax_mac_mult.hjson
+          CFG_OVERRIDE=cfg/snax_mac_mult_cluster.hjson
       - name: Build Hardware
         run: |
-          make CFG_OVERRIDE=cfg/snax_mac_mult.hjson \
+          make CFG_OVERRIDE=cfg/snax_mac_mult_cluster.hjson \
           -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
       - name: Run Tests
         working-directory: target/snitch_cluster
@@ -169,14 +169,14 @@ jobs:
       - name: Generate RTL
         run: |
           make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/snax_alu.hjson
+          CFG_OVERRIDE=cfg/snax_alu_cluster.hjson
       - name: Build Software
         run: |
           make -C target/snitch_cluster sw \
-          CFG_OVERRIDE=cfg/snax_alu.hjson
+          CFG_OVERRIDE=cfg/snax_alu_cluster.hjson
       - name: Build Hardware
         run: |
-          make CFG_OVERRIDE=cfg/snax_alu.hjson \
+          make CFG_OVERRIDE=cfg/snax_alu_cluster.hjson \
           -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
       - name: Run Tests
         working-directory: target/snitch_cluster
@@ -201,14 +201,14 @@ jobs:
       - name: Generate RTL
         run: |
           make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/snax_hypercorex.hjson
+          CFG_OVERRIDE=cfg/snax_hypercorex_cluster.hjson
       - name: Build Software
         run: |
           make -C target/snitch_cluster sw \
-          CFG_OVERRIDE=cfg/snax_hypercorex.hjson
+          CFG_OVERRIDE=cfg/snax_hypercorex_cluster.hjson
       - name: Build Hardware
         run: |
-          make CFG_OVERRIDE=cfg/snax_hypercorex.hjson \
+          make CFG_OVERRIDE=cfg/snax_hypercorex_cluster.hjson \
           -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
       - name: Run Tests
         working-directory: target/snitch_cluster
@@ -229,10 +229,10 @@ jobs:
       - name: Generate RTL
         run: |
           make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/snax_dimc.hjson
+          CFG_OVERRIDE=cfg/snax_dimc_cluster.hjson
       - name: Build Hardware
         run: |
-          make CFG_OVERRIDE=cfg/snax_dimc.hjson \
+          make CFG_OVERRIDE=cfg/snax_dimc_cluster.hjson \
           -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
 
   sw-snax-KUL-cluster-vlt-generic:
@@ -246,16 +246,16 @@ jobs:
           submodules: "recursive"
       - name: RTL GEN
         run: |
-          make CFG_OVERRIDE=cfg/snax_kul_cluster_mixed_narrow_wide.hjson \
+          make CFG_OVERRIDE=cfg/snax_KUL_cluster.hjson \
           -C target/snitch_cluster rtl-gen
       - name: Build Hardware
         run: |
-          make CFG_OVERRIDE=cfg/snax_kul_cluster_mixed_narrow_wide.hjson \
+          make CFG_OVERRIDE=cfg/snax_KUL_cluster.hjson \
           -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
       - name: Build Software
         run: |
           make -C target/snitch_cluster sw \
-          CFG_OVERRIDE=cfg/snax_kul_cluster_mixed_narrow_wide.hjson
+          CFG_OVERRIDE=cfg/snax_KUL_cluster.hjson
       - name: Run Tests
         working-directory: target/snitch_cluster
         run: |-
@@ -276,15 +276,15 @@ jobs:
       - name: Generate RTL
         run: |
           make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/snax_kul_cluster_mixed_narrow_wide_xdma.hjson
+          CFG_OVERRIDE=cfg/snax_KUL_xdma_cluster.hjson
       - name: Build Hardware
         run: |
-          make CFG_OVERRIDE=cfg/snax_kul_cluster_mixed_narrow_wide_xdma.hjson \
+          make CFG_OVERRIDE=cfg/snax_KUL_xdma_cluster.hjson \
           -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
       - name: Build Software
         run: |
           make -C target/snitch_cluster sw \
-          CFG_OVERRIDE=cfg/snax_kul_cluster_mixed_narrow_wide_xdma.hjson
+          CFG_OVERRIDE=cfg/snax_KUL_xdma_cluster.hjson
       - name: Run Tests
         working-directory: target/snitch_cluster
         run: |-
