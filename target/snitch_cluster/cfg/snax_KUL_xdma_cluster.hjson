@@ -14,12 +14,12 @@
         bender_target: ["snax_KUL_xdma_cluster"],
         boot_addr: 4096, // 0x1000
         cluster_base_addr: 268435456, // 0x1000_0000
-        cluster_base_offset: 262144,  // 256KB
+        cluster_base_offset: 4194304,  // 4MB
         cluster_base_hartid: 0,
         addr_width: 48,
         data_width: 64,
         tcdm: {
-            size: 4096,
+            size: 128,
             banks: 32,
         },
         cluster_periph_size: 64, // kB

@@ -9,3 +9,5 @@ test_run_dir
 out
 .bloop
 .metals
+src/main/scala/snax/csr_manager/CsrManParamGen.scala
+src/main/scala/snax/streamer/StreamParamGen.scala
