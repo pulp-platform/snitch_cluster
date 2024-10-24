@@ -67,7 +67,7 @@ def gen_file(cfg, tpl, target_path: str, file_name: str) -> None:
 # Call chisel environment and generate the system verilog file
 def gen_chisel_file(chisel_path, chisel_param, gen_path):
     cmd = f" cd {chisel_path} && \
-        mill Snax.runMain {chisel_param} {gen_path}"
+        sbt \"runMain {chisel_param} {gen_path}\" "
     print(f"Running command: {cmd}")
     if os.system(cmd) != 0:
         raise ChildProcessError("Chisel generation error. ")
