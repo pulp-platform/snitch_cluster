@@ -35,14 +35,12 @@ class RescalePECtrl(params: RescaleSIMDParams) extends Bundle {
 
 // processing element input and output declaration
 class RescalePEIO(params: RescaleSIMDParams) extends Bundle {
-  val input_i = Input(SInt(params.inputType.W))
 
   val ctrl_i = Input(new RescalePECtrl(params))
 
-  val output_o = Output(SInt(params.outputType.W))
+  val input_i = Flipped(Decoupled(SInt(params.inputType.W)))
+  val output_o = Decoupled(SInt(params.outputType.W))
 
-  val valid_i = Input(Bool())
-  val valid_o = Output(Bool())
 }
 
 // processing element module.
@@ -52,8 +50,8 @@ class RescalePE(params: RescaleSIMDParams)
     with RequireAsyncReset {
   val io = IO(new RescalePEIO(params))
 
-  val var0_0 = RegInit((0.S((64).W)))
-  val var0 = RegInit((0.S((64).W)))
+  val var0_0 = WireInit((0.S((64).W)))
+  val var0 = WireInit((0.S((64).W)))
   val var1 = WireInit(0.S((32).W))
   val var2 = WireInit(0.S((32).W))
   val var3 = WireInit(0.S((32).W))
@@ -63,7 +61,7 @@ class RescalePE(params: RescaleSIMDParams)
   val underflow = WireInit(0.B)
 
   // post processing operations
-  var0_0 := (io.input_i - io.ctrl_i.input_zp_i)
+  var0_0 := (io.input_i.bits - io.ctrl_i.input_zp_i)
 
   var0 := var0_0 * io.ctrl_i.multiplier_i
 
@@ -88,11 +86,12 @@ class RescalePE(params: RescaleSIMDParams)
     Mux(underflow, io.ctrl_i.min_int_i, var2)
   )
 
-  io.output_o := var3(7, 0).asSInt
+  io.output_o.bits := var3(7, 0).asSInt
 
   // combination block, output valid when input data is valid
-  io.valid_o := RegNext(RegNext(io.valid_i))
-  // io.valid_o := io.valid_i
+  io.output_o.valid := io.input_i.valid
+  // combination block, input ready when output is ready
+  io.input_i.ready := io.output_o.ready
 }
 
 // Scala main function for generating system verilog file for the RescalePE module

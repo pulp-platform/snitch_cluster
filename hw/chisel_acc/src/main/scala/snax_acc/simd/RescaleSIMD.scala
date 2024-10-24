@@ -3,6 +3,7 @@ package snax_acc.simd
 import chisel3._
 import chisel3.util._
 import chisel3.VecInit
+import snax_acc.utils.DecoupledCut._
 
 // Rescale SIMD data interface
 // one big input port, one big output port
@@ -50,14 +51,15 @@ class RescaleSIMD(params: RescaleSIMDParams)
   val result = Wire(
     Vec(params.laneLen, SInt(params.outputType.W))
   )
-  // storing the result in case needs to output multi-cycles
-  val out_reg = RegInit(
-    0.U((params.laneLen * params.outputType).W)
+
+  // one cycle delayed input data using DecoupledCut
+  val one_cycle_dalayed_decoupled_input_data = Wire(
+    Decoupled(UInt((params.laneLen * params.inputType).W))
   )
 
-  // the receiver isn't ready, needs to send several cycles
-  val keep_output = RegInit(0.B)
+  io.data.input_i -\> one_cycle_dalayed_decoupled_input_data
 
+  val simd_input_fire = WireInit(0.B)
   val simd_output_fire = WireInit(0.B)
 
   val read_counter = RegInit(0.U(32.W))
@@ -139,7 +141,6 @@ class RescaleSIMD(params: RescaleSIMDParams)
 
   }
 
-  val simd_input_fire = WireInit(0.B)
   simd_input_fire := io.data.input_i.fire
   when(simd_input_fire) {
     read_counter := read_counter + 1.U
@@ -158,7 +159,7 @@ class RescaleSIMD(params: RescaleSIMDParams)
     0
   ).len) && (write_counter === ctrl_csr(
     0
-  ).len - 1.U) && simd_output_fire && cstate === sBUSY
+  ).len) && cstate === sBUSY
 
   // always ready for configuration
   io.ctrl.ready := cstate === sIDLE
@@ -167,37 +168,32 @@ class RescaleSIMD(params: RescaleSIMDParams)
   // collect the result of each RescalePE
   for (i <- 0 until params.laneLen) {
     lane(i).io.ctrl_i := ctrl_csr(i % ctrl_csr_set_num)
-    result(i) := lane(i).io.output_o
+    result(i) := lane(i).io.output_o.bits
   }
-  
+
   for (i <- 0 until params.laneLen) {
-    lane(i).io.input_i := io.data.input_i
+    lane(i).io.input_i.bits := one_cycle_dalayed_decoupled_input_data
       .bits(
         (i + 1) * params.inputType - 1,
         (i) * params.inputType
       )
       .asSInt
-    lane(i).io.valid_i := io.data.input_i.valid && io.data.input_i.ready
+    lane(i).io.input_i.valid := one_cycle_dalayed_decoupled_input_data.valid
+    lane(i).io.output_o.ready := io.data.output_o.ready
   }
 
-  // always valid for new input on less is sending last output
-  io.data.input_i.ready := !keep_output && !(io.data.output_o.valid & !io.data.output_o.ready) && (cstate === sBUSY)
-
-  // if out valid but not ready, keep sneding output valid signal
-  keep_output := io.data.output_o.valid & !io.data.output_o.ready
-
-  // if data out is valid from RescalePEs, store the results in case later needs keep sending output data if receiver side is not ready
-  when(lane(0).io.valid_o) {
-    out_reg := Cat(result.reverse)
-  }
-  val out_reg_valid = RegNext(lane(0).io.valid_o)
+  // always ready for new input unless is sending the last output (output stalled)
+  one_cycle_dalayed_decoupled_input_data.ready := lane
+    .map(_.io.input_i.ready)
+    .reduce(_ && _) && (cstate === sBUSY)
 
   // concat every result to a big data bus for output
-  // if is keep sending output, send the stored result
-  io.data.output_o.bits := out_reg
+  io.data.output_o.bits := Cat(result.reverse)
 
-  // first valid from RescalePE or keep sending valid if receiver side is not ready
-  io.data.output_o.valid := out_reg_valid || keep_output
+  // propogate the valid signal
+  io.data.output_o.valid := lane
+    .map(_.io.output_o.valid)
+    .reduce(_ && _) && (cstate === sBUSY)
 
 }
 
