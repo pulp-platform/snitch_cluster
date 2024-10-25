@@ -43,6 +43,7 @@ from ctypes import c_int32, c_uint32
 from collections import deque, defaultdict
 from pathlib import Path
 import traceback
+from typing import Optional
 from itertools import tee, islice, chain
 from functools import lru_cache
 
@@ -67,6 +68,7 @@ PERF_EVAL_KEYS_OMIT = ('start', 'end', 'end_fpss', 'snitch_issues',
                        'snitch_load_latency', 'snitch_fseq_offloads',
                        'fseq_issues', 'fpss_issues', 'fpss_fpu_issues',
                        'fpss_load_latency', 'fpss_fpu_latency')
+PERF_EVAL_KEYS_DECIMAL = ('tstart', 'tend', 'cycles')
 
 # -------------------- Architectural constants and enums  --------------------
 
@@ -507,12 +509,12 @@ def flt_fmt(flt: float, width: int = 6) -> str:
 # -------------------- Literal formatting  --------------------
 
 
-def int_lit(num: int, size: int = 2, force_hex: bool = False) -> str:
+def int_lit(num: int, size: int = 2, as_hex: Optional[bool] = None) -> str:
     width = (8 * int(2**size))
     size_mask = (0x1 << width) - 1
     num = num & size_mask  # num is unsigned
     num_signed = c_int32(c_uint32(num).value).value
-    if force_hex or abs(num_signed) > MAX_SIGNED_INT_LIT:
+    if as_hex is True or abs(num_signed) > MAX_SIGNED_INT_LIT and as_hex is not False:
         return '0x{0:0{1}x}'.format(num, width // 4)
     else:
         return str(num_signed)
@@ -742,7 +744,7 @@ def annotate_snitch(extras: dict,
                     gpr_wb_info: dict,
                     perf_metrics: list,
                     annot_fseq_offl: bool = False,
-                    force_hex_addr: bool = True,
+                    int_as_hex: Optional[bool] = None,
                     permissive: bool = False) -> str:
     # Compound annotations in datapath order
     ret = []
@@ -770,10 +772,10 @@ def annotate_snitch(extras: dict,
                     csr_addr)
             cycles_past = extras['opb']
             if csr_name == 'mcycle':
-                perf_metrics[-1]['tend'] = sim_time / 1000
+                perf_metrics[-1]['tend'] = sim_time // 1000
                 perf_metrics[-1]['end'] = cycles_past
                 perf_metrics.append(defaultdict(int))
-                perf_metrics[-1]['tstart'] = sim_time / 1000
+                perf_metrics[-1]['tstart'] = sim_time // 1000
                 perf_metrics[-1]['start'] = cycles_past + 2
             ret.append('{} = {}'.format(csr_name, int_lit(cycles_past)))
         # Load / Store
@@ -782,12 +784,12 @@ def annotate_snitch(extras: dict,
             gpr_wb_info[extras['rd']].appendleft(cycle)
             ret.append('{:<3} <~~ {}[{}]'.format(
                 REG_ABI_NAMES_I[extras['rd']], LS_SIZES[extras['ls_size']],
-                int_lit(extras['alu_result'], force_hex=force_hex_addr)))
+                int_lit(extras['alu_result'], as_hex=int_as_hex)))
         elif extras['is_store']:
             perf_metrics[-1]['snitch_stores'] += 1
             ret.append('{} ~~> {}[{}]'.format(
                 int_lit(extras['gpr_rdata_1']), LS_SIZES[extras['ls_size']],
-                int_lit(extras['alu_result'], force_hex=force_hex_addr)))
+                int_lit(extras['alu_result'], as_hex=int_as_hex)))
         # Branches: all reg-reg ops
         elif extras['is_branch']:
             ret.append(
@@ -830,7 +832,7 @@ def annotate_fpu(
         perf_metrics: list,
         # Everything FPU does may have been issued in a previous section
         curr_sec: int = -1,
-        force_hex_addr: bool = True,
+        int_as_hex: Optional[bool] = None,
         permissive: bool = False) -> str:
     ret = []
     # On issuing of instruction
@@ -857,13 +859,13 @@ def annotate_fpu(
                 fpr_wb_info[extras['rd']].appendleft((LS_TO_FLOAT[s], vlen, cycle))
                 ret.append('{:<4} <~~ {}[{}]'.format(
                     REG_ABI_NAMES_F[extras['rd']], LS_SIZES[s],
-                    int_lit(extras['lsu_qaddr'], force_hex=force_hex_addr)))
+                    int_lit(extras['lsu_qaddr'], as_hex=int_as_hex)))
             if extras['is_store']:
                 perf_metrics[curr_sec]['fpss_stores'] += 1
                 _, val = flt_oper(insn, extras, 1)
                 ret.append('{} ~~> {}[{}]'.format(
                     val, LS_SIZES[s],
-                    int_lit(extras['lsu_qaddr'], force_hex=force_hex_addr)))
+                    int_lit(extras['lsu_qaddr'], as_hex=int_as_hex)))
     # On FLOP completion
     if extras['fpu_out_hs']:
         perf_metrics[-1]['fpss_fpu_issues'] += 1
@@ -914,7 +916,7 @@ def annotate_insn(
     tuple = None,  # Previous timestamp (keeps this method stateless)
     annot_fseq_offl:
     bool = False,  # Annotate whenever core offloads to CPU on own line
-    force_hex_addr: bool = True,
+    int_as_hex: Optional[bool] = None,
     permissive: bool = True,
     dma_trans: list = []
 ) -> (str, tuple, bool
@@ -943,7 +945,7 @@ def annotate_insn(
         if extras['source'] == TRACE_SRCES['snitch']:
             annot = annotate_snitch(extras, time_info[0], time_info[1],
                                     int(pc_str, 16), gpr_wb_info, perf_metrics,
-                                    annot_fseq_offl, force_hex_addr, permissive)
+                                    annot_fseq_offl, int_as_hex, permissive)
             if extras['fpu_offload']:
                 perf_metrics[-1]['snitch_fseq_offloads'] += 1
                 fseq_info['fpss_pcs'].appendleft(
@@ -986,7 +988,7 @@ def annotate_insn(
                         fseq_pc_str[-4:], *fseq_annot))
             annot_list.append(
                 annotate_fpu(extras, insn, time_info[1], fpr_wb_info, perf_metrics,
-                             fseq_info['curr_sec'], force_hex_addr,
+                             fseq_info['curr_sec'], int_as_hex,
                              permissive))
             annot = ', '.join(annot_list)
         else:
@@ -1069,7 +1071,8 @@ def fmt_perf_metrics(perf_metrics: list, idx: int, omit_keys: bool = True):
         elif isinstance(val, float):
             val_str = flt_fmt(val, 4)
         else:
-            val_str = int_lit(val)
+            as_hex = False if key in PERF_EVAL_KEYS_DECIMAL else None
+            val_str = int_lit(val, as_hex=as_hex)
         ret.append('{:<40}{:>10}'.format(key, val_str))
     return '\n'.join(ret)
 
@@ -1184,12 +1187,12 @@ def main():
                         False,
                         time_info,
                         args.offl,
-                        not args.saddr,
+                        None if args.saddr else True,
                         args.permissive,
                         dma_trans,
                     )
                     if perf_metrics[0]['start'] is None:
-                        perf_metrics[0]['tstart'] = time_info[0] / 1000
+                        perf_metrics[0]['tstart'] = time_info[0] // 1000
                         perf_metrics[0]['start'] = time_info[1]
                     if not empty:
                         print(ann_insn, file=file)
@@ -1203,7 +1206,7 @@ def main():
                     print(message, file=sys.stderr)
             else:
                 break  # Nothing more in pipe, EOF
-        perf_metrics[-1]['tend'] = time_info[0] / 1000
+        perf_metrics[-1]['tend'] = time_info[0] // 1000
         perf_metrics[-1]['end'] = time_info[1]
         # Compute metrics
         eval_perf_metrics(perf_metrics)
