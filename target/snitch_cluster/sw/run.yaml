@@ -57,6 +57,7 @@ runs:
   - elf: ./tests/build/zero_mem.elf
   - elf: ./tests/build/non_null_exitcode.elf
     retcode: 56
+  - elf: ./tests/build/issr.elf
   - elf: ./tests/build/caq.elf
     simulators: [vsim, vcs, verilator] # GVSOC does not model caq
   - elf: ./tests/build/caq_frep.elf
