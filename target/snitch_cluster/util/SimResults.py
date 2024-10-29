@@ -48,23 +48,27 @@ class MissingRegionError(Exception):
 
 class SimResults():
 
-    def __init__(self, sim_dir):
+    def __init__(self, sim_dir, source=None):
         """Initializes a simulation results object from the run directory.
         """
         self.sim_dir = Path(sim_dir)
         self.roi_json = Path(self.sim_dir) / 'logs' / 'roi.json'
         self.perf_json = Path(self.sim_dir) / 'logs' / 'perf.json'
 
+        # Get data from ROI file, if available, and perf file otherwise
+        if source is not None:
+            assert source in ['perf', 'roi'], f'Invalid source {source}.'
+            self.source = source
+        else:
+            self.source = 'perf'
+            if self.roi_json.exists():
+                self.source = 'roi'
+
     @functools.cached_property
     def performance_data(self):
         """Returns all performance data logged during simulation."""
-        # Get data from ROI file, if available, and perf file otherwise
-        self.source = self.perf_json
-        if self.roi_json.exists():
-            self.source = self.roi_json
-
-        # Read data from file
-        with open(self.source, 'r') as f:
+        source = self.perf_json if self.source == 'perf' else self.roi_json
+        with open(source, 'r') as f:
             return json.load(f)
 
     def get_metric(self, region, metric):
@@ -82,7 +86,7 @@ class SimResults():
         if isinstance(region.id, int):
             id = region.id
         else:
-            if self.source == self.perf_json:
+            if self.source == 'perf':
                 raise ValueError('Regions can only be identified by string labels if a ROI file'
                                  ' is available.')
             cnt = 0
@@ -97,10 +101,14 @@ class SimResults():
             raise MissingRegionError(region)
 
         # Get metric
-        if metric in ['tstart', 'tend']:
-            return self.performance_data[region.thread][id][metric]
+        thread_data = self.performance_data[region.thread]
+        if id < len(thread_data):
+            if metric in ['tstart', 'tend'] or self.source == 'perf':
+                return thread_data[id][metric]
+            else:
+                return thread_data[id]['attrs'][metric]
         else:
-            return self.performance_data[region.thread][id]['attrs'][metric]
+            raise MissingRegionError(region)
 
     def get_metrics(self, regions, metric):
         """Get a performance metric from multiple simulation regions.
