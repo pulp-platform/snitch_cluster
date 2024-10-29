@@ -104,13 +104,7 @@ module snax_hypercorex_shell_wrapper # (
   //---------------------------
   // Assignments to take out bit-width warnings
   //---------------------------
-  logic [ ImAddrWidth-1:0] lowdim_a_data;
-  logic [ ImAddrWidth-1:0] lowdim_b_data;
   logic [CsrDataWidth-1:0] predict_data;
-
-  // Inputs
-  assign lowdim_a_data = stream2acc_0_data_i[ImAddrWidth-1:0];
-  assign lowdim_b_data = stream2acc_1_data_i[ImAddrWidth-1:0];
 
   // Outputs
   assign acc2stream_0_data_o =
@@ -126,6 +120,7 @@ module snax_hypercorex_shell_wrapper # (
     // General Parameters
     //---------------------------
     .HVDimension        ( HVDimension          ),
+    .LowDimWidth        ( NarrowDataWidth      ),
     //---------------------------
     // CSR Parameters
     //---------------------------
@@ -175,11 +170,11 @@ module snax_hypercorex_shell_wrapper # (
     //---------------------------
     // IM ports
     //---------------------------
-    .lowdim_a_data_i    ( lowdim_a_data        ),
+    .lowdim_a_data_i    ( stream2acc_0_data_i  ),
     .lowdim_a_valid_i   ( stream2acc_0_valid_i ),
     .lowdim_a_ready_o   ( stream2acc_0_ready_o ),
 
-    .lowdim_b_data_i    ( lowdim_b_data        ),
+    .lowdim_b_data_i    ( stream2acc_1_data_i  ),
     .lowdim_b_valid_i   ( stream2acc_1_valid_i ),
     .lowdim_b_ready_o   ( stream2acc_1_ready_o ),
 
