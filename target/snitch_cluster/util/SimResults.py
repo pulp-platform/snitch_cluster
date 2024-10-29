@@ -13,16 +13,23 @@ import re
 class SimRegion():
     """A region in the simulation results.
 
-    A region is identified by a thread and a label. In case of multiple
-    regions with the same label (as e.g. in a loop) you need to provide an
-    additional index.
+    A region is identified by a thread and a region ID. The ID is the
+    index of the region in the thread's trace. Alternatively, if a
+    label was associated to the region using a region-of-interest (ROI)
+    specification, this can also be used as an identifier. In case of
+    multiple regions with the same label (as e.g. in a loop) you need to
+    provide an additional index, to select the specific occurrence of the
+    label.
     """
-    def __init__(self, thread, label, occurrence=0):
+    def __init__(self, thread, id, occurrence=0):
+        # Validate thread identifier
         pattern = r'^(hart|dma)_[0-9]+$'
         assert re.match(pattern, str(thread)), \
             f"Thread '{thread}' does not match pattern '(hart|dma)_#'"
+
+        # Save arguments
         self.thread = thread
-        self.label = label
+        self.id = id
         self.occurrence = occurrence
 
 
@@ -32,8 +39,11 @@ class MissingRegionError(Exception):
         self.region = region
 
     def __str__(self):
-        return f"Region {self.region.label} (occurrence {self.region.occurrence}) not found " \
-               f"in thread {self.region.thread}."
+        if isinstance(self.region.id, int):
+            return f"Region {self.region.id} not found in thread {self.region.thread}."
+        else:
+            return f"Region {self.region.id} (occurrence {self.region.occurrence}) not found " \
+                   f"in thread {self.region.thread}."
 
 
 class SimResults():
@@ -43,11 +53,18 @@ class SimResults():
         """
         self.sim_dir = Path(sim_dir)
         self.roi_json = Path(self.sim_dir) / 'logs' / 'roi.json'
+        self.perf_json = Path(self.sim_dir) / 'logs' / 'perf.json'
 
     @functools.cached_property
     def performance_data(self):
         """Returns all performance data logged during simulation."""
-        with open(self.roi_json, 'r') as f:
+        # Get data from ROI file, if available, and perf file otherwise
+        self.source = self.perf_json
+        if self.roi_json.exists():
+            self.source = self.roi_json
+
+        # Read data from file
+        with open(self.source, 'r') as f:
             return json.load(f)
 
     def get_metric(self, region, metric):
@@ -58,23 +75,32 @@ class SimResults():
                 instance of the `SimRegion` class.
             metric: The name of the metric to extract.
         """
-        # Get region index
-        cnt = 0
-        reg_idx = None
-        for i, reg in enumerate(self.performance_data[region.thread]):
-            if reg['label'] == region.label:
-                if cnt == region.occurrence:
-                    reg_idx = i
-                    break
-                else:
-                    cnt += 1
-        if reg_idx is None:
+        # Get region index: trivial if SimRegion is already defined by its
+        # index, otherwise search for the region with the given label
+        # and occurrence.
+        id = None
+        if isinstance(region.id, int):
+            id = region.id
+        else:
+            if self.source == self.perf_json:
+                raise ValueError('Regions can only be identified by string labels if a ROI file'
+                                 ' is available.')
+            cnt = 0
+            for i, reg in enumerate(self.performance_data[region.thread]):
+                if reg['label'] == region.id:
+                    if cnt == region.occurrence:
+                        id = i
+                        break
+                    else:
+                        cnt += 1
+        if id is None:
             raise MissingRegionError(region)
+
         # Get metric
         if metric in ['tstart', 'tend']:
-            return self.performance_data[region.thread][reg_idx][metric]
+            return self.performance_data[region.thread][id][metric]
         else:
-            return self.performance_data[region.thread][reg_idx]['attrs'][metric]
+            return self.performance_data[region.thread][id]['attrs'][metric]
 
     def get_metrics(self, regions, metric):
         """Get a performance metric from multiple simulation regions.
@@ -92,13 +118,16 @@ class SimResults():
             metrics.append(self.get_metric(region, metric))
         return metrics
 
-    def get_timespan(self, start_region, end_region):
+    def get_timespan(self, start_region, end_region=None):
         """Get the timespan between two regions.
 
         Args:
             start_region: The region to start from.
-            end_region: The region to end at.
+            end_region: The region to end at. If not provided, the start
+                region is used.
         """
+        if end_region is None:
+            end_region = start_region
         start_time = self.get_metric(start_region, 'tstart')
         end_time = self.get_metric(end_region, 'tend')
         return end_time - start_time
