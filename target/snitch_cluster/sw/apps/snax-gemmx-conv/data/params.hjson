@@ -24,7 +24,7 @@
 
   // memory space configurations
   interleaved_address: 0,
-  memory_size: 4096,
+  memory_size: 128,
 
   // hardware parameters
   meshRow : 8,
