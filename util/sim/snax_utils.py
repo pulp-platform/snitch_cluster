@@ -178,26 +178,25 @@ def im2col(input_data, kernel, stride=(1, 1), padding=(0, 0), mode="NC8HW8"):
 def block_gemm_golden_model(
     m, k, n, row, size, col, a, b, subtraction_a, subtraction_b, c
 ):
-    d = np.zeros(m * row * n * col, dtype=(np.int32))
+    # Reshape and subtract
+    a_subtracted = a.reshape(m, k, row, size) - subtraction_a  # Shape: (m, k, row, size)
+    b_subtracted = b.reshape(n, k, col, size) - subtraction_b  # Shape: (n, k, col, size)
+
+    # Initialize output array
+    d = np.zeros((m, n, row, col), dtype=np.int32)
+
+    # Compute
     for mm in range(m):
         for nn in range(n):
-            for kk in range(k):
-                for rr in range(row):
-                    for cc in range(col):
-                        for ss in range(size):
-                            c_index = (
-                                mm * n * row * col + nn * row * col + rr * col + cc
-                            )
-                            a_index = (
-                                mm * k * row * size + kk * row * size + rr * size + ss
-                            )
-                            b_index = (
-                                nn * k * size * col + kk * size * col + cc * size + ss
-                            )
-                            d[c_index] = d[c_index] + (a[a_index] - subtraction_a) * (
-                                b[b_index] - subtraction_b
-                            )
-    d = np.add(c, d)
+            # Perform tensordot over axes k and size (axes 0 and 3 in original arrays)
+            # But after reshaping, axes are (k, row, size) and (k, col, size)
+            # So axes to sum over are 0 (k) and 2 (size)
+            d[mm, nn] = np.tensordot(
+                a_subtracted[mm], b_subtracted[nn], axes=([0, 2], [0, 2])
+            )
+    # Flatten d and add c
+    d = d.reshape(m * n * row * col) + c
+
     return d
 
 
