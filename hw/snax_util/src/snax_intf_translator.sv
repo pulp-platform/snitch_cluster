@@ -18,6 +18,7 @@ module snax_intf_translator #(
   parameter type                        acc_rsp_t = logic,
   // Careful! Sensitive parameter that depends
   // On the offset of where the CSRs are placed
+  parameter int unsigned                NumOutstandingLoads = 4,
   parameter int unsigned                CsrAddrOffset = 32'h3c0
 )(
   //-------------------------------
@@ -88,13 +89,59 @@ module snax_intf_translator #(
   //-------------------------------
   // Response handler
   //-------------------------------
-  // TODO: Need to fix the response port actually
-  // Such that it handles the correct id
-  // rsp
-  assign snax_csr_rsp_ready_o = snax_pready_i;
+
+  // ID needs to be handled with a fifo buffer
+  // we know that the responses will always
+  // be in order, so we can just use a simple
+  // fifo buffer to align the request id
+
+  acc_req_t rsp_fifo_out;
+  logic rsp_fifo_full, rsp_fifo_empty;
+  logic rsp_fifo_push, rsp_fifo_pop;
+
+  // Combinational logic
+
+  // We push everytime there is a new read request
+  // but then the response is not immediatley available
+  // and when the fifo is not full!
+  assign rsp_fifo_push =   snax_qvalid_i
+                        && !write_csr
+                        && !snax_csr_rsp_valid_i
+                        && !rsp_fifo_full;
+
+  // We pop when the response is valid and the fifo is not empty
+  assign rsp_fifo_pop  =   snax_csr_rsp_valid_i
+                        && !rsp_fifo_empty;
+
+  // Buffer for aligning request id
+  fifo_v3 #(
+    .FALL_THROUGH ( 1'b0                ),
+    .DEPTH        ( NumOutstandingLoads ),
+    .dtype        ( acc_req_t           )
+  ) i_rsp_fifo (
+    .clk_i        ( clk_i               ),
+    .rst_ni       ( rst_ni              ),
+    .flush_i      ( 1'b0                ),
+    .testmode_i   ( 1'b0                ),
+    .full_o       ( rsp_fifo_full       ),
+    .empty_o      ( rsp_fifo_empty      ),
+    .usage_o      ( /* open */          ),
+    .data_i       ( snax_req_i          ),
+    .push_i       ( rsp_fifo_push       ),
+    .data_o       ( rsp_fifo_out        ),
+    .pop_i        ( rsp_fifo_pop        )
+  );
+
+  // Ready only when snax is ready and fifo is not full
+  assign snax_csr_rsp_ready_o = snax_pready_i && !rsp_fifo_full;
+  // pvalid is high always when p_valid is high
   assign snax_pvalid_o        = snax_csr_rsp_valid_i;
+  // Data is always pass through too
   assign snax_resp_o.data     = snax_csr_rsp_bits_data_i;
-  assign snax_resp_o.id       = snax_req_i.id;
+  // If fifo is not empty, use the one from the FIFO
+  // Else just make it pass through
+  assign snax_resp_o.id       = (!rsp_fifo_empty) ? rsp_fifo_out.id: snax_req_i.id;
+  // Leave this as always error for now
   assign snax_resp_o.error    = 1'b0;
 
 endmodule
