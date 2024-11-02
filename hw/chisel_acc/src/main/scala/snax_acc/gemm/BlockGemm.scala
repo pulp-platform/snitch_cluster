@@ -98,29 +98,6 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
 
   val compute_fire = WireInit(0.B)
 
-  // -----------------------------------
-  // resgiter insert
-  // -----------------------------------
-
-  def a_bits_len = params.meshRow * params.tileSize * params.dataWidthA
-  def b_bits_len = params.tileSize * params.meshCol * params.dataWidthB
-  def a_b_bits_len = a_bits_len + b_bits_len
-
-  val combined_decoupled_a_b_in = Wire(Decoupled(UInt(a_b_bits_len.W)))
-  val combined_decoupled_a_b_out = Wire(Decoupled(UInt(a_b_bits_len.W)))
-  val a_split_out = Wire(UInt(a_bits_len.W))
-  val b_split_out = Wire(UInt(b_bits_len.W))
-
-  val a_b_cat = Module(new DecoupledCat2to1(a_bits_len, b_bits_len))
-
-  a_b_cat.io.in1 <> io.data.a_i
-  a_b_cat.io.in2 <> io.data.b_i
-  a_b_cat.io.out <> combined_decoupled_a_b_in
-  combined_decoupled_a_b_in -\\> combined_decoupled_a_b_out
-  a_split_out := combined_decoupled_a_b_out.bits(a_b_bits_len - 1, b_bits_len)
-  b_split_out := combined_decoupled_a_b_out.bits(b_bits_len - 1, 0)
-  // combined_decoupled_a_b_out will be connected to further control signals
-
   // State declaration
   val sIDLE :: sBUSY :: Nil = Enum(2)
   val cstate = RegInit(sIDLE)
@@ -175,6 +152,53 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
 
   // write all the results out means the operation is done
   computation_finish := d_output_counter === (M * N - 1.U) && io.data.d_o.fire && cstate === sBUSY
+
+  // -----------------------------------
+  // resgiter insert
+  // -----------------------------------
+
+  def a_bits_len = params.meshRow * params.tileSize * params.dataWidthA
+  def b_bits_len = params.tileSize * params.meshCol * params.dataWidthB
+  def sa_bits_len = params.dataWidthA
+  def sb_bits_len = params.dataWidthB
+
+  val combined_decoupled_a_b_in = Wire(
+    Decoupled(new CutBundle(a_bits_len, b_bits_len, sa_bits_len, sb_bits_len))
+  )
+  val combined_decoupled_a_b_out = Wire(
+    Decoupled(new CutBundle(a_bits_len, b_bits_len, sa_bits_len, sb_bits_len))
+  )
+  val a_split_out = Wire(UInt(a_bits_len.W))
+  val b_split_out = Wire(UInt(b_bits_len.W))
+  val subtraction_a_split_out = Wire(UInt(sa_bits_len.W))
+  val subtraction_b_split_out = Wire(UInt(sb_bits_len.W))
+
+  val decoupled_subtraction_a = Wire(Decoupled(UInt(sa_bits_len.W)))
+  val decoupled_subtraction_b = Wire(Decoupled(UInt(sb_bits_len.W)))
+
+  val a_b_sa_sb_cat = Module(
+    new DecoupledCat4to1(a_bits_len, b_bits_len, sa_bits_len, sb_bits_len)
+  )
+
+  // cat several decoupled signals into one for synchronization
+  a_b_sa_sb_cat.io.in1 <> io.data.a_i
+  a_b_sa_sb_cat.io.in2 <> io.data.b_i
+  a_b_sa_sb_cat.io.in3 <> decoupled_subtraction_a
+  a_b_sa_sb_cat.io.in4 <> decoupled_subtraction_b
+  a_b_sa_sb_cat.io.out <> combined_decoupled_a_b_in
+
+  // insert registers
+  combined_decoupled_a_b_in -\\> combined_decoupled_a_b_out
+  a_split_out := combined_decoupled_a_b_out.bits.a
+  b_split_out := combined_decoupled_a_b_out.bits.b
+  subtraction_a_split_out := combined_decoupled_a_b_out.bits.c
+  subtraction_b_split_out := combined_decoupled_a_b_out.bits.d
+  // combined_decoupled_a_b_out will be connected to further control signals
+
+  decoupled_subtraction_a.valid := cstate === sBUSY
+  decoupled_subtraction_a.bits := subtraction_a
+  decoupled_subtraction_b.valid := cstate === sBUSY
+  decoupled_subtraction_b.bits := subtraction_b
 
   // write counter increment according to output data fire
   when(io.data.d_o.fire) {
@@ -268,8 +292,8 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
   // or when don't need to output d
   gemm_array.io.ctrl.d_ready_i := Mux(io.data.d_o.valid, io.data.d_o.ready, 1.B)
 
-  gemm_array.io.ctrl.subtraction_a_i := subtraction_a
-  gemm_array.io.ctrl.subtraction_b_i := subtraction_b
+  gemm_array.io.ctrl.subtraction_a_i := subtraction_a_split_out
+  gemm_array.io.ctrl.subtraction_b_i := subtraction_b_split_out
 
   // data signals
   gemm_array.io.data.a_i := a_split_out
