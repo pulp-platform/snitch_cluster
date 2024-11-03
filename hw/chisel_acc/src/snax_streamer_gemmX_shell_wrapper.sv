@@ -15,8 +15,8 @@ module snax_streamer_gemmX_shell_wrapper #(
     parameter int unsigned DataWidthA   = 512,
     parameter int unsigned DataWidthB   = 512,
     parameter int unsigned DataWidthC   = 2048,
-    parameter int unsigned DataWidthD32   = 2048,
-    parameter int unsigned DataWidthD8   = 512,
+    parameter int unsigned DataWidthD32 = 2048,
+    parameter int unsigned DataWidthD8  = 512,
     parameter int unsigned RegDataWidth = 32,
     parameter int unsigned RegAddrWidth = 32
 ) (
@@ -65,59 +65,61 @@ module snax_streamer_gemmX_shell_wrapper #(
 
   wire io_ctrl_gemm_ctrl_ready;
   wire io_ctrl_simd_ctrl_ready;
-  assign csr_reg_set_ready_o = io_ctrl_gemm_ctrl_ready & io_ctrl_simd_ctrl_ready;
+  wire bypassSIMD = csr_reg_set_i[17][0];
+  assign csr_reg_set_ready_o = bypassSIMD ? io_ctrl_gemm_ctrl_ready
+                                          : io_ctrl_gemm_ctrl_ready & io_ctrl_simd_ctrl_ready;
   assign csr_reg_ro_set_o[0][31:1] = 0;
 
   BlockGemmRescaleSIMD inst_block_gemm_simd (
-    .clock(clk_i),
-    .reset(~rst_ni),
-    .io_ctrl_gemm_ctrl_ready(io_ctrl_gemm_ctrl_ready),
-    .io_ctrl_gemm_ctrl_valid(csr_reg_set_valid_i),
-    .io_ctrl_gemm_ctrl_bits_K_i(csr_reg_set_i[0]),
-    .io_ctrl_gemm_ctrl_bits_N_i(csr_reg_set_i[1]),
-    .io_ctrl_gemm_ctrl_bits_M_i(csr_reg_set_i[2]),
-    .io_ctrl_gemm_ctrl_bits_subtraction_constant_i(csr_reg_set_i[3]),
+      .clock(clk_i),
+      .reset(~rst_ni),
+      .io_ctrl_gemm_ctrl_ready(io_ctrl_gemm_ctrl_ready),
+      .io_ctrl_gemm_ctrl_valid(csr_reg_set_valid_i),
+      .io_ctrl_gemm_ctrl_bits_K_i(csr_reg_set_i[0]),
+      .io_ctrl_gemm_ctrl_bits_N_i(csr_reg_set_i[1]),
+      .io_ctrl_gemm_ctrl_bits_M_i(csr_reg_set_i[2]),
+      .io_ctrl_gemm_ctrl_bits_subtraction_constant_i(csr_reg_set_i[3]),
 
-    .io_ctrl_simd_ctrl_ready(io_ctrl_simd_ctrl_ready),
-    .io_ctrl_simd_ctrl_valid(csr_reg_set_valid_i),
-    .io_ctrl_simd_ctrl_bits_0(csr_reg_set_i[4]),
-    .io_ctrl_simd_ctrl_bits_1(csr_reg_set_i[5]),
-    .io_ctrl_simd_ctrl_bits_2(csr_reg_set_i[6]),
-    .io_ctrl_simd_ctrl_bits_3(csr_reg_set_i[7]),
-    .io_ctrl_simd_ctrl_bits_4(csr_reg_set_i[8]),
-    .io_ctrl_simd_ctrl_bits_5(csr_reg_set_i[9]),
-    .io_ctrl_simd_ctrl_bits_6(csr_reg_set_i[10]),
-    .io_ctrl_simd_ctrl_bits_7(csr_reg_set_i[11]),
-    .io_ctrl_simd_ctrl_bits_8(csr_reg_set_i[12]),
-    .io_ctrl_simd_ctrl_bits_9(csr_reg_set_i[13]),
-    .io_ctrl_simd_ctrl_bits_10(csr_reg_set_i[14]),
-    .io_ctrl_simd_ctrl_bits_11(csr_reg_set_i[15]),
-    .io_ctrl_simd_ctrl_bits_12(csr_reg_set_i[16]),
+      .io_ctrl_simd_ctrl_ready  (io_ctrl_simd_ctrl_ready),
+      .io_ctrl_simd_ctrl_valid  (csr_reg_set_valid_i),
+      .io_ctrl_simd_ctrl_bits_0 (csr_reg_set_i[4]),
+      .io_ctrl_simd_ctrl_bits_1 (csr_reg_set_i[5]),
+      .io_ctrl_simd_ctrl_bits_2 (csr_reg_set_i[6]),
+      .io_ctrl_simd_ctrl_bits_3 (csr_reg_set_i[7]),
+      .io_ctrl_simd_ctrl_bits_4 (csr_reg_set_i[8]),
+      .io_ctrl_simd_ctrl_bits_5 (csr_reg_set_i[9]),
+      .io_ctrl_simd_ctrl_bits_6 (csr_reg_set_i[10]),
+      .io_ctrl_simd_ctrl_bits_7 (csr_reg_set_i[11]),
+      .io_ctrl_simd_ctrl_bits_8 (csr_reg_set_i[12]),
+      .io_ctrl_simd_ctrl_bits_9 (csr_reg_set_i[13]),
+      .io_ctrl_simd_ctrl_bits_10(csr_reg_set_i[14]),
+      .io_ctrl_simd_ctrl_bits_11(csr_reg_set_i[15]),
+      .io_ctrl_simd_ctrl_bits_12(csr_reg_set_i[16]),
 
-    .io_ctrl_bypassSIMD(csr_reg_set_i[17][0]),
+      .io_ctrl_bypassSIMD(bypassSIMD),
 
-    .io_ctrl_busy_o(csr_reg_ro_set_o[0][0]),
-    .io_ctrl_performance_counter(csr_reg_ro_set_o[1]),
+      .io_ctrl_busy_o(csr_reg_ro_set_o[0][0]),
+      .io_ctrl_performance_counter(csr_reg_ro_set_o[1]),
 
-    .io_data_gemm_data_a_i_ready(stream2acc_0_ready_o),
-    .io_data_gemm_data_a_i_valid(stream2acc_0_valid_i),
-    .io_data_gemm_data_a_i_bits(stream2acc_0_data_i),
+      .io_data_gemm_data_a_i_ready(stream2acc_0_ready_o),
+      .io_data_gemm_data_a_i_valid(stream2acc_0_valid_i),
+      .io_data_gemm_data_a_i_bits (stream2acc_0_data_i),
 
-    .io_data_gemm_data_b_i_ready(stream2acc_1_ready_o),
-    .io_data_gemm_data_b_i_valid(stream2acc_1_valid_i),
-    .io_data_gemm_data_b_i_bits(stream2acc_1_data_i),
+      .io_data_gemm_data_b_i_ready(stream2acc_1_ready_o),
+      .io_data_gemm_data_b_i_valid(stream2acc_1_valid_i),
+      .io_data_gemm_data_b_i_bits (stream2acc_1_data_i),
 
-    .io_data_gemm_data_c_i_ready(stream2acc_2_ready_o),
-    .io_data_gemm_data_c_i_valid(stream2acc_2_valid_i),
-    .io_data_gemm_data_c_i_bits(stream2acc_2_data_i),
+      .io_data_gemm_data_c_i_ready(stream2acc_2_ready_o),
+      .io_data_gemm_data_c_i_valid(stream2acc_2_valid_i),
+      .io_data_gemm_data_c_i_bits (stream2acc_2_data_i),
 
-    .io_data_gemm_data_d_o_ready(acc2stream_1_ready_i),
-    .io_data_gemm_data_d_o_valid(acc2stream_1_valid_o),
-    .io_data_gemm_data_d_o_bits(acc2stream_1_data_o),
+      .io_data_gemm_data_d_o_ready(acc2stream_1_ready_i),
+      .io_data_gemm_data_d_o_valid(acc2stream_1_valid_o),
+      .io_data_gemm_data_d_o_bits (acc2stream_1_data_o),
 
-    .io_data_simd_data_ready(acc2stream_0_ready_i),
-    .io_data_simd_data_valid(acc2stream_0_valid_o),
-    .io_data_simd_data_bits(acc2stream_0_data_o)
+      .io_data_simd_data_ready(acc2stream_0_ready_i),
+      .io_data_simd_data_valid(acc2stream_0_valid_o),
+      .io_data_simd_data_bits (acc2stream_0_data_o)
   );
 
 endmodule

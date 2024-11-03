@@ -4,6 +4,15 @@ import chisel3._
 import chisel3.util._
 import chisel3.VecInit
 import snax_acc.utils.DecoupledCut._
+import snax_acc.utils.DecoupledCat2to1
+
+// Define the Combined Output Bundle with multiple RescalePECtrl
+class SIMDCombinedCutBundle(aWidth: Int, params: RescaleSIMDParams, n: Int)
+    extends Bundle {
+  val input_data = UInt(aWidth.W)
+  val ctrl_data =
+    Vec(n, new RescalePECtrl(params)) // Vector of RescalePECtrl Bundles
+}
 
 // Rescale SIMD module
 // This module implements this spec: specification: https://gist.github.com/jorendumoulin/83352a1e84501ec4a7b3790461fee2bf in parallel
@@ -56,28 +65,49 @@ class PipelinedRescaleSIMD(params: RescaleSIMDParams)
 
   current_input_data.valid := lane_input_valid
 
-  val delayed_three_cycle_input_data = Wire(
-    Decoupled(UInt((params.laneLen * params.inputType).W))
+  // delay the input data for 3 cycles
+  val cat_cur_input_ctrl = Module(
+    new DecoupledCat2to1(
+      params.laneLen * params.inputType,
+      params,
+      ctrl_csr_set_num
+    )
   )
-  current_input_data -\\\> delayed_three_cycle_input_data
+  cat_cur_input_ctrl.io.in1 <> current_input_data
+  cat_cur_input_ctrl.io.in2.bits := ctrl_csr
+  cat_cur_input_ctrl.io.in2.valid := cstate === sBUSY
+  val cat_cur_input_ctrl_out = cat_cur_input_ctrl.io.out
+
+  val delayed_three_cycle_cur_input_ctrl = Wire(
+    Decoupled(
+      new SIMDCombinedCutBundle(
+        params.laneLen * params.inputType,
+        params,
+        ctrl_csr_set_num
+      )
+    )
+  )
+  cat_cur_input_ctrl_out -\\\> delayed_three_cycle_cur_input_ctrl
 
   // give each RescalePE right control signal and data
   // collect the result of each RescalePE
   for (i <- 0 until params.laneLen) {
-    lane(i).io.input_i.bits := delayed_three_cycle_input_data
-      .bits(
+    lane(i).io.input_i.bits := delayed_three_cycle_cur_input_ctrl.bits
+      .input_data(
         (i + 1) * params.inputType - 1,
         i * params.inputType
       )
       .asSInt
-    lane(i).io.input_i.valid := delayed_three_cycle_input_data.valid
-    // fake ready, always ready inside the pipeline
+    lane(i).io.input_i.valid := delayed_three_cycle_cur_input_ctrl.valid
     lane(
       i
     ).io.output_o.ready := !keep_output && !output_stall && cstate === sBUSY
+    lane(i).io.ctrl_i := delayed_three_cycle_cur_input_ctrl.bits.ctrl_data(
+      i % ctrl_csr_set_num
+    )
   }
 
-  delayed_three_cycle_input_data.ready := lane
+  delayed_three_cycle_cur_input_ctrl.ready := lane
     .map(_.io.input_i.ready)
     .reduce(_ && _) && (cstate === sBUSY)
 

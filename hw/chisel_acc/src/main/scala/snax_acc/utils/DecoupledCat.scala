@@ -3,12 +3,46 @@ package snax_acc.utils
 import chisel3._
 import chisel3.util._
 
+import snax_acc.simd.RescalePECtrl
+import snax_acc.simd.RescaleSIMDParams
+import snax_acc.simd.SIMDCombinedCutBundle
+
 class CutBundle(aWidth: Int, bWidth: Int, cWidth: Int, dWidth: Int)
     extends Bundle {
   val a = UInt(aWidth.W)
   val b = UInt(bWidth.W)
   val c = UInt(cWidth.W)
   val d = UInt(dWidth.W)
+}
+
+class DecoupledCat2to1(
+    aWidth: Int,
+    params: RescaleSIMDParams,
+    n: Int
+) extends Module {
+  val io = IO(new Bundle {
+    // First decoupled input interface (UInt)
+    val in1 = Flipped(Decoupled(UInt(aWidth.W)))
+
+    // Second decoupled input interface (Vec of RescalePECtrl)
+    val in2 = Flipped(Decoupled(Vec(n, new RescalePECtrl(params))))
+
+    // Combined decoupled output interface
+    val out = Decoupled(new SIMDCombinedCutBundle(aWidth, params, n))
+  })
+
+  // Assign the UInt input to the 'input_data' field of the output Bundle
+  io.out.bits.input_data := io.in1.bits
+
+  // Assign the Vec of RescalePECtrl inputs to the 'ctrl_data' field of the output Bundle
+  io.out.bits.ctrl_data := io.in2.bits
+
+  // The output is valid only when both inputs are valid
+  io.out.valid := io.in1.valid && io.in2.valid
+
+  // When the output is ready and valid, both inputs can accept new data
+  io.in1.ready := io.out.ready && io.out.valid
+  io.in2.ready := io.out.ready && io.out.valid
 }
 
 class DecoupledCat4to1[T <: Data](

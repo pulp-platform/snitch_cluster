@@ -64,46 +64,49 @@ class BlockGemmRescaleSIMD(params: BlockGemmRescaleSIMDParams)
 
   // simd signal connection
   when(io.ctrl.bypassSIMD) {
-    simd.io.ctrl.bits <> 0.U.asTypeOf(simd.io.ctrl.bits)
     simd.io.ctrl.valid := false.B
-    io.ctrl.simd_ctrl.ready := simd.io.ctrl.ready
+    io.ctrl.simd_ctrl.ready := false.B
   }.otherwise {
-    simd.io.ctrl <> io.ctrl.simd_ctrl
+    simd.io.ctrl.valid := io.ctrl.simd_ctrl.valid
+    io.ctrl.simd_ctrl.ready := simd.io.ctrl.ready
   }
+  simd.io.ctrl.bits := io.ctrl.simd_ctrl.bits
 
   // simd data input
   // gemm output
   when(io.ctrl.bypassSIMD) {
     // input driver
     simd.io.data.input_i.valid := false.B
-    simd.io.data.input_i.bits := 0.U
 
     // gemm output to outside directly
-    io.data.gemm_data.d_o <> gemm.io.data.d_o
+    io.data.gemm_data.d_o.valid := gemm.io.data.d_o.valid
+    // directly connect the ready signal
+    gemm.io.data.d_o.ready := io.data.gemm_data.d_o.ready
 
   }.otherwise {
     // insert a register to improve frequency
     simd.io.data.input_i.valid := gemm.io.data.d_o.valid
-    simd.io.data.input_i.bits := gemm.io.data.d_o.bits
     // directly connect the ready signal
     gemm.io.data.d_o.ready := simd.io.data.input_i.ready
 
     // output driver
     io.data.gemm_data.d_o.valid := false.B
-    io.data.gemm_data.d_o.bits := 0.U
 
   }
+  simd.io.data.input_i.bits := gemm.io.data.d_o.bits
+  io.data.gemm_data.d_o.bits := gemm.io.data.d_o.bits
 
   // simd output
   when(io.ctrl.bypassSIMD) {
     // output driver
-    io.data.simd_data.bits <> 0.U
     io.data.simd_data.valid <> false.B
     // fake ready signal
     simd.io.data.output_o.ready := false.B
   }.otherwise {
-    io.data.simd_data <> simd.io.data.output_o
+    io.data.simd_data.valid := simd.io.data.output_o.valid
+    simd.io.data.output_o.ready := io.data.simd_data.ready
   }
+  io.data.simd_data.bits := simd.io.data.output_o.bits
 
   io.ctrl.busy_o := gemm.io.busy_o || simd.io.busy_o
   when(io.ctrl.bypassSIMD) {
