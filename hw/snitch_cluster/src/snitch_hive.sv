@@ -7,15 +7,15 @@
 `include "snitch_vm/typedef.svh"
 
 /// Shared subsystems for `CoreCount` cores.
-module snitch_hive #(
+module snitch_hive import snitch_icache_pkg::*; #(
   /// Number of cores which share an instruction frontend
   parameter int unsigned CoreCount          = 4,
   /// Width of a single icache line.
   parameter int unsigned ICacheLineWidth    = CoreCount > 2 ? CoreCount * 32 : 64,
   /// Number of icache lines per set.
   parameter int unsigned ICacheLineCount    = 128,
-  /// Number of icache sets.
-  parameter int unsigned ICacheSets         = 4,
+  /// Number of icache ways.
+  parameter int unsigned ICacheWays         = 4,
   parameter bit          IsoCrossing        = 1,
   /// Address width of the buses
   parameter int unsigned AddrWidth          = 0,
@@ -53,7 +53,7 @@ module snitch_hive #(
 
   input sram_cfgs_t sram_cfgs_i,
 
-  output snitch_icache_pkg::icache_events_t [CoreCount-1:0] icache_events_o
+  output icache_l0_events_t [CoreCount-1:0] icache_events_o
 );
   // Extend the ID to route back results to the appropriate core.
   localparam int unsigned IdWidth = 5;
@@ -87,7 +87,7 @@ module snitch_hive #(
     .L0_LINE_COUNT      ( 8                ),
     .LINE_WIDTH         ( ICacheLineWidth  ),
     .LINE_COUNT         ( ICacheLineCount  ),
-    .SET_COUNT          ( ICacheSets       ),
+    .WAY_COUNT          ( ICacheWays       ),
     .FETCH_AW           ( AddrWidth        ),
     .FETCH_DW           ( 32               ),
     .FILL_AW            ( AddrWidth        ),
@@ -107,7 +107,8 @@ module snitch_hive #(
     .clk_d2_i (clk_d2_i),
     .rst_ni (rst_ni),
     .enable_prefetching_i ( icache_prefetch_enable_i ),
-    .icache_events_o  ( icache_events_o),
+    .icache_l0_events_o   ( icache_events_o),
+    .icache_l1_events_o   ( ),
     .flush_valid_i    ( flush_valid    ),
     .flush_ready_o    ( flush_ready    ),
 

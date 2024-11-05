@@ -26,7 +26,7 @@ dependencies:
   register_interface: { git: https://github.com/pulp-platform/register_interface, version:  0.4.2   }
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.11  }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0   }
-  cluster_icache:     { git: https://github.com/pulp-platform/cluster_icache.git, version:  0.1.0   }
+  cluster_icache:     { git: https://github.com/pulp-platform/cluster_icache.git, rev: 64e21ae455bbdde850c4df13bef86ea55ac42537 }
   idma:               { git: https://github.com/pulp-platform/iDMA,               rev: __deploy__9cbcd30__snitch-tracing }
 
 export_include_dirs:

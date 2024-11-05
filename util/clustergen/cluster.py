@@ -247,7 +247,7 @@ class SnitchCluster(Generator):
             cl_bytes = self.cfg['hives'][i]['icache']['cacheline'] // 8
             self.cfg['hives'][i]['icache']['depth'] = self.cfg['hives'][i][
                 'icache']['size'] * 1024 // self.cfg['hives'][i]['icache'][
-                    'sets'] // cl_bytes
+                    'ways'] // cl_bytes
             # tag width
             self.tag_width = self.cfg['addr_width'] - clog2(
                     hive['icache']['cacheline'] // 8) - clog2(hive['icache']['depth']) + 3
