@@ -66,7 +66,7 @@ package ${cfg['pkg_name']};
 
   localparam int unsigned ICacheLineWidth [NrHives] = '{${icache_cfg('cacheline')}};
   localparam int unsigned ICacheLineCount [NrHives] = '{${icache_cfg('depth')}};
-  localparam int unsigned ICacheSets [NrHives] = '{${icache_cfg('sets')}};
+  localparam int unsigned ICacheWays [NrHives] = '{${icache_cfg('ways')}};
 
   localparam int unsigned Hive [NrCores] = '{${core_cfg('hive')}};
 
@@ -277,7 +277,7 @@ module ${cfg['name']}_wrapper (
     .DMANumChannels (${cfg['dma_nr_channels']}),
     .ICacheLineWidth (${cfg['pkg_name']}::ICacheLineWidth),
     .ICacheLineCount (${cfg['pkg_name']}::ICacheLineCount),
-    .ICacheSets (${cfg['pkg_name']}::ICacheSets),
+    .ICacheWays (${cfg['pkg_name']}::ICacheWays),
     .VMSupport (${int(cfg['vm_support'])}),
     .RVE (${core_isa('e')}),
     .RVF (${core_isa('f')}),

@@ -22,6 +22,7 @@
 /// Snitch Cluster Top-Level.
 module snitch_cluster
   import snitch_pkg::*;
+  import snitch_icache_pkg::*;
 #(
   /// Width of physical address.
   parameter int unsigned PhysicalAddrWidth  = 48,
@@ -63,8 +64,8 @@ module snitch_cluster
   parameter int unsigned ICacheLineWidth [NrHives] = '{default: 0},
   /// Number of icache lines per set.
   parameter int unsigned ICacheLineCount [NrHives] = '{default: 0},
-  /// Number of icache sets.
-  parameter int unsigned ICacheSets [NrHives]      = '{default: 0},
+  /// Number of icache ways.
+  parameter int unsigned ICacheWays [NrHives]      = '{default: 0},
   /// Enable virtual memory support.
   parameter bit          VMSupport          = 1,
   /// Per-core enabling of the standard `E` ISA reduced-register extension.
@@ -510,10 +511,10 @@ module snitch_cluster
   tcdm_req_t [NrTCDMPortsCores-1:0] tcdm_req;
   tcdm_rsp_t [NrTCDMPortsCores-1:0] tcdm_rsp;
 
-  core_events_t [NrCores-1:0]                      core_events;
-  tcdm_events_t                                    tcdm_events;
-  dma_events_t [DMANumChannels-1:0]                dma_events;
-  snitch_icache_pkg::icache_events_t [NrCores-1:0] icache_events;
+  core_events_t      [NrCores-1:0]        core_events;
+  tcdm_events_t                           tcdm_events;
+  dma_events_t       [DMANumChannels-1:0] dma_events;
+  icache_l0_events_t [NrCores-1:0]        icache_events;
 
   // 4. Memory Subsystem (Core side).
   reqrsp_req_t [NrCores-1:0] core_req;
@@ -969,7 +970,7 @@ module snitch_cluster
       hive_req_t [HiveSize-1:0] hive_req_reshape;
       hive_rsp_t [HiveSize-1:0] hive_rsp_reshape;
 
-      snitch_icache_pkg::icache_events_t [HiveSize-1:0] icache_events_reshape;
+      icache_l0_events_t [HiveSize-1:0] icache_events_reshape;
 
       for (genvar j = 0; j < NrCores; j++) begin : gen_hive_matrix
         // Check whether the core actually belongs to the current hive.
@@ -993,7 +994,7 @@ module snitch_cluster
         .CoreCount (HiveSize),
         .ICacheLineWidth (ICacheLineWidth[i]),
         .ICacheLineCount (ICacheLineCount[i]),
-        .ICacheSets (ICacheSets[i]),
+        .ICacheWays (ICacheWays[i]),
         .IsoCrossing (IsoCrossing),
         .sram_cfg_t  (sram_cfg_t),
         .sram_cfgs_t (sram_cfgs_t),

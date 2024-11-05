@@ -373,7 +373,7 @@
                         "description": "Detailed configuration of the current Hive's instruction cache.",
                         "default": {
                             "size": 8,
-                            "sets": 2,
+                            "ways": 2,
                             "cacheline": 128
                         },
                         "properties": {
@@ -381,7 +381,7 @@
                                 "type": "number",
                                 "description": "Total instruction cache size in KiByte."
                             },
-                            "sets": {
+                            "ways": {
                                 "type": "number",
                                 "description": "Number of ways."
                             },
