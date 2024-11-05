@@ -8,6 +8,7 @@
 
 module snitch_cluster_peripheral
   import snitch_pkg::*;
+  import snitch_icache_pkg::*;
   import snitch_cluster_peripheral_reg_pkg::*;
 #(
   // Nr of cores in the cluster
@@ -20,24 +21,24 @@ module snitch_cluster_peripheral
   parameter type tcdm_events_t = logic,
   parameter type dma_events_t = logic
 ) (
-  input  logic                       clk_i,
-  input  logic                       rst_ni,
+  input  logic                                   clk_i,
+  input  logic                                   rst_ni,
 
-  input  reg_req_t                   reg_req_i,
-  output reg_rsp_t                   reg_rsp_o,
+  input  reg_req_t                               reg_req_i,
+  output reg_rsp_t                               reg_rsp_o,
 
-  output logic                       icache_prefetch_enable_o,
-  output logic [NrCores-1:0]         cl_clint_o,
-  input  core_events_t [NrCores-1:0]                      core_events_i,
-  input  tcdm_events_t                                    tcdm_events_i,
-  input  dma_events_t [DMANumChannels-1:0]                dma_events_i,
-  input  snitch_icache_pkg::icache_events_t [NrCores-1:0] icache_events_i
+  output logic                                   icache_prefetch_enable_o,
+  output logic              [NrCores-1:0]        cl_clint_o,
+  input  core_events_t      [NrCores-1:0]        core_events_i,
+  input  tcdm_events_t                           tcdm_events_i,
+  input  dma_events_t       [DMANumChannels-1:0] dma_events_i,
+  input  icache_l0_events_t [NrCores-1:0]        icache_events_i
 );
 
   // Pipeline register to ease timing.
   tcdm_events_t tcdm_events_q;
   dma_events_t [DMANumChannels-1:0] dma_events_q;
-  snitch_icache_pkg::icache_events_t [NrCores-1:0] icache_events_q;
+  icache_l0_events_t [NrCores-1:0] icache_events_q;
   `FF(tcdm_events_q, tcdm_events_i, '0)
   `FF(dma_events_q, dma_events_i, '0)
   `FF(icache_events_q, icache_events_i, '0)

@@ -75,7 +75,7 @@ package ${cfg['cluster']['name']}_pkg;
 
   localparam int unsigned ICacheLineWidth [NrHives] = '{${icache_cfg('cacheline')}};
   localparam int unsigned ICacheLineCount [NrHives] = '{${icache_cfg('depth')}};
-  localparam int unsigned ICacheSets [NrHives] = '{${icache_cfg('sets')}};
+  localparam int unsigned ICacheWays [NrHives] = '{${icache_cfg('ways')}};
 
   localparam int unsigned Hive [NrCores] = '{${core_cfg('hive')}};
 
@@ -288,7 +288,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .DMANumChannels (${cfg['cluster']['dma_nr_channels']}),
     .ICacheLineWidth (${cfg['cluster']['name']}_pkg::ICacheLineWidth),
     .ICacheLineCount (${cfg['cluster']['name']}_pkg::ICacheLineCount),
-    .ICacheSets (${cfg['cluster']['name']}_pkg::ICacheSets),
+    .ICacheWays (${cfg['cluster']['name']}_pkg::ICacheWays),
     .VMSupport (${int(cfg['cluster']['vm_support'])}),
     .RVE (${core_isa('e')}),
     .RVF (${core_isa('f')}),
