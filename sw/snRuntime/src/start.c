@@ -23,6 +23,7 @@ static inline void snrt_init_tls() {
         // First initialize the DM core's .tdata section from main memory
         asm volatile("mv %0, tp" : "=r"(tls_ptr) : :);
         snrt_dma_start_1d((void*)tls_ptr, (void*)(&__tdata_start), size);
+        snrt_dma_wait_all();
 
         // Then initialize all other cores' .tdata sections from the DM
         // core's. The offset between the TLS section of successive cores
