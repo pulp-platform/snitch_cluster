@@ -108,6 +108,22 @@ inline void snrt_ssr_disable() {
 }
 
 /**
+ * @brief Enable scalar chaining.
+ * @param mask A bitmask indicating which registers should be enabled for
+ *             chaining.
+ */
+inline void snrt_sc_enable(uint32_t mask) {
+    asm volatile("csrs 0x7C3, %[mask]\n" : : [ mask ] "r"(mask) :);
+}
+
+/**
+ * @brief Disable scalar chaining.
+ */
+inline void snrt_sc_disable(uint32_t mask) {
+    asm volatile("csrc 0x7C3, %[mask]\n" : : [ mask ] "r"(mask) :);
+}
+
+/**
  * @brief Read the value of an SSR configuration register.
  * @param reg The register index.
  * @param dm The SSR index.
