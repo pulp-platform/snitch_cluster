@@ -292,12 +292,21 @@ inline void snrt_ssr_write(enum snrt_ssr_dm dm, enum snrt_ssr_dim dim,
  * @param bound The bound of the first (and only) loop.
  * @param idxsize The size of the indices.
  */
-inline void snrt_issr_read(enum snrt_ssr_dm dm, volatile void *base,
-                           volatile void *idcs, size_t bound, enum
-                           snrt_ssr_idxsize idxsize) {
-    write_ssr_cfg(SNRT_SSR_REG_IDX_CFG, dm, idxsize & 0xFF);
-    --bound;
-    write_ssr_cfg(SNRT_SSR_REG_BOUNDS, dm, bound);
+inline void snrt_issr_set_idx_cfg(enum snrt_ssr_dm dm, enum snrt_ssr_idxsize idxsize) {
+    write_ssr_cfg(SNRT_SSR_REG_IDX_CFG, dm, (idxsize & 0xFF));
+}
+
+inline void snrt_issr_set_bound(enum snrt_ssr_dm dm, size_t bound) {
+    write_ssr_cfg(SNRT_SSR_REG_BOUNDS, dm, --bound);
+}
+
+inline void snrt_issr_set_ptrs(enum snrt_ssr_dm dm, volatile void *base, volatile void *idcs) {
     write_ssr_cfg(SNRT_SSR_REG_IDX_BASE, dm, (uintptr_t)base);
     write_ssr_cfg(SNRT_SSR_REG_RPTR_INDIR, dm, (uintptr_t)idcs);
+}
+
+inline void snrt_issr_read(enum snrt_ssr_dm dm, volatile void *base, volatile void *idcs, size_t bound, enum snrt_ssr_idxsize idxsize) {
+    snrt_issr_set_idx_cfg(dm, idxsize);
+    snrt_issr_set_bound(dm, bound);
+    snrt_issr_set_ptrs(dm, base, idcs);
 }
