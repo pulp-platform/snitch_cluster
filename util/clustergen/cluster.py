@@ -144,8 +144,8 @@ class SnitchCluster(Generator):
     Instance of a Snitch cluster.
     """
     files = {
-        'cfg': "src/snitch_cfg.sv.tpl",
-        'wrapper': "src/snitch_cluster_wrapper.sv.tpl"
+        'wrapper': "src/snitch_cluster_wrapper.sv.tpl",
+        'package': "src/snitch_cluster_pkg.sv.tpl"
     }
 
     def __init__(self, cfg, pma_cfg):
@@ -175,6 +175,13 @@ class SnitchCluster(Generator):
     def render_wrapper(self):
         """Render the cluster wrapper"""
         cfg_template = self.templates.get_template(self.files['wrapper'])
+        return cfg_template.render_unicode(cfg=self.cfg,
+                                           to_sv_hex=to_sv_hex,
+                                           disclaimer=self.DISCLAIMER)
+
+    def render_package(self):
+        """Render the cluster package"""
+        cfg_template = self.templates.get_template(self.files['package'])
         return cfg_template.render_unicode(cfg=self.cfg,
                                            to_sv_hex=to_sv_hex,
                                            disclaimer=self.DISCLAIMER)
@@ -380,6 +387,9 @@ class SnitchClusterTB(Generator):
 
     def render_wrapper(self):
         return self.cluster.render_wrapper()
+
+    def render_package(self):
+        return self.cluster.render_package()
 
     def render_linker_script(self):
         """Generate a linker script for the cluster testbench"""

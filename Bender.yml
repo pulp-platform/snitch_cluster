@@ -19,14 +19,14 @@ package:
     - Matheus Cavalcante <matheusd@iis.ee.ethz.ch>
 
 dependencies:
-  axi:                { git: https://github.com/pulp-platform/axi,                rev:  4e54ac6766b160217a83a74d5a23af9bbf59e6ee  }
-  axi_riscv_atomics:  { git: https://github.com/pulp-platform/axi_riscv_atomics,  version:  0.6.0   }
-  common_cells:       { git: https://github.com/pulp-platform/common_cells,       version:  1.35.0  }
-  FPnew:              { git: "https://github.com/pulp-platform/cvfpu.git",        rev:      pulp-v0.1.3 }
-  register_interface: { git: https://github.com/pulp-platform/register_interface, version:  0.4.2   }
-  tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.11  }
-  riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0   }
-  cluster_icache:     { git: https://github.com/pulp-platform/cluster_icache.git, version:  0.1.0   }
+  axi:                { git: https://github.com/pulp-platform/axi,                version: 0.39.5  }
+  axi_riscv_atomics:  { git: https://github.com/pulp-platform/axi_riscv_atomics,  version: 0.6.0   }
+  common_cells:       { git: https://github.com/pulp-platform/common_cells,       rev:     remove-ffnr }
+  FPnew:              { git: https://github.com/pulp-platform/cvfpu.git,          rev:     pulp-v0.1.3 }
+  register_interface: { git: https://github.com/pulp-platform/register_interface, version: 0.4.2   }
+  tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version: 0.2.11  }
+  riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version: 0.8.0   }
+  cluster_icache:     { git: https://github.com/pulp-platform/cluster_icache.git, rev:     remove-ffnr }
   idma:               { git: https://github.com/pulp-platform/iDMA,               rev: __deploy__9cbcd30__snitch-tracing }
 
 export_include_dirs:
@@ -35,6 +35,7 @@ export_include_dirs:
   - hw/tcdm_interface/include
   - hw/snitch/include
   - hw/snitch_ssr/include
+  - target/snitch_cluster/generated
 
 sources:
   # reqrsp_interface
@@ -186,7 +187,18 @@ sources:
   # target/snitch_cluster
   - target: snitch_cluster
     files:
+      - target/snitch_cluster/generated/snitch_cluster_pkg.sv
+  - target: all(snitch_cluster, not(postlayout))
+    files:
       - target/snitch_cluster/generated/snitch_cluster_wrapper.sv
+  - target: all(snitch_cluster, postlayout)
+    files:
+      - nonfree/gf12/fusion/runs/0/out/15/snitch_cluster_wrapper.v
   - target: all(snitch_cluster, any(simulation, verilator))
     files:
       - target/snitch_cluster/test/testharness.sv
+
+  - target: gf12
+    files:
+      - nonfree/gf12/mems/tc_sram.sv
+      - nonfree/gf12/sourcecode/tc_clk.sv

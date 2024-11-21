@@ -48,7 +48,8 @@ CLUSTER_GEN_SRC ?= $(wildcard $(ROOT)/util/clustergen/*.py)
 
 BIN_DIR           ?= bin
 GENERATED_DIR     ?= $(MKFILE_DIR)generated
-PERIPH_DIR        ?= $(ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral
+HW_DIR             = $(ROOT)/hw
+PERIPH_DIR         = $(HW_DIR)/snitch_cluster/src/snitch_cluster_peripheral
 
 # If the configuration file is overriden on the command-line (through
 # CFG_OVERRIDE) and this file differs from the least recently used
@@ -151,9 +152,13 @@ include $(ROOT)/target/snitch_cluster/sw.mk
 # RTL #
 #######
 
+SNITCH_CLUSTER_WRAPPER_TPL = $(HW_DIR)/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl
+SNITCH_CLUSTER_PKG_TPL     = $(HW_DIR)/snitch_cluster/src/snitch_cluster_pkg.sv.tpl
+
 GENERATED_RTL_SOURCES  = $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv
 GENERATED_RTL_SOURCES += $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv
 GENERATED_RTL_SOURCES += $(GENERATED_DIR)/snitch_cluster_wrapper.sv
+GENERATED_RTL_SOURCES += $(GENERATED_DIR)/snitch_cluster_pkg.sv
 
 .PHONY: rtl clean-rtl
 
@@ -165,16 +170,19 @@ clean-rtl:
 $(GENERATED_DIR):
 	mkdir -p $@
 
-$(GENERATED_DIR)/snitch_cluster_wrapper.sv: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
+$(GENERATED_DIR)/snitch_cluster_wrapper.sv: $(CFG) $(CLUSTER_GEN_PREREQ) $(SNITCH_CLUSTER_WRAPPER_TPL) | $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --wrapper
 
-$(GENERATED_DIR)/link.ld: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
+$(GENERATED_DIR)/snitch_cluster_pkg.sv: $(CFG) $(CLUSTER_GEN_PREREQ) $(SNITCH_CLUSTER_PKG_TPL) | $(GENERATED_DIR)
+	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --package
+
+$(GENERATED_DIR)/link.ld: $(CFG) $(CLUSTER_GEN_PREREQ) | $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --linker
 
-$(GENERATED_DIR)/memories.json: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
+$(GENERATED_DIR)/memories.json: $(CFG) $(CLUSTER_GEN_PREREQ) | $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --memories
 
-$(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
+$(GENERATED_DIR)/bootdata.cc: $(CFG) $(CLUSTER_GEN_PREREQ) | $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --bootdata
 
 # REGGEN regfile

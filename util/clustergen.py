@@ -49,6 +49,9 @@ def main():
     parser.add_argument("--wrapper",
                         action="store_true",
                         help="Generate Snitch cluster wrapper")
+    parser.add_argument("--package",
+                        action="store_true",
+                        help="Generate Snitch cluster package")
     parser.add_argument("--linker",
                         action="store_true",
                         help="Generate linker script")
@@ -88,6 +91,10 @@ def main():
     if args.wrapper:
         with open(outdir / "snitch_cluster_wrapper.sv", "w") as f:
             f.write(cluster_tb.render_wrapper())
+
+    if args.package:
+        with open(outdir / "snitch_cluster_pkg.sv", "w") as f:
+            f.write(cluster_tb.render_package())
 
     if args.linker:
         with open(outdir / "link.ld", "w") as f:

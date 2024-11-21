@@ -32,7 +32,11 @@ module testharness import snitch_cluster_pkg::*; (
     .hart_base_id_i (CfgBaseHartId),
     .cluster_base_addr_i (CfgClusterBaseAddr),
     .clk_d2_bypass_i (1'b0),
+`ifdef TARGET_POSTLAYOUT
+    .sram_cfgs_i (snitch_cluster_pkg::sram_cfgs_t'('1)),
+`else
     .sram_cfgs_i (snitch_cluster_pkg::sram_cfgs_t'('0)),
+`endif
     .narrow_in_req_i (narrow_in_req),
     .narrow_in_resp_o (narrow_in_resp),
     .narrow_out_req_o (narrow_out_req),
