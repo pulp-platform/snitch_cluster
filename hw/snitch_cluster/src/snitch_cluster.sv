@@ -140,10 +140,12 @@ module snitch_cluster
   parameter int unsigned NumSsrs [NrCores] = '{default: 0},
   /// Per-core depth of TCDM Mux unifying SSR 0 and Snitch requests.
   parameter int unsigned SsrMuxRespDepth [NrCores] = '{default: 0},
+  /// index of ssr max to avoid its underflow (Error reported in Synopsys VCS)
+  parameter int SsrMaxIndex = (NumSsrsMax > 0) ? (NumSsrsMax - 1) : 0,
   /// Per-core internal parameters for each SSR.
-  parameter snitch_ssr_pkg::ssr_cfg_t [NumSsrsMax-1:0] SsrCfgs [NrCores] = '{default: '0},
+  parameter snitch_ssr_pkg::ssr_cfg_t [SsrMaxIndex:0] SsrCfgs [NrCores] = '{default: '0},
   /// Per-core register indices for each SSR.
-  parameter logic [NumSsrsMax-1:0][4:0]  SsrRegs [NrCores] = '{default: 0},
+  parameter logic [SsrMaxIndex:0][4:0]  SsrRegs [NrCores] = '{default: 0},
   /// Per-core amount of sequencer instructions for IPU and FPU if enabled.
   parameter int unsigned NumSequencerInstr [NrCores] = '{default: 0},
   /// Parent Hive id, a.k.a a mapping which core is assigned to which Hive.
