@@ -235,8 +235,8 @@ jobs:
           make CFG_OVERRIDE=cfg/snax_dimc_cluster.hjson \
           -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
 
-  sw-snax-KUL-cluster-vlt-generic:
-    name: Build KUL-cluster HW w/ Verilator (Generic LLVM)
+  sw-snax-KUL-dse-cluster-vlt-generic:
+    name: Build KUL-dse-cluster HW w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04
     container:
       image: ghcr.io/kuleuven-micas/snax:main
@@ -246,16 +246,16 @@ jobs:
           submodules: "recursive"
       - name: RTL GEN
         run: |
-          make CFG_OVERRIDE=cfg/snax_KUL_cluster.hjson \
+          make CFG_OVERRIDE=cfg/snax_KUL_dse_cluster.hjson \
           -C target/snitch_cluster rtl-gen
       - name: Build Hardware
         run: |
-          make CFG_OVERRIDE=cfg/snax_KUL_cluster.hjson \
+          make CFG_OVERRIDE=cfg/snax_KUL_dse_cluster.hjson \
           -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
       - name: Build Software
         run: |
           make -C target/snitch_cluster sw \
-          CFG_OVERRIDE=cfg/snax_KUL_cluster.hjson
+          CFG_OVERRIDE=cfg/snax_KUL_dse_cluster.hjson
       - name: Run Tests
         working-directory: target/snitch_cluster
         run: |-
@@ -264,8 +264,8 @@ jobs:
           sw/snax-gemmx-run.yaml \
           sw/snax-data-reshuffler-run.yaml -j
 
-  snax-xdma-vlt-generic:
-    name: Simulate SW on xdma w/ Verilator (Generic LLVM)
+  snax-KUL-cluster-vlt-generic:
+    name: Simulate SW on KUL cluster w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04
     container:
       image: ghcr.io/kuleuven-micas/snax:main
@@ -276,15 +276,15 @@ jobs:
       - name: Generate RTL
         run: |
           make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/snax_KUL_xdma_cluster.hjson
+          CFG_OVERRIDE=cfg/snax_KUL_cluster.hjson
       - name: Build Hardware
         run: |
-          make CFG_OVERRIDE=cfg/snax_KUL_xdma_cluster.hjson \
+          make CFG_OVERRIDE=cfg/snax_KUL_cluster.hjson \
           -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
       - name: Build Software
         run: |
           make -C target/snitch_cluster sw \
-          CFG_OVERRIDE=cfg/snax_KUL_xdma_cluster.hjson
+          CFG_OVERRIDE=cfg/snax_KUL_cluster.hjson
       - name: Run Tests
         working-directory: target/snitch_cluster
         run: |-

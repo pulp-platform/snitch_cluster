@@ -17,10 +17,10 @@ endif
 
 SUBDIRS += math $(RUNTIME) snax/mac apps tests
 
-ifeq (${CFG_OVERRIDE}, cfg/snax_KUL_cluster.hjson)
+ifeq (${CFG_OVERRIDE}, cfg/snax_KUL_dse_cluster.hjson)
 SUBDIRS += snax/gemmx snax/data-reshuffler
 endif
-ifeq ($(CFG_OVERRIDE), cfg/snax_KUL_xdma_cluster.hjson)
+ifeq ($(CFG_OVERRIDE), cfg/snax_KUL_cluster.hjson)
 SUBDIRS += snax/gemmx snax/xdma
 endif
 

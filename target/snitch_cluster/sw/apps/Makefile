@@ -28,12 +28,12 @@ SUBDIRS += snax-mac-mult
 ifeq ($(CFG_OVERRIDE), cfg/snax_alu_cluster.hjson)
 SUBDIRS += snax-alu
 endif
-ifeq ($(CFG_OVERRIDE), cfg/snax_KUL_cluster.hjson)
+ifeq ($(CFG_OVERRIDE), cfg/snax_KUL_dse_cluster.hjson)
 SUBDIRS += snax-data-reshuffler
 SUBDIRS += snax-gemmx-matmul
 SUBDIRS += snax-gemmx-conv
 endif
-ifeq ($(CFG_OVERRIDE), cfg/snax_KUL_xdma_cluster.hjson)
+ifeq ($(CFG_OVERRIDE), cfg/snax_KUL_cluster.hjson)
 SUBDIRS += snax-gemmx-matmul
 SUBDIRS += snax-gemmx-conv
 SUBDIRS += snax-xdma-memset
