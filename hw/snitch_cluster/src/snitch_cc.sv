@@ -3,6 +3,15 @@
 // SPDX-License-Identifier: SHL-0.51
 
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
+//
+
+
+`ifdef VERILATOR // For verilator-based simulations, tracing can be disabled and prefixed
+import "DPI-C" function bit disable_tracing();
+import "DPI-C" function string get_trace_file_prefix();
+`endif
+
+
 
 `include "common_cells/assertions.svh"
 `include "common_cells/registers.svh"
@@ -848,7 +857,9 @@ module snitch_cc #(
   // --------------------------
   // pragma translate_off
   int f;
-  string fn;
+  string suffix;
+  string trace_file;
+  string folder = "logs";
   logic [63:0] cycle = 0;
   initial begin
     // We need to schedule the assignment into a safe region, otherwise
@@ -857,15 +868,35 @@ module snitch_cc #(
 `ifndef VERILATOR
     #1;
 `endif
-    $system("mkdir -p logs");
-    $sformat(fn, "logs/trace_chip_%01x%01x_hart_%05x.dasm", tcdm_addr_base_i[47:44],
+    `ifdef VERILATOR
+    if(!disable_tracing()) begin
+    `endif
+
+    `ifdef VERILATOR
+    // With verilator we can prefix the trace, make logs folder in C++ code in the default case
+    $sformat(suffix, "trace_chip_%01x%01x_hart_%05x.dasm", tcdm_addr_base_i[47:44],
              tcdm_addr_base_i[43:40], hart_id_i);
-    f = $fopen(fn, "w");
-    $display("[Tracer] Logging Hart %d to %s", hart_id_i, fn);
+    $sformat(trace_file, "%s%s", get_trace_file_prefix(), suffix);
+    `else
+    // Make the logs directory from systemverilog
+    $system("mkdir -p logs");
+    $sformat(trace_file, "logs/trace_chip_%01x%01x_hart_%05x.dasm", tcdm_addr_base_i[47:44],
+             tcdm_addr_base_i[43:40], hart_id_i);
+
+    `endif
+    f = $fopen(trace_file, "w");
+    $display("[Tracer] Logging Hart %d to %s", hart_id_i, trace_file);
+    `ifdef VERILATOR
+    end
+    `endif
   end
 
   // verilog_lint: waive-start always-ff-non-blocking
   always_ff @(posedge clk_i) begin
+
+    `ifdef VERILATOR
+    if(!disable_tracing()) begin
+    `endif
     automatic string trace_entry;
     automatic string extras_str;
     automatic snitch_pkg::snitch_trace_port_t extras_snitch;
@@ -913,7 +944,6 @@ module snitch_cc #(
           (i_snitch.acc_qready_i && i_snitch.acc_qvalid_o && i_snitch.acc_qreq_o.addr == 0),
         is_seq_insn:  (i_snitch.inst_data_i inside {riscv_instr::FREP_I, riscv_instr::FREP_O})
       };
-
       if (FPEn) begin
         extras_fpu = fpu_trace;
         if (Xfrep) begin
@@ -960,10 +990,19 @@ module snitch_cc #(
     end else begin
       cycle = '0;
     end
+    `ifdef VERILATOR
+    end
+    `endif
   end
 
   final begin
+    `ifdef VERILATOR
+    if(!disable_tracing()) begin
+    `endif
     $fclose(f);
+    `ifdef VERILATOR
+    end
+    `endif
   end
   // verilog_lint: waive-stop always-ff-non-blocking
   // pragma translate_on

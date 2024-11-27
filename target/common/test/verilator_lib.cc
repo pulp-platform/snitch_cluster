@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: SHL-0.51
 
 #include <printf.h>
+#include <filesystem>
+#include <string>
 
 #include "Vtestharness.h"
 #include "Vtestharness__Dpi.h"
@@ -10,6 +12,11 @@
 #include "tb_lib.hh"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
+
+// Declare these as globally declared (and parsed) in tb_bin.cc
+extern bool WRAPPER_disable_tracing;
+extern char *WRAPPER_trace_prefix;
+
 namespace sim {
 
 // Number of cycles between HTIF checks.
@@ -104,6 +111,25 @@ void tb_memory_write(long long addr, int len, const svOpenArrayHandle data,
     assert(strb_ptr);
     sim::MEM.write(addr, len, (const uint8_t *)data_ptr,
                    (const uint8_t *)strb_ptr);
+}
+
+svBit disable_tracing() {
+    // function to enable/disable tracers
+    return WRAPPER_disable_tracing;
+}
+
+const char *get_trace_file_prefix() {
+    if (WRAPPER_trace_prefix == nullptr) {
+        // Use the standard prefix, and create a logs directory if necessary
+        std::string foldername = "logs/";
+        std::filesystem::create_directories(foldername);
+        static std::string log_file_name = "logs/";
+        return log_file_name.c_str();
+    }
+    // Return the one parsed from the command line otherwise
+    else {
+        return WRAPPER_trace_prefix;
+    }
 }
 
 const long long clint_addr = sim::BOOTDATA.clint_base;
