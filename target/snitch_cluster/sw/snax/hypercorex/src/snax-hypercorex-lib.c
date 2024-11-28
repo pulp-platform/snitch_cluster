@@ -180,10 +180,10 @@ void hypercorex_set_inst_loop_end_addr(uint8_t config1, uint8_t config2,
     return;
 };
 
-void hypercorex_set_inst_loop_count(uint8_t config1, uint8_t config2,
-                                    uint8_t config3) {
-    uint32_t config =
-        ((config3 & 0x7f) << 14) | ((config2 & 0x7f) << 7) | (config1 & 0x7f);
+void hypercorex_set_inst_loop_count(uint32_t config1, uint32_t config2,
+                                    uint32_t config3) {
+    uint32_t config = ((config3 & 0x3ff) << 20) | ((config2 & 0x3ff) << 10) |
+                      (config1 & 0x3ff);
 
     csrw_ss(HYPERCOREX_INST_LOOP_COUNT_REG_ADDR, config);
     return;

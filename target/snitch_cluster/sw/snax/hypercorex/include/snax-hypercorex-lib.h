@@ -88,8 +88,8 @@ void hypercorex_set_inst_loop_jump_addr(uint8_t config1, uint8_t config2,
 void hypercorex_set_inst_loop_end_addr(uint8_t config1, uint8_t config2,
                                        uint8_t config3);
 
-void hypercorex_set_inst_loop_count(uint8_t config1, uint8_t config2,
-                                    uint8_t config3);
+void hypercorex_set_inst_loop_count(uint32_t config1, uint32_t config2,
+                                    uint32_t config3);
 
 void hypercorex_start_core(void);
 

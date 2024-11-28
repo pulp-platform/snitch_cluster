@@ -51,9 +51,9 @@ uint32_t test_inst_loop_jump_addr3 = 0xff;
 uint32_t test_inst_loop_end_addr1 = 0xff;
 uint32_t test_inst_loop_end_addr2 = 0xff;
 uint32_t test_inst_loop_end_addr3 = 0xff;
-uint32_t test_inst_loop_count1 = 0xff;
-uint32_t test_inst_loop_count2 = 0xff;
-uint32_t test_inst_loop_count3 = 0xff;
+uint32_t test_inst_loop_count1 = 0x3ff;
+uint32_t test_inst_loop_count2 = 0x3ff;
+uint32_t test_inst_loop_count3 = 0x3ff;
 
 //-------------------------------
 // Golden values
@@ -82,4 +82,4 @@ uint32_t golden_inst_at_addr = 0xffffffff;
 uint32_t golden_inst_loop_ctrl = 0x00000003;
 uint32_t golden_inst_loop_jump_addr = 0x001fffff;
 uint32_t golden_inst_loop_end_addr = 0x001fffff;
-uint32_t golden_inst_loop_count = 0x001fffff;
+uint32_t golden_inst_loop_count = 0x3fffffff;
