@@ -18,7 +18,10 @@ static inline void box3d1r_baseline4(int r, int nx, int ny, int nz, double* c, d
             }
         }
     }
-    __istc_setup_issrs(__RT_SSSR_IDXSIZE_U16, ilen, ilen);
+    snrt_issr_set_idx_cfg(SNRT_SSR_DM0, SNRT_SSR_IDXSIZE_U16);
+    snrt_issr_set_bound(SNRT_SSR_DM0, ilen);
+    snrt_issr_set_idx_cfg(SNRT_SSR_DM1, SNRT_SSR_IDXSIZE_U16);
+    snrt_issr_set_bound(SNRT_SSR_DM1, ilen);
 
     volatile  __attribute__ ((__aligned__(8))) double ca[npoints];
     volatile  __attribute__ ((__aligned__(8))) double *pa = ca;
@@ -29,18 +32,19 @@ static inline void box3d1r_baseline4(int r, int nx, int ny, int nz, double* c, d
             }
         }
     }
-    __rt_sssr_cfg_write(3, 2, __RT_SSSR_REG_REPEAT);
+    snrt_ssr_repeat(SNRT_SSR_DM2, 4);
 
     snrt_ssr_enable();
     int lx = 0, ly = 0, lz = 0;
     for (int z = lz; z < nz-2*r; z++) {
         snrt_mcycle();
         for (int y = ly; y < ny-2*r; y += 2) {
-            __rt_sssr_bound_stride_2d(2, npoints, sizeof(double), (nx-2*r-lx)/2, 0);
+            snrt_ssr_loop_2d(SNRT_SSR_DM2, npoints, (nx-2*r-lx)/2, sizeof(double), 0);
             bool winit = true;
             for (int x = lx; x < nx-2*r; x += 2) {
-                __istc_iter_issrs((void*)(&A[z*ny*nx + y*nx + x]), (void*)i0, (void*)i1);
-                if (winit) { winit = false; __rt_sssr_cfg_write_ptr((void*)ca, 2, __RT_SSSR_REG_RPTR_1);}
+                snrt_issr_set_ptrs(SNRT_SSR_DM0, (void*)(&A[z*ny*nx + y*nx + x]), (void*)i0);
+                snrt_issr_set_ptrs(SNRT_SSR_DM1, (void*)(&A[z*ny*nx + y*nx + x]), (void*)i1);
+                if (winit) { winit = false; snrt_ssr_read(SNRT_SSR_DM2, SNRT_SSR_2D, (void*)ca); }
                 asm volatile (
                     "fmul.d    fa0, ft2, ft0        \n"
                     "fmul.d    fa1, ft2, ft1        \n"

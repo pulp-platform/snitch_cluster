@@ -18,7 +18,10 @@ static inline void box3d1r_baseline1(int r, int nx, int ny, int nz, double* c, d
             }
         }
     }
-    __istc_setup_issrs(__RT_SSSR_IDXSIZE_U16, ilen, ilen);
+    snrt_issr_set_idx_cfg(SNRT_SSR_DM0, SNRT_SSR_IDXSIZE_U16);
+    snrt_issr_set_bound(SNRT_SSR_DM0, ilen);
+    snrt_issr_set_idx_cfg(SNRT_SSR_DM1, SNRT_SSR_IDXSIZE_U16);
+    snrt_issr_set_bound(SNRT_SSR_DM1, ilen);
 
     asm volatile (
         "fld    ft3, 0(%[cf])  \n"
@@ -51,9 +54,9 @@ static inline void box3d1r_baseline1(int r, int nx, int ny, int nz, double* c, d
     for (int z = lz; z < nz-2*r; z++) {
         snrt_mcycle();
         for (int y = ly; y < ny-2*r; y += 2) {
-            __rt_sssr_bound_stride_2d(2, npoints, sizeof(double), (nx-2*r-lx)/2, 0);
             for (int x = lx; x < nx-2*r; x += 2) {
-                __istc_iter_issrs((void*)(&A[z*ny*nx + y*nx + x]), (void*)i0, (void*)i1);
+                snrt_issr_set_ptrs(SNRT_SSR_DM0, (void*)(&A[z*ny*nx + y*nx + x]), (void*)i0);
+                snrt_issr_set_ptrs(SNRT_SSR_DM1, (void*)(&A[z*ny*nx + y*nx + x]), (void*)i1);
                 asm volatile (
                     "fmul.d    fa0, ft3, ft0        \n"
                     "fmul.d    fa1, ft3, ft1        \n"
