@@ -31,7 +31,7 @@ jobs:
     name: Simulate SW on Snitch Cluster w/ Verilator
     runs-on: ubuntu-22.04
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster:main
+      image: ghcr.io/pulp-platform/snitch_cluster@sha256:03c6b13b3c540d9f36722b183f694793293ca46558c13b8d55551ea7b01912bb
     steps:
       - uses: actions/checkout@v2
         with:
