@@ -18,15 +18,25 @@ from snitch.util.sim import sim_utils
 from termcolor import colored
 import yaml
 
+# Try importing PowerResults module (not available in open-source repo)
+try:
+    from snitch.nonfree.PowerResults import PowerResults
+except ImportError as e:
+    print('PowerResults module not found, power results will not be available', e)
+
+
 ACTIONS = ['sw', 'run', 'traces', 'annotate', 'perf', 'visual-trace', 'power', 'all', 'none']
 SNITCH_ROOT = Path(__file__).parent.parent.parent.parent
 
 
 class ExperimentManager:
 
-    def __init__(self, experiments=None, actions=None):
+    def __init__(self, experiments=None, actions=None, args=None):
         """Initializes the class from the command-line arguments."""
-        self.args = self.parser().parse_args()
+        if args is not None:
+            self.args = args
+        else:
+            self.args = self.parser().parse_args()
         if actions is not None:
             self.actions = actions
         else:
@@ -35,6 +45,7 @@ class ExperimentManager:
         # Save directory
         self.dir = Path.cwd()
         self.run_dir = self.dir / self.args.run_dir
+        self.power_dir = self.dir / 'power'
 
         # Get experiments
         if experiments is not None:
@@ -50,7 +61,8 @@ class ExperimentManager:
         for experiment in self.experiments:
             self.derive_experiment_info(experiment)
 
-    def parser(self):
+    @staticmethod
+    def parser():
         parser = run.get_parser()
         parser.add_argument('actions', nargs='*', default='none', choices=ACTIONS, help='List of actions')
         return parser
@@ -75,6 +87,7 @@ class ExperimentManager:
         experiment['name'] = self.derive_name(experiment)
         experiment['elf'] = self.derive_elf(experiment)
         experiment['run_dir'] = self.derive_dir(self.run_dir, experiment)
+        experiment['power_dir'] = self.derive_dir(self.power_dir, experiment)
 
     def derive_cdefines(self, experiment):
         return {}
@@ -155,14 +168,13 @@ class ExperimentManager:
         if 'power' in self.actions or 'all' in self.actions:
             processes = []
             for experiment in self.experiments:
-                power_dir = self.derive_dir(self.dir / 'power', experiment)
                 print(
                     colored('Estimate power', 'black', attrs=['bold']),
-                    colored(power_dir, 'cyan', attrs=['bold'])
+                    colored(experiment['power_dir'], 'cyan', attrs=['bold'])
                 )
                 vars = {
                     'SIM_DIR': experiment['run_dir'],
-                    'POWER_REPDIR': power_dir
+                    'POWER_REPDIR': experiment['power_dir']
                 }
                 dir = SNITCH_ROOT / 'nonfree'
                 process = common.make('power', vars, dir=dir, sync=False)
@@ -184,11 +196,18 @@ class ExperimentManager:
         results = df['run_dir'].apply(lambda run_dir: SimResults(run_dir, source=source))
         results.rename('results', inplace=True)
 
+        # Create PowerResults objects
+        if 'PowerResults' in globals():
+            power_results = df['power_dir'].apply(lambda power_dir: PowerResults(power_dir))
+            power_results.rename('power_results', inplace=True)
+        else:
+            power_results = pd.Series([None] * len(df), name='power_results')
+
         # Expand the 'axes' column into separate columns
         axes = df['axes'].apply(pd.Series)
 
-        # Combine 'axes' and 'results' into a new DataFrame
-        df = pd.concat([axes, results], axis=1)
+        # Combine experiment axes and results into a new DataFrame
+        df = pd.concat([axes, results, power_results], axis=1)
 
         # If desired, reset the index
         df = df.reset_index(drop=True)
