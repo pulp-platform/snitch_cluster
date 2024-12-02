@@ -354,17 +354,18 @@ bin/snitch_cluster.vlt: $(VLT_AR) $(VLT_COBJ) ${VLT_BUILDDIR}/lib/libfesvr.a
 clean-vsim: clean-work
 	rm -rf bin/snitch_cluster.vsim bin/snitch_cluster.vsim.gui $(VSIM_BUILDDIR) vsim.wlf
 
-vsim_preparation: $(GENERATED_DIR)/bootdata.cc work/lib/libfesvr.a
-	@echo "VSIM preparation done"
-
 ${VSIM_BUILDDIR}/compile.vsim.tcl:
-	$(VLIB) $(dir $@)
+	mkdir $(dir $@)
 	${BENDER} script vsim ${VSIM_BENDER} --vlog-arg="${VLOG_FLAGS} -work $(dir $@) " > $@
 	echo '${VLOG} -work $(dir $@) ${TB_CC_SOURCES} ${TB_ASM_SOURCES} -vv -ccflags "$(TB_CC_FLAGS)"' >> $@
 	echo 'return 0' >> $@
 
+vsim_preparation: $(GENERATED_DIR)/bootdata.cc work/lib/libfesvr.a ${VSIM_BUILDDIR}/compile.vsim.tcl
+	@echo "VSIM preparation done"
+
 # Build compilation script and compile all sources for Questasim simulation
 bin/snitch_cluster.vsim: ${VSIM_BUILDDIR}/compile.vsim.tcl $(VSIM_SOURCES) ${TB_SRCS} ${TB_CC_SOURCES} ${TB_ASM_SOURCES} work/lib/libfesvr.a
+	$(VLIB) $(VSIM_BUILDDIR)
 	$(call QUESTASIM,tb_bin)
 
 #######
