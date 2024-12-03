@@ -13,7 +13,8 @@ object HasVerilogMemset extends HasDataPathExtension {
   def instantiate(clusterName: String): SystemVerilogDataPathExtension = Module(
     new SystemVerilogDataPathExtension(
       topmodule = "VerilogMemset",
-      filelist = Seq("src/main/systemverilog/VerilogMemset/VerilogMemset.sv")
+      dir = "src/main/systemverilog/VerilogMemset"
+      // filelist = Seq("src/main/systemverilog/VerilogMemset/VerilogMemset.sv")
     ) {
       override def desiredName = clusterName + namePostfix
     }
