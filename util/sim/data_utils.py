@@ -283,6 +283,7 @@ def from_buffer(byte_array, ctype='uint32_t'):
     # Types which have a direct correspondence in Numpy
     NP_DTYPE_FROM_CTYPE = {
         'uint32_t': np.uint32,
+        'int32_t': np.int32,
         'double': np.float64,
         'float': np.float32,
         '__fp16': np.float16
