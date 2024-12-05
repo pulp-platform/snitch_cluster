@@ -273,8 +273,17 @@ class GvsocSimulation(Simulation):
     def __init__(self, sim_bin=None, cmd=None, **kwargs):
         super().__init__(**kwargs)
 
-        self.cmd = ['gvsoc', '--target', os.environ.get('GVSOC_TARGET'), '--binary',
-                    str(self.elf), 'run']
+        if cmd is None:
+            self.cmd = ['gvsoc', '--target', os.environ.get('GVSOC_TARGET'), '--binary',
+                        str(self.elf), 'run']
+        else:
+            self.dynamic_args = {
+                'sim_bin': str(sim_bin),
+                'elf': str(self.elf),
+                'run_dir': str(self.run_dir)
+            }
+            self.cmd = [Template(arg).render(**self.dynamic_args) for arg in cmd]
+            self.cmd.append('--simulator=gvsoc')
 
     def successful(self):
         """Return whether the simulation was successful."""

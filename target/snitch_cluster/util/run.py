@@ -24,7 +24,7 @@ SIMULATORS = {
     'vcs': VCSSimulator(Path(__file__).parent.resolve() / '../bin/snitch_cluster.vcs'),
     'verilator': VerilatorSimulator(Path(__file__).parent.resolve() / '../bin/snitch_cluster.vlt'),
     'banshee': BansheeSimulator(Path(__file__).parent.resolve() / '../src/banshee.yaml'),
-    'gvsoc': GvsocSimulator(Path(__file__).parent.resolve())
+    'gvsoc': GvsocSimulator(Path(__file__).parent.resolve() / '../bin/snitch_cluster.gvsoc')
 }
 
 
