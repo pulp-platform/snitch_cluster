@@ -38,9 +38,10 @@ static inline void snrt_init_tls() {
         tls_ptr += size;
         size = (size_t)(&__tbss_end) - (size_t)(&__tbss_start);
         for (int i = 0; i < snrt_cluster_core_num(); i++) {
-            snrt_dma_start_1d((void*)(tls_ptr + i * tls_offset),
-                              (void*)(snrt_zero_memory_ptr()), size);
+            snrt_dma_memset_init_1d((uint64_t)(tls_ptr + i * tls_offset), 0,
+                                    size, 0);
         }
+
         snrt_dma_wait_all();
     }
 
@@ -55,8 +56,7 @@ static inline void snrt_init_bss() {
     // Only one core needs to perform the initialization
     if (snrt_cluster_idx() == 0 && snrt_is_dm_core()) {
         size_t size = (size_t)(&__bss_end) - (size_t)(&__bss_start);
-        snrt_dma_start_1d_wideptr((uint64_t)(&__bss_start),
-                                  (uint64_t)(snrt_zero_memory_ptr()), size);
+        snrt_dma_memset_init_1d((uint64_t)(&__bss_start), 0, size, 0);
     }
 }
 #endif
@@ -80,7 +80,8 @@ static inline void snrt_init_cls() {
         // Clear cbss section
         ptr = (void*)((uint32_t)ptr + size);
         size = (size_t)(&__cbss_end) - (size_t)(&__cbss_start);
-        snrt_dma_start_1d(ptr, (void*)(snrt_zero_memory_ptr()), size);
+        snrt_dma_memset_init_1d((uint64_t)ptr, 0, size, 0);
+        snrt_dma_wait_all();
     }
 }
 #endif
