@@ -2167,7 +2167,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           illegal_inst = 1'b1;
         end
       end
-      DMCPYI: begin
+      DMCPYI,
+      DMINIT: begin
         if (Xdma) begin
           acc_qreq_o.addr     = DMA_SS;
           opa_select      = Reg;

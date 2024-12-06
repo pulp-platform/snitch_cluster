@@ -9,6 +9,22 @@
 
 #pragma once
 
+#define OP_CUSTOM1 0b0101011
+#define XDMA_FUNCT3 0b000
+#define DMSRC_FUNCT7 0b0000000
+#define DMDST_FUNCT7 0b0000001
+#define DMCPYI_FUNCT7 0b0000010
+#define DMCPY_FUNCT7 0b0000011
+#define DMSTATI_FUNCT7 0b0000100
+#define DMSTAT_FUNCT7 0b0000101
+#define DMSTR_FUNCT7 0b0000110
+#define DMREP_FUNCT7 0b0000111
+#define DMINIT_FUNCT7 0b0001000
+
+#define R_TYPE_ENCODE(funct7, rs2, rs1, funct3, rd, opcode)                    \
+    ((funct7 << 25) | (rs2 << 20) | (rs1 << 15) | (funct3 << 12) | (rd << 7) | \
+     (opcode))
+
 #include <math.h>
 
 /// A DMA transfer identifier.
@@ -297,6 +313,72 @@ inline void snrt_dma_memset(void *ptr, uint8_t value, uint32_t len) {
         snrt_dma_wait_all();
     }
 }
+
+
+/**
+ * @brief Fast memset function performed by DMA with the dminit instruction.
+ * @param ptr Pointer to the start of the region.
+ * @param value Value to set.
+ * @param size The size of the transfer in bytes.
+ * @param channel The index of the channel.
+ */
+inline uint32_t snrt_dma_memset_init_1d(uint64_t ptr, uint8_t value, uint32_t size, uint32_t channel) {
+    register uint32_t reg_dst_low asm("a0") = ptr >> 0;    // 10
+    register uint32_t reg_dst_high asm("a1") = ptr >> 32;  // 11
+    register uint32_t reg_value asm("a2") = value;         // 12
+    register uint32_t reg_txid asm("a3");                  // 13
+    register uint32_t reg_size asm("a4") = size;           // 14
+
+
+    // dmdst a0, a1
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMDST_FUNCT7, 11, 10,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_dst_high), "r"(reg_dst_low));
+
+
+
+    if (value == 0x00) {
+        // register uint32_t cfg asm("a5") = channel << 2;        // 15
+        uint32_t cfg = channel << 2;
+        // dminit a3, a4, channel | 0b00
+        asm volatile(".word %1\n"
+                    : "=r"(reg_txid)
+                    : "i"(R_TYPE_ENCODE(DMINIT_FUNCT7, cfg, 14, XDMA_FUNCT3,
+                                        10, OP_CUSTOM1)),
+                    "r"(reg_size));
+
+    }
+    else if (value == 0xff) {
+        uint32_t cfg = channel << 2 | 1;        // 15
+
+        // dminit a3, a4, channel | 0b01
+        asm volatile(".word %1\n"
+                    : "=r"(reg_txid)
+                    : "i"(R_TYPE_ENCODE(DMINIT_FUNCT7, cfg, 14, XDMA_FUNCT3,
+                                        10, OP_CUSTOM1)),
+                    "r"(reg_size));
+    }
+    else {
+        uint32_t cfg = channel << 2 | 2;        // 15
+
+        // dmsrc value, 0
+        asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMSRC_FUNCT7, 0, 12,
+                                                    XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                    "r"(reg_value));
+
+        // dminit a3, a4, channel | 0b10
+        asm volatile(".word %1\n"
+                    : "=r"(reg_txid)
+                    : "i"(R_TYPE_ENCODE(DMINIT_FUNCT7, cfg, 14, XDMA_FUNCT3,
+                                        10, OP_CUSTOM1)),
+                    "r"(reg_size));
+
+    }
+
+
+    return reg_txid;
+}
+
 
 /**
  * @brief Load a tile of a 1D array.
