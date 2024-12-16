@@ -43,6 +43,7 @@ SUBDIRS += snax-multi-cluster-playground
 ifeq ($(CFG_OVERRIDE), cfg/snax_hypercorex_cluster.hjson)
 SUBDIRS += snax-hypercorex/test-csr
 SUBDIRS += snax-hypercorex/char-recog
+SUBDIRS += snax-hypercorex/high-dim-bind
 endif
 
 .PHONY: all clean $(SUBDIRS)
