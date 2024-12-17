@@ -1,0 +1,16 @@
+# Copyright 2024 KU Leuven.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+name: build-conda
+on:
+  workflow_dispatch:
+jobs:
+  build-conda:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Build conda package
+        uses: prefix-dev/rattler-build-action@v0.2.23
+        with:
+          recipe-path: util/conda/recipe.yaml

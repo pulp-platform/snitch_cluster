@@ -1,0 +1,12 @@
+# Copyright 2024 KU Leuven.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+package:
+  name: snax-cluster
+  version: 0.2.7
+source:
+  git: https://github.com/KULeuven-MICAS/snax_cluster
+  rev: ${{ version }}
+about:
+  homepage: https://github.com/KULeuven-MICAS/snax_cluster
+  summary: "A heterogeneous accelerator-centric compute cluster"
