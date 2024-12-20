@@ -132,7 +132,7 @@ bin/snitch_cluster.vsim.gui sw/apps/blas/axpy/build/axpy.elf
 
 ## Debugging and benchmarking
 
-When you run a simulation, every core logs all the instructions it executes in a trace file. The traces are located in the `logs` folder within the simulation directory. Every trace is identified by a hart ID, that is a unique ID for every _hardware thread (hart)_ in a RISC-V system (and since all our cores have a single thread that is a unique ID per core).
+When you run a simulation, every core logs all the instructions it executes in a trace file. The traces are located in the `logs` folder within the _simulation directory_. Every trace is identified by a hart ID, that is a unique ID for every _hardware thread (hart)_ in a RISC-V system (and since all our cores have a single thread that is a unique ID per core).
 
 The simulation dumps the traces in a non-human-readable format with `.dasm` extension. To convert these to a human-readable form run:
 
@@ -328,3 +328,32 @@ As you may have noticed, there is a good deal of code which is independent of th
 It is thus preferable to develop the data generation scripts and Snitch kernels in a shared location, from which multiple platforms can take and include the code. The `sw` directory in the root of this repository was created with this goal in mind. For the AXPY example, shared sources are hosted under the `sw/blas/axpy` directory.
 
 We recommend that you follow this approach also in your own developments for as much of the code which can be reused.
+
+## Implementing the hardware
+
+If you make changes to the hardware, you probably also want to physically implement it to estimate the PPA impact of your modifications. As the physical implementation flow involves proprietary tools licensed under non-disclosure agreements, our physical implementation flow is contained in a separate private git repository. If you are an IIS user, with access to our Gitlab server and IIS machines, you may follow the next instructions to replicate our implementation flow.
+
+Firstly, we need to clone all the sources for the physical flow. The following command takes care of everything for you:
+```shell
+make nonfree
+```
+
+Behind the scenes, it will clone the `snitch-cluster-nonfree` repo under the `nonfree` folder. Let's move into this folder:
+
+```shell
+cd nonfree
+```
+
+Here, you will find a Makefile with a series of convenience targets to launch our flow up to a certain stage: may it be elaboration (`elab`), synthesis (`synth`) or place-and-route (`pnr`). If you can wait long enough you may also launch the entire flow to produce a final optimized post-layout netlist:
+
+```shell
+make post-layout-netlist
+```
+
+This may take as long as a day, or more, depending on your machine's performance. If you previously launched the flow up to a certain stage, you can resume it from that point without restarting from scratch. Just specify the `FIRST_STAGE` flag with the name of the stage you want to start from, e.g.:
+
+```shell
+make FIRST_STAGE=synth-init-opto post-layout-netlist
+```
+
+You will find reports and output files produced by the flow in the `nonfree/gf12/fusion/runs/0/` folder, respectively in the `reports` and `out` subdirectories, separated into individual subdirectories for every stage in the flow. These are all you should need to derive area and timing numbers for your design.
