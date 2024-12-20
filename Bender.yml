@@ -192,3 +192,8 @@ sources:
     files:
       - target/snitch_cluster/test/vip_snitch_cluster.sv
       - target/snitch_cluster/test/testharness.sv
+
+  - target: gf12
+    files:
+      - nonfree/gf12/mems/tc_sram.sv
+      - nonfree/gf12/sourcecode/tc_clk.sv
