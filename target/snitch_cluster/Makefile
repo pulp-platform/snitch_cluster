@@ -148,6 +148,7 @@ include $(ROOT)/target/snitch_cluster/sw.mk
 GENERATED_RTL_SOURCES  = $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv
 GENERATED_RTL_SOURCES += $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv
 GENERATED_RTL_SOURCES += $(GENERATED_DIR)/snitch_cluster_wrapper.sv
+GENERATED_RTL_SOURCES += $(GENERATED_DIR)/snitch_cluster_pkg.sv
 GENERATED_RTL_SOURCES += $(TEST_DIR)/snitch_bootrom.sv
 
 .PHONY: rtl clean-rtl
@@ -160,12 +161,14 @@ clean-rtl:
 $(GENERATED_DIR):
 	mkdir -p $@
 
-CLUSTER_GEN_TPL = $(ROOT)/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl
-LINK_LD_TPL     = $(ROOT)/hw/snitch_cluster/test/link.ld.tpl
-BOOTDATA_TPL    = $(ROOT)/hw/snitch_cluster/test/bootdata.cc.tpl
+CLUSTER_WRAPPER_TPL = $(ROOT)/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl
+CLUSTER_PKG_TPL     = $(ROOT)/hw/snitch_cluster/src/snitch_cluster_pkg.sv.tpl
+LINK_LD_TPL         = $(ROOT)/hw/snitch_cluster/test/link.ld.tpl
+BOOTDATA_TPL        = $(ROOT)/hw/snitch_cluster/test/bootdata.cc.tpl
 
 # OCCAMYGEN artifacts
-$(eval $(call cluster_gen_rule,$(GENERATED_DIR)/snitch_cluster_wrapper.sv,$(CLUSTER_GEN_TPL)))
+$(eval $(call cluster_gen_rule,$(GENERATED_DIR)/snitch_cluster_wrapper.sv,$(CLUSTER_WRAPPER_TPL)))
+$(eval $(call cluster_gen_rule,$(GENERATED_DIR)/snitch_cluster_pkg.sv,$(CLUSTER_PKG_TPL)))
 $(eval $(call cluster_gen_rule,$(GENERATED_DIR)/link.ld,$(LINK_LD_TPL)))
 $(eval $(call cluster_gen_rule,$(GENERATED_DIR)/bootdata.cc,$(BOOTDATA_TPL)))
 
