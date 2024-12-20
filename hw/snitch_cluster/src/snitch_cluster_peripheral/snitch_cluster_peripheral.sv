@@ -8,6 +8,7 @@
 
 module snitch_cluster_peripheral
   import snitch_pkg::*;
+  import snitch_icache_pkg::*;
   import snitch_cluster_peripheral_reg_pkg::*;
 #(
   // Nr of cores in the cluster
@@ -31,13 +32,13 @@ module snitch_cluster_peripheral
   input  core_events_t [NrCores-1:0]                      core_events_i,
   input  tcdm_events_t                                    tcdm_events_i,
   input  dma_events_t [DMANumChannels-1:0]                dma_events_i,
-  input  snitch_icache_pkg::icache_events_t [NrCores-1:0] icache_events_i
+  input  icache_l0_events_t [NrCores-1:0] icache_events_i
 );
 
   // Pipeline register to ease timing.
   tcdm_events_t tcdm_events_q;
   dma_events_t [DMANumChannels-1:0] dma_events_q;
-  snitch_icache_pkg::icache_events_t [NrCores-1:0] icache_events_q;
+  icache_l0_events_t [NrCores-1:0] icache_events_q;
   `FF(tcdm_events_q, tcdm_events_i, '0)
   `FF(dma_events_q, dma_events_i, '0)
   `FF(icache_events_q, icache_events_i, '0)

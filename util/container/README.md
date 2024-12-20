@@ -35,7 +35,7 @@ sudo docker buildx build -t ghcr.io/pulp-platform/snitch_cluster:main -f util/co
 To run the container in interactive mode:
 
 ```shell
-docker run -it -v <path_to_repository_root>:/repo -w /repo ghcr.io/pulp-platform/snitch_cluster:main
+docker run -it --entrypoint /bin/bash -v <path_to_repository_root>:/repo -w /repo ghcr.io/pulp-platform/snitch_cluster:main
 ```
 
 ## Limitations

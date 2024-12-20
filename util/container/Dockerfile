@@ -12,7 +12,6 @@ ARG UBUNTU_VERSION=22.04
 FROM ubuntu:${UBUNTU_VERSION} AS builder
 ARG BENDER_VERSION=0.28.1
 ARG DOXYGEN_VERSION=1.12.0
-ARG VERIBLE_VERSION=0.0-3318-g8d254167
 ARG SNITCH_LLVM_VERSION=latest
 ARG RUST_VERSION=1.63.0
 ARG UBUNTU_VERSION
@@ -46,11 +45,6 @@ WORKDIR /tools
 # Install Bender
 RUN wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
     tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz
-
-# Install Verible
-RUN wget https://github.com/chipsalliance/verible/releases/download/v${VERIBLE_VERSION}/verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz && \
-    tar -x -f verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz --strip-components=1 -C . && \
-    rm -rf verible-v${VERIBLE_VERSION}-linux-static-x86_64.tar.gz
 
 # Install Doxygen
 RUN wget https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz && \
@@ -111,7 +105,6 @@ RUN ${VIRTUAL_ENV}/bin/pip install --upgrade pip && \
 COPY --from=builder /tools/bender /tools/bin/
 # COPY --from=builder /root/.cargo/bin/banshee /tools/bin/
 COPY --from=builder /tools/doxygen/bin/doxygen /tools/bin/
-COPY --from=builder /tools/verible* /tools/bin/
 COPY --from=builder /tools/riscv-llvm /tools/riscv-llvm
 
 # Modify environment and path variables
