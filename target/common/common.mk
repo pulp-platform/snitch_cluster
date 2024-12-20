@@ -47,7 +47,7 @@ MATCH_BGN := 's/+incdir+//g'
 MATCH_DEF := '/+define+/d'
 SED_SRCS  := sed -e ${MATCH_END} -e ${MATCH_BGN} -e ${MATCH_DEF}
 
-COMMON_BENDER_FLAGS += -t rtl
+COMMON_BENDER_FLAGS += -t rtl -t snitch_cluster
 
 VSIM_BENDER   += $(COMMON_BENDER_FLAGS) -t test -t simulation -t vsim
 VSIM_SOURCES   = $(shell ${BENDER} script flist-plus ${VSIM_BENDER} | ${SED_SRCS})
