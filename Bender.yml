@@ -35,6 +35,7 @@ export_include_dirs:
   - hw/tcdm_interface/include
   - hw/snitch/include
   - hw/snitch_ssr/include
+  - target/snitch_cluster/generated
 
 sources:
   # reqrsp_interface
@@ -187,6 +188,7 @@ sources:
   # target/snitch_cluster
   - target: snitch_cluster_wrapper
     files:
+      - target/snitch_cluster/generated/snitch_cluster_pkg.sv
       - target/snitch_cluster/generated/snitch_cluster_wrapper.sv
   - target: all(snitch_cluster_wrapper, any(simulation, verilator))
     files:
