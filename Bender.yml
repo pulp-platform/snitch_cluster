@@ -190,3 +190,8 @@ sources:
   - target: all(snitch_cluster_wrapper, any(simulation, verilator))
     files:
       - target/snitch_cluster/test/testharness.sv
+
+  - target: gf12
+    files:
+      - nonfree/gf12/mems/tc_sram.sv
+      - nonfree/gf12/sourcecode/tc_clk.sv
