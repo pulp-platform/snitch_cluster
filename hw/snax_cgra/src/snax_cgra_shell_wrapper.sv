@@ -15,13 +15,40 @@ module snax_cgra_shell_wrapper # (
   parameter int unsigned WideDataWidth   = 512,
   parameter int unsigned RegAddrWidth    = 32,
   parameter int unsigned RegDataWidth    = 32,
-  parameter int unsigned NumRwCsr = 1,
-  parameter int unsigned NumRoCsr = 4,
+  parameter int unsigned NumRwCsr = 37,
+  parameter int unsigned NumRoCsr = 11,
   //---------------------------
   // General Parameters
   //---------------------------
   parameter int unsigned NumNarrowDataIn     = 8,
   parameter int unsigned NumNarrowDataOut     = 8
+  // //---------------------------
+  // // CSR Parameters
+  // //---------------------------
+  // parameter int unsigned CsrDataWidth    = RegAddrWidth,
+  // parameter int unsigned CsrAddrWidth    = RegDataWidth,
+  // //---------------------------
+  // // Item Memory Parameters
+  // //---------------------------
+  // parameter int unsigned NumTotIm        = 1024,
+  // parameter int unsigned NumPerImBank    = 128,
+  // parameter int unsigned ImAddrWidth     = $clog2(NumTotIm),
+  // parameter int unsigned SeedWidth       = CsrDataWidth,
+  // parameter int unsigned HoldFifoDepth   = 2,
+  // //---------------------------
+  // // Instruction Memory Parameters
+  // //---------------------------
+  // parameter int unsigned InstMemDepth    = 128,
+  // //---------------------------
+  // // HDC Encoder Parameters
+  // //---------------------------
+  // parameter int unsigned BundCountWidth  = 8,
+  // parameter int unsigned BundMuxWidth    = 2,
+  // parameter int unsigned ALUMuxWidth     = 2,
+  // parameter int unsigned ALUMaxShiftAmt  = 128,
+  // parameter int unsigned RegMuxWidth     = 2,
+  // parameter int unsigned QvMuxWidth      = 2,
+  // parameter int unsigned RegNum          = 4
 )(
   //-----------------------------
   // Clock and reset
@@ -102,7 +129,7 @@ module snax_cgra_shell_wrapper # (
   // Packed CSR register signals
   //-----------------------------
   // Read-write CSRs
-  input logic [NumRwCsr-1:0][31:0]    csr_reg_set_i,
+  input logic [NumRwCsr:0][31:0]    csr_reg_set_i,
   input logic                         csr_reg_set_valid_i,
   output logic                        csr_reg_set_ready_o,
   output logic [NumRoCsr-1:0][31:0]    csr_reg_ro_set_o
@@ -174,44 +201,66 @@ module snax_cgra_shell_wrapper # (
   assign cgra_ni_output_ready_i[6] = acc2stream_6_ready_i;
   assign cgra_ni_output_ready_i[7] = acc2stream_7_ready_i;
 
-  assign csr_reg_ro_set_o[0] = cgra_csr_reg_ro_set_o[0];
-  assign csr_reg_ro_set_o[1] = cgra_csr_reg_ro_set_o[1];
-  assign csr_reg_ro_set_o[2] = cgra_csr_reg_ro_set_o[2];
-  assign csr_reg_ro_set_o[3] = cgra_csr_reg_ro_set_o[3];
+  generate
+    genvar i;
+    for(i=0; i<NumRwCsr; i++) begin: gen_csr_rw_set
+      assign cgra_csr_reg_set_i[i] = csr_reg_set_i[i];
+    end
+  endgenerate
 
-  assign cgra_csr_reg_set_i[0] = csr_reg_set_i[0];
+  generate
+    genvar j;
+    for(j=0; j<NumRoCsr; j++) begin: gen_csr_ro_set
+      assign csr_reg_ro_set_o[j] = cgra_csr_reg_ro_set_o[j];
+    end
+  endgenerate
 
   //---------------------------
   // CGRA Top Module
   //---------------------------
+  // module CGRARTL__332d123efc0840be
+  // (
+  //   output logic [31:0] cgra_csr_ro [0:3],
+  //   input  logic [31:0] cgra_csr_rw [0:0],
+  //   output logic [0:0] cgra_csr_rw_ack ,
+  //   input  logic [0:0] cgra_csr_rw_valid ,
+  //   input  logic [0:0] clk ,
+  //   input  logic [0:0] reset ,
+  //   input logic [0:0] cgra_recv_ni_data__en [0:7] ,
+  //   input logic [63:0] cgra_recv_ni_data__msg [0:7] ,
+  //   output logic [0:0] cgra_recv_ni_data__rdy [0:7] ,
+  //   output logic [0:0] cgra_send_ni_data__en [0:7] ,
+  //   output logic [63:0] cgra_send_ni_data__msg [0:7] ,
+  //   input logic [0:0] cgra_send_ni_data__rdy [0:7]
+  // );
   CGRARTL__top i_cgrartl (
     //---------------------------
     // Clocks and reset
     //---------------------------
-    .clk                      ( clk_i                    ),
-    .reset                    ( !rst_ni                  ),
+    .clk              ( clk_i                ),
+    .reset             ( !rst_ni               ),
     //---------------------------
     // CSR RW control signals
     //---------------------------
-    .cgra_csr_rw              ( cgra_csr_reg_set_i       ),
-    .cgra_csr_rw_ack          ( csr_reg_set_ready_o      ),
-    .cgra_csr_rw_valid        ( csr_reg_set_valid_i      ),
+    .cgra_csr_rw     ( cgra_csr_reg_set_i       ),
+    .cgra_csr_rw_ack     ( csr_reg_set_ready_o       ),
+    .cgra_csr_rw_valid    ( csr_reg_set_valid_i      ),
     //---------------------------
     // CSR RO control signals
     //---------------------------
-    .cgra_csr_ro              ( cgra_csr_reg_ro_set_o   ),
+    .cgra_csr_ro (cgra_csr_reg_ro_set_o),
     //---------------------------
     // INPUT ports
     //---------------------------
-    .cgra_recv_ni_data__en    ( cgra_ni_input_valid_i   ),
-    .cgra_recv_ni_data__msg   ( cgra_ni_input_data_i    ),
-    .cgra_recv_ni_data__rdy   ( cgra_ni_input_ready_o   ),
+    .cgra_recv_ni_data__en    ( cgra_ni_input_valid_i ),
+    .cgra_recv_ni_data__msg   ( cgra_ni_input_data_i ),
+    .cgra_recv_ni_data__rdy   ( cgra_ni_input_ready_o ),
     //---------------------------
     // OUTPUT ports
     //---------------------------
-    .cgra_send_ni_data__en    ( cgra_ni_output_valid_o  ),
-    .cgra_send_ni_data__msg   ( cgra_ni_output_data_o   ),
-    .cgra_send_ni_data__rdy   ( cgra_ni_output_ready_i  )
+    .cgra_send_ni_data__en    ( cgra_ni_output_valid_o ),
+    .cgra_send_ni_data__msg   ( cgra_ni_output_data_o ),
+    .cgra_send_ni_data__rdy   ( cgra_ni_output_ready_i )
   );
 
 

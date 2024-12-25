@@ -115,8 +115,8 @@
             snax_acc_name: "snax_cgra",
             bender_target: ["cgra"],
             snax_narrow_tcdm_ports: 16,
-            snax_num_rw_csr: 1,
-            snax_num_ro_csr: 4,
+            snax_num_rw_csr: 38,
+            snax_num_ro_csr: 11,
             snax_streamer_cfg: {$ref: "#/snax_cgra_streamer_template" }
         },
         snax_use_custom_ports: false,
@@ -156,16 +156,16 @@
 
         data_reader_params: {
             spatial_bounds: [[1], [1], [1], [1], [1], [1], [1], [1]],
-            temporal_dim: [2, 2, 2, 2, 2, 2, 2, 2],
+            temporal_dim: [6, 6, 6, 6, 6, 6, 6, 6],
             num_channel: [1, 1, 1, 1, 1, 1, 1, 1],
-            fifo_depth: [8, 8, 8, 8, 8, 8, 8, 8],
+            fifo_depth: [4, 4, 4, 4, 4, 4, 4, 4],
         },
 
         data_writer_params: {
             spatial_bounds: [[1], [1], [1], [1], [1], [1], [1], [1]],
-            temporal_dim: [2, 2, 2, 2, 2, 2, 2, 2],
+            temporal_dim: [3, 3, 3, 3, 3, 3, 3, 3],
             num_channel: [1, 1, 1, 1, 1, 1, 1, 1],
-            fifo_depth: [8, 8, 8, 8, 8, 8, 8, 8],
+            fifo_depth: [4, 4, 4, 4, 4, 4, 4, 4],
         },
 
         snax_library_name: "snax-cgra",
