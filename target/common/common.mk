@@ -3,7 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # Makefile invocation
-DEBUG ?= OFF  # ON to turn on wave logging
+DEBUG    ?= OFF  # ON to turn on wave logging
+PL_SIM   ?= 0    # 1 for post-layout simulation
+VCD_DUMP ?= 0    # 1 to dump VCD traces
 
 # Directories
 SIM_DIR  ?= $(shell pwd)
@@ -46,15 +48,32 @@ VLT_JOBS        ?= $(shell nproc)
 VLT_NUM_THREADS ?= 1
 
 COMMON_BENDER_FLAGS += -t rtl -t snitch_cluster
+ifeq ($(PL_SIM), 1)
+COMMON_BENDER_FLAGS += -t postlayout
+endif
 
 VSIM_BENDER   += $(COMMON_BENDER_FLAGS) -t test -t simulation -t vsim
 VSIM_BUILDDIR ?= work-vsim
 VSIM_FLAGS    += -t 1ps
+VOPT_FLAGS     = 
 ifeq ($(DEBUG), ON)
-VSIM_FLAGS    += -do "log -r /*; run -a"
-VOPT_FLAGS     = +acc
+VSIM_FLAGS    += -do "log -r /*"
+VOPT_FLAGS    += +acc
+endif
+
+ifeq ($(PL_SIM), 1)
+include $(ROOT)/nonfree/gf12/modelsim/Makefrag
+VOPT_FLAGS 	+= -modelsimini $(ROOT)/nonfree/gf12/modelsim/modelsim.ini
+VOPT_FLAGS  += +nospecify
+VOPT_FLAGS  += $(GATE_LIBS)
+VSIM_FLAGS 	+= -modelsimini $(ROOT)/nonfree/gf12/modelsim/modelsim.ini
+VSIM_FLAGS  += +nospecify
+endif
+
+ifeq ($(VCD_DUMP), 1)
+VSIM_FLAGS += -do "source $(ROOT)/nonfree/gf12/modelsim/vcd.tcl"
 else
-VSIM_FLAGS    += -do "run -a"
+VSIM_FLAGS += -do "run -a"
 endif
 
 # VCS_BUILDDIR should to be the same as the `DEFAULT : ./work-vcs`
