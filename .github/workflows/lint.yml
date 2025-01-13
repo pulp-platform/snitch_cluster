@@ -162,23 +162,12 @@ jobs:
   ######################
   run:
     name: Lint Scala Files
-    strategy:
-      matrix:
-        java-version: [17]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    container:
+      image: ghcr.io/kuleuven-micas/snax:main
     steps:
-      - name: Checkout current branch (full)
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: ${{ matrix.java-version }}
-          cache: sbt
-
-      - name: check format
+      - uses: actions/checkout@v2
+      - name: Run the unit tests
         working-directory: hw/chisel
-        run: sbt scalafmtCheck
+        run: |
+          sbt scalafmtCheck
