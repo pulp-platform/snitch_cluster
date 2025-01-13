@@ -19,7 +19,7 @@ void print_usage(const char *prog_name) {
               << "  Wrap Rocket Chip Emulator in SNAX RTL Simulator\n\n"
               << "SNAX WRAPPER Options:\n"
               << "  --disable-tracing       Disable Snitch tracing\n"
-              << "  --prefix-trace <prefix> Set trace prefix (cannot be used "
+              << "  --prefix-trace=<prefix> Set trace prefix (cannot be used "
                  "with --disable-tracing)\n\n";
 }
 
@@ -38,7 +38,7 @@ int main(int argc, char **argv, char **env) {
     for (int i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "--disable-tracing") == 0) {
             WRAPPER_disable_tracing = true;
-        } else if (strncmp(argv[i], "--prefix-trace ", 15) == 0) {
+        } else if (strncmp(argv[i], "--prefix-trace=", 15) == 0) {
             WRAPPER_trace_prefix =
                 argv[i] + 15;  // Extract the value after `--prefix-trace=`
         } else if (strcmp(argv[i], "-h") == 0 ||
@@ -64,7 +64,7 @@ int main(int argc, char **argv, char **env) {
     for (int i = 0; i < argc; ++i) {
         // Skip custom options
         if (strcmp(argv[i], "--disable-tracing") == 0 ||
-            strncmp(argv[i], "--prefix-trace ", 15) == 0) {
+            strncmp(argv[i], "--prefix-trace=", 15) == 0) {
             continue;
         }
         filtered_argv.push_back(argv[i]);
