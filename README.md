@@ -72,6 +72,13 @@ The top-level is structured as follows:
 * `target`: Contains the testbench setup, cluster configuration specific hardware and software, libraries, runtimes, etc.
 * `util`: Utility and helper scripts.
 
+# Publications
+
+- **[OpenGeMM: A High-Utilization GeMM Accelerator Generator with Lightweight RISC-V Control and Tight Memory Coupling](https://arxiv.org/abs/2411.09543)**  
+  Yi X, Antonio R, Dumoulin J, Sun J, Van Delm J, Paim G, Verhelst M  
+  arXiv preprint arXiv:2411.09543. 2024 Nov 14.  
+  Pointer: the OpenGeMM system configuration is located at [OpenGeMM](target/snitch_cluster/cfg/snax_streamer_gemm_cluster.hjson).
+
 # Acknowledgement
 
 SNAX is an extension of the original [Snitch Cluster](https://github.com/pulp-platform/snitch_cluster) framework. SNAX got its name as "SNitch Acceleration eXtension".
