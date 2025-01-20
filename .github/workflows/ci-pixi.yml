@@ -1,0 +1,47 @@
+# Copyright 2025 KU Leuven.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+name: pixi environment test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  sw-snax-KUL-dse-cluster-vlt-generic:
+    name: Build KUL-dse-cluster HW w/ Verilator (Generic LLVM)
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: "recursive"
+      - uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          cache: true
+          cache-write: ${{ github.event_name == 'push' &&
+            github.ref_name == 'main' }}
+      - name: Pixi RTL GEN
+        run: |
+          pixi run make CFG_OVERRIDE=cfg/snax_KUL_dse_cluster.hjson \
+          -C target/snitch_cluster rtl-gen
+      - name: Pixi Build Hardware
+        run: |
+          pixi run make CFG_OVERRIDE=cfg/snax_KUL_dse_cluster.hjson \
+          -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
+      - name: Pixi Build Software
+        run: |
+          pixi run make -C target/snitch_cluster sw \
+          CFG_OVERRIDE=cfg/snax_KUL_dse_cluster.hjson
+      - name: Pixi Run Tests
+        working-directory: target/snitch_cluster
+        run: |-
+          pixi run ./run.py --simulator verilator \
+          sw/runtime.yaml \
+          sw/snax-gemmx-run.yaml \
+          sw/snax-data-reshuffler-run.yaml -j
+    strategy:
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04, ubuntu-24.04]

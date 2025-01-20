@@ -18,18 +18,19 @@ DEBUG ?= OFF # ON to turn on debugging symbols
 # Compiler toolchain
 ifeq ($(SELECT_TOOLCHAIN), llvm-snitch)
 # specialized version does not use a version specifier in the binary
-LLVM_BINROOT    = /tools/riscv-llvm/bin
+LLVM_BINROOT    = /tools/riscv-llvm/bin/
 LLVM_VERSION    = 
+RISCV_LD        ?= $(LLVM_BINROOT)ld.lld$(LLVM_VERSION)
 else
-LLVM_BINROOT    = /usr/bin
+LLVM_BINROOT    =
 LLVM_VERSION    =
+RISCV_LD        ?= $(LLVM_BINROOT)lld$(LLVM_VERSION)
 endif
-RISCV_CC        ?= $(LLVM_BINROOT)/clang$(LLVM_VERSION)
-RISCV_LD        ?= $(LLVM_BINROOT)/ld.lld$(LLVM_VERSION)
-RISCV_AR        ?= $(LLVM_BINROOT)/llvm-ar$(LLVM_VERSION)
-RISCV_OBJCOPY   ?= $(LLVM_BINROOT)/llvm-objcopy$(LLVM_VERSION)
-RISCV_OBJDUMP   ?= $(LLVM_BINROOT)/llvm-objdump$(LLVM_VERSION)
-RISCV_DWARFDUMP ?= $(LLVM_BINROOT)/llvm-dwarfdump$(LLVM_VERSION)
+RISCV_CC        ?= $(LLVM_BINROOT)clang$(LLVM_VERSION)
+RISCV_AR        ?= $(LLVM_BINROOT)llvm-ar$(LLVM_VERSION)
+RISCV_OBJCOPY   ?= $(LLVM_BINROOT)llvm-objcopy$(LLVM_VERSION)
+RISCV_OBJDUMP   ?= $(LLVM_BINROOT)llvm-objdump$(LLVM_VERSION)
+RISCV_DWARFDUMP ?= $(LLVM_BINROOT)llvm-dwarfdump$(LLVM_VERSION)
 
 ifeq ($(SELECT_TOOLCHAIN), llvm-snitch)
 LLVM_VER        ?= $(shell /tools/riscv-llvm/bin/llvm-config --version | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')

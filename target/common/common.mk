@@ -166,7 +166,7 @@ $(VLT_FESVR)/${FESVR_VERSION}_unzip:
 	touch $@
 
 $(VLT_BUILDDIR)/lib/libfesvr.a: $(VLT_FESVR)/${FESVR_VERSION}_unzip
-	cd $(dir $<)/ && ./configure --prefix `pwd` \
+	cd $(dir $<)/ && ./configure --prefix `pwd` --with-boost=$(CONDA_PREFIX)  \
         CC=${CC} CXX=${CXX} CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}"
 	$(MAKE) -C $(dir $<) install-config-hdrs install-hdrs libfesvr.a
 	mkdir -p $(dir $@)
