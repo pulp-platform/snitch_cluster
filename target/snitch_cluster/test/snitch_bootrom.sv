@@ -25,11 +25,21 @@ module snitch_bootrom #(
 
     always_comb begin : gen_bootrom
         bootrom = '0;
-        bootrom[0] = 32'h800002b7; /* 0x0000 */
-        bootrom[1] = 32'h00028293; /* 0x0004 */
-        bootrom[2] = 32'h00028067; /* 0x0008 */
-        bootrom[3] = 32'h10500073; /* 0x000c */
-        bootrom[4] = 32'hffdff06f; /* 0x0010 */
+        bootrom[0] = 32'h00000297; /* 0x0000 */
+        bootrom[1] = 32'h02028293; /* 0x0004 */
+        bootrom[2] = 32'h30529073; /* 0x0008 */
+        bootrom[3] = 32'h30046073; /* 0x000c */
+        bootrom[4] = 32'h000802b7; /* 0x0010 */
+        bootrom[5] = 32'h00828293; /* 0x0014 */
+        bootrom[6] = 32'h30429073; /* 0x0018 */
+        bootrom[7] = 32'h10500073; /* 0x001c */
+        bootrom[8] = 32'h00000297; /* 0x0020 */
+        bootrom[9] = 32'h00001337; /* 0x0024 */
+        bootrom[10] = 32'h16830313; /* 0x0028 */
+        bootrom[11] = 32'h006282b3; /* 0x002c */
+        bootrom[12] = 32'h0002a283; /* 0x0030 */
+        bootrom[13] = 32'h000280e7; /* 0x0034 */
+        bootrom[14] = 32'hfc9ff06f; /* 0x0038 */
     end
 
 endmodule

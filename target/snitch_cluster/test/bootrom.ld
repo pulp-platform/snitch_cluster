@@ -3,7 +3,7 @@
 /* SPDX-License-Identifier: SHL-0.51 */
 
 INCLUDE "memory.ld"
-ENTRY(_start)
+ENTRY(_snitch_park)
 
 SECTIONS
 {

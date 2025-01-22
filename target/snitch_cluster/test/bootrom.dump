@@ -4,11 +4,21 @@ test/bootrom.elf:	file format elf32-littleriscv
 
 Disassembly of section .text:
 
-80000000 <_start>:
-80000000: b7 02 00 80  	lui	t0, 524288
-80000004: 93 82 02 00  	mv	t0, t0
-80000008: 67 80 02 00  	jr	t0
+80000000 <_snitch_park>:
+80000000: 97 02 00 00  	auipc	t0, 0
+80000004: 93 82 02 02  	addi	t0, t0, 32
+80000008: 73 90 52 30  	csrw	mtvec, t0
+8000000c: 73 60 04 30  	csrsi	mstatus, 8
+80000010: b7 02 08 00  	lui	t0, 128
+80000014: 93 82 82 00  	addi	t0, t0, 8
+80000018: 73 90 42 30  	csrw	mie, t0
+8000001c: 73 00 50 10  	wfi	
 
-8000000c <wfi_loop>:
-8000000c: 73 00 50 10  	wfi	
-80000010: 6f f0 df ff  	j	0x8000000c <wfi_loop>
+80000020 <_snitch_resume>:
+80000020: 97 02 00 00  	auipc	t0, 0
+80000024: 37 13 00 00  	lui	t1, 1
+80000028: 13 03 83 16  	addi	t1, t1, 360
+8000002c: b3 82 62 00  	add	t0, t0, t1
+80000030: 83 a2 02 00  	lw	t0, 0(t0)
+80000034: e7 80 02 00  	jalr	t0
+80000038: 6f f0 9f fc  	j	0x80000000 <_snitch_park>
