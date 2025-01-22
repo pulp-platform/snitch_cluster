@@ -1291,8 +1291,6 @@ module snitch_cluster
       .addr_i (bootrom_addr),
       .data_o (bootrom_data)
     );
-  end else begin : gen_no_bootrom
-    assign wide_axi_slv_rsp[BootRom] = '0;
   end
 
   snitch_cluster_peripheral #(
