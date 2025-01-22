@@ -75,8 +75,8 @@ VCS_BUILDDIR := work-vcs
 FESVR         ?= ${MKFILE_DIR}work
 FESVR_VERSION ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
 
-VLT_BENDER   += $(COMMON_BENDER_FLAGS) -DCOMMON_CELLS_ASSERTS_OFF
 VLT_SOURCES   = $(shell ${BENDER} script flist-plus ${VLT_BENDER} | ${SED_SRCS})
+VLT_BENDER   += $(COMMON_BENDER_FLAGS) -t verilator -DCOMMON_CELLS_ASSERTS_OFF
 VLT_BUILDDIR := $(abspath work-vlt)
 VLT_FESVR     = $(VLT_BUILDDIR)/riscv-isa-sim
 VLT_FLAGS    += --timing
