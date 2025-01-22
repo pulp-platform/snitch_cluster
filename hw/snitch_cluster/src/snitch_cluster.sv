@@ -601,13 +601,13 @@ module snitch_cluster
 
   always_comb begin
     automatic int unsigned i = 0;
-    enabled_dma_xbar_rule[i++] = dma_xbar_rules[0]; // TCDM
-    enabled_dma_xbar_rule[i++] = dma_xbar_rules[1]; // ZeroMemory
-    if (IntBootromEnable) enabled_dma_xbar_rule[i++] = dma_xbar_rules[2]; // Bootrom
+    enabled_dma_xbar_rule[i] = dma_xbar_rules[0]; i++; // TCDM
+    enabled_dma_xbar_rule[i] = dma_xbar_rules[1]; i++; // ZeroMemory
+    if (IntBootromEnable) enabled_dma_xbar_rule[i] = dma_xbar_rules[2]; i++; // Bootrom
     if (AliasRegionEnable) begin
-      enabled_dma_xbar_rule[i++] = dma_xbar_rules[3]; // TCDM Alias
-      enabled_dma_xbar_rule[i++] = dma_xbar_rules[4]; // ZeroMemory Alias
-      if (IntBootromEnable) enabled_dma_xbar_rule[i++] = dma_xbar_rules[5]; // Bootrom Alias
+      enabled_dma_xbar_rule[i] = dma_xbar_rules[3]; i++; // TCDM Alias
+      enabled_dma_xbar_rule[i] = dma_xbar_rules[4]; i++; // ZeroMemory Alias
+      if (IntBootromEnable) enabled_dma_xbar_rule[i] = dma_xbar_rules[5]; // Bootrom Alias
     end
   end
 
