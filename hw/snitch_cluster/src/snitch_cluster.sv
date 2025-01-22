@@ -198,7 +198,9 @@ module snitch_cluster
   parameter bit          DebugSupport = 1,
   /// Optional fixed cluster alias region.
   parameter bit          AliasRegionEnable  = 1'b0,
-  parameter logic [PhysicalAddrWidth-1:0] AliasRegionBase    = '0
+  parameter logic [PhysicalAddrWidth-1:0] AliasRegionBase    = '0,
+  /// Boot from internal bootrom.
+  parameter bit          IntBootromEnable   = 1'b1
 ) (
   /// System clock. If `IsoCrossing` is enabled this port is the _fast_ clock.
   /// The slower, half-frequency clock, is derived internally.
@@ -279,11 +281,12 @@ module snitch_cluster
   localparam int unsigned NrRuleIdcs = NrSlaves - 1;
   localparam int unsigned NrRules = (1 + AliasRegionEnable) * NrRuleIdcs;
 
-  // SoC Request, DMA Channels, `n` instruction caches.
+  // DMA X-BAR configuration
+  // SoC in Request, DMA Channels, `n` instruction caches.
   localparam int unsigned NrWideMasters = 1 + DMANumChannels + NrHives;
   localparam int unsigned WideIdWidthOut = $clog2(NrWideMasters) + WideIdWidthIn;
-  // DMA X-BAR configuration
-  localparam int unsigned NrWideSlaves = 4;
+  // TCDM, SoC out, ZeroMemory, (Bootrom)
+  localparam int unsigned NrWideSlaves = 3 + IntBootromEnable;
   localparam int unsigned NrWideRuleIdcs = NrWideSlaves - 1;
   localparam int unsigned NrWideRules = (1 + AliasRegionEnable) * NrWideRuleIdcs;
 
@@ -462,13 +465,13 @@ module snitch_cluster
   assign tcdm_start_address = (cluster_base_addr_i & TCDMMask);
   assign tcdm_end_address   = (tcdm_start_address + TCDMSize) & TCDMMask;
 
-  addr_t cluster_periph_start_address, cluster_periph_end_address;
-  assign cluster_periph_start_address = tcdm_end_address;
-  assign cluster_periph_end_address   = tcdm_end_address + ClusterPeriphSize * 1024;
-
   addr_t bootrom_start_address, bootrom_end_address;
-  assign bootrom_start_address = cluster_periph_start_address + 4 * 1024;
-  assign bootrom_end_address   = cluster_periph_end_address;
+  assign bootrom_start_address = tcdm_end_address;
+  assign bootrom_end_address   = tcdm_end_address + BootRomSize * 1024;
+
+  addr_t cluster_periph_start_address, cluster_periph_end_address;
+  assign cluster_periph_start_address = IntBootromEnable ? bootrom_end_address : tcdm_end_address;
+  assign cluster_periph_end_address   = cluster_periph_start_address + ClusterPeriphSize * 1024;
 
   addr_t zero_mem_start_address, zero_mem_end_address;
   assign zero_mem_start_address = cluster_periph_end_address;
@@ -477,15 +480,14 @@ module snitch_cluster
   localparam addr_t TCDMAliasStart = AliasRegionBase & TCDMMask;
   localparam addr_t TCDMAliasEnd   = (TCDMAliasStart + TCDMSize) & TCDMMask;
 
-  localparam addr_t PeriphAliasStart = TCDMAliasEnd;
-  localparam addr_t PeriphAliasEnd   = TCDMAliasEnd + ClusterPeriphSize * 1024;
+  localparam addr_t BootRomAliasStart = TCDMAliasEnd;
+  localparam addr_t BootRomAliasEnd   = BootRomAliasStart + BootRomSize * 1024;
 
-  localparam addr_t BootRomAliasStart = PeriphAliasStart + 4 * 1024;
-  localparam addr_t BootRomAliasEnd   = PeriphAliasEnd;
+  localparam addr_t PeriphAliasStart = IntBootromEnable ? BootRomAliasEnd : TCDMAliasEnd;
+  localparam addr_t PeriphAliasEnd   = PeriphAliasStart + ClusterPeriphSize * 1024;
 
   localparam addr_t ZeroMemAliasStart = PeriphAliasEnd;
   localparam addr_t ZeroMemAliasEnd   = PeriphAliasEnd + ZeroMemorySize * 1024;
-
 
   // ----------------
   // Wire Definitions
@@ -583,44 +585,30 @@ module snitch_cluster
   );
 
   logic [DmaXbarCfg.NoSlvPorts-1:0][$clog2(DmaXbarCfg.NoMstPorts)-1:0] dma_xbar_default_port;
-  xbar_rule_t [DmaXbarCfg.NoAddrRules-1:0] dma_xbar_rule;
-
   assign dma_xbar_default_port = '{default: SoCDMAOut};
-  assign dma_xbar_rule[NrWideRuleIdcs-1:0] = '{
-    '{
-      idx:        TCDMDMA,
-      start_addr: tcdm_start_address,
-      end_addr:   tcdm_end_address
-    },
-    '{
-      idx:        ZeroMemory,
-      start_addr: zero_mem_start_address,
-      end_addr:   zero_mem_end_address
-    },
-    '{
-      idx:        BootRom,
-      start_addr: bootrom_start_address,
-      end_addr:   bootrom_end_address
-    }
+
+  xbar_rule_t [5:0] dma_xbar_rules;
+  xbar_rule_t [DmaXbarCfg.NoAddrRules-1:0] enabled_dma_xbar_rule;
+
+  assign dma_xbar_rules = '{
+    '{idx: TCDMDMA,    start_addr: tcdm_start_address,     end_addr: tcdm_end_address},
+    '{idx: ZeroMemory, start_addr: zero_mem_start_address, end_addr: zero_mem_end_address},
+    '{idx: BootRom,    start_addr: bootrom_start_address,  end_addr: bootrom_end_address},
+    '{idx: TCDMDMA,    start_addr: TCDMAliasStart,         end_addr: TCDMAliasEnd},
+    '{idx: ZeroMemory, start_addr: ZeroMemAliasStart,      end_addr: ZeroMemAliasEnd},
+    '{idx: BootRom,    start_addr: BootRomAliasStart,      end_addr: BootRomAliasEnd}
   };
-  if (AliasRegionEnable) begin : gen_dma_xbar_alias
-    assign dma_xbar_rule [NrWideRules-1:NrWideRuleIdcs] = '{
-      '{
-        idx:        TCDMDMA,
-        start_addr: TCDMAliasStart,
-        end_addr:   TCDMAliasEnd
-      },
-      '{
-        idx:        ZeroMemory,
-        start_addr: ZeroMemAliasStart,
-        end_addr:   ZeroMemAliasEnd
-      },
-      '{
-        idx:        BootRom,
-        start_addr: BootRomAliasStart,
-        end_addr:   BootRomAliasEnd
-      }
-    };
+
+  always_comb begin
+    automatic int unsigned i = 0;
+    enabled_dma_xbar_rule[i++] = dma_xbar_rules[0]; // TCDM
+    enabled_dma_xbar_rule[i++] = dma_xbar_rules[1]; // ZeroMemory
+    if (IntBootromEnable) enabled_dma_xbar_rule[i++] = dma_xbar_rules[2]; // Bootrom
+    if (AliasRegionEnable) begin
+      enabled_dma_xbar_rule[i++] = dma_xbar_rules[3]; // TCDM Alias
+      enabled_dma_xbar_rule[i++] = dma_xbar_rules[4]; // ZeroMemory Alias
+      if (IntBootromEnable) enabled_dma_xbar_rule[i++] = dma_xbar_rules[5]; // Bootrom Alias
+    end
   end
 
   localparam bit [DmaXbarCfg.NoSlvPorts-1:0] DMAEnableDefaultMstPort = '1;
@@ -649,7 +637,7 @@ module snitch_cluster
     .slv_ports_resp_o (wide_axi_mst_rsp),
     .mst_ports_req_o (wide_axi_slv_req),
     .mst_ports_resp_i (wide_axi_slv_rsp),
-    .addr_map_i (dma_xbar_rule),
+    .addr_map_i (enabled_dma_xbar_rule),
     .en_default_mst_port_i (DMAEnableDefaultMstPort),
     .default_mst_port_i (dma_xbar_default_port)
   );
@@ -878,7 +866,7 @@ module snitch_cluster
 
       tcdm_req_t [TcdmPorts-1:0] tcdm_req_wo_user;
 
-      parameter logic [31:0] BootAddrInternal = AliasRegionEnable ? BootRomAliasStart : BootAddr;
+      parameter logic [31:0] BootAddrInternal = (AliasRegionEnable & IntBootromEnable) ? BootRomAliasStart : BootAddr;
 
       snitch_cc #(
         .AddrWidth (PhysicalAddrWidth),
@@ -1259,36 +1247,52 @@ module snitch_cluster
     .reg_rsp_i (reg_rsp)
   );
 
-  addr_t bootrom_addr;
-  data_dma_t bootrom_data, bootrom_data_q;
-  logic bootrom_req,  bootrom_req_q;
+  if (IntBootromEnable) begin : gen_bootrom
 
-  `FF(bootrom_data_q, bootrom_data, '0, clk_i, rst_ni)
-  `FF(bootrom_req_q,  bootrom_req,  '0, clk_i, rst_ni)
+    addr_t bootrom_addr;
+    data_dma_t bootrom_data, bootrom_data_q;
+    logic bootrom_req,  bootrom_req_q;
 
-  axi_to_mem #(
-    .axi_req_t (axi_slv_dma_req_t),
-    .axi_resp_t (axi_slv_dma_resp_t),
-    .AddrWidth (PhysicalAddrWidth),
-    .DataWidth (WideDataWidth),
-    .IdWidth (WideIdWidthOut),
-    .NumBanks (1)
-  ) i_axi_to_mem (
-    .clk_i (clk_i),
-    .rst_ni (rst_ni),
-    .busy_o (),
-    .axi_req_i (wide_axi_slv_req[BootRom]),
-    .axi_resp_o (wide_axi_slv_rsp[BootRom]),
-    .mem_req_o (bootrom_req),
-    .mem_gnt_i (bootrom_req),
-    .mem_addr_o (bootrom_addr),
-    .mem_wdata_o (),
-    .mem_strb_o (),
-    .mem_atop_o (),
-    .mem_we_o (),
-    .mem_rvalid_i (bootrom_req_q),
-    .mem_rdata_i (bootrom_data_q)
-  );
+    `FF(bootrom_data_q, bootrom_data, '0, clk_i, rst_ni)
+    `FF(bootrom_req_q,  bootrom_req,  '0, clk_i, rst_ni)
+
+    axi_to_mem #(
+      .axi_req_t (axi_slv_dma_req_t),
+      .axi_resp_t (axi_slv_dma_resp_t),
+      .AddrWidth (PhysicalAddrWidth),
+      .DataWidth (WideDataWidth),
+      .IdWidth (WideIdWidthOut),
+      .NumBanks (1)
+    ) i_axi_to_mem (
+      .clk_i (clk_i),
+      .rst_ni (rst_ni),
+      .busy_o (),
+      .axi_req_i (wide_axi_slv_req[BootRom]),
+      .axi_resp_o (wide_axi_slv_rsp[BootRom]),
+      .mem_req_o (bootrom_req),
+      .mem_gnt_i (bootrom_req),
+      .mem_addr_o (bootrom_addr),
+      .mem_wdata_o (),
+      .mem_strb_o (),
+      .mem_atop_o (),
+      .mem_we_o (),
+      .mem_rvalid_i (bootrom_req_q),
+      .mem_rdata_i (bootrom_data_q)
+    );
+
+    snitch_bootrom #(
+      .AddrWidth (PhysicalAddrWidth),
+      .DataWidth (WideDataWidth),
+      .BootromSize (BootRomSize * 1024)
+    ) i_bootrom (
+      .clk_i (clk_i),
+      .rst_ni (rst_ni),
+      .addr_i (bootrom_addr),
+      .data_o (bootrom_data)
+    );
+  end else begin
+    assign wide_axi_slv_rsp[BootRom] = '0;
+  end
 
   snitch_cluster_peripheral #(
     .reg_req_t (reg_req_t),
@@ -1308,17 +1312,6 @@ module snitch_cluster
     .tcdm_events_i (tcdm_events),
     .dma_events_i (dma_events),
     .icache_events_i (icache_events)
-  );
-
-  snitch_bootrom #(
-    .AddrWidth (PhysicalAddrWidth),
-    .DataWidth (WideDataWidth),
-    .BootromSize (BootRomSize * 1024)
-  ) i_bootrom (
-    .clk_i (clk_i),
-    .rst_ni (rst_ni),
-    .addr_i (bootrom_addr),
-    .data_o (bootrom_data)
   );
 
   // Optionally decouple the external narrow AXI master ports.
