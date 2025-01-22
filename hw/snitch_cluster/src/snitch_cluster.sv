@@ -866,7 +866,8 @@ module snitch_cluster
 
       tcdm_req_t [TcdmPorts-1:0] tcdm_req_wo_user;
 
-      parameter logic [31:0] BootAddrInternal = (AliasRegionEnable & IntBootromEnable) ? BootRomAliasStart : BootAddr;
+      parameter logic [31:0] BootAddrInternal = (AliasRegionEnable & IntBootromEnable) ?
+                                                 BootRomAliasStart : BootAddr;
 
       snitch_cc #(
         .AddrWidth (PhysicalAddrWidth),
@@ -1290,7 +1291,7 @@ module snitch_cluster
       .addr_i (bootrom_addr),
       .data_o (bootrom_data)
     );
-  end else begin
+  end else begin : gen_no_bootrom
     assign wide_axi_slv_rsp[BootRom] = '0;
   end
 
