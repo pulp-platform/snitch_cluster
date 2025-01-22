@@ -11,7 +11,7 @@ $(BIN_DIR)/$(TARGET).gvsoc:
 	@echo '    GVSOC_TARGET=snitch' >> $@
 	@echo 'fi' >> $@
 	@echo 'gvsoc --target=$${GVSOC_TARGET} --binary $$binary \
-	   --control-script=$${path}/${GVSOC_BUILDDIR}/pulp/pulp/snitch/utils/gvcontrol.py $$2 run' >> $@
+	   --control-script=$${path}/../../util/sim/gvsoc_control.py $$2 run' >> $@
 	@chmod +x $@
 
 .PHONY: clean-gvsoc

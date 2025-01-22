@@ -43,24 +43,27 @@ static inline void axpy_opt(uint32_t n, double a, double *x, double *y,
     int frac = n / snrt_cluster_compute_core_num();
     int offset = core_idx;
 
-    snrt_ssr_loop_1d(SNRT_SSR_DM_ALL, frac,
-                     snrt_cluster_compute_core_num() * sizeof(double));
+    for (int i=0; i<1; i++)
+    {
+        snrt_ssr_loop_1d(SNRT_SSR_DM_ALL, frac,
+                        snrt_cluster_compute_core_num() * sizeof(double));
 
-    snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_1D, x + offset);
-    snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_1D, y + offset);
-    snrt_ssr_write(SNRT_SSR_DM2, SNRT_SSR_1D, z + offset);
+        snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_1D, x + offset);
+        snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_1D, y + offset);
+        snrt_ssr_write(SNRT_SSR_DM2, SNRT_SSR_1D, z + offset);
 
-    snrt_ssr_enable();
+        snrt_ssr_enable();
 
-    asm volatile(
-        "frep.o %[n_frep], 1, 0, 0 \n"
-        "fmadd.d ft2, %[a], ft0, ft1\n"
-        :
-        : [ n_frep ] "r"(frac - 1), [ a ] "f"(a)
-        : "ft0", "ft1", "ft2", "memory");
+        asm volatile(
+            "frep.o %[n_frep], 1, 0, 0 \n"
+            "fmadd.d ft2, %[a], ft0, ft1\n"
+            :
+            : [ n_frep ] "r"(frac - 1), [ a ] "f"(a)
+            : "ft0", "ft1", "ft2", "memory");
 
-    snrt_fpu_fence();
-    snrt_ssr_disable();
+        snrt_fpu_fence();
+        snrt_ssr_disable();
+    }
 }
 
 static inline void axpy_job(axpy_args_t *args) {
@@ -112,6 +115,8 @@ static inline void axpy_job(axpy_args_t *args) {
     // Calculate number of iterations
     iterations = args->n_tiles;
     if (DOUBLE_BUFFER) iterations += 2;
+
+    uint32_t cycles;
 
     // Iterate over all tiles
     for (i = 0; i < iterations; i++) {
@@ -167,7 +172,7 @@ static inline void axpy_job(axpy_args_t *args) {
             if (!DOUBLE_BUFFER) snrt_cluster_hw_barrier();
 
             if (!DOUBLE_BUFFER || (i > 0 && i < (args->n_tiles + 1))) {
-                snrt_mcycle();
+                uint32_t start_cycle = snrt_mcycle();
 
                 // Compute tile and buffer indices
                 i_compute = DOUBLE_BUFFER ? i - 1 : i;
@@ -178,7 +183,9 @@ static inline void axpy_job(axpy_args_t *args) {
                 fp(frac, args->a, local_x[buff_idx], local_y[buff_idx],
                    local_z[buff_idx]);
 
-                snrt_mcycle();
+                uint32_t end_cycle = snrt_mcycle();
+
+                cycles = end_cycle - start_cycle;
             }
 
             // Additional barrier required when not double buffering
@@ -188,4 +195,7 @@ static inline void axpy_job(axpy_args_t *args) {
         // Synchronize cores after every iteration
         snrt_cluster_hw_barrier();
     }
+
+
+    printf("Cycles %d\n", cycles);
 }
