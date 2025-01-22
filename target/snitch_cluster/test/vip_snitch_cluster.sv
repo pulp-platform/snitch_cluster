@@ -30,7 +30,7 @@ module vip_snitch_cluster
   import "DPI-C" function void clint_tick(output byte msip[]);
   import "DPI-C" function int unsigned get_bin_entry();
 
-  localparam addr_t PeriphBaseAddr = CfgClusterBaseAddr + ((128 + 4) * 1024);
+  localparam addr_t PeriphBaseAddr = CfgClusterBaseAddr + ((TcdmSize + BootromSize) * 1024);
   localparam addr_t Scratch1Addr = PeriphBaseAddr + SNITCH_CLUSTER_PERIPHERAL_SCRATCH_1_OFFSET;
   localparam addr_t SnitchClClintSetAddr = PeriphBaseAddr + SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_SET_OFFSET;
 
