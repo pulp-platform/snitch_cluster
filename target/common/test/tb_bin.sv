@@ -7,42 +7,12 @@ module tb_bin;
   import "DPI-C" function int fesvr_tick();
   import "DPI-C" function void fesvr_cleanup();
 
-  // This can't have an explicit type, otherwise the simulation will not advance
-  // for whatever reason.
-  // verilog_lint: waive explicit-parameter-storage-type
-  localparam TCK = 1ns;
-
-  logic rst_ni, clk_i;
-
-  testharness i_dut (
-    .clk_i,
-    .rst_ni
-  );
-
-  // Generate reset
-  initial begin
-    rst_ni = 0;
-    #10ns;
-    rst_ni = 1;
-    #10ns;
-    rst_ni = 0;
-    #10ns;
-    rst_ni = 1;
-  end
-
-  // Generate clock
-  initial begin
-    forever begin
-      clk_i = 1;
-      #(TCK/2);
-      clk_i = 0;
-      #(TCK/2);
-    end
-  end
+  testharness fix();
 
   // Start `fesvr`
   initial begin
     automatic int exit_code;
+    // Poll fesvr for exit code
     while ((exit_code = fesvr_tick()) == 0) #200ns;
     // Cleanup C++ simulation objects before $finish is called
     fesvr_cleanup();
