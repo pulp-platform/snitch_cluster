@@ -53,7 +53,7 @@ module testharness;
     // Wait for the reset
     vip.wait_for_reset();
     // Wait for a few cycles
-    vip.wait_for_cycles(1000);
+    vip.wait_for_cycles(300);
     // Write entrypoint to the scratch register
     vip.write_entry_point();
     // Set Cluster Clint interrupt
