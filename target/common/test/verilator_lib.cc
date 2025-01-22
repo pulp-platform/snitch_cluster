@@ -114,3 +114,5 @@ void clint_tick(const svOpenArrayHandle msip) {
         msip_ptr[i] = (read_val & (1 << (i % 32))) != 0 ? 1 : 0;
     }
 }
+
+uint32_t get_bin_entry() { return sim::BOOTDATA.global_mem_start; }

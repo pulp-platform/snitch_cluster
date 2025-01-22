@@ -20,6 +20,7 @@ void clint_tick(const svOpenArrayHandle msip);
 void tb_memory_read(long long addr, int len, const svOpenArrayHandle data);
 void tb_memory_write(long long addr, int len, const svOpenArrayHandle data,
                      const svOpenArrayHandle strb);
+uint32_t get_bin_entry();
 }
 
 namespace sim {
@@ -146,3 +147,5 @@ void clint_tick(const svOpenArrayHandle msip) {
         msip_ptr[i] = (read_val & (1 << (i % 32))) != 0 ? 1 : 0;
     }
 }
+
+uint32_t get_bin_entry() { return s->get_bin_entry(); }

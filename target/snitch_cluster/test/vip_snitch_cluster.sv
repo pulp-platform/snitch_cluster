@@ -28,7 +28,7 @@ module vip_snitch_cluster
   import snitch_cluster_peripheral_reg_pkg::*;
 
   import "DPI-C" function void clint_tick(output byte msip[]);
-  // import "DPI-C" function int unsigned get_entry_point();
+  import "DPI-C" function int unsigned get_bin_entry();
 
   localparam addr_t PeriphBaseAddr = CfgClusterBaseAddr + ((128 + 4) * 1024);
   localparam addr_t Scratch1Addr = PeriphBaseAddr + SNITCH_CLUSTER_PERIPHERAL_SCRATCH_1_OFFSET;
@@ -152,9 +152,8 @@ module vip_snitch_cluster
 
   task automatic write_entry_point;
     axi_pkg::resp_t resp;
-    // TODO: Make entry point configurable.
-    $display("[NarrowAxi] Writing entry point %x to scratch1", 'h8000_0000);
-    narrow_write(Scratch1Addr, 'h8000_0000, resp);
+    $display("[NarrowAxi] Writing entry point %x to scratch1", get_bin_entry());
+    narrow_write(Scratch1Addr, get_bin_entry(), resp);
     assert(resp == axi_pkg::RESP_OKAY);
   endtask
 
