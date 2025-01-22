@@ -5,7 +5,7 @@
 # Docker container for Snitch development.
 
 # 1. Stage: Use the verilator container to get the Verilator binary.
-ARG VERILATOR_VERSION=5.020
+ARG VERILATOR_VERSION=5.032
 ARG UBUNTU_VERSION=22.04
 
 # 1. Stage: Install additional IIS tools
