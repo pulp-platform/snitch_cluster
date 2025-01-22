@@ -157,7 +157,7 @@ module vip_snitch_cluster
     assert(resp == axi_pkg::RESP_OKAY);
   endtask
 
-  task automatic set_msip;
+  task automatic set_cl_clint_interrupt;
     axi_pkg::resp_t resp;
     $display("[NarrowAxi] Setting Cluster Clint interrupt");
     narrow_write(SnitchClClintSetAddr, {NrCores{1'b1}}, resp);

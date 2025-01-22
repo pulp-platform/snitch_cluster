@@ -57,7 +57,7 @@ module testharness;
     // Write entrypoint to the scratch register
     vip.write_entry_point();
     // Set Cluster Clint interrupt
-    vip.set_msip();
+    vip.set_cl_clint_interrupt();
   end
 
 endmodule
