@@ -51,8 +51,6 @@ void Sim::main() {
     auto top = std::make_unique<Vtestharness>();
     auto vcd = std::make_unique<VerilatedVcdC>();
 
-    bool clk_i = 0, rst_ni = 0;
-
     // Trace 8 levels of hierarchy.
     if (vlt_vcd) {
         top->trace(vcd.get(), 8);
@@ -62,10 +60,6 @@ void Sim::main() {
     TIME += 2;
 
     while (!Verilated::gotFinish()) {
-        clk_i = !clk_i;
-        rst_ni = TIME >= 8;
-        top->clk_i = clk_i;
-        top->rst_ni = rst_ni;
         // Evaluate the DUT.
         top->eval();
         if (vlt_vcd) vcd->dump(TIME);
