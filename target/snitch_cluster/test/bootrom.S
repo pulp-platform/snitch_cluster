@@ -11,8 +11,8 @@ _snitch_park:
     csrw    mtvec, t0
     # Enable software and cluster interrupts
     csrsi   mstatus, MSTATUS_MIE # CSR set (uimm)
-    lui     t0, 0x80  # (1 << 19) cluster interrupts
-    addi    t0, t0, 8 # (1 << 3) software interrupts
+    lui     t0, 0x80  # (1 << 19) cluster clint interrupt
+    addi    t0, t0, 8 # (1 << 3) software interrupts (msip)
     csrw    mie, t0
     wfi
 
