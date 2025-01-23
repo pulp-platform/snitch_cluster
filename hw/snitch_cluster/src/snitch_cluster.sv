@@ -38,7 +38,7 @@ module snitch_cluster
   /// AXI: dma user width.
   parameter int unsigned WideUserWidth      = 1,
   /// Boot Address from which to fetch the first instructions.
-  /// Only used if `AliasRegionEnable` is not set.
+  /// Used if `AliasRegionEnable` or `IntBootromEnable` is not set.
   parameter logic [31:0] BootAddr           = 32'h0,
   /// Number of Hives. Each Hive can hold 1-many cores.
   parameter int unsigned NrHives            = 1,
@@ -199,7 +199,7 @@ module snitch_cluster
   /// Optional fixed cluster alias region.
   parameter bit          AliasRegionEnable  = 1'b0,
   parameter logic [PhysicalAddrWidth-1:0] AliasRegionBase    = '0,
-  /// Boot from internal bootrom.
+  /// Instantiate internal bootrom.
   parameter bit          IntBootromEnable   = 1'b1
 ) (
   /// System clock. If `IsoCrossing` is enabled this port is the _fast_ clock.
