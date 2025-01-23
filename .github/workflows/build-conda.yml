@@ -4,13 +4,26 @@
 name: build-conda
 on:
   workflow_dispatch:
+  release:
+    types: [published]
 jobs:
   build-conda:
     runs-on: ubuntu-latest
+    container:
+      image: quay.io/condaforge/linux-anvil-x86_64:alma9
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Activate conda explicitly
+        run: |
+          echo "/opt/conda/bin" >> $GITHUB_PATH
+          echo "CONDA_PREFIX=/opt/conda" >> $GITHUB_ENV
+          echo "source /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
       - name: Build conda package
         uses: prefix-dev/rattler-build-action@v0.2.23
         with:
           recipe-path: util/conda/recipe.yaml
+          build-args: -c conda-forge -c kuleuven-micas --experimental
