@@ -82,6 +82,12 @@ int main() {
         snrt_start_perf_counter(0);
         snrt_start_perf_counter(1);
 
+        // Wait for some cycles, since DMA instruction is faster than the
+        // register configuration
+        for (int i = 0; i < 50; i++) {
+            asm volatile("nop");
+        }
+
         // Start DMA transfer and wait for completion
         snrt_dma_txid_t txid_1d = snrt_dma_start_1d(dst, src, WIDE_WORD_SIZE);
         snrt_dma_wait_all();
