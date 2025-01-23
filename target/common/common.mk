@@ -42,7 +42,7 @@ VISUALIZE_PY     ?= $(UTIL_DIR)/bench/visualize.py
 
 # For some reason `$(VERILATOR_SEPP) which verilator` returns a
 # a two-liner with the OS on the first line, hence the tail -n1
-VERILATOR_ROOT  ?= $(dir $(shell $(VERILATOR_SEPP) which verilator | tail -n1))..
+VERILATOR_ROOT  ?= $(dir $(shell $(VERILATOR_SEPP) which verilator | tail -n1))../verilator/share/verilator
 VLT_ROOT        ?= ${VERILATOR_ROOT}
 VLT_JOBS        ?= $(shell nproc)
 VLT_NUM_THREADS ?= 1
