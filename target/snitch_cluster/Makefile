@@ -191,9 +191,6 @@ test/bootrom.elf test/bootrom.dump test/bootrom.bin test/snitch_bootrom.sv: test
 # Verilator #
 #############
 
-VLT_FLAGS  += --trace
-VLT_LDFLAGS = -Llib -lfesvr -lpthread
-
 include $(ROOT)/target/common/verilator.mk
 
 ############

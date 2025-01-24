@@ -42,8 +42,6 @@ VISUALIZE_PY     ?= $(UTIL_DIR)/bench/visualize.py
 
 # For some reason `$(VERILATOR_SEPP) which verilator` returns a
 # a two-liner with the OS on the first line, hence the tail -n1
-VERILATOR_ROOT  ?= $(dir $(shell $(VERILATOR_SEPP) which verilator | tail -n1))../verilator/share/verilator
-VLT_ROOT        ?= ${VERILATOR_ROOT}
 VLT_JOBS        ?= $(shell nproc)
 VLT_NUM_THREADS ?= 1
 
@@ -81,6 +79,7 @@ VLT_BUILDDIR := $(abspath work-vlt)
 VLT_FESVR     = $(VLT_BUILDDIR)/riscv-isa-sim
 VLT_FLAGS    += --timing
 VLT_FLAGS    += --timescale 1ns/1ps
+VLT_FLAGS    += --trace
 VLT_FLAGS    += -Wno-BLKANDNBLK
 VLT_FLAGS    += -Wno-LITENDIAN
 VLT_FLAGS    += -Wno-CASEINCOMPLETE
@@ -92,15 +91,13 @@ VLT_FLAGS    += -Wno-UNOPTFLAT
 VLT_FLAGS    += -Wno-fatal
 VLT_FLAGS    += --unroll-count 1024
 VLT_FLAGS	   += --threads $(VLT_NUM_THREADS)
-VLT_CFLAGS   += -std=c++20 -pthread
-VLT_CFLAGS   += -I $(VLT_FESVR)/include -I $(TB_DIR) -I ${MKFILE_DIR}test
 
 RISCV_MC_FLAGS      ?= -disassemble -mcpu=snitch
 ANNOTATE_FLAGS      ?= -q --keep-time --addr2line=$(ADDR2LINE)
 LAYOUT_EVENTS_FLAGS ?= --cfg=$(CFG)
 
 # We need a recent LLVM installation (>11) to compile Verilator.
-# We also need to link the binaries with LLVM's libc++.
+# We also need to link the binaries with LLVM's 	libc++.
 # Define CLANG_PATH to be the path of your Clang installation.
 
 ifneq (${CLANG_PATH},)

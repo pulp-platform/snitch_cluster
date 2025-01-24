@@ -5,10 +5,12 @@
 $(BIN_DIR)/$(TARGET).vlt: $(VLT_SOURCES) $(TB_CC_SOURCES) $(VLT_CC_SOURCES) $(VLT_BUILDDIR)/lib/libfesvr.a | $(BIN_DIR)
 	$(VLT) $(shell $(BENDER) script verilator $(VLT_BENDER)) \
 		$(VLT_FLAGS) --Mdir $(VLT_BUILDDIR) \
-		-CFLAGS "$(VLT_CFLAGS)" \
-		-LDFLAGS "$(VLT_LDFLAGS)" \
+		-CFLAGS -std=c++20 \
+		-CFLAGS -I$(VLT_FESVR)/include \
+		-CFLAGS -I$(TB_DIR) \
+		-CFLAGS -I${MKFILE_DIR}test \
 		-j $(VLT_JOBS) \
-		-o ../$@ --cc --exe --build --top-module testharness $(TB_CC_SOURCES) $(VLT_CC_SOURCES)
+		-o ../$@ --cc --exe --build --top-module testharness $(TB_CC_SOURCES) $(VLT_CC_SOURCES) $(VLT_BUILDDIR)/lib/libfesvr.a
 
 .PHONY: clean-vlt
 clean-vlt: clean-work
