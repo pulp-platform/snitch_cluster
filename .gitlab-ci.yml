@@ -88,7 +88,7 @@ snitch-cluster-vlt:
   needs: [snitch-cluster-sw]
   script:
     - cd target/snitch_cluster
-    - oseda make bin/snitch_cluster.vlt
+    - make bin/snitch_cluster.vlt
     - ./util/run.py sw/run.yaml --simulator verilator -j --run-dir runs/vlt
 
 # VCS
