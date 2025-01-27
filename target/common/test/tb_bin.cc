@@ -6,6 +6,8 @@
 
 #include "sim.hh"
 
+extern std::unique_ptr<sim::Sim> s;
+
 int main(int argc, char **argv, char **env) {
     // Write binary path to .rtlbinary for the `make annotate` target
     FILE *fd;
@@ -17,6 +19,6 @@ int main(int argc, char **argv, char **env) {
         fprintf(stderr, "Warning: Failed to write binary name to .rtlbinary\n");
     }
 
-    auto sim = std::make_unique<sim::Sim>(argc, argv);
-    return sim->run();
+    s = std::make_unique<sim::Sim>(argc, argv);
+    return s->run();
 }

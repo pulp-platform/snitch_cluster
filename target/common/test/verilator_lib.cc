@@ -10,6 +10,9 @@
 #include "tb_lib.hh"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
+
+std::unique_ptr<sim::Sim> s;
+
 namespace sim {
 
 // Number of cycles between HTIF checks.
@@ -115,4 +118,4 @@ void clint_tick(const svOpenArrayHandle msip) {
     }
 }
 
-uint32_t get_bin_entry() { return sim::BOOTDATA.global_mem_start; }
+uint32_t get_bin_entry() { return s->get_bin_entry(); }
