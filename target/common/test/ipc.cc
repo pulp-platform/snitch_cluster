@@ -102,8 +102,8 @@ IpcIface::IpcIface(int argc, char** argv) {
             char* tx = strtok(ipc_args, ",");
             char* rx = strtok(NULL, ",");
             // Store arguments persistently
-            targs.tx = (char*)malloc(strlen(tx));
-            targs.rx = (char*)malloc(strlen(rx));
+            targs.tx = (char*)malloc(strlen(tx) + 1);
+            targs.rx = (char*)malloc(strlen(rx) + 1);
             strcpy(targs.tx, tx);
             strcpy(targs.rx, rx);
             // Initialize IO thread which will handle TX, RX pipes
