@@ -7,7 +7,7 @@
 # the oseda environment, which is why this is necessary.
 $(BIN_DIR)/$(TARGET).vlt: $(BIN_DIR)/$(TARGET)_bin.vlt
 	@echo "#!/bin/bash" > $@
-	@echo '$(VERILATOR_SEPP) $(realpath $<) $$(realpath $$1)' >> $@
+	@echo '$(VERILATOR_SEPP) $(realpath $<) $$(realpath $$1) $$2' >> $@
 	@chmod +x $@
 
 $(BIN_DIR)/$(TARGET)_bin.vlt: $(VLT_SOURCES) $(TB_CC_SOURCES) $(VLT_CC_SOURCES) $(VLT_BUILDDIR)/lib/libfesvr.a | $(BIN_DIR)
