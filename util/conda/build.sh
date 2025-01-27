@@ -64,6 +64,8 @@ tar xzf snitch-spike-dasm-0.1.0-x86_64-linux-gnu-ubuntu18.04.tar.gz
 rm snitch-spike-dasm-0.1.0-x86_64-linux-gnu-ubuntu18.04.tar.gz
 mkdir -p ${PREFIX}/bin
 cp spike-dasm ${PREFIX}/bin/spike-dasm
+mkdir -p ${PREFIX}/snax-utils
+cp util/trace/gen_trace.py ${PREFIX}/snax-utils
 build_snax_verilator cfg/snax_mac_cluster.hjson ${PREFIX}/snax-utils/snax-mac
 build_snax_verilator cfg/snax_alu_cluster.hjson ${PREFIX}/snax-utils/snax-alu
 build_snax_verilator cfg/snax_streamer_gemm_add_c_cluster.hjson ${PREFIX}/snax-utils/snax-streamer-gemm-add-c
