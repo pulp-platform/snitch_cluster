@@ -40,6 +40,7 @@ include $(ROOT)/target/common/common.mk
 
 REGGEN          ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
 CLUSTER_GEN     ?= $(ROOT)/util/clustergen.py
+BOOTROM_GEN		  ?= $(ROOT)/util/gen_bootrom.py
 CLUSTER_GEN_SRC ?= $(wildcard $(ROOT)/util/clustergen/*.py)
 
 #########################
@@ -181,11 +182,11 @@ $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv: $(PERIPH_DIR)/snitch_cluster
 # Bootrom
 .PHONY: bootrom
 bootrom: test/snitch_bootrom.sv
-test/bootrom.elf test/bootrom.dump test/bootrom.bin test/snitch_bootrom.sv: test/bootrom.S test/bootrom.ld util/gen_bootrom.py
+test/bootrom.elf test/bootrom.dump test/bootrom.bin test/snitch_bootrom.sv: test/bootrom.S test/bootrom.ld $(BOOTROM_GEN)
 	$(RISCV_CC) -mabi=ilp32d -march=rv32imafd -static -nostartfiles -fuse-ld=$(RISCV_LD) -Lsw/runtime -Ttest/bootrom.ld $< -o test/bootrom.elf
 	$(RISCV_OBJDUMP) -d test/bootrom.elf > test/bootrom.dump
 	$(RISCV_OBJCOPY) -j .text -O binary test/bootrom.elf test/bootrom.bin
-	util/gen_bootrom.py --sv-module snitch_bootrom test/bootrom.bin > test/snitch_bootrom.sv
+	$(BOOTROM_GEN) --sv-module snitch_bootrom test/bootrom.bin > test/snitch_bootrom.sv
 
 #############
 # Verilator #
