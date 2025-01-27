@@ -16,7 +16,7 @@ $(BIN_DIR)/$(TARGET)_bin.vlt: $(VLT_SOURCES) $(TB_CC_SOURCES) $(VLT_CC_SOURCES) 
 		-CFLAGS -std=c++20 \
 		-CFLAGS -I$(VLT_FESVR)/include \
 		-CFLAGS -I$(TB_DIR) \
-		-CFLAGS -I${MKFILE_DIR}test \
+		-CFLAGS -I$(MKFILE_DIR)test \
 		-j $(VLT_JOBS) \
 		-o ../$@ --cc --exe --build --top-module testharness $(TB_CC_SOURCES) $(VLT_CC_SOURCES) $(VLT_BUILDDIR)/lib/libfesvr.a
 

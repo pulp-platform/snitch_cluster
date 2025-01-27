@@ -40,8 +40,6 @@ JOIN_PY          ?= $(UTIL_DIR)/bench/join.py
 ROI_PY           ?= $(UTIL_DIR)/bench/roi.py
 VISUALIZE_PY     ?= $(UTIL_DIR)/bench/visualize.py
 
-# For some reason `$(VERILATOR_SEPP) which verilator` returns a
-# a two-liner with the OS on the first line, hence the tail -n1
 VLT_JOBS        ?= $(shell nproc)
 VLT_NUM_THREADS ?= 1
 
@@ -90,14 +88,14 @@ VLT_FLAGS    += -Wno-UNSIGNED
 VLT_FLAGS    += -Wno-UNOPTFLAT
 VLT_FLAGS    += -Wno-fatal
 VLT_FLAGS    += --unroll-count 1024
-VLT_FLAGS	   += --threads $(VLT_NUM_THREADS)
+VLT_FLAGS    += --threads $(VLT_NUM_THREADS)
 
 RISCV_MC_FLAGS      ?= -disassemble -mcpu=snitch
 ANNOTATE_FLAGS      ?= -q --keep-time --addr2line=$(ADDR2LINE)
 LAYOUT_EVENTS_FLAGS ?= --cfg=$(CFG)
 
 # We need a recent LLVM installation (>11) to compile Verilator.
-# We also need to link the binaries with LLVM's 	libc++.
+# We also need to link the binaries with LLVM's libc++.
 # Define CLANG_PATH to be the path of your Clang installation.
 
 ifneq (${CLANG_PATH},)

@@ -40,7 +40,7 @@ include $(ROOT)/target/common/common.mk
 
 REGGEN          ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
 CLUSTER_GEN     ?= $(ROOT)/util/clustergen.py
-BOOTROM_GEN		  ?= $(ROOT)/util/gen_bootrom.py
+BOOTROM_GEN     ?= $(ROOT)/util/gen_bootrom.py
 CLUSTER_GEN_SRC ?= $(wildcard $(ROOT)/util/clustergen/*.py)
 
 #########################
