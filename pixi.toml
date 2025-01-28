@@ -40,9 +40,8 @@ tabulate = ">=0.9.0,<0.10"
 setuptools = ">=75.8.0,<76"
 llvm-tools = ">=19.1.7,<20"
 bender = ">=0.28.1,<0.29"
-
-[pypi-dependencies]
-hjson = ">=3.1.0, <4"
+hjson-py = ">=3.1.0,<4"
+clang-format = ">=19.1.7,<20"
 
 [activation.env]
 VLT_ROOT = "${CONDA_PREFIX}/share/verilator"

@@ -22,6 +22,10 @@ jobs:
           echo "/opt/conda/bin" >> $GITHUB_PATH
           echo "CONDA_PREFIX=/opt/conda" >> $GITHUB_ENV
           echo "source /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
+      - name: Generate recipe based on pixi.toml
+        run: |
+          python genrecipe.py > recipe.yaml
+        working-directory: util/conda
       - name: Build conda package
         uses: prefix-dev/rattler-build-action@v0.2.23
         with:

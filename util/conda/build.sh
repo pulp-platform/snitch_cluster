@@ -58,7 +58,6 @@ build_snax_verilator() {
 }
 
 export VLT_ROOT="${BUILD_PREFIX}/share/verilator"
-PIP_NO_INDEX= pip install hjson #Unset PIP_NO_INDEX to allow pypi installation
 wget https://github.com/pulp-platform/riscv-isa-sim/releases/download/snitch-v0.1.0/snitch-spike-dasm-0.1.0-x86_64-linux-gnu-ubuntu18.04.tar.gz
 tar xzf snitch-spike-dasm-0.1.0-x86_64-linux-gnu-ubuntu18.04.tar.gz
 rm snitch-spike-dasm-0.1.0-x86_64-linux-gnu-ubuntu18.04.tar.gz
