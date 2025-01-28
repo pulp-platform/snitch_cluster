@@ -1705,6 +1705,33 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           illegal_inst = 1'b1;
         end
       end
+      VFSHUFFLE_S,
+      VFSHUFFLE2_S: begin
+        if (FP_EN && XFVEC && FLEN >= 64) begin
+          write_rd = 1'b0;
+          acc_qvalid_o = valid_instr;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      VFSHUFFLE_H,
+      VFSHUFFLE2_H: begin
+        if (FP_EN && XFVEC && FLEN >= 32) begin
+          write_rd = 1'b0;
+          acc_qvalid_o = valid_instr;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      VFSHUFFLE_B,
+      VFSHUFFLE2_B: begin
+        if (FP_EN && XFVEC && FLEN >= 16) begin
+          write_rd = 1'b0;
+          acc_qvalid_o = valid_instr;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
       // Offload FP-Int Instructions - fire and forget
       // Double Precision Floating-Point
       FLE_D,
