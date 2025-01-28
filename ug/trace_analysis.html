@@ -1,0 +1,1624 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="tutorial.html">
+      
+      
+        <link rel="next" href="code_optimization.html">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.39">
+    
+    
+      
+        <title>Trace Analysis - Snitch Cluster</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.8c3ca2c6.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#trace-analysis" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="Snitch Cluster" class="md-header__button md-logo" aria-label="Snitch Cluster" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Snitch Cluster
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Trace Analysis
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pulp-platform/snitch_cluster" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pulp-platform/snitch_cluster
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="Snitch Cluster" class="md-nav__button md-logo" aria-label="Snitch Cluster" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Snitch Cluster
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pulp-platform/snitch_cluster" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.6.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pulp-platform/snitch_cluster
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    User Guide
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting_started.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="directory_structure.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Repository Structure
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tutorial
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorial
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="tutorial.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Base
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_3_2" id="__nav_2_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Advanced
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_3_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Trace Analysis
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="trace_analysis.html" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Trace Analysis
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#trace-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Trace generation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trace-walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      Trace walkthrough
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance metrics
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="code_optimization.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Code Optimization
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="documentation.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Documentation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Reference Manual
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Reference Manual
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Hardware
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            Hardware
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/hw/snitch.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Snitch
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_2" id="__nav_3_1_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Snitch Cluster
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            Snitch Cluster
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/hw/snitch_cluster.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/hw/peripherals.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Peripherals
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/hw/reqrsp_interface.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reqrsp Interface
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/hw/custom_instructions.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Custom Instructions
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Software
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Software
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_1" id="__nav_3_2_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Simulation Utilities
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            Simulation Utilities
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sw/sim/data_utils.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    data_utils
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sw/sim/verif_utils.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    verif_utils
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sw/sim/sim_utils.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    sim_utils
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sw/sim/Simulation.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Simulation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sw/sim/Simulator.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Simulator
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sw/sim/Elf.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Elf
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_2" id="__nav_3_2_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Trace Utilities
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Trace Utilities
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sw/trace/gen_trace.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    gen_trace.py
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sw/trace/annotate.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    annotate.py
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sw/trace/events.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    events.py
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_3" id="__nav_3_2_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Benchmarking Utilities
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            Benchmarking Utilities
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sw/bench/join.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    join.py
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sw/bench/roi.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    roi.py
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sw/bench/visualize.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    visualize.py
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_4" id="__nav_3_2_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Snitch Target Utilities
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            Snitch Target Utilities
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sw/snitch_target_utils/run.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    run.py
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rm/sw/snitch_target_utils/build.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    build.py
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../doxygen/html/index.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Snitch Runtime
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../publications.html" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Publications
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#trace-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Trace generation
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trace-walkthrough" class="md-nav__link">
+    <span class="md-ellipsis">
+      Trace walkthrough
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance metrics
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="trace-analysis">Trace Analysis</h1>
+<h2 id="trace-generation">Trace generation</h2>
+<p>During RTL simulation, the Snitch <em>core complex (CC)</em> dumps a wide set of information to the <code>logs/trace_hart_XXXXX.dasm</code> file (see <a href="https://github.com/pulp-platform/snitch_cluster/blob/main/hw/snitch_cluster/src/snitch_cc.sv">snitch_cc.sv</a>), <code>XXXXX</code> denoting the hart ID of the Snitch core in the system.</p>
+<p>The <a href="../rm/sw/trace/gen_trace.html">gen_trace.py</a> script can be used to elaborate this information into a human-readable form, and is invoked by the <code>make traces</code> target to generate <code>logs/trace_hart_XXXXX.txt</code>.</p>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>For more information on the topics covered in this page have a look inside the <a href="https://github.com/pulp-platform/snitch_cluster/blob/main/util/trace/gen_trace.py">gen_trace.py</a> script.</p>
+</div>
+<h2 id="trace-walkthrough">Trace walkthrough</h2>
+<p>Here is an extract of a trace generated by the previous script:
+<div class="highlight"><pre><span></span><code> 1147000     1118        M 0x8000022c li      a1, 47                 #; (wrb) a1  &lt;-- 47
+ 1148000     1119        M 0x80000230 scfgwi  a1, 64                 #; a1  = 47
+ 1149000     1120        M 0x80000234 scfgwi  a3, 192                #; a3  = 8
+ 1150000     1121        M 0x80000238 scfgwi  a1, 65                 #; a1  = 47
+ 1151000     1122        M 0x8000023c scfgwi  a3, 193                #; a3  = 8
+ 1152000     1123        M 0x80000240 scfgwi  a1, 66                 #; a1  = 47
+ 1153000     1124        M 0x80000244 scfgwi  a3, 194                #; a3  = 8
+ 1154000     1125        M 0x80000248 mul     a2, a2, a7             #; a2  = 0, a7  = 384
+ 1157000     1128        M                                           #; (acc) a2  &lt;-- 0
+ 1158000     1129        M 0x8000024c add     a0, a0, a2             #; a0  = 0x10000000, a2  = 0, (wrb) a0  &lt;-- 0x10000000
+ 1159000     1130        M 0x80000250 scfgwi  a0, 768                #; a0  = 0x10000000
+ 1160000     1131        M 0x80000254 add     a0, a5, a2             #; a5  = 0x10000c00, a2  = 0, (wrb) a0  &lt;-- 0x10000c00
+ 1161000     1132        M 0x80000258 scfgwi  a0, 769                #; a0  = 0x10000c00
+ 1162000     1133        M 0x8000025c auipc   a0, 0x5                #; (wrb) a0  &lt;-- 0x8000525c
+ 1163000     1134        M 0x80000260 addi    a0, a0, -1396          #; a0  = 0x8000525c, (wrb) a0  &lt;-- 0x80004ce8
+ 1165000     1136        M 0x80000268 add     a0, a6, a2             #; a6  = 0x10001800, a2  = 0, (wrb) a0  &lt;-- 0x10001800
+ 1166000     1137        M 0x8000026c scfgwi  a0, 898                #; a0  = 0x10001800
+                         M 0x80000264 fld     ft3, 0(a0)             #; ft3  &lt;~~ Doub[0x80004ce8]
+ 1168000     1139        M 0x80000270 csrsi   ssr, 1                 #; 
+ 1169000     1140        M 0x80000274 frep    48, 1                  #; outer, 48 issues
+ 1176000     1147        M                                           #; (f:lsu) ft3  &lt;-- -32.7504962
+</code></pre></div></p>
+<p>From left to right, the columns contain the following information: simulation time (in picoseconds), CPU cycle, privilege mode, program counter (or memory address of the current instruction), instruction mnemonic, instruction arguments, a comment block reporting additional information.</p>
+<p>We will now break down the previous trace and understand what is going on piece by piece.</p>
+<div class="highlight"><pre><span></span><code> 1147000     1118        M 0x8000022c li      a1, 47                 #; (wrb) a1  &lt;-- 47
+ 1148000     1119        M 0x80000230 scfgwi  a1, 64                 #; a1  = 47
+ 1149000     1120        M 0x80000234 scfgwi  a3, 192                #; a3  = 8
+ 1150000     1121        M 0x80000238 scfgwi  a1, 65                 #; a1  = 47
+ 1151000     1122        M 0x8000023c scfgwi  a3, 193                #; a3  = 8
+ 1152000     1123        M 0x80000240 scfgwi  a1, 66                 #; a1  = 47
+ 1153000     1124        M 0x80000244 scfgwi  a3, 194                #; a3  = 8
+</code></pre></div>
+<p>Snitch is a single-issue single-stage in-order core implementing the RV32I instruction set. Instructions are fetched in order and complete in a single cycle. As can be seen from cycle 1118 to 1124, all instructions execute in a single cycle, and the program counter increases regularly in steps of 4 bytes (all instructions are 32-bit wide). The comment on line 1118 <code>(wrb) a1 &lt;-- 47</code> tells us that in that same cycle, where the <code>li</code> instruction is issued and executed, the core also writes back (<code>wrb</code>) a value of <code>47</code> to destination register <code>a1</code>, as a result of that instruction. The comments on lines 1119 to 1124 report the values of the source registers involved in the respective instructions at the time they are issued.</p>
+<div class="highlight"><pre><span></span><code> 1154000     1125        M 0x80000248 mul     a2, a2, a7             #; a2  = 0, a7  = 384
+ 1157000     1128        M                                           #; (acc) a2  &lt;-- 0
+ 1158000     1129        M 0x8000024c add     a0, a0, a2             #; a0  = 0x10000000, a2  = 0, (wrb) a0  &lt;-- 0x10000000
+</code></pre></div>
+<p>Additional instructions are supported by means of accelerators connected to Snitch's accelerator interface. When Snitch fetches and decodes an instruction which is supported through one of the accelerators, it offloads the instruction to the corresponding accelerator. This is the case for instructions in the RISC-V "M" Standard Extension for Integer Multiplication and Division, which are supported through an external MULDIV unit, shared by all cores in a Snitch cluster. Offloaded instructions need to travel a longer distance to reach the dedicated functional unit, and may be pipelined. To tolerate this latency, the Snitch core may fetch, issue and execute successive instructions even before the offloaded instruction commits its result to the register file. Only instructions which do not have RAW or WAW dependencies with any outstanding offloaded instruction are allowed to execute. As an example, at cycle 1125 Snitch issues the <code>mul</code> instruction, which is offloaded to the shared MULDIV unit. The next trace line skips three cycles, as Snitch is stalled waiting for the result of the <code>mul</code>. Indeed, if you peek at line 1129, you can see the next instruction presents a RAW dependency on the previous instruction through register <code>a2</code>. The trace line at 1128 is also unique in that it does not contain any instruction. In fact, no instruction can be issued yet, but the comment informs us that the accelerator interface (<code>acc</code>) is writing back a value of <code>0</code> to register <code>a2</code>. Therefore, in the next cycle the <code>add</code> instruction can read the content of register <code>a2</code>, which reflects the value written in the previous cycle.</p>
+<div class="highlight"><pre><span></span><code> 1159000     1130        M 0x80000250 scfgwi  a0, 768                #; a0  = 0x10000000
+ 1160000     1131        M 0x80000254 add     a0, a5, a2             #; a5  = 0x10000c00, a2  = 0, (wrb) a0  &lt;-- 0x10000c00
+ 1161000     1132        M 0x80000258 scfgwi  a0, 769                #; a0  = 0x10000c00
+ 1162000     1133        M 0x8000025c auipc   a0, 0x5                #; (wrb) a0  &lt;-- 0x8000525c
+ 1163000     1134        M 0x80000260 addi    a0, a0, -1396          #; a0  = 0x8000525c, (wrb) a0  &lt;-- 0x80004ce8
+ 1165000     1136        M 0x80000268 add     a0, a6, a2             #; a6  = 0x10001800, a2  = 0, (wrb) a0  &lt;-- 0x10001800
+ 1166000     1137        M 0x8000026c scfgwi  a0, 898                #; a0  = 0x10001800
+                         M 0x80000264 fld     ft3, 0(a0)             #; ft3  &lt;~~ Doub[0x80004ce8]
+ 1168000     1139        M 0x80000270 csrsi   ssr, 1                 #; 
+ 1169000     1140        M 0x80000274 frep    48, 1                  #; outer, 48 issues
+ 1176000     1147        M                                           #; (f:lsu) ft3  &lt;-- -32.7504962
+</code></pre></div>
+<p>All proceeds regularly up to cycle 1136. Here we observe a jump in the program counter, which is not justified by a branch or other control-flow instruction. At the same time, we can observe a lost cycle between this and the previous instruction. What happened? As mentioned earlier, instructions are fetched and issued in order. We would therefore expect instruction <code>0x80000264</code> to be issued at cycle 1135. If we peek a little bit further in the trace, we find the "missing" instruction reported in cycle 1137. This delay is explained by the fact that the RISC-V "D" Standard Extension for Double-Precision Floating-Point is also implemented by an accelerator: the FPU subsystem (FPSS) which, differently from the integer MULDIV unit, is private to each core and located in the core complex. Differently from the offloading instance at cycle 1125, here the two successive instructions are allowed to execute before the offloaded instruction completes, since they do not have any dependency on the previous instruction. When, in cycle 1137, the <code>fld</code> instruction is issued in the FPSS, the <code>scfgwi</code> instruction is simultaneously issued in the base Snitch core. This should not be seen as to contradict our assumption that Snitch is a single-issue core, as the <code>fld</code> instruction was indeed issued by Snitch in cycle 1135, whereas in cycle 1137 it issues the <code>scfgwi</code> instruction alone. Hence, it can only occur that two instructions execute simultaneously in the trace if a cycle was lost in advance.</p>
+<p>Note that the comment next to the <code>fld</code> instruction uses a similar syntax to the one we previously encountered for writebacks, with the difference that 1) it presents a "wavy" arrow, 2) the agent of the writeback is not specified and 3) on the right-hand side of the arrow we don't have a numerical value but a memory address. This notation informs us that a load from that memory address has been initiated, but the corresponding writeback only occurs on line 1147. The agent of the writeback in this case is the floating-point LSU (<code>f:lsu</code>). The value of the source register <code>a0</code> is omitted in the comment on line 1138, as it can be easily recovered from the memory address and the offset in the instruction arguments. If you were particularly careful, the last value which was written back to <code>a0</code> was <code>0x10001800</code> on line 1137, so why does it now evaluate to <code>0x80004ce8</code>? The reason is, once again, that the <code>fld</code> was actually issued in cycle 1136, and thus observes the value which was then last written back (<code>0x80004ce8</code> on line 1135), in accordance with the original program order.</p>
+<p>One last note should be made about <code>frep</code> loops. While not visible from this trace, under <code>frep</code> operation Snitch becomes a pseudo-dual issue processor, i.e. instructions can be issued by the Snitch core, while the FREP sequencer repeatedly issues floating-point instructions. It is possible in this situation to consistently observe the core execute two instructions per cycle in the trace. The sequencer however does not have its own instruction fetch unit, but only a buffer where it caches loop body instructions, to fetch and issue these instructions from. The Snitch core must issue these instructions for the first loop iteration, when they will also be cached in the FREP sequencer, and only from the second iteration can the FREP sequencer operate independently. Thus, to observe the pseudo-dual issue behaviour, you must make sure in your code that the <code>frep</code> loop appears before any other operation you want to overlap with it in program order.</p>
+<h2 id="performance-metrics">Performance metrics</h2>
+<p>Finally, at the end of the trace, a collection of performance metrics automatically computed from the trace is reported. The performance metrics are associated to regions defined in your code. More information on how to define these regions can be found in the <a href="tutorial.html#debugging-and-benchmarking">tutorial</a>.</p>
+<div class="highlight"><pre><span></span><code>## Performance metrics
+
+Performance metrics for section 1 @ (1118, 1203):
+tstart                                   1146.0000
+fpss_loads                                       1
+tend                                     1233.0000
+snitch_loads                                     0
+snitch_avg_load_latency                          0
+snitch_occupancy                            0.2069
+snitch_fseq_rel_offloads                      0.25
+fseq_yield                                  8.6667
+fseq_fpu_yield                              8.6667
+fpss_section_latency                             1
+fpss_avg_fpu_latency                        3.0204
+fpss_avg_load_latency                         10.0
+fpss_occupancy                              0.5977
+fpss_fpu_occupancy                          0.5632
+fpss_fpu_rel_occupancy                      0.9423
+cycles                                          87
+total_ipc                                   0.8046
+</code></pre></div>
+<p>The trace will contain the most relevant performance metrics for manual inspection. These and additional performance metrics are also dumped to a <code>.json</code> file for further processing.
+In the following table you can find a complete list of all the performance metrics extracted from the trace along with their description:</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tstart</code></td>
+<td>The global simulation time when the <code>mcycle</code> instruction opening the current measurement region is issued.</td>
+</tr>
+<tr>
+<td><code>tend</code></td>
+<td>The global simulation time when the <code>mcycle</code> instruction closing the current measurement region is issued.</td>
+</tr>
+<tr>
+<td><code>start</code></td>
+<td>The core complex' cycle count when the <code>mcycle</code> instruction opening the current measurement region is issued.</td>
+</tr>
+<tr>
+<td><code>end</code></td>
+<td>The core complex' cycle count when the <code>mcycle</code> instruction closing the current measurement region is issued.</td>
+</tr>
+<tr>
+<td><code>end_fpss</code></td>
+<td>The core complex' cycle count when the last FP operation issued in the current measurement region retires.</td>
+</tr>
+<tr>
+<td><code>cycles</code></td>
+<td>Overall cycles spent in the current measurement region, calculated as <code>max(end, end_fpss)</code> - <code>start</code> + 1</td>
+</tr>
+<tr>
+<td><code>snitch_load_latency</code></td>
+<td>Cumulative latency of all loads issued by Snitch's own LSU. The latency of a load is measured from the cycle the load is issued to the cycle it is retired, i.e. it writes back to the RF.</td>
+</tr>
+<tr>
+<td><code>snitch_avg_load_latency</code></td>
+<td>Average latency of a load issued by Snitch's own LSU (see <code>snitch_load_latency</code>).</td>
+</tr>
+<tr>
+<td><code>fpss_load_latency</code></td>
+<td>Similar to <code>snitch_load_latency</code> but for loads issued by the FP subsystem's LSU.</td>
+</tr>
+<tr>
+<td><code>fpss_avg_load_latency</code></td>
+<td>Similar to <code>snitch_avg_load_latency</code> but for loads issued by the FP subsystem's LSU.</td>
+</tr>
+<tr>
+<td><code>fpss_fpu_latency</code></td>
+<td>Cumulative latency of all FPU instructions. The latency of an FPU instruction is measured from the cycle the instruction is issued to the cycle it is retired, i.e. it writes back to the RF.</td>
+</tr>
+<tr>
+<td><code>fpss_avg_fpu_latency</code></td>
+<td>Average latency of an FPU instruction (see <code>fpss_fpu_latency</code>).</td>
+</tr>
+<tr>
+<td><code>fpss_section_latency</code></td>
+<td><code>max(end_fpss - end, 0)</code></td>
+</tr>
+<tr>
+<td><code>snitch_issues</code></td>
+<td>Total number of instructions issued by Snitch, excluding those offloaded to the FPSS (see <code>snitch_fseq_offloads</code>).</td>
+</tr>
+<tr>
+<td><code>snitch_fseq_offloads</code></td>
+<td>Total number of instructions offloaded by Snitch to the FPSS.</td>
+</tr>
+<tr>
+<td><code>snitch_fseq_rel_offloads</code></td>
+<td>The ratio between <code>snitch_fseq_offloads</code> and the total number of instructions issued by Snitch core proper, i.e. <code>snitch_issues + snitch_fseq_offloads</code>.</td>
+</tr>
+<tr>
+<td><code>fpss_issues</code></td>
+<td>Total number of instructions issued by the FPSS. It counts repeated issues from the FREP sequencer.</td>
+</tr>
+<tr>
+<td><code>fpss_fpu_issues</code></td>
+<td>Similar to <code>fpss_issues</code>, but counts only instructions destined to the FPU proper. It does not for instance include instructions issued to the FPSS's LSU.</td>
+</tr>
+<tr>
+<td><code>fseq_yield</code></td>
+<td>The ratio between <code>fpss_issues</code> and <code>snitch_fseq_offloads</code>. The difference lies in the FREP sequencer possibly replicating instructions. If the sequencer is not used this ratio should amount to 1.</td>
+</tr>
+<tr>
+<td><code>fseq_fpu_yield</code></td>
+<td>Currently identical to <code>fseq_yield</code>, probably a bug. Most likely originally intended to be the ratio between <code>fpss_fpu_issues</code> and <code>snitch_fseq_offloads</code>.</td>
+</tr>
+<tr>
+<td><code>fpss_occupancy</code></td>
+<td>IPC of the FPSS, calculated as <code>fpss_issues / cycles</code>.</td>
+</tr>
+<tr>
+<td><code>fpss_fpu_occupancy</code></td>
+<td>IPC of the FPU, calculated as <code>fpss_fpu_issues / cycles</code>.</td>
+</tr>
+<tr>
+<td><code>fpss_fpu_rel_occupancy</code></td>
+<td>The ratio between <code>fpss_fpu_occupancy</code> and <code>fpss_occupancy</code>, equal to <code>fpss_fpu_issues / fpss_issues</code>.</td>
+</tr>
+<tr>
+<td><code>total_ipc</code></td>
+<td>The IPC of the core complex, calculated as <code>snitch_occupancy + fpss_occupancy</code>.</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy"], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.525ec568.min.js"></script>
+      
+    
+  </body>
+</html>
