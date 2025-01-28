@@ -40,6 +40,7 @@ include $(ROOT)/target/common/common.mk
 
 REGGEN          ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
 CLUSTER_GEN     ?= $(ROOT)/util/clustergen.py
+BOOTROM_GEN     ?= $(ROOT)/util/gen_bootrom.py
 CLUSTER_GEN_SRC ?= $(wildcard $(ROOT)/util/clustergen/*.py)
 
 #########################
@@ -84,7 +85,6 @@ VLOG_FLAGS += ${VLOG_64BIT}
 ###############
 
 TB_CC_SOURCES += \
-	${TB_DIR}/bootrom.cc \
 	${TB_DIR}/ipc.cc \
 	${TB_DIR}/common_lib.cc \
 	$(GENERATED_DIR)/bootdata.cc
@@ -136,11 +136,6 @@ $(CFG): FORCE
 	fi
 FORCE:
 
-test/bootrom.elf test/bootrom.dump test/bootrom.bin: test/bootrom.S test/bootrom.ld
-	riscv64-unknown-elf-gcc -mabi=ilp32d -march=rv32imafd -static -nostartfiles -Ttest/bootrom.ld $< -o test/bootrom.elf
-	riscv64-unknown-elf-objdump -d test/bootrom.elf > test/bootrom.dump
-	riscv64-unknown-elf-objcopy -j .text -O binary test/bootrom.elf test/bootrom.bin
-
 ############
 # Software #
 ############
@@ -154,6 +149,7 @@ include $(ROOT)/target/snitch_cluster/sw.mk
 GENERATED_RTL_SOURCES  = $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv
 GENERATED_RTL_SOURCES += $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv
 GENERATED_RTL_SOURCES += $(GENERATED_DIR)/snitch_cluster_wrapper.sv
+GENERATED_RTL_SOURCES += test/snitch_bootrom.sv
 
 .PHONY: rtl clean-rtl
 
@@ -183,12 +179,18 @@ $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv: $(PERIPH_DIR)/snitch_cluster
 	@echo "[REGGEN] Generating peripheral regfile"
 	$(REGGEN) -r -t $(PERIPH_DIR) $<
 
+# Bootrom
+.PHONY: bootrom
+bootrom: test/snitch_bootrom.sv
+test/bootrom.elf test/bootrom.dump test/bootrom.bin test/snitch_bootrom.sv: test/bootrom.S test/bootrom.ld $(BOOTROM_GEN)
+	$(RISCV_CC) -mabi=ilp32d -march=rv32imafd -static -nostartfiles -fuse-ld=$(RISCV_LD) -Lsw/runtime -Ttest/bootrom.ld $< -o test/bootrom.elf
+	$(RISCV_OBJDUMP) -d test/bootrom.elf > test/bootrom.dump
+	$(RISCV_OBJCOPY) -j .text -O binary test/bootrom.elf test/bootrom.bin
+	$(BOOTROM_GEN) --sv-module snitch_bootrom test/bootrom.bin > test/snitch_bootrom.sv
+
 #############
 # Verilator #
 #############
-
-VLT_FLAGS  += --trace
-VLT_LDFLAGS = -Llib -lfesvr -lpthread
 
 include $(ROOT)/target/common/verilator.mk
 

@@ -159,6 +159,7 @@ sources:
       - hw/snitch_cluster/src/snitch_fpu.sv
       - hw/snitch_cluster/src/snitch_sequencer.sv
       - hw/snitch_cluster/src/snitch_tcdm_interconnect.sv
+      - target/snitch_cluster/test/snitch_bootrom.sv
       # Level 1
       - hw/snitch_cluster/src/snitch_barrier.sv
       - hw/snitch_cluster/src/snitch_fp_ss.sv
@@ -189,4 +190,5 @@ sources:
       - target/snitch_cluster/generated/snitch_cluster_wrapper.sv
   - target: all(snitch_cluster, any(simulation, verilator))
     files:
+      - target/snitch_cluster/test/vip_snitch_cluster.sv
       - target/snitch_cluster/test/testharness.sv

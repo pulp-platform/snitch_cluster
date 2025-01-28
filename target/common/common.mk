@@ -40,10 +40,6 @@ JOIN_PY          ?= $(UTIL_DIR)/bench/join.py
 ROI_PY           ?= $(UTIL_DIR)/bench/roi.py
 VISUALIZE_PY     ?= $(UTIL_DIR)/bench/visualize.py
 
-# For some reason `$(VERILATOR_SEPP) which verilator` returns a
-# a two-liner with the OS on the first line, hence the tail -n1
-VERILATOR_ROOT  ?= $(dir $(shell $(VERILATOR_SEPP) which verilator | tail -n1))..
-VLT_ROOT        ?= ${VERILATOR_ROOT}
 VLT_JOBS        ?= $(shell nproc)
 VLT_NUM_THREADS ?= 1
 
@@ -75,12 +71,13 @@ VCS_BUILDDIR := work-vcs
 FESVR         ?= ${MKFILE_DIR}work
 FESVR_VERSION ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
 
-VLT_BENDER   += $(COMMON_BENDER_FLAGS) -DCOMMON_CELLS_ASSERTS_OFF
 VLT_SOURCES   = $(shell ${BENDER} script flist-plus ${VLT_BENDER} | ${SED_SRCS})
+VLT_BENDER   += $(COMMON_BENDER_FLAGS) -t verilator -DCOMMON_CELLS_ASSERTS_OFF
 VLT_BUILDDIR := $(abspath work-vlt)
 VLT_FESVR     = $(VLT_BUILDDIR)/riscv-isa-sim
 VLT_FLAGS    += --timing
 VLT_FLAGS    += --timescale 1ns/1ps
+VLT_FLAGS    += --trace
 VLT_FLAGS    += -Wno-BLKANDNBLK
 VLT_FLAGS    += -Wno-LITENDIAN
 VLT_FLAGS    += -Wno-CASEINCOMPLETE
@@ -91,9 +88,7 @@ VLT_FLAGS    += -Wno-UNSIGNED
 VLT_FLAGS    += -Wno-UNOPTFLAT
 VLT_FLAGS    += -Wno-fatal
 VLT_FLAGS    += --unroll-count 1024
-VLT_FLAGS	   += --threads $(VLT_NUM_THREADS)
-VLT_CFLAGS   += -std=c++20 -pthread
-VLT_CFLAGS   += -I $(VLT_FESVR)/include -I $(TB_DIR) -I ${MKFILE_DIR}test
+VLT_FLAGS    += --threads $(VLT_NUM_THREADS)
 
 RISCV_MC_FLAGS      ?= -disassemble -mcpu=snitch
 ANNOTATE_FLAGS      ?= -q --keep-time --addr2line=$(ADDR2LINE)

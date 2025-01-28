@@ -10,6 +10,9 @@
 #include "tb_lib.hh"
 #include "verilated.h"
 #include "verilated_vcd_c.h"
+
+std::unique_ptr<sim::Sim> s;
+
 namespace sim {
 
 // Number of cycles between HTIF checks.
@@ -51,8 +54,6 @@ void Sim::main() {
     auto top = std::make_unique<Vtestharness>();
     auto vcd = std::make_unique<VerilatedVcdC>();
 
-    bool clk_i = 0, rst_ni = 0;
-
     // Trace 8 levels of hierarchy.
     if (vlt_vcd) {
         top->trace(vcd.get(), 8);
@@ -62,10 +63,6 @@ void Sim::main() {
     TIME += 2;
 
     while (!Verilated::gotFinish()) {
-        clk_i = !clk_i;
-        rst_ni = TIME >= 8;
-        top->clk_i = clk_i;
-        top->rst_ni = rst_ni;
         // Evaluate the DUT.
         top->eval();
         if (vlt_vcd) vcd->dump(TIME);
@@ -120,3 +117,5 @@ void clint_tick(const svOpenArrayHandle msip) {
         msip_ptr[i] = (read_val & (1 << (i % 32))) != 0 ? 1 : 0;
     }
 }
+
+uint32_t get_bin_entry() { return s->get_bin_entry(); }

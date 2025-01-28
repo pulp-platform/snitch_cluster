@@ -3,14 +3,14 @@
 // SPDX-License-Identifier: SHL-0.51
 
 `include "axi/typedef.svh"
+`include "axi/assign.svh"
 
-module testharness import snitch_cluster_pkg::*; (
-  input  logic        clk_i,
-  input  logic        rst_ni
-);
-  import "DPI-C" function void clint_tick(
-    output byte msip[]
-  );
+module testharness;
+
+  import snitch_cluster_pkg::*;
+
+  logic clk;
+  logic rst_n;
 
   narrow_in_req_t narrow_in_req;
   narrow_in_resp_t narrow_in_resp;
@@ -20,14 +20,14 @@ module testharness import snitch_cluster_pkg::*; (
   wide_out_resp_t wide_out_resp;
   wide_in_req_t wide_in_req;
   wide_in_resp_t wide_in_resp;
-  logic [snitch_cluster_pkg::NrCores-1:0] msip;
+  logic [snitch_cluster_pkg::NrCores-1:0] msip, meip, mtip;
 
   snitch_cluster_wrapper i_snitch_cluster (
-    .clk_i,
-    .rst_ni,
+    .clk_i (clk),
+    .rst_ni (rst_n),
     .debug_req_i ('0),
-    .meip_i ('0),
-    .mtip_i ('0),
+    .meip_i (meip),
+    .mtip_i (mtip),
     .msip_i (msip),
     .hart_base_id_i (CfgBaseHartId),
     .cluster_base_addr_i (CfgClusterBaseAddr),
@@ -43,52 +43,21 @@ module testharness import snitch_cluster_pkg::*; (
     .wide_in_resp_o (wide_in_resp)
   );
 
-  // Tie-off unused input ports.
-  assign narrow_in_req = '0;
-  assign wide_in_req = '0;
+  ///////////
+  //  VIP  //
+  ///////////
 
-  // Narrow port into simulation memory.
-  tb_memory_axi #(
-    .AxiAddrWidth (AddrWidth),
-    .AxiDataWidth (NarrowDataWidth),
-    .AxiIdWidth (NarrowIdWidthOut),
-    .AxiUserWidth (NarrowUserWidth),
-    .req_t (narrow_out_req_t),
-    .rsp_t (narrow_out_resp_t)
-  ) i_mem (
-    .clk_i,
-    .rst_ni,
-    .req_i (narrow_out_req),
-    .rsp_o (narrow_out_resp)
-  );
+  vip_snitch_cluster vip (.*);
 
-  // Wide port into simulation memory.
-  tb_memory_axi #(
-    .AxiAddrWidth (AddrWidth),
-    .AxiDataWidth (WideDataWidth),
-    .AxiIdWidth (WideIdWidthOut),
-    .AxiUserWidth (WideUserWidth),
-    .req_t (wide_out_req_t),
-    .rsp_t (wide_out_resp_t)
-  ) i_dma (
-    .clk_i,
-    .rst_ni,
-    .req_i (wide_out_req),
-    .rsp_o (wide_out_resp)
-  );
-
-  // CLINT
-  // verilog_lint: waive-start always-ff-non-blocking
-  localparam int NumCores = snitch_cluster_pkg::NrCores;
-  always_ff @(posedge clk_i) begin
-    automatic byte msip_ret[NumCores];
-    if (rst_ni) begin
-      clint_tick(msip_ret);
-      for (int i = 0; i < NumCores; i++) begin
-        msip[i] = msip_ret[i];
-      end
-    end
+  initial begin
+    // Wait for the reset
+    vip.wait_for_reset();
+    // Wait for a few cycles
+    vip.wait_for_cycles(300);
+    // Write entrypoint to the scratch register
+    vip.write_entry_point();
+    // Set Cluster Clint interrupt
+    vip.set_cl_clint_interrupt();
   end
-  // verilog_lint: waive-stop always-ff-non-blocking
 
 endmodule

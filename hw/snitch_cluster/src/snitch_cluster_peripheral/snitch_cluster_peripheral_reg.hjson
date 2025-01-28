@@ -4,10 +4,17 @@
 // Licensed under Solderpad Hardware License, Version 0.51, see LICENSE for details.
 {
     param_list: [
-        { name: "NumPerfCounters",
-        desc: "Number of performance counters",
-        type: "int",
-        default: "16"
+        {
+            name: "NumPerfCounters",
+            desc: "Number of performance counters",
+            type: "int",
+            default: "16"
+        },
+        {
+            name: "NumCtrlScratch",
+            desc: "Number of scratch registers",
+            type: "int",
+            default: "4"
         },
     ],
     name: "snitch_cluster_peripheral",
@@ -300,6 +307,22 @@
                 bits: "47:0",
                 name: "PERF_COUNTER",
                 desc: "Performance counter"
+            }]
+        }
+    },
+    {
+        multireg: {
+            name: "SCRATCH",
+            desc: '''Scratch registers. Used in the bootrom for various purposes.'''
+            swaccess: "rw",
+            hwaccess: "none",
+            count: "NumCtrlScratch",
+            cname: "ctrl_scratch",
+            compact: "false",
+            fields: [{
+                bits: "31:0",
+                name: "SCRATCH",
+                desc: "Scratch register"
             }]
         }
     },

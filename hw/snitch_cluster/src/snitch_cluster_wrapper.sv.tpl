@@ -49,6 +49,11 @@ package ${cfg['pkg_name']};
   localparam int unsigned NrCores = ${cfg['nr_cores']};
   localparam int unsigned NrHives = ${cfg['nr_hives']};
 
+  localparam int unsigned TcdmSize = ${cfg['tcdm']['size']};
+  localparam int unsigned BootromSize = 4; // Fixed size of 4kB
+  localparam int unsigned ClusterPeriphSize = ${cfg['cluster_periph_size']};
+  localparam int unsigned ZeroMemorySize = ${cfg['zero_mem_size']};
+
   localparam int unsigned AddrWidth = ${cfg['addr_width']};
   localparam int unsigned NarrowDataWidth = ${cfg['data_width']};
   localparam int unsigned WideDataWidth = ${cfg['dma_data_width']};
@@ -258,6 +263,7 @@ module ${cfg['name']}_wrapper (
     .NarrowUserWidth (${cfg['pkg_name']}::NarrowUserWidth),
     .WideUserWidth (${cfg['pkg_name']}::WideUserWidth),
     .BootAddr (${to_sv_hex(cfg['boot_addr'], 32)}),
+    .IntBootromEnable (${int(cfg['int_bootrom_enable'])}),
     .narrow_in_req_t (${cfg['pkg_name']}::narrow_in_req_t),
     .narrow_in_resp_t (${cfg['pkg_name']}::narrow_in_resp_t),
     .narrow_out_req_t (${cfg['pkg_name']}::narrow_out_req_t),
@@ -269,8 +275,9 @@ module ${cfg['name']}_wrapper (
     .NrHives (${cfg['nr_hives']}),
     .NrCores (${cfg['nr_cores']}),
     .TCDMDepth (${cfg['tcdm']['depth']}),
-    .ZeroMemorySize (${cfg['zero_mem_size']}),
-    .ClusterPeriphSize (${cfg['cluster_periph_size']}),
+    .ZeroMemorySize (snitch_cluster_pkg::ZeroMemorySize),
+    .BootRomSize (snitch_cluster_pkg::BootromSize),
+    .ClusterPeriphSize (snitch_cluster_pkg::ClusterPeriphSize),
     .NrBanks (${cfg['tcdm']['banks']}),
     .DMANumAxInFlight (${cfg['dma_axi_req_fifo_depth']}),
     .DMAReqFifoDepth (${cfg['dma_req_fifo_depth']}),
