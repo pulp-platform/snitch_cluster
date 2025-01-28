@@ -53,6 +53,7 @@ APPS += sw/apps/blas/gemm
 APPS += sw/apps/blas/gemv
 APPS += sw/apps/blas/dot
 APPS += sw/apps/blas/syrk
+APPS += sw/apps/blas/intsort
 APPS += sw/apps/dnn/batchnorm
 APPS += sw/apps/dnn/conv2d
 APPS += sw/apps/dnn/fusedconv
