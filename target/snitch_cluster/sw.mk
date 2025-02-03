@@ -8,10 +8,10 @@
 # General targets #
 ###################
 
-.PHONY: sw clean-sw
+.PHONY: snitch-sw snitch-clean-sw
 
-all: sw
-clean: clean-sw
+snitch-all: snitch-sw
+snitch-clean: snitch-clean-sw
 
 ####################
 # Platform headers #
@@ -26,26 +26,26 @@ TARGET_C_HDRS_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/common
 TARGET_C_HDRS     = $(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS) $(REGGEN_HEADERS))
 
 # CLUSTERGEN headers,
-$(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS)): %.h: $(CFG) $(CLUSTER_GEN_PREREQ) %.h.tpl
+$(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS)): %.h: $(SNITCH_CFG) $(CLUSTER_GEN) $(CLUSTER_GEN) %.h.tpl
 	@echo "[CLUSTERGEN] Generate $@"
 	$(CLUSTER_GEN) -c $< --outdir $(TARGET_C_HDRS_DIR) --template $@.tpl
 
 # REGGEN headers
-$(TARGET_C_HDRS_DIR)/snitch_cluster_peripheral.h: $(ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.hjson $(REGGEN)
 	$(call reggen_generate_header,$@,$<)
+$(TARGET_C_HDRS_DIR)/snitch_cluster_peripheral.h: $(SNITCH_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.hjson $(REGGEN)
 
-.PHONY: clean-headers
-clean-sw: clean-headers
-clean-headers:
+.PHONY: snitch-clean-headers
+snitch-clean-sw: snitch-clean-headers
+snitch-clean-headers:
 	rm -f $(TARGET_C_HDRS)
 
 ##################
 # Subdirectories #
 ##################
 
-include sw/toolchain.mk
-include sw/runtime/runtime.mk
-include sw/tests/tests.mk
+include $(SNITCH_ROOT)/target/snitch_cluster/sw/toolchain.mk
+include $(SNITCH_ROOT)/target/snitch_cluster/sw/runtime/runtime.mk
+include $(SNITCH_ROOT)/target/snitch_cluster/sw/tests/tests.mk
 
 APPS  = sw/apps/nop
 APPS += sw/apps/blas/axpy

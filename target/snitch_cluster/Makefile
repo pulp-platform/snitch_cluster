@@ -56,8 +56,8 @@ PERIPH_DIR        ?= $(ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral
 # (LRU) config, all targets depending on the configuration file have
 # to be rebuilt. This file is used to express this condition as a
 # prerequisite for other rules.
-DEFAULT_CFG = cfg/default.hjson
-CFG         = cfg/lru.hjson
+DEFAULT_SNITCH_CFG = cfg/default.hjson
+SNITCH_CFG         = cfg/lru.hjson
 
 # Common dependency for all RTL simulators
 $(BIN_DIR):
@@ -114,12 +114,12 @@ CLUSTER_GEN_PREREQ = ${CLUSTER_GEN} ${CLUSTER_GEN_SRC}
 # timestamp can be taken into account by using the `make -L` flag on the
 # command-line, however for simplicity we touch the symlink targets so it can
 # be used without.
-$(CFG): FORCE
+$(SNITCH_CFG): FORCE
 	@# If the LRU config file doesn't exist, we use the default config.
 	@if [ ! -e "$@" ] ; then \
-		echo "Using default config file: $(DEFAULT_CFG)"; \
-		ln -s --relative $(DEFAULT_CFG) $@; \
-		touch $(DEFAULT_CFG); \
+		echo "Using default config file: $(DEFAULT_SNITCH_CFG)"; \
+		ln -s --relative $(DEFAULT_SNITCH_CFG) $@; \
+		touch $(DEFAULT_SNITCH_CFG); \
 	fi
 	@# If a config file is provided on the command-line and the LRU
 	@# config file doesn't point to it already, then we make it point to it
@@ -165,18 +165,17 @@ CLUSTER_GEN_TPL = $(ROOT)/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl
 LINK_LD_TPL     = $(ROOT)/hw/snitch_cluster/test/link.ld.tpl
 BOOTDATA_TPL    = $(ROOT)/hw/snitch_cluster/test/bootdata.cc.tpl
 
-$(GENERATED_DIR)/snitch_cluster_wrapper.sv: ${CFG} ${CLUSTER_GEN_PREREQ} ${CLUSTER_GEN_TPL} | $(GENERATED_DIR)
+$(GENERATED_DIR)/snitch_cluster_wrapper.sv: ${SNITCH_CFG} ${CLUSTER_GEN_PREREQ} ${CLUSTER_GEN_TPL} | $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --template ${CLUSTER_GEN_TPL}
 
-$(GENERATED_DIR)/link.ld: ${CFG} ${CLUSTER_GEN_PREREQ} ${LINK_LD_TPL}| $(GENERATED_DIR)
+$(GENERATED_DIR)/link.ld: ${SNITCH_CFG} ${CLUSTER_GEN_PREREQ} ${LINK_LD_TPL}| $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --template ${LINK_LD_TPL}
 
-$(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} ${BOOTDATA_TPL}| $(GENERATED_DIR)
+$(GENERATED_DIR)/bootdata.cc: ${SNITCH_CFG} ${CLUSTER_GEN_PREREQ} ${BOOTDATA_TPL}| $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --template ${BOOTDATA_TPL}
 
-$(GENERATED_DIR)/memories.json: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
+$(GENERATED_DIR)/memories.json: ${SNITCH_CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --memories
-
 
 # REGGEN regfile
 $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv

@@ -8,8 +8,8 @@
 # Directories #
 ###############
 
-TESTS_SRCDIR   = $(ROOT)/sw/tests
-TESTS_BUILDDIR = $(ROOT)/target/snitch_cluster/sw/tests/build
+TESTS_SRCDIR    = $(SNITCH_ROOT)/sw/tests
+TESTS_BUILDDIR ?= $(SNITCH_ROOT)/target/snitch_cluster/sw/tests/build
 
 ###################
 # Build variables #
@@ -43,14 +43,11 @@ endif
 # Rules #
 #########
 
-.PHONY: tests clean-tests
+.PHONY: snitch-tests clean-snitch-tests
 
-sw: tests
-clean-sw: clean-tests
+snitch-tests: $(TEST_OUTPUTS)
 
-tests: $(TEST_OUTPUTS)
-
-clean-tests:
+clean-snitch-tests:
 	rm -rf $(TESTS_BUILDDIR)
 
 $(TESTS_BUILDDIR):
@@ -71,7 +68,7 @@ $(TESTS_BUILDDIR)/%.dwarf: $(TESTS_BUILDDIR)/%.elf | $(TESTS_BUILDDIR)
 $(TEST_DEPS): | $(TARGET_C_HDRS)
 
 ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(MAKECMDGOALS),clean-sw)
+ifneq ($(MAKECMDGOALS),clean-snitch-tests)
 -include $(TEST_DEPS)
 endif
 endif
