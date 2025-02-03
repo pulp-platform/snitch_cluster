@@ -8,143 +8,53 @@ PL_SIM   ?= 0    # 1 for post-layout simulation
 VCD_DUMP ?= 0    # 1 to dump VCD traces
 
 # Directories
-SIM_DIR  ?= $(shell pwd)
-TB_DIR   ?= $(SNITCH_ROOT)/target/common/test
-UTIL_DIR ?= $(SNITCH_ROOT)/util
-LOGS_DIR  = $(SIM_DIR)/logs
-
-# Files
-BENDER_LOCK = $(ROOT)/Bender.lock
-BENDER_YML  = $(ROOT)/Bender.yml
-
-# SEPP packages
-QUESTA_SEPP    ?=
-VCS_SEPP       ?=
-VERILATOR_SEPP ?=
+SIM_DIR      ?= $(shell pwd)
+TB_DIR       ?= $(SN_ROOT)/target/common/test
+UTIL_DIR     ?= $(SN_ROOT)/util
+LOGS_DIR      = $(SIM_DIR)/logs
+SN_PERIPH_DIR = $(SN_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral
+SN_TARGET_DIR = $(SN_ROOT)/target/snitch_cluster
+SN_GEN_DIR   ?= $(SN_TARGET_DIR)/.generated
+SN_HW_DIR     = $(SN_ROOT)/hw
+SN_BIN_DIR    = $(SN_TARGET_DIR)/bin
 
 # External executables
-BENDER       ?= bender
-VLT          ?= $(VERILATOR_SEPP) verilator
-VCS          ?= $(VCS_SEPP) vcs
+BENDER	     ?= bender
+REGGEN       ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
+VERIBLE_FMT  ?= verible-verilog-format
 CLANG_FORMAT ?= clang-format
-VSIM         ?= $(QUESTA_SEPP) vsim
-VOPT         ?= $(QUESTA_SEPP) vopt
-VLOG         ?= $(QUESTA_SEPP) vlog
-VLIB         ?= $(QUESTA_SEPP) vlib
 RISCV_MC     ?= $(LLVM_BINROOT)/llvm-mc
 ADDR2LINE    ?= $(LLVM_BINROOT)/llvm-addr2line
 # tail is required for nonsense oseda output
 VLT_BIN       = $(shell $(VERILATOR_SEPP) which verilator_bin | tail -n1 | $(VERILATOR_SEPP) xargs realpath | tail -n1)
 
 # Internal executables
-GENTRACE_PY      ?= $(UTIL_DIR)/trace/gen_trace.py
-ANNOTATE_PY      ?= $(UTIL_DIR)/trace/annotate.py
-EVENTS_PY        ?= $(UTIL_DIR)/trace/events.py
-JOIN_PY          ?= $(UTIL_DIR)/bench/join.py
-ROI_PY           ?= $(UTIL_DIR)/bench/roi.py
-VISUALIZE_PY     ?= $(UTIL_DIR)/bench/visualize.py
+GENTRACE_PY       ?= $(UTIL_DIR)/trace/gen_trace.py
+ANNOTATE_PY       ?= $(UTIL_DIR)/trace/annotate.py
+EVENTS_PY         ?= $(UTIL_DIR)/trace/events.py
+JOIN_PY           ?= $(UTIL_DIR)/bench/join.py
+ROI_PY            ?= $(UTIL_DIR)/bench/roi.py
+VISUALIZE_PY      ?= $(UTIL_DIR)/bench/visualize.py
+SN_BOOTROM_GEN     = $(SN_ROOT)/util/gen_bootrom.py
+SN_CLUSTER_GEN     = $(SN_ROOT)/util/clustergen.py
 
-VLT_JOBS        ?= $(shell nproc)
-VLT_NUM_THREADS ?= 1
+# Clustergen prerequisites
+SN_CLUSTER_GEN_SRC = $(wildcard $(SN_ROOT)/util/clustergen/*.py)
 
-COMMON_BENDER_FLAGS += -t rtl -t snitch_cluster
-ifeq ($(PL_SIM), 1)
-COMMON_BENDER_FLAGS += -t postlayout
-endif
-
-VSIM_BENDER   += $(COMMON_BENDER_FLAGS) -t test -t simulation -t vsim
-VSIM_BUILDDIR ?= work-vsim
-VSIM_FLAGS    += -t 1ps
-VOPT_FLAGS     = 
-ifeq ($(DEBUG), ON)
-VSIM_FLAGS    += -do "log -r /*"
-VOPT_FLAGS    += +acc
-endif
-
-ifeq ($(PL_SIM), 1)
-include $(ROOT)/nonfree/gf12/modelsim/Makefrag
-VOPT_FLAGS 	+= -modelsimini $(ROOT)/nonfree/gf12/modelsim/modelsim.ini
-VOPT_FLAGS  += +nospecify
-VOPT_FLAGS  += $(GATE_LIBS)
-VSIM_FLAGS 	+= -modelsimini $(ROOT)/nonfree/gf12/modelsim/modelsim.ini
-VSIM_FLAGS  += +nospecify
-endif
-
-ifeq ($(VCD_DUMP), 1)
-VSIM_FLAGS += -do "source $(ROOT)/nonfree/gf12/modelsim/vcd.tcl"
-else
-VSIM_FLAGS += -do "run -a"
-endif
-
-# VCS_BUILDDIR should to be the same as the `DEFAULT : ./work-vcs`
-# in target/snitch_cluster/synopsys_sim.setup
-VCS_BENDER   += $(COMMON_BENDER_FLAGS) -t test -t simulation -t vcs
-VCS_BUILDDIR := work-vcs
+# Bender prerequisites
+SN_BENDER_LOCK = $(SN_ROOT)/Bender.lock
+SN_BENDER_YML  = $(SN_ROOT)/Bender.yml
 
 # fesvr is being installed here
 FESVR         ?= ${MKFILE_DIR}work
 FESVR_VERSION ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
 
-VLT_BENDER   += $(COMMON_BENDER_FLAGS) -t verilator -DASSERTS_OFF 
-VLT_BUILDDIR := $(abspath work-vlt)
-VLT_FESVR     = $(VLT_BUILDDIR)/riscv-isa-sim
-VLT_FLAGS    += --timing
-VLT_FLAGS    += --timescale 1ns/1ps
-VLT_FLAGS    += --trace
-VLT_FLAGS    += -Wno-BLKANDNBLK
-VLT_FLAGS    += -Wno-LITENDIAN
-VLT_FLAGS    += -Wno-CASEINCOMPLETE
-VLT_FLAGS    += -Wno-CMPCONST
-VLT_FLAGS    += -Wno-WIDTH
-VLT_FLAGS    += -Wno-WIDTHCONCAT
-VLT_FLAGS    += -Wno-UNSIGNED
-VLT_FLAGS    += -Wno-UNOPTFLAT
-VLT_FLAGS    += -Wno-fatal
-VLT_FLAGS    += --unroll-count 1024
-VLT_FLAGS    += --threads $(VLT_NUM_THREADS)
-
-RISCV_MC_FLAGS      ?= -disassemble -mcpu=snitch
-ANNOTATE_FLAGS      ?= -q --keep-time --addr2line=$(ADDR2LINE)
-LAYOUT_EVENTS_FLAGS ?= --cfg=$(CFG)
-
-# We need a recent LLVM installation (>11) to compile Verilator.
-# We also need to link the binaries with LLVM's libc++.
-# Define CLANG_PATH to be the path of your Clang installation.
-
-ifneq (${CLANG_PATH},)
-    CLANG_CC       := $(CLANG_PATH)/bin/clang
-    CLANG_CXX      := $(CLANG_PATH)/bin/clang++
-    CLANG_CXXFLAGS := -nostdinc++ -isystem $(CLANG_PATH)/include/c++/v1
-    CLANG_LDFLAGS  := -nostdlib++ -fuse-ld=lld -L ${CLANG_PATH}/lib -Wl,-rpath,${CLANG_PATH}/lib -lc++
-else
-    CLANG_CC       ?= clang
-    CLANG_CXX      ?= clang++
-    CLANG_CXXFLAGS := ""
-    CLANG_LDFLAGS  := ""
-endif
-
-# If requested, build verilator with LLVM and add llvm c/ld flags
-ifeq ($(VLT_USE_LLVM),ON)
-    CC         = $(CLANG_CC)
-    CXX        = $(CLANG_CXX)
-    CFLAGS     = $(CLANG_CXXFLAGS)
-    CXXFLAGS   = $(CLANG_CXXFLAGS)
-    LDFLAGS    = $(CLANG_LDFLAGS)
-    VLT_FLAGS += --compiler clang
-    VLT_FLAGS += -CFLAGS "${CLANG_CXXFLAGS}"
-    VLT_FLAGS += -LDFLAGS "${CLANG_LDFLAGS}"
-endif
-
-VLOGAN_FLAGS := -assert svaext
-VLOGAN_FLAGS += -assert disable_cover
-VLOGAN_FLAGS += -full64
-VLOGAN_FLAGS += -kdb
-VLOGAN_FLAGS += -timescale=1ns/1ps
-VHDLAN_FLAGS := -full64
-VHDLAN_FLAGS += -kdb
-
-# default on target `all`
-all:
+# Flags
+COMMON_BENDER_FLAGS     += -t rtl -t snitch_cluster
+COMMON_BENDER_SIM_FLAGS += -t simulation -t test
+RISCV_MC_FLAGS          ?= -disassemble -mcpu=snitch
+ANNOTATE_FLAGS          ?= -q --keep-time --addr2line=$(ADDR2LINE)
+LAYOUT_EVENTS_FLAGS     ?= --cfg=$(CFG)
 
 #################
 # Prerequisites #
@@ -162,21 +72,8 @@ work/lib/libfesvr.a: work/${FESVR_VERSION}_unzip
 	mkdir -p $(dir $@)
 	cp $(dir $<)libfesvr.a $@
 
-# Build fesvr seperately for verilator since this might use different compilers
-# and libraries than modelsim/vcs and
-$(VLT_FESVR)/${FESVR_VERSION}_unzip:
-	mkdir -p $(dir $@)
-	wget -O $(dir $@)/${FESVR_VERSION} https://github.com/riscv/riscv-isa-sim/tarball/${FESVR_VERSION}
-	tar xfm $(dir $@)${FESVR_VERSION} --strip-components=1 -C $(dir $@)
-	patch $(VLT_FESVR)/fesvr/context.h < patches/context.h.diff
-	touch $@
-
-$(VLT_BUILDDIR)/lib/libfesvr.a: $(VLT_FESVR)/${FESVR_VERSION}_unzip
-	cd $(dir $<)/ && ./configure --prefix `pwd` \
-        CC=${CC} CXX=${CXX} CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}"
-	$(MAKE) -C $(dir $<) install-config-hdrs install-hdrs libfesvr.a
-	mkdir -p $(dir $@)
-	cp $(dir $<)libfesvr.a $@
+$(SN_GEN_DIR) $(SN_BIN_DIR):
+	mkdir -p $@
 
 ########
 # Util #
@@ -200,10 +97,10 @@ endef
 # Common rule to fill a template file with clustergen
 # Arg 1: path for the generated file
 # Arg 2: path of the template file
-define cluster_gen_rule
-$(1): $(CFG) $(CLUSTER_GEN_PREREQ) $(2) | $(GENERATED_DIR)
+define sn_cluster_gen_rule
+$(1): $(SN_CFG) $(SN_CLUSTER_GEN) $(SN_CLUSTER_GEN_SRC) $(2) | $(SN_GEN_DIR)
 	@echo "[CLUSTERGEN] Generate $$@"
-	$(CLUSTER_GEN) -c $$< -o $$@ --template $(2)
+	$(SN_CLUSTER_GEN) -c $$< -o $$@ --template $(2)
 endef
 
 # Common rule to generate a Makefile with RTL source and header
@@ -216,10 +113,10 @@ endef
 # Arg 4: top module name
 # Arg 5: name of target for which prerequisites are generated
 define gen_rtl_prerequisites
-$(2)/$(4).f: $(BENDER_YML) $(BENDER_LOCK) | $(2)
+$(2)/$(4).f: $(SN_BENDER_YML) $(SN_BENDER_LOCK) | $(2)
 	$(BENDER) script verilator $(3) > $$@
 
-$(1): $(2)/$(4).f $(GENERATED_RTL_SOURCES) | $(2)
+$(1): $(2)/$(4).f $(SN_GEN_RTL_SRCS) | $(2)
 	$(VLT) -f $$< --Mdir $(2) --MMD -E --top-module $(4) > /dev/null
 	mv $(2)/V$(4)__ver.d $$@
 	sed -E -i -e 's|^[^:]*:|$(5):|' \

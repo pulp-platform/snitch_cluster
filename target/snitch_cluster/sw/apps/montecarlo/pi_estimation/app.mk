@@ -4,12 +4,12 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-PI_ESTIMATION_DIR := $(ROOT)/sw/apps/montecarlo/pi_estimation
-PRNG_DIR          := $(ROOT)/sw/apps/prng
+PI_ESTIMATION_DIR := $(SN_ROOT)/sw/apps/montecarlo/pi_estimation
+PRNG_DIR          := $(SN_ROOT)/sw/apps/prng
 
 APP              := pi_estimation
 SRCS             := $(PI_ESTIMATION_DIR)/main.c
 $(APP)_INCDIRS   := $(PI_ESTIMATION_DIR) $(PRNG_DIR)
-$(APP)_BUILD_DIR ?= $(ROOT)/target/snitch_cluster/sw/apps/montecarlo/pi_estimation/build
+$(APP)_BUILD_DIR ?= $(SN_ROOT)/target/snitch_cluster/sw/apps/montecarlo/pi_estimation/build
 
-include $(ROOT)/target/snitch_cluster/sw/apps/common.mk
+include $(SN_ROOT)/target/snitch_cluster/sw/apps/common.mk

@@ -11,7 +11,7 @@
 $(APP)_HEADERS += $(SNRT_HAL_HDRS)
 
 $(APP)_INCDIRS += $(SNRT_INCDIRS)
-$(APP)_INCDIRS += $(SNITCH_ROOT)/sw/deps/riscv-opcodes
+$(APP)_INCDIRS += $(SN_ROOT)/sw/deps/riscv-opcodes
 
 $(APP)_RISCV_CFLAGS += $(RISCV_CFLAGS)
 $(APP)_RISCV_CFLAGS += $(addprefix -I,$($(APP)_INCDIRS))
@@ -21,16 +21,16 @@ $(APP)_LIBS += $(SNRT_LIB)
 $(APP)_LIBDIRS  = $(dir $($(APP)_LIBS))
 $(APP)_LIBNAMES = $(patsubst lib%,%,$(notdir $(basename $($(APP)_LIBS))))
 
-BASE_LD    = $(SNRT_DIR)/base.ld
-MEMORY_LD ?= $(SNITCH_ROOT)/target/snitch_cluster/sw/runtime/memory.ld
+SNRT_BASE_LD    = $(SNRT_DIR)/base.ld
+SNRT_MEMORY_LD ?= $(SN_ROOT)/target/snitch_cluster/sw/runtime/memory.ld
 
 $(APP)_RISCV_LDFLAGS += $(RISCV_LDFLAGS)
-$(APP)_RISCV_LDFLAGS += -L$(dir $(MEMORY_LD))
-$(APP)_RISCV_LDFLAGS += -T$(BASE_LD)
+$(APP)_RISCV_LDFLAGS += -L$(dir $(SNRT_MEMORY_LD))
+$(APP)_RISCV_LDFLAGS += -T$(SNRT_BASE_LD)
 $(APP)_RISCV_LDFLAGS += $(addprefix -L,$($(APP)_LIBDIRS))
 $(APP)_RISCV_LDFLAGS += $(addprefix -l,$($(APP)_LIBNAMES))
 
-LD_DEPS += $(MEMORY_LD) $(BASE_LD) $($(APP)_LIBS)
+SNRT_LD_DEPS += $(SNRT_MEMORY_LD) $(SNRT_BASE_LD) $($(APP)_LIBS)
 
 ###########
 # Outputs #
@@ -51,8 +51,8 @@ endif
 
 .PHONY: $(APP) clean-$(APP)
 
-sw: $(APP)
-clean-sw: clean-$(APP)
+sn-apps: $(APP)
+sn-clean-apps: clean-$(APP)
 
 $(APP): $(ALL_OUTPUTS)
 
@@ -74,12 +74,12 @@ $(ELF): RISCV_LDFLAGS := $($(APP)_RISCV_LDFLAGS)
 $(DEP): $(SRCS) | $($(APP)_BUILD_DIR) $($(APP)_HEADERS)
 	$(RISCV_CC) $(RISCV_CFLAGS) -MM -MT '$(ELF)' $< > $@
 
-$(ELF): $(SRCS) $(DEP) $(LD_DEPS) | $($(APP)_BUILD_DIR)
+$(ELF): $(SRCS) $(DEP) $(SNRT_LD_DEPS) | $($(APP)_BUILD_DIR)
 	$(RISCV_CC) $(RISCV_CFLAGS) $(RISCV_LDFLAGS) $(SRCS) -o $@
 
 $(DUMP): $(ELF) | $($(APP)_BUILD_DIR)
 	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_FLAGS) $< > $@
 
-ifneq ($(filter-out clean%,$(MAKECMDGOALS)),)
+ifneq ($(filter-out sn-clean%,$(MAKECMDGOALS)),)
 -include $(DEP)
 endif

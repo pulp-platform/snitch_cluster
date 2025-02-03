@@ -1,5 +1,5 @@
 /logs/
-/generated/
+/.generated/
 /bin/
 /cfg/lru.json
 /work/

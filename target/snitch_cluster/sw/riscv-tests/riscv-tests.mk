@@ -13,8 +13,8 @@
 # Test selection #
 ##################
 # Sources & destination
-RVT_SCRDIR := $(ROOT)/sw/deps/riscv-tests/isa
-RVT_BUILDDIR := $(ROOT)/target/snitch_cluster/sw/riscv-tests/build/
+SN_RVTESTS_SCRDIR    = $(SN_ROOT)/sw/deps/riscv-tests/isa
+SN_RVTESTS_BUILDDIR ?= $(SN_ROOT)/target/snitch_cluster/sw/riscv-tests/build/
 
 # Select the desired test cases
 # We ignore the following tests as we cannot build them with the snitch
@@ -30,19 +30,19 @@ RVT_BUILDDIR := $(ROOT)/target/snitch_cluster/sw/riscv-tests/build/
 # - rv32uzbc
 # - rv32uzbs
 
-include $(RVT_SCRDIR)/rv32ui/Makefrag
-# include $(RVT_SCRDIR)/rv32uc/Makefrag
-include $(RVT_SCRDIR)/rv32um/Makefrag
-include $(RVT_SCRDIR)/rv32ua/Makefrag
-include $(RVT_SCRDIR)/rv32uf/Makefrag
-include $(RVT_SCRDIR)/rv32ud/Makefrag
-# include $(RVT_SCRDIR)/rv32uzfh/Makefrag
-# include $(RVT_SCRDIR)/rv32uzba/Makefrag
-# include $(RVT_SCRDIR)/rv32uzbb/Makefrag
-# include $(RVT_SCRDIR)/rv32uzbc/Makefrag
-# include $(RVT_SCRDIR)/rv32uzbs/Makefrag
-# include $(RVT_SCRDIR)/rv32si/Makefrag
-# include $(RVT_SCRDIR)/rv32mi/Makefrag
+include $(SN_RVTESTS_SCRDIR)/rv32ui/Makefrag
+# include $(SN_RVTESTS_SCRDIR)/rv32uc/Makefrag
+include $(SN_RVTESTS_SCRDIR)/rv32um/Makefrag
+include $(SN_RVTESTS_SCRDIR)/rv32ua/Makefrag
+include $(SN_RVTESTS_SCRDIR)/rv32uf/Makefrag
+include $(SN_RVTESTS_SCRDIR)/rv32ud/Makefrag
+# include $(SN_RVTESTS_SCRDIR)/rv32uzfh/Makefrag
+# include $(SN_RVTESTS_SCRDIR)/rv32uzba/Makefrag
+# include $(SN_RVTESTS_SCRDIR)/rv32uzbb/Makefrag
+# include $(SN_RVTESTS_SCRDIR)/rv32uzbc/Makefrag
+# include $(SN_RVTESTS_SCRDIR)/rv32uzbs/Makefrag
+# include $(SN_RVTESTS_SCRDIR)/rv32si/Makefrag
+# include $(SN_RVTESTS_SCRDIR)/rv32mi/Makefrag
 
 ###################
 # Build variables #
@@ -60,21 +60,21 @@ RVT_RISCV_OBJDUMP_FLAGS += --disassemble-zeroes --section=.text --section=.text.
 #########
 # Rules #
 #########
-vpath %.S $(RVT_SCRDIR)
+vpath %.S $(SN_RVTESTS_SCRDIR)
 
 # Create the objdumps for each compiled program
 %.dump: %
-	$(RISCV_OBJDUMP) $(RVT_RISCV_OBJDUMP_FLAGS) $(RVT_BUILDDIR)$<.elf > $(RVT_BUILDDIR)$@
+	$(RISCV_OBJDUMP) $(RVT_RISCV_OBJDUMP_FLAGS) $(SN_RVTESTS_BUILDDIR)$<.elf > $(SN_RVTESTS_BUILDDIR)$@
 
 # Macro to compile each program
 define compile_template
 
-$$($(1)_p_tests): $(1)-p-%: $(1)/%.S | $(RVT_BUILDDIR)
-	$$(RISCV_CC) $$(RVT_RISCV_CFLAGS) -I$(RVT_SCRDIR)/../env/p -I$(RVT_SCRDIR)/macros/scalar -T$(RVT_SCRDIR)/../env/p/link.ld $$< -o $(RVT_BUILDDIR)$$@.elf
+$$($(1)_p_tests): $(1)-p-%: $(1)/%.S | $(SN_RVTESTS_BUILDDIR)
+	$$(RISCV_CC) $$(RVT_RISCV_CFLAGS) -I$(SN_RVTESTS_SCRDIR)/../env/p -I$(SN_RVTESTS_SCRDIR)/macros/scalar -T$(SN_RVTESTS_SCRDIR)/../env/p/link.ld $$< -o $(SN_RVTESTS_BUILDDIR)$$@.elf
 $(1)_tests += $$($(1)_p_tests)
 
 $$($(1)_v_tests): $(1)-v-%: $(1)/%.S
-	$$(RISCV_CC) $$(RVT_RISCV_CFLAGS) -DENTROPY=0x$$(shell echo \$$@ | md5sum | cut -c 1-7) -std=gnu99 -O2 -I$(RVT_SCRDIR)/../env/v -I$(RVT_SCRDIR)/macros/scalar -T$(RVT_SCRDIR)/../env/v/link.ld $(RVT_SCRDIR)/../env/v/entry.S $(RVT_SCRDIR)/../env/v/*.c $$< -o $(RVT_BUILDDIR)$$@.elf
+	$$(RISCV_CC) $$(RVT_RISCV_CFLAGS) -DENTROPY=0x$$(shell echo \$$@ | md5sum | cut -c 1-7) -std=gnu99 -O2 -I$(SN_RVTESTS_SCRDIR)/../env/v -I$(SN_RVTESTS_SCRDIR)/macros/scalar -T$(SN_RVTESTS_SCRDIR)/../env/v/link.ld $(SN_RVTESTS_SCRDIR)/../env/v/entry.S $(SN_RVTESTS_SCRDIR)/../env/v/*.c $$< -o $(SN_RVTESTS_BUILDDIR)$$@.elf
 $(1)_tests += $$($(1)_v_tests)
 
 $(1)_tests_dump = $$(addsuffix .dump, $$($(1)_tests))
@@ -109,18 +109,18 @@ $(eval $(call compile_template,rv32mi))
 
 tests_dump = $(addsuffix .dump, $(tests))
 
-junk += $(addprefix $(RVT_BUILDDIR),$(addsuffix .elf,$(tests))) $(addprefix $(RVT_BUILDDIR),$(tests_dump))
+junk += $(addprefix $(SN_RVTESTS_BUILDDIR),$(addsuffix .elf,$(tests))) $(addprefix $(SN_RVTESTS_BUILDDIR),$(tests_dump))
 
-$(RVT_BUILDDIR):
+$(SN_RVTESTS_BUILDDIR):
 	mkdir -p $@
 
 .PHONY: riscv-tests clean-riscv-tests
 
-riscv-tests: $(tests_dump) | $(RVT_BUILDDIR)
+riscv-tests: $(tests_dump) | $(SN_RVTESTS_BUILDDIR)
 
 clean-riscv-tests:
 	rm -rf $(junk)
 
 # Integrate into main Makefile flow
-sw: riscv-tests
-clean-sw: clean-riscv-tests
+sn-sw: riscv-tests
+sn-clean-sw: clean-riscv-tests

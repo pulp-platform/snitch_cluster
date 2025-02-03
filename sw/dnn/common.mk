@@ -4,6 +4,6 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-include $(ROOT)/sw/apps/common.mk
-$(APP)_INCDIRS += $(ROOT)/sw/dnn/src
-$(APP)_INCDIRS += $(ROOT)/sw/blas
+include $(SN_ROOT)/sw/apps/common.mk
+$(APP)_INCDIRS += $(SN_ROOT)/sw/dnn/src
+$(APP)_INCDIRS += $(SN_ROOT)/sw/blas
