@@ -8,69 +8,66 @@
 # Directories #
 ###############
 
-TESTS_SRCDIR   = $(ROOT)/sw/tests
-TESTS_BUILDDIR = $(ROOT)/target/snitch_cluster/sw/tests/build
+SNRT_TESTS_SRCDIR    = $(SN_ROOT)/sw/tests
+SNRT_TESTS_BUILDDIR ?= $(SN_ROOT)/target/snitch_cluster/sw/tests/build
 
 ###################
 # Build variables #
 ###################
 
-TESTS_RISCV_CFLAGS += $(RISCV_CFLAGS)
-TESTS_RISCV_CFLAGS += $(addprefix -I,$(SNRT_INCDIRS))
+SNRT_TESTS_RISCV_CFLAGS += $(RISCV_CFLAGS)
+SNRT_TESTS_RISCV_CFLAGS += $(addprefix -I,$(SNRT_INCDIRS))
 
-BASE_LD    = $(SNRT_DIR)/base.ld
-MEMORY_LD ?= $(ROOT)/target/snitch_cluster/sw/runtime/memory.ld
+SNRT_BASE_LD    = $(SNRT_DIR)/base.ld
+SNRT_MEMORY_LD ?= $(SN_ROOT)/target/snitch_cluster/sw/runtime/memory.ld
 
-TESTS_RISCV_LDFLAGS += $(RISCV_LDFLAGS)
-TESTS_RISCV_LDFLAGS += -L$(dir $(MEMORY_LD))
-TESTS_RISCV_LDFLAGS += -T$(BASE_LD)
-TESTS_RISCV_LDFLAGS += -L$(SNRT_BUILDDIR)
-TESTS_RISCV_LDFLAGS += -lsnRuntime
+SNRT_TESTS_RISCV_LDFLAGS += $(RISCV_LDFLAGS)
+SNRT_TESTS_RISCV_LDFLAGS += -L$(dir $(SNRT_MEMORY_LD))
+SNRT_TESTS_RISCV_LDFLAGS += -T$(SNRT_BASE_LD)
+SNRT_TESTS_RISCV_LDFLAGS += -L$(SNRT_BUILDDIR)
+SNRT_TESTS_RISCV_LDFLAGS += -lsnRuntime
 
-LD_DEPS = $(MEMORY_LD) $(BASE_LD) $(SNRT_LIB)
+SNRT_LD_DEPS = $(SNRT_MEMORY_LD) $(SNRT_BASE_LD) $(SNRT_LIB)
 
 ###########
 # Outputs #
 ###########
 
-TEST_NAMES   = $(basename $(notdir $(wildcard $(TESTS_SRCDIR)/*.c)))
-TEST_ELFS    = $(abspath $(addprefix $(TESTS_BUILDDIR)/,$(addsuffix .elf,$(TEST_NAMES))))
-TEST_DEPS    = $(abspath $(addprefix $(TESTS_BUILDDIR)/,$(addsuffix .d,$(TEST_NAMES))))
-TEST_DUMPS   = $(abspath $(addprefix $(TESTS_BUILDDIR)/,$(addsuffix .dump,$(TEST_NAMES))))
-TEST_OUTPUTS = $(TEST_ELFS)
+SNRT_TEST_NAMES   = $(basename $(notdir $(wildcard $(SNRT_TESTS_SRCDIR)/*.c)))
+SNRT_TEST_ELFS    = $(abspath $(addprefix $(SNRT_TESTS_BUILDDIR)/,$(addsuffix .elf,$(SNRT_TEST_NAMES))))
+SNRT_TEST_DEPS    = $(abspath $(addprefix $(SNRT_TESTS_BUILDDIR)/,$(addsuffix .d,$(SNRT_TEST_NAMES))))
+SNRT_TEST_DUMPS   = $(abspath $(addprefix $(SNRT_TESTS_BUILDDIR)/,$(addsuffix .dump,$(SNRT_TEST_NAMES))))
+SNRT_TEST_OUTPUTS = $(SNRT_TEST_ELFS)
 
 ifeq ($(DEBUG),ON)
-TEST_OUTPUTS += $(TEST_DUMPS)
+SNRT_TEST_OUTPUTS += $(SNRT_TEST_DUMPS)
 endif
 
 #########
 # Rules #
 #########
 
-.PHONY: tests clean-tests
+.PHONY: sn-tests sn-clean-tests
 
-sw: tests
-clean-sw: clean-tests
+sn-tests: $(SNRT_TEST_OUTPUTS)
 
-tests: $(TEST_OUTPUTS)
+sn-clean-tests:
+	rm -rf $(SNRT_TESTS_BUILDDIR)
 
-clean-tests:
-	rm -rf $(TESTS_BUILDDIR)
-
-$(TESTS_BUILDDIR):
+$(SNRT_TESTS_BUILDDIR):
 	mkdir -p $@
 
-$(TESTS_BUILDDIR)/%.d: $(TESTS_SRCDIR)/%.c | $(TESTS_BUILDDIR)
-	$(RISCV_CC) $(TESTS_RISCV_CFLAGS) -MM -MT '$(TESTS_BUILDDIR)/$*.elf' $< > $@
+$(SNRT_TESTS_BUILDDIR)/%.d: $(SNRT_TESTS_SRCDIR)/%.c | $(SNRT_TESTS_BUILDDIR)
+	$(RISCV_CC) $(SNRT_TESTS_RISCV_CFLAGS) -MM -MT '$(SNRT_TESTS_BUILDDIR)/$*.elf' $< > $@
 
-$(TESTS_BUILDDIR)/%.elf: $(TESTS_SRCDIR)/%.c $(LD_DEPS) $(TESTS_BUILDDIR)/%.d | $(TESTS_BUILDDIR)
-	$(RISCV_CC) $(TESTS_RISCV_CFLAGS) $(TESTS_RISCV_LDFLAGS) $(TESTS_SRCDIR)/$*.c -o $@
+$(SNRT_TESTS_BUILDDIR)/%.elf: $(SNRT_TESTS_SRCDIR)/%.c $(SNRT_LD_DEPS) $(SNRT_TESTS_BUILDDIR)/%.d | $(SNRT_TESTS_BUILDDIR)
+	$(RISCV_CC) $(SNRT_TESTS_RISCV_CFLAGS) $(SNRT_TESTS_RISCV_LDFLAGS) $(SNRT_TESTS_SRCDIR)/$*.c -o $@
 
-$(TESTS_BUILDDIR)/%.dump: $(TESTS_BUILDDIR)/%.elf | $(TESTS_BUILDDIR)
+$(SNRT_TESTS_BUILDDIR)/%.dump: $(SNRT_TESTS_BUILDDIR)/%.elf | $(SNRT_TESTS_BUILDDIR)
 	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_FLAGS) $< > $@
 
-$(TEST_DEPS): | $(SNRT_HAL_HDRS)
+$(SNRT_TEST_DEPS): | $(SNRT_HAL_HDRS)
 
 ifneq ($(filter-out clean%,$(MAKECMDGOALS)),)
--include $(TEST_DEPS)
+-include $(SNRT_TEST_DEPS)
 endif

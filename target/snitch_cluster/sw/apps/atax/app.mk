@@ -5,10 +5,10 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 APP              := atax
-$(APP)_BUILD_DIR ?= $(ROOT)/target/snitch_cluster/sw/apps/$(APP)/build
-SRC_DIR          := $(ROOT)/sw/apps/$(APP)/src
+$(APP)_BUILD_DIR ?= $(SN_ROOT)/target/snitch_cluster/sw/apps/$(APP)/build
+SRC_DIR          := $(SN_ROOT)/sw/apps/$(APP)/src
 SRCS             := $(SRC_DIR)/main.c
-$(APP)_INCDIRS   := $(ROOT)/sw/blas
+$(APP)_INCDIRS   := $(SN_ROOT)/sw/blas
 
-include $(ROOT)/sw/apps/common.mk
-include $(ROOT)/target/snitch_cluster/sw/apps/common.mk
+include $(SN_ROOT)/sw/apps/common.mk
+include $(SN_ROOT)/target/snitch_cluster/sw/apps/common.mk

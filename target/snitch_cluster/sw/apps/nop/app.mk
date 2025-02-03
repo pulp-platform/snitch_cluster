@@ -5,7 +5,7 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 APP              := nop
-SRCS             := $(ROOT)/target/snitch_cluster/sw/apps/$(APP)/src/main.c
-$(APP)_BUILD_DIR ?= $(ROOT)/target/snitch_cluster/sw/apps/$(APP)/build
+SRCS             := $(SN_ROOT)/target/snitch_cluster/sw/apps/$(APP)/src/main.c
+$(APP)_BUILD_DIR ?= $(SN_ROOT)/target/snitch_cluster/sw/apps/$(APP)/build
 
-include $(ROOT)/target/snitch_cluster/sw/apps/common.mk
+include $(SN_ROOT)/target/snitch_cluster/sw/apps/common.mk
