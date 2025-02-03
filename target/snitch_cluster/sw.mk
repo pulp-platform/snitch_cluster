@@ -4,6 +4,15 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
+###############
+# Executables #
+###############
+
+BENDER     	    ?= bender
+REGGEN     	    ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
+CLUSTER_GEN	    ?= $(SNITCH_ROOT)/util/clustergen.py
+CLUSTER_GEN_SRC ?= $(wildcard $(SNITCH_ROOT)/util/clustergen/*.py)
+
 ###################
 # General targets #
 ###################
@@ -22,8 +31,8 @@ CLUSTER_GEN_HEADERS = snitch_cluster_cfg.h \
 
 REGGEN_HEADERS = snitch_cluster_peripheral.h
 
-TARGET_C_HDRS_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/common
-TARGET_C_HDRS     = $(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS) $(REGGEN_HEADERS))
+TARGET_C_HDRS_DIR ?= $(SNITCH_ROOT)/target/snitch_cluster/sw/runtime/common
+TARGET_C_HDRS      = $(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS) $(REGGEN_HEADERS))
 
 # CLUSTERGEN headers,
 $(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS)): %.h: $(SNITCH_CFG) $(CLUSTER_GEN) $(CLUSTER_GEN) %.h.tpl
@@ -31,8 +40,8 @@ $(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS)): %.h: $(SNITCH_CFG) $(
 	$(CLUSTER_GEN) -c $< --outdir $(TARGET_C_HDRS_DIR) --template $@.tpl
 
 # REGGEN headers
-	$(call reggen_generate_header,$@,$<)
 $(TARGET_C_HDRS_DIR)/snitch_cluster_peripheral.h: $(SNITCH_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.hjson $(REGGEN)
+	$(REGGEN) -D -o $@ $<
 
 .PHONY: snitch-clean-headers
 snitch-clean-sw: snitch-clean-headers
