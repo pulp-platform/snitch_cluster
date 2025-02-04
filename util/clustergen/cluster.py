@@ -143,10 +143,6 @@ class SnitchCluster(Generator):
     """
     Instance of a Snitch cluster.
     """
-    files = {
-        'cfg': "src/snitch_cfg.sv.tpl",
-        'wrapper': "src/snitch_cluster_wrapper.sv.tpl"
-    }
 
     def __init__(self, cfg):
         """
@@ -171,13 +167,6 @@ class SnitchCluster(Generator):
     def l1_region(self):
         """Return L1 Region as tuple. Base and length."""
         return (self.cfg['cluster_base_addr'], self.cfg['tcdm']['size'])
-
-    def render_wrapper(self):
-        """Render the cluster wrapper"""
-        cfg_template = self.templates.get_template(self.files['wrapper'])
-        return cfg_template.render_unicode(cfg=self.cfg,
-                                           to_sv_hex=to_sv_hex,
-                                           disclaimer=self.DISCLAIMER)
 
     def add_mem(self,
                 words,
@@ -377,7 +366,3 @@ def clog2(x):
 
 def is_pow2(x):
     return 2**clog2(x) != x
-
-
-def to_sv_hex(x, length=None):
-    return "{}'h{}".format(length or "", hex(x)[2:])

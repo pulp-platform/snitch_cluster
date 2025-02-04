@@ -46,15 +46,6 @@ def main():
                         type=pathlib.Path,
                         required=True,
                         help="Target directory.")
-    parser.add_argument("--wrapper",
-                        action="store_true",
-                        help="Generate Snitch cluster wrapper")
-    parser.add_argument("--linker",
-                        action="store_true",
-                        help="Generate linker script")
-    parser.add_argument("--bootdata",
-                        action="store_true",
-                        help="Generate bootdata")
     parser.add_argument("--memories",
                         action="store_true",
                         help="Generate memories")
@@ -73,7 +64,7 @@ def main():
         except ValueError:
             raise SystemExit(sys.exc_info()[1])
 
-    cluster_tb = SnitchCluster(obj)
+    cluster = SnitchCluster(obj)
 
     if not args.outdir.is_dir():
         exit("Out directory is not a valid path.")
@@ -85,28 +76,17 @@ def main():
     # Misc files #
     ##############
 
-    if args.wrapper:
-        with open(outdir / "snitch_cluster_wrapper.sv", "w") as f:
-            f.write(cluster_tb.render_wrapper())
-
-    if args.linker:
-        with open(outdir / "link.ld", "w") as f:
-            f.write(cluster_tb.render_linker_script())
-
-    if args.bootdata:
-        with open(outdir / "bootdata.cc", "w") as f:
-            f.write(cluster_tb.render_bootdata())
-
     if args.memories:
         with open(outdir / "memories.json", "w") as f:
-            f.write(cluster_tb.cluster.memory_cfg())
+            f.write(cluster.memory_cfg())
 
     ####################
     # Generic template #
     ####################
 
     kwargs = {
-        "cfg": cluster_tb.cfg,
+        "disclaimer": cluster.DISCLAIMER,
+        "cfg": cluster.cfg,
     }
 
     if args.template:

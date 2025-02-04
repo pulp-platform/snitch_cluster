@@ -4,6 +4,10 @@
 
 ${disclaimer}
 
+<%def name="to_sv_hex(x, length=None)">\
+${"{}'h{}".format(length or "", hex(x)[2:])}\
+</%def>
+
 <%def name="icache_cfg(prop)">
   % for lw in cfg['cluster']['hives']:
     ${lw['icache'][prop]}${',' if not loop.last else ''}

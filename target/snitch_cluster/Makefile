@@ -161,17 +161,22 @@ clean-rtl:
 $(GENERATED_DIR):
 	mkdir -p $@
 
-$(GENERATED_DIR)/snitch_cluster_wrapper.sv: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --wrapper
+CLUSTER_GEN_TPL = $(ROOT)/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl
+LINK_LD_TPL     = $(ROOT)/hw/snitch_cluster/test/link.ld.tpl
+BOOTDATA_TPL    = $(ROOT)/hw/snitch_cluster/test/bootdata.cc.tpl
 
-$(GENERATED_DIR)/link.ld: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --linker
+$(GENERATED_DIR)/snitch_cluster_wrapper.sv: ${CFG} ${CLUSTER_GEN_PREREQ} ${CLUSTER_GEN_TPL} | $(GENERATED_DIR)
+	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --template ${CLUSTER_GEN_TPL}
+
+$(GENERATED_DIR)/link.ld: ${CFG} ${CLUSTER_GEN_PREREQ} ${LINK_LD_TPL}| $(GENERATED_DIR)
+	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --template ${LINK_LD_TPL}
+
+$(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} ${BOOTDATA_TPL}| $(GENERATED_DIR)
+	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --template ${BOOTDATA_TPL}
 
 $(GENERATED_DIR)/memories.json: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
 	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --memories
 
-$(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --bootdata
 
 # REGGEN regfile
 $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv
