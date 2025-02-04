@@ -246,7 +246,8 @@ class SnitchCluster(Generator):
         pma_cfg = PMACfg()
         for region in self.cfg['external_addr_regions']:
             if region["cacheable"]:
-                pma_cfg.add_region_length(PMA.CACHED, region['address'], region['length'], self.cfg['cluster']['addr_width'])
+                pma_cfg.add_region_length(PMA.CACHED, region['address'], region['length'],
+                                          self.cfg['cluster']['addr_width'])
         # Populate the list of cached regions
         self.cfg['pmas'] = dict()
         self.cfg['pmas']['cached'] = list()
@@ -295,7 +296,8 @@ class SnitchCluster(Generator):
                     if ssr['pointer_width'] is None:
                         ssr['pointer_width'] = 10 + clog2(self.cfg['cluster']['tcdm']['size'])
                     if ssr['index_width'] is None:
-                        ssr['index_width'] = ssr['pointer_width'] - clog2(self.cfg['cluster']['data_width']/8)
+                        ssr['index_width'] = ssr['pointer_width']
+                        - clog2(self.cfg['cluster']['data_width']/8)
                 # Sort SSRs by register indices (required by decoding logic)
                 core['ssrs'].sort(key=lambda x: x['reg_idx'])
                 # Minimum 1 element to avoid illegal ranges (Xssr prevents generation)

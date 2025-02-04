@@ -16,6 +16,7 @@ from mako.template import Template
 # Regex to find hex numbers with optional underscores
 HEX_PATTERN = re.compile(r"0x[0-9a-fA-F]+(?:_[0-9a-fA-F]+)*")
 
+
 def preprocess_hex_in_hjson(text):
     """ Converts hex numbers (e.g., 0x8000_0000) to decimal before parsing HJSON. """
     def hex_to_decimal(match):
