@@ -5,7 +5,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from jsonschema import ValidationError, RefResolver, Draft7Validator, validators
+from jsonschema import ValidationError, RefResolver, validators
 from mako.lookup import TemplateLookup
 from math import ceil, log2
 
@@ -38,7 +38,7 @@ def extend_with_default(validator_class):
     )
 
 
-DefaultValidatingDraft7Validator = extend_with_default(Draft7Validator)
+DefaultValidator = extend_with_default(validators.Draft202012Validator)
 
 
 class Generator(object):
