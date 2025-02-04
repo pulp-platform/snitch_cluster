@@ -13,6 +13,17 @@ from jsonref import JsonRef
 from clustergen.cluster import SnitchCluster
 from mako.template import Template
 
+# Regex to find hex numbers with optional underscores
+HEX_PATTERN = re.compile(r"0x[0-9a-fA-F]+(?:_[0-9a-fA-F]+)*")
+
+def preprocess_hex_in_hjson(text):
+    """ Converts hex numbers (e.g., 0x8000_0000) to decimal before parsing HJSON. """
+    def hex_to_decimal(match):
+        hex_str = match.group(0).replace("_", "")  # Remove underscores
+        return str(int(hex_str, 16))  # Convert to decimal and replace
+
+    return HEX_PATTERN.sub(hex_to_decimal, text)
+
 
 def write_template(tpl_path, outdir, fname=None, **kwargs):
 
@@ -55,12 +66,14 @@ def main():
 
     args = parser.parse_args()
 
-    # Read HJSON description
+    # Read and preprocess HJSON file
     with args.clustercfg as file:
         try:
             srcfull = file.read()
-            obj = hjson.loads(srcfull, use_decimal=True)
+            srcfull = preprocess_hex_in_hjson(srcfull)  # Convert hex to decimal
+            obj = hjson.loads(srcfull, use_decimal=True)  # Now parse clean HJSON
             obj = JsonRef.replace_refs(obj)
+
         except ValueError:
             raise SystemExit(sys.exc_info()[1])
 
