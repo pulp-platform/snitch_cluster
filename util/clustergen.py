@@ -10,7 +10,7 @@ import sys
 import re
 
 from jsonref import JsonRef
-from clustergen.cluster import SnitchClusterTB
+from clustergen.cluster import SnitchCluster
 from mako.template import Template
 
 
@@ -73,7 +73,7 @@ def main():
         except ValueError:
             raise SystemExit(sys.exc_info()[1])
 
-    cluster_tb = SnitchClusterTB(obj)
+    cluster_tb = SnitchCluster(obj)
 
     if not args.outdir.is_dir():
         exit("Out directory is not a valid path.")

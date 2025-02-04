@@ -4,10 +4,12 @@
 
 OUTPUT_ARCH( "riscv" )
 ENTRY(_start)
-<% dram_address = cfg['dram']['address']; %>
+<% dram_address = next(reg['address'] for reg in cfg['external_addr_regions'] if reg['name'] == 'dram'); %>
+<% dram_length = next(reg['length'] for reg in cfg['external_addr_regions'] if reg['name'] == 'dram'); %>
+
 MEMORY
 {
-    DRAM (rwxai)  : ORIGIN = ${dram_address}, LENGTH = ${cfg['dram']['length']}
+    DRAM (rwxai)  : ORIGIN = ${dram_address}, LENGTH = ${dram_length}
     L1 (rw) : ORIGIN = ${l1_region[0]}, LENGTH = ${l1_region[1]}K
 }
 
