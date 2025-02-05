@@ -8,8 +8,6 @@ class GemmArrayCtrlIO(params: GemmParams) extends Bundle {
   val add_c_i = Input(Bool())
   val a_b_c_ready_o = Output(Bool())
 
-  val accumulate_i = Input(Bool())
-
   val d_valid_o = Output(Bool())
   val d_ready_i = Input(Bool())
 
@@ -67,8 +65,6 @@ class Tile(params: GemmParams) extends Module with RequireAsyncReset {
 
   val add_c_fire = WireInit(0.B)
   add_c_fire := io.ctrl.add_c_i === 1.B && io.ctrl.a_b_c_ready_o === 1.B
-  val add_c_fire_reg = RegInit(0.B)
-  add_c_fire_reg := add_c_fire
 
   // when out c not ready but having a valid result locally, keep sending d_valid_o
   keep_output := io.ctrl.d_valid_o && !io.ctrl.d_ready_i
@@ -91,26 +87,20 @@ class Tile(params: GemmParams) extends Module with RequireAsyncReset {
   // Sum of element-wise multiply
   mul_add_result := mul_add_result_vec.reduce((a, b) => (a.asSInt + b.asSInt))
 
-  // Accumulation, if io.ctrl.accumulate === 0.B, clear the accumulation reg, otherwise store the current results
-  when(add_c_fire && io.ctrl.accumulate_i === 0.B) {
-    accumulation_reg := io.data_c_i.asSInt
+  // Accumulation
+  // at the first compute cycle (add_c_fire === 1.B), do the dotprod and outside c addition computation
+  // at the following compute cycle, do the dotprod and accumulation reg addition computation
+  when(add_c_fire === 1.B && data_i_fire === 1.B) {
+    accumulation_reg := io.data_c_i.asSInt + mul_add_result
+  }.elsewhen(add_c_fire === 0.B && data_i_fire === 1.B) {
+    accumulation_reg := accumulation_reg + mul_add_result
+  }.otherwise {
+    accumulation_reg := accumulation_reg
   }
-  when(add_c_fire && io.ctrl.accumulate_i === 1.B) {
-    accumulation_reg := accumulation_reg + io.data_c_i.asSInt
-  }
-    .elsewhen(
-      data_i_fire === 1.B && io.ctrl.accumulate_i === 0.B
-    ) {
-      accumulation_reg := mul_add_result
-    }
-    .elsewhen(
-      data_i_fire === 1.B && io.ctrl.accumulate_i === 1.B
-    ) {
-      accumulation_reg := accumulation_reg + mul_add_result
-    }
 
   io.data_d_o := accumulation_reg
-  io.ctrl.d_valid_o := add_c_fire_reg || data_i_fire_reg || keep_output
+  // output valid depends on the data_i_fire_reg and keep_output
+  io.ctrl.d_valid_o := data_i_fire_reg || keep_output
   io.ctrl.a_b_c_ready_o := !keep_output && !(io.ctrl.d_valid_o && !io.ctrl.d_ready_i)
 
 }
@@ -169,8 +159,6 @@ class Mesh(params: GemmParams) extends Module with RequireAsyncReset {
       // input control signal, boardcast to each PE
       mesh(r)(c).io.ctrl.dotprod_a_b <> io.ctrl.dotprod_a_b
       mesh(r)(c).io.ctrl.add_c_i <> io.ctrl.add_c_i
-
-      mesh(r)(c).io.ctrl.accumulate_i <> io.ctrl.accumulate_i
 
       mesh(r)(c).io.ctrl.d_ready_i <> io.ctrl.d_ready_i
 
