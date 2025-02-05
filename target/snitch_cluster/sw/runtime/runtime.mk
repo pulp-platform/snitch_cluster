@@ -45,11 +45,11 @@ SNRT_OUTPUTS = $(SNRT_LIB) $(SNRT_DUMP)
 # Rules #
 #########
 
-.PHONY: snrt clean-snrt
+.PHONY: snrt-runtime snrt-clean-runtime
 
-snrt: $(SNRT_OUTPUTS)
+snrt-runtime: $(SNRT_OUTPUTS)
 
-clean-snrt:
+snrt-clean-runtime:
 	rm -rf $(SNRT_BUILDDIR)
 
 $(SNRT_BUILDDIR):
