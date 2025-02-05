@@ -187,7 +187,7 @@ sources:
   # target/snitch_cluster
   - target: snitch_cluster
     files:
-      - target/snitch_cluster/generated/snitch_cluster_wrapper.sv
+      - target/snitch_cluster/.generated/snitch_cluster_wrapper.sv
   - target: all(snitch_cluster, any(simulation, verilator))
     files:
       - target/snitch_cluster/test/vip_snitch_cluster.sv

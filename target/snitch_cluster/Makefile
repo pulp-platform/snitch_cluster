@@ -46,7 +46,7 @@ SN_CLUSTER_GEN_SRC ?= $(wildcard $(SN_ROOT)/util/clustergen/*.py)
 #########################
 
 BIN_DIR    ?= bin
-SN_GEN_DIR  = $(MKFILE_DIR)generated
+SN_GEN_DIR  = $(MKFILE_DIR).generated
 TB_DIR      = $(SN_ROOT)/target/common/test
 
 # If the configuration file is overriden on the command-line (through

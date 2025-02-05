@@ -8,8 +8,8 @@
 # Directories #
 ###############
 
-SNRT_TESTS_SRCDIR    = $(SNITCH_ROOT)/sw/tests
-SNRT_TESTS_BUILDDIR ?= $(SNITCH_ROOT)/target/snitch_cluster/sw/tests/build
+SNRT_TESTS_SRCDIR    = $(SN_ROOT)/sw/tests
+SNRT_TESTS_BUILDDIR ?= $(SN_ROOT)/target/snitch_cluster/sw/tests/build
 
 ###################
 # Build variables #
@@ -33,7 +33,7 @@ SNRT_TEST_ELFS    = $(abspath $(addprefix $(SNRT_TESTS_BUILDDIR)/,$(addsuffix .e
 SNRT_TEST_DEPS    = $(abspath $(addprefix $(SNRT_TESTS_BUILDDIR)/,$(addsuffix .d,$(SNRT_TEST_NAMES))))
 SNRT_TEST_DUMPS   = $(abspath $(addprefix $(SNRT_TESTS_BUILDDIR)/,$(addsuffix .dump,$(SNRT_TEST_NAMES))))
 SNRT_TEST_DWARFS  = $(abspath $(addprefix $(SNRT_TESTS_BUILDDIR)/,$(addsuffix .dwarf,$(SNRT_TEST_NAMES))))
-SNRT_TEST_OUTPUTS = $(TEST_ELFS)
+SNRT_TEST_OUTPUTS = $(SNRT_TEST_ELFS)
 
 ifeq ($(DEBUG), ON)
 SNRT_TEST_OUTPUTS += $(SNRT_TEST_DUMPS) $(SNRT_TEST_DWARFS)
@@ -45,7 +45,7 @@ endif
 
 .PHONY: snrt-tests snrt-clean-tests
 
-snrt-tests: $(TEST_OUTPUTS)
+snrt-tests: $(SNRT_TEST_OUTPUTS)
 
 snrt-clean-tests:
 	rm -rf $(SNRT_TESTS_BUILDDIR)

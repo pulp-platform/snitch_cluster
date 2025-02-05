@@ -7,8 +7,8 @@ DEBUG ?= OFF  # ON to turn on wave logging
 
 # Directories
 SIM_DIR  ?= $(shell pwd)
-TB_DIR   ?= $(SNITCH_ROOT)/target/common/test
-UTIL_DIR ?= $(SNITCH_ROOT)/util
+TB_DIR   ?= $(SN_ROOT)/target/common/test
+UTIL_DIR ?= $(SN_ROOT)/util
 LOGS_DIR  = $(SIM_DIR)/logs
 
 # External executables
