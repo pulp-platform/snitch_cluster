@@ -33,7 +33,7 @@ SNRT_REGGEN_HEADERS = snitch_cluster_peripheral.h
 
 SN_PERIPH_DIR           = $(SN_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral
 SNRT_TARGET_C_HDRS_DIR ?= $(SN_ROOT)/target/snitch_cluster/sw/runtime/common
-SNRT_TARGET_C_HDRS      = $(addprefix $(SNRT_TARGET_C_HDRS_DIR)/,$(SNRT_CLUSTER_GEN_HEADERS) $(REGGEN_HEADERS))
+SNRT_TARGET_C_HDRS      = $(addprefix $(SNRT_TARGET_C_HDRS_DIR)/,$(SNRT_CLUSTER_GEN_HEADERS) $(SNRT_REGGEN_HEADERS))
 
 # CLUSTERGEN headers,
 $(addprefix $(SNRT_TARGET_C_HDRS_DIR)/,$(SNRT_CLUSTER_GEN_HEADERS)): %.h: $(SN_CFG) $(SN_CLUSTER_GEN) $(SN_CLUSTER_GEN_SRC) %.h.tpl
