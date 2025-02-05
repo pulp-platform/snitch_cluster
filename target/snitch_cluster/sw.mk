@@ -90,4 +90,7 @@ SNRT_APPS += sw/apps/kmeans
 $(foreach app,$(SNRT_APPS), \
 	$(eval include $(SN_ROOT)/target/snitch_cluster/$(app)/app.mk) \
 )
+else
+snrt-apps: ;
+snrt-clean-apps: ;
 endif
