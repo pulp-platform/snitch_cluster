@@ -530,7 +530,7 @@ def emit_gemmx_data(**kwargs):
     data_str += [format_scalar_definition("int32_t", "bypassSIMD", bypassSIMD)]
 
     # Generating random constant values
-    group_num = 8
+    group_num = kwargs["meshCol"]
     input_zp_i = np.random.randint(MIN, MAX)
     output_zp_i = np.random.randint(MIN, MAX)
     max_int_i = MAX
@@ -549,47 +549,22 @@ def emit_gemmx_data(**kwargs):
         format_scalar_definition("int8_t", "double_round_i", double_round_i),
     ]
 
-    shared_bitpacked_shift0 = (
-        (shift_i[3] << 24) | (shift_i[2] << 16) | (shift_i[1] << 8) | shift_i[0]
-    )
-    shared_bitpacked_shift1 = (
-        (shift_i[7] << 24) | (shift_i[6] << 16) | (shift_i[5] << 8) | shift_i[4]
-    )
-    data_str += [
-        format_scalar_definition(
-            "int32_t", "shared_bitpacked_shift0", shared_bitpacked_shift0
-        )
-    ]
-    data_str += [
-        format_scalar_definition(
-            "int32_t", "shared_bitpacked_shift1", shared_bitpacked_shift1
-        )
+    shared_bitpacked_shift_i = [
+        (shift_i[i + 3] << 24)
+        | (shift_i[i + 2] << 16)
+        | (shift_i[i + 1] << 8)
+        | shift_i[i]
+        for i in range(0, group_num, 4)
     ]
 
-    data_str += [
-        format_scalar_definition("int32_t", "shared_multiplier0", multiplier_i[0])
-    ]
-    data_str += [
-        format_scalar_definition("int32_t", "shared_multiplier1", multiplier_i[1])
-    ]
-    data_str += [
-        format_scalar_definition("int32_t", "shared_multiplier2", multiplier_i[2])
-    ]
-    data_str += [
-        format_scalar_definition("int32_t", "shared_multiplier3", multiplier_i[3])
-    ]
-    data_str += [
-        format_scalar_definition("int32_t", "shared_multiplier4", multiplier_i[4])
-    ]
-    data_str += [
-        format_scalar_definition("int32_t", "shared_multiplier5", multiplier_i[5])
-    ]
-    data_str += [
-        format_scalar_definition("int32_t", "shared_multiplier6", multiplier_i[6])
-    ]
-    data_str += [
-        format_scalar_definition("int32_t", "shared_multiplier7", multiplier_i[7])
-    ]
+    data_str += [(
+        "int32_t shared_bitpacked_shift[] = { "
+        + ", ".join(map(str, shared_bitpacked_shift_i))
+        + " };"
+    )]
+    data_str += [(
+        "int32_t shared_multiplier[] = { " + ", ".join(map(str, multiplier_i)) + " };"
+    )]
 
     D8 = np.zeros_like(D32, dtype=np.uint8)
     # output channel (innermost dim) has a different scale factor

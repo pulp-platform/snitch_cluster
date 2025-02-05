@@ -550,6 +550,8 @@ class StreamerHeaderFile(param: StreamerParam) {
     // address remap index
     if (param.aguParam.tcdmLogicWordSize.length > 1) {
       csrMap =
+        csrMap + "#define " + "ADDR_REMAP_EXTENSION_ENABLE_" + tag + " " + "\n"
+      csrMap =
         csrMap + "#define " + "ADDR_REMAP_INDEX_" + tag + " " + csrOffset + "\n"
       csrOffset = csrOffset + 1
     }

@@ -5,6 +5,7 @@
 // Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
 
 #include <stdbool.h>
+#include "simd_csr_addr_map.h"
 #include "snrt.h"
 #include "stdint.h"
 #include "streamer_csr_addr_map.h"
@@ -12,31 +13,18 @@
 #pragma once
 
 #define GEMMX_CSR_ADDR_BASE (STREAMER_PERFORMANCE_COUNTER_CSR + 1)
+// GeMM CSR = 4
 #define T_BOUND_K (GEMMX_CSR_ADDR_BASE)
 #define T_BOUND_N (T_BOUND_K + 1)
 #define T_BOUND_M (T_BOUND_N + 1)
 
 #define SUBTRACTIONS (T_BOUND_M + 1)
 
-#define SIMD_CSR0 (SUBTRACTIONS + 1)
-#define SIMD_CSR1 (SIMD_CSR0 + 1)
-
-#define SIMD_SHARED_BITPACKED_SHIFT0 (SIMD_CSR1 + 1)
-#define SIMD_SHARED_BITPACKED_SHIFT1 (SIMD_SHARED_BITPACKED_SHIFT0 + 1)
-
-#define SIMD_SHARED_MULTIPLIER0 (SIMD_SHARED_BITPACKED_SHIFT1 + 1)
-#define SIMD_SHARED_MULTIPLIER1 (SIMD_SHARED_MULTIPLIER0 + 1)
-#define SIMD_SHARED_MULTIPLIER2 (SIMD_SHARED_MULTIPLIER1 + 1)
-#define SIMD_SHARED_MULTIPLIER3 (SIMD_SHARED_MULTIPLIER2 + 1)
-#define SIMD_SHARED_MULTIPLIER4 (SIMD_SHARED_MULTIPLIER3 + 1)
-#define SIMD_SHARED_MULTIPLIER5 (SIMD_SHARED_MULTIPLIER4 + 1)
-#define SIMD_SHARED_MULTIPLIER6 (SIMD_SHARED_MULTIPLIER5 + 1)
-#define SIMD_SHARED_MULTIPLIER7 (SIMD_SHARED_MULTIPLIER6 + 1)
-
-#define TEMPORAL_LOOP_BOUND (SIMD_SHARED_MULTIPLIER7 + 1)
+// GeMMX CSR
 #define BYPASS_SIMD (TEMPORAL_LOOP_BOUND + 1)
-
 #define GEMMX_START (BYPASS_SIMD + 1)
+
+// GeMMX read-only CSR
 #define GEMMX_BUSY (GEMMX_START + 1)
 #define GEMMX_PERFORMANCE_COUNTER (GEMMX_BUSY + 1)
 
@@ -86,11 +74,7 @@ inline void set_gemmx_streamer_start() { csrw_ss(STREAMER_START_CSR, 1); }
 // Set GEMM configuration CSR
 void set_gemmx_csr(int tempLoop0, int tempLoop1, int tempLoop2,
                    int subtractions, uint32_t csr0, uint32_t csr1,
-                   int shared_bitpacked_shift0, int shared_bitpacked_shift1,
-                   int shared_multiplier0, int shared_multiplier1,
-                   int shared_multiplier2, int shared_multiplier3,
-                   int shared_multiplier4, int shared_multiplier5,
-                   int shared_multiplier6, int shared_multiplier7,
+                   int* shared_bitpacked_shift, int* shared_multiplier,
                    uint32_t temporal_loop_bound, uint32_t bypassSIMD);
 
 // Set CSR to start GEMM

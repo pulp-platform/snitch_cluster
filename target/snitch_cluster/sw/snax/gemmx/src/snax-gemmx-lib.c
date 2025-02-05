@@ -81,7 +81,9 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_READER_0_5, Atlstride5);
 
     // set the address remap index for A
+#ifdef ADDR_REMAP_EXTENSION_ENABLE_READER_0
     csrw_ss(ADDR_REMAP_INDEX_READER_0, set_addr_remap_index_A);
+#endif
 
     // base ptr for B
     csrw_ss(BASE_PTR_READER_1_LOW, (uint32_t)(delta_local_b + snrt_l1_next()));
@@ -100,7 +102,9 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_READER_1_2, Btlstride2);
 
     // set the address remap index for B
+#ifdef ADDR_REMAP_EXTENSION_ENABLE_READER_1
     csrw_ss(ADDR_REMAP_INDEX_READER_1, set_addr_remap_index_B);
+#endif
 
     // base ptr for D8
     csrw_ss(BASE_PTR_WRITER_0_LOW, (uint32_t)(delta_local_d8 + snrt_l1_next()));
@@ -125,7 +129,9 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_WRITER_0_2, D8tlstride2);
 
     // set the address remap index for D8
+#ifdef ADDR_REMAP_EXTENSION_ENABLE_WRITER_0
     csrw_ss(ADDR_REMAP_INDEX_WRITER_0, set_addr_remap_index_D8);
+#endif
 
     // base ptr for C
     csrw_ss(BASE_PTR_READER_WRITER_0_LOW,
@@ -146,7 +152,9 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_READER_WRITER_0_2, Ctlstride2);
 
     // set the address remap index for C
+#ifdef ADDR_REMAP_EXTENSION_ENABLE_WRITER_0
     csrw_ss(ADDR_REMAP_INDEX_READER_WRITER_0, set_addr_remap_index_C);
+#endif
 
 #ifdef ENABLED_CHANNEL_READER_WRITER_0
     csrw_ss(ENABLED_CHANNEL_READER_WRITER_0, channel_en_C);
@@ -181,7 +189,9 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_READER_WRITER_1_2, D32tlstride2);
 
     // set the address remap index for D32
+#ifdef ADDR_REMAP_EXTENSION_ENABLE
     csrw_ss(ADDR_REMAP_INDEX_READER_WRITER_1, set_addr_remap_index_D32);
+#endif
 
     // set the transpose
 #ifdef TRANSPOSE_EXTENSION_ENABLE
@@ -193,11 +203,7 @@ void set_gemmx_streamer_csr(
 // Set GEMM configuration CSR
 void set_gemmx_csr(int tempLoop0, int tempLoop1, int tempLoop2,
                    int subtractions, uint32_t csr0, uint32_t csr1,
-                   int shared_bitpacked_shift0, int shared_bitpacked_shift1,
-                   int shared_multiplier0, int shared_multiplier1,
-                   int shared_multiplier2, int shared_multiplier3,
-                   int shared_multiplier4, int shared_multiplier5,
-                   int shared_multiplier6, int shared_multiplier7,
+                   int* shared_bitpacked_shift, int* shared_multiplier,
                    uint32_t temporal_loop_bound, uint32_t bypassSIMD) {
     // set loop bounds, from innermost to outermost, aka from K to N to M
     csrw_ss(T_BOUND_K, tempLoop0);
@@ -212,18 +218,14 @@ void set_gemmx_csr(int tempLoop0, int tempLoop1, int tempLoop2,
     csrw_ss(SIMD_CSR1, csr1);
 
     // set the shared bitpacked shift
-    csrw_ss(SIMD_SHARED_BITPACKED_SHIFT0, shared_bitpacked_shift0);
-    csrw_ss(SIMD_SHARED_BITPACKED_SHIFT1, shared_bitpacked_shift1);
+    for (uint32_t i = 0; i < SIMD_SHARED_BITPACKED_SHIFT_NUM; i++) {
+        csrw_ss(SIMD_SHARED_BITPACKED_SHIFT + i, shared_bitpacked_shift[i]);
+    }
 
     // set the shared multipliers
-    csrw_ss(SIMD_SHARED_MULTIPLIER0, shared_multiplier0);
-    csrw_ss(SIMD_SHARED_MULTIPLIER1, shared_multiplier1);
-    csrw_ss(SIMD_SHARED_MULTIPLIER2, shared_multiplier2);
-    csrw_ss(SIMD_SHARED_MULTIPLIER3, shared_multiplier3);
-    csrw_ss(SIMD_SHARED_MULTIPLIER4, shared_multiplier4);
-    csrw_ss(SIMD_SHARED_MULTIPLIER5, shared_multiplier5);
-    csrw_ss(SIMD_SHARED_MULTIPLIER6, shared_multiplier6);
-    csrw_ss(SIMD_SHARED_MULTIPLIER7, shared_multiplier7);
+    for (uint32_t i = 0; i < SIMD_SHARED_MULTIPLIER_NUM; i++) {
+        csrw_ss(SIMD_SHARED_MULTIPLIER + i, shared_multiplier[i]);
+    }
 
     // set the temporal loop bound
     csrw_ss(TEMPORAL_LOOP_BOUND, temporal_loop_bound);

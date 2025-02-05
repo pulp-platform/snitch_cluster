@@ -81,12 +81,9 @@ int main() {
             gen_csr0_config(input_zp_i, output_zp_i, max_int_i, min_int_i);
         uint32_t csr1 = gen_csr1_config(double_round_i);
 
-        set_gemmx_csr(
-            K, N, M, subtraction_setting, csr0, csr1, shared_bitpacked_shift0,
-            shared_bitpacked_shift1, shared_multiplier0, shared_multiplier1,
-            shared_multiplier2, shared_multiplier3, shared_multiplier4,
-            shared_multiplier5, shared_multiplier6, shared_multiplier7, M * N,
-            bypassSIMD);
+        set_gemmx_csr(K, N, M, subtraction_setting, csr0, csr1,
+                      shared_bitpacked_shift, shared_multiplier, M * N,
+                      bypassSIMD);
 
         // Set CSR to start Streamer for conv2d
         set_gemmx_streamer_start();
