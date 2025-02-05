@@ -5,10 +5,10 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 APP              := gemm
-$(APP)_BUILD_DIR ?= $(ROOT)/target/snitch_cluster/sw/apps/blas/$(APP)/build
-SRC_DIR          := $(ROOT)/sw/blas/$(APP)/src
+$(APP)_BUILD_DIR ?= $(SN_ROOT)/target/snitch_cluster/sw/apps/blas/$(APP)/build
+SRC_DIR          := $(SN_ROOT)/sw/blas/$(APP)/src
 SRCS             := $(SRC_DIR)/main.c
-$(APP)_INCDIRS   := $(ROOT)/sw/blas
+$(APP)_INCDIRS   := $(SN_ROOT)/sw/blas
 
-include $(ROOT)/sw/apps/common.mk
-include $(ROOT)/target/snitch_cluster/sw/apps/common.mk
+include $(SN_ROOT)/sw/apps/common.mk
+include $(SN_ROOT)/target/snitch_cluster/sw/apps/common.mk

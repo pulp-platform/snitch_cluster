@@ -46,8 +46,8 @@ ALL_OUTPUTS := $(ELF) $(DEP) $(DUMP) $(DWARF)
 
 .PHONY: $(APP) clean-$(APP)
 
-sw: $(APP)
-clean-sw: clean-$(APP)
+snrt-apps: $(APP)
+snrt-clean-apps: clean-$(APP)
 
 $(APP): $(ALL_OUTPUTS)
 
@@ -78,8 +78,6 @@ $(DUMP): $(ELF) | $($(APP)_BUILD_DIR)
 $(DWARF): $(ELF) | $($(APP)_BUILD_DIR)
 	$(RISCV_DWARFDUMP) $< > $@
 
-ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(MAKECMDGOALS),clean-sw)
+ifneq ($(MAKECMDGOALS),snrt-clean-apps)
 -include $(DEP)
-endif
 endif

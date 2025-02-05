@@ -27,37 +27,35 @@ clean: clean-rtl clean-work clean-vcs clean-logs clean-bender clean-generated
 
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 MKFILE_DIR  := $(dir $(MKFILE_PATH))
-ROOT        := $(realpath ${MKFILE_DIR}../..)
-SNITCH_ROOT := $(ROOT)
+SN_ROOT     := $(realpath ${MKFILE_DIR}../..)
 
 TARGET = snitch_cluster
 
-include $(ROOT)/target/common/common.mk
+include $(SN_ROOT)/target/common/common.mk
 
 ############
 # Programs #
 ############
 
-REGGEN          ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
-CLUSTER_GEN     ?= $(ROOT)/util/clustergen.py
-BOOTROM_GEN     ?= $(ROOT)/util/gen_bootrom.py
-CLUSTER_GEN_SRC ?= $(wildcard $(ROOT)/util/clustergen/*.py)
+REGGEN ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
+SN_CLUSTER_GEN     ?= $(SN_ROOT)/util/clustergen.py
+SN_CLUSTER_GEN_SRC ?= $(wildcard $(SN_ROOT)/util/clustergen/*.py)
 
 #########################
 # Files and directories #
 #########################
 
-BIN_DIR           ?= bin
-GENERATED_DIR     ?= $(MKFILE_DIR)generated
-PERIPH_DIR        ?= $(ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral
+BIN_DIR    ?= bin
+SN_GEN_DIR  = $(MKFILE_DIR)generated
+TB_DIR      = $(SN_ROOT)/target/common/test
 
 # If the configuration file is overriden on the command-line (through
 # CFG_OVERRIDE) and this file differs from the least recently used
 # (LRU) config, all targets depending on the configuration file have
 # to be rebuilt. This file is used to express this condition as a
 # prerequisite for other rules.
-DEFAULT_SNITCH_CFG = cfg/default.hjson
-SNITCH_CFG         = cfg/lru.hjson
+DEFAULT_SN_CFG = cfg/default.hjson
+SN_CFG         = cfg/lru.hjson
 
 # Common dependency for all RTL simulators
 $(BIN_DIR):
@@ -87,7 +85,7 @@ VLOG_FLAGS += ${VLOG_64BIT}
 TB_CC_SOURCES += \
 	${TB_DIR}/ipc.cc \
 	${TB_DIR}/common_lib.cc \
-	$(GENERATED_DIR)/bootdata.cc
+	$(SN_GEN_DIR)/bootdata.cc
 
 RTL_CC_SOURCES += ${TB_DIR}/rtl_lib.cc
 
@@ -105,8 +103,6 @@ TB_CC_FLAGS += \
 # Prerequisites #
 #################
 
-CLUSTER_GEN_PREREQ = ${CLUSTER_GEN} ${CLUSTER_GEN_SRC}
-
 # This target is always evaluated and creates a symlink to the least
 # recently used config file. Because it is a symlink, targets to which it is a
 # prerequisite will only be updated if the symlink target is newer than the
@@ -114,12 +110,12 @@ CLUSTER_GEN_PREREQ = ${CLUSTER_GEN} ${CLUSTER_GEN_SRC}
 # timestamp can be taken into account by using the `make -L` flag on the
 # command-line, however for simplicity we touch the symlink targets so it can
 # be used without.
-$(SNITCH_CFG): FORCE
+$(SN_CFG): FORCE
 	@# If the LRU config file doesn't exist, we use the default config.
 	@if [ ! -e "$@" ] ; then \
-		echo "Using default config file: $(DEFAULT_SNITCH_CFG)"; \
-		ln -s --relative $(DEFAULT_SNITCH_CFG) $@; \
-		touch $(DEFAULT_SNITCH_CFG); \
+		echo "Using default config file: $(DEFAULT_SN_CFG)"; \
+		ln -s --relative $(DEFAULT_SN_CFG) $@; \
+		touch $(DEFAULT_SN_CFG); \
 	fi
 	@# If a config file is provided on the command-line and the LRU
 	@# config file doesn't point to it already, then we make it point to it
@@ -140,7 +136,12 @@ FORCE:
 # Software #
 ############
 
-include $(ROOT)/target/snitch_cluster/sw.mk
+include $(SN_ROOT)/target/snitch_cluster/sw.mk
+
+.PHONY: sw clean-sw clean-headers
+sw: snrt-all
+clean-sw: snrt-clean
+clean-headers: snrt-clean-headers
 
 #######
 # RTL #
@@ -231,13 +232,13 @@ clean-work:
 	rm -rf work
 
 clean-bender:
-	rm -rf $(ROOT)/.bender/
+	rm -rf $(SN_ROOT)/.bender/
 
 clean-logs:
 	rm -rf $(LOGS_DIR)
 
 clean-generated:
-	rm -rf $(GENERATED_DIR)
+	rm -rf $(SN_GEN_DIR)
 
 # Help command
 Blue=\033[1;34m

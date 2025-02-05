@@ -8,8 +8,8 @@
 # Directories #
 ###############
 
-SNRT_DIR         = $(SNITCH_ROOT)/sw/snRuntime
-SNRT_TARGET_DIR ?= $(SNITCH_ROOT)/target/snitch_cluster/sw/runtime/$(SELECT_RUNTIME)
+SNRT_DIR         = $(SN_ROOT)/sw/snRuntime
+SNRT_TARGET_DIR ?= $(SN_ROOT)/target/snitch_cluster/sw/runtime/$(SELECT_RUNTIME)
 SNRT_BUILDDIR   ?= $(SNRT_TARGET_DIR)/build
 SNRT_SRCDIR     ?= $(SNRT_TARGET_DIR)/src
 
@@ -26,7 +26,7 @@ SNRT_INCDIRS += $(SNRT_DIR)/src/omp
 SNRT_INCDIRS += $(SNRT_DIR)/api/omp
 SNRT_INCDIRS += $(SNRT_DIR)/vendor/riscv-opcodes
 SNRT_INCDIRS += $(SNRT_SRCDIR)
-SNRT_INCDIRS += $(SNITCH_ROOT)/target/snitch_cluster/sw/runtime/common
+SNRT_INCDIRS += $(SN_ROOT)/target/snitch_cluster/sw/runtime/common
 
 SNRT_RISCV_CFLAGS += $(RISCV_CFLAGS)
 SNRT_RISCV_CFLAGS += $(addprefix -I,$(SNRT_INCDIRS))
@@ -70,7 +70,7 @@ $(SNRT_LIB): $(SNRT_OBJS) | $(SNRT_BUILDDIR)
 $(SNRT_DUMP): $(SNRT_LIB) | $(SNRT_BUILDDIR)
 	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_FLAGS) $< > $@
 
-$(SNRT_DEPS): | $(TARGET_C_HDRS)
+$(SNRT_DEPS): | $(SNRT_TARGET_C_HDRS)
 
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),clean-snrt)

@@ -8,79 +8,82 @@
 # Executables #
 ###############
 
-BENDER     	    ?= bender
-REGGEN     	    ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
-CLUSTER_GEN	    ?= $(SNITCH_ROOT)/util/clustergen.py
-CLUSTER_GEN_SRC ?= $(wildcard $(SNITCH_ROOT)/util/clustergen/*.py)
+BENDER ?= bender
+REGGEN ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
+SN_CLUSTER_GEN     ?= $(SN_ROOT)/util/clustergen.py
+SN_CLUSTER_GEN_SRC ?= $(wildcard $(SN_ROOT)/util/clustergen/*.py)
 
 ###################
 # General targets #
 ###################
 
-.PHONY: snitch-sw snitch-clean-sw
+.PHONY: snrt-all snrt-clean
 
-snitch-all: snitch-sw
-snitch-clean: snitch-clean-sw
+snrt-all: snrt snrt-apps snrt-tests
+snrt-clean: snrt-clean snrt-clean-apps snrt-clean-tests
 
 ####################
 # Platform headers #
 ####################
 
-CLUSTER_GEN_HEADERS = snitch_cluster_cfg.h \
-					  snitch_cluster_addrmap.h
+SNRT_CLUSTER_GEN_HEADERS = snitch_cluster_cfg.h \
+					               snitch_cluster_addrmap.h
 
-REGGEN_HEADERS = snitch_cluster_peripheral.h
+SNRT_REGGEN_HEADERS = snitch_cluster_peripheral.h
 
-TARGET_C_HDRS_DIR ?= $(SNITCH_ROOT)/target/snitch_cluster/sw/runtime/common
-TARGET_C_HDRS      = $(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS) $(REGGEN_HEADERS))
+SN_PERIPH_DIR           = $(SN_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral
+SNRT_TARGET_C_HDRS_DIR ?= $(SN_ROOT)/target/snitch_cluster/sw/runtime/common
+SNRT_TARGET_C_HDRS      = $(addprefix $(SNRT_TARGET_C_HDRS_DIR)/,$(SNRT_CLUSTER_GEN_HEADERS) $(REGGEN_HEADERS))
 
 # CLUSTERGEN headers,
-$(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS)): %.h: $(SNITCH_CFG) $(CLUSTER_GEN) $(CLUSTER_GEN) %.h.tpl
+$(addprefix $(SNRT_TARGET_C_HDRS_DIR)/,$(SNRT_CLUSTER_GEN_HEADERS)): %.h: $(SN_CFG) $(SN_CLUSTER_GEN) $(SN_CLUSTER_GEN_SRC) %.h.tpl
 	@echo "[CLUSTERGEN] Generate $@"
-	$(CLUSTER_GEN) -c $< --outdir $(TARGET_C_HDRS_DIR) --template $@.tpl
+	$(SN_CLUSTER_GEN) -c $< --outdir $(SNRT_TARGET_C_HDRS_DIR) --template $@.tpl
 
 # REGGEN headers
-$(TARGET_C_HDRS_DIR)/snitch_cluster_peripheral.h: $(SNITCH_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.hjson $(REGGEN)
+SN_PERIPH_REG_CFG ?= $(SN_PERIPH_DIR)/snitch_cluster_peripheral_reg.hjson
+
+$(SNRT_TARGET_C_HDRS_DIR)/snitch_cluster_peripheral.h: $(SN_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.hjson $(REGGEN)
 	$(REGGEN) -D -o $@ $<
 
-.PHONY: snitch-clean-headers
-snitch-clean-sw: snitch-clean-headers
-snitch-clean-headers:
-	rm -f $(TARGET_C_HDRS)
+.PHONY: snrt-clean-headers
+snrt-clean-sw: snrt-clean-headers
+snrt-clean-headers:
+	rm -f $(SNRT_TARGET_C_HDRS)
 
 ##################
 # Subdirectories #
 ##################
 
-include $(SNITCH_ROOT)/target/snitch_cluster/sw/toolchain.mk
-include $(SNITCH_ROOT)/target/snitch_cluster/sw/runtime/runtime.mk
-include $(SNITCH_ROOT)/target/snitch_cluster/sw/tests/tests.mk
+include $(SN_ROOT)/target/snitch_cluster/sw/toolchain.mk
+include $(SN_ROOT)/target/snitch_cluster/sw/runtime/runtime.mk
+include $(SN_ROOT)/target/snitch_cluster/sw/tests/tests.mk
 
-APPS  = sw/apps/nop
-APPS += sw/apps/blas/axpy
-APPS += sw/apps/blas/gemm
-APPS += sw/apps/blas/gemv
-APPS += sw/apps/blas/dot
-APPS += sw/apps/blas/syrk
-APPS += sw/apps/dnn/batchnorm
-APPS += sw/apps/dnn/conv2d
-APPS += sw/apps/dnn/fusedconv
-APPS += sw/apps/dnn/gelu
-APPS += sw/apps/dnn/layernorm
-APPS += sw/apps/dnn/maxpool
-APPS += sw/apps/dnn/softmax
-APPS += sw/apps/dnn/flashattention_2
-APPS += sw/apps/dnn/concat
-APPS += sw/apps/dnn/fused_concat_linear
-APPS += sw/apps/dnn/transpose
-APPS += sw/apps/montecarlo/pi_estimation
-APPS += sw/apps/atax
-APPS += sw/apps/correlation
-APPS += sw/apps/covariance
-APPS += sw/apps/doitgen
-APPS += sw/apps/kmeans
+SNRT_APPS  = sw/apps/nop
+SNRT_APPS += sw/apps/blas/axpy
+SNRT_APPS += sw/apps/blas/gemm
+SNRT_APPS += sw/apps/blas/gemv
+SNRT_APPS += sw/apps/blas/dot
+SNRT_APPS += sw/apps/blas/syrk
+SNRT_APPS += sw/apps/dnn/batchnorm
+SNRT_APPS += sw/apps/dnn/conv2d
+SNRT_APPS += sw/apps/dnn/fusedconv
+SNRT_APPS += sw/apps/dnn/gelu
+SNRT_APPS += sw/apps/dnn/layernorm
+SNRT_APPS += sw/apps/dnn/maxpool
+SNRT_APPS += sw/apps/dnn/softmax
+SNRT_APPS += sw/apps/dnn/flashattention_2
+SNRT_APPS += sw/apps/dnn/concat
+SNRT_APPS += sw/apps/dnn/fused_concat_linear
+SNRT_APPS += sw/apps/dnn/transpose
+SNRT_APPS += sw/apps/montecarlo/pi_estimation
+SNRT_APPS += sw/apps/atax
+SNRT_APPS += sw/apps/correlation
+SNRT_APPS += sw/apps/covariance
+SNRT_APPS += sw/apps/doitgen
+SNRT_APPS += sw/apps/kmeans
 
 # Include Makefile from each app subdirectory
-$(foreach app,$(APPS), \
+$(foreach app,$(SNRT_APPS), \
 	$(eval include $(app)/app.mk) \
 )
