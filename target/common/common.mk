@@ -41,34 +41,6 @@ RISCV_MC_FLAGS      ?= -disassemble -mcpu=snitch
 ANNOTATE_FLAGS      ?= -q --keep-time --addr2line=$(ADDR2LINE)
 LAYOUT_EVENTS_FLAGS ?= --cfg=$(CFG)
 
-# We need a recent LLVM installation (>11) to compile Verilator.
-# We also need to link the binaries with LLVM's libc++.
-# Define CLANG_PATH to be the path of your Clang installation.
-
-ifneq (${CLANG_PATH},)
-    CLANG_CC       := $(CLANG_PATH)/bin/clang
-    CLANG_CXX      := $(CLANG_PATH)/bin/clang++
-    CLANG_CXXFLAGS := -nostdinc++ -isystem $(CLANG_PATH)/include/c++/v1
-    CLANG_LDFLAGS  := -nostdlib++ -fuse-ld=lld -L ${CLANG_PATH}/lib -Wl,-rpath,${CLANG_PATH}/lib -lc++
-else
-    CLANG_CC       ?= clang
-    CLANG_CXX      ?= clang++
-    CLANG_CXXFLAGS := ""
-    CLANG_LDFLAGS  := ""
-endif
-
-# If requested, build verilator with LLVM and add llvm c/ld flags
-ifeq ($(VLT_USE_LLVM),ON)
-    CC         = $(CLANG_CC)
-    CXX        = $(CLANG_CXX)
-    CFLAGS     = $(CLANG_CXXFLAGS)
-    CXXFLAGS   = $(CLANG_CXXFLAGS)
-    LDFLAGS    = $(CLANG_LDFLAGS)
-    VLT_FLAGS += --compiler clang
-    VLT_FLAGS += -CFLAGS "${CLANG_CXXFLAGS}"
-    VLT_FLAGS += -LDFLAGS "${CLANG_LDFLAGS}"
-endif
-
 #################
 # Prerequisites #
 #################
