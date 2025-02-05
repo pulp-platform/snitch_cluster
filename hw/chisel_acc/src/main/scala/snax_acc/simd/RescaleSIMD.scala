@@ -131,12 +131,12 @@ class RescaleSIMD(params: RescaleSIMDParams)
       .asSInt
 
     // this control input port is 32 bits, so it needs 1 csr
-    ctrl_csr(i).multiplier_i := io.ctrl.bits(4 + i).asSInt
+    ctrl_csr(i).multiplier_i := io.ctrl.bits(2 + ctrl_csr_set_num / packed_shift_num + i).asSInt
     // ---------------------
 
     // length of the data
     ctrl_csr(i).len := io.ctrl
-      .bits(2 + ctrl_csr_set_num / 4 + ctrl_csr_set_num)
+      .bits(2 + ctrl_csr_set_num / packed_shift_num + ctrl_csr_set_num)
       .asUInt
 
   }

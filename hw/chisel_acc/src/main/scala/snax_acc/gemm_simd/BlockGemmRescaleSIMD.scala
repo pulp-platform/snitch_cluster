@@ -170,13 +170,27 @@ object BlockGemmRescaleSIMDGen {
 
     val withPipeline = argMap("withPipeline").toBoolean
 
+    // set the parameters for the simd module to match the output of the gemm module
+    // CSR to support per-channel scale factor
+    val SIMDReadWriteCsrNum = 2 + meshCol.toInt / 4 + meshCol.toInt + 1
+    val SIMDParamsWithoutPipeline = RescaleSIMDParams(
+      inputType = RescaleSIMDConstant.inputType,
+      outputType = RescaleSIMDConstant.outputType,
+      constantType = RescaleSIMDConstant.constantType,
+      constantMulType = RescaleSIMDConstant.constantMulType,
+      dataLen = meshRow.toInt * meshCol.toInt,
+      laneLen = meshRow.toInt * meshCol.toInt,
+      readWriteCsrNum = SIMDReadWriteCsrNum,
+      sharedScaleFactorPerGroupSize = meshRow.toInt
+    )
+
     emitVerilog(
       new BlockGemmRescaleSIMD(
         BlockGemmRescaleSIMDParams(
           gemmParams,
           (if (withPipeline == true)
              snax_acc.simd.PipelinedConfig.rescaleSIMDConfig
-           else snax_acc.simd.DefaultConfig.rescaleSIMDConfig),
+           else SIMDParamsWithoutPipeline),
           withPipeline
         )
       ),
