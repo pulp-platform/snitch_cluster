@@ -20,7 +20,7 @@ SN_CLUSTER_GEN_SRC ?= $(wildcard $(SN_ROOT)/util/clustergen/*.py)
 .PHONY: snrt-all snrt-clean
 
 snrt-all: snrt snrt-apps snrt-tests
-snrt-clean: snrt-clean snrt-clean-apps snrt-clean-tests
+snrt-clean: snrt-clean-apps snrt-clean-tests
 
 ####################
 # Platform headers #
