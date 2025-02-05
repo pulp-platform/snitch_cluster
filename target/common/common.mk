@@ -11,24 +11,9 @@ TB_DIR   ?= $(SNITCH_ROOT)/target/common/test
 UTIL_DIR ?= $(SNITCH_ROOT)/util
 LOGS_DIR  = $(SIM_DIR)/logs
 
-# Files
-BENDER_LOCK ?= $(ROOT)/Bender.lock
-
-# SEPP packages
-QUESTA_SEPP    ?=
-VCS_SEPP       ?=
-VERILATOR_SEPP ?=
-
 # External executables
-BENDER       ?= bender
-VLT          ?= $(VERILATOR_SEPP) verilator
-VCS          ?= $(VCS_SEPP) vcs
 VERIBLE_FMT  ?= verible-verilog-format
 CLANG_FORMAT ?= clang-format
-VSIM         ?= $(QUESTA_SEPP) vsim
-VOPT         ?= $(QUESTA_SEPP) vopt
-VLOG         ?= $(QUESTA_SEPP) vlog
-VLIB         ?= $(QUESTA_SEPP) vlib
 RISCV_MC     ?= $(LLVM_BINROOT)/llvm-mc
 ADDR2LINE    ?= $(LLVM_BINROOT)/llvm-addr2line
 
@@ -40,55 +25,17 @@ JOIN_PY          ?= $(UTIL_DIR)/bench/join.py
 ROI_PY           ?= $(UTIL_DIR)/bench/roi.py
 VISUALIZE_PY     ?= $(UTIL_DIR)/bench/visualize.py
 
-VLT_JOBS        ?= $(shell nproc)
-VLT_NUM_THREADS ?= 1
-
 MATCH_END := '/+incdir+/ s/$$/\/*\/*/'
 MATCH_BGN := 's/+incdir+//g'
 MATCH_DEF := '/+define+/d'
 SED_SRCS  := sed -e ${MATCH_END} -e ${MATCH_BGN} -e ${MATCH_DEF}
 
 COMMON_BENDER_FLAGS += -t rtl
-
-VSIM_BENDER   += $(COMMON_BENDER_FLAGS) -t test -t simulation -t vsim
-VSIM_SOURCES   = $(shell ${BENDER} script flist-plus ${VSIM_BENDER} | ${SED_SRCS})
-VSIM_BUILDDIR ?= work-vsim
-VSIM_FLAGS    += -t 1ps
-ifeq ($(DEBUG), ON)
-VSIM_FLAGS    += -do "log -r /*; run -a"
-VOPT_FLAGS     = +acc
-else
-VSIM_FLAGS    += -do "run -a"
-endif
-
-# VCS_BUILDDIR should to be the same as the `DEFAULT : ./work-vcs`
-# in target/snitch_cluster/synopsys_sim.setup
-VCS_BENDER   += $(COMMON_BENDER_FLAGS) -t test -t simulation -t vcs
-VCS_SOURCES   = $(shell ${BENDER} script flist-plus ${VCS_BENDER} | ${SED_SRCS})
-VCS_BUILDDIR := work-vcs
+COMMON_SIM_BENDER_FLAGS += -t simulation -t test
 
 # fesvr is being installed here
 FESVR         ?= ${MKFILE_DIR}work
 FESVR_VERSION ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
-
-VLT_SOURCES   = $(shell ${BENDER} script flist-plus ${VLT_BENDER} | ${SED_SRCS})
-VLT_BENDER   += $(COMMON_BENDER_FLAGS) -t verilator -DCOMMON_CELLS_ASSERTS_OFF
-VLT_BUILDDIR := $(abspath work-vlt)
-VLT_FESVR     = $(VLT_BUILDDIR)/riscv-isa-sim
-VLT_FLAGS    += --timing
-VLT_FLAGS    += --timescale 1ns/1ps
-VLT_FLAGS    += --trace
-VLT_FLAGS    += -Wno-BLKANDNBLK
-VLT_FLAGS    += -Wno-LITENDIAN
-VLT_FLAGS    += -Wno-CASEINCOMPLETE
-VLT_FLAGS    += -Wno-CMPCONST
-VLT_FLAGS    += -Wno-WIDTH
-VLT_FLAGS    += -Wno-WIDTHCONCAT
-VLT_FLAGS    += -Wno-UNSIGNED
-VLT_FLAGS    += -Wno-UNOPTFLAT
-VLT_FLAGS    += -Wno-fatal
-VLT_FLAGS    += --unroll-count 1024
-VLT_FLAGS    += --threads $(VLT_NUM_THREADS)
 
 RISCV_MC_FLAGS      ?= -disassemble -mcpu=snitch
 ANNOTATE_FLAGS      ?= -q --keep-time --addr2line=$(ADDR2LINE)
@@ -122,17 +69,6 @@ ifeq ($(VLT_USE_LLVM),ON)
     VLT_FLAGS += -LDFLAGS "${CLANG_LDFLAGS}"
 endif
 
-VLOGAN_FLAGS := -assert svaext
-VLOGAN_FLAGS += -assert disable_cover
-VLOGAN_FLAGS += -full64
-VLOGAN_FLAGS += -kdb
-VLOGAN_FLAGS += -timescale=1ns/1ps
-VHDLAN_FLAGS := -full64
-VHDLAN_FLAGS += -kdb
-
-# default on target `all`
-all:
-
 #################
 # Prerequisites #
 #################
@@ -164,15 +100,6 @@ $(VLT_BUILDDIR)/lib/libfesvr.a: $(VLT_FESVR)/${FESVR_VERSION}_unzip
 	$(MAKE) -C $(dir $<) install-config-hdrs install-hdrs libfesvr.a
 	mkdir -p $(dir $@)
 	cp $(dir $<)libfesvr.a $@
-
-#######
-# VCS #
-#######
-$(VCS_BUILDDIR)/compile.sh:
-	mkdir -p $(VCS_BUILDDIR)
-	${BENDER} script vcs ${VCS_BENDER} --vlog-arg="${VLOGAN_FLAGS}" --vcom-arg="${VHDLAN_FLAGS}" > $@
-	chmod +x $@
-	$(VCS_SEPP) $@ > $(VCS_BUILDDIR)/compile.log
 
 ########
 # Util #

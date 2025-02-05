@@ -2,6 +2,34 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
+# Tools
+BENDER ?= bender
+VERILATOR_SEPP ?=
+VLT ?= $(VERILATOR_SEPP) verilator
+
+VLT_JOBS        ?= $(shell nproc)
+VLT_NUM_THREADS ?= 1
+
+VLT_BENDER   += $(COMMON_BENDER_FLAGS) -t verilator -DCOMMON_CELLS_ASSERTS_OFF
+VLT_SOURCES   = $(shell $(BENDER) script flist-plus $(VLT_BENDER) | $(SED_SRCS))
+VLT_BUILDDIR := $(abspath work-vlt)
+
+VLT_FESVR     = $(VLT_BUILDDIR)/riscv-isa-sim
+VLT_FLAGS    += --timing
+VLT_FLAGS    += --timescale 1ns/1ps
+VLT_FLAGS    += --trace
+VLT_FLAGS    += -Wno-BLKANDNBLK
+VLT_FLAGS    += -Wno-LITENDIAN
+VLT_FLAGS    += -Wno-CASEINCOMPLETE
+VLT_FLAGS    += -Wno-CMPCONST
+VLT_FLAGS    += -Wno-WIDTH
+VLT_FLAGS    += -Wno-WIDTHCONCAT
+VLT_FLAGS    += -Wno-UNSIGNED
+VLT_FLAGS    += -Wno-UNOPTFLAT
+VLT_FLAGS    += -Wno-fatal
+VLT_FLAGS    += --unroll-count 1024
+VLT_FLAGS    += --threads $(VLT_NUM_THREADS)
+
 # This target just redirects the verilator simulation binary.
 # On IIS machines, verilator needs to be built and run in
 # the oseda environment, which is why this is necessary.

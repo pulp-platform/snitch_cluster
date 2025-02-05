@@ -61,23 +61,6 @@ SN_CFG         = cfg/lru.hjson
 $(BIN_DIR):
 	mkdir -p $@
 
-#####################
-# Simulator options #
-#####################
-
-COMMON_BENDER_FLAGS += -t snitch_cluster
-
-QUESTA_64BIT = -64
-VLOG_64BIT   = -64
-
-VSIM_FLAGS += ${QUESTA_64BIT}
-
-VLOG_FLAGS += -svinputport=compat
-VLOG_FLAGS += -override_timescale 1ns/1ps
-VLOG_FLAGS += -suppress 2583
-VLOG_FLAGS += -suppress 13314
-VLOG_FLAGS += ${VLOG_64BIT}
-
 ###############
 # C testbench #
 ###############
@@ -193,34 +176,13 @@ test/bootrom.elf test/bootrom.dump test/bootrom.bin test/snitch_bootrom.sv: test
 	$(RISCV_OBJCOPY) -j .text -O binary test/bootrom.elf test/bootrom.bin
 	$(BOOTROM_GEN) --sv-module snitch_bootrom test/bootrom.bin > test/snitch_bootrom.sv
 
-#############
-# Verilator #
-#############
+##############
+# Simulators #
+##############
 
-include $(ROOT)/target/common/verilator.mk
-
-############
-# Modelsim #
-############
-
-include $(ROOT)/target/common/vsim.mk
-
-#######
-# VCS #
-#######
-
-.PHONY: clean-vcs
-
-# Clean all build directories and temporary files for VCS simulation
-clean-vcs: clean-work
-	rm -rf $(BIN_DIR)/$(TARGET).vcs $(VCS_BUILDDIR) vc_hdrs.h
-
-# Build compilation script and compile all sources for VCS simulation
-$(BIN_DIR)/$(TARGET).vcs: ${VCS_SOURCES} ${TB_SRCS} $(TB_CC_SOURCES) $(RTL_CC_SOURCES) $(VCS_BUILDDIR)/compile.sh work/lib/libfesvr.a
-	mkdir -p $(BIN_DIR)
-	$(VCS) -Mlib=$(VCS_BUILDDIR) -Mdir=$(VCS_BUILDDIR) -o $(BIN_DIR)/$(TARGET).vcs -cc $(CC) -cpp $(CXX) \
-		-assert disable_cover -override_timescale=1ns/1ps -full64 tb_bin $(TB_CC_SOURCES) $(RTL_CC_SOURCES) \
-		-CFLAGS "$(TB_CC_FLAGS)" -LDFLAGS "-L${FESVR}/lib" -lfesvr
+include $(SN_ROOT)/target/common/verilator.mk
+include $(SN_ROOT)/target/common/vsim.mk
+include $(SN_ROOT)/target/common/vcs.mk
 
 ########
 # Util #
