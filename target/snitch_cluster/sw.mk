@@ -59,6 +59,9 @@ include $(SN_ROOT)/target/snitch_cluster/sw/toolchain.mk
 include $(SN_ROOT)/target/snitch_cluster/sw/runtime/runtime.mk
 include $(SN_ROOT)/target/snitch_cluster/sw/tests/tests.mk
 
+SNRT_BUILD_APPS ?= ON
+
+ifeq ($(SNRT_BUILD_APPS), ON)
 SNRT_APPS  = sw/apps/nop
 SNRT_APPS += sw/apps/blas/axpy
 SNRT_APPS += sw/apps/blas/gemm
@@ -85,5 +88,6 @@ SNRT_APPS += sw/apps/kmeans
 
 # Include Makefile from each app subdirectory
 $(foreach app,$(SNRT_APPS), \
-	$(eval include $(app)/app.mk) \
+	$(eval include $(SN_ROOT)/target/snitch_cluster/$(app)/app.mk) \
 )
+endif
