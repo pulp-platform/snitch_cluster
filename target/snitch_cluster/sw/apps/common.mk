@@ -61,7 +61,8 @@ ELF         = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .elf,$(APP))))
 DEP         = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .d,$(APP))))
 DUMP        = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .dump,$(APP))))
 DWARF       = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .dwarf,$(APP))))
-ALL_OUTPUTS = $(ELF) $(DEP) $(DUMP) $(DWARF)
+BIN       = $(abspath $(addprefix $(BUILDDIR)/,$(addsuffix .bin,$(APP))))
+ALL_OUTPUTS = $(ELF) $(DEP) $(DUMP) $(DWARF) $(BIN)
 
 #########
 # Rules #
@@ -89,6 +90,8 @@ $(DUMP): $(ELF) | $(BUILDDIR)
 $(DWARF): $(ELF) | $(BUILDDIR)
 	$(RISCV_DWARFDUMP) $< > $@
 
+$(BIN): $(ELF) | $(BUILDDIR)
+	$(RISCV_OBJCOPY) -O binary $< $@
 ifneq ($(MAKECMDGOALS),clean)
 -include $(DEP)
 endif
