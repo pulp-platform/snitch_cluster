@@ -1,5 +1,5 @@
 
-test/bootrom.elf:	file format elf32-littleriscv
+/scratch/fischeti/picobello/deps/snitch_cluster/target/snitch_cluster/test/bootrom.elf:	file format elf32-littleriscv
 
 
 Disassembly of section .text:

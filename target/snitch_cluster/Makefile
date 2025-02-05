@@ -115,6 +115,16 @@ $(SN_CFG): FORCE
 	fi
 FORCE:
 
+CLUSTER_GEN_PREREQ = $(CLUSTER_GEN) $(CLUSTER_GEN_SRC)
+SN_LINK_LD_TPL     = $(SN_ROOT)/hw/snitch_cluster/test/link.ld.tpl
+SN_BOOTDATA_TPL    = $(SN_ROOT)/hw/snitch_cluster/test/bootdata.cc.tpl
+
+$(SN_GEN_DIR)/bootdata.cc: $(SN_CFG) $(SN_CLUSTER_GEN_PREREQ) $(SN_BOOTDATA_TPL) | $(SN_GEN_DIR)
+	$(SN_CLUSTER_GEN) -c $< -o $(SN_GEN_DIR) --template $(SN_BOOTDATA_TPL)
+
+$(SN_GEN_DIR)/link.ld: $(SN_CFG) $(SN_CLUSTER_GEN_PREREQ) $(SN_LINK_LD_TPL) | $(SN_GEN_DIR)
+	$(SN_CLUSTER_GEN) -c $< -o $(SN_GEN_DIR) --template $(SN_LINK_LD_TPL)
+
 ############
 # Software #
 ############
@@ -130,51 +140,11 @@ clean-headers: snrt-clean-headers
 # RTL #
 #######
 
-GENERATED_RTL_SOURCES  = $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv
-GENERATED_RTL_SOURCES += $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv
-GENERATED_RTL_SOURCES += $(GENERATED_DIR)/snitch_cluster_wrapper.sv
-GENERATED_RTL_SOURCES += test/snitch_bootrom.sv
+include $(SN_ROOT)/target/common/rtl.mk
 
 .PHONY: rtl clean-rtl
-
-rtl: $(GENERATED_RTL_SOURCES)
-
-clean-rtl:
-	rm -f $(GENERATED_RTL_SOURCES)
-
-$(GENERATED_DIR):
-	mkdir -p $@
-
-CLUSTER_GEN_TPL = $(ROOT)/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl
-LINK_LD_TPL     = $(ROOT)/hw/snitch_cluster/test/link.ld.tpl
-BOOTDATA_TPL    = $(ROOT)/hw/snitch_cluster/test/bootdata.cc.tpl
-
-$(GENERATED_DIR)/snitch_cluster_wrapper.sv: ${SNITCH_CFG} ${CLUSTER_GEN_PREREQ} ${CLUSTER_GEN_TPL} | $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --template ${CLUSTER_GEN_TPL}
-
-$(GENERATED_DIR)/link.ld: ${SNITCH_CFG} ${CLUSTER_GEN_PREREQ} ${LINK_LD_TPL}| $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --template ${LINK_LD_TPL}
-
-$(GENERATED_DIR)/bootdata.cc: ${SNITCH_CFG} ${CLUSTER_GEN_PREREQ} ${BOOTDATA_TPL}| $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --template ${BOOTDATA_TPL}
-
-$(GENERATED_DIR)/memories.json: ${SNITCH_CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --memories
-
-# REGGEN regfile
-$(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv
-$(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg.hjson
-	@echo "[REGGEN] Generating peripheral regfile"
-	$(REGGEN) -r -t $(PERIPH_DIR) $<
-
-# Bootrom
-.PHONY: bootrom
-bootrom: test/snitch_bootrom.sv
-test/bootrom.elf test/bootrom.dump test/bootrom.bin test/snitch_bootrom.sv: test/bootrom.S test/bootrom.ld $(BOOTROM_GEN)
-	$(RISCV_CC) -mabi=ilp32d -march=rv32imafd -static -nostartfiles -fuse-ld=$(RISCV_LD) -Lsw/runtime -Ttest/bootrom.ld $< -o test/bootrom.elf
-	$(RISCV_OBJDUMP) -d test/bootrom.elf > test/bootrom.dump
-	$(RISCV_OBJCOPY) -j .text -O binary test/bootrom.elf test/bootrom.bin
-	$(BOOTROM_GEN) --sv-module snitch_bootrom test/bootrom.bin > test/snitch_bootrom.sv
+rtl: sn-rtl
+clean-rtl: sn-clean-rtl
 
 ##############
 # Simulators #
