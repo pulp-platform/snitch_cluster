@@ -77,7 +77,6 @@ The top-level is structured as follows:
 - **[OpenGeMM: A High-Utilization GeMM Accelerator Generator with Lightweight RISC-V Control and Tight Memory Coupling](https://arxiv.org/abs/2411.09543)**  
   Yi X, Antonio R, Dumoulin J, Sun J, Van Delm J, Paim G, Verhelst M  
   arXiv preprint arXiv:2411.09543. 2024 Nov 14.  
-  Pointer: the OpenGeMM system configuration is located at [OpenGeMM](target/snitch_cluster/cfg/snax_streamer_gemm_cluster.hjson).
 
 # Acknowledgement
 
