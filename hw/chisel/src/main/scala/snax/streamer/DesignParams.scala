@@ -95,7 +95,7 @@ class StreamerParam(
   val dataPathABExtensionParam: Seq[HasDataPathExtension] =
     (if (hasTranspose)
        Seq[HasDataPathExtension](
-         HasTransposer
+         new HasTransposer
        )
      else
        Seq[HasDataPathExtension]())
@@ -103,7 +103,7 @@ class StreamerParam(
   val dataPathCExtensionParam: Seq[HasDataPathExtension] =
     (if (hasCBroadcast)
        Seq[HasDataPathExtension](
-         HasBroadcaster256to2048
+         new HasBroadcaster256to2048
        )
      else
        Seq[HasDataPathExtension]())

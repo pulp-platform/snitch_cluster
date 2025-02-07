@@ -5,7 +5,8 @@ import chisel3.util._
 import snax.xdma.DesignParams._
 import snax.utils.DecoupledCut._
 
-object HasTransposer extends HasDataPathExtension {
+class HasTransposer(row: Int = 8, col: Int = 8, elementBits: Int = 8)
+    extends HasDataPathExtension {
   implicit val extensionParam: DataPathExtensionParam =
     new DataPathExtensionParam(
       moduleName = "Transposer",
@@ -13,27 +14,30 @@ object HasTransposer extends HasDataPathExtension {
       dataWidth = 512
     )
 
-  def instantiate(clusterName: String): Transposer = Module(new Transposer {
-    override def desiredName = clusterName + namePostfix
-  })
+  def instantiate(clusterName: String): Transposer = Module(
+    new Transposer(row, col, elementBits) {
+      override def desiredName = clusterName + namePostfix
+    }
+  )
 }
 
-class Transposer()(implicit extensionParam: DataPathExtensionParam)
-    extends DataPathExtension {
+class Transposer(row: Int, col: Int, elementBits: Int)(implicit
+    extensionParam: DataPathExtensionParam
+) extends DataPathExtension {
 
   require(
-    extensionParam.dataWidth == 512 && 512 == extensionParam.dataWidth,
+    extensionParam.dataWidth == row * col * elementBits,
     "transposeInWidth must be 512 for now"
   )
 
   // fixed pattern: transpose 8x8 matrix
-  val out_data_array = Wire(Vec(8, Vec(8, UInt(8.W))))
+  val out_data_array = Wire(Vec(col, Vec(row, UInt(elementBits.W))))
 
-  for (i <- 0 until 8) {
-    for (j <- 0 until 8) {
-      out_data_array(i)(j) := ext_data_i.bits(
-        i * 8 + j * 8 * 8 + 7,
-        i * 8 + j * 8 * 8 + 0
+  for (i <- 0 until row) {
+    for (j <- 0 until col) {
+      out_data_array(j)(i) := ext_data_i.bits(
+        i * col * elementBits + j * elementBits + (elementBits - 1),
+        i * col * elementBits + j * elementBits + 0
       )
     }
   }
@@ -48,7 +52,7 @@ class Transposer()(implicit extensionParam: DataPathExtensionParam)
 object TransposerEmitter extends App {
   println(
     getVerilogString(
-      new Transposer()(
+      new Transposer(32, 2, 8)(
         extensionParam = new DataPathExtensionParam(
           moduleName = "Transposer",
           userCsrNum = 1,

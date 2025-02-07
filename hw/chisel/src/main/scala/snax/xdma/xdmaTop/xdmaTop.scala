@@ -209,7 +209,7 @@ object xdmaTopGen extends App {
       writerextensionparam = writerextensionparam :+ toolbox
         .compile(toolbox.parse(s"""
 import snax.DataPathExtension._
-return ${i._1}
+return new ${i._1}
       """))()
         .asInstanceOf[HasDataPathExtension]
     })

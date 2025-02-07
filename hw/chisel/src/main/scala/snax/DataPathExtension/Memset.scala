@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 import snax.xdma.DesignParams._
 
-object HasMemset extends HasDataPathExtension {
+class HasMemset extends HasDataPathExtension {
   implicit val extensionParam: DataPathExtensionParam =
     new DataPathExtensionParam(
       moduleName = "Memset",

@@ -26,7 +26,7 @@ class MAXPoolPE(dataWidth: Int) extends Module with RequireAsyncReset {
   io.data_o := tempValue
 }
 
-object HasMaxPool extends HasDataPathExtension {
+class HasMaxPool extends HasDataPathExtension {
   implicit val extensionParam: DataPathExtensionParam =
     new DataPathExtensionParam(
       moduleName = "MaxPool",

@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 import snax.xdma.DesignParams._
 
-object HasBroadcaster256to2048 extends HasDataPathExtension {
+class HasBroadcaster256to2048 extends HasDataPathExtension {
   implicit val extensionParam: DataPathExtensionParam =
     new DataPathExtensionParam(
       moduleName = "Broadcaster256to2048",
