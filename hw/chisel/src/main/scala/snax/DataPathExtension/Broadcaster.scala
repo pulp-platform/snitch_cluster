@@ -4,15 +4,16 @@ import chisel3._
 import chisel3.util._
 import snax.xdma.DesignParams._
 
-class HasBroadcaster256to2048 extends HasDataPathExtension {
+class HasBroadcaster(inputLength: Int, outputLength: Int)
+    extends HasDataPathExtension {
   implicit val extensionParam: DataPathExtensionParam =
     new DataPathExtensionParam(
-      moduleName = "Broadcaster256to2048",
+      moduleName = s"Broadcaster${inputLength}to${outputLength}",
       userCsrNum = 0,
-      dataWidth = 2048
+      dataWidth = outputLength
     )
   def instantiate(clusterName: String): Broadcaster = Module(
-    new Broadcaster(256) {
+    new Broadcaster(inputLength) {
       override def desiredName = clusterName + namePostfix
     }
   )

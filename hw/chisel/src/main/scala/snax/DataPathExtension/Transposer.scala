@@ -5,11 +5,11 @@ import chisel3.util._
 import snax.xdma.DesignParams._
 import snax.utils.DecoupledCut._
 
-class HasTransposer(row: Int = 8, col: Int = 8, elementBits: Int = 8)
+class HasTransposer(row: Int, col: Int, elementBits: Int)
     extends HasDataPathExtension {
   implicit val extensionParam: DataPathExtensionParam =
     new DataPathExtensionParam(
-      moduleName = "Transposer",
+      moduleName = s"TransposerRow${row}Col${col}Bit${elementBits}",
       userCsrNum = 0,
       dataWidth = 512
     )

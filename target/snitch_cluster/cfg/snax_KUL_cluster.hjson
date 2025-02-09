@@ -155,9 +155,9 @@
             reader_agu_temporal_dimension: 6, 
             writer_agu_spatial_bounds: "8",
             writer_agu_temporal_dimension: 6, 
-            HasTransposer: 3, 
-            HasVerilogMemset: 1, 
-            HasMaxPool: 2
+            HasVerilogMemset: "",
+            HasMaxPool: "",
+            HasTransposer: "row=8, col=8, elementBits=8", 
         }
         // Xdiv_sqrt: true,
         # isa: "rv32ema",

@@ -67,7 +67,7 @@ def gen_file(cfg, tpl, target_path: str, file_name: str) -> None:
 # Call chisel environment and generate the system verilog file
 def gen_chisel_file(chisel_path, chisel_param, gen_path):
     cmd = f" cd {chisel_path} && \
-        sbt \"runMain {chisel_param} {gen_path}\" "
+        sbt \'runMain {chisel_param} {gen_path}\' "
     print(f"Running command: {cmd}")
     if os.system(cmd) != 0:
         raise ChildProcessError("Chisel generation error. ")
@@ -556,19 +556,8 @@ def main():
             + str(cfg["cluster"]["addr_width"])
             + " --tcdmSize "
             + str(cfg["cluster"]["tcdm"]["size"])
-            + " --readerSpatialBounds "
-            + str(snax_xdma_cfg["reader_agu_spatial_bounds"])
-            + " --readerTemporalDimension "
-            + str(snax_xdma_cfg["reader_agu_temporal_dimension"])
-            + " --writerSpatialBounds "
-            + str(snax_xdma_cfg["writer_agu_spatial_bounds"])
-            + " --writerTemporalDimension "
-            + str(snax_xdma_cfg["writer_agu_temporal_dimension"])
-            + " --readerBufferDepth "
-            + str(snax_xdma_cfg["reader_buffer"])
-            + " --writerBufferDepth "
-            + str(snax_xdma_cfg["writer_buffer"])
-            + xdma_extension_arg
+            + " --xdmaCfg "
+            + hjson.dumpsJSON(obj=snax_xdma_cfg, separators=(",", ":")).replace(" ", "")
             + " --hw-target-dir "
             + args.gen_path
             + cfg["cluster"]["name"]

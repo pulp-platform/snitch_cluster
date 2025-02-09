@@ -4,11 +4,11 @@ import chisel3._
 import chisel3.util._
 
 import scala.util.Random
-import snax.DataPathExtension.HasBroadcaster256to2048
+import snax.DataPathExtension.HasBroadcaster
 
 class BroadcasterTester extends DataPathExtensionTester {
 
-  def hasExtension = HasBroadcaster256to2048
+  def hasExtension = new HasBroadcaster(inputLength = 256, outputLength = 2048)
 
   val csr_vec = Seq()
 

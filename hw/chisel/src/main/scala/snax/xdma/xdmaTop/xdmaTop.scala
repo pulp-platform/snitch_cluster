@@ -16,6 +16,8 @@ import scala.reflect.runtime.currentMirror
 import scala.tools.reflect.ToolBox
 import scala.reflect.runtime.universe._
 
+import play.api.libs.json._
+
 class xdmaTopIO(
     readerParam: DMADataPathParam,
     writerParam: DMADataPathParam
@@ -143,6 +145,13 @@ class xdmaTop(
 
 object xdmaTopGen extends App {
   val parsedArgs = snax.utils.ArgParser.parse(args)
+  // The xdmaCfg region is passed to chisel generator as a JSON string
+  val xdmaCfg = parsedArgs.find(_._1 == "xdmaCfg")
+  if (xdmaCfg.isEmpty) {
+    println("xdmaCfg is not provided, generation failed. ")
+    sys.exit(-1)
+  }
+  val parsedXdmaCfg: JsValue = Json.parse(xdmaCfg.get._2)
 
   /*
   Needed Parameters:
@@ -165,27 +174,35 @@ object xdmaTopGen extends App {
   )
 
   val readerparam = new ReaderWriterParam(
-    spatialBounds =
-      parsedArgs("readerSpatialBounds").split(",").map(_.toInt).toList,
-    temporalDimension = parsedArgs("readerTemporalDimension").toInt,
+    spatialBounds = (parsedXdmaCfg \ "reader_agu_spatial_bounds")
+      .as[String]
+      .split(",")
+      .map(_.toInt)
+      .toList,
+    temporalDimension =
+      (parsedXdmaCfg \ "reader_agu_temporal_dimension").as[Int],
     tcdmDataWidth = parsedArgs("tcdmDataWidth").toInt,
     tcdmSize = parsedArgs("tcdmSize").toInt,
     numChannel =
       parsedArgs("axiDataWidth").toInt / parsedArgs("tcdmDataWidth").toInt,
-    addressBufferDepth = parsedArgs("readerBufferDepth").toInt,
+    addressBufferDepth = (parsedXdmaCfg \ "reader_buffer").as[Int],
     configurableChannel = true,
     configurableByteMask = false
   )
 
   val writerparam = new ReaderWriterParam(
-    spatialBounds =
-      parsedArgs("writerSpatialBounds").split(",").map(_.toInt).toList,
-    temporalDimension = parsedArgs("writerTemporalDimension").toInt,
+    spatialBounds = (parsedXdmaCfg \ "writer_agu_spatial_bounds")
+      .as[String]
+      .split(",")
+      .map(_.toInt)
+      .toList,
+    temporalDimension =
+      (parsedXdmaCfg \ "writer_agu_temporal_dimension").as[Int],
     tcdmDataWidth = parsedArgs("tcdmDataWidth").toInt,
     tcdmSize = parsedArgs("tcdmSize").toInt,
     numChannel =
       parsedArgs("axiDataWidth").toInt / parsedArgs("tcdmDataWidth").toInt,
-    addressBufferDepth = parsedArgs("writerBufferDepth").toInt,
+    addressBufferDepth = (parsedXdmaCfg \ "writer_buffer").as[Int],
     configurableChannel = true,
     configurableByteMask = true
   )
@@ -200,16 +217,25 @@ object xdmaTopGen extends App {
   // Extension developers only need to 1) Add the Extension source code 2) Add Has...: #priority in hjson configuration file
 
   val toolbox = currentMirror.mkToolBox()
-  parsedArgs
-    .filter(i => i._1.startsWith("Has") && i._2.toInt > 0)
-    .toSeq
-    .map(i => (i._1, i._2.toInt))
-    .sortWith(_._2 < _._2)
+  val datapathExtensionParam = parsedXdmaCfg match {
+    case obj: JsObject =>
+      obj.fields
+        .filter { case (k, v) =>
+          k.startsWith("Has")
+        }
+        .toSeq
+        .map { case (k, v) =>
+          (k, v.as[String])
+        }
+    case _ => Seq.empty
+  }
+
+  datapathExtensionParam
     .foreach(i => {
       writerextensionparam = writerextensionparam :+ toolbox
         .compile(toolbox.parse(s"""
 import snax.DataPathExtension._
-return new ${i._1}
+return new ${i._1}(${i._2})
       """))()
         .asInstanceOf[HasDataPathExtension]
     })

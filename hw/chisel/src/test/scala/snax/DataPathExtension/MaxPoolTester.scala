@@ -8,7 +8,7 @@ import snax.DataPathExtension.HasMaxPool
 
 class MaxPoolTester extends DataPathExtensionTester {
 
-  def hasExtension = HasMaxPool
+  def hasExtension = new HasMaxPool
 
   // System Val
   val extension_width = 512
