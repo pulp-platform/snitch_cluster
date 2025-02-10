@@ -123,8 +123,11 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
           configurableByteMask = true,
           configurableChannel = true
         ),
-        extParam =
-          Seq(new HasVerilogMemset, new HasMaxPool, new HasTransposer(8, 8, 8))
+        extParam = Seq(
+          new HasVerilogMemset,
+          new HasMaxPool,
+          new HasTransposer(Seq(8), Seq(8), Seq(8))
+        )
       )
     )
   ).withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) {
@@ -1130,7 +1133,11 @@ object xdmaTopEmitter extends App {
       writerParam = new DMADataPathParam(
         new AXIParam,
         new ReaderWriterParam,
-        Seq(new HasMaxPool, new HasVerilogMemset, new HasTransposer(8, 8, 8))
+        Seq(
+          new HasMaxPool,
+          new HasVerilogMemset,
+          new HasTransposer(Seq(8), Seq(8), Seq(8))
+        )
       )
     ),
     args = Array("--target-dir", "generated/xdma")

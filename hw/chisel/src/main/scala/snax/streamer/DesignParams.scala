@@ -95,7 +95,7 @@ class StreamerParam(
   val dataPathABExtensionParam: Seq[HasDataPathExtension] =
     (if (hasTranspose)
        Seq[HasDataPathExtension](
-         new HasTransposer(row = 8, col = 8, elementBits = 8)
+         new HasTransposer(row = Seq(8), col = Seq(8), elementWidth = Seq(8))
        )
      else
        Seq[HasDataPathExtension]())
