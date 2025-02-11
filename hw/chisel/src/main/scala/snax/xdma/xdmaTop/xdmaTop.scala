@@ -226,7 +226,7 @@ object xdmaTopGen extends App {
         }
         .toSeq
         .map { case (k, v) =>
-          (k, v.as[String])
+          (k, v.as[Map[String, Seq[Int]]].values)
         }
     case _ => Seq.empty
   }
@@ -236,7 +236,9 @@ object xdmaTopGen extends App {
       writerextensionparam = writerextensionparam :+ toolbox
         .compile(toolbox.parse(s"""
 import snax.DataPathExtension._
-return new ${i._1}(${i._2})
+return new ${i._1}(${i._2
+            .map(list => s"Seq(${list.mkString(",")})")
+            .mkString(", ")})
       """))()
         .asInstanceOf[HasDataPathExtension]
     })

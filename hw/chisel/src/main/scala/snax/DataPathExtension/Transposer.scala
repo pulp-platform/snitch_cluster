@@ -10,11 +10,11 @@ class HasTransposer(
     col: Seq[Int],
     elementWidth: Seq[Int]
 ) extends HasDataPathExtension {
-  // The length of row, col, and elementBits should be the same
+  // The length of row, col, and elementWidth should be the same
   require(row.length == col.length && col.length == elementWidth.length)
-  // DataWidth can be calculated by row, col, and elementBits
+  // DataWidth can be calculated by row, col, and elementWidth
   val dataWidth = row.head * col.head * elementWidth.head
-  // The product of row, col, and elementBits should be equal to dataWidth
+  // The product of row, col, and elementWidth should be equal to dataWidth
   require {
     row.zip(col).zip(elementWidth).forall { case ((r, c), e) =>
       r * c * e == dataWidth
@@ -38,11 +38,11 @@ class HasTransposer(
 class Transposer(
     row: Seq[Int],
     col: Seq[Int],
-    elementBits: Seq[Int]
+    elementWidth: Seq[Int]
 )(implicit
     extensionParam: DataPathExtensionParam
 ) extends DataPathExtension {
-  val outputArray = row.zip(col).zip(elementBits).map { case ((r, c), e) =>
+  val outputArray = row.zip(col).zip(elementWidth).map { case ((r, c), e) =>
     val transposedResult = Wire(Vec(c, Vec(r, UInt(e.W))))
     for (i <- 0 until r) {
       for (j <- 0 until c) {
