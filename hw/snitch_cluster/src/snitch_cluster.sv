@@ -599,17 +599,24 @@ module snitch_cluster
     '{idx: BootRom,    start_addr: BootRomAliasStart,      end_addr: BootRomAliasEnd}
   };
 
-  always_comb begin
-    automatic int unsigned i = 0;
-    enabled_dma_xbar_rule[i] = dma_xbar_rules[0]; i++; // TCDM
-    enabled_dma_xbar_rule[i] = dma_xbar_rules[1]; i++; // ZeroMemory
-    if (IntBootromEnable) enabled_dma_xbar_rule[i] = dma_xbar_rules[2]; i++; // Bootrom
-    if (AliasRegionEnable) begin
-      enabled_dma_xbar_rule[i] = dma_xbar_rules[3]; i++; // TCDM Alias
-      enabled_dma_xbar_rule[i] = dma_xbar_rules[4]; i++; // ZeroMemory Alias
-      if (IntBootromEnable) enabled_dma_xbar_rule[i] = dma_xbar_rules[5]; // Bootrom Alias
-    end
-  end
+   always_comb begin
+      automatic int unsigned i = 0;
+      enabled_dma_xbar_rule[i] = dma_xbar_rules[5]; i++; // TCDM
+      enabled_dma_xbar_rule[i] = dma_xbar_rules[4]; i++; // ZeroMemory
+      if (IntBootromEnable) enabled_dma_xbar_rule[i] = dma_xbar_rules[3]; i++; // Bootrom
+      if (AliasRegionEnable) begin
+         enabled_dma_xbar_rule[i] = dma_xbar_rules[2]; i++; // TCDM Alias
+         enabled_dma_xbar_rule[i] = dma_xbar_rules[1]; i++; // ZeroMemory Alias
+         if (IntBootromEnable) enabled_dma_xbar_rule[i] = dma_xbar_rules[0]; // Bootrom Alias
+      end
+   end // always_comb
+
+   generate
+      for (genvar rule = 0; rule < 3; rule++) begin : gen_dma_xbar_assertions
+         assert property (@(posedge clk_i) rst_ni |-> (enabled_dma_xbar_rule[rule].start_addr >= cluster_base_addr_i)) else $error("Assertion failed: %d-th DMA XBAR entry start address is not an absolute address!", rule);
+      end
+   endgenerate
+
 
   localparam bit [DmaXbarCfg.NoSlvPorts-1:0] DMAEnableDefaultMstPort = '1;
   axi_xbar #(
