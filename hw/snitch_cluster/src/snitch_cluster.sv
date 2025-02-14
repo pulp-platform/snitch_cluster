@@ -591,12 +591,12 @@ module snitch_cluster
   xbar_rule_t [DmaXbarCfg.NoAddrRules-1:0] enabled_dma_xbar_rule;
 
   assign dma_xbar_rules = '{
-    '{idx: TCDMDMA,    start_addr: tcdm_start_address,     end_addr: tcdm_end_address},
-    '{idx: ZeroMemory, start_addr: zero_mem_start_address, end_addr: zero_mem_end_address},
-    '{idx: BootRom,    start_addr: bootrom_start_address,  end_addr: bootrom_end_address},
-    '{idx: TCDMDMA,    start_addr: TCDMAliasStart,         end_addr: TCDMAliasEnd},
+    '{idx: BootRom,    start_addr: BootRomAliasStart,      end_addr: BootRomAliasEnd},
     '{idx: ZeroMemory, start_addr: ZeroMemAliasStart,      end_addr: ZeroMemAliasEnd},
-    '{idx: BootRom,    start_addr: BootRomAliasStart,      end_addr: BootRomAliasEnd}
+    '{idx: TCDMDMA,    start_addr: TCDMAliasStart,         end_addr: TCDMAliasEnd},
+    '{idx: BootRom,    start_addr: bootrom_start_address,  end_addr: bootrom_end_address},
+    '{idx: ZeroMemory, start_addr: zero_mem_start_address, end_addr: zero_mem_end_address},
+    '{idx: TCDMDMA,    start_addr: tcdm_start_address,     end_addr: tcdm_end_address}
   };
 
   always_comb begin
