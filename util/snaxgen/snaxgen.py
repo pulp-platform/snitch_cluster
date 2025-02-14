@@ -67,7 +67,7 @@ def gen_file(cfg, tpl, target_path: str, file_name: str) -> None:
 # Call chisel environment and generate the system verilog file
 def gen_chisel_file(chisel_path, chisel_param, gen_path):
     cmd = f" cd {chisel_path} && \
-        sbt \'runMain {chisel_param} {gen_path}\' "
+        sbt 'runMain {chisel_param} {gen_path}' "
     print(f"Running command: {cmd}")
     if os.system(cmd) != 0:
         raise ChildProcessError("Chisel generation error. ")
@@ -227,7 +227,8 @@ def streamer_csr_num(acc_cfgs):
         + 1  # Start register
     )
 
-    # transpose csr
+    # datapath extension CSRs.
+    # Note: this only works for transposer with one possible shape!
     if "has_transpose" in acc_cfgs["snax_streamer_cfg"]:
         if acc_cfgs["snax_streamer_cfg"]["has_transpose"]:
             streamer_csr_num += 2
@@ -237,6 +238,29 @@ def streamer_csr_num(acc_cfgs):
             streamer_csr_num += 1
 
     return streamer_csr_num
+
+
+def find_keys_with_keyword(data, keyword, parent_key=""):
+    """
+    Recursively searches for keys containing a specific keyword.
+    """
+    results = {}
+
+    if isinstance(data, dict):
+        for key, value in data.items():
+            full_key = f"{parent_key}.{key}" if parent_key else key
+            # If the key contains the keyword
+            if keyword in key:
+                results[full_key] = value
+            results.update(find_keys_with_keyword(value, keyword, full_key))
+
+    elif isinstance(data, list):
+        for index, item in enumerate(data):
+            results.update(
+                find_keys_with_keyword(item, keyword, f"{parent_key}[{index}]")
+            )
+
+    return results
 
 
 # Main function run and parsing
@@ -443,20 +467,19 @@ def main():
                     gen_path=rtl_target_path,
                 )
 
+            streamer_cfg = find_keys_with_keyword(cfg, f"{acc_cfgs[i]['tag_name']}_streamer")
             # Generate chisel component using chisel generation script
             gen_chisel_file(
                 chisel_path=args.chisel_path,
                 chisel_param="snax.streamer.StreamerGen",
-                gen_path=rtl_target_path,
-            )
-
-            if args.disable_header_gen == "false":
-                # Generate headerfile of streamer
-                gen_chisel_file(
-                    chisel_path=args.chisel_path,
-                    chisel_param="snax.streamer.StreamerHeaderFileGen",
-                    gen_path=rtl_target_path,
+                gen_path=" --streamercfg "
+                + hjson.dumpsJSON(obj=streamer_cfg, separators=(",", ":")).replace(
+                    " ", ""
                 )
+                + " "
+                + " --hw-target-dir "
+                + rtl_target_path,
+            )
 
         print("Generation of accelerator specific wrappers done!")
     else:
@@ -499,12 +522,6 @@ def main():
                 + str(acc_cfgs[i]["snax_gemmx_tile_size"])
                 + " --withPipeline "
                 + str(acc_cfgs[i]["with_pipeline"]),
-                gen_path=rtl_target_path,
-            )
-        elif acc_cfgs[i]["snax_acc_name"] == "snax_streamer_gemm_add_c":
-            gen_chisel_file(
-                chisel_path=chisel_acc_path,
-                chisel_param="snax_acc.gemm.BlockGemm",
                 gen_path=rtl_target_path,
             )
         elif acc_cfgs[i]["snax_acc_name"] == "snax_data_reshuffler":

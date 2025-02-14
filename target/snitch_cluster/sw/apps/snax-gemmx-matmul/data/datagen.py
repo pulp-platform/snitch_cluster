@@ -335,14 +335,16 @@ def emit_gemmx_data(**kwargs):
         for i in range(0, group_num, 4)
     ]
 
-    data_str += [(
-        "int32_t shared_bitpacked_shift[] = { "
-        + ", ".join(map(str, shared_bitpacked_shift_i))
-        + " };"
-    )]
-    data_str += [(
+    data_str += [
+        (
+            "int32_t shared_bitpacked_shift[] = { "
+            + ", ".join(map(str, shared_bitpacked_shift_i))
+            + " };"
+        )
+    ]
+    data_str += [
         "int32_t shared_multiplier[] = { " + ", ".join(map(str, multiplier_i)) + " };"
-    )]
+    ]
 
     D8 = np.zeros_like(D32, dtype=np.uint8)
     # output channel (innermost dim) has a different scale factor

@@ -28,15 +28,15 @@ class DataPathExtensionHostIO(
     // If there is no extension, just return the csrList (without any connection)
     if (extensionList.isEmpty) {
       cfg := DontCare
-      return remaincsrList
+    } else {
+      cfg.bypass := remaincsrList.head
+      remaincsrList = remaincsrList.tail
+      cfg.userCsr := remaincsrList.take(
+        extensionList.map(_.extensionParam.userCsrNum).sum
+      )
+      remaincsrList =
+        remaincsrList.drop(extensionList.map(_.extensionParam.userCsrNum).sum)
     }
-    cfg.bypass := remaincsrList.head
-    remaincsrList = remaincsrList.tail
-    cfg.userCsr := remaincsrList.take(
-      extensionList.map(_.extensionParam.userCsrNum).sum
-    )
-    remaincsrList =
-      remaincsrList.drop(extensionList.map(_.extensionParam.userCsrNum).sum)
     remaincsrList
   }
 }

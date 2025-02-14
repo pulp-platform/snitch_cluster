@@ -7,6 +7,10 @@ import snax.DataPathExtension._
 
 import chisel3._
 import chisel3.util._
+import play.api.libs.json._
+import scala.reflect.runtime.currentMirror
+import scala.tools.reflect.ToolBox
+import scala.reflect.runtime.universe._
 
 // data to accelerator interface generator
 // a vector of decoupled interface with configurable number and configurable width for each port
@@ -93,6 +97,19 @@ class Streamer(
     )
   )
 
+  require(
+    param.readerParams.length == param.readerDatapathExtention.length,
+    "The number of reader and reader extension should be the same"
+  )
+  require(
+    param.writerParams.length == param.writerDatapathExtention.length,
+    "The number of writer and writer extension should be the same"
+  )
+  require(
+    param.readerWriterParams.length == param.readerWriterDatapathExtention.length,
+    "The number of reader_writer and reader_writer extension should be the same"
+  )
+
   // --------------------------------------------------------------------------------
   // ---------------------- csr manager instantiation--------------------------------
   // --------------------------------------------------------------------------------
@@ -104,15 +121,37 @@ class Streamer(
   val reader_writer_csr =
     param.readerWriterParams.map(_.csrNum).reduceLeftOption(_ + _).getOrElse(0)
 
+  def get_extension_list_csr_num(
+      extensionSeqSeq: Seq[Seq[HasDataPathExtension]]
+  ): Int = {
+    extensionSeqSeq
+      .map {
+        case seq if seq.nonEmpty =>
+          seq
+            .map(_.extensionParam.userCsrNum)
+            .reduceLeftOption(_ + _)
+            .getOrElse(0) + 1
+        case _ => 0
+      }
+      .reduceLeftOption(_ + _)
+      .getOrElse(0)
+  }
+
+  val reader_extension_csr = get_extension_list_csr_num(
+    param.readerDatapathExtention
+  )
+
+  val writer_extension_csr = get_extension_list_csr_num(
+    param.writerDatapathExtention
+  )
+
+  val reader_writer_extension_csr = get_extension_list_csr_num(
+    param.readerWriterDatapathExtention
+  )
+
   // extra one is the start csr
   val csrNumReadWrite =
-    reader_csr + writer_csr + reader_writer_csr + (if (param.hasTranspose)
-                                                     param.readerParams.length
-                                                   else
-                                                     0) + (if (
-                                                             param.hasCBroadcast
-                                                           ) param.readerWriterParams.length / 2
-                                                           else 0) + 1
+    reader_csr + writer_csr + reader_writer_csr + reader_extension_csr + writer_extension_csr + reader_writer_extension_csr + 1
 
   // csrManager instantiation
   val csrManager = Module(
@@ -162,11 +201,11 @@ class Streamer(
     )
   }: _*)
 
-  // transpose module instantiation
-  val readerExtensions = (0 until param.readerParams.length).map { i =>
+  // datapath extension module instantiation
+  val readerDatapathExtention = (0 until param.readerParams.length).map { i =>
     Module(
       new DataPathExtensionHost(
-        extensionList = param.dataPathABExtensionParam,
+        extensionList = param.readerDatapathExtention(i),
         dataWidth = param.fifoWidthReader(i),
         headCut = false,
         tailCut = false,
@@ -176,12 +215,24 @@ class Streamer(
     )
   }
 
-  // c broadcast module instantiation for reader
-  val readerCExtention = (0 until param.readerWriterParams.length / 2).map {
-    i =>
+  val writerDatapathExtention = (0 until param.writerParams.length).map { i =>
+    Module(
+      new DataPathExtensionHost(
+        extensionList = param.writerDatapathExtention(i),
+        dataWidth = param.fifoWidthWriter(i),
+        headCut = false,
+        tailCut = false,
+        halfCut = false,
+        moduleNamePrefix = param.tagName
+      )
+    )
+  }
+
+  val readerWriterDatapathExtention =
+    (0 until param.readerWriterParams.length).map { i =>
       Module(
         new DataPathExtensionHost(
-          extensionList = param.dataPathCExtensionParam,
+          extensionList = param.readerWriterDatapathExtention(i),
           dataWidth = param.fifoWidthReaderWriter(i),
           headCut = false,
           tailCut = false,
@@ -189,7 +240,7 @@ class Streamer(
           moduleNamePrefix = param.tagName
         )
       )
-  }
+    }
 
   // --------------------------------------------------------------------------------
   // ---------------------- streamer state machine-----------------------------------
@@ -228,6 +279,7 @@ class Streamer(
   }
 
   var reader_writer_idx: Int = 0
+  var reader_writer_extension_idx: Int = 0
 
   streamer_config_fire := csrManager.io.csr_config_out.fire
   streamer_busy := cstate === sBUSY
@@ -246,7 +298,13 @@ class Streamer(
     .getOrElse(0.B) || reader_writer
     .map(_.io.writerInterface.busy)
     .reduceLeftOption(_ || _)
-    .getOrElse(0.B) || readerExtensions
+    .getOrElse(0.B) || readerDatapathExtention
+    .map(_.io.busy)
+    .reduceLeftOption(_ || _)
+    .getOrElse(0.B) || writerDatapathExtention
+    .map(_.io.busy)
+    .reduceLeftOption(_ || _)
+    .getOrElse(0.B) || readerWriterDatapathExtention
     .map(_.io.busy)
     .reduceLeftOption(_ || _)
     .getOrElse(0.B))
@@ -279,12 +337,15 @@ class Streamer(
   // -----------------------extension start-----------------------------------------
   // --------------------------------------------------------------------------------
 
-  for (i <- 0 until param.readerParams.length) {
-    readerExtensions(i).io.start := streamer_config_fire
+  for (i <- 0 until param.readerDatapathExtention.length) {
+    readerDatapathExtention(i).io.start := streamer_config_fire
   }
 
-  for (i <- 0 until param.readerWriterParams.length / 2) {
-    readerCExtention(i).io.start := streamer_config_fire
+  for (i <- 0 until param.writerDatapathExtention.length) {
+    writerDatapathExtention(i).io.start := streamer_config_fire
+  }
+  for (i <- 0 until param.readerWriterDatapathExtention.length) {
+    readerWriterDatapathExtention(i).io.start := streamer_config_fire
   }
 
   // --------------------------------------------------------------------------------
@@ -361,18 +422,22 @@ class Streamer(
     }
   }
 
-  // transpose
-
   // connect the csr configuration to the extension
-  for (i <- 0 until param.readerParams.length) {
-    remainingCSR = readerExtensions(i).io.connectCfgWithList(
+  for (i <- 0 until param.readerDatapathExtention.length) {
+    remainingCSR = readerDatapathExtention(i).io.connectCfgWithList(
       remainingCSR
     )
   }
 
-  // c broadcast
-  for (i <- 0 until param.readerWriterParams.length / 2) {
-    remainingCSR = readerCExtention(i).io.connectCfgWithList(remainingCSR)
+  for (i <- 0 until param.writerDatapathExtention.length) {
+    remainingCSR =
+      writerDatapathExtention(i).io.connectCfgWithList(remainingCSR)
+  }
+
+  for (i <- 0 until param.readerWriterDatapathExtention.length) {
+    remainingCSR = readerWriterDatapathExtention(i).io.connectCfgWithList(
+      remainingCSR
+    )
   }
 
   // 1 left csr for start signal
@@ -442,45 +507,59 @@ class Streamer(
   // --------------------------------------------------------------------------------
   // ---------------------- data reader/writer <> accelerator data connection-------
   // --------------------------------------------------------------------------------
-
+  // --------------------------------------------------------------------------------
+  // connect the data path extension
+  // --------------------------------------------------------------------------------
   for (i <- 0 until param.dataMoverNum) {
-    // reader
     if (i < param.readerNum) {
-      // --------------------------------------------------------------------------------
-      // connect the data path extension
-      // --------------------------------------------------------------------------------
-      readerExtensions(i).io.data.in <> reader(i).io.data
-      readerExtensions(i).io.data.out <> io.data.streamer2accelerator.data(
-        i
-      )
+      // reader
+      readerDatapathExtention(i).io.data.in <> reader(i).io.data
+      readerDatapathExtention(i).io.data.out <> io.data.streamer2accelerator
+        .data(
+          i
+        )
     } else {
       // writer
       if (i < param.readerNum + param.writerNum) {
+        io.data.accelerator2streamer
+          .data(i - param.readerNum) <> writerDatapathExtention(
+          i - param.readerNum
+        ).io.data.in
         writer(
           i - param.readerNum
-        ).io.data <> io.data.accelerator2streamer
-          .data(i - param.readerNum)
+        ).io.data <> writerDatapathExtention(i - param.readerNum).io.data.out
       } else {
         // reader_writer
-        // reader C broadcast extension
         reader_writer_idx = (i - param.readerNum - param.writerNum) / 2
-        reader_writer(
-          reader_writer_idx
-        ).io.readerInterface.data <> readerCExtention(
-          reader_writer_idx
-        ).io.data.in
-        readerCExtention(
-          reader_writer_idx
-        ).io.data.out <> io.data.streamer2accelerator.data(
-          reader_writer_idx + param.readerNum
-        )
-
-        reader_writer(
-          reader_writer_idx
-        ).io.writerInterface.data <> io.data.accelerator2streamer
-          .data(
-            reader_writer_idx + param.writerNum
+        reader_writer_extension_idx = (i - param.readerNum - param.writerNum)
+        // reader first
+        if (reader_writer_extension_idx % 2 == 0) {
+          reader_writer(
+            reader_writer_idx
+          ).io.readerInterface.data <> readerWriterDatapathExtention(
+            reader_writer_extension_idx
+          ).io.data.in
+          readerWriterDatapathExtention(
+            reader_writer_extension_idx
+          ).io.data.out <> io.data.streamer2accelerator.data(
+            reader_writer_idx + param.readerNum
           )
+
+        } else {
+          // writer
+          reader_writer(
+            reader_writer_idx
+          ).io.writerInterface.data <> readerWriterDatapathExtention(
+            reader_writer_extension_idx
+          ).io.data.out
+          io.data.accelerator2streamer
+            .data(
+              reader_writer_idx + param.writerNum
+            ) <> readerWriterDatapathExtention(
+            reader_writer_extension_idx
+          ).io.data.in
+        }
+
       }
     }
   }
@@ -508,10 +587,6 @@ class Streamer(
       }
     }
   }
-
-}
-
-class StreamerHeaderFile(param: StreamerParam) {
 
   // --------------------------------------------------------------------------------
   // ------------------ csr address map header file generation-----------------------
@@ -550,8 +625,6 @@ class StreamerHeaderFile(param: StreamerParam) {
     // address remap index
     if (param.aguParam.tcdmLogicWordSize.length > 1) {
       csrMap =
-        csrMap + "#define " + "ADDR_REMAP_EXTENSION_ENABLE_" + tag + " " + "\n"
-      csrMap =
         csrMap + "#define " + "ADDR_REMAP_INDEX_" + tag + " " + csrOffset + "\n"
       csrOffset = csrOffset + 1
     }
@@ -587,9 +660,9 @@ class StreamerHeaderFile(param: StreamerParam) {
       .getOrElse(0)
     csrMap = csrMap + genCSRMap(csrBase_i, param.readerParams(i), "READER_" + i)
   }
+  csrBase = csrBase + param.readerParams.map(_.csrNum).sum
 
   // writer csr configuration
-  csrBase = 960 + param.readerParams.map(_.csrNum).sum
   for (i <- 0 until param.writerNum) {
     csrBase_i = csrBase + param.writerParams
       .take(i)
@@ -598,11 +671,11 @@ class StreamerHeaderFile(param: StreamerParam) {
       .getOrElse(0)
     csrMap = csrMap + genCSRMap(csrBase_i, param.writerParams(i), "WRITER_" + i)
   }
-
-  // reader_writer csr configuration
   csrBase = csrBase + param.writerParams
     .map(_.csrNum)
     .sum
+
+  // reader_writer csr configuration
   for (i <- 0 until param.readerWriterNum) {
     csrBase_i = csrBase + param.readerWriterParams
       .take(i)
@@ -615,51 +688,87 @@ class StreamerHeaderFile(param: StreamerParam) {
       "READER_WRITER_" + i
     )
   }
-
-  // extension csr configuration
   csrBase = csrBase + param.readerWriterParams
     .map(_.csrNum)
     .sum
-  if (param.hasTranspose) {
-    csrMap = csrMap + "#define TRANSPOSE_EXTENSION_ENABLE \n"
-    for (i <- 0 until param.readerParams.length) {
-      csrBase_i = csrBase + i
-      csrMap =
-        csrMap + "#define TRANSPOSE_CSR_READER_" + i + " " + csrBase_i + "\n"
+
+  // extension csr configuration
+  csrMap = csrMap + "// Datapath extension CSRs\n"
+  var extension_csr_num = 0
+
+  def get_extension_csr_num(extensionSeq: Seq[HasDataPathExtension]): Int = {
+    extension_csr_num = extensionSeq match {
+      case seq if seq.nonEmpty =>
+        seq
+          .map(_.extensionParam.userCsrNum)
+          .reduceLeftOption(_ + _)
+          .getOrElse(0) + 1
+      case _ => 0
     }
+    extension_csr_num
   }
 
-  // c broadcast csr configuration
-  csrBase = csrBase + (if (param.hasTranspose)
-                         param.readerParams.length
-                       else 0)
-  if (param.hasCBroadcast) {
-    csrMap = csrMap + "#define C_BROADCAST_EXTENSION_ENABLE \n"
-    for (i <- 0 until param.readerWriterParams.length / 2) {
-      csrBase_i = csrBase + i
+  // reader extension csr configuration
+  for (i <- 0 until param.readerDatapathExtention.length) {
+    extension_csr_num = get_extension_csr_num(param.readerDatapathExtention(i))
+    if (extension_csr_num > 0) {
+      csrBase_i = csrBase + get_extension_list_csr_num(
+        param.readerDatapathExtention.take(i)
+      )
       csrMap =
-        csrMap + "#define C_BROADCAST_CSR_READER_WRITER_" + i + " " + csrBase_i + "\n"
+        csrMap + "#define READER_EXTENSION_" + i + "_CSR_BASE " + csrBase_i + "\n"
+      csrMap =
+        csrMap + s"#define READER_EXTENSION_${i}_CSR_NUM ${extension_csr_num}\n"
     }
   }
+  csrBase = csrBase + reader_extension_csr
+
+  // writer extension csr configuration
+  for (i <- 0 until param.writerDatapathExtention.length) {
+    extension_csr_num = get_extension_csr_num(param.writerDatapathExtention(i))
+    if (extension_csr_num > 0) {
+      csrBase_i = csrBase + get_extension_list_csr_num(
+        param.writerDatapathExtention.take(i)
+      )
+      csrMap =
+        csrMap + "#define WRITER_EXTENSION_" + i + "_CSR_BASE " + csrBase_i + "\n"
+      csrMap =
+        csrMap + s"#define WRITER_EXTENSION_${i}_CSR_NUM ${extension_csr_num}\n"
+    }
+  }
+  csrBase = csrBase + writer_extension_csr
+
+  // reader_writer extension csr configuration
+  for (i <- 0 until param.readerWriterDatapathExtention.length) {
+    extension_csr_num = get_extension_csr_num(
+      param.readerWriterDatapathExtention(i)
+    )
+    if (extension_csr_num > 0) {
+      csrBase_i = csrBase + get_extension_list_csr_num(
+        param.readerWriterDatapathExtention
+          .take(i)
+      )
+      csrMap =
+        csrMap + "#define READER_WRITER_EXTENSION_" + i + "_CSR_BASE " + csrBase_i + "\n"
+      csrMap =
+        csrMap + s"#define READER_WRITER_EXTENSION_${i}_CSR_NUM ${extension_csr_num}\n"
+    }
+  }
+  csrBase = csrBase + reader_writer_extension_csr
 
   // start csr
   csrMap = csrMap + "// Other resgiters\n"
   csrMap = csrMap + "// Status register\n"
-  csrBase = csrBase + (if (param.hasCBroadcast)
-                         param.readerWriterParams.length / 2
-                       else 0)
   csrMap = csrMap + "#define STREAMER_START_CSR " + csrBase + "\n"
+  csrBase = csrBase + 1
 
   // streamer busy csr
   csrMap = csrMap + "// Read only CSRs\n"
-  csrBase = csrBase + 1
   csrMap = csrMap + "#define STREAMER_BUSY_CSR " + csrBase + "\n"
+  csrBase = csrBase + 1
 
   // streamer performance counter csr
-  csrBase = csrBase + 1
   csrMap = csrMap + "#define STREAMER_PERFORMANCE_COUNTER_CSR " + csrBase + "\n"
-
-  println(csrMap)
 
   val macro_dir = param.headerFilepath + "/streamer_csr_addr_map.h"
   val macro_template =
@@ -685,4 +794,255 @@ object StreamerEmitter extends App {
     new Streamer(StreamerParam()),
     Array("--target-dir", "../../target/snitch_cluster/generated")
   )
+}
+
+object StreamerGen {
+  def main(args: Array[String]): Unit = {
+
+    val parsedArgs = snax.utils.ArgParser.parse(args)
+
+    val outPath = parsedArgs.getOrElse(
+      "hw-target-dir",
+      "generated"
+    )
+
+    // The streamercfg region is passed to chisel generator as a JSON string
+    val streamercfg = parsedArgs.find(_._1 == "streamercfg")
+    if (streamercfg.isEmpty) {
+      println("streamercfg is not provided, generation failed. ")
+      sys.exit(-1)
+    }
+    val parsedstreamercfg = streamercfg.get._2
+
+    // Function to remove the cfg prefix and format the string
+    def processInput(input: String): String = {
+      val jsonStart = input.indexOf(":") + 1
+      val jsonString = input.substring(jsonStart).trim
+      val withoutBraces = jsonString.stripSuffix("}")
+      withoutBraces
+    }
+
+    // Process the input
+    var result = processInput(parsedstreamercfg)
+
+    // Parse the JSON string
+    // Function to find a specific string and return the string in between the first leftStr and the corresponding rightStr
+    def findAndExtract(
+        input: String,
+        searchString: String,
+        leftStr: Char,
+        rightStr: Char
+    ): String = {
+      // Find the index of the search string
+      val searchIndex = input.indexOf(searchString)
+      if (searchIndex != -1) {
+        // Find the index of the first leftStr after the search string
+        val startIndex = input.indexOf(leftStr, searchIndex)
+        // Initialize a counter for nested braces
+        var braceCount = 1
+        // Initialize the end index
+        var endIndex = startIndex + 1
+
+        // Iterate through the string to find the corresponding closing brace
+        while (braceCount > 0 && endIndex < input.length) {
+          if (input.charAt(endIndex) == leftStr) {
+            braceCount += 1
+          } else if (input.charAt(endIndex) == rightStr) {
+            braceCount -= 1
+          }
+          endIndex += 1
+        }
+
+        // Extract and return the substring between the indices
+        input.substring(startIndex, endIndex)
+      } else {
+        // If the search string is not found, return an empty string
+        ""
+      }
+    }
+
+    var searchString = "data_reader_params"
+    val data_reader_params = findAndExtract(result, searchString, '{', '}')
+    val data_reader_extentions =
+      findAndExtract(data_reader_params, "datapath_extensions", '[', ']')
+
+    searchString = "data_writer_params"
+    val data_writer_params = findAndExtract(result, searchString, '{', '}')
+    val data_writer_extentions =
+      findAndExtract(data_writer_params, "datapath_extensions", '[', ']')
+
+    searchString = "data_reader_writer_params"
+    val data_reader_writer_params =
+      findAndExtract(result, searchString, '{', '}')
+    val data_reader_writer_extentions =
+      findAndExtract(data_reader_writer_params, "datapath_extensions", '[', ']')
+
+    // build the data path extension parameters
+    var readerDatapathExtention: Seq[Seq[HasDataPathExtension]] = Seq.fill(
+      StreamerParametersGen.readerParams.length
+    )(Seq.empty[HasDataPathExtension])
+    var writerDatapathExtention: Seq[Seq[HasDataPathExtension]] = Seq.fill(
+      StreamerParametersGen.writerParams.length
+    )(Seq.empty[HasDataPathExtension])
+    var readerWriterDatapathExtention: Seq[Seq[HasDataPathExtension]] =
+      Seq.fill(StreamerParametersGen.readerWriterParams.length)(
+        Seq.empty[HasDataPathExtension]
+      )
+
+    // Function to split the string by one-level brackets
+    def splitByOneLevelBrackets(input: String): Seq[String] = {
+      val strippedInput = input.stripPrefix("[").stripSuffix("]")
+      var result = Seq.empty[String]
+      var depth = 0
+      var start = 0
+
+      for (i <- strippedInput.indices) {
+        strippedInput(i) match {
+          case '{' => depth += 1
+          case '}' => depth -= 1
+          case ',' if depth == 0 =>
+            result = result :+ strippedInput.substring(start, i).trim
+            start = i + 1
+          case _ =>
+        }
+      }
+
+      result = result :+ strippedInput.substring(start).trim
+      result
+    }
+
+    def genDatapathExtensionPerStreamer(
+        input: String
+    ): Seq[HasDataPathExtension] = {
+
+      val readerDatapathExtentionStr =
+        Json.parse(input) match {
+          case obj: JsObject =>
+            obj.fields
+              .filter { case (k, v) => k.startsWith("Has") }
+              .toSeq
+              .map { case (k, v) =>
+                // Attempt to parse the value as a Map[String, Either[Int, Seq[Int]]]
+                val parsedValue: Map[String, Either[Int, Seq[Int]]] =
+                  v.validate[Map[String, JsValue]] match {
+                    case JsSuccess(fields, _) =>
+                      fields.map { case (key, value) =>
+                        // Try to parse each value as Either Int or Seq[Int]
+                        key -> (value.validate[Int] match {
+                          case JsSuccess(intValue, _) =>
+                            Left(intValue) // It's a single Int
+                          case JsError(_) =>
+                            value.validate[Seq[Int]] match {
+                              case JsSuccess(seqValue, _) =>
+                                Right(seqValue) // It's a Seq[Int]
+                              case JsError(_) =>
+                                throw new Exception(
+                                  "Invalid data format for " + key
+                                )
+                            }
+                        })
+                      }
+                    case JsError(_) =>
+                      throw new Exception("Invalid data format in JSON")
+                  }
+
+                (k, parsedValue)
+              }
+
+          case _ => Seq.empty
+        }
+
+      var readerDatapathExtentionPerStreamer = Seq[HasDataPathExtension]()
+      val toolbox = currentMirror.mkToolBox()
+
+      readerDatapathExtentionStr.foreach(i => {
+        readerDatapathExtentionPerStreamer =
+          readerDatapathExtentionPerStreamer :+ toolbox
+            .compile(toolbox.parse(s"""
+              import snax.DataPathExtension._
+              return new ${i._1}(${i._2
+                .map { list =>
+                  list._2 match {
+                    case Left(int: Int) => int.toString // Matching Left for Int
+                    case Right(seq: Seq[Int]) =>
+                      s"Seq(${seq.mkString(",")})" // Matching Right for Seq[Int]
+                  }
+                }
+                .mkString(", ")})
+                    """))()
+            .asInstanceOf[HasDataPathExtension]
+      })
+
+      readerDatapathExtentionPerStreamer
+    }
+
+    // reader datapath extension
+    if (data_reader_extentions != "") {
+      val readerDatapathExtentionList =
+        splitByOneLevelBrackets(data_reader_extentions)
+
+      // geenrate the datapath extension parameters for each reader gradually
+      readerDatapathExtentionList.zipWithIndex.foreach {
+        case (datapath_extension, i) =>
+          readerDatapathExtention = readerDatapathExtention.updated(
+            i,
+            genDatapathExtensionPerStreamer(
+              datapath_extension
+            )
+          )
+      }
+    }
+
+    // writer datapath extension
+    if (data_writer_extentions != "") {
+      val writerDatapathExtentionList =
+        splitByOneLevelBrackets(data_writer_extentions)
+
+      // geenrate the datapath extension parameters for each writer gradually
+      writerDatapathExtentionList.zipWithIndex.foreach {
+        case (datapath_extension, i) =>
+          writerDatapathExtention = writerDatapathExtention.updated(
+            i,
+            genDatapathExtensionPerStreamer(
+              datapath_extension
+            )
+          )
+      }
+    }
+
+    // reader_writer datapath extension
+    if (data_reader_writer_extentions != "") {
+      val readerWriterDatapathExtentionList =
+        splitByOneLevelBrackets(data_reader_writer_extentions)
+
+      readerWriterDatapathExtentionList.zipWithIndex.foreach {
+        case (datapath_extension, i) =>
+          readerWriterDatapathExtention = readerWriterDatapathExtention.updated(
+            i,
+            genDatapathExtensionPerStreamer(
+              datapath_extension
+            )
+          )
+      }
+
+    }
+
+    emitVerilog(
+      new Streamer(
+        StreamerParam(
+          readerParams = StreamerParametersGen.readerParams,
+          writerParams = StreamerParametersGen.writerParams,
+          readerWriterParams = StreamerParametersGen.readerWriterParams,
+          readerDatapathExtention = readerDatapathExtention,
+          writerDatapathExtention = writerDatapathExtention,
+          readerWriterDatapathExtention = readerWriterDatapathExtention,
+          hasCrossClockDomain = StreamerParametersGen.hasCrossClockDomain,
+          csrAddrWidth = 32,
+          tagName = StreamerParametersGen.tagName,
+          headerFilepath = StreamerParametersGen.headerFilepath
+        )
+      ),
+      Array("--target-dir", outPath)
+    )
+  }
 }

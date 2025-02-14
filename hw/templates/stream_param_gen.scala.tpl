@@ -147,59 +147,6 @@ ${'   ), ' if not loop.last else '    )'}
   )
 % endif
 
-% if "has_transpose" in cfg["snax_streamer_cfg"] and cfg["snax_streamer_cfg"]["has_transpose"]:
-  def hasTranspose = true
-% else:
-  def hasTranspose = false
-% endif
-
-% if "has_C_broadcast" in cfg["snax_streamer_cfg"] and cfg["snax_streamer_cfg"]["has_C_broadcast"]:
-  def hasCBroadcast = true
-% else:
-  def hasCBroadcast = false
-% endif
-
+  def tagName = "${cfg["tag_name"]}_"
   def headerFilepath = "../../target/snitch_cluster/sw/snax/${cfg["snax_streamer_cfg"]["snax_library_name"]}/include"
-}
-
-
-object StreamerGen {
-  def main(args: Array[String]): Unit = {
-    val outPath =
-      args.headOption.getOrElse("../../target/snitch_cluster/generated")
-    emitVerilog(
-      new Streamer(
-        StreamerParam(
-          readerParams = StreamerParametersGen.readerParams,
-          writerParams = StreamerParametersGen.writerParams,
-          readerWriterParams = StreamerParametersGen.readerWriterParams,
-          hasTranspose = StreamerParametersGen.hasTranspose,
-          hasCBroadcast = StreamerParametersGen.hasCBroadcast,
-          hasCrossClockDomain = StreamerParametersGen.hasCrossClockDomain,
-          csrAddrWidth = 32,
-          tagName = "${cfg["tag_name"]}_",
-          headerFilepath = StreamerParametersGen.headerFilepath
-        )
-      ),
-      Array("--target-dir", outPath)
-    )
-  }
-}
-
-object StreamerHeaderFileGen {
-  def main(args: Array[String]): Unit = {
-    new StreamerHeaderFile(
-      StreamerParam(
-        readerParams = StreamerParametersGen.readerParams,
-        writerParams = StreamerParametersGen.writerParams,
-        readerWriterParams = StreamerParametersGen.readerWriterParams,
-        hasTranspose = StreamerParametersGen.hasTranspose,
-        hasCBroadcast = StreamerParametersGen.hasCBroadcast,
-        hasCrossClockDomain = StreamerParametersGen.hasCrossClockDomain,
-        csrAddrWidth = 32,
-        tagName = "${cfg["tag_name"]}_",
-        headerFilepath = StreamerParametersGen.headerFilepath
-      )
-    )
-  }
 }

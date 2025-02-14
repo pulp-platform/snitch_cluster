@@ -19,11 +19,12 @@ class StreamerParam(
     val writerParams: Seq[ReaderWriterParam],
     val readerWriterParams: Seq[ReaderWriterParam],
 
-    // transpose params
-    val hasTranspose: Boolean = false,
-
-    // c broadcast params
-    val hasCBroadcast: Boolean = false,
+    // datapath extension params
+    val readerDatapathExtention: Seq[Seq[HasDataPathExtension]] = Seq(Seq()),
+    val writerDatapathExtention: Seq[Seq[HasDataPathExtension]] = Seq(Seq()),
+    val readerWriterDatapathExtention: Seq[Seq[HasDataPathExtension]] = Seq(
+      Seq()
+    ),
 
     // cross clock domain params
     val hasCrossClockDomain: Boolean = false,
@@ -79,41 +80,6 @@ class StreamerParam(
     )
   }
 
-  // transpose parameters
-  if (hasTranspose) {
-    require(
-      fifoWidthReader.forall(_ == 512),
-      "Transpose only supports for readers with the same 512 data width"
-    )
-
-    require(
-      readerNum >= 1,
-      "Only support at least 1 readers for now"
-    )
-  }
-
-  val dataPathABExtensionParam: Seq[HasDataPathExtension] =
-    (if (hasTranspose)
-       Seq[HasDataPathExtension](
-         new HasTransposer(row = Seq(8), col = Seq(8), elementWidth = Seq(8))
-       )
-     else
-       Seq[HasDataPathExtension]())
-
-  val dataPathCExtensionParam: Seq[HasDataPathExtension] =
-    (if (hasCBroadcast)
-       Seq[HasDataPathExtension](
-         new HasBroadcaster(inputLength = 256, outputLength = 2048)
-       )
-     else
-       Seq[HasDataPathExtension]())
-  if (hasCBroadcast) {
-    require(
-      fifoWidthReaderWriter.forall(_ == 2048),
-      "CBroadcast only supports for readers with the same 2048 data width"
-    )
-  }
-
 }
 
 object StreamerParam {
@@ -141,8 +107,9 @@ object StreamerParam {
       readerParams: Seq[ReaderWriterParam],
       writerParams: Seq[ReaderWriterParam],
       readerWriterParams: Seq[ReaderWriterParam],
-      hasTranspose: Boolean,
-      hasCBroadcast: Boolean,
+      readerDatapathExtention: Seq[Seq[HasDataPathExtension]],
+      writerDatapathExtention: Seq[Seq[HasDataPathExtension]],
+      readerWriterDatapathExtention: Seq[Seq[HasDataPathExtension]],
       hasCrossClockDomain: Boolean,
       csrAddrWidth: Int,
       tagName: String,
@@ -151,8 +118,9 @@ object StreamerParam {
     readerParams = readerParams,
     writerParams = writerParams,
     readerWriterParams = readerWriterParams,
-    hasTranspose = hasTranspose,
-    hasCBroadcast = hasCBroadcast,
+    readerDatapathExtention = readerDatapathExtention,
+    writerDatapathExtention = writerDatapathExtention,
+    readerWriterDatapathExtention = readerWriterDatapathExtention,
     hasCrossClockDomain = hasCrossClockDomain,
     csrAddrWidth = csrAddrWidth,
     tagName = tagName,

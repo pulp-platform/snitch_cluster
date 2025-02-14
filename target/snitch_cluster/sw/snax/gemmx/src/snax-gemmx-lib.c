@@ -81,7 +81,7 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_READER_0_5, Atlstride5);
 
     // set the address remap index for A
-#ifdef ADDR_REMAP_EXTENSION_ENABLE_READER_0
+#ifdef ADDR_REMAP_INDEX_READER_0
     csrw_ss(ADDR_REMAP_INDEX_READER_0, set_addr_remap_index_A);
 #endif
 
@@ -102,7 +102,7 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_READER_1_2, Btlstride2);
 
     // set the address remap index for B
-#ifdef ADDR_REMAP_EXTENSION_ENABLE_READER_1
+#ifdef ADDR_REMAP_INDEX_READER_1
     csrw_ss(ADDR_REMAP_INDEX_READER_1, set_addr_remap_index_B);
 #endif
 
@@ -129,7 +129,7 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_WRITER_0_2, D8tlstride2);
 
     // set the address remap index for D8
-#ifdef ADDR_REMAP_EXTENSION_ENABLE_WRITER_0
+#ifdef ADDR_REMAP_INDEX_WRITER_0
     csrw_ss(ADDR_REMAP_INDEX_WRITER_0, set_addr_remap_index_D8);
 #endif
 
@@ -152,16 +152,8 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_READER_WRITER_0_2, Ctlstride2);
 
     // set the address remap index for C
-#ifdef ADDR_REMAP_EXTENSION_ENABLE_WRITER_0
+#ifdef ADDR_REMAP_INDEX_READER_WRITER_0
     csrw_ss(ADDR_REMAP_INDEX_READER_WRITER_0, set_addr_remap_index_C);
-#endif
-
-#ifdef ENABLED_CHANNEL_READER_WRITER_0
-    csrw_ss(ENABLED_CHANNEL_READER_WRITER_0, channel_en_C);
-#endif
-
-#ifdef C_BROADCAST_EXTENSION_ENABLE
-    csrw_ss(C_BROADCAST_CSR_READER_WRITER_0, broadcast_C == 1 ? 0 : 1);
 #endif
 
     // base ptr for D32
@@ -189,14 +181,26 @@ void set_gemmx_streamer_csr(
     csrw_ss(T_STRIDE_READER_WRITER_1_2, D32tlstride2);
 
     // set the address remap index for D32
-#ifdef ADDR_REMAP_EXTENSION_ENABLE
+#ifdef ADDR_REMAP_INDEX_READER_WRITER_1
     csrw_ss(ADDR_REMAP_INDEX_READER_WRITER_1, set_addr_remap_index_D32);
 #endif
 
     // set the transpose
-#ifdef TRANSPOSE_EXTENSION_ENABLE
-    csrw_ss(TRANSPOSE_CSR_READER_0, transpose_A == 0 ? 1 : 0);
-    csrw_ss(TRANSPOSE_CSR_READER_1, transpose_B == 0 ? 1 : 0);
+#ifdef READER_EXTENSION_0_CSR_BASE
+    csrw_ss(READER_EXTENSION_0_CSR_BASE, transpose_A == 1 ? 0 : 1);
+#endif
+
+#ifdef READER_EXTENSION_1_CSR_BASE
+    csrw_ss(READER_EXTENSION_1_CSR_BASE, transpose_B == 1 ? 0 : 1);
+#endif
+
+    // set the channel enable
+#ifdef ENABLED_CHANNEL_READER_WRITER_0
+    csrw_ss(ENABLED_CHANNEL_READER_WRITER_0, channel_en_C);
+#endif
+
+#ifdef READER_WRITER_EXTENSION_0_CSR_BASE
+    csrw_ss(READER_WRITER_EXTENSION_0_CSR_BASE, broadcast_C == 1 ? 0 : 1);
 #endif
 }
 

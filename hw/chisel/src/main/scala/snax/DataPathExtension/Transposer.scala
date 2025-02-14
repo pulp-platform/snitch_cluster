@@ -55,14 +55,16 @@ class Transposer(
     transposedResult
   }
 
-  if (row.length == 1)
-    ext_data_o.bits := outputArray.head.asUInt
-  else {
-    MuxLookup(ext_csr_i(0), 0.U)(
-      0 until row.length map { i =>
-        i.U -> outputArray(i).asUInt
-      }
-    )
+  ext_data_o.bits := {
+    if (row.length == 1)
+      outputArray.head.asUInt
+    else {
+      MuxLookup(ext_csr_i(0), 0.U)(
+        0 until row.length map { i =>
+          i.U -> outputArray(i).asUInt
+        }
+      )
+    }
   }
 
   ext_data_i.ready := ext_data_o.ready
