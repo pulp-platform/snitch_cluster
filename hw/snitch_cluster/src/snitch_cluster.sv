@@ -611,11 +611,16 @@ module snitch_cluster
       end
    end // always_comb
 
-   generate
-      for (genvar rule = 0; rule < 3; rule++) begin : gen_dma_xbar_assertions
-         assert property (@(posedge clk_i) rst_ni |-> (enabled_dma_xbar_rule[rule].start_addr >= cluster_base_addr_i)) else $error("Assertion failed: %d-th DMA XBAR entry start address is not an absolute address!", rule);
-      end
-   endgenerate
+  generate
+    for (genvar rule = 0; rule < 3; rule++) begin : gen_dma_xbar_assertions
+      assert property (@(posedge clk_i) rst_ni |->
+      (enabled_dma_xbar_rule[rule].start_addr >= cluster_base_addr_i))
+      else
+        $error(
+            "Assertion failed: %d-th DMA XBAR entry start address is not an absolute address!", rule
+        );
+    end
+  endgenerate
 
 
   localparam bit [DmaXbarCfg.NoSlvPorts-1:0] DMAEnableDefaultMstPort = '1;
