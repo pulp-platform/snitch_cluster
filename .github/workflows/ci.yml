@@ -113,11 +113,11 @@ jobs:
         if: steps.verilator-cache.outputs.cache-hit != 'true'
         working-directory: target/snitch_cluster
         run: |
-          make CFG_OVERRIDE=cfg/github-ci.hjson VLT_JOBS=1 bin/snitch_cluster.vlt
+          make CFG_OVERRIDE=cfg/github-ci.json VLT_JOBS=1 bin/snitch_cluster.vlt
       - name: Build Software
         working-directory: target/snitch_cluster
         run: |
-          make CFG_OVERRIDE=cfg/github-ci.hjson sw
+          make CFG_OVERRIDE=cfg/github-ci.json sw
       - name: Run Tests
         working-directory: target/snitch_cluster
         run: |
