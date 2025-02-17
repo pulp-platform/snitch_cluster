@@ -6,7 +6,7 @@
 {
     cluster: {
         cluster_base_addr: 0x1000_0000,
-        cluster_base_offset: 0, // 0x0
+        cluster_base_offset: 0,
         cluster_base_hartid: 0,
         addr_width: 48,
         data_width: 64,
