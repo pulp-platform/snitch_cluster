@@ -56,8 +56,8 @@ PERIPH_DIR        ?= $(ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral
 # (LRU) config, all targets depending on the configuration file have
 # to be rebuilt. This file is used to express this condition as a
 # prerequisite for other rules.
-DEFAULT_CFG = cfg/default.hjson
-CFG         = cfg/lru.hjson
+DEFAULT_CFG = cfg/default.json
+CFG         = cfg/lru.json
 
 # Common dependency for all RTL simulators
 $(BIN_DIR):
