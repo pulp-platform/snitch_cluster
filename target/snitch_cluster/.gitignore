@@ -1,7 +1,7 @@
 /logs/
 /generated/
 /bin/
-/cfg/lru.hjson
+/cfg/lru.json
 /work/
 /work-vsim/
 /work-vlt/
