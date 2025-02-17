@@ -5,7 +5,7 @@
 // Cluster configuration for a simple testbench system.
 {
     cluster: {
-        cluster_base_addr: 0x1000_0000,
+        cluster_base_addr: 0x10000000,
         cluster_base_offset: 0,
         cluster_base_hartid: 0,
         addr_width: 48,
@@ -82,14 +82,14 @@
     },
     external_addr_regions: [
         {
-            name: "dram"
-            address: 0x8000_0000,
-            length: 0x8000_0000,
+            name: "dram",
+            address: 0x80000000,
+            length: 0x80000000,
             cacheable: true
         },
         {
-            name: "clint"
-            address: 0xFFFF_0000,
+            name: "clint",
+            address: 0xFFFF0000,
             length: 0x1000
         },
     ],

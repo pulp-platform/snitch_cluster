@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
-import hjson
+import json5
 import pathlib
 import sys
 import re
@@ -12,18 +12,6 @@ import re
 from jsonref import JsonRef
 from clustergen.cluster import SnitchCluster
 from mako.template import Template
-
-# Regex to find hex numbers with optional underscores
-HEX_PATTERN = re.compile(r"0x[0-9a-fA-F]+(?:_[0-9a-fA-F]+)*")
-
-
-def preprocess_hex_in_hjson(text):
-    """ Converts hex numbers (e.g., 0x8000_0000) to decimal before parsing HJSON. """
-    def hex_to_decimal(match):
-        hex_str = match.group(0).replace("_", "")  # Remove underscores
-        return str(int(hex_str, 16))  # Convert to decimal and replace
-
-    return HEX_PATTERN.sub(hex_to_decimal, text)
 
 
 def write_template(tpl_path, outdir, fname=None, **kwargs):
@@ -67,12 +55,10 @@ def main():
 
     args = parser.parse_args()
 
-    # Read and preprocess HJSON file
+    # Read and parse JSON5 file
     with args.clustercfg as file:
         try:
-            srcfull = file.read()
-            srcfull = preprocess_hex_in_hjson(srcfull)  # Convert hex to decimal
-            obj = hjson.loads(srcfull, use_decimal=True)  # Now parse clean HJSON
+            obj = json5.loads(file.read())  # JSON5 natively supports hex & comments
             obj = JsonRef.replace_refs(obj)
 
         except ValueError:
