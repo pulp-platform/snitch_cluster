@@ -165,17 +165,10 @@ CLUSTER_GEN_TPL = $(ROOT)/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl
 LINK_LD_TPL     = $(ROOT)/hw/snitch_cluster/test/link.ld.tpl
 BOOTDATA_TPL    = $(ROOT)/hw/snitch_cluster/test/bootdata.cc.tpl
 
-$(GENERATED_DIR)/snitch_cluster_wrapper.sv: ${CFG} ${CLUSTER_GEN_PREREQ} ${CLUSTER_GEN_TPL} | $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --template ${CLUSTER_GEN_TPL}
-
-$(GENERATED_DIR)/link.ld: ${CFG} ${CLUSTER_GEN_PREREQ} ${LINK_LD_TPL}| $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --template ${LINK_LD_TPL}
-
-$(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} ${BOOTDATA_TPL}| $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --template ${BOOTDATA_TPL}
-
-$(GENERATED_DIR)/memories.json: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --memories
+$(eval $(call cluster_gen_rule,$(GENERATED_DIR)/snitch_cluster_wrapper.sv,$(CLUSTER_GEN_TPL)))
+$(eval $(call cluster_gen_rule,$(GENERATED_DIR)/link.ld,$(LINK_LD_TPL)))
+$(eval $(call cluster_gen_rule,$(GENERATED_DIR)/bootdata.cc,$(BOOTDATA_TPL)))
+$(eval $(call cluster_gen_rule,$(GENERATED_DIR)/memories.json,,--memories))
 
 
 # REGGEN regfile

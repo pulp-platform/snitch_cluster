@@ -193,6 +193,11 @@ define BINARY_SIZE_CHECK
   @[ "$$(stat -c %s $(1))" -lt "$(2)" ] || (echo "Binary exceeds specified size of $(2)B"; exit 1)
 endef
 
+define cluster_gen_rule
+$(1): $(CFG) $(CLUSTER_GEN_PREREQ) $(2) | $(GENERATED_DIR)
+	$(CLUSTER_GEN) -c $$< -o $(GENERATED_DIR) $(if $(3),$(3),--template $(2))
+endef
+
 ##########
 # Traces #
 ##########
