@@ -158,7 +158,6 @@ class SnitchCluster(Generator):
         if self.cfg_validate():
             exit("Failed parameter validation.")
 
-        self.cfg['pkg_name'] = "{}_pkg".format(self.cfg['cluster']['name'])
         self.calc_cache_sizes()
 
         self.gen_pma_cfg()
