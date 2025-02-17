@@ -78,6 +78,7 @@ RUN apt-get update && \
 COPY pyproject.toml .
 COPY sw ./sw
 COPY util ./util
+COPY nonfree/util ./nonfree/util
 COPY target/snitch_cluster/util ./target/snitch_cluster/util
 
 # Create and activate virtual environment
