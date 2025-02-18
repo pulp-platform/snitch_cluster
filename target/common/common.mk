@@ -195,7 +195,7 @@ endef
 
 define cluster_gen_rule
 $(1): $(CFG) $(CLUSTER_GEN_PREREQ) $(2) | $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $$< -o $(GENERATED_DIR) $(if $(3),$(3),--template $(2))
+	$(CLUSTER_GEN) -c $$< -o $(GENERATED_DIR) --template $(2)
 endef
 
 ##########

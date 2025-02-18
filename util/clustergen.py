@@ -46,9 +46,6 @@ def main():
                         type=pathlib.Path,
                         required=True,
                         help="Target directory.")
-    parser.add_argument("--memories",
-                        action="store_true",
-                        help="Generate memories")
     parser.add_argument("--template",
                         metavar="template",
                         help="Name of the template file")
@@ -71,14 +68,6 @@ def main():
 
     outdir = args.outdir
     outdir.mkdir(parents=True, exist_ok=True)
-
-    ##############
-    # Misc files #
-    ##############
-
-    if args.memories:
-        with open(outdir / "memories.json", "w") as f:
-            f.write(cluster.memory_cfg())
 
     ####################
     # Generic template #

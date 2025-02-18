@@ -194,11 +194,11 @@ class SnitchCluster(Generator):
 
     def memory_cfg(self):
         # Add TCDMs
-        self.add_mem(self.cfg['tcdm']['depth'],
-                     self.cfg['data_width'],
+        self.add_mem(self.cfg['cluster']['tcdm']['depth'],
+                     self.cfg['cluster']['data_width'],
                      desc='tcdm')
         # Add instruction caches
-        for i, h in enumerate(self.cfg['hives']):
+        for i, h in enumerate(self.cfg['cluster']['hives']):
             self.add_mem(h['icache']['depth'],
                          h['icache']['cacheline'],
                          desc='icache data (hive {})'.format(i),

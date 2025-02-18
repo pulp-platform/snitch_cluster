@@ -165,11 +165,10 @@ CLUSTER_GEN_TPL = $(ROOT)/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl
 LINK_LD_TPL     = $(ROOT)/hw/snitch_cluster/test/link.ld.tpl
 BOOTDATA_TPL    = $(ROOT)/hw/snitch_cluster/test/bootdata.cc.tpl
 
+# OCCAMYGEN artifacts
 $(eval $(call cluster_gen_rule,$(GENERATED_DIR)/snitch_cluster_wrapper.sv,$(CLUSTER_GEN_TPL)))
 $(eval $(call cluster_gen_rule,$(GENERATED_DIR)/link.ld,$(LINK_LD_TPL)))
 $(eval $(call cluster_gen_rule,$(GENERATED_DIR)/bootdata.cc,$(BOOTDATA_TPL)))
-$(eval $(call cluster_gen_rule,$(GENERATED_DIR)/memories.json,,--memories))
-
 
 # REGGEN regfile
 $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv
