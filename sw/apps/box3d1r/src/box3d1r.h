@@ -3,8 +3,6 @@
 #include "stdint.h"
 #include "stdbool.h"
 
-#include "common.h"
-
 #include "box3d1r_naive.h"
 #include "box3d1r_baseline1.h"
 #include "box3d1r_baseline2.h"

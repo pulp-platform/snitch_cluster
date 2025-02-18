@@ -2,7 +2,6 @@
 #include "math.h"
 #include "stdint.h"
 #include "stdbool.h"
-#include "common.h"
 
 #include "j3d27pt_naive.h"
 #include "j3d27pt_baseline1.h"
