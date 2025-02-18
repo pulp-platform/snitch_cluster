@@ -14,7 +14,7 @@
         tcdm: {
             size: 128,
             banks: 32,
-            topology: OmegaNet
+            topology: 'OmegaNet'
         },
         cluster_periph_size: 60, // kB
         zero_mem_size: 64, // kB
