@@ -49,6 +49,7 @@ CLUSTER_GEN_SRC ?= $(wildcard $(ROOT)/util/clustergen/*.py)
 
 BIN_DIR           ?= bin
 GENERATED_DIR     ?= $(MKFILE_DIR)generated
+TEST_DIR          ?= $(MKFILE_DIR)test
 PERIPH_DIR        ?= $(ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral
 
 # If the configuration file is overriden on the command-line (through
@@ -149,7 +150,7 @@ include $(ROOT)/target/snitch_cluster/sw.mk
 GENERATED_RTL_SOURCES  = $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv
 GENERATED_RTL_SOURCES += $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv
 GENERATED_RTL_SOURCES += $(GENERATED_DIR)/snitch_cluster_wrapper.sv
-GENERATED_RTL_SOURCES += test/snitch_bootrom.sv
+GENERATED_RTL_SOURCES += $(TEST_DIR)/snitch_bootrom.sv
 
 .PHONY: rtl clean-rtl
 
@@ -178,12 +179,12 @@ $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv: $(PERIPH_DIR)/snitch_cluster
 
 # Bootrom
 .PHONY: bootrom
-bootrom: test/snitch_bootrom.sv
-test/bootrom.elf test/bootrom.dump test/bootrom.bin test/snitch_bootrom.sv: test/bootrom.S test/bootrom.ld $(BOOTROM_GEN)
-	$(RISCV_CC) -mabi=ilp32d -march=rv32imafd -static -nostartfiles -fuse-ld=$(RISCV_LD) -Lsw/runtime -Ttest/bootrom.ld $< -o test/bootrom.elf
-	$(RISCV_OBJDUMP) -d test/bootrom.elf > test/bootrom.dump
-	$(RISCV_OBJCOPY) -j .text -O binary test/bootrom.elf test/bootrom.bin
-	$(BOOTROM_GEN) --sv-module snitch_bootrom test/bootrom.bin > test/snitch_bootrom.sv
+bootrom: $(TEST_DIR)/snitch_bootrom.sv
+$(TEST_DIR)/bootrom.elf $(TEST_DIR)/bootrom.dump $(TEST_DIR)/bootrom.bin $(TEST_DIR)/snitch_bootrom.sv: $(TEST_DIR)/bootrom.S $(TEST_DIR)/bootrom.ld $(BOOTROM_GEN)
+	$(RISCV_CC) -mabi=ilp32d -march=rv32imafd -static -nostartfiles -fuse-ld=$(RISCV_LD) -Lsw/runtime -T$(TEST_DIR)/bootrom.ld $< -o $(TEST_DIR)/bootrom.elf
+	$(RISCV_OBJDUMP) -d $(TEST_DIR)/bootrom.elf > $(TEST_DIR)/bootrom.dump
+	$(RISCV_OBJCOPY) -j .text -O binary $(TEST_DIR)/bootrom.elf $(TEST_DIR)/bootrom.bin
+	$(BOOTROM_GEN) --sv-module snitch_bootrom $(TEST_DIR)/bootrom.bin > $(TEST_DIR)/snitch_bootrom.sv
 
 #############
 # Verilator #
