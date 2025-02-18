@@ -633,7 +633,9 @@ class Streamer(
     if (param.configurableChannel) {
       csrMap =
         csrMap + "#define " + "ENABLED_CHANNEL_" + tag + " " + csrOffset + "\n"
-      csrOffset = csrOffset + 1
+      csrMap =
+        csrMap + "#define " + "ENABLED_CHANNEL_" + tag + "_CSR_NUM " + ((param.aguParam.numChannel + 31) / 32) + "\n"
+      csrOffset = csrOffset + ((param.aguParam.numChannel + 31) / 32)
     }
 
     // byte mask enable

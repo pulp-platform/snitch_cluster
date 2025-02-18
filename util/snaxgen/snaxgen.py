@@ -189,30 +189,78 @@ def streamer_csr_num(acc_cfgs):
             "configurable_channel"
             in acc_cfgs["snax_streamer_cfg"]["data_reader_params"]
         ):
-            num_configurable_channel += sum(
-                acc_cfgs["snax_streamer_cfg"]["data_reader_params"][
-                    "configurable_channel"
-                ]
+            num_configurable_channel += int(
+                sum(
+                    acc_cfgs["snax_streamer_cfg"]["data_reader_params"][
+                        "configurable_channel"
+                    ][i]
+                    * (
+                        acc_cfgs["snax_streamer_cfg"]["data_reader_params"][
+                            "num_channel"
+                        ][i]
+                        + 31
+                    )
+                    / 32
+                    for i in range(
+                        len(
+                            acc_cfgs["snax_streamer_cfg"]["data_reader_params"][
+                                "configurable_channel"
+                            ]
+                        )
+                    )
+                )
             )
     if "data_writer_params" in acc_cfgs["snax_streamer_cfg"]:
         if (
             "configurable_channel"
             in acc_cfgs["snax_streamer_cfg"]["data_writer_params"]
         ):
-            num_configurable_channel += sum(
-                acc_cfgs["snax_streamer_cfg"]["data_writer_params"][
-                    "configurable_channel"
-                ]
+            num_configurable_channel += int(
+                sum(
+                    acc_cfgs["snax_streamer_cfg"]["data_writer_params"][
+                        "configurable_channel"
+                    ][i]
+                    * (
+                        acc_cfgs["snax_streamer_cfg"]["data_writer_params"][
+                            "num_channel"
+                        ][i]
+                        + 31
+                    )
+                    / 32
+                    for i in range(
+                        len(
+                            acc_cfgs["snax_streamer_cfg"]["data_writer_params"][
+                                "configurable_channel"
+                            ]
+                        )
+                    )
+                )
             )
     if "data_reader_writer_params" in acc_cfgs["snax_streamer_cfg"]:
         if (
             "configurable_channel"
             in acc_cfgs["snax_streamer_cfg"]["data_reader_writer_params"]
         ):
-            num_configurable_channel += sum(
-                acc_cfgs["snax_streamer_cfg"]["data_reader_writer_params"][
-                    "configurable_channel"
-                ]
+            num_configurable_channel += int(
+                sum(
+                    acc_cfgs["snax_streamer_cfg"]["data_reader_writer_params"][
+                        "configurable_channel"
+                    ][i]
+                    * int(
+                        acc_cfgs["snax_streamer_cfg"]["data_reader_writer_params"][
+                            "num_channel"
+                        ][i]
+                        + 31
+                    )
+                    / 32
+                    for i in range(
+                        len(
+                            acc_cfgs["snax_streamer_cfg"]["data_reader_writer_params"][
+                                "configurable_channel"
+                            ]
+                        )
+                    )
+                )
             )
 
     streamer_csr_num = (
@@ -467,7 +515,9 @@ def main():
                     gen_path=rtl_target_path,
                 )
 
-            streamer_cfg = find_keys_with_keyword(cfg, f"{acc_cfgs[i]['tag_name']}_streamer")
+            streamer_cfg = find_keys_with_keyword(
+                cfg, f"{acc_cfgs[i]['tag_name']}_streamer"
+            )
             # Generate chisel component using chisel generation script
             gen_chisel_file(
                 chisel_path=args.chisel_path,

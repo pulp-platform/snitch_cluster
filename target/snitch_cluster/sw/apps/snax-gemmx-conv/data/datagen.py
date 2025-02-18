@@ -47,6 +47,10 @@ quantized_output_data_width = 8
 
 
 def emit_conv_data(**kwargs):
+
+    meshRow = kwargs["meshRow"]
+    meshCol = kwargs["meshCol"]
+
     # size extraction
     Cin = kwargs["Cin"]
     Cout = kwargs["Cout"]
@@ -101,6 +105,10 @@ def emit_conv_data(**kwargs):
 
     length_c = M * N * 8 * 8
 
+    enabled_channel_CSR_num = int(
+        (meshRow * meshCol) * output_data_width / bankWidth / 32
+    )
+
     broadcast_C = kwargs["broadcast_C"] == 1 and kwargs["channel_en_C"] == 1
     disable_C = kwargs["broadcast_C"] == 0 and kwargs["channel_en_C"] == 0
     enable_full_C = kwargs["broadcast_C"] == 0 and kwargs["channel_en_C"] == 1
@@ -119,14 +127,32 @@ def emit_conv_data(**kwargs):
     data_str += [
         format_scalar_definition("int32_t", "broadcast_C", kwargs["broadcast_C"])
     ]
+
     if broadcast_C == 1:
-        data_str += [format_scalar_definition("int32_t", "channel_en_C", 0b11111111)]
+        assert meshCol * output_data_width % bankWidth == 0
+        # Note: if C is hanged to wide ports, the number of bits to enable is
+        # multipliers of 8 (8 narrow channels equal to 1 wide channel)
+        channel_en_C_1_bits = int(
+            (meshCol * output_data_width / bankWidth + 7) // 8 * 8
+        )
+        # Generate the elements
+        channel_en_C = [0] * enabled_channel_CSR_num  # Initialize with zeros
+
+        for i in range(channel_en_C_1_bits):
+            element_index = i // 32  # Determine which element to modify
+            bit_position = i % 32  # Position within the element
+            if element_index < enabled_channel_CSR_num:
+                channel_en_C[element_index] |= 1 << (bit_position)
+
+        # Convert elements to integers
+        channel_en_C = [int(x) for x in channel_en_C][::-1]  # Reverse the list
     elif enable_full_C == 1:
-        data_str += [
-            format_scalar_definition("int32_t", "channel_en_C", ((1 << 32) - 1))
-        ]
+        channel_en_C = [((1 << 32) - 1) for i in range(enabled_channel_CSR_num)]
     else:
-        data_str += [format_scalar_definition("int32_t", "channel_en_C", 0)]
+        channel_en_C = [0 for i in range(enabled_channel_CSR_num)]
+    data_str += [
+        "int32_t channel_en_C[] = { " + ", ".join(map(str, channel_en_C)) + " };"
+    ]
 
     # Generating conv2d settings
     data_str += [
@@ -557,14 +583,16 @@ def emit_gemmx_data(**kwargs):
         for i in range(0, group_num, 4)
     ]
 
-    data_str += [(
-        "int32_t shared_bitpacked_shift[] = { "
-        + ", ".join(map(str, shared_bitpacked_shift_i))
-        + " };"
-    )]
-    data_str += [(
+    data_str += [
+        (
+            "int32_t shared_bitpacked_shift[] = { "
+            + ", ".join(map(str, shared_bitpacked_shift_i))
+            + " };"
+        )
+    ]
+    data_str += [
         "int32_t shared_multiplier[] = { " + ", ".join(map(str, multiplier_i)) + " };"
-    )]
+    ]
 
     D8 = np.zeros_like(D32, dtype=np.uint8)
     # output channel (innermost dim) has a different scale factor

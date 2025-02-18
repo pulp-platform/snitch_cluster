@@ -121,7 +121,7 @@ class ReaderWriterParam(
 
   val csrNum =
     2 + spatialBounds.length + 2 * temporalDimension + (if (configurableChannel)
-                                                          1
+                                                          ((tcdmParam.numChannel + 31) / 32)
                                                         else
                                                           0) + (if (
                                                                   configurableByteMask

@@ -17,9 +17,12 @@ class ReaderWriterCfgIO(val param: ReaderWriterParam) extends Bundle {
 
   def connectWithList(csrList: IndexedSeq[UInt]): IndexedSeq[UInt] = {
     var remaincsrList = csrList
+    def enabledChannelCSRNum = if (param.configurableChannel)
+      ((param.tcdmParam.numChannel + 31) / 32)
+    else 0
     if (param.configurableChannel) {
-      enabledChannel := remaincsrList.head
-      remaincsrList = remaincsrList.tail
+      enabledChannel := remaincsrList.take(enabledChannelCSRNum).reduce(_ ## _)
+      remaincsrList = remaincsrList.drop(enabledChannelCSRNum)
     } else {
       enabledChannel := Fill(param.tcdmParam.numChannel, 1.U)
     }
