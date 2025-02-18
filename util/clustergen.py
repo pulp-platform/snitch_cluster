@@ -14,7 +14,7 @@ from clustergen.cluster import SnitchCluster
 from mako.template import Template
 
 
-def write_template(tpl_path, outdir, fname=None, **kwargs):
+def write_template(tpl_path, output_path, **kwargs):
 
     # Compile a regex to trim trailing whitespaces on lines.
     re_trailws = re.compile(r'[ \t\r]+$', re.MULTILINE)
@@ -23,8 +23,7 @@ def write_template(tpl_path, outdir, fname=None, **kwargs):
         tpl_path = pathlib.Path(tpl_path).absolute()
         if tpl_path.exists():
             tpl = Template(filename=str(tpl_path))
-            fname = tpl_path.with_suffix("").name if not fname else fname
-            with open(outdir / fname, "w") as file:
+            with open(output_path, "w") as file:
                 code = tpl.render_unicode(**kwargs)
                 code = re_trailws.sub("", code)
                 file.write(code)
@@ -41,11 +40,11 @@ def main():
                         type=argparse.FileType('r'),
                         required=True,
                         help="A cluster configuration file")
-    parser.add_argument("--outdir",
+    parser.add_argument("--output",
                         "-o",
                         type=pathlib.Path,
                         required=True,
-                        help="Target directory.")
+                        help="Output file path")
     parser.add_argument("--template",
                         metavar="template",
                         help="Name of the template file")
@@ -63,12 +62,6 @@ def main():
 
     cluster = SnitchCluster(obj)
 
-    if not args.outdir.is_dir():
-        exit("Out directory is not a valid path.")
-
-    outdir = args.outdir
-    outdir.mkdir(parents=True, exist_ok=True)
-
     ####################
     # Generic template #
     ####################
@@ -79,7 +72,7 @@ def main():
     }
 
     if args.template:
-        write_template(args.template, outdir, **kwargs)
+        write_template(args.template, args.output, **kwargs)
 
 
 if __name__ == "__main__":
