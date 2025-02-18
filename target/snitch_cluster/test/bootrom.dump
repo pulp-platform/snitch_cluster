@@ -1,0 +1,24 @@
+
+test/bootrom.elf:	file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000000 <_snitch_park>:
+       0: 97 02 00 00  	auipc	t0, 0
+       4: 93 82 02 02  	addi	t0, t0, 32
+       8: 73 90 52 30  	csrw	mtvec, t0
+       c: 73 60 04 30  	csrsi	mstatus, 8
+      10: b7 02 08 00  	lui	t0, 128
+      14: 93 82 82 00  	addi	t0, t0, 8
+      18: 73 90 42 30  	csrw	mie, t0
+      1c: 73 00 50 10  	wfi	
+
+00000020 <_snitch_resume>:
+      20: 97 02 00 00  	auipc	t0, 0
+      24: 37 13 00 00  	lui	t1, 1
+      28: 13 03 83 16  	addi	t1, t1, 360
+      2c: b3 82 62 00  	add	t0, t0, t1
+      30: 83 a2 02 00  	lw	t0, 0(t0)
+      34: e7 80 02 00  	jalr	t0
+      38: 6f f0 9f fc  	j	0x0 <_snitch_park>
