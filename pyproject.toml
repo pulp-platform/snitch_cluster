@@ -19,7 +19,6 @@ dependencies = [
     "editorconfig-checker==2.3.51",
     "flake8",
     "gitpython",
-    "hjson",
     "humanize",
     "json5",
     "jsonref",

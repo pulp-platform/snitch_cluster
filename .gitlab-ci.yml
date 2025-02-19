@@ -132,7 +132,7 @@ snitch-cluster-banshee:
 snitch-cluster-fdiv-vsim:
   script:
     - cd target/snitch_cluster
-    - make CFG_OVERRIDE=cfg/fdiv.hjson sw
+    - make CFG_OVERRIDE=cfg/fdiv.json sw
     - make bin/snitch_cluster.vsim
     - ./util/run.py sw/fdiv.yaml --simulator vsim -j --run-dir runs/vsim
     # Run additional, more extensive tests
@@ -142,7 +142,7 @@ snitch-cluster-fdiv-vsim:
 snitch-cluster-omega-vsim:
   script:
     - cd target/snitch_cluster
-    - make CFG_OVERRIDE=cfg/omega.hjson sw
+    - make CFG_OVERRIDE=cfg/omega.json sw
     - make bin/snitch_cluster.vsim
     - ./util/run.py sw/run.yaml --simulator vsim -j --run-dir runs/vsim
 
@@ -150,7 +150,7 @@ snitch-cluster-omega-vsim:
 snitch-cluster-mchan-vsim:
   script:
     - cd target/snitch_cluster
-    - make CFG_OVERRIDE=cfg/dma_mchan.hjson sw
+    - make CFG_OVERRIDE=cfg/dma_mchan.json sw
     - make bin/snitch_cluster.vsim
     - ./util/run.py sw/dma_mchan.yaml --simulator vsim -j --run-dir runs/vsim
 

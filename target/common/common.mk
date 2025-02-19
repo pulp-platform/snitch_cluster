@@ -193,6 +193,15 @@ define BINARY_SIZE_CHECK
   @[ "$$(stat -c %s $(1))" -lt "$(2)" ] || (echo "Binary exceeds specified size of $(2)B"; exit 1)
 endef
 
+# Common rule to fill a template file with clustergen
+# Arg 1: path for the generated file
+# Arg 2: path of the template file
+define cluster_gen_rule
+$(1): $(CFG) $(CLUSTER_GEN_PREREQ) $(2) | $(GENERATED_DIR)
+	@echo "[CLUSTERGEN] Generate $$@"
+	$(CLUSTER_GEN) -c $$< -o $$@ --template $(2)
+endef
+
 ##########
 # Traces #
 ##########

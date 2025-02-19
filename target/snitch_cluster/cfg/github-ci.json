@@ -5,8 +5,8 @@
 // Cluster configuration for a simple testbench system.
 {
     cluster: {
-        cluster_base_addr: 268435456, // 0x1000_0000
-        cluster_base_offset: 0, // 0x0
+        cluster_base_addr: 0x10000000,
+        cluster_base_offset: 0,
         cluster_base_hartid: 0,
         addr_width: 48,
         data_width: 64,
@@ -19,7 +19,6 @@
         zero_mem_size: 64, // kB
         alias_region_enable: true,
         dma_data_width: 512,
-        dma_nr_channels: 4,
         dma_axi_req_fifo_depth: 24,
         dma_req_fifo_depth: 8,
         narrow_trans: 4,
@@ -72,29 +71,24 @@
                     { $ref: "#/compute_core_template" },
                     { $ref: "#/compute_core_template" },
                     { $ref: "#/compute_core_template" },
-                    { $ref: "#/compute_core_template" },
-                    { $ref: "#/compute_core_template" },
-                    { $ref: "#/compute_core_template" },
-                    { $ref: "#/compute_core_template" },
                     { $ref: "#/dma_core_template" },
                 ]
             }
         ]
     },
-    dram: {
-        // 0x8000_0000
-        address: 2147483648,
-        // 0x8000_0000
-        length: 2147483648
-    },
-    peripherals: {
-        clint: {
-            // 0xffff_0000
-            address: 4294901760,
-            // 0x0000_1000
-            length: 4096
+    external_addr_regions: [
+        {
+            name: "dram",
+            address: 0x80000000,
+            length: 0x80000000,
+            cacheable: true
         },
-    },
+        {
+            name: "clint",
+            address: 0xFFFF0000,
+            length: 0x1000
+        },
+    ],
     // Templates.
     compute_core_template: {
         isa: "rv32imafd",
@@ -123,9 +117,12 @@
             {indirection: true},    // Master 1
             {},                     // Slave
         ],
+        // Enable division/square root unit
+        Xdiv_sqrt: true,
     },
     dma_core_template: {
         isa: "rv32imafd",
+        Xdiv_sqrt: true,
         xdma: true,
         xssr: false,
         xfrep: false,

@@ -4,35 +4,39 @@
 
 ${disclaimer}
 
+<%def name="to_sv_hex(x, length=None)">\
+${"{}'h{}".format(length or "", hex(x)[2:])}\
+</%def>
+
 <%def name="icache_cfg(prop)">
-  % for lw in cfg['hives']:
+  % for lw in cfg['cluster']['hives']:
     ${lw['icache'][prop]}${',' if not loop.last else ''}
   % endfor
 </%def>
 
 <%def name="core_cfg(prop)">\
-  % for c in cfg['cores']:
+  % for c in cfg['cluster']['cores']:
 ${c[prop]}${', ' if not loop.last else ''}\
   % endfor
 </%def>\
 
 <%def name="core_cfg_flat(prop)">\
-${cfg['nr_cores']}'b\
-  % for c in cfg['cores'][::-1]:
+${cfg['cluster']['nr_cores']}'b\
+  % for c in cfg['cluster']['cores'][::-1]:
 ${int(c[prop])}\
   % endfor
 </%def>\
 
 <%def name="core_isa(isa)">\
-${cfg['nr_cores']}'b\
-  % for c in cfg['cores'][::-1]:
+${cfg['cluster']['nr_cores']}'b\
+  % for c in cfg['cluster']['cores'][::-1]:
 ${int(getattr(c['isa_parsed'], isa))}\
   % endfor
 </%def>\
 
 <%def name="ssr_cfg(core, ssr_fmt_str, none_str, inner_sep)">\
-% for core in cfg['cores']:
-  % for s in list(reversed(core['ssrs'] + [None]*(cfg['num_ssrs_max']-len(core['ssrs'])))):
+% for core in cfg['cluster']['cores']:
+  % for s in list(reversed(core['ssrs'] + [None]*(cfg['cluster']['num_ssrs_max']-len(core['ssrs'])))):
 ${("    '{" if loop.first else ' ') + \
     (ssr_fmt_str.format(**s) if s is not None else none_str) \
     + (inner_sep if not loop.last else '}')}\
@@ -44,30 +48,30 @@ ${',' if not loop.last else ''}
 `include "axi/typedef.svh"
 
 // verilog_lint: waive-start package-filename
-package ${cfg['pkg_name']};
+package ${cfg['cluster']['name']}_pkg;
 
-  localparam int unsigned NrCores = ${cfg['nr_cores']};
-  localparam int unsigned NrHives = ${cfg['nr_hives']};
+  localparam int unsigned NrCores = ${cfg['cluster']['nr_cores']};
+  localparam int unsigned NrHives = ${cfg['cluster']['nr_hives']};
 
-  localparam int unsigned TcdmSize = ${cfg['tcdm']['size']};
+  localparam int unsigned TcdmSize = ${cfg['cluster']['tcdm']['size']};
   localparam int unsigned BootromSize = 4; // Fixed size of 4kB
-  localparam int unsigned ClusterPeriphSize = ${cfg['cluster_periph_size']};
-  localparam int unsigned ZeroMemorySize = ${cfg['zero_mem_size']};
+  localparam int unsigned ClusterPeriphSize = ${cfg['cluster']['cluster_periph_size']};
+  localparam int unsigned ZeroMemorySize = ${cfg['cluster']['zero_mem_size']};
 
-  localparam int unsigned AddrWidth = ${cfg['addr_width']};
-  localparam int unsigned NarrowDataWidth = ${cfg['data_width']};
-  localparam int unsigned WideDataWidth = ${cfg['dma_data_width']};
+  localparam int unsigned AddrWidth = ${cfg['cluster']['addr_width']};
+  localparam int unsigned NarrowDataWidth = ${cfg['cluster']['data_width']};
+  localparam int unsigned WideDataWidth = ${cfg['cluster']['dma_data_width']};
 
-  localparam int unsigned NarrowIdWidthIn = ${cfg['id_width_in']};
+  localparam int unsigned NarrowIdWidthIn = ${cfg['cluster']['id_width_in']};
   localparam int unsigned NrNarrowMasters = 3;
   localparam int unsigned NarrowIdWidthOut = $clog2(NrNarrowMasters) + NarrowIdWidthIn;
 
-  localparam int unsigned NrWideMasters = 1 + ${cfg['dma_nr_channels']} + ${cfg['nr_hives']};
-  localparam int unsigned WideIdWidthIn = ${cfg['dma_id_width_in']};
+  localparam int unsigned NrWideMasters = 1 + ${cfg['cluster']['dma_nr_channels']} + ${cfg['cluster']['nr_hives']};
+  localparam int unsigned WideIdWidthIn = ${cfg['cluster']['dma_id_width_in']};
   localparam int unsigned WideIdWidthOut = $clog2(NrWideMasters) + WideIdWidthIn;
 
-  localparam int unsigned NarrowUserWidth = ${cfg['user_width']};
-  localparam int unsigned WideUserWidth = ${cfg['dma_user_width']};
+  localparam int unsigned NarrowUserWidth = ${cfg['cluster']['user_width']};
+  localparam int unsigned WideUserWidth = ${cfg['cluster']['dma_user_width']};
 
   localparam int unsigned ICacheLineWidth [NrHives] = '{${icache_cfg('cacheline')}};
   localparam int unsigned ICacheLineCount [NrHives] = '{${icache_cfg('depth')}};
@@ -76,7 +80,7 @@ package ${cfg['pkg_name']};
   localparam int unsigned Hive [NrCores] = '{${core_cfg('hive')}};
 
   typedef struct packed {
-% for field, width in cfg['sram_cfg_fields'].items():
+% for field, width in cfg['cluster']['sram_cfg_fields'].items():
     logic [${width-1}:0] ${field};
 % endfor
   } sram_cfg_t;
@@ -108,7 +112,7 @@ package ${cfg['pkg_name']};
     automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] cached_regions;
     cached_regions = '{default: '0};
 % for i, cp in enumerate(cfg['pmas']['cached']):
-    cached_regions[${i}] = '{base: ${to_sv_hex(cp[0], cfg['addr_width'])}, mask: ${to_sv_hex(cp[1], cfg['addr_width'])}};
+    cached_regions[${i}] = '{base: ${to_sv_hex(cp[0], cfg['cluster']['addr_width'])}, mask: ${to_sv_hex(cp[1], cfg['cluster']['addr_width'])}};
 % endfor
     return cached_regions;
   endfunction
@@ -119,37 +123,37 @@ package ${cfg['pkg_name']};
       default: 0
   };
 
-  localparam fpnew_pkg::fpu_implementation_t FPUImplementation [${cfg['nr_cores']}] = '{
-  % for c in cfg['cores']:
+  localparam fpnew_pkg::fpu_implementation_t FPUImplementation [${cfg['cluster']['nr_cores']}] = '{
+  % for c in cfg['cluster']['cores']:
     '{
         PipeRegs: // FMA Block
                   '{
-                    '{  ${cfg['timing']['lat_comp_fp32']}, // FP32
-                        ${cfg['timing']['lat_comp_fp64']}, // FP64
-                        ${cfg['timing']['lat_comp_fp16']}, // FP16
-                        ${cfg['timing']['lat_comp_fp8']}, // FP8
-                        ${cfg['timing']['lat_comp_fp16_alt']}, // FP16alt
-                        ${cfg['timing']['lat_comp_fp8_alt']}  // FP8alt
+                    '{  ${cfg['cluster']['timing']['lat_comp_fp32']}, // FP32
+                        ${cfg['cluster']['timing']['lat_comp_fp64']}, // FP64
+                        ${cfg['cluster']['timing']['lat_comp_fp16']}, // FP16
+                        ${cfg['cluster']['timing']['lat_comp_fp8']}, // FP8
+                        ${cfg['cluster']['timing']['lat_comp_fp16_alt']}, // FP16alt
+                        ${cfg['cluster']['timing']['lat_comp_fp8_alt']}  // FP8alt
                       },
                     '{1, 1, 1, 1, 1, 1},   // DIVSQRT
-                    '{${cfg['timing']['lat_noncomp']},
-                      ${cfg['timing']['lat_noncomp']},
-                      ${cfg['timing']['lat_noncomp']},
-                      ${cfg['timing']['lat_noncomp']},
-                      ${cfg['timing']['lat_noncomp']},
-                      ${cfg['timing']['lat_noncomp']}},   // NONCOMP
-                    '{${cfg['timing']['lat_conv']},
-                      ${cfg['timing']['lat_conv']},
-                      ${cfg['timing']['lat_conv']},
-                      ${cfg['timing']['lat_conv']},
-                      ${cfg['timing']['lat_conv']},
-                      ${cfg['timing']['lat_conv']}},   // CONV
-                    '{${cfg['timing']['lat_sdotp']},
-                      ${cfg['timing']['lat_sdotp']},
-                      ${cfg['timing']['lat_sdotp']},
-                      ${cfg['timing']['lat_sdotp']},
-                      ${cfg['timing']['lat_sdotp']},
-                      ${cfg['timing']['lat_sdotp']}}    // DOTP
+                    '{${cfg['cluster']['timing']['lat_noncomp']},
+                      ${cfg['cluster']['timing']['lat_noncomp']},
+                      ${cfg['cluster']['timing']['lat_noncomp']},
+                      ${cfg['cluster']['timing']['lat_noncomp']},
+                      ${cfg['cluster']['timing']['lat_noncomp']},
+                      ${cfg['cluster']['timing']['lat_noncomp']}},   // NONCOMP
+                    '{${cfg['cluster']['timing']['lat_conv']},
+                      ${cfg['cluster']['timing']['lat_conv']},
+                      ${cfg['cluster']['timing']['lat_conv']},
+                      ${cfg['cluster']['timing']['lat_conv']},
+                      ${cfg['cluster']['timing']['lat_conv']},
+                      ${cfg['cluster']['timing']['lat_conv']}},   // CONV
+                    '{${cfg['cluster']['timing']['lat_sdotp']},
+                      ${cfg['cluster']['timing']['lat_sdotp']},
+                      ${cfg['cluster']['timing']['lat_sdotp']},
+                      ${cfg['cluster']['timing']['lat_sdotp']},
+                      ${cfg['cluster']['timing']['lat_sdotp']},
+                      ${cfg['cluster']['timing']['lat_sdotp']}}    // DOTP
                     },
         UnitTypes: '{'{fpnew_pkg::MERGED,
                        fpnew_pkg::MERGED,
@@ -199,93 +203,93 @@ package ${cfg['pkg_name']};
                         fpnew_pkg::DISABLED,
                         fpnew_pkg::DISABLED}}, // DOTP
 % endif
-        PipeConfig: fpnew_pkg::${cfg['timing']['fpu_pipe_config']}
+        PipeConfig: fpnew_pkg::${cfg['cluster']['timing']['fpu_pipe_config']}
     }${',\n' if not loop.last else '\n'}\
   % endfor
   };
 
-  localparam snitch_ssr_pkg::ssr_cfg_t [${cfg['num_ssrs_max']}-1:0] SsrCfgs [${cfg['nr_cores']}] = '{
+  localparam snitch_ssr_pkg::ssr_cfg_t [${cfg['cluster']['num_ssrs_max']}-1:0] SsrCfgs [${cfg['cluster']['nr_cores']}] = '{
 ${ssr_cfg(core, "'{{{indirection:d}, {isect_master:d}, {isect_master_idx:d}, {isect_slave:d}, "\
   "{isect_slave_spill:d}, {indir_out_spill:d}, {num_loops}, {index_width}, {pointer_width}, "\
   "{shift_width}, {rpt_width}, {index_credits}, {isect_slave_credits}, {data_credits}, "\
   "{mux_resp_depth}}}", "/*None*/ '0", ',\n     ')}\
   };
 
-  localparam logic [${cfg['num_ssrs_max']}-1:0][4:0] SsrRegs [${cfg['nr_cores']}] = '{
+  localparam logic [${cfg['cluster']['num_ssrs_max']}-1:0][4:0] SsrRegs [${cfg['cluster']['nr_cores']}] = '{
 ${ssr_cfg(core, '{reg_idx}', '/*None*/ 0', ',')}\
   };
 
   // Forward potentially optional configuration parameters
-  localparam logic [9:0] CfgBaseHartId      =  (${to_sv_hex(cfg['cluster_base_hartid'], 10)});
-  localparam addr_t    	 CfgClusterBaseAddr = (${to_sv_hex(cfg['cluster_base_addr'], cfg['addr_width'])});
+  localparam logic [9:0] CfgBaseHartId      =  (${to_sv_hex(cfg['cluster']['cluster_base_hartid'], 10)});
+  localparam addr_t    	 CfgClusterBaseAddr = (${to_sv_hex(cfg['cluster']['cluster_base_addr'], cfg['cluster']['addr_width'])});
 
 endpackage
 // verilog_lint: waive-stop package-filename
 
-module ${cfg['name']}_wrapper (
+module ${cfg['cluster']['name']}_wrapper (
   input  logic                                   clk_i,
   input  logic                                   rst_ni,
-  input  logic [${cfg['pkg_name']}::NrCores-1:0] debug_req_i,
-  input  logic [${cfg['pkg_name']}::NrCores-1:0] meip_i,
-  input  logic [${cfg['pkg_name']}::NrCores-1:0] mtip_i,
-  input  logic [${cfg['pkg_name']}::NrCores-1:0] msip_i,
+  input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] debug_req_i,
+  input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] meip_i,
+  input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] mtip_i,
+  input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] msip_i,
   input  logic [9:0]                             hart_base_id_i,
-  input  logic [${cfg['addr_width']-1}:0]                            cluster_base_addr_i,
+  input  logic [${cfg['cluster']['addr_width']-1}:0]                            cluster_base_addr_i,
   input  logic                                   clk_d2_bypass_i,
-  input  ${cfg['pkg_name']}::sram_cfgs_t         sram_cfgs_i,
-  input  ${cfg['pkg_name']}::narrow_in_req_t     narrow_in_req_i,
-  output ${cfg['pkg_name']}::narrow_in_resp_t    narrow_in_resp_o,
-  output ${cfg['pkg_name']}::narrow_out_req_t    narrow_out_req_o,
-  input  ${cfg['pkg_name']}::narrow_out_resp_t   narrow_out_resp_i,
-  output ${cfg['pkg_name']}::wide_out_req_t      wide_out_req_o,
-  input  ${cfg['pkg_name']}::wide_out_resp_t     wide_out_resp_i,
-  input  ${cfg['pkg_name']}::wide_in_req_t       wide_in_req_i,
-  output ${cfg['pkg_name']}::wide_in_resp_t      wide_in_resp_o
+  input  ${cfg['cluster']['name']}_pkg::sram_cfgs_t         sram_cfgs_i,
+  input  ${cfg['cluster']['name']}_pkg::narrow_in_req_t     narrow_in_req_i,
+  output ${cfg['cluster']['name']}_pkg::narrow_in_resp_t    narrow_in_resp_o,
+  output ${cfg['cluster']['name']}_pkg::narrow_out_req_t    narrow_out_req_o,
+  input  ${cfg['cluster']['name']}_pkg::narrow_out_resp_t   narrow_out_resp_i,
+  output ${cfg['cluster']['name']}_pkg::wide_out_req_t      wide_out_req_o,
+  input  ${cfg['cluster']['name']}_pkg::wide_out_resp_t     wide_out_resp_i,
+  input  ${cfg['cluster']['name']}_pkg::wide_in_req_t       wide_in_req_i,
+  output ${cfg['cluster']['name']}_pkg::wide_in_resp_t      wide_in_resp_o
 );
 
-  localparam int unsigned NumIntOutstandingLoads [${cfg['nr_cores']}] = '{${core_cfg('num_int_outstanding_loads')}};
-  localparam int unsigned NumIntOutstandingMem [${cfg['nr_cores']}] = '{${core_cfg('num_int_outstanding_mem')}};
-  localparam int unsigned NumFPOutstandingLoads [${cfg['nr_cores']}] = '{${core_cfg('num_fp_outstanding_loads')}};
-  localparam int unsigned NumFPOutstandingMem [${cfg['nr_cores']}] = '{${core_cfg('num_fp_outstanding_mem')}};
-  localparam int unsigned NumDTLBEntries [${cfg['nr_cores']}] = '{${core_cfg('num_dtlb_entries')}};
-  localparam int unsigned NumITLBEntries [${cfg['nr_cores']}] = '{${core_cfg('num_itlb_entries')}};
-  localparam int unsigned NumSequencerInstr [${cfg['nr_cores']}] = '{${core_cfg('num_sequencer_instructions')}};
-  localparam int unsigned NumSsrs [${cfg['nr_cores']}] = '{${core_cfg('num_ssrs')}};
-  localparam int unsigned SsrMuxRespDepth [${cfg['nr_cores']}] = '{${core_cfg('ssr_mux_resp_depth')}};
+  localparam int unsigned NumIntOutstandingLoads [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_int_outstanding_loads')}};
+  localparam int unsigned NumIntOutstandingMem [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_int_outstanding_mem')}};
+  localparam int unsigned NumFPOutstandingLoads [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_fp_outstanding_loads')}};
+  localparam int unsigned NumFPOutstandingMem [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_fp_outstanding_mem')}};
+  localparam int unsigned NumDTLBEntries [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_dtlb_entries')}};
+  localparam int unsigned NumITLBEntries [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_itlb_entries')}};
+  localparam int unsigned NumSequencerInstr [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_sequencer_instructions')}};
+  localparam int unsigned NumSsrs [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_ssrs')}};
+  localparam int unsigned SsrMuxRespDepth [${cfg['cluster']['nr_cores']}] = '{${core_cfg('ssr_mux_resp_depth')}};
 
   // Snitch cluster under test.
   snitch_cluster #(
-    .PhysicalAddrWidth (${cfg['addr_width']}),
-    .NarrowDataWidth (${cfg['data_width']}),
-    .WideDataWidth (${cfg['dma_data_width']}),
-    .NarrowIdWidthIn (${cfg['pkg_name']}::NarrowIdWidthIn),
-    .WideIdWidthIn (${cfg['pkg_name']}::WideIdWidthIn),
-    .NarrowUserWidth (${cfg['pkg_name']}::NarrowUserWidth),
-    .WideUserWidth (${cfg['pkg_name']}::WideUserWidth),
-    .BootAddr (${to_sv_hex(cfg['boot_addr'], 32)}),
-    .IntBootromEnable (${int(cfg['int_bootrom_enable'])}),
-    .narrow_in_req_t (${cfg['pkg_name']}::narrow_in_req_t),
-    .narrow_in_resp_t (${cfg['pkg_name']}::narrow_in_resp_t),
-    .narrow_out_req_t (${cfg['pkg_name']}::narrow_out_req_t),
-    .narrow_out_resp_t (${cfg['pkg_name']}::narrow_out_resp_t),
-    .wide_out_req_t (${cfg['pkg_name']}::wide_out_req_t),
-    .wide_out_resp_t (${cfg['pkg_name']}::wide_out_resp_t),
-    .wide_in_req_t (${cfg['pkg_name']}::wide_in_req_t),
-    .wide_in_resp_t (${cfg['pkg_name']}::wide_in_resp_t),
-    .NrHives (${cfg['nr_hives']}),
-    .NrCores (${cfg['nr_cores']}),
-    .TCDMDepth (${cfg['tcdm']['depth']}),
+    .PhysicalAddrWidth (${cfg['cluster']['addr_width']}),
+    .NarrowDataWidth (${cfg['cluster']['data_width']}),
+    .WideDataWidth (${cfg['cluster']['dma_data_width']}),
+    .NarrowIdWidthIn (${cfg['cluster']['name']}_pkg::NarrowIdWidthIn),
+    .WideIdWidthIn (${cfg['cluster']['name']}_pkg::WideIdWidthIn),
+    .NarrowUserWidth (${cfg['cluster']['name']}_pkg::NarrowUserWidth),
+    .WideUserWidth (${cfg['cluster']['name']}_pkg::WideUserWidth),
+    .BootAddr (${to_sv_hex(cfg['cluster']['boot_addr'], 32)}),
+    .IntBootromEnable (${int(cfg['cluster']['int_bootrom_enable'])}),
+    .narrow_in_req_t (${cfg['cluster']['name']}_pkg::narrow_in_req_t),
+    .narrow_in_resp_t (${cfg['cluster']['name']}_pkg::narrow_in_resp_t),
+    .narrow_out_req_t (${cfg['cluster']['name']}_pkg::narrow_out_req_t),
+    .narrow_out_resp_t (${cfg['cluster']['name']}_pkg::narrow_out_resp_t),
+    .wide_out_req_t (${cfg['cluster']['name']}_pkg::wide_out_req_t),
+    .wide_out_resp_t (${cfg['cluster']['name']}_pkg::wide_out_resp_t),
+    .wide_in_req_t (${cfg['cluster']['name']}_pkg::wide_in_req_t),
+    .wide_in_resp_t (${cfg['cluster']['name']}_pkg::wide_in_resp_t),
+    .NrHives (${cfg['cluster']['nr_hives']}),
+    .NrCores (${cfg['cluster']['nr_cores']}),
+    .TCDMDepth (${cfg['cluster']['tcdm']['depth']}),
     .ZeroMemorySize (snitch_cluster_pkg::ZeroMemorySize),
     .BootRomSize (snitch_cluster_pkg::BootromSize),
     .ClusterPeriphSize (snitch_cluster_pkg::ClusterPeriphSize),
-    .NrBanks (${cfg['tcdm']['banks']}),
-    .DMANumAxInFlight (${cfg['dma_axi_req_fifo_depth']}),
-    .DMAReqFifoDepth (${cfg['dma_req_fifo_depth']}),
-    .DMANumChannels (${cfg['dma_nr_channels']}),
-    .ICacheLineWidth (${cfg['pkg_name']}::ICacheLineWidth),
-    .ICacheLineCount (${cfg['pkg_name']}::ICacheLineCount),
-    .ICacheSets (${cfg['pkg_name']}::ICacheSets),
-    .VMSupport (${int(cfg['vm_support'])}),
+    .NrBanks (${cfg['cluster']['tcdm']['banks']}),
+    .DMANumAxInFlight (${cfg['cluster']['dma_axi_req_fifo_depth']}),
+    .DMAReqFifoDepth (${cfg['cluster']['dma_req_fifo_depth']}),
+    .DMANumChannels (${cfg['cluster']['dma_nr_channels']}),
+    .ICacheLineWidth (${cfg['cluster']['name']}_pkg::ICacheLineWidth),
+    .ICacheLineCount (${cfg['cluster']['name']}_pkg::ICacheLineCount),
+    .ICacheSets (${cfg['cluster']['name']}_pkg::ICacheSets),
+    .VMSupport (${int(cfg['cluster']['vm_support'])}),
     .RVE (${core_isa('e')}),
     .RVF (${core_isa('f')}),
     .RVD (${core_isa('d')}),
@@ -299,54 +303,54 @@ module ${cfg['name']}_wrapper (
     .Xdma (${core_cfg_flat('xdma')}),
     .Xssr (${core_cfg_flat('xssr')}),
     .Xfrep (${core_cfg_flat('xfrep')}),
-    .FPUImplementation (${cfg['pkg_name']}::FPUImplementation),
-    .SnitchPMACfg (${cfg['pkg_name']}::SnitchPMACfg),
+    .FPUImplementation (${cfg['cluster']['name']}_pkg::FPUImplementation),
+    .SnitchPMACfg (${cfg['cluster']['name']}_pkg::SnitchPMACfg),
     .NumIntOutstandingLoads (NumIntOutstandingLoads),
     .NumIntOutstandingMem (NumIntOutstandingMem),
     .NumFPOutstandingLoads (NumFPOutstandingLoads),
     .NumFPOutstandingMem (NumFPOutstandingMem),
     .NumDTLBEntries (NumDTLBEntries),
     .NumITLBEntries (NumITLBEntries),
-    .NumSsrsMax (${cfg['num_ssrs_max']}),
+    .NumSsrsMax (${cfg['cluster']['num_ssrs_max']}),
     .NumSsrs (NumSsrs),
     .SsrMuxRespDepth (SsrMuxRespDepth),
-    .SsrRegs (${cfg['pkg_name']}::SsrRegs),
-    .SsrCfgs (${cfg['pkg_name']}::SsrCfgs),
+    .SsrRegs (${cfg['cluster']['name']}_pkg::SsrRegs),
+    .SsrCfgs (${cfg['cluster']['name']}_pkg::SsrCfgs),
     .NumSequencerInstr (NumSequencerInstr),
-    .Hive (${cfg['pkg_name']}::Hive),
-    .Topology (snitch_pkg::${cfg['tcdm']['topology']}),
-    .Radix (${int(cfg['tcdm']['radix'])}),
-    .NumSwitchNets (${int(cfg['tcdm']['num_switch_nets'])}),
-    .SwitchLfsrArbiter (${int(cfg['tcdm']['switch_lfsr_arbiter'])}),
-    .RegisterOffloadReq (${int(cfg['timing']['register_offload_req'])}),
-    .RegisterOffloadRsp (${int(cfg['timing']['register_offload_rsp'])}),
-    .RegisterCoreReq (${int(cfg['timing']['register_core_req'])}),
-    .RegisterCoreRsp (${int(cfg['timing']['register_core_rsp'])}),
-    .RegisterTCDMCuts (${int(cfg['timing']['register_tcdm_cuts'])}),
-    .RegisterExtWide (${int(cfg['timing']['register_ext_wide'])}),
-    .RegisterExtNarrow (${int(cfg['timing']['register_ext_narrow'])}),
-    .RegisterFPUReq (${int(cfg['timing']['register_fpu_req'])}),
-    .RegisterFPUIn (${int(cfg['timing']['register_fpu_in'])}),
-    .RegisterFPUOut (${int(cfg['timing']['register_fpu_out'])}),
-    .RegisterSequencer (${int(cfg['timing']['register_sequencer'])}),
-    .IsoCrossing (${int(cfg['timing']['iso_crossings'])}),
-    .NarrowXbarLatency (axi_pkg::${cfg['timing']['narrow_xbar_latency']}),
-    .WideXbarLatency (axi_pkg::${cfg['timing']['wide_xbar_latency']}),
-    .WideMaxMstTrans (${cfg['wide_trans']}),
-    .WideMaxSlvTrans (${cfg['wide_trans']}),
-    .NarrowMaxMstTrans (${cfg['narrow_trans']}),
-    .NarrowMaxSlvTrans (${cfg['narrow_trans']}),
-    .sram_cfg_t (${cfg['pkg_name']}::sram_cfg_t),
-    .sram_cfgs_t (${cfg['pkg_name']}::sram_cfgs_t),
-    .CaqDepth (${int(cfg['caq_depth'])}),
-    .CaqTagWidth (${int(cfg['caq_tag_width'])}),
-    .DebugSupport (${int(cfg['enable_debug'])}),
-    .AliasRegionEnable (${int(cfg['alias_region_enable'])}),
-    .AliasRegionBase (${int(cfg['alias_region_base'])})
+    .Hive (${cfg['cluster']['name']}_pkg::Hive),
+    .Topology (snitch_pkg::${cfg['cluster']['tcdm']['topology']}),
+    .Radix (${int(cfg['cluster']['tcdm']['radix'])}),
+    .NumSwitchNets (${int(cfg['cluster']['tcdm']['num_switch_nets'])}),
+    .SwitchLfsrArbiter (${int(cfg['cluster']['tcdm']['switch_lfsr_arbiter'])}),
+    .RegisterOffloadReq (${int(cfg['cluster']['timing']['register_offload_req'])}),
+    .RegisterOffloadRsp (${int(cfg['cluster']['timing']['register_offload_rsp'])}),
+    .RegisterCoreReq (${int(cfg['cluster']['timing']['register_core_req'])}),
+    .RegisterCoreRsp (${int(cfg['cluster']['timing']['register_core_rsp'])}),
+    .RegisterTCDMCuts (${int(cfg['cluster']['timing']['register_tcdm_cuts'])}),
+    .RegisterExtWide (${int(cfg['cluster']['timing']['register_ext_wide'])}),
+    .RegisterExtNarrow (${int(cfg['cluster']['timing']['register_ext_narrow'])}),
+    .RegisterFPUReq (${int(cfg['cluster']['timing']['register_fpu_req'])}),
+    .RegisterFPUIn (${int(cfg['cluster']['timing']['register_fpu_in'])}),
+    .RegisterFPUOut (${int(cfg['cluster']['timing']['register_fpu_out'])}),
+    .RegisterSequencer (${int(cfg['cluster']['timing']['register_sequencer'])}),
+    .IsoCrossing (${int(cfg['cluster']['timing']['iso_crossings'])}),
+    .NarrowXbarLatency (axi_pkg::${cfg['cluster']['timing']['narrow_xbar_latency']}),
+    .WideXbarLatency (axi_pkg::${cfg['cluster']['timing']['wide_xbar_latency']}),
+    .WideMaxMstTrans (${cfg['cluster']['wide_trans']}),
+    .WideMaxSlvTrans (${cfg['cluster']['wide_trans']}),
+    .NarrowMaxMstTrans (${cfg['cluster']['narrow_trans']}),
+    .NarrowMaxSlvTrans (${cfg['cluster']['narrow_trans']}),
+    .sram_cfg_t (${cfg['cluster']['name']}_pkg::sram_cfg_t),
+    .sram_cfgs_t (${cfg['cluster']['name']}_pkg::sram_cfgs_t),
+    .CaqDepth (${int(cfg['cluster']['caq_depth'])}),
+    .CaqTagWidth (${int(cfg['cluster']['caq_tag_width'])}),
+    .DebugSupport (${int(cfg['cluster']['enable_debug'])}),
+    .AliasRegionEnable (${int(cfg['cluster']['alias_region_enable'])}),
+    .AliasRegionBase (${int(cfg['cluster']['alias_region_base'])})
   ) i_cluster (
     .clk_i,
     .rst_ni,
-% if cfg['enable_debug']:
+% if cfg['cluster']['enable_debug']:
     .debug_req_i,
 % else:
     .debug_req_i ('0),
@@ -354,22 +358,22 @@ module ${cfg['name']}_wrapper (
     .meip_i,
     .mtip_i,
     .msip_i,
-% if cfg['cluster_base_expose']:
+% if cfg['cluster']['cluster_base_expose']:
     .hart_base_id_i,
     .cluster_base_addr_i,
 % else:
     .hart_base_id_i (snitch_cluster_pkg::CfgBaseHartId),
     .cluster_base_addr_i (snitch_cluster_pkg::CfgClusterBaseAddr),
 % endif
-% if cfg['timing']['iso_crossings']:
+% if cfg['cluster']['timing']['iso_crossings']:
     .clk_d2_bypass_i,
 % else:
     .clk_d2_bypass_i (1'b0),
 % endif
-% if cfg['sram_cfg_expose']:
+% if cfg['cluster']['sram_cfg_expose']:
     .sram_cfgs_i (sram_cfgs_i),
 % else:
-    .sram_cfgs_i (${cfg['pkg_name']}::sram_cfgs_t'('0)),
+    .sram_cfgs_i (${cfg['cluster']['name']}_pkg::sram_cfgs_t'('0)),
 %endif
     .narrow_in_req_i,
     .narrow_in_resp_o,

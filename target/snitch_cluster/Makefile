@@ -56,8 +56,8 @@ PERIPH_DIR        ?= $(ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral
 # (LRU) config, all targets depending on the configuration file have
 # to be rebuilt. This file is used to express this condition as a
 # prerequisite for other rules.
-DEFAULT_CFG = cfg/default.hjson
-CFG         = cfg/lru.hjson
+DEFAULT_CFG = cfg/default.json
+CFG         = cfg/lru.json
 
 # Common dependency for all RTL simulators
 $(BIN_DIR):
@@ -161,17 +161,14 @@ clean-rtl:
 $(GENERATED_DIR):
 	mkdir -p $@
 
-$(GENERATED_DIR)/snitch_cluster_wrapper.sv: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --wrapper
+CLUSTER_GEN_TPL = $(ROOT)/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl
+LINK_LD_TPL     = $(ROOT)/hw/snitch_cluster/test/link.ld.tpl
+BOOTDATA_TPL    = $(ROOT)/hw/snitch_cluster/test/bootdata.cc.tpl
 
-$(GENERATED_DIR)/link.ld: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --linker
-
-$(GENERATED_DIR)/memories.json: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --memories
-
-$(GENERATED_DIR)/bootdata.cc: ${CFG} ${CLUSTER_GEN_PREREQ} | $(GENERATED_DIR)
-	$(CLUSTER_GEN) -c $< -o $(GENERATED_DIR) --bootdata
+# OCCAMYGEN artifacts
+$(eval $(call cluster_gen_rule,$(GENERATED_DIR)/snitch_cluster_wrapper.sv,$(CLUSTER_GEN_TPL)))
+$(eval $(call cluster_gen_rule,$(GENERATED_DIR)/link.ld,$(LINK_LD_TPL)))
+$(eval $(call cluster_gen_rule,$(GENERATED_DIR)/bootdata.cc,$(BOOTDATA_TPL)))
 
 # REGGEN regfile
 $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv

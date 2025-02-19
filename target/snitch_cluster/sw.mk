@@ -17,21 +17,20 @@ clean: clean-sw
 # Platform headers #
 ####################
 
-CLUSTER_GEN_HEADERS = snitch_cluster_cfg.h \
-					  snitch_cluster_addrmap.h
-
-REGGEN_HEADERS = snitch_cluster_peripheral.h
-
 TARGET_C_HDRS_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/common
-TARGET_C_HDRS     = $(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS) $(REGGEN_HEADERS))
 
-# CLUSTERGEN headers,
-$(addprefix $(TARGET_C_HDRS_DIR)/,$(CLUSTER_GEN_HEADERS)): %.h: $(CFG) $(CLUSTER_GEN_PREREQ) %.h.tpl
-	@echo "[CLUSTERGEN] Generate $@"
-	$(CLUSTER_GEN) -c $< --outdir $(TARGET_C_HDRS_DIR) --template $@.tpl
+SNITCH_CLUSTER_CFG_H        = $(TARGET_C_HDRS_DIR)/snitch_cluster_cfg.h
+SNITCH_CLUSTER_ADDRMAP_H    = $(TARGET_C_HDRS_DIR)/snitch_cluster_addrmap.h
+SNITCH_CLUSTER_PERIPHERAL_H = $(TARGET_C_HDRS_DIR)/snitch_cluster_peripheral.h
+
+TARGET_C_HDRS = $(SNITCH_CLUSTER_CFG_H) $(SNITCH_CLUSTER_ADDRMAP_H) $(SNITCH_CLUSTER_PERIPHERAL_H)
+
+# CLUSTERGEN headers
+$(eval $(call cluster_gen_rule,$(SNITCH_CLUSTER_CFG_H),$(SNITCH_CLUSTER_CFG_H).tpl))
+$(eval $(call cluster_gen_rule,$(SNITCH_CLUSTER_ADDRMAP_H),$(SNITCH_CLUSTER_ADDRMAP_H).tpl))
 
 # REGGEN headers
-$(TARGET_C_HDRS_DIR)/snitch_cluster_peripheral.h: $(ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.hjson $(REGGEN)
+$(SNITCH_CLUSTER_PERIPHERAL_H): $(ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.hjson $(REGGEN)
 	$(call reggen_generate_header,$@,$<)
 
 .PHONY: clean-headers
