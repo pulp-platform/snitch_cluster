@@ -47,7 +47,9 @@ module testharness;
   //  VIP  //
   ///////////
 
-  vip_snitch_cluster vip (.*);
+  vip_snitch_cluster #(
+    .ClkPeriod(1ns)
+  ) vip (.*);
 
   initial begin
     // Wait for the reset
