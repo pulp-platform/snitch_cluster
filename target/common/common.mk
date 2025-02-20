@@ -50,6 +50,8 @@ SED_SRCS  := sed -e ${MATCH_END} -e ${MATCH_BGN} -e ${MATCH_DEF}
 
 COMMON_BENDER_FLAGS += -t rtl
 
+GVSOC_BUILDDIR ?= work-gvsoc
+
 VSIM_BENDER   += $(COMMON_BENDER_FLAGS) -t test -t simulation -t vsim
 VSIM_SOURCES   = $(shell ${BENDER} script flist-plus ${VSIM_BENDER} | ${SED_SRCS})
 VSIM_BUILDDIR ?= work-vsim

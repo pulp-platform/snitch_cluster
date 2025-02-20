@@ -215,6 +215,12 @@ $(BIN_DIR)/$(TARGET).vcs: ${VCS_SOURCES} ${TB_SRCS} $(TB_CC_SOURCES) $(RTL_CC_SO
 		-assert disable_cover -override_timescale=1ns/1ps -full64 tb_bin $(TB_CC_SOURCES) $(RTL_CC_SOURCES) \
 		-CFLAGS "$(TB_CC_FLAGS)" -LDFLAGS "-L${FESVR}/lib" -lfesvr
 
+#########
+# GVSOC #
+#########
+
+include $(ROOT)/target/common/gvsoc.mk
+
 ########
 # Util #
 ########

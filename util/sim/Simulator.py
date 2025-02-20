@@ -4,7 +4,7 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-from Simulation import QuestaSimulation, VCSSimulation, VerilatorSimulation, BansheeSimulation
+from Simulation import QuestaSimulation, VCSSimulation, VerilatorSimulation, BansheeSimulation, GvsocSimulation
 
 
 class Simulator(object):
@@ -95,6 +95,23 @@ class RTLSimulator(Simulator):
             sim_bin=self.binary,
             cmd=cmd
         )
+
+class GvsocSimulator(RTLSimulator):
+    """Gvsoc simulator
+
+    An [RTL simulator][Simulator.RTLSimulator], identified by the name
+    `vsim`, tailored to the creation of
+    [Gvsoc simulations][Simulation.GvsocSimulation].
+    """
+
+    def __init__(self, binary):
+        """Constructor for the GvsocSimulator class.
+
+        Arguments:
+            binary: The Gvsoc simulation binary.
+        """
+        super().__init__(binary, name='gvsoc', simulation_cls=GvsocSimulation)
+
 
 
 class VCSSimulator(RTLSimulator):
