@@ -148,9 +148,9 @@ object BlockGemmRescaleSIMDGen {
     val argMap = parseArgs(args)
 
     // Retrieve the specific values, providing defaults or error handling
-    val meshRow = argMap("meshRow")
-    val meshCol = argMap("meshCol")
-    val tileSize = argMap("tileSize")
+    val meshRow = argMap("meshRow").toInt
+    val meshCol = argMap("meshCol").toInt
+    val tileSize = argMap("tileSize").toInt
 
     // set the parameters for the gemm module
     // other parameters are set to default values
@@ -161,9 +161,9 @@ object BlockGemmRescaleSIMDGen {
       GemmConstant.dataWidthC,
       GemmConstant.dataWidthAccum,
       GemmConstant.subtractionCfgWidth,
-      meshRow.toInt,
-      tileSize.toInt,
-      meshCol.toInt,
+      meshRow,
+      tileSize,
+      meshCol,
       GemmConstant.addrWidth,
       GemmConstant.sizeConfigWidth
     )
@@ -172,16 +172,16 @@ object BlockGemmRescaleSIMDGen {
 
     // set the parameters for the simd module to match the output of the gemm module
     // CSR to support per-channel scale factor
-    val SIMDReadWriteCsrNum = 2 + meshCol.toInt / 4 + meshCol.toInt + 1
+    val SIMDReadWriteCsrNum = 2 + meshCol / 4 + meshCol + 1
     val SIMDParamsWithoutPipeline = RescaleSIMDParams(
       inputType = RescaleSIMDConstant.inputType,
       outputType = RescaleSIMDConstant.outputType,
       constantType = RescaleSIMDConstant.constantType,
       constantMulType = RescaleSIMDConstant.constantMulType,
-      dataLen = meshRow.toInt * meshCol.toInt,
-      laneLen = meshRow.toInt * meshCol.toInt,
+      dataLen = meshRow * meshCol,
+      laneLen = meshRow * meshCol,
       readWriteCsrNum = SIMDReadWriteCsrNum,
-      sharedScaleFactorPerGroupSize = meshRow.toInt
+      sharedScaleFactorPerGroupSize = meshRow
     )
 
     emitVerilog(
@@ -213,12 +213,12 @@ object BlockGemmRescaleSIMDGen {
 // Accelerator wrapper
 //-------------------------------
 """
-    val DataWidthA = GemmConstant.dataWidthA * meshRow.toInt * tileSize.toInt
-    val DataWidthB = GemmConstant.dataWidthB * tileSize.toInt * meshCol.toInt
-    val DataWidthC = GemmConstant.dataWidthC * meshRow.toInt * meshCol.toInt
-    val DataWidthD32 = GemmConstant.dataWidthC * meshRow.toInt * meshCol.toInt
+    val DataWidthA = GemmConstant.dataWidthA * meshRow * tileSize
+    val DataWidthB = GemmConstant.dataWidthB * tileSize * meshCol
+    val DataWidthC = GemmConstant.dataWidthC * meshRow * meshCol
+    val DataWidthD32 = GemmConstant.dataWidthC * meshRow * meshCol
     val DataWidthD8 =
-      RescaleSIMDConstant.outputType * meshRow.toInt * meshCol.toInt
+      RescaleSIMDConstant.outputType * meshRow * meshCol
 
     var SIMDCSRConnect = ""
     for (i <- 4 to (4 + SIMDReadWriteCsrNum - 1)) {
@@ -336,5 +336,27 @@ endmodule
       java.nio.file.Paths.get(macro_dir),
       macro_template.getBytes(java.nio.charset.StandardCharsets.UTF_8)
     )
+
+
+  // generate the c runtime file arrording to the hardware configuration
+  val c_template = s"""// Copyright 2023 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
+
+#pragma once
+
+#define meshRow $meshRow
+#define tileSize $tileSize
+#define meshCol $meshCol
+"""
+
+  val c_header_file_path = "../../target/snitch_cluster/sw/snax/gemmx/include/snax-gemmx-params.h"
+
+  java.nio.file.Files.write(
+    java.nio.file.Paths.get(s"${c_header_file_path}"),
+    c_template.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+  )
   }
 }

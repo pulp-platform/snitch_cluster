@@ -48,9 +48,15 @@ quantized_output_data_width = 8
 
 def emit_matmul_data(**kwargs):
 
-    meshRow = kwargs["meshRow"]
-    tileSize = kwargs["tileSize"]
-    meshCol = kwargs["meshCol"]
+    meshRow = kwargs["snax_streamer_gemmX_core_template"]["snax_acc_cfg"][
+        "snax_gemmx_mesh_row"
+    ]
+    tileSize = kwargs["snax_streamer_gemmX_core_template"]["snax_acc_cfg"][
+        "snax_gemmx_tile_size"
+    ]
+    meshCol = kwargs["snax_streamer_gemmX_core_template"]["snax_acc_cfg"][
+        "snax_gemmx_mesh_col"
+    ]
 
     # matmul settings
     data_str = []
@@ -329,7 +335,9 @@ def emit_gemmx_data(**kwargs):
     data_str += [format_scalar_definition("int32_t", "bypassSIMD", bypassSIMD)]
 
     # Generating random constant values
-    group_num = kwargs["meshCol"]
+    group_num = kwargs["snax_streamer_gemmX_core_template"]["snax_acc_cfg"][
+        "snax_gemmx_mesh_col"
+    ]
     input_zp_i = np.random.randint(MIN, MAX)
     output_zp_i = np.random.randint(MIN, MAX)
     max_int_i = MAX
@@ -398,20 +406,32 @@ def main():
     # Parsing cmd args
     parser = argparse.ArgumentParser(description="Generate data for kernels")
     parser.add_argument(
-        "-c",
-        "--cfg",
+        "--swcfg",
         type=pathlib.Path,
         required=True,
         help="Select param config file kernel",
     )
+    parser.add_argument(
+        "--hwcfg",
+        type=pathlib.Path,
+        required=True,
+        help="Select hardware config file kernel",
+    )
     args = parser.parse_args()
 
     # Load param config file
-    with args.cfg.open() as f:
+    with args.swcfg.open() as f:
         param = hjson.loads(f.read())
 
+    # Load hardware config file
+    with args.hwcfg.open() as f:
+        hw = hjson.loads(f.read())
+
+    # Merge dictionaries (hw overrides param in case of conflicts)
+    merged_config = {**param, **hw}
+
     # Emit header file
-    print(emit_header_file(**param))
+    print(emit_header_file(**merged_config))
 
 
 if __name__ == "__main__":
