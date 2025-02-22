@@ -4,7 +4,7 @@
 #
 # Authors: Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-import sys
+import warnings
 
 
 class Sequencer(object):
@@ -194,10 +194,8 @@ class Sequencer(object):
         if self.loop_cfg:
             warn = True
             loop_nest = ', '.join([str(loop['pc']) for loop in self.loop_cfg])
-            sys.stderr.write('WARNING: Not all FPSS instructions from loop nest '
-                             f'({loop_nest}) were issued.\n')
+            warnings.warn(f'Not all FPSS instructions from loop nest ({loop_nest}) were issued.')
         if unseq_insns:
             warn = True
-            sys.stderr.write(f'WARNING: {unseq_insns} unsequenced FPSS instructions '
-                             'were not issued.\n')
+            warnings.warn(f'{unseq_insns} unsequenced FPSS instructions were not issued.')
         return warn

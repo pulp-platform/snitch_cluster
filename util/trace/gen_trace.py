@@ -47,11 +47,7 @@ from typing import Optional
 from itertools import tee, islice, chain
 from functools import lru_cache
 from snitch.util.trace.sequencer import Sequencer
-
-EXTRA_WB_WARN = 'WARNING: {} transactions still in flight for {}.'
-
-GENERAL_WARN = """WARNING: Inconsistent final state; performance metrics
-may be inaccurate. Is this trace complete?\n"""
+import warnings
 
 DASM_IN_REGEX = r'DASM\(([0-9a-fA-F]+)\)'
 
@@ -741,12 +737,11 @@ def annotate_snitch(extras: dict,
             start_time = gpr_wb_info[extras['lsu_rd']].pop()
             perf_metrics[-1]['snitch_load_latency'] += cycle - start_time
         except IndexError:
-            msg_type = 'WARNING' if permissive else 'FATAL'
-            sys.stderr.write(
-                '{}: In cycle {}, LSU attempts writeback to {}, but none in flight.\n'
-                .format(msg_type, cycle, REG_ABI_NAMES_I[extras['lsu_rd']]))
-            if not permissive:
-                sys.exit(1)
+            message = (
+                f"In cycle {cycle}, LSU attempts writeback to "
+                f"{REG_ABI_NAMES_I[extras['lsu_rd']]}, but none is in flight."
+            )
+            warnings.warn(message)
         ret.append('(lsu) {:<3} <-- {}'.format(
             REG_ABI_NAMES_I[extras['lsu_rd']],
             int_lit(extras['ld_result_32'])))
@@ -822,13 +817,11 @@ def annotate_fpu(
                     perf_metrics[curr_sec][
                         'fpss_fpu_latency'] += cycle - start_time
             except IndexError:
-                msg_type = 'WARNING' if permissive else 'FATAL'
-                sys.stderr.write(
-                    '{}: In cycle {}, {} attempts writeback to {}, but none in flight.\n'
-                    .format(msg_type, cycle, writer.upper(),
-                            REG_ABI_NAMES_F[extras['fpr_waddr']]))
-                if not permissive:
-                    sys.exit(1)
+                message = (
+                    f'In cycle {cycle}, {writer.upper()} attempts writeback to '
+                    f'{REG_ABI_NAMES_F[extras["fpr_waddr"]]}, but none in flight.'
+                )
+                warnings.warn(message)
         ret.append('(f:{}) {:<4} <-- {}'.format(
             writer, REG_ABI_NAMES_F[extras['fpr_waddr']],
             flt_lit(extras['fpr_wdata'], fmt, vlen=vlen)))
@@ -1057,7 +1050,7 @@ def main():
         '-p',
         '--permissive',
         action='store_true',
-        help='Ignore some state-related issues when they occur')
+        help='State-related errors are reported as warnings')
     parser.add_argument(
         '--dma-trace',
         help='Path to a DMA trace file'
@@ -1084,6 +1077,15 @@ def main():
     )
 
     args = parser.parse_args()
+
+    # Raise errors on warnings unless disabled on the command-line
+    warnings.filterwarnings('default' if args.permissive else 'error', category=UserWarning)
+
+    # Simplify warnings to print only filename, lineno and message
+    def custom_formatwarning(message, category, filename, lineno, line=None):
+        return f"{filename}:{lineno}: {message}\n"
+    warnings.formatwarning = custom_formatwarning
+
     line_iter = iter(args.infile.readline, b'')
 
     with args.output as file:
@@ -1155,22 +1157,25 @@ def main():
 
     # Check for any loose ends and warn before exiting
     warn_trip = False
+    wb_msg = '{} transactions still in flight for {}.'
     for fpr, que in fpr_wb_info.items():
         if len(que) != 0:
             warn_trip = True
-            sys.stderr.write(
-                EXTRA_WB_WARN.format(len(que), REG_ABI_NAMES_F[fpr]) + '\n')
+            warnings.warn(wb_msg.format(len(que), REG_ABI_NAMES_F[fpr]))
     for gpr, que in gpr_wb_info.items():
         if len(que) != 0:
             warn_trip = True
-            sys.stderr.write(
-                EXTRA_WB_WARN.format(len(que), REG_ABI_NAMES_I[gpr]) + '\n')
+            warnings.warn(wb_msg.format(len(que), REG_ABI_NAMES_I[gpr]))
     # Check final state of sequencer is clean
     if sequencer.terminate():
         warn_trip = True
     # Issue an additional general warning if any specific warnings were raised
     if warn_trip:
-        sys.stderr.write(GENERAL_WARN)
+        message = (
+            'Inconsistent final state; performance metrics '
+            'may be inaccurate. Is this trace complete?'
+        )
+        warnings.warn(message)
     return 0
 
 
