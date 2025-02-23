@@ -5,7 +5,9 @@
 `include "axi/typedef.svh"
 `include "axi/assign.svh"
 
-module testharness;
+module testharness #(
+  parameter realtime ClkPeriod = 1ns
+);
 
   import snitch_cluster_pkg::*;
 
@@ -57,7 +59,7 @@ module testharness;
   ///////////
 
   vip_snitch_cluster #(
-    .ClkPeriod(1ns)
+    .ClkPeriod(ClkPeriod)
   ) vip (
     .clk,
     .rst_n,
