@@ -63,7 +63,7 @@ class Simulation(object):
             self.dry_run = dry_run
 
         # Print launch message and simulation command
-        cprint(f'Run test {colored(self.elf, "cyan")}', attrs=["bold"])
+        cprint(f'Run test {colored(self.elf, "cyan")}', attrs=["bold"], flush=True)
         cmd_string = ' '.join(self.cmd)
         print(f'[{self.run_dir}]$ {cmd_string}', flush=True)
 

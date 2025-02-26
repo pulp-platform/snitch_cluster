@@ -79,6 +79,8 @@ def parser(default_simulator='vsim', simulator_choices=['vsim']):
     parser = argparse.ArgumentParser()
     parser.add_argument(
         'testlist',
+        nargs='?',
+        default=None,
         help='File specifying a list of apps to run')
     parser.add_argument(
         '--simulator',

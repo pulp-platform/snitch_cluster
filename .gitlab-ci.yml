@@ -166,9 +166,9 @@ snitch-cluster-copift-sc-vsim:
     - cd target/snitch_cluster
     - make CFG_OVERRIDE=experiments/copift/cfg.json vsim
     - cd experiments/copift
-    - ./experiments.py experiments.yaml sw run perf -j
+    - ./experiments.py experiments.yaml --actions sw run perf -j
     - cd ../../experiments/chaining
-    - ./experiments.py experiments.yaml sw run perf -j
+    - ./experiments.py experiments.yaml --actions sw run perf -j
 
 ############
 # Non-free #
