@@ -38,9 +38,9 @@ class AxpyDataGen(du.DataGen):
 
         self.validate(**kwargs)
 
-        a = du.generate_random_array(1)[0]
-        x = du.generate_random_array(kwargs['n'])
-        y = du.generate_random_array(kwargs['n'])
+        a = du.generate_random_array(1, seed=0)[0]
+        x = du.generate_random_array(kwargs['n'], seed=0)
+        y = du.generate_random_array(kwargs['n'], seed=0)
         g = self.golden_model(a, x, y)
 
         x_uid = 'x'
