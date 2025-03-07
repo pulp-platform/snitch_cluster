@@ -156,9 +156,7 @@
             // DataMaestro Cfg
             reader_buffer: 4, 
             writer_buffer: 4, 
-            reader_agu_spatial_bounds: "8",
             reader_agu_temporal_dimension: 6, 
-            writer_agu_spatial_bounds: "8",
             writer_agu_temporal_dimension: 6, 
             // Extension Cfg
             HasVerilogMemset: {},

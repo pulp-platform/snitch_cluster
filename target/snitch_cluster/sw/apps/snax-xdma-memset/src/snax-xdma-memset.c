@@ -85,17 +85,14 @@ int main() {
         printf(
             "Test 2: Setting the 4K-12K region back to 0 by disabling all "
             "reader channels\n");
-        uint32_t sstride_src_t2[1] = {0};
         uint32_t tstride_src_t2[1] = {64};
-        uint32_t sstride_dst_t2[1] = {8};
         uint32_t tstride_dst_t2[1] = {64};
         uint32_t tbound_src_t2[1] = {128};
         uint32_t tbound_dst_t2[1] = {128};
 
-        if (xdma_memcpy_nd(tcdm_0, tcdm_0 + 0x1000 * sizeof(uint8_t),
-                           sstride_src_t2, sstride_dst_t2, 1, tstride_src_t2,
-                           tbound_src_t2, 1, tstride_dst_t2, tbound_dst_t2, 0x0,
-                           0xffffffff, 0xffffffff) != 0) {
+        if (xdma_memcpy_nd(tcdm_0, tcdm_0 + 0x1000 * sizeof(uint8_t), 0, 8, 1,
+                           tstride_src_t2, tbound_src_t2, 1, tstride_dst_t2,
+                           tbound_dst_t2, 0x0, 0xffffffff, 0xffffffff) != 0) {
             printf("Error in xdma agu configuration\n");
             err++;
         } else {
@@ -148,16 +145,13 @@ int main() {
         printf(
             "Test 3: Setting the 4-12KB region to 0x0000000000000001 (uint64_t "
             "1)\n");
-        uint32_t sstride_src_t3[1] = {8};
-        uint32_t sstride_dst_t3[1] = {8};
         uint32_t tstride_src_t3[1] = {64};
         uint32_t tstride_dst_t3[1] = {64};
         uint32_t tbound_src_t3[1] = {128};
         uint32_t tbound_dst_t3[1] = {128};
-        if (xdma_memcpy_nd(tcdm_0, tcdm_0 + 0x1000 * sizeof(uint8_t),
-                           sstride_src_t3, sstride_dst_t3, 1, tstride_src_t3,
-                           tbound_src_t3, 1, tstride_dst_t3, tbound_dst_t3,
-                           0xffffffff, 0xffffffff, 0x1) != 0) {
+        if (xdma_memcpy_nd(tcdm_0, tcdm_0 + 0x1000 * sizeof(uint8_t), 8, 8, 1,
+                           tstride_src_t3, tbound_src_t3, 1, tstride_dst_t3,
+                           tbound_dst_t3, 0xffffffff, 0xffffffff, 0x1) != 0) {
             printf("Error in xdma agu configuration\n");
             err++;
         } else {

@@ -22,16 +22,12 @@ int main() {
 
     if (snrt_is_dm_core()) {
         // The xdma core is the last compute core in the cluster
-        uint32_t sstride_src[1] = {0};
-        uint32_t sstride_dst[1] = {0};
         uint32_t tstride_src[5] = {0};
         uint32_t tbound_src[5] = {0};
         uint32_t tstride_dst[3] = {0};
         uint32_t tbound_dst[3] = {0};
 
         // Load the CFG from data.h
-        sstride_src[0] = spatialStride1_in;
-        sstride_dst[0] = spatialStride1_out;
         tstride_src[0] = tempStride0_in;
         tstride_src[1] = tempStride1_in;
         tstride_src[2] = tempStride2_in;
@@ -78,8 +74,8 @@ int main() {
         }
 
         // --------------------- Configure the AGU --------------------- //
-        xdma_memcpy_nd(tcdm_in, tcdm_out, sstride_src, sstride_dst, 5,
-                       tstride_src, tbound_src, 3, tstride_dst, tbound_dst,
+        xdma_memcpy_nd(tcdm_in, tcdm_out, spatialStride1_in, spatialStride1_out,
+                       5, tstride_src, tbound_src, 3, tstride_dst, tbound_dst,
                        0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
         int task_id = xdma_start();
         xdma_wait(task_id);

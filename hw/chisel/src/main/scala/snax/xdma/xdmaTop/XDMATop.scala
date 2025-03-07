@@ -192,11 +192,9 @@ object XDMATopGen extends App {
   )
 
   val readerparam = new ReaderWriterParam(
-    spatialBounds = (parsedXdmaCfg \ "reader_agu_spatial_bounds")
-      .as[String]
-      .split(",")
-      .map(_.toInt)
-      .toList,
+    spatialBounds = List(
+      parsedArgs("axiDataWidth").toInt / parsedArgs("tcdmDataWidth").toInt
+    ),
     temporalDimension =
       (parsedXdmaCfg \ "reader_agu_temporal_dimension").as[Int],
     tcdmDataWidth = parsedArgs("tcdmDataWidth").toInt,
@@ -209,11 +207,9 @@ object XDMATopGen extends App {
   )
 
   val writerparam = new ReaderWriterParam(
-    spatialBounds = (parsedXdmaCfg \ "writer_agu_spatial_bounds")
-      .as[String]
-      .split(",")
-      .map(_.toInt)
-      .toList,
+    spatialBounds = List(
+      parsedArgs("axiDataWidth").toInt / parsedArgs("tcdmDataWidth").toInt
+    ),
     temporalDimension =
       (parsedXdmaCfg \ "writer_agu_temporal_dimension").as[Int],
     tcdmDataWidth = parsedArgs("tcdmDataWidth").toInt,
@@ -326,10 +322,9 @@ return new ${i._1}(${i._2
 #define XDMA_DST_ADDR_PTR_MSB XDMA_DST_ADDR_PTR_LSB + 1
 
 // The stride and bound region of the reader of XDMA
-#define XDMA_SRC_SPATIAL_DIM ${readerparam.aguParam.spatialBounds.length}
 #define XDMA_SRC_TEMP_DIM ${readerparam.aguParam.temporalDimension}
 #define XDMA_SRC_SPATIAL_STRIDE_PTR XDMA_DST_ADDR_PTR_LSB + XDMA_MAX_DST_COUNT * 2
-#define XDMA_SRC_TEMP_BOUND_PTR XDMA_SRC_SPATIAL_STRIDE_PTR + XDMA_SRC_SPATIAL_DIM
+#define XDMA_SRC_TEMP_BOUND_PTR XDMA_SRC_SPATIAL_STRIDE_PTR + 1
 #define XDMA_SRC_TEMP_STRIDE_PTR XDMA_SRC_TEMP_BOUND_PTR + XDMA_SRC_TEMP_DIM
 
 // The channel and strobe region of the reader of XDMA
@@ -350,10 +345,9 @@ return new ${i._1}(${i._2
     { ${readerextensionparam.map(_.extensionParam.userCsrNum).mkString(", ")} }
 
 // The stride and bound region of the writer of XDMA
-#define XDMA_DST_SPATIAL_DIM ${writerparam.aguParam.spatialBounds.length}
 #define XDMA_DST_TEMP_DIM ${writerparam.aguParam.temporalDimension}
 #define XDMA_DST_SPATIAL_STRIDE_PTR XDMA_SRC_EXT_CSR_PTR + XDMA_SRC_EXT_CSR_NUM
-#define XDMA_DST_TEMP_BOUND_PTR XDMA_DST_SPATIAL_STRIDE_PTR + XDMA_DST_SPATIAL_DIM
+#define XDMA_DST_TEMP_BOUND_PTR XDMA_DST_SPATIAL_STRIDE_PTR + 1
 #define XDMA_DST_TEMP_STRIDE_PTR XDMA_DST_TEMP_BOUND_PTR + XDMA_DST_TEMP_DIM
 
 #define XDMA_DST_ENABLED_CHAN_PTR XDMA_DST_TEMP_STRIDE_PTR + XDMA_DST_TEMP_DIM
