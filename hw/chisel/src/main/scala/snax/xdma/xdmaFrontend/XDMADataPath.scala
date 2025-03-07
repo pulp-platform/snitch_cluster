@@ -20,21 +20,13 @@ import snax.DataPathExtension._
 
 // The ReaderWriterCfg Class that used for interface between local Datapath and DMA Ctrl
 // The length of addresses is the short version, which is just enough to reside TCDM
-class DMADataPathCfgIO(param: DMADataPathParam) extends Bundle {
+class XDMADataPathCfgIO(param: XDMADataPathParam) extends Bundle {
   val aguCfg =
     new AddressGenUnitCfgIO(param =
       param.rwParam.aguParam
     ) // Buffered within AGU
   val readerwriterCfg = new ReaderWriterCfgIO(param.rwParam)
-
-  def connectReaderWriterCfgWithList(
-      csrList: IndexedSeq[UInt]
-  ): IndexedSeq[UInt] = {
-    var remaincsrList = csrList
-    remaincsrList = aguCfg.connectWithList(remaincsrList)
-    remaincsrList = readerwriterCfg.connectWithList(remaincsrList)
-    remaincsrList
-  }
+  val loopBack = Bool()
 
   val extCfg = if (param.extParam.length != 0) {
     Vec(
@@ -43,84 +35,21 @@ class DMADataPathCfgIO(param: DMADataPathParam) extends Bundle {
     ) // The total csr required by all extension + 1 for the bypass signal
   } else Vec(0, UInt(32.W))
 
-  // The config forwarding technics is easy to be implemented: Just by reading agu_cfg.Ptr, the destination can be determined
-  // However, the data forwarding is still challenging: Shall we use the current DMA to move the data? (I suggest that we do this in the initial implementation)
-  // Serialize function to convert config into one long UInt
-  def serialize(): UInt = {
-    extCfg.asUInt ++ readerwriterCfg.asUInt ++ aguCfg.asUInt
-  }
-
-  // Deserialize function to convert long UInt back to config
-  // The conversion is done from LSB to MSB
-  // After the conversion, the remaining data is returned for further conversion
-  def deserialize(data: UInt): UInt = {
-    var remainingData = data
-
-    // Assigning aguCfg
-    aguCfg := remainingData(aguCfg.asUInt.getWidth - 1, 0).asTypeOf(aguCfg)
-    remainingData = remainingData(remainingData.getWidth - 1, aguCfg.getWidth)
-
-    // Assigning readerwriterCfg
-    readerwriterCfg := remainingData(readerwriterCfg.asUInt.getWidth - 1, 0)
-      .asTypeOf(readerwriterCfg)
-    remainingData =
-      remainingData(remainingData.getWidth - 1, readerwriterCfg.asUInt.getWidth)
-
-    // Assigning extCfg
-    extCfg := remainingData(extCfg.asUInt.getWidth - 1, 0).asTypeOf(extCfg)
-    remainingData =
-      remainingData(remainingData.getWidth - 1, extCfg.asUInt.getWidth)
-    remainingData
-  }
-}
-
-// The internal sturctured class that used to store the CFG of reader and writer
-// The serialized version of this class will be the actual output and input of the DMACtrl (which is to AXI)
-// The full address is included in this class, for the purpose of cross-cluster communication
-// Loopback signal is also included in this class, for the purpose of early judgement
-class DMADataPathCfgInternalIO(param: DMADataPathParam)
-    extends DMADataPathCfgIO(param: DMADataPathParam) {
-  val loopBack = Bool()
-  val readerPtr = UInt(param.axiParam.addrWidth.W)
-  val writerPtr = UInt(param.axiParam.addrWidth.W)
-  override def connectReaderWriterCfgWithList(
+  def connectWithList(
       csrList: IndexedSeq[UInt]
   ): IndexedSeq[UInt] = {
-    var remainingCSR = csrList
-    readerPtr := Cat(remainingCSR(1), remainingCSR(0))
-    writerPtr := Cat(remainingCSR(1), remainingCSR(0))
-    remainingCSR = super.connectReaderWriterCfgWithList(remainingCSR)
-    remainingCSR
+    var remaincsrList = csrList
+    remaincsrList = aguCfg.connectWithList(remaincsrList)
+    remaincsrList = readerwriterCfg.connectWithList(remaincsrList)
+    extCfg := remaincsrList.take(extCfg.length)
+    remaincsrList = remaincsrList.drop(extCfg.length)
+    remaincsrList
   }
-  override def serialize(): UInt = {
-    super.serialize() ++ writerPtr ++ readerPtr
-  }
-
-  override def deserialize(data: UInt): UInt = {
-    var remainingData = data;
-
-    // Assigning readerPtr + writerPtr
-    readerPtr := remainingData(readerPtr.getWidth - 1, 0)
-    remainingData =
-      remainingData(remainingData.getWidth - 1, readerPtr.getWidth)
-
-    writerPtr := remainingData(writerPtr.getWidth - 1, 0)
-    remainingData =
-      remainingData(remainingData.getWidth - 1, writerPtr.getWidth)
-
-    // Assigning loopBack
-    loopBack := false.B
-
-    // Assigning remaining wires
-    remainingData = super.deserialize(remainingData)
-    remainingData
-  }
-
 }
 
-class DMADataPath(
-    readerparam: DMADataPathParam,
-    writerparam: DMADataPathParam,
+class XDMADataPath(
+    readerparam: XDMADataPathParam,
+    writerparam: XDMADataPathParam,
     clusterName: String = "unnamed_cluster"
 ) extends Module
     with RequireAsyncReset {
@@ -129,8 +58,8 @@ class DMADataPath(
 
   val io = IO(new Bundle {
     // All config signal for reader and writer
-    val readerCfg = Input(new DMADataPathCfgInternalIO(readerparam))
-    val writerCfg = Input(new DMADataPathCfgInternalIO(writerparam))
+    val readerCfg = Input(new XDMADataPathCfgIO(readerparam))
+    val writerCfg = Input(new XDMADataPathCfgIO(writerparam))
 
     // Two start signal will inform the new cfg is available, trigger agu, and inform all extension that a stream is coming
     val readerStart = Input(Bool())
@@ -288,17 +217,15 @@ class DMADataPath(
 
 // Below is the class to determine if chisel generate Verilog correctly
 
-object DMADataPathEmitter extends App {
+object XDMADataPathEmitter extends App {
   println(
     getVerilogString(
-      new DMADataPath(
-        readerparam = new DMADataPathParam(
-          axiParam = new AXIParam,
+      new XDMADataPath(
+        readerparam = new XDMADataPathParam(
           rwParam = new ReaderWriterParam,
           extParam = Seq()
         ),
-        writerparam = new DMADataPathParam(
-          axiParam = new AXIParam,
+        writerparam = new XDMADataPathParam(
           rwParam = new ReaderWriterParam,
           extParam = Seq()
         )

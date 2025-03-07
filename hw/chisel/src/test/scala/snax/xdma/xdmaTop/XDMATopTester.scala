@@ -41,7 +41,7 @@ class ExtParam(
     val bypassTransposer: Int
 )
 
-class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
+class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
 
   // ************************ Prepare the simulation data ************************//
 
@@ -109,16 +109,18 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
   }
 
   "The bahavior of XDMA is as expected" in test(
-    new xdmaTop(
-      readerParam = new DMADataPathParam(
+    new XDMATop(
+      readerParam = new XDMAParam(
         axiParam = new AXIParam,
+        crossClusterParam = new CrossClusterParam,
         rwParam = new ReaderWriterParam(
           configurableByteMask = false,
           configurableChannel = true
         )
       ),
-      writerParam = new DMADataPathParam(
+      writerParam = new XDMAParam(
         axiParam = new AXIParam,
+        crossClusterParam = new CrossClusterParam,
         rwParam = new ReaderWriterParam(
           configurableByteMask = true,
           configurableChannel = true
@@ -171,8 +173,10 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         )
 
         // Write the configuration
-        // Reader
         var currentAddress = 0
+
+        // Pointer Address
+        // Reader Side
         write_csr(
           dut = dut,
           port = dut.io.csrIO,
@@ -188,6 +192,27 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         )
         currentAddress += 1
 
+        // Writer Side
+        // Ptr 0
+        write_csr(
+          dut = dut,
+          port = dut.io.csrIO,
+          addr = currentAddress,
+          data = (writerAGUParam.address & 0xffff_ffff).toInt
+        )
+        currentAddress += 1
+        write_csr(
+          dut = dut,
+          port = dut.io.csrIO,
+          addr = currentAddress,
+          data = ((writerAGUParam.address >> 32) & 0xffff_ffff).toInt
+        )
+        currentAddress += 1
+
+        // Ptr 1-3 is 0
+        currentAddress += 6
+
+        // Reader side Strides + Bounds
         readerAGUParam.spatialStrides.foreach { i =>
           write_csr(
             dut = dut,
@@ -229,22 +254,7 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         // Enabled Byte is not valid for the reader
         // No extension for the reader
 
-        // Writer
-        write_csr(
-          dut = dut,
-          port = dut.io.csrIO,
-          addr = currentAddress,
-          data = (writerAGUParam.address & 0xffff_ffff).toInt
-        )
-        currentAddress += 1
-        write_csr(
-          dut = dut,
-          port = dut.io.csrIO,
-          addr = currentAddress,
-          data = ((writerAGUParam.address >> 32) & 0xffff_ffff).toInt
-        )
-        currentAddress += 1
-
+        // Writer side Strides + Bounds
         writerAGUParam.spatialStrides.foreach { i =>
           write_csr(
             dut = dut,
@@ -379,8 +389,9 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         )
 
         // Write the configuration
-        // Reader
         currentAddress = 0
+        // Pointer Address
+        // Reader Side
         write_csr(
           dut = dut,
           port = dut.io.csrIO,
@@ -396,6 +407,27 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         )
         currentAddress += 1
 
+        // Writer Side
+        // Ptr 0
+        write_csr(
+          dut = dut,
+          port = dut.io.csrIO,
+          addr = currentAddress,
+          data = (writerAGUParam.address & 0xffff_ffff).toInt
+        )
+        currentAddress += 1
+        write_csr(
+          dut = dut,
+          port = dut.io.csrIO,
+          addr = currentAddress,
+          data = ((writerAGUParam.address >> 32) & 0xffff_ffff).toInt
+        )
+        currentAddress += 1
+
+        // Ptr 1-3 is 0
+        currentAddress += 6
+
+        // Reader side Strides + Bounds
         readerAGUParam.spatialStrides.foreach { i =>
           write_csr(
             dut = dut,
@@ -437,22 +469,7 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         // Enabled Byte is not valid for the reader
         // No extension for the reader
 
-        // Writer
-        write_csr(
-          dut = dut,
-          port = dut.io.csrIO,
-          addr = currentAddress,
-          data = (writerAGUParam.address & 0xffff_ffff).toInt
-        )
-        currentAddress += 1
-        write_csr(
-          dut = dut,
-          port = dut.io.csrIO,
-          addr = currentAddress,
-          data = ((writerAGUParam.address >> 32) & 0xffff_ffff).toInt
-        )
-        currentAddress += 1
-
+        // Writer side Strides + Bounds
         writerAGUParam.spatialStrides.foreach { i =>
           write_csr(
             dut = dut,
@@ -583,8 +600,9 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         )
 
         // Write the configuration
-        // Reader
         currentAddress = 0
+        // Pointer Address
+        // Reader Side
         write_csr(
           dut = dut,
           port = dut.io.csrIO,
@@ -600,6 +618,27 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         )
         currentAddress += 1
 
+        // Writer Side
+        // Ptr 0
+        write_csr(
+          dut = dut,
+          port = dut.io.csrIO,
+          addr = currentAddress,
+          data = (writerAGUParam.address & 0xffff_ffff).toInt
+        )
+        currentAddress += 1
+        write_csr(
+          dut = dut,
+          port = dut.io.csrIO,
+          addr = currentAddress,
+          data = ((writerAGUParam.address >> 32) & 0xffff_ffff).toInt
+        )
+        currentAddress += 1
+
+        // Ptr 1-3 is 0
+        currentAddress += 6
+
+        // Reader side Strides + Bounds
         readerAGUParam.spatialStrides.foreach { i =>
           write_csr(
             dut = dut,
@@ -641,22 +680,7 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         // Enabled Byte is not valid for the reader
         // No extension for the reader
 
-        // Writer
-        write_csr(
-          dut = dut,
-          port = dut.io.csrIO,
-          addr = currentAddress,
-          data = (writerAGUParam.address & 0xffff_ffff).toInt
-        )
-        currentAddress += 1
-        write_csr(
-          dut = dut,
-          port = dut.io.csrIO,
-          addr = currentAddress,
-          data = ((writerAGUParam.address >> 32) & 0xffff_ffff).toInt
-        )
-        currentAddress += 1
-
+        // Writer side Strides + Bounds
         writerAGUParam.spatialStrides.foreach { i =>
           write_csr(
             dut = dut,
@@ -822,8 +846,9 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         )
 
         // Write the configuration
-        // Reader
         currentAddress = 0
+        // Pointer Address
+        // Reader Side
         write_csr(
           dut = dut,
           port = dut.io.csrIO,
@@ -839,6 +864,27 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         )
         currentAddress += 1
 
+        // Writer Side
+        // Ptr 0
+        write_csr(
+          dut = dut,
+          port = dut.io.csrIO,
+          addr = currentAddress,
+          data = (writerAGUParam.address & 0xffff_ffff).toInt
+        )
+        currentAddress += 1
+        write_csr(
+          dut = dut,
+          port = dut.io.csrIO,
+          addr = currentAddress,
+          data = ((writerAGUParam.address >> 32) & 0xffff_ffff).toInt
+        )
+        currentAddress += 1
+
+        // Ptr 1-3 is 0
+        currentAddress += 6
+
+        // Reader side Strides + Bounds
         readerAGUParam.spatialStrides.foreach { i =>
           write_csr(
             dut = dut,
@@ -880,22 +926,7 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         // Enabled Byte is not valid for the reader
         // No extension for the reader
 
-        // Writer
-        write_csr(
-          dut = dut,
-          port = dut.io.csrIO,
-          addr = currentAddress,
-          data = (writerAGUParam.address & 0xffff_ffff).toInt
-        )
-        currentAddress += 1
-        write_csr(
-          dut = dut,
-          port = dut.io.csrIO,
-          addr = currentAddress,
-          data = ((writerAGUParam.address >> 32) & 0xffff_ffff).toInt
-        )
-        currentAddress += 1
-
+        // Writer side Strides + Bounds
         writerAGUParam.spatialStrides.foreach { i =>
           write_csr(
             dut = dut,
@@ -1126,16 +1157,21 @@ class xDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
 
 object xdmaTopEmitter extends App {
   _root_.circt.stage.ChiselStage.emitSystemVerilogFile(
-    new xdmaTop(
+    new XDMATop(
       clusterName = "test_cluster",
-      readerParam =
-        new DMADataPathParam(new AXIParam, new ReaderWriterParam, Seq()),
-      writerParam = new DMADataPathParam(
+      readerParam = new XDMAParam(
         new AXIParam,
+        new CrossClusterParam(4),
+        new ReaderWriterParam,
+        Seq()
+      ),
+      writerParam = new XDMAParam(
+        new AXIParam,
+        new CrossClusterParam(4),
         new ReaderWriterParam,
         Seq(
-          new HasMaxPool,
           new HasVerilogMemset,
+          new HasMaxPool,
           new HasTransposer(Seq(8), Seq(8), Seq(8))
         )
       )

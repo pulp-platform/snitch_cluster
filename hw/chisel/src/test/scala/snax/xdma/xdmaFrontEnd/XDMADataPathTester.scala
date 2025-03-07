@@ -4,10 +4,10 @@ import chisel3._
 import chisel3.util._
 
 // Hardware and its Generation Param
-import snax.xdma.xdmaFrontend.DMADataPath
-import snax.xdma.DesignParams.{DMADataPathParam, AXIParam}
+import snax.xdma.xdmaFrontend.XDMADataPath
+import snax.xdma.DesignParams.XDMADataPathParam
 import snax.readerWriter.ReaderWriterParam
-import snax.xdma.xdmaTop.xdmaTopGen.axiParam
+import snax.xdma.xdmaTop.XDMATopGen.axiParam
 
 // Import Chiseltest
 import chiseltest._
@@ -31,16 +31,14 @@ class ReaderWriterTesterParam(
 
 class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
   "DMA Data Path behavior is as expected" in test(
-    new DMADataPath(
-      readerparam = new DMADataPathParam(
-        axiParam = new AXIParam,
+    new XDMADataPath(
+      readerparam = new XDMADataPathParam(
         rwParam = new ReaderWriterParam(
           configurableByteMask = false,
           configurableChannel = true
         )
       ),
-      writerparam = new DMADataPathParam(
-        axiParam = new AXIParam,
+      writerparam = new XDMADataPathParam(
         rwParam = new ReaderWriterParam(
           configurableByteMask = true,
           configurableChannel = true
@@ -282,9 +280,9 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
 
 object DMADataPathEmitter extends App {
   emitVerilog(
-    new DMADataPath(
-      readerparam = new DMADataPathParam(new AXIParam, new ReaderWriterParam),
-      writerparam = new DMADataPathParam(new AXIParam, new ReaderWriterParam)
+    new XDMADataPath(
+      readerparam = new XDMADataPathParam(new ReaderWriterParam),
+      writerparam = new XDMADataPathParam(new ReaderWriterParam)
     ),
     Array("--target-dir", "generated")
   )

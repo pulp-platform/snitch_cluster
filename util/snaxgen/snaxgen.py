@@ -612,7 +612,7 @@ def main():
 
         gen_chisel_file(
             chisel_path=args.chisel_path,
-            chisel_param="snax.xdma.xdmaTop.xdmaTopGen",
+            chisel_param="snax.xdma.xdmaTop.XDMATopGen",
             gen_path=" --clusterName "
             + str(cfg["cluster"]["name"])
             + " --tcdmDataWidth "

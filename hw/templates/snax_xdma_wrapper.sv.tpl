@@ -160,22 +160,28 @@ module ${cfg["name"]}_xdma_wrapper #(
     // Tie-off unused AXI port
     //-----------------------------
     // Remote data
-    .io_remoteDMADataPath_fromRemote_valid ('0),
-    .io_remoteDMADataPath_fromRemote_ready (  ),
-    .io_remoteDMADataPath_fromRemote_bits  ('0),
+    .io_remoteXDMAData_fromRemote_valid('0),
+    .io_remoteXDMAData_fromRemote_ready(),
+    .io_remoteXDMAData_fromRemote_bits ('0),
 
-    .io_remoteDMADataPath_toRemote_ready ('0),
-    .io_remoteDMADataPath_toRemote_valid (  ),
-    .io_remoteDMADataPath_toRemote_bits  (  ),
+    .io_remoteXDMAData_toRemote_ready('0),
+    .io_remoteXDMAData_toRemote_valid(),
+    .io_remoteXDMAData_toRemote_bits (),
 
     // Remote cfg
-    .io_remoteDMADataPathCfg_fromRemote_valid ('0),
-    .io_remoteDMADataPathCfg_fromRemote_ready (  ),
-    .io_remoteDMADataPathCfg_fromRemote_bits  ('0),
+    .io_remoteXDMACfg_reader_fromRemote_valid('0),
+    .io_remoteXDMACfg_reader_fromRemote_ready(),
+    .io_remoteXDMACfg_reader_fromRemote_bits ('0),
+    .io_remoteXDMACfg_writer_fromRemote_valid('0),
+    .io_remoteXDMACfg_writer_fromRemote_ready(),
+    .io_remoteXDMACfg_writer_fromRemote_bits ('0),
 
-    .io_remoteDMADataPathCfg_toRemote_ready ('0),
-    .io_remoteDMADataPathCfg_toRemote_valid (  ),
-    .io_remoteDMADataPathCfg_toRemote_bits  (  )
+    .io_remoteXDMACfg_reader_toRemote_ready('0),
+    .io_remoteXDMACfg_reader_toRemote_valid(),
+    .io_remoteXDMACfg_reader_toRemote_bits (),
+    .io_remoteXDMACfg_writer_toRemote_ready('0),
+    .io_remoteXDMACfg_writer_toRemote_valid(),
+    .io_remoteXDMACfg_writer_toRemote_bits ()
   );
 
 endmodule

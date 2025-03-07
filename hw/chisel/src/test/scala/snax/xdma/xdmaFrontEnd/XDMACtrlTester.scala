@@ -18,7 +18,7 @@ import scala.util.Random
 // Import break support for loops
 import scala.util.control.Breaks.{break, breakable}
 
-class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
+class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
 
   def write_csr(dut: Module, port: SnaxCsrIO, addr: Int, data: Int) = {
 
@@ -48,17 +48,19 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
 
   "The DMACtrl" should " pass" in {
     test(
-      new DMACtrl(
-        readerparam = new DMADataPathParam(
+      new XDMACtrl(
+        readerparam = new XDMAParam(
           new AXIParam,
+          new CrossClusterParam(1),
           new ReaderWriterParam(
             configurableChannel = true,
             configurableByteMask = false
           ),
           Seq()
         ),
-        writerparam = new DMADataPathParam(
+        writerparam = new XDMAParam(
           new AXIParam,
+          new CrossClusterParam(1),
           new ReaderWriterParam(
             configurableChannel = true,
             configurableByteMask = true
@@ -95,7 +97,7 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
           val Writer_Temporal_Bounds = List(32, 16)
           val Writer_Temporal_Strides = List(256, 8192)
 
-          for (i <- 0 until 256) {
+          for (i <- 0 until 256 by 2) {
             if (testTerminated) break()
             if (Random.between(0, 2) == 0) {
               // Local Cfg injection
@@ -104,7 +106,11 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
 
               val Reader_PointerAddress_ThisLoop =
                 Reader_PointerAddress + Random.between(0, 2) * 256 * 1024 + i
-              val Writer_PointerAddress_ThisLoop = Writer_PointerAddress + i
+              val Writer_PointerAddress_ThisLoop =
+                Writer_PointerAddress + Random.between(
+                  0,
+                  2
+                ) * 256 * 1024 + i + 1
               unreceived_reader_cfg.add(Reader_PointerAddress_ThisLoop.toInt)
               unreceived_writer_cfg.add(Writer_PointerAddress_ThisLoop.toInt)
 
@@ -125,6 +131,23 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               )
               currentCSR += 1
 
+              // Writer: Pointers LSB + MSB
+              write_csr(
+                dut,
+                dut.io.csrIO,
+                addr = currentCSR,
+                data = ((Writer_PointerAddress_ThisLoop) & 0xffff_ffff).toInt
+              )
+              currentCSR += 1
+              write_csr(
+                dut,
+                dut.io.csrIO,
+                addr = currentCSR,
+                data =
+                  (((Writer_PointerAddress_ThisLoop) >> 32) & 0xffff_ffff).toInt
+              )
+              currentCSR += 1
+
               // Reader: Spatial Strides D0
               Reader_Spatial_Strides.foreach({ i =>
                 write_csr(dut, dut.io.csrIO, addr = currentCSR, data = i)
@@ -142,23 +165,6 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               })
               // Enabled Channels
               write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 0xff)
-              currentCSR += 1
-
-              // Writer: Pointers LSB + MSB
-              write_csr(
-                dut,
-                dut.io.csrIO,
-                addr = currentCSR,
-                data = ((Writer_PointerAddress_ThisLoop) & 0xffff_ffff).toInt
-              )
-              currentCSR += 1
-              write_csr(
-                dut,
-                dut.io.csrIO,
-                addr = currentCSR,
-                data =
-                  (((Writer_PointerAddress_ThisLoop) >> 32) & 0xffff_ffff).toInt
-              )
               currentCSR += 1
 
               // Writer: Spatial Strides D0
@@ -193,33 +199,85 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
 
             } else {
 
-              // Remote Cfg injection
+              // Remote Cfg injection (Reader side)
               unreceived_reader_cfg.add(
-                (Reader_PointerAddress + 0x0000_1000 + i).toInt
+                (Reader_PointerAddress + i).toInt
               )
-              val remoteConfig: BigInt =
-                (Reader_PointerAddress + 0x0000_1000 + i) +
+              val readerRemoteConfig: BigInt =
+                // The address for the reader side
+                (Reader_PointerAddress + i) +
+                  // The address for the writer side
                   (BigInt(0x2000_0000) << 48) +
-                  (BigInt(Reader_Spatial_Strides(0)) << 96) +
-                  (BigInt(Reader_Temporal_Strides(0)) << 113) +
-                  (BigInt(Reader_Temporal_Strides(1)) << 130) +
-                  (BigInt(Reader_Temporal_Bounds(0)) << 147) +
-                  (BigInt(Reader_Temporal_Bounds(1)) << 164)
-
-              // 240b for AGU, 272b / 34B / 17 INT16 for Extension
-
-              dut.io.remoteDMADataPathCfg.fromRemote.bits.poke(remoteConfig)
+                  (BigInt(Reader_Spatial_Strides(0) >> 3) << 96) +
+                  (BigInt(Reader_Temporal_Bounds(0) >> 3) << 115) +
+                  (BigInt(Reader_Temporal_Bounds(1) >> 3) << 134) +
+                  // 2, 3, 4, 5 are all 1
+                  (BigInt(1) << 153) +
+                  (BigInt(1) << 172) +
+                  (BigInt(1) << 191) +
+                  (BigInt(1) << 210) +
+                  (BigInt(Reader_Temporal_Strides(0)) << 229) +
+                  (BigInt(Reader_Temporal_Strides(1)) << 248) +
+                  // 2, 3, 4, 5 are all 0
+                  // Enabled channels
+                  (BigInt(0xff) << 343) +
+                  // Enabled Byte
+                  (BigInt(0xff) << 351)
+              dut.io.remoteDMADataPathCfg.reader.fromRemote.bits
+                .poke(readerRemoteConfig)
               dut.clock.step(Random.between(1, 31))
-              dut.io.remoteDMADataPathCfg.fromRemote.valid.poke(true.B)
+              dut.io.remoteDMADataPathCfg.reader.fromRemote.valid.poke(true.B)
               while (
-                !(dut.io.remoteDMADataPathCfg.fromRemote.ready.peekBoolean())
+                !(dut.io.remoteDMADataPathCfg.reader.fromRemote.ready
+                  .peekBoolean())
               ) {
                 dut.clock.step()
               }
               dut.clock.step()
-              dut.io.remoteDMADataPathCfg.fromRemote.valid.poke(false.B)
+              dut.io.remoteDMADataPathCfg.reader.fromRemote.valid.poke(false.B)
               println(
-                "[Remote Reader Generator] " + (Reader_PointerAddress + 0x0000_1000 + i).toInt.toHexString
+                "[Remote Reader Generator] " + (Reader_PointerAddress + i).toInt.toHexString
+              )
+
+              // Remote Cfg injection (Writer side)
+              unreceived_writer_cfg.add(
+                (Writer_PointerAddress + i + 1).toInt
+              )
+              val writerRemoteConfig: BigInt =
+                // The address for the reader side
+                BigInt(0x2000_0000) +
+                  // The address for the writer side
+                  ((Writer_PointerAddress + i + 1) << 48) +
+                  (BigInt(Writer_Spatial_Strides(0) >> 3) << 96) +
+                  (BigInt(Writer_Temporal_Bounds(0) >> 3) << 115) +
+                  (BigInt(Writer_Temporal_Bounds(1) >> 3) << 134) +
+                  // 2, 3, 4, 5 are all 1
+                  (BigInt(1) << 153) +
+                  (BigInt(1) << 172) +
+                  (BigInt(1) << 191) +
+                  (BigInt(1) << 210) +
+                  (BigInt(Writer_Temporal_Strides(0)) << 229) +
+                  (BigInt(Writer_Temporal_Strides(1)) << 248) +
+                  // 2, 3, 4, 5 are all 0
+                  // Enabled channels
+                  (BigInt(0xff) << 343) +
+                  // Enabled Byte
+                  (BigInt(0xff) << 351)
+
+              dut.io.remoteDMADataPathCfg.writer.fromRemote.bits
+                .poke(writerRemoteConfig)
+              dut.clock.step(Random.between(1, 31))
+              dut.io.remoteDMADataPathCfg.writer.fromRemote.valid.poke(true.B)
+              while (
+                !(dut.io.remoteDMADataPathCfg.writer.fromRemote.ready
+                  .peekBoolean())
+              ) {
+                dut.clock.step()
+              }
+              dut.clock.step()
+              dut.io.remoteDMADataPathCfg.writer.fromRemote.valid.poke(false.B)
+              println(
+                "[Remote Writer Generator] " + (Writer_PointerAddress + i + 1).toInt.toHexString
               )
             }
           }
@@ -238,24 +296,40 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               dut.clock.step(Random.between(1, 16) + 32)
               dut.io.localDMADataPath.readerBusy.poke(true)
               println(
-                "[Local Reader Checker] " + dut.io.localDMADataPath.readerCfg.readerPtr
+                "[Local Reader Checker] " + dut.io.localDMADataPath.readerCfg.aguCfg.ptr
                   .peekInt()
                   .toInt
                   .toHexString
               )
+
               if (
-                !unreceived_reader_cfg.remove(
-                  dut.io.localDMADataPath.readerCfg.readerPtr
-                    .peekInt()
-                    .toInt
+                unreceived_reader_cfg
+                  .find(i =>
+                    (i & 0xffff) == dut.io.localDMADataPath.readerCfg.aguCfg.ptr
+                      .peekInt()
+                  )
+                  .isDefined
+              ) {
+                unreceived_reader_cfg.remove(
+                  unreceived_reader_cfg
+                    .find(i =>
+                      (i & 0xffff) == dut.io.localDMADataPath.readerCfg.aguCfg.ptr
+                        .peekInt()
+                    )
+                    .get
                 )
-              )
+
+              } else {
                 throw new Exception(
-                  "[Local Reader Checker] The received pointer " + dut.io.localDMADataPath.readerCfg.readerPtr
+                  "[Local Reader Checker] The received pointer " + dut.io.localDMADataPath.readerCfg.aguCfg.ptr
                     .peekInt()
                     .toInt
                     .toHexString + " is not in the buffer"
                 )
+              }
+
+              dut.clock.step(Random.between(1, 16) + 32)
+              dut.io.localDMADataPath.readerBusy.poke(true)
               dut.clock.step(Random.between(1, 16) + 32)
               dut.io.localDMADataPath.readerBusy.poke(false)
             }
@@ -272,24 +346,37 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                 if (testTerminated) break()
               }
               println(
-                "[Local Writer Checker] " + dut.io.localDMADataPath.writerCfg.writerPtr
+                "[Local Writer Checker] " + dut.io.localDMADataPath.writerCfg.aguCfg.ptr
                   .peekInt()
                   .toInt
                   .toHexString
               )
               if (
-                !unreceived_writer_cfg.remove(
-                  dut.io.localDMADataPath.writerCfg.writerPtr
-                    .peekInt()
-                    .toInt
+                unreceived_writer_cfg
+                  .find(i =>
+                    (i & 0xffff) == dut.io.localDMADataPath.writerCfg.aguCfg.ptr
+                      .peekInt()
+                  )
+                  .isDefined
+              ) {
+                unreceived_writer_cfg.remove(
+                  unreceived_writer_cfg
+                    .find(i =>
+                      (i & 0xffff) == dut.io.localDMADataPath.writerCfg.aguCfg.ptr
+                        .peekInt()
+                    )
+                    .get
                 )
-              )
+
+              } else {
                 throw new Exception(
-                  "[Local Writer Checker] The received pointer " + dut.io.localDMADataPath.writerCfg.writerPtr
+                  "[Local Writer Checker] The received pointer " + dut.io.localDMADataPath.writerCfg.aguCfg.ptr
                     .peekInt()
                     .toInt
                     .toHexString + " is not in the buffer"
                 )
+              }
+
               dut.clock.step(Random.between(1, 16) + 32)
               dut.io.localDMADataPath.writerBusy.poke(true)
               dut.clock.step(Random.between(1, 16) + 32)
@@ -299,24 +386,27 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
           println("Local Writer Checker is terminated. ")
         }
 
-        // The thread to pop the data outside the Ctrl from remote side
+        // The thread to pop the data outside the Ctrl from remote reader side
         concurrent_threads = concurrent_threads.fork {
-          dut.io.remoteDMADataPathCfg.toRemote.ready.poke(false)
+          dut.io.remoteDMADataPathCfg.reader.toRemote.ready.poke(false)
           breakable(
             while (true) {
               if (testTerminated) break()
-              if (dut.io.remoteDMADataPathCfg.toRemote.valid.peekBoolean()) {
+              if (
+                dut.io.remoteDMADataPathCfg.reader.toRemote.valid.peekBoolean()
+              ) {
                 println(
                   "[Remote Reader Checker] " + extractBits(
-                    dut.io.remoteDMADataPathCfg.toRemote.bits.peekInt(),
-                    95,
-                    48
+                    dut.io.remoteDMADataPathCfg.reader.toRemote.bits.peekInt(),
+                    47,
+                    0
                   ).toInt.toHexString
                 )
                 if (
                   !unreceived_reader_cfg.remove(
                     extractBits(
-                      dut.io.remoteDMADataPathCfg.toRemote.bits.peekInt(),
+                      dut.io.remoteDMADataPathCfg.reader.toRemote.bits
+                        .peekInt(),
                       47,
                       0
                     ).toInt
@@ -324,19 +414,64 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                 )
                   throw new Exception(
                     "[Remote Reader Checker] The received pointer " + extractBits(
-                      dut.io.remoteDMADataPathCfg.toRemote.bits.peekInt(),
+                      dut.io.remoteDMADataPathCfg.reader.toRemote.bits
+                        .peekInt(),
                       47,
                       0
                     ).toInt.toHexString + " is not in the buffer"
                   )
                 dut.clock.step(Random.between(1, 16) + 32)
-                dut.io.remoteDMADataPathCfg.toRemote.ready.poke(true)
+                dut.io.remoteDMADataPathCfg.reader.toRemote.ready.poke(true)
                 dut.clock.step(1)
-                dut.io.remoteDMADataPathCfg.toRemote.ready.poke(false)
+                dut.io.remoteDMADataPathCfg.reader.toRemote.ready.poke(false)
               } else dut.clock.step(1)
             }
           )
           println("Remote Reader Checker is terminated. ")
+        }
+
+        // The thread to pop the data outside the Ctrl from remote writer side
+        concurrent_threads = concurrent_threads.fork {
+          dut.io.remoteDMADataPathCfg.writer.toRemote.ready.poke(false)
+          breakable(
+            while (true) {
+              if (testTerminated) break()
+              if (
+                dut.io.remoteDMADataPathCfg.writer.toRemote.valid.peekBoolean()
+              ) {
+                println(
+                  "[Remote Writer Checker] " + extractBits(
+                    dut.io.remoteDMADataPathCfg.writer.toRemote.bits.peekInt(),
+                    95,
+                    48
+                  ).toInt.toHexString
+                )
+                if (
+                  !unreceived_writer_cfg.remove(
+                    extractBits(
+                      dut.io.remoteDMADataPathCfg.writer.toRemote.bits
+                        .peekInt(),
+                      95,
+                      48
+                    ).toInt
+                  )
+                )
+                  throw new Exception(
+                    "[Remote Writer Checker] The received pointer " + extractBits(
+                      dut.io.remoteDMADataPathCfg.writer.toRemote.bits
+                        .peekInt(),
+                      95,
+                      48
+                    ).toInt.toHexString + " is not in the buffer"
+                  )
+                dut.clock.step(Random.between(1, 16) + 32)
+                dut.io.remoteDMADataPathCfg.writer.toRemote.ready.poke(true)
+                dut.clock.step(1)
+                dut.io.remoteDMADataPathCfg.writer.toRemote.ready.poke(false)
+              } else dut.clock.step(1)
+            }
+          )
+          println("Remote Writer Checker is terminated. ")
         }
 
         // The supervision thread
@@ -355,4 +490,30 @@ class DMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
         concurrent_threads.joinAndStep()
     }
   }
+}
+
+object XDMACtrlEmitter extends App {
+  _root_.circt.stage.ChiselStage.emitSystemVerilogFile(
+    new XDMACtrl(
+      readerparam = new XDMAParam(
+        new AXIParam,
+        new CrossClusterParam(1),
+        new ReaderWriterParam(
+          configurableChannel = true,
+          configurableByteMask = false
+        ),
+        Seq()
+      ),
+      writerparam = new XDMAParam(
+        new AXIParam,
+        new CrossClusterParam(1),
+        new ReaderWriterParam(
+          configurableChannel = true,
+          configurableByteMask = true
+        ),
+        Seq()
+      )
+    ),
+    args = Array("--target-dir", "generated/xdma")
+  )
 }

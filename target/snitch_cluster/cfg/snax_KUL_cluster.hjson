@@ -149,12 +149,18 @@
         isa: "rv32ima",
         snax_xdma_cfg: {
             bender_target: ["snax_KUL_cluster_xdma"],
+            // Cross Cluster Calling Cfg
+            max_multicast: 4,
+            max_dimension: 6,
+            max_mem_size: 4096,
+            // DataMaestro Cfg
             reader_buffer: 4, 
             writer_buffer: 4, 
             reader_agu_spatial_bounds: "8",
             reader_agu_temporal_dimension: 6, 
             writer_agu_spatial_bounds: "8",
             writer_agu_temporal_dimension: 6, 
+            // Extension Cfg
             HasVerilogMemset: {},
             HasMaxPool: {},
             HasTransposer: {row:[8], col:[8], elementWidth:[8]}, 

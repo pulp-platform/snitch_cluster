@@ -18,18 +18,28 @@ import scala.reflect.runtime.universe._
 
 import play.api.libs.json._
 
-class xdmaTopIO(
-    readerParam: DMADataPathParam,
-    writerParam: DMADataPathParam
+class XDMATopIO(
+    readerParam: XDMAParam,
+    writerParam: XDMAParam
 ) extends Bundle {
   val clusterBaseAddress = Input(
     UInt(writerParam.axiParam.addrWidth.W)
   )
   val csrIO = new SnaxCsrIO(32)
 
-  val remoteDMADataPathCfg = new Bundle {
-    val fromRemote = Flipped(Decoupled(UInt(writerParam.axiParam.dataWidth.W)))
-    val toRemote = Decoupled(UInt(writerParam.axiParam.dataWidth.W))
+  val remoteXDMACfg = new Bundle {
+    val reader = new Bundle {
+      val fromRemote = Flipped(
+        Decoupled(UInt(readerParam.axiParam.dataWidth.W))
+      )
+      val toRemote = Decoupled(UInt(readerParam.axiParam.dataWidth.W))
+    }
+    val writer = new Bundle {
+      val fromRemote = Flipped(
+        Decoupled(UInt(writerParam.axiParam.dataWidth.W))
+      )
+      val toRemote = Decoupled(UInt(writerParam.axiParam.dataWidth.W))
+    }
   }
 
   val tcdmReader = new Bundle {
@@ -65,7 +75,7 @@ class xdmaTopIO(
     )
   }
 
-  val remoteDMADataPath = new Bundle {
+  val remoteXDMAData = new Bundle {
     val fromRemote = Flipped(
       Decoupled(
         UInt(
@@ -81,22 +91,22 @@ class xdmaTopIO(
   }
 }
 
-class xdmaTop(
-    readerParam: DMADataPathParam,
-    writerParam: DMADataPathParam,
+class XDMATop(
+    readerParam: XDMAParam,
+    writerParam: XDMAParam,
     clusterName: String = "unnamed_cluster"
 ) extends Module
     with RequireAsyncReset {
   override val desiredName = s"${clusterName}_xdma"
   val io = IO(
-    new xdmaTopIO(
+    new XDMATopIO(
       readerParam = readerParam,
       writerParam = writerParam
     )
   )
 
   val dmaCtrl = Module(
-    new DMACtrl(
+    new XDMACtrl(
       readerparam = readerParam,
       writerparam = writerParam,
       clusterName = clusterName
@@ -104,7 +114,7 @@ class xdmaTop(
   )
 
   val dmaDatapath = Module(
-    new DMADataPath(
+    new XDMADataPath(
       readerparam = readerParam,
       writerparam = writerParam,
       clusterName = clusterName
@@ -119,14 +129,14 @@ class xdmaTop(
   io.tcdmWriter <> dmaDatapath.io.tcdmWriter
 
   // IO1: Start to connect datapath to axi
-  io.remoteDMADataPath.fromRemote <> dmaDatapath.io.remoteDMADataPath.fromRemote
-  io.remoteDMADataPath.toRemote <> dmaDatapath.io.remoteDMADataPath.toRemote
+  io.remoteXDMAData.fromRemote <> dmaDatapath.io.remoteDMADataPath.fromRemote
+  io.remoteXDMAData.toRemote <> dmaDatapath.io.remoteDMADataPath.toRemote
 
   // IO2: Start to coonect ctrl to csr
   io.csrIO <> dmaCtrl.io.csrIO
 
   // IO3: Start to connect ctrl to remoteDMADataPath
-  io.remoteDMADataPathCfg <> dmaCtrl.io.remoteDMADataPathCfg
+  io.remoteXDMACfg <> dmaCtrl.io.remoteDMADataPathCfg
 
   // Interconnection between ctrl and datapath
   dmaCtrl.io.localDMADataPath.readerCfg <> dmaDatapath.io.readerCfg
@@ -143,7 +153,7 @@ class xdmaTop(
 
 }
 
-object xdmaTopGen extends App {
+object XDMATopGen extends App {
   val parsedArgs = snax.utils.ArgParser.parse(args)
   // The xdmaCfg region is passed to chisel generator as a JSON string
   val xdmaCfg = parsedArgs.find(_._1 == "xdmaCfg")
@@ -172,6 +182,13 @@ object xdmaTopGen extends App {
   val axiParam = new AXIParam(
     dataWidth = parsedArgs("axiDataWidth").toInt,
     addrWidth = parsedArgs("axiAddrWidth").toInt
+  )
+
+  val crossClusterParam = new CrossClusterParam(
+    maxMulticastDest = (parsedXdmaCfg \ "max_multicast").as[Int],
+    maxDimension = (parsedXdmaCfg \ "max_dimension").as[Int],
+    maxMemSize = (parsedXdmaCfg \ "max_mem_size").as[Int],
+    AxiAddressWidth = parsedArgs("axiAddrWidth").toInt
   )
 
   val readerparam = new ReaderWriterParam(
@@ -245,12 +262,20 @@ return new ${i._1}(${i._2
 
   // Generation of the hardware
   var sv_string = getVerilogString(
-    new xdmaTop(
+    new XDMATop(
       clusterName = parsedArgs.getOrElse("clusterName", ""),
-      readerParam =
-        new DMADataPathParam(axiParam, readerparam, readerextensionparam),
-      writerParam =
-        new DMADataPathParam(axiParam, writerparam, writerextensionparam)
+      readerParam = new XDMAParam(
+        axiParam,
+        crossClusterParam,
+        readerparam,
+        readerextensionparam
+      ),
+      writerParam = new XDMAParam(
+        axiParam,
+        crossClusterParam,
+        writerparam,
+        writerextensionparam
+      )
     )
   )
 
@@ -292,13 +317,22 @@ return new ${i._1}(${i._2
 #define XDMA_BASE_ADDR 960
 #define XDMA_WIDTH ${writerparam.tcdmParam.numChannel * writerparam.tcdmParam.dataWidth / 8}
 #define XDMA_SPATIAL_CHAN ${writerparam.tcdmParam.numChannel}
+
+// The base address region of the XDMA
 #define XDMA_SRC_ADDR_PTR_LSB XDMA_BASE_ADDR
 #define XDMA_SRC_ADDR_PTR_MSB XDMA_SRC_ADDR_PTR_LSB + 1
+#define XDMA_MAX_DST_COUNT ${crossClusterParam.maxMulticastDest}
+#define XDMA_DST_ADDR_PTR_LSB XDMA_SRC_ADDR_PTR_MSB + 1
+#define XDMA_DST_ADDR_PTR_MSB XDMA_DST_ADDR_PTR_LSB + 1
+
+// The stride and bound region of the reader of XDMA
 #define XDMA_SRC_SPATIAL_DIM ${readerparam.aguParam.spatialBounds.length}
 #define XDMA_SRC_TEMP_DIM ${readerparam.aguParam.temporalDimension}
-#define XDMA_SRC_SPATIAL_STRIDE_PTR XDMA_SRC_ADDR_PTR_MSB + 1
+#define XDMA_SRC_SPATIAL_STRIDE_PTR XDMA_DST_ADDR_PTR_LSB + XDMA_MAX_DST_COUNT * 2
 #define XDMA_SRC_TEMP_BOUND_PTR XDMA_SRC_SPATIAL_STRIDE_PTR + XDMA_SRC_SPATIAL_DIM
 #define XDMA_SRC_TEMP_STRIDE_PTR XDMA_SRC_TEMP_BOUND_PTR + XDMA_SRC_TEMP_DIM
+
+// The channel and strobe region of the reader of XDMA
 #define XDMA_SRC_ENABLED_CHAN_PTR XDMA_SRC_TEMP_STRIDE_PTR + XDMA_SRC_TEMP_DIM
 #define XDMA_SRC_BYPASS_PTR XDMA_SRC_ENABLED_CHAN_PTR + ${if (
         readerparam.configurableChannel
@@ -315,14 +349,13 @@ return new ${i._1}(${i._2
 #define XDMA_SRC_EXT_CUSTOM_CSR_NUM \\
     { ${readerextensionparam.map(_.extensionParam.userCsrNum).mkString(", ")} }
 
-#define XDMA_DST_ADDR_PTR_LSB XDMA_SRC_EXT_CSR_PTR + XDMA_SRC_EXT_CSR_NUM
-#define XDMA_DST_ADDR_PTR_MSB XDMA_DST_ADDR_PTR_LSB + 1
-
+// The stride and bound region of the writer of XDMA
 #define XDMA_DST_SPATIAL_DIM ${writerparam.aguParam.spatialBounds.length}
 #define XDMA_DST_TEMP_DIM ${writerparam.aguParam.temporalDimension}
-#define XDMA_DST_SPATIAL_STRIDE_PTR XDMA_DST_ADDR_PTR_MSB + 1
+#define XDMA_DST_SPATIAL_STRIDE_PTR XDMA_SRC_EXT_CSR_PTR + XDMA_SRC_EXT_CSR_NUM
 #define XDMA_DST_TEMP_BOUND_PTR XDMA_DST_SPATIAL_STRIDE_PTR + XDMA_DST_SPATIAL_DIM
 #define XDMA_DST_TEMP_STRIDE_PTR XDMA_DST_TEMP_BOUND_PTR + XDMA_DST_TEMP_DIM
+
 #define XDMA_DST_ENABLED_CHAN_PTR XDMA_DST_TEMP_STRIDE_PTR + XDMA_DST_TEMP_DIM
 #define XDMA_DST_ENABLED_BYTE_PTR XDMA_DST_ENABLED_CHAN_PTR + ${if (
         writerparam.configurableChannel

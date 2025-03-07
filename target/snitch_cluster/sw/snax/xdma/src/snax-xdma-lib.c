@@ -27,6 +27,12 @@ int32_t xdma_memcpy_nd(uint8_t* src, uint8_t* dst, uint32_t* spatial_stride_src,
 
     csrw_ss(XDMA_DST_ADDR_PTR_LSB, (uint32_t)(uint64_t)dst);
     csrw_ss(XDMA_DST_ADDR_PTR_MSB, (uint32_t)((uint64_t)dst >> 32));
+
+    for (uint32_t i = 1; i < XDMA_MAX_DST_COUNT; i++) {
+        csrw_ss(XDMA_DST_ADDR_PTR_LSB + i * 2, 0);
+        csrw_ss(XDMA_DST_ADDR_PTR_MSB + i * 2, 0);
+    }
+
     // Rule check
     // The enabled spatial bound for input should be equal to the enabled
     // Src frame count and dst frame count should be equal
