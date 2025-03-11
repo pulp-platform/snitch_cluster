@@ -105,7 +105,7 @@ class XDMADataPath(
     // The data for the cluster-level in/out
     // Cluster-level input <> Writer
     // Cluster-level output <> Reader
-    val remoteDMADataPath = new Bundle {
+    val remoteXDMAData = new Bundle {
       val fromRemote = Flipped(
         Decoupled(
           UInt(
@@ -211,8 +211,8 @@ class XDMADataPath(
   writerMux.io.out <> writerDataBeforeExtension
 
   readerDemux.io.out(1) <> writerMux.io.in(1)
-  readerDemux.io.out(0) <> io.remoteDMADataPath.toRemote
-  writerMux.io.in(0) <> io.remoteDMADataPath.fromRemote
+  readerDemux.io.out(0) <> io.remoteXDMAData.toRemote
+  writerMux.io.in(0) <> io.remoteXDMAData.fromRemote
 }
 
 // Below is the class to determine if chisel generate Verilog correctly

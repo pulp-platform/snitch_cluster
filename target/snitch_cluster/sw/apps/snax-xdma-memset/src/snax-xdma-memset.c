@@ -68,7 +68,7 @@ int main() {
             "The xdma is started, setting memory region to 0xFF. The task id "
             "is %d\n",
             task_id);
-        xdma_wait(task_id);
+        xdma_local_wait(task_id);
 
         printf("The xdma is finished\n");
         // Check the data
@@ -115,7 +115,7 @@ int main() {
             "The xdma is started, setting memory region to 0x00. The task id "
             "is %d\n",
             task_id);
-        xdma_wait(task_id);
+        xdma_local_wait(task_id);
 
         printf("The xdma is finished\n");
         // Check the data
@@ -175,7 +175,7 @@ int main() {
             "The xdma is started, setting memory region to 0x0000000000000001 "
             "(uint64_t 1). The task id is %d\n",
             task_id);
-        xdma_wait(task_id);
+        xdma_local_wait(task_id);
 
         printf("The xdma is finished\n");
         uint64_t *result_t3 = (uint64_t *)(tcdm_0 + 0x1000 * sizeof(uint8_t));

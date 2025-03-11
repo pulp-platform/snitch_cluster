@@ -169,19 +169,13 @@ module ${cfg["name"]}_xdma_wrapper #(
     .io_remoteXDMAData_toRemote_bits (),
 
     // Remote cfg
-    .io_remoteXDMACfg_reader_fromRemote_valid('0),
-    .io_remoteXDMACfg_reader_fromRemote_ready(),
-    .io_remoteXDMACfg_reader_fromRemote_bits ('0),
-    .io_remoteXDMACfg_writer_fromRemote_valid('0),
-    .io_remoteXDMACfg_writer_fromRemote_ready(),
-    .io_remoteXDMACfg_writer_fromRemote_bits ('0),
+    .io_remoteXDMACfg_fromRemote_valid('0),
+    .io_remoteXDMACfg_fromRemote_ready(),
+    .io_remoteXDMACfg_fromRemote_bits ('0),
 
-    .io_remoteXDMACfg_reader_toRemote_ready('0),
-    .io_remoteXDMACfg_reader_toRemote_valid(),
-    .io_remoteXDMACfg_reader_toRemote_bits (),
-    .io_remoteXDMACfg_writer_toRemote_ready('0),
-    .io_remoteXDMACfg_writer_toRemote_valid(),
-    .io_remoteXDMACfg_writer_toRemote_bits ()
+    .io_remoteXDMACfg_toRemote_ready('0),
+    .io_remoteXDMACfg_toRemote_valid(),
+    .io_remoteXDMACfg_toRemote_bits ()
   );
 
 endmodule

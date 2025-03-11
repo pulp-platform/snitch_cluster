@@ -19,6 +19,7 @@ import snax.xdma.DesignParams.{XDMADataPathParam, XDMAParam}
 // Loopback signal is also included in this class, for the purpose of early judgement
 // Also the extension cfg is included in this class
 class XDMACfgIO(param: XDMAParam) extends XDMADataPathCfgIO(param: XDMAParam) {
+  val taskID = UInt(8.W)
   val readerPtr = UInt(param.axiParam.addrWidth.W)
   // val writerPtr = UInt(param.axiParam.addrWidth.W)
   val writerPtr =
@@ -60,51 +61,52 @@ class XDMACfgIO(param: XDMAParam) extends XDMADataPathCfgIO(param: XDMAParam) {
   }
 }
 
-class XDMACrossClusterCfgIO(param: XDMAParam) extends Bundle {
-  val readerPtr = UInt(param.crossClusterParam.AxiAddressWidth.W)
+class XDMACrossClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam)
+    extends Bundle {
+  val taskID = UInt(8.W)
+  val isReaderSide = Bool()
+  val readerPtr = UInt(readerParam.crossClusterParam.AxiAddressWidth.W)
   val writerPtr = Vec(
-    param.crossClusterParam.maxMulticastDest,
-    UInt(param.crossClusterParam.AxiAddressWidth.W)
+    readerParam.crossClusterParam.maxMulticastDest,
+    UInt(readerParam.crossClusterParam.AxiAddressWidth.W)
   )
-  val spatialStride = UInt(param.crossClusterParam.maxLocalAddressWidth.W)
+  val spatialStride = UInt(readerParam.crossClusterParam.maxLocalAddressWidth.W)
 
   val temporalBounds = Vec(
-    param.crossClusterParam.maxDimension,
-    UInt(param.crossClusterParam.maxLocalAddressWidth.W)
+    readerParam.crossClusterParam.maxDimension,
+    UInt(readerParam.crossClusterParam.maxLocalAddressWidth.W)
   )
   val temporalStrides = Vec(
-    param.crossClusterParam.maxDimension,
-    UInt(param.crossClusterParam.maxLocalAddressWidth.W)
+    readerParam.crossClusterParam.maxDimension,
+    UInt(readerParam.crossClusterParam.maxLocalAddressWidth.W)
   )
-  val enabledChannel = UInt(param.crossClusterParam.channelNum.W)
-  val enabledByte = UInt((param.crossClusterParam.wordlineWidth / 8).W)
+  val enabledChannel = UInt(readerParam.crossClusterParam.channelNum.W)
+  val enabledByte = UInt((readerParam.crossClusterParam.wordlineWidth / 8).W)
 
   def convertFromXDMACfgIO(
+      readerSide: Boolean,
       cfg: XDMACfgIO
   ): Unit = {
+    taskID := cfg.taskID
+    isReaderSide := readerSide.B
     readerPtr := cfg.readerPtr
     writerPtr := cfg.writerPtr
     spatialStride := cfg.aguCfg
       .spatialStrides(0)
       .apply(
         cfg.aguCfg.spatialStrides(0).getWidth - 1,
-        log2Ceil(param.crossClusterParam.wordlineWidth / 8)
+        log2Ceil(readerParam.crossClusterParam.wordlineWidth / 8)
       )
     temporalStrides := cfg.aguCfg.temporalStrides.map(
       _.apply(
         cfg.aguCfg.temporalStrides(0).getWidth - 1,
-        log2Ceil(param.crossClusterParam.wordlineWidth / 8)
+        log2Ceil(readerParam.crossClusterParam.wordlineWidth / 8)
       )
     ) ++ Seq.fill(
       temporalStrides.length - cfg.aguCfg.temporalStrides.length
     )(0.U)
 
-    temporalBounds := cfg.aguCfg.temporalBounds.map(
-      _.apply(
-        cfg.aguCfg.temporalBounds(0).getWidth - 1,
-        log2Ceil(param.crossClusterParam.wordlineWidth / 8)
-      )
-    ) ++ Seq.fill(
+    temporalBounds := cfg.aguCfg.temporalBounds ++ Seq.fill(
       temporalBounds.length - cfg.aguCfg.temporalBounds.length
     )(1.U)
     enabledChannel := cfg.readerwriterCfg.enabledChannel
@@ -112,18 +114,21 @@ class XDMACrossClusterCfgIO(param: XDMAParam) extends Bundle {
   }
 
   def convertToXDMACfgIO(readerSide: Boolean): XDMACfgIO = {
-    val xdmaCfg = Wire(new XDMACfgIO(param))
+    val xdmaCfg = if (readerSide) { Wire(new XDMACfgIO(readerParam)) }
+    else { Wire(new XDMACfgIO(writerParam)) }
+
     xdmaCfg := 0.U.asTypeOf(xdmaCfg)
+    xdmaCfg.taskID := taskID
     xdmaCfg.readerPtr := readerPtr
     xdmaCfg.writerPtr := writerPtr
     xdmaCfg.aguCfg.ptr := { if (readerSide) readerPtr else writerPtr(0) }
     xdmaCfg.aguCfg.spatialStrides(0) := spatialStride ## 0.U(
-      log2Ceil(param.crossClusterParam.wordlineWidth / 8).W
+      log2Ceil(readerParam.crossClusterParam.wordlineWidth / 8).W
     )
 
     xdmaCfg.aguCfg.temporalStrides := temporalStrides
       .map(
-        _ ## 0.U(log2Ceil(param.crossClusterParam.wordlineWidth / 8).W)
+        _ ## 0.U(log2Ceil(readerParam.crossClusterParam.wordlineWidth / 8).W)
       )
       .take(
         xdmaCfg.aguCfg.temporalStrides.length
@@ -146,77 +151,81 @@ class XDMACrossClusterCfgIO(param: XDMAParam) extends Bundle {
       _ ## _
     ) ## temporalBounds.reverse.reduce(
       _ ## _
-    ) ## spatialStride ## writerPtr.reverse.reduce(_ ## _) ## readerPtr
-  def deserialize(data: UInt): UInt = {
+    ) ## spatialStride ## writerPtr.reverse.reduce(
+      _ ## _
+    ) ## readerPtr ## isReaderSide.asUInt ## taskID
+
+  def deserialize(data: UInt): Unit = {
     var remainingData = data
+    taskID := remainingData(
+      taskID.getWidth - 1,
+      0
+    )
+    remainingData = remainingData(remainingData.getWidth - 1, taskID.getWidth)
+    isReaderSide := remainingData(0)
+    remainingData = remainingData(remainingData.getWidth - 1, 1)
     readerPtr := remainingData(
-      param.crossClusterParam.AxiAddressWidth - 1,
+      readerParam.crossClusterParam.AxiAddressWidth - 1,
       0
     )
     remainingData = remainingData(
       remainingData.getWidth - 1,
-      param.crossClusterParam.AxiAddressWidth
+      readerParam.crossClusterParam.AxiAddressWidth
     )
     writerPtr.foreach { i =>
       i := remainingData(
-        param.crossClusterParam.AxiAddressWidth - 1,
+        readerParam.crossClusterParam.AxiAddressWidth - 1,
         0
       )
       remainingData = remainingData(
         remainingData.getWidth - 1,
-        param.crossClusterParam.AxiAddressWidth
+        readerParam.crossClusterParam.AxiAddressWidth
       )
     }
     spatialStride := remainingData(
-      param.crossClusterParam.maxLocalAddressWidth - 1,
+      readerParam.crossClusterParam.maxLocalAddressWidth - 1,
       0
     )
     remainingData = remainingData(
       remainingData.getWidth - 1,
-      param.crossClusterParam.maxLocalAddressWidth
+      readerParam.crossClusterParam.maxLocalAddressWidth
     )
 
     temporalBounds.foreach { i =>
       i := remainingData(
-        param.crossClusterParam.maxLocalAddressWidth - 1,
+        readerParam.crossClusterParam.maxLocalAddressWidth - 1,
         0
       )
       remainingData = remainingData(
         remainingData.getWidth - 1,
-        param.crossClusterParam.maxLocalAddressWidth
+        readerParam.crossClusterParam.maxLocalAddressWidth
       )
     }
 
     temporalStrides.foreach { i =>
       i := remainingData(
-        param.crossClusterParam.maxLocalAddressWidth - 1,
+        readerParam.crossClusterParam.maxLocalAddressWidth - 1,
         0
       )
       remainingData = remainingData(
         remainingData.getWidth - 1,
-        param.crossClusterParam.maxLocalAddressWidth
+        readerParam.crossClusterParam.maxLocalAddressWidth
       )
     }
 
     enabledChannel := remainingData(
-      param.crossClusterParam.channelNum - 1,
+      readerParam.crossClusterParam.channelNum - 1,
       0
     )
     remainingData = remainingData(
       remainingData.getWidth - 1,
-      param.crossClusterParam.channelNum
+      readerParam.crossClusterParam.channelNum
     )
 
     enabledByte := remainingData(
-      param.crossClusterParam.wordlineWidth / 8 - 1,
+      readerParam.crossClusterParam.wordlineWidth / 8 - 1,
       0
     )
-    remainingData = remainingData(
-      remainingData.getWidth - 1,
-      param.crossClusterParam.wordlineWidth / 8
-    )
-
-    remainingData
   }
 }
 
@@ -227,7 +236,7 @@ class XDMACtrlIO(readerParam: XDMAParam, writerParam: XDMAParam)
     UInt(writerParam.axiParam.addrWidth.W)
   )
   // Local DMADatapath control signal (Which is connected to DMADataPath)
-  val localDMADataPath = new Bundle {
+  val localXDMACfg = new Bundle {
     val readerCfg = Output(new XDMADataPathCfgIO(readerParam))
     val writerCfg = Output(new XDMADataPathCfgIO(writerParam))
 
@@ -241,19 +250,9 @@ class XDMACtrlIO(readerParam: XDMAParam, writerParam: XDMAParam)
   }
   // Remote control signal, which include the signal from other cluster or signal to other cluster. Both of them is AXI related, serialized signal
   // The remote control signal will contain only src information, in other words, the DMA system can proceed remote read or local read, but only local write
-  val remoteDMADataPathCfg = new Bundle {
-    val reader = new Bundle {
-      val fromRemote = Flipped(
-        Decoupled(UInt(readerParam.axiParam.dataWidth.W))
-      )
-      val toRemote = Decoupled(UInt(readerParam.axiParam.dataWidth.W))
-    }
-    val writer = new Bundle {
-      val fromRemote = Flipped(
-        Decoupled(UInt(writerParam.axiParam.dataWidth.W))
-      )
-      val toRemote = Decoupled(UInt(writerParam.axiParam.dataWidth.W))
-    }
+  val remoteXDMACfg = new Bundle {
+    val fromRemote = Flipped(Decoupled(UInt(readerParam.axiParam.dataWidth.W)))
+    val toRemote = Decoupled(UInt(readerParam.axiParam.dataWidth.W))
   }
   // This is the port for CSR Manager to SNAX port
   val csrIO = new SnaxCsrIO(csrAddrWidth = 32)
@@ -279,49 +278,49 @@ class SrcConfigRouter(
     }
   })
 
-  val i_from_arbiter = Module(new Arbiter(dataType, 2) {
+  val inputCfgArbiter = Module(new Arbiter(dataType, 2) {
     override val desiredName =
       s"${clusterName}_xdma_ctrl_SrcConfigRouter_Arbiter"
   })
-  i_from_arbiter.io.in(0) <> io.from.local
-  i_from_arbiter.io.in(1) <> io.from.remote
+  inputCfgArbiter.io.in(0) <> io.from.local
+  inputCfgArbiter.io.in(1) <> io.from.remote
 
-  val i_to_demux = Module(
+  val outputCfgDemux = Module(
     new DemuxDecoupled(dataType = dataType, numOutput = 3) {
       override val desiredName =
         s"${clusterName}_xdma_ctrl_SrcConfigRouter_Demux"
     }
   )
-  i_from_arbiter.io.out -|> i_to_demux.io.in
+  inputCfgArbiter.io.out -|> outputCfgDemux.io.in
 
   // At the output of FIFO: Do the rule check
   val cTypeLocal :: cTypeRemote :: cTypeDiscard :: Nil = Enum(3)
   val cValue = Wire(chiselTypeOf(cTypeDiscard))
 
   when(
-    i_to_demux.io.in.bits.readerPtr(
-      i_to_demux.io.in.bits.readerPtr.getWidth - 1,
-      i_to_demux.io.in.bits.aguCfg.ptr.getWidth
+    outputCfgDemux.io.in.bits.readerPtr(
+      outputCfgDemux.io.in.bits.readerPtr.getWidth - 1,
+      outputCfgDemux.io.in.bits.aguCfg.ptr.getWidth
     ) === io
       .clusterBaseAddress(
-        i_to_demux.io.in.bits.readerPtr.getWidth - 1,
-        i_to_demux.io.in.bits.aguCfg.ptr.getWidth
+        outputCfgDemux.io.in.bits.readerPtr.getWidth - 1,
+        outputCfgDemux.io.in.bits.aguCfg.ptr.getWidth
       )
   ) {
     cValue := cTypeLocal // When cfg has the Ptr that fall within local TCDM, the data should be forwarded to the local ctrl path
-  }.elsewhen(i_to_demux.io.in.bits.readerPtr === 0.U) {
+  }.elsewhen(outputCfgDemux.io.in.bits.readerPtr === 0.U) {
     cValue := cTypeDiscard // When cfg has the Ptr that is zero, This means that the frame need to be thrown away. This is important as when the data is moved from DRAM to TCDM or vice versa, DRAM part is handled by iDMA, thus only one config instead of two is submitted
   }.otherwise {
     cValue := cTypeRemote // For the remaining condition, the config is forward to remote DMA
   }
 
-  i_to_demux.io.sel := cValue
+  outputCfgDemux.io.sel := cValue
   // Port local is connected to the outside
-  i_to_demux.io.out(cTypeLocal.litValue.toInt) <> io.to.local
+  outputCfgDemux.io.out(cTypeLocal.litValue.toInt) <> io.to.local
   // Port remote is connected to the outside
-  i_to_demux.io.out(cTypeRemote.litValue.toInt) <> io.to.remote
+  outputCfgDemux.io.out(cTypeRemote.litValue.toInt) <> io.to.remote
   // Port discard is not connected and will always be discarded
-  i_to_demux.io.out(cTypeDiscard.litValue.toInt).ready := true.B
+  outputCfgDemux.io.out(cTypeDiscard.litValue.toInt).ready := true.B
 }
 
 class DstConfigRouter(
@@ -344,51 +343,51 @@ class DstConfigRouter(
     }
   })
 
-  val i_from_arbiter = Module(new Arbiter(dataType, 2) {
+  val inputCfgArbiter = Module(new Arbiter(dataType, 2) {
     override val desiredName =
       s"${clusterName}_xdma_ctrl_SrcConfigRouter_Arbiter"
   })
-  i_from_arbiter.io.in(0) <> io.from.local
-  i_from_arbiter.io.in(1) <> io.from.remote
+  inputCfgArbiter.io.in(0) <> io.from.local
+  inputCfgArbiter.io.in(1) <> io.from.remote
 
-  val i_to_demux = Module(
+  val outputCfgDemux = Module(
     new DemuxDecoupled(dataType = dataType, numOutput = 3) {
       override val desiredName =
         s"${clusterName}_xdma_ctrl_dstConfigRouter_Demux"
     }
   )
-  i_from_arbiter.io.out -|> i_to_demux.io.in
+  inputCfgArbiter.io.out -|> outputCfgDemux.io.in
 
   // At the output of cut: Do the rule check
   val cTypeLocal :: cTypeRemote :: cTypeDiscard :: Nil = Enum(3)
   val cValue = Wire(chiselTypeOf(cTypeDiscard))
 
   when(
-    i_to_demux.io.in.bits
+    outputCfgDemux.io.in.bits
       .writerPtr(0)
       .apply(
-        i_to_demux.io.in.bits.writerPtr(0).getWidth - 1,
-        i_to_demux.io.in.bits.aguCfg.ptr.getWidth
+        outputCfgDemux.io.in.bits.writerPtr(0).getWidth - 1,
+        outputCfgDemux.io.in.bits.aguCfg.ptr.getWidth
       ) === io
       .clusterBaseAddress(
-        i_to_demux.io.in.bits.writerPtr(0).getWidth - 1,
-        i_to_demux.io.in.bits.aguCfg.ptr.getWidth
+        outputCfgDemux.io.in.bits.writerPtr(0).getWidth - 1,
+        outputCfgDemux.io.in.bits.aguCfg.ptr.getWidth
       )
   ) {
     cValue := cTypeLocal // When cfg has the Ptr that fall within local TCDM, the data should be forwarded to the local ctrl path
-  }.elsewhen(i_to_demux.io.in.bits.readerPtr === 0.U) {
+  }.elsewhen(outputCfgDemux.io.in.bits.readerPtr === 0.U) {
     cValue := cTypeDiscard // When cfg has the Ptr that is zero, This means that the frame need to be thrown away. This is important as when the data is moved from DRAM to TCDM or vice versa, DRAM part is handled by iDMA, thus only one config instead of two is submitted
   }.otherwise {
     cValue := cTypeRemote // For the remaining condition, the config is forward to remote DMA
   }
 
-  i_to_demux.io.sel := cValue
+  outputCfgDemux.io.sel := cValue
   // Port local is connected to the outside
-  i_to_demux.io.out(cTypeLocal.litValue.toInt) <> io.to.local
+  outputCfgDemux.io.out(cTypeLocal.litValue.toInt) <> io.to.local
   // Port remote is connected to the outside
-  i_to_demux.io.out(cTypeRemote.litValue.toInt) <> io.to.remote
+  outputCfgDemux.io.out(cTypeRemote.litValue.toInt) <> io.to.remote
   // Port discard is not connected and will always be discarded
-  i_to_demux.io.out(cTypeDiscard.litValue.toInt).ready := true.B
+  outputCfgDemux.io.out(cTypeDiscard.litValue.toInt).ready := true.B
 }
 
 class XDMACtrl(
@@ -408,7 +407,7 @@ class XDMACtrl(
 
   val numCSRPerPtr = (writerparam.axiParam.addrWidth + 31) / 32
 
-  val i_csrmanager = Module(
+  val csrManager = Module(
     new CsrManager(
       csrNumReadWrite = numCSRPerPtr + // Reader Pointer needs numCSRPerPtr CSRs
         readerparam.rwParam.aguParam.spatialBounds.length + // Spatiaial Strides for reader
@@ -441,23 +440,24 @@ class XDMACtrl(
               .reduce(_ + _) + 1
         } + // The total num of param on writer (custom CSR + bypass CSR)
         1, // The start CSR
-      csrNumReadOnly = 2,
-      // Set to two at current, 1) The number of submitted request; 2) The number of finished request. Since the reader path may be forward to remote, here I only count the writer branch
+      csrNumReadOnly = 4,
+      // Set to four at current, 1) The number of submitted local request; 2) The number of submitted remote request; 3) The number of finished local request; 4) The number of finished remote request
       csrAddrWidth = 32,
       // Set a name for the module class so that it will not overlapped with other csrManagers in user-defined accelerators
       csrModuleTagName = s"${clusterName}_xdma_"
     )
   )
 
-  i_csrmanager.io.csr_config_in <> io.csrIO
+  csrManager.io.csr_config_in <> io.csrIO
 
+  // Cfg from local side
   val preRoute_src_local = Wire(
     Decoupled(new XDMACfgIO(readerparam))
   )
   val preRoute_dst_local = Wire(
     Decoupled(new XDMACfgIO(writerparam))
   )
-  var remainingCSR = i_csrmanager.io.csr_config_out.bits.toIndexedSeq
+  var remainingCSR = csrManager.io.csr_config_out.bits.toIndexedSeq
 
   // Connect readerPtr + writerPtr with the CSR list
   preRoute_src_local.bits.connectPtrWithList(remainingCSR)
@@ -495,37 +495,105 @@ class XDMACtrl(
   preRoute_dst_local.bits.loopBack := loopBack
 
   // Connect Valid and bits: Only when both preRoutes are ready, postRulecheck is ready
-  i_csrmanager.io.csr_config_out.ready := preRoute_src_local.ready & preRoute_dst_local.ready
-  preRoute_src_local.valid := i_csrmanager.io.csr_config_out.ready & i_csrmanager.io.csr_config_out.valid
-  preRoute_dst_local.valid := i_csrmanager.io.csr_config_out.ready & i_csrmanager.io.csr_config_out.valid
+  csrManager.io.csr_config_out.ready := preRoute_src_local.ready & preRoute_dst_local.ready
+  preRoute_src_local.valid := csrManager.io.csr_config_out.ready & csrManager.io.csr_config_out.valid
+  preRoute_dst_local.valid := csrManager.io.csr_config_out.ready & csrManager.io.csr_config_out.valid
 
-  // Cfg Frame Routing at src side
-  val preRoute_src_remote = Wire(
-    Decoupled(new XDMACfgIO(readerparam))
+  // Task ID Counter to assign the ID for each transaction
+  val localSubmittedTaskIDCounter = Module(
+    new BasicCounter(
+      width = 8,
+      hasCeil = false
+    ) {
+      override val desiredName = s"${clusterName}_xdmaCtrl_localTaskIDCounter"
+    }
+  )
+  localSubmittedTaskIDCounter.io.ceil := DontCare
+  localSubmittedTaskIDCounter.io.tick := loopBack && csrManager.io.csr_config_out.fire
+  localSubmittedTaskIDCounter.io.reset := false.B
+
+  val remoteSubmittedTaskIDCounter = Module(
+    new BasicCounter(
+      width = 8,
+      hasCeil = false
+    ) {
+      override val desiredName = s"${clusterName}_xdmaCtrl_remoteTaskIDCounter"
+    }
+  )
+  remoteSubmittedTaskIDCounter.io.ceil := DontCare
+  remoteSubmittedTaskIDCounter.io.tick := (~loopBack) && csrManager.io.csr_config_out.fire
+  remoteSubmittedTaskIDCounter.io.reset := false.B
+
+  csrManager.io.read_only_csr(0) := localSubmittedTaskIDCounter.io.value
+  csrManager.io.read_only_csr(1) := remoteSubmittedTaskIDCounter.io.value
+
+  // Connect the task ID to the structured signal
+  val taskID = Mux(
+    loopBack,
+    localSubmittedTaskIDCounter.io.value,
+    remoteSubmittedTaskIDCounter.io.value
+  ) + 1.U
+  preRoute_src_local.bits.taskID := taskID
+  preRoute_dst_local.bits.taskID := taskID
+
+  // Cfg from remote side
+  val cfgFromRemote = Wire(
+    Decoupled(new XDMACrossClusterCfgIO(readerparam, writerparam))
+  )
+  cfgFromRemote.bits.deserialize(io.remoteXDMACfg.fromRemote.bits)
+  cfgFromRemote.valid := io.remoteXDMACfg.fromRemote.valid
+  io.remoteXDMACfg.fromRemote.ready := cfgFromRemote.ready
+
+  // Demux the cfg from the cfg_in port
+  val cfgFromRemoteDemux = Module(
+    new DemuxDecoupled(
+      dataType = chiselTypeOf(cfgFromRemote.bits),
+      numOutput = 2
+    ) {
+      override val desiredName = s"${clusterName}_xdma_ctrl_remoteCfgDemux"
+    }
   )
 
-  preRoute_src_remote.bits := {
-    // Serialized signal => Deserialized to intermediate structured signal => Converted to final structured signal
-    val srcRemoteCfg = Wire(new XDMACrossClusterCfgIO(readerparam))
-    srcRemoteCfg.deserialize(
-      io.remoteDMADataPathCfg.reader.fromRemote.bits
-    )
-    srcRemoteCfg.convertToXDMACfgIO(readerSide = true)
-  }
-  preRoute_src_remote.valid := io.remoteDMADataPathCfg.reader.fromRemote.valid
-  io.remoteDMADataPathCfg.reader.fromRemote.ready := preRoute_src_remote.ready
+  cfgFromRemoteDemux.io.in <> cfgFromRemote
+  cfgFromRemoteDemux.io.sel := cfgFromRemote.bits.isReaderSide
+
+  // Cfg to remote side
+  val cfgToRemote = Wire(
+    Decoupled(new XDMACrossClusterCfgIO(readerparam, writerparam))
+  )
+  io.remoteXDMACfg.toRemote.bits := cfgToRemote.bits.serialize
+  io.remoteXDMACfg.toRemote.valid := cfgToRemote.valid
+  cfgToRemote.ready := io.remoteXDMACfg.toRemote.ready
+
+  // Mux+Arbitrator the Cfg to cfg_out port
+  val cfgToRemoteMux = Module(
+    new Arbiter(
+      gen = chiselTypeOf(cfgToRemote.bits),
+      n = 2
+    ) {
+      override val desiredName = s"${clusterName}_xdma_ctrl_remoteCfgMux"
+    }
+  )
+
+  cfgToRemoteMux.io.out <> cfgToRemote
+  // Arbitration is done by Arbiter, no sel signal is needed
 
   // Command Router
-  val i_srcCfgRouter = Module(
+  val srcCfgRouter = Module(
     new SrcConfigRouter(
       dataType = chiselTypeOf(preRoute_src_local.bits),
       clusterName = clusterName
     )
   )
-  i_srcCfgRouter.io.clusterBaseAddress := io.clusterBaseAddress
+  srcCfgRouter.io.clusterBaseAddress := io.clusterBaseAddress
 
-  i_srcCfgRouter.io.from.local <> preRoute_src_local
-  preRoute_src_remote <> i_srcCfgRouter.io.from.remote
+  srcCfgRouter.io.from.local <> preRoute_src_local
+  srcCfgRouter.io.from.remote.valid := cfgFromRemoteDemux.io.out(1).valid
+  srcCfgRouter.io.from.remote.bits := cfgFromRemoteDemux.io
+    .out(1)
+    .bits
+    .convertToXDMACfgIO(readerSide = true)
+  cfgFromRemoteDemux.io.out(1).ready := srcCfgRouter.io.from.remote.ready
 
   val postRoute_src_local = Wire(
     Decoupled(new XDMACfgIO(readerparam))
@@ -533,46 +601,39 @@ class XDMACtrl(
   val postRoute_src_remote = Wire(
     Decoupled(new XDMACfgIO(readerparam))
   )
-  i_srcCfgRouter.io.to.local <> postRoute_src_local
-  i_srcCfgRouter.io.to.remote <> postRoute_src_remote
+  srcCfgRouter.io.to.local <> postRoute_src_local
+  srcCfgRouter.io.to.remote <> postRoute_src_remote
 
-  // Connect Port 3 to AXI Mst
-  io.remoteDMADataPathCfg.reader.toRemote.bits := {
+  // Connect Port 3 to remoteCfgMux to send to the remote side
+  cfgToRemoteMux.io.in(1).bits := {
     // Structured signal => Converted to crossClusterCfg => Serialized to final signal
-    val srcRemoteCfg = Wire(new XDMACrossClusterCfgIO(readerparam))
-    srcRemoteCfg.convertFromXDMACfgIO(postRoute_src_remote.bits)
-    srcRemoteCfg.serialize
-  }
-
-  io.remoteDMADataPathCfg.reader.toRemote.valid := postRoute_src_remote.valid
-  postRoute_src_remote.ready := io.remoteDMADataPathCfg.reader.toRemote.ready
-
-  // Cfg Frame Routing at dst side
-  val preRoute_dst_remote = Wire(
-    Decoupled(new XDMACfgIO(writerparam))
-  )
-  preRoute_dst_remote.bits := {
-    // Serialized signal => Deserialized to intermediate structured signal => Converted to final structured signal
-    val dstRemoteCfg = Wire(new XDMACrossClusterCfgIO(writerparam))
-    dstRemoteCfg.deserialize(
-      io.remoteDMADataPathCfg.writer.fromRemote.bits
+    val srcRemoteCfg = Wire(new XDMACrossClusterCfgIO(readerparam, writerparam))
+    srcRemoteCfg.convertFromXDMACfgIO(
+      readerSide = true,
+      cfg = postRoute_src_remote.bits
     )
-    dstRemoteCfg.convertToXDMACfgIO(readerSide = false)
+    srcRemoteCfg
   }
-  preRoute_dst_remote.valid := io.remoteDMADataPathCfg.writer.fromRemote.valid
-  io.remoteDMADataPathCfg.writer.fromRemote.ready := preRoute_dst_remote.ready
+
+  cfgToRemoteMux.io.in(1).valid := postRoute_src_remote.valid
+  postRoute_src_remote.ready := cfgToRemoteMux.io.in(1).ready
 
   // Command Router
-  val i_dstCfgRouter = Module(
+  val dstCfgRouter = Module(
     new DstConfigRouter(
       dataType = chiselTypeOf(preRoute_dst_local.bits),
       clusterName = clusterName
     )
   )
-  i_dstCfgRouter.io.clusterBaseAddress := io.clusterBaseAddress
+  dstCfgRouter.io.clusterBaseAddress := io.clusterBaseAddress
 
-  i_dstCfgRouter.io.from.local <> preRoute_dst_local
-  preRoute_dst_remote <> i_dstCfgRouter.io.from.remote
+  dstCfgRouter.io.from.local <> preRoute_dst_local
+  dstCfgRouter.io.from.remote.valid := cfgFromRemoteDemux.io.out(0).valid
+  dstCfgRouter.io.from.remote.bits := cfgFromRemoteDemux.io
+    .out(0)
+    .bits
+    .convertToXDMACfgIO(readerSide = false)
+  cfgFromRemoteDemux.io.out(0).ready := dstCfgRouter.io.from.remote.ready
 
   val postRoute_dst_local = Wire(
     Decoupled(new XDMACfgIO(writerparam))
@@ -580,61 +641,64 @@ class XDMACtrl(
   val postRoute_dst_remote = Wire(
     Decoupled(new XDMACfgIO(writerparam))
   )
-  postRoute_dst_local <> i_dstCfgRouter.io.to.local
-  postRoute_dst_remote <> i_dstCfgRouter.io.to.remote
+  postRoute_dst_local <> dstCfgRouter.io.to.local
+  postRoute_dst_remote <> dstCfgRouter.io.to.remote
 
-  // Connect Port 3 to AXI Mst
-  io.remoteDMADataPathCfg.writer.toRemote.bits := {
+  // Connect Port 3 to remoteCfgMux to send to the remote side
+  cfgToRemoteMux.io.in(0).bits := {
     // Structured signal => Converted to crossClusterCfg => Serialized to final signal
-    val dstRemoteCfg = Wire(new XDMACrossClusterCfgIO(writerparam))
-    dstRemoteCfg.convertFromXDMACfgIO(postRoute_dst_remote.bits)
-    dstRemoteCfg.serialize
+    val dstRemoteCfg = Wire(new XDMACrossClusterCfgIO(readerparam, writerparam))
+    dstRemoteCfg.convertFromXDMACfgIO(
+      readerSide = false,
+      cfg = postRoute_dst_remote.bits
+    )
+    dstRemoteCfg
   }
 
-  io.remoteDMADataPathCfg.writer.toRemote.valid := postRoute_dst_remote.valid
-  postRoute_dst_remote.ready := io.remoteDMADataPathCfg.writer.toRemote.ready
+  cfgToRemoteMux.io.in(0).valid := postRoute_dst_remote.valid
+  postRoute_dst_remote.ready := cfgToRemoteMux.io.in(0).ready
 
   // Loopback / Non-loopback seperation for pseudo-OoO commit
-  val i_src_LoopbackDemux = Module(
+  val srcLoopbackDemux = Module(
     new DemuxDecoupled(chiselTypeOf(postRoute_src_local.bits), numOutput = 2) {
       override val desiredName = s"${clusterName}_xdma_ctrl_src_LoopbackDemux"
     }
   )
-  val i_dst_LoopbackDemux = Module(
+  val dstLoopbackDemux = Module(
     new DemuxDecoupled(chiselTypeOf(postRoute_dst_local.bits), numOutput = 2) {
       override val desiredName = s"${clusterName}_xdma_ctrl_dst_LoopbackDemux"
     }
   )
 
   // (1) is loopback; (0) is non-loopback
-  i_src_LoopbackDemux.io.sel := postRoute_src_local.bits.loopBack
-  i_dst_LoopbackDemux.io.sel := postRoute_dst_local.bits.loopBack
-  i_src_LoopbackDemux.io.in <> postRoute_src_local
-  i_dst_LoopbackDemux.io.in <> postRoute_dst_local
+  srcLoopbackDemux.io.sel := postRoute_src_local.bits.loopBack
+  dstLoopbackDemux.io.sel := postRoute_dst_local.bits.loopBack
+  srcLoopbackDemux.io.in <> postRoute_src_local
+  dstLoopbackDemux.io.in <> postRoute_dst_local
 
-  val i_srcCfgArbiter = Module(
+  val srcCfgArbiter = Module(
     new Arbiter(chiselTypeOf(postRoute_src_local.bits), 2) {
       override val desiredName = s"${clusterName}_xdma_ctrl_srcCfgArbiter"
     }
   )
   // Non-loopback has lower priority, so that it is connect to 1st port of arbiter
   // Optional FIFO for non-loopback cfg is added (depth = 2)
-  i_src_LoopbackDemux.io.out(0) -||> i_srcCfgArbiter.io.in(1)
+  srcLoopbackDemux.io.out(0) -||> srcCfgArbiter.io.in(1)
   // Loopback has higher priority, so that it is connect to 0th port of arbiter
   // Optional FIFO for loopback cfg is not added
-  i_src_LoopbackDemux.io.out(1) <> i_srcCfgArbiter.io.in(0)
+  srcLoopbackDemux.io.out(1) <> srcCfgArbiter.io.in(0)
 
-  val i_dstCfgArbiter = Module(
+  val dstCfgArbiter = Module(
     new Arbiter(chiselTypeOf(postRoute_dst_local.bits), 2) {
       override val desiredName = s"${clusterName}_xdma_ctrl_dstCfgArbiter"
     }
   )
   // Non-loopback has lower priority, so that it is connect to 1st port of arbiter
   // Optional FIFO for non-loopback cfg is added (depth = 2)
-  i_dst_LoopbackDemux.io.out(0) -||> i_dstCfgArbiter.io.in(1)
+  dstLoopbackDemux.io.out(0) -||> dstCfgArbiter.io.in(1)
   // Loopback has higher priority, so that it is connect to 0th port of arbiter
   // Optional FIFO for loopback cfg is not added
-  i_dst_LoopbackDemux.io.out(1) <> i_dstCfgArbiter.io.in(0)
+  dstLoopbackDemux.io.out(1) <> dstCfgArbiter.io.in(0)
 
   // Connect these two cfg to the actual input: Need two small (Mealy) FSMs to manage the start signal and pop out the consumed cfg
   val sIdle :: sWaitBusy :: sBusy :: Nil = Enum(3)
@@ -648,32 +712,32 @@ class XDMACtrl(
   val current_state_dst = RegInit(sIdle)
 
   // Two Data Cut to store the buffer the current cfg
-  val current_cfg_src = Wire(chiselTypeOf(i_srcCfgArbiter.io.out))
-  val current_cfg_dst = Wire(chiselTypeOf(i_dstCfgArbiter.io.out))
-  i_srcCfgArbiter.io.out -|> current_cfg_src
-  i_dstCfgArbiter.io.out -|> current_cfg_dst
+  val current_cfg_src = Wire(chiselTypeOf(srcCfgArbiter.io.out))
+  val current_cfg_dst = Wire(chiselTypeOf(dstCfgArbiter.io.out))
+  srcCfgArbiter.io.out -|> current_cfg_src
+  dstCfgArbiter.io.out -|> current_cfg_dst
 
   // Default value: Not pop out config, not start reader/writer, not change state
-  io.localDMADataPath.readerStart := false.B
-  io.localDMADataPath.writerStart := false.B
+  io.localXDMACfg.readerStart := false.B
+  io.localXDMACfg.writerStart := false.B
   current_cfg_src.ready := false.B
   current_cfg_dst.ready := false.B
 
   // Control signals in Src Path
   switch(current_state_src) {
     is(sIdle) {
-      when(current_cfg_src.valid & (~io.localDMADataPath.readerBusy)) {
+      when(current_cfg_src.valid & (~io.localXDMACfg.readerBusy)) {
         current_state_src := sWaitBusy
-        io.localDMADataPath.readerStart := true.B
+        io.localXDMACfg.readerStart := true.B
       }
     }
     is(sWaitBusy) {
-      when(io.localDMADataPath.readerBusy) {
+      when(io.localXDMACfg.readerBusy) {
         current_state_src := sBusy
       }
     }
     is(sBusy) {
-      when(~io.localDMADataPath.readerBusy) {
+      when(~io.localXDMACfg.readerBusy) {
         current_state_src := sIdle
         current_cfg_src.ready := true.B
       }
@@ -683,18 +747,18 @@ class XDMACtrl(
   // Control signals in Dst Path
   switch(current_state_dst) {
     is(sIdle) {
-      when(current_cfg_dst.valid & (~io.localDMADataPath.writerBusy)) {
+      when(current_cfg_dst.valid & (~io.localXDMACfg.writerBusy)) {
         current_state_dst := sWaitBusy
-        io.localDMADataPath.writerStart := true.B
+        io.localXDMACfg.writerStart := true.B
       }
     }
     is(sWaitBusy) {
-      when(io.localDMADataPath.writerBusy) {
+      when(io.localXDMACfg.writerBusy) {
         current_state_dst := sBusy
       }
     }
     is(sBusy) {
-      when(~io.localDMADataPath.writerBusy) {
+      when(~io.localXDMACfg.writerBusy) {
         current_state_dst := sIdle
         current_cfg_dst.ready := true.B
       }
@@ -702,27 +766,28 @@ class XDMACtrl(
   }
 
   // Data Signals in Src Path
-  io.localDMADataPath.readerCfg := current_cfg_src.bits
+  io.localXDMACfg.readerCfg := current_cfg_src.bits
   // Data Signals in Dst Path
-  io.localDMADataPath.writerCfg := current_cfg_dst.bits
+  io.localXDMACfg.writerCfg := current_cfg_dst.bits
 
-  // Counter for submitted cfg and finished cfg (With these two values, the control core knows which task is finished)
-  val i_submittedTaskCounter = Module(new BasicCounter(32, hasCeil = false) {
-    override val desiredName = s"${clusterName}_xdma_ctrl_submittedTaskCounter"
+  // Counter for finished task
+  val localFinishedTaskCounter = Module(new BasicCounter(8, hasCeil = false) {
+    override val desiredName =
+      s"${clusterName}_xdma_ctrl_localFinishedTaskCounter"
   })
-  i_submittedTaskCounter.io.ceil := DontCare
-  i_submittedTaskCounter.io.reset := false.B
-  i_submittedTaskCounter.io.tick := i_csrmanager.io.csr_config_out.fire
-  i_csrmanager.io.read_only_csr(0) := i_submittedTaskCounter.io.value
+  localFinishedTaskCounter.io.ceil := DontCare
+  localFinishedTaskCounter.io.reset := false.B
+  localFinishedTaskCounter.io.tick := current_cfg_dst.fire && current_cfg_dst.bits.loopBack
 
-  val i_finishedTaskCounter = Module(new BasicCounter(32, hasCeil = false) {
-    override val desiredName = s"${clusterName}_xdma_ctrl_finishedTaskCounter"
+  val remoteFinishedTaskCounter = Module(new BasicCounter(8, hasCeil = false) {
+    override val desiredName =
+      s"${clusterName}_xdma_ctrl_remoteFinishedTaskCounter"
   })
-  i_finishedTaskCounter.io.ceil := DontCare
-  i_finishedTaskCounter.io.reset := false.B
-  i_finishedTaskCounter.io.tick := (RegNext(
-    io.localDMADataPath.writerBusy,
-    init = false.B
-  ) === true.B) && (io.localDMADataPath.writerBusy === false.B)
-  i_csrmanager.io.read_only_csr(1) := i_finishedTaskCounter.io.value
+  remoteFinishedTaskCounter.io.ceil := DontCare
+  remoteFinishedTaskCounter.io.reset := false.B
+  remoteFinishedTaskCounter.io.tick := io.remoteXDMACfg.toRemote.fire
+
+  // Connect the finished task counter to the read-only CSR
+  csrManager.io.read_only_csr(2) := localFinishedTaskCounter.io.value
+  csrManager.io.read_only_csr(3) := remoteFinishedTaskCounter.io.value
 }

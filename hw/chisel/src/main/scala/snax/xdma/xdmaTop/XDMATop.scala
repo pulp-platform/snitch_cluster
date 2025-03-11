@@ -28,18 +28,10 @@ class XDMATopIO(
   val csrIO = new SnaxCsrIO(32)
 
   val remoteXDMACfg = new Bundle {
-    val reader = new Bundle {
-      val fromRemote = Flipped(
-        Decoupled(UInt(readerParam.axiParam.dataWidth.W))
-      )
-      val toRemote = Decoupled(UInt(readerParam.axiParam.dataWidth.W))
-    }
-    val writer = new Bundle {
-      val fromRemote = Flipped(
-        Decoupled(UInt(writerParam.axiParam.dataWidth.W))
-      )
-      val toRemote = Decoupled(UInt(writerParam.axiParam.dataWidth.W))
-    }
+    val fromRemote = Flipped(
+      Decoupled(UInt(readerParam.axiParam.dataWidth.W))
+    )
+    val toRemote = Decoupled(UInt(readerParam.axiParam.dataWidth.W))
   }
 
   val tcdmReader = new Bundle {
@@ -89,6 +81,11 @@ class XDMATopIO(
       )
     )
   }
+
+  val status = new Bundle {
+    val readerBusy = Output(Bool())
+    val writerBusy = Output(Bool())
+  }
 }
 
 class XDMATop(
@@ -105,7 +102,7 @@ class XDMATop(
     )
   )
 
-  val dmaCtrl = Module(
+  val xdmaCtrl = Module(
     new XDMACtrl(
       readerparam = readerParam,
       writerparam = writerParam,
@@ -113,7 +110,7 @@ class XDMATop(
     )
   )
 
-  val dmaDatapath = Module(
+  val xdmaDatapath = Module(
     new XDMADataPath(
       readerparam = readerParam,
       writerparam = writerParam,
@@ -122,35 +119,39 @@ class XDMATop(
   )
 
   // Give the dmactrl the current cluster address
-  dmaCtrl.io.clusterBaseAddress := io.clusterBaseAddress
+  xdmaCtrl.io.clusterBaseAddress := io.clusterBaseAddress
 
   // IO0: Start to connect datapath to TCDM
-  io.tcdmReader <> dmaDatapath.io.tcdmReader
-  io.tcdmWriter <> dmaDatapath.io.tcdmWriter
+  io.tcdmReader <> xdmaDatapath.io.tcdmReader
+  io.tcdmWriter <> xdmaDatapath.io.tcdmWriter
 
   // IO1: Start to connect datapath to axi
-  io.remoteXDMAData.fromRemote <> dmaDatapath.io.remoteDMADataPath.fromRemote
-  io.remoteXDMAData.toRemote <> dmaDatapath.io.remoteDMADataPath.toRemote
+  io.remoteXDMAData.fromRemote <> xdmaDatapath.io.remoteXDMAData.fromRemote
+  io.remoteXDMAData.toRemote <> xdmaDatapath.io.remoteXDMAData.toRemote
 
   // IO2: Start to coonect ctrl to csr
-  io.csrIO <> dmaCtrl.io.csrIO
+  io.csrIO <> xdmaCtrl.io.csrIO
 
   // IO3: Start to connect ctrl to remoteDMADataPath
-  io.remoteXDMACfg <> dmaCtrl.io.remoteDMADataPathCfg
+  io.remoteXDMACfg <> xdmaCtrl.io.remoteXDMACfg
 
   // Interconnection between ctrl and datapath
-  dmaCtrl.io.localDMADataPath.readerCfg <> dmaDatapath.io.readerCfg
+  xdmaCtrl.io.localXDMACfg.readerCfg <> xdmaDatapath.io.readerCfg
 
-  dmaCtrl.io.localDMADataPath.writerCfg <> dmaDatapath.io.writerCfg
+  xdmaCtrl.io.localXDMACfg.writerCfg <> xdmaDatapath.io.writerCfg
 
-  dmaDatapath.io.readerStart := dmaCtrl.io.localDMADataPath.readerStart
+  xdmaDatapath.io.readerStart := xdmaCtrl.io.localXDMACfg.readerStart
 
-  dmaDatapath.io.writerStart := dmaCtrl.io.localDMADataPath.writerStart
+  xdmaDatapath.io.writerStart := xdmaCtrl.io.localXDMACfg.writerStart
 
-  dmaCtrl.io.localDMADataPath.readerBusy := dmaDatapath.io.readerBusy
+  xdmaCtrl.io.localXDMACfg.readerBusy := xdmaDatapath.io.readerBusy
 
-  dmaCtrl.io.localDMADataPath.writerBusy := dmaDatapath.io.writerBusy
+  xdmaCtrl.io.localXDMACfg.writerBusy := xdmaDatapath.io.writerBusy
 
+  // The status signal
+  io.status.readerBusy := xdmaCtrl.io.localXDMACfg.readerBusy
+
+  io.status.writerBusy := xdmaCtrl.io.localXDMACfg.writerBusy
 }
 
 object XDMATopGen extends App {
@@ -370,8 +371,10 @@ return new ${i._1}(${i._2
 #define XDMA_DST_EXT_CUSTOM_CSR_NUM \\
     { ${writerextensionparam.map(_.extensionParam.userCsrNum).mkString(", ")} }
 #define XDMA_START_PTR XDMA_DST_EXT_CSR_PTR + XDMA_DST_EXT_CSR_NUM
-#define XDMA_COMMIT_TASK_PTR XDMA_START_PTR + 1
-#define XDMA_FINISH_TASK_PTR XDMA_COMMIT_TASK_PTR + 1
+#define XDMA_COMMIT_LOCAL_TASK_PTR XDMA_START_PTR + 1
+#define XDMA_COMMIT_REMOTE_TASK_PTR XDMA_COMMIT_LOCAL_TASK_PTR + 1
+#define XDMA_FINISH_LOCAL_TASK_PTR XDMA_COMMIT_REMOTE_TASK_PTR + 1
+#define XDMA_FINISH_REMOTE_TASK_PTR XDMA_FINISH_LOCAL_TASK_PTR + 1
 """
 
   java.nio.file.Files.write(

@@ -63,6 +63,8 @@ int32_t xdma_disable_dst_ext(uint8_t ext);
 uint32_t xdma_start();
 
 // Check if xdma is finished
-bool xdma_is_finished(uint32_t task_id);
+static inline bool xdma_local_is_finished(uint32_t task_id);
+static inline bool xdma_remote_is_finished(uint32_t task_id);
 
-void xdma_wait(uint32_t task_id);
+void xdma_local_wait(uint32_t task_id);
+void xdma_remote_wait(uint32_t task_id);

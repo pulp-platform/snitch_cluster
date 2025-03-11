@@ -78,7 +78,7 @@ int main() {
                        5, tstride_src, tbound_src, 3, tstride_dst, tbound_dst,
                        0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
         int task_id = xdma_start();
-        xdma_wait(task_id);
+        xdma_local_wait(task_id);
 
         // --------------------- Checking the Results --------------------- //
         for (int i = 0; i < output_data_len; i++) {
