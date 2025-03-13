@@ -46,7 +46,7 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
     temp
   }
 
-  "The DMACtrl" should " pass" in {
+  "The XDMACtrl" should " pass" in {
     test(
       new XDMACtrl(
         readerparam = new XDMAParam(
@@ -204,26 +204,26 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                 (Reader_PointerAddress + i).toInt
               )
               val readerRemoteConfig: BigInt =
-                1 +
+                (1 << 8) +
                   // The address for the reader side
-                  ((Reader_PointerAddress + i) << 1) +
+                  ((Reader_PointerAddress + i) << 9) +
                   // The address for the writer side
-                  (BigInt(0x2000_0000) << 49) +
-                  (BigInt(Reader_Spatial_Strides(0) >> 3) << 97) +
-                  (BigInt(Reader_Temporal_Bounds(0) >> 3) << 116) +
-                  (BigInt(Reader_Temporal_Bounds(1) >> 3) << 135) +
+                  (BigInt(0x2000_0000) << 57) +
+                  (BigInt(Reader_Spatial_Strides(0) >> 3) << 105) +
+                  (BigInt(Reader_Temporal_Bounds(0) >> 3) << 124) +
+                  (BigInt(Reader_Temporal_Bounds(1) >> 3) << 143) +
                   // 2, 3, 4, 5 are all 1
-                  (BigInt(1) << 154) +
-                  (BigInt(1) << 173) +
-                  (BigInt(1) << 192) +
-                  (BigInt(1) << 211) +
-                  (BigInt(Reader_Temporal_Strides(0)) << 230) +
-                  (BigInt(Reader_Temporal_Strides(1)) << 249) +
+                  (BigInt(1) << 162) +
+                  (BigInt(1) << 181) +
+                  (BigInt(1) << 200) +
+                  (BigInt(1) << 219) +
+                  (BigInt(Reader_Temporal_Strides(0)) << 238) +
+                  (BigInt(Reader_Temporal_Strides(1)) << 257) +
                   // 2, 3, 4, 5 are all 0
                   // Enabled channels
-                  (BigInt(0xff) << 344) +
+                  (BigInt(0xff) << 352) +
                   // Enabled Byte
-                  (BigInt(0xff) << 352)
+                  (BigInt(0xff) << 360)
               dut.io.remoteXDMACfg.fromRemote.bits
                 .poke(readerRemoteConfig)
               dut.clock.step(Random.between(1, 31))
@@ -245,26 +245,26 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                 (Writer_PointerAddress + i + 1).toInt
               )
               val writerRemoteConfig: BigInt =
-                0 +
+                (0 << 8) +
                   // The address for the reader side
-                  (BigInt(0x2000_0000) << 1) +
+                  (BigInt(0x2000_0000) << 9) +
                   // The address for the writer side
-                  ((Writer_PointerAddress + i + 1) << 49) +
-                  (BigInt(Writer_Spatial_Strides(0) >> 3) << 97) +
-                  (BigInt(Writer_Temporal_Bounds(0) >> 3) << 116) +
-                  (BigInt(Writer_Temporal_Bounds(1) >> 3) << 135) +
+                  ((Writer_PointerAddress + i + 1) << 57) +
+                  (BigInt(Writer_Spatial_Strides(0) >> 3) << 105) +
+                  (BigInt(Writer_Temporal_Bounds(0) >> 3) << 124) +
+                  (BigInt(Writer_Temporal_Bounds(1) >> 3) << 143) +
                   // 2, 3, 4, 5 are all 1
-                  (BigInt(1) << 154) +
-                  (BigInt(1) << 173) +
-                  (BigInt(1) << 192) +
-                  (BigInt(1) << 211) +
-                  (BigInt(Writer_Temporal_Strides(0)) << 230) +
-                  (BigInt(Writer_Temporal_Strides(1)) << 249) +
+                  (BigInt(1) << 162) +
+                  (BigInt(1) << 181) +
+                  (BigInt(1) << 200) +
+                  (BigInt(1) << 219) +
+                  (BigInt(Writer_Temporal_Strides(0)) << 238) +
+                  (BigInt(Writer_Temporal_Strides(1)) << 257) +
                   // 2, 3, 4, 5 are all 0
                   // Enabled channels
-                  (BigInt(0xff) << 344) +
+                  (BigInt(0xff) << 352) +
                   // Enabled Byte
-                  (BigInt(0xff) << 352)
+                  (BigInt(0xff) << 360)
 
               dut.io.remoteXDMACfg.fromRemote.bits
                 .poke(writerRemoteConfig)
@@ -397,16 +397,16 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                 if (
                   extractBits(
                     dut.io.remoteXDMACfg.toRemote.bits.peekInt(),
-                    0,
-                    0
+                    8,
+                    8
                   ) == 1
                 ) {
                   println(
                     "[Remote Reader Checker] " + extractBits(
                       dut.io.remoteXDMACfg.toRemote.bits
                         .peekInt(),
-                      48,
-                      1
+                      56,
+                      9
                     ).toInt.toHexString
                   )
                   if (
@@ -414,8 +414,8 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                       extractBits(
                         dut.io.remoteXDMACfg.toRemote.bits
                           .peekInt(),
-                        48,
-                        1
+                        56,
+                        9
                       ).toInt
                     )
                   )
@@ -423,16 +423,16 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                       "[Remote Reader Checker] The received pointer " + extractBits(
                         dut.io.remoteXDMACfg.toRemote.bits
                           .peekInt(),
-                        48,
-                        1
+                        56,
+                        9
                       ).toInt.toHexString + " is not in the buffer"
                     )
                 } else {
                   println(
                     "[Remote Writer Checker] " + extractBits(
                       dut.io.remoteXDMACfg.toRemote.bits.peekInt(),
-                      96,
-                      49
+                      104,
+                      57
                     ).toInt.toHexString
                   )
                   if (
@@ -440,8 +440,8 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                       extractBits(
                         dut.io.remoteXDMACfg.toRemote.bits
                           .peekInt(),
-                        96,
-                        49
+                        104,
+                        57
                       ).toInt
                     )
                   )
@@ -449,8 +449,8 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                       "[Remote Writer Checker] The received pointer " + extractBits(
                         dut.io.remoteXDMACfg.toRemote.bits
                           .peekInt(),
-                        96,
-                        49
+                        104,
+                        57
                       ).toInt.toHexString + " is not in the buffer"
                     )
                 }
