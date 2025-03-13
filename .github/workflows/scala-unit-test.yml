@@ -15,11 +15,15 @@ jobs:
   run:
     name: Build and Test
     runs-on: ubuntu-22.04
-    container:
-      image: ghcr.io/kuleuven-micas/snax:main
     steps:
       - uses: actions/checkout@v2
+      - uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          cache: true
+          cache-write: ${{ github.event_name == 'push' &&
+            github.ref_name == 'main' }}
+          activate-environment: true
       - name: Run the unit tests
         working-directory: hw/chisel
         run: |
-          mill Snax.test
+          sbt test
