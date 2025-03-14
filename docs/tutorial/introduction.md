@@ -105,6 +105,12 @@ Go to the root of the `snax_cluster` repository and mount the directory to the c
 docker run -it -v `pwd`:/repo -w /repo ghcr.io/kuleuven-micas/snax:main
 ```
 
+Alternatively, you can use map the real path of your working `snax_cluster` directory:
+
+```bash
+podman run -it -v `pwd`:`pwd` -w `pwd` ghcr.io/kuleuven-micas/snax:main
+```
+
 This way the container sees the `snax_cluster` directory and you can run the pre-built packages and installed software.
 
 ## Installing Packages and Programs Locally
@@ -113,24 +119,43 @@ There are several required packages and programs in the container. If you insist
 
 ## Check if The System Works!
 
-To check if the system is working, let's do a quick run for building the HW and SW, then running the program.
+To check if the system is working, let's do a quick run for building the HW and SW, then running the program. Do the following from the root of the git directory.
+
+
+1 - Generate the RTL:
+
+```bash
+make -C target/snitch_cluster CFG_OVERRIDE=cfg/snax_alu_cluster.hjson rtl-gen
+```
 
 1 - Build the HW:
 
 ```bash
-make CFG_OVERRIDE=cfg/snax-alu.hjson bin/snitch_cluster.vlt -j
+make -C target/snitch_cluster CFG_OVERRIDE=cfg/snax_alu_cluster.hjson bin/snitch_cluster.vlt -j
 ```
 
 2 - Build the SW:
 
 ```bash
-make CFG_OVERRIDE=cfg/snax-alu.hjson SELECT_RUNTIME=rtl-generic SELECT_TOOLCHAIN=llvm-generic sw -j
+make -C target/snitch_cluster CFG_OVERRIDE=cfg/snax_alu_cluster.hjson sw -j
 ```
 
 3 - Run the program:
 
 ```bash
-bin/snitch_cluster.vlt sw/apps/snax-alu/build/snax-alu.elf
+./target/snitch_cluster/bin/snitch_cluster.vlt ./target/snitch_cluster/sw/apps/snax-alu/build/snax-alu.elf
 ```
 
-If it returns 0 errors, then you have the correct setup!
+You should see a log:
+
+```bash
+VCD wave generation enabled
+[fesvr] Wrote 36 bytes of bootrom to 0x1000
+[fesvr] Wrote entry point 0x80000000 to bootloader slot 0x1020
+[fesvr] Wrote 72 bytes of bootdata to 0x1024
+[Tracer] Logging Hart          0 to logs/trace_chip_00_hart_00000.dasm
+[Tracer] Logging Hart          1 to logs/trace_chip_00_hart_00001.dasm
+Accelerator Done! 
+Accelerator Cycles: 25 
+Number of errors: 0 
+```

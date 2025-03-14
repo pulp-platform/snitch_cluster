@@ -41,7 +41,8 @@ snax_alu_core_template: {
     xfdotp: true,
     xfvec: true,
     snax_acc_cfg: {
-        snax_acc_name: "snax_alu"
+        snax_acc_name: "snax_alu",
+        bender_target: ["snax_alu"],
         snax_tcdm_ports: 16,
         snax_num_rw_csr: 3,
         snax_num_ro_csr: 2,
@@ -63,9 +64,15 @@ The first operations before the `snax_acc_cfg` pertain to the Snitch core config
 The `snax_acc_cfg`  contains the configurations for the accelerator. The configuration definitions are:
 
 - `snax_acc_name`: Is the name appended to the different wrappers discussed in [Building the System](./build_system.md) section.
+- `bender_target`: This is for the bender target name that you will use later in [Building the System](./build_system.md) section.
 - `snax_tcdm_ports`: Is the number of tightly coupled data memory (TCDM) that your accelerator needs.
 - `snax_num_rw_csr`: Is the number of read-write (RW) registers your accelerators has. This affects the connection ports of the CSR manager. More details in [SNAX CSR Manager](./csrman_design.md).
 - `snax_num_ro_csr`: Is the number of read-only (RO) registers your accelerator has. This affects the connection ports CSR manager. More details in [SNAX CSR Manager](./csrman_design.md).
 - `snax_streamer_cfg`: Contains the settings for your streamer. More details are in [SNAX Streamer](./streamer_design.md)
+
+!!! note
+
+    At the top of the configuration file, you will also see the cluster bender target name. `bender_target: ["snax_alu_cluster"],` You need to put this at the top too so that your cluster would have its own unique name and the bender targets generated will also match.
+
 
 You can find more details in the [Hardware Schema](https://github.com/KULeuven-MICAS/snax_cluster/blob/main/docs/schema/snitch_cluster.schema.json) file. 

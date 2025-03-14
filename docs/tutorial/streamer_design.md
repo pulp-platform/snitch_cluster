@@ -196,7 +196,7 @@ for(i = 0; i < N; i++):
 ```
 
 ## SNAX ALU Streamer Configuration
-Recall that from the `snax-alu.hjson`, the `snax_acc_cfg` contains a `snax_streamer_cfg` which references a streamer template. The `snax_acc_cfg` is shown below for reference:
+Recall that from the `snax_alu_cluster.hjson`, the `snax_acc_cfg` contains a `snax_streamer_cfg` which references a streamer template. The `snax_acc_cfg` is shown below for reference:
 
 ```hjson
 snax_acc_cfg: {
@@ -209,79 +209,120 @@ snax_acc_cfg: {
 },
 ```
 
-If you scroll down to the bottom of the configuration file, you should see the `snax_alu_streamer_template` dictionary set. This template describes the streamer configurations. Let's go through each component.
-
-
-The `temporal_addrgen_unit_params` component with `loop_dim` generates the number of temporal loop bounds. Since it's just 1, then we only have 1 temporal loop bound.
+If you scroll down to the bottom of the configuration file, you should see the `snax_alu_streamer_template` dictionary set. This template describes the streamer configurations. Let's go through each component. You should see:
 
 ```hjson
-temporal_addrgen_unit_params: {
-  loop_dim: 1,
+// SNAX Streamer Templates
+snax_alu_streamer_template :{
+
+    data_reader_params: {
+        spatial_bounds: [[4], [4]],
+        temporal_dim: [1, 1],
+        num_channel: [4, 4],
+        fifo_depth: [8, 8],
+    },
+
+    data_writer_params:{
+        spatial_bounds: [[4]],
+        temporal_dim: [1],
+        num_channel: [4],
+        fifo_depth: [8],
+    },
+
+    snax_library_name: "snax-alu",
 }
 ```
 
-The `fifo_reader_params` and `fifo_writer_params` configure the FIFOs. Take note that the FIFOs are directly connected to the accelerator interface. It consists of the `fifo_width` which configures the datawidth of the accelerator interface ports. It also has the FIFO depths `fifo_depth` which configures the depth of the FIFOs.
+There are two sub-blocks, `data_reader_params` and `data_writer_params` each pertain to a streamer configuration that is dedicated for reading, and writing, respectively. There is also an available `data_reader_writer_params` with the same configuration. Refer to `cfg/snax_KUL_cluster.hjson` for an example.
 
-```hjson
-fifo_reader_params: {
-  fifo_width: [256, 256],
-  fifo_depth: [8, 8],
-}
+Each streamer configuration has the following:
 
-fifo_writer_params: {
-  fifo_width: [512],
-  fifo_depth: [8],
-}
-```
+- `spatial_bounds`: Pertain to the spatial unrolling factors (your parfor) for each data mover
+- `temporal_dim`: Generates the number of temporal loop bounds. Since it's just 1, then we only have 1 temporal loop bound. (i.e. one `for i = 0; i < N ; i++`)
+- `num_channels`: Indicate how many TCDM ports the streamer will connect to.
+- `fifo_depth`: Indicate the depth of the FIFO per streamer.
+- `snax_library_name`: At the bottom, this tells us where to upload the regenerated streamer register header file. More on this later.
 
-The `data_reader_params` and `data_writer_params` effectively configure the TCDM interface ports. It consists of `tcdm_ports_num` which controls how many TCDM ports are needed. The `spatial_bounds` pertain to the spatial unrolling factors (your parfor) for each data mover. The `spatial_dim` is the dimension of spatial unrolling factors (your parfor) for each data mover. The `element_width` is the single data element width for each data mover, useful for generating spatial addresses.
-
-```hjson
-data_reader_params:{
-  tcdm_ports_num: [4, 4],
-  spatial_bounds: [[4], [4]],
-  spatial_dim: [1,1],
-  element_width: [64,64],
-}
-
-data_writer_params:{
-  tcdm_ports_num: [8],
-  spatial_bounds: [[8]],
-  spatial_dim: [1],
-  element_width: [64],
-}
-```
-
-The number of elements in a list pertains to how many data movers there are. For example, there are 2 elements in the `data_reader_params` and therefore it instantiates two read data movers. There is only 1 element in the `data_writer_params` and hence only instantiates 1 write data mover.
-
-Finally, there is the `stationarity` configuration which is for stationarity for each data mover. If the stationarity bit is set, the innermost loop for that data mover is set to 1. This does not instantiate anything but rather affects the loop bound for a data mover. It only fixes the loop bound to 1. This is a special case scenario only, such as for output-stationary or weight-stationary accelerators. In the SNAX ALU, this is 0. 
+Note that the configurations are in a list. Each column in the list is a set of configuration for a single streamer. For example, in the `data_reader_params`, the first column of configurations is for the data streamer (input) A, and the second column is for the data streamer (input) B.
 
 ## SNAX ALU Streamer CSRs
 
-Based on the configuration file we expect the CSR registers to have:
+Based on the configuration file a header file containing all the data streamer registers will be generated. That is, each data streamer will have a set of registers. A `streamer_csr_addr_map.h` file will be generated to the directory for where the software library for your accelerator resides. More on this later (in Section). You will see the following registers:
 
-- 1 register for a single loop bound as specified in the `temporal_addrgen_unit_params -> loop_dim = 1`. If the number is 2 then we would have 2 loop bounds.
-- 3 temporal stride registers, 3 spatial stride registers, and 3 base address pointers since we have 3 data movers in total (2 read data movers and 1 write data mover).
-- 1 start register to start the streamer.
-- 1 performance counter register for how many cycles the streamer was active.
+```C
+// CSR Map for READER_0
+#define BASE_PTR_READER_0_LOW 960
+#define BASE_PTR_READER_0_HIGH 961
+#define S_STRIDE_READER_0_0 962
+#define T_BOUND_READER_0_0 963
+#define T_STRIDE_READER_0_0 964
+// CSR Map for READER_1
+#define BASE_PTR_READER_1_LOW 965
+#define BASE_PTR_READER_1_HIGH 966
+#define S_STRIDE_READER_1_0 967
+#define T_BOUND_READER_1_0 968
+#define T_STRIDE_READER_1_0 969
+// CSR Map for WRITER_0
+#define BASE_PTR_WRITER_0_LOW 970
+#define BASE_PTR_WRITER_0_HIGH 971
+#define S_STRIDE_WRITER_0_0 972
+#define T_BOUND_WRITER_0_0 973
+#define T_STRIDE_WRITER_0_0 974
+// Datapath extension CSRs
+// Other resgiters
+// Status register
+#define STREAMER_START_CSR 975
+// Read only CSRs
+#define STREAMER_BUSY_CSR 976
+#define STREAMER_PERFORMANCE_COUNTER_CSR 977
+```
 
-Below is a tabulated version of the CSRs of the streamers with the register offset addresses, type, and description:
+In total, you will see 18 streamer registers. 5 for each streamer, then 3 additional registers for control and read-only registers. The details of each register are:
 
-|  register name      |  register offset  |   type  |                   description                             |
-| :-----------------: | :-------------:   | :-----: |:--------------------------------------------------------- |
-| temporal loop bound |       0           |   RW    | Temporal loop bound for address generation                |
-| temporal stride 0   |       1           |   RW    | Temporal stride for input A                               |
-| temporal stride 1   |       2           |   RW    | Temporal stride for input B                               |
-| temporal stride 2   |       3           |   RW    | Temporal stride for output OUT                            |
-| spatial stride 0    |       4           |   RW    | Spatial stride for input A                                |
-| spatial stride 1    |       5           |   RW    | Spatial stride for input B                                |     
-| spatial stride 2    |       6           |   RW    | Spatial stride for output OUT                             |     
-| base addr 0         |       7           |   RW    | Base address for input A                                  |
-| base addr 1         |       8           |   RW    | Base address for input B                                  |
-| base addr 2         |       9           |   RW    | Base address for output OUT                               |
-| start               |       10          |   RW    | Start register to send configurations and start streaming |
-| perf. counter       |       11          |   RO    | Performance counter indicating the number of cycles ran   | 
+1 - `BASE_PTR_*_LOW` and `BASE_PTR_*_HIGH` pertains to the lower 32-bit and upper 32-bit starting address of your streamer.
 
+2 - `S_STRIDE_*` pertains to the spatial stride of your streamer. 
+
+3 - `T_BOUND_*` pertains to the temporal bounds per temporal loop.
+
+4 - ``T_STRIDE_*` pertains to the temporal stride per temporal loop
+
+The last `_0` tag pertains to the bounds and strides from an outer loop towards the inner loop. Because our configuration only has 1 temporal dimension, then it only stops at 0. In `C` code you the for-loops supported for in the above streamer configuration would be (say, for `READER_0`):
+
+``` C
+for (i = 0; i < T_BOUND_READER_0_0; i++) {
+  // Note that spatial_bounds = 4 so there are 4 target addresses
+  target_address_0 = ((BASE_PTR_READER_1_HIGH << 32) + BASE_PTR_READER_1_LOW) + i*T_STRIDE_READER_1_0 + 0*S_STRIDE_READER_1_0;
+  target_address_1 = ((BASE_PTR_READER_1_HIGH << 32) + BASE_PTR_READER_1_LOW) + i*T_STRIDE_READER_1_0 + 1*S_STRIDE_READER_1_0;
+  target_address_2 = ((BASE_PTR_READER_1_HIGH << 32) + BASE_PTR_READER_1_LOW) + i*T_STRIDE_READER_1_0 + 2*S_STRIDE_READER_1_0;
+  target_address_3 = ((BASE_PTR_READER_1_HIGH << 32) + BASE_PTR_READER_1_LOW) + i*T_STRIDE_READER_1_0 + 3*S_STRIDE_READER_1_0;
+}
+```
+
+
+If there are 2 temporal dimensions (i.e. `temporal_dim = 2`) then you would see `T_STRIDE_*_0` and `T_STRIDE_*_1` where the 0 index is for the outer loop and the 1 index is for the much inner loop. Vissualy it would like:
+
+``` C
+for (i = 0; i < T_BOUND_READER_0_0; i++) {
+  for (j = 0; j < T_BOUND_READER_0_1; j++) {
+    // Note that spatial_bounds = 4 so there are 4 target addresses
+    target_address_0 = ((BASE_PTR_READER_1_HIGH << 32) + BASE_PTR_READER_1_LOW) + i*T_STRIDE_READER_1_0 + j*T_STRIDE_READER_1_1 + 0*S_STRIDE_READER_1_0;
+    target_address_1 = ((BASE_PTR_READER_1_HIGH << 32) + BASE_PTR_READER_1_LOW) + i*T_STRIDE_READER_1_0 + j*T_STRIDE_READER_1_1 + 1*S_STRIDE_READER_1_0;
+    target_address_2 = ((BASE_PTR_READER_1_HIGH << 32) + BASE_PTR_READER_1_LOW) + i*T_STRIDE_READER_1_0 + j*T_STRIDE_READER_1_1 + 2*S_STRIDE_READER_1_0;
+    target_address_3 = ((BASE_PTR_READER_1_HIGH << 32) + BASE_PTR_READER_1_LOW) + i*T_STRIDE_READER_1_0 + j*T_STRIDE_READER_1_1 + 3*S_STRIDE_READER_1_0;
+  }
+}
+```
+
+5 - `STREAMER_START_CSR`: starts the streamers.
+
+6 - `STREAMER_BUSY_CSR`: is a 1-bit busy signal that can be monitored.
+
+7 - `STREAMER_PERFORMANCE_COUNTER_CSR`: is the current performance counter when the streamer is running. It resets to 0 when you start again.
+
+!!! note
+
+    The register addresses are pre-determined by our system. When the streamer header files are generated, please do not change anything.
 
 # Example Streamer Generation
 
@@ -292,7 +333,7 @@ This is a good time to test our wrapper generation and see the changes in the St
 2 - Run the RTL generation make target.
 
 ```bash
-make CFG_OVERRIDE=cfg/snax-alu.hjson rtl-gen
+make CFG_OVERRIDE=cfg/snax_alu_cluster.hjson rtl-gen
 ```
 
 3 - Wait a while since this generates the CSR manager, streamer, and all other wrappers.
@@ -357,6 +398,7 @@ make CFG_OVERRIDE=cfg/snax-alu.hjson rtl-gen
   It's basically repacking the unpacked signals of the Chisel-generated file into packed signals for easy integration in System Verilog.
 </details>
 
+
 # Try Modifying the Streamer!
 
 Let's try a simple exercise but we will spoil the answer to you already. Suppose we want the following streamer characteristics:
@@ -364,41 +406,28 @@ Let's try a simple exercise but we will spoil the answer to you already. Suppose
 - 2 temporal loop bounds
 - 1 reader and 1 writer that takes in 8 parallel inputs (and outputs) each 64 bits wide and with a FIFO depth of 16.
 - 8 TCDM ports for each reader and writer.
+- The name of the library to where the CSR header file will be saved should be `snax-test`
 
 The configuration streamer template should look like this:
 
 ```hjson
 snax_test_template :{
 
-  temporal_addrgen_unit_params: {
-    loop_dim: 2,
-  }
-
-  fifo_reader_params: {
-    fifo_width: [512],
-    fifo_depth: [16],
-  }
-
-  fifo_writer_params: {
-    fifo_width: [512],
-    fifo_depth: [16],
-  }
-
-  data_reader_params:{
-    tcdm_ports_num: [8],
+  data_reader_params: {
     spatial_bounds: [[8]],
-    spatial_dim: [1],
-    element_width: [64],
-  }
+    temporal_dim:   [2],
+    num_channel:    [8],
+    fifo_depth:     [16],
+  },
 
   data_writer_params:{
-    tcdm_ports_num: [8],
     spatial_bounds: [[8]],
-    spatial_dim: [1],
-    element_width: [64],
-  }
+    temporal_dim:   [2],
+    num_channel:    [8],
+    fifo_depth:     [16],
+  },
 
-  stationarity: [0,0]
+  snax_library_name: "snax-test",
 }
 ```
 Microarchitecturally, the streamer would look like the figure below:
@@ -409,54 +438,32 @@ Some details include:
 - Since there are 8 parallel ports for the input and output then the accelerator interfaces would have 512-bit channels.
 - Each FIFO would have a depth of 16.
 - There would be 8 TCDM ports in the TCDM interface for each input and output data movers.
+- It will also generate the following CSR registers:
 
-In terms of CSR registers, the streamer would have the following:
-
-|  register name                 |  register offset  |   type  |                   description                            |
-| :----------------------------: | :---------------: | :-----: |:-------------------------------------------------------- |
-| temporal loop bound 0          |       0           |   RW    | First temporal loop bound                                |
-| temporal loop bound 1          |       1           |   RW    | second temporal loop bound                               |
-| temporal stride 0 for bound 0  |       2           |   RW    | Temporal stride for loop bound 0 for input               |
-| temporal stride 1 for bound 0  |       3           |   RW    | Temporal stride for loop bound 0 for output              |
-| temporal stride 0 for bound 1  |       4           |   RW    | Temporal stride for loop bound 1 for input               |
-| temporal stride 1 for bound 1  |       5           |   RW    | Temporal stride for loop bound 1 for output              |
-| spatial stride 0               |       6           |   RW    | Spatial stride for input                                 |
-| spatial stride 1               |       7           |   RW    | Spatial stride for output                                |        
-| base addr 0                    |       8           |   RW    | Base address for input                                   |
-| base addr 1                    |       9           |   RW    | Base address for output                                  |
-| start                          |       10          |   RW    | Start register to send configurations                    |
-| perf. counter                  |       11          |   RO    | Performance counter indicating the number of cycles ran  | 
-
-Because we now have two temporal loop bounds, the temporal stride registers are also doubled. We need two temporal strides, one for input and one for output, for each temporal loop bound. Therefore there are a total of 2 temporal strides for the first loop bound and another 2 temporal strides for the second loop bound.
-
-Finally, the strided address generation that this streamer can do is:
+``` C
+// CSR Map for READER_0
+#define BASE_PTR_READER_0_LOW 960
+#define BASE_PTR_READER_0_HIGH 961
+#define S_STRIDE_READER_0_0 962
+#define T_BOUND_READER_0_0 963
+#define T_BOUND_READER_0_1 964
+#define T_STRIDE_READER_0_0 965
+#define T_STRIDE_READER_0_1 966
+// CSR Map for WRITER_0
+#define BASE_PTR_WRITER_0_LOW 967
+#define BASE_PTR_WRITER_0_HIGH 968
+#define S_STRIDE_WRITER_0_0 969
+#define T_BOUND_WRITER_0_0 970
+#define T_BOUND_WRITER_0_1 971
+#define T_STRIDE_WRITER_0_0 972
+#define T_STRIDE_WRITER_0_1 973
+// Datapath extension CSRs
+// Other resgiters
+// Status register
+#define STREAMER_START_CSR 974
+// Read only CSRs
+#define STREAMER_BUSY_CSR 975
+#define STREAMER_PERFORMANCE_COUNTER_CSR 976
 
 ```
-for(i = 0; i < N; i++):
-  for(j = 0; i < M; j++):
-    # Parfor equivalent
-    parfor(k = 0; k < 8; k++):
-      temporal_address = temporal_stride_i*i + temporal_stride_j*j
-      spatial_address = spatial_stride*k
-      target_address = base_address + temporal_address + spatial_address
-```
 
-Finally, one can calculate the number of CSR registers of the streamer with:
-
-``` Python
-# Total number of temporal loop dimensions
-num_loop_dim = snax_streamer_cfg["temporal_addrgen_unit_params"]["loop_dim"]
-
-# Total number of data movers
-num_data_mover = len(snax_streamer_cfg["data_reader_params"]["tcdm_ports_num"]) + len(snax_streamer_cfg["data_writer_params"]["tcdm_ports_num"])
-
-# This is essentially the total number of temporal loops and data movers combined
-num_dmove_x_loop_dim = num_data_mover * num_loop_dim
-
-# Total number of spatial registers
-num_spatial_dim = sum(snax_streamer_cfg["data_reader_params"]["spatial_dim"]) + sum(snax_streamer_cfg["data_writer_params"]["spatial_dim"])
-
-# Total number of registers!
-# The last two +1 are for the start register and the performance counter
-streamer_csr_num = num_loop_dim + num_dmove_x_loop_dim + num_data_mover + num_spatial_dim + 1 + 1
-```

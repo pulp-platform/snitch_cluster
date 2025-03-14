@@ -33,7 +33,6 @@ nav:
   - User Guide:
       - Getting Started: ug/getting_started.md
       - Repository Structure: ug/directory_structure.md
-      - Old Tutorial: ug/tutorial.md
       - Documentation: ug/documentation.md
       # Remove
       # - Benchmarking: ug/benchmarking.md

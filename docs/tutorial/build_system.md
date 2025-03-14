@@ -50,11 +50,12 @@ When you make your own accelerator you need to declare all the RTL files in this
 
 ### What About the Naming of the Generated Files?
 
-The names of the generated files are dependent on the configuration file you set. If you recall in the `snax_acc_cfg`, there is a `snax_acc_name` parameter: 
+The names of the generated files are dependent on the configuration file you set. If you recall in the `snax_acc_cfg`, there is a `snax_acc_name` parameter. Moreover, to match the bender target name specified earlier, you need to add the `bender_target: ["snax_alu"]` option too.
 
 ```hjson
 snax_acc_cfg: {
-    snax_acc_name: "snax_alu"
+    snax_acc_name: "snax_alu",
+    bender_target: ["snax_alu"],
     snax_tcdm_ports: 16,
     snax_num_rw_csr: 3,
     snax_num_ro_csr: 2,
@@ -83,31 +84,6 @@ Where you should substitute `${snax_acc_name}`  with the parameter name you spec
 
     When you write the filenames for the `Bender.yml` file, make sure to have the correct top module name of the shell. For example, the `snax_alu_shell_wrapper.sv` should be the top-shell name of your accelerator. Then, the generated Chisel files should also haev the `${snax_acc_namee}` pre-fixed accordingly. Just like it was mentioned above.
 
-## Updating the Makefiles!
-
-With the RTL files in place, we only need to make small modifications in the makefile such that we specify the `-target` properly during the build.
-
-First, navigate to `./target/snitch_cluster/.` and open the `Makefile` script. There are several settings and configurations because this `Makefile` is used both for hardware and software builds. We will first focus on the hardware build.
-
-Somewhere near the top of the file, you should see the `SNAX Generations` section. There are some existing accelerators already but locate the part where `snax-alu.hjson` is declared:
-
-```makefile
-ifeq (${CFG_OVERRIDE}, cfg/snax-alu.hjson)
-
-	SNAX_GEN += ${GENERATED_DIR}/snax-alu
-
-	VSIM_BENDER += -t snax-alu
-	VLT_BENDER  += -t snax-alu
-	VCS_BENDER  += -t snax-alu
-
-endif
-```
-As you can see, we need to specify `CFG_OVERRIDE=cfg/snax-alu.hjson` later when we build the file because the conditional statement checks the name of the configuration file.
-
-The `SNAX_GEN += ${GENERATED_DIR}/snax-alu` sets the target directory for where the build will be placed. The parameters with `*_BENDER += -t snax-alu` tell the build to use bender with the `-target snax-alu` defined. This is in accordance with the `-target` parameter mentioned in the Bender file.
-
-After adding this to the `Makefile` we are now ready to build the system!
-
 ## Build Process
 
 1 - From the root of the repo navigate to `./target/snitch_cluster/`
@@ -115,13 +91,13 @@ After adding this to the `Makefile` we are now ready to build the system!
 2 - Generate the RTL files
 
 ```bash
-make CFG_OVERRIDE=cfg/snax-alu.hjson rtl-gen
+make CFG_OVERRIDE=cfg/snax_alu_cluster.hjson rtl-gen
 ```
 
 3 - Build the system:
 
 ```bash
-make CFG_OVERRIDE=cfg/snax-alu.hjson bin/snitch_cluster.vlt
+make CFG_OVERRIDE=cfg/snax_alu_cluster.hjson bin/snitch_cluster.vlt -j
 ```
 
 4 - Wait 5 to 10 minutes until the build finishes.
@@ -135,7 +111,7 @@ That was easy, right?
 You can do step 2 whithout having to build the system yet. This becomes especially useful for designers to do a manual (eye-ball) sanity check on the connections.
 
 ```bash
-make CFG_OVERRIDE=cfg/snax-alu.hjson rtl-gen
+make CFG_OVERRIDE=cfg/snax_alu_cluster.hjson rtl-gen
 ```
 
 Generates all RTL files including the wrappers and the Chisel-generated CSR manager, streamers, (and possibly accelerators if need be).
@@ -144,7 +120,7 @@ Generates all RTL files including the wrappers and the Chisel-generated CSR mana
 
 The original [Snitch Platform](https://github.com/pulp-platform/snitch_cluster) uses templated generation Python scripts. First, you have the accelerator wrapper script (`./util/snaxgen/snaxgen.py`) and then the cluster generation script (`./util/clustergen/cluster.py`).
 
-In principle, both scripts use a specified configuration file like the `snax-alu.hjson` and load those configurations in a templated file `*.tpl`. Once loaded, it generates the target files like System Verilog designs or Chisel parameters.
+In principle, both scripts use a specified configuration file like the `snax_alu_cluster.hjson` and load those configurations in a templated file `*.tpl`. Once loaded, it generates the target files like System Verilog designs or Chisel parameters.
 
 ## Accelerator Wrapper Script
 
@@ -161,13 +137,13 @@ Inside the template directory we have:
 We have shown previously how to use the `snaxgen` script. If you are working in Codespaces:
 
 ```bash
-/workspaces/snax_cluster/util/snaxgen/snaxgen.py --cfg_path="/workspaces/snax_cluster/target/snitch_cluster/cfg/snax-alu.hjson" --tpl_path="/workspaces/snax_cluster/hw/templates/" --chisel_path="/workspaces/snax_cluster/hw/chisel/" --gen_path="/workspaces/snax_cluster/target/snitch_cluster/generated/"
+/workspaces/snax_cluster/util/snaxgen/snaxgen.py --cfg_path="/workspaces/snax_cluster/target/snitch_cluster/cfg/snax_alu_cluster.hjson" --tpl_path="/workspaces/snax_cluster/hw/templates/" --chisel_path="/workspaces/snax_cluster/hw/chisel/" --gen_path="/workspaces/snax_cluster/target/snitch_cluster/generated/"
 ```
 
 If you are working in a docker container:
 
 ```bash
-/repo/util/snaxgen/snaxgen.py --cfg_path="/repo/target/snitch_cluster/cfg/snax-alu.hjson" --tpl_path="/repo/hw/templates/" --chisel_path="/repo/hw/chisel/" --gen_path="/repo/target/snitch_cluster/generated/"
+/repo/util/snaxgen/snaxgen.py --cfg_path="/repo/target/snitch_cluster/cfg/snax_alu_cluster.hjson" --tpl_path="/repo/hw/templates/" --chisel_path="/repo/hw/chisel/" --gen_path="/repo/target/snitch_cluster/generated/"
 ```
 
 Where:
@@ -183,13 +159,13 @@ The **cluster wrapper** made by the Snitch platform also does the same mechanism
 If you are working in Codespaces run the `clustergen` with:
 
 ```bash
-/workspaces/snax_cluster/util/clustergen.py -c /workspaces/snax_cluster/target/snitch_cluster/cfg/snax-alu.hjson -o /workspaces/snax_cluster/target/snitch_cluster/generated --wrapper
+/workspaces/snax_cluster/util/clustergen.py -c /workspaces/snax_cluster/target/snitch_cluster/cfg/snax_alu_cluster.hjson -o /workspaces/snax_cluster/target/snitch_cluster/generated --wrapper
 ```
 
 If you are working in the container do:
 
 ```bash
-/repo/util/clustergen.py -c cfg/snax-alu.hjson -o /repo/target/snitch_cluster/generated --wrapper
+/repo/util/clustergen.py -c cfg/snax_alu_cluster.hjson -o /repo/target/snitch_cluster/generated --wrapper
 ```
 
 Where:
@@ -197,9 +173,9 @@ Where:
 - `-o` - points to the directory where all the generated files will be placed.
 
 The `clustergen` generates the `snitch_cluster_wrapper.sv` inside the `./target/snitch_cluster/generated` directory. You can see this after the build finishes.
-# (Optional) More Details on the `snax-alu.hjson`
+# (Optional) More Details on the `snax_alu_cluster.hjson`
 
-Let's go through the `snax-alu.hjson` file again and look at important configurations. We'll only discuss the notable ones that would be most useful for an accelerator designer. Remember, you can locate this at `./target/snitch_cluster/cfg/snax-alu.hjson` starting from the root of the repository.
+Let's go through the `snax_alu_cluster.hjson` file again and look at important configurations. We'll only discuss the notable ones that would be most useful for an accelerator designer. Remember, you can locate this at `./target/snitch_cluster/cfg/snax_alu_cluster.hjson` starting from the root of the repository.
 
 The main `cluster` dictionary configures the entire system. Particularly, it affects the cluster wrapper which you can see in `./hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl`. The file has several things in it but we'll just give you an overview of the few parameters.
 

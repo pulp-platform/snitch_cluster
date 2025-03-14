@@ -20,17 +20,17 @@ This repository requires several tools to be installed on your machine. Some of 
 
 Note that installing all tools, in appropriate versions, may be non-trivial. For this purpose, we provide a Docker container with all free tools installed.
 
-The [following section](https://pulp-platform.github.io/{{ repo }}/ug/getting_started.html#docker-container) provides instructions to install the Docker container.
+The [following section](https://kuleuven-micas.github.io/{{ repo }}/ug/getting_started.html#docker-container) provides instructions to install the Docker container.
 
-Users with access to ETH Zurich IIS machines can find all tools already installed on these machines. To complete the setup, skip to the [IIS environment setup](https://pulp-platform.github.io/{{ repo }}/ug/getting_started.html#iis-environment-setup) section.
+Users with access to ETH Zurich IIS machines can find all tools already installed on these machines. To complete the setup, skip to the [IIS environment setup](https://kuleuven-micas.github.io/{{ repo }}/ug/getting_started.html#iis-environment-setup) section.
 
-If you do choose to setup a custom development environment on your own machine, we strongly recommend you take example from our [Docker file](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/container/README.md).
+If you do choose to setup a custom development environment on your own machine, we strongly recommend you take example from our [Docker file](https://kuleuven-micas.github.io/{{ repo }}/blob/{{ branch }}/util/container/README.md).
 
 ## Docker container
 
 <!--end-section-1-->
 
-The following instructions are extracted from the Docker container [README.md](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/container/README.md). For additional information on the Docker container refer to that document.
+The following instructions are extracted from the Docker container [README.md](https://kuleuven-micas.github.io/{{ repo }}/blob/{{ branch }}/util/container/README.md). For additional information on the Docker container refer to that document.
 
 ### Installation
 
@@ -44,13 +44,13 @@ The following instructions are extracted from the Docker container [README.md](h
 
 <!--start-section-2-->
 
-## IIS environment setup
+## Python Setup
 
 To make sure the right versions of each tool are picked up, set the following environment variables, e.g. in a bash shell:
 
 ```bash
 export PYTHON="/usr/local/anaconda3-2022.05/bin/python3"
-export BENDER="bender-0.27.1"
+export BENDER="bender-0.28.1"
 export CC="gcc-9.2.0"
 export CXX="g++-9.2.0"
 export LLVM_BINROOT="/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin"
