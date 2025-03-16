@@ -76,25 +76,37 @@ int main() {
 
     snrt_cluster_hw_barrier();
 
+    int32_t Aslstride[] = {Aslstride0};
+    int32_t Atlbound[] = {Atlbound0, Atlbound1, Atlbound2,
+                          Atlbound3, Atlbound4, Atlbound5};
+    int32_t Atlstride[] = {Atlstride0, Atlstride1, Atlstride2,
+                           Atlstride3, Atlstride4, Atlstride5};
+    int32_t Bslstride[] = {Bslstride0};
+    int32_t Btlbound[] = {Btlbound0, Btlbound1, Btlbound2};
+    int32_t Btlstride[] = {Btlstride0, Btlstride1, Btlstride2};
+    int32_t D8slstride[] = {D8slstride0};
+    int32_t D8tlbound[] = {D8tlbound0, D8tlbound1, D8tlbound2, D8tlbound3};
+    int32_t D8tlstride[] = {D8tlstride0, D8tlstride1, D8tlstride2, D8tlstride3};
+    int32_t Cslstride[] = {Cslstride0};
+    int32_t Ctlbound[] = {Ctlbound0, Ctlbound1, Ctlbound2, Ctlbound3};
+    int32_t Ctlstride[] = {Ctlstride0, Ctlstride1, Ctlstride2, Ctlstride3};
+    int32_t D32slstride[] = {D32slstride0};
+    int32_t D32tlbound[] = {D32tlbound0, D32tlbound1, D32tlbound2, D32tlbound3};
+    int32_t D32tlstride[] = {D32tlstride0, D32tlstride1, D32tlstride2,
+                             D32tlstride3};
+
     if (snrt_global_core_idx() == 0) {
         // Set Streamer configuration CSR for conv2d
         set_gemmx_streamer_csr(
-            Aslstride0, Aslstride1, Atlbound0, Atlstride0, Atlbound1,
-            Atlstride1, Atlbound2, Atlstride2, Atlbound3, Atlstride3, Atlbound4,
-            Atlstride4, Atlbound5, Atlstride5, set_addr_remap_index_A,
+            Aslstride, Atlbound, Atlstride, set_addr_remap_index_A,
 
-            Bslstride0, Bslstride1, Btlbound0, Btlstride0, Btlbound1,
-            Btlstride1, Btlbound2, Btlstride2, set_addr_remap_index_B,
+            Bslstride, Btlbound, Btlstride, set_addr_remap_index_B,
 
-            D8slstride0, D8slstride1, D8tlbound0, D8tlstride0, D8tlbound1,
-            D8tlstride1, D8tlbound2, D8tlstride2, set_addr_remap_index_D8,
+            D8slstride, D8tlbound, D8tlstride, set_addr_remap_index_D8,
 
-            Cslstride0, Cslstride1, Ctlbound0, Ctlstride0, Ctlbound1,
-            Ctlstride1, Ctlbound2, Ctlstride2, set_addr_remap_index_C,
+            Cslstride, Ctlbound, Ctlstride, set_addr_remap_index_C,
 
-            D32slstride0, D32slstride1, D32tlbound0, D32tlstride0, D32tlbound1,
-            D32tlstride1, D32tlbound2, D32tlstride2, set_addr_remap_index_D32,
-
+            D32slstride, D32tlbound, D32tlstride, set_addr_remap_index_D32,
             delta_local_a, delta_local_b, delta_local_d8, delta_local_c,
             delta_local_d32, bypassSIMD, transposed_A, transposed_B,
             channel_en_C, broadcast_C);

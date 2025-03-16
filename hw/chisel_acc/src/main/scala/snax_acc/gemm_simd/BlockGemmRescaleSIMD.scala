@@ -6,6 +6,8 @@ import chisel3.util._
 import snax_acc.simd._
 import snax_acc.gemm._
 
+import snax_acc.utils._
+
 // The BlockGemmRescaleSIMD's control port declaration.
 class BlockGemmRescaleSIMDCtrlIO(params: BlockGemmRescaleSIMDParams)
     extends Bundle {
@@ -23,12 +25,31 @@ class BlockGemmRescaleSIMDCtrlIO(params: BlockGemmRescaleSIMDParams)
 // The BlockGemmRescaleSIMD's data port declaration. Decoupled interface connected to the streamer
 class BlockGemmRescaleSIMDDataIO(params: BlockGemmRescaleSIMDParams)
     extends Bundle {
-  val gemm_data = new BlockGemmDataIO(params.gemmParams)
-  val simd_data = Decoupled(
-    UInt(
-      (params.rescaleSIMDParams.dataLen * params.rescaleSIMDParams.outputType).W
+  val gemm_data = new Bundle {
+    val a_i = Flipped(
+      Decoupled(
+        UInt(
+          (params.gemmParams.dataWidthA * params.gemmParams.meshRow * params.gemmParams.tileSize).W
+        )
+      )
     )
-  )
+    val b_i = Flipped(
+      Decoupled(
+        UInt(
+          (params.gemmParams.dataWidthB * params.gemmParams.tileSize * params.gemmParams.meshCol).W
+        )
+      )
+    )
+    val c_serial_i = Flipped(Decoupled(UInt(params.C32_D32_width.W)))
+    val d_serial_o = Decoupled(UInt(params.C32_D32_width.W))
+  }
+  val simd_data = new Bundle {
+    val d_serial_o = Decoupled(
+      UInt(
+        params.D8_width.W
+      )
+    )
+  }
 }
 
 class BlockGemmRescaleSIMDIO(params: BlockGemmRescaleSIMDParams)
@@ -55,12 +76,50 @@ class BlockGemmRescaleSIMD(params: BlockGemmRescaleSIMDParams)
     case _ => throw new Exception("Unknown SIMD configuration")
   }
 
+  // C32 serial to parallel converter
+  val C32_s2p = Module(
+    new SerialToParallel(
+      SerialToParallelParams(
+        parallelWidth =
+          params.gemmParams.dataWidthC * params.gemmParams.meshRow * params.gemmParams.meshCol,
+        serialWidth = params.C32_D32_width
+      )
+    )
+  )
+
+  // D3232 parallel to serial converter
+  val D32_p2s = Module(
+    new ParallelToSerial(
+      ParallelToSerialParams(
+        parallelWidth =
+          params.gemmParams.dataWidthC * params.gemmParams.meshRow * params.gemmParams.meshCol,
+        serialWidth = params.C32_D32_width
+      )
+    )
+  )
+
+  // D8 parallel to serial converter
+  val D8_p2s = Module(
+    new ParallelToSerial(
+      ParallelToSerialParams(
+        parallelWidth =
+          params.rescaleSIMDParams.dataLen * params.rescaleSIMDParams.outputType,
+        serialWidth = params.D8_width
+      )
+    )
+  )
+
+  // data converter connection
+  io.data.gemm_data.c_serial_i <> C32_s2p.io.in
+  io.data.gemm_data.d_serial_o <> D32_p2s.io.out
+  io.data.simd_data.d_serial_o <> D8_p2s.io.out
+
   // gemm control signal connection
   gemm.io.ctrl <> io.ctrl.gemm_ctrl
   // gemm input data
   gemm.io.data.a_i <> io.data.gemm_data.a_i
   gemm.io.data.b_i <> io.data.gemm_data.b_i
-  gemm.io.data.c_i <> io.data.gemm_data.c_i
+  gemm.io.data.c_i <> C32_s2p.io.out
 
   // simd signal connection
   when(io.ctrl.bypassSIMD) {
@@ -79,9 +138,9 @@ class BlockGemmRescaleSIMD(params: BlockGemmRescaleSIMDParams)
     simd.io.data.input_i.valid := false.B
 
     // gemm output to outside directly
-    io.data.gemm_data.d_o.valid := gemm.io.data.d_o.valid
+    D32_p2s.io.in.valid := gemm.io.data.d_o.valid
     // directly connect the ready signal
-    gemm.io.data.d_o.ready := io.data.gemm_data.d_o.ready
+    gemm.io.data.d_o.ready := D32_p2s.io.in.ready
 
   }.otherwise {
     // insert a register to improve frequency
@@ -90,25 +149,25 @@ class BlockGemmRescaleSIMD(params: BlockGemmRescaleSIMDParams)
     gemm.io.data.d_o.ready := simd.io.data.input_i.ready
 
     // output driver
-    io.data.gemm_data.d_o.valid := false.B
+    D32_p2s.io.in.valid := false.B
 
   }
   simd.io.data.input_i.bits := gemm.io.data.d_o.bits
-  io.data.gemm_data.d_o.bits := gemm.io.data.d_o.bits
+  D32_p2s.io.in.bits := gemm.io.data.d_o.bits
 
   // simd output
   when(io.ctrl.bypassSIMD) {
     // output driver
-    io.data.simd_data.valid <> false.B
+    D8_p2s.io.in.valid <> false.B
     // fake ready signal
     simd.io.data.output_o.ready := false.B
   }.otherwise {
-    io.data.simd_data.valid := simd.io.data.output_o.valid
-    simd.io.data.output_o.ready := io.data.simd_data.ready
+    D8_p2s.io.in.valid := simd.io.data.output_o.valid
+    simd.io.data.output_o.ready := D8_p2s.io.in.ready
   }
-  io.data.simd_data.bits := simd.io.data.output_o.bits
+  D8_p2s.io.in.bits := simd.io.data.output_o.bits
 
-  io.ctrl.busy_o := gemm.io.busy_o || simd.io.busy_o
+  io.ctrl.busy_o := gemm.io.busy_o || simd.io.busy_o || D8_p2s.io.out.valid || D32_p2s.io.out.valid
   when(io.ctrl.bypassSIMD) {
     io.ctrl.performance_counter := gemm.io.performance_counter
   }.otherwise {
@@ -184,15 +243,17 @@ object BlockGemmRescaleSIMDGen {
       sharedScaleFactorPerGroupSize = meshRow
     )
 
+    val params = BlockGemmRescaleSIMDParams(
+      gemmParams,
+      (if (withPipeline == true)
+         snax_acc.simd.PipelinedConfig.rescaleSIMDConfig
+       else SIMDParamsWithoutPipeline),
+      withPipeline
+    )
+
     emitVerilog(
       new BlockGemmRescaleSIMD(
-        BlockGemmRescaleSIMDParams(
-          gemmParams,
-          (if (withPipeline == true)
-             snax_acc.simd.PipelinedConfig.rescaleSIMDConfig
-           else SIMDParamsWithoutPipeline),
-          withPipeline
-        )
+        params
       ),
       Array("--target-dir", "generated/gemmx")
     )
@@ -215,10 +276,9 @@ object BlockGemmRescaleSIMDGen {
 """
     val DataWidthA = GemmConstant.dataWidthA * meshRow * tileSize
     val DataWidthB = GemmConstant.dataWidthB * tileSize * meshCol
-    val DataWidthC = GemmConstant.dataWidthC * meshRow * meshCol
-    val DataWidthD32 = GemmConstant.dataWidthC * meshRow * meshCol
-    val DataWidthD8 =
-      RescaleSIMDConstant.outputType * meshRow * meshCol
+    val DataWidthC = params.C32_D32_width
+    val DataWidthD32 = params.C32_D32_width
+    val DataWidthD8 = params.D8_width
 
     var SIMDCSRConnect = ""
     for (i <- 4 to (4 + SIMDReadWriteCsrNum - 1)) {
@@ -316,17 +376,17 @@ module snax_streamer_gemmX_shell_wrapper #(
       .io_data_gemm_data_b_i_valid(stream2acc_1_valid_i),
       .io_data_gemm_data_b_i_bits (stream2acc_1_data_i),
 
-      .io_data_gemm_data_c_i_ready(stream2acc_2_ready_o),
-      .io_data_gemm_data_c_i_valid(stream2acc_2_valid_i),
-      .io_data_gemm_data_c_i_bits (stream2acc_2_data_i),
+      .io_data_gemm_data_c_serial_i_ready(stream2acc_2_ready_o),
+      .io_data_gemm_data_c_serial_i_valid(stream2acc_2_valid_i),
+      .io_data_gemm_data_c_serial_i_bits (stream2acc_2_data_i),
 
-      .io_data_gemm_data_d_o_ready(acc2stream_1_ready_i),
-      .io_data_gemm_data_d_o_valid(acc2stream_1_valid_o),
-      .io_data_gemm_data_d_o_bits (acc2stream_1_data_o),
+      .io_data_gemm_data_d_serial_o_ready(acc2stream_1_ready_i),
+      .io_data_gemm_data_d_serial_o_valid(acc2stream_1_valid_o),
+      .io_data_gemm_data_d_serial_o_bits (acc2stream_1_data_o),
 
-      .io_data_simd_data_ready(acc2stream_0_ready_i),
-      .io_data_simd_data_valid(acc2stream_0_valid_o),
-      .io_data_simd_data_bits (acc2stream_0_data_o)
+      .io_data_simd_data_d_serial_o_ready(acc2stream_0_ready_i),
+      .io_data_simd_data_d_serial_o_valid(acc2stream_0_valid_o),
+      .io_data_simd_data_d_serial_o_bits (acc2stream_0_data_o)
   );
 
 endmodule
@@ -337,9 +397,8 @@ endmodule
       macro_template.getBytes(java.nio.charset.StandardCharsets.UTF_8)
     )
 
-
-  // generate the c runtime file arrording to the hardware configuration
-  val c_template = s"""// Copyright 2023 KU Leuven.
+    // generate the c runtime file arrording to the hardware configuration
+    val c_template = s"""// Copyright 2023 KU Leuven.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -352,11 +411,12 @@ endmodule
 #define meshCol $meshCol
 """
 
-  val c_header_file_path = "../../target/snitch_cluster/sw/snax/gemmx/include/snax-gemmx-params.h"
+    val c_header_file_path =
+      "../../target/snitch_cluster/sw/snax/gemmx/include/snax-gemmx-params.h"
 
-  java.nio.file.Files.write(
-    java.nio.file.Paths.get(s"${c_header_file_path}"),
-    c_template.getBytes(java.nio.charset.StandardCharsets.UTF_8)
-  )
+    java.nio.file.Files.write(
+      java.nio.file.Paths.get(s"${c_header_file_path}"),
+      c_template.getBytes(java.nio.charset.StandardCharsets.UTF_8)
+    )
   }
 }

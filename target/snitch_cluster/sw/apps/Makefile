@@ -38,8 +38,6 @@ SUBDIRS += snax-data-reshuffler
 SUBDIRS += snax-gemmx-matmul
 endif
 ifeq ($(CFG_OVERRIDE), cfg/snax_KUL_cluster.hjson)
-SUBDIRS += snax-gemmx-matmul
-SUBDIRS += snax-gemmx-conv
 SUBDIRS += snax-xdma-memset
 SUBDIRS += snax-xdma-maxpool
 endif

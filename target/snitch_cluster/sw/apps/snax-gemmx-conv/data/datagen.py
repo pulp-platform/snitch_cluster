@@ -273,10 +273,11 @@ def emit_conv_data(**kwargs):
     ]
 
     # for streamer cfg
+    # -----------------------------------------------------------
     # streamer setting for data mover A
+    # -----------------------------------------------------------
     # NC8HW8
-    Aslstride0 = 1
-    Aslstride1 = 8 * stride_w
+    Aslstride0 = 8 * stride_w
 
     # K dim
     Atlbound0 = Kw
@@ -326,7 +327,6 @@ def emit_conv_data(**kwargs):
 
     data_str += [
         format_scalar_definition("int32_t", "Aslstride0", Aslstride0),
-        format_scalar_definition("int32_t", "Aslstride1", Aslstride1),
         format_scalar_definition("int32_t", "Atlbound0", Atlbound0),
         format_scalar_definition("int32_t", "Atlstride0", Atlstride0),
         format_scalar_definition("int32_t", "Atlbound1", Atlbound1),
@@ -344,9 +344,10 @@ def emit_conv_data(**kwargs):
     ]
 
     # Cout8Cin8FyFx88
+    # -----------------------------------------------------------
     # streamer setting for data mover B
-    Bslstride0 = 1
-    Bslstride1 = 8
+    # -----------------------------------------------------------
+    Bslstride0 = 8
 
     # K dim
     Btlbound0 = Kw * Kh * Cin8
@@ -380,7 +381,6 @@ def emit_conv_data(**kwargs):
 
     data_str += [
         format_scalar_definition("int32_t", "Bslstride0", Bslstride0),
-        format_scalar_definition("int32_t", "Bslstride1", Bslstride1),
         format_scalar_definition("int32_t", "Btlbound0", Btlbound0),
         format_scalar_definition("int32_t", "Btlstride0", Btlstride0),
         format_scalar_definition("int32_t", "Btlbound1", Btlbound1),
@@ -391,27 +391,27 @@ def emit_conv_data(**kwargs):
         format_scalar_definition("int32_t", "Btlstride3", Btlstride3),
     ]
 
+    # -----------------------------------------------------------
     # streamer setting for data mover C
+    # -----------------------------------------------------------
     # C is int32_t so the stride is 4 times of the int8_t
     # NHWC
     Cslstride0 = 8
-    Cslstride1 = 8 * 8
 
+    # serial input
+    Ctlbound0 = 4
+    Ctlstride0 = 8 * 8
     # N dim
-    Ctlbound0 = Cout // 8
-    Ctlstride0 = out_height * out_width // 8 * 8 * 8 * 4
+    Ctlbound1 = Cout // 8
+    Ctlstride1 = out_height * out_width // 8 * 8 * 8 * 4
 
     # M dim
     # K is merged because of the block gemm output stationarity
-    Ctlbound1 = out_width // 8
-    Ctlstride1 = 8 * 8 * 4
+    Ctlbound2 = out_width // 8
+    Ctlstride2 = 8 * 8 * 4
 
-    Ctlbound2 = out_height
-    Ctlstride2 = out_width // 8 * 8 * 8 * 4
-
-    # Batch dim
-    Ctlbound3 = Nbatch
-    Ctlstride3 = Cout * out_height * out_width * 4
+    Ctlbound3 = out_height
+    Ctlstride3 = out_width // 8 * 8 * 8 * 4
 
     assert (
         Ctlstride0 % 64 == 0
@@ -419,11 +419,10 @@ def emit_conv_data(**kwargs):
         and Ctlstride2 % 64 == 0
         and Ctlstride3 % 64 == 0
     )
-    assert M * N == Ctlbound0 * Ctlbound1 * Ctlbound2 * Ctlbound3
+    assert M * N * 4 == Ctlbound0 * Ctlbound1 * Ctlbound2 * Ctlbound3
 
     data_str += [
         format_scalar_definition("int32_t", "Cslstride0", Cslstride0),
-        format_scalar_definition("int32_t", "Cslstride1", Cslstride1),
         format_scalar_definition("int32_t", "Ctlbound0", Ctlbound0),
         format_scalar_definition("int32_t", "Ctlstride0", Ctlstride0),
         format_scalar_definition("int32_t", "Ctlbound1", Ctlbound1),
@@ -434,24 +433,26 @@ def emit_conv_data(**kwargs):
         format_scalar_definition("int32_t", "Ctlstride3", Ctlstride3),
     ]
 
+    # -----------------------------------------------------------
+    # streamer setting for data mover D32
+    # -----------------------------------------------------------
     D32slstride0 = 8
-    D32slstride1 = 8 * 8
+
+    # serial output
+    D32tlbound0 = 4
+    D32tlstride0 = 8 * 8
 
     # N dim
-    D32tlbound0 = Cout // 8
-    D32tlstride0 = out_height * out_width // 8 * 8 * 8 * 4
+    D32tlbound1 = Cout // 8
+    D32tlstride1 = out_height * out_width // 8 * 8 * 8 * 4
 
     # M dim
     # K is merged because of the block gemm output stationarity
-    D32tlbound1 = out_width // 8
-    D32tlstride1 = 8 * 8 * 4
+    D32tlbound2 = out_width // 8
+    D32tlstride2 = 8 * 8 * 4
 
-    D32tlbound2 = out_height
-    D32tlstride2 = out_width // 8 * 8 * 8 * 4
-
-    # Batch dim
-    D32tlbound3 = Nbatch
-    D32tlstride3 = Cout * out_height * out_width * 4
+    D32tlbound3 = out_height
+    D32tlstride3 = out_width // 8 * 8 * 8 * 4
 
     assert (
         D32tlstride0 % 64 == 0
@@ -462,7 +463,6 @@ def emit_conv_data(**kwargs):
 
     data_str += [
         format_scalar_definition("int32_t", "D32slstride0", D32slstride0),
-        format_scalar_definition("int32_t", "D32slstride1", D32slstride1),
         format_scalar_definition("int32_t", "D32tlbound0", D32tlbound0),
         format_scalar_definition("int32_t", "D32tlstride0", D32tlstride0),
         format_scalar_definition("int32_t", "D32tlbound1", D32tlbound1),
@@ -473,25 +473,27 @@ def emit_conv_data(**kwargs):
         format_scalar_definition("int32_t", "D32tlstride3", D32tlstride3),
     ]
 
+    # -----------------------------------------------------------
+    # streamer setting for data mover D8
+    # -----------------------------------------------------------
     # postprocessing D8 settings
-    D8slstride0 = 1
-    D8slstride1 = 8
+    D8slstride0 = 8
+
+    # serial output
+    D8tlbound0 = 1
+    D8tlstride0 = 0
 
     # N dim
-    D8tlbound0 = Cout // 8
-    D8tlstride0 = out_height * out_width // 8 * 8 * 8
+    D8tlbound1 = Cout // 8
+    D8tlstride1 = out_height * out_width // 8 * 8 * 8
 
     # M dim
     # K is merged because of the block gemm output stationarity
-    D8tlbound1 = out_width // 8
-    D8tlstride1 = 8 * 8
+    D8tlbound2 = out_width // 8
+    D8tlstride2 = 8 * 8
 
-    D8tlbound2 = out_height
-    D8tlstride2 = out_width // 8 * 8 * 8
-
-    # Batch dim
-    D8tlbound3 = Nbatch
-    D8tlstride3 = Cout * out_height * out_width
+    D8tlbound3 = out_height
+    D8tlstride3 = out_width // 8 * 8 * 8
 
     assert (
         D8tlstride0 % 64 == 0
@@ -501,7 +503,6 @@ def emit_conv_data(**kwargs):
     )
     data_str += [
         format_scalar_definition("int32_t", "D8slstride0", D8slstride0),
-        format_scalar_definition("int32_t", "D8slstride1", D8slstride1),
         format_scalar_definition("int32_t", "D8tlbound0", D8tlbound0),
         format_scalar_definition("int32_t", "D8tlstride0", D8tlstride0),
         format_scalar_definition("int32_t", "D8tlbound1", D8tlbound1),

@@ -57,17 +57,22 @@ def emit_matmul_data(**kwargs):
     meshCol = kwargs["snax_streamer_gemmX_core_template"]["snax_acc_cfg"][
         "snax_gemmx_mesh_col"
     ]
+    snax_gemmx_serial_c32_d32_width = kwargs["snax_streamer_gemmX_core_template"][
+        "snax_acc_cfg"
+    ]["snax_gemmx_serial_c32_d32_width"]
+    snax_gemmx_serial_d8_width = kwargs["snax_streamer_gemmX_core_template"][
+        "snax_acc_cfg"
+    ]["snax_gemmx_serial_d8_width"]
 
     # matmul settings
     data_str = []
 
-    data_str += [format_scalar_definition("int", "Batch", 1)]
-    data_str += [format_scalar_definition("int", "M", kwargs["M"])]
-    data_str += [format_scalar_definition("int", "K", kwargs["K"])]
-    data_str += [format_scalar_definition("int", "N", kwargs["N"])]
+    data_str += [format_scalar_definition("int32_t", "Batch", 1)]
+    data_str += [format_scalar_definition("int32_t", "M", kwargs["M"])]
+    data_str += [format_scalar_definition("int32_t", "K", kwargs["K"])]
+    data_str += [format_scalar_definition("int32_t", "N", kwargs["N"])]
 
-    data_str += [format_scalar_definition("int32_t", "Aslstride0", 1)]
-    data_str += [format_scalar_definition("int32_t", "Aslstride1", bankWidth / 8)]
+    data_str += [format_scalar_definition("int32_t", "Aslstride0", bankWidth / 8)]
     data_str += [format_scalar_definition("int32_t", "Atlbound0", kwargs["K"])]
     data_str += [
         format_scalar_definition(
@@ -91,8 +96,7 @@ def emit_matmul_data(**kwargs):
     data_str += [format_scalar_definition("int32_t", "Atlbound5", 1)]
     data_str += [format_scalar_definition("int32_t", "Atlstride5", 0)]
 
-    data_str += [format_scalar_definition("int32_t", "Bslstride0", 1)]
-    data_str += [format_scalar_definition("int32_t", "Bslstride1", bankWidth / 8)]
+    data_str += [format_scalar_definition("int32_t", "Bslstride0", bankWidth / 8)]
     data_str += [format_scalar_definition("int32_t", "Btlbound0", kwargs["K"])]
     data_str += [
         format_scalar_definition(
@@ -110,75 +114,122 @@ def emit_matmul_data(**kwargs):
     data_str += [format_scalar_definition("int32_t", "Btlbound2", kwargs["M"])]
     data_str += [format_scalar_definition("int32_t", "Btlstride2", 0)]
 
+    # -----------------------------------------------------------
+    # streamer c32 settings
+    # -----------------------------------------------------------
+    # spatial settings
     data_str += [format_scalar_definition("int32_t", "Cslstride0", bankWidth / 8)]
     c32_spatial_bound_0 = 8
-    data_str += [
-        format_scalar_definition(
-            "int32_t", "Cslstride1", c32_spatial_bound_0 * (bankWidth / 8)
-        )
-    ]
-    data_str += [format_scalar_definition("int32_t", "Ctlbound0", kwargs["N"])]
-    data_str += [
-        format_scalar_definition(
-            "int32_t", "Ctlstride0", output_data_width * meshRow * meshCol / 8
-        )
-    ]
-    data_str += [format_scalar_definition("int32_t", "Ctlbound1", kwargs["M"])]
+    # temporal settings
+    # serial input for C
     data_str += [
         format_scalar_definition(
             "int32_t",
-            "Ctlstride1",
+            "Ctlbound0",
+            output_data_width * meshRow * meshCol / snax_gemmx_serial_c32_d32_width,
+        )
+    ]
+    data_str += [
+        format_scalar_definition(
+            "int32_t", "Ctlstride0", c32_spatial_bound_0 * (bankWidth / 8)
+        )
+    ]
+    data_str += [format_scalar_definition("int32_t", "Ctlbound1", kwargs["N"])]
+    data_str += [
+        format_scalar_definition(
+            "int32_t", "Ctlstride1", output_data_width * meshRow * meshCol / 8
+        )
+    ]
+    data_str += [format_scalar_definition("int32_t", "Ctlbound2", kwargs["M"])]
+    data_str += [
+        format_scalar_definition(
+            "int32_t",
+            "Ctlstride2",
             kwargs["N"] * output_data_width * meshRow * meshCol / 8,
         )
     ]
-    data_str += [format_scalar_definition("int32_t", "Ctlbound2", 1)]
-    data_str += [format_scalar_definition("int32_t", "Ctlstride2", 0)]
+    data_str += [format_scalar_definition("int32_t", "Ctlbound3", 1)]
+    data_str += [format_scalar_definition("int32_t", "Ctlstride3", 0)]
 
+    # -----------------------------------------------------------
+    # streamer d32 settings
+    # -----------------------------------------------------------
+    # spatial settings
     data_str += [format_scalar_definition("int32_t", "D32slstride0", bankWidth / 8)]
     d32_spatial_bound_0 = 8
-    data_str += [
-        format_scalar_definition(
-            "int32_t", "D32slstride1", d32_spatial_bound_0 * (bankWidth / 8)
-        )
-    ]
-    data_str += [format_scalar_definition("int32_t", "D32tlbound0", kwargs["N"])]
-    data_str += [
-        format_scalar_definition(
-            "int32_t", "D32tlstride0", output_data_width * meshRow * meshCol / 8
-        )
-    ]
-    data_str += [format_scalar_definition("int32_t", "D32tlbound1", kwargs["M"])]
+    # temporal settings
     data_str += [
         format_scalar_definition(
             "int32_t",
-            "D32tlstride1",
+            "D32tlbound0",
+            output_data_width * meshRow * meshCol / snax_gemmx_serial_c32_d32_width,
+        )
+    ]
+    data_str += [
+        format_scalar_definition(
+            "int32_t", "D32tlstride0", d32_spatial_bound_0 * (bankWidth / 8)
+        )
+    ]
+    data_str += [format_scalar_definition("int32_t", "D32tlbound1", kwargs["N"])]
+    data_str += [
+        format_scalar_definition(
+            "int32_t", "D32tlstride1", output_data_width * meshRow * meshCol / 8
+        )
+    ]
+    data_str += [format_scalar_definition("int32_t", "D32tlbound2", kwargs["M"])]
+    data_str += [
+        format_scalar_definition(
+            "int32_t",
+            "D32tlstride2",
             kwargs["N"] * output_data_width * meshRow * meshCol / 8,
         )
     ]
-    data_str += [format_scalar_definition("int32_t", "D32tlbound2", 1)]
-    data_str += [format_scalar_definition("int32_t", "D32tlstride2", 0)]
+    data_str += [format_scalar_definition("int32_t", "D32tlbound3", 1)]
+    data_str += [format_scalar_definition("int32_t", "D32tlstride3", 0)]
 
-    data_str += [format_scalar_definition("int32_t", "D8slstride0", 1)]
-    data_str += [format_scalar_definition("int32_t", "D8slstride1", bankWidth / 8)]
-    data_str += [format_scalar_definition("int32_t", "D8tlbound0", kwargs["N"])]
+    # -----------------------------------------------------------
+    # streamer d8 settings
+    # -----------------------------------------------------------
+
+    # spatial settings
+    data_str += [format_scalar_definition("int32_t", "D8slstride0", bankWidth / 8)]
+    # temporal settings
+    d8_spatial_bound_0 = 8
     data_str += [
         format_scalar_definition(
             "int32_t",
-            "D8tlstride0",
-            quantized_output_data_width * meshRow * meshCol / 8,
+            "D8tlbound0",
+            quantized_output_data_width
+            * meshRow
+            * meshCol
+            / snax_gemmx_serial_d8_width,
         )
     ]
-    data_str += [format_scalar_definition("int32_t", "D8tlbound1", kwargs["M"])]
+    data_str += [
+        format_scalar_definition(
+            "int32_t", "D8tlstride0", d8_spatial_bound_0 * (bankWidth / 8)
+        )
+    ]
+    data_str += [format_scalar_definition("int32_t", "D8tlbound1", kwargs["N"])]
     data_str += [
         format_scalar_definition(
             "int32_t",
             "D8tlstride1",
+            quantized_output_data_width * meshRow * meshCol / 8,
+        )
+    ]
+    data_str += [format_scalar_definition("int32_t", "D8tlbound2", kwargs["M"])]
+    data_str += [
+        format_scalar_definition(
+            "int32_t",
+            "D8tlstride2",
             kwargs["N"] * quantized_output_data_width * meshRow * meshCol / 8,
         )
     ]
-    data_str += [format_scalar_definition("int32_t", "D8tlbound2", 1)]
-    data_str += [format_scalar_definition("int32_t", "D8tlstride2", 0)]
+    data_str += [format_scalar_definition("int32_t", "D8tlbound3", 1)]
+    data_str += [format_scalar_definition("int32_t", "D8tlstride3", 0)]
 
+    # -----------------------------------------------------------
     delta_local_a = 0
     delta_local_b = (
         kwargs["K"] * kwargs["M"] * (meshRow * tileSize * input_data_width / 8)

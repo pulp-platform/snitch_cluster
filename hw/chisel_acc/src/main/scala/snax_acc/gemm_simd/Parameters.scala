@@ -9,7 +9,9 @@ import snax_acc.gemm._
 case class BlockGemmRescaleSIMDParams(
     gemmParams: GemmParams,
     rescaleSIMDParams: RescaleSIMDParams,
-    withPipeline: Boolean
+    withPipeline: Boolean,
+    C32_D32_width: Int = 512,
+    D8_width: Int = 512
 )
 
 object BlockGemmRescaleSIMDDefaultConfig {

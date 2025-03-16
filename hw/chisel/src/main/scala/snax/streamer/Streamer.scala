@@ -595,18 +595,29 @@ class Streamer(
   def genCSRMap(csrBase: Int, param: ReaderWriterParam, tag: String = "") = {
     var csrMap = "// CSR Map for " + tag + "\n"
     var csrOffset = csrBase
+
     // base pointer
     csrMap = csrMap + "#define BASE_PTR_" + tag + "_LOW " + csrOffset + "\n"
     csrOffset = csrOffset + 1
     csrMap = csrMap + "#define BASE_PTR_" + tag + "_HIGH " + csrOffset + "\n"
     csrOffset = csrOffset + 1
 
-    // spatial bounds
+    // spatial strides base address for this data mover
+    csrMap = csrMap + "#define S_STRIDE_BASE_" + tag + " " + csrOffset + "\n"
+    csrMap =
+      csrMap + "#define S_STRIDE_NUM_" + tag + " " + param.aguParam.spatialBounds.length + "\n"
+
+    // spatial strides
     for (i <- 0 until param.aguParam.spatialBounds.length) {
       csrMap =
         csrMap + "#define " + "S_STRIDE_" + tag + "_" + i + " " + csrOffset + "\n"
       csrOffset = csrOffset + 1
     }
+
+    // temporal bounds base address for this data mover
+    csrMap = csrMap + "#define T_BOUND_BASE_" + tag + " " + csrOffset + "\n"
+    csrMap =
+      csrMap + "#define T_BOUND_NUM_" + tag + " " + param.aguParam.temporalDimension + "\n"
 
     // temporal bounds
     for (i <- 0 until param.aguParam.temporalDimension) {
@@ -614,6 +625,11 @@ class Streamer(
         csrMap + "#define " + "T_BOUND_" + tag + "_" + i + " " + csrOffset + "\n"
       csrOffset = csrOffset + 1
     }
+
+    // temporal strides base address for this data mover
+    csrMap = csrMap + "#define T_STRIDE_BASE_" + tag + " " + csrOffset + "\n"
+    csrMap =
+      csrMap + "#define T_STRIDE_NUM_" + tag + " " + param.aguParam.temporalDimension + "\n"
 
     // temporal stride
     for (i <- 0 until param.aguParam.temporalDimension) {

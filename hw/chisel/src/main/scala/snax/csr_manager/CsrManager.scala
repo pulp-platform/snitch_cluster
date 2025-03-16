@@ -4,6 +4,7 @@ import snax.utils._
 
 import chisel3._
 import chisel3.util._
+import chisel3.chiselTypeOf
 
 /** This class represents the csr input and output ports of the streamer top
   * module
@@ -87,7 +88,7 @@ class CsrManager(
       when(io.csr_config_in.req.bits.write === 1.B) {
         assert(
           io.csr_config_in.req.bits.addr < csrNumReadWrite.U,
-          "csr write address overflow!"
+          cf"csr write address overflow! Address: ${io.csr_config_in.req.bits.addr}, Max: ${csrNumReadWrite - 1}, Config: ${io.csr_config_in.req.bits.data}"
         )
       }
     }

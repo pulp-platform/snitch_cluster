@@ -19,7 +19,8 @@
   transposed_A: 1,
   transposed_B: 0,
   bypassSIMD: 0,
-  broadcast_C: 1,
+  // broadcast_C won't work in the serial C input
+  broadcast_C: 0,
   channel_en_C: 1,
 
   // memory space configurations

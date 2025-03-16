@@ -42,39 +42,36 @@ int32_t gen_csr0_config(uint8_t input_zp_i, uint8_t output_zp_i,
 int32_t gen_csr1_config(bool double_round_i);
 
 // Set STREAMER configuration CSR
-void set_gemmx_streamer_csr(
-    int Aslstride0, int Aslstride1, int Atlbound0, int Atlstride0,
-    int Atlbound1, int Atlstride1, int Atlbound2, int Atlstride2, int Atlbound3,
-    int Atlstride3, int Atlbound4, int Atlstride4, int Atlbound5,
-    int Atlstride5, int set_addr_remap_index_A,
+void set_gemmx_streamer_csr(int32_t* Aslstride, int32_t* Atlbound,
+                            int32_t* Atlstride, int32_t set_addr_remap_index_A,
 
-    int Bslstride0, int Bslstride1, int Btlbound0, int Btlstride0,
-    int Btlbound1, int Btlstride1, int Btlbound2, int Btlstride2,
-    int set_addr_remap_index_B,
+                            int32_t* Bslstride, int32_t* Btlbound,
+                            int32_t* Btlstride, int32_t set_addr_remap_index_B,
 
-    int D8slstride0, int D8slstride1, int D8tlbound0, int D8tlstride0,
-    int D8tlbound1, int D8tlstride1, int D8tlbound2, int D8tlstride2,
-    int set_addr_remap_index_D8,
+                            int32_t* D8slstride, int32_t* D8tlbound,
+                            int32_t* D8tlstride,
+                            int32_t set_addr_remap_index_D8,
 
-    int Cslstride0, int Cslstride1, int Ctlbound0, int Ctlstride0,
-    int Ctlbound1, int Ctlstride1, int Ctlbound2, int Ctlstride2,
-    int set_addr_remap_index_C,
+                            int32_t* Cslstride, int32_t* Ctlbound,
+                            int32_t* Ctlstride, int32_t set_addr_remap_index_C,
 
-    int D32slstride0, int D32slstride1, int D32tlbound0, int D32tlstride0,
-    int D32tlbound1, int D32tlstride1, int D32tlbound2, int D32tlstride2,
-    int set_addr_remap_index_D32,
+                            int32_t* D32slstride, int32_t* D32tlbound,
+                            int32_t* D32tlstride,
+                            int32_t set_addr_remap_index_D32,
 
-    int delta_local_a, int delta_local_b, int delta_local_d8, int delta_local_c,
-    int delta_local_d32, int bypassSIMD, int32_t transpose_A,
-    int32_t transpose_B, int32_t* channel_en_C, int32_t broadcast_C);
+                            int32_t delta_local_a, int32_t delta_local_b,
+                            int32_t delta_local_d8, int32_t delta_local_c,
+                            int32_t delta_local_d32, int32_t bypassSIMD,
+                            int32_t transpose_A, int32_t transpose_B,
+                            int32_t* channel_en_C, int32_t broadcast_C);
 
 // Set CSR to start STREAMER
 inline void set_gemmx_streamer_start() { csrw_ss(STREAMER_START_CSR, 1); }
 
 // Set GEMM configuration CSR
-void set_gemmx_csr(int tempLoop0, int tempLoop1, int tempLoop2,
-                   int subtractions, uint32_t csr0, uint32_t csr1,
-                   int* shared_bitpacked_shift, int* shared_multiplier,
+void set_gemmx_csr(int32_t tempLoop0, int32_t tempLoop1, int32_t tempLoop2,
+                   int32_t subtractions, uint32_t csr0, uint32_t csr1,
+                   int32_t* shared_bitpacked_shift, int32_t* shared_multiplier,
                    uint32_t temporal_loop_bound, uint32_t bypassSIMD);
 
 // Set CSR to start GEMM
