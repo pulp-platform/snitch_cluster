@@ -23,6 +23,10 @@ jobs:
           cache-write: ${{ github.event_name == 'push' &&
             github.ref_name == 'main' }}
           activate-environment: true
+      - name: Generate RTL
+        run: |
+          make -C target/snitch_cluster rtl-gen \
+          CFG_OVERRIDE=cfg/snax_alu_cluster.hjson
       - name: Run the unit tests
         working-directory: hw/chisel
         run: |
