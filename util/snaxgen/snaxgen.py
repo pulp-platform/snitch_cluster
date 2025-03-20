@@ -587,7 +587,7 @@ def main():
     # Generate xdma for the whole cluster
     # ---------------------------------------
     print("------------------------------------------------")
-    print("    Generate xDMA")
+    print("    Generate XDMA")
     print("------------------------------------------------")
     snax_xdma_cfg = None
     for i in range(num_cores):

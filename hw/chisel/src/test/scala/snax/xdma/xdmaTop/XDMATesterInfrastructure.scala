@@ -7,7 +7,7 @@ import snax.csr_manager.SnaxCsrIO
 
 
 class AGUParamTest(
-    val address: Long,
+    val address: Seq[Long],
     val spatialStrides: Array[Int],
     val temporalStrides: Array[Int],
     val temporalBounds: Array[Int]
@@ -79,40 +79,39 @@ object XDMATesterInfrastructure{
 
         // Pointer Address
         // Reader Side
-        write_csr(
-          dut = dut,
-          port = port,
-          addr = currentAddress,
-          data = (readerAGUParam.address & 0xffff_ffff).toInt
-        )
-        currentAddress += 1
-        write_csr(
-          dut = dut,
-          port = port,
-          addr = currentAddress,
-          data = ((readerAGUParam.address >> 32) & 0xffff_ffff).toInt
-        )
-        currentAddress += 1
+        readerAGUParam.address.foreach { i =>
+          write_csr(
+            dut = dut,
+            port = port,
+            addr = currentAddress,
+            data = (i & 0xffff_ffff).toInt
+          )
+          currentAddress += 1
+          write_csr(
+            dut = dut,
+            port = port,
+            addr = currentAddress,
+            data = ((i >> 32) & 0xffff_ffff).toInt
+          )
+          currentAddress += 1
+        }
 
-        // Writer Side
-        // Ptr 0
-        write_csr(
-          dut = dut,
-          port = port,
-          addr = currentAddress,
-          data = (writerAGUParam.address & 0xffff_ffff).toInt
-        )
-        currentAddress += 1
-        write_csr(
-          dut = dut,
-          port = port,
-          addr = currentAddress,
-          data = ((writerAGUParam.address >> 32) & 0xffff_ffff).toInt
-        )
-        currentAddress += 1
-
-        // Ptr 1-3 is 0
-        currentAddress += 6
+        writerAGUParam.address.foreach { i =>
+          write_csr(
+            dut = dut,
+            port = port,
+            addr = currentAddress,
+            data = (i & 0xffff_ffff).toInt
+          )
+          currentAddress += 1
+          write_csr(
+            dut = dut,
+            port = port,
+            addr = currentAddress,
+            data = ((i >> 32) & 0xffff_ffff).toInt
+          )
+          currentAddress += 1
+        }
 
         // Reader side Strides + Bounds
         readerAGUParam.spatialStrides.foreach { i =>

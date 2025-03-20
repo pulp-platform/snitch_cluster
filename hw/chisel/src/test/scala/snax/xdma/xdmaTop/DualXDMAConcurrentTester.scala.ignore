@@ -22,70 +22,7 @@ import java.util.HashMap
 import snax.xdma.DesignParams._
 import snax.DataPathExtension.{HasMaxPool, HasTransposer, HasVerilogMemset}
 
-class DualXDMA(readerParam: XDMAParam, writerParam: XDMAParam)
-    extends Module
-    with RequireAsyncReset {
-  val xdma1 = Module(
-    new XDMATop(
-      clusterName = "xdma1",
-      readerParam = readerParam,
-      writerParam = writerParam
-    )
-  )
-
-  val xdma2 = Module(
-    new XDMATop(
-      clusterName = "xdma2",
-      readerParam = readerParam,
-      writerParam = writerParam
-    )
-  )
-
-  xdma1.io.clusterBaseAddress := 0x10000000.U
-  xdma2.io.clusterBaseAddress := (0x10000000 + (1 << 20)).U
-
-  xdma2.io.remoteXDMACfg.toRemote -||> xdma1.io.remoteXDMACfg.fromRemote
-  xdma1.io.remoteXDMACfg.toRemote -||> xdma2.io.remoteXDMACfg.fromRemote
-
-  xdma2.io.remoteXDMAData.toRemote -||> xdma1.io.remoteXDMAData.fromRemote
-  xdma1.io.remoteXDMAData.toRemote -||> xdma2.io.remoteXDMAData.fromRemote
-
-  xdma1.io.remoteTaskFinished := 0.U
-  xdma2.io.remoteTaskFinished := 0.U
-
-  val io = IO(new Bundle {
-    val instance1 = new Bundle {
-      val csrIO = chiselTypeOf(xdma1.io.csrIO)
-      val tcdmReader = chiselTypeOf(xdma1.io.tcdmReader)
-      val tcdmWriter = chiselTypeOf(xdma1.io.tcdmWriter)
-      val readerBusy = Output(Bool())
-      val writerBusy = Output(Bool())
-    }
-    val instance2 = new Bundle {
-      val csrIO = chiselTypeOf(xdma2.io.csrIO)
-      val tcdmReader = chiselTypeOf(xdma2.io.tcdmReader)
-      val tcdmWriter = chiselTypeOf(xdma2.io.tcdmWriter)
-      val readerBusy = Output(Bool())
-      val writerBusy = Output(Bool())
-    }
-  })
-
-  io.instance1.csrIO <> xdma1.io.csrIO
-  io.instance1.tcdmReader <> xdma1.io.tcdmReader
-  io.instance1.tcdmWriter <> xdma1.io.tcdmWriter
-  io.instance2.csrIO <> xdma2.io.csrIO
-  io.instance2.tcdmReader <> xdma2.io.tcdmReader
-  io.instance2.tcdmWriter <> xdma2.io.tcdmWriter
-  io.instance1.readerBusy := xdma1.io.status.readerBusy
-  io.instance1.writerBusy := xdma1.io.status.writerBusy
-  io.instance2.readerBusy := xdma2.io.status.readerBusy
-  io.instance2.writerBusy := xdma2.io.status.writerBusy
-
-  dontTouch(xdma1.io)
-  dontTouch(xdma2.io)
-}
-
-class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
+class DualXDMAConcurrentTester extends AnyFreeSpec with ChiselScalatestTester {
 
   // ************************ Prepare the simulation data ************************//
 
@@ -101,12 +38,20 @@ class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
   }
   var testTerminated = false
 
+  // Store the 16K data in the virtual TCDM memory (1)
   for (i <- 0 until input_data.length) {
     tcdmMem_1(8 * i) = input_data(i)
   }
   println("[TCDM] TCDM 1 data initialized. ")
 
-  "Dual_XDMA_Read_Write_Test" in test(
+  // Store the 16K data in the virtual TCDM memory (2)
+  for (i <- 0 until input_data.length) {
+    tcdmMem_2(8 * i) = input_data(i)
+  }
+
+  println("[TCDM] TCDM 2 data initialized. ")
+
+  "Dual_XDMA_Concurrent_Read_Write_Test" in test(
     new DualXDMA(
       readerParam = new XDMAParam(
         axiParam = new AXIParam,
@@ -392,23 +337,8 @@ class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
     }
 
     concurrent_threads = concurrent_threads.fork {
-      // Test 1: Use XDMA 1 as a host to copy the data from TCDM 1 to TCDM 2
-      println(
-        "[TEST] Test 1: Use XDMA 1 as a host to copy the data from TCDM 1 to TCDM 2"
-      )
-      var readerAGUParam = new AGUParamTest(
-        address = Seq(0x1000_0000),
-        spatialStrides = Array(8),
-        temporalStrides = Array(64, 0),
-        temporalBounds = Array(256, 1)
-      )
-      var writerAGUParam = new AGUParamTest(
-        address = Seq(0x1000_0000 + (1 << 20), 0, 0, 0),
-        spatialStrides = Array(8),
-        temporalStrides = Array(64, 0),
-        temporalBounds = Array(256, 1)
-      )
-
+      var readerAGUParam: AGUParamTest = null
+      var writerAGUParam: AGUParamTest = null
       var readerRWParam = new RWParamTest(
         enabledChannel = Integer.parseInt("11111111", 2),
         enabledByte = Integer.parseInt("11111111", 2)
@@ -426,9 +356,28 @@ class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
         bypassTransposer = 1
       )
 
-      // Write the configuration
       var currentAddress = 0
 
+      // Test 1: C0 copy to C0, C1 copy to C1, C1 copy to C0 (initiated by C0)
+      println(
+        "[TEST] Test 1: C0 copy to C0, C1 copy to C1, C1 copy to C0 (initiated by C0)"
+      )
+
+      // C0 -> C0 Address
+      readerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+      writerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000 + (1024 * 16), 0, 0, 0),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+
+      // Write the configuration
       currentAddress = XDMATesterInfrastructure.setXDMA(
         readerAGUParam,
         writerAGUParam,
@@ -438,79 +387,72 @@ class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
         dut,
         dut.io.instance1.csrIO
       )
-      currentAddress += 3
 
-      // Check if the DMA is finished
-      dut.clock.step(16)
-
-      while (dut.io.instance2.writerBusy.peekBoolean() == true) {
-        dut.clock.step(1)
-      }
-
-      // Check the data in the TCDM
-      if (tcdmMem_1 != tcdmMem_2)
-        throw new Exception(
-          "[TEST Failed] Test 1: Use XDMA 1 as a host to copy the data from TCDM 1 to TCDM 2"
-        )
-      else
-        println(
-          "[TEST Passed] Test 1: Use XDMA 1 as a host to copy the data from TCDM 1 to TCDM 2"
-        )
-
-      // Test 2: Use XDMA 2 as a host to copy the data from TCDM 1 to TCDM 2
-      tcdmMem_2.clear()
-      println(
-        "[TEST] Test 2: Use XDMA 2 as a host to copy the data from TCDM 1 to TCDM 2"
-      )
-
-      currentAddress = XDMATesterInfrastructure.setXDMA(
-        readerAGUParam,
-        writerAGUParam,
-        readerRWParam,
-        writerRWParam,
-        writerExtParam,
-        dut,
-        dut.io.instance2.csrIO
-      )
-      currentAddress += 3
-
-      // Check if the DMA is finished
-      dut.clock.step(16)
-
-      while (dut.io.instance2.writerBusy.peekBoolean() == true) {
-        dut.clock.step(1)
-      }
-
-      // Check the data in the TCDM
-      if (tcdmMem_1 != tcdmMem_2)
-        throw new Exception(
-          "[TEST Failed] Test 2: Use XDMA 2 as a host to copy the data from TCDM 1 to TCDM 2"
-        )
-      else
-        println(
-          "[TEST Passed] Test 2: Use XDMA 2 as a host to copy the data from TCDM 1 to TCDM 2"
-        )
-
-      // Test 3: Use XDMA 1 as a host to copy the data from TCDM 2 to TCDM 1
-      println(
-        "[TEST] Test 3: Use XDMA 1 as a host to copy the data from TCDM 2 to TCDM 1"
-      )
-
-      tcdmMem_1.clear()
-
-      writerAGUParam = new AGUParamTest(
-        address = Seq(0x1000_0000, 0, 0, 0),
-        spatialStrides = Array(8),
-        temporalStrides = Array(64, 0),
-        temporalBounds = Array(256, 1)
-      )
+      // C1 -> C1 Address
       readerAGUParam = new AGUParamTest(
         address = Seq(0x1000_0000 + (1 << 20)),
         spatialStrides = Array(8),
         temporalStrides = Array(64, 0),
         temporalBounds = Array(256, 1)
       )
+      writerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000 + (1 << 20) + (1024 * 16), 0, 0, 0),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
 
+      // Write the configuration
+      currentAddress = XDMATesterInfrastructure.setXDMA(
+        readerAGUParam,
+        writerAGUParam,
+        readerRWParam,
+        writerRWParam,
+        writerExtParam,
+        dut,
+        dut.io.instance2.csrIO
+      )
+
+      // C0 -> C1 Address
+      readerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+      writerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000 + (1 << 20) + (1024 * 16 * 2), 0, 0, 0),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+
+      // Write the configuration
+      currentAddress = XDMATesterInfrastructure.setXDMA(
+        readerAGUParam,
+        writerAGUParam,
+        readerRWParam,
+        writerRWParam,
+        writerExtParam,
+        dut,
+        dut.io.instance2.csrIO
+      )
+
+      // C1 -> C0 Address
+      readerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000 + (1 << 20)),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+      writerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000 + (1024 * 16 * 2), 0, 0, 0),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+
+      // Write the configuration
       currentAddress = XDMATesterInfrastructure.setXDMA(
         readerAGUParam,
         writerAGUParam,
@@ -523,29 +465,65 @@ class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
       currentAddress += 3
 
       // Check if the DMA is finished
-      dut.clock.step(16)
-
-      while (dut.io.instance1.writerBusy.peekBoolean() == true) {
+      while (
+        dut.io.instance1.readerBusy
+          .peekBoolean() == true | dut.io.instance1.writerBusy
+          .peekBoolean() == true | dut.io.instance2.readerBusy
+          .peekBoolean() == true | dut.io.instance2.writerBusy
+          .peekBoolean() == true
+      ) {
         dut.clock.step(1)
       }
 
       // Check the data in the TCDM
+      if (tcdmMem_1.size != 2048 * 3)
+        throw new Exception(
+          "[TEST Failed] Test 1: The element inside the TCDM does not meet the expectation"
+        )
       if (tcdmMem_1 != tcdmMem_2)
         throw new Exception(
-          "[TEST Failed] Test 3: Use XDMA 1 as a host to copy the data from TCDM 2 to TCDM 1"
+          "[TEST Failed] Test 1: Two TCDM data is not identical"
         )
       else
         println(
-          "[TEST Passed] Test 3: Use XDMA 1 as a host to copy the data from TCDM 2 to TCDM 1"
+          "[TEST Passed] Test 1"
         )
 
-      // Test 4: Use XDMA 2 as a host to copy the data from TCDM 2 to TCDM 1
+      // Test 2: C0 copy to C1 (Initiated by C1), C0 copy to C0, C1 copy to C1
+      // Reinitialize the TCDM data
       println(
-        "[TEST] Test 4: Use XDMA 2 as a host to copy the data from TCDM 2 to TCDM 1"
+        "[TEST] Test 2: C0 copy to C1, C0 copy to C0, C1 copy to C1"
       )
 
       tcdmMem_1.clear()
+      for (i <- 0 until input_data.length) {
+        tcdmMem_1(8 * i) = input_data(i)
+      }
+      println("[TCDM] TCDM 1 data initialized. ")
+      tcdmMem_2.clear()
+      // Store the 16K data in the virtual TCDM memory (2)
+      // Reinitialize the TCDM data
+      for (i <- 0 until input_data.length) {
+        tcdmMem_2(8 * i) = input_data(i)
+      }
 
+      println("[TCDM] TCDM 2 data initialized. ")
+
+      // C0 -> C1 Address (C1 read from C0)
+      readerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+      writerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000 + (1 << 20) + (1024 * 16 * 2), 0, 0, 0),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+
+      // Write the configuration
       currentAddress = XDMATesterInfrastructure.setXDMA(
         readerAGUParam,
         writerAGUParam,
@@ -555,23 +533,192 @@ class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
         dut,
         dut.io.instance2.csrIO
       )
-      currentAddress += 3
+
+      // C0 -> C0 Address
+      readerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+      writerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000 + (1024 * 16), 0, 0, 0),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+
+      // Write the configuration
+      currentAddress = XDMATesterInfrastructure.setXDMA(
+        readerAGUParam,
+        writerAGUParam,
+        readerRWParam,
+        writerRWParam,
+        writerExtParam,
+        dut,
+        dut.io.instance1.csrIO
+      )
+
+      // C1 -> C1 Address
+      readerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000 + (1 << 20)),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+      writerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000 + (1 << 20) + (1024 * 16), 0, 0, 0),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+
+      // Write the configuration
+      currentAddress = XDMATesterInfrastructure.setXDMA(
+        readerAGUParam,
+        writerAGUParam,
+        readerRWParam,
+        writerRWParam,
+        writerExtParam,
+        dut,
+        dut.io.instance2.csrIO
+      )
 
       // Check if the DMA is finished
-      dut.clock.step(16)
-
-      while (dut.io.instance1.writerBusy.peekBoolean() == true) {
+      while (
+        dut.io.instance1.readerBusy
+          .peekBoolean() == true | dut.io.instance1.writerBusy
+          .peekBoolean() == true | dut.io.instance2.readerBusy
+          .peekBoolean() == true | dut.io.instance2.writerBusy
+          .peekBoolean() == true
+      ) {
         dut.clock.step(1)
       }
 
       // Check the data in the TCDM
-      if (tcdmMem_1 != tcdmMem_2)
+      if (tcdmMem_1.size != 2048 * 2)
         throw new Exception(
-          "[TEST Failed] Test 4: Use XDMA 2 as a host to copy the data from TCDM 2 to TCDM 1"
+          "[TEST Failed] Test 2: The element inside the TCDM 1 does not meet the expectation"
         )
-      else
-        println(
-          "[TEST Passed] Test 4: Use XDMA 2 as a host to copy the data from TCDM 2 to TCDM 1"
+      if (tcdmMem_2.size != 2048 * 3)
+        throw new Exception(
+          "[TEST Failed] Test 2: The element inside the TCDM 2 does not meet the expectation"
+        )
+
+      // Test 3: C0 copy to C1 (Initiated by C0), C0 copy to C0, C1 copy to C1
+      // Reinitialize the TCDM data
+      println(
+        "[TEST] Test 3: C0 copy to C1 (Initiated by C0), C0 copy to C0, C1 copy to C1"
+      )
+
+      tcdmMem_1.clear()
+      for (i <- 0 until input_data.length) {
+        tcdmMem_1(8 * i) = input_data(i)
+      }
+      println("[TCDM] TCDM 1 data initialized. ")
+      tcdmMem_2.clear()
+      // Store the 16K data in the virtual TCDM memory (2)
+      // Reinitialize the TCDM data
+      for (i <- 0 until input_data.length) {
+        tcdmMem_2(8 * i) = input_data(i)
+      }
+
+      println("[TCDM] TCDM 2 data initialized. ")
+
+      // C0 -> C1 Address (C0 write to C1)
+      readerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+      writerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000 + (1 << 20) + (1024 * 16 * 2), 0, 0, 0),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+
+      // Write the configuration
+      currentAddress = XDMATesterInfrastructure.setXDMA(
+        readerAGUParam,
+        writerAGUParam,
+        readerRWParam,
+        writerRWParam,
+        writerExtParam,
+        dut,
+        dut.io.instance1.csrIO
+      )
+
+      // C0 -> C0 Address
+      readerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+      writerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000 + (1024 * 16), 0, 0, 0),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+
+      // Write the configuration
+      currentAddress = XDMATesterInfrastructure.setXDMA(
+        readerAGUParam,
+        writerAGUParam,
+        readerRWParam,
+        writerRWParam,
+        writerExtParam,
+        dut,
+        dut.io.instance1.csrIO
+      )
+
+      // C1 -> C1 Address
+      readerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000 + (1 << 20)),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+      writerAGUParam = new AGUParamTest(
+        address = Seq(0x1000_0000 + (1 << 20) + (1024 * 16), 0, 0, 0),
+        spatialStrides = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds = Array(256, 1)
+      )
+
+      // Write the configuration
+      currentAddress = XDMATesterInfrastructure.setXDMA(
+        readerAGUParam,
+        writerAGUParam,
+        readerRWParam,
+        writerRWParam,
+        writerExtParam,
+        dut,
+        dut.io.instance2.csrIO
+      )
+
+      // Check if the DMA is finished
+      while (
+        dut.io.instance1.readerBusy
+          .peekBoolean() == true | dut.io.instance1.writerBusy
+          .peekBoolean() == true | dut.io.instance2.readerBusy
+          .peekBoolean() == true | dut.io.instance2.writerBusy
+          .peekBoolean() == true
+      ) {
+        dut.clock.step(1)
+      }
+
+      // Check the data in the TCDM
+      if (tcdmMem_1.size != 2048 * 2)
+        throw new Exception(
+          "[TEST Failed] Test 3: The element inside the TCDM 1 does not meet the expectation"
+        )
+      if (tcdmMem_2.size != 2048 * 3)
+        throw new Exception(
+          "[TEST Failed] Test 3: The element inside the TCDM 2 does not meet the expectation"
         )
 
       println("All tests pass. All test threads are about to be terminated. ")

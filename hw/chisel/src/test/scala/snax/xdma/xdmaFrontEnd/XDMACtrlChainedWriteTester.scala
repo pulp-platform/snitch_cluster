@@ -17,8 +17,11 @@ import scala.util.Random
 
 // Import break support for loops
 import scala.util.control.Breaks.{break, breakable}
+import snax.readerWriter.Writer
 
-class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
+class XDMACtrlChainedWriteTester
+    extends AnyFlatSpec
+    with ChiselScalatestTester {
 
   def write_csr(dut: Module, port: SnaxCsrIO, addr: Int, data: Int) = {
 
@@ -46,12 +49,12 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
     temp
   }
 
-  "The XDMACtrl" should " pass" in {
+  "The XDMACtrl Chained Write Test" should " pass" in {
     test(
       new XDMACtrl(
         readerparam = new XDMAParam(
           new AXIParam,
-          new CrossClusterParam(1),
+          new CrossClusterParam(4),
           new ReaderWriterParam(
             configurableChannel = true,
             configurableByteMask = false
@@ -60,7 +63,7 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
         ),
         writerparam = new XDMAParam(
           new AXIParam,
-          new CrossClusterParam(1),
+          new CrossClusterParam(4),
           new ReaderWriterParam(
             configurableChannel = true,
             configurableByteMask = true
@@ -91,7 +94,13 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
           val Reader_Temporal_Bounds = List(32, 64)
           val Reader_Temporal_Strides = List(64, 2048)
 
-          val Writer_PointerAddress = BigInt(0x1000_0000)
+          val Writer_PointerAddress =
+            List(
+              BigInt(0x1000_0000) + (1 << 20),
+              BigInt(0x1000_0000) + (2 << 20),
+              BigInt(0x1000_0000) + (3 << 20),
+              BigInt(0x1000_0000) + (4 << 20)
+            )
           // Under This Configurations, the full TCDM will be copied
           val Writer_Spatial_Strides = List(32)
           val Writer_Temporal_Bounds = List(32, 16)
@@ -105,14 +114,17 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               var currentCSR = 0x0
 
               val Reader_PointerAddress_ThisLoop =
-                Reader_PointerAddress + Random.between(0, 2) * 256 * 1024 + i
+                Reader_PointerAddress + i
               val Writer_PointerAddress_ThisLoop =
-                Writer_PointerAddress + Random.between(
+                Writer_PointerAddress.updated(
                   0,
-                  2
-                ) * 256 * 1024 + i + 1
+                  Writer_PointerAddress(0) + Random.between(
+                    0,
+                    2
+                  ) * 256 * 1024 + i + 1
+                )
               unreceived_reader_cfg.add(Reader_PointerAddress_ThisLoop.toInt)
-              unreceived_writer_cfg.add(Writer_PointerAddress_ThisLoop.toInt)
+              unreceived_writer_cfg.add(Writer_PointerAddress_ThisLoop(0).toInt)
 
               // Reader: Pointers LSB + MSB
               write_csr(
@@ -132,21 +144,22 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               currentCSR += 1
 
               // Writer: Pointers LSB + MSB
-              write_csr(
-                dut,
-                dut.io.csrIO,
-                addr = currentCSR,
-                data = ((Writer_PointerAddress_ThisLoop) & 0xffff_ffff).toInt
-              )
-              currentCSR += 1
-              write_csr(
-                dut,
-                dut.io.csrIO,
-                addr = currentCSR,
-                data =
-                  (((Writer_PointerAddress_ThisLoop) >> 32) & 0xffff_ffff).toInt
-              )
-              currentCSR += 1
+              Writer_PointerAddress_ThisLoop.foreach { i =>
+                write_csr(
+                  dut,
+                  dut.io.csrIO,
+                  addr = currentCSR,
+                  data = ((i) & 0xffff_ffff).toInt
+                )
+                currentCSR += 1
+                write_csr(
+                  dut,
+                  dut.io.csrIO,
+                  addr = currentCSR,
+                  data = (((i) >> 32) & 0xffff_ffff).toInt
+                )
+                currentCSR += 1
+              }
 
               // Reader: Spatial Strides D0
               Reader_Spatial_Strides.foreach({ i =>
@@ -194,77 +207,41 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                 "[Local Reader Generator] " + Reader_PointerAddress_ThisLoop.toInt.toHexString
               )
               println(
-                "[Local Writer Generator] " + Writer_PointerAddress_ThisLoop.toInt.toHexString
+                "[Local Writer Generator] " + Writer_PointerAddress_ThisLoop(
+                  0
+                ).toInt.toHexString
               )
 
             } else {
-
-              // Remote Cfg injection (Reader side)
-              unreceived_reader_cfg.add(
-                (Reader_PointerAddress + i).toInt
-              )
-              val readerRemoteConfig: BigInt =
-                (1 << 8) +
-                  // The address for the reader side
-                  ((Reader_PointerAddress + i) << 9) +
-                  // The address for the writer side
-                  (BigInt(0x2000_0000) << 57) +
-                  (BigInt(Reader_Spatial_Strides(0) >> 3) << 105) +
-                  (BigInt(Reader_Temporal_Bounds(0) >> 3) << 124) +
-                  (BigInt(Reader_Temporal_Bounds(1) >> 3) << 143) +
-                  // 2, 3, 4, 5 are all 1
-                  (BigInt(1) << 162) +
-                  (BigInt(1) << 181) +
-                  (BigInt(1) << 200) +
-                  (BigInt(1) << 219) +
-                  (BigInt(Reader_Temporal_Strides(0)) << 238) +
-                  (BigInt(Reader_Temporal_Strides(1)) << 257) +
-                  // 2, 3, 4, 5 are all 0
-                  // Enabled channels
-                  (BigInt(0xff) << 352) +
-                  // Enabled Byte
-                  (BigInt(0xff) << 360)
-              dut.io.remoteXDMACfg.fromRemote.bits
-                .poke(readerRemoteConfig)
-              dut.clock.step(Random.between(1, 31))
-              dut.io.remoteXDMACfg.fromRemote.valid.poke(true.B)
-              while (
-                !(dut.io.remoteXDMACfg.fromRemote.ready
-                  .peekBoolean())
-              ) {
-                dut.clock.step()
-              }
-              dut.clock.step()
-              dut.io.remoteXDMACfg.fromRemote.valid.poke(false.B)
-              println(
-                "[Remote Reader Generator] " + (Reader_PointerAddress + i).toInt.toHexString
-              )
-
               // Remote Cfg injection (Writer side)
               unreceived_writer_cfg.add(
-                (Writer_PointerAddress + i + 1).toInt
+                (Writer_PointerAddress(0) + i - (1 << 20)).toInt
               )
+              unreceived_writer_cfg.add((Writer_PointerAddress(1) + i).toInt)
               val writerRemoteConfig: BigInt =
                 (0 << 8) +
                   // The address for the reader side
-                  (BigInt(0x2000_0000) << 9) +
+                  ((Reader_PointerAddress + i + (1 << 20)) << 9) +
                   // The address for the writer side
-                  ((Writer_PointerAddress + i + 1) << 57) +
-                  (BigInt(Writer_Spatial_Strides(0) >> 3) << 105) +
-                  (BigInt(Writer_Temporal_Bounds(0) >> 3) << 124) +
-                  (BigInt(Writer_Temporal_Bounds(1) >> 3) << 143) +
+                  ((Writer_PointerAddress(0) + i - (1 << 20)) << 57) +
+                  ((Writer_PointerAddress(1) + i) << 105) +
+                  (Writer_PointerAddress(2) << 153) +
+                  (Writer_PointerAddress(3) << 201) +
+                  (BigInt(Reader_Spatial_Strides(0) >> 3) << 249) +
+                  (BigInt(Reader_Temporal_Bounds(0) >> 3) << 268) +
+                  (BigInt(Reader_Temporal_Bounds(1) >> 3) << 287) +
                   // 2, 3, 4, 5 are all 1
-                  (BigInt(1) << 162) +
-                  (BigInt(1) << 181) +
-                  (BigInt(1) << 200) +
-                  (BigInt(1) << 219) +
-                  (BigInt(Writer_Temporal_Strides(0)) << 238) +
-                  (BigInt(Writer_Temporal_Strides(1)) << 257) +
+                  (BigInt(1) << 306) +
+                  (BigInt(1) << 325) +
+                  (BigInt(1) << 344) +
+                  (BigInt(1) << 363) +
+                  (BigInt(Reader_Temporal_Strides(0)) << 382) +
+                  (BigInt(Reader_Temporal_Strides(1)) << 401) +
                   // 2, 3, 4, 5 are all 0
                   // Enabled channels
-                  (BigInt(0xff) << 352) +
+                  (BigInt(0xff) << 496) +
                   // Enabled Byte
-                  (BigInt(0xff) << 360)
+                  (BigInt(0xff) << 504)
 
               dut.io.remoteXDMACfg.fromRemote.bits
                 .poke(writerRemoteConfig)
@@ -279,7 +256,11 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               dut.clock.step()
               dut.io.remoteXDMACfg.fromRemote.valid.poke(false.B)
               println(
-                "[Remote Writer Generator] " + (Writer_PointerAddress + i + 1).toInt.toHexString
+                "[Remote Writer Generator] The CFG with chained write destination of " + (Writer_PointerAddress(
+                  0
+                ) + i - (1 << 20)).toInt.toHexString + " and " + (Writer_PointerAddress(
+                  1
+                ) + i).toInt.toHexString + " is sent to XDMACtrl"
               )
             }
           }
@@ -312,7 +293,7 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                 )
               } else {
                 throw new Exception(
-                // println(
+                  // println(
                   "[Local Reader Checker] The received pointer " + dut.io.localXDMACfg.readerCfg.readerPtr
                     .peekInt()
                     .toInt
@@ -357,7 +338,7 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                 )
               } else {
                 throw new Exception(
-                // println(
+                  // println(
                   "[Local Writer Checker] The received pointer " + dut.io.localXDMACfg.writerCfg
                     .writerPtr(0)
                     .peekInt()
@@ -469,30 +450,4 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
         concurrent_threads.joinAndStep()
     }
   }
-}
-
-object XDMACtrlEmitter extends App {
-  _root_.circt.stage.ChiselStage.emitSystemVerilogFile(
-    new XDMACtrl(
-      readerparam = new XDMAParam(
-        new AXIParam,
-        new CrossClusterParam(1),
-        new ReaderWriterParam(
-          configurableChannel = true,
-          configurableByteMask = false
-        ),
-        Seq()
-      ),
-      writerparam = new XDMAParam(
-        new AXIParam,
-        new CrossClusterParam(1),
-        new ReaderWriterParam(
-          configurableChannel = true,
-          configurableByteMask = true
-        ),
-        Seq()
-      )
-    ),
-    args = Array("--target-dir", "generated/xdma")
-  )
 }

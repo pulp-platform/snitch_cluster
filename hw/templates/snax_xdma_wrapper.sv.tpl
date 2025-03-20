@@ -8,6 +8,7 @@
   num_tcdm_ports = round(cfg["dma_data_width"] / cfg["data_width"] * 2)
   ## Half of them are used for the reader, and half of them are used for writer
 
+  tcdm_addr_width = cfg["tcdm"]["size"].bit_length() - 1 + 10
 %>
 //-----------------------------
 // xdma wrapper
@@ -19,6 +20,7 @@ module ${cfg["name"]}_xdma_wrapper #(
   // Parameters related to TCDM
   parameter int unsigned TCDMDataWidth = ${cfg["data_width"]},
   parameter int unsigned TCDMNumPorts  = ${num_tcdm_ports},
+  parameter int unsigned TCDMAddrWidth = ${tcdm_addr_width},
   parameter int unsigned PhysicalAddrWidth = ${cfg["addr_width"]}
 )(
   //-----------------------------
@@ -56,7 +58,7 @@ module ${cfg["name"]}_xdma_wrapper #(
 
   // TCDM signals
   // Request
-  logic [TCDMNumPorts-1:0][PhysicalAddrWidth-1:0] tcdm_req_addr;
+  logic [TCDMNumPorts-1:0][TCDMAddrWidth-1:0] tcdm_req_addr;
   logic [TCDMNumPorts-1:0]                      tcdm_req_write;
   //Note that tcdm_req_amo_i is 4 bits based on reqrsp definition
   logic [TCDMNumPorts-1:0][                3:0] tcdm_req_amo;
@@ -159,16 +161,47 @@ module ${cfg["name"]}_xdma_wrapper #(
     //-----------------------------
     // Tie-off unused AXI port
     //-----------------------------
-    // Remote data
+
+    // RemoteTask finished Pin
+    .io_remoteTaskFinished('0),
+
+    // fromRemote data
     .io_remoteXDMAData_fromRemote_valid('0),
     .io_remoteXDMAData_fromRemote_ready(),
     .io_remoteXDMAData_fromRemote_bits ('0),
 
+    // fromRemote Accompanied Cfg
+    // readyToTransfer = 0 -> 1: XDMA is ready for the next task
+    .io_remoteXDMAData_fromRemoteAccompaniedCfg_readyToTransfer(),
+    // taskID: 8 bit signal to track each tasks
+    .io_remoteXDMAData_fromRemoteAccompaniedCfg_taskID(),
+    // length: 19 bit signal to indicate the total number of beats in this task
+    .io_remoteXDMAData_fromRemoteAccompaniedCfg_length(),
+    // taskType: 1 is Local Write, Remote Read; 0 is Local Read, Remote Write
+    .io_remoteXDMAData_fromRemoteAccompaniedCfg_taskType(),
+    // Addresses: 48 bit signal to indicate the src and dst of the task
+    .io_remoteXDMAData_fromRemoteAccompaniedCfg_src(),
+    .io_remoteXDMAData_fromRemoteAccompaniedCfg_dst(),
+
+    // toRemote data
     .io_remoteXDMAData_toRemote_ready('0),
     .io_remoteXDMAData_toRemote_valid(),
     .io_remoteXDMAData_toRemote_bits (),
 
-    // Remote cfg
+    // toRemote Accompanied Cfg
+    // readyToTransfer = 0 -> 1: XDMA is ready for the next task
+    .io_remoteXDMAData_toRemoteAccompaniedCfg_readyToTransfer(),
+    // taskID: 8 bit signal to track each tasks
+    .io_remoteXDMAData_toRemoteAccompaniedCfg_taskID(),
+    // length: 19 bit signal to indicate the total number of beats in this task
+    .io_remoteXDMAData_toRemoteAccompaniedCfg_length(),
+    // taskType: 1 is Local Write, Remote Read; 0 is Local Read, Remote Write
+    .io_remoteXDMAData_toRemoteAccompaniedCfg_taskType(),
+    // Addresses: 48 bit signal to indicate the src and dst of the task
+    .io_remoteXDMAData_toRemoteAccompaniedCfg_src(),
+    .io_remoteXDMAData_toRemoteAccompaniedCfg_dst(),
+
+    // 512 bit Cfg
     .io_remoteXDMACfg_fromRemote_valid('0),
     .io_remoteXDMACfg_fromRemote_ready(),
     .io_remoteXDMACfg_fromRemote_bits ('0),

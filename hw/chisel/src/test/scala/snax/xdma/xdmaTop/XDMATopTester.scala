@@ -76,13 +76,13 @@ class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         // Test 1: Duplicate the data once with only one channel
         println("[Memcopy test]")
         var readerAGUParam = new AGUParamTest(
-          address = 0,
+          address = Seq(0),
           spatialStrides = Array(8),
           temporalStrides = Array(8, 0),
           temporalBounds = Array(2048, 1)
         )
         var writerAGUParam = new AGUParamTest(
-          address = 16 * 1024,
+          address = Seq(16 * 1024, 0, 0, 0),
           spatialStrides = Array(8),
           temporalStrides = Array(8, 0),
           temporalBounds = Array(2048, 1)
@@ -141,13 +141,13 @@ class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         // Test 2: Set the memory to 0x00
         println("[Memset test 0x00]")
         readerAGUParam = new AGUParamTest(
-          address = 0,
+          address = Seq(0),
           spatialStrides = Array(8),
           temporalStrides = Array(64, 0),
           temporalBounds = Array(256, 1)
         )
         writerAGUParam = new AGUParamTest(
-          address = 16 * 1024,
+          address = Seq(16 * 1024, 0, 0, 0),
           spatialStrides = Array(8),
           temporalStrides = Array(64, 0),
           temporalBounds = Array(256, 1)
@@ -200,13 +200,13 @@ class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         // Test 3: Set the memory to 0x0000_00ff. This can be done by setting the strb to 0x01 with Memset to 0xff
         println("[Memset test 0xFF]")
         readerAGUParam = new AGUParamTest(
-          address = 0,
+          address = Seq(0),
           spatialStrides = Array(8),
           temporalStrides = Array(64, 0),
           temporalBounds = Array(256, 1)
         )
         writerAGUParam = new AGUParamTest(
-          address = 16 * 1024,
+          address = Seq(16 * 1024, 0, 0, 0),
           spatialStrides = Array(8),
           temporalStrides = Array(64, 0),
           temporalBounds = Array(256, 1)
@@ -294,13 +294,13 @@ class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         println("[Transposer Test] Data preparation is finished. ")
         println("[Transposer Test] Test Started")
         readerAGUParam = new AGUParamTest(
-          address = 0,
+          address = Seq(0),
           spatialStrides = Array(8),
           temporalStrides = Array(64, 0),
           temporalBounds = Array(256, 1)
         )
         writerAGUParam = new AGUParamTest(
-          address = 16 * 1024,
+          address = Seq(16 * 1024, 0, 0, 0),
           spatialStrides = Array(8),
           temporalStrides = Array(64, 0),
           temporalBounds = Array(256, 1)

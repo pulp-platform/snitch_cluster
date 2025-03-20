@@ -10,7 +10,7 @@ import snax.readerWriter.ReaderWriterParam
 import snax.DataPathExtension._
 import snax.xdma.xdmaFrontend._
 import snax.xdma.DesignParams._
-import os.write
+import snax.xdma.io._
 
 import scala.reflect.runtime.currentMirror
 import scala.tools.reflect.ToolBox
@@ -40,7 +40,7 @@ class XDMATopIO(
       Decoupled(
         new TcdmReq(
           // The address width of the TCDM => Should be equal to axiAddrWidth
-          readerParam.axiParam.addrWidth,
+          readerParam.rwParam.tcdmParam.addrWidth,
           readerParam.rwParam.tcdmParam.dataWidth
         )
       )
@@ -60,7 +60,7 @@ class XDMATopIO(
       Decoupled(
         new TcdmReq(
           // The address width of the TCDM => Should be equal to axiAddrWidth
-          writerParam.axiParam.addrWidth,
+          writerParam.rwParam.tcdmParam.addrWidth,
           writerParam.rwParam.tcdmParam.dataWidth
         )
       )
@@ -75,12 +75,26 @@ class XDMATopIO(
         )
       )
     )
+    val fromRemoteAccompaniedCfg = Output(
+      new XDMADataPathCfgIO(
+        axiParam = writerParam.axiParam,
+        crossClusterParam = writerParam.crossClusterParam
+      )
+    )
     val toRemote = Decoupled(
       UInt(
         (writerParam.rwParam.tcdmParam.dataWidth * writerParam.rwParam.tcdmParam.numChannel).W
       )
     )
+    val toRemoteAccompaniedCfg = Output(
+      new XDMADataPathCfgIO(
+        axiParam = readerParam.axiParam,
+        crossClusterParam = readerParam.crossClusterParam
+      )
+    )
   }
+
+  val remoteTaskFinished = Input(Bool())
 
   val status = new Bundle {
     val readerBusy = Output(Bool())
@@ -112,8 +126,8 @@ class XDMATop(
 
   val xdmaDatapath = Module(
     new XDMADataPath(
-      readerparam = readerParam,
-      writerparam = writerParam,
+      readerParam = readerParam,
+      writerParam = writerParam,
       clusterName = clusterName
     )
   )
@@ -126,8 +140,7 @@ class XDMATop(
   io.tcdmWriter <> xdmaDatapath.io.tcdmWriter
 
   // IO1: Start to connect datapath to axi
-  io.remoteXDMAData.fromRemote <> xdmaDatapath.io.remoteXDMAData.fromRemote
-  io.remoteXDMAData.toRemote <> xdmaDatapath.io.remoteXDMAData.toRemote
+  io.remoteXDMAData <> xdmaDatapath.io.remoteXDMAData
 
   // IO2: Start to coonect ctrl to csr
   io.csrIO <> xdmaCtrl.io.csrIO
@@ -152,6 +165,9 @@ class XDMATop(
   io.status.readerBusy := xdmaCtrl.io.localXDMACfg.readerBusy
 
   io.status.writerBusy := xdmaCtrl.io.localXDMACfg.writerBusy
+
+  // The remote task finished signal
+  xdmaCtrl.io.remoteTaskFinished := io.remoteTaskFinished
 }
 
 object XDMATopGen extends App {
