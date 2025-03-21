@@ -30,7 +30,7 @@ MATCH_BGN := 's/+incdir+//g'
 MATCH_DEF := '/+define+/d'
 SED_SRCS  := sed -e ${MATCH_END} -e ${MATCH_BGN} -e ${MATCH_DEF}
 
-COMMON_BENDER_FLAGS += -t rtl
+COMMON_BENDER_FLAGS += -t rtl -t snitch_cluster
 COMMON_SIM_BENDER_FLAGS += -t simulation -t test
 
 # fesvr is being installed here

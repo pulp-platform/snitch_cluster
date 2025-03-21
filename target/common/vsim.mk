@@ -53,7 +53,7 @@ $(VSIM_BUILDDIR)/compile.vsim.tcl: $(BENDER_LOCK) | $(VSIM_BUILDDIR)
 $(BIN_DIR)/$(TARGET).vsim: $(VSIM_BUILDDIR)/compile.vsim.tcl $(VSIM_SOURCES) $(TB_SRCS) $(TB_CC_SOURCES) $(RTL_CC_SOURCES) work/lib/libfesvr.a | $(BIN_DIR)
 	$(VSIM) -c -do "source $<; quit" | tee $(VSIM_BUILDDIR)vlog.log
 	@! grep -P "Errors: [1-9]*," $(VSIM_BUILDDIR)vlog.log
-	$(VOPT) $(VOPT_FLAGS) tb_bin -o tb_bin_opt | tee $(VSIM_BUILDDIR)vopt.log
+	$(VOPT) $(VOPT_FLAGS) -work $(VSIM_BUILDDIR) tb_bin -o tb_bin_opt | tee $(VSIM_BUILDDIR)vopt.log
 	@! grep -P "Errors: [1-9]*," $(VSIM_BUILDDIR)vopt.log
 	@echo "#!/bin/bash" > $@
 	@echo 'binary=$$(realpath $$1)' >> $@
