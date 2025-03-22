@@ -1,0 +1,14 @@
+// Copyright 2023 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Yunhao Deng <yunhao.deng@kuleuven.be>
+
+{
+    M: 64, // Number of rows / height
+    N: 32, // Number of columns / width
+    // Input layout can be MN or MNMaNb, where b should be larger than 8 for any cases and a should be larger than 8 if transpose is needed. 
+    input_layout: "M16N16MN",
+    output_layout: "M8N8MN",
+    enable_transpose: true
+}
