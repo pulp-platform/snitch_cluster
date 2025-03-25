@@ -1,16 +1,16 @@
-// Copyright 2023 ETH Zurich and University of Bologna.
+// Copyright 2025 ETH Zurich and University of Bologna.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
 // Cluster configuration for a simple testbench system.
 {
     cluster: {
-        cluster_base_addr: 0x1000_0000,
-        cluster_base_offset: 0, // 0x0
+        cluster_base_addr: 0x2000_0000,
+        cluster_base_offset: 0x4_0000,
         cluster_base_hartid: 0,
         addr_width: 48,
         data_width: 64,
-        user_width: 5, // clog2(total number of clusters)
+        user_width: 3, // clog2(nr_clusters + 1)
         tcdm: {
             size: 128,
             banks: 32,
@@ -19,22 +19,21 @@
         zero_mem_size: 64, // kB
         alias_region_enable: true,
         dma_data_width: 512,
-        dma_axi_req_fifo_depth: 24,
-        dma_req_fifo_depth: 8,
+        dma_axi_req_fifo_depth: 3,
+        dma_req_fifo_depth: 3,
         narrow_trans: 4,
         wide_trans: 32,
-        cluster_base_expose: false,
-        alias_region_base: 0x1800_0000,
+        cluster_base_expose: true,
+        alias_region_base: 0x2800_0000,
         dma_user_width: 1,
-        // We don't need Snitch debugging in Occamy
-        enable_debug: false,
-        // We don't need Snitch (core-internal) virtual memory support
+        enable_debug: true,
+        // TODO(fischeti): Check if we need Snitch VM support
         vm_support: false,
         // Memory configuration inputs
-        sram_cfg_expose: true,
+        sram_cfg_expose: false,
         sram_cfg_fields: {
-            ema: 3,
-            emaw: 2,
+            ema: 1,
+            emaw: 1,
             emas: 1
         },
         // Timing parameters
@@ -46,9 +45,9 @@
             lat_comp_fp8: 1,
             lat_comp_fp8_alt: 1,
             lat_noncomp: 1,
-            lat_conv: 2,
+            lat_conv: 1,
             lat_sdotp: 3,
-            fpu_pipe_config: "BEFORE",
+            fpu_pipe_config: "BEFORE"
             narrow_xbar_latency: "CUT_ALL_PORTS",
             wide_xbar_latency: "CUT_ALL_PORTS",
             // Isolate the core.
@@ -56,7 +55,7 @@
             register_core_rsp: true,
             register_offload_req: true,
             register_offload_rsp: true,
-            register_fpu_req: true,
+            register_fpu_req: false,
             register_ext_narrow: false,
             register_ext_wide: false
         },
@@ -84,17 +83,23 @@
     },
     external_addr_regions: [
         {
-            name: "dram"
+            name: "l2spm",
+            address: 0x3000_0000,
+            length: 0x1000_0000,
+            cacheable: true
+        },
+        {
+            name: "dram",
             address: 0x8000_0000,
             length: 0x8000_0000,
             cacheable: true
         },
         {
-            name: "clint"
-            address: 0xFFFF_0000,
-            length: 0x1000
-        },
-    ],
+            name: "clint",
+            address: 0xffff_0000,
+            length: 0x0000_1000
+        }
+    ]
     // Templates.
     compute_core_template: {
         isa: "rv32imafd",
@@ -116,19 +121,25 @@
         num_dtlb_entries: 1,
         num_itlb_entries: 1,
         // SSSR configuration below
-        ssr_intersection: true,
+        ssr_intersection: false,
         ssr_intersection_triple: [0, 1, 2],
         ssrs: [
-            {indirection: true},    // Master 0
-            {indirection: true},    // Master 1
+            {indirection: false},    // Master 0
+            {indirection: false},    // Master 1
             {},                     // Slave
         ],
+        // Enable division/square root unit
+        // TODO(fischeti): Do we need a division/square root unit?
+        // Xdiv_sqrt: true,
+        // TODO(fischeti): Do we want SSR indirection support?
     },
     dma_core_template: {
         isa: "rv32imafd",
-        xdma: true,
-        xssr: false,
-        xfrep: false,
+        // Xdiv_sqrt: true,
+        # isa: "rv32ema",
+        xdma: true
+        xssr: false
+        xfrep: false
         xf16: false,
         xf16alt: false,
         xf8: false,
