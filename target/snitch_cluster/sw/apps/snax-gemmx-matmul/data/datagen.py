@@ -12,6 +12,7 @@ import pathlib
 import hjson
 import sys
 import os
+import math
 
 # Add data utility path
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../../../util/sim/"))
@@ -234,6 +235,7 @@ def emit_matmul_data(**kwargs):
     delta_local_b = (
         kwargs["K"] * kwargs["M"] * (meshRow * tileSize * input_data_width / 8)
     )
+    delta_local_b = align_wide_addr(delta_local_b)
     delta_local_c = delta_local_b + kwargs["K"] * kwargs["N"] * (
         meshCol * tileSize * input_data_width / 8
     )
@@ -289,9 +291,9 @@ def emit_matmul_data(**kwargs):
     ).reshape(-1)
     data_str += [format_vector_definition("int8_t", "B", B)]
 
-    enabled_channel_CSR_num = int(
+    enabled_channel_CSR_num = int(math.ceil(
         (meshRow * meshCol) * output_data_width / bankWidth / 32
-    )
+    ))
 
     broadcast_C = kwargs["broadcast_C"] == 1 and kwargs["channel_en_C"] == 1
     disable_C = kwargs["broadcast_C"] == 0 and kwargs["channel_en_C"] == 0

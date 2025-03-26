@@ -8,8 +8,8 @@
   transposed_A: 0,
   transposed_B: 0,
   K: 1,
-  N: 1,
-  M: 1,
+  N: 2,
+  M: 3,
   bypassSIMD: 1,
   // broadcast_C won't work in the serial C input
   broadcast_C: 0,

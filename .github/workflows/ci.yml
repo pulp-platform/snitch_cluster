@@ -286,6 +286,39 @@ jobs:
           sw/snax-gemmx-matmul-run.yaml \
           sw/snax-data-reshuffler-run.yaml -j
 
+  sw-snax-KUL-dse-cluster-1D-vlt-generic:
+    name: Build KUL-dse-cluster-1D HW w/ Verilator (Generic LLVM)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+      - uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          cache: true
+          cache-write: ${{ github.event_name == 'push' &&
+            github.ref_name == 'main' }}
+          activate-environment: true
+      - name: RTL GEN
+        run: |
+          make CFG_OVERRIDE=cfg/snax_KUL_dse_cluster_1D.hjson \
+          -C target/snitch_cluster rtl-gen
+      - name: Build Hardware
+        run: |
+          make CFG_OVERRIDE=cfg/snax_KUL_dse_cluster_1D.hjson \
+          -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
+      - name: Build Software
+        run: |
+          make -C target/snitch_cluster sw \
+          CFG_OVERRIDE=cfg/snax_KUL_dse_cluster_1D.hjson
+      - name: Run Tests
+        working-directory: target/snitch_cluster
+        run: |-
+          ./run.py --simulator verilator \
+          sw/runtime.yaml \
+          sw/snax-gemmx-matmul-run.yaml \
+          sw/snax-data-reshuffler-run.yaml -j
+
   snax-KUL-cluster-vlt-generic:
     name: Simulate SW on KUL cluster w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04
