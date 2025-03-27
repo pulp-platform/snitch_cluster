@@ -6,7 +6,7 @@ module vip_snitch_cluster
   import snitch_cluster_pkg::*;
 #(
   // Timing
-  parameter time ClkPeriod = 10ns
+  parameter realtime ClkPeriod = 10ns
 ) (
   output logic clk,
   output logic rst_n,
