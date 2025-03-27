@@ -2320,6 +2320,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     if (!rst_i && illegal_inst && valid_instr) begin
       $display("[Illegal Instruction Core %0d] PC: %h Data: %h",
                                 hart_id_i, inst_addr_o, inst_data_i);
+      $fatal();
     end
   end
   // pragma translate_on
