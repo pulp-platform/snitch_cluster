@@ -195,9 +195,9 @@ object BlockGemmRescaleSIMDGen {
           case Array(key, value) if key.startsWith("--") => key.drop(2) -> value
         }
         .toMap
-      if (parsed_args.size != 4) {
+      if (parsed_args.size != 6) {
         throw new Exception(
-          "Please provide the meshRow, meshCol, tileSize, and withPipeline. Example usage: sbt 'runMain snax_acc.gemmx.BlockGemmRescaleSIMDGen --meshRow 2 --meshCol 2 --tileSize 16 --withPipeline true'"
+          "Please provide the meshRow, meshCol, tileSize, serialC32D32Width, serialD8Width, and withPipeline. Example usage: sbt 'runMain snax_acc.gemmx.BlockGemmRescaleSIMDGen --meshRow 2 --meshCol 2 --tileSize 16 --serialC32D32Width --serialD8Width --withPipeline true'"
         )
       }
       parsed_args
@@ -210,6 +210,8 @@ object BlockGemmRescaleSIMDGen {
     val meshRow = argMap("meshRow").toInt
     val meshCol = argMap("meshCol").toInt
     val tileSize = argMap("tileSize").toInt
+    val serialC32D32Width = argMap("serialC32D32Width").toInt
+    val serialD8Width = argMap("serialD8Width").toInt
 
     // set the parameters for the gemm module
     // other parameters are set to default values
@@ -248,7 +250,9 @@ object BlockGemmRescaleSIMDGen {
       (if (withPipeline == true)
          snax_acc.simd.PipelinedConfig.rescaleSIMDConfig
        else SIMDParamsWithoutPipeline),
-      withPipeline
+      withPipeline,
+      C32_D32_width = serialC32D32Width,
+      D8_width = serialD8Width
     )
 
     emitVerilog(

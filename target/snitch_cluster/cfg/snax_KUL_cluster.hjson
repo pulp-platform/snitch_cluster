@@ -130,6 +130,8 @@
             snax_gemmx_mesh_row: 8,
             snax_gemmx_tile_size: 8,
             snax_gemmx_mesh_col: 8,
+            snax_gemmx_serial_c32_d32_width: 2048,
+            snax_gemmx_serial_d8_width: 512,
             with_pipeline: true,
             snax_streamer_cfg: {$ref: "#/snax_streamer_gemmX_streamer_template" }
         },
