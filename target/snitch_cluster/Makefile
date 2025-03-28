@@ -13,8 +13,6 @@
 DEBUG ?= OFF
 # Override default config file
 CFG_OVERRIDE ?=
-# Select snRuntime implementation: "banshee" or "rtl" (default)
-SELECT_RUNTIME ?= rtl
 
 .DEFAULT_GOAL := help
 .PHONY: all clean

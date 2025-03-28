@@ -13,17 +13,15 @@ so it inherits the same command-line interface.
 from pathlib import Path
 import sys
 
-sys.path.append(str(Path(__file__).parent / '../../../util/sim'))
-import sim_utils  # noqa: E402
-from Simulator import QuestaSimulator, VCSSimulator, VerilatorSimulator, GvsocSimulator, \
-                      BansheeSimulator  # noqa: E402
+from snitch.util.sim import sim_utils
+from snitch.util.sim.Simulator import QuestaSimulator, VCSSimulator, VerilatorSimulator, \
+    GvsocSimulator
 
 
 SIMULATORS = {
     'vsim': QuestaSimulator(Path(__file__).parent.resolve() / '../bin/snitch_cluster.vsim'),
     'vcs': VCSSimulator(Path(__file__).parent.resolve() / '../bin/snitch_cluster.vcs'),
     'verilator': VerilatorSimulator(Path(__file__).parent.resolve() / '../bin/snitch_cluster.vlt'),
-    'banshee': BansheeSimulator(Path(__file__).parent.resolve() / '../src/banshee.yaml'),
     'gvsoc': GvsocSimulator(Path(__file__).parent.resolve() / '../bin/snitch_cluster.gvsoc')
 }
 

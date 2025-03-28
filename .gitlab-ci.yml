@@ -72,16 +72,6 @@ snitch-cluster-sw:
       - target/snitch_cluster/sw/**/build/*.elf
     expire_in: 1 day
 
-snitch-cluster-sw-banshee:
-  needs: [setup]
-  script:
-    - cd target/snitch_cluster
-    - make SELECT_RUNTIME=banshee sw
-  artifacts:
-    paths:
-      - target/snitch_cluster/sw/**/build/*.elf
-    expire_in: 1 day
-
 #######################
 # Standalone IP tests #
 #######################
@@ -139,22 +129,6 @@ snitch-cluster-vsim:
     # Run additional, more extensive tests
     - cd sw/apps/blas/gemm/test && ./test.sh && cd -
     - cd sw/apps/dnn/transpose/test && ./test.sh && cd -
-
-# Banshee
-snitch-cluster-banshee:
-  needs: [setup, snitch-cluster-sw-banshee]
-  variables:
-    SNITCH_LOG: info
-  script:
-    - rustup install 1.63.0
-    - rustup override set 1.63.0
-    - rustc --version
-    - rustup --version
-    - git clone git@github.com:pulp-platform/banshee.git --recurse-submodules
-    - cd banshee
-    - cargo install --debug --path .
-    - cd ../target/snitch_cluster
-    - ./util/run.py sw/run.yaml --simulator banshee -j --run-dir runs/banshee
 
 # Tests requiring hardware FDIV unit
 snitch-cluster-fdiv-vsim:

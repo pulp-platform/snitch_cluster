@@ -31,22 +31,18 @@ from concurrent.futures import ThreadPoolExecutor
 # MemPool RTL simulation:
 # 101000 82      0x00001000 csrr    a0, mhartid     #; comment
 # time   cycle   pc         insn
-# Banshee traces:
-# 00000432 00000206 0005     800101e0  x15:00000064 x15=00000065 # addi    a5, a5, 1
-# cycle    instret  hard_id  pc        register                    insn
-FORMATS = ['cva6', 'snitch', 'banshee']
+FORMATS = ['cva6', 'snitch']
 
 # regex matches to groups
 # 0 -> time
 # 1 -> cycle
-# 2 -> privilege level (RTL) / hartid (banshee)
+# 2 -> privilege level (RTL)
 # 3 -> pc (hex with 0x prefix)
 # 4 -> instruction
-# 5 -> args (RTL) / empty (cva6, banshee)
-# 6 -> comment (RTL) / instruction arguments (banshee) / empty (cva6)
+# 5 -> args (RTL) / empty (cva6)
+# 6 -> comment (RTL) / empty (cva6)
 REGEX = {'snitch': r' *(\d+) +(\d+) +([3M1S0U]?) *(0x[0-9a-f]+) ([.\w]+) +(.+)#; (.*)',
-         'cva6': r' *(\d+)ns +(\d+) +([3M1S0U]?) *([0-9a-f]+) +[01]+ +[0-9a-f]+ +([.\w]+)',
-         'banshee': r' *(\d+) (\d+) (\d+) ([0-9a-f]+) *.+ +.+# ([\w\.]*)( +)(.*)'}
+         'cva6': r' *(\d+)ns +(\d+) +([3M1S0U]?) *([0-9a-f]+) +[01]+ +[0-9a-f]+ +([.\w]+)'}
 
 # regex matches a line of instruction retired by the accelerator
 # 0 -> time
@@ -102,18 +98,15 @@ def flush(lah, buf, **kwargs):
             time = time / 1000 if fmt == 'cva6' else time / 1000000
         event['ts'] = time
         # There is an extra parameter dur to specify the tracing clock duration of complete
-        # events in microseconds. In Banshee, each instruction takes one cycle
+        # events in microseconds.
         if use_time:
             duration = duration / 1000 if fmt == 'cva6' else duration / 1000000
-        event['dur'] = 1 if fmt == 'banshee' else duration
+        event['dur'] = duration
         # The thread ID is used to group events in a single TraceViewer row
         if not collapse_call_stack:
             stack = a2l_info.function_stack()
             if stack is not None:
                 event['tid'] = stack[0]['func']
-        if fmt == 'banshee':
-            # Banshee stores all traces in a single file
-            event['tid'] = priv
         # Additional event args
         event['args'] = {}
         event['args']['pc'] = pc

@@ -4,70 +4,50 @@
 
 runs:
   - elf: tests/build/alias.elf
-    simulators: [vsim, vcs, verilator] # banshee does not model alias regions
+    simulators: [vsim, vcs, verilator]
   - elf: tests/build/atomics.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with exit code 0x4
   - elf: tests/build/barrier.elf
   - elf: tests/build/data_mover.elf
-    simulators: [vsim, vcs, verilator, banshee]
+    simulators: [vsim, vcs, verilator]
   - elf: tests/build/dma_empty_transfer.elf
   - elf: tests/build/dma_simple.elf
   - elf: tests/build/event_unit.elf
-    simulators: [vsim, vcs, verilator, banshee]
+    simulators: [vsim, vcs, verilator]
   - elf: tests/build/fence_i.elf
   - elf: tests/build/fp8_comparison_scalar.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with segfault
   - elf: tests/build/fp8_comparison_vector.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with segfault
   - elf: tests/build/fp8_computation_scalar.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with JIT issue
   - elf: tests/build/fp8_computation_vector.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with exit code 0x6
   - elf: tests/build/fp8alt_comparison_scalar.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with segfault
   - elf: tests/build/fp8alt_comparison_vector.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with exit code 0x10
   - elf: tests/build/fp8alt_computation_scalar.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with JIT issue
   - elf: tests/build/fp8alt_computation_vector.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with exit code 0x12
   - elf: tests/build/fp16_comparison_scalar.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with exit code 0x10
   - elf: tests/build/fp16_comparison_vector.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with exit code 0x10
   - elf: tests/build/fp16_computation_scalar.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with JIT issue
   - elf: tests/build/fp16_computation_vector.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with exit code 0x6
   - elf: tests/build/fp16alt_comparison_scalar.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with exit code 0x10
   - elf: tests/build/fp16alt_comparison_vector.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with exit code 0x10
   - elf: tests/build/fp16alt_computation_scalar.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with JIT issue
   - elf: tests/build/fp16alt_computation_vector.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with exit code 0x16
   - elf: tests/build/fp32_comparison_scalar.elf
   - elf: tests/build/fp32_comparison_vector.elf
   - elf: tests/build/fp32_computation_scalar.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with exit code 0x2
   - elf: tests/build/fp32_computation_vector.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with exit code 0x2
   - elf: tests/build/fp32_conversions_scalar.elf
-    simulators: [vsim, vcs, verilator, gvsoc] # banshee fails with illegal instruction
   # - elf: tests/build/fp64_conversions_scalar.elf
   #   simulators: [vsim, vcs, verilator]
   - elf: tests/build/interrupt_local.elf
-    simulators: [vsim, vcs, verilator, banshee]
+    simulators: [vsim, vcs, verilator]
   - elf: tests/build/multi_cluster.elf
   - elf: tests/build/openmp_parallel.elf
-    simulators: [vsim, vcs, verilator, banshee]
+    simulators: [vsim, vcs, verilator]
   - elf: tests/build/openmp_for_static_schedule.elf
-    simulators: [vsim, vcs, verilator, banshee]
+    simulators: [vsim, vcs, verilator]
   - elf: tests/build/openmp_double_buffering.elf
-    simulators: [vsim, vcs, verilator, banshee]
+    simulators: [vsim, vcs, verilator]
   - elf: tests/build/perf_cnt.elf
-    simulators: [vsim, vcs, verilator] # banshee does not have HW performance counters
+    simulators: [vsim, vcs, verilator]
   - elf: tests/build/printf_simple.elf
   - elf: tests/build/printf_fmtint.elf
   - elf: tests/build/simple.elf
@@ -78,9 +58,9 @@ runs:
   - elf: tests/build/non_null_exitcode.elf
     retcode: 56
   - elf: tests/build/caq.elf
-    simulators: [vsim, vcs, verilator, banshee] # GVSOC does not model caq
+    simulators: [vsim, vcs, verilator] # GVSOC does not model caq
   - elf: tests/build/caq_frep.elf
-    simulators: [vsim, vcs, verilator] # banshee does not model FREP timing
+    simulators: [vsim, vcs, verilator]
   - elf: apps/blas/axpy/build/axpy.elf
     cmd: [../../../sw/blas/axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/blas/gemm/build/gemm.elf
@@ -100,13 +80,13 @@ runs:
   - elf: apps/dnn/fused_concat_linear/build/fused_concat_linear.elf
     cmd: [../../../sw/dnn/fused_concat_linear/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/dnn/transpose/build/transpose.elf
-    simulators: [vsim, vcs, verilator, banshee]
+    simulators: [vsim, vcs, verilator]
     cmd: [../../../sw/dnn/transpose/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/montecarlo/pi_estimation/build/pi_estimation.elf
   - elf: apps/atax/build/atax.elf
     cmd: [../../../sw/apps/atax/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/covariance/build/covariance.elf
-    simulators: [vsim, vcs, verilator, banshee]
+    simulators: [vsim, vcs, verilator]
     cmd: [../../../sw/apps/covariance/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: apps/doitgen/build/doitgen.elf
     cmd: [../../../sw/apps/doitgen/scripts/verify.py, "${sim_bin}", "${elf}"]

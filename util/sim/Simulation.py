@@ -311,22 +311,3 @@ class VCSSimulation(QuestaVCSSimulation):
                     if match:
                         seconds = float(match.group(1))
                         return seconds
-
-
-class BansheeSimulation(Simulation):
-    """A simulation running on Banshee.
-
-    The return code of the simulation is returned directly as the
-    return code of the command launching the simulation.
-    """
-
-    def __init__(self, banshee_cfg=None, **kwargs):
-        """Constructor for the BansheeSimulation class.
-
-        Arguments:
-            banshee_cfg: A Banshee config file.
-            kwargs: Arguments passed to the base class constructor.
-        """
-        super().__init__(**kwargs)
-        self.cmd = ['banshee', '--no-opt-llvm', '--no-opt-jit', '--configuration',
-                    str(banshee_cfg), str(self.elf)]

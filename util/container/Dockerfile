@@ -22,26 +22,11 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Install APT requirements
 RUN apt-get update && \
     apt-get install -y \
-        # General requirements
-        curl wget git tar \
-        # Required for rust
-        build-essential
-        #\
-        # # Required for banshee
-        # cmake llvm-12-dev libclang-common-12-dev zlib1g-dev
-
-# # Build Rust tools
-# RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-# ENV PATH="/root/.cargo/bin:${PATH}"
-# RUN rustup install ${RUST_VERSION} && \
-#     rustup override set ${RUST_VERSION}
+    # General requirements
+    curl wget git tar
 
 # Change working directory
 WORKDIR /tools
-
-# # Install `banshee` (needs cmake)
-# RUN git clone https://github.com/pulp-platform/banshee.git /tmp/banshee --recurse-submodules && \
-#     cargo install --path /tmp/banshee
 
 # Install Bender
 RUN wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
@@ -109,7 +94,6 @@ RUN ${VIRTUAL_ENV}/bin/pip install --upgrade pip && \
 
 # Copy the tools from the builder stage
 COPY --from=builder /tools/bender /tools/bin/
-# COPY --from=builder /root/.cargo/bin/banshee /tools/bin/
 COPY --from=builder /tools/doxygen/bin/doxygen /tools/bin/
 COPY --from=builder /tools/verible* /tools/bin/
 COPY --from=builder /tools/riscv-llvm /tools/riscv-llvm

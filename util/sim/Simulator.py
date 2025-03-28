@@ -4,7 +4,7 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-from Simulation import QuestaSimulation, VCSSimulation, VerilatorSimulation, BansheeSimulation, \
+from snitch.util.sim.Simulation import QuestaSimulation, VCSSimulation, VerilatorSimulation, \
     GvsocSimulation
 
 
@@ -177,38 +177,3 @@ class VerilatorSimulator(RTLSimulator):
             binary: The Verilator simulation binary.
         """
         super().__init__(binary, name='verilator', simulation_cls=VerilatorSimulation)
-
-
-class BansheeSimulator(Simulator):
-    """Banshee simulator
-
-    A simulator, identified by the name `banshee`, tailored to the
-    creation of [Banshee simulations][Simulation.BansheeSimulation].
-    """
-
-    def __init__(self, cfg):
-        """Constructor for the BansheeSimulator class.
-
-        Arguments:
-            cfg: A Banshee config file.
-        """
-        super().__init__(name='banshee', simulation_cls=BansheeSimulation)
-        self.cfg = cfg
-
-    def supports(self, test):
-        """See base class.
-
-        The Banshee simulator does not support tests carrying a custom
-        command.
-        """
-        supported = super().supports(test)
-        if 'cmd' in test:
-            return False
-        else:
-            return supported
-
-    def get_simulation(self, test):
-        return super().get_simulation(
-            test,
-            banshee_cfg=self.cfg
-        )

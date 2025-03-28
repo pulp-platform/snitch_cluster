@@ -45,11 +45,6 @@ These commands compile the RTL sources respectively in `work-vlt`, `work-vsim` a
 !!! info
     The variable `DEBUG=ON` is required when using QuestaSim to preserve the visibility of all internal signals. If you need to inspect the simulation waveforms, you should set this variable when building the simulation model. For faster simulations you can omit the variable assignment, allowing QuestaSim to optimize internal signals away.
 
-
-## Building the Banshee simulator
-
-Instead of building a simulation model from the RTL sources, you can use our instruction-accurate simulator called `banshee`. To install the simulator, please follow the instructions provided in the [Banshee repository](https://github.com/pulp-platform/banshee).
-
 ## Configuring the hardware
 
 The Snitch cluster RTL sources are partly automatically generated from a configuration file provided in `.hjson` format. Several RTL files are templated and use the `.hjson` configuration file as input to fill in the template. An example is [snitch_cluster_wrapper.sv.tpl](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl).
@@ -69,18 +64,12 @@ If you want to use a custom configuration, just point `CFG_OVERRIDE` to the path
 
 ## Building the software
 
-To build all of the software for the Snitch cluster, run the following command. Different simulators may require different C runtime or library function implementations, so different options have to be specified to select the appropriate implementation, e.g. for Banshee simulations or OpenOCD semi-hosting:
+To build all of the software for the Snitch cluster, run the following command. Different simulators may require different C runtime or library function implementations, so different options have to be specified to select the appropriate implementation, e.g. for OpenOCD semi-hosting:
 
 === "RTL"
 
     ```bash
     make DEBUG=ON sw -j
-    ```
-
-=== "Banshee"
-
-    ```bash
-    make DEBUG=ON SELECT_RUNTIME=banshee sw -j
     ```
 
 === "OpenOCD"
@@ -128,12 +117,6 @@ Run one of the executables which was compiled in the previous step on your Snitc
 
     ```shell
     bin/snitch_cluster.vcs sw/apps/blas/axpy/build/axpy.elf
-    ```
-
-=== "Banshee"
-
-    ```shell
-    banshee --no-opt-llvm --no-opt-jit --configuration src/banshee.yaml --trace sw/apps/blas/axpy/build/axpy.elf
     ```
 
 The simulator binaries can be invoked from any directory, just adapt the relative paths in the preceding commands accordingly, or use absolute paths. We refer to the working directory where the simulation is launched as the _simulation directory_. Within it, you will find several log files produced by the RTL simulation.
