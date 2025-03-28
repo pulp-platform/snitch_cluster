@@ -15,9 +15,6 @@ $(APP)_INCDIRS += $(ROOT)/sw/deps/riscv-opcodes
 
 $(APP)_RISCV_CFLAGS += $(RISCV_CFLAGS)
 $(APP)_RISCV_CFLAGS += $(addprefix -I,$($(APP)_INCDIRS))
-ifeq ($(SELECT_RUNTIME), banshee)
-$(APP)_RISCV_CFLAGS += -DBIST
-endif
 
 $(APP)_LIBS += $(SNRT_TARGET_DIR)/build/libsnRuntime.a
 

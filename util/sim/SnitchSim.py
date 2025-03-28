@@ -25,11 +25,12 @@ SIM_MONITOR_POLL_PERIOD = 2
 
 class SnitchSim:
 
-    def __init__(self, sim_bin: str, snitch_bin: str, log: str = None):
+    def __init__(self, sim_bin: str, snitch_bin: str, simulator: str = None, log: str = None):
         self.sim_bin = sim_bin
         self.snitch_bin = snitch_bin
         self.sim = None
         self.tmpdir = None
+        self.simulator = simulator
         self.log = open(log, 'w+') if log else log
 
     def start(self):
@@ -40,7 +41,11 @@ class SnitchSim:
         rx_fd = os.path.join(self.tmpdir.name, 'rx')
         os.mkfifo(rx_fd)
         # Start simulator process
-        ipc_arg = f'--ipc,{tx_fd},{rx_fd}'
+        if self.simulator == 'gvsoc':
+            ipc_arg = f'--ipc {tx_fd},{rx_fd}'
+        else:
+            ipc_arg = f'--ipc,{tx_fd},{rx_fd}'
+
         self.sim = subprocess.Popen([self.sim_bin, self.snitch_bin, ipc_arg], stdout=self.log)
         # Open FIFOs
         self.tx = open(tx_fd, 'wb', buffering=0)  # Unbuffered

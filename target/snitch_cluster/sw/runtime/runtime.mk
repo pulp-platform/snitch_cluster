@@ -9,7 +9,7 @@
 ###############
 
 SNRT_DIR        = $(ROOT)/sw/snRuntime
-SNRT_TARGET_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/$(SELECT_RUNTIME)
+SNRT_TARGET_DIR = $(ROOT)/target/snitch_cluster/sw/runtime/rtl
 SNRT_BUILDDIR   = $(SNRT_TARGET_DIR)/build
 SNRT_SRCDIR     = $(SNRT_TARGET_DIR)/src
 

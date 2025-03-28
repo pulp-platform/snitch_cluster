@@ -13,8 +13,6 @@
 DEBUG ?= OFF
 # Override default config file
 CFG_OVERRIDE ?=
-# Select snRuntime implementation: "banshee" or "rtl" (default)
-SELECT_RUNTIME ?= rtl
 
 .DEFAULT_GOAL := help
 .PHONY: all clean
@@ -214,6 +212,12 @@ $(BIN_DIR)/$(TARGET).vcs: ${VCS_SOURCES} ${TB_SRCS} $(TB_CC_SOURCES) $(RTL_CC_SO
 	$(VCS) -Mlib=$(VCS_BUILDDIR) -Mdir=$(VCS_BUILDDIR) -o $(BIN_DIR)/$(TARGET).vcs -cc $(CC) -cpp $(CXX) \
 		-assert disable_cover -override_timescale=1ns/1ps -full64 tb_bin $(TB_CC_SOURCES) $(RTL_CC_SOURCES) \
 		-CFLAGS "$(TB_CC_FLAGS)" -LDFLAGS "-L${FESVR}/lib" -lfesvr
+
+#########
+# GVSOC #
+#########
+
+include $(ROOT)/target/common/gvsoc.mk
 
 ########
 # Util #

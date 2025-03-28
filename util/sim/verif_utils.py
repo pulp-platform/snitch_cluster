@@ -98,6 +98,9 @@ class Verifier:
             '--log',
             help='Redirect simulation output to this log file')
         parser.add_argument(
+            '--simulator',
+            help='Specifies simulator')
+        parser.add_argument(
             '--dump-results',
             action='store_true',
             help='Dump results even if the simulation does not fail')
@@ -144,7 +147,8 @@ class Verifier:
         elf = Elf(self.args.snitch_bin)
 
         # Start simulation
-        sim = SnitchSim(self.args.sim_bin, self.args.snitch_bin, log=self.args.log)
+        sim = SnitchSim(self.args.sim_bin, self.args.snitch_bin, simulator=self.args.simulator,
+                        log=self.args.log)
         sim.start()
 
         # Wait for kernel execution to be over

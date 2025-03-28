@@ -267,6 +267,37 @@ class QuestaSimulation(QuestaVCSSimulation):
                         return hours*3600 + minutes*60 + seconds
 
 
+class GvsocSimulation(Simulation):
+    """A functional simulation running on GVSOC."""
+
+    def __init__(self, sim_bin=None, cmd=None, **kwargs):
+        super().__init__(**kwargs)
+
+        if cmd is None:
+            self.cmd = ['gvsoc', '--target', os.environ.get('GVSOC_TARGET'), '--binary',
+                        str(self.elf), 'run']
+        else:
+            self.dynamic_args = {
+                'sim_bin': str(sim_bin),
+                'elf': str(self.elf),
+                'run_dir': str(self.run_dir)
+            }
+            self.cmd = [Template(arg).render(**self.dynamic_args) for arg in cmd]
+            self.cmd.append('--simulator=gvsoc')
+
+    def successful(self):
+        """Return whether the simulation was successful."""
+        # On GVSOC, OpenOCD semi-hosting is used which can just report 0 or 1
+        actual_retcode = self.get_retcode()
+        if actual_retcode is not None:
+            if self.expected_retcode != 0:
+                return int(actual_retcode) != 0
+            else:
+                return int(actual_retcode) == 0
+        else:
+            return False
+
+
 class VCSSimulation(QuestaVCSSimulation):
     """An RTL simulation running on VCS."""
 
@@ -280,22 +311,3 @@ class VCSSimulation(QuestaVCSSimulation):
                     if match:
                         seconds = float(match.group(1))
                         return seconds
-
-
-class BansheeSimulation(Simulation):
-    """A simulation running on Banshee.
-
-    The return code of the simulation is returned directly as the
-    return code of the command launching the simulation.
-    """
-
-    def __init__(self, banshee_cfg=None, **kwargs):
-        """Constructor for the BansheeSimulation class.
-
-        Arguments:
-            banshee_cfg: A Banshee config file.
-            kwargs: Arguments passed to the base class constructor.
-        """
-        super().__init__(**kwargs)
-        self.cmd = ['banshee', '--no-opt-llvm', '--no-opt-jit', '--configuration',
-                    str(banshee_cfg), str(self.elf)]
