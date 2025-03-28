@@ -10,6 +10,7 @@
 
 typedef struct {
     uint32_t hw_barrier;
+    uint32_t reduction;
     snrt_allocator_t l1_allocator;
 } cls_t;
 

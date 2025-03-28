@@ -4,8 +4,7 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-from snitch.util.sim.Simulation import QuestaSimulation, VCSSimulation, VerilatorSimulation, \
-    GvsocSimulation
+from snitch.util.sim import Simulation
 
 
 class Simulator(object):
@@ -113,7 +112,7 @@ class GvsocSimulator(Simulator):
             binary: The Gvsoc simulation binary.
             kwargs: Arguments passed to the base class constructor.
         """
-        super().__init__(name='gvsoc', simulation_cls=GvsocSimulation)
+        super().__init__(name='gvsoc', simulation_cls=Simulation.GvsocSimulation)
         self.binary = binary
 
     def get_simulation(self, test):
@@ -142,7 +141,7 @@ class VCSSimulator(RTLSimulator):
         Arguments:
             binary: The VCS simulation binary.
         """
-        super().__init__(binary, name='vcs', simulation_cls=VCSSimulation)
+        super().__init__(binary, name='vcs', simulation_cls=Simulation.VCSSimulation)
 
 
 class QuestaSimulator(RTLSimulator):
@@ -159,7 +158,7 @@ class QuestaSimulator(RTLSimulator):
         Arguments:
             binary: The QuestaSim simulation binary.
         """
-        super().__init__(binary, name='vsim', simulation_cls=QuestaSimulation)
+        super().__init__(binary, name='vsim', simulation_cls=Simulation.QuestaSimulation)
 
 
 class VerilatorSimulator(RTLSimulator):
@@ -176,4 +175,4 @@ class VerilatorSimulator(RTLSimulator):
         Arguments:
             binary: The Verilator simulation binary.
         """
-        super().__init__(binary, name='verilator', simulation_cls=VerilatorSimulation)
+        super().__init__(binary, name='verilator', simulation_cls=Simulation.VerilatorSimulation)

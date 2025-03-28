@@ -18,11 +18,16 @@ TESTS_BUILDDIR = $(ROOT)/target/snitch_cluster/sw/tests/build
 TESTS_RISCV_CFLAGS += $(RISCV_CFLAGS)
 TESTS_RISCV_CFLAGS += $(addprefix -I,$(SNRT_INCDIRS))
 
+BASE_LD    = $(SNRT_DIR)/base.ld
+MEMORY_LD ?= $(ROOT)/target/snitch_cluster/sw/runtime/memory.ld
+
 TESTS_RISCV_LDFLAGS += $(RISCV_LDFLAGS)
-TESTS_RISCV_LDFLAGS += -L$(abspath $(SNRT_TARGET_DIR)/..)
-TESTS_RISCV_LDFLAGS += -T$(abspath $(SNRT_DIR)/base.ld)
-TESTS_RISCV_LDFLAGS += -L$(SNRT_TARGET_DIR)/build
+TESTS_RISCV_LDFLAGS += -L$(dir $(MEMORY_LD))
+TESTS_RISCV_LDFLAGS += -T$(BASE_LD)
+TESTS_RISCV_LDFLAGS += -L$(SNRT_BUILDDIR)
 TESTS_RISCV_LDFLAGS += -lsnRuntime
+
+LD_DEPS = $(MEMORY_LD) $(BASE_LD) $(SNRT_LIB)
 
 ###########
 # Outputs #
@@ -32,11 +37,10 @@ TEST_NAMES   = $(basename $(notdir $(wildcard $(TESTS_SRCDIR)/*.c)))
 TEST_ELFS    = $(abspath $(addprefix $(TESTS_BUILDDIR)/,$(addsuffix .elf,$(TEST_NAMES))))
 TEST_DEPS    = $(abspath $(addprefix $(TESTS_BUILDDIR)/,$(addsuffix .d,$(TEST_NAMES))))
 TEST_DUMPS   = $(abspath $(addprefix $(TESTS_BUILDDIR)/,$(addsuffix .dump,$(TEST_NAMES))))
-TEST_DWARFS  = $(abspath $(addprefix $(TESTS_BUILDDIR)/,$(addsuffix .dwarf,$(TEST_NAMES))))
 TEST_OUTPUTS = $(TEST_ELFS)
 
-ifeq ($(DEBUG), ON)
-TEST_OUTPUTS += $(DUMPS) $(DWARFS)
+ifeq ($(DEBUG),ON)
+TEST_OUTPUTS += $(TEST_DUMPS)
 endif
 
 #########
@@ -59,19 +63,14 @@ $(TESTS_BUILDDIR):
 $(TESTS_BUILDDIR)/%.d: $(TESTS_SRCDIR)/%.c | $(TESTS_BUILDDIR)
 	$(RISCV_CC) $(TESTS_RISCV_CFLAGS) -MM -MT '$(TESTS_BUILDDIR)/$*.elf' $< > $@
 
-$(TESTS_BUILDDIR)/%.elf: $(TESTS_SRCDIR)/%.c $(SNRT_LIB) $(TESTS_BUILDDIR)/%.d | $(TESTS_BUILDDIR)
+$(TESTS_BUILDDIR)/%.elf: $(TESTS_SRCDIR)/%.c $(LD_DEPS) $(TESTS_BUILDDIR)/%.d | $(TESTS_BUILDDIR)
 	$(RISCV_CC) $(TESTS_RISCV_CFLAGS) $(TESTS_RISCV_LDFLAGS) $(TESTS_SRCDIR)/$*.c -o $@
 
 $(TESTS_BUILDDIR)/%.dump: $(TESTS_BUILDDIR)/%.elf | $(TESTS_BUILDDIR)
 	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_FLAGS) $< > $@
 
-$(TESTS_BUILDDIR)/%.dwarf: $(TESTS_BUILDDIR)/%.elf | $(TESTS_BUILDDIR)
-	$(RISCV_DWARFDUMP) $< > $@
+$(TEST_DEPS): | $(SNRT_HAL_HDRS)
 
-$(TEST_DEPS): | $(TARGET_C_HDRS)
-
-ifneq ($(MAKECMDGOALS),clean)
-ifneq ($(MAKECMDGOALS),clean-sw)
+ifneq ($(filter-out clean%,$(MAKECMDGOALS)),)
 -include $(TEST_DEPS)
-endif
 endif

@@ -12,7 +12,8 @@ UTIL_DIR ?= $(SNITCH_ROOT)/util
 LOGS_DIR  = $(SIM_DIR)/logs
 
 # Files
-BENDER_LOCK ?= $(ROOT)/Bender.lock
+BENDER_LOCK = $(ROOT)/Bender.lock
+BENDER_YML  = $(ROOT)/Bender.yml
 
 # SEPP packages
 QUESTA_SEPP    ?=
@@ -23,7 +24,6 @@ VERILATOR_SEPP ?=
 BENDER       ?= bender
 VLT          ?= $(VERILATOR_SEPP) verilator
 VCS          ?= $(VCS_SEPP) vcs
-VERIBLE_FMT  ?= verible-verilog-format
 CLANG_FORMAT ?= clang-format
 VSIM         ?= $(QUESTA_SEPP) vsim
 VOPT         ?= $(QUESTA_SEPP) vopt
@@ -31,6 +31,8 @@ VLOG         ?= $(QUESTA_SEPP) vlog
 VLIB         ?= $(QUESTA_SEPP) vlib
 RISCV_MC     ?= $(LLVM_BINROOT)/llvm-mc
 ADDR2LINE    ?= $(LLVM_BINROOT)/llvm-addr2line
+# tail is required for nonsense oseda output
+VLT_BIN       = $(shell $(VERILATOR_SEPP) which verilator_bin | tail -n1 | $(VERILATOR_SEPP) xargs realpath | tail -n1)
 
 # Internal executables
 GENTRACE_PY      ?= $(UTIL_DIR)/trace/gen_trace.py
@@ -43,15 +45,9 @@ VISUALIZE_PY     ?= $(UTIL_DIR)/bench/visualize.py
 VLT_JOBS        ?= $(shell nproc)
 VLT_NUM_THREADS ?= 1
 
-MATCH_END := '/+incdir+/ s/$$/\/*\/*/'
-MATCH_BGN := 's/+incdir+//g'
-MATCH_DEF := '/+define+/d'
-SED_SRCS  := sed -e ${MATCH_END} -e ${MATCH_BGN} -e ${MATCH_DEF}
-
-COMMON_BENDER_FLAGS += -t rtl
+COMMON_BENDER_FLAGS += -t rtl -t snitch_cluster
 
 VSIM_BENDER   += $(COMMON_BENDER_FLAGS) -t test -t simulation -t vsim
-VSIM_SOURCES   = $(shell ${BENDER} script flist-plus ${VSIM_BENDER} | ${SED_SRCS})
 VSIM_BUILDDIR ?= work-vsim
 VSIM_FLAGS    += -t 1ps
 ifeq ($(DEBUG), ON)
@@ -64,15 +60,13 @@ endif
 # VCS_BUILDDIR should to be the same as the `DEFAULT : ./work-vcs`
 # in target/snitch_cluster/synopsys_sim.setup
 VCS_BENDER   += $(COMMON_BENDER_FLAGS) -t test -t simulation -t vcs
-VCS_SOURCES   = $(shell ${BENDER} script flist-plus ${VCS_BENDER} | ${SED_SRCS})
 VCS_BUILDDIR := work-vcs
 
 # fesvr is being installed here
 FESVR         ?= ${MKFILE_DIR}work
 FESVR_VERSION ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
 
-VLT_SOURCES   = $(shell ${BENDER} script flist-plus ${VLT_BENDER} | ${SED_SRCS})
-VLT_BENDER   += $(COMMON_BENDER_FLAGS) -t verilator -DCOMMON_CELLS_ASSERTS_OFF
+VLT_BENDER   += $(COMMON_BENDER_FLAGS) -t verilator -DASSERTS_OFF 
 VLT_BUILDDIR := $(abspath work-vlt)
 VLT_FESVR     = $(VLT_BUILDDIR)/riscv-isa-sim
 VLT_FLAGS    += --timing
@@ -165,15 +159,6 @@ $(VLT_BUILDDIR)/lib/libfesvr.a: $(VLT_FESVR)/${FESVR_VERSION}_unzip
 	mkdir -p $(dir $@)
 	cp $(dir $<)libfesvr.a $@
 
-#######
-# VCS #
-#######
-$(VCS_BUILDDIR)/compile.sh:
-	mkdir -p $(VCS_BUILDDIR)
-	${BENDER} script vcs ${VCS_BENDER} --vlog-arg="${VLOGAN_FLAGS}" --vcom-arg="${VHDLAN_FLAGS}" > $@
-	chmod +x $@
-	$(VCS_SEPP) $@ > $(VCS_BUILDDIR)/compile.log
-
 ########
 # Util #
 ########
@@ -200,6 +185,26 @@ define cluster_gen_rule
 $(1): $(CFG) $(CLUSTER_GEN_PREREQ) $(2) | $(GENERATED_DIR)
 	@echo "[CLUSTERGEN] Generate $$@"
 	$(CLUSTER_GEN) -c $$< -o $$@ --template $(2)
+endef
+
+# Common rule to generate a Makefile with RTL source and header
+# files listed as prerequisites for a given target.
+# Generates also an intermediate file list to avoid "Argument list too long"
+# errors when invoking Verilator with a large number of files.
+# Arg 1: path for the generated file
+# Arg 2: path to directory storing intermediate files
+# Arg 3: bender arguments
+# Arg 4: top module name
+# Arg 5: name of target for which prerequisites are generated
+define gen_rtl_prerequisites
+$(2)/$(4).f: $(BENDER_YML) $(BENDER_LOCK) | $(2)
+	$(BENDER) script verilator $(3) > $$@
+
+$(1): $(2)/$(4).f $(GENERATED_RTL_SOURCES) | $(2)
+	$(VLT) -f $$< --Mdir $(2) --MMD -E --top-module $(4) > /dev/null
+	mv $(2)/V$(4)__ver.d $$@
+	sed -E -i -e 's|^[^:]*:|$(5):|' \
+	    -e ':a; s/(^|[[:space:]])$(subst /,\/,$(VLT_BIN))($|[[:space:]])/\1\2/g; ta' $$@
 endef
 
 ##########
