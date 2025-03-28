@@ -4,7 +4,9 @@
 
 # Some CI tests run on our GitLab servers due to licenses and tools
 name: gitlab-ci
-on: [push, pull_request, workflow_dispatch]
+# Skip on pull requests as forks don't have required secrets,
+# and pull requests from own repo already trigger a push event.
+on: [push, workflow_dispatch]
 jobs:
   gitlab-ci:
     name: Internal Gitlab CI
@@ -12,11 +14,9 @@ jobs:
     steps:
       - name: Check Gitlab CI
         uses: pulp-platform/pulp-actions/gitlab-ci@v2.1.0
-        # Skip on forks or pull requests from forks due to missing secrets.
+        # Skip on forks due to missing secrets.
         if: >
-          github.repository == 'pulp-platform/snitch_cluster' &&
-          (github.event_name != 'pull_request' ||
-          github.event.pull_request.head.repo.full_name == github.repository)
+          github.repository == 'pulp-platform/snitch_cluster'
         with:
           domain: iis-git.ee.ethz.ch
           repo: github-mirror/snitch_cluster
