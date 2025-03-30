@@ -171,11 +171,21 @@ class XDMACtrlChainedWriteTester
                 write_csr(dut, dut.io.csrIO, addr = currentCSR, data = i)
                 currentCSR += 1
               })
+              // Reader: Temporal Strides D2 -> D5
+              for (i <- 0 until 4) {
+                write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 0)
+                currentCSR += 1
+              }
               // Reader: Temporal Bounds D0 -> D1
               Reader_Temporal_Bounds.foreach({ i =>
                 write_csr(dut, dut.io.csrIO, addr = currentCSR, data = i)
                 currentCSR += 1
               })
+              // Reader: Temporal Bounds D2 -> D5
+              for (i <- 0 until 4) {
+                write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 1)
+                currentCSR += 1
+              }
               // Enabled Channels
               write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 0xff)
               currentCSR += 1
@@ -190,11 +200,21 @@ class XDMACtrlChainedWriteTester
                 write_csr(dut, dut.io.csrIO, addr = currentCSR, data = i)
                 currentCSR += 1
               })
+              // Writer: Temporal Strides D2 -> D5
+              for (i <- 0 until 4) {
+                write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 0)
+                currentCSR += 1
+              }
               // Writer: Temporal Bounds D0 -> D1
               Writer_Temporal_Bounds.foreach({ i =>
                 write_csr(dut, dut.io.csrIO, addr = currentCSR, data = i)
                 currentCSR += 1
               })
+              // Writer: Temporal Bounds D2 -> D5
+              for (i <- 0 until 4) {
+                write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 1)
+                currentCSR += 1
+              }
               // Enabled Channels
               write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 0xff)
               currentCSR += 1

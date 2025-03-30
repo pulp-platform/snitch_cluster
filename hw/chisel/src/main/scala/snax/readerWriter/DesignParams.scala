@@ -74,6 +74,22 @@ object AddressGenUnitParam {
     tcdmLogicWordSize = Seq(256)
   )
 
+  def apply(
+      temporalDimension: Int,
+      numChannel: Int,
+      outputBufferDepth: Int,
+      tcdmSize: Int
+  ): AddressGenUnitParam = new AddressGenUnitParam(
+    spatialBounds = List(numChannel),
+    temporalDimension = temporalDimension,
+    addressWidth = log2Ceil(tcdmSize) + 10,
+    numChannel = numChannel,
+    outputBufferDepth = outputBufferDepth,
+    tcdmSize = tcdmSize,
+    tcdmPhysWordSize = 256,
+    tcdmLogicWordSize = Seq(256)
+  )
+
   // The Very Simple instantiation of the Param
   def apply(): AddressGenUnitParam = apply(
     spatialBounds = List(8),

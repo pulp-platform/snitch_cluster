@@ -30,8 +30,8 @@ class XDMADataPath(
 
   val io = IO(new Bundle {
     // All config signal for reader and writer
-    val readerCfg = Input(new XDMACfgIO(readerParam))
-    val writerCfg = Input(new XDMACfgIO(writerParam))
+    val readerCfg = Input(new XDMAIntraClusterCfgIO(readerParam))
+    val writerCfg = Input(new XDMAIntraClusterCfgIO(writerParam))
 
     // Two start signal will inform the new cfg is available, trigger agu, and inform all extension that a stream is coming
     val readerStart = Input(Bool())
@@ -241,14 +241,14 @@ class XDMADataPath(
   io.remoteXDMAData.fromRemote <> remoteLoopbackSplitter.io.in
 
   // Connect the AccompaniedCfg signal
-  // Create three intermediate wires to convert from XDMACfgIO to XDMADataPathCfgIO
+  // Create three intermediate wires to convert from XDMAIntraClusterCfgIO to XDMADataPathCfgIO
   // Normal Read: toRemoteAccompaniedCfg <- Coming from reader side
   // Normal Write: fromRemoteAccompaniedCfg <- Coming from writer side
   // Chained Write (Reader side's cfg): toRemoteChainedWriteAccompaniedCfg <- Coming from writer side
   val fromRemoteAccompaniedCfg = Wire(
     chiselTypeOf(io.remoteXDMAData.fromRemoteAccompaniedCfg)
   )
-  fromRemoteAccompaniedCfg.convertFromXDMACfgIO(
+  fromRemoteAccompaniedCfg.convertFromXDMAIntraClusterCfgIO(
     cfg = io.writerCfg,
     isChainedWrite = false
   )
@@ -256,7 +256,7 @@ class XDMADataPath(
   val toRemoteAccompaniedCfg = Wire(
     chiselTypeOf(io.remoteXDMAData.toRemoteAccompaniedCfg)
   )
-  toRemoteAccompaniedCfg.convertFromXDMACfgIO(
+  toRemoteAccompaniedCfg.convertFromXDMAIntraClusterCfgIO(
     cfg = io.readerCfg,
     isChainedWrite = false
   )
@@ -264,7 +264,7 @@ class XDMADataPath(
   val toRemoteChainedWriteAccompaniedCfg = Wire(
     chiselTypeOf(io.remoteXDMAData.toRemoteAccompaniedCfg)
   )
-  toRemoteChainedWriteAccompaniedCfg.convertFromXDMACfgIO(
+  toRemoteChainedWriteAccompaniedCfg.convertFromXDMAIntraClusterCfgIO(
     cfg = io.writerCfg,
     isChainedWrite = true
   )

@@ -32,7 +32,7 @@ class ReaderWriterTesterParam(
 )
 
 class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
-  "DMA Data Path behavior is as expected" in test(
+  "XDMADataPath behavior is as expected" in test(
     new XDMADataPath(
       readerParam = new XDMAParam(
         axiParam = new AXIParam,
