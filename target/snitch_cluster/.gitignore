@@ -1,6 +1,8 @@
+# Folders
 /logs/
 /generated/
 /bin/
+/cfg/default.hjson
 /cfg/lru.hjson
 /work/
 /work-vsim/
@@ -8,4 +10,11 @@
 /work-vcs/
 /*.log
 /runs/
+
+# Automatically generated files
 /test/testharness.sv
+
+/sw/**/include/*csr_addr_map.h
+/sw/**/include/*params.h
+
+**/data.h

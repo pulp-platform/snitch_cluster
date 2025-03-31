@@ -332,7 +332,7 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                 )
               } else {
                 throw new Exception(
-                // println(
+                  // println(
                   "[Local Reader Checker] The received pointer " + dut.io.localXDMACfg.readerCfg.readerPtr
                     .peekInt()
                     .toInt
@@ -377,7 +377,7 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                 )
               } else {
                 throw new Exception(
-                // println(
+                  // println(
                   "[Local Writer Checker] The received pointer " + dut.io.localXDMACfg.writerCfg
                     .writerPtr(0)
                     .peekInt()

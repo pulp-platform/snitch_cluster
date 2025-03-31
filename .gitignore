@@ -1,12 +1,17 @@
 .bender/
 Bender.lock
 .vscode/
+.metals
+.scala-build
 __pycache__
+env
+logs
+.bsp
 
-// File List Synthesis Files
+#  File List Synthesis Files
 *_flist.tcl
 
-// Modelsim Files
+#  Modelsim Files
 *.wlf
 modelsim.ini
 *stacktrace*
@@ -14,7 +19,7 @@ transcript
 
 gmon.out
 
-// Docs
+# Docs
 /site/
 /docs/generated/
 
