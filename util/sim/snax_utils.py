@@ -11,7 +11,9 @@ import numpy as np
 
 # Function to perform 2D convolution on the input data using the specified kernel,
 # stride, and padding. It returns the output feature map.
-def conv2d(input_data, kernel, stride=(1, 1), padding=(0, 0), mode="NHWC"):
+def conv2d(
+    input_data, kernel, stride=(1, 1), padding=(0, 0), mode="NHWC", hw_sizes=None
+):
     if mode == "NHWC":
         batch_size, in_height, in_width, in_channels = input_data.shape
         out_channels, kernel_height, kernel_width, _ = kernel.shape
@@ -56,18 +58,16 @@ def conv2d(input_data, kernel, stride=(1, 1), padding=(0, 0), mode="NHWC"):
                         # Perform the convolution calculation
                         output_data[b, oh, ow, oc] = np.sum(input_region * conv_kernel)
     else:
-        batch_size, Cin8, in_height, in_width, t = input_data.shape
-        assert t == 8
-        Cout8, Cin8, kernel_height, kernel_width, t1, t2 = kernel.shape
-        assert t1 == 8
-        assert t2 == 8
+        batch_size, _, in_height, in_width, _ = input_data.shape
+        CoutTemp, _, kernel_height, kernel_width, meshCol, _ = kernel.shape
         stride_h, stride_w = stride
         pad_h, pad_w = padding
-
+        meshRow = hw_sizes["meshRow"]
+        meshCol = hw_sizes["meshCol"]
         # Calculate the output feature map dimensions
-        out_height = (in_height - kernel_height + 2 * pad_h) // stride_h + 1
         out_width = (in_width - kernel_width + 2 * pad_w) // stride_w + 1
-        assert out_width % 8 == 0
+        out_height = (in_height - kernel_height + 2 * pad_h) // stride_h + 1
+        assert out_width % meshRow == 0
 
         # Add padding
         input_data_padded = np.pad(
@@ -78,18 +78,19 @@ def conv2d(input_data, kernel, stride=(1, 1), padding=(0, 0), mode="NHWC"):
 
         # Initialize the output feature map
         output_data = np.zeros(
-            (batch_size, Cout8, out_height, out_width // 8, 8, 8), np.int32
+            (batch_size, CoutTemp, out_height, out_width // meshRow, meshRow, meshCol),
+            np.int32,
         )
 
         # Perform the convolution operation
         for b in range(batch_size):
-            for oc in range(Cout8):
-                for oc8 in range(8):
+            for oc in range(CoutTemp):
+                for oc8 in range(meshCol):
                     for oh in range(out_height):
-                        for ow in range(out_width // 8):
-                            for ow8 in range(8):
+                        for ow in range(out_width // meshRow):
+                            for ow8 in range(meshRow):
                                 # Calculate the input region
-                                iw_start = (ow * 8 + ow8) * stride_w
+                                iw_start = (ow * meshRow + ow8) * stride_w
                                 iw_end = iw_start + kernel_width
 
                                 ih_start = oh * stride_h
@@ -179,8 +180,12 @@ def block_gemm_golden_model(
     m, k, n, row, size, col, a, b, subtraction_a, subtraction_b, c
 ):
     # Reshape and subtract
-    a_subtracted = a.reshape(m, k, row, size) - subtraction_a  # Shape: (m, k, row, size)
-    b_subtracted = b.reshape(n, k, col, size) - subtraction_b  # Shape: (n, k, col, size)
+    a_subtracted = (
+        a.reshape(m, k, row, size) - subtraction_a
+    )  # Shape: (m, k, row, size)
+    b_subtracted = (
+        b.reshape(n, k, col, size) - subtraction_b
+    )  # Shape: (n, k, col, size)
 
     # Initialize output array
     d = np.zeros((m, n, row, col), dtype=np.int32)

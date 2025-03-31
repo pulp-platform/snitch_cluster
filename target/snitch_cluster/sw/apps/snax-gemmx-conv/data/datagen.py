@@ -12,6 +12,7 @@ import pathlib
 import hjson
 import sys
 import os
+import math
 
 # Add data utility path
 sys.path.append(os.path.join(os.path.dirname(__file__), "../../../../../../util/sim/"))
@@ -48,39 +49,52 @@ quantized_output_data_width = 8
 
 def emit_conv_data(**kwargs):
 
-    meshRow = kwargs["meshRow"]
-    meshCol = kwargs["meshCol"]
+    meshRow = kwargs["snax_streamer_gemmX_core_template"]["snax_acc_cfg"][
+        "snax_gemmx_mesh_row"
+    ]
+    tileSize = kwargs["snax_streamer_gemmX_core_template"]["snax_acc_cfg"][
+        "snax_gemmx_tile_size"
+    ]
+    meshCol = kwargs["snax_streamer_gemmX_core_template"]["snax_acc_cfg"][
+        "snax_gemmx_mesh_col"
+    ]
+    snax_gemmx_serial_c32_d32_width = kwargs["snax_streamer_gemmX_core_template"][
+        "snax_acc_cfg"
+    ]["snax_gemmx_serial_c32_d32_width"]
+    snax_gemmx_serial_d8_width = kwargs["snax_streamer_gemmX_core_template"][
+        "snax_acc_cfg"
+    ]["snax_gemmx_serial_d8_width"]
 
     # size extraction
     Cin = kwargs["Cin"]
     Cout = kwargs["Cout"]
 
-    Nbatch, Cin8, H, W, _ = (
+    Nbatch, CinTemp, H, W = (
         kwargs["Nbatch"],
-        kwargs["Cin"] // 8,
+        kwargs["Cin"] // tileSize,
         kwargs["H"],
         kwargs["W"],
-        8,
     )
-    Cout8, Cin8, Kh, Kw, _, _ = (
-        kwargs["Cout"] // 8,
-        kwargs["Cin"] // 8,
+    CoutTemp, Kh, Kw = (
+        kwargs["Cout"] // meshCol,
         kwargs["Kh"],
         kwargs["Kw"],
-        8,
-        8,
     )
 
     stride_h, stride_w = (kwargs["stride_h"], kwargs["stride_w"])
     pad_h, pad_w = (kwargs["pad_h"], kwargs["pad_w"])
 
-    # make sure the output width is multiple of 8
-    if W // stride_w % 8 != 0:
-        W = W + (stride_w * (8 - (W // stride_w) % 8)) % (stride_w * 8)
+    # make sure the output width is multiple of meshRow
+    if W // stride_w % meshRow != 0:
+        W = W + (stride_w * (meshRow - (W // stride_w) % meshRow)) % (
+            stride_w * meshRow
+        )
 
     # test data generation
-    input_data = np.random.randint(-10, 10, size=(Nbatch, Cin8, H, W, 8))
-    kernel = np.random.randint(-10, 10, size=(Cout8, Cin8, Kh, Kw, 8, 8))
+    input_data = np.random.randint(-10, 10, size=(Nbatch, CinTemp, H, W, tileSize))
+    kernel = np.random.randint(
+        -10, 10, size=(CoutTemp, CinTemp, Kh, Kw, meshCol, tileSize)
+    )
 
     # inferred config from the input data and kernel
     padding = pad_h, pad_w
@@ -94,19 +108,19 @@ def emit_conv_data(**kwargs):
     )
 
     # Calculate the size of the output feature map
-    out_height = (H + 2 * pad_h - Kh) // stride_h + 1
     out_width = (W + 2 * pad_w - Kw) // stride_w + 1
+    out_height = (H + 2 * pad_h - Kh) // stride_h + 1
 
-    assert out_width % 8 == 0, "out_width must be multiple of 8"
+    assert out_width % meshRow == 0, "out_width must be multiple of meshRow"
 
-    M = out_height * out_width // 8
-    K = Cin // 8 * Kh * Kw
-    N = Cout // 8
+    M = out_height * out_width // meshRow
+    K = Cin // tileSize * Kh * Kw
+    N = Cout // meshCol
 
-    length_c = M * N * 8 * 8
+    length_c = M * N * meshRow * meshCol
 
     enabled_channel_CSR_num = int(
-        (meshRow * meshCol) * output_data_width / bankWidth / 32
+        math.ceil((meshRow * meshCol) * output_data_width / bankWidth / 32)
     )
 
     broadcast_C = kwargs["broadcast_C"] == 1 and kwargs["channel_en_C"] == 1
@@ -115,8 +129,10 @@ def emit_conv_data(**kwargs):
 
     assert broadcast_C or disable_C or enable_full_C, "Invalid C settings"
     if broadcast_C == 1:
-        bias = np.random.randint(MIN_BIAS, MAX_BIAS, size=(int(length_c / 8 / 8), 8))
-        bias = np.repeat(bias, repeats=8, axis=0).reshape(-1)
+        bias = np.random.randint(
+            MIN_BIAS, MAX_BIAS, size=(int(length_c / meshRow / meshCol), 1, meshCol)
+        )
+        bias = np.repeat(bias, repeats=meshRow, axis=1).reshape(-1)
     elif enable_full_C == 1:
         bias = np.random.randint(MIN_BIAS, MAX_BIAS, size=length_c).reshape(-1)
     else:
@@ -184,15 +200,16 @@ def emit_conv_data(**kwargs):
         delta_local_a = 0
 
         delta_local_b = input_padding.size
-        assert input_padding.size == (
-            Nbatch * Cin8 * (H + 2 * pad_h) * (W + 2 * pad_w) * 8
+        assert (
+            input_padding.size
+            == Nbatch * CinTemp * (H + 2 * pad_h) * (W + 2 * pad_w) * tileSize
         )
 
         delta_local_b = align_wide_addr(delta_local_b, 64)
         assert delta_local_b % 64 == 0
 
         delta_local_c = delta_local_b + kernel.size
-        assert kernel.size == (Cout8 * Cin8 * Kh * Kw * 8 * 8)
+        assert kernel.size == CoutTemp * CinTemp * Kh * Kw * tileSize * meshCol
         delta_local_c = align_wide_addr(delta_local_c, 64)
         assert delta_local_c % 64 == 0
 
@@ -232,7 +249,8 @@ def emit_conv_data(**kwargs):
         assert (
             input_padding.size < base_logical_addr_delta
             and kernel.size < base_logical_addr_delta
-            and M * N * 8 * 8 * 4 < base_logical_addr_delta
+            and M * N * meshRow * meshCol * (output_data_width / 8)
+            < base_logical_addr_delta
         )
 
     if kwargs["interleaved_address"] == 1:
@@ -259,16 +277,16 @@ def emit_conv_data(**kwargs):
     data_str += [
         format_scalar_definition("int32_t", "delta_physical_a", delta_physical_a),
         format_scalar_definition("int32_t", "delta_physical_b", delta_physical_b),
-        format_scalar_definition("int32_t", "delta_physical_d8", delta_physical_d8),
         format_scalar_definition("int32_t", "delta_physical_c", delta_physical_c),
+        format_scalar_definition("int32_t", "delta_physical_d8", delta_physical_d8),
         format_scalar_definition("int32_t", "delta_physical_d32", delta_physical_d32),
     ]
 
     data_str += [
         format_scalar_definition("int32_t", "delta_local_a", delta_local_a),
         format_scalar_definition("int32_t", "delta_local_b", delta_local_b),
-        format_scalar_definition("int32_t", "delta_local_d8", delta_local_d8),
         format_scalar_definition("int32_t", "delta_local_c", delta_local_c),
+        format_scalar_definition("int32_t", "delta_local_d8", delta_local_d8),
         format_scalar_definition("int32_t", "delta_local_d32", delta_local_d32),
     ]
 
@@ -277,52 +295,42 @@ def emit_conv_data(**kwargs):
     # streamer setting for data mover A
     # -----------------------------------------------------------
     # NC8HW8
-    Aslstride0 = 8 * stride_w
+    # Aslstride0 = tileSize * stride_w
+    Aslstride0 = 8
 
     # K dim
     Atlbound0 = Kw
-    Atlstride0 = 8
+    Atlstride0 = tileSize
 
     Atlbound1 = Kh
-    Atlstride1 = 8 * (W + 2 * pad_w)
+    Atlstride1 = tileSize * (W + 2 * pad_w)
 
-    Atlbound2 = Cin8
-    Atlstride2 = 8 * (W + 2 * pad_w) * (H + 2 * pad_h)
+    Atlbound2 = CinTemp
+    Atlstride2 = tileSize * (W + 2 * pad_w) * (H + 2 * pad_h)
 
     # N dim
-    Atlbound3 = Cout // 8
+    Atlbound3 = Cout // meshCol
     Atlstride3 = 0
 
     # M dim
-    Atlbound4 = out_width // 8
-    Atlstride4 = 8 * 8 * stride_w
+    Atlbound4 = out_width // meshRow
+    Atlstride4 = meshRow * tileSize * stride_w
 
     Atlbound5 = out_height
-    Atlstride5 = 8 * (W + 2 * pad_w) * stride_h
-
-    # Batch dim
-    Atlbound6 = Nbatch
-    Atlstride6 = 8 * Cin8 * (H + 2 * pad_h) * (W + 2 * pad_w)
+    Atlstride5 = tileSize * (W + 2 * pad_w) * stride_h
 
     assert (
-        Atlstride0 % 8 == 0
-        and Atlstride1 % 8 == 0
-        and Atlstride2 % 8 == 0
-        and Atlstride3 % 8 == 0
-        and Atlstride4 % 8 == 0
-        and Atlstride5 % 8 == 0
-        and Atlstride6 % 8 == 0
+        Atlstride0 % (bankWidth / 8) == 0
+        and Atlstride1 % (bankWidth / 8) == 0
+        and Atlstride2 % (bankWidth / 8) == 0
+        and Atlstride3 % (bankWidth / 8) == 0
+        and Atlstride4 % (bankWidth / 8) == 0
+        and Atlstride5 % (bankWidth / 8) == 0
     )
 
     assert (
         M * K * N
-        == Atlbound0
-        * Atlbound1
-        * Atlbound2
-        * Atlbound3
-        * Atlbound4
-        * Atlbound5
-        * Atlbound6
+        == Atlbound0 * Atlbound1 * Atlbound2 * Atlbound3 * Atlbound4 * Atlbound5
     )
 
     data_str += [
@@ -339,44 +347,37 @@ def emit_conv_data(**kwargs):
         format_scalar_definition("int32_t", "Atlstride4", Atlstride4),
         format_scalar_definition("int32_t", "Atlbound5", Atlbound5),
         format_scalar_definition("int32_t", "Atlstride5", Atlstride5),
-        format_scalar_definition("int32_t", "Atlbound6", Atlbound6),
-        format_scalar_definition("int32_t", "Atlstride6", Atlstride6),
     ]
 
-    # Cout8Cin8FyFx88
+    # CoutTempCinTempFyFx88
     # -----------------------------------------------------------
     # streamer setting for data mover B
     # -----------------------------------------------------------
-    Bslstride0 = 8
+    Bslstride0 = bankWidth / 8
 
     # K dim
-    Btlbound0 = Kw * Kh * Cin8
-    Btlstride0 = 8 * 8
+    Btlbound0 = Kw * Kh * CinTemp
+    Btlstride0 = tileSize * meshCol
 
     # N dim
-    Btlbound1 = Cout // 8
-    Btlstride1 = 8 * 8 * Kw * Kh * Cin8
+    Btlbound1 = Cout // meshCol
+    Btlstride1 = tileSize * meshCol * Kw * Kh * CinTemp
 
     # M dim
-    Btlbound2 = out_width * out_height // 8
+    Btlbound2 = out_width * out_height // meshRow
     Btlstride2 = 0
 
-    # Batch dim
-    Btlbound3 = Nbatch
-    Btlstride3 = 0
-
     assert (
-        Btlstride0 % 64 == 0
-        and Btlstride1 % 64 == 0
-        and Btlstride2 % 64 == 0
-        and Btlstride3 % 64 == 0
+        Btlstride0 % (bankWidth / 8) == 0
+        and Btlstride1 % (bankWidth / 8) == 0
+        and Btlstride2 % (bankWidth / 8) == 0
     )
 
-    assert K * N * M == Btlbound0 * Btlbound1 * Btlbound2 * Btlbound3, (
+    assert K * N * M == Btlbound0 * Btlbound1 * Btlbound2, (
         "K * N * M",
         K * N * M,
         "Loopbounds multipliers ",
-        Btlbound0 * Btlbound1 * Btlbound2 * Btlbound3,
+        Btlbound0 * Btlbound1 * Btlbound2,
     )
 
     data_str += [
@@ -387,8 +388,6 @@ def emit_conv_data(**kwargs):
         format_scalar_definition("int32_t", "Btlstride1", Btlstride1),
         format_scalar_definition("int32_t", "Btlbound2", Btlbound2),
         format_scalar_definition("int32_t", "Btlstride2", Btlstride2),
-        format_scalar_definition("int32_t", "Btlbound3", Btlbound3),
-        format_scalar_definition("int32_t", "Btlstride3", Btlstride3),
     ]
 
     # -----------------------------------------------------------
@@ -396,30 +395,31 @@ def emit_conv_data(**kwargs):
     # -----------------------------------------------------------
     # C is int32_t so the stride is 4 times of the int8_t
     # NHWC
-    Cslstride0 = 8
+    Cslstride0 = bankWidth / 8
 
     # serial input
-    Ctlbound0 = 4
-    Ctlstride0 = 8 * 8
+    c32_spatial_bound_0 = snax_gemmx_serial_c32_d32_width // bankWidth
+    Ctlbound0 = output_data_width * meshRow * meshCol / snax_gemmx_serial_c32_d32_width
+    Ctlstride0 = (bankWidth / 8) * c32_spatial_bound_0
+
     # N dim
-    Ctlbound1 = Cout // 8
-    Ctlstride1 = out_height * out_width // 8 * 8 * 8 * 4
+    Ctlbound1 = Cout // meshCol
+    Ctlstride1 = out_height * out_width * meshCol * (output_data_width // 8)
 
     # M dim
     # K is merged because of the block gemm output stationarity
-    Ctlbound2 = out_width // 8
-    Ctlstride2 = 8 * 8 * 4
+    Ctlbound2 = out_width // meshRow
+    Ctlstride2 = meshRow * meshCol * (output_data_width // 8)
 
     Ctlbound3 = out_height
-    Ctlstride3 = out_width // 8 * 8 * 8 * 4
+    Ctlstride3 = out_width * meshCol * (output_data_width // 8)
 
     assert (
-        Ctlstride0 % 64 == 0
-        and Ctlstride1 % 64 == 0
-        and Ctlstride2 % 64 == 0
-        and Ctlstride3 % 64 == 0
+        Ctlstride0 % (bankWidth / 8) == 0
+        and Ctlstride1 % (bankWidth / 8) == 0
+        and Ctlstride2 % (bankWidth / 8) == 0
+        and Ctlstride3 % (bankWidth / 8) == 0
     )
-    assert M * N * 4 == Ctlbound0 * Ctlbound1 * Ctlbound2 * Ctlbound3
 
     data_str += [
         format_scalar_definition("int32_t", "Cslstride0", Cslstride0),
@@ -436,29 +436,32 @@ def emit_conv_data(**kwargs):
     # -----------------------------------------------------------
     # streamer setting for data mover D32
     # -----------------------------------------------------------
-    D32slstride0 = 8
+    D32slstride0 = bankWidth / 8
 
     # serial output
-    D32tlbound0 = 4
-    D32tlstride0 = 8 * 8
+    d32_spatial_bound_0 = snax_gemmx_serial_c32_d32_width // bankWidth
+    D32tlbound0 = (
+        output_data_width * meshRow * meshCol / snax_gemmx_serial_c32_d32_width
+    )
+    D32tlstride0 = (bankWidth / 8) * d32_spatial_bound_0
 
     # N dim
-    D32tlbound1 = Cout // 8
-    D32tlstride1 = out_height * out_width // 8 * 8 * 8 * 4
+    D32tlbound1 = Cout // meshCol
+    D32tlstride1 = out_height * out_width * meshCol * (output_data_width // 8)
 
     # M dim
     # K is merged because of the block gemm output stationarity
-    D32tlbound2 = out_width // 8
-    D32tlstride2 = 8 * 8 * 4
+    D32tlbound2 = out_width // meshRow
+    D32tlstride2 = meshRow * meshCol * (output_data_width // 8)
 
     D32tlbound3 = out_height
-    D32tlstride3 = out_width // 8 * 8 * 8 * 4
+    D32tlstride3 = out_width * meshCol * (output_data_width // 8)
 
     assert (
-        D32tlstride0 % 64 == 0
-        and D32tlstride1 % 64 == 0
-        and D32tlstride2 % 64 == 0
-        and D32tlstride3 % 64 == 0
+        D32tlstride0 % (bankWidth / 8) == 0
+        and D32tlstride1 % (bankWidth / 8) == 0
+        and D32tlstride2 % (bankWidth / 8) == 0
+        and D32tlstride3 % (bankWidth / 8) == 0
     )
 
     data_str += [
@@ -477,30 +480,34 @@ def emit_conv_data(**kwargs):
     # streamer setting for data mover D8
     # -----------------------------------------------------------
     # postprocessing D8 settings
-    D8slstride0 = 8
+    D8slstride0 = bankWidth / 8
 
     # serial output
-    D8tlbound0 = 1
-    D8tlstride0 = 0
+    d8_spatial_bound_0 = snax_gemmx_serial_d8_width // bankWidth
+    D8tlbound0 = (
+        quantized_output_data_width * meshRow * meshCol / snax_gemmx_serial_d8_width
+    )
+    D8tlstride0 = (bankWidth / 8) * d8_spatial_bound_0
 
     # N dim
-    D8tlbound1 = Cout // 8
-    D8tlstride1 = out_height * out_width // 8 * 8 * 8
+    D8tlbound1 = Cout // meshCol
+    D8tlstride1 = out_height * out_width * meshCol * (quantized_output_data_width // 8)
 
     # M dim
     # K is merged because of the block gemm output stationarity
-    D8tlbound2 = out_width // 8
-    D8tlstride2 = 8 * 8
+    D8tlbound2 = out_width // meshRow
+    D8tlstride2 = meshRow * meshCol * (quantized_output_data_width // 8)
 
     D8tlbound3 = out_height
-    D8tlstride3 = out_width // 8 * 8 * 8
+    D8tlstride3 = out_width * meshCol * (quantized_output_data_width // 8)
 
     assert (
-        D8tlstride0 % 64 == 0
-        and D8tlstride1 % 64 == 0
-        and D8tlstride2 % 64 == 0
-        and D8tlstride3 % 64 == 0
+        D8tlstride0 % (bankWidth / 8) == 0
+        and D8tlstride1 % (bankWidth / 8) == 0
+        and D8tlstride2 % (bankWidth / 8) == 0
+        and D8tlstride3 % (bankWidth / 8) == 0
     )
+
     data_str += [
         format_scalar_definition("int32_t", "D8slstride0", D8slstride0),
         format_scalar_definition("int32_t", "D8tlbound0", D8tlbound0),
@@ -513,7 +520,7 @@ def emit_conv_data(**kwargs):
         format_scalar_definition("int32_t", "D8tlstride3", D8tlstride3),
     ]
 
-    # Generating random 8 integer a and b for subtraction
+    # Generating set integer a and b for subtraction to 0
     subtraction_a = 0
     subtraction_b = 0
 
@@ -525,7 +532,12 @@ def emit_conv_data(**kwargs):
 
     # direct conv2d
     direct_conv2d_res = conv2d(
-        input_data, kernel, stride=stride, padding=padding, mode="C8HW8"
+        input_data,
+        kernel,
+        stride=stride,
+        padding=padding,
+        mode="C8HW8",
+        hw_sizes={"meshRow": meshRow, "meshCol": meshCol, "tileSize": tileSize},
     )
 
     # output in NHWC format
@@ -557,7 +569,10 @@ def emit_gemmx_data(**kwargs):
     data_str += [format_scalar_definition("int32_t", "bypassSIMD", bypassSIMD)]
 
     # Generating random constant values
-    group_num = kwargs["meshCol"]
+    group_num = kwargs["snax_streamer_gemmX_core_template"]["snax_acc_cfg"][
+        "snax_gemmx_mesh_col"
+    ]
+
     input_zp_i = np.random.randint(MIN, MAX)
     output_zp_i = np.random.randint(MIN, MAX)
     max_int_i = MAX
@@ -620,20 +635,32 @@ def main():
     # Parsing cmd args
     parser = argparse.ArgumentParser(description="Generate data for kernels")
     parser.add_argument(
-        "-c",
-        "--cfg",
+        "--swcfg",
         type=pathlib.Path,
         required=True,
         help="Select param config file kernel",
     )
+    parser.add_argument(
+        "--hwcfg",
+        type=pathlib.Path,
+        required=True,
+        help="Select hardware config file kernel",
+    )
     args = parser.parse_args()
 
     # Load param config file
-    with args.cfg.open() as f:
+    with args.swcfg.open() as f:
         param = hjson.loads(f.read())
 
+    # Load hardware config file
+    with args.hwcfg.open() as f:
+        hw = hjson.loads(f.read())
+
+    # Merge dictionaries (hw overrides param in case of conflicts)
+    merged_config = {**param, **hw}
+
     # Emit header file
-    print(emit_header_file(**param))
+    print(emit_header_file(**merged_config))
 
 
 if __name__ == "__main__":

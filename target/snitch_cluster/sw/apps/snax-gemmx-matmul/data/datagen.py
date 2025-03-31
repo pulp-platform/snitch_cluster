@@ -20,10 +20,7 @@ from data_utils import format_scalar_definition, format_vector_definition  # noq
 
 # Add golden model path
 from snax_utils import (  # noqa E402
-    conv2d,
-    im2col,
     block_gemm_golden_model,
-    data_reshuffler_golden_model,
     postprocessing_simd_golden_model,
     align_wide_addr,
 )  # noqa E402

@@ -317,6 +317,7 @@ jobs:
           ./run.py --simulator verilator \
           sw/runtime.yaml \
           sw/snax-gemmx-matmul-run.yaml \
+          sw/snax-gemmx-conv-run.yaml \
           sw/snax-data-reshuffler-run.yaml -j
 
   snax-KUL-cluster-vlt-generic:

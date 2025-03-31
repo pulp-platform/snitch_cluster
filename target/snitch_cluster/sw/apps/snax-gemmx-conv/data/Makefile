@@ -13,7 +13,7 @@ DATA_CFG ?= $(DATA_DIR)/params.hjson
 DATA_H = $(DATA_DIR)/data.h
 
 $(DATA_H): $(DATA_DIR)/datagen.py $(DATA_CFG)
-	$< -c $(DATA_CFG) > $@
+	$< --swcfg $(DATA_CFG) --hwcfg $(ROOT)/target/snitch_cluster/$(CFG_OVERRIDE) > $@
 
 .PHONY: clean-data clean
 
