@@ -41,7 +41,7 @@ def emit_transposer_data(**kwargs):
     if kwargs["input_layout"] == "MN":
         input_matrix = input_matrix.ravel()
     else:
-        match = re.search(r'M(\d+)N(\d+)MN', kwargs["input_layout"])
+        match = re.search(r'MNM(\d+)N(\d+)', kwargs["input_layout"])
         if match:
             m, n = match.groups()
             m, n = int(m), int(n)
@@ -71,7 +71,7 @@ def emit_transposer_data(**kwargs):
     if kwargs["output_layout"] == "MN":
         output_matrix = output_matrix.ravel()
     else:
-        match = re.search(r'M(\d+)N(\d+)MN', kwargs["output_layout"])
+        match = re.search(r'MNM(\d+)N(\d+)', kwargs["output_layout"])
         if match:
             m, n = match.groups()
             m, n = int(m), int(n)
@@ -103,7 +103,7 @@ def emit_transposer_data(**kwargs):
                                8, matrix_data.shape[0] // 8]
         temporal_strides_src = [8, matrix_data.shape[1] * 8]
     else:
-        match = re.search(r'M(\d+)N(\d+)MN', kwargs["input_layout"])
+        match = re.search(r'MNM(\d+)N(\d+)', kwargs["input_layout"])
         m, n = match.groups()
         m, n = int(m), int(n)
         spatial_stride_src = n
@@ -117,7 +117,7 @@ def emit_transposer_data(**kwargs):
                 matrix_data.shape[1] // 8, matrix_data.shape[0] // 8]
             temporal_strides_dst = [matrix_data.shape[0] * 8, 8]
         else:
-            match = re.search(r'M(\d+)N(\d+)MN', kwargs["output_layout"])
+            match = re.search(r'MNM(\d+)N(\d+)', kwargs["output_layout"])
             m, n = match.groups()
             m, n = int(m), int(n)
             spatial_stride_dst = n
@@ -134,7 +134,7 @@ def emit_transposer_data(**kwargs):
                 matrix_data.shape[1] // 8, matrix_data.shape[0] // 8]
             temporal_strides_dst = [8, matrix_data.shape[1] * 8]
         else:
-            match = re.search(r'M(\d+)N(\d+)MN', kwargs["output_layout"])
+            match = re.search(r'MNM(\d+)N(\d+)', kwargs["output_layout"])
             m, n = match.groups()
             m, n = int(m), int(n)
             spatial_stride_dst = n

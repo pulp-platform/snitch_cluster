@@ -8,7 +8,7 @@
     M: 64, // Number of rows / height
     N: 32, // Number of columns / width
     // Input layout can be MN or MNMaNb, where b should be larger than 8 for any cases and a should be larger than 8 if transpose is needed. 
-    input_layout: "M16N16MN",
-    output_layout: "M8N8MN",
+    input_layout: "MNM16N16",
+    output_layout: "MNM8N8",
     enable_transpose: true
 }
