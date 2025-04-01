@@ -338,31 +338,6 @@ sources:
       # Level 2
       - target/snitch_cluster/generated/snax_dimc/snax_dimc_wrapper.sv
 
-
-  - target: snax_streamer_gemm
-    files:
-      # Level 0
-      - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_csrman_CsrManager.sv
-      - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_Streamer.sv
-      # Level 1
-      - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_csrman_wrapper.sv
-      - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_streamer_wrapper.sv
-      # Level 2
-      - target/snitch_cluster/generated/snax_streamer_gemm/snax_streamer_gemm_wrapper.sv
-
-  - target: snax_streamer_gemm_add_c
-    files:
-      # Level 0
-      - hw/chisel_acc/generated/gemm/BlockGemm.sv
-      - hw/chisel_acc/src/snax_streamer_gemm_add_c_shell_wrapper.sv
-      - target/snitch_cluster/generated/snax_streamer_gemm_add_c/snax_streamer_gemm_add_c_csrman_CsrManager.sv
-      - target/snitch_cluster/generated/snax_streamer_gemm_add_c/snax_streamer_gemm_add_c_Streamer.sv
-      # Level 1
-      - target/snitch_cluster/generated/snax_streamer_gemm_add_c/snax_streamer_gemm_add_c_csrman_wrapper.sv
-      - target/snitch_cluster/generated/snax_streamer_gemm_add_c/snax_streamer_gemm_add_c_streamer_wrapper.sv
-      # Level 2
-      - target/snitch_cluster/generated/snax_streamer_gemm_add_c/snax_streamer_gemm_add_c_wrapper.sv
-
   - target: snax_data_reshuffler
     files:
       # Level 0
@@ -433,17 +408,6 @@ sources:
   - target: snax_cgra_cluster
     files:
       - target/snitch_cluster/generated/snax_cgra_cluster_wrapper.sv
-  # Note: this is about to be obsolete
-  # but it uses the old snax-gemm still
-  - target: snax_gemm_cluster
-    files:
-      - target/snitch_cluster/generated/snax_gemm_cluster_wrapper.sv
-  - target: snax_streamer_gemm_cluster
-    files:
-      - target/snitch_cluster/generated/snax_streamer_gemm_cluster_wrapper.sv
-  - target: snax_streamer_gemm_add_c_cluster
-    files:
-      - target/snitch_cluster/generated/snax_streamer_gemm_add_c_cluster_wrapper.sv
   - target: snax_KUL_dse_cluster
     files:
       - target/snitch_cluster/generated/snax_KUL_dse_cluster_wrapper.sv
