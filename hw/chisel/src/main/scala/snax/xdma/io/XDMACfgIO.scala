@@ -329,8 +329,8 @@ class XDMADataPathCfgIO(
   val taskID = UInt(8.W)
   val length = UInt(crossClusterParam.tcdmAddressWidth.W)
   val taskType = Bool()
-  val taskTypeIsRemoteRead = true
-  val taskTypeIsRemoteWrite = false
+  val taskTypeIsRemoteRead = false
+  val taskTypeIsRemoteWrite = true
   val src = UInt(axiParam.addrWidth.W)
   val dst = UInt(axiParam.addrWidth.W)
 
