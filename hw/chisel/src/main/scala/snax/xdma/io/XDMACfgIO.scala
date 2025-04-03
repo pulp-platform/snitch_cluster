@@ -149,7 +149,7 @@ class XDMAIntraClusterCfgIO(param: XDMAParam) extends Bundle {
 
 class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam) extends Bundle {
   val taskID        = UInt(8.W)
-  val isReaderSide  = Bool()
+  val isWriterSide  = Bool()
   val readerPtr     = UInt(readerParam.crossClusterParam.AxiAddressWidth.W)
   val writerPtr     = Vec(
     readerParam.crossClusterParam.maxMulticastDest,
@@ -169,11 +169,11 @@ class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam) exte
   val enabledByte     = UInt((readerParam.crossClusterParam.wordlineWidth / 8).W)
 
   def convertFromXDMACfgIO(
-    readerSide: Boolean,
+    writerSide: Boolean,
     cfg:        XDMACfgIO
   ): Unit = {
     taskID          := cfg.taskID
-    isReaderSide    := readerSide.B
+    isWriterSide    := writerSide.B
     readerPtr       := cfg.readerPtr
     writerPtr       := cfg.writerPtr
     spatialStride   := cfg.aguCfg
@@ -234,7 +234,7 @@ class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam) exte
       _ ## _
     ) ## spatialStride ## writerPtr.reverse.reduce(
       _ ## _
-    ) ## readerPtr ## isReaderSide.asUInt ## taskID
+    ) ## readerPtr ## isWriterSide.asUInt ## taskID
 
   def deserialize(data: UInt): Unit = {
     var remainingData = data
@@ -243,7 +243,7 @@ class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam) exte
       0
     )
     remainingData = remainingData(remainingData.getWidth - 1, taskID.getWidth)
-    isReaderSide := remainingData(0)
+    isWriterSide := remainingData(0)
     remainingData = remainingData(remainingData.getWidth - 1, 1)
     readerPtr := remainingData(
       readerParam.crossClusterParam.AxiAddressWidth - 1,

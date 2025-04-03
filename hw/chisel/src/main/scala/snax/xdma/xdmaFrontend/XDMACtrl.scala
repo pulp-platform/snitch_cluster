@@ -346,7 +346,7 @@ class XDMACtrl(readerparam: XDMAParam, writerparam: XDMAParam, clusterName: Stri
   )
 
   cfgFromRemoteDemux.io.in <> cfgFromRemote
-  cfgFromRemoteDemux.io.sel := cfgFromRemote.bits.isReaderSide
+  cfgFromRemoteDemux.io.sel := cfgFromRemote.bits.isWriterSide
 
   // Cfg to remote side
   val cfgToRemote = Wire(
@@ -379,12 +379,12 @@ class XDMACtrl(readerparam: XDMAParam, writerparam: XDMAParam, clusterName: Stri
   srcCfgRouter.io.clusterBaseAddress := io.clusterBaseAddress
 
   srcCfgRouter.io.from.local <> preRoute_src_local
-  srcCfgRouter.io.from.remote.valid  := cfgFromRemoteDemux.io.out(1).valid
+  srcCfgRouter.io.from.remote.valid  := cfgFromRemoteDemux.io.out(0).valid
   srcCfgRouter.io.from.remote.bits   := cfgFromRemoteDemux.io
-    .out(1)
+    .out(0)
     .bits
     .convertToXDMACfgIO(readerSide = true)
-  cfgFromRemoteDemux.io.out(1).ready := srcCfgRouter.io.from.remote.ready
+  cfgFromRemoteDemux.io.out(0).ready := srcCfgRouter.io.from.remote.ready
 
   val postRoute_src_local  = Wire(
     Decoupled(new XDMACfgIO(readerparam))
@@ -400,7 +400,7 @@ class XDMACtrl(readerparam: XDMAParam, writerparam: XDMAParam, clusterName: Stri
     // Structured signal => Converted to crossClusterCfg => Serialized to final signal
     val srcRemoteCfg = Wire(new XDMAInterClusterCfgIO(readerparam, writerparam))
     srcRemoteCfg.convertFromXDMACfgIO(
-      readerSide = true,
+      writerSide = false,
       cfg        = postRoute_src_remote.bits
     )
     srcRemoteCfg
@@ -419,12 +419,12 @@ class XDMACtrl(readerparam: XDMAParam, writerparam: XDMAParam, clusterName: Stri
   dstCfgRouter.io.clusterBaseAddress := io.clusterBaseAddress
 
   dstCfgRouter.io.from.local <> preRoute_dst_local
-  dstCfgRouter.io.from.remote.valid  := cfgFromRemoteDemux.io.out(0).valid
+  dstCfgRouter.io.from.remote.valid  := cfgFromRemoteDemux.io.out(1).valid
   dstCfgRouter.io.from.remote.bits   := cfgFromRemoteDemux.io
-    .out(0)
+    .out(1)
     .bits
     .convertToXDMACfgIO(readerSide = false)
-  cfgFromRemoteDemux.io.out(0).ready := dstCfgRouter.io.from.remote.ready
+  cfgFromRemoteDemux.io.out(1).ready := dstCfgRouter.io.from.remote.ready
 
   val postRoute_dst_local  = Wire(
     Decoupled(new XDMACfgIO(writerparam))
@@ -440,7 +440,7 @@ class XDMACtrl(readerparam: XDMAParam, writerparam: XDMAParam, clusterName: Stri
     // Structured signal => Converted to crossClusterCfg => Serialized to final signal
     val dstRemoteCfg = Wire(new XDMAInterClusterCfgIO(readerparam, writerparam))
     dstRemoteCfg.convertFromXDMACfgIO(
-      readerSide = false,
+      writerSide = true,
       cfg        = postRoute_dst_remote.bits
     )
     dstRemoteCfg
