@@ -19,9 +19,6 @@ sys.path.append(os.path.join(os.path.dirname(
     __file__), "../../../../../../util/sim/"))
 from data_utils import format_scalar_definition, format_vector_definition  # noqa E402
 
-# # Add golden model path
-# from snax_utils import data_reshuffler_golden_model, max_pooling, im2col  # noqa E402
-
 np.random.seed(320)
 
 # Add stdint.h header
@@ -35,8 +32,11 @@ def emit_header_file(**kwargs):
 
 def emit_transposer_data(**kwargs):
     emit_str = []
-    matrix_data = np.random.randint(low=0, high=255, size=(
-        kwargs["M"], kwargs["N"]), dtype=np.uint8)
+    padded_M = (kwargs["M"] + 7) // 8 * 8
+    padded_N = (kwargs["N"] + 7) // 8 * 8
+    matrix_data = np.zeros((padded_M, padded_N), dtype=np.uint8)
+    matrix_data[:kwargs["M"], :kwargs["N"]] = np.random.randint(
+        low=0, high=255, size=(kwargs["M"], kwargs["N"]), dtype=np.uint8)
     input_matrix = matrix_data
     if kwargs["input_layout"] == "MN":
         input_matrix = input_matrix.ravel()
