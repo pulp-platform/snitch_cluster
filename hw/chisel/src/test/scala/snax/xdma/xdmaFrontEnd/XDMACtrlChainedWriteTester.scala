@@ -228,7 +228,7 @@ class XDMACtrlChainedWriteTester extends AnyFlatSpec with ChiselScalatestTester 
             )
             unreceived_writer_cfg.add((Writer_PointerAddress(1) + i).toInt)
             val writerRemoteConfig: BigInt =
-              (0 << 8) +
+              (1 << 8) +
                 // The address for the reader side
                 ((Reader_PointerAddress + i + (1 << 20)) << 9) +
                 // The address for the writer side
@@ -377,7 +377,7 @@ class XDMACtrlChainedWriteTester extends AnyFlatSpec with ChiselScalatestTester 
                   dut.io.remoteXDMACfg.toRemote.bits.peekInt(),
                   8,
                   8
-                ) == 1
+                ) == 0
               ) {
                 println(
                   "[Remote Reader Checker] " + extractBits(
