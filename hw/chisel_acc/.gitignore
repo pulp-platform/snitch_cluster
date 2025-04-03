@@ -1,4 +1,9 @@
-generated/
-project/
-target/
-out/
+project/*
+!project/plugins.sbt
+!project/build.properties
+generated
+target
+out
+
+# Files
+src/snax_streamer_gemmX_shell_wrapper.sv

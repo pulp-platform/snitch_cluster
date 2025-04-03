@@ -14,22 +14,44 @@ case class GemmParams(
   sizeConfigWidth:     Int
 )
 
+trait HasGemmParams {
+  val params: GemmParams
+  // Unpack
+  lazy val dataWidthA          = params.dataWidthA
+  lazy val dataWidthB          = params.dataWidthB
+  lazy val dataWidthMul        = params.dataWidthMul
+  lazy val dataWidthC          = params.dataWidthC
+  lazy val dataWidthAccum      = params.dataWidthAccum
+  lazy val subtractionCfgWidth = params.subtractionCfgWidth
+  lazy val meshRow             = params.meshRow
+  lazy val tileSize            = params.tileSize
+  lazy val meshCol             = params.meshCol
+  lazy val addrWidth           = params.addrWidth
+  lazy val sizeConfigWidth     = params.sizeConfigWidth
+
+  // Compute
+  val a_bits_len  = meshRow * tileSize * dataWidthA
+  val b_bits_len  = tileSize * meshCol * dataWidthB
+  val sa_bits_len = dataWidthA
+  val sb_bits_len = dataWidthB
+}
+
 object GemmConstant {
 
-  def dataWidthA     = 8
-  def dataWidthB     = dataWidthA
-  def dataWidthMul   = dataWidthA * 4
-  def dataWidthC     = dataWidthA * 4
-  def dataWidthAccum = dataWidthA * 4
+  lazy val dataWidthA     = 8
+  lazy val dataWidthB     = dataWidthA
+  lazy val dataWidthMul   = dataWidthA * 4
+  lazy val dataWidthC     = dataWidthA * 4
+  lazy val dataWidthAccum = dataWidthA * 4
 
-  def subtractionCfgWidth = 32
+  lazy val subtractionCfgWidth = 16 // was 32, but why?
 
-  def meshRow  = 8
-  def tileSize = 8
-  def meshCol  = 8
+  lazy val meshRow  = 8
+  lazy val tileSize = 8
+  lazy val meshCol  = 8
 
-  def addrWidth       = 32
-  def sizeConfigWidth = 32
+  lazy val addrWidth       = 32
+  lazy val sizeConfigWidth = 32
 
 }
 

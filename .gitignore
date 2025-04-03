@@ -24,6 +24,6 @@ gmon.out
 /docs/generated/
 
 # Generated files
+test_run_dir
 target/streams/
 target/scala*
-hw/chisel_acc/src/snax_streamer_gemmX_shell_wrapper.sv

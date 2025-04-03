@@ -4,7 +4,7 @@ import chisel3._
 import chisel3.util._
 
 // control signals for the basic processing element, related to the pooling algorithm
-class MAXPoolPECtrlIO(params: ReshufflerParams) extends Bundle {
+class MAXPoolPECtrlIO() extends Bundle {
 
   val init_i = Input(Bool())
 
@@ -21,7 +21,7 @@ class MAXPoolPEDataIO(params: ReshufflerParams) extends Bundle {
 // processing element input and output declaration
 class MAXPoolPEIO(params: ReshufflerParams) extends Bundle {
 
-  val ctrl = new MAXPoolPECtrlIO(params)
+  val ctrl = new MAXPoolPECtrlIO()
   val data = new MAXPoolPEDataIO(params)
 
 }

@@ -15,25 +15,22 @@ class GemmArrayCtrlIO(params: GemmParams) extends Bundle {
 
 }
 
-// Tile IO definition
+/** Tile IO definition */
 class TileIO(params: GemmParams) extends Bundle {
-  val data_a_i = Input(
-    Vec(params.tileSize, UInt(params.dataWidthA.W))
-  )
-  val data_b_i = Input(
-    Vec(params.tileSize, UInt(params.dataWidthB.W))
-  )
-  val data_c_i = Input(
-    UInt(params.dataWidthC.W)
-  )
+  val data_a_i = Input(Vec(params.tileSize, UInt(params.dataWidthA.W)))
+  val data_b_i = Input(Vec(params.tileSize, UInt(params.dataWidthB.W)))
+  val data_c_i = Input(UInt(params.dataWidthC.W))
   val data_d_o = Output(SInt(params.dataWidthC.W))
 
   val ctrl = new GemmArrayCtrlIO(params)
 
 }
 
-// Tile implementation, do a vector dot product of two vector
-// !!! When dotprod_a_b and a_b_c_ready_o assert, do the computation, and give the result next cycle, with a d_valid_o assert
+/** Tile implementation, do a vector dot product of two vector
+  *
+  * ! When dotprod_a_b and a_b_c_ready_o assert, do the computation, and give the result next cycle, with ! a d_valid_o
+  * assert
+  */
 class Tile(params: GemmParams) extends Module with RequireAsyncReset {
   val io = IO(new TileIO(params))
 
@@ -44,15 +41,9 @@ class Tile(params: GemmParams) extends Module with RequireAsyncReset {
 
   val keep_output = RegInit(false.B)
 
-  val data_a_i_subtracted = Wire(
-    Vec(params.tileSize, SInt((params.dataWidthA + 1).W))
-  )
-  val data_b_i_subtracted = Wire(
-    Vec(params.tileSize, SInt((params.dataWidthB + 1).W))
-  )
-  val mul_add_result_vec  = Wire(
-    Vec(params.tileSize, SInt(params.dataWidthMul.W))
-  )
+  val data_a_i_subtracted = Wire(Vec(params.tileSize, SInt((params.dataWidthA + 1).W)))
+  val data_b_i_subtracted = Wire(Vec(params.tileSize, SInt((params.dataWidthB + 1).W)))
+  val mul_add_result_vec  = Wire(Vec(params.tileSize, SInt(params.dataWidthMul.W)))
   val mul_add_result      = Wire(SInt(params.dataWidthAccum.W))
 
   chisel3.dontTouch(mul_add_result)
@@ -70,12 +61,8 @@ class Tile(params: GemmParams) extends Module with RequireAsyncReset {
 
   // Subtraction computation
   for (i <- 0 until params.tileSize) {
-    data_a_i_subtracted(i) := (io
-      .data_a_i(i)
-      .asSInt -& io.ctrl.subtraction_a_i.asSInt).asSInt
-    data_b_i_subtracted(i) := (io
-      .data_b_i(i)
-      .asSInt -& io.ctrl.subtraction_b_i.asSInt).asSInt
+    data_a_i_subtracted(i) := (io.data_a_i(i).asSInt -& io.ctrl.subtraction_a_i.asSInt).asSInt
+    data_b_i_subtracted(i) := (io.data_b_i(i).asSInt -& io.ctrl.subtraction_b_i.asSInt).asSInt
   }
 
   // Element-wise multiply
@@ -104,32 +91,12 @@ class Tile(params: GemmParams) extends Module with RequireAsyncReset {
 
 }
 
-// Mesh IO definition, an extended version of Tile IO
+/** Mesh IO definition, an extended version of Tile IO */
 class MeshIO(params: GemmParams) extends Bundle {
-  val data_a_i = Input(
-    Vec(
-      params.meshRow,
-      Vec(params.tileSize, UInt(params.dataWidthA.W))
-    )
-  )
-  val data_b_i = Input(
-    Vec(
-      params.meshCol,
-      Vec(params.tileSize, UInt(params.dataWidthB.W))
-    )
-  )
-  val data_c_i = Input(
-    Vec(
-      params.meshRow,
-      Vec(params.meshCol, UInt(params.dataWidthC.W))
-    )
-  )
-  val data_d_o = Output(
-    (Vec(
-      params.meshRow,
-      Vec(params.meshCol, SInt(params.dataWidthC.W))
-    ))
-  )
+  val data_a_i = Input(Vec(params.meshRow, Vec(params.tileSize, UInt(params.dataWidthA.W))))
+  val data_b_i = Input(Vec(params.meshCol, Vec(params.tileSize, UInt(params.dataWidthB.W))))
+  val data_c_i = Input(Vec(params.meshRow, Vec(params.meshCol, UInt(params.dataWidthC.W))))
+  val data_d_o = Output((Vec(params.meshRow, Vec(params.meshCol, SInt(params.dataWidthC.W)))))
 
   val ctrl = new GemmArrayCtrlIO(params)
 
@@ -142,10 +109,7 @@ class Mesh(params: GemmParams) extends Module with RequireAsyncReset {
 
   chisel3.dontTouch(io)
 
-  val mesh =
-    Seq.fill(params.meshRow, params.meshCol)(
-      Module(new Tile(params))
-    )
+  val mesh = Seq.fill(params.meshRow, params.meshCol)(Module(new Tile(params)))
 
   for (r <- 0 until params.meshRow) {
     for (c <- 0 until params.meshCol) {
@@ -155,7 +119,7 @@ class Mesh(params: GemmParams) extends Module with RequireAsyncReset {
       mesh(r)(c).io.data_c_i <> io.data_c_i(r)(c)
       io.data_d_o(r)(c) := mesh(r)(c).io.data_d_o
 
-      // input control signal, boardcast to each PE
+      // input control signal, broadcast to each PE
       mesh(r)(c).io.ctrl.dotprod_a_b <> io.ctrl.dotprod_a_b
       mesh(r)(c).io.ctrl.add_c_i <> io.ctrl.add_c_i
 
@@ -165,79 +129,37 @@ class Mesh(params: GemmParams) extends Module with RequireAsyncReset {
       mesh(r)(c).io.ctrl.subtraction_b_i <> io.ctrl.subtraction_b_i
     }
   }
-  // output control signal, geteher one signal for output,
+  // output control signal, gather one signal for output,
   // all the PE should have the same output control signal
   io.ctrl.d_valid_o := mesh(0)(0).io.ctrl.d_valid_o
   io.ctrl.a_b_c_ready_o := mesh(0)(0).io.ctrl.a_b_c_ready_o
 }
 
 class GemmDataIO(params: GemmParams) extends Bundle {
-  val a_i = Input(
-    UInt(
-      (params.meshRow * params.tileSize * params.dataWidthA).W
-    )
-  )
-  val b_i = Input(
-    UInt(
-      (params.tileSize * params.meshCol * params.dataWidthB).W
-    )
-  )
-  val c_i = Input(
-    UInt(
-      (params.meshRow * params.meshCol * params.dataWidthC).W
-    )
-  )
-  val d_o = Output(
-    UInt(
-      (params.meshRow * params.meshCol * params.dataWidthC).W
-    )
-  )
+  val a_i = Input(UInt((params.meshRow * params.tileSize * params.dataWidthA).W))
+  val b_i = Input(UInt((params.tileSize * params.meshCol * params.dataWidthB).W))
+  val c_i = Input(UInt((params.meshRow * params.meshCol * params.dataWidthC).W))
+  val d_o = Output(UInt((params.meshRow * params.meshCol * params.dataWidthC).W))
 }
 
-// Gemm IO definition
+/** Gemm IO definition */
 class GemmArrayIO(params: GemmParams) extends Bundle {
   val ctrl = new GemmArrayCtrlIO(params)
   val data = new GemmDataIO(params)
 }
 
-// Gemm implementation, create a Mesh and give out input data and collect results of each Tile
-class GemmArray(params: GemmParams) extends Module with RequireAsyncReset {
+/** Gemm implementation, create a Mesh and give out input data and collect results of each Tile. */
+class GemmArray(val params: GemmParams) extends Module with RequireAsyncReset {
 
-  val io = IO(new GemmArrayIO(params))
-
+  val io   = IO(new GemmArrayIO(params))
   val mesh = Module(new Mesh(params))
 
   // define wires for data partition
-  val a_i_wire     = Wire(
-    Vec(
-      params.meshRow,
-      Vec(params.tileSize, UInt(params.dataWidthA.W))
-    )
-  )
-  val b_i_wire     = Wire(
-    Vec(
-      params.meshCol,
-      Vec(params.tileSize, UInt(params.dataWidthB.W))
-    )
-  )
-  val c_i_wire     = Wire(
-    Vec(
-      params.meshRow,
-      Vec(params.meshCol, UInt(params.dataWidthC.W))
-    )
-  )
-  val d_out_wire   = Wire(
-    Vec(
-      params.meshRow,
-      Vec(params.meshCol, SInt(params.dataWidthC.W))
-    )
-  )
-  val d_out_wire_2 = Wire(
-    Vec(
-      params.meshRow,
-      UInt((params.meshCol * params.dataWidthC).W)
-    )
-  )
+  val a_i_wire     = Wire(Vec(params.meshRow, Vec(params.tileSize, UInt(params.dataWidthA.W))))
+  val b_i_wire     = Wire(Vec(params.meshCol, Vec(params.tileSize, UInt(params.dataWidthB.W))))
+  val c_i_wire     = Wire(Vec(params.meshRow, Vec(params.meshCol, UInt(params.dataWidthC.W))))
+  val d_out_wire   = Wire(Vec(params.meshRow, Vec(params.meshCol, SInt(params.dataWidthC.W))))
+  val d_out_wire_2 = Wire(Vec(params.meshRow, UInt((params.meshCol * params.dataWidthC).W)))
 
   // data partition
   for (r <- 0 until params.meshRow) {

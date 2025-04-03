@@ -105,7 +105,7 @@ class SerialToParallelSpec extends AnyFlatSpec with ChiselScalatestTester with M
       // We expect the parallel output to combine these 4 bytes: 0x34_12_CD_AB (little-endian accumulation)
       var expectedParallel = (0x34 << 24) | (0x12 << 16) | (0xcd << 8) | 0xab
 
-      for (i <- 0 to 1) {
+      for (_ <- 0 to 1) {
         for ((byteVal, idx) <- testData.zipWithIndex) {
           // Present the serial byte
           dut.io.in.valid.poke(true.B)
@@ -125,7 +125,7 @@ class SerialToParallelSpec extends AnyFlatSpec with ChiselScalatestTester with M
 
       expectedParallel = (0xcc << 24) | (0xbb << 16) | (0xaa << 8) | 0xef
 
-      for (i <- 0 to 1) {
+      for (_ <- 0 to 1) {
         for ((byteVal, idx) <- testData.zipWithIndex) {
           // Present the serial byte
           dut.io.in.valid.poke(true.B)

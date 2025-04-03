@@ -1,13 +1,10 @@
-generated
 project/*
 !project/plugins.sbt
 !project/build.properties
+generated
 target
-test_run_dir
-.bsp
-.scala-build
 out
-.bloop
-.metals
+
+# Files
 src/main/scala/snax/csr_manager/CsrManParamGen.scala
 src/main/scala/snax/streamer/StreamParamGen.scala

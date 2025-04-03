@@ -67,7 +67,6 @@ class BlockGemmRescaleSIMD(params: BlockGemmRescaleSIMDParams) extends Module wi
       Module(new PipelinedRescaleSIMD(params.rescaleSIMDParams))
     case false =>
       Module(new RescaleSIMD(params.rescaleSIMDParams))
-    case _     => throw new Exception("Unknown SIMD configuration")
   }
 
   // C32 serial to parallel converter
