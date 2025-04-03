@@ -8,7 +8,7 @@ class ReshufflerCtrl(params: ReshufflerParams) extends Bundle {
   // packed CRS configuration
   val reduceLen_i = UInt(6.W)
   val tloop2Len_i = UInt(24.W)
-  val opcode_i = UInt(2.W)
+  val opcode_i    = UInt(2.W)
 
   require(params.sizeConfigWidth == 32, "sizeConfigWidth must be 32")
 
@@ -39,13 +39,11 @@ class ReshufflerIO(params: ReshufflerParams) extends Bundle {
   val data = new ReshufflerDataIO(params)
 
   val performance_counter = Output(UInt(32.W))
-  val busy_o = Output(Bool())
+  val busy_o              = Output(Bool())
 }
 
 // Reshuffler module
-class Reshuffler(params: ReshufflerParams)
-    extends Module
-    with RequireAsyncReset {
+class Reshuffler(params: ReshufflerParams) extends Module with RequireAsyncReset {
   val io = IO(new ReshufflerIO(params))
 
   // control csr registers for storing the control data
@@ -62,24 +60,24 @@ class Reshuffler(params: ReshufflerParams)
     Vec(params.poolLaneLen, SInt(params.outputWidth.W))
   )
 
-  val pe_input_fire = WireInit(0.B)
+  val pe_input_fire         = WireInit(0.B)
   val pe_input_fire_counter = RegInit(0.U(params.sizeConfigWidth.W))
 
-  val pe_out_fire = WireInit(0.B)
-  val pe_out_valid = WireInit(0.B)
+  val pe_out_fire         = WireInit(0.B)
+  val pe_out_valid        = WireInit(0.B)
   val pe_out_fire_counter = RegInit(0.U(params.sizeConfigWidth.W))
 
   // reshuffle result data output
   val reshuffle_output_fire = WireInit(0.B)
-  val write_counter = RegInit(0.U(params.sizeConfigWidth.W))
+  val write_counter         = RegInit(0.U(params.sizeConfigWidth.W))
 
   // State declaration
   val sIDLE :: sBUSY :: Nil = Enum(2)
-  val cstate = RegInit(sIDLE)
-  val nstate = WireInit(sIDLE)
+  val cstate                = RegInit(sIDLE)
+  val nstate                = WireInit(sIDLE)
 
   // signals for state transition
-  val config_valid = WireInit(0.B)
+  val config_valid       = WireInit(0.B)
   val computation_finish = WireInit(0.B)
 
   // Changing states
@@ -118,7 +116,7 @@ class Reshuffler(params: ReshufflerParams)
 
   // when config valid, store the configuration for later computation
   when(config_valid) {
-    ctrl_csr.opcode_i := io.ctrl.bits(0)(1, 0)
+    ctrl_csr.opcode_i    := io.ctrl.bits(0)(1, 0)
     ctrl_csr.reduceLen_i := io.ctrl.bits(0)(7, 2)
     ctrl_csr.tloop2Len_i := io.ctrl.bits(0)(31, 8)
   }
@@ -145,9 +143,9 @@ class Reshuffler(params: ReshufflerParams)
         .asSInt
       lane(
         i
-      ).io.data.input_i.valid := io.data.input_i.valid && io.data.input_i.ready
+      ).io.data.input_i.valid      := io.data.input_i.valid && io.data.input_i.ready
 
-      result(i) := lane(i).io.data.output_o.bits
+      result(i)                      := lane(i).io.data.output_o.bits
       lane(i).io.data.output_o.ready := Mux(
         io.data.output_o.valid,
         io.data.output_o.ready,
@@ -199,14 +197,14 @@ class Reshuffler(params: ReshufflerParams)
   val doTranspose =
     (ctrl_csr.opcode_i === 0.U || ctrl_csr.opcode_i === 1.U) && cstate === sBUSY
   when(doTranspose) {
-    transposeMux.io.transpose := ctrl_csr.opcode_i === 1.U
-    transposeMux.io.input.bits := io.data.input_i.bits
-    transposeMux.io.input.valid := io.data.input_i.valid
+    transposeMux.io.transpose    := ctrl_csr.opcode_i === 1.U
+    transposeMux.io.input.bits   := io.data.input_i.bits
+    transposeMux.io.input.valid  := io.data.input_i.valid
     transposeMux.io.output.ready := io.data.output_o.ready
   }.otherwise {
-    transposeMux.io.transpose := false.B
-    transposeMux.io.input.valid := false.B
-    transposeMux.io.input.bits := 0.U
+    transposeMux.io.transpose    := false.B
+    transposeMux.io.input.valid  := false.B
+    transposeMux.io.input.bits   := 0.U
     transposeMux.io.output.ready := false.B
   }
 
@@ -221,7 +219,7 @@ class Reshuffler(params: ReshufflerParams)
     // always valid for new input on less is sending last output
     io.data.input_i.ready := lane
       .map(_.io.data.input_i.ready)
-      .reduce(_ && _) && (cstate === sBUSY)
+      .reduce(_ && _)     && (cstate === sBUSY)
 
     // concat every result to a big data bus for output
     io.data.output_o.bits := Cat(result.reverse)
@@ -230,12 +228,12 @@ class Reshuffler(params: ReshufflerParams)
     io.data.output_o.valid := (pe_out_valid && pe_out_fire_counter === (ctrl_csr.reduceLen_i - 1.U))
 
   }.elsewhen(doTranspose) {
-    io.data.input_i.ready := transposeMux.io.input.ready
-    io.data.output_o.bits := transposeMux.io.output.bits
+    io.data.input_i.ready  := transposeMux.io.input.ready
+    io.data.output_o.bits  := transposeMux.io.output.bits
     io.data.output_o.valid := transposeMux.io.output.valid
   }.otherwise {
-    io.data.input_i.ready := false.B
-    io.data.output_o.bits := 0.U
+    io.data.input_i.ready  := false.B
+    io.data.output_o.bits  := 0.U
     io.data.output_o.valid := false.B
   }
 

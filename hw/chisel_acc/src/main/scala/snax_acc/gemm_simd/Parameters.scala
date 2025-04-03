@@ -1,17 +1,13 @@
 package snax_acc.gemmx
-
-import chisel3._
-import chisel3.util._
-
-import snax_acc.simd._
 import snax_acc.gemm._
+import snax_acc.simd._
 
 case class BlockGemmRescaleSIMDParams(
-    gemmParams: GemmParams,
-    rescaleSIMDParams: RescaleSIMDParams,
-    withPipeline: Boolean,
-    C32_D32_width: Int = 512,
-    D8_width: Int = 512
+  gemmParams:        GemmParams,
+  rescaleSIMDParams: RescaleSIMDParams,
+  withPipeline:      Boolean,
+  C32_D32_width:     Int = 512,
+  D8_width:          Int = 512
 )
 
 object BlockGemmRescaleSIMDDefaultConfig {

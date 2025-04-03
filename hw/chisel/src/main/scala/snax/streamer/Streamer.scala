@@ -1,22 +1,20 @@
 package snax.streamer
 
-import snax.readerWriter._
-import snax.csr_manager._
-import snax.utils._
-import snax.DataPathExtension._
+import scala.reflect.runtime.currentMirror
+import scala.tools.reflect.ToolBox
 
 import chisel3._
 import chisel3.util._
+
 import play.api.libs.json._
-import scala.reflect.runtime.currentMirror
-import scala.tools.reflect.ToolBox
-import scala.reflect.runtime.universe._
+import snax.DataPathExtension._
+import snax.csr_manager._
+import snax.readerWriter._
+import snax.utils._
 
 // data to accelerator interface generator
 // a vector of decoupled interface with configurable number and configurable width for each port
-class DataToAcceleratorX(
-    param: StreamerParam
-) extends Bundle {
+class DataToAcceleratorX(param: StreamerParam) extends Bundle {
   val data = MixedVec((0 until param.readerNum).map { i =>
     Decoupled(UInt(param.fifoWidthReader(i).W))
     // even for reader, from streamer to accelerator
@@ -27,9 +25,7 @@ class DataToAcceleratorX(
 
 // data from accelerator interface generator
 // a vector of decoupled interface with configurable number and configurable width for each port
-class DataFromAcceleratorX(
-    param: StreamerParam
-) extends Bundle {
+class DataFromAcceleratorX(param: StreamerParam) extends Bundle {
   val data = MixedVec((0 until param.writerNum).map { i =>
     Flipped(Decoupled(UInt(param.fifoWidthWriter(i).W)))
     // oven for writer, from accelerator to streamer
@@ -39,9 +35,7 @@ class DataFromAcceleratorX(
 }
 
 // data related io
-class StreamerDataIO(
-    param: StreamerParam
-) extends Bundle {
+class StreamerDataIO(param: StreamerParam) extends Bundle {
   // specify the interface to the accelerator
   val streamer2accelerator =
     new DataToAcceleratorX(param)
@@ -67,9 +61,7 @@ class StreamerDataIO(
   * @param param
   *   the parameters class instantiation for the streamer top module
   */
-class StreamerIO(
-    param: StreamerParam
-) extends Bundle {
+class StreamerIO(param: StreamerParam) extends Bundle {
 
   // cross clock domain clock from the accelerator
   val accClock = if (param.hasCrossClockDomain) Some(Input(Clock())) else None
@@ -84,10 +76,7 @@ class StreamerIO(
 }
 
 // streamer generator module
-class Streamer(
-    param: StreamerParam
-) extends Module
-    with RequireAsyncReset {
+class Streamer(param: StreamerParam) extends Module with RequireAsyncReset {
 
   override val desiredName = param.tagName + "Streamer"
 
@@ -114,25 +103,24 @@ class Streamer(
   // ---------------------- csr manager instantiation--------------------------------
   // --------------------------------------------------------------------------------
 
-  val reader_csr =
+  val reader_csr        =
     param.readerParams.map(_.csrNum).reduceLeftOption(_ + _).getOrElse(0)
-  val writer_csr =
+  val writer_csr        =
     param.writerParams.map(_.csrNum).reduceLeftOption(_ + _).getOrElse(0)
   val reader_writer_csr =
     param.readerWriterParams.map(_.csrNum).reduceLeftOption(_ + _).getOrElse(0)
 
   def get_extension_list_csr_num(
-      extensionSeqSeq: Seq[Seq[HasDataPathExtension]]
+    extensionSeqSeq: Seq[Seq[HasDataPathExtension]]
   ): Int = {
-    extensionSeqSeq
-      .map {
-        case seq if seq.nonEmpty =>
-          seq
-            .map(_.extensionParam.userCsrNum)
-            .reduceLeftOption(_ + _)
-            .getOrElse(0) + 1
-        case _ => 0
-      }
+    extensionSeqSeq.map {
+      case seq if seq.nonEmpty =>
+        seq
+          .map(_.extensionParam.userCsrNum)
+          .reduceLeftOption(_ + _)
+          .getOrElse(0) + 1
+      case _                   => 0
+    }
       .reduceLeftOption(_ + _)
       .getOrElse(0)
   }
@@ -205,11 +193,11 @@ class Streamer(
   val readerDatapathExtention = (0 until param.readerParams.length).map { i =>
     Module(
       new DataPathExtensionHost(
-        extensionList = param.readerDatapathExtention(i),
-        dataWidth = param.fifoWidthReader(i),
-        headCut = false,
-        tailCut = false,
-        halfCut = false,
+        extensionList    = param.readerDatapathExtention(i),
+        dataWidth        = param.fifoWidthReader(i),
+        headCut          = false,
+        tailCut          = false,
+        halfCut          = false,
         moduleNamePrefix = param.tagName
       )
     )
@@ -218,11 +206,11 @@ class Streamer(
   val writerDatapathExtention = (0 until param.writerParams.length).map { i =>
     Module(
       new DataPathExtensionHost(
-        extensionList = param.writerDatapathExtention(i),
-        dataWidth = param.fifoWidthWriter(i),
-        headCut = false,
-        tailCut = false,
-        halfCut = false,
+        extensionList    = param.writerDatapathExtention(i),
+        dataWidth        = param.fifoWidthWriter(i),
+        headCut          = false,
+        tailCut          = false,
+        halfCut          = false,
         moduleNamePrefix = param.tagName
       )
     )
@@ -232,11 +220,11 @@ class Streamer(
     (0 until param.readerWriterParams.length).map { i =>
       Module(
         new DataPathExtensionHost(
-          extensionList = param.readerWriterDatapathExtention(i),
-          dataWidth = param.fifoWidthReaderWriter(i),
-          headCut = false,
-          tailCut = false,
-          halfCut = false,
+          extensionList    = param.readerWriterDatapathExtention(i),
+          dataWidth        = param.fifoWidthReaderWriter(i),
+          headCut          = false,
+          tailCut          = false,
+          halfCut          = false,
           moduleNamePrefix = param.tagName
         )
       )
@@ -247,14 +235,14 @@ class Streamer(
   // --------------------------------------------------------------------------------
 
   val streamer_config_fire = Wire(Bool())
-  val streamer_finish = Wire(Bool())
-  val streamer_busy = Wire(Bool())
-  val streamer_ready = Wire(Bool())
+  val streamer_finish      = Wire(Bool())
+  val streamer_busy        = Wire(Bool())
+  val streamer_ready       = Wire(Bool())
 
   // State declaration
   val sIDLE :: sBUSY :: Nil = Enum(2)
-  val cstate = RegInit(sIDLE)
-  val nstate = WireInit(sIDLE)
+  val cstate                = RegInit(sIDLE)
+  val nstate                = WireInit(sIDLE)
 
   // Changing states
   cstate := nstate
@@ -278,12 +266,12 @@ class Streamer(
     }
   }
 
-  var reader_writer_idx: Int = 0
+  var reader_writer_idx:           Int = 0
   var reader_writer_extension_idx: Int = 0
 
   streamer_config_fire := csrManager.io.csr_config_out.fire
-  streamer_busy := cstate === sBUSY
-  streamer_ready := cstate === sIDLE
+  streamer_busy        := cstate === sBUSY
+  streamer_ready       := cstate === sIDLE
 
   // if every data reader/writer is not busy
   streamer_finish := !(reader
@@ -379,7 +367,7 @@ class Streamer(
 
   // store the configuration csr for each data mover when config fire
   val csrCfgReg = RegInit(VecInit(Seq.fill(csrNumReadWrite)(0.U(32.W))))
-  val csrCfg = Wire(Vec(csrNumReadWrite, UInt(32.W)))
+  val csrCfg    = Wire(Vec(csrNumReadWrite, UInt(32.W)))
   when(streamer_config_fire) {
     csrCfgReg := csrManager.io.csr_config_out.bits
   }
@@ -430,8 +418,7 @@ class Streamer(
   }
 
   for (i <- 0 until param.writerDatapathExtention.length) {
-    remainingCSR =
-      writerDatapathExtention(i).io.connectCfgWithList(remainingCSR)
+    remainingCSR = writerDatapathExtention(i).io.connectCfgWithList(remainingCSR)
   }
 
   for (i <- 0 until param.readerWriterDatapathExtention.length) {
@@ -447,14 +434,12 @@ class Streamer(
   // ---------------------- data reader/writer <> TCDM connection-------------------
   // --------------------------------------------------------------------------------
 
-  def tcdm_read_ports_num =
-    param.readerTcdmPorts.reduceLeftOption(_ + _).getOrElse(0)
-  def tcdm_write_ports_num =
-    param.writerTcdmPorts.reduceLeftOption(_ + _).getOrElse(0)
+  def tcdm_read_ports_num  = param.readerTcdmPorts.reduceLeftOption(_ + _).getOrElse(0)
+  def tcdm_write_ports_num = param.writerTcdmPorts.reduceLeftOption(_ + _).getOrElse(0)
 
   def flattenSeq(inputSeq: Seq[Int]): Seq[(Int, Int, Int)] = {
     var flattenedIndex = -1
-    val flattenedSeq = inputSeq.zipWithIndex.flatMap { case (size, dimIndex) =>
+    val flattenedSeq   = inputSeq.zipWithIndex.flatMap { case (size, dimIndex) =>
       (0 until size).map { innerIndex =>
         flattenedIndex = flattenedIndex + 1
         (dimIndex, innerIndex, flattenedIndex)
@@ -530,7 +515,7 @@ class Streamer(
         ).io.data <> writerDatapathExtention(i - param.readerNum).io.data.out
       } else {
         // reader_writer
-        reader_writer_idx = (i - param.readerNum - param.writerNum) / 2
+        reader_writer_idx           = (i - param.readerNum - param.writerNum) / 2
         reader_writer_extension_idx = (i - param.readerNum - param.writerNum)
         // reader first
         if (reader_writer_extension_idx % 2 == 0) {
@@ -593,80 +578,71 @@ class Streamer(
   // --------------------------------------------------------------------------------
 
   def genCSRMap(csrBase: Int, param: ReaderWriterParam, tag: String = "") = {
-    var csrMap = "// CSR Map for " + tag + "\n"
+    var csrMap    = "// CSR Map for " + tag + "\n"
     var csrOffset = csrBase
 
     // base pointer
-    csrMap = csrMap + "#define BASE_PTR_" + tag + "_LOW " + csrOffset + "\n"
+    csrMap    = csrMap + "#define BASE_PTR_" + tag + "_LOW " + csrOffset + "\n"
     csrOffset = csrOffset + 1
-    csrMap = csrMap + "#define BASE_PTR_" + tag + "_HIGH " + csrOffset + "\n"
+    csrMap    = csrMap + "#define BASE_PTR_" + tag + "_HIGH " + csrOffset + "\n"
     csrOffset = csrOffset + 1
 
     // spatial strides base address for this data mover
     csrMap = csrMap + "#define S_STRIDE_BASE_" + tag + " " + csrOffset + "\n"
-    csrMap =
-      csrMap + "#define S_STRIDE_NUM_" + tag + " " + param.aguParam.spatialBounds.length + "\n"
+    csrMap = csrMap + "#define S_STRIDE_NUM_" + tag + " " + param.aguParam.spatialBounds.length + "\n"
 
     // spatial strides
     for (i <- 0 until param.aguParam.spatialBounds.length) {
-      csrMap =
-        csrMap + "#define " + "S_STRIDE_" + tag + "_" + i + " " + csrOffset + "\n"
+      csrMap    = csrMap + "#define " + "S_STRIDE_" + tag + "_" + i + " " + csrOffset + "\n"
       csrOffset = csrOffset + 1
     }
 
     // temporal bounds base address for this data mover
     csrMap = csrMap + "#define T_BOUND_BASE_" + tag + " " + csrOffset + "\n"
-    csrMap =
-      csrMap + "#define T_BOUND_NUM_" + tag + " " + param.aguParam.temporalDimension + "\n"
+    csrMap = csrMap + "#define T_BOUND_NUM_" + tag + " " + param.aguParam.temporalDimension + "\n"
 
     // temporal bounds
     for (i <- 0 until param.aguParam.temporalDimension) {
-      csrMap =
-        csrMap + "#define " + "T_BOUND_" + tag + "_" + i + " " + csrOffset + "\n"
+      csrMap    = csrMap + "#define " + "T_BOUND_" + tag + "_" + i + " " + csrOffset + "\n"
       csrOffset = csrOffset + 1
     }
 
     // temporal strides base address for this data mover
     csrMap = csrMap + "#define T_STRIDE_BASE_" + tag + " " + csrOffset + "\n"
-    csrMap =
-      csrMap + "#define T_STRIDE_NUM_" + tag + " " + param.aguParam.temporalDimension + "\n"
+    csrMap = csrMap + "#define T_STRIDE_NUM_" + tag + " " + param.aguParam.temporalDimension + "\n"
 
     // temporal stride
     for (i <- 0 until param.aguParam.temporalDimension) {
-      csrMap =
-        csrMap + "#define " + "T_STRIDE_" + tag + "_" + i + " " + csrOffset + "\n"
+      csrMap    = csrMap + "#define " + "T_STRIDE_" + tag + "_" + i + " " + csrOffset + "\n"
       csrOffset = csrOffset + 1
     }
 
     // address remap index
     if (param.aguParam.tcdmLogicWordSize.length > 1) {
-      csrMap =
-        csrMap + "#define " + "ADDR_REMAP_INDEX_" + tag + " " + csrOffset + "\n"
+      csrMap    = csrMap + "#define " + "ADDR_REMAP_INDEX_" + tag + " " + csrOffset + "\n"
       csrOffset = csrOffset + 1
     }
 
     // channel enable
     if (param.configurableChannel) {
-      csrMap =
-        csrMap + "#define " + "ENABLED_CHANNEL_" + tag + " " + csrOffset + "\n"
-      csrMap =
+      csrMap    = csrMap + "#define " + "ENABLED_CHANNEL_" + tag + " " + csrOffset + "\n"
+      csrMap    =
         csrMap + "#define " + "ENABLED_CHANNEL_" + tag + "_CSR_NUM " + ((param.aguParam.numChannel + 31) / 32) + "\n"
       csrOffset = csrOffset + ((param.aguParam.numChannel + 31) / 32)
     }
 
     // byte mask enable
     if (param.configurableByteMask) {
-      csrMap =
-        csrMap + "#define " + "ENABLED_BYTE_" + tag + " " + csrOffset + "\n"
+      csrMap    = csrMap + "#define " + "ENABLED_BYTE_" + tag + " " + csrOffset + "\n"
       csrOffset = csrOffset + 1
     }
 
     csrMap
   }
 
-  var csrBase = 0
+  var csrBase   = 0
   var csrBase_i = 0
-  var csrMap = ""
+  var csrMap    = ""
 
   // reader csr configuration
   csrBase = 960
@@ -676,7 +652,7 @@ class Streamer(
       .map(_.csrNum)
       .reduceLeftOption(_ + _)
       .getOrElse(0)
-    csrMap = csrMap + genCSRMap(csrBase_i, param.readerParams(i), "READER_" + i)
+    csrMap    = csrMap + genCSRMap(csrBase_i, param.readerParams(i), "READER_" + i)
   }
   csrBase = csrBase + param.readerParams.map(_.csrNum).sum
 
@@ -687,7 +663,7 @@ class Streamer(
       .map(_.csrNum)
       .reduceLeftOption(_ + _)
       .getOrElse(0)
-    csrMap = csrMap + genCSRMap(csrBase_i, param.writerParams(i), "WRITER_" + i)
+    csrMap    = csrMap + genCSRMap(csrBase_i, param.writerParams(i), "WRITER_" + i)
   }
   csrBase = csrBase + param.writerParams
     .map(_.csrNum)
@@ -700,7 +676,7 @@ class Streamer(
       .map(_.csrNum)
       .reduceLeftOption(_ + _)
       .getOrElse(0)
-    csrMap = csrMap + genCSRMap(
+    csrMap    = csrMap + genCSRMap(
       csrBase_i,
       param.readerWriterParams(i),
       "READER_WRITER_" + i
@@ -721,7 +697,7 @@ class Streamer(
           .map(_.extensionParam.userCsrNum)
           .reduceLeftOption(_ + _)
           .getOrElse(0) + 1
-      case _ => 0
+      case _                   => 0
     }
     extension_csr_num
   }
@@ -733,10 +709,8 @@ class Streamer(
       csrBase_i = csrBase + get_extension_list_csr_num(
         param.readerDatapathExtention.take(i)
       )
-      csrMap =
-        csrMap + "#define READER_EXTENSION_" + i + "_CSR_BASE " + csrBase_i + "\n"
-      csrMap =
-        csrMap + s"#define READER_EXTENSION_${i}_CSR_NUM ${extension_csr_num}\n"
+      csrMap    = csrMap + "#define READER_EXTENSION_" + i + "_CSR_BASE " + csrBase_i + "\n"
+      csrMap    = csrMap + s"#define READER_EXTENSION_${i}_CSR_NUM ${extension_csr_num}\n"
     }
   }
   csrBase = csrBase + reader_extension_csr
@@ -748,10 +722,8 @@ class Streamer(
       csrBase_i = csrBase + get_extension_list_csr_num(
         param.writerDatapathExtention.take(i)
       )
-      csrMap =
-        csrMap + "#define WRITER_EXTENSION_" + i + "_CSR_BASE " + csrBase_i + "\n"
-      csrMap =
-        csrMap + s"#define WRITER_EXTENSION_${i}_CSR_NUM ${extension_csr_num}\n"
+      csrMap    = csrMap + "#define WRITER_EXTENSION_" + i + "_CSR_BASE " + csrBase_i + "\n"
+      csrMap    = csrMap + s"#define WRITER_EXTENSION_${i}_CSR_NUM ${extension_csr_num}\n"
     }
   }
   csrBase = csrBase + writer_extension_csr
@@ -766,29 +738,27 @@ class Streamer(
         param.readerWriterDatapathExtention
           .take(i)
       )
-      csrMap =
-        csrMap + "#define READER_WRITER_EXTENSION_" + i + "_CSR_BASE " + csrBase_i + "\n"
-      csrMap =
-        csrMap + s"#define READER_WRITER_EXTENSION_${i}_CSR_NUM ${extension_csr_num}\n"
+      csrMap    = csrMap + "#define READER_WRITER_EXTENSION_" + i + "_CSR_BASE " + csrBase_i + "\n"
+      csrMap    = csrMap + s"#define READER_WRITER_EXTENSION_${i}_CSR_NUM ${extension_csr_num}\n"
     }
   }
   csrBase = csrBase + reader_writer_extension_csr
 
   // start csr
-  csrMap = csrMap + "// Other resgiters\n"
-  csrMap = csrMap + "// Status register\n"
-  csrMap = csrMap + "#define STREAMER_START_CSR " + csrBase + "\n"
+  csrMap  = csrMap + "// Other resgiters\n"
+  csrMap  = csrMap + "// Status register\n"
+  csrMap  = csrMap + "#define STREAMER_START_CSR " + csrBase + "\n"
   csrBase = csrBase + 1
 
   // streamer busy csr
-  csrMap = csrMap + "// Read only CSRs\n"
-  csrMap = csrMap + "#define STREAMER_BUSY_CSR " + csrBase + "\n"
+  csrMap  = csrMap + "// Read only CSRs\n"
+  csrMap  = csrMap + "#define STREAMER_BUSY_CSR " + csrBase + "\n"
   csrBase = csrBase + 1
 
   // streamer performance counter csr
   csrMap = csrMap + "#define STREAMER_PERFORMANCE_COUNTER_CSR " + csrBase + "\n"
 
-  val macro_dir = param.headerFilepath + "/streamer_csr_addr_map.h"
+  val macro_dir      = param.headerFilepath + "/streamer_csr_addr_map.h"
   val macro_template =
     s"""// Copyright 2024 KU Leuven.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
@@ -825,7 +795,7 @@ object StreamerGen {
     )
 
     // The streamercfg region is passed to chisel generator as a JSON string
-    val streamercfg = parsedArgs.find(_._1 == "streamercfg")
+    val streamercfg       = parsedArgs.find(_._1 == "streamercfg")
     if (streamercfg.isEmpty) {
       println("streamercfg is not provided, generation failed. ")
       sys.exit(-1)
@@ -834,8 +804,8 @@ object StreamerGen {
 
     // Function to remove the cfg prefix and format the string
     def processInput(input: String): String = {
-      val jsonStart = input.indexOf(":") + 1
-      val jsonString = input.substring(jsonStart).trim
+      val jsonStart     = input.indexOf(":") + 1
+      val jsonString    = input.substring(jsonStart).trim
       val withoutBraces = jsonString.stripSuffix("}")
       withoutBraces
     }
@@ -846,10 +816,10 @@ object StreamerGen {
     // Parse the JSON string
     // Function to find a specific string and return the string in between the first leftStr and the corresponding rightStr
     def findAndExtract(
-        input: String,
-        searchString: String,
-        leftStr: Char,
-        rightStr: Char
+      input:        String,
+      searchString: String,
+      leftStr:      Char,
+      rightStr:     Char
     ): String = {
       // Find the index of the search string
       val searchIndex = input.indexOf(searchString)
@@ -859,7 +829,7 @@ object StreamerGen {
         // Initialize a counter for nested braces
         var braceCount = 1
         // Initialize the end index
-        var endIndex = startIndex + 1
+        var endIndex   = startIndex + 1
 
         // Iterate through the string to find the corresponding closing brace
         while (braceCount > 0 && endIndex < input.length) {
@@ -879,27 +849,27 @@ object StreamerGen {
       }
     }
 
-    var searchString = "data_reader_params"
-    val data_reader_params = findAndExtract(result, searchString, '{', '}')
+    var searchString           = "data_reader_params"
+    val data_reader_params     = findAndExtract(result, searchString, '{', '}')
     val data_reader_extentions =
       findAndExtract(data_reader_params, "datapath_extensions", '[', ']')
 
     searchString = "data_writer_params"
-    val data_writer_params = findAndExtract(result, searchString, '{', '}')
+    val data_writer_params     = findAndExtract(result, searchString, '{', '}')
     val data_writer_extentions =
       findAndExtract(data_writer_params, "datapath_extensions", '[', ']')
 
     searchString = "data_reader_writer_params"
-    val data_reader_writer_params =
+    val data_reader_writer_params     =
       findAndExtract(result, searchString, '{', '}')
     val data_reader_writer_extentions =
       findAndExtract(data_reader_writer_params, "datapath_extensions", '[', ']')
 
     // build the data path extension parameters
-    var readerDatapathExtention: Seq[Seq[HasDataPathExtension]] = Seq.fill(
+    var readerDatapathExtention:       Seq[Seq[HasDataPathExtension]] = Seq.fill(
       StreamerParametersGen.readerParams.length
     )(Seq.empty[HasDataPathExtension])
-    var writerDatapathExtention: Seq[Seq[HasDataPathExtension]] = Seq.fill(
+    var writerDatapathExtention:       Seq[Seq[HasDataPathExtension]] = Seq.fill(
       StreamerParametersGen.writerParams.length
     )(Seq.empty[HasDataPathExtension])
     var readerWriterDatapathExtention: Seq[Seq[HasDataPathExtension]] =
@@ -910,18 +880,18 @@ object StreamerGen {
     // Function to split the string by one-level brackets
     def splitByOneLevelBrackets(input: String): Seq[String] = {
       val strippedInput = input.stripPrefix("[").stripSuffix("]")
-      var result = Seq.empty[String]
-      var depth = 0
-      var start = 0
+      var result        = Seq.empty[String]
+      var depth         = 0
+      var start         = 0
 
       for (i <- strippedInput.indices) {
         strippedInput(i) match {
-          case '{' => depth += 1
-          case '}' => depth -= 1
+          case '{'               => depth += 1
+          case '}'               => depth -= 1
           case ',' if depth == 0 =>
             result = result :+ strippedInput.substring(start, i).trim
-            start = i + 1
-          case _ =>
+            start  = i + 1
+          case _                 =>
         }
       }
 
@@ -930,65 +900,60 @@ object StreamerGen {
     }
 
     def genDatapathExtensionPerStreamer(
-        input: String
+      input: String
     ): Seq[HasDataPathExtension] = {
 
       val readerDatapathExtentionStr =
         Json.parse(input) match {
           case obj: JsObject =>
-            obj.fields
-              .filter { case (k, v) => k.startsWith("Has") }
-              .toSeq
-              .map { case (k, v) =>
-                // Attempt to parse the value as a Map[String, Either[Int, Seq[Int]]]
-                val parsedValue: Map[String, Either[Int, Seq[Int]]] =
-                  v.validate[Map[String, JsValue]] match {
-                    case JsSuccess(fields, _) =>
-                      fields.map { case (key, value) =>
-                        // Try to parse each value as Either Int or Seq[Int]
-                        key -> (value.validate[Int] match {
-                          case JsSuccess(intValue, _) =>
-                            Left(intValue) // It's a single Int
-                          case JsError(_) =>
-                            value.validate[Seq[Int]] match {
-                              case JsSuccess(seqValue, _) =>
-                                Right(seqValue) // It's a Seq[Int]
-                              case JsError(_) =>
-                                throw new Exception(
-                                  "Invalid data format for " + key
-                                )
-                            }
-                        })
-                      }
-                    case JsError(_) =>
-                      throw new Exception("Invalid data format in JSON")
-                  }
+            obj.fields.filter { case (k, _) => k.startsWith("Has") }.toSeq.map { case (k, v) =>
+              // Attempt to parse the value as a Map[String, Either[Int, Seq[Int]]]
+              val parsedValue: Map[String, Either[Int, Seq[Int]]] =
+                v.validate[Map[String, JsValue]] match {
+                  case JsSuccess(fields, _) =>
+                    fields.map { case (key, value) =>
+                      // Try to parse each value as Either Int or Seq[Int]
+                      key -> (value.validate[Int] match {
+                        case JsSuccess(intValue, _) =>
+                          Left(intValue) // It's a single Int
+                        case JsError(_)             =>
+                          value.validate[Seq[Int]] match {
+                            case JsSuccess(seqValue, _) =>
+                              Right(seqValue) // It's a Seq[Int]
+                            case JsError(_)             =>
+                              throw new Exception(
+                                "Invalid data format for " + key
+                              )
+                          }
+                      })
+                    }
+                  case JsError(_)           =>
+                    throw new Exception("Invalid data format in JSON")
+                }
 
-                (k, parsedValue)
-              }
+              (k, parsedValue)
+            }
 
           case _ => Seq.empty
         }
 
       var readerDatapathExtentionPerStreamer = Seq[HasDataPathExtension]()
-      val toolbox = currentMirror.mkToolBox()
+      val toolbox                            = currentMirror.mkToolBox()
 
       readerDatapathExtentionStr.foreach(i => {
-        readerDatapathExtentionPerStreamer =
-          readerDatapathExtentionPerStreamer :+ toolbox
-            .compile(toolbox.parse(s"""
+        readerDatapathExtentionPerStreamer = readerDatapathExtentionPerStreamer :+ toolbox
+          .compile(toolbox.parse(s"""
               import snax.DataPathExtension._
-              return new ${i._1}(${i._2
-                .map { list =>
-                  list._2 match {
-                    case Left(int: Int) => int.toString // Matching Left for Int
-                    case Right(seq: Seq[Int]) =>
-                      s"Seq(${seq.mkString(",")})" // Matching Right for Seq[Int]
-                  }
-                }
-                .mkString(", ")})
+              return new ${i._1}(${i._2.map { list =>
+              list._2 match {
+                case Left(int: Int)       => int.toString // Matching Left for Int
+                case Right(seq: Seq[Int]) =>
+                  s"Seq(${seq.mkString(",")})" // Matching Right for Seq[Int]
+              }
+            }
+              .mkString(", ")})
                     """))()
-            .asInstanceOf[HasDataPathExtension]
+          .asInstanceOf[HasDataPathExtension]
       })
 
       readerDatapathExtentionPerStreamer
@@ -1000,14 +965,13 @@ object StreamerGen {
         splitByOneLevelBrackets(data_reader_extentions)
 
       // geenrate the datapath extension parameters for each reader gradually
-      readerDatapathExtentionList.zipWithIndex.foreach {
-        case (datapath_extension, i) =>
-          readerDatapathExtention = readerDatapathExtention.updated(
-            i,
-            genDatapathExtensionPerStreamer(
-              datapath_extension
-            )
+      readerDatapathExtentionList.zipWithIndex.foreach { case (datapath_extension, i) =>
+        readerDatapathExtention = readerDatapathExtention.updated(
+          i,
+          genDatapathExtensionPerStreamer(
+            datapath_extension
           )
+        )
       }
     }
 
@@ -1017,14 +981,13 @@ object StreamerGen {
         splitByOneLevelBrackets(data_writer_extentions)
 
       // geenrate the datapath extension parameters for each writer gradually
-      writerDatapathExtentionList.zipWithIndex.foreach {
-        case (datapath_extension, i) =>
-          writerDatapathExtention = writerDatapathExtention.updated(
-            i,
-            genDatapathExtensionPerStreamer(
-              datapath_extension
-            )
+      writerDatapathExtentionList.zipWithIndex.foreach { case (datapath_extension, i) =>
+        writerDatapathExtention = writerDatapathExtention.updated(
+          i,
+          genDatapathExtensionPerStreamer(
+            datapath_extension
           )
+        )
       }
     }
 
@@ -1033,14 +996,13 @@ object StreamerGen {
       val readerWriterDatapathExtentionList =
         splitByOneLevelBrackets(data_reader_writer_extentions)
 
-      readerWriterDatapathExtentionList.zipWithIndex.foreach {
-        case (datapath_extension, i) =>
-          readerWriterDatapathExtention = readerWriterDatapathExtention.updated(
-            i,
-            genDatapathExtensionPerStreamer(
-              datapath_extension
-            )
+      readerWriterDatapathExtentionList.zipWithIndex.foreach { case (datapath_extension, i) =>
+        readerWriterDatapathExtention = readerWriterDatapathExtention.updated(
+          i,
+          genDatapathExtensionPerStreamer(
+            datapath_extension
           )
+        )
       }
 
     }
@@ -1048,16 +1010,16 @@ object StreamerGen {
     emitVerilog(
       new Streamer(
         StreamerParam(
-          readerParams = StreamerParametersGen.readerParams,
-          writerParams = StreamerParametersGen.writerParams,
-          readerWriterParams = StreamerParametersGen.readerWriterParams,
-          readerDatapathExtention = readerDatapathExtention,
-          writerDatapathExtention = writerDatapathExtention,
+          readerParams                  = StreamerParametersGen.readerParams,
+          writerParams                  = StreamerParametersGen.writerParams,
+          readerWriterParams            = StreamerParametersGen.readerWriterParams,
+          readerDatapathExtention       = readerDatapathExtention,
+          writerDatapathExtention       = writerDatapathExtention,
           readerWriterDatapathExtention = readerWriterDatapathExtention,
-          hasCrossClockDomain = StreamerParametersGen.hasCrossClockDomain,
-          csrAddrWidth = 32,
-          tagName = StreamerParametersGen.tagName,
-          headerFilepath = StreamerParametersGen.headerFilepath
+          hasCrossClockDomain           = StreamerParametersGen.hasCrossClockDomain,
+          csrAddrWidth                  = 32,
+          tagName                       = StreamerParametersGen.tagName,
+          headerFilepath                = StreamerParametersGen.headerFilepath
         )
       ),
       Array("--target-dir", outPath)

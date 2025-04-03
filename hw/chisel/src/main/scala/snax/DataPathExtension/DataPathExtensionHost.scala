@@ -2,26 +2,20 @@ package snax.DataPathExtension
 
 import chisel3._
 import chisel3.util._
+
 import snax.utils.DecoupledCut._
 
-class DataPathExtensionHostIO(
-    extensionList: Seq[HasDataPathExtension],
-    dataWidth: Int = 512
-) extends Bundle {
-  val data = new Bundle {
-    val in = Flipped(
-      Decoupled(UInt(dataWidth.W))
-    )
+class DataPathExtensionHostIO(extensionList: Seq[HasDataPathExtension], dataWidth: Int = 512) extends Bundle {
+  val data  = new Bundle {
+    val in  = Flipped(Decoupled(UInt(dataWidth.W)))
     val out = Decoupled(UInt(dataWidth.W))
   }
-  val cfg = new Bundle {
-    val bypass = Input(UInt(extensionList.length.W))
-    val userCsr = Input(
-      Vec(extensionList.map(_.extensionParam.userCsrNum).sum, UInt(32.W))
-    )
+  val cfg   = new Bundle {
+    val bypass  = Input(UInt(extensionList.length.W))
+    val userCsr = Input(Vec(extensionList.map(_.extensionParam.userCsrNum).sum, UInt(32.W)))
   }
   val start = Input(Bool())
-  val busy = Output(Bool())
+  val busy  = Output(Bool())
 
   def connectCfgWithList(csrList: IndexedSeq[UInt]): IndexedSeq[UInt] = {
     var remaincsrList = csrList
@@ -34,29 +28,28 @@ class DataPathExtensionHostIO(
       cfg.userCsr := remaincsrList.take(
         extensionList.map(_.extensionParam.userCsrNum).sum
       )
-      remaincsrList =
-        remaincsrList.drop(extensionList.map(_.extensionParam.userCsrNum).sum)
+      remaincsrList = remaincsrList.drop(extensionList.map(_.extensionParam.userCsrNum).sum)
     }
     remaincsrList
   }
 }
 
 class DataPathExtensionHost(
-    extensionList: Seq[HasDataPathExtension],
-    dataWidth: Int = 512,
-    headCut: Boolean = false,
-    tailCut: Boolean = false,
-    halfCut: Boolean = false,
-    moduleNamePrefix: String = "unnamed_cluster"
+  extensionList:    Seq[HasDataPathExtension],
+  dataWidth:        Int     = 512,
+  headCut:          Boolean = false,
+  tailCut:          Boolean = false,
+  halfCut:          Boolean = false,
+  moduleNamePrefix: String  = "unnamed_cluster"
 ) extends Module {
   override def desiredName = s"${moduleNamePrefix}_DataPathExtensionHost"
-  val io = IO(new DataPathExtensionHostIO(extensionList, dataWidth = dataWidth))
+  val io                   = IO(new DataPathExtensionHostIO(extensionList, dataWidth = dataWidth))
 
   if (extensionList.isEmpty) {
     io.data.out <> io.data.in
     io.busy := false.B
   } else {
-    var remainingCSR = io.cfg.userCsr.toIndexedSeq
+    var remainingCSR  = io.cfg.userCsr.toIndexedSeq
     var remaingBypass = io.cfg.bypass.asBools.toIndexedSeq
 
     val extensions = extensionList.zipWithIndex.map {

@@ -1,33 +1,27 @@
 package snax.readerWriter
 
-import snax.utils._
-
 import chisel3._
 import chisel3.util._
 
-/** DataRequestor's IO definition: io.in.address: Decoupled(UInt) io.in.data:
-  * Some(Decoupled(UInt)) or None io.in.ResponsorReady: Some(Bool()) or None
-  * io.out: Toward TCDM, see Xiaoling's definition to compatible with her
+import snax.utils._
+
+/** DataRequestor's IO definition: io.in.address: Decoupled(UInt) io.in.data: Some(Decoupled(UInt)) or None
+  * io.in.ResponsorReady: Some(Bool()) or None io.out: Toward TCDM, see Xiaoling's definition to compatible with her
   * wrapper: TypeDefine.scala
   */
-class DataRequestorIO(
-    tcdmDataWidth: Int,
-    tcdmAddressWidth: Int,
-    isReader: Boolean
-) extends Bundle {
+class DataRequestorIO(tcdmDataWidth: Int, tcdmAddressWidth: Int, isReader: Boolean) extends Bundle {
   val in = new Bundle {
     val addr = Flipped(Decoupled(UInt(tcdmAddressWidth.W)))
-    val data =
-      if (!isReader) Some(Flipped(Decoupled(UInt(tcdmDataWidth.W)))) else None
+    val data = if (!isReader) Some(Flipped(Decoupled(UInt(tcdmDataWidth.W)))) else None
     val strb = Input(UInt((tcdmDataWidth / 8).W))
   }
 
-  val out = new Bundle {
+  val out        = new Bundle {
     val tcdmReq = Decoupled(new TcdmReq(tcdmAddressWidth, tcdmDataWidth))
   }
-  val enable = Input(Bool())
+  val enable     = Input(Bool())
   val reqrspLink = new Bundle {
-    val rspReady = if (isReader) Some(Input(Bool())) else None
+    val rspReady  = if (isReader) Some(Input(Bool())) else None
     val reqSubmit = if (isReader) Some(Output(Bool())) else None
   }
 }
@@ -36,10 +30,10 @@ class DataRequestorIO(
 // When the reqeustor is writer, it only has req_valid and ignore the Responsor ready
 
 class DataRequestor(
-    tcdmDataWidth: Int,
-    tcdmAddressWidth: Int,
-    isReader: Boolean,
-    moduleNamePrefix: String = "unnamed_cluster"
+  tcdmDataWidth:    Int,
+  tcdmAddressWidth: Int,
+  isReader:         Boolean,
+  moduleNamePrefix: String = "unnamed_cluster"
 ) extends Module
     with RequireAsyncReset {
   override val desiredName = s"${moduleNamePrefix}_DataRequestor"
@@ -67,15 +61,15 @@ class DataRequestor(
   // Else, the mask is connected to the tcdm requestor to indicate which byte is valid
   io.out.tcdmReq.bits.strb := io.in.strb
 
-  io.out.tcdmReq.bits.addr := io.in.addr.bits
+  io.out.tcdmReq.bits.addr  := io.in.addr.bits
   io.out.tcdmReq.bits.write := { if (isReader) 0.U else 1.U }
-  io.out.tcdmReq.bits.data := { if (isReader) 0.U else io.in.data.get.bits }
+  io.out.tcdmReq.bits.data  := { if (isReader) 0.U else io.in.data.get.bits }
 
   // If is reader, tcdm's valid signal depends on address queue and the responser's ready queue; otherwise, it depends on address queue and the requestor's data queue
   when(io.enable) {
     io.out.tcdmReq.valid := {
       if (isReader)
-        (io.in.addr.valid && io.reqrspLink.rspReady.get)
+        (io.in.addr.valid    && io.reqrspLink.rspReady.get)
       else (io.in.addr.valid && io.in.data.get.valid)
     }
   }.otherwise {
@@ -85,22 +79,22 @@ class DataRequestor(
 
 // In this module is the multiple instantiation of DataRequestor. No Buffer is required from the data requestor's side, as it will be done at the outside.
 class DataRequestors(
-    tcdmDataWidth: Int,
-    tcdmAddressWidth: Int,
-    isReader: Boolean,
-    numChannel: Int,
-    moduleNamePrefix: String = "unnamed_cluster"
+  tcdmDataWidth:    Int,
+  tcdmAddressWidth: Int,
+  isReader:         Boolean,
+  numChannel:       Int,
+  moduleNamePrefix: String = "unnamed_cluster"
 ) extends Module
     with RequireAsyncReset {
   override val desiredName = s"${moduleNamePrefix}_DataRequestors"
-  val io = IO(
+  val io                   = IO(
     Vec(
       numChannel,
       new DataRequestorIO(tcdmDataWidth, tcdmAddressWidth, isReader)
     )
   )
   // new DataRequestorsIO(tcdmDataWidth, tcdmAddressWidth, isReader, numChannel)
-  val DataRequestor = for (i <- 0 until numChannel) yield {
+  val DataRequestor        = for (i <- 0 until numChannel) yield {
     val module = Module(
       new DataRequestor(
         tcdmDataWidth,

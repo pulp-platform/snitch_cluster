@@ -1,12 +1,10 @@
 package snax.csr_manager
 
 import chisel3._
-import org.scalatest.flatspec.AnyFlatSpec
+
 import chiseltest._
-import scala.math.BigInt
+import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.Tag
-import scala.util.control.Breaks._
 
 trait HasCsrManagerTest extends HasCsrManagerTestUtils {
   def base_csr_manager_test[T <: CsrManager](dut: T) = {
@@ -226,11 +224,7 @@ trait HasCsrManagerTest extends HasCsrManagerTestUtils {
   }
 }
 
-class CsrManagerTest
-    extends AnyFlatSpec
-    with ChiselScalatestTester
-    with Matchers
-    with HasCsrManagerTest {
+class CsrManagerTest extends AnyFlatSpec with ChiselScalatestTester with Matchers with HasCsrManagerTest {
 
   "DUT" should "pass" in {
     test(

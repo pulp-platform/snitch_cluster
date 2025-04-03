@@ -1,28 +1,24 @@
 package snax.xdma.xdmaTop
 import chisel3._
-import chisel3.util._
-import chiseltest._
 
+import chiseltest._
 import snax.csr_manager.SnaxCsrIO
 
 class AGUParamTest(
-    val address: Seq[Long],
-    val spatialStrides: Array[Int],
-    val temporalStrides: Array[Int],
-    val temporalBounds: Array[Int]
+  val address:         Seq[Long],
+  val spatialStrides:  Array[Int],
+  val temporalStrides: Array[Int],
+  val temporalBounds:  Array[Int]
 )
 
-class RWParamTest(
-    val enabledChannel: Int,
-    val enabledByte: Int
-)
+class RWParamTest(val enabledChannel: Int, val enabledByte: Int)
 
 class ExtParam(
-    val bypassMemset: Int,
-    val memsetValue: Int,
-    val bypassMaxPool: Int,
-    val maxPoolPeriod: Int,
-    val bypassTransposer: Int
+  val bypassMemset:     Int,
+  val memsetValue:      Int,
+  val bypassMaxPool:    Int,
+  val maxPoolPeriod:    Int,
+  val bypassTransposer: Int
 )
 
 object XDMATesterInfrastructure {
@@ -74,13 +70,13 @@ object XDMATesterInfrastructure {
   }
 
   def setXDMA(
-      readerAGUParam: AGUParamTest,
-      writerAGUParam: AGUParamTest,
-      readerRWParam: RWParamTest,
-      writerRWParam: RWParamTest,
-      writerExtParam: ExtParam,
-      dut: Module,
-      port: SnaxCsrIO
+    readerAGUParam: AGUParamTest,
+    writerAGUParam: AGUParamTest,
+    readerRWParam:  RWParamTest,
+    writerRWParam:  RWParamTest,
+    writerExtParam: ExtParam,
+    dut:            Module,
+    port:           SnaxCsrIO
   ): Int = {
     var currentAddress = 0
 
@@ -88,14 +84,14 @@ object XDMATesterInfrastructure {
     // Reader Side
     readerAGUParam.address.foreach { i =>
       write_csr(
-        dut = dut,
+        dut  = dut,
         port = port,
         addr = currentAddress,
         data = (i & 0xffff_ffff).toInt
       )
       currentAddress += 1
       write_csr(
-        dut = dut,
+        dut  = dut,
         port = port,
         addr = currentAddress,
         data = ((i >> 32) & 0xffff_ffff).toInt
@@ -105,14 +101,14 @@ object XDMATesterInfrastructure {
 
     writerAGUParam.address.foreach { i =>
       write_csr(
-        dut = dut,
+        dut  = dut,
         port = port,
         addr = currentAddress,
         data = (i & 0xffff_ffff).toInt
       )
       currentAddress += 1
       write_csr(
-        dut = dut,
+        dut  = dut,
         port = port,
         addr = currentAddress,
         data = ((i >> 32) & 0xffff_ffff).toInt
@@ -123,7 +119,7 @@ object XDMATesterInfrastructure {
     // Reader side Strides + Bounds
     readerAGUParam.spatialStrides.foreach { i =>
       write_csr(
-        dut = dut,
+        dut  = dut,
         port = port,
         addr = currentAddress,
         data = i
@@ -133,7 +129,7 @@ object XDMATesterInfrastructure {
 
     readerAGUParam.temporalBounds.foreach { i =>
       write_csr(
-        dut = dut,
+        dut  = dut,
         port = port,
         addr = currentAddress,
         data = i
@@ -143,7 +139,7 @@ object XDMATesterInfrastructure {
 
     for (i <- readerAGUParam.temporalBounds.length until 6) {
       write_csr(
-        dut = dut,
+        dut  = dut,
         port = port,
         addr = currentAddress,
         data = 1
@@ -153,7 +149,7 @@ object XDMATesterInfrastructure {
 
     readerAGUParam.temporalStrides.foreach { i =>
       write_csr(
-        dut = dut,
+        dut  = dut,
         port = port,
         addr = currentAddress,
         data = i
@@ -163,7 +159,7 @@ object XDMATesterInfrastructure {
 
     for (i <- readerAGUParam.temporalStrides.length until 6) {
       write_csr(
-        dut = dut,
+        dut  = dut,
         port = port,
         addr = currentAddress,
         data = 0
@@ -173,7 +169,7 @@ object XDMATesterInfrastructure {
 
     // Enabled Channel and Byte
     write_csr(
-      dut = dut,
+      dut  = dut,
       port = port,
       addr = currentAddress,
       data = readerRWParam.enabledChannel
@@ -185,7 +181,7 @@ object XDMATesterInfrastructure {
     // Writer side Strides + Bounds
     writerAGUParam.spatialStrides.foreach { i =>
       write_csr(
-        dut = dut,
+        dut  = dut,
         port = port,
         addr = currentAddress,
         data = i
@@ -195,7 +191,7 @@ object XDMATesterInfrastructure {
 
     writerAGUParam.temporalBounds.foreach { i =>
       write_csr(
-        dut = dut,
+        dut  = dut,
         port = port,
         addr = currentAddress,
         data = i
@@ -205,7 +201,7 @@ object XDMATesterInfrastructure {
 
     for (i <- writerAGUParam.temporalBounds.length until 6) {
       write_csr(
-        dut = dut,
+        dut  = dut,
         port = port,
         addr = currentAddress,
         data = 1
@@ -215,7 +211,7 @@ object XDMATesterInfrastructure {
 
     writerAGUParam.temporalStrides.foreach { i =>
       write_csr(
-        dut = dut,
+        dut  = dut,
         port = port,
         addr = currentAddress,
         data = i
@@ -225,7 +221,7 @@ object XDMATesterInfrastructure {
 
     for (i <- writerAGUParam.temporalStrides.length until 6) {
       write_csr(
-        dut = dut,
+        dut  = dut,
         port = port,
         addr = currentAddress,
         data = 0
@@ -235,14 +231,14 @@ object XDMATesterInfrastructure {
 
     // Enabled Channel and Byte
     write_csr(
-      dut = dut,
+      dut  = dut,
       port = port,
       addr = currentAddress,
       data = writerRWParam.enabledChannel
     )
     currentAddress += 1
     write_csr(
-      dut = dut,
+      dut  = dut,
       port = port,
       addr = currentAddress,
       data = writerRWParam.enabledByte
@@ -252,7 +248,7 @@ object XDMATesterInfrastructure {
     // Data Extension Region
     // Bypass signals
     write_csr(
-      dut = dut,
+      dut  = dut,
       port = port,
       addr = currentAddress,
       data =
@@ -261,7 +257,7 @@ object XDMATesterInfrastructure {
     currentAddress += 1
 
     write_csr(
-      dut = dut,
+      dut  = dut,
       port = port,
       addr = currentAddress,
       data = writerExtParam.memsetValue
@@ -269,7 +265,7 @@ object XDMATesterInfrastructure {
     currentAddress += 1
 
     write_csr(
-      dut = dut,
+      dut  = dut,
       port = port,
       addr = currentAddress,
       data = writerExtParam.maxPoolPeriod
@@ -278,7 +274,7 @@ object XDMATesterInfrastructure {
 
     // Start the DMA
     write_csr(
-      dut = dut,
+      dut  = dut,
       port = port,
       addr = currentAddress,
       data = 1

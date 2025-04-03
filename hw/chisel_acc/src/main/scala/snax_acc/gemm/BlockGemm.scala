@@ -2,15 +2,16 @@ package snax_acc.gemm
 
 import chisel3._
 import chisel3.util._
-import snax_acc.utils._
+
 import snax_acc.utils.DecoupledCut._
+import snax_acc.utils._
 
 // The BlockGemm's control port declaration.
 class BlockGemmCtrlIO(params: GemmParams) extends Bundle {
 
-  val K_i = (UInt(params.sizeConfigWidth.W))
-  val N_i = (UInt(params.sizeConfigWidth.W))
-  val M_i = (UInt(params.sizeConfigWidth.W))
+  val K_i                    = (UInt(params.sizeConfigWidth.W))
+  val N_i                    = (UInt(params.sizeConfigWidth.W))
+  val M_i                    = (UInt(params.sizeConfigWidth.W))
   val subtraction_constant_i = (UInt(params.subtractionCfgWidth.W))
 
 }
@@ -48,9 +49,9 @@ class BlockGemmDataIO(params: GemmParams) extends Bundle {
 // BlockGemmIO declaration, including control and data as well as two extra output signal
 class BlockGemmIO(params: GemmParams) extends Bundle {
 
-  val ctrl = Flipped(DecoupledIO(new BlockGemmCtrlIO(params)))
-  val data = new BlockGemmDataIO(params)
-  val busy_o = Output(Bool())
+  val ctrl                = Flipped(DecoupledIO(new BlockGemmCtrlIO(params)))
+  val data                = new BlockGemmDataIO(params)
+  val busy_o              = Output(Bool())
   val performance_counter = Output(UInt(32.W))
 
 }
@@ -71,11 +72,11 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
   val subtraction_b = RegInit(0.U(params.dataWidthB.W))
 
   // useful counters
-  val compute_fire_counter = RegInit(0.U((params.sizeConfigWidth).W))
+  val compute_fire_counter     = RegInit(0.U((params.sizeConfigWidth).W))
   // counter used to record if need to output to outside (K times array output valid, 1 time output)
   val d_output_ifvalid_counter = RegInit(0.U(params.sizeConfigWidth.W))
   // counter to record how many output data has been written (M * N times)
-  val d_output_counter = RegInit(0.U((2 * params.sizeConfigWidth).W))
+  val d_output_counter         = RegInit(0.U((2 * params.sizeConfigWidth).W))
 
   val performance_counter = RegInit(0.U(32.W))
 
@@ -86,7 +87,7 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
   val gemm_a_b_input_fire = WireInit(0.B)
 
   // add c control signal genertaion
-  val add_c = WireInit(0.B)
+  val add_c      = WireInit(0.B)
   val add_c_fire = WireInit(0.B)
 
   val compute_fire = WireInit(0.B)
@@ -99,11 +100,11 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
 
   // State declaration
   val sIDLE :: sBUSY :: Nil = Enum(2)
-  val cstate = RegInit(sIDLE)
-  val nstate = WireInit(sIDLE)
+  val cstate                = RegInit(sIDLE)
+  val nstate                = WireInit(sIDLE)
 
   // signals for state transition
-  val config_valid = WireInit(0.B)
+  val config_valid       = WireInit(0.B)
   val computation_finish = WireInit(0.B)
 
   val zeroLoopBoundCase = WireInit(0.B)
@@ -167,21 +168,21 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
   // resgiter insert start
   // -----------------------------------
 
-  def a_bits_len = params.meshRow * params.tileSize * params.dataWidthA
-  def b_bits_len = params.tileSize * params.meshCol * params.dataWidthB
+  def a_bits_len  = params.meshRow * params.tileSize * params.dataWidthA
+  def b_bits_len  = params.tileSize * params.meshCol * params.dataWidthB
   def sa_bits_len = params.dataWidthA
   def sb_bits_len = params.dataWidthB
 
-  val combined_decoupled_a_b_in = Wire(
+  val combined_decoupled_a_b_in  = Wire(
     Decoupled(new CutBundle(a_bits_len, b_bits_len, sa_bits_len, sb_bits_len))
   )
   val combined_decoupled_a_b_out = Wire(
     Decoupled(new CutBundle(a_bits_len, b_bits_len, sa_bits_len, sb_bits_len))
   )
-  val a_split_out = Wire(UInt(a_bits_len.W))
-  val b_split_out = Wire(UInt(b_bits_len.W))
-  val subtraction_a_split_out = Wire(UInt(sa_bits_len.W))
-  val subtraction_b_split_out = Wire(UInt(sb_bits_len.W))
+  val a_split_out                = Wire(UInt(a_bits_len.W))
+  val b_split_out                = Wire(UInt(b_bits_len.W))
+  val subtraction_a_split_out    = Wire(UInt(sa_bits_len.W))
+  val subtraction_b_split_out    = Wire(UInt(sb_bits_len.W))
 
   val decoupled_subtraction_a = Wire(Decoupled(UInt(sa_bits_len.W)))
   val decoupled_subtraction_b = Wire(Decoupled(UInt(sb_bits_len.W)))
@@ -199,16 +200,16 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
 
   // insert registers
   combined_decoupled_a_b_in -\\> combined_decoupled_a_b_out
-  a_split_out := combined_decoupled_a_b_out.bits.a
-  b_split_out := combined_decoupled_a_b_out.bits.b
+  a_split_out             := combined_decoupled_a_b_out.bits.a
+  b_split_out             := combined_decoupled_a_b_out.bits.b
   subtraction_a_split_out := combined_decoupled_a_b_out.bits.c
   subtraction_b_split_out := combined_decoupled_a_b_out.bits.d
   // combined_decoupled_a_b_out will be connected to further control signals
 
   decoupled_subtraction_a.valid := cstate === sBUSY
-  decoupled_subtraction_a.bits := subtraction_a
+  decoupled_subtraction_a.bits  := subtraction_a
   decoupled_subtraction_b.valid := cstate === sBUSY
-  decoupled_subtraction_b.bits := subtraction_b
+  decoupled_subtraction_b.bits  := subtraction_b
 
   // -----------------------------------
   // resgiter insert end
@@ -250,8 +251,8 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
   }
 
   // add c at the first compute cycle when a, b and c are all valid (first dotprod and add c at the same cycle)
-  add_c := (compute_fire_counter === 0.U) && cstate === sBUSY && io.data.c_i.valid && a_b_data_valid
-  add_c_fire := add_c && gemm_array.io.ctrl.a_b_c_ready_o
+  add_c      := (compute_fire_counter === 0.U) && cstate === sBUSY && io.data.c_i.valid && a_b_data_valid
+  add_c_fire := add_c                          && gemm_array.io.ctrl.a_b_c_ready_o
 
   // -----------------------------------
   // data a b c control signal generation end
@@ -282,7 +283,7 @@ class BlockGemm(params: GemmParams) extends Module with RequireAsyncReset {
   // Gemm Array signal connection
   // control signals
   gemm_array.io.ctrl.dotprod_a_b := a_b_data_valid
-  gemm_array.io.ctrl.add_c_i := add_c
+  gemm_array.io.ctrl.add_c_i     := add_c
 
   // grap gemm output out
   // when the d fifo is ready for new data

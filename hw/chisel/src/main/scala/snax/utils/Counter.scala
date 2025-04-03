@@ -1,7 +1,6 @@
 package snax.utils
 
 import chisel3._
-import chisel3.util._
 
 /** This class represents a basic counter module in Chisel.
   *
@@ -11,20 +10,18 @@ import chisel3.util._
   *   Indicates whether the counter has a ceiling value.
   */
 
-class BasicCounter(width: Int, hasCeil: Boolean = true)
-    extends Module
-    with RequireAsyncReset {
-  val io = IO(new Bundle {
-    val tick = Input(Bool())
+class BasicCounter(width: Int, hasCeil: Boolean = true) extends Module with RequireAsyncReset {
+  val io        = IO(new Bundle {
+    val tick  = Input(Bool())
     val reset = Input(Bool())
-    val ceil = Input(UInt(width.W))
+    val ceil  = Input(UInt(width.W))
 
-    val value = Output(UInt(width.W))
+    val value   = Output(UInt(width.W))
     val lastVal = Output(Bool())
   })
   // 32.W should be enough to count any loops
   val nextValue = Wire(UInt(width.W))
-  val value = RegNext(nextValue, 0.U)
+  val value     = RegNext(nextValue, 0.U)
   nextValue := {
     if (hasCeil) {
       Mux(
@@ -37,7 +34,7 @@ class BasicCounter(width: Int, hasCeil: Boolean = true)
     }
   }
 
-  io.value := value
+  io.value   := value
   io.lastVal := {
     (if (hasCeil) (value === io.ceil - 1.U) else (value.andR)) && io.tick
   }
@@ -45,14 +42,14 @@ class BasicCounter(width: Int, hasCeil: Boolean = true)
 
 class UpDownCounter(width: Int) extends Module with RequireAsyncReset {
   val io = IO(new Bundle {
-    val tickUp = Input(Bool())
+    val tickUp   = Input(Bool())
     val tickDown = Input(Bool())
-    val reset = Input(Bool())
-    val ceil = Input(UInt(width.W))
+    val reset    = Input(Bool())
+    val ceil     = Input(UInt(width.W))
 
-    val value = Output(UInt(width.W))
+    val value    = Output(UInt(width.W))
     val firstVal = Output(Bool())
-    val lastVal = Output(Bool())
+    val lastVal  = Output(Bool())
   })
 
   // Only one tick signal should be high at a time. If both are high, the counter will not change
@@ -60,8 +57,8 @@ class UpDownCounter(width: Int) extends Module with RequireAsyncReset {
 
   // 32.W should be enough to count any loops
   val nextValue = Wire(UInt(width.W))
-  val value = RegNext(nextValue, 0.U)
-  nextValue := {
+  val value     = RegNext(nextValue, 0.U)
+  nextValue   := {
     Mux(
       io.reset,
       0.U,
@@ -78,29 +75,26 @@ class UpDownCounter(width: Int) extends Module with RequireAsyncReset {
       )
     )
   }
-  io.value := value
-  io.lastVal := value === io.ceil - 1.U
+  io.value    := value
+  io.lastVal  := value === io.ceil - 1.U
   io.firstVal := value === 0.U
 }
 
-class ProgrammableCounter(
-    width: Int,
-    hasCeil: Boolean = true,
-    moduleName: String = "unnamed_counter"
-) extends Module
+class ProgrammableCounter(width: Int, hasCeil: Boolean = true, moduleName: String = "unnamed_counter")
+    extends Module
     with RequireAsyncReset {
   override val desiredName = moduleName
-  val io = IO(new Bundle {
-    val tick = Input(Bool())
+  val io                   = IO(new Bundle {
+    val tick  = Input(Bool())
     val reset = Input(Bool())
-    val ceil = Input(UInt(width.W))
-    val step = Input(UInt((width - 1).W))
+    val ceil  = Input(UInt(width.W))
+    val step  = Input(UInt((width - 1).W))
 
-    val value = Output(UInt(width.W))
+    val value   = Output(UInt(width.W))
     val lastVal = Output(Bool())
   })
-  val nextValue = Wire(UInt(width.W))
-  val value = RegNext(nextValue, 0.U)
+  val nextValue            = Wire(UInt(width.W))
+  val value                = RegNext(nextValue, 0.U)
 
   // If has ceil, a small counter is used to count the step
   // The small counter's function is to determine whether the ceil is reached, and a reset is needed.
@@ -109,10 +103,10 @@ class ProgrammableCounter(
       override val desiredName = s"${moduleName}_SmallCounter"
     })
 
-    smallCounter.io.tick := io.tick
+    smallCounter.io.tick  := io.tick
     smallCounter.io.reset := io.reset
-    smallCounter.io.ceil := io.ceil
-    io.lastVal := smallCounter.io.lastVal
+    smallCounter.io.ceil  := io.ceil
+    io.lastVal            := smallCounter.io.lastVal
   }
 
   nextValue := {

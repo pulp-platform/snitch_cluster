@@ -8,8 +8,8 @@ class TransposeMux(params: ReshufflerParams) extends Module {
   override val desiredName = params.tagName + "_TransposeMux"
 
   val io = IO(new Bundle {
-    val input = Flipped(Decoupled(UInt(params.transposeInWidth.W)))
-    val output = Decoupled(UInt(params.transposeOutWidth.W))
+    val input     = Flipped(Decoupled(UInt(params.transposeInWidth.W)))
+    val output    = Decoupled(UInt(params.transposeOutWidth.W))
     val transpose = Input(Bool())
   })
 
@@ -52,7 +52,7 @@ class TransposeMux(params: ReshufflerParams) extends Module {
   keep_output := output_stall
 
   io.output.valid := RegNext(input_fire) || keep_output
-  io.input.ready := !keep_output && !output_stall
+  io.input.ready  := !keep_output && !output_stall
 
   io.output.bits := data_reg
 }

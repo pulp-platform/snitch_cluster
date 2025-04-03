@@ -3,8 +3,6 @@ package snax_acc.utils
 import chisel3._
 import chisel3.util._
 
-import scala.math._
-
 /** Parameter class for ParallelToSerial.
   *
   * @param parallelWidth
@@ -13,8 +11,8 @@ import scala.math._
   *   The width of each output serial chunk, must divide parallelWidth evenly.
   */
 case class ParallelToSerialParams(
-    parallelWidth: Int,
-    serialWidth: Int
+  parallelWidth: Int,
+  serialWidth:   Int
 ) {
   if (parallelWidth > serialWidth) {
     require(
@@ -25,12 +23,11 @@ case class ParallelToSerialParams(
 
 }
 
-/** A module that sends a parallel input (via Decoupled I/O) out as multiple
-  * serial chunks (also Decoupled I/O).
+/** A module that sends a parallel input (via Decoupled I/O) out as multiple serial chunks (also Decoupled I/O).
   */
 class ParallelToSerial(val p: ParallelToSerialParams) extends Module {
   val io = IO(new Bundle {
-    val in = Flipped(Decoupled(UInt(p.parallelWidth.W)))
+    val in  = Flipped(Decoupled(UInt(p.parallelWidth.W)))
     val out = Decoupled(UInt(p.serialWidth.W))
   })
 
@@ -47,7 +44,7 @@ class ParallelToSerial(val p: ParallelToSerialParams) extends Module {
       )
     }
 
-    val numRegs = math.max(1, p.parallelWidth / 2048) // Number of registers
+    val numRegs  = math.max(1, p.parallelWidth / 2048) // Number of registers
     val shiftReg = RegInit(VecInit(Seq.fill(numRegs)(0.U(2048.W))))
 
     // Counts how many chunks remain to be sent.
@@ -99,11 +96,11 @@ class ParallelToSerial(val p: ParallelToSerialParams) extends Module {
     // The output is valid if there are chunks left to send.
     io.out.valid := (count > 0.U)
     // The current chunk to send is the least significant bits of shiftReg.
-    io.out.bits := shiftReg(0)(p.serialWidth - 1, 0)
+    io.out.bits  := shiftReg(0)(p.serialWidth - 1, 0)
   } else {
     io.out.valid := io.in.valid
-    io.out.bits := io.in.bits
-    io.in.ready := io.out.ready
+    io.out.bits  := io.in.bits
+    io.in.ready  := io.out.ready
   }
 
 }
@@ -113,12 +110,11 @@ class ParallelToSerial(val p: ParallelToSerialParams) extends Module {
   * @param serialWidth
   *   The width of each incoming serial data chunk.
   * @param parallelWidth
-  *   The total width of the parallel output data. Must be a multiple of
-  *   serialWidth.
+  *   The total width of the parallel output data. Must be a multiple of serialWidth.
   */
 case class SerialToParallelParams(
-    serialWidth: Int,
-    parallelWidth: Int
+  serialWidth:   Int,
+  parallelWidth: Int
 ) {
   if (parallelWidth > serialWidth) {
     require(
@@ -128,16 +124,15 @@ case class SerialToParallelParams(
   }
 }
 
-/** A module that collects multiple serial inputs (via Decoupled I/O) and
-  * outputs them as a single parallel word (also Decoupled I/O).
+/** A module that collects multiple serial inputs (via Decoupled I/O) and outputs them as a single parallel word (also
+  * Decoupled I/O).
   *
-  * This version defers output by one clock after receiving the final serial
-  * chunk, ensuring that the shift register contains the correct concatenated
-  * data.
+  * This version defers output by one clock after receiving the final serial chunk, ensuring that the shift register
+  * contains the correct concatenated data.
   */
 class SerialToParallel(val p: SerialToParallelParams) extends Module {
   val io = IO(new Bundle {
-    val in = Flipped(Decoupled(UInt(p.serialWidth.W)))
+    val in  = Flipped(Decoupled(UInt(p.serialWidth.W)))
     val out = Decoupled(UInt(p.parallelWidth.W))
   })
 
@@ -146,9 +141,9 @@ class SerialToParallel(val p: SerialToParallelParams) extends Module {
     val factor: Int = p.parallelWidth / p.serialWidth
 
     // Registers to track incoming data and chunk count
-    val numRegs = math.max(1, p.parallelWidth / 2048) // Number of registers
+    val numRegs  = math.max(1, p.parallelWidth / 2048) // Number of registers
     val shiftReg = RegInit(VecInit(Seq.fill(numRegs)(0.U(2048.W))))
-    val count = RegInit(0.U(log2Ceil(factor + 1).W))
+    val count    = RegInit(0.U(log2Ceil(factor + 1).W))
 
     io.in.ready := count =/= factor.U
 
@@ -192,7 +187,7 @@ class SerialToParallel(val p: SerialToParallelParams) extends Module {
 
   } else {
     io.out.valid := io.in.valid
-    io.out.bits := io.in.bits
-    io.in.ready := io.out.ready
+    io.out.bits  := io.in.bits
+    io.in.ready  := io.out.ready
   }
 }

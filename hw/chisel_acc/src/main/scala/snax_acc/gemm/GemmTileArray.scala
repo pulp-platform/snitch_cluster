@@ -1,11 +1,10 @@
 package snax_acc.gemm
 import chisel3._
 import chisel3.util._
-import chisel3.VecInit
 
 class GemmArrayCtrlIO(params: GemmParams) extends Bundle {
-  val dotprod_a_b = Input(Bool())
-  val add_c_i = Input(Bool())
+  val dotprod_a_b   = Input(Bool())
+  val add_c_i       = Input(Bool())
   val a_b_c_ready_o = Output(Bool())
 
   val d_valid_o = Output(Bool())
@@ -40,7 +39,7 @@ class Tile(params: GemmParams) extends Module with RequireAsyncReset {
 
   val accumulation_reg = RegInit(0.S(params.dataWidthAccum.W))
 
-  val data_i_fire = WireInit(0.B)
+  val data_i_fire     = WireInit(0.B)
   val data_i_fire_reg = RegInit(0.B)
 
   val keep_output = RegInit(false.B)
@@ -51,15 +50,15 @@ class Tile(params: GemmParams) extends Module with RequireAsyncReset {
   val data_b_i_subtracted = Wire(
     Vec(params.tileSize, SInt((params.dataWidthB + 1).W))
   )
-  val mul_add_result_vec = Wire(
+  val mul_add_result_vec  = Wire(
     Vec(params.tileSize, SInt(params.dataWidthMul.W))
   )
-  val mul_add_result = Wire(SInt(params.dataWidthAccum.W))
+  val mul_add_result      = Wire(SInt(params.dataWidthAccum.W))
 
   chisel3.dontTouch(mul_add_result)
 
   // when dotprod_a_b assert, and a_b_c_ready_o assert, do the computation
-  data_i_fire := io.ctrl.dotprod_a_b === 1.B && io.ctrl.a_b_c_ready_o === 1.B
+  data_i_fire     := io.ctrl.dotprod_a_b === 1.B && io.ctrl.a_b_c_ready_o === 1.B
   // give the result next cycle, with a d_valid_o assert
   data_i_fire_reg := data_i_fire
 
@@ -98,9 +97,9 @@ class Tile(params: GemmParams) extends Module with RequireAsyncReset {
     accumulation_reg := accumulation_reg
   }
 
-  io.data_d_o := accumulation_reg
+  io.data_d_o           := accumulation_reg
   // output valid depends on the data_i_fire_reg and keep_output
-  io.ctrl.d_valid_o := data_i_fire_reg || keep_output
+  io.ctrl.d_valid_o     := data_i_fire_reg || keep_output
   io.ctrl.a_b_c_ready_o := !keep_output && !(io.ctrl.d_valid_o && !io.ctrl.d_ready_i)
 
 }
@@ -209,25 +208,25 @@ class GemmArray(params: GemmParams) extends Module with RequireAsyncReset {
   val mesh = Module(new Mesh(params))
 
   // define wires for data partition
-  val a_i_wire = Wire(
+  val a_i_wire     = Wire(
     Vec(
       params.meshRow,
       Vec(params.tileSize, UInt(params.dataWidthA.W))
     )
   )
-  val b_i_wire = Wire(
+  val b_i_wire     = Wire(
     Vec(
       params.meshCol,
       Vec(params.tileSize, UInt(params.dataWidthB.W))
     )
   )
-  val c_i_wire = Wire(
+  val c_i_wire     = Wire(
     Vec(
       params.meshRow,
       Vec(params.meshCol, UInt(params.dataWidthC.W))
     )
   )
-  val d_out_wire = Wire(
+  val d_out_wire   = Wire(
     Vec(
       params.meshRow,
       Vec(params.meshCol, SInt(params.dataWidthC.W))
@@ -287,7 +286,7 @@ class GemmArray(params: GemmParams) extends Module with RequireAsyncReset {
 }
 
 object GemmArray extends App {
-  val params = DefaultConfig.gemmConfig
+  val params   = DefaultConfig.gemmConfig
   val dir_name = "GemmArray_%s_%s_%s_%s".format(
     params.meshRow,
     params.tileSize,

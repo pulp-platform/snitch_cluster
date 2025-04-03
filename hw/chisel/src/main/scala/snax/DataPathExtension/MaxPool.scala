@@ -2,8 +2,6 @@ package snax.DataPathExtension
 
 import chisel3._
 import chisel3.util._
-import snax.utils.DecoupledCut._
-import snax.xdma.DesignParams._
 
 // MAXPoolPE module
 class MAXPoolPE(dataWidth: Int) extends Module with RequireAsyncReset {
@@ -27,22 +25,24 @@ class MAXPoolPE(dataWidth: Int) extends Module with RequireAsyncReset {
 }
 
 class HasMaxPool extends HasDataPathExtension {
-  implicit val extensionParam: DataPathExtensionParam =
+  implicit val extensionParam:          DataPathExtensionParam =
     new DataPathExtensionParam(
       moduleName = "MaxPool",
       userCsrNum = 1,
-      dataWidth = 512
+      dataWidth  = 512
     )
-  def instantiate(clusterName: String): MaxPool = Module(
-    new MaxPool(elementWidth = 8) {
-      override def desiredName = clusterName + namePostfix
-    }
-  )
+  def instantiate(clusterName: String): MaxPool                =
+    Module(
+      new MaxPool(elementWidth = 8) {
+        override def desiredName = clusterName + namePostfix
+      }
+    )
 }
 
-class MaxPool(elementWidth: Int)(implicit
-    extensionParam: DataPathExtensionParam
-) extends DataPathExtension {
+class MaxPool(
+  elementWidth: Int
+)(implicit extensionParam: DataPathExtensionParam)
+    extends DataPathExtension {
   require(extensionParam.dataWidth % elementWidth == 0)
 
   // Counter to record the steps
@@ -52,8 +52,8 @@ class MaxPool(elementWidth: Int)(implicit
   })
   counter.io.ceil := ext_csr_i(0)
   counter.io.reset := ext_start_i
-  counter.io.tick := ext_data_i.fire
-  ext_busy_o := counter.io.value =/= 0.U
+  counter.io.tick  := ext_data_i.fire
+  ext_busy_o       := counter.io.value =/= 0.U
 
   // The wire to connect the output result
   val ext_data_o_bits = Wire(
@@ -67,7 +67,7 @@ class MaxPool(elementWidth: Int)(implicit
     })
     PE.io.init_i := counter.io.value === 0.U
     PE.io.data_i.valid := ext_data_i.fire
-    PE.io.data_i.bits := ext_data_i
+    PE.io.data_i.bits  := ext_data_i
       .bits((i + 1) * elementWidth - 1, i * elementWidth)
       .asSInt
     ext_data_o_bits(i) := PE.io.data_o.asUInt
@@ -76,7 +76,7 @@ class MaxPool(elementWidth: Int)(implicit
   // FSM to handle handshake signals
 
   val s_idle :: s_output :: Nil = Enum(2)
-  val current_state = RegInit(s_idle)
+  val current_state             = RegInit(s_idle)
 
   // Default values for ready and valid signals
   ext_data_i.ready := false.B

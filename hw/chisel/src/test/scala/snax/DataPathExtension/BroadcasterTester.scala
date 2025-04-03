@@ -1,9 +1,6 @@
 package snax.DataPathExtension
-
-import chisel3._
-import chisel3.util._
-
 import scala.util.Random
+
 import snax.DataPathExtension.HasBroadcaster
 
 class BroadcasterTester extends DataPathExtensionTester {

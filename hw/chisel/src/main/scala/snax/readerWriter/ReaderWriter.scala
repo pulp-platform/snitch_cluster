@@ -1,17 +1,16 @@
 package snax.readerWriter
 
-import snax.utils._
-
 import chisel3._
-import chisel3.util._
+
+import snax.utils._
 
 // ReaderWriter is the module that has a reader port and writer port, but they share one TCDM interface.
 // This is suitable for the case that the throughput is not high.
 
 class ReaderWriter(
-    readerParam: ReaderWriterParam,
-    writerParam: ReaderWriterParam,
-    moduleNamePrefix: String = "unnamed_cluster"
+  readerParam:      ReaderWriterParam,
+  writerParam:      ReaderWriterParam,
+  moduleNamePrefix: String = "unnamed_cluster"
 ) extends Module
     with RequireAsyncReset {
 
@@ -27,11 +26,11 @@ class ReaderWriter(
     )
   )
 
-  reader.io.aguCfg := io.readerInterface.aguCfg
-  reader.io.readerwriterCfg := io.readerInterface.readerwriterCfg
+  reader.io.aguCfg               := io.readerInterface.aguCfg
+  reader.io.readerwriterCfg      := io.readerInterface.readerwriterCfg
   reader.io.data <> io.readerInterface.data
-  reader.io.start := io.readerInterface.start
-  io.readerInterface.busy := reader.io.busy
+  reader.io.start                := io.readerInterface.start
+  io.readerInterface.busy        := reader.io.busy
   io.readerInterface.bufferEmpty := reader.io.bufferEmpty
 
   // Writer
@@ -42,11 +41,11 @@ class ReaderWriter(
     )
   )
 
-  writer.io.aguCfg := io.writerInterface.aguCfg
-  writer.io.readerwriterCfg := io.writerInterface.readerwriterCfg
+  writer.io.aguCfg               := io.writerInterface.aguCfg
+  writer.io.readerwriterCfg      := io.writerInterface.readerwriterCfg
   writer.io.data <> io.writerInterface.data
-  writer.io.start := io.writerInterface.start
-  io.writerInterface.busy := writer.io.busy
+  writer.io.start                := io.writerInterface.start
+  io.writerInterface.busy        := writer.io.busy
   io.writerInterface.bufferEmpty := writer.io.bufferEmpty
 
   // Both reader and writer share the same Request interface
@@ -73,8 +72,8 @@ class ReaderWriter(
   }
 
   // Connect the DecoupledMux to the TCDM interface
-  readerwriterMux.zip(io.readerInterface.tcdmReq).foreach {
-    case (mux, tcdmReq) => tcdmReq <> mux.io.out
+  readerwriterMux.zip(io.readerInterface.tcdmReq).foreach { case (mux, tcdmReq) =>
+    tcdmReq <> mux.io.out
   }
 
   // Channel Selection Logic
@@ -85,7 +84,7 @@ class ReaderWriter(
   reader.io.tcdmRsp.zip(io.readerInterface.tcdmRsp).foreach {
     case (reader, interface) => {
       // Bits is connected directly
-      reader.bits := interface.bits
+      reader.bits  := interface.bits
       // Valid is connected with the interface valid, under the condition that the last request is from the reader
       reader.valid := interface.valid && RegNext(sel === 1.U)
     }

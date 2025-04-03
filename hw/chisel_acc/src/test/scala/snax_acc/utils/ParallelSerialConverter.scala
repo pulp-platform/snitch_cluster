@@ -1,6 +1,7 @@
 package snax_acc.utils
 
 import chisel3._
+
 import chiseltest._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -9,7 +10,7 @@ class ParallelToSerialTest extends AnyFlatSpec with ChiselScalatestTester {
 
   "ParallelToSerial" should "convert parallel data into multiple serial chunks" in {
     val parallelWidth = 16
-    val serialWidth = 4
+    val serialWidth   = 4
     test(
       new ParallelToSerial(ParallelToSerialParams(parallelWidth, serialWidth))
     ).withAnnotations(Seq(WriteVcdAnnotation)) { dut =>
@@ -21,7 +22,7 @@ class ParallelToSerialTest extends AnyFlatSpec with ChiselScalatestTester {
       // 0xABCD in binary is 1010_1011_1100_1101.
       // The 4-bit chunks (starting from LSB) should be: 1101 (0xD), 1100 (0xC), 1011 (0xB), 1010 (0xA).
 
-      var parallelData = 0xabcd.U
+      var parallelData   = 0xabcd.U
       var expectedChunks = Seq("xd", "xc", "xb", "xa").map(_.U(4.W))
 
       // Provide the single parallel input.
@@ -47,7 +48,7 @@ class ParallelToSerialTest extends AnyFlatSpec with ChiselScalatestTester {
         dut.clock.step()
         dut.io.out.ready.poke(false.B)
       }
-      parallelData = 0xefef.U
+      parallelData   = 0xefef.U
       expectedChunks = Seq("xF", "xE", "xF", "xE").map(_.U(4.W))
       dut.io.in.bits.poke(parallelData)
       dut.io.in.valid.poke(true.B)
@@ -78,10 +79,7 @@ class ParallelToSerialTest extends AnyFlatSpec with ChiselScalatestTester {
   }
 }
 
-class SerialToParallelSpec
-    extends AnyFlatSpec
-    with ChiselScalatestTester
-    with Matchers {
+class SerialToParallelSpec extends AnyFlatSpec with ChiselScalatestTester with Matchers {
 
   behavior of "SerialToParallel"
 
@@ -89,7 +87,7 @@ class SerialToParallelSpec
     test(
       new SerialToParallel(
         SerialToParallelParams(
-          serialWidth = 8, // 8 bits per serial input
+          serialWidth   = 8, // 8 bits per serial input
           parallelWidth = 32 // 32 bits parallel output
         )
       )

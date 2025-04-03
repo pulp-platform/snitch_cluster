@@ -3,17 +3,10 @@ package snax.xdma.io
 import chisel3._
 import chisel3.util._
 
+import snax.readerWriter.AddressGenUnitCfgIO
+import snax.readerWriter.AddressGenUnitParam
+import snax.readerWriter.ReaderWriterCfgIO
 import snax.xdma.DesignParams._
-import snax.DataPathExtension._
-
-import snax.readerWriter.{
-  AddressGenUnitCfgIO,
-  ReaderWriterCfgIO,
-  Reader,
-  Writer,
-  ReaderWriterParam,
-  AddressGenUnitParam
-}
 
 // The sturctured class that used to store the CFG of reader and writer, connected with the CSR
 // The full address (readerPtr, writerPtr) is included in this class, for the purpose of cross-cluster communication
@@ -24,32 +17,31 @@ class XDMACfgIO(val param: XDMAParam) extends Bundle {
   val taskID = UInt(8.W)
 
   // Definition origination = 0 means the data is from local, origination = 1 means the data is from remote
-  val originationIsFromLocal = false
+  val originationIsFromLocal  = false
   val originationIsFromRemote = true
-  val origination = Bool()
-  val readerPtr = UInt(param.axiParam.addrWidth.W)
+  val origination             = Bool()
+  val readerPtr               = UInt(param.axiParam.addrWidth.W)
   // val writerPtr = UInt(param.axiParam.addrWidth.W)
-  val writerPtr =
+  val writerPtr               =
     Vec(
       param.crossClusterParam.maxMulticastDest,
       UInt(param.axiParam.addrWidth.W)
     )
 
-  val aguCfg =
+  val aguCfg          =
     new AddressGenUnitCfgIO(param =
       AddressGenUnitParam(
         temporalDimension = param.crossClusterParam.maxTemporalDimension,
-        numChannel =
-          param.axiParam.dataWidth / param.crossClusterParam.wordlineWidth,
+        numChannel        = param.axiParam.dataWidth / param.crossClusterParam.wordlineWidth,
         outputBufferDepth = param.rwParam.aguParam.outputBufferDepth,
-        tcdmSize = param.crossClusterParam.tcdmSize
+        tcdmSize          = param.crossClusterParam.tcdmSize
       )
     ) // Buffered within AGU
   val readerwriterCfg = new ReaderWriterCfgIO(param.rwParam)
   // The LocalLoopback signal to control the data in reader directly sending back to writer
-  val localLoopback = Bool()
+  val localLoopback   = Bool()
   // The RemoteLoopback signal to control the data in fromRemoteData directly seending back to toRemoteData
-  val remoteLoopback = Bool()
+  val remoteLoopback  = Bool()
 
   val extCfg = if (param.extParam.length != 0) {
     Vec(
@@ -75,7 +67,7 @@ class XDMACfgIO(val param: XDMAParam) extends Bundle {
     var remainingCSR = csrList
     val numCSRPerPtr = (param.axiParam.addrWidth + 31) / 32
     remainingCSR = remainingCSR.drop(numCSRPerPtr)
-    writerPtr.foreach { i =>
+    writerPtr.foreach { _ =>
       remainingCSR = remainingCSR.drop(numCSRPerPtr)
     }
     remainingCSR
@@ -83,7 +75,7 @@ class XDMACfgIO(val param: XDMAParam) extends Bundle {
 
   // Connect the remaining CFG with the CSR list
   def connectWithList(
-      csrList: IndexedSeq[UInt]
+    csrList: IndexedSeq[UInt]
   ): IndexedSeq[UInt] = {
     origination := originationIsFromLocal.B
     var remaincsrList = csrList
@@ -100,26 +92,24 @@ class XDMAIntraClusterCfgIO(param: XDMAParam) extends Bundle {
   val taskID = UInt(8.W)
 
   // Definition origination = 0 means the data is from local, origination = 1 means the data is from remote
-  val originationIsFromLocal = false
+  val originationIsFromLocal  = false
   val originationIsFromRemote = true
-  val origination = Bool()
-  val readerPtr = UInt(param.axiParam.addrWidth.W)
+  val origination             = Bool()
+  val readerPtr               = UInt(param.axiParam.addrWidth.W)
   // val writerPtr = UInt(param.axiParam.addrWidth.W)
-  val writerPtr =
+  val writerPtr               =
     Vec(
       param.crossClusterParam.maxMulticastDest,
       UInt(param.axiParam.addrWidth.W)
     )
 
-  val aguCfg =
-    new AddressGenUnitCfgIO(param =
-      param.rwParam.aguParam
-    ) // Buffered within AGU
+  val aguCfg          =
+    new AddressGenUnitCfgIO(param = param.rwParam.aguParam) // Buffered within AGU
   val readerwriterCfg = new ReaderWriterCfgIO(param.rwParam)
   // The LocalLoopback signal to control the data in reader directly sending back to writer
-  val localLoopback = Bool()
+  val localLoopback   = Bool()
   // The RemoteLoopback signal to control the data in fromRemoteData directly seending back to toRemoteData
-  val remoteLoopback = Bool()
+  val remoteLoopback  = Bool()
 
   val extCfg = if (param.extParam.length != 0) {
     Vec(
@@ -130,13 +120,13 @@ class XDMAIntraClusterCfgIO(param: XDMAParam) extends Bundle {
 
   // Convert the XDMACfgIO to XDMAIntraClusterCfgIO
   def convertFromXDMACfgIO(cfg: XDMACfgIO): Unit = {
-    taskID := cfg.taskID
-    origination := cfg.origination
-    readerPtr := cfg.readerPtr
-    writerPtr := cfg.writerPtr
+    taskID                   := cfg.taskID
+    origination              := cfg.origination
+    readerPtr                := cfg.readerPtr
+    writerPtr                := cfg.writerPtr
     aguCfg.addressRemapIndex := cfg.aguCfg.addressRemapIndex
-    aguCfg.ptr := cfg.aguCfg.ptr
-    aguCfg.spatialStrides := cfg.aguCfg.spatialStrides.take(
+    aguCfg.ptr               := cfg.aguCfg.ptr
+    aguCfg.spatialStrides    := cfg.aguCfg.spatialStrides.take(
       aguCfg.spatialStrides.length
     )
 
@@ -151,24 +141,23 @@ class XDMAIntraClusterCfgIO(param: XDMAParam) extends Bundle {
     )
 
     readerwriterCfg := cfg.readerwriterCfg
-    localLoopback := cfg.localLoopback
-    remoteLoopback := cfg.remoteLoopback
-    extCfg := cfg.extCfg
+    localLoopback   := cfg.localLoopback
+    remoteLoopback  := cfg.remoteLoopback
+    extCfg          := cfg.extCfg
   }
 }
 
-class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam)
-    extends Bundle {
-  val taskID = UInt(8.W)
-  val isReaderSide = Bool()
-  val readerPtr = UInt(readerParam.crossClusterParam.AxiAddressWidth.W)
-  val writerPtr = Vec(
+class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam) extends Bundle {
+  val taskID        = UInt(8.W)
+  val isReaderSide  = Bool()
+  val readerPtr     = UInt(readerParam.crossClusterParam.AxiAddressWidth.W)
+  val writerPtr     = Vec(
     readerParam.crossClusterParam.maxMulticastDest,
     UInt(readerParam.crossClusterParam.AxiAddressWidth.W)
   )
   val spatialStride = UInt(readerParam.crossClusterParam.tcdmAddressWidth.W)
 
-  val temporalBounds = Vec(
+  val temporalBounds  = Vec(
     readerParam.crossClusterParam.maxTemporalDimension,
     UInt(readerParam.crossClusterParam.tcdmAddressWidth.W)
   )
@@ -176,18 +165,18 @@ class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam)
     readerParam.crossClusterParam.maxTemporalDimension,
     UInt(readerParam.crossClusterParam.tcdmAddressWidth.W)
   )
-  val enabledChannel = UInt(readerParam.crossClusterParam.channelNum.W)
-  val enabledByte = UInt((readerParam.crossClusterParam.wordlineWidth / 8).W)
+  val enabledChannel  = UInt(readerParam.crossClusterParam.channelNum.W)
+  val enabledByte     = UInt((readerParam.crossClusterParam.wordlineWidth / 8).W)
 
   def convertFromXDMACfgIO(
-      readerSide: Boolean,
-      cfg: XDMACfgIO
+    readerSide: Boolean,
+    cfg:        XDMACfgIO
   ): Unit = {
-    taskID := cfg.taskID
-    isReaderSide := readerSide.B
-    readerPtr := cfg.readerPtr
-    writerPtr := cfg.writerPtr
-    spatialStride := cfg.aguCfg
+    taskID          := cfg.taskID
+    isReaderSide    := readerSide.B
+    readerPtr       := cfg.readerPtr
+    writerPtr       := cfg.writerPtr
+    spatialStride   := cfg.aguCfg
       .spatialStrides(0)
       .apply(
         cfg.aguCfg.spatialStrides(0).getWidth - 1,
@@ -199,20 +188,20 @@ class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam)
         log2Ceil(readerParam.crossClusterParam.wordlineWidth / 8)
       )
     )
-    temporalBounds := cfg.aguCfg.temporalBounds
-    enabledChannel := cfg.readerwriterCfg.enabledChannel
-    enabledByte := cfg.readerwriterCfg.enabledByte
+    temporalBounds  := cfg.aguCfg.temporalBounds
+    enabledChannel  := cfg.readerwriterCfg.enabledChannel
+    enabledByte     := cfg.readerwriterCfg.enabledByte
   }
 
   def convertToXDMACfgIO(readerSide: Boolean): XDMACfgIO = {
     val xdmaCfg = if (readerSide) { Wire(new XDMACfgIO(readerParam)) }
     else { Wire(new XDMACfgIO(writerParam)) }
 
-    xdmaCfg := 0.U.asTypeOf(xdmaCfg)
-    xdmaCfg.taskID := taskID
-    xdmaCfg.readerPtr := readerPtr
-    xdmaCfg.writerPtr := writerPtr
-    xdmaCfg.aguCfg.ptr := { if (readerSide) readerPtr else writerPtr(0) }
+    xdmaCfg                          := 0.U.asTypeOf(xdmaCfg)
+    xdmaCfg.taskID                   := taskID
+    xdmaCfg.readerPtr                := readerPtr
+    xdmaCfg.writerPtr                := writerPtr
+    xdmaCfg.aguCfg.ptr               := { if (readerSide) readerPtr else writerPtr(0) }
     xdmaCfg.aguCfg.spatialStrides(0) := spatialStride ## 0.U(
       log2Ceil(readerParam.crossClusterParam.wordlineWidth / 8).W
     )
@@ -233,8 +222,8 @@ class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam)
       xdmaCfg.extCfg(0) := BigInt("ffffffff", 16).U
 
     xdmaCfg.readerwriterCfg.enabledChannel := enabledChannel
-    xdmaCfg.readerwriterCfg.enabledByte := enabledByte
-    xdmaCfg.origination := xdmaCfg.originationIsFromRemote.B
+    xdmaCfg.readerwriterCfg.enabledByte    := enabledByte
+    xdmaCfg.origination                    := xdmaCfg.originationIsFromRemote.B
     xdmaCfg
   }
 
@@ -321,33 +310,30 @@ class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam)
   }
 }
 
-class XDMADataPathCfgIO(
-    axiParam: AXIParam,
-    crossClusterParam: CrossClusterParam
-) extends Bundle {
-  val readyToTransfer = Bool()
-  val taskID = UInt(8.W)
-  val length = UInt(crossClusterParam.tcdmAddressWidth.W)
-  val taskType = Bool()
-  val taskTypeIsRemoteRead = false
-  val taskTypeIsRemoteWrite = true
-  val src = UInt(axiParam.addrWidth.W)
-  val dst = UInt(axiParam.addrWidth.W)
+class XDMADataPathCfgIO(axiParam: AXIParam, crossClusterParam: CrossClusterParam) extends Bundle {
+  val readyToTransfer       = Bool()
+  val taskID                = UInt(8.W)
+  val length                = UInt(crossClusterParam.tcdmAddressWidth.W)
+  val taskType              = Bool()
+  val taskTypeIsRemoteRead  = true
+  val taskTypeIsRemoteWrite = false
+  val src                   = UInt(axiParam.addrWidth.W)
+  val dst                   = UInt(axiParam.addrWidth.W)
 
   def convertFromXDMAIntraClusterCfgIO(
-      cfg: XDMAIntraClusterCfgIO,
-      isChainedWrite: Boolean
+    cfg:            XDMAIntraClusterCfgIO,
+    isChainedWrite: Boolean
   ): Unit = {
     taskID := cfg.taskID
     length := cfg.aguCfg.temporalBounds.reduceTree { case (a, b) =>
       (a * b).apply(length.getWidth - 1, 0)
     }
-    src := {
+    src    := {
       if (isChainedWrite)
         cfg.writerPtr(0)
       else cfg.readerPtr
     }
-    dst := {
+    dst    := {
       if (isChainedWrite)
         cfg.writerPtr(1)
       else cfg.writerPtr(0)

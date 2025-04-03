@@ -1,14 +1,12 @@
 package snax.readerWriter
 
-import snax.utils._
-
 import chisel3._
 import chisel3.util._
 
-class Writer(
-    param: ReaderWriterParam,
-    moduleNamePrefix: String = "unnamed_cluster"
-) extends Module
+import snax.utils._
+
+class Writer(param: ReaderWriterParam, moduleNamePrefix: String = "unnamed_cluster")
+    extends Module
     with RequireAsyncReset {
 
   override val desiredName = s"${moduleNamePrefix}_Writer"
@@ -27,26 +25,26 @@ class Writer(
   // Requestors to send address and data to TCDM
   val requestors = Module(
     new DataRequestors(
-      tcdmDataWidth = param.tcdmParam.dataWidth,
+      tcdmDataWidth    = param.tcdmParam.dataWidth,
       tcdmAddressWidth = param.tcdmParam.addrWidth,
-      numChannel = param.tcdmParam.numChannel,
-      isReader = false,
+      numChannel       = param.tcdmParam.numChannel,
+      isReader         = false,
       moduleNamePrefix = s"${moduleNamePrefix}_Writer"
     )
   )
 
   val dataBuffer = Module(
     new ComplexQueueConcat(
-      inputWidth = param.tcdmParam.dataWidth * param.tcdmParam.numChannel,
+      inputWidth  = param.tcdmParam.dataWidth * param.tcdmParam.numChannel,
       outputWidth = param.tcdmParam.dataWidth,
-      depth = param.bufferDepth,
-      pipe = false
+      depth       = param.bufferDepth,
+      pipe        = false
     ) {
       override val desiredName = s"${moduleNamePrefix}_Writer_DataBuffer"
     }
   )
 
-  addressgen.io.cfg := io.aguCfg
+  addressgen.io.cfg   := io.aguCfg
   addressgen.io.start := io.start
 
   // addrgen <> requestors
@@ -69,7 +67,7 @@ class Writer(
     requestors.io.foreach(_.in.strb := io.readerwriterCfg.enabledByte)
   else
     requestors.io.zipWithIndex.foreach {
-      case (requestor, i) => {
+      case (requestor, _) => {
         requestor.in.strb := Fill(requestor.in.strb.getWidth, 1.U)
       }
     }

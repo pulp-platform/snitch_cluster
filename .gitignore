@@ -2,11 +2,12 @@
 Bender.lock
 .vscode/
 .metals
+.bloop
+.bsp
 .scala-build
 __pycache__
 env
 logs
-.bsp
 
 #  File List Synthesis Files
 *_flist.tcl
@@ -16,13 +17,13 @@ logs
 modelsim.ini
 *stacktrace*
 transcript
-
 gmon.out
 
 # Docs
 /site/
 /docs/generated/
 
+# Generated files
 target/streams/
 target/scala*
-
+hw/chisel_acc/src/snax_streamer_gemmX_shell_wrapper.sv

@@ -1,13 +1,11 @@
 package snax.csr_manager
 
-import snax.utils._
-
 import chisel3._
 import chisel3.util._
-import chisel3.chiselTypeOf
 
-/** This class represents the csr input and output ports of the streamer top
-  * module
+import snax.utils._
+
+/** This class represents the csr input and output ports of the streamer top module
   *
   * @param csrAddrWidth
   *   csr registers address width
@@ -19,35 +17,28 @@ class SnaxCsrIO(csrAddrWidth: Int) extends Bundle {
 
 }
 
-/** This class represents the input and output ports of the CsrManager module.
-  * The input is connected to the SNAX CSR port. The output is connected to the
-  * streamer configuration port.
+/** This class represents the input and output ports of the CsrManager module. The input is connected to the SNAX CSR
+  * port. The output is connected to the streamer configuration port.
   * @param csrNumReadWrite
-  *   the number of read/write csr registers. These control registers are
-  *   buffered and can only be written to by the manager core.
+  *   the number of read/write csr registers. These control registers are buffered and can only be written to by the
+  *   manager core.
   * @param csrNumReadOnly
-  *   the number of read only csr registers. These values are written to by the
-  *   accelerator
+  *   the number of read only csr registers. These values are written to by the accelerator
   * @param addrWidth
   *   the width of the address
   */
-class CsrManagerIO(
-    csrNumReadWrite: Int,
-    csrNumReadOnly: Int,
-    csrAddrWidth: Int
-) extends Bundle {
+class CsrManagerIO(csrNumReadWrite: Int, csrNumReadOnly: Int, csrAddrWidth: Int) extends Bundle {
 
-  val csr_config_in = new SnaxCsrIO(csrAddrWidth)
+  val csr_config_in  = new SnaxCsrIO(csrAddrWidth)
   val csr_config_out = Decoupled(Vec(csrNumReadWrite, UInt(32.W)))
 
-// Add extra input ports from accelerator side for the read only CSRs
+  // Add extra input ports from accelerator side for the read only CSRs
   val read_only_csr = Input(Vec(csrNumReadOnly, UInt(csrAddrWidth.W)))
 
 }
 
-/** This class represents the CsrManager module. It contains the csr registers
-  * and the read and write control logic. It contains only one type of
-  * registers, eg. read and write CSR.
+/** This class represents the CsrManager module. It contains the csr registers and the read and write control logic. It
+  * contains only one type of registers, eg. read and write CSR.
   * @param csrNumReadWrite
   *   the number of read and write csr registers
   * @param csrNumReadOnly
@@ -55,32 +46,24 @@ class CsrManagerIO(
   * @param addrWidth
   *   the width of the address
   */
-class CsrManager(
-    csrNumReadWrite: Int,
-    csrNumReadOnly: Int,
-    csrAddrWidth: Int,
-    csrModuleTagName: String = ""
-) extends Module
+class CsrManager(csrNumReadWrite: Int, csrNumReadOnly: Int, csrAddrWidth: Int, csrModuleTagName: String = "")
+    extends Module
     with RequireAsyncReset {
   override val desiredName = csrModuleTagName + "CsrManager"
 
-  lazy val io = IO(
-    new CsrManagerIO(csrNumReadWrite, csrNumReadOnly, csrAddrWidth)
-  )
+  lazy val io = IO(new CsrManagerIO(csrNumReadWrite, csrNumReadOnly, csrAddrWidth))
   io.suggestName("io")
 
   // generate a vector of registers to store the csr state
   val csr = RegInit(VecInit(Seq.fill(csrNumReadWrite)(0.U(32.W))))
 
   // read write and start csr command
-  val read_csr = io.csr_config_in.req.fire && !io.csr_config_in.req.bits.write
-  val write_csr = io.csr_config_in.req.fire && io.csr_config_in.req.bits.write
-  val start_csr =
-    io.csr_config_in.req.valid && io.csr_config_in.req.bits.write &&
-      (io.csr_config_in.req.bits.addr === (csrNumReadWrite - 1).U) && io.csr_config_in.req.bits.data === 1.U
-  val check_acc_status =
-    io.csr_config_in.req.valid && io.csr_config_in.req.bits.write &&
-      (io.csr_config_in.req.bits.addr === (csrNumReadWrite - 1).U) && io.csr_config_in.req.bits.data === 0.U
+  val read_csr  = io.csr_config_in.req.fire  && !io.csr_config_in.req.bits.write
+  val write_csr = io.csr_config_in.req.fire  && io.csr_config_in.req.bits.write
+  val start_csr = io.csr_config_in.req.valid && io.csr_config_in.req.bits.write &&
+    (io.csr_config_in.req.bits.addr === (csrNumReadWrite - 1).U) && io.csr_config_in.req.bits.data === 1.U
+  val check_acc_status = io.csr_config_in.req.valid && io.csr_config_in.req.bits.write &&
+    (io.csr_config_in.req.bits.addr === (csrNumReadWrite - 1).U) && io.csr_config_in.req.bits.data === 0.U
 
   def address_range_assert() = {
     // assert the csr address range is valid
@@ -133,9 +116,9 @@ class CsrManager(
     io.csr_config_in.rsp.valid := 1.B
   }.elsewhen(read_csr_busy) {
     io.csr_config_in.rsp.bits.data := read_csr_buffer
-    io.csr_config_in.rsp.valid := 1.B
+    io.csr_config_in.rsp.valid     := 1.B
   }.otherwise {
-    io.csr_config_in.rsp.valid := 0.B
+    io.csr_config_in.rsp.valid     := 0.B
     io.csr_config_in.rsp.bits.data := 0.U
   }
 
@@ -143,7 +126,8 @@ class CsrManager(
   // configuration can be sent to the streamer if it is not busy
 
   // streamer configuration valid signal
-  io.csr_config_out.valid := write_csr && (io.csr_config_in.req.bits.addr === (csrNumReadWrite - 1).U) && io.csr_config_in.req.bits.data === 1.U
+  io.csr_config_out.valid := write_csr && (io.csr_config_in.req.bits.addr === (csrNumReadWrite - 1).U) &&
+    io.csr_config_in.req.bits.data === 1.U
 
   // CSR Manager ready signal logic
   // The CSR Manager is always ready except if:

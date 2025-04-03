@@ -3,37 +3,34 @@ package snax_acc.gemmx
 import chisel3._
 import chisel3.util._
 
-import snax_acc.simd._
 import snax_acc.gemm._
-
+import snax_acc.simd._
 import snax_acc.utils._
 
 // The BlockGemmRescaleSIMD's control port declaration.
-class BlockGemmRescaleSIMDCtrlIO(params: BlockGemmRescaleSIMDParams)
-    extends Bundle {
+class BlockGemmRescaleSIMDCtrlIO(params: BlockGemmRescaleSIMDParams) extends Bundle {
 
-  val gemm_ctrl = Flipped(DecoupledIO(new BlockGemmCtrlIO(params.gemmParams)))
-  val simd_ctrl = Flipped(
+  val gemm_ctrl           = Flipped(DecoupledIO(new BlockGemmCtrlIO(params.gemmParams)))
+  val simd_ctrl           = Flipped(
     Decoupled(Vec(params.rescaleSIMDParams.readWriteCsrNum, UInt(32.W)))
   )
-  val bypassSIMD = Input(Bool())
-  val busy_o = Output(Bool())
+  val bypassSIMD          = Input(Bool())
+  val busy_o              = Output(Bool())
   val performance_counter = Output(UInt(32.W))
 
 }
 
 // The BlockGemmRescaleSIMD's data port declaration. Decoupled interface connected to the streamer
-class BlockGemmRescaleSIMDDataIO(params: BlockGemmRescaleSIMDParams)
-    extends Bundle {
+class BlockGemmRescaleSIMDDataIO(params: BlockGemmRescaleSIMDParams) extends Bundle {
   val gemm_data = new Bundle {
-    val a_i = Flipped(
+    val a_i        = Flipped(
       Decoupled(
         UInt(
           (params.gemmParams.dataWidthA * params.gemmParams.meshRow * params.gemmParams.tileSize).W
         )
       )
     )
-    val b_i = Flipped(
+    val b_i        = Flipped(
       Decoupled(
         UInt(
           (params.gemmParams.dataWidthB * params.gemmParams.tileSize * params.gemmParams.meshCol).W
@@ -52,15 +49,12 @@ class BlockGemmRescaleSIMDDataIO(params: BlockGemmRescaleSIMDParams)
   }
 }
 
-class BlockGemmRescaleSIMDIO(params: BlockGemmRescaleSIMDParams)
-    extends Bundle {
+class BlockGemmRescaleSIMDIO(params: BlockGemmRescaleSIMDParams) extends Bundle {
   val ctrl = new BlockGemmRescaleSIMDCtrlIO(params)
   val data = new BlockGemmRescaleSIMDDataIO(params)
 }
 
-class BlockGemmRescaleSIMD(params: BlockGemmRescaleSIMDParams)
-    extends Module
-    with RequireAsyncReset {
+class BlockGemmRescaleSIMD(params: BlockGemmRescaleSIMDParams) extends Module with RequireAsyncReset {
 
   val io = IO(new BlockGemmRescaleSIMDIO(params))
 
@@ -69,20 +63,19 @@ class BlockGemmRescaleSIMD(params: BlockGemmRescaleSIMDParams)
   // instiantiate the simd module based on the configuration
   // select if use pipelined simd or not accrording to the configuration
   val simd = params.withPipeline match {
-    case true =>
+    case true  =>
       Module(new PipelinedRescaleSIMD(params.rescaleSIMDParams))
     case false =>
       Module(new RescaleSIMD(params.rescaleSIMDParams))
-    case _ => throw new Exception("Unknown SIMD configuration")
+    case _     => throw new Exception("Unknown SIMD configuration")
   }
 
   // C32 serial to parallel converter
   val C32_s2p = Module(
     new SerialToParallel(
       SerialToParallelParams(
-        parallelWidth =
-          params.gemmParams.dataWidthC * params.gemmParams.meshRow * params.gemmParams.meshCol,
-        serialWidth = params.C32_D32_width
+        parallelWidth = params.gemmParams.dataWidthC * params.gemmParams.meshRow * params.gemmParams.meshCol,
+        serialWidth   = params.C32_D32_width
       )
     )
   )
@@ -91,9 +84,8 @@ class BlockGemmRescaleSIMD(params: BlockGemmRescaleSIMDParams)
   val D32_p2s = Module(
     new ParallelToSerial(
       ParallelToSerialParams(
-        parallelWidth =
-          params.gemmParams.dataWidthC * params.gemmParams.meshRow * params.gemmParams.meshCol,
-        serialWidth = params.C32_D32_width
+        parallelWidth = params.gemmParams.dataWidthC * params.gemmParams.meshRow * params.gemmParams.meshCol,
+        serialWidth   = params.C32_D32_width
       )
     )
   )
@@ -102,9 +94,8 @@ class BlockGemmRescaleSIMD(params: BlockGemmRescaleSIMDParams)
   val D8_p2s = Module(
     new ParallelToSerial(
       ParallelToSerialParams(
-        parallelWidth =
-          params.rescaleSIMDParams.dataLen * params.rescaleSIMDParams.outputType,
-        serialWidth = params.D8_width
+        parallelWidth = params.rescaleSIMDParams.dataLen * params.rescaleSIMDParams.outputType,
+        serialWidth   = params.D8_width
       )
     )
   )
@@ -123,10 +114,10 @@ class BlockGemmRescaleSIMD(params: BlockGemmRescaleSIMDParams)
 
   // simd signal connection
   when(io.ctrl.bypassSIMD) {
-    simd.io.ctrl.valid := false.B
+    simd.io.ctrl.valid      := false.B
     io.ctrl.simd_ctrl.ready := false.B
   }.otherwise {
-    simd.io.ctrl.valid := io.ctrl.simd_ctrl.valid
+    simd.io.ctrl.valid      := io.ctrl.simd_ctrl.valid
     io.ctrl.simd_ctrl.ready := simd.io.ctrl.ready
   }
   simd.io.ctrl.bits := io.ctrl.simd_ctrl.bits
@@ -138,7 +129,7 @@ class BlockGemmRescaleSIMD(params: BlockGemmRescaleSIMDParams)
     simd.io.data.input_i.valid := false.B
 
     // gemm output to outside directly
-    D32_p2s.io.in.valid := gemm.io.data.d_o.valid
+    D32_p2s.io.in.valid    := gemm.io.data.d_o.valid
     // directly connect the ready signal
     gemm.io.data.d_o.ready := D32_p2s.io.in.ready
 
@@ -146,14 +137,14 @@ class BlockGemmRescaleSIMD(params: BlockGemmRescaleSIMDParams)
     // insert a register to improve frequency
     simd.io.data.input_i.valid := gemm.io.data.d_o.valid
     // directly connect the ready signal
-    gemm.io.data.d_o.ready := simd.io.data.input_i.ready
+    gemm.io.data.d_o.ready     := simd.io.data.input_i.ready
 
     // output driver
     D32_p2s.io.in.valid := false.B
 
   }
   simd.io.data.input_i.bits := gemm.io.data.d_o.bits
-  D32_p2s.io.in.bits := gemm.io.data.d_o.bits
+  D32_p2s.io.in.bits        := gemm.io.data.d_o.bits
 
   // simd output
   when(io.ctrl.bypassSIMD) {
@@ -162,7 +153,7 @@ class BlockGemmRescaleSIMD(params: BlockGemmRescaleSIMDParams)
     // fake ready signal
     simd.io.data.output_o.ready := false.B
   }.otherwise {
-    D8_p2s.io.in.valid := simd.io.data.output_o.valid
+    D8_p2s.io.in.valid          := simd.io.data.output_o.valid
     simd.io.data.output_o.ready := D8_p2s.io.in.ready
   }
   D8_p2s.io.in.bits := simd.io.data.output_o.bits
@@ -207,11 +198,11 @@ object BlockGemmRescaleSIMDGen {
     val argMap = parseArgs(args)
 
     // Retrieve the specific values, providing defaults or error handling
-    val meshRow = argMap("meshRow").toInt
-    val meshCol = argMap("meshCol").toInt
-    val tileSize = argMap("tileSize").toInt
+    val meshRow           = argMap("meshRow").toInt
+    val meshCol           = argMap("meshCol").toInt
+    val tileSize          = argMap("tileSize").toInt
     val serialC32D32Width = argMap("serialC32D32Width").toInt
-    val serialD8Width = argMap("serialD8Width").toInt
+    val serialD8Width     = argMap("serialD8Width").toInt
 
     // set the parameters for the gemm module
     // other parameters are set to default values
@@ -233,15 +224,15 @@ object BlockGemmRescaleSIMDGen {
 
     // set the parameters for the simd module to match the output of the gemm module
     // CSR to support per-channel scale factor
-    val SIMDReadWriteCsrNum = 2 + meshCol / 4 + meshCol + 1
+    val SIMDReadWriteCsrNum       = 2 + meshCol / 4 + meshCol + 1
     val SIMDParamsWithoutPipeline = RescaleSIMDParams(
-      inputType = RescaleSIMDConstant.inputType,
-      outputType = RescaleSIMDConstant.outputType,
-      constantType = RescaleSIMDConstant.constantType,
-      constantMulType = RescaleSIMDConstant.constantMulType,
-      dataLen = meshRow * meshCol,
-      laneLen = meshRow * meshCol,
-      readWriteCsrNum = SIMDReadWriteCsrNum,
+      inputType                     = RescaleSIMDConstant.inputType,
+      outputType                    = RescaleSIMDConstant.outputType,
+      constantType                  = RescaleSIMDConstant.constantType,
+      constantMulType               = RescaleSIMDConstant.constantMulType,
+      dataLen                       = meshRow * meshCol,
+      laneLen                       = meshRow * meshCol,
+      readWriteCsrNum               = SIMDReadWriteCsrNum,
       sharedScaleFactorPerGroupSize = meshRow
     )
 
@@ -252,7 +243,7 @@ object BlockGemmRescaleSIMDGen {
        else SIMDParamsWithoutPipeline),
       withPipeline,
       C32_D32_width = serialC32D32Width,
-      D8_width = serialD8Width
+      D8_width      = serialD8Width
     )
 
     emitVerilog(
@@ -265,8 +256,8 @@ object BlockGemmRescaleSIMDGen {
     val GeMMXReadWriteCsrNum = 4 + SIMDReadWriteCsrNum + 2
 
     var macro_template = ""
-    val macro_dir = "./src/snax_streamer_gemmX_shell_wrapper.sv"
-    val header = s"""// Copyright 2025 KU Leuven.
+    val macro_dir      = "./src/snax_streamer_gemmX_shell_wrapper.sv"
+    val header         = s"""// Copyright 2025 KU Leuven.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 //
@@ -278,11 +269,11 @@ object BlockGemmRescaleSIMDGen {
 // Accelerator wrapper
 //-------------------------------
 """
-    val DataWidthA = GemmConstant.dataWidthA * meshRow * tileSize
-    val DataWidthB = GemmConstant.dataWidthB * tileSize * meshCol
-    val DataWidthC = params.C32_D32_width
-    val DataWidthD32 = params.C32_D32_width
-    val DataWidthD8 = params.D8_width
+    val DataWidthA     = GemmConstant.dataWidthA * meshRow * tileSize
+    val DataWidthB     = GemmConstant.dataWidthB * tileSize * meshCol
+    val DataWidthC     = params.C32_D32_width
+    val DataWidthD32   = params.C32_D32_width
+    val DataWidthD8    = params.D8_width
 
     var SIMDCSRConnect = ""
     for (i <- 4 to (4 + SIMDReadWriteCsrNum - 1)) {

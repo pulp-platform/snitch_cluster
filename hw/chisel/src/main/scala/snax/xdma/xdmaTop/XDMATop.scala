@@ -1,37 +1,31 @@
 package snax.xdma.xdmaTop
 
+import scala.reflect.runtime.currentMirror
+import scala.tools.reflect.ToolBox
+
 import chisel3._
 import chisel3.util._
 
-import snax.csr_manager._
-import snax.utils._
-
-import snax.readerWriter.ReaderWriterParam
+import play.api.libs.json._
 import snax.DataPathExtension._
-import snax.xdma.xdmaFrontend._
+import snax.csr_manager._
+import snax.readerWriter.ReaderWriterParam
+import snax.utils._
 import snax.xdma.DesignParams._
 import snax.xdma.io._
+import snax.xdma.xdmaFrontend._
 
-import scala.reflect.runtime.currentMirror
-import scala.tools.reflect.ToolBox
-import scala.reflect.runtime.universe._
-
-import play.api.libs.json._
-
-class XDMATopIO(
-    readerParam: XDMAParam,
-    writerParam: XDMAParam
-) extends Bundle {
+class XDMATopIO(readerParam: XDMAParam, writerParam: XDMAParam) extends Bundle {
   val clusterBaseAddress = Input(
     UInt(writerParam.axiParam.addrWidth.W)
   )
-  val csrIO = new SnaxCsrIO(32)
+  val csrIO              = new SnaxCsrIO(32)
 
   val remoteXDMACfg = new Bundle {
     val fromRemote = Flipped(
       Decoupled(UInt(readerParam.axiParam.dataWidth.W))
     )
-    val toRemote = Decoupled(UInt(readerParam.axiParam.dataWidth.W))
+    val toRemote   = Decoupled(UInt(readerParam.axiParam.dataWidth.W))
   }
 
   val tcdmReader = new Bundle {
@@ -68,7 +62,7 @@ class XDMATopIO(
   }
 
   val remoteXDMAData = new Bundle {
-    val fromRemote = Flipped(
+    val fromRemote               = Flipped(
       Decoupled(
         UInt(
           (writerParam.rwParam.tcdmParam.dataWidth * writerParam.rwParam.tcdmParam.numChannel).W
@@ -77,18 +71,18 @@ class XDMATopIO(
     )
     val fromRemoteAccompaniedCfg = Output(
       new XDMADataPathCfgIO(
-        axiParam = writerParam.axiParam,
+        axiParam          = writerParam.axiParam,
         crossClusterParam = writerParam.crossClusterParam
       )
     )
-    val toRemote = Decoupled(
+    val toRemote                 = Decoupled(
       UInt(
         (writerParam.rwParam.tcdmParam.dataWidth * writerParam.rwParam.tcdmParam.numChannel).W
       )
     )
-    val toRemoteAccompaniedCfg = Output(
+    val toRemoteAccompaniedCfg   = Output(
       new XDMADataPathCfgIO(
-        axiParam = readerParam.axiParam,
+        axiParam          = readerParam.axiParam,
         crossClusterParam = readerParam.crossClusterParam
       )
     )
@@ -102,14 +96,11 @@ class XDMATopIO(
   }
 }
 
-class XDMATop(
-    readerParam: XDMAParam,
-    writerParam: XDMAParam,
-    clusterName: String = "unnamed_cluster"
-) extends Module
+class XDMATop(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: String = "unnamed_cluster")
+    extends Module
     with RequireAsyncReset {
   override val desiredName = s"${clusterName}_xdma"
-  val io = IO(
+  val io                   = IO(
     new XDMATopIO(
       readerParam = readerParam,
       writerParam = writerParam
@@ -173,7 +164,7 @@ class XDMATop(
 object XDMATopGen extends App {
   val parsedArgs = snax.utils.ArgParser.parse(args)
   // The xdmaCfg region is passed to chisel generator as a JSON string
-  val xdmaCfg = parsedArgs.find(_._1 == "xdmaCfg")
+  val xdmaCfg    = parsedArgs.find(_._1 == "xdmaCfg")
   if (xdmaCfg.isEmpty) {
     println("xdmaCfg is not provided, generation failed. ")
     sys.exit(-1)
@@ -202,39 +193,35 @@ object XDMATopGen extends App {
   )
 
   val crossClusterParam = new CrossClusterParam(
-    maxMulticastDest = (parsedXdmaCfg \ "max_multicast").as[Int],
+    maxMulticastDest     = (parsedXdmaCfg \ "max_multicast").as[Int],
     maxTemporalDimension = (parsedXdmaCfg \ "max_dimension").as[Int],
-    tcdmSize = (parsedXdmaCfg \ "max_mem_size").as[Int],
-    AxiAddressWidth = parsedArgs("axiAddrWidth").toInt
+    tcdmSize             = (parsedXdmaCfg \ "max_mem_size").as[Int],
+    AxiAddressWidth      = parsedArgs("axiAddrWidth").toInt
   )
 
   val readerParam = new ReaderWriterParam(
-    spatialBounds = List(
+    spatialBounds        = List(
       parsedArgs("axiDataWidth").toInt / parsedArgs("tcdmDataWidth").toInt
     ),
-    temporalDimension =
-      (parsedXdmaCfg \ "reader_agu_temporal_dimension").as[Int],
-    tcdmDataWidth = parsedArgs("tcdmDataWidth").toInt,
-    tcdmSize = parsedArgs("tcdmSize").toInt,
-    numChannel =
-      parsedArgs("axiDataWidth").toInt / parsedArgs("tcdmDataWidth").toInt,
-    addressBufferDepth = (parsedXdmaCfg \ "reader_buffer").as[Int],
-    configurableChannel = true,
+    temporalDimension    = (parsedXdmaCfg \ "reader_agu_temporal_dimension").as[Int],
+    tcdmDataWidth        = parsedArgs("tcdmDataWidth").toInt,
+    tcdmSize             = parsedArgs("tcdmSize").toInt,
+    numChannel           = parsedArgs("axiDataWidth").toInt / parsedArgs("tcdmDataWidth").toInt,
+    addressBufferDepth   = (parsedXdmaCfg \ "reader_buffer").as[Int],
+    configurableChannel  = true,
     configurableByteMask = false
   )
 
-  val writerParam = new ReaderWriterParam(
-    spatialBounds = List(
+  val writerParam          = new ReaderWriterParam(
+    spatialBounds        = List(
       parsedArgs("axiDataWidth").toInt / parsedArgs("tcdmDataWidth").toInt
     ),
-    temporalDimension =
-      (parsedXdmaCfg \ "writer_agu_temporal_dimension").as[Int],
-    tcdmDataWidth = parsedArgs("tcdmDataWidth").toInt,
-    tcdmSize = parsedArgs("tcdmSize").toInt,
-    numChannel =
-      parsedArgs("axiDataWidth").toInt / parsedArgs("tcdmDataWidth").toInt,
-    addressBufferDepth = (parsedXdmaCfg \ "writer_buffer").as[Int],
-    configurableChannel = true,
+    temporalDimension    = (parsedXdmaCfg \ "writer_agu_temporal_dimension").as[Int],
+    tcdmDataWidth        = parsedArgs("tcdmDataWidth").toInt,
+    tcdmSize             = parsedArgs("tcdmSize").toInt,
+    numChannel           = parsedArgs("axiDataWidth").toInt / parsedArgs("tcdmDataWidth").toInt,
+    addressBufferDepth   = (parsedXdmaCfg \ "writer_buffer").as[Int],
+    configurableChannel  = true,
     configurableByteMask = true
   )
   var readerExtensionParam = Seq[HasDataPathExtension]()
@@ -247,17 +234,14 @@ object XDMATopGen extends App {
   // Thus, the generation function does not need to be modified by the extension developers.
   // Extension developers only need to 1) Add the Extension source code 2) Add Has...: #priority in hjson configuration file
 
-  val toolbox = currentMirror.mkToolBox()
+  val toolbox                = currentMirror.mkToolBox()
   val datapathExtensionParam = parsedXdmaCfg match {
     case obj: JsObject =>
-      obj.fields
-        .filter { case (k, v) =>
-          k.startsWith("Has")
-        }
-        .toSeq
-        .map { case (k, v) =>
-          (k, v.as[Map[String, Seq[Int]]].values)
-        }
+      obj.fields.filter { case (k, _) =>
+        k.startsWith("Has")
+      }.toSeq.map { case (k, v) =>
+        (k, v.as[Map[String, Seq[Int]]].values)
+      }
     case _ => Seq.empty
   }
 
@@ -346,14 +330,10 @@ return new ${i._1}(${i._2
 
 // The channel and strobe region of the reader of XDMA
 #define XDMA_SRC_ENABLED_CHAN_PTR XDMA_SRC_TEMP_STRIDE_PTR + XDMA_SRC_TEMP_DIM
-#define XDMA_SRC_BYPASS_PTR XDMA_SRC_ENABLED_CHAN_PTR + ${if (
-        readerParam.configurableChannel
-      ) 1
+#define XDMA_SRC_BYPASS_PTR XDMA_SRC_ENABLED_CHAN_PTR + ${if (readerParam.configurableChannel) 1
       else 0}
 #define XDMA_SRC_EXT_NUM ${readerExtensionParam.length}
-#define XDMA_SRC_EXT_CSR_PTR XDMA_SRC_BYPASS_PTR + ${if (
-        readerExtensionParam.length > 0
-      ) 1
+#define XDMA_SRC_EXT_CSR_PTR XDMA_SRC_BYPASS_PTR + ${if (readerExtensionParam.length > 0) 1
       else 0}
 #define XDMA_SRC_EXT_CSR_NUM ${readerExtensionParam
         .map(_.extensionParam.userCsrNum)
@@ -368,18 +348,12 @@ return new ${i._1}(${i._2
 #define XDMA_DST_TEMP_STRIDE_PTR XDMA_DST_TEMP_BOUND_PTR + XDMA_DST_TEMP_DIM
 
 #define XDMA_DST_ENABLED_CHAN_PTR XDMA_DST_TEMP_STRIDE_PTR + XDMA_DST_TEMP_DIM
-#define XDMA_DST_ENABLED_BYTE_PTR XDMA_DST_ENABLED_CHAN_PTR + ${if (
-        writerParam.configurableChannel
-      ) 1
+#define XDMA_DST_ENABLED_BYTE_PTR XDMA_DST_ENABLED_CHAN_PTR + ${if (writerParam.configurableChannel) 1
       else 0}
-#define XDMA_DST_BYPASS_PTR XDMA_DST_ENABLED_BYTE_PTR + ${if (
-        writerParam.configurableByteMask
-      ) 1
+#define XDMA_DST_BYPASS_PTR XDMA_DST_ENABLED_BYTE_PTR + ${if (writerParam.configurableByteMask) 1
       else 0}
 #define XDMA_DST_EXT_NUM ${writerExtensionParam.length}
-#define XDMA_DST_EXT_CSR_PTR XDMA_DST_BYPASS_PTR + ${if (
-        writerExtensionParam.length > 0
-      ) 1
+#define XDMA_DST_EXT_CSR_PTR XDMA_DST_BYPASS_PTR + ${if (writerExtensionParam.length > 0) 1
       else 0}
 #define XDMA_DST_EXT_CSR_NUM ${writerExtensionParam
         .map(_.extensionParam.userCsrNum)

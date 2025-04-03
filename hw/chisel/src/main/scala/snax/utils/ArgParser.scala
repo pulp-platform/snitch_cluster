@@ -9,7 +9,7 @@ object ArgParser {
    */
   def parse(args: Array[String]): collection.mutable.Map[String, String] = {
     val parsed_args = collection.mutable.Map[String, String]()
-    var i = 0
+    var i           = 0
     while (i < args.length) {
       if (args(i)(0) == '-' && args(i)(1) == '-') {
         if (

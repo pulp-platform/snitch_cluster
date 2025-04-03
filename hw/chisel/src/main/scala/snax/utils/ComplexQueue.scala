@@ -3,28 +3,22 @@ package snax.utils
 import chisel3._
 import chisel3.util._
 
-/** The complexQueue_Concat to do multiple channel in / single concatenated out
-  * or single channel in / multiple splitted out fifo The user defined params
-  * include:
+/** The complexQueue_Concat to do multiple channel in / single concatenated out or single channel in / multiple splitted
+  * out fifo The user defined params include:
   * @param inputWidth:
   *   the width of the input
   * @param outputWidth:
   *   the width of the output
   * @param depth:
-  *   the depth of the FIFO If inputWidth is smaller than outputWidth, then it
-  *   will be the first option If inputWidth is larger than outputWidth, then it
-  *   will be the second option No matter which case, the big width one should
-  *   equal to integer times of the small width one
+  *   the depth of the FIFO If inputWidth is smaller than outputWidth, then it will be the first option If inputWidth is
+  *   larger than outputWidth, then it will be the second option No matter which case, the big width one should equal to
+  *   integer times of the small width one
   */
 
-class ComplexQueueConcat(
-    inputWidth: Int,
-    outputWidth: Int,
-    depth: Int,
-    pipe: Boolean = false
-) extends Module
+class ComplexQueueConcat(inputWidth: Int, outputWidth: Int, depth: Int, pipe: Boolean = false)
+    extends Module
     with RequireAsyncReset {
-  val bigWidth = Seq(inputWidth, outputWidth).max
+  val bigWidth   = Seq(inputWidth, outputWidth).max
   val smallWidth = Seq(inputWidth, outputWidth).min
 
   val queueModuleName =
@@ -41,7 +35,7 @@ class ComplexQueueConcat(
   require(depth > 0)
 
   val io = IO(new Bundle {
-    val in = Flipped(
+    val in       = Flipped(
       Vec(
         {
           if (inputWidth == bigWidth) 1 else numChannel
@@ -49,14 +43,14 @@ class ComplexQueueConcat(
         Decoupled(UInt(inputWidth.W))
       )
     )
-    val out = Vec(
+    val out      = Vec(
       {
         if (outputWidth == bigWidth) 1 else numChannel
       },
       Decoupled(UInt(outputWidth.W))
     )
     val allEmpty = Output(Bool())
-    val anyFull = Output(Bool())
+    val anyFull  = Output(Bool())
   })
 
   val queues = for (i <- 0 until numChannel) yield {
@@ -109,21 +103,17 @@ class ComplexQueueConcat(
   io.anyFull := queues.map(queue => ~(queue.io.enq.ready)).reduce(_ | _)
 }
 
-/** The complexQueue to do N-channels in / 1 N-Vec channel out. The user defined
-  * params include:
+/** The complexQueue to do N-channels in / 1 N-Vec channel out. The user defined params include:
   * @param dataType:
   *   the type of one channel
   * @param N:
   *   the number of seperated channels at the input
   * @param depth:
-  *   the depth of the FIFO If inputWidth is smaller than outputWidth, then it
-  *   will be the first option If inputWidth is larger than outputWidth, then it
-  *   will be the second option No matter which case, the big width one should
-  *   equal to integer times of the small width one
+  *   the depth of the FIFO If inputWidth is smaller than outputWidth, then it will be the first option If inputWidth is
+  *   larger than outputWidth, then it will be the second option No matter which case, the big width one should equal to
+  *   integer times of the small width one
   */
-class ComplexQueueNtoOne[T <: Data](dataType: T, N: Int, depth: Int)
-    extends Module
-    with RequireAsyncReset {
+class ComplexQueueNtoOne[T <: Data](dataType: T, N: Int, depth: Int) extends Module with RequireAsyncReset {
   require(
     N > 1,
     message = "N should be greater than 1"
@@ -137,10 +127,10 @@ class ComplexQueueNtoOne[T <: Data](dataType: T, N: Int, depth: Int)
     ).toString(radix = 32)
 
   val io = IO(new Bundle {
-    val in = Flipped(Vec(N, Decoupled(dataType)))
-    val out = Decoupled(Vec(N, dataType))
+    val in       = Flipped(Vec(N, Decoupled(dataType)))
+    val out      = Decoupled(Vec(N, dataType))
     val allEmpty = Output(Bool())
-    val anyFull = Output(Bool())
+    val anyFull  = Output(Bool())
   })
 
   val queues = for (i <- 0 until N) yield {
@@ -162,22 +152,18 @@ class ComplexQueueNtoOne[T <: Data](dataType: T, N: Int, depth: Int)
   io.anyFull := queues.map(queue => ~(queue.io.enq.ready)).reduce(_ | _)
 }
 
-/** The complexQueue to do 1 N-Vec channel in / N-channels out. The user defined
-  * params include:
+/** The complexQueue to do 1 N-Vec channel in / N-channels out. The user defined params include:
   * @param dataType:
   *   the type of one channel
   * @param N
   *
   * @param depth:
-  *   the depth of the FIFO If inputWidth is smaller than outputWidth, then it
-  *   will be the first option If inputWidth is larger than outputWidth, then it
-  *   will be the second option No matter which case, the big width one should
-  *   equal to integer times of the small width one
+  *   the depth of the FIFO If inputWidth is smaller than outputWidth, then it will be the first option If inputWidth is
+  *   larger than outputWidth, then it will be the second option No matter which case, the big width one should equal to
+  *   integer times of the small width one
   */
 
-class ComplexQueueOnetoN[T <: Data](dataType: T, N: Int, depth: Int)
-    extends Module
-    with RequireAsyncReset {
+class ComplexQueueOnetoN[T <: Data](dataType: T, N: Int, depth: Int) extends Module with RequireAsyncReset {
   require(
     N > 1,
     message = "N should be greater than 1"
@@ -191,10 +177,10 @@ class ComplexQueueOnetoN[T <: Data](dataType: T, N: Int, depth: Int)
     ).toString(radix = 32)
 
   val io = IO(new Bundle {
-    val in = Flipped(Decoupled(Vec(N, dataType)))
-    val out = Vec(N, Decoupled(dataType))
+    val in       = Flipped(Decoupled(Vec(N, dataType)))
+    val out      = Vec(N, Decoupled(dataType))
     val allEmpty = Output(Bool())
-    val anyFull = Output(Bool())
+    val anyFull  = Output(Bool())
   })
 
   val queues = for (i <- 0 until N) yield {

@@ -1,12 +1,12 @@
 package snax.readerWriter
 
-import snax.utils._
-
 import chisel3._
 import chisel3.util._
 
+import snax.utils._
+
 class ReaderWriterCfgIO(val param: ReaderWriterParam) extends Bundle {
-  val enabledByte =
+  val enabledByte    =
     if (param.configurableByteMask)
       UInt((param.tcdmParam.dataWidth / 8).W)
     else UInt(0.W)
@@ -16,10 +16,11 @@ class ReaderWriterCfgIO(val param: ReaderWriterParam) extends Bundle {
     else UInt(0.W)
 
   def connectWithList(csrList: IndexedSeq[UInt]): IndexedSeq[UInt] = {
-    var remaincsrList = csrList
-    def enabledChannelCSRNum = if (param.configurableChannel)
-      ((param.tcdmParam.numChannel + 31) / 32)
-    else 0
+    var remaincsrList        = csrList
+    def enabledChannelCSRNum =
+      if (param.configurableChannel)
+        ((param.tcdmParam.numChannel + 31) / 32)
+      else 0
     if (param.configurableChannel) {
       enabledChannel := remaincsrList.take(enabledChannelCSRNum).reduce(_ ## _)
       remaincsrList = remaincsrList.drop(enabledChannelCSRNum)
@@ -36,14 +37,13 @@ class ReaderWriterCfgIO(val param: ReaderWriterParam) extends Bundle {
   }
 }
 
-abstract class ReaderWriterCommomIO(val param: ReaderWriterParam)
-    extends Bundle {
+abstract class ReaderWriterCommomIO(val param: ReaderWriterParam) extends Bundle {
   // The signal to control address generator
-  val aguCfg = Input(new AddressGenUnitCfgIO(param.aguParam))
+  val aguCfg          = Input(new AddressGenUnitCfgIO(param.aguParam))
   // The signal to control which byte is written to TCDM
   val readerwriterCfg = Input(new ReaderWriterCfgIO(param))
   // The port to feed in the clock signal from acc
-  val accClock = if (param.crossClockDomain) Some(Input(Clock())) else None
+  val accClock        = if (param.crossClockDomain) Some(Input(Clock())) else None
 
   def connectCfgWithList(csrList: IndexedSeq[UInt]): IndexedSeq[UInt] = {
     var remaincsrList = csrList
@@ -53,9 +53,9 @@ abstract class ReaderWriterCommomIO(val param: ReaderWriterParam)
   }
 
   // The signal trigger the start of Address Generator. The non-empty of address generator will cause data requestor to read the data
-  val start = Input(Bool())
+  val start       = Input(Bool())
   // The module is busy if addressgen is busy or fifo in addressgen is not empty
-  val busy = Output(Bool())
+  val busy        = Output(Bool())
   // The buffer is empty
   val bufferEmpty = Output(Bool())
 }
@@ -66,7 +66,7 @@ trait HasTCDMRequestor {
     param.tcdmParam.numChannel,
     Decoupled(
       new TcdmReq(
-        addrWidth = param.tcdmParam.addrWidth,
+        addrWidth     = param.tcdmParam.addrWidth,
         tcdmDataWidth = param.tcdmParam.dataWidth
       )
     )
@@ -103,15 +103,9 @@ class ReaderIO(param: ReaderWriterParam)
     with HasTCDMResponder
     with HasOutputDataIO
 
-class WriterIO(param: ReaderWriterParam)
-    extends ReaderWriterCommomIO(param)
-    with HasTCDMRequestor
-    with HasInputDataIO
+class WriterIO(param: ReaderWriterParam) extends ReaderWriterCommomIO(param) with HasTCDMRequestor with HasInputDataIO
 
-class ReaderWriterIO(
-    readerParam: ReaderWriterParam,
-    writerParam: ReaderWriterParam
-) extends Bundle {
+class ReaderWriterIO(readerParam: ReaderWriterParam, writerParam: ReaderWriterParam) extends Bundle {
   // As they share the same TCDM interface, different number of channel is meaningless
   require(
     readerParam.tcdmParam.numChannel == writerParam.tcdmParam.numChannel
@@ -119,6 +113,5 @@ class ReaderWriterIO(
   // Full-funcional Reader interface
   val readerInterface = new ReaderIO(readerParam)
   // Writer interface without TCDM port
-  val writerInterface = new ReaderWriterCommomIO(writerParam)
-    with HasInputDataIO
+  val writerInterface = new ReaderWriterCommomIO(writerParam) with HasInputDataIO
 }

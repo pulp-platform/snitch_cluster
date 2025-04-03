@@ -1,16 +1,14 @@
 package snax.readerWriter
 
-import snax.utils._
-
 import chisel3._
 import chisel3.util._
 
+import snax.utils._
+
 // The reader takes the address from the AGU, offer to requestor, and responser collect the data from TCDM and pushed to FIFO packer to recombine into 512 bit data
 
-class Reader(
-    param: ReaderWriterParam,
-    moduleNamePrefix: String = "unnamed_cluster"
-) extends Module
+class Reader(param: ReaderWriterParam, moduleNamePrefix: String = "unnamed_cluster")
+    extends Module
     with RequireAsyncReset {
 
   override val desiredName = s"${moduleNamePrefix}_Reader"
@@ -33,10 +31,10 @@ class Reader(
   // Requestors to send address to TCDM
   val requestors = Module(
     new DataRequestors(
-      tcdmDataWidth = param.tcdmParam.dataWidth,
+      tcdmDataWidth    = param.tcdmParam.dataWidth,
       tcdmAddressWidth = param.tcdmParam.addrWidth,
-      numChannel = param.tcdmParam.numChannel,
-      isReader = true,
+      numChannel       = param.tcdmParam.numChannel,
+      isReader         = true,
       moduleNamePrefix = s"${moduleNamePrefix}_Reader"
     )
   )
@@ -44,9 +42,9 @@ class Reader(
   // Responsors to receive the data from TCDM
   val responsers = Module(
     new DataResponsers(
-      tcdmDataWidth = param.tcdmParam.dataWidth,
-      numChannel = param.tcdmParam.numChannel,
-      fifoDepth = param.bufferDepth,
+      tcdmDataWidth    = param.tcdmParam.dataWidth,
+      numChannel       = param.tcdmParam.numChannel,
+      fifoDepth        = param.bufferDepth,
       moduleNamePrefix = s"${moduleNamePrefix}_Reader"
     )
   )
@@ -54,16 +52,16 @@ class Reader(
   // Output FIFOs to combine the data from the output of responsers
   val dataBuffer = Module(
     new ComplexQueueConcat(
-      inputWidth = param.tcdmParam.dataWidth,
+      inputWidth  = param.tcdmParam.dataWidth,
       outputWidth = param.tcdmParam.dataWidth * param.tcdmParam.numChannel,
-      depth = param.bufferDepth,
-      pipe = true
+      depth       = param.bufferDepth,
+      pipe        = true
     ) {
       override val desiredName = s"${moduleNamePrefix}_Reader_DataBuffer"
     }
   )
 
-  addressgen.io.cfg := io.aguCfg
+  addressgen.io.cfg   := io.aguCfg
   addressgen.io.start := io.start
 
   // addrgen <> requestors
@@ -101,7 +99,7 @@ class Reader(
   requestors.io.zip(responsers.io).foreach {
     case (requestor, responser) => {
       requestor.reqrspLink.rspReady.get := responser.reqrspLink.rspReady
-      responser.reqrspLink.reqSubmit := requestor.reqrspLink.reqSubmit.get
+      responser.reqrspLink.reqSubmit    := requestor.reqrspLink.reqSubmit.get
     }
   }
 
@@ -154,7 +152,7 @@ object ReaderEmitter extends App {
       new Reader(
         new ReaderWriterParam(
           tcdmDataWidth = 512,
-          numChannel = 1,
+          numChannel    = 1,
           spatialBounds = List(1)
         )
       )

@@ -2,14 +2,8 @@ package snax.DataPathExtension
 
 import chisel3._
 import chisel3.util._
-import snax.xdma.DesignParams._
-import snax.utils.DecoupledCut._
 
-class HasTransposer(
-    row: Seq[Int],
-    col: Seq[Int],
-    elementWidth: Seq[Int]
-) extends HasDataPathExtension {
+class HasTransposer(row: Seq[Int], col: Seq[Int], elementWidth: Seq[Int]) extends HasDataPathExtension {
   // The length of row, col, and elementWidth should be the same
   require(row.length == col.length && col.length == elementWidth.length)
   // DataWidth can be calculated by row, col, and elementWidth
@@ -25,23 +19,19 @@ class HasTransposer(
       moduleName = s"TransposerRow${row.mkString("_")}Col${col
           .mkString("_")}Bit${elementWidth.mkString("_")}",
       userCsrNum = if (row.length == 1) 0 else 1,
-      dataWidth = dataWidth
+      dataWidth  = dataWidth
     )
 
-  def instantiate(clusterName: String): Transposer = Module(
-    new Transposer(row, col, elementWidth) {
-      override def desiredName = clusterName + namePostfix
-    }
-  )
+  def instantiate(clusterName: String): Transposer =
+    Module(
+      new Transposer(row, col, elementWidth) {
+        override def desiredName = clusterName + namePostfix
+      }
+    )
 }
 
-class Transposer(
-    row: Seq[Int],
-    col: Seq[Int],
-    elementWidth: Seq[Int]
-)(implicit
-    extensionParam: DataPathExtensionParam
-) extends DataPathExtension {
+class Transposer(row: Seq[Int], col: Seq[Int], elementWidth: Seq[Int])(implicit extensionParam: DataPathExtensionParam)
+    extends DataPathExtension {
   val outputArray = row.zip(col).zip(elementWidth).map { case ((r, c), e) =>
     val transposedResult = Wire(Vec(c, Vec(r, UInt(e.W))))
     for (i <- 0 until r) {
@@ -69,7 +59,7 @@ class Transposer(
 
   ext_data_i.ready := ext_data_o.ready
   ext_data_o.valid := ext_data_i.valid
-  ext_busy_o := false.B
+  ext_busy_o       := false.B
 }
 
 object TransposerEmitter extends App {
@@ -79,7 +69,7 @@ object TransposerEmitter extends App {
         extensionParam = new DataPathExtensionParam(
           moduleName = "Transposer",
           userCsrNum = 0,
-          dataWidth = 512
+          dataWidth  = 512
         )
       )
     )

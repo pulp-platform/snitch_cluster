@@ -3,27 +3,16 @@ package snax.xdma.xdmaFrontend
 import chisel3._
 import chisel3.util._
 
-import snax.utils._
-
-import snax.utils.DecoupledCut._
-import snax.utils.BitsConcat._
-
-import snax.readerWriter.{
-  AddressGenUnitCfgIO,
-  ReaderWriterCfgIO,
-  Reader,
-  Writer,
-  ReaderWriterParam
-}
-import snax.xdma.DesignParams._
 import snax.DataPathExtension._
+import snax.readerWriter.Reader
+import snax.readerWriter.ReaderWriterParam
+import snax.readerWriter.Writer
+import snax.utils._
+import snax.xdma.DesignParams._
 import snax.xdma.io._
 
-class XDMADataPath(
-    readerParam: XDMAParam,
-    writerParam: XDMAParam,
-    clusterName: String = "unnamed_cluster"
-) extends Module
+class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: String = "unnamed_cluster")
+    extends Module
     with RequireAsyncReset {
 
   override val desiredName = s"${clusterName}_xdma_datapath"
@@ -38,9 +27,9 @@ class XDMADataPath(
     val writerStart = Input(Bool())
     // Two busy signal only go down if a stream fully passthrough the reader / writter.
     // reader_busy_o signal == 0 indicates that the reader side is available for next task
-    val readerBusy = Output(Bool())
+    val readerBusy  = Output(Bool())
     // writer_busy_o signal == 0 indicates that the writer side is available for next task
-    val writerBusy = Output(Bool())
+    val writerBusy  = Output(Bool())
 
     // TCDM request and response signal
     val tcdmReader = new Bundle {
@@ -78,7 +67,7 @@ class XDMADataPath(
     // Cluster-level input -> fromRemote <> Writer
     // Cluster-level output -> toRemote <> Reader
     val remoteXDMAData = new Bundle {
-      val fromRemote = Flipped(
+      val fromRemote               = Flipped(
         Decoupled(
           UInt(
             (writerParam.rwParam.tcdmParam.dataWidth * writerParam.rwParam.tcdmParam.numChannel).W
@@ -87,12 +76,12 @@ class XDMADataPath(
       )
       val fromRemoteAccompaniedCfg = Output(
         new XDMADataPathCfgIO(
-          axiParam = writerParam.axiParam,
+          axiParam          = writerParam.axiParam,
           crossClusterParam = writerParam.crossClusterParam
         )
       )
 
-      val toRemote =
+      val toRemote               =
         Decoupled(
           UInt(
             (readerParam.rwParam.tcdmParam.dataWidth * readerParam.rwParam.tcdmParam.numChannel).W
@@ -100,7 +89,7 @@ class XDMADataPath(
         )
       val toRemoteAccompaniedCfg = Output(
         new XDMADataPathCfgIO(
-          axiParam = readerParam.axiParam,
+          axiParam          = readerParam.axiParam,
           crossClusterParam = readerParam.crossClusterParam
         )
       )
@@ -120,14 +109,14 @@ class XDMADataPath(
   writer.io.tcdmReq <> io.tcdmWriter.req
 
   // Connect the wire (ctrl plane)
-  reader.io.aguCfg := io.readerCfg.aguCfg
+  reader.io.aguCfg          := io.readerCfg.aguCfg
   reader.io.readerwriterCfg := io.readerCfg.readerwriterCfg
-  reader.io.start := io.readerStart
+  reader.io.start           := io.readerStart
   // reader_busy_o is connected later as the busy signal from the signal is needed
 
-  writer.io.aguCfg := io.writerCfg.aguCfg
+  writer.io.aguCfg          := io.writerCfg.aguCfg
   writer.io.readerwriterCfg := io.writerCfg.readerwriterCfg
-  writer.io.start := io.writerStart
+  writer.io.start           := io.writerStart
   // writer_busy_o is connected later as the busy signal from the signal is needed
 
   // Connect the extension
@@ -137,11 +126,10 @@ class XDMADataPath(
   val readerExtensions = Module(
     new DataPathExtensionHost(
       readerParam.extParam,
-      dataWidth =
-        readerParam.rwParam.tcdmParam.dataWidth * readerParam.rwParam.tcdmParam.numChannel,
-      headCut = false,
-      tailCut = false,
-      halfCut = false,
+      dataWidth        = readerParam.rwParam.tcdmParam.dataWidth * readerParam.rwParam.tcdmParam.numChannel,
+      headCut          = false,
+      tailCut          = false,
+      halfCut          = false,
       moduleNamePrefix = clusterName
     )
   )
@@ -157,11 +145,10 @@ class XDMADataPath(
   val writerExtensions = Module(
     new DataPathExtensionHost(
       writerParam.extParam,
-      dataWidth =
-        writerParam.rwParam.tcdmParam.dataWidth * writerParam.rwParam.tcdmParam.numChannel,
-      headCut = false,
-      tailCut = false,
-      halfCut = false,
+      dataWidth        = writerParam.rwParam.tcdmParam.dataWidth * writerParam.rwParam.tcdmParam.numChannel,
+      headCut          = false,
+      tailCut          = false,
+      halfCut          = false,
       moduleNamePrefix = clusterName
     )
   )
@@ -170,7 +157,7 @@ class XDMADataPath(
   writerExtensions.io.data.out <> writer.io.data
   writerExtensions.io.connectCfgWithList(io.writerCfg.extCfg)
   writerExtensions.io.start := io.writerStart
-  io.writerBusy := writer.io.busy | (~writer.io.bufferEmpty) | writerExtensions.io.busy
+  io.writerBusy             := writer.io.busy | (~writer.io.bufferEmpty) | writerExtensions.io.busy
 
   // The following muxes and demuxes are used to do the local loopback and remote loopback, the wires connected to the reader and writer are: readerDataAfterExtension and writerDataBeforeExtension. The wires between all the demuxes and muxes should not be cutted
   // LocalLoopbackDemux takes the data from the Reader side, and send it to either the remote cluster (0) or loopback to the writer side (1)
@@ -183,7 +170,7 @@ class XDMADataPath(
     }
   )
   // LocalLoopbackMux takes the data from either loopback or the remote side, and send it to writer
-  val localLoopbackMux = Module(
+  val localLoopbackMux   = Module(
     new MuxDecoupled(
       chiselTypeOf(writerDataBeforeExtension.bits),
       numInput = 2
@@ -193,7 +180,7 @@ class XDMADataPath(
   )
 
   localLoopbackDemux.io.sel := io.readerCfg.localLoopback
-  localLoopbackMux.io.sel := io.writerCfg.localLoopback
+  localLoopbackMux.io.sel   := io.writerCfg.localLoopback
   readerDataAfterExtension <> localLoopbackDemux.io.in
   localLoopbackMux.io.out <> writerDataBeforeExtension
 
@@ -229,7 +216,7 @@ class XDMADataPath(
   remoteLoopbackSplitter.io.sel(0) := true.B
   remoteLoopbackSplitter.io.sel(
     1
-  ) := io.writerCfg.remoteLoopback && io.writerBusy
+  )                                := io.writerCfg.remoteLoopback && io.writerBusy
 
   remoteLoopbackMux.io.in(0) <> readerLocaltoRemoteLoopback
   remoteLoopbackMux.io.in(1) <> remoteLoopbackSplitter.io.out(1)
@@ -249,7 +236,7 @@ class XDMADataPath(
     chiselTypeOf(io.remoteXDMAData.fromRemoteAccompaniedCfg)
   )
   fromRemoteAccompaniedCfg.convertFromXDMAIntraClusterCfgIO(
-    cfg = io.writerCfg,
+    cfg            = io.writerCfg,
     isChainedWrite = false
   )
 
@@ -257,7 +244,7 @@ class XDMADataPath(
     chiselTypeOf(io.remoteXDMAData.toRemoteAccompaniedCfg)
   )
   toRemoteAccompaniedCfg.convertFromXDMAIntraClusterCfgIO(
-    cfg = io.readerCfg,
+    cfg            = io.readerCfg,
     isChainedWrite = false
   )
 
@@ -265,7 +252,7 @@ class XDMADataPath(
     chiselTypeOf(io.remoteXDMAData.toRemoteAccompaniedCfg)
   )
   toRemoteChainedWriteAccompaniedCfg.convertFromXDMAIntraClusterCfgIO(
-    cfg = io.writerCfg,
+    cfg            = io.writerCfg,
     isChainedWrite = true
   )
 
@@ -296,12 +283,12 @@ class XDMADataPath(
   )
 
   toRemoteChainedWriteAccompaniedCfg.readyToTransfer := io.writerCfg.remoteLoopback && io.writerBusy
-  toRemoteChainedWriteAccompaniedCfg.taskType := toRemoteChainedWriteAccompaniedCfg.taskTypeIsRemoteWrite.B
+  toRemoteChainedWriteAccompaniedCfg.taskType        := toRemoteChainedWriteAccompaniedCfg.taskTypeIsRemoteWrite.B
 
   // The actual output of AccompaniedCfg is determined by the remoteLoopback signal:
   // If the remoteLoopback signal is high, toRemoteAccompaniedCfg needs to be shifted
   io.remoteXDMAData.fromRemoteAccompaniedCfg := fromRemoteAccompaniedCfg
-  io.remoteXDMAData.toRemoteAccompaniedCfg := Mux(
+  io.remoteXDMAData.toRemoteAccompaniedCfg   := Mux(
     io.writerCfg.remoteLoopback && io.writerBusy,
     toRemoteChainedWriteAccompaniedCfg,
     toRemoteAccompaniedCfg
@@ -313,16 +300,16 @@ object XDMADataPathEmitter extends App {
   emitVerilog(
     new XDMADataPath(
       readerParam = new XDMAParam(
-        axiParam = new AXIParam,
+        axiParam          = new AXIParam,
         crossClusterParam = new CrossClusterParam,
-        rwParam = new ReaderWriterParam,
-        extParam = Seq()
+        rwParam           = new ReaderWriterParam,
+        extParam          = Seq()
       ),
       writerParam = new XDMAParam(
-        axiParam = new AXIParam,
+        axiParam          = new AXIParam,
         crossClusterParam = new CrossClusterParam,
-        rwParam = new ReaderWriterParam,
-        extParam = Seq()
+        rwParam           = new ReaderWriterParam,
+        extParam          = Seq()
       )
     ),
     Array("--target-dir", "generated")

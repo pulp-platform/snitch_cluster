@@ -3,27 +3,20 @@ package snax.xdma.xdmaFrontend
 import chisel3._
 import chisel3.util._
 
-import snax.utils._
-import snax.utils.DecoupledCut._
-import snax.utils.BitsConcat._
-import snax.utils.DemuxDecoupled
-
-import snax.readerWriter.{AddressGenUnitCfgIO, Reader, Writer}
-
 import snax.csr_manager._
-
-import snax.xdma.DesignParams.{XDMADataPathParam, XDMAParam}
-
+import snax.utils.DecoupledCut._
+import snax.utils.DemuxDecoupled
+import snax.utils._
+import snax.xdma.DesignParams.XDMAParam
 import snax.xdma.io._
 
-class XDMACtrlIO(readerParam: XDMAParam, writerParam: XDMAParam)
-    extends Bundle {
+class XDMACtrlIO(readerParam: XDMAParam, writerParam: XDMAParam) extends Bundle {
   // clusterBaseAddress to determine if it is the local command or remote command
   val clusterBaseAddress = Input(
     UInt(writerParam.axiParam.addrWidth.W)
   )
   // Local DMADatapath control signal (Which is connected to DMADataPath)
-  val localXDMACfg = new Bundle {
+  val localXDMACfg       = new Bundle {
     val readerCfg = Output(new XDMAIntraClusterCfgIO(readerParam))
     val writerCfg = Output(new XDMAIntraClusterCfgIO(writerParam))
 
@@ -32,39 +25,37 @@ class XDMACtrlIO(readerParam: XDMAParam, writerParam: XDMAParam)
     val writerStart = Output(Bool())
     // Two busy signal only go down if a stream fully passthrough the reader / writter, which is provided by DataPath
     // These signals should be readable by the outside; these two will also be used to determine whether the next task can be executed.
-    val readerBusy = Input(Bool())
-    val writerBusy = Input(Bool())
+    val readerBusy  = Input(Bool())
+    val writerBusy  = Input(Bool())
   }
   // Remote control signal, which include the signal from other cluster or signal to other cluster. Both of them is AXI related, serialized signal
   // The remote control signal will contain only src information, in other words, the DMA system can proceed remote read or local read, but only local write
-  val remoteXDMACfg = new Bundle {
+  val remoteXDMACfg      = new Bundle {
     val fromRemote = Flipped(Decoupled(UInt(readerParam.axiParam.dataWidth.W)))
-    val toRemote = Decoupled(UInt(readerParam.axiParam.dataWidth.W))
+    val toRemote   = Decoupled(UInt(readerParam.axiParam.dataWidth.W))
   }
   // This is the port for CSR Manager to SNAX port
-  val csrIO = new SnaxCsrIO(csrAddrWidth = 32)
+  val csrIO              = new SnaxCsrIO(csrAddrWidth = 32)
 
   // The external port to indicate the finish of one task
   val remoteTaskFinished = Input(Bool())
 }
 
-class SrcConfigRouter(
-    dataType: XDMACfgIO,
-    clusterName: String = "unnamed_cluster"
-) extends Module
+class SrcConfigRouter(dataType: XDMACfgIO, clusterName: String = "unnamed_cluster")
+    extends Module
     with RequireAsyncReset {
 
   override val desiredName = s"${clusterName}_xdma_ctrl_srcConfigRouter"
 
   val io = IO(new Bundle {
     val clusterBaseAddress = Input(UInt(dataType.readerPtr.getWidth.W))
-    val from = Flipped(new Bundle {
+    val from               = Flipped(new Bundle {
       val remote = Decoupled(dataType)
-      val local = Decoupled(dataType)
+      val local  = Decoupled(dataType)
     })
-    val to = new Bundle {
+    val to                 = new Bundle {
       val remote = Decoupled(dataType)
-      val local = Decoupled(dataType)
+      val local  = Decoupled(dataType)
     }
   })
 
@@ -85,7 +76,7 @@ class SrcConfigRouter(
 
   // At the output of FIFO: Do the rule check
   val cTypeLocal :: cTypeRemote :: cTypeDiscard :: Nil = Enum(3)
-  val cValue = Wire(chiselTypeOf(cTypeDiscard))
+  val cValue                                           = Wire(chiselTypeOf(cTypeDiscard))
 
   when(
     outputCfgDemux.io.in.bits.readerPtr(
@@ -106,7 +97,7 @@ class SrcConfigRouter(
     cValue := cTypeRemote // For the remaining condition, the config is forward to remote DMA
   }
 
-  outputCfgDemux.io.sel := cValue
+  outputCfgDemux.io.sel                                    := cValue
   // Port local is connected to the outside
   outputCfgDemux.io.out(cTypeLocal.litValue.toInt) <> io.to.local
   // Port remote is connected to the outside
@@ -115,23 +106,21 @@ class SrcConfigRouter(
   outputCfgDemux.io.out(cTypeDiscard.litValue.toInt).ready := true.B
 }
 
-class DstConfigRouter(
-    dataType: XDMACfgIO,
-    clusterName: String = "unnamed_cluster"
-) extends Module
+class DstConfigRouter(dataType: XDMACfgIO, clusterName: String = "unnamed_cluster")
+    extends Module
     with RequireAsyncReset {
 
   override val desiredName = s"${clusterName}_xdma_ctrl_dstConfigRouter"
 
   val io = IO(new Bundle {
     val clusterBaseAddress = Input(UInt(dataType.writerPtr(0).getWidth.W))
-    val from = Flipped(new Bundle {
+    val from               = Flipped(new Bundle {
       val remote = Decoupled(dataType)
-      val local = Decoupled(dataType)
+      val local  = Decoupled(dataType)
     })
-    val to = new Bundle {
+    val to                 = new Bundle {
       val remote = Decoupled(dataType)
-      val local = Decoupled(dataType)
+      val local  = Decoupled(dataType)
     }
   })
 
@@ -146,7 +135,7 @@ class DstConfigRouter(
   inputCfgArbiter.io.out -|> bufferedCfg
 
   // At the output of cut: Do the rule check
-  val forwardToLocal = {
+  val forwardToLocal  = {
     bufferedCfg.bits
       .writerPtr(0)
       .apply(
@@ -158,7 +147,7 @@ class DstConfigRouter(
         log2Ceil(bufferedCfg.bits.param.rwParam.tcdmParam.tcdmSize) + 10
       )
   }
-  val isChainedWrite = if (bufferedCfg.bits.writerPtr.length > 1) {
+  val isChainedWrite  = if (bufferedCfg.bits.writerPtr.length > 1) {
     bufferedCfg.bits.writerPtr(
       1
     ) =/= 0.U && bufferedCfg.bits.origination === bufferedCfg.bits.originationIsFromRemote.B
@@ -168,7 +157,7 @@ class DstConfigRouter(
 
   val outputCfgSplitter = Module(
     new SplitterDecoupled(
-      dataType = chiselTypeOf(bufferedCfg.bits),
+      dataType  = chiselTypeOf(bufferedCfg.bits),
       numOutput = 2
     ) {
       override val desiredName =
@@ -183,7 +172,7 @@ class DstConfigRouter(
   outputCfgSplitter.io.out(1) <> io.to.remote
 
   when(isChainedWrite) {
-    io.to.remote.bits.readerPtr := bufferedCfg.bits.writerPtr(0)
+    io.to.remote.bits.readerPtr      := bufferedCfg.bits.writerPtr(0)
     io.to.remote.bits.writerPtr
       .zip(bufferedCfg.bits.writerPtr.tail)
       .foreach { case (a, b) =>
@@ -193,11 +182,8 @@ class DstConfigRouter(
   }
 }
 
-class XDMACtrl(
-    readerparam: XDMAParam,
-    writerparam: XDMAParam,
-    clusterName: String = "unnamed_cluster"
-) extends Module
+class XDMACtrl(readerparam: XDMAParam, writerparam: XDMAParam, clusterName: String = "unnamed_cluster")
+    extends Module
     with RequireAsyncReset {
   val io = IO(
     new XDMACtrlIO(
@@ -212,40 +198,38 @@ class XDMACtrl(
 
   val csrManager = Module(
     new CsrManager(
-      csrNumReadWrite = numCSRPerPtr + // Reader Pointer needs numCSRPerPtr CSRs
-        readerparam.crossClusterParam.maxSpatialDimension + // Spatial Strides for reader
+      csrNumReadWrite  = numCSRPerPtr + // Reader Pointer needs numCSRPerPtr CSRs
+        readerparam.crossClusterParam.maxSpatialDimension +      // Spatial Strides for reader
         readerparam.crossClusterParam.maxTemporalDimension * 2 + // Temporal Strides + Bounds for reader
         {
           if (readerparam.rwParam.configurableChannel) 1 else 0
-        } + // Enabled Channel for reader
+        } +                                                      // Enabled Channel for reader
         0 + // Enabled Byte for reader: non-effective, so donot assign CSR
         {
           if (readerparam.extParam.length == 0) 0
           else
-            readerparam.extParam
-              .map { i => i.extensionParam.userCsrNum }
+            readerparam.extParam.map { i => i.extensionParam.userCsrNum }
               .reduce(_ + _) + 1
         } + // The total num of param on reader extension (custom CSR + bypass CSR)
         numCSRPerPtr * writerparam.crossClusterParam.maxMulticastDest + // Writer Pointer needs numCSRPerPtr * maxMulticastDest CSRs
-        writerparam.crossClusterParam.maxSpatialDimension + // Spatial Strides for writer
+        writerparam.crossClusterParam.maxSpatialDimension +      // Spatial Strides for writer
         writerparam.crossClusterParam.maxTemporalDimension * 2 + // Temporal Strides + Bounds for writer
         {
           if (writerparam.rwParam.configurableChannel) 1 else 0
-        } + // Enabled Channel for writer
+        } +                                                      // Enabled Channel for writer
         {
           if (writerparam.rwParam.configurableByteMask) 1 else 0
-        } + // Enabled Byte for writer
+        } +                                                      // Enabled Byte for writer
         {
           if (writerparam.extParam.length == 0) 0
           else
-            writerparam.extParam
-              .map { i => i.extensionParam.userCsrNum }
+            writerparam.extParam.map { i => i.extensionParam.userCsrNum }
               .reduce(_ + _) + 1
         } + // The total num of param on writer (custom CSR + bypass CSR)
         1, // The start CSR
-      csrNumReadOnly = 4,
+      csrNumReadOnly   = 4,
       // Set to four at current, 1) The number of submitted local request; 2) The number of submitted remote request; 3) The number of finished local request; 4) The number of finished remote request
-      csrAddrWidth = 32,
+      csrAddrWidth     = 32,
       // Set a name for the module class so that it will not overlapped with other csrManagers in user-defined accelerators
       csrModuleTagName = s"${clusterName}_xdma_"
     )
@@ -260,7 +244,7 @@ class XDMACtrl(
   val preRoute_dst_local = Wire(
     Decoupled(new XDMACfgIO(writerparam))
   )
-  var remainingCSR = csrManager.io.csr_config_out.bits.toIndexedSeq
+  var remainingCSR       = csrManager.io.csr_config_out.bits.toIndexedSeq
 
   // Connect readerPtr + writerPtr with the CSR list
   preRoute_src_local.bits.connectPtrWithList(remainingCSR)
@@ -272,12 +256,10 @@ class XDMACtrl(
   remainingCSR = preRoute_src_local.bits.dropPtrFromList(remainingCSR)
 
   // Connect reader + writer + ext to the structured signal: Src side
-  remainingCSR =
-    preRoute_src_local.bits.connectWithList(nextSrcPtrCSR ++ remainingCSR)
+  remainingCSR = preRoute_src_local.bits.connectWithList(nextSrcPtrCSR ++ remainingCSR)
 
   // Connect reader + writer + ext to the structured signal: Dst side
-  remainingCSR =
-    preRoute_dst_local.bits.connectWithList(nextDstPtrCSR ++ remainingCSR)
+  remainingCSR = preRoute_dst_local.bits.connectWithList(nextDstPtrCSR ++ remainingCSR)
 
   if (remainingCSR.length > 1)
     println("There is some error in CSR -> Structured CFG assigning")
@@ -305,32 +287,32 @@ class XDMACtrl(
 
   // Connect Valid and bits: Only when both preRoutes are ready, postRulecheck is ready
   csrManager.io.csr_config_out.ready := preRoute_src_local.ready & preRoute_dst_local.ready
-  preRoute_src_local.valid := csrManager.io.csr_config_out.ready & csrManager.io.csr_config_out.valid
-  preRoute_dst_local.valid := csrManager.io.csr_config_out.ready & csrManager.io.csr_config_out.valid
+  preRoute_src_local.valid           := csrManager.io.csr_config_out.ready & csrManager.io.csr_config_out.valid
+  preRoute_dst_local.valid           := csrManager.io.csr_config_out.ready & csrManager.io.csr_config_out.valid
 
   // Task ID Counter to assign the ID for each transaction
   val localSubmittedTaskIDCounter = Module(
     new BasicCounter(
-      width = 8,
+      width   = 8,
       hasCeil = false
     ) {
       override val desiredName = s"${clusterName}_xdmaCtrl_localTaskIDCounter"
     }
   )
   localSubmittedTaskIDCounter.io.ceil := DontCare
-  localSubmittedTaskIDCounter.io.tick := localLoopback && csrManager.io.csr_config_out.fire
+  localSubmittedTaskIDCounter.io.tick  := localLoopback && csrManager.io.csr_config_out.fire
   localSubmittedTaskIDCounter.io.reset := false.B
 
   val remoteSubmittedTaskIDCounter = Module(
     new BasicCounter(
-      width = 8,
+      width   = 8,
       hasCeil = false
     ) {
       override val desiredName = s"${clusterName}_xdmaCtrl_remoteTaskIDCounter"
     }
   )
   remoteSubmittedTaskIDCounter.io.ceil := DontCare
-  remoteSubmittedTaskIDCounter.io.tick := (~localLoopback) && csrManager.io.csr_config_out.fire
+  remoteSubmittedTaskIDCounter.io.tick  := (~localLoopback) && csrManager.io.csr_config_out.fire
   remoteSubmittedTaskIDCounter.io.reset := false.B
 
   csrManager.io.read_only_csr(0) := localSubmittedTaskIDCounter.io.value
@@ -350,13 +332,13 @@ class XDMACtrl(
     Decoupled(new XDMAInterClusterCfgIO(readerparam, writerparam))
   )
   cfgFromRemote.bits.deserialize(io.remoteXDMACfg.fromRemote.bits)
-  cfgFromRemote.valid := io.remoteXDMACfg.fromRemote.valid
+  cfgFromRemote.valid               := io.remoteXDMACfg.fromRemote.valid
   io.remoteXDMACfg.fromRemote.ready := cfgFromRemote.ready
 
   // Demux the cfg from the cfg_in port
   val cfgFromRemoteDemux = Module(
     new DemuxDecoupled(
-      dataType = chiselTypeOf(cfgFromRemote.bits),
+      dataType  = chiselTypeOf(cfgFromRemote.bits),
       numOutput = 2
     ) {
       override val desiredName = s"${clusterName}_xdma_ctrl_remoteCfgDemux"
@@ -370,15 +352,15 @@ class XDMACtrl(
   val cfgToRemote = Wire(
     Decoupled(new XDMAInterClusterCfgIO(readerparam, writerparam))
   )
-  io.remoteXDMACfg.toRemote.bits := cfgToRemote.bits.serialize
+  io.remoteXDMACfg.toRemote.bits  := cfgToRemote.bits.serialize
   io.remoteXDMACfg.toRemote.valid := cfgToRemote.valid
-  cfgToRemote.ready := io.remoteXDMACfg.toRemote.ready
+  cfgToRemote.ready               := io.remoteXDMACfg.toRemote.ready
 
   // Mux+Arbitrator the Cfg to cfg_out port
   val cfgToRemoteMux = Module(
     new Arbiter(
       gen = chiselTypeOf(cfgToRemote.bits),
-      n = 2
+      n   = 2
     ) {
       override val desiredName = s"${clusterName}_xdma_ctrl_remoteCfgMux"
     }
@@ -390,21 +372,21 @@ class XDMACtrl(
   // Command Router
   val srcCfgRouter = Module(
     new SrcConfigRouter(
-      dataType = chiselTypeOf(preRoute_src_local.bits),
+      dataType    = chiselTypeOf(preRoute_src_local.bits),
       clusterName = clusterName
     )
   )
   srcCfgRouter.io.clusterBaseAddress := io.clusterBaseAddress
 
   srcCfgRouter.io.from.local <> preRoute_src_local
-  srcCfgRouter.io.from.remote.valid := cfgFromRemoteDemux.io.out(1).valid
-  srcCfgRouter.io.from.remote.bits := cfgFromRemoteDemux.io
+  srcCfgRouter.io.from.remote.valid  := cfgFromRemoteDemux.io.out(1).valid
+  srcCfgRouter.io.from.remote.bits   := cfgFromRemoteDemux.io
     .out(1)
     .bits
     .convertToXDMACfgIO(readerSide = true)
   cfgFromRemoteDemux.io.out(1).ready := srcCfgRouter.io.from.remote.ready
 
-  val postRoute_src_local = Wire(
+  val postRoute_src_local  = Wire(
     Decoupled(new XDMACfgIO(readerparam))
   )
   val postRoute_src_remote = Wire(
@@ -419,32 +401,32 @@ class XDMACtrl(
     val srcRemoteCfg = Wire(new XDMAInterClusterCfgIO(readerparam, writerparam))
     srcRemoteCfg.convertFromXDMACfgIO(
       readerSide = true,
-      cfg = postRoute_src_remote.bits
+      cfg        = postRoute_src_remote.bits
     )
     srcRemoteCfg
   }
 
   cfgToRemoteMux.io.in(1).valid := postRoute_src_remote.valid
-  postRoute_src_remote.ready := cfgToRemoteMux.io.in(1).ready
+  postRoute_src_remote.ready    := cfgToRemoteMux.io.in(1).ready
 
   // Command Router
   val dstCfgRouter = Module(
     new DstConfigRouter(
-      dataType = chiselTypeOf(preRoute_dst_local.bits),
+      dataType    = chiselTypeOf(preRoute_dst_local.bits),
       clusterName = clusterName
     )
   )
   dstCfgRouter.io.clusterBaseAddress := io.clusterBaseAddress
 
   dstCfgRouter.io.from.local <> preRoute_dst_local
-  dstCfgRouter.io.from.remote.valid := cfgFromRemoteDemux.io.out(0).valid
-  dstCfgRouter.io.from.remote.bits := cfgFromRemoteDemux.io
+  dstCfgRouter.io.from.remote.valid  := cfgFromRemoteDemux.io.out(0).valid
+  dstCfgRouter.io.from.remote.bits   := cfgFromRemoteDemux.io
     .out(0)
     .bits
     .convertToXDMACfgIO(readerSide = false)
   cfgFromRemoteDemux.io.out(0).ready := dstCfgRouter.io.from.remote.ready
 
-  val postRoute_dst_local = Wire(
+  val postRoute_dst_local  = Wire(
     Decoupled(new XDMACfgIO(writerparam))
   )
   val postRoute_dst_remote = Wire(
@@ -459,13 +441,13 @@ class XDMACtrl(
     val dstRemoteCfg = Wire(new XDMAInterClusterCfgIO(readerparam, writerparam))
     dstRemoteCfg.convertFromXDMACfgIO(
       readerSide = false,
-      cfg = postRoute_dst_remote.bits
+      cfg        = postRoute_dst_remote.bits
     )
     dstRemoteCfg
   }
 
   cfgToRemoteMux.io.in(0).valid := postRoute_dst_remote.valid
-  postRoute_dst_remote.ready := cfgToRemoteMux.io.in(0).ready
+  postRoute_dst_remote.ready    := cfgToRemoteMux.io.in(0).ready
 
   // Judge remoteLoopback signal
   postRoute_src_local.bits.remoteLoopback := false.B
@@ -486,8 +468,8 @@ class XDMACtrl(
   sBusy.suggestName("sBusy")
 
   // Two registers to store the current state
-  val nextStateSrc = Wire(chiselTypeOf(sIdle))
-  val nextStateDst = Wire(chiselTypeOf(sIdle))
+  val nextStateSrc    = Wire(chiselTypeOf(sIdle))
+  val nextStateDst    = Wire(chiselTypeOf(sIdle))
   dontTouch(nextStateSrc)
   dontTouch(nextStateDst)
   val currentStateSrc = RegNext(nextStateSrc, sIdle)
@@ -502,10 +484,10 @@ class XDMACtrl(
   // Default value: Not pop out config, not start reader/writer, not change state
   io.localXDMACfg.readerStart := false.B
   io.localXDMACfg.writerStart := false.B
-  currentCfgSrc.ready := false.B
-  currentCfgDst.ready := false.B
-  nextStateSrc := currentStateSrc
-  nextStateDst := currentStateDst
+  currentCfgSrc.ready         := false.B
+  currentCfgDst.ready         := false.B
+  nextStateSrc                := currentStateSrc
+  nextStateDst                := currentStateDst
 
   // Control signals in Src Path
   switch(currentStateSrc) {
@@ -521,7 +503,7 @@ class XDMACtrl(
         )
       } {
         // Start the reader side
-        nextStateSrc := sWaitBusy
+        nextStateSrc                := sWaitBusy
         io.localXDMACfg.readerStart := true.B
       }
     }
@@ -532,7 +514,7 @@ class XDMACtrl(
     }
     is(sBusy) {
       when(~io.localXDMACfg.readerBusy) {
-        nextStateSrc := sIdle
+        nextStateSrc        := sIdle
         currentCfgSrc.ready := true.B
       }
     }
@@ -554,7 +536,7 @@ class XDMACtrl(
         )
       } {
         // Start the reader side
-        nextStateDst := sWaitBusy
+        nextStateDst                := sWaitBusy
         io.localXDMACfg.writerStart := true.B
       }
     }
@@ -565,7 +547,7 @@ class XDMACtrl(
     }
     is(sBusy) {
       when(~io.localXDMACfg.writerBusy) {
-        nextStateDst := sIdle
+        nextStateDst        := sIdle
         currentCfgDst.ready := true.B
       }
     }
@@ -583,7 +565,7 @@ class XDMACtrl(
   })
   localFinishedTaskIDCounter.io.ceil := DontCare
   localFinishedTaskIDCounter.io.reset := false.B
-  localFinishedTaskIDCounter.io.tick := currentCfgDst.fire && currentCfgDst.bits.localLoopback
+  localFinishedTaskIDCounter.io.tick  := currentCfgDst.fire && currentCfgDst.bits.localLoopback
 
   val remoteFinishedTaskIDCounter = Module(
     new BasicCounter(8, hasCeil = false) {
@@ -593,7 +575,7 @@ class XDMACtrl(
   )
   remoteFinishedTaskIDCounter.io.ceil := DontCare
   remoteFinishedTaskIDCounter.io.reset := false.B
-  remoteFinishedTaskIDCounter.io.tick := io.remoteTaskFinished
+  remoteFinishedTaskIDCounter.io.tick  := io.remoteTaskFinished
 
   // Connect the finished task counter to the read-only CSR
   csrManager.io.read_only_csr(2) := localFinishedTaskIDCounter.io.value

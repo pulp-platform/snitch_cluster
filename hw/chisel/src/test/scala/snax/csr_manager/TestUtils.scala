@@ -1,12 +1,8 @@
 package snax.csr_manager
 
 import chisel3._
-import org.scalatest.flatspec.AnyFlatSpec
+
 import chiseltest._
-import scala.math.BigInt
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.Tag
-import scala.util.control.Breaks._
 
 trait HasCsrManagerTestUtils {
 

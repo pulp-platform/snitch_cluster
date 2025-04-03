@@ -1,8 +1,9 @@
 package snax_acc.simd
 
+import chisel3.VecInit
 import chisel3._
 import chisel3.util._
-import chisel3.VecInit
+
 import snax_acc.utils.DecoupledCut._
 
 // Rescale SIMD data interface
@@ -22,18 +23,16 @@ class RescaleSIMDDataIO(params: RescaleSIMDParams) extends Bundle {
 // Rescale SIMD input and output declaration
 class RescaleSIMDIO(params: RescaleSIMDParams) extends Bundle {
   // the input data across different RescalePEs shares the same control signal
-  val ctrl = Flipped(Decoupled(Vec(params.readWriteCsrNum, UInt(32.W))))
+  val ctrl                = Flipped(Decoupled(Vec(params.readWriteCsrNum, UInt(32.W))))
   // decoupled data ports
-  val data = new RescaleSIMDDataIO(params)
-  val busy_o = Output(Bool())
+  val data                = new RescaleSIMDDataIO(params)
+  val busy_o              = Output(Bool())
   val performance_counter = Output(UInt(32.W))
 }
 
 // Rescale SIMD module
 // This module implements this spec: specification: https://gist.github.com/jorendumoulin/83352a1e84501ec4a7b3790461fee2bf in parallel
-class RescaleSIMD(params: RescaleSIMDParams)
-    extends Module
-    with RequireAsyncReset {
+class RescaleSIMD(params: RescaleSIMDParams) extends Module with RequireAsyncReset {
   val io = IO(new RescaleSIMDIO(params))
 
   // generating parallel RescalePEs
@@ -59,7 +58,7 @@ class RescaleSIMD(params: RescaleSIMDParams)
 
   io.data.input_i -\> one_cycle_dalayed_decoupled_input_data
 
-  val simd_input_fire = WireInit(0.B)
+  val simd_input_fire  = WireInit(0.B)
   val simd_output_fire = WireInit(0.B)
 
   val read_counter = RegInit(0.U(32.W))
@@ -68,11 +67,11 @@ class RescaleSIMD(params: RescaleSIMDParams)
 
   // State declaration
   val sIDLE :: sBUSY :: Nil = Enum(2)
-  val cstate = RegInit(sIDLE)
-  val nstate = WireInit(sIDLE)
+  val cstate                = RegInit(sIDLE)
+  val nstate                = WireInit(sIDLE)
 
   // signals for state transition
-  val config_valid = WireInit(0.B)
+  val config_valid       = WireInit(0.B)
   val computation_finish = WireInit(0.B)
 
   // Changing states
@@ -113,10 +112,10 @@ class RescaleSIMD(params: RescaleSIMDParams)
   def packed_shift_num = 32 / params.constantType
   for (i <- 0 until ctrl_csr_set_num) {
     // common control input ports
-    ctrl_csr(i).input_zp_i := io.ctrl.bits(0)(7, 0).asSInt
+    ctrl_csr(i).input_zp_i  := io.ctrl.bits(0)(7, 0).asSInt
     ctrl_csr(i).output_zp_i := io.ctrl.bits(0)(15, 8).asSInt
-    ctrl_csr(i).max_int_i := io.ctrl.bits(0)(23, 16).asSInt
-    ctrl_csr(i).min_int_i := io.ctrl.bits(0)(31, 24).asSInt
+    ctrl_csr(i).max_int_i   := io.ctrl.bits(0)(23, 16).asSInt
+    ctrl_csr(i).min_int_i   := io.ctrl.bits(0)(31, 24).asSInt
 
     // this control input port is only 1 bit
     ctrl_csr(i).double_round_i := io.ctrl.bits(1)(0).asBool
@@ -159,9 +158,9 @@ class RescaleSIMD(params: RescaleSIMDParams)
 
   computation_finish := (read_counter === ctrl_csr(
     0
-  ).len) && (write_counter === ctrl_csr(
+  ).len)             && (write_counter === ctrl_csr(
     0
-  ).len) && cstate === sBUSY
+  ).len)             && cstate === sBUSY
 
   // always ready for configuration
   io.ctrl.ready := cstate === sIDLE
@@ -170,24 +169,24 @@ class RescaleSIMD(params: RescaleSIMDParams)
   // collect the result of each RescalePE
   for (i <- 0 until params.laneLen) {
     lane(i).io.ctrl_i := ctrl_csr(i % ctrl_csr_set_num)
-    result(i) := lane(i).io.output_o.bits
+    result(i)         := lane(i).io.output_o.bits
   }
 
   for (i <- 0 until params.laneLen) {
-    lane(i).io.input_i.bits := one_cycle_dalayed_decoupled_input_data
+    lane(i).io.input_i.bits   := one_cycle_dalayed_decoupled_input_data
       .bits(
         (i + 1) * params.inputType - 1,
         (i) * params.inputType
       )
       .asSInt
-    lane(i).io.input_i.valid := one_cycle_dalayed_decoupled_input_data.valid
+    lane(i).io.input_i.valid  := one_cycle_dalayed_decoupled_input_data.valid
     lane(i).io.output_o.ready := io.data.output_o.ready
   }
 
   // always ready for new input unless is sending the last output (output stalled)
   one_cycle_dalayed_decoupled_input_data.ready := lane
     .map(_.io.input_i.ready)
-    .reduce(_ && _) && (cstate === sBUSY)
+    .reduce(_ && _)                            && (cstate === sBUSY)
 
   // concat every result to a big data bus for output
   io.data.output_o.bits := Cat(result.reverse)
@@ -195,7 +194,7 @@ class RescaleSIMD(params: RescaleSIMDParams)
   // propogate the valid signal
   io.data.output_o.valid := lane
     .map(_.io.output_o.valid)
-    .reduce(_ && _) && (cstate === sBUSY)
+    .reduce(_ && _)      && (cstate === sBUSY)
 
   var csrMap = ""
 
@@ -214,7 +213,7 @@ class RescaleSIMD(params: RescaleSIMDParams)
 
   println(csrMap)
 
-  val macro_dir =
+  val macro_dir      =
     "../../target/snitch_cluster/sw/snax/gemmx/include/simd_csr_addr_map.h"
   val macro_template =
     s"""// Copyright 2024 KU Leuven.

@@ -2,30 +2,28 @@ package snax_acc.simd
 
 import chisel3._
 import chisel3.util._
-import chisel3.VecInit
-import snax_acc.utils.DecoupledCut._
+
 import snax_acc.utils.DecoupledCat2to1
+import snax_acc.utils.DecoupledCut._
 
 // Define the Combined Output Bundle with multiple RescalePECtrl
-class SIMDCombinedCutBundle(aWidth: Int, params: RescaleSIMDParams, n: Int)
-    extends Bundle {
+class SIMDCombinedCutBundle(aWidth: Int, params: RescaleSIMDParams, n: Int) extends Bundle {
   val input_data = UInt(aWidth.W)
-  val ctrl_data =
+  val ctrl_data  =
     Vec(n, new RescalePECtrl(params)) // Vector of RescalePECtrl Bundles
 }
 
 // Rescale SIMD module
 // This module implements this spec: specification: https://gist.github.com/jorendumoulin/83352a1e84501ec4a7b3790461fee2bf in parallel
-class PipelinedRescaleSIMD(params: RescaleSIMDParams)
-    extends RescaleSIMD(params) {
+class PipelinedRescaleSIMD(params: RescaleSIMDParams) extends RescaleSIMD(params) {
 
   val lane_comp_cycle = params.dataLen / params.laneLen
 
-  val keep_output = RegInit(0.B)
+  val keep_output  = RegInit(0.B)
   val output_stall = WireInit(0.B)
 
   // store the input data for params.laneLen - 1 lane
-  val input_data_reg = RegInit(
+  val input_data_reg     = RegInit(
     0.U(((params.dataLen - params.laneLen) * params.inputType).W)
   )
   val current_input_data = Wire(
@@ -33,7 +31,7 @@ class PipelinedRescaleSIMD(params: RescaleSIMDParams)
   )
 
   // lane computation process counter
-  val lane_input_valid = WireInit(0.B)
+  val lane_input_valid   = WireInit(0.B)
   val pipe_input_counter = RegInit(0.U(32.W))
 
   io.data.input_i.ready := cstate === sBUSY && pipe_input_counter === 0.U
@@ -74,7 +72,7 @@ class PipelinedRescaleSIMD(params: RescaleSIMDParams)
     )
   )
   cat_cur_input_ctrl.io.in1 <> current_input_data
-  cat_cur_input_ctrl.io.in2.bits := ctrl_csr
+  cat_cur_input_ctrl.io.in2.bits  := ctrl_csr
   cat_cur_input_ctrl.io.in2.valid := cstate === sBUSY
   val cat_cur_input_ctrl_out = cat_cur_input_ctrl.io.out
 
@@ -92,7 +90,7 @@ class PipelinedRescaleSIMD(params: RescaleSIMDParams)
   // give each RescalePE right control signal and data
   // collect the result of each RescalePE
   for (i <- 0 until params.laneLen) {
-    lane(i).io.input_i.bits := delayed_three_cycle_cur_input_ctrl.bits
+    lane(i).io.input_i.bits  := delayed_three_cycle_cur_input_ctrl.bits
       .input_data(
         (i + 1) * params.inputType - 1,
         i * params.inputType
@@ -101,18 +99,18 @@ class PipelinedRescaleSIMD(params: RescaleSIMDParams)
     lane(i).io.input_i.valid := delayed_three_cycle_cur_input_ctrl.valid
     lane(
       i
-    ).io.output_o.ready := !keep_output && !output_stall && cstate === sBUSY
-    lane(i).io.ctrl_i := delayed_three_cycle_cur_input_ctrl.bits.ctrl_data(
+    ).io.output_o.ready      := !keep_output && !output_stall && cstate === sBUSY
+    lane(i).io.ctrl_i        := delayed_three_cycle_cur_input_ctrl.bits.ctrl_data(
       i % ctrl_csr_set_num
     )
   }
 
   delayed_three_cycle_cur_input_ctrl.ready := lane
     .map(_.io.input_i.ready)
-    .reduce(_ && _) && (cstate === sBUSY)
+    .reduce(_ && _)                        && (cstate === sBUSY)
 
   // lane output valid process counter
-  val pipe_out_counter = RegInit(0.U(16.W))
+  val pipe_out_counter  = RegInit(0.U(16.W))
   val lane_output_valid = lane.map(_.io.output_o.valid).reduce(_ && _)
   when(
     lane_output_valid && pipe_out_counter =/= lane_comp_cycle.U - 1.U
@@ -137,7 +135,7 @@ class PipelinedRescaleSIMD(params: RescaleSIMDParams)
   }
 
   output_stall := io.data.output_o.valid & !io.data.output_o.ready
-  keep_output := output_stall
+  keep_output  := output_stall
 
   // concat every result to a big data bus for output
   // if is keep sending output, send the stored result

@@ -1,31 +1,28 @@
 package snax.readerWriter
 
-import snax.utils._
 import chisel3._
 import chisel3.util._
 
+import snax.utils._
+
 /** AGU is the module to automatically generate the address for all ports.
   * @input
-  *   cfg The description of the Address Generation Task. It is normally
-  *   configured by CSR manager
+  *   cfg The description of the Address Generation Task. It is normally configured by CSR manager
   * @input
   *   start The signal to start a address generation task
   * @output
-  *   busy The signal to indicate whether all address generation is finished.
-  *   Only when busy == 0 the next address generation task can be launched
+  *   busy The signal to indicate whether all address generation is finished. Only when busy == 0 the next address
+  *   generation task can be launched
   * @output
-  *   addresses The Vec[Decoupled[UInt]] signal to give tcdm_requestors the
-  *   address
+  *   addresses The Vec[Decoupled[UInt]] signal to give tcdm_requestors the address
   * @param AddressGenUnitParam
   *   The parameter used for generation of the module
   */
-
 class AddressGenUnitCfgIO(param: AddressGenUnitParam) extends Bundle {
-  val ptr = UInt(param.addressWidth.W)
-  val spatialStrides =
-    Vec(param.spatialBounds.length, UInt(param.addressWidth.W))
-  val temporalBounds = Vec(param.temporalDimension, UInt(param.addressWidth.W))
-  val temporalStrides = Vec(param.temporalDimension, UInt(param.addressWidth.W))
+  val ptr               = UInt(param.addressWidth.W)
+  val spatialStrides    = Vec(param.spatialBounds.length, UInt(param.addressWidth.W))
+  val temporalBounds    = Vec(param.temporalDimension, UInt(param.addressWidth.W))
+  val temporalStrides   = Vec(param.temporalDimension, UInt(param.addressWidth.W))
   val addressRemapIndex = UInt(log2Ceil(param.tcdmLogicWordSize.length).W)
 
   def connectWithList(csrList: IndexedSeq[UInt]): IndexedSeq[UInt] = {
@@ -63,36 +60,31 @@ class AddressGenUnitCfgIO(param: AddressGenUnitParam) extends Bundle {
 
 /** AGU is the module to automatically generate the address for all ports.
   * @input
-  *   cfg The description of the Address Generation Task. It is normally
-  *   configured by CSR manager
+  *   cfg The description of the Address Generation Task. It is normally configured by CSR manager
   * @input
   *   start The signal to start a address generation task
   * @output
-  *   busy The signal to indicate whether all address generation is finished.
-  *   Only when busy == 0 the next address generation task can be launched
+  *   busy The signal to indicate whether all address generation is finished. Only when busy == 0 the next address
+  *   generation task can be launched
   * @output
-  *   addresses The Vec[Decoupled[UInt]] signal to give tcdm_requestors the
-  *   address
+  *   addresses The Vec[Decoupled[UInt]] signal to give tcdm_requestors the address
   * @param AddressGenUnitParam
-  *   The parameter used for generation of the module This version of AGU aims
-  *   to totally remove multiplication and division in temporal address
-  *   generation
+  *   The parameter used for generation of the module This version of AGU aims to totally remove multiplication and
+  *   division in temporal address generation
   */
-class AddressGenUnit(
-    param: AddressGenUnitParam,
-    moduleNamePrefix: String = "unnamed_cluster"
-) extends Module
+class AddressGenUnit(param: AddressGenUnitParam, moduleNamePrefix: String = "unnamed_cluster")
+    extends Module
     with RequireAsyncReset {
   val io = IO(new Bundle {
-    val cfg = Input(new AddressGenUnitCfgIO(param))
+    val cfg         = Input(new AddressGenUnitCfgIO(param))
     // Take in the new cfg file and reset all the counters
-    val start = Input(Bool())
+    val start       = Input(Bool())
     // If the address is all generated and pushed into FIFO, busy is false
-    val busy = Output(Bool())
+    val busy        = Output(Bool())
     // If all signal in address buffer is consumed, bufferEmpty becomes high
     val bufferEmpty = Output(Bool())
     // The calculated address. This equals to # of output channels (64-bit narrow TCDM)
-    val addr =
+    val addr        =
       Vec(param.numChannel, Decoupled(UInt(param.addressWidth.W)))
   })
 
@@ -125,10 +117,10 @@ class AddressGenUnit(
   // Create the outputBuffer to store the generated address
   val outputBuffer = Module(
     new ComplexQueueConcat(
-      inputWidth = io.addr.head.bits.getWidth * param.numChannel,
+      inputWidth  = io.addr.head.bits.getWidth * param.numChannel,
       outputWidth = io.addr.head.bits.getWidth,
-      depth = param.outputBufferDepth,
-      pipe = true
+      depth       = param.outputBufferDepth,
+      pipe        = true
     ) {
       override val desiredName = s"${moduleNamePrefix}_AddressBufferFIFO"
     }
@@ -143,13 +135,13 @@ class AddressGenUnit(
   }
 
   val spatialOffsets = for (i <- 0 until param.numChannel) yield {
-    var remainder = i
+    var remainder     = i
     var spatialOffset = temporalOffset
     for (j <- 0 until param.spatialBounds.length) {
       spatialOffset = spatialOffset + spatialOffsetTable(j)(
         remainder % param.spatialBounds(j)
       )
-      remainder = remainder / param.spatialBounds(j)
+      remainder     = remainder / param.spatialBounds(j)
     }
     spatialOffset
   }
@@ -164,13 +156,13 @@ class AddressGenUnit(
   // Before the connecting to outputBuffer, the address can be remapped to another address space
   // The Function to do the mapping is defined below:
   def AffineAddressMapping(
-      inputAddress: UInt,
-      physWordSize: Int,
-      logicalWordSize: Int
+    inputAddress:    UInt,
+    physWordSize:    Int,
+    logicalWordSize: Int
   ): UInt = {
     import snax.utils.BitsConcat._
     require(logicalWordSize <= physWordSize)
-    require(physWordSize % logicalWordSize == 0)
+    require(physWordSize     % logicalWordSize == 0)
     require(isPow2(logicalWordSize))
     require(isPow2(physWordSize))
     if (logicalWordSize == physWordSize) {
@@ -221,7 +213,7 @@ class AddressGenUnit(
 
   // The FSM to record if the AddressGenUnit is busy
   val sIDLE :: sBUSY :: Nil = Enum(2)
-  val currentState = RegInit(sIDLE)
+  val currentState          = RegInit(sIDLE)
   when(io.start && io.cfg.temporalBounds.map(_ =/= 0.U).reduce(_ && _)) { // The cfg is valid, and the start signal is high
     currentState := sBUSY
   }.elsewhen(
@@ -235,13 +227,13 @@ class AddressGenUnit(
   // When the AGU becomes busy, the valid signal is pulled up to put address in the fifo
   outputBuffer.io.in.head.valid := currentState === sBUSY
   // io.busy also determined by currentState
-  io.busy := currentState === sBUSY
+  io.busy                       := currentState === sBUSY
 
   // Temporal bounds' tick signal (enable signal)
   val counters_tick =
     currentState === sBUSY && outputBuffer.io.in.head.fire // FIFO still have the space to take the new address
   // First counter's tick is connected to the start signal
-  counters.head.io.tick := counters_tick
+  counters.head.io.tick    := counters_tick
   // Other counters' tick is connected to the previous counter's lastVal & counters_tick
   if (counters.length > 1) {
     counters.tail.zip(counters).foreach { case (a, b) =>

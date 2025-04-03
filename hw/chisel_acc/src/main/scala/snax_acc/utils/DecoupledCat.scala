@@ -7,8 +7,7 @@ import snax_acc.simd.RescalePECtrl
 import snax_acc.simd.RescaleSIMDParams
 import snax_acc.simd.SIMDCombinedCutBundle
 
-class CutBundle(aWidth: Int, bWidth: Int, cWidth: Int, dWidth: Int)
-    extends Bundle {
+class CutBundle(aWidth: Int, bWidth: Int, cWidth: Int, dWidth: Int) extends Bundle {
   val a = UInt(aWidth.W)
   val b = UInt(bWidth.W)
   val c = UInt(cWidth.W)
@@ -16,9 +15,9 @@ class CutBundle(aWidth: Int, bWidth: Int, cWidth: Int, dWidth: Int)
 }
 
 class DecoupledCat2to1(
-    aWidth: Int,
-    params: RescaleSIMDParams,
-    n: Int
+  aWidth: Int,
+  params: RescaleSIMDParams,
+  n:      Int
 ) extends Module {
   val io = IO(new Bundle {
     // First decoupled input interface (UInt)
@@ -46,10 +45,10 @@ class DecoupledCat2to1(
 }
 
 class DecoupledCat4to1[T <: Data](
-    aWidth: Int,
-    bWidth: Int,
-    cWidth: Int,
-    dWith: Int
+  aWidth: Int,
+  bWidth: Int,
+  cWidth: Int,
+  dWith:  Int
 ) extends Module {
   val io = IO(new Bundle {
     val in1 =
@@ -89,14 +88,14 @@ class DecoupledSplit1to2(cWidth: Int, aWidth: Int, bWidth: Int) extends Module {
   )
 
   val io = IO(new Bundle {
-    val in = Flipped(Decoupled(UInt(cWidth.W))) // Large decoupled input (c)
-    val out1 = Decoupled(UInt(aWidth.W)) // Smaller decoupled output (a)
-    val out2 = Decoupled(UInt(bWidth.W)) // Smaller decoupled output (b)
+    val in   = Flipped(Decoupled(UInt(cWidth.W))) // Large decoupled input (c)
+    val out1 = Decoupled(UInt(aWidth.W))          // Smaller decoupled output (a)
+    val out2 = Decoupled(UInt(bWidth.W))          // Smaller decoupled output (b)
   })
 
   // Split the input bits into two parts
   io.out1.bits := io.in.bits(cWidth - 1, bWidth) // Upper bits go to out1 (a)
-  io.out2.bits := io.in.bits(bWidth - 1, 0) // Lower bits go to out2 (b)
+  io.out2.bits := io.in.bits(bWidth - 1, 0)      // Lower bits go to out2 (b)
 
   // Both outputs are valid when the input is valid
   io.out1.valid := io.in.valid && io.out1.ready && io.out2.ready

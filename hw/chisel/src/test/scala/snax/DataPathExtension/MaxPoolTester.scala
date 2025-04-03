@@ -1,9 +1,6 @@
 package snax.DataPathExtension
-
-import chisel3._
-import chisel3.util._
-
 import scala.util.Random
+
 import snax.DataPathExtension.HasMaxPool
 
 class MaxPoolTester extends DataPathExtensionTester {
@@ -12,16 +9,16 @@ class MaxPoolTester extends DataPathExtensionTester {
 
   // System Val
   val extension_width = 512
-  val bit_width = 8
+  val bit_width       = 8
 
   // Testing Val
   val num_testing_data = 1024
   // pooling_ratio = 8 means we select the max number from 8 consecutive inputs
-  val pooling_ratio = 8
+  val pooling_ratio    = 8
   // We have 512bits input for each CC
   // Hence at most we can process 512/8 = 64 input
-  val maxpool_PE_num = extension_width / bit_width
-  val csr_vec = Seq(pooling_ratio) // 8 -> 1 Pooling
+  val maxpool_PE_num   = extension_width / bit_width
+  val csr_vec          = Seq(pooling_ratio) // 8 -> 1 Pooling
 
   // We have 1024 sets test data
   // each set is 8 x 64 8bit data
@@ -37,7 +34,7 @@ class MaxPoolTester extends DataPathExtensionTester {
   // In total we have 64 maxpool PEs
   // Expected output will select the max number for each colume
   // Expected: [9, 102,             -64B-         ]
-  val input_data = for (i <- 0 until num_testing_data) yield {
+  val input_data              = for (i <- 0 until num_testing_data) yield {
     for (j <- 0 until pooling_ratio) yield {
       for (k <- 0 until maxpool_PE_num) yield {
         Random.between(-128, 128)
@@ -83,13 +80,13 @@ class MaxPoolTester extends DataPathExtensionTester {
     // i is a 8x64 2D Sequence
     // j refers to a 1D list with 64 elements
     // which is the input data to the tb
-    j.zipWithIndex.foldLeft(BigInt(0)) { case (accum, (current, idx)) =>
+    j.zipWithIndex.foldLeft(BigInt(0)) { case (accum, (current, _)) =>
       (accum << 8) + (current.toByte & 0xff)
     }
   }
 
   val output_data_vec = for (i <- output_data) yield {
-    i.zipWithIndex.foldLeft(BigInt(0)) { case (accum, (current, idx)) =>
+    i.zipWithIndex.foldLeft(BigInt(0)) { case (accum, (current, _)) =>
       (accum << 8) + (current.toByte & 0xff)
     }
   }
