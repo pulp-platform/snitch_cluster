@@ -8,10 +8,9 @@ import json5
 import pathlib
 import sys
 import re
-
 from jsonref import JsonRef
 from clustergen.cluster import SnitchCluster
-from mako.template import Template
+import mako
 
 
 def write_template(tpl_path, output_path, **kwargs):
@@ -22,9 +21,13 @@ def write_template(tpl_path, output_path, **kwargs):
     if tpl_path:
         tpl_path = pathlib.Path(tpl_path).absolute()
         if tpl_path.exists():
-            tpl = Template(filename=str(tpl_path))
+            tpl = mako.template.Template(filename=str(tpl_path))
             with open(output_path, "w") as file:
-                code = tpl.render_unicode(**kwargs)
+                try:
+                    code = tpl.render_unicode(**kwargs)
+                except Exception:
+                    print(mako.exceptions.text_error_template().render())
+                    raise
                 code = re_trailws.sub("", code)
                 file.write(code)
         else:
