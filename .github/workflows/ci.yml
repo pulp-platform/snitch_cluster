@@ -2,9 +2,11 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-# Run functional regression checks
+# Run regression tests on Snitch's Docker container.
+# Pull requests from forks cannot deploy the Docker container due to missing
+# secrets, thus we only enable this workflow on push triggers.
 name: ci
-on: [push, pull_request]
+on: [push]
 
 jobs:
 
@@ -15,9 +17,6 @@ jobs:
   build-docker:
     name: Deploy Docker image
     runs-on: ubuntu-22.04
-    if: >
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name != github.repository
     # Export Docker image name used by dependent jobs
     outputs:
       image_name: ${{ steps.image_name.outputs.image_name }}
@@ -62,9 +61,6 @@ jobs:
     name: Build documentation
     runs-on: ubuntu-22.04
     needs: build-docker
-    if: >
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name != github.repository
     container:
       image: ${{ needs.build-docker.outputs.image_name }}
     steps:
@@ -78,7 +74,7 @@ jobs:
     needs: build-docker
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     container:
-      image: ghcr.io/pulp-platform/snitch_cluster:${{ github.ref_name }}
+      image: ${{ needs.build-docker.outputs.image_name }}
     steps:
       - uses: actions/checkout@v2
       # For some reason, the checkout is done by a different user
@@ -102,9 +98,6 @@ jobs:
     name: Python unit tests
     runs-on: ubuntu-22.04
     needs: build-docker
-    if: >
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name != github.repository
     container:
       image: ${{ needs.build-docker.outputs.image_name }}
     steps:
@@ -120,9 +113,6 @@ jobs:
     name: Simulate SW on Snitch Cluster w/ Verilator
     runs-on: ubuntu-22.04
     needs: build-docker
-    if: >
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name != github.repository
     container:
       image: ${{ needs.build-docker.outputs.image_name }}
     steps:
@@ -170,9 +160,6 @@ jobs:
     name: Check Sources Up-to-Date
     runs-on: ubuntu-22.04
     needs: build-docker
-    if: >
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name != github.repository
     container:
       image: ${{ needs.build-docker.outputs.image_name }}
     steps:
