@@ -11,12 +11,12 @@ jobs:
   gitlab-ci:
     name: Internal Gitlab CI
     runs-on: ubuntu-22.04
+    # Skip on forks due to missing secrets.
+    if: >
+      github.repository == 'pulp-platform/snitch_cluster'
     steps:
       - name: Check Gitlab CI
         uses: pulp-platform/pulp-actions/gitlab-ci@v2.1.0
-        # Skip on forks due to missing secrets.
-        if: >
-          github.repository == 'pulp-platform/snitch_cluster'
         with:
           domain: iis-git.ee.ethz.ch
           repo: github-mirror/snitch_cluster
