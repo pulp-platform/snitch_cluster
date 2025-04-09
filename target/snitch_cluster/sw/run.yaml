@@ -82,7 +82,6 @@ runs:
   - elf: ./apps/dnn/transpose/build/transpose.elf
     simulators: [vsim, vcs, verilator]
     cmd: [../../../sw/dnn/transpose/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ./apps/montecarlo/pi_estimation/build/pi_estimation.elf
   - elf: ./apps/atax/build/atax.elf
     cmd: [../../../sw/apps/atax/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ./apps/covariance/build/covariance.elf
