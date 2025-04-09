@@ -47,9 +47,9 @@ These commands compile the RTL sources respectively in `work-vlt`, `work-vsim` a
 
 ## Configuring the hardware
 
-The Snitch cluster RTL sources are partly automatically generated from a configuration file provided in `.hjson` format. Several RTL files are templated and use the `.hjson` configuration file as input to fill in the template. An example is [snitch_cluster_wrapper.sv.tpl](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl).
+The Snitch cluster RTL sources are partly automatically generated from a configuration file provided in [JSON5](https://json5.org/) format. Several RTL files are templated and use the `.json` configuration file as input to fill in the template. An example is [snitch_cluster_wrapper.sv.tpl](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl).
 
-In the [`cfg`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/snitch_cluster/cfg) folder, different configurations are provided. The [`cfg/default.hjson`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/snitch_cluster/cfg/default.hjson) configuration instantiates 8 compute cores + 1 DMA core in the cluster.
+In the [`cfg`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/snitch_cluster/cfg) folder, different configurations are provided. The [`cfg/default.json`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/snitch_cluster/cfg/default.json) configuration instantiates 8 compute cores + 1 DMA core in the cluster.
 
 The command you previously executed automatically generated the RTL sources from the templates, and it implicitly used the default configuration file. In this configuration the FPU is not equipped with a floating-point divide and square-root unit.
 To override the default configuration file, e.g. to use the configuration with FDIV/FSQRT unit, define the following variable when you invoke `make`:
@@ -60,7 +60,7 @@ make CFG_OVERRIDE=cfg/fdiv.hjson bin/snitch_cluster.vlt
 If you want to use a custom configuration, just point `CFG_OVERRIDE` to the path of your configuration file.
 
 !!! tip
-    When you override the configuration file on the `make` command-line, the configuration is stored in the `cfg/lru.hjson` file. Successive invocations of `make` will automatically pick up the `cfg/lru.hjson` file. You can therefore omit the `CFG_OVERRIDE` definition in successive commands unless you want to override the least-recently used configuration.
+    When you override the configuration file on the `make` command-line, the configuration is stored in the `cfg/lru.json` file. Successive invocations of `make` will automatically pick up the `cfg/lru.json` file. You can therefore omit the `CFG_OVERRIDE` definition in successive commands unless you want to override the least-recently used configuration.
 
 ## Building the software
 
