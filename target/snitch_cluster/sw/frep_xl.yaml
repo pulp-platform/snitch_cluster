@@ -1,0 +1,7 @@
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+runs:
+  # Needs a larger FREP sequencer than default, in some configurations
+  - elf: ./apps/montecarlo/pi_estimation/build/pi_estimation.elf
