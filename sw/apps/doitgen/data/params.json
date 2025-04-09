@@ -8,5 +8,5 @@
     "s": 32,
     "r_tiles": 2,
     "q_tiles": 2,
-    "funcptr": "doitgen_baseline"
+    "funcptr": "doitgen_opt"
 }

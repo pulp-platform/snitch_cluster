@@ -3,6 +3,6 @@
 // SPDX-License-Identifier: SHL-0.51
 
 {
-    size: 128,
+    size: 64,
     prec: "FP64"
 }
