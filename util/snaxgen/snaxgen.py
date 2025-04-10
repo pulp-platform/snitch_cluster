@@ -189,8 +189,8 @@ def streamer_csr_num(acc_cfgs):
             "configurable_channel"
             in acc_cfgs["snax_streamer_cfg"]["data_reader_params"]
         ):
-            num_configurable_channel += int(
-                sum(
+            num_configurable_channel += sum(
+                int(
                     acc_cfgs["snax_streamer_cfg"]["data_reader_params"][
                         "configurable_channel"
                     ][i]
@@ -201,12 +201,12 @@ def streamer_csr_num(acc_cfgs):
                         + 31
                     )
                     / 32
-                    for i in range(
-                        len(
-                            acc_cfgs["snax_streamer_cfg"]["data_reader_params"][
-                                "configurable_channel"
-                            ]
-                        )
+                )
+                for i in range(
+                    len(
+                        acc_cfgs["snax_streamer_cfg"]["data_reader_params"][
+                            "configurable_channel"
+                        ]
                     )
                 )
             )
@@ -215,8 +215,8 @@ def streamer_csr_num(acc_cfgs):
             "configurable_channel"
             in acc_cfgs["snax_streamer_cfg"]["data_writer_params"]
         ):
-            num_configurable_channel += int(
-                sum(
+            num_configurable_channel += sum(
+                int(
                     acc_cfgs["snax_streamer_cfg"]["data_writer_params"][
                         "configurable_channel"
                     ][i]
@@ -227,12 +227,12 @@ def streamer_csr_num(acc_cfgs):
                         + 31
                     )
                     / 32
-                    for i in range(
-                        len(
-                            acc_cfgs["snax_streamer_cfg"]["data_writer_params"][
-                                "configurable_channel"
-                            ]
-                        )
+                )
+                for i in range(
+                    len(
+                        acc_cfgs["snax_streamer_cfg"]["data_writer_params"][
+                            "configurable_channel"
+                        ]
                     )
                 )
             )
@@ -241,8 +241,8 @@ def streamer_csr_num(acc_cfgs):
             "configurable_channel"
             in acc_cfgs["snax_streamer_cfg"]["data_reader_writer_params"]
         ):
-            num_configurable_channel += int(
-                sum(
+            num_configurable_channel += sum(
+                int(
                     acc_cfgs["snax_streamer_cfg"]["data_reader_writer_params"][
                         "configurable_channel"
                     ][i]
@@ -253,12 +253,12 @@ def streamer_csr_num(acc_cfgs):
                         + 31
                     )
                     / 32
-                    for i in range(
-                        len(
-                            acc_cfgs["snax_streamer_cfg"]["data_reader_writer_params"][
-                                "configurable_channel"
-                            ]
-                        )
+                )
+                for i in range(
+                    len(
+                        acc_cfgs["snax_streamer_cfg"]["data_reader_writer_params"][
+                            "configurable_channel"
+                        ]
                     )
                 )
             )
