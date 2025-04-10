@@ -34,9 +34,9 @@ class MaxPoolTester extends DataPathExtensionTester {
   // In total we have 64 maxpool PEs
   // Expected output will select the max number for each colume
   // Expected: [9, 102,             -64B-         ]
-  val input_data              = for (i <- 0 until num_testing_data) yield {
-    for (j <- 0 until pooling_ratio) yield {
-      for (k <- 0 until maxpool_PE_num) yield {
+  val input_data              = for (_ <- 0 until num_testing_data) yield {
+    for (_ <- 0 until pooling_ratio) yield {
+      for (_ <- 0 until maxpool_PE_num) yield {
         Random.between(-128, 128)
       }
     }

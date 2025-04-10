@@ -19,7 +19,7 @@ int32_t xdma_memcpy_nd_full_addr(
     uint32_t enabled_chan_src, uint32_t enabled_chan_dst,
     uint32_t enabled_byte_dst);
 
-int32_t xdma_memcpy_nd(uint8_t* src, uint8_t* dst, uint32_t spatial_stride_src,
+int32_t xdma_memcpy_nd(void* src, void* dst, uint32_t spatial_stride_src,
                        uint32_t spatial_stride_dst, uint32_t temp_dim_src,
                        uint32_t* temp_stride_src, uint32_t* temp_bound_src,
                        uint32_t temp_dim_dst, uint32_t* temp_stride_dst,
@@ -28,7 +28,7 @@ int32_t xdma_memcpy_nd(uint8_t* src, uint8_t* dst, uint32_t spatial_stride_src,
 
 int32_t xdma_memcpy_1d_full_addr(uint64_t src, uint64_t dst, uint32_t size);
 
-int32_t xdma_memcpy_1d(uint8_t* src, uint8_t* dst, uint32_t size);
+int32_t xdma_memcpy_1d(void* src, void* dst, uint32_t size);
 
 // Multicast Task
 int32_t xdma_multicast_nd_full_address(
@@ -39,7 +39,7 @@ int32_t xdma_multicast_nd_full_address(
     uint32_t enabled_chan_src, uint32_t enabled_chan_dst,
     uint32_t enabled_byte_dst);
 
-int32_t xdma_multicast_nd(uint8_t* src, uint8_t** dst, uint32_t dst_num,
+int32_t xdma_multicast_nd(void* src, void** dst, uint32_t dst_num,
                           uint32_t spatial_stride_src,
                           uint32_t spatial_stride_dst, uint32_t temp_dim_src,
                           uint32_t* temp_stride_src, uint32_t* temp_bound_src,
@@ -50,7 +50,7 @@ int32_t xdma_multicast_nd(uint8_t* src, uint8_t** dst, uint32_t dst_num,
 int32_t xdma_multicast_1d_full_address(uint64_t src, uint64_t* dst,
                                        uint32_t dst_num, uint32_t size);
 
-int32_t xdma_multicast_1d(uint8_t* src, uint8_t** dst, uint32_t dst_num,
+int32_t xdma_multicast_1d(void* src, void** dst, uint32_t dst_num,
                           uint32_t size);
 
 // Extension

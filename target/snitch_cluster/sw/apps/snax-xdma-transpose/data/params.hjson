@@ -5,10 +5,11 @@
 // Yunhao Deng <yunhao.deng@kuleuven.be>
 
 {
-    M: 64, // Number of rows / height
-    N: 32, // Number of columns / width
+    M: 56, // Number of rows / height
+    N: 33, // Number of columns / width
+    BIT_WIDTH: 16, // Bit width of the data type
     // Input layout can be MN or MNMaNb, where b should be larger than 8 for any cases and a should be larger than 8 if transpose is needed. 
-    input_layout: "MNM16N16",
-    output_layout: "MNM8N8",
+    input_layout: "MNM32N16",
+    output_layout: "MN",
     enable_transpose: true
 }

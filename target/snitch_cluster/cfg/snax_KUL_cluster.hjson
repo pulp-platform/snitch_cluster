@@ -163,7 +163,7 @@
             // Extension Cfg
             HasVerilogMemset: {},
             HasMaxPool: {},
-            HasTransposer: {row:[8], col:[8], elementWidth:[8]}, 
+            HasTransposer: {row:[8, 8], col:[8, 8], elementWidth:[8, 16]}, 
         }
         // Xdiv_sqrt: true,
         # isa: "rv32ema",
