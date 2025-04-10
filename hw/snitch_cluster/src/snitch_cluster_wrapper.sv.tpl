@@ -78,7 +78,7 @@ package ${cfg['name']}_pkg;
   localparam int unsigned NrMasters = 3;
   localparam int unsigned NarrowIdWidthOut = $clog2(NrMasters) + NarrowIdWidthIn;
 
-  localparam int unsigned NrDmaMasters = 2 + ${cfg['nr_hives']};
+  localparam int unsigned NrDmaMasters = 3 + ${cfg['nr_hives']};
   localparam int unsigned WideIdWidthIn = ${cfg['dma_id_width_in']};
   localparam int unsigned WideIdWidthOut = $clog2(NrDmaMasters) + WideIdWidthIn;
 
@@ -522,6 +522,18 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
   //-----------------------------
   logic [${cfg['pkg_name']}::NrCores-1:0] snax_barrier;
 
+% if snax_xdma_flag:
+  //-----------------------------
+  // XDMA Wire
+  //-----------------------------
+  ${cfg['pkg_name']}::wide_out_req_t xdma_wide_out_req;
+  ${cfg['pkg_name']}::wide_out_resp_t xdma_wide_out_resp;
+  ${cfg['pkg_name']}::wide_in_req_t xdma_wide_in_req;
+  ${cfg['pkg_name']}::wide_in_resp_t xdma_wide_in_resp;
+%endif
+
+
+
   // Snitch cluster under test.
   snitch_cluster #(
     .PhysicalAddrWidth (${cfg['addr_width']}),
@@ -542,8 +554,9 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
     .NrHives (${cfg['nr_hives']}),
     .NrCores (${cfg['nr_cores']}),
     .TCDMDepth (${cfg['pkg_name']}::TCDMDepth),
-    .ZeroMemorySize (${cfg['zero_mem_size']}),
     .ClusterPeriphSize (${cfg['cluster_periph_size']}),
+    .ClusterMMIOSize(${cfg['mmio_size']}),
+    .ClusterAddrSpace (${int(cfg['cluster_base_offset']/1024)}),
     .NrBanks (${cfg['pkg_name']}::NrBanks),
     .DMAAxiReqFifoDepth (${cfg['dma_axi_req_fifo_depth']}),
     .DMAReqFifoDepth (${cfg['dma_req_fifo_depth']}),
@@ -710,6 +723,20 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
     .narrow_in_resp_o   ( narrow_in_resp_o  ),
     .narrow_out_req_o   ( narrow_out_req_o  ),
     .narrow_out_resp_i  ( narrow_out_resp_i ),
+    //-----------------------------
+    // XDMA
+    //-----------------------------
+% if snax_xdma_flag:
+    .xdma_wide_out_req_o  (xdma_wide_out_req ),
+    .xdma_wide_out_resp_i (xdma_wide_out_resp),
+    .xdma_wide_in_req_i   (xdma_wide_in_req  ),
+    .xdma_wide_in_resp_o  (xdma_wide_in_resp ),
+% else:
+    .xdma_wide_out_req_o  (                  ),
+    .xdma_wide_out_resp_i ('0                ),
+    .xdma_wide_in_req_i   ('0                ),
+    .xdma_wide_in_resp_o  (                  ),    
+%endif
     //-----------------------------
     // Wide AXI ports
     //-----------------------------
@@ -908,8 +935,16 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
     % for jdx, jdx_key in enumerate(snax_core_acc[idx_key]['snax_acc_dict']):
   // Instantiation of xdma wrapper
   ${cfg['name']}_xdma_wrapper # (
-    .tcdm_req_t       ( ${cfg['pkg_name']}::tcdm_req_t ),
-    .tcdm_rsp_t       ( ${cfg['pkg_name']}::tcdm_rsp_t )
+    .tcdm_req_t       ( ${cfg['pkg_name']}::tcdm_req_t     ),
+    .tcdm_rsp_t       ( ${cfg['pkg_name']}::tcdm_rsp_t     ),
+    .wide_slv_id_t    ( ${cfg['pkg_name']}::wide_out_id_t  ),
+    .wide_out_req_t   ( ${cfg['pkg_name']}::wide_in_req_t ),
+    .wide_out_resp_t  ( ${cfg['pkg_name']}::wide_in_resp_t),
+    .wide_in_req_t    ( ${cfg['pkg_name']}::wide_out_req_t  ),
+    .wide_in_resp_t   ( ${cfg['pkg_name']}::wide_out_resp_t ),
+    .ClusterBaseAddr  ( ${cfg['pkg_name']}::ClusterBaseAddr),
+    .ClusterAddressSpace(${to_sv_hex(cfg['cluster_base_offset'], cfg['addr_width'])}),
+    .MMIOSize(${cfg['mmio_size']})
   ) ${jdx_key}  (
     //-----------------------------
     // Clock and reset
@@ -936,6 +971,14 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
     //-----------------------------
     // Hardware barrier is not supported by xdma at the moment
     //-----------------------------
+
+    //-----------------------------
+    // XDMA Intercluster Ports
+    //-----------------------------
+    .xdma_wide_out_req_o (xdma_wide_in_req  ),
+    .xdma_wide_out_resp_i(xdma_wide_in_resp ),
+    .xdma_wide_in_req_i  (xdma_wide_out_req ),
+    .xdma_wide_in_resp_o (xdma_wide_out_resp),
     //-----------------------------
     // TCDM ports
     //-----------------------------

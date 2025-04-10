@@ -66,6 +66,15 @@
                 64
             ]
         },
+        "mmio_size": {
+            "type": "number",
+            "description": "Address region size reserved for the mmio in KiByte.",
+            "examples": [
+                32,
+                16
+            ],
+            "default": 16
+        },        
         "addr_width": {
             "type": "number",
             "description": "Length of the address, should be greater than 30. If the address is larger than 34 the data bus needs to be 64 bits in size.",
