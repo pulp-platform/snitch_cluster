@@ -45,6 +45,7 @@ clean-headers:
 include sw/toolchain.mk
 include sw/runtime/runtime.mk
 include sw/tests/tests.mk
+include sw/riscv-tests/riscv-tests.mk
 
 APPS  = sw/apps/nop
 APPS += sw/apps/blas/axpy
