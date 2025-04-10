@@ -1,0 +1,60 @@
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Runs riscv-tests ISA test cases for the p environment.
+# Make sure the test cases are compiled in the riscv-tests.mk.
+
+runs:
+  - elf: riscv-tests/build/rv32ui-p-simple.elf
+  - elf: riscv-tests/build/rv32ui-p-sltu.elf
+  - elf: riscv-tests/build/rv32ui-p-add.elf
+  - elf: riscv-tests/build/rv32ui-p-addi.elf
+  - elf: riscv-tests/build/rv32ui-p-xori.elf
+  - elf: riscv-tests/build/rv32ui-p-and.elf
+  - elf: riscv-tests/build/rv32ui-p-andi.elf
+  - elf: riscv-tests/build/rv32ui-p-auipc.elf
+  - elf: riscv-tests/build/rv32ui-p-beq.elf
+  - elf: riscv-tests/build/rv32ui-p-bge.elf
+  - elf: riscv-tests/build/rv32ui-p-bgeu.elf
+  - elf: riscv-tests/build/rv32ui-p-blt.elf
+  - elf: riscv-tests/build/rv32ui-p-bltu.elf
+  - elf: riscv-tests/build/rv32ui-p-bne.elf
+  - elf: riscv-tests/build/rv32ui-p-sltiu.elf
+  - elf: riscv-tests/build/rv32ui-p-fence_i.elf
+  - elf: riscv-tests/build/rv32ui-p-jal.elf
+  - elf: riscv-tests/build/rv32ui-p-jalr.elf
+  - elf: riscv-tests/build/rv32ui-p-lb.elf
+  - elf: riscv-tests/build/rv32ui-p-lbu.elf
+  - elf: riscv-tests/build/rv32ui-p-lh.elf
+  - elf: riscv-tests/build/rv32ui-p-lhu.elf
+  - elf: riscv-tests/build/rv32ui-p-lw.elf
+  - elf: riscv-tests/build/rv32ui-p-ld_st.elf
+  - elf: riscv-tests/build/rv32ui-p-lui.elf
+  # Exclude the rv32ui-p-ma_data test as it is for user space EEI and assumes that we support
+  # unaligned memory access in U mode. Schnizo never supports unaligned accesses.
+  # - elf: riscv-tests/build/rv32ui-p-ma_data.elf
+  - elf: riscv-tests/build/rv32ui-p-or.elf
+  - elf: riscv-tests/build/rv32ui-p-ori.elf
+  - elf: riscv-tests/build/rv32ui-p-sb.elf
+  - elf: riscv-tests/build/rv32ui-p-sh.elf
+  - elf: riscv-tests/build/rv32ui-p-sw.elf
+  - elf: riscv-tests/build/rv32ui-p-st_ld.elf
+  - elf: riscv-tests/build/rv32ui-p-sll.elf
+  - elf: riscv-tests/build/rv32ui-p-slli.elf
+  - elf: riscv-tests/build/rv32ui-p-slt.elf
+  - elf: riscv-tests/build/rv32ui-p-slti.elf
+  - elf: riscv-tests/build/rv32ui-p-sra.elf
+  - elf: riscv-tests/build/rv32ui-p-srai.elf
+  - elf: riscv-tests/build/rv32ui-p-srl.elf
+  - elf: riscv-tests/build/rv32ui-p-srli.elf
+  - elf: riscv-tests/build/rv32ui-p-sub.elf
+  - elf: riscv-tests/build/rv32ui-p-xor.elf
+  - elf: riscv-tests/build/rv32um-p-div.elf
+  - elf: riscv-tests/build/rv32um-p-divu.elf
+  - elf: riscv-tests/build/rv32um-p-mul.elf
+  - elf: riscv-tests/build/rv32um-p-mulh.elf
+  - elf: riscv-tests/build/rv32um-p-mulhsu.elf
+  - elf: riscv-tests/build/rv32um-p-mulhu.elf
+  - elf: riscv-tests/build/rv32um-p-rem.elf
+  - elf: riscv-tests/build/rv32um-p-remu.elf

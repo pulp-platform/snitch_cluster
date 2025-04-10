@@ -4,3 +4,6 @@
 [submodule "sw/deps/printf"]
 	path = sw/deps/printf
 	url = https://github.com/mpaland/printf.git
+[submodule "sw/deps/riscv-tests"]
+	path = sw/deps/riscv-tests
+	url = git@github.com:riscv-software-src/riscv-tests.git
