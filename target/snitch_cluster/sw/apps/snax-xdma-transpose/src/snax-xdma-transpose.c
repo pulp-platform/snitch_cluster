@@ -62,7 +62,6 @@ int main() {
         uint32_t start_time;
         uint32_t end_time;
 
-        __asm__ volatile("fence" ::: "memory");
         __asm__ volatile("csrr %0, mcycle;" : "=r"(start_time));
         int task_id = xdma_start();
         xdma_local_wait(task_id);

@@ -6,7 +6,6 @@
 
 #include "snax-xdma-lib.h"
 #include <stdbool.h>
-#include "snrt.h"
 #include "stdint.h"
 
 #define XDMA_DEBUG
@@ -334,41 +333,4 @@ int32_t xdma_disable_dst_ext(uint8_t ext) {
     // Bypass the xdma extension -> set the corresponding CSR bit to 1
     csrw_ss(XDMA_DST_BYPASS_PTR, csrr_ss(XDMA_DST_BYPASS_PTR) | (1 << ext));
     return 0;
-}
-
-// Start xdma
-uint32_t xdma_start() {
-    int local_task_id = csrr_ss(XDMA_COMMIT_LOCAL_TASK_PTR);
-    int remote_task_id = csrr_ss(XDMA_COMMIT_REMOTE_TASK_PTR);
-    csrw_ss(XDMA_START_PTR, 1);
-    while (1) {
-        // Wait for xdma to start
-        if (csrr_ss(XDMA_COMMIT_LOCAL_TASK_PTR) != local_task_id) {
-            return csrr_ss(XDMA_COMMIT_LOCAL_TASK_PTR);
-        }
-        if (csrr_ss(XDMA_COMMIT_REMOTE_TASK_PTR) != remote_task_id) {
-            return csrr_ss(XDMA_COMMIT_REMOTE_TASK_PTR);
-        }
-    }
-}
-
-// Check if xdma is finished
-static inline bool xdma_local_is_finished(uint32_t task_id) {
-    return csrr_ss(XDMA_FINISH_LOCAL_TASK_PTR) >= task_id;
-}
-
-static inline bool xdma_remote_is_finished(uint32_t task_id) {
-    return csrr_ss(XDMA_FINISH_REMOTE_TASK_PTR) >= task_id;
-}
-
-void xdma_local_wait(uint32_t task_id) {
-    while (!xdma_local_is_finished(task_id)) {
-        // Wait for xdma to finish
-    }
-}
-
-void xdma_remote_wait(uint32_t task_id) {
-    while (!xdma_remote_is_finished(task_id)) {
-        // Wait for xdma to finish
-    }
 }
