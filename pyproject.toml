@@ -16,7 +16,6 @@ dependencies = [
     # Keep sorted.
     "bin2coe",
     "dataclasses",
-    "editorconfig-checker==2.3.51",
     "flake8",
     "gitpython",
     "humanize",
@@ -53,3 +52,5 @@ dependencies = [
 "snitch.dnn" = "sw/dnn"
 "snitch.blas" = "sw/blas"
 "snitch.util" = "util"
+"snitch.target" = "target/snitch_cluster/util"
+"snitch.nonfree" = "nonfree/util"
