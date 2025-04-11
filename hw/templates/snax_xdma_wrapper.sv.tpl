@@ -148,6 +148,8 @@ import xdma_pkg::*;
   xdma_pkg::addr_t                   xdma_to_remote_data_accompany_cfg_dst_addr;
   xdma_pkg::len_t                    xdma_to_remote_data_accompany_cfg_dma_length;
   logic                              xdma_to_remote_data_accompany_cfg_ready_to_transfer;
+  logic                              xdma_to_remote_data_accompany_cfg_is_first_cw;
+  logic                              xdma_to_remote_data_accompany_cfg_is_last_cw;
   ///---------------------
   /// FROM REMOTE
   ///---------------------
@@ -167,6 +169,8 @@ import xdma_pkg::*;
   xdma_pkg::addr_t                   xdma_from_remote_data_accompany_cfg_dst_addr;
   xdma_pkg::len_t                    xdma_from_remote_data_accompany_cfg_dma_length;
   logic                              xdma_from_remote_data_accompany_cfg_ready_to_transfer;
+  logic                              xdma_from_remote_data_accompany_cfg_is_first_cw;
+  logic                              xdma_from_remote_data_accompany_cfg_is_last_cw;
   ///---------------------
   /// FINISH
   ///---------------------
@@ -182,7 +186,9 @@ import xdma_pkg::*;
     src_addr:          xdma_to_remote_data_accompany_cfg_src_addr,
     dst_addr:          xdma_to_remote_data_accompany_cfg_dst_addr,
     dma_length:        xdma_to_remote_data_accompany_cfg_dma_length,
-    ready_to_transfer: xdma_to_remote_data_accompany_cfg_ready_to_transfer
+    ready_to_transfer: xdma_to_remote_data_accompany_cfg_ready_to_transfer,
+    is_first_cw:       xdma_to_remote_data_accompany_cfg_is_first_cw,
+    is_last_cw:        xdma_to_remote_data_accompany_cfg_is_last_cw
   };
   assign xdma_from_remote_data_accompany_cfg = xdma_pkg::xdma_accompany_cfg_t'{
     dma_id:            xdma_from_remote_data_accompany_cfg_dma_id,
@@ -190,7 +196,9 @@ import xdma_pkg::*;
     src_addr:          xdma_from_remote_data_accompany_cfg_src_addr,
     dst_addr:          xdma_from_remote_data_accompany_cfg_dst_addr,
     dma_length:        xdma_from_remote_data_accompany_cfg_dma_length,
-    ready_to_transfer: xdma_from_remote_data_accompany_cfg_ready_to_transfer
+    ready_to_transfer: xdma_from_remote_data_accompany_cfg_ready_to_transfer,
+    is_first_cw:       xdma_from_remote_data_accompany_cfg_is_first_cw,
+    is_last_cw:        xdma_from_remote_data_accompany_cfg_is_last_cw
   };
 
   // Streamer module that is generated
@@ -254,52 +262,57 @@ import xdma_pkg::*;
     //-----------------------------
 
     // RemoteTask finished Pin
-    .io_remoteTaskFinished                                     (xdma_finish                ),
+    .io_remoteTaskFinished                                          (xdma_finish                                          ),
 
     // fromRemote data
-    .io_remoteXDMAData_fromRemote_valid                        (xdma_from_remote_data_valid),
-    .io_remoteXDMAData_fromRemote_ready                        (xdma_from_remote_data_ready),
-    .io_remoteXDMAData_fromRemote_bits                         (xdma_from_remote_data      ),
+    .io_remoteXDMAData_fromRemote_valid                             (xdma_from_remote_data_valid                          ),
+    .io_remoteXDMAData_fromRemote_ready                             (xdma_from_remote_data_ready                          ),
+    .io_remoteXDMAData_fromRemote_bits                              (xdma_from_remote_data                                ),
 
     // fromRemote Accompanied Cfg
     // readyToTransfer = 0 -> 1: XDMA is ready for the next task
-    .io_remoteXDMAData_fromRemoteAccompaniedCfg_readyToTransfer(xdma_from_remote_data_accompany_cfg_ready_to_transfer),
+    .io_remoteXDMAData_fromRemoteAccompaniedCfg_readyToTransfer     (xdma_from_remote_data_accompany_cfg_ready_to_transfer),
     // taskID: 8 bit signal to track each tasks
-    .io_remoteXDMAData_fromRemoteAccompaniedCfg_taskID         (xdma_from_remote_data_accompany_cfg_dma_id           ),
+    .io_remoteXDMAData_fromRemoteAccompaniedCfg_taskID              (xdma_from_remote_data_accompany_cfg_dma_id           ),
     // length: 19 bit signal to indicate the total number of beats in this task
-    .io_remoteXDMAData_fromRemoteAccompaniedCfg_length         (xdma_from_remote_data_accompany_cfg_dma_length       ),
+    .io_remoteXDMAData_fromRemoteAccompaniedCfg_length              (xdma_from_remote_data_accompany_cfg_dma_length       ),
     // taskType: 1 is Local Write, Remote Read; 0 is Local Read, Remote Write
-    .io_remoteXDMAData_fromRemoteAccompaniedCfg_taskType       (xdma_from_remote_data_accompany_cfg_dma_type         ),
+    .io_remoteXDMAData_fromRemoteAccompaniedCfg_taskType            (xdma_from_remote_data_accompany_cfg_dma_type         ),
     // Addresses: 48 bit signal to indicate the src and dst of the task
-    .io_remoteXDMAData_fromRemoteAccompaniedCfg_src            (xdma_from_remote_data_accompany_cfg_src_addr         ),
-    .io_remoteXDMAData_fromRemoteAccompaniedCfg_dst            (xdma_from_remote_data_accompany_cfg_dst_addr         ),
+    .io_remoteXDMAData_fromRemoteAccompaniedCfg_src                 (xdma_from_remote_data_accompany_cfg_src_addr         ),
+    .io_remoteXDMAData_fromRemoteAccompaniedCfg_dst                 (xdma_from_remote_data_accompany_cfg_dst_addr         ),
+    .io_remoteXDMAData_fromRemoteAccompaniedCfg_isFirstChainedWrite (xdma_from_remote_data_accompany_cfg_is_first_cw      ),
+    .io_remoteXDMAData_fromRemoteAccompaniedCfg_isLastChainedWrite  (xdma_from_remote_data_accompany_cfg_is_last_cw       ),
 
     // toRemote data
-    .io_remoteXDMAData_toRemote_ready                          (xdma_to_remote_data_ready),
-    .io_remoteXDMAData_toRemote_valid                          (xdma_to_remote_data_valid),
-    .io_remoteXDMAData_toRemote_bits                           (xdma_to_remote_data),
+    .io_remoteXDMAData_toRemote_ready                               (xdma_to_remote_data_ready                            ),
+    .io_remoteXDMAData_toRemote_valid                               (xdma_to_remote_data_valid                            ),
+    .io_remoteXDMAData_toRemote_bits                                (xdma_to_remote_data                                  ),
 
     // toRemote Accompanied Cfg
     // readyToTransfer = 0 -> 1: XDMA is ready for the next task
-    .io_remoteXDMAData_toRemoteAccompaniedCfg_readyToTransfer  (xdma_to_remote_data_accompany_cfg_ready_to_transfer),
+    .io_remoteXDMAData_toRemoteAccompaniedCfg_readyToTransfer       (xdma_to_remote_data_accompany_cfg_ready_to_transfer  ),
     // taskID: 8 bit signal to track each tasks
-    .io_remoteXDMAData_toRemoteAccompaniedCfg_taskID           (xdma_to_remote_data_accompany_cfg_dma_id),
+    .io_remoteXDMAData_toRemoteAccompaniedCfg_taskID                (xdma_to_remote_data_accompany_cfg_dma_id             ),
     // length: 19 bit signal to indicate the total number of beats in this task
-    .io_remoteXDMAData_toRemoteAccompaniedCfg_length           (xdma_to_remote_data_accompany_cfg_dma_length),
+    .io_remoteXDMAData_toRemoteAccompaniedCfg_length                (xdma_to_remote_data_accompany_cfg_dma_length         ),
     // taskType: 1 is Local Write, Remote Read; 0 is Local Read, Remote Write
-    .io_remoteXDMAData_toRemoteAccompaniedCfg_taskType         (xdma_to_remote_data_accompany_cfg_dma_type),
+    .io_remoteXDMAData_toRemoteAccompaniedCfg_taskType              (xdma_to_remote_data_accompany_cfg_dma_type           ),
     // Addresses: 48 bit signal to indicate the src and dst of the task
-    .io_remoteXDMAData_toRemoteAccompaniedCfg_src              (xdma_to_remote_data_accompany_cfg_src_addr),
-    .io_remoteXDMAData_toRemoteAccompaniedCfg_dst              (xdma_to_remote_data_accompany_cfg_dst_addr),
+    .io_remoteXDMAData_toRemoteAccompaniedCfg_src                   (xdma_to_remote_data_accompany_cfg_src_addr           ),
+    .io_remoteXDMAData_toRemoteAccompaniedCfg_dst                   (xdma_to_remote_data_accompany_cfg_dst_addr           ),
+    // Status signal for the Chain Write
+    .io_remoteXDMAData_toRemoteAccompaniedCfg_isFirstChainedWrite   (xdma_to_remote_data_accompany_cfg_is_first_cw        ),
+    .io_remoteXDMAData_toRemoteAccompaniedCfg_isLastChainedWrite    (xdma_to_remote_data_accompany_cfg_is_last_cw         ),
 
     // 512 bit Cfg
-    .io_remoteXDMACfg_fromRemote_valid                         (xdma_from_remote_cfg_valid),
-    .io_remoteXDMACfg_fromRemote_ready                         (xdma_from_remote_cfg_ready),
-    .io_remoteXDMACfg_fromRemote_bits                          (xdma_from_remote_cfg_bits ),
+    .io_remoteXDMACfg_fromRemote_valid                              (xdma_from_remote_cfg_valid                           ),
+    .io_remoteXDMACfg_fromRemote_ready                              (xdma_from_remote_cfg_ready                           ),
+    .io_remoteXDMACfg_fromRemote_bits                               (xdma_from_remote_cfg_bits                            ),
 
-    .io_remoteXDMACfg_toRemote_ready                           (xdma_to_remote_cfg_ready  ),
-    .io_remoteXDMACfg_toRemote_valid                           (xdma_to_remote_cfg_valid  ),
-    .io_remoteXDMACfg_toRemote_bits                            (xdma_to_remote_cfg_bits   )
+    .io_remoteXDMACfg_toRemote_ready                                (xdma_to_remote_cfg_ready                             ),
+    .io_remoteXDMACfg_toRemote_valid                                (xdma_to_remote_cfg_valid                             ),
+    .io_remoteXDMACfg_toRemote_bits                                 (xdma_to_remote_cfg_bits                              )
   );
 
 
