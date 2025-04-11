@@ -200,4 +200,23 @@ If you use the Snitch cluster or its extensions in your work, you can cite us:
 </p>
 </details>
 
+<details>
+<summary><b><a href="https://arxiv.org/abs/2503.20609">Late Breaking Results: A RISC-V ISA Extension for Chaining in Scalar Processors</a></b></summary>
+<p>
+
+```
+@misc{colagrande2025chaining,
+  title={Late Breaking Results: A RISC-V ISA Extension for Chaining in Scalar Processors},
+  author={Luca Colagrande and Jayanth Jonnalagadda and Luca Benini},
+  year={2025},
+  eprint={2503.20609},
+  archivePrefix={arXiv},
+  primaryClass={cs.AR},
+  url={https://arxiv.org/abs/2503.20609}
+}
+```
+
+</p>
+</details>
+
 <!--end-publications-->

@@ -158,13 +158,15 @@ snitch-cluster-frep-xl-vsim:
     - make bin/snitch_cluster.vsim
     - ./util/run.py sw/frep_xl.yaml --simulator vsim -j --run-dir runs/vsim
 
-# COPIFT experiments
-snitch-cluster-copift-vsim:
+# COPIFT and scalar chaining experiments
+snitch-cluster-copift-sc-vsim:
   needs: [setup]
   script:
     - cd target/snitch_cluster
     - make CFG_OVERRIDE=experiments/copift/cfg.json bin/snitch_cluster.vsim
     - cd experiments/copift
+    - ./experiments.py experiments.yaml sw run -j
+    - cd ../../experiments/chaining
     - ./experiments.py experiments.yaml sw run -j
 
 ############

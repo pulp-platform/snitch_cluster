@@ -71,6 +71,9 @@ APPS += sw/apps/doitgen
 APPS += sw/apps/kmeans
 APPS += sw/apps/exp
 APPS += sw/apps/log
+APPS += sw/apps/kbpcpa
+APPS += sw/apps/box3d1r
+APPS += sw/apps/j3d27pt
 
 # Include Makefile from each app subdirectory
 $(foreach app,$(APPS), \
