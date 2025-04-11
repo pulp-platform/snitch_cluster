@@ -1,4 +1,4 @@
-package snax.xdma.io
+package snax.xdma.xdmaIO
 
 import chisel3._
 import chisel3.util._
@@ -317,6 +317,8 @@ class XDMADataPathCfgIO(axiParam: AXIParam, crossClusterParam: CrossClusterParam
   val taskType              = Bool()
   val taskTypeIsRemoteRead  = false
   val taskTypeIsRemoteWrite = true
+  val isFirstChainedWrite   = Bool()
+  val isLastChainedWrite    = Bool()
   val src                   = UInt(axiParam.addrWidth.W)
   val dst                   = UInt(axiParam.addrWidth.W)
 
@@ -338,5 +340,8 @@ class XDMADataPathCfgIO(axiParam: AXIParam, crossClusterParam: CrossClusterParam
         cfg.writerPtr(1)
       else cfg.writerPtr(0)
     }
+
+    isFirstChainedWrite := taskType === taskTypeIsRemoteWrite.B && cfg.origination === cfg.originationIsFromLocal.B
+    isLastChainedWrite := taskType === taskTypeIsRemoteWrite.B && cfg.origination === cfg.originationIsFromRemote.B && cfg.remoteLoopback === false.B
   }
 }

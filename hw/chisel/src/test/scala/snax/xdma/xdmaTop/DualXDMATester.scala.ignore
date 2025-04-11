@@ -1,7 +1,6 @@
 package snax.xdma.xdmaTop
 
 import chisel3._
-import chisel3.util._
 // Hardware and its Generation Param
 import snax.readerWriter.ReaderWriterParam
 import snax.utils.DecoupledCut._
@@ -9,22 +8,16 @@ import snax.utils.DecoupledCut._
 // Import Chiseltest
 import chiseltest._
 import org.scalatest.freespec.AnyFreeSpec
-import org.scalatest.flatspec.AnyFlatSpec
 
 // Import Random number generator
 import scala.util.Random
 
 // Import break support for loops
 import scala.util.control.Breaks.{break, breakable}
-import snax.xdma.xdmaFrontend._
-import snax.csr_manager.SnaxCsrIO
-import java.util.HashMap
 import snax.xdma.DesignParams._
 import snax.DataPathExtension.{HasMaxPool, HasTransposer, HasVerilogMemset}
 
-class DualXDMA(readerParam: XDMAParam, writerParam: XDMAParam)
-    extends Module
-    with RequireAsyncReset {
+class DualXDMA(readerParam: XDMAParam, writerParam: XDMAParam) extends Module with RequireAsyncReset {
   val xdma1 = Module(
     new XDMATop(
       clusterName = "xdma1",
@@ -55,14 +48,14 @@ class DualXDMA(readerParam: XDMAParam, writerParam: XDMAParam)
 
   val io = IO(new Bundle {
     val instance1 = new Bundle {
-      val csrIO = chiselTypeOf(xdma1.io.csrIO)
+      val csrIO      = chiselTypeOf(xdma1.io.csrIO)
       val tcdmReader = chiselTypeOf(xdma1.io.tcdmReader)
       val tcdmWriter = chiselTypeOf(xdma1.io.tcdmWriter)
       val readerBusy = Output(Bool())
       val writerBusy = Output(Bool())
     }
     val instance2 = new Bundle {
-      val csrIO = chiselTypeOf(xdma2.io.csrIO)
+      val csrIO      = chiselTypeOf(xdma2.io.csrIO)
       val tcdmReader = chiselTypeOf(xdma2.io.tcdmReader)
       val tcdmWriter = chiselTypeOf(xdma2.io.tcdmWriter)
       val readerBusy = Output(Bool())
@@ -90,13 +83,13 @@ class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
   // ************************ Prepare the simulation data ************************//
 
   // Prepare the data in the tcdm
-  val tcdmMem_1 = collection.mutable.Map[Long, BigInt]()
-  val tcdmMem_2 = collection.mutable.Map[Long, BigInt]()
+  val tcdmMem_1      = collection.mutable.Map[Long, BigInt]()
+  val tcdmMem_2      = collection.mutable.Map[Long, BigInt]()
   // We have 128KB of the tcdm data
   // Each element is 64bit(8B) long
   // Hence in total we have 128KB/8B = 16K tcdm memory lines
   // First we generate the first 16KB (2K) of the data ramdomly in a Seq, which can be consumed by golden refernece later
-  val input_data = for (i <- 0 until 2048) yield {
+  val input_data     = for (i <- 0 until 2048) yield {
     BigInt(numbits = 64, rnd = Random)
   }
   var testTerminated = false
@@ -109,21 +102,21 @@ class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
   "Dual_XDMA_Read_Write_Test" in test(
     new DualXDMA(
       readerParam = new XDMAParam(
-        axiParam = new AXIParam,
+        axiParam          = new AXIParam,
         crossClusterParam = new CrossClusterParam,
-        rwParam = new ReaderWriterParam(
+        rwParam           = new ReaderWriterParam(
           configurableByteMask = false,
-          configurableChannel = true
+          configurableChannel  = true
         )
       ),
       writerParam = new XDMAParam(
-        axiParam = new AXIParam,
+        axiParam          = new AXIParam,
         crossClusterParam = new CrossClusterParam,
-        rwParam = new ReaderWriterParam(
+        rwParam           = new ReaderWriterParam(
           configurableByteMask = true,
-          configurableChannel = true
+          configurableChannel  = true
         ),
-        extParam = Seq(
+        extParam          = Seq(
           new HasVerilogMemset,
           new HasMaxPool,
           new HasTransposer(Seq(8), Seq(8), Seq(8))
@@ -150,7 +143,7 @@ class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
       concurrent_threads = concurrent_threads.fork {
         breakable(while (true) {
           if (testTerminated) break()
-          val random_delay = Random.between(0, 1)
+          val random_delay    = Random.between(0, 1)
           if (random_delay > 1) {
             dut.io.instance1.tcdmReader.req(i).ready.poke(false)
             dut.clock.step(random_delay)
@@ -187,7 +180,7 @@ class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
         breakable(
           while (true) {
             if (testTerminated) break()
-            val random_delay = Random.between(0, 1)
+            val random_delay    = Random.between(0, 1)
             if (random_delay > 1) {
               dut.io.instance2.tcdmReader.req(i).ready.poke(false)
               dut.clock.step(random_delay)
@@ -225,7 +218,7 @@ class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
             if (queues_xdma1(i).isEmpty) dut.clock.step()
             else {
               dut.io.instance1.tcdmReader.rsp(i).valid.poke(true)
-              val reader_addr = queues_xdma1(i).dequeue()
+              val reader_addr      = queues_xdma1(i).dequeue()
               val reader_resp_data = tcdmMem_1(reader_addr)
               println(
                 f"[XDMA 1 Reader Resp] TCDM Response to Reader with Addr = 0x${reader_addr.toHexString} Data = 0x${reader_resp_data
@@ -260,7 +253,7 @@ class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
             if (queues_xdma2(i).isEmpty) dut.clock.step()
             else {
               dut.io.instance2.tcdmReader.rsp(i).valid.poke(true)
-              val reader_addr = queues_xdma2(i).dequeue()
+              val reader_addr      = queues_xdma2(i).dequeue()
               val reader_resp_data = tcdmMem_2(reader_addr)
               println(
                 f"[XDMA 2 Reader Resp] TCDM Response to Reader with Addr = 0x${reader_addr.toHexString} Data = 0x${reader_resp_data
@@ -311,11 +304,11 @@ class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
                 if (tcdmMem_1.contains(writer_req_addr))
                   tcdmMem_1(writer_req_addr)
                 else BigInt(0)
-              val Strb =
+              val Strb          =
                 dut.io.instance1.tcdmWriter.req(i).bits.strb.peekInt().toInt
-              var bitStrb = BigInt(0)
+              var bitStrb       = BigInt(0)
               for (i <- 7 to 0 by -1) {
-                val bit = (Strb >> i) & 1
+                val bit   = (Strb >> i) & 1
                 val block = (BigInt(255) * bit) << (i * 8)
                 bitStrb |= block
               }
@@ -367,11 +360,11 @@ class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
                 if (tcdmMem_2.contains(writer_req_addr))
                   tcdmMem_2(writer_req_addr)
                 else BigInt(0)
-              val Strb =
+              val Strb          =
                 dut.io.instance2.tcdmWriter.req(i).bits.strb.peekInt().toInt
-              var bitStrb = BigInt(0)
+              var bitStrb       = BigInt(0)
               for (i <- 7 to 0 by -1) {
-                val bit = (Strb >> i) & 1
+                val bit   = (Strb >> i) & 1
                 val block = (BigInt(255) * bit) << (i * 8)
                 bitStrb |= block
               }
@@ -397,32 +390,32 @@ class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
         "[TEST] Test 1: Use XDMA 1 as a host to copy the data from TCDM 1 to TCDM 2"
       )
       var readerAGUParam = new AGUParamTest(
-        address = Seq(0x1000_0000),
-        spatialStrides = Array(8),
+        address         = Seq(0x1000_0000),
+        spatialStrides  = Array(8),
         temporalStrides = Array(64, 0),
-        temporalBounds = Array(256, 1)
+        temporalBounds  = Array(256, 1)
       )
       var writerAGUParam = new AGUParamTest(
-        address = Seq(0x1000_0000 + (1 << 20), 0, 0, 0),
-        spatialStrides = Array(8),
+        address         = Seq(0x1000_0000 + (1 << 20), 0, 0, 0),
+        spatialStrides  = Array(8),
         temporalStrides = Array(64, 0),
-        temporalBounds = Array(256, 1)
+        temporalBounds  = Array(256, 1)
       )
 
       var readerRWParam = new RWParamTest(
         enabledChannel = Integer.parseInt("11111111", 2),
-        enabledByte = Integer.parseInt("11111111", 2)
+        enabledByte    = Integer.parseInt("11111111", 2)
       )
       var writerRWParam = new RWParamTest(
         enabledChannel = Integer.parseInt("11111111", 2),
-        enabledByte = Integer.parseInt("11111111", 2)
+        enabledByte    = Integer.parseInt("11111111", 2)
       )
 
       var writerExtParam = new ExtParam(
-        bypassMemset = 1,
-        memsetValue = 0,
-        bypassMaxPool = 1,
-        maxPoolPeriod = 0,
+        bypassMemset     = 1,
+        memsetValue      = 0,
+        bypassMaxPool    = 1,
+        maxPoolPeriod    = 0,
         bypassTransposer = 1
       )
 
@@ -499,16 +492,16 @@ class DualXDMATester extends AnyFreeSpec with ChiselScalatestTester {
       tcdmMem_1.clear()
 
       writerAGUParam = new AGUParamTest(
-        address = Seq(0x1000_0000, 0, 0, 0),
-        spatialStrides = Array(8),
+        address         = Seq(0x1000_0000, 0, 0, 0),
+        spatialStrides  = Array(8),
         temporalStrides = Array(64, 0),
-        temporalBounds = Array(256, 1)
+        temporalBounds  = Array(256, 1)
       )
       readerAGUParam = new AGUParamTest(
-        address = Seq(0x1000_0000 + (1 << 20)),
-        spatialStrides = Array(8),
+        address         = Seq(0x1000_0000 + (1 << 20)),
+        spatialStrides  = Array(8),
         temporalStrides = Array(64, 0),
-        temporalBounds = Array(256, 1)
+        temporalBounds  = Array(256, 1)
       )
 
       currentAddress = XDMATesterInfrastructure.setXDMA(

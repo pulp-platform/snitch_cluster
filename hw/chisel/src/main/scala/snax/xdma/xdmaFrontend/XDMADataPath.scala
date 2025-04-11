@@ -9,7 +9,7 @@ import snax.readerWriter.ReaderWriterParam
 import snax.readerWriter.Writer
 import snax.utils._
 import snax.xdma.DesignParams._
-import snax.xdma.io._
+import snax.xdma.xdmaIO.{XDMADataPathCfgIO, XDMAIntraClusterCfgIO}
 
 class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: String = "unnamed_cluster")
     extends Module
@@ -261,7 +261,7 @@ class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: 
   fromRemoteAccompaniedCfg.readyToTransfer := Mux(
     io.writerCfg.localLoopback,
     false.B,
-    writer.io.busy
+    io.writerBusy
   )
 
   fromRemoteAccompaniedCfg.taskType := Mux(
@@ -273,7 +273,7 @@ class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: 
   toRemoteAccompaniedCfg.readyToTransfer := Mux(
     io.readerCfg.localLoopback,
     false.B,
-    reader.io.busy
+    io.readerBusy
   )
 
   toRemoteAccompaniedCfg.taskType := Mux(

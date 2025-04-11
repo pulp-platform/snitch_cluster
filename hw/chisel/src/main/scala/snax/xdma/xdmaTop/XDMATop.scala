@@ -12,8 +12,8 @@ import snax.csr_manager._
 import snax.readerWriter.ReaderWriterParam
 import snax.utils._
 import snax.xdma.DesignParams._
-import snax.xdma.io._
 import snax.xdma.xdmaFrontend._
+import snax.xdma.xdmaIO.XDMADataPathCfgIO
 
 class XDMATopIO(readerParam: XDMAParam, writerParam: XDMAParam) extends Bundle {
   val clusterBaseAddress = Input(
