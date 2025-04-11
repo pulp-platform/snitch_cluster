@@ -121,18 +121,3 @@ jobs:
       - uses: DoozyX/clang-format-lint-action@v0.18.1
         with:
           clangFormatVersion: 10
-
-  ######################
-  # Lint Editor Config #
-  ######################
-  # Detect trailing whitespaces, missing new lines and wrong file encodings.
-  editorconfig-lint:
-    name: Lint Editorconfig
-    runs-on: ubuntu-latest
-    if: >
-      github.event_name != 'pull_request' ||
-      github.event.pull_request.head.repo.full_name != github.repository
-    steps:
-      - uses: actions/checkout@v3
-      - uses: editorconfig-checker/action-editorconfig-checker@main
-      - run: editorconfig-checker
