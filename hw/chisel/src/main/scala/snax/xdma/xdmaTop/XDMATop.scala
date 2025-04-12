@@ -208,6 +208,7 @@ object XDMATopGen extends App {
     tcdmSize             = parsedArgs("tcdmSize").toInt,
     numChannel           = parsedArgs("axiDataWidth").toInt / parsedArgs("tcdmDataWidth").toInt,
     addressBufferDepth   = (parsedXdmaCfg \ "reader_buffer").as[Int],
+    dataBufferDepth      = (parsedXdmaCfg \ "reader_buffer").as[Int],
     configurableChannel  = true,
     configurableByteMask = false
   )
@@ -221,6 +222,7 @@ object XDMATopGen extends App {
     tcdmSize             = parsedArgs("tcdmSize").toInt,
     numChannel           = parsedArgs("axiDataWidth").toInt / parsedArgs("tcdmDataWidth").toInt,
     addressBufferDepth   = (parsedXdmaCfg \ "writer_buffer").as[Int],
+    dataBufferDepth      = (parsedXdmaCfg \ "writer_buffer").as[Int],
     configurableChannel  = true,
     configurableByteMask = true
   )

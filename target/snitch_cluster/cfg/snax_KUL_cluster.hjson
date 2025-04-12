@@ -156,8 +156,8 @@
             max_dimension: 6,
             max_mem_size: 4096,
             // DataMaestro Cfg
-            reader_buffer: 8, 
-            writer_buffer: 8, 
+            reader_buffer: 12, 
+            writer_buffer: 12, 
             reader_agu_temporal_dimension: 6, 
             writer_agu_temporal_dimension: 6, 
             // Extension Cfg
