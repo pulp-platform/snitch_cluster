@@ -20,6 +20,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   parameter bit Xfrep = 1,
   parameter fpnew_pkg::fpu_implementation_t FPUImplementation = '0,
   parameter bit Xssr = 1,
+  parameter bit Xcopift = 1,
   parameter int unsigned NumSsrs = 0,
   parameter logic [NumSsrs-1:0][4:0]  SsrRegs = '0,
   parameter type acc_req_t = logic,
@@ -122,6 +123,14 @@ module snitch_fp_ss import snitch_pkg::*; #(
   logic [31:0] sb_d, sb_q;
   logic rd_is_fp;
   `FFAR(sb_q, sb_d, '0, clk_i, rst_i)
+
+  // Scalar Chaining Scoreboard
+  // Valid bit when scalar chaining is on
+  logic [31:0] sc_valid_d, sc_valid_q;
+  `FFAR(sc_valid_q, sc_valid_d, '0, clk_i, rst_i)
+  // Mask to selectively enable scalar chaining on registers
+  logic [31:0] sc_mask_d, sc_mask_q;
+  `FFAR(sc_mask_q, sc_mask_d, '0, clk_i, rst_i)
 
   logic csr_instr;
 
@@ -231,9 +240,12 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // Ensure SSR CSR only written on instruction commit
   assign ssr_active_ena = acc_req_valid_q & acc_req_ready_q;
 
-  // this handles WAW Hazards - Potentially this can be relaxed if necessary
-  // at the expense of increased timing pressure
-  assign dst_ready = ~(rd_is_fp & sb_q[rd]);
+  // At issue time, we check if the destination register is marked in the
+  // scoreboard to prevent WAW hazards.
+  // When scalar chaining is enabled, WAW hazards are prevented at writeback
+  // time, by checking the sc_valid bits, not at issue time, thus this check
+  // is disabled.
+  assign dst_ready = sc_mask_q[rd] ? 1'b1 : (~(rd_is_fp & sb_q[rd]));
 
   // check that either:
   // 1. The FPU and all operands are ready
@@ -277,6 +289,25 @@ module snitch_fp_ss import snitch_pkg::*; #(
     // don't track any dependencies for SSRs if enabled
     if (ssr_active_q) begin
       for (int i = 0; i < NumSsrs; i++) sb_d[SsrRegs[i]] = 1'b0;
+    end
+  end
+
+  // Scalar chaining valid bit update
+  always_comb begin
+    sc_valid_d = sc_valid_q;
+    // If an instruction is reading a chaining-enabled register,
+    // clear the register's valid bit
+    if (acc_req_valid_q & acc_req_ready_q) begin
+      for (int i = 0; i < 3; i++) begin
+        if (sc_mask_q[fpr_raddr[i]]) sc_valid_d[fpr_raddr[i]] = 1'b0;
+      end
+    end
+    // If there is a writeback to a chaining-enabled register,
+    // set the register's valid bit
+    if (fpr_we) begin
+      if (sc_mask_q[fpr_waddr]) begin
+        sc_valid_d[fpr_waddr] = 1'b1;
+      end
     end
   end
 
@@ -324,6 +355,8 @@ module snitch_fp_ss import snitch_pkg::*; #(
     csr_instr = 1'b0; // is a csr instruction
     // SSR register
     ssr_active_d = ssr_active_q;
+    // Scalar Chaining mask
+    sc_mask_d = sc_mask_q;
     unique casez (acc_req_q.data_op)
       // FP - FP Operations
       // Single Precision
@@ -1764,6 +1797,16 @@ module snitch_fp_ss import snitch_pkg::*; #(
         fpu_tag_in.acc = 1'b1;
         rd_is_fp       = 1'b0;
       end
+      // Double Precision Floating-Point, MC extension
+      riscv_instr:: FLT_D_COPIFT: begin
+        if (Xcopift) begin
+          fpu_op = fpnew_pkg::CMP;
+          op_select[0]   = RegA;
+          op_select[1]   = RegB;
+          src_fmt        = fpnew_pkg::FP64;
+          dst_fmt        = fpnew_pkg::FP64;
+        end
+      end
       riscv_instr::FCLASS_D: begin
         fpu_op = fpnew_pkg::CLASSIFY;
         op_select[0]   = RegA;
@@ -2234,6 +2277,17 @@ module snitch_fp_ss import snitch_pkg::*; #(
         dst_fmt      = fpnew_pkg::FP64;
         if (acc_req_q.data_op inside {riscv_instr::FCVT_D_WU}) op_mode = 1'b1; // unsigned
       end
+      // Double Precision Floating-Point
+      riscv_instr:: FCVT_D_W_COPIFT,
+      riscv_instr:: FCVT_D_WU_COPIFT: begin
+        if (Xcopift) begin
+          fpu_op = fpnew_pkg:: I2F;
+          op_select[0] = RegA;
+          src_fmt      = fpnew_pkg::FP64;
+          dst_fmt      = fpnew_pkg::FP64;
+          if (acc_req_q.data_op inside {riscv_instr::FCVT_D_WU_COPIFT}) op_mode = 1'b1; // unsigned
+        end
+      end
       // [Alternate] Half Precision Floating-Point
       riscv_instr::FMV_H_X: begin
         fpu_op = fpnew_pkg::SGNJ;
@@ -2395,6 +2449,18 @@ module snitch_fp_ss import snitch_pkg::*; #(
         csr_instr = 1'b1;
         ssr_active_d &= ~rs1[0];
       end
+      riscv_instr::CSRRS: begin
+        use_fpu = 1'b0;
+        rd_is_fp = 1'b0;
+        csr_instr = 1'b1;
+        sc_mask_d |= acc_req_q.data_arga[31:0];
+      end
+      riscv_instr::CSRRC: begin
+        use_fpu = 1'b0;
+        rd_is_fp = 1'b0;
+        csr_instr = 1'b1;
+        sc_mask_d &= ~acc_req_q.data_arga[31:0];
+      end
       default: begin
         use_fpu = 1'b0;
         acc_resp_o.error = 1'b1;
@@ -2482,9 +2548,12 @@ module snitch_fp_ss import snitch_pkg::*; #(
           // map register 0 and 1 to SSRs
           ssr_rvalid_o[i] = ssr_active_q & is_raddr_ssr;
           op[i] = ssr_rvalid_o[i] ? ssr_rdata_i[i] : fpr_rdata[i];
-          // the operand is ready if it is not marked in the scoreboard
-          // and in case of it being an SSR it need to be ready as well
-          op_ready[i] = ~sb_q[fpr_raddr[i]] & (~ssr_rvalid_o[i] | ssr_rready_i[i]);
+          // The operand is ready if it is not marked in the scoreboard
+          // and in case of it being an SSR it need to be ready as well.
+          // If scalar chaining is enabled, an operand is ready if it's
+          // valid bit is set.
+          op_ready[i] = sc_mask_q[fpr_raddr[i]] ? sc_valid_q[fpr_raddr[i]] :
+                        (~sb_q[fpr_raddr[i]] & (~ssr_rvalid_o[i] | ssr_rready_i[i]));
           // Replicate if needed
           if (op_select[i] == RegBRep) begin
             unique case (src_fmt)
@@ -2575,6 +2644,18 @@ module snitch_fp_ss import snitch_pkg::*; #(
           fpr_we = 1'b0;
         end else begin
           ssr_wdone_o = 1'b1;
+        end
+      end else if (sc_mask_q[fpu_tag_out.rd]) begin
+        // Writing back to a chaining-enabled register is only
+        // possible if it does not contain valid data or the data
+        // is being consumed by the current instruction
+        fpr_we = ~sc_valid_q[fpu_tag_out.rd];
+        fpr_wready = ~sc_valid_q[fpu_tag_out.rd];
+        if (((fpu_tag_out.rd == fpr_raddr[0]) | (fpu_tag_out.rd == fpr_raddr[1]) |
+             (fpu_tag_out.rd == fpr_raddr[2])) &
+            (fpu_in_valid | (lsu_qvalid & lsu_qready))) begin
+          fpr_wready = 1'b1;
+          fpr_we = 1'b1;
         end
       end
       fpr_wdata = fpu_result;

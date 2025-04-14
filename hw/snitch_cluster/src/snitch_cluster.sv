@@ -98,6 +98,8 @@ module snitch_cluster
   parameter bit [NrCores-1:0] Xssr          = '0,
   /// Per-core enabling of the custom `Xfrep` ISA extensions.
   parameter bit [NrCores-1:0] Xfrep         = '0,
+  /// Per-core enabling of the custom `Xcopift` ISA extensions.
+  parameter bit [NrCores-1:0] Xcopift       = '0,
   /// # Core-global parameters
   /// FPU configuration.
   parameter fpnew_pkg::fpu_implementation_t FPUImplementation [NrCores] =
@@ -909,6 +911,7 @@ module snitch_cluster
         .IsoCrossing (IsoCrossing),
         .Xfrep (Xfrep[i]),
         .Xssr (Xssr[i]),
+        .Xcopift (Xcopift[i]),
         .Xipu (1'b0),
         .VMSupport (VMSupport),
         .NumIntOutstandingLoads (NumIntOutstandingLoads[i]),

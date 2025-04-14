@@ -165,19 +165,54 @@ If you use the Snitch cluster or its extensions in your work, you can cite us:
 </details>
 
 <details>
-<summary><b><a href="https://doi.org/10.48550/arXiv.2404.05303">SARIS: Accelerating Stencil Computations on Energy-Efficient RISC-V Compute Clusters with Indirect Stream Registers</a></b></summary>
+<summary><b><a href="https://doi.org/10.1145/3649329.3658494">SARIS: Accelerating Stencil Computations on Energy-Efficient RISC-V Compute Clusters with Indirect Stream Registers</a></b></summary>
 <p>
 
 ```
-@misc{scheffler2024saris,
-  title={SARIS: Accelerating Stencil Computations on Energy-Efficient
-         RISC-V Compute Clusters with Indirect Stream Registers},
+@INPROCEEDINGS{scheffler2024saris,
   author={Paul Scheffler and Luca Colagrande and Luca Benini},
+  title={SARIS: Accelerating Stencil Computations on Energy-Efficient RISC-V Compute Clusters with Indirect Stream Registers},
+  booktitle = {Proceedings of the 61st ACM/IEEE Design Automation Conference},
   year={2024},
-  eprint={2404.05303},
+  doi = {10.1145/3649329.3658494}
+}
+```
+
+</p>
+</details>
+
+<details>
+<summary><b><a href="https://arxiv.org/abs/2503.20590">Dual-Issue Execution of Mixed Integer and Floating-Point Workloads on Energy-Efficient In-Order RISC-V Cores</a></b></summary>
+<p>
+
+```
+@misc{colagrande2025copift,
+  title={Dual-Issue Execution of Mixed Integer and Floating-Point Workloads on Energy-Efficient In-Order RISC-V Cores},
+  author={Luca Colagrande and Luca Benini},
+  year={2025},
+  eprint={2503.20590},
   archivePrefix={arXiv},
-  primaryClass={cs.MS},
-  url={https://arxiv.org/abs/2404.05303}
+  primaryClass={cs.AR},
+  url={https://arxiv.org/abs/2503.20590}
+}
+```
+
+</p>
+</details>
+
+<details>
+<summary><b><a href="https://arxiv.org/abs/2503.20609">Late Breaking Results: A RISC-V ISA Extension for Chaining in Scalar Processors</a></b></summary>
+<p>
+
+```
+@misc{colagrande2025chaining,
+  title={Late Breaking Results: A RISC-V ISA Extension for Chaining in Scalar Processors},
+  author={Luca Colagrande and Jayanth Jonnalagadda and Luca Benini},
+  year={2025},
+  eprint={2503.20609},
+  archivePrefix={arXiv},
+  primaryClass={cs.AR},
+  url={https://arxiv.org/abs/2503.20609}
 }
 ```
 

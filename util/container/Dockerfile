@@ -12,7 +12,7 @@ ARG UBUNTU_VERSION=22.04
 FROM ubuntu:${UBUNTU_VERSION} AS builder
 ARG BENDER_VERSION=0.28.1
 ARG DOXYGEN_VERSION=1.12.0
-ARG SNITCH_LLVM_VERSION=latest
+ARG SNITCH_LLVM_VERSION=15.0.0-snitch-0.1.0
 ARG RUST_VERSION=1.63.0
 ARG UBUNTU_VERSION
 # Run dpkg without interactive dialogue
@@ -37,14 +37,9 @@ RUN wget https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.g
     mv doxygen-${DOXYGEN_VERSION} doxygen
 
 # Get the precompiled LLVM toolchain
-RUN latest_tag=`curl -s -H "Accept: application/vnd.github.v3+json" https://api.github.com/repos/pulp-platform/llvm-project/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/'` && \
-echo "SNITCH_LLVM_VERSION=${SNITCH_LLVM_VERSION} LLVM_TAR=${LLVM_TAR} latest_tag=${latest_tag}" && \
-test "${SNITCH_LLVM_VERSION}" = "latest" && SNITCH_LLVM_VERSION=${latest_tag} || : ; \
-LLVM_TAR=riscv32-pulp-llvm-ubuntu2004-$(echo $SNITCH_LLVM_VERSION | cut -d '-' -f3-).tar.gz && \
-mkdir -p riscv-llvm && \
-echo "SNITCH_LLVM_VERSION=${SNITCH_LLVM_VERSION} LLVM_TAR=${LLVM_TAR} latest_tag=${latest_tag}" && \
-wget -qO- https://github.com/pulp-platform/llvm-project/releases/download/${SNITCH_LLVM_VERSION}/${LLVM_TAR} | \
-tar xvz --strip-components=1 -C riscv-llvm
+RUN wget https://github.com/pulp-platform/llvm-project/releases/download/${SNITCH_LLVM_VERSION}/riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION}.tar.gz && \
+    tar xvf riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION}.tar.gz && \
+    mv riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION} riscv-llvm 
 
 # 2. Stage: Create the final container
 FROM verilator/verilator:v${VERILATOR_VERSION} AS snitch_cluster
@@ -74,9 +69,12 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 # Copy all needed files to install the package
+# (.dockerignore is used to filter only the necessary files)
 COPY pyproject.toml .
 COPY sw ./sw
 COPY util ./util
+COPY nonfree/util ./nonfree/util
+COPY target/snitch_cluster/util ./target/snitch_cluster/util
 
 # Create and activate virtual environment
 ARG VIRTUAL_ENV="/root/.venvs/snitch_cluster"

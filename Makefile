@@ -27,21 +27,23 @@ ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 ############
 
 NONFREE_REMOTE ?= git@iis-git.ee.ethz.ch:pulp-restricted/snitch-cluster-nonfree.git
-NONFREE_COMMIT ?= 35cdb5b03778d3ec52e6d8fa0856ee789489b25a
+NONFREE_COMMIT ?= synth
 NONFREE_DIR = $(ROOT)/nonfree
 
 all: nonfree
 clean: clean-nonfree
 .PHONY: nonfree clean-nonfree
 
-nonfree: $(NONFREE_DIR)
-
-$(NONFREE_DIR):
-	git clone $(NONFREE_REMOTE) $(NONFREE_DIR)
-	cd $(NONFREE_DIR) && git checkout $(NONFREE_COMMIT)
+nonfree:
+	cd $(NONFREE_DIR) && \
+	git init && \
+	git remote add origin $(NONFREE_REMOTE) && \
+	git fetch origin && \
+	git checkout $(NONFREE_COMMIT) -f
 
 clean-nonfree:
 	rm -rf $(NONFREE_DIR)
+	mkdir -p $(NONFREE_DIR)/util && touch $(NONFREE_DIR)/util/.gitignore
 
 -include $(NONFREE_DIR)/Makefile
 
