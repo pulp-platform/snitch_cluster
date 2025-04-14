@@ -203,6 +203,38 @@ class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: 
     }
   )
 
+  // The state machine to control the remote loopback datapath for the chained write
+  val isChainedWrite = WireInit(false.B)
+
+  val stateIdle :: stateChainedWrite :: stateChainedWriteWait :: Nil = Enum(3)
+
+  val nextState    = Wire(chiselTypeOf(stateIdle))
+  val currentState = RegNext(nextState, stateIdle)
+  nextState := currentState
+
+  switch(currentState) {
+    is(stateIdle) {
+      // Mealy FSM to pull up isChainedWrite
+      when(io.writerCfg.remoteLoopback && io.writerBusy) {
+        nextState      := stateChainedWrite
+        isChainedWrite := true.B
+      }
+    }
+    is(stateChainedWrite) {
+      isChainedWrite := true.B
+      when(~io.writerBusy) {
+        nextState := stateChainedWriteWait
+      }
+    }
+    is(stateChainedWriteWait) {
+      // Moore FSM to pull down isChainedWrite
+      isChainedWrite := true.B
+      when(~io.remoteXDMAData.fromRemote.valid) {
+        nextState := stateIdle
+      }
+    }
+  }
+
   // The remoteLoopbackSplitter takes the data from the remote side, and always send it to writerLocaltoRemoteLoopback (0) and selectively send it to the remote loopback side (1)
   val remoteLoopbackSplitter = Module(
     new SplitterDecoupled(
@@ -212,11 +244,11 @@ class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: 
       override def desiredName = clusterName + "_xdma_datapath_remote_splitter"
     }
   )
-  remoteLoopbackMux.io.sel := io.writerCfg.remoteLoopback && io.writerBusy
+  remoteLoopbackMux.io.sel := isChainedWrite
   remoteLoopbackSplitter.io.sel(0) := true.B
   remoteLoopbackSplitter.io.sel(
     1
-  )                                := io.writerCfg.remoteLoopback && io.writerBusy
+  )                                := isChainedWrite
 
   remoteLoopbackMux.io.in(0) <> readerLocaltoRemoteLoopback
   remoteLoopbackMux.io.in(1) <> remoteLoopbackSplitter.io.out(1)
@@ -282,14 +314,14 @@ class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: 
     toRemoteAccompaniedCfg.taskTypeIsRemoteRead.B
   )
 
-  toRemoteChainedWriteAccompaniedCfg.readyToTransfer := io.writerCfg.remoteLoopback && io.writerBusy
+  toRemoteChainedWriteAccompaniedCfg.readyToTransfer := isChainedWrite
   toRemoteChainedWriteAccompaniedCfg.taskType        := toRemoteChainedWriteAccompaniedCfg.taskTypeIsRemoteWrite.B
 
   // The actual output of AccompaniedCfg is determined by the remoteLoopback signal:
   // If the remoteLoopback signal is high, toRemoteAccompaniedCfg needs to be shifted
   io.remoteXDMAData.fromRemoteAccompaniedCfg := fromRemoteAccompaniedCfg
   io.remoteXDMAData.toRemoteAccompaniedCfg   := Mux(
-    io.writerCfg.remoteLoopback && io.writerBusy,
+    isChainedWrite,
     toRemoteChainedWriteAccompaniedCfg,
     toRemoteAccompaniedCfg
   )
