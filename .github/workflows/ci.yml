@@ -150,6 +150,7 @@ jobs:
         working-directory: target/snitch_cluster
         run: |
           ./util/run.py sw/run.yaml --simulator verilator -j
+          ./util/run.py sw/riscv_tests_isa.yaml --simulator verilator -j
       - name: Annotate traces
         working-directory: target/snitch_cluster
         run: |
