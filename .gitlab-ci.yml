@@ -150,14 +150,19 @@ snitch-cluster-mchan-vsim:
     - make vsim
     - ./util/run.py sw/dma_mchan.yaml --simulator vsim -j --run-dir runs/vsim
 
-# Tests requiring a larger FREP sequencer
-snitch-cluster-frep-xl-vsim:
+# Additional tests for different FREP configurations
+snitch-cluster-frep-vsim:
   needs: [setup]
   script:
     - cd target/snitch_cluster
+    # Large FREP configuration
     - make CFG_OVERRIDE=cfg/frep_xl.json sw
     - make vsim
     - ./util/run.py sw/frep_xl.yaml --simulator vsim -j --run-dir runs/vsim
+    # Small FREP configuration
+    - make CFG_OVERRIDE=cfg/frep_xs.json sw
+    - make DEBUG=ON vsim
+    - ./util/run.py sw/frep_xs.yaml --simulator vsim -j --run-dir runs/vsim
 
 # COPIFT and scalar chaining experiments
 snitch-cluster-copift-sc-vsim:

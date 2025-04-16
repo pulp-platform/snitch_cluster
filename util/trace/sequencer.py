@@ -53,23 +53,22 @@ class Sequencer(object):
         pc = self.loop_cfg[-1]['pc']
 
         # Build instruction string
-        insn = f'{"frep":<8}{frep["max_rpt"] + 1}'
+        insn = f'{"frep":<8}{frep["max_iter"] + 1}'
         insn += f', {frep["max_inst"] + 1}'
         if frep['stg_mask']:
             insn += f', {bin(frep["stg_mask"])}'
             insn += f', {frep["stg_max"] + 1}'
 
         # Build annotation string
-        n_issues = (frep['max_inst'] + 1) * (frep['max_rpt'] + 1)
-        annot = 'outer' if frep['is_outer'] else 'inner'
-        annot += f', {n_issues} issues'
+        n_issues = (frep['max_inst'] + 1) * (frep['max_iter'] + 1)
+        annot = f'{n_issues} issues'
 
         return pc, insn, annot
 
     def last_iter(self, loop_idx=None):
         if loop_idx is None:
             loop_idx = self.loop_idx
-        return self.loop_cfg[loop_idx]['iter_idx'] == self.loop_cfg[loop_idx]['max_rpt']
+        return self.loop_cfg[loop_idx]['iter_idx'] == self.loop_cfg[loop_idx]['max_iter']
 
     def last_inst(self, loop_idx=None):
         if loop_idx is None:

@@ -1,4 +1,4 @@
-// Copyright 2023 ETH Zurich and University of Bologna.
+// Copyright 2025 ETH Zurich and University of Bologna.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
@@ -9,8 +9,7 @@
         cluster_base_hartid: 0,
         addr_width: 48,
         data_width: 64,
-        atomic_id_width: 5, // clog2(total number of clusters)
-        user_width: 53, // addr_width + atomic_id_width
+        user_width: 5, // clog2(total number of clusters)
         tcdm: {
             size: 128,
             banks: 32,
@@ -19,13 +18,11 @@
         zero_mem_size: 64, // kB
         alias_region_enable: true,
         dma_data_width: 512,
-        dma_nr_channels: 4,
         dma_axi_req_fifo_depth: 24,
         dma_req_fifo_depth: 8,
         narrow_trans: 4,
         wide_trans: 32,
-        dma_user_width: 48,
-        enable_multicast: true,
+        dma_user_width: 1,
         // We don't need Snitch debugging in Occamy
         enable_debug: false,
         // We don't need Snitch (core-internal) virtual memory support
@@ -113,8 +110,8 @@
         num_int_outstanding_mem: 4,
         num_fp_outstanding_loads: 4,
         num_fp_outstanding_mem: 4,
-        num_sequencer_instructions: 32,
-        num_sequencer_loops: 2,
+        num_sequencer_instructions: 16,
+        num_sequencer_loops: 1,
         num_dtlb_entries: 1,
         num_itlb_entries: 1,
         // SSSR configuration below

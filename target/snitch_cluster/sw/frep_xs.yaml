@@ -1,4 +1,4 @@
-# Copyright 2023 ETH Zurich and University of Bologna.
+# Copyright 2025 ETH Zurich and University of Bologna.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
@@ -11,6 +11,7 @@ runs:
     simulators: [vsim, vcs, verilator]
   - elf: ./tests/build/dma_empty_transfer.elf
   - elf: ./tests/build/dma_simple.elf
+  - elf: ./tests/build/dobu.elf
   - elf: ./tests/build/event_unit.elf
     simulators: [vsim, vcs, verilator]
   - elf: ./tests/build/fence_i.elf
@@ -38,12 +39,6 @@ runs:
   # - elf: ./tests/build/fp64_conversions_scalar.elf
   #   simulators: [vsim, vcs, verilator]
   - elf: ./tests/build/frep1d.elf
-  - elf: ./tests/build/frep2d_1.elf
-  - elf: ./tests/build/frep2d_1b.elf
-  - elf: ./tests/build/frep2d_2.elf
-  - elf: ./tests/build/frep2d_2b.elf
-  - elf: ./tests/build/frep2d_stagger.elf
-  - elf: ./tests/build/gemm_frep.elf
   - elf: ./tests/build/gemm_frep1d.elf
   - elf: ./tests/build/interrupt_local.elf
     simulators: [vsim, vcs, verilator]
@@ -60,6 +55,7 @@ runs:
   - elf: ./tests/build/printf_simple.elf
   - elf: ./tests/build/printf_fmtint.elf
   - elf: ./tests/build/simple.elf
+  - elf: ./tests/build/tcdm.elf
   - elf: ./tests/build/tls.elf
   - elf: ./tests/build/varargs_1.elf
   - elf: ./tests/build/varargs_2.elf
@@ -74,8 +70,6 @@ runs:
   - elf: ./tests/build/fcvt_d_w_copift.elf
   - elf: ./apps/blas/axpy/build/axpy.elf
     cmd: [../../../sw/blas/axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ./apps/blas/gemm/build/gemm.elf
-    cmd: [../../../sw/blas/gemm/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ./apps/blas/dot/build/dot.elf
     cmd: [../../../sw/blas/dot/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ./apps/blas/syrk/build/syrk.elf

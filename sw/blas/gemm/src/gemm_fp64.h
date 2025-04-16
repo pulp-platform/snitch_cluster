@@ -108,85 +108,61 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
                                  ssr1_b[3], ssr1_i[0], ssr1_i[1], ssr1_i[2],
                                  ssr1_i[3]);
             }
+
+            // SSR 2 is used to writeback C matrix
+            const uint32_t ssr2_b[3] = {unroll, N / unroll, M};
+            const uint32_t ssr2_i[3] = {8, 8, ldC * 8};
+
+            snrt_ssr_loop_3d(SNRT_SSR_DM2, ssr2_b[0], ssr2_b[1], ssr2_b[2],
+                             ssr2_i[0], ssr2_i[1], ssr2_i[2]);
         }
 
         // SSR start address need to be configured each time
         snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_4D, A);
         snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_4D, B);
+        snrt_ssr_write(SNRT_SSR_DM2, SNRT_SSR_3D, C);
         snrt_ssr_enable();
     }
 
-    for (uint32_t m = 0; m < M; m++) {
-        uint32_t n = 0;
-        for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
-            double c[unroll];
+    double c[unroll];
+    snrt_mcycle();
+    asm volatile(
+        "frep.o %[n_frep1], %[n_inst1], 0, 0\n"
+        "fmul.d %[c0], ft0, ft1 \n"
+        "fmul.d %[c1], ft0, ft1 \n"
+        "fmul.d %[c2], ft0, ft1 \n"
+        "fmul.d %[c3], ft0, ft1 \n"
+        "fmul.d %[c4], ft0, ft1 \n"
+        "fmul.d %[c5], ft0, ft1 \n"
+        "fmul.d %[c6], ft0, ft1 \n"
+        "fmul.d %[c7], ft0, ft1 \n"
+        "frep.o %[n_frep2], %[unroll], 0, 0 \n"
+        "fmadd.d %[c0], ft0, ft1, %[c0] \n"
+        "fmadd.d %[c1], ft0, ft1, %[c1] \n"
+        "fmadd.d %[c2], ft0, ft1, %[c2] \n"
+        "fmadd.d %[c3], ft0, ft1, %[c3] \n"
+        "fmadd.d %[c4], ft0, ft1, %[c4] \n"
+        "fmadd.d %[c5], ft0, ft1, %[c5] \n"
+        "fmadd.d %[c6], ft0, ft1, %[c6] \n"
+        "fmadd.d %[c7], ft0, ft1, %[c7] \n"
+        "fmadd.d ft2, ft0, ft1, %[c0] \n"
+        "fmadd.d ft2, ft0, ft1, %[c1] \n"
+        "fmadd.d ft2, ft0, ft1, %[c2] \n"
+        "fmadd.d ft2, ft0, ft1, %[c3] \n"
+        "fmadd.d ft2, ft0, ft1, %[c4] \n"
+        "fmadd.d ft2, ft0, ft1, %[c5] \n"
+        "fmadd.d ft2, ft0, ft1, %[c6] \n"
+        "fmadd.d ft2, ft0, ft1, %[c7] \n"
 
-            // Load intermediate result
-            if (BETA != 0) {
-                c[0] = C[m * ldC + n + 0];
-                c[1] = C[m * ldC + n + 1];
-                c[2] = C[m * ldC + n + 2];
-                c[3] = C[m * ldC + n + 3];
-                c[4] = C[m * ldC + n + 4];
-                c[5] = C[m * ldC + n + 5];
-                c[6] = C[m * ldC + n + 6];
-                c[7] = C[m * ldC + n + 7];
-            } else {
-                c[0] = 0.0;
-                c[1] = 0.0;
-                c[2] = 0.0;
-                c[3] = 0.0;
-                c[4] = 0.0;
-                c[5] = 0.0;
-                c[6] = 0.0;
-                c[7] = 0.0;
-            }
-            asm volatile(
-                "frep.o %[n_frep], %[unroll], 0, 0 \n"
-                "fmadd.d %[c0], ft0, ft1, %[c0] \n"
-                "fmadd.d %[c1], ft0, ft1, %[c1] \n"
-                "fmadd.d %[c2], ft0, ft1, %[c2] \n"
-                "fmadd.d %[c3], ft0, ft1, %[c3] \n"
-                "fmadd.d %[c4], ft0, ft1, %[c4] \n"
-                "fmadd.d %[c5], ft0, ft1, %[c5] \n"
-                "fmadd.d %[c6], ft0, ft1, %[c6] \n"
-                "fmadd.d %[c7], ft0, ft1, %[c7] \n"
-                : [ c0 ] "+f"(c[0]), [ c1 ] "+f"(c[1]), [ c2 ] "+f"(c[2]),
-                  [ c3 ] "+f"(c[3]), [ c4 ] "+f"(c[4]), [ c5 ] "+f"(c[5]),
-                  [ c6 ] "+f"(c[6]), [ c7 ] "+f"(c[7])
-                : [ n_frep ] "r"(K - 1), [ unroll ] "i"(unroll)
-                : "ft0", "ft1", "ft2");
+        : [ c0 ] "+f"(c[0]), [ c1 ] "+f"(c[1]), [ c2 ] "+f"(c[2]),
+          [ c3 ] "+f"(c[3]), [ c4 ] "+f"(c[4]), [ c5 ] "+f"(c[5]),
+          [ c6 ] "+f"(c[6]), [ c7 ] "+f"(c[7])
+        : [ n_frep1 ] "r"((M * N / unroll) - 1), [ n_frep2 ] "r"(K - 3),
+          [ n_inst1 ] "i"(24), [ unroll ] "i"(unroll)
+        : "ft0", "ft1", "ft2", "ft3");
 
-            // Store results back
-            C[m * ldC + n + 0] = c[0];
-            C[m * ldC + n + 1] = c[1];
-            C[m * ldC + n + 2] = c[2];
-            C[m * ldC + n + 3] = c[3];
-            C[m * ldC + n + 4] = c[4];
-            C[m * ldC + n + 5] = c[5];
-            C[m * ldC + n + 6] = c[6];
-            C[m * ldC + n + 7] = c[7];
-            n += unroll;
-        }
-
-        // Clean up of leftover columns
-        snrt_ssr_disable();
-
-        for (; n < N; n++) {
-            double c;
-            if (BETA != 0) {
-                c = C[m * ldC + n];
-            } else {
-                c = 0.0;
-            }
-            for (uint32_t k = 0; k < K; k++) {
-                c += A[k + m * ldA] * B[k + n * ldB];
-            }
-            C[m * ldC + n] = c;
-        }
-
-        snrt_ssr_enable();
-    }
+    snrt_fpu_fence();
+    snrt_mcycle();
 
     snrt_ssr_disable();
 }

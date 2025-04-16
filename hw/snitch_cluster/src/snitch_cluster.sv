@@ -138,6 +138,8 @@ module snitch_cluster
   parameter logic [NumSsrsMax-1:0][4:0]  SsrRegs [NrCores] = '{default: 0},
   /// Per-core amount of sequencer instructions for IPU and FPU if enabled.
   parameter int unsigned NumSequencerInstr [NrCores] = '{default: 0},
+  /// Per-core amount of sequencer loops for FPU if enabled.
+  parameter int unsigned NumSequencerLoops [NrCores] = '{default: 0},
   /// Parent Hive id, a.k.a a mapping which core is assigned to which Hive.
   parameter int unsigned Hive [NrCores] = '{default: 0},
   /// TCDM Configuration.
@@ -1040,6 +1042,7 @@ module snitch_cluster
         .NumDTLBEntries (NumDTLBEntries[i]),
         .NumITLBEntries (NumITLBEntries[i]),
         .NumSequencerInstr (NumSequencerInstr[i]),
+        .NumSequencerLoops (NumSequencerLoops[i]),
         .NumSsrs (NumSsrs[i]),
         .SsrMuxRespDepth (SsrMuxRespDepth[i]),
         .SsrCfgs (SsrCfgs[i][NumSsrs[i]-1:0]),

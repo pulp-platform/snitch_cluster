@@ -2042,8 +2042,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         end
       end
       // FP Sequencer
-      FREP_O,
-      FREP_I: begin
+      FREP_O: begin
         if (FP_EN) begin
           opa_select = Reg;
           write_rd = 1'b0;

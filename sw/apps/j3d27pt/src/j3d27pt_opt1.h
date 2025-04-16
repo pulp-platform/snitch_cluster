@@ -190,7 +190,7 @@ static inline void j3d27pt_opt1(int fac, int nx, int ny, int nz, double* c,
                     "fmadd.d   fa0, fa6, ft1, fa0   \n"
                     "fmadd.d   fa0, fa6, ft0, fa0   \n"
                     "fmadd.d   fa0, fa6, ft1, fa0   \n"
-                    "frep.i    %[c3], 1, 3, 0b000   \n"
+                    "frep.o    %[c3], 1, 3, 0b000   \n"
                     "fmul.d    fa0, %[fc], fa0      \n"
                     "fsd       fa0, 0    (%[wb])    \n"
                     "fsd       fa0, %[sx](%[wb])    \n"

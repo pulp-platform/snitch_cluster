@@ -543,6 +543,11 @@
                                             "description": "Amount of floating-point instruction the floating-point sequence buffer can hold.",
                                             "default": 16
                                         },
+                                        "num_sequencer_loops": {
+                                            "type": "number",
+                                            "description": "Maximum number of nested loops supported by the sequencer.",
+                                            "default": 1
+                                        },
                                         "num_itlb_entries": {
                                             "type": "number",
                                             "description": "Number of ITLB entries. Determines the core's size.",

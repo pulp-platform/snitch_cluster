@@ -5,3 +5,24 @@
 runs:
   # Needs a larger FREP sequencer than default, in some configurations
   - elf: ./apps/montecarlo/pi_estimation/build/pi_estimation.elf
+  - elf: ./tests/build/frep.elf
+  - elf: ./tests/build/frep1d.elf
+  - elf: ./tests/build/frep2d_1.elf
+  - elf: ./tests/build/frep2d_1b.elf
+  - elf: ./tests/build/frep2d_2.elf
+  - elf: ./tests/build/frep2d_2b.elf
+  - elf: ./tests/build/frep2d_stagger.elf
+  - elf: ./tests/build/frep3d_1.elf
+  - elf: ./tests/build/frep3d_1b.elf
+  - elf: ./tests/build/frep3d_1c.elf
+  - elf: ./tests/build/frep3d_1d.elf
+  - elf: ./tests/build/frep3d_2.elf
+  - elf: ./tests/build/frep3d_2b.elf
+  - elf: ./tests/build/frep3d_3.elf
+  - elf: ./tests/build/frep3d_4.elf
+  - elf: ./tests/build/frep4d_1.elf
+  - elf: ./tests/build/frep4d_2.elf
+  - elf: ./tests/build/frep4d_3.elf
+  - elf: ./tests/build/frep4d_4.elf
+  - elf: ./tests/build/gemm_frep.elf
+  - elf: ./tests/build/gemm_frep1d.elf

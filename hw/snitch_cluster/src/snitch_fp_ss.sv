@@ -12,6 +12,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   parameter int unsigned NumFPOutstandingLoads = 0,
   parameter int unsigned NumFPOutstandingMem = 0,
   parameter int unsigned NumFPUSequencerInstr = 0,
+  parameter int unsigned NumFPUSequencerLoops = 0,
   parameter type dreq_t = logic,
   parameter type drsp_t = logic,
   parameter bit RegisterSequencer = 0,
@@ -183,9 +184,10 @@ module snitch_fp_ss import snitch_pkg::*; #(
   logic             acc_req_ready, acc_req_ready_q;
   if (Xfrep) begin : gen_fpu_sequencer
     snitch_sequencer #(
-      .AddrWidth (AddrWidth),
-      .DataWidth (DataWidth),
-      .Depth     (NumFPUSequencerInstr)
+      .AddrWidth  (AddrWidth),
+      .DataWidth  (DataWidth),
+      .BufferDepth(NumFPUSequencerInstr),
+      .NestDepth  (NumFPUSequencerLoops)
     ) i_snitch_fpu_sequencer (
       .clk_i,
       .rst_i,

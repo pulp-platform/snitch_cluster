@@ -31,17 +31,16 @@ With the "Xfrep" extension we can automatically repeat a sequence of instruction
 
 The FREP instruction has the following signature:
 
-| imm1     | rs1     | imm2        | imm3         | is_outer | opcode     | operation |
-|:--------:|:-------:|:-----------:|:------------:|:--------:|:----------:|:---------:|
-| 12       | 5       | 3           | 4            | 1        | 7          |           |
-| max_inst | max_rpt | stagger_max | stagger_mask | 0        | OP-CUSTOM0 | FREP.I    |
-| max_inst | max_rpt | stagger_max | stagger_mask | 1        | OP-CUSTOM0 | FREP.O    |
+| imm1     | rs1      | imm2        | imm3         | is_outer | opcode     | operation |
+|:--------:|:--------:|:-----------:|:------------:|:--------:|:----------:|:---------:|
+| 12       | 5        | 3           | 4            | 1        | 7          |           |
+| max_inst | max_iter | stagger_max | stagger_mask | 1        | OP-CUSTOM0 | FREP.O    |
 
-FREP.I and FREP.O repeat the *max_inst + 1* instructions following the FREP instruction for *max_rpt + 1* times. The FREP.I instruction (*I* stands for inner) repeats every instruction the specified number of times and moves on to executing and repeating the next. The FREP.O instruction (*O* stands for outer) repeats the whole sequence of instructions *max_rpt + 1* times. Register staggering can be enabled and configured via the *stagger_mask* and *stagger_max* immediates. A detailed explanation of their use can be found in the Snitch [paper](../../publications.md).
+FREP.O (*O* stands for outer) repeats the *max_inst + 1* instructions following the FREP instruction for *max_iter + 1* times. Register staggering can be enabled and configured via the *stagger_mask* and *stagger_max* immediates. A detailed explanation of their use can be found in the Snitch [paper](../../publications.md).
 
 The assembly instruction signature follows:
 
-    frep.i   rs1, imm1, imm2, imm3
+    frep.o   rs1, imm1, imm2, imm3
 
 
 ## "Xdma" Extension for Asynchronous Data Movement

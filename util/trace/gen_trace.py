@@ -880,7 +880,11 @@ def annotate_insn(
             # Record instructions offloaded from Snitch to the FPSS
             if extras['fpu_offload']:
                 perf_metrics[-1]['snitch_fseq_offloads'] += 1
-                sequencer.push_insn({"pc": pc_str, "sec": len(perf_metrics) - 1, "is_frep": extras['is_seq_insn']})
+                sequencer.push_insn({
+                    "pc": pc_str,
+                    "sec": len(perf_metrics) - 1,
+                    "is_frep": extras['is_seq_insn']
+                })
             if extras['stall'] or extras['fpu_offload']:
                 insn, pc_str = ('', '')
             else:
