@@ -218,7 +218,7 @@ void gemm_fp32_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
 
     // SSR strides and bounds only have to be configured
     // once in the beginning
-    if (setup_SSR) {
+    if (setup_SSR && (N / unroll > 0)) {
         uint32_t ssr0_b[4] = {unroll, K / 2, N / unroll, M};
         uint32_t ssr0_i[4] = {0, sizeof(float) * 2, 0, sizeof(float) * ldA};
 

@@ -128,7 +128,7 @@ void gemm_fp8_opt_ex(uint32_t M, uint32_t N, uint32_t K, void* A_p,
 
     // SSR strides and bounds only have to be configured
     // once in the beginning
-    if (setup_SSR) {
+    if (setup_SSR && (N / unroll > 0)) {
         uint32_t ssr0_b[4] = {unroll, K / 8, N / unroll, M};
         uint32_t ssr0_i[4] = {0, sizeof(char) * 8, 0, sizeof(char) * ldA};
 

@@ -72,7 +72,7 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
 
     // SSR strides and bounds only have to be configured
     // once in the beginning
-    if (setup_SSR) {
+    if (setup_SSR && (N / unroll > 0)) {
         // First matrix is stored in transposed format
         if (ta) {
             const uint32_t ssr0_b[4] = {unroll, K, N / unroll, M};
