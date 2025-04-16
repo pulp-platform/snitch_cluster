@@ -70,48 +70,51 @@ void gemm_fp64_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
     // for maximum utilization
     const uint32_t unroll = 8;
 
-    // SSR strides and bounds only have to be configured
-    // once in the beginning
-    if (setup_SSR && (N / unroll > 0)) {
-        // First matrix is stored in transposed format
-        if (ta) {
-            const uint32_t ssr0_b[4] = {unroll, K, N / unroll, M};
-            const uint32_t ssr0_i[4] = {0, 8 * ldA, 0, 8 * 8};
+    // Dont setup the SSR if the stream won't be used
+    if(N / unroll > 0){
+        // SSR strides and bounds only have to be configured
+        // once in the beginning
+        if (setup_SSR) {
+            // First matrix is stored in transposed format
+            if (ta) {
+                const uint32_t ssr0_b[4] = {unroll, K, N / unroll, M};
+                const uint32_t ssr0_i[4] = {0, 8 * ldA, 0, 8 * 8};
 
-            snrt_ssr_loop_3d(SNRT_SSR_DM0, ssr0_b[1], ssr0_b[2], ssr0_b[3],
-                             ssr0_i[1], ssr0_i[2], ssr0_i[3]);
-            snrt_ssr_repeat(SNRT_SSR_DM0, unroll);
-        } else {
-            const uint32_t ssr0_b[4] = {unroll, K, N / unroll, M};
-            const uint32_t ssr0_i[4] = {0, 8, 0, 8 * ldA};
+                snrt_ssr_loop_3d(SNRT_SSR_DM0, ssr0_b[1], ssr0_b[2], ssr0_b[3],
+                                ssr0_i[1], ssr0_i[2], ssr0_i[3]);
+                snrt_ssr_repeat(SNRT_SSR_DM0, unroll);
+            } else {
+                const uint32_t ssr0_b[4] = {unroll, K, N / unroll, M};
+                const uint32_t ssr0_i[4] = {0, 8, 0, 8 * ldA};
 
-            snrt_ssr_loop_3d(SNRT_SSR_DM0, ssr0_b[1], ssr0_b[2], ssr0_b[3],
-                             ssr0_i[1], ssr0_i[2], ssr0_i[3]);
-            snrt_ssr_repeat(SNRT_SSR_DM0, unroll);
+                snrt_ssr_loop_3d(SNRT_SSR_DM0, ssr0_b[1], ssr0_b[2], ssr0_b[3],
+                                ssr0_i[1], ssr0_i[2], ssr0_i[3]);
+                snrt_ssr_repeat(SNRT_SSR_DM0, unroll);
+            }
+
+            // Second matrix is stored in transposed format
+            if (tb) {
+                const uint32_t ssr1_b[4] = {unroll, K, N / unroll, M};
+                const uint32_t ssr1_i[4] = {8 * ldB, 8, 8 * ldB * unroll, 0};
+
+                snrt_ssr_loop_4d(SNRT_SSR_DM1, ssr1_b[0], ssr1_b[1], ssr1_b[2],
+                                ssr1_b[3], ssr1_i[0], ssr1_i[1], ssr1_i[2],
+                                ssr1_i[3]);
+            } else {
+                const uint32_t ssr1_b[4] = {unroll, K, N / unroll, M};
+                const uint32_t ssr1_i[4] = {8, 8 * ldB, 8 * unroll, 0};
+
+                snrt_ssr_loop_4d(SNRT_SSR_DM1, ssr1_b[0], ssr1_b[1], ssr1_b[2],
+                                ssr1_b[3], ssr1_i[0], ssr1_i[1], ssr1_i[2],
+                                ssr1_i[3]);
+            }
         }
 
-        // Second matrix is stored in transposed format
-        if (tb) {
-            const uint32_t ssr1_b[4] = {unroll, K, N / unroll, M};
-            const uint32_t ssr1_i[4] = {8 * ldB, 8, 8 * ldB * unroll, 0};
-
-            snrt_ssr_loop_4d(SNRT_SSR_DM1, ssr1_b[0], ssr1_b[1], ssr1_b[2],
-                             ssr1_b[3], ssr1_i[0], ssr1_i[1], ssr1_i[2],
-                             ssr1_i[3]);
-        } else {
-            const uint32_t ssr1_b[4] = {unroll, K, N / unroll, M};
-            const uint32_t ssr1_i[4] = {8, 8 * ldB, 8 * unroll, 0};
-
-            snrt_ssr_loop_4d(SNRT_SSR_DM1, ssr1_b[0], ssr1_b[1], ssr1_b[2],
-                             ssr1_b[3], ssr1_i[0], ssr1_i[1], ssr1_i[2],
-                             ssr1_i[3]);
-        }
+        // SSR start address need to be configured each time
+        snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_4D, A);
+        snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_4D, B);
+        snrt_ssr_enable();
     }
-
-    // SSR start address need to be configured each time
-    snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_4D, A);
-    snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_4D, B);
-    snrt_ssr_enable();
 
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
