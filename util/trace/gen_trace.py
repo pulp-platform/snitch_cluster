@@ -714,10 +714,11 @@ def annotate_snitch(extras: dict,
         # Load / Store
         if extras['is_load']:
             perf_metrics[-1]['snitch_loads'] += 1
-            gpr_wb_info[extras['rd']].appendleft(cycle)
-            ret.append('{:<3} <~~ {}[{}]'.format(
-                REG_ABI_NAMES_I[extras['rd']], LS_SIZES[extras['ls_size']],
-                int_lit(extras['alu_result'], as_hex=int_as_hex)))
+            if extras['rd'] != 0:
+                gpr_wb_info[extras['rd']].appendleft(cycle)
+                ret.append('{:<3} <~~ {}[{}]'.format(
+                    REG_ABI_NAMES_I[extras['rd']], LS_SIZES[extras['ls_size']],
+                    int_lit(extras['alu_result'], as_hex=int_as_hex)))
         elif extras['is_store']:
             perf_metrics[-1]['snitch_stores'] += 1
             ret.append('{} ~~> {}[{}]'.format(
@@ -1156,16 +1157,22 @@ def main():
             file.write(json.dumps(dma_metrics, indent=4))
 
     # Check for any loose ends and warn before exiting
+    def wb_msg(reg_name, transactions):
+        n = len(transactions)
+        cycles = ', '.join(map(str, transactions))
+        return (
+            f'Missing {n} writebacks to register {reg_name} from transactions '
+            f'initiated at cycles: {cycles}.'
+        )
     warn_trip = False
-    wb_msg = '{} transactions still in flight for {}.'
     for fpr, que in fpr_wb_info.items():
         if len(que) != 0:
             warn_trip = True
-            warnings.warn(wb_msg.format(len(que), REG_ABI_NAMES_F[fpr]))
+            warnings.warn(wb_msg(REG_ABI_NAMES_F[fpr], que))
     for gpr, que in gpr_wb_info.items():
         if len(que) != 0:
             warn_trip = True
-            warnings.warn(wb_msg.format(len(que), REG_ABI_NAMES_I[gpr]))
+            warnings.warn(wb_msg(REG_ABI_NAMES_I[gpr], que))
     # Check final state of sequencer is clean
     if sequencer.terminate():
         warn_trip = True
