@@ -124,6 +124,7 @@ snitch-cluster-vsim:
     - cd target/snitch_cluster
     - make bin/snitch_cluster.vsim
     - ./util/run.py sw/run.yaml --simulator vsim -j --run-dir runs/vsim
+    - ./util/run.py sw/riscv_tests_isa.yaml --simulator vsim -j --run-dir runs/vsim
     # Test trace annotation
     - make SIM_DIR=./runs/vsim/simple annotate -j
     # Run additional, more extensive tests
