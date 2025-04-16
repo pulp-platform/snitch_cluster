@@ -7,9 +7,13 @@
 
 #define DOUBLE_BUFFER 1
 
+#define ALIGN_NEXT_FROM_BASE(addr, base, size) \
+    (((((addr) - (base)) + (size)-1) / (size)) * (size) + (base))
+
 #define BANK_ALIGNMENT 8
-#define TCDM_ALIGNMENT (32 * BANK_ALIGNMENT)
-#define ALIGN_UP_TCDM(addr) ALIGN_UP(addr, TCDM_ALIGNMENT)
+#define TCDM_ALIGNMENT (24 * BANK_ALIGNMENT)
+#define ALIGN_UP_TCDM(addr) \
+    ALIGN_NEXT_FROM_BASE(addr, SNRT_TCDM_START_ADDR, TCDM_ALIGNMENT)
 
 static inline void axpy_naive(uint32_t n, double a, double *x, double *y,
                               double *z) {
@@ -107,6 +111,14 @@ static inline void axpy_job(axpy_args_t *args) {
         local_x[1] = (double *)local_x1_addr;
         local_y[1] = (double *)local_y1_addr;
         local_z[1] = (double *)local_z1_addr;
+    }
+    if (snrt_cluster_core_idx() == 0) {
+        DUMP(local_x0_addr);
+        DUMP(local_y0_addr);
+        DUMP(local_z0_addr);
+        DUMP(local_x1_addr);
+        DUMP(local_y1_addr);
+        DUMP(local_z1_addr);
     }
 
     // Calculate number of iterations

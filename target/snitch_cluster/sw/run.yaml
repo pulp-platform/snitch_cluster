@@ -11,6 +11,7 @@ runs:
     simulators: [vsim, vcs, verilator]
   - elf: ./tests/build/dma_empty_transfer.elf
   - elf: ./tests/build/dma_simple.elf
+  - elf: ./tests/build/dobu.elf
   - elf: ./tests/build/event_unit.elf
     simulators: [vsim, vcs, verilator]
   - elf: ./tests/build/fence_i.elf
@@ -60,6 +61,7 @@ runs:
   - elf: ./tests/build/printf_simple.elf
   - elf: ./tests/build/printf_fmtint.elf
   - elf: ./tests/build/simple.elf
+  - elf: ./tests/build/tcdm.elf
   - elf: ./tests/build/tls.elf
   - elf: ./tests/build/varargs_1.elf
   - elf: ./tests/build/varargs_2.elf

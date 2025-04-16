@@ -52,6 +52,15 @@
                                 32
                             ]
                         },
+                        "hyperbanks": {
+                            "type": "number",
+                            "description": "Number of hyperbanks.",
+                            "examples": [
+                                1,
+                                2
+                            ],
+                            "default": 1
+                        },
                         "topology": {
                             "type": "string",
                             "description": "Network topology used for TCDM interconnect.",

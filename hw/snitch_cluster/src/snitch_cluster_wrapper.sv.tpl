@@ -95,6 +95,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .BootRomSize (snitch_cluster_pkg::BootromSize),
     .ClusterPeriphSize (snitch_cluster_pkg::ClusterPeriphSize),
     .NrBanks (${cfg['cluster']['tcdm']['banks']}),
+    .NrHyperBanks (${cfg['cluster']['tcdm']['hyperbanks']}),
     .DMANumAxInFlight (${cfg['cluster']['dma_axi_req_fifo_depth']}),
     .DMAReqFifoDepth (${cfg['cluster']['dma_req_fifo_depth']}),
     .DMANumChannels (${cfg['cluster']['dma_nr_channels']}),
