@@ -115,29 +115,31 @@ void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
     // Should be at least as high as the FMA delay
     // for maximum utilization
     const uint32_t unroll = 8;
+    // Dont setup the SSR if the stream won't be used
+    if((N / unroll > 0)){
+        // SSR strides and bounds only have to be configured
+        // once in the beginning
+        if (setup_SSR) {
+            uint32_t ssr0_b[4] = {unroll, K / 4, N / unroll, M};
+            uint32_t ssr0_i[4] = {0, sizeof(__fp16) * 4, 0, sizeof(__fp16) * ldA};
 
-    // SSR strides and bounds only have to be configured
-    // once in the beginning
-    if (setup_SSR && (N / unroll > 0)) {
-        uint32_t ssr0_b[4] = {unroll, K / 4, N / unroll, M};
-        uint32_t ssr0_i[4] = {0, sizeof(__fp16) * 4, 0, sizeof(__fp16) * ldA};
+            uint32_t ssr1_b[4] = {unroll, K / 4, N / unroll, M};
+            uint32_t ssr1_i[4] = {sizeof(__fp16) * ldB, sizeof(__fp16) * 4,
+                                sizeof(__fp16) * unroll * ldB, 0};
 
-        uint32_t ssr1_b[4] = {unroll, K / 4, N / unroll, M};
-        uint32_t ssr1_i[4] = {sizeof(__fp16) * ldB, sizeof(__fp16) * 4,
-                              sizeof(__fp16) * unroll * ldB, 0};
+            snrt_ssr_loop_3d(SNRT_SSR_DM0, ssr0_b[1], ssr0_b[2], ssr0_b[3],
+                            ssr0_i[1], ssr0_i[2], ssr0_i[3]);
+            snrt_ssr_repeat(SNRT_SSR_DM0, unroll);
 
-        snrt_ssr_loop_3d(SNRT_SSR_DM0, ssr0_b[1], ssr0_b[2], ssr0_b[3],
-                         ssr0_i[1], ssr0_i[2], ssr0_i[3]);
-        snrt_ssr_repeat(SNRT_SSR_DM0, unroll);
+            snrt_ssr_loop_4d(SNRT_SSR_DM1, ssr1_b[0], ssr1_b[1], ssr1_b[2],
+                            ssr1_b[3], ssr1_i[0], ssr1_i[1], ssr1_i[2], ssr1_i[3]);
+        }
 
-        snrt_ssr_loop_4d(SNRT_SSR_DM1, ssr1_b[0], ssr1_b[1], ssr1_b[2],
-                         ssr1_b[3], ssr1_i[0], ssr1_i[1], ssr1_i[2], ssr1_i[3]);
+        // SSR start address need to be configured each time
+        snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_4D, A);
+        snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_4D, B);
+        snrt_ssr_enable();
     }
-
-    // SSR start address need to be configured each time
-    snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_4D, A);
-    snrt_ssr_read(SNRT_SSR_DM1, SNRT_SSR_4D, B);
-    snrt_ssr_enable();
 
     // Kernel progresses by 4 values each step
     const uint32_t n_frep = K / 4 - 1;
