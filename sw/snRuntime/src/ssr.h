@@ -25,6 +25,10 @@
  * The convenience functions provided in this file can be used to set up such
  * access patterns. The function argument names reflect the variable names
  * presented in these sample code snippets.
+ *
+ * Note: The exact number of elements configured in an (I)SSR stream must be
+ * consumed. Failure to comply with this requirement will result in undefined
+ * behaviour.
  */
 
 #pragma once
