@@ -150,7 +150,7 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               currentCSR += 1
             })
             // Reader: Temporal Strides D2 -> D5
-            for (i <- 0 until 4) {
+            for (_ <- 0 until 3) {
               write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 0)
               currentCSR += 1
             }
@@ -160,7 +160,7 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               currentCSR += 1
             })
             // Reader: Temporal Bounds D2 -> D5
-            for (i <- 0 until 4) {
+            for (_ <- 0 until 3) {
               write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 1)
               currentCSR += 1
             }
@@ -179,7 +179,7 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               currentCSR += 1
             })
             // Writer: Temporal Strides D2 -> D5
-            for (i <- 0 until 4) {
+            for (_ <- 0 until 3) {
               write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 0)
               currentCSR += 1
             }
@@ -189,7 +189,7 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               currentCSR += 1
             })
             // Writer: Temporal Bounds D2 -> D5
-            for (i <- 0 until 4) {
+            for (_ <- 0 until 3) {
               write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 1)
               currentCSR += 1
             }
@@ -219,22 +219,7 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                 // The address for the reader side
                 ((Reader_PointerAddress + i) << 9) +
                 // The address for the writer side
-                (BigInt(0x2000_0000) << 57) +
-                (BigInt(Reader_Spatial_Strides(0) >> 3) << 105) +
-                (BigInt(Reader_Temporal_Bounds(0) >> 3) << 124) +
-                (BigInt(Reader_Temporal_Bounds(1) >> 3) << 143) +
-                // 2, 3, 4, 5 are all 1
-                (BigInt(1) << 162) +
-                (BigInt(1) << 181) +
-                (BigInt(1) << 200) +
-                (BigInt(1) << 219) +
-                (BigInt(Reader_Temporal_Strides(0)) << 238) +
-                (BigInt(Reader_Temporal_Strides(1)) << 257) +
-                // 2, 3, 4, 5 are all 0
-                // Enabled channels
-                (BigInt(0xff) << 352) +
-                // Enabled Byte
-                (BigInt(0xff) << 360)
+                (BigInt(0x2000_0000) << 57)
             dut.io.remoteXDMACfg.fromRemote.bits
               .poke(readerRemoteConfig)
             dut.clock.step(Random.between(1, 31))
@@ -260,22 +245,7 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
                 // The address for the reader side
                 (BigInt(0x2000_0000) << 9) +
                 // The address for the writer side
-                ((Writer_PointerAddress + i + 1) << 57) +
-                (BigInt(Writer_Spatial_Strides(0) >> 3) << 105) +
-                (BigInt(Writer_Temporal_Bounds(0) >> 3) << 124) +
-                (BigInt(Writer_Temporal_Bounds(1) >> 3) << 143) +
-                // 2, 3, 4, 5 are all 1
-                (BigInt(1) << 162) +
-                (BigInt(1) << 181) +
-                (BigInt(1) << 200) +
-                (BigInt(1) << 219) +
-                (BigInt(Writer_Temporal_Strides(0)) << 238) +
-                (BigInt(Writer_Temporal_Strides(1)) << 257) +
-                // 2, 3, 4, 5 are all 0
-                // Enabled channels
-                (BigInt(0xff) << 352) +
-                // Enabled Byte
-                (BigInt(0xff) << 360)
+                ((Writer_PointerAddress + i + 1) << 57)
 
             dut.io.remoteXDMACfg.fromRemote.bits
               .poke(writerRemoteConfig)

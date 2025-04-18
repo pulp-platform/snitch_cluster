@@ -30,24 +30,24 @@ int main() {
 
         // --------------------- Configure the Ext --------------------- //
 
-        if (xdma_disable_dst_ext(0) != 0) {
-            printf("Error in disabling xdma extension 0\n");
+        if (xdma_disable_src_ext(0) != 0) {
+            printf("Error in disabling reader xdma extension 0\n");
             err++;
         }
 
-        if (xdma_disable_dst_ext(1) != 0) {
-            printf("Error in disabling xdma extension 1\n");
+        if (xdma_disable_dst_ext(0) != 0) {
+            printf("Error in disabling writer xdma extension 1\n");
             err++;
         }
 
         if (enable_transpose) {
-            if (xdma_enable_dst_ext(2, (uint32_t *)transposer_param) != 0) {
-                printf("Error in enabling xdma extension 2\n");
+            if (xdma_enable_dst_ext(1, (uint32_t *)transposer_param) != 0) {
+                printf("Error in enabling xdma writer extension 1\n");
                 err++;
             }
         } else {
-            if (xdma_disable_dst_ext(2) != 0) {
-                printf("Error in disabling xdma extension 2\n");
+            if (xdma_disable_dst_ext(1) != 0) {
+                printf("Error in disabling xdma writer extension 1\n");
                 err++;
             }
         }

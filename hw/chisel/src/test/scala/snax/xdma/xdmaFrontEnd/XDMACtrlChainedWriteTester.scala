@@ -161,7 +161,7 @@ class XDMACtrlChainedWriteTester extends AnyFlatSpec with ChiselScalatestTester 
               currentCSR += 1
             })
             // Reader: Temporal Strides D2 -> D5
-            for (i <- 0 until 4) {
+            for (_ <- 0 until 3) {
               write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 0)
               currentCSR += 1
             }
@@ -171,7 +171,7 @@ class XDMACtrlChainedWriteTester extends AnyFlatSpec with ChiselScalatestTester 
               currentCSR += 1
             })
             // Reader: Temporal Bounds D2 -> D5
-            for (i <- 0 until 4) {
+            for (i <- 0 until 3) {
               write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 1)
               currentCSR += 1
             }
@@ -190,7 +190,7 @@ class XDMACtrlChainedWriteTester extends AnyFlatSpec with ChiselScalatestTester 
               currentCSR += 1
             })
             // Writer: Temporal Strides D2 -> D5
-            for (i <- 0 until 4) {
+            for (i <- 0 until 3) {
               write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 0)
               currentCSR += 1
             }
@@ -200,7 +200,7 @@ class XDMACtrlChainedWriteTester extends AnyFlatSpec with ChiselScalatestTester 
               currentCSR += 1
             })
             // Writer: Temporal Bounds D2 -> D5
-            for (i <- 0 until 4) {
+            for (i <- 0 until 3) {
               write_csr(dut, dut.io.csrIO, addr = currentCSR, data = 1)
               currentCSR += 1
             }
@@ -235,22 +235,7 @@ class XDMACtrlChainedWriteTester extends AnyFlatSpec with ChiselScalatestTester 
                 ((Writer_PointerAddress(0) + i - (1 << 20)) << 57) +
                 ((Writer_PointerAddress(1) + i) << 105) +
                 (Writer_PointerAddress(2) << 153) +
-                (Writer_PointerAddress(3) << 201) +
-                (BigInt(Reader_Spatial_Strides(0) >> 3) << 249) +
-                (BigInt(Reader_Temporal_Bounds(0) >> 3) << 268) +
-                (BigInt(Reader_Temporal_Bounds(1) >> 3) << 287) +
-                // 2, 3, 4, 5 are all 1
-                (BigInt(1) << 306) +
-                (BigInt(1) << 325) +
-                (BigInt(1) << 344) +
-                (BigInt(1) << 363) +
-                (BigInt(Reader_Temporal_Strides(0)) << 382) +
-                (BigInt(Reader_Temporal_Strides(1)) << 401) +
-                // 2, 3, 4, 5 are all 0
-                // Enabled channels
-                (BigInt(0xff) << 496) +
-                // Enabled Byte
-                (BigInt(0xff) << 504)
+                (Writer_PointerAddress(3) << 201)
 
             dut.io.remoteXDMACfg.fromRemote.bits
               .poke(writerRemoteConfig)

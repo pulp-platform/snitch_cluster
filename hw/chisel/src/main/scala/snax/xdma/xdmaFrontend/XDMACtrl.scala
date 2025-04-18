@@ -285,6 +285,14 @@ class XDMACtrl(readerparam: XDMAParam, writerparam: XDMAParam, clusterName: Stri
   preRoute_src_local.bits.remoteLoopback := false.B
   preRoute_dst_local.bits.remoteLoopback := false.B
 
+  // axiTransferBeatSize: The cycle of transfer for this cfg
+  // Since the writer side connects the Datapath Extensions with the number of data beats unchanged, both reader and writer side take the value from the writer side
+  val axiTransferBeatSize = preRoute_dst_local.bits.aguCfg.temporalBounds.reduceTree { (a, b) =>
+    (a * b).apply(preRoute_dst_local.bits.axiTransferBeatSize.getWidth - 1, 0)
+  }
+  preRoute_src_local.bits.axiTransferBeatSize := axiTransferBeatSize
+  preRoute_dst_local.bits.axiTransferBeatSize := axiTransferBeatSize
+
   // Connect Valid and bits: Only when both preRoutes are ready, postRulecheck is ready
   csrManager.io.csr_config_out.ready := preRoute_src_local.ready & preRoute_dst_local.ready
   preRoute_src_local.valid           := csrManager.io.csr_config_out.ready & csrManager.io.csr_config_out.valid

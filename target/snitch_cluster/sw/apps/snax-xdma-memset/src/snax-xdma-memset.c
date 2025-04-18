@@ -38,25 +38,25 @@ int main() {
         }
 
         uint32_t ext_param_t1[1] = {0xFFFFFFFF};
-        if (xdma_enable_dst_ext(0, ext_param_t1) != 0) {
-            printf("Error in enabling xdma extension 0\n");
+        if (xdma_disable_src_ext(0) != 0) {
+            printf("Error in disabling xdma reader extension 0\n");
             err++;
         } else {
-            printf("The xdma extension 0 is enabled\n");
+            printf("The xdma reader extension 0 is disabled\n");
+        }
+
+        if (xdma_enable_dst_ext(0, ext_param_t1) != 0) {
+            printf("Error in enabling xdma writer extension 0\n");
+            err++;
+        } else {
+            printf("The xdma writer extension 0 is enabled\n");
         }
 
         if (xdma_disable_dst_ext(1) != 0) {
-            printf("Error in disabling xdma extension 1\n");
+            printf("Error in disabling xdma writer extension 1\n");
             err++;
         } else {
-            printf("The xdma extension 1 is disabled\n");
-        }
-
-        if (xdma_disable_dst_ext(2) != 0) {
-            printf("Error in disabling xdma extension 2\n");
-            err++;
-        } else {
-            printf("The xdma extension 2 is disabled\n");
+            printf("The xdma writer extension 1 is disabled\n");
         }
 
         if (err != 0) {

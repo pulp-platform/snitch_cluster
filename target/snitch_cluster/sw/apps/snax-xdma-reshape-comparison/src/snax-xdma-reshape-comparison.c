@@ -30,16 +30,16 @@ int main() {
         // --------------------- Configure the Ext --------------------- //
 
         if (xdma_disable_dst_ext(0) != 0) {
-            printf("Error in disabling xdma extension 0\r\n");
+            printf("Error in disabling xdma writer extension 0\r\n");
             err++;
         }
 
         if (xdma_disable_dst_ext(1) != 0) {
-            printf("Error in disabling xdma extension 1\r\n");
+            printf("Error in disabling xdma writer extension 1\r\n");
             err++;
         }
-        if (xdma_disable_dst_ext(2) != 0) {
-            printf("Error in disabling xdma extension 1\r\n");
+        if (xdma_disable_src_ext(0) != 0) {
+            printf("Error in disabling xdma reader extension 0\r\n");
             err++;
         }
 

@@ -236,8 +236,10 @@ object XDMATopGen extends App {
   // Thus, the generation function does not need to be modified by the extension developers.
   // Extension developers only need to 1) Add the Extension source code 2) Add Has...: #priority in hjson configuration file
 
-  val toolbox                = currentMirror.mkToolBox()
-  val datapathExtensionParam = parsedXdmaCfg match {
+  val toolbox = currentMirror.mkToolBox()
+
+  // Writer Side
+  val writerDatapathExtensionParam = (parsedXdmaCfg \ "writer_extensions").as[JsObject] match {
     case obj: JsObject =>
       obj.fields.filter { case (k, _) =>
         k.startsWith("Has")
@@ -247,9 +249,32 @@ object XDMATopGen extends App {
     case _ => Seq.empty
   }
 
-  datapathExtensionParam
+  writerDatapathExtensionParam
     .foreach(i => {
       writerExtensionParam = writerExtensionParam :+ toolbox
+        .compile(toolbox.parse(s"""
+import snax.DataPathExtension._
+return new ${i._1}(${i._2
+            .map(list => s"Seq(${list.mkString(",")})")
+            .mkString(", ")})
+      """))()
+        .asInstanceOf[HasDataPathExtension]
+    })
+
+  // Reader Side
+  val readerDatapathExtensionParam = (parsedXdmaCfg \ "reader_extensions").as[JsObject] match {
+    case obj: JsObject =>
+      obj.fields.filter { case (k, _) =>
+        k.startsWith("Has")
+      }.toSeq.map { case (k, v) =>
+        (k, v.as[Map[String, Seq[Int]]].values)
+      }
+    case _ => Seq.empty
+  }
+
+  readerDatapathExtensionParam
+    .foreach(i => {
+      readerExtensionParam = readerExtensionParam :+ toolbox
         .compile(toolbox.parse(s"""
 import snax.DataPathExtension._
 return new ${i._1}(${i._2

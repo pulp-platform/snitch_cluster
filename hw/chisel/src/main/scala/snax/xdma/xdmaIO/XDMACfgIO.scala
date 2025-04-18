@@ -28,6 +28,8 @@ class XDMACfgIO(val param: XDMAParam) extends Bundle {
       UInt(param.axiParam.addrWidth.W)
     )
 
+  val axiTransferBeatSize = UInt(param.crossClusterParam.tcdmAddressWidth.W)
+
   val aguCfg          =
     new AddressGenUnitCfgIO(param =
       AddressGenUnitParam(
@@ -103,6 +105,8 @@ class XDMAIntraClusterCfgIO(param: XDMAParam) extends Bundle {
       UInt(param.axiParam.addrWidth.W)
     )
 
+  val axiTransferBeatSize = UInt(param.crossClusterParam.tcdmAddressWidth.W)
+
   val aguCfg          =
     new AddressGenUnitCfgIO(param = param.rwParam.aguParam) // Buffered within AGU
   val readerwriterCfg = new ReaderWriterCfgIO(param.rwParam)
@@ -124,6 +128,7 @@ class XDMAIntraClusterCfgIO(param: XDMAParam) extends Bundle {
     origination              := cfg.origination
     readerPtr                := cfg.readerPtr
     writerPtr                := cfg.writerPtr
+    axiTransferBeatSize      := cfg.axiTransferBeatSize
     aguCfg.addressRemapIndex := cfg.aguCfg.addressRemapIndex
     aguCfg.ptr               := cfg.aguCfg.ptr
     aguCfg.spatialStrides    := cfg.aguCfg.spatialStrides.take(
@@ -148,14 +153,15 @@ class XDMAIntraClusterCfgIO(param: XDMAParam) extends Bundle {
 }
 
 class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam) extends Bundle {
-  val taskID        = UInt(8.W)
-  val isWriterSide  = Bool()
-  val readerPtr     = UInt(readerParam.crossClusterParam.AxiAddressWidth.W)
-  val writerPtr     = Vec(
+  val taskID              = UInt(8.W)
+  val isWriterSide        = Bool()
+  val readerPtr           = UInt(readerParam.crossClusterParam.AxiAddressWidth.W)
+  val writerPtr           = Vec(
     readerParam.crossClusterParam.maxMulticastDest,
     UInt(readerParam.crossClusterParam.AxiAddressWidth.W)
   )
-  val spatialStride = UInt(readerParam.crossClusterParam.tcdmAddressWidth.W)
+  val axiTransferBeatSize = UInt(readerParam.crossClusterParam.tcdmAddressWidth.W)
+  val spatialStride       = UInt(readerParam.crossClusterParam.tcdmAddressWidth.W)
 
   val temporalBounds  = Vec(
     readerParam.crossClusterParam.maxTemporalDimension,
@@ -172,25 +178,26 @@ class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam) exte
     writerSide: Boolean,
     cfg:        XDMACfgIO
   ): Unit = {
-    taskID          := cfg.taskID
-    isWriterSide    := writerSide.B
-    readerPtr       := cfg.readerPtr
-    writerPtr       := cfg.writerPtr
-    spatialStride   := cfg.aguCfg
+    taskID              := cfg.taskID
+    isWriterSide        := writerSide.B
+    readerPtr           := cfg.readerPtr
+    writerPtr           := cfg.writerPtr
+    axiTransferBeatSize := cfg.axiTransferBeatSize
+    spatialStride       := cfg.aguCfg
       .spatialStrides(0)
       .apply(
         cfg.aguCfg.spatialStrides(0).getWidth - 1,
         log2Ceil(readerParam.crossClusterParam.wordlineWidth / 8)
       )
-    temporalStrides := cfg.aguCfg.temporalStrides.map(
+    temporalStrides     := cfg.aguCfg.temporalStrides.map(
       _.apply(
         cfg.aguCfg.temporalStrides(0).getWidth - 1,
         log2Ceil(readerParam.crossClusterParam.wordlineWidth / 8)
       )
     )
-    temporalBounds  := cfg.aguCfg.temporalBounds
-    enabledChannel  := cfg.readerwriterCfg.enabledChannel
-    enabledByte     := cfg.readerwriterCfg.enabledByte
+    temporalBounds      := cfg.aguCfg.temporalBounds
+    enabledChannel      := cfg.readerwriterCfg.enabledChannel
+    enabledByte         := cfg.readerwriterCfg.enabledByte
   }
 
   def convertToXDMACfgIO(readerSide: Boolean): XDMACfgIO = {
@@ -201,6 +208,7 @@ class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam) exte
     xdmaCfg.taskID                   := taskID
     xdmaCfg.readerPtr                := readerPtr
     xdmaCfg.writerPtr                := writerPtr
+    xdmaCfg.axiTransferBeatSize      := axiTransferBeatSize
     xdmaCfg.aguCfg.ptr               := { if (readerSide) readerPtr else writerPtr(0) }
     xdmaCfg.aguCfg.spatialStrides(0) := spatialStride ## 0.U(
       log2Ceil(readerParam.crossClusterParam.wordlineWidth / 8).W
@@ -232,7 +240,7 @@ class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam) exte
       _ ## _
     ) ## temporalBounds.reverse.reduce(
       _ ## _
-    ) ## spatialStride ## writerPtr.reverse.reduce(
+    ) ## spatialStride ## axiTransferBeatSize ## writerPtr.reverse.reduce(
       _ ## _
     ) ## readerPtr ## isWriterSide.asUInt ## taskID
 
@@ -263,6 +271,16 @@ class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam) exte
         readerParam.crossClusterParam.AxiAddressWidth
       )
     }
+
+    axiTransferBeatSize := remainingData(
+      readerParam.crossClusterParam.tcdmAddressWidth - 1,
+      0
+    )
+    remainingData = remainingData(
+      remainingData.getWidth - 1,
+      readerParam.crossClusterParam.tcdmAddressWidth
+    )
+
     spatialStride := remainingData(
       readerParam.crossClusterParam.tcdmAddressWidth - 1,
       0
@@ -327,9 +345,7 @@ class XDMADataPathCfgIO(axiParam: AXIParam, crossClusterParam: CrossClusterParam
     isChainedWrite: Boolean
   ): Unit = {
     taskID := cfg.taskID
-    length := cfg.aguCfg.temporalBounds.reduceTree { case (a, b) =>
-      (a * b).apply(length.getWidth - 1, 0)
-    }
+    length := cfg.axiTransferBeatSize
     src    := {
       if (isChainedWrite)
         cfg.writerPtr(0)

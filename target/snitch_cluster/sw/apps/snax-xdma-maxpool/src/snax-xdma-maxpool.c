@@ -50,27 +50,26 @@ int main() {
         snrt_dma_wait_all();
 
         // --------------------- Configure the Ext --------------------- //
+        uint32_t ext_param_maxpool_size[1] = {reduceLen};
+        if (xdma_enable_src_ext(0, ext_param_maxpool_size) != 0) {
+            printf("Error in enabling xdma reader extension 1\n");
+            err++;
+        } else {
+            printf("The xdma reader extension 0 is enabled\n");
+        }
 
         if (xdma_disable_dst_ext(0) != 0) {
-            printf("Error in disabling xdma extension 0\n");
+            printf("Error in disabling xdma writer extension 0\n");
             err++;
         } else {
-            printf("The xdma extension 0 is disabled\n");
+            printf("The xdma writer extension 0 is disabled\n");
         }
 
-        uint32_t ext_param_maxpool_size[1] = {reduceLen};
-        if (xdma_enable_dst_ext(1, ext_param_maxpool_size) != 0) {
-            printf("Error in enabling xdma extension 1\n");
+        if (xdma_disable_dst_ext(1) != 0) {
+            printf("Error in disabling writer xdma extension 1\n");
             err++;
         } else {
-            printf("The xdma extension 1 is enabled\n");
-        }
-
-        if (xdma_disable_dst_ext(2) != 0) {
-            printf("Error in disabling xdma extension 2\n");
-            err++;
-        } else {
-            printf("The xdma extension 2 is disabled\n");
+            printf("The xdma writer extension 1 is disabled\n");
         }
 
         // --------------------- Configure the AGU --------------------- //

@@ -14,7 +14,7 @@ class AXIParam(val dataWidth: Int = 512, val addrWidth: Int = 48)
 
 class CrossClusterParam(
   val maxMulticastDest:     Int = 4,
-  val maxTemporalDimension: Int = 6,
+  val maxTemporalDimension: Int = 5,
   val maxSpatialDimension:  Int = 1,
   val tcdmSize:             Int = 4096,
   val AxiAddressWidth:      Int = 48,

@@ -137,7 +137,7 @@ object XDMATesterInfrastructure {
       currentAddress += 1
     }
 
-    for (i <- readerAGUParam.temporalBounds.length until 6) {
+    for (_ <- readerAGUParam.temporalBounds.length until 5) {
       write_csr(
         dut  = dut,
         port = port,
@@ -157,7 +157,7 @@ object XDMATesterInfrastructure {
       currentAddress += 1
     }
 
-    for (i <- readerAGUParam.temporalStrides.length until 6) {
+    for (_ <- readerAGUParam.temporalStrides.length until 5) {
       write_csr(
         dut  = dut,
         port = port,
@@ -199,7 +199,7 @@ object XDMATesterInfrastructure {
       currentAddress += 1
     }
 
-    for (i <- writerAGUParam.temporalBounds.length until 6) {
+    for (_ <- writerAGUParam.temporalBounds.length until 5) {
       write_csr(
         dut  = dut,
         port = port,
@@ -219,7 +219,7 @@ object XDMATesterInfrastructure {
       currentAddress += 1
     }
 
-    for (i <- writerAGUParam.temporalStrides.length until 6) {
+    for (_ <- writerAGUParam.temporalStrides.length until 5) {
       write_csr(
         dut  = dut,
         port = port,
