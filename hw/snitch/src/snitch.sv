@@ -1349,6 +1349,19 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           illegal_inst = 1'b1;
         end
       end
+      VFCVT_D_S,
+      VFCVTU_D_S: begin
+        if (FP_EN && XFVEC && RVF && FLEN >= 32) begin
+          if (RVF && RVD) begin
+            write_rd = 1'b0;
+            acc_qvalid_o = valid_instr;
+          end else begin
+            illegal_inst = 1'b1;
+          end
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
       VFCPKA_H_S,
       VFCPKB_H_S,
       VFCVT_H_S,
