@@ -108,14 +108,12 @@ snrt.crt0.init_core_info:
     csrr a0, 0xbc1
     # a1 holds the cluster addr width
     li a1, CLUSTER_ADDRWIDTH
-    addi a1, a1, 8
-    # first we left shift a0 by 8 bits
-    slli a0, a0, 8
-    # then we shift right a0 by a1 (8 + cluster_addrwidth) bits
+    # a2 holds the cluster base address
+    li a2, CLUSTER_BASE_ADDR
+    # first we subtract the base address
+    sub a0, a0, a2
+    # then we shift right a0 by a1 (cluster_addrwidth) bits to get the correct cluster idx
     srl t0, a0, a1
-
-    # Calculate cluster-local core ID
-    # remu a0, a0, a1
 
     # The cluster-local core id is calculated as snrt_cluster_core_idx()
     # we read the lower 16bits of register 0xbc3

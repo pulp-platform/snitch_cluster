@@ -61,11 +61,7 @@ inline uint32_t __attribute__((const)) snrt_global_compute_core_idx() {
 
 inline uint32_t __attribute__((const)) snrt_cluster_idx() {
     // return snrt_global_core_idx() / snrt_cluster_core_num();
-    // occamy assign 16MB cluster memory
-    // Hence we need the lower 22bit for cluster address
-    // We add 2 bits for future use
-    // Hence we mask the lower 24bits for cluster address
-    return (snrt_cluster_base_addrl() & 0x00FFFFFF) >> CLUSTER_ADDRWIDTH;
+    return (snrt_cluster_base_addrl() - CLUSTER_BASE_ADDR) >> CLUSTER_ADDRWIDTH;
 }
 
 inline uint32_t __attribute__((const)) snrt_cluster_core_idx() {

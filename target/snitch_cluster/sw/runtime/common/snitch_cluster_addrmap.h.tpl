@@ -11,6 +11,7 @@
     import math
     cluster_addrwidth = int(math.log2(cfg['cluster']['cluster_base_offset']))
 %>
+#define CLUSTER_BASE_ADDR ${cfg['cluster']['cluster_base_addr']}
 #define CLUSTER_ADDRWIDTH ${cluster_addrwidth}
 #define CLUSTER_PERIPH_BASE_ADDR (CLUSTER_TCDM_BASE_ADDR + CLUSTER_TCDM_SIZE)
 #define CLUSTER_ZERO_MEM_START_ADDR (CLUSTER_PERIPH_BASE_ADDR + ${hex(cfg['cluster']['cluster_periph_size'] * 1024)})
