@@ -28,18 +28,11 @@ module tb_memory_axi #(
   `include "axi/assign.svh"
   `include "axi/typedef.svh"
 
-  `include "register_interface/typedef.svh"
-  `include "register_interface/assign.svh"
-
   `include "common_cells/assertions.svh"
+  `include "common_cells/registers.svh"
 
   localparam int NumBytes = AxiDataWidth/8;
   localparam int BusAlign = $clog2(NumBytes);
-
-  REG_BUS #(
-    .ADDR_WIDTH ( AxiAddrWidth ),
-    .DATA_WIDTH ( AxiDataWidth )
-  ) regb(clk_i);
 
   AXI_BUS #(
     .AXI_ADDR_WIDTH ( AxiAddrWidth ),
@@ -88,43 +81,77 @@ module tb_memory_axi #(
     .out (axi_wo_atomics_cut)
   );
 
-  // Convert AXI to a trivial register interface.
-  axi_to_reg_intf #(
-    .ADDR_WIDTH ( AxiAddrWidth ),
-    .DATA_WIDTH ( AxiDataWidth ),
-    .ID_WIDTH   ( AxiIdWidth   ),
-    .USER_WIDTH ( AxiUserWidth ),
-    .DECOUPLE_W ( 1            ),
-    .FULL_BW    ( 1            ),
-    .AXI_MAX_WRITE_TXNS ( 32'd128 ),
-    .AXI_MAX_READ_TXNS  ( 32'd128 )
-  ) i_axi_to_reg (
-    .clk_i,
-    .rst_ni,
-    .testmode_i ( 1'b0 ),
-    .in         ( axi_wo_atomics_cut ),
-    .reg_o      ( regb )
+  logic mem_req, mem_req_q;
+  logic [AxiAddrWidth-1:0] mem_addr;
+  logic [AxiDataWidth-1:0] mem_wdata;
+  logic [AxiDataWidth/8-1:0] mem_strb;
+  logic mem_we;
+  logic [AxiDataWidth-1:0] mem_rdata_q;
+
+  axi_to_mem_intf #(
+    .ADDR_WIDTH    (AxiAddrWidth),
+    .DATA_WIDTH    (AxiDataWidth),
+    .ID_WIDTH      (AxiIdWidth),
+    .USER_WIDTH    (AxiUserWidth),
+    .NUM_BANKS     (1)
+  ) i_axi_to_mem_intf (
+    .clk_i       (clk_i),
+    .rst_ni      (rst_ni),
+    .busy_o      ( ),
+    .slv         (axi_wo_atomics_cut),
+    .mem_req_o   (mem_req),
+    .mem_gnt_i   (1'b1), // Always ready
+    .mem_addr_o  (mem_addr),
+    .mem_wdata_o (mem_wdata),
+    .mem_strb_o  (mem_strb),
+    .mem_atop_o  ( ), // ATOPs are resolved before
+    .mem_we_o    (mem_we),
+    .mem_rvalid_i(mem_req_q),
+    .mem_rdata_i (mem_rdata_q)
   );
 
-  `REG_BUS_TYPEDEF_ALL(regbus,
-    logic [AxiAddrWidth-1:0], logic [AxiDataWidth-1:0], logic [NumBytes-1:0])
-
-  regbus_req_t regbus_req;
-  regbus_rsp_t regbus_rsp;
-
-  `REG_BUS_ASSIGN_TO_REQ(regbus_req, regb)
-  `REG_BUS_ASSIGN_FROM_RSP(regb, regbus_rsp)
-
-  tb_memory_regbus #(
-    .AddrWidth (AxiAddrWidth),
-    .DataWidth (AxiDataWidth),
-    .req_t (regbus_req_t),
-    .rsp_t (regbus_rsp_t)
-  ) i_tb_memory_regbus (
-    .clk_i,
-    .rst_ni,
-    .req_i (regbus_req),
-    .rsp_o (regbus_rsp)
+  import "DPI-C" function void tb_memory_read(
+    input longint addr,
+    input int len,
+    output byte data[]
   );
+  import "DPI-C" function void tb_memory_write(
+    input longint addr,
+    input int len,
+    input byte data[],
+    input bit strb[]
+  );
+
+  // Respond in the next cycle to the request.
+  `FF(mem_req_q, mem_req, '0)
+
+  // Handle write requests on the mem bus.
+  always_ff @(posedge clk_i) begin
+    if (rst_ni && mem_req) begin
+      automatic byte data[NumBytes];
+      automatic bit  strb[NumBytes];
+      if (mem_we) begin
+        for (int i = 0; i < NumBytes; i++) begin
+          // verilog_lint: waive-start always-ff-non-blocking
+          data[i] = mem_wdata[i*8+:8];
+          strb[i] = mem_strb[i];
+          // verilog_lint: waive-start always-ff-non-blocking
+        end
+        tb_memory_write((mem_addr >> BusAlign) << BusAlign, NumBytes, data, strb);
+      end
+    end
+  end
+
+  // Handle read requests on the mem bus.
+  always_ff @(posedge clk_i) begin
+    mem_rdata_q <= '0;
+    if (rst_ni && mem_req) begin
+      automatic byte data[NumBytes];
+      tb_memory_read((mem_addr >> BusAlign) << BusAlign, NumBytes, data);
+      for (int i = 0; i < NumBytes; i++) begin
+        mem_rdata_q[i*8+:8] <= data[i];
+      end
+    end
+  end
 
 endmodule

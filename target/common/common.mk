@@ -14,13 +14,13 @@ UTIL_DIR     ?= $(SN_ROOT)/util
 LOGS_DIR      = $(SIM_DIR)/logs
 SN_PERIPH_DIR = $(SN_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral
 SN_TARGET_DIR = $(SN_ROOT)/target/snitch_cluster
-SN_GEN_DIR   ?= $(SN_TARGET_DIR)/.generated
+SN_GEN_DIR   ?= $(SN_TARGET_DIR)/generated
 SN_HW_DIR     = $(SN_ROOT)/hw
 SN_BIN_DIR    = $(SN_TARGET_DIR)/bin
 
 # External executables
 BENDER	     ?= bender
-REGGEN       ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
+PEAKRDL      ?= peakrdl
 VERIBLE_FMT  ?= verible-verilog-format
 CLANG_FORMAT ?= clang-format
 RISCV_MC     ?= $(LLVM_BINROOT)/llvm-mc
@@ -85,11 +85,11 @@ $(SN_GEN_DIR) $(SN_BIN_DIR):
 # Util #
 ########
 
-# Common rule to generate C header with REGGEN
-# $1: target name, $2: prerequisite (hjson description file)
-define reggen_generate_header
-	@echo "[REGGEN] Generating $1"
-	@$(REGGEN) -D -o $1 $2
+# Common rule to generate C header with peakRDL
+# $1: target name, $2: prerequisite (rdl description file)
+define peakrdl_generate_header
+	@echo "[peakRDL] Generating $1"
+	$(PEAKRDL) c-header -b ltoh $2 -o $1
 	@$(CLANG_FORMAT) -i $1
 endef
 
