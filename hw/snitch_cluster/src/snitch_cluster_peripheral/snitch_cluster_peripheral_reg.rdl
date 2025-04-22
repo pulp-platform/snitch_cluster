@@ -3,6 +3,9 @@
 // SPDX-License-Identifier: SHL-0.51
 // Licensed under Solderpad Hardware License, Version 0.51, see LICENSE for details.
 
+`ifndef __SNITCH_CLUSTER_PERIPHERAL_REG_RDL__
+`define __SNITCH_CLUSTER_PERIPHERAL_REG_RDL__
+
 addrmap snitch_cluster_peripheral_reg #(
     longint unsigned NumPerfCounters = 16,
     longint unsigned NumCtrlScratch = 4
@@ -235,3 +238,5 @@ addrmap snitch_cluster_peripheral_reg #(
     external CL_CLINT_CLEAR CL_CLINT_CLEAR                 @0x408;
              ICACHE_PREFETCH_ENABLE ICACHE_PREFETCH_ENABLE @0x410;
 };
+
+`endif // __SNITCH_CLUSTER_PERIPHERAL_REG_RDL__

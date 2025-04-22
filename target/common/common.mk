@@ -79,11 +79,11 @@ $(SN_GEN_DIR) $(SN_BIN_DIR):
 # Util #
 ########
 
-# Common rule to generate C header with REGGEN
+# Common rule to generate C header with peakRDL
 # $1: target name, $2: prerequisite (hjson description file)
-define reggen_generate_header
-	@echo "[REGGEN] Generating $1"
-	@$(REGGEN) -D -o $1 $2
+define peakrdl_generate_header
+	@echo "[peakRDL] Generating $1"
+	peakrdl c-header $2 -o $1
 	@$(CLANG_FORMAT) -i $1
 endef
 

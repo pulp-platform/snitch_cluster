@@ -29,9 +29,9 @@ SNRT_HAL_HDRS = $(SNITCH_CLUSTER_CFG_H) $(SNITCH_CLUSTER_ADDRMAP_H) $(SNITCH_CLU
 $(eval $(call sn_cluster_gen_rule,$(SNITCH_CLUSTER_CFG_H),$(SNITCH_CLUSTER_CFG_H).tpl))
 $(eval $(call sn_cluster_gen_rule,$(SNITCH_CLUSTER_ADDRMAP_H),$(SNITCH_CLUSTER_ADDRMAP_H).tpl))
 
-# REGGEN headers
-$(SNITCH_CLUSTER_PERIPHERAL_H): $(SN_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.hjson $(REGGEN)
-	$(call reggen_generate_header,$@,$<)
+# peakrdl headers
+$(SNITCH_CLUSTER_PERIPHERAL_H): $(SN_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.rdl
+	$(call peakrdl_generate_header,$@,$<)
 
 .PHONY: sn-clean-headers
 sn-clean-sw: sn-clean-headers
