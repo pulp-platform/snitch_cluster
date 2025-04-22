@@ -34,6 +34,7 @@ dependencies = [
     "numpy",
     "pandas",
     "peakrdl",
+    "peakrdl-markdown",
     "prettytable",
     "progressbar2",
     "psutil",
