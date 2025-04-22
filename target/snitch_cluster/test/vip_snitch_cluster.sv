@@ -2,6 +2,8 @@
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 
+`include "snitch_cluster_addrmap.svh"
+
 module vip_snitch_cluster
   import snitch_cluster_pkg::*;
 #(
@@ -32,8 +34,8 @@ module vip_snitch_cluster
   import "DPI-C" function int unsigned get_bin_entry();
 
   localparam addr_t PeriphBaseAddr = CfgClusterBaseAddr + ((TcdmSizeNapotRounded + BootromSize) * 1024);
-  localparam addr_t Scratch1Addr = PeriphBaseAddr + SNITCH_CLUSTER_PERIPHERAL_SCRATCH_1_OFFSET;
-  localparam addr_t SnitchClClintSetAddr = PeriphBaseAddr + SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_SET_OFFSET;
+  localparam addr_t Scratch1Addr = PeriphBaseAddr + `SNITCH_CLUSTER_WRAPPER_PERIPHERAL_REG_SCRATCH_1_REG_OFFSET;
+  localparam addr_t SnitchClClintSetAddr = PeriphBaseAddr + `SNITCH_CLUSTER_WRAPPER_PERIPHERAL_REG_CL_CLINT_SET_REG_OFFSET;
 
   ///////////////////////////
   //   Clock, Reset, etc.  //

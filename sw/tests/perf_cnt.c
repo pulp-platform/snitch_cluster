@@ -34,10 +34,7 @@ int main() {
     if (core_idx == 0) {
         for (int i = 0; i < SNRT_NUM_PERF_CNTS; i++) {
             // Configure and start the performance counter
-            snrt_cfg_perf_counter(
-                i,
-                SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_CYCLE,
-                0);
+            snrt_cfg_perf_counter(i, PERF_METRIC__CYCLE, 0);
             snrt_start_perf_counter(i);
         }
 
@@ -63,14 +60,8 @@ int main() {
     // Test 4: Check DMA performance with simple 1D test
     if (snrt_is_dm_core()) {
         // Configure performance counters to track DMA read and writes
-        snrt_cfg_perf_counter(
-            0,
-            SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_DMA_AW_DONE,
-            0);
-        snrt_cfg_perf_counter(
-            1,
-            SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_DMA_AR_DONE,
-            0);
+        snrt_cfg_perf_counter(0, PERF_METRIC__DMA_AW_DONE, 0);
+        snrt_cfg_perf_counter(1, PERF_METRIC__DMA_AR_DONE, 0);
 
         // Transfer around some data
         uint32_t *dst =
@@ -101,14 +92,8 @@ int main() {
     // Test 5: Check DMA performance with misaligned 1D test
     if (snrt_is_dm_core()) {
         // Configure performance counters to track DMA read and write beats
-        snrt_cfg_perf_counter(
-            0,
-            SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_DMA_W_DONE,
-            0);
-        snrt_cfg_perf_counter(
-            1,
-            SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_SEL_0_METRIC_0_VALUE_DMA_R_DONE,
-            0);
+        snrt_cfg_perf_counter(0, PERF_METRIC__DMA_W_DONE, 0);
+        snrt_cfg_perf_counter(1, PERF_METRIC__DMA_R_DONE, 0);
 
         // Transfer around some data
         uint32_t *dst =
