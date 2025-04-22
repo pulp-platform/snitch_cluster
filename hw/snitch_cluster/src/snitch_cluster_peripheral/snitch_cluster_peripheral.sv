@@ -222,8 +222,8 @@ module snitch_cluster_peripheral
         perf_metrics_d[i] = perf_metrics_e'(reg2hw.PERF_CNT_SEL[i].wr_data.METRIC);
       end
       // Set hart select.
-      if (reg2hw.PERF_CNT_SEL[i].req && 
-          reg2hw.PERF_CNT_SEL[i].req_is_wr && 
+      if (reg2hw.PERF_CNT_SEL[i].req &&
+          reg2hw.PERF_CNT_SEL[i].req_is_wr &&
           |reg2hw.PERF_CNT_SEL[i].wr_biten.HART) begin
         perf_hart_sel_d[i] = reg2hw.PERF_CNT_SEL[i].wr_data.HART;
       end

@@ -3,11 +3,14 @@
 # SPDX-License-Identifier: SHL-0.51
 
 # Auto-generated configuration registers are waived
-waive --rule=typedef-structs-unions --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv"
-waive --rule=line-length --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv"
-waive --rule=struct-union-name-style --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv"
 waive --rule=explicit-parameter-storage-type --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv"
-waive --rule=parameter-name-style --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.sv"
-waive --rule=no-trailing-spaces --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.sv"
+waive --rule=line-length --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv"
+waive --rule=parameter-name-style --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv"
+waive --rule=struct-union-name-style --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv"
+waive --rule=typedef-structs-unions --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv"
+
 waive --rule=generate-label --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.sv"
+waive --rule=line-length --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.sv"
+waive --rule=no-trailing-spaces --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.sv"
+waive --rule=parameter-name-style --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.sv"
 waive --rule=typedef-structs-unions --location="hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.sv"
