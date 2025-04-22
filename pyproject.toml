@@ -33,6 +33,7 @@ dependencies = [
     "mkdocstrings-python",
     "numpy",
     "pandas",
+    "peakrdl",
     "prettytable",
     "progressbar2",
     "psutil",

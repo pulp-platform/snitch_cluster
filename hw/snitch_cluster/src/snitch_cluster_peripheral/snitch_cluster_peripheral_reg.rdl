@@ -1,0 +1,237 @@
+// Copyright 2025 ETH Zurich and University of Bologna.
+// Solderpad Hardware License, Version 0.51, see LICENSE for details.
+// SPDX-License-Identifier: SHL-0.51
+// Licensed under Solderpad Hardware License, Version 0.51, see LICENSE for details.
+
+addrmap snitch_cluster_peripheral_reg #(
+    longint unsigned NumPerfCounters = 16,
+    longint unsigned NumCtrlScratch = 4
+) {
+    default regwidth=64;
+
+    reg PERF_CNT_EN {
+        field {
+            name = "ENABLE";
+            desc = "Enable a particular performance counter to start tracking.";
+            hw = r;
+            sw = rw;
+        } ENABLE[0:0] = 1;
+    };
+
+    enum PERF_METRIC {
+        CYCLE = 0 {
+            desc = "Cycle counter. Counts up as long as the cluster is powered.";
+        };
+        TCDM_ACCESSED = 1 {
+            desc = "Increased whenever the TCDM is accessed. Each individual access is tracked,
+                    so if `n` cores access the TCDM, `n` will be added. Accesses are tracked at the TCDM,
+                    so it doesn't matter whether the cores or for example the SSR hardware accesses
+                    the TCDM. _This is a cluster-global signal._";
+        };
+        TCDM_CONGESTED = 2 {
+            desc = "Incremented whenever an access towards the TCDM is made but the arbitration
+                    logic didn't grant the access (due to congestion). It's strictly less than TCDM_ACCESSED.
+                    _This is a cluster-global signal._";
+        };
+        ISSUE_FPU = 3 {
+            desc = "Operations performed in the FPU. Includes both operations initiated by the
+                    sequencer and by the core. When the Xfrep extension is available, this counter is
+                    equivalent to ISSUE_FPU_SEQ (see description of ISSUE_FPU_SEQ). If the Xfrep extension
+                    is not supported, then it is equivalent to ISSUE_CORE_TO_FPU. _This is a hart-local signal._";
+        };
+        ISSUE_FPU_SEQ = 4 {
+            desc = "Incremented whenever the FPU Sequencer issues an FPU instruction.
+                    Might not be available if the hardware doesn't support FREP.
+                    Note that all FP instructions offloaded by the core to the FPU are routed
+                    through the sequencer (although not necessarily buffered) and thus are also counted.
+                    The instructions issued independently by the FPU sequencer could thus be
+                    calculated as ISSUE_FPU_SEQ_PROPER = ISSUE_FPU_SEQ - ISSUE_CORE_TO_FPU.
+                    _This is a hart-local signal._";
+        };
+        ISSUE_CORE_TO_FPU = 5 {
+            desc = "Incremented whenever the core issues an FPU instruction.
+                    _This is a hart-local signal._";
+        };
+        RETIRED_INSTR = 6 {
+            desc = "Instructions retired by the core, both offloaded and not. Does not
+                    count instructions issued independently by the FPU sequencer.
+                    _This is a hart-local signal._";
+        };
+        RETIRED_LOAD = 7 {
+            desc = "Load instructions retired by the core. _This is a hart-local signal._";
+        };
+        RETIRED_I = 8 {
+            desc = "Base instructions retired by the core. _This is a hart-local signal._";
+        };
+        RETIRED_ACC = 9 {
+            desc = "Offloaded instructions retired by the core. _This is a hart-local signal._";
+        };
+        DMA_AW_STALL = 10 {
+            desc = "Incremented whenever aw_valid = 1 but aw_ready = 0.
+                    _This is a DMA-local signal_";
+        };
+        DMA_AR_STALL = 11 {
+            desc = "Incremented whenever ar_valid = 1 but ar_ready = 0.
+                    _This is a DMA-local signal_";
+        };
+        DMA_R_STALL = 12 {
+            desc = "Incremented whenever r_ready = 1 but r_valid = 0.
+                    _This is a DMA-local signal_";
+        };
+        DMA_W_STALL = 13 {
+            desc = "Incremented whenever w_valid = 1 but w_ready = 0.
+                    _This is a DMA-local signal_";
+        };
+        DMA_BUF_W_STALL = 14 {
+            desc = "Incremented whenever w_ready = 1 but w_valid = 0.
+                    _This is a DMA-local signal_";
+        };
+        DMA_BUF_R_STALL = 15 {
+            desc = "Incremented whenever r_valid = 1 but r_ready = 0.
+                    _This is a DMA-local signal_";
+        };
+        DMA_AW_DONE = 16 {
+            desc = "Incremented whenever AW handshake occurs.
+                    _This is a DMA-local signal_";
+        };
+        DMA_AW_BW = 17 {
+            desc = "Whenever AW handshake occurs, the counter is incremented
+                    by the number of bytes transfered for this transaction
+                    _This is a DMA-local signal_";
+        };
+        DMA_AR_DONE = 18 {
+            desc = "Incremented whenever AR handshake occurs.
+                    _This is a DMA-local signal_";
+        };
+        DMA_AR_BW = 19 {
+            desc = "Whenever AR handshake occurs, the counter is incremented
+                    by the number of bytes transfered for this transaction
+                    _This is a DMA-local signal_";
+        };
+        DMA_R_DONE = 20 {
+            desc = "Incremented whenever R handshake occurs.
+                    _This is a DMA-local signal_";
+        };
+        DMA_R_BW = 21 {
+            desc = "Whenever R handshake occurs, the counter is incremented
+                    by the number of bytes transfered in this cycle
+                    _This is a DMA-local signal_";
+        };
+        DMA_W_DONE = 22 {
+            desc = "Incremented whenvever W handshake occurs.
+                    _This is a DMA-local signal_";
+        };
+        DMA_W_BW = 23 {
+            desc = "Whenever W handshake occurs, the counter is incremented
+                    by the number of bytes transfered in this cycle
+                    _This is a DMA-local signal_";
+        };
+        DMA_B_DONE = 24 {
+            desc = "Incremented whenever B handshake occurs.
+                    _This is a DMA-local signal_";
+        };
+        DMA_BUSY = 25 {
+            desc = "Incremented whenever DMA is busy.
+                    _This is a DMA-local signal_";
+        };
+        ICACHE_MISS = 26 {
+            desc = "Incremented for instruction cache misses.
+                    _This is a hart-local signal_";
+        };
+        ICACHE_HIT = 27 {
+            desc = "Incremented for instruction cache hits.
+                    _This is a hart-local signal_";
+        };
+        ICACHE_PREFETCH = 28 {
+            desc = "Incremented for instruction cache prefetches.
+                    _This is a hart-local signal_";
+        };
+        ICACHE_DOUBLE_HIT = 29 {
+            desc = "Incremented for instruction cache double hit.
+                    _This is a hart-local signal_";
+        };
+        ICACHE_STALL = 30 {
+            desc = "Incremented for instruction cache stalls.
+                    _This is a hart-local signal_";
+        };
+    };
+
+    reg PERF_CNT_SEL {
+        desc = "Select the metric that is tracked for each performance counter.";
+        field {
+            name = "HART";
+            desc = "Select from which hart in the cluster, starting from `0`,
+                    the event should be counted. For each performance counter
+                    the cores can be selected individually. If a hart greater
+                    than the cluster's total hart size is selected the selection
+                    will wrap and the hart corresponding to `hart_select % total_harts_in_cluster`
+                    will be selected.";
+            hw = rw;
+            sw = rw;
+        } HART[15:0];
+        field {
+            name = "METRIC";
+            desc = "Select the metric that is tracked for each performance counter";
+            hw = rw;
+            sw = rw;
+            encode = PERF_METRIC;
+        } METRIC[31:16];
+    };
+
+    reg PERF_CNT {
+        desc = "Performance counter. Set corresponding PERF_CNT_SEL register depending on what
+                performance metric and hart you would like to track.";
+        field {
+            desc = "Performance counter";
+            hw = rw;
+            sw = rw;
+            onwrite = wclr;
+        } PERF_COUNTER[47:0];
+    };
+
+    reg SCRATCH {
+        desc = "Scratch registers. Used in the bootrom for various purposes.";
+        field {
+            desc = "Scratch register";
+            hw = na;
+            sw = rw;
+        } SCRATCH[31:0];
+    };
+
+    reg CL_CLINT_SET {
+        desc = "Set bits in the cluster-local CLINT. Writing a 1 at location i sets the cluster-local interrupt
+                of hart i, where i is relative to the first hart in the cluster, ignoring the cluster base hart ID.";
+        field {
+            desc = "Set cluster-local interrupt of hart i";
+            sw = w;
+            hw = r;
+        } CL_CLINT_SET[31:0];
+    };
+
+    reg CL_CLINT_CLEAR {
+        desc = "Clear bits in the cluster-local CLINT. Writing a 1 at location i clears the cluster-local interrupt
+                of hart i, where i is relative to the first hart in the cluster, ignoring the cluster base hart ID.";
+        field {
+            desc = "Set cluster-local interrupt of hart i";
+            sw = w;
+            hw = r;
+        } CL_CLINT_CLEAR[31:0];
+    };
+
+    reg ICACHE_PREFETCH_ENABLE {
+        desc = "Controls prefetching of the instruction cache.";
+        field {
+            desc = "Enable instruction prefetching.";
+            hw = r;
+            sw = w;
+        } ICACHE_PREFETCH_ENABLE[0:0];
+    };
+
+             PERF_CNT_EN    PERF_CNT_EN[NumPerfCounters]   @0x0   += 0x8;
+    external PERF_CNT_SEL   PERF_CNT_SEL[NumPerfCounters]  @0x100 += 0x8;
+    external PERF_CNT       PERF_CNT[NumPerfCounters]      @0x200 += 0x8;
+             SCRATCH        SCRATCH[NumCtrlScratch]        @0x300 += 0x8;
+    external CL_CLINT_SET   CL_CLINT_SET                   @0x400;
+    external CL_CLINT_CLEAR CL_CLINT_CLEAR                 @0x408;
+             ICACHE_PREFETCH_ENABLE ICACHE_PREFETCH_ENABLE @0x410;
+};
