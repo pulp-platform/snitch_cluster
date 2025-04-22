@@ -17,9 +17,9 @@ module snitch_cluster_peripheral
   // Nr of DMA channels
   parameter int unsigned DMANumChannels = 0,
   parameter int unsigned DMADataWidth = 0,
-  parameter int unsigned addr_t = logic,
-  parameter int unsigned data_t = logic,
-  parameter int unsigned strb_t = logic,
+  parameter type addr_t = logic,
+  parameter type data_t = logic,
+  parameter type strb_t = logic,
   parameter type reg_req_t = logic,
   parameter type reg_rsp_t = logic,
   parameter type tcdm_events_t = logic,
