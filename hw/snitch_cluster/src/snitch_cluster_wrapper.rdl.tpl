@@ -4,12 +4,14 @@
 
 ${disclaimer}
 
-`ifndef __${cfg['cluster']['name'].upper()}_RDL__
-`define __${cfg['cluster']['name'].upper()}_RDL__
+`ifndef __${cfg['cluster']['name'].upper()}_WRAPPER_RDL__
+`define __${cfg['cluster']['name'].upper()}_WRAPPER_RDL__
 
 `include "snitch_cluster_peripheral_reg.rdl"
 
-addrmap ${cfg['cluster']['name']}_wrapper {
+addrmap ${cfg['cluster']['name']}_wrapper #(
+    longint unsigned BASE_ADDR = ${hex(cfg['cluster']['cluster_base_addr'])}
+) {
 
     default regwidth = ${cfg['cluster']['data_width']};
 
@@ -29,14 +31,14 @@ addrmap ${cfg['cluster']['name']}_wrapper {
     };
 
 
-    external TCDM                 TCDM           @${hex(cfg['cluster']['cluster_base_addr'])};
+    external TCDM                 TCDM           @BASE_ADDR;
 %if cfg['cluster']['int_bootrom_enable']:
-    external BOOTROM              BOOTROM        @${hex(cfg['cluster']['cluster_base_addr'] + cfg['cluster']['tcdm']['size'] * 1024)};
+    external BOOTROM              BOOTROM        @BASE_ADDR + ${hex(cfg['cluster']['tcdm']['size'] * 1024)};
 % endif
-    snitch_cluster_peripheral_reg peripheral_reg @${hex(cfg['cluster']['cluster_base_addr'] + (cfg['cluster']['tcdm']['size'] + (int(cfg['cluster']['int_bootrom_enable']) * 4)) * 1024)};
-    external ZEROMEM              ZEROMEM        @${hex(cfg['cluster']['cluster_base_addr'] + (cfg['cluster']['tcdm']['size'] + (int(cfg['cluster']['int_bootrom_enable']) * 4) + cfg['cluster']['cluster_periph_size']) * 1024)};
+    snitch_cluster_peripheral_reg peripheral_reg @BASE_ADDR + ${hex((cfg['cluster']['tcdm']['size'] + (int(cfg['cluster']['int_bootrom_enable']) * 4)) * 1024)};
+    external ZEROMEM              ZEROMEM        @BASE_ADDR + ${hex((cfg['cluster']['tcdm']['size'] + (int(cfg['cluster']['int_bootrom_enable']) * 4) + cfg['cluster']['cluster_periph_size']) * 1024)};
 
 
 };
 
-`endif // __${cfg['cluster']['name'].upper()}_RDL__
+`endif // __${cfg['cluster']['name'].upper()}_WRAPPER_RDL__
