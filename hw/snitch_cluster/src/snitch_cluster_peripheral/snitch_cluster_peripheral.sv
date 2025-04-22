@@ -17,6 +17,9 @@ module snitch_cluster_peripheral
   // Nr of DMA channels
   parameter int unsigned DMANumChannels = 0,
   parameter int unsigned DMADataWidth = 0,
+  parameter int unsigned addr_t = logic,
+  parameter int unsigned data_t = logic,
+  parameter int unsigned strb_t = logic,
   parameter type reg_req_t = logic,
   parameter type reg_rsp_t = logic,
   parameter type tcdm_events_t = logic,
@@ -47,7 +50,7 @@ module snitch_cluster_peripheral
   snitch_cluster_peripheral_reg__out_t reg2hw;
   snitch_cluster_peripheral_reg__in_t  hw2reg;
 
-  `APB_TYPEDEF_ALL(sn_periph_regs_apb, logic[31:0], logic[31:0], logic[3:0])
+  `APB_TYPEDEF_ALL(sn_periph_regs_apb, addr_t, data_t, strb_t)
   sn_periph_regs_apb_req_t  sn_periph_regs_apb_req;
   sn_periph_regs_apb_resp_t sn_periph_regs_apb_rsp;
 
@@ -55,7 +58,7 @@ module snitch_cluster_peripheral
     .reg_req_t  ( reg_req_t ),
     .reg_rsp_t  ( reg_rsp_t ),
     .apb_req_t  ( sn_periph_regs_apb_req_t ),
-    .apb_rsp_t  ( sn_periph_regs_apb_resp_t ),
+    .apb_rsp_t  ( sn_periph_regs_apb_resp_t )
   ) chs_regs_reg_to_apb (
     .clk_i,
     .rst_ni,

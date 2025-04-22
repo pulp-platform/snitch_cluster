@@ -1298,6 +1298,9 @@ module snitch_cluster
   end
 
   snitch_cluster_peripheral #(
+    .addr_t (addr_t),
+    .data_t (data_t),
+    .strb_t (strb_t),
     .reg_req_t (reg_req_t),
     .reg_rsp_t (reg_rsp_t),
     .tcdm_events_t (tcdm_events_t),
