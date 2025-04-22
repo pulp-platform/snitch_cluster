@@ -141,9 +141,11 @@ module snitch_cluster_peripheral
   always_comb begin
     cl_clint_d = cl_clint_q;
     if (reg2hw.CL_CLINT_SET.req && reg2hw.CL_CLINT_SET.req_is_wr) begin
-      cl_clint_d = cl_clint_q | reg2hw.CL_CLINT_SET.wr_biten.CL_CLINT_SET & reg2hw.CL_CLINT_SET.wr_data.CL_CLINT_SET;
+      cl_clint_d = cl_clint_q | reg2hw.CL_CLINT_SET.wr_biten.CL_CLINT_SET &
+                                reg2hw.CL_CLINT_SET.wr_data.CL_CLINT_SET;
     end else if (reg2hw.CL_CLINT_CLEAR.req && reg2hw.CL_CLINT_CLEAR.req_is_wr) begin
-      cl_clint_d = cl_clint_q & ~(reg2hw.CL_CLINT_CLEAR.wr_biten.CL_CLINT_CLEAR & reg2hw.CL_CLINT_CLEAR.wr_data.CL_CLINT_CLEAR);
+      cl_clint_d = cl_clint_q & ~(reg2hw.CL_CLINT_CLEAR.wr_biten.CL_CLINT_CLEAR &
+                                  reg2hw.CL_CLINT_CLEAR.wr_data.CL_CLINT_CLEAR);
     end
   end
   `FF(cl_clint_q, cl_clint_d, '0, clk_i, rst_ni)
@@ -214,11 +216,15 @@ module snitch_cluster_peripheral
         default:;
       endcase
       // Set performance metric.
-      if (reg2hw.PERF_CNT_SEL[i].req && reg2hw.PERF_CNT_SEL[i].req_is_wr && |reg2hw.PERF_CNT_SEL[i].wr_biten.METRIC) begin
+      if (reg2hw.PERF_CNT_SEL[i].req &&
+          reg2hw.PERF_CNT_SEL[i].req_is_wr &&
+          |reg2hw.PERF_CNT_SEL[i].wr_biten.METRIC) begin
         perf_metrics_d[i] = perf_metrics_e'(reg2hw.PERF_CNT_SEL[i].wr_data.METRIC);
       end
       // Set hart select.
-      if (reg2hw.PERF_CNT_SEL[i].req && reg2hw.PERF_CNT_SEL[i].req_is_wr && |reg2hw.PERF_CNT_SEL[i].wr_biten.HART) begin
+      if (reg2hw.PERF_CNT_SEL[i].req && 
+          reg2hw.PERF_CNT_SEL[i].req_is_wr && 
+          |reg2hw.PERF_CNT_SEL[i].wr_biten.HART) begin
         perf_hart_sel_d[i] = reg2hw.PERF_CNT_SEL[i].wr_data.HART;
       end
     end
@@ -226,8 +232,8 @@ module snitch_cluster_peripheral
 
   // Performance counter FFs.
   for (genvar i = 0; i < NumPerfCounters; i++) begin : gen_perf_cnt
-    `FFLARNC(perf_cnt_q[i], perf_cnt_d[i],
-             reg2hw.PERF_CNT_EN[i].ENABLE.value, reg2hw.PERF_CNT[i].req && reg2hw.PERF_CNT[i].req_is_wr, '0, clk_i, rst_ni)
+    `FFLARNC(perf_cnt_q[i], perf_cnt_d[i], reg2hw.PERF_CNT_EN[i].ENABLE.value,
+             reg2hw.PERF_CNT[i].req && reg2hw.PERF_CNT[i].req_is_wr, '0, clk_i, rst_ni)
   end
 
   // Set reset values for the metrics that should be tracked immediately after reset.
