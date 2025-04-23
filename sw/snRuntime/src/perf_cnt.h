@@ -39,7 +39,8 @@ inline perf_regs_t* snrt_perf_counters() {
  */
 inline void snrt_cfg_perf_counter(uint32_t perf_cnt, uint16_t metric,
                                   uint16_t hart) {
-    snrt_perf_counters()->PERF_CNT_SEL[perf_cnt] = {
+    snrt_perf_counters()->PERF_CNT_SEL[perf_cnt] =
+        (snitch_cluster_peripheral_reg__PERF_CNT_SEL_t){
         .f = {.METRIC = metric, .HART = hart}};
 }
 
@@ -49,7 +50,8 @@ inline void snrt_cfg_perf_counter(uint32_t perf_cnt, uint16_t metric,
  * @param perf_cnt The index of the performance counter to start.
  */
 inline void snrt_start_perf_counter(uint32_t perf_cnt) {
-    snrt_perf_counters()->PERF_CNT_EN[perf_cnt] = {.f = {.ENABLE = 0x1}};
+    snrt_perf_counters()->PERF_CNT_EN[perf_cnt] =
+    (snitch_cluster_peripheral_reg__PERF_CNT_EN_t){.f = {.ENABLE = 0x1}};
 }
 
 /**
@@ -58,7 +60,8 @@ inline void snrt_start_perf_counter(uint32_t perf_cnt) {
  * @param perf_cnt The index of the performance counter to stop.
  */
 inline void snrt_stop_perf_counter(uint32_t perf_cnt) {
-    snrt_perf_counters()->PERF_CNT_EN[perf_cnt] = {.f = {.ENABLE = 0x0}};
+    snrt_perf_counters()->PERF_CNT_EN[perf_cnt] =
+    (snitch_cluster_peripheral_reg__PERF_CNT_EN_t){.f = {.ENABLE = 0x0}};
 }
 
 /**
@@ -67,7 +70,8 @@ inline void snrt_stop_perf_counter(uint32_t perf_cnt) {
  * @param perf_cnt The index of the performance counter to reset.
  */
 inline void snrt_reset_perf_counter(uint32_t perf_cnt) {
-    snrt_perf_counters()->PERF_CNT[perf_cnt] = {.f = {.PERF_COUNTER = 0x0}};
+    snrt_perf_counters()->PERF_CNT[perf_cnt] =
+    (snitch_cluster_peripheral_reg__PERF_CNT_t){.f = {.PERF_COUNTER = 0x0}};
 }
 
 /**
