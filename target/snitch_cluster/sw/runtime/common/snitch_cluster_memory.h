@@ -12,15 +12,15 @@
 
 #define CLUSTER_CLINT_SET_ADDR  \
     (CLUSTER_PERIPH_BASE_ADDR + \
-     offsetto(snitch_cluster_peripheral_reg, CL_CLINT_SET))
+     offsetof(snitch_cluster_peripheral_reg_t, CL_CLINT_SET))
 #define CLUSTER_CLINT_CLR_ADDR  \
     (CLUSTER_PERIPH_BASE_ADDR + \
-     offsetto(snitch_cluster_peripheral_reg, CL_CLINT_CLEAR))
+     offsetof(snitch_cluster_peripheral_reg_t, CL_CLINT_CLEAR))
 
 #define CLUSTER_PERF_COUNTER_ADDR \
     (CLUSTER_PERIPH_BASE_ADDR +   \
-     offsetto(snitch_cluster_peripheral_reg, PERF_REGS) + \
-     offsetto(snitch_cluster_peripheral_reg__PERF_REGS_t, PERF_CNT_EN[0]))
+     offsetof(snitch_cluster_peripheral_reg_t, PERF_REGS) + \
+     offsetof(snitch_cluster_peripheral_reg__PERF_REGS_t, PERF_CNT_EN[0]))
 
 #define CLUSTER_TCDM_START_ADDR CLUSTER_TCDM_BASE_ADDR
 

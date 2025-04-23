@@ -19,7 +19,7 @@
  * configuration register, as they are defined in
  * `snitch_cluster_peripheral.hjson`.
  */
-typedef snitch_cluster_peripheral_regs__PERF_REGS_t perf_regs_t;
+typedef snitch_cluster_peripheral_reg__PERF_REGS_t perf_regs_t;
 
 /**
  * @brief Get the pointer to the performance counter registers
@@ -39,7 +39,7 @@ inline perf_regs_t* snrt_perf_counters() {
  */
 inline void snrt_cfg_perf_counter(uint32_t perf_cnt, uint16_t metric,
                                   uint16_t hart) {
-    snrt_perf_counters()->PERF_CNT_SEL[perf_cnt] = {metric, hart};
+    snrt_perf_counters()->PERF_CNT_SEL[perf_cnt] = {.f = {.METRIC = metric, .HART = hart}};
 }
 
 /**
@@ -48,7 +48,7 @@ inline void snrt_cfg_perf_counter(uint32_t perf_cnt, uint16_t metric,
  * @param perf_cnt The index of the performance counter to start.
  */
 inline void snrt_start_perf_counter(uint32_t perf_cnt) {
-    snrt_perf_counters()->PERF_CNT_EN[perf_cnt] = {0x1};
+    snrt_perf_counters()->PERF_CNT_EN[perf_cnt] = {.f = {.ENABLE = 0x1}};
 }
 
 /**
@@ -57,7 +57,7 @@ inline void snrt_start_perf_counter(uint32_t perf_cnt) {
  * @param perf_cnt The index of the performance counter to stop.
  */
 inline void snrt_stop_perf_counter(uint32_t perf_cnt) {
-    snrt_perf_counters()->PERF_CNT_EN[perf_cnt] = {0x0};
+    snrt_perf_counters()->PERF_CNT_EN[perf_cnt] = {.f = {.ENABLE = 0x0}};
 }
 
 /**
@@ -66,7 +66,7 @@ inline void snrt_stop_perf_counter(uint32_t perf_cnt) {
  * @param perf_cnt The index of the performance counter to reset.
  */
 inline void snrt_reset_perf_counter(uint32_t perf_cnt) {
-    snrt_perf_counters()->PERF_CNT[perf_cnt] = {0x0};
+    snrt_perf_counters()->PERF_CNT[perf_cnt] = {.f = {.PERF_COUNTER = 0x0}};
 }
 
 /**
