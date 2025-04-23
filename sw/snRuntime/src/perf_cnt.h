@@ -41,7 +41,7 @@ inline void snrt_cfg_perf_counter(uint32_t perf_cnt, uint16_t metric,
                                   uint16_t hart) {
     snrt_perf_counters()->PERF_CNT_SEL[perf_cnt] =
         (snitch_cluster_peripheral_reg__PERF_CNT_SEL_t){
-        .f = {.METRIC = metric, .HART = hart}};
+            .f = {.METRIC = metric, .HART = hart}};
 }
 
 /**
@@ -51,7 +51,7 @@ inline void snrt_cfg_perf_counter(uint32_t perf_cnt, uint16_t metric,
  */
 inline void snrt_start_perf_counter(uint32_t perf_cnt) {
     snrt_perf_counters()->PERF_CNT_EN[perf_cnt] =
-    (snitch_cluster_peripheral_reg__PERF_CNT_EN_t){.f = {.ENABLE = 0x1}};
+        (snitch_cluster_peripheral_reg__PERF_CNT_EN_t){.f = {.ENABLE = 0x1}};
 }
 
 /**
@@ -61,7 +61,7 @@ inline void snrt_start_perf_counter(uint32_t perf_cnt) {
  */
 inline void snrt_stop_perf_counter(uint32_t perf_cnt) {
     snrt_perf_counters()->PERF_CNT_EN[perf_cnt] =
-    (snitch_cluster_peripheral_reg__PERF_CNT_EN_t){.f = {.ENABLE = 0x0}};
+        (snitch_cluster_peripheral_reg__PERF_CNT_EN_t){.f = {.ENABLE = 0x0}};
 }
 
 /**
@@ -71,7 +71,7 @@ inline void snrt_stop_perf_counter(uint32_t perf_cnt) {
  */
 inline void snrt_reset_perf_counter(uint32_t perf_cnt) {
     snrt_perf_counters()->PERF_CNT[perf_cnt] =
-    (snitch_cluster_peripheral_reg__PERF_CNT_t){.f = {.PERF_COUNTER = 0x0}};
+        (snitch_cluster_peripheral_reg__PERF_CNT_t){.f = {.PERF_COUNTER = 0x0}};
 }
 
 /**
