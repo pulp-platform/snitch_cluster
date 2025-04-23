@@ -4,8 +4,8 @@
 package snitch_cluster_peripheral_reg_pkg;
 
     localparam SNITCH_CLUSTER_PERIPHERAL_REG_DATA_WIDTH = 64;
-    localparam SNITCH_CLUSTER_PERIPHERAL_REG_MIN_ADDR_WIDTH = 11;
-    localparam SNITCH_CLUSTER_PERIPHERAL_REG_SIZE = 'h418;
+    localparam SNITCH_CLUSTER_PERIPHERAL_REG_MIN_ADDR_WIDTH = 9;
+    localparam SNITCH_CLUSTER_PERIPHERAL_REG_SIZE = 'h1b8;
 
     localparam NumPerfCounters = 'h10;
     localparam NumCtrlScratch = 'h4;
@@ -34,6 +34,11 @@ package snitch_cluster_peripheral_reg_pkg;
     } snitch_cluster_peripheral_reg__PERF_CNT__external__in_t;
 
     typedef struct {
+        snitch_cluster_peripheral_reg__PERF_CNT_SEL__external__in_t PERF_CNT_SEL[16];
+        snitch_cluster_peripheral_reg__PERF_CNT__external__in_t PERF_CNT[16];
+    } snitch_cluster_peripheral_reg__PERF_REGS__in_t;
+
+    typedef struct {
         logic wr_ack;
     } snitch_cluster_peripheral_reg__CL_CLINT_SET__external__in_t;
 
@@ -42,8 +47,7 @@ package snitch_cluster_peripheral_reg_pkg;
     } snitch_cluster_peripheral_reg__CL_CLINT_CLEAR__external__in_t;
 
     typedef struct {
-        snitch_cluster_peripheral_reg__PERF_CNT_SEL__external__in_t PERF_CNT_SEL[16];
-        snitch_cluster_peripheral_reg__PERF_CNT__external__in_t PERF_CNT[16];
+        snitch_cluster_peripheral_reg__PERF_REGS__in_t PERF_REGS;
         snitch_cluster_peripheral_reg__CL_CLINT_SET__external__in_t CL_CLINT_SET;
         snitch_cluster_peripheral_reg__CL_CLINT_CLEAR__external__in_t CL_CLINT_CLEAR;
     } snitch_cluster_peripheral_reg__in_t;
@@ -81,6 +85,12 @@ package snitch_cluster_peripheral_reg_pkg;
         snitch_cluster_peripheral_reg__PERF_CNT__external__fields__out_t wr_biten;
     } snitch_cluster_peripheral_reg__PERF_CNT__external__out_t;
 
+    typedef struct {
+        snitch_cluster_peripheral_reg__PERF_CNT_EN__out_t PERF_CNT_EN[16];
+        snitch_cluster_peripheral_reg__PERF_CNT_SEL__external__out_t PERF_CNT_SEL[16];
+        snitch_cluster_peripheral_reg__PERF_CNT__external__out_t PERF_CNT[16];
+    } snitch_cluster_peripheral_reg__PERF_REGS__out_t;
+
     typedef struct packed {
         logic [31:0] _reserved_63_32;
         logic [31:0] CL_CLINT_SET;
@@ -114,9 +124,7 @@ package snitch_cluster_peripheral_reg_pkg;
     } snitch_cluster_peripheral_reg__ICACHE_PREFETCH_ENABLE__out_t;
 
     typedef struct {
-        snitch_cluster_peripheral_reg__PERF_CNT_EN__out_t PERF_CNT_EN[16];
-        snitch_cluster_peripheral_reg__PERF_CNT_SEL__external__out_t PERF_CNT_SEL[16];
-        snitch_cluster_peripheral_reg__PERF_CNT__external__out_t PERF_CNT[16];
+        snitch_cluster_peripheral_reg__PERF_REGS__out_t PERF_REGS;
         snitch_cluster_peripheral_reg__CL_CLINT_SET__external__out_t CL_CLINT_SET;
         snitch_cluster_peripheral_reg__CL_CLINT_CLEAR__external__out_t CL_CLINT_CLEAR;
         snitch_cluster_peripheral_reg__ICACHE_PREFETCH_ENABLE__out_t ICACHE_PREFETCH_ENABLE;

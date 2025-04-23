@@ -230,13 +230,17 @@ addrmap snitch_cluster_peripheral_reg #(
         } ICACHE_PREFETCH_ENABLE[0:0];
     };
 
-             PERF_CNT_EN    PERF_CNT_EN[NumPerfCounters]   @0x0   += 0x8;
-    external PERF_CNT_SEL   PERF_CNT_SEL[NumPerfCounters]  @0x100 += 0x8;
-    external PERF_CNT       PERF_CNT[NumPerfCounters]      @0x200 += 0x8;
-             SCRATCH        SCRATCH[NumCtrlScratch]        @0x300 += 0x8;
-    external CL_CLINT_SET   CL_CLINT_SET                   @0x400;
-    external CL_CLINT_CLEAR CL_CLINT_CLEAR                 @0x408;
-             ICACHE_PREFETCH_ENABLE ICACHE_PREFETCH_ENABLE @0x410;
+    regfile PERF_REGS {
+                 PERF_CNT_EN            PERF_CNT_EN[NumPerfCounters];
+        external PERF_CNT_SEL           PERF_CNT_SEL[NumPerfCounters];
+        external PERF_CNT               PERF_CNT[NumPerfCounters];
+    };
+
+             PERF_REGS              PERF_REGS;
+             SCRATCH                SCRATCH[NumCtrlScratch];
+    external CL_CLINT_SET           CL_CLINT_SET;
+    external CL_CLINT_CLEAR         CL_CLINT_CLEAR;
+             ICACHE_PREFETCH_ENABLE ICACHE_PREFETCH_ENABLE;
 };
 
 `endif // __SNITCH_CLUSTER_PERIPHERAL_REG_RDL__

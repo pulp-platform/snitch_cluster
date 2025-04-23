@@ -159,15 +159,15 @@ module snitch_cluster_peripheral
 
   // Continuously assign the perf values.
   for (genvar i = 0; i < NumPerfCounters; i++) begin : gen_perf_assign
-    assign hw2reg.PERF_CNT[i].rd_data.PERF_COUNTER = perf_cnt_q[i];
-    assign hw2reg.PERF_CNT_SEL[i].rd_data.METRIC = perf_metrics_q[i];
-    assign hw2reg.PERF_CNT_SEL[i].rd_data.HARD = perf_hart_sel_q[i];
-    assign hw2reg.PERF_CNT[i].rd_ack = 1'b1;
-    assign hw2reg.PERF_CNT_SEL[i].rd_ack = 1'b1;
-    assign hw2reg.PERF_CNT[i].wr_ack = 1'b1;
-    assign hw2reg.PERF_CNT_SEL[i].wr_ack = 1'b1;
-    assign hw2reg.PERF_CNT[i].rd_data._reserved_63_48 = '0;
-    assign hw2reg.PERF_CNT_SEL[i].rd_data._reserved_63_32 = '0;
+    assign hw2reg.PERF_REGS.PERF_CNT[i].rd_data.PERF_COUNTER = perf_cnt_q[i];
+    assign hw2reg.PERF_REGS.PERF_CNT_SEL[i].rd_data.METRIC = perf_metrics_q[i];
+    assign hw2reg.PERF_REGS.PERF_CNT_SEL[i].rd_data.HARD = perf_hart_sel_q[i];
+    assign hw2reg.PERF_REGS.PERF_CNT[i].rd_ack = 1'b1;
+    assign hw2reg.PERF_REGS.PERF_CNT_SEL[i].rd_ack = 1'b1;
+    assign hw2reg.PERF_REGS.PERF_CNT[i].wr_ack = 1'b1;
+    assign hw2reg.PERF_REGS.PERF_CNT_SEL[i].wr_ack = 1'b1;
+    assign hw2reg.PERF_REGS.PERF_CNT[i].rd_data._reserved_63_48 = '0;
+    assign hw2reg.PERF_REGS.PERF_CNT_SEL[i].rd_data._reserved_63_32 = '0;
   end
 
   assign hw2reg.CL_CLINT_SET.wr_ack = 1'b1;
@@ -219,24 +219,24 @@ module snitch_cluster_peripheral
         default:;
       endcase
       // Set performance metric.
-      if (reg2hw.PERF_CNT_SEL[i].req &&
-          reg2hw.PERF_CNT_SEL[i].req_is_wr &&
-          |reg2hw.PERF_CNT_SEL[i].wr_biten.METRIC) begin
-        perf_metrics_d[i] = perf_metrics_e'(reg2hw.PERF_CNT_SEL[i].wr_data.METRIC);
+      if (reg2hw.PERF_REGS.PERF_CNT_SEL[i].req &&
+          reg2hw.PERF_REGS.PERF_CNT_SEL[i].req_is_wr &&
+          |reg2hw.PERF_REGS.PERF_CNT_SEL[i].wr_biten.METRIC) begin
+        perf_metrics_d[i] = perf_metrics_e'(reg2hw.PERF_REGS.PERF_CNT_SEL[i].wr_data.METRIC);
       end
       // Set hart select.
-      if (reg2hw.PERF_CNT_SEL[i].req &&
-          reg2hw.PERF_CNT_SEL[i].req_is_wr &&
-          |reg2hw.PERF_CNT_SEL[i].wr_biten.HART) begin
-        perf_hart_sel_d[i] = reg2hw.PERF_CNT_SEL[i].wr_data.HART;
+      if (reg2hw.PERF_REGS.PERF_CNT_SEL[i].req &&
+          reg2hw.PERF_REGS.PERF_CNT_SEL[i].req_is_wr &&
+          |reg2hw.PERF_REGS.PERF_CNT_SEL[i].wr_biten.HART) begin
+        perf_hart_sel_d[i] = reg2hw.PERF_REGS.PERF_CNT_SEL[i].wr_data.HART;
       end
     end
   end
 
   // Performance counter FFs.
   for (genvar i = 0; i < NumPerfCounters; i++) begin : gen_perf_cnt
-    `FFLARNC(perf_cnt_q[i], perf_cnt_d[i], reg2hw.PERF_CNT_EN[i].ENABLE.value,
-             reg2hw.PERF_CNT[i].req && reg2hw.PERF_CNT[i].req_is_wr, '0, clk_i, rst_ni)
+    `FFLARNC(perf_cnt_q[i], perf_cnt_d[i], reg2hw.PERF_REGS.PERF_CNT_EN[i].ENABLE.value,
+             reg2hw.PERF_REGS.PERF_CNT[i].req && reg2hw.PERF_REGS.PERF_CNT[i].req_is_wr, '0, clk_i, rst_ni)
   end
 
   // Set reset values for the metrics that should be tracked immediately after reset.

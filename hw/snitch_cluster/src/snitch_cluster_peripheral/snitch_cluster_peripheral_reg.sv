@@ -9,7 +9,7 @@ module snitch_cluster_peripheral_reg (
         input wire s_apb_penable,
         input wire s_apb_pwrite,
         input wire [2:0] s_apb_pprot,
-        input wire [10:0] s_apb_paddr,
+        input wire [8:0] s_apb_paddr,
         input wire [63:0] s_apb_pwdata,
         input wire [7:0] s_apb_pstrb,
         output logic s_apb_pready,
@@ -25,7 +25,7 @@ module snitch_cluster_peripheral_reg (
     //--------------------------------------------------------------------------
     logic cpuif_req;
     logic cpuif_req_is_wr;
-    logic [10:0] cpuif_addr;
+    logic [8:0] cpuif_addr;
     logic [63:0] cpuif_wr_data;
     logic [63:0] cpuif_wr_biten;
     logic cpuif_req_stall_wr;
@@ -54,7 +54,7 @@ module snitch_cluster_peripheral_reg (
                     is_active <= '1;
                     cpuif_req <= '1;
                     cpuif_req_is_wr <= s_apb_pwrite;
-                    cpuif_addr <= {s_apb_paddr[10:3], 3'b0};
+                    cpuif_addr <= {s_apb_paddr[8:3], 3'b0};
                     cpuif_wr_data <= s_apb_pwdata;
                     for(int i=0; i<8; i++) begin
                         cpuif_wr_biten[i*8 +: 8] <= {8{s_apb_pstrb[i]}};
@@ -106,9 +106,11 @@ module snitch_cluster_peripheral_reg (
     // Address Decode
     //--------------------------------------------------------------------------
     typedef struct {
-        logic PERF_CNT_EN[16];
-        logic PERF_CNT_SEL[16];
-        logic PERF_CNT[16];
+        struct {
+            logic PERF_CNT_EN[16];
+            logic PERF_CNT_SEL[16];
+            logic PERF_CNT[16];
+        } PERF_REGS;
         logic SCRATCH[4];
         logic CL_CLINT_SET;
         logic CL_CLINT_CLEAR;
@@ -126,24 +128,24 @@ module snitch_cluster_peripheral_reg (
         automatic logic is_external;
         is_external = '0;
         for(int i0=0; i0<16; i0++) begin
-            decoded_reg_strb.PERF_CNT_EN[i0] = cpuif_req_masked & (cpuif_addr == 11'h0 + (11)'(i0) * 11'h8);
+            decoded_reg_strb.PERF_REGS.PERF_CNT_EN[i0] = cpuif_req_masked & (cpuif_addr == 9'h0 + (9)'(i0) * 9'h8);
         end
         for(int i0=0; i0<16; i0++) begin
-            decoded_reg_strb.PERF_CNT_SEL[i0] = cpuif_req_masked & (cpuif_addr == 11'h100 + (11)'(i0) * 11'h8);
-            is_external |= cpuif_req_masked & (cpuif_addr == 11'h100 + (11)'(i0) * 11'h8);
+            decoded_reg_strb.PERF_REGS.PERF_CNT_SEL[i0] = cpuif_req_masked & (cpuif_addr == 9'h80 + (9)'(i0) * 9'h8);
+            is_external |= cpuif_req_masked & (cpuif_addr == 9'h80 + (9)'(i0) * 9'h8);
         end
         for(int i0=0; i0<16; i0++) begin
-            decoded_reg_strb.PERF_CNT[i0] = cpuif_req_masked & (cpuif_addr == 11'h200 + (11)'(i0) * 11'h8);
-            is_external |= cpuif_req_masked & (cpuif_addr == 11'h200 + (11)'(i0) * 11'h8);
+            decoded_reg_strb.PERF_REGS.PERF_CNT[i0] = cpuif_req_masked & (cpuif_addr == 9'h100 + (9)'(i0) * 9'h8);
+            is_external |= cpuif_req_masked & (cpuif_addr == 9'h100 + (9)'(i0) * 9'h8);
         end
         for(int i0=0; i0<4; i0++) begin
-            decoded_reg_strb.SCRATCH[i0] = cpuif_req_masked & (cpuif_addr == 11'h300 + (11)'(i0) * 11'h8);
+            decoded_reg_strb.SCRATCH[i0] = cpuif_req_masked & (cpuif_addr == 9'h180 + (9)'(i0) * 9'h8);
         end
-        decoded_reg_strb.CL_CLINT_SET = cpuif_req_masked & (cpuif_addr == 11'h400);
-        is_external |= cpuif_req_masked & (cpuif_addr == 11'h400) & cpuif_req_is_wr;
-        decoded_reg_strb.CL_CLINT_CLEAR = cpuif_req_masked & (cpuif_addr == 11'h408);
-        is_external |= cpuif_req_masked & (cpuif_addr == 11'h408) & cpuif_req_is_wr;
-        decoded_reg_strb.ICACHE_PREFETCH_ENABLE = cpuif_req_masked & (cpuif_addr == 11'h410);
+        decoded_reg_strb.CL_CLINT_SET = cpuif_req_masked & (cpuif_addr == 9'h1a0);
+        is_external |= cpuif_req_masked & (cpuif_addr == 9'h1a0) & cpuif_req_is_wr;
+        decoded_reg_strb.CL_CLINT_CLEAR = cpuif_req_masked & (cpuif_addr == 9'h1a8);
+        is_external |= cpuif_req_masked & (cpuif_addr == 9'h1a8) & cpuif_req_is_wr;
+        decoded_reg_strb.ICACHE_PREFETCH_ENABLE = cpuif_req_masked & (cpuif_addr == 9'h1b0);
         decoded_strb_is_external = is_external;
         external_req = is_external;
     end
@@ -160,10 +162,12 @@ module snitch_cluster_peripheral_reg (
     typedef struct {
         struct {
             struct {
-                logic next;
-                logic load_next;
-            } ENABLE;
-        } PERF_CNT_EN[16];
+                struct {
+                    logic next;
+                    logic load_next;
+                } ENABLE;
+            } PERF_CNT_EN[16];
+        } PERF_REGS;
         struct {
             struct {
                 logic [31:0] next;
@@ -182,9 +186,11 @@ module snitch_cluster_peripheral_reg (
     typedef struct {
         struct {
             struct {
-                logic value;
-            } ENABLE;
-        } PERF_CNT_EN[16];
+                struct {
+                    logic value;
+                } ENABLE;
+            } PERF_CNT_EN[16];
+        } PERF_REGS;
         struct {
             struct {
                 logic [31:0] value;
@@ -199,43 +205,43 @@ module snitch_cluster_peripheral_reg (
     field_storage_t field_storage;
 
     for(genvar i0=0; i0<16; i0++) begin
-        // Field: snitch_cluster_peripheral_reg.PERF_CNT_EN[].ENABLE
+        // Field: snitch_cluster_peripheral_reg.PERF_REGS.PERF_CNT_EN[].ENABLE
         always_comb begin
             automatic logic [0:0] next_c;
             automatic logic load_next_c;
-            next_c = field_storage.PERF_CNT_EN[i0].ENABLE.value;
+            next_c = field_storage.PERF_REGS.PERF_CNT_EN[i0].ENABLE.value;
             load_next_c = '0;
-            if(decoded_reg_strb.PERF_CNT_EN[i0] && decoded_req_is_wr) begin // SW write
-                next_c = (field_storage.PERF_CNT_EN[i0].ENABLE.value & ~decoded_wr_biten[0:0]) | (decoded_wr_data[0:0] & decoded_wr_biten[0:0]);
+            if(decoded_reg_strb.PERF_REGS.PERF_CNT_EN[i0] && decoded_req_is_wr) begin // SW write
+                next_c = (field_storage.PERF_REGS.PERF_CNT_EN[i0].ENABLE.value & ~decoded_wr_biten[0:0]) | (decoded_wr_data[0:0] & decoded_wr_biten[0:0]);
                 load_next_c = '1;
             end
-            field_combo.PERF_CNT_EN[i0].ENABLE.next = next_c;
-            field_combo.PERF_CNT_EN[i0].ENABLE.load_next = load_next_c;
+            field_combo.PERF_REGS.PERF_CNT_EN[i0].ENABLE.next = next_c;
+            field_combo.PERF_REGS.PERF_CNT_EN[i0].ENABLE.load_next = load_next_c;
         end
         always_ff @(posedge clk or negedge arst_n) begin
             if(~arst_n) begin
-                field_storage.PERF_CNT_EN[i0].ENABLE.value <= 1'h1;
+                field_storage.PERF_REGS.PERF_CNT_EN[i0].ENABLE.value <= 1'h1;
             end else begin
-                if(field_combo.PERF_CNT_EN[i0].ENABLE.load_next) begin
-                    field_storage.PERF_CNT_EN[i0].ENABLE.value <= field_combo.PERF_CNT_EN[i0].ENABLE.next;
+                if(field_combo.PERF_REGS.PERF_CNT_EN[i0].ENABLE.load_next) begin
+                    field_storage.PERF_REGS.PERF_CNT_EN[i0].ENABLE.value <= field_combo.PERF_REGS.PERF_CNT_EN[i0].ENABLE.next;
                 end
             end
         end
-        assign hwif_out.PERF_CNT_EN[i0].ENABLE.value = field_storage.PERF_CNT_EN[i0].ENABLE.value;
+        assign hwif_out.PERF_REGS.PERF_CNT_EN[i0].ENABLE.value = field_storage.PERF_REGS.PERF_CNT_EN[i0].ENABLE.value;
     end
     for(genvar i0=0; i0<16; i0++) begin
 
-        assign hwif_out.PERF_CNT_SEL[i0].req = decoded_reg_strb.PERF_CNT_SEL[i0];
-        assign hwif_out.PERF_CNT_SEL[i0].req_is_wr = decoded_req_is_wr;
-        assign hwif_out.PERF_CNT_SEL[i0].wr_data = decoded_wr_data;
-        assign hwif_out.PERF_CNT_SEL[i0].wr_biten = decoded_wr_biten;
+        assign hwif_out.PERF_REGS.PERF_CNT_SEL[i0].req = decoded_reg_strb.PERF_REGS.PERF_CNT_SEL[i0];
+        assign hwif_out.PERF_REGS.PERF_CNT_SEL[i0].req_is_wr = decoded_req_is_wr;
+        assign hwif_out.PERF_REGS.PERF_CNT_SEL[i0].wr_data = decoded_wr_data;
+        assign hwif_out.PERF_REGS.PERF_CNT_SEL[i0].wr_biten = decoded_wr_biten;
     end
     for(genvar i0=0; i0<16; i0++) begin
 
-        assign hwif_out.PERF_CNT[i0].req = decoded_reg_strb.PERF_CNT[i0];
-        assign hwif_out.PERF_CNT[i0].req_is_wr = decoded_req_is_wr;
-        assign hwif_out.PERF_CNT[i0].wr_data = decoded_wr_data;
-        assign hwif_out.PERF_CNT[i0].wr_biten = decoded_wr_biten;
+        assign hwif_out.PERF_REGS.PERF_CNT[i0].req = decoded_reg_strb.PERF_REGS.PERF_CNT[i0];
+        assign hwif_out.PERF_REGS.PERF_CNT[i0].req_is_wr = decoded_req_is_wr;
+        assign hwif_out.PERF_REGS.PERF_CNT[i0].wr_data = decoded_wr_data;
+        assign hwif_out.PERF_REGS.PERF_CNT[i0].wr_biten = decoded_wr_biten;
     end
     for(genvar i0=0; i0<4; i0++) begin
         // Field: snitch_cluster_peripheral_reg.SCRATCH[].SCRATCH
@@ -294,10 +300,10 @@ module snitch_cluster_peripheral_reg (
         automatic logic wr_ack;
         wr_ack = '0;
         for(int i0=0; i0<16; i0++) begin
-            wr_ack |= hwif_in.PERF_CNT_SEL[i0].wr_ack;
+            wr_ack |= hwif_in.PERF_REGS.PERF_CNT_SEL[i0].wr_ack;
         end
         for(int i0=0; i0<16; i0++) begin
-            wr_ack |= hwif_in.PERF_CNT[i0].wr_ack;
+            wr_ack |= hwif_in.PERF_REGS.PERF_CNT[i0].wr_ack;
         end
         wr_ack |= hwif_in.CL_CLINT_SET.wr_ack;
         wr_ack |= hwif_in.CL_CLINT_CLEAR.wr_ack;
@@ -315,10 +321,10 @@ module snitch_cluster_peripheral_reg (
         automatic logic rd_ack;
         rd_ack = '0;
         for(int i0=0; i0<16; i0++) begin
-            rd_ack |= hwif_in.PERF_CNT_SEL[i0].rd_ack;
+            rd_ack |= hwif_in.PERF_REGS.PERF_CNT_SEL[i0].rd_ack;
         end
         for(int i0=0; i0<16; i0++) begin
-            rd_ack |= hwif_in.PERF_CNT[i0].rd_ack;
+            rd_ack |= hwif_in.PERF_REGS.PERF_CNT[i0].rd_ack;
         end
         readback_external_rd_ack_c = rd_ack;
     end
@@ -334,14 +340,14 @@ module snitch_cluster_peripheral_reg (
     // Assign readback values to a flattened array
     logic [63:0] readback_array[52];
     for(genvar i0=0; i0<16; i0++) begin
-        assign readback_array[i0 * 1 + 0][0:0] = (decoded_reg_strb.PERF_CNT_EN[i0] && !decoded_req_is_wr) ? field_storage.PERF_CNT_EN[i0].ENABLE.value : '0;
+        assign readback_array[i0 * 1 + 0][0:0] = (decoded_reg_strb.PERF_REGS.PERF_CNT_EN[i0] && !decoded_req_is_wr) ? field_storage.PERF_REGS.PERF_CNT_EN[i0].ENABLE.value : '0;
         assign readback_array[i0 * 1 + 0][63:1] = '0;
     end
     for(genvar i0=0; i0<16; i0++) begin
-        assign readback_array[i0 * 1 + 16] = hwif_in.PERF_CNT_SEL[i0].rd_ack ? hwif_in.PERF_CNT_SEL[i0].rd_data : '0;
+        assign readback_array[i0 * 1 + 16] = hwif_in.PERF_REGS.PERF_CNT_SEL[i0].rd_ack ? hwif_in.PERF_REGS.PERF_CNT_SEL[i0].rd_data : '0;
     end
     for(genvar i0=0; i0<16; i0++) begin
-        assign readback_array[i0 * 1 + 32] = hwif_in.PERF_CNT[i0].rd_ack ? hwif_in.PERF_CNT[i0].rd_data : '0;
+        assign readback_array[i0 * 1 + 32] = hwif_in.PERF_REGS.PERF_CNT[i0].rd_ack ? hwif_in.PERF_REGS.PERF_CNT[i0].rd_data : '0;
     end
     for(genvar i0=0; i0<4; i0++) begin
         assign readback_array[i0 * 1 + 48][31:0] = (decoded_reg_strb.SCRATCH[i0] && !decoded_req_is_wr) ? field_storage.SCRATCH[i0].SCRATCH.value : '0;
