@@ -77,5 +77,5 @@ inline void snrt_reset_perf_counter(uint32_t perf_cnt) {
  * @return The value of the specified performance counter.
  */
 inline uint32_t snrt_get_perf_counter(uint32_t perf_cnt) {
-    return snrt_perf_counters()->PERF_CNT[perf_cnt].PERF_COUNTER;
+    return snrt_perf_counters()->PERF_CNT[perf_cnt].f.PERF_COUNTER;
 }
