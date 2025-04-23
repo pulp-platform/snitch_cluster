@@ -236,7 +236,8 @@ module snitch_cluster_peripheral
   // Performance counter FFs.
   for (genvar i = 0; i < NumPerfCounters; i++) begin : gen_perf_cnt
     `FFLARNC(perf_cnt_q[i], perf_cnt_d[i], reg2hw.PERF_REGS.PERF_CNT_EN[i].ENABLE.value,
-             reg2hw.PERF_REGS.PERF_CNT[i].req && reg2hw.PERF_REGS.PERF_CNT[i].req_is_wr, '0, clk_i, rst_ni)
+             reg2hw.PERF_REGS.PERF_CNT[i].req && reg2hw.PERF_REGS.PERF_CNT[i].req_is_wr,
+             '0, clk_i, rst_ni)
   end
 
   // Set reset values for the metrics that should be tracked immediately after reset.

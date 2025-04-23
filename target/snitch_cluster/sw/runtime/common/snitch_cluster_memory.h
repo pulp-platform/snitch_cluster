@@ -2,8 +2,8 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #include "snitch_cluster_peripheral.h"
 
 //===============================================================
@@ -17,8 +17,8 @@
     (CLUSTER_PERIPH_BASE_ADDR + \
      offsetof(snitch_cluster_peripheral_reg_t, CL_CLINT_CLEAR))
 
-#define CLUSTER_PERF_COUNTER_ADDR \
-    (CLUSTER_PERIPH_BASE_ADDR +   \
+#define CLUSTER_PERF_COUNTER_ADDR                           \
+    (CLUSTER_PERIPH_BASE_ADDR +                             \
      offsetof(snitch_cluster_peripheral_reg_t, PERF_REGS) + \
      offsetof(snitch_cluster_peripheral_reg__PERF_REGS_t, PERF_CNT_EN[0]))
 
