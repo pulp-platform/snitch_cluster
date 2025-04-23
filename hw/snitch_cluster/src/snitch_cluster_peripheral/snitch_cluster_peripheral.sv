@@ -161,7 +161,7 @@ module snitch_cluster_peripheral
   for (genvar i = 0; i < NumPerfCounters; i++) begin : gen_perf_assign
     assign hw2reg.PERF_REGS.PERF_CNT[i].rd_data.PERF_COUNTER = perf_cnt_q[i];
     assign hw2reg.PERF_REGS.PERF_CNT_SEL[i].rd_data.METRIC = perf_metrics_q[i];
-    assign hw2reg.PERF_REGS.PERF_CNT_SEL[i].rd_data.HARD = perf_hart_sel_q[i];
+    assign hw2reg.PERF_REGS.PERF_CNT_SEL[i].rd_data.HART = perf_hart_sel_q[i];
     assign hw2reg.PERF_REGS.PERF_CNT[i].rd_ack = 1'b1;
     assign hw2reg.PERF_REGS.PERF_CNT_SEL[i].rd_ack = 1'b1;
     assign hw2reg.PERF_REGS.PERF_CNT[i].wr_ack = 1'b1;

@@ -5,8 +5,8 @@
 // #define SNRT_NUM_PERF_CNTS SNITCH_CLUSTER_PERIPHERAL_PARAM_NUM_PERF_COUNTERS
 
 // /**
-//  * @brief Union representing a 32-bit performance counter register, with 8-byte
-//  * alignment.
+//  * @brief Union representing a 32-bit performance counter register, with
+//  * 8-byte alignment.
 //  */
 // typedef union {
 //     uint32_t value __attribute__((aligned(8)));
