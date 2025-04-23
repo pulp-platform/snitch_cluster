@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <stdint.h>
+#include <stddef.h>
+#include "snitch_cluster_peripheral.h"
 
 //===============================================================
 // Constants
@@ -10,14 +12,15 @@
 
 #define CLUSTER_CLINT_SET_ADDR  \
     (CLUSTER_PERIPH_BASE_ADDR + \
-     SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_SET_REG_OFFSET)
+     offsetto(snitch_cluster_peripheral_reg, CL_CLINT_SET))
 #define CLUSTER_CLINT_CLR_ADDR  \
     (CLUSTER_PERIPH_BASE_ADDR + \
-     SNITCH_CLUSTER_PERIPHERAL_CL_CLINT_CLEAR_REG_OFFSET)
+     offsetto(snitch_cluster_peripheral_reg, CL_CLINT_CLEAR))
 
 #define CLUSTER_PERF_COUNTER_ADDR \
     (CLUSTER_PERIPH_BASE_ADDR +   \
-     SNITCH_CLUSTER_PERIPHERAL_PERF_CNT_EN_0_REG_OFFSET)
+     offsetto(snitch_cluster_peripheral_reg, PERF_REGS) + \
+     offsetto(snitch_cluster_peripheral_reg__PERF_REGS_t, PERF_CNT_EN[0]))
 
 #define CLUSTER_TCDM_START_ADDR CLUSTER_TCDM_BASE_ADDR
 
