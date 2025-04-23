@@ -84,6 +84,7 @@ $(SN_GEN_DIR) $(SN_BIN_DIR):
 define peakrdl_generate_header
 	@echo "[peakRDL] Generating $1"
 	peakrdl c-header -b htol $2 -o $1
+	sed -i '/^#include/d' $1
 	@$(CLANG_FORMAT) -i $1
 endef
 
