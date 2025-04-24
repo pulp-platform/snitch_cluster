@@ -152,10 +152,11 @@ work/${FESVR_VERSION}_unzip:
 	touch $@
 
 work/lib/libfesvr.a: work/${FESVR_VERSION}_unzip
-	cd $(dir $<)/ && ./configure --prefix `pwd`
-	make -C $(dir $<) install-config-hdrs install-hdrs libfesvr.a
+	cd $(dir $<)/ && ./configure --prefix `pwd` --with-boost=$(CONDA_PREFIX) --with-boost-libdir=$(CONDA_PREFIX)/lib
+	$(MAKE) -C $(dir $<) install-config-hdrs install-hdrs libfesvr.a
 	mkdir -p $(dir $@)
 	cp $(dir $<)libfesvr.a $@
+	strip --strip-debug $@
 
 # Build fesvr seperately for verilator since this might use different compilers
 # and libraries than modelsim/vcs and
