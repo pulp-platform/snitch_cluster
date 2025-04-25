@@ -257,9 +257,13 @@ module snitch_cluster_peripheral_reg (
             field_combo.SCRATCH[i0].SCRATCH.next = next_c;
             field_combo.SCRATCH[i0].SCRATCH.load_next = load_next_c;
         end
-        always_ff @(posedge clk) begin
-            if(field_combo.SCRATCH[i0].SCRATCH.load_next) begin
-                field_storage.SCRATCH[i0].SCRATCH.value <= field_combo.SCRATCH[i0].SCRATCH.next;
+        always_ff @(posedge clk or negedge arst_n) begin
+            if(~arst_n) begin
+                field_storage.SCRATCH[i0].SCRATCH.value <= 32'h0;
+            end else begin
+                if(field_combo.SCRATCH[i0].SCRATCH.load_next) begin
+                    field_storage.SCRATCH[i0].SCRATCH.value <= field_combo.SCRATCH[i0].SCRATCH.next;
+                end
             end
         end
     end
@@ -286,9 +290,13 @@ module snitch_cluster_peripheral_reg (
         field_combo.ICACHE_PREFETCH_ENABLE.ICACHE_PREFETCH_ENABLE.next = next_c;
         field_combo.ICACHE_PREFETCH_ENABLE.ICACHE_PREFETCH_ENABLE.load_next = load_next_c;
     end
-    always_ff @(posedge clk) begin
-        if(field_combo.ICACHE_PREFETCH_ENABLE.ICACHE_PREFETCH_ENABLE.load_next) begin
-            field_storage.ICACHE_PREFETCH_ENABLE.ICACHE_PREFETCH_ENABLE.value <= field_combo.ICACHE_PREFETCH_ENABLE.ICACHE_PREFETCH_ENABLE.next;
+    always_ff @(posedge clk or negedge arst_n) begin
+        if(~arst_n) begin
+            field_storage.ICACHE_PREFETCH_ENABLE.ICACHE_PREFETCH_ENABLE.value <= 1'h1;
+        end else begin
+            if(field_combo.ICACHE_PREFETCH_ENABLE.ICACHE_PREFETCH_ENABLE.load_next) begin
+                field_storage.ICACHE_PREFETCH_ENABLE.ICACHE_PREFETCH_ENABLE.value <= field_combo.ICACHE_PREFETCH_ENABLE.ICACHE_PREFETCH_ENABLE.next;
+            end
         end
     end
     assign hwif_out.ICACHE_PREFETCH_ENABLE.ICACHE_PREFETCH_ENABLE.value = field_storage.ICACHE_PREFETCH_ENABLE.ICACHE_PREFETCH_ENABLE.value;

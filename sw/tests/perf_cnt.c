@@ -20,7 +20,7 @@ int main() {
 
     // Test 2: Check that all performance counters can be reset
     if (core_idx == 0) {
-        for (int i = 0; i < SNRT_NUM_PERF_CNTS; i++) {
+        for (int i = 0; i < sizeof(perf_regs_t.PERF_CNT)/sizeof(perf_regs_t.PERF_CNT[0]); i++) {
             // Stop and reset the performance counter
             snrt_stop_perf_counter(i);
             snrt_reset_perf_counter(i);
@@ -32,7 +32,7 @@ int main() {
 
     // Test 3: Check that the performance counters can be configured and started
     if (core_idx == 0) {
-        for (int i = 0; i < SNRT_NUM_PERF_CNTS; i++) {
+        for (int i = 0; i < sizeof(perf_regs_t.PERF_CNT)/sizeof(perf_regs_t.PERF_CNT[0]); i++) {
             // Configure and start the performance counter
             snrt_cfg_perf_counter(
                 i,
@@ -46,7 +46,7 @@ int main() {
             asm volatile("nop");
         }
 
-        for (int i = 0; i < SNRT_NUM_PERF_CNTS; i++) {
+        for (int i = 0; i < sizeof(perf_regs_t.PERF_CNT)/sizeof(perf_regs_t.PERF_CNT[0]); i++) {
             // Stop the performance counter
             snrt_stop_perf_counter(i);
 

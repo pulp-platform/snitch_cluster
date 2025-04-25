@@ -198,7 +198,7 @@ addrmap snitch_cluster_peripheral_reg #(
             desc = "Scratch register";
             hw = na;
             sw = rw;
-        } SCRATCH[31:0];
+        } SCRATCH[31:0] = 0;
     };
 
     reg CL_CLINT_SET {
@@ -227,7 +227,7 @@ addrmap snitch_cluster_peripheral_reg #(
             desc = "Enable instruction prefetching.";
             hw = r;
             sw = w;
-        } ICACHE_PREFETCH_ENABLE[0:0];
+        } ICACHE_PREFETCH_ENABLE[0:0] = 1;
     };
 
     regfile PERF_REGS {
