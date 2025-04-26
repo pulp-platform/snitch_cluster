@@ -44,7 +44,7 @@ object GemmConstant {
   lazy val dataWidthC     = dataWidthA * 4
   lazy val dataWidthAccum = dataWidthA * 4
 
-  lazy val subtractionCfgWidth = 16 // was 32, but why?
+  lazy val subtractionCfgWidth = 32
 
   lazy val meshRow  = 8
   lazy val tileSize = 8

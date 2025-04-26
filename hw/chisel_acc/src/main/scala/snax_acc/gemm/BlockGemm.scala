@@ -12,6 +12,9 @@ class BlockGemmCtrlIO(val params: GemmParams) extends Bundle with HasGemmParams 
   val N_i                    = (UInt(sizeConfigWidth.W))
   val M_i                    = (UInt(sizeConfigWidth.W))
   val subtraction_constant_i = (UInt(subtractionCfgWidth.W))
+
+  assert(sizeConfigWidth == subtractionCfgWidth && sizeConfigWidth == 32, "CSR width is 32")
+
 }
 
 /** The BlockGemm's data port declaration. Decoupled interface connected to the streamer */
@@ -120,7 +123,7 @@ class BlockGemm(val params: GemmParams) extends Module with RequireAsyncReset wi
       )
     }
 
-    require(subtractionCfgWidth == 16, "TODO slicing is hardcoded yet the width is a parameter") // TODO
+    require(subtractionCfgWidth == 32, "TODO slicing is hardcoded yet the width is a parameter") // TODO
     subtraction_a := io.ctrl.bits.subtraction_constant_i(7, 0)
     subtraction_b := io.ctrl.bits.subtraction_constant_i(15, 8)
   }
