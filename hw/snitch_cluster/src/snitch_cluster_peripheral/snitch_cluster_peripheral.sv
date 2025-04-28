@@ -149,37 +149,66 @@ module snitch_cluster_peripheral
       sel_core_events = core_events_i[hart_select];
       sel_dma_events = dma_events_q[hart_select];
       unique case (perf_metrics_q[i])
-        Cycle: perf_cnt_d[i] += 1;
-        TcdmAccessed: perf_cnt_d[i] += tcdm_events_q.inc_accessed;
-        TcdmCongested: perf_cnt_d[i] += tcdm_events_q.inc_congested;
-        IssueFpu: perf_cnt_d[i] += sel_core_events.issue_fpu;
-        IssueFpuSeq: perf_cnt_d[i] += sel_core_events.issue_fpu_seq;
-        IssueCoreToFpu: perf_cnt_d[i] += sel_core_events.issue_core_to_fpu;
-        RetiredInstr: perf_cnt_d[i] += sel_core_events.retired_instr;
-        RetiredLoad: perf_cnt_d[i] += sel_core_events.retired_load;
-        RetiredI: perf_cnt_d[i] += sel_core_events.retired_i;
-        RetiredAcc: perf_cnt_d[i] += sel_core_events.retired_acc;
-        DmaAwStall: perf_cnt_d[i] += sel_dma_events.aw_stall;
-        DmaArStall: perf_cnt_d[i] += sel_dma_events.ar_stall;
-        DmaRStall: perf_cnt_d[i] += sel_dma_events.r_stall;
-        DmaWStall: perf_cnt_d[i] += sel_dma_events.w_stall;
-        DmaBufWStall: perf_cnt_d[i] += sel_dma_events.buf_w_stall;
-        DmaBufRStall: perf_cnt_d[i] += sel_dma_events.buf_r_stall;
-        DmaAwDone: perf_cnt_d[i] += sel_dma_events.aw_done;
-        DmaAwBw: perf_cnt_d[i] += ((sel_dma_events.aw_len + 1) << (sel_dma_events.aw_size));
-        DmaArDone: perf_cnt_d[i] += sel_dma_events.ar_done;
-        DmaArBw: perf_cnt_d[i] += ((sel_dma_events.ar_len + 1) << (sel_dma_events.ar_size));
-        DmaRDone: perf_cnt_d[i] += sel_dma_events.r_done;
-        DmaRBw: perf_cnt_d[i] += DMADataWidth/8;
-        DmaWDone: perf_cnt_d[i] += sel_dma_events.w_done;
-        DmaWBw: perf_cnt_d[i] += sel_dma_events.num_bytes_written;
-        DmaBDone: perf_cnt_d[i] += sel_dma_events.b_done;
-        DmaBusy: perf_cnt_d[i] += sel_dma_events.dma_busy;
-        IcacheMiss: perf_cnt_d[i] += icache_events_q[hart_select].l0_miss;
-        IcacheHit: perf_cnt_d[i] += icache_events_q[hart_select].l0_hit;
-        IcachePrefetch: perf_cnt_d[i] += icache_events_q[hart_select].l0_prefetch;
-        IcacheDoubleHit: perf_cnt_d[i] += icache_events_q[hart_select].l0_double_hit;
-        IcacheStall: perf_cnt_d[i] += icache_events_q[hart_select].l0_stall;
+        snitch_cluster_peripheral_reg__PERF_METRIC__CYCLE: perf_cnt_d[i] += 1;
+        snitch_cluster_peripheral_reg__PERF_METRIC__TCDM_ACCESSED: perf_cnt_d[i] +=
+          tcdm_events_q.inc_accessed;
+        snitch_cluster_peripheral_reg__PERF_METRIC__TCDM_CONGESTED: perf_cnt_d[i] +=
+          tcdm_events_q.inc_congested;
+        snitch_cluster_peripheral_reg__PERF_METRIC__ISSUE_FPU: perf_cnt_d[i] +=
+          sel_core_events.issue_fpu;
+        snitch_cluster_peripheral_reg__PERF_METRIC__ISSUE_FPU_SEQ: perf_cnt_d[i] +=
+          sel_core_events.issue_fpu_seq;
+        snitch_cluster_peripheral_reg__PERF_METRIC__ISSUE_CORE_TO_FPU: perf_cnt_d[i] +=
+          sel_core_events.issue_core_to_fpu;
+        snitch_cluster_peripheral_reg__PERF_METRIC__RETIRED_INSTR: perf_cnt_d[i] +=
+          sel_core_events.retired_instr;
+        snitch_cluster_peripheral_reg__PERF_METRIC__RETIRED_LOAD: perf_cnt_d[i] +=
+          sel_core_events.retired_load;
+        snitch_cluster_peripheral_reg__PERF_METRIC__RETIRED_I: perf_cnt_d[i] +=
+          sel_core_events.retired_i;
+        snitch_cluster_peripheral_reg__PERF_METRIC__RETIRED_ACC: perf_cnt_d[i] +=
+          sel_core_events.retired_acc;
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_AW_STALL: perf_cnt_d[i] +=
+          sel_dma_events.aw_stall;
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_AR_STALL: perf_cnt_d[i] +=
+          sel_dma_events.ar_stall;
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_R_STALL: perf_cnt_d[i] +=
+          sel_dma_events.r_stall;
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_W_STALL: perf_cnt_d[i] +=
+          sel_dma_events.w_stall;
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_BUF_W_STALL: perf_cnt_d[i] +=
+          sel_dma_events.buf_w_stall;
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_BUF_R_STALL: perf_cnt_d[i] +=
+          sel_dma_events.buf_r_stall;
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_AW_DONE: perf_cnt_d[i] +=
+          sel_dma_events.aw_done;
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_AW_BW: perf_cnt_d[i] +=
+          ((sel_dma_events.aw_len + 1) << (sel_dma_events.aw_size));
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_AR_DONE: perf_cnt_d[i] +=
+          sel_dma_events.ar_done;
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_AR_BW: perf_cnt_d[i] +=
+          ((sel_dma_events.ar_len + 1) << (sel_dma_events.ar_size));
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_R_DONE: perf_cnt_d[i] +=
+          sel_dma_events.r_done;
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_R_BW: perf_cnt_d[i] += DMADataWidth/8;
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_W_DONE: perf_cnt_d[i] +=
+          sel_dma_events.w_done;
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_W_BW: perf_cnt_d[i] +=
+          sel_dma_events.num_bytes_written;
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_B_DONE: perf_cnt_d[i] +=
+          sel_dma_events.b_done;
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_BUSY: perf_cnt_d[i] +=
+          sel_dma_events.dma_busy;
+        snitch_cluster_peripheral_reg__PERF_METRIC__ICACHE_MISS: perf_cnt_d[i] +=
+          icache_events_q[hart_select].l0_miss;
+        snitch_cluster_peripheral_reg__PERF_METRIC__ICACHE_HIT: perf_cnt_d[i] +=
+          icache_events_q[hart_select].l0_hit;
+        snitch_cluster_peripheral_reg__PERF_METRIC__ICACHE_PREFETCH: perf_cnt_d[i] +=
+          icache_events_q[hart_select].l0_prefetch;
+        snitch_cluster_peripheral_reg__PERF_METRIC__ICACHE_DOUBLE_HIT: perf_cnt_d[i] +=
+          icache_events_q[hart_select].l0_double_hit;
+        snitch_cluster_peripheral_reg__PERF_METRIC__ICACHE_STALL: perf_cnt_d[i] +=
+          icache_events_q[hart_select].l0_stall;
         default:;
       endcase
       // Set performance metric.
@@ -213,7 +242,8 @@ module snitch_cluster_peripheral
     if (i < NumPerfMetricRstValues) begin : gen_perf_metrics_rst_value
       `FF(perf_metrics_q[i], perf_metrics_d[i], PerfMetricRstValues[i], clk_i, rst_ni)
     end else begin : gen_perf_metrics_default
-      `FF(perf_metrics_q[i], perf_metrics_d[i], Cycle, clk_i, rst_ni)
+      `FF(perf_metrics_q[i], perf_metrics_d[i],
+          snitch_cluster_peripheral_reg__PERF_METRIC__CYCLE, clk_i, rst_ni)
     end
   end
 
