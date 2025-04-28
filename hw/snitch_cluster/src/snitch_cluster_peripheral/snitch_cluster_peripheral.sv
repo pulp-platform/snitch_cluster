@@ -77,6 +77,7 @@ module snitch_cluster_peripheral
     .s_apb_pprot   ( sn_periph_regs_apb_req.pprot   ),
     .s_apb_paddr   ( sn_periph_regs_apb_req.paddr   ),
     .s_apb_pwdata  ( sn_periph_regs_apb_req.pwdata  ),
+    .s_apb_pstrb   ( sn_periph_regs_apb_req.pstrb   ),
     .s_apb_pready  ( sn_periph_regs_apb_rsp.pready  ),
     .s_apb_prdata  ( sn_periph_regs_apb_rsp.prdata  ),
     .s_apb_pslverr ( sn_periph_regs_apb_rsp.pslverr ),
@@ -84,58 +85,21 @@ module snitch_cluster_peripheral
     .hwif_in  (hw2reg)
   );
 
-  // As defined in the `.hjson` file. Unfortunately,
-  // The regtool does not generate enums for SV,
-  // only for C. So we have to define them here.
-  typedef enum logic[4:0] {
-    Cycle           = 5'd0,
-    TcdmAccessed    = 5'd1,
-    TcdmCongested   = 5'd2,
-    IssueFpu        = 5'd3,
-    IssueFpuSeq     = 5'd4,
-    IssueCoreToFpu  = 5'd5,
-    RetiredInstr    = 5'd6,
-    RetiredLoad     = 5'd7,
-    RetiredI        = 5'd8,
-    RetiredAcc      = 5'd9,
-    DmaAwStall      = 5'd10,
-    DmaArStall      = 5'd11,
-    DmaRStall       = 5'd12,
-    DmaWStall       = 5'd13,
-    DmaBufWStall    = 5'd14,
-    DmaBufRStall    = 5'd15,
-    DmaAwDone       = 5'd16,
-    DmaAwBw         = 5'd17,
-    DmaArDone       = 5'd18,
-    DmaArBw         = 5'd19,
-    DmaRDone        = 5'd20,
-    DmaRBw          = 5'd21,
-    DmaWDone        = 5'd22,
-    DmaWBw          = 5'd23,
-    DmaBDone        = 5'd24,
-    DmaBusy         = 5'd25,
-    IcacheMiss      = 5'd26,
-    IcacheHit       = 5'd27,
-    IcachePrefetch  = 5'd28,
-    IcacheDoubleHit = 5'd29,
-    IcacheStall     = 5'd30,
-    NumMetrics      = 5'd31
-  } perf_metrics_e;
-
   // The metrics that should be tracked immediately after reset.
   localparam int unsigned NumPerfMetricRstValues = 7;
-  localparam perf_metrics_e PerfMetricRstValues[NumPerfMetricRstValues] = '{
-    Cycle,
-    RetiredInstr,
-    TcdmAccessed,
-    IcacheMiss,
-    IcacheHit,
-    IcachePrefetch,
-    IcacheStall
+  localparam snitch_cluster_peripheral_reg__PERF_METRIC_e
+    PerfMetricRstValues[NumPerfMetricRstValues] = '{
+      snitch_cluster_peripheral_reg__PERF_METRIC__CYCLE,
+      snitch_cluster_peripheral_reg__PERF_METRIC__RETIRED_INSTR,
+      snitch_cluster_peripheral_reg__PERF_METRIC__TCDM_ACCESSED,
+      snitch_cluster_peripheral_reg__PERF_METRIC__ICACHE_MISS,
+      snitch_cluster_peripheral_reg__PERF_METRIC__ICACHE_HIT,
+      snitch_cluster_peripheral_reg__PERF_METRIC__ICACHE_PREFETCH,
+      snitch_cluster_peripheral_reg__PERF_METRIC__ICACHE_STALL
   };
 
   logic [NumPerfCounters-1:0][47:0] perf_cnt_q, perf_cnt_d;
-  perf_metrics_e [NumPerfCounters-1:0] perf_metrics_q, perf_metrics_d;
+  snitch_cluster_peripheral_reg__PERF_METRIC_e [NumPerfCounters-1:0] perf_metrics_q, perf_metrics_d;
   logic [NumPerfCounters-1:0][$clog2(NrCores)-1:0] perf_hart_sel_q, perf_hart_sel_d;
   logic [31:0] cl_clint_d, cl_clint_q;
 
@@ -222,7 +186,8 @@ module snitch_cluster_peripheral
       if (reg2hw.PERF_REGS.PERF_CNT_SEL[i].req &&
           reg2hw.PERF_REGS.PERF_CNT_SEL[i].req_is_wr &&
           |reg2hw.PERF_REGS.PERF_CNT_SEL[i].wr_biten.METRIC) begin
-        perf_metrics_d[i] = perf_metrics_e'(reg2hw.PERF_REGS.PERF_CNT_SEL[i].wr_data.METRIC);
+        perf_metrics_d[i] = snitch_cluster_peripheral_reg__PERF_METRIC_e'(
+          reg2hw.PERF_REGS.PERF_CNT_SEL[i].wr_data.METRIC);
       end
       // Set hart select.
       if (reg2hw.PERF_REGS.PERF_CNT_SEL[i].req &&

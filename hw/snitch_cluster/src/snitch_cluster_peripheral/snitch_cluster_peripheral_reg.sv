@@ -115,6 +115,7 @@ module snitch_cluster_peripheral_reg (
         logic CL_CLINT_SET;
         logic CL_CLINT_CLEAR;
         logic ICACHE_PREFETCH_ENABLE;
+        logic unused;
     } decoded_reg_strb_t;
     decoded_reg_strb_t decoded_reg_strb;
     logic decoded_strb_is_external;
@@ -146,6 +147,7 @@ module snitch_cluster_peripheral_reg (
         decoded_reg_strb.CL_CLINT_CLEAR = cpuif_req_masked & (cpuif_addr == 9'h1a8);
         is_external |= cpuif_req_masked & (cpuif_addr == 9'h1a8) & cpuif_req_is_wr;
         decoded_reg_strb.ICACHE_PREFETCH_ENABLE = cpuif_req_masked & (cpuif_addr == 9'h1b0);
+        decoded_reg_strb.unused = cpuif_req_masked & (cpuif_addr == 9'h1b8);
         decoded_strb_is_external = is_external;
         external_req = is_external;
     end
@@ -346,7 +348,7 @@ module snitch_cluster_peripheral_reg (
     logic [63:0] readback_data;
 
     // Assign readback values to a flattened array
-    logic [63:0] readback_array[52];
+    logic [63:0] readback_array[53];
     for(genvar i0=0; i0<16; i0++) begin
         assign readback_array[i0 * 1 + 0][0:0] = (decoded_reg_strb.PERF_REGS.PERF_CNT_EN[i0] && !decoded_req_is_wr) ? field_storage.PERF_REGS.PERF_CNT_EN[i0].ENABLE.value : '0;
         assign readback_array[i0 * 1 + 0][63:1] = '0;
@@ -361,6 +363,8 @@ module snitch_cluster_peripheral_reg (
         assign readback_array[i0 * 1 + 48][31:0] = (decoded_reg_strb.SCRATCH[i0] && !decoded_req_is_wr) ? field_storage.SCRATCH[i0].SCRATCH.value : '0;
         assign readback_array[i0 * 1 + 48][63:32] = '0;
     end
+    assign readback_array[52][4:0] = (decoded_reg_strb.unused && !decoded_req_is_wr) ? 5'h0 : '0;
+    assign readback_array[52][63:5] = '0;
 
     // Reduce the array
     always_comb begin
@@ -368,7 +372,7 @@ module snitch_cluster_peripheral_reg (
         readback_done = decoded_req & ~decoded_req_is_wr & ~decoded_strb_is_external;
         readback_err = '0;
         readback_data_var = '0;
-        for(int i=0; i<52; i++) readback_data_var |= readback_array[i];
+        for(int i=0; i<53; i++) readback_data_var |= readback_array[i];
         readback_data = readback_data_var;
     end
 

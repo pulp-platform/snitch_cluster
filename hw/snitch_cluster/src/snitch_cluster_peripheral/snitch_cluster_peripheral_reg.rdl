@@ -230,6 +230,14 @@ addrmap snitch_cluster_peripheral_reg #(
         } ICACHE_PREFETCH_ENABLE[0:0] = 1;
     };
 
+    reg unused {
+        desc = "Unused register added to print enum";
+        field {
+            sw=r; hw=na;
+            encode = PERF_METRIC;
+        } f[4:0] = 0;
+    };
+
     regfile PERF_REGS {
                  PERF_CNT_EN            PERF_CNT_EN[NumPerfCounters];
         external PERF_CNT_SEL           PERF_CNT_SEL[NumPerfCounters];
@@ -241,6 +249,7 @@ addrmap snitch_cluster_peripheral_reg #(
     external CL_CLINT_SET           CL_CLINT_SET;
     external CL_CLINT_CLEAR         CL_CLINT_CLEAR;
              ICACHE_PREFETCH_ENABLE ICACHE_PREFETCH_ENABLE;
+             unused                 unused;
 };
 
 `endif // __SNITCH_CLUSTER_PERIPHERAL_REG_RDL__

@@ -5,7 +5,7 @@ package snitch_cluster_peripheral_reg_pkg;
 
     localparam SNITCH_CLUSTER_PERIPHERAL_REG_DATA_WIDTH = 64;
     localparam SNITCH_CLUSTER_PERIPHERAL_REG_MIN_ADDR_WIDTH = 9;
-    localparam SNITCH_CLUSTER_PERIPHERAL_REG_SIZE = 'h1b8;
+    localparam SNITCH_CLUSTER_PERIPHERAL_REG_SIZE = 'h1c0;
 
     localparam NumPerfCounters = 'h10;
     localparam NumCtrlScratch = 'h4;
@@ -129,4 +129,38 @@ package snitch_cluster_peripheral_reg_pkg;
         snitch_cluster_peripheral_reg__CL_CLINT_CLEAR__external__out_t CL_CLINT_CLEAR;
         snitch_cluster_peripheral_reg__ICACHE_PREFETCH_ENABLE__out_t ICACHE_PREFETCH_ENABLE;
     } snitch_cluster_peripheral_reg__out_t;
+
+    typedef enum logic [4:0] {
+        snitch_cluster_peripheral_reg__PERF_METRIC__CYCLE = 'h0,
+        snitch_cluster_peripheral_reg__PERF_METRIC__TCDM_ACCESSED = 'h1,
+        snitch_cluster_peripheral_reg__PERF_METRIC__TCDM_CONGESTED = 'h2,
+        snitch_cluster_peripheral_reg__PERF_METRIC__ISSUE_FPU = 'h3,
+        snitch_cluster_peripheral_reg__PERF_METRIC__ISSUE_FPU_SEQ = 'h4,
+        snitch_cluster_peripheral_reg__PERF_METRIC__ISSUE_CORE_TO_FPU = 'h5,
+        snitch_cluster_peripheral_reg__PERF_METRIC__RETIRED_INSTR = 'h6,
+        snitch_cluster_peripheral_reg__PERF_METRIC__RETIRED_LOAD = 'h7,
+        snitch_cluster_peripheral_reg__PERF_METRIC__RETIRED_I = 'h8,
+        snitch_cluster_peripheral_reg__PERF_METRIC__RETIRED_ACC = 'h9,
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_AW_STALL = 'ha,
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_AR_STALL = 'hb,
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_R_STALL = 'hc,
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_W_STALL = 'hd,
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_BUF_W_STALL = 'he,
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_BUF_R_STALL = 'hf,
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_AW_DONE = 'h10,
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_AW_BW = 'h11,
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_AR_DONE = 'h12,
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_AR_BW = 'h13,
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_R_DONE = 'h14,
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_R_BW = 'h15,
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_W_DONE = 'h16,
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_W_BW = 'h17,
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_B_DONE = 'h18,
+        snitch_cluster_peripheral_reg__PERF_METRIC__DMA_BUSY = 'h19,
+        snitch_cluster_peripheral_reg__PERF_METRIC__ICACHE_MISS = 'h1a,
+        snitch_cluster_peripheral_reg__PERF_METRIC__ICACHE_HIT = 'h1b,
+        snitch_cluster_peripheral_reg__PERF_METRIC__ICACHE_PREFETCH = 'h1c,
+        snitch_cluster_peripheral_reg__PERF_METRIC__ICACHE_DOUBLE_HIT = 'h1d,
+        snitch_cluster_peripheral_reg__PERF_METRIC__ICACHE_STALL = 'h1e
+    } snitch_cluster_peripheral_reg__PERF_METRIC_e;
 endpackage
