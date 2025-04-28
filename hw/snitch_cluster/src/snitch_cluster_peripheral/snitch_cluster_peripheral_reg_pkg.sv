@@ -163,4 +163,13 @@ package snitch_cluster_peripheral_reg_pkg;
         snitch_cluster_peripheral_reg__PERF_METRIC__ICACHE_DOUBLE_HIT = 'h1d,
         snitch_cluster_peripheral_reg__PERF_METRIC__ICACHE_STALL = 'h1e
     } snitch_cluster_peripheral_reg__PERF_METRIC_e;
+
+    localparam bit [8:0] SNITCH_CLUSTER_PERIPHERAL_REG__PERF_REGS__PERF_CNT_EN__OFFSET = 9'h0;
+    localparam bit [8:0] SNITCH_CLUSTER_PERIPHERAL_REG__PERF_REGS__PERF_CNT_SEL__OFFSET = 9'h80;
+    localparam bit [8:0] SNITCH_CLUSTER_PERIPHERAL_REG__PERF_REGS__PERF_CNT__OFFSET = 9'h100;
+    localparam bit [8:0] SNITCH_CLUSTER_PERIPHERAL_REG__SCRATCH__OFFSET = 9'h180;
+    localparam bit [8:0] SNITCH_CLUSTER_PERIPHERAL_REG__CL_CLINT_SET__OFFSET = 9'h1a0;
+    localparam bit [8:0] SNITCH_CLUSTER_PERIPHERAL_REG__CL_CLINT_CLEAR__OFFSET = 9'h1a8;
+    localparam bit [8:0] SNITCH_CLUSTER_PERIPHERAL_REG__ICACHE_PREFETCH_ENABLE__OFFSET = 9'h1b0;
+    localparam bit [8:0] SNITCH_CLUSTER_PERIPHERAL_REG__UNUSED__OFFSET = 9'h1b8;
 endpackage

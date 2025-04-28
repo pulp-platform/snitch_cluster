@@ -35,6 +35,7 @@ dependencies = [
     "pandas",
     "peakrdl",
     "peakrdl-markdown",
+    "peakrdl-regblock@git+https://github.com/micprog/PeakRDL-regblock.git#egg=offset_params",
     "prettytable",
     "progressbar2",
     "psutil",

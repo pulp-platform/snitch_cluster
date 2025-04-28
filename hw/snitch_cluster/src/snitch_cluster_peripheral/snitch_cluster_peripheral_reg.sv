@@ -129,25 +129,25 @@ module snitch_cluster_peripheral_reg (
         automatic logic is_external;
         is_external = '0;
         for(int i0=0; i0<16; i0++) begin
-            decoded_reg_strb.PERF_REGS.PERF_CNT_EN[i0] = cpuif_req_masked & (cpuif_addr == 9'h0 + (9)'(i0) * 9'h8);
+            decoded_reg_strb.PERF_REGS.PERF_CNT_EN[i0] = cpuif_req_masked & (cpuif_addr == snitch_cluster_peripheral_reg_pkg::SNITCH_CLUSTER_PERIPHERAL_REG__PERF_REGS__PERF_CNT_EN__OFFSET + (9)'(i0) * 9'h8);
         end
         for(int i0=0; i0<16; i0++) begin
-            decoded_reg_strb.PERF_REGS.PERF_CNT_SEL[i0] = cpuif_req_masked & (cpuif_addr == 9'h80 + (9)'(i0) * 9'h8);
-            is_external |= cpuif_req_masked & (cpuif_addr == 9'h80 + (9)'(i0) * 9'h8);
+            decoded_reg_strb.PERF_REGS.PERF_CNT_SEL[i0] = cpuif_req_masked & (cpuif_addr == snitch_cluster_peripheral_reg_pkg::SNITCH_CLUSTER_PERIPHERAL_REG__PERF_REGS__PERF_CNT_SEL__OFFSET + (9)'(i0) * 9'h8);
+            is_external |= cpuif_req_masked & (cpuif_addr == snitch_cluster_peripheral_reg_pkg::SNITCH_CLUSTER_PERIPHERAL_REG__PERF_REGS__PERF_CNT_SEL__OFFSET + (9)'(i0) * 9'h8);
         end
         for(int i0=0; i0<16; i0++) begin
-            decoded_reg_strb.PERF_REGS.PERF_CNT[i0] = cpuif_req_masked & (cpuif_addr == 9'h100 + (9)'(i0) * 9'h8);
-            is_external |= cpuif_req_masked & (cpuif_addr == 9'h100 + (9)'(i0) * 9'h8);
+            decoded_reg_strb.PERF_REGS.PERF_CNT[i0] = cpuif_req_masked & (cpuif_addr == snitch_cluster_peripheral_reg_pkg::SNITCH_CLUSTER_PERIPHERAL_REG__PERF_REGS__PERF_CNT__OFFSET + (9)'(i0) * 9'h8);
+            is_external |= cpuif_req_masked & (cpuif_addr == snitch_cluster_peripheral_reg_pkg::SNITCH_CLUSTER_PERIPHERAL_REG__PERF_REGS__PERF_CNT__OFFSET + (9)'(i0) * 9'h8);
         end
         for(int i0=0; i0<4; i0++) begin
-            decoded_reg_strb.SCRATCH[i0] = cpuif_req_masked & (cpuif_addr == 9'h180 + (9)'(i0) * 9'h8);
+            decoded_reg_strb.SCRATCH[i0] = cpuif_req_masked & (cpuif_addr == snitch_cluster_peripheral_reg_pkg::SNITCH_CLUSTER_PERIPHERAL_REG__SCRATCH__OFFSET + (9)'(i0) * 9'h8);
         end
-        decoded_reg_strb.CL_CLINT_SET = cpuif_req_masked & (cpuif_addr == 9'h1a0);
-        is_external |= cpuif_req_masked & (cpuif_addr == 9'h1a0) & cpuif_req_is_wr;
-        decoded_reg_strb.CL_CLINT_CLEAR = cpuif_req_masked & (cpuif_addr == 9'h1a8);
-        is_external |= cpuif_req_masked & (cpuif_addr == 9'h1a8) & cpuif_req_is_wr;
-        decoded_reg_strb.ICACHE_PREFETCH_ENABLE = cpuif_req_masked & (cpuif_addr == 9'h1b0);
-        decoded_reg_strb.unused = cpuif_req_masked & (cpuif_addr == 9'h1b8);
+        decoded_reg_strb.CL_CLINT_SET = cpuif_req_masked & (cpuif_addr == snitch_cluster_peripheral_reg_pkg::SNITCH_CLUSTER_PERIPHERAL_REG__CL_CLINT_SET__OFFSET);
+        is_external |= cpuif_req_masked & (cpuif_addr == snitch_cluster_peripheral_reg_pkg::SNITCH_CLUSTER_PERIPHERAL_REG__CL_CLINT_SET__OFFSET) & cpuif_req_is_wr;
+        decoded_reg_strb.CL_CLINT_CLEAR = cpuif_req_masked & (cpuif_addr == snitch_cluster_peripheral_reg_pkg::SNITCH_CLUSTER_PERIPHERAL_REG__CL_CLINT_CLEAR__OFFSET);
+        is_external |= cpuif_req_masked & (cpuif_addr == snitch_cluster_peripheral_reg_pkg::SNITCH_CLUSTER_PERIPHERAL_REG__CL_CLINT_CLEAR__OFFSET) & cpuif_req_is_wr;
+        decoded_reg_strb.ICACHE_PREFETCH_ENABLE = cpuif_req_masked & (cpuif_addr == snitch_cluster_peripheral_reg_pkg::SNITCH_CLUSTER_PERIPHERAL_REG__ICACHE_PREFETCH_ENABLE__OFFSET);
+        decoded_reg_strb.unused = cpuif_req_masked & (cpuif_addr == snitch_cluster_peripheral_reg_pkg::SNITCH_CLUSTER_PERIPHERAL_REG__UNUSED__OFFSET);
         decoded_strb_is_external = is_external;
         external_req = is_external;
     end
