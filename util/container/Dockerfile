@@ -81,7 +81,11 @@ ARG VIRTUAL_ENV="/root/.venvs/snitch_cluster"
 RUN python${PYTHON_VERSION} -m venv ${VIRTUAL_ENV}
 
 # Upgrade pip and install packages using the virtual environment's pip
+# Don't cache pip files to avoid polluting the docker container
+# Install torch from the cpu only index to avoid installing the GPU versio
+ARG PIP_NO_CACHE_DIR=1
 RUN ${VIRTUAL_ENV}/bin/pip install --upgrade pip && \
+    ${VIRTUAL_ENV}/bin/pip install torch --index-url https://download.pytorch.org/whl/cpu && \
     ${VIRTUAL_ENV}/bin/pip install .
 
 # Copy the tools from the builder stage
