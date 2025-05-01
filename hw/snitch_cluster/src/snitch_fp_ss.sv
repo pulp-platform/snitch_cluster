@@ -50,6 +50,10 @@ module snitch_fp_ss import snitch_pkg::*; #(
   output acc_resp_t        acc_resp_o,
   output logic             acc_resp_valid_o,
   input  logic             acc_resp_ready_i,
+  // FP Queue output interface
+  input  logic [31:0]      fpq_pdata_i, // Data coming from int RF
+  input  logic             fpq_pvalid_i, // Whether queue is empty
+  output logic             fpq_pready_o, // Whether fpu is ready to receive (hence pop) the topmost entry
   // TCDM Data Interface for regular FP load/stores.
   output dreq_t            data_req_o,
   input  drsp_t            data_rsp_i,
@@ -77,6 +81,8 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // Notifies the issuing Snitch core of retired loads/stores.
   // TODO: is it good enough to assert this at issuing time instead?
   output logic             caq_pvalid_o,
+  // FP Queue CSR signal
+  input logic en_fpq_i,
   // Core event strobes
   output core_events_t core_events_o
 );
@@ -2478,12 +2484,18 @@ module snitch_fp_ss import snitch_pkg::*; #(
     endcase
   end
 
+  logic [2:0] rs_is_fpq;
+  assign fpq_pready_o = rs_is_fpq[2] | rs_is_fpq[1] | rs_is_fpq[0] ; // If we expect to read from queue, we send ready signal to queue
+
   for (genvar i = 0; i < 3; i++) begin: gen_operand_select
     logic is_raddr_ssr;
     always_comb begin
       is_raddr_ssr = 1'b0;
       for (int s = 0; s < NumSsrs; s++)
         is_raddr_ssr |= (SsrRegs[s] == fpr_raddr[i]);
+    end
+    always_comb begin
+      rs_is_fpq[i] = op_select[i]==AccBus ? en_fpq_i : 0; // read from fpq if csr is enabled and we are reading from int RF
     end
     always_comb begin
       ssr_rvalid_o[i] = 1'b0;
@@ -2493,8 +2505,9 @@ module snitch_fp_ss import snitch_pkg::*; #(
           op_ready[i] = 1'b1;
         end
         AccBus: begin
-          op[i] = acc_qdata[i];
-          op_ready[i] = acc_req_valid_q;
+          op[i] = (rs_is_fpq[i] & fpq_pvalid_i)? { {(FLEN-32){fpq_pdata_i[31]}}, fpq_pdata_i[31:0] } : acc_qdata[i];
+          op_ready[i] = (acc_req_valid_q & ~rs_is_fpq[i]) // If we are NOT reading from fpq, check if acc is valid
+                        | (rs_is_fpq[i] & fpq_pvalid_i);  // If we ARE reading from fpq, check if fpq is valid
         end
         // Scoreboard or SSR
         RegA, RegB, RegBRep, RegC, RegDest: begin
