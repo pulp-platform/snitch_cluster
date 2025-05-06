@@ -2220,6 +2220,16 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           illegal_inst = 1'b1;
         end
       end
+      DMMCAST: begin
+        if (Xdma) begin
+          acc_qreq_o.addr = DMA_SS;
+          opa_select      = Reg;
+          acc_qvalid_o    = valid_instr;
+          write_rd        = 1'b0;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
       SCFGRI: begin
         if (Xssr) begin
           write_rd = 1'b0;
