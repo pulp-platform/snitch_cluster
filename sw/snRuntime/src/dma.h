@@ -18,6 +18,7 @@
 #define DMSTAT_FUNCT7 0b0000101
 #define DMSTR_FUNCT7 0b0000110
 #define DMREP_FUNCT7 0b0000111
+#define DMMCAST_FUNCT7 0b0001000
 
 /// A DMA transfer identifier.
 typedef uint32_t snrt_dma_txid_t;
@@ -59,6 +60,48 @@ inline uint32_t snrt_dma_start_1d_wideptr(uint64_t dst, uint64_t src,
 }
 
 /**
+ * @brief Start an asynchronous multicast 1D DMA transfer with 64-bit wide pointers.
+ * @param dst The destination address.
+ * @param src The source address.
+ * @param size The size of the transfer in bytes.
+ * @return The DMA transfer ID.
+ */
+inline uint32_t snrt_dma_start_1d_mcast_wideptr(uint64_t dst, uint64_t src,
+                                                size_t size, uint32_t mcast) {
+    register uint32_t reg_dst_low asm("a0") = dst >> 0;    // 10
+    register uint32_t reg_dst_high asm("a1") = dst >> 32;  // 11
+    register uint32_t reg_src_low asm("a2") = src >> 0;    // 12
+    register uint32_t reg_src_high asm("a3") = src >> 32;  // 13
+    register uint32_t reg_size asm("a4") = size;           // 14
+    register uint32_t reg_mcast asm("a5") = mcast;         // 15
+
+    // dmmcast a5
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMMCAST_FUNCT7, 0b00000, 15,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_mcast));
+
+    // dmsrc a2, a3
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMSRC_FUNCT7, 13, 12,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_src_high), "r"(reg_src_low));
+
+    // dmdst a0, a1
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMDST_FUNCT7, 11, 10,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_dst_high), "r"(reg_dst_low));
+
+    // dmcpyi a0, a4, 0b00
+    register uint32_t reg_txid asm("a0");  // 10
+    asm volatile(".word %1\n"
+                 : "=r"(reg_txid)
+                 : "i"(R_TYPE_ENCODE(DMCPYI_FUNCT7, 0b00000, 14, XDMA_FUNCT3,
+                                     10, OP_CUSTOM1)),
+                   "r"(reg_size));
+
+    return reg_txid;
+}
+
+/**
  * @brief Start an asynchronous 1D DMA transfer with native-size pointers.
  * @param dst The destination pointer.
  * @param src The source pointer.
@@ -68,6 +111,18 @@ inline uint32_t snrt_dma_start_1d_wideptr(uint64_t dst, uint64_t src,
 inline snrt_dma_txid_t snrt_dma_start_1d(void *dst, const void *src,
                                          size_t size) {
     return snrt_dma_start_1d_wideptr((size_t)dst, (size_t)src, size);
+}
+
+/**
+ * @brief Start an asynchronous multicast 1D DMA transfer with native-size pointers.
+ * @param dst The destination pointer.
+ * @param src The source pointer.
+ * @param size The size of the transfer in bytes.
+ * @return The DMA transfer ID.
+ */
+inline snrt_dma_txid_t snrt_dma_start_1d_mcast(void *dst, const void *src,
+                                               size_t size, uint32_t mcast) {
+    return snrt_dma_start_1d_mcast_wideptr((size_t)dst, (size_t)src, size, mcast);
 }
 
 /**
