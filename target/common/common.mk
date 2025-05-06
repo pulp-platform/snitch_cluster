@@ -182,11 +182,11 @@ $(VLT_BUILDDIR)/lib/libfesvr.a: $(VLT_FESVR)/${FESVR_VERSION}_unzip
 # Util #
 ########
 
-# Common rule to generate C header with REGGEN
+# Common rule to generate C header with peakRDL
 # $1: target name, $2: prerequisite (hjson description file)
-define reggen_generate_header
-	@echo "[REGGEN] Generating $1"
-	@$(REGGEN) -D -o $1 $2
+define peakrdl_generate_header
+	@echo "[peakRDL] Generating $1"
+	peakrdl c-header -b htol $2 -o $1
 	@$(CLANG_FORMAT) -i $1
 endef
 

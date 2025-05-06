@@ -36,7 +36,6 @@ include $(ROOT)/target/common/common.mk
 # Programs #
 ############
 
-REGGEN          ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
 CLUSTER_GEN     ?= $(ROOT)/util/clustergen.py
 BOOTROM_GEN     ?= $(ROOT)/util/gen_bootrom.py
 CLUSTER_GEN_SRC ?= $(wildcard $(ROOT)/util/clustergen/*.py)
@@ -145,7 +144,7 @@ include $(ROOT)/target/snitch_cluster/sw.mk
 # RTL #
 #######
 
-GENERATED_RTL_SOURCES  = $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv
+GENERATED_RTL_SOURCES  = $(PERIPH_DIR)/snitch_cluster_peripheral_reg.sv
 GENERATED_RTL_SOURCES += $(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv
 GENERATED_RTL_SOURCES += $(GENERATED_DIR)/snitch_cluster_wrapper.sv
 GENERATED_RTL_SOURCES += $(GENERATED_DIR)/snitch_cluster_pkg.sv
@@ -165,18 +164,20 @@ CLUSTER_WRAPPER_TPL = $(ROOT)/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tp
 CLUSTER_PKG_TPL     = $(ROOT)/hw/snitch_cluster/src/snitch_cluster_pkg.sv.tpl
 LINK_LD_TPL         = $(ROOT)/hw/snitch_cluster/test/link.ld.tpl
 BOOTDATA_TPL        = $(ROOT)/hw/snitch_cluster/test/bootdata.cc.tpl
+RDL_TPL			    = $(ROOT)/hw/snitch_cluster/src/snitch_cluster_wrapper.rdl.tpl
 
 # OCCAMYGEN artifacts
 $(eval $(call cluster_gen_rule,$(GENERATED_DIR)/snitch_cluster_wrapper.sv,$(CLUSTER_WRAPPER_TPL)))
 $(eval $(call cluster_gen_rule,$(GENERATED_DIR)/snitch_cluster_pkg.sv,$(CLUSTER_PKG_TPL)))
 $(eval $(call cluster_gen_rule,$(GENERATED_DIR)/link.ld,$(LINK_LD_TPL)))
 $(eval $(call cluster_gen_rule,$(GENERATED_DIR)/bootdata.cc,$(BOOTDATA_TPL)))
+$(eval $(call cluster_gen_rule,$(GENERATED_DIR)/snitch_cluster_wrapper.rdl,$(RDL_TPL)))
 
-# REGGEN regfile
-$(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv
-$(PERIPH_DIR)/snitch_cluster_peripheral_reg_top.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg.hjson
-	@echo "[REGGEN] Generating peripheral regfile"
-	$(REGGEN) -r -t $(PERIPH_DIR) $<
+# peakRDL regfile
+$(PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg.sv
+$(PERIPH_DIR)/snitch_cluster_peripheral_reg.sv: $(PERIPH_DIR)/snitch_cluster_peripheral_reg.rdl
+	@echo "[peakRDL] Generating peripheral regfile"
+	peakrdl regblock $< -o $(PERIPH_DIR) --cpuif apb4-flat --default-reset arst_n
 
 # Bootrom
 .PHONY: bootrom

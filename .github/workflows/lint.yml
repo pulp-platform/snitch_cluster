@@ -67,6 +67,9 @@ jobs:
           match_regex: true
           exclude_paths: |
             sw/snRuntime/src/omp/interface.h
+            hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv
+            hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.sv
+            hw/snitch_cluster/src/snitch_cluster_wrapper.rdl.tpl
 
   ##################
   # Lint YML Files #
