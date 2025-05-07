@@ -75,6 +75,7 @@ APPS += sw/apps/log
 APPS += sw/apps/kbpcpa
 APPS += sw/apps/box3d1r
 APPS += sw/apps/j3d27pt
+APPS += sw/apps/redmule
 
 # Include Makefile from each app subdirectory
 $(foreach app,$(APPS), \
