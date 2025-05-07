@@ -129,6 +129,7 @@ module mem_wide_narrow_mux #(
   logic [NrPorts-1:0] q_valid_flat;
   logic [NrPorts-1:0][NarrowDataWidth-1:0] q_data;
   logic [NrPorts-1:0][NarrowStrbWidth-1:0] q_strb;
+  // verilog_lint: waive-start line-length
   `ASSERT(ImmediateGrantWide, in_wide_req_i.q_valid |-> in_wide_rsp_o.q_ready)
   for (genvar i = 0; i < NrPorts; i++) begin : gen_per_port
     assign q_valid_flat[i] = out_req_o[i].q_valid;
@@ -144,6 +145,7 @@ module mem_wide_narrow_mux #(
   `ASSERT(DMAWriteDataCorrect,
     in_wide_req_i.q_valid & in_wide_rsp_o.q_ready |->
     (in_wide_req_i.q.data == q_data) && (in_wide_req_i.q.strb == q_strb))
+  // verilog_lint: waive-stop line-length
 
 endmodule
 

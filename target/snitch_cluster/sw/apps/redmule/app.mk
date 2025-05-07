@@ -1,3 +1,9 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Andrea Belano <andrea.belano2@unibo.it>
+
 APP              := redmule
 $(APP)_BUILD_DIR := $(ROOT)/target/snitch_cluster/sw/apps/$(APP)/build
 SRCS             := $(ROOT)/target/snitch_cluster/sw/apps/$(APP)/src/$(APP).c
