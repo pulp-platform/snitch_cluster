@@ -98,6 +98,11 @@ inline uint32_t snrt_dma_start_1d_mcast_wideptr(uint64_t dst, uint64_t src,
                                      10, OP_CUSTOM1)),
                    "r"(reg_size));
 
+    // Reset dmmcast or next transfers will inherit this setting
+    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMMCAST_FUNCT7, 0b00000, 0,
+                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
+                 "r"(reg_mcast));
+
     return reg_txid;
 }
 
@@ -471,6 +476,22 @@ inline snrt_dma_txid_t snrt_dma_load_1d_tile(void *dst, void *src,
     size_t tile_nbytes = tile_size * prec;
     return snrt_dma_start_1d(dst, ((uint8_t *)src) + tile_idx * tile_nbytes,
                              tile_nbytes);
+}
+
+/**
+ * @brief Load a tile of a 1D array.
+ * @param dst Pointer to the tile destination.
+ * @param src Pointer to the source array.
+ * @param tile_idx Index of the tile in the 1D array.
+ * @param tile_size Number of elements within a tile of the 1D array.
+ * @param prec Number of bytes of each element in the 1D array.
+ * @param mcast Multicast mask applied on the destination address.
+ */
+inline snrt_dma_txid_t snrt_dma_mcast_load_1d_tile(void *dst, void *src,
+                                             size_t tile_idx, size_t tile_size,
+                                             uint32_t prec, uint32_t mcast) {
+    size_t tile_nbytes = tile_size * prec;
+    return snrt_dma_start_1d_mcast(dst, src + tile_idx * tile_nbytes, tile_nbytes, mcast);
 }
 
 /**
