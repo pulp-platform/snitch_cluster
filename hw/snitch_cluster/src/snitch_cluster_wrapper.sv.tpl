@@ -68,6 +68,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .WideIdWidthIn (${cfg['cluster']['name']}_pkg::WideIdWidthIn),
     .NarrowUserWidth (${cfg['cluster']['name']}_pkg::NarrowUserWidth),
     .WideUserWidth (${cfg['cluster']['name']}_pkg::WideUserWidth),
+    .AtomicIdWidth (${cfg['cluster']['name']}_pkg::AtomicIdWidth),
     .BootAddr (${to_sv_hex(cfg['cluster']['boot_addr'], 32)}),
     .IntBootromEnable (${int(cfg['cluster']['int_bootrom_enable'])}),
     .narrow_in_req_t (${cfg['cluster']['name']}_pkg::narrow_in_req_t),
