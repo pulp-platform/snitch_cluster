@@ -78,6 +78,7 @@ SNRT_APPS += sw/apps/log
 SNRT_APPS += sw/apps/kbpcpa
 SNRT_APPS += sw/apps/box3d1r
 SNRT_APPS += sw/apps/j3d27pt
+SNRT_APPS += sw/apps/redmule
 
 # Include Makefile from each app subdirectory
 $(foreach app,$(SNRT_APPS), \

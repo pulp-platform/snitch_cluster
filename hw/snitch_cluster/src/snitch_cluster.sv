@@ -57,6 +57,12 @@ module snitch_cluster
   /// as cores. If SSRs are enabled, we recommend 4 times the the number of
   /// banks.
   parameter int unsigned NrBanks            = NrCores,
+   // address width of the HWPE ctrl port
+  parameter int unsigned HwpeCtrlAddrWidth  = 32,
+  // data width of the HWPE ctrl port
+  parameter int unsigned HwpeCtrlDataWidth  = 32,
+  // data width of the HWPE data port
+  parameter int unsigned HwpeDataWidth      = WideDataWidth,
   /// Size of DMA AXI buffer.
   parameter int unsigned DMANumAxInFlight   = 3,
   /// Size of DMA request fifo.
@@ -280,7 +286,7 @@ module snitch_cluster
   localparam int unsigned NrNarrowMasters = 3;
   localparam int unsigned NarrowIdWidthOut = $clog2(NrNarrowMasters) + NarrowIdWidthIn;
 
-  localparam int unsigned NrSlaves = 3;
+  localparam int unsigned NrSlaves = 4;
   localparam int unsigned NrRuleIdcs = NrSlaves - 1;
   localparam int unsigned NrRules = (1 + AliasRegionEnable) * NrRuleIdcs;
 
@@ -350,6 +356,8 @@ module snitch_cluster
   typedef logic [NarrowDataWidth/8-1:0] strb_t;
   typedef logic [WideDataWidth-1:0]     data_dma_t;
   typedef logic [WideDataWidth/8-1:0]   strb_dma_t;
+  typedef logic [WideDataWidth-1:0]     data_hwpe_t;
+  typedef logic [WideDataWidth/8-1:0]   strb_hwpe_t;
   typedef logic [NarrowIdWidthIn-1:0]   id_mst_t;
   typedef logic [NarrowIdWidthOut-1:0]  id_slv_t;
   typedef logic [WideIdWidthIn-1:0]     id_dma_mst_t;
@@ -359,6 +367,10 @@ module snitch_cluster
 
   typedef logic [TCDMMemAddrWidth-1:0]  tcdm_mem_addr_t;
   typedef logic [TCDMAddrWidth-1:0]     tcdm_addr_t;
+
+  typedef logic [HwpeCtrlAddrWidth-1:0]   addr_hwpe_ctrl_t;
+  typedef logic [HwpeCtrlDataWidth-1:0]   data_hwpe_ctrl_t;
+  typedef logic [HwpeCtrlDataWidth/8-1:0] strb_hwpe_ctrl_t;
 
   typedef struct packed {
     logic [CoreIDWidth-1:0] core_id;
@@ -370,14 +382,18 @@ module snitch_cluster
   `AXI_TYPEDEF_ALL(axi_slv, addr_t, id_slv_t, data_t, strb_t, user_t)
   `AXI_TYPEDEF_ALL(axi_mst_dma, addr_t, id_dma_mst_t, data_dma_t, strb_dma_t, user_dma_t)
   `AXI_TYPEDEF_ALL(axi_slv_dma, addr_t, id_dma_slv_t, data_dma_t, strb_dma_t, user_dma_t)
+  `AXI_TYPEDEF_ALL(axi_hwpe_mst, addr_hwpe_ctrl_t, id_slv_t, data_hwpe_ctrl_t, strb_hwpe_ctrl_t, user_t)
 
   `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t)
 
   `MEM_TYPEDEF_ALL(mem, tcdm_mem_addr_t, data_t, strb_t, tcdm_user_t)
   `MEM_TYPEDEF_ALL(mem_dma, tcdm_mem_addr_t, data_dma_t, strb_dma_t, logic)
+  `MEM_TYPEDEF_ALL(mem_hwpe, tcdm_mem_addr_t, data_hwpe_t, strb_hwpe_t, logic)
 
   `TCDM_TYPEDEF_ALL(tcdm, tcdm_addr_t, data_t, strb_t, tcdm_user_t)
   `TCDM_TYPEDEF_ALL(tcdm_dma, tcdm_addr_t, data_dma_t, strb_dma_t, logic)
+  `TCDM_TYPEDEF_ALL(tcdm_hwpe, tcdm_addr_t, data_hwpe_t, strb_hwpe_t, logic)
+  `TCDM_TYPEDEF_ALL(hwpectrl, addr_hwpe_ctrl_t, data_hwpe_ctrl_t, strb_hwpe_ctrl_t, logic)
 
   `REG_BUS_TYPEDEF_REQ(reg_req_t, addr_t, data_t, strb_t)
   `REG_BUS_TYPEDEF_RSP(reg_rsp_t, data_t)
@@ -480,6 +496,10 @@ module snitch_cluster
   assign zero_mem_start_address = cluster_periph_end_address;
   assign zero_mem_end_address   = cluster_periph_end_address + ZeroMemorySize * 1024;
 
+  addr_t hwpe_mem_start_address, hwpe_mem_end_address;
+  assign hwpe_mem_start_address = zero_mem_end_address;
+  assign hwpe_mem_end_address   = hwpe_mem_start_address + 'h100;
+
   localparam addr_t TCDMAliasStart = AliasRegionBase & TCDMMask;
   localparam addr_t TCDMAliasEnd   = (TCDMAliasStart + TCDMSize) & TCDMMask;
 
@@ -492,6 +512,9 @@ module snitch_cluster
   localparam addr_t ZeroMemAliasStart = PeriphAliasEnd;
   localparam addr_t ZeroMemAliasEnd   = PeriphAliasEnd + ZeroMemorySize * 1024;
 
+  localparam addr_t HWPEAliasStart = ZeroMemAliasEnd;
+  localparam addr_t HWPEAliasEnd   = HWPEAliasStart + 'h100;
+
   // ----------------
   // Wire Definitions
   // ----------------
@@ -501,6 +524,11 @@ module snitch_cluster
 
   axi_mst_req_t  [NrNarrowMasters-1:0] narrow_axi_mst_req;
   axi_mst_resp_t [NrNarrowMasters-1:0] narrow_axi_mst_rsp;
+
+  axi_hwpe_mst_req_t  axi_hwpe_mst_req;
+  axi_hwpe_mst_resp_t axi_hwpe_mst_rsp;
+  axi_hwpe_mst_req_t  axi_hwpe_cut_mst_req;
+  axi_hwpe_mst_resp_t axi_hwpe_cut_mst_rsp;
 
   // DMA AXI buses
   axi_mst_dma_req_t  [NrWideMasters-1:0] wide_axi_mst_req;
@@ -515,9 +543,15 @@ module snitch_cluster
   mem_dma_req_t [NrSuperBanks-1:0] sb_dma_req;
   mem_dma_rsp_t [NrSuperBanks-1:0] sb_dma_rsp;
 
+  mem_hwpe_req_t [NrSuperBanks-1:0] sb_hwpe_req;
+  mem_hwpe_rsp_t [NrSuperBanks-1:0] sb_hwpe_rsp;
+
   // 3. Memory Subsystem (Interconnect)
   tcdm_dma_req_t ext_dma_req;
   tcdm_dma_rsp_t ext_dma_rsp;
+
+  tcdm_hwpe_req_t tcdm_hwpe_req;
+  tcdm_hwpe_rsp_t tcdm_hwpe_rsp;
 
   // AXI Ports into TCDM (from SoC).
   tcdm_req_t axi_soc_req;
@@ -541,7 +575,14 @@ module snitch_cluster
   reg_req_t reg_req;
   reg_rsp_t reg_rsp;
 
-  // 5. Misc. Wires.
+  // 6. HWPE Control & Events
+  hwpectrl_req_t hwpe_ctrl_req;
+  hwpectrl_rsp_t hwpe_ctrl_rsp;
+
+  logic [NrCores-1:0][1:0] hwpe_evt;
+  logic hwpe_busy;
+
+  // 7. Misc. Wires.
   logic icache_prefetch_enable;
   logic [NrCores-1:0] cl_interrupt;
   logic [NrCores-1:0] barrier_in;
@@ -713,6 +754,26 @@ module snitch_cluster
     .mem_rsp_i (sb_dma_rsp)
   );
 
+  snitch_tcdm_interconnect #(
+    .NumInp (1),
+    .NumOut (NrSuperBanks),
+    .tcdm_req_t (tcdm_hwpe_req_t),
+    .tcdm_rsp_t (tcdm_hwpe_rsp_t),
+    .mem_req_t (mem_hwpe_req_t),
+    .mem_rsp_t (mem_hwpe_rsp_t),
+    .user_t (logic),
+    .MemAddrWidth (TCDMMemAddrWidth),
+    .DataWidth (HwpeDataWidth),
+    .MemoryResponseLatency (MemoryMacroLatency)
+  ) i_hwpe_interconnect (
+    .clk_i,
+    .rst_ni,
+    .req_i (tcdm_hwpe_req),
+    .rsp_o (tcdm_hwpe_rsp),
+    .mem_req_o (sb_hwpe_req),
+    .mem_rsp_i (sb_hwpe_rsp)
+  );
+
   // ----------------
   // Memory Subsystem
   // ----------------
@@ -727,7 +788,9 @@ module snitch_cluster
       .mem_narrow_req_t (mem_req_t),
       .mem_narrow_rsp_t (mem_rsp_t),
       .mem_wide_req_t (mem_dma_req_t),
-      .mem_wide_rsp_t (mem_dma_rsp_t)
+      .mem_wide_rsp_t (mem_dma_rsp_t),
+      .mem_hwpe_req_t (mem_hwpe_req_t),
+      .mem_hwpe_rsp_t (mem_hwpe_rsp_t)
     ) i_tcdm_mux (
       .clk_i,
       .rst_ni,
@@ -735,9 +798,10 @@ module snitch_cluster
       .in_narrow_rsp_o (ic_rsp [i]),
       .in_wide_req_i (sb_dma_req [i]),
       .in_wide_rsp_o (sb_dma_rsp [i]),
+      .in_hwpe_req_i (sb_hwpe_req [i]),
+      .in_hwpe_rsp_o (sb_hwpe_rsp [i]),
       .out_req_o (amo_req),
-      .out_rsp_i (amo_rsp),
-      .sel_wide_i (sb_dma_req[i].q_valid)
+      .out_rsp_i (amo_rsp)
     );
 
     // generate banks of the superbank
@@ -1139,6 +1203,11 @@ module snitch_cluster
       idx:        ClusterPeripherals,
       start_addr: cluster_periph_start_address,
       end_addr:   cluster_periph_end_address
+    },
+    '{
+      idx:        HWPE,
+      start_addr: hwpe_mem_start_address,
+      end_addr:   hwpe_mem_end_address
     }
   };
   if (AliasRegionEnable) begin : gen_cluster_xbar_alias
@@ -1152,6 +1221,11 @@ module snitch_cluster
         idx:        ClusterPeripherals,
         start_addr: PeriphAliasStart,
         end_addr:   PeriphAliasEnd
+      },
+      '{
+        idx:        HWPE,
+        start_addr: HWPEAliasStart,
+        end_addr:   HWPEAliasEnd
       }
     };
   end
@@ -1315,6 +1389,94 @@ module snitch_cluster
     .tcdm_events_i (tcdm_events),
     .dma_events_i (dma_events),
     .icache_events_i (icache_events)
+  );
+
+  // 3. Hardware Processing Engine
+
+  // Convert the narrow branch data width to the one used by the HWPE control protocol (32)
+  axi_dw_converter #(
+    .AxiMaxReads         ( 1                     ),
+    .AxiSlvPortDataWidth ( NarrowDataWidth       ),
+    .AxiMstPortDataWidth ( HwpeCtrlDataWidth     ),
+    .AxiAddrWidth        ( PhysicalAddrWidth     ),
+    .AxiIdWidth          ( NarrowIdWidthOut      ),
+    .aw_chan_t           ( axi_slv_aw_chan_t     ),
+    .mst_w_chan_t        ( axi_hwpe_mst_w_chan_t ),
+    .slv_w_chan_t        ( axi_slv_w_chan_t      ),
+    .b_chan_t            ( axi_slv_b_chan_t      ),
+    .ar_chan_t           ( axi_slv_ar_chan_t     ),
+    .mst_r_chan_t        ( axi_hwpe_mst_r_chan_t ),
+    .slv_r_chan_t        ( axi_slv_r_chan_t      ),
+    .axi_mst_req_t       ( axi_hwpe_mst_req_t    ),
+    .axi_mst_resp_t      ( axi_hwpe_mst_resp_t   ),
+    .axi_slv_req_t       ( axi_slv_req_t         ),
+    .axi_slv_resp_t      ( axi_slv_resp_t        )
+  ) i_axi_dw_hwpe (
+    .clk_i      ( clk_i                    ),
+    .rst_ni     ( rst_ni                   ),
+    .slv_req_i  ( narrow_axi_slv_req[HWPE] ),
+    .slv_resp_o ( narrow_axi_slv_rsp[HWPE] ),
+    .mst_req_o  ( axi_hwpe_mst_req         ),
+    .mst_resp_i ( axi_hwpe_mst_rsp         )
+  );
+
+  // Decouple the AXI master ports of HWPE
+  axi_cut #(
+    .Bypass     ( 1'b0                   ),
+    .aw_chan_t  ( axi_hwpe_mst_aw_chan_t ),
+    .w_chan_t   ( axi_hwpe_mst_w_chan_t  ),
+    .b_chan_t   ( axi_hwpe_mst_b_chan_t  ),
+    .ar_chan_t  ( axi_hwpe_mst_ar_chan_t ),
+    .r_chan_t   ( axi_hwpe_mst_r_chan_t  ),
+    .axi_req_t  ( axi_hwpe_mst_req_t     ),
+    .axi_resp_t ( axi_hwpe_mst_resp_t    )
+  ) i_axi_cut_hwpe_mst (
+    .clk_i      ( clk_i                ),
+    .rst_ni     ( rst_ni               ),
+    .slv_req_i  ( axi_hwpe_mst_req     ),
+    .slv_resp_o ( axi_hwpe_mst_rsp     ),
+    .mst_req_o  ( axi_hwpe_cut_mst_req ),
+    .mst_resp_i ( axi_hwpe_cut_mst_rsp )
+  );
+
+  // Convert the AXI protocol to the request/grant protocol used by the control interface
+  axi_to_tcdm #(
+    .axi_req_t  ( axi_hwpe_mst_req_t  ),
+    .axi_rsp_t  ( axi_hwpe_mst_resp_t ),
+    .tcdm_req_t ( hwpectrl_req_t      ),
+    .tcdm_rsp_t ( hwpectrl_rsp_t      ),
+    .IdWidth    ( NarrowIdWidthOut    ),
+    .AddrWidth  ( HwpeCtrlAddrWidth   ),
+    .DataWidth  ( HwpeCtrlDataWidth   )
+  ) i_axi_to_hwpe_ctrl (
+    .clk_i      ( clk_i                ),
+    .rst_ni     ( rst_ni               ),
+    .axi_req_i  ( axi_hwpe_cut_mst_req ),
+    .axi_rsp_o  ( axi_hwpe_cut_mst_rsp ),
+    .tcdm_req_o ( hwpe_ctrl_req        ),
+    .tcdm_rsp_i ( hwpe_ctrl_rsp        )
+  );
+
+  snitch_hwpe_subsystem #(
+    .tcdm_req_t     ( tcdm_hwpe_req_t ),
+    .tcdm_rsp_t     ( tcdm_hwpe_rsp_t ),
+    .periph_req_t   ( hwpectrl_req_t  ),
+    .periph_rsp_t   ( hwpectrl_rsp_t  ),
+    .HwpeDataWidth  ( HwpeDataWidth   ),
+    .IdWidth        ( 8               ),
+    .NrCores        ( NrCores         ),
+    .TCDMDataWidth  ( NarrowDataWidth )
+  ) i_snitch_hwpe_subsystem (
+    .clk_i           ( clk_i         ),
+    .rst_ni          ( rst_ni        ),
+    .test_mode_i     ( 1'b0          ),
+    .tcdm_req_o      ( tcdm_hwpe_req ),
+    .tcdm_rsp_i      ( tcdm_hwpe_rsp ),
+    .hwpe_ctrl_req_i ( hwpe_ctrl_req ),
+    .hwpe_ctrl_rsp_o ( hwpe_ctrl_rsp )
+    // FIXME
+    //.hwpe_evt_o (hwpe_evt),
+    //.hwpe_busy_o (hwpe_busy)
   );
 
   // Optionally decouple the external narrow AXI master ports.
