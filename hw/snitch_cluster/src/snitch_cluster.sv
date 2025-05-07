@@ -1151,7 +1151,8 @@ module snitch_cluster
   user_t cluster_user;
   // Atomic ID, needs to be unique ID of cluster
   // cluster_id + HartIdOffset + 1 (because 0 is for non-atomic masters)
-  assign cluster_user = (core_to_axi_req.q.mask << AtomicIdWidth) | ((hart_base_id_i / NrCores) +  (hart_base_id_i % NrCores) + 1'b1);
+  assign cluster_user = (core_to_axi_req.q.mask << AtomicIdWidth) |
+                        ((hart_base_id_i / NrCores) +  (hart_base_id_i % NrCores) + 1'b1);
 
   reqrsp_mux #(
     .NrPorts (NrCores),
