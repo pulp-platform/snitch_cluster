@@ -58,6 +58,7 @@ package ${cfg['cluster']['name']}_pkg;
 
   localparam int unsigned NarrowUserWidth = ${cfg['cluster']['user_width']};
   localparam int unsigned WideUserWidth = ${cfg['cluster']['dma_user_width']};
+  localparam int unsigned AtomicIdWidth = ${cfg['cluster']['atomic_id_width']};
 
   localparam int unsigned ICacheLineWidth [NrHives] = '{${icache_cfg('cacheline')}};
   localparam int unsigned ICacheLineCount [NrHives] = '{${icache_cfg('depth')}};

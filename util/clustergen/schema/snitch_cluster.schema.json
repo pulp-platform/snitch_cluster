@@ -153,6 +153,11 @@
                     "description": "User width of the wide AXI plug into the cluster.",
                     "default": 1
                 },
+                "atomic_id_width": {
+                    "type": "number",
+                    "description": "Width of the cluster's atomics ID.",
+                    "default": 1
+                },  
                 "enable_multicast": {
                     "type": "boolean",
                     "description": "Whether to enable the mutlicast feature into the cluster",

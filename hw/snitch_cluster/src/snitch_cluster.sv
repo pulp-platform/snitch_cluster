@@ -38,6 +38,8 @@ module snitch_cluster
   parameter int unsigned NarrowUserWidth    = 1,
   /// AXI: dma user width.
   parameter int unsigned WideUserWidth      = 1,
+  /// Width of the atomic ID to be used in a system.
+  parameter int unsigned AtomicIdWidth      = 1,
   /// Boot Address from which to fetch the first instructions.
   /// Used if `AliasRegionEnable` or `IntBootromEnable` is not set.
   parameter logic [31:0] BootAddr           = 32'h0,
@@ -1149,7 +1151,7 @@ module snitch_cluster
   user_t cluster_user;
   // Atomic ID, needs to be unique ID of cluster
   // cluster_id + HartIdOffset + 1 (because 0 is for non-atomic masters)
-  assign cluster_user = (hart_base_id_i / NrCores) +  (hart_base_id_i % NrCores) + 1'b1;
+  assign cluster_user = (core_to_axi_req.q.mask << AtomicIdWidth) | ((hart_base_id_i / NrCores) +  (hart_base_id_i % NrCores) + 1'b1);
 
   reqrsp_mux #(
     .NrPorts (NrCores),
