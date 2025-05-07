@@ -669,7 +669,7 @@ module snitch_cluster
       .slv_ports_resp_o (wide_axi_mst_rsp),
       .mst_ports_req_o (wide_axi_slv_req),
       .mst_ports_resp_i (wide_axi_slv_rsp),
-      .addr_map_i (dma_xbar_rule),
+      .addr_map_i (enabled_dma_xbar_rule),
       .en_default_mst_port_i (DMAEnableDefaultMstPort),
       .default_mst_port_i ({DmaXbarCfg.NoSlvPorts{dma_xbar_default_port}})
     );
@@ -699,7 +699,7 @@ module snitch_cluster
       .slv_ports_resp_o (wide_axi_mst_rsp),
       .mst_ports_req_o (wide_axi_slv_req),
       .mst_ports_resp_i (wide_axi_slv_rsp),
-      .addr_map_i (dma_xbar_rule),
+      .addr_map_i (enabled_dma_xbar_rule),
       .en_default_mst_port_i (DMAEnableDefaultMstPort),
       .default_mst_port_i ('{default: dma_xbar_default_port.idx})
     );
