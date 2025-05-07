@@ -382,7 +382,9 @@ module snitch_cluster
   `AXI_TYPEDEF_ALL(axi_slv, addr_t, id_slv_t, data_t, strb_t, user_t)
   `AXI_TYPEDEF_ALL(axi_mst_dma, addr_t, id_dma_mst_t, data_dma_t, strb_dma_t, user_dma_t)
   `AXI_TYPEDEF_ALL(axi_slv_dma, addr_t, id_dma_slv_t, data_dma_t, strb_dma_t, user_dma_t)
+  // verilog_lint: waive-stop line-length
   `AXI_TYPEDEF_ALL(axi_hwpe_mst, addr_hwpe_ctrl_t, id_slv_t, data_hwpe_ctrl_t, strb_hwpe_ctrl_t, user_t)
+  // verilog_lint: waive-stop line-length
 
   `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t)
 
