@@ -31,3 +31,7 @@ jobs:
         working-directory: hw/chisel
         run: |
           sbt test
+      - name: Run the acc unit tests
+        working-directory: hw/chisel_acc
+        run: |
+          sbt test
