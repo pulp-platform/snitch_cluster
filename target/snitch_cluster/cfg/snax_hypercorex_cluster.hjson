@@ -118,14 +118,15 @@
         xf8alt: false,
         xfdotp: false,
         xfvec: false,
-        snax_acc_cfg: {
+        snax_acc_cfg: [{
             snax_acc_name: "snax_hypercorex",
             bender_target: ["hypercorex"],
             snax_narrow_tcdm_ports: 3,
+            snax_wide_tcdm_ports: 0,
             snax_wide_tcdm_ports: 32,
             snax_disable_csr_manager: true,
             snax_streamer_cfg: {$ref: "#/snax_hypercorex_streamer_template" }
-        },
+        }],
         snax_use_custom_ports: false,
         num_int_outstanding_loads: 1,
         num_int_outstanding_mem: 4,

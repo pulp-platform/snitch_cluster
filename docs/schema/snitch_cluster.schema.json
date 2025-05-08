@@ -483,53 +483,55 @@
                                     "default": false
                                 },
                                 "snax_acc_cfg": {
-                                    "type": "object",
+                                    "type": "array",
                                     "title": "SNAX Accelerator Set",
                                     "description": "Set of properties for one core controlling multiple accelerators",
-                                    "properties": {
-                                        "snax_acc_name": {
-                                            "type": "string",
-                                            "title": "Accelerator name",
-                                            "description": "The name of your accelerator that gets prefixed into several wrappers.",
-                                            "default": "none"
-                                        },
-                                        "snax_tcdm_ports": {
-                                            "type": "number",
-                                            "title": "SNAX TCDM Port",
-                                            "description": "Number of ports dedicated for an accelerator",
-                                            "default": 0
-                                        },
-                                        "snax_narrow_tcdm_ports": {
-                                            "type": "number",
-                                            "title": "Number of SNAX narrow TCDM ports",
-                                            "description": "Number of dedicated narrow TCDM ports",
-                                            "default": 0
-                                        },
-                                        "snax_wide_tcdm_ports": {
-                                            "type": "number",
-                                            "title": "Number of SNAX wide TCDM ports",
-                                            "description": "Number of dedicated wide TCDM ports",
-                                            "default": 0
-                                        },
-                                        "snax_num_rw_csr": {
-                                            "type": "number",
-                                            "title": "Number of CSR Read-Write Registers",
-                                            "description": "Number of CSR RW registers required for one instance of this accelerator.",
-                                            "default": 1
-                                        },
-                                        "snax_num_ro_csr": {
-                                            "type": "number",
-                                            "title": "Number of CSR Read-Only Registers",
-                                            "description": "Number of CSR RO registers required for one instance of this accelerator.",
-                                            "default": 0
-                                        },
-                                        "snax_num_acc": {
-                                            "type": "number",
-                                            "title": "Number of Accelerators",
-                                            "description": "Number of accelerators to be controlled by one core.",
-                                            "default": 1
+                                    "minItems": 1,
+                                    "default": [{}],
+                                    "items:" : {
+                                        "type": "object",
+                                        "title": "SNAX Accelerator Description",
+                                        "description": "Description of a single SNAX accelerator.",
+                                        "properties": {
+                                            "snax_acc_name": {
+                                                "type": "string",
+                                                "title": "Accelerator name",
+                                                "description": "The name of your accelerator that gets prefixed into several wrappers.",
+                                                "default": "none"
+                                            },
+                                            "snax_tcdm_ports": {
+                                                "type": "number",
+                                                "title": "SNAX TCDM Port",
+                                                "description": "Number of ports dedicated for an accelerator",
+                                                "default": 0
+                                            },
+                                            "snax_narrow_tcdm_ports": {
+                                                "type": "number",
+                                                "title": "Number of SNAX narrow TCDM ports",
+                                                "description": "Number of dedicated narrow TCDM ports",
+                                                "default": 0
+                                            },
+                                            "snax_wide_tcdm_ports": {
+                                                "type": "number",
+                                                "title": "Number of SNAX wide TCDM ports",
+                                                "description": "Number of dedicated wide TCDM ports",
+                                                "default": 0
+                                            },
+                                            "snax_num_rw_csr": {
+                                                "type": "number",
+                                                "title": "Number of CSR Read-Write Registers",
+                                                "description": "Number of CSR RW registers required for one instance of this accelerator.",
+                                                "default": 1
+                                            },
+                                            "snax_num_ro_csr": {
+                                                "type": "number",
+                                                "title": "Number of CSR Read-Only Registers",
+                                                "description": "Number of CSR RO registers required for one instance of this accelerator.",
+                                                "default": 0
+                                            }
                                         }
                                     }
+                                    
                                 },
                                 "snax_acc_wide": {
                                     "type": "boolean",

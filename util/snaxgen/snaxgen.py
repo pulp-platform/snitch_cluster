@@ -412,7 +412,7 @@ def main():
         for i in range(num_cores):
             if "snax_acc_cfg" in cfg_cores[i]:
                 num_core_w_acc += 1
-                acc_cfgs.append(cfg_cores[i]["snax_acc_cfg"].copy())
+                acc_cfgs.append(cfg_cores[i]["snax_acc_cfg"][0].copy())
 
         # Placing the TCDM components again into accelerator configurations
         # Because they are part of the cluster-level configurations

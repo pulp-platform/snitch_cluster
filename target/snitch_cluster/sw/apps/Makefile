@@ -24,7 +24,6 @@ SUBDIRS += montecarlo/pi_estimation
 SUBDIRS += snax-mac
 SUBDIRS += snax-mac-simple/untiled
 SUBDIRS += snax-mac-simple/tiled
-SUBDIRS += snax-mac-mult
 ifeq ($(CFG_OVERRIDE), cfg/snax_alu_cluster.hjson)
 SUBDIRS += snax-alu
 endif

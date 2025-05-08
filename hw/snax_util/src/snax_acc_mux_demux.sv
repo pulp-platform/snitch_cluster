@@ -8,10 +8,10 @@
 // verilog_lint: waive-start no-trailing-spaces
 
 module snax_acc_mux_demux #(
-  parameter int unsigned          NumCsrs   = 32,
-  parameter int unsigned          NumAcc    = 2,
-  parameter type                  acc_req_t = logic,
-  parameter type                  acc_rsp_t = logic
+  parameter int unsigned NumAcc               = 2,
+  parameter int unsigned CsrWidthList[NumAcc] = '{default: 0},
+  parameter int unsigned RegDataWidth         = 32,
+  parameter int unsigned RegAddrWidth         = 32
 )(
   //------------------------
   // Clock and reset
@@ -22,24 +22,26 @@ module snax_acc_mux_demux #(
   //------------------------
   // Main Snitch Port
   //------------------------
-  input   acc_req_t               snax_req_i,
-  input   logic                   snax_qvalid_i,
-  output  logic                   snax_qready_o,
-
-  output  acc_rsp_t               snax_resp_o,
-  output  logic                   snax_pvalid_o,
-  input   logic                   snax_pready_i,
+  input  logic [RegAddrWidth-1:0] csr_req_addr_i,
+  input  logic [RegDataWidth-1:0] csr_req_data_i,
+  input  logic                    csr_req_wen_i,
+  input  logic                    csr_req_valid_i,
+  output logic                    csr_req_ready_o,
+  output logic [RegDataWidth-1:0] csr_rsp_data_o,
+  output logic                    csr_rsp_valid_o,
+  input  logic                    csr_rsp_ready_i,
 
   //------------------------
   // Split Ports
   //------------------------
-  output  acc_req_t [NumAcc-1:0]  snax_split_req_o,
-  output  logic     [NumAcc-1:0]  snax_split_qvalid_o,
-  input   logic     [NumAcc-1:0]  snax_split_qready_i,
-
-  input   acc_rsp_t [NumAcc-1:0]  snax_split_resp_i,
-  input   logic     [NumAcc-1:0]  snax_split_pvalid_i,
-  output  logic     [NumAcc-1:0]  snax_split_pready_o
+  output logic [NumAcc-1:0][RegAddrWidth-1:0] acc_csr_req_addr_o,
+  output logic [NumAcc-1:0][RegDataWidth-1:0] acc_csr_req_data_o,
+  output logic [NumAcc-1:0][0:0]              acc_csr_req_wen_o,
+  output logic [NumAcc-1:0][0:0]              acc_csr_req_valid_o,
+  input  logic [NumAcc-1:0][0:0]              acc_csr_req_ready_i,
+  input  logic [NumAcc-1:0][RegDataWidth-1:0] acc_csr_rsp_data_i,
+  input  logic [NumAcc-1:0][0:0]              acc_csr_rsp_valid_i,
+  output logic [NumAcc-1:0][0:0]              acc_csr_rsp_ready_o
 );
 
   //------------------------------------------
@@ -53,35 +55,41 @@ module snax_acc_mux_demux #(
   //------------------------------------------
   logic [AccNumBitWidth-1:0] snax_req_sel;
 
-  logic [31:0] internal_addr_sel;
-
-  assign internal_addr_sel = snax_req_i.data_argb - 32'd960;
+  // Pre-compute static addresses
+  int BaseCsrAddress [NumAcc+1];
+  
+  initial begin
+    BaseCsrAddress[0] = 0;
+    for ( int i = 1; i < NumAcc; i ++ ) begin
+      BaseCsrAddress[i] = BaseCsrAddress[i-1] + CsrWidthList[i-1];
+    end
+  end
 
   always_comb begin
     for ( int i = 0; i < NumAcc; i ++ ) begin
+      // TODO: This will end up being a latch.
+      // To make decoding easier, let's use the register controlled muxing
       // This one is for setting the control signals for the demuxer
-      if((internal_addr_sel >= i*NumCsrs) && (internal_addr_sel < (i+1)*NumCsrs - 1)) begin
+      if((csr_req_addr_i >= BaseCsrAddress[i]) &&
+         (csr_req_addr_i < BaseCsrAddress[i] + CsrWidthList[i]- 1)) begin
         snax_req_sel = i;
       end
-
+      
       // This one broadcasts the control to all request ports
-      snax_split_req_o[i].addr      = snax_req_i.addr;
-      snax_split_req_o[i].data_arga = snax_req_i.data_arga;
-      snax_split_req_o[i].data_argb = snax_req_i.data_argb - i*NumCsrs;
-      snax_split_req_o[i].data_argc = snax_req_i.data_argc;
-      snax_split_req_o[i].data_op   = snax_req_i.data_op;
-      snax_split_req_o[i].id        = snax_req_i.id;
+      acc_csr_req_addr_o[i] = csr_req_addr_i - BaseCsrAddress[i];
+      acc_csr_req_data_o[i] = csr_req_data_i;
+      acc_csr_req_wen_o [i] = csr_req_wen_i;
     end
   end
 
   stream_demux #(
     .N_OUP        ( NumAcc              )
   ) i_stream_demux_offload (
-    .inp_valid_i  ( snax_qvalid_i       ),
-    .inp_ready_o  ( snax_qready_o       ),
+    .inp_valid_i  ( csr_req_valid_i     ),
+    .inp_ready_o  ( csr_req_ready_o     ),
     .oup_sel_i    ( snax_req_sel        ),
-    .oup_valid_o  ( snax_split_qvalid_o ),
-    .oup_ready_i  ( snax_split_qready_i )
+    .oup_valid_o  ( acc_csr_req_valid_o ),
+    .oup_ready_i  ( acc_csr_req_ready_i )
   );
 
 
@@ -89,51 +97,58 @@ module snax_acc_mux_demux #(
   // Accelerator MUX Port
   // For handling multiple transactions
   //------------------------------------------
+  typedef logic [RegDataWidth-1:0] data_t;
+
   stream_arbiter #(
-    .DATA_T      ( acc_rsp_t            ),
+    .DATA_T      ( data_t               ),
     .N_INP       ( NumAcc               )
   ) i_stream_arbiter_offload (
     .clk_i       ( clk_i                ),
     .rst_ni      ( rst_ni               ),
-    .inp_data_i  ( snax_split_resp_i    ),
-    .inp_valid_i ( snax_split_pvalid_i  ),
-    .inp_ready_o ( snax_split_pready_o  ),
-    .oup_data_o  ( snax_resp_o          ),
-    .oup_valid_o ( snax_pvalid_o        ),
-    .oup_ready_i ( snax_pready_i        )
+    .inp_data_i  ( acc_csr_rsp_data_i   ),
+    .inp_valid_i ( acc_csr_rsp_valid_i  ),
+    .inp_ready_o ( acc_csr_rsp_ready_o  ),
+    .oup_data_o  ( csr_rsp_data_o       ),
+    .oup_valid_o ( csr_rsp_valid_o      ),
+    .oup_ready_i ( csr_rsp_ready_i      )
   );
 
 endmodule
 
 // ----- Module Usage -----
 // snax_acc_mux_demux #(
-//     .NumCsrs   (),
-//     .NumAcc    (),
-//     .acc_req_t (),
-//     .acc_rsp_t ()
-//   ) i_snax_acc_mux_demux (
-//     .clk_i(),
-//     .rst_ni(),
-
+//     .NumCsrs      (),
+//     .NumAcc       (),
+//     .RegDataWidth (),
+//     .RegAddrWidth ()
+// ) i_snax_acc_mux_demux (
+//     //------------------------
+//     // Clock and reset
+//     //------------------------
+//     .clk_i  (),
+//     .rst_ni (),
+//
 //     //------------------------
 //     // Main Snitch Port
 //     //------------------------
-//     .snax_req_i(),
-//     .snax_qvalid_i(),
-//     .snax_qready_o(),
-
-//     .snax_resp_o(),
-//     .snax_pvalid_o(),
-//     .snax_pready_i(),
-
+//     .csr_req_addr_i  (),
+//     .csr_req_data_i  (),
+//     .csr_req_wen_i   (),
+//     .csr_req_valid_i (),
+//     .csr_req_ready_o (),
+//     .csr_rsp_data_o  (),
+//     .csr_rsp_valid_o (),
+//     .csr_rsp_ready_i (),
+//
 //     //------------------------
 //     // Split Ports
 //     //------------------------
-//     .snax_split_req_o(),
-//     .snax_split_qvalid_o(),
-//     .snax_split_qready_i(),
-
-//     .snax_split_resp_i(),
-//     .snax_split_pvalid_i(),
-//     .snax_split_pready_o()
+//     .acc_csr_req_addr_o  (),
+//     .acc_csr_req_data_o  (),
+//     .acc_csr_req_wen_o   (),
+//     .acc_csr_req_valid_o (),
+//     .acc_csr_req_ready_i (),
+//     .acc_csr_rsp_data_i  (),
+//     .acc_csr_rsp_valid_i (),
+//     .acc_csr_rsp_ready_o ()
 //   );

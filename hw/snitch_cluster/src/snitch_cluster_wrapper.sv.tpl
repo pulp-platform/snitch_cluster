@@ -349,18 +349,18 @@ snax_wide_tcdm_ports_list = []
 # Cycle through each core
 # and check if an accelerator setting exists
 
-for i in range(len(cfg['cores'])):
+for core_id in range(len(cfg['cores'])):
 
   # Make sure to initialize a dictionary
   # that describes accelerators each core
-  curr_snax_acc_core = 'snax_core_' + str(i)
+  curr_snax_acc_core = 'snax_core_' + str(core_id)
   snax_acc_dict = {}
   snax_acc_flag = False
   snax_xdma_flag = False
   snax_acc_multi_flag = False
   snax_use_custom_ports = False
   snax_num_acc = None
-  snax_total_num_csr = None
+  snax_acc_csr_list = []
   prefix_snax_nonacc_count = 0
   prefix_snax_count = 0
   snax_tcdm_ports = 0
@@ -368,37 +368,44 @@ for i in range(len(cfg['cores'])):
   # If an accelerator setting exists
   # Layout all possible accelerator configurations
   # Per snitch cluster core
-  if ('snax_acc_cfg' in cfg['cores'][i]):
+  if (cfg['cores'][core_id]['snax_acc_cfg'][0]):
     snax_acc_flag = True
 
-    # Note that the order is from last core to the first core
-    snax_narrow_tcdm_ports_list.append(cfg['cores'][i]['snax_acc_cfg']['snax_narrow_tcdm_ports'])
-    snax_wide_tcdm_ports_list.append(cfg['cores'][i]['snax_acc_cfg']['snax_wide_tcdm_ports'])
-
-    if(cfg['cores'][i]['snax_acc_cfg']['snax_num_acc'] > 1):
+    # Some parameters if ever there are multiple accelerators
+    if(len(cfg['cores'][core_id]['snax_acc_cfg']) > 1):
       snax_acc_multi_flag = True
-      snax_num_rw_csr = cfg['cores'][i]['snax_acc_cfg'].get('snax_num_rw_csr', 0)
-      snax_num_ro_csr = cfg['cores'][i]['snax_acc_cfg'].get('snax_num_ro_csr', 0)
-      snax_total_num_csr = snax_num_rw_csr + snax_num_ro_csr
-      snax_num_acc = cfg['cores'][i]['snax_acc_cfg']['snax_num_acc']
+      snax_num_acc = len(cfg['cores'][core_id]['snax_acc_cfg'])
 
-    snax_use_custom_ports = cfg['cores'][i]['snax_use_custom_ports']
+    # Note that the order is from last core to the first core
+    snax_narrow_tcdm_ports_list.append(cfg['cores'][core_id]['snax_acc_cfg'][0]['snax_narrow_tcdm_ports'])
+    snax_wide_tcdm_ports_list.append(cfg['cores'][core_id]['snax_acc_cfg'][0]['snax_wide_tcdm_ports'])
 
-    for j in range(cfg['cores'][i]['snax_acc_cfg']['snax_num_acc']):
+    # This is only necessary for custom instructions
+    snax_use_custom_ports = cfg['cores'][core_id]['snax_use_custom_ports']
+
+    # Iterage through different accelerators attached to a core
+    for j in range(len(cfg['cores'][core_id]['snax_acc_cfg'])):
+
+      # Accumulate csr number per new accelereator
+      # TODO: modify me later to support different CSR counts
+      if(snax_acc_multi_flag):
+        snax_num_rw_csr = cfg['cores'][core_id]['snax_acc_cfg'][j].get('snax_num_rw_csr', 0)
+        snax_num_ro_csr = cfg['cores'][core_id]['snax_acc_cfg'][j].get('snax_num_ro_csr', 0)
+        snax_acc_csr_list.append(snax_num_rw_csr+snax_num_ro_csr+cfg['streamer_csr_num_list'][core_id][j])
 
       # Prepare accelerator tags
       curr_snax_acc = ''
-      curr_snax_acc = "i_snax_core_" + str(i) + "_acc_" + str(prefix_snax_count) + "_" + cfg['cores'][i]['snax_acc_cfg']['snax_acc_name']
+      curr_snax_acc = "i_snax_core_" + str(core_id) + "_acc_" + str(prefix_snax_count) + "_" + cfg['cores'][core_id]['snax_acc_cfg'][j]['snax_acc_name']
 
       # Set tcdm offset ports
-      snax_narrow_tcdm_ports = cfg['cores'][i]['snax_acc_cfg']['snax_narrow_tcdm_ports']
-      snax_wide_tcdm_ports = cfg['cores'][i]['snax_acc_cfg']['snax_wide_tcdm_ports']
+      snax_narrow_tcdm_ports = cfg['cores'][core_id]['snax_acc_cfg'][j]['snax_narrow_tcdm_ports']
+      snax_wide_tcdm_ports = cfg['cores'][core_id]['snax_acc_cfg'][j]['snax_wide_tcdm_ports']
       snax_tcdm_ports = snax_narrow_tcdm_ports + snax_wide_tcdm_ports
       tcdm_offset_stop += snax_tcdm_ports
 
       # Save settings in the dictionary
       snax_acc_dict[curr_snax_acc] = {
-            'snax_acc_name': cfg['cores'][i]['snax_acc_cfg']['snax_acc_name'],
+            'snax_acc_name': cfg['cores'][core_id]['snax_acc_cfg'][j]['snax_acc_name'],
             'snax_tcdm_ports': snax_tcdm_ports,
             'snax_tcdm_offset_start': tcdm_offset_start,
             'snax_tcdm_offset_stop': tcdm_offset_stop
@@ -408,9 +415,9 @@ for i in range(len(cfg['cores'])):
       total_snax_narrow_ports += snax_narrow_tcdm_ports
       total_snax_wide_ports += snax_wide_tcdm_ports
 
-  elif ('snax_xdma_cfg' in cfg['cores'][i]):
+  elif ('snax_xdma_cfg' in cfg['cores'][core_id]):
     snax_xdma_flag = True
-    xdma_cfg = cfg['cores'][i]['snax_xdma_cfg']
+    xdma_cfg = cfg['cores'][core_id]['snax_xdma_cfg']
     # Note that the order is from last core to the first core
     snax_narrow_tcdm_ports_list.append(round(cfg['dma_data_width'] / cfg['data_width']) << 1)
     snax_wide_tcdm_ports_list.append(0)
@@ -421,7 +428,7 @@ for i in range(len(cfg['cores'])):
       if key.startswith('has_'):
         xdma_instance_name += ("_" + key[4:])
     curr_snax_acc = ''
-    curr_snax_acc = "i_snax_core_" + str(i) + "_" + xdma_instance_name
+    curr_snax_acc = "i_snax_core_" + str(core_id) + "_" + xdma_instance_name
 
     # Set tcdm offset ports
     snax_narrow_tcdm_ports = round(cfg['dma_data_width'] / cfg['data_width']) * 2
@@ -444,7 +451,7 @@ for i in range(len(cfg['cores'])):
 
     # Consider cases without accelerators
     # Just leave them as none
-    curr_snax_acc = "i_snax_core_" + str(i) + "_noacc_" + str(prefix_snax_nonacc_count)
+    curr_snax_acc = "i_snax_core_" + str(core_id) + "_noacc_" + str(prefix_snax_nonacc_count)
     snax_acc_dict[curr_snax_acc] = None
 
     # Note that the order is from last core to the first core
@@ -457,7 +464,7 @@ for i in range(len(cfg['cores'])):
     'snax_xdma_flag': snax_xdma_flag,
     'snax_acc_multi_flag':snax_acc_multi_flag,
     'snax_use_custom_ports': snax_use_custom_ports,
-    'snax_total_num_csr': snax_total_num_csr,
+    'snax_acc_csr_list': snax_acc_csr_list,
     'snax_num_acc': snax_num_acc,
     'snax_acc_dict':snax_acc_dict
   }
@@ -753,50 +760,58 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
     % if snax_core_acc[idx_key]['snax_acc_multi_flag']:
 
   // Wire declaration
-  ${cfg['pkg_name']}::acc_req_t  [${snax_core_acc[idx_key]['snax_num_acc']-1}:0] snax_core_${idx}_split_req;
-  logic      [${snax_core_acc[idx_key]['snax_num_acc']-1}:0] snax_core_${idx}_split_qvalid;
-  logic      [${snax_core_acc[idx_key]['snax_num_acc']-1}:0] snax_core_${idx}_split_qready;
-  ${cfg['pkg_name']}::acc_resp_t [${snax_core_acc[idx_key]['snax_num_acc']-1}:0] snax_core_${idx}_split_resp;
-  logic      [${snax_core_acc[idx_key]['snax_num_acc']-1}:0] snax_core_${idx}_split_pvalid;
-  logic      [${snax_core_acc[idx_key]['snax_num_acc']-1}:0] snax_core_${idx}_split_pready;
-  logic      [${snax_core_acc[idx_key]['snax_num_acc']-1}:0] snax_core_${idx}_split_barrier;
+  logic [${snax_core_acc[idx_key]['snax_num_acc']-1}:0] [31:0] snax_core_${idx}_split_csr_req_addr;
+  logic [${snax_core_acc[idx_key]['snax_num_acc']-1}:0] [31:0] snax_core_${idx}_split_csr_req_data;
+  logic [${snax_core_acc[idx_key]['snax_num_acc']-1}:0]        snax_core_${idx}_split_csr_req_wen;
+  logic [${snax_core_acc[idx_key]['snax_num_acc']-1}:0]        snax_core_${idx}_split_csr_req_valid;
+  logic [${snax_core_acc[idx_key]['snax_num_acc']-1}:0]        snax_core_${idx}_split_csr_req_ready;
+
+  logic [${snax_core_acc[idx_key]['snax_num_acc']-1}:0] [31:0] snax_core_${idx}_split_csr_rsp_data;
+  logic [${snax_core_acc[idx_key]['snax_num_acc']-1}:0]        snax_core_${idx}_split_csr_rsp_valid;
+  logic [${snax_core_acc[idx_key]['snax_num_acc']-1}:0]        snax_core_${idx}_split_csr_rsp_ready;
+
+  logic [${snax_core_acc[idx_key]['snax_num_acc']-1}:0] snax_core_${idx}_split_barrier;
 
   // This is a combined barrier for all barriers
   // Controlled by 1 Snitch core. It's an OR of all barriers.
   assign snax_barrier[${idx}] = |snax_core_${idx}_split_barrier;
 
   // MUX-DEMUX declaration
-  // TODO: make a version for the csr ports next time...
   snax_acc_mux_demux #(
-    .NumCsrs              (${snax_core_acc[idx_key]['snax_total_num_csr']}),
-    .NumAcc               (${snax_core_acc[idx_key]['snax_num_acc']}),
-    .acc_req_t            (${cfg['pkg_name']}::acc_req_t),
-    .acc_rsp_t            (${cfg['pkg_name']}::acc_resp_t)
+    .NumAcc               ( ${snax_core_acc[idx_key]['snax_num_acc']} ),
+    .CsrWidthList         ( '{${acc_cfg(snax_core_acc[idx_key]['snax_acc_csr_list'])}} ),
+    .RegDataWidth         ( 32 ),
+    .RegAddrWidth         ( 32 )
   ) i_snax_acc_mux_demux_core_${idx} (
-    .clk_i                (clk_i),
-    .rst_ni               (rst_ni),
-
+    //------------------------
+    // Clock and reset
+    //------------------------
+    .clk_i                ( clk_i  ),
+    .rst_ni               ( rst_ni ),
     //------------------------
     // Main Snitch Port
     //------------------------
-    .snax_req_i           (snax_req[${idx}]),
-    .snax_qvalid_i        (snax_qvalid[${idx}]),
-    .snax_qready_o        (snax_qready[${idx}]),
+    .csr_req_addr_i       ( snax_csr_req_addr [${idx}] ),
+    .csr_req_data_i       ( snax_csr_req_data [${idx}] ),
+    .csr_req_wen_i        ( snax_csr_req_write[${idx}] ),
+    .csr_req_valid_i      ( snax_csr_req_valid[${idx}] ),
+    .csr_req_ready_o      ( snax_csr_req_ready[${idx}] ),
 
-    .snax_resp_o          (snax_resp[${idx}]),
-    .snax_pvalid_o        (snax_pvalid[${idx}]),
-    .snax_pready_i        (snax_pready[${idx}]),
-
+    .csr_rsp_data_o       ( snax_csr_rsp_data [${idx}] ),
+    .csr_rsp_valid_o      ( snax_csr_rsp_valid[${idx}] ),
+    .csr_rsp_ready_i      ( snax_csr_rsp_ready[${idx}] ),
     //------------------------
     // Split Ports
     //------------------------
-    .snax_split_req_o     (snax_core_${idx}_split_req),
-    .snax_split_qvalid_o  (snax_core_${idx}_split_qvalid),
-    .snax_split_qready_i  (snax_core_${idx}_split_qready),
+    .acc_csr_req_addr_o   (snax_core_${idx}_split_csr_req_addr  ),
+    .acc_csr_req_data_o   (snax_core_${idx}_split_csr_req_data  ),
+    .acc_csr_req_wen_o    (snax_core_${idx}_split_csr_req_wen   ),
+    .acc_csr_req_valid_o  (snax_core_${idx}_split_csr_req_valid ),
+    .acc_csr_req_ready_i  (snax_core_${idx}_split_csr_req_ready ),
 
-    .snax_split_resp_i    (snax_core_${idx}_split_resp),
-    .snax_split_pvalid_i  (snax_core_${idx}_split_pvalid),
-    .snax_split_pready_o  (snax_core_${idx}_split_pready)
+    .acc_csr_rsp_data_i   (snax_core_${idx}_split_csr_rsp_data  ),
+    .acc_csr_rsp_valid_i  (snax_core_${idx}_split_csr_rsp_valid ),
+    .acc_csr_rsp_ready_o  (snax_core_${idx}_split_csr_rsp_ready )
   );
 
   // Multiple accelerator instances
@@ -835,15 +850,15 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
     // CSR  format control ports
     //-----------------------------
     // Request
-    .snax_req_data_i  ( snax_csr_req_data [${idx}] ),
-    .snax_req_addr_i  ( snax_csr_req_addr [${idx}] ),
-    .snax_req_write_i ( snax_csr_req_write[${idx}] ),
-    .snax_req_valid_i ( snax_csr_req_valid[${idx}] ),
-    .snax_req_ready_o ( snax_csr_req_ready[${idx}] ),
+    .snax_req_data_i  ( snax_core_${idx}_split_csr_req_data[${jdx}] ),
+    .snax_req_addr_i  ( snax_core_${idx}_split_csr_req_addr[${jdx}]  ),
+    .snax_req_write_i ( snax_core_${idx}_split_csr_req_wen[${jdx}]   ),
+    .snax_req_valid_i ( snax_core_${idx}_split_csr_req_valid[${jdx}] ),
+    .snax_req_ready_o ( snax_core_${idx}_split_csr_req_ready[${jdx}] ),
     // Response
-    .snax_rsp_data_o  ( snax_csr_rsp_data [${idx}] ),
-    .snax_rsp_valid_o ( snax_csr_rsp_valid[${idx}] ),
-    .snax_rsp_ready_i ( snax_csr_rsp_ready[${idx}] ),
+    .snax_rsp_data_o  ( snax_core_${idx}_split_csr_rsp_data[${jdx}]  ),
+    .snax_rsp_valid_o ( snax_core_${idx}_split_csr_rsp_valid[${jdx}] ),
+    .snax_rsp_ready_i ( snax_core_${idx}_split_csr_rsp_ready[${jdx}] ),
       %endif
     .snax_barrier_o  ( snax_core_${idx}_split_barrier[${jdx}] ),
     .snax_tcdm_req_o ( snax_tcdm_req[${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_stop']}:${snax_core_acc[idx_key]['snax_acc_dict'][jdx_key]['snax_tcdm_offset_start']}] ),
@@ -856,7 +871,7 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
   assign snax_csr_rsp_valid [${idx}] = '0;
 
       %else:
-        // TODO: Not yet supported for multiple CSR ports
+  // TODO: Not yet supported for multiple CSR ports
       %endif
       %endfor
     % else:
