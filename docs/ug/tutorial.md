@@ -27,17 +27,17 @@ To run software on Snitch without a physical chip, you will need a simulation mo
 
 === "Verilator"
     ```shell
-    make bin/snitch_cluster.vlt
+    make verilator
     ```
 
 === "Questa"
     ```shell
-    make DEBUG=ON bin/snitch_cluster.vsim
+    make DEBUG=ON vsim
     ```
 
 === "VCS"
     ```shell
-    make bin/snitch_cluster.vcs
+    make vcs
     ```
 
 These commands compile the RTL sources respectively in `work-vlt`, `work-vsim` and `work-vcs`. Additionally, common C++ testbench sources (e.g. the [frontend server (fesvr)](https://github.com/riscv-software-src/riscv-isa-sim)) are compiled under `work`. Each command will also generate a script or an executable (e.g. `bin/snitch_cluster.vsim`) which we can use to simulate software on Snitch, as we will see in section [Running a simulation](#running-a-simulation).
@@ -54,7 +54,7 @@ In the [`cfg`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/tar
 The command you previously executed automatically generated the RTL sources from the templates, and it implicitly used the default configuration file. In this configuration the FPU is not equipped with a floating-point divide and square-root unit.
 To override the default configuration file, e.g. to use the omega TCDM interconnect, define the following variable when you invoke `make`:
 ```shell
-make CFG_OVERRIDE=cfg/omega.json bin/snitch_cluster.vlt
+make CFG_OVERRIDE=cfg/omega.json verilator
 ```
 
 If you want to use a custom configuration, just point `CFG_OVERRIDE` to the path of your configuration file.
@@ -268,11 +268,11 @@ In your `tutorial` folder, create a new file named `app.mk` with the following c
 
 ```make
 APP              := tutorial
-$(APP)_BUILD_DIR := $(ROOT)/target/snitch_cluster/sw/apps/$(APP)/build
-SRCS             := $(ROOT)/target/snitch_cluster/sw/apps/$(APP)/src/$(APP).c
-$(APP)_INCDIRS   := $(ROOT)/target/snitch_cluster/sw/apps/$(APP)/data
+$(APP)_BUILD_DIR := $(SN_ROOT)/target/snitch_cluster/sw/apps/$(APP)/build
+SRCS             := $(SN_ROOT)/target/snitch_cluster/sw/apps/$(APP)/src/$(APP).c
+$(APP)_INCDIRS   := $(SN_ROOT)/target/snitch_cluster/sw/apps/$(APP)/data
 
-include $(ROOT)/target/snitch_cluster/sw/apps/common.mk
+include $(SN_ROOT)/target/snitch_cluster/sw/apps/common.mk
 ```
 
 This file will be included in the top-level Makefile, compiling your source code into an executable with the name provided in the `APP` variable.

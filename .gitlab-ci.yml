@@ -106,7 +106,7 @@ snitch-cluster-vlt:
   needs: [setup, snitch-cluster-sw]
   script:
     - cd target/snitch_cluster
-    - make bin/snitch_cluster.vlt
+    - make verilator
     - ./util/run.py sw/run.yaml --simulator verilator -j --run-dir runs/vlt
 
 # VCS
@@ -114,7 +114,7 @@ snitch-cluster-vcs:
   needs: [setup, snitch-cluster-sw]
   script:
     - cd target/snitch_cluster
-    - make bin/snitch_cluster.vcs
+    - make vcs
     - ./util/run.py sw/run.yaml --simulator vcs -j --run-dir runs/vcs
 
 # Questa
@@ -122,7 +122,7 @@ snitch-cluster-vsim:
   needs: [setup, snitch-cluster-sw]
   script:
     - cd target/snitch_cluster
-    - make bin/snitch_cluster.vsim
+    - make vsim
     - ./util/run.py sw/run.yaml --simulator vsim -j --run-dir runs/vsim
     - ./util/run.py sw/riscv_tests_isa.yaml --simulator vsim -j --run-dir runs/vsim
     # Test trace annotation
@@ -138,7 +138,7 @@ snitch-cluster-omega-vsim:
   script:
     - cd target/snitch_cluster
     - make CFG_OVERRIDE=cfg/omega.json sw
-    - make bin/snitch_cluster.vsim
+    - make vsim
     - ./util/run.py sw/run.yaml --simulator vsim -j --run-dir runs/vsim
 
 # Test Multi-channel DMA
@@ -147,7 +147,7 @@ snitch-cluster-mchan-vsim:
   script:
     - cd target/snitch_cluster
     - make CFG_OVERRIDE=cfg/dma_mchan.json sw
-    - make bin/snitch_cluster.vsim
+    - make vsim
     - ./util/run.py sw/dma_mchan.yaml --simulator vsim -j --run-dir runs/vsim
 
 # Tests requiring a larger FREP sequencer
@@ -156,7 +156,7 @@ snitch-cluster-frep-xl-vsim:
   script:
     - cd target/snitch_cluster
     - make CFG_OVERRIDE=cfg/frep_xl.json sw
-    - make bin/snitch_cluster.vsim
+    - make vsim
     - ./util/run.py sw/frep_xl.yaml --simulator vsim -j --run-dir runs/vsim
 
 # COPIFT and scalar chaining experiments
@@ -164,7 +164,7 @@ snitch-cluster-copift-sc-vsim:
   needs: [setup]
   script:
     - cd target/snitch_cluster
-    - make CFG_OVERRIDE=experiments/copift/cfg.json bin/snitch_cluster.vsim
+    - make CFG_OVERRIDE=experiments/copift/cfg.json vsim
     - cd experiments/copift
     - ./experiments.py experiments.yaml sw run perf -j
     - cd ../../experiments/chaining

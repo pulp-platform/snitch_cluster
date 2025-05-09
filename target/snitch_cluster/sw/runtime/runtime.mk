@@ -8,10 +8,10 @@
 # Directories #
 ###############
 
-SNRT_DIR         = $(SNITCH_ROOT)/sw/snRuntime
-SNRT_TARGET_DIR ?= $(SNITCH_ROOT)/target/snitch_cluster/sw/runtime/rtl
-SNRT_BUILDDIR    = $(SNRT_TARGET_DIR)/build
-SNRT_SRCDIR      = $(SNRT_TARGET_DIR)/src
+SNRT_DIR         = $(SN_ROOT)/sw/snRuntime
+SNRT_TARGET_DIR ?= $(SN_ROOT)/target/snitch_cluster/sw/runtime/rtl
+SNRT_BUILDDIR   ?= $(SNRT_TARGET_DIR)/build
+SNRT_SRCDIR     ?= $(SNRT_TARGET_DIR)/src
 
 ###################
 # Build variables #
@@ -45,19 +45,15 @@ ifeq ($(DEBUG), ON)
 SNRT_OUTPUTS += $(SNRT_DUMP)
 endif
 
-
 #########
 # Rules #
 #########
 
-.PHONY: runtime clean-runtime
+.PHONY: sn-runtime sn-clean-runtime
 
-sw: runtime
-clean-sw: clean-runtime
+sn-runtime: $(SNRT_OUTPUTS)
 
-runtime: $(SNRT_OUTPUTS)
-
-clean-runtime:
+sn-clean-runtime:
 	rm -rf $(SNRT_BUILDDIR)
 
 $(SNRT_BUILDDIR):
@@ -77,6 +73,6 @@ $(SNRT_DUMP): $(SNRT_LIB) | $(SNRT_BUILDDIR)
 
 $(SNRT_DEPS): | $(SNRT_HAL_HDRS)
 
-ifneq ($(filter-out clean%,$(MAKECMDGOALS)),)
+ifneq ($(filter-out sn-clean%,$(MAKECMDGOALS)),)
 -include $(SNRT_DEPS)
 endif
