@@ -129,6 +129,39 @@ jobs:
           sw/runtime.yaml \
           sw/snax-alu-run.yaml -j
 
+  snax-multi-alu-cluster-vlt-generic:
+    name: Simulate SW on SNAX Multi ALU Cluster w/ Verilator (Generic LLVM)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          cache: true
+          cache-write: ${{ github.event_name == 'push' &&
+            github.ref_name == 'main' }}
+          activate-environment: true
+      - name: Generate RTL
+        run: |
+          make -C target/snitch_cluster rtl-gen \
+          CFG_OVERRIDE=cfg/snax_multi_alu_cluster.hjson
+      - name: Build Software
+        run: |
+          make -C target/snitch_cluster sw \
+          CFG_OVERRIDE=cfg/snax_multi_alu_cluster.hjson
+      - name: Build Hardware
+        run: |
+          make CFG_OVERRIDE=cfg/snax_multi_alu_cluster.hjson \
+          -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
+      - name: Run Tests
+        working-directory: target/snitch_cluster
+        run: |-
+          ./run.py --simulator verilator \
+          sw/runtime.yaml \
+          sw/snax-alu-run.yaml \
+          sw/snax-multi-alu-run.yaml -j
+
   snax-hypercorex-cluster-vlt-generic:
     name: SNAX Hypercorex w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04

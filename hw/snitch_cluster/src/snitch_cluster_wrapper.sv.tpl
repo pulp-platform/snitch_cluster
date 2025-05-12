@@ -360,7 +360,6 @@ for core_id in range(len(cfg['cores'])):
   snax_acc_multi_flag = False
   snax_use_custom_ports = False
   snax_num_acc = None
-  snax_acc_csr_list = []
   prefix_snax_nonacc_count = 0
   prefix_snax_count = 0
   snax_tcdm_ports = 0
@@ -385,13 +384,6 @@ for core_id in range(len(cfg['cores'])):
 
     # Iterage through different accelerators attached to a core
     for j in range(len(cfg['cores'][core_id]['snax_acc_cfg'])):
-
-      # Accumulate csr number per new accelereator
-      # TODO: modify me later to support different CSR counts
-      if(snax_acc_multi_flag):
-        snax_num_rw_csr = cfg['cores'][core_id]['snax_acc_cfg'][j].get('snax_num_rw_csr', 0)
-        snax_num_ro_csr = cfg['cores'][core_id]['snax_acc_cfg'][j].get('snax_num_ro_csr', 0)
-        snax_acc_csr_list.append(snax_num_rw_csr+snax_num_ro_csr+cfg['streamer_csr_num_list'][core_id][j])
 
       # Prepare accelerator tags
       curr_snax_acc = ''
@@ -464,7 +456,6 @@ for core_id in range(len(cfg['cores'])):
     'snax_xdma_flag': snax_xdma_flag,
     'snax_acc_multi_flag':snax_acc_multi_flag,
     'snax_use_custom_ports': snax_use_custom_ports,
-    'snax_acc_csr_list': snax_acc_csr_list,
     'snax_num_acc': snax_num_acc,
     'snax_acc_dict':snax_acc_dict
   }
@@ -523,6 +514,11 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
   //-----------------------------
   ${cfg['pkg_name']}::tcdm_req_t [${total_snax_tcdm_ports-1}:0] snax_tcdm_req;
   ${cfg['pkg_name']}::tcdm_rsp_t [${total_snax_tcdm_ports-1}:0] snax_tcdm_rsp;
+
+  //-----------------------------
+  // SNAX Multiaccelerator MUX
+  //-----------------------------
+  logic [${cfg['pkg_name']}::NrCores-1:0][31:0] multi_acc_mux;
 
   //-----------------------------
   // SNAX Barrier Wire
@@ -660,6 +656,10 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
     .obs_o  ( obs_o  ),
 % endif
     //-----------------------------
+    // Multi accelerator MUX
+    //-----------------------------
+    .multi_acc_mux_o ( multi_acc_mux ),
+    //-----------------------------
     // Interrupt ports
     //----------------------------
 % if cfg['enable_debug']:
@@ -779,7 +779,6 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
   // MUX-DEMUX declaration
   snax_acc_mux_demux #(
     .NumAcc               ( ${snax_core_acc[idx_key]['snax_num_acc']} ),
-    .CsrWidthList         ( '{${acc_cfg(snax_core_acc[idx_key]['snax_acc_csr_list'])}} ),
     .RegDataWidth         ( 32 ),
     .RegAddrWidth         ( 32 )
   ) i_snax_acc_mux_demux_core_${idx} (
@@ -788,6 +787,10 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
     //------------------------
     .clk_i                ( clk_i  ),
     .rst_ni               ( rst_ni ),
+    //------------------------
+    // Multi-accelerator MUX control
+    //------------------------
+    .multi_acc_mux_i      ( multi_acc_mux[${idx}] ),
     //------------------------
     // Main Snitch Port
     //------------------------

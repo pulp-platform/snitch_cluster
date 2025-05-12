@@ -139,18 +139,20 @@ module snitch_cc #(
   output axi_dma_pkg::dma_perf_t     axi_dma_perf_o,
   output dma_events_t                axi_dma_events_o,
   // Snax ports
-  output acc_req_t                  snax_req_o,
-  output logic                      snax_qvalid_o,
-  input  logic                      snax_qready_i,
-  input  acc_resp_t                 snax_resp_i,
-  input  logic                      snax_pvalid_i,
-  output logic                      snax_pready_o,
+  output acc_req_t                   snax_req_o,
+  output logic                       snax_qvalid_o,
+  input  logic                       snax_qready_i,
+  input  acc_resp_t                  snax_resp_i,
+  input  logic                       snax_pvalid_i,
+  output logic                       snax_pready_o,
   // Core event strobes
   output snitch_pkg::core_events_t   core_events_o,
   // TCDM base address, which also is the Base Address of the Snitch Cluster that the core belongs to
   input  addr_t                      tcdm_addr_base_i,
   // Observability register
   output logic [ObsWidth-1:0]        obs_o,
+  // Multi accelerator MUX
+  output logic [ObsWidth-1:0]        multi_acc_mux_o,
   // Cluster HW barrier
   input  logic                       snax_barrier_i,
   output logic                       barrier_o,
@@ -288,6 +290,7 @@ module snitch_cc #(
     .fpu_status_i ( fpu_status ),
     .core_events_o ( snitch_events),
     .obs_o ( obs_o ),
+    .multi_acc_mux_o ( multi_acc_mux_o ),
     .snax_barrier_i (snax_barrier_i ),
     .barrier_o ( barrier_o ),
     .barrier_i ( barrier_i )

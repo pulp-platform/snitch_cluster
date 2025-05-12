@@ -9,7 +9,6 @@
 
 module snax_acc_mux_demux #(
   parameter int unsigned NumAcc               = 2,
-  parameter int unsigned CsrWidthList[NumAcc] = '{default: 0},
   parameter int unsigned RegDataWidth         = 32,
   parameter int unsigned RegAddrWidth         = 32
 )(
@@ -18,6 +17,11 @@ module snax_acc_mux_demux #(
   //------------------------
   input   logic                   clk_i,
   input   logic                   rst_ni,
+
+  //------------------------
+  // Multi-accelerator MUX control
+  //------------------------
+  input  logic [RegDataWidth-1:0] multi_acc_mux_i,
 
   //------------------------
   // Main Snitch Port
@@ -54,29 +58,12 @@ module snax_acc_mux_demux #(
   // For splitting the accelerator into parts
   //------------------------------------------
   logic [AccNumBitWidth-1:0] snax_req_sel;
-
-  // Pre-compute static addresses
-  int BaseCsrAddress [NumAcc+1];
-  
-  initial begin
-    BaseCsrAddress[0] = 0;
-    for ( int i = 1; i < NumAcc; i ++ ) begin
-      BaseCsrAddress[i] = BaseCsrAddress[i-1] + CsrWidthList[i-1];
-    end
-  end
+  assign snax_req_sel = multi_acc_mux_i[AccNumBitWidth-1:0];
 
   always_comb begin
     for ( int i = 0; i < NumAcc; i ++ ) begin
-      // TODO: This will end up being a latch.
-      // To make decoding easier, let's use the register controlled muxing
-      // This one is for setting the control signals for the demuxer
-      if((csr_req_addr_i >= BaseCsrAddress[i]) &&
-         (csr_req_addr_i < BaseCsrAddress[i] + CsrWidthList[i]- 1)) begin
-        snax_req_sel = i;
-      end
-      
       // This one broadcasts the control to all request ports
-      acc_csr_req_addr_o[i] = csr_req_addr_i - BaseCsrAddress[i];
+      acc_csr_req_addr_o[i] = csr_req_addr_i;
       acc_csr_req_data_o[i] = csr_req_data_i;
       acc_csr_req_wen_o [i] = csr_req_wen_i;
     end
@@ -91,7 +78,6 @@ module snax_acc_mux_demux #(
     .oup_valid_o  ( acc_csr_req_valid_o ),
     .oup_ready_i  ( acc_csr_req_ready_i )
   );
-
 
   //------------------------------------------
   // Accelerator MUX Port

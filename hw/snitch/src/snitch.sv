@@ -111,6 +111,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   output snitch_pkg::core_events_t  core_events_o,
   // Observability register
   output logic [ObsWidth-1:0] obs_o,
+  // Multi accelerator MUX
+  output logic [ObsWidth-1:0] multi_acc_mux_o,
   // Cluster SNAX HW barrier
   input  logic          snax_barrier_i,
   // Cluster HW barrier
@@ -253,6 +255,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic snax_csr_stall_d, snax_csr_stall_q;
   logic snax_csr_barr_en_d, snax_csr_barr_en_q;
   logic [31:0] csr_obs_d, csr_obs_q;
+  logic [31:0] csr_multi_acc_mux_d, csr_multi_acc_mux_q;
 
   localparam logic M = 0;
   localparam logic S = 1;
@@ -328,6 +331,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
 
   // Observable register
   `FFAR(csr_obs_q, csr_obs_d, '0, clk_i, rst_i)
+
+  // Multi accelerator mux
+  `FFAR(csr_multi_acc_mux_q, csr_multi_acc_mux_d, '0, clk_i, rst_i)
+
 
   typedef struct packed {
     fpnew_pkg::fmt_mode_t  fmode;
@@ -2382,6 +2389,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     snax_csr_stall_d = snax_csr_stall_q;
     snax_csr_barr_en_d = snax_csr_barr_en_q;
     csr_obs_d = csr_obs_q;
+    csr_multi_acc_mux_d = csr_multi_acc_mux_q;
 
     // Snitch barrier
     if (barrier_i) csr_stall_d = 1'b0;
@@ -2626,6 +2634,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           CsrObsRegister: begin
             csr_rvalue = csr_obs_q;
             csr_obs_d = alu_result;
+          end
+          CsrMultiAccMux: begin
+            csr_rvalue = csr_multi_acc_mux_q;
+            csr_multi_acc_mux_d = alu_result;
           end
           // HW cluster barrier
           CSR_BARRIER: begin
@@ -3043,6 +3055,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // Observability pin
   // ----------
   assign obs_o = csr_obs_q[ObsWidth-1:0];
+  assign multi_acc_mux_o = csr_multi_acc_mux_q;
 
   // ----------
   // Assertions

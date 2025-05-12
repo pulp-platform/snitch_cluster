@@ -228,6 +228,8 @@ module snitch_cluster
     /// Observability register for the cluster. This register is assumed to be
     /// sticky and only useful for observing signals from the outside.
     output logic             [          ObsWidth-1:0]       obs_o,
+    /// Multi accelerator MUXing control signal
+    output logic             [           NrCores-1:0][31:0] multi_acc_mux_o,
     /// Per-core debug request signal. Asserting this signals puts the
     /// corresponding core into debug mode. This signal is assumed to be _async_.
     input  logic             [           NrCores-1:0]       debug_req_i,
@@ -1347,9 +1349,9 @@ module snitch_cluster
         .TCDMAddrWidth(TCDMAddrWidth),
         .DebugSupport(DebugSupport)
     ) i_snitch_cc (
-        .clk_i,
+        .clk_i(clk_i),
+        .rst_ni(rst_ni),
         .clk_d2_i(clk_d2),
-        .rst_ni,
         .rst_int_ss_ni(1'b1),
         .rst_fp_ss_ni(1'b1),
         .hart_id_i(hart_base_id_i + i),
@@ -1376,6 +1378,7 @@ module snitch_cluster
         .core_events_o(core_events[i]),
         .tcdm_addr_base_i(tcdm_start_address),
         .obs_o(obs_signal[i]),
+        .multi_acc_mux_o(multi_acc_mux_o[i]),
         .snax_barrier_i(snax_barrier_i[i]),
         .barrier_o(barrier_in[i]),
         .barrier_i(barrier_out)

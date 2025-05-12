@@ -19,12 +19,21 @@
 // Uncomment the above line to enable 64 CSRs addressability, with the down side
 // of larger binary size.
 
+// These are for RW observable registers
 static void write_csr_obs(uint32_t value) {
     write_csr(1989, value);
     return;
 }
 
 static uint32_t read_csr_obs(void) { return read_csr(1989); }
+
+// These are for controlling the multi-accelerator MUX
+static void write_csr_multi_acc_mux(uint32_t value) {
+    write_csr(1990, value);
+    return;
+}
+
+static uint32_t read_csr_multi_acc_mux(void) { return read_csr(1990); }
 
 static uint32_t csrr_ss(uint32_t csr_address) {
     uint32_t value;
