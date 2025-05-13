@@ -8,14 +8,9 @@
 
 #include "snrt.h"
 
-#ifndef IMPLEMENTATION_T
-#define IMPLEMENTATION_T
-typedef enum { BASELINE, NAIVE, NAIVE_UNROLLED, OPT, OPT_EX } implementation_t;
-
 typedef float v2f32 __attribute__((vector_size(8)));
 typedef __fp16 v4f16 __attribute__((vector_size(8)));
 typedef char v8f8 __attribute__((vector_size(8)));
-#endif
 
 typedef union {
     double f64;

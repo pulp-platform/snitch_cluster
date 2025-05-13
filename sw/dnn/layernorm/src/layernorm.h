@@ -12,6 +12,8 @@
 #include "layernorm_fp32.h"
 #include "layernorm_fp8.h"
 
+typedef enum {NAIVE, OPT} implementation_t;
+
 /**
  * @struct layernorm_layer_struct
  * @brief This structure contains all parameters necessary
@@ -126,6 +128,8 @@ static inline void layernorm_layer(layernorm_layer_t l) {
                 break;
             case FP8:
                 switch (l.implementation) {
+                    case NAIVE:
+                        return;
                     case OPT:
                         layernorm_fp8_opt(local_itile, local_otile,
                                           l.batch_size, tile_seq_len,
@@ -133,6 +137,8 @@ static inline void layernorm_layer(layernorm_layer_t l) {
                         break;
                 }
                 break;
+            default:
+                return;
         }
 
         if (snrt_is_compute_core()) snrt_mcycle();
