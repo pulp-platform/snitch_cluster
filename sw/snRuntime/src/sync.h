@@ -117,7 +117,7 @@ inline void snrt_cluster_hw_barrier() {
  * @note One core per cluster must invoke this function, or the calling cores
  *       will stall indefinitely.
  */
-inline void snrt_inter_cluster_barrier() {
+static inline void snrt_inter_cluster_barrier() {
     // Everyone increments a shared counter
     uint32_t cnt =
         __atomic_add_fetch(&(_snrt_barrier.cnt), 1, __ATOMIC_RELAXED);

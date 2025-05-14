@@ -10,6 +10,7 @@
 // Forward declarations
 #include "alloc_decls.h"
 #include "cls_decls.h"
+#include "dma_decls.h"
 #include "riscv_decls.h"
 #include "start_decls.h"
 #include "sync_decls.h"

@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#include <string.h>
+
 #include "omp.h"
 
 #include "dm.h"
@@ -68,13 +70,13 @@ void omp_init(void) {
         initTeam((omp_t *)omp_p, (omp_team_t *)&omp_p->plainTeam);
         omp_p->kmpc_barrier =
             (snrt_barrier_t *)snrt_l1_alloc(sizeof(snrt_barrier_t));
-        snrt_memset(omp_p->kmpc_barrier, 0, sizeof(snrt_barrier_t));
+        memset(omp_p->kmpc_barrier, 0, sizeof(snrt_barrier_t));
         // Exchange omp pointer with other cluster cores
         omp_p_global = omp_p;
 #else
         omp_p.kmpc_barrier =
             (snrt_barrier_t *)snrt_l1_alloc(sizeof(snrt_barrier_t));
-        snrt_memset(omp_p.kmpc_barrier, 0, sizeof(snrt_barrier_t));
+        memset(omp_p.kmpc_barrier, 0, sizeof(snrt_barrier_t));
         // Exchange omp pointer with other cluster cores
         omp_p_global = &omp_p;
 #endif

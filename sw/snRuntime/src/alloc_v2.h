@@ -41,7 +41,7 @@ inline void snrt_l1_update_next_v2(void *next) {
  * @brief Check if the allocation exceeds the allocator bounds and raise an
  *        exception if it does.
  */
-inline void snrt_l1_alloc_check_bounds() {
+static inline void snrt_l1_alloc_check_bounds() {
     if (snrt_l1_allocator_v2()->next > snrt_l1_allocator_v2()->end)
         asm volatile("ecall \n");
 }
@@ -54,7 +54,8 @@ inline void snrt_l1_alloc_check_bounds() {
  * The allocation is aligned to the specified `alignment`.
  *
  * @param size The size of the variable to allocate.
- * @param alignment The alignment of the allocation.
+ * @param alignment The alignment of the allocation. An alignment of 1 (byte)
+ *        is equivalent to no alignment (in a byte-addressable system).
  * @return Pointer to the allocated variable.
  */
 inline void *snrt_l1_alloc_cluster_local(size_t size, const size_t alignment) {

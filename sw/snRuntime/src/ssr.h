@@ -47,27 +47,27 @@ inline void snrt_fpu_fence() {
 /**
  * @brief The different SSRs.
  */
-enum snrt_ssr_dm {
+typedef enum {
     SNRT_SSR_DM0 = 0,    /**< SSR data mover 0 */
     SNRT_SSR_DM1 = 1,    /**< SSR data mover 1 */
     SNRT_SSR_DM2 = 2,    /**< SSR data mover 2 */
     SNRT_SSR_DM_ALL = 31 /**< Write to all SSRs */
-};
+} snrt_ssr_dm_t;
 
 /**
  * @brief The different dimensions.
  */
-enum snrt_ssr_dim {
+typedef enum {
     SNRT_SSR_1D = 0, /**< 1D stream */
     SNRT_SSR_2D = 1, /**< 2D stream */
     SNRT_SSR_3D = 2, /**< 3D stream */
     SNRT_SSR_4D = 3  /**< 4D stream */
-};
+} snrt_ssr_dim_t;
 
 /**
  * @brief The SSR configuration registers.
  */
-typedef enum snrt_ssr_reg {
+typedef enum {
     SNRT_SSR_REG_STATUS = 0,      /**< SSR status register */
     SNRT_SSR_REG_REPEAT = 1,      /**< SSR repeat register */
     SNRT_SSR_REG_BOUNDS = 2,      /**< SSR bounds register */
@@ -82,12 +82,12 @@ typedef enum snrt_ssr_reg {
 /**
  * @brief The size of the SSSR indirection indices.
  */
-enum snrt_ssr_idxsize {
+typedef enum {
     SNRT_SSR_IDXSIZE_U8 = 0,  /**< Unsigned 8-bit integer */
     SNRT_SSR_IDXSIZE_U16 = 1, /**< Unsigned 16-bit integer */
     SNRT_SSR_IDXSIZE_U32 = 2, /**< Unsigned 32-bit integer */
     SNRT_SSR_IDXSIZE_U64 = 3, /**< Unsigned 64-bit integer */
-};
+} snrt_ssr_idxsize_t;
 
 /**
  * @brief Enable all SSRs.
@@ -133,7 +133,8 @@ inline void snrt_sc_disable(uint32_t mask) {
  * @param dm The SSR index.
  * @return The value of the register.
  */
-inline uint32_t read_ssr_cfg(enum snrt_ssr_reg reg, uint32_t dm) {
+static inline uint32_t read_ssr_cfg(const snrt_ssr_reg_t reg,
+                                    const snrt_ssr_dm_t dm) {
     uint32_t value;
     asm volatile("scfgri %[value], %[dm] | %[reg]<<5\n"
                  : [ value ] "=r"(value)
@@ -146,8 +147,14 @@ inline uint32_t read_ssr_cfg(enum snrt_ssr_reg reg, uint32_t dm) {
  * @param reg The register index.
  * @param dm The SSR index.
  * @param value The value to write.
+ * @note The function passes the `reg` and `dm` arguments as an immediate,
+ *       thus these must be known at compile time. As a consequence, the
+ *       function must use internal linkage (`static` keyword) and must be
+ *       always inlined. This is true also for all functions invoking this
+ *       function, and passing down their own arguments to `reg` or `dm`.
  */
-inline void write_ssr_cfg(enum snrt_ssr_reg reg, uint32_t dm, uint32_t value) {
+static inline void write_ssr_cfg(const snrt_ssr_reg_t reg,
+                                 const snrt_ssr_dm_t dm, uint32_t value) {
     asm volatile("scfgwi %[value], %[dm] | %[reg]<<5\n" ::[value] "r"(value),
                  [ dm ] "i"(dm), [ reg ] "i"(reg));
 }
@@ -158,7 +165,8 @@ inline void write_ssr_cfg(enum snrt_ssr_reg reg, uint32_t dm, uint32_t value) {
  * @param b0 The bound of the loop.
  * @param s0 The stride of the loop.
  */
-inline void snrt_ssr_loop_1d(enum snrt_ssr_dm dm, size_t b0, size_t s0) {
+static inline void snrt_ssr_loop_1d(const snrt_ssr_dm_t dm, size_t b0,
+                                    size_t s0) {
     --b0;
     write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_BOUNDS + 0), dm, b0);
     size_t a = 0;
@@ -174,8 +182,8 @@ inline void snrt_ssr_loop_1d(enum snrt_ssr_dm dm, size_t b0, size_t s0) {
  * @param s0 The stride of the first loop.
  * @param s1 The stride of the second loop.
  */
-inline void snrt_ssr_loop_2d(enum snrt_ssr_dm dm, size_t b0, size_t b1,
-                             size_t s0, size_t s1) {
+static inline void snrt_ssr_loop_2d(const snrt_ssr_dm_t dm, size_t b0,
+                                    size_t b1, size_t s0, size_t s1) {
     --b0;
     --b1;
     write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_BOUNDS + 0), dm, b0);
@@ -197,8 +205,9 @@ inline void snrt_ssr_loop_2d(enum snrt_ssr_dm dm, size_t b0, size_t b1,
  * @param s1 The stride of the second loop.
  * @param s2 The stride of the third loop.
  */
-inline void snrt_ssr_loop_3d(enum snrt_ssr_dm dm, size_t b0, size_t b1,
-                             size_t b2, size_t s0, size_t s1, size_t s2) {
+static inline void snrt_ssr_loop_3d(const snrt_ssr_dm_t dm, size_t b0,
+                                    size_t b1, size_t b2, size_t s0, size_t s1,
+                                    size_t s2) {
     --b0;
     --b1;
     --b2;
@@ -226,9 +235,9 @@ inline void snrt_ssr_loop_3d(enum snrt_ssr_dm dm, size_t b0, size_t b1,
  * @param s2 The stride of the third loop.
  * @param s3 The stride of the fourth loop.
  */
-inline void snrt_ssr_loop_4d(enum snrt_ssr_dm dm, size_t b0, size_t b1,
-                             size_t b2, size_t b3, size_t s0, size_t s1,
-                             size_t s2, size_t s3) {
+static inline void snrt_ssr_loop_4d(const snrt_ssr_dm_t dm, size_t b0,
+                                    size_t b1, size_t b2, size_t b3, size_t s0,
+                                    size_t s1, size_t s2, size_t s3) {
     --b0;
     --b1;
     --b2;
@@ -253,7 +262,7 @@ inline void snrt_ssr_loop_4d(enum snrt_ssr_dm dm, size_t b0, size_t b1,
  * @param dm The SSR index.
  * @param count The repetition count.
  */
-inline void snrt_ssr_repeat(enum snrt_ssr_dm dm, size_t count) {
+static inline void snrt_ssr_repeat(const snrt_ssr_dm_t dm, size_t count) {
     write_ssr_cfg(SNRT_SSR_REG_REPEAT, dm, count - 1);
 }
 
@@ -263,8 +272,8 @@ inline void snrt_ssr_repeat(enum snrt_ssr_dm dm, size_t count) {
  * @param dim The number of dimensions to use.
  * @param ptr The pointer to the data.
  */
-inline void snrt_ssr_read(enum snrt_ssr_dm dm, enum snrt_ssr_dim dim,
-                          volatile void *ptr) {
+static inline void snrt_ssr_read(const snrt_ssr_dm_t dm,
+                                 const snrt_ssr_dim_t dim, volatile void *ptr) {
     write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_RPTR + dim), dm,
                   (uintptr_t)ptr);
 }
@@ -275,8 +284,9 @@ inline void snrt_ssr_read(enum snrt_ssr_dm dm, enum snrt_ssr_dim dim,
  * @param dim The number of dimensions to use.
  * @param ptr The pointer to the data.
  */
-inline void snrt_ssr_write(enum snrt_ssr_dm dm, enum snrt_ssr_dim dim,
-                           volatile void *ptr) {
+static inline void snrt_ssr_write(const snrt_ssr_dm_t dm,
+                                  const snrt_ssr_dim_t dim,
+                                  volatile void *ptr) {
     write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_WPTR + dim), dm,
                   (uintptr_t)ptr);
 }
@@ -289,24 +299,25 @@ inline void snrt_ssr_write(enum snrt_ssr_dm dm, enum snrt_ssr_dim dim,
  * @param bound The bound of the first (and only) loop.
  * @param idxsize The size of the indices.
  */
-inline void snrt_issr_set_idx_cfg(enum snrt_ssr_dm dm,
-                                  enum snrt_ssr_idxsize idxsize) {
+static inline void snrt_issr_set_idx_cfg(const snrt_ssr_dm_t dm,
+                                         snrt_ssr_idxsize_t idxsize) {
     write_ssr_cfg(SNRT_SSR_REG_IDX_CFG, dm, (idxsize & 0xFF));
 }
 
-inline void snrt_issr_set_bound(enum snrt_ssr_dm dm, size_t bound) {
+static inline void snrt_issr_set_bound(const snrt_ssr_dm_t dm, size_t bound) {
     write_ssr_cfg(SNRT_SSR_REG_BOUNDS, dm, --bound);
 }
 
-inline void snrt_issr_set_ptrs(enum snrt_ssr_dm dm, volatile void *base,
-                               volatile void *idcs) {
+static inline void snrt_issr_set_ptrs(const snrt_ssr_dm_t dm,
+                                      volatile void *base,
+                                      volatile void *idcs) {
     write_ssr_cfg(SNRT_SSR_REG_IDX_BASE, dm, (uintptr_t)base);
     write_ssr_cfg(SNRT_SSR_REG_RPTR_INDIR, dm, (uintptr_t)idcs);
 }
 
-inline void snrt_issr_read(enum snrt_ssr_dm dm, volatile void *base,
-                           volatile void *idcs, size_t bound,
-                           enum snrt_ssr_idxsize idxsize) {
+static inline void snrt_issr_read(const snrt_ssr_dm_t dm, volatile void *base,
+                                  volatile void *idcs, size_t bound,
+                                  snrt_ssr_idxsize_t idxsize) {
     snrt_issr_set_idx_cfg(dm, idxsize);
     snrt_issr_set_bound(dm, bound);
     snrt_issr_set_ptrs(dm, base, idcs);

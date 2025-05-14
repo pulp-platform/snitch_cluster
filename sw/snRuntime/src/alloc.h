@@ -4,8 +4,20 @@
 
 #pragma once
 
-#define ALIGN_UP(addr, size) (((addr) + (size)-1) & ~((size)-1))
-#define ALIGN_DOWN(addr, size) ((addr) & ~((size)-1))
+/**
+ * @brief Align to next multiple of size from a given base
+ * @details This macro aligns the address to the next alignment boundary
+ *          specified by \p size and \p base. Alignment boundaries are defined
+ *          by summing integer multiples of \p size to the base address.
+ * @param addr Address to be aligned
+ * @param base Base address for the alignment boundaries
+ * @param size Alignment size in bytes
+ * @return pointer to the allocated memory
+ */
+#define ALIGN_UP_FROM_BASE(addr, base, size) \
+    (((((addr) - (base)) + (size)-1) / (size)) * (size) + (base))
+
+#define ALIGN_UP(addr, size) ALIGN_UP_FROM_BASE(addr, 0, size)
 
 #define MIN_CHUNK_SIZE 8
 
@@ -95,11 +107,4 @@ inline void snrt_alloc_init() {
     }
     // Synchronize with other cores
     snrt_cluster_hw_barrier();
-}
-
-// TODO colluca: optimize by using DMA
-inline void *snrt_memset(void *ptr, int value, size_t num) {
-    for (uint32_t i = 0; i < num; ++i)
-        *((uint8_t *)ptr + i) = (unsigned char)value;
-    return ptr;
 }
