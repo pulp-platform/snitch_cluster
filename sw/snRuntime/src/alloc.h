@@ -68,7 +68,7 @@ inline void *snrt_l3_alloc(size_t size) {
     snrt_allocator_t *alloc = snrt_l3_allocator();
 
     size = ALIGN_UP(size, MIN_CHUNK_SIZE);
-    
+
     // TODO: L3 alloc size check
 
     void *ret = (void *)alloc->next;
