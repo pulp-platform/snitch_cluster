@@ -390,7 +390,7 @@ inline void snrt_dma_stop_tracking() {
 inline void snrt_dma_memset(void *ptr, uint8_t value, uint32_t len) {
     // set first 64bytes to value
     // memset(ptr, value, 64);
-    uint8_t *p = ptr;
+    uint8_t *p = (uint8_t*)ptr;
     uint32_t nbytes = 64;
     while (nbytes--) {
         *p++ = value;
@@ -414,7 +414,7 @@ inline snrt_dma_txid_t snrt_dma_load_1d_tile(void *dst, void *src,
                                              size_t tile_idx, size_t tile_size,
                                              uint32_t prec) {
     size_t tile_nbytes = tile_size * prec;
-    return snrt_dma_start_1d(dst, src + tile_idx * tile_nbytes, tile_nbytes);
+    return snrt_dma_start_1d(dst, ((uint8_t*)src) + tile_idx * tile_nbytes, tile_nbytes);
 }
 
 /**
@@ -429,7 +429,7 @@ inline snrt_dma_txid_t snrt_dma_store_1d_tile(void *dst, void *src,
                                               size_t tile_idx, size_t tile_size,
                                               uint32_t prec) {
     size_t tile_nbytes = tile_size * prec;
-    return snrt_dma_start_1d(dst + tile_idx * tile_nbytes, src, tile_nbytes);
+    return snrt_dma_start_1d(((uint8_t*)dst) + tile_idx * tile_nbytes, src, tile_nbytes);
 }
 
 /**
@@ -457,7 +457,7 @@ inline snrt_dma_txid_t snrt_dma_load_2d_tile(
     src_offset *= prec;
     // Initiate transfer
     return snrt_dma_start_2d(dst,                  // dst
-                             src + src_offset,     // src
+                             ((uint8_t*)src) + src_offset,     // src
                              tile_x0_size * prec,  // size
                              tile_x0_size * prec,  // dst_stride
                              full_x0_size * prec,  // src_stride
@@ -489,7 +489,7 @@ inline snrt_dma_txid_t snrt_dma_store_2d_tile(
     dst_offset += tile_x1_idx * tile_x1_size * full_x0_size;
     dst_offset *= prec;
     // Initiate transfer
-    return snrt_dma_start_2d(dst + dst_offset,     // dst
+    return snrt_dma_start_2d(((uint8_t*)dst) + dst_offset,     // dst
                              src,                  // src
                              tile_x0_size * prec,  // size
                              full_x0_size * prec,  // dst_stride

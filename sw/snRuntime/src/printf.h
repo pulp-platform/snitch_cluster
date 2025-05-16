@@ -7,6 +7,14 @@
 // Use snrt_putchar for printf
 #define _putchar snrt_putchar
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern void snrt_putchar(char character);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #include "../../deps/printf/printf.h"

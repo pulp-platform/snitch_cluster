@@ -221,7 +221,7 @@ inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
             if (is_active && is_sender) {
                 if (!snrt_is_compute_core()) {
                     void *dst =
-                        (void *)dst_buffer - (1 << level) * SNRT_CLUSTER_OFFSET;
+                        (uint8_t *)dst_buffer - (1 << level) * SNRT_CLUSTER_OFFSET;
                     snrt_dma_start_1d(dst, src_buffer, len * sizeof(double));
                     snrt_dma_wait_all();
                 }

@@ -83,7 +83,7 @@ inline void *snrt_l1_alloc_compute_core_local(size_t size,
                                               const size_t alignment) {
     snrt_l1_allocator_v2()->next =
         ALIGN_UP(snrt_l1_allocator_v2()->next, alignment);
-    void *retval = snrt_l1_next_v2() + size * snrt_cluster_core_idx();
+    void *retval = ((uint8_t*) snrt_l1_next_v2()) + size * snrt_cluster_core_idx();
     snrt_l1_allocator_v2()->next += size * snrt_cluster_compute_core_num();
     snrt_l1_alloc_check_bounds();
     return retval;
