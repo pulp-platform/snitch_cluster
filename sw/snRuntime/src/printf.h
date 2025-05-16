@@ -14,7 +14,7 @@ extern "C" {
 extern void snrt_putchar(char character);
 
 #ifdef __cplusplus
-} // extern "C"
+}  // extern "C"
 #endif
 
 #include "../../deps/printf/printf.h"

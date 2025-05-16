@@ -265,7 +265,8 @@ inline void snrt_ssr_repeat(enum snrt_ssr_dm dm, size_t count) {
  */
 inline void snrt_ssr_read(enum snrt_ssr_dm dm, enum snrt_ssr_dim dim,
                           volatile void *ptr) {
-    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_RPTR + dim), dm, (uintptr_t)ptr);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_RPTR + dim), dm,
+                  (uintptr_t)ptr);
 }
 
 /**
@@ -276,7 +277,8 @@ inline void snrt_ssr_read(enum snrt_ssr_dm dm, enum snrt_ssr_dim dim,
  */
 inline void snrt_ssr_write(enum snrt_ssr_dm dm, enum snrt_ssr_dim dim,
                            volatile void *ptr) {
-    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_WPTR + dim), dm, (uintptr_t)ptr);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_WPTR + dim), dm,
+                  (uintptr_t)ptr);
 }
 
 /**
