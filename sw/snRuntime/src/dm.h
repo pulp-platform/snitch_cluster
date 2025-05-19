@@ -210,7 +210,7 @@ inline void dm_main(void) {
                     if (__builtin_sdma_stat(DM_STATUS_BUSY) == 0) {
                         DM_PRINTF(50, "idle\n");
                         dm_p->stat_pvalid = 1;
-                        dm_p->stat_q = 0;
+                        dm_p->stat_q = (en_stat_t)0;
                     }
                     break;
                 case STAT_EXIT:
@@ -219,7 +219,7 @@ inline void dm_main(void) {
                 case STAT_READY:
                     DM_PRINTF(50, "ready\n");
                     dm_p->stat_pvalid = 1;
-                    dm_p->stat_q = 0;
+                    dm_p->stat_q = (en_stat_t)0;
                     break;
             }
         }

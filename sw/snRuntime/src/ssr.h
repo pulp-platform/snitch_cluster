@@ -67,7 +67,7 @@ enum snrt_ssr_dim {
 /**
  * @brief The SSR configuration registers.
  */
-enum snrt_ssr_reg {
+typedef enum snrt_ssr_reg {
     SNRT_SSR_REG_STATUS = 0,      /**< SSR status register */
     SNRT_SSR_REG_REPEAT = 1,      /**< SSR repeat register */
     SNRT_SSR_REG_BOUNDS = 2,      /**< SSR bounds register */
@@ -77,7 +77,7 @@ enum snrt_ssr_reg {
     SNRT_SSR_REG_RPTR_INDIR = 16, /**< SSSR indir. indices read ptr register */
     SNRT_SSR_REG_RPTR = 24,       /**< SSR read pointer register */
     SNRT_SSR_REG_WPTR = 28        /**< SSR write pointer register */
-};
+} snrt_ssr_reg_t;
 
 /**
  * @brief The size of the SSSR indirection indices.
@@ -160,9 +160,9 @@ inline void write_ssr_cfg(enum snrt_ssr_reg reg, uint32_t dm, uint32_t value) {
  */
 inline void snrt_ssr_loop_1d(enum snrt_ssr_dm dm, size_t b0, size_t s0) {
     --b0;
-    write_ssr_cfg(SNRT_SSR_REG_BOUNDS + 0, dm, b0);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_BOUNDS + 0), dm, b0);
     size_t a = 0;
-    write_ssr_cfg(SNRT_SSR_REG_STRIDES + 0, dm, s0 - a);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_STRIDES + 0), dm, s0 - a);
     a += s0 * b0;
 }
 
@@ -178,12 +178,12 @@ inline void snrt_ssr_loop_2d(enum snrt_ssr_dm dm, size_t b0, size_t b1,
                              size_t s0, size_t s1) {
     --b0;
     --b1;
-    write_ssr_cfg(SNRT_SSR_REG_BOUNDS + 0, dm, b0);
-    write_ssr_cfg(SNRT_SSR_REG_BOUNDS + 1, dm, b1);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_BOUNDS + 0), dm, b0);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_BOUNDS + 1), dm, b1);
     size_t a = 0;
-    write_ssr_cfg(SNRT_SSR_REG_STRIDES + 0, dm, s0 - a);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_STRIDES + 0), dm, s0 - a);
     a += s0 * b0;
-    write_ssr_cfg(SNRT_SSR_REG_STRIDES + 1, dm, s1 - a);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_STRIDES + 1), dm, s1 - a);
     a += s1 * b1;
 }
 
@@ -202,15 +202,15 @@ inline void snrt_ssr_loop_3d(enum snrt_ssr_dm dm, size_t b0, size_t b1,
     --b0;
     --b1;
     --b2;
-    write_ssr_cfg(SNRT_SSR_REG_BOUNDS + 0, dm, b0);
-    write_ssr_cfg(SNRT_SSR_REG_BOUNDS + 1, dm, b1);
-    write_ssr_cfg(SNRT_SSR_REG_BOUNDS + 2, dm, b2);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_BOUNDS + 0), dm, b0);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_BOUNDS + 1), dm, b1);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_BOUNDS + 2), dm, b2);
     size_t a = 0;
-    write_ssr_cfg(SNRT_SSR_REG_STRIDES + 0, dm, s0 - a);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_STRIDES + 0), dm, s0 - a);
     a += s0 * b0;
-    write_ssr_cfg(SNRT_SSR_REG_STRIDES + 1, dm, s1 - a);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_STRIDES + 1), dm, s1 - a);
     a += s1 * b1;
-    write_ssr_cfg(SNRT_SSR_REG_STRIDES + 2, dm, s2 - a);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_STRIDES + 2), dm, s2 - a);
     a += s2 * b2;
 }
 
@@ -233,18 +233,18 @@ inline void snrt_ssr_loop_4d(enum snrt_ssr_dm dm, size_t b0, size_t b1,
     --b1;
     --b2;
     --b3;
-    write_ssr_cfg(SNRT_SSR_REG_BOUNDS + 0, dm, b0);
-    write_ssr_cfg(SNRT_SSR_REG_BOUNDS + 1, dm, b1);
-    write_ssr_cfg(SNRT_SSR_REG_BOUNDS + 2, dm, b2);
-    write_ssr_cfg(SNRT_SSR_REG_BOUNDS + 3, dm, b3);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_BOUNDS + 0), dm, b0);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_BOUNDS + 1), dm, b1);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_BOUNDS + 2), dm, b2);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_BOUNDS + 3), dm, b3);
     size_t a = 0;
-    write_ssr_cfg(SNRT_SSR_REG_STRIDES + 0, dm, s0 - a);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_STRIDES + 0), dm, s0 - a);
     a += s0 * b0;
-    write_ssr_cfg(SNRT_SSR_REG_STRIDES + 1, dm, s1 - a);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_STRIDES + 1), dm, s1 - a);
     a += s1 * b1;
-    write_ssr_cfg(SNRT_SSR_REG_STRIDES + 2, dm, s2 - a);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_STRIDES + 2), dm, s2 - a);
     a += s2 * b2;
-    write_ssr_cfg(SNRT_SSR_REG_STRIDES + 3, dm, s3 - a);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_STRIDES + 3), dm, s3 - a);
     a += s3 * b3;
 }
 
@@ -265,7 +265,8 @@ inline void snrt_ssr_repeat(enum snrt_ssr_dm dm, size_t count) {
  */
 inline void snrt_ssr_read(enum snrt_ssr_dm dm, enum snrt_ssr_dim dim,
                           volatile void *ptr) {
-    write_ssr_cfg(SNRT_SSR_REG_RPTR + dim, dm, (uintptr_t)ptr);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_RPTR + dim), dm,
+                  (uintptr_t)ptr);
 }
 
 /**
@@ -276,7 +277,8 @@ inline void snrt_ssr_read(enum snrt_ssr_dm dm, enum snrt_ssr_dim dim,
  */
 inline void snrt_ssr_write(enum snrt_ssr_dm dm, enum snrt_ssr_dim dim,
                            volatile void *ptr) {
-    write_ssr_cfg(SNRT_SSR_REG_WPTR + dim, dm, (uintptr_t)ptr);
+    write_ssr_cfg((snrt_ssr_reg_t)(SNRT_SSR_REG_WPTR + dim), dm,
+                  (uintptr_t)ptr);
 }
 
 /**
