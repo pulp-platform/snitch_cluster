@@ -7,7 +7,7 @@
 ###############
 
 BENDER ?= bender
-REGGEN  = $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
+PEAKRDL ?= peakrdl
 
 #########################
 # Files and directories #
@@ -80,8 +80,8 @@ clean-docs:
 $(GENERATED_DOCS_DIR):
 	mkdir -p $@
 
-$(GENERATED_DOCS_DIR)/peripherals.md: hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.hjson | $(GENERATED_DOCS_DIR)
-	$(REGGEN) -d $< > $@
+$(GENERATED_DOCS_DIR)/peripherals.md: hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.rdl | $(GENERATED_DOCS_DIR)
+	$(PEAKRDL) markdown $< -o $@
 
 $(DOXYGEN_DOCS_DIR): $(DOXYFILE) $(DOXYGEN_INPUTS)
 	doxygen $<

@@ -4,4 +4,4 @@
 
 #include "snitch_cluster_addrmap.h"
 #include "snitch_cluster_cfg.h"
-#include "snitch_cluster_peripheral.h"
+// #include "snitch_cluster_peripheral.h"

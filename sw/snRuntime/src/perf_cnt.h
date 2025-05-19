@@ -2,15 +2,15 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-#define SNRT_NUM_PERF_CNTS SNITCH_CLUSTER_PERIPHERAL_PARAM_NUM_PERF_COUNTERS
+// #define SNRT_NUM_PERF_CNTS SNITCH_CLUSTER_PERIPHERAL_PARAM_NUM_PERF_COUNTERS
 
-/**
- * @brief Union representing a 32-bit performance counter register, with 8-byte
- * alignment.
- */
-typedef union {
-    uint32_t value __attribute__((aligned(8)));
-} perf_reg32_t;
+// /**
+//  * @brief Union representing a 32-bit performance counter register, with
+//  * 8-byte alignment.
+//  */
+// typedef union {
+//     uint32_t value __attribute__((aligned(8)));
+// } perf_reg32_t;
 
 /**
  * @brief Structure representing the performance counters.
@@ -19,11 +19,7 @@ typedef union {
  * configuration register, as they are defined in
  * `snitch_cluster_peripheral.hjson`.
  */
-typedef struct {
-    volatile perf_reg32_t enable[SNRT_NUM_PERF_CNTS];
-    volatile perf_reg32_t select[SNRT_NUM_PERF_CNTS];
-    volatile perf_reg32_t perf_counter[SNRT_NUM_PERF_CNTS];
-} perf_regs_t;
+typedef snitch_cluster_peripheral_reg__PERF_REGS_t perf_regs_t;
 
 /**
  * @brief Get the pointer to the performance counter registers
@@ -43,7 +39,9 @@ inline perf_regs_t* snrt_perf_counters() {
  */
 inline void snrt_cfg_perf_counter(uint32_t perf_cnt, uint16_t metric,
                                   uint16_t hart) {
-    snrt_perf_counters()->select[perf_cnt].value = (metric << 16) | hart;
+    snrt_perf_counters()->PERF_CNT_SEL[perf_cnt] =
+        (snitch_cluster_peripheral_reg__PERF_CNT_SEL_t){
+            .f = {.METRIC = metric, .HART = hart}};
 }
 
 /**
@@ -52,7 +50,8 @@ inline void snrt_cfg_perf_counter(uint32_t perf_cnt, uint16_t metric,
  * @param perf_cnt The index of the performance counter to start.
  */
 inline void snrt_start_perf_counter(uint32_t perf_cnt) {
-    snrt_perf_counters()->enable[perf_cnt].value = 0x1;
+    snrt_perf_counters()->PERF_CNT_EN[perf_cnt] =
+        (snitch_cluster_peripheral_reg__PERF_CNT_EN_t){.f = {.ENABLE = 0x1}};
 }
 
 /**
@@ -61,7 +60,8 @@ inline void snrt_start_perf_counter(uint32_t perf_cnt) {
  * @param perf_cnt The index of the performance counter to stop.
  */
 inline void snrt_stop_perf_counter(uint32_t perf_cnt) {
-    snrt_perf_counters()->enable[perf_cnt].value = 0x0;
+    snrt_perf_counters()->PERF_CNT_EN[perf_cnt] =
+        (snitch_cluster_peripheral_reg__PERF_CNT_EN_t){.f = {.ENABLE = 0x0}};
 }
 
 /**
@@ -70,7 +70,8 @@ inline void snrt_stop_perf_counter(uint32_t perf_cnt) {
  * @param perf_cnt The index of the performance counter to reset.
  */
 inline void snrt_reset_perf_counter(uint32_t perf_cnt) {
-    snrt_perf_counters()->perf_counter[perf_cnt].value = 0x0;
+    snrt_perf_counters()->PERF_CNT[perf_cnt] =
+        (snitch_cluster_peripheral_reg__PERF_CNT_t){.f = {.PERF_COUNTER = 0x0}};
 }
 
 /**
@@ -81,5 +82,5 @@ inline void snrt_reset_perf_counter(uint32_t perf_cnt) {
  * @return The value of the specified performance counter.
  */
 inline uint32_t snrt_get_perf_counter(uint32_t perf_cnt) {
-    return snrt_perf_counters()->perf_counter[perf_cnt].value;
+    return snrt_perf_counters()->PERF_CNT[perf_cnt].f.PERF_COUNTER;
 }
