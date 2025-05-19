@@ -1,0 +1,376 @@
+package snax.xdma.xdmaTop
+
+import chisel3._
+// Hardware and its Generation Param
+import snax.readerWriter.ReaderWriterParam
+import snax.utils.DecoupledCut._
+
+// Import Chiseltest
+import chiseltest._
+import org.scalatest.freespec.AnyFreeSpec
+
+// Import Random number generator
+import scala.util.Random
+
+// Import break support for loops
+import scala.util.control.Breaks.{break, breakable}
+import snax.xdma.DesignParams._
+import snax.DataPathExtension.{HasMaxPool, HasTransposer, HasVerilogMemset}
+
+class ChainedXDMADifferentDestNum(numXDMA: Int) extends Module with RequireAsyncReset {
+  val xdma = (0 until numXDMA).map { i =>
+    val x = Module(
+      new XDMATop(
+        clusterName = s"xdma${i + 1}",
+        readerParam = new XDMAParam(
+          axiParam          = new AXIParam,
+          crossClusterParam = new CrossClusterParam(maxMulticastDest = numXDMA - 1 - {
+            if (i < 3) 0 else i - 2
+          }),
+          rwParam           = new ReaderWriterParam(
+            configurableByteMask = false,
+            configurableChannel  = true
+          )
+        ),
+        writerParam = new XDMAParam(
+          axiParam          = new AXIParam,
+          crossClusterParam = new CrossClusterParam(maxMulticastDest = numXDMA - 1 - {
+            if (i < 3) 0 else i - 2
+          }),
+          rwParam           = new ReaderWriterParam(
+            configurableByteMask = true,
+            configurableChannel  = true
+          ),
+          extParam          = Seq(
+            new HasVerilogMemset,
+            new HasMaxPool,
+            new HasTransposer(Seq(8), Seq(8), Seq(8))
+          )
+        )
+      )
+    )
+    x.io.clusterBaseAddress := (0x10000000L + (i.toLong << 20)).U
+    x.io.remoteXDMACfg.fromRemote.valid  := false.B
+    x.io.remoteXDMACfg.fromRemote.bits   := 0.U
+    x.io.remoteXDMAData.fromRemote.valid := false.B
+    x.io.remoteXDMAData.fromRemote.bits  := 0.U
+    x
+  }
+
+  for (i <- 0 until numXDMA - 1) {
+    xdma(i).io.remoteXDMACfg.toRemote -||> xdma(i + 1).io.remoteXDMACfg.fromRemote
+    xdma(i).io.remoteXDMAData.toRemote -||> xdma(i + 1).io.remoteXDMAData.fromRemote
+  }
+  xdma(numXDMA - 1).io.remoteXDMACfg.toRemote.ready  := false.B
+  xdma(numXDMA - 1).io.remoteXDMAData.toRemote.ready := false.B
+
+  val io = IO(new Bundle {
+    val instance = Vec(
+      numXDMA,
+      new Bundle {
+        val csrIO      = chiselTypeOf(xdma.head.io.csrIO)
+        val tcdmReader = chiselTypeOf(xdma.head.io.tcdmReader)
+        val tcdmWriter = chiselTypeOf(xdma.head.io.tcdmWriter)
+        val readerBusy = Output(Bool())
+        val writerBusy = Output(Bool())
+      }
+    )
+  })
+
+  for (i <- 0 until numXDMA) {
+    io.instance(i).csrIO <> xdma(i).io.csrIO
+    io.instance(i).tcdmReader <> xdma(i).io.tcdmReader
+    io.instance(i).tcdmWriter <> xdma(i).io.tcdmWriter
+    io.instance(i).readerBusy     := xdma(i).io.status.readerBusy
+    io.instance(i).writerBusy     := xdma(i).io.status.writerBusy
+    xdma(i).io.remoteTaskFinished := 0.U
+    dontTouch(xdma(i).io)
+  }
+}
+
+class XDMAChainWriteTesterPlus extends AnyFreeSpec with ChiselScalatestTester {
+
+  // Test parameters
+  val numXDMA:  Int = sys.props.get("numXDMA").map(_.toInt).getOrElse(16)
+  val copySize: Int = sys.props.get("copySize").map(_.toInt).getOrElse(1024)
+
+  // ************************ Prepare the simulation data ************************//
+
+  // Prepare the data in the tcdm
+  val tcdmMem = Seq.fill(numXDMA)(collection.mutable.Map[Long, BigInt]())
+
+  // We have 128KB of the tcdm data
+  // Each element is 64bit(8B) long
+  // Hence in total we have 128KB/8B = 16K tcdm memory lines
+  // First we generate the first 16KB (2K) of the data ramdomly in a Seq, which can be consumed by golden refernece later
+  val input_data     = for (i <- 0 until copySize / 8) yield {
+    BigInt(numbits = 64, rnd = Random)
+  }
+  var testTerminated = false
+
+  for (i <- 0 until input_data.length) {
+    tcdmMem(0)(8 * i) = input_data(i)
+  }
+  println("[TCDM] TCDM 1 data initialized. ")
+
+  "XDMA ChainedWrite Test" in test(
+    new ChainedXDMADifferentDestNum(numXDMA = numXDMA)
+  ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut =>
+    // ************************ Start Simulation **********************************//
+    // The thread list for the concurrent elements in a tester
+    var concurrent_threads = new chiseltest.internal.TesterThreadList(Seq())
+
+    // Eight threads to mimic the reader req side for XDMAs
+    // Each threads will emulate a random delay in the req_ready side
+    // ---------                ------------
+    // |       |----->addr----->|          |
+    // |reader |----->valid---->| tcdm port|
+    // |   req |<-----ready----<|          |
+    // ---------                ------------
+
+    // Queues to temporarily store the address at request side, which will be consumed by responser
+    val queues_xdma = Seq.fill(numXDMA)(Seq.fill(8)(collection.mutable.Queue[Int]()))
+
+    for (xdmaIndex <- 0 until queues_xdma.length) {
+      for (i <- 0 until 8) {
+        concurrent_threads = concurrent_threads.fork {
+          breakable(while (true) {
+            if (testTerminated) break()
+            val random_delay    = Random.between(0, 1)
+            if (random_delay > 1) {
+              dut.io.instance(xdmaIndex).tcdmReader.req(i).ready.poke(false)
+              dut.clock.step(random_delay)
+              dut.io.instance(xdmaIndex).tcdmReader.req(i).ready.poke(true)
+            } else {
+              dut.io.instance(xdmaIndex).tcdmReader.req(i).ready.poke(true)
+            }
+            val reader_req_addr =
+              dut.io.instance(xdmaIndex).tcdmReader.req(i).bits.addr.peekInt().toInt
+            if (dut.io.instance(xdmaIndex).tcdmReader.req(i).valid.peekBoolean()) {
+              queues_xdma(xdmaIndex)(i).enqueue(reader_req_addr)
+              println(
+                f"[XDMA ${xdmaIndex} Reader Req] Read the TCDM with Addr = 0x${reader_req_addr.toHexString}"
+              )
+            }
+            dut.clock.step()
+          })
+        }
+      }
+    }
+
+    // eight threads to mimic the reader resp side for XDMAs
+    // There are no ready port in the reader side, so we just pop out the data accoring to
+    // the addr recored in queues
+    // ---------                ------------
+    // |       |<-----data-----<|          |
+    // |reader |<-----valid----<| tcdm port|
+    // |   resp|                |          |
+    // ---------                ------------
+    for (xdmaIndex <- 0 until numXDMA) {
+      for (i <- 0 until 8) {
+        concurrent_threads = concurrent_threads.fork {
+          breakable(
+            while (true) {
+              if (testTerminated) break()
+              if (queues_xdma(xdmaIndex)(i).isEmpty) dut.clock.step()
+              else {
+                dut.io.instance(xdmaIndex).tcdmReader.rsp(i).valid.poke(true)
+                val reader_addr      = queues_xdma(xdmaIndex)(i).dequeue()
+                val reader_resp_data = tcdmMem(xdmaIndex)(reader_addr)
+                println(
+                  f"[XDMA ${xdmaIndex} Reader Resp] TCDM Response to Reader with Addr = 0x${reader_addr.toHexString} Data = 0x${reader_resp_data
+                      .toString(radix = 16)}"
+                )
+                dut.io
+                  .instance(xdmaIndex)
+                  .tcdmReader
+                  .rsp(i)
+                  .bits
+                  .data
+                  .poke(reader_resp_data.U)
+                dut.clock.step()
+                dut.io.instance(xdmaIndex).tcdmReader.rsp(i).valid.poke(false)
+              }
+            }
+          )
+        }
+      }
+    }
+
+    // eight threads to mimic the writer req side for XDMA 1
+    // Like the reader req side, we emulate the random delay by poking to ready signal
+    // ---------                ------------
+    // |       |>-----addr----->|          |
+    // |writer |>-----write---->| tcdm port|
+    // |   req |>-----data----->|          |
+    // |       |>-----valid---->|          |
+    // |       |<-----ready----<|          |
+    // ---------                ------------
+    for (xdmaIndex <- 0 until numXDMA) {
+      for (i <- 0 until 8) {
+        concurrent_threads = concurrent_threads.fork {
+          breakable(
+            while (true) {
+              if (testTerminated) break()
+
+              if (dut.io.instance(xdmaIndex).tcdmWriter.req(i).valid.peekBoolean()) {
+                val writer_req_addr =
+                  dut.io.instance(xdmaIndex).tcdmWriter.req(i).bits.addr.peekInt().toInt
+                val writer_req_data =
+                  dut.io.instance(xdmaIndex).tcdmWriter.req(i).bits.data.peekInt()
+
+                val random_delay = Random.between(10, 20)
+                if (random_delay > 1) {
+                  dut.io.instance(xdmaIndex).tcdmWriter.req(i).ready.poke(false)
+                  dut.clock.step(random_delay)
+                  dut.io.instance(xdmaIndex).tcdmWriter.req(i).ready.poke(true)
+                } else {
+                  dut.io.instance(xdmaIndex).tcdmWriter.req(i).ready.poke(true)
+                }
+
+                val previous_data =
+                  if (tcdmMem(xdmaIndex).contains(writer_req_addr))
+                    tcdmMem(xdmaIndex)(writer_req_addr)
+                  else BigInt(0)
+
+                val Strb    = dut.io.instance(xdmaIndex).tcdmWriter.req(i).bits.strb.peekInt().toInt
+                var bitStrb = BigInt(0)
+                for (j <- 7 to 0 by -1) {
+                  val bit   = (Strb >> j) & 1
+                  val block = (BigInt(255) * bit) << (j * 8)
+                  bitStrb |= block
+                }
+
+                val new_data =
+                  (previous_data & (~bitStrb)) | (writer_req_data & bitStrb)
+                tcdmMem(xdmaIndex)(writer_req_addr) = new_data
+                println(
+                  f"[XDMA ${xdmaIndex} Writer Req] Writes to TCDM with Addr: 0x${writer_req_addr.toHexString} and Data = 0x${new_data
+                      .toString(16)}"
+                )
+                dut.clock.step()
+              } else {
+                dut.clock.step()
+              }
+            }
+          )
+        }
+      }
+    }
+
+    concurrent_threads = concurrent_threads.fork {
+      // Use XDMA 1 as a host to copy the data from TCDM 1 to other TCDMs
+      println(
+        s"[TEST] Use XDMA 1 as a host to copy the data from TCDM 1 to TCDM 2 - $numXDMA"
+      )
+      val readerAGUParam = new AGUParamTest(
+        address         = Seq(0x1000_0000),
+        spatialStrides  = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds  = Array(copySize / 64, 1)
+      )
+      val writerAGUParam = new AGUParamTest(
+        address         = (1 until numXDMA map { i => (0x1000_0000 + (i << 20)).toLong }),
+        spatialStrides  = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds  = Array(copySize / 64, 1)
+      )
+
+      val readerRWParam = new RWParamTest(
+        enabledChannel = Integer.parseInt("11111111", 2),
+        enabledByte    = Integer.parseInt("11111111", 2)
+      )
+      val writerRWParam = new RWParamTest(
+        enabledChannel = Integer.parseInt("11111111", 2),
+        enabledByte    = Integer.parseInt("11111111", 2)
+      )
+
+      val writerExtParam = new ExtParam(
+        bypassMemset     = 1,
+        memsetValue      = 0,
+        bypassMaxPool    = 1,
+        maxPoolPeriod    = 0,
+        bypassTransposer = 1
+      )
+
+      // Write the configuration
+      var currentAddress = 0
+
+      currentAddress = XDMATesterInfrastructure.setXDMA(
+        readerAGUParam,
+        writerAGUParam,
+        readerRWParam,
+        writerRWParam,
+        writerExtParam,
+        dut,
+        dut.io.instance(0).csrIO
+      )
+      currentAddress += 3
+
+      dut.clock.step(16)
+      // Check if the DMA is finished
+      while (dut.io.instance.exists(_.writerBusy.peekBoolean() == true)) {
+        dut.clock.step(1)
+      }
+      testTerminated = true
+    }
+
+    concurrent_threads.joinAndStep()
+
+    // Check the data in the TCDM
+    tcdmMem.zipWithIndex.tail.foreach { case (tcdm, index) =>
+      if (tcdmMem.head != tcdm) {
+        throw new Exception(
+          s"[TEST Failed] TCDM 0 is not equal to TCDM ${index} after the copy operation"
+        )
+      }
+    }
+    println("All tests pass. All test threads are about to be terminated. ")
+  }
+}
+
+import org.scalatest.tools.Runner
+
+object XDMAChainWriteTesterPlusTorture extends App {
+  var iteration  = 0
+  var keepGoing  = true
+  var failedXDMA = -1
+
+  // Outer loop: keep iterating until a failure
+  while (keepGoing) {
+    iteration += 1
+    println(s"=== Starting iteration #$iteration ===")
+
+    // Inner loop: sweep numXDMA from 3 to 16
+    breakable {
+      for (numXDMA <- 3 to 16) {
+        println(s"--- Running with numXDMA = $numXDMA ---")
+
+        // pass numXDMA as a parameter; adjust flag name to whatever your test expects
+        System.setProperty("numXDMA", numXDMA.toString)
+        keepGoing = Runner.run(
+          Array(
+            "-o",
+            "-s",
+            "snax.xdma.xdmaTop.XDMAChainWriteTester"
+          )
+        )
+
+        if (keepGoing) {
+          println(s"✓ numXDMA = $numXDMA passed.\n")
+        } else {
+          failedXDMA = numXDMA
+          println(s"✗ numXDMA = $numXDMA failed at iteration #$iteration!")
+          // break out of the for‐loop
+          break
+        }
+      }
+    }
+
+    if (keepGoing) {
+      println(s"✔ Completed full cycle of numXDMA = 2-16 in iteration #$iteration.\n")
+    }
+  }
+
+  println(s"— Simulation stopped: iteration #$iteration failed at numXDMA=$failedXDMA.")
+}

@@ -258,7 +258,7 @@ import xdma_pkg::*;
     .io_csrIO_rsp_valid                 ( csr_rsp_valid_o      ),
     .io_csrIO_rsp_ready                 ( csr_rsp_ready_i      ), 
     //-----------------------------
-    // Tie-off unused AXI port
+    // AXI port
     //-----------------------------
 
     // RemoteTask finished Pin
@@ -312,7 +312,12 @@ import xdma_pkg::*;
 
     .io_remoteXDMACfg_toRemote_ready                                (xdma_to_remote_cfg_ready                             ),
     .io_remoteXDMACfg_toRemote_valid                                (xdma_to_remote_cfg_valid                             ),
-    .io_remoteXDMACfg_toRemote_bits                                 (xdma_to_remote_cfg_bits                              )
+    .io_remoteXDMACfg_toRemote_bits                                 (xdma_to_remote_cfg_bits                              ),
+    //-----------------------------
+    // Tie-off unused signals
+    //-----------------------------
+    .io_status_readerBusy(),
+    .io_status_writerBusy()
   );
 
 

@@ -8,7 +8,12 @@ import snax.utils.DecoupledCut._
 import snax.utils.DemuxDecoupled
 import snax.utils._
 import snax.xdma.DesignParams.XDMAParam
-import snax.xdma.xdmaIO.{XDMACfgIO, XDMAInterClusterCfgIO, XDMAIntraClusterCfgIO}
+import snax.xdma.xdmaIO.{
+  XDMACfgIO,
+  XDMAInterClusterCfgIODeserializer,
+  XDMAInterClusterCfgIOSerializer,
+  XDMAIntraClusterCfgIO
+}
 
 class XDMACtrlIO(readerParam: XDMAParam, writerParam: XDMAParam) extends Bundle {
   // clusterBaseAddress to determine if it is the local command or remote command
@@ -335,46 +340,30 @@ class XDMACtrl(readerparam: XDMAParam, writerparam: XDMAParam, clusterName: Stri
   preRoute_src_local.bits.taskID := taskID
   preRoute_dst_local.bits.taskID := taskID
 
-  // Cfg from remote side
-  val cfgFromRemote = Wire(
-    Decoupled(new XDMAInterClusterCfgIO(readerparam, writerparam))
-  )
-  cfgFromRemote.bits.deserialize(io.remoteXDMACfg.fromRemote.bits)
-  cfgFromRemote.valid               := io.remoteXDMACfg.fromRemote.valid
-  io.remoteXDMACfg.fromRemote.ready := cfgFromRemote.ready
-
   // Demux the cfg from the cfg_in port
   val cfgFromRemoteDemux = Module(
     new DemuxDecoupled(
-      dataType  = chiselTypeOf(cfgFromRemote.bits),
+      dataType  = UInt(readerparam.axiParam.dataWidth.W),
       numOutput = 2
     ) {
       override val desiredName = s"${clusterName}_xdma_ctrl_remoteCfgDemux"
     }
   )
 
-  cfgFromRemoteDemux.io.in <> cfgFromRemote
-  cfgFromRemoteDemux.io.sel := cfgFromRemote.bits.isWriterSide
-
-  // Cfg to remote side
-  val cfgToRemote = Wire(
-    Decoupled(new XDMAInterClusterCfgIO(readerparam, writerparam))
-  )
-  io.remoteXDMACfg.toRemote.bits  := cfgToRemote.bits.serialize
-  io.remoteXDMACfg.toRemote.valid := cfgToRemote.valid
-  cfgToRemote.ready               := io.remoteXDMACfg.toRemote.ready
+  cfgFromRemoteDemux.io.in <> io.remoteXDMACfg.fromRemote
+  cfgFromRemoteDemux.io.sel := io.remoteXDMACfg.fromRemote.bits(0)
 
   // Mux+Arbitrator the Cfg to cfg_out port
   val cfgToRemoteMux = Module(
     new Arbiter(
-      gen = chiselTypeOf(cfgToRemote.bits),
+      gen = UInt(readerparam.axiParam.dataWidth.W),
       n   = 2
     ) {
       override val desiredName = s"${clusterName}_xdma_ctrl_remoteCfgMux"
     }
   )
 
-  cfgToRemoteMux.io.out <> cfgToRemote
+  cfgToRemoteMux.io.out <> io.remoteXDMACfg.toRemote
   // Arbitration is done by Arbiter, no sel signal is needed
 
   // Command Router
@@ -386,36 +375,28 @@ class XDMACtrl(readerparam: XDMAParam, writerparam: XDMAParam, clusterName: Stri
   )
   srcCfgRouter.io.clusterBaseAddress := io.clusterBaseAddress
 
+  // io.from
+  // The local side is connected to the signal from the CSR manager
   srcCfgRouter.io.from.local <> preRoute_src_local
-  srcCfgRouter.io.from.remote.valid  := cfgFromRemoteDemux.io.out(0).valid
-  srcCfgRouter.io.from.remote.bits   := cfgFromRemoteDemux.io
-    .out(0)
-    .bits
-    .convertToXDMACfgIO(readerSide = true)
-  cfgFromRemoteDemux.io.out(0).ready := srcCfgRouter.io.from.remote.ready
+  // The remote side is connected to the Deserializer
+  val srcCfgDeserializer = Module(
+    new XDMAInterClusterCfgIODeserializer(readerparam, isWriterSide = false)
+  )
+  srcCfgDeserializer.io.cfgIn <> cfgFromRemoteDemux.io.out(0)
+  srcCfgRouter.io.from.remote.valid := srcCfgDeserializer.io.cfgOut.valid
+  srcCfgDeserializer.io.cfgOut.ready := srcCfgRouter.io.from.remote.ready
+  srcCfgRouter.io.from.remote.bits   := srcCfgDeserializer.io.cfgOut.bits.convertToXDMACfgIO(readerSide = true)
 
-  val postRoute_src_local  = Wire(
-    Decoupled(new XDMACfgIO(readerparam))
-  )
-  val postRoute_src_remote = Wire(
-    Decoupled(new XDMACfgIO(readerparam))
-  )
+  // io.to
+  // The local side is connected to the later dispatch unit
+  val postRoute_src_local = Wire(Decoupled(new XDMACfgIO(readerparam)))
   srcCfgRouter.io.to.local <> postRoute_src_local
-  srcCfgRouter.io.to.remote <> postRoute_src_remote
-
-  // Connect Port 3 to remoteCfgMux to send to the remote side
-  cfgToRemoteMux.io.in(1).bits := {
-    // Structured signal => Converted to crossClusterCfg => Serialized to final signal
-    val srcRemoteCfg = Wire(new XDMAInterClusterCfgIO(readerparam, writerparam))
-    srcRemoteCfg.convertFromXDMACfgIO(
-      writerSide = false,
-      cfg        = postRoute_src_remote.bits
-    )
-    srcRemoteCfg
-  }
-
-  cfgToRemoteMux.io.in(1).valid := postRoute_src_remote.valid
-  postRoute_src_remote.ready    := cfgToRemoteMux.io.in(1).ready
+  // The remote side is connected to the Serializer
+  val srcCfgSerailizer    = Module(new XDMAInterClusterCfgIOSerializer(readerparam))
+  srcCfgSerailizer.io.cfgIn.valid := srcCfgRouter.io.to.remote.valid
+  srcCfgRouter.io.to.remote.ready := srcCfgSerailizer.io.cfgIn.ready
+  srcCfgSerailizer.io.cfgIn.bits.convertFromXDMACfgIO(writerSide = false, cfg = srcCfgRouter.io.to.remote.bits)
+  srcCfgSerailizer.io.cfgOut <> cfgToRemoteMux.io.in(1)
 
   // Command Router
   val dstCfgRouter = Module(
@@ -426,36 +407,30 @@ class XDMACtrl(readerparam: XDMAParam, writerparam: XDMAParam, clusterName: Stri
   )
   dstCfgRouter.io.clusterBaseAddress := io.clusterBaseAddress
 
+  // io.from
+  // The local side is connected to the signal from the CSR manager
   dstCfgRouter.io.from.local <> preRoute_dst_local
-  dstCfgRouter.io.from.remote.valid  := cfgFromRemoteDemux.io.out(1).valid
-  dstCfgRouter.io.from.remote.bits   := cfgFromRemoteDemux.io
-    .out(1)
-    .bits
-    .convertToXDMACfgIO(readerSide = false)
-  cfgFromRemoteDemux.io.out(1).ready := dstCfgRouter.io.from.remote.ready
-
-  val postRoute_dst_local  = Wire(
-    Decoupled(new XDMACfgIO(writerparam))
+  // The remote side is connected to the Deserializer
+  val dstCfgDeserializer = Module(
+    new XDMAInterClusterCfgIODeserializer(writerparam, isWriterSide = true)
   )
-  val postRoute_dst_remote = Wire(
+  dstCfgDeserializer.io.cfgIn <> cfgFromRemoteDemux.io.out(1)
+  dstCfgRouter.io.from.remote.valid := dstCfgDeserializer.io.cfgOut.valid
+  dstCfgDeserializer.io.cfgOut.ready := dstCfgRouter.io.from.remote.ready
+  dstCfgRouter.io.from.remote.bits   := dstCfgDeserializer.io.cfgOut.bits.convertToXDMACfgIO(readerSide = false)
+
+  // io.to
+  // The local side is connected to the later dispatch unit
+  val postRoute_dst_local = Wire(
     Decoupled(new XDMACfgIO(writerparam))
   )
   postRoute_dst_local <> dstCfgRouter.io.to.local
-  postRoute_dst_remote <> dstCfgRouter.io.to.remote
-
-  // Connect Port 3 to remoteCfgMux to send to the remote side
-  cfgToRemoteMux.io.in(0).bits := {
-    // Structured signal => Converted to crossClusterCfg => Serialized to final signal
-    val dstRemoteCfg = Wire(new XDMAInterClusterCfgIO(readerparam, writerparam))
-    dstRemoteCfg.convertFromXDMACfgIO(
-      writerSide = true,
-      cfg        = postRoute_dst_remote.bits
-    )
-    dstRemoteCfg
-  }
-
-  cfgToRemoteMux.io.in(0).valid := postRoute_dst_remote.valid
-  postRoute_dst_remote.ready    := cfgToRemoteMux.io.in(0).ready
+  // The remote side is connected to the Serializer
+  val dstCfgSerailizer    = Module(new XDMAInterClusterCfgIOSerializer(writerparam))
+  dstCfgSerailizer.io.cfgIn.valid := dstCfgRouter.io.to.remote.valid
+  dstCfgRouter.io.to.remote.ready := dstCfgSerailizer.io.cfgIn.ready
+  dstCfgSerailizer.io.cfgIn.bits.convertFromXDMACfgIO(writerSide = true, cfg = dstCfgRouter.io.to.remote.bits)
+  dstCfgSerailizer.io.cfgOut <> cfgToRemoteMux.io.in(0)
 
   // Judge remoteLoopback signal
   postRoute_src_local.bits.remoteLoopback := false.B

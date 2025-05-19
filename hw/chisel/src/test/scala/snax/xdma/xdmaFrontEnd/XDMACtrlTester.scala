@@ -241,7 +241,9 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               (Writer_PointerAddress + i + 1).toInt
             )
             val writerRemoteConfig: BigInt =
-              (1 << 8) +
+              1 +
+              (1 << 1) + 
+              (1 << 5) +
                 // The address for the reader side
                 (BigInt(0x2000_0000) << 9) +
                 // The address for the writer side
@@ -366,8 +368,8 @@ class XDMACtrlTester extends AnyFlatSpec with ChiselScalatestTester {
               if (
                 extractBits(
                   dut.io.remoteXDMACfg.toRemote.bits.peekInt(),
-                  8,
-                  8
+                  0,
+                  0
                 ) == 0
               ) {
                 println(

@@ -257,7 +257,10 @@ class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: 
   // The output of the remoteLoopbackMux is the data that will be sent to the remote side
   io.remoteXDMAData.toRemote <> remoteLoopbackMux.io.out
   // The input of the remoteLoopbackSplitter is the data that will be get from the remote side
-  io.remoteXDMAData.fromRemote <> remoteLoopbackSplitter.io.in
+  // But the data can only be transmitted when the writer is busy
+  remoteLoopbackSplitter.io.in.valid := io.remoteXDMAData.fromRemote.valid && writer.io.busy
+  remoteLoopbackSplitter.io.in.bits  := io.remoteXDMAData.fromRemote.bits
+  io.remoteXDMAData.fromRemote.ready := remoteLoopbackSplitter.io.in.ready && writer.io.busy
 
   // Connect the AccompaniedCfg signal
   // Create three intermediate wires to convert from XDMAIntraClusterCfgIO to XDMADataPathCfgIO
