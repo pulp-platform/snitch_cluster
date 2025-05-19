@@ -75,7 +75,7 @@ module snitch_cluster_peripheral
     .s_apb_penable ( sn_periph_regs_apb_req.penable ),
     .s_apb_pwrite  ( sn_periph_regs_apb_req.pwrite  ),
     .s_apb_pprot   ( sn_periph_regs_apb_req.pprot   ),
-    .s_apb_paddr   ( sn_periph_regs_apb_req.paddr   ),
+    .s_apb_paddr   ( sn_periph_regs_apb_req.paddr[SNITCH_CLUSTER_PERIPHERAL_REG_MIN_ADDR_WIDTH-1:0] ),
     .s_apb_pwdata  ( sn_periph_regs_apb_req.pwdata  ),
     .s_apb_pstrb   ( sn_periph_regs_apb_req.pstrb   ),
     .s_apb_pready  ( sn_periph_regs_apb_rsp.pready  ),

@@ -7,6 +7,7 @@
 ###############
 
 BENDER ?= bender
+PEAKRDL ?= peakrdl
 
 #########################
 # Files and directories #
@@ -80,10 +81,7 @@ $(GENERATED_DOCS_DIR):
 	mkdir -p $@
 
 $(GENERATED_DOCS_DIR)/peripherals.md: hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.rdl | $(GENERATED_DOCS_DIR)
-	peakrdl markdown $< -o $@
-
-# Command to generate rdl regblock:
-# peakrdl regblock hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.rdl -o hw/snitch_cluster/src/snitch_cluster_peripheral --cpuif apb4-flat --default-reset arst_n
+	$(PEAKRDL) markdown $< -o $@
 
 $(DOXYGEN_DOCS_DIR): $(DOXYFILE) $(DOXYGEN_INPUTS)
 	doxygen $<

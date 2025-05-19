@@ -20,7 +20,8 @@ SN_BIN_DIR    = $(SN_TARGET_DIR)/bin
 
 # External executables
 BENDER	     ?= bender
-REGGEN       ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
+# REGGEN       ?= $(shell $(BENDER) path register_interface)/vendor/lowrisc_opentitan/util/regtool.py
+PEAKRDL      ?= peakrdl
 VERIBLE_FMT  ?= verible-verilog-format
 CLANG_FORMAT ?= clang-format
 RISCV_MC     ?= $(LLVM_BINROOT)/llvm-mc
@@ -83,7 +84,7 @@ $(SN_GEN_DIR) $(SN_BIN_DIR):
 # $1: target name, $2: prerequisite (hjson description file)
 define peakrdl_generate_header
 	@echo "[peakRDL] Generating $1"
-	peakrdl c-header -b htol $2 -o $1
+	$(PEAKRDL) c-header -b htol $2 -o $1
 	@$(CLANG_FORMAT) -i $1
 endef
 
