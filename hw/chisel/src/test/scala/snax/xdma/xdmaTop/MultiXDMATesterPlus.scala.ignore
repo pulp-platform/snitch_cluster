@@ -24,9 +24,7 @@ class ChainedXDMADifferentDestNum(numXDMA: Int) extends Module with RequireAsync
         clusterName = s"xdma${i + 1}",
         readerParam = new XDMAParam(
           axiParam          = new AXIParam,
-          crossClusterParam = new CrossClusterParam(maxMulticastDest = numXDMA - 1 - {
-            if (i < 3) 0 else i - 2
-          }),
+          crossClusterParam = new CrossClusterParam(maxMulticastDest = if (i == 0) numXDMA - 1 else 2),
           rwParam           = new ReaderWriterParam(
             configurableByteMask = false,
             configurableChannel  = true
@@ -34,9 +32,7 @@ class ChainedXDMADifferentDestNum(numXDMA: Int) extends Module with RequireAsync
         ),
         writerParam = new XDMAParam(
           axiParam          = new AXIParam,
-          crossClusterParam = new CrossClusterParam(maxMulticastDest = numXDMA - 1 - {
-            if (i < 3) 0 else i - 2
-          }),
+          crossClusterParam = new CrossClusterParam(maxMulticastDest = if (i == 0) numXDMA - 1 else 2),
           rwParam           = new ReaderWriterParam(
             configurableByteMask = true,
             configurableChannel  = true
@@ -115,7 +111,7 @@ class XDMAChainWriteTesterPlus extends AnyFreeSpec with ChiselScalatestTester {
 
   "XDMA ChainedWrite Test" in test(
     new ChainedXDMADifferentDestNum(numXDMA = numXDMA)
-  ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut =>
+  ).withAnnotations(Seq(IcarusBackendAnnotation, WriteVcdAnnotation)) { dut =>
     // ************************ Start Simulation **********************************//
     // The thread list for the concurrent elements in a tester
     var concurrent_threads = new chiseltest.internal.TesterThreadList(Seq())

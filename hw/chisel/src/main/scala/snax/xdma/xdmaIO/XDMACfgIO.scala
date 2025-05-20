@@ -158,8 +158,9 @@ class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam) exte
   val taskID              = UInt(4.W)
   val isWriterSide        = Bool()
   val readerPtr           = UInt(readerParam.crossClusterParam.AxiAddressWidth.W)
+  // Writer pointer only needs first two elements, as now the broadcast is tackled in XDMACfgIO level
   val writerPtr           = Vec(
-    readerParam.crossClusterParam.maxMulticastDest,
+    2,
     UInt(readerParam.crossClusterParam.AxiAddressWidth.W)
   )
   val axiTransferBeatSize = UInt(readerParam.crossClusterParam.tcdmAddressWidth.W)
@@ -180,39 +181,43 @@ class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam) exte
     writerSide: Boolean,
     cfg:        XDMACfgIO
   ): Unit = {
-    taskID              := cfg.taskID
-    isWriterSide        := writerSide.B
-    readerPtr           := cfg.readerPtr
-    writerPtr           := cfg.writerPtr
-    axiTransferBeatSize := cfg.axiTransferBeatSize
-    spatialStride       := cfg.aguCfg
+    taskID                   := cfg.taskID
+    isWriterSide             := writerSide.B
+    readerPtr                := cfg.readerPtr
+    writerPtr(0)             := cfg.writerPtr(0)
+    if (writerPtr.length > 1 && cfg.writerPtr.length > 1) writerPtr(1) := cfg.writerPtr(1)
+    else writerPtr(1)        := 0.U(0.W)
+    axiTransferBeatSize      := cfg.axiTransferBeatSize
+    spatialStride            := cfg.aguCfg
       .spatialStrides(0)
       .apply(
         cfg.aguCfg.spatialStrides(0).getWidth - 1,
         log2Ceil(readerParam.crossClusterParam.wordlineWidth / 8)
       )
-    temporalStrides     := cfg.aguCfg.temporalStrides.map(
+    temporalStrides          := cfg.aguCfg.temporalStrides.map(
       _.apply(
         cfg.aguCfg.temporalStrides(0).getWidth - 1,
         log2Ceil(readerParam.crossClusterParam.wordlineWidth / 8)
       )
     )
-    temporalBounds      := cfg.aguCfg.temporalBounds
-    enabledChannel      := cfg.readerwriterCfg.enabledChannel
-    enabledByte         := cfg.readerwriterCfg.enabledByte
+    temporalBounds           := cfg.aguCfg.temporalBounds
+    enabledChannel           := cfg.readerwriterCfg.enabledChannel
+    enabledByte              := cfg.readerwriterCfg.enabledByte
   }
 
   def convertToXDMACfgIO(readerSide: Boolean): XDMACfgIO = {
     val xdmaCfg = if (readerSide) { Wire(new XDMACfgIO(readerParam)) }
     else { Wire(new XDMACfgIO(writerParam)) }
 
-    xdmaCfg                          := 0.U.asTypeOf(xdmaCfg)
-    xdmaCfg.taskID                   := taskID
-    xdmaCfg.readerPtr                := readerPtr
-    xdmaCfg.writerPtr                := writerPtr
-    xdmaCfg.axiTransferBeatSize      := axiTransferBeatSize
-    xdmaCfg.aguCfg.ptr               := { if (readerSide) readerPtr else writerPtr(0) }
-    xdmaCfg.aguCfg.spatialStrides(0) := spatialStride ## 0.U(
+    xdmaCfg                                                := 0.U.asTypeOf(xdmaCfg)
+    xdmaCfg.taskID                                         := taskID
+    xdmaCfg.readerPtr                                      := readerPtr
+    xdmaCfg.writerPtr(0)                                   := writerPtr(0)
+    if (xdmaCfg.writerPtr.length > 1) xdmaCfg.writerPtr(1) := writerPtr(1)
+    if (xdmaCfg.writerPtr.length > 2) xdmaCfg.writerPtr.tail.tail.foreach(_ := 0.U(0.W))
+    xdmaCfg.axiTransferBeatSize                            := axiTransferBeatSize
+    xdmaCfg.aguCfg.ptr                                     := { if (readerSide) readerPtr else writerPtr(0) }
+    xdmaCfg.aguCfg.spatialStrides(0)                       := spatialStride ## 0.U(
       log2Ceil(readerParam.crossClusterParam.wordlineWidth / 8).W
     )
 
@@ -249,13 +254,13 @@ class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam) exte
 //  taskID: 4b
 //  readerPtr: 48b
 //  writerPtr: 48b
+//  Broadcast writerPtr: 48b
 //  axiTransferBeatSize: 16b
 //  spatialStride: 16b
 //  temporalBounds: 16b * Dim
 //  temporalStrides: 16b * Dim
 //  enabledChannel: 8b
 //  enabledByte: 8b
-//  Broadcast writerPtr: 48b * MaxDest
 
 class XDMAInterClusterCfgIOSerializer(readerwriterParam: XDMAParam) extends Module {
   val io = IO(new Bundle {
@@ -264,17 +269,13 @@ class XDMAInterClusterCfgIOSerializer(readerwriterParam: XDMAParam) extends Modu
   })
 
   // Serialize the entire cfg to one vector
-  var cfgSerialized = {
-    if (io.cfgIn.bits.writerPtr.length > 1)
-      io.cfgIn.bits.writerPtr.tail.reverse.reduce(
-        _ ## _
-      )
-    else WireInit(0.U(0.W))
-  } ## io.cfgIn.bits.enabledByte ## io.cfgIn.bits.enabledChannel ## io.cfgIn.bits.temporalStrides.reverse.reduce(
-    _ ## _
-  ) ## io.cfgIn.bits.temporalBounds.reverse.reduce(
-    _ ## _
-  ) ## io.cfgIn.bits.spatialStride ## io.cfgIn.bits.axiTransferBeatSize ## io.cfgIn.bits.writerPtr.head ## io.cfgIn.bits.readerPtr ## io.cfgIn.bits.taskID
+  var cfgSerialized =
+    io.cfgIn.bits.enabledByte ## io.cfgIn.bits.enabledChannel ## io.cfgIn.bits.temporalStrides.reverse.reduce(
+      _ ## _
+    ) ## io.cfgIn.bits.temporalBounds.reverse.reduce(
+      _ ## _
+    ) ## io.cfgIn.bits.spatialStride ## io.cfgIn.bits.axiTransferBeatSize ## io.cfgIn.bits.writerPtr(1) ## io.cfgIn.bits
+      .writerPtr(0) ## io.cfgIn.bits.readerPtr ## io.cfgIn.bits.taskID
 
   val frameBodyLength = readerwriterParam.axiParam.dataWidth - 5
   val frameNum        = (cfgSerialized.getWidth + frameBodyLength - 1) / frameBodyLength
@@ -316,7 +317,7 @@ class XDMAInterClusterCfgIOSerializer(readerwriterParam: XDMAParam) extends Modu
   io.cfgOut <> widthConverter.io.out
 }
 
-class XDMAInterClusterCfgIODeserializer(readerwriterParam: XDMAParam, isWriterSide: Boolean) extends Module {
+class XDMAInterClusterCfgIODeserializer(readerwriterParam: XDMAParam) extends Module {
   val io = IO(new Bundle {
     val cfgIn  = Flipped(Decoupled(UInt(readerwriterParam.axiParam.dataWidth.W)))
     val cfgOut = Decoupled(new XDMAInterClusterCfgIO(readerwriterParam, readerwriterParam))
@@ -328,6 +329,8 @@ class XDMAInterClusterCfgIODeserializer(readerwriterParam: XDMAParam, isWriterSi
 
   val frameIndex   = RegInit(2.U(4.W))
   val frameCounter = Module(new BasicCounter(width = 4, hasCeil = true))
+
+  val isWriterSide = RegInit(false.B)
 
   // The FSM to control multi-frame cfg transfer
   // States
@@ -349,6 +352,7 @@ class XDMAInterClusterCfgIODeserializer(readerwriterParam: XDMAParam, isWriterSi
     is(sIdle) {
       when(io.cfgIn.valid) {
         io.cfgIn.ready := true.B
+        isWriterSide   := io.cfgIn.bits(0)
         frameBody(0)   := io.cfgIn.bits(readerwriterParam.axiParam.dataWidth - 1, 5)
         when(io.cfgIn.bits(4, 1) === 1.U) {
           // There is only one frame
@@ -385,7 +389,7 @@ class XDMAInterClusterCfgIODeserializer(readerwriterParam: XDMAParam, isWriterSi
 
   // The deserializer to convert the buffered frames to the output cfg
   var cfgSerialized = frameBody.reverse.reduce(_ ## _)
-  io.cfgOut.bits.isWriterSide := isWriterSide.B
+  io.cfgOut.bits.isWriterSide := isWriterSide
 
   // Assign task ID
   io.cfgOut.bits.taskID := cfgSerialized(3, 0)
@@ -400,15 +404,18 @@ class XDMAInterClusterCfgIODeserializer(readerwriterParam: XDMAParam, isWriterSi
     readerwriterParam.crossClusterParam.AxiAddressWidth
   )
 
-  // Assign the first writerPtr
-  io.cfgOut.bits.writerPtr(0) := cfgSerialized(
-    readerwriterParam.crossClusterParam.AxiAddressWidth - 1,
-    0
-  )
-  cfgSerialized = cfgSerialized(
-    cfgSerialized.getWidth - 1,
-    readerwriterParam.crossClusterParam.AxiAddressWidth
-  )
+  // Assign the writerPtr
+  io.cfgOut.bits.writerPtr.foreach { i =>
+    i := cfgSerialized(
+      readerwriterParam.crossClusterParam.AxiAddressWidth - 1,
+      0
+    )
+    cfgSerialized = cfgSerialized(
+      cfgSerialized.getWidth - 1,
+      readerwriterParam.crossClusterParam.AxiAddressWidth
+    )
+  }
+
   // Assign axiTransferBeatSize
   io.cfgOut.bits.axiTransferBeatSize := cfgSerialized(
     readerwriterParam.crossClusterParam.tcdmAddressWidth - 1,
@@ -467,20 +474,6 @@ class XDMAInterClusterCfgIODeserializer(readerwriterParam: XDMAParam, isWriterSi
     cfgSerialized.getWidth - 1,
     readerwriterParam.crossClusterParam.wordlineWidth / 8
   )
-  // Assign the remaining writerPtr
-  io.cfgOut.bits.writerPtr.tail.foreach { i =>
-    i := cfgSerialized(
-      readerwriterParam.crossClusterParam.AxiAddressWidth - 1,
-      0
-    )
-    if (cfgSerialized.getWidth > readerwriterParam.crossClusterParam.AxiAddressWidth)
-      cfgSerialized = cfgSerialized(
-        cfgSerialized.getWidth - 1,
-        readerwriterParam.crossClusterParam.AxiAddressWidth
-      )
-    else
-      cfgSerialized = 0.U(0.W)
-  }
 }
 
 class XDMADataPathCfgIO(axiParam: AXIParam, crossClusterParam: CrossClusterParam) extends Bundle {
