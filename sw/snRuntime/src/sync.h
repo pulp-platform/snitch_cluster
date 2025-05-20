@@ -314,4 +314,4 @@ inline void snrt_enable_multicast(uint32_t mask) { write_csr(0x7c4, mask); }
 /**
  * @brief Disable LSU multicast
  */
-inline void snrt_disable_multicast() { write_csr(0x7c3, 0); }
+inline void snrt_disable_multicast() { write_csr(0x7c4, 0); }
