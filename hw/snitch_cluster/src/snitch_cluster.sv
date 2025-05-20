@@ -621,7 +621,7 @@ module snitch_cluster
   };
 
   xbar_rule_t [5:0] dma_xbar_rules;
-  xbar_rule_t [DmaXbarCfg.NoAddrRules-1:0] enabled_dma_xbar_rule;
+  xbar_rule_t [DmaXbarCfg.NoAddrRules-1:0] enabled_dma_xbar_rule; // TODO(lleone): check if the NumAddrRules is okay for multicast
 
   assign dma_xbar_rules = '{
     '{idx: BootRom,    start_addr: BootRomAliasStart,      end_addr: BootRomAliasEnd},
