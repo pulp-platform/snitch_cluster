@@ -61,20 +61,22 @@ RVT_RISCV_OBJDUMP_FLAGS += --disassemble-zeroes --section=.text --section=.text.
 # Rules #
 #########
 vpath %.S $(SN_RVTESTS_SCRDIR)
+vpath %.elf $(SN_RVTESTS_BUILDDIR)
+vpath %.dump $(SN_RVTESTS_BUILDDIR)
 
 # Create the objdumps for each compiled program
-%.dump: %
-	$(RISCV_OBJDUMP) $(RVT_RISCV_OBJDUMP_FLAGS) $(SN_RVTESTS_BUILDDIR)$<.elf > $(SN_RVTESTS_BUILDDIR)$@
+%.dump: %.elf
+	$(RISCV_OBJDUMP) $(RVT_RISCV_OBJDUMP_FLAGS) $(SN_RVTESTS_BUILDDIR)$< > $(SN_RVTESTS_BUILDDIR)$@
 
 # Macro to compile each program
 define compile_template
 
-$$($(1)_p_tests): $(1)-p-%: $(1)/%.S | $(SN_RVTESTS_BUILDDIR)
-	$$(RISCV_CC) $$(RVT_RISCV_CFLAGS) -I$(SN_RVTESTS_SCRDIR)/../env/p -I$(SN_RVTESTS_SCRDIR)/macros/scalar -T$(SN_RVTESTS_SCRDIR)/../env/p/link.ld $$< -o $(SN_RVTESTS_BUILDDIR)$$@.elf
+$$(addsuffix .elf,$$($(1)_p_tests)): $(1)-p-%.elf: $(1)/%.S | $(SN_RVTESTS_BUILDDIR)
+	$$(RISCV_CC) $$(RVT_RISCV_CFLAGS) -I$(SN_RVTESTS_SCRDIR)/../env/p -I$(SN_RVTESTS_SCRDIR)/macros/scalar -T$(SN_RVTESTS_SCRDIR)/../env/p/link.ld $$< -o $(SN_RVTESTS_BUILDDIR)$$@
 $(1)_tests += $$($(1)_p_tests)
 
-$$($(1)_v_tests): $(1)-v-%: $(1)/%.S
-	$$(RISCV_CC) $$(RVT_RISCV_CFLAGS) -DENTROPY=0x$$(shell echo \$$@ | md5sum | cut -c 1-7) -std=gnu99 -O2 -I$(SN_RVTESTS_SCRDIR)/../env/v -I$(SN_RVTESTS_SCRDIR)/macros/scalar -T$(SN_RVTESTS_SCRDIR)/../env/v/link.ld $(SN_RVTESTS_SCRDIR)/../env/v/entry.S $(SN_RVTESTS_SCRDIR)/../env/v/*.c $$< -o $(SN_RVTESTS_BUILDDIR)$$@.elf
+$$(addsuffix .elf,$$($(1)_v_tests)): $(1)-v-%.elf: $(1)/%.S
+	$$(RISCV_CC) $$(RVT_RISCV_CFLAGS) -DENTROPY=0x$$(shell echo \$$@ | md5sum | cut -c 1-7) -std=gnu99 -O2 -I$(SN_RVTESTS_SCRDIR)/../env/v -I$(SN_RVTESTS_SCRDIR)/macros/scalar -T$(SN_RVTESTS_SCRDIR)/../env/v/link.ld $(SN_RVTESTS_SCRDIR)/../env/v/entry.S $(SN_RVTESTS_SCRDIR)/../env/v/*.c $$< -o $(SN_RVTESTS_BUILDDIR)$$@
 $(1)_tests += $$($(1)_v_tests)
 
 $(1)_tests_dump = $$(addsuffix .dump, $$($(1)_tests))
