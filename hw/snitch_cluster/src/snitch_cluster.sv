@@ -500,7 +500,7 @@ module snitch_cluster
 
   addr_t hwpe_mem_start_address, hwpe_mem_end_address;
   assign hwpe_mem_start_address = zero_mem_end_address;
-  assign hwpe_mem_end_address   = hwpe_mem_start_address + 'h100;
+  assign hwpe_mem_end_address   = hwpe_mem_start_address + 'h200; // FIXME: ugly hardwired constant
 
   localparam addr_t TCDMAliasStart = AliasRegionBase & TCDMMask;
   localparam addr_t TCDMAliasEnd   = (TCDMAliasStart + TCDMSize) & TCDMMask;
@@ -515,7 +515,7 @@ module snitch_cluster
   localparam addr_t ZeroMemAliasEnd   = PeriphAliasEnd + ZeroMemorySize * 1024;
 
   localparam addr_t HWPEAliasStart = ZeroMemAliasEnd;
-  localparam addr_t HWPEAliasEnd   = HWPEAliasStart + 'h100;
+  localparam addr_t HWPEAliasEnd   = HWPEAliasStart + 'h200; // FIXME: ugly hardwired constant
 
   // ----------------
   // Wire Definitions

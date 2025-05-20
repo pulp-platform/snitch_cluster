@@ -30,6 +30,7 @@ dependencies:
   idma:               { git: https://github.com/pulp-platform/iDMA,               version:  0.6.4                               }
   redmule:            { git: https://github.com/pulp-platform/redmule,            rev: 3f0b7382d1156dd5b24914af30496ff6c46bfd69 } #branch: picobello
   hci:                { git: https://github.com/pulp-platform/hci,                rev: 06fcba671e060f2e1b03b7ebe2d3e719f1557099 }
+  datamover:          { git: https://github.com/FrancescoConti/datamover,         rev: c3e92a04e4d6d20396a1505bd756e5588e656ec1 } # branch: transpose
 
 export_include_dirs:
   - hw/reqrsp_interface/include
