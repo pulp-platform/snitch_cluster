@@ -40,38 +40,37 @@ int main() {
     // Output will be in the next 8 banks
     qhv_start = local_data_1 + num_cut_in_wide_elem;
 
-    size_t chunk_size = sizeof(uint32_t);
+    size_t chunk_size = num_cut_in_wide_elem * sizeof(uint32_t);
+    size_t dst_stride = 4 * chunk_size;
 
     // First load the data accordingly
     if (snrt_is_dm_core()) {
+        uint32_t start_dma_load = snrt_mcycle();
         // Load the data a list into the first 8 banks
-        for (uint32_t i = 0; i < target_num_data; i++) {
-            snrt_dma_start_2d(
-                // Destination address, source address
-                local_data_0 + i * 64, data_a_list + i * num_cut_in_wide_elem,
-                // Size per chunk
-                chunk_size,
-                // Destination stride, source stride
-                chunk_size, chunk_size,
-                // Number of times to do
-                num_cut_in_wide_elem);
-        };
+        snrt_dma_start_2d(
+            // Destination address, source address
+            local_data_0, data_a_list,
+            // Size per chunk
+            chunk_size,
+            // Destination stride, source stride
+            dst_stride, chunk_size,
+            // Number of times to do
+            target_num_data);
 
-        // Load the data a list into the next 8 banks
-        for (uint32_t i = 0; i < target_num_data; i++) {
-            snrt_dma_start_2d(
-                // Destination address, source address
-                local_data_1 + i * 64, data_b_list + i * num_cut_in_wide_elem,
-                // Size per chunk
-                chunk_size,
-                // Destination stride, source stride
-                chunk_size, chunk_size,
-                // Number of times to do
-                num_cut_in_wide_elem);
-        };
+        snrt_dma_start_2d(
+            // Destination address, source address
+            local_data_1, data_b_list,
+            // Size per chunk
+            chunk_size,
+            // Destination stride, source stride
+            dst_stride, chunk_size,
+            // Number of times to do
+            target_num_data);
 
         // Ensure that all DMA tasks finish
         snrt_dma_wait_all();
+        uint32_t end_dma_load = snrt_mcycle();
+        printf("DMA load time: %d\n", end_dma_load - start_dma_load);
     };
 
     // Synchronize cores
@@ -84,7 +83,7 @@ int main() {
         //-------------------------------
         // Configuring the streamers
         //-------------------------------
-
+        uint32_t core_config_start = snrt_mcycle();
         // Configure streamer for high dim A
         hypercorex_set_streamer_highdim_a(
             (uint32_t)local_data_0,  // Base pointer low
@@ -143,6 +142,10 @@ int main() {
         // Write control registers
         csrw_ss(HYPERCOREX_CORE_SET_REG_ADDR, 0x00000030);
 
+        uint32_t core_config_end = snrt_mcycle();
+        printf("Core config time: %d\n", core_config_end - core_config_start);
+
+        uint32_t core_start = snrt_mcycle();
         // Start hypercorex
         csrw_ss(HYPERCOREX_CORE_SET_REG_ADDR, 0x00000031);
 
@@ -150,6 +153,9 @@ int main() {
         // Check both the Hypercorex and Streamer
         while (csrr_ss(STREAMER_BUSY_CSR)) {
         };
+
+        uint32_t core_end = snrt_mcycle();
+        printf("Core run time: %d\n", core_end - core_start);
 
         //-------------------------------
         // Configuring the for Testing
