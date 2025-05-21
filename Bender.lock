@@ -78,7 +78,7 @@ packages:
       Git: https://github.com/pulp-platform/cv32e40x.git
     dependencies: []
   datamover:
-    revision: f08851e3f220794cc15d86089af48512b57b5b59
+    revision: fb7d09c201ab52de23b11adf12b36d8e75c4c0e6
     version: null
     source:
       Git: https://github.com/FrancescoConti/datamover
@@ -111,8 +111,8 @@ packages:
     - hwpe-stream
     - l2_tcdm_hybrid_interco
   hwpe-ctrl:
-    revision: 0e95510c0f4d43452d21b7723d766ae92e45c101
-    version: null
+    revision: 3690a3c648f120546d8de2bc583d5170c36d2f20
+    version: 2.0.0
     source:
       Git: https://github.com/pulp-platform/hwpe-ctrl.git
     dependencies:
@@ -150,8 +150,8 @@ packages:
       Git: https://github.com/pulp-platform/L2_tcdm_hybrid_interco.git
     dependencies: []
   obi:
-    revision: 8097928cf1b43712f93d5356f336397879b4ad2c
-    version: 0.1.6
+    revision: 0155fc34e900c7c884e081c0a1114a247937ff69
+    version: 0.1.7
     source:
       Git: https://github.com/pulp-platform/obi.git
     dependencies:

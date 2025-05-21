@@ -68,17 +68,15 @@ int main() {
 
     datamover_in_set((unsigned int) local_in);
     datamover_out_set((unsigned int) local_out);
-    datamover_tot_len_set(64); // 64 "words" of 64B each
-    datamover_in_d0_len_set(64);
+    datamover_len0_set(
+      ((64 & 0x00000fff) << 12) | // in_d0_len
+      (64 & 0x00000fff)           // tot_len
+    );
+    datamover_len1_set(
+      (64 & 0x00000fff)           // out_d0_len
+    );
     datamover_in_d0_stride_set(64);
-    datamover_in_d1_len_set(1);
-    datamover_in_d1_stride_set(64);
-    datamover_in_d2_stride_set(64);
-    datamover_out_d0_len_set(64);
     datamover_out_d0_stride_set(64);
-    datamover_out_d1_len_set(1);
-    datamover_out_d1_stride_set(64);
-    datamover_out_d2_stride_set(64);
     datamover_transp_mode_set(DATAMOVER_TRANSP_8B);
 
     // Start Datamover operation
@@ -89,17 +87,15 @@ int main() {
 
     datamover_in_set((unsigned int) local_out);
     datamover_out_set((unsigned int) local_out2);
-    datamover_tot_len_set(32); // 32 "words" of 64B each
-    datamover_in_d0_len_set(32);
+    datamover_len0_set(
+      ((32 & 0x00000fff) << 12) | // in_d0_len
+      (32 & 0x00000fff)           // tot_len
+    );
+    datamover_len1_set(
+      (32 & 0x00000fff)           // out_d0_len
+    );
     datamover_in_d0_stride_set(64);
-    datamover_in_d1_len_set(1);
-    datamover_in_d1_stride_set(64);
-    datamover_in_d2_stride_set(64);
-    datamover_out_d0_len_set(32);
     datamover_out_d0_stride_set(64);
-    datamover_out_d1_len_set(1);
-    datamover_out_d1_stride_set(64);
-    datamover_out_d2_stride_set(64);
     datamover_transp_mode_set(DATAMOVER_TRANSP_16B);
 
     // Start Datamover operation
@@ -110,17 +106,15 @@ int main() {
 
     datamover_in_set((unsigned int) local_out2);
     datamover_out_set((unsigned int) local_out3bis);
-    datamover_tot_len_set(16); // 16 "words" of 64B each
-    datamover_in_d0_len_set(16);
+    datamover_len0_set(
+      ((16 & 0x00000fff) << 12) | // in_d0_len
+      (16 & 0x00000fff)           // tot_len
+    );
+    datamover_len1_set(
+      (16 & 0x00000fff)           // out_d0_len
+    );
     datamover_in_d0_stride_set(64);
-    datamover_in_d1_len_set(1);
-    datamover_in_d1_stride_set(64);
-    datamover_in_d2_stride_set(64);
-    datamover_out_d0_len_set(16);
     datamover_out_d0_stride_set(64);
-    datamover_out_d1_len_set(1);
-    datamover_out_d1_stride_set(64);
-    datamover_out_d2_stride_set(64);
     datamover_transp_mode_set(DATAMOVER_TRANSP_32B);
 
     // Start Datamover operation
@@ -131,17 +125,15 @@ int main() {
 
     datamover_in_set((unsigned int) local_out3bis);
     datamover_out_set((unsigned int) local_out3);
-    datamover_tot_len_set(16); // 16 "words" of 64B each
-    datamover_in_d0_len_set(16);
+    datamover_len0_set(
+      ((16 & 0x00000fff) << 12) | // in_d0_len
+      (16 & 0x00000fff)           // tot_len
+    );
+    datamover_len1_set(
+      (16 & 0x00000fff)           // out_d0_len
+    );
     datamover_in_d0_stride_set(64);
-    datamover_in_d1_len_set(1);
-    datamover_in_d1_stride_set(64);
-    datamover_in_d2_stride_set(64);
-    datamover_out_d0_len_set(16);
     datamover_out_d0_stride_set(64);
-    datamover_out_d1_len_set(1);
-    datamover_out_d1_stride_set(64);
-    datamover_out_d2_stride_set(64);
     datamover_transp_mode_set(DATAMOVER_TRANSP_NONE);
 
     // Start Datamover operation

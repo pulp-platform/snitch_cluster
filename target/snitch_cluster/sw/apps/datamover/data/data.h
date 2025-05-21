@@ -29,30 +29,24 @@
 #define DATAMOVER_REG_IN_PTR         0x00  
 // Output pointer
 #define DATAMOVER_REG_OUT_PTR        0x04  
-// Total length
-#define DATAMOVER_REG_TOT_LEN        0x08  
-// Input dimension 0 length
-#define DATAMOVER_REG_IN_D0_LEN      0x0C  
+// Length register 0
+#define DATAMOVER_REG_LEN0           0x08  
+// Length register 1
+#define DATAMOVER_REG_LEN1           0x0C  
 // Input dimension 0 stride
 #define DATAMOVER_REG_IN_D0_STRIDE   0x10  
-// Input dimension 1 length
-#define DATAMOVER_REG_IN_D1_LEN      0x14  
 // Input dimension 1 stride
-#define DATAMOVER_REG_IN_D1_STRIDE   0x18  
+#define DATAMOVER_REG_IN_D1_STRIDE   0x14
 // Input dimension 2 stride
-#define DATAMOVER_REG_IN_D2_STRIDE   0x1C  
-// Output dimension 0 length
-#define DATAMOVER_REG_OUT_D0_LEN     0x20  
+#define DATAMOVER_REG_IN_D2_STRIDE   0x18
 // Output dimension 0 stride
-#define DATAMOVER_REG_OUT_D0_STRIDE  0x24  
-// Output dimension 1 length
-#define DATAMOVER_REG_OUT_D1_LEN     0x28  
+#define DATAMOVER_REG_OUT_D0_STRIDE  0x1C
 // Output dimension 1 stride
-#define DATAMOVER_REG_OUT_D1_STRIDE  0x2C  
+#define DATAMOVER_REG_OUT_D1_STRIDE  0x20
 // Output dimension 2 stride
-#define DATAMOVER_REG_OUT_D2_STRIDE  0x30  
+#define DATAMOVER_REG_OUT_D2_STRIDE  0x24
 // Transposition mode (LSB: 000=none, 001=8b, 010=16b, 100=32b) + Leftover (MSB 31:16)
-#define DATAMOVER_REG_TRANSP_MODE    0x34  
+#define DATAMOVER_REG_TRANSP_MODE    0x28
 
 
 #define MUX_SEL_OFFS 0x98
@@ -90,20 +84,16 @@ static inline void datamover_out_set(unsigned int value) {
   HWPE_WRITE(value, DATAMOVER_REG_OFFS + DATAMOVER_REG_OUT_PTR);
 }
 
-static inline void datamover_tot_len_set(unsigned int value) {
-  HWPE_WRITE(value, DATAMOVER_REG_OFFS + DATAMOVER_REG_TOT_LEN);
+static inline void datamover_len0_set(unsigned int value) {
+  HWPE_WRITE(value, DATAMOVER_REG_OFFS + DATAMOVER_REG_LEN0);
 }
 
-static inline void datamover_in_d0_len_set(unsigned int value) {
-  HWPE_WRITE(value, DATAMOVER_REG_OFFS + DATAMOVER_REG_IN_D0_LEN);
+static inline void datamover_len1_set(unsigned int value) {
+  HWPE_WRITE(value, DATAMOVER_REG_OFFS + DATAMOVER_REG_LEN1);
 }
 
 static inline void datamover_in_d0_stride_set(unsigned int value) {
   HWPE_WRITE(value, DATAMOVER_REG_OFFS + DATAMOVER_REG_IN_D0_STRIDE);
-}
-
-static inline void datamover_in_d1_len_set(unsigned int value) {
-  HWPE_WRITE(value, DATAMOVER_REG_OFFS + DATAMOVER_REG_IN_D1_LEN);
 }
 
 static inline void datamover_in_d1_stride_set(unsigned int value) {
@@ -114,16 +104,8 @@ static inline void datamover_in_d2_stride_set(unsigned int value) {
   HWPE_WRITE(value, DATAMOVER_REG_OFFS + DATAMOVER_REG_IN_D2_STRIDE);
 }
 
-static inline void datamover_out_d0_len_set(unsigned int value) {
-  HWPE_WRITE(value, DATAMOVER_REG_OFFS + DATAMOVER_REG_OUT_D0_LEN);
-}
-
 static inline void datamover_out_d0_stride_set(unsigned int value) {
   HWPE_WRITE(value, DATAMOVER_REG_OFFS + DATAMOVER_REG_OUT_D0_STRIDE);
-}
-
-static inline void datamover_out_d1_len_set(unsigned int value) {
-  HWPE_WRITE(value, DATAMOVER_REG_OFFS + DATAMOVER_REG_OUT_D1_LEN);
 }
 
 static inline void datamover_out_d1_stride_set(unsigned int value) {
