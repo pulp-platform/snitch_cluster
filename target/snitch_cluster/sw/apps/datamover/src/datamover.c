@@ -12,6 +12,7 @@
 uint8_t *local_in;
 uint8_t *local_out;
 uint8_t *local_out2;
+uint8_t *local_out3bis;
 uint8_t *local_out3;
 uint8_t *local_gold;
 uint8_t *local_gold2;
@@ -35,6 +36,7 @@ int main() {
     local_out2  = snrt_l1_alloc(in_size/2);
     local_gold2 = snrt_l1_alloc(in_size/2);
     local_out3  = snrt_l1_alloc(in_size/4);
+    local_out3bis = snrt_l1_alloc(in_size/4);
     local_gold3 = snrt_l1_alloc(in_size/4);
     snrt_dma_start_1d(local_in, golden_in, in_size);
     snrt_dma_start_1d(local_gold, golden_out, in_size);
@@ -52,6 +54,7 @@ int main() {
     printf("local_in: %p\n", local_in);
     printf("local_out: %p\n", local_out);
     printf("local_out2: %p\n", local_out2);
+    printf("local_out3bis: %p\n", local_out3bis);
     printf("local_out3: %p\n", local_out3);
 
     // Enable Datamover
@@ -106,7 +109,7 @@ int main() {
     while( ( offload_id_tmp = hwpe_acquire_job() ) < 0);
 
     datamover_in_set((unsigned int) local_out2);
-    datamover_out_set((unsigned int) local_out3);
+    datamover_out_set((unsigned int) local_out3bis);
     datamover_tot_len_set(16); // 16 "words" of 64B each
     datamover_in_d0_len_set(16);
     datamover_in_d0_stride_set(64);
@@ -119,6 +122,27 @@ int main() {
     datamover_out_d1_stride_set(64);
     datamover_out_d2_stride_set(64);
     datamover_transp_mode_set(DATAMOVER_TRANSP_32B);
+
+    // Start Datamover operation
+    hwpe_trigger_job();
+
+    // Fourth job: no transpose, 16x16 matrix
+    while( ( offload_id_tmp = hwpe_acquire_job() ) < 0);
+
+    datamover_in_set((unsigned int) local_out3bis);
+    datamover_out_set((unsigned int) local_out3);
+    datamover_tot_len_set(16); // 16 "words" of 64B each
+    datamover_in_d0_len_set(16);
+    datamover_in_d0_stride_set(64);
+    datamover_in_d1_len_set(1);
+    datamover_in_d1_stride_set(64);
+    datamover_in_d2_stride_set(64);
+    datamover_out_d0_len_set(16);
+    datamover_out_d0_stride_set(64);
+    datamover_out_d1_len_set(1);
+    datamover_out_d1_stride_set(64);
+    datamover_out_d2_stride_set(64);
+    datamover_transp_mode_set(DATAMOVER_TRANSP_NONE);
 
     // Start Datamover operation
     hwpe_trigger_job();
