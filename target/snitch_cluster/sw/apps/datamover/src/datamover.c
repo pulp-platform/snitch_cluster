@@ -11,7 +11,9 @@
 
 uint8_t *local_in;
 uint8_t *local_out;
+uint8_t *local_out2;
 uint8_t *local_gold;
+uint8_t *local_gold2;
 
 int main() {
 
@@ -25,11 +27,14 @@ int main() {
 
   // Allocate space in TCDM and copy inputs to TCDM
   if (snrt_is_dm_core()) {
-    local_in  = snrt_l1_alloc(in_size);
-    local_out  = snrt_l1_alloc(out_size);
-    local_gold = snrt_l1_alloc(out_size);
+    local_in    = snrt_l1_alloc(in_size);
+    local_out   = snrt_l1_alloc(out_size);
+    local_gold  = snrt_l1_alloc(out_size);
+    local_out2  = snrt_l1_alloc(out_size);
+    local_gold2 = snrt_l1_alloc(in_size/2);
     snrt_dma_start_1d(local_in, golden_in, in_size);
     snrt_dma_start_1d(local_gold, golden_out, in_size);
+    snrt_dma_start_1d(local_gold2, golden_out2, in_size/2);
     snrt_dma_wait_all();
   }
 
@@ -41,6 +46,7 @@ int main() {
 
     printf("local_in: %p\n", local_in);
     printf("local_out: %p\n", local_out);
+    printf("local_out2: %p\n", local_out);
 
     // Enable Datamover
     datamover_cg_enable();
@@ -48,6 +54,7 @@ int main() {
 
     hwpe_soft_clear();
 
+    // First job: 8b transpose, 64x64 matrix
     while( ( offload_id_tmp = hwpe_acquire_job() ) < 0);
 
     datamover_in_set((unsigned int) local_in);
@@ -67,6 +74,28 @@ int main() {
 
     // Start Datamover operation
     hwpe_trigger_job();
+
+    // Second job: 16b transpose, 32x32 matrix
+    while( ( offload_id_tmp = hwpe_acquire_job() ) < 0);
+
+    datamover_in_set((unsigned int) local_out);
+    datamover_out_set((unsigned int) local_out2);
+    datamover_tot_len_set(32); // 64 "words" of 64B each
+    datamover_in_d0_len_set(32);
+    datamover_in_d0_stride_set(64);
+    datamover_in_d1_len_set(1);
+    datamover_in_d1_stride_set(64);
+    datamover_in_d2_stride_set(64);
+    datamover_out_d0_len_set(32);
+    datamover_out_d0_stride_set(64);
+    datamover_out_d1_len_set(1);
+    datamover_out_d1_stride_set(64);
+    datamover_out_d2_stride_set(64);
+    datamover_transp_mode_set(DATAMOVER_TRANSP_16B);
+
+    // Start Datamover operation
+    hwpe_trigger_job();
+
   }
 
   snrt_cluster_hw_barrier();
@@ -82,7 +111,8 @@ int main() {
     printf("Checking Datamover from core %d\n", core_idx);
 
     // Check computation is correct
-    errors = datamover_compare_int((uint64_t*)local_out, (uint64_t*) local_gold, SIZE*SIZE/8);
+    errors  = datamover_compare_int((uint64_t*)local_out,  (uint64_t*) local_gold,  SIZE*SIZE/8);
+    errors += datamover_compare_int((uint64_t*)local_out2, (uint64_t*) local_gold2, SIZE*SIZE/16);
 
     if (errors == 0)
       printf("No errors!\n");
