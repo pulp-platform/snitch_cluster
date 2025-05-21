@@ -28,6 +28,8 @@ package snitch_pkg;
     logic msip;
     /// Machine cluster-local interrupt pending
     logic mcip;
+    /// Machine cluster-local HWPE interrupt pending
+    logic mhip;
   } interrupts_t;
 
   typedef enum logic [31:0] {
@@ -117,6 +119,7 @@ package snitch_pkg;
   localparam logic [3:0] MTI = 7;
   localparam logic [3:0] MEI = 11;
   localparam logic [4:0] MCI = 19;
+  localparam logic [4:0] MHI = 20;
   localparam logic [3:0] SSI = 1;
   localparam logic [3:0] STI = 5;
   localparam logic [3:0] SEI = 9;

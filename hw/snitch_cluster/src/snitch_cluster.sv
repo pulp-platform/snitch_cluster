@@ -581,7 +581,7 @@ module snitch_cluster
   hwpectrl_req_t hwpe_ctrl_req;
   hwpectrl_rsp_t hwpe_ctrl_rsp;
 
-  logic [NrCores-1:0][1:0] hwpe_evt;
+  logic [NrCores-1:0] hwpe_evt;
   logic hwpe_busy;
 
   // 7. Misc. Wires.
@@ -932,6 +932,7 @@ module snitch_cluster
     sync #(.STAGES (2))
       i_sync_msip  (.clk_i, .rst_ni, .serial_i (msip_i[i]), .serial_o (irq.msip));
     assign irq.mcip = cl_interrupt[i];
+    assign irq.mhip = hwpe_evt[i];
 
       tcdm_req_t [TcdmPorts-1:0] tcdm_req_wo_user;
 
@@ -1475,10 +1476,8 @@ module snitch_cluster
     .tcdm_req_o      ( tcdm_hwpe_req ),
     .tcdm_rsp_i      ( tcdm_hwpe_rsp ),
     .hwpe_ctrl_req_i ( hwpe_ctrl_req ),
-    .hwpe_ctrl_rsp_o ( hwpe_ctrl_rsp )
-    // FIXME
-    //.hwpe_evt_o (hwpe_evt),
-    //.hwpe_busy_o (hwpe_busy)
+    .hwpe_ctrl_rsp_o ( hwpe_ctrl_rsp ),
+    .hwpe_evt_o      ( hwpe_evt      )
   );
 
   // Optionally decouple the external narrow AXI master ports.

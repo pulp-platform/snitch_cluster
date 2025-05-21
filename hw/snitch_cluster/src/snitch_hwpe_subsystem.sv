@@ -28,7 +28,9 @@ module snitch_hwpe_subsystem
 
   // HWPE control interface (Slave)
   input  periph_req_t hwpe_ctrl_req_i,
-  output periph_rsp_t hwpe_ctrl_rsp_o
+  output periph_rsp_t hwpe_ctrl_rsp_o,
+
+  output logic [NrCores-1:0] hwpe_evt_o
 );
 
   localparam int unsigned NrTCDMPorts = (HwpeDataWidth / TCDMDataWidth);
@@ -48,8 +50,11 @@ module snitch_hwpe_subsystem
   logic mux_sel;
 
   // Currently unused
-  logic [NrCores-1:0][1:0] evt;
+  logic [1:0][NrCores-1:0][1:0] evt;
   logic busy;
+
+  // Machine HWPE Interrupt
+  logic [NrCores-1:0] hwpe_evt_d, hwpe_evt_q;
 
   hwpe_ctrl_intf_periph #(.ID_WIDTH(IdWidth)) periph[0:1] (.clk(clk_i));
 
@@ -118,7 +123,7 @@ module snitch_hwpe_subsystem
     periph[1].data             = hwpe_ctrl_req_i.q.data;
     periph[1].id               = hwpe_ctrl_req_i.q.user;
 
-    if ((hwpe_ctrl_req_i.q.addr[7:0] == 'h9C || hwpe_ctrl_req_i.q.addr[7:0] == 'h98) && hwpe_ctrl_req_i.q_valid) begin
+    if ((hwpe_ctrl_req_i.q.addr[7:0] == 'h9C || hwpe_ctrl_req_i.q.addr[7:0] == 'h98 || hwpe_ctrl_req_i.q.addr[7:0] == 'h94) && hwpe_ctrl_req_i.q_valid) begin
       hwpe_ctrl_rsp_o.q_ready = '1;
       hwpe_ctrl_rsp_o.p_valid = '1;
     end
@@ -165,6 +170,24 @@ module snitch_hwpe_subsystem
     end
   end
 
+
+  for(genvar ii=0; ii<NrCores; ii++) begin : gen_hwpe_evt
+    always_ff @(posedge clk_i or negedge rst_ni) begin
+      if (~rst_ni) begin
+        hwpe_evt_q[ii] <= '0;
+      end
+      else begin
+        if(evt[mux_sel][ii]) begin
+          hwpe_evt_q[ii] <= 1'b1;
+        end
+        else if (hwpe_ctrl_req_i.q.addr[7:0] == 'h94 && hwpe_ctrl_req_i.q_valid && hwpe_ctrl_req_i.q.write && hwpe_ctrl_req_i.q.data == (1 << ii)) begin
+          hwpe_evt_q[ii] <= 1'b0;
+        end
+      end
+    end
+  end
+  assign hwpe_evt_o = hwpe_evt_q;
+
   tc_clk_gating i_redmule_clk_gate (
     .clk_i     ( clk_i       ),
     .en_i      ( clk_en[0]   ),
@@ -188,7 +211,7 @@ module snitch_hwpe_subsystem
     .clk_i              ( hwpe_clk[0]        ),
     .rst_ni             ( rst_ni             ),
     .test_mode_i        ( test_mode_i        ),
-    .evt_o              ( evt                ),
+    .evt_o              ( evt[0]             ),
     .busy_o             ( busy               ),
     .tcdm               ( tcdm_to_mux[0]     ),
     .periph             ( periph[0]          )
@@ -203,7 +226,7 @@ module snitch_hwpe_subsystem
     .clk_i              ( hwpe_clk[1]        ),
     .rst_ni             ( rst_ni             ),
     .test_mode_i        ( test_mode_i        ),
-    .evt_o              (                    ),
+    .evt_o              ( evt[1]             ),
     .tcdm               ( tcdm_to_mux[1]     ),
     .periph             ( periph[1]          )
   );

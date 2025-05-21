@@ -48,7 +48,7 @@
 // Transposition mode (LSB: 000=none, 001=8b, 010=16b, 100=32b) + Leftover (MSB 31:16)
 #define DATAMOVER_REG_TRANSP_MODE    0x28
 
-
+#define HWPE_EVT_OFFS 0x94
 #define MUX_SEL_OFFS 0x98
 #define CK_GATE_OFFS 0x9C
 
@@ -131,6 +131,10 @@ static inline void hwpe_soft_clear() {
   HWPE_WRITE(0, DATAMOVER_SOFT_CLEAR);
 }
 
+static inline void hwpe_evt_clear(int value) {
+  HWPE_WRITE(value, HWPE_EVT_OFFS);
+}
+
 static inline void datamover_cg_enable() { HWPE_WRITE(2, CK_GATE_OFFS); }
 
 static inline void datamover_cg_disable() { HWPE_WRITE(0, CK_GATE_OFFS); }
@@ -164,106 +168,6 @@ int datamover_compare_int(
   }
   return errors;
 }
-
-// int datamover_compare_int(uint32_t *actual_z, uint32_t *golden_z, int len) {
-//   uint32_t actual_word = 0;
-//   uint8_t actual_Byte0, actual_Byte1, actual_Byte2, actual_Byte3;
-//   uint32_t golden_word = 0;
-//   uint8_t golden_Byte0, golden_Byte1, golden_Byte2, golden_Byte3;
-//   uint32_t actual = 0;
-//   uint32_t golden = 0;
-
-//   int errors = 0;
-//   int error;
-
-//   for (int i = 0; i < len; i++) {
-//     error = 0;
-//     actual_word = *(actual_z + i);
-//     golden_word = *(golden_z + i);
-
-//     // int error = ((actual_word ^ golden_word) & ~IGNORE_BITS_COMPARE) ? 1 : 0;
-//     uint8_t diff = 0;
-
-//     // Cheching Byte0
-//     actual_Byte0 = (uint8_t)(actual_word & 0xFF);
-//     golden_Byte0 = (uint8_t)(golden_word & 0xFF);
-
-//     diff = (actual_Byte0 > golden_Byte0)   ? (actual_Byte0 - golden_Byte0)
-//            : (actual_Byte0 < golden_Byte0) ? (golden_Byte0 - actual_Byte0)
-//                                            : 0;
-
-//     if (diff > ERR) {
-//       error = 1;
-// #ifdef VERBOSE
-//       printf("diff: 0x%08x\n", diff);
-//       printf("Byte0: Error!\n");
-// #endif
-//     }
-
-//     // Cheching Byte1
-//     actual_Byte1 = (uint8_t)((actual_word >> 8) & 0xFF);
-//     golden_Byte1 = (uint8_t)((golden_word >> 8) & 0xFF);
-
-//     diff = (actual_Byte1 > golden_Byte1)   ? (actual_Byte1 - golden_Byte1)
-//            : (actual_Byte1 < golden_Byte1) ? (golden_Byte1 - actual_Byte1)
-//                                            : 0;
-
-//     if (diff > ERR) {
-//       error = 1;
-// #ifdef VERBOSE
-//       printf("diff: 0x%08x\n", diff);
-//       printf("Byte1: Error!\n");
-// #endif
-//     }
-
-//     // Cheching Byte2
-//     actual_Byte2 = (uint8_t)((actual_word >> 16) & 0xFF);
-//     golden_Byte2 = (uint8_t)((golden_word >> 16) & 0xFF);
-
-//     diff = (actual_Byte2 > golden_Byte2)   ? (actual_Byte2 - golden_Byte2)
-//            : (actual_Byte2 < golden_Byte2) ? (golden_Byte2 - actual_Byte2)
-//                                            : 0;
-
-//     if (diff > ERR) {
-//       error = 1;
-// #ifdef VERBOSE
-//       printf("diff: 0x%08x\n", diff);
-//       printf("Byte2: Error!\n");
-// #endif
-//     }
-
-//     // Cheching Byte3
-//     actual_Byte3 = (uint8_t)((actual_word >> 24) & 0xFF);
-//     golden_Byte3 = (uint8_t)((golden_word >> 24) & 0xFF);
-
-//     diff = (actual_Byte3 > golden_Byte3)   ? (actual_Byte3 - golden_Byte3)
-//            : (actual_Byte3 < golden_Byte3) ? (golden_Byte3 - actual_Byte3)
-//                                            : 0;
-
-//     if (diff > ERR) {
-//       error = 1;
-// #ifdef VERBOSE
-//       printf("diff: 0x%08x\n", diff);
-//       printf("Byte3: Error!\n");
-// #endif
-//     }
-
-//     errors += error;
-
-// #ifdef DEBUG
-//     printf("Golden: 0x%08x; Actual: 0x%08x,\n", golden_word, actual_word);
-// #endif
-
-// #ifdef VERBOSE
-//     if (error) {
-//       if (errors == 1) printf("  golden     <- actual     @ address    @ index\n");
-//       printf("  0x%08x <- 0x%08x @ 0x%08x @ 0x%08x\n", golden_word, actual_word, (actual_z + i),
-//                  i * 4);
-//     }
-// #endif
-//   }
-//   return errors;
-// }
 
 #endif
 
