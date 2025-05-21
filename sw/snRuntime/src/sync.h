@@ -75,6 +75,29 @@ inline void snrt_mutex_release(volatile uint32_t *pmtx) {
 // Barrier functions
 //================================================================================
 
+inline void snrt_wake_all(uint32_t core_mask){
+#ifdef SUPPORTS_MULTICAST
+    // Multicast cluster interrupt to every other cluster's core
+    // Note: we need to address another cluster's address space
+    //       because the cluster XBAR has not been extended to support
+    //       multicast yet. We address the second cluster, if we are the
+    //       first cluster, and the second otherwise.
+    uintptr_t addr = (uintptr_t)snrt_cluster_clint_set_ptr() - SNRT_CLUSTER_OFFSET * snrt_cluster_idx();
+    if (snrt_cluster_idx() == 0) addr += SNRT_CLUSTER_OFFSET;
+    snrt_enable_multicast(BCAST_MASK_ALL);
+    *((uint32_t *)addr) = core_mask;
+    snrt_disable_multicast();
+#else
+    for (int i = 0; i < snrt_cluster_num(); i++){
+        if (snrt_cluster_idx() != i){
+            void* ptr = snrt_remote_l1_ptr(snrt_cluster_clint_set_ptr(), snrt_cluster_idx(), i);
+            *((uint32_t *)ptr) = core_mask;
+        }
+    }
+
+#endif
+}
+
 /**
  * @brief Synchronize cores in a cluster with a hardware barrier, blocking.
  * @note Synchronizes all (both DM and compute) cores. All cores must invoke
@@ -91,7 +114,6 @@ inline void snrt_cluster_hw_barrier() {
  *       will stall indefinitely.
  */
 inline void snrt_inter_cluster_barrier() {
-#ifdef SUPPORTS_MULTICAST
     // Everyone increments a shared counter
     uint32_t cnt =
         __atomic_add_fetch(&(_snrt_barrier.cnt), 1, __ATOMIC_RELAXED);
@@ -101,39 +123,13 @@ inline void snrt_inter_cluster_barrier() {
     // other clusters.
     if (cnt == snrt_cluster_num()) {
         _snrt_barrier.cnt = 0;
-
-        // Multicast cluster interrupt to every other cluster's core
-        // Note: we need to address another cluster's address space
-        //       because the cluster XBAR has not been extended to support
-        //       multicast yet. We address the second cluster, if we are the
-        //       first cluster, and the second otherwise.
-        uintptr_t addr = (uintptr_t)snrt_cluster_clint_set_ptr() - SNRT_CLUSTER_OFFSET * snrt_cluster_idx();
-        if (snrt_cluster_idx() == 0) addr += SNRT_CLUSTER_OFFSET;
-        snrt_enable_multicast(BCAST_MASK_ALL);
-        *((uint32_t *)addr) = 1 << snrt_cluster_core_idx();
-        snrt_disable_multicast();
-        // Clear interrupt for next barrier
-        snrt_int_clr_mcip();
+        // Wake all clusters
+        snrt_wake_all(1 << snrt_cluster_core_idx());
     } else {
         snrt_wfi();
         // Clear interrupt for next barrier
         snrt_int_clr_mcip();
     }
-#else
-    // Remember previous iteration
-    uint32_t prev_barrier_iteration = _snrt_barrier.iteration;
-    uint32_t cnt =
-        __atomic_add_fetch(&(_snrt_barrier.cnt), 1, __ATOMIC_RELAXED);
-
-    // Increment the barrier counter
-    if (cnt == snrt_cluster_num()) {
-        _snrt_barrier.cnt = 0;
-        __atomic_add_fetch(&(_snrt_barrier.iteration), 1, __ATOMIC_RELAXED);
-    } else {
-        while (prev_barrier_iteration == _snrt_barrier.iteration)
-            ;
-    }
-#endif
 }
 
 /**
