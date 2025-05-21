@@ -12,8 +12,10 @@
 uint8_t *local_in;
 uint8_t *local_out;
 uint8_t *local_out2;
+uint8_t *local_out3;
 uint8_t *local_gold;
 uint8_t *local_gold2;
+uint8_t *local_gold3;
 
 int main() {
 
@@ -30,11 +32,14 @@ int main() {
     local_in    = snrt_l1_alloc(in_size);
     local_out   = snrt_l1_alloc(out_size);
     local_gold  = snrt_l1_alloc(out_size);
-    local_out2  = snrt_l1_alloc(out_size);
+    local_out2  = snrt_l1_alloc(in_size/2);
     local_gold2 = snrt_l1_alloc(in_size/2);
+    local_out3  = snrt_l1_alloc(in_size/4);
+    local_gold3 = snrt_l1_alloc(in_size/4);
     snrt_dma_start_1d(local_in, golden_in, in_size);
     snrt_dma_start_1d(local_gold, golden_out, in_size);
     snrt_dma_start_1d(local_gold2, golden_out2, in_size/2);
+    snrt_dma_start_1d(local_gold3, golden_out3, in_size/4);
     snrt_dma_wait_all();
   }
 
@@ -46,7 +51,8 @@ int main() {
 
     printf("local_in: %p\n", local_in);
     printf("local_out: %p\n", local_out);
-    printf("local_out2: %p\n", local_out);
+    printf("local_out2: %p\n", local_out2);
+    printf("local_out3: %p\n", local_out3);
 
     // Enable Datamover
     datamover_cg_enable();
@@ -80,7 +86,7 @@ int main() {
 
     datamover_in_set((unsigned int) local_out);
     datamover_out_set((unsigned int) local_out2);
-    datamover_tot_len_set(32); // 64 "words" of 64B each
+    datamover_tot_len_set(32); // 32 "words" of 64B each
     datamover_in_d0_len_set(32);
     datamover_in_d0_stride_set(64);
     datamover_in_d1_len_set(1);
@@ -92,6 +98,27 @@ int main() {
     datamover_out_d1_stride_set(64);
     datamover_out_d2_stride_set(64);
     datamover_transp_mode_set(DATAMOVER_TRANSP_16B);
+
+    // Start Datamover operation
+    hwpe_trigger_job();
+
+    // Third job: 32b transpose, 16x16 matrix
+    while( ( offload_id_tmp = hwpe_acquire_job() ) < 0);
+
+    datamover_in_set((unsigned int) local_out2);
+    datamover_out_set((unsigned int) local_out3);
+    datamover_tot_len_set(16); // 16 "words" of 64B each
+    datamover_in_d0_len_set(16);
+    datamover_in_d0_stride_set(64);
+    datamover_in_d1_len_set(1);
+    datamover_in_d1_stride_set(64);
+    datamover_in_d2_stride_set(64);
+    datamover_out_d0_len_set(16);
+    datamover_out_d0_stride_set(64);
+    datamover_out_d1_len_set(1);
+    datamover_out_d1_stride_set(64);
+    datamover_out_d2_stride_set(64);
+    datamover_transp_mode_set(DATAMOVER_TRANSP_32B);
 
     // Start Datamover operation
     hwpe_trigger_job();
@@ -113,6 +140,7 @@ int main() {
     // Check computation is correct
     errors  = datamover_compare_int((uint64_t*)local_out,  (uint64_t*) local_gold,  SIZE*SIZE/8);
     errors += datamover_compare_int((uint64_t*)local_out2, (uint64_t*) local_gold2, SIZE*SIZE/16);
+    errors += datamover_compare_int((uint64_t*)local_out3, (uint64_t*) local_gold3, SIZE*SIZE/32);
 
     if (errors == 0)
       printf("No errors!\n");
