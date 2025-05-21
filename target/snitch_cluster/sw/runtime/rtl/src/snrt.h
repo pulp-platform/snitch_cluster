@@ -7,6 +7,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define SUPPORTS_MULTICAST
+#define BCAST_MASK_ALL 0x000C0000
 // Forward declarations
 #include "alloc_decls.h"
 #include "cls_decls.h"
