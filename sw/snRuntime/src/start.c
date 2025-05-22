@@ -57,7 +57,7 @@ static inline void snrt_init_bss() {
         if (snrt_is_dm_core()) {
             size_t size = (size_t)(&__bss_end) - (size_t)(&__bss_start);
             snrt_dma_start_1d_wideptr((uint64_t)(&__bss_start),
-                                  (uint64_t)(snrt_zero_memory_ptr()), size);
+                                      (uint64_t)(snrt_zero_memory_ptr()), size);
             snrt_dma_wait_all();
         }
         snrt_cluster_hw_barrier();
@@ -66,9 +66,9 @@ static inline void snrt_init_bss() {
 #endif
 
 #ifdef SNRT_WAKE_UP
-static inline void snrt_wake_up(){
-    if(snrt_cluster_idx() == 0 && snrt_cluster_core_idx() == 0){
-        snrt_wake_all((1 << snrt_cluster_core_num()) - 1 );
+static inline void snrt_wake_up() {
+    if (snrt_cluster_idx() == 0 && snrt_cluster_core_idx() == 0) {
+        snrt_wake_all((1 << snrt_cluster_core_num()) - 1);
     } else {
         snrt_int_clr_mcip();
     }
@@ -117,7 +117,7 @@ extern void snrt_exit(int exit_code);
 
 void snrt_main() {
     int exit_code = 0;
-    if (snrt_cluster_core_idx() == 0 && snrt_cluster_idx() == 0){
+    if (snrt_cluster_core_idx() == 0 && snrt_cluster_idx() == 0) {
         snrt_int_clr_mcip();
     }
 

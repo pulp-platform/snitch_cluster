@@ -281,7 +281,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   dm::dcsr_t dcsr_d, dcsr_q;
   logic [31:0] dpc_d, dpc_q;
   logic [31:0] dscratch_d, dscratch_q;
-  
+
   logic debug_d, debug_q;
   // Multicast mask
   logic [31:0] csr_mcast_d, csr_mcast_q;

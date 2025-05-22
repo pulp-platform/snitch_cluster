@@ -329,7 +329,7 @@ module snitch_cluster
     UniqueIds: 1'b0,
     AxiAddrWidth: PhysicalAddrWidth,
     AxiDataWidth: WideDataWidth,
-    NoAddrRules: 2,
+    NoAddrRules: NrWideRules,
     NoMulticastRules: 1,
     NoMulticastPorts: 2,
     default: '0
