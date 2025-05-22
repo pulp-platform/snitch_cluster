@@ -62,7 +62,9 @@ module snitch_hwpe_subsystem
     `ifndef SYNTHESIS
       .WAIVE_RSP3_ASSERT ( 1'b1 ),
     `endif
-    .DW ( HwpeDataWidth )
+    .DW  ( HwpeDataWidth ),
+    .EW  ( 0             ),
+    .EHW ( 0             )
   ) tcdm (
     .clk (clk_i)
   );
@@ -71,7 +73,9 @@ module snitch_hwpe_subsystem
     `ifndef SYNTHESIS
       .WAIVE_RSP3_ASSERT ( 1'b1 ),
     `endif
-    .DW ( HwpeDataWidth )
+    .DW  ( HwpeDataWidth ),
+    .EW  ( 0             ),
+    .EHW ( 0             )
   ) tcdm_to_mux [0:1] (
     .clk (clk_i)
   );
@@ -230,7 +234,7 @@ module snitch_hwpe_subsystem
     .tcdm               ( tcdm_to_mux[1]     ),
     .periph             ( periph[1]          )
   );
-  
+
   hci_core_mux_static #(
     .NB_CHAN ( 2 ),
     .`HCI_SIZE_PARAM(in) ( `HCI_SIZE_PARAM(tcdm) )
