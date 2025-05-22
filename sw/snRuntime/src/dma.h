@@ -60,7 +60,8 @@ inline uint32_t snrt_dma_start_1d_wideptr(uint64_t dst, uint64_t src,
 }
 
 /**
- * @brief Start an asynchronous multicast 1D DMA transfer with 64-bit wide pointers.
+ * @brief Start an asynchronous multicast 1D DMA transfer with 64-bit wide
+ * pointers.
  * @param dst The destination address.
  * @param src The source address.
  * @param size The size of the transfer in bytes.
@@ -119,7 +120,8 @@ inline snrt_dma_txid_t snrt_dma_start_1d(void *dst, const void *src,
 }
 
 /**
- * @brief Start an asynchronous multicast 1D DMA transfer with native-size pointers.
+ * @brief Start an asynchronous multicast 1D DMA transfer with native-size
+ * pointers.
  * @param dst The destination pointer.
  * @param src The source pointer.
  * @param size The size of the transfer in bytes.
@@ -127,7 +129,8 @@ inline snrt_dma_txid_t snrt_dma_start_1d(void *dst, const void *src,
  */
 inline snrt_dma_txid_t snrt_dma_start_1d_mcast(void *dst, const void *src,
                                                size_t size, uint32_t mcast) {
-    return snrt_dma_start_1d_mcast_wideptr((size_t)dst, (size_t)src, size, mcast);
+    return snrt_dma_start_1d_mcast_wideptr((size_t)dst, (size_t)src, size,
+                                           mcast);
 }
 
 /**
@@ -488,10 +491,13 @@ inline snrt_dma_txid_t snrt_dma_load_1d_tile(void *dst, void *src,
  * @param mcast Multicast mask applied on the destination address.
  */
 inline snrt_dma_txid_t snrt_dma_mcast_load_1d_tile(void *dst, void *src,
-                                             size_t tile_idx, size_t tile_size,
-                                             uint32_t prec, uint32_t mcast) {
+                                                   size_t tile_idx,
+                                                   size_t tile_size,
+                                                   uint32_t prec,
+                                                   uint32_t mcast) {
     size_t tile_nbytes = tile_size * prec;
-    return snrt_dma_start_1d_mcast(dst, src + tile_idx * tile_nbytes, tile_nbytes, mcast);
+    return snrt_dma_start_1d_mcast(dst, src + tile_idx * tile_nbytes,
+                                   tile_nbytes, mcast);
 }
 
 /**

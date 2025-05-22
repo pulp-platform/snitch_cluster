@@ -4,8 +4,9 @@
 
 #pragma once
 
-#define SNRT_INIT_TLS
 #define SNRT_INIT_BSS
+#define SNRT_WAKE_UP
+#define SNRT_INIT_TLS
 #define SNRT_INIT_CLS
 #define SNRT_INIT_LIBS
 #define SNRT_CRT0_PRE_BARRIER

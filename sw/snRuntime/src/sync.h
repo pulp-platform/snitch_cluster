@@ -75,22 +75,24 @@ inline void snrt_mutex_release(volatile uint32_t *pmtx) {
 // Barrier functions
 //================================================================================
 
-inline void snrt_wake_all(uint32_t core_mask){
+inline void snrt_wake_all(uint32_t core_mask) {
 #ifdef SUPPORTS_MULTICAST
     // Multicast cluster interrupt to every other cluster's core
     // Note: we need to address another cluster's address space
     //       because the cluster XBAR has not been extended to support
     //       multicast yet. We address the second cluster, if we are the
     //       first cluster, and the second otherwise.
-    uintptr_t addr = (uintptr_t)snrt_cluster_clint_set_ptr() - SNRT_CLUSTER_OFFSET * snrt_cluster_idx();
+    uintptr_t addr = (uintptr_t)snrt_cluster_clint_set_ptr() -
+                     SNRT_CLUSTER_OFFSET * snrt_cluster_idx();
     if (snrt_cluster_idx() == 0) addr += SNRT_CLUSTER_OFFSET;
     snrt_enable_multicast(BCAST_MASK_ALL);
     *((uint32_t *)addr) = core_mask;
     snrt_disable_multicast();
 #else
-    for (int i = 0; i < snrt_cluster_num(); i++){
-        if (snrt_cluster_idx() != i){
-            void* ptr = snrt_remote_l1_ptr(snrt_cluster_clint_set_ptr(), snrt_cluster_idx(), i);
+    for (int i = 0; i < snrt_cluster_num(); i++) {
+        if (snrt_cluster_idx() != i) {
+            void *ptr = snrt_remote_l1_ptr(snrt_cluster_clint_set_ptr(),
+                                           snrt_cluster_idx(), i);
             *((uint32_t *)ptr) = core_mask;
         }
     }
@@ -147,7 +149,6 @@ inline void snrt_global_barrier() {
     // Synchronize all DM cores in software
     if (snrt_is_dm_core()) {
         snrt_inter_cluster_barrier();
-
     }
     // Synchronize cores in a cluster with the HW barrier
     snrt_cluster_hw_barrier();
