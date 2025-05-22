@@ -191,10 +191,14 @@ module snitch_cc #(
   logic ssr_pvalid, ssr_pready;
   logic acc_demux_snitch_valid, acc_demux_snitch_ready;
   logic acc_demux_snitch_valid_q, acc_demux_snitch_ready_q;
-
-  logic [31:0] fpq_pdata;
-  logic  fpq_pvalid;
-  logic  fpq_pready;
+  // FP Queue input interface
+  logic [31:0]  fpq_pdata;
+  logic         fpq_pvalid;
+  logic         fpq_pready;
+  // IN Queue output interface
+  logic [31:0]  inq_qdata;
+  logic         inq_qvalid;
+  logic         inq_qready;
 
   fpnew_pkg::roundmode_e fpu_rnd_mode;
   fpnew_pkg::fmt_mode_t  fpu_fmt_mode;
@@ -260,8 +264,7 @@ module snitch_cc #(
     .inst_data_i (hive_rsp_i.inst_data),
     .inst_valid_o (hive_req_o.inst_valid),
     .inst_ready_i (hive_rsp_i.inst_ready),
-    .acc_qreq_o ( acc_snitch_demux ), // `acc_snitch_demux` is taken out from this instantiation of icore, and fed to a spill register. Becomes acc_snitch_demux_q. Fed to demux, which then sends a high acc_qvalid. It is finally fed to the FPU.
-    //Where does it go to memory? When being fed to the spill register? What part exactly should be bypassed?
+    .acc_qreq_o ( acc_snitch_demux ),
     .acc_qvalid_o ( acc_snitch_demux_qvalid ),
     .acc_qready_i ( acc_snitch_demux_qready ),
     .acc_prsp_i ( acc_demux_snitch ),
@@ -270,6 +273,9 @@ module snitch_cc #(
     .fpq_pdata_o ( fpq_pdata ),
     .fpq_pvalid_o ( fpq_pvalid ),
     .fpq_pready_i ( fpq_pready ),
+    .inq_qdata_i ( inq_qdata ),
+    .inq_qvalid_i ( inq_qvalid ),
+    .inq_qready_o ( inq_qready ),
     .caq_pvalid_i ( caq_pvalid_q ),
     .data_req_o ( snitch_dreq_d ),
     .data_rsp_i ( snitch_drsp_d ),
@@ -285,7 +291,7 @@ module snitch_cc #(
     .core_events_o ( snitch_events),
     .barrier_o ( barrier_o ),
     .barrier_i ( barrier_i ),
-    .en_fpq_o (en_fpq)
+    .en_fpinq_o (en_fpinq)
   );
 
   reqrsp_iso #(
@@ -365,7 +371,7 @@ module snitch_cc #(
     .inp_valid_i  ( acc_snitch_demux_qvalid_q  ),
     .inp_ready_o  ( acc_snitch_demux_qready_q  ),
     .oup_sel_i    ( acc_snitch_demux_q.addr[$clog2(5)-1:0]             ),
-    .oup_valid_o  ( {ssr_qvalid, ipu_qvalid, dma_qvalid, hive_req_o.acc_qvalid, acc_qvalid} ), // acc_qvalid activates FPU?
+    .oup_valid_o  ( {ssr_qvalid, ipu_qvalid, dma_qvalid, hive_req_o.acc_qvalid, acc_qvalid} ),
     .oup_ready_i  ( {ssr_qready, ipu_qready, dma_qready, hive_rsp_i.acc_qready, acc_qready} )
   );
 
@@ -534,10 +540,13 @@ module snitch_cc #(
       .acc_resp_o       ( acc_seq        ),
       .acc_resp_valid_o ( acc_pvalid     ),
       .acc_resp_ready_i ( acc_pready     ),
-      // data_t in snitch_cc.sv is 64 bit, but in snitch_fp_ss.sv, it is 32 bit. So fpq_pdata is of different sizes in IN & OUT, needs to be fixed
+      // COPIFT Queue Interface
       .fpq_pdata_i      ( fpq_pdata),
       .fpq_pvalid_i     ( fpq_pvalid ),
       .fpq_pready_o     ( fpq_pready ),
+      .inq_qdata_o      ( inq_qdata ),
+      .inq_qvalid_o     ( inq_qvalid ),
+      .inq_qready_i     ( inq_qready ),
 
       .caq_pvalid_o     ( caq_pvalid     ),
       .data_req_o       ( fpu_dreq       ),
@@ -559,7 +568,7 @@ module snitch_cc #(
       .streamctl_valid_i  ( ssr_streamctl_valid ),
       .streamctl_ready_o  ( ssr_streamctl_ready ),
       .core_events_o      ( fp_ss_core_events   ),
-      .en_fpq_i         (en_fpq)
+      .en_fpinq_i         (en_fpinq)
     );
 
     reqrsp_mux #(
@@ -929,7 +938,7 @@ module snitch_cc #(
         retire_acc:   i_snitch.retire_acc,
         acc_pid:      i_snitch.acc_prsp_i.id,
         acc_pdata_32: i_snitch.acc_prsp_i.data[31:0],
-        
+
         // FPU offload
         fpu_offload:
           (i_snitch.acc_qready_i && i_snitch.acc_qvalid_o && i_snitch.acc_qreq_o.addr == 0),

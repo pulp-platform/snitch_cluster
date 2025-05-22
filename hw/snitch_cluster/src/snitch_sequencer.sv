@@ -373,7 +373,7 @@ module snitch_sequencer import snitch_pkg::*; #(
       riscv_instr::FMV_W_X,
       riscv_instr::FCVT_S_W,
       riscv_instr::FCVT_S_WU,
-      riscv_instr::FCVT_D_W,
+      // riscv_instr::FCVT_D_W,
       riscv_instr::FCVT_D_WU,
       riscv_instr::FMV_H_X,
       riscv_instr::FCVT_H_W,

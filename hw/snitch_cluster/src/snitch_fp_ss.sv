@@ -50,10 +50,14 @@ module snitch_fp_ss import snitch_pkg::*; #(
   output acc_resp_t        acc_resp_o,
   output logic             acc_resp_valid_o,
   input  logic             acc_resp_ready_i,
-  // FP Queue output interface
-  input  logic [31:0]      fpq_pdata_i, // Data coming from int RF
-  input  logic             fpq_pvalid_i, // Whether queue is empty
-  output logic             fpq_pready_o, // Whether fpu is ready to receive (hence pop) the topmost entry
+  // IN->FP Queue output interface
+  input  logic [31:0]      fpq_pdata_i,  // Integer Data from INCC
+  input  logic             fpq_pvalid_i, // Whether queue is not empty
+  output logic             fpq_pready_o, // Whether FPSS wants to read (pop)
+  // FP->IN Queue input interface
+  output  logic [31:0]     inq_qdata_o,  // Floating Point Data from FPSS
+  output  logic            inq_qvalid_o, // Whether FPSS wants to write (push)
+  input   logic            inq_qready_i, // Whether queue is not full
   // TCDM Data Interface for regular FP load/stores.
   output dreq_t            data_req_o,
   input  drsp_t            data_rsp_i,
@@ -82,7 +86,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // TODO: is it good enough to assert this at issuing time instead?
   output logic             caq_pvalid_o,
   // FP Queue CSR signal
-  input logic en_fpq_i,
+  input logic en_fpinq_i,
   // Core event strobes
   output core_events_t core_events_o
 );
@@ -239,7 +243,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
 
   // this handles WAW Hazards - Potentially this can be relaxed if necessary
   // at the expense of increased timing pressure
-  assign dst_ready = ~(rd_is_fp & sb_q[rd]);
+  assign dst_ready = inq_qvalid_o ? inq_qready_i : ~(rd_is_fp & sb_q[rd]);
 
   // check that either:
   // 1. The FPU and all operands are ready
@@ -255,7 +259,9 @@ module snitch_fp_ss import snitch_pkg::*; #(
                                       | (acc_req_valid_q && result_select == ResAccBus));
 
   // either the FPU or the regfile produced a result
-  assign acc_resp_valid_o = (fpu_tag_out.acc & fpu_out_valid);
+  // If queue is enabled, data goes to queue instead of AccBus
+  assign acc_resp_valid_o = ~en_fpinq_i & (fpu_tag_out.acc & fpu_out_valid);
+  assign inq_qvalid_o = en_fpinq_i & (fpu_tag_out.acc & fpu_out_valid);
   // stall FPU if we forward from reg
   assign fpu_out_ready = ((fpu_tag_out.acc & acc_resp_ready_i) | (~fpu_tag_out.acc & fpr_wready));
 
@@ -266,6 +272,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   assign acc_resp_o.id = fpu_tag_out.rd;
   // accelerator bus write-port
   assign acc_resp_o.data = fpu_result;
+  assign inq_qdata_o = fpu_result;
 
   assign rd = acc_req_q.data_op[11:7];
   assign rs1 = acc_req_q.data_op[19:15];
@@ -2485,7 +2492,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   end
 
   logic [2:0] rs_is_fpq;
-  assign fpq_pready_o = rs_is_fpq[2] | rs_is_fpq[1] | rs_is_fpq[0] ; // If we expect to read from queue, we send ready signal to queue
+  assign fpq_pready_o = acc_req_valid_q & (rs_is_fpq[2] | rs_is_fpq[1] | rs_is_fpq[0]) ; // If the FPU expects data and we have to read from fpq, we send ready signal to fpq
 
   for (genvar i = 0; i < 3; i++) begin: gen_operand_select
     logic is_raddr_ssr;
@@ -2495,7 +2502,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
         is_raddr_ssr |= (SsrRegs[s] == fpr_raddr[i]);
     end
     always_comb begin
-      rs_is_fpq[i] = op_select[i]==AccBus ? en_fpq_i : 0; // read from fpq if csr is enabled and we are reading from int RF
+      rs_is_fpq[i] = op_select[i]==AccBus ? en_fpinq_i : 0; // Read from any INT RF will be from fpq if queues are enabled
     end
     always_comb begin
       ssr_rvalid_o[i] = 1'b0;
@@ -2505,9 +2512,8 @@ module snitch_fp_ss import snitch_pkg::*; #(
           op_ready[i] = 1'b1;
         end
         AccBus: begin
-          op[i] = (rs_is_fpq[i] & fpq_pvalid_i)? { {(FLEN-32){fpq_pdata_i[31]}}, fpq_pdata_i[31:0] } : acc_qdata[i];
-          op_ready[i] = (acc_req_valid_q & ~rs_is_fpq[i]) // If we are NOT reading from fpq, check if acc is valid
-                        | (rs_is_fpq[i] & fpq_pvalid_i);  // If we ARE reading from fpq, check if fpq is valid
+          op[i] = rs_is_fpq[i] ? { {(FLEN-32){fpq_pdata_i[31]}}, fpq_pdata_i[31:0] } : acc_qdata[i];
+          op_ready[i] = rs_is_fpq[i] ? fpq_pvalid_i : acc_req_valid_q;
         end
         // Scoreboard or SSR
         RegA, RegB, RegBRep, RegC, RegDest: begin

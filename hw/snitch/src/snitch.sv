@@ -90,10 +90,14 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   input  acc_resp_t     acc_prsp_i,
   input  logic          acc_pvalid_i,
   output logic          acc_pready_o,
-  // FP Queue output interface
-  output logic [31:0] fpq_pdata_o,
-  output logic  fpq_pvalid_o,
-  input  logic  fpq_pready_i,
+  // FP Queue read interface
+  output logic [31:0]   fpq_pdata_o,
+  output logic          fpq_pvalid_o,
+  input  logic          fpq_pready_i,
+  // IN Queue write interface
+  input  logic [31:0]   inq_qdata_i,
+  input  logic          inq_qvalid_i,
+  output logic          inq_qready_o,
   /// TCDM Data Interface
   /// Write transactions do not return data on the `P Channel`
   /// Transactions need to be handled strictly in-order.
@@ -116,7 +120,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // Core events for performance counters
   output snitch_pkg::core_events_t  core_events_o,
   // FP Queue CSR
-  output logic en_fpq_o,
+  output logic          en_fpinq_o,
   // Cluster HW barrier
   output logic          barrier_o,
   input  logic          barrier_i
@@ -167,10 +171,25 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic [0:0]               gpr_we;
   logic [2**RegWidth-1:0]   sb_d, sb_q;
 
-  // FP Queue input side
-  logic        fp_queue_we;
-  logic        fpq_qready_o;
+  // IN->FP Queue write
+  logic        rd_is_fpq;  // Write to queue this cycle
+  logic        fpq_qready; // Whether queue is full
   logic [31:0] fpq_wdata;
+  // FP->IN Queue read
+  logic        rs_is_inq;  // Read from queue this cycle
+  logic        inq_pvalid; // Whether queue is empty
+  logic [31:0] inq_rdata;
+
+  logic        rs1_is_inq;
+  logic        rs2_is_inq;
+
+  // When queues are enabled:
+  // Do NOT write to IN RF if t6 (any IN RF) is written to in FPSS.
+  // These are FP instrs that write back to IN RF through AccBus
+  logic        inq_false_write;
+  // Do NOT read from inq if t6 must be read in FPSS.
+  // These are FP instrs that read from int RF
+  logic        inq_false_read;
 
   // Load/Store Defines
   logic is_load, is_store, is_signed;
@@ -245,8 +264,6 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   typedef enum logic [2:0] {Consec, Alu, Exception, MRet, SRet, DRet} next_pc_e;
   next_pc_e next_pc;
 
-  logic rd_is_fpq; // Write to INT-FP queue this cycle
-
   typedef enum logic [1:0] {RdAlu, RdConsecPC, RdBypass} rd_select_e;
   rd_select_e rd_select;
   logic [31:0] rd_bypass;
@@ -270,7 +287,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic [0:0][4:0] cause_d, cause_q;
   logic [0:0] cause_irq_d, cause_irq_q;
   logic spp_d, spp_q;
-  logic csr_fpq_d, csr_fpq_q;
+  logic csr_fpinq_d, csr_fpinq_q;
   snitch_pkg::priv_lvl_t mpp_d, mpp_q;
   logic [0:0] ie_d, ie_q;
   logic [0:0] pie_d, pie_q;
@@ -307,7 +324,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   `FFAR(spp_q, spp_d, 1'b0, clk_i, rst_i)
   `FFAR(ie_q, ie_d, '0, clk_i, rst_i)
   `FFAR(pie_q, pie_d, '0, clk_i, rst_i)
-  `FFAR(csr_fpq_q, csr_fpq_d, 1'b0, clk_i, rst_i)
+  `FFAR(csr_fpinq_q, csr_fpinq_d, 1'b0, clk_i, rst_i)
   // Interrupts
   `FFAR(eie_q, eie_d, '0, clk_i, rst_i)
   `FFAR(tie_q, tie_d, '0, clk_i, rst_i)
@@ -451,18 +468,19 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     sb_d = sb_q;
     if (retire_load) sb_d[lsu_rd] = 1'b0;
     // only place the reservation if we actually executed the load or offload instruction
-    if ((is_load | acc_register_rd) && !stall && !exception) sb_d[rd] = 1'b1;
+    if ((is_load | (acc_register_rd & ~inq_false_write)) && !stall && !exception) sb_d[rd] = 1'b1;
     if (retire_acc) sb_d[acc_prsp_i.id[RegWidth-1:0]] = 1'b0;
     sb_d[0] = 1'b0;
   end
   // TODO(zarubaf): This can probably be described a bit more efficient
-  assign opa_ready = (opa_select != Reg) | ~sb_q[rs1];
-  assign opb_ready = (opb_select != Reg & opb_select != SImmediate) | ~sb_q[rs2];
+  // Whether rs1 and rs2 are ready to be read
+  assign opa_ready = (opa_select != Reg) | (rs1_is_inq ? inq_pvalid : ~sb_q[rs1]);
+  assign opb_ready = (opb_select != Reg & opb_select != SImmediate) | (rs2_is_inq ? inq_pvalid : ~sb_q[rs2]);
   assign operands_ready = opa_ready & opb_ready;
   // either we are not using the destination register or we need to make
   // sure that its destination operand is not marked busy in the scoreboard.
   // Whether there are any write hazards for writing into destination
-  assign dst_ready = ~uses_rd | (rd_is_fpq ? uses_rd & fpq_qready_o : uses_rd & ~sb_q[rd]); //added logic for queue
+  assign dst_ready = rd_is_fpq ? fpq_qready : ~uses_rd | (uses_rd & ~sb_q[rd]);
 
   // inst_valid_o eg - To stall reading an inst from icache
   // valid_instr: Whether the instruction being sent to acc etc is valid:
@@ -546,9 +564,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     // if we are writing the field this cycle we need
     // an int destination register
     uses_rd = write_rd;
-
-    rd_is_fpq = (rd=='d31) & csr_fpq_q; // rd_is_fpq is 1 if rd==t6 and csr is enabled
-    en_fpq_o = csr_fpq_q;
+    inq_false_read = 1'b0;
 
     rd_bypass = '0;
     zero_lsb = 1'b0;
@@ -1942,6 +1958,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           opa_select = Reg;
           write_rd = 1'b0;
           acc_qvalid_o = valid_instr;
+          inq_false_read = 1'b1;
         end else begin
           illegal_inst = 1'b1;
         end
@@ -1964,6 +1981,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           opa_select = Reg;
           write_rd = 1'b0;
           acc_qvalid_o = valid_instr;
+          inq_false_read = 1'b1;
         end else begin
           illegal_inst = 1'b1;
         end
@@ -2313,7 +2331,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     fcsr_d.fflags = fcsr_q.fflags | fpu_status_i;
     fcsr_d.fmode.src = fcsr_q.fmode.src;
     fcsr_d.fmode.dst = fcsr_q.fmode.dst;
-    csr_fpq_d = csr_fpq_q;
+    csr_fpinq_d = csr_fpinq_q;
     scratch_d = scratch_q;
     epc_d = epc_q;
     cause_d = cause_q;
@@ -2561,14 +2579,14 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
             end else illegal_csr = 1'b1;
           end
           // HW cluster barrier
-          // Custom csrs (see commit to create, then generate-opcodes.sh)
+          // Custom CSRs
           CSR_BARRIER: begin
             barrier_o = 1'b1;
             csr_stall_d = 1'b1;
           end
           CSR_FPQ: begin
-            csr_rvalue = {31'b0, csr_fpq_q};
-            if(!exception) csr_fpq_d = alu_result[0];
+            csr_rvalue = {31'b0, csr_fpinq_q};
+            if(!exception) csr_fpinq_d = alu_result[0];
           end
           default: begin
             csr_rvalue = '0;
@@ -2668,19 +2686,52 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   end
   // pragma translate_on
 
+  // --------------------
+  // COPIFT Queue
+  // --------------------
+
+  // Common enable signal for the IN->FP and FP->IN Queues
+  assign en_fpinq_o = csr_fpinq_q;
+
+  // Read from inq if rs==t6 & queues are enabled, but not if t6 is to be read in FPSS.
+  assign rs1_is_inq = (rs1=='d31) & en_fpinq_o & ~inq_false_read;
+  assign rs2_is_inq = (rs2=='d31) & en_fpinq_o & ~inq_false_read;
+  assign rs_is_inq = rs1_is_inq | rs2_is_inq;
+  // False Writes to IN RF: FP instrs that write to back int RF through AccBus when queue is enabled
+  assign inq_false_write = (acc_qreq_o.addr == FP_SS) & acc_register_rd & en_fpinq_o;
+
+  // IN->FP Queue (fpq)
   snitch_fp_queue #(
     .Depth (32)
   ) i_fp_queue (
     .clk_i,
     .rst_i,
 
-    .fpq_qdata_i(fpq_wdata),      // Data to be written into FP queue
-    .fpq_qvalid_i(fp_queue_we),   // Whether this data is valid
-    .fpq_qready_o(fpq_qready_o),  // Whether the FP Queue is ready to take in data
+    // Writing into fpq (Handled in snitch. Bypasses write to t6)
+    .fpq_qdata_i (fpq_wdata),    // Data to be written into FP queue
+    .fpq_qvalid_i(rd_is_fpq),    // Whether snitch wants to write to queue
+    .fpq_qready_o(fpq_qready),   // Whether the FP Queue is ready to take in data
+    // Reading from fpq (Handled in FPSS. Bypasses read from AccBus)
+    .fpq_pdata_o (fpq_pdata_o),  // Data available to be read from fpq
+    .fpq_pvalid_o(fpq_pvalid_o), // Whether queue is not empty
+    .fpq_pready_i(fpq_pready_i & fpq_pvalid_o)  // Whether FP wants to read from fpq
+  );
 
-    .fpq_pdata_o(fpq_pdata_o),  
-    .fpq_pvalid_o(fpq_pvalid_o),
-    .fpq_pready_i(fpq_pready_i)
+  // FP->IN Queue (inq)
+  snitch_in_queue #(
+    .Depth (32)
+  ) i_in_queue (
+    .clk_i,
+    .rst_i,
+
+    // Writing into inq (Handled in FPSS. Bypasses write to AccBus)
+    .inq_qdata_i (inq_qdata_i),  // Data to be written into IN queue
+    .inq_qvalid_i(inq_qvalid_i), // Whether FPSS wants to write to queue
+    .inq_qready_o(inq_qready_o), // Whether the IN Queue is ready to take in data
+    // Reading from inq (Handled in snitch. Bypasses read from t6)
+    .inq_pdata_o (inq_rdata),    // Data available to be read from inq
+    .inq_pvalid_o(inq_pvalid),   // Whether queue is not empty
+    .inq_pready_i(valid_instr & rs_is_inq & inq_pvalid)   // Whether snitch wants to read from inq
   );
 
   snitch_regfile #(
@@ -2705,7 +2756,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   always_comb begin
     unique case (opa_select)
       None: opa = '0;
-      Reg: opa = gpr_rdata[0]; // Fetching from RF
+      Reg: opa = rs1_is_inq & en_fpinq_o ? inq_rdata : gpr_rdata[0];
       UImmediate: opa = uimm;
       JImmediate: opa = jimm;
       CSRImmmediate: opa = {{{32-RegWidth}{1'b0}}, rs1};
@@ -2716,7 +2767,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   always_comb begin
     unique case (opb_select)
       None: opb = '0;
-      Reg: opb = gpr_rdata[1];
+      Reg: opb = rs2_is_inq & en_fpinq_o ? inq_rdata : gpr_rdata[1];
       IImmediate: opb = iimm;
       SFImmediate, SImmediate: opb = simm;
       PC: opb = pc_q;
@@ -2977,7 +3028,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     gpr_waddr[0] = rd;
     gpr_wdata[0] = alu_writeback;
 
-    fp_queue_we = 1'b0;
+    rd_is_fpq  = 1'b0;
     fpq_wdata = alu_writeback;
     
     // external interfaces
@@ -2987,27 +3038,25 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     retire_load = 1'b0;
 
     if (retire_i) begin
+      rd_is_fpq  = (rd =='d31) & en_fpinq_o; // write to fpq if rd==t6  and csr is enabled
       gpr_we[0] = ~rd_is_fpq;
-      fp_queue_we = rd_is_fpq & fpq_qready_o;
     // if we are not retiring another instruction retire the load now
     end else if (lsu_pvalid) begin
       retire_load = 1'b1;
+      rd_is_fpq  = (lsu_rd =='d31) & en_fpinq_o;
       gpr_we[0] = ~rd_is_fpq;
       gpr_waddr[0] = lsu_rd;
       gpr_wdata[0] = ld_result[31:0];
-
-      fp_queue_we = rd_is_fpq & fpq_qready_o;
       fpq_wdata = ld_result[31:0];
 
       lsu_pready = 1'b1;
     end else if (acc_pvalid_i) begin
       retire_acc = 1'b1;
-      gpr_we[0] = ~rd_is_fpq;
+      rd_is_fpq  = (acc_prsp_i.id =='d31) & en_fpinq_o;
+      gpr_we[0] = ~rd_is_fpq & ~inq_false_write; // if inq_false_write, FP would have already written into inq. But it works even without this signal because acc_pvalid_i is set to false in FPSS.
       gpr_waddr[0] = acc_prsp_i.id;
       gpr_wdata[0] = acc_prsp_i.data[31:0];
-      
-      fp_queue_we = rd_is_fpq & fpq_qready_o;
-      fpq_wdata = ld_result[31:0];
+      fpq_wdata = acc_prsp_i.data[31:0];
 
       acc_pready_o = 1'b1;
     end
