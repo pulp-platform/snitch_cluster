@@ -53,10 +53,24 @@ static inline void snrt_init_bss() {
     extern volatile uint32_t __bss_start, __bss_end;
 
     // Only one core needs to perform the initialization
-    if (snrt_cluster_idx() == 0 && snrt_is_dm_core()) {
-        size_t size = (size_t)(&__bss_end) - (size_t)(&__bss_start);
-        snrt_dma_start_1d_wideptr((uint64_t)(&__bss_start),
-                                  (uint64_t)(snrt_zero_memory_ptr()), size);
+    if (snrt_cluster_idx() == 0) {
+        if (snrt_is_dm_core()) {
+            size_t size = (size_t)(&__bss_end) - (size_t)(&__bss_start);
+            snrt_dma_start_1d_wideptr((uint64_t)(&__bss_start),
+                                      (uint64_t)(snrt_zero_memory_ptr()), size);
+            snrt_dma_wait_all();
+        }
+        snrt_cluster_hw_barrier();
+    }
+}
+#endif
+
+#ifdef SNRT_WAKE_UP
+static inline void snrt_wake_up() {
+    if (snrt_cluster_idx() == 0 && snrt_cluster_core_idx() == 0) {
+        snrt_wake_all((1 << snrt_cluster_core_num()) - 1);
+    } else {
+        snrt_int_clr_mcip();
     }
 }
 #endif
@@ -81,7 +95,9 @@ static inline void snrt_init_cls() {
         ptr = (void*)((uint32_t)ptr + size);
         size = (size_t)(&__cbss_end) - (size_t)(&__cbss_start);
         snrt_dma_start_1d(ptr, (void*)(snrt_zero_memory_ptr()), size);
+        snrt_dma_wait_all();
     }
+    snrt_cluster_hw_barrier();
 }
 #endif
 
@@ -101,21 +117,28 @@ extern void snrt_exit(int exit_code);
 
 void snrt_main() {
     int exit_code = 0;
+    if (snrt_cluster_core_idx() == 0 && snrt_cluster_idx() == 0) {
+        snrt_int_clr_mcip();
+    }
 
 #ifdef SNRT_CRT0_CALLBACK0
     snrt_crt0_callback0();
 #endif
 
-#ifdef SNRT_INIT_TLS
-    snrt_init_tls();
+#ifdef SNRT_INIT_BSS
+    snrt_init_bss();
+#endif
+
+#ifdef SNRT_WAKE_UP
+    snrt_wake_up();
 #endif
 
 #ifdef SNRT_CRT0_CALLBACK1
     snrt_crt0_callback1();
 #endif
 
-#ifdef SNRT_INIT_BSS
-    snrt_init_bss();
+#ifdef SNRT_INIT_TLS
+    snrt_init_tls();
 #endif
 
 #ifdef SNRT_CRT0_CALLBACK2
@@ -124,13 +147,6 @@ void snrt_main() {
 
 #ifdef SNRT_INIT_CLS
     snrt_init_cls();
-#endif
-
-#if defined(SNRT_INIT_BSS) || defined(SNRT_INIT_CLS)
-    // Single DMA wait call and barrier for both snrt_init_bss() and
-    // snrt_init_cls()
-    if (snrt_is_dm_core()) snrt_dma_wait_all();
-    snrt_cluster_hw_barrier();
 #endif
 
 #ifdef SNRT_CRT0_CALLBACK3
