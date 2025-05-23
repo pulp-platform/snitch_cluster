@@ -28,7 +28,7 @@ dependencies:
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0                               }
   cluster_icache:     { git: https://github.com/pulp-platform/cluster_icache.git, rev: 64e21ae455bbdde850c4df13bef86ea55ac42537 }
   idma:               { git: https://github.com/pulp-platform/iDMA,               version:  0.6.4                               }
-  redmule:            { git: https://github.com/pulp-platform/redmule,            rev: 3f0b7382d1156dd5b24914af30496ff6c46bfd69 } #branch: picobello
+  redmule:            { git: https://github.com/pulp-platform/redmule,            rev: 083f6aef62dafc5e5c546138bb6448597903a283 } #branch: picobello
   hci:                { git: https://github.com/pulp-platform/hci,                rev: 06fcba671e060f2e1b03b7ebe2d3e719f1557099 }
   datamover:          { git: https://github.com/FrancescoConti/datamover,         rev: fb7d09c201ab52de23b11adf12b36d8e75c4c0e6 } # branch: transpose
 
