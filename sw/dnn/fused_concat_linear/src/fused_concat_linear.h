@@ -28,8 +28,8 @@ typedef struct {
     void *weights;
     void *concat_output;
     void *linear_output;
-    precision_t dtype;
-    void *gemm_implementation;
+    uint32_t dtype;
+    gemm_fp_t gemm_implementation;
 } fused_concat_linear_layer_t;
 
 static inline int fused_concat_linear_baseline(fused_concat_linear_layer_t l) {
@@ -47,14 +47,11 @@ static inline int fused_concat_linear_baseline(fused_concat_linear_layer_t l) {
     uint32_t k = l.input_shape[1] * l.num_inputs;
     uint32_t n = l.output_shape[1];
 
-    gemm_args_t gemm_args = {.alpha = 1.0,
-                             .prec = l.dtype,
-                             .setup_ssr = 0,
-                             .parallelize_m = 1,
-                             .parallelize_k = 0,
-                             .m_tiles = snrt_cluster_num(),
+    gemm_args_t gemm_args = {.m_tiles = snrt_cluster_num(),
                              .n_tiles = 1,
                              .k_tiles = 1,
+                             .parallelize_m = 1,
+                             .parallelize_k = 0,
                              .load_a = 0,
                              .load_b = 1,
                              .load_c = 1,
@@ -64,10 +61,12 @@ static inline int fused_concat_linear_baseline(fused_concat_linear_layer_t l) {
                              .N = n,
                              .K = k,
                              .a = l.concat_output,
+                             .lda = k,
                              .b = l.weights,
+                             .ldb = n,
                              .beta = 0,
                              .c = l.linear_output,
-                             .gemm_fp = l.gemm_implementation};
+                             .ldc = n};
 
     gemm(&gemm_args);
 
@@ -93,14 +92,11 @@ static inline int fused_concat_linear_optimized(fused_concat_linear_layer_t l) {
     }
     snrt_cluster_hw_barrier();
 
-    gemm_args_t gemm_args = {.alpha = 1.0,
-                             .prec = l.dtype,
-                             .setup_ssr = 0,
-                             .parallelize_m = 0,
-                             .parallelize_k = 1,
-                             .m_tiles = 1,
+    gemm_args_t gemm_args = {.m_tiles = 1,
                              .n_tiles = 1,
                              .k_tiles = l.num_inputs,
+                             .parallelize_m = 0,
+                             .parallelize_k = 1,
                              .load_a = 0,
                              .load_b = 1,
                              .load_c = 1,

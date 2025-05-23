@@ -133,7 +133,7 @@ void gemm_fp32_naive_unrolled(uint32_t M, uint32_t N, uint32_t K, void* A_p,
     } else {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                register float c0 = BETA * C[m * ldC + n];
+                float c0 = BETA * C[m * ldC + n];
                 for (uint32_t k = 0; k < K; k++) {
                     c0 += A[k * M * ldA + m * ldA] * B[k + n * ldB];
                 }
@@ -154,10 +154,10 @@ void gemm_fp32_baseline(uint32_t M, uint32_t N, uint32_t K, void* A_p,
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (; n < N; n++) {
-            volatile register v2f32 *a_ptr, *b_ptr;
-            register v2f32 a, b;
+            volatile v2f32 *a_ptr, *b_ptr;
+            v2f32 a, b;
             volatile float* c_ptr;
-            const register float zero = 0.0;
+            const float zero = 0.0;
             double c = 0.0;
             v2f32 reduce_reg;
 
@@ -250,7 +250,7 @@ void gemm_fp32_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
         uint32_t n = 0;
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
             float* _C = &C[m * ldC + n / 2];
-            const register float zero = 0.0;
+            const float zero = 0.0;
             v2f32 c[unroll], reduce_reg[unroll];
 
             asm volatile(

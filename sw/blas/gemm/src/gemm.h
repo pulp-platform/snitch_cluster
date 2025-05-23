@@ -96,8 +96,9 @@ void sc_st_gemm(gemm_args_t* gemm_args, void* a, void* b, uint32_t beta,
         if (snrt_cluster_core_idx() < rem_m) frac_m++;
 
         if (frac_m > 0)
-            impl(frac_m, n, k, a + offsetA, lda_strided, transa, b, ldb, transb,
-                 c + offsetC, ldc_strided, (float)beta, setup_ssr);
+            impl(frac_m, n, k, (void*)((uintptr_t)a + offsetA), lda_strided,
+                 transa, b, ldb, transb, (void*)((uintptr_t)c + offsetC),
+                 ldc_strided, (float)beta, setup_ssr);
     }
 }
 
@@ -112,7 +113,7 @@ void sc_st_gemm(gemm_args_t* gemm_args, void* a, void* b, uint32_t beta,
 // k_tiles: number of tiles in K dimension
 // n_tiles: number of tiles in N dimension
 int gemm(gemm_args_t* args) {
-    gemm_args_t* local_args = snrt_l1_next();
+    gemm_args_t* local_args = (gemm_args_t*)snrt_l1_next();
 
     // Copy the arguments to local memory
     if (snrt_is_dm_core()) {

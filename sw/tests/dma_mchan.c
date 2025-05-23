@@ -28,11 +28,11 @@ int main() {
     }
 
     // Start slow/large 2D transfer from L3 to L1 on channel 0.
-    snrt_dma_start_2d_channel(buffer_dst_l1_1, buffer_src_l3, TRANSFER_SIZE, 0,
-                              TRANSFER_SIZE, TRANSFER_REP, 0);
+    snrt_dma_start_2d(buffer_dst_l1_1, buffer_src_l3, TRANSFER_SIZE, 0,
+                      TRANSFER_SIZE, TRANSFER_REP, 0);
 
     // Start fast/small 1D transfer from L1 to L1 on channel 1.
-    snrt_dma_start_1d_channel(buffer_dst_l1_2, buffer_src_l1, TRANSFER_SIZE, 1);
+    snrt_dma_start_1d(buffer_dst_l1_2, buffer_src_l1, TRANSFER_SIZE, 1);
 
     // Check that the fast transfer can finish first.
     uint32_t busy_slow, busy_fast;
@@ -47,7 +47,7 @@ int main() {
     }
 
     // Wait for the slow transfer to finish.
-    snrt_dma_wait_all_channel(0);
+    snrt_dma_wait_all(0);
 
     // Check that the main memory buffer contains the correct data.
     for (uint32_t i = 0; i < TRANSFER_LEN; i++) {

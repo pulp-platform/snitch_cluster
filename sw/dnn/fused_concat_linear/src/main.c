@@ -6,7 +6,10 @@
 
 #include "dnn.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wreorder-init-list"
 #include "data.h"
+#pragma clang diagnostic pop
 
 int main() {
     uint32_t nerr = fused_concat_linear_layer(layer);

@@ -57,7 +57,8 @@ class AxpyDataGen(du.DataGen):
             'funcptr': kwargs['funcptr']
         }
 
-        header += [du.format_scalar_definition('const double', 'a', a)]
+        # "extern" specifier ensures that the variable is emitted and not mangled
+        header += [du.format_scalar_definition('extern const double', 'a', a)]
         header += [du.format_array_definition('double', x_uid, x,
                    alignment=self.BURST_ALIGNMENT, section=kwargs['section'])]
         header += [du.format_array_definition('double', y_uid, y,

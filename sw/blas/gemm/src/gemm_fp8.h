@@ -66,10 +66,10 @@ void gemm_fp8_baseline(uint32_t M, uint32_t N, uint32_t K, void* A_p,
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (; n < N; n++) {
-            volatile register v8f8 *a_ptr, *b_ptr;
-            register v8f8 a, b;
+            volatile v8f8 *a_ptr, *b_ptr;
+            v8f8 a, b;
             volatile char* c_ptr;
-            const register float zero = 0.0;
+            const float zero = 0.0;
             double c = 0.0;
             v8f8 reduce_reg;
 
@@ -160,7 +160,7 @@ void gemm_fp8_opt_ex(uint32_t M, uint32_t N, uint32_t K, void* A_p,
         uint32_t n = 0;
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
             char* _C = &C[m * ldC + n];
-            const register float zero = 0.0;
+            const float zero = 0.0;
             v8f8 c[unroll];
             v4f16 reduce_reg[unroll];
 

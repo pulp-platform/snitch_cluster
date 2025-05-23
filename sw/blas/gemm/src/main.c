@@ -11,7 +11,11 @@
 
 #include "blas.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wreorder-init-list"
 #include "data.h"
+#pragma clang diagnostic pop
+
 #include "snrt.h"
 
 int main() {

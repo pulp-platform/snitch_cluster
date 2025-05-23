@@ -38,6 +38,12 @@ VISUALIZE_PY      ?= $(UTIL_DIR)/bench/visualize.py
 SN_BOOTROM_GEN     = $(SN_ROOT)/util/gen_bootrom.py
 SN_CLUSTER_GEN     = $(SN_ROOT)/util/clustergen.py
 
+# Gentrace prerequisites
+SN_GENTRACE_SRC = $(UTIL_DIR)/trace/sequencer.py
+
+# Annotate prerequisites
+SN_ANNOTATE_SRC = $(UTIL_DIR)/trace/a2l.py
+
 # Clustergen prerequisites
 SN_CLUSTER_GEN_SRC = $(wildcard $(SN_ROOT)/util/clustergen/*.py)
 
@@ -162,9 +168,9 @@ $(addprefix $(LOGS_DIR)/,trace_hart_%.txt hart_%_perf.json dma_%_perf.json): $(L
 # Generate source-code interleaved traces for all harts. Reads the binary from
 # the logs/.rtlbinary file that is written at start of simulation in the vsim script
 BINARY ?= $(shell cat $(SIM_DIR)/.rtlbinary)
-$(LOGS_DIR)/trace_hart_%.s: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY}
+$(LOGS_DIR)/trace_hart_%.s: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY} $(SN_ANNOTATE_SRC)
 	${ANNOTATE_PY} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $<
-$(LOGS_DIR)/trace_hart_%.diff: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY}
+$(LOGS_DIR)/trace_hart_%.diff: $(LOGS_DIR)/trace_hart_%.txt ${ANNOTATE_PY} $(SN_ANNOTATE_SRC)
 	${ANNOTATE_PY} ${ANNOTATE_FLAGS} -o $@ $(BINARY) $< -d
 
 $(JOINT_PERF_DUMP): $(PERF_DUMPS) $(JOIN_PY)

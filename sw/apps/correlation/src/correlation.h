@@ -114,9 +114,12 @@ void correlation_job(void *args) {
     size_t size_data = N * M * sizeof(double);
     size_t size_corr = M * M * sizeof(double);
     size_t size_stddev = M * sizeof(double);
-    local_data = snrt_l1_alloc_cluster_local(size_data, sizeof(double));
-    local_corr = snrt_l1_alloc_cluster_local(size_corr, sizeof(double));
-    local_stddev = snrt_l1_alloc_cluster_local(size_stddev, sizeof(double));
+    local_data =
+        (double *)snrt_l1_alloc_cluster_local(size_data, sizeof(double));
+    local_corr =
+        (double *)snrt_l1_alloc_cluster_local(size_corr, sizeof(double));
+    local_stddev =
+        (double *)snrt_l1_alloc_cluster_local(size_stddev, sizeof(double));
 
     // Parallelize step 1 across clusters, distributing the M columns
     size_t tile_M = M / snrt_cluster_num();
@@ -153,8 +156,8 @@ void correlation_job(void *args) {
             // that it stores the output tile as contiguous data, not with
             // the proper stride it would have in the full matrix.
             for (unsigned int i = 0; i < snrt_cluster_num(); i++) {
-                double *remote_data =
-                    snrt_remote_l1_ptr(local_data, snrt_cluster_idx(), i);
+                double *remote_data = (double *)snrt_remote_l1_ptr(
+                    local_data, snrt_cluster_idx(), i);
                 snrt_dma_store_2d_tile(local_data,     // dst
                                        remote_data,    // src
                                        0,              // tile_x1_idx
@@ -164,8 +167,8 @@ void correlation_job(void *args) {
                                        M,              // full_x0_size
                                        sizeof(double)  // prec
                 );
-                double *remote_stddev =
-                    snrt_remote_l1_ptr(local_stddev, snrt_cluster_idx(), i);
+                double *remote_stddev = (double *)snrt_remote_l1_ptr(
+                    local_stddev, snrt_cluster_idx(), i);
                 snrt_dma_store_1d_tile(local_stddev,   // dst
                                        remote_stddev,  // src
                                        i,              // tile_idx

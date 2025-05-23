@@ -12,6 +12,10 @@
 #include "../../../deps/riscv-opcodes/encoding.h"
 #include "omp.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef void (*__task_type32)(_kmp_ptr32, _kmp_ptr32, _kmp_ptr32);
 typedef void (*__task_type64)(_kmp_ptr64, _kmp_ptr64, _kmp_ptr64);
 
@@ -302,8 +306,8 @@ void __kmpc_for_static_init_4u(ident_t *loc, kmp_int32 gtid,
                                kmp_int32 chunk) {
     kmp_int32 ilower = *plower;
     kmp_int32 iupper = *pupper;
-    __kmpc_for_static_init_4(loc, gtid, schedtype, plastiter, &ilower, &iupper,
-                             pstride, incr, chunk);
+    __kmpc_for_static_init_4(loc, gtid, (enum sched_type)schedtype, plastiter,
+                             &ilower, &iupper, pstride, incr, chunk);
     *plower = ilower;
     *pupper = iupper;
 }
@@ -511,3 +515,7 @@ See @ref __kmpc_dispatch_next_4
 // }
 
 #endif  // #ifndef OMPSTATIC_NUMTHREADS
+
+#ifdef __cplusplus
+}
+#endif

@@ -66,9 +66,9 @@ DMSRC and DMDST specify the source and destination address pointers for the next
 | 0000110 | dststrd | srcstrd | 000    | 00000 | OP-CUSTOM1 | DMSTR     |
 | 0000111 | 00000   | reps    | 000    | 00000 | OP-CUSTOM1 | DMREP     |
 
-DMSTRD configures the stride for two-dimensional transfers. The value in registers *rs1* and *rs2* are sign-extended to PLEN and configured as the source and destination stride, respectively. After each transfer of the innermost dimension, the strides are added to the respective address pointers.
+DMSTR configures the stride for two-dimensional transfers. The value in registers *rs1* and *rs2* are sign-extended to PLEN and configured as the source and destination stride, respectively. After each transfer of the innermost dimension, the strides are added to the respective address pointers.
 
-DMREPS configures the value in register *rs1* as the size of the outer dimension for two-dimensional transfers.
+DMREP configures the value in register *rs1* as the size of the outer dimension for two-dimensional transfers.
 
 ### Control Operations
 
@@ -94,12 +94,13 @@ DMCPY and DMCPYI initiate an asynchronous data movement with the parameters conf
 
 DMSTAT and DMSTATI place the selected *status* flag of the DMA into register *rd*. The following *status* flags are supported:
 
-| status | Name         | Description
-|--------|--------------|-------------
-| 0      | completed_id | Id of last completed transfer
-| 1      | next_id      | Id allocated to the next transfer
-| 2      | busy         | At least one transfer in progress
-| 3      | would_block  | Next DMCPY[I] blocks (transfer queue full)
+| status      | Name         | Description
+|-------------|--------------|-------------
+| 0           | completed_id | Id of last completed transfer
+| 1           | next_id      | Id allocated to the next transfer
+| 2           | busy         | At least one transfer in progress
+| 3           | would_block  | Next DMCPY[I] blocks (transfer queue full)
+| status[4:2] | channel_sel  | Selects the DMA backend if a multi-channel DMA is used
 
 The DMSTATI instruction can be used to implement a blocking wait for the completion of a specific DMA transfer:
 
@@ -107,7 +108,7 @@ The DMSTATI instruction can be used to implement a blocking wait for the complet
     1:  dmstati t0, 0
         bltu t0, a0, 1b
 
-Similarly, waiting for the completion of *all* DMA transfers:
+Similarly, waiting for the completion of *all* DMA transfers on channel 1:
 
-    1:  dmstati t0, 2
+    1:  dmstati t0, (1 << 2) | 2
         bnez t0, zero, 1b

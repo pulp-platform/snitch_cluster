@@ -30,16 +30,17 @@ typedef struct {
 } transpose_layer_t;
 
 /**
- * @brief Implementation of a baseline FP64 Transpose kernel
+ * @brief Implementation of a baseline Transpose kernel
  *
+ * @tparam T Data type of the input and output feature map
  * @param input Pointer to input feature map
  * @param output Pointer to output feature map
  * @param M First dimension of the matrix
  * @param N Second dimension of the matrix
  */
-static inline void transpose_fp64_baseline(double* input, double* output,
-                                           uint32_t M, uint32_t N,
-                                           uint32_t M_stride) {
+template <typename T>
+static inline void transpose_baseline(T* input, T* output, uint32_t M,
+                                      uint32_t N, uint32_t M_stride) {
     for (uint32_t m = 0; m < M; m++) {
         for (uint32_t n = 0; n < N; n++) {
             output[n * M_stride + m] = input[m * N + n];
@@ -79,57 +80,6 @@ static inline void transpose_fp64_opt(double* input, double* output, uint32_t M,
 }
 
 /**
- * @brief Implementation of the FP32 Transpose kernel
- *
- * @param input Pointer to input feature map
- * @param output Pointer to output feature map
- * @param M First dimension of the matrix
- * @param N Second dimension of the matrix
- */
-static inline void transpose_fp32(float* input, float* output, uint32_t M,
-                                  uint32_t N, uint32_t M_stride) {
-    for (uint32_t m = 0; m < M; m++) {
-        for (uint32_t n = 0; n < N; n++) {
-            output[n * M_stride + m] = input[m * N + n];
-        }
-    }
-}
-
-/**
- * @brief Implementation of the FP16 Transpose kernel
- *
- * @param input Pointer to input feature map
- * @param output Pointer to output feature map
- * @param M First dimension of the matrix
- * @param N Second dimension of the matrix
- */
-static inline void transpose_fp16(__fp16* input, __fp16* output, uint32_t M,
-                                  uint32_t N, uint32_t M_stride) {
-    for (uint32_t m = 0; m < M; m++) {
-        for (uint32_t n = 0; n < N; n++) {
-            output[n * M_stride + m] = input[m * N + n];
-        }
-    }
-}
-
-/**
- * @brief Implementation of the FP8 Transpose kernel
- *
- * @param input Pointer to input feature map
- * @param output Pointer to output feature map
- * @param M First dimension of the matrix
- * @param N Second dimension of the matrix
- */
-static inline void transpose_fp8(char* input, char* output, uint32_t M,
-                                 uint32_t N, uint32_t M_stride) {
-    for (uint32_t m = 0; m < M; m++) {
-        for (uint32_t n = 0; n < N; n++) {
-            output[n * M_stride + m] = input[m * N + n];
-        }
-    }
-}
-
-/**
  * @brief  Transpose kernel
  *
  * @param l transpose struct that holds addresses and parameters
@@ -145,28 +95,33 @@ static inline void transpose_kernel(precision_t dtype, void* input,
         int32_t row_offset = snrt_cluster_core_idx() * frac_M;
 
         // calculate the input address offset
-        void* input_offset = input + row_offset * N * dtype;
+        void* input_offset = (char*)input + row_offset * N * dtype;
 
         // caluclate the output address offset
-        void* output_offset = output + row_offset * dtype;
+        void* output_offset = (char*)output + row_offset * dtype;
 
         switch (dtype) {
             case FP8:
-                transpose_fp8(input_offset, output_offset, frac_M, N, M);
+                transpose_baseline<char>((char*)input_offset,
+                                         (char*)output_offset, frac_M, N, M);
                 break;
             case FP16:
-                transpose_fp16(input_offset, output_offset, frac_M, N, M);
+                transpose_baseline<__fp16>((__fp16*)input_offset,
+                                           (__fp16*)output_offset, frac_M, N,
+                                           M);
                 break;
             case FP32:
-                transpose_fp32(input_offset, output_offset, frac_M, N, M);
+                transpose_baseline<float>((float*)input_offset,
+                                          (float*)output_offset, frac_M, N, M);
                 break;
             case FP64:
                 if (baseline) {
-                    transpose_fp64_baseline(input_offset, output_offset, frac_M,
-                                            N, M);
+                    transpose_baseline<double>((double*)input_offset,
+                                               (double*)output_offset, frac_M,
+                                               N, M);
                 } else {
-                    transpose_fp64_opt(input_offset, output_offset, frac_M, N,
-                                       M);
+                    transpose_fp64_opt((double*)input_offset,
+                                       (double*)output_offset, frac_M, N, M);
                 }
                 break;
             default:
@@ -182,17 +137,17 @@ static inline void transpose_kernel(precision_t dtype, void* input,
  *
  */
 static inline void transpose_layer(transpose_layer_t const l) {
-    uint32_t matrix_size = l.M * l.N;
+    uint32_t matrix_size = l.M * l.N * l.dtype;
 
-    void* ptr = snrt_l1_next();
+    char* ptr = (char*)snrt_l1_next();
     void* input = ptr;
-    ptr += matrix_size * l.dtype;
+    ptr += matrix_size;
     void* output = ptr;
-    ptr += matrix_size * l.dtype;
+    ptr += matrix_size;
 
     // DMA transfer the matrix into the cluster TCDM
     if (snrt_is_dm_core()) {
-        snrt_dma_start_1d(input, l.input, matrix_size * l.dtype);
+        snrt_dma_start_1d(input, l.input, matrix_size);
         snrt_dma_wait_all();
     }
 
@@ -204,7 +159,7 @@ static inline void transpose_layer(transpose_layer_t const l) {
 
     // DMA transfer the output to DRAM
     if (snrt_is_dm_core()) {
-        snrt_dma_start_1d(l.output, output, matrix_size * l.dtype);
+        snrt_dma_start_1d(l.output, output, matrix_size);
         snrt_dma_wait_all();
     }
 

@@ -14,11 +14,11 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
     uint32_t B_r = layer.B_r;
     uint32_t B_c = layer.B_c;
     uint32_t baseline = layer.baseline;
-    void *gemm_implementation = layer.gemm_implementation;
-    __fp16 *Q_l3 = layer.Q;
-    __fp16 *K_l3 = layer.K;
-    __fp16 *V_l3 = layer.V;
-    __fp16 *O_l3 = layer.O;
+    gemm_fp_t gemm_implementation = layer.gemm_implementation;
+    __fp16 *Q_l3 = (__fp16 *)layer.Q;
+    __fp16 *K_l3 = (__fp16 *)layer.K;
+    __fp16 *V_l3 = (__fp16 *)layer.V;
+    __fp16 *O_l3 = (__fp16 *)layer.O;
 
     // gemm specific parameters
     gemm_args_t gemm_args;
@@ -62,7 +62,7 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
     uint32_t shifted_exp_size = B_r * sizeof(float);
 
     // allocate memory in TCDM
-    void *tcdm_ptr = (__fp16 *)snrt_l1_next();
+    char *tcdm_ptr = snrt_l1_next();
     __fp16 *Q_fa = tcdm_ptr;
     tcdm_ptr += q_fa_size;
     __fp16 *K_fa = tcdm_ptr;
@@ -245,7 +245,8 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
                     // we can compute P*(V^t)^t with the optimized GEMM.
 
                     // Compute V^t
-                    transpose_kernel(dtype, V_fa, V_t, B_c, d, baseline);
+                    transpose_kernel((precision_t)dtype, V_fa, V_t, B_c, d,
+                                     baseline);
 
                     // In first t_c iteration, initialize O_ij to
                     // P_ij * (V_j^t)^t. In successive t_c iterations,

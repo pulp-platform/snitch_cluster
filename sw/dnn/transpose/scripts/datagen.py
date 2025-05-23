@@ -50,7 +50,7 @@ class TransposeDataGen(DataGen):
             'baseline': kwargs['baseline']
         }
 
-        header += [format_array_declaration(ctype, input_uid, inp.shape,
+        header += [format_array_declaration(f'extern {ctype}', input_uid, inp.shape,
                                             alignment=BURST_ALIGNMENT)]
         header += [format_array_declaration(ctype, output_uid, output.shape,
                                             alignment=BURST_ALIGNMENT)]

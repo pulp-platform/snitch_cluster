@@ -14,11 +14,11 @@ static inline void flashattention_2_fp32(flashattention_2_layer_t layer) {
     uint32_t B_r = layer.B_r;
     uint32_t B_c = layer.B_c;
     uint32_t baseline = layer.baseline;
-    void *gemm_implementation = layer.gemm_implementation;
-    float *Q_l3 = layer.Q;
-    float *K_l3 = layer.K;
-    float *V_l3 = layer.V;
-    float *O_l3 = layer.O;
+    gemm_fp_t gemm_implementation = layer.gemm_implementation;
+    float *Q_l3 = (float *)layer.Q;
+    float *K_l3 = (float *)layer.K;
+    float *V_l3 = (float *)layer.V;
+    float *O_l3 = (float *)layer.O;
 
     // gemm specific parameters
     gemm_args_t gemm_args;
@@ -62,7 +62,7 @@ static inline void flashattention_2_fp32(flashattention_2_layer_t layer) {
     uint32_t shifted_exp_size = B_r * sizeof(float);
 
     // allocate memory in TCDM
-    void *tcdm_ptr = (float *)snrt_l1_next();
+    char *tcdm_ptr = (float *)snrt_l1_next();
     float *Q_fa = tcdm_ptr;
     tcdm_ptr += q_fa_size;
     float *K_fa = tcdm_ptr;

@@ -72,7 +72,7 @@ def emit_header(**kwargs):
 
     data_str = [emit_license()]
     # Array forward declarations
-    data_str += [format_array_declaration(ctype, ifmap_uid, ifmap.shape)]
+    data_str += [format_array_declaration(f'extern {ctype}', ifmap_uid, ifmap.shape)]
     data_str += [format_array_declaration(ctype, ofmap_uid, ofmap.shape)]
     # Layer struct
     data_str += [format_struct_definition('maxpool_layer_t', 'layer', layer_cfg)]

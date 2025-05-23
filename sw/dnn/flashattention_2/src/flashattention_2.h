@@ -45,7 +45,7 @@ typedef struct {
     void *O;
     precision_t dtype;
     uint32_t baseline;
-    void *gemm_implementation;
+    gemm_fp_t gemm_implementation;
 } flashattention_2_layer_t;
 
 #include "../flashattention_2/src/flashattention_2_fp16.h"

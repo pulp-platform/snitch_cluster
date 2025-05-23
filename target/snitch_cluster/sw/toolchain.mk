@@ -19,6 +19,7 @@ DEBUG ?= OFF # ON to turn on debugging symbols
 LLVM_BINROOT    ?= $(dir $(shell which riscv32-unknown-elf-clang))
 LLVM_VER        ?= $(shell $(LLVM_BINROOT)/llvm-config --version | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
 RISCV_CC        ?= $(LLVM_BINROOT)/clang
+RISCV_CXX       ?= $(LLVM_BINROOT)/clang++
 RISCV_LD        ?= $(LLVM_BINROOT)/ld.lld
 RISCV_AR        ?= $(LLVM_BINROOT)/llvm-ar
 RISCV_OBJCOPY   ?= $(LLVM_BINROOT)/llvm-objcopy
@@ -36,7 +37,7 @@ RISCV_CFLAGS += -fno-common
 RISCV_CFLAGS += -fopenmp
 RISCV_CFLAGS += -ftls-model=local-exec
 RISCV_CFLAGS += -O3
-RISCV_CFLAGS += -Wno-error=int-conversion
+RISCV_CFLAGS += -Werror
 ifeq ($(DEBUG), ON)
 RISCV_CFLAGS += -g
 endif
@@ -47,6 +48,7 @@ endif
 # Linker flags
 RISCV_LDFLAGS := -fuse-ld=$(RISCV_LD)
 RISCV_LDFLAGS += -nostartfiles
+RISCV_LDFLAGS += -nostdlib++
 RISCV_LDFLAGS += -lm
 
 # Archiver flags

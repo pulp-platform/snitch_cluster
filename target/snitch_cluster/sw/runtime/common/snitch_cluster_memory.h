@@ -51,6 +51,6 @@ inline uint32_t snrt_cluster_perf_counters_addr() {
     return CLUSTER_PERF_COUNTER_ADDR + cluster_base_offset();
 }
 
-inline volatile uint32_t* snrt_zero_memory_ptr() {
-    return (uint32_t*)(CLUSTER_ZERO_MEM_START_ADDR + cluster_base_offset());
+inline volatile void* snrt_zero_memory_ptr() {
+    return (void*)(CLUSTER_ZERO_MEM_START_ADDR + cluster_base_offset());
 }

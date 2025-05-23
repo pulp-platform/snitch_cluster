@@ -63,16 +63,16 @@ static inline void gelu_layer(const gelu_layer_t l) {
     uint32_t cluster_fmap_bytes = cluster_fmap_size * sizeof(double);
 
     // Allocate memory in TCDM
-    void *ptr = (double *)snrt_l1_next();
+    double *ptr = (double *)snrt_l1_next();
     double *l1_ifmap = ptr;
-    ptr += cluster_fmap_bytes;
+    ptr += cluster_fmap_size;
     double *l1_ofmap = ptr;
-    ptr += cluster_fmap_bytes;
+    ptr += cluster_fmap_size;
 
     // Get pointer to feature maps in L3
-    uint32_t cluster_offset = cluster_fmap_bytes * snrt_cluster_idx();
-    double *l3_ifmap = ((void *)l.ifmap) + cluster_offset;
-    double *l3_ofmap = ((void *)l.ofmap) + cluster_offset;
+    uint32_t cluster_offset = cluster_fmap_size * snrt_cluster_idx();
+    double *l3_ifmap = l.ifmap + cluster_offset;
+    double *l3_ofmap = l.ofmap + cluster_offset;
 
     // DMA transfer the ifmap into the cluster TCDM
     if (snrt_is_dm_core()) {
