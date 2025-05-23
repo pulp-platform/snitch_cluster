@@ -71,10 +71,10 @@ packages:
     dependencies:
     - common_cells
   idma:
-    revision: 9b42f68291af12a804b3ba8a490625f544b53cb4
+    revision: 5ccd718224ad76f2d0ce5fe512ad6c5e47c71844
     version: null
     source:
-      Git: https://github.com/colluca/iDMA
+      Git: git@github.com:pulp-platform/iDMA.git
     dependencies:
     - axi
     - axi_stream
@@ -83,8 +83,8 @@ packages:
     - obi
     - register_interface
   obi:
-    revision: 8097928cf1b43712f93d5356f336397879b4ad2c
-    version: 0.1.6
+    revision: 0155fc34e900c7c884e081c0a1114a247937ff69
+    version: 0.1.7
     source:
       Git: https://github.com/pulp-platform/obi.git
     dependencies:
