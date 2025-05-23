@@ -70,6 +70,7 @@
 #define REDMULE_MCFG1_PTR 0x10
 #define REDMULE_ARITH_PTR 0x14
 
+#define HWPE_EVT_OFFS 0x94
 #define CK_GATE_OFFS 0x9C
 
 // OPs definition
@@ -136,6 +137,10 @@ static inline unsigned int hwpe_get_status() { return HWPE_READ(REDMULE_STATUS);
 static inline void hwpe_soft_clear() {
   volatile int i;
   HWPE_WRITE(0, REDMULE_SOFT_CLEAR);
+}
+
+static inline void hwpe_evt_clear(int value) {
+  HWPE_WRITE(value, HWPE_EVT_OFFS);
 }
 
 static inline void hwpe_cg_enable() { HWPE_WRITE(1, CK_GATE_OFFS); }

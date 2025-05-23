@@ -67,7 +67,11 @@ int main() {
   snrt_cluster_hw_barrier();
 
   if (core_idx == 0) {
-    printf("Checking RedMulE from core %d\n", core_idx);
+    int status;
+    snrt_interrupt_enable(IRQ_M_HWPE);
+    while ((status = hwpe_get_status()) != 0) snrt_wfi();
+    hwpe_evt_clear(1 << core_idx);
+    snrt_interrupt_disable(IRQ_M_HWPE);
 
     // Disable RedMulE
     hwpe_cg_disable();
