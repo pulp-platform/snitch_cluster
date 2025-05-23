@@ -37,7 +37,9 @@
  * @brief Synchronize the integer and float pipelines.
  */
 inline void snrt_fpu_fence() {
-    unsigned tmp;
+    // We should use volatile otherwise the compiler can mess things up
+    // especially if there are multiple asm block output variables.
+    unsigned volatile tmp;
     asm volatile(
         "fmv.x.w %0, fa0\n"
         "mv      %0, %0\n"
