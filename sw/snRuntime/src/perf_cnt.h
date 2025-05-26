@@ -26,7 +26,7 @@ typedef snitch_cluster_peripheral_reg__PERF_REGS_t perf_regs_t;
  *
  * @return perf_regs_t* Pointer to the performance counter registers
  */
-inline perf_regs_t* snrt_perf_counters() {
+inline volatile perf_regs_t* snrt_perf_counters() {
     return (perf_regs_t*)snrt_cluster_perf_counters_addr();
 }
 
