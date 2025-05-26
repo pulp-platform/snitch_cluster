@@ -126,16 +126,22 @@ module snitch_cluster_peripheral
     assign hw2reg.PERF_REGS.PERF_CNT[i].rd_data.PERF_COUNTER = perf_cnt_q[i];
     assign hw2reg.PERF_REGS.PERF_CNT_SEL[i].rd_data.METRIC = perf_metrics_q[i];
     assign hw2reg.PERF_REGS.PERF_CNT_SEL[i].rd_data.HART = perf_hart_sel_q[i];
-    assign hw2reg.PERF_REGS.PERF_CNT[i].rd_ack = 1'b1;
-    assign hw2reg.PERF_REGS.PERF_CNT_SEL[i].rd_ack = 1'b1;
-    assign hw2reg.PERF_REGS.PERF_CNT[i].wr_ack = 1'b1;
-    assign hw2reg.PERF_REGS.PERF_CNT_SEL[i].wr_ack = 1'b1;
+    assign hw2reg.PERF_REGS.PERF_CNT[i].rd_ack = reg2hw.PERF_REGS.PERF_CNT[i].req &
+                                                !reg2hw.PERF_REGS.PERF_CNT[i].req_is_wr;
+    assign hw2reg.PERF_REGS.PERF_CNT_SEL[i].rd_ack = reg2hw.PERF_REGS.PERF_CNT_SEL[i].req &
+                                                !reg2hw.PERF_REGS.PERF_CNT_SEL[i].req_is_wr;
+    assign hw2reg.PERF_REGS.PERF_CNT[i].wr_ack = reg2hw.PERF_REGS.PERF_CNT[i].req &
+                                                reg2hw.PERF_REGS.PERF_CNT[i].req_is_wr;
+    assign hw2reg.PERF_REGS.PERF_CNT_SEL[i].wr_ack = reg2hw.PERF_REGS.PERF_CNT_SEL[i].req &
+                                                reg2hw.PERF_REGS.PERF_CNT_SEL[i].req_is_wr;
     assign hw2reg.PERF_REGS.PERF_CNT[i].rd_data._reserved_63_48 = '0;
     assign hw2reg.PERF_REGS.PERF_CNT_SEL[i].rd_data._reserved_63_32 = '0;
   end
 
-  assign hw2reg.CL_CLINT_SET.wr_ack = 1'b1;
-  assign hw2reg.CL_CLINT_CLEAR.wr_ack = 1'b1;
+  assign hw2reg.CL_CLINT_SET.wr_ack = reg2hw.CL_CLINT_SET.req &
+                                      reg2hw.CL_CLINT_SET.req_is_wr;
+  assign hw2reg.CL_CLINT_CLEAR.wr_ack = reg2hw.CL_CLINT_CLEAR.req &
+                                        reg2hw.CL_CLINT_CLEAR.req_is_wr;
 
   always_comb begin
     perf_cnt_d = perf_cnt_q;
