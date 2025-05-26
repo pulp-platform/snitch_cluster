@@ -43,7 +43,7 @@ $(SNITCH_CLUSTER_WRAPPER_ADDRMAP_H): $(SN_GEN_DIR)/snitch_cluster_wrapper.rdl
 	@echo "[peakrdl] Generating addrmap header"
 	$(PEAKRDL) raw-header $< -o $(SNITCH_CLUSTER_WRAPPER_ADDRMAP_H) --format c -I $(SN_PERIPH_DIR)
 
-$(SNITCH_CLUSTER_PERIPHERAL_ADDRMAP_H): $(SN_GEN_DIR)/snitch_cluster_peripheral_reg.rdl
+$(SNITCH_CLUSTER_PERIPHERAL_ADDRMAP_H): $(SN_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.rdl
 	@echo "[peakrdl] Generating addrmap header"
 	$(PEAKRDL) raw-header $< -o $(SNITCH_CLUSTER_PERIPHERAL_ADDRMAP_H) --format c -I $(SN_PERIPH_DIR)
 

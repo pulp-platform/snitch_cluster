@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "printf.h"
-#include "snrt.h"
 #include "snitch_cluster_peripheral_addrmap.h"
+#include "snrt.h"
 
 #define WIDE_WORD_SIZE 64
 
@@ -39,10 +39,7 @@ int main() {
                                 sizeof(((perf_regs_t){}).PERF_CNT[0]);
              i++) {
             // Configure and start the performance counter
-            snrt_cfg_perf_counter(
-                i,
-                PERF_METRIC__CYCLE,
-                0);
+            snrt_cfg_perf_counter(i, PERF_METRIC__CYCLE, 0);
             snrt_start_perf_counter(i);
         }
 
@@ -70,14 +67,8 @@ int main() {
     // Test 4: Check DMA performance with simple 1D test
     if (snrt_is_dm_core()) {
         // Configure performance counters to track DMA read and writes
-        snrt_cfg_perf_counter(
-            0,
-            PERF_METRIC__DMA_AW_DONE,
-            0);
-        snrt_cfg_perf_counter(
-            1,
-            PERF_METRIC__DMA_AR_DONE,
-            0);
+        snrt_cfg_perf_counter(0, PERF_METRIC__DMA_AW_DONE, 0);
+        snrt_cfg_perf_counter(1, PERF_METRIC__DMA_AR_DONE, 0);
 
         // Transfer around some data
         uint32_t *dst =
@@ -108,14 +99,8 @@ int main() {
     // Test 5: Check DMA performance with misaligned 1D test
     if (snrt_is_dm_core()) {
         // Configure performance counters to track DMA read and write beats
-        snrt_cfg_perf_counter(
-            0,
-            PERF_METRIC__DMA_W_DONE,
-            0);
-        snrt_cfg_perf_counter(
-            1,
-            PERF_METRIC__DMA_R_DONE,
-            0);
+        snrt_cfg_perf_counter(0, PERF_METRIC__DMA_W_DONE, 0);
+        snrt_cfg_perf_counter(1, PERF_METRIC__DMA_R_DONE, 0);
 
         // Transfer around some data
         uint32_t *dst =
