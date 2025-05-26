@@ -67,7 +67,7 @@ jobs:
     container:
       image: ${{ needs.build-docker.outputs.image_name }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build docs
         run: make docs
 
@@ -79,7 +79,7 @@ jobs:
     container:
       image: ${{ needs.build-docker.outputs.image_name }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       # For some reason, the checkout is done by a different user
       # than that deploying to Github (root, possibly due to Docker).
       # So we need to set the repository as a safe directory.
@@ -104,7 +104,7 @@ jobs:
     container:
       image: ${{ needs.build-docker.outputs.image_name }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Run pytest
         run: pytest
 
@@ -119,7 +119,7 @@ jobs:
     container:
       image: ${{ needs.build-docker.outputs.image_name }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
       - name: Hash Verilator prerequisites
@@ -131,7 +131,7 @@ jobs:
           flags: --recursive
       - name: Set up cache for Verilator build
         id: verilator-cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: target/snitch_cluster/bin
           key: verilator-${{ steps.verilator-hash.outputs.hash }}
