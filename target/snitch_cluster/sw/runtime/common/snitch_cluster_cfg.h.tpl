@@ -12,5 +12,7 @@
 #define SNRT_TCDM_SIZE (CLUSTER_BOOTROM_BASE_ADDR - CLUSTER_TCDM_BASE_ADDR)
 #define SNRT_CLUSTER_OFFSET ${cfg['cluster']['cluster_base_offset']}
 
+#define SNRT_SUPPORTS_MULTICAST ${cfg['cluster']['enable_multicast']}
+
 // Software configuration
 #define SNRT_LOG2_STACK_SIZE 10

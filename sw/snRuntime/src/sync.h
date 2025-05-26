@@ -16,6 +16,8 @@
 
 #include <math.h>
 
+#define SNRT_BROADCAST_MASK ((SNRT_CLUSTER_NUM - 1) * SNRT_CLUSTER_OFFSET)
+
 //================================================================================
 // Mutex functions
 //================================================================================
@@ -76,7 +78,7 @@ inline void snrt_mutex_release(volatile uint32_t *pmtx) {
 //================================================================================
 
 inline void snrt_wake_all(uint32_t core_mask) {
-#ifdef SUPPORTS_MULTICAST
+#ifdef SNRT_SUPPORTS_MULTICAST
     // Multicast cluster interrupt to every other cluster's core
     // Note: we need to address another cluster's address space
     //       because the cluster XBAR has not been extended to support
@@ -85,7 +87,7 @@ inline void snrt_wake_all(uint32_t core_mask) {
     uintptr_t addr = (uintptr_t)snrt_cluster_clint_set_ptr() -
                      SNRT_CLUSTER_OFFSET * snrt_cluster_idx();
     if (snrt_cluster_idx() == 0) addr += SNRT_CLUSTER_OFFSET;
-    snrt_enable_multicast(BCAST_MASK_ALL);
+    snrt_enable_multicast(SNRT_BROADCAST_MASK);
     *((uint32_t *)addr) = core_mask;
     snrt_disable_multicast();
 #else
