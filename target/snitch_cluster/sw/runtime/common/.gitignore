@@ -1,3 +1,5 @@
 snitch_cluster_cfg.h
 snitch_cluster_addrmap.h
+snitch_cluster_wrapper_addrmap.h
 snitch_cluster_peripheral.h
+snitch_cluster_peripheral_addrmap.h

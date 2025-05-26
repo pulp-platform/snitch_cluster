@@ -21,9 +21,15 @@ SNRT_HAL_HDRS_DIR ?= $(SN_ROOT)/target/snitch_cluster/sw/runtime/common
 
 SNITCH_CLUSTER_CFG_H        = $(SNRT_HAL_HDRS_DIR)/snitch_cluster_cfg.h
 SNITCH_CLUSTER_ADDRMAP_H    = $(SNRT_HAL_HDRS_DIR)/snitch_cluster_addrmap.h
+SNITCH_CLUSTER_WRAPPER_ADDRMAP_H    = $(SNRT_HAL_HDRS_DIR)/snitch_cluster_wrapper_addrmap.h
 SNITCH_CLUSTER_PERIPHERAL_H = $(SNRT_HAL_HDRS_DIR)/snitch_cluster_peripheral.h
+SNITCH_CLUSTER_PERIPHERAL_ADDRMAP_H = $(SNRT_HAL_HDRS_DIR)/snitch_cluster_peripheral_addrmap.h
 
-SNRT_HAL_HDRS = $(SNITCH_CLUSTER_CFG_H) $(SNITCH_CLUSTER_ADDRMAP_H) $(SNITCH_CLUSTER_PERIPHERAL_H)
+SNRT_HAL_HDRS =  $(SNITCH_CLUSTER_CFG_H)
+SNRT_HAL_HDRS += $(SNITCH_CLUSTER_ADDRMAP_H)
+SNRT_HAL_HDRS += $(SNITCH_CLUSTER_WRAPPER_ADDRMAP_H)
+SNRT_HAL_HDRS += $(SNITCH_CLUSTER_PERIPHERAL_H)
+SNRT_HAL_HDRS += $(SNITCH_CLUSTER_PERIPHERAL_ADDRMAP_H)
 
 # CLUSTERGEN headers
 $(eval $(call sn_cluster_gen_rule,$(SNITCH_CLUSTER_CFG_H),$(SNITCH_CLUSTER_CFG_H).tpl))
@@ -32,6 +38,15 @@ $(eval $(call sn_cluster_gen_rule,$(SNITCH_CLUSTER_ADDRMAP_H),$(SNITCH_CLUSTER_A
 # peakrdl headers
 $(SNITCH_CLUSTER_PERIPHERAL_H): $(SN_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.rdl
 	$(call peakrdl_generate_header,$@,$<)
+
+$(SNITCH_CLUSTER_WRAPPER_ADDRMAP_H): $(SN_GEN_DIR)/snitch_cluster_wrapper.rdl
+	@echo "[peakrdl] Generating addrmap header"
+	$(PEAKRDL) raw-header $< -o $(SNITCH_CLUSTER_WRAPPER_ADDRMAP_H) --format c -I $(SN_PERIPH_DIR)
+
+$(SNITCH_CLUSTER_PERIPHERAL_ADDRMAP_H): $(SN_GEN_DIR)/snitch_cluster_peripheral_reg.rdl
+	@echo "[peakrdl] Generating addrmap header"
+	$(PEAKRDL) raw-header $< -o $(SNITCH_CLUSTER_PERIPHERAL_ADDRMAP_H) --format c -I $(SN_PERIPH_DIR)
+
 
 .PHONY: sn-clean-headers
 sn-clean-sw: sn-clean-headers
