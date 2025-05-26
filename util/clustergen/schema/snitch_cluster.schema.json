@@ -160,7 +160,7 @@
                 },  
                 "enable_multicast": {
                     "type": "boolean",
-                    "description": "Whether to enable the mutlicast feature into the cluster",
+                    "description": "Whether to enable multicast in the cluster.",
                     "default": false
                 },
                 "hart_base_id": {

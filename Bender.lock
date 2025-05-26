@@ -42,7 +42,7 @@ packages:
     - scm
     - tech_cells_generic
   common_cells:
-    revision: 0fd2ba32926c0360534dc3d5795143cb259abb1c
+    revision: 265b4cf5fe561cb837899c580f392ea93bf7e147
     version: null
     source:
       Git: https://github.com/pulp-platform/common_cells
@@ -74,7 +74,7 @@ packages:
     revision: c396bbf477457b184a74b7f2386302f5895bb522
     version: null
     source:
-      Git: git@github.com:pulp-platform/iDMA.git
+      Git: https://github.com/pulp-platform/iDMA.git
     dependencies:
     - axi
     - axi_stream
@@ -83,8 +83,8 @@ packages:
     - obi
     - register_interface
   obi:
-    revision: 0155fc34e900c7c884e081c0a1114a247937ff69
-    version: 0.1.7
+    revision: 8097928cf1b43712f93d5356f336397879b4ad2c
+    version: 0.1.6
     source:
       Git: https://github.com/pulp-platform/obi.git
     dependencies:

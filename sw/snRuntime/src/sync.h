@@ -81,7 +81,7 @@ inline void snrt_wake_all(uint32_t core_mask) {
     // Note: we need to address another cluster's address space
     //       because the cluster XBAR has not been extended to support
     //       multicast yet. We address the second cluster, if we are the
-    //       first cluster, and the second otherwise.
+    //       first cluster, and the first cluster otherwise.
     uintptr_t addr = (uintptr_t)snrt_cluster_clint_set_ptr() -
                      SNRT_CLUSTER_OFFSET * snrt_cluster_idx();
     if (snrt_cluster_idx() == 0) addr += SNRT_CLUSTER_OFFSET;

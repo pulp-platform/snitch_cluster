@@ -99,11 +99,6 @@ inline uint32_t snrt_dma_start_1d_mcast_wideptr(uint64_t dst, uint64_t src,
                                      10, OP_CUSTOM1)),
                    "r"(reg_size));
 
-    // Reset dmmcast or next transfers will inherit this setting
-    asm volatile(".word %0\n" ::"i"(R_TYPE_ENCODE(DMMCAST_FUNCT7, 0b00000, 0,
-                                                  XDMA_FUNCT3, 0, OP_CUSTOM1)),
-                 "r"(reg_mcast));
-
     return reg_txid;
 }
 

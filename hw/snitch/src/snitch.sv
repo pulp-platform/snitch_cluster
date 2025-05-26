@@ -248,6 +248,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic csr_en;
   logic csr_dump;
   logic csr_stall_d, csr_stall_q;
+  // Multicast mask
+  logic [31:0] csr_mcast_d, csr_mcast_q;
 
   localparam logic M = 0;
   localparam logic S = 1;
@@ -281,10 +283,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   dm::dcsr_t dcsr_d, dcsr_q;
   logic [31:0] dpc_d, dpc_q;
   logic [31:0] dscratch_d, dscratch_q;
-
   logic debug_d, debug_q;
-  // Multicast mask
-  logic [31:0] csr_mcast_d, csr_mcast_q;
 
   `FFAR(scratch_q, scratch_d, '0, clk_i, rst_i)
   `FFAR(tvec_q, tvec_d, '0, clk_i, rst_i)
@@ -2357,9 +2356,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     dcsr_d = dcsr_q;
     dpc_d = dpc_q;
     dscratch_d = dscratch_q;
-    csr_mcast_d = csr_mcast_q;
 
     csr_stall_d = csr_stall_q;
+    csr_mcast_d = csr_mcast_q;
 
     if (barrier_i) csr_stall_d = 1'b0;
     barrier_o = 1'b0;
