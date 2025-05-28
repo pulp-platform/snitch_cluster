@@ -179,7 +179,6 @@ sources:
   # target/common
   - target: any(simulation, verilator)
     files:
-      - target/common/test/tb_memory_regbus.sv
       - target/common/test/tb_memory_axi.sv
   - target: test
     files:
