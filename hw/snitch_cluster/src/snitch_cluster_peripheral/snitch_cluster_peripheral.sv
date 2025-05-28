@@ -4,7 +4,6 @@
 
 /// Exposes cluster confugration and information as memory mapped information
 
-`include "apb/typedef.svh"
 `include "common_cells/registers.svh"
 
 module snitch_cluster_peripheral
