@@ -12,7 +12,7 @@
 `include "common_cells/registers.svh"
 
 `include "mem_interface/typedef.svh"
-`include "register_interface/typedef.svh"
+`include "apb/typedef.svh"
 `include "reqrsp_interface/typedef.svh"
 `include "tcdm_interface/typedef.svh"
 
@@ -371,6 +371,10 @@ module snitch_cluster
   `AXI_TYPEDEF_ALL(axi_mst_dma, addr_t, id_dma_mst_t, data_dma_t, strb_dma_t, user_dma_t)
   `AXI_TYPEDEF_ALL(axi_slv_dma, addr_t, id_dma_slv_t, data_dma_t, strb_dma_t, user_dma_t)
 
+  `AXI_LITE_TYPEDEF_ALL(axi_lite, addr_t, data_t, strb_t)
+
+  `APB_TYPEDEF_ALL(apb, addr_t, data_t, strb_t)
+
   `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t)
 
   `MEM_TYPEDEF_ALL(mem, tcdm_mem_addr_t, data_t, strb_t, tcdm_user_t)
@@ -378,9 +382,6 @@ module snitch_cluster
 
   `TCDM_TYPEDEF_ALL(tcdm, tcdm_addr_t, data_t, strb_t, tcdm_user_t)
   `TCDM_TYPEDEF_ALL(tcdm_dma, tcdm_addr_t, data_dma_t, strb_dma_t, logic)
-
-  `REG_BUS_TYPEDEF_REQ(reg_req_t, addr_t, data_t, strb_t)
-  `REG_BUS_TYPEDEF_RSP(reg_rsp_t, data_t)
 
   // Event counter increments for the TCDM.
   typedef struct packed {
@@ -538,8 +539,10 @@ module snitch_cluster
   reqrsp_rsp_t [NrHives-1:0] ptw_rsp;
 
   // 5. Peripheral Subsystem
-  reg_req_t reg_req;
-  reg_rsp_t reg_rsp;
+  axi_lite_req_t axi_lite_req;
+  axi_lite_resp_t axi_lite_resp;
+  apb_req_t apb_req;
+  apb_resp_t apb_resp;
 
   // 5. Misc. Wires.
   logic icache_prefetch_enable;
@@ -1230,26 +1233,58 @@ module snitch_cluster
   );
 
   // 2. Peripherals
-  axi_to_reg #(
-    .ADDR_WIDTH (PhysicalAddrWidth),
-    .DATA_WIDTH (NarrowDataWidth),
-    .AXI_MAX_WRITE_TXNS (1),
-    .AXI_MAX_READ_TXNS (1),
-    .DECOUPLE_W (0),
-    .ID_WIDTH (NarrowIdWidthOut),
-    .USER_WIDTH (NarrowUserWidth),
-    .axi_req_t (axi_slv_req_t),
-    .axi_rsp_t (axi_slv_resp_t),
-    .reg_req_t (reg_req_t),
-    .reg_rsp_t (reg_rsp_t)
-  ) i_axi_to_reg (
-    .clk_i,
-    .rst_ni,
-    .testmode_i (1'b0),
-    .axi_req_i (narrow_axi_slv_req[ClusterPeripherals]),
-    .axi_rsp_o (narrow_axi_slv_rsp[ClusterPeripherals]),
-    .reg_req_o (reg_req),
-    .reg_rsp_i (reg_rsp)
+  axi_to_axi_lite #(
+    .AxiAddrWidth   (PhysicalAddrWidth),
+    .AxiDataWidth   (NarrowDataWidth),
+    .AxiIdWidth     (NarrowIdWidthOut),
+    .AxiUserWidth   (NarrowUserWidth),
+    .AxiMaxWriteTxns(1),
+    .AxiMaxReadTxns (1),
+    .full_req_t     (axi_slv_req_t),
+    .full_resp_t    (axi_slv_resp_t),
+    .lite_req_t     (axi_lite_req_t),
+    .lite_resp_t    (axi_lite_resp_t)
+  ) i_axi_to_axi_lite (
+    .clk_i     (clk_i),
+    .rst_ni    (rst_ni),
+    .test_i    (1'b0),
+    .slv_req_i (narrow_axi_slv_req[ClusterPeripherals]),
+    .slv_resp_o(narrow_axi_slv_rsp[ClusterPeripherals]),
+    .mst_req_o (axi_lite_req),
+    .mst_resp_i(axi_lite_resp)
+  );
+
+  // There is only one APB slave in the cluster, at index 0.
+  localparam int unsigned NumApbConvRules = 1 + AliasRegionEnable;
+  xbar_rule_t [NumApbConvRules-1:0] apb_conv_rules;
+
+  assign apb_conv_rules[0] = '{
+    idx: 0, start_addr: cluster_periph_start_address, end_addr: cluster_periph_end_address
+  };
+  if (AliasRegionEnable) begin : gen_apb_alias
+    assign apb_conv_rules[1] = '{
+      idx: 0, start_addr: PeriphAliasStart, end_addr: PeriphAliasEnd
+    };
+  end
+
+  axi_lite_to_apb #(
+    .NoApbSlaves     (1),
+    .NoRules         (NumApbConvRules),
+    .AddrWidth       (PhysicalAddrWidth),
+    .DataWidth       (NarrowDataWidth),
+    .axi_lite_req_t  (axi_lite_req_t),
+    .axi_lite_resp_t (axi_lite_resp_t),
+    .apb_req_t       (apb_req_t),
+    .apb_resp_t      (apb_resp_t),
+    .rule_t          (xbar_rule_t)
+  ) i_axi_lite_to_apb (
+    .clk_i          (clk_i),
+    .rst_ni         (rst_ni),
+    .axi_lite_req_i (axi_lite_req),
+    .axi_lite_resp_o(axi_lite_resp),
+    .apb_req_o      (apb_req),
+    .apb_resp_i     (apb_resp),
+    .addr_map_i     (apb_conv_rules)
   );
 
   if (IntBootromEnable) begin : gen_bootrom
@@ -1301,8 +1336,8 @@ module snitch_cluster
     .addr_t (addr_t),
     .data_t (data_t),
     .strb_t (strb_t),
-    .reg_req_t (reg_req_t),
-    .reg_rsp_t (reg_rsp_t),
+    .apb_req_t (apb_req_t),
+    .apb_resp_t (apb_resp_t),
     .tcdm_events_t (tcdm_events_t),
     .dma_events_t (dma_events_t),
     .NrCores (NrCores),
@@ -1310,8 +1345,8 @@ module snitch_cluster
   ) i_snitch_cluster_peripheral (
     .clk_i,
     .rst_ni,
-    .reg_req_i (reg_req),
-    .reg_rsp_o (reg_rsp),
+    .apb_req_i (apb_req),
+    .apb_resp_o (apb_resp),
     .icache_prefetch_enable_o (icache_prefetch_enable),
     .cl_clint_o (cl_interrupt),
     .core_events_i (core_events),
