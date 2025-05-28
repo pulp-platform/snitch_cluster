@@ -20,16 +20,16 @@ module snitch_cluster_peripheral
   parameter type addr_t = logic,
   parameter type data_t = logic,
   parameter type strb_t = logic,
-  parameter type reg_req_t = logic,
-  parameter type reg_rsp_t = logic,
+  parameter type apb_req_t = logic,
+  parameter type apb_resp_t = logic,
   parameter type tcdm_events_t = logic,
   parameter type dma_events_t = logic
 ) (
   input  logic                                   clk_i,
   input  logic                                   rst_ni,
 
-  input  reg_req_t                               reg_req_i,
-  output reg_rsp_t                               reg_rsp_o,
+  input  apb_req_t                               apb_req_i,
+  output apb_resp_t                              apb_resp_o,
 
   output logic                                   icache_prefetch_enable_o,
   output logic              [NrCores-1:0]        cl_clint_o,
@@ -50,37 +50,19 @@ module snitch_cluster_peripheral
   snitch_cluster_peripheral_reg__out_t reg2hw;
   snitch_cluster_peripheral_reg__in_t  hw2reg;
 
-  `APB_TYPEDEF_ALL(sn_periph_regs_apb, addr_t, data_t, strb_t)
-  sn_periph_regs_apb_req_t  sn_periph_regs_apb_req;
-  sn_periph_regs_apb_resp_t sn_periph_regs_apb_rsp;
-
-  reg_to_apb #(
-    .reg_req_t  ( reg_req_t ),
-    .reg_rsp_t  ( reg_rsp_t ),
-    .apb_req_t  ( sn_periph_regs_apb_req_t ),
-    .apb_rsp_t  ( sn_periph_regs_apb_resp_t )
-  ) chs_regs_reg_to_apb (
-    .clk_i,
-    .rst_ni,
-    .reg_req_i  ( reg_req_i ),
-    .reg_rsp_o  ( reg_rsp_o ),
-    .apb_req_o  ( sn_periph_regs_apb_req ),
-    .apb_rsp_i  ( sn_periph_regs_apb_rsp )
-  );
-
   snitch_cluster_peripheral_reg i_snitch_cluster_peripheral_reg (
-    .clk (clk_i),
+    .clk    (clk_i),
     .arst_n (rst_ni),
-    .s_apb_psel    ( sn_periph_regs_apb_req.psel    ),
-    .s_apb_penable ( sn_periph_regs_apb_req.penable ),
-    .s_apb_pwrite  ( sn_periph_regs_apb_req.pwrite  ),
-    .s_apb_pprot   ( sn_periph_regs_apb_req.pprot   ),
-    .s_apb_paddr(sn_periph_regs_apb_req.paddr[SNITCH_CLUSTER_PERIPHERAL_REG_MIN_ADDR_WIDTH-1:0]),
-    .s_apb_pwdata  ( sn_periph_regs_apb_req.pwdata  ),
-    .s_apb_pstrb   ( sn_periph_regs_apb_req.pstrb   ),
-    .s_apb_pready  ( sn_periph_regs_apb_rsp.pready  ),
-    .s_apb_prdata  ( sn_periph_regs_apb_rsp.prdata  ),
-    .s_apb_pslverr ( sn_periph_regs_apb_rsp.pslverr ),
+    .s_apb_psel    ( apb_req_i.psel    ),
+    .s_apb_penable ( apb_req_i.penable ),
+    .s_apb_pwrite  ( apb_req_i.pwrite  ),
+    .s_apb_pprot   ( apb_req_i.pprot   ),
+    .s_apb_paddr   (apb_req_i.paddr[SNITCH_CLUSTER_PERIPHERAL_REG_MIN_ADDR_WIDTH-1:0]),
+    .s_apb_pwdata  ( apb_req_i.pwdata  ),
+    .s_apb_pstrb   ( apb_req_i.pstrb   ),
+    .s_apb_pready  ( apb_resp_o.pready  ),
+    .s_apb_prdata  ( apb_resp_o.prdata  ),
+    .s_apb_pslverr ( apb_resp_o.pslverr ),
     .hwif_out (reg2hw),
     .hwif_in  (hw2reg)
   );
