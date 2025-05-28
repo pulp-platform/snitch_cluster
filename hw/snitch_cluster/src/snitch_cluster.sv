@@ -1254,14 +1254,17 @@ module snitch_cluster
     .mst_resp_i(axi_lite_resp)
   );
 
-  // There is only one APB slave in the cluster, so we can use a single
-  // rule that maps to index 0.
+  // There is only one APB slave in the cluster, at index 0.
   localparam int unsigned NumApbConvRules = 1 + AliasRegionEnable;
   xbar_rule_t [NumApbConvRules-1:0] apb_conv_rules;
 
-  assign apb_conv_rules[0] = '{idx: 0, start_addr: cluster_periph_start_address, end_addr: cluster_periph_end_address};
+  assign apb_conv_rules[0] = '{
+    idx: 0, start_addr: cluster_periph_start_address, end_addr: cluster_periph_end_address
+  };
   if (AliasRegionEnable) begin : gen_apb_alias
-    assign apb_conv_rules[1] = '{idx: 0, start_addr: PeriphAliasStart, end_addr: PeriphAliasEnd};
+    assign apb_conv_rules[1] = '{
+      idx: 0, start_addr: PeriphAliasStart, end_addr: PeriphAliasEnd
+    };
   end
 
   axi_lite_to_apb #(
