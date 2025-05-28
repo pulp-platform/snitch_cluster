@@ -220,8 +220,9 @@ inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
  *          as senders, the other half as receivers. Senders use the DMA to
  *          send their data to the respective receiver's destination buffer.
  *          The receiver then reduces each element in its destination buffer
- *          with the respective element in its source buffer. It then proceeds
- *          to the next level in the binary tree.
+ *          with the respective element in its source buffer. The result is
+ *          stored in the source buffer. It then proceeds to the next level in
+ *          the binary tree.
  * @param dst_buffer The pointer to the calling cluster's destination buffer.
  * @param src_buffer The pointer to the calling cluster's source buffer.
  * @param len The amount of data in each buffer.
@@ -230,14 +231,8 @@ inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
  */
 inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
                                       size_t len) {
-    // If we have a single cluster the reduction degenerates to a memcpy
-    if (snrt_cluster_num() == 1) {
-        if (!snrt_is_compute_core()) {
-            snrt_dma_start_1d(dst_buffer, src_buffer, len * sizeof(double));
-            snrt_dma_wait_all();
-        }
-        snrt_cluster_hw_barrier();
-    } else {
+    // If we have a single cluster, no reduction has to be done
+    if (snrt_cluster_num() > 1) {
         // Iterate levels in the binary reduction tree
         int num_levels = ceil(log2(snrt_cluster_num()));
         for (unsigned int level = 0; level < num_levels; level++) {
@@ -273,7 +268,7 @@ inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
                         snrt_cluster_core_idx() * items_per_core;
                     for (uint32_t i = 0; i < items_per_core; i++) {
                         uint32_t abs_i = core_offset + i;
-                        dst_buffer[abs_i] += src_buffer[abs_i];
+                        src_buffer[abs_i] += dst_buffer[abs_i];
                     }
                 }
             }

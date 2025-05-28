@@ -4,22 +4,42 @@
 
 #pragma once
 
+//================================================================================
+// Alignment
+//================================================================================
+
+#define MIN_CHUNK_SIZE 8
+
 /**
- * @brief Align to next multiple of size from a given base
+ * @brief Align to next multiple of size from a given base.
  * @details This macro aligns the address to the next alignment boundary
  *          specified by \p size and \p base. Alignment boundaries are defined
  *          by summing integer multiples of \p size to the base address.
  * @param addr Address to be aligned
- * @param base Base address for the alignment boundaries
  * @param size Alignment size in bytes
+ * @param base Base address for the alignment boundaries
  * @return pointer to the allocated memory
  */
-#define ALIGN_UP_FROM_BASE(addr, base, size) \
-    (((((addr) - (base)) + (size)-1) / (size)) * (size) + (base))
+inline uintptr_t snrt_align_up(uintptr_t addr, size_t size,
+                               uintptr_t base = 0) {
+    return (((addr - base) + size - 1) / size) * size + base;
+}
 
-#define ALIGN_UP(addr, size) ALIGN_UP_FROM_BASE(addr, 0, size)
+inline void *snrt_align_up(void *addr, size_t size, void *base = 0) {
+    return (void *)snrt_align_up((uintptr_t)addr, size, (uintptr_t)base);
+}
 
-#define MIN_CHUNK_SIZE 8
+inline uintptr_t snrt_align_up_hyperbank(uintptr_t addr) {
+    return snrt_align_up(addr, SNRT_TCDM_HYPERBANK_WIDTH, SNRT_TCDM_START_ADDR);
+}
+
+inline void *snrt_align_up_hyperbank(void *addr) {
+    return (void *)snrt_align_up_hyperbank((uintptr_t)addr);
+}
+
+//================================================================================
+// Allocation
+//================================================================================
 
 extern snrt_allocator_t l3_allocator;
 
@@ -45,7 +65,7 @@ inline void *snrt_l1_alloc(size_t size) {
 
     // TODO colluca: do we need this? What does it imply?
     //               one more instruction, TCDM consumption...
-    size = ALIGN_UP(size, MIN_CHUNK_SIZE);
+    size = snrt_align_up(size, MIN_CHUNK_SIZE);
 
     // TODO colluca
     // if (alloc->next + size > alloc->base + alloc->size) {
@@ -79,7 +99,7 @@ inline void snrt_l1_update_next(void *next) {
 inline void *snrt_l3_alloc(size_t size) {
     snrt_allocator_t *alloc = snrt_l3_allocator();
 
-    size = ALIGN_UP(size, MIN_CHUNK_SIZE);
+    size = snrt_align_up(size, MIN_CHUNK_SIZE);
 
     // TODO: L3 alloc size check
 
@@ -96,12 +116,13 @@ inline void snrt_alloc_init() {
         // available for allocation. However, the CLS, TLS and stack already
         // occupy a possibly significant portion.
         snrt_l1_allocator()->base =
-            ALIGN_UP(snrt_l1_start_addr(), MIN_CHUNK_SIZE);
+            snrt_align_up(snrt_l1_start_addr(), MIN_CHUNK_SIZE);
         snrt_l1_allocator()->end = snrt_l1_end_addr();
         snrt_l1_allocator()->next = snrt_l1_allocator()->base;
         // Initialize L3 allocator
         extern uint32_t _edram;
-        snrt_l3_allocator()->base = ALIGN_UP((uint32_t)&_edram, MIN_CHUNK_SIZE);
+        snrt_l3_allocator()->base =
+            snrt_align_up((uint32_t)&_edram, MIN_CHUNK_SIZE);
         snrt_l3_allocator()->end = snrt_l3_allocator()->base;
         snrt_l3_allocator()->next = snrt_l3_allocator()->base;
     }

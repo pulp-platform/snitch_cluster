@@ -7,10 +7,10 @@
 //         Luca Colagrande <colluca@iis.ee.ethz.ch>
 //         Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
-void gemm_fp8_naive(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
-                    uint32_t ta, void* B_p, uint32_t ldB, uint32_t tb,
-                    void* C_p, uint32_t ldC, uint32_t BETA,
-                    uint32_t setup_SSR) {
+void gemm_fp8_naive(uint32_t setup_ssr, uint32_t partition_banks,
+                    uint32_t transa, uint32_t transb, uint32_t M, uint32_t N,
+                    uint32_t K, void* A_p, uint32_t lda, void* B_p,
+                    uint32_t ldb, uint32_t beta, void* C_p, uint32_t ldc) {
     char* A = (char*)A_p;
     char* B = (char*)B_p;
     char* C = (char*)C_p;
@@ -18,8 +18,8 @@ void gemm_fp8_naive(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
     for (uint32_t m = 0; m < M; m++) {
         for (uint32_t n = 0; n < N; n++) {
             char c;
-            if (BETA != 0) {
-                c = C[m * ldC + n];
+            if (beta != 0) {
+                c = C[m * ldc + n];
                 // FIXME: get the correct beta value
                 asm volatile(
                     // "fmv.b.x    ft0, %[beta]\n"
@@ -34,12 +34,12 @@ void gemm_fp8_naive(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
                 c = 0.0;
             }
             for (uint32_t k = 0; k < K; k++) {
-                char a = A[k + m * ldA];
+                char a = A[k + m * lda];
                 char b;
-                if (tb)
-                    b = B[n * ldB + k];
+                if (transb)
+                    b = B[n * ldb + k];
                 else
-                    b = B[k * ldB + n];
+                    b = B[k * ldb + n];
                 asm volatile(
                     "fmv.b.x ft3, %[a]\n"
                     "fmv.b.x ft4, %[b]\n"
@@ -50,15 +50,15 @@ void gemm_fp8_naive(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
                     : [ c ] "+r"(c)
                     : [ a ] "r"(a), [ b ] "r"(b));
             }
-            C[m * ldC + n] = c;
+            C[m * ldc + n] = c;
         }
     }
 }
 
-void gemm_fp8_baseline(uint32_t M, uint32_t N, uint32_t K, void* A_p,
-                       uint32_t ldA, uint32_t ta, void* B_p, uint32_t ldB,
-                       uint32_t tb, void* C_p, uint32_t ldC, uint32_t BETA,
-                       uint32_t setup_SSR) {
+void gemm_fp8_baseline(uint32_t setup_ssr, uint32_t partition_banks,
+                       uint32_t transa, uint32_t transb, uint32_t M, uint32_t N,
+                       uint32_t K, void* A_p, uint32_t lda, void* B_p,
+                       uint32_t ldb, uint32_t beta, void* C_p, uint32_t ldc) {
     char* A = (char*)A_p;
     char* B = (char*)B_p;
     char* C = (char*)C_p;
@@ -73,9 +73,9 @@ void gemm_fp8_baseline(uint32_t M, uint32_t N, uint32_t K, void* A_p,
             double c = 0.0;
             v8f8 reduce_reg;
 
-            a_ptr = (v8f8*)(&A[m * ldA]);
-            b_ptr = (v8f8*)(&B[n * ldB]);
-            c_ptr = &C[m * ldC + n];
+            a_ptr = (v8f8*)(&A[m * lda]);
+            b_ptr = (v8f8*)(&B[n * ldb]);
+            c_ptr = &C[m * ldc + n];
             asm volatile(
                 "beqz %[beta], 1f \n"
                 // Load intermediate results
@@ -107,17 +107,17 @@ void gemm_fp8_baseline(uint32_t M, uint32_t N, uint32_t K, void* A_p,
                 "fsb ft2, 0(%[C]) \n"
                 : [ a_ptr ] "+r"(a_ptr), [ b_ptr ] "+r"(b_ptr)
                 : [ c ] "f"(c), [ reduce_reg ] "f"(reduce_reg),
-                  [ C ] "r"(c_ptr), [ beta ] "r"(BETA), [ K ] "r"(K),
+                  [ C ] "r"(c_ptr), [ beta ] "r"(beta), [ K ] "r"(K),
                   [ zero ] "f"(zero)
                 : "ft0", "ft1", "ft2", "ft3", "ft4", "t0");
         }
     }
 }
 
-void gemm_fp8_opt_ex(uint32_t M, uint32_t N, uint32_t K, void* A_p,
-                     uint32_t ldA, uint32_t ta, void* B_p, uint32_t ldB,
-                     uint32_t tb, void* C_p, uint32_t ldC, uint32_t BETA,
-                     uint32_t setup_SSR) {
+void gemm_fp8_opt_ex(uint32_t setup_ssr, uint32_t partition_banks,
+                     uint32_t transa, uint32_t transb, uint32_t M, uint32_t N,
+                     uint32_t K, void* A_p, uint32_t lda, void* B_p,
+                     uint32_t ldb, uint32_t beta, void* C_p, uint32_t ldc) {
     char* A = (char*)A_p;
     char* B = (char*)B_p;
     char* C = (char*)C_p;
@@ -130,13 +130,13 @@ void gemm_fp8_opt_ex(uint32_t M, uint32_t N, uint32_t K, void* A_p,
     if (N >= unroll) {
         // SSR strides and bounds only have to be configured
         // once in the beginning
-        if (setup_SSR) {
+        if (setup_ssr) {
             uint32_t ssr0_b[4] = {unroll, K / 8, N / unroll, M};
-            uint32_t ssr0_i[4] = {0, sizeof(char) * 8, 0, sizeof(char) * ldA};
+            uint32_t ssr0_i[4] = {0, sizeof(char) * 8, 0, sizeof(char) * lda};
 
             uint32_t ssr1_b[4] = {unroll, K / 8, N / unroll, M};
-            uint32_t ssr1_i[4] = {sizeof(char) * ldB, sizeof(char) * 8,
-                                  sizeof(char) * unroll * ldB, 0};
+            uint32_t ssr1_i[4] = {sizeof(char) * ldb, sizeof(char) * 8,
+                                  sizeof(char) * unroll * ldb, 0};
 
             snrt_ssr_loop_3d(SNRT_SSR_DM0, ssr0_b[1], ssr0_b[2], ssr0_b[3],
                              ssr0_i[1], ssr0_i[2], ssr0_i[3]);
@@ -159,7 +159,7 @@ void gemm_fp8_opt_ex(uint32_t M, uint32_t N, uint32_t K, void* A_p,
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
-            char* _C = &C[m * ldC + n];
+            char* _C = &C[m * ldc + n];
             const float zero = 0.0;
             v8f8 c[unroll];
             v4f16 reduce_reg[unroll];
@@ -281,7 +281,7 @@ void gemm_fp8_opt_ex(uint32_t M, uint32_t N, uint32_t K, void* A_p,
                   [ reduce_reg5 ] "+f"(reduce_reg[5]),
                   [ reduce_reg6 ] "+f"(reduce_reg[6]),
                   [ reduce_reg7 ] "+f"(reduce_reg[7])
-                : [ C ] "r"(_C), [ n_frep ] "r"(n_frep), [ beta ] "r"(BETA),
+                : [ C ] "r"(_C), [ n_frep ] "r"(n_frep), [ beta ] "r"(beta),
                   [ unroll ] "i"(unroll), [ zero ] "f"(zero)
                 : "ft0", "ft1", "ft2");
 
@@ -294,11 +294,11 @@ void gemm_fp8_opt_ex(uint32_t M, uint32_t N, uint32_t K, void* A_p,
         // snrt_ssr_disable();
 
         // for (; n < N; n++) {
-        //     char c = (*BETA) ? C[m * ldC + n] : 0.0;
+        //     char c = (*beta) ? C[m * ldc + n] : 0.0;
         //     for (uint32_t k = 0; k < K; k++) {
-        //         c += A[k + m * ldA] * B[k + n * ldB];
+        //         c += A[k + m * lda] * B[k + n * ldb];
         //     }
-        //     C[m * ldC + n] = c;
+        //     C[m * ldc + n] = c;
         // }
 
         // snrt_ssr_enable();

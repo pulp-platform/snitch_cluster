@@ -9,6 +9,7 @@
 #include <math.h>
 #include <stdint.h>
 
+#define JOB_ARGS_PRELOADED
 #include "blas.h"
 
 #pragma clang diagnostic push

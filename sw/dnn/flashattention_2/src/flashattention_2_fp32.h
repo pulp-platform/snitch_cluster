@@ -21,23 +21,18 @@ static inline void flashattention_2_fp32(flashattention_2_layer_t layer) {
     float *O_l3 = (float *)layer.O;
 
     // gemm specific parameters
-    gemm_args_t gemm_args;
-    gemm_args_t *local_args = (gemm_args_t *)&gemm_args;
+    sc_st_gemm_args_t gemm_args;
 
-    local_args->prec = dtype;
+    gemm_args.prec = dtype;
     if (!baseline) {
-        local_args->setup_ssr = 1;
+        gemm_args.setup_ssr = 1;
     } else {
-        local_args->setup_ssr = 0;
+        gemm_args.setup_ssr = 0;
     }
-    local_args->transa = 0;
-    local_args->transb = 1;
-    local_args->M = B_r;
-    local_args->m_tiles = 1;
-    local_args->n_tiles = 1;
-    local_args->k_tiles = 1;
-    local_args->alpha = 1;
-    local_args->gemm_fp = gemm_implementation;
+    gemm_args.transa = 0;
+    gemm_args.transb = 1;
+    gemm_args.m = B_r;
+    gemm_args.alpha = 1;
 
     // alias system parameters
     uint32_t compute_id = snrt_global_core_idx();
@@ -57,36 +52,31 @@ static inline void flashattention_2_fp32(flashattention_2_layer_t layer) {
     uint32_t p_fa_size = B_r * B_c * sizeof(float);
     uint32_t o_fa_size = B_r * d * sizeof(float);
     uint32_t m_i_size = B_r * sizeof(float);
-    uint32_t m_i_prev_size = m_i_size;
     uint32_t l_i_size = B_r * sizeof(float);
     uint32_t shifted_exp_size = B_r * sizeof(float);
 
     // allocate memory in TCDM
-    char *tcdm_ptr = (float *)snrt_l1_next();
-    float *Q_fa = tcdm_ptr;
-    tcdm_ptr += q_fa_size;
-    float *K_fa = tcdm_ptr;
-    tcdm_ptr += k_fa_size;
-    float *V_fa = tcdm_ptr;
-    tcdm_ptr += v_fa_size;
-    float *S_fa = tcdm_ptr;
-    tcdm_ptr += s_fa_size;
-    float *P_fa = tcdm_ptr;
-    tcdm_ptr += p_fa_size;
-    float *O_fa = tcdm_ptr;
-    tcdm_ptr += o_fa_size;
-    float *m_i = tcdm_ptr;
-    tcdm_ptr += m_i_size;
-    float *m_i_prev = tcdm_ptr;
-    tcdm_ptr += m_i_prev_size;
-    float *l_i = tcdm_ptr;
-    tcdm_ptr += l_i_size;
+    float *Q_fa =
+        (float *)snrt_l1_alloc_cluster_local(q_fa_size, alignof(float));
+    float *K_fa =
+        (float *)snrt_l1_alloc_cluster_local(k_fa_size, alignof(float));
+    float *V_fa =
+        (float *)snrt_l1_alloc_cluster_local(v_fa_size, alignof(float));
+    float *S_fa =
+        (float *)snrt_l1_alloc_cluster_local(s_fa_size, alignof(float));
+    float *P_fa =
+        (float *)snrt_l1_alloc_cluster_local(p_fa_size, alignof(float));
+    float *O_fa =
+        (float *)snrt_l1_alloc_cluster_local(o_fa_size, alignof(float));
+    float *m_i = (float *)snrt_l1_alloc_cluster_local(m_i_size, alignof(float));
+    float *m_i_prev =
+        (float *)snrt_l1_alloc_cluster_local(m_i_size, alignof(float));
+    float *l_i = (float *)snrt_l1_alloc_cluster_local(l_i_size, alignof(float));
 
     // allocate space for V^t when using optimized kernels
     float *V_t;
     if (!baseline) {
-        V_t = tcdm_ptr;
-        tcdm_ptr += B_c * d * sizeof(float);
+        V_t = (float *)snrt_l1_alloc_cluster_local(v_fa_size, alignof(float));
     }
 
     float shifted_exp;
@@ -168,9 +158,16 @@ static inline void flashattention_2_fp32(flashattention_2_layer_t layer) {
                 // Matrix multiplication between row block of Q and transposed
                 // column block of K to calculate a tile of S: S = Q * K^T.
                 // The S tile is of form (B_r, B_c)
-                local_args->N = B_c;
-                local_args->K = d;
-                sc_st_gemm(local_args, Q_fa, K_fa, 0, S_fa);
+                gemm_args.n = B_c;
+                gemm_args.k = d;
+                gemm_args.a = Q_fa;
+                gemm_args.lda = d;
+                gemm_args.b = K_fa;
+                gemm_args.ldb = d;
+                gemm_args.beta = 0;
+                gemm_args.c = S_fa;
+                gemm_args.ldc = B_c;
+                sc_st_gemm(gemm_implementation, &gemm_args);
 
                 snrt_cluster_hw_barrier();
 
@@ -231,11 +228,18 @@ static inline void flashattention_2_fp32(flashattention_2_layer_t layer) {
                     else
                         beta = 1;
 
-                    local_args->N = d;
-                    local_args->K = B_c;
-                    local_args->transb = 0;
-                    sc_st_gemm(local_args, P_fa, V_fa, beta, O_fa);
-                    local_args->transb = 1;
+                    gemm_args.n = d;
+                    gemm_args.k = B_c;
+                    gemm_args.transb = 0;
+                    gemm_args.a = P_fa;
+                    gemm_args.lda = B_c;
+                    gemm_args.b = V_fa;
+                    gemm_args.ldb = d;
+                    gemm_args.beta = beta;
+                    gemm_args.c = O_fa;
+                    gemm_args.ldc = d;
+                    sc_st_gemm(gemm_implementation, &gemm_args);
+                    gemm_args.transb = 1;
                 } else {
                     // The SIMD-optimized GEMM kernel performs the A*B^t
                     // operation. We must transpose V in advance, so
@@ -252,9 +256,16 @@ static inline void flashattention_2_fp32(flashattention_2_layer_t layer) {
                         beta = 0;
                     else
                         beta = 1;
-                    local_args->N = d;
-                    local_args->K = B_c;
-                    sc_st_gemm(local_args, P_fa, V_t, beta, O_fa);
+                    gemm_args.n = d;
+                    gemm_args.k = B_c;
+                    gemm_args.a = P_fa;
+                    gemm_args.lda = B_c;
+                    gemm_args.b = V_t;
+                    gemm_args.ldb = B_c;
+                    gemm_args.beta = beta;
+                    gemm_args.c = O_fa;
+                    gemm_args.ldc = d;
+                    sc_st_gemm(gemm_implementation, &gemm_args);
                 }
             } else {
                 snrt_cluster_hw_barrier();

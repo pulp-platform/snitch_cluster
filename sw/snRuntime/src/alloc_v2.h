@@ -60,7 +60,7 @@ static inline void snrt_l1_alloc_check_bounds() {
  */
 inline void *snrt_l1_alloc_cluster_local(size_t size, const size_t alignment) {
     snrt_l1_allocator_v2()->next =
-        ALIGN_UP(snrt_l1_allocator_v2()->next, alignment);
+        snrt_align_up(snrt_l1_allocator_v2()->next, alignment);
     void *retval = snrt_l1_next_v2();
     snrt_l1_allocator_v2()->next += size;
     snrt_l1_alloc_check_bounds();
@@ -83,7 +83,7 @@ inline void *snrt_l1_alloc_cluster_local(size_t size, const size_t alignment) {
 inline void *snrt_l1_alloc_compute_core_local(size_t size,
                                               const size_t alignment) {
     snrt_l1_allocator_v2()->next =
-        ALIGN_UP(snrt_l1_allocator_v2()->next, alignment);
+        snrt_align_up(snrt_l1_allocator_v2()->next, alignment);
     void *retval =
         ((uint8_t *)snrt_l1_next_v2()) + size * snrt_cluster_core_idx();
     snrt_l1_allocator_v2()->next += size * snrt_cluster_compute_core_num();
@@ -147,7 +147,7 @@ inline void snrt_alloc_init_v2() {
     heap_end_addr -= 128;
     // Initialize L1 allocator
     snrt_l1_allocator_v2()->base =
-        ALIGN_UP(snrt_l1_start_addr(), MIN_CHUNK_SIZE);
+        snrt_align_up(snrt_l1_start_addr(), MIN_CHUNK_SIZE);
     snrt_l1_allocator_v2()->end = heap_end_addr;
     snrt_l1_allocator_v2()->next = snrt_l1_allocator_v2()->base;
 }

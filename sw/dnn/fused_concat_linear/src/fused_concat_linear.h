@@ -55,11 +55,16 @@ static inline int fused_concat_linear_baseline(fused_concat_linear_layer_t l) {
                              .load_a = 0,
                              .load_b = 1,
                              .load_c = 1,
+                             .double_buffer = 0,
+                             .gemm_fp = l.gemm_implementation,
+                             .prec = l.dtype,
+                             .setup_ssr = 0,
                              .transa = 0,
                              .transb = 0,
-                             .M = m,
-                             .N = n,
-                             .K = k,
+                             .m = m,
+                             .n = n,
+                             .k = k,
+                             .alpha = 1.0,
                              .a = l.concat_output,
                              .lda = k,
                              .b = l.weights,
@@ -82,34 +87,42 @@ static inline int fused_concat_linear_optimized(fused_concat_linear_layer_t l) {
     uint32_t concat_k = k * l.num_inputs;
 
     size_t size_a = m * k * l.dtype;
-    void *a = snrt_l1_next();
+    void *a = snrt_l1_alloc_cluster_local(size_a, l.dtype);
 
     if (snrt_is_dm_core()) {
         snrt_dma_load_2d_tile(a, l.inputs[snrt_cluster_idx()], 0, 0, m, k, k,
                               l.dtype);
         snrt_dma_wait_all();
-        snrt_l1_update_next(a + size_a);
     }
     snrt_cluster_hw_barrier();
 
-    gemm_args_t gemm_args = {.m_tiles = 1,
-                             .n_tiles = 1,
-                             .k_tiles = l.num_inputs,
-                             .parallelize_m = 0,
-                             .parallelize_k = 1,
-                             .load_a = 0,
-                             .load_b = 1,
-                             .load_c = 1,
-                             .transa = 0,
-                             .transb = 0,
-                             .M = m,
-                             .N = n,
-                             .K = concat_k,
-                             .a = a,
-                             .b = l.weights,
-                             .beta = 0,
-                             .c = l.linear_output,
-                             .gemm_fp = l.gemm_implementation};
+    gemm_args_t gemm_args = {
+        .m_tiles = 1,
+        .n_tiles = 1,
+        .k_tiles = l.num_inputs,
+        .parallelize_m = 0,
+        .parallelize_k = 1,
+        .load_a = 0,
+        .load_b = 1,
+        .load_c = 1,
+        .double_buffer = 0,
+        .gemm_fp = l.gemm_implementation,
+        .prec = l.dtype,
+        .setup_ssr = 0,
+        .transa = 0,
+        .transb = 0,
+        .m = m,
+        .n = n,
+        .k = concat_k,
+        .alpha = 1.0,
+        .a = a,
+        .lda = concat_k,
+        .b = l.weights,
+        .ldb = n,
+        .beta = 0,
+        .c = l.linear_output,
+        .ldc = n,
+    };
 
     gemm(&gemm_args);
 

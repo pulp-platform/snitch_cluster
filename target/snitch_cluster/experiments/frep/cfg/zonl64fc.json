@@ -2,22 +2,19 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-// Cluster configuration for a simple testbench system.
 {
     cluster: {
-        boot_addr: 4096, // 0x1000
-        cluster_base_addr: 268435456, // 0x1000_0000
-        cluster_base_offset: 0, // 0x0
+        cluster_base_addr: 0x10000000,
+        cluster_base_offset: 0,
         cluster_base_hartid: 0,
         addr_width: 48,
         data_width: 64,
         user_width: 5, // clog2(total number of clusters)
         tcdm: {
-            size: 96,
-            banks: 48,
-            hyperbanks: 2,
+            size: 128,
+            banks: 64,
         },
-        cluster_periph_size: 64, // kB
+        cluster_periph_size: 60, // kB
         zero_mem_size: 64, // kB
         alias_region_enable: true,
         dma_data_width: 512,
@@ -82,25 +79,25 @@
             }
         ]
     },
-    dram: {
-        // 0x8000_0000
-        address: 2147483648,
-        // 0x8000_0000
-        length: 2147483648
-    },
-    peripherals: {
-        clint: {
-            // 0xffff_0000
-            address: 4294901760,
-            // 0x0000_1000
-            length: 4096
+    external_addr_regions: [
+        {
+            name: "dram",
+            address: 0x80000000,
+            length: 0x80000000,
+            cacheable: true
         },
-    },
+        {
+            name: "clint",
+            address: 0xFFFF0000,
+            length: 0x1000
+        },
+    ],
     // Templates.
     compute_core_template: {
         isa: "rv32imafd",
         xssr: true,
         xfrep: true,
+        xcopift: true,
         xdma: false,
         xf16: true,
         xf16alt: true,
@@ -113,7 +110,8 @@
         num_int_outstanding_mem: 4,
         num_fp_outstanding_loads: 4,
         num_fp_outstanding_mem: 4,
-        num_sequencer_instructions: 64,
+        num_sequencer_instructions: 32,
+        num_sequencer_loops: 2,
         num_dtlb_entries: 1,
         num_itlb_entries: 1,
         // SSSR configuration below
@@ -130,6 +128,7 @@
         xdma: true,
         xssr: false,
         xfrep: false,
+        xcopift: false,
         xf16: false,
         xf16alt: false,
         xf8: false,
@@ -140,7 +139,6 @@
         num_int_outstanding_mem: 4,
         num_fp_outstanding_loads: 4,
         num_fp_outstanding_mem: 4,
-        num_sequencer_instructions: 64,
         num_dtlb_entries: 1,
         num_itlb_entries: 1,
     }

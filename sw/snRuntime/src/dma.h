@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <math.h>
+
 /// A DMA transfer identifier.
 typedef uint32_t snrt_dma_txid_t;
 
@@ -245,7 +247,8 @@ inline void snrt_dma_memset(void *ptr, uint8_t value, uint32_t len) {
  * @param tile_size Number of elements within a tile of the 1D array.
  * @param prec Number of bytes of each element in the 1D array.
  */
-inline snrt_dma_txid_t snrt_dma_load_1d_tile(void *dst, void *src,
+inline snrt_dma_txid_t snrt_dma_load_1d_tile(volatile void *dst,
+                                             volatile void *src,
                                              size_t tile_idx, size_t tile_size,
                                              uint32_t prec) {
     size_t tile_nbytes = tile_size * prec;
@@ -271,6 +274,36 @@ inline snrt_dma_txid_t snrt_dma_mcast_load_1d_tile(void *dst, void *src,
     return snrt_dma_start_1d_mcast((uintptr_t)dst,
                                    (uintptr_t)src + tile_idx * tile_nbytes,
                                    tile_nbytes, mcast);
+}
+
+/**
+ * @brief Transfer and reshape a 1D array into a 2D array.
+ * @param dst Pointer to the destination array.
+ * @param src Pointer to the source array.
+ * @param size Number of bytes to transfer.
+ * @param row_size Size of a row in the 2D array, in bytes.
+ * @param stride Stride between successive rows in the 2D array, in bytes.
+ */
+inline snrt_dma_txid_t snrt_dma_1d_to_2d(volatile void *dst, volatile void *src,
+                                         size_t size, size_t row_size,
+                                         size_t stride) {
+    return snrt_dma_start_2d(dst, src, row_size, stride, row_size,
+                             size / row_size);
+}
+
+/**
+ * @brief Transfer and reshape a 2D array into a 1D array.
+ * @param dst Pointer to the destination array.
+ * @param src Pointer to the source array.
+ * @param size Number of bytes to transfer.
+ * @param row_size Size of a row in the 2D array, in bytes.
+ * @param stride Stride between successive rows in the 2D array, in bytes.
+ */
+inline snrt_dma_txid_t snrt_dma_2d_to_1d(volatile void *dst, volatile void *src,
+                                         size_t size, size_t row_size,
+                                         size_t stride) {
+    return snrt_dma_start_2d(dst, src, row_size, row_size, stride,
+                             size / row_size);
 }
 
 /**
@@ -302,11 +335,12 @@ inline snrt_dma_txid_t snrt_dma_store_1d_tile(void *dst, void *src,
  * @param full_x0_size Number of elements in the innermost dimension of the
  *                     array.
  * @param prec Number of bytes of each element in the 2D array.
+ * @param tile_ld Leading dimension of the tile, in bytes.
  */
 inline snrt_dma_txid_t snrt_dma_load_2d_tile(
     void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
-    uint32_t prec) {
+    uint32_t prec, size_t tile_ld) {
     size_t src_offset = 0;
     // Advance src array in x0 and x1 dimensions, and convert to byte offset
     src_offset += tile_x0_idx * tile_x0_size;
@@ -316,10 +350,49 @@ inline snrt_dma_txid_t snrt_dma_load_2d_tile(
     return snrt_dma_start_2d((uint64_t)dst,               // dst
                              (uint64_t)src + src_offset,  // src
                              tile_x0_size * prec,         // size
-                             tile_x0_size * prec,         // dst_stride
+                             tile_ld,                     // dst_stride
                              full_x0_size * prec,         // src_stride
                              tile_x1_size                 // repeat
     );
+}
+
+inline snrt_dma_txid_t snrt_dma_load_2d_tile(
+    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
+    uint32_t prec) {
+    return snrt_dma_load_2d_tile(dst, src, tile_x1_idx, tile_x0_idx,
+                                 tile_x1_size, tile_x0_size, full_x0_size, prec,
+                                 tile_x0_size * prec);
+}
+
+/**
+ * @brief Load a 2D tile of a 2D array and reshape it to occupy a subset of
+ *        TCDM banks.
+ * @param dst Pointer to the tile destination.
+ * @param src Pointer to the source array.
+ * @param tile_x1_idx Outermost coordinate of the tile in the 2D array.
+ * @param tile_x0_idx Innermost coordinate of the tile in the 2D array.
+ * @param tile_x1_size Number of elements in the outermost dimension of the
+ *                     tile.
+ * @param tile_x0_size Number of elements in the innermost dimension of the
+ *                     tile.
+ * @param full_x0_size Number of elements in the innermost dimension of the
+ *                     array.
+ * @param prec Number of bytes of each element in the 2D array.
+ * @param num_banks Number of banks to reshape the tile into.
+ */
+inline snrt_dma_txid_t snrt_dma_load_2d_tile_in_banks(
+    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
+    uint32_t prec, size_t num_banks) {
+    // Calculate new tile size after reshaping the tile in the selected banks
+    size_t tile_x0_size_in_banks = (num_banks * SNRT_TCDM_BANK_WIDTH) / prec;
+    size_t tile_x1_size_in_banks =
+        ceil((tile_x1_size * tile_x0_size) / (double)tile_x0_size_in_banks);
+    size_t tile_ld = SNRT_TCDM_HYPERBANK_WIDTH;
+    return snrt_dma_load_2d_tile(dst, src, tile_x1_idx, tile_x0_idx,
+                                 tile_x1_size_in_banks, tile_x0_size_in_banks,
+                                 full_x0_size, prec, tile_ld);
 }
 
 /**
@@ -335,11 +408,12 @@ inline snrt_dma_txid_t snrt_dma_load_2d_tile(
  * @param full_x0_size Number of elements in the innermost dimension of the
  *                     array.
  * @param prec Number of bytes of each element in the 2D array.
+ * @param tile_ld Leading dimension of the tile, in bytes.
  */
 inline snrt_dma_txid_t snrt_dma_store_2d_tile(
     void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
-    uint32_t prec) {
+    uint32_t prec, size_t tile_ld) {
     size_t dst_offset = 0;
     // Advance dst array in x0 and x1 dimensions, and convert to byte offset
     dst_offset += tile_x0_idx * tile_x0_size;
@@ -350,7 +424,30 @@ inline snrt_dma_txid_t snrt_dma_store_2d_tile(
                              (uint64_t)src,               // src
                              tile_x0_size * prec,         // size
                              full_x0_size * prec,         // dst_stride
-                             tile_x0_size * prec,         // src_stride
+                             tile_ld,                     // src_stride
                              tile_x1_size                 // repeat
     );
+}
+
+inline snrt_dma_txid_t snrt_dma_store_2d_tile(
+    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
+    uint32_t prec) {
+    return snrt_dma_store_2d_tile(dst, src, tile_x1_idx, tile_x0_idx,
+                                  tile_x1_size, tile_x0_size, full_x0_size,
+                                  prec, tile_x0_size * prec);
+}
+
+inline snrt_dma_txid_t snrt_dma_store_2d_tile_from_banks(
+    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
+    uint32_t prec, size_t num_banks) {
+    // Calculate new tile size after reshaping the tile in the selected banks
+    size_t tile_x0_size_in_banks = (num_banks * SNRT_TCDM_BANK_WIDTH) / prec;
+    size_t tile_x1_size_in_banks =
+        ceil((tile_x1_size * tile_x0_size) / (double)tile_x0_size_in_banks);
+    size_t tile_ld = SNRT_TCDM_HYPERBANK_WIDTH;
+    return snrt_dma_store_2d_tile(dst, src, tile_x1_idx, tile_x0_idx,
+                                  tile_x1_size_in_banks, tile_x0_size_in_banks,
+                                  full_x0_size, prec, tile_ld);
 }

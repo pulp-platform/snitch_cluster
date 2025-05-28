@@ -21,6 +21,11 @@ extern snrt_dma_txid_t snrt_dma_store_1d_tile(void *dst, void *src,
 extern snrt_dma_txid_t snrt_dma_load_2d_tile(
     void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
+    uint32_t prec, size_t tile_ld);
+
+extern snrt_dma_txid_t snrt_dma_load_2d_tile(
+    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
     uint32_t prec);
 
 extern snrt_dma_txid_t snrt_dma_store_2d_tile(

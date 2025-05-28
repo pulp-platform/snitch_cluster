@@ -12,11 +12,13 @@
     load_a: 1,
     load_b: 1,
     load_c: 1,
+    double_buffer: 0,
+    partition_banks: 0,
     transa: false,
-    transb: true, // must be true for SIMD
-    M: 16,
-    N: 8,
-    K: 8,
+    transb: false, // must be true for SIMD
+    m: 32,
+    n: 16,
+    k: 16,
     alpha: 1,
     beta: 0,
     gemm_fp: "gemm_fp64_opt"

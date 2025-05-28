@@ -6,19 +6,19 @@
     setup_ssr: 1,
     parallelize_m: 0,
     parallelize_k: 0,
-    m_tiles: 1, // number of tiles in m dimension
-    n_tiles: 1, // number of tiles in n dimension
-    k_tiles: 1, // number of tiles in k dimension
+    m_tiles: 3, // number of tiles in m dimension
+    n_tiles: 3, // number of tiles in n dimension
+    k_tiles: 3, // number of tiles in k dimension
     load_a: 1,
     load_b: 1,
     load_c: 1,
-    double_buffer: 0,
+    double_buffer: 1,
     partition_banks: 0,
     transa: false,
     transb: false, // must be true for SIMD
-    m: 16,
-    n: 16,
-    k: 16,
+    m: 24,
+    n: 24,
+    k: 9,
     alpha: 1,
     beta: 0,
     gemm_fp: "gemm_fp64_opt"

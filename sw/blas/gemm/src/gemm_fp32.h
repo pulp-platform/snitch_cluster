@@ -7,61 +7,62 @@
 //         Luca Colagrande <colluca@iis.ee.ethz.ch>
 //         Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
-void gemm_fp32_naive(uint32_t M, uint32_t N, uint32_t K, void* A_p,
-                     uint32_t ldA, uint32_t ta, void* B_p, uint32_t ldB,
-                     uint32_t tb, void* C_p, uint32_t ldC, uint32_t BETA,
-                     uint32_t setup_SSR) {
+void gemm_fp32_naive(uint32_t setup_ssr, uint32_t partition_banks,
+                     uint32_t transa, uint32_t transb, uint32_t M, uint32_t N,
+                     uint32_t K, void* A_p, uint32_t lda, void* B_p,
+                     uint32_t ldb, uint32_t beta, void* C_p, uint32_t ldc) {
     float* A = (float*)A_p;
     float* B = (float*)B_p;
     float* C = (float*)C_p;
 
-    if (!ta && !tb) {
+    if (!transa && !transb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                float c0 = multiply_opt(C[m * ldC + n], BETA);
+                float c0 = multiply_opt(C[m * ldc + n], beta);
                 for (uint32_t k = 0; k < K; k++) {
-                    c0 += A[k + m * ldA] * B[k * ldB + n];
+                    c0 += A[k + m * lda] * B[k * ldb + n];
                 }
-                C[m * ldC + n] = c0;
+                C[m * ldc + n] = c0;
             }
         }
-    } else if (ta && !tb) {
+    } else if (transa && !transb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                float c0 = multiply_opt(C[m * ldC + n], BETA);
+                float c0 = multiply_opt(C[m * ldc + n], beta);
                 for (uint32_t k = 0; k < K; k++) {
-                    c0 += A[k * M * ldA + m * ldA] * B[k * ldB + n];
+                    c0 += A[k * M * lda + m * lda] * B[k * ldb + n];
                 }
-                C[m * ldC + n] = c0;
+                C[m * ldc + n] = c0;
             }
         }
-    } else if (!ta && tb) {
+    } else if (!transa && transb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                float c0 = multiply_opt(C[m * ldC + n], BETA);
+                float c0 = multiply_opt(C[m * ldc + n], beta);
                 for (uint32_t k = 0; k < K; k++) {
-                    c0 += A[k + m * ldA] * B[k + n * ldB];
+                    c0 += A[k + m * lda] * B[k + n * ldb];
                 }
-                C[m * ldC + n] = c0;
+                C[m * ldc + n] = c0;
             }
         }
     } else {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                float c0 = multiply_opt(C[m * ldC + n], BETA);
+                float c0 = multiply_opt(C[m * ldc + n], beta);
                 for (uint32_t k = 0; k < K; k++) {
-                    c0 += A[k * M * ldA + m * ldA] * B[k + n * ldB];
+                    c0 += A[k * M * lda + m * lda] * B[k + n * ldb];
                 }
-                C[m * ldC + n] = c0;
+                C[m * ldc + n] = c0;
             }
         }
     }
 }
 
-void gemm_fp32_naive_unrolled(uint32_t M, uint32_t N, uint32_t K, void* A_p,
-                              uint32_t ldA, uint32_t ta, void* B_p,
-                              uint32_t ldB, uint32_t tb, void* C_p,
-                              uint32_t ldC, uint32_t BETA, uint32_t setup_SSR) {
+void gemm_fp32_naive_unrolled(uint32_t setup_ssr, uint32_t partition_banks,
+                              uint32_t transa, uint32_t transb, uint32_t M,
+                              uint32_t N, uint32_t K, void* A_p, uint32_t lda,
+                              void* B_p, uint32_t ldb, uint32_t beta, void* C_p,
+                              uint32_t ldc) {
     float* A = (float*)A_p;
     float* B = (float*)B_p;
     float* C = (float*)C_p;
@@ -70,83 +71,84 @@ void gemm_fp32_naive_unrolled(uint32_t M, uint32_t N, uint32_t K, void* A_p,
     float c1 = 0.0f;
     float c2 = 0.0f;
     float c3 = 0.0f;
-    if (!ta && !tb) {
+    if (!transa && !transb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                if (BETA == 0) {
+                if (beta == 0) {
                     c0 = 0.0f;
                 } else {
-                    c0 = BETA * C[m * ldC + n];
+                    c0 = beta * C[m * ldc + n];
                 }
                 c1 = 0.0f;
                 c2 = 0.0f;
                 c3 = 0.0f;
                 for (uint32_t k = 0; k < K; k += 4) {
-                    c0 += A[(k + 0) + m * ldA] * B[(k + 0) * ldB + n];
-                    c1 += A[(k + 1) + m * ldA] * B[(k + 1) * ldB + n];
-                    c2 += A[(k + 2) + m * ldA] * B[(k + 2) * ldB + n];
-                    c3 += A[(k + 3) + m * ldA] * B[(k + 3) * ldB + n];
+                    c0 += A[(k + 0) + m * lda] * B[(k + 0) * ldb + n];
+                    c1 += A[(k + 1) + m * lda] * B[(k + 1) * ldb + n];
+                    c2 += A[(k + 2) + m * lda] * B[(k + 2) * ldb + n];
+                    c3 += A[(k + 3) + m * lda] * B[(k + 3) * ldb + n];
                 }
-                C[m * ldC + n] = c0 + c1 + c2 + c3;
+                C[m * ldc + n] = c0 + c1 + c2 + c3;
             }
         }
-    } else if (ta && !tb) {
+    } else if (transa && !transb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                if (BETA == 0) {
+                if (beta == 0) {
                     c0 = 0.0f;
                 } else {
-                    c0 = BETA * C[m * ldC + n];
+                    c0 = beta * C[m * ldc + n];
                 }
                 c1 = 0.0f;
                 c2 = 0.0f;
                 c3 = 0.0f;
                 for (uint32_t k = 0; k < K; k += 4) {
-                    c0 += A[(k + 0) * M * ldA + m * ldA] * B[(k + 0) * ldB + n];
-                    c1 += A[(k + 1) * M * ldA + m * ldA] * B[(k + 1) * ldB + n];
-                    c2 += A[(k + 2) * M * ldA + m * ldA] * B[(k + 2) * ldB + n];
-                    c3 += A[(k + 3) * M * ldA + m * ldA] * B[(k + 3) * ldB + n];
+                    c0 += A[(k + 0) * M * lda + m * lda] * B[(k + 0) * ldb + n];
+                    c1 += A[(k + 1) * M * lda + m * lda] * B[(k + 1) * ldb + n];
+                    c2 += A[(k + 2) * M * lda + m * lda] * B[(k + 2) * ldb + n];
+                    c3 += A[(k + 3) * M * lda + m * lda] * B[(k + 3) * ldb + n];
                 }
-                C[m * ldC + n] = c0 + c1 + c2 + c3;
+                C[m * ldc + n] = c0 + c1 + c2 + c3;
             }
         }
-    } else if (!ta && tb) {
+    } else if (!transa && transb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                if (BETA == 0) {
+                if (beta == 0) {
                     c0 = 0.0f;
                 } else {
-                    c0 = BETA * C[m * ldC + n];
+                    c0 = beta * C[m * ldc + n];
                 }
                 c1 = 0.0f;
                 c2 = 0.0f;
                 c3 = 0.0f;
                 for (uint32_t k = 0; k < K; k += 4) {
-                    c0 += A[(k + 0) + m * ldA] * B[(k + 0) + n * ldB];
-                    c1 += A[(k + 1) + m * ldA] * B[(k + 1) + n * ldB];
-                    c2 += A[(k + 2) + m * ldA] * B[(k + 2) + n * ldB];
-                    c3 += A[(k + 3) + m * ldA] * B[(k + 3) + n * ldB];
+                    c0 += A[(k + 0) + m * lda] * B[(k + 0) + n * ldb];
+                    c1 += A[(k + 1) + m * lda] * B[(k + 1) + n * ldb];
+                    c2 += A[(k + 2) + m * lda] * B[(k + 2) + n * ldb];
+                    c3 += A[(k + 3) + m * lda] * B[(k + 3) + n * ldb];
                 }
-                C[m * ldC + n] = c0 + c1 + c2 + c3;
+                C[m * ldc + n] = c0 + c1 + c2 + c3;
             }
         }
     } else {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                float c0 = BETA * C[m * ldC + n];
+                float c0 = beta * C[m * ldc + n];
                 for (uint32_t k = 0; k < K; k++) {
-                    c0 += A[k * M * ldA + m * ldA] * B[k + n * ldB];
+                    c0 += A[k * M * lda + m * lda] * B[k + n * ldb];
                 }
-                C[m * ldC + n] = c0;
+                C[m * ldc + n] = c0;
             }
         }
     }
 }
 
-void gemm_fp32_baseline(uint32_t M, uint32_t N, uint32_t K, void* A_p,
-                        uint32_t ldA, uint32_t ta, void* B_p, uint32_t ldB,
-                        uint32_t tb, void* C_p, uint32_t ldC, uint32_t BETA,
-                        uint32_t setup_SSR) {
+void gemm_fp32_baseline(uint32_t setup_ssr, uint32_t partition_banks,
+                        uint32_t transa, uint32_t transb, uint32_t M,
+                        uint32_t N, uint32_t K, void* A_p, uint32_t lda,
+                        void* B_p, uint32_t ldb, uint32_t beta, void* C_p,
+                        uint32_t ldc) {
     float* A = (float*)A_p;
     float* B = (float*)B_p;
     float* C = (float*)C_p;
@@ -161,12 +163,12 @@ void gemm_fp32_baseline(uint32_t M, uint32_t N, uint32_t K, void* A_p,
             double c = 0.0;
             v2f32 reduce_reg;
 
-            a_ptr = (v2f32*)(&A[m * ldA]);
-            b_ptr = (v2f32*)(&B[n * ldB]);
-            c_ptr = &C[m * ldC + n];
+            a_ptr = (v2f32*)(&A[m * lda]);
+            b_ptr = (v2f32*)(&B[n * ldb]);
+            c_ptr = &C[m * ldc + n];
             // Don't accumulate in first iteration
             asm volatile(
-                "beqz    %[BETA], 1f \n"
+                "beqz    %[beta], 1f \n"
                 // Load intermediate results
                 "flw ft2, 0(%[C]) \n"
                 "vfcpka.s.s ft2, ft2, %[zero]\n"
@@ -197,16 +199,17 @@ void gemm_fp32_baseline(uint32_t M, uint32_t N, uint32_t K, void* A_p,
                 "fsw ft2, 0(%[C]) \n"
                 : [ a_ptr ] "+r"(a_ptr), [ b_ptr ] "+r"(b_ptr)
                 : [ c ] "f"(c), [ reduce_reg ] "f"(reduce_reg),
-                  [ C ] "r"(c_ptr), [ BETA ] "r"(BETA), [ K ] "r"(K),
+                  [ C ] "r"(c_ptr), [ beta ] "r"(beta), [ K ] "r"(K),
                   [ zero ] "f"(zero)
                 : "ft0", "ft1", "ft2", "ft3", "ft4", "t0");
         }
     }
 }
 
-void gemm_fp32_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
-                   uint32_t ta, void* B_p, uint32_t ldB, uint32_t tb, void* C_p,
-                   uint32_t ldC, uint32_t BETA, uint32_t setup_SSR) {
+void gemm_fp32_opt(uint32_t setup_ssr, uint32_t partition_banks,
+                   uint32_t transa, uint32_t transb, uint32_t M, uint32_t N,
+                   uint32_t K, void* A_p, uint32_t lda, void* B_p, uint32_t ldb,
+                   uint32_t beta, void* C_p, uint32_t ldc) {
     // cast void pointers to float pointers
     float* A = (float*)A_p;
     float* B = (float*)B_p;
@@ -220,13 +223,13 @@ void gemm_fp32_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
     if (N >= unroll) {
         // SSR strides and bounds only have to be configured
         // once in the beginning
-        if (setup_SSR) {
+        if (setup_ssr) {
             uint32_t ssr0_b[4] = {unroll, K / 2, N / unroll, M};
-            uint32_t ssr0_i[4] = {0, sizeof(float) * 2, 0, sizeof(float) * ldA};
+            uint32_t ssr0_i[4] = {0, sizeof(float) * 2, 0, sizeof(float) * lda};
 
             uint32_t ssr1_b[4] = {unroll, K / 2, N / unroll, M};
-            uint32_t ssr1_i[4] = {sizeof(float) * ldB, sizeof(float) * 2,
-                                  sizeof(float) * unroll * ldB, 0};
+            uint32_t ssr1_i[4] = {sizeof(float) * ldb, sizeof(float) * 2,
+                                  sizeof(float) * unroll * ldb, 0};
 
             snrt_ssr_loop_3d(SNRT_SSR_DM0, ssr0_b[1], ssr0_b[2], ssr0_b[3],
                              ssr0_i[1], ssr0_i[2], ssr0_i[3]);
@@ -249,12 +252,12 @@ void gemm_fp32_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
-            float* _C = &C[m * ldC + n / 2];
+            float* _C = &C[m * ldc + n / 2];
             const float zero = 0.0;
             v2f32 c[unroll], reduce_reg[unroll];
 
             asm volatile(
-                "beqz    %[BETA], 1f \n"
+                "beqz    %[beta], 1f \n"
                 // Load intermediate results
                 "flw %[reduce_reg0], 0(%[C]) \n"
                 "flw %[reduce_reg1], 4(%[C]) \n"
@@ -319,26 +322,25 @@ void gemm_fp32_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
                 "vfcpka.s.s %[c1], %[reduce_reg2], %[reduce_reg3] \n"
                 "vfcpka.s.s %[c2], %[reduce_reg4], %[reduce_reg5] \n"
                 "vfcpka.s.s %[c3], %[reduce_reg6], %[reduce_reg7] \n"
-                : [ c0 ] "+f"(c[0]), [ c1 ] "+f"(c[1]), [ c2 ] "+f"(c[2]),
-                  [ c3 ] "+f"(c[3]), [ c4 ] "+f"(c[4]), [ c5 ] "+f"(c[5]),
-                  [ c6 ] "+f"(c[6]), [ c7 ] "+f"(c[7]),
-                  [ reduce_reg0 ] "+f"(reduce_reg[0]),
-                  [ reduce_reg1 ] "+f"(reduce_reg[1]),
-                  [ reduce_reg2 ] "+f"(reduce_reg[2]),
-                  [ reduce_reg3 ] "+f"(reduce_reg[3]),
-                  [ reduce_reg4 ] "+f"(reduce_reg[4]),
-                  [ reduce_reg5 ] "+f"(reduce_reg[5]),
-                  [ reduce_reg6 ] "+f"(reduce_reg[6]),
-                  [ reduce_reg7 ] "+f"(reduce_reg[7])
+                // Store results
+                "fsd %[c0],  0(%[C]) \n"
+                "fsd %[c1],  8(%[C]) \n"
+                "fsd %[c2], 16(%[C]) \n"
+                "fsd %[c3], 24(%[C]) \n"
+                : [ c0 ] "=f"(c[0]), [ c1 ] "=f"(c[1]), [ c2 ] "=f"(c[2]),
+                  [ c3 ] "=f"(c[3]), [ c4 ] "=f"(c[4]), [ c5 ] "=f"(c[5]),
+                  [ c6 ] "=f"(c[6]), [ c7 ] "=f"(c[7]),
+                  [ reduce_reg0 ] "=f"(reduce_reg[0]),
+                  [ reduce_reg1 ] "=f"(reduce_reg[1]),
+                  [ reduce_reg2 ] "=f"(reduce_reg[2]),
+                  [ reduce_reg3 ] "=f"(reduce_reg[3]),
+                  [ reduce_reg4 ] "=f"(reduce_reg[4]),
+                  [ reduce_reg5 ] "=f"(reduce_reg[5]),
+                  [ reduce_reg6 ] "=f"(reduce_reg[6]),
+                  [ reduce_reg7 ] "=f"(reduce_reg[7])
                 : [ C ] "r"(_C), [ zero ] "f"(zero), [ n_frep ] "r"(n_frep - 1),
-                  [ unroll ] "i"(unroll), [ BETA ] "r"(BETA)
+                  [ unroll ] "i"(unroll), [ beta ] "r"(beta)
                 : "ft0", "ft1", "ft2");
-
-            // Store results
-            ((v2f32*)_C)[0] = c[0];
-            ((v2f32*)_C)[1] = c[1];
-            ((v2f32*)_C)[2] = c[2];
-            ((v2f32*)_C)[3] = c[3];
 
             // progress by 2 columns each iteration of the loop
             n += unroll * 2;
@@ -348,11 +350,11 @@ void gemm_fp32_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
         snrt_ssr_disable();
 
         for (; n < N; n++) {
-            float c = BETA ? C[m * ldC + n] : 0.0;
+            float c = beta ? C[m * ldc + n] : 0.0;
             for (uint32_t k = 0; k < K; k++) {
-                c += A[k + m * ldA] * B[k + n * ldB];
+                c += A[k + m * lda] * B[k + n * ldb];
             }
-            C[m * ldC + n] = c;
+            C[m * ldc + n] = c;
         }
 
         snrt_ssr_enable();

@@ -17,6 +17,7 @@
 #define SNRT_TCDM_HYPERBANK_SIZE ${hex(cfg['cluster']['tcdm']['size'] * 1024 // cfg['cluster']['tcdm']['hyperbanks'])}
 #define SNRT_TCDM_HYPERBANK_WIDTH (SNRT_TCDM_BANK_PER_HYPERBANK_NUM * SNRT_TCDM_BANK_WIDTH)
 #define SNRT_CLUSTER_OFFSET ${cfg['cluster']['cluster_base_offset']}
+#define SNRT_NUM_SEQUENCER_LOOPS ${cfg['cluster']['hives'][0]['cores'][0]['num_sequencer_loops']}
 
 #define SNRT_SUPPORTS_MULTICAST ${cfg['cluster']['enable_multicast']}
 
