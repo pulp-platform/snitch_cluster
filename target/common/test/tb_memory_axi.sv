@@ -29,6 +29,7 @@ module tb_memory_axi #(
   `include "axi/typedef.svh"
 
   `include "common_cells/assertions.svh"
+  `include "common_cells/registers.svh"
 
   localparam int NumBytes = AxiDataWidth/8;
   localparam int BusAlign = $clog2(NumBytes);
@@ -80,18 +81,12 @@ module tb_memory_axi #(
     .out (axi_wo_atomics_cut)
   );
 
-  logic mem_req;
-  logic mem_gnt;
+  logic mem_req, mem_req_q;
   logic [AxiAddrWidth-1:0] mem_addr;
   logic [AxiDataWidth-1:0] mem_wdata;
   logic [AxiDataWidth/8-1:0] mem_strb;
   logic mem_we;
-  logic mem_rvalid;
-  logic [AxiDataWidth-1:0] mem_rdata;
-
-  // Testbench memory is always ready
-  assign mem_gnt = 1'b1;
-  assign mem_rvalid = 1'b1;
+  logic [AxiDataWidth-1:0] mem_rdata_q;
 
   axi_to_mem_intf #(
     .ADDR_WIDTH    (AxiAddrWidth),
@@ -105,14 +100,14 @@ module tb_memory_axi #(
     .busy_o      ( ),
     .slv         (axi_wo_atomics_cut),
     .mem_req_o   (mem_req),
-    .mem_gnt_i   (mem_gnt),
+    .mem_gnt_i   (1'b1), // Always ready
     .mem_addr_o  (mem_addr),
     .mem_wdata_o (mem_wdata),
     .mem_strb_o  (mem_strb),
     .mem_atop_o  ( ), // ATOPs are resolved before
     .mem_we_o    (mem_we),
-    .mem_rvalid_i(mem_req),
-    .mem_rdata_i (mem_rdata)
+    .mem_rvalid_i(mem_req_q),
+    .mem_rdata_i (mem_rdata_q)
   );
 
   import "DPI-C" function void tb_memory_read(
@@ -126,6 +121,9 @@ module tb_memory_axi #(
     input byte data[],
     input bit strb[]
   );
+
+  // Respond in the next cycle to the request.
+  `FF(mem_req_q, mem_req, '0)
 
   // Handle write requests on the mem bus.
   always_ff @(posedge clk_i) begin
@@ -144,14 +142,14 @@ module tb_memory_axi #(
     end
   end
 
-  // Handle read requests combinatorial on the mem bus.
-  always_comb begin
-    mem_rdata = '0;
-    if (mem_req) begin
+  // Handle read requests on the mem bus.
+  always_ff @(posedge clk_i) begin
+    mem_rdata_q <= '0;
+    if (rst_ni && mem_req) begin
       automatic byte data[NumBytes];
       tb_memory_read((mem_addr >> BusAlign) << BusAlign, NumBytes, data);
       for (int i = 0; i < NumBytes; i++) begin
-        mem_rdata[i*8+:8] = data[i];
+        mem_rdata_q[i*8+:8] <= data[i];
       end
     end
   end
