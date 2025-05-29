@@ -76,7 +76,6 @@ APPS += sw/apps/tutorial
 APPS += sw/apps/copift_queue/fpqueue
 APPS += sw/apps/copift_queue/inqueue
 APPS += sw/apps/copift_queue/fpq_frep
-APPS += sw/apps/copift_queue/montecarlo
 
 # Include Makefile from each app subdirectory
 $(foreach app,$(APPS), \

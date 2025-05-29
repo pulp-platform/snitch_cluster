@@ -10,7 +10,7 @@ export CXX=g++-9.2.0
 export VCS_SEPP=vcs-2020.12
 export VERILATOR_SEPP=verilator-5.020
 export QUESTA_SEPP=questa-2022.3
-export LLVM_BINROOT=/usr/pack/riscv-1.0-kgf/pulp-llvm-0.12.0/bin
+export LLVM_BINROOT=/usr/scratch2/vulcano/colluca/tools/riscv32-snitch-llvm-almalinux8-15.0.0-snitch-0.1.0/bin
 
 # Create Python virtual environment with required packages
 /usr/local/anaconda3-2023.07/bin/python -m venv .venv

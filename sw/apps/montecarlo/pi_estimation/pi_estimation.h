@@ -219,12 +219,12 @@
     "flt.d " #out3 ", " #lhs3 ", " #rhs3 " \n"
 
 #define FLT_SSR_UNROLL_2(lhs0, lhs1, rhs0, rhs1, out0, out1) \
-    "flt.d.ssr " #out0 ", " #lhs0 ", " #rhs0 " \n"           \
-    "flt.d.ssr " #out1 ", " #lhs1 ", " #rhs1 " \n"
+    "flt.d.copift " #out0 ", " #lhs0 ", " #rhs0 " \n"           \
+    "flt.d.copift " #out1 ", " #lhs1 ", " #rhs1 " \n"
 
 #define FLT_SSR_UNROLL_4(lhs0, lhs1, lhs2, lhs3, rhs0, rhs1, rhs2, rhs3, \
                          out0, out1, out2, out3)                         \
-    "flt.d.ssr " #out0 ", " #lhs0 ", " #rhs0 " \n"                       \
-    "flt.d.ssr " #out1 ", " #lhs1 ", " #rhs1 " \n"                       \
-    "flt.d.ssr " #out2 ", " #lhs2 ", " #rhs2 " \n"                       \
-    "flt.d.ssr " #out3 ", " #lhs3 ", " #rhs3 " \n"
+    "flt.d.copift " #out0 ", " #lhs0 ", " #rhs0 " \n"                       \
+    "flt.d.copift " #out1 ", " #lhs1 ", " #rhs1 " \n"                       \
+    "flt.d.copift " #out2 ", " #lhs2 ", " #rhs2 " \n"                       \
+    "flt.d.copift " #out3 ", " #lhs3 ", " #rhs3 " \n"

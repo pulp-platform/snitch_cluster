@@ -1759,7 +1759,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           illegal_inst = 1'b1;
         end
       end
-      FLT_D_SSR: begin
+      FLT_D_COPIFT: begin
         if(FP_EN && RVD) begin
           write_rd = 1'b0;
           //uses_rd? and write_rd?
@@ -1964,8 +1964,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         end
       end
       // Double Precision Floating Point operate on SSRs
-      FCVT_D_W_SSR,
-      FCVT_D_WU_SSR: begin
+      FCVT_D_W_COPIFT,
+      FCVT_D_WU_COPIFT: begin
         if(FP_EN && RVD) begin
           write_rd = 1'b0;
           acc_qvalid_o = valid_instr;

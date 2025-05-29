@@ -50,7 +50,7 @@ int main() {
     snrt_ssr_enable();
     asm volatile(
         "frep.o  %[n_frep], 1, 0, 0 \n"
-        "fcvt.d.w.ssr ft2, ft0 \n"
+        "fcvt.d.w.copift ft2, ft0 \n"
         :
         : [ n_frep ] "r"(LENGTH - 1)
         : "ft0", "ft1", "ft2", "ft3", "memory");
