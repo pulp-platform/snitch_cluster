@@ -32,6 +32,7 @@ ${',' if not loop.last else ''}
 </%def>\
 
 `include "axi/typedef.svh"
+`include "tcdm_interface/typedef.svh"
 
 // verilog_lint: waive-start package-filename
 package ${cfg['cluster']['name']}_pkg;
@@ -66,6 +67,8 @@ package ${cfg['cluster']['name']}_pkg;
 
   localparam int unsigned Hive [NrCores] = '{${core_cfg('hive')}};
 
+  localparam int unsigned TcdmAddrWidth = $clog2(TcdmSize);
+
   typedef struct packed {
 % for field, width in cfg['cluster']['sram_cfg_fields'].items():
     logic [${width-1}:0] ${field};
@@ -94,6 +97,13 @@ package ${cfg['cluster']['name']}_pkg;
   `AXI_TYPEDEF_ALL(narrow_out, addr_t, narrow_out_id_t, data_t, strb_t, user_t)
   `AXI_TYPEDEF_ALL(wide_in, addr_t, wide_in_id_t, data_dma_t, strb_dma_t, user_dma_t)
   `AXI_TYPEDEF_ALL(wide_out, addr_t, wide_out_id_t, data_dma_t, strb_dma_t, user_dma_t)
+  `AXI_TYPEDEF_ALL(narrow_ext, addr_t, narrow_out_id_t, data_t, strb_t, user_t)
+
+  typedef logic [TcdmAddrWidth-1:0]     tcdm_addr_t;
+  typedef logic [WideDataWidth-1:0]     data_ext_t;
+  typedef logic [WideDataWidth/8-1:0]   strb_ext_t;
+
+  `TCDM_TYPEDEF_ALL(tcdm_ext, tcdm_addr_t, data_ext_t, strb_ext_t, logic)
 
   function automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] get_cached_regions();
     automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] cached_regions;

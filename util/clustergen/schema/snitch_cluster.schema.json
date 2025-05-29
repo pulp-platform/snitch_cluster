@@ -213,6 +213,16 @@
                     "description": "Whether to expose memory cut configuration inputs for implementation",
                     "default": false
                 },
+                "wide_tcdm_port_expose": {
+                    "type": "boolean",
+                    "description": "Whether to expose a wide memory port",
+                    "default": false
+                },
+                "narrow_axi_port_expose": {
+                    "type": "boolean",
+                    "description": "Whether to expose a narrow AXI master port",
+                    "default": false
+                },
                 "sram_cfg_fields": {
                     "type": "object",
                     "description": "The names and widths of memory cut configuration inputs needed for implementation",

@@ -189,6 +189,11 @@ module snitch_cluster
   parameter type         wide_out_resp_t   = logic,
   parameter type         wide_in_req_t     = logic,
   parameter type         wide_in_resp_t    = logic,
+  parameter type         narrow_ext_req_t  = logic,
+  parameter type         narrow_ext_resp_t = logic,
+  // TCDM Ports
+  parameter type         tcdm_ext_req_t    = logic,
+  parameter type         tcdm_ext_resp_t   = logic,
   // Memory configuration input types; these vary depending on implementation.
   parameter type         sram_cfg_t        = logic,
   parameter type         sram_cfgs_t       = logic,
@@ -253,7 +258,13 @@ module snitch_cluster
   input  wide_out_resp_t                wide_out_resp_i,
   /// AXI DMA cluster in-port.
   input  wide_in_req_t                  wide_in_req_i,
-  output wide_in_resp_t                 wide_in_resp_o
+  output wide_in_resp_t                 wide_in_resp_o,
+  // External AXI narrow ports
+  output narrow_ext_req_t               narrow_ext_req_o,
+  input  narrow_ext_resp_t              narrow_ext_resp_i,
+  // External TCDM ports
+  input  tcdm_ext_req_t                 tcdm_ext_req_i,
+  output tcdm_ext_resp_t                tcdm_ext_resp_o
 );
   // ---------
   // Constants
@@ -284,7 +295,7 @@ module snitch_cluster
   localparam int unsigned NrNarrowMasters = 3;
   localparam int unsigned NarrowIdWidthOut = $clog2(NrNarrowMasters) + NarrowIdWidthIn;
 
-  localparam int unsigned NrSlaves = 3;
+  localparam int unsigned NrSlaves = 4;
   localparam int unsigned NrRuleIdcs = NrSlaves - 1;
   localparam int unsigned NrRules = (1 + AliasRegionEnable) * NrRuleIdcs;
 
@@ -376,6 +387,8 @@ module snitch_cluster
   typedef logic [NarrowDataWidth/8-1:0] strb_t;
   typedef logic [WideDataWidth-1:0]     data_dma_t;
   typedef logic [WideDataWidth/8-1:0]   strb_dma_t;
+  typedef logic [WideDataWidth-1:0]     data_ext_t;
+  typedef logic [WideDataWidth/8-1:0]   strb_ext_t;
   typedef logic [NarrowIdWidthIn-1:0]   id_mst_t;
   typedef logic [NarrowIdWidthOut-1:0]  id_slv_t;
   typedef logic [WideIdWidthIn-1:0]     id_dma_mst_t;
@@ -403,6 +416,7 @@ module snitch_cluster
 
   `MEM_TYPEDEF_ALL(mem, tcdm_mem_addr_t, data_t, strb_t, tcdm_user_t)
   `MEM_TYPEDEF_ALL(mem_dma, tcdm_mem_addr_t, data_dma_t, strb_dma_t, logic)
+  `MEM_TYPEDEF_ALL(mem_ext, tcdm_mem_addr_t, data_ext_t, strb_ext_t, logic)
 
   `TCDM_TYPEDEF_ALL(tcdm, tcdm_addr_t, data_t, strb_t, tcdm_user_t)
   `TCDM_TYPEDEF_ALL(tcdm_dma, tcdm_addr_t, data_dma_t, strb_dma_t, logic)
@@ -508,6 +522,10 @@ module snitch_cluster
   assign zero_mem_start_address = cluster_periph_end_address;
   assign zero_mem_end_address   = cluster_periph_end_address + ZeroMemorySize * 1024;
 
+  addr_t ext_mem_start_address, ext_mem_end_address;
+  assign ext_mem_start_address = zero_mem_end_address;
+  assign ext_mem_end_address   = ext_mem_start_address + 'h100;
+
   localparam addr_t TCDMAliasStart = AliasRegionBase & TCDMMask;
   localparam addr_t TCDMAliasEnd   = (TCDMAliasStart + TCDMSize) & TCDMMask;
 
@@ -519,6 +537,9 @@ module snitch_cluster
 
   localparam addr_t ZeroMemAliasStart = PeriphAliasEnd;
   localparam addr_t ZeroMemAliasEnd   = PeriphAliasEnd + ZeroMemorySize * 1024;
+
+  localparam addr_t ExtAliasStart = ZeroMemAliasEnd;
+  localparam addr_t ExtAliasEnd   = ExtAliasStart + 'h100;
 
   // ----------------
   // Wire Definitions
@@ -542,6 +563,9 @@ module snitch_cluster
 
   mem_dma_req_t [NrSuperBanks-1:0] sb_dma_req;
   mem_dma_rsp_t [NrSuperBanks-1:0] sb_dma_rsp;
+
+  mem_ext_req_t [NrSuperBanks-1:0] sb_ext_req;
+  mem_ext_rsp_t [NrSuperBanks-1:0] sb_ext_rsp;
 
   // 3. Memory Subsystem (Interconnect)
   tcdm_dma_req_t ext_dma_req;
@@ -779,6 +803,26 @@ module snitch_cluster
     .mem_rsp_i (sb_dma_rsp)
   );
 
+  snitch_tcdm_interconnect #(
+    .NumInp (1),
+    .NumOut (NrSuperBanks),
+    .tcdm_req_t (tcdm_ext_req_t),
+    .tcdm_rsp_t (tcdm_ext_resp_t),
+    .mem_req_t (mem_ext_req_t),
+    .mem_rsp_t (mem_ext_rsp_t),
+    .user_t (logic),
+    .MemAddrWidth (TCDMMemAddrWidth),
+    .DataWidth (WideDataWidth),
+    .MemoryResponseLatency (MemoryMacroLatency)
+  ) i_ext_interconnect (
+    .clk_i,
+    .rst_ni,
+    .req_i (tcdm_ext_req_i),
+    .rsp_o (tcdm_ext_resp_o),
+    .mem_req_o (sb_ext_req),
+    .mem_rsp_i (sb_ext_rsp)
+  );
+
   // ----------------
   // Memory Subsystem
   // ----------------
@@ -793,7 +837,9 @@ module snitch_cluster
       .mem_narrow_req_t (mem_req_t),
       .mem_narrow_rsp_t (mem_rsp_t),
       .mem_wide_req_t (mem_dma_req_t),
-      .mem_wide_rsp_t (mem_dma_rsp_t)
+      .mem_wide_rsp_t (mem_dma_rsp_t),
+      .mem_ext_req_t (mem_ext_req_t),
+      .mem_ext_rsp_t (mem_ext_rsp_t)
     ) i_tcdm_mux (
       .clk_i,
       .rst_ni,
@@ -801,9 +847,10 @@ module snitch_cluster
       .in_narrow_rsp_o (ic_rsp [i]),
       .in_wide_req_i (sb_dma_req [i]),
       .in_wide_rsp_o (sb_dma_rsp [i]),
+      .in_ext_req_i (sb_ext_req [i]),
+      .in_ext_rsp_o (sb_ext_rsp [i]),
       .out_req_o (amo_req),
-      .out_rsp_i (amo_rsp),
-      .sel_wide_i (sb_dma_req[i].q_valid)
+      .out_rsp_i (amo_rsp)
     );
 
     // generate banks of the superbank
@@ -1206,6 +1253,11 @@ module snitch_cluster
       idx:        ClusterPeripherals,
       start_addr: cluster_periph_start_address,
       end_addr:   cluster_periph_end_address
+    },
+    '{
+      idx:        Ext,
+      start_addr: ext_mem_start_address,
+      end_addr:   ext_mem_end_address
     }
   };
   if (AliasRegionEnable) begin : gen_cluster_xbar_alias
@@ -1219,6 +1271,11 @@ module snitch_cluster
         idx:        ClusterPeripherals,
         start_addr: PeriphAliasStart,
         end_addr:   PeriphAliasEnd
+      },
+      '{
+        idx:        Ext,
+        start_addr: ExtAliasStart,
+        end_addr:   ExtAliasEnd
       }
     };
   end
@@ -1382,6 +1439,25 @@ module snitch_cluster
     .tcdm_events_i (tcdm_events),
     .dma_events_i (dma_events),
     .icache_events_i (icache_events)
+  );
+
+  // Decouple the narrow AXI master ports of the external port
+  axi_cut #(
+    .Bypass     ( 1'b0              ),
+    .aw_chan_t  ( axi_slv_aw_chan_t ),
+    .w_chan_t   ( axi_slv_w_chan_t  ),
+    .b_chan_t   ( axi_slv_b_chan_t  ),
+    .ar_chan_t  ( axi_slv_ar_chan_t ),
+    .r_chan_t   ( axi_slv_r_chan_t  ),
+    .axi_req_t  ( axi_slv_req_t     ),
+    .axi_resp_t ( axi_slv_resp_t    )
+  ) i_axi_cut_hwpe_mst (
+    .clk_i      ( clk_i                   ),
+    .rst_ni     ( rst_ni                  ),
+    .slv_req_i  ( narrow_axi_slv_req[Ext] ),
+    .slv_resp_o ( narrow_axi_slv_rsp[Ext] ),
+    .mst_req_o  ( narrow_ext_req_o        ),
+    .mst_resp_i ( narrow_ext_resp_i       )
   );
 
   // Optionally decouple the external narrow AXI master ports.
