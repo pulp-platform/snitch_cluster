@@ -11,6 +11,7 @@
 `define REQRSP_TYPEDEF_REQ_CHAN_T(__req_chan_t, __addr_t, __data_t, __strb_t) \
   typedef struct packed { \
     __addr_t             addr;  \
+    __addr_t             mask;  \
     logic                write; \
     reqrsp_pkg::amo_op_e amo;   \
     __data_t             data;  \

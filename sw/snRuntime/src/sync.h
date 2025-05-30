@@ -12,7 +12,11 @@
 
 #pragma once
 
+#include "../../deps/riscv-opcodes/encoding.h"
+
 #include <math.h>
+
+#define SNRT_BROADCAST_MASK ((SNRT_CLUSTER_NUM - 1) * SNRT_CLUSTER_OFFSET)
 
 //================================================================================
 // Mutex functions
@@ -73,6 +77,31 @@ inline void snrt_mutex_release(volatile uint32_t *pmtx) {
 // Barrier functions
 //================================================================================
 
+inline void snrt_wake_all(uint32_t core_mask) {
+#ifdef SNRT_SUPPORTS_MULTICAST
+    // Multicast cluster interrupt to every other cluster's core
+    // Note: we need to address another cluster's address space
+    //       because the cluster XBAR has not been extended to support
+    //       multicast yet. We address the second cluster, if we are the
+    //       first cluster, and the first cluster otherwise.
+    uintptr_t addr = (uintptr_t)snrt_cluster_clint_set_ptr() -
+                     SNRT_CLUSTER_OFFSET * snrt_cluster_idx();
+    if (snrt_cluster_idx() == 0) addr += SNRT_CLUSTER_OFFSET;
+    snrt_enable_multicast(SNRT_BROADCAST_MASK);
+    *((uint32_t *)addr) = core_mask;
+    snrt_disable_multicast();
+#else
+    for (int i = 0; i < snrt_cluster_num(); i++) {
+        if (snrt_cluster_idx() != i) {
+            void *ptr = snrt_remote_l1_ptr(snrt_cluster_clint_set_ptr(),
+                                           snrt_cluster_idx(), i);
+            *((uint32_t *)ptr) = core_mask;
+        }
+    }
+
+#endif
+}
+
 /**
  * @brief Synchronize cores in a cluster with a hardware barrier, blocking.
  * @note Synchronizes all (both DM and compute) cores. All cores must invoke
@@ -89,18 +118,21 @@ inline void snrt_cluster_hw_barrier() {
  *       will stall indefinitely.
  */
 inline void snrt_inter_cluster_barrier() {
-    // Remember previous iteration
-    uint32_t prev_barrier_iteration = _snrt_barrier.iteration;
+    // Everyone increments a shared counter
     uint32_t cnt =
         __atomic_add_fetch(&(_snrt_barrier.cnt), 1, __ATOMIC_RELAXED);
 
-    // Increment the barrier counter
+    // All but the last cluster enter WFI, while the last cluster resets the
+    // counter for the next barrier and multicasts an interrupt to wake up the
+    // other clusters.
     if (cnt == snrt_cluster_num()) {
         _snrt_barrier.cnt = 0;
-        __atomic_add_fetch(&(_snrt_barrier.iteration), 1, __ATOMIC_RELAXED);
+        // Wake all clusters
+        snrt_wake_all(1 << snrt_cluster_core_idx());
     } else {
-        while (prev_barrier_iteration == _snrt_barrier.iteration)
-            ;
+        snrt_wfi();
+        // Clear interrupt for next barrier
+        snrt_int_clr_mcip();
     }
 }
 
@@ -264,3 +296,21 @@ inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
 inline void snrt_wait_writeback(uint32_t val) {
     asm volatile("mv %0, %0" : "+r"(val)::);
 }
+
+//================================================================================
+// Multicast functions
+//================================================================================
+
+/**
+ * @brief Enable LSU multicast
+ * @details All stores performed after this call will be multicast to all
+ *          addresses specified by the address and mask pair.
+ *
+ * @param mask Multicast mask value
+ */
+inline void snrt_enable_multicast(uint32_t mask) { write_csr(0x7c4, mask); }
+
+/**
+ * @brief Disable LSU multicast
+ */
+inline void snrt_disable_multicast() { write_csr(0x7c4, 0); }

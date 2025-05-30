@@ -38,6 +38,8 @@ module snitch_cluster
   parameter int unsigned NarrowUserWidth    = 1,
   /// AXI: dma user width.
   parameter int unsigned WideUserWidth      = 1,
+  /// Width of the atomic ID to be used in a system.
+  parameter int unsigned AtomicIdWidth      = 1,
   /// Boot Address from which to fetch the first instructions.
   /// Used if `AliasRegionEnable` or `IntBootromEnable` is not set.
   parameter logic [31:0] BootAddr           = 32'h0,
@@ -71,6 +73,8 @@ module snitch_cluster
   parameter int unsigned ICacheWays [NrHives]      = '{default: 0},
   /// Enable virtual memory support.
   parameter bit          VMSupport          = 1,
+  /// Enable multicast on DMA XBAR.
+  parameter bit          EnableDMAMulticast = 0,
   /// Per-core enabling of the standard `E` ISA reduced-register extension.
   parameter bit [NrCores-1:0] RVE           = '0,
   /// Per-core enabling of the standard `F` ISA extensions.
@@ -307,10 +311,29 @@ module snitch_cluster
     UniqueIds: 1'b0,
     AxiAddrWidth: PhysicalAddrWidth,
     AxiDataWidth: NarrowDataWidth,
-    NoAddrRules: NrRules
+    NoAddrRules: NrRules,
+    default: '0
   };
 
   // DMA configuration struct
+  localparam axi_pkg::xbar_cfg_t DmaMcastXbarCfg = '{
+    NoSlvPorts: NrWideMasters,
+    NoMstPorts: NrWideSlaves,
+    MaxMstTrans: WideMaxMstTrans,
+    MaxSlvTrans: WideMaxSlvTrans,
+    FallThrough: 1'b0,
+    LatencyMode: WideXbarLatency,
+    PipelineStages: 0,
+    AxiIdWidthSlvPorts: WideIdWidthIn,
+    AxiIdUsedSlvPorts: WideIdWidthIn,
+    UniqueIds: 1'b0,
+    AxiAddrWidth: PhysicalAddrWidth,
+    AxiDataWidth: WideDataWidth,
+    NoAddrRules: NrWideRules,
+    NoMulticastRules: 1,
+    NoMulticastPorts: 2,
+    default: '0
+  };
   localparam axi_pkg::xbar_cfg_t DmaXbarCfg = '{
     NoSlvPorts: NrWideMasters,
     NoMstPorts: NrWideSlaves,
@@ -324,7 +347,8 @@ module snitch_cluster
     UniqueIds: 1'b0,
     AxiAddrWidth: PhysicalAddrWidth,
     AxiDataWidth: WideDataWidth,
-    NoAddrRules: NrWideRules
+    NoAddrRules: NrWideRules,
+    default: '0
   };
 
   function automatic int unsigned get_hive_size(int unsigned current_hive);
@@ -355,7 +379,9 @@ module snitch_cluster
   typedef logic [WideIdWidthIn-1:0]     id_dma_mst_t;
   typedef logic [WideIdWidthOut-1:0]    id_dma_slv_t;
   typedef logic [NarrowUserWidth-1:0]   user_t;
-  typedef logic [WideUserWidth-1:0]     user_dma_t;
+  typedef struct packed {
+    logic [WideUserWidth-1:0] mcast;
+  } user_dma_t;
 
   typedef logic [TCDMMemAddrWidth-1:0]  tcdm_mem_addr_t;
   typedef logic [TCDMAddrWidth-1:0]     tcdm_addr_t;
@@ -587,8 +613,14 @@ module snitch_cluster
     .mst_resp_i (wide_axi_mst_rsp[SoCDMAIn])
   );
 
-  logic [DmaXbarCfg.NoSlvPorts-1:0][$clog2(DmaXbarCfg.NoMstPorts)-1:0] dma_xbar_default_port;
-  assign dma_xbar_default_port = '{default: SoCDMAOut};
+
+  int unsigned dma_xbar_default_port = SoCDMAOut;
+  xbar_rule_t dma_xbar_default_port_rule;
+  assign dma_xbar_default_port_rule = '{
+    idx: dma_xbar_default_port,
+    start_addr: tcdm_start_address,
+    end_addr: zero_mem_end_address
+  };
 
   xbar_rule_t [5:0] dma_xbar_rules;
   xbar_rule_t [DmaXbarCfg.NoAddrRules-1:0] enabled_dma_xbar_rule;
@@ -615,35 +647,67 @@ module snitch_cluster
   end
 
   localparam bit [DmaXbarCfg.NoSlvPorts-1:0] DMAEnableDefaultMstPort = '1;
-  axi_xbar #(
-    .Cfg (DmaXbarCfg),
-    .ATOPs (0),
-    .slv_aw_chan_t (axi_mst_dma_aw_chan_t),
-    .mst_aw_chan_t (axi_slv_dma_aw_chan_t),
-    .w_chan_t (axi_mst_dma_w_chan_t),
-    .slv_b_chan_t (axi_mst_dma_b_chan_t),
-    .mst_b_chan_t (axi_slv_dma_b_chan_t),
-    .slv_ar_chan_t (axi_mst_dma_ar_chan_t),
-    .mst_ar_chan_t (axi_slv_dma_ar_chan_t),
-    .slv_r_chan_t (axi_mst_dma_r_chan_t),
-    .mst_r_chan_t (axi_slv_dma_r_chan_t),
-    .slv_req_t (axi_mst_dma_req_t),
-    .slv_resp_t (axi_mst_dma_resp_t),
-    .mst_req_t (axi_slv_dma_req_t),
-    .mst_resp_t (axi_slv_dma_resp_t),
-    .rule_t (xbar_rule_t)
-  ) i_axi_dma_xbar (
-    .clk_i (clk_i),
-    .rst_ni (rst_ni),
-    .test_i (1'b0),
-    .slv_ports_req_i (wide_axi_mst_req),
-    .slv_ports_resp_o (wide_axi_mst_rsp),
-    .mst_ports_req_o (wide_axi_slv_req),
-    .mst_ports_resp_i (wide_axi_slv_rsp),
-    .addr_map_i (enabled_dma_xbar_rule),
-    .en_default_mst_port_i (DMAEnableDefaultMstPort),
-    .default_mst_port_i (dma_xbar_default_port)
-  );
+  if (EnableDMAMulticast) begin : gen_mcast_dma_xbar
+    axi_mcast_xbar #(
+      .Cfg (DmaMcastXbarCfg),
+      .ATOPs (0),
+      .slv_aw_chan_t (axi_mst_dma_aw_chan_t),
+      .mst_aw_chan_t (axi_slv_dma_aw_chan_t),
+      .w_chan_t (axi_mst_dma_w_chan_t),
+      .slv_b_chan_t (axi_mst_dma_b_chan_t),
+      .mst_b_chan_t (axi_slv_dma_b_chan_t),
+      .slv_ar_chan_t (axi_mst_dma_ar_chan_t),
+      .mst_ar_chan_t (axi_slv_dma_ar_chan_t),
+      .slv_r_chan_t (axi_mst_dma_r_chan_t),
+      .mst_r_chan_t (axi_slv_dma_r_chan_t),
+      .slv_req_t (axi_mst_dma_req_t),
+      .slv_resp_t (axi_mst_dma_resp_t),
+      .mst_req_t (axi_slv_dma_req_t),
+      .mst_resp_t (axi_slv_dma_resp_t),
+      .rule_t (xbar_rule_t)
+    ) i_axi_dma_xbar (
+      .clk_i (clk_i),
+      .rst_ni (rst_ni),
+      .test_i (1'b0),
+      .slv_ports_req_i (wide_axi_mst_req),
+      .slv_ports_resp_o (wide_axi_mst_rsp),
+      .mst_ports_req_o (wide_axi_slv_req),
+      .mst_ports_resp_i (wide_axi_slv_rsp),
+      .addr_map_i (enabled_dma_xbar_rule),
+      .en_default_mst_port_i (DMAEnableDefaultMstPort),
+      .default_mst_port_i ({DmaXbarCfg.NoSlvPorts{dma_xbar_default_port_rule}})
+    );
+  end else begin : gen_dma_xbar
+    axi_xbar #(
+      .Cfg (DmaXbarCfg),
+      .ATOPs (0),
+      .slv_aw_chan_t (axi_mst_dma_aw_chan_t),
+      .mst_aw_chan_t (axi_slv_dma_aw_chan_t),
+      .w_chan_t (axi_mst_dma_w_chan_t),
+      .slv_b_chan_t (axi_mst_dma_b_chan_t),
+      .mst_b_chan_t (axi_slv_dma_b_chan_t),
+      .slv_ar_chan_t (axi_mst_dma_ar_chan_t),
+      .mst_ar_chan_t (axi_slv_dma_ar_chan_t),
+      .slv_r_chan_t (axi_mst_dma_r_chan_t),
+      .mst_r_chan_t (axi_slv_dma_r_chan_t),
+      .slv_req_t (axi_mst_dma_req_t),
+      .slv_resp_t (axi_mst_dma_resp_t),
+      .mst_req_t (axi_slv_dma_req_t),
+      .mst_resp_t (axi_slv_dma_resp_t),
+      .rule_t (xbar_rule_t)
+    ) i_axi_dma_xbar (
+      .clk_i (clk_i),
+      .rst_ni (rst_ni),
+      .test_i (1'b0),
+      .slv_ports_req_i (wide_axi_mst_req),
+      .slv_ports_resp_o (wide_axi_mst_rsp),
+      .mst_ports_req_o (wide_axi_slv_req),
+      .mst_ports_resp_i (wide_axi_slv_rsp),
+      .addr_map_i (enabled_dma_xbar_rule),
+      .en_default_mst_port_i (DMAEnableDefaultMstPort),
+      .default_mst_port_i ({DmaXbarCfg.NoSlvPorts{dma_xbar_default_port}})
+    );
+  end
 
   axi_zero_mem #(
     .axi_req_t (axi_slv_dma_req_t),
@@ -1089,7 +1153,8 @@ module snitch_cluster
   user_t cluster_user;
   // Atomic ID, needs to be unique ID of cluster
   // cluster_id + HartIdOffset + 1 (because 0 is for non-atomic masters)
-  assign cluster_user = (hart_base_id_i / NrCores) +  (hart_base_id_i % NrCores) + 1'b1;
+  assign cluster_user = (core_to_axi_req.q.mask << AtomicIdWidth) |
+                        ((hart_base_id_i / NrCores) +  (hart_base_id_i % NrCores) + 1'b1);
 
   reqrsp_mux #(
     .NrPorts (NrCores),

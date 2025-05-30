@@ -303,7 +303,8 @@ module axi_to_reqrsp #(
     // Silence those channels in case of a read.
     data: data & {DataWidth{meta.write}},
     strb: axi_req_i.w.strb & {StrbWidth{meta.write}},
-    size: meta.size
+    size: meta.size,
+    default: '0
   };
 
   always_comb begin
