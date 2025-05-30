@@ -67,7 +67,7 @@ package ${cfg['cluster']['name']}_pkg;
 
   localparam int unsigned Hive [NrCores] = '{${core_cfg('hive')}};
 
-  localparam int unsigned TcdmAddrWidth = $clog2(TcdmSize);
+  localparam int unsigned TcdmAddrWidth = $clog2(TcdmSize*1024);
 
   typedef struct packed {
 % for field, width in cfg['cluster']['sram_cfg_fields'].items():
