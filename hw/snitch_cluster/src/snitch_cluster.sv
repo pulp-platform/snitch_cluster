@@ -613,9 +613,11 @@ module snitch_cluster
     .mst_resp_i (wide_axi_mst_rsp[SoCDMAIn])
   );
 
-  xbar_rule_t dma_xbar_default_port;
-  assign dma_xbar_default_port = '{
-    idx: SoCDMAOut,
+
+  int unsigned dma_xbar_default_port = SoCDMAOut;
+  xbar_rule_t dma_xbar_default_port_rule;
+  assign dma_xbar_default_port_rule = '{
+    idx: dma_xbar_default_port,
     start_addr: tcdm_start_address,
     end_addr: zero_mem_end_address
   };
@@ -673,7 +675,7 @@ module snitch_cluster
       .mst_ports_resp_i (wide_axi_slv_rsp),
       .addr_map_i (enabled_dma_xbar_rule),
       .en_default_mst_port_i (DMAEnableDefaultMstPort),
-      .default_mst_port_i ({DmaXbarCfg.NoSlvPorts{dma_xbar_default_port}})
+      .default_mst_port_i ({DmaXbarCfg.NoSlvPorts{dma_xbar_default_port_rule}})
     );
   end else begin : gen_dma_xbar
     axi_xbar #(
@@ -703,7 +705,7 @@ module snitch_cluster
       .mst_ports_resp_i (wide_axi_slv_rsp),
       .addr_map_i (enabled_dma_xbar_rule),
       .en_default_mst_port_i (DMAEnableDefaultMstPort),
-      .default_mst_port_i ('{default: dma_xbar_default_port.idx})
+      .default_mst_port_i ({DmaXbarCfg.NoSlvPorts{dma_xbar_default_port}})
     );
   end
 
