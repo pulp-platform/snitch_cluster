@@ -223,6 +223,11 @@
                     "description": "Whether to expose a narrow AXI master port",
                     "default": false
                 },
+                "enable_external_interrupts": {
+                    "type": "boolean",
+                    "description": "Whether to enable external interrupts",
+                    "default": false
+                },
                 "sram_cfg_fields": {
                     "type": "object",
                     "description": "The names and widths of memory cut configuration inputs needed for implementation",

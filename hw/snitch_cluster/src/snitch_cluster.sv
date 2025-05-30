@@ -233,6 +233,8 @@ module snitch_cluster
   /// another core to facilitate inter-processor-interrupts. This signal is
   /// assumed to be _async_.
   input  logic [NrCores-1:0]            msip_i,
+  // External interrupt pending.
+  input  logic [NrCores-1:0]            mxip_i,
   /// First hartid of the cluster. Cores of a cluster are monotonically
   /// increasing without a gap, i.e., a cluster with 8 cores and a
   /// `hart_base_id_i` of 5 get the hartids 5 - 12.
@@ -979,6 +981,7 @@ module snitch_cluster
     sync #(.STAGES (2))
       i_sync_msip  (.clk_i, .rst_ni, .serial_i (msip_i[i]), .serial_o (irq.msip));
     assign irq.mcip = cl_interrupt[i];
+    assign irq.mxip = mxip_i[i];
 
       tcdm_req_t [TcdmPorts-1:0] tcdm_req_wo_user;
 

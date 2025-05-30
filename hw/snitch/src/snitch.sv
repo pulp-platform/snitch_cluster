@@ -127,7 +127,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic interrupt, ecall, ebreak;
   logic zero_lsb;
 
-  logic meip, mtip, msip, mcip;
+  logic meip, mtip, msip, mcip, mxip;
   logic seip, stip, ssip, scip;
   logic interrupts_enabled;
   logic any_interrupt_pending;
@@ -268,6 +268,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic [1:0] tie_d, tie_q;
   logic [1:0] sie_d, sie_q;
   logic [1:0] cie_d, cie_q;
+  logic [1:0] xie_d, xie_q;
   logic       seip_d, seip_q;
   logic       stip_d, stip_q;
   logic       ssip_d, ssip_q;
@@ -301,6 +302,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   `FFAR(tie_q, tie_d, '0, clk_i, rst_i)
   `FFAR(sie_q, sie_d, '0, clk_i, rst_i)
   `FFAR(cie_q, cie_d, '0, clk_i, rst_i)
+  `FFAR(xie_q, xie_d, '0, clk_i, rst_i)
   `FFAR(seip_q, seip_d, '0, clk_i, rst_i)
   `FFAR(stip_q, stip_d, '0, clk_i, rst_i)
   `FFAR(ssip_q, ssip_d, '0, clk_i, rst_i)
@@ -2309,6 +2311,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign mtip = irq_i.mtip & tie_q[M];
   assign msip = irq_i.msip & sie_q[M];
   assign mcip = irq_i.mcip & cie_q[M];
+  assign mxip = irq_i.mxip & xie_q[M];
 
   assign seip = seip_q & eie_q[S];
   assign stip = stip_q & tie_q[S];
@@ -2316,7 +2319,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign scip = scip_q & cie_q[S];
 
   assign interrupts_enabled = ((priv_lvl_q == PrivLvlM) & ie_q[M]) || (priv_lvl_q != PrivLvlM);
-  assign any_interrupt_pending = meip | mtip | msip | mcip | seip | stip | ssip | scip;
+  assign any_interrupt_pending = meip | mtip | msip | mcip | mxip | seip | stip | ssip | scip;
   assign interrupt = interrupts_enabled & any_interrupt_pending;
 
   // CSR logic
@@ -2346,6 +2349,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     tie_d = tie_q;
     sie_d = sie_q;
     cie_d = cie_q;
+    xie_d = xie_q;
     seip_d = seip_q;
     stip_d = stip_q;
     ssip_d = ssip_q;
@@ -2476,6 +2480,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
             csr_rvalue[MTI] = irq_i.mtip;
             csr_rvalue[MSI] = irq_i.msip;
             csr_rvalue[MCI] = irq_i.mcip;
+            csr_rvalue[MXI] = irq_i.mxip;
             csr_rvalue[SEI] = seip_q;
             csr_rvalue[STI] = stip_q;
             csr_rvalue[SSI] = ssip_q;
@@ -2492,6 +2497,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
             csr_rvalue[MTI] = tie_q[M];
             csr_rvalue[MSI] = sie_q[M];
             csr_rvalue[MCI] = cie_q[M];
+            csr_rvalue[MXI] = xie_q[M];
             csr_rvalue[SEI] = eie_q[S];
             csr_rvalue[STI] = tie_q[S];
             csr_rvalue[SSI] = sie_q[S];
@@ -2501,6 +2507,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
               tie_d[M] = alu_result[MTI];
               sie_d[M] = alu_result[MSI];
               cie_d[M] = alu_result[MCI];
+              xie_d[M] = alu_result[MXI];
               eie_d[S] = alu_result[SEI];
               tie_d[S] = alu_result[STI];
               sie_d[S] = alu_result[SSI];
@@ -2629,6 +2636,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         else if (mtip) cause_d[M] = MTI;
         else if (msip) cause_d[M] = MSI;
         else if (mcip) cause_d[M] = MCI;
+        else if (mxip) cause_d[M] = MXI;
         else if (seip) cause_d[M] = SEI;
         else if (stip) cause_d[M] = STI;
         else if (ssip) cause_d[M] = SSI;

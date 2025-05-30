@@ -35,6 +35,7 @@ module ${cfg['cluster']['name']}_wrapper (
   input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] meip_i,
   input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] mtip_i,
   input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] msip_i,
+  input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] mxip_i,
   input  logic [9:0]                             hart_base_id_i,
   input  logic [${cfg['cluster']['addr_width']-1}:0]                            cluster_base_addr_i,
   input  logic                                   clk_d2_bypass_i,
@@ -171,6 +172,11 @@ module ${cfg['cluster']['name']}_wrapper (
     .meip_i,
     .mtip_i,
     .msip_i,
+% if cfg['cluster']['enable_external_interrupts']:
+    .mxip_i,
+% else:
+    .mxip_i (1'b0),
+% endif
 % if cfg['cluster']['cluster_base_expose']:
     .hart_base_id_i,
     .cluster_base_addr_i,
