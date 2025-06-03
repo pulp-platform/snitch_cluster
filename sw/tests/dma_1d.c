@@ -6,7 +6,7 @@
 
 
 #define MAX_BUFFER_SIZE 0x1000
-#define NB_TRANSFERS    5
+#define NB_TRANSFERS    13
 
 // Allocate a buffer in the main memory which we will use to copy data around
 // with the DMA.
@@ -19,8 +19,16 @@ typedef struct {
 TransferParameters transfer_params[] = {
     {1},
     {2},
-    {3},
     {4},
+    {8},
+    {16},
+    {32},
+    {64},
+    {128},
+    {256},
+    {512},
+    {1024},
+    {2048},
     {4096},
 };
 
