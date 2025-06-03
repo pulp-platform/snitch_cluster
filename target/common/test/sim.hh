@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "bootdata.h"
 #include "ipc.hh"
 
 namespace sim {

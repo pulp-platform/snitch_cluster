@@ -1,12 +1,13 @@
-// Copyright 2021 ETH Zurich and University of Bologna.
+// Copyright 2025 ETH Zurich and University of Bologna.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 
-#include <tb_lib.hh>
+#include "bootdata.h"
 
 namespace sim {
 
-const BootData BOOTDATA = {.boot_addr = ${hex(cfg['cluster']['boot_addr'])},
+// Allow other C sources to use BOOTDATA (ex. crt0s defined in other SDKs)
+extern "C" const BootData BOOTDATA = {.boot_addr = ${hex(cfg['cluster']['boot_addr'])},
                            .core_count = ${cfg['cluster']['nr_cores']},
                            .hartid_base = ${cfg['cluster']['cluster_base_hartid']},
                            .tcdm_start = ${hex(cfg['cluster']['cluster_base_addr'])},
