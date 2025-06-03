@@ -44,9 +44,9 @@ int main() {
     
     uint32_t src_start_addr, dst_start_addr, main_start_addr;
     
-    main_start_addr = (uint32_t) buffer;
-    src_start_addr  = (uint32_t) buffer_src;
-    dst_start_addr  = (uint32_t) buffer_dst;
+    main_start_addr = buffer;
+    src_start_addr  = buffer_src;
+    dst_start_addr  = buffer_dst;
     
     src_ptr  = (uint8_t *)   src_start_addr;
     main_ptr = (uint8_t *)  main_start_addr;

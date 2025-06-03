@@ -6,7 +6,7 @@
 
 
 #define MAX_BUFFER_SIZE 0x1000
-#define NB_TRANSFERS    5
+#define NB_TRANSFERS    7
 
 // Allocate a buffer in the main memory which we will use to copy data around
 // with the DMA.
@@ -20,10 +20,13 @@ typedef struct {
 } TransferParameters;
 
 TransferParameters transfer_params[] = {
+    {3, 3, 7, 19},
     {8, 9, 11, 15},
     {16, 18, 17, 6},
     {32, 36, 49, 8},
     {63, 79, 81, 2},
+    {123, 144, 185, 4},
+    {256, 100, 300, 2}
 };
 
 int main() {
@@ -38,9 +41,9 @@ int main() {
     
     uint32_t src_start_addr, dst_start_addr, main_start_addr;
     
-    main_start_addr = (uint32_t) buffer;
-    src_start_addr  = (uint32_t) buffer_src;
-    dst_start_addr  = (uint32_t) buffer_dst;
+    main_start_addr = buffer;
+    src_start_addr  = buffer_src;
+    dst_start_addr  = buffer_dst;
     
     src_ptr  = (uint8_t *)   src_start_addr;
     main_ptr = (uint8_t *)  main_start_addr;
