@@ -152,7 +152,7 @@ module snitch_cc #(
   // Observability register
   output logic [ObsWidth-1:0]        obs_o,
   // Multi accelerator MUX
-  output logic [ObsWidth-1:0]        multi_acc_mux_o,
+  output logic [31:0]                multi_acc_mux_o,
   // Cluster HW barrier
   input  logic                       snax_barrier_i,
   output logic                       barrier_o,

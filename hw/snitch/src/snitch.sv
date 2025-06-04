@@ -112,7 +112,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // Observability register
   output logic [ObsWidth-1:0] obs_o,
   // Multi accelerator MUX
-  output logic [ObsWidth-1:0] multi_acc_mux_o,
+  output logic [31:0]   multi_acc_mux_o,
   // Cluster SNAX HW barrier
   input  logic          snax_barrier_i,
   // Cluster HW barrier
