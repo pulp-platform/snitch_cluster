@@ -35,10 +35,6 @@ module mem_wide_narrow_mux #(
   parameter type mem_wide_req_t          = logic,
   /// Response type of wide inputs.
   parameter type mem_wide_rsp_t          = logic,
-  /// Request type of ext inputs.
-  parameter type mem_ext_req_t           = logic,
-  /// Response type of ext inputs.
-  parameter type mem_ext_rsp_t           = logic,
   /// Derived. *Do not override*
   /// Number of narrow inputs.
   parameter int unsigned NrPorts = WideDataWidth / NarrowDataWidth
@@ -53,8 +49,8 @@ module mem_wide_narrow_mux #(
   input  mem_wide_req_t                 in_wide_req_i,
   output mem_wide_rsp_t                 in_wide_rsp_o,
   /// External side.
-  input  mem_ext_req_t                  in_ext_req_i,
-  output mem_ext_rsp_t                  in_ext_rsp_o,
+  input  mem_wide_req_t                 in_ext_req_i,
+  output mem_wide_rsp_t                 in_ext_rsp_o,
   // Multiplexed output.
   output mem_narrow_req_t [NrPorts-1:0] out_req_o,
   input  mem_narrow_rsp_t [NrPorts-1:0] out_rsp_i

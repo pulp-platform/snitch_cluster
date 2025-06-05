@@ -195,8 +195,8 @@ module snitch_cluster
   parameter type         wide_in_req_t     = logic,
   parameter type         wide_in_resp_t    = logic,
   // TCDM Ports
-  parameter type         tcdm_ext_req_t    = logic,
-  parameter type         tcdm_ext_resp_t   = logic,
+  parameter type         tcdm_dma_req_t    = logic,
+  parameter type         tcdm_dma_rsp_t    = logic,
   // Memory configuration input types; these vary depending on implementation.
   parameter type         sram_cfg_t        = logic,
   parameter type         sram_cfgs_t       = logic,
@@ -273,8 +273,8 @@ module snitch_cluster
   output narrow_out_req_t               narrow_ext_req_o,
   input  narrow_out_resp_t              narrow_ext_resp_i,
   // External TCDM ports
-  input  tcdm_ext_req_t                 tcdm_ext_req_i,
-  output tcdm_ext_resp_t                tcdm_ext_resp_o
+  input  tcdm_dma_req_t                 tcdm_ext_req_i,
+  output tcdm_dma_rsp_t                 tcdm_ext_resp_o
 );
   // ---------
   // Constants
@@ -426,7 +426,6 @@ module snitch_cluster
   `MEM_TYPEDEF_ALL(mem_dma, tcdm_mem_addr_t, data_dma_t, strb_dma_t, logic)
 
   `TCDM_TYPEDEF_ALL(tcdm, tcdm_addr_t, data_t, strb_t, tcdm_user_t)
-  `TCDM_TYPEDEF_ALL(tcdm_dma, tcdm_addr_t, data_dma_t, strb_dma_t, logic)
 
   `REG_BUS_TYPEDEF_REQ(reg_req_t, addr_t, data_t, strb_t)
   `REG_BUS_TYPEDEF_RSP(reg_rsp_t, data_t)
@@ -813,8 +812,8 @@ module snitch_cluster
   snitch_tcdm_interconnect #(
     .NumInp (1),
     .NumOut (NrSuperBanks),
-    .tcdm_req_t (tcdm_ext_req_t),
-    .tcdm_rsp_t (tcdm_ext_resp_t),
+    .tcdm_req_t (tcdm_dma_req_t),
+    .tcdm_rsp_t (tcdm_dma_rsp_t),
     .mem_req_t (mem_dma_req_t),
     .mem_rsp_t (mem_dma_rsp_t),
     .user_t (logic),
@@ -844,9 +843,7 @@ module snitch_cluster
       .mem_narrow_req_t (mem_req_t),
       .mem_narrow_rsp_t (mem_rsp_t),
       .mem_wide_req_t (mem_dma_req_t),
-      .mem_wide_rsp_t (mem_dma_rsp_t),
-      .mem_ext_req_t (mem_dma_req_t),
-      .mem_ext_rsp_t (mem_dma_rsp_t)
+      .mem_wide_rsp_t (mem_dma_rsp_t)
     ) i_tcdm_mux (
       .clk_i,
       .rst_ni,
