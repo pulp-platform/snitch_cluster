@@ -194,8 +194,6 @@ module snitch_cluster
   parameter type         wide_out_resp_t   = logic,
   parameter type         wide_in_req_t     = logic,
   parameter type         wide_in_resp_t    = logic,
-  parameter type         narrow_ext_req_t  = logic,
-  parameter type         narrow_ext_resp_t = logic,
   // TCDM Ports
   parameter type         tcdm_ext_req_t    = logic,
   parameter type         tcdm_ext_resp_t   = logic,
@@ -267,8 +265,8 @@ module snitch_cluster
   input  wide_in_req_t                  wide_in_req_i,
   output wide_in_resp_t                 wide_in_resp_o,
   // External AXI narrow ports
-  output narrow_ext_req_t               narrow_ext_req_o,
-  input  narrow_ext_resp_t              narrow_ext_resp_i,
+  output narrow_out_req_t               narrow_ext_req_o,
+  input  narrow_out_resp_t              narrow_ext_resp_i,
   // External TCDM ports
   input  tcdm_ext_req_t                 tcdm_ext_req_i,
   output tcdm_ext_resp_t                tcdm_ext_resp_o

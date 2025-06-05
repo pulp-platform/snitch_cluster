@@ -84,8 +84,6 @@ module ${cfg['cluster']['name']}_wrapper (
     .wide_out_resp_t (${cfg['cluster']['name']}_pkg::wide_out_resp_t),
     .wide_in_req_t (${cfg['cluster']['name']}_pkg::wide_in_req_t),
     .wide_in_resp_t (${cfg['cluster']['name']}_pkg::wide_in_resp_t),
-    .narrow_ext_req_t (${cfg['cluster']['name']}_pkg::narrow_out_req_t),
-    .narrow_ext_resp_t (${cfg['cluster']['name']}_pkg::narrow_out_resp_t),
     .tcdm_ext_req_t (${cfg['cluster']['name']}_pkg::tcdm_dma_req_t),
     .tcdm_ext_resp_t (${cfg['cluster']['name']}_pkg::tcdm_dma_rsp_t),
     .NrHives (${cfg['cluster']['nr_hives']}),
