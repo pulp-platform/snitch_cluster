@@ -97,7 +97,6 @@ package ${cfg['cluster']['name']}_pkg;
   `AXI_TYPEDEF_ALL(narrow_out, addr_t, narrow_out_id_t, data_t, strb_t, user_t)
   `AXI_TYPEDEF_ALL(wide_in, addr_t, wide_in_id_t, data_dma_t, strb_dma_t, user_dma_t)
   `AXI_TYPEDEF_ALL(wide_out, addr_t, wide_out_id_t, data_dma_t, strb_dma_t, user_dma_t)
-  `AXI_TYPEDEF_ALL(narrow_ext, addr_t, narrow_out_id_t, data_t, strb_t, user_t)
 
   typedef logic [TcdmAddrWidth-1:0]     tcdm_addr_t;
   typedef logic [WideDataWidth-1:0]     data_ext_t;

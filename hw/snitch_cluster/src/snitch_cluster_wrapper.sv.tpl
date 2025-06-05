@@ -48,8 +48,8 @@ module ${cfg['cluster']['name']}_wrapper (
   input  ${cfg['cluster']['name']}_pkg::wide_out_resp_t     wide_out_resp_i,
   input  ${cfg['cluster']['name']}_pkg::wide_in_req_t       wide_in_req_i,
   output ${cfg['cluster']['name']}_pkg::wide_in_resp_t      wide_in_resp_o,
-  output ${cfg['cluster']['name']}_pkg::narrow_ext_req_t    narrow_ext_req_o,
-  input  ${cfg['cluster']['name']}_pkg::narrow_ext_resp_t   narrow_ext_resp_i,
+  output ${cfg['cluster']['name']}_pkg::narrow_out_req_t    narrow_ext_req_o,
+  input  ${cfg['cluster']['name']}_pkg::narrow_out_resp_t   narrow_ext_resp_i,
   input  ${cfg['cluster']['name']}_pkg::tcdm_ext_req_t      tcdm_ext_req_i,
   output ${cfg['cluster']['name']}_pkg::tcdm_ext_rsp_t      tcdm_ext_resp_o
 );
@@ -84,8 +84,8 @@ module ${cfg['cluster']['name']}_wrapper (
     .wide_out_resp_t (${cfg['cluster']['name']}_pkg::wide_out_resp_t),
     .wide_in_req_t (${cfg['cluster']['name']}_pkg::wide_in_req_t),
     .wide_in_resp_t (${cfg['cluster']['name']}_pkg::wide_in_resp_t),
-    .narrow_ext_req_t (${cfg['cluster']['name']}_pkg::narrow_ext_req_t),
-    .narrow_ext_resp_t (${cfg['cluster']['name']}_pkg::narrow_ext_resp_t),
+    .narrow_ext_req_t (${cfg['cluster']['name']}_pkg::narrow_out_req_t),
+    .narrow_ext_resp_t (${cfg['cluster']['name']}_pkg::narrow_out_resp_t),
     .tcdm_ext_req_t (${cfg['cluster']['name']}_pkg::tcdm_ext_req_t),
     .tcdm_ext_resp_t (${cfg['cluster']['name']}_pkg::tcdm_ext_rsp_t),
     .NrHives (${cfg['cluster']['nr_hives']}),
@@ -199,7 +199,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .narrow_ext_resp_i ( narrow_ext_resp_i ),
 % else:
     .narrow_ext_req_o (),
-    .narrow_ext_resp_i (${cfg['cluster']['name']}_pkg::narrow_ext_resp_t'('0)),
+    .narrow_ext_resp_i (${cfg['cluster']['name']}_pkg::narrow_out_resp_t'('0)),
 %endif
 % if cfg['cluster']['wide_tcdm_port_expose']:
     .tcdm_ext_req_i ( tcdm_ext_req_i ),

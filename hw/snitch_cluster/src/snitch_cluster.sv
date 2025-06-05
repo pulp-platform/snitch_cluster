@@ -389,8 +389,6 @@ module snitch_cluster
   typedef logic [NarrowDataWidth/8-1:0] strb_t;
   typedef logic [WideDataWidth-1:0]     data_dma_t;
   typedef logic [WideDataWidth/8-1:0]   strb_dma_t;
-  typedef logic [WideDataWidth-1:0]     data_ext_t;
-  typedef logic [WideDataWidth/8-1:0]   strb_ext_t;
   typedef logic [NarrowIdWidthIn-1:0]   id_mst_t;
   typedef logic [NarrowIdWidthOut-1:0]  id_slv_t;
   typedef logic [WideIdWidthIn-1:0]     id_dma_mst_t;
@@ -418,7 +416,6 @@ module snitch_cluster
 
   `MEM_TYPEDEF_ALL(mem, tcdm_mem_addr_t, data_t, strb_t, tcdm_user_t)
   `MEM_TYPEDEF_ALL(mem_dma, tcdm_mem_addr_t, data_dma_t, strb_dma_t, logic)
-  `MEM_TYPEDEF_ALL(mem_ext, tcdm_mem_addr_t, data_ext_t, strb_ext_t, logic)
 
   `TCDM_TYPEDEF_ALL(tcdm, tcdm_addr_t, data_t, strb_t, tcdm_user_t)
   `TCDM_TYPEDEF_ALL(tcdm_dma, tcdm_addr_t, data_dma_t, strb_dma_t, logic)
@@ -566,8 +563,8 @@ module snitch_cluster
   mem_dma_req_t [NrSuperBanks-1:0] sb_dma_req;
   mem_dma_rsp_t [NrSuperBanks-1:0] sb_dma_rsp;
 
-  mem_ext_req_t [NrSuperBanks-1:0] sb_ext_req;
-  mem_ext_rsp_t [NrSuperBanks-1:0] sb_ext_rsp;
+  mem_dma_req_t [NrSuperBanks-1:0] sb_ext_req;
+  mem_dma_rsp_t [NrSuperBanks-1:0] sb_ext_rsp;
 
   // 3. Memory Subsystem (Interconnect)
   tcdm_dma_req_t ext_dma_req;
@@ -810,8 +807,8 @@ module snitch_cluster
     .NumOut (NrSuperBanks),
     .tcdm_req_t (tcdm_ext_req_t),
     .tcdm_rsp_t (tcdm_ext_resp_t),
-    .mem_req_t (mem_ext_req_t),
-    .mem_rsp_t (mem_ext_rsp_t),
+    .mem_req_t (mem_dma_req_t),
+    .mem_rsp_t (mem_dma_rsp_t),
     .user_t (logic),
     .MemAddrWidth (TCDMMemAddrWidth),
     .DataWidth (WideDataWidth),
@@ -840,8 +837,8 @@ module snitch_cluster
       .mem_narrow_rsp_t (mem_rsp_t),
       .mem_wide_req_t (mem_dma_req_t),
       .mem_wide_rsp_t (mem_dma_rsp_t),
-      .mem_ext_req_t (mem_ext_req_t),
-      .mem_ext_rsp_t (mem_ext_rsp_t)
+      .mem_ext_req_t (mem_dma_req_t),
+      .mem_ext_rsp_t (mem_dma_rsp_t)
     ) i_tcdm_mux (
       .clk_i,
       .rst_ni,
