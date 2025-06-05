@@ -52,7 +52,7 @@ module snitch_cluster
   /// Zero memory address region size (in kB).
   parameter int unsigned ZeroMemorySize     = 64,
   /// External memory address region size (in kB). This is the address region
-  /// mapped to the `narrow_exp` port.
+  /// mapped to the `narrow_ext` port.
   parameter int unsigned ExtMemorySize      = 1,
   /// Bootrom memory address region size (in kB).
   parameter int unsigned BootRomSize        = 4,
@@ -164,7 +164,7 @@ module snitch_cluster
   parameter bit          RegisterExtWide    = 1'b0,
   /// Decouple narrow external AXI plug
   parameter bit          RegisterExtNarrow  = 1'b0,
-  // Decouple narrow exposed AXI plug
+  // Decouple narrow exposed internal AXI plug
   parameter bit          RegisterExpNarrow  = 1'b0,
   /// Insert Pipeline register into the FPU data path (request)
   parameter bit          RegisterFPUReq     = 1'b0,
@@ -264,7 +264,12 @@ module snitch_cluster
   /// AXI DMA cluster in-port.
   input  wide_in_req_t                  wide_in_req_i,
   output wide_in_resp_t                 wide_in_resp_o,
-  // External AXI narrow ports
+  // An additional AXI Core cluster out-port, used e.g. to connect
+  // to the configuration interface of an external accelerator.
+  // Compared to the `narrow_out` interface, the address space of
+  // this port extends the cluster address space. We refer to the prior
+  // as an external AXI plug, and to this as an externally-exposed
+  // internal AXI plug.
   output narrow_out_req_t               narrow_ext_req_o,
   input  narrow_out_resp_t              narrow_ext_resp_i,
   // External TCDM ports
@@ -1258,7 +1263,7 @@ module snitch_cluster
       end_addr:   cluster_periph_end_address
     },
     '{
-      idx:        Ext,
+      idx:        ExtSlave,
       start_addr: ext_mem_start_address,
       end_addr:   ext_mem_end_address
     }
@@ -1276,7 +1281,7 @@ module snitch_cluster
         end_addr:   PeriphAliasEnd
       },
       '{
-        idx:        Ext,
+        idx:        ExtSlave,
         start_addr: ExtAliasStart,
         end_addr:   ExtAliasEnd
       }
@@ -1444,7 +1449,7 @@ module snitch_cluster
     .icache_events_i (icache_events)
   );
 
-  // Optionally decouple the narrow AXI master ports of the external port
+  // Optionally decouple the externally-exposed internal AXI plug.
   axi_cut #(
     .Bypass     ( !RegisterExpNarrow ),
     .aw_chan_t  ( axi_slv_aw_chan_t  ),
@@ -1454,16 +1459,16 @@ module snitch_cluster
     .r_chan_t   ( axi_slv_r_chan_t   ),
     .axi_req_t  ( axi_slv_req_t      ),
     .axi_resp_t ( axi_slv_resp_t     )
-  ) i_axi_cut_ext_mst (
-    .clk_i      ( clk_i                   ),
-    .rst_ni     ( rst_ni                  ),
-    .slv_req_i  ( narrow_axi_slv_req[Ext] ),
-    .slv_resp_o ( narrow_axi_slv_rsp[Ext] ),
-    .mst_req_o  ( narrow_ext_req_o        ),
-    .mst_resp_i ( narrow_ext_resp_i       )
+  ) i_cut_exp_narrow_mst (
+    .clk_i      ( clk_i                        ),
+    .rst_ni     ( rst_ni                       ),
+    .slv_req_i  ( narrow_axi_slv_req[ExtSlave] ),
+    .slv_resp_o ( narrow_axi_slv_rsp[ExtSlave] ),
+    .mst_req_o  ( narrow_ext_req_o             ),
+    .mst_resp_i ( narrow_ext_resp_i            )
   );
 
-  // Optionally decouple the external narrow AXI master ports.
+  // Optionally decouple the external AXI plug.
   axi_cut #(
     .Bypass     ( !RegisterExtNarrow ),
     .aw_chan_t  ( axi_slv_aw_chan_t ),
