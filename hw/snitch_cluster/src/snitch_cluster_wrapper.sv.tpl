@@ -193,21 +193,21 @@ module ${cfg['cluster']['name']}_wrapper (
     .sram_cfgs_i (sram_cfgs_i),
 % else:
     .sram_cfgs_i (${cfg['cluster']['name']}_pkg::sram_cfgs_t'('0)),
-%endif
+% endif
 % if cfg['cluster']['narrow_axi_port_expose']:
     .narrow_ext_req_o ( narrow_ext_req_o ),
     .narrow_ext_resp_i ( narrow_ext_resp_i ),
 % else:
     .narrow_ext_req_o (),
     .narrow_ext_resp_i (${cfg['cluster']['name']}_pkg::narrow_out_resp_t'('0)),
-%endif
+% endif
 % if cfg['cluster']['wide_tcdm_port_expose']:
     .tcdm_ext_req_i ( tcdm_ext_req_i ),
     .tcdm_ext_resp_o ( tcdm_ext_resp_o ),
 % else:
     .tcdm_ext_req_i (${cfg['cluster']['name']}_pkg::tcdm_dma_req_t'('0)),
     .tcdm_ext_resp_o (),
-%endif
+% endif
     .narrow_in_req_i,
     .narrow_in_resp_o,
     .narrow_out_req_o,
