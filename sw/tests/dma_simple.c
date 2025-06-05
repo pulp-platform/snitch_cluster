@@ -27,10 +27,11 @@ int main() {
     // Check that the main memory buffer contains the correct data.
     for (uint32_t i = 0; i < 32; i++) {
         if (buffer_src[i] != buffer[i]) {
-            printf ("ERROR: buffer_src[%d]: %8x @%8x vs buffer[%d]: %8x @%8x \n", i, buffer_src[i], &buffer_src[i], i, buffer[i], &buffer[i]);
-                errors += (buffer_src[i] != buffer[i]);
-            }
+            printf("ERROR: buffer_src[%d]: %8x @%8x vs buffer[%d]: %8x @%8x \n",
+                   i, buffer_src[i], &buffer_src[i], i, buffer[i], &buffer[i]);
+            errors += (buffer_src[i] != buffer[i]);
         }
+    }
 
     // Copy data to L1.
     snrt_dma_start_1d(buffer_dst, buffer, sizeof(buffer));
@@ -39,9 +40,13 @@ int main() {
     // Check that the L1 buffer contains the correct data.
     for (uint32_t i = 0; i < 32; i++) {
         if (buffer_src[i] != buffer_dst[i]) {
-            printf ("ERROR: buffer_src[%d]: %8x @%8x vs buffer_dst[%d]: %8x @%8x \n", i, buffer_src[i], &buffer_src[i], i, buffer_dst[i], &buffer_dst[i]);
-                errors += (buffer_src[i] != buffer_dst[i]);
-            }
+            printf(
+                "ERROR: buffer_src[%d]: %8x @%8x vs buffer_dst[%d]: %8x @%8x "
+                "\n",
+                i, buffer_src[i], &buffer_src[i], i, buffer_dst[i],
+                &buffer_dst[i]);
+            errors += (buffer_src[i] != buffer_dst[i]);
         }
+    }
     return errors;
 }

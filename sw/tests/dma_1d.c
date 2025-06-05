@@ -4,33 +4,20 @@
 
 #include <snrt.h>
 
-
 #define MAX_BUFFER_SIZE 0x1000
-#define NB_TRANSFERS    14
+#define NB_TRANSFERS 14
 
 // Allocate a buffer in the main memory which we will use to copy data around
 // with the DMA.
 uint32_t buffer[MAX_BUFFER_SIZE];
 
 typedef struct {
-  unsigned int nb_words;
+    unsigned int nb_words;
 } TransferParameters;
 
 TransferParameters transfer_params[] = {
-    {1},
-    {2},
-    {3},
-    {4},
-    {8},
-    {16},
-    {32},
-    {64},
-    {128},
-    {256},
-    {512},
-    {1024},
-    {2048},
-    {4096},
+    {1},  {2},   {3},   {4},   {8},    {16},   {32},
+    {64}, {128}, {256}, {512}, {1024}, {2048}, {4096},
 };
 
 int main() {
@@ -42,39 +29,39 @@ int main() {
     uint32_t buffer_dst[MAX_BUFFER_SIZE];
 
     uint8_t *src_ptr, *main_ptr, *dst_ptr;
-    
+
     uint32_t src_start_addr, dst_start_addr, main_start_addr;
-    
+
     main_start_addr = buffer;
-    src_start_addr  = buffer_src;
-    dst_start_addr  = buffer_dst;
-    
-    src_ptr  = (uint8_t *)   src_start_addr;
-    main_ptr = (uint8_t *)  main_start_addr;
-    dst_ptr  = (uint8_t *)   dst_start_addr;
-    
+    src_start_addr = buffer_src;
+    dst_start_addr = buffer_dst;
+
+    src_ptr = (uint8_t *)src_start_addr;
+    main_ptr = (uint8_t *)main_start_addr;
+    dst_ptr = (uint8_t *)dst_start_addr;
+
     snrt_dma_txid_t id;
 
-    printf ("Main_start: %8x | Src_start: %8x | Dst_start: %8x \n", main_start_addr, src_start_addr, dst_start_addr);
+    printf("Main_start: %8x | Src_start: %8x | Dst_start: %8x \n",
+           main_start_addr, src_start_addr, dst_start_addr);
 
-    for (int k = 0; k < NB_TRANSFERS; k ++) {
+    for (int k = 0; k < NB_TRANSFERS; k++) {
+        printf("Start transfer #%d \n", k);
 
-        printf ("Start transfer #%d \n", k);
-
-        nb_bytes    = transfer_params[k].nb_words;
+        nb_bytes = transfer_params[k].nb_words;
 
         // Fill source buffer
-        for (int i = 0; i < nb_bytes; i++){
+        for (int i = 0; i < nb_bytes; i++) {
             src_ptr[i] = (uint8_t)(i & 0xFF);
         }
 
-        // Fill main memory buffer    
-        for (int i = 0; i < nb_bytes; i++){
-            main_ptr[i] = (uint8_t)((i+1) & 0xFF);
+        // Fill main memory buffer
+        for (int i = 0; i < nb_bytes; i++) {
+            main_ptr[i] = (uint8_t)((i + 1) & 0xFF);
         }
         // Fill destination buffer
-        for (int i = 0; i < nb_bytes; i++){
-            dst_ptr[i] = (uint8_t)((i+1) & 0xFF);
+        for (int i = 0; i < nb_bytes; i++) {
+            dst_ptr[i] = (uint8_t)((i + 1) & 0xFF);
         }
 
         // Launch transfer source -> main memory
@@ -82,14 +69,17 @@ int main() {
         snrt_dma_wait(id);
 
         // Check the results of source -> main memory
-    
+
         for (unsigned int i = 0; i < nb_bytes; i++) {
             uint8_t expected = src_ptr[i];
-            uint8_t actual  = main_ptr[i];
+            uint8_t actual = main_ptr[i];
 
             if (expected != actual) {
                 errors++;
-                printf ("ERROR: expected[%d] @%8x = %8x vs actual[%d] @%8x = %8x \n", i, &src_ptr[i], expected, i, &dst_ptr[i], actual);
+                printf(
+                    "ERROR: expected[%d] @%8x = %8x vs actual[%d] @%8x = %8x "
+                    "\n",
+                    i, &src_ptr[i], expected, i, &dst_ptr[i], actual);
             }
         }
 
@@ -100,11 +90,14 @@ int main() {
         // Check the results of main memory -> dst
         for (unsigned int i = 0; i < nb_bytes; i++) {
             uint8_t expected = main_ptr[i];
-            uint8_t actual   = dst_ptr[i];
+            uint8_t actual = dst_ptr[i];
 
             if (expected != actual) {
                 errors++;
-                printf ("ERROR: expected[%d] @%8x = %8x vs actual[%d] @%8x = %8x \n", i, &src_ptr[i], expected, i, &dst_ptr[i], actual);
+                printf(
+                    "ERROR: expected[%d] @%8x = %8x vs actual[%d] @%8x = %8x "
+                    "\n",
+                    i, &src_ptr[i], expected, i, &dst_ptr[i], actual);
             }
         }
     }
