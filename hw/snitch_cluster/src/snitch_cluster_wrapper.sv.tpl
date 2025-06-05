@@ -175,7 +175,7 @@ module ${cfg['cluster']['name']}_wrapper (
 % if cfg['cluster']['enable_external_interrupts']:
     .mxip_i,
 % else:
-    .mxip_i (1'b0),
+    .mxip_i ('0),
 % endif
 % if cfg['cluster']['cluster_base_expose']:
     .hart_base_id_i,
