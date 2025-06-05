@@ -170,10 +170,9 @@ module mem_wide_narrow_mux_intf #(
   /// Narrow side.
   MEM_BUS      in_narrow [NrPorts],
   MEM_BUS      in_wide,
+  MEM_BUS      in_ext,
   // Output
-  MEM_BUS      out [NrPorts],
-  /// `0`: Use narrow port, `1`: Use wide port
-  input  logic sel_wide_i
+  MEM_BUS      out [NrPorts]
 );
 
   typedef logic [AddrWidth-1:0] addr_t;
@@ -189,6 +188,8 @@ module mem_wide_narrow_mux_intf #(
   mem_narrow_rsp_t [NrPorts-1:0] in_narrow_rsp;
   mem_wide_req_t in_wide_req;
   mem_wide_rsp_t in_wide_rsp;
+  mem_wide_req_t in_ext_req;
+  mem_wide_rsp_t in_ext_rsp;
 
   mem_narrow_req_t [NrPorts-1:0] out_req;
   mem_narrow_rsp_t [NrPorts-1:0] out_rsp;
@@ -209,9 +210,10 @@ module mem_wide_narrow_mux_intf #(
     .in_narrow_rsp_o (in_narrow_rsp),
     .in_wide_req_i (in_wide_req),
     .in_wide_rsp_o (in_wide_rsp),
+    .in_ext_req_i (in_ext_req),
+    .in_ext_rsp_o (in_ext_rsp),
     .out_req_o (out_req),
-    .out_rsp_i (out_rsp),
-    .sel_wide_i (sel_wide_i)
+    .out_rsp_i (out_rsp)
   );
 
   for (genvar i = 0; i < NrPorts; i++) begin : gen_interface_assign
@@ -223,5 +225,8 @@ module mem_wide_narrow_mux_intf #(
 
   `MEM_ASSIGN_TO_REQ(in_wide_req, in_wide)
   `MEM_ASSIGN_FROM_RESP(in_wide, in_wide_rsp)
+
+  `MEM_ASSIGN_TO_REQ(in_ext_req, in_ext)
+  `MEM_ASSIGN_FROM_RESP(in_ext, in_ext_rsp)
 
 endmodule
