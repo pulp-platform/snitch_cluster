@@ -161,6 +161,8 @@ module snitch_cluster
   parameter bit          RegisterExtWide    = 1'b0,
   /// Decouple narrow external AXI plug
   parameter bit          RegisterExtNarrow  = 1'b0,
+  // Decouple narrow exposed AXI plug
+  parameter bit          RegisterExpNarrow  = 1'b0,
   /// Insert Pipeline register into the FPU data path (request)
   parameter bit          RegisterFPUReq     = 1'b0,
   /// Insert Pipeline registers after sequencer
@@ -1441,17 +1443,17 @@ module snitch_cluster
     .icache_events_i (icache_events)
   );
 
-  // Decouple the narrow AXI master ports of the external port
+  // Optionally decouple the narrow AXI master ports of the external port
   axi_cut #(
-    .Bypass     ( 1'b0              ),
-    .aw_chan_t  ( axi_slv_aw_chan_t ),
-    .w_chan_t   ( axi_slv_w_chan_t  ),
-    .b_chan_t   ( axi_slv_b_chan_t  ),
-    .ar_chan_t  ( axi_slv_ar_chan_t ),
-    .r_chan_t   ( axi_slv_r_chan_t  ),
-    .axi_req_t  ( axi_slv_req_t     ),
-    .axi_resp_t ( axi_slv_resp_t    )
-  ) i_axi_cut_hwpe_mst (
+    .Bypass     ( !RegisterExpNarrow ),
+    .aw_chan_t  ( axi_slv_aw_chan_t  ),
+    .w_chan_t   ( axi_slv_w_chan_t   ),
+    .b_chan_t   ( axi_slv_b_chan_t   ),
+    .ar_chan_t  ( axi_slv_ar_chan_t  ),
+    .r_chan_t   ( axi_slv_r_chan_t   ),
+    .axi_req_t  ( axi_slv_req_t      ),
+    .axi_resp_t ( axi_slv_resp_t     )
+  ) i_axi_cut_ext_mst (
     .clk_i      ( clk_i                   ),
     .rst_ni     ( rst_ni                  ),
     .slv_req_i  ( narrow_axi_slv_req[Ext] ),

@@ -143,6 +143,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .RegisterTCDMCuts (${int(cfg['cluster']['timing']['register_tcdm_cuts'])}),
     .RegisterExtWide (${int(cfg['cluster']['timing']['register_ext_wide'])}),
     .RegisterExtNarrow (${int(cfg['cluster']['timing']['register_ext_narrow'])}),
+    .RegisterExpNarrow (${int(cfg['cluster']['timing']['register_exp_narrow'])}),
     .RegisterFPUReq (${int(cfg['cluster']['timing']['register_fpu_req'])}),
     .RegisterFPUIn (${int(cfg['cluster']['timing']['register_fpu_in'])}),
     .RegisterFPUOut (${int(cfg['cluster']['timing']['register_fpu_out'])}),

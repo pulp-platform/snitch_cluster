@@ -323,6 +323,11 @@
                             "description": "Decouple narrow external AXI plug.",
                             "default": false
                         },
+                        "register_exp_narrow": {
+                            "type": "boolean",
+                            "description": "Decouple narrow exposed AXI plug.",
+                            "default": false
+                        },
                         "register_sequencer": {
                             "type": "boolean",
                             "description": "Insert Pipeline registers after sequencer.",
