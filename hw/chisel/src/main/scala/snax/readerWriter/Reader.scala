@@ -64,6 +64,10 @@ class Reader(param: ReaderWriterParam, moduleNamePrefix: String = "unnamed_clust
   addressgen.io.cfg   := io.aguCfg
   addressgen.io.start := io.start
 
+  when(io.aguCfg.temporalStrides(0) === 0.U) {
+    addressgen.io.cfg.temporalBounds(0) := 1.U
+  }
+
   // addrgen <> requestors
   requestors.io.zip(addressgen.io.addr).foreach {
     case (requestor, addrgen) => {
@@ -122,10 +126,24 @@ class Reader(param: ReaderWriterParam, moduleNamePrefix: String = "unnamed_clust
   }
   responsers.io.foreach(_.out.dataFifoPopped := dataBuffer.io.out.head.fire)
 
+  // repeat handshake module
+  val outputDataRepeat = Module(
+    new HandShakeRepeater(
+      gen              = UInt((param.tcdmParam.dataWidth * param.tcdmParam.numChannel).W),
+      counterWidth     = param.aguParam.addressWidth,
+      moduleNamePrefix = s"${moduleNamePrefix}"
+    ) {
+      override val desiredName = s"${moduleNamePrefix}_Reader_RepeatHandshake"
+    }
+  )
+  outputDataRepeat.io.out <> io.data
+  outputDataRepeat.io.repeat_times := Mux(io.aguCfg.temporalStrides(0) === 0.U, io.aguCfg.temporalBounds(0), 1.U)
+  outputDataRepeat.io.start := io.start
+
   // DataBuffer <> Output
   if (param.crossClockDomain == false) {
     // Condition 1: When there is no clock crossing
-    dataBuffer.io.out.head <> io.data
+    dataBuffer.io.out.head <> outputDataRepeat.io.in
   } else {
     // Condition 2: When there is clock crossing
     val clockDomainCrosser = Module(
@@ -137,7 +155,7 @@ class Reader(param: ReaderWriterParam, moduleNamePrefix: String = "unnamed_clust
     clockDomainCrosser.io.enq.clock := clock
     clockDomainCrosser.io.deq.clock := io.accClock.get
     dataBuffer.io.out.head <> clockDomainCrosser.io.enq.data
-    io.data <> clockDomainCrosser.io.deq.data
+    outputDataRepeat.io.in <> clockDomainCrosser.io.deq.data
   }
   // Busy Signal
   io.busy := addressgen.io.busy | (~addressgen.io.bufferEmpty)

@@ -37,7 +37,7 @@ class DataCut[T <: Data](gen: T, delay: Int) extends Module {
   // shiftSuggestion is true when dataInsideShiftRegister is true or input.valid is true
   shiftSuggestion := dataInsideShiftRegister || io.in.valid
 
-  // When the counter is abbout to overflow, data does not inside the shift register
+  // When the counter is about to overflow, data does not inside the shift register
   val insideCounter = Counter(0 to delay, shift, io.in.valid)
   dataInsideShiftRegister := insideCounter._1 =/= delay.U
 }

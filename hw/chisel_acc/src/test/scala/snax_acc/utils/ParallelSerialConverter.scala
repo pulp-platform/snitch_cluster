@@ -14,6 +14,8 @@ class ParallelToSerialTest extends AnyFlatSpec with ChiselScalatestTester {
     test(
       new ParallelToSerial(ParallelToSerialParams(parallelWidth, serialWidth))
     ).withAnnotations(Seq(WriteVcdAnnotation)) { dut =>
+
+      dut.io.enable.poke(true.B) // Enable the module
       // The factor is 16 / 4 = 4, so each parallel input will yield 4 serial outputs.
       dut.io.in.initSource()
       dut.io.out.initSink()
@@ -98,6 +100,8 @@ class SerialToParallelSpec extends AnyFlatSpec with ChiselScalatestTester with M
       // Prepare for the test
       dut.io.out.ready.poke(true.B) // Always ready to consume parallel output
       dut.clock.step()
+
+      dut.io.enable.poke(true.B) // Enable the module
 
       // Example data to send (4 byte values)
       var testData = Seq(0xab.U, 0xcd.U, 0x12.U, 0x34.U)

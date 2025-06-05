@@ -5,29 +5,12 @@ import chisel3._
 import chiseltest._
 import chiseltest.internal.TesterThreadList
 import org.scalatest.flatspec.AnyFlatSpec
+import snax_acc.utils.CommonTestUtils.WaitOrTimeout
 import snax_acc.utils.MatrixLibBase.CheckResults
 import snax_acc.utils.MatrixLibBlock._
 
 /** A trait with basic gemm test function to be used in different test */
 trait AbstractBlockGemmTest {
-
-  /** Step the clock until the given signal asserts, or stop after timeout
-    * @param signal
-    *   Signal to wait for until it is asserted
-    * @param timeout
-    *   Assert after this number of cycles
-    */
-  def WaitOrTimeout(signalToAssert: Bool, clock: Clock, timeout: Int = 100) = {
-    var waitCnt = 0
-    while (!signalToAssert.peekBoolean()) {
-      if (waitCnt > timeout) {
-        println(s"Timeout at cycle ${clock.getStepCount} for signal ${signalToAssert}")
-        assert(false)
-      }
-      clock.step(1)
-      waitCnt += 1
-    }
-  }
 
   /** Block gemm test generation function */
   def BlockGemmRandomTest[T <: BlockGemmDelayedWrapper](dut: T, size_M: Int, size_K: Int, size_N: Int) = {

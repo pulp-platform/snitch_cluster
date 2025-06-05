@@ -11,8 +11,9 @@ import chisel3.util._
   *   The width of each output serial chunk, must divide parallelWidth evenly.
   */
 case class ParallelToSerialParams(
-  parallelWidth: Int,
-  serialWidth:   Int
+  parallelWidth:  Int,
+  serialWidth:    Int,
+  earlyTerminate: Boolean = false
 ) {
   if (parallelWidth > serialWidth) {
     require(
@@ -27,13 +28,23 @@ case class ParallelToSerialParams(
   */
 class ParallelToSerial(val p: ParallelToSerialParams) extends Module {
   val io = IO(new Bundle {
-    val in  = Flipped(Decoupled(UInt(p.parallelWidth.W)))
-    val out = Decoupled(UInt(p.serialWidth.W))
+    val in               = Flipped(Decoupled(UInt(p.parallelWidth.W)))
+    val terminate_factor =
+      if (p.earlyTerminate) Some(Input(UInt(log2Ceil(p.parallelWidth / p.serialWidth + 1).W))) else None
+    val out              = Decoupled(UInt(p.serialWidth.W))
+    val enable           = Input(Bool())
   })
 
   if (p.parallelWidth > p.serialWidth) {
     // Calculate how many serial chunks form one parallel word.
     val factor = p.parallelWidth / p.serialWidth
+
+    if (p.earlyTerminate) {
+      assert(
+        io.terminate_factor.getOrElse(factor.U) <= factor.U,
+        "terminate_factor must be less than or equal to the number of chunks."
+      )
+    }
 
     // Shift register to hold the parallel data while serializing.
     if (p.parallelWidth <= 2048) {} else {
@@ -51,7 +62,7 @@ class ParallelToSerial(val p: ParallelToSerialParams) extends Module {
     val count = RegInit(0.U(log2Ceil(factor + 1).W))
 
     // Accept a new parallel word only if we have nothing left to send.
-    io.in.ready := (count === 0.U)
+    io.in.ready := (count === 0.U) && io.enable
 
     // Once we get a new parallel word, store it and prepare to send.
     // store in the vector of regs
@@ -88,7 +99,11 @@ class ParallelToSerial(val p: ParallelToSerialParams) extends Module {
 
     // On handshake, shift to the next chunk and decrement count.
     when(io.in.fire) {
-      count := factor.U
+      if (p.earlyTerminate) {
+        count := io.terminate_factor.getOrElse(factor.U)
+      } else {
+        count := factor.U
+      }
     }.elsewhen(io.out.fire) {
       count := count - 1.U
     }
@@ -100,7 +115,7 @@ class ParallelToSerial(val p: ParallelToSerialParams) extends Module {
   } else {
     io.out.valid := io.in.valid
     io.out.bits  := io.in.bits
-    io.in.ready  := io.out.ready
+    io.in.ready  := io.out.ready && io.enable
   }
 
 }
@@ -113,8 +128,9 @@ class ParallelToSerial(val p: ParallelToSerialParams) extends Module {
   *   The total width of the parallel output data. Must be a multiple of serialWidth.
   */
 case class SerialToParallelParams(
-  serialWidth:   Int,
-  parallelWidth: Int
+  serialWidth:    Int,
+  parallelWidth:  Int,
+  earlyTerminate: Boolean = false
 ) {
   if (parallelWidth > serialWidth) {
     require(
@@ -132,20 +148,34 @@ case class SerialToParallelParams(
   */
 class SerialToParallel(val p: SerialToParallelParams) extends Module {
   val io = IO(new Bundle {
-    val in  = Flipped(Decoupled(UInt(p.serialWidth.W)))
-    val out = Decoupled(UInt(p.parallelWidth.W))
+    val in               = Flipped(Decoupled(UInt(p.serialWidth.W)))
+    val terminate_factor =
+      if (p.earlyTerminate) Some(Input(UInt(log2Ceil(p.parallelWidth / p.serialWidth + 1).W))) else None
+    val out              = Decoupled(UInt(p.parallelWidth.W))
+    val enable           = Input(Bool())
   })
 
   if (p.parallelWidth > p.serialWidth) {
     // Number of input chunks required to form one parallel output
     val factor: Int = p.parallelWidth / p.serialWidth
 
+    if (p.earlyTerminate) {
+      assert(
+        io.terminate_factor.getOrElse(factor.U) <= factor.U,
+        "terminate_factor must be less than or equal to the number of chunks."
+      )
+    }
+
     // Registers to track incoming data and chunk count
     val numRegs  = math.max(1, p.parallelWidth / 2048) // Number of registers
     val shiftReg = RegInit(VecInit(Seq.fill(numRegs)(0.U(2048.W))))
     val count    = RegInit(0.U(log2Ceil(factor + 1).W))
 
-    io.in.ready := count =/= factor.U
+    if (p.earlyTerminate) {
+      io.in.ready := count =/= io.terminate_factor.getOrElse(factor.U) && io.enable
+    } else {
+      io.in.ready := count =/= factor.U && io.enable
+    }
 
     when(io.in.fire && count === 0.U) {
       // If we're at the first chunk, reset the shift register
@@ -176,18 +206,36 @@ class SerialToParallel(val p: SerialToParallelParams) extends Module {
       count := count + 1.U
     }
 
-    io.out.valid := count === factor.U
-
-    // Concatenate the shift register contents to form the parallel output
-    if (p.parallelWidth <= 2048) {
-      io.out.bits := shiftReg(0)(2047, 2047 - p.parallelWidth + 1)
+    if (p.earlyTerminate) {
+      io.out.valid := count === io.terminate_factor.getOrElse(factor.U)
     } else {
-      io.out.bits := Cat(shiftReg.reverse)
+      io.out.valid := count === factor.U
     }
 
+    // Concatenate the shift register contents to form the parallel output
+    val effectiveBits = io.terminate_factor.getOrElse(factor.U) * p.serialWidth.U
+    val totalBits     = numRegs.U * 2048.U
+    if (p.earlyTerminate) {
+      if (p.parallelWidth <= 2048) {
+        val outMask = (1.U << effectiveBits) - 1.U
+        val shifted = shiftReg(0) >> (2048.U - effectiveBits)
+        io.out.bits := shifted & outMask
+      } else {
+        val fullData = Cat(shiftReg.reverse)
+        val outMask  = (1.U << effectiveBits) - 1.U
+        val shifted  = fullData >> (totalBits - effectiveBits)
+        io.out.bits := shifted & outMask
+      }
+    } else {
+      if (p.parallelWidth <= 2048) {
+        io.out.bits := shiftReg(0)(2047, 2047 - p.parallelWidth + 1)
+      } else {
+        io.out.bits := Cat(shiftReg.reverse)
+      }
+    }
   } else {
     io.out.valid := io.in.valid
     io.out.bits  := io.in.bits
-    io.in.ready  := io.out.ready
+    io.in.ready  := io.out.ready && io.enable
   }
 }
