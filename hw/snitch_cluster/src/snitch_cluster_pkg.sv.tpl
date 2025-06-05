@@ -100,10 +100,8 @@ package ${cfg['cluster']['name']}_pkg;
   `AXI_TYPEDEF_ALL(wide_out, addr_t, wide_out_id_t, data_dma_t, strb_dma_t, user_dma_t)
 
   typedef logic [TcdmAddrWidth-1:0]     tcdm_addr_t;
-  typedef logic [WideDataWidth-1:0]     data_ext_t;
-  typedef logic [WideDataWidth/8-1:0]   strb_ext_t;
 
-  `TCDM_TYPEDEF_ALL(tcdm_ext, tcdm_addr_t, data_ext_t, strb_ext_t, logic)
+  `TCDM_TYPEDEF_ALL(tcdm_dma, tcdm_addr_t, data_dma_t, strb_dma_t, logic)
 
   function automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] get_cached_regions();
     automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] cached_regions;
