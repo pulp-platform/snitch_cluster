@@ -20,7 +20,7 @@ module testharness;
   wide_out_resp_t wide_out_resp;
   wide_in_req_t wide_in_req;
   wide_in_resp_t wide_in_resp;
-  logic [snitch_cluster_pkg::NrCores-1:0] msip, meip, mtip;
+  logic [snitch_cluster_pkg::NrCores-1:0] msip, meip, mtip, mxip;
 
   snitch_cluster_wrapper i_snitch_cluster (
     .clk_i (clk),
@@ -29,6 +29,7 @@ module testharness;
     .meip_i (meip),
     .mtip_i (mtip),
     .msip_i (msip),
+    .mxip_i (mxip),
     .hart_base_id_i (CfgBaseHartId),
     .cluster_base_addr_i (CfgClusterBaseAddr),
     .clk_d2_bypass_i (1'b0),
@@ -44,7 +45,11 @@ module testharness;
     .wide_out_req_o (wide_out_req),
     .wide_out_resp_i (wide_out_resp),
     .wide_in_req_i (wide_in_req),
-    .wide_in_resp_o (wide_in_resp)
+    .wide_in_resp_o (wide_in_resp),
+    .narrow_ext_req_o (),
+    .narrow_ext_resp_i ('0),
+    .tcdm_ext_req_i ('0),
+    .tcdm_ext_resp_o ()
   );
 
   ///////////
