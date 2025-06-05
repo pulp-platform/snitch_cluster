@@ -51,6 +51,8 @@ module snitch_cluster
   parameter int unsigned TCDMDepth          = 1024,
   /// Zero memory address region size (in kB).
   parameter int unsigned ZeroMemorySize     = 64,
+  /// External memory address region size (in Bytes)
+  parameter int unsigned ExtMemorySize     = 256,
   /// Bootrom memory address region size (in kB).
   parameter int unsigned BootRomSize        = 4,
   /// Cluster peripheral address region size (in kB).
@@ -525,7 +527,7 @@ module snitch_cluster
 
   addr_t ext_mem_start_address, ext_mem_end_address;
   assign ext_mem_start_address = zero_mem_end_address;
-  assign ext_mem_end_address   = ext_mem_start_address + 'h100;
+  assign ext_mem_end_address   = ext_mem_start_address + ExtMemorySize;
 
   localparam addr_t TCDMAliasStart = AliasRegionBase & TCDMMask;
   localparam addr_t TCDMAliasEnd   = (TCDMAliasStart + TCDMSize) & TCDMMask;
@@ -540,7 +542,7 @@ module snitch_cluster
   localparam addr_t ZeroMemAliasEnd   = PeriphAliasEnd + ZeroMemorySize * 1024;
 
   localparam addr_t ExtAliasStart = ZeroMemAliasEnd;
-  localparam addr_t ExtAliasEnd   = ExtAliasStart + 'h100;
+  localparam addr_t ExtAliasEnd   = ExtAliasStart + ExtMemorySize;
 
   // ----------------
   // Wire Definitions

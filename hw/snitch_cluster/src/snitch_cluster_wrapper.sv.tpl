@@ -92,6 +92,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .NrCores (${cfg['cluster']['nr_cores']}),
     .TCDMDepth (${cfg['cluster']['tcdm']['depth']}),
     .ZeroMemorySize (snitch_cluster_pkg::ZeroMemorySize),
+    .ExtMemorySize (snitch_cluster_pkg::ExtMemorySize),
     .BootRomSize (snitch_cluster_pkg::BootromSize),
     .ClusterPeriphSize (snitch_cluster_pkg::ClusterPeriphSize),
     .NrBanks (${cfg['cluster']['tcdm']['banks']}),

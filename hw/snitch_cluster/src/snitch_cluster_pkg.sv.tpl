@@ -44,6 +44,7 @@ package ${cfg['cluster']['name']}_pkg;
   localparam int unsigned BootromSize = 4; // Fixed size of 4kB
   localparam int unsigned ClusterPeriphSize = ${cfg['cluster']['cluster_periph_size']};
   localparam int unsigned ZeroMemorySize = ${cfg['cluster']['zero_mem_size']};
+  localparam int unsigned ExtMemorySize = ${cfg['cluster']['ext_mem_size']};
 
   localparam int unsigned AddrWidth = ${cfg['cluster']['addr_width']};
   localparam int unsigned NarrowDataWidth = ${cfg['cluster']['data_width']};
