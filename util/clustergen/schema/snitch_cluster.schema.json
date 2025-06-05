@@ -95,11 +95,11 @@
                 },
                 "ext_mem_size": {
                     "type": "number",
-                    "description": "Address region size reserved for the external slaves in Bytes.",
-                    "default": 256,
+                    "description": "Address region size reserved for an external slave in KiByte.",
+                    "default": 1,
                     "examples": [
-                        128,
-                        64
+                        2,
+                        4
                     ]
                 },
                 "alias_region_enable": {
