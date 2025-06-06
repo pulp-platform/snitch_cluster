@@ -58,7 +58,22 @@ module testharness;
 
   vip_snitch_cluster #(
     .ClkPeriod(1ns)
-  ) vip (.*);
+  ) vip (
+    .clk,
+    .rst_n,
+    .msip,
+    .meip,
+    .mtip,
+    .mxip,
+    .narrow_in_req,
+    .narrow_in_resp,
+    .narrow_out_req,
+    .narrow_out_resp,
+    .wide_in_req,
+    .wide_in_resp,
+    .wide_out_req,
+    .wide_out_resp
+  );
 
   initial begin
     // Wait for the reset
