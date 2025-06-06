@@ -350,6 +350,8 @@ module snitch_cluster
     NoAddrRules: NrWideRules,
     default: '0
   };
+  localparam int unsigned WideSlaveIdxBits = cf_math_pkg::idx_width(NrWideSlaves);
+
 
   function automatic int unsigned get_hive_size(int unsigned current_hive);
     automatic int n = 0;
@@ -614,7 +616,7 @@ module snitch_cluster
   );
 
 
-  int unsigned dma_xbar_default_port = SoCDMAOut;
+  logic [WideSlaveIdxBits-1:0] dma_xbar_default_port = SoCDMAOut;
   xbar_rule_t dma_xbar_default_port_rule;
   assign dma_xbar_default_port_rule = '{
     idx: dma_xbar_default_port,
