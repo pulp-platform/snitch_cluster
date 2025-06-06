@@ -109,13 +109,13 @@ snitch-cluster-vlt:
     - make verilator
     - ./util/run.py sw/run.yaml --simulator verilator -j --run-dir runs/vlt
 
-# VCS
-snitch-cluster-vcs:
-  needs: [setup, snitch-cluster-sw]
-  script:
-    - cd target/snitch_cluster
-    - make vcs
-    - ./util/run.py sw/run.yaml --simulator vcs -j --run-dir runs/vcs
+# # VCS
+# snitch-cluster-vcs:
+#   needs: [setup, snitch-cluster-sw]
+#   script:
+#     - cd target/snitch_cluster
+#     - make vcs
+#     - ./util/run.py sw/run.yaml --simulator vcs -j --run-dir runs/vcs
 
 # Questa
 snitch-cluster-vsim:
