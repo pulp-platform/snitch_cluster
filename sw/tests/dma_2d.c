@@ -4,6 +4,12 @@
 
 #include <snrt.h>
 
+#ifdef DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 #define MAX_BUFFER_SIZE 0x1000
 #define NB_TRANSFERS 7
 
@@ -45,11 +51,16 @@ int main() {
 
     snrt_dma_txid_t id;
 
-    printf("Main_start: %8x | Src_start: %8x | Dst_start: %8x \n",
+    PRINTF("Main_start: %8x | Src_start: %8x | Dst_start: %8x \n",
            main_start_addr, src_start_addr, dst_start_addr);
 
     for (int k = 0; k < NB_TRANSFERS; k++) {
-        printf("Start transfer #%d \n", k);
+        errors +=
+            transfer_params[k].nb_bytes * transfer_params[k].num_reps_2d * 2;
+    }
+
+    for (int k = 0; k < NB_TRANSFERS; k++) {
+        PRINTF("Start transfer #%d \n", k);
 
         nb_bytes = transfer_params[k].nb_bytes;
         src_stride = transfer_params[k].src_stride;
@@ -74,7 +85,7 @@ int main() {
         for (int q = 0; q < reps_2d; q++) {
             dst_offset_2d = q * dst_stride;
             for (int i = 0; i < nb_bytes; i++) {
-                dst_ptr[i + dst_offset_2d] = (uint8_t)((i + 1) & 0xFF);
+                dst_ptr[i + dst_offset_2d] = (uint8_t)((i + 2) & 0xFF);
             }
         }
 
@@ -92,13 +103,14 @@ int main() {
                 uint8_t actual = main_ptr[src_offset_2d + i];
 
                 if (expected != actual) {
-                    errors++;
-                    printf(
+                    PRINTF(
                         "ERROR: expected[%d] @%8x = %8x vs actual[%d] @%8x = "
                         "%8x \n",
                         src_offset_2d + i, &src_ptr[src_offset_2d + i],
                         expected, src_offset_2d + i,
-                        &dst_ptr[src_offset_2d + i], actual);
+                        &main_ptr[src_offset_2d + i], actual);
+                } else {
+                    errors--;
                 }
             }
         }
@@ -118,13 +130,14 @@ int main() {
                 uint8_t actual = dst_ptr[dst_offset_2d + i];
 
                 if (expected != actual) {
-                    errors++;
-                    printf(
+                    PRINTF(
                         "ERROR: expected[%d] @%8x = %8x vs actual[%d] @%8x = "
                         "%8x \n",
-                        src_offset_2d + i, &src_ptr[src_offset_2d + i],
+                        src_offset_2d + i, &main_ptr[src_offset_2d + i],
                         expected, dst_offset_2d + i,
                         &dst_ptr[dst_offset_2d + i], actual);
+                } else {
+                    errors--;
                 }
             }
         }

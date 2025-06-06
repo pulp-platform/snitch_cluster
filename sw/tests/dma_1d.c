@@ -4,6 +4,12 @@
 
 #include <snrt.h>
 
+#ifdef DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 #define MAX_BUFFER_SIZE 0x1000
 #define NB_TRANSFERS 14
 
@@ -12,7 +18,7 @@
 uint32_t buffer[MAX_BUFFER_SIZE];
 
 typedef struct {
-    unsigned int nb_words;
+    unsigned int nb_bytes;
 } TransferParameters;
 
 TransferParameters transfer_params[] = {
@@ -42,13 +48,17 @@ int main() {
 
     snrt_dma_txid_t id;
 
-    printf("Main_start: %8x | Src_start: %8x | Dst_start: %8x \n",
+    PRINTF("Main_start: %8x | Src_start: %8x | Dst_start: %8x \n",
            main_start_addr, src_start_addr, dst_start_addr);
 
     for (int k = 0; k < NB_TRANSFERS; k++) {
-        printf("Start transfer #%d \n", k);
+        errors += transfer_params[k].nb_bytes * 2;
+    }
 
-        nb_bytes = transfer_params[k].nb_words;
+    for (int k = 0; k < NB_TRANSFERS; k++) {
+        PRINTF("Start transfer #%d \n", k);
+
+        nb_bytes = transfer_params[k].nb_bytes;
 
         // Fill source buffer
         for (int i = 0; i < nb_bytes; i++) {
@@ -61,7 +71,7 @@ int main() {
         }
         // Fill destination buffer
         for (int i = 0; i < nb_bytes; i++) {
-            dst_ptr[i] = (uint8_t)((i + 1) & 0xFF);
+            dst_ptr[i] = (uint8_t)((i + 2) & 0xFF);
         }
 
         // Launch transfer source -> main memory
@@ -75,11 +85,12 @@ int main() {
             uint8_t actual = main_ptr[i];
 
             if (expected != actual) {
-                errors++;
-                printf(
+                PRINTF(
                     "ERROR: expected[%d] @%8x = %8x vs actual[%d] @%8x = %8x "
                     "\n",
-                    i, &src_ptr[i], expected, i, &dst_ptr[i], actual);
+                    i, &src_ptr[i], expected, i, &main_ptr[i], actual);
+            } else {
+                errors--;
             }
         }
 
@@ -93,11 +104,12 @@ int main() {
             uint8_t actual = dst_ptr[i];
 
             if (expected != actual) {
-                errors++;
-                printf(
+                PRINTF(
                     "ERROR: expected[%d] @%8x = %8x vs actual[%d] @%8x = %8x "
                     "\n",
-                    i, &src_ptr[i], expected, i, &dst_ptr[i], actual);
+                    i, &main_ptr[i], expected, i, &dst_ptr[i], actual);
+            } else {
+                errors--;
             }
         }
     }

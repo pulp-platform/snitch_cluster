@@ -4,13 +4,19 @@
 
 #include <snrt.h>
 
+#ifdef DEBUG
+#define PRINTF(...) printf(__VA_ARGS__)
+#else
+#define PRINTF(...)
+#endif
+
 // Allocate a buffer in the main memory which we will use to copy data around
 // with the DMA.
 uint32_t buffer[32];
 
 int main() {
     if (snrt_global_core_idx() != 8) return 0;  // only DMA core
-    uint32_t errors = 0;
+    uint32_t errors = 64;
 
     // Populate buffers.
     uint32_t buffer_src[32], buffer_dst[32];
@@ -27,9 +33,10 @@ int main() {
     // Check that the main memory buffer contains the correct data.
     for (uint32_t i = 0; i < 32; i++) {
         if (buffer_src[i] != buffer[i]) {
-            printf("ERROR: buffer_src[%d]: %8x @%8x vs buffer[%d]: %8x @%8x \n",
+            PRINTF("ERROR: buffer_src[%d]: %8x @%8x vs buffer[%d]: %8x @%8x \n",
                    i, buffer_src[i], &buffer_src[i], i, buffer[i], &buffer[i]);
-            errors += (buffer_src[i] != buffer[i]);
+        } else {
+            errors--;
         }
     }
 
@@ -40,12 +47,13 @@ int main() {
     // Check that the L1 buffer contains the correct data.
     for (uint32_t i = 0; i < 32; i++) {
         if (buffer_src[i] != buffer_dst[i]) {
-            printf(
+            PRINTF(
                 "ERROR: buffer_src[%d]: %8x @%8x vs buffer_dst[%d]: %8x @%8x "
                 "\n",
                 i, buffer_src[i], &buffer_src[i], i, buffer_dst[i],
                 &buffer_dst[i]);
-            errors += (buffer_src[i] != buffer_dst[i]);
+        } else {
+            errors--;
         }
     }
     return errors;
