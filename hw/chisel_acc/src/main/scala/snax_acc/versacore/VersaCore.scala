@@ -13,11 +13,11 @@ import snax_acc.utils._
 
 // arrayTop with the fsm controller and the spatial array
 
-/** ArrayTopCfg is a configuration bundle for the ArrayTop module.
+/** VersaCoreCfg is a configuration bundle for the VersaCore module.
   *
   * @param params
   */
-class ArrayTopCfg(params: SpatialArrayParam) extends Bundle {
+class VersaCoreCfg(params: SpatialArrayParam) extends Bundle {
   val fsmCfg = new Bundle {
     val K_i                    = UInt(params.configWidth.W)
     val N_i                    = UInt(params.configWidth.W)
@@ -31,11 +31,11 @@ class ArrayTopCfg(params: SpatialArrayParam) extends Bundle {
   }
 }
 
-/** ArrayTopIO defines the input and output interfaces for the ArrayTop module.
+/** VersaCoreIO defines the input and output interfaces for the VersaCore module.
   *
   * @param params
   */
-class ArrayTopIO(params: SpatialArrayParam) extends Bundle {
+class VersaCoreIO(params: SpatialArrayParam) extends Bundle {
   // data interface
   val data = new Bundle {
     val in_a  = Flipped(DecoupledIO(UInt(params.arrayInputAWidth.W)))
@@ -45,20 +45,20 @@ class ArrayTopIO(params: SpatialArrayParam) extends Bundle {
   }
 
   // control interface
-  val ctrl = Flipped(DecoupledIO(new ArrayTopCfg(params)))
+  val ctrl = Flipped(DecoupledIO(new VersaCoreCfg(params)))
 
   // profiling and status signals
   val busy_o              = Output(Bool())
   val performance_counter = Output(UInt(params.configWidth.W))
 }
 
-/** ArrayTop is the top-level module for VersaCore.
+/** VersaCore is the top-level module for VersaCore.
   *
   * @param params
   */
-class ArrayTop(params: SpatialArrayParam) extends Module with RequireAsyncReset {
+class VersaCore(params: SpatialArrayParam) extends Module with RequireAsyncReset {
 
-  val io = IO(new ArrayTopIO(params))
+  val io = IO(new VersaCoreIO(params))
 
   if (params.dataflow.length > 1) {
     require(
@@ -108,7 +108,7 @@ class ArrayTop(params: SpatialArrayParam) extends Module with RequireAsyncReset 
   config_valid  := io.ctrl.fire && !zeroLoopBoundCase && cstate === sIDLE
   io.ctrl.ready := cstate === sIDLE
 
-  val csrReg = RegInit(0.U.asTypeOf(new ArrayTopCfg(params)))
+  val csrReg = RegInit(0.U.asTypeOf(new VersaCoreCfg(params)))
 
   // Store the configurations when config valid
   when(config_valid) {
@@ -478,14 +478,14 @@ class ArrayTop(params: SpatialArrayParam) extends Module with RequireAsyncReset 
   io.busy_o := cstate =/= sIDLE
 }
 
-object ArrayTopEmitter extends App {
+object VersaCoreEmitter extends App {
   emitVerilog(
-    new ArrayTop(SpatialArrayParam()),
+    new VersaCore(SpatialArrayParam()),
     Array("--target-dir", "generated/versacore")
   )
 }
 
-object ArrayTopEmitterFloat16Int4 extends App {
+object VersaCoreEmitterFloat16Int4 extends App {
   val FP16Int4Array_Param = SpatialArrayParam(
     opType                 = Seq(Float16IntOp),
     macNum                 = Seq(8),
@@ -505,12 +505,12 @@ object ArrayTopEmitterFloat16Int4 extends App {
     arrayDim               = Seq(Seq(Seq(2, 2, 2)))
   )
   emitVerilog(
-    new ArrayTop(FP16Int4Array_Param),
+    new VersaCore(FP16Int4Array_Param),
     Array("--target-dir", "generated/versacore")
   )
 }
 
-object ArrayTopEmitterFloat16Float16 extends App {
+object VersaCoreEmitterFloat16Float16 extends App {
   val FP16Float16Array_Param = SpatialArrayParam(
     opType                 = Seq(Float16Float16Op),
     macNum                 = Seq(8),
@@ -530,7 +530,7 @@ object ArrayTopEmitterFloat16Float16 extends App {
     arrayDim               = Seq(Seq(Seq(2, 2, 2)))
   )
   emitVerilog(
-    new ArrayTop(FP16Float16Array_Param),
+    new VersaCore(FP16Float16Array_Param),
     Array("--target-dir", "generated/versacore")
   )
 }

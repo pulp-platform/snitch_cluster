@@ -17,8 +17,8 @@ import snax_acc.utils.CommonTestUtils.toSInt
 import snax_acc.utils.DecoupledCut._
 import snax_acc.utils.MatrixLibBlock.temporalToSpatialIndicesAB
 
-class ArrayTopHarness(params: SpatialArrayParam) extends Module with RequireAsyncReset {
-  val dut = Module(new ArrayTop(params))
+class VersaCoreHarness(params: SpatialArrayParam) extends Module with RequireAsyncReset {
+  val dut = Module(new VersaCore(params))
   val io  = IO(chiselTypeOf(dut.io))
 
   io.ctrl <> dut.io.ctrl
@@ -31,10 +31,10 @@ class ArrayTopHarness(params: SpatialArrayParam) extends Module with RequireAsyn
   io.performance_counter := dut.io.performance_counter
 }
 
-trait ArrayTopTestHelper extends AnyFlatSpec with ChiselScalatestTester {
+trait VersaCoreTestHelper extends AnyFlatSpec with ChiselScalatestTester {
   // Define the function to test a single configuration
   def testSingleConfig(params: SpatialArrayParam, dataTypeIdx: Int, arrayShapeIdx: Int): Unit = {
-    test(new ArrayTopHarness(params)).withAnnotations(Seq(WriteVcdAnnotation)) { dut =>
+    test(new VersaCoreHarness(params)).withAnnotations(Seq(WriteVcdAnnotation)) { dut =>
       println(s"Testing dataTypeIdx${dataTypeIdx + 1} arrayShapeIdx_cfg${arrayShapeIdx + 1}...")
 
       // Get the current configuration parameters
@@ -252,9 +252,9 @@ trait ArrayTopTestHelper extends AnyFlatSpec with ChiselScalatestTester {
 
 }
 
-class ArrayTopTest extends ArrayTopTestHelper {
+class VersaCoreTest extends VersaCoreTestHelper {
 
-  behavior of "ArrayTop"
+  behavior of "VersaCore"
   it should "correctly process configuration and data" in {
 
     // Define the test parameters

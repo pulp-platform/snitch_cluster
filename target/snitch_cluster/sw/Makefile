@@ -29,7 +29,9 @@ endif
 ifeq ($(CFG_OVERRIDE), cfg/snax_KUL_cluster.hjson)
 SUBDIRS += snax/xdma
 endif
-
+ifeq ($(CFG_OVERRIDE), cfg/snax_versacore.hjson)
+SUBDIRS += snax/versacore snax/xdma
+endif
 ifeq (${CFG_OVERRIDE}, cfg/snax_alu_cluster.hjson)
 SUBDIRS += snax/snax-alu
 endif
@@ -47,12 +49,12 @@ endif
 all: $(SUBDIRS)
 
 # Explicit dependency of apps on runtime
-apps: math $(RUNTIME) snax/snax-alu snax/mac snax/data-reshuffler snax/gemmx snax/xdma snax/hypercorex
+apps: math $(RUNTIME) snax/snax-alu snax/mac snax/data-reshuffler snax/gemmx snax/versacore snax/xdma snax/hypercorex
 	$(MAKE) -C $@ TARGET=$(TARGET)
 
 # Explicit dependency of tests on runtime
-tests: math $(RUNTIME) snax/snax-alu snax/mac snax/data-reshuffler snax/gemmx snax/xdma snax/hypercorex
+tests: math $(RUNTIME) snax/snax-alu snax/mac snax/data-reshuffler snax/gemmx snax/versacore snax/xdma snax/hypercorex
 	$(MAKE) -C $@ $(TARGET)
 
-runtime/rtl runtime/banshee runtime/rtl-generic math snax/snax-alu snax/mac snax/data-reshuffler snax/gemmx snax/xdma snax/hypercorex:
+runtime/rtl runtime/banshee runtime/rtl-generic math snax/snax-alu snax/mac snax/data-reshuffler snax/gemmx snax/versacore snax/xdma snax/hypercorex:
 	$(MAKE) -C $@ $(TARGET)

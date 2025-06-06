@@ -1,0 +1,347 @@
+// Copyright 2025 KU Leuven.
+// Solderpad Hardware License, Version 0.51, see LICENSE for details.
+// SPDX-License-Identifier: SHL-0.51
+
+// Author: Xiaoling Yi (xiaoling.yi@kuleuven.be)
+
+{
+    nr_s1_quadrant: 1
+    s1_quadrant:
+    {
+        nr_clusters: 1
+    }
+    cluster:
+    {
+        name: snax_KUL_cluster
+        bender_target:
+        [
+            snax_KUL_cluster
+        ]
+        boot_addr: 4096
+        cluster_base_addr: 268435456
+        cluster_base_offset: 4194304
+        cluster_base_hartid: 0
+        addr_width: 48
+        data_width: 64
+        user_width: 3
+        tcdm:
+        {
+            size: 256
+            banks: 64
+        }
+        cluster_periph_size: 64
+        zero_mem_size: 64
+        dma_data_width: 512
+        dma_axi_req_fifo_depth: 16
+        dma_req_fifo_depth: 8
+        observable_pin_width: 8
+        narrow_trans: 4
+        wide_trans: 32
+        dma_user_width: 1
+        enable_debug: false
+        vm_support: false
+        sram_cfg_expose: true
+        sram_cfg_fields:
+        {
+            ema: 3
+            emaw: 2
+            emas: 1
+        }
+        snax_custom_tcdm_assign:
+        {
+            snax_enable_assign_tcdm_idx: true
+            snax_narrow_assign_start_idx:
+            [
+                272
+            ]
+            snax_narrow_assign_end_idx:
+            [
+                287
+            ]
+            snax_wide_assign_start_idx:
+            [
+                0
+            ]
+            snax_wide_assign_end_idx:
+            [
+                271
+            ]
+        }
+        use_ax_bw_converter: true
+        converted_axi_bandwidth: 256
+        timing:
+        {
+            lat_comp_fp32: 3
+            lat_comp_fp64: 3
+            lat_comp_fp16: 2
+            lat_comp_fp16_alt: 2
+            lat_comp_fp8: 1
+            lat_comp_fp8_alt: 1
+            lat_noncomp: 1
+            lat_conv: 1
+            lat_sdotp: 2
+            fpu_pipe_config: BEFORE
+            narrow_xbar_latency: CUT_ALL_PORTS
+            wide_xbar_latency: CUT_ALL_PORTS
+            register_core_req: true
+            register_core_rsp: true
+            register_offload_req: true
+            register_offload_rsp: true
+            register_ext_narrow: true
+            register_ext_wide: true
+        }
+        hives:
+        [
+            {
+                icache:
+                {
+                    size: 8
+                    sets: 2
+                    cacheline: 256
+                }
+                cores:
+                [
+                    {
+                        $ref: "#/snax_versacore_core_template"
+                    }
+                    {
+                        $ref: "#/dma_core_template"
+                    }
+                ]
+            }
+        ]
+    }
+    dram:
+    {
+        address: 2147483648
+        length: 2147483648
+    }
+    peripherals:
+    {
+        clint:
+        {
+            address: 4294901760
+            length: 4096
+        }
+    }
+    snax_versacore_core_template:
+    {
+        isa: rv32ima
+        xssr: false
+        xfrep: false
+        xdma: false
+        xf16: false
+        xf16alt: false
+        xf8: false
+        xf8alt: false
+        xfdotp: false
+        xfvec: false
+        snax_acc_cfg:
+        [
+            {
+                snax_acc_name: snax_versacore
+                bender_target:
+                [
+                    snax_versacore
+                ]
+                snax_narrow_tcdm_ports: 0
+                snax_wide_tcdm_ports: 272
+                snax_num_rw_csr: 7
+                snax_num_ro_csr: 2
+                snax_versacore_op_type:
+                [
+                    SIntSInt
+                ]
+                snax_versacore_mac_num:
+                [
+                    1024
+                ]
+                snax_versacore_input_a_element_width:
+                [
+                    8
+                ]
+                snax_versacore_input_b_element_width:
+                [
+                    8
+                ]
+                snax_versacore_multiply_element_width:
+                [
+                    32
+                ]
+                snax_versacore_output_element_width:
+                [
+                    32
+                ]
+                snax_versacore_array_input_a_width: 1024
+                snax_versacore_array_input_b_width: 8192
+                snax_versacore_array_input_c_width: 4096
+                snax_versacore_array_output_width: 4096
+                snax_versacore_serial_a_width: 1024
+                snax_versacore_serial_b_width: 8192
+                snax_versacore_serial_c_d_width: 4096
+                snax_versacore_adder_tree_delay: 1
+                snax_versacore_spatial_unrolling:
+                [
+                    [
+                        [
+                            16
+                            8
+                            8
+                        ]
+                        [
+                            1
+                            64
+                            16
+                        ]
+                    ]
+                ]
+                snax_versacore_temporal_unrolling:
+                [
+                    "output_stationary",
+                    "weight_stationary",
+                    "input_stationary"
+                ]
+                snax_streamer_cfg:
+                {
+                    $ref: "#/snax_versacore_streamer_template"
+                }
+            }
+        ]
+        snax_use_custom_ports: false
+        num_int_outstanding_loads: 1
+        num_int_outstanding_mem: 4
+        num_fp_outstanding_loads: 4
+        num_fp_outstanding_mem: 4
+        num_sequencer_instructions: 16
+        num_dtlb_entries: 1
+        num_itlb_entries: 1
+    }
+    dma_core_template:
+    {
+        isa: rv32ima
+        snax_xdma_cfg:
+        {
+            bender_target:
+            [
+                snax_KUL_cluster_xdma
+            ]
+            max_multicast: 4
+            max_dimension: 5
+            max_mem_size: 4096
+            reader_buffer: 12
+            writer_buffer: 12
+            reader_agu_temporal_dimension: 5
+            writer_agu_temporal_dimension: 5
+            writer_extensions:
+            {
+                HasVerilogMemset: {}
+                HasTransposer:
+                {
+                    row:
+                    [
+                        8
+                        8
+                    ]
+                    col:
+                    [
+                        8
+                        8
+                    ]
+                    elementWidth:
+                    [
+                        8
+                        16
+                    ]
+                }
+            }
+            reader_extensions:
+            {
+                HasMaxPool: {}
+            }
+        }
+        xdma: true
+        xssr: false
+        xfrep: false
+        xf16: false
+        xf16alt: false
+        xf8: false
+        xf8alt: false
+        xfdotp: false
+        xfvec: false
+        num_int_outstanding_loads: 1
+        num_int_outstanding_mem: 4
+        num_fp_outstanding_loads: 4
+        num_fp_outstanding_mem: 4
+        num_sequencer_instructions: 16
+        num_dtlb_entries: 1
+        num_itlb_entries: 1
+    }
+    snax_versacore_streamer_template:
+    {
+        data_reader_params:
+        {
+            spatial_bounds:
+            [
+                [
+                    16
+                ]
+                [
+                    128
+                ]
+                [
+                    64
+                ]
+            ]
+            temporal_dim:
+            [
+                6
+                3
+                4
+            ]
+            num_channel:
+            [
+                16
+                128
+                64
+            ]
+            fifo_depth:
+            [
+                8
+                8
+                8
+            ]
+            configurable_channel:
+            [
+                1
+                1
+                1
+            ]
+        }
+        data_writer_params:
+        {
+            spatial_bounds:
+            [
+                [
+                    64
+                ]
+            ]
+            temporal_dim:
+            [
+                4
+            ]
+            num_channel:
+            [
+                64
+            ]
+            fifo_depth:
+            [
+                8
+            ]
+            configurable_channel:
+            [
+                1
+            ]
+        }
+        snax_library_name: versacore
+    }
+}

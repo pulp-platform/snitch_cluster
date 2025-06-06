@@ -352,6 +352,19 @@ sources:
       - hw/chisel_acc/src/snax_data_reshuffler_shell_wrapper.sv
       - target/snitch_cluster/generated/snax_data_reshuffler/snax_data_reshuffler_wrapper.sv
 
+  - target: snax_versacore
+    files:
+      # Level 0
+      - target/snitch_cluster/generated/snax_versacore/VersaCore.sv
+      - target/snitch_cluster/generated/snax_versacore/snax_versacore_shell_wrapper.sv
+      - target/snitch_cluster/generated/snax_versacore/snax_versacore_csrman_CsrManager.sv
+      - target/snitch_cluster/generated/snax_versacore/snax_versacore_Streamer.sv
+      # Level 1
+      - target/snitch_cluster/generated/snax_versacore/snax_versacore_csrman_wrapper.sv
+      - target/snitch_cluster/generated/snax_versacore/snax_versacore_streamer_wrapper.sv
+      # Level 2
+      - target/snitch_cluster/generated/snax_versacore/snax_versacore_wrapper.sv
+
   - target: snax_gemmX
     files:
       # Level 0

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: SHL-0.51
 
 // Author: Xiaoling Yi <xiaoling.yi@kuleuven.be>
+// Yunhao Deng <yunhao.deng@kuleuven.be>
 
 package snax_acc.utils
 
