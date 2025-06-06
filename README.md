@@ -38,6 +38,11 @@ licenses. See the respective folder for the licenses used.
 
 - `sw/deps/`
 
+## Contributing
+
+If you would like to contribute to this project, please check our [contribution guidelines](CONTRIBUTING.md).
+
+
 ## Publications
 
 <!--start-publications-->
