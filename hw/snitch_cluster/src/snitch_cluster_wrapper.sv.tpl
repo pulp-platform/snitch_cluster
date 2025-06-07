@@ -35,6 +35,7 @@ module ${cfg['cluster']['name']}_wrapper (
   input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] meip_i,
   input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] mtip_i,
   input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] msip_i,
+  input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] mxip_i,
   input  logic [9:0]                             hart_base_id_i,
   input  logic [${cfg['cluster']['addr_width']-1}:0]                            cluster_base_addr_i,
   input  logic                                   clk_d2_bypass_i,
@@ -46,7 +47,11 @@ module ${cfg['cluster']['name']}_wrapper (
   output ${cfg['cluster']['name']}_pkg::wide_out_req_t      wide_out_req_o,
   input  ${cfg['cluster']['name']}_pkg::wide_out_resp_t     wide_out_resp_i,
   input  ${cfg['cluster']['name']}_pkg::wide_in_req_t       wide_in_req_i,
-  output ${cfg['cluster']['name']}_pkg::wide_in_resp_t      wide_in_resp_o
+  output ${cfg['cluster']['name']}_pkg::wide_in_resp_t      wide_in_resp_o,
+  output ${cfg['cluster']['name']}_pkg::narrow_out_req_t    narrow_ext_req_o,
+  input  ${cfg['cluster']['name']}_pkg::narrow_out_resp_t   narrow_ext_resp_i,
+  input  ${cfg['cluster']['name']}_pkg::tcdm_dma_req_t      tcdm_ext_req_i,
+  output ${cfg['cluster']['name']}_pkg::tcdm_dma_rsp_t      tcdm_ext_resp_o
 );
 
   localparam int unsigned NumIntOutstandingLoads [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_int_outstanding_loads')}};
@@ -79,10 +84,13 @@ module ${cfg['cluster']['name']}_wrapper (
     .wide_out_resp_t (${cfg['cluster']['name']}_pkg::wide_out_resp_t),
     .wide_in_req_t (${cfg['cluster']['name']}_pkg::wide_in_req_t),
     .wide_in_resp_t (${cfg['cluster']['name']}_pkg::wide_in_resp_t),
+    .tcdm_dma_req_t (${cfg['cluster']['name']}_pkg::tcdm_dma_req_t),
+    .tcdm_dma_rsp_t (${cfg['cluster']['name']}_pkg::tcdm_dma_rsp_t),
     .NrHives (${cfg['cluster']['nr_hives']}),
     .NrCores (${cfg['cluster']['nr_cores']}),
     .TCDMDepth (${cfg['cluster']['tcdm']['depth']}),
     .ZeroMemorySize (snitch_cluster_pkg::ZeroMemorySize),
+    .ExtMemorySize (snitch_cluster_pkg::ExtMemorySize),
     .BootRomSize (snitch_cluster_pkg::BootromSize),
     .ClusterPeriphSize (snitch_cluster_pkg::ClusterPeriphSize),
     .NrBanks (${cfg['cluster']['tcdm']['banks']}),
@@ -134,6 +142,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .RegisterTCDMCuts (${int(cfg['cluster']['timing']['register_tcdm_cuts'])}),
     .RegisterExtWide (${int(cfg['cluster']['timing']['register_ext_wide'])}),
     .RegisterExtNarrow (${int(cfg['cluster']['timing']['register_ext_narrow'])}),
+    .RegisterExpNarrow (${int(cfg['cluster']['timing']['register_exp_narrow'])}),
     .RegisterFPUReq (${int(cfg['cluster']['timing']['register_fpu_req'])}),
     .RegisterFPUIn (${int(cfg['cluster']['timing']['register_fpu_in'])}),
     .RegisterFPUOut (${int(cfg['cluster']['timing']['register_fpu_out'])}),
@@ -163,6 +172,11 @@ module ${cfg['cluster']['name']}_wrapper (
     .meip_i,
     .mtip_i,
     .msip_i,
+% if cfg['cluster']['enable_external_interrupts']:
+    .mxip_i,
+% else:
+    .mxip_i ('0),
+% endif
 % if cfg['cluster']['cluster_base_expose']:
     .hart_base_id_i,
     .cluster_base_addr_i,
@@ -179,7 +193,21 @@ module ${cfg['cluster']['name']}_wrapper (
     .sram_cfgs_i (sram_cfgs_i),
 % else:
     .sram_cfgs_i (${cfg['cluster']['name']}_pkg::sram_cfgs_t'('0)),
-%endif
+% endif
+% if cfg['cluster']['narrow_axi_port_expose']:
+    .narrow_ext_req_o (narrow_ext_req_o),
+    .narrow_ext_resp_i (narrow_ext_resp_i),
+% else:
+    .narrow_ext_req_o (narrow_ext_req_o),
+    .narrow_ext_resp_i (${cfg['cluster']['name']}_pkg::narrow_out_resp_t'('0)),
+% endif
+% if cfg['cluster']['wide_tcdm_port_expose']:
+    .tcdm_ext_req_i (tcdm_ext_req_i),
+    .tcdm_ext_resp_o (tcdm_ext_resp_o),
+% else:
+    .tcdm_ext_req_i (${cfg['cluster']['name']}_pkg::tcdm_dma_req_t'('0)),
+    .tcdm_ext_resp_o (tcdm_ext_resp_o),
+% endif
     .narrow_in_req_i,
     .narrow_in_resp_o,
     .narrow_out_req_o,

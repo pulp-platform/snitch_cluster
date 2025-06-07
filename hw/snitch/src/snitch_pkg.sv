@@ -28,6 +28,8 @@ package snitch_pkg;
     logic msip;
     /// Machine cluster-local interrupt pending
     logic mcip;
+    /// Machine external accelerator interrupt pending
+    logic mxip;
   } interrupts_t;
 
   typedef enum logic [31:0] {
@@ -117,6 +119,7 @@ package snitch_pkg;
   localparam logic [3:0] MTI = 7;
   localparam logic [3:0] MEI = 11;
   localparam logic [4:0] MCI = 19;
+  localparam logic [4:0] MXI = 20;
   localparam logic [3:0] SSI = 1;
   localparam logic [3:0] STI = 5;
   localparam logic [3:0] SEI = 9;
@@ -126,7 +129,8 @@ package snitch_pkg;
   typedef enum integer {
     TCDM               = 0,
     ClusterPeripherals = 1,
-    SoC                = 2
+    SoC                = 2,
+    ExtSlave           = 3
   } cluster_slave_e;
 
   typedef enum integer {

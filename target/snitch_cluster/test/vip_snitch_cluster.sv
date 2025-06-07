@@ -14,6 +14,7 @@ module vip_snitch_cluster
   output logic [NrCores-1:0] msip,
   output logic [NrCores-1:0] meip,
   output logic [NrCores-1:0] mtip,
+  output logic [NrCores-1:0] mxip,
   // AXI interfaces
   output narrow_in_req_t narrow_in_req,
   input  narrow_in_resp_t narrow_in_resp,
@@ -71,6 +72,7 @@ module vip_snitch_cluster
   // Tie-off unused input ports.
   assign mtip = '0;
   assign meip = '0;
+  assign mxip = '0;
   assign wide_in_req = '0;
 
   // Narrow port into simulation memory.

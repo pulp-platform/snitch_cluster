@@ -51,6 +51,9 @@ module snitch_cluster
   parameter int unsigned TCDMDepth          = 1024,
   /// Zero memory address region size (in kB).
   parameter int unsigned ZeroMemorySize     = 64,
+  /// External memory address region size (in kB). This is the address region
+  /// mapped to the `narrow_ext` port.
+  parameter int unsigned ExtMemorySize      = 1,
   /// Bootrom memory address region size (in kB).
   parameter int unsigned BootRomSize        = 4,
   /// Cluster peripheral address region size (in kB).
@@ -161,6 +164,8 @@ module snitch_cluster
   parameter bit          RegisterExtWide    = 1'b0,
   /// Decouple narrow external AXI plug
   parameter bit          RegisterExtNarrow  = 1'b0,
+  // Decouple narrow exposed internal AXI plug
+  parameter bit          RegisterExpNarrow  = 1'b0,
   /// Insert Pipeline register into the FPU data path (request)
   parameter bit          RegisterFPUReq     = 1'b0,
   /// Insert Pipeline registers after sequencer
@@ -189,6 +194,9 @@ module snitch_cluster
   parameter type         wide_out_resp_t   = logic,
   parameter type         wide_in_req_t     = logic,
   parameter type         wide_in_resp_t    = logic,
+  // TCDM Ports
+  parameter type         tcdm_dma_req_t    = logic,
+  parameter type         tcdm_dma_rsp_t    = logic,
   // Memory configuration input types; these vary depending on implementation.
   parameter type         sram_cfg_t        = logic,
   parameter type         sram_cfgs_t       = logic,
@@ -228,6 +236,8 @@ module snitch_cluster
   /// another core to facilitate inter-processor-interrupts. This signal is
   /// assumed to be _async_.
   input  logic [NrCores-1:0]            msip_i,
+  // External interrupt pending.
+  input  logic [NrCores-1:0]            mxip_i,
   /// First hartid of the cluster. Cores of a cluster are monotonically
   /// increasing without a gap, i.e., a cluster with 8 cores and a
   /// `hart_base_id_i` of 5 get the hartids 5 - 12.
@@ -253,7 +263,18 @@ module snitch_cluster
   input  wide_out_resp_t                wide_out_resp_i,
   /// AXI DMA cluster in-port.
   input  wide_in_req_t                  wide_in_req_i,
-  output wide_in_resp_t                 wide_in_resp_o
+  output wide_in_resp_t                 wide_in_resp_o,
+  // An additional AXI Core cluster out-port, used e.g. to connect
+  // to the configuration interface of an external accelerator.
+  // Compared to the `narrow_out` interface, the address space of
+  // this port extends the cluster address space. We refer to the prior
+  // as an external AXI plug, and to this as an externally-exposed
+  // internal AXI plug.
+  output narrow_out_req_t               narrow_ext_req_o,
+  input  narrow_out_resp_t              narrow_ext_resp_i,
+  // External TCDM ports
+  input  tcdm_dma_req_t                 tcdm_ext_req_i,
+  output tcdm_dma_rsp_t                 tcdm_ext_resp_o
 );
   // ---------
   // Constants
@@ -284,7 +305,7 @@ module snitch_cluster
   localparam int unsigned NrNarrowMasters = 3;
   localparam int unsigned NarrowIdWidthOut = $clog2(NrNarrowMasters) + NarrowIdWidthIn;
 
-  localparam int unsigned NrSlaves = 3;
+  localparam int unsigned NrSlaves = 4;
   localparam int unsigned NrRuleIdcs = NrSlaves - 1;
   localparam int unsigned NrRules = (1 + AliasRegionEnable) * NrRuleIdcs;
 
@@ -405,7 +426,6 @@ module snitch_cluster
   `MEM_TYPEDEF_ALL(mem_dma, tcdm_mem_addr_t, data_dma_t, strb_dma_t, logic)
 
   `TCDM_TYPEDEF_ALL(tcdm, tcdm_addr_t, data_t, strb_t, tcdm_user_t)
-  `TCDM_TYPEDEF_ALL(tcdm_dma, tcdm_addr_t, data_dma_t, strb_dma_t, logic)
 
   `REG_BUS_TYPEDEF_REQ(reg_req_t, addr_t, data_t, strb_t)
   `REG_BUS_TYPEDEF_RSP(reg_rsp_t, data_t)
@@ -508,6 +528,10 @@ module snitch_cluster
   assign zero_mem_start_address = cluster_periph_end_address;
   assign zero_mem_end_address   = cluster_periph_end_address + ZeroMemorySize * 1024;
 
+  addr_t ext_mem_start_address, ext_mem_end_address;
+  assign ext_mem_start_address = zero_mem_end_address;
+  assign ext_mem_end_address   = ext_mem_start_address + ExtMemorySize * 1024;
+
   localparam addr_t TCDMAliasStart = AliasRegionBase & TCDMMask;
   localparam addr_t TCDMAliasEnd   = (TCDMAliasStart + TCDMSize) & TCDMMask;
 
@@ -519,6 +543,9 @@ module snitch_cluster
 
   localparam addr_t ZeroMemAliasStart = PeriphAliasEnd;
   localparam addr_t ZeroMemAliasEnd   = PeriphAliasEnd + ZeroMemorySize * 1024;
+
+  localparam addr_t ExtAliasStart = ZeroMemAliasEnd;
+  localparam addr_t ExtAliasEnd   = ExtAliasStart + ExtMemorySize * 1024;
 
   // ----------------
   // Wire Definitions
@@ -542,6 +569,9 @@ module snitch_cluster
 
   mem_dma_req_t [NrSuperBanks-1:0] sb_dma_req;
   mem_dma_rsp_t [NrSuperBanks-1:0] sb_dma_rsp;
+
+  mem_dma_req_t [NrSuperBanks-1:0] sb_ext_req;
+  mem_dma_rsp_t [NrSuperBanks-1:0] sb_ext_rsp;
 
   // 3. Memory Subsystem (Interconnect)
   tcdm_dma_req_t ext_dma_req;
@@ -779,6 +809,26 @@ module snitch_cluster
     .mem_rsp_i (sb_dma_rsp)
   );
 
+  snitch_tcdm_interconnect #(
+    .NumInp (1),
+    .NumOut (NrSuperBanks),
+    .tcdm_req_t (tcdm_dma_req_t),
+    .tcdm_rsp_t (tcdm_dma_rsp_t),
+    .mem_req_t (mem_dma_req_t),
+    .mem_rsp_t (mem_dma_rsp_t),
+    .user_t (logic),
+    .MemAddrWidth (TCDMMemAddrWidth),
+    .DataWidth (WideDataWidth),
+    .MemoryResponseLatency (MemoryMacroLatency)
+  ) i_ext_interconnect (
+    .clk_i,
+    .rst_ni,
+    .req_i (tcdm_ext_req_i),
+    .rsp_o (tcdm_ext_resp_o),
+    .mem_req_o (sb_ext_req),
+    .mem_rsp_i (sb_ext_rsp)
+  );
+
   // ----------------
   // Memory Subsystem
   // ----------------
@@ -801,9 +851,10 @@ module snitch_cluster
       .in_narrow_rsp_o (ic_rsp [i]),
       .in_wide_req_i (sb_dma_req [i]),
       .in_wide_rsp_o (sb_dma_rsp [i]),
+      .in_ext_req_i (sb_ext_req [i]),
+      .in_ext_rsp_o (sb_ext_rsp [i]),
       .out_req_o (amo_req),
-      .out_rsp_i (amo_rsp),
-      .sel_wide_i (sb_dma_req[i].q_valid)
+      .out_rsp_i (amo_rsp)
     );
 
     // generate banks of the superbank
@@ -932,6 +983,7 @@ module snitch_cluster
     sync #(.STAGES (2))
       i_sync_msip  (.clk_i, .rst_ni, .serial_i (msip_i[i]), .serial_o (irq.msip));
     assign irq.mcip = cl_interrupt[i];
+    assign irq.mxip = mxip_i[i];
 
       tcdm_req_t [TcdmPorts-1:0] tcdm_req_wo_user;
 
@@ -1206,6 +1258,11 @@ module snitch_cluster
       idx:        ClusterPeripherals,
       start_addr: cluster_periph_start_address,
       end_addr:   cluster_periph_end_address
+    },
+    '{
+      idx:        ExtSlave,
+      start_addr: ext_mem_start_address,
+      end_addr:   ext_mem_end_address
     }
   };
   if (AliasRegionEnable) begin : gen_cluster_xbar_alias
@@ -1219,6 +1276,11 @@ module snitch_cluster
         idx:        ClusterPeripherals,
         start_addr: PeriphAliasStart,
         end_addr:   PeriphAliasEnd
+      },
+      '{
+        idx:        ExtSlave,
+        start_addr: ExtAliasStart,
+        end_addr:   ExtAliasEnd
       }
     };
   end
@@ -1384,7 +1446,26 @@ module snitch_cluster
     .icache_events_i (icache_events)
   );
 
-  // Optionally decouple the external narrow AXI master ports.
+  // Optionally decouple the externally-exposed internal AXI plug.
+  axi_cut #(
+    .Bypass     ( !RegisterExpNarrow ),
+    .aw_chan_t  ( axi_slv_aw_chan_t  ),
+    .w_chan_t   ( axi_slv_w_chan_t   ),
+    .b_chan_t   ( axi_slv_b_chan_t   ),
+    .ar_chan_t  ( axi_slv_ar_chan_t  ),
+    .r_chan_t   ( axi_slv_r_chan_t   ),
+    .axi_req_t  ( axi_slv_req_t      ),
+    .axi_resp_t ( axi_slv_resp_t     )
+  ) i_cut_exp_narrow_mst (
+    .clk_i      ( clk_i                        ),
+    .rst_ni     ( rst_ni                       ),
+    .slv_req_i  ( narrow_axi_slv_req[ExtSlave] ),
+    .slv_resp_o ( narrow_axi_slv_rsp[ExtSlave] ),
+    .mst_req_o  ( narrow_ext_req_o             ),
+    .mst_resp_i ( narrow_ext_resp_i            )
+  );
+
+  // Optionally decouple the external AXI plug.
   axi_cut #(
     .Bypass     ( !RegisterExtNarrow ),
     .aw_chan_t  ( axi_slv_aw_chan_t ),
