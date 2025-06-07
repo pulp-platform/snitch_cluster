@@ -19,7 +19,7 @@ int main() {
         
         "csrrsi x0, 0x7C4, 0x1\n"   // Enable queue
         
-        "fcvt.w.d t6, %[input] \n"  // FPSS: Write into inq
+        "fcvt.w.d t2, %[input] \n"  // FPSS: Write into inq
         "mv %[inq_read], t6 \n"     // INCC: Read from inq
 
         "csrrci x0, 0x7C4, 0x1\n"   // Disable queue

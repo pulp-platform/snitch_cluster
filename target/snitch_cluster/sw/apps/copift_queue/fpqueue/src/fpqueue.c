@@ -20,7 +20,7 @@ int main() {
         "csrrsi x0, 0x7C4, 0x1\n"   // Enable queue
         
         "mv t6, %[input] \n"        // INCC: Write into fpq
-        "fcvt.d.w %[fpq_read], t6 \n" // FPSS: Read from fpq
+        "fcvt.d.wu %[fpq_read], t6 \n" // FPSS: Read from fpq
 
         // Create FP->IN dependency
         "fadd.d ft2, ft2, %[fpq_read] \n"
