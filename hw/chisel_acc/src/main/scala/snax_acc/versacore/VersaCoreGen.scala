@@ -25,14 +25,42 @@ object SpatialArrayParamParser {
       "snax_num_rw_csr should be 7 for VersaCore"
     )
 
+    /** Convert input widths to corresponding FP types TODO it is now impossible to instantiate BF16 types. Solutions:
+      * TODO * the json definition must make a distinction between types, rather than just the width (preferred by
+      * Robin) TODO * `OpType` operator must be defined for BF types
+      */
+    def widthToFpType(width: Int) = {
+      width match {
+        case 16 => FP16
+        case 32 => FP32
+        case _  => throw new NotImplementedError()
+      }
+    }
+
+    /** Convert input widths to corresponding types */
+    def widthToType(width: Int, opType: OpType, isInputB: Boolean): DataType = {
+      opType match {
+        case UIntUIntOp | SIntSIntOp => new IntType(width)
+        case Float16IntOp            => if (isInputB) new IntType(width) else widthToFpType(width)
+        case Float16Float16Op        => widthToFpType(width)
+        case _                       => throw new NotImplementedError()
+      }
+    }
+
+    val opTypes = cfg("snax_versacore_op_type").arr.map(v => OpType.fromString(v.str)).toSeq
+
+    def widthSeqToTypeSeq(widthSeq: Seq[Int], isInputB: Boolean = false): Seq[DataType] =
+      widthSeq.zip(opTypes).map({ case (a, b) => widthToType(a, b, isInputB) })
+
     SpatialArrayParam(
-      opType                 = cfg("snax_versacore_op_type").arr.map(v => OpType.fromString(v.str)).toSeq,
+      opType                 = opTypes,
       macNum                 = getSeqInt("snax_versacore_mac_num"),
-      inputAElemWidth        = getSeqInt("snax_versacore_input_a_element_width"),
-      inputBElemWidth        = getSeqInt("snax_versacore_input_b_element_width"),
-      inputCElemWidth        = getSeqInt("snax_versacore_output_element_width"), // you can adjust if different
+      inputTypeA             = widthSeqToTypeSeq(getSeqInt("snax_versacore_input_a_element_width")),
+      inputTypeB             = widthSeqToTypeSeq(getSeqInt("snax_versacore_input_b_element_width"), isInputB = true),
+      // you can adjust if different
+      inputTypeC             = widthSeqToTypeSeq(getSeqInt("snax_versacore_output_element_width")),
       mulElemWidth           = getSeqInt("snax_versacore_multiply_element_width"),
-      outputDElemWidth       = getSeqInt("snax_versacore_output_element_width"),
+      outputTypeD            = widthSeqToTypeSeq(getSeqInt("snax_versacore_output_element_width")),
       arrayInputAWidth       = cfg("snax_versacore_array_input_a_width").num.toInt,
       arrayInputBWidth       = cfg("snax_versacore_array_input_b_width").num.toInt,
       arrayInputCWidth       = cfg("snax_versacore_array_input_c_width").num.toInt,

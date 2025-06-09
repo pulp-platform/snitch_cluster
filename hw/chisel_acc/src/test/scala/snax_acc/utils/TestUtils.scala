@@ -3,6 +3,7 @@ package snax_acc.utils
 import chisel3._
 
 import chiseltest._
+import snax_acc.versacore.FpType
 
 object CommonTestUtils {
 
@@ -36,20 +37,12 @@ object CommonTestUtils {
 
 }
 
-object fpUtils {
+trait fpUtils {
 
-  object fp16 {
-    val expWidth = 5
-    val sigWidth = 10
-  }
-  object fp32 {
-    val expWidth = 8
-    val sigWidth = 23
-  }
-
-  // Generalized helper function to encode Float as UInt
+  /** Generalized helper function to encode Float as UInt */
   def floatToUInt(expWidth: Int, sigWidth: Int, value: scala.Float): BigInt = {
-    val totalWidth = expWidth + sigWidth + 1 // Sign bit + exponent + significand
+    // Sign bit + exponent + significand
+    val totalWidth = expWidth + sigWidth + 1
 
     // Convert to IEEE 754 32-bit float representation
     val ieee754Bits = java.lang.Float.floatToIntBits(value)
@@ -72,7 +65,9 @@ object fpUtils {
     BigInt(customBits & ((1L << totalWidth) - 1)) // Mask to ensure valid bit-width
   }
 
-  // Generalized helper function to decode UInt to Float
+  def floatToUInt(fpType: FpType, value: scala.Float): BigInt = floatToUInt(fpType.expWidth, fpType.sigWidth, value)
+
+  /** Generalized helper function to decode UInt to Float */
   def uintToFloat(expWidth: Int, sigWidth: Int, bits: BigInt): scala.Float = {
     expWidth + sigWidth + 1 // Sign bit + exponent + significand
 
@@ -93,5 +88,7 @@ object fpUtils {
     val ieee754Bits = (sign.toInt << 31) | (ieeeExponent << 23) | ieeeSignificand
     java.lang.Float.intBitsToFloat(ieee754Bits)
   }
+
+  def uintToFloat(fpType: FpType, value: BigInt): scala.Float = uintToFloat(fpType.expWidth, fpType.sigWidth, value)
 
 }

@@ -9,22 +9,23 @@ package snax_acc.versacore
 import chisel3._
 import chisel3.util._
 
-class FPMULIntBlackBox(
-  topmodule: String,
-  widthA:    Int,
-  widthB:    Int,
-  widthC:    Int
-) extends BlackBox(
-      // only works for FP16 for a, FP32 for result
-      // data width of b is configurable
-      Map("WIDTH_B" -> widthB)
-    )
+/** @param typeA
+  *   Must be FP16
+  * @param typeB
+  *   Configurable
+  * @param typeC
+  *   Must be FP32
+  */
+class FPMULIntBlackBox(topmodule: String, typeA: FpType, typeB: IntType, typeC: FpType)
+    extends BlackBox(Map("WIDTH_B" -> typeB.width))
     with HasBlackBoxResource {
 
+  require(typeA == FP16 && typeC == FP32)
+
   val io = IO(new Bundle {
-    val operand_a_i = Input(UInt(widthA.W))
-    val operand_b_i = Input(UInt(widthB.W))
-    val result_o    = Output(UInt(widthC.W))
+    val operand_a_i = Input(UInt(typeA.width.W))
+    val operand_b_i = Input(UInt(typeB.width.W))
+    val result_o    = Output(UInt(typeC.width.W))
   })
   override def desiredName: String = topmodule
 
@@ -37,25 +38,19 @@ class FPMULIntBlackBox(
 
 }
 
-class FPMULInt(
-  topmodule:  String,
-  val widthA: Int,
-  val widthB: Int,
-  val widthC: Int
-) extends Module
+class FPMULInt(topmodule: String, val typeA: FpType, val typeB: IntType, val typeC: FpType)
+    extends Module
     with RequireAsyncReset {
 
   override def desiredName: String = "FPMULInt_" + topmodule
 
   val io = IO(new Bundle {
-    val operand_a_i = Input(UInt(widthA.W))
-    val operand_b_i = Input(UInt(widthB.W))
-    val result_o    = Output(UInt(widthC.W))
+    val operand_a_i = Input(UInt(typeA.width.W))
+    val operand_b_i = Input(UInt(typeB.width.W))
+    val result_o    = Output(UInt(typeC.width.W))
   })
 
-  val sv_module = Module(
-    new FPMULIntBlackBox(topmodule, widthA, widthB, widthC)
-  )
+  val sv_module = Module(new FPMULIntBlackBox(topmodule, typeA, typeB, typeC))
 
   io.result_o              := sv_module.io.result_o
   sv_module.io.operand_a_i := io.operand_a_i
@@ -65,12 +60,7 @@ class FPMULInt(
 
 object FPMULIntEmitter extends App {
   emitVerilog(
-    new FPMULInt(
-      topmodule = "fp_mul_int",
-      widthA    = 16,
-      widthB    = 16,
-      widthC    = 32
-    ),
+    new FPMULInt(topmodule = "fp_mul_int", typeA = FP16, typeB = Int16, typeC = FP32),
     Array("--target-dir", "generated/versacore")
   )
 }

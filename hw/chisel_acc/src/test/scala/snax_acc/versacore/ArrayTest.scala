@@ -27,37 +27,37 @@ class SpatialArrayTest extends AnyFlatSpec with ChiselScalatestTester {
 
           (0 until params.arrayDim(dataTypeIdx).length).map { arrayShapeIdx =>
             // Get the parameters for the current configuration
-            val inputAElemWidth  = params.inputAElemWidth(dataTypeIdx)
-            val inputBElemWidth  = params.inputBElemWidth(dataTypeIdx)
-            val outputDElemWidth = params.outputDElemWidth(dataTypeIdx)
+            val inputTypeA  = params.inputTypeA(dataTypeIdx)
+            val inputTypeB  = params.inputTypeB(dataTypeIdx)
+            val outputTypeD = params.outputTypeD(dataTypeIdx)
 
             val Mu = params.arrayDim(dataTypeIdx)(arrayShapeIdx)(0)
             val Ku = params.arrayDim(dataTypeIdx)(arrayShapeIdx)(1)
             val Nu = params.arrayDim(dataTypeIdx)(arrayShapeIdx)(2)
 
             // Generate random values for 'a' and 'b'
-            val aValues = Array.fill(Mu * Ku)(rand.nextInt(math.pow(2, inputAElemWidth).toInt))
-            val bValues = Array.fill(Ku * Nu)(rand.nextInt(math.pow(2, inputBElemWidth).toInt))
+            val aValues = Array.fill(Mu * Ku)(rand.nextInt(math.pow(2, inputTypeA.width).toInt))
+            val bValues = Array.fill(Ku * Nu)(rand.nextInt(math.pow(2, inputTypeB.width).toInt))
 
             // Print the generated values in 0x format
             // println(s"Generated aValues: ${aValues.map(v => f"0x$v%X").mkString(", ")}")
             // println(s"Generated bValues: ${bValues.map(v => f"0x$v%X").mkString(", ")}")
 
             // Construct 'a' and 'b' from the random values
-            val a = aValues.zipWithIndex.map { case (v, i) => BigInt(v) << (i * inputAElemWidth) }.sum
-            val b = bValues.zipWithIndex.map { case (v, i) => BigInt(v) << (i * inputBElemWidth) }.sum
+            val a = aValues.zipWithIndex.map { case (v, i) => BigInt(v) << (i * inputTypeA.width) }.sum
+            val b = bValues.zipWithIndex.map { case (v, i) => BigInt(v) << (i * inputTypeB.width) }.sum
 
             // Compute dot product treating aValues and bValues as SInt
             val expectedResult = Array.tabulate(Mu, Nu) { (i, j) =>
               (0 until Ku).map { k =>
                 val aSInt = toSInt(
                   aValues(i * Ku + k),
-                  inputAElemWidth,
+                  inputTypeA.width,
                   params.opType(dataTypeIdx) == SIntSIntOp
                 ) // Convert UInt to SInt
                 val bSInt = toSInt(
                   bValues(k + j * Ku),
-                  inputBElemWidth,
+                  inputTypeB.width,
                   params.opType(dataTypeIdx) == SIntSIntOp
                 ) // Convert UInt to SInt
                 aSInt * bSInt
@@ -73,7 +73,7 @@ class SpatialArrayTest extends AnyFlatSpec with ChiselScalatestTester {
             c.io.data.in_a.valid.poke(true.B)
             c.io.data.in_b.valid.poke(true.B)
             c.io.data.in_c.valid.poke(true.B)
-            c.io.data.in_substraction.valid.poke(false.B)
+            c.io.data.in_subtraction.valid.poke(false.B)
             c.io.data.out_d.ready.poke(true.B)
 
             c.io.ctrl.arrayShapeCfg.poke(arrayShapeIdx.U)
@@ -87,7 +87,7 @@ class SpatialArrayTest extends AnyFlatSpec with ChiselScalatestTester {
             c.io.data.out_d.valid.expect(true.B)
             val out_d            = c.io.data.out_d.bits.peek().litValue
             val extractedOutputs = (0 until (Mu * Nu)).map { i =>
-              ((out_d >> (i * outputDElemWidth)) & (math.pow(2, outputDElemWidth).toLong - 1)).toInt
+              ((out_d >> (i * outputTypeD.width)) & (math.pow(2, outputTypeD.width).toLong - 1)).toInt
             }
 
             println(s"Checking opType${dataTypeIdx + 1} res_cfg${arrayShapeIdx + 1}...")
@@ -110,11 +110,11 @@ class SpatialArrayTest extends AnyFlatSpec with ChiselScalatestTester {
     var params = SpatialArrayParam(
       opType                 = Seq(UIntUIntOp),
       macNum                 = Seq(1024),
-      inputAElemWidth        = Seq(8),
-      inputBElemWidth        = Seq(8),
-      inputCElemWidth        = Seq(32),
+      inputTypeA             = Seq(Int8),
+      inputTypeB             = Seq(Int8),
+      inputTypeC             = Seq(Int32),
       mulElemWidth           = Seq(16),
-      outputDElemWidth       = Seq(32),
+      outputTypeD            = Seq(Int32),
       arrayInputAWidth       = 1024,
       arrayInputBWidth       = 8192,
       arrayInputCWidth       = 4096,
@@ -134,11 +134,11 @@ class SpatialArrayTest extends AnyFlatSpec with ChiselScalatestTester {
       opType                 = Seq(SIntSIntOp, UIntUIntOp),
       // opType = Seq(UIntUIntOp, UIntUIntOp),
       macNum                 = Seq(8, 16),
-      inputAElemWidth        = Seq(8, 4),
-      inputBElemWidth        = Seq(8, 4),
-      inputCElemWidth        = Seq(32, 16),
+      inputTypeA             = Seq(Int8, Int4),
+      inputTypeB             = Seq(Int8, Int4),
+      inputTypeC             = Seq(Int32, Int16),
       mulElemWidth           = Seq(16, 8),
-      outputDElemWidth       = Seq(32, 16),
+      outputTypeD            = Seq(Int32, Int16),
       arrayInputAWidth       = 64,
       arrayInputBWidth       = 64,
       arrayInputCWidth       = 256,
@@ -157,11 +157,11 @@ class SpatialArrayTest extends AnyFlatSpec with ChiselScalatestTester {
     params = SpatialArrayParam(
       opType                 = Seq(SIntSIntOp),
       macNum                 = Seq(8),
-      inputAElemWidth        = Seq(16),
-      inputBElemWidth        = Seq(4),
-      inputCElemWidth        = Seq(32),
+      inputTypeA             = Seq(Int16),
+      inputTypeB             = Seq(Int4),
+      inputTypeC             = Seq(Int32),
       mulElemWidth           = Seq(32),
-      outputDElemWidth       = Seq(32),
+      outputTypeD            = Seq(Int32),
       arrayInputAWidth       = 64,
       arrayInputBWidth       = 16,
       arrayInputCWidth       = 128,

@@ -1,10 +1,11 @@
-// Copyright 2025 KU Leuven.
+// Copyright 2019 ETH Zurich and University of Bologna.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
+// Author: Stefan Mach <smach@iis.ee.ethz.ch>
 
-// Floating-Point Adder
-// Based on fpnew_fma modified for fp addition
-// Author: Man Shi <man.shi@kuleuven.be>
+// Copyright 2025 KU Leuven
+// Modified by: Man Shi <man.shi@kuleuven.be>
+// Changes: allow for different FP*INT data types; remove adder.
 
 module fp_mul_int #(
     parameter fpnew_pkg::fp_format_e  FpFormat_a   = fpnew_pkg::fp_format_e'(2),   //FP16 

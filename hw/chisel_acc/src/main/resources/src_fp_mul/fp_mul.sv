@@ -1,31 +1,29 @@
-// Copyright 2025 KU Leuven.
+// Copyright 2019 ETH Zurich and University of Bologna.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
+// Author: Stefan Mach <smach@iis.ee.ethz.ch>
 
-// Floating-Point Adder
-// Based on fpnew_fma modified for fp addition
-// Author: Man Shi <man.shi@kuleuven.be>
+// Copyright 2025 KU Leuven
+// Modified by: Man Shi <man.shi@kuleuven.be>
+//              Robin Geens <robin.geens@kuleuven.be>
+// Changes: allow for different a, b, and out data types; remove adder.
 
 module fp_mul #(
     parameter fpnew_pkg::fp_format_e FpFormat_a   = fpnew_pkg::fp_format_e'(2),  //FP16 
     parameter fpnew_pkg::fp_format_e FpFormat_b   = fpnew_pkg::fp_format_e'(2),  //FP16 
     parameter fpnew_pkg::fp_format_e FpFormat_out = fpnew_pkg::fp_format_e'(0),  //FP32
-    parameter fpnew_pkg::roundmode_e RndMode      = fpnew_pkg::roundmode_e'(0),
 
-    parameter int unsigned WIDTH_a = fpnew_pkg::fp_width(FpFormat_a),  // do not change
-    parameter int unsigned WIDTH_b = fpnew_pkg::fp_width(FpFormat_b),  // do not change
-    parameter int unsigned WIDTH_out = fpnew_pkg::fp_width(FpFormat_out),  // do not change
-    parameter int unsigned rnd_mode = RndMode  // do not change, we fix the round mode in rtl
+    // Do not change
+    parameter int unsigned WIDTH_a   = fpnew_pkg::fp_width(FpFormat_a),
+    parameter int unsigned WIDTH_b   = fpnew_pkg::fp_width(FpFormat_b),
+    parameter int unsigned WIDTH_out = fpnew_pkg::fp_width(FpFormat_out)
 ) (
-    // Input Handshake
-    //input  logic                         in_valid_i,
     // Input signals
     input  logic [  WIDTH_a-1:0] operand_a_i,  // 3 operands
     input  logic [  WIDTH_b-1:0] operand_b_i,  // 3 operands
     // Output signals
     output logic [WIDTH_out-1:0] result_o
-    // Output Handshake
-    //output logic                         out_valid_o
+
 );
 
   // ----------
@@ -48,18 +46,12 @@ module fp_mul #(
   localparam int unsigned PRECISION_BITS_B = MAN_BITS_B + 1;
   localparam int unsigned PRECISION_BITS_C = MAN_BITS_C + 1;
 
-  // localparam int unsigned LOWER_SUM_WIDTH  = (PRECISION_BITS_A + PRECISION_BITS_B) + 3;
-  localparam int unsigned LOWER_SUM_WIDTH = (PRECISION_BITS_A + PRECISION_BITS_B > PRECISION_BITS_C) 
-                                                ? (PRECISION_BITS_A + PRECISION_BITS_B) 
-                                                : (PRECISION_BITS_C );
+
+  localparam int unsigned LOWER_SUM_WIDTH = PRECISION_BITS_A + PRECISION_BITS_B;
   localparam int unsigned LZC_RESULT_WIDTH = $clog2(LOWER_SUM_WIDTH);
   localparam int unsigned EXP_WIDTH = unsigned'(fpnew_pkg::maximum(
       EXP_BITS_C + 2, LZC_RESULT_WIDTH
   ));
-  // (PRECISION_BITS_C + 2) + (PRECISION_BITS_A + PRECISION_BITS_B) + 2 - 1
-  // localparam int unsigned SHIFT_AMOUNT_WIDTH = $clog2(PRECISION_BITS_C + PRECISION_BITS_B + PRECISION_BITS_A + 3);
-  localparam int unsigned SHIFT_AMOUNT_WIDTH = $clog2(LOWER_SUM_WIDTH + PRECISION_BITS_C);
-
 
   // ----------------
   // Type definition
@@ -191,83 +183,70 @@ module fp_mul #(
   // Product data path
   // ------------------
   localparam int unsigned MUL_WIDTH = PRECISION_BITS_A + PRECISION_BITS_B;
-  localparam int unsigned PRODUCT_WIDTH = (MUL_WIDTH > PRECISION_BITS_C) ? MUL_WIDTH : PRECISION_BITS_C;
-  localparam int unsigned SUM_WIDTH = PRODUCT_WIDTH + PRECISION_BITS_C + 4;
   logic [PRECISION_BITS_A-1:0] mantissa_a;
   logic [PRECISION_BITS_B-1:0] mantissa_b;
-  logic [(MUL_WIDTH-1):0] product;
-  logic [(PRECISION_BITS_C):0] product_shifted;
+  logic [MUL_WIDTH-1:0] product;
+  logic [LOWER_SUM_WIDTH-1:0] product_shifted;
 
-  // Add implicit bits to mantissae
+  // Add implicit bits to mantissa
   assign mantissa_a = {info_a.is_normal, operand_a.mantissa};
   assign mantissa_b = {info_b.is_normal, operand_b.mantissa};
 
   // Mantissa multiplier (a*b)
   assign product = mantissa_a * mantissa_b;
-  // assign product_shifted = product << 2;
-  assign product_shifted = product << (2);
-
-
+  assign product_shifted = product;
 
   // --------------
   // Normalization
   // --------------
-  logic        [   LOWER_SUM_WIDTH-1:0] sum_lower;  // lower 2p+3 bits of sum are searched
-  logic        [  LZC_RESULT_WIDTH-1:0] leading_zero_count;  // the number of leading zeroes
-  logic signed [    LZC_RESULT_WIDTH:0] leading_zero_count_sgn;  // signed leading-zero count
-  logic                                 lzc_zeroes;  // in case only zeroes found
+  localparam int unsigned SUM_SHIFTED_WIDTH = LOWER_SUM_WIDTH + 1; // Must have 1 bit more than sum_lower
+  localparam int STICKY_BIT_WIDTH = SUM_SHIFTED_WIDTH - (PRECISION_BITS_C + 1);
+  localparam int unsigned PADDING_WIDTH = (STICKY_BIT_WIDTH <= 0) ? -STICKY_BIT_WIDTH : 0;
 
-  logic        [SHIFT_AMOUNT_WIDTH-1:0] norm_shamt;  // Normalization shift amount
-  logic signed [         EXP_WIDTH-1:0] normalized_exponent;
+  logic [LOWER_SUM_WIDTH-1:0] sum_lower;
+  logic leading_zero_count;
+  logic signed [LZC_RESULT_WIDTH:0] leading_zero_count_sgn;  // signed leading-zero count
 
+  logic signed [EXP_WIDTH-1:0] normalized_exponent;
 
+  logic [SUM_SHIFTED_WIDTH-1:0] sum_shifted;
+  logic [PRECISION_BITS_C:0] final_mantissa;
+  logic [STICKY_BIT_WIDTH-1:0] sum_sticky_bits;
+  logic sticky_after_norm;
 
-  logic        [    PRECISION_BITS_C:0] sum_shifted;
-  logic        [    PRECISION_BITS_C:0] final_mantissa;
-  logic                                 sum_sticky_bits;
-  logic                                 sticky_after_norm;
+  logic signed [EXP_WIDTH-1:0] final_exponent;
 
-  logic signed [         EXP_WIDTH-1:0] final_exponent;
-
-  assign sum_lower = product_shifted[PRECISION_BITS_C:0];
+  assign sum_lower = product_shifted;
 
   // Leading zero counter for cancellations
-  lzc #(
-      .WIDTH(LOWER_SUM_WIDTH),
-      .MODE (1)                 // MODE = 1 counts leading zeroes
-  ) i_lzc (
-      .in_i   (sum_lower),
-      .cnt_o  (leading_zero_count),
-      .empty_o(lzc_zeroes)
-  );
-
+  // Mantissa's have 1 at MSB by definition, so the resulting product has either 0 or 1 leading zero's
+  assign leading_zero_count = !sum_lower[LOWER_SUM_WIDTH-1];
   assign leading_zero_count_sgn = signed'({1'b0, leading_zero_count});
 
   always_comb begin : norm_shift_amount
-
-    if ((exponent_product - leading_zero_count_sgn + 1 >= 0) && !lzc_zeroes) begin
-      norm_shamt          = PRECISION_BITS_C + 2 + leading_zero_count;
+    if ((exponent_product - leading_zero_count_sgn + 1 >= 0)) begin
       normalized_exponent = exponent_product - leading_zero_count_sgn + 1;  // account for shift
-      // Subnormal result
     end else begin
-      norm_shamt          = unsigned'(signed'(PRECISION_BITS_C) + 2 + exponent_product);
       normalized_exponent = 0;  // subnormals encoded as 0
     end
-    // Addend-anchored case
-
   end
 
-  assign sum_shifted = product_shifted << (leading_zero_count + 1);
+  // Cancel out leading zero and account for 1 bit larger width of sum_shifted. Mantissa's hidden bit will now be at MSB
+  assign sum_shifted = (leading_zero_count) ? product_shifted << 2 : product_shifted << 1;
+
 
   always_comb begin : small_norm
-    // Default assignment, discarding carry bit
-    {final_mantissa} = sum_shifted;
-    final_exponent   = normalized_exponent;
+    // If src is wider than dst: save LSBs in sticky bits
+    if (STICKY_BIT_WIDTH > 0) {final_mantissa, sum_sticky_bits} = sum_shifted;
+    // If src is narrower than dst: append 0 at LSBs
+    else
+      final_mantissa = {sum_shifted, {(PADDING_WIDTH) {1'b0}}};
+
+    final_exponent = normalized_exponent;
   end
 
   // Update the sticky bit with the shifted-out bits
   assign sticky_after_norm = (|sum_sticky_bits);
-  //assign final_exponent_out = final_exponent + (BIAS_OUT - BIAS_a - BIAS_b);
 
   // ----------------------------
   // Rounding and classification

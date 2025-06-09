@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: SHL-0.51
 
 // Author: Xiaoling Yi <xiaoling.yi@kuleuven.be>
+// Modified by: Robin Geens <robin.geens@kuleuven.be>
 
 package snax_acc.versacore
 
@@ -13,277 +14,111 @@ import chisel3._
 import chiseltest._
 import chiseltest.simulator.VerilatorBackendAnnotation
 import org.scalatest.flatspec.AnyFlatSpec
-import snax_acc.utils.fpUtils._
+import snax_acc.utils.fpUtils
 
-trait FPMULIntTestUtils {
+class FPMULIntTest extends AnyFlatSpec with ChiselScalatestTester with fpUtils {
+  behavior of "FPMULInt"
 
-  def test_fp_mul_int(dut: FPMULInt, test_id: Int, A: Float, B: Int, Bwidth: Int) = {
-    val A_fp16 = uintToFloat(
-      fp16.expWidth,
-      fp16.sigWidth,
-      floatToUInt(fp16.expWidth, fp16.sigWidth, A)
-    ) // Convert to 16-bit representation
+  def test_fp_mul_int(dut: FPMULInt, test_id: Int, A: Float, B: Int, intWidthB: Int) = {
+    // Convert to 16-bit representation
+    val A_FP16 = uintToFloat(FP16, floatToUInt(FP16, A))
 
     var gold_O = 0.0f // Initialize expected output
 
-    if (Bwidth == 1 && B == 0) {
-      gold_O = A_fp16 * (-1) // Expected result
-    } else if (Bwidth == 1 && B == 1) {
-      gold_O = A_fp16 // Expected result
+    if (intWidthB == 1 && B == 0) {
+      gold_O = A_FP16 * (-1) // Expected result
+    } else if (intWidthB == 1 && B == 1) {
+      gold_O = A_FP16 // Expected result
     } else {
-      gold_O = A_fp16 * B // Expected result
+      gold_O = A_FP16 * B // Expected result
     }
 
     println(
-      f"-----------Test id: $test_id, A_fp16: ${A_fp16} , B: ${B},  gold_O: ${gold_O}-----------"
+      f"-----------Test id: $test_id, A_FP16: ${A_FP16} , B: ${B},  gold_O: ${gold_O}-----------"
     )
 
-    val stimulus_a_i = floatToUInt(fp16.expWidth, fp16.sigWidth, A) // Convert to 16-bit representation
-    val stimulus_b_i =
-      (BigInt(B) & ((BigInt(
-        1
-      ) << Bwidth) - 1)).U // B is an integer, int2uint conversion needed for sending it to the DUT
-    val expected_o = floatToUInt(fp32.expWidth, fp32.sigWidth, gold_O) // Expected output as UInt
+    val stimulus_a_i = floatToUInt(FP16.expWidth, FP16.sigWidth, A)
+    // Int to uint conversion
+    val stimulus_b_i = (BigInt(B) & ((BigInt(1) << intWidthB) - 1)).U
+    val expected_o   = floatToUInt(FP32, gold_O)
 
     dut.io.operand_a_i.poke(stimulus_a_i.U)
     dut.io.operand_b_i.poke(stimulus_b_i)
 
-    dut.clock.step()
-    dut.clock.step()
+    dut.clock.step(2)
 
-    val reseult = dut.io.result_o.peek().litValue
+    val result = dut.io.result_o.peek().litValue
     println(
-      f"-----------Test id: $test_id Expected: 0x${expected_o.toString(16)}, Got: 0x${reseult.toString(16)}-----------"
+      f"-----------Test id: $test_id Expected: 0x${expected_o.toString(16)}, Got: 0x${result.toString(16)}-----------"
     )
 
-    // try {
-    //   assert(reseult == expected_o)
-    // } catch {
-    //   case _: java.lang.AssertionError => {
-    //     println(
-    //       f"----Error!!!!-------Test id: $test_id Expected: 0x${expected_o.toString(16)}, Got: 0x${reseult.toString(16)}-----------"
-    //     )
-    //   }
-    // }
-    assert(reseult == expected_o)
+    assert(result == expected_o)
 
-    dut.clock.step()
-    dut.clock.step()
+    dut.clock.step(2)
   }
 
-}
+  def generateTestCases(intWidthB: Int, numTests: Int = 10): Seq[(Float, Int)] = {
+    val random       = new Random()
+    val (minB, maxB) = intWidthB match {
+      case 1 => (0, 1)  // 0 to 1 for int1
+      case 2 => (-2, 1) // -2 to 1 for int2
+      case 3 => (-4, 3) // -4 to 3 for int3
+      case 4 => (-8, 7) // -8 to 7 for int4
+      case _ => throw new IllegalArgumentException(s"Unsupported intWidthB: $intWidthB")
+    }
 
-class FPMULInt4Test extends AnyFlatSpec with ChiselScalatestTester with FPMULIntTestUtils {
-
-  behavior of "FPMULInt4"
-
-  it should "perform fp16-int4 multiply correctly" in {
-    test(
-      new FPMULInt(
-        topmodule = "fp_mul_int",
-        widthA    = 16,
-        widthB    = 4,
-        widthC    = 32
+    Seq.fill(numTests)(
+      (
+        (random.nextFloat() * 20 - 10),        // Random float between -10 and 10
+        random.nextInt(maxB - minB + 1) + minB // Random int in range
       )
-    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut =>
+    )
+  }
 
-      var A = 1.0f // float16
-      var B = -1   // int4
+  def runBasicTests(dut: FPMULInt, intWidthB: Int) = {
+    // Test case 1
+    test_fp_mul_int(dut, 1, 1.0f, if (intWidthB <= 2) 1 else -1, intWidthB)
 
-      test_fp_mul_int(dut, 1, A, B, 4)
+    // Test case 2
+    test_fp_mul_int(dut, 2, 0.5f, if (intWidthB <= 2) 0 else -2, intWidthB)
 
-      A = 0.5f
-      B = -2
+    // Test case 3
+    test_fp_mul_int(dut, 3, 0.005f, if (intWidthB <= 2) 1 else 3, intWidthB)
 
-      test_fp_mul_int(dut, 2, A, B, 4)
+    // Test case 4
+    test_fp_mul_int(dut, 4, 0.005f, 0, intWidthB)
 
-      A = 0.005f
-      B = 7
-
-      test_fp_mul_int(dut, 3, A, B, 4)
-
-      A = 0.005f
-      B = 0
-
-      test_fp_mul_int(dut, 4, A, B, 4)
-
-      new Random()
-
-      // Generate 10 test cases with:
-      // - A: Random Float16-compatible float
-      // - B: Random integer
-      val test_num  = 10
-      val testCases = Seq.fill(test_num)(
-        (
-          (Random.nextFloat() * 20 - 10), // A: Random float between -10 and 10
-          Random.nextInt(15) - 8          // B: Random int between -8 and 7
-        )
-      )
-
-      testCases.zipWithIndex.foreach { case ((a, b), index) =>
-        test_fp_mul_int(dut, index + 1, a, b, 4)
-      }
-
+    // Run random test cases
+    generateTestCases(intWidthB).zipWithIndex.foreach { case ((a, b), index) =>
+      test_fp_mul_int(dut, index + 5, a, b, intWidthB)
     }
   }
 
-}
-
-class FPMULInt3Test extends AnyFlatSpec with ChiselScalatestTester with FPMULIntTestUtils {
-
-  it should "perform fp16-int3 multiply correctly" in {
-    test(
-      new FPMULInt(
-        topmodule = "fp_mul_int",
-        widthA    = 16,
-        widthB    = 3,
-        widthC    = 32
-      )
-    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut =>
-
-      var A = 1.0f // float16
-      var B = 1    // int3
-
-      test_fp_mul_int(dut, 1, A, B, 3)
-
-      A = 0.5f
-      B = 2
-
-      test_fp_mul_int(dut, 2, A, B, 3)
-
-      A = 0.005f
-      B = 3
-
-      test_fp_mul_int(dut, 3, A, B, 3)
-
-      A = 0.005f
-      B = 0
-
-      test_fp_mul_int(dut, 4, A, B, 3)
-
-      val random = new Random()
-
-      // Generate 10 test cases with:
-      // - A: Random Float16-compatible float
-      // - B: Random integer
-      val test_num  = 10
-      val testCases = Seq.fill(test_num)(
-        (
-          (random.nextFloat() * 20 - 10), // A: Random float between -10 and 10
-          random.nextInt(7) - 4           // B: Random int between -4 and 3
-        )
-      )
-
-      testCases.zipWithIndex.foreach { case ((a, b), index) =>
-        test_fp_mul_int(dut, index + 1, a, b, 3)
+  it should "perform FP16-int4 multiply correctly" in {
+    test(new FPMULInt(topmodule = "fp_mul_int", typeA = FP16, typeB = Int4, typeC = FP32))
+      .withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut =>
+        runBasicTests(dut, 4)
       }
-
-    }
   }
-}
 
-class FPMULInt2Test extends AnyFlatSpec with ChiselScalatestTester with FPMULIntTestUtils {
-
-  it should "perform fp16-int2 multiply correctly" in {
-    test(
-      new FPMULInt(
-        topmodule = "fp_mul_int",
-        widthA    = 16,
-        widthB    = 2,
-        widthC    = 32
-      )
-    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut =>
-
-      var A = 1.0f // float16
-      var B = 1    // int2
-
-      test_fp_mul_int(dut, 1, A, B, 2)
-
-      A = 0.5f
-      B = 1
-
-      test_fp_mul_int(dut, 2, A, B, 2)
-
-      A = 0.015f
-      B = 0
-
-      test_fp_mul_int(dut, 3, A, B, 2)
-
-      A = 0.005f
-      B = 0
-
-      test_fp_mul_int(dut, 4, A, B, 2)
-
-      val random = new Random()
-
-      // Generate 10 test cases with:
-      // - A: Random Float16-compatible float
-      // - B: Random integer
-      val test_num  = 10
-      val testCases = Seq.fill(test_num)(
-        (
-          (random.nextFloat() * 20 - 10), // A: Random float between -10 and 10
-          random.nextInt(3) - 2           // B: Random int between -2 and 1
-        )
-      )
-
-      testCases.zipWithIndex.foreach { case ((a, b), index) =>
-        test_fp_mul_int(dut, index + 1, a, b, 2)
+  it should "perform FP16-int3 multiply correctly" in {
+    test(new FPMULInt(topmodule = "fp_mul_int", typeA = FP16, typeB = Int3, typeC = FP32))
+      .withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut =>
+        runBasicTests(dut, 3)
       }
-
-    }
   }
-}
 
-class FPMULInt1Test extends AnyFlatSpec with ChiselScalatestTester with FPMULIntTestUtils {
-
-  it should "perform fp16-int1 multiply correctly" in {
-    test(
-      new FPMULInt(
-        topmodule = "fp_mul_int",
-        widthA    = 16,
-        widthB    = 1,
-        widthC    = 32
-      )
-    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut =>
-
-      var A = 1.0f // float16
-      var B = 1    // int1
-
-      test_fp_mul_int(dut, 1, A, B, 1)
-
-      A = 0.5f
-      B = 0
-
-      test_fp_mul_int(dut, 2, A, B, 1)
-
-      A = 0.005f
-      B = 1
-
-      test_fp_mul_int(dut, 3, A, B, 1)
-
-      A = 0.005f
-      B = 0
-
-      test_fp_mul_int(dut, 4, A, B, 1)
-
-      val random = new Random()
-
-      // Generate 10 test cases with:
-      // - A: Random Float16-compatible float
-      // - B: Random integer
-      val test_num  = 10
-      val testCases = Seq.fill(test_num)(
-        (
-          (random.nextFloat() * 20 - 10), // A: Random float between -10 and 10
-          random.nextInt(1) // B: Random int between 0 and 1, 1 means positive, 0 means negative in int1 representation
-        )
-      )
-
-      testCases.zipWithIndex.foreach { case ((a, b), index) =>
-        test_fp_mul_int(dut, index + 1, a, b, 1)
+  it should "perform FP16-int2 multiply correctly" in {
+    test(new FPMULInt(topmodule = "fp_mul_int", typeA = FP16, typeB = Int2, typeC = FP32))
+      .withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut =>
+        runBasicTests(dut, 2)
       }
+  }
 
-    }
+  it should "perform FP16-int1 multiply correctly" in {
+    test(new FPMULInt(topmodule = "fp_mul_int", typeA = FP16, typeB = Int1, typeC = FP32))
+      .withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut =>
+        runBasicTests(dut, 1)
+      }
   }
 }

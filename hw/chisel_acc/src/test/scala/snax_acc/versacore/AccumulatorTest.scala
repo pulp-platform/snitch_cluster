@@ -15,7 +15,7 @@ class AccumulatorTest extends AnyFunSuite with ChiselScalatestTester {
   test("Accumulator should correctly add or accumulate values") {
     val numElements = 4
 
-    test(new Accumulator(UIntUIntOp, 8, 16, numElements)).withAnnotations(Seq(WriteVcdAnnotation)) { dut =>
+    test(new Accumulator(UIntUIntOp, Int8, Int16, numElements)).withAnnotations(Seq(WriteVcdAnnotation)) { dut =>
       // Helper function to run tests with different configurations
       def testConfig(
         in1Values:      Seq[Int],

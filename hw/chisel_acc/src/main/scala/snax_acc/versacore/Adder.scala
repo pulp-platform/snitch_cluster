@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: SHL-0.51
 
 // Author: Xiaoling Yi <xiaoling.yi@kuleuven.be>
+// Modified by: Robin Geens <robin.geens@kuleuven.be>
 
 package snax_acc.versacore
 
@@ -10,81 +11,67 @@ import chisel3._
 
 /** AdderIO defines the input and output interfaces for the Adder module. */
 class AdderIO(
-  inputAElemWidth:  Int,
-  inputBElemWidth:  Int,
-  outputCElemWidth: Int
+  inputTypeA: DataType,
+  inputTypeB: DataType,
+  inputTypeC: DataType
 ) extends Bundle {
-  val in_a  = Input(UInt(inputAElemWidth.W))
-  val in_b  = Input(UInt(inputBElemWidth.W))
-  val out_c = Output(UInt(outputCElemWidth.W))
+  val in_a  = Input(UInt(inputTypeA.width.W))
+  val in_b  = Input(UInt(inputTypeB.width.W))
+  val out_c = Output(UInt(inputTypeC.width.W))
 }
 
 /** Adder is a module that performs addition on two inputs based on the specified operation type. */
 class Adder(
-  opType:           OpType,
-  inputAElemWidth:  Int,
-  inputBElemWidth:  Int,
-  outputCElemWidth: Int
+  opType:     OpType,
+  inputTypeA: DataType,
+  inputTypeB: DataType,
+  inputTypeC: DataType
 ) extends Module
     with RequireAsyncReset {
 
-  val io = IO(new AdderIO(inputAElemWidth, inputBElemWidth, outputCElemWidth))
-  require(
-    opType == UIntUIntOp || opType == SIntSIntOp ||
-      opType == Float16IntOp || opType == Float16Float16Op,
-    "Unsupported operation type for Adder"
-  )
-  require(
-    inputAElemWidth > 0 && inputBElemWidth > 0 && outputCElemWidth > 0,
-    "Element widths must be greater than 0"
-  )
+  val io = IO(new AdderIO(inputTypeA, inputTypeB, inputTypeC))
 
-  // instantiating the adder based on the operation type
-  if (opType == UIntUIntOp) {
-    io.out_c := io.in_a + io.in_b
-  } else if (opType == SIntSIntOp) {
-    io.out_c := (io.in_a.asTypeOf(SInt(outputCElemWidth.W)) + io.in_b.asTypeOf(
-      SInt(outputCElemWidth.W)
-    )).asUInt
-  } else if (opType == Float16IntOp || opType == Float16Float16Op) {
-    // For Float16IntOp and Float16Float16Op, we use a black box for floating-point addition
-    // Now only support fp32+fp32=fp32, as the system verilog module's parameter is fixed
-    val fpAddfp = Module(
-      new FPAddFPBlackBox("fp_add", inputAElemWidth, inputBElemWidth, outputCElemWidth)
-    )
-    fpAddfp.io.operand_a_i  := io.in_a
-    fpAddfp.io.operand_b_i  := io.in_b
-    io.out_c                := fpAddfp.io.result_o
-    assert(
-      inputAElemWidth == 32 && inputBElemWidth == 32 && outputCElemWidth == 32,
-      "For Float16IntOp or Float16Float16Op, input widths must be 32, 32 and output width must be 32 for the adder module"
-    )
+  (inputTypeA, inputTypeB, inputTypeC, opType) match {
+    case (_: IntType, _: IntType, _: IntType, UIntUIntOp) => io.out_c := io.in_a + io.in_b
 
-  } else {
-    // TODO: add support for other types
-    // For now, just set the output to 0
-    io.out_c := 0.U
+    case (_: IntType, _: IntType, _: IntType, SIntSIntOp) =>
+      io.out_c := (io.in_a.asTypeOf(SInt(inputTypeC.width.W)) + io.in_b.asTypeOf(
+        SInt(inputTypeC.width.W)
+      )).asUInt
+
+    case (_: FpType, _: IntType, _: FpType, Float16IntOp) => throw new NotImplementedError()
+
+    case (a: FpType, b: FpType, c: FpType, Float16Float16Op) => {
+      val fpAddFp = Module(new FPAddFPBlackBox("fp_add", a, b, c))
+      fpAddFp.io.operand_a_i := io.in_a
+      fpAddFp.io.operand_b_i := io.in_b
+      io.out_c               := fpAddFp.io.result_o
+    }
+
+    case (_, _, _, _) => throw new NotImplementedError()
+
   }
+
 }
 
 // Below are the emitters for different adder configurations for testing and evaluation purposes.
 object AdderEmitterUInt extends App {
   emitVerilog(
-    new Adder(UIntUIntOp, 8, 4, 16),
+    new Adder(UIntUIntOp, Int8, Int4, Int16),
     Array("--target-dir", "generated/versacore")
   )
 }
 
 object AdderEmitterSInt extends App {
   emitVerilog(
-    new Adder(SIntSIntOp, 8, 4, 16),
+    new Adder(SIntSIntOp, Int8, Int4, Int16),
     Array("--target-dir", "generated/versacore/adder")
   )
 }
 
 object AdderEmitterFloat16Float16 extends App {
   emitVerilog(
-    new Adder(Float16Float16Op, 32, 32, 32),
+    new Adder(Float16Float16Op, FP32, FP32, FP32),
     Array("--target-dir", "generated/versacore/adder")
   )
 }

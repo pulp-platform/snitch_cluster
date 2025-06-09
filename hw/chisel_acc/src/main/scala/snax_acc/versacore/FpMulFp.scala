@@ -3,25 +3,28 @@
 // SPDX-License-Identifier: SHL-0.51
 
 // Author: Xiaoling Yi <xiaoling.yi@kuleuven.be>
+// Modified by: Robin Geens <robin.geens@kuleuven.be>
 
 package snax_acc.versacore
 
 import chisel3._
+import chisel3.experimental.RawParam
 import chisel3.util._
 
-class FPMULFPBlackBox(
-  topmodule: String,
-  widthA:    Int,
-  widthB:    Int,
-  widthC:    Int
-) extends BlackBox
-    // only works for FP16 for a and b, FP32 for result as it is hardcoded in the blackbox for now.
+class FPMULFPBlackBox(topmodule: String, typeA: FpType, typeB: FpType, typeC: FpType)
+    extends BlackBox(
+      Map(
+        "FpFormat_a"   -> RawParam(typeA.fpnewFormatEnum),
+        "FpFormat_b"   -> RawParam(typeB.fpnewFormatEnum),
+        "FpFormat_out" -> RawParam(typeC.fpnewFormatEnum)
+      )
+    )
     with HasBlackBoxResource {
 
   val io = IO(new Bundle {
-    val operand_a_i = Input(UInt(widthA.W))
-    val operand_b_i = Input(UInt(widthB.W))
-    val result_o    = Output(UInt(widthC.W))
+    val operand_a_i = Input(UInt(typeA.width.W))
+    val operand_b_i = Input(UInt(typeB.width.W))
+    val result_o    = Output(UInt(typeC.width.W))
   })
   override def desiredName: String = topmodule
 
@@ -33,23 +36,17 @@ class FPMULFPBlackBox(
 
 }
 
-class FPMULFP(
-  topmodule:  String,
-  val widthA: Int,
-  val widthB: Int,
-  val widthC: Int
-) extends Module
+class FPMULFP(topmodule: String, val typeA: FpType, val typeB: FpType, val typeC: FpType)
+    extends Module
     with RequireAsyncReset {
 
   val io = IO(new Bundle {
-    val operand_a_i = Input(UInt(widthA.W))
-    val operand_b_i = Input(UInt(widthB.W))
-    val result_o    = Output(UInt(widthC.W))
+    val operand_a_i = Input(UInt(typeA.width.W))
+    val operand_b_i = Input(UInt(typeB.width.W))
+    val result_o    = Output(UInt(typeC.width.W))
   })
 
-  val sv_module = Module(
-    new FPMULFPBlackBox(topmodule, widthA, widthB, widthC)
-  )
+  val sv_module = Module(new FPMULFPBlackBox(topmodule, typeA, typeB, typeC))
 
   io.result_o              := sv_module.io.result_o
   sv_module.io.operand_a_i := io.operand_a_i
@@ -59,12 +56,7 @@ class FPMULFP(
 
 object FPMULFPEmitter extends App {
   emitVerilog(
-    new FPMULFP(
-      topmodule = "fp_mul",
-      widthA    = 16,
-      widthB    = 16,
-      widthC    = 32
-    ),
+    new FPMULFP(topmodule = "fp_mul", typeA = FP16, typeB = FP16, typeC = FP32),
     Array("--target-dir", "generated/versacore")
   )
 }

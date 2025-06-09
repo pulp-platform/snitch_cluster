@@ -1,22 +1,21 @@
-// Copyright 2025 KU Leuven.
+// Copyright 2019 ETH Zurich and University of Bologna.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
+// Author: Stefan Mach <smach@iis.ee.ethz.ch>
 
-// Floating-Point Adder
-// Based on fpnew_fma modified for fp addition
-// Author: Man Shi <man.shi@kuleuven.be>
-
+// Copyright 2025 KU Leuven
+// Modified by: Man Shi <man.shi@kuleuven.be>
+//              Robin Geens <robin.geens@kuleuven.be>
+// Changes: allow for different a, b, and out data types; remove multiplier.
 
 module fp_add #(
     parameter fpnew_pkg::fp_format_e FpFormat_a   = fpnew_pkg::fp_format_e'(0),
     parameter fpnew_pkg::fp_format_e FpFormat_b   = fpnew_pkg::fp_format_e'(0),
     parameter fpnew_pkg::fp_format_e FpFormat_out = fpnew_pkg::fp_format_e'(0),
-    parameter fpnew_pkg::roundmode_e RndMode      = fpnew_pkg::roundmode_e'(0),
 
-    parameter int unsigned WIDTH_A = fpnew_pkg::fp_width(FpFormat_a),
-    parameter int unsigned WIDTH_B = fpnew_pkg::fp_width(FpFormat_b),
-    parameter int unsigned WIDTH_out = fpnew_pkg::fp_width(FpFormat_out),
-    parameter int unsigned rnd_mode    = RndMode  //
+    parameter int unsigned WIDTH_A   = fpnew_pkg::fp_width(FpFormat_a),
+    parameter int unsigned WIDTH_B   = fpnew_pkg::fp_width(FpFormat_b),
+    parameter int unsigned WIDTH_out = fpnew_pkg::fp_width(FpFormat_out)
 ) (
     input  logic [  WIDTH_A-1:0] operand_a_i,
     input  logic [  WIDTH_B-1:0] operand_b_i,
@@ -43,16 +42,10 @@ module fp_add #(
   localparam int unsigned PRECISION_BITS_B = MAN_BITS_B + 1;
   localparam int unsigned PRECISION_BITS_C = MAN_BITS_C + 1;
 
-  // localparam int unsigned LOWER_SUM_WIDTH  = (PRECISION_BITS_A + PRECISION_BITS_B) + 3;
   localparam int unsigned LOWER_SUM_WIDTH = (PRECISION_BITS_A + PRECISION_BITS_B > PRECISION_BITS_C) 
                                                 ? (PRECISION_BITS_A + PRECISION_BITS_B) 
                                                 : (PRECISION_BITS_C );
-  localparam int unsigned LZC_RESULT_WIDTH = $clog2(LOWER_SUM_WIDTH);
-  localparam int unsigned EXP_WIDTH = unsigned'(fpnew_pkg::maximum(
-      EXP_BITS_C + 2, LZC_RESULT_WIDTH
-  ));
-  // (PRECISION_BITS_C + 2) + (PRECISION_BITS_A + PRECISION_BITS_B) + 2 - 1
-  // localparam int unsigned SHIFT_AMOUNT_WIDTH = $clog2(PRECISION_BITS_C + PRECISION_BITS_B + PRECISION_BITS_A + 3);
+
   localparam int unsigned SHIFT_AMOUNT_WIDTH = $clog2(LOWER_SUM_WIDTH + PRECISION_BITS_C);
 
 
@@ -155,10 +148,18 @@ module fp_add #(
       result_is_special = 1'b1;
     end else if (info_a.is_inf) begin
       result_is_special = 1'b1;
-      special_result = operand_a;
+      special_result = '{
+          sign: operand_a.sign,
+          exponent: operand_a.exponent,
+          mantissa: operand_a.mantissa
+      };
     end else if (info_b.is_inf) begin
       result_is_special = 1'b1;
-      special_result = operand_b;
+      special_result = '{
+          sign: operand_b.sign,
+          exponent: operand_b.exponent,
+          mantissa: operand_b.mantissa
+      };
     end
   end
 
@@ -210,25 +211,33 @@ module fp_add #(
   // do the maximal shift
   logic [2*PRECISION_BITS_C+1:0] addend_a, addend_b;
   logic [2*PRECISION_BITS_C+1:0] shifted_b;
+  logic [2*PRECISION_BITS_C+1:0] sum_raw;
+  logic [2*PRECISION_BITS_C+1:0] sum;
   logic inject_carry_in;
+  logic result_negative;
+  logic operand_a_larger;
+  logic final_sign;
 
   assign addend_a = (mantissa_a << (2 * PRECISION_BITS_C - (PRECISION_BITS_A - 1))) >> (shamt_a);
   assign addend_b = (mantissa_b << (2 * PRECISION_BITS_C - (PRECISION_BITS_B - 1))) >> (shamt_b);
 
   assign shifted_b = (effective_subtraction) ? ~addend_b : addend_b;
   assign inject_carry_in = effective_subtraction;
-  logic [2*PRECISION_BITS_C+1:0] sum_raw;
-  logic [2*PRECISION_BITS_C+1:0] sum;
-  logic result_negative;
 
   assign sum_raw = addend_a + shifted_b + inject_carry_in;
   assign result_negative = (effective_subtraction && sum_raw[2*PRECISION_BITS_C+1]);
   assign sum = result_negative ? (~(sum_raw - 1)) : sum_raw;
-  logic operand_a_larger;
 
-  assign operand_a_larger = (exponent_a > exponent_b) ? 1'b1 :
-                          (exponent_a < exponent_b) ? 1'b0 :
-                          (mantissa_a > mantissa_b);
+  // The mantissa's can have different widths. Extend with 0 at LSB side for comparison
+  localparam int unsigned MAN_BITS_IN = unsigned'(fpnew_pkg::maximum(MAN_BITS_A, MAN_BITS_B));
+  logic [MAN_BITS_IN-1:0] mantissa_a_ext, mantissa_b_ext;
+
+  assign mantissa_a_ext = mantissa_a << (MAN_BITS_IN - MAN_BITS_A);
+  assign mantissa_b_ext = mantissa_b << (MAN_BITS_IN - MAN_BITS_B);
+
+  assign operand_a_larger = (exponent_difference > 0) ? 1'b1 :
+                          (exponent_difference < 0) ? 1'b0 :
+                          (mantissa_a_ext > mantissa_b_ext);
 
   assign final_sign = (effective_subtraction) ?
                     (operand_a_larger ? operand_a.sign : operand_b.sign) :

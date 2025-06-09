@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: SHL-0.51
 
 // Author: Xiaoling Yi <xiaoling.yi@kuleuven.be>
+// Modified by: Robin Geens <robin.geens@kuleuven.be>
 
 package snax_acc.versacore
 
@@ -13,31 +14,24 @@ import chisel3.util._
   * vectors and produces a single output vector.
   * @param opType
   *   The type of operation to perform (e.g., UInt, SInt, Float16).
-  * @param inputElemWidth
-  *   The width of each input element.
-  * @param outputElemWidth
-  *   The width of each output element.
   * @param numElements
   *   The number of elements in the input vector.
   * @param groupSizes
   *   A sequence of group sizes for the adder tree.
   */
 class AdderTree(
-  val opType:          OpType,
-  val inputElemWidth:  Int,
-  val outputElemWidth: Int,
-  val numElements:     Int,
-  val groupSizes:      Seq[Int]
+  val opType:      OpType,
+  val inputType:   DataType,
+  val outputTpe:   DataType,
+  val numElements: Int,
+  val groupSizes:  Seq[Int]
 ) extends Module
     with RequireAsyncReset {
-  require(
-    isPow2(numElements),
-    "numElements must be a power of 2"
-  )
+  require(isPow2(numElements), "numElements must be a power of 2")
 
   val io = IO(new Bundle {
-    val in  = Input(Vec(numElements, UInt(inputElemWidth.W)))
-    val out = Output(Vec(numElements, UInt(outputElemWidth.W)))
+    val in  = Input(Vec(numElements, UInt(inputType.width.W)))
+    val out = Output(Vec(numElements, UInt(outputTpe.width.W)))
     val cfg = Input(UInt(log2Ceil(groupSizes.length + 1).W))
   })
 
@@ -47,18 +41,13 @@ class AdderTree(
     groupSizes.length < 32 && groupSizes.length >= 1,
     "groupSizes number must be less than 32 and greater than 0"
   )
-  require(
-    opType == UIntUIntOp || opType == SIntSIntOp ||
-      opType == Float16IntOp || opType == Float16Float16Op,
-    "Currently we only support UIntUIntOp or SIntSIntOp or Float16IntOp or Float16Float16Op"
-  )
 
   // adder tree initialization
   val maxGroupSize = groupSizes.max
   val treeDepth    = log2Ceil(maxGroupSize)
 
   val layers = Wire(
-    Vec(treeDepth + 1, Vec(numElements, UInt(outputElemWidth.W)))
+    Vec(treeDepth + 1, Vec(numElements, UInt(outputTpe.width.W)))
   )
 
   // Initialize the output type based on the operation type
@@ -66,16 +55,16 @@ class AdderTree(
   // For UIntUIntOp, we can use UInt for the output
   // Other types will be handled in the black box adder module as we use UInt for inputs and outputs
   val outputType = if (opType == SIntSIntOp) {
-    SInt(outputElemWidth.W)
+    SInt(outputTpe.width.W)
   } else {
-    UInt(outputElemWidth.W)
+    UInt(outputTpe.width.W)
   }
 
   // Initialize all layers to zero
-  layers.map(_.map(_ := 0.U.asTypeOf(UInt(outputElemWidth.W))))
+  layers.map(_.map(_ := 0.U.asTypeOf(UInt(outputTpe.width.W))))
   // Initialize the first layer with input values
   layers(0) := VecInit(
-    io.in.map(_.asTypeOf(outputType).asTypeOf(UInt(outputElemWidth.W)))
+    io.in.map(_.asTypeOf(outputType).asTypeOf(UInt(outputTpe.width.W)))
   )
 
   // Generate adder tree layers
@@ -84,7 +73,7 @@ class AdderTree(
     for (i <- 0 until numElements by (2 * step)) {
       // Create adders for the current layer
       val adder = Module(
-        new Adder(opType, outputElemWidth, outputElemWidth, outputElemWidth)
+        new Adder(opType, outputTpe, outputTpe, outputTpe)
       )
       // Connect the inputs of the adder
       // The adder takes two inputs from the current layer
@@ -107,14 +96,14 @@ class AdderTree(
 
 object AdderTreeEmitterUInt extends App {
   emitVerilog(
-    new AdderTree(UIntUIntOp, 8, 9, 8, Seq(1, 2, 4)),
+    new AdderTree(UIntUIntOp, Int8, new IntType(9), 8, Seq(1, 2, 4)),
     Array("--target-dir", "generated/versacore")
   )
 }
 
 object AdderTreeEmitterSInt extends App {
   emitVerilog(
-    new AdderTree(SIntSIntOp, 16, 32, 1024, Seq(1, 2, 8)),
+    new AdderTree(SIntSIntOp, Int16, Int32, 1024, Seq(1, 2, 8)),
     Array("--target-dir", "generated/versacore")
   )
 }

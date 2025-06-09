@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: SHL-0.51
 
 // Author: Xiaoling Yi <xiaoling.yi@kuleuven.be>
+// arrayTop with the fsm controller and the spatial array
 
 package snax_acc.versacore
 
@@ -11,12 +12,7 @@ import chisel3.util._
 
 import snax_acc.utils._
 
-// arrayTop with the fsm controller and the spatial array
-
-/** VersaCoreCfg is a configuration bundle for the VersaCore module.
-  *
-  * @param params
-  */
+/** VersaCoreCfg is a configuration bundle for the VersaCore module. */
 class VersaCoreCfg(params: SpatialArrayParam) extends Bundle {
   val fsmCfg = new Bundle {
     val K_i                    = UInt(params.configWidth.W)
@@ -31,10 +27,7 @@ class VersaCoreCfg(params: SpatialArrayParam) extends Bundle {
   }
 }
 
-/** VersaCoreIO defines the input and output interfaces for the VersaCore module.
-  *
-  * @param params
-  */
+/** VersaCoreIO defines the input and output interfaces for the VersaCore module. */
 class VersaCoreIO(params: SpatialArrayParam) extends Bundle {
   // data interface
   val data = new Bundle {
@@ -52,10 +45,7 @@ class VersaCoreIO(params: SpatialArrayParam) extends Bundle {
   val performance_counter = Output(UInt(params.configWidth.W))
 }
 
-/** VersaCore is the top-level module for VersaCore.
-  *
-  * @param params
-  */
+/** VersaCore is the top-level module for VersaCore. */
 class VersaCore(params: SpatialArrayParam) extends Module with RequireAsyncReset {
 
   val io = IO(new VersaCoreIO(params))
@@ -147,7 +137,7 @@ class VersaCore(params: SpatialArrayParam) extends Module with RequireAsyncReset
 
   // Calculate the run-time output serial factor based on the configuration
   // (how many cycles it to output one data)
-  val outPutDWidthRom = VecInit(params.outputDElemWidth.map(_.U(params.configWidth.W)))
+  val outPutDWidthRom = VecInit(params.outputTypeD.map(_.width.U(params.configWidth.W)))
 
   val runTimeOutputBandWidthFactor = (realCDBandWidth(
     csrReg.arrayCfg.dataTypeCfg,
@@ -223,7 +213,7 @@ class VersaCore(params: SpatialArrayParam) extends Module with RequireAsyncReset
     dim(0) * dim(1) * elemWidthSeq(dataTypeIdx)
   }
 
-  val inputAElemWidthRom = VecInit(params.inputAElemWidth.map(_.U(params.configWidth.W)))
+  val inputAElemWidthRom = VecInit(params.inputTypeA.map(_.width.U(params.configWidth.W)))
 
   val runTimeInputABandWidthFactor = (realABandWidth(
     csrReg.arrayCfg.dataTypeCfg,
@@ -252,7 +242,7 @@ class VersaCore(params: SpatialArrayParam) extends Module with RequireAsyncReset
     dim(1) * dim(2) * elemWidthSeq(dataTypeIdx)
   }
 
-  val inputBElemWidthRom = VecInit(params.inputBElemWidth.map(_.U(params.configWidth.W)))
+  val inputBElemWidthRom = VecInit(params.inputTypeB.map(_.width.U(params.configWidth.W)))
 
   val runTimeInputBBandWidthFactor = (realBBandWidth(
     csrReg.arrayCfg.dataTypeCfg,
@@ -371,8 +361,8 @@ class VersaCore(params: SpatialArrayParam) extends Module with RequireAsyncReset
   // Design-time check to ensure real bandwidth is divisible by serialization width
   params.arrayDim.zipWithIndex.foreach { case (shapes, dataTypeIdx) =>
     shapes.zipWithIndex.foreach { case (dim, dimIdx) =>
-      val outputDElemWidth = params.outputDElemWidth(dataTypeIdx)
-      val realBandwidth    = dim(0) * dim(2) * outputDElemWidth
+      val outputTypeD   = params.outputTypeD(dataTypeIdx)
+      val realBandwidth = dim(0) * dim(2) * outputTypeD.width
       require(
         if (realBandwidth > params.serialOutputDDataWidth) realBandwidth % params.serialOutputDDataWidth == 0 else true,
         s"Invalid config: real bandwidth ($realBandwidth) not divisible by serialOutputDDataWidth (${params.serialOutputDDataWidth}) " +
@@ -381,7 +371,7 @@ class VersaCore(params: SpatialArrayParam) extends Module with RequireAsyncReset
     }
   }
 
-  val inputCElemWidthRom = VecInit(params.inputCElemWidth.map(_.U(params.configWidth.W)))
+  val inputCElemWidthRom = VecInit(params.inputTypeC.map(_.width.U(params.configWidth.W)))
 
   val runTimeInputCBandWidthFactor = (realCDBandWidth(
     csrReg.arrayCfg.dataTypeCfg,
@@ -446,7 +436,7 @@ class VersaCore(params: SpatialArrayParam) extends Module with RequireAsyncReset
   // array c_ready  considering output stationary
   C_s2p.io.out.ready       := addCFire           && cstate === sBUSY
 
-  array.io.data.in_substraction <> sub_after_cut
+  array.io.data.in_subtraction <> sub_after_cut
 
   // array d_ready considering output stationary
   val dOutputValidCounter = Module(new BasicCounter(params.configWidth, nameTag = "dOutputValidCounter"))
@@ -489,11 +479,11 @@ object VersaCoreEmitterFloat16Int4 extends App {
   val FP16Int4Array_Param = SpatialArrayParam(
     opType                 = Seq(Float16IntOp),
     macNum                 = Seq(8),
-    inputAElemWidth        = Seq(16),
-    inputBElemWidth        = Seq(4),
-    inputCElemWidth        = Seq(32),
+    inputTypeA             = Seq(FP16),
+    inputTypeB             = Seq(Int4),
+    inputTypeC             = Seq(FP32),
     mulElemWidth           = Seq(32),
-    outputDElemWidth       = Seq(32),
+    outputTypeD            = Seq(FP32),
     arrayInputAWidth       = 64,
     arrayInputBWidth       = 16,
     arrayInputCWidth       = 128,
@@ -514,11 +504,11 @@ object VersaCoreEmitterFloat16Float16 extends App {
   val FP16Float16Array_Param = SpatialArrayParam(
     opType                 = Seq(Float16Float16Op),
     macNum                 = Seq(8),
-    inputAElemWidth        = Seq(16),
-    inputBElemWidth        = Seq(16),
-    inputCElemWidth        = Seq(32),
+    inputTypeA             = Seq(FP16),
+    inputTypeB             = Seq(FP16),
+    inputTypeC             = Seq(FP32),
     mulElemWidth           = Seq(32),
-    outputDElemWidth       = Seq(32),
+    outputTypeD            = Seq(FP32),
     arrayInputAWidth       = 64,
     arrayInputBWidth       = 64,
     arrayInputCWidth       = 128,

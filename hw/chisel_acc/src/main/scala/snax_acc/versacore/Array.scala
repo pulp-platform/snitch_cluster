@@ -11,11 +11,11 @@ import chisel3.util._
 
 // data io
 class SpatialArrayDataIO(params: SpatialArrayParam) extends Bundle {
-  val in_a            = Flipped(DecoupledIO(UInt(params.arrayInputAWidth.W)))
-  val in_b            = Flipped(DecoupledIO(UInt(params.arrayInputBWidth.W)))
-  val in_c            = Flipped(DecoupledIO(UInt(params.arrayInputCWidth.W)))
-  val out_d           = DecoupledIO(UInt(params.arrayOutputDWidth.W))
-  val in_substraction = Flipped(DecoupledIO(UInt(params.configWidth.W)))
+  val in_a           = Flipped(DecoupledIO(UInt(params.arrayInputAWidth.W)))
+  val in_b           = Flipped(DecoupledIO(UInt(params.arrayInputBWidth.W)))
+  val in_c           = Flipped(DecoupledIO(UInt(params.arrayInputCWidth.W)))
+  val out_d          = DecoupledIO(UInt(params.arrayOutputDWidth.W))
+  val in_subtraction = Flipped(DecoupledIO(UInt(params.configWidth.W)))
 }
 
 // control io
@@ -32,8 +32,6 @@ class SpatialArrayIO(params: SpatialArrayParam) extends Bundle {
 }
 
 /** SpatialArray is a module that implements a spatial array for parallel computation.
-  *
-  * @param params
   */
 class SpatialArray(params: SpatialArrayParam) extends Module with RequireAsyncReset {
 
@@ -49,18 +47,18 @@ class SpatialArray(params: SpatialArrayParam) extends Module with RequireAsyncRe
         require(dim(0) * dim(1) * dim(2) <= params.macNum(dataTypeIdx))
         // arrayInputAWidth should be enough to support the bandwidth bound
         require(
-          params.arrayInputAWidth        >= dim(0) * dim(1) * params.inputAElemWidth(dataTypeIdx)
+          params.arrayInputAWidth        >= dim(0) * dim(1) * params.inputTypeA(dataTypeIdx).width
         )
         // arrayInputBWidth should be enough to support the bandwidth bound
         require(
-          params.arrayInputBWidth        >= dim(1) * dim(2) * params.inputBElemWidth(dataTypeIdx)
+          params.arrayInputBWidth        >= dim(1) * dim(2) * params.inputTypeB(dataTypeIdx).width
         )
         // arrayInputCWidth should be enough to support the bandwidth bound
         require(
-          params.arrayInputCWidth        >= dim(0) * dim(2) * params.inputCElemWidth(dataTypeIdx)
+          params.arrayInputCWidth        >= dim(0) * dim(2) * params.inputTypeC(dataTypeIdx).width
         )
         // arrayOutputDWidth should be enough to support the bandwidth bound
-        require(params.arrayOutputDWidth >= dim(0) * dim(2) * params.outputDElemWidth(dataTypeIdx))
+        require(params.arrayOutputDWidth >= dim(0) * dim(2) * params.outputTypeD(dataTypeIdx).width)
 
         // adder tree should be power of 2
         require(isPow2(dim(1)))
@@ -77,12 +75,12 @@ class SpatialArray(params: SpatialArrayParam) extends Module with RequireAsyncRe
   )
 
   require(
-    params.opType.length == params.macNum.length             &&
-      params.inputAElemWidth.length == params.macNum.length  &&
-      params.inputBElemWidth.length == params.macNum.length  &&
-      params.inputCElemWidth.length == params.macNum.length  &&
-      params.mulElemWidth.length == params.macNum.length     &&
-      params.outputDElemWidth.length == params.macNum.length &&
+    params.opType.length == params.macNum.length        &&
+      params.inputTypeA.length == params.macNum.length  &&
+      params.inputTypeB.length == params.macNum.length  &&
+      params.inputTypeC.length == params.macNum.length  &&
+      params.inputTypeC.length == params.macNum.length  &&
+      params.outputTypeD.length == params.macNum.length &&
       params.arrayDim.length == params.macNum.length,
     "All data type related parameters should have the same length"
   )
@@ -136,7 +134,7 @@ class SpatialArray(params: SpatialArrayParam) extends Module with RequireAsyncRe
     dims.map(dim => {
       dataForwardN(
         params.macNum(dataTypeIdx),
-        params.inputAElemWidth(dataTypeIdx),
+        params.inputTypeA(dataTypeIdx).width,
         // Mu, Nu, Ku
         Seq(dim(0), dim(2), dim(1)),
         // stride_Mu, stride_Nu, stride_Ku
@@ -150,7 +148,7 @@ class SpatialArray(params: SpatialArrayParam) extends Module with RequireAsyncRe
     dims.map(dim => {
       dataForwardN(
         params.macNum(dataTypeIdx),
-        params.inputBElemWidth(dataTypeIdx),
+        params.inputTypeB(dataTypeIdx).width,
         // Mu, Nu, Ku
         Seq(dim(0), dim(2), dim(1)),
         // stride_Mu, stride_Nu, stride_Ku
@@ -164,7 +162,7 @@ class SpatialArray(params: SpatialArrayParam) extends Module with RequireAsyncRe
     dims.map(dim => {
       dataForwardN(
         params.macNum(dataTypeIdx),
-        params.inputCElemWidth(dataTypeIdx),
+        params.inputTypeC(dataTypeIdx).width,
         // Mu, Nu, 1
         Seq(dim(0), dim(2), 1),
         // stride_Mu, stride_Nu, stride_Ku
@@ -180,9 +178,9 @@ class SpatialArray(params: SpatialArrayParam) extends Module with RequireAsyncRe
       Module(
         new Multiplier(
           params.opType(dataTypeIdx),
-          params.inputAElemWidth(dataTypeIdx),
-          params.inputBElemWidth(dataTypeIdx),
-          params.mulElemWidth(dataTypeIdx)
+          params.inputTypeA(dataTypeIdx),
+          params.inputTypeB(dataTypeIdx),
+          params.inputTypeC(dataTypeIdx)
         )
       )
     )
@@ -211,8 +209,8 @@ class SpatialArray(params: SpatialArrayParam) extends Module with RequireAsyncRe
     Module(
       new AdderTree(
         params.opType(dataTypeIdx),
-        params.mulElemWidth(dataTypeIdx),
-        params.outputDElemWidth(dataTypeIdx),
+        params.inputTypeC(dataTypeIdx),
+        params.outputTypeD(dataTypeIdx),
         params.macNum(dataTypeIdx),
         // adderGroupSizes = params.arrayDim(dataTypeIdx).map(_(1)), which describes the spatial reduction dimension
         params.arrayDim(dataTypeIdx).map(_(1))
@@ -235,8 +233,8 @@ class SpatialArray(params: SpatialArrayParam) extends Module with RequireAsyncRe
     Module(
       new Accumulator(
         params.opType(dataTypeIdx),
-        params.outputDElemWidth(dataTypeIdx),
-        params.outputDElemWidth(dataTypeIdx),
+        params.outputTypeD(dataTypeIdx),
+        params.outputTypeD(dataTypeIdx),
         params.macNum(dataTypeIdx)
       )
     )
@@ -281,7 +279,7 @@ class SpatialArray(params: SpatialArrayParam) extends Module with RequireAsyncRe
   io.data.in_b.ready := Mux(io.ctrl.accAddExtIn, acc_in1_fire && acc_in2_fire, acc_in1_fire)
   io.data.in_c.ready := Mux(io.ctrl.accAddExtIn, acc_in1_fire && acc_in2_fire, false.B)
 
-  io.data.in_substraction.ready := io.data.in_a.ready && io.data.in_b.ready
+  io.data.in_subtraction.ready := io.data.in_a.ready && io.data.in_b.ready
 
   // output data and valid signals
   io.data.out_d.bits := MuxLookup(
@@ -308,11 +306,11 @@ object SpatialArrayEmitter extends App {
   val params = SpatialArrayParam(
     opType                 = Seq(UIntUIntOp),
     macNum                 = Seq(1024),
-    inputAElemWidth        = Seq(8),
-    inputBElemWidth        = Seq(8),
-    inputCElemWidth        = Seq(8),
+    inputTypeA             = Seq(Int8),
+    inputTypeB             = Seq(Int8),
+    inputTypeC             = Seq(Int8),
     mulElemWidth           = Seq(16),
-    outputDElemWidth       = Seq(32),
+    outputTypeD            = Seq(Int32),
     arrayInputAWidth       = 1024,
     arrayInputBWidth       = 8192,
     arrayInputCWidth       = 4096,

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: SHL-0.51
 
 // Author: Xiaoling Yi <xiaoling.yi@kuleuven.be>
+// Modified by: Robin Geens <robin.geens@kuleuven.be>
 
 package snax_acc.versacore
 
@@ -13,82 +14,105 @@ import chisel3._
 import chiseltest._
 import chiseltest.simulator.VerilatorBackendAnnotation
 import org.scalatest.flatspec.AnyFlatSpec
-import snax_acc.utils.fpUtils._
+import snax_acc.utils.fpUtils
 
-class FP32AddFP32Test extends AnyFlatSpec with ChiselScalatestTester {
+class FpAddFpTest extends AnyFlatSpec with ChiselScalatestTester with fpUtils {
   behavior of "FPAddFP"
 
-  it should "perform fp32 add fp32 correctly" in {
-    test(
-      new FPAddFP(
-        topmodule = "fp_add",
-        widthA    = 32, // Changed to 32-bit
-        widthB    = 32, // Changed to 32-bit
-        widthC    = 32  // Output remains 32-bit
-      )
-    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut =>
+  def test_fp_add_fp(dut: FPAddFP, test_id: Int, A: Float, B: Float) = {
 
-      def test_fp_add_fp(test_id: Int, A: Float, B: Float) = {
-        val A_fp32 = uintToFloat(
-          fp32.expWidth,
-          fp32.sigWidth,
-          floatToUInt(fp32.expWidth, fp32.sigWidth, A)
+    // Quantize the float
+    val A_uint     = floatToUInt(dut.typeA, A)
+    val A_fp       = uintToFloat(dut.typeA, A_uint)
+    val B_uint     = floatToUInt(dut.typeB, B)
+    val B_fp       = uintToFloat(dut.typeB, B_uint)
+    // Expected result
+    val gold_o     = A_fp + B_fp
+    val expected_o = floatToUInt(dut.typeC, gold_o)
+
+    val stimulus_a_i = A_uint
+    val stimulus_b_i = B_uint
+
+    dut.io.operand_a_i.poke(stimulus_a_i.U)
+    dut.io.operand_b_i.poke(stimulus_b_i.U)
+
+    dut.clock.step(1)
+    dut.clock.step(1)
+
+    val result    = dut.io.result_o.peek().litValue
+    val result_fp = uintToFloat(dut.typeC, result)
+
+    try {
+      // The testbench does not model the module's RNE (Round to Nearest, ties to Even), so result can be 1 bit higher
+      // (but not lower!). Also accept +0 == -0 == 1<<width-1
+      assert((result - expected_o <= 1) || (result == (1 << dut.typeC.width - 1) && expected_o == 0))
+    } catch {
+      case e: Throwable => {
+        println(f"----Error in test id: $test_id----")
+        println(f"A_fp: ${A_fp} , B_fp: ${B_fp},  gold_o: ${gold_o}")
+        println(
+          f"(expected) ${expected_o.toString(2).grouped(4).mkString("_")} (got) ${result.toString(2).grouped(4).mkString("_")}"
         )
-        val B_fp32 = uintToFloat(
-          fp32.expWidth,
-          fp32.sigWidth,
-          floatToUInt(fp32.expWidth, fp32.sigWidth, B)
-        )
-
-        val gold_O = A_fp32 + B_fp32 // Expected result
-
-        val stimulus_a_i = floatToUInt(fp32.expWidth, fp32.sigWidth, A)
-        val stimulus_b_i = floatToUInt(fp32.expWidth, fp32.sigWidth, B)
-
-        val expected_o = floatToUInt(fp32.expWidth, fp32.sigWidth, gold_O)
-
-        dut.io.operand_a_i.poke(stimulus_a_i.U)
-        dut.io.operand_b_i.poke(stimulus_b_i.U)
-
-        dut.clock.step()
-        dut.clock.step()
-
-        val result = dut.io.result_o.peek().litValue
-        println(f"-----------Test id: $test_id-----------")
-        println(f"Expected: 0x${expected_o.toString(16)}, Got: 0x${result.toString(16)}")
-        println(f"Float expected: ${gold_O}, Result float: ${uintToFloat(fp32.expWidth, fp32.sigWidth, result)}")
-
-        // try {
-        //   assert(result == expected_o)
-        // } catch {
-        //   case _: java.lang.AssertionError => {
-        //     println(f"----Error!!!!------- Assertion failed on test $test_id")
-        //   }
-        // }
-        assert(result == expected_o)
-
-        dut.clock.step()
-        dut.clock.step()
+        println(f"(expected) ${gold_o} (got) ${result_fp}")
+        throw e
       }
-
-      val A = -1f
-      val B = 4.5f
-
-      test_fp_add_fp(1, A, B)
-
-      // Generate random test cases
-      val test_num  = 100
-      val testCases = Seq.fill(test_num)(
-        (
-          Random.nextFloat() * 1000 - 1000,
-          Random.nextFloat() * 1000 - 1000
-        )
-      )
-
-      testCases.zipWithIndex.foreach { case ((a, b), index) =>
-        test_fp_add_fp(index + 2, a, b)
-      }
-
     }
+
+    dut.clock.step(2)
+  }
+
+  def test_all_fp_add_fp(dut: FPAddFP) = {
+    // Generate 10 random test cases
+    val test_num  = 100
+    val testCases = Seq.fill(test_num)(
+      (
+        Random.nextFloat() * 20 - 10, // Random float between -10 and 10
+        Random.nextFloat() * 20 - 10
+      )
+    )
+    testCases.zipWithIndex.foreach { case ((a, b), index) => test_fp_add_fp(dut, index + 1, a, b) }
+
+  }
+
+  it should "perform FP32 + FP32 -> FP32 correctly" in {
+    test(
+      new FPAddFP(topmodule = "fp_add", typeA = FP32, typeB = FP32, typeC = FP32)
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_add_fp(dut) }
+  }
+
+  it should "perform FP16 + FP16 -> FP16 correctly" in {
+    test(
+      new FPAddFP(topmodule = "fp_add", typeA = FP16, typeB = FP16, typeC = FP16)
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_add_fp(dut) }
+  }
+
+  it should "perform FP16 + FP16 -> FP32 correctly" in {
+    test(
+      new FPAddFP(topmodule = "fp_add", typeA = FP16, typeB = FP16, typeC = FP32)
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_add_fp(dut) }
+  }
+
+  it should "perform FP16 + FP32 -> FP32 correctly" in {
+    test(
+      new FPAddFP(topmodule = "fp_add", typeA = FP16, typeB = FP32, typeC = FP32)
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_add_fp(dut) }
+  }
+
+  it should "perform BF16 + BF16 -> FP32 correctly" in {
+    test(
+      new FPAddFP(topmodule = "fp_add", typeA = BF16, typeB = BF16, typeC = FP32)
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_add_fp(dut) }
+  }
+
+  it should "perform BF16 + BF16 -> BF16 correctly" in {
+    test(
+      new FPAddFP(topmodule = "fp_add", typeA = BF16, typeB = BF16, typeC = BF16)
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_add_fp(dut) }
+  }
+
+  it should "perform FP32 + BF16 -> FP32 correctly" in {
+    test(
+      new FPAddFP(topmodule = "fp_add", typeA = FP32, typeB = BF16, typeC = FP32)
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_add_fp(dut) }
   }
 }

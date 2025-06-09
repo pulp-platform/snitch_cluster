@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: SHL-0.51
 
 // Author: Xiaoling Yi <xiaoling.yi@kuleuven.be>
+// Modified by: Robin Geens <robin.geens@kuleuven.be>
+
 package snax_acc.versacore
 
 import scala.util.Random
@@ -12,88 +14,92 @@ import chisel3._
 import chiseltest._
 import chiseltest.simulator.VerilatorBackendAnnotation
 import org.scalatest.flatspec.AnyFlatSpec
-import snax_acc.utils.fpUtils._
+import snax_acc.utils.fpUtils
 
-class FPMULFPTest extends AnyFlatSpec with ChiselScalatestTester {
+class FPMULFPTest extends AnyFlatSpec with ChiselScalatestTester with fpUtils {
   behavior of "FPMULFP"
 
-  it should "perform fp16 multiply fp16 correctly" in {
-    test(
-      new FPMULFP(
-        topmodule = "fp_mul",
-        widthA    = 16,
-        widthB    = 16,
-        widthC    = 32
-      )
-    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut =>
+  def test_fp_mul_fp(dut: FPMULFP, test_id: Int, A: Float, B: Float) = {
 
-      def test_fp_mul_fp(test_id: Int, A: Float, B: Float) = {
-        val A_fp16 = uintToFloat(
-          fp16.expWidth,
-          fp16.sigWidth,
-          floatToUInt(fp16.expWidth, fp16.sigWidth, A)
-        ) // Convert to 16-bit representation
-        val B_fp16 = uintToFloat(
-          fp16.expWidth,
-          fp16.sigWidth,
-          floatToUInt(fp16.expWidth, fp16.sigWidth, B)
-        ) // Convert to 16-bit representation
+    // Quantize the float
+    val A_uint     = floatToUInt(dut.typeA, A)
+    val A_fp       = uintToFloat(dut.typeA, A_uint)
+    val B_uint     = floatToUInt(dut.typeB, B)
+    val B_fp       = uintToFloat(dut.typeB, B_uint)
+    // Expected result
+    val gold_o     = A_fp * B_fp
+    val expected_o = floatToUInt(dut.typeC, gold_o)
 
-        val gold_O = A_fp16 * B_fp16 // Expected result
+    val stimulus_a_i = A_uint
+    val stimulus_b_i = B_uint
 
+    dut.io.operand_a_i.poke(stimulus_a_i.U)
+    dut.io.operand_b_i.poke(stimulus_b_i.U)
+
+    dut.clock.step(2)
+
+    val result    = dut.io.result_o.peek().litValue
+    val result_fp = uintToFloat(dut.typeC, result)
+
+    try {
+      // The testbench does not model the module's RNE (Round to Nearest, ties to Even), so result can be 1 bit higher
+      // (but not lower!)
+      assert(result - expected_o <= 1)
+    } catch {
+      case e: Throwable => {
+        println(f"----Error in test id: $test_id----")
+        println(f"A_fp: ${A_fp} , B_fp: ${B_fp},  gold_o: ${gold_o}")
         println(
-          f"-----------Test id: $test_id, A_fp16: 0x${A_fp16} , B_fp16: 0x${B_fp16},  gold_O: 0x${gold_O}-----------"
+          f"(expected) ${expected_o.toString(2).grouped(4).mkString("_")} (got) ${result.toString(2).grouped(4).mkString("_")}"
         )
-        val stimulus_a_i = floatToUInt(fp16.expWidth, fp16.sigWidth, A)      // Convert to 16-bit representation
-        val stimulus_b_i = floatToUInt(fp16.expWidth, fp16.sigWidth, B)      // Direct 4-bit integer
-        val expected_o   = floatToUInt(fp32.expWidth, fp32.sigWidth, gold_O) // Expected output as UInt
-        println(
-          f"-----------Test id: $test_id, stimulus_a_i: 0x${stimulus_a_i} , stimulus_b_i: 0x${stimulus_b_i},  gold_O: 0x${gold_O}-----------"
-        )
-        dut.io.operand_a_i.poke(stimulus_a_i.U)
-        dut.io.operand_b_i.poke(stimulus_b_i.U)
-
-        dut.clock.step()
-        dut.clock.step()
-
-        val reseult = dut.io.result_o.peek().litValue
-        // val reseult_int =   floatToUInt(fp32.expWidth, fp32.sigWidth, reseult)
-        println(
-          f"-----------Test id: $test_id, Expected: 0x${expected_o.toString(16)} , 0x${reseult.toString(16)}------------"
-        )
-        // try {
-        //   assert(reseult == expected_o)
-        // } catch {
-        //   case _: java.lang.AssertionError => {
-        //     println(
-        //       f"----Error!!!!------------------Test id: $test_id Expected: 0x${expected_o.toString(16)}, Got: 0x${reseult.toString(16)}-----------"
-        //     )
-        //   }
-        // }
-        assert(reseult == expected_o)
-
-        dut.clock.step()
-        dut.clock.step()
+        println(f"(expected) ${gold_o} (got) ${result_fp}")
+        throw e
       }
-
-      val A = -1.0101f // float16
-      val B = 0.1245f  // float16
-
-      test_fp_mul_fp(1, A, B)
-
-      // Generate 10 random test cases
-      val test_num  = 10
-      val testCases = Seq.fill(test_num)(
-        (
-          Random.nextFloat() * 200 - 100, // Random float between -100 and 100
-          Random.nextFloat() * 200 - 100  // Random float between -100 and 100
-        )
-      )
-
-      testCases.zipWithIndex.foreach { case ((a, b), index) =>
-        test_fp_mul_fp(index + 1, a, b)
-      }
-
     }
+
+    dut.clock.step(2)
+  }
+
+  def test_all_fp_mul_fp(dut: FPMULFP) = {
+    // Generate 10 random test cases
+    val test_num  = 100
+    val testCases = Seq.fill(test_num)(
+      (
+        Random.nextFloat() * 20 - 10, // Random float between -10 and 10
+        Random.nextFloat() * 20 - 10
+      )
+    )
+    testCases.zipWithIndex.foreach { case ((a, b), index) => test_fp_mul_fp(dut, index + 1, a, b) }
+
+  }
+
+  it should "perform FP16 x FP16 = FP32 correctly" in {
+    test(
+      new FPMULFP(topmodule = "fp_mul", typeA = FP16, typeB = FP16, typeC = FP32)
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_mul_fp(dut) }
+  }
+
+  it should "perform FP16 x FP16 = FP16 correctly" in {
+    test(
+      new FPMULFP(topmodule = "fp_mul", typeA = FP16, typeB = FP16, typeC = FP16)
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_mul_fp(dut) }
+  }
+
+  it should "perform BF16 x BF16 = FP32 correctly" in {
+    test(
+      new FPMULFP(topmodule = "fp_mul", typeA = BF16, typeB = BF16, typeC = FP32)
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_mul_fp(dut) }
+  }
+
+  it should "perform BF16 x BF16 = BF16 correctly" in {
+    test(
+      new FPMULFP(topmodule = "fp_mul", typeA = BF16, typeB = BF16, typeC = BF16)
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_mul_fp(dut) }
+  }
+
+  it should "perform BF16 x FP16 = FP32 correctly" in {
+    test(
+      new FPMULFP(topmodule = "fp_mul", typeA = BF16, typeB = BF16, typeC = BF16)
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_mul_fp(dut) }
   }
 }

@@ -11,15 +11,15 @@ import chisel3.util._
 
 /** AccumulatorBlock is a single accumulator block that performs accumulation on two input values. */
 class AccumulatorBlock(
-  val opType:          OpType,
-  val inputElemWidth:  Int,
-  val outputElemWidth: Int
+  val opType:     OpType,
+  val inputType:  DataType,
+  val outputType: DataType
 ) extends Module
     with RequireAsyncReset {
   val io = IO(new Bundle {
     // two inputs for accumulation
-    val in1         = Input(UInt(inputElemWidth.W))
-    val in2         = Input(UInt(inputElemWidth.W))
+    val in1         = Input(UInt(inputType.width.W))
+    val in2         = Input(UInt(inputType.width.W))
     // whether to add the external input to the accumulator or accumulate the internal reg value
     val accAddExtIn = Input(Bool())
     // enable signal
@@ -27,31 +27,21 @@ class AccumulatorBlock(
     // clear signal to reset the accumulator
     val accClear    = Input(Bool())
     // output of the accumulator
-    val out         = Output(UInt(outputElemWidth.W))
+    val out         = Output(UInt(outputType.width.W))
   })
 
-  require(
-    opType == UIntUIntOp || opType == SIntSIntOp ||
-      opType == Float16IntOp || opType == Float16Float16Op,
-    "Unsupported operation type for AccumulatorBlock"
-  )
-  require(
-    inputElemWidth > 0 && outputElemWidth > 0,
-    "Element widths must be greater than 0"
-  )
-
   // Internal register to hold the accumulated value
-  val accumulatorReg = RegInit(0.U(outputElemWidth.W))
+  val accumulatorReg = RegInit(0.U(outputType.width.W))
   // Adder module to perform the accumulation
   val adder          = Module(
-    new Adder(opType, inputElemWidth, inputElemWidth, outputElemWidth)
+    new Adder(opType, inputType, inputType, outputType)
   ).io
 
   // connection description
   adder.in_a := io.in1
   adder.in_b := Mux(io.accAddExtIn, io.in2, accumulatorReg)
 
-  val nextAcc = Wire(UInt(outputElemWidth.W))
+  val nextAcc = Wire(UInt(outputType.width.W))
   nextAcc := Mux(io.accClear, 0.U, Mux(io.enable, adder.out_c, accumulatorReg))
 
   val accUpdate = io.enable || io.accClear
@@ -65,36 +55,26 @@ class AccumulatorBlock(
   * elements and provides a ready/valid interface.
   */
 class Accumulator(
-  val opType:          OpType,
-  val inputElemWidth:  Int,
-  val outputElemWidth: Int,
-  val numElements:     Int
+  val opType:      OpType,
+  val inputType:   DataType,
+  val outputType:  DataType,
+  val numElements: Int
 ) extends Module
     with RequireAsyncReset {
   val io = IO(new Bundle {
-    val in1         = Flipped(DecoupledIO(Vec(numElements, UInt(inputElemWidth.W))))
-    val in2         = Flipped(DecoupledIO(Vec(numElements, UInt(inputElemWidth.W))))
+    val in1         = Flipped(DecoupledIO(Vec(numElements, UInt(inputType.width.W))))
+    val in2         = Flipped(DecoupledIO(Vec(numElements, UInt(inputType.width.W))))
     val accAddExtIn = Input(Bool())
     val enable      = Input(Bool())
     val accClear    = Input(Bool())
-    val out         = DecoupledIO(Vec(numElements, UInt(outputElemWidth.W)))
+    val out         = DecoupledIO(Vec(numElements, UInt(outputType.width.W)))
   })
-
-  require(
-    opType == UIntUIntOp || opType == SIntSIntOp ||
-      opType == Float16IntOp || opType == Float16Float16Op,
-    "Unsupported operation type for Accumulator"
-  )
-  require(
-    inputElemWidth > 0 && outputElemWidth > 0 && numElements > 0,
-    "Element widths and number of elements must be greater than 0"
-  )
 
   // Create an array of AccumulatorBlock instances
   // Each block will handle one element of the input vectors
   // and produce one element of the output vector
   val accumulator_blocks = Seq.fill(numElements) {
-    Module(new AccumulatorBlock(opType, inputElemWidth, outputElemWidth))
+    Module(new AccumulatorBlock(opType, inputType, outputType))
   }
 
   // accumulation update logic, considering the handshake
@@ -125,7 +105,7 @@ class Accumulator(
 
 object AccumulatorEmitterUInt extends App {
   _root_.circt.stage.ChiselStage.emitSystemVerilogFile(
-    new Accumulator(UIntUIntOp, 8, 16, 4096),
+    new Accumulator(UIntUIntOp, Int8, Int16, 4096),
     Array("--target-dir", "generated/versacore"),
     Array(
       "--split-verilog",
