@@ -25,7 +25,6 @@ void set_versacore_streamer_csr(
 
     int32_t delta_local_c, int32_t* Cslstride, int32_t* Ctlbound,
     int32_t* Ctlstride, int32_t set_addr_remap_index_C, int32_t* channel_en_C,
-    int32_t broadcast_C,
 
     int32_t delta_local_d32, int32_t* D32slstride, int32_t* D32tlbound,
     int32_t* D32tlstride, int32_t set_addr_remap_index_D32,
@@ -180,10 +179,6 @@ void set_versacore_streamer_csr(
     csrw_ss(READER_EXTENSION_1_CSR_BASE, transpose_B == 1 ? 0 : 1);
 #endif
 
-#ifdef READER_WRITER_EXTENSION_0_CSR_BASE
-    csrw_ss(READER_WRITER_EXTENSION_0_CSR_BASE, broadcast_C == 1 ? 0 : 1);
-#endif
-
 #else
     // ----------------------------------A-----------------------------------
     // ----------------------------------A-----------------------------------
@@ -330,10 +325,6 @@ void set_versacore_streamer_csr(
 
 #ifdef READER_EXTENSION_1_CSR_BASE
     csrw_ss(READER_EXTENSION_1_CSR_BASE, transpose_B == 1 ? 0 : 1);
-#endif
-
-#ifdef READER_WRITER_EXTENSION_0_CSR_BASE
-    csrw_ss(READER_WRITER_EXTENSION_0_CSR_BASE, broadcast_C == 1 ? 0 : 1);
 #endif
 
 #endif

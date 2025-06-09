@@ -12,10 +12,7 @@
   K: 4,
   N: 2,
   M: 3,
-  bypassSIMD: 1,
-  // broadcast_C won't work in the serial C input
-  broadcast_C: 0,
   channel_en_C: 1,
-  // 0 for output, 1 for weight
+  // 0 for output, 1 for weight, 2 for input
   stationary: 0,
 }

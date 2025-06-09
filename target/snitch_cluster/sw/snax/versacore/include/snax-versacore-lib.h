@@ -44,7 +44,6 @@ void set_versacore_streamer_csr(
 
     int32_t delta_local_c, int32_t* Cslstride, int32_t* Ctlbound,
     int32_t* Ctlstride, int32_t set_addr_remap_index_C, int32_t* channel_en_C,
-    int32_t broadcast_C,
 
     int32_t delta_local_d32, int32_t* D32slstride, int32_t* D32tlbound,
     int32_t* D32tlstride, int32_t set_addr_remap_index_D32,

@@ -70,7 +70,7 @@ int main() {
             set_addr_remap_index_B, transposed_B, channel_en_B,
 
             delta_local_c, Cslstride, Ctlbound, Ctlstride,
-            set_addr_remap_index_C, channel_en_C, broadcast_C,
+            set_addr_remap_index_C, channel_en_C,
 
             delta_local_d, D32slstride, D32tlbound, D32tlstride,
             set_addr_remap_index_D32, channel_en_D);
