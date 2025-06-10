@@ -7,7 +7,10 @@
 #include "blas.h"
 #include "dnn.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wreorder-init-list"
 #include "data.h"
+#pragma clang diagnostic pop
 
 int main() {
     flashattention_2_layer(layer);

@@ -5,6 +5,8 @@
 #ifndef EU_H
 #define EU_H
 
+#include <string.h>
+
 #include "eu_decls.h"
 
 //================================================================================
@@ -59,7 +61,7 @@ extern volatile eu_t *volatile eu_p_global;
 // Functions
 //================================================================================
 
-inline void wait_worker_wfi(void) {
+static inline void wait_worker_wfi(void) {
     uint32_t scratch = eu_p->workers_in_loop;
     while (__atomic_load_n(&eu_p->workers_wfi, __ATOMIC_RELAXED) != scratch)
         ;
@@ -71,7 +73,7 @@ inline void wait_worker_wfi(void) {
  */
 #ifdef EU_USE_GLOBAL_CLINT
 
-inline void wake_workers(void) {
+static inline void wake_workers(void) {
 #ifdef OMPSTATIC_NUMTHREADS
 #define WAKE_MASK (((1 << OMPSTATIC_NUMTHREADS) - 1) & ~0x1)
     // Fast wake-up for static number of worker threads
@@ -102,7 +104,7 @@ inline void wake_workers(void) {
 #endif
 }
 
-inline void worker_wfi(uint32_t cluster_core_idx) {
+static inline void worker_wfi(uint32_t cluster_core_idx) {
     __atomic_add_fetch(&eu_p->workers_wfi, 1, __ATOMIC_RELAXED);
     snrt_int_sw_poll();
     __atomic_add_fetch(&eu_p->workers_wfi, -1, __ATOMIC_RELAXED);
@@ -114,7 +116,7 @@ inline void worker_wfi(uint32_t cluster_core_idx) {
  */
 #else  // #ifdef EU_USE_GLOBAL_CLINT
 
-inline void wake_workers(void) {
+static inline void wake_workers(void) {
     // Guard to wake only if all workers are wfi
     wait_worker_wfi();
     // Wake the cluster cores. We do this with cluster relative hart IDs and do
@@ -122,7 +124,7 @@ inline void wake_workers(void) {
     uint32_t numcores = snrt_cluster_compute_core_num();
     snrt_int_cluster_set(~0x1 & ((1 << numcores) - 1));
 }
-inline void worker_wfi(uint32_t cluster_core_idx) {
+static inline void worker_wfi(uint32_t cluster_core_idx) {
     __atomic_add_fetch(&eu_p->workers_wfi, 1, __ATOMIC_RELAXED);
     snrt_wfi();
     snrt_int_cluster_clr(1 << cluster_core_idx);
@@ -166,7 +168,7 @@ inline void eu_init(void) {
     if (snrt_cluster_core_idx() == 0) {
         // Allocate the eu struct in L1 for fast access
         eu_p = (eu_t *)snrt_l1_alloc(sizeof(eu_t));
-        snrt_memset((void *)eu_p, 0, sizeof(eu_t));
+        memset((void *)eu_p, 0, sizeof(eu_t));
         // store copy of eu_p on shared memory
         eu_p_global = eu_p;
     } else {

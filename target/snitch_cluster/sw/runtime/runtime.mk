@@ -18,7 +18,7 @@ SNRT_SRCDIR     ?= $(SNRT_TARGET_DIR)/src
 ###################
 
 SNRT_S_SRCS = snrt.S
-SNRT_C_SRCS = snrt.c
+SNRT_C_SRCS = snrt.cc
 
 SNRT_INCDIRS += $(SNRT_DIR)/src
 SNRT_INCDIRS += $(SNRT_DIR)/api
@@ -60,10 +60,10 @@ $(SNRT_BUILDDIR):
 	mkdir -p $@
 
 $(SNRT_BUILDDIR)/%.o: $(SNRT_SRCDIR)/% $(SNRT_BUILDDIR)/%.d | $(SNRT_BUILDDIR)
-	$(RISCV_CC) $(SNRT_RISCV_CFLAGS) -c $< -o $@
+	$(RISCV_CXX) $(SNRT_RISCV_CFLAGS) -c $< -o $@
 
 $(SNRT_BUILDDIR)/%.d: $(SNRT_SRCDIR)/% | $(SNRT_BUILDDIR)
-	$(RISCV_CC) $(SNRT_RISCV_CFLAGS) -MM -MT '$(@:.d=.o)' $< > $@
+	$(RISCV_CXX) $(SNRT_RISCV_CFLAGS) -MM -MT '$(@:.d=.o)' $< > $@
 
 $(SNRT_LIB): $(SNRT_OBJS) | $(SNRT_BUILDDIR)
 	$(RISCV_AR) $(RISCV_ARFLAGS) $@ $^

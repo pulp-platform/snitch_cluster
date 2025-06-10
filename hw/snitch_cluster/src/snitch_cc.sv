@@ -79,6 +79,7 @@ module snitch_cc #(
   parameter int unsigned NumDTLBEntries = 0,
   parameter int unsigned NumITLBEntries = 0,
   parameter int unsigned NumSequencerInstr = 0,
+  parameter int unsigned NumSequencerLoops = 0,
   parameter int unsigned NumSsrs = 0,
   parameter int unsigned SsrMuxRespDepth = 0,
   parameter snitch_ssr_pkg::ssr_cfg_t [NumSsrs-1:0] SsrCfgs = '0,
@@ -493,6 +494,7 @@ module snitch_cc #(
       .NumFPOutstandingLoads (NumFPOutstandingLoads),
       .NumFPOutstandingMem (NumFPOutstandingMem),
       .NumFPUSequencerInstr (NumSequencerInstr),
+      .NumFPUSequencerLoops (NumSequencerLoops),
       .FPUImplementation (FPUImplementation),
       .NumSsrs (NumSsrs),
       .SsrRegs (SsrRegs),
@@ -920,7 +922,7 @@ module snitch_cc #(
         // FPU offload
         fpu_offload:
           (i_snitch.acc_qready_i && i_snitch.acc_qvalid_o && i_snitch.acc_qreq_o.addr == 0),
-        is_seq_insn:  (i_snitch.inst_data_i inside {riscv_instr::FREP_I, riscv_instr::FREP_O})
+        is_seq_insn:  (i_snitch.inst_data_i ==? riscv_instr::FREP_O)
       };
 
       if (FPEn) begin

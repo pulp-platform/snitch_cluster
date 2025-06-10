@@ -60,6 +60,10 @@ class Addr2LineOutput:
             # Rename unknown functions
             if func == '??':
                 entry['func'] = 'unknown function'
+            else:
+                # Strip anything contained in parentheses to remove the arguments
+                # in the function signature, which are a result of demangling
+                entry['func'] = re.sub(r'\(.*\)', '', func).strip()
             # Add column key if missing and convert 0 line and cols to None
             for key, val in zip(['line', 'col'], [line, col]):
                 if val is not None:
@@ -75,6 +79,7 @@ class Addr2LineOutput:
         # Do not create stack if compiler was unable to associate a line number to the address
         return stack if stack[0]['line'] is not None else None
 
+    # Converts the function stack data structure into a string representation.
     def function_stack_string(self, short=True):
         s = ''
         indent = ''
@@ -155,7 +160,7 @@ class Elf:
     def addr2line(self, addr):
         if isinstance(addr, str):
             addr = int(addr, 16)
-        cmd = f'{self.a2l} -e {self.elf} -f -i {addr:x}'
+        cmd = f'{self.a2l} --exe {self.elf} --demangle --functions --inlines {addr:x}'
         if self.toolchain == 'llvm':
             cmd += ' --verbose'
         return Addr2LineOutput(os.popen(cmd).read(), toolchain=self.toolchain)

@@ -6,63 +6,9 @@
 
 #define UNROLL 4
 
-static inline void layernorm_fp16_naive(__fp16 *input, __fp16 *output,
-                                        int32_t batch_size, int32_t seq_len,
-                                        int32_t embeddings, int32_t eps) {
-    if (snrt_is_compute_core()) {
-        // Get parameters for every core's tile
-        // cores access rows in interleaved fashion
-        // offset: offset between data accessed by every core (for
-        //         corresponding iterations)
-        // stride: offset between data accessed by the same core in
-        //         consecutive iterations
-        // tile_seq_len: fraction of the sequence assigned to each core
-        uint32_t offset = snrt_cluster_core_idx() * embeddings;
-        uint32_t stride = snrt_cluster_compute_core_num() * embeddings;
-        uint32_t tile_seq_len = seq_len / snrt_cluster_compute_core_num();
-        __fp16 *core_itile = input + offset;
-        __fp16 *core_otile = output + offset;
-
-        // get derived layernorm quantities
-        uint32_t batch_offset = seq_len * embeddings;
-
-        // compute the mean and variance along the last dimension
-        float mean = 0.0;  // max value of the current core
-        float var = 0.0;   // sum of the exp values of the current core
-        for (int32_t b = 0; b < batch_size; b++) {
-            for (int32_t s = 0; s < tile_seq_len; s++) {
-                mean = 0.0;
-                var = 0.0;
-
-                for (int32_t i = 0; i < embeddings; i++) {
-                    mean += core_itile[b * batch_offset + s * stride + i];
-                }
-                mean /= embeddings;
-
-                for (int32_t i = 0; i < embeddings; i++) {
-                    var +=
-                        (core_itile[b * batch_offset + s * stride + i] - mean) *
-                        (core_itile[b * batch_offset + s * stride + i] - mean);
-                }
-                var /= embeddings;
-                var = sqrtf(var + eps);
-
-                // compute the shifted value of the current row
-                for (int32_t i = 0; i < embeddings; i++) {
-                    core_otile[b * batch_offset + s * stride + i] =
-                        (core_itile[b * batch_offset + s * stride + i] - mean) /
-                        var;
-                }
-            }
-        }
-
-        snrt_fpu_fence();
-    }
-}
-
 static inline void layernorm_fp16_opt(__fp16 *input, __fp16 *output,
-                                      int32_t batch_size, int32_t seq_len,
-                                      int32_t embeddings, int32_t eps) {
+                                      uint32_t batch_size, uint32_t seq_len,
+                                      const uint32_t embeddings, int32_t eps) {
     if (snrt_is_compute_core()) {
         uint32_t offset = snrt_cluster_core_idx() * embeddings;
         uint32_t stride = snrt_cluster_compute_core_num() * embeddings;
@@ -83,7 +29,7 @@ static inline void layernorm_fp16_opt(__fp16 *input, __fp16 *output,
         v4s pow[UNROLL];
         v4s one_reg;
 
-        int num_elems_per_vector = sizeof(double) / sizeof(__fp16);
+        const int num_elems_per_vector = sizeof(double) / sizeof(__fp16);
 
         const uint32_t ssr0_b[4] = {
             UNROLL, embeddings / (UNROLL * num_elems_per_vector), 2,

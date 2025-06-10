@@ -13,7 +13,7 @@ volatile int errors = 2 * n_inputs;
 
 int main() {
     // Get global and local memory aliases
-    volatile uint32_t *buffer_global = snrt_l1_next();
+    volatile uint32_t *buffer_global = (uint32_t *)snrt_l1_next();
     volatile uint32_t *buffer_local =
         (uint32_t *)cluster_global_to_local_address((uint32_t)buffer_global);
 
@@ -32,7 +32,7 @@ int main() {
     if (snrt_is_dm_core()) {
         // Read from local buffer using DMA
         buffer_global += n_inputs;
-        snrt_dma_start_1d((void *)buffer_global, (void *)buffer_local,
+        snrt_dma_start_1d(buffer_global, buffer_local,
                           n_inputs * sizeof(uint32_t));
         snrt_dma_wait_all();
         // Check results

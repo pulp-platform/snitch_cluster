@@ -16,7 +16,7 @@ VCS_BENDER_FLAGS += $(COMMON_BENDER_FLAGS) $(COMMON_BENDER_SIM_FLAGS) -t vcs
 VCS_SOURCES       = $(shell $(BENDER) script flist-plus $(VCS_BENDER_FLAGS) | $(SED_SRCS))
 
 # Directories
-VCS_BUILDDIR = work-vcs
+VCS_BUILDDIR = $(SN_TARGET_DIR)/work-vcs
 
 # Flags
 VLOGAN_FLAGS := -assert svaext

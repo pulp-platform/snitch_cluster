@@ -105,7 +105,7 @@ def emit_header(**kwargs):
     }
 
     data_str = [emit_license()]
-    data_str += [format_array_declaration(ctype, ifmap_uid, ifmap.shape,
+    data_str += [format_array_declaration(f'extern {ctype}', ifmap_uid, ifmap.shape,
                  alignment=BURST_ALIGNMENT)]
     data_str += [format_array_declaration(ctype, ofmap_uid, ofmap.shape,
                  alignment=BURST_ALIGNMENT)]

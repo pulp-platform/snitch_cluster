@@ -1,0 +1,118 @@
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+runs:
+  - elf: ./tests/build/alias.elf
+    simulators: [vsim, vcs, verilator]
+  - elf: ./tests/build/atomics.elf
+  - elf: ./tests/build/barrier.elf
+  - elf: ./tests/build/data_mover.elf
+    simulators: [vsim, vcs, verilator]
+  - elf: ./tests/build/dma_empty_transfer.elf
+  - elf: ./tests/build/dma_simple.elf
+  - elf: ./tests/build/dobu.elf
+  - elf: ./tests/build/event_unit.elf
+    simulators: [vsim, vcs, verilator]
+  - elf: ./tests/build/fence_i.elf
+  - elf: ./tests/build/fp8_comparison_scalar.elf
+  - elf: ./tests/build/fp8_comparison_vector.elf
+  - elf: ./tests/build/fp8_computation_scalar.elf
+  - elf: ./tests/build/fp8_computation_vector.elf
+  - elf: ./tests/build/fp8alt_comparison_scalar.elf
+  - elf: ./tests/build/fp8alt_comparison_vector.elf
+  - elf: ./tests/build/fp8alt_computation_scalar.elf
+  - elf: ./tests/build/fp8alt_computation_vector.elf
+  - elf: ./tests/build/fp16_comparison_scalar.elf
+  - elf: ./tests/build/fp16_comparison_vector.elf
+  - elf: ./tests/build/fp16_computation_scalar.elf
+  - elf: ./tests/build/fp16_computation_vector.elf
+  - elf: ./tests/build/fp16alt_comparison_scalar.elf
+  - elf: ./tests/build/fp16alt_comparison_vector.elf
+  - elf: ./tests/build/fp16alt_computation_scalar.elf
+  - elf: ./tests/build/fp16alt_computation_vector.elf
+  - elf: ./tests/build/fp32_comparison_scalar.elf
+  - elf: ./tests/build/fp32_comparison_vector.elf
+  - elf: ./tests/build/fp32_computation_scalar.elf
+  - elf: ./tests/build/fp32_computation_vector.elf
+  - elf: ./tests/build/fp32_conversions_scalar.elf
+  # - elf: ./tests/build/fp64_conversions_scalar.elf
+  #   simulators: [vsim, vcs, verilator]
+  - elf: ./tests/build/frep1d.elf
+  - elf: ./tests/build/gemm_frep1d.elf
+  - elf: ./tests/build/interrupt_local.elf
+    simulators: [vsim, vcs, verilator]
+  - elf: ./tests/build/multi_cluster.elf
+  - elf: ./tests/build/openmp_parallel.elf
+    simulators: [vsim, vcs, verilator]
+  - elf: ./tests/build/openmp_for_static_schedule.elf
+    simulators: [vsim, vcs, verilator]
+  # Compilation fails, seems to require libc++abi
+  # - elf: ./tests/build/openmp_double_buffering.elf
+  #   simulators: [vsim, vcs, verilator]
+  - elf: ./tests/build/perf_cnt.elf
+    simulators: [vsim, vcs, verilator]
+  - elf: ./tests/build/printf_simple.elf
+  - elf: ./tests/build/printf_fmtint.elf
+  - elf: ./tests/build/simple.elf
+  - elf: ./tests/build/tcdm.elf
+  - elf: ./tests/build/tls.elf
+  - elf: ./tests/build/varargs_1.elf
+  - elf: ./tests/build/varargs_2.elf
+  - elf: ./tests/build/zero_mem.elf
+  - elf: ./tests/build/non_null_exitcode.elf
+    retcode: 56
+  - elf: ./tests/build/issr.elf
+  - elf: ./tests/build/caq.elf
+    simulators: [vsim, vcs, verilator] # GVSOC does not model caq
+  - elf: ./tests/build/flt_d_copift.elf
+  - elf: ./tests/build/fcvt_d_wu_copift.elf
+  - elf: ./tests/build/fcvt_d_w_copift.elf
+  - elf: ./apps/blas/axpy/build/axpy.elf
+    cmd: [../../../sw/blas/axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/blas/dot/build/dot.elf
+    cmd: [../../../sw/blas/dot/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/blas/syrk/build/syrk.elf
+    cmd: [../../../sw/blas/syrk/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/dnn/batchnorm/build/batchnorm.elf
+  - elf: ./apps/dnn/maxpool/build/maxpool.elf
+  # - elf: ./apps/dnn/conv2d/build/conv2d.elf # Fails with wrong results
+  #   cmd: [../../../sw/dnn/conv2d/scripts/verify.py, "${sim_bin}", "${elf}"]
+  # - elf: ./apps/dnn/fusedconv/build/fusedconv.elf # Fails with wrong results
+  #   cmd: [../../../sw/dnn/fusedconv/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/dnn/concat/build/concat.elf
+    cmd: [../../../sw/dnn/concat/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/dnn/fused_concat_linear/build/fused_concat_linear.elf
+    cmd: [../../../sw/dnn/fused_concat_linear/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/dnn/transpose/build/transpose.elf
+    simulators: [vsim, vcs, verilator]
+    cmd: [../../../sw/dnn/transpose/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/atax/build/atax.elf
+    cmd: [../../../sw/apps/atax/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/covariance/build/covariance.elf
+    simulators: [vsim, vcs, verilator]
+    cmd: [../../../sw/apps/covariance/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/doitgen/build/doitgen.elf
+    cmd: [../../../sw/apps/doitgen/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/blas/gemv/build/gemv.elf
+    cmd: [../../../sw/blas/gemv/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/dnn/softmax/build/softmax.elf
+    cmd: [../../../sw/dnn/softmax/scripts/verify.py, "${sim_bin}", "${elf}"]
+  # Uses fdiv and fsqrt instructions in inline assembly statements, so it's only supported
+  # on cluster configurations with the FDIV/SQRT unit, compiling with -mno-fdiv is not sufficient.
+  # - elf: ./apps/dnn/layernorm/build/layernorm.elf
+  #   cmd: [../../../sw/dnn/layernorm/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/dnn/gelu/build/gelu.elf
+    cmd: [../../../sw/dnn/gelu/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/dnn/flashattention_2/build/flashattention_2.elf
+    cmd: [../../../sw/dnn/flashattention_2/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/correlation/build/correlation.elf
+    cmd: [../../../sw/apps/correlation/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/kmeans/build/kmeans.elf
+    cmd: [../../../sw/apps/kmeans/scripts/verify.py, --no-gui, "${sim_bin}", "${elf}"]
+  - elf: ./apps/kbpcpa/build/kbpcpa.elf
+    cmd: [../../../sw/apps/kbpcpa/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/j3d27pt/build/j3d27pt.elf
+    cmd: [../../../sw/apps/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/box3d1r/build/box3d1r.elf
+    cmd: [../../../sw/apps/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]

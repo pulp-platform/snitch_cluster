@@ -41,6 +41,7 @@ package ${cfg['cluster']['name']}_pkg;
   localparam int unsigned NrHives = ${cfg['cluster']['nr_hives']};
 
   localparam int unsigned TcdmSize = ${cfg['cluster']['tcdm']['size']};
+  localparam int unsigned TcdmSizeNapotRounded = 1 << $clog2(TcdmSize);
   localparam int unsigned BootromSize = 4; // Fixed size of 4kB
   localparam int unsigned ClusterPeriphSize = ${cfg['cluster']['cluster_periph_size']};
   localparam int unsigned ZeroMemorySize = ${cfg['cluster']['zero_mem_size']};

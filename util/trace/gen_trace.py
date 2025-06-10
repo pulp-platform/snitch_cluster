@@ -46,11 +46,8 @@ import traceback
 from typing import Optional
 from itertools import tee, islice, chain
 from functools import lru_cache
-
-EXTRA_WB_WARN = 'WARNING: {} transactions still in flight for {}.'
-
-GENERAL_WARN = """WARNING: Inconsistent final state; performance metrics
-may be inaccurate. Is this trace complete?\n"""
+from snitch.util.trace.sequencer import Sequencer
+import warnings
 
 DASM_IN_REGEX = r'DASM\(([0-9a-fA-F]+)\)'
 
@@ -662,79 +659,6 @@ def eval_dma_metrics(dma_trans, dma_trace):
             return dma_metrics
 
 
-# -------------------- FPU Sequencer --------------------
-
-
-def dasm_seq(extras: dict, ) -> str:
-    return '{:<8}'.format('frep') + ', '.join(
-        [str(extras['max_rpt'] +
-             1), str(extras['max_inst'] + 1)] +
-        ([bin(extras['stg_mask']
-              ), str(extras['stg_max'] + 1)] if extras['stg_mask'] else []))
-
-
-def emul_seq(fseq_info: dict,
-             permissive: bool = False) -> (str, int, str, tuple):
-    fseq_annot = None
-    # We are only called on FPSS issues, not on FSEQ issues -> we must consume FReps in same call
-    cfg = fseq_info['curr_cfg']
-    if cfg is None:
-        is_frep = fseq_info['fpss_pcs'][-1][2] if len(
-            fseq_info['fpss_pcs']) else False
-        # Is an FRep incoming?
-        if is_frep:
-            fseq_info['fpss_pcs'].pop()
-            cfg = fseq_info['cfg_buf'].pop()
-            cfg['inst_iter'] = 0
-            cfg['fpss_buf'] = deque()
-            cfg['outer_buf'] = deque()
-            fseq_info['curr_cfg'] = cfg
-    # Are we working on an FRep ...
-    if cfg is not None:
-        # If we are still filling our loop buffer: add to it and replicate
-        # When there are no FPSS PCs left (e.g. inner FREP), we cannot replicate!
-        if cfg['inst_iter'] <= cfg['max_inst'] and len(fseq_info['fpss_pcs']):
-            pc_str, curr_sec, is_frep = fseq_info['fpss_pcs'].pop()
-            if is_frep:
-                msg_type = 'WARNING' if permissive else 'FATAL'
-                sys.stderr.write(
-                    '{}: FRep at {} contains another nested FRep'.format(
-                        msg_type, cfg['fseq_pc']))
-                if not permissive:
-                    sys.exit(1)
-            # Outer loops: first consume loop body, then replicate buffer
-            if cfg['is_outer']:
-                buf_entry = (pc_str, curr_sec, (0, cfg['inst_iter']))
-                cfg['fpss_buf'].appendleft(buf_entry)
-                cfg['outer_buf'].appendleft(buf_entry)
-                # Once all loop instructions received: replicate buffer in outer-loop order
-                if cfg['inst_iter'] == cfg['max_inst']:
-                    for curr_rep in range(1, cfg['max_rpt'] + 1):
-                        ob_rev = reversed(cfg['outer_buf'])
-                        for inst_idx, inst in enumerate(ob_rev):
-                            pc_str, curr_sec, _ = inst
-                            fseq_annot = (curr_rep, inst_idx)
-                            cfg['fpss_buf'].appendleft(
-                                (pc_str, curr_sec, fseq_annot))
-            # Inner loops: replicate instructions during loop body consumption
-            else:
-                for curr_rep in range(0, cfg['max_rpt'] + 1):
-                    fseq_annot = (curr_rep, cfg['inst_iter'])
-                    cfg['fpss_buf'].appendleft((pc_str, curr_sec, fseq_annot))
-            # Iterate loop body instruction consumed
-            cfg['inst_iter'] += 1
-        # Pull our instruction from the loop buffer
-        pc_str, curr_sec, fseq_annot = cfg['fpss_buf'].pop()
-        # If we reached last iteration: terminate this FRep
-        if fseq_annot[0] == cfg['max_rpt'] and fseq_annot[1] == cfg['max_inst']:
-            fseq_info['curr_cfg'] = None
-    # ... or is this a regular pass-through?
-    else:
-        pc_str, curr_sec, _ = fseq_info['fpss_pcs'].pop()
-    fseq_pc_str = None if cfg is None else cfg['fseq_pc']
-    return pc_str, curr_sec, fseq_pc_str, fseq_annot
-
-
 # -------------------- Annotation --------------------
 
 
@@ -790,10 +714,11 @@ def annotate_snitch(extras: dict,
         # Load / Store
         if extras['is_load']:
             perf_metrics[-1]['snitch_loads'] += 1
-            gpr_wb_info[extras['rd']].appendleft(cycle)
-            ret.append('{:<3} <~~ {}[{}]'.format(
-                REG_ABI_NAMES_I[extras['rd']], LS_SIZES[extras['ls_size']],
-                int_lit(extras['alu_result'], as_hex=int_as_hex)))
+            if extras['rd'] != 0:
+                gpr_wb_info[extras['rd']].appendleft(cycle)
+                ret.append('{:<3} <~~ {}[{}]'.format(
+                    REG_ABI_NAMES_I[extras['rd']], LS_SIZES[extras['ls_size']],
+                    int_lit(extras['alu_result'], as_hex=int_as_hex)))
         elif extras['is_store']:
             perf_metrics[-1]['snitch_stores'] += 1
             ret.append('{} ~~> {}[{}]'.format(
@@ -813,12 +738,11 @@ def annotate_snitch(extras: dict,
             start_time = gpr_wb_info[extras['lsu_rd']].pop()
             perf_metrics[-1]['snitch_load_latency'] += cycle - start_time
         except IndexError:
-            msg_type = 'WARNING' if permissive else 'FATAL'
-            sys.stderr.write(
-                '{}: In cycle {}, LSU attempts writeback to {}, but none in flight.\n'
-                .format(msg_type, cycle, REG_ABI_NAMES_I[extras['lsu_rd']]))
-            if not permissive:
-                sys.exit(1)
+            message = (
+                f"In cycle {cycle}, LSU attempts writeback to "
+                f"{REG_ABI_NAMES_I[extras['lsu_rd']]}, but none is in flight."
+            )
+            warnings.warn(message)
         ret.append('(lsu) {:<3} <-- {}'.format(
             REG_ABI_NAMES_I[extras['lsu_rd']],
             int_lit(extras['ld_result_32'])))
@@ -894,13 +818,11 @@ def annotate_fpu(
                     perf_metrics[curr_sec][
                         'fpss_fpu_latency'] += cycle - start_time
             except IndexError:
-                msg_type = 'WARNING' if permissive else 'FATAL'
-                sys.stderr.write(
-                    '{}: In cycle {}, {} attempts writeback to {}, but none in flight.\n'
-                    .format(msg_type, cycle, writer.upper(),
-                            REG_ABI_NAMES_F[extras['fpr_waddr']]))
-                if not permissive:
-                    sys.exit(1)
+                message = (
+                    f'In cycle {cycle}, {writer.upper()} attempts writeback to '
+                    f'{REG_ABI_NAMES_F[extras["fpr_waddr"]]}, but none in flight.'
+                )
+                warnings.warn(message)
         ret.append('(f:{}) {:<4} <-- {}'.format(
             writer, REG_ABI_NAMES_F[extras['fpr_waddr']],
             flt_lit(extras['fpr_wdata'], fmt, vlen=vlen)))
@@ -914,8 +836,8 @@ def annotate_insn(
     dict,  # One deque (FIFO) per GPR storing start cycles for each GPR WB
     fpr_wb_info:
     dict,  # One deque (FIFO) per FPR storing start cycles and formats for each FPR WB
-    fseq_info:
-    dict,  # Info on the sequencer to properly map tunneled instruction PCs
+    sequencer:
+    Sequencer,  # Sequencer model to properly map tunneled instruction PCs
     perf_metrics: list,  # A list performance metric dicts
     mc_exec: str,  # Path to the llvm-mc executable
     mc_flags: str,  # Flags to pass to the llvm-mc executable
@@ -950,54 +872,52 @@ def annotate_insn(
     # Annotated trace
     if extras_str:
         extras = read_annotations(extras_str)
-        # Annotate snitch
+        # Parse lines traced by Snitch
         if extras['source'] == TRACE_SRCES['snitch']:
             annot = annotate_snitch(extras, time_info[0], time_info[1],
                                     int(pc_str, 16), gpr_wb_info, perf_metrics,
                                     annot_fseq_offl, int_as_hex, permissive)
+            # Record instructions offloaded from Snitch to the FPSS
             if extras['fpu_offload']:
                 perf_metrics[-1]['snitch_fseq_offloads'] += 1
-                fseq_info['fpss_pcs'].appendleft(
-                    (pc_str, len(perf_metrics) - 1, extras['is_seq_insn']))
-                if extras['is_seq_insn']:
-                    fseq_info['fseq_pcs'].appendleft(pc_str)
+                sequencer.push_insn({
+                    "pc": pc_str,
+                    "sec": len(perf_metrics) - 1,
+                    "is_frep": extras['is_seq_insn']
+                })
             if extras['stall'] or extras['fpu_offload']:
                 insn, pc_str = ('', '')
             else:
                 perf_metrics[-1]['snitch_issues'] += 1
             update_dma(insn, extras, dma_trans)
-        # Annotate sequencer
+        # Parse lines traced by the sequencer
         elif extras['source'] == TRACE_SRCES['sequencer']:
-            if extras['cbuf_push']:
-                fseq_info['cfg_buf'].appendleft(extras)
-                frep_pc_str = fseq_info['fseq_pcs'].pop()
-                insn, pc_str = (dasm_seq(extras), frep_pc_str)
-                extras['fseq_pc'] = frep_pc_str
-                annot = ', '.join([
-                    'outer' if extras['is_outer'] else 'inner',
-                    '{} issues'.format(
-                        (extras['max_inst'] + 1) * (extras['max_rpt'] + 1))
-                ])
-            else:
-                insn, pc_str, annot = ('', '', '')
-        # Annotate FPSS
+            # Sequencer only traces FREP configurations when the respective
+            # FREP instruction is handshaked within the sequencer.
+            assert (extras['cbuf_push']), 'Unexpected sequencer trace line'
+            pc_str, insn, annot = sequencer.decode_frep(extras)
+        # Parse lines traced by the FPSS
         elif extras['source'] == TRACE_SRCES['fpu']:
             annot_list = []
-            if not extras['acc_q_hs']:
-                insn, pc_str = ('', '')
-            else:
-                pc_str, curr_sec, fseq_pc_str, fseq_annot = emul_seq(
-                    fseq_info, permissive)
-                fseq_info['curr_sec'] = curr_sec
-                perf_metrics[curr_sec]['end_fpss'] = time_info[
-                    1]  # Record cycle in case this was last insn in section
+            # Parse lines corresponding to instruction issues
+            if extras['acc_q_hs']:
+                # Emulate one sequencer step, i.e. one instruction issue
+                pc_str, curr_sec, frep_iter = sequencer.emulate(permissive)
+                # Record cycle in case this was last insn in section
+                perf_metrics[curr_sec]['end_fpss'] = time_info[1]
                 perf_metrics[curr_sec]['fpss_issues'] += 1
-                if fseq_annot is not None:
-                    annot_list.append('[{} {}:{}]'.format(
-                        fseq_pc_str[-4:], *fseq_annot))
+                if frep_iter is not None:
+                    # Annotate the current loop iteration
+                    frep_iter_annot = f'[{frep_iter["pc"][-4:]}'
+                    frep_iter_annot += f' {frep_iter["iter_idx"]}:{frep_iter["inst_idx"]}]'
+                    annot_list.append(frep_iter_annot)
+            # For all other trace lines (e.g. writebacks) we do not track the
+            # respective originating instruction, so we cannot annotate it
+            else:
+                insn, pc_str = ('', '')
             annot_list.append(
                 annotate_fpu(extras, insn, time_info[1], fpr_wb_info, perf_metrics,
-                             fseq_info['curr_sec'], int_as_hex,
+                             sequencer.curr_sec, int_as_hex,
                              permissive))
             annot = ', '.join(annot_list)
         else:
@@ -1135,7 +1055,7 @@ def main():
         '-p',
         '--permissive',
         action='store_true',
-        help='Ignore some state-related issues when they occur')
+        help='State-related errors are reported as warnings')
     parser.add_argument(
         '--dma-trace',
         help='Path to a DMA trace file'
@@ -1162,6 +1082,15 @@ def main():
     )
 
     args = parser.parse_args()
+
+    # Raise errors on warnings unless disabled on the command-line
+    warnings.filterwarnings('default' if args.permissive else 'error', category=UserWarning)
+
+    # Simplify warnings to print only filename, lineno and message
+    def custom_formatwarning(message, category, filename, lineno, line=None):
+        return f"{filename}:{lineno}: {message}\n"
+    warnings.formatwarning = custom_formatwarning
+
     line_iter = iter(args.infile.readline, b'')
 
     with args.output as file:
@@ -1169,13 +1098,7 @@ def main():
         time_info = None
         gpr_wb_info = defaultdict(deque)
         fpr_wb_info = defaultdict(deque)
-        fseq_info = {
-            'curr_sec': 0,
-            'fpss_pcs': deque(),
-            'fseq_pcs': deque(),
-            'cfg_buf': deque(),
-            'curr_cfg': None
-        }
+        sequencer = Sequencer()
         dma_trans = [{'rep': 1}]
         perf_metrics = [
             defaultdict(int)
@@ -1189,7 +1112,7 @@ def main():
                         line,
                         gpr_wb_info,
                         fpr_wb_info,
-                        fseq_info,
+                        sequencer,
                         perf_metrics,
                         args.mc_exec,
                         args.mc_flags,
@@ -1205,7 +1128,7 @@ def main():
                         perf_metrics[0]['start'] = time_info[1]
                     if not empty:
                         print(ann_insn, file=file)
-                except Exception:
+                except Exception as e:
                     message = 'Exception occured while processing '
                     if not nextl:
                         message += 'last line. Did the simulation terminate?'
@@ -1213,6 +1136,7 @@ def main():
                         message += f'line {lineno}.'
                     print(traceback.format_exc(), file=sys.stderr)
                     print(message, file=sys.stderr)
+                    raise e
             else:
                 break  # Nothing more in pipe, EOF
         perf_metrics[-1]['tend'] = time_info[0] // 1000
@@ -1237,38 +1161,32 @@ def main():
             file.write(json.dumps(dma_metrics, indent=4))
 
     # Check for any loose ends and warn before exiting
-    seq_isns = len(fseq_info['fseq_pcs']) + len(fseq_info['cfg_buf'])
-    unseq_left = len(fseq_info['fpss_pcs']) - len(fseq_info['fseq_pcs'])
-    fseq_cfg = fseq_info['curr_cfg']
+    def wb_msg(reg_name, transactions):
+        n = len(transactions)
+        cycles = ', '.join(map(str, transactions))
+        return (
+            f'Missing {n} writebacks to register {reg_name} from transactions '
+            f'initiated at cycles: {cycles}.'
+        )
     warn_trip = False
     for fpr, que in fpr_wb_info.items():
         if len(que) != 0:
             warn_trip = True
-            sys.stderr.write(
-                EXTRA_WB_WARN.format(len(que), REG_ABI_NAMES_F[fpr]) + '\n')
+            warnings.warn(wb_msg(REG_ABI_NAMES_F[fpr], que))
     for gpr, que in gpr_wb_info.items():
         if len(que) != 0:
             warn_trip = True
-            sys.stderr.write(
-                EXTRA_WB_WARN.format(len(que), REG_ABI_NAMES_I[gpr]) + '\n')
-    if seq_isns:
+            warnings.warn(wb_msg(REG_ABI_NAMES_I[gpr], que))
+    # Check final state of sequencer is clean
+    if sequencer.terminate():
         warn_trip = True
-        sys.stderr.write(
-            'WARNING: {} Sequencer instructions were not issued.\n'.format(
-                seq_isns))
-    if unseq_left:
-        warn_trip = True
-        sys.stderr.write(
-            'WARNING: {} unsequenced FPSS instructions were not issued.\n'.
-            format(unseq_left))
-    if fseq_cfg is not None:
-        warn_trip = True
-        pc_str = fseq_cfg['fseq_pc']
-        sys.stderr.write(
-            'WARNING: Not all FPSS instructions from sequence {} were issued.\n'
-            .format(pc_str))
+    # Issue an additional general warning if any specific warnings were raised
     if warn_trip:
-        sys.stderr.write(GENERAL_WARN)
+        message = (
+            'Inconsistent final state; performance metrics '
+            'may be inaccurate. Is this trace complete?'
+        )
+        warnings.warn(message)
     return 0
 
 

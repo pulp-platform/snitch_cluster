@@ -313,6 +313,7 @@ class SnitchCluster(Generator):
     def cfg_validate(self):
         failed = True
         """Perform more advanced validation, i.e., sanity check parameters."""
+        tcdm = self.cfg['cluster']['tcdm']
         if int(self.cfg['cluster']['addr_width']) < 30:
             log.error("`addr_width` must be greater or equal to 30.")
         elif not ((int(self.cfg['cluster']['data_width']) == 32) or
@@ -331,14 +332,16 @@ class SnitchCluster(Generator):
         #     log.error("RVD needs RVF")
         # elif cfg.en_rvd and not cfg.data_width == 64:
         #     log.error("RVD needs 64 bit data buses")
-        elif (self.cfg['cluster']['tcdm']['size'] % self.cfg['cluster']['tcdm']['banks']) != 0:
+        elif (tcdm['size'] % tcdm['banks']) != 0:
             log.error(
                 "The total size of the TCDM must be divisible by the requested amount of banks."
             )
-        elif is_pow2(self.cfg['cluster']['tcdm']['size']):
-            log.error("The TCDM size must be a power of two.")
-        elif is_pow2(self.cfg['cluster']['tcdm']['banks']):
-            log.error("The amount of banks must be a power of two.")
+        elif is_pow2(tcdm['size'] / tcdm['banks']):
+            log.error(
+                "The size of each TCDM bank must be a power of two."
+            )
+        elif (tcdm['banks'] % tcdm['hyperbanks']) != 0:
+            log.error("Number of banks must be an integer multiple of number of hyperbanks.")
         else:
             failed = False
 

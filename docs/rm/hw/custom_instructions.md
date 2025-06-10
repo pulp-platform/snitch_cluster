@@ -31,17 +31,16 @@ With the "Xfrep" extension we can automatically repeat a sequence of instruction
 
 The FREP instruction has the following signature:
 
-| imm1     | rs1     | imm2        | imm3         | is_outer | opcode     | operation |
-|:--------:|:-------:|:-----------:|:------------:|:--------:|:----------:|:---------:|
-| 12       | 5       | 3           | 4            | 1        | 7          |           |
-| max_inst | max_rpt | stagger_max | stagger_mask | 0        | OP-CUSTOM0 | FREP.I    |
-| max_inst | max_rpt | stagger_max | stagger_mask | 1        | OP-CUSTOM0 | FREP.O    |
+| imm1     | rs1      | imm2        | imm3         | is_outer | opcode     | operation |
+|:--------:|:--------:|:-----------:|:------------:|:--------:|:----------:|:---------:|
+| 12       | 5        | 3           | 4            | 1        | 7          |           |
+| max_inst | max_iter | stagger_max | stagger_mask | 1        | OP-CUSTOM0 | FREP.O    |
 
-FREP.I and FREP.O repeat the *max_inst + 1* instructions following the FREP instruction for *max_rpt + 1* times. The FREP.I instruction (*I* stands for inner) repeats every instruction the specified number of times and moves on to executing and repeating the next. The FREP.O instruction (*O* stands for outer) repeats the whole sequence of instructions *max_rpt + 1* times. Register staggering can be enabled and configured via the *stagger_mask* and *stagger_max* immediates. A detailed explanation of their use can be found in the Snitch [paper](../../publications.md).
+FREP.O (*O* stands for outer) repeats the *max_inst + 1* instructions following the FREP instruction for *max_iter + 1* times. Register staggering can be enabled and configured via the *stagger_mask* and *stagger_max* immediates. A detailed explanation of their use can be found in the Snitch [paper](../../publications.md).
 
 The assembly instruction signature follows:
 
-    frep.i   rs1, imm1, imm2, imm3
+    frep.o   rs1, imm1, imm2, imm3
 
 
 ## "Xdma" Extension for Asynchronous Data Movement
@@ -66,9 +65,9 @@ DMSRC and DMDST specify the source and destination address pointers for the next
 | 0000110 | dststrd | srcstrd | 000    | 00000 | OP-CUSTOM1 | DMSTR     |
 | 0000111 | 00000   | reps    | 000    | 00000 | OP-CUSTOM1 | DMREP     |
 
-DMSTRD configures the stride for two-dimensional transfers. The value in registers *rs1* and *rs2* are sign-extended to PLEN and configured as the source and destination stride, respectively. After each transfer of the innermost dimension, the strides are added to the respective address pointers.
+DMSTR configures the stride for two-dimensional transfers. The value in registers *rs1* and *rs2* are sign-extended to PLEN and configured as the source and destination stride, respectively. After each transfer of the innermost dimension, the strides are added to the respective address pointers.
 
-DMREPS configures the value in register *rs1* as the size of the outer dimension for two-dimensional transfers.
+DMREP configures the value in register *rs1* as the size of the outer dimension for two-dimensional transfers.
 
 ### Control Operations
 
@@ -94,12 +93,13 @@ DMCPY and DMCPYI initiate an asynchronous data movement with the parameters conf
 
 DMSTAT and DMSTATI place the selected *status* flag of the DMA into register *rd*. The following *status* flags are supported:
 
-| status | Name         | Description
-|--------|--------------|-------------
-| 0      | completed_id | Id of last completed transfer
-| 1      | next_id      | Id allocated to the next transfer
-| 2      | busy         | At least one transfer in progress
-| 3      | would_block  | Next DMCPY[I] blocks (transfer queue full)
+| status      | Name         | Description
+|-------------|--------------|-------------
+| 0           | completed_id | Id of last completed transfer
+| 1           | next_id      | Id allocated to the next transfer
+| 2           | busy         | At least one transfer in progress
+| 3           | would_block  | Next DMCPY[I] blocks (transfer queue full)
+| status[4:2] | channel_sel  | Selects the DMA backend if a multi-channel DMA is used
 
 The DMSTATI instruction can be used to implement a blocking wait for the completion of a specific DMA transfer:
 
@@ -107,7 +107,7 @@ The DMSTATI instruction can be used to implement a blocking wait for the complet
     1:  dmstati t0, 0
         bltu t0, a0, 1b
 
-Similarly, waiting for the completion of *all* DMA transfers:
+Similarly, waiting for the completion of *all* DMA transfers on channel 1:
 
-    1:  dmstati t0, 2
+    1:  dmstati t0, (1 << 2) | 2
         bnez t0, zero, 1b

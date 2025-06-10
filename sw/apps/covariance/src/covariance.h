@@ -265,13 +265,19 @@ void covariance_job(covariance_args_t *args) {
     b_tile_bytes = b_tile_size * sizeof(double);
 
     // Allocate space for job operands in TCDM
-    local_a[0] = snrt_l1_alloc_cluster_local(a_tile_bytes, sizeof(double));
-    local_at[0] = snrt_l1_alloc_cluster_local(a_tile_bytes, sizeof(double));
-    local_b[0] = snrt_l1_alloc_cluster_local(b_tile_bytes, sizeof(double));
+    local_a[0] =
+        (double *)snrt_l1_alloc_cluster_local(a_tile_bytes, sizeof(double));
+    local_at[0] =
+        (double *)snrt_l1_alloc_cluster_local(a_tile_bytes, sizeof(double));
+    local_b[0] =
+        (double *)snrt_l1_alloc_cluster_local(b_tile_bytes, sizeof(double));
     if (DOUBLE_BUFFER) {
-        local_a[1] = snrt_l1_alloc_cluster_local(a_tile_bytes, sizeof(double));
-        local_at[1] = snrt_l1_alloc_cluster_local(a_tile_bytes, sizeof(double));
-        local_b[1] = snrt_l1_alloc_cluster_local(b_tile_bytes, sizeof(double));
+        local_a[1] =
+            (double *)snrt_l1_alloc_cluster_local(a_tile_bytes, sizeof(double));
+        local_at[1] =
+            (double *)snrt_l1_alloc_cluster_local(a_tile_bytes, sizeof(double));
+        local_b[1] =
+            (double *)snrt_l1_alloc_cluster_local(b_tile_bytes, sizeof(double));
     }
 
     // Calculate number of iterations

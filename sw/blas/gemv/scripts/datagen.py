@@ -49,8 +49,8 @@ class GemvDataGen(du.DataGen):
         a = a.flatten()
         x = x.flatten()
 
-        header += [du.format_array_declaration('double', a_uid, a.shape)]
-        header += [du.format_array_declaration('double', x_uid, x.shape)]
+        header += [du.format_array_declaration('extern double', a_uid, a.shape)]
+        header += [du.format_array_declaration('extern double', x_uid, x.shape)]
         header += [du.format_array_declaration('double', y_uid, y.shape)]
         header += [du.format_struct_definition('gemv_args_t', 'args', cfg)]
         header += [du.format_array_definition('double', a_uid, a,

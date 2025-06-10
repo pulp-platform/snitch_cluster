@@ -83,11 +83,10 @@ static inline void softmax_layer(softmax_layer_t const l) {
     uint32_t compute_num = snrt_cluster_compute_core_num();
     uint32_t compute_id = snrt_global_core_idx();
 
-    uint32_t ifmap_size =
-        l.batch_size * l.seq_len * l.input_samples * sizeof(float);
+    uint32_t ifmap_size = l.batch_size * l.seq_len * l.input_samples;
     uint32_t ofmap_size = ifmap_size;
 
-    void *ptr = (float *)snrt_l1_next();
+    float *ptr = (float *)snrt_l1_next();
     float *ifmap = ptr;
     ptr += ifmap_size;
     float *ofmap = ptr;

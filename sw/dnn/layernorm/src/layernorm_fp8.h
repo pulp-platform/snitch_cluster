@@ -7,8 +7,8 @@
 #define UNROLL 4
 
 static inline void layernorm_fp8_opt(char *input, char *output,
-                                     int32_t batch_size, int32_t seq_len,
-                                     int32_t embeddings, int32_t eps) {
+                                     uint32_t batch_size, uint32_t seq_len,
+                                     uint32_t embeddings, int32_t eps) {
     if (snrt_is_compute_core()) {
         uint32_t offset = snrt_cluster_core_idx() * embeddings;
         uint32_t stride = snrt_cluster_compute_core_num() * embeddings;
@@ -30,7 +30,7 @@ static inline void layernorm_fp8_opt(char *input, char *output,
         v2s var_v2[UNROLL];
         float var_reduce[UNROLL];
 
-        int num_elems_per_vector = sizeof(double) / sizeof(char);
+        const int num_elems_per_vector = sizeof(double) / sizeof(char);
 
         const uint32_t ssr0_b[4] = {
             UNROLL, embeddings / (UNROLL * num_elems_per_vector), 2,

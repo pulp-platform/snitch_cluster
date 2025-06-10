@@ -57,12 +57,12 @@ def emit_header(section, params):
     }
 
     data_str = [emit_license()]
-    data_str += [format_array_declaration(ctype, f'input_{i}', input_shape)
+    data_str += [format_array_declaration(f'extern {ctype}', f'input_{i}', input_shape)
                  for i in range(num_inputs)]
-    data_str += [format_array_declaration('void*', 'inputs', [num_inputs])]
+    data_str += [format_array_declaration('extern void*', 'inputs', [num_inputs])]
     data_str += [format_array_declaration(ctype, 'concat_output', concat_output.shape)]
     data_str += [format_array_declaration(ctype, 'linear_output', linear_output.shape)]
-    data_str += [format_array_declaration(ctype, 'weights', weights.shape)]
+    data_str += [format_array_declaration(f'extern {ctype}', 'weights', weights.shape)]
     data_str += [format_struct_definition('fused_concat_linear_layer_t', 'layer', layer_cfg)]
     data_str += [format_array_definition(ctype, f'input_{i}', t)
                  for i, t in enumerate(inputs)]

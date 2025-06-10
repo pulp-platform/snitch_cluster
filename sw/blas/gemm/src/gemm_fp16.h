@@ -7,30 +7,30 @@
 //         Luca Colagrande <colluca@iis.ee.ethz.ch>
 //         Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
-void gemm_fp16_naive(uint32_t M, uint32_t N, uint32_t K, void* A_p,
-                     uint32_t ldA, uint32_t ta, void* B_p, uint32_t ldB,
-                     uint32_t tb, void* C_p, uint32_t ldC, uint32_t BETA,
-                     uint32_t setup_SSR) {
+void gemm_fp16_naive(uint32_t setup_ssr, uint32_t partition_banks,
+                     uint32_t transa, uint32_t transb, uint32_t M, uint32_t N,
+                     uint32_t K, void* A_p, uint32_t lda, void* B_p,
+                     uint32_t ldb, uint32_t beta, void* C_p, uint32_t ldc) {
     __fp16* A = (__fp16*)A_p;
     __fp16* B = (__fp16*)B_p;
     __fp16* C = (__fp16*)C_p;
-    __fp16 beta = (__fp16)BETA;
+    __fp16 beta_fp = (__fp16)beta;
 
     for (uint32_t m = 0; m < M; m++) {
         for (uint32_t n = 0; n < N; n++) {
             __fp16 c;
-            if (beta != 0) {
-                c = C[m * ldC + n] * beta;
+            if (beta_fp != 0) {
+                c = C[m * ldc + n] * beta_fp;
             } else {
                 c = 0.0;
             }
             for (uint32_t k = 0; k < K; k++) {
-                __fp16 a = A[m * ldA + k];
+                __fp16 a = A[m * lda + k];
                 __fp16 b;
-                if (tb)
-                    b = B[n * ldB + k];
+                if (transb)
+                    b = B[n * ldb + k];
                 else
-                    b = B[k * ldB + n];
+                    b = B[k * ldb + n];
                 asm volatile(
                     "fmv.h.x ft3, %[a]\n"
                     "fmv.h.x ft4, %[b]\n"
@@ -41,15 +41,15 @@ void gemm_fp16_naive(uint32_t M, uint32_t N, uint32_t K, void* A_p,
                     : [ c ] "+r"(c)
                     : [ a ] "r"(a), [ b ] "r"(b));
             }
-            C[m * ldC + n] = c;
+            C[m * ldc + n] = c;
         }
     }
 }
 
-void gemm_fp16_baseline(uint32_t M, uint32_t N, uint32_t K, void* A_p,
-                        uint32_t ldA, uint32_t ta, void* B_p, uint32_t ldB,
-                        uint32_t tb, void* C_p, uint32_t ldC, uint32_t BETA,
-                        uint32_t setup_SSR) {
+void gemm_fp16_baseline(uint32_t setup_ssr, uint32_t transa, uint32_t transb,
+                        uint32_t M, uint32_t N, uint32_t K, void* A_p,
+                        uint32_t lda, void* B_p, uint32_t ldb, uint32_t beta,
+                        void* C_p, uint32_t ldc) {
     __fp16* A = (__fp16*)A_p;
     __fp16* B = (__fp16*)B_p;
     __fp16* C = (__fp16*)C_p;
@@ -57,16 +57,16 @@ void gemm_fp16_baseline(uint32_t M, uint32_t N, uint32_t K, void* A_p,
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (; n < N; n++) {
-            volatile register v4f16 *a_ptr, *b_ptr;
-            register v4f16 a, b;
+            volatile v4f16 *a_ptr, *b_ptr;
+            v4f16 a, b;
             volatile __fp16* c_ptr;
-            const register float zero = 0.0;
+            const float zero = 0.0;
             double c = 0.0;
             v4f16 reduce_reg;
 
-            a_ptr = (v4f16*)(&A[m * ldA]);
-            b_ptr = (v4f16*)(&B[n * ldB]);
-            c_ptr = &C[m * ldC + n];
+            a_ptr = (v4f16*)(&A[m * lda]);
+            b_ptr = (v4f16*)(&B[n * ldb]);
+            c_ptr = &C[m * ldc + n];
             // Don't accumulate in first iteration
             asm volatile(
                 "beqz %[beta], 1f \n"
@@ -97,16 +97,17 @@ void gemm_fp16_baseline(uint32_t M, uint32_t N, uint32_t K, void* A_p,
                 "fsh ft3, 0(%[C]) \n"
                 : [ a_ptr ] "+r"(a_ptr), [ b_ptr ] "+r"(b_ptr)
                 : [ c ] "f"(c), [ reduce_reg ] "f"(reduce_reg),
-                  [ C ] "r"(c_ptr), [ beta ] "r"(BETA), [ K ] "r"(K),
+                  [ C ] "r"(c_ptr), [ beta ] "r"(beta), [ K ] "r"(K),
                   [ zero ] "f"(zero)
                 : "ft0", "ft1", "ft2", "ft3", "ft4", "t0");
         }
     }
 }
 
-void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
-                   uint32_t ta, void* B_p, uint32_t ldB, uint32_t tb, void* C_p,
-                   uint32_t ldC, uint32_t BETA, uint32_t setup_SSR) {
+void gemm_fp16_opt(uint32_t setup_ssr, uint32_t partition_banks,
+                   uint32_t transa, uint32_t transb, uint32_t M, uint32_t N,
+                   uint32_t K, void* A_p, uint32_t lda, void* B_p, uint32_t ldb,
+                   uint32_t beta, void* C_p, uint32_t ldc) {
     __fp16* A = (__fp16*)A_p;
     __fp16* B = (__fp16*)B_p;
     __fp16* C = (__fp16*)C_p;
@@ -120,14 +121,14 @@ void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
     if (N >= unroll) {
         // SSR strides and bounds only have to be configured
         // once in the beginning
-        if (setup_SSR) {
+        if (setup_ssr) {
             uint32_t ssr0_b[4] = {unroll, K / 4, N / unroll, M};
             uint32_t ssr0_i[4] = {0, sizeof(__fp16) * 4, 0,
-                                  sizeof(__fp16) * ldA};
+                                  sizeof(__fp16) * lda};
 
             uint32_t ssr1_b[4] = {unroll, K / 4, N / unroll, M};
-            uint32_t ssr1_i[4] = {sizeof(__fp16) * ldB, sizeof(__fp16) * 4,
-                                  sizeof(__fp16) * unroll * ldB, 0};
+            uint32_t ssr1_i[4] = {sizeof(__fp16) * ldb, sizeof(__fp16) * 4,
+                                  sizeof(__fp16) * unroll * ldb, 0};
 
             snrt_ssr_loop_3d(SNRT_SSR_DM0, ssr0_b[1], ssr0_b[2], ssr0_b[3],
                              ssr0_i[1], ssr0_i[2], ssr0_i[3]);
@@ -150,8 +151,8 @@ void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
-            __fp16* _C = &C[m * ldC + n];
-            const register float zero = 0.0;
+            __fp16* _C = &C[m * ldc + n];
+            const float zero = 0.0;
             v4f16 c[unroll];
             v2f32 reduce_reg[unroll];
 
@@ -257,24 +258,24 @@ void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
                 "vfcpkb.h.s %[c0], %[c2], %[c3] \n"
                 "vfcpka.h.s %[c1], %[c4], %[c5] \n"
                 "vfcpkb.h.s %[c1], %[c6], %[c7] \n"
-                : [ c0 ] "+f"(c[0]), [ c1 ] "+f"(c[1]), [ c2 ] "+f"(c[2]),
-                  [ c3 ] "+f"(c[3]), [ c4 ] "+f"(c[4]), [ c5 ] "+f"(c[5]),
-                  [ c6 ] "+f"(c[6]), [ c7 ] "+f"(c[7]),
-                  [ reduce_reg0 ] "+f"(reduce_reg[0]),
-                  [ reduce_reg1 ] "+f"(reduce_reg[1]),
-                  [ reduce_reg2 ] "+f"(reduce_reg[2]),
-                  [ reduce_reg3 ] "+f"(reduce_reg[3]),
-                  [ reduce_reg4 ] "+f"(reduce_reg[4]),
-                  [ reduce_reg5 ] "+f"(reduce_reg[5]),
-                  [ reduce_reg6 ] "+f"(reduce_reg[6]),
-                  [ reduce_reg7 ] "+f"(reduce_reg[7])
+                // Store results
+                "fsd %[c0],  0(%[C]) \n"
+                "fsd %[c1],  8(%[C]) \n"
+                : [ c0 ] "=f"(c[0]), [ c1 ] "=f"(c[1]), [ c2 ] "=f"(c[2]),
+                  [ c3 ] "=f"(c[3]), [ c4 ] "=f"(c[4]), [ c5 ] "=f"(c[5]),
+                  [ c6 ] "=f"(c[6]), [ c7 ] "=f"(c[7]),
+                  [ reduce_reg0 ] "=f"(reduce_reg[0]),
+                  [ reduce_reg1 ] "=f"(reduce_reg[1]),
+                  [ reduce_reg2 ] "=f"(reduce_reg[2]),
+                  [ reduce_reg3 ] "=f"(reduce_reg[3]),
+                  [ reduce_reg4 ] "=f"(reduce_reg[4]),
+                  [ reduce_reg5 ] "=f"(reduce_reg[5]),
+                  [ reduce_reg6 ] "=f"(reduce_reg[6]),
+                  [ reduce_reg7 ] "=f"(reduce_reg[7])
                 : [ C ] "r"(_C), [ zero ] "f"(zero), [ n_frep ] "r"(n_frep),
-                  [ beta ] "r"(BETA)
+                  [ beta ] "r"(beta)
                 : "ft0", "ft1", "ft2");
 
-            // Store results back
-            ((v4f16*)_C)[0] = c[0];
-            ((v4f16*)_C)[1] = c[1];
             n += unroll;
         }
 
@@ -282,11 +283,11 @@ void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
         // snrt_ssr_disable();
 
         // for (; n < N; n++) {
-        //     __fp16 c = (*BETA) ? C[m * ldC + n] : 0.0;
+        //     __fp16 c = (*beta) ? C[m * ldc + n] : 0.0;
         //     for (uint32_t k = 0; k < K; k++) {
-        //         c += A[k + m * ldA] * B[k + n * ldB];
+        //         c += A[k + m * lda] * B[k + n * ldb];
         //     }
-        //     C[m * ldC + n] = c;
+        //     C[m * ldc + n] = c;
         // }
 
         // snrt_ssr_enable();
@@ -295,10 +296,10 @@ void gemm_fp16_opt(uint32_t M, uint32_t N, uint32_t K, void* A_p, uint32_t ldA,
     snrt_ssr_disable();
 }
 
-void gemm_fp16_opt_ex(uint32_t M, uint32_t N, uint32_t K, void* A_p,
-                      uint32_t ldA, uint32_t ta, void* B_p, uint32_t ldB,
-                      uint32_t tb, void* C_p, uint32_t ldC, uint32_t BETA,
-                      uint32_t setup_SSR) {
+void gemm_fp16_opt_ex(uint32_t setup_ssr, uint32_t partition_banks,
+                      uint32_t transa, uint32_t transb, uint32_t M, uint32_t N,
+                      uint32_t K, void* A_p, uint32_t lda, void* B_p,
+                      uint32_t ldb, uint32_t beta, void* C_p, uint32_t ldc) {
     __fp16* A = (__fp16*)A_p;
     __fp16* B = (__fp16*)B_p;
     __fp16* C = (__fp16*)C_p;
@@ -312,14 +313,14 @@ void gemm_fp16_opt_ex(uint32_t M, uint32_t N, uint32_t K, void* A_p,
     if (N >= unroll) {
         // SSR strides and bounds only have to be configured
         // once in the beginning
-        if (setup_SSR) {
+        if (setup_ssr) {
             uint32_t ssr0_b[4] = {unroll, K / 4, N / unroll, M};
             uint32_t ssr0_i[4] = {0, sizeof(__fp16) * 4, 0,
-                                  sizeof(__fp16) * ldA};
+                                  sizeof(__fp16) * lda};
 
             uint32_t ssr1_b[4] = {unroll, K / 4, N / unroll, M};
-            uint32_t ssr1_i[4] = {sizeof(__fp16) * ldB, sizeof(__fp16) * 4,
-                                  sizeof(__fp16) * unroll * ldB, 0};
+            uint32_t ssr1_i[4] = {sizeof(__fp16) * ldb, sizeof(__fp16) * 4,
+                                  sizeof(__fp16) * unroll * ldb, 0};
 
             snrt_ssr_loop_3d(SNRT_SSR_DM0, ssr0_b[1], ssr0_b[2], ssr0_b[3],
                              ssr0_i[1], ssr0_i[2], ssr0_i[3]);
@@ -342,8 +343,8 @@ void gemm_fp16_opt_ex(uint32_t M, uint32_t N, uint32_t K, void* A_p,
     for (uint32_t m = 0; m < M; m++) {
         uint32_t n = 0;
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
-            __fp16* _C = &C[m * ldC + n];
-            const register float zero = 0.0;
+            __fp16* _C = &C[m * ldc + n];
+            const float zero = 0.0;
             v4f16 c[unroll];
             v2f32 reduce_reg[unroll];
 
@@ -429,24 +430,24 @@ void gemm_fp16_opt_ex(uint32_t M, uint32_t N, uint32_t K, void* A_p,
                 "vfcpkb.h.s %[c0], %[reduce_reg2], %[reduce_reg3] \n"
                 "vfcpka.h.s %[c1], %[reduce_reg4], %[reduce_reg5] \n"
                 "vfcpkb.h.s %[c1], %[reduce_reg6], %[reduce_reg7] \n"
-                : [ c0 ] "+f"(c[0]), [ c1 ] "+f"(c[1]), [ c2 ] "+f"(c[2]),
-                  [ c3 ] "+f"(c[3]), [ c4 ] "+f"(c[4]), [ c5 ] "+f"(c[5]),
-                  [ c6 ] "+f"(c[6]), [ c7 ] "+f"(c[7]),
-                  [ reduce_reg0 ] "+f"(reduce_reg[0]),
-                  [ reduce_reg1 ] "+f"(reduce_reg[1]),
-                  [ reduce_reg2 ] "+f"(reduce_reg[2]),
-                  [ reduce_reg3 ] "+f"(reduce_reg[3]),
-                  [ reduce_reg4 ] "+f"(reduce_reg[4]),
-                  [ reduce_reg5 ] "+f"(reduce_reg[5]),
-                  [ reduce_reg6 ] "+f"(reduce_reg[6]),
-                  [ reduce_reg7 ] "+f"(reduce_reg[7])
+                // Store results
+                "fsd %[c0],  0(%[C]) \n"
+                "fsd %[c1],  8(%[C]) \n"
+                : [ c0 ] "=f"(c[0]), [ c1 ] "=f"(c[1]), [ c2 ] "=f"(c[2]),
+                  [ c3 ] "=f"(c[3]), [ c4 ] "=f"(c[4]), [ c5 ] "=f"(c[5]),
+                  [ c6 ] "=f"(c[6]), [ c7 ] "=f"(c[7]),
+                  [ reduce_reg0 ] "=f"(reduce_reg[0]),
+                  [ reduce_reg1 ] "=f"(reduce_reg[1]),
+                  [ reduce_reg2 ] "=f"(reduce_reg[2]),
+                  [ reduce_reg3 ] "=f"(reduce_reg[3]),
+                  [ reduce_reg4 ] "=f"(reduce_reg[4]),
+                  [ reduce_reg5 ] "=f"(reduce_reg[5]),
+                  [ reduce_reg6 ] "=f"(reduce_reg[6]),
+                  [ reduce_reg7 ] "=f"(reduce_reg[7])
                 : [ C ] "r"(_C), [ zero ] "f"(zero), [ n_frep ] "r"(n_frep),
-                  [ unroll ] "i"(unroll), [ beta ] "r"(BETA)
+                  [ unroll ] "i"(unroll), [ beta ] "r"(beta)
                 : "ft0", "ft1", "ft2");
 
-            // Store results back
-            ((v4f16*)_C)[0] = c[0];
-            ((v4f16*)_C)[1] = c[1];
             n += unroll;
         }
 
@@ -454,11 +455,11 @@ void gemm_fp16_opt_ex(uint32_t M, uint32_t N, uint32_t K, void* A_p,
         // snrt_ssr_disable();
 
         // for (; n < N; n++) {
-        //     __fp16 c = (*BETA) ? C[m * ldC + n] : 0.0;
+        //     __fp16 c = (*beta) ? C[m * ldc + n] : 0.0;
         //     for (uint32_t k = 0; k < K; k++) {
-        //         c += A[k + m * ldA] * B[k + n * ldB];
+        //         c += A[k + m * lda] * B[k + n * ldb];
         //     }
-        //     C[m * ldC + n] = c;
+        //     C[m * ldc + n] = c;
         // }
 
         // snrt_ssr_enable();

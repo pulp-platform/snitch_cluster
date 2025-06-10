@@ -64,6 +64,11 @@ class SimResults():
             if self.roi_json.exists():
                 self.source = 'roi'
 
+        # Raise exception if no performance data is available
+        source = self.perf_json if self.source == 'perf' else self.roi_json
+        if not source.exists():
+            raise FileNotFoundError(f'File not found {source}. Performance data is not available.')
+
     @functools.cached_property
     def performance_data(self):
         """Returns all performance data logged during simulation."""
@@ -126,6 +131,23 @@ class SimResults():
             metrics.append(self.get_metric(region, metric))
         return metrics
 
+    def get_interval(self, start_region, end_region=None):
+        """Get the start and end times of a simulation interval.
+
+        Args:
+            start_region: The region to start from.
+            end_region: The region to end at. If not provided, the start
+                region is used.
+
+        Returns:
+            A tuple with the start and end times of the interval.
+        """
+        if end_region is None:
+            end_region = start_region
+        start_time = self.get_metric(start_region, 'tstart')
+        end_time = self.get_metric(end_region, 'tend')
+        return start_time, end_time
+
     def get_timespan(self, start_region, end_region=None):
         """Get the timespan between two regions.
 
@@ -134,8 +156,5 @@ class SimResults():
             end_region: The region to end at. If not provided, the start
                 region is used.
         """
-        if end_region is None:
-            end_region = start_region
-        start_time = self.get_metric(start_region, 'tstart')
-        end_time = self.get_metric(end_region, 'tend')
+        start_time, end_time = self.get_interval(start_region, end_region)
         return end_time - start_time

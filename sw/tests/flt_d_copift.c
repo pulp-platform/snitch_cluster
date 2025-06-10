@@ -14,11 +14,11 @@ int main() {
     if (snrt_is_dm_core()) return 0;
 
     // Allocate input and output arrays
-    double *input = snrt_l1_alloc_compute_core_local(LENGTH * sizeof(double),
-                                                     sizeof(double));
-    uint32_t *golden_output = snrt_l1_alloc_compute_core_local(
+    double *input = (double *)snrt_l1_alloc_compute_core_local(
+        LENGTH * sizeof(double), sizeof(double));
+    uint32_t *golden_output = (uint32_t *)snrt_l1_alloc_compute_core_local(
         LENGTH * sizeof(uint32_t), sizeof(uint32_t));
-    uint64_t *actual_output = snrt_l1_alloc_compute_core_local(
+    uint64_t *actual_output = (uint64_t *)snrt_l1_alloc_compute_core_local(
         LENGTH * sizeof(uint64_t), sizeof(uint64_t));
 
     // Initialize input array

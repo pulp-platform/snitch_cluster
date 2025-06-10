@@ -13,8 +13,8 @@ unsigned __attribute__((noinline)) double_buffering(void) {
     static double *bufx, *bufy, *x, *y;
     static double a;
 
-    bufx = snrt_l1_alloc(sizeof(double) * 2 * TILESIZE);
-    bufy = snrt_l1_alloc(sizeof(double) * 2 * TILESIZE);
+    bufx = (double *)snrt_l1_alloc(sizeof(double) * 2 * TILESIZE);
+    bufy = (double *)snrt_l1_alloc(sizeof(double) * 2 * TILESIZE);
     x = axpy_4096_x;
     y = axpy_4096_y;
     a = axpy_4096_a;

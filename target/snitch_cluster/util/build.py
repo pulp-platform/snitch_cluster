@@ -60,7 +60,7 @@ def parser():
 
 
 # Build software target with a specific data configuration
-def build(target, build_dir, data_cfg=None, defines=None):
+def build(target, build_dir, data_cfg=None, defines=None, hw_cfg=None):
     # Define variables for build system
     vars = {
         'DEBUG': 'ON',
@@ -71,6 +71,8 @@ def build(target, build_dir, data_cfg=None, defines=None):
     if defines:
         cflags = ' '.join([f'-D{name}={value}' for name, value in defines.items()])
         vars[f'{target}_RISCV_CFLAGS'] = cflags
+    if hw_cfg is not None:
+        vars['CFG_OVERRIDE'] = hw_cfg
 
     # Build software
     print(colored('Build app', 'black', attrs=['bold']), colored(target, 'cyan', attrs=['bold']),
@@ -108,13 +110,15 @@ def annotate_traces(run_dir):
     common.make('annotate', vars, flags=flags)
 
 
-def build_visual_trace(run_dir, roi_spec):
+def build_visual_trace(run_dir, roi_spec, hw_cfg=None):
     print(colored('Build visual trace', 'black', attrs=['bold']),
           colored(run_dir / 'logs/trace.json', 'cyan', attrs=['bold']))
     vars = {
         'SIM_DIR': run_dir,
         'ROI_SPEC': roi_spec
     }
+    if hw_cfg is not None:
+        vars['CFG'] = hw_cfg
     flags = ['-j']
     common.make('visual-trace', vars, flags=flags)
 

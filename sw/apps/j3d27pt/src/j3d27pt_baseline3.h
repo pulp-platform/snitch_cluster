@@ -174,7 +174,7 @@ static inline void j3d27pt_baseline3(int fac, int nx, int ny, int nz, double* c,
                     "fmadd.d   fa1, ft2, ft1, fa1   \n"
                     "fmadd.d   fa2, ft2, ft0, fa2   \n"
                     "fmadd.d   fa3, ft2, ft1, fa3   \n"
-                    "frep.i    %[c3], 1, 3, 0b101   \n"
+                    "frep.o    %[c3], 1, 3, 0b101   \n"
                     "fmul.d    fa0, %[fc], fa0      \n"
                     "fsd       fa0, 0    (%[wb])    \n"
                     "fsd       fa1, %[sx](%[wb])    \n"

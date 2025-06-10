@@ -120,22 +120,22 @@ extern volatile dm_t *volatile dm_p_global;
 //================================================================================
 
 #ifdef DM_USE_GLOBAL_CLINT
-inline void wfi_dm(uint32_t cluster_core_idx) {
+static inline void wfi_dm(uint32_t cluster_core_idx) {
     (void)cluster_core_idx;
     snrt_int_sw_poll();
 }
-inline void wake_dm(void) {
+static inline void wake_dm(void) {
     uint32_t basehart = snrt_cluster_core_base_hartid();
     snrt_int_sw_set(basehart + snrt_cluster_dm_core_idx());
 }
 #else
-inline void wfi_dm(uint32_t cluster_core_idx) {
+static inline void wfi_dm(uint32_t cluster_core_idx) {
     __atomic_add_fetch(&dm_p->dm_wfi, 1, __ATOMIC_RELAXED);
     snrt_wfi();
     snrt_int_cluster_clr(1 << cluster_core_idx);
     __atomic_add_fetch(&dm_p->dm_wfi, -1, __ATOMIC_RELAXED);
 }
-inline void wake_dm(void) {
+static inline void wake_dm(void) {
     // wait for DM to sleep before sending wakeup
     while (!__atomic_load_n(&dm_p->dm_wfi, __ATOMIC_RELAXED))
         ;
@@ -158,7 +158,7 @@ inline void dm_init(void) {
         snrt_interrupt_enable(IRQ_M_CLUSTER);
 #endif
         dm_p = (dm_t *)snrt_l1_alloc(sizeof(dm_t));
-        snrt_memset((void *)dm_p, 0, sizeof(dm_t));
+        snrt_dma_memset((void *)dm_p, 0, sizeof(dm_t));
         dm_p_global = dm_p;
     } else {
         while (!dm_p_global)

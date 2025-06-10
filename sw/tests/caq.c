@@ -10,7 +10,7 @@
 #define NUM_WORKERS 4
 
 // To prevent X reads on non-CAQ-proofed systems, we need a sync
-inline void fp_sync() {
+static inline void fp_sync() {
     asm volatile(
         "fmv.x.w  t0, ft3  \n"
         "mv       zero, t0 \n"

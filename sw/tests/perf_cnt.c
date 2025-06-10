@@ -74,9 +74,9 @@ int main() {
 
         // Transfer around some data
         uint32_t *dst =
-            (void *)ALIGN_UP((uintptr_t)snrt_l1_next(), WIDE_WORD_SIZE);
+            (uint32_t *)snrt_align_up(snrt_l1_next(), WIDE_WORD_SIZE);
         uint32_t *src =
-            (void *)ALIGN_UP((uintptr_t)snrt_l3_next(), WIDE_WORD_SIZE);
+            (uint32_t *)snrt_align_up(snrt_l3_next(), WIDE_WORD_SIZE);
 
         // Start performance counters
         snrt_start_perf_counter(0);
@@ -112,9 +112,9 @@ int main() {
 
         // Transfer around some data
         uint32_t *dst =
-            (void *)ALIGN_UP((uintptr_t)snrt_l1_next(), WIDE_WORD_SIZE);
+            (uint32_t *)snrt_align_up(snrt_l1_next(), WIDE_WORD_SIZE);
         uint32_t *src_misaligned =
-            (void *)ALIGN_UP((uintptr_t)snrt_l3_next(), WIDE_WORD_SIZE) + 0x8;
+            (uint32_t *)snrt_align_up(snrt_l3_next(), WIDE_WORD_SIZE) + 0x8;
 
         // Start performance counters
         snrt_start_perf_counter(0);

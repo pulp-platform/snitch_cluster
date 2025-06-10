@@ -166,20 +166,20 @@ def validate(L, S, d, B_r, B_c, dtype, baseline, gemm_impl):
     # Q*K^t
     gemm.GemmDataGen().validate(
         gemm_fp=gemm_impl, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
-        k_tiles=1, transa=0, transb=1, M=B_r, N=B_c, K=d, beta=0
+        k_tiles=1, transa=0, transb=1, m=B_r, n=B_c, k=d, beta=0, load_a=0, load_b=0, load_c=0
     )
 
     # P*V
     if baseline:
         gemm.GemmDataGen().validate(
             gemm_fp=gemm_impl, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
-            k_tiles=1, transa=0, transb=0, M=B_r, N=d, K=B_c, beta=1
+            k_tiles=1, transa=0, transb=0, m=B_r, n=d, k=B_c, beta=1, load_a=0, load_b=0, load_c=0
         )
     else:
         # P*(V^t)^t
         gemm.GemmDataGen().validate(
             gemm_fp=gemm_impl, parallelize_m=0, parallelize_k=0, m_tiles=1, n_tiles=1,
-            k_tiles=1, transa=0, transb=1, M=B_r, N=d, K=B_c, beta=1
+            k_tiles=1, transa=0, transb=1, m=B_r, n=d, k=B_c, beta=1, load_a=0, load_b=0, load_c=0
         )
 
 
@@ -236,9 +236,9 @@ def emit_header(section, params):
     }
 
     data_str = [emit_license()]
-    data_str += [format_array_declaration(ctype, q_uid, Q.shape)]
-    data_str += [format_array_declaration(ctype, k_uid, K.shape)]
-    data_str += [format_array_declaration(ctype, v_uid, V.shape)]
+    data_str += [format_array_declaration(f'extern {ctype}', q_uid, Q.shape)]
+    data_str += [format_array_declaration(f'extern {ctype}', k_uid, K.shape)]
+    data_str += [format_array_declaration(f'extern {ctype}', v_uid, V.shape)]
     data_str += [format_array_declaration(ctype, o_uid, output.shape)]
     data_str += [format_struct_definition('flashattention_2_layer_t', 'layer', layer_cfg)]
     data_str += [format_array_definition(ctype, q_uid, Q)]

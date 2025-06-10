@@ -24,7 +24,7 @@ typedef struct {
     uint32_t input_shape[2];
     void **inputs;
     void *output;
-    precision_t dtype;
+    uint32_t dtype;
 } concat_layer_t;
 
 // Concatenates a series of input tensors along the innermost axis.
@@ -42,8 +42,9 @@ static inline int concat_layer(concat_layer_t l) {
         if (snrt_cluster_idx() < l.num_inputs) {
             size_t row_size = l.input_shape[1] * sizeof(double);
             size_t concatenated_row_size = row_size * l.num_inputs;
-            void *input = l.inputs[snrt_cluster_idx()];
-            void *output = l.output + snrt_cluster_idx() * row_size;
+            uintptr_t input = (uintptr_t)l.inputs[snrt_cluster_idx()];
+            uintptr_t output =
+                (uintptr_t)l.output + snrt_cluster_idx() * row_size;
             snrt_dma_start_2d(output,                 // dst
                               input,                  // src
                               row_size,               // size

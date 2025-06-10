@@ -3,12 +3,12 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <snrt.h>
 
-static volatile uint32_t *sink = (void *)0xF1230000;
+static volatile uint32_t *sink = (uint32_t *)0xF1230000;
 
 int main() {
     uint32_t core_id = snrt_cluster_core_idx();
     uint32_t core_num = snrt_cluster_core_num();
-    volatile uint32_t *x = snrt_l1_next();
+    volatile uint32_t *x = (uint32_t *)snrt_l1_next();
 
     if (core_id == 0) {
         *x = 0;

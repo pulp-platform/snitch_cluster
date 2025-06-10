@@ -22,9 +22,12 @@ int main() {
     uint32_t size_x = n * sizeof(double);
     uint32_t size_y = m * sizeof(double);
 
-    double *local_a = snrt_l1_alloc_cluster_local(size_a, sizeof(double));
-    double *local_x = snrt_l1_alloc_cluster_local(size_x, sizeof(double));
-    double *local_y = snrt_l1_alloc_cluster_local(size_y, sizeof(double));
+    double *local_a =
+        (double *)snrt_l1_alloc_cluster_local(size_a, sizeof(double));
+    double *local_x =
+        (double *)snrt_l1_alloc_cluster_local(size_x, sizeof(double));
+    double *local_y =
+        (double *)snrt_l1_alloc_cluster_local(size_y, sizeof(double));
 
     if (snrt_is_dm_core()) {
         snrt_dma_start_1d(local_a, a, size_a);

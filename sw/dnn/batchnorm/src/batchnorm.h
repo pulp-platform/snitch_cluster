@@ -47,8 +47,8 @@ static inline void batchnorm_fp64(double *ifmap, double *gamma, double *beta,
     snrt_ssr_enable();
 
     for (uint32_t ci = 0; ci < CI; ci += compute_num) {
-        register double g = gamma[ci];
-        register double b = beta[ci];
+        double g = gamma[ci];
+        double b = beta[ci];
 
         // frep over OW dimension
         asm volatile(

@@ -13,12 +13,12 @@ int main() {
     if (snrt_cluster_core_idx() > 0) return 0;
 
     // Allocate data, index and result arrays
-    double *data =
-        snrt_l1_alloc_cluster_local(LEN * sizeof(double), sizeof(double));
-    double *result =
-        snrt_l1_alloc_cluster_local(LEN * sizeof(double), sizeof(double));
-    uint16_t *idcs =
-        snrt_l1_alloc_cluster_local(LEN * sizeof(uint16_t), sizeof(uint16_t));
+    double *data = (double *)snrt_l1_alloc_cluster_local(LEN * sizeof(double),
+                                                         sizeof(double));
+    double *result = (double *)snrt_l1_alloc_cluster_local(LEN * sizeof(double),
+                                                           sizeof(double));
+    uint16_t *idcs = (uint16_t *)snrt_l1_alloc_cluster_local(
+        LEN * sizeof(uint16_t), sizeof(uint16_t));
 
     // Initialize data and indirection indices arrays
     for (int i = 0; i < LEN; i++) {

@@ -4,6 +4,8 @@
 
 __thread snrt_allocator_t l1_allocator_v2;
 
+extern snrt_allocator_t *snrt_l1_allocator_v2();
+
 extern void *snrt_l1_next_v2();
 
 extern void *snrt_l1_alloc_cluster_local(size_t size, size_t alignment);

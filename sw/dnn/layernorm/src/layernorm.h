@@ -12,6 +12,8 @@
 #include "layernorm_fp32.h"
 #include "layernorm_fp8.h"
 
+typedef enum { NAIVE, OPT } implementation_t;
+
 /**
  * @struct layernorm_layer_struct
  * @brief This structure contains all parameters necessary
@@ -58,15 +60,15 @@ static inline void layernorm_layer(layernorm_layer_t l) {
     uint32_t tile_offset = tile_seq_len * l.embeddings * data_type_size;
 
     // Allocate space for arrays in TCDM
-    void *local_itile;
-    void *local_otile;
-    void *remote_ifmap;
-    void *remote_ofmap;
+    char *local_itile;
+    char *local_otile;
+    char *remote_ifmap;
+    char *remote_ofmap;
 
-    local_itile = (void *)snrt_l1_next();
+    local_itile = (char *)snrt_l1_next();
     local_otile = local_itile + tile_size;
-    remote_ifmap = (void *)l.ifmap;
-    remote_ofmap = (void *)l.ofmap;
+    remote_ifmap = (char *)l.ifmap;
+    remote_ofmap = (char *)l.ofmap;
 
     // Iterate tiles
     snrt_mcycle();
@@ -99,33 +101,35 @@ static inline void layernorm_layer(layernorm_layer_t l) {
             case FP32:
                 switch (l.implementation) {
                     case NAIVE:
-                        layernorm_fp32_naive(local_itile, local_otile,
-                                             l.batch_size, tile_seq_len,
-                                             l.embeddings, l.eps);
+                        layernorm_naive<float>(
+                            (float *)local_itile, (float *)local_otile,
+                            l.batch_size, tile_seq_len, l.embeddings, l.eps);
                         break;
                     case OPT:
-                        layernorm_fp32_opt(local_itile, local_otile,
-                                           l.batch_size, tile_seq_len,
-                                           l.embeddings, l.eps);
+                        layernorm_fp32_opt((float *)local_itile,
+                                           (float *)local_otile, l.batch_size,
+                                           tile_seq_len, l.embeddings, l.eps);
                         break;
                 }
                 break;
             case FP16:
                 switch (l.implementation) {
                     case NAIVE:
-                        layernorm_fp16_naive(local_itile, local_otile,
-                                             l.batch_size, tile_seq_len,
-                                             l.embeddings, l.eps);
+                        layernorm_naive<__fp16>(
+                            (__fp16 *)local_itile, (__fp16 *)local_otile,
+                            l.batch_size, tile_seq_len, l.embeddings, l.eps);
                         break;
                     case OPT:
-                        layernorm_fp16_opt(local_itile, local_otile,
-                                           l.batch_size, tile_seq_len,
-                                           l.embeddings, l.eps);
+                        layernorm_fp16_opt((__fp16 *)local_itile,
+                                           (__fp16 *)local_otile, l.batch_size,
+                                           tile_seq_len, l.embeddings, l.eps);
                         break;
                 }
                 break;
             case FP8:
                 switch (l.implementation) {
+                    case NAIVE:
+                        return;
                     case OPT:
                         layernorm_fp8_opt(local_itile, local_otile,
                                           l.batch_size, tile_seq_len,
@@ -133,6 +137,8 @@ static inline void layernorm_layer(layernorm_layer_t l) {
                         break;
                 }
                 break;
+            default:
+                return;
         }
 
         if (snrt_is_compute_core()) snrt_mcycle();

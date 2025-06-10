@@ -11,11 +11,8 @@ int main() {
 
     // Get memory locations
     uint32_t *zero_mem = (uint32_t *)snrt_zero_memory_ptr();
-    uint32_t *buffer_tcdm = snrt_l1_next();
-    uint32_t *buffer_golden = (snrt_l1_next() + 128);
-
-    // printf("Zero Memory at %p\n", zero_mem);
-    // printf("TCDM Memory at %p\n", buffer_tcdm);
+    uint32_t *buffer_tcdm = (uint32_t *)snrt_l1_next();
+    uint32_t *buffer_golden = (uint32_t *)((uintptr_t)snrt_l1_next() + 128);
 
     ///////////////
     // CORE READ //
@@ -164,14 +161,15 @@ int main() {
     if (snrt_cluster_core_idx() == 0) {
         // Check that the main memory buffer contains the correct data.
         for (uint32_t i = 0; i < 4 * 2 * n_inputs; i++) {
+            // printf("[%i] actual: %i ", i, *(buffer_tcdm + i));
             if ((i % 2) == 0) {
+                // printf("golden: %i\n", 0);
                 errors += (int)((uint32_t) * (buffer_tcdm + i) != (uint32_t)0);
             } else {
+                // printf("golden: %i\n", *(buffer_golden + i));
                 errors += (int)((uint32_t) * (buffer_tcdm + i) !=
                                 (uint32_t) * (buffer_golden + i));
             }
-            // printf("[%i] buffer_tcdm: %i buffer_golden %i\n", i,
-            // *(buffer_tcdm + i), *(buffer_golden + i));
         }
         // printf("errors DMA 2D Read: %i\n", errors);
     }

@@ -99,7 +99,8 @@ module snitch_int_ss import riscv_instr::*; import snitch_ipu_pkg::*; import sni
   logic             acc_req_ready, acc_req_ready_q;
   if (IPUSequencer) begin : gen_ipu_sequencer
     snitch_sequencer #(
-      .Depth    ( NumIPUSequencerInstr )
+      .BufferDepth    ( NumIPUSequencerInstr ),
+      .NestDepth      ( 1 )
     ) i_snitch_ipu_sequencer (
       .clk_i,
       .rst_i,

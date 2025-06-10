@@ -62,6 +62,8 @@ module snitch_cluster
   /// as cores. If SSRs are enabled, we recommend 4 times the the number of
   /// banks.
   parameter int unsigned NrBanks            = NrCores,
+  /// Number of Hyperbanks.
+  parameter int unsigned NrHyperBanks       = 1,
   /// Size of DMA AXI buffer.
   parameter int unsigned DMANumAxInFlight   = 3,
   /// Size of DMA request fifo.
@@ -138,6 +140,8 @@ module snitch_cluster
   parameter logic [NumSsrsMax-1:0][4:0]  SsrRegs [NrCores] = '{default: 0},
   /// Per-core amount of sequencer instructions for IPU and FPU if enabled.
   parameter int unsigned NumSequencerInstr [NrCores] = '{default: 0},
+  /// Per-core amount of sequencer loops for FPU if enabled.
+  parameter int unsigned NumSequencerLoops [NrCores] = '{default: 0},
   /// Parent Hive id, a.k.a a mapping which core is assigned to which Hive.
   parameter int unsigned Hive [NrCores] = '{default: 0},
   /// TCDM Configuration.
@@ -284,6 +288,8 @@ module snitch_cluster
   localparam int unsigned TCDMMemAddrWidth = $clog2(TCDMDepth);
   localparam int unsigned TCDMSize = NrBanks * TCDMDepth * (NarrowDataWidth/8);
   localparam int unsigned TCDMAddrWidth = $clog2(TCDMSize);
+  localparam int unsigned TCDMSizeNapotRounded = 1 << TCDMAddrWidth;
+  localparam int unsigned BanksPerHyperBank = NrBanks / NrHyperBanks;
   localparam int unsigned BanksPerSuperBank = WideDataWidth / NarrowDataWidth;
   localparam int unsigned NrSuperBanks = NrBanks / BanksPerSuperBank;
 
@@ -299,7 +305,7 @@ module snitch_cluster
 
   localparam int unsigned NrTCDMPortsCores = get_tcdm_port_offs(NrCores);
   localparam int unsigned NumTCDMIn = NrTCDMPortsCores + 1;
-  localparam logic [PhysicalAddrWidth-1:0] TCDMMask = ~(TCDMSize-1);
+  localparam logic [PhysicalAddrWidth-1:0] TCDMMask = ~(TCDMSizeNapotRounded - 1);
 
   // Core Requests, SoC Request, PTW.
   localparam int unsigned NrNarrowMasters = 3;
@@ -514,7 +520,7 @@ module snitch_cluster
   // Calculate start and end address of TCDM based on the `cluster_base_addr_i`.
   addr_t tcdm_start_address, tcdm_end_address;
   assign tcdm_start_address = (cluster_base_addr_i & TCDMMask);
-  assign tcdm_end_address   = (tcdm_start_address + TCDMSize) & TCDMMask;
+  assign tcdm_end_address   = (tcdm_start_address + TCDMSizeNapotRounded) & TCDMMask;
 
   addr_t bootrom_start_address, bootrom_end_address;
   assign bootrom_start_address = tcdm_end_address;
@@ -533,7 +539,7 @@ module snitch_cluster
   assign ext_mem_end_address   = ext_mem_start_address + ExtMemorySize * 1024;
 
   localparam addr_t TCDMAliasStart = AliasRegionBase & TCDMMask;
-  localparam addr_t TCDMAliasEnd   = (TCDMAliasStart + TCDMSize) & TCDMMask;
+  localparam addr_t TCDMAliasEnd   = (TCDMAliasStart + TCDMSizeNapotRounded) & TCDMMask;
 
   localparam addr_t BootRomAliasStart = TCDMAliasEnd;
   localparam addr_t BootRomAliasEnd   = BootRomAliasStart + BootRomSize * 1024;
@@ -792,11 +798,13 @@ module snitch_cluster
   snitch_tcdm_interconnect #(
     .NumInp (1),
     .NumOut (NrSuperBanks),
+    .NumHyperBanks (NrHyperBanks),
     .tcdm_req_t (tcdm_dma_req_t),
     .tcdm_rsp_t (tcdm_dma_rsp_t),
     .mem_req_t (mem_dma_req_t),
     .mem_rsp_t (mem_dma_rsp_t),
     .user_t (logic),
+    .TcdmAddrWidth (TCDMAddrWidth),
     .MemAddrWidth (TCDMMemAddrWidth),
     .DataWidth (WideDataWidth),
     .MemoryResponseLatency (MemoryMacroLatency)
@@ -812,11 +820,13 @@ module snitch_cluster
   snitch_tcdm_interconnect #(
     .NumInp (1),
     .NumOut (NrSuperBanks),
+    .NumHyperBanks (NrHyperBanks),
     .tcdm_req_t (tcdm_dma_req_t),
     .tcdm_rsp_t (tcdm_dma_rsp_t),
     .mem_req_t (mem_dma_req_t),
     .mem_rsp_t (mem_dma_rsp_t),
     .user_t (logic),
+    .TcdmAddrWidth (TCDMAddrWidth),
     .MemAddrWidth (TCDMMemAddrWidth),
     .DataWidth (WideDataWidth),
     .MemoryResponseLatency (MemoryMacroLatency)
@@ -927,10 +937,12 @@ module snitch_cluster
   snitch_tcdm_interconnect #(
     .NumInp (NumTCDMIn),
     .NumOut (NrBanks),
+    .NumHyperBanks (NrHyperBanks),
     .tcdm_req_t (tcdm_req_t),
     .tcdm_rsp_t (tcdm_rsp_t),
     .mem_req_t (mem_req_t),
     .mem_rsp_t (mem_rsp_t),
+    .TcdmAddrWidth (TCDMAddrWidth),
     .MemAddrWidth (TCDMMemAddrWidth),
     .DataWidth (NarrowDataWidth),
     .user_t (tcdm_user_t),
@@ -1040,6 +1052,7 @@ module snitch_cluster
         .NumDTLBEntries (NumDTLBEntries[i]),
         .NumITLBEntries (NumITLBEntries[i]),
         .NumSequencerInstr (NumSequencerInstr[i]),
+        .NumSequencerLoops (NumSequencerLoops[i]),
         .NumSsrs (NumSsrs[i]),
         .SsrMuxRespDepth (SsrMuxRespDepth[i]),
         .SsrCfgs (SsrCfgs[i][NumSsrs[i]-1:0]),
@@ -1513,10 +1526,13 @@ module snitch_cluster
   // Sanity check the parameters. Not every configuration makes sense.
   `ASSERT_INIT(CheckSuperBankSanity, NrBanks >= BanksPerSuperBank);
   `ASSERT_INIT(CheckSuperBankFactor, (NrBanks % BanksPerSuperBank) == 0);
-  // Check that the cluster base address aligns to the TCDMSize.
-  `ASSERT(ClusterBaseAddrAlign, ((TCDMSize - 1) & cluster_base_addr_i) == 0)
-  // Check that the cluster alias address, if enabled, aligns to the TCDMSize.
-  `ASSERT_INIT(AliasRegionAddrAlign, ~AliasRegionEnable || ((TCDMSize - 1) & AliasRegionBase) == 0)
+  `ASSERT_INIT(CheckHyperBankFactor, (NrBanks % NrHyperBanks) == 0);
+  `ASSERT_INIT(CheckSuperBankInHyperBank, (BanksPerHyperBank % BanksPerSuperBank) == 0);
+  // Check that the cluster base address aligns to the TCDMSizeNapotRounded.
+  `ASSERT(ClusterBaseAddrAlign, ((TCDMSizeNapotRounded - 1) & cluster_base_addr_i) == 0)
+  // Check that the cluster alias address, if enabled, aligns to the TCDMSizeNapotRounded.
+  `ASSERT_INIT(AliasRegionAddrAlign,
+    ~AliasRegionEnable || ((TCDMSizeNapotRounded - 1) & AliasRegionBase) == 0)
   // Make sure we only have one DMA in the system.
   `ASSERT_INIT(NumberDMA, $onehot0(Xdma))
 

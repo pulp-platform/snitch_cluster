@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-// Cluster configuration for a simple testbench system.
 {
     cluster: {
         cluster_base_addr: 0x10000000,
@@ -113,7 +112,8 @@
         num_int_outstanding_mem: 4,
         num_fp_outstanding_loads: 4,
         num_fp_outstanding_mem: 4,
-        num_sequencer_instructions: 16,
+        num_sequencer_instructions: 32,
+        num_sequencer_loops: 2,
         num_dtlb_entries: 1,
         num_itlb_entries: 1,
         // SSSR configuration below
@@ -141,7 +141,6 @@
         num_int_outstanding_mem: 4,
         num_fp_outstanding_loads: 4,
         num_fp_outstanding_mem: 4,
-        num_sequencer_instructions: 16,
         num_dtlb_entries: 1,
         num_itlb_entries: 1,
     }

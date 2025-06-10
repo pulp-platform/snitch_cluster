@@ -35,8 +35,12 @@ class Elf(object):
         Arguments:
             uid: A global symbol.
         """
-        symbol = self.symtab.get_symbol_by_name(uid)[0]
-        return symbol.entry["st_value"]
+        symbols = self.symtab.get_symbol_by_name(uid)
+        if symbols is None:
+            raise ValueError(f"Symbol '{uid}' not found in ELF file.")
+        elif len(symbols) > 1:
+            raise ValueError(f"Symbol '{uid}' is not unique in ELF file.")
+        return symbols[0].entry["st_value"]
 
     def get_symbol_size(self, uid):
         """Returns the size of a global symbol.
@@ -44,8 +48,12 @@ class Elf(object):
         Arguments:
             uid: A global symbol.
         """
-        symbol = self.symtab.get_symbol_by_name(uid)[0]
-        return symbol.entry["st_size"]
+        symbols = self.symtab.get_symbol_by_name(uid)
+        if symbols is None:
+            raise ValueError(f"Symbol '{uid}' not found in ELF file.")
+        elif len(symbols) > 1:
+            raise ValueError(f"Symbol '{uid}' is not unique in ELF file.")
+        return symbols[0].entry["st_size"]
 
     def get_raw_symbol_contents(self, uid):
         """Returns a bytearray with the contents of a global symbol.

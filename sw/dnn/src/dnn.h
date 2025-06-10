@@ -8,14 +8,9 @@
 
 #include "snrt.h"
 
-#ifndef IMPLEMENTATION_T
-#define IMPLEMENTATION_T
-typedef enum { BASELINE, NAIVE, NAIVE_UNROLLED, OPT, OPT_EX } implementation_t;
-
 typedef float v2f32 __attribute__((vector_size(8)));
 typedef __fp16 v4f16 __attribute__((vector_size(8)));
 typedef char v8f8 __attribute__((vector_size(8)));
-#endif
 
 typedef union {
     double f64;
@@ -199,7 +194,7 @@ typedef struct network_single_cluster_t_ {
 // Level 2
 #include "../batchnorm/src/batchnorm.h"
 #include "../concat/src/concat.h"
-#include "../conv2d/src/conv2d.h"
+// #include "../conv2d/src/conv2d.h"
 #include "../flashattention_2/src/flashattention_2.h"
 #include "../fused_concat_linear/src/fused_concat_linear.h"
 #include "../gelu/src/gelu.h"

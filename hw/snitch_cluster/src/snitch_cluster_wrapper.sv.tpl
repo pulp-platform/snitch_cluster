@@ -61,6 +61,7 @@ module ${cfg['cluster']['name']}_wrapper (
   localparam int unsigned NumDTLBEntries [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_dtlb_entries')}};
   localparam int unsigned NumITLBEntries [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_itlb_entries')}};
   localparam int unsigned NumSequencerInstr [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_sequencer_instructions')}};
+  localparam int unsigned NumSequencerLoops [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_sequencer_loops')}};
   localparam int unsigned NumSsrs [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_ssrs')}};
   localparam int unsigned SsrMuxRespDepth [${cfg['cluster']['nr_cores']}] = '{${core_cfg('ssr_mux_resp_depth')}};
 
@@ -94,6 +95,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .BootRomSize (snitch_cluster_pkg::BootromSize),
     .ClusterPeriphSize (snitch_cluster_pkg::ClusterPeriphSize),
     .NrBanks (${cfg['cluster']['tcdm']['banks']}),
+    .NrHyperBanks (${cfg['cluster']['tcdm']['hyperbanks']}),
     .DMANumAxInFlight (${cfg['cluster']['dma_axi_req_fifo_depth']}),
     .DMAReqFifoDepth (${cfg['cluster']['dma_req_fifo_depth']}),
     .DMANumChannels (${cfg['cluster']['dma_nr_channels']}),
@@ -130,6 +132,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .SsrRegs (${cfg['cluster']['name']}_pkg::SsrRegs),
     .SsrCfgs (${cfg['cluster']['name']}_pkg::SsrCfgs),
     .NumSequencerInstr (NumSequencerInstr),
+    .NumSequencerLoops (NumSequencerLoops),
     .Hive (${cfg['cluster']['name']}_pkg::Hive),
     .Topology (snitch_pkg::${cfg['cluster']['tcdm']['topology']}),
     .Radix (${int(cfg['cluster']['tcdm']['radix'])}),

@@ -4,7 +4,10 @@
 
 snrt_allocator_t l3_allocator;
 
-extern volatile uint32_t *snrt_zero_memory_ptr();
+extern uintptr_t snrt_align_up(uintptr_t addr, size_t size, uintptr_t base);
+extern void *snrt_align_up(void *addr, size_t size, void *base);
+extern uintptr_t snrt_align_up_hyperbank(uintptr_t addr);
+extern void *snrt_align_up_hyperbank(void *addr);
 
 extern void *snrt_l1_next();
 extern void *snrt_l3_next();

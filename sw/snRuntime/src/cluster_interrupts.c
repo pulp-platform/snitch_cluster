@@ -6,6 +6,10 @@ extern void snrt_int_cluster_set(uint32_t mask);
 
 extern void snrt_int_cluster_clr(uint32_t mask);
 
+extern void snrt_int_clr_mcip_unsafe();
+
+extern void snrt_int_wait_mcip_clr();
+
 extern void snrt_int_clr_mcip();
 
 extern void snrt_int_set_mcip();

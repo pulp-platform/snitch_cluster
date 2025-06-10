@@ -77,10 +77,10 @@ def emit_header(**kwargs):
 
     data_str = [emit_license()]
     # Array forward declarations
-    data_str += [format_array_declaration(ctype, ifmap_uid, ifmap.shape)]
+    data_str += [format_array_declaration(f'extern {ctype}', ifmap_uid, ifmap.shape)]
+    data_str += [format_array_declaration(f'extern {ctype}', beta_uid, beta.shape)]
+    data_str += [format_array_declaration(f'extern {ctype}', gamma_uid, gamma.shape)]
     data_str += [format_array_declaration(ctype, ofmap_uid, ofmap.shape)]
-    data_str += [format_array_declaration(ctype, beta_uid, beta.shape)]
-    data_str += [format_array_declaration(ctype, gamma_uid, gamma.shape)]
     # Layer struct
     data_str += [format_struct_definition('batchnorm_layer_t', 'layer', layer_cfg)]
     # Array definitions

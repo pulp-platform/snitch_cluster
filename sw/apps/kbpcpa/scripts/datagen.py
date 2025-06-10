@@ -33,8 +33,9 @@ class KbpcpaDataGen(du.DataGen):
 
         assert (L % 8) == 0, "n must be an integer multiple of the number of cores"
 
-        header += [du.format_scalar_definition('const uint32_t', 'L', L)]
-        header += [du.format_scalar_definition('const double', 'k', k[0])]
+        # "extern" specifier ensures that the variable is emitted and not mangled
+        header += [du.format_scalar_definition('extern const uint32_t', 'L', L)]
+        header += [du.format_scalar_definition('extern const double', 'k', k[0])]
         header += [du.format_array_declaration('double', 'a', [L], alignment=self.BURST_ALIGNMENT,
                                                section=kwargs['section'])]
         header += [du.format_array_definition('double', 'b', b, alignment=self.BURST_ALIGNMENT,

@@ -170,10 +170,14 @@ def _variable_attributes(alignment=None, section=None):
 
 
 def _alias_dtype(dtype):
-    if dtype == '__fp8':
-        return 'char'
-    else:
-        return dtype
+    # Split declaration specifier into individual tokens
+    tokens = dtype.strip().split()
+
+    # Alias only the type specifier, ignoring any storage specifiers like `extern`
+    if tokens[-1] == '__fp8':
+        tokens[-1] = 'char'
+
+    return ' '.join(tokens)
 
 
 def format_array_declaration(dtype, uid, shape, alignment=None, section=None):
@@ -199,8 +203,16 @@ def format_array_definition(dtype, uid, array, alignment=None, section=None):
     return s
 
 
+def format_scalar_initializer(scalar):
+    if isinstance(scalar, bool):
+        return str(int(scalar))
+    else:
+        return str(scalar)
+
+
 def format_scalar_definition(dtype, uid, scalar):
-    s = f'{_alias_dtype(dtype)} {uid} = {scalar};'
+    s = format_scalar_declaration(dtype, uid)[:-1]
+    s += f' = {format_scalar_initializer(scalar)};'
     return s
 
 
@@ -231,10 +243,8 @@ def format_struct_definition(dtype, uid, map):
     def format_value(value):
         if isinstance(value, list):
             return format_array_initializer('str', value)
-        elif isinstance(value, bool):
-            return str(int(value))
         else:
-            return str(value)
+            return format_scalar_initializer(value)
 
     filtered_map = {key: value for key, value in map.items() if value is not None and value != ''}
 

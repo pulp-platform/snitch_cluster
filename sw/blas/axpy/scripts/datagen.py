@@ -38,9 +38,9 @@ class AxpyDataGen(du.DataGen):
 
         self.validate(**kwargs)
 
-        a = du.generate_random_array(1)[0]
-        x = du.generate_random_array(kwargs['n'])
-        y = du.generate_random_array(kwargs['n'])
+        a = du.generate_random_array(1, seed=0)[0]
+        x = du.generate_random_array(kwargs['n'], seed=0)
+        y = du.generate_random_array(kwargs['n'], seed=0)
         g = self.golden_model(a, x, y)
 
         x_uid = 'x'
@@ -57,7 +57,8 @@ class AxpyDataGen(du.DataGen):
             'funcptr': kwargs['funcptr']
         }
 
-        header += [du.format_scalar_definition('const double', 'a', a)]
+        # "extern" specifier ensures that the variable is emitted and not mangled
+        header += [du.format_scalar_definition('extern const double', 'a', a)]
         header += [du.format_array_definition('double', x_uid, x,
                    alignment=self.BURST_ALIGNMENT, section=kwargs['section'])]
         header += [du.format_array_definition('double', y_uid, y,

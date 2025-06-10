@@ -49,10 +49,11 @@ class J3D27PTDataGen(du.DataGen):
         A = np.random.uniform(self.MIN, self.MAX, (NZ*NY*NX))
         G = self.golden_model(FAC, NX, NY, NZ, C, A)
 
-        header += [du.format_scalar_definition('const uint32_t', 'fac', FAC)]
-        header += [du.format_scalar_definition('const uint32_t', 'nx', NX)]
-        header += [du.format_scalar_definition('const uint32_t', 'ny', NY)]
-        header += [du.format_scalar_definition('const uint32_t', 'nz', NZ)]
+        # "extern" specifier ensures that the variable is emitted and not mangled
+        header += [du.format_scalar_definition('extern const uint32_t', 'fac', FAC)]
+        header += [du.format_scalar_definition('extern const uint32_t', 'nx', NX)]
+        header += [du.format_scalar_definition('extern const uint32_t', 'ny', NY)]
+        header += [du.format_scalar_definition('extern const uint32_t', 'nz', NZ)]
         header += [du.format_array_definition('double', 'c', C, alignment=self.BURST_ALIGNMENT,
                                               section=kwargs['section'])]
         header += [du.format_array_definition('double', 'A', A, alignment=self.BURST_ALIGNMENT,

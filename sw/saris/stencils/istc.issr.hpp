@@ -41,10 +41,10 @@ KNL istci_pb_jacobi_2d(
                 if (winit) {winit = false; __rt_sssr_cfg_write_ptr((void*)&(*B)[i+1][lx+1], 2, __RT_SSSR_REG_WPTR_2);}
                 asm volatile (
                     // br0..3 = b0..3 + r0..3 and lt0..3 = l0..3 + t0..3
-                    "frep.i     %[c7], 1, 7, 0b001  \n"
+                    "frep.o     %[c7], 1, 7, 0b001  \n"
                     "fadd.d     fa0, ft0, ft1       \n"
                     // p0..3 = br0..3 + lt0..3
-                    "frep.i     %[c3], 1, 3, 0b111  \n"
+                    "frep.o     %[c3], 1, 3, 0b111  \n"
                     "fadd.d     fa0, fa0, fa4       \n"
                     // tt0..3 = p0..3 + c0..3
                     "fadd.d     fa0, fa0, ft0       \n"
@@ -52,7 +52,7 @@ KNL istci_pb_jacobi_2d(
                     "fadd.d     fa2, fa2, ft0       \n"
                     "fadd.d     fa3, fa3, ft1       \n"
                     // res0..3 = 0.2 * tt0..3
-                    "frep.i     %[c3], 1, 3, 0b100  \n"
+                    "frep.o     %[c3], 1, 3, 0b100  \n"
                     "fmul.d     ft2, %[cf], fa0     \n"
                     :: [c7]"r"(7), [c3]"r"(3), [cf]"f"(0.2)
                      : "memory", "fa0", "fa1", "fa2", "fa3", "fa4", "fa5", "fa6", "fa7"
@@ -123,7 +123,7 @@ KNL istci_an5d_j2d5pt(
                     "fmadd.d   fa2, ft3, ft0, fa2   \n"
                     "fmadd.d   fa3, ft3, ft1, fa3   \n"
                     // Final scaling and writeback
-                    "frep.i    %[c3], 1, 3, 0b100   \n"
+                    "frep.o    %[c3], 1, 3, 0b100   \n"
                     "fmul.d    ft2, %[fc], fa0      \n"
                     : [cb]"+&f"(cb), [cl]"+&f"(cl), [cr]"+&f"(cr), [ct]"+&f"(ct),
                       [cc]"+&f"(cc_), [fc]"+&f"(fac)
@@ -210,7 +210,7 @@ KNL istci_an5d_j2d9pt(
                     "fmadd.d   fa2, ft8, ft0, fa2   \n"
                     "fmadd.d   fa3, ft8, ft1, fa3   \n"
                     // Final scaling and writeback
-                    "frep.i    %[c3], 1, 3, 0b100   \n"
+                    "frep.o    %[c3], 1, 3, 0b100   \n"
                     "fmul.d    ft2, %[fc], fa0      \n"
                     : [cb0]"+&f"(cb0), [cl0]"+&f"(cl0), [cr0]"+&f"(cr0), [ct0]"+&f"(ct0),
                       [cb1]"+&f"(cb1), [cl1]"+&f"(cl1), [cr1]"+&f"(cr1), [ct1]"+&f"(ct1),
@@ -297,7 +297,7 @@ KNL istci_an5d_j2d9pt_gol(
                     "fmadd.d   fa2, ft8, ft0, fa2   \n"
                     "fmadd.d   fa3, ft8, ft1, fa3   \n"
                     // Final scaling and writeback
-                    "frep.i    %[c3], 1, 3, 0b100   \n"
+                    "frep.o    %[c3], 1, 3, 0b100   \n"
                     "fmul.d    ft2, %[fc], fa0      \n"
                     : [cbl]"+&f"(cbl), [cbc]"+&f"(cbc), [cbr]"+&f"(cbr), [cml]"+&f"(cml),
                       [cmr]"+&f"(cmr), [ctl]"+&f"(ctl), [ctc]"+&f"(ctc), [ctr]"+&f"(ctr),
@@ -379,7 +379,7 @@ KNL istci_an5d_j3d27pt(
                         "fmadd.d   fa2, ft2, ft0, fa2  \n"
                         "fmadd.d   fa3, ft2, ft1, fa3  \n"
                         // Final scaling
-                        "frep.i    %[c3], 1, 3, 0b101  \n"
+                        "frep.o    %[c3], 1, 3, 0b101  \n"
                         "fmul.d    fa0, %[fc], fa0     \n"
                         // Final writeback
                         "fsd       fa0, 0    (%[wb])   \n"

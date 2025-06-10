@@ -117,7 +117,7 @@ inline void snrt_cluster_hw_barrier() {
  * @note One core per cluster must invoke this function, or the calling cores
  *       will stall indefinitely.
  */
-inline void snrt_inter_cluster_barrier() {
+static inline void snrt_inter_cluster_barrier() {
     // Everyone increments a shared counter
     uint32_t cnt =
         __atomic_add_fetch(&(_snrt_barrier.cnt), 1, __ATOMIC_RELAXED);
@@ -220,8 +220,9 @@ inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
  *          as senders, the other half as receivers. Senders use the DMA to
  *          send their data to the respective receiver's destination buffer.
  *          The receiver then reduces each element in its destination buffer
- *          with the respective element in its source buffer. It then proceeds
- *          to the next level in the binary tree.
+ *          with the respective element in its source buffer. The result is
+ *          stored in the source buffer. It then proceeds to the next level in
+ *          the binary tree.
  * @param dst_buffer The pointer to the calling cluster's destination buffer.
  * @param src_buffer The pointer to the calling cluster's source buffer.
  * @param len The amount of data in each buffer.
@@ -230,14 +231,8 @@ inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
  */
 inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
                                       size_t len) {
-    // If we have a single cluster the reduction degenerates to a memcpy
-    if (snrt_cluster_num() == 1) {
-        if (!snrt_is_compute_core()) {
-            snrt_dma_start_1d(dst_buffer, src_buffer, len * sizeof(double));
-            snrt_dma_wait_all();
-        }
-        snrt_cluster_hw_barrier();
-    } else {
+    // If we have a single cluster, no reduction has to be done
+    if (snrt_cluster_num() > 1) {
         // Iterate levels in the binary reduction tree
         int num_levels = ceil(log2(snrt_cluster_num()));
         for (unsigned int level = 0; level < num_levels; level++) {
@@ -252,9 +247,10 @@ inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
             // buffer to the respective receiver's destination buffer
             if (is_active && is_sender) {
                 if (!snrt_is_compute_core()) {
-                    void *dst = (uint8_t *)dst_buffer -
-                                (1 << level) * SNRT_CLUSTER_OFFSET;
-                    snrt_dma_start_1d(dst, src_buffer, len * sizeof(double));
+                    uint64_t dst = (uint64_t)dst_buffer -
+                                   (1 << level) * SNRT_CLUSTER_OFFSET;
+                    snrt_dma_start_1d(dst, (uint64_t)src_buffer,
+                                      len * sizeof(double));
                     snrt_dma_wait_all();
                 }
             }
@@ -272,7 +268,7 @@ inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
                         snrt_cluster_core_idx() * items_per_core;
                     for (uint32_t i = 0; i < items_per_core; i++) {
                         uint32_t abs_i = core_offset + i;
-                        dst_buffer[abs_i] += src_buffer[abs_i];
+                        src_buffer[abs_i] += dst_buffer[abs_i];
                     }
                 }
             }

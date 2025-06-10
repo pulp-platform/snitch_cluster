@@ -25,58 +25,33 @@ class GemmVerifier(Verifier):
 
     def __init__(self):
         super().__init__()
-        self.func_args = {
-            'alpha': 'd',
-            'prec': 'I',
-            'setup_ssr': 'I',
-            'parallelize_m': 'I',
-            'parallelize_k': 'I',
-            'm_tiles': 'I',
-            'n_tiles': 'I',
-            'k_tiles': 'I',
-            'load_a': 'I',
-            'load_b': 'I',
-            'load_c': 'I',
-            'transa': 'I',
-            'transb': 'I',
-            'M': 'I',
-            'N': 'I',
-            'K': 'I',
-            'a': 'I',
-            'b': 'I',
-            'beta': 'I',
-            'c': 'I',
-            'gemm_fp': 'I'
-        }
-        self.func_args = self.get_input_from_symbol('args', self.func_args)
+        self.prec = self.get_input_from_symbol('prec', 'uint32_t')[0]
 
     def get_actual_results(self):
-        prec = self.func_args['prec']
-        return self.get_output_from_symbol(self.OUTPUT_UIDS[0], ctype_from_precision_t(prec))
+        return self.get_output_from_symbol(self.OUTPUT_UIDS[0], ctype_from_precision_t(self.prec))
 
     def get_expected_results(self):
-        prec = self.func_args['prec']
-        a = self.get_input_from_symbol('a', ctype_from_precision_t(prec))
-        b = self.get_input_from_symbol('b', ctype_from_precision_t(prec))
-        c = self.get_input_from_symbol('c', ctype_from_precision_t(prec))
-        beta = self.func_args['beta']
-        m = self.func_args['M']
-        n = self.func_args['N']
-        k = self.func_args['K']
-        tb = self.func_args['transb']
+        a = self.get_input_from_symbol('a', ctype_from_precision_t(self.prec))
+        b = self.get_input_from_symbol('b', ctype_from_precision_t(self.prec))
+        c = self.get_input_from_symbol('c', ctype_from_precision_t(self.prec))
+        m = self.get_input_from_symbol('m', 'uint32_t')[0]
+        n = self.get_input_from_symbol('n', 'uint32_t')[0]
+        k = self.get_input_from_symbol('k', 'uint32_t')[0]
+        beta = self.get_input_from_symbol('beta', 'uint32_t')[0]
+        transb = self.get_input_from_symbol('transb', 'uint32_t')[0]
 
         a = np.reshape(a, (m, k))
-        if tb:
+        if transb:
             b = np.reshape(b, (n, k))
             b = b.transpose()
         else:
             b = np.reshape(b, (k, n))
         c = np.reshape(c, (m, n))
+
         return GemmDataGen().exact_golden_model(1, a, b, beta, c).flatten()
 
     def check_results(self, *args):
-        prec = self.func_args['prec']
-        return super().check_results(*args, rtol=self.ERR_THRESHOLD[prec])
+        return super().check_results(*args, rtol=self.ERR_THRESHOLD[self.prec])
 
 
 if __name__ == "__main__":
