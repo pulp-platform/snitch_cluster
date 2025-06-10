@@ -11,6 +11,8 @@ runs:
     simulators: [vsim, vcs, verilator]
   - elf: ./tests/build/dma_empty_transfer.elf
   - elf: ./tests/build/dma_simple.elf
+  - elf: ./tests/build/dma_1d.elf
+  - elf: ./tests/build/dma_2d.elf
   - elf: ./tests/build/dobu.elf
   - elf: ./tests/build/event_unit.elf
     simulators: [vsim, vcs, verilator]
