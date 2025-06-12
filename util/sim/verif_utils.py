@@ -52,6 +52,24 @@ def dump_results_to_csv(expected_results, actual_results, error, max_error, path
     print(f"Wrote results to {path}")
 
 
+class MemoryDumpReader:
+
+    def __init__(self, file_path, base_address):
+        self.base_address = base_address
+        # Read file contents and save size
+        with open(file_path, 'rb') as f:
+            self.data = f.read()
+        self.size = len(self.data)
+
+    def read(self, start_address, size):
+        # Check that address lies within bounds
+        offset = start_address - self.base_address
+        if offset < 0 or offset + size > self.size:
+            raise ValueError('Requested range is out of bounds of the memory dump.')
+        # Read data
+        return self.data[offset:offset + size]
+
+
 class Verifier:
     """Base verifier class.
 
@@ -104,6 +122,18 @@ class Verifier:
             '--dump-results',
             action='store_true',
             help='Dump results even if the simulation does not fail')
+        parser.add_argument(
+            '--no-ipc',
+            action='store_true',
+            help='Do not use IPC interface')
+        parser.add_argument(
+            '--memdump',
+            help='A file containing the memory contents at the end of the simulation')
+        parser.add_argument(
+            '--memaddr',
+            type=lambda x: int(x, 0),
+            help='The start address of the memory dumped to the file specified by --memdump,'
+                 ' (e.g. 0x80000000 or 2147483648)')
         return parser
 
     def parse_args(self):
@@ -124,6 +154,26 @@ class Verifier:
         stores them in `self.args` for use by other methods.
         """
         self.args = self.parse_args()
+
+    def get_output_memory_locations(self):
+        """Get details on memory locations of output symbols.
+
+        Returns a dictionary containing, for each output symbol, its
+        start address and size in memory. This information is read from
+        the binary provided on the command line.
+        """
+        # Open binary where the output symbols are defined
+        symbols_bin = self.args.symbols_bin if self.args.symbols_bin else self.args.snitch_bin
+        elf = Elf(symbols_bin)
+
+        # Read the start address and size of each symbol in memory
+        output_memory_locations = {}
+        for uid in self.OUTPUT_UIDS:
+            output_memory_locations[uid] = {
+                'address': elf.get_symbol_address(uid),
+                'size': elf.get_symbol_size(uid)
+            }
+        return output_memory_locations
 
     def simulate(self):
         """Launch simulation and retrieve results.
@@ -156,13 +206,9 @@ class Verifier:
         sim.poll(tohost, 1, 0)
 
         # Read out results from memory
-        if self.args.symbols_bin:
-            elf = Elf(self.args.symbols_bin)
-        self.raw_outputs = {}
-        for uid in self.OUTPUT_UIDS:
-            address = elf.get_symbol_address(uid)
-            size = elf.get_symbol_size(uid)
-            self.raw_outputs[uid] = sim.read(address, size)
+        output_locs = self.get_output_memory_locations()
+        self.raw_outputs = {uid: sim.read(loc['address'], loc['size'])
+                            for uid, loc in output_locs.items()}
 
         # Terminate
         sim.finish(wait_for_sim=True)
@@ -267,8 +313,23 @@ class Verifier:
 
     def main(self):
         """Default main function for data generation scripts."""
-        # Run simulation
-        self.simulate()
+        # If the testbench provides an IPC interface, run the simulation through the IPC
+        # interface, populating `self.raw_outputs` from the simulation memory contents
+        # at the end of the simulation. Otherwise, populate `self.raw_outputs` from a file
+        # where the memory contents have been dumped by other means, e.g. by a pure
+        # SystemVerilog testbench.
+        if not self.args.no_ipc:
+            self.simulate()
+        else:
+            if self.args.memdump and self.args.memaddr:
+                # Get memory locations where outputs are stored
+                output_locs = self.get_output_memory_locations()
+                # Read contents of those memory locations
+                dump = MemoryDumpReader(self.args.memdump, self.args.memaddr)
+                self.raw_outputs = {uid: dump.read(loc['address'], loc['size'])
+                                    for uid, loc in output_locs.items()}
+            else:
+                raise ValueError('--memdump and --memaddr are required when --no-ipc is supplied')
 
         # Get actual and expected results
         actual_results = self.get_actual_results()
