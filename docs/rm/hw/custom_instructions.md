@@ -69,6 +69,15 @@ DMSTR configures the stride for two-dimensional transfers. The value in register
 
 DMREP configures the value in register *rs1* as the size of the outer dimension for two-dimensional transfers.
 
+### User Operations
+
+| funct7  | rs2     | rs1     | funct3 | rd    | opcode     | operation |
+|:-------:|:-------:|:-------:|:------:|:-----:|:----------:|:---------:|
+| 7       | 5       | 5       | 3      | 5     | 7          |           |
+| 0001000 | userhi  | userlo  | 000    | 00000 | OP-CUSTOM1 | DMUSER    |
+
+DMUSER sets user-provided data in the AWUSER field of the DMA's AW transaction. The values in registers *rs1* and *rs2* are placed in the lower and upper 32 bits of the AWUSER field, respectively. The use of the AWUSER field is system-dependent.
+
 ### Control Operations
 
 | funct7  | rs2    | rs1   | funct3 | rd    | opcode     | operation |
