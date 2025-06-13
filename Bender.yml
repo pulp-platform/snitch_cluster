@@ -27,7 +27,7 @@ dependencies:
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.13      }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0       }
   cluster_icache:     { git: https://github.com/pulp-platform/cluster_icache.git, rev: 64e21ae455bbdde850c4df13bef86ea55ac42537 }
-  idma:               { git: https://github.com/pulp-platform/iDMA.git,           rev: __deploy__3c6bbb7__multicast-integration }
+  idma:               { git: https://github.com/colluca/iDMA.git,                 rev: __deploy__ef8278b__feature/reduction }
 
 export_include_dirs:
   - hw/reqrsp_interface/include
