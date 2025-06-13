@@ -64,10 +64,6 @@ vpath %.S $(SN_RVTESTS_SCRDIR)
 vpath %.elf $(SN_RVTESTS_BUILDDIR)
 vpath %.dump $(SN_RVTESTS_BUILDDIR)
 
-# Create the objdumps for each compiled program
-%.dump: %.elf
-	$(RISCV_OBJDUMP) $(RVT_RISCV_OBJDUMP_FLAGS) $(SN_RVTESTS_BUILDDIR)$< > $(SN_RVTESTS_BUILDDIR)$@
-
 # Macro to compile each program
 define compile_template
 
@@ -84,6 +80,9 @@ $(1)_tests_dump = $$(addsuffix .dump, $$($(1)_tests))
 $(1): $$($(1)_tests_dump)
 
 .PHONY: $(1)
+
+$$($(1)_tests_dump): %.dump: %.elf
+	$$(RISCV_OBJDUMP) $$(RVT_RISCV_OBJDUMP_FLAGS) $$(SN_RVTESTS_BUILDDIR)$$< > $$(SN_RVTESTS_BUILDDIR)$$@
 
 COMPILER_SUPPORTS_$(1) := $$(shell $(RISCV_CC) $(2) -c -x c /dev/null -o /dev/null 2> /dev/null; echo $$$$?)
 ifeq ($$(COMPILER_SUPPORTS_$(1)),0)
