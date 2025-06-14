@@ -43,8 +43,7 @@ static inline void snrt_init_tls() {
         tls_ptr += size;
         size = (size_t)(&__tbss_end) - (size_t)(&__tbss_start);
         for (int i = 0; i < snrt_cluster_core_num(); i++) {
-            snrt_dma_start_1d(tls_ptr + i * tls_offset,
-                              (uint64_t)snrt_zero_memory_ptr(), size);
+            snrt_dma_memset((void*)(tls_ptr + i * tls_offset), 0, size);
         }
         snrt_dma_wait_all();
     }
@@ -61,8 +60,7 @@ static inline void snrt_init_bss() {
     if (snrt_cluster_idx() == 0) {
         if (snrt_is_dm_core()) {
             size_t size = (size_t)(&__bss_end) - (size_t)(&__bss_start);
-            snrt_dma_start_1d((uint64_t)(&__bss_start),
-                              (uint64_t)(snrt_zero_memory_ptr()), size);
+            snrt_dma_memset((void*)&__bss_start, 0, size);
             snrt_dma_wait_all();
         }
         snrt_cluster_hw_barrier();
@@ -97,7 +95,7 @@ static inline void snrt_init_cls() {
         // Clear cbss section
         ptr += size;
         size = (size_t)(&__cbss_end) - (size_t)(&__cbss_start);
-        snrt_dma_start_1d(ptr, (uint64_t)(snrt_zero_memory_ptr()), size);
+        snrt_dma_memset((void*)ptr, 0, size);
         snrt_dma_wait_all();
     }
     snrt_cluster_hw_barrier();
