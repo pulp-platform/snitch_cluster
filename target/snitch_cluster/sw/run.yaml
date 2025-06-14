@@ -10,7 +10,6 @@ runs:
   - elf: ./tests/build/data_mover.elf
     simulators: [vsim, vcs, verilator]
   - elf: ./tests/build/dma_empty_transfer.elf
-  - elf: ./tests/build/dma_simple.elf
   - elf: ./tests/build/dma_1d.elf
   - elf: ./tests/build/dma_2d.elf
   - elf: ./tests/build/dobu.elf

@@ -72,7 +72,7 @@ static inline uint32_t snrt_dma_start_1d(volatile void *dst, volatile void *src,
 static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
                                                size_t size, uint32_t mask,
                                                const uint32_t channel = 0) {
-    asm volatile("dmmcast %[mask] \n" : : [ mask ] "r"(mask));
+    asm volatile("dmuser %[mask], zero \n" : : [ mask ] "r"(mask));
     return snrt_dma_start_1d(dst, src, size, channel);
 }
 
