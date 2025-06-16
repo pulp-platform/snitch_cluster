@@ -184,7 +184,8 @@ package snitch_pkg;
   typedef enum logic [1:0] {
     SrcSnitch =  0,
     SrcFpu = 1,
-    SrcFpuSeq = 2
+    SrcFpuSeq = 2,
+    SrcDca = 3
   } trace_src_e;
 
   typedef struct packed {
@@ -351,6 +352,51 @@ package snitch_pkg;
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "max_iter", fpu_sequencer.max_iter);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "stg_max", fpu_sequencer.stg_max);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "stg_mask", fpu_sequencer.stg_mask);
+    extras_str = $sformatf("%s}", extras_str);
+    return extras_str;
+  endfunction
+
+  typedef struct packed {
+    longint source;
+    longint dca_in_hs;          // Handshake to indicate DCA Data in
+    longint dca_out_hs;         // Handshake to indicate DCA Data out
+    longint dca_in_op_code;     // OPS-Code of the FPU (@FPNEW Doku)
+    longint dca_in_op_mode;     // OP-Mode of the FPU (@FPNEW Doku)
+    longint dca_in_rnd_mode;    // Round-Mode of the FPU (@FPNEW Doku)
+    longint dca_in_vector_mode; // Vector-Mode of the FPU (@FPNEW Doku)
+    longint dca_in_op_0;        // First Operand of the FPU
+    longint dca_in_op_1;        // Second Operand of the FPU
+    longint dca_in_op_2;        // Third Operand of the FPU
+    longint dca_in_src_fmt;     // Input SRC format (@FPNEW Doku)
+    longint dca_in_dst_fmt;     // Output SRC format (@FPNEW Doku)
+    longint dca_in_int_fmt;     // Intermidiate format (@FPNEW Doku)
+    longint dca_in_tag;         // Unique input Tag
+    longint dca_out_tag;        // Unique output Tag
+    longint dca_out_status;     // Status of the FPU (@FPNEW Doku)
+    longint dca_out_result;     // Result of the FPU
+  } dca_trace_port_t;
+  // All Dokumentation with (@FPNEW Doku) can be found here:
+  // https://github.com/openhwgroup/cvfpu/tree/master/docs
+
+  function automatic string print_dca_trace(dca_trace_port_t dca_trace);
+    string extras_str = "{";
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "source", dca_trace.source);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "dca_in_hs", dca_trace.dca_in_hs);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "dca_out_hs", dca_trace.dca_out_hs);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "op_code", dca_trace.dca_in_op_code);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "op_mode", dca_trace.dca_in_op_mode);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "rnd_mode", dca_trace.dca_in_rnd_mode);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "vector_mode", dca_trace.dca_in_vector_mode);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "op_0", dca_trace.dca_in_op_0);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "op_1", dca_trace.dca_in_op_1);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "op_2", dca_trace.dca_in_op_2);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "src_format", dca_trace.dca_in_src_fmt);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "dst_format", dca_trace.dca_in_dst_fmt);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "int_format", dca_trace.dca_in_int_fmt);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "in_tag", dca_trace.dca_in_tag);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "status", dca_trace.dca_out_status);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "result", dca_trace.dca_out_result);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "out_tag", dca_trace.dca_out_tag);
     extras_str = $sformatf("%s}", extras_str);
     return extras_str;
   endfunction

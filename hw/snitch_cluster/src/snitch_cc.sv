@@ -44,6 +44,8 @@ module snitch_cc #(
   parameter type         hive_rsp_t         = logic,
   parameter type         acc_req_t          = logic,
   parameter type         acc_resp_t         = logic,
+  parameter type         dca_req_t          = logic,
+  parameter type         dca_resp_t         = logic,
   parameter type         dma_events_t       = logic,
   parameter fpnew_pkg::fpu_implementation_t FPUImplementation = '0,
   /// Boot address of core.
@@ -66,6 +68,8 @@ module snitch_cc #(
   parameter bit          Xfrep              = 1,
   /// Has `SSR` support.
   parameter bit          Xssr               = 1,
+  /// Has `DCA` support.
+  parameter bit          Xdca               = 0,
   /// Has `COPIFT` support.
   parameter bit          Xcopift            = 1,
   /// Has `IPU` support.
@@ -106,6 +110,10 @@ module snitch_cc #(
   parameter bit          RegisterFPUIn      = 0,
   /// Insert Pipeline registers immediately after FPU datapath
   parameter bit          RegisterFPUOut     = 0,
+  /// Insert Pipeline register between DCA from Router and FPU
+  parameter bit          RegisterDCAIn      = 0,
+  /// Insert Pipeline register between DCA from FPU and Router
+  parameter bit          RegisterDCAOut     = 0,
   parameter snitch_pma_pkg::snitch_pma_t SnitchPMACfg = '{default: 0},
   /// Consistency Address Queue (CAQ) parameters.
   parameter int unsigned CaqDepth     = 0,
@@ -146,7 +154,14 @@ module snitch_cc #(
   input  addr_t                             tcdm_addr_base_i,
   // Cluster HW barrier
   output logic                              barrier_o,
-  input  logic                              barrier_i
+  input  logic                              barrier_i,
+  // Direct Compute Access (DCA) interface
+  input dca_req_t                           dca_req_i,
+  input logic                               dca_req_valid_i,
+  output logic                              dca_req_ready_o,
+  output dca_resp_t                         dca_resp_o,
+  output logic                              dca_resp_valid_o,
+  input logic                               dca_resp_ready_i
 );
 
   // FMA architecture is "merged" -> mulexp and macexp instructions are supported
@@ -469,6 +484,7 @@ module snitch_cc #(
   // pragma translate_off
   snitch_pkg::fpu_trace_port_t fpu_trace;
   snitch_pkg::fpu_sequencer_trace_port_t fpu_sequencer_trace;
+  snitch_pkg::dca_trace_port_t dca_trace;
   // pragma translate_on
 
   logic  [2:0][4:0] ssr_raddr;
@@ -484,6 +500,54 @@ module snitch_cc #(
   logic             ssr_streamctl_done;
   logic             ssr_streamctl_valid;
   logic             ssr_streamctl_ready;
+
+  // Signals for the DCA
+  dca_req_t   dca_req_q;          // Delayed Request by the (optional) Spill Register
+  logic       dca_req_valid_q;    
+  logic       dca_req_ready_q;
+  dca_resp_t  dca_resp;           // Response from the FPU in front of the (optional) Spill Register
+  logic       dca_resp_valid;
+  logic       dca_resp_ready;
+
+  // Cut off-DCA Interface Request
+  if(Xdca) begin : gen_spill_register
+    spill_register #(
+      .T        (dca_req_t),
+      .Bypass   (~RegisterDCAIn)
+    ) i_spill_reg_dca_req (
+      .clk_i    (clk_i),
+      .rst_ni   (rst_ni),
+      .valid_i  (dca_req_valid_i),
+      .ready_o  (dca_req_ready_o),
+      .data_i   (dca_req_i),
+      .valid_o  (dca_req_valid_q),
+      .ready_i  (dca_req_ready_q),
+      .data_o   (dca_req_q)
+      );
+
+    // Cut off-DCA Interface Response
+    spill_register #(
+      .T          (dca_resp_t),
+      .Bypass     (~RegisterDCAOut)
+    ) i_spill_reg_dca_resp (
+      .clk_i      (clk_i),
+      .rst_ni     (rst_ni),
+      .valid_i    (dca_resp_valid),
+      .ready_o    (dca_resp_ready),
+      .data_i     (dca_resp),
+      .valid_o    (dca_resp_valid_o),
+      .ready_i    (dca_resp_ready_i),
+      .data_o     (dca_resp_o)
+    );
+  end else begin
+    assign dca_req_ready_o = 1'b0;
+    assign dca_req_valid_q = 1'b0;
+    assign dca_req_q = '0;
+
+    assign dca_resp_ready = 1'b0;
+    assign dca_resp_valid_o = 1'b0;
+    assign dca_resp_o = '0;
+  end
 
   if (FPEn) begin : gen_fpu
     snitch_pkg::core_events_t fp_ss_core_events;
@@ -505,11 +569,14 @@ module snitch_cc #(
       .drsp_t (drsp_t),
       .acc_req_t (acc_req_t),
       .acc_resp_t (acc_resp_t),
+      .dca_req_t (dca_req_t),
+      .dca_resp_t (dca_resp_t),
       .RegisterSequencer (RegisterSequencer),
       .RegisterFPUIn (RegisterFPUIn),
       .RegisterFPUOut (RegisterFPUOut),
       .Xfrep (Xfrep),
       .Xssr (Xssr),
+      .Xdca (Xdca),
       .Xcopift (Xcopift),
       .RVF (RVF),
       .RVD (RVD),
@@ -525,34 +592,41 @@ module snitch_cc #(
       // pragma translate_off
       .trace_port_o            ( fpu_trace           ),
       .sequencer_tracer_port_o ( fpu_sequencer_trace ),
+      .dca_trace_port_o        ( dca_trace ),
       // pragma translate_on
-      .hart_id_i        ( hart_id_i      ),
-      .acc_req_i        ( acc_snitch_req ),
-      .acc_req_valid_i  ( acc_qvalid     ),
-      .acc_req_ready_o  ( acc_qready     ),
-      .acc_resp_o       ( acc_seq        ),
-      .acc_resp_valid_o ( acc_pvalid     ),
-      .acc_resp_ready_i ( acc_pready     ),
-      .caq_pvalid_o     ( caq_pvalid     ),
-      .data_req_o       ( fpu_dreq       ),
-      .data_rsp_i       ( fpu_drsp       ),
-      .fpu_rnd_mode_i   ( fpu_rnd_mode   ),
-      .fpu_fmt_mode_i   ( fpu_fmt_mode   ),
-      .fpu_status_o     ( fpu_status     ),
-      .ssr_raddr_o      ( ssr_raddr      ),
-      .ssr_rdata_i      ( ssr_rdata      ),
-      .ssr_rvalid_o     ( ssr_rvalid     ),
-      .ssr_rready_i     ( ssr_rready     ),
-      .ssr_rdone_o      ( ssr_rdone      ),
-      .ssr_waddr_o      ( ssr_waddr      ),
-      .ssr_wdata_o      ( ssr_wdata      ),
-      .ssr_wvalid_o     ( ssr_wvalid     ),
-      .ssr_wready_i     ( ssr_wready     ),
-      .ssr_wdone_o      ( ssr_wdone      ),
+      .hart_id_i          ( hart_id_i           ),
+      .acc_req_i          ( acc_snitch_req      ),
+      .acc_req_valid_i    ( acc_qvalid          ),
+      .acc_req_ready_o    ( acc_qready          ),
+      .acc_resp_o         ( acc_seq             ),
+      .acc_resp_valid_o   ( acc_pvalid          ),
+      .acc_resp_ready_i   ( acc_pready          ),
+      .caq_pvalid_o       ( caq_pvalid          ),
+      .data_req_o         ( fpu_dreq            ),
+      .data_rsp_i         ( fpu_drsp            ),
+      .fpu_rnd_mode_i     ( fpu_rnd_mode        ),
+      .fpu_fmt_mode_i     ( fpu_fmt_mode        ),
+      .fpu_status_o       ( fpu_status          ),
+      .ssr_raddr_o        ( ssr_raddr           ),
+      .ssr_rdata_i        ( ssr_rdata           ),
+      .ssr_rvalid_o       ( ssr_rvalid          ),
+      .ssr_rready_i       ( ssr_rready          ),
+      .ssr_rdone_o        ( ssr_rdone           ),
+      .ssr_waddr_o        ( ssr_waddr           ),
+      .ssr_wdata_o        ( ssr_wdata           ),
+      .ssr_wvalid_o       ( ssr_wvalid          ),
+      .ssr_wready_i       ( ssr_wready          ),
+      .ssr_wdone_o        ( ssr_wdone           ),
       .streamctl_done_i   ( ssr_streamctl_done  ),
       .streamctl_valid_i  ( ssr_streamctl_valid ),
       .streamctl_ready_o  ( ssr_streamctl_ready ),
-      .core_events_o      ( fp_ss_core_events   )
+      .core_events_o      ( fp_ss_core_events   ),
+      .dca_req_i          ( dca_req_q           ),
+      .dca_req_valid_i    ( dca_req_valid_q     ),
+      .dca_req_ready_o    ( dca_req_ready_q     ),
+      .dca_resp_o         ( dca_resp            ),
+      .dca_resp_valid_o   ( dca_resp_valid      ),
+      .dca_resp_ready_i   ( dca_resp_ready      )
     );
 
     reqrsp_mux #(
@@ -604,6 +678,10 @@ module snitch_cc #(
     assign core_events_o.issue_fpu = '0;
     assign core_events_o.issue_fpu_seq = '0;
     assign core_events_o.issue_core_to_fpu = '0;
+
+    assign dca_resp_valid = 1'b0;
+    assign dca_resp = '0;
+    assign dca_req_ready_q = 1'b0;
   end
 
   // Decide whether to go to SoC or TCDM
@@ -902,6 +980,7 @@ module snitch_cc #(
     automatic snitch_pkg::snitch_trace_port_t extras_snitch;
     automatic snitch_pkg::fpu_trace_port_t extras_fpu;
     automatic snitch_pkg::fpu_sequencer_trace_port_t extras_fpu_seq_out;
+    automatic snitch_pkg::dca_trace_port_t extras_dca;
 
     if (rst_ni) begin
       extras_snitch = '{
@@ -953,6 +1032,11 @@ module snitch_cc #(
         end
       end
 
+      // If dca enabled then forward the trace port
+      if(Xdca) begin
+        extras_dca = dca_trace;
+      end
+
       cycle++;
       // Trace snitch iff:
       // we are not stalled <==> we have issued and processed an instruction (including offloads)
@@ -988,6 +1072,16 @@ module snitch_cc #(
           end
         end
       end
+      if(Xdca) begin
+        // Trace DCA iff
+        // When either an input or output handshake occures
+        if(extras_dca.dca_in_hs || extras_dca.dca_out_hs) begin
+          $sformat(trace_entry, "%t %1d %8d 0x%h DASM(%h) #; %s\n",
+              $time, cycle, i_snitch.priv_lvl_q, 32'hz, extras_dca.dca_in_op_code,
+              snitch_pkg::print_dca_trace(extras_dca));
+          $fwrite(f, trace_entry);
+        end
+      end
     end else begin
       cycle = '0;
     end
@@ -1000,5 +1094,8 @@ module snitch_cc #(
   // pragma translate_on
 
   `ASSERT_INIT(BootAddrAligned, BootAddr[1:0] == 2'b00)
+  
+  // For the DCA Extension the is is required that each core has the FPU D-ext loaded
+  `ASSERT_INIT(DCACoreConfiguration, (~Xdca) || RVD)
 
 endmodule

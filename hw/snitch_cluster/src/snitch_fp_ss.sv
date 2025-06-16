@@ -21,11 +21,14 @@ module snitch_fp_ss import snitch_pkg::*; #(
   parameter bit Xfrep = 1,
   parameter fpnew_pkg::fpu_implementation_t FPUImplementation = '0,
   parameter bit Xssr = 1,
+  parameter bit Xdca = 0,
   parameter bit Xcopift = 1,
   parameter int unsigned NumSsrs = 0,
   parameter logic [NumSsrs-1:0][4:0]  SsrRegs = '0,
   parameter type acc_req_t = logic,
   parameter type acc_resp_t = logic,
+  parameter type dca_req_t = logic,
+  parameter type dca_resp_t = logic,
   parameter bit RVF = 1,
   parameter bit RVD = 1,
   parameter bit XF16 = 0,
@@ -43,6 +46,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // pragma translate_off
   output fpu_trace_port_t  trace_port_o,
   output fpu_sequencer_trace_port_t sequencer_tracer_port_o,
+  output dca_trace_port_t  dca_trace_port_o,
   // pragma translate_on
   input  logic [31:0]      hart_id_i,
   // Accelerator Interface - Slave
@@ -80,7 +84,14 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // TODO: is it good enough to assert this at issuing time instead?
   output logic             caq_pvalid_o,
   // Core event strobes
-  output core_events_t core_events_o
+  output core_events_t core_events_o,
+  // Direct Compute Access (DCA) interface
+  input dca_req_t           dca_req_i,
+  input logic               dca_req_valid_i,
+  output logic              dca_req_ready_o,
+  output dca_resp_t         dca_resp_o,
+  output logic              dca_resp_valid_o,
+  input logic               dca_resp_ready_i
 );
 
   fpnew_pkg::operation_e  fpu_op;
@@ -169,6 +180,30 @@ module snitch_fp_ss import snitch_pkg::*; #(
 
 
   logic dst_ready;
+
+
+  // Type for DCA (Direct Compute Access)
+
+  // Typedef to concat the FPU request
+  typedef struct packed {
+    logic [2:0][FLEN-1:0]   operands;       // FP-Operands from the Router
+    fpnew_pkg::roundmode_e  rnd_mode;       // Round Mode for the FPU for this OP --> logic [2:0] (@FPNEW Doku)
+    fpnew_pkg::operation_e  op_code;        // OP Code for the FPU Command --> logic [3:0] (@FPNEW Doku)
+    logic                   op_mode;        // OP Mode for the corresponding Code
+    fpnew_pkg::fp_format_e  src_format;     // Format for the Source --> logic [2:0] (@FPNEW Doku)
+    fpnew_pkg::fp_format_e  dst_format;     // Format for the Destination --> logic [2:0] (@FPNEW Doku)
+    fpnew_pkg::int_format_e int_format;     // Format for the Integer --> logic [1:0] (@FPNEW Doku)
+    logic                   vector_op;      // Flag to indicate an vector operation
+    logic [7:0]             tag;            // Make the tag accessible by the outside world
+  } fpu_req_t;
+
+  // Typedef to concat the FPU response
+  typedef struct packed {
+    logic [7:0]             tag;            // Return the tag to the outside world
+    fpnew_pkg::status_t     status;         // Status Flag(s) of the FPU --> logic [4:0] (@FPNEW Doku)
+    logic [FLEN-1:0]        result;         // Result of the FPU Operation
+  } fpu_resp_t;
+
 
   // -------------
   // FPU Sequencer
@@ -2588,41 +2623,148 @@ module snitch_fp_ss import snitch_pkg::*; #(
   end
 
   // ----------------------
+  // Direct Compute Access
+  // ----------------------
+  // This part allows the router to "hijack" the FPU from the core to execute FP-Operaton.
+
+  // Define signals to connect the FPU
+  fpu_req_t   dca_req;
+  fpu_req_t   snitch_req;
+
+  fpu_req_t   mux_dca_snitch;
+  logic       mux_dca_snitch_valid;
+  logic       mux_dca_snitch_ready;
+
+  fpu_resp_t  demux_dca_snitch;
+  logic       demux_dca_snitch_valid;
+  logic       demux_dca_snitch_ready;
+
+  // Assign the signal for the DCA Input if the extension is enabled
+  if (Xdca) begin : gen_assign_input_dca
+    assign dca_req.operands = dca_req_i.dca_operands;
+    assign dca_req.rnd_mode = dca_req_i.dca_rnd_mode;
+    assign dca_req.op_code = dca_req_i.dca_op_code;
+    assign dca_req.op_mode = dca_req_i.dca_op_mode;
+    assign dca_req.src_format = dca_req_i.dca_src_format;
+    assign dca_req.dst_format = dca_req_i.dca_dst_format;
+    assign dca_req.int_format = dca_req_i.dca_int_format;
+    assign dca_req.vector_op = dca_req_i.dca_vector_op;
+    assign dca_req.tag = {1'b1, dca_req_i.dca_tag};
+  end
+
+  // Assign the signal for the FPU Input
+  assign snitch_req.operands = op;
+  assign snitch_req.rnd_mode = fpu_rnd_mode;
+  assign snitch_req.op_code = fpu_op;
+  assign snitch_req.op_mode = op_mode;
+  assign snitch_req.src_format = src_fmt;
+  assign snitch_req.dst_format = dst_fmt;
+  assign snitch_req.int_format = int_fmt;
+  assign snitch_req.vector_op = vectorial_op;
+  assign snitch_req.tag = {1'b0, fpu_tag_in};
+
+  // We use rotating priority - Could be changed afterwards but the problem is the rr_arb_tree doesn't really support locked'in & priority @ same time 
+  // --> Would violate AXI Timing
+  // Can write by myself but is this really a good use case?
+  
+  // --------------------------------------------
+  // Multiplexer between Core and Direct Access
+  // --------------------------------------------
+  if (Xdca) begin : gen_xdca_mux
+    stream_arbiter #(
+        .DATA_T           (fpu_req_t),
+        .N_INP            (2),
+        .ARBITER          ("rr")
+    ) i_mux_dca (
+        .clk_i            (clk_i),
+        .rst_ni           (~rst_i),
+
+        .inp_data_i       ({dca_req, snitch_req}),
+        .inp_valid_i      ({dca_req_valid_i, fpu_in_valid}),
+        .inp_ready_o      ({dca_req_ready_o, fpu_in_ready}),
+
+        .oup_data_o       (mux_dca_snitch),
+        .oup_valid_o      (mux_dca_snitch_valid),
+        .oup_ready_i      (mux_dca_snitch_ready)
+    );
+  end else begin : gen_xdca_bypass_mux
+    assign mux_dca_snitch_valid = fpu_in_valid;
+    assign fpu_in_ready = mux_dca_snitch_ready;
+    assign mux_dca_snitch = snitch_req;
+    assign dca_req_ready_o = 1'b0;
+  end
+
+  // ----------------------
   // Floating Point Unit
   // ----------------------
   snitch_fpu #(
-    .RVF     ( RVF     ),
-    .RVD     ( RVD     ),
-    .XF16    ( XF16    ),
-    .XF16ALT ( XF16ALT ),
-    .XF8     ( XF8     ),
-    .XF8ALT  ( XF8ALT  ),
-    .XFVEC   ( XFVEC   ),
-    .FLEN    ( FLEN    ),
-    .FPUImplementation  (FPUImplementation),
-    .RegisterFPUIn      (RegisterFPUIn),
-    .RegisterFPUOut     (RegisterFPUOut)
+    .RVF                ( RVF                       ),
+    .RVD                ( RVD                       ),
+    .XF16               ( XF16                      ),
+    .XF16ALT            ( XF16ALT                   ),
+    .XF8                ( XF8                       ),
+    .XF8ALT             ( XF8ALT                    ),
+    .XFVEC              ( XFVEC                     ),
+    .FLEN               ( FLEN                      ),
+    .FPUImplementation  ( FPUImplementation         ),
+    .RegisterFPUIn      ( RegisterFPUIn             ),
+    .RegisterFPUOut     ( RegisterFPUOut            )
   ) i_fpu (
-    .clk_i                           ,
-    .rst_ni         ( ~rst_i        ),
-    .hart_id_i      ( hart_id_i     ),
-    .operands_i     ( op            ),
-    .rnd_mode_i     ( fpu_rnd_mode  ),
-    .op_i           ( fpu_op        ),
-    .op_mod_i       ( op_mode       ), // Sign of operand?
-    .src_fmt_i      ( src_fmt       ),
-    .dst_fmt_i      ( dst_fmt       ),
-    .int_fmt_i      ( int_fmt       ),
-    .vectorial_op_i ( vectorial_op  ),
-    .tag_i          ( fpu_tag_in    ),
-    .in_valid_i     ( fpu_in_valid  ),
-    .in_ready_o     ( fpu_in_ready  ),
-    .result_o       ( fpu_result    ),
-    .status_o       ( fpu_status_o  ),
-    .tag_o          ( fpu_tag_out   ),
-    .out_valid_o    ( fpu_out_valid ),
-    .out_ready_i    ( fpu_out_ready )
+    .clk_i                                           ,
+    .rst_ni         ( ~rst_i                        ),
+    .hart_id_i      ( hart_id_i                     ),
+    .operands_i     ( mux_dca_snitch.operands       ),
+    .rnd_mode_i     ( mux_dca_snitch.rnd_mode       ),
+    .op_i           ( mux_dca_snitch.op_code        ),
+    .op_mod_i       ( mux_dca_snitch.op_mode        ), // Sign of operand?
+    .src_fmt_i      ( mux_dca_snitch.src_format     ),
+    .dst_fmt_i      ( mux_dca_snitch.dst_format     ),
+    .int_fmt_i      ( mux_dca_snitch.int_format     ),
+    .vectorial_op_i ( mux_dca_snitch.vector_op      ),
+    .tag_i          ( mux_dca_snitch.tag            ),
+    .in_valid_i     ( mux_dca_snitch_valid          ),
+    .in_ready_o     ( mux_dca_snitch_ready          ),
+    .result_o       ( demux_dca_snitch.result       ),
+    .status_o       ( demux_dca_snitch.status       ),
+    .tag_o          ( demux_dca_snitch.tag          ),
+    .out_valid_o    ( demux_dca_snitch_valid        ),
+    .out_ready_i    ( demux_dca_snitch_ready        )
   );
+
+  // --------------------------------------------
+  // Demultiplexer between Core and Direct Access
+  // --------------------------------------------
+  if (Xdca) begin : gen_xdca_demux
+    stream_demux #(
+      .N_OUP            (32'd2)
+    ) i_demux_dca (
+      .inp_valid_i      (demux_dca_snitch_valid),
+      .inp_ready_o      (demux_dca_snitch_ready),
+
+      .oup_sel_i        (demux_dca_snitch.tag[7]),
+
+      .oup_valid_o      ({dca_resp_valid_o, fpu_out_valid}),
+      .oup_ready_i      ({dca_resp_ready_i, fpu_out_ready})
+    );
+    // Connect the data signals to the output
+    assign dca_resp_o.dca_result = demux_dca_snitch.result;
+    assign dca_resp_o.dca_status = demux_dca_snitch.status;
+    assign dca_resp_o.dca_tag = demux_dca_snitch.tag[6:0];
+  // No DCA IF is required
+  end else begin : gen_xdca_bypass_demux
+    assign demux_dca_snitch_ready = fpu_out_ready;
+    assign fpu_out_valid = demux_dca_snitch_valid;
+
+    assign dca_resp_valid_o = 1'b0;
+    assign dca_resp_o = '0;
+  end
+
+  // Assign the signals to the corresponding outputs
+  assign fpu_result = demux_dca_snitch.result;
+  assign fpu_status_o = demux_dca_snitch.status;
+  assign fpu_tag_out = demux_dca_snitch.tag[6:0];
+
+  // DCA End
 
   assign ssr_waddr_o = fpr_waddr;
   assign ssr_wdata_o = fpr_wdata;
@@ -2751,6 +2893,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
 
   // Tracer
   // pragma translate_off
+  // Assign the FPU trace
   assign trace_port_o.source       = snitch_pkg::SrcFpu;
   assign trace_port_o.acc_q_hs     = (acc_req_valid_q  && acc_req_ready_q );
   assign trace_port_o.fpu_out_hs   = (fpu_out_valid && fpu_out_ready );
@@ -2785,6 +2928,29 @@ module snitch_fp_ss import snitch_pkg::*; #(
   assign trace_port_o.fpr_waddr    = fpr_waddr[0];
   assign trace_port_o.fpr_wdata    = fpr_wdata[0];
   assign trace_port_o.fpr_we       = fpr_we[0];
+
+  // Assign the DCA tracer
+  if (Xdca) begin : gen_xdca_tracer
+    assign dca_trace_port_o.source              = snitch_pkg::SrcDca;
+    assign dca_trace_port_o.dca_in_hs           = (dca_req_valid_i && dca_req_ready_o);
+    assign dca_trace_port_o.dca_out_hs          = (dca_resp_valid_o && dca_resp_ready_i);
+    assign dca_trace_port_o.dca_in_op_code      = dca_req_i.dca_op_code;
+    assign dca_trace_port_o.dca_in_op_mode      = dca_req_i.dca_op_mode;
+    assign dca_trace_port_o.dca_in_rnd_mode     = dca_req_i.dca_rnd_mode;
+    assign dca_trace_port_o.dca_in_vector_mode  = dca_req_i.dca_vector_op;
+    assign dca_trace_port_o.dca_in_op_0         = dca_req_i.dca_operands[0];
+    assign dca_trace_port_o.dca_in_op_1         = dca_req_i.dca_operands[1];
+    assign dca_trace_port_o.dca_in_op_2         = dca_req_i.dca_operands[2];
+    assign dca_trace_port_o.dca_in_src_fmt      = dca_req_i.dca_src_format;
+    assign dca_trace_port_o.dca_in_dst_fmt      = dca_req_i.dca_dst_format;
+    assign dca_trace_port_o.dca_in_int_fmt      = dca_req_i.dca_int_format;
+    assign dca_trace_port_o.dca_in_tag          = dca_req_i.dca_tag;
+    assign dca_trace_port_o.dca_out_tag         = dca_resp_o.dca_tag;
+    assign dca_trace_port_o.dca_out_status      = dca_resp_o.dca_status;
+    assign dca_trace_port_o.dca_out_result      = dca_resp_o.dca_result;
+  end else begin
+    assign dca_trace_port_o                     = '0;
+  end
   // pragma translate_on
 
   /// Assertions
