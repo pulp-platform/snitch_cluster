@@ -186,6 +186,16 @@
                     "description": "Whether to enable wide multicast and reduction support in the cluster. Requires multicast and reduction requests to be handled in the SoC interconnect.",
                     "default": false
                 },
+                "enable_dca": {
+                    "type": "boolean",
+                    "description": "Whether to enable the direct compute access into the cluster",
+                    "default": false
+                },
+                "dca_data_width": {
+                    "type": "number",
+                    "description": "Size of the DCA interface",
+                    "default": 512
+                },
                 "hart_base_id": {
                     "type": "number",
                     "description": "Base hart id of the cluster. All cores get the respective cluster id plus their cluster position as the final `hart_id`.",
@@ -344,6 +354,16 @@
                         "register_fpu_out": {
                             "type": "boolean",
                             "description": "Insert Pipeline registers immediately after FPU datapath",
+                            "default": false
+                        },
+                        "register_dca_req": {
+                            "type": "boolean",
+                            "description": "Insert pipeline register on the DCA request path",
+                            "default": false
+                        },
+                        "register_dca_rsp": {
+                            "type": "boolean",
+                            "description": "Insert pipeline register on the DCA response path",
                             "default": false
                         },
                         "register_tcdm_cuts": {

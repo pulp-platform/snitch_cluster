@@ -7,7 +7,7 @@ packages:
     dependencies:
     - common_cells
   axi:
-    revision: 272e442526f1c02d4d186037d6b85f7f16545b6a
+    revision: cda42b9632d22172a571a66c451335513e64b2ee
     version: null
     source:
       Git: https://github.com/colluca/axi.git

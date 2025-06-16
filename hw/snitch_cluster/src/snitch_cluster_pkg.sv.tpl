@@ -33,6 +33,7 @@ ${',' if not loop.last else ''}
 
 `include "axi/typedef.svh"
 `include "tcdm_interface/typedef.svh"
+`include "dca_interface/typedef.svh"
 
 // verilog_lint: waive-start package-filename
 package ${cfg['cluster']['name']}_pkg;
@@ -94,6 +95,9 @@ package ${cfg['cluster']['name']}_pkg;
     sram_cfg_t icache_data;
     sram_cfg_t tcdm;
   } sram_cfgs_t;
+
+  // Define dca_req_t and dca_rsp_t
+  `DCA_TYPEDEF_ALL(dca, WideDataWidth)
 
   typedef logic [AddrWidth-1:0]         addr_t;
   typedef logic [NarrowDataWidth-1:0]   data_t;

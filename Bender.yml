@@ -33,7 +33,9 @@ export_include_dirs:
   - hw/reqrsp_interface/include
   - hw/mem_interface/include
   - hw/tcdm_interface/include
+  - hw/dca_interface/include
   - hw/snitch/include
+  - hw/snitch_fp_ss/include
   - hw/snitch_ssr/include
   - hw/generated
 
@@ -90,6 +92,10 @@ sources:
     files:
       - hw/tcdm_interface/test/reqrsp_to_tcdm_tb.sv
       - hw/tcdm_interface/test/tcdm_mux_tb.sv
+
+  # dca_interface
+  - files:
+      - hw/dca_interface/src/dca_fork.sv
 
   # snitch
   - files:
@@ -151,6 +157,14 @@ sources:
       # Level 1
       - hw/snitch_ipu/src/snitch_ipu.sv
 
+  # snitch_fp_ss
+  - files:
+      # Level 0
+      - hw/snitch_fp_ss/src/snitch_fpu.sv
+      - hw/snitch_fp_ss/src/snitch_sequencer.sv
+      # Level 1
+      - hw/snitch_fp_ss/src/snitch_fp_ss.sv
+
   # snitch_cluster
   - files:
       # Level 0
@@ -158,13 +172,10 @@ sources:
       - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv
       - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.sv
       - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral.sv
-      - hw/snitch_cluster/src/snitch_fpu.sv
-      - hw/snitch_cluster/src/snitch_sequencer.sv
       - hw/snitch_cluster/src/snitch_tcdm_fc_interconnect.sv
       - hw/bootrom/snitch_bootrom.sv
       # Level 1
       - hw/snitch_cluster/src/snitch_barrier.sv
-      - hw/snitch_cluster/src/snitch_fp_ss.sv
       - hw/snitch_cluster/src/snitch_tcdm_interconnect.sv
       # Level 2
       - hw/snitch_cluster/src/snitch_cc.sv

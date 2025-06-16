@@ -63,7 +63,9 @@ module testharness #(
     .narrow_ext_req_o (),
     .narrow_ext_resp_i ('0),
     .tcdm_ext_req_i ('0),
-    .tcdm_ext_resp_o ()
+    .tcdm_ext_resp_o (),
+    .dca_req_i ('0),
+    .dca_rsp_o ()
   );
 
   ///////////
