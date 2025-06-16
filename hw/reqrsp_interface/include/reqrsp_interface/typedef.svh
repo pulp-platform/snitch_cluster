@@ -10,13 +10,13 @@
 
 `define REQRSP_TYPEDEF_REQ_CHAN_T(__req_chan_t, __addr_t, __data_t, __strb_t) \
   typedef struct packed { \
-    __addr_t             addr;  \
-    __addr_t             mask;  \
-    logic                write; \
-    reqrsp_pkg::amo_op_e amo;   \
-    __data_t             data;  \
-    __strb_t             strb;  \
-    reqrsp_pkg::size_t   size;  \
+    __addr_t             addr;        \
+    logic [63:0]         user;        \
+    logic                write;       \
+    reqrsp_pkg::amo_op_e amo;         \
+    __data_t             data;        \
+    __strb_t             strb;        \
+    reqrsp_pkg::size_t   size;        \
   } __req_chan_t;
 
 `define REQRSP_TYPEDEF_RSP_CHAN_T(__rsp_chan_t, __data_t) \

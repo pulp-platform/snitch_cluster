@@ -2711,7 +2711,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .lsu_qsize_i (ls_size),
     .lsu_qamo_i (reqrsp_pkg::AMONone),
     .lsu_qrepd_i (acc_req_repd_q),
-    .lsu_qmcast_i ('0),
+    .lsu_quser_i ('0),
     .lsu_qvalid_i (lsu_qvalid),
     .lsu_qready_o (lsu_qready),
     .lsu_pdata_o (ld_result),

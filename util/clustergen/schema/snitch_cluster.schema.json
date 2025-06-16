@@ -176,9 +176,29 @@
                     "description": "Width of the cluster's atomics ID.",
                     "default": 1
                 },  
+                "collectiv_width": {
+                    "type": "number",
+                    "description": "Width of the collective operation field",
+                    "default": 6
+                },  
                 "enable_multicast": {
                     "type": "boolean",
-                    "description": "Whether to enable multicast in the cluster.",
+                    "description": "Whether to enable multicast in the sw & hw for the cluster.",
+                    "default": false
+                },
+                "enable_reduction": {
+                    "type": "boolean",
+                    "description": "Whether to enable multicast in the sw for the cluster.",
+                    "default": false
+                },
+                "enable_dma_multicast": {
+                    "type": "boolean",
+                    "description": "Whether to enable the multicast capable axi-crossbar in the snitch cluster",
+                    "default": false
+                },
+                "enable_reroute_collectiv": {
+                    "type": "boolean",
+                    "description": "Whether to reroute any collectiv operation request to the SoC port independent of the address",
                     "default": false
                 },
                 "hart_base_id": {

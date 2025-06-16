@@ -59,9 +59,14 @@ package ${cfg['cluster']['name']}_pkg;
   localparam int unsigned WideIdWidthIn = ${cfg['cluster']['dma_id_width_in']};
   localparam int unsigned WideIdWidthOut = $clog2(NrWideMasters) + WideIdWidthIn;
 
+  localparam int unsigned EnableDmaMulticast = ${int(cfg['cluster']['enable_dma_multicast'])};
+  localparam int unsigned EnableMulticast = ${int(cfg['cluster']['enable_multicast'])};
+  localparam int unsigned ReRouteCollectiveOp = ${int(cfg['cluster']['enable_reroute_collective'])};
+
   localparam int unsigned NarrowUserWidth = ${cfg['cluster']['user_width']};
   localparam int unsigned WideUserWidth = ${cfg['cluster']['dma_user_width']};
   localparam int unsigned AtomicIdWidth = ${cfg['cluster']['atomic_id_width']};
+  localparam int unsigned CollectiveWidth = ${cfg['cluster']['collective_width']};
 
   localparam int unsigned ICacheLineWidth [NrHives] = '{${icache_cfg('cacheline')}};
   localparam int unsigned ICacheLineCount [NrHives] = '{${icache_cfg('depth')}};
@@ -92,11 +97,32 @@ package ${cfg['cluster']['name']}_pkg;
   typedef logic [NarrowIdWidthOut-1:0]  narrow_out_id_t;
   typedef logic [WideIdWidthIn-1:0]     wide_in_id_t;
   typedef logic [WideIdWidthOut-1:0]    wide_out_id_t;
-  typedef logic [NarrowUserWidth-1:0]   user_t;
-  typedef logic [WideUserWidth-1:0]     user_dma_t;
 
-  `AXI_TYPEDEF_ALL(narrow_in, addr_t, narrow_in_id_t, data_t, strb_t, user_t)
-  `AXI_TYPEDEF_ALL(narrow_out, addr_t, narrow_out_id_t, data_t, strb_t, user_t)
+// Generate the typedef's for the userfield's with the required subfields depending
+// on the configuration
+% if cfg['cluster']['enable_multicast']:
+  typedef struct packed {
+    addr_t                          mcast;
+    logic [CollectiveWidth-1:0]     collective;
+    logic [AtomicIdWidth-1:0]       atomic;
+  } user_narrow_t;
+%else:
+  typedef struct packed {
+    logic [AtomicIdWidth-1:0]       atomic;
+  } user_narrow_t;
+%endif
+
+// Will be extended when implementing collective operation on the wide dma link
+% if cfg['cluster']['enable_dma_multicast']:
+  typedef struct packed {
+    addr_t                          mcast;
+  } user_dma_t;
+%else:
+  typedef logic [WideUserWidth-1:0] user_dma_t;
+%endif
+
+  `AXI_TYPEDEF_ALL(narrow_in, addr_t, narrow_in_id_t, data_t, strb_t, user_narrow_t)
+  `AXI_TYPEDEF_ALL(narrow_out, addr_t, narrow_out_id_t, data_t, strb_t, user_narrow_t)
   `AXI_TYPEDEF_ALL(wide_in, addr_t, wide_in_id_t, data_dma_t, strb_dma_t, user_dma_t)
   `AXI_TYPEDEF_ALL(wide_out, addr_t, wide_out_id_t, data_dma_t, strb_dma_t, user_dma_t)
 

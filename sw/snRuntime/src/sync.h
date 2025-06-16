@@ -123,8 +123,38 @@ inline void snrt_cluster_hw_barrier() {
  * @note One core per cluster must invoke this function, or the calling cores
  *       will stall indefinitely.
  */
-static inline void snrt_inter_cluster_barrier() {
+inline void snrt_inter_cluster_barrier() {
+#ifdef SUPPORTS_MULTICAST
     // Everyone increments a shared counter
+    uint32_t cnt =
+        __atomic_add_fetch(&(_snrt_barrier.cnt), 1, __ATOMIC_RELAXED);
+
+    // All but the last cluster enter WFI, while the last cluster resets the
+    // counter for the next barrier and multicasts an interrupt to wake up the
+    // other clusters.
+    if (cnt == snrt_cluster_num()) {
+        _snrt_barrier.cnt = 0;
+
+        // Multicast cluster interrupt to every other cluster's core
+        // Note: we need to address another cluster's address space
+        //       because the cluster XBAR has not been extended to support
+        //       multicast yet. We address the second cluster, if we are the
+        //       first cluster, and the second otherwise.
+        uintptr_t addr = (uintptr_t)snrt_cluster_clint_set_ptr() - SNRT_CLUSTER_OFFSET * snrt_cluster_idx();
+        if (snrt_cluster_idx() == 0) addr += SNRT_CLUSTER_OFFSET;
+        snrt_enable_multicast(BCAST_MASK_ALL);
+        *((uint32_t *)addr) = 1 << snrt_cluster_core_idx();
+        snrt_disable_multicast();
+        // Clear interrupt for next barrier
+        snrt_int_clr_mcip();
+    } else {
+        snrt_wfi();
+        // Clear interrupt for next barrier
+        snrt_int_clr_mcip();
+    }
+#else
+    // Remember previous iteration
+    uint32_t prev_barrier_iteration = _snrt_barrier.iteration;
     uint32_t cnt =
         __atomic_add_fetch(&(_snrt_barrier.cnt), 1, __ATOMIC_RELAXED);
 
@@ -140,6 +170,7 @@ static inline void snrt_inter_cluster_barrier() {
         // Clear interrupt for next barrier
         snrt_int_clr_mcip();
     }
+#endif
 }
 
 /**
@@ -157,6 +188,7 @@ inline void snrt_global_barrier() {
     // Synchronize all DM cores in software
     if (snrt_is_dm_core()) {
         snrt_inter_cluster_barrier();
+
     }
     // Synchronize cores in a cluster with the HW barrier
     snrt_cluster_hw_barrier();

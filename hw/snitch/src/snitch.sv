@@ -247,8 +247,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic csr_en;
   logic csr_dump;
   logic csr_stall_d, csr_stall_q;
-  // Multicast mask
-  logic [31:0] csr_mcast_d, csr_mcast_q;
+
+  // User Field
+  logic [31:0] csr_user_high_d, csr_user_high_q;
+  logic [31:0] csr_user_low_d, csr_user_low_q;
 
   localparam logic M = 0;
   localparam logic S = 1;
@@ -320,7 +322,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   end
 
   `FFAR(csr_stall_q, csr_stall_d, '0, clk_i, rst_i)
-  `FFAR(csr_mcast_q, csr_mcast_d, '0, clk_i, rst_i)
+  `FFAR(csr_user_high_q, csr_user_high_d, '0, clk_i, rst_i)
+  `FFAR(csr_user_low_q, csr_user_low_d, '0, clk_i, rst_i)
 
   typedef struct packed {
     fpnew_pkg::fmt_mode_t  fmode;
@@ -2358,7 +2361,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     dscratch_d = dscratch_q;
 
     csr_stall_d = csr_stall_q;
-    csr_mcast_d = csr_mcast_q;
+    csr_user_high_d = csr_user_high_q;
+    csr_user_low_d = csr_user_low_q;
 
     if (barrier_i) csr_stall_d = 1'b0;
     barrier_o = 1'b0;
@@ -2585,10 +2589,15 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
             barrier_o = 1'b1;
             csr_stall_d = 1'b1;
           end
-          // Multicast mask
-          CSR_MCAST: begin
-            csr_rvalue = csr_mcast_q;
-            csr_mcast_d = alu_result[31:0];
+          // User field high
+          CSR_USER_HIGH: begin
+            csr_rvalue = csr_user_high_q;
+            csr_user_high_d = alu_result[31:0];
+          end
+          // User field low
+          CSR_USER_LOW: begin
+            csr_rvalue = csr_user_low_q;
+            csr_user_low_d = alu_result[31:0];
           end
           default: begin
             csr_rvalue = '0;
@@ -2910,7 +2919,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     .lsu_qsize_i (ls_size),
     .lsu_qamo_i (ls_amo),
     .lsu_qrepd_i (1'b0),
-    .lsu_qmcast_i (addr_t'(csr_mcast_q)),
+    .lsu_quser_i ({csr_user_high_q, csr_user_low_q}),
     .lsu_qvalid_i (lsu_qvalid),
     .lsu_qready_o (lsu_qready),
     .lsu_pdata_o (ld_result),
