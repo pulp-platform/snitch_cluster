@@ -6,6 +6,7 @@
 
 #include "snax-versacore-lib.h"
 #include <stdbool.h>
+#include "snax_versacore_stationarity.h"
 #include "snrt.h"
 #include "stdint.h"
 #include "streamer_csr_addr_map.h"
@@ -29,7 +30,7 @@ void set_versacore_streamer_csr(
     int32_t delta_local_d32, int32_t* D32slstride, int32_t* D32tlbound,
     int32_t* D32tlstride, int32_t set_addr_remap_index_D32,
     int32_t* channel_en_D) {
-#ifdef SNAX_OPENGEMM_OUTPUT_STATIONARY_ONLY
+#ifdef SNAX_VERSACORE_OUTPUT_STATIONARY_ONLY
 
     // ----------------------------------A-----------------------------------
     // ----------------------------------A-----------------------------------
