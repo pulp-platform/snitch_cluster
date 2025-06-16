@@ -116,6 +116,7 @@ package ${cfg['cluster']['name']}_pkg;
 % if cfg['cluster']['enable_dma_multicast']:
   typedef struct packed {
     addr_t                          mcast;
+    logic [CollectiveWidth-1:0]     collective;
   } user_dma_t;
 %else:
   typedef logic [WideUserWidth-1:0] user_dma_t;
