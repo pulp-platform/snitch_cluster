@@ -85,6 +85,30 @@ package ${cfg['cluster']['name']}_pkg;
     sram_cfg_t tcdm;
   } sram_cfgs_t;
 
+% if cfg['cluster']['enable_dca']:
+  // Typedef to generate the 512 Bit request from the Router
+  typedef struct packed {
+    logic [2:0][WideDataWidth-1:0] dca_operands;       // FP-Operands from the Router
+    fpnew_pkg::roundmode_e    dca_rnd_mode;       // Round Mode for the FPU for this OP --> logic [2:0] (@FPNEW Doku)
+    fpnew_pkg::operation_e    dca_op_code;        // OP Code for the FPU Command --> logic [3:0] (@FPNEW Doku)
+    logic                     dca_op_mode;        // OP Mode for the corresponding Code
+    fpnew_pkg::fp_format_e    dca_src_format;     // Format for the Source --> logic [2:0] (@FPNEW Doku)
+    fpnew_pkg::fp_format_e    dca_dst_format;     // Format for the Destination --> logic [2:0] (@FPNEW Doku)
+    fpnew_pkg::int_format_e   dca_int_format;     // Format for the Integer --> logic [1:0] (@FPNEW Doku)
+    logic                     dca_vector_op;      // Flag to indicate an vector operation
+    logic [6:0]               dca_tag;            // Make the tag accessible by the outside world
+  } dca_router_req_t;
+
+  // Typedef to generate the 512 Bit response to the router
+  typedef struct packed {
+    logic [6:0]               dca_tag;            // Return the tag to the outside world
+    fpnew_pkg::status_t       dca_status;         // Status Flag(s) of the FPU --> logic [4:0] (@FPNEW Doku)
+    logic [WideDataWidth-1:0] dca_result;         // Result of the FPU Operation
+  } dca_router_resp_t;
+%else:
+  typedef logic dca_router_req_t;
+  typedef logic dca_router_resp_t;
+%endif
   typedef logic [AddrWidth-1:0]         addr_t;
   typedef logic [NarrowDataWidth-1:0]   data_t;
   typedef logic [NarrowDataWidth/8-1:0] strb_t;

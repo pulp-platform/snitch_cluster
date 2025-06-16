@@ -105,6 +105,8 @@ module snitch_cluster
   parameter bit [NrCores-1:0] Xdma          = '0,
   /// Per-core enabling of the custom `Xssr` ISA extensions.
   parameter bit [NrCores-1:0] Xssr          = '0,
+  /// Per-cluster enabling of the custom `DCA` extension.
+  parameter bit Xdca                        = 0,
   /// Per-core enabling of the custom `Xfrep` ISA extensions.
   parameter bit [NrCores-1:0] Xfrep         = '0,
   /// Per-core enabling of the custom `Xcopift` ISA extensions.
@@ -178,6 +180,10 @@ module snitch_cluster
   parameter bit          RegisterFPUIn      = 0,
   /// Insert Pipeline registers immediately after FPU datapath
   parameter bit          RegisterFPUOut     = 0,
+  /// Insert Pipeline register between DCA from Router and FPU
+  parameter bit          RegisterDCAIn      = 0,
+  /// Insert Pipeline register between DCA from FPU and Router
+  parameter bit          RegisterDCAOut     = 0,
   /// Run Snitch (the integer part) at half of the clock frequency
   parameter bit          IsoCrossing        = 0,
   parameter axi_pkg::xbar_latency_e NarrowXbarLatency = axi_pkg::CUT_ALL_PORTS,
@@ -222,7 +228,10 @@ module snitch_cluster
   parameter bit          AliasRegionEnable  = 1'b0,
   parameter logic [PhysicalAddrWidth-1:0] AliasRegionBase    = '0,
   /// Instantiate internal bootrom.
-  parameter bit          IntBootromEnable   = 1'b1
+  parameter bit          IntBootromEnable   = 1'b1,
+  /// IF for the DCA Access
+  parameter type         dca_router_req_t = logic,
+  parameter type         dca_router_resp_t = logic
 ) (
   /// System clock. If `IsoCrossing` is enabled this port is the _fast_ clock.
   /// The slower, half-frequency clock, is derived internally.
@@ -281,11 +290,23 @@ module snitch_cluster
   input  narrow_out_resp_t              narrow_ext_resp_i,
   // External TCDM ports
   input  tcdm_dma_req_t                 tcdm_ext_req_i,
-  output tcdm_dma_rsp_t                 tcdm_ext_resp_o
+  output tcdm_dma_rsp_t                 tcdm_ext_resp_o,
+  /// DCA IF to the FPU's
+  input  dca_router_req_t               dca_8x_req_i,
+  input  logic                          dca_8x_req_valid_i,
+  output logic                          dca_8x_req_ready_o,
+  /// DCA IF from the FPU's
+  output dca_router_resp_t              dca_8x_resp_o,
+  output logic                          dca_8x_resp_valid_o,
+  input  logic                          dca_8x_resp_ready_i
 );
   // ---------
   // Constants
   // ---------
+
+  /// DCA Bit width - Currently only applicable for the double extension (e.g. 64 Bit)
+  localparam int unsigned DCA_DATA_WIDTH = 64;
+
   /// Minimum width to hold the core number.
   localparam int unsigned CoreIDWidth = cf_math_pkg::idx_width(NrCores);
   localparam int unsigned TCDMMemAddrWidth = $clog2(TCDMDepth);
@@ -546,6 +567,26 @@ module snitch_cluster
     l0_pte_t [1:0] ptw_pte;
     logic [1:0]    ptw_is_4mega;
   } hive_rsp_t;
+
+  // Typedef to generate the DCA request containing all information.
+  typedef struct packed {
+    logic [2:0][DCA_DATA_WIDTH-1:0]   dca_operands;       // FP-Operands from the Router
+    fpnew_pkg::roundmode_e            dca_rnd_mode;       // Round Mode for the FPU for this OP --> logic [2:0] (@FPNEW Doku)
+    fpnew_pkg::operation_e            dca_op_code;        // OP Code for the FPU Command --> logic [3:0] (@FPNEW Doku)
+    logic                             dca_op_mode;        // OP Mode for the corresponding Code
+    fpnew_pkg::fp_format_e            dca_src_format;     // Format for the Source --> logic [2:0] (@FPNEW Doku)
+    fpnew_pkg::fp_format_e            dca_dst_format;     // Format for the Destination --> logic [2:0] (@FPNEW Doku)
+    fpnew_pkg::int_format_e           dca_int_format;     // Format for the Integer --> logic [1:0] (@FPNEW Doku)
+    logic                             dca_vector_op;      // Flag to indicate an vector operation
+    logic [6:0]                       dca_tag;            // Make the tag accessible by the outside world
+  } dca_req_t;
+
+  // Typedef to generate the DCA response containing all information
+  typedef struct packed {
+    logic [6:0]                       dca_tag;            // Return the tag to the outside world
+    fpnew_pkg::status_t               dca_status;         // Status Flag(s) of the FPU --> logic [4:0] (@FPNEW Doku)
+    logic [DCA_DATA_WIDTH-1:0]        dca_result;         // Result of the FPU Operation
+  } dca_resp_t;
 
   // ---------------------------
   // Cluster-internal Addressing
@@ -1025,6 +1066,89 @@ module snitch_cluster
   hive_req_t [NrCores-1:0] hive_req;
   hive_rsp_t [NrCores-1:0] hive_rsp;
 
+  // Split the DCA into the cores!
+  dca_req_t [NrCores-1:0] dca_req;
+  logic [NrCores-1:0] dca_req_valid;
+  logic [NrCores-1:0] dca_req_ready;
+
+  dca_resp_t [NrCores-1:0] dca_resp;
+  logic [NrCores-1:0] dca_resp_valid;
+  logic [NrCores-1:0] dca_resp_ready;
+
+  // Only generate the DCA logic if the Extension is requested
+  if(Xdca) begin : gen_dca_handshake_control
+
+    // DCA Fork the Handshaking to the available number of cores
+    stream_fork #(
+      .N_OUP          (NrCores-1)
+    ) i_dca_fork_fpu (
+      .clk_i         (clk_i),
+      .rst_ni        (rst_ni),
+      .valid_i       (dca_8x_req_valid_i),
+      .ready_o       (dca_8x_req_ready_o),
+      .valid_o       (dca_req_valid[NrCores-2:0]),
+      .ready_i       (dca_req_ready[NrCores-2:0])
+    );
+
+    // Disable the DCA for the DMA Core (NrCores - 1)!
+    assign dca_req_valid[NrCores-1] = 1'b0;
+    assign dca_resp_ready[NrCores-1] = 1'b0;
+
+    // DCA Join the Handshaking from the available number of cores
+    stream_join #(
+      .N_INP          (NrCores-1)
+    ) i_dca_join_fpu (
+      .inp_valid_i     (dca_resp_valid[NrCores-2:0]),
+      .inp_ready_o     (dca_resp_ready[NrCores-2:0]),
+      .oup_valid_o     (dca_8x_resp_valid_o),
+      .oup_ready_i     (dca_8x_resp_ready_i)
+    );
+
+    for (genvar i = 0; i < NrCores; i++) begin : gen_dca_split
+      // Request Splitting
+      if(i < (NrCores-1)) begin
+        assign dca_req[i].dca_operands[2][DCA_DATA_WIDTH-1:0] = dca_8x_req_i.dca_operands[2][(DCA_DATA_WIDTH*(i+1))-1:DCA_DATA_WIDTH*i];   // Split up here the data
+        assign dca_req[i].dca_operands[1][DCA_DATA_WIDTH-1:0] = dca_8x_req_i.dca_operands[1][(DCA_DATA_WIDTH*(i+1))-1:DCA_DATA_WIDTH*i];   // Split up here the data
+        assign dca_req[i].dca_operands[0][DCA_DATA_WIDTH-1:0] = dca_8x_req_i.dca_operands[0][(DCA_DATA_WIDTH*(i+1))-1:DCA_DATA_WIDTH*i];   // Split up here the data
+
+        assign dca_req[i].dca_rnd_mode = dca_8x_req_i.dca_rnd_mode;
+        assign dca_req[i].dca_op_code = dca_8x_req_i.dca_op_code;
+        assign dca_req[i].dca_op_mode = dca_8x_req_i.dca_op_mode;
+        assign dca_req[i].dca_src_format = dca_8x_req_i.dca_src_format;
+        assign dca_req[i].dca_dst_format = dca_8x_req_i.dca_dst_format;
+        assign dca_req[i].dca_int_format = dca_8x_req_i.dca_int_format;
+        assign dca_req[i].dca_vector_op = dca_8x_req_i.dca_vector_op;
+        assign dca_req[i].dca_tag = dca_8x_req_i.dca_tag;
+
+        // Response Merging
+        assign dca_8x_resp_o.dca_result[(DCA_DATA_WIDTH*(i+1)-1):DCA_DATA_WIDTH*i] = dca_resp[i].dca_result[DCA_DATA_WIDTH-1:0];
+      end else begin
+        // The Connection to the DMA core is separated, we do not need it
+        assign dca_req[i] = '0;
+      end
+    end
+
+    // Copy the tag
+    assign dca_8x_resp_o.dca_tag = dca_resp[0].dca_tag;
+
+    // OR - Connect the overall status Bits
+    always_comb begin
+        dca_8x_resp_o.dca_status = '0; // Initialize to avoid latch inference
+        for (int i = 0; i < (NrCores-1); i++) begin
+            dca_8x_resp_o.dca_status |= dca_resp[i].dca_status; // Bitwise OR reduction
+        end
+    end
+
+  end else begin
+    assign dca_req = '0;
+    assign dca_req_valid = '0;
+    assign dca_8x_req_ready_o = 1'b0;
+
+    assign dca_resp_ready = '0;
+    assign dca_8x_resp_valid_o = 1'b0;
+    assign dca_8x_resp_o = '0;
+  end
+
   for (genvar i = 0; i < NrCores; i++) begin : gen_core
     localparam int unsigned TcdmPorts = get_tcdm_ports(i);
     localparam int unsigned TcdmPortsOffs = get_tcdm_port_offs(i);
@@ -1073,6 +1197,8 @@ module snitch_cluster
         .hive_rsp_t (hive_rsp_t),
         .acc_req_t (acc_req_t),
         .acc_resp_t (acc_resp_t),
+        .dca_req_t  (dca_req_t),
+        .dca_resp_t (dca_resp_t),
         .dma_events_t (dma_events_t),
         .BootAddr (BootAddrInternal),
         .RVE (RVE[i]),
@@ -1089,6 +1215,7 @@ module snitch_cluster
         .IsoCrossing (IsoCrossing),
         .Xfrep (Xfrep[i]),
         .Xssr (Xssr[i]),
+        .Xdca (Xdca),
         .Xcopift (Xcopift[i]),
         .Xipu (1'b0),
         .VMSupport (VMSupport),
@@ -1113,6 +1240,8 @@ module snitch_cluster
         .RegisterSequencer (RegisterSequencer),
         .RegisterFPUIn (RegisterFPUIn),
         .RegisterFPUOut (RegisterFPUOut),
+        .RegisterDCAIn  (RegisterDCAIn),
+        .RegisterDCAOut (RegisterDCAOut),
         .TCDMAddrWidth (TCDMAddrWidth),
         .CaqDepth (CaqDepth),
         .CaqTagWidth (CaqTagWidth),
@@ -1141,7 +1270,13 @@ module snitch_cluster
         .core_events_o (core_events[i]),
         .tcdm_addr_base_i (tcdm_start_address),
         .barrier_o (barrier_in[i]),
-        .barrier_i (barrier_out)
+        .barrier_i (barrier_out),
+        .dca_req_i (dca_req[i]),
+        .dca_req_valid_i (dca_req_valid[i]),
+        .dca_req_ready_o (dca_req_ready[i]),
+        .dca_resp_o (dca_resp[i]),
+        .dca_resp_valid_o (dca_resp_valid[i]),
+        .dca_resp_ready_i (dca_resp_ready[i])
       );
       for (genvar j = 0; j < TcdmPorts; j++) begin : gen_tcdm_user
         always_comb begin
@@ -1707,5 +1842,8 @@ module snitch_cluster
     ~AliasRegionEnable || ((TCDMSizeNapotRounded - 1) & AliasRegionBase) == 0)
   // Make sure we only have one DMA in the system.
   `ASSERT_INIT(NumberDMA, $onehot0(Xdma))
+  // For the DCA Extension the (Currently) only allowed configuration is 8 CC and 1 DC (9 Cores)
+  `ASSERT_INIT(DCASystemConfiguration, (~Xdca) || (NrCores == 9))
+  `ASSERT_INIT(DCASystemDMAWidth, (~Xdca) || (WideDataWidth == 512))
 
 endmodule

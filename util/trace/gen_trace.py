@@ -81,7 +81,7 @@ REG_ABI_NAMES_F = (*('ft{}'.format(i) for i in range(0, 8)), 'fs0', 'fs1',
                      for i in range(2, 12)), *('ft{}'.format(i)
                                                for i in range(8, 12)))
 
-TRACE_SRCES = {'snitch': 0, 'fpu': 1, 'sequencer': 2}
+TRACE_SRCES = {'snitch': 0, 'fpu': 1, 'sequencer': 2, 'dca': 3}
 
 LS_SIZES = ('Byte', 'Half', 'Word', 'Doub')
 
@@ -834,6 +834,144 @@ def annotate_fpu(
     return ', '.join(ret)
 
 
+# Small helper function which parses the data for one input operand
+# The vector flag indicates if multiple entries are available
+def helper_parse_register_data(data, vector_flag, isIntFormat, Format) -> str:
+    ret = ''
+    decoded_fp_format = [
+        {"name":"FP32", "vec":2,"length":32},
+        {"name":"FP64", "vec":1,"length":64},
+        {"name":"FP16", "vec":4,"length":16},
+        {"name":"FP8", "vec":8,"length":8},
+        {"name":"FP16A", "vec":4,"length":16},
+        {"name":"FP8A", "vec":8,"length":8}
+    ]
+
+    decoded_int_format = [
+        {"name":"INT8", "vec":8,"length":8},
+        {"name":"INT16", "vec":4,"length":16},
+        {"name":"INT32", "vec":2,"length":32},
+        {"name":"INT64", "vec":1,"length":64}
+    ]
+
+    # Parse the data depending if it is a vector and/or a float
+    if(vector_flag == 0):
+        if(isIntFormat == False):
+            ret = f'[{flt_fmt(flt_decode(data, Format), 6)}]'
+        else:
+            temp_data = (data & ((1 << decoded_int_format[Format]["length"])-1))
+            ret = f'[{temp_data}]'
+    else:
+        if(isIntFormat == False):
+            ret = '['
+            for i in range(decoded_fp_format[Format]["vec"]):
+                temp_data = (data >> (i*decoded_fp_format[Format]["length"])) & ((1 << decoded_fp_format[Format]["length"])-1)
+                ret = ret + f'{flt_fmt(flt_decode(temp_data, Format), 6)} ,'
+            ret = ret[:-2] + ']'
+        else:
+            ret = '['
+            for i in range(decoded_int_format[Format]["vec"]):
+                temp_data = (data >> (i*decoded_int_format[Format]["vec"])) & ((1 << decoded_int_format[Format]["length"])-1)
+                ret = ret + f'{temp_data} ,'
+            ret = ret[:-2] + ']'
+
+    # Append the Format to the Values
+    if(isIntFormat == False):
+        ret = ret + f' ({decoded_fp_format[Format]["name"]})'
+    else:
+        ret = ret + f' ({decoded_int_format[Format]["name"]})'
+    return ret
+
+# Helperfunction to evaluate the statu of the FPU
+def helper_eval_status(status: int) -> str:
+    flags = ["NV, ", "DZ, ", "OF, ", "UF, ", "NX, "]
+    ret = "".join(flag for i, flag in enumerate(flags) if status & (1 << (len(flags) - 1 - i)))
+
+    if(ret == ""):
+        return "IO"
+    else:
+        return ret[:-2]
+
+# Annotate DCA Instruction
+# Info: We receive the pure op-code / op-mode / vector-mode from the tracer
+#       rather than the 32-Bit inst. As it is more tidious to parse them back into
+#       the 32-Bit format it is easier to parse them by hand.
+#       Doku: https://github.com/openhwgroup/cvfpu/tree/master/docs
+def annotate_dca(
+        extras: dict,
+        insn: str,
+        cycle: int,
+        dca_wb_info: dict,  # One deque (FIFO) for storing information about the DCA access
+        perf_metrics: list,
+        force_hex_addr: bool = True,
+        permissive: bool = False
+    ):
+
+    inst_decoded = [
+        {"ops_name":"FMADD",    "req_op_0":True,    "req_op_1":True,    "req_op_2":True,    "SrcFmtInt":False,  "DstFmtInt":False},
+        {"ops_name":"FNMSUB",   "req_op_0":True,    "req_op_1":True,    "req_op_2":True,    "SrcFmtInt":False,  "DstFmtInt":False},
+        {"ops_name":"ADD",      "req_op_0":False,   "req_op_1":True,    "req_op_2":True,    "SrcFmtInt":False,  "DstFmtInt":False},
+        {"ops_name":"MUL",      "req_op_0":True,    "req_op_1":True,    "req_op_2":False,   "SrcFmtInt":False,  "DstFmtInt":False},
+        {"ops_name":"DIV",      "req_op_0":True,    "req_op_1":True,    "req_op_2":False,   "SrcFmtInt":False,  "DstFmtInt":False},
+        {"ops_name":"SQRT",     "req_op_0":True,    "req_op_1":False,   "req_op_2":False,   "SrcFmtInt":False,  "DstFmtInt":False},
+        {"ops_name":"SGNJ",     "req_op_0":True,    "req_op_1":True,    "req_op_2":False,   "SrcFmtInt":False,  "DstFmtInt":False},
+        {"ops_name":"MINMAX",   "req_op_0":True,    "req_op_1":True,    "req_op_2":False,   "SrcFmtInt":False,  "DstFmtInt":False},
+        {"ops_name":"CMP",      "req_op_0":True,    "req_op_1":True,    "req_op_2":False,   "SrcFmtInt":False,  "DstFmtInt":False},
+        {"ops_name":"CLASSIFY", "req_op_0":True,    "req_op_1":False,   "req_op_2":False,   "SrcFmtInt":False,  "DstFmtInt":False},
+        {"ops_name":"F2F",      "req_op_0":True,    "req_op_1":False,   "req_op_2":False,   "SrcFmtInt":False,  "DstFmtInt":False},
+        {"ops_name":"F2I",      "req_op_0":True,    "req_op_1":False,   "req_op_2":False,   "SrcFmtInt":False,  "DstFmtInt":True},
+        {"ops_name":"I2F",      "req_op_0":True,    "req_op_1":False,   "req_op_2":False,   "SrcFmtInt":True,   "DstFmtInt":False},
+        {"ops_name":"CPKAB",    "req_op_0":True,    "req_op_1":True,    "req_op_2":True,    "SrcFmtInt":False,  "DstFmtInt":False},
+        {"ops_name":"CPKCD",    "req_op_0":True,    "req_op_1":True,    "req_op_2":True,    "SrcFmtInt":False,  "DstFmtInt":False},
+        {"ops_name":"SDOTP",    "req_op_0":True,    "req_op_1":True,    "req_op_2":True,    "SrcFmtInt":False,  "DstFmtInt":False},
+        {"ops_name":"EXVSUM",   "req_op_0":True,    "req_op_1":True,    "req_op_2":True,    "SrcFmtInt":False,  "DstFmtInt":False},
+        {"ops_name":"VSUM",     "req_op_0":True,    "req_op_1":True,    "req_op_2":True,    "SrcFmtInt":False,  "DstFmtInt":False},
+    ]
+
+    rnd_decode = ['RNE','RTZ','RDN','RUP','RMM','ROD','RSR','DYN']
+
+    inst = ''
+    annot = ''
+
+    if(extras['dca_in_hs'] == 1):
+        # Decode the Intruction name / op mode / rounding modes
+        inst = f"DCA {inst_decoded[extras['op_code']]['ops_name']} (M:{extras['op_mode']} RND:{rnd_decode[extras['rnd_mode']]})"
+
+        # Add Operand 0 if required
+        if(inst_decoded[extras['op_code']]['req_op_0'] == True):
+            # Either pass the SRC FP Format or the Int Format depending on the Instruction (Only valid on op[0])
+            if(inst_decoded[extras['op_code']]['SrcFmtInt'] == True):
+                annot = annot + 'op[0] = ' + helper_parse_register_data(extras['op_0'], extras['vector_mode'], True, extras['int_format']) + ', '
+            else:
+                annot = annot + 'op[0] = ' + helper_parse_register_data(extras['op_0'], extras['vector_mode'], False, extras['src_format']) + ', '
+
+        # Add Operand 0 if required
+        if(inst_decoded[extras['op_code']]['req_op_1'] == True):
+            annot = annot + 'op[1] = ' + helper_parse_register_data(extras['op_1'], extras['vector_mode'], False, extras['src_format']) + ', '
+
+        # Add Operand 0 if required
+        if(inst_decoded[extras['op_code']]['req_op_2'] == True):
+            annot = annot + 'op[2] = ' + helper_parse_register_data(extras['op_2'], extras['vector_mode'], False, extras['src_format']) + ', '     
+
+        # finally add the tag
+        annot = annot + f"tag {extras['in_tag']};"
+
+        # Update the performence metric
+        perf_metrics[-1]['dca_fpu_issues'] += 1
+
+        # Push dst format to the Queue and if it is an int-format or not
+        if(inst_decoded[extras['op_code']]['DstFmtInt'] == True):
+            dca_wb_info[0].appendleft((True, extras['int_format'], extras['vector_mode']))
+        else:
+            dca_wb_info[0].appendleft((False, extras['dst_format'], extras['vector_mode']))
+
+    # Handle the Output Handshake
+    if(extras['dca_out_hs'] == 1):
+        isIntFormat, Format, VectorMode = dca_wb_info[0].pop()
+        annot = annot + '(d:dca) res = ' + helper_parse_register_data(extras['result'], VectorMode, isIntFormat, Format) + ', status = ' + helper_eval_status(extras['status']) + f", tag {extras['out_tag']};"
+
+    return inst, annot
+
 # noinspection PyTypeChecker
 def annotate_insn(
     line: str,
@@ -841,6 +979,8 @@ def annotate_insn(
     dict,  # One deque (FIFO) per GPR storing start cycles for each GPR WB
     fpr_wb_info:
     dict,  # One deque (FIFO) per FPR storing start cycles and formats for each FPR WB
+    dca_wb_info:
+    dict,  # One deque (FIFO) for storing information about the DCA access
     sequencer:
     Sequencer,  # Sequencer model to properly map tunneled instruction PCs
     perf_metrics: list,  # A list performance metric dicts
@@ -925,6 +1065,11 @@ def annotate_insn(
                              sequencer.curr_sec, int_as_hex,
                              permissive))
             annot = ', '.join(annot_list)
+
+        # Annotate DCA
+        elif extras['source'] == TRACE_SRCES['dca']:
+            insn, annot = annotate_dca(extras, insn, time_info[1], dca_wb_info, perf_metrics)
+
         else:
             raise ValueError('Unknown trace source: {}'.format(
                 extras['source']))
@@ -1103,6 +1248,7 @@ def main():
         time_info = None
         gpr_wb_info = defaultdict(deque)
         fpr_wb_info = defaultdict(deque)
+        dca_wb_info = defaultdict(deque)
         sequencer = Sequencer()
         dma_trans = [{'rep': 1}]
         perf_metrics = [
@@ -1117,6 +1263,7 @@ def main():
                         line,
                         gpr_wb_info,
                         fpr_wb_info,
+                        dca_wb_info,
                         sequencer,
                         perf_metrics,
                         args.mc_exec,
@@ -1182,6 +1329,10 @@ def main():
         if len(que) != 0:
             warn_trip = True
             warnings.warn(wb_msg(REG_ABI_NAMES_I[gpr], que))
+    for dca, que in dca_wb_info.items():
+        if len(que) != 0:
+            warn_trip = True
+            warnings.warn(wb_msg("DCA", que))
     # Check final state of sequencer is clean
     if sequencer.terminate():
         warn_trip = True

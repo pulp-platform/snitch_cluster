@@ -51,7 +51,13 @@ module testharness #(
     .narrow_ext_req_o (),
     .narrow_ext_resp_i ('0),
     .tcdm_ext_req_i ('0),
-    .tcdm_ext_resp_o ()
+    .tcdm_ext_resp_o (),
+    .dca_8x_req_i ('0),
+    .dca_8x_req_valid_i ('0),
+    .dca_8x_req_ready_o (),
+    .dca_8x_resp_o (),
+    .dca_8x_resp_valid_o (),
+    .dca_8x_resp_ready_i ('0)
   );
 
   ///////////
