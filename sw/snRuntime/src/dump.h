@@ -24,4 +24,4 @@
         asm volatile("csrw " #reg ", %0" ::"rK"(val));                        \
     }
 
-#define DUMP(val) ({ asm volatile("csrw 0x7C4, %0" ::"rK"(val)); })
+#define DUMP(val) ({ asm volatile("csrw 0x7C6, %0" ::"rK"(val)); })

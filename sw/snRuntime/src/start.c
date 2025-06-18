@@ -70,11 +70,21 @@ static inline void snrt_init_bss() {
 
 #ifdef SNRT_WAKE_UP
 static inline void snrt_wake_up() {
+
+    // cluster 0 / core 0 should wake up all other cores!
     if (snrt_cluster_idx() == 0 && snrt_cluster_core_idx() == 0) {
         snrt_wake_all((1 << snrt_cluster_core_num()) - 1);
-    } else {
-        snrt_int_clr_mcip();
-    }
+    } 
+    
+    // TODO (raroth): Hotfix!!! Race condition applies here!
+    // The problem is the snrt_wake_all call is multicast which targets all cores / clusters.
+    // If this delay is not inserted then the multicast will hit core 1 cluster 0 at the exact time
+    // where the clear flag is reset but not read in the function "snrt_int_clr_mcip".
+    // The real solution would be a fence here!!!
+    snrt_cluster_hw_barrier();
+
+    // Clear the reset flag
+    snrt_int_clr_mcip();
 }
 #endif
 
