@@ -89,7 +89,7 @@ static inline uint32_t snrt_dma_start_1d_mcast(volatile void *dst,
                                                volatile void *src, size_t size,
                                                uint32_t mask,
                                                const uint32_t channel = 0) {
-    return snrt_dma_start_1d_mcast((uint64_t)dst, (uint64_t)src, size, channel);
+    return snrt_dma_start_1d_mcast((uint64_t)dst, (uint64_t)src, size, mask, channel);
 }
 
 /**
