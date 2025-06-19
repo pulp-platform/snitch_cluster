@@ -18,6 +18,7 @@ clean-data:
 	rm -f $(DATA_H)
 
 clean: clean-data
+clean-sw: clean-data
 
 $(DATA_H): 
 	$(DATAGEN_PY) > $@

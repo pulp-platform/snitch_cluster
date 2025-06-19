@@ -147,7 +147,7 @@ jobs:
       # Need this for the hypercorex packages
       - name: Install prerequisites
         run: |
-          pip install tqdm matplotlib
+          pip install tqdm matplotlib requests
       - name: Generate RTL
         run: |
           make -C target/snitch_cluster rtl-gen \
