@@ -30,6 +30,13 @@
 #define HYPERCOREX_INST_LOOP_JUMP_ADDR_REG_ADDR (HYPERCOREX_CSR_OFFSET + 10)
 #define HYPERCOREX_INST_LOOP_END_ADDR_REG_ADDR (HYPERCOREX_CSR_OFFSET + 11)
 #define HYPERCOREX_INST_LOOP_COUNT_REG_ADDR (HYPERCOREX_CSR_OFFSET + 12)
+#define HYPERCOREX_DATA_SLICE_CTRL (HYPERCOREX_CSR_OFFSET + 13)
+#define HYPERCOREX_DATA_SLICE_NUM_ELEM_A (HYPERCOREX_CSR_OFFSET + 14)
+#define HYPERCOREX_DATA_SLICE_NUM_ELEM_B (HYPERCOREX_CSR_OFFSET + 15)
+#define HYPERCOREX_AUTO_COUNTER_START_A (HYPERCOREX_CSR_OFFSET + 16)
+#define HYPERCOREX_AUTO_COUNTER_START_B (HYPERCOREX_CSR_OFFSET + 17)
+#define HYPERCOREX_AUTO_COUNTER_NUM_A (HYPERCOREX_CSR_OFFSET + 18)
+#define HYPERCOREX_AUTO_COUNTER_NUM_B (HYPERCOREX_CSR_OFFSET + 19)
 
 //-------------------------------
 // Streamer functions
@@ -90,6 +97,21 @@ void hypercorex_set_inst_loop_end_addr(uint8_t config1, uint8_t config2,
 
 void hypercorex_set_inst_loop_count(uint32_t config1, uint32_t config2,
                                     uint32_t config3);
+
+void hypercorex_set_data_slice_ctrl(uint8_t slice_ctrl_a, uint8_t slice_ctrl_b,
+                                    uint8_t slice_src_a, uint8_t slice_src_b);
+
+void hypercorex_set_data_slice_num_elem_a(uint32_t num_elem);
+
+void hypercorex_set_data_slice_num_elem_b(uint32_t num_elem);
+
+void hypercorex_set_auto_counter_start_a(uint32_t start_counter);
+
+void hypercorex_set_auto_counter_start_b(uint32_t start_counter);
+
+void hypercorex_set_auto_counter_num_a(uint32_t num_counter);
+
+void hypercorex_set_auto_counter_num_b(uint32_t num_counter);
 
 void hypercorex_start_core(void);
 

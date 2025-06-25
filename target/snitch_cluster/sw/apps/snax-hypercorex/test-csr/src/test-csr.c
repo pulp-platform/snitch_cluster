@@ -326,6 +326,17 @@ int main() {
                                        test_inst_loop_count2,
                                        test_inst_loop_count3);
 
+        // Write to data slicer configurations
+        csrw_ss(HYPERCOREX_DATA_SLICE_CTRL, test_data_slice_ctrl);
+        csrw_ss(HYPERCOREX_DATA_SLICE_NUM_ELEM_A, test_data_slice_num_elem_a);
+        csrw_ss(HYPERCOREX_DATA_SLICE_NUM_ELEM_B, test_data_slice_num_elem_b);
+
+        // Write to auto counter configurations
+        csrw_ss(HYPERCOREX_AUTO_COUNTER_START_A, test_auto_counter_start_a);
+        csrw_ss(HYPERCOREX_AUTO_COUNTER_START_B, test_auto_counter_start_b);
+        csrw_ss(HYPERCOREX_AUTO_COUNTER_NUM_A, test_auto_counter_num_a);
+        csrw_ss(HYPERCOREX_AUTO_COUNTER_NUM_B, test_auto_counter_num_b);
+
         // Write to observable CSR for visibile state
         write_csr_obs(0x003);
 
@@ -397,6 +408,40 @@ int main() {
             golden_inst_loop_count) {
             err += 1;
         }
+
+        if (csrr_ss(HYPERCOREX_DATA_SLICE_CTRL) != golden_data_slice_ctrl) {
+            err += 1;
+        }
+
+        if (csrr_ss(HYPERCOREX_DATA_SLICE_NUM_ELEM_A) !=
+            golden_data_slice_num_elem_a) {
+            err += 1;
+        };
+
+        if (csrr_ss(HYPERCOREX_DATA_SLICE_NUM_ELEM_B) !=
+            golden_data_slice_num_elem_b) {
+            err += 1;
+        };
+
+        if (csrr_ss(HYPERCOREX_AUTO_COUNTER_START_A) !=
+            golden_auto_counter_start_a) {
+            err += 1;
+        };
+
+        if (csrr_ss(HYPERCOREX_AUTO_COUNTER_START_B) !=
+            golden_auto_counter_start_b) {
+            err += 1;
+        };
+
+        if (csrr_ss(HYPERCOREX_AUTO_COUNTER_NUM_A) !=
+            golden_auto_counter_num_a) {
+            err += 1;
+        };
+
+        if (csrr_ss(HYPERCOREX_AUTO_COUNTER_NUM_B) !=
+            golden_auto_counter_num_b) {
+            err += 1;
+        };
 
         // Write to observable CSR for visibile state
         write_csr_obs(0x004);

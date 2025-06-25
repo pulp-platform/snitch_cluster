@@ -55,6 +55,15 @@ uint32_t test_inst_loop_count1 = 0x3ff;
 uint32_t test_inst_loop_count2 = 0x3ff;
 uint32_t test_inst_loop_count3 = 0x3ff;
 
+uint32_t test_data_slice_ctrl = 0xffffffff;
+uint32_t test_data_slice_num_elem_a = 0xffffffff;
+uint32_t test_data_slice_num_elem_b = 0xffffffff;
+
+uint32_t test_auto_counter_start_a = 0xffffffff;
+uint32_t test_auto_counter_start_b = 0xffffffff;
+uint32_t test_auto_counter_num_a = 0xffffffff;
+uint32_t test_auto_counter_num_b = 0xffffffff;
+
 //-------------------------------
 // Golden values
 //-------------------------------
@@ -83,3 +92,12 @@ uint32_t golden_inst_loop_ctrl = 0x00000003;
 uint32_t golden_inst_loop_jump_addr = 0x001fffff;
 uint32_t golden_inst_loop_end_addr = 0x001fffff;
 uint32_t golden_inst_loop_count = 0x3fffffff;
+
+uint32_t golden_data_slice_ctrl = 0x0000003f;
+uint32_t golden_data_slice_num_elem_a = 0xffffffff;
+uint32_t golden_data_slice_num_elem_b = 0xffffffff;
+
+uint32_t golden_auto_counter_start_a = 0xffffffff;
+uint32_t golden_auto_counter_start_b = 0xffffffff;
+uint32_t golden_auto_counter_num_a = 0xffffffff;
+uint32_t golden_auto_counter_num_b = 0xffffffff;

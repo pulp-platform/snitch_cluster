@@ -197,3 +197,58 @@ void hypercorex_start_core(void) {
 uint32_t hypercorex_is_core_busy(void) {
     return csrr_ss(HYPERCOREX_CORE_SET_REG_ADDR);
 };
+
+//-------------------------------
+// Data slicer functions
+//
+// These are used for the data slicing mechanism
+// of the Hypercorex. Where packed data can be sliced
+// into smaller chunks for processing.
+//-------------------------------
+
+void hypercorex_set_data_slice_ctrl(uint8_t slice_ctrl_a, uint8_t slice_ctrl_b,
+                                    uint8_t slice_src_a, uint8_t slice_src_b) {
+    uint32_t config = (slice_src_b & 0x1) << 5 | (slice_src_a & 0x1) << 4 |
+                      (slice_ctrl_b & 0x3) << 2 | (slice_ctrl_a & 0x3);
+
+    csrw_ss(HYPERCOREX_DATA_SLICE_CTRL, config);
+    return;
+}
+
+void hypercorex_set_data_slice_num_elem_a(uint32_t num_elem) {
+    csrw_ss(HYPERCOREX_DATA_SLICE_NUM_ELEM_A, num_elem);
+    return;
+}
+
+void hypercorex_set_data_slice_num_elem_b(uint32_t num_elem) {
+    csrw_ss(HYPERCOREX_DATA_SLICE_NUM_ELEM_B, num_elem);
+    return;
+}
+
+//-------------------------------
+// Auto-updater functions
+//
+// These are used for autofetching data
+// from the the data streamer of the Hypercorex.
+// Useful for automatic counting for IM
+//-------------------------------
+
+void hypercorex_set_auto_counter_start_a(uint32_t start_counter) {
+    csrw_ss(HYPERCOREX_AUTO_COUNTER_START_A, start_counter);
+    return;
+}
+
+void hypercorex_set_auto_counter_start_b(uint32_t start_counter) {
+    csrw_ss(HYPERCOREX_AUTO_COUNTER_START_B, start_counter);
+    return;
+}
+
+void hypercorex_set_auto_counter_num_a(uint32_t num_counter) {
+    csrw_ss(HYPERCOREX_AUTO_COUNTER_NUM_A, num_counter);
+    return;
+}
+
+void hypercorex_set_auto_counter_num_b(uint32_t num_counter) {
+    csrw_ss(HYPERCOREX_AUTO_COUNTER_NUM_B, num_counter);
+    return;
+}
