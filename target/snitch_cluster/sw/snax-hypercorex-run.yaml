@@ -10,4 +10,5 @@ runs:
   - elf: apps/snax-hypercorex/high-dim-bind/build/high-dim-bind.elf
   - elf: apps/snax-hypercorex/am-search/build/am-search.elf
   - elf: apps/snax-hypercorex/isolet-recog/build/isolet-recog.elf
+  - elf: apps/snax-hypercorex/vec-compress/build/vec-compress.elf
   - elf: apps/snax-hypercorex/char-recog/build/char-recog.elf
