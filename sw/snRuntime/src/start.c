@@ -157,11 +157,6 @@ void snrt_main() {
     snrt_init_cls();
 #endif
 
-#if defined(SNRT_INIT_BSS) || defined(SNRT_INIT_CLS)
-    // Single DMA wait call for both snrt_init_bss() and snrt_init_cls()
-    if (snrt_is_dm_core()) snrt_dma_wait_all();
-#endif
-
 #ifdef SNRT_CRT0_CALLBACK3
     snrt_crt0_callback3();
 #endif
