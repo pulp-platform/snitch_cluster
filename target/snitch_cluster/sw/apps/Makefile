@@ -67,6 +67,7 @@ SUBDIRS += snax-hypercorex/am-search
 SUBDIRS += snax-hypercorex/isolet-recog
 SUBDIRS += snax-hypercorex/ucihar-recog
 SUBDIRS += snax-hypercorex/digit-recog
+SUBDIRS += snax-hypercorex/dna-recog
 SUBDIRS += snax-hypercorex/vec-compress
 endif
 

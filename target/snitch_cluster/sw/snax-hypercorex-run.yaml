@@ -14,3 +14,4 @@ runs:
   - elf: apps/snax-hypercorex/char-recog/build/char-recog.elf
   - elf: apps/snax-hypercorex/digit-recog/build/digit-recog.elf
   - elf: apps/snax-hypercorex/ucihar-recog/build/ucihar-recog.elf
+  - elf: apps/snax-hypercorex/dna-recog/build/dna-recog.elf
