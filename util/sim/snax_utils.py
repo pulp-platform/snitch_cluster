@@ -180,6 +180,8 @@ def block_gemm_golden_model(
     m, k, n, row, size, col, a, b, subtraction_a, subtraction_b, c
 ):
     # Reshape and subtract
+    a = a.astype(np.int32)
+    b = b.astype(np.int32)
     a_subtracted = (
         a.reshape(m, k, row, size) - subtraction_a
     )  # Shape: (m, k, row, size)
