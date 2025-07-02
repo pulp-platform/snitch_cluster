@@ -63,6 +63,20 @@ static inline uint32_t snrt_dma_start_1d(volatile void *dst, volatile void *src,
 }
 
 /**
+ * @brief Enable multicast for successive transfers.
+ * @param mask Multicast mask applied to successive transfers.
+ */
+inline void snrt_dma_enable_mcast(uint32_t mask) {
+    asm volatile("dmuser %[mask], zero \n" : : [ mask ] "r"(mask));
+}
+
+/**
+ * @brief Disable multicast for successive transfers.
+ * @details Resets the multicast mask to zero.
+ */
+inline void snrt_dma_disable_mcast() { asm volatile("dmuser zero, zero \n"); }
+
+/**
  * @brief Start an asynchronous multicast 1D DMA transfer with 64-bit wide
  * pointers.
  * @param mask Multicast mask applied on the destination address.
@@ -72,8 +86,10 @@ static inline uint32_t snrt_dma_start_1d(volatile void *dst, volatile void *src,
 static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
                                                size_t size, uint32_t mask,
                                                const uint32_t channel = 0) {
-    asm volatile("dmuser %[mask], zero \n" : : [ mask ] "r"(mask));
-    return snrt_dma_start_1d(dst, src, size, channel);
+    snrt_dma_enable_mcast(mask);
+    uint32_t txid = snrt_dma_start_1d(dst, src, size, channel);
+    snrt_dma_disable_mcast();
+    return txid;
 }
 
 /**
@@ -89,7 +105,8 @@ static inline uint32_t snrt_dma_start_1d_mcast(volatile void *dst,
                                                volatile void *src, size_t size,
                                                uint32_t mask,
                                                const uint32_t channel = 0) {
-    return snrt_dma_start_1d_mcast((uint64_t)dst, (uint64_t)src, size, mask, channel);
+    return snrt_dma_start_1d_mcast((uint64_t)dst, (uint64_t)src, size, mask,
+                                   channel);
 }
 
 /**
