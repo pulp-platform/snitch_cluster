@@ -19,7 +19,9 @@
 #define SNRT_CLUSTER_OFFSET ${cfg['cluster']['cluster_base_offset']}
 #define SNRT_NUM_SEQUENCER_LOOPS ${cfg['cluster']['hives'][0]['cores'][0]['num_sequencer_loops']}
 
-#define SNRT_SUPPORTS_MULTICAST ${cfg['cluster']['enable_multicast']}
+% if cfg['cluster']['enable_multicast']:
+#define SNRT_SUPPORTS_MULTICAST
+% endif
 
 // Software configuration
 #define SNRT_LOG2_STACK_SIZE 10

@@ -84,21 +84,22 @@ inline void snrt_wake_all(uint32_t core_mask) {
     //       because the cluster XBAR has not been extended to support
     //       multicast yet. We address the second cluster, if we are the
     //       first cluster, and the first cluster otherwise.
-    uintptr_t addr = (uintptr_t)snrt_cluster_clint_set_ptr() -
-                     SNRT_CLUSTER_OFFSET * snrt_cluster_idx();
-    if (snrt_cluster_idx() == 0) addr += SNRT_CLUSTER_OFFSET;
-    snrt_enable_multicast(SNRT_BROADCAST_MASK);
-    *((uint32_t *)addr) = core_mask;
-    snrt_disable_multicast();
+    if (snrt_cluster_num() > 0) {
+        uintptr_t addr = (uintptr_t)snrt_cluster_clint_set_ptr() -
+                         SNRT_CLUSTER_OFFSET * snrt_cluster_idx();
+        if (snrt_cluster_idx() == 0) addr += SNRT_CLUSTER_OFFSET;
+        snrt_enable_multicast(SNRT_BROADCAST_MASK);
+        *((uint32_t *)addr) = core_mask;
+        snrt_disable_multicast();
+    }
 #else
     for (int i = 0; i < snrt_cluster_num(); i++) {
         if (snrt_cluster_idx() != i) {
-            void *ptr = snrt_remote_l1_ptr(snrt_cluster_clint_set_ptr(),
+            void *ptr = snrt_remote_l1_ptr((void *)snrt_cluster_clint_set_ptr(),
                                            snrt_cluster_idx(), i);
             *((uint32_t *)ptr) = core_mask;
         }
     }
-
 #endif
 }
 

@@ -121,7 +121,7 @@ extern void snrt_exit(int exit_code);
 // Referenced in an assembly file (start.S), must use C linkage
 EXTERN_C void snrt_main() {
     int exit_code = 0;
-    if (snrt_cluster_core_idx() == 0 && snrt_cluster_idx() == 0) {
+    if (snrt_cluster_idx() == 0) {
         snrt_int_clr_mcip();
     }
 
