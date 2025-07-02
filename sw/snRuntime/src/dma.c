@@ -10,6 +10,10 @@ extern void snrt_dma_stop_tracking();
 
 extern void snrt_dma_memset(void *ptr, uint8_t value, uint32_t len);
 
+extern void snrt_dma_enable_mcast(uint32_t mask);
+
+extern void snrt_dma_disable_mcast();
+
 extern snrt_dma_txid_t snrt_dma_load_1d_tile(void *dst, void *src,
                                              size_t tile_idx, size_t tile_size,
                                              uint32_t prec);

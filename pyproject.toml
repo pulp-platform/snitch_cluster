@@ -13,8 +13,7 @@ authors = [
 ]
 dynamic = ["version"]
 dependencies = [
-    # Keep sorted.
-    "bin2coe",
+    # Alphabetically sorted.
     "dataclasses",
     "flake8",
     "gitpython",
@@ -24,14 +23,6 @@ dependencies = [
     "jsonschema",
     "mako",
     "matplotlib",
-    "mkdocs",
-    "mkdocs-exclude",
-    "mkdocs-material",
-    "mkdocs-include-markdown-plugin",
-    "mkdocs-macros-plugin",
-    "mkdocstrings",
-    "mkdocstrings-python",
-    "numpy",
     "pandas",
     "prettytable",
     "progressbar2",
@@ -41,11 +32,29 @@ dependencies = [
     "pytablewriter",
     "pytest",
     "pyyaml",
-    "scikit-learn",
     "tabulate",
     "termcolor",
-    "torch",
     "yamllint"
+]
+
+[project.optional-dependencies]
+kernels  = [
+    # Alphabetically sorted.
+    "numpy",
+    "scikit-learn",
+    "torch",
+]
+docs = [
+    "mkdocs",
+    "mkdocs-exclude",
+    "mkdocs-include-markdown-plugin",
+    "mkdocs-macros-plugin",
+    "mkdocs-material",
+    "mkdocstrings",
+    "mkdocstrings-python",
+]
+all = [
+    "snitch[kernels,docs]"
 ]
 
 [tool.setuptools.package-dir]

@@ -415,10 +415,12 @@ module snitch_cluster
   typedef logic [TCDMMemAddrWidth-1:0]  tcdm_mem_addr_t;
   typedef logic [TCDMAddrWidth-1:0]     tcdm_addr_t;
 
-  typedef struct packed {
-    logic [CoreIDWidth-1:0] core_id;
-    bit                     is_core;
-  } tcdm_user_t;
+  // Struct replaced by logic array to workaround Questa optimization bug.
+  // typedef struct packed {
+  //   logic [CoreIDWidth-1:0] core_id;
+  //   bit                     is_core;
+  // } tcdm_user_t;
+  typedef logic [CoreIDWidth:0] tcdm_user_t;
 
   // Regbus peripherals.
   `AXI_TYPEDEF_ALL(axi_mst, addr_t, id_mst_t, data_t, strb_t, user_t)
@@ -911,8 +913,8 @@ module snitch_cluster
         .write_i ( amo_req[j].q.write ),
         .wdata_i ( amo_req[j].q.data ),
         .wstrb_i ( amo_req[j].q.strb ),
-        .core_id_i ( amo_req[j].q.user.core_id ),
-        .is_core_i ( amo_req[j].q.user.is_core ),
+        .core_id_i ( amo_req[j].q.user[CoreIDWidth:1] ),
+        .is_core_i ( amo_req[j].q.user[0] ),
         .rdata_o ( amo_rdata_local ),
         .amo_i ( amo_req[j].q.amo ),
         .mem_req_o ( mem_cs ),
@@ -1097,8 +1099,8 @@ module snitch_cluster
       for (genvar j = 0; j < TcdmPorts; j++) begin : gen_tcdm_user
         always_comb begin
           tcdm_req[TcdmPortsOffs+j] = tcdm_req_wo_user[j];
-          tcdm_req[TcdmPortsOffs+j].q.user.core_id = i;
-          tcdm_req[TcdmPortsOffs+j].q.user.is_core = 1;
+          tcdm_req[TcdmPortsOffs+j].q.user[CoreIDWidth:1] = i;
+          tcdm_req[TcdmPortsOffs+j].q.user[0] = 1;
         end
       end
       if (Xdma[i]) begin : gen_dma_connection

@@ -86,7 +86,7 @@ RUN python${PYTHON_VERSION} -m venv ${VIRTUAL_ENV}
 ARG PIP_NO_CACHE_DIR=1
 RUN ${VIRTUAL_ENV}/bin/pip install --upgrade pip && \
     ${VIRTUAL_ENV}/bin/pip install torch --index-url https://download.pytorch.org/whl/cpu && \
-    ${VIRTUAL_ENV}/bin/pip install .
+    ${VIRTUAL_ENV}/bin/pip install .[all]
 
 # Copy the tools from the builder stage
 COPY --from=builder /tools/bender /tools/bin/

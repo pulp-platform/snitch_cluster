@@ -71,10 +71,10 @@ packages:
     dependencies:
     - common_cells
   idma:
-    revision: 8f6ff21c22f73614df7c2caee6bf47a71084d864
+    revision: 7829f71691a62c1e2e5e3230f370f222c7a83087
     version: null
     source:
-      Git: https://github.com/colluca/iDMA.git
+      Git: https://github.com/pulp-platform/iDMA.git
     dependencies:
     - axi
     - axi_stream
