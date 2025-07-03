@@ -401,7 +401,9 @@ module snitch_sequencer import snitch_pkg::*; #(
   // is nested within the current loop nest. The latter means checking if the write
   // pointer is within the outermost loop bounds. But the write pointer can wrap to
   // the start of the loop, so we also need to track if we've already received all
-  // instructions.
+  // instructions. And this involves comparing the write pointer to the end pointer,
+  // when writing a loop nest instruction. The first instructions following an FREP,
+  // i.e. received while loop_cnt_q > 0, are guaranteed to be within the loop nest.
 
   logic rb_wptr_within_bounds;
   logic [DepthBits-1:0] nest_start_pointer, nest_end_pointer;
@@ -411,7 +413,7 @@ module snitch_sequencer import snitch_pkg::*; #(
     nest_start_pointer = nest_cfg_q[0].base_pointer;
     nest_end_pointer = nest_cfg_q[0].base_pointer + nest_cfg_q[0].max_inst;
 
-    if (loop_active_q && (rb_wptr == nest_end_pointer) && (core_rb_valid && core_rb_ready)) begin
+    if ((loop_cnt_q > 0) && (rb_wptr == nest_end_pointer) && (core_rb_valid && core_rb_ready)) begin
       received_all_nest_insns_d = 1'b1;
     end else if (nest_ends) begin
       received_all_nest_insns_d = 1'b0;
@@ -432,19 +434,19 @@ module snitch_sequencer import snitch_pkg::*; #(
     nest_cfg_d = nest_cfg_q;
     loop_cnt_d = loop_cnt_q;
 
-    if (core_frep_valid && core_frep_ready) begin
-      nest_cfg_d[loop_cnt_q].is_streamctl = inp_qdata_op_i[31];
-      nest_cfg_d[loop_cnt_q].max_inst = inp_qdata_op_i[20+:DepthBits];
-      nest_cfg_d[loop_cnt_q].stagger_max = inp_qdata_op_i[14:12];
-      nest_cfg_d[loop_cnt_q].stagger_mask = inp_qdata_op_i[11:8];
-      nest_cfg_d[loop_cnt_q].max_iter = inp_qdata_arga_i[LoopIterBits-1:0];
-      nest_cfg_d[loop_cnt_q].base_pointer = rb_wptr;
-
-      loop_cnt_d = loop_cnt_q + 1;
-    end
-
     if (nest_ends) begin
       loop_cnt_d = 0;
+    end
+
+    if (core_frep_valid && core_frep_ready) begin
+      nest_cfg_d[loop_cnt_d].is_streamctl = inp_qdata_op_i[31];
+      nest_cfg_d[loop_cnt_d].max_inst = inp_qdata_op_i[20+:DepthBits];
+      nest_cfg_d[loop_cnt_d].stagger_max = inp_qdata_op_i[14:12];
+      nest_cfg_d[loop_cnt_d].stagger_mask = inp_qdata_op_i[11:8];
+      nest_cfg_d[loop_cnt_d].max_iter = inp_qdata_arga_i[LoopIterBits-1:0];
+      nest_cfg_d[loop_cnt_d].base_pointer = rb_wptr;
+
+      loop_cnt_d = loop_cnt_q + 1;
     end
   end
 
@@ -515,7 +517,7 @@ module snitch_sequencer import snitch_pkg::*; #(
   loop_idx_t outermost_ending_loop;
   logic [NestDepth-1:0] loop_ends;
   logic [NestDepth-1:0] loop_active;
-  logic no_loop_ends, all_loops_end;
+  logic no_loop_ends;
 
   // Mask to select only loops which end on current instruction
   assign loop_ends = last_inst & last_iter & last_iter_inner_loops;
@@ -702,10 +704,10 @@ module snitch_sequencer import snitch_pkg::*; #(
   // pragma translate_off
   assign trace_port_o.source    = snitch_pkg::SrcFpuSeq;
   assign trace_port_o.cbuf_push = core_frep_valid && core_frep_ready;
-  assign trace_port_o.max_inst  = nest_cfg_d[loop_cnt_q].max_inst;
-  assign trace_port_o.max_iter  = nest_cfg_d[loop_cnt_q].max_iter;
-  assign trace_port_o.stg_max   = nest_cfg_d[loop_cnt_q].stagger_max;
-  assign trace_port_o.stg_mask  = nest_cfg_d[loop_cnt_q].stagger_mask;
+  assign trace_port_o.max_inst  = inp_qdata_op_i[20+:DepthBits];
+  assign trace_port_o.max_iter  = inp_qdata_arga_i[LoopIterBits-1:0];
+  assign trace_port_o.stg_max   = inp_qdata_op_i[14:12];
+  assign trace_port_o.stg_mask  = inp_qdata_op_i[11:8];
   // pragma translate_on
 
   ////////////////
