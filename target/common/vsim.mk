@@ -34,10 +34,8 @@ VSIM_FLAGS += -t 1ps
 
 # DEBUG flag ensures visibility of all signals in the waveforms
 ifeq ($(DEBUG), ON)
-VSIM_FLAGS += -do "log -r /*; run -a"
+VSIM_FLAGS += -do "log -r /*"
 VOPT_FLAGS  = +acc
-else
-VSIM_FLAGS += -do "run -a"
 endif
 
 # PL_SIM flag selects between RTL or post-layout simulation
