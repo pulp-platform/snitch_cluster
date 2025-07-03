@@ -247,8 +247,8 @@ class XDMACtrl(readerparam: XDMAParam, writerparam: XDMAParam, clusterName: Stri
               .reduce(_ + _) + 1
         } + // The total num of param on writer (custom CSR + bypass CSR)
         1, // The start CSR
-      csrNumReadOnly   = 4,
-      // Set to four at current, 1) The number of submitted local request; 2) The number of submitted remote request; 3) The number of finished local request; 4) The number of finished remote request
+      csrNumReadOnly   = 7,
+      // Set to four at current, 1) The number of submitted local request; 2) The number of submitted remote request; 3) The number of finished local request; 4) The number of finished remote request; 5) The XDMA task performance counter 6) Reader performance counter 7) Writer performance counter
       csrAddrWidth     = 32,
       // Set a name for the module class so that it will not overlapped with other csrManagers in user-defined accelerators
       csrModuleTagName = s"${clusterName}_xdma_"
@@ -315,8 +315,8 @@ class XDMACtrl(readerparam: XDMAParam, writerparam: XDMAParam, clusterName: Stri
 
   // Connect Valid and bits: Only when both preRoutes are ready, postRulecheck is ready
   csrManager.io.csr_config_out.ready := preRoute_src_local.ready & preRoute_dst_local.ready
-  preRoute_src_local.valid           := csrManager.io.csr_config_out.ready & csrManager.io.csr_config_out.valid
-  preRoute_dst_local.valid           := csrManager.io.csr_config_out.ready & csrManager.io.csr_config_out.valid
+  preRoute_src_local.valid           := csrManager.io.csr_config_out.fire
+  preRoute_dst_local.valid           := csrManager.io.csr_config_out.fire
 
   // Task ID Counter to assign the ID for each transaction
   val localSubmittedTaskIDCounter = Module(
@@ -575,4 +575,102 @@ class XDMACtrl(readerparam: XDMAParam, writerparam: XDMAParam, clusterName: Stri
   // Connect the finished task counter to the read-only CSR
   csrManager.io.read_only_csr(2) := localFinishedTaskIDCounter.io.value
   csrManager.io.read_only_csr(3) := remoteFinishedTaskIDCounter.io.value
+
+  // Performance Counter for the last XDMA task's time
+  val pcIdle :: pcRunning :: Nil = Enum(2)
+
+  val perfCounterTask = Module(new BasicCounter(width = 32, hasCeil = false) {
+    override val desiredName = s"${clusterName}_xdma_ctrl_perfCounterTask"
+  })
+  csrManager.io.read_only_csr(4) := perfCounterTask.io.value
+
+  val pctCurrentState = RegInit(pcIdle)
+  val pctNextState    = pctCurrentState
+  pctCurrentState := pctNextState
+  dontTouch(pctCurrentState)
+  dontTouch(pctNextState)
+
+  perfCounterTask.io.reset := false.B
+  perfCounterTask.io.tick  := false.B
+  perfCounterTask.io.ceil  := DontCare
+
+  switch(pctCurrentState) {
+    is(pcIdle) {
+      when(csrManager.io.csr_config_out.fire) {
+        perfCounterTask.io.reset := true.B
+        pctNextState             := pcRunning
+      }
+    }
+    is(pcRunning) {
+      perfCounterTask.io.tick := true.B
+      when((currentCfgDst.fire && currentCfgDst.bits.localLoopback) || io.remoteTaskFinished) {
+        perfCounterTask.io.tick := false.B
+        pctNextState            := pcIdle
+      }
+    }
+  }
+
+  // Performance Counter for the last reader's busy time
+  val perfCounterReader = Module(new BasicCounter(width = 32, hasCeil = false) {
+    override val desiredName = s"${clusterName}_xdma_ctrl_perfCounterReader"
+  })
+  csrManager.io.read_only_csr(5) := perfCounterReader.io.value
+
+  val pcrCurrentState = RegInit(pcIdle)
+  val pcrNextState    = pcrCurrentState
+  pcrCurrentState := pcrNextState
+  dontTouch(pcrCurrentState)
+  dontTouch(pcrNextState)
+
+  perfCounterReader.io.reset := false.B
+  perfCounterReader.io.tick  := false.B
+  perfCounterReader.io.ceil  := DontCare
+
+  switch(pcrCurrentState) {
+    is(pcIdle) {
+      when(io.localXDMACfg.readerBusy) {
+        perfCounterReader.io.reset := true.B
+        pcrNextState               := pcRunning
+      }
+    }
+    is(pcRunning) {
+      perfCounterReader.io.tick := true.B
+      when(~io.localXDMACfg.readerBusy) {
+        perfCounterReader.io.tick := false.B
+        pcrNextState              := pcIdle
+      }
+    }
+  }
+
+  // Performance Counter for the last writer's busy time
+  val perfCounterWriter = Module(new BasicCounter(width = 32, hasCeil = false) {
+    override val desiredName = s"${clusterName}_xdma_ctrl_perfCounterWriter"
+  })
+  csrManager.io.read_only_csr(6) := perfCounterWriter.io.value
+
+  val pcwCurrentState = RegInit(pcIdle)
+  val pcwNextState    = pcwCurrentState
+  pcwCurrentState := pcwNextState
+  dontTouch(pcwCurrentState)
+  dontTouch(pcwNextState)
+
+  perfCounterWriter.io.reset := false.B
+  perfCounterWriter.io.tick  := false.B
+  perfCounterWriter.io.ceil  := DontCare
+
+  switch(pcwCurrentState) {
+    is(pcIdle) {
+      when(io.localXDMACfg.writerBusy) {
+        perfCounterWriter.io.reset := true.B
+        pcwNextState               := pcRunning
+      }
+    }
+    is(pcRunning) {
+      perfCounterWriter.io.tick := true.B
+      when(~io.localXDMACfg.writerBusy) {
+        perfCounterWriter.io.tick := false.B
+        pcwNextState              := pcIdle
+      }
+    }
+  }
 }

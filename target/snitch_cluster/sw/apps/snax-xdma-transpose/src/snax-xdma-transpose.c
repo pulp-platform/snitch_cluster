@@ -59,15 +59,10 @@ int main() {
                        temporal_dimension_dst, temporal_strides_dst,
                        temporal_bounds_dst, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF);
 
-        uint32_t start_time;
-        uint32_t end_time;
-
-        __asm__ volatile("csrr %0, mcycle;" : "=r"(start_time));
         int task_id = xdma_start();
         xdma_local_wait(task_id);
-        __asm__ volatile("csrr %0, mcycle;" : "=r"(end_time));
-        printf("The XDMA copy is finished in %d cycles\r\n",
-               end_time - start_time);
+        printf("xdma task %d is done in %d cycles\n", task_id,
+               xdma_last_task_cycle());
 
         // --------------------- Checking the Results --------------------- //
         uint32_t *golden_result = (uint32_t *)golden_output_matrix;

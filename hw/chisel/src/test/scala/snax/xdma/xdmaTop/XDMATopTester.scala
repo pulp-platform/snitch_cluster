@@ -34,7 +34,7 @@ class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
   }
   println("[TCDM] TCDM data initialized. ")
 
-  "The bahavior of XDMA is as expected" in test(
+  "The XDMATop local loopback test should pass" in test(
     new XDMATop(
       readerParam = new XDMAParam(
         axiParam          = new AXIParam,

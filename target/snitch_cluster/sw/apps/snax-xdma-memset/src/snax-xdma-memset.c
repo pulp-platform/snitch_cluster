@@ -70,7 +70,9 @@ int main() {
             task_id);
         xdma_local_wait(task_id);
 
-        printf("The xdma is finished\n");
+        printf("xdma task %d is done in %d cycles\n", task_id,
+               xdma_last_task_cycle());
+
         // Check the data
         for (int i = 0; i < 0x4000; i++) {
             if (tcdm_0[i] != 0xFF) {
@@ -117,7 +119,9 @@ int main() {
             task_id);
         xdma_local_wait(task_id);
 
-        printf("The xdma is finished\n");
+        printf("xdma task %d is done in %d cycles\n", task_id,
+               xdma_last_task_cycle());
+
         // Check the data
         for (int i = 0; i < 0x1000; i++) {
             if (tcdm_0[i] != 0xFF) {
@@ -177,7 +181,9 @@ int main() {
             task_id);
         xdma_local_wait(task_id);
 
-        printf("The xdma is finished\n");
+        printf("xdma task %d is done in %d cycles\n", task_id,
+               xdma_last_task_cycle());
+
         uint64_t *result_t3 = (uint64_t *)(tcdm_0 + 0x1000 * sizeof(uint8_t));
         for (int i = 0; i < 0x2000 / 8; i++) {
             if (result_t3[i] != 1) {

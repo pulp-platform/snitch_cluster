@@ -62,7 +62,7 @@ int32_t xdma_enable_dst_ext(uint8_t ext, uint32_t* csr_value);
 int32_t xdma_disable_dst_ext(uint8_t ext);
 
 // Start
-inline static uint32_t xdma_start() {
+static inline uint32_t xdma_start() {
     int local_task_id = csrr_ss(XDMA_COMMIT_LOCAL_TASK_PTR);
     int remote_task_id = csrr_ss(XDMA_COMMIT_REMOTE_TASK_PTR);
     csrw_ss(XDMA_START_PTR, 1);
@@ -88,4 +88,16 @@ static inline void xdma_remote_wait(uint32_t task_id) {
     while (csrr_ss(XDMA_FINISH_REMOTE_TASK_PTR) < task_id) {
         // Wait for xdma to finish
     }
+}
+
+static inline uint32_t xdma_last_task_cycle() {
+    return csrr_ss(XDMA_PERF_CTR_TASK);
+}
+
+static inline uint32_t xdma_last_read_cycle() {
+    return csrr_ss(XDMA_PERF_CTR_READER);
+}
+
+static inline uint32_t xdma_last_write_cycle() {
+    return csrr_ss(XDMA_PERF_CTR_WRITER);
 }
