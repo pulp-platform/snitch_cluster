@@ -91,6 +91,8 @@ module snitch_cc #(
   parameter bit          PrivateIpu         = 0,
   /// Has virtual memory support.
   parameter bit          VMSupport          = 1,
+  /// Width of the collective operation field
+  parameter int unsigned CollectiveWidth    = 1,
   parameter int unsigned NumIntOutstandingLoads = 0,
   parameter int unsigned NumIntOutstandingMem = 0,
   parameter int unsigned NumFPOutstandingLoads = 0,
@@ -719,11 +721,16 @@ module snitch_cc #(
   end
 
   // Decide whether to go to SoC or TCDM
-  dreq_t data_tcdm_req;
-  drsp_t data_tcdm_rsp;
+
   localparam int unsigned SelectWidth = cf_math_pkg::idx_width(2);
   typedef logic [SelectWidth-1:0] select_t;
-  select_t slave_select;
+  typedef enum select_t {SelectTcdm = 1, SelectSoc = 0} select_e;
+
+  dreq_t data_tcdm_req;
+  drsp_t data_tcdm_rsp;
+
+  select_t slave_select, slave_select_coll_op;
+
   reqrsp_demux #(
     .NrPorts (2),
     .req_t (dreq_t),
@@ -733,7 +740,7 @@ module snitch_cc #(
   ) i_reqrsp_demux (
     .clk_i,
     .rst_ni,
-    .slv_select_i (slave_select),
+    .slv_select_i (slave_select_coll_op),
     .slv_req_i (merged_dreq),
     .slv_rsp_o (merged_drsp),
     .mst_req_o ({data_tcdm_req, data_req_o}),
@@ -748,13 +755,13 @@ module snitch_cc #(
 
   reqrsp_rule_t [TCDMAliasEnable:0] addr_map;
   assign addr_map[0] = '{
-    idx: 1,
+    idx: SelectTcdm,
     base: tcdm_addr_base_i,
     mask: ({AddrWidth{1'b1}} << TCDMAddrWidth)
   };
   if (TCDMAliasEnable) begin : gen_tcdm_alias_rule
     assign addr_map[1] = '{
-      idx: 1,
+      idx: SelectTcdm,
       base: TCDMAliasStart,
       mask: ({AddrWidth{1'b1}} << TCDMAddrWidth)
     };
@@ -772,8 +779,18 @@ module snitch_cc #(
     .dec_valid_o (),
     .dec_error_o (),
     .en_default_idx_i (1'b1),
-    .default_idx_i ('0)
+    .default_idx_i (SelectSoc)
   );
+
+  // Collective communication operations are performed within the interconnect at the SoC
+  // level. However, requests destined to the TCDM never arrive at the SoC interconnect,
+  // as they are routed internally within the cluster. In order for collectives destined to
+  // the TCDM to work, we need to handle them differently, and always forward them to the
+  // SoC interconnect, which will reroute them back to the TCDM from outside the cluster.
+  // The collective mask, in the user field, is used to detect collective operations.
+  addr_t collective_mask;
+  assign collective_mask = addr_t'(merged_dreq.q.user[CollectiveWidth+:AddrWidth]);
+  assign slave_select_coll_op = (collective_mask != 0) ? SelectSoc : slave_select;
 
   tcdm_req_t core_tcdm_req;
   tcdm_rsp_t core_tcdm_rsp;

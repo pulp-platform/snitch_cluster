@@ -57,8 +57,12 @@
 #define SNRT_L3_START_ADDR ${hex(dram['address'])}ULL
 #define SNRT_L3_END_ADDR (SNRT_L3_START_ADDR + ${hex(dram['length'])}ULL)
 
-% if cfg['cluster']['enable_multicast']:
-#define SNRT_SUPPORTS_MULTICAST
+#define SNRT_REDUCTION_OPCODE_WIDTH ${cfg['cluster']['reduction_opcode_width']}
+#define SNRT_COLLECTIVE_OPCODE_WIDTH ${cfg['cluster']['collective_width'] - cfg['cluster']['reduction_opcode_width']}
+
+% if cfg['cluster']['enable_narrow_collectives']:
+#define SNRT_SUPPORTS_NARROW_MULTICAST
+#define SNRT_SUPPORTS_NARROW_REDUCTION
 % endif
 
 % if supports_dma:

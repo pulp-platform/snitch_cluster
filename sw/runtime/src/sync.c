@@ -50,6 +50,12 @@ extern uint32_t snrt_global_all_to_all_reduction(uint32_t value);
 
 extern void snrt_wait_writeback(uint32_t val);
 
-extern void snrt_enable_multicast(uint32_t mask);
+extern void snrt_enable_multicast(uint64_t mask);
 
 extern void snrt_disable_multicast();
+
+extern void snrt_enable_reduction(uint64_t mask, uint32_t reduction);
+
+extern void snrt_disable_reduction();
+
+extern void snrt_set_user_field(uint64_t field);

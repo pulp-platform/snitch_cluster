@@ -127,13 +127,17 @@ inline void snrt_mutex_release(volatile uint32_t *pmtx) {
 
 /**
  * @brief Wake the clusters belonging to a given communicator.
+ *        Can only be called by a single core in the whole system!
  * @param comm The communicator determining which clusters to wake up.
+ * @note When multicast is enabled the interrupt is sent also to the cluster
+ *       invoking the function. As a consequence even the core invoking the
+ *       function should clear its own interrupt.
  */
 inline void snrt_wake_clusters(uint32_t core_mask, snrt_comm_t comm = NULL) {
     // If no communicator is given, world communicator is used as default.
     if (comm == NULL) comm = snrt_comm_world;
 
-#ifdef SNRT_SUPPORTS_MULTICAST
+#ifdef SNRT_SUPPORTS_NARROW_MULTICAST
     // Multicast cluster interrupt to every other cluster's core
     // Note: we need to address another cluster's address space
     //       because the cluster XBAR has not been extended to support
@@ -177,11 +181,31 @@ inline void snrt_cluster_hw_barrier() {
 /**
  * @brief Synchronize one core from every cluster with the others.
  * @param comm The communicator determining which clusters synchronize.
+ *             Only used when not employing HW reduction.
  * @details Implemented as a software barrier.
  * @note One core per cluster participating in the barrier must invoke this
- *       function, or the calling cores will stall indefinitely.
+ *       function (the same across all clusters), or the calling cores will
+ *       stall indefinitely.
  */
 static inline void snrt_inter_cluster_barrier(snrt_comm_t comm = NULL) {
+#ifdef SNRT_SUPPORTS_NARROW_REDUCTION
+    // Fetch the address for the reduction
+    uint32_t *addr = (uint32_t *)snrt_remote_l1_ptr(&(snrt_cls()->reduction),
+                                                    snrt_cluster_idx(), 0);
+
+    // Clear the memory location of any previous reduction
+    if (snrt_cluster_idx() == 0) {
+        *addr = 0;
+    }
+
+    // Launch the reduction
+    snrt_enable_reduction(SNRT_BROADCAST_MASK, SNRT_REDUCTION_BARRIER);
+    *addr = 1;
+    snrt_disable_reduction();
+
+    // Fence to wait until the reduction is finished
+    snrt_fence();
+#else
     // If no communicator is given, world communicator is used as default.
     if (comm == NULL) comm = snrt_comm_world;
 
@@ -202,6 +226,7 @@ static inline void snrt_inter_cluster_barrier(snrt_comm_t comm = NULL) {
         // Clear interrupt for next barrier
         snrt_int_clr_mcip();
     }
+#endif
 }
 
 /**
@@ -215,12 +240,14 @@ static inline void snrt_inter_cluster_barrier(snrt_comm_t comm = NULL) {
  *       will stall indefinitely.
  */
 inline void snrt_global_barrier(snrt_comm_t comm) {
+    // Synchronize cores in a cluster with the HW barrier
     snrt_cluster_hw_barrier();
 
-    // Synchronize all DM cores in software
+    // Synchronize all clusters
     if (snrt_is_dm_core()) {
         snrt_inter_cluster_barrier(comm);
     }
+
     // Synchronize cores in a cluster with the HW barrier
     snrt_cluster_hw_barrier();
 }
@@ -264,7 +291,7 @@ inline void snrt_partial_barrier(snrt_barrier_t *barr, uint32_t n) {
  */
 inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
     // Reduce cores within cluster in TCDM
-    uint32_t *cluster_result = &(cls()->reduction);
+    uint32_t *cluster_result = &(snrt_cls()->reduction);
     uint32_t tmp = __atomic_fetch_add(cluster_result, value, __ATOMIC_RELAXED);
 
     // Wait for writeback to ensure AMO is seen by all cores after barrier
@@ -376,6 +403,24 @@ inline void snrt_wait_writeback(uint32_t val) {
 }
 
 //================================================================================
+// User functions
+//================================================================================
+
+/**
+ * @brief Enable LSU AW user field
+ * @details All stores performed after this call are equipped with the given AW
+ *          user field
+ *
+ * @param field Defines the AW user field for the AXI transfer
+ */
+inline void snrt_set_awuser(uint64_t field) {
+    uint32_t user_low = (uint32_t)(field);
+    uint32_t user_high = (uint32_t)(field >> 32);
+    write_csr(user_low, user_low);
+    write_csr(user_high, user_high);
+}
+
+//================================================================================
 // Multicast functions
 //================================================================================
 
@@ -386,9 +431,50 @@ inline void snrt_wait_writeback(uint32_t val) {
  *
  * @param mask Multicast mask value
  */
-inline void snrt_enable_multicast(uint32_t mask) { write_csr(user_low, mask); }
+inline void snrt_enable_multicast(uint64_t mask) {
+    snrt_collective_op_t op;
+    op.f.collective_opcode = SNRT_COLLECTIVE_MULTICAST;
+    op.f.mask = mask;
+    snrt_set_awuser(op.w);
+}
 
 /**
  * @brief Disable LSU multicast
  */
-inline void snrt_disable_multicast() { write_csr(user_low, 0); }
+inline void snrt_disable_multicast() { snrt_set_awuser(0); }
+
+//================================================================================
+// Reduction functions
+//================================================================================
+
+/**
+ * @brief Enable LSU reduction
+ * @details All stores performed after this call will be reductions
+ *
+ * @param mask Mask defines all involved members
+ * @param opcode Type of reduction operation
+ */
+inline void snrt_enable_reduction(uint64_t mask,
+                                  snrt_reduction_opcode_t opcode) {
+    snrt_collective_opcode_t coll_opcode;
+
+    switch (opcode) {
+        case SNRT_REDUCTION_BARRIER:
+            coll_opcode = SNRT_COLLECTIVE_PARALLEL_REDUCTION;
+            break;
+        default:
+            coll_opcode = SNRT_COLLECTIVE_OFFLOAD_REDUCTION;
+            break;
+    }
+
+    snrt_collective_op_t op;
+    op.f.reduction_opcode = opcode;
+    op.f.collective_opcode = coll_opcode;
+    op.f.mask = mask;
+    snrt_set_awuser(op.w);
+}
+
+/**
+ * @brief Disable LSU reduction
+ */
+inline void snrt_disable_reduction() { snrt_set_awuser(0); }
