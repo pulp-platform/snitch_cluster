@@ -62,51 +62,97 @@ static inline uint32_t snrt_dma_start_1d(volatile void *dst, volatile void *src,
     return snrt_dma_start_1d((uint64_t)dst, (uint64_t)src, size, channel);
 }
 
+
 /**
- * @brief Enable multicast for successive transfers.
- * @param mask Multicast mask applied to successive transfers.
+ * @brief Enable collective operations for successive transfers.
+ * @param coll_mask The mask for the collective operation
+ * @param coll_op operation type
+ * @details The next dma transfer will be a collective operation
  */
-inline void snrt_dma_enable_mcast(uint32_t mask) {
-    asm volatile("dmuser %[mask], zero \n" : : [ mask ] "r"(mask));
+inline void snrt_dma_enable_collective(uint64_t coll_mask, uint32_t coll_op) {
+    // Prepare the collective components
+    uint32_t mask_coll_op = (1 << SNRT_COLLECTIVE_WIDTH) - 1;
+    uint32_t usr_lo = (((uint32_t) (coll_mask << SNRT_COLLECTIVE_WIDTH)) | (coll_op & mask_coll_op));
+    uint32_t usr_hi = (((uint32_t) (coll_mask >> (32-SNRT_COLLECTIVE_WIDTH))) & mask_coll_op);
+    // Set the user field
+    asm volatile("dmuser %[usr_lo], %[usr_hi] \n" : : 
+        [ usr_lo ] "r"(usr_lo), [ usr_hi ] "r"(usr_hi));
 }
 
 /**
  * @brief Disable multicast for successive transfers.
- * @details Resets the multicast mask to zero.
+ * @details Resets the collective component to zero.
  */
-inline void snrt_dma_disable_mcast() { asm volatile("dmuser zero, zero \n"); }
+inline void snrt_dma_disable_collective() {
+    asm volatile("dmuser zero, zero \n");
+}
 
 /**
- * @brief Start an asynchronous multicast 1D DMA transfer with 64-bit wide
+ * @brief Start an asynchronous collective 1D DMA transfer with 64-bit wide
  * pointers.
- * @param mask Multicast mask applied on the destination address.
+ * @param coll_mask The mask for the collective operation
+ * @param coll_op operation type
  * @see snrt_dma_start_1d(uint64_t, uint64_t, size_t, uint32_t) for a
  *      description of the other parameters.
  */
-static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
-                                               size_t size, uint32_t mask,
+static inline uint32_t snrt_dma_start_1d_collective(uint64_t dst, uint64_t src,
+                                               size_t size, uint64_t coll_mask,
+                                               uint32_t coll_op,
                                                const uint32_t channel = 0) {
-    snrt_dma_enable_mcast(mask);
+    snrt_dma_enable_collective(coll_mask, coll_op);
     uint32_t txid = snrt_dma_start_1d(dst, src, size, channel);
-    snrt_dma_disable_mcast();
+    snrt_dma_disable_collective();
     return txid;
 }
 
 /**
- * @brief Start an asynchronous multicast 1D DMA transfer using native-size
+ * @brief Start an asynchronous multicast 1D DMA transfer with 64-bit wide
+ * pointers.
+ * @param coll_mask The mask for the multicast operation
+ * @param coll_op operation type
+ * @see snrt_dma_start_1d(uint64_t, uint64_t, size_t, uint32_t) for a
+ *      description of the other parameters.
+ */
+static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
+                                               size_t size, uint64_t mask,
+                                               const uint32_t channel = 0) {
+    snrt_dma_enable_collective(mask, SNRT_COLL_MULTICAST);
+    uint32_t txid = snrt_dma_start_1d(dst, src, size, channel);
+    snrt_dma_disable_collective();
+    return txid;
+}
+
+/**
+ * @brief Start an asynchronous collective 1D DMA transfer using native-size
+ * pointers.
+ *
+ * This is a convenience overload of snrt_dma_start_1d_collective() using `void*`
+ * pointers.
+ *
+ * @see snrt_dma_start_1d_collective(uint64_t, uint64_t, size_t, uint64_t, uint32_t, uint32_t)
+ */
+static inline uint32_t snrt_dma_start_1d_collective(volatile void *dst,
+                                               volatile void *src, size_t size,
+                                               volatile void * coll_mask,
+                                               uint32_t coll_op,
+                                               const uint32_t channel = 0) {
+    return snrt_dma_start_1d_collective((uint64_t)dst, (uint64_t)src, size, (uint64_t)coll_mask, coll_op, channel);
+}
+
+/**
+ * @brief Start an asynchronous collective 1D DMA transfer using native-size
  * pointers.
  *
  * This is a convenience overload of snrt_dma_start_1d_mcast() using `void*`
  * pointers.
  *
- * @see snrt_dma_start_1d_mcast(uint64_t, uint64_t, size_t, uint32_t, uint32_t)
+ * @see snrt_dma_start_1d_mcast(uint64_t, uint64_t, size_t, uint64_t, uint32_t)
  */
 static inline uint32_t snrt_dma_start_1d_mcast(volatile void *dst,
                                                volatile void *src, size_t size,
-                                               uint32_t mask,
+                                               volatile void * mask,
                                                const uint32_t channel = 0) {
-    return snrt_dma_start_1d_mcast((uint64_t)dst, (uint64_t)src, size, mask,
-                                   channel);
+    return snrt_dma_start_1d_mcast((uint64_t)dst, (uint64_t)src, size, (uint64_t)mask, channel);
 }
 
 /**
@@ -291,11 +337,32 @@ inline snrt_dma_txid_t snrt_dma_mcast_load_1d_tile(void *dst, void *src,
                                                    size_t tile_idx,
                                                    size_t tile_size,
                                                    uint32_t prec,
-                                                   uint32_t mcast) {
+                                                   void *mcast) {
     size_t tile_nbytes = tile_size * prec;
-    return snrt_dma_start_1d_mcast((uintptr_t)dst,
-                                   (uintptr_t)src + tile_idx * tile_nbytes,
+    return snrt_dma_start_1d_mcast(dst, (void*) ((char*) src + (tile_idx * tile_nbytes)),
                                    tile_nbytes, mcast);
+}
+
+/**
+ * @brief Load a tile of a 1D array.
+ * @param dst Pointer to the tile destination.
+ * @param src Pointer to the source array.
+ * @param tile_idx Index of the tile in the 1D array.
+ * @param tile_size Number of elements within a tile of the 1D array.
+ * @param prec Number of bytes of each element in the 1D array.
+ * @param coll_mask Multicast mask for collective operation applied on the destination address.
+ * @param coll_op Type of operation (Should only work for multicast)
+ */
+inline snrt_dma_txid_t snrt_dma_collective_load_1d_tile(void *dst, void *src,
+                                                   size_t tile_idx,
+                                                   size_t tile_size,
+                                                   uint32_t prec,
+                                                   void *coll_mask,
+                                                   uint32_t coll_op) {
+    size_t tile_nbytes = tile_size * prec;
+    return snrt_dma_start_1d_collective((uintptr_t)dst,
+                                   (uintptr_t)src + tile_idx * tile_nbytes,
+                                   tile_nbytes, (uintptr_t)coll_mask, coll_op);
 }
 
 /**
