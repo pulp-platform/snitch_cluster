@@ -19,7 +19,7 @@ package:
     - Matheus Cavalcante <matheusd@iis.ee.ethz.ch>
 
 dependencies:
-  axi:                { git: https://github.com/colluca/axi,                      rev:  multicast       }
+  axi:                { git: https://github.com/colluca/axi,                      rev: multicast }
   axi_riscv_atomics:  { git: https://github.com/pulp-platform/axi_riscv_atomics,  version:  0.6.0       }
   common_cells:       { git: https://github.com/pulp-platform/common_cells,       rev:      snitch      }
   apb:                { git: https://github.com/pulp-platform/apb.git,            version:  0.2.2       }

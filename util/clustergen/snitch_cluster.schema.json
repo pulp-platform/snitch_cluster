@@ -161,24 +161,29 @@
                     "description": "The number of separate DMA channels to instantiate.",
                     "default": 1
                 },
-                "user_width": {
-                    "type": "number",
-                    "description": "User width of the narrower AXI plug into the cluster.",
-                    "default": 1
-                },
-                "dma_user_width": {
-                    "type": "number",
-                    "description": "User width of the wide AXI plug into the cluster.",
-                    "default": 1
-                },
                 "atomic_id_width": {
                     "type": "number",
-                    "description": "Width of the cluster's atomics ID.",
+                    "description": "Width of the cluster's atomic ID.",
                     "default": 1
                 },
-                "enable_multicast": {
+                "reduction_opcode_width": {
+                    "type": "number",
+                    "description": "Width of the reduction opcode field.",
+                    "default": 4
+                },
+                "collective_width": {
+                    "type": "number",
+                    "description": "Width of the collective operation information in the awuser field, which includes the reduction opcode.",
+                    "default": 6
+                },
+                "enable_narrow_collectives": {
                     "type": "boolean",
-                    "description": "Whether to enable multicast in the cluster.",
+                    "description": "Whether to enable narrow multicast and reduction support in the cluster. Requires multicast and reduction requests to be handled in the SoC interconnect.",
+                    "default": false
+                },
+                "enable_wide_collectives": {
+                    "type": "boolean",
+                    "description": "Whether to enable wide multicast and reduction support in the cluster. Requires multicast and reduction requests to be handled in the SoC interconnect.",
                     "default": false
                 },
                 "hart_base_id": {
