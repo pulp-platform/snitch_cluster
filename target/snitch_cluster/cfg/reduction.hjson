@@ -11,8 +11,8 @@
         addr_width: 48,
         data_width: 64,
         atomic_id_width: 5, // clog2(total number of clusters)
-        collectiv_width: 6, // # bits used for the collective operation
-        user_width: 59, // addr_width + atomic_id_width + collectiv_width
+        collective_width: 6, // # bits used for the collective operation
+        user_width: 59, // addr_width + atomic_id_width + collective_width
         tcdm: {
             size: 128,
             banks: 32,
@@ -25,14 +25,14 @@
         dma_req_fifo_depth: 8,
         narrow_trans: 4,
         wide_trans: 32,
-        dma_user_width: 48,
+        dma_user_width: 54,
         // Enable the multicast and the reduction feature in the sw (Only Narrow IF - Not DMA calls)
         enable_multicast: true,
         enable_reduction: true,
         // To support the multicast for the DMA
-        enable_DMA_multicast: true,
-        // Currently we need to reroute collectiv operation to the SoC IF independent of the dst address
-        enable_reroute_collectiv: true,
+        enable_dma_multicast: true,
+        // Currently we need to reroute collective operation to the SoC IF independent of the dst address
+        enable_reroute_collective: true,
         // We don't need Snitch debugging in Occamy
         enable_debug: false,
         // We don't need Snitch (core-internal) virtual memory support
@@ -89,16 +89,19 @@
             }
         ]
     },
-    dram: {
-        address: 0x80000000,
-        length: 0x80000000
-    },
-    peripherals: {
-        clint: {
+    external_addr_regions: [
+        {
+            name: "dram",
+            address: 0x80000000,
+            length: 0x80000000,
+            cacheable: true
+        },
+        {
+            name: "clint",
             address: 0xFFFF0000,
             length: 0x1000
         },
-    },
+    ],
     // Templates.
     compute_core_template: {
         isa: "rv32imafd",
