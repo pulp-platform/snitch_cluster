@@ -11,6 +11,7 @@ This script mainly serves to prevent code duplication.
 """
 
 import tomllib
+import sys
 
 
 def add_dependency(dependency: str, version: str):
@@ -29,12 +30,11 @@ PREAMBLE = r"""
 
 context:
   git_repo_url: "https://github.com/kuleuven-micas/snax_cluster"
-  latest_tag: ${{ git.latest_tag( git_repo_url ) }}
-  version: ${{ latest_tag[1:] }}
+  version: {clean_version}
 
 source:
   git: https://github.com/KULeuven-MICAS/snax_cluster
-  tag: v${{ version }}
+  tag: {tag}
 
 about:
   homepage: https://github.com/KULeuven-MICAS/snax_cluster
@@ -51,10 +51,11 @@ PACKAGE_BUILD = """    build:
         - {}"""
 
 if __name__ == "__main__":
+    tag = sys.argv[1]
     # Get conda dependencies from pixi.toml
     with open("../../pixi.toml", "rb") as pixitoml:
         pixiconfig = tomllib.load(pixitoml)["dependencies"]
-        print(PREAMBLE)
+        print(PREAMBLE.format(clean_version=tag[1:], tag=tag))
         # Prebuilt package -> all deps are build deps, build.sh prebuilds
         print(PACKAGE_DEF.format("snax-cluster-prebuilt", "build"))
         add_dependency("git", "")

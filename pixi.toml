@@ -4,7 +4,7 @@
 
 [project]
 authors = ["Josse Van Delm <jvandelm@esat.kuleuven.be>"]
-channels = ["conda-forge","kuleuven-micas"]
+channels = ["conda-forge", "kuleuven-micas"]
 description = "A heterogeneous accelerator-centric compute cluster"
 name = "snax_cluster"
 platforms = ["linux-64"]
@@ -16,9 +16,9 @@ version = "0.2.8"
 python = ">=3.12.0,<3.13"
 verilator = ">=5.30,<6"
 make = ">=4.4.1,<5"
-clang = ">=19.1.7,<20"
-clangxx = ">=19.1.7,<20"
-lld = ">=19.1.7,<20"
+clang = "==20.1.1"
+clangxx = "==20.1.1"
+lld = "==20.1.1"
 pandas = ">=2.2.3,<3"
 jsonref = ">=1.1.0,<2"
 jsonschema = ">=4.23.0,<5"
@@ -38,10 +38,10 @@ boost = ">=1.84.0,<2"
 boost-cpp = ">=1.84.0,<2"
 tabulate = ">=0.9.0,<0.10"
 setuptools = ">=75.8.0,<76"
-llvm-tools = ">=19.1.7,<20"
+llvm-tools = "==20.1.1"
 bender = ">=0.28.2,<0.29"
 hjson-py = ">=3.1.0,<4"
-clang-format = ">=19.1.7,<20"
+clang-format = "==20.1.1"
 wget = ">=1.21.4,<2"
 pip = ">=25.0.1,<26"
 

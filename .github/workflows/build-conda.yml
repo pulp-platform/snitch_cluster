@@ -24,7 +24,7 @@ jobs:
           echo "source /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
       - name: Generate recipe based on pixi.toml
         run: |
-          python genrecipe.py > recipe.yaml
+          python genrecipe.py "${{ github.ref_name }}" > recipe.yaml
         working-directory: util/conda
       - name: Build conda package
         uses: prefix-dev/rattler-build-action@v0.2.23
