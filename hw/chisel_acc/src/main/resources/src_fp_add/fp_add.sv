@@ -229,11 +229,13 @@ module fp_add #(
   assign sum = result_negative ? (~(sum_raw - 1)) : sum_raw;
 
   // The mantissa's can have different widths. Extend with 0 at LSB side for comparison
-  localparam int unsigned MAN_BITS_IN = unsigned'(fpnew_pkg::maximum(MAN_BITS_A, MAN_BITS_B));
-  logic [MAN_BITS_IN-1:0] mantissa_a_ext, mantissa_b_ext;
+  localparam int unsigned PRECISION_BITS_IN = unsigned'(fpnew_pkg::maximum(
+      PRECISION_BITS_A, PRECISION_BITS_B
+  ));
+  logic [PRECISION_BITS_IN-1:0] mantissa_a_ext, mantissa_b_ext;
 
-  assign mantissa_a_ext = mantissa_a << (MAN_BITS_IN - MAN_BITS_A);
-  assign mantissa_b_ext = mantissa_b << (MAN_BITS_IN - MAN_BITS_B);
+  assign mantissa_a_ext = mantissa_a << (PRECISION_BITS_IN - PRECISION_BITS_A);
+  assign mantissa_b_ext = mantissa_b << (PRECISION_BITS_IN - PRECISION_BITS_B);
 
   assign operand_a_larger = (exponent_difference > 0) ? 1'b1 :
                           (exponent_difference < 0) ? 1'b0 :

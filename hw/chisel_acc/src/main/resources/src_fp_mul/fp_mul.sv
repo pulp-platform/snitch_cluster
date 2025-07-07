@@ -47,8 +47,8 @@ module fp_mul #(
   localparam int unsigned PRECISION_BITS_C = MAN_BITS_C + 1;
 
 
-  localparam int unsigned LOWER_SUM_WIDTH = PRECISION_BITS_A + PRECISION_BITS_B;
-  localparam int unsigned LZC_RESULT_WIDTH = $clog2(LOWER_SUM_WIDTH);
+  localparam int unsigned MUL_WIDTH = PRECISION_BITS_A + PRECISION_BITS_B; // Same as LOWER_SUM_WIDTH in original
+  localparam int unsigned LZC_RESULT_WIDTH = $clog2(MUL_WIDTH);
   localparam int unsigned EXP_WIDTH = unsigned'(fpnew_pkg::maximum(
       EXP_BITS_C + 2, LZC_RESULT_WIDTH
   ));
@@ -178,15 +178,12 @@ module fp_mul #(
                                         + signed'(BIAS_C));
 
 
-
   // ------------------
   // Product data path
   // ------------------
-  localparam int unsigned MUL_WIDTH = PRECISION_BITS_A + PRECISION_BITS_B;
   logic [PRECISION_BITS_A-1:0] mantissa_a;
   logic [PRECISION_BITS_B-1:0] mantissa_b;
   logic [MUL_WIDTH-1:0] product;
-  logic [LOWER_SUM_WIDTH-1:0] product_shifted;
 
   // Add implicit bits to mantissa
   assign mantissa_a = {info_a.is_normal, operand_a.mantissa};
@@ -194,53 +191,63 @@ module fp_mul #(
 
   // Mantissa multiplier (a*b)
   assign product = mantissa_a * mantissa_b;
-  assign product_shifted = product;
 
   // --------------
   // Normalization
   // --------------
-  localparam int unsigned SUM_SHIFTED_WIDTH = LOWER_SUM_WIDTH + 1; // Must have 1 bit more than sum_lower
-  localparam int STICKY_BIT_WIDTH = SUM_SHIFTED_WIDTH - (PRECISION_BITS_C + 1);
+  localparam int unsigned PRODUCT_SHIFTED_WIDTH = MUL_WIDTH + 1;  // Must have 1 bit more than product
+  localparam int STICKY_BIT_WIDTH = PRODUCT_SHIFTED_WIDTH - (PRECISION_BITS_C + 1);
   localparam int unsigned PADDING_WIDTH = (STICKY_BIT_WIDTH <= 0) ? -STICKY_BIT_WIDTH : 0;
 
-  logic [LOWER_SUM_WIDTH-1:0] sum_lower;
-  logic leading_zero_count;
-  logic signed [LZC_RESULT_WIDTH:0] leading_zero_count_sgn;  // signed leading-zero count
+  // logic leading_zero_count;
+  logic        [     LZC_RESULT_WIDTH-1:0] leading_zero_count;  // the number of leading zeroes
+  logic signed [       LZC_RESULT_WIDTH:0] leading_zero_count_sgn;  // signed leading-zero count
+  logic                                    lzc_zeroes;
 
-  logic signed [EXP_WIDTH-1:0] normalized_exponent;
+  logic signed [            EXP_WIDTH-1:0] normalized_exponent;
+  logic signed [            EXP_WIDTH-1:0] final_exponent;
+  logic        [PRODUCT_SHIFTED_WIDTH-1:0] product_shifted;
+  logic        [       PRECISION_BITS_C:0] final_mantissa;
+  /* verilator lint_off ASCRANGE */
+  // When STICKY_BIT_WIDTH < 0, the range will be inverted, triggering an error, but the vector will not used
+  logic        [     STICKY_BIT_WIDTH-1:0] sum_sticky_bits;
+  /* verilator lint_on ASCRANGE */
+  logic                                    sticky_after_norm;
 
-  logic [SUM_SHIFTED_WIDTH-1:0] sum_shifted;
-  logic [PRECISION_BITS_C:0] final_mantissa;
-  logic [STICKY_BIT_WIDTH-1:0] sum_sticky_bits;
-  logic sticky_after_norm;
 
-  logic signed [EXP_WIDTH-1:0] final_exponent;
 
-  assign sum_lower = product_shifted;
-
-  // Leading zero counter for cancellations
-  // Mantissa's have 1 at MSB by definition, so the resulting product has either 0 or 1 leading zero's
-  assign leading_zero_count = !sum_lower[LOWER_SUM_WIDTH-1];
+  // For normal case, the mantissa's start with 1 (by definition) so the product has either 0 or 1 leading zero's
+  // For subnormal case, any number of leading zero's is possible
+  lzc #(
+      .WIDTH(MUL_WIDTH),
+      .MODE (1)           // MODE = 1 counts leading zeroes
+  ) i_lzc (
+      .in_i   (product),
+      .cnt_o  (leading_zero_count),
+      .empty_o(lzc_zeroes)
+  );
   assign leading_zero_count_sgn = signed'({1'b0, leading_zero_count});
 
   always_comb begin : norm_shift_amount
-    if ((exponent_product - leading_zero_count_sgn + 1 >= 0)) begin
-      normalized_exponent = exponent_product - leading_zero_count_sgn + 1;  // account for shift
+    if ((exponent_product - leading_zero_count_sgn + 1 >= 0) && !lzc_zeroes) begin
+      normalized_exponent = exponent_product - leading_zero_count_sgn + 1;  // Account for LZC shift
+      // Cancel out leading zero and account for 1 bit wider result. Mantissa's hidden bit will now be at MSB
+      product_shifted = product << (leading_zero_count + 1);
     end else begin
+      // Subnormal result
       normalized_exponent = 0;  // subnormals encoded as 0
+      // Leading mantissa bit must not be discarded: move one bit right to negate later discarding
+      product_shifted = product >> unsigned'(-(exponent_product - leading_zero_count_sgn + 1) + 1);
     end
   end
-
-  // Cancel out leading zero and account for 1 bit larger width of sum_shifted. Mantissa's hidden bit will now be at MSB
-  assign sum_shifted = (leading_zero_count) ? product_shifted << 2 : product_shifted << 1;
 
 
   always_comb begin : small_norm
     // If src is wider than dst: save LSBs in sticky bits
-    if (STICKY_BIT_WIDTH > 0) {final_mantissa, sum_sticky_bits} = sum_shifted;
+    if (STICKY_BIT_WIDTH > 0) {final_mantissa, sum_sticky_bits} = product_shifted;
     // If src is narrower than dst: append 0 at LSBs
     else
-      final_mantissa = {sum_shifted, {(PADDING_WIDTH) {1'b0}}};
+      final_mantissa = {product_shifted, {(PADDING_WIDTH) {1'b0}}};
 
     final_exponent = normalized_exponent;
   end
@@ -271,7 +278,8 @@ module fp_mul #(
   // Assemble result before rounding. In case of overflow, the largest normal value is set.
   assign pre_round_sign = result_sign;
   assign pre_round_exponent = (of_before_round) ? 2**EXP_BITS_C-2 : unsigned'(final_exponent[EXP_BITS_C-1:0]);
-  assign pre_round_mantissa = (of_before_round) ? '1 : final_mantissa[MAN_BITS_C:1]; // bit 0 is R bit
+  // Discard implicit leading bit. Bit 0 is R bit
+  assign pre_round_mantissa = (of_before_round) ? '1 : final_mantissa[MAN_BITS_C:1];
   assign pre_round_abs = {pre_round_exponent, pre_round_mantissa};
 
   // In case of overflow, the round and sticky bits are set for proper rounding

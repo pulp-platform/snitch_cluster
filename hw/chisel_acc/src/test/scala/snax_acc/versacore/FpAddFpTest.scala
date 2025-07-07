@@ -6,9 +6,6 @@
 // Modified by: Robin Geens <robin.geens@kuleuven.be>
 
 package snax_acc.versacore
-
-import scala.util.Random
-
 import chisel3._
 
 import chiseltest._
@@ -19,59 +16,44 @@ import snax_acc.utils.fpUtils
 class FpAddFpTest extends AnyFlatSpec with ChiselScalatestTester with fpUtils {
   behavior of "FPAddFP"
 
+  val test_num = 1000
+
   def test_fp_add_fp(dut: FPAddFP, test_id: Int, A: Float, B: Float) = {
 
-    // Quantize the float
-    val A_uint     = floatToUInt(dut.typeA, A)
-    val A_fp       = uintToFloat(dut.typeA, A_uint)
-    val B_uint     = floatToUInt(dut.typeB, B)
-    val B_fp       = uintToFloat(dut.typeB, B_uint)
-    // Expected result
-    val gold_o     = A_fp + B_fp
-    val expected_o = floatToUInt(dut.typeC, gold_o)
+    val expected_fp = (A, dut.typeA) + (B, dut.typeB)
 
-    val stimulus_a_i = A_uint
-    val stimulus_b_i = B_uint
+    // Quantize the inputs
+    val A_uint = floatToUInt(dut.typeA, A)
+    val B_uint = floatToUInt(dut.typeB, B)
 
-    dut.io.operand_a_i.poke(stimulus_a_i.U)
-    dut.io.operand_b_i.poke(stimulus_b_i.U)
-
+    dut.io.operand_a_i.poke(A_uint.U)
+    dut.io.operand_b_i.poke(B_uint.U)
     dut.clock.step(1)
-    dut.clock.step(1)
-
-    val result    = dut.io.result_o.peek().litValue
-    val result_fp = uintToFloat(dut.typeC, result)
+    val result = dut.io.result_o.peek()
 
     try {
-      // The testbench does not model the module's RNE (Round to Nearest, ties to Even), so result can be 1 bit higher
-      // (but not lower!). Also accept +0 == -0 == 1<<width-1
-      assert((result - expected_o <= 1) || (result == (1 << dut.typeC.width - 1) && expected_o == 0))
+      assert((expected_fp, dut.typeC) === result)
     } catch {
       case e: Throwable => {
+        val A_fp          = quantize(dut.typeA, A)
+        val B_fp          = quantize(dut.typeB, B)
+        val result_fp     = uintToFloat(dut.typeC, result)
+        val expected_uint = floatToUInt(dut.typeC, expected_fp)
         println(f"----Error in test id: $test_id----")
-        println(f"A_fp: ${A_fp} , B_fp: ${B_fp},  gold_o: ${gold_o}")
+        println(f"A_fp: ${A_fp} , B_fp: ${B_fp},  expected_fp: ${expected_fp} -> ${quantize(dut.typeC, expected_fp)}")
         println(
-          f"(expected) ${expected_o.toString(2).grouped(4).mkString("_")} (got) ${result.toString(2).grouped(4).mkString("_")}"
+          f"(expected) ${uintToStr(expected_uint, dut.typeC)} (got) ${uintToStr(result.litValue, dut.typeC)}"
         )
-        println(f"(expected) ${gold_o} (got) ${result_fp}")
+        println(f"(expected) ${quantize(dut.typeC, expected_fp)} (got) ${result_fp}")
         throw e
       }
     }
 
-    dut.clock.step(2)
   }
 
   def test_all_fp_add_fp(dut: FPAddFP) = {
-    // Generate 10 random test cases
-    val test_num  = 100
-    val testCases = Seq.fill(test_num)(
-      (
-        Random.nextFloat() * 20 - 10, // Random float between -10 and 10
-        Random.nextFloat() * 20 - 10
-      )
-    )
+    val testCases = Seq.fill(test_num)((genRandomValue(dut.typeA), genRandomValue(dut.typeB)))
     testCases.zipWithIndex.foreach { case ((a, b), index) => test_fp_add_fp(dut, index + 1, a, b) }
-
   }
 
   it should "perform FP32 + FP32 -> FP32 correctly" in {
@@ -114,5 +96,31 @@ class FpAddFpTest extends AnyFlatSpec with ChiselScalatestTester with fpUtils {
     test(
       new FPAddFP(topmodule = "fp_add", typeA = FP32, typeB = BF16, typeC = FP32)
     ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_add_fp(dut) }
+  }
+
+  it should "handle special cases (NaN, Infinity, Underflow) for FP16 + FP16 -> FP16" in {
+    test(
+      new FPAddFP(topmodule = "fp_add", typeA = FP16, typeB = FP32, typeC = FP16)
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut =>
+      val specialCases = Seq(
+        (Float.NaN, 1.0f),
+        (1.0f, Float.NaN),
+        (Float.NaN, Float.NaN),                           // NaN cases
+        (Float.PositiveInfinity, 1.0f),
+        (1.0f, Float.PositiveInfinity),                   // +inf cases
+        (Float.NegativeInfinity, 1.0f),
+        (1.0f, Float.NegativeInfinity),                   // -inf cases
+        (Float.PositiveInfinity, Float.NegativeInfinity), // inf + -inf = NaN
+        (Float.NegativeInfinity, Float.PositiveInfinity), // -inf + inf = NaN
+        (0.0f, 0.0f),
+        (0.0f, 1.0f),
+        (1.0f, 0.0f),                                     // Zero cases
+        (Float.MinPositiveValue, Float.MinPositiveValue), // Underflow case
+        (Float.MinPositiveValue, 0.0f),
+        (0.0f, Float.MinPositiveValue)                    // Small number cases
+      )
+
+      specialCases.zipWithIndex.foreach { case ((a, b), index) => test_fp_add_fp(dut, index + 1, a, b) }
+    }
   }
 }

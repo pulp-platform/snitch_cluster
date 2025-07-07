@@ -3,7 +3,6 @@ package snax_acc.utils
 import chisel3._
 
 import chiseltest._
-import snax_acc.versacore.FpType
 
 object CommonTestUtils {
 
@@ -34,61 +33,5 @@ object CommonTestUtils {
       waitCnt += 1
     }
   }
-
-}
-
-trait fpUtils {
-
-  /** Generalized helper function to encode Float as UInt */
-  def floatToUInt(expWidth: Int, sigWidth: Int, value: scala.Float): BigInt = {
-    // Sign bit + exponent + significand
-    val totalWidth = expWidth + sigWidth + 1
-
-    // Convert to IEEE 754 32-bit float representation
-    val ieee754Bits = java.lang.Float.floatToIntBits(value)
-
-    // Extract sign, exponent, and significand
-    val sign        = (ieee754Bits >>> 31) & 0x1
-    val exponent    = (ieee754Bits >>> 23) & 0xff
-    val significand = ieee754Bits & 0x7fffff
-
-    // Re-normalize the exponent to fit expWidth
-    val bias32      = 127 // IEEE 754 bias for 32-bit float
-    val biasTarget  = (1 << (expWidth - 1)) - 1
-    val newExponent = (exponent - bias32 + biasTarget).max(0).min((1 << expWidth) - 1)
-
-    // Truncate significand to fit sigWidth
-    val newSignificand = significand >>> (23 - sigWidth)
-
-    // Assemble the custom float representation
-    val customBits = (sign << (expWidth + sigWidth)) | (newExponent << sigWidth) | newSignificand
-    BigInt(customBits & ((1L << totalWidth) - 1)) // Mask to ensure valid bit-width
-  }
-
-  def floatToUInt(fpType: FpType, value: scala.Float): BigInt = floatToUInt(fpType.expWidth, fpType.sigWidth, value)
-
-  /** Generalized helper function to decode UInt to Float */
-  def uintToFloat(expWidth: Int, sigWidth: Int, bits: BigInt): scala.Float = {
-    expWidth + sigWidth + 1 // Sign bit + exponent + significand
-
-    // Extract sign, exponent, and significand
-    val sign        = (bits >> (expWidth + sigWidth)) & 0x1
-    val exponent    = (bits >> sigWidth) & ((1 << expWidth) - 1)
-    val significand = bits & ((1 << sigWidth) - 1)
-
-    // Re-normalize the exponent back to IEEE 754
-    val biasTarget   = (1 << (expWidth - 1)) - 1
-    val bias32       = 127 // IEEE 754 bias for 32-bit float
-    val ieeeExponent = (exponent.toInt - biasTarget + bias32).max(0).min(255)
-
-    // Re-expand the significand to fit IEEE 754
-    val ieeeSignificand = significand.toInt << (23 - sigWidth)
-
-    // Assemble the IEEE 754 representation
-    val ieee754Bits = (sign.toInt << 31) | (ieeeExponent << 23) | ieeeSignificand
-    java.lang.Float.intBitsToFloat(ieee754Bits)
-  }
-
-  def uintToFloat(fpType: FpType, value: BigInt): scala.Float = uintToFloat(fpType.expWidth, fpType.sigWidth, value)
 
 }

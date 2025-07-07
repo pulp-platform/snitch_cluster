@@ -36,7 +36,7 @@ class FPMULFPBlackBox(topmodule: String, typeA: FpType, typeB: FpType, typeC: Fp
 
 }
 
-class FPMULFP(topmodule: String, val typeA: FpType, val typeB: FpType, val typeC: FpType)
+class FpMulFp(topmodule: String, val typeA: FpType, val typeB: FpType, val typeC: FpType)
     extends Module
     with RequireAsyncReset {
 
@@ -56,7 +56,7 @@ class FPMULFP(topmodule: String, val typeA: FpType, val typeB: FpType, val typeC
 
 object FPMULFPEmitter extends App {
   emitVerilog(
-    new FPMULFP(topmodule = "fp_mul", typeA = FP16, typeB = FP16, typeC = FP32),
+    new FpMulFp(topmodule = "fp_mul", typeA = FP16, typeB = FP16, typeC = FP32),
     Array("--target-dir", "generated/versacore")
   )
 }

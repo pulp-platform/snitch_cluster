@@ -38,7 +38,7 @@ class Multiplier(opType: OpType, inputTypeA: DataType, inputTypeB: DataType, inp
     }
 
     case (a: FpType, b: FpType, c: FpType, Float16Float16Op) => {
-      val fpMulfp = Module(new FPMULFP("fp_mul", a, b, c))
+      val fpMulfp = Module(new FpMulFp("fp_mul", a, b, c))
       fpMulfp.io.operand_a_i := io.in_a
       fpMulfp.io.operand_b_i := io.in_b
       io.out_c               := fpMulfp.io.result_o

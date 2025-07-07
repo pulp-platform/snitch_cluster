@@ -18,6 +18,8 @@ package fpnew_pkg;
   // | FP16ALT    | binary16alt      | 16 bit | 8        | 7
   // *NOTE:* Add new formats only at the end of the enumeration for backwards compatibilty!
 
+  /* verilator lint_off ASCRANGE */
+
   // Encoding for a format
   typedef struct packed {
     int unsigned exp_bits;
@@ -477,4 +479,5 @@ package fpnew_pkg;
     return fp_format_e'(0);
   endfunction
 
+  /* verilator lint_on ASCRANGE */
 endpackage
