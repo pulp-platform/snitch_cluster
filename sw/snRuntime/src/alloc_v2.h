@@ -146,8 +146,8 @@ inline void snrt_alloc_init_v2() {
     heap_end_addr -= (1 << SNRT_LOG2_STACK_SIZE) * snrt_cluster_core_num();
     heap_end_addr -= 128;
     // Initialize L1 allocator
-    snrt_l1_allocator_v2()->base =
-        snrt_align_up(snrt_l1_start_addr(), MIN_CHUNK_SIZE);
+    uintptr_t l1_start_addr = (uintptr_t)(snrt_cluster()->tcdm.mem);
+    snrt_l1_allocator_v2()->base = snrt_align_up(l1_start_addr, MIN_CHUNK_SIZE);
     snrt_l1_allocator_v2()->end = heap_end_addr;
     snrt_l1_allocator_v2()->next = snrt_l1_allocator_v2()->base;
 }

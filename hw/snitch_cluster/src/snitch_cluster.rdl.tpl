@@ -15,14 +15,12 @@ def next_power_of_2(n):
     return 1 if n == 0 else 2**math.ceil(math.log2(n))
 %>
 
-`ifndef __${cfg['cluster']['name'].upper()}_WRAPPER_RDL__
-`define __${cfg['cluster']['name'].upper()}_WRAPPER_RDL__
+`ifndef __${cfg['cluster']['name'].upper()}_RDL__
+`define __${cfg['cluster']['name'].upper()}_RDL__
 
 `include "snitch_cluster_peripheral_reg.rdl"
 
-addrmap ${cfg['cluster']['name']}_wrapper #(
-    longint unsigned BASE_ADDR = ${hex(cfg['cluster']['cluster_base_addr'])}
-) {
+addrmap ${cfg['cluster']['name']} {
 
     default regwidth = ${cfg['cluster']['data_width']};
 
@@ -42,14 +40,14 @@ addrmap ${cfg['cluster']['name']}_wrapper #(
     };
 
 
-    external tcdm                 tcdm           @BASE_ADDR;
+    external tcdm                 tcdm           ;
 %if cfg['cluster']['int_bootrom_enable']:
-    external bootrom              bootrom        @BASE_ADDR + ${hex(next_power_of_2(cfg['cluster']['tcdm']['size']) * 1024)};
+    external bootrom              bootrom        @${hex(next_power_of_2(cfg['cluster']['tcdm']['size']) * 1024)};
 % endif
-    snitch_cluster_peripheral_reg peripheral_reg @BASE_ADDR + ${hex((next_power_of_2(cfg['cluster']['tcdm']['size']) + (int(cfg['cluster']['int_bootrom_enable']) * 4)) * 1024)};
-    external zeromem              zeromem        @BASE_ADDR + ${hex((next_power_of_2(cfg['cluster']['tcdm']['size']) + (int(cfg['cluster']['int_bootrom_enable']) * 4) + cfg['cluster']['cluster_periph_size']) * 1024)};
+    snitch_cluster_peripheral_reg peripheral_reg @${hex((next_power_of_2(cfg['cluster']['tcdm']['size']) + (int(cfg['cluster']['int_bootrom_enable']) * 4)) * 1024)};
+    external zeromem              zeromem        @${hex((next_power_of_2(cfg['cluster']['tcdm']['size']) + (int(cfg['cluster']['int_bootrom_enable']) * 4) + cfg['cluster']['cluster_periph_size']) * 1024)};
 
 
 };
 
-`endif // __${cfg['cluster']['name'].upper()}_WRAPPER_RDL__
+`endif // __${cfg['cluster']['name'].upper()}_RDL__

@@ -104,16 +104,6 @@ $(SN_CFG): FORCE
 	fi
 FORCE:
 
-############
-# Software #
-############
-
-include $(SN_ROOT)/target/snitch_cluster/sw.mk
-
-.PHONY: sw clean-sw
-sw: sn-sw
-clean-sw: sn-clean-sw
-
 #######
 # RTL #
 #######
@@ -123,6 +113,16 @@ include $(SN_ROOT)/target/common/rtl.mk
 .PHONY: rtl clean-rtl
 rtl: sn-rtl
 clean-rtl: sn-clean-rtl
+
+############
+# Software #
+############
+
+include $(SN_ROOT)/target/snitch_cluster/sw.mk
+
+.PHONY: sw clean-sw
+sw: sn-sw
+clean-sw: sn-clean-sw
 
 ########
 # Misc #

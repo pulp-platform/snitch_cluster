@@ -376,13 +376,13 @@ static inline int gemm(const gemm_args_t *args) {
                         // the C array to zero in their first iteration
                         if (largs->partition_banks) {
                             snrt_dma_1d_to_2d(
-                                lc[c_buff_idx], snrt_zero_memory_ptr(),
+                                lc[c_buff_idx], snrt_cluster()->zeromem.mem,
                                 tile_c_size,
                                 banks_per_buffer * SNRT_TCDM_BANK_WIDTH,
                                 SNRT_TCDM_HYPERBANK_WIDTH);
                         } else {
                             snrt_dma_start_1d(lc[c_buff_idx],
-                                              snrt_zero_memory_ptr(),
+                                              snrt_cluster()->zeromem.mem,
                                               tile_c_size);
                         }
                     }

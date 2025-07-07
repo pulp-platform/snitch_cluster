@@ -5,7 +5,8 @@
 #include "snrt.h"
 
 uint32_t cluster_global_to_local_address(uint32_t global_addr) {
-    return global_addr - snrt_l1_start_addr() + ALIAS_TCDM_BASE_ADDR;
+    uintptr_t l1_start_addr = (uintptr_t)(snrt_cluster()->tcdm.mem);
+    return global_addr - l1_start_addr + (uintptr_t)snrt_cluster_alias();
 }
 
 const uint32_t n_inputs = 16;
