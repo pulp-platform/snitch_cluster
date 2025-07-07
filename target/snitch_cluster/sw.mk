@@ -42,8 +42,10 @@ SN_PEAKRDL_INCDIRS += -I $(SN_ROOT)/hw/snitch_cluster/src/snitch_cluster_periphe
 SN_PEAKRDL_INCDIRS += -I $(SN_GEN_DIR)
 $(eval $(call peakrdl_generate_header_rule,$(SNITCH_CLUSTER_PERIPHERAL_H),$(SN_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.rdl))
 $(eval $(call peakrdl_generate_header_rule,$(SNITCH_CLUSTER_ADDRMAP_H),$(SNITCH_CLUSTER_ADDRMAP_RDL),$(SN_PEAKRDL_INCDIRS)))
+# Addrmap depends on generated cluster RDL
+$(SNITCH_CLUSTER_ADDRMAP_H): $(SN_CLUSTER_RDL)
 
-$(SNITCH_CLUSTER_RAW_ADDRMAP_H): $(SNITCH_CLUSTER_ADDRMAP_RDL)
+$(SNITCH_CLUSTER_RAW_ADDRMAP_H): $(SNITCH_CLUSTER_ADDRMAP_RDL) $(SN_CLUSTER_RDL)
 	@echo "[peakrdl] Generating $@"
 	$(PEAKRDL) raw-header $< -o $(SNITCH_CLUSTER_RAW_ADDRMAP_H) --base_name $(notdir $(basename $@)) --format c $(SN_PEAKRDL_INCDIRS)
 
