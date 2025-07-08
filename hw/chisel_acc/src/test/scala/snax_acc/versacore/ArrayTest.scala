@@ -23,7 +23,7 @@ class SpatialArrayTest extends AnyFlatSpec with ChiselScalatestTester {
       test(new SpatialArray(params)).withAnnotations(Seq(WriteVcdAnnotation)) { c =>
         val rand = new Random()
 
-        (0 until params.opType.length).map { dataTypeIdx =>
+        (0 until params.inputTypeA.length).map { dataTypeIdx =>
 
           (0 until params.arrayDim(dataTypeIdx).length).map { arrayShapeIdx =>
             // Get the parameters for the current configuration
@@ -52,13 +52,11 @@ class SpatialArrayTest extends AnyFlatSpec with ChiselScalatestTester {
               (0 until Ku).map { k =>
                 val aSInt = toSInt(
                   aValues(i * Ku + k),
-                  inputTypeA.width,
-                  params.opType(dataTypeIdx) == SIntSIntOp
+                  inputTypeA.width
                 ) // Convert UInt to SInt
                 val bSInt = toSInt(
                   bValues(k + j * Ku),
-                  inputTypeB.width,
-                  params.opType(dataTypeIdx) == SIntSIntOp
+                  inputTypeB.width
                 ) // Convert UInt to SInt
                 aSInt * bSInt
               }.sum
@@ -90,12 +88,16 @@ class SpatialArrayTest extends AnyFlatSpec with ChiselScalatestTester {
               ((out_d >> (i * outputTypeD.width)) & (math.pow(2, outputTypeD.width).toLong - 1)).toInt
             }
 
-            println(s"Checking opType${dataTypeIdx + 1} res_cfg${arrayShapeIdx + 1}...")
+            println(s"Checking inputTypeA${dataTypeIdx + 1} res_cfg${arrayShapeIdx + 1}...")
             val expected = expectedResult.flatten
+            val mask     = (1L << outputTypeD.width).toLong - 1
             for (i <- expected.indices) {
               val actual = extractedOutputs(i)
-              // println(s"  Output[$i]: $actual (Expected: ${expected(i)})")
-              assert(actual == expected(i), f"Mismatch at index $i: got 0x$actual%X, expected 0x${expected(i)}%X")
+
+              // Cut outputTypeD.width-bit result
+              val expected_cut = (expected(i) & mask).toInt
+
+              assert(actual == expected_cut, f"Mismatch at index $i: got 0x$actual%X, expected 0x${expected_cut}%X")
             }
 
             c.io.ctrl.accClear.poke(true.B)
@@ -108,12 +110,10 @@ class SpatialArrayTest extends AnyFlatSpec with ChiselScalatestTester {
     }
 
     var params = SpatialArrayParam(
-      opType                 = Seq(UIntUIntOp),
       macNum                 = Seq(1024),
       inputTypeA             = Seq(Int8),
       inputTypeB             = Seq(Int8),
       inputTypeC             = Seq(Int32),
-      mulElemWidth           = Seq(16),
       outputTypeD            = Seq(Int32),
       arrayInputAWidth       = 1024,
       arrayInputBWidth       = 8192,
@@ -121,8 +121,8 @@ class SpatialArrayTest extends AnyFlatSpec with ChiselScalatestTester {
       arrayOutputDWidth      = 4096,
       serialInputADataWidth  = 1024,
       serialInputBDataWidth  = 8192,
-      serialInputCDataWidth  = 512,
-      serialOutputDDataWidth = 512,
+      serialInputCDataWidth  = 4096,
+      serialOutputDDataWidth = 4096,
       arrayDim               = Seq(Seq(Seq(16, 8, 8), Seq(1, 32, 32)))
     )
 
@@ -131,13 +131,10 @@ class SpatialArrayTest extends AnyFlatSpec with ChiselScalatestTester {
 
     // Test for a different configuration
     params = SpatialArrayParam(
-      opType                 = Seq(SIntSIntOp, UIntUIntOp),
-      // opType = Seq(UIntUIntOp, UIntUIntOp),
       macNum                 = Seq(8, 16),
       inputTypeA             = Seq(Int8, Int4),
       inputTypeB             = Seq(Int8, Int4),
       inputTypeC             = Seq(Int32, Int16),
-      mulElemWidth           = Seq(16, 8),
       outputTypeD            = Seq(Int32, Int16),
       arrayInputAWidth       = 64,
       arrayInputBWidth       = 64,
@@ -155,12 +152,10 @@ class SpatialArrayTest extends AnyFlatSpec with ChiselScalatestTester {
     // Test for a different configuration
 
     params = SpatialArrayParam(
-      opType                 = Seq(SIntSIntOp),
       macNum                 = Seq(8),
       inputTypeA             = Seq(Int16),
       inputTypeB             = Seq(Int4),
       inputTypeC             = Seq(Int32),
-      mulElemWidth           = Seq(32),
       outputTypeD            = Seq(Int32),
       arrayInputAWidth       = 64,
       arrayInputBWidth       = 16,

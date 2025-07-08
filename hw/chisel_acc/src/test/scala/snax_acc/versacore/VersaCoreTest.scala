@@ -76,13 +76,11 @@ trait VersaCoreTestHelper extends AnyFlatSpec with ChiselScalatestTester {
 
                 val aSInt = toSInt(
                   aValues(aIdx),
-                  inputTypeA.width,
-                  params.opType(dataTypeIdx) == SIntSIntOp
+                  inputTypeA.width
                 )
                 val bSInt = toSInt(
                   bValues(bIdx),
-                  inputTypeB.width,
-                  params.opType(dataTypeIdx) == SIntSIntOp
+                  inputTypeB.width
                 )
 
                 sum += aSInt * bSInt
@@ -98,7 +96,7 @@ trait VersaCoreTestHelper extends AnyFlatSpec with ChiselScalatestTester {
           n1 <- 0 until Nu
         } {
           val cIdx = m2 * N * Mu * Nu + n2 * Mu * Nu + m1 * Nu + n1
-          val cVal = toSInt(cValues(cIdx), inputTypeC.width, params.opType(dataTypeIdx) == SIntSIntOp)
+          val cVal = toSInt(cValues(cIdx), inputTypeC.width)
           acc(m1)(n1) += cVal
           acc(m1)(n1) = (acc(m1)(n1) & ((1L << outputTypeD.width) - 1)).toInt
         }
@@ -109,17 +107,17 @@ trait VersaCoreTestHelper extends AnyFlatSpec with ChiselScalatestTester {
       // Print the generated values in SInt format
       // println("Generated aValues:")
       // for (i <- aValues.indices) {
-      //   val aSInt = toSInt(aValues(i), inputTypeA.width, params.opType(dataTypeIdx) == SIntSIntOp)
+      //   val aSInt = toSInt(aValues(i), inputTypeA.width)
       //   println(f"$aSInt")
       // }
       // println("Generated bValues:")
       // for (i <- bValues.indices) {
-      //   val bSInt = toSInt(bValues(i), inputTypeB.width, params.opType(dataTypeIdx) == SIntSIntOp)
+      //   val bSInt = toSInt(bValues(i), inputTypeB.width)
       //   println(f"$bSInt")
       // }
       // println("Generated cValues:")
       // for (i <- cValues.indices) {
-      //   val cSInt = toSInt(cValues(i), inputTypeC.width, params.opType(dataTypeIdx) == SIntSIntOp)
+      //   val cSInt = toSInt(cValues(i), inputTypeC.width)
       //   println(f"$cSInt")
       // }
 
@@ -260,12 +258,10 @@ class VersaCoreTest extends VersaCoreTestHelper {
     // Define the test parameters
     val paramsList = Seq(
       SpatialArrayParam(
-        opType                 = Seq(SIntSIntOp, SIntSIntOp),
         macNum                 = Seq(8, 16),
         inputTypeA             = Seq(Int8, Int4),
         inputTypeB             = Seq(Int8, Int4),
         inputTypeC             = Seq(Int32, Int16),
-        mulElemWidth           = Seq(16, 8),
         outputTypeD            = Seq(Int32, Int16),
         arrayInputAWidth       = 64,
         arrayInputBWidth       = 64,
@@ -279,12 +275,10 @@ class VersaCoreTest extends VersaCoreTestHelper {
       ),
       // test different data types
       SpatialArrayParam(
-        opType                 = Seq(SIntSIntOp),
         macNum                 = Seq(8),
         inputTypeA             = Seq(Int16),
         inputTypeB             = Seq(Int4),
         inputTypeC             = Seq(Int32),
-        mulElemWidth           = Seq(32),
         outputTypeD            = Seq(Int32),
         arrayInputAWidth       = 64,
         arrayInputBWidth       = 16,
@@ -300,7 +294,7 @@ class VersaCoreTest extends VersaCoreTestHelper {
 
     // Run the tests
     for (params <- paramsList) {
-      for (dataTypeIdx <- params.opType.indices) {
+      for (dataTypeIdx <- params.inputTypeA.indices) {
         for (arrayShapeIdx <- params.arrayDim(dataTypeIdx).indices) {
           testSingleConfig(params, dataTypeIdx, arrayShapeIdx)
         }

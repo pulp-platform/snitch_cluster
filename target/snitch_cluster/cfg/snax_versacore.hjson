@@ -148,10 +148,6 @@
                 snax_wide_tcdm_ports: 272
                 snax_num_rw_csr: 7
                 snax_num_ro_csr: 2
-                snax_versacore_op_type:
-                [
-                    SIntSInt
-                ]
                 snax_versacore_mac_num:
                 [
                     1024
@@ -160,26 +156,42 @@
                 [
                     8
                 ]
+                snax_versacore_input_a_data_type:
+                [
+                    SInt
+                ]
                 snax_versacore_input_b_element_width:
                 [
                     8
                 ]
-                snax_versacore_multiply_element_width:
+                snax_versacore_input_b_data_type:
+                [
+                    SInt
+                ]
+                snax_versacore_input_c_element_width:
                 [
                     32
                 ]
-                snax_versacore_output_element_width:
+                snax_versacore_input_c_data_type:
+                [
+                    SInt
+                ]
+                snax_versacore_output_d_element_width:
                 [
                     32
+                ]
+                snax_versacore_output_d_data_type:
+                [
+                    SInt
                 ]
                 snax_versacore_array_input_a_width: 1024
                 snax_versacore_array_input_b_width: 8192
                 snax_versacore_array_input_c_width: 4096
-                snax_versacore_array_output_width: 4096
+                snax_versacore_array_output_d_width: 4096
                 snax_versacore_serial_a_width: 1024
                 snax_versacore_serial_b_width: 8192
                 snax_versacore_serial_c_d_width: 4096
-                snax_versacore_adder_tree_delay: 1
+                snax_versacore_adder_tree_delay: 0
                 snax_versacore_spatial_unrolling:
                 [
                     [
@@ -197,9 +209,9 @@
                 ]
                 snax_versacore_temporal_unrolling:
                 [
-                    "output_stationary",
-                    "weight_stationary",
-                    "input_stationary"
+                    input_stationary
+                    output_stationary
+                    weight_stationary
                 ]
                 snax_streamer_cfg:
                 {

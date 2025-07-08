@@ -6,29 +6,11 @@
 
 package snax_acc.versacore
 
-abstract class OpType
-
-object OpType {
-  def fromString(str: String): OpType =
-    str match {
-      case "SIntSInt" => SIntSIntOp
-      case "UIntUInt" => UIntUIntOp
-      case _          => throw new IllegalArgumentException(s"Unsupported OpType: $str")
-    }
-}
-
-object UIntUIntOp       extends OpType
-object SIntSIntOp       extends OpType
-object Float16IntOp     extends OpType
-object Float16Float16Op extends OpType
-
 class SpatialArrayParam(
-  val opType:                 Seq[OpType],
   val macNum:                 Seq[Int],
   val inputTypeA:             Seq[DataType],
   val inputTypeB:             Seq[DataType],
   val inputTypeC:             Seq[DataType],
-  val mulElemWidth:           Seq[Int],
   val outputTypeD:            Seq[DataType],
   val arrayInputAWidth:       Int,
   val arrayInputBWidth:       Int,
@@ -49,12 +31,10 @@ object SpatialArrayParam {
   // test config
   def apply(): SpatialArrayParam =
     apply(
-      opType                 = Seq(UIntUIntOp, SIntSIntOp),
       macNum                 = Seq(1024, 2048),
       inputTypeA             = Seq(Int8, Int4),
       inputTypeB             = Seq(Int8, Int4),
       inputTypeC             = Seq(Int32, Int16),
-      mulElemWidth           = Seq(16, 8),
       outputTypeD            = Seq(Int32, Int16),
       arrayInputAWidth       = 512,
       arrayInputBWidth       = 512,
@@ -72,12 +52,10 @@ object SpatialArrayParam {
     )
 
   def apply(
-    opType:                 Seq[OpType],
     macNum:                 Seq[Int],
     inputTypeA:             Seq[DataType],
     inputTypeB:             Seq[DataType],
     inputTypeC:             Seq[DataType],
-    mulElemWidth:           Seq[Int],
     outputTypeD:            Seq[DataType],
     arrayInputAWidth:       Int,
     arrayInputBWidth:       Int,
@@ -92,12 +70,10 @@ object SpatialArrayParam {
     dataflow:               Seq[String] = Seq("output_stationary", "input_stationary", "weight_stationary")
   ): SpatialArrayParam =
     new SpatialArrayParam(
-      opType                 = opType,
       macNum                 = macNum,
       inputTypeA             = inputTypeA,
       inputTypeB             = inputTypeB,
       inputTypeC             = inputTypeC,
-      mulElemWidth           = mulElemWidth,
       outputTypeD            = outputTypeD,
       arrayInputAWidth       = arrayInputAWidth,
       arrayInputBWidth       = arrayInputBWidth,

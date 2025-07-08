@@ -140,13 +140,13 @@ def emit_matmul_data(**kwargs):
     A_MIN, A_MAX = signed_int_range(a_len)
     b_len = snax_acc_cfg["snax_versacore_input_b_element_width"][data_type]
     B_MIN, B_MAX = signed_int_range(b_len)
-    c_len = snax_acc_cfg["snax_versacore_output_element_width"][data_type]
+    c_len = snax_acc_cfg["snax_versacore_input_c_element_width"][data_type]
     C_MIN, C_MAX = signed_int_range(c_len)
 
     a_array_width = snax_acc_cfg["snax_versacore_array_input_a_width"]
     b_array_width = snax_acc_cfg["snax_versacore_array_input_b_width"]
     c_array_width = snax_acc_cfg["snax_versacore_array_input_c_width"]
-    d_array_width = snax_acc_cfg["snax_versacore_array_output_width"]
+    d_array_width = snax_acc_cfg["snax_versacore_array_output_d_width"]
     assert c_array_width == d_array_width, "C and D array width must be the same"
     snax_versacore_serial_c_d_width = snax_acc_cfg["snax_versacore_serial_c_d_width"]
 

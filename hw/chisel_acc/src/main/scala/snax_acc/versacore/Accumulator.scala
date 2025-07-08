@@ -11,7 +11,6 @@ import chisel3.util._
 
 /** AccumulatorBlock is a single accumulator block that performs accumulation on two input values. */
 class AccumulatorBlock(
-  val opType:     OpType,
   val inputType:  DataType,
   val outputType: DataType
 ) extends Module
@@ -34,7 +33,7 @@ class AccumulatorBlock(
   val accumulatorReg = RegInit(0.U(outputType.width.W))
   // Adder module to perform the accumulation
   val adder          = Module(
-    new Adder(opType, inputType, inputType, outputType)
+    new Adder(inputType, inputType, outputType)
   ).io
 
   // connection description
@@ -55,7 +54,6 @@ class AccumulatorBlock(
   * elements and provides a ready/valid interface.
   */
 class Accumulator(
-  val opType:      OpType,
   val inputType:   DataType,
   val outputType:  DataType,
   val numElements: Int
@@ -74,7 +72,7 @@ class Accumulator(
   // Each block will handle one element of the input vectors
   // and produce one element of the output vector
   val accumulator_blocks = Seq.fill(numElements) {
-    Module(new AccumulatorBlock(opType, inputType, outputType))
+    Module(new AccumulatorBlock(inputType, outputType))
   }
 
   // accumulation update logic, considering the handshake
@@ -105,7 +103,7 @@ class Accumulator(
 
 object AccumulatorEmitterUInt extends App {
   _root_.circt.stage.ChiselStage.emitSystemVerilogFile(
-    new Accumulator(UIntUIntOp, Int8, Int16, 4096),
+    new Accumulator(Int8, Int16, 4096),
     Array("--target-dir", "generated/versacore"),
     Array(
       "--split-verilog",

@@ -75,8 +75,7 @@ class SpatialArray(params: SpatialArrayParam) extends Module with RequireAsyncRe
   )
 
   require(
-    params.opType.length == params.macNum.length        &&
-      params.inputTypeA.length == params.macNum.length  &&
+    params.inputTypeA.length == params.macNum.length    &&
       params.inputTypeB.length == params.macNum.length  &&
       params.inputTypeC.length == params.macNum.length  &&
       params.inputTypeC.length == params.macNum.length  &&
@@ -173,11 +172,10 @@ class SpatialArray(params: SpatialArrayParam) extends Module with RequireAsyncRe
   }
 
   // instantiate a bunch of multipliers with different data type
-  val multipliers = (0 until params.opType.length).map(dataTypeIdx =>
+  val multipliers = (0 until params.inputTypeA.length).map(dataTypeIdx =>
     Seq.fill(params.macNum(dataTypeIdx))(
       Module(
         new Multiplier(
-          params.opType(dataTypeIdx),
           params.inputTypeA(dataTypeIdx),
           params.inputTypeB(dataTypeIdx),
           params.inputTypeC(dataTypeIdx)
@@ -187,7 +185,7 @@ class SpatialArray(params: SpatialArrayParam) extends Module with RequireAsyncRe
   )
 
   // multipliers connection with the output from data feeding network
-  (0 until params.opType.length).foreach(dataTypeIdx =>
+  (0 until params.inputTypeA.length).foreach(dataTypeIdx =>
     multipliers(dataTypeIdx).zipWithIndex.foreach { case (mul, mulIdx) =>
       mul.io.in_a := MuxLookup(
         io.ctrl.arrayShapeCfg,
@@ -205,10 +203,9 @@ class SpatialArray(params: SpatialArrayParam) extends Module with RequireAsyncRe
   )
 
   // instantiate adder tree
-  val adderTree = (0 until params.opType.length).map(dataTypeIdx =>
+  val adderTree = (0 until params.inputTypeA.length).map(dataTypeIdx =>
     Module(
       new AdderTree(
-        params.opType(dataTypeIdx),
         params.inputTypeC(dataTypeIdx),
         params.outputTypeD(dataTypeIdx),
         params.macNum(dataTypeIdx),
@@ -229,10 +226,9 @@ class SpatialArray(params: SpatialArrayParam) extends Module with RequireAsyncRe
   adderTree.foreach(_.io.cfg := io.ctrl.arrayShapeCfg)
 
   // instantiate accumulators
-  val accumulators = (0 until params.opType.length).map(dataTypeIdx =>
+  val accumulators = (0 until params.inputTypeA.length).map(dataTypeIdx =>
     Module(
       new Accumulator(
-        params.opType(dataTypeIdx),
         params.outputTypeD(dataTypeIdx),
         params.outputTypeD(dataTypeIdx),
         params.macNum(dataTypeIdx)
@@ -258,7 +254,7 @@ class SpatialArray(params: SpatialArrayParam) extends Module with RequireAsyncRe
   accumulators.foreach(_.io.accAddExtIn := io.ctrl.accAddExtIn)
   accumulators.foreach(_.io.accClear := io.ctrl.accClear)
   accumulators.foreach(_.io.out.ready := io.data.out_d.ready)
-  (0 until params.opType.length).foreach { dataTypeIdx =>
+  (0 until params.inputTypeA.length).foreach { dataTypeIdx =>
     accumulators(dataTypeIdx).io.enable := io.ctrl.dataTypeCfg === dataTypeIdx.U
   }
 
@@ -304,12 +300,10 @@ object SpatialArrayEmitter extends App {
   )
 
   val params = SpatialArrayParam(
-    opType                 = Seq(UIntUIntOp),
     macNum                 = Seq(1024),
     inputTypeA             = Seq(Int8),
     inputTypeB             = Seq(Int8),
     inputTypeC             = Seq(Int8),
-    mulElemWidth           = Seq(16),
     outputTypeD            = Seq(Int32),
     arrayInputAWidth       = 1024,
     arrayInputBWidth       = 8192,

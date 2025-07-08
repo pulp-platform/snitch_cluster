@@ -16,35 +16,34 @@ class MultiplierIO(inputTypeA: DataType, inputTypeB: DataType, inputTypeC: DataT
 }
 
 /** Multiplier module that supports different operation types */
-class Multiplier(opType: OpType, inputTypeA: DataType, inputTypeB: DataType, inputTypeC: DataType)
+class Multiplier(inputTypeA: DataType, inputTypeB: DataType, inputTypeC: DataType)
     extends Module
     with RequireAsyncReset {
 
   val io = IO(new MultiplierIO(inputTypeA, inputTypeB, inputTypeC))
 
-  (inputTypeA, inputTypeB, inputTypeC, opType) match {
-    case (_: IntType, _: IntType, _: IntType, UIntUIntOp) => io.out_c := io.in_a * io.in_b
+  (inputTypeA, inputTypeB, inputTypeC) match {
 
-    case (_: IntType, _: IntType, _: IntType, SIntSIntOp) =>
+    case (_: IntType, _: IntType, _: IntType) =>
       io.out_c := (io.in_a.asTypeOf(SInt(inputTypeC.width.W)) * io.in_b.asTypeOf(
         SInt(inputTypeC.width.W)
       )).asUInt
 
-    case (a: FpType, b: IntType, c: FpType, Float16IntOp) => {
+    case (a: FpType, b: IntType, c: FpType) => {
       val fpMulInt = Module(new FPMULIntBlackBox("fp_mul_int", a, b, c))
       fpMulInt.io.operand_a_i := io.in_a
       fpMulInt.io.operand_b_i := io.in_b
       io.out_c                := fpMulInt.io.result_o
     }
 
-    case (a: FpType, b: FpType, c: FpType, Float16Float16Op) => {
+    case (a: FpType, b: FpType, c: FpType) => {
       val fpMulfp = Module(new FpMulFp("fp_mul", a, b, c))
       fpMulfp.io.operand_a_i := io.in_a
       fpMulfp.io.operand_b_i := io.in_b
       io.out_c               := fpMulfp.io.result_o
     }
 
-    case (_, _, _, _) => throw new NotImplementedError()
+    case (_, _, _) => throw new NotImplementedError()
 
   }
 
@@ -52,28 +51,28 @@ class Multiplier(opType: OpType, inputTypeA: DataType, inputTypeB: DataType, inp
 
 object MultiplierEmitterUInt extends App {
   emitVerilog(
-    new Multiplier(UIntUIntOp, Int8, Int4, Int16),
+    new Multiplier(Int8, Int4, Int16),
     Array("--target-dir", "generated/versacore")
   )
 }
 
 object MultiplierEmitterSInt extends App {
   emitVerilog(
-    new Multiplier(SIntSIntOp, Int8, Int4, Int16),
+    new Multiplier(Int8, Int4, Int16),
     Array("--target-dir", "generated/versacore")
   )
 }
 
 object MultiplierEmitterFloat16Int4 extends App {
   emitVerilog(
-    new Multiplier(Float16IntOp, FP16, Int4, FP32),
+    new Multiplier(FP16, Int4, FP32),
     Array("--target-dir", "generated/versacore")
   )
 }
 
 object MultiplierEmitterFloat16Float16 extends App {
   emitVerilog(
-    new Multiplier(Float16Float16Op, FP16, FP16, FP32),
+    new Multiplier(FP16, FP16, FP32),
     Array("--target-dir", "generated/versacore")
   )
 }

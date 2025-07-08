@@ -12,17 +12,14 @@ import chisel3.util._
 
 /** AdderTree is a module that implements a tree of adders for efficient parallel addition. It takes multiple input
   * vectors and produces a single output vector.
-  * @param opType
-  *   The type of operation to perform (e.g., UInt, SInt, Float16).
   * @param numElements
   *   The number of elements in the input vector.
   * @param groupSizes
   *   A sequence of group sizes for the adder tree.
   */
 class AdderTree(
-  val opType:      OpType,
   val inputType:   DataType,
-  val outputTpe:   DataType,
+  val outputType:  DataType,
   val numElements: Int,
   val groupSizes:  Seq[Int]
 ) extends Module
@@ -31,7 +28,7 @@ class AdderTree(
 
   val io = IO(new Bundle {
     val in  = Input(Vec(numElements, UInt(inputType.width.W)))
-    val out = Output(Vec(numElements, UInt(outputTpe.width.W)))
+    val out = Output(Vec(numElements, UInt(outputType.width.W)))
     val cfg = Input(UInt(log2Ceil(groupSizes.length + 1).W))
   })
 
@@ -47,24 +44,24 @@ class AdderTree(
   val treeDepth    = log2Ceil(maxGroupSize)
 
   val layers = Wire(
-    Vec(treeDepth + 1, Vec(numElements, UInt(outputTpe.width.W)))
+    Vec(treeDepth + 1, Vec(numElements, UInt(outputType.width.W)))
   )
 
   // Initialize the output type based on the operation type
   // For SIntSIntOp, we need to use SInt for the output
   // For UIntUIntOp, we can use UInt for the output
   // Other types will be handled in the black box adder module as we use UInt for inputs and outputs
-  val outputType = if (opType == SIntSIntOp) {
-    SInt(outputTpe.width.W)
+  val adderTreeInputType = if (inputType == SInt) {
+    SInt(outputType.width.W)
   } else {
-    UInt(outputTpe.width.W)
+    UInt(outputType.width.W)
   }
 
   // Initialize all layers to zero
-  layers.map(_.map(_ := 0.U.asTypeOf(UInt(outputTpe.width.W))))
+  layers.map(_.map(_ := 0.U.asTypeOf(UInt(outputType.width.W))))
   // Initialize the first layer with input values
   layers(0) := VecInit(
-    io.in.map(_.asTypeOf(outputType).asTypeOf(UInt(outputTpe.width.W)))
+    io.in.map(_.asTypeOf(adderTreeInputType).asTypeOf(UInt(outputType.width.W)))
   )
 
   // Generate adder tree layers
@@ -73,7 +70,7 @@ class AdderTree(
     for (i <- 0 until numElements by (2 * step)) {
       // Create adders for the current layer
       val adder = Module(
-        new Adder(opType, outputTpe, outputTpe, outputTpe)
+        new Adder(outputType, outputType, outputType)
       )
       // Connect the inputs of the adder
       // The adder takes two inputs from the current layer
@@ -96,14 +93,14 @@ class AdderTree(
 
 object AdderTreeEmitterUInt extends App {
   emitVerilog(
-    new AdderTree(UIntUIntOp, Int8, new IntType(9), 8, Seq(1, 2, 4)),
+    new AdderTree(Int8, new IntType(9), 8, Seq(1, 2, 4)),
     Array("--target-dir", "generated/versacore")
   )
 }
 
 object AdderTreeEmitterSInt extends App {
   emitVerilog(
-    new AdderTree(SIntSIntOp, Int16, Int32, 1024, Seq(1, 2, 8)),
+    new AdderTree(Int16, Int32, 1024, Seq(1, 2, 8)),
     Array("--target-dir", "generated/versacore")
   )
 }

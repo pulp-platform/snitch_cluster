@@ -22,7 +22,6 @@ class AdderIO(
 
 /** Adder is a module that performs addition on two inputs based on the specified operation type. */
 class Adder(
-  opType:     OpType,
   inputTypeA: DataType,
   inputTypeB: DataType,
   inputTypeC: DataType
@@ -31,24 +30,22 @@ class Adder(
 
   val io = IO(new AdderIO(inputTypeA, inputTypeB, inputTypeC))
 
-  (inputTypeA, inputTypeB, inputTypeC, opType) match {
-    case (_: IntType, _: IntType, _: IntType, UIntUIntOp) => io.out_c := io.in_a + io.in_b
-
-    case (_: IntType, _: IntType, _: IntType, SIntSIntOp) =>
+  (inputTypeA, inputTypeB, inputTypeC) match {
+    case (_: IntType, _: IntType, _: IntType) =>
       io.out_c := (io.in_a.asTypeOf(SInt(inputTypeC.width.W)) + io.in_b.asTypeOf(
         SInt(inputTypeC.width.W)
       )).asUInt
 
-    case (_: FpType, _: IntType, _: FpType, Float16IntOp) => throw new NotImplementedError()
+    case (_: FpType, _: IntType, _: FpType) => throw new NotImplementedError()
 
-    case (a: FpType, b: FpType, c: FpType, Float16Float16Op) => {
+    case (a: FpType, b: FpType, c: FpType) => {
       val fpAddFp = Module(new FPAddFPBlackBox("fp_add", a, b, c))
       fpAddFp.io.operand_a_i := io.in_a
       fpAddFp.io.operand_b_i := io.in_b
       io.out_c               := fpAddFp.io.result_o
     }
 
-    case (_, _, _, _) => throw new NotImplementedError()
+    case (_, _, _) => throw new NotImplementedError()
 
   }
 
@@ -57,21 +54,21 @@ class Adder(
 // Below are the emitters for different adder configurations for testing and evaluation purposes.
 object AdderEmitterUInt extends App {
   emitVerilog(
-    new Adder(UIntUIntOp, Int8, Int4, Int16),
+    new Adder(Int8, Int4, Int16),
     Array("--target-dir", "generated/versacore")
   )
 }
 
 object AdderEmitterSInt extends App {
   emitVerilog(
-    new Adder(SIntSIntOp, Int8, Int4, Int16),
+    new Adder(Int8, Int4, Int16),
     Array("--target-dir", "generated/versacore/adder")
   )
 }
 
 object AdderEmitterFloat16Float16 extends App {
   emitVerilog(
-    new Adder(Float16Float16Op, FP32, FP32, FP32),
+    new Adder(FP32, FP32, FP32),
     Array("--target-dir", "generated/versacore/adder")
   )
 }

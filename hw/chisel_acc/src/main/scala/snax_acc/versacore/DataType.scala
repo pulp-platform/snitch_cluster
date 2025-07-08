@@ -28,6 +28,12 @@ object Int8  extends IntType(8)
 object Int16 extends IntType(16)
 object Int32 extends IntType(32)
 
+object FP8 extends FpType {
+  val expWidth        = 5
+  val sigWidth        = 2
+  val fpnewFormatEnum = "fpnew_pkg::FP8"
+}
+
 object FP16 extends FpType {
   val expWidth        = 5
   val sigWidth        = 10

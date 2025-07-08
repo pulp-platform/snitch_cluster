@@ -7,8 +7,7 @@ import chiseltest._
 object CommonTestUtils {
 
   // Function to convert UInt to SInt manually
-  def toSInt(value: Int, bitWidth: Int, ifTrans: Boolean): Int = {
-    if (!ifTrans) return value
+  def toSInt(value: Int, bitWidth: Int): Int = {
     val mask     = (1L << bitWidth) - 1
     val unsigned = value.toLong & mask
     val signBit  = 1L << (bitWidth - 1)
