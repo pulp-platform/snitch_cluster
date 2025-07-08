@@ -715,7 +715,7 @@ def annotate_snitch(extras: dict,
         if extras['is_load']:
             perf_metrics[-1]['snitch_loads'] += 1
             if extras['rd'] != 0:
-                gpr_wb_info[extras['rd']].appendleft(cycle)
+                gpr_wb_info[extras['rd']].appendleft({'cycle': cycle})
                 ret.append('{:<3} <~~ {}[{}]'.format(
                     REG_ABI_NAMES_I[extras['rd']], LS_SIZES[extras['ls_size']],
                     int_lit(extras['alu_result'], as_hex=int_as_hex)))
@@ -735,7 +735,7 @@ def annotate_snitch(extras: dict,
     # Retired loads and accelerator (includes FPU) data: can come back on stall and during other ops
     if extras['retire_load'] and extras['lsu_rd'] != 0:
         try:
-            start_time = gpr_wb_info[extras['lsu_rd']].pop()
+            start_time = gpr_wb_info[extras['lsu_rd']].pop()['cycle']
             perf_metrics[-1]['snitch_load_latency'] += cycle - start_time
         except IndexError:
             message = (
@@ -772,9 +772,11 @@ def annotate_fpu(
     if extras['acc_q_hs']:
         # If computation initiated: remember FPU destination format and vector length
         if extras['use_fpu'] and not extras['fpu_in_acc']:
-            vlen = flt_op_vlen(insn, 'rd')
-            fpr_wb_info[extras['fpu_in_rd']].appendleft(
-                (extras['dst_fmt'], vlen, cycle))
+            fpr_wb_info[extras['fpu_in_rd']].appendleft({
+                'fmt': extras['dst_fmt'],
+                'vlen': flt_op_vlen(insn, 'rd'),
+                'cycle': cycle
+            })
         # Operands: omit on store
         if not extras['is_store']:
             for i_op in range(3):
@@ -788,8 +790,11 @@ def annotate_fpu(
             if extras['is_load']:
                 perf_metrics[curr_sec]['fpss_loads'] += 1
                 # Load initiated: remember LSU destination format
-                vlen = 1
-                fpr_wb_info[extras['rd']].appendleft((LS_TO_FLOAT[s], vlen, cycle))
+                fpr_wb_info[extras['rd']].appendleft({
+                    'fmt': LS_TO_FLOAT[s],
+                    'vlen': 1,
+                    'cycle': cycle
+                })
                 ret.append('{:<4} <~~ {}[{}]'.format(
                     REG_ABI_NAMES_F[extras['rd']], LS_SIZES[s],
                     int_lit(extras['lsu_qaddr'], as_hex=int_as_hex)))
@@ -810,7 +815,7 @@ def annotate_fpu(
         fmt = 0  # accelerator bus format is 0 for regular float32
         if writer == 'fpu' or writer == 'lsu':
             try:
-                fmt, vlen, start_time = fpr_wb_info[extras['fpr_waddr']].pop()
+                fmt, vlen, start_time = fpr_wb_info[extras['fpr_waddr']].pop().values()
                 if writer == 'lsu':
                     perf_metrics[curr_sec][
                         'fpss_load_latency'] += cycle - start_time
@@ -1163,7 +1168,7 @@ def main():
     # Check for any loose ends and warn before exiting
     def wb_msg(reg_name, transactions):
         n = len(transactions)
-        cycles = ', '.join(map(str, transactions))
+        cycles = ', '.join(sorted(map(lambda x: str(x['cycle']), transactions)))
         return (
             f'Missing {n} writebacks to register {reg_name} from transactions '
             f'initiated at cycles: {cycles}.'
