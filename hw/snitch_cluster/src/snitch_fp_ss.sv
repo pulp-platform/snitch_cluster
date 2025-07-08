@@ -2698,7 +2698,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .NumOutstandingLoads (NumFPOutstandingLoads),
     .NaNBox (1'b1),
     .Caq  (1'b0),
-    .CaqRespSrc (1'b1),
     .CaqRespTrackSeq (Xfrep)
   ) i_snitch_lsu (
     .clk_i (clk_i),

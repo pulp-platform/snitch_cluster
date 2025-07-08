@@ -2901,7 +2901,6 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     .Caq (FP_EN),
     .CaqDepth (CaqDepth),
     .CaqTagWidth (CaqTagWidth),
-    .CaqRespSrc (1'b0),
     .CaqRespTrackSeq (1'b0)
   ) i_snitch_lsu (
     .clk_i (clk_i),

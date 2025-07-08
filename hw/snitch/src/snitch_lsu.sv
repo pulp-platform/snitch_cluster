@@ -30,8 +30,6 @@ module snitch_lsu #(
   parameter int unsigned CaqDepth            = 0,
   /// Size of CAQ address LSB tags; provides a pessimism-complexity tradeoff.
   parameter int unsigned CaqTagWidth         = 0,
-  /// Whether this LSU is a source of CAQ responses (e.g. FPSS).
-  parameter bit          CaqRespSrc          = 0,
   /// Whether the LSU should track repeated instructions issued by a sequencer
   /// and accordingly filter them from its CAQ responses as is necessary.
   parameter bit          CaqRespTrackSeq     = 0,
@@ -71,7 +69,7 @@ module snitch_lsu #(
   /// Fork responses to offloaded loads/stores to here iff `Caq` is 1.
   input  logic                 caq_pvalid_i,
   /// Outgoing CAQ response snoop channel.
-  /// Signals whether access response was handshaked iff `CaqResp` is 1.
+  /// Signals whether access response was handshaked.
   output logic                 caq_pvalid_o,
   /// High if there is currently no transaction pending.
   output logic                 lsu_empty_o,
