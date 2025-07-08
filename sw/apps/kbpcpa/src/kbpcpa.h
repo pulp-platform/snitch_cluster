@@ -110,6 +110,7 @@ inline void kbpcpa(uint32_t l, double k, double* a, double* b, double* c) {
     snrt_sc_enable(mask);
 
     asm volatile(
+        "fence \n"
         "frep.o %[n_frep], 8, 0, 0 \n"
         "fadd.d ft3, ft0, ft1 \n"   // ft3 <-- d = b + c
         "fadd.d ft3, ft0, ft1 \n"   // ft3 <-- d = b + c
