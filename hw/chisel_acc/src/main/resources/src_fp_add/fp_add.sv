@@ -9,13 +9,13 @@
 // Changes: allow for different a, b, and out data types; remove multiplier.
 
 module fp_add #(
-    parameter fpnew_pkg::fp_format_e FpFormat_a   = fpnew_pkg::fp_format_e'(0),
-    parameter fpnew_pkg::fp_format_e FpFormat_b   = fpnew_pkg::fp_format_e'(0),
-    parameter fpnew_pkg::fp_format_e FpFormat_out = fpnew_pkg::fp_format_e'(0),
+    parameter fpnew_pkg_snax::fp_format_e FpFormat_a   = fpnew_pkg_snax::fp_format_e'(0),
+    parameter fpnew_pkg_snax::fp_format_e FpFormat_b   = fpnew_pkg_snax::fp_format_e'(0),
+    parameter fpnew_pkg_snax::fp_format_e FpFormat_out = fpnew_pkg_snax::fp_format_e'(0),
 
-    parameter int unsigned WIDTH_A   = fpnew_pkg::fp_width(FpFormat_a),
-    parameter int unsigned WIDTH_B   = fpnew_pkg::fp_width(FpFormat_b),
-    parameter int unsigned WIDTH_out = fpnew_pkg::fp_width(FpFormat_out)
+    parameter int unsigned WIDTH_A   = fpnew_pkg_snax::fp_width(FpFormat_a),
+    parameter int unsigned WIDTH_B   = fpnew_pkg_snax::fp_width(FpFormat_b),
+    parameter int unsigned WIDTH_out = fpnew_pkg_snax::fp_width(FpFormat_out)
 ) (
     input  logic [  WIDTH_A-1:0] operand_a_i,
     input  logic [  WIDTH_B-1:0] operand_b_i,
@@ -26,17 +26,17 @@ module fp_add #(
   // Constants
   // ----------
   // for operand A
-  localparam int unsigned EXP_BITS_A = fpnew_pkg::exp_bits(FpFormat_a);
-  localparam int unsigned MAN_BITS_A = fpnew_pkg::man_bits(FpFormat_a);
-  localparam int unsigned BIAS_A = fpnew_pkg::bias(FpFormat_a);
+  localparam int unsigned EXP_BITS_A = fpnew_pkg_snax::exp_bits(FpFormat_a);
+  localparam int unsigned MAN_BITS_A = fpnew_pkg_snax::man_bits(FpFormat_a);
+  localparam int unsigned BIAS_A = fpnew_pkg_snax::bias(FpFormat_a);
   // for operand B
-  localparam int unsigned EXP_BITS_B = fpnew_pkg::exp_bits(FpFormat_b);
-  localparam int unsigned MAN_BITS_B = fpnew_pkg::man_bits(FpFormat_b);
-  localparam int unsigned BIAS_B = fpnew_pkg::bias(FpFormat_b);
+  localparam int unsigned EXP_BITS_B = fpnew_pkg_snax::exp_bits(FpFormat_b);
+  localparam int unsigned MAN_BITS_B = fpnew_pkg_snax::man_bits(FpFormat_b);
+  localparam int unsigned BIAS_B = fpnew_pkg_snax::bias(FpFormat_b);
   // for operand C and result
-  localparam int unsigned EXP_BITS_C = fpnew_pkg::exp_bits(FpFormat_out);
-  localparam int unsigned MAN_BITS_C = fpnew_pkg::man_bits(FpFormat_out);
-  localparam int unsigned BIAS_C = fpnew_pkg::bias(FpFormat_out);
+  localparam int unsigned EXP_BITS_C = fpnew_pkg_snax::exp_bits(FpFormat_out);
+  localparam int unsigned MAN_BITS_C = fpnew_pkg_snax::man_bits(FpFormat_out);
+  localparam int unsigned BIAS_C = fpnew_pkg_snax::bias(FpFormat_out);
 
   localparam int unsigned PRECISION_BITS_A = MAN_BITS_A + 1;
   localparam int unsigned PRECISION_BITS_B = MAN_BITS_B + 1;
@@ -74,10 +74,10 @@ module fp_add #(
   // -----------------
   // Input processing
   // -----------------
-  fpnew_pkg::fp_info_t [1:0] info_q;
+  fpnew_pkg_snax::fp_info_t [1:0] info_q;
   fp_a_t                     operand_a;
   fp_b_t                     operand_b;
-  fpnew_pkg::fp_info_t info_a, info_b;
+  fpnew_pkg_snax::fp_info_t info_a, info_b;
 
 
   // Classify input
@@ -229,7 +229,7 @@ module fp_add #(
   assign sum = result_negative ? (~(sum_raw - 1)) : sum_raw;
 
   // The mantissa's can have different widths. Extend with 0 at LSB side for comparison
-  localparam int unsigned PRECISION_BITS_IN = unsigned'(fpnew_pkg::maximum(
+  localparam int unsigned PRECISION_BITS_IN = unsigned'(fpnew_pkg_snax::maximum(
       PRECISION_BITS_A, PRECISION_BITS_B
   ));
   logic [PRECISION_BITS_IN-1:0] mantissa_a_ext, mantissa_b_ext;
@@ -252,7 +252,7 @@ module fp_add #(
   logic [LZC_WIDTH-1:0] leading_zero_count;
   logic lzc_zeroes;
 
-  lzc #(
+  lzc_versacore #(
       .WIDTH(2 * PRECISION_BITS_C + 2),
       .MODE (1)
   ) u_lzc (
@@ -321,7 +321,7 @@ module fp_add #(
       .abs_value_i(pre_round_abs),
       .sign_i(pre_round_sign),
       .round_sticky_bits_i(round_sticky_bits),
-      .rnd_mode_i(fpnew_pkg::RNE),
+      .rnd_mode_i(fpnew_pkg_snax::RNE),
       .effective_subtraction_i(1'b0),
       .abs_rounded_o(rounded_abs),
       .sign_o(rounded_sign),

@@ -13,7 +13,7 @@
 // Furthermore, this unit contains a more efficient implementation for Verilator (simulation only).
 // This speeds up simulation significantly.
 
-module lzc #(
+module lzc_versacore #(
     /// The width of the input vector.
     parameter int unsigned WIDTH = 2,
     parameter bit          MODE  = 1'b0  // 0 -> trailing zero, 1 -> leading zero
@@ -81,4 +81,4 @@ module lzc #(
   assign cnt_o   = NUM_LEVELS > 0 ? index_nodes[0] : '0;
   assign empty_o = NUM_LEVELS > 0 ? ~sel_nodes[0] : ~(|in_i);
 
-endmodule : lzc
+endmodule : lzc_versacore

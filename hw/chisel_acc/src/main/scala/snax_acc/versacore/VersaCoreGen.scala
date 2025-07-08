@@ -6,9 +6,12 @@
 
 package snax_acc.versacore
 
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+
+import chisel3._
 
 // hjson configuration parser, from hjson to SpatialArrayParam
 object SpatialArrayParamParser {
@@ -120,14 +123,37 @@ object VersaCoreGen {
       "default"
     )
 
-    // generate verilog file
-    _root_.circt.stage.ChiselStage.emitSystemVerilogFile(
-      new VersaCore(params),
-      Array(
-        "--target-dir",
-        outPath
+    // Step 1: Get the SystemVerilog string
+    var sv_string = getVerilogString(new VersaCore(params))
+
+    // Step 2: Remove the FIRRTL file list footer
+    sv_string = sv_string
+      .split("\n")
+      .takeWhile(
+        !_.contains(
+          """// ----- 8< ----- FILE "firrtl_black_box_resource_files.f" ----- 8< -----"""
+        )
       )
-    )
+      .mkString("\n")
+
+    // Step 3: Reorder the package if needed
+    val lines: Array[String] = sv_string.split("\n")
+
+    // Find package block range
+    val startIdx = lines.indexWhere(_.contains("package fpnew_pkg_snax"))
+
+    if (startIdx != -1) {
+      val endIdx = lines.indexWhere(_.trim == "endpackage", startIdx)
+      if (endIdx != -1 && endIdx > startIdx) {
+        val pkgBlock       = lines.slice(startIdx, endIdx + 1)
+        val remainingLines = lines.take(startIdx) ++ lines.drop(endIdx + 1)
+        sv_string = (pkgBlock ++ remainingLines).mkString("\n")
+      }
+    }
+
+    // Step 4: Write to file
+    val outFile = Paths.get(s"$outPath/VersaCore.sv")
+    Files.write(outFile, sv_string.getBytes(StandardCharsets.UTF_8))
 
     // generate sv wrapper file
     var macro_template = ""

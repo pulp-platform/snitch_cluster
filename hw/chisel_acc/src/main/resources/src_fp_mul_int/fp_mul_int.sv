@@ -8,16 +8,16 @@
 // Changes: allow for different FP*INT data types; remove adder.
 
 module fp_mul_int #(
-    parameter fpnew_pkg::fp_format_e  FpFormat_a   = fpnew_pkg::fp_format_e'(2),   //FP16 
-    parameter fpnew_pkg::int_format_e IntFormat_b  = fpnew_pkg::int_format_e'(4),  //int4
-    parameter fpnew_pkg::fp_format_e  FpFormat_b   = fpnew_pkg::fp_format_e'(2),   //FP16 
-    parameter fpnew_pkg::fp_format_e  FpFormat_out = fpnew_pkg::fp_format_e'(0),   //FP32
-    parameter fpnew_pkg::roundmode_e  RndMode      = fpnew_pkg::roundmode_e'(0),
+    parameter fpnew_pkg_snax::fp_format_e  FpFormat_a   = fpnew_pkg_snax::fp_format_e'(2),   //FP16 
+    parameter fpnew_pkg_snax::int_format_e IntFormat_b  = fpnew_pkg_snax::int_format_e'(4),  //int4
+    parameter fpnew_pkg_snax::fp_format_e  FpFormat_b   = fpnew_pkg_snax::fp_format_e'(2),   //FP16 
+    parameter fpnew_pkg_snax::fp_format_e  FpFormat_out = fpnew_pkg_snax::fp_format_e'(0),   //FP32
+    parameter fpnew_pkg_snax::roundmode_e  RndMode      = fpnew_pkg_snax::roundmode_e'(0),
 
-    parameter int unsigned WIDTH_a = fpnew_pkg::fp_width(FpFormat_a),  // do not change
-    parameter int unsigned WIDTH_b = fpnew_pkg::fp_width(FpFormat_b),  // do not change
-    parameter int unsigned WIDTH_B = fpnew_pkg::fp_width(IntFormat_b),  // do not change
-    parameter int unsigned WIDTH_out = fpnew_pkg::fp_width(FpFormat_out),  // do not change
+    parameter int unsigned WIDTH_a = fpnew_pkg_snax::fp_width(FpFormat_a),  // do not change
+    parameter int unsigned WIDTH_b = fpnew_pkg_snax::fp_width(FpFormat_b),  // do not change
+    parameter int unsigned WIDTH_B = fpnew_pkg_snax::fp_width(IntFormat_b),  // do not change
+    parameter int unsigned WIDTH_out = fpnew_pkg_snax::fp_width(FpFormat_out),  // do not change
     parameter int unsigned rnd_mode = RndMode  // do not change, we fix the round mode in rtl
 ) (
     // Input Handshake
@@ -44,17 +44,17 @@ module fp_mul_int #(
       .fp16_out(operand_b_i_fp)
   );
 
-  localparam int unsigned EXP_BITS_A = fpnew_pkg::exp_bits(FpFormat_a);
-  localparam int unsigned MAN_BITS_A = fpnew_pkg::man_bits(FpFormat_a);
-  localparam int unsigned BIAS_A = fpnew_pkg::bias(FpFormat_a);
+  localparam int unsigned EXP_BITS_A = fpnew_pkg_snax::exp_bits(FpFormat_a);
+  localparam int unsigned MAN_BITS_A = fpnew_pkg_snax::man_bits(FpFormat_a);
+  localparam int unsigned BIAS_A = fpnew_pkg_snax::bias(FpFormat_a);
   // for operand B
-  localparam int unsigned EXP_BITS_B = fpnew_pkg::exp_bits(FpFormat_b);
-  localparam int unsigned MAN_BITS_B = fpnew_pkg::man_bits(FpFormat_b);
-  localparam int unsigned BIAS_B = fpnew_pkg::bias(FpFormat_b);
+  localparam int unsigned EXP_BITS_B = fpnew_pkg_snax::exp_bits(FpFormat_b);
+  localparam int unsigned MAN_BITS_B = fpnew_pkg_snax::man_bits(FpFormat_b);
+  localparam int unsigned BIAS_B = fpnew_pkg_snax::bias(FpFormat_b);
   // for operand C and result
-  localparam int unsigned EXP_BITS_C = fpnew_pkg::exp_bits(FpFormat_out);
-  localparam int unsigned MAN_BITS_C = fpnew_pkg::man_bits(FpFormat_out);
-  localparam int unsigned BIAS_C = fpnew_pkg::bias(FpFormat_out);
+  localparam int unsigned EXP_BITS_C = fpnew_pkg_snax::exp_bits(FpFormat_out);
+  localparam int unsigned MAN_BITS_C = fpnew_pkg_snax::man_bits(FpFormat_out);
+  localparam int unsigned BIAS_C = fpnew_pkg_snax::bias(FpFormat_out);
 
   localparam int unsigned PRECISION_BITS_A = MAN_BITS_A + 1;
   localparam int unsigned PRECISION_BITS_B = MAN_BITS_B + 1;
@@ -65,7 +65,7 @@ module fp_mul_int #(
                                                 ? (PRECISION_BITS_A + PRECISION_BITS_B) 
                                                 : (PRECISION_BITS_C );
   localparam int unsigned LZC_RESULT_WIDTH = $clog2(LOWER_SUM_WIDTH);
-  localparam int unsigned EXP_WIDTH = unsigned'(fpnew_pkg::maximum(
+  localparam int unsigned EXP_WIDTH = unsigned'(fpnew_pkg_snax::maximum(
       EXP_BITS_C + 2, LZC_RESULT_WIDTH
   ));
   // (PRECISION_BITS_C + 2) + (PRECISION_BITS_A + PRECISION_BITS_B) + 2 - 1
@@ -98,10 +98,10 @@ module fp_mul_int #(
   // -----------------
   // Input processing
   // -----------------
-  fpnew_pkg::fp_info_t [1:0] info_q;
+  fpnew_pkg_snax::fp_info_t [1:0] info_q;
   fp_a_t                     operand_a;
   fp_b_t                     operand_b;
-  fpnew_pkg::fp_info_t info_a, info_b;
+  fpnew_pkg_snax::fp_info_t info_a, info_b;
 
 
   // Classify input
@@ -242,7 +242,7 @@ module fp_mul_int #(
   assign sum_lower = product_shifted[LOWER_SUM_WIDTH-1:0];
 
   // Leading zero counter for cancellations
-  lzc #(
+  lzc_versacore #(
       .WIDTH(LOWER_SUM_WIDTH),
       .MODE (1)                 // MODE = 1 counts leading zeroes
   ) i_lzc (
@@ -315,7 +315,7 @@ module fp_mul_int #(
       .abs_value_i            (pre_round_abs),
       .sign_i                 (pre_round_sign),
       .round_sticky_bits_i    (round_sticky_bits),
-      .rnd_mode_i             (fpnew_pkg::RNE),
+      .rnd_mode_i             (fpnew_pkg_snax::RNE),
       .effective_subtraction_i(1'b0),               // pure mul, no subtraction
       .abs_rounded_o          (rounded_abs),
       .sign_o                 (rounded_sign),

@@ -29,7 +29,7 @@ class FPMULIntBlackBox(topmodule: String, typeA: FpType, typeB: IntType, typeC: 
   })
   override def desiredName: String = topmodule
 
-  addResource("common_block/fpnew_pkg.sv")
+  addResource("common_block/fpnew_pkg_snax.sv")
   addResource("common_block/fpnew_classifier.sv")
   addResource("common_block/fpnew_rounding.sv")
   addResource("common_block/lzc.sv")

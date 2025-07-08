@@ -14,7 +14,7 @@ abstract class FpType extends DataType {
   val expWidth: Int
   val sigWidth: Int
   def width = expWidth + sigWidth + 1
-  // Corresponding enum name in fpnew_pkg::fp_format_e
+  // Corresponding enum name in fpnew_pkg_snax::fp_format_e
   val fpnewFormatEnum: String
 }
 
@@ -31,23 +31,23 @@ object Int32 extends IntType(32)
 object FP8 extends FpType {
   val expWidth        = 5
   val sigWidth        = 2
-  val fpnewFormatEnum = "fpnew_pkg::FP8"
+  val fpnewFormatEnum = "fpnew_pkg_snax::FP8"
 }
 
 object FP16 extends FpType {
   val expWidth        = 5
   val sigWidth        = 10
-  val fpnewFormatEnum = "fpnew_pkg::FP16"
+  val fpnewFormatEnum = "fpnew_pkg_snax::FP16"
 }
 
 object FP32 extends FpType {
   val expWidth        = 8
   val sigWidth        = 23
-  val fpnewFormatEnum = "fpnew_pkg::FP32"
+  val fpnewFormatEnum = "fpnew_pkg_snax::FP32"
 
 }
 object BF16 extends FpType {
   val expWidth        = 8
   val sigWidth        = 7
-  val fpnewFormatEnum = "fpnew_pkg::FP16ALT"
+  val fpnewFormatEnum = "fpnew_pkg_snax::FP16ALT"
 }

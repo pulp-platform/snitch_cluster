@@ -4,7 +4,7 @@
 
 // Author: Stefan Mach <smach@iis.ee.ethz.ch>
 
-package fpnew_pkg;
+package fpnew_pkg_snax;
 
   // ---------
   // FP TYPES
