@@ -1,9 +1,9 @@
 [submodule "sw/deps/riscv-opcodes"]
 	path = sw/deps/riscv-opcodes
-	url = git@github.com:pulp-platform/riscv-opcodes.git
+	url = https://github.com:pulp-platform/riscv-opcodes.git
 [submodule "sw/deps/printf"]
 	path = sw/deps/printf
 	url = https://github.com/mpaland/printf.git
 [submodule "sw/deps/riscv-tests"]
 	path = sw/deps/riscv-tests
-	url = git@github.com:riscv-software-src/riscv-tests.git
+	url = https://github.com:riscv-software-src/riscv-tests.git
