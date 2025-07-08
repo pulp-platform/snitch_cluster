@@ -8,7 +8,7 @@ SN_BOOTROM_DIR ?= $(SN_TARGET_DIR)/test
 # Templates
 SN_CLUSTER_WRAPPER_TPL = $(SN_HW_DIR)/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl
 SN_CLUSTER_PKG_TPL     = $(SN_HW_DIR)/snitch_cluster/src/snitch_cluster_pkg.sv.tpl
-SN_CLUSTER_RDL_TPL	   = $(SN_HW_DIR)/snitch_cluster/src/snitch_cluster_wrapper.rdl.tpl
+SN_CLUSTER_RDL_TPL	   = $(SN_HW_DIR)/snitch_cluster/src/snitch_cluster.rdl.tpl
 
 # Generated RTL sources
 SN_CLUSTER_WRAPPER     = $(SN_GEN_DIR)/snitch_cluster_wrapper.sv
@@ -17,7 +17,7 @@ SN_CLUSTER_ADDRMAP_SVH = $(SN_GEN_DIR)/snitch_cluster_addrmap.svh
 SN_CLUSTER_PERIPH      = $(SN_PERIPH_DIR)/snitch_cluster_peripheral_reg.sv
 SN_CLUSTER_PERIPH_PKG  = $(SN_PERIPH_DIR)/snitch_cluster_peripheral_reg_pkg.sv
 SN_BOOTROM             = $(SN_BOOTROM_DIR)/snitch_bootrom.sv
-SN_CLUSTER_RDL         = $(SN_GEN_DIR)/snitch_cluster_wrapper.rdl
+SN_CLUSTER_RDL         = $(SN_GEN_DIR)/snitch_cluster.rdl
 
 # All generated RTL sources
 SN_GEN_RTL_SRCS = $(SN_CLUSTER_WRAPPER) $(SN_CLUSTER_PKG) $(SN_CLUSTER_ADDRMAP_SVH) $(SN_CLUSTER_PERIPH) $(SN_CLUSTER_PERIPH_PKG) $(SN_BOOTROM)

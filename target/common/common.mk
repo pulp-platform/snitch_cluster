@@ -86,11 +86,12 @@ $(SN_GEN_DIR) $(SN_BIN_DIR):
 ########
 
 # Common rule to generate C header with peakRDL
-# $1: target name, $2: prerequisite (rdl description file)
-define peakrdl_generate_header
-	@echo "[peakRDL] Generating $1"
-	$(PEAKRDL) c-header -b ltoh $2 -o $1
-	@$(CLANG_FORMAT) -i $1
+# $1: target name, $2: prerequisite (rdl description file), $3 (optional) additional peakRDL flags
+define peakrdl_generate_header_rule
+$(1): $(2)
+	@echo "[peakRDL] Generating $$@"
+	$(PEAKRDL) c-header $$< -o $$@ -i -b ltoh $(3)
+	@$(CLANG_FORMAT) -i $$@
 endef
 
 # Arg 1: binary

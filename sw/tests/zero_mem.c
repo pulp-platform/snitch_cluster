@@ -10,7 +10,7 @@ int main() {
     uint32_t n_inputs = 4;
 
     // Get memory locations
-    uint32_t *zero_mem = (uint32_t *)snrt_zero_memory_ptr();
+    uint32_t *zero_mem = (uint32_t *)snrt_cluster()->zeromem.mem;
     uint32_t *buffer_tcdm = (uint32_t *)snrt_l1_next();
     uint32_t *buffer_golden = (uint32_t *)((uintptr_t)snrt_l1_next() + 128);
 

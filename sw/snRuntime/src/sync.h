@@ -85,19 +85,24 @@ inline void snrt_wake_all(uint32_t core_mask) {
     //       multicast yet. We address the second cluster, if we are the
     //       first cluster, and the first cluster otherwise.
     if (snrt_cluster_num() > 0) {
-        uintptr_t addr = (uintptr_t)snrt_cluster_clint_set_ptr() -
-                         SNRT_CLUSTER_OFFSET * snrt_cluster_idx();
-        if (snrt_cluster_idx() == 0) addr += SNRT_CLUSTER_OFFSET;
+        volatile snitch_cluster_t *cluster;
+        if (snrt_cluster_idx() == 0)
+            cluster = snrt_cluster(1);
+        else
+            cluster = snrt_cluster(0);
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Waddress-of-packed-member"
+        uint32_t *addr = (uint32_t *)&(cluster->peripheral_reg.cl_clint_set.w);
+#pragma clang diagnostic pop
         snrt_enable_multicast(SNRT_BROADCAST_MASK);
-        *((uint32_t *)addr) = core_mask;
+        *addr = core_mask;
         snrt_disable_multicast();
     }
 #else
     for (int i = 0; i < snrt_cluster_num(); i++) {
         if (snrt_cluster_idx() != i) {
-            void *ptr = snrt_remote_l1_ptr((void *)snrt_cluster_clint_set_ptr(),
-                                           snrt_cluster_idx(), i);
-            *((uint32_t *)ptr) = core_mask;
+            snrt_cluster(i)->peripheral_reg.cl_clint_set.f.cl_clint_set =
+                core_mask;
         }
     }
 #endif

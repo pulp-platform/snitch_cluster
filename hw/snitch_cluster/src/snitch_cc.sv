@@ -876,7 +876,7 @@ module snitch_cc #(
   end
 
   // verilog_lint: waive-start always-ff-non-blocking
-  always_ff @(posedge clk_i) begin
+  always_ff @(posedge clk_i or negedge rst_ni) begin
     automatic string trace_entry;
     automatic string extras_str;
     automatic snitch_pkg::snitch_trace_port_t extras_snitch;

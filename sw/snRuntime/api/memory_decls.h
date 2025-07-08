@@ -6,14 +6,8 @@
 
 #include <stdint.h>
 
-inline uint32_t __attribute__((const)) snrt_l1_start_addr();
+inline volatile snitch_cluster_t* snrt_cluster_alias();
 
-inline uint32_t __attribute__((const)) snrt_l1_end_addr();
+inline volatile snitch_cluster_t* snrt_cluster(int cluster_idx);
 
-inline volatile uint32_t* __attribute__((const)) snrt_clint_mutex_ptr();
-
-inline volatile uint32_t* __attribute__((const)) snrt_clint_msip_ptr();
-
-inline volatile uint32_t* __attribute__((const)) snrt_cluster_clint_set_ptr();
-
-inline volatile uint32_t* __attribute__((const)) snrt_cluster_clint_clr_ptr();
+inline volatile snitch_cluster_t* snrt_cluster();

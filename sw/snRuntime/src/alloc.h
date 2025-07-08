@@ -115,9 +115,10 @@ inline void snrt_alloc_init() {
         // Note: at the moment the allocator assumes all of the TCDM is
         // available for allocation. However, the CLS, TLS and stack already
         // occupy a possibly significant portion.
+        uintptr_t l1_start_addr = (uintptr_t)(snrt_cluster()->tcdm.mem);
         snrt_l1_allocator()->base =
-            snrt_align_up(snrt_l1_start_addr(), MIN_CHUNK_SIZE);
-        snrt_l1_allocator()->end = snrt_l1_end_addr();
+            snrt_align_up(l1_start_addr, MIN_CHUNK_SIZE);
+        snrt_l1_allocator()->end = l1_start_addr + SNRT_TCDM_SIZE;
         snrt_l1_allocator()->next = snrt_l1_allocator()->base;
         // Initialize L3 allocator
         extern uint32_t _edram;
