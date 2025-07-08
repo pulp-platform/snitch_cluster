@@ -12,10 +12,10 @@
     }
     cluster:
     {
-        name: snax_KUL_cluster
+        name: snax_versacore_cluster
         bender_target:
         [
-            snax_KUL_cluster
+            snax_versacore_cluster
         ]
         boot_addr: 4096
         cluster_base_addr: 268435456
@@ -235,9 +235,9 @@
         {
             bender_target:
             [
-                snax_KUL_cluster_xdma
+                snax_versacore_cluster_xdma
             ]
-            max_multicast: 4
+            max_multicast: 16
             max_dimension: 5
             max_mem_size: 4096
             reader_buffer: 12

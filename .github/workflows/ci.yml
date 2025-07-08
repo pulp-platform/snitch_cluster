@@ -322,7 +322,7 @@ jobs:
           sw/runtime.yaml \
           sw/snax-xdma-run.yaml -j
 
-  snax-VersaCore-cluster-vlt-generic:
+  snax-versaCore-cluster-vlt-generic:
     name: Simulate SW on VersaCore cluster w/ Verilator (Generic LLVM)
     runs-on: ubuntu-22.04
     steps:
@@ -338,19 +338,50 @@ jobs:
       - name: Generate RTL
         run: |
           make -C target/snitch_cluster rtl-gen \
-          CFG_OVERRIDE=cfg/snax_versacore.hjson
+          CFG_OVERRIDE=cfg/snax_versacore_cluster.hjson
       - name: Build Hardware
         run: |
-          make CFG_OVERRIDE=cfg/snax_versacore.hjson \
+          make CFG_OVERRIDE=cfg/snax_versacore_cluster.hjson \
           -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
       - name: Build Software
         run: |
           make -C target/snitch_cluster sw \
-          CFG_OVERRIDE=cfg/snax_versacore.hjson
+          CFG_OVERRIDE=cfg/snax_versacore_cluster.hjson
       - name: Run Tests
         working-directory: target/snitch_cluster
         run: |-
           ./run.py --simulator verilator \
           sw/runtime.yaml \
           sw/snax-versacore-matmul-run.yaml \
+          sw/snax-xdma-run.yaml -j
+
+  snax-xdma-cluster-vlt-generic:
+    name: Simulate SW on XDMA cluster w/ Verilator (Generic LLVM)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: "recursive"
+      - uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          cache: true
+          cache-write: ${{ github.event_name == 'push' &&
+            github.ref_name == 'main' }}
+          activate-environment: true
+      - name: Generate RTL
+        run: |
+          make -C target/snitch_cluster rtl-gen \
+          CFG_OVERRIDE=cfg/snax_xdma_cluster.hjson
+      - name: Build Hardware
+        run: |
+          make CFG_OVERRIDE=cfg/snax_xdma_cluster.hjson \
+          -C target/snitch_cluster bin/snitch_cluster.vlt -j$(nproc)
+      - name: Build Software
+        run: |
+          make -C target/snitch_cluster sw \
+          CFG_OVERRIDE=cfg/snax_xdma_cluster.hjson
+      - name: Run Tests
+        working-directory: target/snitch_cluster
+        run: |-
+          ./run.py --simulator verilator \
           sw/snax-xdma-run.yaml -j

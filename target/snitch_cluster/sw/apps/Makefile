@@ -45,13 +45,19 @@ SUBDIRS += snax-data-reshuffler
 SUBDIRS += snax-gemmx-matmul
 SUBDIRS += snax-gemmx-conv
 endif
+ifeq ($(CFG_OVERRIDE), cfg/snax_xdma_cluster.hjson)
+SUBDIRS += snax-xdma-memset
+SUBDIRS += snax-xdma-maxpool
+SUBDIRS += snax-xdma-transpose
+SUBDIRS += snax-xdma-reshape-comparison
+endif
 ifeq ($(CFG_OVERRIDE), cfg/snax_KUL_cluster.hjson)
 SUBDIRS += snax-xdma-memset
 SUBDIRS += snax-xdma-maxpool
 SUBDIRS += snax-xdma-transpose
 SUBDIRS += snax-xdma-reshape-comparison
 endif
-ifeq ($(CFG_OVERRIDE), cfg/snax_versacore.hjson)
+ifeq ($(CFG_OVERRIDE), cfg/snax_versacore_cluster.hjson)
 SUBDIRS += snax-versacore-matmul
 SUBDIRS += snax-xdma-memset
 SUBDIRS += snax-xdma-maxpool
