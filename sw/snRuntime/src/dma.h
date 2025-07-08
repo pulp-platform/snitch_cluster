@@ -239,21 +239,26 @@ inline void snrt_dma_stop_tracking() { asm volatile("dmstati zero, 0 \n"); }
  * @brief Fast memset function performed by DMA.
  * @param ptr Pointer to the start of the region.
  * @param value Value to set.
- * @param len Number of bytes, must be a multiple of the DMA bus width.
+ * @param len Number of bytes, must be a multiple of the DMA bus width to use
+ *            the DMA.
  */
 inline void snrt_dma_memset(void *ptr, uint8_t value, uint32_t len) {
-    // set first 64bytes to value
-    // memset(ptr, value, 64);
+    // We set the first 64 bytes to the value, and then we use the DMA to copy
+    // these into the remaining memory region. DMA is used only if len is
+    // larger than 64 bytes, and an integer multiple of 64 bytes.
+    size_t n_1d_transfers = len / 64;
+    size_t use_dma = (len % 64) == 0 && len > 64;
     uint8_t *p = (uint8_t *)ptr;
-    uint32_t nbytes = 64;
+
+    uint32_t nbytes = len < 64 || !use_dma ? len : 64;
     while (nbytes--) {
         *p++ = value;
     }
 
-    // DMA copy the the rest
-    snrt_dma_txid_t memset_txid =
-        snrt_dma_start_2d(ptr, ptr, 64, 64, 0, len / 64);
-    snrt_dma_wait_all();
+    if (use_dma) {
+        snrt_dma_start_2d(ptr, ptr, 64, 64, 0, n_1d_transfers);
+        snrt_dma_wait_all();
+    }
 }
 
 /**
