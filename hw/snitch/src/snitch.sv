@@ -153,7 +153,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic [31:0] alu_result;
 
   logic [RegWidth-1:0] rd, rs1, rs2;
-  logic stall, lsu_stall, nonacc_stall;
+  logic stall, lsu_stall, acc_stall, nonacc_stall, fence_stall;
   // Register connections
   logic [1:0][RegWidth-1:0] gpr_raddr;
   logic [1:0][31:0]         gpr_rdata;
@@ -170,7 +170,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic st_addr_misaligned;
   logic inst_addr_misaligned;
 
-  logic caq_qvalid, caq_qready, caq_ena;
+  logic caq_qvalid, caq_qready, caq_ena, caq_empty;
 
   logic  itlb_valid, itlb_ready;
   va_t   itlb_va;
@@ -210,7 +210,6 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic retire_i; // retire the rest of the base instruction set
   logic retire_acc; // retire an instruction we offloaded
 
-  logic acc_stall;
   logic valid_instr;
   logic exception;
 
@@ -463,15 +462,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign acc_stall = acc_qvalid_o & ~acc_qready_i | (caq_ena & ~caq_qready);
   // the LSU Interface didn't accept our request yet
   assign lsu_stall = lsu_tlb_qvalid & ~lsu_tlb_qready;
-  // Stall the stage if we either didn't get a valid instruction or the LSU is not ready.
+  // Stall the stage if we either didn't get a valid instruction, the LSU is not ready
+  // or we are waiting on a fence instruction.
   // We do not include accelerator stalls in this signal for loop-free CAQ enable control.
-  assign nonacc_stall = ~valid_instr
-                // The LSU is stalling.
-                | lsu_stall
-                // We are waiting on the `fence.i` flush.
-                | (flush_i_valid_o & ~flush_i_ready_i)
-                // We are waiting on the `fence` flush.
-                | (valid_instr & (inst_data_i ==? FENCE) & ~lsu_empty);
+  assign nonacc_stall = ~valid_instr | lsu_stall | fence_stall;
   // To get the signal for all stall conditions, add the accelerator stalls.
   assign stall = nonacc_stall | acc_stall;
 
@@ -562,6 +556,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         ) ? valid_instr : debug_q;
 
     csr_en = 1'b0;
+    fence_stall = 1'b0;
+
     // Debug request and wake up are possibilties to move out of
     // the low power state.
     wfi_d = ((DebugSupport && irq_i.debug) || debug_q || any_interrupt_pending) ? 1'b0 : wfi_q;
@@ -880,12 +876,13 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           debug_d = ~valid_instr;
         end
       end
-      // Decode as NOP
       FENCE: begin
+        fence_stall = valid_instr && !(lsu_empty && caq_empty);
         write_rd = 1'b0;
       end
       FENCE_I: begin
         flush_i_valid_o = valid_instr;
+        fence_stall = flush_i_valid_o & ~flush_i_ready_i;
       end
       SFENCE_VMA: begin
         if (priv_lvl_q == PrivLvlU) illegal_inst = 1'b1;
@@ -2928,6 +2925,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     .caq_qready_o (caq_qready),
     .caq_pvalid_i,
     .caq_pvalid_o ( ),
+    .caq_empty_o (caq_empty),
     .data_req_o,
     .data_rsp_i
   );

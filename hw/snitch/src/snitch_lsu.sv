@@ -73,6 +73,8 @@ module snitch_lsu #(
   output logic                 caq_pvalid_o,
   /// High if there is currently no transaction pending.
   output logic                 lsu_empty_o,
+  /// High if the CAQ is empty.
+  output logic                 caq_empty_o,
   // Memory Interface Channel
   output dreq_t                data_req_o,
   input  drsp_t                data_rsp_i
@@ -140,7 +142,10 @@ module snitch_lsu #(
       .oup_req_i        ( caq_pvalid_i ),
       .oup_data_o       (  ),
       .oup_data_valid_o ( caq_out_valid ),
-      .oup_gnt_o        ( caq_out_gnt )
+      .oup_gnt_o        ( caq_out_gnt ),
+      // Status interface
+      .full_o           ( ),
+      .empty_o          ( caq_empty_o )
     );
 
     // Check that we do not pop more snooped responses than we pushed requests.
