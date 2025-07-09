@@ -135,11 +135,8 @@ inline void snrt_cluster_hw_barrier() {
  */
 
 inline void snrt_inter_cluster_barrier() {
-// First we need to reduce from all clusters together.
-// TODO raroth: Potentially if we could track the B-Response from the reduction we could remove the multicast completly.
-//              The downside is that we could not send the core into sleep and would have the cores spin on a memory fence!
 #ifdef SNRT_SUPPORTS_REDUCTION
-    // Only continue with dma core's - send the rest into sleep mode
+    // Only continue with dma core's - send the rest into the next hw barrier
     if(snrt_is_dm_core()){
         // fetch the address for the reduction
         cls_t * ctrl_red = cls();
@@ -155,16 +152,8 @@ inline void snrt_inter_cluster_barrier() {
         *((uint32_t *) addr) = 1;
         snrt_disable_reduction();
 
-        // The dma core of cluster 0 should pull the reduction destination to find if we have finished th reduction
-        if(snrt_cluster_idx() == 0){
-            while(*((volatile uint32_t *) addr) != 1);
-            // Wake all clusters
-            snrt_wake_all((1 << snrt_cluster_core_num()) - 1);
-        } else {
-            snrt_wfi();
-        }
-    } else {
-        snrt_wfi();
+        // fence to wait until the reduction is finished
+        fence();
     }
 #else
     // Only continue with dma core's - send the rest into sleep mode
@@ -184,17 +173,10 @@ inline void snrt_inter_cluster_barrier() {
     } else {
         snrt_wfi();
     }
-#endif
-
-    // TODO (raroth): Hotfix!!! Race condition applies here!
-    // The problem is the snrt_wake_all call is multicast which targets all cores / clusters.
-    // If this delay is not inserted then the multicast will hit core 0 cluster 0 at the exact time
-    // where the clear flag is reset but not read in the function "snrt_int_clr_mcip".
-    // The real solution would be a fence here!!!
-    snrt_cluster_hw_barrier();
 
     // Clear the reset flag
     snrt_int_clr_mcip();
+#endif
 }
 
 /**

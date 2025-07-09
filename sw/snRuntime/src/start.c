@@ -76,12 +76,8 @@ static inline void snrt_wake_up() {
         snrt_wake_all((1 << snrt_cluster_core_num()) - 1);
     } 
     
-    // TODO (raroth): Hotfix!!! Race condition applies here!
-    // The problem is the snrt_wake_all call is multicast which targets all cores / clusters.
-    // If this delay is not inserted then the multicast will hit core 1 cluster 0 at the exact time
-    // where the clear flag is reset but not read in the function "snrt_int_clr_mcip".
-    // The real solution would be a fence here!!!
-    snrt_cluster_hw_barrier();
+    // fence which wait until all memory operation are done (all cores are woken up)
+    fence();
 
     // Clear the reset flag
     snrt_int_clr_mcip();
