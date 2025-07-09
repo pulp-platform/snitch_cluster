@@ -349,8 +349,8 @@ module snitch_cluster
     AxiAddrWidth: PhysicalAddrWidth,
     AxiDataWidth: NarrowDataWidth,
     NoAddrRules: NrRules,
-    NoMulticastRules: 1,
-    NoMulticastPorts: 2,
+    NoMulticastRules: 3,
+    NoMulticastPorts: 3,
     default: '0
   };
   localparam axi_pkg::xbar_cfg_t ClusterXbarCfg = '{
@@ -723,14 +723,14 @@ module snitch_cluster
     // port is the SoC port
     localparam dma_line_t DMAlocalArray = (ReRouteCollectiveOp) ?
         dma_line_t'{SoCDMAOut: 1'b1, default: 1'b0} : dma_line_t'{default: 1'b1};
-    localparam dma_matrix_t DMACollectivConnectivity = dma_matrix_t'{default: DMAlocalArray};
+    localparam dma_matrix_t DMACollectiveConnectivity = dma_matrix_t'{default: DMAlocalArray};
 
     // Set default master port for all multicast's crossbar input's
     localparam bit [DmaMcastXbarCfg.NoSlvPorts-1:0] DmaEnableDefaultMstPort = '1;
 
     axi_mcast_xbar #(
       .Cfg (DmaMcastXbarCfg),
-      .CollectivOpsConnectivity (DMACollectivConnectivity),
+      .CollectiveOpsConnectivity (DMACollectiveConnectivity),
       .ATOPs (0),
       .slv_aw_chan_t (axi_mst_dma_aw_chan_t),
       .mst_aw_chan_t (axi_slv_dma_aw_chan_t),
@@ -1328,7 +1328,7 @@ module snitch_cluster
   assign cluster_mcast_xbar_default_port = '{
     idx: SoC,
     start_addr: tcdm_start_address,
-    end_addr: tcdm_end_address
+    end_addr: ext_mem_end_address
   };
 
   logic [ClusterXbarCfg.NoSlvPorts-1:0][$clog2(ClusterXbarCfg.NoMstPorts)-1:0]
@@ -1382,7 +1382,7 @@ module snitch_cluster
     // the SoC port
     localparam cluster_line_t ClusterlocalArray = (ReRouteCollectiveOp) ?
         cluster_line_t'{SoC: 1'b1, default: 1'b0} : cluster_line_t'{default: 1'b1};
-    localparam cluster_matrix_t ClusterCollectivConnectivity =
+    localparam cluster_matrix_t ClusterCollectiveConnectivity =
         cluster_matrix_t'{default: ClusterlocalArray};
 
     // Set default master port for all multicast's crossbar input's
@@ -1390,7 +1390,7 @@ module snitch_cluster
 
     axi_mcast_xbar #(
       .Cfg                      (ClusterMcastXbarCfg),
-      .CollectivOpsConnectivity (ClusterCollectivConnectivity),
+      .CollectiveOpsConnectivity(ClusterCollectiveConnectivity),
       .slv_aw_chan_t            (axi_mst_aw_chan_t),
       .mst_aw_chan_t            (axi_slv_aw_chan_t),
       .w_chan_t                 (axi_mst_w_chan_t),
