@@ -68,7 +68,7 @@ $(VSIM_BUILDDIR):
 	mkdir -p $@
 
 # Generate RTL prerequisites
-$(eval $(call gen_rtl_prerequisites,$(VSIM_RTL_PREREQ_FILE),$(VSIM_BUILDDIR),$(VSIM_BENDER),$(VSIM_TOP_MODULE),$(SN_BIN_DIR)/$(TARGET).vsim))
+$(eval $(call gen_rtl_prerequisites,$(VSIM_RTL_PREREQ_FILE),$(VSIM_BUILDDIR),$(VSIM_BENDER_FLAGS),$(VSIM_TOP_MODULE),$(SN_BIN_DIR)/$(TARGET).vsim))
 
 # Generate compilation script
 $(VSIM_BUILDDIR)/compile.vsim.tcl: $(BENDER_YML) $(BENDER_LOCK) | $(VSIM_BUILDDIR)
