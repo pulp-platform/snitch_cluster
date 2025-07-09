@@ -77,6 +77,15 @@ inline void snrt_mutex_release(volatile uint32_t *pmtx) {
 // Barrier functions
 //================================================================================
 
+/**
+ * @brief Wakes up all core by writing in their respective clint var.
+ *        Can only be called by a single core inside the hole system!
+ * @note When the Multicast is enbled then the core mask is sent to itself too
+ *        therefore setting the wake up flag althrough the core is awake.
+ *        As consequence the function "snrt_int_clr_mcip()" needs to be called
+ *        even if the core was awake. For a simplified flow we copy this behaviour
+ *        in the non-multicast case even if it was not 100% necessary!
+ */
 inline void snrt_wake_all(uint32_t core_mask) {
 #ifdef SNRT_SUPPORTS_MULTICAST
     // Multicast cluster interrupt to every other cluster's core
@@ -99,6 +108,7 @@ inline void snrt_wake_all(uint32_t core_mask) {
         snrt_disable_multicast();
     }
 #else
+    // loop to send cluster interrupt to every other cluster's core
     for (int i = 0; i < snrt_cluster_num(); i++) {
         if (snrt_cluster_idx() != i) {
             snrt_cluster(i)->peripheral_reg.cl_clint_set.f.cl_clint_set =
@@ -120,26 +130,53 @@ inline void snrt_cluster_hw_barrier() {
 /**
  * @brief Synchronize one core from every cluster with the others.
  * @details Implemented as a software barrier.
- * @note One core per cluster must invoke this function, or the calling cores
+ * @note All cores per cluster must invoke this function, or the calling cores
  *       will stall indefinitely.
  */
-static inline void snrt_inter_cluster_barrier() {
-    // Everyone increments a shared counter
-    uint32_t cnt =
-        __atomic_add_fetch(&(_snrt_barrier.cnt), 1, __ATOMIC_RELAXED);
 
-    // All but the last cluster enter WFI, while the last cluster resets the
-    // counter for the next barrier and multicasts an interrupt to wake up the
-    // other clusters.
-    if (cnt == snrt_cluster_num()) {
-        _snrt_barrier.cnt = 0;
-        // Wake all clusters
-        snrt_wake_all(1 << snrt_cluster_core_idx());
+inline void snrt_inter_cluster_barrier() {
+#ifdef SNRT_SUPPORTS_REDUCTION
+    // Only continue with dma core's - send the rest into the next hw barrier
+    if(snrt_is_dm_core()){
+        // fetch the address for the reduction
+        cls_t * ctrl_red = cls();
+        void * addr = (void *) snrt_remote_l1_ptr(&(ctrl_red->reduction), snrt_cluster_idx(), 0);
+        
+        // clear the memory location of any previouse reduction
+        if(snrt_cluster_idx() == 0){
+            *((uint32_t *) addr) = 0;
+        }
+
+        // init the reduction
+        snrt_enable_reduction(SNRT_BROADCAST_MASK, SNRT_COLL_NARROW_BARRIER);
+        *((uint32_t *) addr) = 1;
+        snrt_disable_reduction();
+
+        // fence to wait until the reduction is finished
+        fence();
+    }
+#else
+    // Only continue with dma core's - send the rest into sleep mode
+    if(snrt_is_dm_core()){
+        uint32_t cnt = __atomic_add_fetch(&(_snrt_barrier.cnt), 1, __ATOMIC_RELAXED);
+
+        // All but the last cluster enter WFI, while the last cluster resets the
+        // counter for the next barrier and multicasts an interrupt to wake up the
+        // other clusters.
+        if (cnt == snrt_cluster_num()) {
+            _snrt_barrier.cnt = 0;
+            // Wake all clusters
+            snrt_wake_all((1 << snrt_cluster_core_num()) - 1);
+        } else {
+            snrt_wfi();
+        }
     } else {
         snrt_wfi();
-        // Clear interrupt for next barrier
-        snrt_int_clr_mcip();
     }
+
+    // Clear the reset flag
+    snrt_int_clr_mcip();
+#endif
 }
 
 /**
@@ -152,12 +189,12 @@ static inline void snrt_inter_cluster_barrier() {
  *       will stall indefinitely.
  */
 inline void snrt_global_barrier() {
+    // Synchronize cores in a cluster with the HW barrier
     snrt_cluster_hw_barrier();
 
-    // Synchronize all DM cores in software
-    if (snrt_is_dm_core()) {
-        snrt_inter_cluster_barrier();
-    }
+    // Synchronize all clusters
+    snrt_inter_cluster_barrier();
+
     // Synchronize cores in a cluster with the HW barrier
     snrt_cluster_hw_barrier();
 }
@@ -214,6 +251,9 @@ inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
                            __ATOMIC_RELAXED);
         snrt_inter_cluster_barrier();
         *cluster_result = _reduction_result;
+    } else {
+        // All core need to invoke the barrier
+        snrt_inter_cluster_barrier();
     }
     snrt_cluster_hw_barrier();
     return *cluster_result;
@@ -310,9 +350,61 @@ inline void snrt_wait_writeback(uint32_t val) {
  *
  * @param mask Multicast mask value
  */
-inline void snrt_enable_multicast(uint32_t mask) { write_csr(0x7c4, mask); }
+inline void snrt_enable_multicast(uint64_t mask){
+    uint32_t user_high = (uint32_t) (mask >> (32 - SNRT_COLLECTIVE_WIDTH));
+    uint32_t user_low = (uint32_t) ((mask << SNRT_COLLECTIVE_WIDTH)  | SNRT_COLL_MULTICAST);
+    write_csr(0x7c4, user_high);
+    write_csr(0x7c5, user_low);
+}
 
 /**
  * @brief Disable LSU multicast
  */
-inline void snrt_disable_multicast() { write_csr(0x7c4, 0); }
+inline void snrt_disable_multicast() { 
+    write_csr(0x7c4, 0);
+    write_csr(0x7c5, 0);
+}
+
+//================================================================================
+// Reduction functions
+//================================================================================
+
+/**
+ * @brief Enable LSU reduction
+ * @details All stores performed after this call will be reductions
+ *
+ * @param mask Mask defines all involved members
+ * @param reduction Type of reduction operation
+ */
+inline void snrt_enable_reduction(uint64_t mask, uint32_t reduction) { 
+    uint32_t user_high = (uint32_t) (mask >> (32 - SNRT_COLLECTIVE_WIDTH));
+    uint32_t user_low = (uint32_t) ((mask << SNRT_COLLECTIVE_WIDTH)  | reduction);
+    write_csr(0x7c4, user_high);
+    write_csr(0x7c5, user_low);
+}
+
+/**
+ * @brief Disable LSU reduction
+ */
+inline void snrt_disable_reduction() {
+    write_csr(0x7c4, 0);
+    write_csr(0x7c5, 0);
+}
+
+//================================================================================
+// User functions
+//================================================================================
+
+/**
+ * @brief Enable LSU user field
+ * @details All stores performed after this call equiped with given user field
+ *
+ * @param field Defines the user field for the AXI transmission
+ */
+
+inline void snrt_set_user_field(uint64_t field){
+    uint32_t user_high = (uint32_t) (field >> 32);
+    uint32_t user_low = (uint32_t) (field);
+    write_csr(0x7c4, user_high);
+    write_csr(0x7c5, user_low);
+}

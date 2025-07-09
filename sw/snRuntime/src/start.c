@@ -70,11 +70,17 @@ static inline void snrt_init_bss() {
 
 #ifdef SNRT_WAKE_UP
 static inline void snrt_wake_up() {
+
+    // cluster 0 / core 0 should wake up all other cores!
     if (snrt_cluster_idx() == 0 && snrt_cluster_core_idx() == 0) {
         snrt_wake_all((1 << snrt_cluster_core_num()) - 1);
-    } else {
-        snrt_int_clr_mcip();
-    }
+    } 
+    
+    // fence which wait until all memory operation are done (all cores are woken up)
+    fence();
+
+    // Clear the reset flag
+    snrt_int_clr_mcip();
 }
 #endif
 
@@ -98,6 +104,8 @@ static inline void snrt_init_cls() {
         snrt_dma_memset((void*)ptr, 0, size);
         snrt_dma_wait_all();
     }
+    // Init the cls pointer
+    _cls_ptr = (cls_t*)snrt_cls_base_addr();
     snrt_cluster_hw_barrier();
 }
 #endif

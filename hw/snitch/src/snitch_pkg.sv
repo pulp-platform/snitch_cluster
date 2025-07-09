@@ -128,8 +128,8 @@ package snitch_pkg;
   // Slaves on Cluster AXI Bus
   typedef enum integer {
     TCDM               = 0,
-    ClusterPeripherals = 1,
-    SoC                = 2,
+    SoC                = 1,
+    ClusterPeripherals = 2,
     ExtSlave           = 3
   } cluster_slave_e;
 
