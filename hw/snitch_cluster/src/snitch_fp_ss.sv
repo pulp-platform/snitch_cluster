@@ -151,6 +151,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   typedef enum logic [1:0] {
     ResNone, ResAccBus
   } result_select_e;
+  // TODO(colluca): can this be removed? it seems to be always fixed to ResNone
   result_select_e result_select;
 
   logic op_mode;
@@ -2698,7 +2699,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .NumOutstandingLoads (NumFPOutstandingLoads),
     .NaNBox (1'b1),
     .Caq  (1'b0),
-    .CaqRespSrc (1'b1),
     .CaqRespTrackSeq (Xfrep)
   ) i_snitch_lsu (
     .clk_i (clk_i),
@@ -2727,6 +2727,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .caq_qready_o (),
     .caq_pvalid_i (1'b0),
     .caq_pvalid_o,
+    .caq_empty_o (/* unused */),
     .data_req_o,
     .data_rsp_i
   );
