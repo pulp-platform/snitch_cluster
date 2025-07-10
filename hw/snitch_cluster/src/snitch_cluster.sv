@@ -76,13 +76,10 @@ module snitch_cluster
   parameter int unsigned ICacheWays [NrHives]      = '{default: 0},
   /// Enable virtual memory support.
   parameter bit          VMSupport          = 1,
-  /// Enable multicast on DMA XBAR.
-  parameter bit          EnableDmaMulticast = 0,
-  /// Enable multicast on the Narrow XBAR
-  parameter bit          EnableMulticast    = 0,
-  /// Cluster will forward any collective operation request to the SoC
-  /// independent of the address range. The SoC has to handle MCast loopbacks
-  parameter bit          ReRouteCollectiveOp = 0,
+  /// Enable wide collective operations.
+  parameter bit          EnableWideCollectives     = 0,
+  /// Enable narrow collective operations.
+  parameter bit          EnableNarrowCollectives   = 0,
   /// Per-core enabling of the standard `E` ISA reduced-register extension.
   parameter bit [NrCores-1:0] RVE           = '0,
   /// Per-core enabling of the standard `F` ISA extensions.
@@ -722,7 +719,7 @@ module snitch_cluster
     end
   end
 
-  if (EnableDmaMulticast) begin : gen_mcast_dma_xbar
+  if (EnableWideCollectives) begin : gen_mcast_dma_xbar
 
     // Define the collective connectivity matrix!
     typedef bit [DmaMcastXbarCfg.NoMstPorts-1:0] dma_line_t;
@@ -730,8 +727,7 @@ module snitch_cluster
 
     // If we want to reroute collective operation the only available collective operation
     // port is the SoC port
-    localparam dma_line_t DMAlocalArray = (ReRouteCollectiveOp) ?
-        dma_line_t'{SoCDMAOut: 1'b1, default: 1'b0} : dma_line_t'{default: 1'b1};
+    localparam dma_line_t DMAlocalArray = dma_line_t'{SoCDMAOut: 1'b1, default: 1'b0};
     localparam dma_matrix_t DMACollectiveConnectivity = dma_matrix_t'{default: DMAlocalArray};
 
     axi_mcast_xbar #(
@@ -1120,7 +1116,6 @@ module snitch_cluster
         .DebugSupport (DebugSupport),
         .TCDMAliasEnable (AliasRegionEnable),
         .TCDMAliasStart (TCDMAliasStart),
-        .ReRouteCollectiveOp (ReRouteCollectiveOp),
         .CollectiveWidth (CollectiveWidth)
       ) i_snitch_cc (
         .clk_i,
@@ -1293,7 +1288,7 @@ module snitch_cluster
   // cluster_id + HartIdOffset + 1 (because 0 is for non-atomic masters)
   assign atomic_id = (hart_base_id_i / NrCores) + (hart_base_id_i % NrCores) + 1'b1;
 
-  if (EnableMulticast) begin : gen_user
+  if (EnableNarrowCollectives) begin : gen_user
     assign cluster_user = '{
       collective_mask: addr_t'(core_to_axi_req.q.user[CollectiveWidth+:PhysicalAddrWidth]),
       collective_op:   collective_op_t'(core_to_axi_req.q.user[0+:CollectiveWidth]),
@@ -1392,15 +1387,14 @@ module snitch_cluster
   assign cluster_xbar_default_port = '{default: SoC};
 
   // Instance the narrow axi xbar
-  if (EnableMulticast) begin : gen_narrow_mcast_axi_crossbar
+  if (EnableNarrowCollectives) begin : gen_narrow_mcast_axi_crossbar
 
     // Define the collective connectivity matrix!
     typedef bit [ClusterMcastXbarCfg.NoMstPorts-1:0] cluster_line_t;
     typedef bit [ClusterMcastXbarCfg.NoSlvPorts-1:0][ClusterMcastXbarCfg.NoMstPorts-1:0] cluster_matrix_t;
     // If we want to reroute collective operation the only available collective operation port is
     // the SoC port
-    localparam cluster_line_t ClusterlocalArray = (ReRouteCollectiveOp) ?
-        cluster_line_t'{SoC: 1'b1, default: 1'b0} : cluster_line_t'{default: 1'b1};
+    localparam cluster_line_t ClusterlocalArray = cluster_line_t'{SoC: 1'b1, default: 1'b0};
     localparam cluster_matrix_t ClusterCollectiveConnectivity =
         cluster_matrix_t'{default: ClusterlocalArray};
 

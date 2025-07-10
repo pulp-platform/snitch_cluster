@@ -59,9 +59,8 @@ package ${cfg['cluster']['name']}_pkg;
   localparam int unsigned WideIdWidthIn = ${cfg['cluster']['dma_id_width_in']};
   localparam int unsigned WideIdWidthOut = $clog2(NrWideMasters) + WideIdWidthIn;
 
-  localparam int unsigned EnableDmaMulticast = ${int(cfg['cluster']['enable_dma_multicast'])};
-  localparam int unsigned EnableMulticast = ${int(cfg['cluster']['enable_multicast'])};
-  localparam int unsigned ReRouteCollectiveOp = ${int(cfg['cluster']['enable_reroute_collective'])};
+  localparam int unsigned EnableWideCollectives = ${int(cfg['cluster']['enable_wide_collectives'])};
+  localparam int unsigned EnableNarrowCollectives = ${int(cfg['cluster']['enable_narrow_collectives'])};
 
   localparam int unsigned AtomicIdWidth = ${cfg['cluster']['atomic_id_width']};
   localparam int unsigned CollectiveWidth = ${cfg['cluster']['collective_width']};

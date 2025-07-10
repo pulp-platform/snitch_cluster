@@ -87,7 +87,7 @@ inline void snrt_mutex_release(volatile uint32_t *pmtx) {
  *        in the non-multicast case even if it was not 100% necessary!
  */
 inline void snrt_wake_all(uint32_t core_mask) {
-#ifdef SNRT_SUPPORTS_MULTICAST
+#ifdef SNRT_SUPPORTS_NARROW_MULTICAST
     // Multicast cluster interrupt to every other cluster's core
     // Note: we need to address another cluster's address space
     //       because the cluster XBAR has not been extended to support
@@ -135,7 +135,7 @@ inline void snrt_cluster_hw_barrier() {
  */
 
 inline void snrt_inter_cluster_barrier() {
-#ifdef SNRT_SUPPORTS_REDUCTION
+#ifdef SNRT_SUPPORTS_NARROW_REDUCTION
     // Only continue with dma core's - send the rest into the next hw barrier
     if(snrt_is_dm_core()){
         // fetch the address for the reduction

@@ -66,16 +66,14 @@ module snitch_cc #(
   parameter bit          Xfrep              = 1,
   /// Has `SSR` support.
   parameter bit          Xssr               = 1,
-  /// Reroute collective Operation (Multicast + Reduction) to the AXI Crossbar anyway!
-  parameter bit          ReRouteCollectiveOp = 0,
-  /// Size of the collectiv width
-  parameter int unsigned CollectiveWidth    = 1,
   /// Has `COPIFT` support.
   parameter bit          Xcopift            = 1,
   /// Has `IPU` support.
   parameter bit          Xipu               = 1,
   /// Has virtual memory support.
   parameter bit          VMSupport          = 1,
+  /// Width of the collective operation field
+  parameter int unsigned CollectiveWidth    = 1,
   parameter int unsigned NumIntOutstandingLoads = 0,
   parameter int unsigned NumIntOutstandingMem = 0,
   parameter int unsigned NumFPOutstandingLoads = 0,
@@ -672,14 +670,10 @@ module snitch_cc #(
   // as they are routed internally within the cluster. In order for collectives destined to
   // the TCDM to work, we need to handle them differently, and always forward them to the
   // SoC interconnect, which will reroute them back to the TCDM from outside the cluster.
-  if (ReRouteCollectiveOp) begin
-    // We use the collective mask, in the user field, to detect collective operations.
-    addr_t collective_mask;
-    assign collective_mask = addr_t'((merged_dreq.q.user >> CollectiveWidth) & ((1 << AddrWidth) - 1));
-    assign slave_select_coll_op = (collective_mask != 0) ? SelectSoc : slave_select;
-  end else begin
-    assign slave_select_coll_op = slave_select;
-  end
+  // The collective mask, in the user field, is used to detect collective operations.
+  addr_t collective_mask;
+  assign collective_mask = addr_t'(merged_dreq.q.user[CollectiveWidth+:AddrWidth]);
+  assign slave_select_coll_op = (collective_mask != 0) ? SelectSoc : slave_select;
 
   tcdm_req_t core_tcdm_req;
   tcdm_rsp_t core_tcdm_rsp;
