@@ -2890,6 +2890,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   snitch_lsu #(
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
+    .UserWidth (64),
     .dreq_t (dreq_t),
     .drsp_t (drsp_t),
     .tag_t (logic[RegWidth-1:0]),

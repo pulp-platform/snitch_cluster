@@ -11,6 +11,7 @@
 module snitch_lsu #(
   parameter int unsigned AddrWidth           = 32,
   parameter int unsigned DataWidth           = 32,
+  parameter int unsigned UserWidth           = 0,
   /// Tag passed from input to output. All transactions are in-order.
   parameter type tag_t                       = logic [4:0],
   /// Number of outstanding memory transactions.
@@ -37,7 +38,8 @@ module snitch_lsu #(
   parameter type         drsp_t              = logic,
   /// Derived parameter *Do not override*
   parameter type addr_t = logic [AddrWidth-1:0],
-  parameter type data_t = logic [DataWidth-1:0]
+  parameter type data_t = logic [DataWidth-1:0],
+  parameter type user_t = logic [UserWidth-1:0]
 ) (
   input  logic                 clk_i,
   input  logic                 rst_i,
@@ -50,7 +52,7 @@ module snitch_lsu #(
   input  logic [1:0]           lsu_qsize_i,
   input  reqrsp_pkg::amo_op_e  lsu_qamo_i,
   input  logic                 lsu_qrepd_i,  // Whether this is a sequencer repetition
-  input  logic [63:0]          lsu_quser_i,  // User field for the axi transmission
+  input  user_t                lsu_quser_i,  // User field for the axi transmission
   input  logic                 lsu_qvalid_i,
   output logic                 lsu_qready_o,
   // response channel
