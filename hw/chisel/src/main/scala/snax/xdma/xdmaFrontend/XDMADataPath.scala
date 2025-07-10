@@ -157,7 +157,11 @@ class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: 
   writerExtensions.io.data.out <> writer.io.data
   writerExtensions.io.connectCfgWithList(io.writerCfg.extCfg)
   writerExtensions.io.start := io.writerStart
-  io.writerBusy             := writer.io.busy | (~writer.io.bufferEmpty) | writerExtensions.io.busy
+
+  // isChainedWrite is a signal to indicate if XDMA is inside the chained write mode
+  // isChainedWrite will be assigned in the later state machine
+  val isChainedWrite = WireInit(false.B)
+  io.writerBusy := writer.io.busy | isChainedWrite
 
   // The following muxes and demuxes are used to do the local loopback and remote loopback, the wires connected to the reader and writer are: readerDataAfterExtension and writerDataBeforeExtension. The wires between all the demuxes and muxes should not be cutted
   // LocalLoopbackDemux takes the data from the Reader side, and send it to either the remote cluster (0) or loopback to the writer side (1)
@@ -204,8 +208,7 @@ class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: 
   )
 
   // The state machine to control the remote loopback datapath for the chained write
-  val isChainedWrite = WireInit(false.B)
-
+  // isChainedWrite is a signal to indicate if the current data is a chained write
   val stateIdle :: stateChainedWrite :: stateChainedWriteWait :: Nil = Enum(3)
 
   val nextState    = Wire(chiselTypeOf(stateIdle))
@@ -215,14 +218,14 @@ class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: 
   switch(currentState) {
     is(stateIdle) {
       // Mealy FSM to pull up isChainedWrite
-      when(io.writerCfg.remoteLoopback && io.writerBusy) {
+      when(io.writerCfg.remoteLoopback && writer.io.busy) {
         nextState      := stateChainedWrite
         isChainedWrite := true.B
       }
     }
     is(stateChainedWrite) {
       isChainedWrite := true.B
-      when(~io.writerBusy) {
+      when(~writer.io.busy) {
         nextState := stateChainedWriteWait
       }
     }
@@ -258,9 +261,9 @@ class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: 
   io.remoteXDMAData.toRemote <> remoteLoopbackMux.io.out
   // The input of the remoteLoopbackSplitter is the data that will be get from the remote side
   // But the data can only be transmitted when the writer is busy
-  remoteLoopbackSplitter.io.in.valid := io.remoteXDMAData.fromRemote.valid && writer.io.busy
+  remoteLoopbackSplitter.io.in.valid := io.remoteXDMAData.fromRemote.valid && io.writerBusy
   remoteLoopbackSplitter.io.in.bits  := io.remoteXDMAData.fromRemote.bits
-  io.remoteXDMAData.fromRemote.ready := remoteLoopbackSplitter.io.in.ready && writer.io.busy
+  io.remoteXDMAData.fromRemote.ready := remoteLoopbackSplitter.io.in.ready && io.writerBusy
 
   // Connect the AccompaniedCfg signal
   // Create three intermediate wires to convert from XDMAIntraClusterCfgIO to XDMADataPathCfgIO
