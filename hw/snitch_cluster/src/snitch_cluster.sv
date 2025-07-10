@@ -1383,7 +1383,7 @@ module snitch_cluster
   end
 
   // Set default master port for all multicast's crossbar input's
-  localparam bit [ClusterMcastXbarCfg.NoSlvPorts-1:0] ClusterEnableDefaultMstPort = 1'b1;
+  localparam bit ClusterEnableDefaultMstPort = 1'b1;
   assign cluster_xbar_default_port = '{default: SoC};
 
   // Instance the narrow axi xbar
