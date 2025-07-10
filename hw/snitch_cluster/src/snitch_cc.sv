@@ -607,12 +607,15 @@ module snitch_cc #(
   end
 
   // Decide whether to go to SoC or TCDM
+
+  localparam int unsigned SelectWidth = cf_math_pkg::idx_width(2);
+  typedef enum logic [SelectWidth-1:0] {SelectTcdm = 1, SelectSoc = 0} select_t;
+
   dreq_t data_tcdm_req;
   drsp_t data_tcdm_rsp;
-  localparam int unsigned SelectWidth = cf_math_pkg::idx_width(2);
-  typedef logic [SelectWidth-1:0] select_t;
-  select_t slave_select;
-  select_t slave_select_coll_op;
+
+  select_t slave_select, slave_select_coll_op;
+
   reqrsp_demux #(
     .NrPorts (2),
     .req_t (dreq_t),
@@ -628,21 +631,6 @@ module snitch_cc #(
     .mst_req_o ({data_tcdm_req, data_req_o}),
     .mst_rsp_i ({data_tcdm_rsp, data_rsp_i})
   );
-
-  // If we want to support collective operation (MCasst + Reduction) then all coll op request
-  // needs to be passed to the SoC independent of the address map. The problem is that a multicast 
-  // which targets its own address space needs to be forwarded to the AXI crossbar so that the
-  // rest of the SoC can be notified about the multicast too (Same goes for Reduction)!
-  // If the .collect subfield is set to 0 we have a unicast - everything else is a collective
-  // operation!
-  if (ReRouteCollectiveOp) begin
-    // Reconstruct the multicast mask from the user field
-    addr_t mcast_mask;
-    assign mcast_mask = addr_t'((merged_dreq.q.user >> CollectiveWidth) & ((1 << AddrWidth) - 1));
-    assign slave_select_coll_op = (mcast_mask != 0) ? '0 : slave_select;
-  end else begin
-    assign slave_select_coll_op = slave_select;
-  end
 
   typedef struct packed {
     int unsigned idx;
@@ -678,6 +666,20 @@ module snitch_cc #(
     .en_default_idx_i (1'b1),
     .default_idx_i ('0)
   );
+
+  // Collective communication operations are performed within the interconnect at the SoC
+  // level. However, requests destined to the TCDM never arrive at the SoC interconnect,
+  // as they are routed internally within the cluster. In order for collectives destined to
+  // the TCDM to work, we need to handle them differently, and always forward them to the
+  // SoC interconnect, which will reroute them back to the TCDM from outside the cluster.
+  if (ReRouteCollectiveOp) begin
+    // We use the collective mask, in the user field, to detect collective operations.
+    addr_t collective_mask;
+    assign collective_mask = addr_t'((merged_dreq.q.user >> CollectiveWidth) & ((1 << AddrWidth) - 1));
+    assign slave_select_coll_op = (collective_mask != 0) ? SelectSoc : slave_select;
+  end else begin
+    assign slave_select_coll_op = slave_select;
+  end
 
   tcdm_req_t core_tcdm_req;
   tcdm_rsp_t core_tcdm_rsp;
