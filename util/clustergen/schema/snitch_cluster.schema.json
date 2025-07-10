@@ -161,24 +161,14 @@
                     "description": "The number of separate DMA channels to instantiate.",
                     "default": 1
                 },
-                "user_width": {
-                    "type": "number",
-                    "description": "User width of the narrower AXI plug into the cluster.",
-                    "default": 1
-                },
-                "dma_user_width": {
-                    "type": "number",
-                    "description": "User width of the wide AXI plug into the cluster.",
-                    "default": 1
-                },
                 "atomic_id_width": {
                     "type": "number",
-                    "description": "Width of the cluster's atomics ID.",
+                    "description": "Width of the cluster's atomic ID.",
                     "default": 1
                 },  
                 "collective_width": {
                     "type": "number",
-                    "description": "Width of the collective operation field",
+                    "description": "Width of the collective operation field.",
                     "default": 6
                 },  
                 "enable_multicast": {

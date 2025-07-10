@@ -63,8 +63,6 @@ package ${cfg['cluster']['name']}_pkg;
   localparam int unsigned EnableMulticast = ${int(cfg['cluster']['enable_multicast'])};
   localparam int unsigned ReRouteCollectiveOp = ${int(cfg['cluster']['enable_reroute_collective'])};
 
-  localparam int unsigned NarrowUserWidth = ${cfg['cluster']['user_width']};
-  localparam int unsigned WideUserWidth = ${cfg['cluster']['dma_user_width']};
   localparam int unsigned AtomicIdWidth = ${cfg['cluster']['atomic_id_width']};
   localparam int unsigned CollectiveWidth = ${cfg['cluster']['collective_width']};
 
@@ -119,7 +117,7 @@ package ${cfg['cluster']['name']}_pkg;
     logic [CollectiveWidth-1:0]     collective_op;
   } user_dma_t;
 %else:
-  typedef logic [WideUserWidth-1:0] user_dma_t;
+  typedef logic user_dma_t;
 %endif
 
   `AXI_TYPEDEF_ALL(narrow_in, addr_t, narrow_in_id_t, data_t, strb_t, user_narrow_t)

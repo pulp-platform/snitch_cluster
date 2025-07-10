@@ -9,9 +9,7 @@
         cluster_base_hartid: 0,
         addr_width: 48,
         data_width: 64,
-        atomic_id_width: 5, // clog2(total number of clusters)
-        collective_width: 6, // # bits used for the collective operation
-        user_width: 59, // addr_width + atomic_id_width + collective_width
+        atomic_id_width: 5,
         tcdm: {
             size: 128,
             banks: 32,
@@ -24,14 +22,9 @@
         dma_req_fifo_depth: 8,
         narrow_trans: 4,
         wide_trans: 32,
-        // Collective operation on narrow interface
         enable_multicast: true,
         enable_reduction: true,
-        // To support the multicast for the DMA
         enable_dma_multicast: true,
-        dma_user_width: 54, // 6 + addr_width if we enable_dma_multicast (not enable_multicast)
-        // Only enable if collective operation are handled in SoC
-        enable_reroute_collective: false,
         // We don't need Snitch debugging in Occamy
         enable_debug: false,
         // We don't need Snitch (core-internal) virtual memory support

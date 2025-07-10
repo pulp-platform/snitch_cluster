@@ -34,10 +34,6 @@ module snitch_cluster
   parameter int unsigned NarrowIdWidthIn    = 2,
   /// AXI: dma id width in.
   parameter int unsigned WideIdWidthIn      = 2,
-  /// AXI: user width.
-  parameter int unsigned NarrowUserWidth    = 1,
-  /// AXI: dma user width.
-  parameter int unsigned WideUserWidth      = 1,
   /// Width of the atomic ID to be used in a system.
   parameter int unsigned AtomicIdWidth      = 1,
   /// Width of the collective operation
@@ -316,6 +312,10 @@ module snitch_cluster
   localparam int unsigned NrTCDMPortsCores = get_tcdm_port_offs(NrCores);
   localparam int unsigned NumTCDMIn = NrTCDMPortsCores + 1;
   localparam logic [PhysicalAddrWidth-1:0] TCDMMask = ~(TCDMSizeNapotRounded - 1);
+
+  // User widths
+  localparam int unsigned NarrowUserWidth = $bits(user_narrow_t);
+  localparam int unsigned WideUserWidth   = $bits(user_dma_t);
 
   // Core Requests, SoC Request, PTW.
   localparam int unsigned NrNarrowMasters = 3;
@@ -1706,8 +1706,5 @@ module snitch_cluster
     ~AliasRegionEnable || ((TCDMSizeNapotRounded - 1) & AliasRegionBase) == 0)
   // Make sure we only have one DMA in the system.
   `ASSERT_INIT(NumberDMA, $onehot0(Xdma))
-  // Verify that the size of the user field matches
-  `ASSERT_INIT(CheckNarrowUserFieldWidth, NarrowUserWidth == $bits(user_narrow_t));
-  `ASSERT_INIT(CheckWideUserFieldWidth, WideUserWidth == $bits(user_dma_t));
 
 endmodule

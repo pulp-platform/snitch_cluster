@@ -72,8 +72,6 @@ module ${cfg['cluster']['name']}_wrapper (
     .WideDataWidth (${cfg['cluster']['dma_data_width']}),
     .NarrowIdWidthIn (${cfg['cluster']['name']}_pkg::NarrowIdWidthIn),
     .WideIdWidthIn (${cfg['cluster']['name']}_pkg::WideIdWidthIn),
-    .NarrowUserWidth (${cfg['cluster']['name']}_pkg::NarrowUserWidth),
-    .WideUserWidth (${cfg['cluster']['name']}_pkg::WideUserWidth),
     .AtomicIdWidth (${cfg['cluster']['name']}_pkg::AtomicIdWidth),
     .CollectiveWidth (${cfg['cluster']['name']}_pkg::CollectiveWidth),
     .BootAddr (${to_sv_hex(cfg['cluster']['boot_addr'], 32)}),
