@@ -11,6 +11,37 @@ typedef struct {
     uint32_t volatile iteration;
 } snrt_barrier_t;
 
+typedef enum {
+    SNRT_REDUCTION_NONE = 0,
+    SNRT_REDUCTION_BARRIER = 2,
+    SNRT_REDUCTION_FADD = 4,
+    SNRT_REDUCTION_FMUL = 5,
+    SNRT_REDUCTION_FMIN = 6,
+    SNRT_REDUCTION_FMAX = 7,
+    SNRT_REDUCTION_ADD = 8,
+    SNRT_REDUCTION_MUL = 9,
+    SNRT_REDUCTION_MIN = 10,
+    SNRT_REDUCTION_MAX = 11,
+    SNRT_REDUCTION_MINU = 14,
+    SNRT_REDUCTION_MAXU = 15
+} snrt_reduction_opcode_t;
+
+typedef enum {
+    SNRT_COLLECTIVE_UNICAST = 0,
+    SNRT_COLLECTIVE_MULTICAST = 1,
+    SNRT_COLLECTIVE_PARALLEL_REDUCTION = 2,
+    SNRT_COLLECTIVE_OFFLOAD_REDUCTION = 3
+} snrt_collective_opcode_t;
+
+typedef union {
+    struct __attribute__((__packed__)) {
+        snrt_reduction_opcode_t reduction_opcode : SNRT_COLLECTIVE_WIDTH;
+        snrt_collective_opcode_t collective_opcode : 2;
+        uint64_t mask : (64 - SNRT_COLLECTIVE_WIDTH - 2);
+    } f;
+    uint64_t w;
+} snrt_collective_op_t;
+
 extern volatile uint32_t _snrt_mutex;
 extern volatile snrt_barrier_t _snrt_barrier;
 extern volatile uint32_t _reduction_result;

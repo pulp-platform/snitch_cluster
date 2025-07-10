@@ -30,27 +30,5 @@
 % endif
 #define SNRT_COLLECTIVE_WIDTH ${cfg['cluster']['collective_width']}
 
-// OP Codes copied from floo_pkg definition
-#define SNRT_COLL_MULTICAST             16
-#define SNRT_COLL_PARALLEL_REDUCTION    32
-#define SNRT_COLL_OFFLOAD_REDUCTION     48
-
-// On the wide link - fp offload
-#define SNRT_COLL_WIDE_FPADD            (4 + SNRT_COLL_OFFLOAD_REDUCTION)
-#define SNRT_COLL_WIDE_FPMUL            (5 + SNRT_COLL_OFFLOAD_REDUCTION)
-#define SNRT_COLL_WIDE_FPMIN            (6 + SNRT_COLL_OFFLOAD_REDUCTION)
-#define SNRT_COLL_WIDE_FPMAX            (7 + SNRT_COLL_OFFLOAD_REDUCTION)
-
-// On the narrow link - integer offload
-#define SNRT_COLL_NARROW_ADD            (8  + SNRT_COLL_OFFLOAD_REDUCTION)
-#define SNRT_COLL_NARROW_MUL            (9  + SNRT_COLL_OFFLOAD_REDUCTION)
-#define SNRT_COLL_NARROW_MIN_INT        (10 + SNRT_COLL_OFFLOAD_REDUCTION)
-#define SNRT_COLL_NARROW_MIN_UINT       (14 + SNRT_COLL_OFFLOAD_REDUCTION)
-#define SNRT_COLL_NARROW_MAX_INT        (11 + SNRT_COLL_OFFLOAD_REDUCTION)
-#define SNRT_COLL_NARROW_MAX_UINT       (15 + SNRT_COLL_OFFLOAD_REDUCTION)
-
-// On the narrow link - parallel reduction
-#define SNRT_COLL_NARROW_BARRIER        (2  + SNRT_COLL_PARALLEL_REDUCTION)
-
 // Software configuration
 #define SNRT_LOG2_STACK_SIZE 10

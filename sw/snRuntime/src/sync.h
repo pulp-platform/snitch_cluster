@@ -152,8 +152,8 @@ inline void snrt_inter_cluster_barrier() {
         *((uint32_t *) addr) = 1;
         snrt_disable_reduction();
 
-        // fence to wait until the reduction is finished
-        fence();
+        // Fence to wait until the reduction is finished
+        snrt_fence();
     }
 #else
     // Only continue with dma core's - send the rest into sleep mode
@@ -351,19 +351,17 @@ inline void snrt_wait_writeback(uint32_t val) {
  * @param mask Multicast mask value
  */
 inline void snrt_enable_multicast(uint64_t mask){
-    uint32_t user_high = (uint32_t) (mask >> (32 - SNRT_COLLECTIVE_WIDTH));
-    uint32_t user_low = (uint32_t) ((mask << SNRT_COLLECTIVE_WIDTH)  | SNRT_COLL_MULTICAST);
-    write_csr(0x7c4, user_high);
-    write_csr(0x7c5, user_low);
+    snrt_collective_op_t op = {
+        .f.collective_opcode = SNRT_COLLECTIVE_MULTICAST,
+        .f.mask = mask,
+    };
+    snrt_set_awuser(op.w);
 }
 
 /**
  * @brief Disable LSU multicast
  */
-inline void snrt_disable_multicast() { 
-    write_csr(0x7c4, 0);
-    write_csr(0x7c5, 0);
-}
+inline void snrt_disable_multicast() { snrt_set_awuser(0); }
 
 //================================================================================
 // Reduction functions
@@ -374,37 +372,46 @@ inline void snrt_disable_multicast() {
  * @details All stores performed after this call will be reductions
  *
  * @param mask Mask defines all involved members
- * @param reduction Type of reduction operation
+ * @param opcode Type of reduction operation
  */
-inline void snrt_enable_reduction(uint64_t mask, uint32_t reduction) { 
-    uint32_t user_high = (uint32_t) (mask >> (32 - SNRT_COLLECTIVE_WIDTH));
-    uint32_t user_low = (uint32_t) ((mask << SNRT_COLLECTIVE_WIDTH)  | reduction);
-    write_csr(0x7c4, user_high);
-    write_csr(0x7c5, user_low);
+inline void snrt_enable_reduction(uint64_t mask, snrt_reduction_opcode_t opcode) { 
+    snrt_collective_opcode_t coll_opcode;
+
+    switch (opcode) {
+        case SNRT_COLL_NARROW_BARRIER:
+            coll_opcode = SNRT_COLLECTIVE_PARALLEL_REDUCTION;
+            break;
+        default:
+            coll_opcode = SNRT_COLLECTIVE_OFFLOAD_REDUCTION;
+            break;
+    }
+
+    snrt_collective_op_t op = {
+        .f.reduction_opcode = opcode,
+        .f.collective_opcode = coll_opcode,
+        .f.mask = mask,
+    };
+    snrt_set_awuser(op.w);
 }
 
 /**
  * @brief Disable LSU reduction
  */
-inline void snrt_disable_reduction() {
-    write_csr(0x7c4, 0);
-    write_csr(0x7c5, 0);
-}
+inline void snrt_disable_reduction() { snrt_set_awuser(0); }
 
 //================================================================================
 // User functions
 //================================================================================
 
 /**
- * @brief Enable LSU user field
- * @details All stores performed after this call equiped with given user field
+ * @brief Enable LSU AW user field
+ * @details All stores performed after this call are equipped with the given AW user field
  *
- * @param field Defines the user field for the AXI transmission
+ * @param field Defines the AW user field for the AXI transfer
  */
-
-inline void snrt_set_user_field(uint64_t field){
-    uint32_t user_high = (uint32_t) (field >> 32);
+inline void snrt_set_awuser(uint64_t field){
     uint32_t user_low = (uint32_t) (field);
-    write_csr(0x7c4, user_high);
-    write_csr(0x7c5, user_low);
+    uint32_t user_high = (uint32_t) (field >> 32);
+    write_csr(0x7c4, user_low);
+    write_csr(0x7c5, user_high);
 }
