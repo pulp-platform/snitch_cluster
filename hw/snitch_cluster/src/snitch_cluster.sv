@@ -70,6 +70,8 @@ module snitch_cluster
   parameter int unsigned DMAReqFifoDepth    = 3,
   /// Number of DMA channels.
   parameter int unsigned DMANumChannels     = 1,
+  /// Number of exposed TCDM wide ports
+  parameter int unsigned NumExpWideTcdmPorts = 1,
   /// Width of a single icache line.
   parameter int unsigned ICacheLineWidth [NrHives] = '{default: 0},
   /// Number of icache lines per set.
@@ -823,7 +825,7 @@ module snitch_cluster
   );
 
   snitch_tcdm_interconnect #(
-    .NumInp (1),
+    .NumInp (NumExpWideTcdmPorts),
     .NumOut (NrSuperBanks),
     .NumHyperBanks (NrHyperBanks),
     .tcdm_req_t (tcdm_dma_req_t),

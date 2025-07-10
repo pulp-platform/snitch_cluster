@@ -175,7 +175,7 @@
                     "type": "number",
                     "description": "Width of the cluster's atomics ID.",
                     "default": 1
-                },  
+                },
                 "enable_multicast": {
                     "type": "boolean",
                     "description": "Whether to enable multicast in the cluster.",
@@ -231,10 +231,10 @@
                     "description": "Whether to expose memory cut configuration inputs for implementation",
                     "default": false
                 },
-                "wide_tcdm_port_expose": {
-                    "type": "boolean",
-                    "description": "Whether to expose a wide port into the TCDM at the cluster interface. Used to provide external masters, such as accelerators, with wide access to the TCDM.",
-                    "default": false
+                "num_exposed_wide_tcdm_ports": {
+                    "type": "number",
+                    "description": "Number of exposed wide ports into the TCDM at the cluster interface. Used to provide external masters, such as accelerators, with wide access to the TCDM.",
+                    "default": 0
                 },
                 "narrow_axi_port_expose": {
                     "type": "boolean",
