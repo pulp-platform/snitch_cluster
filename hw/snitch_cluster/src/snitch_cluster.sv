@@ -429,6 +429,7 @@ module snitch_cluster
   typedef logic [PhysicalAddrWidth-1:0] addr_t;
   typedef logic [NarrowDataWidth-1:0]   data_t;
   typedef logic [NarrowDataWidth/8-1:0] strb_t;
+  typedef logic [63:0]                  user_t;
   typedef logic [WideDataWidth-1:0]     data_dma_t;
   typedef logic [WideDataWidth/8-1:0]   strb_dma_t;
   typedef logic [NarrowIdWidthIn-1:0]   id_mst_t;
@@ -458,7 +459,11 @@ module snitch_cluster
 
   `APB_TYPEDEF_ALL(apb, addr_t, data_t, strb_t)
 
-  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t)
+  // Reqrsp interface of the core has a 64b user field
+  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
+  // Reqrsp interface in the cluster additionally contains the cluster ID
+  // (used for atomic operations) in the user field
+  `REQRSP_TYPEDEF_ALL(reqrsp_amo, addr_t, data_t, strb_t, user_narrow_t)
 
   `MEM_TYPEDEF_ALL(mem, tcdm_mem_addr_t, data_t, strb_t, tcdm_user_t)
   `MEM_TYPEDEF_ALL(mem_dma, tcdm_mem_addr_t, data_dma_t, strb_dma_t, logic)
@@ -1235,7 +1240,6 @@ module snitch_cluster
 
   reqrsp_to_axi #(
     .DataWidth (NarrowDataWidth),
-    .UserWidth (NarrowUserWidth),
     .reqrsp_req_t (reqrsp_req_t),
     .reqrsp_rsp_t (reqrsp_rsp_t),
     .axi_req_t (axi_mst_req_t),
@@ -1243,7 +1247,6 @@ module snitch_cluster
   ) i_reqrsp_to_axi_ptw (
     .clk_i,
     .rst_ni,
-    .user_i ('0),
     .reqrsp_req_i (ptw_to_axi_req),
     .reqrsp_rsp_o (ptw_to_axi_rsp),
     .axi_req_o (narrow_axi_mst_req[PTW]),
@@ -1266,11 +1269,29 @@ module snitch_cluster
   reqrsp_req_t core_to_axi_req;
   reqrsp_rsp_t core_to_axi_rsp;
 
+  reqrsp_mux #(
+    .NrPorts (NrCores),
+    .AddrWidth (PhysicalAddrWidth),
+    .DataWidth (NarrowDataWidth),
+    .req_t (reqrsp_req_t),
+    .rsp_t (reqrsp_rsp_t),
+    .RespDepth (2)
+  ) i_reqrsp_mux_core (
+    .clk_i,
+    .rst_ni,
+    .slv_req_i (core_req),
+    .slv_rsp_o (core_rsp),
+    .mst_req_o (core_to_axi_req),
+    .mst_rsp_i (core_to_axi_rsp),
+    .idx_o (/*unused*/)
+  );
+
   // User field for the AXI transmission
   // We encode Atomics operation and (if enabled) collective operations
   user_narrow_t cluster_user;
   addr_t mcast_mask;
   coll_type_t collective_type;
+
   // Atomic ID, needs to be unique ID of cluster
   // cluster_id + HartIdOffset + 1 (because 0 is for non-atomic masters)
   if (EnableMulticast) begin : AssignUserWithMCast
@@ -1289,26 +1310,24 @@ module snitch_cluster
     };
   end
 
-  reqrsp_mux #(
-    .NrPorts (NrCores),
-    .AddrWidth (PhysicalAddrWidth),
-    .DataWidth (NarrowDataWidth),
-    .req_t (reqrsp_req_t),
-    .rsp_t (reqrsp_rsp_t),
-    .RespDepth (2)
-  ) i_reqrsp_mux_core (
-    .clk_i,
-    .rst_ni,
-    .slv_req_i (core_req),
-    .slv_rsp_o (core_rsp),
-    .mst_req_o (core_to_axi_req),
-    .mst_rsp_i (core_to_axi_rsp),
-    .idx_o (/*unused*/)
-  );
+  reqrsp_amo_req_t core_to_axi_amo_req;
+  reqrsp_amo_rsp_t core_to_axi_amo_rsp;
+
+  always_comb begin
+    core_to_axi_amo_req.q.addr  = core_to_axi_req.q.addr;
+    core_to_axi_amo_req.q.write = core_to_axi_req.q.write;
+    core_to_axi_amo_req.q.amo   = core_to_axi_req.q.amo;
+    core_to_axi_amo_req.q.data  = core_to_axi_req.q.data;
+    core_to_axi_amo_req.q.strb  = core_to_axi_req.q.strb;
+    core_to_axi_amo_req.q.user  = cluster_user;
+    core_to_axi_amo_req.q.size  = core_to_axi_req.q.size;
+    core_to_axi_amo_req.q_valid = core_to_axi_req.q_valid;
+    core_to_axi_amo_req.p_ready = core_to_axi_req.p_ready;
+    core_to_axi_rsp             = core_to_axi_amo_rsp;
+  end
 
   reqrsp_to_axi #(
     .DataWidth (NarrowDataWidth),
-    .UserWidth (NarrowUserWidth),
     .reqrsp_req_t (reqrsp_req_t),
     .reqrsp_rsp_t (reqrsp_rsp_t),
     .axi_req_t (axi_mst_req_t),
@@ -1316,9 +1335,8 @@ module snitch_cluster
   ) i_reqrsp_to_axi_core (
     .clk_i,
     .rst_ni,
-    .user_i (cluster_user),
-    .reqrsp_req_i (core_to_axi_req),
-    .reqrsp_rsp_o (core_to_axi_rsp),
+    .reqrsp_req_i (core_to_axi_amo_req),
+    .reqrsp_rsp_o (core_to_axi_amo_rsp),
     .axi_req_o (narrow_axi_mst_req[CoreReq]),
     .axi_rsp_i (narrow_axi_mst_rsp[CoreReq])
   );
