@@ -340,6 +340,23 @@ inline void snrt_wait_writeback(uint32_t val) {
 }
 
 //================================================================================
+// User functions
+//================================================================================
+
+/**
+ * @brief Enable LSU AW user field
+ * @details All stores performed after this call are equipped with the given AW user field
+ *
+ * @param field Defines the AW user field for the AXI transfer
+ */
+ inline void snrt_set_awuser(uint64_t field){
+    uint32_t user_low = (uint32_t) (field);
+    uint32_t user_high = (uint32_t) (field >> 32);
+    write_csr(0x7c4, user_low);
+    write_csr(0x7c5, user_high);
+}
+
+//================================================================================
 // Multicast functions
 //================================================================================
 
@@ -351,10 +368,9 @@ inline void snrt_wait_writeback(uint32_t val) {
  * @param mask Multicast mask value
  */
 inline void snrt_enable_multicast(uint64_t mask){
-    snrt_collective_op_t op = {
-        .f.collective_opcode = SNRT_COLLECTIVE_MULTICAST,
-        .f.mask = mask,
-    };
+    snrt_collective_op_t op;
+    op.f.collective_opcode = SNRT_COLLECTIVE_MULTICAST;
+    op.f.mask = mask;
     snrt_set_awuser(op.w);
 }
 
@@ -378,7 +394,7 @@ inline void snrt_enable_reduction(uint64_t mask, snrt_reduction_opcode_t opcode)
     snrt_collective_opcode_t coll_opcode;
 
     switch (opcode) {
-        case SNRT_COLL_NARROW_BARRIER:
+        case SNRT_REDUCTION_BARRIER:
             coll_opcode = SNRT_COLLECTIVE_PARALLEL_REDUCTION;
             break;
         default:
@@ -386,11 +402,10 @@ inline void snrt_enable_reduction(uint64_t mask, snrt_reduction_opcode_t opcode)
             break;
     }
 
-    snrt_collective_op_t op = {
-        .f.reduction_opcode = opcode,
-        .f.collective_opcode = coll_opcode,
-        .f.mask = mask,
-    };
+    snrt_collective_op_t op;
+    op.f.reduction_opcode = opcode;
+    op.f.collective_opcode = coll_opcode;
+    op.f.mask = mask;
     snrt_set_awuser(op.w);
 }
 
@@ -398,20 +413,3 @@ inline void snrt_enable_reduction(uint64_t mask, snrt_reduction_opcode_t opcode)
  * @brief Disable LSU reduction
  */
 inline void snrt_disable_reduction() { snrt_set_awuser(0); }
-
-//================================================================================
-// User functions
-//================================================================================
-
-/**
- * @brief Enable LSU AW user field
- * @details All stores performed after this call are equipped with the given AW user field
- *
- * @param field Defines the AW user field for the AXI transfer
- */
-inline void snrt_set_awuser(uint64_t field){
-    uint32_t user_low = (uint32_t) (field);
-    uint32_t user_high = (uint32_t) (field >> 32);
-    write_csr(0x7c4, user_low);
-    write_csr(0x7c5, user_high);
-}
