@@ -687,16 +687,18 @@ module snitch_cluster
     .mst_resp_i (wide_axi_mst_rsp[SoCDMAIn])
   );
 
-  logic [WideSlaveIdxBits-1:0] dma_xbar_default_port = SoCDMAOut;
+  localparam bit DmaEnableDefaultMstPort = 1'b1;
+  logic [WideSlaveIdxBits-1:0] dma_xbar_default_port;
   xbar_rule_t dma_xbar_default_port_rule;
+  xbar_rule_t [5:0] dma_xbar_rules;
+  xbar_rule_t [DmaXbarCfg.NoAddrRules-1:0] enabled_dma_xbar_rule;
+
+  assign dma_xbar_default_port = SoCDMAOut;
   assign dma_xbar_default_port_rule = '{
     idx: dma_xbar_default_port,
     start_addr: tcdm_start_address,
     end_addr: zero_mem_end_address
   };
-
-  xbar_rule_t [5:0] dma_xbar_rules;
-  xbar_rule_t [DmaXbarCfg.NoAddrRules-1:0] enabled_dma_xbar_rule;
 
   assign dma_xbar_rules = '{
     '{idx: BootRom,    start_addr: BootRomAliasStart,      end_addr: BootRomAliasEnd},
@@ -724,14 +726,12 @@ module snitch_cluster
     // Define the collective connectivity matrix!
     typedef bit [DmaMcastXbarCfg.NoMstPorts-1:0] dma_line_t;
     typedef bit [DmaMcastXbarCfg.NoSlvPorts-1:0][DmaMcastXbarCfg.NoMstPorts-1:0] dma_matrix_t;
+
     // If we want to reroute collective operation the only available collective operation
     // port is the SoC port
     localparam dma_line_t DMAlocalArray = (ReRouteCollectiveOp) ?
         dma_line_t'{SoCDMAOut: 1'b1, default: 1'b0} : dma_line_t'{default: 1'b1};
     localparam dma_matrix_t DMACollectiveConnectivity = dma_matrix_t'{default: DMAlocalArray};
-
-    // Set default master port for all multicast's crossbar input's
-    localparam bit [DmaMcastXbarCfg.NoSlvPorts-1:0] DmaEnableDefaultMstPort = '1;
 
     axi_mcast_xbar #(
       .Cfg (DmaMcastXbarCfg),
@@ -760,13 +760,10 @@ module snitch_cluster
       .mst_ports_req_o (wide_axi_slv_req),
       .mst_ports_resp_i (wide_axi_slv_rsp),
       .addr_map_i (enabled_dma_xbar_rule),
-      .en_default_mst_port_i (DmaEnableDefaultMstPort),
+      .en_default_mst_port_i ({DmaMcastXbarCfg.NoSlvPorts{DmaEnableDefaultMstPort}}),
       .default_mst_port_i ({DmaMcastXbarCfg.NoSlvPorts{dma_xbar_default_port_rule}})
     );
   end else begin : gen_dma_xbar
-    // Set default master port for all multicast's crossbar input's
-    localparam bit [DmaXbarCfg.NoSlvPorts-1:0] DmaEnableDefaultMstPort = '1;
-
     axi_xbar #(
       .Cfg (DmaXbarCfg),
       .ATOPs (0),
@@ -793,7 +790,7 @@ module snitch_cluster
       .mst_ports_req_o (wide_axi_slv_req),
       .mst_ports_resp_i (wide_axi_slv_rsp),
       .addr_map_i (enabled_dma_xbar_rule),
-      .en_default_mst_port_i (DmaEnableDefaultMstPort),
+      .en_default_mst_port_i ({DmaXbarCfg.NoSlvPorts{DmaEnableDefaultMstPort}}),
       .default_mst_port_i ({DmaXbarCfg.NoSlvPorts{dma_xbar_default_port}})
     );
   end
@@ -1390,6 +1387,10 @@ module snitch_cluster
     };
   end
 
+  // Set default master port for all multicast's crossbar input's
+  localparam bit [ClusterMcastXbarCfg.NoSlvPorts-1:0] ClusterEnableDefaultMstPort = 1'b1;
+  assign cluster_xbar_default_port = '{default: SoC};
+
   // Instance the narrow axi xbar
   if (EnableMulticast) begin : gen_narrow_mcast_axi_crossbar
 
@@ -1402,9 +1403,6 @@ module snitch_cluster
         cluster_line_t'{SoC: 1'b1, default: 1'b0} : cluster_line_t'{default: 1'b1};
     localparam cluster_matrix_t ClusterCollectiveConnectivity =
         cluster_matrix_t'{default: ClusterlocalArray};
-
-    // Set default master port for all multicast's crossbar input's
-    localparam bit [ClusterMcastXbarCfg.NoSlvPorts-1:0] ClusterEnableDefaultMstPort = '1;
 
     axi_mcast_xbar #(
       .Cfg                      (ClusterMcastXbarCfg),
@@ -1432,12 +1430,10 @@ module snitch_cluster
       .mst_ports_req_o          (narrow_axi_slv_req),
       .mst_ports_resp_i         (narrow_axi_slv_rsp),
       .addr_map_i               (cluster_xbar_rules),
-      .en_default_mst_port_i    (ClusterEnableDefaultMstPort),
+      .en_default_mst_port_i    ({ClusterMcastXbarCfg.NoSlvPorts{ClusterEnableDefaultMstPort}}),
       .default_mst_port_i       ({ClusterMcastXbarCfg.NoSlvPorts{cluster_mcast_xbar_default_port}})
     );
   end else begin : gen_narrow_axi_crossbar
-    // Set default master port for all crossbar input's
-    localparam bit [ClusterXbarCfg.NoSlvPorts-1:0] ClusterEnableDefaultMstPort = '1;
     axi_xbar #(
       .Cfg (ClusterXbarCfg),
       .slv_aw_chan_t (axi_mst_aw_chan_t),
@@ -1463,10 +1459,9 @@ module snitch_cluster
       .mst_ports_req_o (narrow_axi_slv_req),
       .mst_ports_resp_i (narrow_axi_slv_rsp),
       .addr_map_i (cluster_xbar_rules),
-      .en_default_mst_port_i (ClusterEnableDefaultMstPort),
+      .en_default_mst_port_i ({ClusterXbarCfg.NoSlvPorts{ClusterEnableDefaultMstPort}}),
       .default_mst_port_i (cluster_xbar_default_port)
     );
-    assign cluster_xbar_default_port = '{default: SoC};
   end
 
   // Optionally decouple the external narrow AXI slave port.
