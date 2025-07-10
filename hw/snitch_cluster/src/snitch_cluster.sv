@@ -1291,7 +1291,7 @@ module snitch_cluster
 
   // Atomic ID, needs to be unique ID of cluster
   // cluster_id + HartIdOffset + 1 (because 0 is for non-atomic masters)
-  if (EnableMulticast) begin : AssignUserWithMCast
+  if (EnableMulticast) begin : gen_user_w_collective
     assign mcast_mask = addr_t'((core_to_axi_req.q.user >> CollectiveWidth) & ((1 << PhysicalAddrWidth) - 1));
     assign collective_type = coll_type_t'(core_to_axi_req.q.user & ((1 << CollectiveWidth) - 1));
     assign cluster_user = '{
@@ -1300,7 +1300,7 @@ module snitch_cluster
       atomic:  (hart_base_id_i / NrCores) +  (hart_base_id_i % NrCores) + 1'b1,
       default: '0
     };
-  end else begin : AssignUsesrWithoutMCast
+  end else begin : gen_user_wo_collective
     assign cluster_user = '{
       atomic:  (hart_base_id_i / NrCores) +  (hart_base_id_i % NrCores) + 1'b1,
       default: '0
