@@ -440,7 +440,8 @@ module snitch_cluster
   typedef logic [TCDMMemAddrWidth-1:0]  tcdm_mem_addr_t;
   typedef logic [TCDMAddrWidth-1:0]     tcdm_addr_t;
 
-  typedef logic [CollectiveWidth-1:0]   coll_type_t;
+  typedef logic [CollectiveWidth-1:0]   collective_op_t;
+  typedef logic [AtomicIdWidth-1:0]     atomic_id_t;
 
   // Struct replaced by logic array to workaround Questa optimization bug.
   // typedef struct packed {
@@ -1284,25 +1285,24 @@ module snitch_cluster
   );
 
   // User field for the AXI transmission
-  // We encode Atomics operation and (if enabled) collective operations
-  user_narrow_t cluster_user;
-  addr_t mcast_mask;
-  coll_type_t collective_type;
+  // Encodes the atomic ID and (if enabled) collective operation information
+  atomic_id_t     atomic_id;
+  user_narrow_t   cluster_user;
 
   // Atomic ID, needs to be unique ID of cluster
   // cluster_id + HartIdOffset + 1 (because 0 is for non-atomic masters)
-  if (EnableMulticast) begin : gen_user_w_collective
-    assign mcast_mask = addr_t'((core_to_axi_req.q.user >> CollectiveWidth) & ((1 << PhysicalAddrWidth) - 1));
-    assign collective_type = coll_type_t'(core_to_axi_req.q.user & ((1 << CollectiveWidth) - 1));
+  assign atomic_id = (hart_base_id_i / NrCores) + (hart_base_id_i % NrCores) + 1'b1;
+
+  if (EnableMulticast) begin : gen_user
     assign cluster_user = '{
-      mcast: mcast_mask,
-      collective: collective_type,
-      atomic:  (hart_base_id_i / NrCores) +  (hart_base_id_i % NrCores) + 1'b1,
+      collective_mask: addr_t'(core_to_axi_req.q.user[CollectiveWidth+:PhysicalAddrWidth]),
+      collective_op:   collective_op_t'(core_to_axi_req.q.user[0+:CollectiveWidth]),
+      atomic_id:       atomic_id,
       default: '0
     };
-  end else begin : gen_user_wo_collective
+  end else begin : gen_user_no_collectives
     assign cluster_user = '{
-      atomic:  (hart_base_id_i / NrCores) +  (hart_base_id_i % NrCores) + 1'b1,
+      atomic_id:  atomic_id,
       default: '0
     };
   end

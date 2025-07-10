@@ -102,21 +102,21 @@ package ${cfg['cluster']['name']}_pkg;
 // on the configuration
 % if cfg['cluster']['enable_multicast']:
   typedef struct packed {
-    addr_t                          mcast;
-    logic [CollectiveWidth-1:0]     collective;
-    logic [AtomicIdWidth-1:0]       atomic;
+    addr_t                          collective_mask;
+    logic [CollectiveWidth-1:0]     collective_op;
+    logic [AtomicIdWidth-1:0]       atomic_id;
   } user_narrow_t;
 %else:
   typedef struct packed {
-    logic [AtomicIdWidth-1:0]       atomic;
+    logic [AtomicIdWidth-1:0]       atomic_id;
   } user_narrow_t;
 %endif
 
 // Will be extended when implementing collective operation on the wide dma link
 % if cfg['cluster']['enable_dma_multicast']:
   typedef struct packed {
-    addr_t                          mcast;
-    logic [CollectiveWidth-1:0]     collective;
+    addr_t                          collective_mask;
+    logic [CollectiveWidth-1:0]     collective_op;
   } user_dma_t;
 %else:
   typedef logic [WideUserWidth-1:0] user_dma_t;
