@@ -99,6 +99,11 @@ module ${cfg['cluster']['name']}_wrapper (
     .DMANumAxInFlight (${cfg['cluster']['dma_axi_req_fifo_depth']}),
     .DMAReqFifoDepth (${cfg['cluster']['dma_req_fifo_depth']}),
     .DMANumChannels (${cfg['cluster']['dma_nr_channels']}),
+  % if cfg['cluster']['num_exposed_wide_tcdm_ports']==0:
+    .NumExpWideTcdmPorts (1),
+  % else:
+    .NumExpWideTcdmPorts (${cfg['cluster']['num_exposed_wide_tcdm_ports']}),
+  % endif
     .ICacheLineWidth (${cfg['cluster']['name']}_pkg::ICacheLineWidth),
     .ICacheLineCount (${cfg['cluster']['name']}_pkg::ICacheLineCount),
     .ICacheWays (${cfg['cluster']['name']}_pkg::ICacheWays),
@@ -204,11 +209,11 @@ module ${cfg['cluster']['name']}_wrapper (
     .narrow_ext_req_o (narrow_ext_req_o),
     .narrow_ext_resp_i (${cfg['cluster']['name']}_pkg::narrow_out_resp_t'('0)),
 % endif
-% if cfg['cluster']['wide_tcdm_port_expose']:
-    .tcdm_ext_req_i (tcdm_ext_req_i),
+% if cfg['cluster']['num_exposed_wide_tcdm_ports']==0:
+    .tcdm_ext_req_i (${cfg['cluster']['name']}_pkg::tcdm_dma_req_t'('0)),
     .tcdm_ext_resp_o (tcdm_ext_resp_o),
 % else:
-    .tcdm_ext_req_i (${cfg['cluster']['name']}_pkg::tcdm_dma_req_t'('0)),
+    .tcdm_ext_req_i (tcdm_ext_req_i),
     .tcdm_ext_resp_o (tcdm_ext_resp_o),
 % endif
     .narrow_in_req_i,
