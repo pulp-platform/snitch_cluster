@@ -721,18 +721,20 @@ module snitch_cluster
 
   if (EnableWideCollectives) begin : gen_mcast_dma_xbar
 
-    // Define the collective connectivity matrix!
-    typedef bit [DmaMcastXbarCfg.NoMstPorts-1:0] dma_line_t;
-    typedef bit [DmaMcastXbarCfg.NoSlvPorts-1:0][DmaMcastXbarCfg.NoMstPorts-1:0] dma_matrix_t;
-
-    // If we want to reroute collective operation the only available collective operation
-    // port is the SoC port
-    localparam dma_line_t DMAlocalArray = dma_line_t'{SoCDMAOut: 1'b1, default: 1'b0};
-    localparam dma_matrix_t DMACollectiveConnectivity = dma_matrix_t'{default: DMAlocalArray};
+    // Define collective connectivity matrix to ensure collectives are routed to the SoC port only
+    typedef bit [DmaMcastXbarCfg.NoMstPorts-1:0] wide_mst_connectivity_t;
+    typedef wide_mst_connectivity_t [DmaMcastXbarCfg.NoSlvPorts-1:0] wide_xbar_connectivity_t;
+    localparam wide_mst_connectivity_t WideMstCollectiveConnectivity = wide_mst_connectivity_t'{
+      SoCDMAOut: 1'b1,
+      default: 1'b0
+    };
+    localparam wide_xbar_connectivity_t DmaCollectiveConnectivity = wide_xbar_connectivity_t'{
+      default: WideMstCollectiveConnectivity
+    };
 
     axi_mcast_xbar #(
       .Cfg (DmaMcastXbarCfg),
-      .CollectiveOpsConnectivity (DMACollectiveConnectivity),
+      .CollectiveOpsConnectivity (DmaCollectiveConnectivity),
       .ATOPs (0),
       .slv_aw_chan_t (axi_mst_dma_aw_chan_t),
       .mst_aw_chan_t (axi_slv_dma_aw_chan_t),
@@ -1382,21 +1384,23 @@ module snitch_cluster
     };
   end
 
-  // Set default master port for all multicast's crossbar input's
+  // Set default master port for multicast XBAR
   localparam bit ClusterEnableDefaultMstPort = 1'b1;
   assign cluster_xbar_default_port = '{default: SoC};
 
-  // Instance the narrow axi xbar
+  // Instantiate the narrow AXI XBAR
   if (EnableNarrowCollectives) begin : gen_narrow_mcast_axi_crossbar
 
-    // Define the collective connectivity matrix!
-    typedef bit [ClusterMcastXbarCfg.NoMstPorts-1:0] cluster_line_t;
-    typedef bit [ClusterMcastXbarCfg.NoSlvPorts-1:0][ClusterMcastXbarCfg.NoMstPorts-1:0] cluster_matrix_t;
-    // If we want to reroute collective operation the only available collective operation port is
-    // the SoC port
-    localparam cluster_line_t ClusterlocalArray = cluster_line_t'{SoC: 1'b1, default: 1'b0};
-    localparam cluster_matrix_t ClusterCollectiveConnectivity =
-        cluster_matrix_t'{default: ClusterlocalArray};
+    // Define collective connectivity matrix to ensure collectives are routed to the SoC port only
+    typedef bit [ClusterMcastXbarCfg.NoMstPorts-1:0] master_connectivity_t;
+    typedef master_connectivity_t [ClusterMcastXbarCfg.NoSlvPorts-1:0] xbar_connectivity_t;
+    localparam master_connectivity_t MasterCollectiveConnectivity = master_connectivity_t'{
+      SoC: 1'b1,
+      default: 1'b0
+    };
+    localparam xbar_connectivity_t ClusterCollectiveConnectivity = xbar_connectivity_t'{
+      default: MasterCollectiveConnectivity
+    };
 
     axi_mcast_xbar #(
       .Cfg                      (ClusterMcastXbarCfg),
