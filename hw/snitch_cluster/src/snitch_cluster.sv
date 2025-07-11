@@ -311,6 +311,7 @@ module snitch_cluster
   localparam logic [PhysicalAddrWidth-1:0] TCDMMask = ~(TCDMSizeNapotRounded - 1);
 
   // User widths
+  localparam int unsigned CoreUserWidth   = 64;
   localparam int unsigned NarrowUserWidth = $bits(user_narrow_t);
   localparam int unsigned WideUserWidth   = $bits(user_dma_t);
 
@@ -426,7 +427,7 @@ module snitch_cluster
   typedef logic [PhysicalAddrWidth-1:0] addr_t;
   typedef logic [NarrowDataWidth-1:0]   data_t;
   typedef logic [NarrowDataWidth/8-1:0] strb_t;
-  typedef logic [63:0]                  user_t;
+  typedef logic [CoreUserWidth-1:0]     user_t;
   typedef logic [WideDataWidth-1:0]     data_dma_t;
   typedef logic [WideDataWidth/8-1:0]   strb_dma_t;
   typedef logic [NarrowIdWidthIn-1:0]   id_mst_t;
@@ -1220,6 +1221,7 @@ module snitch_cluster
     .NrPorts (NrHives),
     .AddrWidth (PhysicalAddrWidth),
     .DataWidth (NarrowDataWidth),
+    .UserWidth (CoreUserWidth),
     .req_t (reqrsp_req_t),
     .rsp_t (reqrsp_rsp_t),
     .RespDepth (2)
@@ -1268,6 +1270,7 @@ module snitch_cluster
     .NrPorts (NrCores),
     .AddrWidth (PhysicalAddrWidth),
     .DataWidth (NarrowDataWidth),
+    .UserWidth (CoreUserWidth),
     .req_t (reqrsp_req_t),
     .rsp_t (reqrsp_rsp_t),
     .RespDepth (2)
@@ -1322,8 +1325,8 @@ module snitch_cluster
 
   reqrsp_to_axi #(
     .DataWidth (NarrowDataWidth),
-    .reqrsp_req_t (reqrsp_req_t),
-    .reqrsp_rsp_t (reqrsp_rsp_t),
+    .reqrsp_req_t (reqrsp_amo_req_t),
+    .reqrsp_rsp_t (reqrsp_amo_rsp_t),
     .axi_req_t (axi_mst_req_t),
     .axi_rsp_t (axi_mst_resp_t)
   ) i_reqrsp_to_axi_core (
