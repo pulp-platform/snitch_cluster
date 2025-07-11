@@ -81,10 +81,10 @@ inline void snrt_mutex_release(volatile uint32_t *pmtx) {
  * @brief Wakes up all core by writing in their respective clint var.
  *        Can only be called by a single core inside the hole system!
  * @note When the Multicast is enbled then the core mask is sent to itself too
- *        therefore setting the wake up flag althrough the core is awake.
- *        As consequence the function "snrt_int_clr_mcip()" needs to be called
- *        even if the core was awake. For a simplified flow we copy this behaviour
- *        in the non-multicast case even if it was not 100% necessary!
+ *       therefore setting the wake up flag althrough the core is awake.
+ *       As consequence the function "snrt_int_clr_mcip()" needs to be called
+ *       even if the core was awake. For a simplified flow we copy this
+ *       behaviour in the non-multicast case even if it was not 100% necessary!
  */
 inline void snrt_wake_all(uint32_t core_mask) {
 #ifdef SNRT_SUPPORTS_NARROW_MULTICAST
@@ -137,19 +137,20 @@ inline void snrt_cluster_hw_barrier() {
 inline void snrt_inter_cluster_barrier() {
 #ifdef SNRT_SUPPORTS_NARROW_REDUCTION
     // Only continue with dma core's - send the rest into the next hw barrier
-    if(snrt_is_dm_core()){
+    if (snrt_is_dm_core()) {
         // fetch the address for the reduction
-        cls_t * ctrl_red = cls();
-        void * addr = (void *) snrt_remote_l1_ptr(&(ctrl_red->reduction), snrt_cluster_idx(), 0);
-        
+        cls_t *ctrl_red = cls();
+        void *addr = (void *)snrt_remote_l1_ptr(&(ctrl_red->reduction),
+                                                snrt_cluster_idx(), 0);
+
         // clear the memory location of any previouse reduction
-        if(snrt_cluster_idx() == 0){
-            *((uint32_t *) addr) = 0;
+        if (snrt_cluster_idx() == 0) {
+            *((uint32_t *)addr) = 0;
         }
 
         // init the reduction
         snrt_enable_reduction(SNRT_BROADCAST_MASK, SNRT_COLL_NARROW_BARRIER);
-        *((uint32_t *) addr) = 1;
+        *((uint32_t *)addr) = 1;
         snrt_disable_reduction();
 
         // Fence to wait until the reduction is finished
@@ -157,12 +158,13 @@ inline void snrt_inter_cluster_barrier() {
     }
 #else
     // Only continue with dma core's - send the rest into sleep mode
-    if(snrt_is_dm_core()){
-        uint32_t cnt = __atomic_add_fetch(&(_snrt_barrier.cnt), 1, __ATOMIC_RELAXED);
+    if (snrt_is_dm_core()) {
+        uint32_t cnt =
+            __atomic_add_fetch(&(_snrt_barrier.cnt), 1, __ATOMIC_RELAXED);
 
         // All but the last cluster enter WFI, while the last cluster resets the
-        // counter for the next barrier and multicasts an interrupt to wake up the
-        // other clusters.
+        // counter for the next barrier and multicasts an interrupt to wake up
+        // the other clusters.
         if (cnt == snrt_cluster_num()) {
             _snrt_barrier.cnt = 0;
             // Wake all clusters
@@ -345,13 +347,14 @@ inline void snrt_wait_writeback(uint32_t val) {
 
 /**
  * @brief Enable LSU AW user field
- * @details All stores performed after this call are equipped with the given AW user field
+ * @details All stores performed after this call are equipped with the given AW
+ *          user field
  *
  * @param field Defines the AW user field for the AXI transfer
  */
- inline void snrt_set_awuser(uint64_t field){
-    uint32_t user_low = (uint32_t) (field);
-    uint32_t user_high = (uint32_t) (field >> 32);
+inline void snrt_set_awuser(uint64_t field) {
+    uint32_t user_low = (uint32_t)(field);
+    uint32_t user_high = (uint32_t)(field >> 32);
     write_csr(0x7c4, user_low);
     write_csr(0x7c5, user_high);
 }
@@ -367,7 +370,7 @@ inline void snrt_wait_writeback(uint32_t val) {
  *
  * @param mask Multicast mask value
  */
-inline void snrt_enable_multicast(uint64_t mask){
+inline void snrt_enable_multicast(uint64_t mask) {
     snrt_collective_op_t op;
     op.f.collective_opcode = SNRT_COLLECTIVE_MULTICAST;
     op.f.mask = mask;
@@ -390,7 +393,8 @@ inline void snrt_disable_multicast() { snrt_set_awuser(0); }
  * @param mask Mask defines all involved members
  * @param opcode Type of reduction operation
  */
-inline void snrt_enable_reduction(uint64_t mask, snrt_reduction_opcode_t opcode) { 
+inline void snrt_enable_reduction(uint64_t mask,
+                                  snrt_reduction_opcode_t opcode) {
     snrt_collective_opcode_t coll_opcode;
 
     switch (opcode) {

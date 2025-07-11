@@ -70,12 +70,11 @@ static inline void snrt_init_bss() {
 
 #ifdef SNRT_WAKE_UP
 static inline void snrt_wake_up() {
-
     // Core 0 of cluster 0 wakes up all other cores
     if (snrt_cluster_idx() == 0 && snrt_cluster_core_idx() == 0) {
         snrt_wake_all((1 << snrt_cluster_core_num()) - 1);
         snrt_fence();
-    } 
+    }
 
     // Synchronize all cores
     snrt_cluster_hw_barrier();
