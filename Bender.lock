@@ -7,7 +7,7 @@ packages:
     dependencies:
     - common_cells
   axi:
-    revision: 9debffc1b1b2b4e4045ec10dfe6eb87a412eab95
+    revision: 458c8c58cbe0acd0c5e6bb8592b52111bc9a5d84
     version: null
     source:
       Git: https://github.com/Lura518/axi.git
