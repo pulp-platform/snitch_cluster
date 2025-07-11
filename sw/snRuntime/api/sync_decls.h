@@ -66,7 +66,8 @@ inline void snrt_enable_multicast(uint64_t mask);
 
 inline void snrt_disable_multicast();
 
-inline void snrt_enable_reduction(uint64_t mask, snrt_reduction_opcode_t reduction);
+inline void snrt_enable_reduction(uint64_t mask,
+                                  snrt_reduction_opcode_t reduction);
 
 inline void snrt_disable_reduction();
 

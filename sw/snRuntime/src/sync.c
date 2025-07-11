@@ -44,4 +44,3 @@ extern void snrt_enable_reduction(uint64_t mask, uint32_t reduction);
 extern void snrt_disable_reduction();
 
 extern void snrt_set_user_field(uint64_t field);
-
