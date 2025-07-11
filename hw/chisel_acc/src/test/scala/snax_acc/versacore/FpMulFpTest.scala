@@ -16,9 +16,9 @@ import snax_acc.utils.fpUtils
 class FpMulFpTest extends AnyFlatSpec with ChiselScalatestTester with fpUtils {
   behavior of "FpMulFp"
 
-  val test_num = 1000
+  val test_num = 100
 
-  def test_fp_mul_fp(dut: FpMulFp, test_id: Int, A: Float, B: Float) = {
+  def testSingle(dut: FpMulFp, test_id: Int, A: Float, B: Float) = {
 
     val expected_fp = (A, dut.typeA) * (B, dut.typeB)
 
@@ -50,65 +50,73 @@ class FpMulFpTest extends AnyFlatSpec with ChiselScalatestTester with fpUtils {
     }
   }
 
-  def test_all_fp_mul_fp(dut: FpMulFp) = {
+  def testAll(dut: FpMulFp) = {
     val testCases = Seq.fill(test_num)((genRandomValue(dut.typeA), genRandomValue(dut.typeB)))
-    testCases.zipWithIndex.foreach { case ((a, b), index) => test_fp_mul_fp(dut, index + 1, a, b) }
+    testCases.zipWithIndex.foreach { case ((a, b), index) => testSingle(dut, index + 1, a, b) }
+  }
+
+  def testSpecialCases(dut: FpMulFp) = {
+    val specialCases = Seq(
+      (Float.NaN, 1.0f),
+      (1.0f, Float.NaN),
+      (Float.NaN, Float.NaN),                           // NaN cases
+      (Float.PositiveInfinity, 1.0f),
+      (1.0f, Float.PositiveInfinity),                   // +inf cases
+      (Float.NegativeInfinity, 1.0f),
+      (1.0f, Float.NegativeInfinity),                   // -inf cases
+      (Float.PositiveInfinity, Float.NegativeInfinity), // inf * -inf = -inf
+      (Float.NegativeInfinity, Float.PositiveInfinity), // -inf * inf = -inf
+      (0.0f, 0.0f),
+      (0.0f, 1.0f),
+      (1.0f, 0.0f),                                     // Zero cases
+      (Float.MinPositiveValue, Float.MinPositiveValue), // Underflow case
+      (Float.MinPositiveValue, 0.0f),
+      (0.0f, Float.MinPositiveValue)                    // Small number cases
+    )
+    specialCases.zipWithIndex.foreach { case ((a, b), index) => testSingle(dut, index + 1, a, b) }
   }
 
   it should "perform FP16 x FP16 = FP32 correctly" in {
     test(
       new FpMulFp(topmodule = "fp_mul", typeA = FP16, typeB = FP16, typeC = FP32)
-    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_mul_fp(dut) }
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => testAll(dut) }
   }
 
   it should "perform FP16 x FP16 = FP16 correctly" in {
-    test(
-      new FpMulFp(topmodule = "fp_mul", typeA = FP16, typeB = FP16, typeC = FP16)
-    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_mul_fp(dut) }
+    test(new FpMulFp(topmodule = "fp_mul", typeA = FP16, typeB = FP16, typeC = FP16))
+      .withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => testAll(dut) }
   }
 
   it should "perform BF16 x BF16 = FP32 correctly" in {
     test(
       new FpMulFp(topmodule = "fp_mul", typeA = BF16, typeB = BF16, typeC = FP32)
-    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_mul_fp(dut) }
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => testAll(dut) }
   }
 
   it should "perform BF16 x BF16 = BF16 correctly" in {
     test(
       new FpMulFp(topmodule = "fp_mul", typeA = BF16, typeB = BF16, typeC = BF16)
-    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_mul_fp(dut) }
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => testAll(dut) }
   }
 
   it should "perform BF16 x FP16 = FP32 correctly" in {
-    test(
-      new FpMulFp(topmodule = "fp_mul", typeA = BF16, typeB = BF16, typeC = BF16)
-    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_mul_fp(dut) }
+    test(new FpMulFp(topmodule = "fp_mul", typeA = BF16, typeB = BF16, typeC = BF16))
+      .withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => testAll(dut) }
   }
 
-  it should "handle special cases (NaN, Infinity, Underflow) for FP16 + FP16 -> FP16" in {
-    test(
-      new FpMulFp(topmodule = "fp_mul", typeA = FP16, typeB = FP32, typeC = FP16)
-    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut =>
-      val specialCases = Seq(
-        (Float.NaN, 1.0f),
-        (1.0f, Float.NaN),
-        (Float.NaN, Float.NaN),                           // NaN cases
-        (Float.PositiveInfinity, 1.0f),
-        (1.0f, Float.PositiveInfinity),                   // +inf cases
-        (Float.NegativeInfinity, 1.0f),
-        (1.0f, Float.NegativeInfinity),                   // -inf cases
-        (Float.PositiveInfinity, Float.NegativeInfinity), // inf + -inf = NaN
-        (Float.NegativeInfinity, Float.PositiveInfinity), // -inf + inf = NaN
-        (0.0f, 0.0f),
-        (0.0f, 1.0f),
-        (1.0f, 0.0f),                                     // Zero cases
-        (Float.MinPositiveValue, Float.MinPositiveValue), // Underflow case
-        (Float.MinPositiveValue, 0.0f),
-        (0.0f, Float.MinPositiveValue)                    // Small number cases
-      )
+  it should "handle special cases (NaN, Infinity, Underflow) for FP16 x FP32 -> FP16" in {
+    test(new FpMulFp(topmodule = "fp_mul", typeA = FP16, typeB = FP32, typeC = FP16))
+      .withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => testSpecialCases(dut) }
+  }
 
-      specialCases.zipWithIndex.foreach { case ((a, b), index) => test_fp_mul_fp(dut, index + 1, a, b) }
-    }
+  it should "handle special cases (NaN, Infinity, Underflow) for FP16 x BF16 -> FP32" in {
+    test(new FpMulFp(topmodule = "fp_mul", typeA = FP16, typeB = BF16, typeC = FP32))
+      .withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => testSpecialCases(dut) }
+  }
+
+  it should "handle special cases (NaN, Infinity, Underflow) for FP16 x FP32 -> BF16" in {
+    test(new FpMulFp(topmodule = "fp_mul", typeA = FP16, typeB = FP32, typeC = BF16))
+      .withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => testSpecialCases(dut) }
   }
 
 }

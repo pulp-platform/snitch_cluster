@@ -18,7 +18,7 @@ class FpAddFpTest extends AnyFlatSpec with ChiselScalatestTester with fpUtils {
 
   val test_num = 1000
 
-  def test_fp_add_fp(dut: FPAddFP, test_id: Int, A: Float, B: Float) = {
+  def testSingle(dut: FPAddFP, test_id: Int, A: Float, B: Float) = {
 
     val expected_fp = (A, dut.typeA) + (B, dut.typeB)
 
@@ -40,7 +40,9 @@ class FpAddFpTest extends AnyFlatSpec with ChiselScalatestTester with fpUtils {
         val result_fp     = uintToFloat(dut.typeC, result)
         val expected_uint = floatToUInt(dut.typeC, expected_fp)
         println(f"----Error in test id: $test_id----")
-        println(f"A_fp: ${A_fp} , B_fp: ${B_fp},  expected_fp: ${expected_fp} -> ${quantize(dut.typeC, expected_fp)}")
+        println(
+          f"A_fp: ${A} -> ${A_fp} , B_fp: ${B} -> ${B_fp},  expected_fp: ${expected_fp} -> ${quantize(dut.typeC, expected_fp)}"
+        )
         println(
           f"(expected) ${uintToStr(expected_uint, dut.typeC)} (got) ${uintToStr(result.litValue, dut.typeC)}"
         )
@@ -53,7 +55,39 @@ class FpAddFpTest extends AnyFlatSpec with ChiselScalatestTester with fpUtils {
 
   def test_all_fp_add_fp(dut: FPAddFP) = {
     val testCases = Seq.fill(test_num)((genRandomValue(dut.typeA), genRandomValue(dut.typeB)))
-    testCases.zipWithIndex.foreach { case ((a, b), index) => test_fp_add_fp(dut, index + 1, a, b) }
+    testCases.zipWithIndex.foreach { case ((a, b), index) => testSingle(dut, index + 1, a, b) }
+  }
+
+  def testSpecialCases(dut: FPAddFP) = {
+    val subnormal = uintToFloat(FP32, BigInt(1 << 22))
+
+    val specialCases = Seq(
+      (0.0f, 0.0f),
+      (0.0f, 1.0f),
+      (1.0f, 0.0f),                                     // Zero cases
+      (subnormal, 0.0f),
+      (0.0f, subnormal),
+      (subnormal, subnormal),
+      (Float.MinPositiveValue, Float.MinPositiveValue), // Underflow case
+      (0.0f, Float.MinPositiveValue),                   // Small number cases
+      //
+      (Float.NaN, 1.0f),
+      (1.0f, Float.NaN),
+      (Float.NaN, Float.NaN),                           // NaN cases
+      (Float.PositiveInfinity, 1.0f),
+      (1.0f, Float.PositiveInfinity),                   // +inf cases
+      (Float.NegativeInfinity, 1.0f),
+      (1.0f, Float.NegativeInfinity),                   // -inf cases
+      (Float.PositiveInfinity, Float.NegativeInfinity), // inf + -inf = NaN
+      (Float.NegativeInfinity, Float.PositiveInfinity), // -inf + inf = NaN
+
+      // TODO These does currently NOT work
+      // (Float.MinPositiveValue, Float.MinPositiveValue), // Underflow case
+      (Float.MinPositiveValue, 0.0f)
+      // (0.0f, Float.MinPositiveValue)                    // Small number cases
+    )
+
+    specialCases.zipWithIndex.foreach { case ((a, b), index) => testSingle(dut, index + 1, a, b) }
   }
 
   it should "perform FP32 + FP32 -> FP32 correctly" in {
@@ -80,6 +114,12 @@ class FpAddFpTest extends AnyFlatSpec with ChiselScalatestTester with fpUtils {
     ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_add_fp(dut) }
   }
 
+  it should "perform FP16 + FP32 -> FP16 correctly" in {
+    test(
+      new FPAddFP(topmodule = "fp_add", typeA = FP16, typeB = FP32, typeC = FP16)
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_add_fp(dut) }
+  }
+
   it should "perform BF16 + BF16 -> FP32 correctly" in {
     test(
       new FPAddFP(topmodule = "fp_add", typeA = BF16, typeB = BF16, typeC = FP32)
@@ -98,29 +138,21 @@ class FpAddFpTest extends AnyFlatSpec with ChiselScalatestTester with fpUtils {
     ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => test_all_fp_add_fp(dut) }
   }
 
-  it should "handle special cases (NaN, Infinity, Underflow) for FP16 + FP16 -> FP16" in {
+  it should "handle special cases in FP16 + FP32 -> FP16" in {
     test(
       new FPAddFP(topmodule = "fp_add", typeA = FP16, typeB = FP32, typeC = FP16)
-    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut =>
-      val specialCases = Seq(
-        (Float.NaN, 1.0f),
-        (1.0f, Float.NaN),
-        (Float.NaN, Float.NaN),                           // NaN cases
-        (Float.PositiveInfinity, 1.0f),
-        (1.0f, Float.PositiveInfinity),                   // +inf cases
-        (Float.NegativeInfinity, 1.0f),
-        (1.0f, Float.NegativeInfinity),                   // -inf cases
-        (Float.PositiveInfinity, Float.NegativeInfinity), // inf + -inf = NaN
-        (Float.NegativeInfinity, Float.PositiveInfinity), // -inf + inf = NaN
-        (0.0f, 0.0f),
-        (0.0f, 1.0f),
-        (1.0f, 0.0f),                                     // Zero cases
-        (Float.MinPositiveValue, Float.MinPositiveValue), // Underflow case
-        (Float.MinPositiveValue, 0.0f),
-        (0.0f, Float.MinPositiveValue)                    // Small number cases
-      )
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => testSpecialCases(dut) }
+  }
 
-      specialCases.zipWithIndex.foreach { case ((a, b), index) => test_fp_add_fp(dut, index + 1, a, b) }
-    }
+  it should "handle special cases in FP16 + FP32 -> FP32" in {
+    test(
+      new FPAddFP(topmodule = "fp_add", typeA = FP16, typeB = FP32, typeC = FP32)
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => testSpecialCases(dut) }
+  }
+
+  it should "handle special cases in FP32 + FP16 -> BF16" in {
+    test(
+      new FPAddFP(topmodule = "fp_add", typeA = FP32, typeB = FP16, typeC = BF16)
+    ).withAnnotations(Seq(VerilatorBackendAnnotation, WriteVcdAnnotation)) { dut => testSpecialCases(dut) }
   }
 }

@@ -99,8 +99,8 @@ module fp_mul_int #(
   // Input processing
   // -----------------
   fpnew_pkg_snax::fp_info_t [1:0] info_q;
-  fp_a_t                     operand_a;
-  fp_b_t                     operand_b;
+  fp_a_t                          operand_a;
+  fp_b_t                          operand_b;
   fpnew_pkg_snax::fp_info_t info_a, info_b;
 
 
@@ -242,7 +242,7 @@ module fp_mul_int #(
   assign sum_lower = product_shifted[LOWER_SUM_WIDTH-1:0];
 
   // Leading zero counter for cancellations
-  lzc_versacore #(
+  lzc_snax #(
       .WIDTH(LOWER_SUM_WIDTH),
       .MODE (1)                 // MODE = 1 counts leading zeroes
   ) i_lzc (
@@ -316,7 +316,7 @@ module fp_mul_int #(
       .sign_i                 (pre_round_sign),
       .round_sticky_bits_i    (round_sticky_bits),
       .rnd_mode_i             (fpnew_pkg_snax::RNE),
-      .effective_subtraction_i(1'b0),               // pure mul, no subtraction
+      .effective_subtraction_i(1'b0),                 // pure mul, no subtraction
       .abs_rounded_o          (rounded_abs),
       .sign_o                 (rounded_sign),
       .exact_zero_o           (result_zero)

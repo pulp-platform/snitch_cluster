@@ -46,8 +46,7 @@ module fp_mul #(
   localparam int unsigned PRECISION_BITS_B = MAN_BITS_B + 1;
   localparam int unsigned PRECISION_BITS_C = MAN_BITS_C + 1;
 
-
-  localparam int unsigned MUL_WIDTH = PRECISION_BITS_A + PRECISION_BITS_B; // Same as LOWER_SUM_WIDTH in original
+  localparam int unsigned MUL_WIDTH = PRECISION_BITS_A + PRECISION_BITS_B;  // Same as LOWER_SUM_WIDTH in original
   localparam int unsigned LZC_RESULT_WIDTH = $clog2(MUL_WIDTH);
   localparam int unsigned EXP_WIDTH = unsigned'(fpnew_pkg_snax::maximum(
       EXP_BITS_C + 2, LZC_RESULT_WIDTH
@@ -79,8 +78,8 @@ module fp_mul #(
   // Input processing
   // -----------------
   fpnew_pkg_snax::fp_info_t [1:0] info_q;
-  fp_a_t                     operand_a;
-  fp_b_t                     operand_b;
+  fp_a_t                          operand_a;
+  fp_b_t                          operand_b;
   fpnew_pkg_snax::fp_info_t info_a, info_b;
 
 
@@ -199,7 +198,6 @@ module fp_mul #(
   localparam int STICKY_BIT_WIDTH = PRODUCT_SHIFTED_WIDTH - (PRECISION_BITS_C + 1);
   localparam int unsigned PADDING_WIDTH = (STICKY_BIT_WIDTH <= 0) ? -STICKY_BIT_WIDTH : 0;
 
-  // logic leading_zero_count;
   logic        [     LZC_RESULT_WIDTH-1:0] leading_zero_count;  // the number of leading zeroes
   logic signed [       LZC_RESULT_WIDTH:0] leading_zero_count_sgn;  // signed leading-zero count
   logic                                    lzc_zeroes;
@@ -218,7 +216,7 @@ module fp_mul #(
 
   // For normal case, the mantissa's start with 1 (by definition) so the product has either 0 or 1 leading zero's
   // For subnormal case, any number of leading zero's is possible
-  lzc_versacore #(
+  lzc_snax #(
       .WIDTH(MUL_WIDTH),
       .MODE (1)           // MODE = 1 counts leading zeroes
   ) i_lzc (
@@ -229,15 +227,15 @@ module fp_mul #(
   assign leading_zero_count_sgn = signed'({1'b0, leading_zero_count});
 
   always_comb begin : norm_shift_amount
-    if ((exponent_product - leading_zero_count_sgn + 1 >= 0) && !lzc_zeroes) begin
+    if ((exponent_product - leading_zero_count_sgn + 1 > 0) && !lzc_zeroes) begin
       normalized_exponent = exponent_product - leading_zero_count_sgn + 1;  // Account for LZC shift
-      // Cancel out leading zero and account for 1 bit wider result. Mantissa's hidden bit will now be at MSB
+      // Account for 1 bit wider result. Cancel out leading zeros. Mantissa's hidden bit will now be at MSB
       product_shifted = product << (leading_zero_count + 1);
     end else begin
-      // Subnormal result
-      normalized_exponent = 0;  // subnormals encoded as 0
-      // Leading mantissa bit must not be discarded: move one bit right to negate later discarding
-      product_shifted = product >> unsigned'(-(exponent_product - leading_zero_count_sgn + 1) + 1);
+      // Subnormal result. Exponent is 0
+      normalized_exponent = 0;
+      // Align mantissa with minimum exponent. Mantissa MSB must not be discarded later: subnormals have no hidden bit
+      product_shifted = product << 1 >> unsigned'(-exponent_product);
     end
   end
 
@@ -272,12 +270,12 @@ module fp_mul #(
   logic [EXP_BITS_C+MAN_BITS_C-1:0] rounded_abs;  // absolute value of result after rounding
 
   // Classification before round. RISC-V mandates checking underflow AFTER rounding!
-  assign of_before_round = final_exponent >= 2**(EXP_BITS_C)-1; // infinity exponent is all ones
+  assign of_before_round = final_exponent >= 2 ** (EXP_BITS_C) - 1;  // infinity exponent is all ones
   assign uf_before_round = final_exponent == 0;  // exponent for subnormals capped to 0
 
   // Assemble result before rounding. In case of overflow, the largest normal value is set.
   assign pre_round_sign = result_sign;
-  assign pre_round_exponent = (of_before_round) ? 2**EXP_BITS_C-2 : unsigned'(final_exponent[EXP_BITS_C-1:0]);
+  assign pre_round_exponent = (of_before_round) ? 2 ** EXP_BITS_C - 2 : unsigned'(final_exponent[EXP_BITS_C-1:0]);
   // Discard implicit leading bit. Bit 0 is R bit
   assign pre_round_mantissa = (of_before_round) ? '1 : final_mantissa[MAN_BITS_C:1];
   assign pre_round_abs = {pre_round_exponent, pre_round_mantissa};
@@ -293,7 +291,7 @@ module fp_mul #(
       .sign_i                 (pre_round_sign),
       .round_sticky_bits_i    (round_sticky_bits),
       .rnd_mode_i             (fpnew_pkg_snax::RNE),
-      .effective_subtraction_i(1'b0),               // pure mul, no subtraction
+      .effective_subtraction_i(1'b0),                 // pure mul, no subtraction
       .abs_rounded_o          (rounded_abs),
       .sign_o                 (rounded_sign),
       .exact_zero_o           (result_zero)

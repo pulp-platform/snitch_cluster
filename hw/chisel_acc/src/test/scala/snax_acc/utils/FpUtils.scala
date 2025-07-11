@@ -4,7 +4,7 @@ import scala.Float
 
 import chisel3._
 
-import snax_acc.versacore.FpType
+import snax_acc.versacore._
 
 trait fpUtils {
 
@@ -28,14 +28,32 @@ trait fpUtils {
     val tentativeExp = (exponent - bias32 + biasTarget)
 
     val bitsTarget =
-      if (exponent == 0 && frac == 0) {
+      if (exponent == 0xff && frac != 0) {
+        // Canonical NaN: all exponent bits 1, MSB of fraction 1, rest 0
+        val expAllOnes = (1 << expWidth) - 1
+        val fracMSB    = 1 << (sigWidth - 1)
+        (sign << expSigWidth) | (expAllOnes << sigWidth) | fracMSB
+      } else if (exponent == 0xff && frac == 0) {
+        // Infinity: all exponent bits 1, fraction 0
+        val expAllOnes = (1 << expWidth) - 1
+        (sign << expSigWidth) | (expAllOnes << sigWidth)
+      } else if (exponent == 0 && frac == 0) {
         // True zero
         sign << expSigWidth
       } else if (tentativeExp > maxExpTarget) {
         // Overflow -> Inf (all 1's)
         (sign << expSigWidth) | ((1 << expSigWidth) - 1)
-      } else if (tentativeExp <= 0) {
-        // Subnormal: add implicit 1 and shift with subnormal location + the difference in mantissa lengths
+      } else if (exponent == 0 && tentativeExp <= 0) {
+        // From subnormal to subnormal
+        val subnormalShift = -tentativeExp
+        val subnormalFrac  = frac >>> (subnormalShift + 23 - sigWidth)
+        (sign << expSigWidth) | subnormalFrac
+      } else if (exponent == 0 && tentativeExp > 0) {
+        // From subnormal to normal
+        throw new NotImplementedError("From subnormal to normal")
+      } else if (exponent > 0 && tentativeExp <= 0) {
+        // From normal to subnormal
+        // Add implicit 1 and shift with subnormal location + the difference in mantissa lengths
         val subnormalShift = 1 - tentativeExp
         val subnormalFrac  = (0x800000 | frac) >>> (subnormalShift + 23 - sigWidth)
         (sign << expSigWidth) | subnormalFrac
@@ -58,26 +76,34 @@ trait fpUtils {
     val biasSrc   = (1 << (expWidth - 1)) - 1
     val bias32    = 127 // IEEE 754 bias for 32-bit float
     val maxExpSrc = (1 << expWidth) - 1
+    val biasDiff  = bias32 - biasSrc
 
     val bits32 =
       if (exponentSrc == 0 && fracSrc == 0) {
         // True zero
         signSrc << 31
-      } else if (exponentSrc == 0) {
-        // subnormal
+      } else if (exponentSrc == maxExpSrc) {
+        // Inf or NaN
+        val isNaN  = fracSrc != 0
+        val frac32 = if (isNaN) 0x200000 else 0
+        (signSrc << 31) | (0xff << 23) | frac32
+      } else if (exponentSrc == 0 && biasDiff > 0) {
+        // Subnormal to normal
         val leading    = Integer.numberOfLeadingZeros(fracSrc.toInt) - (32 - sigWidth)
         // Put MSB of source mantissa at implicit 1 position
         val normalized = (fracSrc << (leading + 1)) & ((1 << sigWidth) - 1)
         // Shift source mantissa into FP32 precision
         val frac32     = normalized << (23 - sigWidth)
         // Re-normalize exponent
-        val exp32      = bias32 - biasSrc - leading
+        val exp32      = biasDiff - leading
         (signSrc << 31) | (exp32 << 23) | frac32
-      } else if (exponentSrc == maxExpSrc) {
-        // Inf or NaN
-        val isNaN  = fracSrc != 0
-        val frac32 = if (isNaN) 0x200000 else 0
-        (signSrc << 31) | (0xff << 23) | frac32
+      } else if (exponentSrc == 0 && biasDiff <= 0) {
+        // Subnormal to subnormal
+        val subnormalFrac = fracSrc >> (-biasDiff + sigWidth - 23)
+        (signSrc << 31) | subnormalFrac
+      } else if (biasDiff < 0) {
+        // Normal to subnormal
+        throw new NotImplementedError("From normal to subnormal")
       } else {
         val frac32 = fracSrc.toInt << (23 - sigWidth)
         val exp32  = exponentSrc - biasSrc + bias32
@@ -126,29 +152,41 @@ trait fpUtils {
     * -0 and +0 are also accepted as equal.
     */
   def fpEqualsHardware(expected: Float, from_hw: UInt, typeB: FpType) = {
-    val expected_bigint     = floatToUInt(typeB, expected)
-    val from_hw_bigint      = from_hw.litValue
-    val plusEqualsMinusZero = (expected_bigint == 0 && from_hw_bigint == (BigInt(1) << typeB.width - 1))
-    from_hw_bigint - expected_bigint <= 1 || plusEqualsMinusZero
+    val expected_bigint = floatToUInt(typeB, expected)
+    val from_hw_bigint  = from_hw.litValue
+    val eqZero          = expected_bigint == 0          && isZero(from_hw_bigint, typeB)
+    val eqNaN           = isNaN(expected_bigint, typeB) && isNaN(from_hw_bigint, typeB)
+
+    from_hw_bigint == expected_bigint || from_hw_bigint == expected_bigint + 1 || eqZero || eqNaN
   }
 
   /** Returns true iff the hardware result a (as UInt) correctly represents the float. The result is allowed to differ
     * in `lsbTolerance` LSB bits, as a result from rounding errors propagated through operations.
     */
   def fpAlmostEqualsHardware(expected: Float, from_hw: UInt, typeB: FpType) = {
-    val lsbTolerance        = 4
-    val expected_bigint     = floatToUInt(typeB, expected)
-    val from_hw_bigint      = from_hw.litValue
-    val plusEqualsMinusZero = (expected_bigint == 0 && from_hw_bigint == (BigInt(1) << typeB.width - 1))
-    (from_hw_bigint - expected_bigint).abs <= (1 << lsbTolerance) - 1 || plusEqualsMinusZero
+    val lsbTolerance    = 4
+    val expected_bigint = floatToUInt(typeB, expected)
+    val from_hw_bigint  = from_hw.litValue
+    val eqZero          = expected_bigint == 0          && isZero(from_hw_bigint, typeB)
+    val eqNaN           = isNaN(expected_bigint, typeB) && isNaN(from_hw_bigint, typeB)
+    (from_hw_bigint - expected_bigint).abs <= ((BigInt(1) << lsbTolerance) - 1) || eqZero || eqNaN
   }
+
+  def isNaN(bits: BigInt, fpType: FpType): Boolean = {
+    val expMask = ((BigInt(1) << fpType.expWidth) - 1) << fpType.sigWidth
+    val exp     = (bits & expMask) >> fpType.sigWidth
+    val frac    = bits & ((BigInt(1) << fpType.sigWidth) - 1)
+    exp == (BigInt(1) << fpType.expWidth) - 1 && frac != 0
+  }
+
+  def isZero(bits: BigInt, fpType: FpType): Boolean = bits == BigInt(1) << fpType.width - 1
 
   /** Define operator symbol for mulFpHardware. Signature:  ((Float, FpType), (Float, FpType)) => Float */
   implicit class FpHardwareOps(a: (Float, FpType)) {
     def *(b: (Float, FpType)): Float = fpOperationHardware(a._1, b._1, a._2, b._2, _ * _)
     def +(b: (Float, FpType)): Float = fpOperationHardware(a._1, b._1, a._2, b._2, _ + _)
 
-    /** FP results are exactly the same, save for a +1 bit rounding error (RNE instead of floor). Not to be confused
+    /** FP results are exactly the same, except for a +1 bit rounding error (RNE instead of floor). Not to be confused
       * with the Chisel3 === operator
       */
     def ===(b: UInt): Boolean = fpEqualsHardware(a._1, b, a._2)
@@ -159,5 +197,4 @@ trait fpUtils {
 
   def uintToStr(bits: BigInt, fpType: FpType): String =
     bits.toString(2).reverse.padTo(fpType.width, '0').reverse.grouped(4).mkString("_")
-
 }
