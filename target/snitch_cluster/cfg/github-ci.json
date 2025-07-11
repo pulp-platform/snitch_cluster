@@ -22,8 +22,6 @@
         dma_req_fifo_depth: 8,
         narrow_trans: 4,
         wide_trans: 32,
-        enable_narrow_collectives: true,
-        enable_wide_collectives: true,
         // We don't need Snitch debugging in Occamy
         enable_debug: false,
         // We don't need Snitch (core-internal) virtual memory support
