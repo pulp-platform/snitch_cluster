@@ -130,54 +130,46 @@ inline void snrt_cluster_hw_barrier() {
 /**
  * @brief Synchronize one core from every cluster with the others.
  * @details Implemented as a software barrier.
- * @note All cores per cluster must invoke this function, or the calling cores
- *       will stall indefinitely.
+ * @note One core per cluster must invoke this function (the same across all
+ *       clusters), or the calling cores will stall indefinitely.
  */
 
 inline void snrt_inter_cluster_barrier() {
 #ifdef SNRT_SUPPORTS_NARROW_REDUCTION
-    // Only continue with dma core's - send the rest into the next hw barrier
-    if (snrt_is_dm_core()) {
-        // fetch the address for the reduction
-        cls_t *ctrl_red = cls();
-        void *addr = (void *)snrt_remote_l1_ptr(&(ctrl_red->reduction),
-                                                snrt_cluster_idx(), 0);
+    // Fetch the address for the reduction
+    cls_t *ctrl_red = cls();
+    uint32_t *addr = (uint32_t *)snrt_remote_l1_ptr(&(ctrl_red->reduction),
+                                                    snrt_cluster_idx(), 0);
 
-        // clear the memory location of any previouse reduction
-        if (snrt_cluster_idx() == 0) {
-            *((uint32_t *)addr) = 0;
-        }
-
-        // init the reduction
-        snrt_enable_reduction(SNRT_BROADCAST_MASK, SNRT_COLL_NARROW_BARRIER);
-        *((uint32_t *)addr) = 1;
-        snrt_disable_reduction();
-
-        // Fence to wait until the reduction is finished
-        snrt_fence();
+    // Clear the memory location of any previous reduction
+    if (snrt_cluster_idx() == 0) {
+        *addr = 0;
     }
-#else
-    // Only continue with dma core's - send the rest into sleep mode
-    if (snrt_is_dm_core()) {
-        uint32_t cnt =
-            __atomic_add_fetch(&(_snrt_barrier.cnt), 1, __ATOMIC_RELAXED);
 
-        // All but the last cluster enter WFI, while the last cluster resets the
-        // counter for the next barrier and multicasts an interrupt to wake up
-        // the other clusters.
-        if (cnt == snrt_cluster_num()) {
-            _snrt_barrier.cnt = 0;
-            // Wake all clusters
-            snrt_wake_all((1 << snrt_cluster_core_num()) - 1);
-        } else {
-            snrt_wfi();
-        }
+    // Launch the reduction
+    snrt_enable_reduction(SNRT_BROADCAST_MASK, SNRT_REDUCTION_BARRIER);
+    *addr = 1;
+    snrt_disable_reduction();
+
+    // Fence to wait until the reduction is finished
+    snrt_fence();
+#else
+    // Everyone increments a shared counter
+    uint32_t cnt =
+        __atomic_add_fetch(&(_snrt_barrier.cnt), 1, __ATOMIC_RELAXED);
+
+    // All but the last cluster enter WFI, while the last cluster resets the
+    // counter for the next barrier and multicasts an interrupt to wake up the
+    // other clusters.
+    if (cnt == snrt_cluster_num()) {
+        _snrt_barrier.cnt = 0;
+        // Wake all clusters
+        snrt_wake_all(1 << snrt_cluster_core_idx());
     } else {
         snrt_wfi();
+        // Clear interrupt for next barrier
+        snrt_int_clr_mcip();
     }
-
-    // Clear the reset flag
-    snrt_int_clr_mcip();
 #endif
 }
 
@@ -195,7 +187,9 @@ inline void snrt_global_barrier() {
     snrt_cluster_hw_barrier();
 
     // Synchronize all clusters
-    snrt_inter_cluster_barrier();
+    if (snrt_is_dm_core()) {
+        snrt_inter_cluster_barrier();
+    }
 
     // Synchronize cores in a cluster with the HW barrier
     snrt_cluster_hw_barrier();
@@ -253,9 +247,6 @@ inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
                            __ATOMIC_RELAXED);
         snrt_inter_cluster_barrier();
         *cluster_result = _reduction_result;
-    } else {
-        // All core need to invoke the barrier
-        snrt_inter_cluster_barrier();
     }
     snrt_cluster_hw_barrier();
     return *cluster_result;
