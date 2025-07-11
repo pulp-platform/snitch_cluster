@@ -607,7 +607,8 @@ module snitch_cc #(
   // Decide whether to go to SoC or TCDM
 
   localparam int unsigned SelectWidth = cf_math_pkg::idx_width(2);
-  typedef enum logic [SelectWidth-1:0] {SelectTcdm = 1, SelectSoc = 0} select_t;
+  typedef logic [SelectWidth-1:0] select_t;
+  typedef enum select_t {SelectTcdm = 1, SelectSoc = 0} select_e;
 
   dreq_t data_tcdm_req;
   drsp_t data_tcdm_rsp;
@@ -638,13 +639,13 @@ module snitch_cc #(
 
   reqrsp_rule_t [TCDMAliasEnable:0] addr_map;
   assign addr_map[0] = '{
-    idx: 1,
+    idx: SelectTcdm,
     base: tcdm_addr_base_i,
     mask: ({AddrWidth{1'b1}} << TCDMAddrWidth)
   };
   if (TCDMAliasEnable) begin : gen_tcdm_alias_rule
     assign addr_map[1] = '{
-      idx: 1,
+      idx: SelectTcdm,
       base: TCDMAliasStart,
       mask: ({AddrWidth{1'b1}} << TCDMAddrWidth)
     };
@@ -662,7 +663,7 @@ module snitch_cc #(
     .dec_valid_o (),
     .dec_error_o (),
     .en_default_idx_i (1'b1),
-    .default_idx_i ('0)
+    .default_idx_i (SelectSoc)
   );
 
   // Collective communication operations are performed within the interconnect at the SoC
