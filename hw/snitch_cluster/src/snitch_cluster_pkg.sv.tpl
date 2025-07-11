@@ -97,7 +97,7 @@ package ${cfg['cluster']['name']}_pkg;
 
 // Generate the typedef's for the userfield's with the required subfields depending
 // on the configuration
-% if cfg['cluster']['enable_multicast']:
+% if cfg['cluster']['enable_narrow_collectives']:
   typedef struct packed {
     addr_t                          collective_mask;
     logic [CollectiveWidth-1:0]     collective_op;
@@ -110,7 +110,7 @@ package ${cfg['cluster']['name']}_pkg;
 %endif
 
 // Will be extended when implementing collective operation on the wide dma link
-% if cfg['cluster']['enable_dma_multicast']:
+% if cfg['cluster']['enable_wide_collectives']:
   typedef struct packed {
     addr_t                          collective_mask;
     logic [CollectiveWidth-1:0]     collective_op;
