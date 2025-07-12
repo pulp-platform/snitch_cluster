@@ -6,7 +6,10 @@
 # Pull requests from forks cannot deploy the Docker container due to missing
 # secrets, thus we only enable this workflow on push triggers.
 name: ci
-on: [push]
+on:
+  push:
+    paths-ignore:
+      - '**/*.md'
 
 env:
   FORCE_COLOR: 1
