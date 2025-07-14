@@ -50,8 +50,8 @@ module ${cfg['cluster']['name']}_wrapper (
   output ${cfg['cluster']['name']}_pkg::wide_in_resp_t      wide_in_resp_o,
   output ${cfg['cluster']['name']}_pkg::narrow_out_req_t    narrow_ext_req_o,
   input  ${cfg['cluster']['name']}_pkg::narrow_out_resp_t   narrow_ext_resp_i,
-  input  ${cfg['cluster']['name']}_pkg::tcdm_dma_req_t      tcdm_ext_req_i,
-  output ${cfg['cluster']['name']}_pkg::tcdm_dma_rsp_t      tcdm_ext_resp_o
+  input  ${cfg['cluster']['name']}_pkg::tcdm_dma_req_t [${cfg['cluster']['num_exposed_wide_tcdm_ports']-1 if cfg['cluster']['num_exposed_wide_tcdm_ports']!=0 else cfg['cluster']['num_exposed_wide_tcdm_ports']}:0] tcdm_ext_req_i,
+  output ${cfg['cluster']['name']}_pkg::tcdm_dma_rsp_t [${cfg['cluster']['num_exposed_wide_tcdm_ports']-1 if cfg['cluster']['num_exposed_wide_tcdm_ports']!=0 else cfg['cluster']['num_exposed_wide_tcdm_ports']}:0] tcdm_ext_resp_o
 );
 
   localparam int unsigned NumIntOutstandingLoads [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_int_outstanding_loads')}};
@@ -211,11 +211,10 @@ module ${cfg['cluster']['name']}_wrapper (
 % endif
 % if cfg['cluster']['num_exposed_wide_tcdm_ports']==0:
     .tcdm_ext_req_i (${cfg['cluster']['name']}_pkg::tcdm_dma_req_t'('0)),
-    .tcdm_ext_resp_o (tcdm_ext_resp_o),
 % else:
     .tcdm_ext_req_i (tcdm_ext_req_i),
-    .tcdm_ext_resp_o (tcdm_ext_resp_o),
 % endif
+    .tcdm_ext_resp_o (tcdm_ext_resp_o),
     .narrow_in_req_i,
     .narrow_in_resp_o,
     .narrow_out_req_o,

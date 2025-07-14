@@ -225,62 +225,62 @@ module snitch_cluster
 ) (
   /// System clock. If `IsoCrossing` is enabled this port is the _fast_ clock.
   /// The slower, half-frequency clock, is derived internally.
-  input  logic                          clk_i,
+  input  logic                                    clk_i,
   /// Asynchronous active high reset. This signal is assumed to be _async_.
-  input  logic                          rst_ni,
+  input  logic                                    rst_ni,
   /// Per-core debug request signal. Asserting this signals puts the
   /// corresponding core into debug mode. This signal is assumed to be _async_.
-  input  logic [NrCores-1:0]            debug_req_i,
+  input  logic [NrCores-1:0]                      debug_req_i,
   /// Machine external interrupt pending. Usually those interrupts come from a
   /// platform-level interrupt controller. This signal is assumed to be _async_.
-  input  logic [NrCores-1:0]            meip_i,
+  input  logic [NrCores-1:0]                      meip_i,
   /// Machine timer interrupt pending. Usually those interrupts come from a
   /// core-local interrupt controller such as a timer/RTC. This signal is
   /// assumed to be _async_.
-  input  logic [NrCores-1:0]            mtip_i,
+  input  logic [NrCores-1:0]                      mtip_i,
   /// Core software interrupt pending. Usually those interrupts come from
   /// another core to facilitate inter-processor-interrupts. This signal is
   /// assumed to be _async_.
-  input  logic [NrCores-1:0]            msip_i,
+  input  logic [NrCores-1:0]                      msip_i,
   // External interrupt pending.
-  input  logic [NrCores-1:0]            mxip_i,
+  input  logic [NrCores-1:0]                      mxip_i,
   /// First hartid of the cluster. Cores of a cluster are monotonically
   /// increasing without a gap, i.e., a cluster with 8 cores and a
   /// `hart_base_id_i` of 5 get the hartids 5 - 12.
-  input  logic [9:0]                    hart_base_id_i,
+  input  logic [9:0]                              hart_base_id_i,
   /// Base address of cluster. TCDM and cluster peripheral location are derived from
   /// it. This signal is pseudo-static.
-  input  logic [PhysicalAddrWidth-1:0]  cluster_base_addr_i,
+  input  logic [PhysicalAddrWidth-1:0]            cluster_base_addr_i,
   /// Configuration inputs for the memory cuts used in implementation.
   /// These signals are pseudo-static.
-  input  sram_cfgs_t                    sram_cfgs_i,
+  input  sram_cfgs_t                              sram_cfgs_i,
   /// Bypass half-frequency clock. (`d2` = divide-by-two). This signal is
   /// pseudo-static.
-  input  logic                          clk_d2_bypass_i,
+  input  logic                                    clk_d2_bypass_i,
   /// AXI Core cluster in-port.
-  input  narrow_in_req_t                narrow_in_req_i,
-  output narrow_in_resp_t               narrow_in_resp_o,
+  input  narrow_in_req_t                          narrow_in_req_i,
+  output narrow_in_resp_t                         narrow_in_resp_o,
   /// AXI Core cluster out-port.
-  output narrow_out_req_t               narrow_out_req_o,
-  input  narrow_out_resp_t              narrow_out_resp_i,
+  output narrow_out_req_t                         narrow_out_req_o,
+  input  narrow_out_resp_t                        narrow_out_resp_i,
   /// AXI DMA cluster out-port. Usually wider than the cluster ports so that the
   /// DMA engine can efficiently transfer bulk of data.
-  output wide_out_req_t                 wide_out_req_o,
-  input  wide_out_resp_t                wide_out_resp_i,
+  output wide_out_req_t                           wide_out_req_o,
+  input  wide_out_resp_t                          wide_out_resp_i,
   /// AXI DMA cluster in-port.
-  input  wide_in_req_t                  wide_in_req_i,
-  output wide_in_resp_t                 wide_in_resp_o,
+  input  wide_in_req_t                            wide_in_req_i,
+  output wide_in_resp_t                           wide_in_resp_o,
   // An additional AXI Core cluster out-port, used e.g. to connect
   // to the configuration interface of an external accelerator.
   // Compared to the `narrow_out` interface, the address space of
   // this port extends the cluster address space. We refer to the prior
   // as an external AXI plug, and to this as an externally-exposed
   // internal AXI plug.
-  output narrow_out_req_t               narrow_ext_req_o,
-  input  narrow_out_resp_t              narrow_ext_resp_i,
+  output narrow_out_req_t                         narrow_ext_req_o,
+  input  narrow_out_resp_t                        narrow_ext_resp_i,
   // External TCDM ports
-  input  tcdm_dma_req_t                 tcdm_ext_req_i,
-  output tcdm_dma_rsp_t                 tcdm_ext_resp_o
+  input  tcdm_dma_req_t [NumExpWideTcdmPorts-1:0] tcdm_ext_req_i,
+  output tcdm_dma_rsp_t [NumExpWideTcdmPorts-1:0] tcdm_ext_resp_o
 );
   // ---------
   // Constants
