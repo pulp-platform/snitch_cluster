@@ -26,7 +26,8 @@
 #define SNRT_SUPPORTS_NARROW_REDUCTION
 % endif
 
-#define SNRT_COLLECTIVE_WIDTH ${cfg['cluster']['collective_width']}
+#define SNRT_REDUCTION_OPCODE_WIDTH ${cfg['cluster']['reduction_opcode_width']}
+#define SNRT_COLLECTIVE_OPCODE_WIDTH ${cfg['cluster']['collective_width'] - cfg['cluster']['reduction_opcode_width']}
 
 // Software configuration
 #define SNRT_LOG2_STACK_SIZE 10

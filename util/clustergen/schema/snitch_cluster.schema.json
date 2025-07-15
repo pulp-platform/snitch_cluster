@@ -166,9 +166,14 @@
                     "description": "Width of the cluster's atomic ID.",
                     "default": 1
                 },  
+                "reduction_opcode_width": {
+                    "type": "number",
+                    "description": "Width of the reduction opcode field.",
+                    "default": 4
+                },  
                 "collective_width": {
                     "type": "number",
-                    "description": "Width of the collective operation field.",
+                    "description": "Width of the collective operation information in the awuser field, which includes the reduction opcode.",
                     "default": 6
                 },  
                 "enable_narrow_collectives": {

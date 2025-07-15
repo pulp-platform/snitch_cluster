@@ -6,6 +6,9 @@
 
 #include <stdint.h>
 
+#define SNRT_COLLECTIVE_MASK_WIDTH \
+    (64 - SNRT_REDUCTION_OPCODE_WIDTH - SNRT_COLLECTIVE_OPCODE_WIDTH)
+
 typedef struct {
     uint32_t volatile cnt;
     uint32_t volatile iteration;
@@ -35,9 +38,10 @@ typedef enum {
 
 typedef union {
     struct __attribute__((__packed__)) {
-        snrt_reduction_opcode_t reduction_opcode : SNRT_COLLECTIVE_WIDTH;
-        snrt_collective_opcode_t collective_opcode : 2;
-        uint64_t mask : (64 - SNRT_COLLECTIVE_WIDTH - 2);
+        snrt_reduction_opcode_t reduction_opcode : SNRT_REDUCTION_OPCODE_WIDTH;
+        snrt_collective_opcode_t collective_opcode
+            : SNRT_COLLECTIVE_OPCODE_WIDTH;
+        uint64_t mask : SNRT_COLLECTIVE_MASK_WIDTH;
     } f;
     uint64_t w;
 } snrt_collective_op_t;
