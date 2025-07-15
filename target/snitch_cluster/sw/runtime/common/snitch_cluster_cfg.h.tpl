@@ -21,9 +21,13 @@
 #define SNRT_CLUSTER_OFFSET ${cfg['cluster']['cluster_base_offset']}
 #define SNRT_NUM_SEQUENCER_LOOPS ${cfg['cluster']['hives'][0]['cores'][0]['num_sequencer_loops']}
 
-% if cfg['cluster']['enable_multicast']:
-#define SNRT_SUPPORTS_MULTICAST
+% if cfg['cluster']['enable_narrow_collectives']:
+#define SNRT_SUPPORTS_NARROW_MULTICAST
+#define SNRT_SUPPORTS_NARROW_REDUCTION
 % endif
+
+#define SNRT_REDUCTION_OPCODE_WIDTH ${cfg['cluster']['reduction_opcode_width']}
+#define SNRT_COLLECTIVE_OPCODE_WIDTH ${cfg['cluster']['collective_width'] - cfg['cluster']['reduction_opcode_width']}
 
 // Software configuration
 #define SNRT_LOG2_STACK_SIZE 10
