@@ -347,7 +347,7 @@ module snitch_cluster
     AxiAddrWidth: PhysicalAddrWidth,
     AxiDataWidth: NarrowDataWidth,
     NoAddrRules: NrRules,
-    NoMulticastRules: 3,
+    NoMulticastRules: 2,
     NoMulticastPorts: 3,
     default: '0
   };
