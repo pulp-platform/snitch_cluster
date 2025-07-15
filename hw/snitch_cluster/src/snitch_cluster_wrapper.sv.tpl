@@ -28,6 +28,12 @@ ${int(getattr(c['isa_parsed'], isa))}\
   % endfor
 </%def>\
 
+<%
+  actual_num_exposed_wide_tcdm_ports = cfg['cluster']['num_exposed_wide_tcdm_ports']
+  if actual_num_exposed_wide_tcdm_ports == 0:
+    actual_num_exposed_wide_tcdm_ports += 1
+%>
+
 module ${cfg['cluster']['name']}_wrapper (
   input  logic                                   clk_i,
   input  logic                                   rst_ni,
@@ -50,8 +56,8 @@ module ${cfg['cluster']['name']}_wrapper (
   output ${cfg['cluster']['name']}_pkg::wide_in_resp_t      wide_in_resp_o,
   output ${cfg['cluster']['name']}_pkg::narrow_out_req_t    narrow_ext_req_o,
   input  ${cfg['cluster']['name']}_pkg::narrow_out_resp_t   narrow_ext_resp_i,
-  input  ${cfg['cluster']['name']}_pkg::tcdm_dma_req_t [${cfg['cluster']['num_exposed_wide_tcdm_ports']-1 if cfg['cluster']['num_exposed_wide_tcdm_ports']!=0 else cfg['cluster']['num_exposed_wide_tcdm_ports']}:0] tcdm_ext_req_i,
-  output ${cfg['cluster']['name']}_pkg::tcdm_dma_rsp_t [${cfg['cluster']['num_exposed_wide_tcdm_ports']-1 if cfg['cluster']['num_exposed_wide_tcdm_ports']!=0 else cfg['cluster']['num_exposed_wide_tcdm_ports']}:0] tcdm_ext_resp_o
+  input  ${cfg['cluster']['name']}_pkg::tcdm_dma_req_t [${actual_num_exposed_wide_tcdm_ports}-1:0] tcdm_ext_req_i,
+  output ${cfg['cluster']['name']}_pkg::tcdm_dma_rsp_t [${actual_num_exposed_wide_tcdm_ports}-1:0] tcdm_ext_resp_o
 );
 
   localparam int unsigned NumIntOutstandingLoads [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_int_outstanding_loads')}};
@@ -99,11 +105,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .DMANumAxInFlight (${cfg['cluster']['dma_axi_req_fifo_depth']}),
     .DMAReqFifoDepth (${cfg['cluster']['dma_req_fifo_depth']}),
     .DMANumChannels (${cfg['cluster']['dma_nr_channels']}),
-  % if cfg['cluster']['num_exposed_wide_tcdm_ports']==0:
-    .NumExpWideTcdmPorts (1),
-  % else:
-    .NumExpWideTcdmPorts (${cfg['cluster']['num_exposed_wide_tcdm_ports']}),
-  % endif
+    .NumExpWideTcdmPorts (${actual_num_exposed_wide_tcdm_ports}),
     .ICacheLineWidth (${cfg['cluster']['name']}_pkg::ICacheLineWidth),
     .ICacheLineCount (${cfg['cluster']['name']}_pkg::ICacheLineCount),
     .ICacheWays (${cfg['cluster']['name']}_pkg::ICacheWays),
