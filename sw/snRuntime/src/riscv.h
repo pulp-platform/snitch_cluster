@@ -16,6 +16,8 @@ inline void snrt_wfi() { asm volatile("wfi"); }
 
 inline void snrt_nop() { asm volatile("nop" : : :); }
 
+inline void snrt_fence() { asm volatile("fence" : : :); }
+
 inline uint32_t snrt_mcycle() {
     uint32_t r;
     asm volatile("csrr %0, mcycle" : "=r"(r) : : "memory");
