@@ -104,6 +104,8 @@ static inline void snrt_init_cls() {
         snrt_dma_memset((void*)ptr, 0, size);
         snrt_dma_wait_all();
     }
+    // Init the cls pointer
+    _cls_ptr = (cls_t*)snrt_cls_base_addr();
     snrt_cluster_hw_barrier();
 }
 #endif
