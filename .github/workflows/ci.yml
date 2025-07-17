@@ -155,8 +155,11 @@ jobs:
           ./util/run.py sw/riscv_tests_isa.yaml --simulator verilator -j
       - name: Annotate traces
         working-directory: target/snitch_cluster
+        # Build the traces using the --permissive flag, since the Verilator
+        # testbench does not wait until all the instructions are retired
+        # (compiler introduces few instructions after exit routine).
         run: |
-          make SIM_DIR=./runs/simple annotate -j
+          make SIM_DIR=./runs/simple DEBUG=ON annotate -j
 
   ######################
   # Sources Up-to-Date #
