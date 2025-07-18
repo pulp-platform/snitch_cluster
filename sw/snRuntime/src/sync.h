@@ -231,7 +231,8 @@ inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
  *          the binary tree.
  * @param dst_buffer The pointer to the calling cluster's destination buffer.
  * @param src_buffer The pointer to the calling cluster's source buffer.
- * @param len The amount of data in each buffer.
+ * @param len The amount of data in each buffer. Only integer multiples of the
+ *            number of compute cores are supported at the moment.
  * @note The destination buffers must lie at the same offset in every cluster's
  *       TCDM.
  */
@@ -239,6 +240,11 @@ inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
                                       size_t len) {
     // If we have a single cluster, no reduction has to be done
     if (snrt_cluster_num() > 1) {
+        // DMA core will send compute cores' data, so it must wait on it
+        // to be available
+        snrt_fpu_fence();
+        snrt_cluster_hw_barrier();
+
         // Iterate levels in the binary reduction tree
         int num_levels = ceil(log2(snrt_cluster_num()));
         for (unsigned int level = 0; level < num_levels; level++) {
@@ -280,6 +286,7 @@ inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
             }
 
             // Synchronize compute and DM cores for next tree level
+            snrt_fpu_fence();
             snrt_cluster_hw_barrier();
         }
     }
