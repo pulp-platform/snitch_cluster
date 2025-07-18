@@ -340,6 +340,7 @@ module reqrsp_to_axi_intf #(
 
   reqrsp_to_axi #(
     .DataWidth ( DataWidth ),
+    .UserWidth ( AxiUserWidth ),
     .reqrsp_req_t (reqrsp_req_t),
     .reqrsp_rsp_t (reqrsp_rsp_t),
     .axi_req_t (axi_req_t),
