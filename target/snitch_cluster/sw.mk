@@ -57,7 +57,7 @@ $(SNITCH_CLUSTER_PERIPHERAL_ADDRMAP_H): $(SN_ROOT)/hw/snitch_cluster/src/snitch_
 .PHONY: sn-clean-headers
 sn-clean-sw: sn-clean-headers
 sn-clean-headers:
-	rm -f $(SNRT_HAL_HDRS)
+	rm -f $(SNRT_HAL_HDRS) $(SNITCH_CLUSTER_ADDRMAP_RDL)
 
 ##################
 # Subdirectories #
