@@ -10,7 +10,6 @@
 #define SNRT_CLUSTER_CORE_NUM CFG_CLUSTER_NR_CORES
 #define SNRT_CLUSTER_NUM ${cfg['nr_clusters']}
 #define SNRT_CLUSTER_DM_CORE_NUM 1
-#define SNRT_TCDM_START_ADDR SNITCH_CLUSTER_ADDRMAP_CLUSTER_TCDM_BASE_ADDR
 #define SNRT_TCDM_BANK_WIDTH ${cfg['cluster']['data_width'] // 8}
 #define SNRT_TCDM_BANK_NUM ${cfg['cluster']['tcdm']['banks']}
 #define SNRT_TCDM_HYPERBANK_NUM ${cfg['cluster']['tcdm']['hyperbanks']}
