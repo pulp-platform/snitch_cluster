@@ -17,13 +17,18 @@ sn-clean-sw: sn-clean-runtime sn-clean-tests sn-clean-apps
 # Platform headers #
 ####################
 
-SNRT_HAL_HDRS_DIR ?= $(SN_ROOT)/target/snitch_cluster/sw/runtime/common
+SNRT_HAL_SRC_DIR   ?= $(SN_ROOT)/target/snitch_cluster/sw/runtime/common
+SNRT_HAL_BUILD_DIR ?= $(SNRT_HAL_SRC_DIR)
 
-SNITCH_CLUSTER_CFG_H                = $(SNRT_HAL_HDRS_DIR)/snitch_cluster_cfg.h
-SNITCH_CLUSTER_ADDRMAP_H            = $(SNRT_HAL_HDRS_DIR)/snitch_cluster_addrmap.h
-SNITCH_CLUSTER_RAW_ADDRMAP_H        = $(SNRT_HAL_HDRS_DIR)/snitch_cluster_raw_addrmap.h
-SNITCH_CLUSTER_PERIPHERAL_H         = $(SNRT_HAL_HDRS_DIR)/snitch_cluster_peripheral.h
-SNITCH_CLUSTER_PERIPHERAL_ADDRMAP_H = $(SNRT_HAL_HDRS_DIR)/snitch_cluster_peripheral_addrmap.h
+SNITCH_CLUSTER_CFG_H                = $(SNRT_HAL_BUILD_DIR)/snitch_cluster_cfg.h
+SNITCH_CLUSTER_ADDRMAP_H            = $(SNRT_HAL_BUILD_DIR)/snitch_cluster_addrmap.h
+SNITCH_CLUSTER_RAW_ADDRMAP_H        = $(SNRT_HAL_BUILD_DIR)/snitch_cluster_raw_addrmap.h
+SNITCH_CLUSTER_PERIPHERAL_H         = $(SNRT_HAL_BUILD_DIR)/snitch_cluster_peripheral.h
+SNITCH_CLUSTER_PERIPHERAL_ADDRMAP_H = $(SNRT_HAL_BUILD_DIR)/snitch_cluster_peripheral_addrmap.h
+SNITCH_CLUSTER_ADDRMAP_RDL          = $(SNRT_HAL_BUILD_DIR)/snitch_cluster_addrmap.rdl
+
+SNITCH_CLUSTER_CFG_H_TPL       = $(SNRT_HAL_SRC_DIR)/snitch_cluster_cfg.h.tpl
+SNITCH_CLUSTER_ADDRMAP_RDL_TPL = $(SNRT_HAL_SRC_DIR)/snitch_cluster_addrmap.rdl.tpl
 
 SNRT_HAL_HDRS += $(SNITCH_CLUSTER_CFG_H)
 SNRT_HAL_HDRS += $(SNITCH_CLUSTER_ADDRMAP_H)
@@ -31,11 +36,9 @@ SNRT_HAL_HDRS += $(SNITCH_CLUSTER_RAW_ADDRMAP_H)
 SNRT_HAL_HDRS += $(SNITCH_CLUSTER_PERIPHERAL_H)
 SNRT_HAL_HDRS += $(SNITCH_CLUSTER_PERIPHERAL_ADDRMAP_H)
 
-SNITCH_CLUSTER_ADDRMAP_RDL = $(SNRT_HAL_HDRS_DIR)/snitch_cluster_addrmap.rdl
-
 # CLUSTERGEN rules
-$(eval $(call sn_cluster_gen_rule,$(SNITCH_CLUSTER_CFG_H),$(SNITCH_CLUSTER_CFG_H).tpl))
-$(eval $(call sn_cluster_gen_rule,$(SNITCH_CLUSTER_ADDRMAP_RDL),$(SNITCH_CLUSTER_ADDRMAP_RDL).tpl))
+$(eval $(call sn_cluster_gen_rule,$(SNITCH_CLUSTER_CFG_H),$(SNITCH_CLUSTER_CFG_H_TPL)))
+$(eval $(call sn_cluster_gen_rule,$(SNITCH_CLUSTER_ADDRMAP_RDL),$(SNITCH_CLUSTER_ADDRMAP_RDL_TPL)))
 
 # peakrdl headers
 SN_PEAKRDL_INCDIRS += -I $(SN_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral

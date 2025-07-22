@@ -85,10 +85,16 @@ $(SN_GEN_DIR) $(SN_BIN_DIR):
 # Util #
 ########
 
+# Normalizes a directory name by removing the trailing slash, if any.
+# Use to ensure that dependencies and targets are consistently specified.
+define normalize_dir
+$(patsubst %/,%,$(1))
+endef
+
 # Common rule to generate C header with peakRDL
 # $1: target name, $2: prerequisite (rdl description file), $3 (optional) additional peakRDL flags
 define peakrdl_generate_header_rule
-$(1): $(2)
+$(1): $(2) | $(call normalize_dir,$(dir $(1)))
 	@echo "[peakRDL] Generating $$@"
 	$(PEAKRDL) c-header $$< -o $$@ -i -b ltoh $(3)
 	@$(CLANG_FORMAT) -i $$@
@@ -105,7 +111,7 @@ endef
 # Arg 1: path for the generated file
 # Arg 2: path of the template file
 define sn_cluster_gen_rule
-$(1): $(SN_CFG) $(SN_CLUSTER_GEN) $(SN_CLUSTER_GEN_SRC) $(2) | $(SN_GEN_DIR)
+$(1): $(SN_CFG) $(SN_CLUSTER_GEN) $(SN_CLUSTER_GEN_SRC) $(2) | $(call normalize_dir,$(dir $(1)))
 	@echo "[CLUSTERGEN] Generate $$@"
 	$(SN_CLUSTER_GEN) -c $$< -o $$@ --template $(2)
 endef
