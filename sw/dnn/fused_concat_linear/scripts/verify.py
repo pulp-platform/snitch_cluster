@@ -8,10 +8,10 @@
 
 import sys
 import torch
-from datagen import golden_model
 
 from snitch.util.sim.verif_utils import Verifier
-from snitch.util.sim.data_utils import ctype_from_precision_t
+import snitch.util.sim.data_utils as du
+from snitch.dnn.fused_concat_linear.scripts.datagen import FusedConcatLinearDataGen
 
 
 class FusedConcatLinearVerifier(Verifier):
@@ -40,15 +40,15 @@ class FusedConcatLinearVerifier(Verifier):
         self.prec = self.layer['dtype']
 
     def get_actual_results(self):
-        return self.get_output_from_symbol('linear_output', ctype_from_precision_t(self.prec))
+        return self.get_output_from_symbol('linear_output', du.ctype_from_precision_t(self.prec))
 
     def get_expected_results(self):
-        inputs = [self.get_input_from_symbol(f'input_{i}', ctype_from_precision_t(self.prec))
+        inputs = [self.get_input_from_symbol(f'input_{i}', du.ctype_from_precision_t(self.prec))
                   for i in range(self.num_inputs)]
         inputs = [torch.from_numpy(tensor.reshape(self.input_shape)) for tensor in inputs]
-        weights = self.get_input_from_symbol('weights', ctype_from_precision_t(self.prec))
+        weights = self.get_input_from_symbol('weights', du.ctype_from_precision_t(self.prec))
         weights = torch.from_numpy(weights.reshape(self.weights_shape))
-        output_golden, _ = golden_model(inputs, weights)
+        output_golden, _ = FusedConcatLinearDataGen().golden_model(inputs, weights)
         return output_golden.detach().numpy().flatten()
 
     def check_results(self, *args):
