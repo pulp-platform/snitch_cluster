@@ -91,6 +91,7 @@ SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/flashattention_2
 SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/concat
 SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/fused_concat_linear
 SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/transpose
+SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/mha
 SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/montecarlo/pi_estimation
 SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/atax
 SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/correlation

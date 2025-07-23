@@ -115,6 +115,8 @@ runs:
     cmd: [../../../sw/dnn/gelu/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ./apps/dnn/flashattention_2/build/flashattention_2.elf
     cmd: [../../../sw/dnn/flashattention_2/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ./apps/dnn/mha/build/mha.elf
+    cmd: [../../../sw/dnn/mha/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ./apps/correlation/build/correlation.elf
     cmd: [../../../sw/apps/correlation/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ./apps/kmeans/build/kmeans.elf
