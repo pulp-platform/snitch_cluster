@@ -58,7 +58,8 @@ static inline void snrt_l1_alloc_check_bounds() {
  *        is equivalent to no alignment (in a byte-addressable system).
  * @return Pointer to the allocated variable.
  */
-inline void *snrt_l1_alloc_cluster_local(size_t size, const size_t alignment) {
+inline void *snrt_l1_alloc_cluster_local(size_t size,
+                                         const size_t alignment = 1) {
     snrt_l1_allocator_v2()->next =
         snrt_align_up(snrt_l1_allocator_v2()->next, alignment);
     void *retval = snrt_l1_next_v2();
@@ -81,7 +82,7 @@ inline void *snrt_l1_alloc_cluster_local(size_t size, const size_t alignment) {
  *         The return value for the DM core is undefined.
  */
 inline void *snrt_l1_alloc_compute_core_local(size_t size,
-                                              const size_t alignment) {
+                                              const size_t alignment = 1) {
     snrt_l1_allocator_v2()->next =
         snrt_align_up(snrt_l1_allocator_v2()->next, alignment);
     void *retval =
