@@ -175,7 +175,7 @@ static inline uint32_t calculate_partitioned_banks_stride(
  * 3. Allocates space in TCDM for local copies of matrix tiles, unless
  *    matrix tiles are already stored in TCDM (see `load_* arguments`).
  * 4. Distributes tiles to clusters for parallel processing.
- * 5. Iterates over the tiles, performing the following:
+ * 5. Each cluster iterates over the assigned tiles, performing the following:
  *    - Copies data for the current tile into local memory.
  *    - Performs the tile computation using the `sc_st_gemm` function.
  *    - Performs a logarithmic reduction to combine partial results across
@@ -226,8 +226,15 @@ static inline int gemm(const gemm_args_t *args) {
     // Distribute m and k tiles to clusters
     uint32_t cluster_m_tiles = largs->m_tiles;
     uint32_t cluster_k_tiles = largs->k_tiles;
+    uint32_t num_working_clusters = snrt_cluster_num();
     if (largs->parallelize_m) cluster_m_tiles /= snrt_cluster_num();
-    if (largs->parallelize_k) cluster_k_tiles /= snrt_cluster_num();
+    if (largs->parallelize_k) {
+        uint32_t k_tiles_quotient = cluster_k_tiles / snrt_cluster_num();
+        uint32_t k_tiles_remainder = cluster_k_tiles % snrt_cluster_num();
+        cluster_k_tiles = k_tiles_quotient;
+        if (snrt_cluster_idx() < k_tiles_remainder) cluster_k_tiles++;
+        if (k_tiles_quotient == 0) num_working_clusters = k_tiles_remainder;
+    }
 
     // Calculate number of iterations
     uint32_t num_tiles = cluster_m_tiles * largs->n_tiles * cluster_k_tiles;
@@ -456,7 +463,7 @@ static inline int gemm(const gemm_args_t *args) {
             // Note: both compute and DMA cores participate in this step.
             if (largs->parallelize_k && (comp_k == (cluster_k_tiles - 1))) {
                 snrt_global_reduction_dma(
-                    (double *)lcr, (double *)lc[c_buff_idx], tile_m * tile_n);
+                    (double *)lcr, (double *)lc[c_buff_idx], tile_m * tile_n, num_working_clusters);
             }
         }
 

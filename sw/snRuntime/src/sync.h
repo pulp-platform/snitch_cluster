@@ -76,6 +76,22 @@ inline void snrt_mutex_release(volatile uint32_t *pmtx) {
 //================================================================================
 // Barrier functions
 //================================================================================
+/**
+ * @brief Wake the first \ref num_clusters clusters.
+ * @param num_clusters The number of clusters to wake up.
+ */
+inline void snrt_wake_clusters(uint32_t core_mask, uint32_t num_clusters=0) {
+    // If the number of participants is not specified, assume all clusters
+    if (num_clusters == 0) num_clusters = snrt_cluster_num();
+
+    // Wake clusters sequentially
+    for (int i = 0; i < num_clusters; i++) {
+        if (snrt_cluster_idx() != i) {
+            snrt_cluster(i)->peripheral_reg.cl_clint_set.f.cl_clint_set =
+                core_mask;
+        }
+    }
+}
 
 /**
  * @brief Wakes up all core by writing in their respective clint var.
@@ -108,13 +124,7 @@ inline void snrt_wake_all(uint32_t core_mask) {
         snrt_disable_multicast();
     }
 #else
-    // loop to send cluster interrupt to every other cluster's core
-    for (int i = 0; i < snrt_cluster_num(); i++) {
-        if (snrt_cluster_idx() != i) {
-            snrt_cluster(i)->peripheral_reg.cl_clint_set.f.cl_clint_set =
-                core_mask;
-        }
-    }
+    snrt_wake_clusters(core_mask);
 #endif
 }
 
@@ -129,12 +139,16 @@ inline void snrt_cluster_hw_barrier() {
 
 /**
  * @brief Synchronize one core from every cluster with the others.
+ * @param num_participants The number of clusters that participate in the
+ *                         reduction. If set to 0, all clusters are assumed
+ *                         to participate.
  * @details Implemented as a software barrier.
- * @note One core per cluster must invoke this function (the same across all
- *       clusters), or the calling cores will stall indefinitely.
+ * @note One core per cluster participating in the barrier must invoke this
+ *       function, or the calling cores will stall indefinitely.
+ * @todo Collective reduction does not support num_participants yet
  */
 
-inline void snrt_inter_cluster_barrier() {
+inline void snrt_inter_cluster_barrier(uint32_t num_participants=0) {
 #ifdef SNRT_SUPPORTS_NARROW_REDUCTION
     // Fetch the address for the reduction
     cls_t *ctrl_red = cls();
@@ -154,6 +168,8 @@ inline void snrt_inter_cluster_barrier() {
     // Fence to wait until the reduction is finished
     snrt_fence();
 #else
+    // If the number of participants is not specified, assume all clusters
+    if (num_participants == 0) num_participants = snrt_cluster_num();
     // Everyone increments a shared counter
     uint32_t cnt =
         __atomic_add_fetch(&(_snrt_barrier.cnt), 1, __ATOMIC_RELAXED);
@@ -161,10 +177,10 @@ inline void snrt_inter_cluster_barrier() {
     // All but the last cluster enter WFI, while the last cluster resets the
     // counter for the next barrier and multicasts an interrupt to wake up the
     // other clusters.
-    if (cnt == snrt_cluster_num()) {
+    if (cnt == num_participants) {
         _snrt_barrier.cnt = 0;
-        // Wake all clusters
-        snrt_wake_all(1 << snrt_cluster_core_idx());
+        // Wake other clusters
+        snrt_wake_clusters(1 << snrt_cluster_core_idx(), num_participants);
     } else {
         snrt_wfi();
         // Clear interrupt for next barrier
@@ -179,16 +195,18 @@ inline void snrt_inter_cluster_barrier() {
  *          cores are synchronized through a hardware barrier (see
  *          @ref snrt_cluster_hw_barrier). Clusters are synchronized through
  *          a software barrier (see @ref snrt_inter_cluster_barrier).
+ * @param num_participants The number of clusters that participate in the
+ *                         barrier. If set to 0, all clusters are assumed
+ *                         to participate.
  * @note Every Snitch core must invoke this function, or the calling cores
  *       will stall indefinitely.
  */
-inline void snrt_global_barrier() {
-    // Synchronize cores in a cluster with the HW barrier
+inline void snrt_global_barrier(uint32_t num_participants=0) {
     snrt_cluster_hw_barrier();
 
     // Synchronize all clusters
     if (snrt_is_dm_core()) {
-        snrt_inter_cluster_barrier();
+        snrt_inter_cluster_barrier(num_participants);
     }
 
     // Synchronize cores in a cluster with the HW barrier
@@ -265,15 +283,27 @@ inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
  * @param dst_buffer The pointer to the calling cluster's destination buffer.
  * @param src_buffer The pointer to the calling cluster's source buffer.
  * @param len The amount of data in each buffer.
+ * @param num_participants The number of clusters that participate in the
+ *                         reduction. If set to 0, all clusters are assumed
+ *                         to participate.
  * @note The destination buffers must lie at the same offset in every cluster's
  *       TCDM.
  */
 inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
-                                      size_t len) {
+                                      size_t len, uint32_t num_participants=0) {
+    // If the number of participants is not specified, assume all clusters
+    if (num_participants == 0) num_participants = snrt_cluster_num();
+
     // If we have a single cluster, no reduction has to be done
-    if (snrt_cluster_num() > 1) {
+    if (num_participants > 1) {
+
+        // DMA core will send compute cores' data, so it must wait on it
+        // to be available
+        snrt_fpu_fence();
+        snrt_cluster_hw_barrier();
+
         // Iterate levels in the binary reduction tree
-        int num_levels = ceil(log2(snrt_cluster_num()));
+        int num_levels = ceil(log2(num_participants));
         for (unsigned int level = 0; level < num_levels; level++) {
             // Determine whether the current cluster is an active cluster.
             // An active cluster is a cluster that participates in the current
@@ -295,7 +325,7 @@ inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
             }
 
             // Synchronize senders and receivers
-            snrt_global_barrier();
+            snrt_global_barrier(num_participants);
 
             // Every cluster which is not a sender performs the reduction
             if (is_active && !is_sender) {
@@ -313,6 +343,7 @@ inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
             }
 
             // Synchronize compute and DM cores for next tree level
+            snrt_fpu_fence();
             snrt_cluster_hw_barrier();
         }
     }

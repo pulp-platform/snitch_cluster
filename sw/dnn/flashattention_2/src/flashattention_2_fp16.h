@@ -35,7 +35,7 @@ static inline void flashattention_2_fp16(flashattention_2_layer_t layer) {
     gemm_args.alpha = 1;
 
     // alias system parameters
-    uint32_t compute_id = snrt_global_core_idx();
+    uint32_t compute_id = snrt_cluster_core_idx();
     uint32_t cluster_id = snrt_cluster_idx();
     uint32_t num_cores = snrt_cluster_compute_core_num();
     uint32_t num_clusters = snrt_cluster_num();

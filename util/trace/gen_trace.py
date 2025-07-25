@@ -1288,7 +1288,8 @@ def main():
                         message += f'line {lineno}.'
                     print(traceback.format_exc(), file=sys.stderr)
                     print(message, file=sys.stderr)
-                    raise e
+                    if not args.permissive:
+                        raise e
             else:
                 break  # Nothing more in pipe, EOF
         perf_metrics[-1]['tend'] = time_info[0] // 1000

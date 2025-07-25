@@ -60,7 +60,7 @@ inline void snrt_mutex_release(volatile uint32_t *pmtx);
 
 inline void snrt_cluster_hw_barrier();
 
-inline void snrt_global_barrier();
+inline void snrt_global_barrier(uint32_t num_participants);
 
 inline uint32_t snrt_global_all_to_all_reduction(uint32_t value);
 

@@ -51,6 +51,7 @@ nav:
           - Advanced:
               - Trace Analysis: ug/trace_analysis.md
               - Code Optimization: ug/code_optimization.md
+      - System Integration: ug/system_integration.md
       - Documentation: ug/documentation.md
   - Reference Manual:
       - Hardware:

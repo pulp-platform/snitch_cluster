@@ -148,6 +148,12 @@ ROI_DUMP          = $(LOGS_DIR)/roi.json
 VISUAL_TRACE      = $(LOGS_DIR)/trace.json
 
 VISUALIZE_PY_FLAGS += --tracevis "$(BINARY) $(SNITCH_TXT_TRACES) --addr2line $(ADDR2LINE) -f snitch"
+GENTRACE_PY_FLAGS  += --mc-exec $(RISCV_MC) --mc-flags "$(RISCV_MC_FLAGS)"
+
+# Do not suspend trace generation upon gentrace errors when debugging
+ifeq ($(DEBUG),ON)
+GENTRACE_PY_FLAGS += --permissive
+endif
 
 .PHONY: traces annotate visual-trace clean-traces clean-annotate clean-perf clean-visual-trace
 traces: $(TXT_TRACES)
@@ -164,7 +170,7 @@ clean-visual-trace:
 	rm -f $(VISUAL_TRACE)
 
 $(addprefix $(LOGS_DIR)/,trace_hart_%.txt hart_%_perf.json dma_%_perf.json): $(LOGS_DIR)/trace_hart_%.dasm $(GENTRACE_PY) $(SN_GENTRACE_SRC)
-	$(GENTRACE_PY) $< --mc-exec $(RISCV_MC) --mc-flags "$(RISCV_MC_FLAGS)" --dma-trace $(SIM_DIR)/dma_trace_$*_00000.log --dump-hart-perf $(LOGS_DIR)/hart_$*_perf.json --dump-dma-perf $(LOGS_DIR)/dma_$*_perf.json -o $(LOGS_DIR)/trace_hart_$*.txt
+	$(GENTRACE_PY) $< $(GENTRACE_PY_FLAGS) --dma-trace $(SIM_DIR)/dma_trace_$*_00000.log --dump-hart-perf $(LOGS_DIR)/hart_$*_perf.json --dump-dma-perf $(LOGS_DIR)/dma_$*_perf.json -o $(LOGS_DIR)/trace_hart_$*.txt
 
 # Generate source-code interleaved traces for all harts. Reads the binary from
 # the logs/.rtlbinary file that is written at start of simulation in the vsim script
@@ -178,7 +184,7 @@ $(JOINT_PERF_DUMP): $(PERF_DUMPS) $(JOIN_PY)
 	$(JOIN_PY) -i $(shell ls $(LOGS_DIR)/*_perf.json) -o $@
 
 $(ROI_DUMP): $(JOINT_PERF_DUMP) $(ROI_SPEC) $(ROI_PY)
-	$(ROI_PY) $(JOINT_PERF_DUMP) $(ROI_SPEC) --cfg $(CFG) -o $@
+	$(ROI_PY) $(JOINT_PERF_DUMP) $(ROI_SPEC) --cfg $(SN_CFG) -o $@
 
 $(VISUAL_TRACE): $(ROI_DUMP) $(VISUALIZE_PY)
 	$(VISUALIZE_PY) $(ROI_DUMP) $(VISUALIZE_PY_FLAGS) -o $@
