@@ -60,6 +60,7 @@ nav:
               - Peripherals: rm/hw/peripherals.md
           - Reqrsp Interface: rm/hw/reqrsp_interface.md
           - Custom Instructions: rm/hw/custom_instructions.md
+          - Boot Procedure: rm/hw/boot_procedure.md
       - Software:
           - Simulation Utilities:
               - data_utils: rm/sw/sim/data_utils.md
