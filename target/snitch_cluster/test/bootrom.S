@@ -2,6 +2,20 @@
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 
+// This file defines the following boot procedure:
+// - enable software and cluster interrupts
+// - set the trap vector to `_snitch_resume`
+// - wait for a software or cluster interrupt (WFI)
+// - when an interrupt is received, read the `scratch1` register from the
+//   cluster peripherals
+// - jump to the address read from the `scratch1` register
+//
+// This boot procedure assumes that Snitch-based accelerators are always
+// coupled to a host processor. The host processor is responsible for
+// programming the address of the code to be executed (e.g. a bootloader or
+// baremetal application) in the Snitch cluster's `scratch1` register, and to
+// trigger its execution by sending it a software or cluster interrupt.
+
 #define MSTATUS_MIE 8
 
 .global _snitch_park
