@@ -118,7 +118,7 @@ def build_visual_trace(run_dir, roi_spec, hw_cfg=None):
         'ROI_SPEC': roi_spec
     }
     if hw_cfg is not None:
-        vars['CFG'] = hw_cfg
+        vars['SN_CFG'] = hw_cfg
     flags = ['-j']
     common.make('visual-trace', vars, flags=flags)
 
