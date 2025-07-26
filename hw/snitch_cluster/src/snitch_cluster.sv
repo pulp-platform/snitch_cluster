@@ -659,7 +659,9 @@ module snitch_cluster
   );
 
 
-  logic [WideSlaveIdxBits-1:0] dma_xbar_default_port = SoCDMAOut;
+  logic [WideSlaveIdxBits-1:0] dma_xbar_default_port;
+  assign dma_xbar_default_port = SoCDMAOut;
+
   xbar_rule_t dma_xbar_default_port_rule;
   assign dma_xbar_default_port_rule = '{
     idx: dma_xbar_default_port,
