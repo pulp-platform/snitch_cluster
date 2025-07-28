@@ -178,7 +178,7 @@ $(JOINT_PERF_DUMP): $(PERF_DUMPS) $(JOIN_PY)
 	$(JOIN_PY) -i $(shell ls $(LOGS_DIR)/*_perf.json) -o $@
 
 $(ROI_DUMP): $(JOINT_PERF_DUMP) $(ROI_SPEC) $(ROI_PY)
-	$(ROI_PY) $(JOINT_PERF_DUMP) $(ROI_SPEC) --cfg $(CFG) -o $@
+	$(ROI_PY) $(JOINT_PERF_DUMP) $(ROI_SPEC) --cfg $(SN_CFG) -o $@
 
 $(VISUAL_TRACE): $(ROI_DUMP) $(VISUALIZE_PY)
 	$(VISUALIZE_PY) $(ROI_DUMP) $(VISUALIZE_PY_FLAGS) -o $@
