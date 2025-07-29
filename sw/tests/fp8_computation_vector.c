@@ -34,24 +34,23 @@ int main() {
             "vfcpka.b.s ft4, ft0, ft2\n"
             "vfcpkb.b.s ft4, ft0, ft2\n"
             "vfcpkc.b.s ft4, ft0, ft2\n"
-            "vfcpkd.b.s ft4, ft0, ft2\n"  // ft4 =
-                                          // {3.14, 1.618, 3.14, 1.618, 3.14, 1.618,
-                                          // 3.14, 1.618}
+            "vfcpkd.b.s ft4, ft0, ft2\n"
+            // ft4 = {3.14, 1.618, 3.14, 1.618, 3.14, 1.618, 3.14, 1.618}
             "vfcpka.b.s ft5, ft1, ft3\n"
             "vfcpkb.b.s ft5, ft1, ft3\n"
             "vfcpkc.b.s ft5, ft1, ft3\n"
-            "vfcpkd.b.s ft5, ft1, ft3\n"  // ft5 = {-3.14, -1.618,-3.14, -1.618,
-                                          // -3.14, -1.618, -3.14, -1.618}
+            "vfcpkd.b.s ft5, ft1, ft3\n"
+            // ft5 = {-3.14, -1.618,-3.14, -1.618, -3.14, -1.618, -3.14, -1.618}
             "vfcpka.b.s ft6, ft0, ft3\n"
             "vfcpkb.b.s ft6, ft0, ft3\n"
             "vfcpkc.b.s ft6, ft0, ft3\n"
-            "vfcpkd.b.s ft6, ft0, ft3\n"  // ft6 = {3.14, -1.618, 3.14,
-                                          // -1.618, 3.14, -1.618, 3.14, -1.618}
+            "vfcpkd.b.s ft6, ft0, ft3\n"
+            // ft6 = {3.14, -1.618, 3.14, -1.618, 3.14, -1.618, 3.14, -1.618}
             "vfcpka.b.s ft7, ft1, ft2\n"
             "vfcpkb.b.s ft7, ft1, ft2\n"
             "vfcpkc.b.s ft7, ft1, ft2\n"
-            "vfcpkd.b.s ft7, ft1, ft2\n"  // ft7 = {-3.14, 1.618, -3.14, 1.618,
-                                          // -3.14, 1.618, -3.14, 1.618}
+            "vfcpkd.b.s ft7, ft1, ft2\n"
+            // ft7 = {-3.14, 1.618, -3.14, 1.618, -3.14, 1.618, -3.14, 1.618}
             : "+r"(i_a), "+r"(i_an), "+r"(i_b), "+r"(i_bn));
 
         // VFSGNJ
