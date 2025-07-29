@@ -63,6 +63,11 @@ int main() {
             printf("The xdma reader extension 0 is enabled\n");
         }
 
+        if (xdma_disable_src_ext(1) != 0) {
+            printf("Error in disabling xdma reader extension 1\r\n");
+            err++;
+        }
+
         if (xdma_disable_dst_ext(0) != 0) {
             printf("Error in disabling xdma writer extension 0\n");
             err++;

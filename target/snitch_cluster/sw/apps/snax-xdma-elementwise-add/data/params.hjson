@@ -1,0 +1,11 @@
+// Copyright 2023 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Jonas Crols <jonas.crols@student.kuleuven.be>
+
+{
+    M: 56, // Number of rows / height
+    N: 33, // Number of columns / width
+    BIT_WIDTH: 32, // Bit width of the data type
+}

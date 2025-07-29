@@ -43,6 +43,10 @@ int main() {
             err++;
         }
 
+        if (xdma_disable_src_ext(1) != 0) {
+            printf("Error in disabling xdma reader extension 1\r\n");
+            err++;
+        }
         // --------------------- Configure the AGU --------------------- //
         xdma_memcpy_nd(tcdm_in, tcdm_out, spatial_stride_src_xdma,
                        spatial_stride_dst_xdma, temporal_dimension_src_xdma,

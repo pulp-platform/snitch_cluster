@@ -10,7 +10,7 @@ jobs:
   build-conda:
     runs-on: ubuntu-latest
     container:
-      image: quay.io/condaforge/linux-anvil-x86_64:alma9
+      image: quay.io/condaforge/linux-anvil-x86_64:alma8
     defaults:
       run:
         shell: bash -el {0}
