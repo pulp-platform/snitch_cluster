@@ -301,8 +301,9 @@ inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
  * @note The destination buffers must lie at the same offset in every cluster's
  *       TCDM.
  */
-inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
-                                      size_t len, snrt_comm_t comm = NULL) {
+template <typename T>
+inline void snrt_global_reduction_dma(T *dst_buffer, T *src_buffer, size_t len,
+                                      snrt_comm_t comm = NULL) {
     // If no communicator is given, world communicator is used as default.
     if (comm == NULL) comm = snrt_comm_world;
 
@@ -330,7 +331,7 @@ inline void snrt_global_reduction_dma(double *dst_buffer, double *src_buffer,
                     uint64_t dst = (uint64_t)dst_buffer -
                                    (1 << level) * SNRT_CLUSTER_OFFSET;
                     snrt_dma_start_1d(dst, (uint64_t)src_buffer,
-                                      len * sizeof(double));
+                                      len * sizeof(T));
                     snrt_dma_wait_all();
                 }
             }

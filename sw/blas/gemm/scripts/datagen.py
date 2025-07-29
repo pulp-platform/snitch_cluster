@@ -103,6 +103,7 @@ class GemmDataGen(du.DataGen):
             'constraint could potentially be loosened.'
         assert not (partition_banks and (dtype != 8)), 'Lower than double precision kernels do' \
             'not support partitioned banks, yet.'
+        assert not (parallelize_k and (dtype == 1)), 'FP8 reduction is not supported yet.'
 
     def emit_header(self, **kwargs):
         header = [super().emit_header()]
