@@ -6,3 +6,6 @@
 BasedOnStyle: Google
 IndentWidth: 4
 IncludeBlocks: Preserve
+# Doxygen does not resolve function references split across multiple lines.
+# To prevent clang-format from breaking these, we disable comment reflowing.
+ReflowComments: false
