@@ -25,6 +25,7 @@
 #define SNRT_TCDM_HYPERBANK_WIDTH (SNRT_TCDM_BANK_PER_HYPERBANK_NUM * SNRT_TCDM_BANK_WIDTH)
 #define SNRT_CLUSTER_OFFSET ${cfg['cluster']['cluster_base_offset']}
 #define SNRT_NUM_SEQUENCER_LOOPS ${cfg['cluster']['hives'][0]['cores'][0]['num_sequencer_loops']}
+#define SNRT_NUM_SEQUENCER_INSNS ${cfg['cluster']['hives'][0]['cores'][0]['num_sequencer_instructions']}
 #define SNRT_L3_START_ADDR ${hex(dram['address'])}ULL
 #define SNRT_L3_END_ADDR (SNRT_L3_START_ADDR + ${hex(dram['length'])}ULL)
 
