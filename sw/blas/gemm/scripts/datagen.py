@@ -83,6 +83,8 @@ class GemmDataGen(du.DataGen):
         assert (impl == 'baseline') or (impl == 'naive') or tile_n >= 8, \
             'n dimension of tile size must be greater or equal to the unrolling factor (8) ' \
             'when using optimized kernels'
+        assert (impl == 'baseline') or (impl == 'naive') or tile_k >= 3, \
+            'k dimension of tile size must be greater or equal to 3 when using optimized kernels'
         assert beta == 0 or beta == 1, 'Only values of 0 or 1 supported for beta'
         assert not (dtype == 8 and impl == "baseline"), 'No baseline implemented' \
             ' for FP64 (switch to NAIVE)'
