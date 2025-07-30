@@ -76,3 +76,10 @@ object MultiplierEmitterFloat16Float16 extends App {
     Array("--target-dir", "generated/versacore")
   )
 }
+
+object MultiplierEmitterFloat32Float32 extends App {
+  emitVerilog(
+    new Multiplier(FP32, FP32, FP32),
+    Array("--target-dir", "generated/versacore")
+  )
+}
