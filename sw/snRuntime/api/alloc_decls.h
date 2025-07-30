@@ -9,11 +9,11 @@
 
 typedef struct {
     // Base address from where allocation starts
-    uint32_t base;
+    uint64_t base;
     // End address up to which allocation is allowed
-    uint32_t end;
+    uint64_t end;
     // Address of the next allocated block
-    uint32_t next;
+    uint64_t next;
 } snrt_allocator_t;
 
 inline void *snrt_l1_next();

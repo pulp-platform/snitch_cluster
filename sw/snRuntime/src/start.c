@@ -113,7 +113,8 @@ static inline void snrt_init_cls() {
 #ifdef SNRT_INIT_LIBS
 static inline void snrt_init_libs() {
     snrt_alloc_init();
-    snrt_alloc_init_v2();
+    snrt_l1_init();
+    snrt_l3_init();
 }
 #endif
 

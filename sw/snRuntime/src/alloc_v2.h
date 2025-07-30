@@ -12,6 +12,10 @@
  * variables allocated by different cores or clusters.
  */
 
+//================================================================================
+// L1 allocation
+//================================================================================
+
 extern __thread snrt_allocator_t l1_allocator_v2;
 
 /**
@@ -49,9 +53,9 @@ static inline void snrt_l1_alloc_check_bounds() {
 /**
  * @brief Allocate space for a variable in the cluster's L1 memory.
  *
- * This function dynamically allocates space for a variable of size `size` in
+ * This function dynamically allocates space for a variable of size \p size in
  * the cluster's L1 memory.
- * The allocation is aligned to the specified `alignment`.
+ * The allocation is aligned to the specified \p alignment.
  *
  * @param size The size of the variable to allocate.
  * @param alignment The alignment of the allocation. An alignment of 1 (byte)
@@ -71,10 +75,10 @@ inline void *snrt_l1_alloc_cluster_local(size_t size,
 /**
  * @brief Allocate space for N variables in the cluster's L1 memory.
  *
- * This function dynamically allocates space for N variables of size `size` in
+ * This function dynamically allocates space for N variables of size \p size in
  * the cluster's L1 memory, where N is the number of compute cores in the
  * cluster. The variables are allocated in a contiguous block of memory.
- * The whole block is aligned to the specified `alignment`.
+ * The whole block is aligned to the specified \p alignment.
  *
  * @param size The size of each variable to allocate.
  * @param alignment The alignment of the allocation.
@@ -93,12 +97,107 @@ inline void *snrt_l1_alloc_compute_core_local(size_t size,
 }
 
 /**
+ * @brief Initialize the L1 allocator.
+ *
+ * This function initializes the L1 allocator by calculating the end address
+ * of the heap and setting the base, end, and next pointers of the allocator.
+ *
+ * @note This function should be called before using any of the allocation
+ *       functions.
+ */
+inline void snrt_l1_init() {
+    // Calculate end address of the heap. The top of the TCDM address space is
+    // reserved for the cluster-local storage (CLS) and the stack of every
+    // core. We further provision a safety margin of 128B. The rest of the
+    // TCDM is reserved for the heap.
+    uint32_t heap_end_addr = snrt_cls_base_addr();
+    heap_end_addr -= (1 << SNRT_LOG2_STACK_SIZE) * snrt_cluster_core_num();
+    heap_end_addr -= 128;
+    // Initialize L1 allocator
+    uintptr_t l1_start_addr = (uintptr_t)(snrt_cluster()->tcdm.mem);
+    snrt_l1_allocator_v2()->base = snrt_align_up(l1_start_addr, MIN_CHUNK_SIZE);
+    snrt_l1_allocator_v2()->end = heap_end_addr;
+    snrt_l1_allocator_v2()->next = snrt_l1_allocator_v2()->base;
+}
+
+//================================================================================
+// L3 allocation
+//================================================================================
+
+extern __thread snrt_allocator_t l3_allocator_v2;
+
+/**
+ * @brief Get a pointer to the L3 allocator.
+ *
+ * @return Pointer to the L3 allocator.
+ */
+inline snrt_allocator_t *snrt_l3_allocator_v2() { return &l3_allocator_v2; }
+
+/**
+ * @brief Get the next pointer of the L3 allocator.
+ *
+ * @return The next pointer of the L3 allocator.
+ */
+inline void *snrt_l3_next_v2() { return (void *)snrt_l3_allocator_v2()->next; }
+
+/**
+ * @brief Check if the allocation exceeds the allocator bounds and raise an
+ *        exception if it does.
+ */
+static inline void snrt_l3_alloc_check_bounds() {
+    if (snrt_l3_allocator_v2()->next >= snrt_l3_allocator_v2()->end)
+        asm volatile("ecall \n");
+}
+
+/**
+ * @brief Allocate space for a variable in L3 memory.
+ *
+ * This function dynamically allocates space for a variable of size \p size in
+ * L3 memory.
+ * The allocation is aligned to the specified \p alignment.
+ *
+ * @param size The size of the variable to allocate.
+ * @param alignment The alignment of the allocation. An alignment of 1 (byte)
+ *        is equivalent to no alignment (in a byte-addressable system).
+ * @return Pointer to the allocated variable.
+ */
+inline void *snrt_l3_alloc_v2(size_t size, const size_t alignment = 1) {
+    snrt_l3_allocator_v2()->next =
+        snrt_align_up(snrt_l3_allocator_v2()->next, alignment);
+    void *retval = snrt_l3_next_v2();
+    snrt_l3_allocator_v2()->next += size;
+    snrt_l3_alloc_check_bounds();
+    return retval;
+}
+
+/**
+ * @brief Initialize the L3 allocator.
+ *
+ * This function initializes the L3 allocator, starting at the _edram symbol.
+ * See linker script for definition of said symbol.
+ *
+ * @note This function should be called before using any of the allocation
+ *       functions.
+ */
+inline void snrt_l3_init() {
+    extern uint32_t _edram;
+    snrt_l3_allocator_v2()->base =
+        snrt_align_up((uint32_t)&_edram, MIN_CHUNK_SIZE);
+    snrt_l3_allocator_v2()->end = SNRT_L3_END_ADDR;
+    snrt_l3_allocator_v2()->next = snrt_l3_allocator_v2()->base;
+}
+
+//================================================================================
+// Pointer translation functions
+//================================================================================
+
+/**
  * @brief Get a pointer to the same variable allocated by another core.
  *
  * This function takes a pointer to a variable allocated using
- * `snrt_l1_alloc_compute_core_local` and returns a pointer to the same
- * variable allocated by another core, as specified by `core_idx`.
- * The `size` argument should be the same used during allocation.
+ * \ref snrt_l1_alloc_compute_core_local(size_t, const size_t) and returns a
+ * pointer to the same variable allocated by another core, as specified by
+ * \p core_idx. The \p size argument should be the same used during allocation.
  *
  * @param ptr Pointer to the variable allocated by the current core.
  * @param core_idx Index of the core that allocated the variable.
@@ -127,28 +226,4 @@ inline void *snrt_remote_l1_ptr(void *ptr, uint32_t src_cluster_idx,
                                 uint32_t dst_cluster_idx) {
     return (void *)((uintptr_t)ptr +
                     (dst_cluster_idx - src_cluster_idx) * SNRT_CLUSTER_OFFSET);
-}
-
-/**
- * @brief Initialize the L1 allocator.
- *
- * This function initializes the L1 allocator by calculating the end address
- * of the heap and setting the base, end, and next pointers of the allocator.
- *
- * @note This function should be called before using any of the allocation
- *       functions.
- */
-inline void snrt_alloc_init_v2() {
-    // Calculate end address of the heap. The top of the TCDM address space is
-    // reserved for the cluster-local storage (CLS) and the stack of every
-    // core. We further provision a safety margin of 128B. The rest of the
-    // TCDM is reserved for the heap.
-    uint32_t heap_end_addr = snrt_cls_base_addr();
-    heap_end_addr -= (1 << SNRT_LOG2_STACK_SIZE) * snrt_cluster_core_num();
-    heap_end_addr -= 128;
-    // Initialize L1 allocator
-    uintptr_t l1_start_addr = (uintptr_t)(snrt_cluster()->tcdm.mem);
-    snrt_l1_allocator_v2()->base = snrt_align_up(l1_start_addr, MIN_CHUNK_SIZE);
-    snrt_l1_allocator_v2()->end = heap_end_addr;
-    snrt_l1_allocator_v2()->next = snrt_l1_allocator_v2()->base;
 }
