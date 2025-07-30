@@ -147,7 +147,7 @@ jobs:
       - name: Build Software
         working-directory: target/snitch_cluster
         run: |
-          make CFG_OVERRIDE=cfg/github-ci.json sw
+          make CFG_OVERRIDE=cfg/github-ci.json sw -j
       - name: Run Tests
         working-directory: target/snitch_cluster
         run: |
