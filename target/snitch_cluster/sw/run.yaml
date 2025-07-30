@@ -7,6 +7,7 @@ runs:
     simulators: [vsim, vcs, verilator]
   - elf: ./tests/build/atomics.elf
   - elf: ./tests/build/barrier.elf
+  - elf: ./tests/build/communicator.elf
   - elf: ./tests/build/data_mover.elf
     simulators: [vsim, vcs, verilator]
   - elf: ./tests/build/dma_empty_transfer.elf
