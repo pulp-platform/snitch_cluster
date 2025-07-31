@@ -24,6 +24,8 @@ class ReaderWriterTesterParam(
 )
 
 class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
+  val debugMode: Boolean = false
+
   "XDMADataPath behavior is as expected" in test(
     new XDMADataPath(
       readerParam = new XDMAParam(
@@ -166,9 +168,10 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
             if (dut.io.tcdmReader.req(i).valid.peekBoolean()) {
               queues(i).enqueue(reader_req_addr)
 
-              println(
-                f"[Reader Req] Read the TCDM with Addr = $reader_req_addr%d"
-              )
+              if (debugMode)
+                println(
+                  f"[Reader Req] Read the TCDM with Addr = $reader_req_addr%d"
+                )
             }
 
             dut.clock.step()
@@ -194,12 +197,10 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
               dut.io.tcdmReader.rsp(i).valid.poke(true)
               val reader_addr      = queues(i).dequeue()
               val reader_resp_data = tcdm_mem(reader_addr)
-              //   println(
-              //     f"[Reader Resp] TCDM Response to Reader with Addr = $reader_addr%d Data = 0x${reader_resp_data}%016x"
-              //   )
-              println(
-                f"[Reader Resp] TCDM Response to Reader with Addr = $reader_addr%d Data = $reader_resp_data%d"
-              )
+              if (debugMode)
+                println(
+                  f"[Reader Resp] TCDM Response to Reader with Addr = $reader_addr%d Data = $reader_resp_data%d"
+                )
               dut.io.tcdmReader.rsp(i).bits.data.poke(reader_resp_data.U)
               dut.clock.step()
               dut.io.tcdmReader.rsp(i).valid.poke(false)
@@ -238,9 +239,11 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
               } else dut.io.tcdmWriter.req(i).ready.poke(true)
 
               val writer_expected_data = (writer_req_addr - 2048) / 8
-              println(
-                f"[Writer Req] Writes to TCDM with Addr: $writer_req_addr and Data = ${writer_req_data} (Expected Data = $writer_expected_data)"
-              )
+              if (debugMode) {
+                println(
+                  f"[Writer Req] Writes to TCDM with Addr: $writer_req_addr and Data = ${writer_req_data} (Expected Data = $writer_expected_data)"
+                )
+              }
               tcdm_mem(writer_req_addr) = writer_req_data
 
               dut.clock.step()

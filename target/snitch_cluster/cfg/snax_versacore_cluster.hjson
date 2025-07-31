@@ -4,6 +4,15 @@
 
 // Author: Xiaoling Yi (xiaoling.yi@kuleuven.be)
 
+/**
+Naming convention: 
+    The configuration file is named as snax_<cluster_name>_cluster.hjson
+    The cluster name should be matched with the configuration file name, so that this cluster can be integrated into HeMAiA.
+    The bender_target of the cluster should be the same as the cluster name.
+    If XDMA is added into the cfg, the bender_target of the XDMA inside this cluster should be snax_<cluster_name>_xdma.
+    Adding a new "bender_target" also involves adding the corresponding file list in Bender.yml. "snax_<cluster_name>" target includes the cluster shell, streamers, and accelerator and "snax_<cluster_name>_xdma" target includes the XDMA shell and XDMA SystemVerilog.
+**/
+
 {
     nr_s1_quadrant: 1
     s1_quadrant:

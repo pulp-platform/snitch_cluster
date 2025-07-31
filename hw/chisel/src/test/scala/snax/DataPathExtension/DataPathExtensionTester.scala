@@ -30,7 +30,7 @@ class DataPathExtensionHarness(extension: HasDataPathExtension) extends Module w
   dut.io.data_o -||> io.data_o
 }
 
-abstract class DataPathExtensionTester extends AnyFlatSpec with ChiselScalatestTester {
+abstract class DataPathExtensionTester(debugMode: Boolean = false) extends AnyFlatSpec with ChiselScalatestTester {
   val csr_vec:         Seq[Int]
   val input_data_vec:  Seq[BigInt]
   val output_data_vec: Seq[BigInt]
@@ -60,11 +60,12 @@ abstract class DataPathExtensionTester extends AnyFlatSpec with ChiselScalatestT
           for (i <- input_data_vec) {
             while (!dut.io.data_i.ready.peekBoolean()) dut.clock.step(1)
             dut.io.data_i.bits.poke(i)
-            println(
-              "[Input Injector] The input of DMAExtension is: " + i.toString(
-                16
+            if (debugMode)
+              println(
+                "[Input Injector] The input of DMAExtension is: " + i.toString(
+                  16
+                )
               )
-            )
             dut.clock.step(1)
           }
           dut.io.data_i.valid.poke(false)
@@ -76,13 +77,16 @@ abstract class DataPathExtensionTester extends AnyFlatSpec with ChiselScalatestT
           for (i <- output_data_vec) {
             while (!dut.io.data_o.valid.peekBoolean()) dut.clock.step()
             val returned_value = dut.io.data_o.bits.peekInt()
-            println(
-              "[Output Checker] The output of DMAExtension is: " + returned_value
-                .toString(16)
-            )
-            if (i == returned_value)
-              println("[Output Checker] Result is correct. ")
-            else
+            if (debugMode) {
+              println(
+                "[Output Checker] The output of DMAExtension is: " + returned_value
+                  .toString(16)
+              )
+            }
+            if (i == returned_value) {
+              if (debugMode)
+                println("[Output Checker] Result is correct. ")
+            } else
               throw new Exception("[Output Checker] Result is not correct. ")
 
             // Emulate the jamming at later stage

@@ -15,6 +15,7 @@ import snax.readerWriter.ReaderWriterParam
 import snax.xdma.DesignParams._
 
 class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
+  val debugMode: Boolean = false
 
   // ************************ Prepare the simulation data ************************//
 
@@ -371,10 +372,11 @@ class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
               dut.io.tcdmReader.req(i).bits.addr.peekInt().toInt
             if (dut.io.tcdmReader.req(i).valid.peekBoolean()) {
               queues(i).enqueue(reader_req_addr)
-
-              println(
-                f"[Reader Req] Read the TCDM with Addr = 0x${reader_req_addr.toHexString}"
-              )
+              if (debugMode) {
+                println(
+                  f"[Reader Req] Read the TCDM with Addr = 0x${reader_req_addr.toHexString}"
+                )
+              }
             }
 
             dut.clock.step()
@@ -400,10 +402,12 @@ class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
               dut.io.tcdmReader.rsp(i).valid.poke(true)
               val reader_addr      = queues(i).dequeue()
               val reader_resp_data = tcdm_mem(reader_addr)
-              println(
-                f"[Reader Resp] TCDM Response to Reader with Addr = 0x${reader_addr.toHexString} Data = 0x${reader_resp_data
-                    .toString(radix = 16)}"
-              )
+              if (debugMode) {
+                println(
+                  f"[Reader Resp] TCDM Response to Reader with Addr = 0x${reader_addr.toHexString} Data = 0x${reader_resp_data
+                      .toString(radix = 16)}"
+                )
+              }
               dut.io.tcdmReader.rsp(i).bits.data.poke(reader_resp_data.U)
               dut.clock.step()
               dut.io.tcdmReader.rsp(i).valid.poke(false)
@@ -456,10 +460,11 @@ class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
               val new_data =
                 (previous_data & (~bitStrb)) | (writer_req_data & bitStrb)
               tcdm_mem(writer_req_addr) = new_data
-              println(
-                f"[Writer Req] Writes to TCDM with Addr: 0x${writer_req_addr.toHexString} and Data = 0x${new_data
-                    .toString(radix = 16)}"
-              )
+              if (debugMode)
+                println(
+                  f"[Writer Req] Writes to TCDM with Addr: 0x${writer_req_addr.toHexString} and Data = 0x${new_data
+                      .toString(radix = 16)}"
+                )
               dut.clock.step()
             } else dut.clock.step()
 
