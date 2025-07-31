@@ -72,7 +72,14 @@ static inline void snrt_init_bss() {
 static inline void snrt_wake_up() {
     // Core 0 of cluster 0 wakes up all other cores
     if (snrt_cluster_idx() == 0 && snrt_cluster_core_idx() == 0) {
-        snrt_wake_all((1 << snrt_cluster_core_num()) - 1);
+        // Do not use `snrt_wake_all` routine which requires
+        // TLS to already be initialized.
+        for (int i = 0; i < snrt_cluster_num(); i++) {
+            if (snrt_cluster_idx() != i) {
+                snrt_cluster(i)->peripheral_reg.cl_clint_set.f.cl_clint_set =
+                    (1 << snrt_cluster_core_num()) - 1;
+            }
+        }
         snrt_fence();
     }
 
@@ -113,7 +120,9 @@ static inline void snrt_init_cls() {
 #ifdef SNRT_INIT_LIBS
 static inline void snrt_init_libs() {
     snrt_alloc_init();
-    snrt_alloc_init_v2();
+    snrt_l1_init();
+    snrt_l3_init();
+    snrt_comm_init();
 }
 #endif
 

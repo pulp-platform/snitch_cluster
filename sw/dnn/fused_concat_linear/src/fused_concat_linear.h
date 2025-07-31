@@ -89,7 +89,7 @@ static inline int fused_concat_linear_optimized(fused_concat_linear_layer_t l) {
     size_t size_a = m * k * l.dtype;
     void *a = snrt_l1_alloc_cluster_local(size_a, l.dtype);
 
-    if (snrt_is_dm_core()) {
+    if (snrt_is_dm_core() && (snrt_cluster_idx() < l.num_inputs)) {
         snrt_dma_load_2d_tile(a, l.inputs[snrt_cluster_idx()], 0, 0, m, k, k,
                               l.dtype);
         snrt_dma_wait_all();

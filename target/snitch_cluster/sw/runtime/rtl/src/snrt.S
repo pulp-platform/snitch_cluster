@@ -11,5 +11,8 @@
 #define SNRT_INIT_TLS
 #define SNRT_CRT0_PARK
 
+#include "snitch_cluster_raw_addrmap.h"
+#define SNRT_TCDM_START_ADDR SNITCH_CLUSTER_ADDRMAP_CLUSTER_TCDM_BASE_ADDR
+
 #include "snitch_cluster_cfg.h"
 #include "start.S"

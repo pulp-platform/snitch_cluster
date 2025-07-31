@@ -52,9 +52,8 @@ static inline uint32_t snrt_dma_start_1d(uint64_t dst, uint64_t src,
 /**
  * @brief Start an asynchronous 1D DMA transfer using native-size pointers.
  *
- * This is a convenience overload of snrt_dma_start_1d() using `void*` pointers.
- *
- * @see snrt_dma_start_1d(uint64_t, uint64_t, size_t, uint32_t)
+ * This is a convenience overload of snrt_dma_start_1d(uint64_t, uint64_t, size_t, uint32_t)
+ * using `void*` pointers.
  */
 static inline uint32_t snrt_dma_start_1d(volatile void *dst, volatile void *src,
                                          size_t size,
@@ -96,10 +95,9 @@ static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
  * @brief Start an asynchronous multicast 1D DMA transfer using native-size
  * pointers.
  *
- * This is a convenience overload of snrt_dma_start_1d_mcast() using `void*`
- * pointers.
- *
- * @see snrt_dma_start_1d_mcast(uint64_t, uint64_t, size_t, uint32_t, uint32_t)
+ * This is a convenience overload of
+ * snrt_dma_start_1d_mcast(uint64_t, uint64_t, size_t, uint32_t, uint32_t)
+ * using `void*` pointers.
  */
 static inline uint32_t snrt_dma_start_1d_mcast(volatile void *dst,
                                                volatile void *src, size_t size,
@@ -156,10 +154,9 @@ static inline snrt_dma_txid_t snrt_dma_start_2d(uint64_t dst, uint64_t src,
 /**
  * @brief Start an asynchronous 2D DMA transfer using native-size pointers.
  *
- * This is a convenience overload of snrt_dma_start_2d() using `void*` pointers.
- *
- * @see snrt_dma_start_2d(uint64_t, uint64_t, size_t, size_t, size_t, size_t,
- * uint32_t)
+ * This is a convenience overload of
+ * snrt_dma_start_2d(uint64_t, uint64_t, size_t, size_t, size_t, size_t, uint32_t)
+ * using `void*` pointers.
  */
 static inline uint32_t snrt_dma_start_2d(volatile void *dst, volatile void *src,
                                          size_t size, size_t dst_stride,
@@ -167,6 +164,46 @@ static inline uint32_t snrt_dma_start_2d(volatile void *dst, volatile void *src,
                                          const uint32_t channel = 0) {
     return snrt_dma_start_2d((uint64_t)dst, (uint64_t)src, size, dst_stride,
                              src_stride, repeat, channel);
+}
+
+/**
+ * @brief Start an asynchronous, multicast 2D DMA transfer with 64-bit wide
+ * pointers.
+ *
+ * @param mask Multicast mask.
+ *
+ * @see snrt_dma_start_2d(uint64_t, uint64_t, size_t, size_t, size_t, size_t, uint32_t)
+ *      for a description of the other parameters.
+ */
+static inline uint32_t snrt_dma_start_2d_mcast(uint64_t dst, uint64_t src,
+                                               size_t size, size_t dst_stride,
+                                               size_t src_stride, size_t repeat,
+                                               uint32_t mask,
+                                               const uint32_t channel = 0) {
+    snrt_dma_enable_mcast(mask);
+    uint32_t txid = snrt_dma_start_2d(dst, src, size, dst_stride, src_stride,
+                                      repeat, channel);
+    snrt_dma_disable_mcast();
+    return txid;
+}
+
+/**
+ * @brief Start an asynchronous, multicast 2D DMA transfer using native-size
+ * pointers.
+ *
+ * This is a convenience overload of
+ * snrt_dma_start_2d_mcast(uint64_t, uint64_t, size_t, size_t, size_t, size_t, uint32_t, uint32_t)
+ * using `void*` pointers.
+ */
+static inline uint32_t snrt_dma_start_2d_mcast(volatile void *dst,
+                                               volatile void *src, size_t size,
+                                               size_t dst_stride,
+                                               size_t src_stride, size_t repeat,
+                                               uint32_t mask,
+                                               const uint32_t channel = 0) {
+    return snrt_dma_start_2d_mcast((uint64_t)dst, (uint64_t)src, size,
+                                   dst_stride, src_stride, repeat, mask,
+                                   channel);
 }
 
 /**
@@ -287,7 +324,7 @@ inline snrt_dma_txid_t snrt_dma_load_1d_tile(volatile void *dst,
  * @param prec Number of bytes of each element in the 1D array.
  * @param mcast Multicast mask applied on the destination address.
  */
-inline snrt_dma_txid_t snrt_dma_mcast_load_1d_tile(void *dst, void *src,
+inline snrt_dma_txid_t snrt_dma_load_1d_tile_mcast(void *dst, void *src,
                                                    size_t tile_idx,
                                                    size_t tile_size,
                                                    uint32_t prec,
@@ -378,6 +415,15 @@ inline snrt_dma_txid_t snrt_dma_load_2d_tile(
     );
 }
 
+/**
+ * @brief Load a 2D tile of a 2D array.
+ *
+ * The stride in the destination tile is assumed to be that of a 1D tile,
+ * effectively. In other words, this is the same as snrt_dma_2d_to_1d().
+ *
+ * @see snrt_dma_load_2d_tile(void *, void *, size_t, size_t, size_t, size_t, size_t, uint32_t, size_t)
+ *      for a detailed description of the parameters.
+ */
 inline snrt_dma_txid_t snrt_dma_load_2d_tile(
     void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
@@ -385,6 +431,51 @@ inline snrt_dma_txid_t snrt_dma_load_2d_tile(
     return snrt_dma_load_2d_tile(dst, src, tile_x1_idx, tile_x0_idx,
                                  tile_x1_size, tile_x0_size, full_x0_size, prec,
                                  tile_x0_size * prec);
+}
+
+/**
+ * @brief Load a 2D tile of a 2D array using multicast.
+ * @param mask Multicast mask.
+ *
+ * @see snrt_dma_load_2d_tile(void *, void *, size_t, size_t, size_t, size_t, size_t, uint32_t, size_t)
+ *      for a description of the other parameters.
+ */
+inline snrt_dma_txid_t snrt_dma_load_2d_tile_mcast(
+    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
+    uint32_t prec, size_t tile_ld, uint32_t mask) {
+    size_t src_offset = 0;
+    // Advance src array in x0 and x1 dimensions, and convert to byte offset
+    src_offset += tile_x0_idx * tile_x0_size;
+    src_offset += tile_x1_idx * tile_x1_size * full_x0_size;
+    src_offset *= prec;
+    // Initiate transfer
+    return snrt_dma_start_2d_mcast((uint64_t)dst,               // dst
+                                   (uint64_t)src + src_offset,  // src
+                                   tile_x0_size * prec,         // size
+                                   tile_ld,                     // dst_stride
+                                   full_x0_size * prec,         // src_stride
+                                   tile_x1_size,                // repeat
+                                   mask                         // mask
+    );
+}
+
+/**
+ * @brief Load a 2D tile of a 2D array.
+ *
+ * The stride in the destination tile is assumed to be that of a 1D tile,
+ * effectively. In other words, this is similar to snrt_dma_2d_to_1d().
+ *
+ * @see snrt_dma_load_2d_tile_mcast(void *, void *, size_t, size_t, size_t, size_t, size_t, uint32_t, size_t, uint32_t)
+ *      for a detailed description of the parameters.
+ */
+inline snrt_dma_txid_t snrt_dma_load_2d_tile_mcast(
+    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
+    uint32_t prec, uint32_t mask) {
+    return snrt_dma_load_2d_tile_mcast(dst, src, tile_x1_idx, tile_x0_idx,
+                                       tile_x1_size, tile_x0_size, full_x0_size,
+                                       prec, tile_x0_size * prec, mask);
 }
 
 /**
@@ -451,6 +542,15 @@ inline snrt_dma_txid_t snrt_dma_store_2d_tile(
     );
 }
 
+/**
+ * @brief Store a 2D tile of a 2D array.
+ *
+ * @details The stride in the source tile is assumed to be that of a 1D tile,
+ * effectively. In other words, this is the same as snrt_dma_1d_to_2d().
+ *
+ * @see snrt_dma_store_2d_tile(void *, void *, size_t, size_t, size_t, size_t, size_t, uint32_t, size_t)
+ *      for a detailed description of the parameters.
+ */
 inline snrt_dma_txid_t snrt_dma_store_2d_tile(
     void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
@@ -460,6 +560,22 @@ inline snrt_dma_txid_t snrt_dma_store_2d_tile(
                                   prec, tile_x0_size * prec);
 }
 
+/**
+ * @brief Store a 2D tile of a 2D array from a 1D layout occupying a subset of
+ *        TCDM banks.
+ * @param dst Pointer to the destination array.
+ * @param src Pointer to the source tile.
+ * @param tile_x1_idx Outermost coordinate of the tile in the 2D array.
+ * @param tile_x0_idx Innermost coordinate of the tile in the 2D array.
+ * @param tile_x1_size Number of elements in the outermost dimension of the
+ *                     tile.
+ * @param tile_x0_size Number of elements in the innermost dimension of the
+ *                     tile.
+ * @param full_x0_size Number of elements in the innermost dimension of the
+ *                     array.
+ * @param prec Number of bytes of each element in the 2D array.
+ * @param num_banks Number of banks the tile is stored in.
+ */
 inline snrt_dma_txid_t snrt_dma_store_2d_tile_from_banks(
     void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,

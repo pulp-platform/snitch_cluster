@@ -487,6 +487,9 @@ module snitch_sequencer import snitch_pkg::*; #(
   loop_idx_t lzc_cnt;
   loop_idx_t starting_loop_idx;
 
+  // Check if a loop starts at the next instruction.
+  // We look at the `nest_cfg_d` signal, to update `loop_active_q` as early as
+  // possible, i.e. right after receiving an FREP.
   for (genvar i = 0; i < NestDepth; i++) begin : gen_starting_loops_detector
     assign inst_starts_loop[i] = (rd_pointer_d == nest_cfg_d[i].base_pointer);
   end
@@ -494,6 +497,8 @@ module snitch_sequencer import snitch_pkg::*; #(
   // Mask to select only the loops which need to be considered
   // to find the innermost loop starting at the next instruction,
   // That is all loops i, with loop_idx_q < i < loop_cnt_d.
+  // We use the `loop_cnt_d` signal here, as we want to update `loop_idx_q`
+  // right after receiving a nested FREP.
   boxcar #(.Width(NestDepth)) i_inst_starts_mask (
     .lsb_i (loop_idx_q),
     .msb_i (loop_idx_t'(loop_cnt_d - 1)),
@@ -584,10 +589,13 @@ module snitch_sequencer import snitch_pkg::*; #(
         loop_active_d = 1'b0;
       end
     end
-
-    // When a loop starts with the current instruction we must update the
+    // When a loop starts with the next instruction we must update the
     // active loop index to the innermost starting loop.
-    if (loop_active_q && !no_loop_starts) begin
+    // An inner loop cannot start in correspondence with the end of a loop,
+    // so this need only be checked when no loop ends.
+    // This check would anyways be invalid when `nest_ends`, as
+    // `loop_cnt_d - 1` would underflow.
+    else if (loop_active_q && !no_loop_starts) begin
       loop_idx_d = starting_loop_idx;
     end
   end

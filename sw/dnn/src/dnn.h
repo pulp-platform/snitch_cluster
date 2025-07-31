@@ -200,4 +200,5 @@ typedef struct network_single_cluster_t_ {
 #include "../gelu/src/gelu.h"
 #include "../layernorm/src/layernorm.h"
 #include "../maxpool/src/maxpool.h"
+#include "../mha/src/mha.h"
 #include "../softmax/src/softmax.h"

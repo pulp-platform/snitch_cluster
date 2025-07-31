@@ -65,7 +65,10 @@ class MemoryDumpReader:
         # Check that address lies within bounds
         offset = start_address - self.base_address
         if offset < 0 or offset + size > self.size:
-            raise ValueError('Requested range is out of bounds of the memory dump.')
+            raise ValueError(
+                f'Requested range [{hex(start_address)}, {hex(start_address + size)}) is out of '
+                f'bounds of the memory dump [{hex(self.base_address)}, '
+                f'{hex(self.base_address + self.size)}).')
         # Read data
         return self.data[offset:offset + size]
 

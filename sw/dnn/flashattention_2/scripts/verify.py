@@ -7,8 +7,9 @@
 
 import numpy as np
 import sys
-from datagen import exact_flexfloat_golden_model
 import pyflexfloat as ff
+
+from datagen import FlashAttention2DataGen
 
 from snitch.util.sim.verif_utils import Verifier
 from snitch.util.sim.data_utils import ctype_from_precision_t, ff_desc_from_precision_t
@@ -63,7 +64,8 @@ class FlashAttention2Verifier(Verifier):
         K = ff.array(K_f.reshape(self.S, self.d), ff_desc)
         # return torch_golden_model(Q, K, V).detach().numpy().flatten()
         # return exact_golden_model(Q, K, V, self.B_r, self.B_c).flatten()
-        return exact_flexfloat_golden_model(Q, K, V, self.B_r, self.B_c, ff_desc).flatten()
+        return FlashAttention2DataGen().exact_flexfloat_golden_model(Q, K, V, self.B_r, self.B_c,
+                                                                     ff_desc).flatten()
 
     def check_results(self, *args):
         return super().check_results(*args, rtol=self.ERR_THRESHOLD[self.prec])

@@ -26,7 +26,7 @@ SNRT_INCDIRS += $(SNRT_DIR)/src/omp
 SNRT_INCDIRS += $(SNRT_DIR)/api/omp
 SNRT_INCDIRS += $(SNRT_DIR)/vendor/riscv-opcodes
 SNRT_INCDIRS += $(SNRT_SRCDIR)
-SNRT_INCDIRS += $(SNRT_HAL_HDRS_DIR)
+SNRT_INCDIRS += $(SNRT_HAL_BUILD_DIR)
 
 SNRT_RISCV_CFLAGS += $(RISCV_CFLAGS)
 SNRT_RISCV_CFLAGS += $(addprefix -I,$(SNRT_INCDIRS))
@@ -56,7 +56,7 @@ sn-runtime: $(SNRT_OUTPUTS)
 sn-clean-runtime:
 	rm -rf $(SNRT_BUILDDIR)
 
-$(SNRT_BUILDDIR):
+$(call normalize_dir, $(SNRT_BUILDDIR)):
 	mkdir -p $@
 
 $(SNRT_BUILDDIR)/%.o: $(SNRT_SRCDIR)/% $(SNRT_BUILDDIR)/%.d | $(SNRT_BUILDDIR)

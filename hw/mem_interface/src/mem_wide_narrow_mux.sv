@@ -62,8 +62,13 @@ module mem_wide_narrow_mux #(
     // ----------------
     // Backward Channel
     // ----------------
+
+    // Map the response from each narrow output port to the respective narrow
+    // input port.
     in_narrow_rsp_o = out_rsp_i;
-    // Broadcast data from all banks.
+
+    // Map the response from each narrow output port to the respective narrow
+    // word within the wide input port.
     for (int i = 0; i < NrPorts; i++) begin
       in_wide_rsp_o.p[i*NarrowDataWidth+:NarrowDataWidth] = out_rsp_i[i].p.data;
       in_ext_rsp_o.p[i*NarrowDataWidth+:NarrowDataWidth]  = out_rsp_i[i].p.data;
@@ -72,8 +77,10 @@ module mem_wide_narrow_mux #(
     // ---------------
     // Forward Channel
     // ---------------
-    // By default feed through narrow requests.
+
+    // Select narrow requests by default.
     out_req_o = in_narrow_req_i;
+
     // Tie-off wide and ext by default.
     in_wide_rsp_o.q_ready = 1'b0;
     in_ext_rsp_o.q_ready  = 1'b0;
@@ -118,7 +125,7 @@ module mem_wide_narrow_mux #(
   // ----------
   // Assertions
   // ----------
-  `ASSERT_INIT(DataDivisble, WideDataWidth % NarrowDataWidth  == 0)
+  `ASSERT_INIT(DataDivisible, WideDataWidth % NarrowDataWidth == 0)
 
   // Currently the module has a couple of `quirks` and interface requirements
   // which are checked here.
@@ -138,9 +145,9 @@ module mem_wide_narrow_mux #(
   `ASSERT(DmaSelected, in_wide_req_i.q_valid & in_wide_req_i.q_valid |-> &q_valid_flat)
   `ASSERT(DmaSelectedReadyWhenValid,
     in_wide_req_i.q_valid & in_wide_req_i.q_valid |-> in_wide_rsp_o.q_ready)
-  `ASSERT(DMAWriteDataCorrect,
+  `ASSERT(DmaWriteDataCorrect,
     in_wide_req_i.q_valid & in_wide_rsp_o.q_ready |->
-    (in_wide_req_i.q.data == q_data) && (in_wide_req_i.q.strb == q_strb))
+    (in_wide_req_i.q.data === q_data) && (in_wide_req_i.q.strb === q_strb))
   // verilog_lint: waive-stop line-length
 
 endmodule
