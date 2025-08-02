@@ -398,8 +398,14 @@ return new ${i._1}(${i._2
 #define XDMA_PERF_CTR_WRITER XDMA_PERF_CTR_READER + 1
 """
 
+  // Ensure the directory exists before writing the file
+  val macro_dir_path   = java.nio.file.Paths.get(macro_dir)
+  val macro_dir_parent = macro_dir_path.getParent
+  if (macro_dir_parent != null && !java.nio.file.Files.exists(macro_dir_parent)) {
+    java.nio.file.Files.createDirectories(macro_dir_parent)
+  }
   java.nio.file.Files.write(
-    java.nio.file.Paths.get(macro_dir),
+    macro_dir_path,
     macro_template.getBytes(java.nio.charset.StandardCharsets.UTF_8)
   )
 }

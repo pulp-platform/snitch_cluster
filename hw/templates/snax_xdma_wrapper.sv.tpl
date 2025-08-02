@@ -82,29 +82,14 @@ import xdma_pkg::*;
   // Request
   logic [TCDMNumPorts-1:0][TCDMAddrWidth-1:0] tcdm_req_addr;
   logic [TCDMNumPorts-1:0]                      tcdm_req_write;
-  //Note that tcdm_req_amo_i is 4 bits based on reqrsp definition
-  logic [TCDMNumPorts-1:0][                3:0] tcdm_req_amo;
   logic [TCDMNumPorts-1:0][  TCDMDataWidth-1:0] tcdm_req_data;
   logic [TCDMNumPorts-1:0][TCDMDataWidth/8-1:0] tcdm_req_strb;
-  //Note that tcdm_req_user_core_id_i is 5 bits based on Snitch definition
-  logic [TCDMNumPorts-1:0][                4:0] tcdm_req_user_core_id;
-  logic [TCDMNumPorts-1:0]                      tcdm_req_user_is_core;
   logic [TCDMNumPorts-1:0]                      tcdm_req_q_valid;
 
   // Response
   logic [TCDMNumPorts-1:0]                      tcdm_rsp_q_ready;
   logic [TCDMNumPorts-1:0]                      tcdm_rsp_p_valid;
   logic [TCDMNumPorts-1:0][  TCDMDataWidth-1:0] tcdm_rsp_data;
-
-  // Fixed ports that are defaulted to tie-low
-  // towards the TCDM from the streamer
-  always_comb begin
-    for(int i = 0; i < TCDMNumPorts; i++ ) begin
-      tcdm_req_amo          [i] = '0;
-      tcdm_req_user_core_id [i] = '0;
-      tcdm_req_user_is_core [i] = '0;
-    end
-  end
 
   // Re-mapping wires for TCDM IO ports
   always_comb begin
