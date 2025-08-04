@@ -77,6 +77,6 @@ class ElementwiseAdd(
   }
 
   ext_data_o.bits  := Cat(ext_data_o_bits.reverse)
-  ext_data_o.valid := (counter.io.value === (ext_csr_i(0) - 1.U)(7, 0))
+  ext_data_o.valid := (counter.io.value === (ext_csr_i(0) - 1.U)(7, 0)) & ext_data_i.fire
   ext_data_i.ready := ext_data_o.ready
 }

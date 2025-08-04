@@ -6,13 +6,20 @@
 #
 # Xiaoling Yi <xiaoling.yi@esat.kuleuven.be>
 
+from math import ceil
+
 import numpy as np
 
 
-# Function to perform 2D convolution on the input data using the specified kernel,
-# stride, and padding. It returns the output feature map.
+# Function to perform 2D convolution on the input data using the specified
+# kernel, stride, and padding. It returns the output feature map.
 def conv2d(
-    input_data, kernel, stride=(1, 1), padding=(0, 0), mode="NHWC", hw_sizes=None
+    input_data,
+    kernel,
+    stride=(1, 1),
+    padding=(0, 0),
+    mode="NHWC",
+    hw_sizes=None,
 ):
     if mode == "NHWC":
         batch_size, in_height, in_width, in_channels = input_data.shape
@@ -56,7 +63,9 @@ def conv2d(
                         conv_kernel = kernel[oc, :, :, :]
 
                         # Perform the convolution calculation
-                        output_data[b, oh, ow, oc] = np.sum(input_region * conv_kernel)
+                        output_data[b, oh, ow, oc] = np.sum(
+                            input_region * conv_kernel
+                        )
     else:
         batch_size, _, in_height, in_width, _ = input_data.shape
         CoutTemp, _, kernel_height, kernel_width, meshCol, _ = kernel.shape
@@ -78,7 +87,14 @@ def conv2d(
 
         # Initialize the output feature map
         output_data = np.zeros(
-            (batch_size, CoutTemp, out_height, out_width // meshRow, meshRow, meshCol),
+            (
+                batch_size,
+                CoutTemp,
+                out_height,
+                out_width // meshRow,
+                meshRow,
+                meshCol,
+            ),
             np.int32,
         )
 
@@ -101,7 +117,8 @@ def conv2d(
                                     b, :, ih_start:ih_end, iw_start:iw_end, :
                                 ]
 
-                                # Slice to extract the corresponding convolution kernel
+                                # Slice to extract the corresponding
+                                # convolution kernel
                                 conv_kernel = kernel[oc, :, :, :, oc8, :]
 
                                 # Perform the convolution calculation
@@ -112,7 +129,8 @@ def conv2d(
     return output_data
 
 
-# Function to transform input data into columns for efficient convolution operations.
+# Function to transform input data into columns for efficient
+# convolution operations.
 # It returns the transformed input data and reshaped kernel.
 def im2col(input_data, kernel, stride=(1, 1), padding=(0, 0), mode="NC8HW8"):
     assert mode == "NC8HW8"
@@ -167,15 +185,17 @@ def im2col(input_data, kernel, stride=(1, 1), padding=(0, 0), mode="NC8HW8"):
                                 b, ic, ih_start:ih_end, iw_start:iw_end, ic8
                             ]
 
-                            im2col_matrix[b, oh, ow, ic, :, :, ow8, ic8] = input_region
+                            im2col_matrix[
+                                b, oh, ow, ic, :, :, ow8, ic8
+                            ] = input_region
 
     im2col_kernel = kernel.reshape(out_channels, -1).T
 
     return im2col_matrix, im2col_kernel
 
 
-# Golden model function to perform block matrix multiplication with specific parameters.
-# It returns the resulting matrix after the computation.
+# Golden model function to perform block matrix multiplication with
+# specific parameters. It returns the resulting matrix after the computation.
 def block_gemm_golden_model(
     m, k, n, row, size, col, a, b, subtraction_a, subtraction_b, c
 ):
@@ -195,7 +215,8 @@ def block_gemm_golden_model(
     # Compute
     for mm in range(m):
         for nn in range(n):
-            # Perform tensordot over axes k and size (axes 0 and 3 in original arrays)
+            # Perform tensordot over axes k and size
+            # (axes 0 and 3 in original arrays)
             # But after reshaping, axes are (k, row, size) and (k, col, size)
             # So axes to sum over are 0 (k) and 2 (size)
             d[mm, nn] = np.tensordot(
@@ -207,11 +228,12 @@ def block_gemm_golden_model(
     return d
 
 
-# This function Performs a tiled block General Matrix Multiply (GEMM) operation.
+# This function Performs a tiled block
+# General Matrix Multiply (GEMM) operation.
 #
-# This function breaks down large matrix multiplication into smaller submatrices
-# (tiles) and performs GEMM on these submatrices. The results are then accumulated
-# into a final result matrix.
+# This function breaks down large matrix multiplication into smaller
+# submatrices (tiles) and performs GEMM on these submatrices.
+# The results are then accumulated into a final result matrix.
 #
 # Parameters:
 # m2, k2, n2: int
@@ -287,7 +309,8 @@ def tiled_block_gemm_golden_model(
                     subtraction_b,
                     sub_c,
                 )
-                # Accumulate the result into the final result matrix at the correct position
+                # Accumulate the result into the final result matrix at the
+                # correct position
                 result[
                     (mm2 * n2 + nn2)
                     * m
@@ -303,8 +326,9 @@ def tiled_block_gemm_golden_model(
     return result
 
 
-# Golden model function for reshuffling data with specified parameters. It applies
-# strided layout mapping to the input data and returns the reshuffled data array.
+# Golden model function for reshuffling data with specified parameters.
+# It applies strided layout mapping to the input data and returns
+# the reshuffled data array.
 def data_reshuffler_golden_model(
     tempLoop0,
     tempLoop1,
@@ -336,9 +360,11 @@ def data_reshuffler_golden_model(
     }
 
     if int32:
-        result_array = np.zeros((matrix_size["M"] * matrix_size["K"]), np.int32)
+        result_array = np.zeros(
+            (matrix_size["M"] * matrix_size["K"]), np.int32)
     else:
-        result_array = np.zeros((matrix_size["M"] * matrix_size["K"]), np.int8)
+        result_array = np.zeros(
+            (matrix_size["M"] * matrix_size["K"]), np.int8)
 
     # apply strided layout mapping for the golden model of data reshuffler
     for M in range(matrix_size["M"] // matrix_size["m"]):
@@ -367,8 +393,9 @@ def data_reshuffler_golden_model(
     return result_array.ravel()
 
 
-# Golden model function for SIMD postprocessing of data. It performs operations such as
-# zero point subtraction, multiplication, right shift, double rounding, and clipping.
+# Golden model function for SIMD postprocessing of data. It performs
+# operations such as zero point subtraction, multiplication,
+# right shift, double rounding, and clipping.
 def postprocessing_simd_golden_model(
     data_in,
     input_zp_i,
@@ -403,6 +430,124 @@ def postprocessing_simd_golden_model(
     var = np.clip(var, min_int_i, max_int_i)
 
     return var
+
+
+def postprocessing_simd_golden_model_V2(
+    data_in,
+    input_zp_i,
+    output_zp_i,
+    shift_i,
+    max_int_i,
+    min_int_i,
+    double_round_i,
+    multiplier_i,
+):
+    """
+    This function performs SIMD postprocessing of data given the exact
+    algorithm of TOSA.rescale.
+    """
+    # Step 1: Subtract input zero point
+    var_1 = data_in - input_zp_i
+
+    # Step 2: Multiply with the multiplier avoiding overflow
+    var_2 = np.int64(var_1) * np.int64(multiplier_i)
+
+    # Step 3: Left shift one
+    shifted_one = np.int64(1 << (shift_i - 1))
+
+    # Step 4: Add shifted one
+    var_3 = var_2 + shifted_one
+
+    # Step 5: Double rounding if necessary
+    if double_round_i:
+        if var_1 > 0:
+            var_4 = var_3 + np.int64(1 << 30)
+        else:
+            var_4 = var_3 - np.int64(1 << 30)
+    else:
+        var_4 = var_3
+
+    if shift_i > 31:
+        var_5 = var_4
+    else:
+        var_5 = var_3
+
+    # Step 6: Shift right
+    var_6 = np.int32(var_5 >> shift_i)
+
+    # Step 7: Add output zero point
+    var_7 = var_6 + output_zp_i
+
+    # Step 8: Clip the values to be within min and max integer range
+    var_8 = np.clip(var_7, min_int_i, max_int_i)
+
+    return var_8
+
+
+def postprocessing_simd_golden_model_V3(
+    data_in,
+    input_zp_i,
+    output_zp_i,
+    shift_i,
+    max_int_i,
+    min_int_i,
+    double_round_i,
+    multiplier_i,
+):
+    """
+    This function performs SIMD postprocessing of data given approximate
+    algorithm of TOSA.rescale, with dynamically scaled shifts.
+    """
+    # Step 1: Subtract input zero point
+    var_1 = data_in - input_zp_i
+
+    # Additional Step 1:
+    bits_to_shift_input = max(
+        0, 9 + shift_i - ceil(np.log2(multiplier_i)) - 16
+    )
+    # 8 can be adapted to be higher. higher will add more support for
+    # overflows, but will also reduce accuracy of the output.
+    bits_to_shift_multiplier = max(0, ceil(np.log2(multiplier_i)) - 16)
+
+    var_1 = var_1 >> bits_to_shift_input
+    multiplier_i = multiplier_i >> bits_to_shift_multiplier
+    shift_i = shift_i - bits_to_shift_input - bits_to_shift_multiplier
+
+    # Step 2: Multiply with the multiplier avoiding overflow
+    var_2 = np.int32(var_1) * np.int32(multiplier_i)
+
+    # Step 3: Left shift one
+    shifted_one = np.int32(1 << (shift_i - 1))
+
+    # Step 4: Add shifted one
+    var_3 = var_2 + shifted_one
+
+    # Step 5: Double rounding
+    if double_round_i:
+        if var_1 > 0:
+            var_4 = var_3 + np.int32(
+                1 << (30 - bits_to_shift_multiplier - bits_to_shift_input)
+            )
+        else:
+            var_4 = var_3 - np.int32(
+                1 << (30 - bits_to_shift_multiplier - bits_to_shift_input)
+            )
+
+    if shift_i > 31 - bits_to_shift_multiplier - bits_to_shift_input:
+        var_5 = var_4
+    else:
+        var_5 = var_3
+
+    # Step 6: Shift right
+    var_6 = np.int32(var_5 >> shift_i)
+
+    # Step 7: Add output zero point
+    var_7 = var_6 + output_zp_i
+
+    # Step 8: Clip the values to be within min and max integer range
+    var_8 = np.clip(var_7, min_int_i, max_int_i)
+
+    return var_8
 
 
 def max_pooling(

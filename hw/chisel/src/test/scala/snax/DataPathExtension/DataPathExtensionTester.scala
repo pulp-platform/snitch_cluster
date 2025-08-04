@@ -30,7 +30,10 @@ class DataPathExtensionHarness(extension: HasDataPathExtension) extends Module w
   dut.io.data_o -||> io.data_o
 }
 
-abstract class DataPathExtensionTester(debugMode: Boolean = false) extends AnyFlatSpec with ChiselScalatestTester {
+abstract class DataPathExtensionTester(
+  simBackEnd: chiseltest.simulator.SimulatorAnnotation = VerilatorBackendAnnotation, debugMode: Boolean = false
+) extends AnyFlatSpec
+    with ChiselScalatestTester {
   val csr_vec:         Seq[Int]
   val input_data_vec:  Seq[BigInt]
   val output_data_vec: Seq[BigInt]
@@ -38,7 +41,7 @@ abstract class DataPathExtensionTester(debugMode: Boolean = false) extends AnyFl
 
   hasExtension.extensionParam.moduleName should "pass" in {
     test(new DataPathExtensionHarness(hasExtension))
-      .withAnnotations(Seq(WriteVcdAnnotation, VerilatorBackendAnnotation)) { dut =>
+      .withAnnotations(Seq(WriteVcdAnnotation, simBackEnd)) { dut =>
         dut.io.csr_i.zip(csr_vec).foreach { case (csrPort, csrData) =>
           csrPort.poke(csrData)
         }

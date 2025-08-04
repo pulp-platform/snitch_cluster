@@ -1,9 +1,10 @@
 package snax.DataPathExtension
 import scala.util.Random
 
+import chiseltest._
 import snax.DataPathExtension.HasElementwiseAdd
 
-class ElementwiseAdd2Tester extends DataPathExtensionTester {
+class ElementwiseAdd2Tester extends DataPathExtensionTester(TreadleBackendAnnotation) {
 
   def hasExtension = new HasElementwiseAdd(elementWidth = 32, dataWidth = 512)
 
@@ -38,7 +39,7 @@ class ElementwiseAdd2Tester extends DataPathExtensionTester {
   val output_data_vec = outputData.toSeq
 }
 
-class ElementwiseAdd3Tester extends DataPathExtensionTester {
+class ElementwiseAdd3Tester extends DataPathExtensionTester(TreadleBackendAnnotation) {
 
   def hasExtension = new HasElementwiseAdd(elementWidth = 32, dataWidth = 512)
 
