@@ -69,3 +69,4 @@ build_snax_verilator cfg/snax_alu_cluster.hjson ${PREFIX}/snax-utils/snax-alu
 build_snax_verilator cfg/snax_KUL_cluster.hjson ${PREFIX}/snax-utils/snax-kul-cluster-mixed-narrow-wide
 build_snax_verilator cfg/snax_KUL_dse_cluster_2D.hjson ${PREFIX}/snax-utils/snax-kul-cluster-dse-2d
 build_snax_verilator cfg/snax_KUL_dse_cluster_3D.hjson ${PREFIX}/snax-utils/snax-kul-cluster-dse-3d
+build_snax_verilator cfg/snax_compiler_test_cluster.hjson ${PREFIX}/snax-utils/snax-compiler_test_cluster
