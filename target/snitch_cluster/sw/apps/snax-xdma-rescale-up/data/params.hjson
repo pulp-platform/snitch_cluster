@@ -1,0 +1,17 @@
+// Copyright 2025 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Jonas Crols <jonas.crols@student.kuleuven.be>
+
+{
+    M: 9, // Number of rows / height
+    N: 9, // Number of columns / width
+    max_in_range: 127
+    input_zp_i: 0, // Input zero point
+    output_zp_i: 0, // Output zero point
+    shift_i: 10, // shift
+    max_int_i: 2147483647, // Maximum value for input
+    min_int_i: -2147483648, // Minimum value for input
+    multiplier_i: 10283821, // Multiplier for scaling
+}
