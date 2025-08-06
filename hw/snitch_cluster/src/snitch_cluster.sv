@@ -290,12 +290,18 @@ module snitch_cluster
     /// AXI Core cluster out-port.
     output narrow_out_req_t                                 narrow_out_req_o,
     input  narrow_out_resp_t                                narrow_out_resp_i,
-    /// XDMA Out ports
+    /// XDMA Wide Out ports
     output wide_out_req_t                                   xdma_wide_out_req_o,
     input  wide_out_resp_t                                  xdma_wide_out_resp_i,
-    /// XDMA In ports
+    /// XDMA Wide In ports
     input  wide_in_req_t                                    xdma_wide_in_req_i,
     output wide_in_resp_t                                   xdma_wide_in_resp_o,
+    /// XDMA Narrow Out ports
+    output narrow_out_req_t                                 xdma_narrow_out_req_o,
+    input  narrow_out_resp_t                                xdma_narrow_out_resp_i,
+    /// XDMA Narrow In ports
+    input  narrow_in_req_t                                  xdma_narrow_in_req_i,
+    output narrow_in_resp_t                                 xdma_narrow_in_resp_o,
     /// AXI DMA cluster out-port. Usually wider than the cluster ports so that the
     /// DMA engine can efficiently transfer bulk of data.
     output wide_out_req_t                                   wide_out_req_o,
@@ -334,18 +340,19 @@ module snitch_cluster
   localparam int unsigned NumTCDMIn = NrTCDMPortsCores + 1;
   localparam logic [PhysicalAddrWidth-1:0] TCDMMask = ~(TCDMSize - 1);
 
-  // Core Requests, SoC Request, PTW.
-  localparam int unsigned NrNarrowMasters = 3;
+  // Core Requests, SoC Request, PTW, XDMA
+  localparam int unsigned NrNarrowMasters = 4;
   localparam int unsigned NarrowIdWidthOut = $clog2(NrNarrowMasters) + NarrowIdWidthIn;
 
-  localparam int unsigned NrSlaves = 3;
+  localparam int unsigned NrSlaves = 4;
   localparam int unsigned NrRules = NrSlaves - 1;
 
-  // DMA, SoC Request, `n` instruction caches.
+  // DMA, SoC Request, XDMA, `n` instruction caches.
   localparam int unsigned NrWideMasters = 3 + NrHives;
   localparam int unsigned WideIdWidthOut = $clog2(NrWideMasters) + WideIdWidthIn;
   // DMA X-BAR configuration
   localparam int unsigned NrWideSlaves = 3;
+  localparam int unsigned NrWideRules = NrWideSlaves - 1;
 
   // AXI Configuration
   localparam axi_pkg::xbar_cfg_t ClusterXbarCfg = '{
@@ -378,7 +385,7 @@ module snitch_cluster
       UniqueIds: 1'b0,
       AxiAddrWidth: PhysicalAddrWidth,
       AxiDataWidth: WideDataWidth,
-      NoAddrRules: 2
+      NoAddrRules: NrWideRules
   };
 
   function automatic int unsigned get_hive_size(int unsigned current_hive);
@@ -510,11 +517,28 @@ module snitch_cluster
   assign cluster_periph_end_address   = tcdm_end_address + ClusterPeriphSize * 1024;
 
   // The MMIO is at the end of each cluster
+  // In total, We need 4 MMIOs, each MMIO is 4KB
+  // 1) Data 2)CFG 3)Grant 4)Finish
+  // We put the data(1) MMIO at the wide xbar
+  // We put the control(2,3,4) MMIO at the narrow xbar
+  // Low Addr      (cluster_base_addr_i+ClusterAddrSpace)-16KB <-xdma_mmio_start_address
+  // Data          (cluster_base_addr_i+ClusterAddrSpace)-16KB  - (cluster_base_addr_i+ClusterAddrSpace)-12kB C000
+  // CFG           (cluster_base_addr_i+ClusterAddrSpace)-12KB  - (cluster_base_addr_i+ClusterAddrSpace)-8kB  D000
+  // Grant         (cluster_base_addr_i+ClusterAddrSpace)-8KB   - (cluster_base_addr_i+ClusterAddrSpace)-4kB  E000
+  // Finish        (cluster_base_addr_i+ClusterAddrSpace)-4KB   - (cluster_base_addr_i+ClusterAddrSpace)-8kB  F000
+  // High address  (cluster_base_addr_i+ClusterAddrSpace)      <-xdma_mmio_end_address
   addr_t xdma_mmio_start_address, xdma_mmio_end_address;
   assign xdma_mmio_start_address = cluster_base_addr_i + ClusterAddrSpace * 1024  -
                                    ClusterMMIOSize * 1024;
   assign xdma_mmio_end_address = cluster_base_addr_i + ClusterAddrSpace * 1024;
-
+  // data mmio
+  addr_t xdma_mmio_data_start_address, xdma_mmio_data_end_address;
+  assign xdma_mmio_data_start_address = xdma_mmio_start_address;
+  assign xdma_mmio_data_end_address   = xdma_mmio_data_start_address + (ClusterMMIOSize / 4) * 1024;
+  // control mmio
+  addr_t xdma_mmio_ctrl_start_address, xdma_mmio_ctrl_end_address;
+  assign xdma_mmio_ctrl_start_address = xdma_mmio_data_end_address;
+  assign xdma_mmio_ctrl_end_address   = xdma_mmio_end_address;
   // ----------------
   // Wire Definitions
   // ----------------
@@ -619,10 +643,10 @@ module snitch_cluster
   // -------------
   // XDMA Ports
   // -------------
-  assign xdma_wide_out_req_o = wide_axi_slv_req[XDMAOut];
-  assign wide_axi_slv_rsp[XDMAOut] = xdma_wide_out_resp_i;
-  assign wide_axi_mst_req[XDMAIn] = xdma_wide_in_req_i;
-  assign xdma_wide_in_resp_o = wide_axi_mst_rsp[XDMAIn];
+  assign xdma_wide_out_req_o = wide_axi_slv_req[WideXDMAOut];
+  assign wide_axi_slv_rsp[WideXDMAOut] = xdma_wide_out_resp_i;
+  assign wide_axi_mst_req[WideXDMAIn] = xdma_wide_in_req_i;
+  assign xdma_wide_in_resp_o = wide_axi_mst_rsp[WideXDMAIn];
   // -------------
   // DMA XBAR Rule
   // -------------
@@ -632,7 +656,11 @@ module snitch_cluster
   assign dma_xbar_default_port = '{default: SoCDMAOut};
   assign dma_xbar_rule = '{
           '{idx: TCDMDMA, start_addr: tcdm_start_address, end_addr: tcdm_end_address},
-          '{idx: XDMAOut, start_addr: xdma_mmio_start_address, end_addr: xdma_mmio_end_address}
+          '{
+              idx: WideXDMAOut,
+              start_addr: xdma_mmio_data_start_address,
+              end_addr: xdma_mmio_data_end_address
+          }
       };
   localparam bit [DmaXbarCfg.NoSlvPorts-1:0] DMAEnableDefaultMstPort = '1;
   axi_xbar #(
@@ -1543,6 +1571,16 @@ module snitch_cluster
       .axi_rsp_i(narrow_axi_mst_rsp[CoreReq])
   );
 
+
+  // -----------------
+  // XDMA Narrow Ports
+  // -----------------
+  assign xdma_narrow_out_req_o = narrow_axi_slv_req[NarrowXDMAOut];
+  assign narrow_axi_slv_rsp[NarrowXDMAOut] = xdma_narrow_out_resp_i;
+  assign narrow_axi_mst_req[NarrowXDMAIn] = xdma_narrow_in_req_i;
+  assign xdma_narrow_in_resp_o = narrow_axi_mst_rsp[NarrowXDMAIn];
+
+
   logic [ClusterXbarCfg.NoSlvPorts-1:0][$clog2(
 ClusterXbarCfg.NoMstPorts
 )-1:0] cluster_xbar_default_port;
@@ -1554,6 +1592,11 @@ ClusterXbarCfg.NoMstPorts
               idx: ClusterPeripherals,
               start_addr: cluster_periph_start_address,
               end_addr: cluster_periph_end_address
+          },
+          '{
+              idx: NarrowXDMAOut,
+              start_addr: xdma_mmio_ctrl_start_address,
+              end_addr: xdma_mmio_ctrl_end_address
           }
       };
 

@@ -529,10 +529,21 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
   //-----------------------------
   // XDMA Wire
   //-----------------------------
-  ${cfg['pkg_name']}::wide_out_req_t xdma_wide_out_req;
-  ${cfg['pkg_name']}::wide_out_resp_t xdma_wide_out_resp;
-  ${cfg['pkg_name']}::wide_in_req_t xdma_wide_in_req;
-  ${cfg['pkg_name']}::wide_in_resp_t xdma_wide_in_resp;
+
+  // We need both wide and narrow links
+  // The wide links are for the data
+  // The narrow links are for the configurations
+  
+  // Wide links
+  ${cfg['pkg_name']}::wide_out_req_t    xdma_wide_out_req;
+  ${cfg['pkg_name']}::wide_out_resp_t   xdma_wide_out_resp;
+  ${cfg['pkg_name']}::wide_in_req_t     xdma_wide_in_req;
+  ${cfg['pkg_name']}::wide_in_resp_t    xdma_wide_in_resp;
+  // Narrow links
+  ${cfg['pkg_name']}::narrow_out_req_t  xdma_narrow_out_req;
+  ${cfg['pkg_name']}::narrow_out_resp_t xdma_narrow_out_resp;
+  ${cfg['pkg_name']}::narrow_in_req_t   xdma_narrow_in_req;
+  ${cfg['pkg_name']}::narrow_in_resp_t  xdma_narrow_in_resp;
 %endif
 
 
@@ -734,15 +745,23 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
     // XDMA
     //-----------------------------
 % if snax_xdma_flag:
-    .xdma_wide_out_req_o  (xdma_wide_out_req ),
-    .xdma_wide_out_resp_i (xdma_wide_out_resp),
-    .xdma_wide_in_req_i   (xdma_wide_in_req  ),
-    .xdma_wide_in_resp_o  (xdma_wide_in_resp ),
+    .xdma_wide_out_req_o     (xdma_wide_out_req   ),
+    .xdma_wide_out_resp_i    (xdma_wide_out_resp  ),
+    .xdma_wide_in_req_i      (xdma_wide_in_req    ),
+    .xdma_wide_in_resp_o     (xdma_wide_in_resp   ),
+    .xdma_narrow_out_req_o   (xdma_narrow_out_req ),
+    .xdma_narrow_out_resp_i  (xdma_narrow_out_resp),
+    .xdma_narrow_in_req_i    (xdma_narrow_in_req  ),
+    .xdma_narrow_in_resp_o   (xdma_narrow_in_resp ),
 % else:
-    .xdma_wide_out_req_o  (                  ),
-    .xdma_wide_out_resp_i ('0                ),
-    .xdma_wide_in_req_i   ('0                ),
-    .xdma_wide_in_resp_o  (                  ),    
+    .xdma_wide_out_req_o     (                    ),
+    .xdma_wide_out_resp_i    ('0                  ),
+    .xdma_wide_in_req_i      ('0                  ),
+    .xdma_wide_in_resp_o     (                    ),
+    .xdma_narrow_out_req_o   (                    ),
+    .xdma_narrow_out_resp_i  ('0                  ),
+    .xdma_narrow_in_req_i    ('0                  ),
+    .xdma_narrow_in_resp_o   (                    ), 
 %endif
     //-----------------------------
     // Wide AXI ports
@@ -953,13 +972,19 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
     % for jdx, jdx_key in enumerate(snax_core_acc[idx_key]['snax_acc_dict']):
   // Instantiation of xdma wrapper
   ${cfg['name']}_xdma_wrapper # (
-    .tcdm_req_t       ( ${cfg['pkg_name']}::tcdm_req_t     ),
-    .tcdm_rsp_t       ( ${cfg['pkg_name']}::tcdm_rsp_t     ),
-    .wide_slv_id_t    ( ${cfg['pkg_name']}::wide_out_id_t  ),
-    .wide_out_req_t   ( ${cfg['pkg_name']}::wide_in_req_t ),
-    .wide_out_resp_t  ( ${cfg['pkg_name']}::wide_in_resp_t),
-    .wide_in_req_t    ( ${cfg['pkg_name']}::wide_out_req_t  ),
-    .wide_in_resp_t   ( ${cfg['pkg_name']}::wide_out_resp_t ),
+    .tcdm_req_t         ( ${cfg['pkg_name']}::tcdm_req_t        ),
+    .tcdm_rsp_t         ( ${cfg['pkg_name']}::tcdm_rsp_t        ),
+    .wide_slv_id_t      ( ${cfg['pkg_name']}::wide_out_id_t     ),
+    .wide_out_req_t     ( ${cfg['pkg_name']}::wide_in_req_t     ),
+    .wide_out_resp_t    ( ${cfg['pkg_name']}::wide_in_resp_t    ),
+    .wide_in_req_t      ( ${cfg['pkg_name']}::wide_out_req_t    ),
+    .wide_in_resp_t     ( ${cfg['pkg_name']}::wide_out_resp_t   ),
+    .narrow_slv_id_t    ( ${cfg['pkg_name']}::narrow_out_id_t   ),
+    .narrow_out_req_t   ( ${cfg['pkg_name']}::narrow_in_req_t   ),
+    .narrow_out_resp_t  ( ${cfg['pkg_name']}::narrow_in_resp_t  ),
+    .narrow_in_req_t    ( ${cfg['pkg_name']}::narrow_out_req_t  ),
+    .narrow_in_resp_t   ( ${cfg['pkg_name']}::narrow_out_resp_t ),
+
     .ClusterBaseAddr  ( ${cfg['pkg_name']}::ClusterBaseAddr),
     .ClusterAddressSpace(${to_sv_hex(cfg['cluster_base_offset'], cfg['addr_width'])}),
     .MMIOSize(${cfg['mmio_size']})
@@ -993,10 +1018,16 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
     //-----------------------------
     // XDMA Intercluster Ports
     //-----------------------------
-    .xdma_wide_out_req_o (xdma_wide_in_req  ),
-    .xdma_wide_out_resp_i(xdma_wide_in_resp ),
-    .xdma_wide_in_req_i  (xdma_wide_out_req ),
-    .xdma_wide_in_resp_o (xdma_wide_out_resp),
+    // Wide ports for the data
+    .xdma_wide_out_req_o   (xdma_wide_in_req    ),
+    .xdma_wide_out_resp_i  (xdma_wide_in_resp   ),
+    .xdma_wide_in_req_i    (xdma_wide_out_req   ),
+    .xdma_wide_in_resp_o   (xdma_wide_out_resp  ),
+    // Narrow ports for the control
+    .xdma_narrow_out_req_o (xdma_narrow_in_req  ),
+    .xdma_narrow_out_resp_i(xdma_narrow_in_resp ),
+    .xdma_narrow_in_req_i  (xdma_narrow_out_req ),
+    .xdma_narrow_in_resp_o (xdma_narrow_out_resp),
     //-----------------------------
     // TCDM ports
     //-----------------------------
