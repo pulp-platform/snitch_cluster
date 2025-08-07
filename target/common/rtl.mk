@@ -49,7 +49,7 @@ $(SN_BOOTROM_DIR)/bootrom.elf $(SN_BOOTROM_DIR)/bootrom.dump $(SN_BOOTROM_DIR)/b
 sn-rtl: $(SN_GEN_RTL_SRCS)
 
 sn-clean-rtl:
-	rm -f $(SN_GEN_RTL_SRCS)
+	rm -f $(SN_GEN_RTL_SRCS) $(SN_CLUSTER_RDL)
 
 $(SN_BOOTROM_DIR):
 	mkdir -p $@

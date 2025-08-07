@@ -197,7 +197,8 @@ static inline void gemm_fp64_opt(uint32_t setup_ssr, uint32_t partition_banks,
     // and a different element of C needs to be preloaded in every (m, n)
     // iteration. These (integer) operations cannot be done in the FREP loop,
     // so we cannot map the `m` and `n` loops to an FREP loop.
-    if (SNRT_NUM_SEQUENCER_LOOPS > 1 && beta == 0) {
+    if (SNRT_NUM_SEQUENCER_LOOPS > 1 && SNRT_NUM_SEQUENCER_INSNS >= 24 &&
+        beta == 0) {
         asm volatile(
             "frep.o %[n_frep1], %[n_inst1], 0, 0\n"
             "fmul.d %[c0], ft0, ft1 \n"

@@ -12,6 +12,8 @@ import os
 from pathlib import Path
 from functools import lru_cache
 from operator import itemgetter
+import traceback
+import sys
 import re
 
 
@@ -113,7 +115,12 @@ class Addr2LineOutput:
 
             # Extract line
             if src and line is not None:
-                return src[line-1]
+                try:
+                    return src[line-1]
+                except IndexError as e:
+                    print(traceback.format_exc(), file=sys.stderr)
+                    print(f'Cannot find line {line} in file {file}', file=sys.stderr)
+                    raise e
 
     def __str__(self):
         s = ''
