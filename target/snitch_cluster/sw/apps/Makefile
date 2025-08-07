@@ -80,10 +80,15 @@ SUBDIRS += snax-hypercorex/char-recog
 SUBDIRS += snax-hypercorex/high-dim-bind
 SUBDIRS += snax-hypercorex/am-search
 SUBDIRS += snax-hypercorex/isolet-recog
+SUBDIRS += snax-hypercorex/isolet-recog-long
 SUBDIRS += snax-hypercorex/ucihar-recog
+SUBDIRS += snax-hypercorex/ucihar-recog-long
 SUBDIRS += snax-hypercorex/digit-recog
+SUBDIRS += snax-hypercorex/digit-recog-long
 SUBDIRS += snax-hypercorex/dna-recog
+SUBDIRS += snax-hypercorex/dna-recog-long
 SUBDIRS += snax-hypercorex/lang-recog
+SUBDIRS += snax-hypercorex/lang-recog-long
 SUBDIRS += snax-hypercorex/vec-compress
 endif
 
