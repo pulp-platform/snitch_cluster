@@ -1,0 +1,15 @@
+// Copyright 2023 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Jonas Crols <jonas.crols@student.kuleuven.be>
+
+{
+    M: 28, // Number of rows / height
+    N: 28, // Number of columns / width
+    channels: 64, // Number of channels
+    m_kernel: 3, // Kernel size in the M dimension
+    n_kernel: 3, // Kernel size in the N dimension
+    m_stride: 2, // Stride in the M dimension
+    n_stride: 2, // Stride in the N dimension
+}

@@ -639,3 +639,39 @@ def align_wide_addr(addr, alignment=64):
     if addr % alignment:
         addr = ((addr // alignment) + 1) * alignment
     return addr
+
+
+def sumpool_golden(
+    a_vals: np.ndarray,
+    m: int,
+    n: int,
+    channels: int,
+    m_kernel: int,
+    n_kernel: int,
+    m_stride: int,
+    n_stride: int,
+) -> np.ndarray:
+    """
+    Compute the golden output for maxpool operation.
+    This function simulates the maxpool operation on the input tensor.
+    a should be a 3D array with shape (m, n, channels).
+    """
+    output = np.empty(
+        (
+            ((m - m_kernel) // m_stride + 1),
+            ((n - n_kernel) // n_stride + 1),
+            channels,
+        ),
+        dtype=np.int32,
+    )
+    # Iterate over each channel and apply max pooling
+    for i in range(0, ((m - m_kernel) // m_stride + 1) * m_stride, m_stride):
+        for j in range(0, ((n - n_kernel) // n_stride + 1) * n_stride,
+                       n_stride):
+            for c in range(channels):
+                # Extract the kernel region
+                kernel_region = a_vals[i: i + m_kernel, j: j + n_kernel, c]
+                # Compute the maximum value in the kernel region
+                sum_value = int(np.sum(kernel_region))
+                output[i // m_stride, j // n_stride, c] = sum_value
+    return output

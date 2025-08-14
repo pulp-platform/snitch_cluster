@@ -171,6 +171,7 @@
             reader_extensions: {
                 HasMaxPool: {},
                 HasElementwiseAdd: {},
+                HasElementwiseAddToLong: {},
                 HasRescaleDownEfficient: {},
                 HasRescaleUp: {},
 
