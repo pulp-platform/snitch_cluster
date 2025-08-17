@@ -10,6 +10,8 @@ package snax_acc.versacore
 import chisel3._
 import chisel3.util._
 
+import fp_unit.DataType
+
 /** AdderTree is a module that implements a tree of adders for efficient parallel addition. It takes multiple input
   * vectors and produces a single output vector.
   * @param numElements

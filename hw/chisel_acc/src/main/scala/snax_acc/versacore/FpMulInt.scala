@@ -9,6 +9,10 @@ package snax_acc.versacore
 import chisel3._
 import chisel3.util._
 
+import fp_unit.FP16
+import fp_unit.FP32
+import fp_unit.FpType
+
 /** @param typeA
   *   Must be FP16
   * @param typeB

@@ -4,3 +4,6 @@
 [submodule "sw/deps/printf"]
 	path = sw/deps/printf
 	url = https://github.com/mpaland/printf.git
+[submodule "hw/chisel_acc/subprojects/chisel-float"]
+	path = hw/chisel_acc/subprojects/chisel-float
+	url = https://github.com/KULeuven-MICAS/chisel-float.git

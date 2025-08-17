@@ -13,10 +13,12 @@ import chisel3._
 
 import chiseltest._
 import chiseltest.simulator.VerilatorBackendAnnotation
+import fp_unit.FP16
+import fp_unit.FP32
+import fp_unit.FpUtils
 import org.scalatest.flatspec.AnyFlatSpec
-import snax_acc.utils.fpUtils
 
-class FPMULIntTest extends AnyFlatSpec with ChiselScalatestTester with fpUtils {
+class FPMULIntTest extends AnyFlatSpec with ChiselScalatestTester with FpUtils {
   behavior of "FPMULInt"
 
   def test_fp_mul_int(dut: FPMULInt, test_id: Int, A: Float, B: Int, intWidthB: Int) = {

@@ -9,6 +9,11 @@ package snax_acc.versacore
 
 import chisel3._
 
+import fp_unit.DataType
+import fp_unit.FP32
+import fp_unit.FpAddFpBlackBox
+import fp_unit.FpType
+
 /** AdderIO defines the input and output interfaces for the Adder module. */
 class AdderIO(
   inputTypeA: DataType,
@@ -39,7 +44,7 @@ class Adder(
     case (_: FpType, _: IntType, _: FpType) => throw new NotImplementedError()
 
     case (a: FpType, b: FpType, c: FpType) => {
-      val fpAddFp = Module(new FPAddFPBlackBox("fp_add", a, b, c))
+      val fpAddFp = Module(new FpAddFpBlackBox("fp_add", a, b, c))
       fpAddFp.io.operand_a_i := io.in_a
       fpAddFp.io.operand_b_i := io.in_b
       io.out_c               := fpAddFp.io.result_o

@@ -1,10 +1,12 @@
 // Copyright 2025 KU Leuven.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
-
+//
 // Author: Xiaoling Yi <xiaoling.yi@kuleuven.be>
 
 package snax_acc.versacore
+
+import fp_unit.DataType
 
 class SpatialArrayParam(
   val macNum:                 Seq[Int],

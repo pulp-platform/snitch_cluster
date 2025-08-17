@@ -9,6 +9,8 @@ package snax_acc.versacore
 import chisel3._
 import chisel3.util._
 
+import fp_unit.DataType
+
 /** AccumulatorBlock is a single accumulator block that performs accumulation on two input values. */
 class AccumulatorBlock(
   val inputType:  DataType,
