@@ -43,7 +43,7 @@ class DivisionFinder extends Module {
         divisor := io.input
         quotient := 0.U
         remainder := 0.U
-        counter := 31.U  // Count down from 31 to 0 (32 iterations)
+        counter := 32.U  // Count down from 32 to 0 (32 iterations)
         state := sCompute
       }.elsewhen(io.valid_in && io.input === 0.U) {
         // Handle division by zero - return maximum value
@@ -219,14 +219,14 @@ class SoftMaxCtrl() extends Module {
         is(cOutput) {
             reset_counter := false.B
             io.ready_in := (counter.io.value =/= (io.softmax_cycles - 1.U))
-            io.valid_out := true.B
+            io.valid_out := (counter.io.value >= 3.U)
             io.update_max := false.B
             io.start_divider := false.B
             io.update_adders := false.B
         }
         is(cEndOfOutput) {
             io.ready_in := false.B
-            io.valid_out := false.B
+            io.valid_out := (counter.io.value >= 3.U)
             io.update_max := false.B
             io.start_divider := false.B
             when (counter.io.value === (io.softmax_cycles + 2.U)) {
