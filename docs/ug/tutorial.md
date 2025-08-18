@@ -393,10 +393,10 @@ make PL_SIM=1 VCD_DUMP=1 DEBUG=ON bin/snitch_cluster.vsim
 When you run a simulation, the simulator will now automatically create a `vcd` subdirectory within the _simulation directory_, where a VCD file is generated.
 
 Most often you are not interested in estimating the power of an entire simulation, but only of a specific section, e.g. while executing a part of a kernel computation.
-You can pass start and end times for VCD recording to the simulation as environment variables:
+You can pass start and end times (in ns) for VCD recording to the simulation as environment variables:
 
 ```shell
-VCD_START=127ns VCD_END=8898ns bin/snitch_cluster.vsim sw/apps/blas/axpy/build/axpy.elf
+VCD_START=127 VCD_END=8898 bin/snitch_cluster.vsim sw/apps/blas/axpy/build/axpy.elf
 ```
 
 !!! note
