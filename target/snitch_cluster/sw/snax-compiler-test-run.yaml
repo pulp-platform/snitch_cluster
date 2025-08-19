@@ -14,3 +14,4 @@ runs:
   - elf: apps/snax-xdma-rescale-down/build/snax-xdma-rescale-down.elf
   - elf: apps/snax-xdma-rescale-up/build/snax-xdma-rescale-up.elf
   - elf: apps/snax-xdma-avgpool/build/snax-xdma-avgpool.elf
+  - elf: apps/snax-xdma-softmax/build/snax-xdma-softmax.elf
