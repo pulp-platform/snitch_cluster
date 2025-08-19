@@ -23,7 +23,7 @@ class DivisionFinder extends Module {
   val divisor = RegInit(0.U(32.W))   // Input value
   val quotient = RegInit(0.U(32.W))  // Result
   val remainder = RegInit(0.U(32.W)) // Remainder
-  val counter = RegInit(0.U(6.W))    // Bit counter (0 to 32)
+  val counter = RegInit(0.U(6.W))    // Bit counter (0 to 31, then 32 for completion)
 
   // Output registers
   val result_reg = RegInit(0.U(32.W))
@@ -43,7 +43,7 @@ class DivisionFinder extends Module {
         divisor := io.input
         quotient := 0.U
         remainder := 0.U
-        counter := 32.U  // Count down from 32 to 0 (32 iterations)
+        counter := 0.U  // Start from 0 and count up to 32
         state := sCompute
       }.elsewhen(io.valid_in && io.input === 0.U) {
         // Handle division by zero - return maximum value
@@ -55,26 +55,25 @@ class DivisionFinder extends Module {
 
     is(sCompute) {
       // Serial restoring division algorithm
-      // Shift remainder left and bring down next bit from dividend (MSB first)
-      val shifted_remainder = Cat(remainder(30, 0), dividend(31))
+      // Process bits from MSB to LSB (bit 31 down to bit 0)
+      val current_bit = 31.U - counter
+      val shifted_remainder = Cat(remainder(30, 0), dividend(current_bit))
       
       // Try to subtract divisor from shifted remainder
       when(shifted_remainder >= divisor) {
         // Subtraction successful, set quotient bit to 1
         remainder := shifted_remainder - divisor
-        quotient := Cat(quotient(30, 0), 1.U)
+        quotient := quotient | (1.U << current_bit)
       }.otherwise {
         // Subtraction failed, set quotient bit to 0
         remainder := shifted_remainder
-        quotient := Cat(quotient(30, 0), 0.U)
+        // quotient bit remains 0 (already initialized to 0)
       }
 
-      // Shift dividend for next iteration (remove MSB)
-      dividend := Cat(dividend(30, 0), 0.U)
-      counter := counter - 1.U
+      counter := counter + 1.U
 
-      when(counter === 0.U) {
-        result_reg := quotient
+      when(counter === 31.U) {  // After processing all 32 bits (0 to 31)
+        result_reg := quotient | Mux(shifted_remainder >= divisor, 1.U, 0.U)  // Handle final bit
         valid_reg := true.B
         state := sDone
       }
@@ -106,6 +105,11 @@ class SoftMaxCtrl() extends Module {
         val start_divider = Output(Bool())
         val divider_valid = Input(Bool())
         val busy = Output(Bool())
+        // Finalization signals
+        val dont_check_ready = Output(Bool())
+        val dont_check_valid = Output(Bool())
+        val reset_max = Output(Bool()) // Reset the max value register
+        val reset_adder = Output(Bool()) // Reset the adder register
     })
 
     val cIdle :: cMaxSearch :: cExponentiation :: cEndOfExponentiation :: cDivide :: cOutput :: cEndOfOutput :: Nil = Enum(7)
@@ -118,7 +122,7 @@ class SoftMaxCtrl() extends Module {
   })
     counter.io.ceil := io.softmax_cycles + 4.U // +4 for the end of exponentiation and divide
     counter.io.reset := reset_counter
-    counter.io.tick := io.valid_in
+    counter.io.tick := io.valid_in & (io.dont_check_ready || io.ready_out)
 
     switch(state) {
         is(cIdle) {
@@ -138,7 +142,7 @@ class SoftMaxCtrl() extends Module {
         }
 
         is(cEndOfExponentiation) {
-            when(counter.io.value === (io.softmax_cycles + 2.U)) {
+            when(counter.io.value === (io.softmax_cycles + 3.U)) {
                 state := cDivide
             }
         }
@@ -153,8 +157,8 @@ class SoftMaxCtrl() extends Module {
             }
         }
         is(cEndOfOutput) {
-            when(counter.io.value === (io.softmax_cycles + 2.U)) {
-                state := cIdle
+            when(counter.io.value === (io.softmax_cycles + 2.U) && io.ready_out) {
+                state := cMaxSearch
             }
         }
     }
@@ -164,8 +168,12 @@ class SoftMaxCtrl() extends Module {
     io.valid_out := false.B
     io.update_max := false.B
     io.start_divider := false.B
-    io.busy := state =/= cIdle
+    io.busy := counter.io.value =/= 0.U
     io.update_adders := false.B
+    io.dont_check_ready := true.B //Only check ready when outputting
+    io.dont_check_valid := true.B //Only check valid when new inputs necessary
+    io.reset_max := true.B
+    io.reset_adder := true.B
 
     switch(state) {
         is(cIdle) {
@@ -175,10 +183,14 @@ class SoftMaxCtrl() extends Module {
             io.update_max := false.B
             io.start_divider := false.B
             io.update_adders := false.B
+            io.dont_check_ready := true.B
+            io.dont_check_valid := true.B
+            io.reset_max := true.B
+            io.reset_adder := true.B
         }
         is(cMaxSearch) {
             io.ready_in := true.B
-            io.valid_out := true.B
+            io.valid_out := false.B
             io.update_max := true.B
             io.start_divider := false.B
             when (counter.io.value === (io.softmax_cycles - 1.U)) {
@@ -186,35 +198,51 @@ class SoftMaxCtrl() extends Module {
             } .otherwise {
                 reset_counter := false.B
             }
-            io.update_adders := false.B 
+            io.update_adders := false.B
+            io.dont_check_ready := true.B
+            io.dont_check_valid := false.B
+            io.reset_max := false.B
+            io.reset_adder := true.B
         }
         is(cExponentiation) {
             reset_counter := false.B
             io.ready_in := (counter.io.value =/= (io.softmax_cycles - 1.U)) // Dont allow input on last cycle
-            io.valid_out := true.B
+            io.valid_out := false.B
             io.update_max := false.B
             io.start_divider := false.B
             io.update_adders := (counter.io.value >= 3.U)
+            io.dont_check_ready := true.B
+            io.dont_check_valid := false.B
+            io.reset_max := false.B
+            io.reset_adder := false.B
         }
         is(cEndOfExponentiation) {
             io.ready_in := false.B
-            io.valid_out := true.B  
+            io.valid_out := false.B  
             io.update_max := false.B
-            io.start_divider := (counter.io.value === (io.softmax_cycles + 2.U)) //Start up on last cycle
-            when (counter.io.value === (io.softmax_cycles + 2.U)) {
+            io.start_divider := (counter.io.value === (io.softmax_cycles + 3.U)) //Start up on last cycle
+            when (counter.io.value === (io.softmax_cycles + 3.U)) {
                 reset_counter := true.B
             } .otherwise {
                 reset_counter := false.B
             }
             io.update_adders := (counter.io.value >= 3.U) // Allow adders to update until the end of exponentiation
+            io.dont_check_ready := true.B
+            io.dont_check_valid := true.B
+            io.reset_max := false.B
+            io.reset_adder := false.B
         }
         is(cDivide) {
             reset_counter := true.B
             io.ready_in := io.divider_valid
-            io.valid_out := true.B
+            io.valid_out := false.B
             io.update_max := false.B
             io.start_divider := false.B
             io.update_adders := false.B
+            io.dont_check_ready := true.B
+            io.dont_check_valid := true.B
+            io.reset_max := false.B
+            io.reset_adder := false.B
         }
         is(cOutput) {
             reset_counter := false.B
@@ -223,18 +251,26 @@ class SoftMaxCtrl() extends Module {
             io.update_max := false.B
             io.start_divider := false.B
             io.update_adders := false.B
+            io.dont_check_ready := false.B
+            io.dont_check_valid := false.B
+            io.reset_max := false.B
+            io.reset_adder := false.B
         }
         is(cEndOfOutput) {
-            io.ready_in := false.B
+            io.ready_in := false.B 
             io.valid_out := (counter.io.value >= 3.U)
             io.update_max := false.B
             io.start_divider := false.B
-            when (counter.io.value === (io.softmax_cycles + 2.U)) {
+            when ((counter.io.value === (io.softmax_cycles + 2.U)) && io.ready_out) {
                 reset_counter := true.B
             } .otherwise {
                 reset_counter := false.B
             }
             io.update_adders := false.B
+            io.dont_check_ready := false.B
+            io.dont_check_valid := true.B
+            io.reset_max := (counter.io.value === (io.softmax_cycles + 2.U) && io.ready_out) // Reset max on the last cycle
+            io.reset_adder := false.B
         }
     }
 
@@ -256,6 +292,7 @@ class HasSoftMax() extends HasDataPathExtension {
         )
 }
 
+//All data in Softmax needs to be passed 3 times. this can be done by adding a stride of 0 and bound of 3
 class SoftMax()(implicit extensionParam: DataPathExtensionParam)
     extends DataPathExtension {
 
@@ -276,11 +313,15 @@ class SoftMax()(implicit extensionParam: DataPathExtensionParam)
     val start_divider = Wire(Bool())
     val divider_finder_valid = Wire(Vec(16, Bool()))
     val update_adders = Wire(Bool())
+    val dont_check_ready = Wire(Bool())
+    val dont_check_valid = Wire(Bool())
+    val reset_max = Wire(Bool())
+    val reset_adder = Wire(Bool())
 
     val ctrl = Module(new SoftMaxCtrl())
     ctrl.io.start := ext_start_i
     ctrl.io.valid_in := ext_data_i.valid
-    ext_data_i.ready := ctrl.io.ready_in
+    ext_data_i.ready := ctrl.io.ready_in & (ext_data_o.ready || dont_check_ready)
     ext_data_o.valid := ctrl.io.valid_out
     ctrl.io.ready_out := ext_data_o.ready
     ctrl.io.softmax_cycles := ext_csr_i(5).asUInt
@@ -289,6 +330,10 @@ class SoftMax()(implicit extensionParam: DataPathExtensionParam)
     ctrl.io.divider_valid := divider_finder_valid(0)
     ext_busy_o := ctrl.io.busy
     update_adders := ctrl.io.update_adders
+    dont_check_ready := ctrl.io.dont_check_ready
+    dont_check_valid := ctrl.io.dont_check_valid
+    reset_max := ctrl.io.reset_max
+    reset_adder := ctrl.io.reset_adder
 
     // Stage 1: Find the maximum value in the input vector
     val input_vector = Wire(Vec(16, SInt(elementWidth.W)))
@@ -296,7 +341,9 @@ class SoftMax()(implicit extensionParam: DataPathExtensionParam)
 
     val max_value = RegInit(VecInit(Seq.fill(16)(0x80000000.S(elementWidth.W))))
     for (i <- 0 until 16) {
-        when(update_max && ext_data_i.valid) {
+        when(reset_max) {
+            max_value(i) := 0x80000000.S(elementWidth.W) // Reset to minimum value
+        }.elsewhen(update_max && ext_data_i.valid) {
             when(input_vector(i) > max_value(i)) {
                 max_value(i) := input_vector(i)
             }
@@ -364,12 +411,9 @@ class SoftMax()(implicit extensionParam: DataPathExtensionParam)
     val poly_reg_1 = RegInit(VecInit(Seq.fill(16)(0.U(elementWidth.W))))
     val pipeline_z_1 = RegInit(VecInit(Seq.fill(16)(0.U(4.W))))
 
-    when(ext_data_i.valid) { //TODO: make control logic for when register updates
+    when((ext_data_i.valid || dont_check_valid) & (ext_data_o.ready || dont_check_ready)) { //TODO: make control logic for when register updates
         poly_reg_1 := poly_after_b
         pipeline_z_1 := z
-    }
-    when(ext_data_i.valid) { //TODO: make control logic for when register updates
-        poly_reg_1 := poly_after_b
     }
 
     val poly_after_square = Wire(Vec(16, UInt((2*elementWidth).W)))
@@ -381,9 +425,9 @@ class SoftMax()(implicit extensionParam: DataPathExtensionParam)
     val pipeline_z_2 = RegInit(VecInit(Seq.fill(16)(0.U(4.W))))
 
 
-    when(ext_data_i.valid) { //TODO: make control logic for when register updates
+    when((ext_data_i.valid || dont_check_valid) & (ext_data_o.ready || dont_check_ready)) { //TODO: make control logic for when register updates
         poly_reg_2 := poly_after_square
-        pipeline_z_2 := z
+        pipeline_z_2 := pipeline_z_1
     }
 
     val poly_after_a = Wire(Vec(16, UInt((3*elementWidth).W)))
@@ -394,9 +438,9 @@ class SoftMax()(implicit extensionParam: DataPathExtensionParam)
     val poly_reg_3 = RegInit(VecInit(Seq.fill(16)(0.U((3*elementWidth).W))))
     val pipeline_z_3 = RegInit(VecInit(Seq.fill(16)(0.U(4.W))))
 
-    when(ext_data_i.valid) { //TODO: make control logic for when register updates
+    when((ext_data_i.valid || dont_check_valid) & (ext_data_o.ready || dont_check_ready)) { //TODO: make control logic for when register updates
         poly_reg_3 := poly_after_a
-        pipeline_z_3 := z
+        pipeline_z_3 := pipeline_z_2
     }
 
     val poly_after_static_shift = Wire(Vec(16, UInt((elementWidth).W)))
@@ -423,7 +467,11 @@ class SoftMax()(implicit extensionParam: DataPathExtensionParam)
 
     val total_exp_sum = RegInit(VecInit(Seq.fill(16)(0.U(elementWidth.W))))
 
-    when(ext_data_i.valid) { //TODO: make control logic for when register updates
+    when(reset_adder) {
+        for (i <- 0 until 16) {
+            total_exp_sum(i) := 0.U // Reset the total exponential sum
+        }
+    }.elsewhen((ext_data_i.valid || dont_check_valid) & ext_data_o.ready) { //TODO: make control logic for when register updates
         when(update_adders) {
             for (i <- 0 until 16) {
                 total_exp_sum(i) := total_exp_sum(i) + exp_out(i) //TODO: make these resettable
