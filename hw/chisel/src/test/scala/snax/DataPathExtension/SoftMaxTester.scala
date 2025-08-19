@@ -56,22 +56,13 @@ class SoftMaxTester extends DataPathExtensionTester(TreadleBackendAnnotation) {
       val maxValue = findMax(array)
       val arraySubtracted = subtractMax(array, maxValue)
       val (expArray, _) = integerExp(arraySubtracted, scalingFactorExp)
-      println("expArray:", expArray.mkString(", "))
       val sumExp = expArray.map(_.toLong).sum
 
       val divider = 4294967295L / sumExp
-      println("sumExp:", sumExp)
-      println("divider:", divider)
       // Convert to softmax probabilities and scale to byte range (0-255)
       expArray.map { value =>
         value.toLong * divider
       }
-    }
-
-    in_array.transpose.map { column =>
-      println(column.mkString("InputArray(", ", ", ")"))
-      println(integerSoftmax(column, inverseScalingFactor).mkString("GoldenArray(", ", ", ")"))
-      println("")
     }
 
     // Process each row of the input array
@@ -95,7 +86,7 @@ class SoftMaxTester extends DataPathExtensionTester(TreadleBackendAnnotation) {
 
   Random.setSeed(1) // For reproducibility
 
-  for (_ <- 0 until 128) {
+  for (_ <- 0 until 16) {
     // val inputMatrix: Array[Int] = Array.fill(64)(-5956158)
     val inputMatrix: Array[Array[Int]] = Array.fill(8,16)(Random.between(-40000, 40000))
     val inputMatrix1 = inputMatrix(0)

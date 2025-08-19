@@ -152,7 +152,7 @@ class SoftMaxCtrl() extends Module {
             }
         }
         is(cOutput) {
-            when(counter.io.value === (io.softmax_cycles - 1.U)) {
+            when(counter.io.value === (io.softmax_cycles - 1.U) && io.ready_out) {
                 state := cEndOfOutput
             }
         }
@@ -206,7 +206,7 @@ class SoftMaxCtrl() extends Module {
         }
         is(cExponentiation) {
             reset_counter := false.B
-            io.ready_in := (counter.io.value =/= (io.softmax_cycles - 1.U)) // Dont allow input on last cycle
+            io.ready_in := true.B // Dont allow input on last cycle
             io.valid_out := false.B
             io.update_max := false.B
             io.start_divider := false.B
@@ -234,7 +234,7 @@ class SoftMaxCtrl() extends Module {
         }
         is(cDivide) {
             reset_counter := true.B
-            io.ready_in := io.divider_valid
+            io.ready_in := false.B
             io.valid_out := false.B
             io.update_max := false.B
             io.start_divider := false.B
@@ -246,7 +246,7 @@ class SoftMaxCtrl() extends Module {
         }
         is(cOutput) {
             reset_counter := false.B
-            io.ready_in := (counter.io.value =/= (io.softmax_cycles - 1.U))
+            io.ready_in := true.B
             io.valid_out := (counter.io.value >= 3.U)
             io.update_max := false.B
             io.start_divider := false.B
