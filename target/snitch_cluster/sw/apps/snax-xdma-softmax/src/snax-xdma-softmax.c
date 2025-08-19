@@ -88,8 +88,8 @@ int main() {
                xdma_last_task_cycle());
 
         // --------------------- Checking the Results --------------------- //
-        uint8_t *golden_result = (uint8_t *)golden_output_matrix;
-        uint8_t *tcdm_result = (uint8_t *)tcdm_out;
+        uint32_t *golden_result = (uint32_t *)golden_output_matrix;
+        uint32_t *tcdm_result = (uint32_t *)tcdm_out;
 
         for (int i = 0; i < matrix_size * sizeof(input_matrix[0]) / 4; i++) {
             if (tcdm_result[i] != golden_result[i]) {

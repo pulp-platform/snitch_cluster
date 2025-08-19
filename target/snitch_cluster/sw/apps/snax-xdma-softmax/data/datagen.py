@@ -39,7 +39,7 @@ def emit_header_file(**kwargs):
 def emit_softmax_data(**kwargs):
 
     data_in_type = "int32_t"
-    data_out_type = "int32_t"
+    data_out_type = "uint32_t"
 
     emit_str = []
     M = kwargs["M"]
