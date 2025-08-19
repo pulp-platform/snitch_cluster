@@ -18,7 +18,7 @@ VERILATOR_SEPP ?=
 VLT            ?= $(VERILATOR_SEPP) verilator
 
 # Directories
-VLT_BUILDDIR = $(SN_TARGET_DIR)/work-vlt
+VLT_BUILDDIR ?= $(SN_TARGET_DIR)/work-vlt
 VLT_FESVR    = $(VLT_BUILDDIR)/riscv-isa-sim
 
 # Flags
