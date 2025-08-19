@@ -167,6 +167,7 @@
             writer_extensions: {
                 HasVerilogMemset: {},
                 HasTransposer: {row:[8, 8], col:[8, 8], elementWidth:[8, 16]},
+                HasSoftMax: {}
             },
             reader_extensions: {
                 HasMaxPool: {},

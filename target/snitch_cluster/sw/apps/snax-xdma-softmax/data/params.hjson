@@ -1,0 +1,11 @@
+// Copyright 2025 KU Leuven.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+//
+// Jonas Crols <jonas.crols@student.kuleuven.be>
+
+{
+    M: 43, // Number of rows / height
+    channels: 64, // Number of channels / width
+    inverse_scaling_factor: 10000, // Scaling factor for the input data
+}
