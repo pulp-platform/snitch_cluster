@@ -50,7 +50,7 @@ $(VLT_BUILDDIR):
 	mkdir -p $@
 
 # Generate RTL prerequisites
-$(eval $(call gen_rtl_prerequisites,$(VLT_RTL_PREREQ_FILE),$(VLT_BUILDDIR),$(VLT_BENDER_FLAGS),$(VLT_TOP_MODULE),$(BIN_DIR)/$(TARGET).vlt))
+$(eval $(call gen_rtl_prerequisites,$(VLT_RTL_PREREQ_FILE),$(VLT_BUILDDIR),$(VLT_BENDER_FLAGS),$(VLT_TOP_MODULE),$(SN_BIN_DIR)/$(TARGET).vlt))
 
 # Build fesvr seperately for verilator since this might use different compilers
 # and libraries than modelsim/vcs and

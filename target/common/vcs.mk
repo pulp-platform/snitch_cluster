@@ -42,7 +42,7 @@ $(VCS_BUILDDIR):
 	mkdir -p $@
 
 # Generate RTL prerequisites
-$(eval $(call gen_rtl_prerequisites,$(VCS_RTL_PREREQ_FILE),$(VCS_BUILDDIR),$(VCS_BENDER_FLAGS),$(VCS_TOP_MODULE),$(BIN_DIR)/$(TARGET).vcs))
+$(eval $(call gen_rtl_prerequisites,$(VCS_RTL_PREREQ_FILE),$(VCS_BUILDDIR),$(VCS_BENDER_FLAGS),$(VCS_TOP_MODULE),$(SN_BIN_DIR)/$(TARGET).vcs))
 
 # Generate compilation script
 $(VCS_BUILDDIR)/compile.sh: $(BENDER_YML) $(BENDER_LOCK) | $(VCS_BUILDDIR)
@@ -62,7 +62,7 @@ vcs: $(SN_BIN_DIR)/$(TARGET).vcs
 
 # Clean all build directories and temporary files for VCS simulation
 clean-vcs: clean-work
-	rm -rf $(BIN_DIR)/$(TARGET).vcs $(VCS_BUILDDIR) vc_hdrs.h
+	rm -rf $(SN_BIN_DIR)/$(TARGET).vcs $(VCS_BUILDDIR) vc_hdrs.h
 
 clean: clean-vcs
 
