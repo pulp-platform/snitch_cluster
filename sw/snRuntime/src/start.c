@@ -69,12 +69,27 @@ static inline void snrt_init_bss() {
     // Only one core needs to perform the initialization
     // As the snitch core is 32bit, initialize the bss region above 4GB does not
     // make sense.
+    // We temporally using the CPU to init the bss
 
     if (snrt_cluster_idx() == 0 && snrt_is_dm_core()) {
         volatile uint8_t* bss_start = (volatile uint8_t*)&__bss_start;
         volatile uint8_t* bss_end = (volatile uint8_t*)&__bss_end;
-        size_t size = bss_end - bss_start;
-        for (volatile uint8_t* p = bss_start; p < bss_end; p++) {
+
+        // 1. Byte-level Init until the 4B boundary
+        volatile uint8_t* aligned_start =
+            (volatile uint8_t*)((uintptr_t)(bss_start + 3) & ~(uintptr_t)3);
+        for (volatile uint8_t* p = bss_start; p < aligned_start; p++) {
+            *p = 0U;
+        }
+        // 2. 4B algined
+        volatile uint32_t* word_ptr = (volatile uint32_t*)aligned_start;
+        size_t total_words = (bss_end - (uint8_t*)word_ptr) / 4;
+        for (size_t i = 0; i < total_words; i++) {
+            word_ptr[i] = 0U;
+        }
+        // 3. Tail Byte-level Aligned
+        volatile uint8_t* tail_start = (uint8_t*)(word_ptr + total_words);
+        for (volatile uint8_t* p = tail_start; p < bss_end; p++) {
             *p = 0U;
         }
     }
