@@ -34,7 +34,7 @@ plugins:
             - util/sim
             - util/trace
             - util/bench
-            - target/snitch_cluster/util
+            - util/experiments
   - macros:
       on_error_fail: true
 use_directory_urls: false

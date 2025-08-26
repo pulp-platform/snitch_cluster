@@ -7,8 +7,8 @@
 # Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
 ROOT=$(git rev-parse --show-toplevel)
-BUILD_PY=$ROOT/target/snitch_cluster/util/build.py
-RUN_PY=$ROOT/target/snitch_cluster/util/run.py
+BUILD_PY=$ROOT/util/experiments/build.py
+RUN_PY=$ROOT/util/experiments/run.py
 TEST_LIST=$(pwd)/run.yaml
 CFG_FILES=$(pwd)/cfg/"*"
 CMD="$ROOT/sw/blas/gemm/scripts/verify.py \${sim_bin} \${elf} --dump-results"

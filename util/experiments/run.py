@@ -15,7 +15,7 @@ import sys
 
 from snitch.util.sim import sim_utils, Simulator
 
-TARGET_DIR = Path(__file__).parent.resolve() / '../'
+TARGET_DIR = Path(__file__).parent.resolve() / '../../target/snitch_cluster'
 SIMULATORS = {
     'vsim': Simulator.QuestaSimulator(TARGET_DIR / 'bin/snitch_cluster.vsim'),
     'vcs': Simulator.VCSSimulator(TARGET_DIR / 'bin/snitch_cluster.vcs'),

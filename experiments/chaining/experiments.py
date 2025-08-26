@@ -9,9 +9,9 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
-from snitch.target.experiment_utils import ExperimentManager
-from snitch.target.common import extend_environment
-from snitch.target.SimResults import SimRegion
+from snitch.util.experiments.experiment_utils import ExperimentManager
+from snitch.util.experiments.common import extend_environment
+from snitch.util.experiments.SimResults import SimRegion
 from statistics import geometric_mean as geomean
 import yaml
 

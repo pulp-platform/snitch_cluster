@@ -35,7 +35,7 @@ from pathlib import Path
 from termcolor import colored
 import yaml
 
-from snitch.target import common
+from snitch.util.experiments import common
 
 
 def parser():

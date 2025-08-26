@@ -13,8 +13,8 @@ import json5
 import mako
 import pandas as pd
 from pathlib import Path
-from snitch.target.SimResults import SimResults
-from snitch.target import run, build, common
+from snitch.util.experiments.SimResults import SimResults
+from snitch.util.experiments import run, build, common
 from snitch.util.sim import sim_utils
 import sys
 from termcolor import colored
