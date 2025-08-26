@@ -6,8 +6,8 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 ROOT=$(git rev-parse --show-toplevel)
-BUILD_PY=$ROOT/target/snitch_cluster/util/build.py
-RUN_PY=$ROOT/target/snitch_cluster/util/run.py
+BUILD_PY=$ROOT/util/experiments/build.py
+RUN_PY=$ROOT/util/experiments/run.py
 TEST_LIST=$(pwd)/run.yaml
 CFG_FILES=$(pwd)/cfg/"*"
 CMD="$ROOT/sw/dnn/flashattention_2/scripts/verify.py \${sim_bin} \${elf} --dump-results"

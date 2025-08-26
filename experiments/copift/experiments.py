@@ -11,9 +11,9 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 import re
-from snitch.target.experiment_utils import ExperimentManager
-from snitch.target.common import extend_environment
-from snitch.target.SimResults import SimRegion
+from snitch.util.experiments.experiment_utils import ExperimentManager
+from snitch.util.experiments.common import extend_environment
+from snitch.util.experiments.SimResults import SimRegion
 from statistics import geometric_mean
 import yaml
 
