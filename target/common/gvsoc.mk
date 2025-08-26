@@ -4,7 +4,7 @@
 
 GVSOC_BUILDDIR ?= work-gvsoc
 
-$(BIN_DIR)/$(TARGET).gvsoc:
+$(SN_BIN_DIR)/$(TARGET).gvsoc:
 	@echo "#!/bin/bash" > $@
 	@echo 'binary=$$(realpath $$1)' >> $@
 	@echo 'echo $$binary > .rtlbinary' >> $@
@@ -18,6 +18,6 @@ $(BIN_DIR)/$(TARGET).gvsoc:
 
 .PHONY: clean-gvsoc
 clean-gvsoc:
-	rm -rf $(BIN_DIR)/$(TARGET).gvsoc $(GVSOC_BUILDDIR)
+	rm -rf $(SN_BIN_DIR)/$(TARGET).gvsoc $(GVSOC_BUILDDIR)
 
 clean: clean-gvsoc

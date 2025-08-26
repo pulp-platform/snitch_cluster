@@ -51,7 +51,7 @@ endif
 
 # VCD_DUMP flag enables VCD dump generation
 ifeq ($(VCD_DUMP), 1)
-VSIM_FLAGS += -do "source $(ROOT)/nonfree/gf12/modelsim/vcd.tcl"
+VSIM_FLAGS += -do "source $(SN_ROOT)/nonfree/gf12/modelsim/vcd.tcl"
 else
 VSIM_FLAGS += -do "run -a"
 endif
