@@ -25,6 +25,7 @@ clean: clean-rtl clean-sw clean-work clean-logs clean-bender clean-misc
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 MKFILE_DIR  := $(dir $(MKFILE_PATH))
 SN_ROOT     := $(realpath ${MKFILE_DIR}../..)
+CFG_DIR     := $(SN_ROOT)/cfg
 
 TARGET = snitch_cluster
 
@@ -41,8 +42,8 @@ TB_DIR = $(SN_ROOT)/target/common/test
 # (LRU) config, all targets depending on the configuration file have
 # to be rebuilt. This file is used to express this condition as a
 # prerequisite for other rules.
-DEFAULT_SN_CFG = cfg/default.json
-SN_CFG         = cfg/lru.json
+DEFAULT_SN_CFG = $(CFG_DIR)/default.json
+SN_CFG         = $(CFG_DIR)/lru.json
 
 ########
 # Misc #
