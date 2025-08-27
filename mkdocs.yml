@@ -25,7 +25,7 @@ plugins:
   - exclude:
       glob:
         - generated/peripherals.md
-        - rm/snRuntime.md
+        - rm/runtime.md
   - include-markdown
   - mkdocstrings:
       handlers:
