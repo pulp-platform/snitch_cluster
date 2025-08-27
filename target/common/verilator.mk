@@ -59,7 +59,7 @@ $(VLT_FESVR)/${FESVR_VERSION}_unzip:
 	mkdir -p $(dir $@)
 	wget -O $(dir $@)/${FESVR_VERSION} https://github.com/riscv/riscv-isa-sim/tarball/${FESVR_VERSION}
 	tar xfm $(dir $@)${FESVR_VERSION} --strip-components=1 -C $(dir $@)
-	patch $(VLT_FESVR)/fesvr/context.h < patches/context.h.diff
+	patch $(VLT_FESVR)/fesvr/context.h < $(SN_TARGET_DIR)/sim/patches/context.h.diff
 	touch $@
 
 $(VLT_BUILDDIR)/lib/libfesvr.a: $(VLT_FESVR)/${FESVR_VERSION}_unzip
