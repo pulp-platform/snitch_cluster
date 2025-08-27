@@ -29,7 +29,7 @@ CFG_DIR     := $(SN_ROOT)/cfg
 
 TARGET = snitch_cluster
 
-include $(SN_ROOT)/target/common/common.mk
+include $(SN_ROOT)/make/common.mk
 
 #########################
 # Files and directories #
@@ -108,7 +108,7 @@ FORCE:
 # RTL #
 #######
 
-include $(SN_ROOT)/target/common/rtl.mk
+include $(SN_ROOT)/make/rtl.mk
 
 .PHONY: rtl clean-rtl
 rtl: sn-rtl
@@ -118,7 +118,7 @@ clean-rtl: sn-clean-rtl
 # Software #
 ############
 
-include $(SN_ROOT)/target/snitch_cluster/sw.mk
+include $(SN_ROOT)/make/sw.mk
 
 .PHONY: sw clean-sw
 sw: sn-sw
@@ -142,15 +142,15 @@ clean-misc:
 # Simulators #
 ##############
 
-include $(SN_ROOT)/target/common/verilator.mk
-include $(SN_ROOT)/target/common/vsim.mk
-include $(SN_ROOT)/target/common/vcs.mk
+include $(SN_ROOT)/make/verilator.mk
+include $(SN_ROOT)/make/vsim.mk
+include $(SN_ROOT)/make/vcs.mk
 
 #########
 # GVSOC #
 #########
 
-include $(SN_ROOT)/target/common/gvsoc.mk
+include $(SN_ROOT)/make/gvsoc.mk
 
 ########
 # Util #
