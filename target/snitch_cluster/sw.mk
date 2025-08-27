@@ -66,7 +66,7 @@ sn-clean-headers:
 # Subdirectories #
 ##################
 
-include $(SN_ROOT)/target/snitch_cluster/sw/toolchain.mk
+include $(SN_ROOT)/sw/toolchain.mk
 include $(SN_ROOT)/sw/runtime/runtime.mk
 include $(SN_ROOT)/sw/tests/tests.mk
 include $(SN_ROOT)/sw/riscv-tests/riscv-tests.mk
@@ -74,35 +74,34 @@ include $(SN_ROOT)/sw/riscv-tests/riscv-tests.mk
 SNRT_BUILD_APPS ?= ON
 
 ifeq ($(SNRT_BUILD_APPS), ON)
-SNRT_APPS  = $(SN_ROOT)/target/snitch_cluster/sw/apps/nop
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/blas/axpy
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/blas/gemm
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/blas/gemv
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/blas/dot
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/blas/syrk
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/batchnorm
-# SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/conv2d
-# SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/fusedconv
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/gelu
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/layernorm
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/maxpool
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/softmax
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/flashattention_2
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/concat
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/fused_concat_linear
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/transpose
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/dnn/mha
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/montecarlo/pi_estimation
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/atax
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/correlation
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/covariance
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/doitgen
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/kmeans
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/exp
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/log
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/kbpcpa
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/box3d1r
-SNRT_APPS += $(SN_ROOT)/target/snitch_cluster/sw/apps/j3d27pt
+SNRT_APPS  = $(SN_ROOT)/sw/blas/axpy
+SNRT_APPS += $(SN_ROOT)/sw/blas/gemm
+SNRT_APPS += $(SN_ROOT)/sw/blas/gemv
+SNRT_APPS += $(SN_ROOT)/sw/blas/dot
+SNRT_APPS += $(SN_ROOT)/sw/blas/syrk
+SNRT_APPS += $(SN_ROOT)/sw/dnn/batchnorm
+# SNRT_APPS += $(SN_ROOT)/sw/dnn/conv2d
+# SNRT_APPS += $(SN_ROOT)/sw/dnn/fusedconv
+SNRT_APPS += $(SN_ROOT)/sw/dnn/gelu
+SNRT_APPS += $(SN_ROOT)/sw/dnn/layernorm
+SNRT_APPS += $(SN_ROOT)/sw/dnn/maxpool
+SNRT_APPS += $(SN_ROOT)/sw/dnn/softmax
+SNRT_APPS += $(SN_ROOT)/sw/dnn/flashattention_2
+SNRT_APPS += $(SN_ROOT)/sw/dnn/concat
+SNRT_APPS += $(SN_ROOT)/sw/dnn/fused_concat_linear
+SNRT_APPS += $(SN_ROOT)/sw/dnn/transpose
+SNRT_APPS += $(SN_ROOT)/sw/dnn/mha
+SNRT_APPS += $(SN_ROOT)/sw/apps/montecarlo/pi_estimation
+SNRT_APPS += $(SN_ROOT)/sw/apps/atax
+SNRT_APPS += $(SN_ROOT)/sw/apps/correlation
+SNRT_APPS += $(SN_ROOT)/sw/apps/covariance
+SNRT_APPS += $(SN_ROOT)/sw/apps/doitgen
+SNRT_APPS += $(SN_ROOT)/sw/apps/kmeans
+SNRT_APPS += $(SN_ROOT)/sw/apps/exp
+SNRT_APPS += $(SN_ROOT)/sw/apps/log
+SNRT_APPS += $(SN_ROOT)/sw/apps/kbpcpa
+SNRT_APPS += $(SN_ROOT)/sw/apps/box3d1r
+SNRT_APPS += $(SN_ROOT)/sw/apps/j3d27pt
 endif
 
 # Include Makefile from each app subdirectory
