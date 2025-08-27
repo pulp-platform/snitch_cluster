@@ -1,9 +1,3 @@
-# Shared target components
-
-This directory contains shared target components.
-
-## `test`
-
 Contains an abstract testbench for Snitch-based targets with multiple memory
 interfaces (e.g. AXI) accessing an infinite simulation memory.
 
