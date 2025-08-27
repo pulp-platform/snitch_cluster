@@ -129,9 +129,10 @@ snitch-cluster-vsim:
     # Test trace annotation
     - make SIM_DIR=./runs/vsim/simple annotate -j
     # Run additional, more extensive tests
-    - cd sw/apps/blas/gemm/test && ./test.sh && cd -
-    - cd sw/apps/dnn/transpose/test && ./test.sh && cd -
-    - cd sw/apps/dnn/flashattention_2/test && ./test.sh && cd -
+    - cd ../../test
+    - cd blas/gemm && ./test.sh && cd -
+    - cd dnn/transpose && ./test.sh && cd -
+    - cd dnn/flashattention_2 && ./test.sh && cd -
 
 # Test OmegaNet TCDM interconnect
 snitch-cluster-omega-vsim:
