@@ -4,7 +4,8 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-include $(SN_ROOT)/sw/apps/datagen.mk
-$(APP)_INCDIRS += $(SN_ROOT)/sw/dnn/src
-$(APP)_INCDIRS += $(SN_ROOT)/sw/blas
+APP              := exp
+SRCS             := $(SN_ROOT)/sw/apps/$(APP)/main.c
+$(APP)_BUILD_DIR ?= $(SN_ROOT)/sw/apps/$(APP)/build
+
 include $(SN_ROOT)/sw/apps/common.mk

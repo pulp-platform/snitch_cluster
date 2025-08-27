@@ -4,7 +4,7 @@
 
 runs:
   # Needs a larger FREP sequencer than default, in some configurations
-  - elf: ./apps/montecarlo/pi_estimation/build/pi_estimation.elf
+  - elf: ./../../../sw/apps/montecarlo/pi_estimation/build/pi_estimation.elf
   - elf: ./../../../sw/tests/build/frep.elf
   - elf: ./../../../sw/tests/build/frep1d.elf
   - elf: ./../../../sw/tests/build/frep2d_1.elf

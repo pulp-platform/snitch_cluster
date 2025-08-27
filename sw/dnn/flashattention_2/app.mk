@@ -4,7 +4,9 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-include $(SN_ROOT)/sw/apps/datagen.mk
-$(APP)_INCDIRS += $(SN_ROOT)/sw/dnn/src
-$(APP)_INCDIRS += $(SN_ROOT)/sw/blas
-include $(SN_ROOT)/sw/apps/common.mk
+APP              := flashattention_2
+$(APP)_BUILD_DIR ?= $(SN_ROOT)/sw/dnn/$(APP)/build
+SRC_DIR          := $(SN_ROOT)/sw/dnn/$(APP)/src
+SRCS             := $(SRC_DIR)/main.c
+
+include $(SN_ROOT)/sw/dnn/common.mk
