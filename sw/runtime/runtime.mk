@@ -8,10 +8,9 @@
 # Directories #
 ###############
 
-SNRT_DIR         = $(SN_ROOT)/sw/snRuntime
-SNRT_TARGET_DIR ?= $(SN_ROOT)/target/snitch_cluster/sw/runtime/rtl
-SNRT_BUILDDIR   ?= $(SNRT_TARGET_DIR)/build
-SNRT_SRCDIR     ?= $(SNRT_TARGET_DIR)/src
+SNRT_DIR       = $(SN_ROOT)/sw/runtime
+SNRT_BUILDDIR ?= $(SNRT_DIR)/build
+SNRT_SRCDIR   ?= $(SNRT_DIR)/impl
 
 ###################
 # Build variables #

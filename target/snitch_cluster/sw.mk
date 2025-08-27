@@ -17,7 +17,7 @@ sn-clean-sw: sn-clean-runtime sn-clean-tests sn-clean-apps
 # Platform headers #
 ####################
 
-SNRT_HAL_SRC_DIR   ?= $(SN_ROOT)/target/snitch_cluster/sw/runtime/common
+SNRT_HAL_SRC_DIR   ?= $(SN_ROOT)/sw/runtime/impl/hal
 SNRT_HAL_BUILD_DIR ?= $(SNRT_HAL_SRC_DIR)
 
 SNITCH_CLUSTER_CFG_H                = $(SNRT_HAL_BUILD_DIR)/snitch_cluster_cfg.h
@@ -67,9 +67,9 @@ sn-clean-headers:
 ##################
 
 include $(SN_ROOT)/target/snitch_cluster/sw/toolchain.mk
-include $(SN_ROOT)/target/snitch_cluster/sw/runtime/runtime.mk
+include $(SN_ROOT)/sw/runtime/runtime.mk
 include $(SN_ROOT)/sw/tests/tests.mk
-include $(SN_ROOT)/target/snitch_cluster/sw/riscv-tests/riscv-tests.mk
+include $(SN_ROOT)/sw/riscv-tests/riscv-tests.mk
 
 SNRT_BUILD_APPS ?= ON
 

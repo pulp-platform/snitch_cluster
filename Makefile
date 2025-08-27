@@ -57,8 +57,8 @@ GENERATED_DOCS_DIR = $(DOCS_DIR)/generated
 GENERATED_DOC_SRCS = $(GENERATED_DOCS_DIR)/peripherals.md
 
 DOXYGEN_DOCS_DIR = $(DOCS_DIR)/doxygen
-DOXYGEN_INPUTS   = $(DOCS_DIR)/rm/snRuntime.md
-DOXYGEN_INPUTS  += $(shell find sw/snRuntime -name '*.c' -o -name '*.h')
+DOXYGEN_INPUTS   = $(DOCS_DIR)/rm/runtime.md
+DOXYGEN_INPUTS  += $(shell find sw/runtime -name '*.c' -o -name '*.h')
 DOXYFILE         = $(DOCS_DIR)/Doxyfile
 
 all: docs
