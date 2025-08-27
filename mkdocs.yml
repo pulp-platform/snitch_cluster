@@ -78,8 +78,8 @@ nav:
               - join.py: rm/sw/bench/join.md
               - roi.py: rm/sw/bench/roi.md
               - visualize.py: rm/sw/bench/visualize.md
-          - Snitch Target Utilities:
-              - run.py: rm/sw/snitch_target_utils/run.md
-              - build.py: rm/sw/snitch_target_utils/build.md
+          - Experiment Utilities:
+              - run.py: rm/sw/experiments/run.md
+              - build.py: rm/sw/experiments/build.md
           - Snitch Runtime: doxygen/html/index.html
   - Publications: publications.md

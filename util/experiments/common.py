@@ -8,7 +8,7 @@ from pathlib import Path
 import os
 import subprocess
 
-MK_DIR = Path(__file__).resolve().parent / '../../target/snitch_cluster'
+MK_DIR = Path(__file__).resolve().parent / '../../'
 
 
 def extend_environment(vars, env=None):
