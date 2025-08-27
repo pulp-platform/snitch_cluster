@@ -35,7 +35,7 @@ export_include_dirs:
   - hw/tcdm_interface/include
   - hw/snitch/include
   - hw/snitch_ssr/include
-  - target/snitch_cluster/generated
+  - hw/generated
 
 sources:
   # reqrsp_interface
@@ -188,10 +188,10 @@ sources:
   # target/snitch_cluster
   - target: snitch_cluster_wrapper
     files:
-      - target/snitch_cluster/generated/snitch_cluster_pkg.sv
+      - hw/generated/snitch_cluster_pkg.sv
   - target: all(snitch_cluster_wrapper, not(postlayout))
     files:
-      - target/snitch_cluster/generated/snitch_cluster_wrapper.sv
+      - hw/generated/snitch_cluster_wrapper.sv
   - target: all(snitch_cluster_wrapper, postlayout)
     files:
       - nonfree/gf12/fusion/runs/0/out/15/snitch_cluster_wrapper.v
