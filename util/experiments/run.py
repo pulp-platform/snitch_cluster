@@ -15,12 +15,12 @@ import sys
 
 from snitch.util.sim import sim_utils, Simulator
 
-TARGET_DIR = Path(__file__).parent.resolve() / '../../target/snitch_cluster'
+BIN_DIR = Path(__file__).parent.resolve() / '../../target/sim/build/bin'
 SIMULATORS = {
-    'vsim': Simulator.QuestaSimulator(TARGET_DIR / 'bin/snitch_cluster.vsim'),
-    'vcs': Simulator.VCSSimulator(TARGET_DIR / 'bin/snitch_cluster.vcs'),
-    'verilator': Simulator.VerilatorSimulator(TARGET_DIR / 'bin/snitch_cluster.vlt'),
-    'gvsoc': Simulator.GvsocSimulator(TARGET_DIR / 'bin/snitch_cluster.gvsoc')
+    'vsim': Simulator.QuestaSimulator(BIN_DIR / 'snitch_cluster.vsim'),
+    'vcs': Simulator.VCSSimulator(BIN_DIR / 'snitch_cluster.vcs'),
+    'verilator': Simulator.VerilatorSimulator(BIN_DIR / 'snitch_cluster.vlt'),
+    'gvsoc': Simulator.GvsocSimulator(BIN_DIR / 'snitch_cluster.gvsoc')
 }
 
 

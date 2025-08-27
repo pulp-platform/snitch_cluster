@@ -18,7 +18,7 @@ VSIM_BENDER_FLAGS = $(COMMON_BENDER_FLAGS) $(COMMON_BENDER_SIM_FLAGS) -t vsim
 VSIM_SOURCES      = $(shell ${BENDER} script flist-plus $(VSIM_BENDER_FLAGS) | ${SED_SRCS})
 
 # Directories
-VSIM_BUILDDIR ?= $(SN_TARGET_DIR)/work-vsim
+VSIM_BUILDDIR ?= $(SN_TARGET_DIR)/sim/build/work-vsim
 
 # Flags
 VLOG_FLAGS += -64
@@ -78,7 +78,7 @@ $(VSIM_BUILDDIR)/compile.vsim.tcl: $(BENDER_YML) $(BENDER_LOCK) | $(VSIM_BUILDDI
 	echo 'return 0' >> $@
 
 # Run compilation script and create Questasim simulation binary
-$(SN_BIN_DIR)/$(TARGET).vsim: $(VSIM_BUILDDIR)/compile.vsim.tcl $(TB_CC_SOURCES) $(RTL_CC_SOURCES) work/lib/libfesvr.a | $(SN_BIN_DIR)
+$(SN_BIN_DIR)/$(TARGET).vsim: $(VSIM_BUILDDIR)/compile.vsim.tcl $(TB_CC_SOURCES) $(RTL_CC_SOURCES) $(SN_WORK_DIR)/lib/libfesvr.a | $(SN_BIN_DIR)
 	$(VSIM) -c -do "source $<; quit" | tee $(dir $<)/vlog.log
 	@! grep -P "Errors: [1-9]*," $(dir $<)/vlog.log
 	$(VOPT) $(VOPT_FLAGS) -work $(dir $<) $(VSIM_TOP_MODULE) -o $(VSIM_TOP_MODULE)_opt | tee $(dir $<)/vopt.log

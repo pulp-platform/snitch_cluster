@@ -159,7 +159,7 @@ include $(SN_ROOT)/target/common/gvsoc.mk
 .PHONY: clean-work clean-bender clean-logs
 
 clean-work:
-	rm -rf work
+	rm -rf $(SN_WORK_DIR)
 
 clean-bender:
 	rm -rf $(SN_ROOT)/.bender/

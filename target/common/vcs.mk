@@ -16,7 +16,7 @@ VCS_BENDER_FLAGS += $(COMMON_BENDER_FLAGS) $(COMMON_BENDER_SIM_FLAGS) -t vcs
 VCS_SOURCES       = $(shell $(BENDER) script flist-plus $(VCS_BENDER_FLAGS) | $(SED_SRCS))
 
 # Directories
-VCS_BUILDDIR = $(SN_TARGET_DIR)/work-vcs
+VCS_BUILDDIR = $(SN_TARGET_DIR)/sim/build/work-vcs
 
 # Flags
 VLOGAN_FLAGS := -assert svaext
@@ -50,7 +50,7 @@ $(VCS_BUILDDIR)/compile.sh: $(BENDER_YML) $(BENDER_LOCK) | $(VCS_BUILDDIR)
 	chmod +x $@
 
 # Run compilation script and create VCS simulation binary
-$(SN_BIN_DIR)/$(TARGET).vcs: $(VCS_BUILDDIR)/compile.sh $(TB_CC_SOURCES) $(RTL_CC_SOURCES) work/lib/libfesvr.a | $(SN_BIN_DIR)
+$(SN_BIN_DIR)/$(TARGET).vcs: $(VCS_BUILDDIR)/compile.sh $(TB_CC_SOURCES) $(RTL_CC_SOURCES) $(SN_WORK_DIR)/lib/libfesvr.a | $(SN_BIN_DIR)
 	$(VCS_SEPP) $< > $(VCS_BUILDDIR)/compile.log
 	$(VCS) -Mlib=$(VCS_BUILDDIR) -Mdir=$(VCS_BUILDDIR) -o $@ -cc $(CC) -cpp $(CXX) \
 		$(VCS_FLAGS) $(VCS_TOP_MODULE) $(TB_CC_SOURCES) $(RTL_CC_SOURCES) \
