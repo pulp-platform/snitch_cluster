@@ -13,10 +13,11 @@ TB_DIR       ?= $(SN_ROOT)/target/common/test
 UTIL_DIR     ?= $(SN_ROOT)/util
 LOGS_DIR      = $(SIM_DIR)/logs
 SN_PERIPH_DIR = $(SN_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral
-SN_TARGET_DIR = $(SN_ROOT)/target/snitch_cluster
+SN_TARGET_DIR = $(SN_ROOT)/target
 SN_GEN_DIR   ?= $(SN_ROOT)/hw/generated
 SN_HW_DIR     = $(SN_ROOT)/hw
-SN_BIN_DIR    = $(SN_TARGET_DIR)/bin
+SN_BIN_DIR    = $(SN_TARGET_DIR)/sim/build/bin
+SN_WORK_DIR   = $(SN_TARGET_DIR)/sim/build/work
 
 # External executables
 BENDER	     ?= bender
@@ -52,7 +53,7 @@ SN_BENDER_LOCK = $(SN_ROOT)/Bender.lock
 SN_BENDER_YML  = $(SN_ROOT)/Bender.yml
 
 # fesvr is being installed here
-FESVR         ?= ${MKFILE_DIR}work
+FESVR         ?= $(SN_WORK_DIR)
 FESVR_VERSION ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
 
 # Flags
@@ -66,13 +67,13 @@ LAYOUT_EVENTS_FLAGS     ?= --cfg=$(CFG)
 # Prerequisites #
 #################
 # Eventually it could be an option to package this statically using musl libc.
-work/${FESVR_VERSION}_unzip:
+$(SN_WORK_DIR)/${FESVR_VERSION}_unzip:
 	mkdir -p $(dir $@)
 	wget -O $(dir $@)/${FESVR_VERSION} https://github.com/riscv/riscv-isa-sim/tarball/${FESVR_VERSION}
 	tar xfm $(dir $@)${FESVR_VERSION} --strip-components=1 -C $(dir $@)
 	touch $@
 
-work/lib/libfesvr.a: work/${FESVR_VERSION}_unzip
+$(SN_WORK_DIR)/lib/libfesvr.a: $(SN_WORK_DIR)/${FESVR_VERSION}_unzip
 	cd $(dir $<)/ && ./configure --prefix `pwd`
 	make -C $(dir $<) install-config-hdrs install-hdrs libfesvr.a
 	mkdir -p $(dir $@)
