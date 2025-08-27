@@ -14,7 +14,7 @@
 ##################
 # Sources & destination
 SN_RVTESTS_SCRDIR    = $(SN_ROOT)/sw/deps/riscv-tests/isa
-SN_RVTESTS_BUILDDIR ?= $(SN_ROOT)/target/snitch_cluster/sw/riscv-tests/build/
+SN_RVTESTS_BUILDDIR ?= $(SN_ROOT)/sw/riscv-tests/build/
 
 # Select the desired test cases
 # We ignore the following tests as we cannot build them with the snitch
