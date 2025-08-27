@@ -8,8 +8,8 @@
 # Directories #
 ###############
 
-SNRT_TESTS_SRCDIR    = $(SN_ROOT)/sw/tests
-SNRT_TESTS_BUILDDIR ?= $(SN_ROOT)/target/snitch_cluster/sw/tests/build
+SNRT_TESTS_SRCDIR    = $(SN_ROOT)/sw/tests/src
+SNRT_TESTS_BUILDDIR ?= $(SN_ROOT)/sw/tests/build
 
 ###################
 # Build variables #

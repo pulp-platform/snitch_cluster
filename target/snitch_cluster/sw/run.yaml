@@ -3,79 +3,79 @@
 # SPDX-License-Identifier: Apache-2.0
 
 runs:
-  - elf: ./tests/build/alias.elf
+  - elf: ./../../../sw/tests/build/alias.elf
     simulators: [vsim, vcs, verilator]
-  - elf: ./tests/build/atomics.elf
-  - elf: ./tests/build/barrier.elf
-  - elf: ./tests/build/communicator.elf
-  - elf: ./tests/build/data_mover.elf
+  - elf: ./../../../sw/tests/build/atomics.elf
+  - elf: ./../../../sw/tests/build/barrier.elf
+  - elf: ./../../../sw/tests/build/communicator.elf
+  - elf: ./../../../sw/tests/build/data_mover.elf
     simulators: [vsim, vcs, verilator]
-  - elf: ./tests/build/dma_empty_transfer.elf
-  - elf: ./tests/build/dma_1d.elf
-  - elf: ./tests/build/dma_2d.elf
-  - elf: ./tests/build/dobu.elf
-  - elf: ./tests/build/event_unit.elf
+  - elf: ./../../../sw/tests/build/dma_empty_transfer.elf
+  - elf: ./../../../sw/tests/build/dma_1d.elf
+  - elf: ./../../../sw/tests/build/dma_2d.elf
+  - elf: ./../../../sw/tests/build/dobu.elf
+  - elf: ./../../../sw/tests/build/event_unit.elf
     simulators: [vsim, vcs, verilator]
-  - elf: ./tests/build/fence_i.elf
-  - elf: ./tests/build/fp8_comparison_scalar.elf
-  - elf: ./tests/build/fp8_comparison_vector.elf
-  - elf: ./tests/build/fp8_computation_scalar.elf
-  - elf: ./tests/build/fp8_computation_vector.elf
-  - elf: ./tests/build/fp8alt_comparison_scalar.elf
-  - elf: ./tests/build/fp8alt_comparison_vector.elf
-  - elf: ./tests/build/fp8alt_computation_scalar.elf
-  - elf: ./tests/build/fp8alt_computation_vector.elf
-  - elf: ./tests/build/fp16_comparison_scalar.elf
-  - elf: ./tests/build/fp16_comparison_vector.elf
-  - elf: ./tests/build/fp16_computation_scalar.elf
-  - elf: ./tests/build/fp16_computation_vector.elf
-  - elf: ./tests/build/fp16alt_comparison_scalar.elf
-  - elf: ./tests/build/fp16alt_comparison_vector.elf
-  - elf: ./tests/build/fp16alt_computation_scalar.elf
-  - elf: ./tests/build/fp16alt_computation_vector.elf
-  - elf: ./tests/build/fp32_comparison_scalar.elf
-  - elf: ./tests/build/fp32_comparison_vector.elf
-  - elf: ./tests/build/fp32_computation_scalar.elf
-  - elf: ./tests/build/fp32_computation_vector.elf
-  - elf: ./tests/build/fp32_conversions_scalar.elf
-  # - elf: ./tests/build/fp64_conversions_scalar.elf
+  - elf: ./../../../sw/tests/build/fence_i.elf
+  - elf: ./../../../sw/tests/build/fp8_comparison_scalar.elf
+  - elf: ./../../../sw/tests/build/fp8_comparison_vector.elf
+  - elf: ./../../../sw/tests/build/fp8_computation_scalar.elf
+  - elf: ./../../../sw/tests/build/fp8_computation_vector.elf
+  - elf: ./../../../sw/tests/build/fp8alt_comparison_scalar.elf
+  - elf: ./../../../sw/tests/build/fp8alt_comparison_vector.elf
+  - elf: ./../../../sw/tests/build/fp8alt_computation_scalar.elf
+  - elf: ./../../../sw/tests/build/fp8alt_computation_vector.elf
+  - elf: ./../../../sw/tests/build/fp16_comparison_scalar.elf
+  - elf: ./../../../sw/tests/build/fp16_comparison_vector.elf
+  - elf: ./../../../sw/tests/build/fp16_computation_scalar.elf
+  - elf: ./../../../sw/tests/build/fp16_computation_vector.elf
+  - elf: ./../../../sw/tests/build/fp16alt_comparison_scalar.elf
+  - elf: ./../../../sw/tests/build/fp16alt_comparison_vector.elf
+  - elf: ./../../../sw/tests/build/fp16alt_computation_scalar.elf
+  - elf: ./../../../sw/tests/build/fp16alt_computation_vector.elf
+  - elf: ./../../../sw/tests/build/fp32_comparison_scalar.elf
+  - elf: ./../../../sw/tests/build/fp32_comparison_vector.elf
+  - elf: ./../../../sw/tests/build/fp32_computation_scalar.elf
+  - elf: ./../../../sw/tests/build/fp32_computation_vector.elf
+  - elf: ./../../../sw/tests/build/fp32_conversions_scalar.elf
+  # - elf: ./../../../sw/tests/build/fp64_conversions_scalar.elf
   #   simulators: [vsim, vcs, verilator]
-  - elf: ./tests/build/frep1d.elf
-  - elf: ./tests/build/frep2d_1.elf
-  - elf: ./tests/build/frep2d_1b.elf
-  - elf: ./tests/build/frep2d_2.elf
-  - elf: ./tests/build/frep2d_2b.elf
-  - elf: ./tests/build/frep2d_stagger.elf
-  - elf: ./tests/build/gemm_frep.elf
-  - elf: ./tests/build/gemm_frep1d.elf
-  - elf: ./tests/build/interrupt_local.elf
+  - elf: ./../../../sw/tests/build/frep1d.elf
+  - elf: ./../../../sw/tests/build/frep2d_1.elf
+  - elf: ./../../../sw/tests/build/frep2d_1b.elf
+  - elf: ./../../../sw/tests/build/frep2d_2.elf
+  - elf: ./../../../sw/tests/build/frep2d_2b.elf
+  - elf: ./../../../sw/tests/build/frep2d_stagger.elf
+  - elf: ./../../../sw/tests/build/gemm_frep.elf
+  - elf: ./../../../sw/tests/build/gemm_frep1d.elf
+  - elf: ./../../../sw/tests/build/interrupt_local.elf
     simulators: [vsim, vcs, verilator]
-  - elf: ./tests/build/multi_cluster.elf
-  - elf: ./tests/build/openmp_parallel.elf
+  - elf: ./../../../sw/tests/build/multi_cluster.elf
+  - elf: ./../../../sw/tests/build/openmp_parallel.elf
     simulators: [vsim, vcs, verilator]
-  - elf: ./tests/build/openmp_for_static_schedule.elf
+  - elf: ./../../../sw/tests/build/openmp_for_static_schedule.elf
     simulators: [vsim, vcs, verilator]
   # Compilation fails, seems to require libc++abi
-  # - elf: ./tests/build/openmp_double_buffering.elf
+  # - elf: ./../../../sw/tests/build/openmp_double_buffering.elf
   #   simulators: [vsim, vcs, verilator]
-  - elf: ./tests/build/perf_cnt.elf
+  - elf: ./../../../sw/tests/build/perf_cnt.elf
     simulators: [vsim, vcs, verilator]
-  - elf: ./tests/build/printf_simple.elf
-  - elf: ./tests/build/printf_fmtint.elf
-  - elf: ./tests/build/simple.elf
-  - elf: ./tests/build/tcdm.elf
-  - elf: ./tests/build/tls.elf
-  - elf: ./tests/build/varargs_1.elf
-  - elf: ./tests/build/varargs_2.elf
-  - elf: ./tests/build/zero_mem.elf
-  - elf: ./tests/build/non_null_exitcode.elf
+  - elf: ./../../../sw/tests/build/printf_simple.elf
+  - elf: ./../../../sw/tests/build/printf_fmtint.elf
+  - elf: ./../../../sw/tests/build/simple.elf
+  - elf: ./../../../sw/tests/build/tcdm.elf
+  - elf: ./../../../sw/tests/build/tls.elf
+  - elf: ./../../../sw/tests/build/varargs_1.elf
+  - elf: ./../../../sw/tests/build/varargs_2.elf
+  - elf: ./../../../sw/tests/build/zero_mem.elf
+  - elf: ./../../../sw/tests/build/non_null_exitcode.elf
     retcode: 56
-  - elf: ./tests/build/issr.elf
-  - elf: ./tests/build/caq.elf
+  - elf: ./../../../sw/tests/build/issr.elf
+  - elf: ./../../../sw/tests/build/caq.elf
     simulators: [vsim, vcs, verilator] # GVSOC does not model caq
-  - elf: ./tests/build/flt_d_copift.elf
-  - elf: ./tests/build/fcvt_d_wu_copift.elf
-  - elf: ./tests/build/fcvt_d_w_copift.elf
+  - elf: ./../../../sw/tests/build/flt_d_copift.elf
+  - elf: ./../../../sw/tests/build/fcvt_d_wu_copift.elf
+  - elf: ./../../../sw/tests/build/fcvt_d_w_copift.elf
   - elf: ./apps/blas/axpy/build/axpy.elf
     cmd: [../../../sw/blas/axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ./apps/blas/gemm/build/gemm.elf

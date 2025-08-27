@@ -69,6 +69,7 @@ snitch-cluster-sw:
     - make sw -j
   artifacts:
     paths:
+      - sw/**/build/*.elf
       - target/snitch_cluster/sw/**/build/*.elf
     expire_in: 1 day
 

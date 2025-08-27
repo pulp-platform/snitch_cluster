@@ -3,4 +3,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 runs:
-  - elf: ./tests/build/dma_mchan.elf
+  - elf: ./../../../sw/tests/build/dma_mchan.elf
