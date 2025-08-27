@@ -7,12 +7,12 @@ package:
   authors:
     - Florian Zaruba <zarubaf@iis.ee.ethz.ch>
     - Fabian Schuiki <fschuiki@iis.ee.ethz.ch>
-    - Paul Scheffler <paulsc@iis.ee.ethz.ch>  # current maintainer
+    - Paul Scheffler <paulsc@iis.ee.ethz.ch>
     - Thomas Benz <tbenz@iis.ee.ethz.ch>
     - Gianna Paulin <pauling@iis.ee.ethz.ch>
     - Tim Fischer <fischeti@iis.ee.ethz.ch>
     - Noah Huetter <huettern@ethz.ch>
-    - Luca Colagrande <colluca@iis.ee.ethz.ch>
+    - Luca Colagrande <colluca@iis.ee.ethz.ch>  # current maintainer
     - Samuel Riedel <sriedel@iis.ee.ethz.ch>
     - Nils Wistoff <nwistoff@iis.ee.ethz.ch>
     - Luca Bertaccini <lbertaccini@iis.ee.ethz.ch>
@@ -180,10 +180,10 @@ sources:
   # target/common
   - target: any(simulation, verilator)
     files:
-      - target/common/test/tb_memory_axi.sv
+      - target/sim/tb/tb_memory_axi.sv
   - target: test
     files:
-      - target/common/test/tb_bin.sv
+      - target/sim/tb/tb_bin.sv
 
   # target/snitch_cluster
   - target: snitch_cluster_wrapper
@@ -197,8 +197,8 @@ sources:
       - nonfree/gf12/fusion/runs/0/out/15/snitch_cluster_wrapper.v
   - target: all(snitch_cluster_wrapper, any(simulation, verilator))
     files:
-      - target/snitch_cluster/test/vip_snitch_cluster.sv
-      - target/snitch_cluster/test/testharness.sv
+      - target/sim/tb/vip_snitch_cluster.sv
+      - target/sim/tb/testharness.sv
 
   - target: gf12
     files:

@@ -35,7 +35,7 @@ include $(SN_ROOT)/target/common/common.mk
 # Files and directories #
 #########################
 
-TB_DIR = $(SN_ROOT)/target/common/test
+TB_DIR = $(SN_ROOT)/target/sim/tb
 
 # If the configuration file is overriden on the command-line (through
 # CFG_OVERRIDE) and this file differs from the least recently used
@@ -56,21 +56,20 @@ COMMON_BENDER_FLAGS += -t snitch_cluster_wrapper
 ###############
 
 TB_CC_SOURCES += \
-	${TB_DIR}/ipc.cc \
-	${TB_DIR}/common_lib.cc \
+	$(TB_DIR)/ipc.cc \
+	$(TB_DIR)/common_lib.cc \
 	$(SN_GEN_DIR)/bootdata.cc
 
-RTL_CC_SOURCES += ${TB_DIR}/rtl_lib.cc
+RTL_CC_SOURCES += $(TB_DIR)/rtl_lib.cc
 
 VLT_CC_SOURCES += \
-	${TB_DIR}/verilator_lib.cc \
-	${TB_DIR}/tb_bin.cc
+	$(TB_DIR)/verilator_lib.cc \
+	$(TB_DIR)/tb_bin.cc
 
 TB_CC_FLAGS += \
 	-std=c++14 \
-	-I${MKFILE_DIR}/test \
-	-I${FESVR}/include \
-	-I${TB_DIR}
+	-I$(FESVR)/include \
+	-I$(TB_DIR)
 
 #################
 # Prerequisites #
