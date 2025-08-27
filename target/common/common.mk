@@ -14,7 +14,7 @@ UTIL_DIR     ?= $(SN_ROOT)/util
 LOGS_DIR      = $(SIM_DIR)/logs
 SN_PERIPH_DIR = $(SN_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral
 SN_TARGET_DIR = $(SN_ROOT)/target/snitch_cluster
-SN_GEN_DIR   ?= $(SN_TARGET_DIR)/generated
+SN_GEN_DIR   ?= $(SN_ROOT)/hw/generated
 SN_HW_DIR     = $(SN_ROOT)/hw
 SN_BIN_DIR    = $(SN_TARGET_DIR)/bin
 
