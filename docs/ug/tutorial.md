@@ -123,7 +123,7 @@ Run one of the executables which was compiled in the previous step on your Snitc
 The simulator binaries can be invoked from any directory, just adapt the relative paths in the preceding commands accordingly, or use absolute paths. We refer to the working directory where the simulation is launched as the _simulation directory_. Within it, you will find several log files produced by the RTL simulation.
 
 !!! tip
-    If you don't want the simulation artifacts to pollute the root of your repository, move to the `test` folder, to use that as the simulation directory.
+    If you don't want the simulation artifacts to pollute the root of your repository, move to the `test` folder, using that as the simulation directory, so that all simulation artifacts are contained therein.
 
 !!! tip
     If you don't want your log files to be overriden when you run another simulation, just create separate simulation directories for every simulation whose artifacts you want to preserve, and run the simulations therein.
@@ -132,6 +132,17 @@ The previous commands will launch the simulation on the console. QuestaSim simul
 
 ```shell
 target/sim/build/bin/snitch_cluster.vsim.gui sw/kernels/blas/axpy/build/axpy.elf
+```
+
+For convenience, we also provide the following phony Make target as an alias to the simulation command with QuestaSim:
+```shell
+make vsim-run SN_BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf SIM_DIR=test
+```
+Behind the scenes, this will launch the previous command in the specified simulation directory (`SIM_DIR`). Note, the path to the software binary must be absolute or relative to the simulation directory. When `SIM_DIR` is omitted it will default to the `test` directory.
+
+You can use the `DEBUG` flag to launch the command with the GUI:
+```shell
+make vsim-run SN_BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf DEBUG=ON
 ```
 
 ## Debugging and benchmarking
@@ -317,10 +328,16 @@ You can test if the verification passed by checking that the exit code of the pr
 echo $?
 ```
 
-Again, most of the logic in the script is implemented in convenience classes and functions provided by the [`verif_utils`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/sim/verif_utils.py) module. Documentation for this module can be found at the [auto-generated pages](../rm/sw/sim/verif_utils.md).
+When using the Make target alias to run the simulation, you can pass the verification script through the `VERIFY_PY` flag:
+```
+make vsim-run SN_BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf VERIFY_PY=$PWD/sw/kernels/blas/axpy/scripts/verify.py
+```
+Again, note that the path must be absolute or relative to the selected simulation directory.
+
+Most of the logic in our verification script is implemented in convenience classes and functions provided by the [`verif_utils`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/sim/verif_utils.py) module. Documentation for this module can be found at the [auto-generated pages](../rm/sw/sim/verif_utils.md).
 
 !!! info
-    The `verif_utils` functions build upon a complex verification infrastructure, which uses inter-process communication (IPC) between the Python process and the simulation process to get the results of your application at the end of the simulation. If you want to dig deeper into how this framework is implemented, have a look at the [`SnitchSim.py`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/sim/SnitchSim.py) module and the IPC files within the [`test`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/sim/tb) folder.
+    The `verif_utils` functions build upon a complex verification infrastructure, which uses inter-process communication (IPC) between the Python process and the simulation process to get the results of your application at the end of the simulation. If you want to dig deeper into how this framework is implemented, have a look at the [`SnitchSim.py`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/sim/SnitchSim.py) module and the IPC files within the [`target/sim/tb`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/sim/tb) folder.
 
 ## Implementing the hardware
 

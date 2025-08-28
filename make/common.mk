@@ -8,8 +8,8 @@ PL_SIM   ?= 0    # 1 for post-layout simulation
 VCD_DUMP ?= 0    # 1 to dump VCD traces
 
 # Directories
-SIM_DIR      ?= $(shell pwd)
-TB_DIR       ?= $(SN_ROOT)/target/common/test
+SIM_DIR      ?= $(SN_ROOT)/test
+TB_DIR       ?= $(SN_ROOT)/target/sim/tb
 UTIL_DIR     ?= $(SN_ROOT)/util
 LOGS_DIR      = $(SIM_DIR)/logs
 SN_PERIPH_DIR = $(SN_ROOT)/hw/snitch_cluster/src/snitch_cluster_peripheral
