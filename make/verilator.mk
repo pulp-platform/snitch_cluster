@@ -76,7 +76,6 @@ $(SN_BIN_DIR)/$(TARGET)_bin.vlt: $(TB_CC_SOURCES) $(VLT_CC_SOURCES) $(VLT_BUILDD
 		-CFLAGS -std=c++20 \
 		-CFLAGS -I$(VLT_FESVR)/include \
 		-CFLAGS -I$(TB_DIR) \
-		-CFLAGS -I$(MKFILE_DIR)test \
 		-j $(VLT_JOBS) \
 		-o $@ --cc --exe --build --top-module $(VLT_TOP_MODULE) \
 		$(TB_CC_SOURCES) $(VLT_CC_SOURCES) $(VLT_BUILDDIR)/lib/libfesvr.a

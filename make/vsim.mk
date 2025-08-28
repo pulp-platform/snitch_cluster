@@ -34,8 +34,8 @@ VSIM_FLAGS += -t 1ps
 
 # DEBUG flag ensures visibility of all signals in the waveforms
 ifeq ($(DEBUG), ON)
-VSIM_FLAGS += -do "log -r /*"
-VOPT_FLAGS  = +acc
+VSIM_FLAGS    += -do "log -r /*"
+VOPT_FLAGS     = +acc
 endif
 
 # PL_SIM flag selects between RTL or post-layout simulation
@@ -54,6 +54,13 @@ ifeq ($(VCD_DUMP), 1)
 VSIM_FLAGS += -do "source $(ROOT)/nonfree/gf12/modelsim/vcd.tcl"
 else
 VSIM_FLAGS += -do "run -a"
+endif
+
+# Select .gui simulator binary when simulating with DEBUG flag
+ifeq ($(DEBUG), ON)
+SN_VSIM_BINARY = $(SN_BIN_DIR)/$(TARGET).vsim.gui
+else
+SN_VSIM_BINARY = $(SN_BIN_DIR)/$(TARGET).vsim
 endif
 
 # Misc
@@ -98,9 +105,12 @@ $(SN_BIN_DIR)/$(TARGET).vsim: $(VSIM_BUILDDIR)/compile.vsim.tcl $(TB_CC_SOURCES)
 				$(VSIM_TOP_MODULE)_opt +permissive-off ++$$binary ++$$2' >> $@.gui
 	@chmod +x $@.gui
 
-.PHONY: vsim clean-vsim
+.PHONY: vsim vsim-run clean-vsim
 
 vsim: $(SN_BIN_DIR)/$(TARGET).vsim
+
+vsim-run: $(SN_VSIM_BINARY) $(SN_BINARY)
+	cd $(SIM_DIR) && $(VERIFY_PY) $(SN_VSIM_BINARY) $(SN_BINARY)
 
 # Clean all build directories and temporary files for Questasim simulation
 clean-vsim: clean-work
