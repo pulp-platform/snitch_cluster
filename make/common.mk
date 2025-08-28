@@ -36,8 +36,8 @@ EVENTS_PY         ?= $(UTIL_DIR)/trace/events.py
 JOIN_PY           ?= $(UTIL_DIR)/bench/join.py
 ROI_PY            ?= $(UTIL_DIR)/bench/roi.py
 VISUALIZE_PY      ?= $(UTIL_DIR)/bench/visualize.py
-SN_BOOTROM_GEN     = $(SN_ROOT)/util/gen_bootrom.py
-SN_CLUSTER_GEN     = $(SN_ROOT)/util/clustergen.py
+SN_BOOTROM_GEN     = $(SN_ROOT)/util/clustergen/gen_bootrom.py
+SN_CLUSTER_GEN     = $(SN_ROOT)/util/clustergen/clustergen.py
 
 # Gentrace prerequisites
 SN_GENTRACE_SRC = $(UTIL_DIR)/trace/sequencer.py
@@ -46,7 +46,7 @@ SN_GENTRACE_SRC = $(UTIL_DIR)/trace/sequencer.py
 SN_ANNOTATE_SRC = $(UTIL_DIR)/trace/a2l.py
 
 # Clustergen prerequisites
-SN_CLUSTER_GEN_SRC = $(wildcard $(SN_ROOT)/util/clustergen/*.py)
+SN_CLUSTER_GEN_SRC = $(SN_ROOT)/util/clustergen/cluster.py
 
 # Bender prerequisites
 SN_BENDER_LOCK = $(SN_ROOT)/Bender.lock
