@@ -43,7 +43,7 @@ def build_sw(cfg):
         DATA_H=Path(f'include/{cfg.stem}/data.h').resolve(),
         APP_BUILDDIR=Path(f'build/{cfg.stem}').resolve()
     )
-    subprocess.run(['make', '-C', '../../../../../', 'sw/apps/dnn/layernorm'], check=True, env=env)
+    subprocess.run(['make', '-C', '../../../../../', 'sw/kernels/dnn/layernorm'], check=True, env=env)
 
 
 # Build test specification for a specific configuration
@@ -52,7 +52,7 @@ def build_test(cfg):
         'elf': f'build/{cfg.stem}/layernorm.elf',
         'name': f'layernorm-{cfg.stem}',
         'cmd': [
-            '../../../../../../../sw/dnn/layernorm/scripts/verify.py',
+            '../../../../../../../sw/kernels/dnn/layernorm/scripts/verify.py',
             "${sim_bin}",
             "${elf}",
             '--dump-results'

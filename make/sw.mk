@@ -74,34 +74,34 @@ include $(SN_ROOT)/sw/riscv-tests/riscv-tests.mk
 SNRT_BUILD_APPS ?= ON
 
 ifeq ($(SNRT_BUILD_APPS), ON)
-SNRT_APPS  = $(SN_ROOT)/sw/blas/axpy
-SNRT_APPS += $(SN_ROOT)/sw/blas/gemm
-SNRT_APPS += $(SN_ROOT)/sw/blas/gemv
-SNRT_APPS += $(SN_ROOT)/sw/blas/dot
-SNRT_APPS += $(SN_ROOT)/sw/blas/syrk
-SNRT_APPS += $(SN_ROOT)/sw/dnn/batchnorm
-# SNRT_APPS += $(SN_ROOT)/sw/dnn/conv2d
-# SNRT_APPS += $(SN_ROOT)/sw/dnn/fusedconv
-SNRT_APPS += $(SN_ROOT)/sw/dnn/gelu
-SNRT_APPS += $(SN_ROOT)/sw/dnn/layernorm
-SNRT_APPS += $(SN_ROOT)/sw/dnn/maxpool
-SNRT_APPS += $(SN_ROOT)/sw/dnn/softmax
-SNRT_APPS += $(SN_ROOT)/sw/dnn/flashattention_2
-SNRT_APPS += $(SN_ROOT)/sw/dnn/concat
-SNRT_APPS += $(SN_ROOT)/sw/dnn/fused_concat_linear
-SNRT_APPS += $(SN_ROOT)/sw/dnn/transpose
-SNRT_APPS += $(SN_ROOT)/sw/dnn/mha
-SNRT_APPS += $(SN_ROOT)/sw/apps/montecarlo/pi_estimation
-SNRT_APPS += $(SN_ROOT)/sw/apps/atax
-SNRT_APPS += $(SN_ROOT)/sw/apps/correlation
-SNRT_APPS += $(SN_ROOT)/sw/apps/covariance
-SNRT_APPS += $(SN_ROOT)/sw/apps/doitgen
-SNRT_APPS += $(SN_ROOT)/sw/apps/kmeans
-SNRT_APPS += $(SN_ROOT)/sw/apps/exp
-SNRT_APPS += $(SN_ROOT)/sw/apps/log
-SNRT_APPS += $(SN_ROOT)/sw/apps/kbpcpa
-SNRT_APPS += $(SN_ROOT)/sw/apps/box3d1r
-SNRT_APPS += $(SN_ROOT)/sw/apps/j3d27pt
+SNRT_APPS  = $(SN_ROOT)/sw/kernels/blas/axpy
+SNRT_APPS += $(SN_ROOT)/sw/kernels/blas/gemm
+SNRT_APPS += $(SN_ROOT)/sw/kernels/blas/gemv
+SNRT_APPS += $(SN_ROOT)/sw/kernels/blas/dot
+SNRT_APPS += $(SN_ROOT)/sw/kernels/blas/syrk
+SNRT_APPS += $(SN_ROOT)/sw/kernels/dnn/batchnorm
+# SNRT_APPS += $(SN_ROOT)/sw/kernels/dnn/conv2d
+# SNRT_APPS += $(SN_ROOT)/sw/kernels/dnn/fusedconv
+SNRT_APPS += $(SN_ROOT)/sw/kernels/dnn/gelu
+SNRT_APPS += $(SN_ROOT)/sw/kernels/dnn/layernorm
+SNRT_APPS += $(SN_ROOT)/sw/kernels/dnn/maxpool
+SNRT_APPS += $(SN_ROOT)/sw/kernels/dnn/softmax
+SNRT_APPS += $(SN_ROOT)/sw/kernels/dnn/flashattention_2
+SNRT_APPS += $(SN_ROOT)/sw/kernels/dnn/concat
+SNRT_APPS += $(SN_ROOT)/sw/kernels/dnn/fused_concat_linear
+SNRT_APPS += $(SN_ROOT)/sw/kernels/dnn/transpose
+SNRT_APPS += $(SN_ROOT)/sw/kernels/dnn/mha
+SNRT_APPS += $(SN_ROOT)/sw/kernels/misc/montecarlo/pi_estimation
+SNRT_APPS += $(SN_ROOT)/sw/kernels/misc/atax
+SNRT_APPS += $(SN_ROOT)/sw/kernels/misc/correlation
+SNRT_APPS += $(SN_ROOT)/sw/kernels/misc/covariance
+SNRT_APPS += $(SN_ROOT)/sw/kernels/misc/doitgen
+SNRT_APPS += $(SN_ROOT)/sw/kernels/misc/kmeans
+SNRT_APPS += $(SN_ROOT)/sw/kernels/misc/exp
+SNRT_APPS += $(SN_ROOT)/sw/kernels/misc/log
+SNRT_APPS += $(SN_ROOT)/sw/kernels/misc/kbpcpa
+SNRT_APPS += $(SN_ROOT)/sw/kernels/misc/box3d1r
+SNRT_APPS += $(SN_ROOT)/sw/kernels/misc/j3d27pt
 endif
 
 # Include Makefile from each app subdirectory
