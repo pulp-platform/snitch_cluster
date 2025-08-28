@@ -7,31 +7,31 @@
 experiments:
   - app: box3d1r
     impl: baseline--
-    cmd: [../../../../../sw/apps/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../../../sw/kernels/misc/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
   - app: box3d1r
     impl: baseline-
-    cmd: [../../../../../sw/apps/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../../../sw/kernels/misc/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
   - app: box3d1r
     impl: baseline
-    cmd: [../../../../../sw/apps/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../../../sw/kernels/misc/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
   - app: box3d1r
     impl: chaining
-    cmd: [../../../../../sw/apps/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../../../sw/kernels/misc/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
   - app: box3d1r
     impl: chaining+
-    cmd: [../../../../../sw/apps/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../../../sw/kernels/misc/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
   - app: j3d27pt
     impl: baseline--
-    cmd: [../../../../../sw/apps/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../../../sw/kernels/misc/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
   - app: j3d27pt
     impl: baseline-
-    cmd: [../../../../../sw/apps/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../../../sw/kernels/misc/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
   - app: j3d27pt
     impl: baseline
-    cmd: [../../../../../sw/apps/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../../../sw/kernels/misc/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
   - app: j3d27pt
     impl: chaining
-    cmd: [../../../../../sw/apps/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../../../sw/kernels/misc/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
   - app: j3d27pt
     impl: chaining+
-    cmd: [../../../../../sw/apps/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../../../../../sw/kernels/misc/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]

@@ -76,55 +76,55 @@ runs:
   - elf: ../sw/tests/build/flt_d_copift.elf
   - elf: ../sw/tests/build/fcvt_d_wu_copift.elf
   - elf: ../sw/tests/build/fcvt_d_w_copift.elf
-  - elf: ../sw/blas/axpy/build/axpy.elf
-    cmd: [../sw/blas/axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/blas/gemm/build/gemm.elf
-    cmd: [../sw/blas/gemm/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/blas/dot/build/dot.elf
-    cmd: [../sw/blas/dot/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/blas/syrk/build/syrk.elf
-    cmd: [../sw/blas/syrk/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/dnn/batchnorm/build/batchnorm.elf
-  - elf: ../sw/dnn/maxpool/build/maxpool.elf
-  # - elf: ../sw/dnn/conv2d/build/conv2d.elf # Fails with wrong results
-  #   cmd: [../sw/dnn/conv2d/scripts/verify.py, "${sim_bin}", "${elf}"]
-  # - elf: ../sw/dnn/fusedconv/build/fusedconv.elf # Fails with wrong results
-  #   cmd: [../sw/dnn/fusedconv/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/dnn/concat/build/concat.elf
-    cmd: [../sw/dnn/concat/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/dnn/fused_concat_linear/build/fused_concat_linear.elf
-    cmd: [../sw/dnn/fused_concat_linear/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/dnn/transpose/build/transpose.elf
+  - elf: ../sw/kernels/blas/axpy/build/axpy.elf
+    cmd: [../sw/kernels/blas/axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/blas/gemm/build/gemm.elf
+    cmd: [../sw/kernels/blas/gemm/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/blas/dot/build/dot.elf
+    cmd: [../sw/kernels/blas/dot/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/blas/syrk/build/syrk.elf
+    cmd: [../sw/kernels/blas/syrk/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/dnn/batchnorm/build/batchnorm.elf
+  - elf: ../sw/kernels/dnn/maxpool/build/maxpool.elf
+  # - elf: ../sw/kernels/dnn/conv2d/build/conv2d.elf # Fails with wrong results
+  #   cmd: [../sw/kernels/dnn/conv2d/scripts/verify.py, "${sim_bin}", "${elf}"]
+  # - elf: ../sw/kernels/dnn/fusedconv/build/fusedconv.elf # Fails with wrong results
+  #   cmd: [../sw/kernels/dnn/fusedconv/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/dnn/concat/build/concat.elf
+    cmd: [../sw/kernels/dnn/concat/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/dnn/fused_concat_linear/build/fused_concat_linear.elf
+    cmd: [../sw/kernels/dnn/fused_concat_linear/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/dnn/transpose/build/transpose.elf
     simulators: [vsim, vcs, verilator]
-    cmd: [../sw/dnn/transpose/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/apps/atax/build/atax.elf
-    cmd: [../sw/apps/atax/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/apps/covariance/build/covariance.elf
+    cmd: [../sw/kernels/dnn/transpose/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/misc/atax/build/atax.elf
+    cmd: [../sw/kernels/misc/atax/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/misc/covariance/build/covariance.elf
     simulators: [vsim, vcs, verilator]
-    cmd: [../sw/apps/covariance/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/apps/doitgen/build/doitgen.elf
-    cmd: [../sw/apps/doitgen/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/blas/gemv/build/gemv.elf
-    cmd: [../sw/blas/gemv/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/dnn/softmax/build/softmax.elf
-    cmd: [../sw/dnn/softmax/scripts/verify.py, "${sim_bin}", "${elf}"]
+    cmd: [../sw/kernels/misc/covariance/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/misc/doitgen/build/doitgen.elf
+    cmd: [../sw/kernels/misc/doitgen/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/blas/gemv/build/gemv.elf
+    cmd: [../sw/kernels/blas/gemv/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/dnn/softmax/build/softmax.elf
+    cmd: [../sw/kernels/dnn/softmax/scripts/verify.py, "${sim_bin}", "${elf}"]
   # Uses fdiv and fsqrt instructions in inline assembly statements, so it's only supported
   # on cluster configurations with the FDIV/SQRT unit, compiling with -mno-fdiv is not sufficient.
-  # - elf: ../sw/dnn/layernorm/build/layernorm.elf
-  #   cmd: [../sw/dnn/layernorm/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/dnn/gelu/build/gelu.elf
-    cmd: [../sw/dnn/gelu/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/dnn/flashattention_2/build/flashattention_2.elf
-    cmd: [../sw/dnn/flashattention_2/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/dnn/mha/build/mha.elf
-    cmd: [../sw/dnn/mha/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/apps/correlation/build/correlation.elf
-    cmd: [../sw/apps/correlation/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/apps/kmeans/build/kmeans.elf
-    cmd: [../sw/apps/kmeans/scripts/verify.py, --no-gui, "${sim_bin}", "${elf}"]
-  - elf: ../sw/apps/kbpcpa/build/kbpcpa.elf
-    cmd: [../sw/apps/kbpcpa/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/apps/j3d27pt/build/j3d27pt.elf
-    cmd: [../sw/apps/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/apps/box3d1r/build/box3d1r.elf
-    cmd: [../sw/apps/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
+  # - elf: ../sw/kernels/dnn/layernorm/build/layernorm.elf
+  #   cmd: [../sw/kernels/dnn/layernorm/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/dnn/gelu/build/gelu.elf
+    cmd: [../sw/kernels/dnn/gelu/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/dnn/flashattention_2/build/flashattention_2.elf
+    cmd: [../sw/kernels/dnn/flashattention_2/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/dnn/mha/build/mha.elf
+    cmd: [../sw/kernels/dnn/mha/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/misc/correlation/build/correlation.elf
+    cmd: [../sw/kernels/misc/correlation/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/misc/kmeans/build/kmeans.elf
+    cmd: [../sw/kernels/misc/kmeans/scripts/verify.py, --no-gui, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/misc/kbpcpa/build/kbpcpa.elf
+    cmd: [../sw/kernels/misc/kbpcpa/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/misc/j3d27pt/build/j3d27pt.elf
+    cmd: [../sw/kernels/misc/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/misc/box3d1r/build/box3d1r.elf
+    cmd: [../sw/kernels/misc/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]

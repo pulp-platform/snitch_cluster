@@ -61,7 +61,7 @@ all = [
 ]
 
 [tool.setuptools.package-dir]
-"snitch.dnn" = "sw/dnn"
-"snitch.blas" = "sw/blas"
+"snitch.dnn" = "sw/kernels/dnn"
+"snitch.blas" = "sw/kernels/blas"
 "snitch.util" = "util"
 "snitch.nonfree" = "nonfree/util"
