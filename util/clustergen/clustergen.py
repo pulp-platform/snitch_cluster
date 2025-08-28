@@ -9,7 +9,7 @@ import pathlib
 import sys
 import re
 from jsonref import JsonRef
-from clustergen.cluster import SnitchCluster
+from cluster import SnitchCluster
 import mako
 
 
