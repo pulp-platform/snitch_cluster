@@ -17,18 +17,17 @@ sn-clean-sw: sn-clean-runtime sn-clean-tests sn-clean-apps
 # Platform headers #
 ####################
 
-SNRT_HAL_SRC_DIR   ?= $(SN_ROOT)/sw/runtime/impl/hal
-SNRT_HAL_BUILD_DIR ?= $(SNRT_HAL_SRC_DIR)
+SNRT_SRCDIR ?= $(SN_ROOT)/sw/runtime/impl
 
-SNITCH_CLUSTER_CFG_H                = $(SNRT_HAL_BUILD_DIR)/snitch_cluster_cfg.h
-SNITCH_CLUSTER_ADDRMAP_H            = $(SNRT_HAL_BUILD_DIR)/snitch_cluster_addrmap.h
-SNITCH_CLUSTER_RAW_ADDRMAP_H        = $(SNRT_HAL_BUILD_DIR)/snitch_cluster_raw_addrmap.h
-SNITCH_CLUSTER_PERIPHERAL_H         = $(SNRT_HAL_BUILD_DIR)/snitch_cluster_peripheral.h
-SNITCH_CLUSTER_PERIPHERAL_ADDRMAP_H = $(SNRT_HAL_BUILD_DIR)/snitch_cluster_peripheral_addrmap.h
-SNITCH_CLUSTER_ADDRMAP_RDL          = $(SNRT_HAL_BUILD_DIR)/snitch_cluster_addrmap.rdl
+SNITCH_CLUSTER_CFG_H                = $(SNRT_SRCDIR)/snitch_cluster_cfg.h
+SNITCH_CLUSTER_ADDRMAP_H            = $(SNRT_SRCDIR)/snitch_cluster_addrmap.h
+SNITCH_CLUSTER_RAW_ADDRMAP_H        = $(SNRT_SRCDIR)/snitch_cluster_raw_addrmap.h
+SNITCH_CLUSTER_PERIPHERAL_H         = $(SNRT_SRCDIR)/snitch_cluster_peripheral.h
+SNITCH_CLUSTER_PERIPHERAL_ADDRMAP_H = $(SNRT_SRCDIR)/snitch_cluster_peripheral_addrmap.h
+SNITCH_CLUSTER_ADDRMAP_RDL          = $(SNRT_SRCDIR)/snitch_cluster_addrmap.rdl
 
-SNITCH_CLUSTER_CFG_H_TPL       = $(SNRT_HAL_SRC_DIR)/snitch_cluster_cfg.h.tpl
-SNITCH_CLUSTER_ADDRMAP_RDL_TPL = $(SNRT_HAL_SRC_DIR)/snitch_cluster_addrmap.rdl.tpl
+SNITCH_CLUSTER_CFG_H_TPL       = $(SNRT_SRCDIR)/snitch_cluster_cfg.h.tpl
+SNITCH_CLUSTER_ADDRMAP_RDL_TPL = $(SNRT_SRCDIR)/snitch_cluster_addrmap.rdl.tpl
 
 SNRT_HAL_HDRS += $(SNITCH_CLUSTER_CFG_H)
 SNRT_HAL_HDRS += $(SNITCH_CLUSTER_ADDRMAP_H)
@@ -74,7 +73,7 @@ include $(SN_ROOT)/sw/riscv-tests/riscv-tests.mk
 SNRT_BUILD_APPS ?= ON
 
 ifeq ($(SNRT_BUILD_APPS), ON)
-SNRT_APPS  = $(SN_ROOT)/sw/kernels/blas/axpy
+SNRT_APPS += $(SN_ROOT)/sw/kernels/blas/axpy
 SNRT_APPS += $(SN_ROOT)/sw/kernels/blas/gemm
 SNRT_APPS += $(SN_ROOT)/sw/kernels/blas/gemv
 SNRT_APPS += $(SN_ROOT)/sw/kernels/blas/dot

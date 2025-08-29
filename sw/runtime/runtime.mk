@@ -10,7 +10,6 @@
 
 SNRT_DIR       = $(SN_ROOT)/sw/runtime
 SNRT_BUILDDIR ?= $(SNRT_DIR)/build
-SNRT_SRCDIR   ?= $(SNRT_DIR)/impl
 
 ###################
 # Build variables #
