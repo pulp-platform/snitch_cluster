@@ -8,29 +8,29 @@
 # Build variables #
 ###################
 
-$(APP)_HEADERS += $(SNRT_HAL_HDRS)
+$(APP)_HEADERS += $(SN_RUNTIME_HAL_HDRS)
 
-$(APP)_INCDIRS += $(SNRT_INCDIRS)
+$(APP)_INCDIRS += $(SN_RUNTIME_INCDIRS)
 $(APP)_INCDIRS += $(SN_ROOT)/sw/deps/riscv-opcodes
 
-$(APP)_RISCV_CFLAGS += $(RISCV_CFLAGS)
+$(APP)_RISCV_CFLAGS += $(SN_RISCV_CFLAGS)
 $(APP)_RISCV_CFLAGS += $(addprefix -I,$($(APP)_INCDIRS))
 
-$(APP)_LIBS += $(SNRT_LIB)
+$(APP)_LIBS += $(SN_RUNTIME_LIB)
 
 $(APP)_LIBDIRS  = $(dir $($(APP)_LIBS))
 $(APP)_LIBNAMES = $(patsubst lib%,%,$(notdir $(basename $($(APP)_LIBS))))
 
-SNRT_BASE_LD    = $(SNRT_DIR)/base.ld
-SNRT_MEMORY_LD ?= $(SNRT_SRCDIR)/memory.ld
+SN_RUNTIME_BASE_LD    = $(SN_RUNTIME_DIR)/base.ld
+SN_RUNTIME_MEMORY_LD ?= $(SN_RUNTIME_SRCDIR)/memory.ld
 
-$(APP)_RISCV_LDFLAGS += $(RISCV_LDFLAGS)
-$(APP)_RISCV_LDFLAGS += -L$(dir $(SNRT_MEMORY_LD))
-$(APP)_RISCV_LDFLAGS += -T$(SNRT_BASE_LD)
+$(APP)_RISCV_LDFLAGS += $(SN_RISCV_LDFLAGS)
+$(APP)_RISCV_LDFLAGS += -L$(dir $(SN_RUNTIME_MEMORY_LD))
+$(APP)_RISCV_LDFLAGS += -T$(SN_RUNTIME_BASE_LD)
 $(APP)_RISCV_LDFLAGS += $(addprefix -L,$($(APP)_LIBDIRS))
 $(APP)_RISCV_LDFLAGS += $(addprefix -l,$($(APP)_LIBNAMES))
 
-SNRT_LD_DEPS += $(SNRT_MEMORY_LD) $(SNRT_BASE_LD) $($(APP)_LIBS)
+SN_RUNTIME_LD_DEPS += $(SN_RUNTIME_MEMORY_LD) $(SN_RUNTIME_BASE_LD) $($(APP)_LIBS)
 
 ###########
 # Outputs #
@@ -68,17 +68,17 @@ $(ELF): SRCS := $(SRCS)
 # Guarantee that variables used in rule recipes (thus subject to deferred expansion)
 # have unique values, despite depending on variables with the same name across
 # applications, but which could have different values (e.g. the APP variable itself)
-$(DEP) $(ELF): RISCV_CFLAGS := $($(APP)_RISCV_CFLAGS)
-$(ELF): RISCV_LDFLAGS := $($(APP)_RISCV_LDFLAGS)
+$(DEP) $(ELF): SN_RISCV_CFLAGS := $($(APP)_RISCV_CFLAGS)
+$(ELF): SN_RISCV_LDFLAGS := $($(APP)_RISCV_LDFLAGS)
 
 $(DEP): $(SRCS) | $($(APP)_BUILD_DIR) $($(APP)_HEADERS)
-	$(RISCV_CXX) $(RISCV_CFLAGS) -MM -MT '$(ELF)' -x c++ $< > $@
+	$(SN_RISCV_CXX) $(SN_RISCV_CFLAGS) -MM -MT '$(ELF)' -x c++ $< > $@
 
-$(ELF): $(SRCS) $(DEP) $(SNRT_LD_DEPS) | $($(APP)_BUILD_DIR)
-	$(RISCV_CXX) $(RISCV_CFLAGS) $(RISCV_LDFLAGS) -x c++ $(SRCS) -o $@
+$(ELF): $(SRCS) $(DEP) $(SN_RUNTIME_LD_DEPS) | $($(APP)_BUILD_DIR)
+	$(SN_RISCV_CXX) $(SN_RISCV_CFLAGS) $(SN_RISCV_LDFLAGS) -x c++ $(SRCS) -o $@
 
 $(DUMP): $(ELF) | $($(APP)_BUILD_DIR)
-	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_FLAGS) $< > $@
+	$(SN_RISCV_OBJDUMP) $(SN_RISCV_OBJDUMP_FLAGS) $< > $@
 
 ifneq ($(filter-out sn-clean%,$(MAKECMDGOALS)),)
 -include $(DEP)

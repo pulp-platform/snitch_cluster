@@ -136,13 +136,13 @@ target/sim/build/bin/snitch_cluster.vsim.gui sw/kernels/blas/axpy/build/axpy.elf
 
 For convenience, we also provide the following phony Make target as an alias to the simulation command with QuestaSim:
 ```shell
-make vsim-run SN_BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf SIM_DIR=test
+make vsim-run BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf SIM_DIR=test
 ```
 Behind the scenes, this will launch the previous command in the specified simulation directory (`SIM_DIR`). Note, the path to the software binary must be absolute or relative to the simulation directory. When `SIM_DIR` is omitted it will default to the `test` directory.
 
 You can use the `DEBUG` flag to launch the command with the GUI:
 ```shell
-make vsim-run SN_BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf DEBUG=ON
+make vsim-run BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf DEBUG=ON
 ```
 
 ## Debugging and benchmarking
@@ -289,10 +289,10 @@ include $(SN_ROOT)/sw/kernels/common.mk
 
 This file will be included in the top-level Makefile, compiling your source code into an executable with the name provided in the `APP` variable.
 
-In order for the top-level Makefile to find your application, add your application's directory to the `APPS` variable in [`sw.mk`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/make/sw.mk):
+In order for the top-level Makefile to find your application, add your application's directory to the `SN_APPS` variable in [`sw.mk`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/make/sw.mk):
 
 ```
-APPS += sw/kernels/misc/tutorial
+SN_APPS += sw/kernels/misc/tutorial
 ```
 
 Now you can recompile the software, including your newly added tutorial application, as shown in section [Building the software](#building-the-software).
@@ -330,7 +330,7 @@ echo $?
 
 When using the Make target alias to run the simulation, you can pass the verification script through the `VERIFY_PY` flag:
 ```
-make vsim-run SN_BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf VERIFY_PY=$PWD/sw/kernels/blas/axpy/scripts/verify.py
+make vsim-run BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf VERIFY_PY=$PWD/sw/kernels/blas/axpy/scripts/verify.py
 ```
 Again, note that the path must be absolute or relative to the selected simulation directory.
 

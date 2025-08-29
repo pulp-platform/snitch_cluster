@@ -7,54 +7,52 @@
 #############
 
 # Tools
-VCS_SEPP ?=
-VCS      ?= $(VCS_SEPP) vcs
-
-# VCS_BUILDDIR should be the same as the `DEFAULT : ./work-vcs`
-# in target/snitch_cluster/synopsys_sim.setup
-VCS_BENDER_FLAGS += $(COMMON_BENDER_FLAGS) $(COMMON_BENDER_SIM_FLAGS) -t vcs
-VCS_SOURCES       = $(shell $(BENDER) script flist-plus $(VCS_BENDER_FLAGS) | $(SED_SRCS))
+SN_VCS_SEPP ?=
+SN_VCS      ?= $(SN_VCS_SEPP) vcs
 
 # Directories
-VCS_BUILDDIR = $(SN_TARGET_DIR)/sim/build/work-vcs
+# SN_VCS_BUILDDIR should be the same as the `DEFAULT : ./work-vcs`
+# in target/sim/synopsys_sim.setup
+SN_VCS_BUILDDIR = $(SN_TARGET_DIR)/sim/build/work-vcs
 
 # Flags
-VLOGAN_FLAGS := -assert svaext
-VLOGAN_FLAGS += -assert disable_cover
-VLOGAN_FLAGS += -full64
-VLOGAN_FLAGS += -kdb
-VLOGAN_FLAGS += -timescale=1ns/1ps
-VHDLAN_FLAGS := -full64
-VHDLAN_FLAGS += -kdb
-VCS_FLAGS    += -full64
-VCS_FLAGS    += -assert disable_cover
-VCS_FLAGS    += -override_timescale=1ns/1ps
+SN_VCS_BENDER_FLAGS += $(SN_COMMON_BENDER_FLAGS) $(SN_COMMON_BENDER_SIM_FLAGS) -t vcs
+SN_VLOGAN_FLAGS := -assert svaext
+SN_VLOGAN_FLAGS += -assert disable_cover
+SN_VLOGAN_FLAGS += -full64
+SN_VLOGAN_FLAGS += -kdb
+SN_VLOGAN_FLAGS += -timescale=1ns/1ps
+SN_VHDLAN_FLAGS := -full64
+SN_VHDLAN_FLAGS += -kdb
+SN_VCS_FLAGS    += -full64
+SN_VCS_FLAGS    += -assert disable_cover
+SN_VCS_FLAGS    += -override_timescale=1ns/1ps
 
 # Misc
-VCS_TOP_MODULE = tb_bin
-VCS_RTL_PREREQ_FILE = $(VCS_BUILDDIR)/$(VCS_TOP_MODULE).d
+SN_VCS_TOP_MODULE = tb_bin
+SN_VCS_RTL_PREREQ_FILE = $(SN_VCS_BUILDDIR)/$(SN_VCS_TOP_MODULE).d
 
 #########
 # Rules #
 #########
 
-$(VCS_BUILDDIR):
+$(SN_VCS_BUILDDIR):
 	mkdir -p $@
 
 # Generate RTL prerequisites
-$(eval $(call gen_rtl_prerequisites,$(VCS_RTL_PREREQ_FILE),$(VCS_BUILDDIR),$(VCS_BENDER_FLAGS),$(VCS_TOP_MODULE),$(BIN_DIR)/$(TARGET).vcs))
+$(eval $(call sn_gen_rtl_prerequisites,$(SN_VCS_RTL_PREREQ_FILE),$(SN_VCS_BUILDDIR),$(SN_VCS_BENDER_FLAGS),$(SN_VCS_TOP_MODULE),$(SN_BIN_DIR)/$(TARGET).vcs))
 
 # Generate compilation script
-$(VCS_BUILDDIR)/compile.sh: $(BENDER_YML) $(BENDER_LOCK) | $(VCS_BUILDDIR)
-	$(BENDER) script vcs $(VCS_BENDER_FLAGS) --vlog-arg="$(VLOGAN_FLAGS)" --vcom-arg="$(VHDLAN_FLAGS)" > $@
+$(SN_VCS_BUILDDIR)/compile.sh: $(SN_BENDER_YML) $(SN_BENDER_LOCK) | $(SN_VCS_BUILDDIR)
+	$(SN_BENDER) script vcs $(SN_VCS_BENDER_FLAGS) --vlog-arg="$(SN_VLOGAN_FLAGS)" --vcom-arg="$(SN_VHDLAN_FLAGS)" > $@
 	chmod +x $@
 
 # Run compilation script and create VCS simulation binary
-$(SN_BIN_DIR)/$(TARGET).vcs: $(VCS_BUILDDIR)/compile.sh $(TB_CC_SOURCES) $(RTL_CC_SOURCES) $(SN_WORK_DIR)/lib/libfesvr.a | $(SN_BIN_DIR)
-	$(VCS_SEPP) $< > $(VCS_BUILDDIR)/compile.log
-	$(VCS) -Mlib=$(VCS_BUILDDIR) -Mdir=$(VCS_BUILDDIR) -o $@ -cc $(CC) -cpp $(CXX) \
-		$(VCS_FLAGS) $(VCS_TOP_MODULE) $(TB_CC_SOURCES) $(RTL_CC_SOURCES) \
-		-CFLAGS "$(TB_CC_FLAGS)" -LDFLAGS "-L$(FESVR)/lib" -lfesvr
+$(SN_BIN_DIR)/$(TARGET).vcs: $(SN_VCS_BUILDDIR)/compile.sh $(SN_TB_CC_SOURCES) $(SN_RTL_CC_SOURCES) $(SN_WORK_DIR)/lib/libfesvr.a | $(SN_BIN_DIR)
+	$(SN_VCS_SEPP) $< > $(SN_VCS_BUILDDIR)/compile.log
+	$(SN_VCS) -Mlib=$(SN_VCS_BUILDDIR) -Mdir=$(SN_VCS_BUILDDIR) -o $@ -cc $(CC) -cpp $(CXX) \
+		$(SN_VCS_FLAGS) $(SN_VCS_TOP_MODULE) $(SN_TB_CC_SOURCES) $(SN_RTL_CC_SOURCES) \
+		-CFLAGS "$(SN_TB_CC_FLAGS)" -LDFLAGS "-L$(SN_FESVR)/lib" -lfesvr
 
 .PHONY: vcs clean-vcs
 
@@ -62,10 +60,10 @@ vcs: $(SN_BIN_DIR)/$(TARGET).vcs
 
 # Clean all build directories and temporary files for VCS simulation
 clean-vcs: clean-work
-	rm -rf $(BIN_DIR)/$(TARGET).vcs $(VCS_BUILDDIR) vc_hdrs.h
+	rm -rf $(SN_BIN_DIR)/$(TARGET).vcs $(SN_VCS_BUILDDIR) vc_hdrs.h
 
 clean: clean-vcs
 
 ifneq ($(filter-out clean%,$(MAKECMDGOALS)),)
--include $(VCS_RTL_PREREQ_FILE)
+-include $(SN_VCS_RTL_PREREQ_FILE)
 endif

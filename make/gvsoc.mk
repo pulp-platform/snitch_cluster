@@ -2,9 +2,9 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-GVSOC_BUILDDIR ?= work-gvsoc
+SN_GVSOC_BUILDDIR ?= $(SN_TARGET_DIR)/sim/build/work-gvsoc
 
-$(BIN_DIR)/$(TARGET).gvsoc:
+$(SN_BIN_DIR)/$(TARGET).gvsoc:
 	@echo "#!/bin/bash" > $@
 	@echo 'binary=$$(realpath $$1)' >> $@
 	@echo 'echo $$binary > .rtlbinary' >> $@
@@ -16,8 +16,8 @@ $(BIN_DIR)/$(TARGET).gvsoc:
 	   --control-script=$${path}/../../util/sim/gvsoc_control.py $$2 run' >> $@
 	@chmod +x $@
 
-.PHONY: clean-gvsoc
-clean-gvsoc:
-	rm -rf $(BIN_DIR)/$(TARGET).gvsoc $(GVSOC_BUILDDIR)
+.PHONY: sn-clean-gvsoc
+sn-clean-gvsoc:
+	rm -rf $(SN_BIN_DIR)/$(TARGET).gvsoc $(SN_GVSOC_BUILDDIR)
 
-clean: clean-gvsoc
+sn-clean: sn-clean-gvsoc

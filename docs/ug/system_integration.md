@@ -18,11 +18,13 @@ This way, if you want to modify the cluster configuration, you don't have to go 
 
 We suggest that the same approach is used when integrating the Snitch cluster in an SoC. This further allows you to easily test different configurations of the cluster inside your SoC.
 
-## Integrating the RTL
+## Generating the RTL
 
 We provide Make rules to generate the cluster wrapper and other RTL files. Include the following lines in a Makefile, to inherit Snitch's rules:
 ```Makefile
 SN_ROOT = $(shell $(BENDER) path snitch_cluster)
+
+# Customization options should precede the following lines
 
 include $(SN_ROOT)/make/common.mk
 include $(SN_ROOT)/make/rtl.mk
@@ -33,9 +35,32 @@ You can then use the `sn-rtl` and `sn-clean-rtl` targets to respectively build a
 !!! note
     Snitch's Makefiles require `SN_ROOT` to be defined and to point to the root of the Snitch cluster repository. You can set this however you prefer, i.e. you don't have to use Bender if you manage your dependencies in a different way.
 
+The included Makefiles can be customized to some extent by overriding some variables before the Makefile inclusion lines.
+
+By default, the build directories of all auto-generated sources live in the Snitch cluster repo. If you are simultaneously working on the Snitch cluster and your derived system repos, it may be beneficial to have separate build directories for your artifacts, to avoid having to regenerate the sources for the right target every time you switch between the two.
+
+To overwrite the build directory for the generated cluster wrapper, add the following customization line to your Makefile:
+```Makefile
+SN_GEN_DIR = $(SYSTEM_GENERATED_RTL_DIR)
+```
+
+## Integrating the hardware
+
+Assuming you use Bender to manage your hardware dependencies, add the following lines to your `Bender.yml` file to make all Snitch cluster hardware available to your project:
+```yaml
+dependencies:
+  snitch_cluster: { git: "https://github.com/pulp-platform/snitch_cluster.git", rev: "<hash>" }
+
+sources:
+  - <SN_GEN_DIR>/snitch_cluster_pkg.sv
+  - <SN_GEN_DIR>/snitch_cluster_wrapper.sv
+```
+
+Additionally, add the `-t snitch_cluster` target flag to your `bender` commands.
+
 ## Integrating the software
 
-Similarly, Snitch comes with a collection of software tests and applications.
+The Snitch cluster repo comes with a collection of software tests and kernels.
 
 You can reuse the Snitch cluster's Make rules to build all tests and kernels found in the Snitch repo.
 Include the following line in a Makefile, to inherit Snitch's rules:
@@ -61,17 +86,22 @@ A sample implementation of the Snitch runtime for this repository's simulation t
 
 Assuming your runtime implementation adopts a similar file structure, you can simply point to it, by adding the following line to your Makefile:
 ```Makefile
-SNRT_SRCDIR = $(SYSTEM_SW_DIR)/snitch/runtime/src
+SN_RUNTIME_SRCDIR = $(SYSTEM_SW_DIR)/snitch/runtime/src
 ```
 
-When implementing a Snitch runtime for your own Snitch-based system, you will probably make use of auto-generated headers, e.g. an addrmap header generated from an RDL description.
-
-To make sure these headers are tracked as prerequisites of the runtime, and are thus automatically built when the runtime is built, append them to the `SNRT_HAL_HDRS` variable:
+Shall the file structure differ, you may have to adapt some more flags. For example, if you want to include files from newly created directories you need to add them to `SN_RUNTIME_INCDIRS`:
 ```Makefile
-SNRT_HAL_HDRS += $(SYSTEM_ADDRMAP_H)
+SN_RUNTIME_INCDIRS = $(SYSTEM_SW_INCDIR)
 ```
 
-It is up to you to define Make rules to build the auto-generated headers.
+Also, it is common to make use of auto-generated system-dependent headers, e.g. an addrmap header generated from an RDL description.
+
+To make sure these headers are tracked as prerequisites of the runtime, and are thus automatically built when the runtime is built, append them to the `SN_RUNTIME_HAL_HDRS` variable:
+```Makefile
+SN_RUNTIME_HAL_HDRS += $(SYSTEM_ADDRMAP_H)
+```
+
+It is up to you to provide Make rules to build the auto-generated headers.
 
 ### Customizing build directories and kernels
 
@@ -79,8 +109,8 @@ If you are simultaneously working on the Snitch cluster and your derived system 
 
 You can customize the build directories for the Snitch runtime and tests using the following lines, e.g.:
 ```Makefile
-SNRT_BUILDDIR       = $(SYSTEM_SW_DIR)/snitch/runtime/build
-SNRT_TESTS_BUILDDIR = $(SYSTEM_SW_DIR)/snitch/tests/build
+SN_RUNTIME_BUILDDIR = $(SYSTEM_SW_DIR)/snitch/runtime/build
+SN_TESTS_BUILDDIR   = $(SYSTEM_SW_DIR)/snitch/tests/build
 SN_RVTESTS_BUILDDIR = $(SYSTEM_SW_DIR)/snitch/riscv-tests/build
 ```
 
@@ -94,13 +124,34 @@ axpy/
     └── params.json
 ```
 
-You may then add this, as well as any system-dependent kernel you may develop in the system repository, to the build targets by appending them to the `SNRT_APPS` variable:
+You may then add this, as well as any system-dependent kernel you may develop in the system repository, to the build targets by appending them to the `SN_APPS` variable:
 ```Makefile
-SNRT_APPS += $(SYSTEM_SW_DIR)/snitch/kernels/blas/axpy
+SN_APPS += $(SYSTEM_SW_DIR)/snitch/kernels/blas/axpy
 ```
 
-If you do not intend to build all kernels provided by Snitch, you may further disable the `SNRT_BUILD_APPS` option:
+If you do not intend to build all kernels provided by Snitch, you may further disable the `SN_BUILD_APPS` option:
 ```Makefile
-SNRT_BUILD_APPS = OFF
+SN_BUILD_APPS = OFF
 ```
-As a result, only the kernels you explicitly added to `SNRT_APPS` will be built.
+As a result, only the kernels you explicitly added to `SN_APPS` will be built.
+
+## Integrating the trace generation
+
+Include the following Make fragment in your Makefile to inherit Snitch's trace generation rules:
+```Makefile
+include $(SN_ROOT)/make/traces.mk
+```
+
+## Integrating the environment requirements
+
+Many of the targets you integrated in the previous steps make use of Python scripts, and other executables, behind the scenes.
+
+To make sure all Python scripts find their requirements, add the following line to your environment setup script.
+```shell
+python -m pip install $(shell $(BENDER) path snitch_cluster)
+```
+
+To make sure other required executables are found, add the following variable to your environment:
+```shell
+export SN_LLVM_BINROOT=<path_to_snitch_llvm_toolchain>
+```
