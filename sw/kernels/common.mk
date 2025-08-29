@@ -22,7 +22,7 @@ $(APP)_LIBDIRS  = $(dir $($(APP)_LIBS))
 $(APP)_LIBNAMES = $(patsubst lib%,%,$(notdir $(basename $($(APP)_LIBS))))
 
 SNRT_BASE_LD    = $(SNRT_DIR)/base.ld
-SNRT_MEMORY_LD ?= $(SNRT_HAL_SRC_DIR)/memory.ld
+SNRT_MEMORY_LD ?= $(SNRT_SRCDIR)/memory.ld
 
 $(APP)_RISCV_LDFLAGS += $(RISCV_LDFLAGS)
 $(APP)_RISCV_LDFLAGS += -L$(dir $(SNRT_MEMORY_LD))
