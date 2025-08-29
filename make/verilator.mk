@@ -6,86 +6,86 @@
 # Makefile invocation #
 #######################
 
-VLT_NUM_THREADS ?= 1
-VLT_JOBS        ?= $(shell nproc)
+SN_VLT_NUM_THREADS ?= 1
+SN_VLT_JOBS        ?= $(shell nproc)
 
 #############
 # Variables #
 #############
 
 # Tools
-VERILATOR_SEPP ?=
-VLT            ?= $(VERILATOR_SEPP) verilator
+SN_VERILATOR_SEPP ?=
+SN_VLT            ?= $(SN_VERILATOR_SEPP) verilator
 
 # Directories
-VLT_BUILDDIR = $(SN_TARGET_DIR)/sim/build/work-vlt
-VLT_FESVR    = $(VLT_BUILDDIR)/riscv-isa-sim
+SN_VLT_BUILDDIR = $(SN_TARGET_DIR)/sim/build/work-vlt
+SN_VLT_FESVR    = $(SN_VLT_BUILDDIR)/riscv-isa-sim
 
 # Flags
-VLT_BENDER_FLAGS += $(COMMON_BENDER_FLAGS) -t verilator -DASSERTS_OFF
-VLT_FLAGS += --timing
-VLT_FLAGS += --timescale 1ns/1ps
-VLT_FLAGS += --trace
-VLT_FLAGS += -Wno-BLKANDNBLK
-VLT_FLAGS += -Wno-LITENDIAN
-VLT_FLAGS += -Wno-CASEINCOMPLETE
-VLT_FLAGS += -Wno-CMPCONST
-VLT_FLAGS += -Wno-WIDTH
-VLT_FLAGS += -Wno-WIDTHCONCAT
-VLT_FLAGS += -Wno-UNSIGNED
-VLT_FLAGS += -Wno-UNOPTFLAT
-VLT_FLAGS += -Wno-fatal
-VLT_FLAGS += --unroll-count 1024
-VLT_FLAGS += --threads $(VLT_NUM_THREADS)
+SN_VLT_BENDER_FLAGS += $(SN_COMMON_BENDER_FLAGS) -t verilator -DASSERTS_OFF
+SN_VLT_FLAGS += --timing
+SN_VLT_FLAGS += --timescale 1ns/1ps
+SN_VLT_FLAGS += --trace
+SN_VLT_FLAGS += -Wno-BLKANDNBLK
+SN_VLT_FLAGS += -Wno-LITENDIAN
+SN_VLT_FLAGS += -Wno-CASEINCOMPLETE
+SN_VLT_FLAGS += -Wno-CMPCONST
+SN_VLT_FLAGS += -Wno-WIDTH
+SN_VLT_FLAGS += -Wno-WIDTHCONCAT
+SN_VLT_FLAGS += -Wno-UNSIGNED
+SN_VLT_FLAGS += -Wno-UNOPTFLAT
+SN_VLT_FLAGS += -Wno-fatal
+SN_VLT_FLAGS += --unroll-count 1024
+SN_VLT_FLAGS += --threads $(SN_VLT_NUM_THREADS)
 
 # Misc
-VLT_TOP_MODULE = testharness
-VLT_RTL_PREREQ_FILE = $(VLT_BUILDDIR)/$(VLT_TOP_MODULE).d
+SN_VLT_TOP_MODULE = testharness
+SN_VLT_RTL_PREREQ_FILE = $(SN_VLT_BUILDDIR)/$(SN_VLT_TOP_MODULE).d
 
 #########
 # Rules #
 #########
 
-$(VLT_BUILDDIR):
+$(SN_VLT_BUILDDIR):
 	mkdir -p $@
 
 # Generate RTL prerequisites
-$(eval $(call gen_rtl_prerequisites,$(VLT_RTL_PREREQ_FILE),$(VLT_BUILDDIR),$(VLT_BENDER_FLAGS),$(VLT_TOP_MODULE),$(BIN_DIR)/$(TARGET).vlt))
+$(eval $(call gen_rtl_prerequisites,$(SN_VLT_RTL_PREREQ_FILE),$(SN_VLT_BUILDDIR),$(SN_VLT_BENDER_FLAGS),$(SN_VLT_TOP_MODULE),$(SN_BIN_DIR)/$(TARGET).vlt))
 
 # Build fesvr seperately for verilator since this might use different compilers
 # and libraries than modelsim/vcs and
 # TODO(colluca): is this assumption still valid?
-$(VLT_FESVR)/${FESVR_VERSION}_unzip:
+$(SN_VLT_FESVR)/$(SN_FESVR_VERSION)_unzip:
 	mkdir -p $(dir $@)
-	wget -O $(dir $@)/${FESVR_VERSION} https://github.com/riscv/riscv-isa-sim/tarball/${FESVR_VERSION}
-	tar xfm $(dir $@)${FESVR_VERSION} --strip-components=1 -C $(dir $@)
-	patch $(VLT_FESVR)/fesvr/context.h < $(SN_TARGET_DIR)/sim/patches/context.h.diff
+	wget -O $(dir $@)/$(SN_FESVR_VERSION) https://github.com/riscv/riscv-isa-sim/tarball/$(SN_FESVR_VERSION)
+	tar xfm $(dir $@)$(SN_FESVR_VERSION) --strip-components=1 -C $(dir $@)
+	patch $(SN_VLT_FESVR)/fesvr/context.h < $(SN_TARGET_DIR)/sim/patches/context.h.diff
 	touch $@
 
-$(VLT_BUILDDIR)/lib/libfesvr.a: $(VLT_FESVR)/${FESVR_VERSION}_unzip
+$(SN_VLT_BUILDDIR)/lib/libfesvr.a: $(SN_VLT_FESVR)/$(SN_FESVR_VERSION)_unzip
 	cd $(dir $<)/ && ./configure --prefix `pwd` \
-        CC=${CC} CXX=${CXX} CFLAGS="${CFLAGS}" CXXFLAGS="${CXXFLAGS}" LDFLAGS="${LDFLAGS}"
+        CC=$(CC) CXX=$(CXX) CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(LDFLAGS)"
 	$(MAKE) -C $(dir $<) install-config-hdrs install-hdrs libfesvr.a
 	mkdir -p $(dir $@)
 	cp $(dir $<)libfesvr.a $@
 
 # Generate and run compilation script, building the Verilator simulation binary
-$(SN_BIN_DIR)/$(TARGET)_bin.vlt: $(TB_CC_SOURCES) $(VLT_CC_SOURCES) $(VLT_BUILDDIR)/lib/libfesvr.a | $(SN_BIN_DIR) $(VLT_BUILDDIR)
-	$(VLT) $(shell $(BENDER) script verilator $(VLT_BENDER_FLAGS)) \
-		$(VLT_FLAGS) --Mdir $(VLT_BUILDDIR) \
+$(SN_BIN_DIR)/$(TARGET)_bin.vlt: $(SN_TB_CC_SOURCES) $(SN_VLT_CC_SOURCES) $(SN_VLT_BUILDDIR)/lib/libfesvr.a | $(SN_BIN_DIR) $(SN_VLT_BUILDDIR)
+	$(SN_VLT) $(shell $(SN_BENDER) script verilator $(SN_VLT_BENDER_FLAGS)) \
+		$(SN_VLT_FLAGS) --Mdir $(SN_VLT_BUILDDIR) \
 		-CFLAGS -std=c++20 \
-		-CFLAGS -I$(VLT_FESVR)/include \
-		-CFLAGS -I$(TB_DIR) \
-		-j $(VLT_JOBS) \
-		-o $@ --cc --exe --build --top-module $(VLT_TOP_MODULE) \
-		$(TB_CC_SOURCES) $(VLT_CC_SOURCES) $(VLT_BUILDDIR)/lib/libfesvr.a
+		-CFLAGS -I$(SN_VLT_FESVR)/include \
+		-CFLAGS -I$(SN_TB_DIR) \
+		-j $(SN_VLT_JOBS) \
+		-o $@ --cc --exe --build --top-module $(SN_VLT_TOP_MODULE) \
+		$(SN_TB_CC_SOURCES) $(SN_VLT_CC_SOURCES) $(SN_VLT_BUILDDIR)/lib/libfesvr.a
 
 # This target just redirects the verilator simulation binary.
 # On IIS machines, verilator needs to be built and run in
 # the oseda environment, which is why this is necessary.
 $(SN_BIN_DIR)/$(TARGET).vlt: $(SN_BIN_DIR)/$(TARGET)_bin.vlt | $(SN_BIN_DIR)
 	@echo "#!/bin/bash" > $@
-	@echo '$(VERILATOR_SEPP) $(realpath $<) $$(realpath $$1) $$2' >> $@
+	@echo '$(SN_VERILATOR_SEPP) $(realpath $<) $$(realpath $$1) $$2' >> $@
 	@chmod +x $@
 
 .PHONY: verilator clean-verilator
@@ -93,10 +93,10 @@ $(SN_BIN_DIR)/$(TARGET).vlt: $(SN_BIN_DIR)/$(TARGET)_bin.vlt | $(SN_BIN_DIR)
 verilator: $(SN_BIN_DIR)/$(TARGET).vlt
 
 clean-verilator: clean-work
-	rm -rf $(SN_BIN_DIR)/$(TARGET).vlt $(SN_BIN_DIR)/$(TARGET)_bin.vlt $(VLT_BUILDDIR)
+	rm -rf $(SN_BIN_DIR)/$(TARGET).vlt $(SN_BIN_DIR)/$(TARGET)_bin.vlt $(SN_VLT_BUILDDIR)
 
 clean: clean-verilator
 
 ifneq ($(filter-out clean%,$(MAKECMDGOALS)),)
--include $(VLT_RTL_PREREQ_FILE)
+-include $(SN_VLT_RTL_PREREQ_FILE)
 endif

@@ -47,15 +47,15 @@ include $(SN_RVTESTS_SCRDIR)/rv32ud/Makefrag
 ###################
 # Build variables #
 ###################
-# Provided variables from toolchain.mk
+# Provided variables from toolchain.mSN_k
 # - RISCV_CC
 # - RISCV_LD
 # - RISCV_OBJDUMP
 
-RVT_RISCV_CFLAGS := $(RISCV_CFLAGS) $(RISCV_LDFLAGS)
-RVT_RISCV_CFLAGS += -mno-relax -fvisibility=hidden
-RVT_RISCV_OBJDUMP_FLAGS := $(RISCV_OBJDUMP_FLAGS)
-RVT_RISCV_OBJDUMP_FLAGS += --disassemble-zeroes --section=.text --section=.text.startup --section=.text.init --section=.data
+SN_RVT_RISCV_CFLAGS := $(SN_RISCV_CFLAGS) $(SN_RISCV_LDFLAGS)
+SN_RVT_RISCV_CFLAGS += -mno-relax -fvisibility=hidden
+SN_RVT_RISCV_OBJDUMP_FLAGS := $(SN_RISCV_OBJDUMP_FLAGS)
+SN_RVT_RISCV_OBJDUMP_FLAGS += --disassemble-zeroes --section=.text --section=.text.startup --section=.text.init --section=.data
 
 #########
 # Rules #
@@ -68,11 +68,11 @@ vpath %.dump $(SN_RVTESTS_BUILDDIR)
 define compile_template
 
 $$(addsuffix .elf,$$($(1)_p_tests)): $(1)-p-%.elf: $(1)/%.S | $(SN_RVTESTS_BUILDDIR)
-	$$(RISCV_CC) $$(RVT_RISCV_CFLAGS) -I$(SN_RVTESTS_SCRDIR)/../env/p -I$(SN_RVTESTS_SCRDIR)/macros/scalar -T$(SN_RVTESTS_SCRDIR)/../env/p/link.ld $$< -o $(SN_RVTESTS_BUILDDIR)$$@
+	$$(SN_RISCV_CC) $$(SN_RVT_RISCV_CFLAGS) -I$(SN_RVTESTS_SCRDIR)/../env/p -I$(SN_RVTESTS_SCRDIR)/macros/scalar -T$(SN_RVTESTS_SCRDIR)/../env/p/link.ld $$< -o $(SN_RVTESTS_BUILDDIR)$$@
 $(1)_tests += $$($(1)_p_tests)
 
 $$(addsuffix .elf,$$($(1)_v_tests)): $(1)-v-%.elf: $(1)/%.S
-	$$(RISCV_CC) $$(RVT_RISCV_CFLAGS) -DENTROPY=0x$$(shell echo \$$@ | md5sum | cut -c 1-7) -std=gnu99 -O2 -I$(SN_RVTESTS_SCRDIR)/../env/v -I$(SN_RVTESTS_SCRDIR)/macros/scalar -T$(SN_RVTESTS_SCRDIR)/../env/v/link.ld $(SN_RVTESTS_SCRDIR)/../env/v/entry.S $(SN_RVTESTS_SCRDIR)/../env/v/*.c $$< -o $(SN_RVTESTS_BUILDDIR)$$@
+	$$(SN_RISCV_CC) $$(SN_RVT_RISCV_CFLAGS) -DENTROPY=0x$$(shell echo \$$@ | md5sum | cut -c 1-7) -std=gnu99 -O2 -I$(SN_RVTESTS_SCRDIR)/../env/v -I$(SN_RVTESTS_SCRDIR)/macros/scalar -T$(SN_RVTESTS_SCRDIR)/../env/v/link.ld $(SN_RVTESTS_SCRDIR)/../env/v/entry.S $(SN_RVTESTS_SCRDIR)/../env/v/*.c $$< -o $(SN_RVTESTS_BUILDDIR)$$@
 $(1)_tests += $$($(1)_v_tests)
 
 $(1)_tests_dump = $$(addsuffix .dump, $$($(1)_tests))
@@ -82,9 +82,9 @@ $(1): $$($(1)_tests_dump)
 .PHONY: $(1)
 
 $$($(1)_tests_dump): %.dump: %.elf
-	$$(RISCV_OBJDUMP) $$(RVT_RISCV_OBJDUMP_FLAGS) $$(SN_RVTESTS_BUILDDIR)$$< > $$(SN_RVTESTS_BUILDDIR)$$@
+	$$(SN_RISCV_OBJDUMP) $$(SN_RVT_RISCV_OBJDUMP_FLAGS) $$(SN_RVTESTS_BUILDDIR)$$< > $$(SN_RVTESTS_BUILDDIR)$$@
 
-COMPILER_SUPPORTS_$(1) := $$(shell $(RISCV_CC) $(2) -c -x c /dev/null -o /dev/null 2> /dev/null; echo $$$$?)
+COMPILER_SUPPORTS_$(1) := $$(shell $(SN_RISCV_CC) $(2) -c -x c /dev/null -o /dev/null 2> /dev/null; echo $$$$?)
 ifeq ($$(COMPILER_SUPPORTS_$(1)),0)
 tests += $$($(1)_tests)
 endif
@@ -115,13 +115,13 @@ junk += $(addprefix $(SN_RVTESTS_BUILDDIR),$(addsuffix .elf,$(tests))) $(addpref
 $(SN_RVTESTS_BUILDDIR):
 	mkdir -p $@
 
-.PHONY: riscv-tests clean-riscv-tests
+.PHONY: sn-riscv-tests sn-clean-riscv-tests
 
-riscv-tests: $(tests_dump) | $(SN_RVTESTS_BUILDDIR)
+sn-riscv-tests: $(tests_dump) | $(SN_RVTESTS_BUILDDIR)
 
-clean-riscv-tests:
+sn-clean-riscv-tests:
 	rm -rf $(junk)
 
 # Integrate into main Makefile flow
-sn-sw: riscv-tests
-sn-clean-sw: clean-riscv-tests
+sn-sw: sn-riscv-tests
+sn-clean-sw: sn-clean-riscv-tests

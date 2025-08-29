@@ -5,55 +5,49 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 # Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
-######################
-# Invocation options #
-######################
-
-DEBUG ?= OFF # ON to turn on debugging symbols
-
 ###################
 # Build variables #
 ###################
 
 # Compiler toolchain
-LLVM_BINROOT    ?= $(dir $(shell which riscv32-unknown-elf-clang))
-LLVM_VER        ?= $(shell $(LLVM_BINROOT)/llvm-config --version | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
-RISCV_CC        ?= $(LLVM_BINROOT)/clang
-RISCV_CXX       ?= $(LLVM_BINROOT)/clang++
-RISCV_LD        ?= $(LLVM_BINROOT)/ld.lld
-RISCV_AR        ?= $(LLVM_BINROOT)/llvm-ar
-RISCV_OBJCOPY   ?= $(LLVM_BINROOT)/llvm-objcopy
-RISCV_OBJDUMP   ?= $(LLVM_BINROOT)/llvm-objdump
+SN_LLVM_BINROOT  ?= $(dir $(shell which riscv32-unknown-elf-clang))
+SN_LLVM_VER      ?= $(shell $(SN_LLVM_BINROOT)/llvm-config --version | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
+SN_RISCV_CC      ?= $(SN_LLVM_BINROOT)/clang
+SN_RISCV_CXX     ?= $(SN_LLVM_BINROOT)/clang++
+SN_RISCV_LD      ?= $(SN_LLVM_BINROOT)/ld.lld
+SN_RISCV_AR      ?= $(SN_LLVM_BINROOT)/llvm-ar
+SN_RISCV_OBJCOPY ?= $(SN_LLVM_BINROOT)/llvm-objcopy
+SN_RISCV_OBJDUMP ?= $(SN_LLVM_BINROOT)/llvm-objdump
 
 # Compiler flags
-RISCV_CFLAGS := -mcpu=snitch
-RISCV_CFLAGS += -menable-experimental-extensions
-RISCV_CFLAGS += -mabi=ilp32d
-RISCV_CFLAGS += -mcmodel=medany
-RISCV_CFLAGS += -mno-fdiv
-RISCV_CFLAGS += -fno-builtin-printf
-RISCV_CFLAGS += -fno-builtin-sqrtf
-RISCV_CFLAGS += -fno-common
-RISCV_CFLAGS += -fopenmp
-RISCV_CFLAGS += -ftls-model=local-exec
-RISCV_CFLAGS += -O3
-RISCV_CFLAGS += -Werror
+SN_RISCV_CFLAGS := -mcpu=snitch
+SN_RISCV_CFLAGS += -menable-experimental-extensions
+SN_RISCV_CFLAGS += -mabi=ilp32d
+SN_RISCV_CFLAGS += -mcmodel=medany
+SN_RISCV_CFLAGS += -mno-fdiv
+SN_RISCV_CFLAGS += -fno-builtin-printf
+SN_RISCV_CFLAGS += -fno-builtin-sqrtf
+SN_RISCV_CFLAGS += -fno-common
+SN_RISCV_CFLAGS += -fopenmp
+SN_RISCV_CFLAGS += -ftls-model=local-exec
+SN_RISCV_CFLAGS += -O3
+SN_RISCV_CFLAGS += -Werror
 ifeq ($(DEBUG), ON)
-RISCV_CFLAGS += -g
+SN_RISCV_CFLAGS += -g
 endif
 ifeq ($(OPENOCD_SEMIHOSTING), ON)
-RISCV_CFLAGS += -DOPENOCD_SEMIHOSTING
+SN_RISCV_CFLAGS += -DOPENOCD_SEMIHOSTING
 endif
 
 # Linker flags
-RISCV_LDFLAGS := -fuse-ld=$(RISCV_LD)
-RISCV_LDFLAGS += -nostartfiles
-RISCV_LDFLAGS += -nostdlib++
-RISCV_LDFLAGS += -lm
+SN_RISCV_LDFLAGS := -fuse-ld=$(SN_RISCV_LD)
+SN_RISCV_LDFLAGS += -nostartfiles
+SN_RISCV_LDFLAGS += -nostdlib++
+SN_RISCV_LDFLAGS += -lm
 
 # Archiver flags
-RISCV_ARFLAGS := rcs
+SN_RISCV_ARFLAGS := rcs
 
 # Objdump flags
-RISCV_OBJDUMP_FLAGS := --mcpu=snitch
-RISCV_OBJDUMP_FLAGS += -D
+SN_RISCV_OBJDUMP_FLAGS := --mcpu=snitch
+SN_RISCV_OBJDUMP_FLAGS += -D

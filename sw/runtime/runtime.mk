@@ -8,39 +8,39 @@
 # Directories #
 ###############
 
-SNRT_DIR       = $(SN_ROOT)/sw/runtime
-SNRT_BUILDDIR ?= $(SNRT_DIR)/build
+SN_RUNTIME_DIR       = $(SN_ROOT)/sw/runtime
+SN_RUNTIME_BUILDDIR ?= $(SN_RUNTIME_DIR)/build
 
 ###################
 # Build variables #
 ###################
 
-SNRT_S_SRCS = snrt.S
-SNRT_C_SRCS = snrt.cc
+SN_RUNTIME_S_SRCS = snrt.S
+SN_RUNTIME_C_SRCS = snrt.cc
 
-SNRT_INCDIRS += $(SNRT_DIR)/src
-SNRT_INCDIRS += $(SNRT_DIR)/api
-SNRT_INCDIRS += $(SNRT_DIR)/src/omp
-SNRT_INCDIRS += $(SNRT_DIR)/api/omp
-SNRT_INCDIRS += $(SNRT_DIR)/vendor/riscv-opcodes
-SNRT_INCDIRS += $(SNRT_SRCDIR)
-SNRT_INCDIRS += $(SNRT_HAL_BUILD_DIR)
+SN_RUNTIME_INCDIRS += $(SN_RUNTIME_DIR)/src
+SN_RUNTIME_INCDIRS += $(SN_RUNTIME_DIR)/api
+SN_RUNTIME_INCDIRS += $(SN_RUNTIME_DIR)/src/omp
+SN_RUNTIME_INCDIRS += $(SN_RUNTIME_DIR)/api/omp
+SN_RUNTIME_INCDIRS += $(SN_RUNTIME_DIR)/vendor/riscv-opcodes
+SN_RUNTIME_INCDIRS += $(SN_RUNTIME_SRCDIR)
+SN_RUNTIME_INCDIRS += $(SN_RUNTIME_HAL_BUILD_DIR)
 
-SNRT_RISCV_CFLAGS += $(RISCV_CFLAGS)
-SNRT_RISCV_CFLAGS += $(addprefix -I,$(SNRT_INCDIRS))
+SN_RUNTIME_RISCV_CFLAGS += $(SN_RISCV_CFLAGS)
+SN_RUNTIME_RISCV_CFLAGS += $(addprefix -I,$(SN_RUNTIME_INCDIRS))
 
 ###########
 # Outputs #
 ###########
 
-SNRT_OBJS    = $(addprefix $(SNRT_BUILDDIR)/,$(addsuffix .o,$(notdir $(SNRT_S_SRCS) $(SNRT_C_SRCS))))
-SNRT_DEPS    = $(addprefix $(SNRT_BUILDDIR)/,$(addsuffix .d,$(notdir $(SNRT_S_SRCS) $(SNRT_C_SRCS))))
-SNRT_LIB     = $(SNRT_BUILDDIR)/libsnRuntime.a
-SNRT_DUMP    = $(SNRT_BUILDDIR)/libsnRuntime.dump
-SNRT_OUTPUTS = $(SNRT_LIB)
+SN_RUNTIME_OBJS    = $(addprefix $(SN_RUNTIME_BUILDDIR)/,$(addsuffix .o,$(notdir $(SN_RUNTIME_S_SRCS) $(SN_RUNTIME_C_SRCS))))
+SN_RUNTIME_DEPS    = $(addprefix $(SN_RUNTIME_BUILDDIR)/,$(addsuffix .d,$(notdir $(SN_RUNTIME_S_SRCS) $(SN_RUNTIME_C_SRCS))))
+SN_RUNTIME_LIB     = $(SN_RUNTIME_BUILDDIR)/libsnRuntime.a
+SN_RUNTIME_DUMP    = $(SN_RUNTIME_BUILDDIR)/libsnRuntime.dump
+SN_RUNTIME_OUTPUTS = $(SN_RUNTIME_LIB)
 
 ifeq ($(DEBUG), ON)
-SNRT_OUTPUTS += $(SNRT_DUMP)
+SN_RUNTIME_OUTPUTS += $(SN_RUNTIME_DUMP)
 endif
 
 #########
@@ -49,28 +49,28 @@ endif
 
 .PHONY: sn-runtime sn-clean-runtime
 
-sn-runtime: $(SNRT_OUTPUTS)
+sn-runtime: $(SN_RUNTIME_OUTPUTS)
 
 sn-clean-runtime:
-	rm -rf $(SNRT_BUILDDIR)
+	rm -rf $(SN_RUNTIME_BUILDDIR)
 
-$(call normalize_dir, $(SNRT_BUILDDIR)):
+$(call sn_normalize_dir, $(SN_RUNTIME_BUILDDIR)):
 	mkdir -p $@
 
-$(SNRT_BUILDDIR)/%.o: $(SNRT_SRCDIR)/% $(SNRT_BUILDDIR)/%.d | $(SNRT_BUILDDIR)
-	$(RISCV_CXX) $(SNRT_RISCV_CFLAGS) -c $< -o $@
+$(SN_RUNTIME_BUILDDIR)/%.o: $(SN_RUNTIME_SRCDIR)/% $(SN_RUNTIME_BUILDDIR)/%.d | $(SN_RUNTIME_BUILDDIR)
+	$(SN_RISCV_CXX) $(SN_RUNTIME_RISCV_CFLAGS) -c $< -o $@
 
-$(SNRT_BUILDDIR)/%.d: $(SNRT_SRCDIR)/% | $(SNRT_BUILDDIR)
-	$(RISCV_CXX) $(SNRT_RISCV_CFLAGS) -MM -MT '$(@:.d=.o)' $< > $@
+$(SN_RUNTIME_BUILDDIR)/%.d: $(SN_RUNTIME_SRCDIR)/% | $(SN_RUNTIME_BUILDDIR)
+	$(SN_RISCV_CXX) $(SN_RUNTIME_RISCV_CFLAGS) -MM -MT '$(@:.d=.o)' $< > $@
 
-$(SNRT_LIB): $(SNRT_OBJS) | $(SNRT_BUILDDIR)
-	$(RISCV_AR) $(RISCV_ARFLAGS) $@ $^
+$(SN_RUNTIME_LIB): $(SN_RUNTIME_OBJS) | $(SN_RUNTIME_BUILDDIR)
+	$(SN_RISCV_AR) $(SN_RISCV_ARFLAGS) $@ $^
 
-$(SNRT_DUMP): $(SNRT_LIB) | $(SNRT_BUILDDIR)
-	$(RISCV_OBJDUMP) $(RISCV_OBJDUMP_FLAGS) $< > $@
+$(SN_RUNTIME_DUMP): $(SN_RUNTIME_LIB) | $(SN_RUNTIME_BUILDDIR)
+	$(SN_RISCV_OBJDUMP) $(SN_RISCV_OBJDUMP_FLAGS) $< > $@
 
-$(SNRT_DEPS): | $(SNRT_HAL_HDRS)
+$(SN_RUNTIME_DEPS): | $(SN_RUNTIME_HAL_HDRS)
 
 ifneq ($(filter-out sn-clean%,$(MAKECMDGOALS)),)
--include $(SNRT_DEPS)
+-include $(SN_RUNTIME_DEPS)
 endif
