@@ -20,14 +20,17 @@ SN_BIN_DIR    = $(SN_TARGET_DIR)/sim/build/bin
 SN_WORK_DIR   = $(SN_TARGET_DIR)/sim/build/work
 
 # External executables
-SN_BENDER	    ?= bender
-SN_PEAKRDL      ?= peakrdl
-SN_VERIBLE_FMT  ?= verible-verilog-format
-SN_CLANG_FORMAT ?= clang-format
-SN_RISCV_MC     ?= $(SN_LLVM_BINROOT)/llvm-mc
-SN_ADDR2LINE    ?= $(SN_LLVM_BINROOT)/llvm-addr2line
+SN_BENDER	      ?= bender
+SN_PEAKRDL        ?= peakrdl
+SN_VERIBLE_FMT    ?= verible-verilog-format
+SN_CLANG_FORMAT   ?= clang-format
+SN_RISCV_MC       ?= $(SN_LLVM_BINROOT)/llvm-mc
+SN_ADDR2LINE      ?= $(SN_LLVM_BINROOT)/llvm-addr2line
 # tail is required for nonsense oseda output
-SN_VLT_BIN       = $(shell $(SN_VERILATOR_SEPP) which verilator_bin | tail -n1 | $(SN_VERILATOR_SEPP) xargs realpath | tail -n1)
+SN_VERILATOR_SEPP ?=
+SN_VLT_BIN         = $(shell $(SN_VERILATOR_SEPP) which verilator_bin | tail -n1 | $(SN_VERILATOR_SEPP) xargs realpath | tail -n1)
+SN_VLT            ?= $(SN_VERILATOR_SEPP) verilator
+
 
 # Internal executables
 SN_GENTRACE_PY  ?= $(SN_UTIL_DIR)/trace/gen_trace.py

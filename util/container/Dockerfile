@@ -49,7 +49,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 LABEL version="0.1"
 LABEL description="Snitch container for hardware and software development."
-LABEL maintainer="zarubaf@iis.ee.ethz.ch"
+LABEL maintainer="colluca@iis.ee.ethz.ch"
 LABEL org.opencontainers.image.source=https://github.com/pulp-platform/snitch_cluster
 
 RUN apt-get update && \
@@ -74,7 +74,6 @@ COPY pyproject.toml .
 COPY sw ./sw
 COPY util ./util
 COPY nonfree/util ./nonfree/util
-COPY target/snitch_cluster/util ./target/snitch_cluster/util
 
 # Create and activate virtual environment
 ARG VIRTUAL_ENV="/root/.venvs/snitch_cluster"
@@ -94,8 +93,8 @@ COPY --from=builder /tools/doxygen/bin/doxygen /tools/bin/
 COPY --from=builder /tools/riscv-llvm /tools/riscv-llvm
 
 # Modify environment and path variables
-ENV VLT="verilator-wrap.sh"
-ENV LLVM_BINROOT="/tools/riscv-llvm/bin"
+ENV SN_VLT="verilator"
+ENV SN_LLVM_BINROOT="/tools/riscv-llvm/bin"
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 ENV PATH="/tools/bin:${PATH}"
 ENV PATH="/tools/riscv-llvm/bin:${PATH}"
