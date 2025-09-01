@@ -2,6 +2,7 @@ package snax.DataPathExtension
 
 import chisel3._
 import chisel3.util._
+
 import snax.utils._
 
 class HasTransposer(row: Seq[Int], col: Seq[Int], elementWidth: Seq[Int], dataWidth: Int = 0)

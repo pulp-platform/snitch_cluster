@@ -9,6 +9,7 @@ package snax_acc.versacore
 import chisel3._
 
 import chiseltest._
+import fp_unit._
 import org.scalatest.funsuite.AnyFunSuite
 
 class AdderTreeTest extends AnyFunSuite with ChiselScalatestTester {

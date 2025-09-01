@@ -8,13 +8,11 @@ import snax.utils.DecoupledCut._
 import snax.utils.DemuxDecoupled
 import snax.utils._
 import snax.xdma.DesignParams.XDMAParam
-import snax.xdma.xdmaIO.{
-  XDMACfgIO,
-  XDMAInterClusterCfgIO,
-  XDMAInterClusterCfgIODeserializer,
-  XDMAInterClusterCfgIOSerializer,
-  XDMAIntraClusterCfgIO
-}
+import snax.xdma.xdmaIO.XDMACfgIO
+import snax.xdma.xdmaIO.XDMAInterClusterCfgIO
+import snax.xdma.xdmaIO.XDMAInterClusterCfgIODeserializer
+import snax.xdma.xdmaIO.XDMAInterClusterCfgIOSerializer
+import snax.xdma.xdmaIO.XDMAIntraClusterCfgIO
 
 class XDMACtrlIO(readerParam: XDMAParam, writerParam: XDMAParam) extends Bundle {
   // clusterBaseAddress to determine if it is the local command or remote command

@@ -13,10 +13,7 @@ import java.nio.file.Paths
 
 import chisel3._
 
-import fp_unit.DataType
-import fp_unit.FP16
-import fp_unit.FP32
-import fp_unit.FP8
+import fp_unit._
 
 // hjson configuration parser, from hjson to SpatialArrayParam
 object SpatialArrayParamParser {

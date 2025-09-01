@@ -5,11 +5,6 @@
 package snax.streamer
 
 import snax.readerWriter._
-import snax.csr_manager._
-import snax.utils._
-
-import chisel3._
-import chisel3.util._
 
 // Streamer parameters
 // tcdm_size in KB

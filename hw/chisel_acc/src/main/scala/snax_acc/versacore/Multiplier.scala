@@ -9,11 +9,7 @@ package snax_acc.versacore
 
 import chisel3._
 
-import fp_unit.DataType
-import fp_unit.FP16
-import fp_unit.FP32
-import fp_unit.FpMulFp
-import fp_unit.FpType
+import fp_unit._
 
 class MultiplierIO(inputTypeA: DataType, inputTypeB: DataType, inputTypeC: DataType) extends Bundle {
   val in_a  = Input(UInt(inputTypeA.width.W))
@@ -36,7 +32,7 @@ class Multiplier(inputTypeA: DataType, inputTypeB: DataType, inputTypeC: DataTyp
       )).asUInt
 
     case (a: FpType, b: IntType, c: FpType) => {
-      val fpMulInt = Module(new FPMULIntBlackBox("fp_mul_int", a, b, c))
+      val fpMulInt = Module(new FpMulIntBlackBox("fp_mul_int", a, b, c))
       fpMulInt.io.operand_a_i := io.in_a
       fpMulInt.io.operand_b_i := io.in_b
       io.out_c                := fpMulInt.io.result_o

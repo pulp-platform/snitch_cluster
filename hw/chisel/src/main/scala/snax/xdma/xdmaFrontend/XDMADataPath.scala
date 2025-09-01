@@ -9,7 +9,8 @@ import snax.readerWriter.ReaderWriterParam
 import snax.readerWriter.Writer
 import snax.utils._
 import snax.xdma.DesignParams._
-import snax.xdma.xdmaIO.{XDMADataPathCfgIO, XDMAIntraClusterCfgIO}
+import snax.xdma.xdmaIO.XDMADataPathCfgIO
+import snax.xdma.xdmaIO.XDMAIntraClusterCfgIO
 
 class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: String = "unnamed_cluster")
     extends Module

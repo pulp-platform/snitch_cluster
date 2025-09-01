@@ -9,10 +9,7 @@ package snax_acc.versacore
 
 import chisel3._
 
-import fp_unit.DataType
-import fp_unit.FP32
-import fp_unit.FpAddFpBlackBox
-import fp_unit.FpType
+import fp_unit._
 
 /** AdderIO defines the input and output interfaces for the Adder module. */
 class AdderIO(

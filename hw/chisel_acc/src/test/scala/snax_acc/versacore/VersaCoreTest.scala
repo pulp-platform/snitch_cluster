@@ -11,6 +11,7 @@ import scala.util.Random
 import chisel3._
 
 import chiseltest._
+import fp_unit._
 import org.scalatest.flatspec.AnyFlatSpec
 import snax_acc.utils.CommonTestUtils.WaitOrTimeout
 import snax_acc.utils.CommonTestUtils.toSInt

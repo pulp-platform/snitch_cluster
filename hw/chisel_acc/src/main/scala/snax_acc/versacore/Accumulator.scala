@@ -10,6 +10,8 @@ import chisel3._
 import chisel3.util._
 
 import fp_unit.DataType
+import fp_unit.Int16
+import fp_unit.Int8
 
 /** AccumulatorBlock is a single accumulator block that performs accumulation on two input values. */
 class AccumulatorBlock(

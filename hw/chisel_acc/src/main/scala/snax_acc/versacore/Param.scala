@@ -6,7 +6,7 @@
 
 package snax_acc.versacore
 
-import fp_unit.DataType
+import fp_unit._
 
 class SpatialArrayParam(
   val macNum:                 Seq[Int],

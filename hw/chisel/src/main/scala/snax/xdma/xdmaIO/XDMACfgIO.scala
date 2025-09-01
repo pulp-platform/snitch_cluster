@@ -6,9 +6,8 @@ import chisel3.util._
 import snax.readerWriter.AddressGenUnitCfgIO
 import snax.readerWriter.AddressGenUnitParam
 import snax.readerWriter.ReaderWriterCfgIO
-import snax.xdma.DesignParams._
-
 import snax.utils._
+import snax.xdma.DesignParams._
 
 // The sturctured class that used to store the CFG of reader and writer, connected with the CSR
 // The full address (readerPtr, writerPtr) is included in this class, for the purpose of cross-cluster communication

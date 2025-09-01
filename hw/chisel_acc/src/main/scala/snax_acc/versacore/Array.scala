@@ -9,6 +9,8 @@ package snax_acc.versacore
 import chisel3._
 import chisel3.util._
 
+import fp_unit._
+
 // data io
 class SpatialArrayDataIO(params: SpatialArrayParam) extends Bundle {
   val in_a           = Flipped(DecoupledIO(UInt(params.arrayInputAWidth.W)))

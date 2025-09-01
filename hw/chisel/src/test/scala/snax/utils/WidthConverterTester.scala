@@ -1,12 +1,13 @@
 package snax.utils
 
+import scala.util.Random
+
 import chisel3._
 import chisel3.util._
-import DecoupledCut._
 
 import chiseltest._
 import org.scalatest.flatspec.AnyFlatSpec
-import scala.util.Random
+import snax.utils.DecoupledCut._
 
 class WidthConverter[T <: Data](gen: T) extends Module with RequireAsyncReset {
   val io = IO(new Bundle {

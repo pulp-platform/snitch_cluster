@@ -10,8 +10,7 @@ package snax_acc.versacore
 import chisel3._
 import chisel3.util._
 
-import fp_unit.FP16
-import fp_unit.FP32
+import fp_unit._
 import snax_acc.utils._
 
 /** VersaCoreCfg is a configuration bundle for the VersaCore module. */
