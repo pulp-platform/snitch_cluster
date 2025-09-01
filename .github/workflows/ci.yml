@@ -70,6 +70,8 @@ jobs:
       image: ${{ needs.build-docker.outputs.image_name }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
       - name: Build docs
         run: make docs
 
@@ -82,6 +84,8 @@ jobs:
       image: ${{ needs.build-docker.outputs.image_name }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
       # For some reason, the checkout is done by a different user
       # than that deploying to Github (root, possibly due to Docker).
       # So we need to set the repository as a safe directory.
