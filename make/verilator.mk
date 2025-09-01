@@ -13,10 +13,6 @@ SN_VLT_JOBS        ?= $(shell nproc)
 # Variables #
 #############
 
-# Tools
-SN_VERILATOR_SEPP ?=
-SN_VLT            ?= $(SN_VERILATOR_SEPP) verilator
-
 # Directories
 SN_VLT_BUILDDIR = $(SN_TARGET_DIR)/sim/build/work-vlt
 SN_VLT_FESVR    = $(SN_VLT_BUILDDIR)/riscv-isa-sim
