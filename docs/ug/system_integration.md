@@ -35,11 +35,14 @@ You can then use the `sn-rtl` and `sn-clean-rtl` targets to respectively build a
 !!! note
     Snitch's Makefiles require `SN_ROOT` to be defined and to point to the root of the Snitch cluster repository. You can set this however you prefer, i.e. you don't have to use Bender if you manage your dependencies in a different way.
 
+!!! note
+    The `common.mk` fragment is required by all of the make fragments presented in the subsequent sections, so it must included before the others. 
+
 The included Makefiles can be customized to some extent by overriding some variables before the Makefile inclusion lines.
 
 By default, the build directories of all auto-generated sources live in the Snitch cluster repo. If you are simultaneously working on the Snitch cluster and your derived system repos, it may be beneficial to have separate build directories for your artifacts, to avoid having to regenerate the sources for the right target every time you switch between the two.
 
-To overwrite the build directory for the generated cluster wrapper, add the following customization line to your Makefile:
+To overwrite the build directory for the generated cluster wrapper, add the following customization line to your Makefile, to point `SN_GEN_DIR` to a directory of your choice:
 ```Makefile
 SN_GEN_DIR = $(SYSTEM_GENERATED_RTL_DIR)
 ```
@@ -155,3 +158,26 @@ To make sure other required executables are found, add the following variable to
 ```shell
 export SN_LLVM_BINROOT=<path_to_snitch_llvm_toolchain>
 ```
+
+## Auto-dependency generation
+
+In cases where a target may have many prerequisites, it is sometimes convenient and less error-prone to track these programmatically, rather than by hand. As an example consider an executable which may depend on many header/source files. Compilers typically provide an option, e.g. `gcc -MM`, to generate a Make fragment listing all the prerequisites of an executable target, also referred to as a dependency file, typically ending with `.d` extension.
+By including a generated dependency file in a Makefile you can track all prerequisites of a target programmatically.
+
+If an included dependency file does not exist, GNU Make will automatically search for a rule to build it, execute the rule and finally include and parse the dependency file.
+This process is done upon any Make execution, no matter if the goal being executed actually needs a certain dependency file or not.
+This may be time-consuming and confusing for a user of an external system.
+In order to speed up this process, we use the `list-dependent-make-targets` utility, to conditionally include a dependency file only if a target which requires it is specified as a goal on the command-line.
+
+For this to work, every Make fragment presented in the previous sections appends its dependency files to the `SN_DEPS` variable.
+The `sn_include_deps` function is then provided to conditionally include all the dependency files in `SN_DEPS`, as described above.
+To reuse this infrastructure simply add the following line to your top-level Makefile:
+```
+$(call sn_include_deps)
+```
+
+!!! important
+    This line must appear after the inclusion of all other Make fragments, i.e. after all dependency files have been appended to `SN_DEPS`.
+
+!!! tip
+    For more information on auto-dependency generation with GNU Make consult https://make.mad-scientist.net/papers/advanced-auto-dependency-generation/.

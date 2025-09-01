@@ -46,7 +46,7 @@ $(SN_VLT_BUILDDIR):
 	mkdir -p $@
 
 # Generate RTL prerequisites
-$(eval $(call gen_rtl_prerequisites,$(SN_VLT_RTL_PREREQ_FILE),$(SN_VLT_BUILDDIR),$(SN_VLT_BENDER_FLAGS),$(SN_VLT_TOP_MODULE),$(SN_BIN_DIR)/$(TARGET).vlt))
+$(eval $(call sn_gen_rtl_prerequisites,$(SN_VLT_RTL_PREREQ_FILE),$(SN_VLT_BUILDDIR),$(SN_VLT_BENDER_FLAGS),$(SN_VLT_TOP_MODULE),$(SN_BIN_DIR)/$(TARGET).vlt))
 
 # Build fesvr seperately for verilator since this might use different compilers
 # and libraries than modelsim/vcs and
@@ -66,7 +66,7 @@ $(SN_VLT_BUILDDIR)/lib/libfesvr.a: $(SN_VLT_FESVR)/$(SN_FESVR_VERSION)_unzip
 	cp $(dir $<)libfesvr.a $@
 
 # Generate and run compilation script, building the Verilator simulation binary
-$(SN_BIN_DIR)/$(TARGET)_bin.vlt: $(SN_TB_CC_SOURCES) $(SN_VLT_CC_SOURCES) $(SN_VLT_BUILDDIR)/lib/libfesvr.a | $(SN_BIN_DIR) $(SN_VLT_BUILDDIR)
+$(SN_BIN_DIR)/$(TARGET)_bin.vlt: $(SN_TB_CC_SOURCES) $(SN_VLT_CC_SOURCES) $(SN_VLT_BUILDDIR)/lib/libfesvr.a $(SN_VLT_RTL_PREREQ_FILE) | $(SN_BIN_DIR) $(SN_VLT_BUILDDIR)
 	$(SN_VLT) $(shell $(SN_BENDER) script verilator $(SN_VLT_BENDER_FLAGS)) \
 		$(SN_VLT_FLAGS) --Mdir $(SN_VLT_BUILDDIR) \
 		-CFLAGS -std=c++20 \
@@ -93,6 +93,4 @@ clean-verilator: clean-work
 
 clean: clean-verilator
 
-ifneq ($(filter-out clean%,$(MAKECMDGOALS)),)
--include $(SN_VLT_RTL_PREREQ_FILE)
-endif
+SN_DEPS += $(SN_VLT_RTL_PREREQ_FILE)

@@ -130,7 +130,7 @@ jobs:
           submodules: 'recursive'
       - name: Hash Verilator prerequisites
         id: verilator-hash
-        uses: colluca/list-make-prerequisites@v1.0.3
+        uses: colluca/pymakeutils@v1.2.0
         with:
           target: verilator
           flags: --recursive
