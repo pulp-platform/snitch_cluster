@@ -177,7 +177,7 @@ jobs:
           submodules: true
       - name: Generate opcodes
         run: |
-          ./util/generate-opcodes.sh
+          ./util/clustergen/generate-opcodes.sh
       - name: Generate RTL sources
         run: |
           make rtl
