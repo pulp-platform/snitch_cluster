@@ -261,3 +261,12 @@ clean-bender:
 
 clean-logs:
 	rm -rf $(SN_LOGS_DIR)
+
+#########
+# Final #
+#########
+
+# After all Make fragments have appended their dependency files to SN_DEPS,
+# conditionally include all dependency files in one go. Ensures that
+# list-dependent-make-targets is only invoked once, for better speed.
+$(call sn_include_deps)

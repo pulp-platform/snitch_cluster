@@ -48,7 +48,7 @@ $(SN_VCS_BUILDDIR)/compile.sh: $(SN_BENDER_YML) $(SN_BENDER_LOCK) | $(SN_VCS_BUI
 	chmod +x $@
 
 # Run compilation script and create VCS simulation binary
-$(SN_BIN_DIR)/$(TARGET).vcs: $(SN_VCS_BUILDDIR)/compile.sh $(SN_TB_CC_SOURCES) $(SN_RTL_CC_SOURCES) $(SN_WORK_DIR)/lib/libfesvr.a | $(SN_BIN_DIR)
+$(SN_BIN_DIR)/$(TARGET).vcs: $(SN_VCS_BUILDDIR)/compile.sh $(SN_TB_CC_SOURCES) $(SN_RTL_CC_SOURCES) $(SN_WORK_DIR)/lib/libfesvr.a $(SN_VCS_RTL_PREREQ_FILE) | $(SN_BIN_DIR)
 	$(SN_VCS_SEPP) $< > $(SN_VCS_BUILDDIR)/compile.log
 	$(SN_VCS) -Mlib=$(SN_VCS_BUILDDIR) -Mdir=$(SN_VCS_BUILDDIR) -o $@ -cc $(CC) -cpp $(CXX) \
 		$(SN_VCS_FLAGS) $(SN_VCS_TOP_MODULE) $(SN_TB_CC_SOURCES) $(SN_RTL_CC_SOURCES) \
@@ -64,6 +64,4 @@ clean-vcs: clean-work
 
 clean: clean-vcs
 
-ifneq ($(filter-out clean%,$(MAKECMDGOALS)),)
--include $(SN_VCS_RTL_PREREQ_FILE)
-endif
+SN_DEPS += $(SN_VCS_RTL_PREREQ_FILE)

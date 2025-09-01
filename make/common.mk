@@ -31,7 +31,6 @@ SN_VERILATOR_SEPP ?=
 SN_VLT_BIN         = $(shell $(SN_VERILATOR_SEPP) which verilator_bin | tail -n1 | $(SN_VERILATOR_SEPP) xargs realpath | tail -n1)
 SN_VLT            ?= $(SN_VERILATOR_SEPP) verilator
 
-
 # Internal executables
 SN_GENTRACE_PY  ?= $(SN_UTIL_DIR)/trace/gen_trace.py
 SN_ANNOTATE_PY  ?= $(SN_UTIL_DIR)/trace/annotate.py
@@ -61,6 +60,9 @@ SN_COMMON_BENDER_SIM_FLAGS += -t simulation -t test
 SN_RISCV_MC_FLAGS          ?= -disassemble -mcpu=snitch
 SN_ANNOTATE_FLAGS          ?= -q --keep-time --addr2line=$(SN_ADDR2LINE)
 SN_LAYOUT_EVENTS_FLAGS     ?= --cfg=$(SN_CFG)
+
+# Internal state
+SN_DEPS :=
 
 #################
 # Prerequisites #
@@ -115,4 +117,13 @@ $(1): $(2)/$(4).f $(SN_GEN_RTL_SRCS) | $(2)
 	mv $(2)/V$(4)__ver.d $$@
 	sed -E -i -e 's|^[^:]*:|$(5):|' \
 	    -e ':a; s/(^|[[:space:]])$(subst /,\/,$(SN_VLT_BIN))($|[[:space:]])/\1\2/g; ta' $$@
+endef
+
+# Common function to conditionally include dependency files, only when a target
+# which actually depends on a certain file is executed on the command-line.
+# Avoids time-consuming generation of dependency files until strictly needed.
+# Usage:
+#   $(call sn_include_deps)
+define sn_include_deps
+$(eval $(if $(strip $(MAKECMDGOALS)),$(shell list-dependent-make-targets -M -r $(SN_DEPS))))
 endef

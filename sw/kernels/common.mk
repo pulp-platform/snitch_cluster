@@ -80,6 +80,4 @@ $(ELF): $(SRCS) $(DEP) $(SN_RUNTIME_LD_DEPS) | $($(APP)_BUILD_DIR)
 $(DUMP): $(ELF) | $($(APP)_BUILD_DIR)
 	$(SN_RISCV_OBJDUMP) $(SN_RISCV_OBJDUMP_FLAGS) $< > $@
 
-ifneq ($(filter-out sn-clean%,$(MAKECMDGOALS)),)
--include $(DEP)
-endif
+SN_DEPS += $(DEP)
