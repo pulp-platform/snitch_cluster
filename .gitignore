@@ -2,6 +2,7 @@
 /nonfree/**
 !/nonfree/util
 !/nonfree/util/.gitignore
+.cockpitgroup
 
 # Dependency files
 /.bender/

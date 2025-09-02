@@ -86,29 +86,6 @@ $(SN_CFG): FORCE
 	fi
 FORCE:
 
-############
-# Non-free #
-############
-
-NONFREE_REMOTE ?= git@iis-git.ee.ethz.ch:pulp-restricted/snitch-cluster-nonfree.git
-NONFREE_COMMIT ?= refactor
-NONFREE_DIR = $(SN_ROOT)/nonfree
-
-.PHONY: nonfree clean-nonfree
-
-nonfree:
-	cd $(NONFREE_DIR) && \
-	git init && \
-	git remote add origin $(NONFREE_REMOTE) && \
-	git fetch origin && \
-	git checkout $(NONFREE_COMMIT) -f
-
-clean-nonfree:
-	rm -rf $(NONFREE_DIR)
-	mkdir -p $(NONFREE_DIR)/util && touch $(NONFREE_DIR)/util/.gitignore
-
--include $(NONFREE_DIR)/Makefile
-
 ########
 # Docs #
 ########
@@ -155,6 +132,29 @@ include $(SN_ROOT)/make/rtl.mk
 .PHONY: rtl clean-rtl
 rtl: sn-rtl
 clean-rtl: sn-clean-rtl
+
+############
+# Non-free #
+############
+
+NONFREE_REMOTE ?= git@iis-git.ee.ethz.ch:pulp-restricted/snitch-cluster-nonfree.git
+NONFREE_COMMIT ?= refactor
+NONFREE_DIR = $(SN_ROOT)/nonfree
+
+.PHONY: nonfree clean-nonfree
+
+nonfree:
+	cd $(NONFREE_DIR) && \
+	git init && \
+	git remote add origin $(NONFREE_REMOTE) && \
+	git fetch origin && \
+	git checkout $(NONFREE_COMMIT) -f
+
+clean-nonfree:
+	rm -rf $(NONFREE_DIR)
+	mkdir -p $(NONFREE_DIR)/util && touch $(NONFREE_DIR)/util/.gitignore
+
+-include $(NONFREE_DIR)/Makefile
 
 ############
 # Software #
