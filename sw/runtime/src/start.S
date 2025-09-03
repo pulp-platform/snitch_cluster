@@ -142,11 +142,6 @@ snrt.crt0.init_stack:
     # Initialize the stack pointer to the start of the stack
     sub       sp, a2, t0
 
-    # Calculate the end of the stack, could be used by later routines
-    # to calculate remaining TCDM space
-    sll       t1, a1, t2    
-    sub       a2, a2, t1
-
     # Misalign stacks in the TCDM to reduce banking conflicts
     slli      t0, a0, 3  # this hart
     slli      t1, a1, 3  # all harts
