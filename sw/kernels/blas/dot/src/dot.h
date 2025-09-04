@@ -69,7 +69,6 @@ inline void dot_seq_4_acc(uint32_t n, double *x, double *y, double *output) {
         :);
 
     // End of SSR region.
-    snrt_fpu_fence();
     snrt_ssr_disable();
 
     asm volatile(
@@ -81,6 +80,8 @@ inline void dot_seq_4_acc(uint32_t n, double *x, double *y, double *output) {
         : [ res_ssr_1 ] "f"(res_ssr_1),
           [ res_ssr_3 ] "f"(res_ssr_3) /* input operands */
         :);
+
+    snrt_fpu_fence();
 
     asm volatile("" : : "f"(ft0), "f"(ft1));
     output[0] = res_ssr_0;
