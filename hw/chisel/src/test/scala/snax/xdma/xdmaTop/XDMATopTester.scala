@@ -342,6 +342,61 @@ class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
         println("[Transposer test] The test passes. ")
       else throw new Exception("[Transposer test] The test fails. ")
 
+      // Test 5: Faulty copy test
+      // Remove all the data in the memory
+      tcdm_mem.clear()
+      println("[Zero-length copy Test] Test Started")
+      readerAGUParam = new AGUParamTest(
+        address         = Seq(0),
+        spatialStrides  = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds  = Array(256, 0)
+      )
+      writerAGUParam = new AGUParamTest(
+        address         = Seq(16 * 1024, 0, 0, 0),
+        spatialStrides  = Array(8),
+        temporalStrides = Array(64, 0),
+        temporalBounds  = Array(256, 0)
+      )
+
+      readerRWParam = new RWParamTest(
+        enabledChannel = Integer.parseInt("11111111", 2),
+        enabledByte    = Integer.parseInt("11111111", 2)
+      )
+      writerRWParam = new RWParamTest(
+        enabledChannel = Integer.parseInt("11111111", 2),
+        enabledByte    = Integer.parseInt("11111111", 2)
+      )
+
+      writerExtParam = new ExtParam(
+        bypassMemset     = 1,
+        memsetValue      = 0x00,
+        bypassMaxPool    = 1,
+        maxPoolPeriod    = 0,
+        bypassTransposer = 1
+      )
+
+      // Write the configuration
+      currentAddress = XDMATesterInfrastructure.setXDMA(
+        readerAGUParam,
+        writerAGUParam,
+        readerRWParam,
+        writerRWParam,
+        writerExtParam,
+        dut,
+        dut.io.csrIO
+      )
+      currentAddress += 2
+
+      // Check if the DMA is finished
+      while (
+        XDMATesterInfrastructure.read_csr(
+          dut  = dut,
+          port = dut.io.csrIO,
+          addr = currentAddress
+        ) != 5
+      ) {}
+      println("[Zero-length copy Test] Test Finished")
       println("All tests pass. All test threads are about to be terminated. ")
       testTerminated = true
     }

@@ -501,7 +501,11 @@ class XDMACtrl(readerparam: XDMAParam, writerparam: XDMAParam, clusterName: Stri
       }
     }
     is(sWaitBusy) {
-      when(io.localXDMACfg.readerBusy) {
+      when(currentCfgSrc.bits.axiTransferBeatSize === 0.U) {
+        // If the transfer size is zero, do not wait for busy signal
+        nextStateSrc        := sIdle
+        currentCfgSrc.ready := true.B
+      }.elsewhen(io.localXDMACfg.readerBusy) {
         nextStateSrc := sBusy
       }
     }
@@ -534,7 +538,11 @@ class XDMACtrl(readerparam: XDMAParam, writerparam: XDMAParam, clusterName: Stri
       }
     }
     is(sWaitBusy) {
-      when(io.localXDMACfg.writerBusy) {
+      when(currentCfgDst.bits.axiTransferBeatSize === 0.U) {
+        // If the transfer size is zero, do not wait for busy signal
+        nextStateDst        := sIdle
+        currentCfgDst.ready := true.B
+      }.elsewhen(io.localXDMACfg.writerBusy) {
         nextStateDst := sBusy
       }
     }
