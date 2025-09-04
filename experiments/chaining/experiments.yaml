@@ -1,0 +1,37 @@
+# Copyright 2024 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Luca Colagrande <colluca@iis.ee.ethz.ch>
+
+experiments:
+  - app: box3d1r
+    impl: baseline--
+    cmd: [../../../../../sw/kernels/misc/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - app: box3d1r
+    impl: baseline-
+    cmd: [../../../../../sw/kernels/misc/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - app: box3d1r
+    impl: baseline
+    cmd: [../../../../../sw/kernels/misc/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - app: box3d1r
+    impl: chaining
+    cmd: [../../../../../sw/kernels/misc/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - app: box3d1r
+    impl: chaining+
+    cmd: [../../../../../sw/kernels/misc/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - app: j3d27pt
+    impl: baseline--
+    cmd: [../../../../../sw/kernels/misc/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - app: j3d27pt
+    impl: baseline-
+    cmd: [../../../../../sw/kernels/misc/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - app: j3d27pt
+    impl: baseline
+    cmd: [../../../../../sw/kernels/misc/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - app: j3d27pt
+    impl: chaining
+    cmd: [../../../../../sw/kernels/misc/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - app: j3d27pt
+    impl: chaining+
+    cmd: [../../../../../sw/kernels/misc/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]

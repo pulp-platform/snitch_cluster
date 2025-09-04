@@ -32,6 +32,7 @@ dependencies = [
     "psutil",
     "pyelftools",
     "pyflexfloat",
+    "pymakeutils",
     "pytablewriter",
     "pytest",
     "pyyaml",
@@ -61,8 +62,7 @@ all = [
 ]
 
 [tool.setuptools.package-dir]
-"snitch.dnn" = "sw/dnn"
-"snitch.blas" = "sw/blas"
+"snitch.dnn" = "sw/kernels/dnn"
+"snitch.blas" = "sw/kernels/blas"
 "snitch.util" = "util"
-"snitch.target" = "target/snitch_cluster/util"
 "snitch.nonfree" = "nonfree/util"

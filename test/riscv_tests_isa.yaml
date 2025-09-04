@@ -1,0 +1,122 @@
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+# Runs riscv-tests ISA test cases for the p environment.
+# Make sure the test cases are compiled in the riscv-tests.mk.
+
+runs:
+  # Base set
+  - elf: ../sw/riscv-tests/build/rv32ui-p-simple.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-sltu.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-add.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-addi.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-xori.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-and.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-andi.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-auipc.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-beq.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-bge.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-bgeu.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-blt.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-bltu.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-bne.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-sltiu.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-fence_i.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-jal.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-jalr.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-lb.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-lbu.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-lh.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-lhu.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-lw.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-ld_st.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-lui.elf
+  # Exclude the rv32ui-p-ma_data test as it is for user space EEI and assumes that we support
+  # unaligned memory access in U mode. Snitch never supports unaligned accesses.
+  # - elf: ../sw/riscv-tests/build/rv32ui-p-ma_data.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-or.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-ori.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-sb.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-sh.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-sw.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-st_ld.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-sll.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-slli.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-slt.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-slti.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-sra.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-srai.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-srl.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-srli.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-sub.elf
+  - elf: ../sw/riscv-tests/build/rv32ui-p-xor.elf
+  # Multiplication
+  - elf: ../sw/riscv-tests/build/rv32um-p-div.elf
+  - elf: ../sw/riscv-tests/build/rv32um-p-divu.elf
+  - elf: ../sw/riscv-tests/build/rv32um-p-mul.elf
+  - elf: ../sw/riscv-tests/build/rv32um-p-mulh.elf
+  - elf: ../sw/riscv-tests/build/rv32um-p-mulhsu.elf
+  - elf: ../sw/riscv-tests/build/rv32um-p-mulhu.elf
+  - elf: ../sw/riscv-tests/build/rv32um-p-rem.elf
+  - elf: ../sw/riscv-tests/build/rv32um-p-remu.elf
+  # Atomics
+  - elf: ../sw/riscv-tests/build/rv32ua-p-amomaxu_w.elf
+  - elf: ../sw/riscv-tests/build/rv32ua-p-amoor_w.elf
+  - elf: ../sw/riscv-tests/build/rv32ua-p-amoand_w.elf
+  - elf: ../sw/riscv-tests/build/rv32ua-p-amoadd_w.elf
+  - elf: ../sw/riscv-tests/build/rv32ua-p-amomin_w.elf
+  - elf: ../sw/riscv-tests/build/rv32ua-p-amomax_w.elf
+  - elf: ../sw/riscv-tests/build/rv32ua-p-amoswap_w.elf
+  - elf: ../sw/riscv-tests/build/rv32ua-p-amoxor_w.elf
+  - elf: ../sw/riscv-tests/build/rv32ua-p-amominu_w.elf
+  - elf: ../sw/riscv-tests/build/rv32ua-p-lrsc.elf
+  # FLOATING POINT TESTS
+  # Some tests could fail because there are additional bits in the fcsr register.
+  #
+  # The following tests fail because the fcsr read operations are not ordered in regards to the
+  # FPU instructions:
+  # - elf: ../sw/riscv-tests/build/rv32uf-p-fadd.elf
+  # - elf: ../sw/riscv-tests/build/rv32uf-p-fcmp.elf
+  # - elf: ../sw/riscv-tests/build/rv32uf-p-fcvt_w.elf
+  # - elf: ../sw/riscv-tests/build/rv32uf-p-fmadd.elf
+  # - elf: ../sw/riscv-tests/build/rv32uf-p-fmin.elf
+  #
+  # The fdiv fails because it includes fdiv and fsqrt which both are not supported.
+  # - elf: ../sw/riscv-tests/build/rv32uf-p-fdiv.elf
+  #
+  # The move fails because Snitch has additional custom fcsr CSR bits.
+  # - elf: ../sw/riscv-tests/build/rv32uf-p-move.elf
+  #
+  # The following tests do not check the fcsr value
+  - elf: ../sw/riscv-tests/build/rv32uf-p-fclass.elf
+  - elf: ../sw/riscv-tests/build/rv32uf-p-fcvt.elf
+  - elf: ../sw/riscv-tests/build/rv32uf-p-ldst.elf
+  - elf: ../sw/riscv-tests/build/rv32uf-p-recoding.elf
+
+  # DOUBLE TESTS
+  # Some tests could fail because there are additional bits in the fcsr register.
+  #
+  # The following tests fail because the fcsr read operations are not ordered in regards to the
+  # FPU instructions:
+  # - elf: ../sw/riscv-tests/build/rv32ud-p-fcmp.elf
+  # - elf: ../sw/riscv-tests/build/rv32ud-p-fcvt_w.elf
+  #
+  # The following tests pass only because there are enough integer core instructions between the
+  # relevant FPU instruction and its corresponding fcsr read:
+  - elf: ../sw/riscv-tests/build/rv32ud-p-fadd.elf
+  - elf: ../sw/riscv-tests/build/rv32ud-p-fcvt.elf
+  - elf: ../sw/riscv-tests/build/rv32ud-p-fmadd.elf
+  - elf: ../sw/riscv-tests/build/rv32ud-p-fmin.elf
+  #
+  # fdiv tests includes fdiv and fsqrt which both are not supported.
+  # - elf: ../sw/riscv-tests/build/rv32ud-p-fdiv.elf
+  #
+  # The move test is not yet enabled in riscv-tests repo for double. It would probably fail on the
+  # additional bits in the fcsr.
+  # - elf: no binary yet
+  #
+  # The following tests do not check the fcsr value
+  - elf: ../sw/riscv-tests/build/rv32ud-p-fclass.elf
+  - elf: ../sw/riscv-tests/build/rv32ud-p-ldst.elf
+  - elf: ../sw/riscv-tests/build/rv32ud-p-recoding.elf
