@@ -65,7 +65,7 @@ trait HasTCDMRequestor {
   val tcdmReq = Vec(
     param.tcdmParam.numChannel,
     Decoupled(
-      new TcdmReq(
+      new RegReq(
         addrWidth     = param.tcdmParam.addrWidth,
         tcdmDataWidth = param.tcdmParam.dataWidth
       )
@@ -77,7 +77,7 @@ trait HasTCDMResponder {
   this: ReaderWriterCommomIO =>
   val tcdmRsp = Vec(
     param.tcdmParam.numChannel,
-    Flipped(Valid(new TcdmRsp(tcdmDataWidth = param.tcdmParam.dataWidth)))
+    Flipped(Valid(new RegRsp(tcdmDataWidth = param.tcdmParam.dataWidth)))
   )
 }
 

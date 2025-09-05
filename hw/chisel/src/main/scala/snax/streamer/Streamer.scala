@@ -8,9 +8,10 @@ import chisel3.util._
 
 import play.api.libs.json._
 import snax.DataPathExtension._
-import snax.csr_manager._
+import snax.reqRspManager._
 import snax.readerWriter._
 import snax.utils._
+import snax.reqRspManager.{ReqRspManager, SnaxReqRspIO}
 
 // data to accelerator interface generator
 // a vector of decoupled interface with configurable number and configurable width for each port
@@ -47,12 +48,12 @@ class StreamerDataIO(param: StreamerParam) extends Bundle {
   val tcdm_req =
     (Vec(
       param.tcdmPortsNum,
-      Decoupled(new TcdmReq(param.addrWidth, param.tcdmDataWidth))
+      Decoupled(new RegReq(param.addrWidth, param.tcdmDataWidth))
     ))
   // response interface with p_valid
   val tcdm_rsp = (Vec(
     param.tcdmPortsNum,
-    Flipped(Valid(new TcdmRsp(param.tcdmDataWidth)))
+    Flipped(Valid(new RegRsp(param.tcdmDataWidth)))
   ))
 }
 
@@ -67,7 +68,7 @@ class StreamerIO(param: StreamerParam) extends Bundle {
   val accClock = if (param.hasCrossClockDomain) Some(Input(Clock())) else None
 
   // ports for csr configuration
-  val csr = new SnaxCsrIO(param.csrAddrWidth)
+  val csr = new SnaxReqRspIO(param.csrAddrWidth)
 
   // ports for data in and out
   val data = new StreamerDataIO(
@@ -143,7 +144,7 @@ class Streamer(param: StreamerParam) extends Module with RequireAsyncReset {
 
   // csrManager instantiation
   val csrManager = Module(
-    new CsrManager(
+    new ReqRspManager(
       csrNumReadWrite,
       // 2 ready only csr for every streamer
       2,
@@ -269,7 +270,7 @@ class Streamer(param: StreamerParam) extends Module with RequireAsyncReset {
   var reader_writer_idx:           Int = 0
   var reader_writer_extension_idx: Int = 0
 
-  streamer_config_fire := csrManager.io.csr_config_out.fire
+  streamer_config_fire := csrManager.io.readWriteRegIO.fire
   streamer_busy        := cstate === sBUSY
   streamer_ready       := cstate === sIDLE
 
@@ -341,13 +342,13 @@ class Streamer(param: StreamerParam) extends Module with RequireAsyncReset {
   // --------------------------------------------------------------------------------
 
   // connect the csrManager input and streamertop csr req input
-  csrManager.io.csr_config_in.req <> io.csr.req
+  csrManager.io.reqRspIO.req <> io.csr.req
 
   // io.csr and csrManager input connection
-  csrManager.io.csr_config_in.rsp <> io.csr.rsp
+  csrManager.io.reqRspIO.rsp <> io.csr.rsp
 
   // connect the reader/writer ready and csrManager output ready
-  csrManager.io.csr_config_out.ready := streamer_ready
+  csrManager.io.readWriteRegIO.ready := streamer_ready
 
   // add performance counter for streamer
   val streamerIdle2Busy = WireInit(false.B)
@@ -362,18 +363,18 @@ class Streamer(param: StreamerParam) extends Module with RequireAsyncReset {
   }
 
   // connect the performance counter to the first ready only csr
-  csrManager.io.read_only_csr(0) := streamer_busy
-  csrManager.io.read_only_csr(1) := performance_counter
+  csrManager.io.readOnlyReg(0) := streamer_busy
+  csrManager.io.readOnlyReg(1) := performance_counter
 
   // store the configuration csr for each data mover when config fire
   val csrCfgReg = RegInit(VecInit(Seq.fill(csrNumReadWrite)(0.U(32.W))))
   val csrCfg    = Wire(Vec(csrNumReadWrite, UInt(32.W)))
   when(streamer_config_fire) {
-    csrCfgReg := csrManager.io.csr_config_out.bits
+    csrCfgReg := csrManager.io.readWriteRegIO.bits
   }
   csrCfg := Mux(
     streamer_config_fire,
-    csrManager.io.csr_config_out.bits,
+    csrManager.io.readWriteRegIO.bits,
     csrCfgReg
   )
 

@@ -17,7 +17,7 @@ class DataRequestorIO(tcdmDataWidth: Int, tcdmAddressWidth: Int, isReader: Boole
   }
 
   val out        = new Bundle {
-    val tcdmReq = Decoupled(new TcdmReq(tcdmAddressWidth, tcdmDataWidth))
+    val tcdmReq = Decoupled(new RegReq(tcdmAddressWidth, tcdmDataWidth))
   }
   val enable     = Input(Bool())
   val reqrspLink = new Bundle {

@@ -241,6 +241,7 @@ module ${cfg["tag_name"]}_streamer_wrapper #(
     .io_csr_req_bits_data  ( csr_req_bits_data_i  ),
     .io_csr_req_bits_addr  ( csr_req_bits_addr_i  ),
     .io_csr_req_bits_write ( csr_req_bits_write_i ),
+    .io_csr_req_bits_strb  ( '1                   ),
     .io_csr_req_valid      ( csr_req_valid_i      ),
     .io_csr_req_ready      ( csr_req_ready_o      ),
 

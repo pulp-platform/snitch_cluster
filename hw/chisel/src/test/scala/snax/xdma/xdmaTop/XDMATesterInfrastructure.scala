@@ -2,7 +2,8 @@ package snax.xdma.xdmaTop
 import chisel3._
 
 import chiseltest._
-import snax.csr_manager.SnaxCsrIO
+import snax.reqRspManager.SnaxReqRspIO
+import snax.reqRspManager.SnaxReqRspIO
 
 class AGUParamTest(
   val address:         Seq[Long],
@@ -22,10 +23,11 @@ class ExtParam(
 )
 
 object XDMATesterInfrastructure {
-  def write_csr(dut: Module, port: SnaxCsrIO, addr: Int, data: Int) = {
+  def write_csr(dut: Module, port: SnaxReqRspIO, addr: Int, data: Int) = {
 
     // give the data and address to the right ports
     port.req.bits.write.poke(true.B)
+    port.req.bits.strb.poke("b1111".U)
 
     port.req.bits.data.poke(data.U)
     port.req.bits.addr.poke(addr.U)
@@ -42,7 +44,7 @@ object XDMATesterInfrastructure {
     port.req.valid.poke(0.B)
   }
 
-  def read_csr(dut: Module, port: SnaxCsrIO, addr: Int) = {
+  def read_csr(dut: Module, port: SnaxReqRspIO, addr: Int) = {
     dut.clock.step(1)
 
     // give the data and address to the right ports
@@ -76,7 +78,7 @@ object XDMATesterInfrastructure {
     writerRWParam:  RWParamTest,
     writerExtParam: ExtParam,
     dut:            Module,
-    port:           SnaxCsrIO
+    port:           SnaxReqRspIO
   ): Int = {
     var currentAddress = 0
 

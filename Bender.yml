@@ -294,7 +294,7 @@ sources:
       # Level 0
       - hw/snax_alu/src/snax_alu_csr.sv
       - hw/snax_alu/src/snax_alu_pe.sv
-      - target/snitch_cluster/generated/snax_alu/snax_alu_csrman_CsrManager.sv
+      - target/snitch_cluster/generated/snax_alu/snax_alu_reqrspman_ReqRspManager.sv
       - target/snitch_cluster/generated/snax_alu/snax_alu_Streamer.sv
       # Level 1
       - hw/snax_alu/src/snax_alu_shell_wrapper.sv
@@ -318,7 +318,7 @@ sources:
   - target: cgra
     files:
       # Level 0
-      - target/snitch_cluster/generated/snax_cgra/snax_cgra_csrman_CsrManager.sv
+      - target/snitch_cluster/generated/snax_cgra/snax_cgra_reqrspman_ReqRspManager.sv
       - target/snitch_cluster/generated/snax_cgra/snax_cgra_Streamer.sv
       # Level 1
       - hw/snax_cgra/src/snax_cgra_shell_wrapper.sv
@@ -343,7 +343,7 @@ sources:
     files:
       # Level 0
       - hw/chisel_acc/generated/reshuffle/Reshuffler.sv
-      - target/snitch_cluster/generated/snax_data_reshuffler/snax_data_reshuffler_csrman_CsrManager.sv
+      - target/snitch_cluster/generated/snax_data_reshuffler/snax_data_reshuffler_reqrspman_ReqRspManager.sv
       - target/snitch_cluster/generated/snax_data_reshuffler/snax_data_reshuffler_Streamer.sv
       # Level 1
       - target/snitch_cluster/generated/snax_data_reshuffler/snax_data_reshuffler_csrman_wrapper.sv
@@ -357,7 +357,7 @@ sources:
       # Level 0
       - target/snitch_cluster/generated/snax_versacore/VersaCore.sv
       - target/snitch_cluster/generated/snax_versacore/snax_versacore_shell_wrapper.sv
-      - target/snitch_cluster/generated/snax_versacore/snax_versacore_csrman_CsrManager.sv
+      - target/snitch_cluster/generated/snax_versacore/snax_versacore_reqrspman_ReqRspManager.sv
       - target/snitch_cluster/generated/snax_versacore/snax_versacore_Streamer.sv
       # Level 1
       - target/snitch_cluster/generated/snax_versacore/snax_versacore_csrman_wrapper.sv
@@ -370,7 +370,7 @@ sources:
       # Level 0
       - hw/chisel_acc/generated/gemmx/BlockGemmRescaleSIMD.sv
       - hw/chisel_acc/src/snax_streamer_gemmX_shell_wrapper.sv
-      - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_csrman_CsrManager.sv
+      - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_reqrspman_ReqRspManager.sv
       - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_Streamer.sv
       # Level 1
       - target/snitch_cluster/generated/snax_streamer_gemmX/snax_streamer_gemmX_csrman_wrapper.sv

@@ -8,18 +8,18 @@ import chisel3.util._
 
 import play.api.libs.json._
 import snax.DataPathExtension._
-import snax.csr_manager._
 import snax.readerWriter.ReaderWriterParam
 import snax.utils._
 import snax.xdma.DesignParams._
 import snax.xdma.xdmaFrontend._
 import snax.xdma.xdmaIO.XDMADataPathCfgIO
+import snax.reqRspManager.SnaxReqRspIO
 
 class XDMATopIO(readerParam: XDMAParam, writerParam: XDMAParam) extends Bundle {
   val clusterBaseAddress = Input(
     UInt(writerParam.axiParam.addrWidth.W)
   )
-  val csrIO              = new SnaxCsrIO(32)
+  val csrIO              = new SnaxReqRspIO(32)
 
   val remoteXDMACfg = new Bundle {
     val fromRemote = Flipped(
@@ -32,7 +32,7 @@ class XDMATopIO(readerParam: XDMAParam, writerParam: XDMAParam) extends Bundle {
     val req = Vec(
       readerParam.rwParam.tcdmParam.numChannel,
       Decoupled(
-        new TcdmReq(
+        new RegReq(
           // The address width of the TCDM => Should be equal to axiAddrWidth
           readerParam.rwParam.tcdmParam.addrWidth,
           readerParam.rwParam.tcdmParam.dataWidth
@@ -43,7 +43,7 @@ class XDMATopIO(readerParam: XDMAParam, writerParam: XDMAParam) extends Bundle {
       readerParam.rwParam.tcdmParam.numChannel,
       Flipped(
         Valid(
-          new TcdmRsp(tcdmDataWidth = readerParam.rwParam.tcdmParam.dataWidth)
+          new RegRsp(tcdmDataWidth = readerParam.rwParam.tcdmParam.dataWidth)
         )
       )
     )
@@ -52,7 +52,7 @@ class XDMATopIO(readerParam: XDMAParam, writerParam: XDMAParam) extends Bundle {
     val req = Vec(
       writerParam.rwParam.tcdmParam.numChannel,
       Decoupled(
-        new TcdmReq(
+        new RegReq(
           // The address width of the TCDM => Should be equal to axiAddrWidth
           writerParam.rwParam.tcdmParam.addrWidth,
           writerParam.rwParam.tcdmParam.dataWidth

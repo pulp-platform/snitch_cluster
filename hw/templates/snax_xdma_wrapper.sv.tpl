@@ -248,6 +248,7 @@ import xdma_pkg::*;
     .io_csrIO_req_bits_data             ( csr_req_bits_data_i  ),
     .io_csrIO_req_bits_addr             ( csr_req_bits_addr_i  ),
     .io_csrIO_req_bits_write            ( csr_req_bits_write_i ),
+    .io_csrIO_req_bits_strb             ( '1                   ),
     .io_csrIO_req_valid                 ( csr_req_valid_i      ),
     .io_csrIO_req_ready                 ( csr_req_ready_o      ),
 

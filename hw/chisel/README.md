@@ -4,7 +4,7 @@ This directory contains SNAX framework components developed in Chisel. You can f
 ### Streamer
 [documentation](doc/streamer.md)
 
-### CSR Manager
+### ReqRsp Manager
 TODO
 
 ### XDMA

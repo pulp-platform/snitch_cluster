@@ -52,7 +52,7 @@ class ReaderWriter(
   val readerwriterMux = Seq.fill(readerParam.tcdmParam.numChannel)(
     Module(
       new MuxDecoupled(
-        new TcdmReq(
+        new RegReq(
           readerParam.tcdmParam.addrWidth,
           readerParam.tcdmParam.dataWidth
         ),

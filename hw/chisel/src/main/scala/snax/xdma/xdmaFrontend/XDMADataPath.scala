@@ -37,7 +37,7 @@ class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: 
       val req = Vec(
         readerParam.rwParam.tcdmParam.numChannel,
         Decoupled(
-          new TcdmReq(
+          new RegReq(
             readerParam.rwParam.tcdmParam.addrWidth,
             readerParam.rwParam.tcdmParam.dataWidth
           )
@@ -47,7 +47,7 @@ class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: 
         readerParam.rwParam.tcdmParam.numChannel,
         Flipped(
           Valid(
-            new TcdmRsp(tcdmDataWidth = readerParam.rwParam.tcdmParam.dataWidth)
+            new RegRsp(tcdmDataWidth = readerParam.rwParam.tcdmParam.dataWidth)
           )
         )
       )
@@ -56,7 +56,7 @@ class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: 
       val req = Vec(
         writerParam.rwParam.tcdmParam.numChannel,
         Decoupled(
-          new TcdmReq(
+          new RegReq(
             writerParam.rwParam.tcdmParam.addrWidth,
             writerParam.rwParam.tcdmParam.dataWidth
           )

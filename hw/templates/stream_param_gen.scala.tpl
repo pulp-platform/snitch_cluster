@@ -19,7 +19,7 @@ ${c}${', ' if not loop.last else ''}\
 package snax.streamer
  
 import snax.readerWriter._
-import snax.csr_manager._
+import snax.reqRspManager._
 import snax.utils._
  
 import chisel3._

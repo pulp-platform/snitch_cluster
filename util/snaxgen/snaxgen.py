@@ -456,10 +456,10 @@ def main():
             # CSR manager scala parameter generation
             if not acc_cfgs[i].get("snax_disable_csr_manager", False):
                 chisel_target_path = (
-                    args.chisel_path + "src/main/scala/snax/csr_manager/"
+                    args.chisel_path + "src/main/scala/snax/reqRspManager/"
                 )
-                file_name = "CsrManParamGen.scala"
-                tpl_scala_param_file = args.tpl_path + "csrman_param_gen.scala.tpl"
+                file_name = "ReqRspManagerParamGen.scala"
+                tpl_scala_param_file = args.tpl_path + "reqrspman_param_gen.scala.tpl"
                 tpl_scala_param = get_template(tpl_scala_param_file)
                 gen_file(
                     cfg=acc_cfgs[i],
@@ -511,7 +511,7 @@ def main():
             if not acc_cfgs[i].get("snax_disable_csr_manager", False):
                 gen_chisel_file(
                     chisel_path=args.chisel_path,
-                    chisel_param="snax.csr_manager.CsrManagerGen",
+                    chisel_param="snax.reqRspManager.ReqRspManagerGen",
                     gen_path=rtl_target_path,
                 )
 
