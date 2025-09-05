@@ -26,7 +26,7 @@ dependencies = [
     "pandas",
     "peakrdl",
     "peakrdl-markdown",
-    "peakrdl-rawheader@git+https://github.com/micprog/PeakRDL-rawheader.git@72cbbe03e672abc81cbcb3c8c1697a095b2e3410",
+    "peakrdl-rawheader@git+https://github.com/colluca/PeakRDL-rawheader.git@9507393cbb7a725759cb95dd9edcb6dc15f149bc",
     "prettytable",
     "progressbar2",
     "psutil",
