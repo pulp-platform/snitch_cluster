@@ -9,9 +9,9 @@ class ReqRspManagerTopGenerate extends AnyFlatSpec {
 
   emitVerilog(
     new ReqRspManager(
-      ReqRspManagerTestParameters.numReadWriteReg,
-      ReqRspManagerTestParameters.numReadOnlyReg,
-      ReqRspManagerTestParameters.addrWidth
+      IO32R32ReqRspManagerTestParameters.numReadWriteReg,
+      IO32R32ReqRspManagerTestParameters.numReadOnlyReg,
+      IO32R32ReqRspManagerTestParameters.addrWidth
     ),
     Array("--target-dir", "generated/reqRspManager")
   )

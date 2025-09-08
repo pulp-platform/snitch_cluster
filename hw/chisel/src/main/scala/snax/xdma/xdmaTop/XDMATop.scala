@@ -19,7 +19,7 @@ class XDMATopIO(readerParam: XDMAParam, writerParam: XDMAParam) extends Bundle {
   val clusterBaseAddress = Input(
     UInt(writerParam.axiParam.addrWidth.W)
   )
-  val csrIO              = new SnaxReqRspIO(32)
+  val csrIO              = new SnaxReqRspIO(addrWidth = 32, dataWidth = 32)
 
   val remoteXDMACfg = new Bundle {
     val fromRemote = Flipped(
@@ -43,7 +43,7 @@ class XDMATopIO(readerParam: XDMAParam, writerParam: XDMAParam) extends Bundle {
       readerParam.rwParam.tcdmParam.numChannel,
       Flipped(
         Valid(
-          new RegRsp(tcdmDataWidth = readerParam.rwParam.tcdmParam.dataWidth)
+          new RegRsp(dataWidth = readerParam.rwParam.tcdmParam.dataWidth)
         )
       )
     )

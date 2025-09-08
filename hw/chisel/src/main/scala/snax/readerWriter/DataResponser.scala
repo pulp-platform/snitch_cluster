@@ -12,7 +12,7 @@ import snax.utils._
 
 class DataResponserIO(tcdmDataWidth: Int = 64, numChannel: Int = 8) extends Bundle {
   val in         = new Bundle {
-    val tcdmRsp = Flipped(Valid(new RegRsp(tcdmDataWidth = tcdmDataWidth)))
+    val tcdmRsp = Flipped(Valid(new RegRsp(dataWidth = tcdmDataWidth)))
   }
   val out        = new Bundle {
     val data           = Decoupled(UInt(tcdmDataWidth.W))

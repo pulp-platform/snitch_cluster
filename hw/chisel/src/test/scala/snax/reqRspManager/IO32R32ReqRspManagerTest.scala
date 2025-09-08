@@ -10,10 +10,10 @@ import snax.reqRspManager.ReqRspManager
 trait HasReqRspManagerTest extends HasRegRspManagerTestUtils {
   def baseReqRspManagerTest[T <: ReqRspManager](dut: T) = {
     // ***********************************************************************
-    // Write values to the CSRs (valid)
+    // Write values to the Registers (valid)
     // ***********************************************************************
 
-    // First write some values to the CSR:
+    // First write some values to the Register:
     // 1. Write 10 to address 1
     // 2. Write 20 to address 2
     // 3. Write 30 to address 3
@@ -24,12 +24,10 @@ trait HasReqRspManagerTest extends HasRegRspManagerTestUtils {
     writeReg(dut, 3, 30)
     writeReg(dut, 4, 40)
     writeReg(dut, 5, 0xFFFFFFFFL, 0b0001)
-
-
     dut.clock.step(5)
 
     // ***********************************************************************
-    // Read values of the CSRs (valid)
+    // Read values of the Registers (valid)
     // ***********************************************************************
     assert(10 == readReg(dut, 1))
     assert(20 == readReg(dut, 2))
@@ -40,7 +38,7 @@ trait HasReqRspManagerTest extends HasRegRspManagerTestUtils {
     dut.clock.step(5)
 
     // ***********************************************************************
-    // Write values to the CSRs with all strobes = 0 (valid)
+    // Write values to the Registers with all strobes = 0 (valid)
     // ***********************************************************************
 
     writeReg(dut, 1, 10, 0x0)
@@ -61,7 +59,7 @@ trait HasReqRspManagerTest extends HasRegRspManagerTestUtils {
 
     dut.clock.step(5)
     // ***********************************************************************
-    // Write to the CSRs without asserting valid
+    // Write to the Registers without asserting valid
     // ***********************************************************************
 
     // Write without asserting valid
@@ -109,7 +107,7 @@ trait HasReqRspManagerTest extends HasRegRspManagerTestUtils {
     dut.io.reqRspIO.rsp.valid.expect(1.B)
     dut.io.reqRspIO.rsp.bits.data.expect(10.U)
 
-    // the csr should not be ready to accept new requests
+    // the register should not be ready to accept new requests
     dut.io.reqRspIO.rsp.ready.expect(0.B)
 
     // send a new request which should be ignored
@@ -129,7 +127,7 @@ trait HasReqRspManagerTest extends HasRegRspManagerTestUtils {
     dut.io.reqRspIO.rsp.valid.expect(1.B)
     dut.io.reqRspIO.rsp.bits.data.expect(10.U)
 
-    // the csr should not be ready to accept new requests
+    // the register should not be ready to accept new requests
     dut.io.reqRspIO.rsp.ready.expect(0.B)
 
     // assert ready
@@ -139,13 +137,13 @@ trait HasReqRspManagerTest extends HasRegRspManagerTestUtils {
 
     // response should no longer be valid
     dut.io.reqRspIO.rsp.valid.expect(0.B)
-    // the csr should be ready to accept new requests
+    // the register should be ready to accept new requests
     dut.io.reqRspIO.rsp.ready.expect(1.B)
 
     dut.clock.step(5)
 
     // ***********************************************************************
-    // Test output mechanism of the CSR manager
+    // Test output mechanism of the ReqRsp manager
     // ***********************************************************************
 
     dut.io.readWriteRegIO.valid.expect(0.B)
@@ -177,21 +175,21 @@ trait HasReqRspManagerTest extends HasRegRspManagerTestUtils {
     dut.io.readWriteRegIO.valid.expect(1.B)
 
     // ***********************************************************************
-    // Test accesing status CSR when accelerator is busy
+    // Test accesing status register when accelerator is busy
     // ***********************************************************************
 
     dut.clock.step(1)
     dut.io.readWriteRegIO.ready.poke(0.B)
 
-    // accesing status CSR
+    // accesing status register
     dut.io.reqRspIO.req.valid.poke(1.B)
-    dut.io.reqRspIO.req.bits.data.poke(0.U)
+    dut.io.reqRspIO.req.bits.data.poke(1.U)
     dut.io.reqRspIO.req.bits.addr
-      .poke((ReqRspManagerTestParameters.numReadWriteReg - 1).U)
+      .poke((IO32R32ReqRspManagerTestParameters.numReadWriteReg - 1).U)
     dut.io.reqRspIO.req.bits.write.poke(1.B)
     dut.clock.step(1)
 
-    //  accelerator is busy, so request not ready, the write csr cmd is stalled
+    //  accelerator is busy, so request not ready, the write register cmd is stalled
     dut.io.reqRspIO.req.ready.expect(0.B)
 
     dut.clock.step(5)
@@ -203,14 +201,14 @@ trait HasReqRspManagerTest extends HasRegRspManagerTestUtils {
     dut.io.readWriteRegIO.ready.poke(1.B)
 
     dut.clock.step(1)
-    // CsrManager is not stalled any more
+    // ReqRspManager is not stalled any more
     dut.io.reqRspIO.req.ready.expect(1.B)
 
     // ***********************************************************************
-    // test read only csr
+    // test read only register
     // ***********************************************************************
 
-    // drive the read only csr
+    // drive the read only register
     dut.io.readOnlyReg(0).poke(1.U)
     dut.io.readOnlyReg(1).poke(2.U)
 
@@ -218,17 +216,17 @@ trait HasReqRspManagerTest extends HasRegRspManagerTestUtils {
     assert(
       1 == readReg(
         dut,
-        0 + ReqRspManagerTestParameters.numReadWriteReg
+        0 + IO32R32ReqRspManagerTestParameters.numReadWriteReg
       )
     )
     assert(
       2 == readReg(
         dut,
-        1 + ReqRspManagerTestParameters.numReadWriteReg
+        1 + IO32R32ReqRspManagerTestParameters.numReadWriteReg
       )
     )
 
-    // drive the read only csr
+    // drive the read only register
     dut.io.readOnlyReg(0).poke(3.U)
     dut.io.readOnlyReg(1).poke(4.U)
 
@@ -236,27 +234,27 @@ trait HasReqRspManagerTest extends HasRegRspManagerTestUtils {
     assert(
       3 == readReg(
         dut,
-        0 + ReqRspManagerTestParameters.numReadWriteReg
+        0 + IO32R32ReqRspManagerTestParameters.numReadWriteReg
       )
     )
     assert(
       4 == readReg(
         dut,
-        1 + ReqRspManagerTestParameters.numReadWriteReg
+        1 + IO32R32ReqRspManagerTestParameters.numReadWriteReg
       )
     )
 
   }
 }
 
-class ReqRspManagerTest extends AnyFlatSpec with ChiselScalatestTester with Matchers with HasReqRspManagerTest {
+class IO32R32ReqRspManagerTest extends AnyFlatSpec with ChiselScalatestTester with Matchers with HasReqRspManagerTest {
 
   "DUT" should "pass" in {
     test(
       new ReqRspManager(
-        ReqRspManagerTestParameters.numReadWriteReg,
-        ReqRspManagerTestParameters.numReadOnlyReg,
-        ReqRspManagerTestParameters.addrWidth
+        IO32R32ReqRspManagerTestParameters.numReadWriteReg,
+        IO32R32ReqRspManagerTestParameters.numReadOnlyReg,
+        IO32R32ReqRspManagerTestParameters.addrWidth
       )
     ).withAnnotations(Seq(WriteVcdAnnotation)) { dut =>
       baseReqRspManagerTest(dut)

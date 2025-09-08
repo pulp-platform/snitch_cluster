@@ -47,7 +47,7 @@ class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: 
         readerParam.rwParam.tcdmParam.numChannel,
         Flipped(
           Valid(
-            new RegRsp(tcdmDataWidth = readerParam.rwParam.tcdmParam.dataWidth)
+            new RegRsp(dataWidth = readerParam.rwParam.tcdmParam.dataWidth)
           )
         )
       )

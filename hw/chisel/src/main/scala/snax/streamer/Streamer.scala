@@ -68,7 +68,7 @@ class StreamerIO(param: StreamerParam) extends Bundle {
   val accClock = if (param.hasCrossClockDomain) Some(Input(Clock())) else None
 
   // ports for csr configuration
-  val csr = new SnaxReqRspIO(param.csrAddrWidth)
+  val csr = new SnaxReqRspIO(param.csrAddrWidth, 32)
 
   // ports for data in and out
   val data = new StreamerDataIO(
@@ -145,11 +145,13 @@ class Streamer(param: StreamerParam) extends Module with RequireAsyncReset {
   // csrManager instantiation
   val csrManager = Module(
     new ReqRspManager(
-      csrNumReadWrite,
+      numReadWriteReg = csrNumReadWrite,
       // 2 ready only csr for every streamer
-      2,
-      param.csrAddrWidth,
-      param.tagName
+      numReadOnlyReg  = 2,
+      addrWidth       = param.csrAddrWidth,
+      ioDataWidth     = 32,
+      regDataWidth    = 32,
+      moduleTagName   = param.tagName
     )
   )
 
