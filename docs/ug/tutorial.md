@@ -315,9 +315,16 @@ The approach we use is to generate the header file with a Python script. An inpu
 
 ### Verifying your application
 
-When developing an application, it is good practice to verify the results of your application against a golden model. The traditional approach is to generate expected results in your data generation script, dump these into the header file and extend your application to check its results against the expected results, _in simulation_! Every cycle spent on verification is simulated, and this may take a significant time for large designs. We refer to this approach as the _Built-in self-test (BIST)_ approach.
+When developing an application, it is good practice to verify the results of your application against a golden model. The traditional approach is to generate expected results in your data generation script, dump these into the header file and extend your application to check its results against the expected results, _in simulation_! We refer to this approach as the _Built-in self-test (BIST)_ approach.
+The built-in self-test logic could e.g. count the number of errors and return that as an exit code. Any non-zero return code indicates a failure. When using Verilator, the return code of the simulated Snitch binary will be propagated to the return code of the simulation command, and can be inspected e.g. by running the following command in a bash terminal:
+```bash
+echo $?
+```
+When using QuestaSim and VCS, the return code will be printed to stdout by the simulation command.
 
-A better alternative is to read out the results from your application at the end of the simulation, and compare them outside of the simulation. You may have a look at our AXPY's [`verify.py`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/sw/kernels/blas/axpy/scripts/verify.py) script as an example. We can reuse this script to verify our application, by prepending it to the usual simulation command, as:
+The problem with the BIST approach is that every cycle spent on verification is simulated, and this may take a significant time for large designs.
+
+A better alternative is to read out the results from the simulation memory at the end of the simulation, and compare them outside of the simulation. You may have a look at our AXPY's [`verify.py`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/sw/kernels/blas/axpy/scripts/verify.py) script as an example. We can reuse this script to verify our application, by prepending it to the usual simulation command, as:
 
 ```shell
 sw/kernels/blas/axpy/scripts/verify.py target/sim/build/bin/snitch_cluster.vlt sw/kernels/misc/tutorial/build/tutorial.elf
