@@ -10,9 +10,9 @@ import snax.readerWriter.ReaderWriterParam
  */
 
 // AXI Params
-class AXIParam(val dataWidth: Int = 512, val addrWidth: Int = 48)
+class XDMAAXIParam(val dataWidth: Int = 512, val addrWidth: Int = 48)
 
-class CrossClusterParam(
+class XDMACrossClusterParam(
   val maxMulticastDest:     Int = 4,
   val maxTemporalDimension: Int = 5,
   val maxSpatialDimension:  Int = 1,
@@ -26,6 +26,9 @@ class CrossClusterParam(
   val channelNum:       Int = AxiDataWidth / wordlineWidth
 }
 
+// Cfg IO Params
+class XDMAConfigParam(val addrWidth: Int, val dataWidth: Int)
+
 // DMA Params
 class XDMADataPathParam(
   val rwParam:  ReaderWriterParam,
@@ -33,8 +36,9 @@ class XDMADataPathParam(
 )
 
 class XDMAParam(
-  val axiParam:          AXIParam,
-  val crossClusterParam: CrossClusterParam,
+  val cfgParam:          XDMAConfigParam,
+  val axiParam:          XDMAAXIParam,
+  val crossClusterParam: XDMACrossClusterParam,
   rwParam:               ReaderWriterParam,
   extParam:              Seq[HasDataPathExtension] = Seq[HasDataPathExtension]()
 ) extends XDMADataPathParam(rwParam, extParam)

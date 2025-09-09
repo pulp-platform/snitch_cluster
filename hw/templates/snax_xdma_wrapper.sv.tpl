@@ -3,12 +3,15 @@
 // SPDX-License-Identifier: SHL-0.51
 
 <%
-  num_tcdm_ports = 0
-
   num_tcdm_ports = round(cfg["dma_data_width"] / cfg["data_width"] * 2)
   ## Half of them are used for the reader, and half of them are used for writer
 
   tcdm_addr_width = cfg["tcdm"]["size"].bit_length() - 1 + 10
+
+  try:
+    xdma_cfg_io_width = cfg["xdma_cfg_io_width"]
+  except Exception:
+    xdma_cfg_io_width = 32
 %>
 //-----------------------------
 // xdma wrapper
@@ -63,13 +66,14 @@ import xdma_pkg::*;
   // CSR control ports
   //-----------------------------
   // Request
-  input  logic [31:0] csr_req_bits_data_i,
   input  logic [31:0] csr_req_bits_addr_i,
   input  logic        csr_req_bits_write_i,
+  input  logic [${xdma_cfg_io_width-1}:0] csr_req_bits_data_i,
+  input  logic [${int(xdma_cfg_io_width/8)-1}:0] csr_req_bits_strb_i,
   input  logic        csr_req_valid_i,
   output logic        csr_req_ready_o,
   // Response
-  output logic [31:0] csr_rsp_bits_data_o,
+  output logic [${xdma_cfg_io_width-1}:0] csr_rsp_bits_data_o,
   output logic        csr_rsp_valid_o,
   input  logic        csr_rsp_ready_i,
   //-----------------------------
@@ -248,7 +252,7 @@ import xdma_pkg::*;
     .io_csrIO_req_bits_data             ( csr_req_bits_data_i  ),
     .io_csrIO_req_bits_addr             ( csr_req_bits_addr_i  ),
     .io_csrIO_req_bits_write            ( csr_req_bits_write_i ),
-    .io_csrIO_req_bits_strb             ( '1                   ),
+    .io_csrIO_req_bits_strb             ( csr_req_bits_strb_i  ),
     .io_csrIO_req_valid                 ( csr_req_valid_i      ),
     .io_csrIO_req_ready                 ( csr_req_ready_o      ),
 

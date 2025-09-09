@@ -19,7 +19,7 @@ class XDMATopIO(readerParam: XDMAParam, writerParam: XDMAParam) extends Bundle {
   val clusterBaseAddress = Input(
     UInt(writerParam.axiParam.addrWidth.W)
   )
-  val csrIO              = new SnaxReqRspIO(addrWidth = 32, dataWidth = 32)
+  val csrIO = new SnaxReqRspIO(addrWidth = readerParam.cfgParam.addrWidth, dataWidth = readerParam.cfgParam.dataWidth)
 
   val remoteXDMACfg = new Bundle {
     val fromRemote = Flipped(
@@ -187,12 +187,17 @@ object XDMATopGen extends App {
     }
    */
 
-  val axiParam = new AXIParam(
-    dataWidth = parsedArgs("axiDataWidth").toInt,
-    addrWidth = parsedArgs("axiAddrWidth").toInt
+  val cfgParam = new XDMAConfigParam(
+    addrWidth = 32,
+    dataWidth = (parsedXdmaCfg \ "cfg_io_width").as[Int]
   )
 
-  val crossClusterParam = new CrossClusterParam(
+  val axiParam = new XDMAAXIParam(
+    addrWidth = parsedArgs("axiAddrWidth").toInt,
+    dataWidth = parsedArgs("axiDataWidth").toInt
+  )
+
+  val crossClusterParam = new XDMACrossClusterParam(
     maxMulticastDest     = (parsedXdmaCfg \ "max_multicast").as[Int],
     maxTemporalDimension = (parsedXdmaCfg \ "max_dimension").as[Int],
     tcdmSize             = (parsedXdmaCfg \ "max_mem_size").as[Int],
@@ -289,12 +294,14 @@ return new ${i._1}(${i._2
     new XDMATop(
       clusterName = parsedArgs.getOrElse("clusterName", ""),
       readerParam = new XDMAParam(
+        cfgParam,
         axiParam,
         crossClusterParam,
         readerParam,
         readerExtensionParam
       ),
       writerParam = new XDMAParam(
+        cfgParam,
         axiParam,
         crossClusterParam,
         writerParam,

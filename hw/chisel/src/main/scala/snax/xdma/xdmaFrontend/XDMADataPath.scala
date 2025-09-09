@@ -11,6 +11,7 @@ import snax.utils._
 import snax.xdma.DesignParams._
 import snax.xdma.xdmaIO.XDMADataPathCfgIO
 import snax.xdma.xdmaIO.XDMAIntraClusterCfgIO
+import snax.xdma.xdmaTop.XDMATopGen.cfgParam
 
 class XDMADataPath(readerParam: XDMAParam, writerParam: XDMAParam, clusterName: String = "unnamed_cluster")
     extends Module
@@ -339,14 +340,16 @@ object XDMADataPathEmitter extends App {
   emitVerilog(
     new XDMADataPath(
       readerParam = new XDMAParam(
-        axiParam          = new AXIParam,
-        crossClusterParam = new CrossClusterParam,
+        cfgParam          = new XDMAConfigParam(addrWidth = 32, dataWidth = 32),
+        axiParam          = new XDMAAXIParam,
+        crossClusterParam = new XDMACrossClusterParam,
         rwParam           = new ReaderWriterParam,
         extParam          = Seq()
       ),
       writerParam = new XDMAParam(
-        axiParam          = new AXIParam,
-        crossClusterParam = new CrossClusterParam,
+        cfgParam          = new XDMAConfigParam(addrWidth = 32, dataWidth = 32),
+        axiParam          = new XDMAAXIParam,
+        crossClusterParam = new XDMACrossClusterParam,
         rwParam           = new ReaderWriterParam,
         extParam          = Seq()
       )

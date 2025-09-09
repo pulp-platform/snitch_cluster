@@ -475,7 +475,7 @@ class XDMAInterClusterCfgIODeserializer(readerwriterParam: XDMAParam) extends Mo
   )
 }
 
-class XDMADataPathCfgIO(axiParam: AXIParam, crossClusterParam: CrossClusterParam) extends Bundle {
+class XDMADataPathCfgIO(axiParam: XDMAAXIParam, crossClusterParam: XDMACrossClusterParam) extends Bundle {
   val readyToTransfer       = Bool()
   val taskID                = UInt(4.W)
   val length                = UInt(crossClusterParam.tcdmAddressWidth.W)

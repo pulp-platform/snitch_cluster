@@ -1003,6 +1003,7 @@ total_snax_tcdm_ports = total_snax_narrow_ports + total_snax_wide_ports
     //-----------------------------
     // Request
     .csr_req_bits_data_i  ( snax_csr_req_data [${idx}] ),
+    .csr_req_bits_strb_i   ( '1 ),
     .csr_req_bits_addr_i  ( snax_csr_req_addr [${idx}] ),
     .csr_req_bits_write_i ( snax_csr_req_write[${idx}] ),
     .csr_req_valid_i ( snax_csr_req_valid[${idx}] ),

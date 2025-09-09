@@ -38,16 +38,18 @@ class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
   "The XDMATop local loopback test should pass" in test(
     new XDMATop(
       readerParam = new XDMAParam(
-        axiParam          = new AXIParam,
-        crossClusterParam = new CrossClusterParam,
+        cfgParam          = new XDMAConfigParam(addrWidth = 32, dataWidth = 32),
+        axiParam          = new XDMAAXIParam,
+        crossClusterParam = new XDMACrossClusterParam,
         rwParam           = new ReaderWriterParam(
           configurableByteMask = false,
           configurableChannel  = true
         )
       ),
       writerParam = new XDMAParam(
-        axiParam          = new AXIParam,
-        crossClusterParam = new CrossClusterParam,
+        cfgParam          = new XDMAConfigParam(addrWidth = 32, dataWidth = 32),
+        axiParam          = new XDMAAXIParam,
+        crossClusterParam = new XDMACrossClusterParam,
         rwParam           = new ReaderWriterParam(
           configurableByteMask = true,
           configurableChannel  = true
@@ -532,20 +534,49 @@ class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
   }
 }
 
-object xdmaTopEmitter extends App {
+object xdmaTopWith32bCfgEmitter extends App {
   _root_.circt.stage.ChiselStage.emitSystemVerilogFile(
     new XDMATop(
       clusterName = "test_cluster",
       readerParam = new XDMAParam(
-        new AXIParam,
-        new CrossClusterParam(4),
-        new ReaderWriterParam,
+        cfgParam          = new XDMAConfigParam(addrWidth = 32, dataWidth = 32),
+        axiParam          = new XDMAAXIParam,
+        crossClusterParam = new XDMACrossClusterParam(4),
+        rwParam           = new ReaderWriterParam,
         Seq()
       ),
       writerParam = new XDMAParam(
-        new AXIParam,
-        new CrossClusterParam(4),
-        new ReaderWriterParam,
+        cfgParam          = new XDMAConfigParam(addrWidth = 32, dataWidth = 32),
+        axiParam          = new XDMAAXIParam,
+        crossClusterParam = new XDMACrossClusterParam(4),
+        rwParam           = new ReaderWriterParam,
+        Seq(
+          new HasVerilogMemset,
+          new HasMaxPool,
+          new HasTransposer(Seq(8), Seq(8), Seq(8))
+        )
+      )
+    ),
+    args = Array("--target-dir", "generated/xdma")
+  )
+}
+
+object xdmaTopWith64bCfgEmitter extends App {
+  _root_.circt.stage.ChiselStage.emitSystemVerilogFile(
+    new XDMATop(
+      clusterName = "test_cluster",
+      readerParam = new XDMAParam(
+        cfgParam          = new XDMAConfigParam(addrWidth = 48, dataWidth = 64),
+        axiParam          = new XDMAAXIParam,
+        crossClusterParam = new XDMACrossClusterParam(4),
+        rwParam           = new ReaderWriterParam,
+        Seq()
+      ),
+      writerParam = new XDMAParam(
+        cfgParam          = new XDMAConfigParam(addrWidth = 48, dataWidth = 64),
+        axiParam          = new XDMAAXIParam,
+        crossClusterParam = new XDMACrossClusterParam(4),
+        rwParam           = new ReaderWriterParam,
         Seq(
           new HasVerilogMemset,
           new HasMaxPool,

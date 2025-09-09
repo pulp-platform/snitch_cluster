@@ -39,7 +39,7 @@ class XDMACtrlIO(readerParam: XDMAParam, writerParam: XDMAParam) extends Bundle 
     val toRemote   = Decoupled(UInt(readerParam.axiParam.dataWidth.W))
   }
   // This is the port for CSR Manager to SNAX port
-  val csrIO              = new SnaxReqRspIO(addrWidth = 32, dataWidth = 32)
+  val csrIO = new SnaxReqRspIO(addrWidth = readerParam.cfgParam.addrWidth, dataWidth = readerParam.cfgParam.dataWidth)
 
   // The external port to indicate the finish of one task
   val remoteTaskFinished = Input(Bool())
@@ -247,8 +247,9 @@ class XDMACtrl(readerparam: XDMAParam, writerparam: XDMAParam, clusterName: Stri
         1, // The start CSR
       numReadOnlyReg  = 7,
       // Set to four at current, 1) The number of submitted local request; 2) The number of submitted remote request; 3) The number of finished local request; 4) The number of finished remote request; 5) The XDMA task performance counter 6) Reader performance counter 7) Writer performance counter
-      addrWidth       = 32,
-      ioDataWidth     = 32,
+      addrWidth       = readerparam.cfgParam.addrWidth,
+      ioDataWidth     = readerparam.cfgParam.dataWidth,
+      regDataWidth    = 32,
       // Set a name for the module class so that it will not overlapped with other csrManagers in user-defined accelerators
       moduleTagName   = s"${clusterName}_xdma_"
     )

@@ -154,6 +154,8 @@
         isa: "rv32ima",
         snax_xdma_cfg: {
             bender_target: ["snax_KUL_cluster_xdma"],
+            // ReqrspManager Cfg
+            cfg_io_width: 32,
             // Cross Cluster Calling Cfg
             max_multicast: 25,
             max_dimension: 5,

@@ -9,9 +9,7 @@ import chisel3._
 import chiseltest._
 import org.scalatest.freespec.AnyFreeSpec
 import snax.readerWriter.ReaderWriterParam
-import snax.xdma.DesignParams.AXIParam
-import snax.xdma.DesignParams.CrossClusterParam
-import snax.xdma.DesignParams.XDMAParam
+import snax.xdma.DesignParams.{XDMAAXIParam, XDMAConfigParam, XDMACrossClusterParam, XDMAParam}
 import snax.xdma.xdmaFrontend.XDMADataPath
 
 class ReaderWriterTesterParam(
@@ -29,16 +27,18 @@ class DMADataPathTester extends AnyFreeSpec with ChiselScalatestTester {
   "XDMADataPath behavior is as expected" in test(
     new XDMADataPath(
       readerParam = new XDMAParam(
-        axiParam          = new AXIParam,
-        crossClusterParam = new CrossClusterParam,
+        cfgParam          = new XDMAConfigParam(addrWidth = 32, dataWidth = 32),
+        axiParam          = new XDMAAXIParam,
+        crossClusterParam = new XDMACrossClusterParam,
         rwParam           = new ReaderWriterParam(
           configurableByteMask = false,
           configurableChannel  = true
         )
       ),
       writerParam = new XDMAParam(
-        axiParam          = new AXIParam,
-        crossClusterParam = new CrossClusterParam,
+        cfgParam          = new XDMAConfigParam(addrWidth = 32, dataWidth = 32),
+        axiParam          = new XDMAAXIParam,
+        crossClusterParam = new XDMACrossClusterParam,
         rwParam           = new ReaderWriterParam(
           configurableByteMask = true,
           configurableChannel  = true

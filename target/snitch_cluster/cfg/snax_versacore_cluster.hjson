@@ -246,6 +246,7 @@ Naming convention:
             [
                 snax_versacore_cluster_xdma
             ]
+            cfg_io_width: 32
             max_multicast: 16
             max_dimension: 5
             max_mem_size: 4096
