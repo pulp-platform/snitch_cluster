@@ -52,7 +52,7 @@ abstract class DataPathExtension(implicit extensionParam: DataPathExtensionParam
   val io = IO(new Bundle {
     val csr_i = Input(Vec(extensionParam.userCsrNum, UInt(32.W))) // CSR with the first one always byPass signal
     val start_i  = Input(Bool()) // The start signal triggers the local register to buffer the csr information
-    val bypass_i = Input(Bool()) // The signal controlling a pair of mux / demux to bypass the extension
+    val enable_i = Input(Bool()) // The signal controlling a pair of mux / demux to enable the extension
     val data_i   = Flipped(Decoupled(UInt(extensionParam.dataWidth.W)))
     val data_o   = Decoupled(UInt(extensionParam.dataWidth.W))
     val busy_o   = Output(Bool())
@@ -77,23 +77,23 @@ abstract class DataPathExtension(implicit extensionParam: DataPathExtensionParam
   private[this] val inputDemux = Module(new DemuxDecoupled(UInt(extensionParam.dataWidth.W), numOutput = 2) {
     override def desiredName = "DataPathExtension_Demux_W" + extensionParam.dataWidth.toString
   })
-  inputDemux.io.sel := io.bypass_i
+  inputDemux.io.sel := io.enable_i
   inputDemux.io.in <> io.data_i
-  // When bypass is 0, io.out(0) is connected with extension's input
-  inputDemux.io.out(0) <> ext_data_i
-  // When bypass is 1, io.out(1) is connected to bypass signal
-  inputDemux.io.out(1) <> bypass_data
+  // When enable is 1, io.out(1) is connected with extension's input
+  inputDemux.io.out(1) <> ext_data_i
+  // When enable is 0, io.out(1) is connected to bypass signal
+  inputDemux.io.out(0) <> bypass_data
 
   // Structure to bypass extension: Mux
   private[this] val outputMux = Module(new MuxDecoupled(UInt(extensionParam.dataWidth.W), numInput = 2) {
     override def desiredName = "DataPathExtension_Mux_W" + extensionParam.dataWidth.toString
   })
-  outputMux.io.sel := io.bypass_i
+  outputMux.io.sel := io.enable_i
   outputMux.io.out <> io.data_o
-  // When bypass is 0, io.in(0) is connected with extension's output
-  outputMux.io.in(0) <> ext_data_o
-  // When bypass is 1, io.in(1) is connected to bypass signal
-  outputMux.io.in(1) <> bypass_data
+  // When enable is 1, io.in(1) is connected with extension's output
+  outputMux.io.in(1) <> ext_data_o
+  // When enable is 0, io.in(0) is connected to bypass signal
+  outputMux.io.in(0) <> bypass_data
 }
 
 /** The parent Class for the integration of DMA Extension written in SystemVerilog Before the integration of the custom

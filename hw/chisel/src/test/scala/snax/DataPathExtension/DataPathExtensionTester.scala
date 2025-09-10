@@ -23,7 +23,7 @@ class DataPathExtensionHarness(extension: HasDataPathExtension) extends Module w
 
   io.busy_o       := dut.io.busy_o
   dut.io.csr_i    := io.csr_i
-  dut.io.bypass_i := io.bypass_i
+  dut.io.enable_i := io.enable_i
   dut.io.start_i  := io.start_i
 
   io.data_i -||> dut.io.data_i
@@ -46,7 +46,7 @@ abstract class DataPathExtensionTester(
         dut.io.csr_i.zip(csr_vec).foreach { case (csrPort, csrData) =>
           csrPort.poke(csrData)
         }
-        dut.io.bypass_i.poke(false) // Bypass disabled
+        dut.io.enable_i.poke(true) // Enable
 
         var concurrent_threads =
           new chiseltest.internal.TesterThreadList(Seq())

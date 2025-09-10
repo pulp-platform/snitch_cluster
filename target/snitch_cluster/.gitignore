@@ -14,6 +14,7 @@
 # Automatically generated files
 /test/testharness.sv
 
+/sw/snax/versacore/include/snax_versacore_stationarity.h
 /sw/**/include/*csr_addr_map.h
 /sw/**/include/*params.h
 

@@ -250,8 +250,8 @@ Naming convention:
             max_multicast: 16
             max_dimension: 5
             max_mem_size: 4096
-            reader_buffer: 12
-            writer_buffer: 12
+            reader_buffer: 4
+            writer_buffer: 4
             reader_agu_temporal_dimension: 5
             writer_agu_temporal_dimension: 5
             writer_extensions:

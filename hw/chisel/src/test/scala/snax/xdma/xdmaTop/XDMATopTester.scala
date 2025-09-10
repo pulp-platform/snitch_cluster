@@ -93,11 +93,11 @@ class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
       )
 
       var writerExtParam = new ExtParam(
-        bypassMemset     = 1,
+        enableMemset     = 0,
         memsetValue      = 0,
-        bypassMaxPool    = 1,
+        enableMaxPool    = 0,
         maxPoolPeriod    = 0,
-        bypassTransposer = 1
+        enableTransposer = 0
       )
 
       // Write the configuration
@@ -158,11 +158,11 @@ class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
       )
 
       writerExtParam = new ExtParam(
-        bypassMemset     = 0,
+        enableMemset     = 1,
         memsetValue      = 0,
-        bypassMaxPool    = 1,
+        enableMaxPool    = 0,
         maxPoolPeriod    = 0,
-        bypassTransposer = 1
+        enableTransposer = 0
       )
 
       // Write the configuration
@@ -217,11 +217,11 @@ class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
       )
 
       writerExtParam = new ExtParam(
-        bypassMemset     = 0,
+        enableMemset     = 1,
         memsetValue      = 0xff,
-        bypassMaxPool    = 1,
+        enableMaxPool    = 0,
         maxPoolPeriod    = 0,
-        bypassTransposer = 1
+        enableTransposer = 0
       )
 
       // Write the configuration
@@ -310,11 +310,11 @@ class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
       )
 
       writerExtParam = new ExtParam(
-        bypassMemset     = 1,
+        enableMemset     = 0,
         memsetValue      = 0xff,
-        bypassMaxPool    = 1,
+        enableMaxPool    = 0,
         maxPoolPeriod    = 0,
-        bypassTransposer = 0
+        enableTransposer = 1
       )
 
       // Write the configuration
@@ -371,11 +371,11 @@ class XDMATopTester extends AnyFreeSpec with ChiselScalatestTester {
       )
 
       writerExtParam = new ExtParam(
-        bypassMemset     = 1,
-        memsetValue      = 0x00,
-        bypassMaxPool    = 1,
+        enableMemset     = 0,
+        memsetValue      = 0,
+        enableMaxPool    = 0,
         maxPoolPeriod    = 0,
-        bypassTransposer = 1
+        enableTransposer = 0
       )
 
       // Write the configuration

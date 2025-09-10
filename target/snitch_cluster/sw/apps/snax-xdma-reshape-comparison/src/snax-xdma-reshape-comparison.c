@@ -27,54 +27,18 @@ int main() {
         snrt_dma_start_1d(tcdm_in, input_matrix, matrix_size * sizeof(uint8_t));
         snrt_dma_wait_all();
 
-        // --------------------- Configure the Ext --------------------- //
-
-        if (xdma_disable_dst_ext(0) != 0) {
-            printf("Error in disabling xdma writer extension 0\r\n");
-            err++;
-        }
-
-        if (xdma_disable_dst_ext(1) != 0) {
-            printf("Error in disabling xdma writer extension 1\r\n");
-            err++;
-        }
-
-        if (xdma_disable_src_ext(2) != 0) {
-            printf("Error in disabling reader xdma extension 2\n");
-            err++;
-        }
-
-        if (xdma_disable_src_ext(3) != 0) {
-            printf("Error in disabling reader xdma extension 3\n");
-            err++;
-        }
-
-        if (xdma_disable_src_ext(4) != 0) {
-            printf("Error in disabling reader xdma extension 4\n");
-            err++;
-        }
-
-        if (xdma_disable_src_ext(0) != 0) {
-            printf("Error in disabling xdma reader extension 0\r\n");
-            err++;
-        }
-
-        if (xdma_disable_src_ext(1) != 0) {
-            printf("Error in disabling xdma reader extension 1\r\n");
-            err++;
-        }
         // --------------------- Configure the AGU --------------------- //
-        xdma_memcpy_nd(tcdm_in, tcdm_out, spatial_stride_src_xdma,
-                       spatial_stride_dst_xdma, temporal_dimension_src_xdma,
-                       temporal_strides_src_xdma, temporal_bounds_src_xdma,
-                       temporal_dimension_dst_xdma, temporal_strides_dst_xdma,
-                       temporal_bounds_dst_xdma, 0xFFFFFFFF, 0xFFFFFFFF,
-                       0xFFFFFFFF);
+        snax_xdma_memcpy_nd(
+            tcdm_in, tcdm_out, spatial_stride_src_xdma, spatial_stride_dst_xdma,
+            temporal_dimension_src_xdma, temporal_strides_src_xdma,
+            temporal_bounds_src_xdma, temporal_dimension_dst_xdma,
+            temporal_strides_dst_xdma, temporal_bounds_dst_xdma, 0xFFFFFFFF,
+            0xFFFFFFFF, 0xFFFFFFFF);
 
-        int task_id = xdma_start();
-        xdma_local_wait(task_id);
+        int task_id = snax_xdma_start();
+        snax_xdma_local_wait(task_id);
         printf("xdma task %d is done in %d cycles\n", task_id,
-               xdma_last_task_cycle());
+               snax_xdma_last_task_cycle());
         // --------------------- Checking the Results --------------------- //
         // for (int i = 0; i < matrix_size; i++) {
         //     if (tcdm_out[i] != golden_output_matrix[i]) {

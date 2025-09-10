@@ -15,11 +15,11 @@ class AGUParamTest(
 class RWParamTest(val enabledChannel: Int, val enabledByte: Int)
 
 class ExtParam(
-  val bypassMemset:     Int,
+  val enableMemset:     Int,
   val memsetValue:      Int,
-  val bypassMaxPool:    Int,
+  val enableMaxPool:    Int,
   val maxPoolPeriod:    Int,
-  val bypassTransposer: Int
+  val enableTransposer: Int
 )
 
 object XDMATesterInfrastructure {
@@ -254,7 +254,7 @@ object XDMATesterInfrastructure {
       port = port,
       addr = currentAddress,
       data =
-        (writerExtParam.bypassMemset << 0) + (writerExtParam.bypassMaxPool << 1) + (writerExtParam.bypassTransposer << 2)
+        (writerExtParam.enableMemset << 0) + (writerExtParam.enableMaxPool << 1) + (writerExtParam.enableTransposer << 2)
     )
     currentAddress += 1
 

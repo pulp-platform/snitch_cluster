@@ -213,15 +213,15 @@ void set_gemmx_streamer_csr(int32_t* Aslstride, int32_t* Atlbound,
 
     // set the transpose
 #ifdef READER_EXTENSION_0_CSR_BASE
-    csrw_ss(READER_EXTENSION_0_CSR_BASE, transpose_A == 1 ? 0 : 1);
+    csrw_ss(READER_EXTENSION_0_CSR_BASE, transpose_A);
 #endif
 
 #ifdef READER_EXTENSION_1_CSR_BASE
-    csrw_ss(READER_EXTENSION_1_CSR_BASE, transpose_B == 1 ? 0 : 1);
+    csrw_ss(READER_EXTENSION_1_CSR_BASE, transpose_B);
 #endif
 
 #ifdef READER_WRITER_EXTENSION_0_CSR_BASE
-    csrw_ss(READER_WRITER_EXTENSION_0_CSR_BASE, broadcast_C == 1 ? 0 : 1);
+    csrw_ss(READER_WRITER_EXTENSION_0_CSR_BASE, broadcast_C);
 #endif
 }
 

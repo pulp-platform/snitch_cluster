@@ -649,7 +649,7 @@ def main():
             + "_xdma/"
             + " --sw-target-dir "
             + args.gen_path
-            + "../sw/snax/xdma",
+            + "../sw/snax/xdma/include/snax-xdma-addr.h"
         )
 
     # ---------------------------------------

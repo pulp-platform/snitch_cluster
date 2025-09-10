@@ -11,7 +11,7 @@ class DataPathExtensionHostIO(extensionList: Seq[HasDataPathExtension], dataWidt
     val out = Decoupled(UInt(dataWidth.W))
   }
   val cfg   = new Bundle {
-    val bypass  = Input(UInt(extensionList.length.W))
+    val enable  = Input(UInt(extensionList.length.W))
     val userCsr = Input(Vec(extensionList.map(_.extensionParam.userCsrNum).sum, UInt(32.W)))
   }
   val start = Input(Bool())
@@ -23,7 +23,7 @@ class DataPathExtensionHostIO(extensionList: Seq[HasDataPathExtension], dataWidt
     if (extensionList.isEmpty) {
       cfg := DontCare
     } else {
-      cfg.bypass := remaincsrList.head
+      cfg.enable := remaincsrList.head
       remaincsrList = remaincsrList.tail
       cfg.userCsr := remaincsrList.take(
         extensionList.map(_.extensionParam.userCsrNum).sum
@@ -50,7 +50,7 @@ class DataPathExtensionHost(
     io.busy := false.B
   } else {
     var remainingCSR  = io.cfg.userCsr.toIndexedSeq
-    var remaingBypass = io.cfg.bypass.asBools.toIndexedSeq
+    var remaingEnable = io.cfg.enable.asBools.toIndexedSeq
 
     val extensions = extensionList.zipWithIndex.map {
       case (item, index) => {
@@ -66,9 +66,9 @@ class DataPathExtensionHost(
         // Connect Start signal
         extension.io.start_i := io.start
 
-        // Recursively connect the bypass signals
-        extension.io.bypass_i := remaingBypass.head
-        remaingBypass = remaingBypass.tail
+        // Recursively connect the enable signals
+        extension.io.enable_i := remaingEnable.head
+        remaingEnable = remaingEnable.tail
 
         // Recursively connect the CSR signals
         for (i <- extension.io.csr_i) {

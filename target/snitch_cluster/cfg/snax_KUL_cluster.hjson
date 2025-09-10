@@ -161,12 +161,12 @@ Naming convention:
             // ReqrspManager Cfg
             cfg_io_width: 32,
             // Cross Cluster Calling Cfg
-            max_multicast: 25,
+            max_multicast: 16,
             max_dimension: 5,
             max_mem_size: 4096,
             // DataMaestro Cfg
-            reader_buffer: 12, 
-            writer_buffer: 12, 
+            reader_buffer: 4, 
+            writer_buffer: 4, 
             reader_agu_temporal_dimension: 5,
             writer_agu_temporal_dimension: 5,
             // Extension Cfg
