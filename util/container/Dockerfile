@@ -150,11 +150,11 @@ RUN apt-get update && \
 
 # Copy all needed files to install the package
 # (.dockerignore is used to filter only the necessary files)
-COPY pyproject.toml .
-COPY sw ./sw
-COPY util ./util
-COPY nonfree/util ./nonfree/util
-COPY target/snitch_cluster/util ./target/snitch_cluster/util
+COPY pyproject.toml /snitch_cluster/pyproject.toml
+COPY sw /snitch_cluster/sw
+COPY util /snitch_cluster/util
+COPY nonfree/util /snitch_cluster/nonfree/util
+COPY target/snitch_cluster/util /snitch_cluster/target/snitch_cluster/util
 
 # Create and activate virtual environment
 ARG VIRTUAL_ENV="/root/.venvs/snitch_cluster"
@@ -166,7 +166,7 @@ RUN python${PYTHON_VERSION} -m venv ${VIRTUAL_ENV}
 ARG PIP_NO_CACHE_DIR=1
 RUN ${VIRTUAL_ENV}/bin/pip install --upgrade pip && \
     ${VIRTUAL_ENV}/bin/pip install torch --index-url https://download.pytorch.org/whl/cpu && \
-    ${VIRTUAL_ENV}/bin/pip install .[all]
+    ${VIRTUAL_ENV}/bin/pip install /snitch_cluster[all]
 
 # Copy the tools from the builder stages
 COPY --from=tool-builder /tools/bender /tools/bin/
