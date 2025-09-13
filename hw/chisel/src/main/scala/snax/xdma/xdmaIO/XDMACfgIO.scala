@@ -233,7 +233,7 @@ class XDMAInterClusterCfgIO(readerParam: XDMAParam, writerParam: XDMAParam) exte
     )
 
     if (xdmaCfg.extCfg.length != 0)
-      xdmaCfg.extCfg(0) := BigInt("ffffffff", 16).U
+      xdmaCfg.extCfg(0) := 0.U
 
     xdmaCfg.readerwriterCfg.enabledChannel := enabledChannel
     xdmaCfg.readerwriterCfg.enabledByte    := enabledByte
