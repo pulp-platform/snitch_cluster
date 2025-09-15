@@ -43,7 +43,7 @@ To run software on Snitch without a physical chip, you will need a simulation mo
 The artifacts of these commands can be found under `target/sim/build`. 
 Particularly, each command compiles the RTL sources with the selected simulator, respectively in `work-vlt`, `work-vsim` and `work-vcs`. Additionally, common C++ testbench sources (e.g. the [frontend server (fesvr)](https://github.com/riscv-software-src/riscv-isa-sim)) are compiled under `work`. Each command will also generate a script or an executable (e.g. `bin/snitch_cluster.vsim`) which we can use to simulate software on Snitch, as we will see in section [Running a simulation](#running-a-simulation).
 
-!!! info
+!!! important
     The variable `DEBUG=ON` is required when using QuestaSim to preserve the visibility of all internal signals. If you need to inspect the simulation waveforms, you should set this variable when building the simulation model. For faster simulations you can omit the variable assignment, allowing QuestaSim to optimize internal signals away.
 
 ## Configuring the hardware
@@ -105,22 +105,25 @@ Run one of the executables which was compiled in the previous step on your Snitc
 === "Verilator"
 
     ```shell
-    target/sim/build/bin/snitch_cluster.vlt sw/kernels/blas/axpy/build/axpy.elf
+    snitch_cluster.vlt sw/kernels/blas/axpy/build/axpy.elf
     ```
 
 === "Questa"
 
     ```shell
-    target/sim/build/bin/snitch_cluster.vsim sw/kernels/blas/axpy/build/axpy.elf
+    snitch_cluster.vsim sw/kernels/blas/axpy/build/axpy.elf
     ```
 
 === "VCS"
 
     ```shell
-    target/sim/build/bin/snitch_cluster.vcs sw/kernels/blas/axpy/build/axpy.elf
+    snitch_cluster.vcs sw/kernels/blas/axpy/build/axpy.elf
     ```
 
-The simulator binaries can be invoked from any directory, just adapt the relative paths in the preceding commands accordingly, or use absolute paths. We refer to the working directory where the simulation is launched as the _simulation directory_. Within it, you will find several log files produced by the RTL simulation.
+The simulator binaries can be invoked from any directory, just adapt the relative path to the software binary in the preceding commands accordingly, or use absolute paths. We refer to the working directory where the simulation is launched as the _simulation directory_. Within it, you will find several log files produced by the RTL simulation.
+
+!!! note
+    The `bin/` directory was added to the `$PATH` variable as part of the [getting started](getting_started.md) steps. It is thanks to this that the simulation binaries can be used without specifying their full path.
 
 !!! tip
     If you don't want the simulation artifacts to pollute the root of your repository, move to the `test` folder, using that as the simulation directory, so that all simulation artifacts are contained therein.
@@ -131,7 +134,7 @@ The simulator binaries can be invoked from any directory, just adapt the relativ
 The previous commands will launch the simulation on the console. QuestaSim simulations can also be launched with the GUI, e.g. for waveform inspection. Just adapt the previous command to:
 
 ```shell
-target/sim/build/bin/snitch_cluster.vsim.gui sw/kernels/blas/axpy/build/axpy.elf
+snitch_cluster.vsim.gui sw/kernels/blas/axpy/build/axpy.elf
 ```
 
 For convenience, we also provide the following phony Make target as an alias to the simulation command with QuestaSim:
@@ -327,7 +330,7 @@ The problem with the BIST approach is that every cycle spent on verification is 
 A better alternative is to read out the results from the simulation memory at the end of the simulation, and compare them outside of the simulation. You may have a look at our AXPY's [`verify.py`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/sw/kernels/blas/axpy/scripts/verify.py) script as an example. We can reuse this script to verify our application, by prepending it to the usual simulation command, as:
 
 ```shell
-sw/kernels/blas/axpy/scripts/verify.py target/sim/build/bin/snitch_cluster.vlt sw/kernels/misc/tutorial/build/tutorial.elf
+sw/kernels/blas/axpy/scripts/verify.py snitch_cluster.vlt sw/kernels/misc/tutorial/build/tutorial.elf
 ```
 
 You can test if the verification passed by checking that the exit code of the previous command is 0 (e.g. in a bash terminal):
@@ -336,7 +339,7 @@ echo $?
 ```
 
 When using the Make target alias to run the simulation, you can pass the verification script through the `VERIFY_PY` flag:
-```
+```shell
 make vsim-run BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf VERIFY_PY=$PWD/sw/kernels/blas/axpy/scripts/verify.py
 ```
 Again, note that the path must be absolute or relative to the selected simulation directory.
@@ -413,7 +416,7 @@ Most often you are not interested in estimating the power of an entire simulatio
 You can pass start and end times (in ns) for VCD recording to the simulation as environment variables:
 
 ```shell
-VCD_START=127 VCD_END=8898 target/sim/build/bin/snitch_cluster.vsim sw/kernels/blas/axpy/build/axpy.elf
+VCD_START=127 VCD_END=8898 snitch_cluster.vsim sw/kernels/blas/axpy/build/axpy.elf
 ```
 
 !!! note

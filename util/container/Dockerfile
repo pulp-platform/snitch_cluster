@@ -106,6 +106,7 @@ ENV SN_LLVM_BINROOT="/tools/riscv-llvm/bin"
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 ENV PATH="/tools/bin:${PATH}"
 ENV PATH="/tools/riscv-llvm/bin:${PATH}"
+ENV PATH="/repo/target/snitch_cluster/bin:${PATH}"
 
 #-------------------------------------------------------------------------------
 # Stage 3: Hardware build
