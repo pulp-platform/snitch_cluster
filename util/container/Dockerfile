@@ -68,11 +68,12 @@ RUN apt-get update && \
         software-properties-common gnupg2 \
         # Required for fesvr
         device-tree-compiler && \
-    # Install Python
+    # Install Python (both binaries and headers)
     apt-add-repository ppa:deadsnakes/ppa && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        python${PYTHON_VERSION}-venv && \
+        python${PYTHON_VERSION}-venv \
+        python${PYTHON_VERSION}-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
@@ -84,16 +85,8 @@ COPY util ./util
 COPY nonfree/util ./nonfree/util
 
 # Create and activate virtual environment
-ARG VIRTUAL_ENV="/root/.venvs/snitch_cluster"
+ENV VIRTUAL_ENV="/root/.venvs/snitch_cluster"
 RUN python${PYTHON_VERSION} -m venv ${VIRTUAL_ENV}
-
-# Upgrade pip and install packages using the virtual environment's pip
-# Don't cache pip files to avoid polluting the docker container
-# Install torch from the CPU-only index to avoid installing the GPU version
-ARG PIP_NO_CACHE_DIR=1
-RUN ${VIRTUAL_ENV}/bin/pip install --upgrade pip && \
-    ${VIRTUAL_ENV}/bin/pip install torch --index-url https://download.pytorch.org/whl/cpu && \
-    ${VIRTUAL_ENV}/bin/pip install .[all]
 
 # Copy the tools from the builder stage
 COPY --from=tool-builder /tools/bender /tools/bin/
@@ -107,6 +100,15 @@ ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 ENV PATH="/tools/bin:${PATH}"
 ENV PATH="/tools/riscv-llvm/bin:${PATH}"
 ENV PATH="/repo/target/sim/build/bin:${PATH}"
+
+# Upgrade pip and install packages using the virtual environment's pip
+# Don't cache pip files to avoid polluting the docker container
+# Install torch from the CPU-only index to avoid installing the GPU version.
+# Since we previously added the venv's bin/ directory to the path, pip here resolves to that.
+ARG PIP_NO_CACHE_DIR=1
+RUN pip install --upgrade pip && \
+    pip install torch --index-url https://download.pytorch.org/whl/cpu && \
+    pip install .[all]
 
 #-------------------------------------------------------------------------------
 # Stage 3: Hardware build
@@ -141,11 +143,12 @@ RUN apt-get update && \
         curl wget build-essential git \
         # Required for python
         software-properties-common gnupg2 && \
-    # Install Python
+    # Install Python (both binaries and headers)
     apt-add-repository ppa:deadsnakes/ppa && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        python${PYTHON_VERSION}-venv && \
+        python${PYTHON_VERSION}-venv \
+        python${PYTHON_VERSION}-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
@@ -157,16 +160,8 @@ COPY util /snitch_cluster/util
 COPY nonfree/util /snitch_cluster/nonfree/util
 
 # Create and activate virtual environment
-ARG VIRTUAL_ENV="/root/.venvs/snitch_cluster"
+ENV VIRTUAL_ENV="/root/.venvs/snitch_cluster"
 RUN python${PYTHON_VERSION} -m venv ${VIRTUAL_ENV}
-
-# Upgrade pip and install packages using the virtual environment's pip
-# Don't cache pip files to avoid polluting the docker container
-# Install torch from the CPU-only index to avoid installing the GPU version
-ARG PIP_NO_CACHE_DIR=1
-RUN ${VIRTUAL_ENV}/bin/pip install --upgrade pip && \
-    ${VIRTUAL_ENV}/bin/pip install torch --index-url https://download.pytorch.org/whl/cpu && \
-    ${VIRTUAL_ENV}/bin/pip install /snitch_cluster[all]
 
 # Copy the tools from the builder stages
 COPY --from=tool-builder /tools/bender /tools/bin/
@@ -179,4 +174,12 @@ ENV SN_LLVM_BINROOT="/tools/riscv-llvm/bin"
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 ENV PATH="/tools/bin:${PATH}"
 ENV PATH="/tools/riscv-llvm/bin:${PATH}"
-    
+
+# Upgrade pip and install packages using the virtual environment's pip
+# Don't cache pip files to avoid polluting the docker container
+# Install torch from the CPU-only index to avoid installing the GPU version
+# Since we previously added the venv's bin/ directory to the path, pip here resolves to that.
+ARG PIP_NO_CACHE_DIR=1
+RUN pip install --upgrade pip && \
+    pip install torch --index-url https://download.pytorch.org/whl/cpu && \
+    pip install /snitch_cluster[all]
