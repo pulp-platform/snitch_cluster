@@ -106,7 +106,7 @@ ENV SN_LLVM_BINROOT="/tools/riscv-llvm/bin"
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 ENV PATH="/tools/bin:${PATH}"
 ENV PATH="/tools/riscv-llvm/bin:${PATH}"
-ENV PATH="/repo/target/snitch_cluster/bin:${PATH}"
+ENV PATH="/repo/target/sim/build/bin:${PATH}"
 
 #-------------------------------------------------------------------------------
 # Stage 3: Hardware build
@@ -123,7 +123,7 @@ RUN git config --global url."https://github".insteadOf "git://github" \
     && git clone --recursive https://github.com/pulp-platform/snitch_cluster /repo \
     && cd /repo \
     # Build the verilator model
-    && make -C target/snitch_cluster verilator
+    && make verilator
 
 #-------------------------------------------------------------------------------
 # Stage 4: Software development stage
@@ -155,7 +155,6 @@ COPY pyproject.toml /snitch_cluster/pyproject.toml
 COPY sw /snitch_cluster/sw
 COPY util /snitch_cluster/util
 COPY nonfree/util /snitch_cluster/nonfree/util
-COPY target/snitch_cluster/util /snitch_cluster/target/snitch_cluster/util
 
 # Create and activate virtual environment
 ARG VIRTUAL_ENV="/root/.venvs/snitch_cluster"
@@ -173,10 +172,10 @@ RUN ${VIRTUAL_ENV}/bin/pip install --upgrade pip && \
 COPY --from=tool-builder /tools/bender /tools/bin/
 COPY --from=tool-builder /tools/doxygen/bin/doxygen /tools/bin/
 COPY --from=tool-builder /tools/riscv-llvm /tools/riscv-llvm
-COPY --from=hw-builder /repo/target/snitch_cluster/bin/snitch_cluster_bin.vlt /tools/bin/snitch_cluster.vlt
+COPY --from=hw-builder /repo/target/sim/build/bin/snitch_cluster_bin.vlt /tools/bin/snitch_cluster.vlt
 
 # Modify environment and path variables
-ENV LLVM_BINROOT="/tools/riscv-llvm/bin"
+ENV SN_LLVM_BINROOT="/tools/riscv-llvm/bin"
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 ENV PATH="/tools/bin:${PATH}"
 ENV PATH="/tools/riscv-llvm/bin:${PATH}"

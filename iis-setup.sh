@@ -24,4 +24,4 @@ TMPDIR=tmp pip install -e .[all]
 rm -rf tmp
 
 # Add simulator binaries to PATH
-export PATH=$PATH:$PWD/target/snitch_cluster/bin
+export PATH=$PWD/target/sim/build/bin:$PATH
