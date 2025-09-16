@@ -25,7 +25,7 @@ plugins:
   - exclude:
       glob:
         - generated/peripherals.md
-        - rm/snRuntime.md
+        - rm/runtime.md
   - include-markdown
   - mkdocstrings:
       handlers:
@@ -34,7 +34,7 @@ plugins:
             - util/sim
             - util/trace
             - util/bench
-            - target/snitch_cluster/util
+            - util/experiments
   - macros:
       on_error_fail: true
 use_directory_urls: false
@@ -78,8 +78,8 @@ nav:
               - join.py: rm/sw/bench/join.md
               - roi.py: rm/sw/bench/roi.md
               - visualize.py: rm/sw/bench/visualize.md
-          - Snitch Target Utilities:
-              - run.py: rm/sw/snitch_target_utils/run.md
-              - build.py: rm/sw/snitch_target_utils/build.md
+          - Experiment Utilities:
+              - run.py: rm/sw/experiments/run.md
+              - build.py: rm/sw/experiments/build.md
           - Snitch Runtime: doxygen/html/index.html
   - Publications: publications.md

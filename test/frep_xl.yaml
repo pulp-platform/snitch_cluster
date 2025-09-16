@@ -1,0 +1,28 @@
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+runs:
+  # Needs a larger FREP sequencer than default, in some configurations
+  - elf: ../sw/kernels/misc/montecarlo/pi_estimation/build/pi_estimation.elf
+  - elf: ../sw/tests/build/frep.elf
+  - elf: ../sw/tests/build/frep1d.elf
+  - elf: ../sw/tests/build/frep2d_1.elf
+  - elf: ../sw/tests/build/frep2d_1b.elf
+  - elf: ../sw/tests/build/frep2d_2.elf
+  - elf: ../sw/tests/build/frep2d_2b.elf
+  - elf: ../sw/tests/build/frep2d_stagger.elf
+  - elf: ../sw/tests/build/frep3d_1.elf
+  - elf: ../sw/tests/build/frep3d_1b.elf
+  - elf: ../sw/tests/build/frep3d_1c.elf
+  - elf: ../sw/tests/build/frep3d_1d.elf
+  - elf: ../sw/tests/build/frep3d_2.elf
+  - elf: ../sw/tests/build/frep3d_2b.elf
+  - elf: ../sw/tests/build/frep3d_3.elf
+  - elf: ../sw/tests/build/frep3d_4.elf
+  - elf: ../sw/tests/build/frep4d_1.elf
+  - elf: ../sw/tests/build/frep4d_2.elf
+  - elf: ../sw/tests/build/frep4d_3.elf
+  - elf: ../sw/tests/build/frep4d_4.elf
+  - elf: ../sw/tests/build/gemm_frep.elf
+  - elf: ../sw/tests/build/gemm_frep1d.elf

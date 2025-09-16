@@ -2,7 +2,7 @@
 
 The following tutorial will guide you through the use of the Snitch cluster. You will learn how to develop, simulate, debug and benchmark software for the Snitch cluster architecture.
 
-You can assume the working directory to be `target/snitch_cluster`. All paths are to be assumed relative to this directory. Paths relative to the root of the repository are prefixed with a slash.
+You can assume the working directory to be the root of this repository. All paths are to be assumed relative to this directory, unless mentioned otherwise.
 
 ## Setup
 
@@ -40,7 +40,8 @@ To run software on Snitch without a physical chip, you will need a simulation mo
     make vcs
     ```
 
-These commands compile the RTL sources respectively in `work-vlt`, `work-vsim` and `work-vcs`. Additionally, common C++ testbench sources (e.g. the [frontend server (fesvr)](https://github.com/riscv-software-src/riscv-isa-sim)) are compiled under `work`. Each command will also generate a script or an executable (e.g. `bin/snitch_cluster.vsim`) which we can use to simulate software on Snitch, as we will see in section [Running a simulation](#running-a-simulation).
+The artifacts of these commands can be found under `target/sim/build`. 
+Particularly, each command compiles the RTL sources with the selected simulator, respectively in `work-vlt`, `work-vsim` and `work-vcs`. Additionally, common C++ testbench sources (e.g. the [frontend server (fesvr)](https://github.com/riscv-software-src/riscv-isa-sim)) are compiled under `work`. Each command will also generate a script or an executable (e.g. `bin/snitch_cluster.vsim`) which we can use to simulate software on Snitch, as we will see in section [Running a simulation](#running-a-simulation).
 
 !!! info
     The variable `DEBUG=ON` is required when using QuestaSim to preserve the visibility of all internal signals. If you need to inspect the simulation waveforms, you should set this variable when building the simulation model. For faster simulations you can omit the variable assignment, allowing QuestaSim to optimize internal signals away.
@@ -49,9 +50,9 @@ These commands compile the RTL sources respectively in `work-vlt`, `work-vsim` a
 
 The Snitch cluster RTL sources are partly automatically generated from a configuration file provided in [JSON5](https://json5.org/) format. Several RTL files are templated and use the `.json` configuration file as input to fill in the template. An example is [snitch_cluster_wrapper.sv.tpl](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/hw/snitch_cluster/src/snitch_cluster_wrapper.sv.tpl).
 
-In the [`cfg`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/snitch_cluster/cfg) folder, different configurations are provided. The [`cfg/default.json`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/snitch_cluster/cfg/default.json) configuration instantiates 8 compute cores + 1 DMA core in the cluster.
+In the [`cfg`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/cfg) folder, different configurations are provided. The [`cfg/default.json`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/cfg/default.json) configuration instantiates 8 compute cores + 1 DMA core in the cluster.
 
-The command you previously executed automatically generated the RTL sources from the templates, and it implicitly used the default configuration file. In this configuration the FPU is not equipped with a floating-point divide and square-root unit.
+The command you previously executed automatically generated the RTL sources from the templates, and it implicitly used the default configuration file.
 To override the default configuration file, e.g. to use the omega TCDM interconnect, define the following variable when you invoke `make`:
 ```shell
 make CFG_OVERRIDE=cfg/omega.json verilator
@@ -78,7 +79,7 @@ To build all of the software for the Snitch cluster, run the following command. 
     make DEBUG=ON OPENOCD_SEMIHOSTING=ON sw -j
     ```
 
-This builds all software targets defined in the repository, e.g. the Snitch runtime library and all applications. Artifacts are stored in the build directory of each target. For example, have a look inside `sw/apps/blas/axpy/build/` and you will find the artifacts of the AXPY application build, e.g. the compiled executable `axpy.elf` and a disassembly `axpy.dump`.
+This builds all software targets defined in the repository, e.g. the Snitch runtime library and all applications. Artifacts are stored in the build directory of each target. For example, have a look inside `sw/kernels/blas/axpy/build/` and you will find the artifacts of the AXPY application build, e.g. the compiled executable `axpy.elf` and a disassembly `axpy.dump`.
 
 If you only want to build a specific software target, you can by replacing `sw` with the name of that target, e.g. the name of an application:
 
@@ -104,22 +105,25 @@ Run one of the executables which was compiled in the previous step on your Snitc
 === "Verilator"
 
     ```shell
-    bin/snitch_cluster.vlt sw/apps/blas/axpy/build/axpy.elf
+    target/sim/build/bin/snitch_cluster.vlt sw/kernels/blas/axpy/build/axpy.elf
     ```
 
 === "Questa"
 
     ```shell
-    bin/snitch_cluster.vsim sw/apps/blas/axpy/build/axpy.elf
+    target/sim/build/bin/snitch_cluster.vsim sw/kernels/blas/axpy/build/axpy.elf
     ```
 
 === "VCS"
 
     ```shell
-    bin/snitch_cluster.vcs sw/apps/blas/axpy/build/axpy.elf
+    target/sim/build/bin/snitch_cluster.vcs sw/kernels/blas/axpy/build/axpy.elf
     ```
 
 The simulator binaries can be invoked from any directory, just adapt the relative paths in the preceding commands accordingly, or use absolute paths. We refer to the working directory where the simulation is launched as the _simulation directory_. Within it, you will find several log files produced by the RTL simulation.
+
+!!! tip
+    If you don't want the simulation artifacts to pollute the root of your repository, move to the `test` folder, using that as the simulation directory, so that all simulation artifacts are contained therein.
 
 !!! tip
     If you don't want your log files to be overriden when you run another simulation, just create separate simulation directories for every simulation whose artifacts you want to preserve, and run the simulations therein.
@@ -127,7 +131,18 @@ The simulator binaries can be invoked from any directory, just adapt the relativ
 The previous commands will launch the simulation on the console. QuestaSim simulations can also be launched with the GUI, e.g. for waveform inspection. Just adapt the previous command to:
 
 ```shell
-bin/snitch_cluster.vsim.gui sw/apps/blas/axpy/build/axpy.elf
+target/sim/build/bin/snitch_cluster.vsim.gui sw/kernels/blas/axpy/build/axpy.elf
+```
+
+For convenience, we also provide the following phony Make target as an alias to the simulation command with QuestaSim:
+```shell
+make vsim-run BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf SIM_DIR=test
+```
+Behind the scenes, this will launch the previous command in the specified simulation directory (`SIM_DIR`). Note, the path to the software binary must be absolute or relative to the simulation directory. When `SIM_DIR` is omitted it will default to the `test` directory.
+
+You can use the `DEBUG` flag to launch the command with the GUI:
+```shell
+make vsim-run BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf DEBUG=ON
 ```
 
 ## Debugging and benchmarking
@@ -171,7 +186,7 @@ If you would like to benchmark a specific part of your program, you would call `
 Sometimes you may want to graphically visualize the regions in your traces, to have a holistic and high-level view over all cores' operations. This can be useful e.g. to visualize if the compute and DMA phases in a double-buffered application overlap correctly and to what extent. To achieve this, you can use the following command, provided a file specifying the _regions of interest (ROI)_ and associating a textual label to each region:
 
 ```shell
-make visual-trace ROI_SPEC=../../sw/blas/axpy/roi.json -j
+make visual-trace ROI_SPEC=sw/kernels/blas/axpy/roi.json -j
 ```
 
 Where `ROI_SPEC` points to the mentioned specification file.
@@ -182,7 +197,7 @@ This command generates the `logs/trace.json` file, which you can graphically vis
     As mentioned also for the `annotate` target, the `DEBUG=ON` flag is required when building the software for the source line information to be extracted.
 
 !!! info
-    If you want to dig deeper into the ROI specification file syntax and how the visual trace is built behind the scenes, have a look at the documentation for the [`roi.py`](../rm/sw/bench/roi.md) and [`visualize.py`](../rm/sw/bench/visualize.md) scripts or at the sources themselves, hosted in the [`bench`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/bench) folder.
+    If you want to dig deeper into the ROI specification file syntax and how the visual trace is built behind the scenes, have a look at the documentation for the [`roi.py`](../rm/sw/bench/roi.md) and [`visualize.py`](../rm/sw/bench/visualize.md) scripts or at the sources themselves, hosted in the [`util/bench`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/bench) folder.
 
 ## Developing your first Snitch application
 
@@ -193,13 +208,13 @@ In the following you will create your own AXPY kernel implementation as an examp
 Create a directory for your AXPY kernel:
 
 ```bash
-mkdir sw/apps/tutorial
+mkdir sw/kernels/misc/tutorial
 ```
 
 And a `src` subdirectory to host your source code:
 
 ```bash
-mkdir sw/apps/tutorial/src
+mkdir sw/kernels/misc/tutorial/src
 ```
 
 Here, create a new file named `tutorial.c` with the following contents:
@@ -234,15 +249,12 @@ int main() {
 
 ```
 
-The [`snrt.h`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/snitch_cluster/sw/runtime/rtl/src/snrt.h) file implements the snRuntime API, a library of convenience functions to program Snitch-cluster-based systems, and it is automatically referenced by our compilation scripts. Documentation for the snRuntime can be found at the [Snitch Runtime](../doxygen/html/index.html) pages.
-
-!!! note
-    The [snRuntime sources](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/sw/snRuntime) only define the snRuntime API, and provide a base implementation for a subset of functions. A complete implementation of the snRuntime for RTL simulation can be found under [`target/snitch_cluster/sw/runtime/rtl`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/snitch_cluster/sw/runtime/rtl).
+The [`snrt.h`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/sw/runtime/impl/snrt.h) file implements the Snitch runtime API, a library of convenience functions to program Snitch-cluster-based systems, and it is automatically referenced by our compilation scripts. Documentation for the Snitch runtime can be found at the [Snitch Runtime](../doxygen/html/index.html) pages.
 
 We will have to instead create the `data.h` file ourselves. Create a folder to host the data for your kernel to operate on:
 
 ```bash
-mkdir sw/apps/tutorial/data
+mkdir sw/kernels/misc/tutorial/data
 ```
 
 Here, create a C file named `data.h` with the following contents:
@@ -268,19 +280,19 @@ In your `tutorial` folder, create a new file named `app.mk` with the following c
 
 ```make
 APP              := tutorial
-$(APP)_BUILD_DIR := $(SN_ROOT)/target/snitch_cluster/sw/apps/$(APP)/build
-SRCS             := $(SN_ROOT)/target/snitch_cluster/sw/apps/$(APP)/src/$(APP).c
-$(APP)_INCDIRS   := $(SN_ROOT)/target/snitch_cluster/sw/apps/$(APP)/data
+$(APP)_BUILD_DIR := $(SN_ROOT)/sw/kernels/misc/$(APP)/build
+SRCS             := $(SN_ROOT)/sw/kernels/misc/$(APP)/src/$(APP).c
+$(APP)_INCDIRS   := $(SN_ROOT)/sw/kernels/misc/$(APP)/data
 
-include $(SN_ROOT)/target/snitch_cluster/sw/apps/common.mk
+include $(SN_ROOT)/sw/kernels/common.mk
 ```
 
 This file will be included in the top-level Makefile, compiling your source code into an executable with the name provided in the `APP` variable.
 
-In order for the top-level Makefile to find your application, add your application's directory to the `APPS` variable in [`sw.mk`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/snitch_cluster/sw.mk):
+In order for the top-level Makefile to find your application, add your application's directory to the `SN_APPS` variable in [`sw.mk`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/make/sw.mk):
 
 ```
-APPS += sw/apps/tutorial
+SN_APPS += sw/kernels/misc/tutorial
 ```
 
 Now you can recompile the software, including your newly added tutorial application, as shown in section [Building the software](#building-the-software).
@@ -289,26 +301,33 @@ Now you can recompile the software, including your newly added tutorial applicat
     Only the software targets depending on the sources you have added/modified have been recompiled.
 
 !!! info
-    If you want to dig deeper into how our build system works and how these files were generated you can start from the [top-level Makefile](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/snitch_cluster/Makefile) and work your way through the other Makefiles included within it.
+    If you want to dig deeper into how our build system works and how these files were generated you can start from the [top-level Makefile](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/Makefile) and work your way through the other Makefiles included within it.
 
 ### Running your application
 
-You can then run your application as shown in section [Running a simulation](#running-a-simulation). Make sure to pick up the right binary, i.e. `sw/apps/tutorial/build/tutorial.elf`.
+You can then run your application as shown in section [Running a simulation](#running-a-simulation). Make sure to pick up the right binary, i.e. `sw/kernels/misc/tutorial/build/tutorial.elf`.
 
 ### Generating input data
 
 In general, you may want to randomly generate the data for your application. You may also want to test your kernel on different problem sizes, e.g. varying the length of the AXPY vectors, without having to manually rewrite the file.
 
-The approach we use is to generate the header file with a Python script. An input `.json` file can be used to configure the data generation, e.g. to set the length of the AXPY vectors. Have a look at the [`datagen.py`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/sw/blas/axpy/scripts/datagen.py) and [`params.json`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/sw/blas/axpy/data/params.json) files in our full-fledged [AXPY application](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/sw/blas/axpy/) as an example. As you can see, the data generation script reuses many convenience classes and functions from the [`data_utils`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/sim/data_utils.py) module. We advise you to do the same. Documentation for this module can be found at the [auto-generated pages](../rm/sw/sim/data_utils.md).
+The approach we use is to generate the header file with a Python script. An input `.json` file can be used to configure the data generation, e.g. to set the length of the AXPY vectors. Have a look at the [`datagen.py`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/sw/kernels/blas/axpy/scripts/datagen.py) and [`params.json`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/sw/kernels/blas/axpy/data/params.json) files in our full-fledged [AXPY application](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/sw/kernels/blas/axpy/) as an example. As you can see, the data generation script reuses many convenience classes and functions from the [`data_utils`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/sim/data_utils.py) module. We advise you to do the same. Documentation for this module can be found at the [auto-generated pages](../rm/sw/sim/data_utils.md).
 
 ### Verifying your application
 
-When developing an application, it is good practice to verify the results of your application against a golden model. The traditional approach is to generate expected results in your data generation script, dump these into the header file and extend your application to check its results against the expected results, _in simulation_! Every cycle spent on verification is simulated, and this may take a significant time for large designs. We refer to this approach as the _Built-in self-test (BIST)_ approach.
+When developing an application, it is good practice to verify the results of your application against a golden model. The traditional approach is to generate expected results in your data generation script, dump these into the header file and extend your application to check its results against the expected results, _in simulation_! We refer to this approach as the _Built-in self-test (BIST)_ approach.
+The built-in self-test logic could e.g. count the number of errors and return that as an exit code. Any non-zero return code indicates a failure. When using Verilator, the return code of the simulated Snitch binary will be propagated to the return code of the simulation command, and can be inspected e.g. by running the following command in a bash terminal:
+```bash
+echo $?
+```
+When using QuestaSim and VCS, the return code will be printed to stdout by the simulation command.
 
-A better alternative is to read out the results from your application at the end of the simulation, and compare them outside of the simulation. You may have a look at our AXPY's [`verify.py`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/sw/blas/axpy/scripts/verify.py) script as an example. We can reuse this script to verify our application, by prepending it to the usual simulation command, as:
+The problem with the BIST approach is that every cycle spent on verification is simulated, and this may take a significant time for large designs.
+
+A better alternative is to read out the results from the simulation memory at the end of the simulation, and compare them outside of the simulation. You may have a look at our AXPY's [`verify.py`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/sw/kernels/blas/axpy/scripts/verify.py) script as an example. We can reuse this script to verify our application, by prepending it to the usual simulation command, as:
 
 ```shell
-../../sw/blas/axpy/scripts/verify.py bin/snitch_cluster.vlt sw/apps/tutorial/build/tutorial.elf
+sw/kernels/blas/axpy/scripts/verify.py target/sim/build/bin/snitch_cluster.vlt sw/kernels/misc/tutorial/build/tutorial.elf
 ```
 
 You can test if the verification passed by checking that the exit code of the previous command is 0 (e.g. in a bash terminal):
@@ -316,18 +335,16 @@ You can test if the verification passed by checking that the exit code of the pr
 echo $?
 ```
 
-Again, most of the logic in the script is implemented in convenience classes and functions provided by the [`verif_utils`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/sim/verif_utils.py) module. Documentation for this module can be found at the [auto-generated pages](../rm/sw/sim/verif_utils.md).
+When using the Make target alias to run the simulation, you can pass the verification script through the `VERIFY_PY` flag:
+```
+make vsim-run BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf VERIFY_PY=$PWD/sw/kernels/blas/axpy/scripts/verify.py
+```
+Again, note that the path must be absolute or relative to the selected simulation directory.
+
+Most of the logic in our verification script is implemented in convenience classes and functions provided by the [`verif_utils`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/sim/verif_utils.py) module. Documentation for this module can be found at the [auto-generated pages](../rm/sw/sim/verif_utils.md).
 
 !!! info
-    The `verif_utils` functions build upon a complex verification infrastructure, which uses inter-process communication (IPC) between the Python process and the simulation process to get the results of your application at the end of the simulation. If you want to dig deeper into how this framework is implemented, have a look at the [`SnitchSim.py`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/sim/SnitchSim.py) module and the IPC files within the [`test`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/common/test) folder.
-
-## Code reuse
-
-As you may have noticed, there is a good deal of code which is independent of the hardware platform we execute our AXPY kernel on. This is true for the `data.h` file and possible data generation scripts. The Snitch AXPY kernel itself is not specific to the Snitch cluster, but can be ported to any platform which provides an implementation of the snRuntime API. An example is Occamy, with its own testbench and SW development environment.
-
-It is thus preferable to develop the data generation scripts and Snitch kernels in a shared location, from which multiple platforms can take and include the code. The `sw` directory in the root of this repository was created with this goal in mind. For the AXPY example, shared sources are hosted under the `sw/blas/axpy` directory.
-
-We recommend that you follow this approach also in your own developments for as much of the code which can be reused.
+    The `verif_utils` functions build upon a complex verification infrastructure, which uses inter-process communication (IPC) between the Python process and the simulation process to get the results of your application at the end of the simulation. If you want to dig deeper into how this framework is implemented, have a look at the [`SnitchSim.py`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/util/sim/SnitchSim.py) module and the IPC files within the [`target/sim/tb`](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/sim/tb) folder.
 
 ## Implementing the hardware
 
@@ -361,15 +378,15 @@ You will find reports and output files produced by the flow in the `nonfree/gf12
 ## Running a physical simulation
 
 Once your design is physically implemented, you want to also verify that it works as intended.
-Assuming you used the previous command to get a final optimized post-layout netlist, you can directly build a simulation model out of it. Head back to the main repository, in the `target/snitch_cluster` folder, and build the simulation model with the following flag:
+Assuming you used the previous command to get a final optimized post-layout netlist, you can directly build a simulation model out of it. Head back to the main repository, in the root directory, and build the simulation model with the following flag:
 
 ```shell
 make clean-vsim
-make PL_SIM=1 bin/snitch_cluster.vsim
+make PL_SIM=1 vsim
 ```
 
 This resembles the commands you've previously seen in section [Building the hardware](#building-the-hardware). In fact, all testbench components are the same, we simply use the added flag to tell [Bender](https://github.com/pulp-platform/bender) to reference the physical netlist in place of the source RTL as a DUT during compilation.
-The `Bender.yml` file in the root of the repository automatically references the final netlist in our flow, but you could replace that with a netlist from an intermediate stage if you do not intend to run the whole flow.
+The `Bender.yml` file automatically references the final netlist in our flow, but you could replace that with a netlist from an intermediate stage if you do not intend to run the whole flow.
 
 !!! note
     Make does not track changes in the flags passed to it, so it does not know that it has to update the RTL source list for compilation. To ensure that it is updated, we can delete the compilation script, which was implicitly generated when you last built the simulation model. The first command above achieves this, by deleting all artifacts from the last build with QuestaSim.
@@ -384,7 +401,7 @@ Power numbers are extremely dependent on the switching activity in your circuit,
 
 To do so, set the `VCD_DUMP` flag when building the physical simulation model:
 ```shell
-make PL_SIM=1 VCD_DUMP=1 DEBUG=ON bin/snitch_cluster.vsim
+make PL_SIM=1 VCD_DUMP=1 DEBUG=ON vsim
 ``` 
 
 !!! danger
@@ -396,7 +413,7 @@ Most often you are not interested in estimating the power of an entire simulatio
 You can pass start and end times (in ns) for VCD recording to the simulation as environment variables:
 
 ```shell
-VCD_START=127 VCD_END=8898 bin/snitch_cluster.vsim sw/apps/blas/axpy/build/axpy.elf
+VCD_START=127 VCD_END=8898 target/sim/build/bin/snitch_cluster.vsim sw/kernels/blas/axpy/build/axpy.elf
 ```
 
 !!! note

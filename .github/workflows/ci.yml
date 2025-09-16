@@ -70,6 +70,8 @@ jobs:
       image: ${{ needs.build-docker.outputs.image_name }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
       - name: Build docs
         run: make docs
 
@@ -82,6 +84,8 @@ jobs:
       image: ${{ needs.build-docker.outputs.image_name }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
       # For some reason, the checkout is done by a different user
       # than that deploying to Github (root, possibly due to Docker).
       # So we need to set the repository as a safe directory.
@@ -126,44 +130,41 @@ jobs:
           submodules: 'recursive'
       - name: Hash Verilator prerequisites
         id: verilator-hash
-        uses: colluca/list-make-prerequisites@v1.0.3
+        uses: colluca/pymakeutils@v1.2.0
         with:
-          working-directory: target/snitch_cluster
           target: verilator
           flags: --recursive
       - name: Set up cache for Verilator build
         id: verilator-cache
         uses: actions/cache@v4
         with:
-          path: target/snitch_cluster/bin
+          path: target/sim/build/bin
           key: verilator-${{ steps.verilator-hash.outputs.hash }}
           restore-keys: |
             verilator-
       - name: Build Hardware
         if: steps.verilator-cache.outputs.cache-hit != 'true'
-        working-directory: target/snitch_cluster
         run: |
           make CFG_OVERRIDE=cfg/github-ci.json VLT_JOBS=1 verilator
       - name: Build Software
-        working-directory: target/snitch_cluster
         run: |
           make CFG_OVERRIDE=cfg/github-ci.json sw -j
       - name: Run Tests
-        working-directory: target/snitch_cluster
+        working-directory: test
         run: |
-          ./util/run.py sw/run.yaml --simulator verilator -j
-          ./util/run.py sw/riscv_tests_isa.yaml --simulator verilator -j
+          ../util/experiments/run.py run.yaml --simulator verilator -j
+          ../util/experiments/run.py riscv_tests_isa.yaml --simulator verilator -j
       - name: Annotate traces
-        working-directory: target/snitch_cluster
         # Build the traces using the --permissive flag, since the Verilator
         # testbench does not wait until all the instructions are retired
         # (compiler introduces few instructions after exit routine).
         run: |
-          make SIM_DIR=./runs/simple DEBUG=ON annotate -j
+          make SIM_DIR=./test/runs/simple DEBUG=ON annotate -j
 
   ######################
   # Sources Up-to-Date #
   ######################
+
   sources-up-to-date:
     name: Check Sources Up-to-Date
     runs-on: ubuntu-22.04
@@ -176,9 +177,8 @@ jobs:
           submodules: true
       - name: Generate opcodes
         run: |
-          ./util/generate-opcodes.sh
+          ./util/clustergen/generate-opcodes.sh
       - name: Generate RTL sources
-        working-directory: target/snitch_cluster
         run: |
           make rtl
       # For some reason, the checkout is done by a different user,

@@ -1,0 +1,5 @@
+/logs/
+/*.log
+/runs/
+.rtlbinary
+results.csv

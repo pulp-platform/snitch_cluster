@@ -149,7 +149,7 @@ class SnitchCluster(Generator):
         Initialize with a given configuration. The constructor checks conformans
         to the cluster schema and constructs a `cfg` object.
         """
-        super().__init__(Path(__file__).parent / "schema/snitch_cluster.schema.json")
+        super().__init__(Path(__file__).parent / "snitch_cluster.schema.json")
         self.mems = set()
         self.mems_desc = dict()
         self.validate(cfg)

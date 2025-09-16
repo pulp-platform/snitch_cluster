@@ -16,18 +16,13 @@ What can you expect to find in this repository?
 - The RISC-V [Snitch integer core](https://pulp-platform.github.io/snitch_cluster/rm/snitch.html). This can be useful stand-alone if you are just interested in re-using the core for your project, e.g., as a tiny control core or you want to make a peripheral smart. The sky is the limit.
 - The [Snitch cluster](https://pulp-platform.github.io/snitch_cluster/rm/snitch_cluster.html). A highly configurable cluster containing one to many integer cores with optional floating-point capabilities as well as our custom ISA extensions `Xssr`, `Xfrep`, and `Xdma`.
 - A runtime and example applications for the Snitch cluster.
-- RTL simulation environments for Verilator, Questa Advanced Simulator, and VCS, as well as configurations for the [GVSoC system simulator](https://github.com/gvsoc/gvsoc)
+- RTL simulation environments for Verilator, Questa Advanced Simulator, and VCS, as well as configurations for the [GVSoC system simulator](https://github.com/gvsoc/gvsoc).
 
 This code was previously hosted in the [Snitch monorepo](https://github.com/pulp-platform/snitch) and was spun off into its own repository to simplify maintenance and dependency handling. Note that our Snitch-based manycore system [Occamy](https://github.com/pulp-platform/occamy) has also moved.
 
 ## License
 
 Snitch is being made available under permissive open source licenses.
-
-The following files are released under Apache License 2.0 (`Apache-2.0`) see `LICENSE`:
-
-- `sw/`
-- `util/`
 
 The following files are released under Solderpad v0.51 (`SHL-0.51`) see `hw/LICENSE`:
 
@@ -37,6 +32,8 @@ The `sw/deps` directory references submodules that come with their own
 licenses. See the respective folder for the licenses used.
 
 - `sw/deps/`
+
+All other files are released under Apache License 2.0 (`Apache-2.0`) see `LICENSE`.
 
 ## Contributing
 
