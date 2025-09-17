@@ -4,11 +4,9 @@ The Snitch project is an open-source RISC-V hardware research project of ETH Zur
 
 ## Getting Started
 
-See our dedicated [getting started guide](ug/getting_started.md).
+To get started working with Snitch go through the [User guide](ug/getting_started.md).
 
-## Documentation
-
-The documentation is built from the latest master and hosted at github pages: [https://pulp-platform.github.io/snitch_cluster](https://pulp-platform.github.io/snitch_cluster).
+For more information on the Snitch hardware and software, you can consult the "Reference Manual" pages.
 
 ## About this Repository
 
