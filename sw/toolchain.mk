@@ -11,7 +11,6 @@
 
 # Compiler toolchain
 SN_LLVM_BINROOT  ?= $(dir $(shell which riscv32-unknown-elf-clang))
-SN_LLVM_VER      ?= $(shell $(SN_LLVM_BINROOT)/llvm-config --version | grep -Eo '[0-9]+\.[0-9]+\.[0-9]+')
 SN_RISCV_CC      ?= $(SN_LLVM_BINROOT)/clang
 SN_RISCV_CXX     ?= $(SN_LLVM_BINROOT)/clang++
 SN_RISCV_LD      ?= $(SN_LLVM_BINROOT)/ld.lld

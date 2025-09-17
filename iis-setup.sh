@@ -22,3 +22,6 @@ source .venv/bin/activate
 mkdir tmp
 TMPDIR=tmp pip install -e .[all]
 rm -rf tmp
+
+# Add simulator binaries to PATH
+export PATH=$PWD/target/sim/build/bin:$PATH
