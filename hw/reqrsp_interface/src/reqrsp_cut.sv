@@ -38,32 +38,18 @@ module reqrsp_cut #(
 
   `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
 
-  spill_register #(
-    .T (reqrsp_req_chan_t),
-    .Bypass ( BypassReq )
-  ) i_spill_register_q (
+  generic_reqrsp_cut #(
+    .req_chan_t(reqrsp_req_chan_t),
+    .rsp_chan_t(reqrsp_rsp_chan_t),
+    .BypassReq (BypassReq),
+    .BypassRsp (BypassRsp)
+  ) i_generic_reqrsp_cut (
     .clk_i,
     .rst_ni,
-    .valid_i (slv_req_i.q_valid) ,
-    .ready_o (slv_rsp_o.q_ready) ,
-    .data_i (slv_req_i.q),
-    .valid_o (mst_req_o.q_valid),
-    .ready_i (mst_rsp_i.q_ready),
-    .data_o (mst_req_o.q)
-  );
-
-  spill_register #(
-    .T (reqrsp_rsp_chan_t),
-    .Bypass ( BypassRsp )
-  ) i_spill_register_p (
-    .clk_i,
-    .rst_ni,
-    .valid_i (mst_rsp_i.p_valid) ,
-    .ready_o (mst_req_o.p_ready) ,
-    .data_i (mst_rsp_i.p),
-    .valid_o (slv_rsp_o.p_valid),
-    .ready_i (slv_req_i.p_ready),
-    .data_o (slv_rsp_o.p)
+    .slv_req_i (slv_req_i),
+    .slv_rsp_o (slv_rsp_o),
+    .mst_req_o (mst_req_o),
+    .mst_rsp_i (mst_rsp_i)
   );
 
 endmodule
