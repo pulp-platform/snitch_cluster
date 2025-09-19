@@ -13,8 +13,10 @@
 
 `include "mem_interface/typedef.svh"
 `include "apb/typedef.svh"
+`include "reqrsp_interface/assign.svh"
 `include "reqrsp_interface/typedef.svh"
 `include "tcdm_interface/typedef.svh"
+`include "dca_interface/typedef.svh"
 
 `include "snitch_vm/typedef.svh"
 
@@ -107,8 +109,6 @@ module snitch_cluster
   parameter bit [NrCores-1:0] Xdma          = '0,
   /// Per-core enabling of the custom `Xssr` ISA extensions.
   parameter bit [NrCores-1:0] Xssr          = '0,
-  /// Per-cluster enabling of the custom `DCA` extension.
-  parameter bit Xdca                        = 0,
   /// Per-core enabling of the custom `Xfrep` ISA extensions.
   parameter bit [NrCores-1:0] Xfrep         = '0,
   /// Per-core enabling of the custom `Xcopift` ISA extensions.
@@ -182,10 +182,10 @@ module snitch_cluster
   parameter bit          RegisterFPUIn      = 0,
   /// Insert Pipeline registers immediately after FPU datapath
   parameter bit          RegisterFPUOut     = 0,
-  /// Insert Pipeline register between DCA from Router and FPU
-  parameter bit          RegisterDCAIn      = 0,
-  /// Insert Pipeline register between DCA from FPU and Router
-  parameter bit          RegisterDCAOut     = 0,
+  /// Cut DCA request to FPU
+  parameter bit          RegisterDcaReq     = 0,
+  /// Cut DCA response from FPU
+  parameter bit          RegisterDcaRsp     = 0,
   /// Run Snitch (the integer part) at half of the clock frequency
   parameter bit          IsoCrossing        = 0,
   parameter axi_pkg::xbar_latency_e NarrowXbarLatency = axi_pkg::CUT_ALL_PORTS,
@@ -231,9 +231,14 @@ module snitch_cluster
   parameter logic [PhysicalAddrWidth-1:0] AliasRegionBase    = '0,
   /// Instantiate internal bootrom.
   parameter bit          IntBootromEnable   = 1'b1,
-  /// IF for the DCA Access
-  parameter type         dca_router_req_t = logic,
-  parameter type         dca_router_resp_t = logic
+  /// Enable direct compute access (DCA).
+  parameter bit EnableDca                   = 0,
+  /// Width of the external DCA interface
+  parameter int unsigned DcaDataWidth       = WideDataWidth,
+  /// Derived parameters
+  // TODO(colluca): parameterize 7
+  localparam type        dca_req_t = `DCA_REQ_STRUCT(DcaDataWidth, 7),
+  localparam type        dca_rsp_t = `DCA_RSP_STRUCT(DcaDataWidth, 7)
 ) (
   /// System clock. If `IsoCrossing` is enabled this port is the _fast_ clock.
   /// The slower, half-frequency clock, is derived internally.
@@ -294,19 +299,12 @@ module snitch_cluster
   input  tcdm_dma_req_t [NumExpWideTcdmPorts-1:0] tcdm_ext_req_i,
   output tcdm_dma_rsp_t [NumExpWideTcdmPorts-1:0] tcdm_ext_resp_o,
   /// Direct compute access (DCA) interface.
-  input  dca_router_req_t                         dca_8x_req_i,
-  input  logic                                    dca_8x_req_valid_i,
-  output logic                                    dca_8x_req_ready_o,
-  output dca_router_resp_t                        dca_8x_resp_o,
-  output logic                                    dca_8x_resp_valid_o,
-  input  logic                                    dca_8x_resp_ready_i
+  input  dca_req_t dca_req_i,
+  output dca_rsp_t dca_rsp_o
 );
   // ---------
   // Constants
   // ---------
-
-  /// DCA Bit width - Currently only applicable for the double extension (e.g. 64 Bit)
-  localparam int unsigned DCA_DATA_WIDTH = 64;
 
   /// Minimum width to hold the core number.
   localparam int unsigned CoreIDWidth = cf_math_pkg::idx_width(NrCores);
@@ -317,6 +315,7 @@ module snitch_cluster
   localparam int unsigned BanksPerHyperBank = NrBanks / NrHyperBanks;
   localparam int unsigned BanksPerSuperBank = WideDataWidth / NarrowDataWidth;
   localparam int unsigned NrSuperBanks = NrBanks / BanksPerSuperBank;
+  localparam int unsigned DcaLaneDataWidth = NarrowDataWidth;
 
   function automatic int unsigned get_tcdm_ports(int unsigned core);
     return (NumSsrs[core] > 1 ? NumSsrs[core] : 1);
@@ -491,6 +490,10 @@ module snitch_cluster
 
   `TCDM_TYPEDEF_ALL(tcdm, tcdm_addr_t, data_t, strb_t, tcdm_user_t)
 
+  // TODO(colluca): parameterize 7
+  // Define dca_lane_req_t and dca_lane_rsp_t
+  `DCA_TYPEDEF_ALL(dca_lane, DcaLaneDataWidth, 7)
+
   // Event counter increments for the TCDM.
   typedef struct packed {
     /// Number requests going in
@@ -568,26 +571,6 @@ module snitch_cluster
     l0_pte_t [1:0] ptw_pte;
     logic [1:0]    ptw_is_4mega;
   } hive_rsp_t;
-
-  // Typedef to generate the DCA request containing all information.
-  typedef struct packed {
-    logic [2:0][DCA_DATA_WIDTH-1:0]   dca_operands;       // FP-Operands from the Router
-    fpnew_pkg::roundmode_e            dca_rnd_mode;       // Round Mode for the FPU for this OP --> logic [2:0] (@FPNEW Doku)
-    fpnew_pkg::operation_e            dca_op_code;        // OP Code for the FPU Command --> logic [3:0] (@FPNEW Doku)
-    logic                             dca_op_mode;        // OP Mode for the corresponding Code
-    fpnew_pkg::fp_format_e            dca_src_format;     // Format for the Source --> logic [2:0] (@FPNEW Doku)
-    fpnew_pkg::fp_format_e            dca_dst_format;     // Format for the Destination --> logic [2:0] (@FPNEW Doku)
-    fpnew_pkg::int_format_e           dca_int_format;     // Format for the Integer --> logic [1:0] (@FPNEW Doku)
-    logic                             dca_vector_op;      // Flag to indicate an vector operation
-    logic [6:0]                       dca_tag;            // Make the tag accessible by the outside world
-  } dca_req_t;
-
-  // Typedef to generate the DCA response containing all information
-  typedef struct packed {
-    logic [6:0]                       dca_tag;            // Return the tag to the outside world
-    fpnew_pkg::status_t               dca_status;         // Status Flag(s) of the FPU --> logic [4:0] (@FPNEW Doku)
-    logic [DCA_DATA_WIDTH-1:0]        dca_result;         // Result of the FPU Operation
-  } dca_resp_t;
 
   // ---------------------------
   // Cluster-internal Addressing
@@ -1067,87 +1050,31 @@ module snitch_cluster
   hive_req_t [NrCores-1:0] hive_req;
   hive_rsp_t [NrCores-1:0] hive_rsp;
 
-  // Split the DCA into the cores!
-  dca_req_t [NrCores-1:0] dca_req;
-  logic [NrCores-1:0] dca_req_valid;
-  logic [NrCores-1:0] dca_req_ready;
+  dca_lane_req_t [NrCores-1:0] dca_lane_req;
+  dca_lane_rsp_t [NrCores-1:0] dca_lane_rsp;
 
-  dca_resp_t [NrCores-1:0] dca_resp;
-  logic [NrCores-1:0] dca_resp_valid;
-  logic [NrCores-1:0] dca_resp_ready;
-
-  // Only generate the DCA logic if the Extension is requested
-  if(Xdca) begin : gen_dca_handshake_control
-
-    // DCA Fork the Handshaking to the available number of cores
-    stream_fork #(
-      .N_OUP          (NrCores-1)
-    ) i_dca_fork_fpu (
-      .clk_i         (clk_i),
-      .rst_ni        (rst_ni),
-      .valid_i       (dca_8x_req_valid_i),
-      .ready_o       (dca_8x_req_ready_o),
-      .valid_o       (dca_req_valid[NrCores-2:0]),
-      .ready_i       (dca_req_ready[NrCores-2:0])
+  // Fork the external DCA port to the various SIMD lanes, and tie off DMA
+  // TODO(colluca): the number of DMA cores here is hardcoded
+  // TODO(colluca): parameterize 7
+  if (EnableDca) begin : gen_dca
+    dca_fork #(
+      .LaneDataWidth(DcaLaneDataWidth),
+      .NumLanes(NrCores-1),
+      .TagWidth(7)
+    ) i_dca_fork (
+      clk_i,
+      rst_ni,
+      slv_req_i(dca_req_i),
+      slv_rsp_o(dca_rsp_o),
+      mst_req_o(dca_lane_req[NrCores-2:0]),
+      mst_rsp_i(dca_lane_rsp[NrCores-2:0])
     );
-
-    // Disable the DCA for the DMA Core (NrCores - 1)!
-    assign dca_req_valid[NrCores-1] = 1'b0;
-    assign dca_resp_ready[NrCores-1] = 1'b0;
-
-    // DCA Join the Handshaking from the available number of cores
-    stream_join #(
-      .N_INP          (NrCores-1)
-    ) i_dca_join_fpu (
-      .inp_valid_i     (dca_resp_valid[NrCores-2:0]),
-      .inp_ready_o     (dca_resp_ready[NrCores-2:0]),
-      .oup_valid_o     (dca_8x_resp_valid_o),
-      .oup_ready_i     (dca_8x_resp_ready_i)
-    );
-
-    for (genvar i = 0; i < NrCores; i++) begin : gen_dca_split
-      // Request Splitting
-      if(i < (NrCores-1)) begin
-        assign dca_req[i].dca_operands[2][DCA_DATA_WIDTH-1:0] = dca_8x_req_i.dca_operands[2][(DCA_DATA_WIDTH*(i+1))-1:DCA_DATA_WIDTH*i];   // Split up here the data
-        assign dca_req[i].dca_operands[1][DCA_DATA_WIDTH-1:0] = dca_8x_req_i.dca_operands[1][(DCA_DATA_WIDTH*(i+1))-1:DCA_DATA_WIDTH*i];   // Split up here the data
-        assign dca_req[i].dca_operands[0][DCA_DATA_WIDTH-1:0] = dca_8x_req_i.dca_operands[0][(DCA_DATA_WIDTH*(i+1))-1:DCA_DATA_WIDTH*i];   // Split up here the data
-
-        assign dca_req[i].dca_rnd_mode = dca_8x_req_i.dca_rnd_mode;
-        assign dca_req[i].dca_op_code = dca_8x_req_i.dca_op_code;
-        assign dca_req[i].dca_op_mode = dca_8x_req_i.dca_op_mode;
-        assign dca_req[i].dca_src_format = dca_8x_req_i.dca_src_format;
-        assign dca_req[i].dca_dst_format = dca_8x_req_i.dca_dst_format;
-        assign dca_req[i].dca_int_format = dca_8x_req_i.dca_int_format;
-        assign dca_req[i].dca_vector_op = dca_8x_req_i.dca_vector_op;
-        assign dca_req[i].dca_tag = dca_8x_req_i.dca_tag;
-
-        // Response Merging
-        assign dca_8x_resp_o.dca_result[(DCA_DATA_WIDTH*(i+1)-1):DCA_DATA_WIDTH*i] = dca_resp[i].dca_result[DCA_DATA_WIDTH-1:0];
-      end else begin
-        // The Connection to the DMA core is separated, we do not need it
-        assign dca_req[i] = '0;
-      end
+    `REQRSP_TIE_OFF_REQ(dca_lane_req[NrCores-1])
+  end else begin : gen_no_dca
+    for (genvar i = 0; i < NrCores; i++) begin : gen_tie_off_lane
+      `REQRSP_TIE_OFF_REQ(dca_lane_req[i])
     end
-
-    // Copy the tag
-    assign dca_8x_resp_o.dca_tag = dca_resp[0].dca_tag;
-
-    // OR - Connect the overall status Bits
-    always_comb begin
-        dca_8x_resp_o.dca_status = '0; // Initialize to avoid latch inference
-        for (int i = 0; i < (NrCores-1); i++) begin
-            dca_8x_resp_o.dca_status |= dca_resp[i].dca_status; // Bitwise OR reduction
-        end
-    end
-
-  end else begin
-    assign dca_req = '0;
-    assign dca_req_valid = '0;
-    assign dca_8x_req_ready_o = 1'b0;
-
-    assign dca_resp_ready = '0;
-    assign dca_8x_resp_valid_o = 1'b0;
-    assign dca_8x_resp_o = '0;
+    `REQRSP_TIE_OFF_RSP(dca_rsp_o)
   end
 
   for (genvar i = 0; i < NrCores; i++) begin : gen_core
@@ -1170,129 +1097,125 @@ module snitch_cluster
     assign irq.mcip = cl_interrupt[i];
     assign irq.mxip = mxip_i[i];
 
-      tcdm_req_t [TcdmPorts-1:0] tcdm_req_wo_user;
+    tcdm_req_t [TcdmPorts-1:0] tcdm_req_wo_user;
 
-      parameter logic [31:0] BootAddrInternal = (AliasRegionEnable & IntBootromEnable) ?
-                                                 BootRomAliasStart : BootAddr;
+    parameter logic [31:0] BootAddrInternal = (AliasRegionEnable & IntBootromEnable) ?
+                                                BootRomAliasStart : BootAddr;
 
-      snitch_cc #(
-        .AddrWidth (PhysicalAddrWidth),
-        .DataWidth (NarrowDataWidth),
-        .DMADataWidth (WideDataWidth),
-        .DMAIdWidth (WideIdWidthIn),
-        .DMAUserWidth (WideUserWidth),
-        .SnitchPMACfg (SnitchPMACfg),
-        .DMANumAxInFlight (DMANumAxInFlight),
-        .DMAReqFifoDepth (DMAReqFifoDepth),
-        .DMANumChannels (DMANumChannels),
-        .dreq_t (reqrsp_req_t),
-        .drsp_t (reqrsp_rsp_t),
-        .tcdm_req_t (tcdm_req_t),
-        .tcdm_rsp_t (tcdm_rsp_t),
-        .tcdm_user_t (tcdm_user_t),
-        .axi_ar_chan_t (axi_mst_dma_ar_chan_t),
-        .axi_aw_chan_t (axi_mst_dma_aw_chan_t),
-        .axi_req_t (axi_mst_dma_req_t),
-        .axi_rsp_t (axi_mst_dma_resp_t),
-        .hive_req_t (hive_req_t),
-        .hive_rsp_t (hive_rsp_t),
-        .acc_req_t (acc_req_t),
-        .acc_resp_t (acc_resp_t),
-        .dca_req_t  (dca_req_t),
-        .dca_resp_t (dca_resp_t),
-        .dma_events_t (dma_events_t),
-        .BootAddr (BootAddrInternal),
-        .RVE (RVE[i]),
-        .RVF (RVF[i]),
-        .RVD (RVD[i]),
-        .XDivSqrt (XDivSqrt[i]),
-        .XF16 (XF16[i]),
-        .XF16ALT (XF16ALT[i]),
-        .XF8 (XF8[i]),
-        .XF8ALT (XF8ALT[i]),
-        .XFVEC (XFVEC[i]),
-        .XFDOTP (XFDOTP[i]),
-        .Xdma (Xdma[i]),
-        .IsoCrossing (IsoCrossing),
-        .Xfrep (Xfrep[i]),
-        .Xssr (Xssr[i]),
-        .Xdca (Xdca),
-        .Xcopift (Xcopift[i]),
-        .Xipu (1'b0),
-        .VMSupport (VMSupport),
-        .NumIntOutstandingLoads (NumIntOutstandingLoads[i]),
-        .NumIntOutstandingMem (NumIntOutstandingMem[i]),
-        .NumFPOutstandingLoads (NumFPOutstandingLoads[i]),
-        .NumFPOutstandingMem (NumFPOutstandingMem[i]),
-        .FPUImplementation (FPUImplementation[i]),
-        .NumDTLBEntries (NumDTLBEntries[i]),
-        .NumITLBEntries (NumITLBEntries[i]),
-        .NumSequencerInstr (NumSequencerInstr[i]),
-        .NumSequencerLoops (NumSequencerLoops[i]),
-        .NumSsrs (NumSsrs[i]),
-        .SsrMuxRespDepth (SsrMuxRespDepth[i]),
-        .SsrCfgs (SsrCfgs[i][NumSsrs[i]-1:0]),
-        .SsrRegs (SsrRegs[i][NumSsrs[i]-1:0]),
-        .RegisterOffloadReq (RegisterOffloadReq),
-        .RegisterOffloadRsp (RegisterOffloadRsp),
-        .RegisterCoreReq (RegisterCoreReq),
-        .RegisterCoreRsp (RegisterCoreRsp),
-        .RegisterFPUReq (RegisterFPUReq),
-        .RegisterSequencer (RegisterSequencer),
-        .RegisterFPUIn (RegisterFPUIn),
-        .RegisterFPUOut (RegisterFPUOut),
-        .RegisterDCAIn  (RegisterDCAIn),
-        .RegisterDCAOut (RegisterDCAOut),
-        .TCDMAddrWidth (TCDMAddrWidth),
-        .CaqDepth (CaqDepth),
-        .CaqTagWidth (CaqTagWidth),
-        .DebugSupport (DebugSupport),
-        .TCDMAliasEnable (AliasRegionEnable),
-        .TCDMAliasStart (TCDMAliasStart),
-        .CollectiveWidth (CollectiveWidth)
-      ) i_snitch_cc (
-        .clk_i,
-        .clk_d2_i (clk_d2),
-        .rst_ni,
-        .rst_int_ss_ni (1'b1),
-        .rst_fp_ss_ni (1'b1),
-        .hart_id_i (hart_base_id_i + i),
-        .hive_req_o (hive_req[i]),
-        .hive_rsp_i (hive_rsp[i]),
-        .irq_i (irq),
-        .data_req_o (core_req[i]),
-        .data_rsp_i (core_rsp[i]),
-        .tcdm_req_o (tcdm_req_wo_user),
-        .tcdm_rsp_i (tcdm_rsp[TcdmPortsOffs+:TcdmPorts]),
-        .axi_dma_req_o (axi_dma_req),
-        .axi_dma_res_i (axi_dma_res),
-        .axi_dma_busy_o (),
-        .axi_dma_events_o (dma_core_events),
-        .core_events_o (core_events[i]),
-        .tcdm_addr_base_i (tcdm_start_address),
-        .barrier_o (barrier_in[i]),
-        .barrier_i (barrier_out),
-        .dca_req_i (dca_req[i]),
-        .dca_req_valid_i (dca_req_valid[i]),
-        .dca_req_ready_o (dca_req_ready[i]),
-        .dca_resp_o (dca_resp[i]),
-        .dca_resp_valid_o (dca_resp_valid[i]),
-        .dca_resp_ready_i (dca_resp_ready[i])
-      );
-      for (genvar j = 0; j < TcdmPorts; j++) begin : gen_tcdm_user
-        always_comb begin
-          tcdm_req[TcdmPortsOffs+j] = tcdm_req_wo_user[j];
-          tcdm_req[TcdmPortsOffs+j].q.user[CoreIDWidth:1] = i;
-          tcdm_req[TcdmPortsOffs+j].q.user[0] = 1;
-        end
+    snitch_cc #(
+      .AddrWidth (PhysicalAddrWidth),
+      .DataWidth (NarrowDataWidth),
+      .DMADataWidth (WideDataWidth),
+      .DMAIdWidth (WideIdWidthIn),
+      .DMAUserWidth (WideUserWidth),
+      .SnitchPMACfg (SnitchPMACfg),
+      .DMANumAxInFlight (DMANumAxInFlight),
+      .DMAReqFifoDepth (DMAReqFifoDepth),
+      .DMANumChannels (DMANumChannels),
+      .dreq_t (reqrsp_req_t),
+      .drsp_t (reqrsp_rsp_t),
+      .tcdm_req_t (tcdm_req_t),
+      .tcdm_rsp_t (tcdm_rsp_t),
+      .tcdm_user_t (tcdm_user_t),
+      .axi_ar_chan_t (axi_mst_dma_ar_chan_t),
+      .axi_aw_chan_t (axi_mst_dma_aw_chan_t),
+      .axi_req_t (axi_mst_dma_req_t),
+      .axi_rsp_t (axi_mst_dma_resp_t),
+      .hive_req_t (hive_req_t),
+      .hive_rsp_t (hive_rsp_t),
+      .acc_req_t (acc_req_t),
+      .acc_resp_t (acc_resp_t),
+      .dca_req_t (dca_lane_req_t),
+      .dca_rsp_t (dca_lane_rsp_t),
+      .dma_events_t (dma_events_t),
+      .BootAddr (BootAddrInternal),
+      .RVE (RVE[i]),
+      .RVF (RVF[i]),
+      .RVD (RVD[i]),
+      .XDivSqrt (XDivSqrt[i]),
+      .XF16 (XF16[i]),
+      .XF16ALT (XF16ALT[i]),
+      .XF8 (XF8[i]),
+      .XF8ALT (XF8ALT[i]),
+      .XFVEC (XFVEC[i]),
+      .XFDOTP (XFDOTP[i]),
+      .Xdma (Xdma[i]),
+      .IsoCrossing (IsoCrossing),
+      .Xfrep (Xfrep[i]),
+      .Xssr (Xssr[i]),
+      .Xcopift (Xcopift[i]),
+      .Xipu (1'b0),
+      .VMSupport (VMSupport),
+      .NumIntOutstandingLoads (NumIntOutstandingLoads[i]),
+      .NumIntOutstandingMem (NumIntOutstandingMem[i]),
+      .NumFPOutstandingLoads (NumFPOutstandingLoads[i]),
+      .NumFPOutstandingMem (NumFPOutstandingMem[i]),
+      .FPUImplementation (FPUImplementation[i]),
+      .NumDTLBEntries (NumDTLBEntries[i]),
+      .NumITLBEntries (NumITLBEntries[i]),
+      .NumSequencerInstr (NumSequencerInstr[i]),
+      .NumSequencerLoops (NumSequencerLoops[i]),
+      .NumSsrs (NumSsrs[i]),
+      .SsrMuxRespDepth (SsrMuxRespDepth[i]),
+      .SsrCfgs (SsrCfgs[i][NumSsrs[i]-1:0]),
+      .SsrRegs (SsrRegs[i][NumSsrs[i]-1:0]),
+      .RegisterOffloadReq (RegisterOffloadReq),
+      .RegisterOffloadRsp (RegisterOffloadRsp),
+      .RegisterCoreReq (RegisterCoreReq),
+      .RegisterCoreRsp (RegisterCoreRsp),
+      .RegisterFPUReq (RegisterFPUReq),
+      .RegisterSequencer (RegisterSequencer),
+      .RegisterFPUIn (RegisterFPUIn),
+      .RegisterFPUOut (RegisterFPUOut),
+      .RegisterDcaReq (RegisterDcaReq),
+      .RegisterDcaRsp (RegisterDcaRsp),
+      .TCDMAddrWidth (TCDMAddrWidth),
+      .CaqDepth (CaqDepth),
+      .CaqTagWidth (CaqTagWidth),
+      .DebugSupport (DebugSupport),
+      .TCDMAliasEnable (AliasRegionEnable),
+      .TCDMAliasStart (TCDMAliasStart),
+      .CollectiveWidth (CollectiveWidth),
+      .EnableDca (EnableDca)
+    ) i_snitch_cc (
+      .clk_i,
+      .clk_d2_i (clk_d2),
+      .rst_ni,
+      .rst_int_ss_ni (1'b1),
+      .rst_fp_ss_ni (1'b1),
+      .hart_id_i (hart_base_id_i + i),
+      .hive_req_o (hive_req[i]),
+      .hive_rsp_i (hive_rsp[i]),
+      .irq_i (irq),
+      .data_req_o (core_req[i]),
+      .data_rsp_i (core_rsp[i]),
+      .tcdm_req_o (tcdm_req_wo_user),
+      .tcdm_rsp_i (tcdm_rsp[TcdmPortsOffs+:TcdmPorts]),
+      .axi_dma_req_o (axi_dma_req),
+      .axi_dma_res_i (axi_dma_res),
+      .axi_dma_busy_o (),
+      .axi_dma_events_o (dma_core_events),
+      .core_events_o (core_events[i]),
+      .tcdm_addr_base_i (tcdm_start_address),
+      .barrier_o (barrier_in[i]),
+      .barrier_i (barrier_out),
+      .dca_req_i (dca_lane_req[i]),
+      .dca_rsp_o (dca_lane_rsp[i])
+    );
+    for (genvar j = 0; j < TcdmPorts; j++) begin : gen_tcdm_user
+      always_comb begin
+        tcdm_req[TcdmPortsOffs+j] = tcdm_req_wo_user[j];
+        tcdm_req[TcdmPortsOffs+j].q.user[CoreIDWidth:1] = i;
+        tcdm_req[TcdmPortsOffs+j].q.user[0] = 1;
       end
-      if (Xdma[i]) begin : gen_dma_connection
-        for (genvar j = 0; j < DMANumChannels; j++) begin : gen_dma_connection
-          assign wide_axi_mst_req[SDMAMst + j] = axi_dma_req[j];
-          assign axi_dma_res[j] = wide_axi_mst_rsp[SDMAMst + j];
-        end
-        assign dma_events = dma_core_events;
+    end
+    if (Xdma[i]) begin : gen_dma_connection
+      for (genvar j = 0; j < DMANumChannels; j++) begin : gen_dma_connection
+        assign wide_axi_mst_req[SDMAMst + j] = axi_dma_req[j];
+        assign axi_dma_res[j] = wide_axi_mst_rsp[SDMAMst + j];
       end
+      assign dma_events = dma_core_events;
+    end
   end
 
   for (genvar i = 0; i < NrHives; i++) begin : gen_hive
@@ -1844,7 +1767,10 @@ module snitch_cluster
   // Make sure we only have one DMA in the system.
   `ASSERT_INIT(NumberDMA, $onehot0(Xdma))
   // For the DCA Extension the (Currently) only allowed configuration is 8 CC and 1 DC (9 Cores)
-  `ASSERT_INIT(DCASystemConfiguration, (~Xdca) || (NrCores == 9))
-  `ASSERT_INIT(DCASystemDMAWidth, (~Xdca) || (WideDataWidth == 512))
+  // TODO(colluca): extend to support any DcaDataWidth that is an integer multiple of NarrowDataWidth
+  //                and lower than NarrowDataWidth * NrComputeCores
+  `ASSERT_INIT(DcaSystemConfiguration, (~Xdca) || (NrCores == 9))
+  `ASSERT_INIT(DcaSystemWideDataWidth, (~Xdca) || (WideDataWidth == 512))
+  `ASSERT_INIT(DcaSystemNarrowDataWidth, (~Xdca) || (NarrowDataWidth == 64))
 
 endmodule

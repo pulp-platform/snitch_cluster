@@ -28,7 +28,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   parameter type acc_req_t = logic,
   parameter type acc_resp_t = logic,
   parameter type dca_req_t = logic,
-  parameter type dca_resp_t = logic,
+  parameter type dca_rsp_t = logic,
   parameter bit RVF = 1,
   parameter bit RVD = 1,
   parameter bit XF16 = 0,
@@ -89,9 +89,9 @@ module snitch_fp_ss import snitch_pkg::*; #(
   input dca_req_t           dca_req_i,
   input logic               dca_req_valid_i,
   output logic              dca_req_ready_o,
-  output dca_resp_t         dca_resp_o,
-  output logic              dca_resp_valid_o,
-  input logic               dca_resp_ready_i
+  output dca_rsp_t          dca_rsp_o,
+  output logic              dca_rsp_valid_o,
+  input logic               dca_rsp_ready_i
 );
 
   fpnew_pkg::operation_e  fpu_op;
@@ -2743,20 +2743,20 @@ module snitch_fp_ss import snitch_pkg::*; #(
 
       .oup_sel_i        (demux_dca_snitch.tag[7]),
 
-      .oup_valid_o      ({dca_resp_valid_o, fpu_out_valid}),
-      .oup_ready_i      ({dca_resp_ready_i, fpu_out_ready})
+      .oup_valid_o      ({dca_rsp_valid_o, fpu_out_valid}),
+      .oup_ready_i      ({dca_rsp_ready_i, fpu_out_ready})
     );
     // Connect the data signals to the output
-    assign dca_resp_o.dca_result = demux_dca_snitch.result;
-    assign dca_resp_o.dca_status = demux_dca_snitch.status;
-    assign dca_resp_o.dca_tag = demux_dca_snitch.tag[6:0];
+    assign dca_rsp_o.dca_result = demux_dca_snitch.result;
+    assign dca_rsp_o.dca_status = demux_dca_snitch.status;
+    assign dca_rsp_o.dca_tag = demux_dca_snitch.tag[6:0];
   // No DCA IF is required
   end else begin : gen_xdca_bypass_demux
     assign demux_dca_snitch_ready = fpu_out_ready;
     assign fpu_out_valid = demux_dca_snitch_valid;
 
-    assign dca_resp_valid_o = 1'b0;
-    assign dca_resp_o = '0;
+    assign dca_rsp_valid_o = 1'b0;
+    assign dca_rsp_o = '0;
   end
 
   // Assign the signals to the corresponding outputs
@@ -2933,7 +2933,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   if (Xdca) begin : gen_xdca_tracer
     assign dca_trace_port_o.source              = snitch_pkg::SrcDca;
     assign dca_trace_port_o.dca_in_hs           = (dca_req_valid_i && dca_req_ready_o);
-    assign dca_trace_port_o.dca_out_hs          = (dca_resp_valid_o && dca_resp_ready_i);
+    assign dca_trace_port_o.dca_out_hs          = (dca_rsp_valid_o && dca_rsp_ready_i);
     assign dca_trace_port_o.dca_in_op_code      = dca_req_i.dca_op_code;
     assign dca_trace_port_o.dca_in_op_mode      = dca_req_i.dca_op_mode;
     assign dca_trace_port_o.dca_in_rnd_mode     = dca_req_i.dca_rnd_mode;
@@ -2945,9 +2945,9 @@ module snitch_fp_ss import snitch_pkg::*; #(
     assign dca_trace_port_o.dca_in_dst_fmt      = dca_req_i.dca_dst_format;
     assign dca_trace_port_o.dca_in_int_fmt      = dca_req_i.dca_int_format;
     assign dca_trace_port_o.dca_in_tag          = dca_req_i.dca_tag;
-    assign dca_trace_port_o.dca_out_tag         = dca_resp_o.dca_tag;
-    assign dca_trace_port_o.dca_out_status      = dca_resp_o.dca_status;
-    assign dca_trace_port_o.dca_out_result      = dca_resp_o.dca_result;
+    assign dca_trace_port_o.dca_out_tag         = dca_rsp_o.dca_tag;
+    assign dca_trace_port_o.dca_out_status      = dca_rsp_o.dca_status;
+    assign dca_trace_port_o.dca_out_result      = dca_rsp_o.dca_result;
   end else begin
     assign dca_trace_port_o                     = '0;
   end

@@ -7,6 +7,7 @@
 `include "common_cells/assertions.svh"
 `include "common_cells/registers.svh"
 `include "snitch_vm/typedef.svh"
+`include "reqrsp_interface/typedef.svh"
 
 /// Snitch Core Complex (CC)
 /// Contains the Snitch Integer Core + FPU + Private Accelerators
@@ -44,8 +45,8 @@ module snitch_cc #(
   parameter type         hive_rsp_t         = logic,
   parameter type         acc_req_t          = logic,
   parameter type         acc_resp_t         = logic,
-  parameter type         dca_req_t          = logic,
-  parameter type         dca_resp_t         = logic,
+  parameter type         dca_req_chan_t     = logic,
+  parameter type         dca_rsp_chan_t     = logic,
   parameter type         dma_events_t       = logic,
   parameter fpnew_pkg::fpu_implementation_t FPUImplementation = '0,
   /// Boot address of core.
@@ -68,16 +69,12 @@ module snitch_cc #(
   parameter bit          Xfrep              = 1,
   /// Has `SSR` support.
   parameter bit          Xssr               = 1,
-  /// Has `DCA` support.
-  parameter bit          Xdca               = 0,
   /// Has `COPIFT` support.
   parameter bit          Xcopift            = 1,
   /// Has `IPU` support.
   parameter bit          Xipu               = 1,
   /// Has virtual memory support.
   parameter bit          VMSupport          = 1,
-  /// Width of the collective operation field
-  parameter int unsigned CollectiveWidth    = 1,
   parameter int unsigned NumIntOutstandingLoads = 0,
   parameter int unsigned NumIntOutstandingMem = 0,
   parameter int unsigned NumFPOutstandingLoads = 0,
@@ -110,10 +107,10 @@ module snitch_cc #(
   parameter bit          RegisterFPUIn      = 0,
   /// Insert Pipeline registers immediately after FPU datapath
   parameter bit          RegisterFPUOut     = 0,
-  /// Insert Pipeline register between DCA from Router and FPU
-  parameter bit          RegisterDCAIn      = 0,
-  /// Insert Pipeline register between DCA from FPU and Router
-  parameter bit          RegisterDCAOut     = 0,
+  /// Cut DCA request to FPU
+  parameter bit          RegisterDcaReq     = 0,
+  /// Cut DCA response from FPU
+  parameter bit          RegisterDcaRsp     = 0,
   parameter snitch_pma_pkg::snitch_pma_t SnitchPMACfg = '{default: 0},
   /// Consistency Address Queue (CAQ) parameters.
   parameter int unsigned CaqDepth     = 0,
@@ -123,10 +120,16 @@ module snitch_cc #(
   /// Optional fixed TCDM alias.
   parameter bit          TCDMAliasEnable = 1'b0,
   parameter logic [AddrWidth-1:0] TCDMAliasStart  = '0,
+  /// Width of the collective operation field
+  parameter int unsigned CollectiveWidth    = 1,
+  /// Enable direct compute access (DCA).
+  parameter bit          EnableDca          = 0,
   /// Derived parameter *Do not override*
   parameter int unsigned TCDMPorts = (NumSsrs > 1 ? NumSsrs : 1),
   parameter type addr_t = logic [AddrWidth-1:0],
-  parameter type data_t = logic [DataWidth-1:0]
+  parameter type data_t = logic [DataWidth-1:0],
+  parameter type dca_req_t = `GENERIC_REQRSP_REQ_STRUCT(dca_req_chan_t),
+  parameter type dca_rsp_t = `GENERIC_REQRSP_RSP_STRUCT(dca_rsp_chan_t)
 ) (
   input  logic                              clk_i,
   input  logic                              clk_d2_i,
@@ -156,12 +159,8 @@ module snitch_cc #(
   output logic                              barrier_o,
   input  logic                              barrier_i,
   // Direct Compute Access (DCA) interface
-  input dca_req_t                           dca_req_i,
-  input logic                               dca_req_valid_i,
-  output logic                              dca_req_ready_o,
-  output dca_resp_t                         dca_resp_o,
-  output logic                              dca_resp_valid_o,
-  input logic                               dca_resp_ready_i
+  input  dca_req_t                          dca_req_i,
+  output dca_rsp_t                          dca_rsp_o
 );
 
   // FMA architecture is "merged" -> mulexp and macexp instructions are supported
@@ -501,59 +500,28 @@ module snitch_cc #(
   logic             ssr_streamctl_valid;
   logic             ssr_streamctl_ready;
 
-  // Signals for the DCA
-  dca_req_t   dca_req_q;          // Delayed Request by the (optional) Spill Register
-  logic       dca_req_valid_q;    
-  logic       dca_req_ready_q;
-  dca_resp_t  dca_resp;           // Response from the FPU in front of the (optional) Spill Register
-  logic       dca_resp_valid;
-  logic       dca_resp_ready;
-
-  // Cut off-DCA Interface Request
-  if(Xdca) begin : gen_spill_register
-    spill_register #(
-      .T        (dca_req_t),
-      .Bypass   (~RegisterDCAIn)
-    ) i_spill_reg_dca_req (
-      .clk_i    (clk_i),
-      .rst_ni   (rst_ni),
-      .valid_i  (dca_req_valid_i),
-      .ready_o  (dca_req_ready_o),
-      .data_i   (dca_req_i),
-      .valid_o  (dca_req_valid_q),
-      .ready_i  (dca_req_ready_q),
-      .data_o   (dca_req_q)
-      );
-
-    // Cut off-DCA Interface Response
-    spill_register #(
-      .T          (dca_resp_t),
-      .Bypass     (~RegisterDCAOut)
-    ) i_spill_reg_dca_resp (
-      .clk_i      (clk_i),
-      .rst_ni     (rst_ni),
-      .valid_i    (dca_resp_valid),
-      .ready_o    (dca_resp_ready),
-      .data_i     (dca_resp),
-      .valid_o    (dca_resp_valid_o),
-      .ready_i    (dca_resp_ready_i),
-      .data_o     (dca_resp_o)
-    );
-  end else begin
-    assign dca_req_ready_o = 1'b0;
-    assign dca_req_valid_q = 1'b0;
-    assign dca_req_q = '0;
-
-    assign dca_resp_ready = 1'b0;
-    assign dca_resp_valid_o = 1'b0;
-    assign dca_resp_o = '0;
-  end
-
   if (FPEn) begin : gen_fpu
     snitch_pkg::core_events_t fp_ss_core_events;
 
     dreq_t fpu_dreq;
     drsp_t fpu_drsp;
+
+    dca_req_t dca_req;
+    dca_rsp_t dca_rsp;
+
+    generic_reqrsp_cut #(
+      .req_chan_t(dca_req_chan_t),
+      .rsp_chan_t(dca_rsp_chan_t),
+      .BypassReq(!EnableDca || !RegisterDcaReq),
+      .BypassRsp(!EnableDca || !RegisterDcaRsp)
+    ) i_dca_cut (
+      .clk_i(clk_i),
+      .rst_ni(rst_ni),
+      .slv_req_i(dca_req_i),
+      .slv_rsp_o(dca_rsp_o),
+      .mst_req_o(dca_req),
+      .mst_rsp_i(dca_rsp)
+    );
 
     snitch_fp_ss #(
       .AddrWidth (AddrWidth),
@@ -570,13 +538,13 @@ module snitch_cc #(
       .acc_req_t (acc_req_t),
       .acc_resp_t (acc_resp_t),
       .dca_req_t (dca_req_t),
-      .dca_resp_t (dca_resp_t),
+      .dca_rsp_t (dca_rsp_t),
       .RegisterSequencer (RegisterSequencer),
       .RegisterFPUIn (RegisterFPUIn),
       .RegisterFPUOut (RegisterFPUOut),
       .Xfrep (Xfrep),
       .Xssr (Xssr),
-      .Xdca (Xdca),
+      .Xdca (EnableDca),
       .Xcopift (Xcopift),
       .RVF (RVF),
       .RVD (RVD),
@@ -621,12 +589,12 @@ module snitch_cc #(
       .streamctl_valid_i  ( ssr_streamctl_valid ),
       .streamctl_ready_o  ( ssr_streamctl_ready ),
       .core_events_o      ( fp_ss_core_events   ),
-      .dca_req_i          ( dca_req_q           ),
-      .dca_req_valid_i    ( dca_req_valid_q     ),
-      .dca_req_ready_o    ( dca_req_ready_q     ),
-      .dca_resp_o         ( dca_resp            ),
-      .dca_resp_valid_o   ( dca_resp_valid      ),
-      .dca_resp_ready_i   ( dca_resp_ready      )
+      .dca_req_i          ( dca_req.q           ),
+      .dca_req_valid_i    ( dca_req.q_valid     ),
+      .dca_req_ready_o    ( dca_req.p_ready     ),
+      .dca_rsp_o          ( dca_rsp.p           ),
+      .dca_rsp_valid_o    ( dca_rsp.p_valid     ),
+      .dca_rsp_ready_i    ( dca_rsp.q_ready     )
     );
 
     reqrsp_mux #(
@@ -1032,11 +1000,6 @@ module snitch_cc #(
         end
       end
 
-      // If dca enabled then forward the trace port
-      if(Xdca) begin
-        extras_dca = dca_trace;
-      end
-
       cycle++;
       // Trace snitch iff:
       // we are not stalled <==> we have issued and processed an instruction (including offloads)
@@ -1072,10 +1035,11 @@ module snitch_cc #(
           end
         end
       end
-      if(Xdca) begin
+      if (EnableDca) begin
+        extras_dca = dca_trace;
         // Trace DCA iff
         // When either an input or output handshake occures
-        if(extras_dca.dca_in_hs || extras_dca.dca_out_hs) begin
+        if (extras_dca.dca_in_hs || extras_dca.dca_out_hs) begin
           $sformat(trace_entry, "%t %1d %8d 0x%h DASM(%h) #; %s\n",
               $time, cycle, i_snitch.priv_lvl_q, 32'hz, extras_dca.dca_in_op_code,
               snitch_pkg::print_dca_trace(extras_dca));
@@ -1095,7 +1059,7 @@ module snitch_cc #(
 
   `ASSERT_INIT(BootAddrAligned, BootAddr[1:0] == 2'b00)
   
-  // For the DCA Extension the is is required that each core has the FPU D-ext loaded
-  `ASSERT_INIT(DCACoreConfiguration, (~Xdca) || RVD)
+  // For the DCA extension it is required that each core has the FPU D-ext enabled
+  `ASSERT_INIT(DcaCoreConfiguration, (!EnableDca) || RVD)
 
 endmodule

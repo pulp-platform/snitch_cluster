@@ -58,12 +58,8 @@ module ${cfg['cluster']['name']}_wrapper (
   input  ${cfg['cluster']['name']}_pkg::narrow_out_resp_t   narrow_ext_resp_i,
   input  ${cfg['cluster']['name']}_pkg::tcdm_dma_req_t [${actual_num_exposed_wide_tcdm_ports}-1:0] tcdm_ext_req_i,
   output ${cfg['cluster']['name']}_pkg::tcdm_dma_rsp_t [${actual_num_exposed_wide_tcdm_ports}-1:0] tcdm_ext_resp_o,
-  input  ${cfg['cluster']['name']}_pkg::dca_router_req_t    dca_8x_req_i,
-  input  logic                                              dca_8x_req_valid_i,
-  output logic                                              dca_8x_req_ready_o,
-  output ${cfg['cluster']['name']}_pkg::dca_router_resp_t   dca_8x_resp_o,
-  output logic                                              dca_8x_resp_valid_o,
-  input  logic                                              dca_8x_resp_ready_i
+  input  ${cfg['cluster']['name']}_pkg::dca_req_t           dca_req_i,
+  output ${cfg['cluster']['name']}_pkg::dca_rsp_t           dca_rsp_o
 );
 
   localparam int unsigned NumIntOutstandingLoads [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_int_outstanding_loads')}};
@@ -182,8 +178,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .DebugSupport (${int(cfg['cluster']['enable_debug'])}),
     .AliasRegionEnable (${int(cfg['cluster']['alias_region_enable'])}),
     .AliasRegionBase (${int(cfg['cluster']['alias_region_base'])}),
-    .dca_router_req_t (snitch_cluster_pkg::dca_router_req_t),
-    .dca_router_resp_t (snitch_cluster_pkg::dca_router_resp_t)
+    .DcaDataWidth (${int(cfg['cluster']['dca_data_width'])})
   ) i_cluster (
     .clk_i,
     .rst_ni,
@@ -239,19 +234,11 @@ module ${cfg['cluster']['name']}_wrapper (
     .wide_in_req_i,
     .wide_in_resp_o,
 % if cfg['cluster']['enable_dca']:
-    .dca_8x_req_i,
-    .dca_8x_req_valid_i,
-    .dca_8x_req_ready_o,
-    .dca_8x_resp_o,
-    .dca_8x_resp_valid_o,
-    .dca_8x_resp_ready_i
+    .dca_req_i,
+    .dca_rsp_o,
 % else:
-    .dca_8x_req_i ('0),
-    .dca_8x_req_valid_i (1'b0),
-    .dca_8x_req_ready_o,
-    .dca_8x_resp_o,
-    .dca_8x_resp_valid_o,
-    .dca_8x_resp_ready_i (1'b0)
+    .dca_req_i ('0),
+    .dca_rsp_o
 %endif
   );
 endmodule

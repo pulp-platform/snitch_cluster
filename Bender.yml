@@ -33,6 +33,7 @@ export_include_dirs:
   - hw/reqrsp_interface/include
   - hw/mem_interface/include
   - hw/tcdm_interface/include
+  - hw/dca_interface/include
   - hw/snitch/include
   - hw/snitch_ssr/include
   - hw/generated
@@ -89,6 +90,10 @@ sources:
     files:
       - hw/tcdm_interface/test/reqrsp_to_tcdm_tb.sv
       - hw/tcdm_interface/test/tcdm_mux_tb.sv
+
+  # dca_interface
+  - files:
+      - hw/dca_interface/src/dca_fork.sv
 
   # snitch
   - files:

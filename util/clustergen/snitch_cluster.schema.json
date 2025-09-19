@@ -191,6 +191,11 @@
                     "description": "Whether to enable the direct compute access into the cluster",
                     "default": false
                 },
+                "dca_data_width": {
+                    "type": "number",
+                    "description": "Size of the DCA interface",
+                    "default": 512
+                },
                 "hart_base_id": {
                     "type": "number",
                     "description": "Base hart id of the cluster. All cores get the respective cluster id plus their cluster position as the final `hart_id`.",
