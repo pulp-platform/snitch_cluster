@@ -41,6 +41,8 @@ sources:
   # reqrsp_interface
   - files:
       # Level 0
+      - hw/reqrsp_interface/src/generic_reqrsp_cut.sv
+      - hw/reqrsp_interface/src/generic_reqrsp_mux.sv
       - hw/reqrsp_interface/src/reqrsp_pkg.sv
       # Level 1
       - hw/reqrsp_interface/src/reqrsp_intf.sv

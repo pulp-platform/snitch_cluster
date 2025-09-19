@@ -4,11 +4,22 @@
 
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 // Author: Fabian Schuiki <fschuiki@iis.ee.ethz.ch>
+// Author: Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 // Macros to assign reqrsp Interfaces and Structs
 
 `ifndef REQRSP_ASSIGN_SVH_
 `define REQRSP_ASSIGN_SVH_
+
+// Tie off a generic reqrsp-like interface
+`define REQRSP_TIE_OFF_REQ(__if)  \
+  assign ``__if``.q = '0;         \
+  assign ``__if``.q_valid = 1'b0; \
+  assign ``__if``.p_ready = 1'b0;
+`define REQRSP_TIE_OFF_RSP(__if)  \
+  assign ``__if``.p = '0;         \
+  assign ``__if``.p_valid = 1'b0; \
+  assign ``__if``.q_ready = 1'b0;
 
 // Assign an reqrsp handshake.
 `define REQRSP_ASSIGN_VALID(__opt_as, __dst, __src, __chan) \
