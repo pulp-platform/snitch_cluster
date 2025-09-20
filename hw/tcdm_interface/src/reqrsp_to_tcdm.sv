@@ -10,6 +10,7 @@
 module reqrsp_to_tcdm #(
   parameter int unsigned AddrWidth  = 0,
   parameter int unsigned DataWidth  = 0,
+  parameter int unsigned UserWidth  = 0,
   parameter int unsigned BufDepth = 2,
   parameter type reqrsp_req_t = logic,
   parameter type reqrsp_rsp_t = logic,
@@ -27,8 +28,9 @@ module reqrsp_to_tcdm #(
   typedef logic [AddrWidth-1:0] addr_t;
   typedef logic [DataWidth-1:0] data_t;
   typedef logic [DataWidth/8-1:0] strb_t;
+  typedef logic [UserWidth-1:0] user_t;
 
-  `REQRSP_TYPEDEF_ALL(rr, addr_t, data_t, strb_t)
+  `REQRSP_TYPEDEF_ALL(rr, addr_t, data_t, strb_t, user_t)
   rr_req_chan_t req;
   rr_rsp_chan_t rsp;
 
@@ -58,7 +60,7 @@ module reqrsp_to_tcdm #(
     amo: req.amo,
     data: req.data,
     strb: req.strb,
-    user: '0
+    user: req.user
   };
 
   assign rsp = '{
@@ -77,7 +79,7 @@ endmodule
 module reqrsp_to_tcdm_intf #(
   parameter int unsigned AddrWidth  = 0,
   parameter int unsigned DataWidth  = 0,
-  parameter type user_t             = logic,
+  parameter int unsigned UserWidth  = 0,
   parameter int unsigned BufDepth = 2
 ) (
   input  logic        clk_i,
@@ -89,8 +91,9 @@ module reqrsp_to_tcdm_intf #(
   typedef logic [AddrWidth-1:0] addr_t;
   typedef logic [DataWidth-1:0] data_t;
   typedef logic [DataWidth/8-1:0] strb_t;
+  typedef logic [UserWidth-1:0] user_t;
 
-  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t)
+  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
   `TCDM_TYPEDEF_ALL(tcdm, addr_t, data_t, strb_t, user_t)
 
   reqrsp_req_t reqrsp_req;
@@ -102,6 +105,7 @@ module reqrsp_to_tcdm_intf #(
   reqrsp_to_tcdm #(
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
+    .UserWidth (UserWidth),
     .BufDepth (BufDepth),
     .reqrsp_req_t (reqrsp_req_t),
     .reqrsp_rsp_t (reqrsp_rsp_t),

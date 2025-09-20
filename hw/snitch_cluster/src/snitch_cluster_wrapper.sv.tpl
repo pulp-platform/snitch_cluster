@@ -57,7 +57,9 @@ module ${cfg['cluster']['name']}_wrapper (
   output ${cfg['cluster']['name']}_pkg::narrow_out_req_t    narrow_ext_req_o,
   input  ${cfg['cluster']['name']}_pkg::narrow_out_resp_t   narrow_ext_resp_i,
   input  ${cfg['cluster']['name']}_pkg::tcdm_dma_req_t [${actual_num_exposed_wide_tcdm_ports}-1:0] tcdm_ext_req_i,
-  output ${cfg['cluster']['name']}_pkg::tcdm_dma_rsp_t [${actual_num_exposed_wide_tcdm_ports}-1:0] tcdm_ext_resp_o
+  output ${cfg['cluster']['name']}_pkg::tcdm_dma_rsp_t [${actual_num_exposed_wide_tcdm_ports}-1:0] tcdm_ext_resp_o,
+  input  ${cfg['cluster']['name']}_pkg::dca_req_t           dca_req_i,
+  output ${cfg['cluster']['name']}_pkg::dca_rsp_t           dca_rsp_o
 );
 
   localparam int unsigned NumIntOutstandingLoads [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_int_outstanding_loads')}};
@@ -78,9 +80,8 @@ module ${cfg['cluster']['name']}_wrapper (
     .WideDataWidth (${cfg['cluster']['dma_data_width']}),
     .NarrowIdWidthIn (${cfg['cluster']['name']}_pkg::NarrowIdWidthIn),
     .WideIdWidthIn (${cfg['cluster']['name']}_pkg::WideIdWidthIn),
-    .NarrowUserWidth (${cfg['cluster']['name']}_pkg::NarrowUserWidth),
-    .WideUserWidth (${cfg['cluster']['name']}_pkg::WideUserWidth),
     .AtomicIdWidth (${cfg['cluster']['name']}_pkg::AtomicIdWidth),
+    .CollectiveWidth (${cfg['cluster']['name']}_pkg::CollectiveWidth),
     .BootAddr (${to_sv_hex(cfg['cluster']['boot_addr'], 32)}),
     .IntBootromEnable (${int(cfg['cluster']['int_bootrom_enable'])}),
     .narrow_in_req_t (${cfg['cluster']['name']}_pkg::narrow_in_req_t),
@@ -91,6 +92,8 @@ module ${cfg['cluster']['name']}_wrapper (
     .wide_out_resp_t (${cfg['cluster']['name']}_pkg::wide_out_resp_t),
     .wide_in_req_t (${cfg['cluster']['name']}_pkg::wide_in_req_t),
     .wide_in_resp_t (${cfg['cluster']['name']}_pkg::wide_in_resp_t),
+    .user_narrow_t (${cfg['cluster']['name']}_pkg::user_narrow_t),
+    .user_dma_t (${cfg['cluster']['name']}_pkg::user_dma_t),
     .tcdm_dma_req_t (${cfg['cluster']['name']}_pkg::tcdm_dma_req_t),
     .tcdm_dma_rsp_t (${cfg['cluster']['name']}_pkg::tcdm_dma_rsp_t),
     .NrHives (${cfg['cluster']['nr_hives']}),
@@ -110,7 +113,8 @@ module ${cfg['cluster']['name']}_wrapper (
     .ICacheLineCount (${cfg['cluster']['name']}_pkg::ICacheLineCount),
     .ICacheWays (${cfg['cluster']['name']}_pkg::ICacheWays),
     .VMSupport (${int(cfg['cluster']['vm_support'])}),
-    .EnableDMAMulticast (${int(cfg['cluster']['enable_multicast'])}),
+    .EnableWideCollectives (${cfg['cluster']['name']}_pkg::EnableWideCollectives),
+    .EnableNarrowCollectives (${cfg['cluster']['name']}_pkg::EnableNarrowCollectives),
     .RVE (${core_isa('e')}),
     .RVF (${core_isa('f')}),
     .RVD (${core_isa('d')}),
@@ -124,6 +128,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .Xdma (${core_cfg_flat('xdma')}),
     .Xssr (${core_cfg_flat('xssr')}),
     .Xfrep (${core_cfg_flat('xfrep')}),
+    .Xdca (${int(cfg['cluster']['enable_dca'])}),
     .Xcopift (${core_cfg_flat('xcopift')}),
     .FPUImplementation (${cfg['cluster']['name']}_pkg::FPUImplementation),
     .SnitchPMACfg (${cfg['cluster']['name']}_pkg::SnitchPMACfg),
@@ -156,6 +161,8 @@ module ${cfg['cluster']['name']}_wrapper (
     .RegisterFPUReq (${int(cfg['cluster']['timing']['register_fpu_req'])}),
     .RegisterFPUIn (${int(cfg['cluster']['timing']['register_fpu_in'])}),
     .RegisterFPUOut (${int(cfg['cluster']['timing']['register_fpu_out'])}),
+    .RegisterDCAIn (${int(cfg['cluster']['timing']['register_dca_in'])}),
+    .RegisterDCAOut (${int(cfg['cluster']['timing']['register_dca_out'])}),
     .RegisterSequencer (${int(cfg['cluster']['timing']['register_sequencer'])}),
     .IsoCrossing (${int(cfg['cluster']['timing']['iso_crossings'])}),
     .NarrowXbarLatency (axi_pkg::${cfg['cluster']['timing']['narrow_xbar_latency']}),
@@ -170,7 +177,8 @@ module ${cfg['cluster']['name']}_wrapper (
     .CaqTagWidth (${int(cfg['cluster']['caq_tag_width'])}),
     .DebugSupport (${int(cfg['cluster']['enable_debug'])}),
     .AliasRegionEnable (${int(cfg['cluster']['alias_region_enable'])}),
-    .AliasRegionBase (${int(cfg['cluster']['alias_region_base'])})
+    .AliasRegionBase (${int(cfg['cluster']['alias_region_base'])}),
+    .DcaDataWidth (${int(cfg['cluster']['dca_data_width'])})
   ) i_cluster (
     .clk_i,
     .rst_ni,
@@ -224,6 +232,13 @@ module ${cfg['cluster']['name']}_wrapper (
     .wide_out_req_o,
     .wide_out_resp_i,
     .wide_in_req_i,
-    .wide_in_resp_o
+    .wide_in_resp_o,
+% if cfg['cluster']['enable_dca']:
+    .dca_req_i,
+    .dca_rsp_o,
+% else:
+    .dca_req_i ('0),
+    .dca_rsp_o
+%endif
   );
 endmodule

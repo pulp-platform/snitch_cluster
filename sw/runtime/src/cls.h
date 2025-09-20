@@ -6,4 +6,4 @@
 
 extern __thread cls_t* _cls_ptr;
 
-inline cls_t* cls() { return _cls_ptr; }
+inline cls_t* snrt_cls() { return _cls_ptr; }
