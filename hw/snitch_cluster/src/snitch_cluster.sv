@@ -411,7 +411,7 @@ module snitch_cluster
   typedef logic [WideIdWidthOut-1:0]    id_dma_slv_t;
   typedef logic [NarrowUserWidth-1:0]   user_t;
   typedef struct packed {
-    logic [WideUserWidth-1:0] mcast;
+    logic [WideUserWidth-1:0] collective_mask;
   } user_dma_t;
 
   typedef logic [TCDMMemAddrWidth-1:0]  tcdm_mem_addr_t;

@@ -78,11 +78,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 # Copy all needed files to install the package
-# (.dockerignore is used to filter only the necessary files)
-COPY pyproject.toml .
-COPY sw ./sw
-COPY util ./util
-COPY nonfree/util ./nonfree/util
+COPY . /repo
 
 # Create and activate virtual environment
 ENV VIRTUAL_ENV="/root/.venvs/snitch_cluster"
@@ -108,7 +104,7 @@ ENV PATH="/repo/target/sim/build/bin:${PATH}"
 ARG PIP_NO_CACHE_DIR=1
 RUN pip install --upgrade pip && \
     pip install torch --index-url https://download.pytorch.org/whl/cpu && \
-    pip install .[all]
+    pip install /repo[all]
 
 #-------------------------------------------------------------------------------
 # Stage 3: Hardware build
@@ -117,15 +113,10 @@ RUN pip install --upgrade pip && \
 
 FROM snitch_cluster-hw AS hw-builder
 
-# Patch .gitmodules to replace SSH URLs with HTTPS
-# Clone the snitch_cluster repository into /repo
-# If the repo URL or commit hash doesn't change, this layer remains cached.
-RUN git config --global url."https://github".insteadOf "git://github" \
-    && git config --global url."https://github.com/".insteadOf "git@github.com:" \
-    && git clone --recursive https://github.com/pulp-platform/snitch_cluster /repo \
-    && cd /repo \
-    # Build the verilator model
-    && make verilator
+# Copy the snitch_cluster repository from the build context into /repo
+COPY . /repo
+# Build the verilator model
+RUN cd /repo && make verilator
 
 #-------------------------------------------------------------------------------
 # Stage 4: Software development stage
@@ -153,11 +144,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 # Copy all needed files to install the package
-# (.dockerignore is used to filter only the necessary files)
-COPY pyproject.toml /snitch_cluster/pyproject.toml
-COPY sw /snitch_cluster/sw
-COPY util /snitch_cluster/util
-COPY nonfree/util /snitch_cluster/nonfree/util
+COPY . /repo
 
 # Create and activate virtual environment
 ENV VIRTUAL_ENV="/root/.venvs/snitch_cluster"
@@ -182,4 +169,4 @@ ENV PATH="/tools/riscv-llvm/bin:${PATH}"
 ARG PIP_NO_CACHE_DIR=1
 RUN pip install --upgrade pip && \
     pip install torch --index-url https://download.pytorch.org/whl/cpu && \
-    pip install /snitch_cluster[all]
+    pip install /repo[all]
