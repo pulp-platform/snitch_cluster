@@ -286,6 +286,7 @@ module snitch_cc #(
   reqrsp_iso #(
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
+    .UserWidth (64),
     .req_t (dreq_t),
     .rsp_t (drsp_t),
     .BypassReq (!RegisterCoreReq),
@@ -556,6 +557,7 @@ module snitch_cc #(
       .NrPorts (2),
       .AddrWidth (AddrWidth),
       .DataWidth (DataWidth),
+      .UserWidth (64),
       .req_t (dreq_t),
       .rsp_t (drsp_t),
       // TODO(zarubaf): Wire-up to top-level.
@@ -665,6 +667,7 @@ module snitch_cc #(
   reqrsp_to_tcdm #(
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
+    .UserWidth (64),
     // TODO(zarubaf): Make a parameter.
     .BufDepth (4),
     .reqrsp_req_t (dreq_t),

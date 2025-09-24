@@ -8,15 +8,15 @@
 `ifndef REQRSP_INTERFACE_TYPEDEF_SVH_
 `define REQRSP_INTERFACE_TYPEDEF_SVH_
 
-`define REQRSP_TYPEDEF_REQ_CHAN_T(__req_chan_t, __addr_t, __data_t, __strb_t) \
+`define REQRSP_TYPEDEF_REQ_CHAN_T(__req_chan_t, __addr_t, __data_t, __strb_t, __user_t) \
   typedef struct packed { \
-    __addr_t             addr;  \
-    __addr_t             mask;  \
-    logic                write; \
-    reqrsp_pkg::amo_op_e amo;   \
-    __data_t             data;  \
-    __strb_t             strb;  \
-    reqrsp_pkg::size_t   size;  \
+    __addr_t             addr;        \
+    logic                write;       \
+    reqrsp_pkg::amo_op_e amo;         \
+    __data_t             data;        \
+    __strb_t             strb;        \
+    __user_t             user;        \
+    reqrsp_pkg::size_t   size;        \
   } __req_chan_t;
 
 `define REQRSP_TYPEDEF_RSP_CHAN_T(__rsp_chan_t, __data_t) \
@@ -39,8 +39,8 @@
     logic      q_ready; \
   } __rsp_t;
 
-`define REQRSP_TYPEDEF_ALL(__name, __addr_t, __data_t, __strb_t) \
-  `REQRSP_TYPEDEF_REQ_CHAN_T(__name``_req_chan_t, __addr_t, __data_t, __strb_t) \
+`define REQRSP_TYPEDEF_ALL(__name, __addr_t, __data_t, __strb_t, __user_t) \
+  `REQRSP_TYPEDEF_REQ_CHAN_T(__name``_req_chan_t, __addr_t, __data_t, __strb_t, __user_t) \
   `REQRSP_TYPEDEF_RSP_CHAN_T(__name``_rsp_chan_t, __data_t) \
   `REQRSP_TYPEDEF_REQ_T(__name``_req_t, __name``_req_chan_t) \
   `REQRSP_TYPEDEF_RSP_T(__name``_rsp_t, __name``_rsp_chan_t)

@@ -8,7 +8,7 @@ export CC=gcc-9.2.0
 export CXX=g++-9.2.0
 export SN_BENDER=bender-0.28.1
 export SN_VCS_SEPP=vcs-2024.09
-export SN_VERILATOR_SEPP=oseda
+export SN_VERILATOR_SEPP="oseda -2025.03"
 export SN_QUESTA_SEPP=questa-2023.4
 export SN_LLVM_BINROOT=/usr/scratch2/vulcano/colluca/tools/riscv32-snitch-llvm-almalinux8-15.0.0-snitch-0.2.0/bin
 
