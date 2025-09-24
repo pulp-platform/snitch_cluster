@@ -6,7 +6,6 @@ package snitch_cluster_peripheral_reg_pkg;
     localparam SNITCH_CLUSTER_PERIPHERAL_REG_DATA_WIDTH = 64;
     localparam SNITCH_CLUSTER_PERIPHERAL_REG_MIN_ADDR_WIDTH = 9;
     localparam SNITCH_CLUSTER_PERIPHERAL_REG_SIZE = 'h1c0;
-
     localparam NumPerfCounters = 'h10;
     localparam NumCtrlScratch = 'h4;
 
