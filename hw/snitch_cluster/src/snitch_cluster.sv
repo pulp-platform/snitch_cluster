@@ -356,6 +356,9 @@ module snitch_cluster
   localparam int unsigned NumTCDMIn = NrTCDMPortsCores + 1;
   localparam logic [PhysicalAddrWidth-1:0] TCDMMask = ~(TCDMSizeNapotRounded - 1);
 
+  // User widths
+  localparam int unsigned CoreUserWidth   = 64;
+
   // Core Requests, SoC Request, PTW.
   localparam int unsigned NrNarrowMasters = 3;
   localparam int unsigned NarrowIdWidthOut = $clog2(NrNarrowMasters) + NarrowIdWidthIn;
@@ -473,13 +476,14 @@ module snitch_cluster
   typedef logic [PhysicalAddrWidth-1:0] addr_t;
   typedef logic [NarrowDataWidth-1:0]   data_t;
   typedef logic [NarrowDataWidth/8-1:0] strb_t;
+  typedef logic [CoreUserWidth-1:0]     user_t;
   typedef logic [WideDataWidth-1:0]     data_dma_t;
   typedef logic [WideDataWidth/8-1:0]   strb_dma_t;
   typedef logic [NarrowIdWidthIn-1:0]   id_mst_t;
   typedef logic [NarrowIdWidthOut-1:0]  id_slv_t;
   typedef logic [WideIdWidthIn-1:0]     id_dma_mst_t;
   typedef logic [WideIdWidthOut-1:0]    id_dma_slv_t;
-  typedef logic [NarrowUserWidth-1:0]   user_t;
+  typedef logic [NarrowUserWidth-1:0]   user_narrow_t;
   typedef struct packed {
     logic [WideUserWidth-1:0] collective_mask;
   } user_dma_t;
@@ -495,8 +499,8 @@ module snitch_cluster
   typedef logic [CoreIDWidth:0] tcdm_user_t;
 
   // Regbus peripherals.
-  `AXI_TYPEDEF_ALL(axi_mst, addr_t, id_mst_t, data_t, strb_t, user_t)
-  `AXI_TYPEDEF_ALL(axi_slv, addr_t, id_slv_t, data_t, strb_t, user_t)
+  `AXI_TYPEDEF_ALL(axi_mst, addr_t, id_mst_t, data_t, strb_t, user_narrow_t)
+  `AXI_TYPEDEF_ALL(axi_slv, addr_t, id_slv_t, data_t, strb_t, user_narrow_t)
   `AXI_TYPEDEF_ALL(axi_mst_dma, addr_t, id_dma_mst_t, data_dma_t, strb_dma_t, user_dma_t)
   `AXI_TYPEDEF_ALL(axi_slv_dma, addr_t, id_dma_slv_t, data_dma_t, strb_dma_t, user_dma_t)
 
@@ -504,7 +508,11 @@ module snitch_cluster
 
   `APB_TYPEDEF_ALL(apb, addr_t, data_t, strb_t)
 
-  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t)
+  // Reqrsp interface of the core has a 64b user field
+  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
+  // Reqrsp interface in the cluster additionally contains the cluster ID
+  // (used for atomic operations) in the user field
+  `REQRSP_TYPEDEF_ALL(reqrsp_amo, addr_t, data_t, strb_t, user_narrow_t)
 
   `MEM_TYPEDEF_ALL(mem, tcdm_mem_addr_t, data_t, strb_t, tcdm_user_t)
   `MEM_TYPEDEF_ALL(mem_dma, tcdm_mem_addr_t, data_dma_t, strb_dma_t, logic)
@@ -765,7 +773,7 @@ module snitch_cluster
 
   localparam bit [DmaXbarCfg.NoSlvPorts-1:0] DMAEnableDefaultMstPort = '1;
   if (EnableDMAMulticast) begin : gen_mcast_dma_xbar
-    axi_mcast_xbar #(
+  axi_mcast_xbar #(
       .Cfg (DmaMcastXbarCfg),
       .ATOPs (0),
       .slv_aw_chan_t (axi_mst_dma_aw_chan_t),
@@ -782,7 +790,7 @@ module snitch_cluster
       .mst_req_t (axi_slv_dma_req_t),
       .mst_resp_t (axi_slv_dma_resp_t),
       .rule_t (xbar_rule_t)
-    ) i_axi_dma_xbar (
+  ) i_axi_dma_xbar (
       .clk_i (clk_i),
       .rst_ni (rst_ni),
       .test_i (1'b0),
@@ -823,7 +831,7 @@ module snitch_cluster
       .addr_map_i (enabled_dma_xbar_rule),
       .en_default_mst_port_i (DMAEnableDefaultMstPort),
       .default_mst_port_i ({DmaXbarCfg.NoSlvPorts{dma_xbar_default_port}})
-    );
+  );
   end
 
   axi_zero_mem #(
@@ -1284,6 +1292,7 @@ module snitch_cluster
     .NrPorts (NrHives),
     .AddrWidth (PhysicalAddrWidth),
     .DataWidth (NarrowDataWidth),
+    .UserWidth (CoreUserWidth),
     .req_t (reqrsp_req_t),
     .rsp_t (reqrsp_rsp_t),
     .RespDepth (2)
@@ -1299,7 +1308,6 @@ module snitch_cluster
 
   reqrsp_to_axi #(
     .DataWidth (NarrowDataWidth),
-    .UserWidth (NarrowUserWidth),
     .reqrsp_req_t (reqrsp_req_t),
     .reqrsp_rsp_t (reqrsp_rsp_t),
     .axi_req_t (axi_mst_req_t),
@@ -1307,7 +1315,6 @@ module snitch_cluster
   ) i_reqrsp_to_axi_ptw (
     .clk_i,
     .rst_ni,
-    .user_i ('0),
     .reqrsp_req_i (ptw_to_axi_req),
     .reqrsp_rsp_o (ptw_to_axi_rsp),
     .axi_req_o (narrow_axi_mst_req[PTW]),
@@ -1332,13 +1339,14 @@ module snitch_cluster
   user_t cluster_user;
   // Atomic ID, needs to be unique ID of cluster
   // cluster_id + HartIdOffset + 1 (because 0 is for non-atomic masters)
-  assign cluster_user = (core_to_axi_req.q.mask << AtomicIdWidth) |
+  assign cluster_user = (core_to_axi_req.q.user << AtomicIdWidth) |
                         ((hart_base_id_i / NrCores) +  (hart_base_id_i % NrCores) + 1'b1);
 
   reqrsp_mux #(
     .NrPorts (NrCores),
     .AddrWidth (PhysicalAddrWidth),
     .DataWidth (NarrowDataWidth),
+    .UserWidth (CoreUserWidth),
     .req_t (reqrsp_req_t),
     .rsp_t (reqrsp_rsp_t),
     .RespDepth (2)
@@ -1352,19 +1360,34 @@ module snitch_cluster
     .idx_o (/*unused*/)
   );
 
+
+  reqrsp_amo_req_t core_to_axi_amo_req;
+  reqrsp_amo_rsp_t core_to_axi_amo_rsp;
+
+  always_comb begin
+    core_to_axi_amo_req.q.addr  = core_to_axi_req.q.addr;
+    core_to_axi_amo_req.q.write = core_to_axi_req.q.write;
+    core_to_axi_amo_req.q.amo   = core_to_axi_req.q.amo;
+    core_to_axi_amo_req.q.data  = core_to_axi_req.q.data;
+    core_to_axi_amo_req.q.strb  = core_to_axi_req.q.strb;
+    core_to_axi_amo_req.q.user  = cluster_user;
+    core_to_axi_amo_req.q.size  = core_to_axi_req.q.size;
+    core_to_axi_amo_req.q_valid = core_to_axi_req.q_valid;
+    core_to_axi_amo_req.p_ready = core_to_axi_req.p_ready;
+    core_to_axi_rsp             = core_to_axi_amo_rsp;
+  end
+
   reqrsp_to_axi #(
     .DataWidth (NarrowDataWidth),
-    .UserWidth (NarrowUserWidth),
-    .reqrsp_req_t (reqrsp_req_t),
-    .reqrsp_rsp_t (reqrsp_rsp_t),
+    .reqrsp_req_t (reqrsp_amo_req_t),
+    .reqrsp_rsp_t (reqrsp_amo_rsp_t),
     .axi_req_t (axi_mst_req_t),
     .axi_rsp_t (axi_mst_resp_t)
   ) i_reqrsp_to_axi_core (
     .clk_i,
     .rst_ni,
-    .user_i (cluster_user),
-    .reqrsp_req_i (core_to_axi_req),
-    .reqrsp_rsp_o (core_to_axi_rsp),
+    .reqrsp_req_i (core_to_axi_amo_req),
+    .reqrsp_rsp_o (core_to_axi_amo_rsp),
     .axi_req_o (narrow_axi_mst_req[CoreReq]),
     .axi_rsp_i (narrow_axi_mst_rsp[CoreReq])
   );

@@ -1408,10 +1408,17 @@ package riscv_instr;
   localparam logic [11:0] CSR_FPMODE = 12'h7c1;
   localparam logic [11:0] CSR_BARRIER = 12'h7c2;
   localparam logic [11:0] CSR_SC = 12'h7c3;
+<<<<<<< HEAD
   localparam logic [11:0] CSR_USER_LOW = 12'h7c4;
   localparam logic [11:0] CSR_USER_HIGH = 12'h7c5;
   localparam logic [11:0] CSR_COPIFT = 12'h7c6;
   localparam logic [11:0] CSR_DUMP = 12'h7c7;
+||||||| parent of 38adf469... hw: Generalize DMMCAST and CSR_MCAST and adapt user field transmission
+  localparam logic [11:0] CSR_MCAST = 12'h7c4;
+=======
+  localparam logic [11:0] CSR_USER_LOW = 12'h7c4;
+  localparam logic [11:0] CSR_USER_HIGH = 12'h7c5;
+>>>>>>> 38adf469... hw: Generalize DMMCAST and CSR_MCAST and adapt user field transmission
   localparam logic [11:0] CSR_HTIMEDELTAH = 12'h615;
   localparam logic [11:0] CSR_CYCLEH = 12'hc80;
   localparam logic [11:0] CSR_TIMEH = 12'hc81;
