@@ -175,7 +175,7 @@ inline void snrt_wake_clusters(uint32_t core_mask, snrt_comm_t comm = NULL) {
  *       this function, or the calling cores will stall indefinitely.
  */
 inline void snrt_cluster_hw_barrier() {
-    asm volatile("csrr x0, 0x7C2" ::: "memory");
+    asm volatile("csrr x0, barrier" ::: "memory");
 }
 
 /**
@@ -414,10 +414,8 @@ inline void snrt_wait_writeback(uint32_t val) {
  * @param field Defines the AW user field for the AXI transfer
  */
 inline void snrt_set_awuser(uint64_t field) {
-    uint32_t user_low = (uint32_t)(field);
-    uint32_t user_high = (uint32_t)(field >> 32);
-    write_csr(0x7c4, user_low);
-    write_csr(0x7c5, user_high);
+    write_csr(user_low, (uint32_t)(field));
+    write_csr(user_high, (uint32_t)(field >> 32));
 }
 
 //================================================================================

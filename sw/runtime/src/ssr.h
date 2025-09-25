@@ -96,7 +96,7 @@ inline void snrt_ssr_enable() {
 #ifdef __TOOLCHAIN_LLVM__
     __builtin_ssr_enable();
 #else
-    asm volatile("csrsi 0x7C0, 1\n");
+    asm volatile("csrsi ssr, 1\n");
 #endif
 }
 
@@ -107,7 +107,7 @@ inline void snrt_ssr_disable() {
 #ifdef __TOOLCHAIN_LLVM__
     __builtin_ssr_disable();
 #else
-    asm volatile("csrci 0x7C0, 1\n");
+    asm volatile("csrci ssr, 1\n");
 #endif
 }
 
@@ -117,14 +117,14 @@ inline void snrt_ssr_disable() {
  *             chaining.
  */
 inline void snrt_sc_enable(uint32_t mask) {
-    asm volatile("csrs 0x7C3, %[mask]\n" : : [ mask ] "r"(mask) :);
+    asm volatile("csrs sc, %[mask]\n" : : [ mask ] "r"(mask) :);
 }
 
 /**
  * @brief Disable scalar chaining.
  */
 inline void snrt_sc_disable(uint32_t mask) {
-    asm volatile("csrc 0x7C3, %[mask]\n" : : [ mask ] "r"(mask) :);
+    asm volatile("csrc sc, %[mask]\n" : : [ mask ] "r"(mask) :);
 }
 
 /**
