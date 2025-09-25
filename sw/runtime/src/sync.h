@@ -414,10 +414,8 @@ inline void snrt_wait_writeback(uint32_t val) {
  * @param field Defines the AW user field for the AXI transfer
  */
 inline void snrt_set_awuser(uint64_t field) {
-    uint32_t user_low = (uint32_t)(field);
-    uint32_t user_high = (uint32_t)(field >> 32);
-    write_csr(user_low, user_low);
-    write_csr(user_high, user_high);
+    write_csr(user_low, (uint32_t)(field));
+    write_csr(user_high, (uint32_t)(field >> 32));
 }
 
 //================================================================================
