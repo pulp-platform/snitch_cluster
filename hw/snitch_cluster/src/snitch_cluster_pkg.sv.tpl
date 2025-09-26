@@ -67,6 +67,8 @@ package ${cfg['cluster']['name']}_pkg;
   localparam int unsigned ICacheLineCount [NrHives] = '{${icache_cfg('depth')}};
   localparam int unsigned ICacheWays [NrHives] = '{${icache_cfg('ways')}};
 
+  localparam int unsigned XifIdWidth = ${cfg['cluster']['xif_id_width']};
+
   localparam int unsigned Hive [NrCores] = '{${core_cfg('hive')}};
 
   localparam int unsigned TcdmAddrWidth = $clog2(TcdmSize*1024);
@@ -103,6 +105,40 @@ package ${cfg['cluster']['name']}_pkg;
   typedef logic [TcdmAddrWidth-1:0]     tcdm_addr_t;
 
   `TCDM_TYPEDEF_ALL(tcdm_dma, tcdm_addr_t, data_dma_t, strb_dma_t, logic)
+
+  typedef struct packed {
+    logic [31:0]           instr;
+    logic [1:0]            mode;
+    logic [XifIdWidth-1:0] id;
+    logic [2:0][31:0]      rs;
+    logic [2:0]            rs_valid;
+    logic [5:0]            ecs;
+    logic                  ecs_valid;
+  } x_issue_req_t;
+
+  typedef struct packed {
+    logic       accept;
+    logic       writeback;
+    logic       dualwrite;
+    logic [2:0] dualread;
+    logic       loadstore;
+    logic       ecswrite;
+    logic       exc;
+  } x_issue_resp_t;
+
+  typedef struct packed {
+    logic [XifIdWidth-1:0] id;
+    logic [31:0]           data;
+    logic [4:0]            rd;
+    logic                  we;
+    logic [5:0]            ecsdata;
+    logic [2:0]            ecswe;
+    logic                  exc;
+    logic [5:0]            exccode;
+    logic                  err;
+    logic                  dbg;
+  } x_result_t;
+
 
   function automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] get_cached_regions();
     automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] cached_regions;

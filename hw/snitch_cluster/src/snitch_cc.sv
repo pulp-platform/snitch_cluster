@@ -45,6 +45,12 @@ module snitch_cc #(
   parameter type         acc_req_t          = logic,
   parameter type         acc_resp_t         = logic,
   parameter type         dma_events_t       = logic,
+  // XIF parameters
+  parameter int unsigned XifIdWidth         = 4,
+  // XIF port types
+  parameter type         x_issue_req_t      = logic,
+  parameter type         x_issue_resp_t     = logic,
+  parameter type         x_result_t         = logic,
   parameter fpnew_pkg::fpu_implementation_t FPUImplementation = '0,
   /// Boot address of core.
   parameter logic [31:0] BootAddr           = 32'h0000_1000,
@@ -133,7 +139,15 @@ module snitch_cc #(
   // TCDM Streamer Ports
   output tcdm_req_t [TCDMPorts-1:0]         tcdm_req_o,
   input  tcdm_rsp_t [TCDMPorts-1:0]         tcdm_rsp_i,
-  // Accelerator Offload port
+  // X Interface - Issue ports
+  output x_issue_req_t                      x_issue_req_o,
+  input  x_issue_resp_t                     x_issue_resp_i,
+  output logic                              x_issue_valid_o,
+  input  logic                              x_issue_ready_i,
+  // X Interface - Result ports
+  input  x_result_t                         x_result_i,
+  input  logic                              x_result_valid_i,
+  output logic                              x_result_ready_o,
   // DMA ports
   output axi_req_t    [DMANumChannels-1:0]  axi_dma_req_o,
   input  axi_rsp_t    [DMANumChannels-1:0]  axi_dma_res_i,
@@ -222,6 +236,10 @@ module snitch_cc #(
     .drsp_t (drsp_t),
     .pa_t (pa_t),
     .l0_pte_t (l0_pte_t),
+    .XifIdWidth (XifIdWidth),
+    .x_issue_req_t (x_issue_req_t),
+    .x_issue_resp_t (x_issue_resp_t),
+    .x_result_t (x_result_t),
     .BootAddr (BootAddr),
     .SnitchPMACfg (SnitchPMACfg),
     .NumIntOutstandingLoads (NumIntOutstandingLoads),
@@ -266,6 +284,13 @@ module snitch_cc #(
     .acc_prsp_i ( acc_demux_snitch ),
     .acc_pvalid_i ( acc_demux_snitch_valid ),
     .acc_pready_o ( acc_demux_snitch_ready ),
+    .x_issue_req_o ( x_issue_req_o ),
+    .x_issue_resp_i ( x_issue_resp_i ),
+    .x_issue_valid_o ( x_issue_valid_o ),
+    .x_issue_ready_i ( x_issue_ready_i ),
+    .x_result_i ( x_result_i ),
+    .x_result_valid_i ( x_result_valid_i ),
+    .x_result_ready_o ( x_result_ready_o ),
     .caq_pvalid_i ( caq_pvalid_q ),
     .data_req_o ( snitch_dreq_d ),
     .data_rsp_i ( snitch_drsp_d ),
