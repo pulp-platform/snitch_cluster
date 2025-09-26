@@ -431,7 +431,7 @@ inline void snrt_set_awuser(uint64_t field) {
  */
 inline void snrt_enable_multicast(uint64_t mask) {
     snrt_collective_op_t op;
-    op.f.collective_opcode = SNRT_COLLECTIVE_MULTICAST;
+    // op.f.collective_opcode = SNRT_COLLECTIVE_MULTICAST;
     op.f.mask = mask;
     snrt_set_awuser(op.w);
 }
@@ -466,8 +466,8 @@ inline void snrt_enable_reduction(uint64_t mask,
     }
 
     snrt_collective_op_t op;
-    op.f.reduction_opcode = opcode;
-    op.f.collective_opcode = coll_opcode;
+    // op.f.reduction_opcode = opcode;
+    // op.f.collective_opcode = coll_opcode;
     op.f.mask = mask;
     snrt_set_awuser(op.w);
 }
