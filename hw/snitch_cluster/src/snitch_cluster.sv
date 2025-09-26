@@ -417,8 +417,9 @@ module snitch_cluster
     AxiAddrWidth: PhysicalAddrWidth,
     AxiDataWidth: NarrowDataWidth,
     NoAddrRules: NrRules,
-    NoMulticastRules: EnableNarrowCollectives ? 2 : 0,
-    NoMulticastPorts: EnableNarrowCollectives ? 3 : 0,
+    NoMulticastRules: 0,
+    // SoC is the only multicast-targetable port
+    NoMulticastPorts: EnableNarrowCollectives ? 1 : 0,
     default: '0
   };
 
@@ -437,8 +438,9 @@ module snitch_cluster
     AxiAddrWidth: PhysicalAddrWidth,
     AxiDataWidth: WideDataWidth,
     NoAddrRules: NrWideRules,
-    NoMulticastRules: EnableWideCollectives ? 1 : 0,
-    NoMulticastPorts: EnableWideCollectives ? 2 : 0,
+    NoMulticastRules: 0,
+    // SoC is the only multicast-targetable port
+    NoMulticastPorts: EnableWideCollectives ? 1 : 0,
     default: '0
   };
   localparam int unsigned WideSlaveIdxBits = cf_math_pkg::idx_width(NrWideSlaves);

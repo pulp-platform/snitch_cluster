@@ -132,9 +132,9 @@ package snitch_pkg;
 
   // Slaves on Cluster AXI Bus
   typedef enum integer {
-    TCDM               = 0,
-    ClusterPeripherals = 1,
-    SoC                = 2,
+    SoC                = 0,
+    TCDM               = 1,
+    ClusterPeripherals = 2,
     ExtSlave           = 3
   } cluster_slave_e;
 
@@ -146,8 +146,8 @@ package snitch_pkg;
 
   // Slaves on Cluster DMA AXI Bus
   typedef enum int unsigned {
-    TCDMDMA    = 0,
-    SoCDMAOut  = 1,
+    SoCDMAOut  = 0,
+    TCDMDMA    = 1,
     ZeroMemory = 2,
     BootRom    = 3
   } cluster_slave_dma_e;
