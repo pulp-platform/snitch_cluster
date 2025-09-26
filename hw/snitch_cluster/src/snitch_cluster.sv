@@ -206,6 +206,12 @@ module snitch_cluster
   // Memory configuration input types; these vary depending on implementation.
   parameter type         sram_cfg_t        = logic,
   parameter type         sram_cfgs_t       = logic,
+  // XIF parameters
+  parameter int unsigned XifIdWidth        = 4,
+  // XIF port types
+  parameter type         x_issue_req_t     = logic,
+  parameter type         x_issue_resp_t    = logic,
+  parameter type         x_result_t        = logic,
   // Memory latency parameter. Most of the memories have a read latency of 1. In
   // case you have memory macros which are pipelined you want to adjust this
   // value here. This only applies to the TCDM. The instruction cache macros will break!
@@ -270,6 +276,15 @@ module snitch_cluster
   /// AXI DMA cluster in-port.
   input  wide_in_req_t                            wide_in_req_i,
   output wide_in_resp_t                           wide_in_resp_o,
+  // X Interface - Issue ports
+  output x_issue_req_t [NrCores-1:0]              x_issue_req_o,
+  input  x_issue_resp_t [NrCores-1:0]             x_issue_resp_i,
+  output logic [NrCores-1:0]                      x_issue_valid_o,
+  input  logic [NrCores-1:0]                      x_issue_ready_i,
+  // X Interface - Result ports
+  input  x_result_t [NrCores-1:0]                 x_result_i,
+  input  logic [NrCores-1:0]                      x_result_valid_i,
+  output logic [NrCores-1:0]                      x_result_ready_o,
   // An additional AXI Core cluster out-port, used e.g. to connect
   // to the configuration interface of an external accelerator.
   // Compared to the `narrow_out` interface, the address space of
@@ -1035,6 +1050,10 @@ module snitch_cluster
         .acc_req_t (acc_req_t),
         .acc_resp_t (acc_resp_t),
         .dma_events_t (dma_events_t),
+        .XifIdWidth (XifIdWidth),
+        .x_issue_req_t (x_issue_req_t),
+        .x_issue_resp_t (x_issue_resp_t),
+        .x_result_t (x_result_t),
         .BootAddr (BootAddrInternal),
         .RVE (RVE[i]),
         .RVF (RVF[i]),
@@ -1094,6 +1113,13 @@ module snitch_cluster
         .data_rsp_i (core_rsp[i]),
         .tcdm_req_o (tcdm_req_wo_user),
         .tcdm_rsp_i (tcdm_rsp[TcdmPortsOffs+:TcdmPorts]),
+        .x_issue_req_o (x_issue_req_o[i]),
+        .x_issue_resp_i (x_issue_resp_i[i]),
+        .x_issue_valid_o (x_issue_valid_o[i]),
+        .x_issue_ready_i (x_issue_ready_i[i]),
+        .x_result_i (x_result_i[i]),
+        .x_result_valid_i (x_result_valid_i[i]),
+        .x_result_ready_o (x_result_ready_o[i]),
         .axi_dma_req_o (axi_dma_req),
         .axi_dma_res_i (axi_dma_res),
         .axi_dma_busy_o (),
