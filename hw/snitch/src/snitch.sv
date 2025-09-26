@@ -139,6 +139,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   localparam bit NSX = XF16 | XF16ALT | XF8 | XFVEC;
 
   logic illegal_inst, illegal_csr;
+  logic unsupported_xif_feature;
   logic interrupt, ecall, ebreak;
   logic zero_lsb;
 
@@ -354,7 +355,6 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   `FFAR(sb_q, sb_d, '0, clk_i, rst_i)
   `FFAR(fcsr_q, fcsr_d, '0, clk_i, rst_i)
 
-  // TODO(abelano) Should we add a performance counter for the XIF?
   // performance counter
   `ifdef SNITCH_ENABLE_PERF
   logic [63:0] cycle_q;
@@ -363,16 +363,19 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic retired_load_q;
   logic retired_i_q;
   logic retired_acc_q;
+  logic retired_x_q;
   `FFAR(cycle_q, cycle_q + 1, '0, clk_i, rst_i)
   `FFLAR(instret_q, instret_q + 1, !stall, '0, clk_i, rst_i)
   `FFAR(retired_instr_q, !stall, '0, clk_i, rst_i)
   `FFAR(retired_load_q, retire_load, '0, clk_i, rst_i)
   `FFAR(retired_i_q, retire_i, '0, clk_i, rst_i)
   `FFAR(retired_acc_q, retire_acc, '0, clk_i, rst_i)
+  `FFAR(retired_x_q, retire_x, '0, clk_i, rst_i)
   assign core_events_o.retired_instr = retired_instr_q;
   assign core_events_o.retired_load = retired_load_q;
   assign core_events_o.retired_i = retired_i_q;
   assign core_events_o.retired_acc = retired_acc_q;
+  assign core_events_o.retired_x = retired_x_q;
   `else
   assign core_events_o = '0;
   `endif
@@ -537,7 +540,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign rd = inst_data_i[7 + RegWidth - 1:7];
   assign rs1 = inst_data_i[15 + RegWidth - 1:15];
   assign rs2 = inst_data_i[20 + RegWidth - 1:20];
-  assign rs3 = inst_data_i[27 + RegWidth - 1:20];
+  assign rs3 = inst_data_i[27 + RegWidth - 1:27];
 
   always_comb begin
     illegal_inst = 1'b0;
@@ -549,7 +552,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     opc_select = None;
 
     x_issue_req_o    = '0;
-    x_issue_valid_o  = '0;
+    x_issue_valid_o  = 1'b0;
+
+    unsupported_xif_feature = 1'b0;
 
     flush_i_valid_o = 1'b0;
     tlb_flush = 1'b0;
@@ -2320,7 +2325,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
                                 & ((itlb_valid & itlb_ready) | ~trans_active);
 
         // Flag the instruction as illegal if not accepted by the coprocessor or if it requests an unsupported operation
-        illegal_inst = x_issue_ready_i & x_issue_valid_o & (~x_issue_resp_i.accept | |{x_issue_resp_i.dualwrite, x_issue_resp_i.dualread, x_issue_resp_i.loadstore, x_issue_resp_i.ecswrite});
+        illegal_inst = x_issue_ready_i & x_issue_valid_o & ~x_issue_resp_i.accept;
+        unsupported_xif_feature = x_issue_ready_i & x_issue_valid_o & |{x_issue_resp_i.dualwrite, x_issue_resp_i.dualread, x_issue_resp_i.loadstore, x_issue_resp_i.ecswrite};
       end
     endcase
 
@@ -2340,8 +2346,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
                    | ld_addr_misaligned
                    | st_addr_misaligned
                    | illegal_csr
+                   | unsupported_xif_feature
                    | (dtlb_page_fault & dtlb_trans_valid)
-                   | (itlb_page_fault & itlb_trans_valid);
+                   | (itlb_page_fault & itlb_trans_valid)
+                   | x_result_valid_i & (x_result_i.err | x_result_i.exc);
 
   `ifndef VCS
   // pragma translate_off

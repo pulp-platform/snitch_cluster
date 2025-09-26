@@ -172,6 +172,7 @@ package snitch_pkg;
     logic retired_load;       // number of load instructions retired by the core
     logic retired_i;          // number of base instructions retired by the core
     logic retired_acc;        // number of offloaded instructions retired by the core
+    logic retired_x;          // number of offloaded instructions to the XIF retired by the core
   } core_events_t;
 
   // SSRs
