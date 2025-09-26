@@ -31,15 +31,15 @@ _snitch_park:
     wfi
 
 _snitch_resume:
-    auipc   t0, 0
+    la      t0, _snitch_park
     # We need to know the address of the scratch1 register in
     # the peripherals, which is a constant offset of our current PC,
     # independent of the cluster configuration.
     # This offset can be calculated as follows:
-    # - 0x20 (start of this bootrom)
+    #   _snitch_park (start of this bootrom)
     # + 0x1000 (bootrom size 4kB)
     # + 0x188 (offset of the scratch1 register)
-    li      t1, 0x1168
+    li      t1, 0x1188
     add     t0, t0, t1
     lw      t0, 0(t0)
     jalr    ra, 0(t0)
