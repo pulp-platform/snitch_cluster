@@ -34,6 +34,7 @@ module testharness #(
     .mxip_i (mxip),
     .hart_base_id_i (CfgBaseHartId),
     .cluster_base_addr_i (CfgClusterBaseAddr),
+    .cluster_base_offset_i (CfgClusterBaseOffset),
     .clk_d2_bypass_i (1'b0),
 `ifdef TARGET_POSTLAYOUT
     .sram_cfgs_i (snitch_cluster_pkg::sram_cfgs_t'('1)),

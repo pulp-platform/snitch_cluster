@@ -44,6 +44,7 @@ module ${cfg['cluster']['name']}_wrapper (
   input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] mxip_i,
   input  logic [9:0]                             hart_base_id_i,
   input  logic [${cfg['cluster']['addr_width']-1}:0]                            cluster_base_addr_i,
+  input  logic [${cfg['cluster']['addr_width']-1}:0]                            cluster_base_offset_i,
   input  logic                                   clk_d2_bypass_i,
   input  ${cfg['cluster']['name']}_pkg::sram_cfgs_t         sram_cfgs_i,
   input  ${cfg['cluster']['name']}_pkg::narrow_in_req_t     narrow_in_req_i,
@@ -228,9 +229,11 @@ module ${cfg['cluster']['name']}_wrapper (
 % if cfg['cluster']['cluster_base_expose']:
     .hart_base_id_i,
     .cluster_base_addr_i,
+    .cluster_base_offset_i,
 % else:
     .hart_base_id_i (snitch_cluster_pkg::CfgBaseHartId),
     .cluster_base_addr_i (snitch_cluster_pkg::CfgClusterBaseAddr),
+    .cluster_base_offset_i (snitch_cluster_pkg::CfgClusterBaseOffset),
 % endif
 % if cfg['cluster']['timing']['iso_crossings']:
     .clk_d2_bypass_i,

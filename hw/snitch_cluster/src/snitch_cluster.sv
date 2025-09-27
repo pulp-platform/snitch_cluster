@@ -298,6 +298,9 @@ module snitch_cluster
   /// Base address of cluster. TCDM and cluster peripheral location are derived from
   /// it. This signal is pseudo-static.
   input  logic [PhysicalAddrWidth-1:0]            cluster_base_addr_i,
+  /// Base address of cluster. TCDM and cluster peripheral location are derived from
+  /// it. This signal is pseudo-static.
+  input  logic [PhysicalAddrWidth-1:0]            cluster_base_offset_i,
   /// Configuration inputs for the memory cuts used in implementation.
   /// These signals are pseudo-static.
   input  sram_cfgs_t                              sram_cfgs_i,
@@ -634,6 +637,9 @@ module snitch_cluster
   assign ext_mem_start_address = zero_mem_end_address;
   assign ext_mem_end_address   = ext_mem_start_address + ExtMemorySize * 1024;
 
+  addr_t cluster_end_address;
+  assign cluster_end_address = cluster_base_addr_i + cluster_base_offset_i;
+
   localparam addr_t TCDMAliasStart = AliasRegionBase & TCDMMask;
   localparam addr_t TCDMAliasEnd   = (TCDMAliasStart + TCDMSizeNapotRounded) & TCDMMask;
 
@@ -762,7 +768,7 @@ module snitch_cluster
   assign dma_xbar_default_rule = '{
     idx: dma_xbar_default_port,
     start_addr: tcdm_start_address,
-    end_addr: zero_mem_end_address
+    end_addr: cluster_end_address
   };
 
   // Define the address map for the wide XBAR
