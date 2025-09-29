@@ -7,7 +7,7 @@ extern void snrt_dma_set_awuser(uint64_t field);
 extern void snrt_dma_enable_multicast(uint64_t mask);
 
 extern void snrt_dma_enable_reduction(uint64_t mask,
-                                      snrt_reduction_opcode_t opcode);
+                                      snrt_collective_opcode_t opcode);
 
 extern void snrt_dma_disable_multicast();
 
@@ -32,7 +32,7 @@ extern snrt_dma_txid_t snrt_dma_load_1d_tile_mcast(void *dst, void *src,
 
 extern snrt_dma_txid_t snrt_dma_reduction_load_1d_tile(
     void *dst, void *src, size_t tile_idx, size_t tile_size, uint32_t prec,
-    uint64_t mask, snrt_reduction_opcode_t opcode);
+    uint64_t mask, snrt_collective_opcode_t opcode);
 
 extern snrt_dma_txid_t snrt_dma_1d_to_2d(volatile void *dst, volatile void *src,
                                          size_t size, size_t row_size,
