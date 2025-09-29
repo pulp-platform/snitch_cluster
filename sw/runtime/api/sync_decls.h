@@ -23,7 +23,8 @@ typedef struct {
 typedef snrt_comm_info_t *snrt_comm_t;
 
 typedef enum {
-    SNRT_REDUCTION_NONE = 0,
+    SNRT_COLLECTIVE_UNICAST = 0,
+    SNRT_COLLECTIVE_MULTICAST = 1,
     SNRT_REDUCTION_BARRIER = 2,
     SNRT_REDUCTION_FADD = 4,
     SNRT_REDUCTION_FMUL = 5,
@@ -35,21 +36,13 @@ typedef enum {
     SNRT_REDUCTION_MAX = 11,
     SNRT_REDUCTION_MINU = 14,
     SNRT_REDUCTION_MAXU = 15
-} snrt_reduction_opcode_t;
-
-typedef enum {
-    SNRT_COLLECTIVE_UNICAST = 0,
-    SNRT_COLLECTIVE_MULTICAST = 1,
-    SNRT_COLLECTIVE_PARALLEL_REDUCTION = 2,
-    SNRT_COLLECTIVE_OFFLOAD_REDUCTION = 3
 } snrt_collective_opcode_t;
 
 typedef union {
     struct __attribute__((__packed__)) {
-        // snrt_reduction_opcode_t reduction_opcode : SNRT_REDUCTION_OPCODE_WIDTH;
-        // snrt_collective_opcode_t collective_opcode
-        //     : SNRT_COLLECTIVE_OPCODE_WIDTH;
-        uint64_t mask : SNRT_COLLECTIVE_MASK_WIDTH;
+        snrt_collective_opcode_t collective_op
+            : SNRT_COLLECTIVE_OPCODE_WIDTH;
+        uint64_t mask : (64 - SNRT_COLLECTIVE_OPCODE_WIDTH);
     } f;
     uint64_t w;
 } snrt_collective_op_t;
@@ -79,7 +72,7 @@ inline void snrt_enable_multicast(uint64_t mask);
 inline void snrt_disable_multicast();
 
 inline void snrt_enable_reduction(uint64_t mask,
-                                  snrt_reduction_opcode_t reduction);
+                                  snrt_collective_opcode_t reduction);
 
 inline void snrt_disable_reduction();
 

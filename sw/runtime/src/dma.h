@@ -96,7 +96,7 @@ inline void snrt_dma_set_awuser(uint64_t field) {
  */
 inline void snrt_dma_enable_multicast(uint64_t mask) {
     snrt_collective_op_t op;
-    // op.f.collective_opcode = SNRT_COLLECTIVE_MULTICAST;
+    op.f.collective_op = SNRT_COLLECTIVE_MULTICAST;
     op.f.mask = mask;
     snrt_dma_set_awuser(op.w);
 }
@@ -110,10 +110,9 @@ inline void snrt_dma_enable_multicast(uint64_t mask) {
  * @param opcode Type of reduction operation
  */
 inline void snrt_dma_enable_reduction(uint64_t mask,
-                                      snrt_reduction_opcode_t opcode) {
+                                      snrt_collective_opcode_t opcode) {
     snrt_collective_op_t op;
-    // op.f.reduction_opcode = opcode;
-    // op.f.collective_opcode = SNRT_COLLECTIVE_OFFLOAD_REDUCTION;
+    op.f.collective_op = opcode;
     op.f.mask = mask;
     snrt_dma_set_awuser(op.w);
 }
@@ -140,7 +139,7 @@ inline void snrt_dma_disable_reduction() { snrt_dma_set_awuser(0); }
  */
 static inline uint32_t snrt_dma_start_1d_reduction(
     uint64_t dst, uint64_t src, size_t size, uint64_t mask,
-    snrt_reduction_opcode_t opcode, const uint32_t channel = 0) {
+    snrt_collective_opcode_t opcode, const uint32_t channel = 0) {
     snrt_dma_enable_reduction(mask, opcode);
     uint32_t txid = snrt_dma_start_1d(dst, src, size, channel);
     snrt_dma_disable_reduction();
@@ -173,7 +172,7 @@ static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
  */
 static inline uint32_t snrt_dma_start_1d_reduction(
     volatile void *dst, volatile void *src, size_t size, uint64_t mask,
-    snrt_reduction_opcode_t opcode, const uint32_t channel = 0) {
+    snrt_collective_opcode_t opcode, const uint32_t channel = 0) {
     return snrt_dma_start_1d_reduction((uint64_t)dst, (uint64_t)src, size, mask,
                                        opcode, channel);
 }
@@ -455,7 +454,7 @@ inline snrt_dma_txid_t snrt_dma_load_1d_tile_mcast(void *dst, void *src,
  */
 inline snrt_dma_txid_t snrt_dma_reduction_load_1d_tile(
     void *dst, void *src, size_t tile_idx, size_t tile_size, uint32_t prec,
-    uint64_t mask, snrt_reduction_opcode_t opcode) {
+    uint64_t mask, snrt_collective_opcode_t opcode) {
     size_t tile_nbytes = tile_size * prec;
     return snrt_dma_start_1d_reduction((uintptr_t)dst,
                                        (uintptr_t)src + tile_idx * tile_nbytes,
