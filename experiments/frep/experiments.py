@@ -7,10 +7,9 @@
 
 from copy import deepcopy
 from snitch.target.SimResults import SimRegion
-from snitch.target.experiment_utils import ExperimentManager
+import snitch.target.experiment_utils as eu
 import random
 
-from mako.template import Template
 from pathlib import Path
 
 NUM_GEMM_SIZES = 50
@@ -57,11 +56,10 @@ VSIM_BINS = {
     'zonl64dobu': str(Path.cwd() / 'hw/zonl64dobu/bin/snitch_cluster.vsim'),
     'zonl48dobu': str(Path.cwd() / 'hw/zonl48dobu/bin/snitch_cluster.vsim'),
 }
-DATA_DIR = Path('data').absolute()
 VERIFY_PY = Path('../../../../sw/blas/gemm/scripts/verify.py').absolute()
 
 
-class FrepExperimentManager(ExperimentManager):
+class FrepExperimentManager(eu.ExperimentManager):
 
     def derive_axes(self, experiment):
         return {
@@ -72,16 +70,7 @@ class FrepExperimentManager(ExperimentManager):
         }
 
     def derive_data_cfg(self, experiment):
-        # Create parent directory for configuration file
-        cfg_path = DATA_DIR / experiment['name'] / 'cfg.json'
-        cfg_path.parent.mkdir(parents=True, exist_ok=True)
-
-        # Fill in configuration template and write configuration file
-        with open('cfg.json.tpl') as f:
-            cfg = Template(f.read()).render(experiment=experiment)
-        with open(cfg_path, 'w') as f:
-            f.write(cfg)
-        return cfg_path
+        return eu.derive_data_cfg_from_template(experiment)
 
     def derive_hw_cfg(self, experiment):
         return Path.cwd() / 'cfg' / f'{experiment["hw"]}.json'

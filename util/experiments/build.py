@@ -60,7 +60,7 @@ def parser():
 
 
 # Build software target with a specific data configuration
-def build(target, build_dir, data_cfg=None, defines=None, hw_cfg=None):
+def build(target=None, build_dir=None, data_cfg=None, defines=None, hw_cfg=None):
     # Define variables for build system
     vars = {
         'DEBUG': 'ON',
@@ -69,16 +69,13 @@ def build(target, build_dir, data_cfg=None, defines=None, hw_cfg=None):
     if data_cfg is not None:
         vars[f'{target}_DATA_CFG'] = data_cfg
     if defines:
-        cflags = ' '.join([f'-D{name}={value}' for name, value in defines.items()])
+        cflags = common.join_cdefines(defines)
         vars[f'{target}_RISCV_CFLAGS'] = cflags
     if hw_cfg is not None:
         vars['CFG_OVERRIDE'] = hw_cfg
 
-    # Build software
-    print(colored('Build app', 'black', attrs=['bold']), colored(target, 'cyan', attrs=['bold']),
-          colored('in', 'black', attrs=['bold']), colored(build_dir, 'cyan', attrs=['bold']))
     env = common.extend_environment(vars)
-    common.make(target, env=env)
+    return common.make(target, env=env, sync=False)
 
 
 # Create test specification for a specific configuration
