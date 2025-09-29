@@ -38,7 +38,7 @@ ACTIONS = ['sw', 'hw', 'run', 'traces', 'annotate', 'perf', 'visual-trace', 'pow
 
 class ExperimentManager:
 
-    def __init__(self, experiments=None, actions=None, args=None):
+    def __init__(self, experiments=None, actions=None, args=None, callbacks={}):
         """Initializes the class from the command-line arguments."""
         if args is not None:
             self.args = args
@@ -48,6 +48,9 @@ class ExperimentManager:
             self.actions = actions
         else:
             self.actions = self.args.actions
+
+        # Save callbacks
+        self.callbacks = callbacks
 
         # Save directory
         self.dir = Path.cwd()
@@ -145,12 +148,27 @@ class ExperimentManager:
 
         # Build software
         if 'sw' in self.actions or 'all' in self.actions:
+            processes = []
             for experiment in experiments:
+                target = experiment['app']
+                build_dir = experiment['elf'].parent
                 defines = self.derive_cdefines(experiment)
                 data_cfg = self.derive_data_cfg(experiment)
                 hw_cfg = self.derive_hw_cfg(experiment)
-                build.build(experiment['app'], experiment['elf'].parent, defines=defines,
-                            data_cfg=data_cfg, hw_cfg=hw_cfg)
+                if 'sw' in self.callbacks:
+                    func = self.callbacks['sw']
+                else:
+                    func = build.build
+                print(colored('Build app', 'black', attrs=['bold']),
+                      colored(target, 'cyan', attrs=['bold']),
+                      colored('in', 'black', attrs=['bold']),
+                      colored(build_dir, 'cyan', attrs=['bold']))
+                process = func(
+                    target=target, build_dir=build_dir, defines=defines,
+                    data_cfg=data_cfg, hw_cfg=hw_cfg, dry_run=dry_run
+                )
+                processes.append(process)
+            common.wait_processes(processes, dry_run=dry_run)
 
         # Run experiments
         if 'run' in self.actions or 'all' in self.actions:
@@ -194,11 +212,7 @@ class ExperimentManager:
                 process = common.make('perf', vars, flags=flags, sync=False)
                 processes.append(process)
 
-            # Wait for all processes to complete
-            for i, process in enumerate(processes):
-                return_code = process.wait()
-                if return_code != 0:
-                    raise Exception(f'Failed to generate performance dump for experiment {i}')
+            common.wait_processes(processes)
 
         # Build visual traces
         if 'visual-trace' in self.actions or 'all' in self.actions:
@@ -359,3 +373,46 @@ class ExperimentManager:
         df = pd.concat(columns, axis=1)
 
         return df
+
+
+def derive_axes_from_keys(experiment, keys):
+    """Designate some keys in the experiment as the experiment axes."""
+    return {key: experiment[key] for key in keys}
+
+
+def derive_data_cfg_from_template(experiment, template_path="cfg.json.tpl",
+                                  root_cfg_dir=Path('data').absolute()):
+    """Derive the data configuration file from a template.
+
+    Fills the template file using the experiment dictionary.
+    Writes it to a file under the root data configuration directory, creating
+    a directory hierarchy defined by the experiment name.
+    The output filename is derived from the template's, stripped of the '.tpl'
+    suffix, when this suffix exists.
+
+    Args:
+        experiment: Experiment dictionary.
+        template_path: Path to the template file.
+        root_cfg_dir: Root data configuration directory.
+    """
+    # Read the template file
+    with open(template_path, 'r') as f:
+        template = mako.template.Template(f.read())
+
+    # Fill in (render) the template with the experiment parameters
+    cfg = template.render(experiment=experiment)
+
+    # Derive output filename from template basename by stripping a trailing '.tpl'
+    cfg_name = template_path.stem if template_path.suffix == '.tpl' else template_path.name
+
+    # Compose destination path from the root data configuration directory,
+    # following a directory hierarchy defined by the experiment name
+    cfg_path = root_cfg_dir / experiment["name"] / cfg_name
+    cfg_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Write the rendered template to file
+    with open(cfg_path, 'w') as f:
+        f.write(cfg)
+
+    # Return the path to the rendered configuration file
+    return cfg_path
