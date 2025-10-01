@@ -14,6 +14,8 @@ volatile uint32_t _reduction_result;
 __thread snrt_comm_info_t snrt_comm_world_info = {
     .barrier_ptr = &(_snrt_barrier.cnt),
     .size = SNRT_CLUSTER_NUM,
+    .mask = SNRT_CLUSTER_NUM - 1,
+    .base = 0,
     .is_participant = 1};
 __thread snrt_comm_t snrt_comm_world;
 

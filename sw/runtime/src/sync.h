@@ -62,6 +62,8 @@ inline void snrt_comm_create(uint32_t size, snrt_comm_t *communicator) {
     // Initialize communicator, pointing to the newly-allocated barrier
     // counter in L3.
     (*communicator)->size = size;
+    (*communicator)->base = 0;
+    (*communicator)->mask = size - 1;
     (*communicator)->barrier_ptr = barrier_ptr;
     (*communicator)->is_participant = snrt_cluster_idx() < size;
 }
@@ -159,13 +161,20 @@ inline void snrt_wake_clusters(uint32_t core_mask, snrt_comm_t comm = NULL) {
         snrt_disable_multicast();
     }
 #else
-    // Wake clusters sequentially
-    for (int i = 0; i < comm->size; i++) {
+    // Wake clusters sequentially.
+    // We find all clusters represented by the (base, mask) encoding through
+    // submask enumeration (https://codeforces.com/blog/entry/108942).
+    uint32_t mask = comm->mask;
+    uint32_t fixed = comm->base & ~mask;
+    uint32_t submask = 0;
+    do {
+        uint32_t i = fixed | submask;
         if (snrt_cluster_idx() != i) {
             snrt_cluster(i)->peripheral_reg.cl_clint_set.f.cl_clint_set =
                 core_mask;
         }
-    }
+        submask = (submask - 1) & mask;
+    } while (submask != 0);
 #endif
 }
 
