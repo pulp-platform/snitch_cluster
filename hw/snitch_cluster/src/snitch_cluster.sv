@@ -1791,5 +1791,7 @@ module snitch_cluster
   `ASSERT_INIT(DcaSystemConfiguration, (!EnableDca) || (NrCores == 9))
   `ASSERT_INIT(DcaSystemWideDataWidth, (!EnableDca) || (WideDataWidth == 512))
   `ASSERT_INIT(DcaSystemNarrowDataWidth, (!EnableDca) || (NarrowDataWidth == 64))
+  // DcaDataWidth could potentially be < WideDataWidth, but for now we don't allow this
+  `ASSERT_INIT(CheckDcaDataWidth, DcaDataWidth == WideDataWidth)
 
 endmodule
