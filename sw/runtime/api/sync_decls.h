@@ -17,6 +17,8 @@ typedef struct {
 typedef struct {
     volatile uint32_t *barrier_ptr;
     uint32_t size;
+    uint32_t mask;
+    uint32_t base;
     uint32_t is_participant;
 } snrt_comm_info_t;
 
