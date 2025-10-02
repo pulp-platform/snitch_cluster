@@ -1,0 +1,31 @@
+#include <snrt.h>
+
+#include "printf.h"
+
+int main() {
+ uint32_t i = snrt_global_core_idx(); 
+ snrt_cluster_hw_barrier();
+   if (i == 2) {
+    int errs = 0;
+	int32_t result_rd;
+    int32_t result_rs1;
+	register int32_t rd asm("a3") = 0;   
+    register int32_t rs1 asm("a4") = -42; // rs1, data source	
+	asm volatile(
+    "p.abs a3, a4\n"
+        : "=r"(rd)      // rd — выход
+        : "r"(rs1)      // rs1 — вход
+        : "a3", "a4"    // задействованные регистры
+    );		
+        result_rd = rd;
+        result_rs1 = rs1;
+        if(!((result_rd == 42 ) && (result_rs1 == -42))) {
+            errs = errs + 1;
+        }
+
+        return errs;
+        } else return 0;
+        snrt_cluster_hw_barrier();
+    return 0;
+} 
+

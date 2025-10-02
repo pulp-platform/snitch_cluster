@@ -162,7 +162,7 @@ module snitch_cc #(
   // FMA architecture is "merged" -> mulexp and macexp instructions are supported
   localparam bit XFauxMerged  = (FPUImplementation.UnitTypes[3] == fpnew_pkg::MERGED);
   localparam bit FPEn = RVF | RVD | XF16 | XF16ALT | XF8 | XF8ALT | XFVEC | XFauxMerged | XFDOTP;
-  localparam bit XPULPIMG = XPULPABS | XPULPBITOP | XPULPBR | XPULPCLIP | XPULPMACSI | XPULPMINMAX | XPULPSLET | XPULPVECT | XPULPVECTSHUFFLEPACK;
+  localparam bit XPULPV2 = XPULPABS | XPULPBITOP | XPULPBR | XPULPCLIP | XPULPMACSI | XPULPMINMAX | XPULPSLET | XPULPVECT | XPULPVECTSHUFFLEPACK;
   localparam int unsigned FLEN = RVD     ? 64 : // D ext.
                           RVF     ? 32 : // F ext.
                           XF16    ? 16 : // Xf16 ext.
@@ -261,7 +261,7 @@ module snitch_cc #(
     .XPULPSLET (XPULPSLET),
     .XPULPVECT (XPULPVECT),
     .XPULPVECTSHUFFLEPACK (XPULPVECTSHUFFLEPACK),
-    .XPULPIMG (XPULPIMG),
+    .XPULPV2 (XPULPV2),
     .Xcopift (Xcopift),
     .RVF (RVF),
     .RVD (RVD),
@@ -457,10 +457,10 @@ module snitch_cc #(
   end
 
     // Mempool`s Snitch IPU accelerator
-  if (XPULPIMG | OwnMulDiv) begin : gen_mempool_ipu
+  if (XPULPV2 | OwnMulDiv) begin : gen_mempool_ipu
     snitch_ipu #(
     .IdWidth ( 5 ),
-    .XPULPIMG  (XPULPIMG),
+    .XPULPV2  (XPULPV2),
     .acc_resp_t(acc_resp_t),
     .acc_req_t (acc_req_t)
     ) i_snitch_ipu (

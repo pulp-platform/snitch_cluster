@@ -8,7 +8,7 @@
 
 module snitch_ipu import snitch_pkg::*;  #(
   parameter int unsigned IdWidth = 5,
-  parameter bit XPULPIMG = 0,
+  parameter bit XPULPV2 = 0,
   parameter type acc_req_t = logic,
   parameter type acc_resp_t = logic
 ) (
@@ -67,7 +67,7 @@ module snitch_ipu import snitch_pkg::*;  #(
       riscv_instr::MULH,
       riscv_instr::MULHSU,
       riscv_instr::MULHU: begin
-        if (XPULPIMG) begin
+        if (XPULPV2) begin
           dsp_valid_op = acc_req_valid_i;
           acc_req_ready_o = dsp_ready_op;
         end else begin
@@ -82,156 +82,156 @@ module snitch_ipu import snitch_pkg::*;  #(
         div_valid_op = acc_req_valid_i;
         acc_req_ready_o = div_ready_op;
       end
-      riscv_instr::P_ABS,                 // Xpulpimg: p.abs
-      riscv_instr::P_SLET,                // Xpulpimg: p.slet
-      riscv_instr::P_SLETU,               // Xpulpimg: p.sletu
-      riscv_instr::P_MIN,                 // Xpulpimg: p.min
-      riscv_instr::P_MINU,                // Xpulpimg: p.minu
-      riscv_instr::P_MAX,                 // Xpulpimg: p.max
-      riscv_instr::P_MAXU,                // Xpulpimg: p.maxu
-      riscv_instr::P_EXTHS,               // Xpulpimg: p.exths
-      riscv_instr::P_EXTHZ,               // Xpulpimg: p.exthz
-      riscv_instr::P_EXTBS,               // Xpulpimg: p.extbs
-      riscv_instr::P_EXTBZ,               // Xpulpimg: p.extbz
-      riscv_instr::P_CLIP,                // Xpulpimg: p.clip
-      riscv_instr::P_CLIPU,               // Xpulpimg: p.clipu
-      riscv_instr::P_CLIPR,               // Xpulpimg: p.clipr
-      riscv_instr::P_CLIPUR,              // Xpulpimg: p.clipur
-      riscv_instr::P_MAC,                 // Xpulpimg: p.mac
-      riscv_instr::P_MSU,                 // Xpulpimg: p.msu
-      riscv_instr::PV_ADD_H,              // Xpulpimg: pv.add.h
-      riscv_instr::PV_ADD_SC_H,           // Xpulpimg: pv.add.sc.h
-      riscv_instr::PV_ADD_SCI_H,          // Xpulpimg: pv.add.sci.h
-      riscv_instr::PV_ADD_B,              // Xpulpimg: pv.add.b
-      riscv_instr::PV_ADD_SC_B,           // Xpulpimg: pv.add.sc.b
-      riscv_instr::PV_ADD_SCI_B,          // Xpulpimg: pv.add.sci.b
-      riscv_instr::PV_SUB_H,              // Xpulpimg: pv.sub.h
-      riscv_instr::PV_SUB_SC_H,           // Xpulpimg: pv.sub.sc.h
-      riscv_instr::PV_SUB_SCI_H,          // Xpulpimg: pv.sub.sci.h
-      riscv_instr::PV_SUB_B,              // Xpulpimg: pv.sub.b
-      riscv_instr::PV_SUB_SC_B,           // Xpulpimg: pv.sub.sc.b
-      riscv_instr::PV_SUB_SCI_B,          // Xpulpimg: pv.sub.sci.b
-      riscv_instr::PV_AVG_H,              // Xpulpimg: pv.avg.h
-      riscv_instr::PV_AVG_SC_H,           // Xpulpimg: pv.avg.sc.h
-      riscv_instr::PV_AVG_SCI_H,          // Xpulpimg: pv.avg.sci.h
-      riscv_instr::PV_AVG_B,              // Xpulpimg: pv.avg.b
-      riscv_instr::PV_AVG_SC_B,           // Xpulpimg: pv.avg.sc.b
-      riscv_instr::PV_AVG_SCI_B,          // Xpulpimg: pv.avg.sci.b
-      riscv_instr::PV_AVGU_H,             // Xpulpimg: pv.avgu.h
-      riscv_instr::PV_AVGU_SC_H,          // Xpulpimg: pv.avgu.sc.h
-      riscv_instr::PV_AVGU_SCI_H,         // Xpulpimg: pv.avgu.sci.h
-      riscv_instr::PV_AVGU_B,             // Xpulpimg: pv.avgu.b
-      riscv_instr::PV_AVGU_SC_B,          // Xpulpimg: pv.avgu.sc.b
-      riscv_instr::PV_AVGU_SCI_B,         // Xpulpimg: pv.avgu.sci.b
-      riscv_instr::PV_MIN_H,              // Xpulpimg: pv.min.h
-      riscv_instr::PV_MIN_SC_H,           // Xpulpimg: pv.min.sc.h
-      riscv_instr::PV_MIN_SCI_H,          // Xpulpimg: pv.min.sci.h
-      riscv_instr::PV_MIN_B,              // Xpulpimg: pv.min.b
-      riscv_instr::PV_MIN_SC_B,           // Xpulpimg: pv.min.sc.b
-      riscv_instr::PV_MIN_SCI_B,          // Xpulpimg: pv.min.sci.b
-      riscv_instr::PV_MINU_H,             // Xpulpimg: pv.minu.h
-      riscv_instr::PV_MINU_SC_H,          // Xpulpimg: pv.minu.sc.h
-      riscv_instr::PV_MINU_SCI_H,         // Xpulpimg: pv.minu.sci.h
-      riscv_instr::PV_MINU_B,             // Xpulpimg: pv.minu.b
-      riscv_instr::PV_MINU_SC_B,          // Xpulpimg: pv.minu.sc.b
-      riscv_instr::PV_MINU_SCI_B,         // Xpulpimg: pv.minu.sci.b
-      riscv_instr::PV_MAX_H,              // Xpulpimg: pv.max.h
-      riscv_instr::PV_MAX_SC_H,           // Xpulpimg: pv.max.sc.h
-      riscv_instr::PV_MAX_SCI_H,          // Xpulpimg: pv.max.sci.h
-      riscv_instr::PV_MAX_B,              // Xpulpimg: pv.max.b
-      riscv_instr::PV_MAX_SC_B,           // Xpulpimg: pv.max.sc.b
-      riscv_instr::PV_MAX_SCI_B,          // Xpulpimg: pv.max.sci.b
-      riscv_instr::PV_MAXU_H,             // Xpulpimg: pv.maxu.h
-      riscv_instr::PV_MAXU_SC_H,          // Xpulpimg: pv.maxu.sc.h
-      riscv_instr::PV_MAXU_SCI_H,         // Xpulpimg: pv.maxu.sci.h
-      riscv_instr::PV_MAXU_B,             // Xpulpimg: pv.maxu.b
-      riscv_instr::PV_MAXU_SC_B,          // Xpulpimg: pv.maxu.sc.b
-      riscv_instr::PV_MAXU_SCI_B,         // Xpulpimg: pv.maxu.sci.b
-      riscv_instr::PV_SRL_H,              // Xpulpimg: pv.srl.h
-      riscv_instr::PV_SRL_SC_H,           // Xpulpimg: pv.srl.sc.h
-      riscv_instr::PV_SRL_SCI_H,          // Xpulpimg: pv.srl.sci.h
-      riscv_instr::PV_SRL_B,              // Xpulpimg: pv.srl.b
-      riscv_instr::PV_SRL_SC_B,           // Xpulpimg: pv.srl.sc.b
-      riscv_instr::PV_SRL_SCI_B,          // Xpulpimg: pv.srl.sci.b
-      riscv_instr::PV_SRA_H,              // Xpulpimg: pv.sra.h
-      riscv_instr::PV_SRA_SC_H,           // Xpulpimg: pv.sra.sc.h
-      riscv_instr::PV_SRA_SCI_H,          // Xpulpimg: pv.sra.sci.h
-      riscv_instr::PV_SRA_B,              // Xpulpimg: pv.sra.b
-      riscv_instr::PV_SRA_SC_B,           // Xpulpimg: pv.sra.sc.b
-      riscv_instr::PV_SRA_SCI_B,          // Xpulpimg: pv.sra.sci.b
-      riscv_instr::PV_SLL_H,              // Xpulpimg: pv.sll.h
-      riscv_instr::PV_SLL_SC_H,           // Xpulpimg: pv.sll.sc.h
-      riscv_instr::PV_SLL_SCI_H,          // Xpulpimg: pv.sll.sci.h
-      riscv_instr::PV_SLL_B,              // Xpulpimg: pv.sll.b
-      riscv_instr::PV_SLL_SC_B,           // Xpulpimg: pv.sll.sc.b
-      riscv_instr::PV_SLL_SCI_B,          // Xpulpimg: pv.sll.sci.b
-      riscv_instr::PV_OR_H,               // Xpulpimg: pv.or.h
-      riscv_instr::PV_OR_SC_H,            // Xpulpimg: pv.or.sc.h
-      riscv_instr::PV_OR_SCI_H,           // Xpulpimg: pv.or.sci.h
-      riscv_instr::PV_OR_B,               // Xpulpimg: pv.or.b
-      riscv_instr::PV_OR_SC_B,            // Xpulpimg: pv.or.sc.b
-      riscv_instr::PV_OR_SCI_B,           // Xpulpimg: pv.or.sci.b
-      riscv_instr::PV_XOR_H,              // Xpulpimg: pv.xor.h
-      riscv_instr::PV_XOR_SC_H,           // Xpulpimg: pv.xor.sc.h
-      riscv_instr::PV_XOR_SCI_H,          // Xpulpimg: pv.xor.sci.h
-      riscv_instr::PV_XOR_B,              // Xpulpimg: pv.xor.b
-      riscv_instr::PV_XOR_SC_B,           // Xpulpimg: pv.xor.sc.b
-      riscv_instr::PV_XOR_SCI_B,          // Xpulpimg: pv.xor.sci.b
-      riscv_instr::PV_AND_H,              // Xpulpimg: pv.and.h
-      riscv_instr::PV_AND_SC_H,           // Xpulpimg: pv.and.sc.h
-      riscv_instr::PV_AND_SCI_H,          // Xpulpimg: pv.and.sci.h
-      riscv_instr::PV_AND_B,              // Xpulpimg: pv.and.b
-      riscv_instr::PV_AND_SC_B,           // Xpulpimg: pv.and.sc.b
-      riscv_instr::PV_AND_SCI_B,          // Xpulpimg: pv.and.sci.b
-      riscv_instr::PV_ABS_H,              // Xpulpimg: pv.abs.h
-      riscv_instr::PV_ABS_B,              // Xpulpimg: pv.abs.b
-      riscv_instr::PV_EXTRACT_H,          // Xpulpimg: pv.extract.h
-      riscv_instr::PV_EXTRACT_B,          // Xpulpimg: pv.extract.b
-      riscv_instr::PV_EXTRACTU_H,         // Xpulpimg: pv.extractu.h
-      riscv_instr::PV_EXTRACTU_B,         // Xpulpimg: pv.extractu.b
-      riscv_instr::PV_INSERT_H,           // Xpulpimg: pv.insert.h
-      riscv_instr::PV_INSERT_B,           // Xpulpimg: pv.insert.b
-      riscv_instr::PV_DOTUP_H,            // Xpulpimg: pv.dotup.h
-      riscv_instr::PV_DOTUP_SC_H,         // Xpulpimg: pv.dotup.sc.h
-      riscv_instr::PV_DOTUP_SCI_H,        // Xpulpimg: pv.dotup.sci.h
-      riscv_instr::PV_DOTUP_B,            // Xpulpimg: pv.dotup.b
-      riscv_instr::PV_DOTUP_SC_B,         // Xpulpimg: pv.dotup.sc.b
-      riscv_instr::PV_DOTUP_SCI_B,        // Xpulpimg: pv.dotup.sci.b
-      riscv_instr::PV_DOTUSP_H,           // Xpulpimg: pv.dotusp.h
-      riscv_instr::PV_DOTUSP_SC_H,        // Xpulpimg: pv.dotusp.sc.h
-      riscv_instr::PV_DOTUSP_SCI_H,       // Xpulpimg: pv.dotusp.sci.h
-      riscv_instr::PV_DOTUSP_B,           // Xpulpimg: pv.dotusp.b
-      riscv_instr::PV_DOTUSP_SC_B,        // Xpulpimg: pv.dotusp.sc.b
-      riscv_instr::PV_DOTUSP_SCI_B,       // Xpulpimg: pv.dotusp.sci.b
-      riscv_instr::PV_DOTSP_H,            // Xpulpimg: pv.dotsp.h
-      riscv_instr::PV_DOTSP_SC_H,         // Xpulpimg: pv.dotsp.sc.h
-      riscv_instr::PV_DOTSP_SCI_H,        // Xpulpimg: pv.dotsp.sci.h
-      riscv_instr::PV_DOTSP_B,            // Xpulpimg: pv.dotsp.b
-      riscv_instr::PV_DOTSP_SC_B,         // Xpulpimg: pv.dotsp.sc.b
-      riscv_instr::PV_DOTSP_SCI_B,        // Xpulpimg: pv.dotsp.sci.b
-      riscv_instr::PV_SDOTUP_H,           // Xpulpimg: pv.sdotup.h
-      riscv_instr::PV_SDOTUP_SC_H,        // Xpulpimg: pv.sdotup.sc.h
-      riscv_instr::PV_SDOTUP_SCI_H,       // Xpulpimg: pv.sdotup.sci.h
-      riscv_instr::PV_SDOTUP_B,           // Xpulpimg: pv.sdotup.b
-      riscv_instr::PV_SDOTUP_SC_B,        // Xpulpimg: pv.sdotup.sc.b
-      riscv_instr::PV_SDOTUP_SCI_B,       // Xpulpimg: pv.sdotup.sci.b
-      riscv_instr::PV_SDOTUSP_H,          // Xpulpimg: pv.sdotusp.h
-      riscv_instr::PV_SDOTUSP_SC_H,       // Xpulpimg: pv.sdotusp.sc.h
-      riscv_instr::PV_SDOTUSP_SCI_H,      // Xpulpimg: pv.sdotusp.sci.h
-      riscv_instr::PV_SDOTUSP_B,          // Xpulpimg: pv.sdotusp.b
-      riscv_instr::PV_SDOTUSP_SC_B,       // Xpulpimg: pv.sdotusp.sc.b
-      riscv_instr::PV_SDOTUSP_SCI_B,      // Xpulpimg: pv.sdotusp.sci.b
-      riscv_instr::PV_SDOTSP_H,           // Xpulpimg: pv.sdotsp.h
-      riscv_instr::PV_SDOTSP_SC_H,        // Xpulpimg: pv.sdotsp.sc.h
-      riscv_instr::PV_SDOTSP_SCI_H,       // Xpulpimg: pv.sdotsp.sci.h
-      riscv_instr::PV_SDOTSP_B,           // Xpulpimg: pv.sdotsp.b
-      riscv_instr::PV_SDOTSP_SC_B,        // Xpulpimg: pv.sdotsp.sc.b
-      riscv_instr::PV_SDOTSP_SCI_B,       // Xpulpimg: pv.sdotsp.sci.b
-      riscv_instr::PV_SHUFFLE2_H,         // Xpulpimg: pv.shuffle2.h
-      riscv_instr::PV_SHUFFLE2_B,         // Xpulpimg: pv.shuffle2.b
-      riscv_instr::PV_PACK,               // Xpulpimg: pv.pack
-      riscv_instr::PV_PACK_H: begin       // Xpulpimg: pv.pack.h
-        if (XPULPIMG) begin
+      riscv_instr::P_ABS,                 // XPULPV2: p.abs
+      riscv_instr::P_SLET,                // XPULPV2: p.slet
+      riscv_instr::P_SLETU,               // XPULPV2: p.sletu
+      riscv_instr::P_MIN,                 // XPULPV2: p.min
+      riscv_instr::P_MINU,                // XPULPV2: p.minu
+      riscv_instr::P_MAX,                 // XPULPV2: p.max
+      riscv_instr::P_MAXU,                // XPULPV2: p.maxu
+      riscv_instr::P_EXTHS,               // XPULPV2: p.exths
+      riscv_instr::P_EXTHZ,               // XPULPV2: p.exthz
+      riscv_instr::P_EXTBS,               // XPULPV2: p.extbs
+      riscv_instr::P_EXTBZ,               // XPULPV2: p.extbz
+      riscv_instr::P_CLIP,                // XPULPV2: p.clip
+      riscv_instr::P_CLIPU,               // XPULPV2: p.clipu
+      riscv_instr::P_CLIPR,               // XPULPV2: p.clipr
+      riscv_instr::P_CLIPUR,              // XPULPV2: p.clipur
+      riscv_instr::P_MAC,                 // XPULPV2: p.mac
+      riscv_instr::P_MSU,                 // XPULPV2: p.msu
+      riscv_instr::PV_ADD_H,              // XPULPV2: pv.add.h
+      riscv_instr::PV_ADD_SC_H,           // XPULPV2: pv.add.sc.h
+      riscv_instr::PV_ADD_SCI_H,          // XPULPV2: pv.add.sci.h
+      riscv_instr::PV_ADD_B,              // XPULPV2: pv.add.b
+      riscv_instr::PV_ADD_SC_B,           // XPULPV2: pv.add.sc.b
+      riscv_instr::PV_ADD_SCI_B,          // XPULPV2: pv.add.sci.b
+      riscv_instr::PV_SUB_H,              // XPULPV2: pv.sub.h
+      riscv_instr::PV_SUB_SC_H,           // XPULPV2: pv.sub.sc.h
+      riscv_instr::PV_SUB_SCI_H,          // XPULPV2: pv.sub.sci.h
+      riscv_instr::PV_SUB_B,              // XPULPV2: pv.sub.b
+      riscv_instr::PV_SUB_SC_B,           // XPULPV2: pv.sub.sc.b
+      riscv_instr::PV_SUB_SCI_B,          // XPULPV2: pv.sub.sci.b
+      riscv_instr::PV_AVG_H,              // XPULPV2: pv.avg.h
+      riscv_instr::PV_AVG_SC_H,           // XPULPV2: pv.avg.sc.h
+      riscv_instr::PV_AVG_SCI_H,          // XPULPV2: pv.avg.sci.h
+      riscv_instr::PV_AVG_B,              // XPULPV2: pv.avg.b
+      riscv_instr::PV_AVG_SC_B,           // XPULPV2: pv.avg.sc.b
+      riscv_instr::PV_AVG_SCI_B,          // XPULPV2: pv.avg.sci.b
+      riscv_instr::PV_AVGU_H,             // XPULPV2: pv.avgu.h
+      riscv_instr::PV_AVGU_SC_H,          // XPULPV2: pv.avgu.sc.h
+      riscv_instr::PV_AVGU_SCI_H,         // XPULPV2: pv.avgu.sci.h
+      riscv_instr::PV_AVGU_B,             // XPULPV2: pv.avgu.b
+      riscv_instr::PV_AVGU_SC_B,          // XPULPV2: pv.avgu.sc.b
+      riscv_instr::PV_AVGU_SCI_B,         // XPULPV2: pv.avgu.sci.b
+      riscv_instr::PV_MIN_H,              // XPULPV2: pv.min.h
+      riscv_instr::PV_MIN_SC_H,           // XPULPV2: pv.min.sc.h
+      riscv_instr::PV_MIN_SCI_H,          // XPULPV2: pv.min.sci.h
+      riscv_instr::PV_MIN_B,              // XPULPV2: pv.min.b
+      riscv_instr::PV_MIN_SC_B,           // XPULPV2: pv.min.sc.b
+      riscv_instr::PV_MIN_SCI_B,          // XPULPV2: pv.min.sci.b
+      riscv_instr::PV_MINU_H,             // XPULPV2: pv.minu.h
+      riscv_instr::PV_MINU_SC_H,          // XPULPV2: pv.minu.sc.h
+      riscv_instr::PV_MINU_SCI_H,         // XPULPV2: pv.minu.sci.h
+      riscv_instr::PV_MINU_B,             // XPULPV2: pv.minu.b
+      riscv_instr::PV_MINU_SC_B,          // XPULPV2: pv.minu.sc.b
+      riscv_instr::PV_MINU_SCI_B,         // XPULPV2: pv.minu.sci.b
+      riscv_instr::PV_MAX_H,              // XPULPV2: pv.max.h
+      riscv_instr::PV_MAX_SC_H,           // XPULPV2: pv.max.sc.h
+      riscv_instr::PV_MAX_SCI_H,          // XPULPV2: pv.max.sci.h
+      riscv_instr::PV_MAX_B,              // XPULPV2: pv.max.b
+      riscv_instr::PV_MAX_SC_B,           // XPULPV2: pv.max.sc.b
+      riscv_instr::PV_MAX_SCI_B,          // XPULPV2: pv.max.sci.b
+      riscv_instr::PV_MAXU_H,             // XPULPV2: pv.maxu.h
+      riscv_instr::PV_MAXU_SC_H,          // XPULPV2: pv.maxu.sc.h
+      riscv_instr::PV_MAXU_SCI_H,         // XPULPV2: pv.maxu.sci.h
+      riscv_instr::PV_MAXU_B,             // XPULPV2: pv.maxu.b
+      riscv_instr::PV_MAXU_SC_B,          // XPULPV2: pv.maxu.sc.b
+      riscv_instr::PV_MAXU_SCI_B,         // XPULPV2: pv.maxu.sci.b
+      riscv_instr::PV_SRL_H,              // XPULPV2: pv.srl.h
+      riscv_instr::PV_SRL_SC_H,           // XPULPV2: pv.srl.sc.h
+      riscv_instr::PV_SRL_SCI_H,          // XPULPV2: pv.srl.sci.h
+      riscv_instr::PV_SRL_B,              // XPULPV2: pv.srl.b
+      riscv_instr::PV_SRL_SC_B,           // XPULPV2: pv.srl.sc.b
+      riscv_instr::PV_SRL_SCI_B,          // XPULPV2: pv.srl.sci.b
+      riscv_instr::PV_SRA_H,              // XPULPV2: pv.sra.h
+      riscv_instr::PV_SRA_SC_H,           // XPULPV2: pv.sra.sc.h
+      riscv_instr::PV_SRA_SCI_H,          // XPULPV2: pv.sra.sci.h
+      riscv_instr::PV_SRA_B,              // XPULPV2: pv.sra.b
+      riscv_instr::PV_SRA_SC_B,           // XPULPV2: pv.sra.sc.b
+      riscv_instr::PV_SRA_SCI_B,          // XPULPV2: pv.sra.sci.b
+      riscv_instr::PV_SLL_H,              // XPULPV2: pv.sll.h
+      riscv_instr::PV_SLL_SC_H,           // XPULPV2: pv.sll.sc.h
+      riscv_instr::PV_SLL_SCI_H,          // XPULPV2: pv.sll.sci.h
+      riscv_instr::PV_SLL_B,              // XPULPV2: pv.sll.b
+      riscv_instr::PV_SLL_SC_B,           // XPULPV2: pv.sll.sc.b
+      riscv_instr::PV_SLL_SCI_B,          // XPULPV2: pv.sll.sci.b
+      riscv_instr::PV_OR_H,               // XPULPV2: pv.or.h
+      riscv_instr::PV_OR_SC_H,            // XPULPV2: pv.or.sc.h
+      riscv_instr::PV_OR_SCI_H,           // XPULPV2: pv.or.sci.h
+      riscv_instr::PV_OR_B,               // XPULPV2: pv.or.b
+      riscv_instr::PV_OR_SC_B,            // XPULPV2: pv.or.sc.b
+      riscv_instr::PV_OR_SCI_B,           // XPULPV2: pv.or.sci.b
+      riscv_instr::PV_XOR_H,              // XPULPV2: pv.xor.h
+      riscv_instr::PV_XOR_SC_H,           // XPULPV2: pv.xor.sc.h
+      riscv_instr::PV_XOR_SCI_H,          // XPULPV2: pv.xor.sci.h
+      riscv_instr::PV_XOR_B,              // XPULPV2: pv.xor.b
+      riscv_instr::PV_XOR_SC_B,           // XPULPV2: pv.xor.sc.b
+      riscv_instr::PV_XOR_SCI_B,          // XPULPV2: pv.xor.sci.b
+      riscv_instr::PV_AND_H,              // XPULPV2: pv.and.h
+      riscv_instr::PV_AND_SC_H,           // XPULPV2: pv.and.sc.h
+      riscv_instr::PV_AND_SCI_H,          // XPULPV2: pv.and.sci.h
+      riscv_instr::PV_AND_B,              // XPULPV2: pv.and.b
+      riscv_instr::PV_AND_SC_B,           // XPULPV2: pv.and.sc.b
+      riscv_instr::PV_AND_SCI_B,          // XPULPV2: pv.and.sci.b
+      riscv_instr::PV_ABS_H,              // XPULPV2: pv.abs.h
+      riscv_instr::PV_ABS_B,              // XPULPV2: pv.abs.b
+      riscv_instr::PV_EXTRACT_H,          // XPULPV2: pv.extract.h
+      riscv_instr::PV_EXTRACT_B,          // XPULPV2: pv.extract.b
+      riscv_instr::PV_EXTRACTU_H,         // XPULPV2: pv.extractu.h
+      riscv_instr::PV_EXTRACTU_B,         // XPULPV2: pv.extractu.b
+      riscv_instr::PV_INSERT_H,           // XPULPV2: pv.insert.h
+      riscv_instr::PV_INSERT_B,           // XPULPV2: pv.insert.b
+      riscv_instr::PV_DOTUP_H,            // XPULPV2: pv.dotup.h
+      riscv_instr::PV_DOTUP_SC_H,         // XPULPV2: pv.dotup.sc.h
+      riscv_instr::PV_DOTUP_SCI_H,        // XPULPV2: pv.dotup.sci.h
+      riscv_instr::PV_DOTUP_B,            // XPULPV2: pv.dotup.b
+      riscv_instr::PV_DOTUP_SC_B,         // XPULPV2: pv.dotup.sc.b
+      riscv_instr::PV_DOTUP_SCI_B,        // XPULPV2: pv.dotup.sci.b
+      riscv_instr::PV_DOTUSP_H,           // XPULPV2: pv.dotusp.h
+      riscv_instr::PV_DOTUSP_SC_H,        // XPULPV2: pv.dotusp.sc.h
+      riscv_instr::PV_DOTUSP_SCI_H,       // XPULPV2: pv.dotusp.sci.h
+      riscv_instr::PV_DOTUSP_B,           // XPULPV2: pv.dotusp.b
+      riscv_instr::PV_DOTUSP_SC_B,        // XPULPV2: pv.dotusp.sc.b
+      riscv_instr::PV_DOTUSP_SCI_B,       // XPULPV2: pv.dotusp.sci.b
+      riscv_instr::PV_DOTSP_H,            // XPULPV2: pv.dotsp.h
+      riscv_instr::PV_DOTSP_SC_H,         // XPULPV2: pv.dotsp.sc.h
+      riscv_instr::PV_DOTSP_SCI_H,        // XPULPV2: pv.dotsp.sci.h
+      riscv_instr::PV_DOTSP_B,            // XPULPV2: pv.dotsp.b
+      riscv_instr::PV_DOTSP_SC_B,         // XPULPV2: pv.dotsp.sc.b
+      riscv_instr::PV_DOTSP_SCI_B,        // XPULPV2: pv.dotsp.sci.b
+      riscv_instr::PV_SDOTUP_H,           // XPULPV2: pv.sdotup.h
+      riscv_instr::PV_SDOTUP_SC_H,        // XPULPV2: pv.sdotup.sc.h
+      riscv_instr::PV_SDOTUP_SCI_H,       // XPULPV2: pv.sdotup.sci.h
+      riscv_instr::PV_SDOTUP_B,           // XPULPV2: pv.sdotup.b
+      riscv_instr::PV_SDOTUP_SC_B,        // XPULPV2: pv.sdotup.sc.b
+      riscv_instr::PV_SDOTUP_SCI_B,       // XPULPV2: pv.sdotup.sci.b
+      riscv_instr::PV_SDOTUSP_H,          // XPULPV2: pv.sdotusp.h
+      riscv_instr::PV_SDOTUSP_SC_H,       // XPULPV2: pv.sdotusp.sc.h
+      riscv_instr::PV_SDOTUSP_SCI_H,      // XPULPV2: pv.sdotusp.sci.h
+      riscv_instr::PV_SDOTUSP_B,          // XPULPV2: pv.sdotusp.b
+      riscv_instr::PV_SDOTUSP_SC_B,       // XPULPV2: pv.sdotusp.sc.b
+      riscv_instr::PV_SDOTUSP_SCI_B,      // XPULPV2: pv.sdotusp.sci.b
+      riscv_instr::PV_SDOTSP_H,           // XPULPV2: pv.sdotsp.h
+      riscv_instr::PV_SDOTSP_SC_H,        // XPULPV2: pv.sdotsp.sc.h
+      riscv_instr::PV_SDOTSP_SCI_H,       // XPULPV2: pv.sdotsp.sci.h
+      riscv_instr::PV_SDOTSP_B,           // XPULPV2: pv.sdotsp.b
+      riscv_instr::PV_SDOTSP_SC_B,        // XPULPV2: pv.sdotsp.sc.b
+      riscv_instr::PV_SDOTSP_SCI_B,       // XPULPV2: pv.sdotsp.sci.b
+      riscv_instr::PV_SHUFFLE2_H,         // XPULPV2: pv.shuffle2.h
+      riscv_instr::PV_SHUFFLE2_B,         // XPULPV2: pv.shuffle2.b
+      riscv_instr::PV_PACK,               // XPULPV2: pv.pack
+      riscv_instr::PV_PACK_H: begin       // XPULPV2: pv.pack.h
+        if (XPULPV2) begin
           dsp_valid_op = acc_req_valid_i;
           acc_req_ready_o = dsp_ready_op;
         end else begin
@@ -261,7 +261,7 @@ module snitch_ipu import snitch_pkg::*;  #(
       .res_o       ( div.result             )
   );
 
-  if (XPULPIMG) begin : gen_xpulpimg
+  if (XPULPV2) begin : gen_XPULPV2
     // DSP Unit
     dspu #(
         .Width    ( 32      ),
@@ -463,12 +463,12 @@ module dspu #(
         mac_op = MulHigh;
         mac_op_a_sign = 1'b1;
         res_sel = Mac;
-      end
+      end 
       riscv_instr::MULHU: begin
         mac_op = MulHigh;
         res_sel = Mac;
       end
-      // Instructions from Xpulpimg
+      // Instructions from XPULPV2
       riscv_instr::P_ABS: begin
         cmp_op_b_sel = Zero;
         res_sel = Abs;

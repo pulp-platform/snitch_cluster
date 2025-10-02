@@ -8,8 +8,10 @@
 #include "alloc_v2.c"
 #include "cls.c"
 #include "cluster_interrupts.c"
+#ifdef SNRT_SUPPORTS_DMA
 #include "dm.c"
 #include "dma.c"
+#endif
 #include "eu.c"
 #include "kmp.c"
 #include "omp.c"

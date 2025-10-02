@@ -55,7 +55,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   parameter bit          XPULPSLET    = 0,
   parameter bit          XPULPVECT    = 0,
   parameter bit          XPULPVECTSHUFFLEPACK = 0,
-  parameter bit          XPULPIMG     = 0,
+  parameter bit          XPULPV2     = 0,
   /// Data port request type.
   parameter type         dreq_t    = logic,
   /// Data port response type.
@@ -151,7 +151,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic wfi_d, wfi_q;
   logic [31:0] consec_pc;
   // Immediates
-  logic [31:0] iimm, uimm, jimm, bimm, simm;
+  logic [31:0] iimm, uimm, jimm, bimm, simm, pbimm;
   /* verilator lint_off WIDTH */
   assign iimm = $signed({inst_data_i[31:20]});
   assign uimm = {inst_data_i[31:12], 12'b0};
@@ -160,9 +160,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign bimm = $signed({inst_data_i[31],
                                     inst_data_i[7], inst_data_i[30:25], inst_data_i[11:8], 1'b0});
   assign simm = $signed({inst_data_i[31:25], inst_data_i[11:7]});
+  assign pbimm = $signed(inst_data_i[24:20]); // Xpulpimg immediate branching signed immediate
   /* verilator lint_on WIDTH */
 
-  logic [31:0] opa, opb;
+  logic [31:0] opa, opb, opc;
   logic [32:0] adder_result;
   logic [31:0] alu_result;
 
@@ -241,7 +242,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   alu_op_e alu_op;
 
   typedef enum logic [3:0] {
-    None, Reg, IImmediate, UImmediate, JImmediate, SImmediate, SFImmediate, PC, CSR, CSRImmmediate, RegRd, RegRs2
+    None, Reg, IImmediate, UImmediate, JImmediate, SImmediate, SFImmediate, PC, CSR, CSRImmmediate, PBImmediate, RegRd, RegRs2
   } op_select_e;
   op_select_e opa_select, opb_select, opc_select;
 
@@ -388,8 +389,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign acc_qreq_o.data_op = inst_data_i;
   assign acc_qreq_o.data_arga = {{32{opa[31]}}, opa};
   assign acc_qreq_o.data_argb = {{32{opb[31]}}, opb};
-  // operand C is currently only used for load/store instructions
-  assign acc_qreq_o.data_argc = ls_paddr;
+  // operand C is used for load/store instructions or for multipy-accumulate function
+  assign acc_qreq_o.data_argc = (acc_qreq_o.addr == XPULP_IPU) ? {{32{opc[31]}}, opc} : ls_paddr;
 
   // ---------
   // L0 ITLB
@@ -1051,7 +1052,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       DIVUW,
       REMW, 
       REMUW: begin
-        if (OwnMulDiv | XPULPIMG) begin  // RV64M (MULW, DIVW, DIVUW, REMW, REMUW) is illigal on Mempools`s Snitch IPU
+        if (OwnMulDiv | XPULPV2) begin  // RV64M (MULW, DIVW, DIVUW, REMW, REMUW) is illigal on Mempools`s Snitch IPU
           write_rd = 1'b0;
           uses_rd = 1'b1;
           acc_qvalid_o = valid_instr;
@@ -1068,9 +1069,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           acc_register_rd = 1'b1;
           acc_qreq_o.addr = SHARED_MULDIV;
         end
-      end
-      P_ABS: begin                 // Xpulpimg: p.abs
-        if (XPULPIMG) begin
+      end                         
+      P_ABS: begin                 // XPULPV2: p.abs
+        if (XPULPABS) begin
           write_rd = 1'b0;
           acc_qvalid_o = valid_instr;
           opa_select = Reg;
@@ -1080,6 +1081,121 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           illegal_inst = 1'b1;
         end
       end
+      P_EXTHS,                       // XPULPV2: p.exths
+      P_EXTHZ,                       // XPULPV2: p.exthz
+      P_EXTBS,                       // XPULPV2: p.extbs
+      P_EXTBZ: begin                 // XPULPV2: p.extbz
+        if (XPULPBITOP) begin
+          write_rd = 1'b0;
+          acc_qvalid_o = valid_instr;
+          opa_select = Reg;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      // Immediate branching
+      P_BEQIMM: begin // XPULPV2: p.beqimm
+        if (XPULPBR) begin
+          is_branch = 1'b1;
+          write_rd = 1'b0;
+          uses_rd = 1'b0;
+          alu_op = Eq;
+          opa_select = Reg;
+          opb_select = PBImmediate;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      P_BNEIMM: begin // XPULPV2: p.bneimm
+        if (XPULPBR) begin
+          is_branch = 1'b1;
+          write_rd = 1'b0;
+          uses_rd = 1'b0;
+          alu_op = Neq;
+          opa_select = Reg;
+          opb_select = PBImmediate;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      P_CLIP,               // XPULPV2: p.clip
+      P_CLIPU: begin // XPULPV2: pv.dotsp.sci.b
+        if (XPULPCLIP) begin
+          write_rd = 1'b0;
+          acc_qvalid_o = valid_instr;
+          opa_select = Reg;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      P_CLIPR,             // XPULPV2: p.clipr
+      P_CLIPUR: begin // XPULPV2: p.clipur
+        if (XPULPCLIP) begin
+          write_rd = 1'b0;
+          acc_qvalid_o = valid_instr;
+          opa_select = Reg;
+          opb_select = Reg;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      // 3 source registers (rs1, rs2, rd)
+      // xpulpmacsi_CUSTOM extension
+      P_MAC,                // XPULPV2: p.mac
+      P_MSU: begin          // XPULPV2: p.msu
+        if (XPULPMACSI) begin
+          write_rd = 1'b0;
+          acc_qvalid_o = valid_instr;
+          opa_select = Reg;
+          opb_select = Reg;
+          opc_select = Reg;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      // 2 source registers (rs1, rs2)
+      // xpulpminmax_CUSTOM extension
+      P_MIN,               // XPULPV2: p.min
+      P_MINU,              // XPULPV2: p.minu
+      P_MAX,               // XPULPV2: p.max
+      P_MAXU: begin        // XPULPV2: p.maxu
+        if (XPULPMINMAX) begin
+          write_rd = 1'b0;
+          acc_qvalid_o = valid_instr;
+          opa_select = Reg;
+          opb_select = Reg;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      // 2 source registers (rs1, rs2)
+      // xpulpslet_CUSTOM extension
+      P_SLET,              // XPULPV2: p.slet
+      P_SLETU: begin       // XPULPV2: p.sletu
+        if (XPULPSLET) begin
+          write_rd = 1'b0;
+          acc_qvalid_o = valid_instr;
+          opa_select = Reg;
+          opb_select = Reg;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+
       // Off-loaded to IPU
       ANDN, ORN, XNOR, SLO, SRO, ROL, ROR, SBCLR, SBSET, SBINV, SBEXT,
       GORC, GREV, CLZ, CTZ, PCNT, SEXT_B,
@@ -3118,8 +3234,17 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       SFImmediate, SImmediate: opb = simm;
       PC: opb = pc_q;
       CSR: opb = csr_rvalue;
+      PBImmediate: opb = pbimm;
       RegRd: opb = gpr_rdata[2];
       default: opb = '0;
+    endcase
+  end
+
+  always_comb begin
+    unique case (opc_select)
+      None: opc = '0;
+      Reg: opc = gpr_rdata[2];
+      default: opc = '0;
     endcase
   end
 

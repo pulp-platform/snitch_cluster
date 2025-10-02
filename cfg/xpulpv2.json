@@ -76,7 +76,7 @@
                     { $ref: "#/compute_core_template" },
                     { $ref: "#/compute_core_template" },
                     { $ref: "#/compute_core_template" },
-                    { $ref: "#/dma_core_template" },
+                    { $ref: "#/compute_core_template" },
                 ]
             }
         ]
@@ -110,11 +110,11 @@
         xpulppostmod: true,
 	xpulpabs: true,
 	xpulpbitop: true,
-	xpulpbr: false,
-	xpulpclip: false,
-	xpulpmacsi: false,
-	xpulpminmax: false,
-	xpulpslet: false,
+	xpulpbr: true,
+	xpulpclip: true,
+	xpulpmacsi: true,
+	xpulpminmax: true,
+	xpulpslet: true,
 	xpulpvect: false,
 	xpulpvectshufflepack: false,
 	ownmuldiv: false,

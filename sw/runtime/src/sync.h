@@ -216,11 +216,16 @@ static inline void snrt_inter_cluster_barrier(snrt_comm_t comm = NULL) {
  */
 inline void snrt_global_barrier(snrt_comm_t comm) {
     snrt_cluster_hw_barrier();
-
+    #ifdef SNRT_SUPPORTS_DMA
     // Synchronize all DM cores in software
     if (snrt_is_dm_core()) {
         snrt_inter_cluster_barrier(comm);
     }
+ //   #else
+ //   if (snrt_cluster_core_idx() == 8) {
+ //       snrt_inter_cluster_barrier(comm);
+ //   }
+    #endif
     // Synchronize cores in a cluster with the HW barrier
     snrt_cluster_hw_barrier();
 }
@@ -262,6 +267,7 @@ inline void snrt_partial_barrier(snrt_barrier_t *barr, uint32_t n) {
  * @note Every Snitch core must invoke this function, or the calling cores
  *       will stall indefinitely.
  */
+#ifdef SNRT_SUPPORTS_DMA
 inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
     // Reduce cores within cluster in TCDM
     uint32_t *cluster_result = &(cls()->reduction);
@@ -281,6 +287,28 @@ inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
     snrt_cluster_hw_barrier();
     return *cluster_result;
 }
+#else
+inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
+    // Reduce cores within cluster in TCDM
+    uint32_t *cluster_result = &(cls()->reduction);
+    uint32_t tmp = __atomic_fetch_add(cluster_result, value, __ATOMIC_RELAXED);
+
+    // Wait for writeback to ensure AMO is seen by all cores after barrier
+    snrt_wait_writeback(tmp);
+    snrt_cluster_hw_barrier();
+
+    if (snrt_cluster_core_idx() == 0) {
+        __atomic_add_fetch(&_reduction_result, *cluster_result,
+                           __ATOMIC_RELAXED);
+    }
+    snrt_global_barrier();
+    if (snrt_cluster_core_idx() == 0) {
+        *cluster_result = _reduction_result;
+    }
+    snrt_cluster_hw_barrier();
+    return *cluster_result;
+}
+#endif
 
 /**
  * @brief Perform a sum reduction among clusters, blocking.
@@ -301,6 +329,7 @@ inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
  * @note The destination buffers must lie at the same offset in every cluster's
  *       TCDM.
  */
+#ifdef SNRT_SUPPORTS_DMA
 template <typename T>
 inline void snrt_global_reduction_dma(T *dst_buffer, T *src_buffer, size_t len,
                                       snrt_comm_t comm = NULL) {
@@ -360,7 +389,7 @@ inline void snrt_global_reduction_dma(T *dst_buffer, T *src_buffer, size_t len,
         }
     }
 }
-
+#endif
 //================================================================================
 // Memory consistency
 //================================================================================

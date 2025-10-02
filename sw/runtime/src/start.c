@@ -13,6 +13,8 @@ extern uint32_t snrt_cls_base_addr();
 #endif
 
 #ifdef SNRT_INIT_TLS
+#ifdef SNRT_ENABLE_DMA
+
 static inline void snrt_init_tls() {
     extern volatile uint32_t __tdata_start, __tdata_end;
     extern volatile uint32_t __tbss_start, __tbss_end;
@@ -50,9 +52,43 @@ static inline void snrt_init_tls() {
 
     snrt_cluster_hw_barrier();
 }
+#else
+// If dma is not enabled
+static inline void snrt_init_tls() {
+    extern volatile uint32_t __tdata_start, __tdata_end;
+    extern volatile uint32_t __tbss_start, __tbss_end;
+
+    size_t size;
+    volatile uint32_t tls_ptr;
+    size = (size_t)(&__tdata_end) - (size_t)(&__tdata_start);
+
+    // Every core initializes its own TLS
+    asm volatile("mv %0, tp" : "=r"(tls_ptr) : :);
+    memcpy((void*)tls_ptr, (const void*)&__tdata_start, size);
+
+    // Then initialize all other cores' .tdata sections from the DM
+    // core's. The offset between the TLS section of successive cores
+        // is defined in start.S
+        // Copy .tdata into all other cores' TLS regions
+        size_t tls_offset = (1 << SNRT_LOG2_STACK_SIZE) + 8;
+        for (int i = 1; i < snrt_cluster_core_num(); i++) {
+            memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
+        }
+
+        // Initialize all cores' .tbss sections
+        tls_ptr += size;
+        size = (size_t)(&__tbss_end) - (size_t)(&__tbss_start);
+        for (int i = 0; i < snrt_cluster_core_num(); i++) {
+            memset((void*)(tls_ptr + i * tls_offset), 0, size);
+        }
+
+    snrt_cluster_hw_barrier();
+}
+#endif
 #endif
 
 #ifdef SNRT_INIT_BSS
+#ifdef SNRT_ENABLE_DMA
 static inline void snrt_init_bss() {
     extern volatile uint32_t __bss_start, __bss_end;
 
@@ -66,7 +102,21 @@ static inline void snrt_init_bss() {
         snrt_cluster_hw_barrier();
     }
 }
+#else
+static inline void snrt_init_bss() {
+    extern volatile uint32_t __bss_start, __bss_end;
+
+    // Only one core needs to perform the initialization
+    if (snrt_cluster_idx() == 0) {
+        size_t size = (size_t)(&__bss_end) - (size_t)(&__bss_start);
+        memset((void*)&__bss_start, 0, size);
+
+        // Synchronize with all cores in the cluster
+        snrt_cluster_hw_barrier();
+    }
+}
 #endif
+#endif 
 
 #ifdef SNRT_WAKE_UP
 static inline void snrt_wake_up() {
@@ -97,6 +147,7 @@ static inline void snrt_init_cls() {
     extern volatile uint32_t __cbss_start, __cbss_end;
 
     // Only one core per cluster has to do this
+    #ifdef SNRT_ENABLE_DMA
     if (snrt_is_dm_core()) {
         uint64_t ptr = (uint64_t)snrt_cls_base_addr();
         size_t size;
@@ -111,6 +162,22 @@ static inline void snrt_init_cls() {
         snrt_dma_memset((void*)ptr, 0, size);
         snrt_dma_wait_all();
     }
+    #else 
+        if (snrt_cluster_core_idx() == 0) {
+            uint64_t ptr = (uint64_t)snrt_cls_base_addr();
+            size_t size;
+
+            // Copy cdata section
+            size = (size_t)(&__cdata_end) - (size_t)(&__cdata_start);
+            if (size)
+                memcpy((void*)ptr, (const void*)&__cdata_start, size);
+                // Clear cbss section
+                ptr += size;
+                size = (size_t)(&__cbss_end) - (size_t)(&__cbss_start);
+                if (size)
+                   memset((void*)ptr, 0, size);
+    }
+    #endif
     // Init the cls pointer
     _cls_ptr = (cls_t*)snrt_cls_base_addr();
     snrt_cluster_hw_barrier();
@@ -144,8 +211,10 @@ EXTERN_C void snrt_main() {
     snrt_crt0_callback0();
 #endif
 
+#ifdef SNRT_ENABLE_DMA
 #ifdef SNRT_INIT_BSS
     snrt_init_bss();
+#endif
 #endif
 
 #ifdef SNRT_WAKE_UP
@@ -156,8 +225,10 @@ EXTERN_C void snrt_main() {
     snrt_crt0_callback1();
 #endif
 
+#ifdef SNRT_ENABLE_DMA
 #ifdef SNRT_INIT_TLS
     snrt_init_tls();
+#endif
 #endif
 
 #ifdef SNRT_CRT0_CALLBACK2
