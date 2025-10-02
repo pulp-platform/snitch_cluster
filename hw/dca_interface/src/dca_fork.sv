@@ -63,10 +63,10 @@ module dca_fork #(
     assign mst_req_o[i].q.int_fmt = slv_req_i.q.int_fmt;
     assign mst_req_o[i].q.vectorial_op = slv_req_i.q.vectorial_op;
     // Data is split across lanes, to perform SIMD operation (both operands and result)
-    assign mst_req_o[i].q.operands[2][DataWidth-1:0] = slv_req_i.q.operands[2][DataWidth*i+:DataWidth];
-    assign mst_req_o[i].q.operands[1][DataWidth-1:0] = slv_req_i.q.operands[1][DataWidth*i+:DataWidth];
-    assign mst_req_o[i].q.operands[0][DataWidth-1:0] = slv_req_i.q.operands[0][DataWidth*i+:DataWidth];
-    assign slv_rsp_o.p.result[DataWidth*i+:DataWidth] = mst_rsp_i[i].p.result[DataWidth-1:0];
+    assign mst_req_o[i].q.operands[2][LaneDataWidth-1:0] = slv_req_i.q.operands[2][LaneDataWidth*i+:LaneDataWidth];
+    assign mst_req_o[i].q.operands[1][LaneDataWidth-1:0] = slv_req_i.q.operands[1][LaneDataWidth*i+:LaneDataWidth];
+    assign mst_req_o[i].q.operands[0][LaneDataWidth-1:0] = slv_req_i.q.operands[0][LaneDataWidth*i+:LaneDataWidth];
+    assign slv_rsp_o.p.result[LaneDataWidth*i+:LaneDataWidth] = mst_rsp_i[i].p.result[LaneDataWidth-1:0];
     // Connect the handshake signals
     assign mst_req_o[i].q_valid = flat_q_valids[i];
     assign mst_req_o[i].p_ready = flat_p_readies[i];
@@ -77,9 +77,9 @@ module dca_fork #(
   // OR-reduce the status bits from all lanes
   // TODO(colluca): double-check that this is actually a bitwise OR
   always_comb begin
-    slv_rsp_o.p.dca_status = '0;
+    slv_rsp_o.p.status = '0;
     for (int i = 0; i < (NumLanes-1); i++) begin
-      slv_rsp_o.p.dca_status |= mst_rsp_i[i].p.dca_status;
+      slv_rsp_o.p.status |= mst_rsp_i[i].p.status;
     end
   end
 

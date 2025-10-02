@@ -296,7 +296,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .wide_in_resp_o,
 % if cfg['cluster']['enable_dca']:
     .dca_req_i,
-    .dca_rsp_o,
+    .dca_rsp_o
 % else:
     .dca_req_i ('0),
     .dca_rsp_o
