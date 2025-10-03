@@ -63,11 +63,15 @@ inline void snrt_mutex_release(volatile uint32_t *pmtx);
 
 inline void snrt_cluster_hw_barrier();
 
+inline void snrt_global_sw_barrier(snrt_comm_t comm = NULL);
+
 inline void snrt_global_barrier(snrt_comm_t comm = NULL);
 
 inline uint32_t snrt_global_all_to_all_reduction(uint32_t value);
 
 inline void snrt_wait_writeback(uint32_t val);
+
+inline uint64_t snrt_get_collective_mask(snrt_comm_t comm);
 
 inline void snrt_enable_multicast(uint64_t mask);
 
@@ -77,5 +81,3 @@ inline void snrt_enable_reduction(uint64_t mask,
                                   snrt_collective_opcode_t reduction);
 
 inline void snrt_disable_reduction();
-
-inline void snrt_set_user_field(uint64_t field);

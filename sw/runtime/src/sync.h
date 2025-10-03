@@ -16,8 +16,6 @@
 
 #include <math.h>
 
-#define SNRT_BROADCAST_MASK ((SNRT_CLUSTER_NUM - 1) * SNRT_CLUSTER_OFFSET)
-
 //================================================================================
 // Communicator functions
 //================================================================================
@@ -26,15 +24,35 @@ extern __thread snrt_comm_info_t snrt_comm_world_info;
 extern __thread snrt_comm_t snrt_comm_world;
 
 /**
- * @brief Initialize the communicator functions.
+ * @brief Initialize the world communicator.
  *
- * This function initializes the L1 allocator by calculating the end address
- * of the heap and setting the base, end, and next pointers of the allocator.
- *
- * @note This function should be called before using any of the allocation
- *       functions.
+ * @note This function should be called before using any of the inter-cluster
+ *       synchronization functions.
  */
-inline void snrt_comm_init() { snrt_comm_world = &snrt_comm_world_info; }
+inline void snrt_comm_init() {
+    // Point to default-initialized communicator struct, with barrier pointer
+    // in L3.
+    snrt_comm_world = &snrt_comm_world_info;
+
+    // Allocate barrier counter in L1. This allows us to perform global
+    // hardware barriers, as reductions are currently not supported in L3.
+    // All clusters allocate a barrier counter becase we want to keep all
+    // clusters' L1 allocators aligned, but only the zero-th cluster's is
+    // actually used. So all clusters allocate one, but only the zero-th
+    // cluster's is initialized. A global barrier is then used to ensure
+    // all cores "see" the initialized value. This global barrier uses the
+    // default-initialized barrier pointer in L3. It must thus be a software
+    // barrier, as we currently do not support hardware reductions in L3.
+    void *barrier_ptr = snrt_l1_alloc_cluster_local(sizeof(uint32_t));
+    barrier_ptr = snrt_remote_l1_ptr(barrier_ptr, snrt_cluster_idx(), 0);
+    if (snrt_global_core_idx() == 0) *(uint32_t *)barrier_ptr = 0;
+    snrt_global_sw_barrier();
+
+    // Update the communicator struct, pointing to the barrier pointer in L1.
+    // This whole workaround is required because we cannot statically allocate
+    // variables in L1.
+    snrt_comm_world->barrier_ptr = (uint32_t *)barrier_ptr;
+}
 
 /**
  * @brief Creates a communicator object.
@@ -51,12 +69,16 @@ inline void snrt_comm_create(uint32_t size, snrt_comm_t *communicator) {
     *communicator =
         (snrt_comm_t)snrt_l1_alloc_cluster_local(sizeof(snrt_comm_info_t));
 
-    // Allocate barrier counter in L3 and initialize to 0. Every core invokes
-    // the allocation function to update its allocator, but only one core
-    // initializes it. A global barrier is then used to ensure all cores "see"
-    // the initialized value.
-    uint32_t *barrier_ptr = (uint32_t *)snrt_l3_alloc_v2(sizeof(uint32_t));
-    if (snrt_global_core_idx() == 0) *barrier_ptr = 0;
+    // Allocate barrier counter in L1. This allows us to perform global
+    // hardware barriers, as reductions are currently not supported in L3.
+    // All clusters allocate a barrier counter becase we want to keep all
+    // clusters' L1 allocators aligned, but only the zero-th cluster's is
+    // actually used. So all clusters allocate one, but only the zero-th
+    // cluster's is initialized. A global barrier is then used to ensure
+    // all cores "see" the initialized value.
+    void *barrier_ptr = snrt_l1_alloc_cluster_local(sizeof(uint32_t));
+    barrier_ptr = snrt_remote_l1_ptr(barrier_ptr, snrt_cluster_idx(), 0);
+    if (snrt_global_core_idx() == 0) *(uint32_t *)barrier_ptr = 0;
     snrt_global_barrier();
 
     // Initialize communicator, pointing to the newly-allocated barrier
@@ -64,7 +86,7 @@ inline void snrt_comm_create(uint32_t size, snrt_comm_t *communicator) {
     (*communicator)->size = size;
     (*communicator)->base = 0;
     (*communicator)->mask = size - 1;
-    (*communicator)->barrier_ptr = barrier_ptr;
+    (*communicator)->barrier_ptr = (uint32_t *)barrier_ptr;
     (*communicator)->is_participant = snrt_cluster_idx() < size;
 }
 
@@ -187,34 +209,7 @@ inline void snrt_cluster_hw_barrier() {
     asm volatile("csrr x0, barrier" ::: "memory");
 }
 
-/**
- * @brief Synchronize one core from every cluster with the others.
- * @param comm The communicator determining which clusters synchronize.
- *             Only used when not employing HW reduction.
- * @details Implemented as a software barrier.
- * @note One core per cluster participating in the barrier must invoke this
- *       function (the same across all clusters), or the calling cores will
- *       stall indefinitely.
- */
-static inline void snrt_inter_cluster_barrier(snrt_comm_t comm = NULL) {
-#ifdef SNRT_SUPPORTS_NARROW_REDUCTION
-    // Fetch the address for the reduction
-    uint32_t *addr = (uint32_t *)snrt_remote_l1_ptr(&(snrt_cls()->reduction),
-                                                    snrt_cluster_idx(), 0);
-
-    // Clear the memory location of any previous reduction
-    if (snrt_cluster_idx() == 0) {
-        *addr = 0;
-    }
-
-    // Launch the reduction
-    snrt_enable_reduction(SNRT_BROADCAST_MASK, SNRT_REDUCTION_BARRIER);
-    *addr = 1;
-    snrt_disable_reduction();
-
-    // Fence to wait until the reduction is finished
-    snrt_fence();
-#else
+static inline void snrt_inter_cluster_sw_barrier(snrt_comm_t comm = NULL) {
     // If no communicator is given, world communicator is used as default.
     if (comm == NULL) comm = snrt_comm_world;
 
@@ -235,7 +230,54 @@ static inline void snrt_inter_cluster_barrier(snrt_comm_t comm = NULL) {
         // Clear interrupt for next barrier
         snrt_int_clr_mcip();
     }
+}
+
+/**
+ * @brief Synchronize one core from every cluster with the others.
+ * @param comm The communicator determining which clusters synchronize.
+ *             Only used when not employing HW reduction.
+ * @details Implemented as a software barrier.
+ * @note One core per cluster participating in the barrier must invoke this
+ *       function (the same across all clusters), or the calling cores will
+ *       stall indefinitely.
+ */
+static inline void snrt_inter_cluster_barrier(snrt_comm_t comm = NULL) {
+    // If no communicator is given, world communicator is used as default.
+    if (comm == NULL) comm = snrt_comm_world;
+
+    // If the current cluster is not a participant, return immediately.
+    if (!comm->is_participant) return;
+
+#ifdef SNRT_SUPPORTS_NARROW_REDUCTION
+    // Fetch the address for the reduction
+    volatile uint32_t *addr = comm->barrier_ptr;
+
+    // Compose collective mask
+    uint64_t mask = snrt_get_collective_mask(comm);
+
+    // Launch the reduction
+    snrt_enable_reduction(mask, SNRT_REDUCTION_BARRIER);
+    *addr = 1;
+    snrt_disable_reduction();
+
+    // Fence to wait until the reduction is finished
+    snrt_fence();
+#else
+    snrt_inter_cluster_sw_barrier(comm);
 #endif
+}
+
+inline void snrt_global_sw_barrier(snrt_comm_t comm) {
+    // Synchronize cores in a cluster with the HW barrier
+    snrt_cluster_hw_barrier();
+
+    // Synchronize all clusters
+    if (snrt_is_dm_core()) {
+        snrt_inter_cluster_sw_barrier(comm);
+    }
+
+    // Synchronize cores in a cluster with the HW barrier
+    snrt_cluster_hw_barrier();
 }
 
 /**
@@ -427,6 +469,14 @@ inline void snrt_set_awuser(uint64_t field) {
     write_csr(user_high, (uint32_t)(field >> 32));
 }
 
+inline void snrt_set_awuser_low(uint32_t field) {
+    write_csr(user_low, (uint32_t)(field));
+}
+
+inline uint64_t snrt_get_collective_mask(snrt_comm_t comm) {
+    return comm->mask * SNRT_CLUSTER_OFFSET;
+}
+
 //================================================================================
 // Multicast functions
 //================================================================================
@@ -463,7 +513,6 @@ inline void snrt_disable_multicast() { snrt_set_awuser(0); }
  */
 inline void snrt_enable_reduction(uint64_t mask,
                                   snrt_collective_opcode_t opcode) {
-
     snrt_collective_op_t op;
     op.f.collective_op = opcode;
     op.f.mask = mask;

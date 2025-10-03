@@ -41,6 +41,8 @@ extern void snrt_mutex_release(volatile uint32_t *pmtx);
 
 extern void snrt_cluster_hw_barrier();
 
+extern void snrt_global_sw_barrier(snrt_comm_t comm);
+
 extern void snrt_global_barrier(snrt_comm_t comm);
 
 extern void snrt_partial_barrier(snrt_barrier_t *barr, uint32_t n);
@@ -52,6 +54,8 @@ extern uint32_t snrt_global_all_to_all_reduction(uint32_t value);
 
 extern void snrt_wait_writeback(uint32_t val);
 
+extern uint64_t snrt_get_collective_mask(snrt_comm_t comm);
+
 extern void snrt_enable_multicast(uint64_t mask);
 
 extern void snrt_disable_multicast();
@@ -59,5 +63,3 @@ extern void snrt_disable_multicast();
 extern void snrt_enable_reduction(uint64_t mask, uint32_t reduction);
 
 extern void snrt_disable_reduction();
-
-extern void snrt_set_user_field(uint64_t field);
