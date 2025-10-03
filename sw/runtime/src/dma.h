@@ -172,7 +172,7 @@ static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
  static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
                                                 size_t size, snrt_comm_t comm,
                                                 const uint32_t channel = 0) {
-    uint64_t mask = comm->mask * SNRT_CLUSTER_OFFSET;
+    uint64_t mask = snrt_get_collective_mask(comm);
     uint32_t txid = snrt_dma_start_1d_mcast(dst, src, size, mask, channel);
     return txid;
 }
