@@ -165,7 +165,8 @@ class ExperimentManager:
                       colored(build_dir, 'cyan', attrs=['bold']))
                 process = func(
                     target=target, build_dir=build_dir, defines=defines,
-                    data_cfg=data_cfg, hw_cfg=hw_cfg, dry_run=dry_run
+                    data_cfg=data_cfg, hw_cfg=hw_cfg, dry_run=dry_run,
+                    sync=True if self.args.n_procs == 1 else False
                 )
                 processes.append(process)
             common.wait_processes(processes, dry_run=dry_run)
