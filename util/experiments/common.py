@@ -59,7 +59,13 @@ def make(target, vars={}, flags=[], dir=MK_DIR, env=None, dry_run=False, sync=Tr
 def wait_processes(processes, dry_run=False):
     if not dry_run:
         for i, p in enumerate(processes):
-            retcode = p.wait()
+            # If process was launched in synchronous mode, it must have finished, and return code
+            # can be retrieved
+            retcode = p.returncode
+            # Otherwise wait for process to finish, and only then read return code
+            if retcode is None:
+                retcode = p.wait()
+            # Check return code
             if retcode != 0:
                 print(
                     colored(f'Process failed with exit code {retcode}:\n', 'red', attrs=['bold']),
