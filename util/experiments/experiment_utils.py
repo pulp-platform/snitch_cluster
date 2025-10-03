@@ -217,10 +217,16 @@ class ExperimentManager:
         # Build visual traces
         if 'visual-trace' in self.actions or 'all' in self.actions:
 
-            # Check for existence of a ROI specification
-            roi = self.dir / 'roi.json.tpl'
-            if roi.exists():
-                for experiment in experiments:
+            for experiment in experiments:
+
+                # Take ROI spec from experiment or default location
+                if 'roi' in experiment:
+                    roi = experiment['roi']
+                else:
+                    roi = self.dir / 'roi.json.tpl'
+
+                # Visual trace can only be built if a ROI spec exists
+                if roi.exists():
 
                     # Render ROI specification template
                     with open(roi, 'r') as f:
