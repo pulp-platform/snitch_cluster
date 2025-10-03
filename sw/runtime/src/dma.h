@@ -163,6 +163,21 @@ static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
 }
 
 /**
+ * @brief Start an asynchronous multicast 1D DMA transfer with 64-bit wide
+ * pointers.
+ * @param comm The communicator for the multicast operation
+ * @see snrt_dma_start_1d(uint64_t, uint64_t, size_t, uint32_t) for a
+ *      description of the other parameters.
+ */
+ static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
+                                                size_t size, snrt_comm_t comm,
+                                                const uint32_t channel = 0) {
+    uint64_t mask = comm->mask * SNRT_CLUSTER_OFFSET;
+    uint32_t txid = snrt_dma_start_1d_mcast(dst, src, size, mask, channel);
+    return txid;
+}
+
+/**
  * @brief Start an asynchronous reduction 1D DMA transfer using native-size
  * pointers.
  *
