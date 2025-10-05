@@ -682,8 +682,8 @@ module snitch_cluster
   mem_dma_rsp_t [NrSuperBanks-1:0] sb_ext_rsp;
 
   // 3. Memory Subsystem (Interconnect)
-  tcdm_dma_req_t ext_dma_req;
-  tcdm_dma_rsp_t ext_dma_rsp;
+  tcdm_dma_req_t [1:0] ext_dma_req;
+  tcdm_dma_rsp_t [1:0] ext_dma_rsp;
 
   // AXI Ports into TCDM (from SoC).
   tcdm_req_t axi_soc_req;
@@ -854,40 +854,42 @@ module snitch_cluster
     .axi_resp_o (wide_axi_slv_rsp[ZeroMemory])
   );
 
-  addr_t ext_dma_req_q_addr_nontrunc;
+  addr_t [1:0] ext_dma_req_q_addr_nontrunc;
 
-  axi_to_mem_interleaved #(
+  axi_to_mem_split #(
     .axi_req_t (axi_slv_dma_req_t),
     .axi_resp_t (axi_slv_dma_resp_t),
     .AddrWidth (PhysicalAddrWidth),
-    .DataWidth (WideDataWidth),
+    .AxiDataWidth (WideDataWidth),
     .IdWidth (WideIdWidthOut),
-    .NumBanks (1),
+    .MemDataWidth (WideDataWidth),
     .BufDepth (MemoryMacroLatency + 1)
-  ) i_axi_to_mem_dma (
+  ) i_axi_to_mem_split (
     .clk_i,
     .rst_ni,
     .busy_o (),
     .test_i (1'b0),
     .axi_req_i (wide_axi_slv_req[TCDMDMA]),
     .axi_resp_o (wide_axi_slv_rsp[TCDMDMA]),
-    .mem_req_o (ext_dma_req.q_valid),
-    .mem_gnt_i (ext_dma_rsp.q_ready),
+    .mem_req_o ({ext_dma_req[1].q_valid, ext_dma_req[0].q_valid}),
+    .mem_gnt_i ({ext_dma_rsp[1].q_ready, ext_dma_rsp[0].q_ready}),
     .mem_addr_o (ext_dma_req_q_addr_nontrunc),
-    .mem_wdata_o (ext_dma_req.q.data),
-    .mem_strb_o (ext_dma_req.q.strb),
+    .mem_wdata_o ({ext_dma_req[1].q.data, ext_dma_req[0].q.data}),
+    .mem_strb_o ({ext_dma_req[1].q.strb, ext_dma_req[0].q.strb}),
     .mem_atop_o (/* The DMA does not support atomics */),
-    .mem_we_o (ext_dma_req.q.write),
-    .mem_rvalid_i (ext_dma_rsp.p_valid),
-    .mem_rdata_i (ext_dma_rsp.p.data)
+    .mem_we_o ({ext_dma_req[1].q.write, ext_dma_req[0].q.write}),
+    .mem_rvalid_i ({ext_dma_rsp[1].p_valid, ext_dma_rsp[0].p_valid}),
+    .mem_rdata_i ({ext_dma_rsp[1].p.data, ext_dma_rsp[0].p.data})
   );
 
-  assign ext_dma_req.q.addr = tcdm_addr_t'(ext_dma_req_q_addr_nontrunc);
-  assign ext_dma_req.q.amo = reqrsp_pkg::AMONone;
-  assign ext_dma_req.q.user = '0;
+  for (genvar i = 0; i < 2; i++) begin : gen_dma_rw_mem_ports
+    assign ext_dma_req[i].q.addr = tcdm_addr_t'(ext_dma_req_q_addr_nontrunc[i]);
+    assign ext_dma_req[i].q.amo = reqrsp_pkg::AMONone;
+    assign ext_dma_req[i].q.user = '0;
+  end
 
   snitch_tcdm_interconnect #(
-    .NumInp (1),
+    .NumInp (2),
     .NumOut (NrSuperBanks),
     .NumHyperBanks (NrHyperBanks),
     .tcdm_req_t (tcdm_dma_req_t),
