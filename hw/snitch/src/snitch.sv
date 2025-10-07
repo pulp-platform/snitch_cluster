@@ -160,7 +160,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign bimm = $signed({inst_data_i[31],
                                     inst_data_i[7], inst_data_i[30:25], inst_data_i[11:8], 1'b0});
   assign simm = $signed({inst_data_i[31:25], inst_data_i[11:7]});
-  assign pbimm = $signed(inst_data_i[24:20]); // Xpulpimg immediate branching signed immediate
+  assign pbimm = $signed(inst_data_i[24:20]); // XPULPV2 immediate branching signed immediate
   /* verilator lint_on WIDTH */
 
   logic [31:0] opa, opb, opc;
@@ -1195,7 +1195,186 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           illegal_inst = 1'b1;
         end
       end
-
+      // Off-load to IPU coprocessor
+      // 1 source register (rs1)
+      PV_ADD_SCI_H,         // XPULPV2: pv.add.sci.h
+      PV_ADD_SCI_B,         // XPULPV2: pv.add.sci.b
+      PV_SUB_SCI_H,         // XPULPV2: pv.sub.sci.h
+      PV_SUB_SCI_B,         // XPULPV2: pv.sub.sci.b
+      PV_AVG_SCI_H,         // XPULPV2: pv.avg.sci.h
+      PV_AVG_SCI_B,         // XPULPV2: pv.avg.sci.b
+      PV_AVGU_SCI_H,        // XPULPV2: pv.avgu.sci.h
+      PV_AVGU_SCI_B,        // XPULPV2: pv.avgu.sci.b
+      PV_MIN_SCI_H,         // XPULPV2: pv.min.sci.h
+      PV_MIN_SCI_B,         // XPULPV2: pv.min.sci.b
+      PV_MINU_SCI_H,        // XPULPV2: pv.minu.sci.h
+      PV_MINU_SCI_B,        // XPULPV2: pv.minu.sci.b
+      PV_MAX_SCI_H,         // XPULPV2: pv.max.sci.h
+      PV_MAX_SCI_B,         // XPULPV2: pv.max.sci.b
+      PV_MAXU_SCI_H,        // XPULPV2: pv.maxu.sci.h
+      PV_MAXU_SCI_B,        // XPULPV2: pv.maxu.sci.b
+      PV_SRL_SCI_H,         // XPULPV2: pv.srl.sci.h
+      PV_SRL_SCI_B,         // XPULPV2: pv.srl.sci.b
+      PV_SRA_SCI_H,         // XPULPV2: pv.sra.sci.h
+      PV_SRA_SCI_B,         // XPULPV2: pv.sra.sci.b
+      PV_SLL_SCI_H,         // XPULPV2: pv.sll.sci.h
+      PV_SLL_SCI_B,         // XPULPV2: pv.sll.sci.b
+      PV_OR_SCI_H,          // XPULPV2: pv.or.sci.h
+      PV_OR_SCI_B,          // XPULPV2: pv.or.sci.b
+      PV_XOR_SCI_H,         // XPULPV2: pv.xor.sci.h
+      PV_XOR_SCI_B,         // XPULPV2: pv.xor.sci.b
+      PV_AND_SCI_B,         // XPULPV2: pv.and.sci.b
+      PV_AND_SCI_H,         // XPULPV2: pv.and.sci.h
+      PV_ABS_H,             // XPULPV2: pv.abs.h
+      PV_ABS_B,             // XPULPV2: pv.abs.b
+      PV_EXTRACT_H,         // XPULPV2: pv.extract.h
+      PV_EXTRACT_B,         // XPULPV2: pv.extract.b
+      PV_EXTRACTU_H,        // XPULPV2: pv.extractu.h
+      PV_EXTRACTU_B,        // XPULPV2: pv.extractu.b
+      PV_DOTUP_SCI_H,       // XPULPV2: pv.dotup.sci.h
+      PV_DOTUP_SCI_B,       // XPULPV2: pv.dotup.sci.b
+      PV_DOTUSP_SCI_H,      // XPULPV2: pv.dotusp.sci.h
+      PV_DOTUSP_SCI_B,      // XPULPV2: pv.dotusp.sci.b
+      PV_DOTSP_SCI_H,       // XPULPV2: pv.dotsp.sci.h
+      PV_DOTSP_SCI_B: begin // XPULPV2: pv.dotsp.sci.b
+        if (XPULPVECT) begin
+          write_rd = 1'b0;
+          acc_qvalid_o = valid_instr;
+          opa_select = Reg;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      // 2 source registers (rs1, rs2)
+      // xpulpvect_CUSTOM extension
+      PV_ADD_H,            // XPULPV2: pv.add.h
+      PV_ADD_SC_H,         // XPULPV2: pv.add.sc.h
+      PV_ADD_B,            // XPULPV2: pv.add.b
+      PV_ADD_SC_B,         // XPULPV2: pv.add.sc.b
+      PV_SUB_H,            // XPULPV2: pv.sub.h
+      PV_SUB_SC_H,         // XPULPV2: pv.sub.sc.h
+      PV_SUB_B,            // XPULPV2: pv.sub.b
+      PV_SUB_SC_B,         // XPULPV2: pv.sub.sc.b
+      PV_AVG_H,            // XPULPV2: pv.avg.h
+      PV_AVG_SC_H,         // XPULPV2: pv.avg.sc.h
+      PV_AVG_B,            // XPULPV2: pv.avg.b
+      PV_AVG_SC_B,         // XPULPV2: pv.avg.sc.b
+      PV_AVGU_H,           // XPULPV2: pv.avgu.h
+      PV_AVGU_SC_H,        // XPULPV2: pv.avgu.sc.h
+      PV_AVGU_B,           // XPULPV2: pv.avgu.b
+      PV_AVGU_SC_B,        // XPULPV2: pv.avgu.sc.b
+      PV_MIN_H,            // XPULPV2: pv.min.h
+      PV_MIN_SC_H,         // XPULPV2: pv.min.sc.h
+      PV_MIN_B,            // XPULPV2: pv.min.b
+      PV_MIN_SC_B,         // XPULPV2: pv.min.sc.b
+      PV_MINU_H,           // XPULPV2: pv.minu.h
+      PV_MINU_SC_H,        // XPULPV2: pv.minu.sc.h
+      PV_MINU_B,           // XPULPV2: pv.minu.b
+      PV_MINU_SC_B,        // XPULPV2: pv.minu.sc.b
+      PV_MAX_H,            // XPULPV2: pv.max.h
+      PV_MAX_SC_H,         // XPULPV2: pv.max.sc.h
+      PV_MAX_B,            // XPULPV2: pv.max.b
+      PV_MAX_SC_B,         // XPULPV2: pv.max.sc.b
+      PV_MAXU_H,           // XPULPV2: pv.maxu.h
+      PV_MAXU_SC_H,        // XPULPV2: pv.maxu.sc.h
+      PV_MAXU_B,           // XPULPV2: pv.maxu.b
+      PV_MAXU_SC_B,        // XPULPV2: pv.maxu.sc.b
+      PV_SRL_H,            // XPULPV2: pv.srl.h
+      PV_SRL_SC_H,         // XPULPV2: pv.srl.sc.h
+      PV_SRL_B,            // XPULPV2: pv.srl.b
+      PV_SRL_SC_B,         // XPULPV2: pv.srl.sc.b
+      PV_SRA_H,            // XPULPV2: pv.sra.h
+      PV_SRA_SC_H,         // XPULPV2: pv.sra.sc.h
+      PV_SRA_B,            // XPULPV2: pv.sra.b
+      PV_SRA_SC_B,         // XPULPV2: pv.sra.sc.b
+      PV_SLL_H,            // XPULPV2: pv.sll.h
+      PV_SLL_SC_H,         // XPULPV2: pv.sll.sc.h
+      PV_SLL_B,            // XPULPV2: pv.sll.b
+      PV_SLL_SC_B,         // XPULPV2: pv.sll.sc.b
+      PV_OR_H,             // XPULPV2: pv.or.h
+      PV_OR_SC_H,          // XPULPV2: pv.or.sc.h
+      PV_OR_B,             // XPULPV2: pv.or.b
+      PV_OR_SC_B,          // XPULPV2: pv.or.sc.b
+      PV_XOR_H,            // XPULPV2: pv.xor.h
+      PV_XOR_SC_H,         // XPULPV2: pv.xor.sc.h
+      PV_XOR_B,            // XPULPV2: pv.xor.b
+      PV_XOR_SC_B,         // XPULPV2: pv.xor.sc.b
+      PV_AND_H,            // XPULPV2: pv.and.h
+      PV_AND_SC_H,         // XPULPV2: pv.and.sc.h
+      PV_AND_B,            // XPULPV2: pv.and.b
+      PV_AND_SC_B,         // XPULPV2: pv.and.sc.b
+      PV_DOTUP_H,          // XPULPV2: pv.dotup.h
+      PV_DOTUP_SC_H,       // XPULPV2: pv.dotup.sc.h
+      PV_DOTUP_B,          // XPULPV2: pv.dotup.b
+      PV_DOTUP_SC_B,       // XPULPV2: pv.dotup.sc.b
+      PV_DOTUSP_H,         // XPULPV2: pv.dotusp.h
+      PV_DOTUSP_SC_H,      // XPULPV2: pv.dotusp.sc.h
+      PV_DOTUSP_B,         // XPULPV2: pv.dotusp.b
+      PV_DOTUSP_SC_B,      // XPULPV2: pv.dotusp.sc.b
+      PV_DOTSP_H,          // XPULPV2: pv.dotsp.h
+      PV_DOTSP_SC_H,       // XPULPV2: pv.dotsp.sc.h
+      PV_DOTSP_B,          // XPULPV2: pv.dotsp.b
+      PV_DOTSP_SC_B: begin // XPULPV2: pv.dotsp.sc.b
+        if (XPULPVECT) begin
+          write_rd = 1'b0;
+          acc_qvalid_o = valid_instr;
+          opa_select = Reg;
+          opb_select = Reg;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      // 2 source registers (rs1, rd)
+      PV_INSERT_H,           // XPULPV2: pv.insert.h
+      PV_INSERT_B,           // XPULPV2: pv.insert.b
+      PV_SDOTUP_SCI_H,       // XPULPV2: pv.sdotup.sci.h
+      PV_SDOTUP_SCI_B,       // XPULPV2: pv.sdotup.sci.b
+      PV_SDOTUSP_SCI_H,      // XPULPV2: pv.sdotusp.sci.h
+      PV_SDOTUSP_SCI_B,      // XPULPV2: pv.sdotusp.sci.b
+      PV_SDOTSP_SCI_H,       // XPULPV2: pv.sdotsp.sci.h
+      PV_SDOTSP_SCI_B: begin // XPULPV2: pv.sdotsp.sci.b
+        if (XPULPVECT) begin
+          write_rd = 1'b0;
+          acc_qvalid_o = valid_instr;
+          opa_select = Reg;
+          opc_select = Reg;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      // 3 source registers (rs1, rs2, rd)
+      P_MAC,                // XPULPV2: p.mac
+      P_MSU,                // XPULPV2: p.msu
+      PV_SDOTUP_H,          // XPULPV2: pv.sdotup.h
+      PV_SDOTUP_SC_H,       // XPULPV2: pv.sdotup.sc.h
+      PV_SDOTUP_B,          // XPULPV2: pv.sdotup.b
+      PV_SDOTUP_SC_B,       // XPULPV2: pv.sdotup.sc.b
+      PV_SDOTUSP_H,         // XPULPV2: pv.sdotusp.h
+      PV_SDOTUSP_SC_H,      // XPULPV2: pv.sdotusp.sc.h
+      PV_SDOTUSP_B,         // XPULPV2: pv.sdotusp.b
+      PV_SDOTUSP_SC_B,      // XPULPV2: pv.sdotusp.sc.b
+      PV_SDOTSP_H,          // XPULPV2: pv.sdotsp.h
+      PV_SDOTSP_SC_H,       // XPULPV2: pv.sdotsp.sc.h
+      PV_SDOTSP_B,          // XPULPV2: pv.sdotsp.b
+      PV_SDOTSP_SC_B: begin // XPULPV2: pv.sdotsp.sc.b
+        if (XPULPVECT) begin
+          write_rd = 1'b0;
+          acc_qvalid_o = valid_instr;
+          opa_select = Reg;
+          opb_select = Reg;
+          opc_select = Reg;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
       // Off-loaded to IPU
       ANDN, ORN, XNOR, SLO, SRO, ROL, ROR, SBCLR, SBSET, SBINV, SBEXT,
       GORC, GREV, CLZ, CTZ, PCNT, SEXT_B,
@@ -2774,6 +2953,23 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           endcase
         end
       end
+      PV_SHUFFLE2_H,        // XPULPV2: pv.shuffle2.h
+      PV_SHUFFLE2_B,        // XPULPV2: pv.shuffle2.b
+      PV_PACK,              // XPULPV2: pv.pack
+      PV_PACK_H: begin      // XPULPV2: pv.pack.h
+        if (XPULPVECTSHUFFLEPACK) begin
+          write_rd = 1'b0;
+          acc_qvalid_o = valid_instr;
+          opa_select = Reg;
+          opb_select = Reg;
+          opc_select = Reg;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr  = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+
       default: begin
         illegal_inst = 1'b1;
       end

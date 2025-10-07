@@ -13,7 +13,7 @@ extern uint32_t snrt_cls_base_addr();
 #endif
 
 #ifdef SNRT_INIT_TLS
-#ifdef SNRT_ENABLE_DMA
+#ifdef SNRT_SUPPORTS_DMA
 
 static inline void snrt_init_tls() {
     extern volatile uint32_t __tdata_start, __tdata_end;
@@ -88,7 +88,7 @@ static inline void snrt_init_tls() {
 #endif
 
 #ifdef SNRT_INIT_BSS
-#ifdef SNRT_ENABLE_DMA
+#ifdef SNRT_SUPPORTS_DMA
 static inline void snrt_init_bss() {
     extern volatile uint32_t __bss_start, __bss_end;
 
@@ -147,7 +147,7 @@ static inline void snrt_init_cls() {
     extern volatile uint32_t __cbss_start, __cbss_end;
 
     // Only one core per cluster has to do this
-    #ifdef SNRT_ENABLE_DMA
+    #ifdef SNRT_SUPPORTS_DMA
     if (snrt_is_dm_core()) {
         uint64_t ptr = (uint64_t)snrt_cls_base_addr();
         size_t size;
@@ -211,10 +211,8 @@ EXTERN_C void snrt_main() {
     snrt_crt0_callback0();
 #endif
 
-#ifdef SNRT_ENABLE_DMA
 #ifdef SNRT_INIT_BSS
     snrt_init_bss();
-#endif
 #endif
 
 #ifdef SNRT_WAKE_UP
@@ -225,10 +223,8 @@ EXTERN_C void snrt_main() {
     snrt_crt0_callback1();
 #endif
 
-#ifdef SNRT_ENABLE_DMA
 #ifdef SNRT_INIT_TLS
     snrt_init_tls();
-#endif
 #endif
 
 #ifdef SNRT_CRT0_CALLBACK2

@@ -247,18 +247,18 @@ module snitch_ipu import snitch_pkg::*;  #(
       .WIDTH       ( 32      ),
       .IdWidth     ( IdWidth )
   ) i_div (
-      .clk_i       ( clk_i                  ),
-      .rst_ni      ( rst_ni                 ),
-      .id_i        ( acc_req_i.id           ),
-      .operator_i  ( acc_req_i.data_op      ),
-      .op_a_i      ( acc_req_i.data_arga    ),
-      .op_b_i      ( acc_req_i.data_argb    ),
-      .in_vld_i    ( div_valid_op           ),
-      .in_rdy_o    ( div_ready_op           ),
-      .out_vld_o   ( div_valid              ),
-      .out_rdy_i   ( div_ready              ),
-      .id_o        ( div.id                 ),
-      .res_o       ( div.result             )
+      .clk_i       ( clk_i                    ),
+      .rst_ni      ( rst_ni                   ),
+      .id_i        ( acc_req_i.id             ),
+      .operator_i  ( acc_req_i.data_op        ),
+      .op_a_i      ( acc_req_i.data_arga[31:0]),
+      .op_b_i      ( acc_req_i.data_argb[31:0]),
+      .in_vld_i    ( div_valid_op             ),
+      .in_rdy_o    ( div_ready_op             ),
+      .out_vld_o   ( div_valid                ),
+      .out_rdy_i   ( div_ready                ),
+      .id_o        ( div.id                   ),
+      .res_o       ( div.result               )
   );
 
   if (XPULPV2) begin : gen_XPULPV2
@@ -267,19 +267,19 @@ module snitch_ipu import snitch_pkg::*;  #(
         .Width    ( 32      ),
         .IdWidth  ( IdWidth )
     ) i_dspu (
-        .clk_i       ( clk_i                ),
-        .rst_ni      ( rst_ni               ),
-        .id_i        ( acc_req_i.id         ),
-        .operator_i  ( acc_req_i.data_op    ),
-        .op_a_i      ( acc_req_i.data_arga  ),
-        .op_b_i      ( acc_req_i.data_argb  ),
-        .op_c_i      ( acc_req_i.data_argc  ),
-        .in_valid_i  ( dsp_valid_op         ),
-        .in_ready_o  ( dsp_ready_op         ),
-        .out_valid_o ( dsp_valid            ),
-        .out_ready_i ( dsp_ready            ),
-        .id_o        ( dsp.id               ),
-        .result_o    ( dsp.result           )
+        .clk_i       ( clk_i                    ),
+        .rst_ni      ( rst_ni                   ),
+        .id_i        ( acc_req_i.id             ),
+        .operator_i  ( acc_req_i.data_op        ),
+        .op_a_i      ( acc_req_i.data_arga[31:0]),
+        .op_b_i      ( acc_req_i.data_argb[31:0]),
+        .op_c_i      ( acc_req_i.data_argc[31:0]),
+        .in_valid_i  ( dsp_valid_op             ),
+        .in_ready_o  ( dsp_ready_op             ),
+        .out_valid_o ( dsp_valid                ),
+        .out_ready_i ( dsp_ready                ),
+        .id_o        ( dsp.id                   ),
+        .result_o    ( dsp.result               )
     );
     // Output Arbitration
     stream_arbiter #(
@@ -303,16 +303,16 @@ module snitch_ipu import snitch_pkg::*;  #(
     ) i_multiplier (
       .clk_i,
       .rst_ni,
-      .id_i        ( acc_req_i.id           ),
-      .operator_i  ( acc_req_i.data_op      ),
-      .operand_a_i ( acc_req_i.data_arga    ),
-      .operand_b_i ( acc_req_i.data_argb    ),
-      .valid_i     ( mul_valid_op           ),
-      .ready_o     ( mul_ready_op           ),
-      .result_o    ( mul.result             ),
-      .valid_o     ( mul_valid              ),
-      .ready_i     ( mul_ready              ),
-      .id_o        ( mul.id                 )
+      .id_i        ( acc_req_i.id             ),
+      .operator_i  ( acc_req_i.data_op        ),
+      .operand_a_i ( acc_req_i.data_arga[31:0]),
+      .operand_b_i ( acc_req_i.data_argb[31:0]),
+      .valid_i     ( mul_valid_op             ),
+      .ready_o     ( mul_ready_op             ),
+      .result_o    ( mul.result               ),
+      .valid_o     ( mul_valid                ),
+      .ready_i     ( mul_ready                ),
+      .id_o        ( mul.id                   )
     );
     // Output Arbitration
     stream_arbiter #(

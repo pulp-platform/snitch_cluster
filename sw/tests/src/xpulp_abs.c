@@ -13,9 +13,9 @@ int main() {
     register int32_t rs1 asm("a4") = -42; // rs1, data source	
 	asm volatile(
     "p.abs a3, a4\n"
-        : "=r"(rd)      // rd — выход
-        : "r"(rs1)      // rs1 — вход
-        : "a3", "a4"    // задействованные регистры
+        : "=r"(rd)      
+        : "r"(rs1)    
+        : "a3", "a4"  
     );		
         result_rd = rd;
         result_rs1 = rs1;
