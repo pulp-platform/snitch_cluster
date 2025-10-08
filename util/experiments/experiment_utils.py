@@ -38,15 +38,20 @@ ACTIONS = ['sw', 'hw', 'run', 'traces', 'annotate', 'perf', 'visual-trace', 'pow
 
 class ExperimentManager:
 
-    def __init__(self, experiments=None, actions=None, args=None, callbacks={}):
+    def __init__(self, experiments=None, actions=None, args=None, callbacks={}, parse_args=True):
         """Initializes the class from the command-line arguments."""
+        # Get command-line arguments, if any
         if args is not None:
             self.args = args
+        elif parse_args:
+                self.args = self.parser().parse_args()
         else:
-            self.args = self.parser().parse_args()
+            self.args = None
+
+        # Get actions from command-line or class argument
         if actions is not None:
             self.actions = actions
-        else:
+        elif self.args is not None:
             self.actions = self.args.actions
 
         # Save callbacks
@@ -54,20 +59,23 @@ class ExperimentManager:
 
         # Save directory
         self.dir = Path.cwd()
-        self.run_dir = self.dir / self.args.run_dir
+        if self.args is not None:
+            self.run_dir = self.dir / self.args.run_dir
+        else:
+            self.run_dir = self.dir / 'runs'
         self.power_dir = self.dir / 'power'
         self.area_dir = self.dir / 'area'
 
         # Get experiments
-        if self.args.testlist is not None:
+        if experiments is not None:
+            self.experiments = experiments
+            self.yaml = {'experiments': deepcopy(self.experiments)}
+        elif self.args.testlist is not None:
             experiments_path = Path(self.args.testlist).absolute()
             with open(experiments_path, 'r') as f:
                 self.yaml = yaml.safe_load(f)
 
             self.experiments = deepcopy(self.yaml['experiments'])
-        elif experiments is not None:
-            self.experiments = experiments
-            self.yaml = {'experiments': deepcopy(self.experiments)}
         else:
             raise ValueError('No experiments provided.')
 
