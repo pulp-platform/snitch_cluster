@@ -169,7 +169,7 @@ inline void snrt_wake_clusters(uint32_t core_mask, snrt_comm_t comm = NULL) {
 #pragma clang diagnostic ignored "-Waddress-of-packed-member"
         uint32_t *addr = (uint32_t *)&(cluster->peripheral_reg.cl_clint_set.w);
 #pragma clang diagnostic pop
-        uint32_t mcast_mask = ((comm->size) - 1) * SNRT_CLUSTER_OFFSET;
+        uint32_t mcast_mask = snrt_get_collective_mask(comm);
         snrt_enable_multicast(mcast_mask);
         *addr = core_mask;
         snrt_disable_multicast();
@@ -183,10 +183,7 @@ inline void snrt_wake_clusters(uint32_t core_mask, snrt_comm_t comm = NULL) {
     uint32_t submask = 0;
     do {
         uint32_t i = fixed | submask;
-        if (snrt_cluster_idx() != i) {
-            snrt_cluster(i)->peripheral_reg.cl_clint_set.f.cl_clint_set =
-                core_mask;
-        }
+        if (snrt_cluster_idx() != i) snrt_int_cluster_set(core_mask, i);
         submask = (submask - 1) & mask;
     } while (submask != 0);
 #endif
