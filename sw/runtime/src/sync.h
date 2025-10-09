@@ -163,16 +163,8 @@ inline void snrt_wake_clusters(uint32_t core_mask, snrt_comm_t comm = NULL) {
 
 #ifdef SNRT_SUPPORTS_NARROW_MULTICAST
     // Multicast cluster interrupt to every other cluster's core
-    // Note: we need to address another cluster's address space
-    //       because the cluster XBAR has not been extended to support
-    //       multicast yet. We address the second cluster, if we are the
-    //       first cluster, and the first cluster otherwise.
     if (snrt_cluster_num() > 0) {
-        volatile snitch_cluster_t *cluster;
-        if (snrt_cluster_idx() == 0)
-            cluster = snrt_cluster(1);
-        else
-            cluster = snrt_cluster(0);
+        volatile snitch_cluster_t *cluster = snrt_cluster(0);
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Waddress-of-packed-member"
         uint32_t *addr = (uint32_t *)&(cluster->peripheral_reg.cl_clint_set.w);
