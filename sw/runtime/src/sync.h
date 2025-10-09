@@ -213,12 +213,13 @@ static inline void snrt_inter_cluster_sw_barrier(snrt_comm_t comm = NULL) {
     // an interrupt to wake up the other clusters.
     if (cnt == comm->size) {
         *(comm->barrier_ptr) = 0;
+        snrt_fence();
         snrt_wake_clusters(1 << snrt_cluster_core_idx(), comm);
     } else {
         snrt_wfi();
-        // Clear interrupt for next barrier
-        snrt_int_clr_mcip();
     }
+    // Clear interrupt for next barrier (interrupt arrives also at sender)
+    snrt_int_clr_mcip();
 }
 
 /**
