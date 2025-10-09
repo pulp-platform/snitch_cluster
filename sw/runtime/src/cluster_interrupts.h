@@ -43,19 +43,11 @@ inline void snrt_int_clr_mcip_unsafe() {
 }
 
 /**
- * @brief Wait for MCIP interrupt to be cleared
- */
-inline void snrt_int_wait_mcip_clr() {
-    while (read_csr(mip) & MIP_MCIP)
-        ;
-}
-
-/**
  * @brief Clear MCIP interrupt and wait for the write to have effect
  */
 inline void snrt_int_clr_mcip() {
     snrt_int_clr_mcip_unsafe();
-    snrt_int_wait_mcip_clr();
+    snrt_fence();
 }
 
 inline void snrt_int_set_mcip() {
