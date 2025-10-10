@@ -108,35 +108,35 @@ package ${cfg['cluster']['name']}_pkg;
 
   typedef struct packed {
     logic [31:0]           instr;
-    logic [1:0]            mode;
+    logic [31:0]           hartid;
     logic [XifIdWidth-1:0] id;
-    logic [2:0][31:0]      rs;
-    logic [2:0]            rs_valid;
-    logic [5:0]            ecs;
-    logic                  ecs_valid;
   } x_issue_req_t;
 
   typedef struct packed {
     logic       accept;
     logic       writeback;
-    logic       dualwrite;
-    logic [2:0] dualread;
-    logic       loadstore;
-    logic       ecswrite;
-    logic       exc;
+    logic [2:0] register_read;
   } x_issue_resp_t;
 
   typedef struct packed {
+    logic [31:0]           hartid;
+    logic [XifIdWidth-1:0] id;
+    logic [31:0][2:0]      rs;
+    logic [2:0]            rs_valid;
+  } x_register_t;
+
+  typedef struct packed {
+    logic [31:0]           hartid;
+    logic [XifIdWidth-1:0] id;
+    logic                  commit_kill;
+  } x_commit_t;
+
+  typedef struct packed {
+    logic [31:0]           hartid;
     logic [XifIdWidth-1:0] id;
     logic [31:0]           data;
     logic [4:0]            rd;
     logic                  we;
-    logic [5:0]            ecsdata;
-    logic [2:0]            ecswe;
-    logic                  exc;
-    logic [5:0]            exccode;
-    logic                  err;
-    logic                  dbg;
   } x_result_t;
 
 
