@@ -67,7 +67,15 @@ package ${cfg['cluster']['name']}_pkg;
   localparam int unsigned ICacheLineCount [NrHives] = '{${icache_cfg('depth')}};
   localparam int unsigned ICacheWays [NrHives] = '{${icache_cfg('ways')}};
 
+  localparam int unsigned XifNumRs = 3;
   localparam int unsigned XifIdWidth = ${cfg['cluster']['xif_id_width']};
+  localparam int unsigned XifRfrWidth = 32;
+  localparam int unsigned XifRfwWidth = 32;
+  localparam int unsigned XifNumHarts = NrCores;
+  localparam int unsigned XifHartIdWidth = 32;
+  localparam logic [25:0] XifMisa = ${cfg['cluster']['xif_misa']};
+  localparam int unsigned XifDualread = 0;
+  localparam int unsigned XifIssueRegisterSplit = 0;
 
   localparam int unsigned Hive [NrCores] = '{${core_cfg('hive')}};
 

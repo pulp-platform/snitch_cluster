@@ -256,6 +256,11 @@
                     "description": "Number of bits to be used for instruciton IDs of the extension interface",
                     "default": 4
                 },
+                "xif_misa": {
+                    "type": "number",
+                    "description": "MISA extensions implemented on the extension interface",
+                    "default": 0
+                },
                 "sram_cfg_fields": {
                     "type": "object",
                     "description": "The names and widths of memory cut configuration inputs needed for implementation",
