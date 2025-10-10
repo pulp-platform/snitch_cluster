@@ -2341,11 +2341,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         // Same as x_issue_valid since reigsters are provided instantly
         x_register_valid_o      = x_issue_valid_o;
 
-        // Same
-        // todo(abelano): make sure this signal is asserted for one cycle only as in the specs
-        x_commit_valid_o        = x_issue_valid_o;
+        // Assert x_commit_valid as soon as there's a valid issue handshake
+        x_commit_valid_o        = x_issue_valid_o & x_issue_ready_i;
 
-        // Flag the instruction as illegal if not accepted by the coprocessor or if it requests an unsupported operation
+        // Flag the instruction as illegal if not accepted by the coprocessor
         illegal_inst = x_issue_ready_i & x_issue_valid_o & ~x_issue_resp_i.accept;
       end
     endcase
