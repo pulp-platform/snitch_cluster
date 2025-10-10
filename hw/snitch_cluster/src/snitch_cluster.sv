@@ -211,6 +211,8 @@ module snitch_cluster
   // XIF port types
   parameter type         x_issue_req_t     = logic,
   parameter type         x_issue_resp_t    = logic,
+  parameter type         x_register_t      = logic,
+  parameter type         x_commit_t        = logic,
   parameter type         x_result_t        = logic,
   // Memory latency parameter. Most of the memories have a read latency of 1. In
   // case you have memory macros which are pipelined you want to adjust this
@@ -281,6 +283,13 @@ module snitch_cluster
   input  x_issue_resp_t [NrCores-1:0]             x_issue_resp_i,
   output logic [NrCores-1:0]                      x_issue_valid_o,
   input  logic [NrCores-1:0]                      x_issue_ready_i,
+  // X Interface - Register ports
+  output x_register_t [NrCores-1:0]               x_register_o,
+  output logic [NrCores-1:0]                      x_register_valid_o,
+  input  logic [NrCores-1:0]                      x_register_ready_i,
+  // X Interface - Commit ports
+  output x_commit_t [NrCores-1:0]                 x_commit_o,
+  output logic [NrCores-1:0]                      x_commit_valid_o,
   // X Interface - Result ports
   input  x_result_t [NrCores-1:0]                 x_result_i,
   input  logic [NrCores-1:0]                      x_result_valid_i,
@@ -1053,6 +1062,8 @@ module snitch_cluster
         .XifIdWidth (XifIdWidth),
         .x_issue_req_t (x_issue_req_t),
         .x_issue_resp_t (x_issue_resp_t),
+        .x_register_t (x_register_t),
+        .x_commit_t (x_commit_t),
         .x_result_t (x_result_t),
         .BootAddr (BootAddrInternal),
         .RVE (RVE[i]),
@@ -1117,6 +1128,11 @@ module snitch_cluster
         .x_issue_resp_i (x_issue_resp_i[i]),
         .x_issue_valid_o (x_issue_valid_o[i]),
         .x_issue_ready_i (x_issue_ready_i[i]),
+        .x_register_o ( x_register_o[i] ),
+        .x_register_valid_o (x_register_valid_o[i]),
+        .x_register_ready_i (x_register_ready_i[i]),
+        .x_commit_o (x_commit_o[i]),
+        .x_commit_valid_o (x_commit_valid_o[i]),
         .x_result_i (x_result_i[i]),
         .x_result_valid_i (x_result_valid_i[i]),
         .x_result_ready_o (x_result_ready_o[i]),

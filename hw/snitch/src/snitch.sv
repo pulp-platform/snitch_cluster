@@ -56,6 +56,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // XIF port types
   parameter type         x_issue_req_t  = logic,
   parameter type         x_issue_resp_t = logic,
+  parameter type         x_register_t   = logic,
+  parameter type         x_commit_t     = logic,
   parameter type         x_result_t     = logic,
   parameter int unsigned NumIntOutstandingLoads = 0,
   parameter int unsigned NumIntOutstandingMem = 0,
@@ -102,6 +104,11 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   input  x_issue_resp_t x_issue_resp_i,
   output logic          x_issue_valid_o,
   input  logic          x_issue_ready_i,
+  output x_register_t   x_register_o,
+  output logic          x_register_valid_o,
+  input  logic          x_register_ready_i,
+  output x_commit_t     x_commit_o,
+  output logic          x_commit_valid_o,
   // X Interface - Result ports
   input  x_result_t     x_result_i,
   input  logic          x_result_valid_i,
@@ -139,7 +146,6 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   localparam bit NSX = XF16 | XF16ALT | XF8 | XFVEC;
 
   logic illegal_inst, illegal_csr;
-  logic unsupported_xif_feature;
   logic interrupt, ecall, ebreak;
   logic zero_lsb;
 
@@ -489,7 +495,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // the accelerator interface stalled us. Also wait for CAQ if this is an FP load/store.
   assign acc_stall = acc_qvalid_o & ~acc_qready_i | (caq_ena & ~caq_qready);
   // the coprocessor is not ready yet
-  assign x_stall = x_issue_valid_o & ~x_issue_ready_i;
+  assign x_stall = x_issue_valid_o & ~x_issue_ready_i | x_register_valid_o & ~x_register_ready_i;
   // the LSU Interface didn't accept our request yet
   assign lsu_stall = lsu_tlb_qvalid & ~lsu_tlb_qready;
   // Stall the stage if we either didn't get a valid instruction, the LSU is not ready
@@ -551,10 +557,12 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     opb_select = None;
     opc_select = None;
 
-    x_issue_req_o    = '0;
-    x_issue_valid_o  = 1'b0;
-
-    unsupported_xif_feature = 1'b0;
+    x_issue_req_o      = '0;
+    x_register_o       = '0;
+    x_commit_o         = '0;
+    x_issue_valid_o    = 1'b0;
+    x_register_valid_o = 1'b0;
+    x_commit_valid_o   = 1'b0;
 
     flush_i_valid_o = 1'b0;
     tlb_flush = 1'b0;
@@ -2310,23 +2318,35 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         opb_select = Reg;
         opc_select = Reg;
 
-        x_issue_req_o.instr     = inst_data_i;
-        x_issue_req_o.mode      = priv_lvl_q;
-        x_issue_req_o.id        = xif_offload_counter_q;
-        x_issue_req_o.rs        = {rs3, rs2, rs1};
-        x_issue_req_o.rs_valid  = {~sb_q[rs3], ~sb_q[rs2], ~sb_q[rs1]};
-        x_issue_req_o.ecs       = '0; // Not implemented
-        x_issue_req_o.ecs_valid = '0; // Not implemented
+        x_issue_req_o.instr    = inst_data_i;
+        x_issue_req_o.id       = xif_offload_counter_q;
+        x_issue_req_o.hartid   = hart_id_i;
 
-        // Since we canno know whether a source register will be used or not by the processor,
+        x_register_o.hartid    = hart_id_i;
+        x_register_o.id        = xif_offload_counter_q;
+        x_register_o.rs        = {rs3, rs2, rs1};
+        x_register_o.rs_valid  = {~sb_q[rs3], ~sb_q[rs2], ~sb_q[rs1]};
+
+        x_commit_o.hartid      = hart_id_i;
+        x_commit_o.id          = xif_offload_counter_q;
+        // We do not speculate so the commit_kill signal can be set statically to zero
+        x_commit_o.commit_kill = 1'b0;
+
+        // Since we cannot know whether a source register will be used or not by the processor,
         // here we do not use valid_instr as in the other instructions
         x_issue_valid_o         = inst_ready_i
                                 & inst_valid_o
                                 & ((itlb_valid & itlb_ready) | ~trans_active);
 
+        // Same as x_issue_valid since reigsters are provided instantly
+        x_register_valid_o      = x_issue_valid_o;
+
+        // Same
+        // todo(abelano): make sure this signal is asserted for one cycle only as in the specs
+        x_commit_valid_o        = x_issue_valid_o;
+
         // Flag the instruction as illegal if not accepted by the coprocessor or if it requests an unsupported operation
         illegal_inst = x_issue_ready_i & x_issue_valid_o & ~x_issue_resp_i.accept;
-        unsupported_xif_feature = x_issue_ready_i & x_issue_valid_o & |{x_issue_resp_i.dualwrite, x_issue_resp_i.dualread, x_issue_resp_i.loadstore, x_issue_resp_i.ecswrite};
       end
     endcase
 
@@ -2346,10 +2366,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
                    | ld_addr_misaligned
                    | st_addr_misaligned
                    | illegal_csr
-                   | unsupported_xif_feature
                    | (dtlb_page_fault & dtlb_trans_valid)
-                   | (itlb_page_fault & itlb_trans_valid)
-                   | x_result_valid_i & (x_result_i.err | x_result_i.exc);
+                   | (itlb_page_fault & itlb_trans_valid);
 
   `ifndef VCS
   // pragma translate_off
