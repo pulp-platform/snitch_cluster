@@ -129,7 +129,7 @@ package ${cfg['cluster']['name']}_pkg;
   typedef struct packed {
     logic [31:0]           hartid;
     logic [XifIdWidth-1:0] id;
-    logic [31:0][2:0]      rs;
+    logic [2:0][31:0]      rs;
     logic [2:0]            rs_valid;
   } x_register_t;
 
