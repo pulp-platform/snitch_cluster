@@ -1349,8 +1349,6 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         end
       end
       // 3 source registers (rs1, rs2, rd)
-      P_MAC,                // XPULPV2: p.mac
-      P_MSU,                // XPULPV2: p.msu
       PV_SDOTUP_H,          // XPULPV2: pv.sdotup.h
       PV_SDOTUP_SC_H,       // XPULPV2: pv.sdotup.sc.h
       PV_SDOTUP_B,          // XPULPV2: pv.sdotup.b

@@ -8,7 +8,11 @@
 # Directories #
 ###############
 
+ifeq ($(SNITCH_MEMPOOL), ON)
+SN_TESTS_SRCDIR    = $(SN_ROOT)/sw/tests/srcmem
+else
 SN_TESTS_SRCDIR    = $(SN_ROOT)/sw/tests/src
+endif
 SN_TESTS_BUILDDIR ?= $(SN_ROOT)/sw/tests/build
 
 ###################

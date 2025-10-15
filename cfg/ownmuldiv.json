@@ -25,6 +25,7 @@
         wide_trans: 32,
         dma_user_width: 48,
         enable_multicast: true,
+	enable_dma: true,
         // We don't need Snitch debugging in Occamy
         enable_debug: false,
         // We don't need Snitch (core-internal) virtual memory support

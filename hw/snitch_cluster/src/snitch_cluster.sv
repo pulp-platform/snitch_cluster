@@ -348,6 +348,8 @@ module snitch_cluster
   localparam int unsigned NrWideRuleIdcs = NrWideSlaves - 1;
   localparam int unsigned NrWideRules = (1 + AliasRegionEnable) * NrWideRuleIdcs;
 
+  localparam bit [NrCores-1:0] XPULPV2 = XPULPABS  | XPULPBITOP | XPULPBR | XPULPCLIP | XPULPMACSI | XPULPMINMAX | XPULPSLET | XPULPVECT | XPULPVECTSHUFFLEPACK;
+
   // AXI Configuration
   localparam axi_pkg::xbar_cfg_t ClusterXbarCfg = '{
     NoSlvPorts: NrNarrowMasters,
@@ -417,6 +419,16 @@ module snitch_cluster
       if (Hive[i] == hive_id) n++;
     end
     return n;
+  endfunction
+
+  //If in hive at least one core doesn't have ownmuldiv - shared_muldiv for this hive is needed. 
+
+  function automatic bit use_shared_muldiv(int unsigned hive_id);
+    for (int i = 0; i < NrCores; i++) begin
+      if ((Hive[i] == hive_id) && (OwnMulDiv[i] == 0) && (XPULPV2[i] == 0))
+        return 1;
+    end
+    return 0;
   endfunction
 
   // --------
@@ -1152,7 +1164,7 @@ module snitch_cluster
 
   for (genvar i = 0; i < NrHives; i++) begin : gen_hive
       localparam int unsigned HiveSize = get_hive_size(i);
-
+      localparam bit SharedMuldiv = use_shared_muldiv(i);
       hive_req_t [HiveSize-1:0] hive_req_reshape;
       hive_rsp_t [HiveSize-1:0] hive_rsp_reshape;
 
@@ -1173,6 +1185,7 @@ module snitch_cluster
         .NarrowDataWidth (NarrowDataWidth),
         .WideDataWidth (WideDataWidth),
         .VMSupport (VMSupport),
+        .SharedMuldiv (SharedMuldiv),
         .dreq_t (reqrsp_req_t),
         .drsp_t (reqrsp_rsp_t),
         .hive_req_t (hive_req_t),

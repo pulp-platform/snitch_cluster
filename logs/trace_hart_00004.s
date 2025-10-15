@@ -205,7 +205,7 @@
                       0x800000f4 fcvt.d.w ft11, zero            #; ac1  = 0, (f:fpu) ft9  <-- 0.0
 #; .Ltmp1 (start.S:89)
 #;   addi    gp, gp, %pcrel_lo(1b)
-            503000    0x800000fc addi gp, gp, 1200              #; gp  = 0x800060f8, (wrb) gp  <-- 0x800065a8
+            503000    0x800000fc addi gp, gp, 1520              #; gp  = 0x800060f8, (wrb) gp  <-- 0x800066e8
                                                                 #; (f:fpu) ft10 <-- 0.0
 #; snrt.crt0.init_core_info (start.S:98)
 #;   csrr a0, mhartid
@@ -249,28 +249,28 @@
 #; .Lpcrel_hi0 (start.S:121)
 #;   la        t0, __cdata_end
             519000    0x80000130 auipc t0, 6                    #; (wrb) t0  <-- 0x80006130
-            520000    0x80000134 addi t0, t0, -920              #; t0  = 0x80006130, (wrb) t0  <-- 0x80005d98
+            520000    0x80000134 addi t0, t0, -600              #; t0  = 0x80006130, (wrb) t0  <-- 0x80005ed8
 #; .Lpcrel_hi1 (start.S:122)
 #;   la        t1, __cdata_start
             521000    0x80000138 auipc t1, 6                    #; (wrb) t1  <-- 0x80006138
-            522000    0x8000013c addi t1, t1, -928              #; t1  = 0x80006138, (wrb) t1  <-- 0x80005d98
+            522000    0x8000013c addi t1, t1, -608              #; t1  = 0x80006138, (wrb) t1  <-- 0x80005ed8
 #; .Lpcrel_hi1 (start.S:123)
 #;   sub       t0, t0, t1
-            523000    0x80000140 sub t0, t0, t1                 #; t0  = 0x80005d98, t1  = 0x80005d98, (wrb) t0  <-- 0
+            523000    0x80000140 sub t0, t0, t1                 #; t0  = 0x80005ed8, t1  = 0x80005ed8, (wrb) t0  <-- 0
 #; .Lpcrel_hi1 (start.S:124)
 #;   sub       a2, a2, t0
             524000    0x80000144 sub a2, a2, t0                 #; a2  = 0x10020000, t0  = 0, (wrb) a2  <-- 0x10020000
 #; .Lpcrel_hi2 (start.S:125)
 #;   la        t0, __cbss_end
             525000    0x80000148 auipc t0, 6                    #; (wrb) t0  <-- 0x80006148
-            526000    0x8000014c addi t0, t0, -912              #; t0  = 0x80006148, (wrb) t0  <-- 0x80005db8
+            526000    0x8000014c addi t0, t0, -592              #; t0  = 0x80006148, (wrb) t0  <-- 0x80005ef8
 #; .Lpcrel_hi3 (start.S:126)
 #;   la        t1, __cbss_start
             527000    0x80000150 auipc t1, 6                    #; (wrb) t1  <-- 0x80006150
-            528000    0x80000154 addi t1, t1, -952              #; t1  = 0x80006150, (wrb) t1  <-- 0x80005d98
+            528000    0x80000154 addi t1, t1, -632              #; t1  = 0x80006150, (wrb) t1  <-- 0x80005ed8
 #; .Lpcrel_hi3 (start.S:127)
 #;   sub       t0, t0, t1
-            529000    0x80000158 sub t0, t0, t1                 #; t0  = 0x80005db8, t1  = 0x80005d98, (wrb) t0  <-- 32
+            529000    0x80000158 sub t0, t0, t1                 #; t0  = 0x80005ef8, t1  = 0x80005ed8, (wrb) t0  <-- 32
 #; .Lpcrel_hi3 (start.S:128)
 #;   sub       a2, a2, t0
             530000    0x8000015c sub a2, a2, t0                 #; a2  = 0x10020000, t0  = 32, (wrb) a2  <-- 0x1001ffe0
@@ -301,28 +301,28 @@
 #; .Lpcrel_hi4 (start.S:155)
 #;   la        t0, __tdata_end
             539000    0x80000180 auipc t0, 6                    #; (wrb) t0  <-- 0x80006180
-            540000    0x80000184 addi t0, t0, -1068             #; t0  = 0x80006180, (wrb) t0  <-- 0x80005d54
+            540000    0x80000184 addi t0, t0, -748              #; t0  = 0x80006180, (wrb) t0  <-- 0x80005e94
 #; .Lpcrel_hi5 (start.S:156)
 #;   la        t1, __tdata_start
             541000    0x80000188 auipc t1, 6                    #; (wrb) t1  <-- 0x80006188
-            542000    0x8000018c addi t1, t1, -1088             #; t1  = 0x80006188, (wrb) t1  <-- 0x80005d48
+            542000    0x8000018c addi t1, t1, -768              #; t1  = 0x80006188, (wrb) t1  <-- 0x80005e88
 #; .Lpcrel_hi5 (start.S:157)
 #;   sub       t0, t0, t1
-            543000    0x80000190 sub t0, t0, t1                 #; t0  = 0x80005d54, t1  = 0x80005d48, (wrb) t0  <-- 12
+            543000    0x80000190 sub t0, t0, t1                 #; t0  = 0x80005e94, t1  = 0x80005e88, (wrb) t0  <-- 12
 #; .Lpcrel_hi5 (start.S:158)
 #;   sub       sp, sp, t0
             544000    0x80000194 sub sp, sp, t0                 #; sp  = 0x1001efb8, t0  = 12, (wrb) sp  <-- 0x1001efac
 #; .Lpcrel_hi6 (start.S:159)
 #;   la        t0, __tbss_end
             545000    0x80000198 auipc t0, 6                    #; (wrb) t0  <-- 0x80006198
-            546000    0x8000019c addi t0, t0, -1024             #; t0  = 0x80006198, (wrb) t0  <-- 0x80005d98
+            546000    0x8000019c addi t0, t0, -704              #; t0  = 0x80006198, (wrb) t0  <-- 0x80005ed8
 #; .Lpcrel_hi7 (start.S:160)
 #;   la        t1, __tbss_start
             547000    0x800001a0 auipc t1, 6                    #; (wrb) t1  <-- 0x800061a0
-            548000    0x800001a4 addi t1, t1, -1096             #; t1  = 0x800061a0, (wrb) t1  <-- 0x80005d58
+            548000    0x800001a4 addi t1, t1, -776              #; t1  = 0x800061a0, (wrb) t1  <-- 0x80005e98
 #; .Lpcrel_hi7 (start.S:161)
 #;   sub       t0, t0, t1
-            549000    0x800001a8 sub t0, t0, t1                 #; t0  = 0x80005d98, t1  = 0x80005d58, (wrb) t0  <-- 64
+            549000    0x800001a8 sub t0, t0, t1                 #; t0  = 0x80005ed8, t1  = 0x80005e98, (wrb) t0  <-- 64
 #; .Lpcrel_hi7 (start.S:162)
 #;   sub       sp, sp, t0
             550000    0x800001ac sub sp, sp, t0                 #; sp  = 0x1001efac, t0  = 64, (wrb) sp  <-- 0x1001ef6c
@@ -338,590 +338,1526 @@
 #; snrt.crt0.main (start.S:178)
 #;   call snrt_main
             554000    0x800001bc auipc ra, 4                    #; (wrb) ra  <-- 0x800041bc
-            555000    0x800001c0 jalr -1352(ra)                 #; ra  = 0x800041bc, (wrb) ra  <-- 0x800001c4, goto 0x80003c74
+            555000    0x800001c0 jalr -1312(ra)                 #; ra  = 0x800041bc, (wrb) ra  <-- 0x800001c4, goto 0x80003c9c
 #; snrt_main (start.c:204)
 #;   EXTERN_C void snrt_main() {
-            558000    0x80003c74 addi sp, sp, -64               #; sp  = 0x1001ef68, (wrb) sp  <-- 0x1001ef28
-            559000    0x80003c78 sw ra, 60(sp)                  #; sp  = 0x1001ef28, 0x800001c4 ~~> Word[0x1001ef64]
-            560000    0x80003c7c sw s0, 56(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef60]
-            567000    0x80003c80 sw s1, 52(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef5c]
-            568000    0x80003c84 sw s2, 48(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef58]
-            570000    0x80003c88 sw s3, 44(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef54]
-            572000    0x80003c8c sw s4, 40(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef50]
-            573000    0x80003c90 sw s5, 36(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef4c]
-            574000    0x80003c94 sw s6, 32(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef48]
-            575000    0x80003c98 sw s7, 28(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef44]
-            576000    0x80003c9c sw s8, 24(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef40]
-            577000    0x80003ca0 sw s9, 20(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef3c]
-            578000    0x80003ca4 sw s10, 16(sp)                 #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef38]
-            579000    0x80003ca8 sw s11, 12(sp)                 #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef34]
-            580000    0x80003cac li s0, -1                      #; (wrb) s0  <-- -1
+            558000    0x80003c9c addi sp, sp, -64               #; sp  = 0x1001ef68, (wrb) sp  <-- 0x1001ef28
+            559000    0x80003ca0 sw ra, 60(sp)                  #; sp  = 0x1001ef28, 0x800001c4 ~~> Word[0x1001ef64]
+            560000    0x80003ca4 sw s0, 56(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef60]
+            562000    0x80003ca8 sw s1, 52(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef5c]
+            563000    0x80003cac sw s2, 48(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef58]
+            565000    0x80003cb0 sw s3, 44(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef54]
+            566000    0x80003cb4 sw s4, 40(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef50]
+            567000    0x80003cb8 sw s5, 36(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef4c]
+            568000    0x80003cbc sw s6, 32(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef48]
+            569000    0x80003cc0 sw s7, 28(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef44]
+            570000    0x80003cc4 sw s8, 24(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef40]
+            571000    0x80003cc8 sw s9, 20(sp)                  #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef3c]
+            572000    0x80003ccc sw s10, 16(sp)                 #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef38]
+            573000    0x80003cd0 sw s11, 12(sp)                 #; sp  = 0x1001ef28, 0 ~~> Word[0x1001ef34]
+            574000    0x80003cd4 li s0, -1                      #; (wrb) s0  <-- -1
 #; snrt_main (start.c:206:9)
 #;   snrt_cluster_idx (team.h:99:12)
 #;     snrt_global_core_idx (team.h:80:12)
 #;       snrt_hartid (team.h:25:5)
 #;         asm("csrr %0, mhartid" : "=r"(hartid));
 #;         ^
-            581000    0x80003cb0 csrr s2, mhartid               #; mhartid = 4, (wrb) s2  <-- 4
-            582000    0x80003cb4 lui a0, 233017                 #; (wrb) a0  <-- 0x38e39000
-            583000    0x80003cb8 addi a0, a0, -455              #; a0  = 0x38e39000, (wrb) a0  <-- 0x38e38e39
+            575000    0x80003cd8 csrr s2, mhartid               #; mhartid = 4, (wrb) s2  <-- 4
+            576000    0x80003cdc lui a0, 233017                 #; (wrb) a0  <-- 0x38e39000
+            577000    0x80003ce0 addi a0, a0, -455              #; a0  = 0x38e39000, (wrb) a0  <-- 0x38e38e39
 #; snrt_main (start.c:206:9)
 #;   snrt_cluster_idx (team.h:99:35)
 #;     return snrt_global_core_idx() / snrt_cluster_core_num();
 #;                                   ^
-            584000    0x80003cbc mulhu a0, s2, a0               #; s2  = 4, a0  = 0x38e38e39
-            586000                                              #; (acc) a0  <-- 0
-            587000    0x80003cc0 srli a0, a0, 1                 #; a0  = 0, (wrb) a0  <-- 0
-            588000    0x80003cc4 li a1, 8                       #; (wrb) a1  <-- 8
-            589000    0x80003cc8 slli s3, a0, 18                #; a0  = 0, (wrb) s3  <-- 0
+            578000    0x80003ce4 mulhu a0, s2, a0               #; s2  = 4, a0  = 0x38e38e39
+            580000                                              #; (acc) a0  <-- 0
+            581000    0x80003ce8 srli a0, a0, 1                 #; a0  = 0, (wrb) a0  <-- 0
+            582000    0x80003cec li a1, 8                       #; (wrb) a1  <-- 8
+            583000    0x80003cf0 slli s3, a0, 18                #; a0  = 0, (wrb) s3  <-- 0
 #; snrt_main (start.c:206:9)
 #;   if (snrt_cluster_idx() == 0) {
 #;       ^
-            590000    0x80003ccc bltu a1, s2, 184               #; a1  = 8, s2  = 4, not taken
+            584000    0x80003cf4 bltu a1, s2, 184               #; a1  = 8, s2  = 4, not taken
 #; snrt_main (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:48:5)
 #;     snrt_int_clr_mcip_unsafe (cluster_interrupts.h:33:31)
 #;       snrt_cluster_core_idx (team.h:108:35)
 #;         return snrt_global_core_idx() % snrt_cluster_core_num();
 #;                                       ^
-            591000    0x80003cd0 .text                          #; s2  = 4
-            592000    0x80003cd4 li a1, 57                      #; (wrb) a1  <-- 57
-            593000                                              #; (acc) s1  <-- 4
-            594000    0x80003cd8 mul a1, s1, a1                 #; s1  = 4, a1  = 57
-            596000                                              #; (acc) a1  <-- 228
-            597000    0x80003cdc srli a1, a1, 9                 #; a1  = 228, (wrb) a1  <-- 0
-            598000    0x80003ce0 slli a2, a1, 3                 #; a1  = 0, (wrb) a2  <-- 0
-            599000    0x80003ce4 add a1, a2, a1                 #; a2  = 0, a1  = 0, (wrb) a1  <-- 0
-            600000    0x80003ce8 lui a2, 65569                  #; (wrb) a2  <-- 0x10021000
-            601000    0x80003cec addi a2, a2, 424               #; a2  = 0x10021000, (wrb) a2  <-- 0x100211a8
+            585000    0x80003cf8 p.extbz s1, s2                 #; s2  = 4
+            586000    0x80003cfc li a1, 57                      #; (wrb) a1  <-- 57
+            587000                                              #; (acc) s1  <-- 4
+            588000    0x80003d00 mul a1, s1, a1                 #; s1  = 4, a1  = 57
+            590000                                              #; (acc) a1  <-- 228
+            591000    0x80003d04 srli a1, a1, 9                 #; a1  = 228, (wrb) a1  <-- 0
+            592000    0x80003d08 slli a2, a1, 3                 #; a1  = 0, (wrb) a2  <-- 0
+            593000    0x80003d0c add a1, a2, a1                 #; a2  = 0, a1  = 0, (wrb) a1  <-- 0
+            594000    0x80003d10 lui a2, 65569                  #; (wrb) a2  <-- 0x10021000
+            595000    0x80003d14 addi a2, a2, 424               #; a2  = 0x10021000, (wrb) a2  <-- 0x100211a8
 #; snrt_main (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:48:5)
 #;     snrt_int_clr_mcip_unsafe (cluster_interrupts.h:33:5)
 #;       snrt_int_cluster_clr (cluster_interrupts.h:22:53)
 #;         snrt_cluster()->peripheral_reg.cl_clint_clear.f.cl_clint_clear = mask;
 #;                                                         ^
-            602000    0x80003cf0 add a2, s3, a2                 #; s3  = 0, a2  = 0x100211a8, (wrb) a2  <-- 0x100211a8
+            596000    0x80003d18 add a2, s3, a2                 #; s3  = 0, a2  = 0x100211a8, (wrb) a2  <-- 0x100211a8
 #; snrt_main (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:48:5)
 #;     snrt_int_clr_mcip_unsafe (cluster_interrupts.h:33:5)
 #;       snrt_int_cluster_clr (cluster_interrupts.h:22:68)
 #;         snrt_cluster()->peripheral_reg.cl_clint_clear.f.cl_clint_clear = mask;
 #;                                                                        ^
-            603000    0x80003cf4 lw a3, 0(a2)                   #; a2  = 0x100211a8, a3  <~~ Word[0x100211a8]
-            633000                                              #; (lsu) a3  <-- 0
-            634000    0x80003cf8 ori a3, a2, 4                  #; a2  = 0x100211a8, (wrb) a3  <-- 0x100211ac
-            635000    0x80003cfc lw a4, 0(a3)                   #; a3  = 0x100211ac, a4  <~~ Word[0x100211ac]
+            597000    0x80003d1c lw a3, 0(a2)                   #; a2  = 0x100211a8, a3  <~~ Word[0x100211a8]
+            609000                                              #; (lsu) a3  <-- 0
+            610000    0x80003d20 ori a3, a2, 4                  #; a2  = 0x100211a8, (wrb) a3  <-- 0x100211ac
+            611000    0x80003d24 lw a4, 0(a3)                   #; a3  = 0x100211ac, a4  <~~ Word[0x100211ac]
 #; snrt_main (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:48:5)
 #;     snrt_int_clr_mcip_unsafe (cluster_interrupts.h:33:31)
 #;       snrt_cluster_core_idx (team.h:108:35)
 #;         return snrt_global_core_idx() % snrt_cluster_core_num();
 #;                                       ^
-            636000    0x80003d00 sub a1, s2, a1                 #; s2  = 4, a1  = 0, (wrb) a1  <-- 4
-            637000    0x80003d04 li a5, 1                       #; (wrb) a5  <-- 1
+            612000    0x80003d28 sub a1, s2, a1                 #; s2  = 4, a1  = 0, (wrb) a1  <-- 4
+            613000    0x80003d2c li a5, 1                       #; (wrb) a5  <-- 1
 #; snrt_main (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:48:5)
 #;     snrt_int_clr_mcip_unsafe (cluster_interrupts.h:33:28)
 #;       snrt_int_cluster_clr(1 << snrt_cluster_core_idx());
 #;                              ^
-            638000    0x80003d08 sll a1, a5, a1                 #; a5  = 1, a1  = 4, (wrb) a1  <-- 16
-            667000                                              #; (lsu) a4  <-- 0
+            614000    0x80003d30 sll a1, a5, a1                 #; a5  = 1, a1  = 4, (wrb) a1  <-- 16
+            635000                                              #; (lsu) a4  <-- 0
 #; snrt_main (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:48:5)
 #;     snrt_int_clr_mcip_unsafe (cluster_interrupts.h:33:5)
 #;       snrt_int_cluster_clr (cluster_interrupts.h:22:68)
 #;         snrt_cluster()->peripheral_reg.cl_clint_clear.f.cl_clint_clear = mask;
 #;                                                                        ^
-            668000    0x80003d0c and a4, a4, s0                 #; a4  = 0, s0  = -1, (wrb) a4  <-- 0
-            669000    0x80003d10 sw a4, 0(a3)                   #; a3  = 0x100211ac, 0 ~~> Word[0x100211ac]
-            670000    0x80003d14 sw a1, 0(a2)                   #; a2  = 0x100211a8, 16 ~~> Word[0x100211a8]
-            671000    0x80003d18 lui a1, 128                    #; (wrb) a1  <-- 0x00080000
+            636000    0x80003d34 and a4, a4, s0                 #; a4  = 0, s0  = -1, (wrb) a4  <-- 0
+            637000    0x80003d38 sw a4, 0(a3)                   #; a3  = 0x100211ac, 0 ~~> Word[0x100211ac]
+            638000    0x80003d3c sw a1, 0(a2)                   #; a2  = 0x100211a8, 16 ~~> Word[0x100211a8]
+            639000    0x80003d40 lui a1, 128                    #; (wrb) a1  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;              ^
-            672000    0x80003d1c csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+            640000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;                            ^
-            673000    0x80003d20 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+            641000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;       ^
-            674000    0x80003d24 bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d1c
+            642000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;              ^
-            675000    0x80003d1c csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+            643000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;                            ^
-            676000    0x80003d20 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+            644000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;       ^
-            677000    0x80003d24 bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d1c
+            645000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;              ^
-            678000    0x80003d1c csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+            646000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;                            ^
-            679000    0x80003d20 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+            647000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;       ^
-            680000    0x80003d24 bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d1c
+            648000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;              ^
-            681000    0x80003d1c csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+            649000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;                            ^
-            682000    0x80003d20 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+            650000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;       ^
-            683000    0x80003d24 bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d1c
+            651000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;              ^
-            684000    0x80003d1c csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+            652000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;                            ^
-            685000    0x80003d20 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+            653000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;       ^
-            686000    0x80003d24 bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d1c
+            654000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;              ^
-            687000    0x80003d1c csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+            655000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;                            ^
-            688000    0x80003d20 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+            656000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;       ^
-            689000    0x80003d24 bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d1c
+            657000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;              ^
-            690000    0x80003d1c csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+            658000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;                            ^
-            691000    0x80003d20 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+            659000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;       ^
-            692000    0x80003d24 bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d1c
+            660000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;              ^
-            693000    0x80003d1c csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+            661000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;                            ^
-            694000    0x80003d20 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+            662000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;       ^
-            695000    0x80003d24 bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d1c
+            663000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;              ^
-            696000    0x80003d1c csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+            664000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;                            ^
-            697000    0x80003d20 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+            665000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;       ^
-            698000    0x80003d24 bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d1c
+            666000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;              ^
-            699000    0x80003d1c csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+            667000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;                            ^
-            700000    0x80003d20 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+            668000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;       ^
-            701000    0x80003d24 bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d1c
+            669000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;              ^
-            702000    0x80003d1c csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+            670000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;                            ^
-            703000    0x80003d20 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+            671000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;       ^
-            704000    0x80003d24 bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d1c
+            672000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;              ^
-            705000    0x80003d1c csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+            673000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;                            ^
-            706000    0x80003d20 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+            674000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;       ^
-            707000    0x80003d24 bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d1c
+            675000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;              ^
-            708000    0x80003d1c csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+            676000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;                            ^
-            709000    0x80003d20 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+            677000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;       ^
-            710000    0x80003d24 bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d1c
+            678000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;              ^
-            711000    0x80003d1c csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+            679000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;                            ^
-            712000    0x80003d20 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+            680000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;       ^
-            713000    0x80003d24 bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d1c
+            681000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;              ^
-            714000    0x80003d1c csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+            682000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;                            ^
-            715000    0x80003d20 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+            683000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;       ^
-            716000    0x80003d24 bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d1c
+            684000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;              ^
-            717000    0x80003d1c csrr a2, mip                   #; mip = 0, (wrb) a2  <-- 0
+            685000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;                            ^
-            718000    0x80003d20 and a2, a2, a1                 #; a2  = 0, a1  = 0x00080000, (wrb) a2  <-- 0
+            686000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
 #; .LBB25_2 (start.c:207:9)
 #;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;       while (read_csr(mip) & MIP_MCIP)
 #;       ^
-            719000    0x80003d24 bnez a2, -8                    #; a2  = 0, not taken
-            720000    0x80003d28 li a1, 9                       #; (wrb) a1  <-- 9
+            687000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
+#; .LBB25_2 (start.c:207:9)
+#;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
+#;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
+#;       while (read_csr(mip) & MIP_MCIP)
+#;              ^
+            688000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+#; .LBB25_2 (start.c:207:9)
+#;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
+#;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
+#;       while (read_csr(mip) & MIP_MCIP)
+#;                            ^
+            689000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+#; .LBB25_2 (start.c:207:9)
+#;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
+#;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
+#;       while (read_csr(mip) & MIP_MCIP)
+#;       ^
+            690000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
+#; .LBB25_2 (start.c:207:9)
+#;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
+#;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
+#;       while (read_csr(mip) & MIP_MCIP)
+#;              ^
+            691000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+#; .LBB25_2 (start.c:207:9)
+#;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
+#;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
+#;       while (read_csr(mip) & MIP_MCIP)
+#;                            ^
+            692000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+#; .LBB25_2 (start.c:207:9)
+#;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
+#;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
+#;       while (read_csr(mip) & MIP_MCIP)
+#;       ^
+            693000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
+#; .LBB25_2 (start.c:207:9)
+#;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
+#;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
+#;       while (read_csr(mip) & MIP_MCIP)
+#;              ^
+            694000    0x80003d44 csrr a2, mip                   #; mip = 0x00080000, (wrb) a2  <-- 0x00080000
+#; .LBB25_2 (start.c:207:9)
+#;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
+#;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
+#;       while (read_csr(mip) & MIP_MCIP)
+#;                            ^
+            695000    0x80003d48 and a2, a2, a1                 #; a2  = 0x00080000, a1  = 0x00080000, (wrb) a2  <-- 0x00080000
+#; .LBB25_2 (start.c:207:9)
+#;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
+#;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
+#;       while (read_csr(mip) & MIP_MCIP)
+#;       ^
+            696000    0x80003d4c bnez a2, -8                    #; a2  = 0x00080000, taken, goto 0x80003d44
+#; .LBB25_2 (start.c:207:9)
+#;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
+#;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
+#;       while (read_csr(mip) & MIP_MCIP)
+#;              ^
+            697000    0x80003d44 csrr a2, mip                   #; mip = 0, (wrb) a2  <-- 0
+#; .LBB25_2 (start.c:207:9)
+#;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
+#;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
+#;       while (read_csr(mip) & MIP_MCIP)
+#;                            ^
+            698000    0x80003d48 and a2, a2, a1                 #; a2  = 0, a1  = 0x00080000, (wrb) a2  <-- 0
+#; .LBB25_2 (start.c:207:9)
+#;   snrt_int_clr_mcip (cluster_interrupts.h:49:5)
+#;     snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
+#;       while (read_csr(mip) & MIP_MCIP)
+#;       ^
+            699000    0x80003d4c bnez a2, -8                    #; a2  = 0, not taken
+            700000    0x80003d50 li a1, 9                       #; (wrb) a1  <-- 9
 #; .LBB25_2 (start.c:215:5)
 #;   snrt_init_bss (start.c:110:9)
 #;     if (snrt_cluster_idx() == 0) {
 #;         ^
-            721000    0x80003d2c bgeu s2, a1, 88                #; s2  = 4, a1  = 9, not taken
+            701000    0x80003d54 bgeu s2, a1, 88                #; s2  = 4, a1  = 9, not taken
 #; .LBB25_21 (start.c:215:5)
 #;   snrt_init_bss (start.c:112:9)
 #;     memset((void*)&__bss_start, 0, size);
 #;     ^
-            722000    0x80003d30 auipc a0, 2                    #; (wrb) a0  <-- 0x80005d30
-            723000    0x80003d34 addi a0, a0, 312               #; a0  = 0x80005d30, (wrb) a0  <-- 0x80005e68
+            702000    0x80003d58 auipc a0, 2                    #; (wrb) a0  <-- 0x80005d58
+            703000    0x80003d5c addi a0, a0, 592               #; a0  = 0x80005d58, (wrb) a0  <-- 0x80005fa8
 #; .LBB25_22 (start.c:215:5)
 #;   snrt_init_bss (start.c:112:9)
 #;     memset((void*)&__bss_start, 0, size);
 #;     ^
-            724000    0x80003d38 auipc a1, 2                    #; (wrb) a1  <-- 0x80005d38
-            725000    0x80003d3c addi a1, a1, 360               #; a1  = 0x80005d38, (wrb) a1  <-- 0x80005ea0
-            726000    0x80003d40 sub a2, a1, a0                 #; a1  = 0x80005ea0, a0  = 0x80005e68, (wrb) a2  <-- 56
-            727000    0x80003d44 li a1, 0                       #; (wrb) a1  <-- 0
-            728000    0x80003d48 auipc ra, 0                    #; (wrb) ra  <-- 0x80003d48
-            729000    0x80003d4c jalr 1220(ra)                  #; ra  = 0x80003d48, (wrb) ra  <-- 0x80003d50, goto 0x8000420c
+            704000    0x80003d60 auipc a1, 2                    #; (wrb) a1  <-- 0x80005d60
+            705000    0x80003d64 addi a1, a1, 1408              #; a1  = 0x80005d60, (wrb) a1  <-- 0x800062e0
+            706000    0x80003d68 sub a2, a1, a0                 #; a1  = 0x800062e0, a0  = 0x80005fa8, (wrb) a2  <-- 824
+            707000    0x80003d6c li a1, 0                       #; (wrb) a1  <-- 0
+            708000    0x80003d70 auipc ra, 0                    #; (wrb) ra  <-- 0x80003d70
+            709000    0x80003d74 jalr 1220(ra)                  #; ra  = 0x80003d70, (wrb) ra  <-- 0x80003d78, goto 0x80004234
 #; memset (memset.S:30)
 #;   li t1, 15
-            741000    0x8000420c li t1, 15                      #; (wrb) t1  <-- 15
+            715000    0x80004234 li t1, 15                      #; (wrb) t1  <-- 15
 #; memset (memset.S:31)
 #;   move a4, a0
-            742000    0x80004210 mv a4, a0                      #; a0  = 0x80005e68, (wrb) a4  <-- 0x80005e68
+            716000    0x80004238 mv a4, a0                      #; a0  = 0x80005fa8, (wrb) a4  <-- 0x80005fa8
 #; memset (memset.S:32)
 #;   bleu a2, t1, .Ltiny
-            743000    0x80004214 bgeu t1, a2, 60                #; t1  = 15, a2  = 56, not taken
+            717000    0x8000423c bgeu t1, a2, 60                #; t1  = 15, a2  = 824, not taken
 #; memset (memset.S:33)
 #;   and a5, a4, 15
-            744000    0x80004218 andi a5, a4, 15                #; a4  = 0x80005e68, (wrb) a5  <-- 8
+            722000    0x80004240 andi a5, a4, 15                #; a4  = 0x80005fa8, (wrb) a5  <-- 8
 #; memset (memset.S:34)
 #;   bnez a5, .Lmisaligned
-            745000    0x8000421c bnez a5, 160                   #; a5  = 8, taken, goto 0x800042bc
+            723000    0x80004244 bnez a5, 160                   #; a5  = 8, taken, goto 0x800042e4
 #; .Lmisaligned (memset.S:100)
 #;   sll a3, a5, 2
-            755000    0x800042bc slli a3, a5, 2                 #; a5  = 8, (wrb) a3  <-- 32
+            728000    0x800042e4 slli a3, a5, 2                 #; a5  = 8, (wrb) a3  <-- 32
 #; .Ltmp2 (memset.S:101)
 #;   1:auipc t0, %pcrel_hi(.Ltable_misaligned)
-            759000    0x800042c0 auipc t0, 0                    #; (wrb) t0  <-- 0x800042c0
+            729000    0x800042e8 auipc t0, 0                    #; (wrb) t0  <-- 0x800042e8
 #; .Ltmp2 (memset.S:102)
 #;   add a3, a3, t0
-            760000    0x800042c4 add a3, a3, t0                 #; a3  = 32, t0  = 0x800042c0, (wrb) a3  <-- 0x800042e0
+            730000    0x800042ec add a3, a3, t0                 #; a3  = 32, t0  = 0x800042e8, (wrb) a3  <-- 0x80004308
 #; .Ltmp2 (memset.S:103)
 #;   mv t0, ra
-            761000    0x800042c8 mv t0, ra                      #; ra  = 0x80003d50, (wrb) t0  <-- 0x80003d50
+            731000    0x800042f0 mv t0, ra                      #; ra  = 0x80003d78, (wrb) t0  <-- 0x80003d78
 #; .Ltmp2 (memset.S:104)
 #;   jalr a3, %pcrel_lo(1b)
-            762000    0x800042cc jalr -96(a3)                   #; a3  = 0x800042e0, (wrb) ra  <-- 0x800042d0, goto 0x80004280
+            732000    0x800042f4 jalr -96(a3)                   #; a3  = 0x80004308, (wrb) ra  <-- 0x800042f8, goto 0x800042a8
 #; .Ltable (memset.S:76)
 #;   sb a1, 7(a4)
-            763000    0x80004280 sb a1, 7(a4)                   #; a4  = 0x80005e68, 0 ~~> Byte[0x80005e6f]
+            750000    0x800042a8 sb a1, 7(a4)                   #; a4  = 0x80005fa8, 0 ~~> Byte[0x80005faf]
 #; .Ltable (memset.S:77)
 #;   sb a1, 6(a4)
-            764000    0x80004284 sb a1, 6(a4)                   #; a4  = 0x80005e68, 0 ~~> Byte[0x80005e6e]
+            751000    0x800042ac sb a1, 6(a4)                   #; a4  = 0x80005fa8, 0 ~~> Byte[0x80005fae]
 #; .Ltable (memset.S:78)
 #;   sb a1, 5(a4)
-            803000    0x80004288 sb a1, 5(a4)                   #; a4  = 0x80005e68, 0 ~~> Byte[0x80005e6d]
+            783000    0x800042b0 sb a1, 5(a4)                   #; a4  = 0x80005fa8, 0 ~~> Byte[0x80005fad]
 #; .Ltable (memset.S:79)
 #;   sb a1, 4(a4)
-            852000    0x8000428c sb a1, 4(a4)                   #; a4  = 0x80005e68, 0 ~~> Byte[0x80005e6c]
+            832000    0x800042b4 sb a1, 4(a4)                   #; a4  = 0x80005fa8, 0 ~~> Byte[0x80005fac]
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-            893000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x80005e68, 0 ~~> Byte[0x80005e6b]
+            873000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x80005fa8, 0 ~~> Byte[0x80005fab]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-            942000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x80005e68, 0 ~~> Byte[0x80005e6a]
+            922000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x80005fa8, 0 ~~> Byte[0x80005faa]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-            983000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x80005e68, 0 ~~> Byte[0x80005e69]
+            963000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x80005fa8, 0 ~~> Byte[0x80005fa9]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           1032000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x80005e68, 0 ~~> Byte[0x80005e68]
+           1012000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x80005fa8, 0 ~~> Byte[0x80005fa8]
 #; .Ltable (memset.S:85)
 #;   ret
-           1033000    0x800042a0 ret                            #; ra  = 0x800042d0, goto 0x800042d0
+           1013000    0x800042c8 ret                            #; ra  = 0x800042f8, goto 0x800042f8
 #; .Ltmp2 (memset.S:105)
 #;   mv ra, t0
-           1034000    0x800042d0 mv ra, t0                      #; t0  = 0x80003d50, (wrb) ra  <-- 0x80003d50
+           1014000    0x800042f8 mv ra, t0                      #; t0  = 0x80003d78, (wrb) ra  <-- 0x80003d78
 #; .Ltmp2 (memset.S:107)
 #;   add a5, a5, -16
-           1035000    0x800042d4 addi a5, a5, -16               #; a5  = 8, (wrb) a5  <-- -8
+           1015000    0x800042fc addi a5, a5, -16               #; a5  = 8, (wrb) a5  <-- -8
 #; .Ltmp2 (memset.S:108)
 #;   sub a4, a4, a5
-           1036000    0x800042d8 sub a4, a4, a5                 #; a4  = 0x80005e68, a5  = -8, (wrb) a4  <-- 0x80005e70
+           1016000    0x80004300 sub a4, a4, a5                 #; a4  = 0x80005fa8, a5  = -8, (wrb) a4  <-- 0x80005fb0
 #; .Ltmp2 (memset.S:109)
 #;   add a2, a2, a5
-           1037000    0x800042dc add a2, a2, a5                 #; a2  = 56, a5  = -8, (wrb) a2  <-- 48
+           1017000    0x80004304 add a2, a2, a5                 #; a2  = 824, a5  = -8, (wrb) a2  <-- 816
 #; .Ltmp2 (memset.S:110)
 #;   bleu a2, t1, .Ltiny
-           1038000    0x800042e0 bgeu t1, a2, -144              #; t1  = 15, a2  = 48, not taken
+           1018000    0x80004308 bgeu t1, a2, -144              #; t1  = 15, a2  = 816, not taken
 #; .Ltmp2 (memset.S:111)
 #;   j .Laligned
-           1039000    0x800042e4 j -196                         #; goto 0x80004220
+           1019000    0x8000430c j -196                         #; goto 0x80004248
 #; .Laligned (memset.S:37)
 #;   bnez a1, .Lwordify
-           1040000    0x80004220 bnez a1, 132                   #; a1  = 0, not taken
+           1020000    0x80004248 bnez a1, 132                   #; a1  = 0, not taken
 #; .Lwordified (memset.S:40)
 #;   and a3, a2, ~15
-           1041000    0x80004224 andi a3, a2, -16               #; a2  = 48, (wrb) a3  <-- 48
+           1021000    0x8000424c andi a3, a2, -16               #; a2  = 816, (wrb) a3  <-- 816
 #; .Lwordified (memset.S:41)
 #;   and a2, a2, 15
-           1042000    0x80004228 andi a2, a2, 15                #; a2  = 48, (wrb) a2  <-- 0
+           1022000    0x80004250 andi a2, a2, 15                #; a2  = 816, (wrb) a2  <-- 0
 #; .Lwordified (memset.S:42)
 #;   add a3, a3, a4
-           1043000    0x8000422c add a3, a3, a4                 #; a3  = 48, a4  = 0x80005e70, (wrb) a3  <-- 0x80005ea0
+           1023000    0x80004254 add a3, a3, a4                 #; a3  = 816, a4  = 0x80005fb0, (wrb) a3  <-- 0x800062e0
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           1073000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x80005e70, 0 ~~> Word[0x80005e70]
+           1053000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80005fb0, 0 ~~> Word[0x80005fb0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           1122000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x80005e70, 0 ~~> Word[0x80005e74]
+           1102000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80005fb0, 0 ~~> Word[0x80005fb4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           1163000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x80005e70, 0 ~~> Word[0x80005e78]
+           1143000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80005fb0, 0 ~~> Word[0x80005fb8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           1212000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x80005e70, 0 ~~> Word[0x80005e7c]
+           1192000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80005fb0, 0 ~~> Word[0x80005fbc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           1213000    0x80004240 addi a4, a4, 16                #; a4  = 0x80005e70, (wrb) a4  <-- 0x80005e80
+           1193000    0x80004268 addi a4, a4, 16                #; a4  = 0x80005fb0, (wrb) a4  <-- 0x80005fc0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           1214000    0x80004244 bltu a4, a3, -20               #; a4  = 0x80005e80, a3  = 0x80005ea0, taken, goto 0x80004230
+           1194000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80005fc0, a3  = 0x800062e0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           1253000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x80005e80, 0 ~~> Word[0x80005e80]
+           1233000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80005fc0, 0 ~~> Word[0x80005fc0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           1302000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x80005e80, 0 ~~> Word[0x80005e84]
+           1282000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80005fc0, 0 ~~> Word[0x80005fc4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           1343000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x80005e80, 0 ~~> Word[0x80005e88]
+           1323000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80005fc0, 0 ~~> Word[0x80005fc8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           1392000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x80005e80, 0 ~~> Word[0x80005e8c]
+           1372000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80005fc0, 0 ~~> Word[0x80005fcc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           1393000    0x80004240 addi a4, a4, 16                #; a4  = 0x80005e80, (wrb) a4  <-- 0x80005e90
+           1373000    0x80004268 addi a4, a4, 16                #; a4  = 0x80005fc0, (wrb) a4  <-- 0x80005fd0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           1394000    0x80004244 bltu a4, a3, -20               #; a4  = 0x80005e90, a3  = 0x80005ea0, taken, goto 0x80004230
+           1374000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80005fd0, a3  = 0x800062e0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           1433000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x80005e90, 0 ~~> Word[0x80005e90]
+           1413000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80005fd0, 0 ~~> Word[0x80005fd0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           1482000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x80005e90, 0 ~~> Word[0x80005e94]
+           1462000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80005fd0, 0 ~~> Word[0x80005fd4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           1523000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x80005e90, 0 ~~> Word[0x80005e98]
+           1503000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80005fd0, 0 ~~> Word[0x80005fd8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           1572000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x80005e90, 0 ~~> Word[0x80005e9c]
+           1552000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80005fd0, 0 ~~> Word[0x80005fdc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           1573000    0x80004240 addi a4, a4, 16                #; a4  = 0x80005e90, (wrb) a4  <-- 0x80005ea0
+           1553000    0x80004268 addi a4, a4, 16                #; a4  = 0x80005fd0, (wrb) a4  <-- 0x80005fe0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           1574000    0x80004244 bltu a4, a3, -20               #; a4  = 0x80005ea0, a3  = 0x80005ea0, not taken
+           1554000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80005fe0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           1593000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80005fe0, 0 ~~> Word[0x80005fe0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           1642000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80005fe0, 0 ~~> Word[0x80005fe4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           1683000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80005fe0, 0 ~~> Word[0x80005fe8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           1732000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80005fe0, 0 ~~> Word[0x80005fec]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           1733000    0x80004268 addi a4, a4, 16                #; a4  = 0x80005fe0, (wrb) a4  <-- 0x80005ff0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           1734000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80005ff0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           1773000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80005ff0, 0 ~~> Word[0x80005ff0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           1822000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80005ff0, 0 ~~> Word[0x80005ff4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           1863000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80005ff0, 0 ~~> Word[0x80005ff8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           1912000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80005ff0, 0 ~~> Word[0x80005ffc]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           1913000    0x80004268 addi a4, a4, 16                #; a4  = 0x80005ff0, (wrb) a4  <-- 0x80006000
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           1914000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006000, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           1953000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006000, 0 ~~> Word[0x80006000]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           2002000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006000, 0 ~~> Word[0x80006004]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           2043000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006000, 0 ~~> Word[0x80006008]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           2092000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006000, 0 ~~> Word[0x8000600c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           2093000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006000, (wrb) a4  <-- 0x80006010
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           2094000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006010, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           2133000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006010, 0 ~~> Word[0x80006010]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           2182000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006010, 0 ~~> Word[0x80006014]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           2223000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006010, 0 ~~> Word[0x80006018]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           2272000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006010, 0 ~~> Word[0x8000601c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           2273000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006010, (wrb) a4  <-- 0x80006020
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           2274000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006020, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           2313000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006020, 0 ~~> Word[0x80006020]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           2362000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006020, 0 ~~> Word[0x80006024]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           2403000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006020, 0 ~~> Word[0x80006028]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           2452000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006020, 0 ~~> Word[0x8000602c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           2453000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006020, (wrb) a4  <-- 0x80006030
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           2454000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006030, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           2493000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006030, 0 ~~> Word[0x80006030]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           2542000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006030, 0 ~~> Word[0x80006034]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           2583000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006030, 0 ~~> Word[0x80006038]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           2632000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006030, 0 ~~> Word[0x8000603c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           2633000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006030, (wrb) a4  <-- 0x80006040
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           2634000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006040, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           2673000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006040, 0 ~~> Word[0x80006040]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           2722000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006040, 0 ~~> Word[0x80006044]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           2763000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006040, 0 ~~> Word[0x80006048]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           2812000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006040, 0 ~~> Word[0x8000604c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           2813000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006040, (wrb) a4  <-- 0x80006050
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           2814000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006050, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           2853000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006050, 0 ~~> Word[0x80006050]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           2902000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006050, 0 ~~> Word[0x80006054]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           2943000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006050, 0 ~~> Word[0x80006058]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           2992000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006050, 0 ~~> Word[0x8000605c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           2993000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006050, (wrb) a4  <-- 0x80006060
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           2994000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006060, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           3033000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006060, 0 ~~> Word[0x80006060]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           3082000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006060, 0 ~~> Word[0x80006064]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           3123000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006060, 0 ~~> Word[0x80006068]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           3172000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006060, 0 ~~> Word[0x8000606c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           3173000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006060, (wrb) a4  <-- 0x80006070
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           3174000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006070, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           3213000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006070, 0 ~~> Word[0x80006070]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           3262000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006070, 0 ~~> Word[0x80006074]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           3303000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006070, 0 ~~> Word[0x80006078]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           3352000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006070, 0 ~~> Word[0x8000607c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           3353000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006070, (wrb) a4  <-- 0x80006080
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           3354000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006080, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           3393000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006080, 0 ~~> Word[0x80006080]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           3442000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006080, 0 ~~> Word[0x80006084]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           3483000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006080, 0 ~~> Word[0x80006088]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           3532000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006080, 0 ~~> Word[0x8000608c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           3533000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006080, (wrb) a4  <-- 0x80006090
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           3534000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006090, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           3573000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006090, 0 ~~> Word[0x80006090]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           3622000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006090, 0 ~~> Word[0x80006094]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           3663000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006090, 0 ~~> Word[0x80006098]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           3712000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006090, 0 ~~> Word[0x8000609c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           3713000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006090, (wrb) a4  <-- 0x800060a0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           3714000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800060a0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           3753000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x800060a0, 0 ~~> Word[0x800060a0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           3802000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x800060a0, 0 ~~> Word[0x800060a4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           3843000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x800060a0, 0 ~~> Word[0x800060a8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           3892000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x800060a0, 0 ~~> Word[0x800060ac]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           3893000    0x80004268 addi a4, a4, 16                #; a4  = 0x800060a0, (wrb) a4  <-- 0x800060b0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           3894000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800060b0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           3933000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x800060b0, 0 ~~> Word[0x800060b0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           3982000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x800060b0, 0 ~~> Word[0x800060b4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           4023000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x800060b0, 0 ~~> Word[0x800060b8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           4072000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x800060b0, 0 ~~> Word[0x800060bc]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           4073000    0x80004268 addi a4, a4, 16                #; a4  = 0x800060b0, (wrb) a4  <-- 0x800060c0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           4074000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800060c0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           4113000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x800060c0, 0 ~~> Word[0x800060c0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           4162000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x800060c0, 0 ~~> Word[0x800060c4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           4203000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x800060c0, 0 ~~> Word[0x800060c8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           4252000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x800060c0, 0 ~~> Word[0x800060cc]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           4253000    0x80004268 addi a4, a4, 16                #; a4  = 0x800060c0, (wrb) a4  <-- 0x800060d0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           4254000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800060d0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           4293000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x800060d0, 0 ~~> Word[0x800060d0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           4342000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x800060d0, 0 ~~> Word[0x800060d4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           4383000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x800060d0, 0 ~~> Word[0x800060d8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           4432000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x800060d0, 0 ~~> Word[0x800060dc]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           4433000    0x80004268 addi a4, a4, 16                #; a4  = 0x800060d0, (wrb) a4  <-- 0x800060e0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           4434000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800060e0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           4473000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x800060e0, 0 ~~> Word[0x800060e0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           4522000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x800060e0, 0 ~~> Word[0x800060e4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           4563000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x800060e0, 0 ~~> Word[0x800060e8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           4612000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x800060e0, 0 ~~> Word[0x800060ec]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           4613000    0x80004268 addi a4, a4, 16                #; a4  = 0x800060e0, (wrb) a4  <-- 0x800060f0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           4614000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800060f0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           4653000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x800060f0, 0 ~~> Word[0x800060f0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           4702000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x800060f0, 0 ~~> Word[0x800060f4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           4743000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x800060f0, 0 ~~> Word[0x800060f8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           4792000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x800060f0, 0 ~~> Word[0x800060fc]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           4793000    0x80004268 addi a4, a4, 16                #; a4  = 0x800060f0, (wrb) a4  <-- 0x80006100
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           4794000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006100, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           4833000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006100, 0 ~~> Word[0x80006100]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           4882000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006100, 0 ~~> Word[0x80006104]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           4923000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006100, 0 ~~> Word[0x80006108]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           4972000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006100, 0 ~~> Word[0x8000610c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           4973000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006100, (wrb) a4  <-- 0x80006110
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           4974000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006110, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           5013000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006110, 0 ~~> Word[0x80006110]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           5062000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006110, 0 ~~> Word[0x80006114]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           5103000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006110, 0 ~~> Word[0x80006118]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           5152000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006110, 0 ~~> Word[0x8000611c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           5153000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006110, (wrb) a4  <-- 0x80006120
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           5154000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006120, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           5193000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006120, 0 ~~> Word[0x80006120]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           5242000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006120, 0 ~~> Word[0x80006124]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           5283000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006120, 0 ~~> Word[0x80006128]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           5332000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006120, 0 ~~> Word[0x8000612c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           5333000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006120, (wrb) a4  <-- 0x80006130
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           5334000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006130, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           5373000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006130, 0 ~~> Word[0x80006130]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           5422000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006130, 0 ~~> Word[0x80006134]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           5463000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006130, 0 ~~> Word[0x80006138]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           5512000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006130, 0 ~~> Word[0x8000613c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           5513000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006130, (wrb) a4  <-- 0x80006140
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           5514000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006140, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           5553000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006140, 0 ~~> Word[0x80006140]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           5602000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006140, 0 ~~> Word[0x80006144]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           5643000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006140, 0 ~~> Word[0x80006148]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           5692000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006140, 0 ~~> Word[0x8000614c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           5693000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006140, (wrb) a4  <-- 0x80006150
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           5694000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006150, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           5733000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006150, 0 ~~> Word[0x80006150]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           5782000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006150, 0 ~~> Word[0x80006154]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           5823000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006150, 0 ~~> Word[0x80006158]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           5872000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006150, 0 ~~> Word[0x8000615c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           5873000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006150, (wrb) a4  <-- 0x80006160
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           5874000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006160, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           5913000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006160, 0 ~~> Word[0x80006160]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           5962000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006160, 0 ~~> Word[0x80006164]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           6003000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006160, 0 ~~> Word[0x80006168]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           6052000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006160, 0 ~~> Word[0x8000616c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           6053000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006160, (wrb) a4  <-- 0x80006170
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           6054000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006170, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           6093000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006170, 0 ~~> Word[0x80006170]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           6142000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006170, 0 ~~> Word[0x80006174]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           6183000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006170, 0 ~~> Word[0x80006178]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           6232000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006170, 0 ~~> Word[0x8000617c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           6233000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006170, (wrb) a4  <-- 0x80006180
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           6234000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006180, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           6273000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006180, 0 ~~> Word[0x80006180]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           6322000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006180, 0 ~~> Word[0x80006184]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           6363000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006180, 0 ~~> Word[0x80006188]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           6412000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006180, 0 ~~> Word[0x8000618c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           6413000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006180, (wrb) a4  <-- 0x80006190
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           6414000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006190, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           6453000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006190, 0 ~~> Word[0x80006190]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           6502000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006190, 0 ~~> Word[0x80006194]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           6543000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006190, 0 ~~> Word[0x80006198]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           6592000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006190, 0 ~~> Word[0x8000619c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           6593000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006190, (wrb) a4  <-- 0x800061a0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           6594000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800061a0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           6633000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x800061a0, 0 ~~> Word[0x800061a0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           6682000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x800061a0, 0 ~~> Word[0x800061a4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           6723000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x800061a0, 0 ~~> Word[0x800061a8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           6772000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x800061a0, 0 ~~> Word[0x800061ac]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           6773000    0x80004268 addi a4, a4, 16                #; a4  = 0x800061a0, (wrb) a4  <-- 0x800061b0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           6774000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800061b0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           6813000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x800061b0, 0 ~~> Word[0x800061b0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           6862000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x800061b0, 0 ~~> Word[0x800061b4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           6903000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x800061b0, 0 ~~> Word[0x800061b8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           6952000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x800061b0, 0 ~~> Word[0x800061bc]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           6953000    0x80004268 addi a4, a4, 16                #; a4  = 0x800061b0, (wrb) a4  <-- 0x800061c0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           6954000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800061c0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           6993000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x800061c0, 0 ~~> Word[0x800061c0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           7042000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x800061c0, 0 ~~> Word[0x800061c4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           7083000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x800061c0, 0 ~~> Word[0x800061c8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           7132000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x800061c0, 0 ~~> Word[0x800061cc]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           7133000    0x80004268 addi a4, a4, 16                #; a4  = 0x800061c0, (wrb) a4  <-- 0x800061d0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           7134000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800061d0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           7173000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x800061d0, 0 ~~> Word[0x800061d0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           7222000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x800061d0, 0 ~~> Word[0x800061d4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           7263000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x800061d0, 0 ~~> Word[0x800061d8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           7312000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x800061d0, 0 ~~> Word[0x800061dc]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           7313000    0x80004268 addi a4, a4, 16                #; a4  = 0x800061d0, (wrb) a4  <-- 0x800061e0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           7314000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800061e0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           7353000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x800061e0, 0 ~~> Word[0x800061e0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           7402000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x800061e0, 0 ~~> Word[0x800061e4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           7443000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x800061e0, 0 ~~> Word[0x800061e8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           7492000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x800061e0, 0 ~~> Word[0x800061ec]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           7493000    0x80004268 addi a4, a4, 16                #; a4  = 0x800061e0, (wrb) a4  <-- 0x800061f0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           7494000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800061f0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           7533000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x800061f0, 0 ~~> Word[0x800061f0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           7582000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x800061f0, 0 ~~> Word[0x800061f4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           7623000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x800061f0, 0 ~~> Word[0x800061f8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           7672000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x800061f0, 0 ~~> Word[0x800061fc]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           7673000    0x80004268 addi a4, a4, 16                #; a4  = 0x800061f0, (wrb) a4  <-- 0x80006200
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           7674000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006200, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           7713000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006200, 0 ~~> Word[0x80006200]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           7762000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006200, 0 ~~> Word[0x80006204]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           7803000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006200, 0 ~~> Word[0x80006208]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           7852000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006200, 0 ~~> Word[0x8000620c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           7853000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006200, (wrb) a4  <-- 0x80006210
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           7854000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006210, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           7893000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006210, 0 ~~> Word[0x80006210]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           7942000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006210, 0 ~~> Word[0x80006214]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           7983000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006210, 0 ~~> Word[0x80006218]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           8032000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006210, 0 ~~> Word[0x8000621c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           8033000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006210, (wrb) a4  <-- 0x80006220
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           8034000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006220, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           8073000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006220, 0 ~~> Word[0x80006220]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           8122000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006220, 0 ~~> Word[0x80006224]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           8163000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006220, 0 ~~> Word[0x80006228]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           8212000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006220, 0 ~~> Word[0x8000622c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           8213000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006220, (wrb) a4  <-- 0x80006230
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           8214000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006230, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           8253000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006230, 0 ~~> Word[0x80006230]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           8302000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006230, 0 ~~> Word[0x80006234]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           8343000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006230, 0 ~~> Word[0x80006238]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           8392000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006230, 0 ~~> Word[0x8000623c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           8393000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006230, (wrb) a4  <-- 0x80006240
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           8394000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006240, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           8433000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006240, 0 ~~> Word[0x80006240]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           8482000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006240, 0 ~~> Word[0x80006244]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           8523000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006240, 0 ~~> Word[0x80006248]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           8572000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006240, 0 ~~> Word[0x8000624c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           8573000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006240, (wrb) a4  <-- 0x80006250
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           8574000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006250, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           8613000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006250, 0 ~~> Word[0x80006250]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           8662000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006250, 0 ~~> Word[0x80006254]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           8703000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006250, 0 ~~> Word[0x80006258]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           8752000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006250, 0 ~~> Word[0x8000625c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           8753000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006250, (wrb) a4  <-- 0x80006260
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           8754000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006260, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           8793000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006260, 0 ~~> Word[0x80006260]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           8842000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006260, 0 ~~> Word[0x80006264]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           8883000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006260, 0 ~~> Word[0x80006268]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           8932000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006260, 0 ~~> Word[0x8000626c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           8933000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006260, (wrb) a4  <-- 0x80006270
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           8934000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006270, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           8973000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006270, 0 ~~> Word[0x80006270]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           9022000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006270, 0 ~~> Word[0x80006274]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           9063000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006270, 0 ~~> Word[0x80006278]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           9112000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006270, 0 ~~> Word[0x8000627c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           9113000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006270, (wrb) a4  <-- 0x80006280
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           9114000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006280, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           9153000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006280, 0 ~~> Word[0x80006280]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           9202000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006280, 0 ~~> Word[0x80006284]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           9243000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006280, 0 ~~> Word[0x80006288]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           9292000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006280, 0 ~~> Word[0x8000628c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           9293000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006280, (wrb) a4  <-- 0x80006290
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           9294000    0x8000426c bltu a4, a3, -20               #; a4  = 0x80006290, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           9333000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x80006290, 0 ~~> Word[0x80006290]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           9382000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x80006290, 0 ~~> Word[0x80006294]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           9423000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x80006290, 0 ~~> Word[0x80006298]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           9472000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x80006290, 0 ~~> Word[0x8000629c]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           9473000    0x80004268 addi a4, a4, 16                #; a4  = 0x80006290, (wrb) a4  <-- 0x800062a0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           9474000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800062a0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           9513000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x800062a0, 0 ~~> Word[0x800062a0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           9562000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x800062a0, 0 ~~> Word[0x800062a4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           9603000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x800062a0, 0 ~~> Word[0x800062a8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           9652000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x800062a0, 0 ~~> Word[0x800062ac]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           9653000    0x80004268 addi a4, a4, 16                #; a4  = 0x800062a0, (wrb) a4  <-- 0x800062b0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           9654000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800062b0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           9693000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x800062b0, 0 ~~> Word[0x800062b0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           9742000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x800062b0, 0 ~~> Word[0x800062b4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           9783000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x800062b0, 0 ~~> Word[0x800062b8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+           9832000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x800062b0, 0 ~~> Word[0x800062bc]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+           9833000    0x80004268 addi a4, a4, 16                #; a4  = 0x800062b0, (wrb) a4  <-- 0x800062c0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+           9834000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800062c0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+           9873000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x800062c0, 0 ~~> Word[0x800062c0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+           9922000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x800062c0, 0 ~~> Word[0x800062c4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+           9963000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x800062c0, 0 ~~> Word[0x800062c8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+          10012000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x800062c0, 0 ~~> Word[0x800062cc]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+          10013000    0x80004268 addi a4, a4, 16                #; a4  = 0x800062c0, (wrb) a4  <-- 0x800062d0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+          10014000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800062d0, a3  = 0x800062e0, taken, goto 0x80004258
+#; .Ltmp0 (memset.S:48)
+#;   1:sw a1, 0(a4)
+          10053000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x800062d0, 0 ~~> Word[0x800062d0]
+#; .Ltmp0 (memset.S:49)
+#;   sw a1, 4(a4)
+          10102000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x800062d0, 0 ~~> Word[0x800062d4]
+#; .Ltmp0 (memset.S:50)
+#;   sw a1, 8(a4)
+          10143000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x800062d0, 0 ~~> Word[0x800062d8]
+#; .Ltmp0 (memset.S:51)
+#;   sw a1, 12(a4)
+          10192000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x800062d0, 0 ~~> Word[0x800062dc]
+#; .Ltmp0 (memset.S:53)
+#;   add a4, a4, 16
+          10193000    0x80004268 addi a4, a4, 16                #; a4  = 0x800062d0, (wrb) a4  <-- 0x800062e0
+#; .Ltmp0 (memset.S:54)
+#;   bltu a4, a3, 1b
+          10194000    0x8000426c bltu a4, a3, -20               #; a4  = 0x800062e0, a3  = 0x800062e0, not taken
 #; .Ltmp0 (memset.S:56)
 #;   bnez a2, .Ltiny
-           1575000    0x80004248 bnez a2, 8                     #; a2  = 0, not taken
+          10195000    0x80004270 bnez a2, 8                     #; a2  = 0, not taken
 #; .Ltmp0 (memset.S:57)
 #;   ret
-           1576000    0x8000424c ret                            #; ra  = 0x80003d50, goto 0x80003d50
+          10196000    0x80004274 ret                            #; ra  = 0x80003d78, goto 0x80003d78
 #; .LBB25_22 (start.c:215:5)
 #;   snrt_init_bss (start.c:115:9)
 #;     snrt_cluster_hw_barrier (sync.h:174:5)
 #;       asm volatile("csrr x0, 0x7C2" ::: "memory");
 #;       ^
-           1577000    0x80003d50 csrr zero, 1986                #; csr@7c2 = 0
-           1579000    0x80003d54 li a0, 57                      #; (wrb) a0  <-- 57
-           1580000    0x80003d58 mul a0, s1, a0                 #; s1  = 4, a0  = 57
-           1582000                                              #; (acc) a0  <-- 228
-           1583000    0x80003d5c srli a0, a0, 9                 #; a0  = 228, (wrb) a0  <-- 0
-           1584000    0x80003d60 slli a1, a0, 3                 #; a0  = 0, (wrb) a1  <-- 0
-           1585000    0x80003d64 add a0, a1, a0                 #; a1  = 0, a0  = 0, (wrb) a0  <-- 0
-           1586000    0x80003d68 sub a0, s2, a0                 #; s2  = 4, a0  = 0, (wrb) a0  <-- 4
-           1587000    0x80003d6c .text                          #; a0  = 4
-           1588000    0x80003d70 li s4, 0                       #; (wrb) s4  <-- 0
-           1589000                                              #; (acc) s5  <-- 4
+          10197000    0x80003d78 csrr zero, 1986                #; csr@7c2 = 0
+          10209000    0x80003d7c li a0, 57                      #; (wrb) a0  <-- 57
+          10210000    0x80003d80 mul a0, s1, a0                 #; s1  = 4, a0  = 57
+          10212000                                              #; (acc) a0  <-- 228
+          10213000    0x80003d84 srli a0, a0, 9                 #; a0  = 228, (wrb) a0  <-- 0
+          10214000    0x80003d88 slli a1, a0, 3                 #; a0  = 0, (wrb) a1  <-- 0
+          10215000    0x80003d8c add a0, a1, a0                 #; a1  = 0, a0  = 0, (wrb) a0  <-- 0
+          10216000    0x80003d90 sub a0, s2, a0                 #; s2  = 4, a0  = 0, (wrb) a0  <-- 4
+          10217000    0x80003d94 p.extbz s5, a0                 #; a0  = 4
+          10218000    0x80003d98 li s4, 0                       #; (wrb) s4  <-- 0
+          10219000                                              #; (acc) s5  <-- 4
 #; .LBB25_22 (start.c:219:5)
 #;   snrt_wake_up (start.c:124:33)
 #;     if (snrt_cluster_idx() == 0 && snrt_cluster_core_idx() == 0) {
 #;                                 ^
-           1590000    0x80003d74 bnez s5, 32                    #; s5  = 4, taken, goto 0x80003d94
+          10220000    0x80003d9c bnez s5, 32                    #; s5  = 4, taken, goto 0x80003dbc
 #; .LBB25_7 (start.c:219:5)
 #;   snrt_wake_up (start.c:137:5)
 #;     snrt_cluster_hw_barrier (sync.h:174:5)
 #;       asm volatile("csrr x0, 0x7C2" ::: "memory");
 #;       ^
-           1591000    0x80003d94 csrr zero, 1986                #; csr@7c2 = 0
-           1648000    0x80003d98 lui a0, 65569                  #; (wrb) a0  <-- 0x10021000
-           1649000    0x80003d9c addi a0, a0, 424               #; a0  = 0x10021000, (wrb) a0  <-- 0x100211a8
+          10221000    0x80003dbc csrr zero, 1986                #; csr@7c2 = 0
+          10268000    0x80003dc0 lui a0, 65569                  #; (wrb) a0  <-- 0x10021000
+          10269000    0x80003dc4 addi a0, a0, 424               #; a0  = 0x10021000, (wrb) a0  <-- 0x100211a8
 #; .LBB25_7 (start.c:219:5)
 #;   snrt_wake_up (start.c:140:5)
 #;     snrt_int_clr_mcip (cluster_interrupts.h:48:5)
@@ -929,7 +1865,7 @@
 #;         snrt_int_cluster_clr (cluster_interrupts.h:22:53)
 #;           snrt_cluster()->peripheral_reg.cl_clint_clear.f.cl_clint_clear = mask;
 #;                                                           ^
-           1650000    0x80003da0 add a0, s3, a0                 #; s3  = 0, a0  = 0x100211a8, (wrb) a0  <-- 0x100211a8
+          10270000    0x80003dc8 add a0, s3, a0                 #; s3  = 0, a0  = 0x100211a8, (wrb) a0  <-- 0x100211a8
 #; .LBB25_7 (start.c:219:5)
 #;   snrt_wake_up (start.c:140:5)
 #;     snrt_int_clr_mcip (cluster_interrupts.h:48:5)
@@ -937,19 +1873,19 @@
 #;         snrt_int_cluster_clr (cluster_interrupts.h:22:68)
 #;           snrt_cluster()->peripheral_reg.cl_clint_clear.f.cl_clint_clear = mask;
 #;                                                                          ^
-           1651000    0x80003da4 lw a1, 0(a0)                   #; a0  = 0x100211a8, a1  <~~ Word[0x100211a8]
-           1691000                                              #; (lsu) a1  <-- 0
-           1692000    0x80003da8 ori a1, a0, 4                  #; a0  = 0x100211a8, (wrb) a1  <-- 0x100211ac
-           1693000    0x80003dac lw a2, 0(a1)                   #; a1  = 0x100211ac, a2  <~~ Word[0x100211ac]
-           1694000    0x80003db0 li a3, 1                       #; (wrb) a3  <-- 1
+          10271000    0x80003dcc lw a1, 0(a0)                   #; a0  = 0x100211a8, a1  <~~ Word[0x100211a8]
+          10315000                                              #; (lsu) a1  <-- 0
+          10316000    0x80003dd0 ori a1, a0, 4                  #; a0  = 0x100211a8, (wrb) a1  <-- 0x100211ac
+          10317000    0x80003dd4 lw a2, 0(a1)                   #; a1  = 0x100211ac, a2  <~~ Word[0x100211ac]
+          10318000    0x80003dd8 li a3, 1                       #; (wrb) a3  <-- 1
 #; .LBB25_7 (start.c:219:5)
 #;   snrt_wake_up (start.c:140:5)
 #;     snrt_int_clr_mcip (cluster_interrupts.h:48:5)
 #;       snrt_int_clr_mcip_unsafe (cluster_interrupts.h:33:28)
 #;         snrt_int_cluster_clr(1 << snrt_cluster_core_idx());
 #;                                ^
-           1695000    0x80003db4 sll a3, a3, s5                 #; a3  = 1, s5  = 4, (wrb) a3  <-- 16
-           1717000                                              #; (lsu) a2  <-- 0
+          10319000    0x80003ddc sll a3, a3, s5                 #; a3  = 1, s5  = 4, (wrb) a3  <-- 16
+          10341000                                              #; (lsu) a2  <-- 0
 #; .LBB25_7 (start.c:219:5)
 #;   snrt_wake_up (start.c:140:5)
 #;     snrt_int_clr_mcip (cluster_interrupts.h:48:5)
@@ -957,3117 +1893,4473 @@
 #;         snrt_int_cluster_clr (cluster_interrupts.h:22:68)
 #;           snrt_cluster()->peripheral_reg.cl_clint_clear.f.cl_clint_clear = mask;
 #;                                                                          ^
-           1718000    0x80003db8 and a2, a2, s0                 #; a2  = 0, s0  = -1, (wrb) a2  <-- 0
-           1719000    0x80003dbc sw a3, 0(a0)                   #; a0  = 0x100211a8, 16 ~~> Word[0x100211a8]
-           1720000    0x80003dc0 sw a2, 0(a1)                   #; a1  = 0x100211ac, 0 ~~> Word[0x100211ac]
-           1721000    0x80003dc4 lui a0, 128                    #; (wrb) a0  <-- 0x00080000
+          10342000    0x80003de0 and a2, a2, s0                 #; a2  = 0, s0  = -1, (wrb) a2  <-- 0
+          10343000    0x80003de4 sw a3, 0(a0)                   #; a0  = 0x100211a8, 16 ~~> Word[0x100211a8]
+          10344000    0x80003de8 sw a2, 0(a1)                   #; a1  = 0x100211ac, 0 ~~> Word[0x100211ac]
+          10345000    0x80003dec lui a0, 128                    #; (wrb) a0  <-- 0x00080000
 #; .LBB25_8 (start.c:219:5)
 #;   snrt_wake_up (start.c:140:5)
 #;     snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;       snrt_int_wait_mcip_clr (cluster_interrupts.h:40:12)
 #;         while (read_csr(mip) & MIP_MCIP)
 #;                ^
-           1722000    0x80003dc8 csrr a1, mip                   #; mip = 0, (wrb) a1  <-- 0
+          10346000    0x80003df0 csrr a1, mip                   #; mip = 0, (wrb) a1  <-- 0
 #; .LBB25_8 (start.c:219:5)
 #;   snrt_wake_up (start.c:140:5)
 #;     snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;       snrt_int_wait_mcip_clr (cluster_interrupts.h:40:26)
 #;         while (read_csr(mip) & MIP_MCIP)
 #;                              ^
-           1723000    0x80003dcc and a1, a1, a0                 #; a1  = 0, a0  = 0x00080000, (wrb) a1  <-- 0
+          10347000    0x80003df4 and a1, a1, a0                 #; a1  = 0, a0  = 0x00080000, (wrb) a1  <-- 0
 #; .LBB25_8 (start.c:219:5)
 #;   snrt_wake_up (start.c:140:5)
 #;     snrt_int_clr_mcip (cluster_interrupts.h:49:5)
 #;       snrt_int_wait_mcip_clr (cluster_interrupts.h:40:5)
 #;         while (read_csr(mip) & MIP_MCIP)
 #;         ^
-           1724000    0x80003dd0 bnez a1, -8                    #; a1  = 0, not taken
+          10348000    0x80003df8 bnez a1, -8                    #; a1  = 0, not taken
 #; .LBB25_8 (start.c:227:5)
 #;   snrt_init_tls (start.c:66:5)
 #;     asm volatile("mv %0, tp" : "=r"(tls_ptr) : :);
 #;     ^
-           1725000    0x80003dd4 mv a0, tp                      #; tp  = 0x1001ef68, (wrb) a0  <-- 0x1001ef68
-           1745000    0x80003dd8 sw a0, 8(sp)                   #; sp  = 0x1001ef28, 0x1001ef68 ~~> Word[0x1001ef30]
+          10349000    0x80003dfc mv a0, tp                      #; tp  = 0x1001ef68, (wrb) a0  <-- 0x1001ef68
+          10368000    0x80003e00 sw a0, 8(sp)                   #; sp  = 0x1001ef28, 0x1001ef68 ~~> Word[0x1001ef30]
 #; .LBB25_8 (start.c:227:5)
 #;   snrt_init_tls (start.c:67:19)
 #;     memcpy((void*)tls_ptr, (const void*)&__tdata_start, size);
 #;                   ^
-           1775000    0x80003ddc lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
+          10398000    0x80003e04 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
 #; .LBB25_23 (start.c:227:5)
 #;   snrt_init_tls (start.c:67:5)
 #;     memcpy((void*)tls_ptr, (const void*)&__tdata_start, size);
 #;     ^
-           1776000    0x80003de0 auipc a1, 2                    #; (wrb) a1  <-- 0x80005de0
-           1777000    0x80003de4 addi a1, a1, -152              #; a1  = 0x80005de0, (wrb) a1  <-- 0x80005d48
+          10399000    0x80003e08 auipc a1, 2                    #; (wrb) a1  <-- 0x80005e08
+          10400000    0x80003e0c addi a1, a1, 128               #; a1  = 0x80005e08, (wrb) a1  <-- 0x80005e88
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:67:5)
 #;     memcpy((void*)tls_ptr, (const void*)&__tdata_start, size);
 #;     ^
-           1778000    0x80003de8 auipc a2, 2                    #; (wrb) a2  <-- 0x80005de8
-           1779000    0x80003dec addi a2, a2, -148              #; a2  = 0x80005de8, (wrb) a2  <-- 0x80005d54
-           1780000    0x80003df0 sub s0, a2, a1                 #; a2  = 0x80005d54, a1  = 0x80005d48, (wrb) s0  <-- 12
-           1781000    0x80003df4 mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
-           1782000    0x80003df8 auipc ra, 2                    #; (wrb) ra  <-- 0x80005df8
-           1783000    0x80003dfc jalr -2028(ra)                 #; ra  = 0x80005df8, (wrb) ra  <-- 0x80003e00, goto 0x8000560c
-           1784000                                              #; (lsu) a0  <-- 0x1001ef68
+          10401000    0x80003e10 auipc a2, 2                    #; (wrb) a2  <-- 0x80005e10
+          10402000    0x80003e14 addi a2, a2, 132               #; a2  = 0x80005e10, (wrb) a2  <-- 0x80005e94
+          10403000    0x80003e18 sub s0, a2, a1                 #; a2  = 0x80005e94, a1  = 0x80005e88, (wrb) s0  <-- 12
+          10404000    0x80003e1c mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
+          10405000    0x80003e20 auipc ra, 0                    #; (wrb) ra  <-- 0x80003e20
+          10406000    0x80003e24 jalr 1264(ra)                  #; ra  = 0x80003e20, (wrb) ra  <-- 0x80003e28, goto 0x80004310
 #; memcpy (memcpy.c:25)
 #;   {
-           1786000    0x8000560c addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
-           1787000    0x80005610 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24]
+          10407000    0x80004310 addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
+          10408000    0x80004314 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24], (lsu) a0  <-- 0x1001ef68
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           1788000    0x80005614 andi a3, a0, 3                 #; a0  = 0x1001ef68, (wrb) a3  <-- 0
-           1789000    0x80005618 andi a4, a1, 3                 #; a1  = 0x80005d48, (wrb) a4  <-- 0
-           1790000    0x8000561c xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
-           1791000    0x80005620 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
-           1792000    0x80005624 li a5, 3                       #; (wrb) a5  <-- 3
-           1793000    0x80005628 sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
-           1794000    0x8000562c and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
+          10409000    0x80004318 andi a3, a0, 3                 #; a0  = 0x1001ef68, (wrb) a3  <-- 0
+          10410000    0x8000431c andi a4, a1, 3                 #; a1  = 0x80005e88, (wrb) a4  <-- 0
+          10411000    0x80004320 xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
+          10412000    0x80004324 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
+          10413000    0x80004328 li a5, 3                       #; (wrb) a5  <-- 3
+          10414000    0x8000432c sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
+          10415000    0x80004330 and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
 #; memcpy (memcpy.c:34:17)
 #;   char *end = a + n;
 #;                 ^
-           1795000    0x80005630 add a2, a0, a2                 #; a0  = 0x1001ef68, a2  = 12, (wrb) a2  <-- 0x1001ef74
+          10416000    0x80004334 add a2, a0, a2                 #; a0  = 0x1001ef68, a2  = 12, (wrb) a2  <-- 0x1001ef74
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           1796000    0x80005634 beqz a4, 80                    #; a4  = 1, not taken
+          10417000    0x80004338 beqz a4, 80                    #; a4  = 1, not taken
 #; memcpy (memcpy.c:46:7)
 #;   if (unlikely (((uintptr_t)a & msk) != 0))
 #;       ^
-           1797000    0x80005638 bnez a3, 116                   #; a3  = 0, not taken
-           1798000    0x8000563c mv a4, a0                      #; a0  = 0x1001ef68, (wrb) a4  <-- 0x1001ef68
+          10418000    0x8000433c bnez a3, 116                   #; a3  = 0, not taken
+          10419000    0x80004340 mv a4, a0                      #; a0  = 0x1001ef68, (wrb) a4  <-- 0x1001ef68
 #; .LBB0_3 (memcpy.c:52:40)
 #;   long *lend = (long *)((uintptr_t)end & ~msk);
 #;                                        ^
-           1799000    0x80005640 andi a3, a2, -4                #; a2  = 0x1001ef74, (wrb) a3  <-- 0x1001ef74
+          10420000    0x80004344 andi a3, a2, -4                #; a2  = 0x1001ef74, (wrb) a3  <-- 0x1001ef74
 #; .LBB0_3 (memcpy.c:54:7)
 #;   if (unlikely (lend - la > 8))
 #;       ^
-           1800000    0x80005644 sub a5, a3, a4                 #; a3  = 0x1001ef74, a4  = 0x1001ef68, (wrb) a5  <-- 12
-           1801000    0x80005648 li a6, 33                      #; (wrb) a6  <-- 33
-           1802000    0x8000564c bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
+          10421000    0x80004348 sub a5, a3, a4                 #; a3  = 0x1001ef74, a4  = 0x1001ef68, (wrb) a5  <-- 12
+          10422000    0x8000434c li a6, 33                      #; (wrb) a6  <-- 33
+          10423000    0x80004350 bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
 #; .LBB0_4 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           1803000    0x80005650 bgeu a4, a3, 32                #; a4  = 0x1001ef68, a3  = 0x1001ef74, not taken
+          10424000    0x80004354 bgeu a4, a3, 32                #; a4  = 0x1001ef68, a3  = 0x1001ef74, not taken
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           1804000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x80005d48, a6  <~~ Word[0x80005d48]
-           1805000    0x80005658 addi a5, a4, 4                 #; a4  = 0x1001ef68, (wrb) a5  <-- 0x1001ef6c
-           1806000    0x8000565c addi a1, a1, 4                 #; a1  = 0x80005d48, (wrb) a1  <-- 0x80005d4c
-           1830000                                              #; (lsu) a6  <-- 0x80005e80
-           1831000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x1001ef68, 0x80005e80 ~~> Word[0x1001ef68]
-           1832000    0x80005664 mv a4, a5                      #; a5  = 0x1001ef6c, (wrb) a4  <-- 0x1001ef6c
+          10425000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x80005e88, a6  <~~ Word[0x80005e88]
+          10426000    0x8000435c addi a5, a4, 4                 #; a4  = 0x1001ef68, (wrb) a5  <-- 0x1001ef6c
+          10427000    0x80004360 addi a1, a1, 4                 #; a1  = 0x80005e88, (wrb) a1  <-- 0x80005e8c
+          10446000                                              #; (lsu) a6  <-- 0x80005fc0
+          10447000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x1001ef68, 0x80005fc0 ~~> Word[0x1001ef68]
+          10448000    0x80004368 mv a4, a5                      #; a5  = 0x1001ef6c, (wrb) a4  <-- 0x1001ef6c
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           1833000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1001ef6c, a3  = 0x1001ef74, taken, goto 0x80005654
+          10449000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1001ef6c, a3  = 0x1001ef74, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           1834000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x80005d4c, a6  <~~ Word[0x80005d4c]
-           1835000    0x80005658 addi a5, a4, 4                 #; a4  = 0x1001ef6c, (wrb) a5  <-- 0x1001ef70
-           1836000    0x8000565c addi a1, a1, 4                 #; a1  = 0x80005d4c, (wrb) a1  <-- 0x80005d50
-           1867000                                              #; (lsu) a6  <-- 1
-           1868000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x1001ef6c, 1 ~~> Word[0x1001ef6c]
-           1869000    0x80005664 mv a4, a5                      #; a5  = 0x1001ef70, (wrb) a4  <-- 0x1001ef70
+          10450000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x80005e8c, a6  <~~ Word[0x80005e8c]
+          10451000    0x8000435c addi a5, a4, 4                 #; a4  = 0x1001ef6c, (wrb) a5  <-- 0x1001ef70
+          10452000    0x80004360 addi a1, a1, 4                 #; a1  = 0x80005e8c, (wrb) a1  <-- 0x80005e90
+          10483000                                              #; (lsu) a6  <-- 1
+          10484000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x1001ef6c, 1 ~~> Word[0x1001ef6c]
+          10485000    0x80004368 mv a4, a5                      #; a5  = 0x1001ef70, (wrb) a4  <-- 0x1001ef70
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           1870000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1001ef70, a3  = 0x1001ef74, taken, goto 0x80005654
+          10486000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1001ef70, a3  = 0x1001ef74, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           1871000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x80005d50, a6  <~~ Word[0x80005d50]
-           1872000    0x80005658 addi a5, a4, 4                 #; a4  = 0x1001ef70, (wrb) a5  <-- 0x1001ef74
-           1873000    0x8000565c addi a1, a1, 4                 #; a1  = 0x80005d50, (wrb) a1  <-- 0x80005d54
-           1911000                                              #; (lsu) a6  <-- 1
-           1912000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x1001ef70, 1 ~~> Word[0x1001ef70]
-           1913000    0x80005664 mv a4, a5                      #; a5  = 0x1001ef74, (wrb) a4  <-- 0x1001ef74
+          10487000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x80005e90, a6  <~~ Word[0x80005e90]
+          10488000    0x8000435c addi a5, a4, 4                 #; a4  = 0x1001ef70, (wrb) a5  <-- 0x1001ef74
+          10489000    0x80004360 addi a1, a1, 4                 #; a1  = 0x80005e90, (wrb) a1  <-- 0x80005e94
+          10527000                                              #; (lsu) a6  <-- 1
+          10528000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x1001ef70, 1 ~~> Word[0x1001ef70]
+          10529000    0x80004368 mv a4, a5                      #; a5  = 0x1001ef74, (wrb) a4  <-- 0x1001ef74
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           1914000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1001ef74, a3  = 0x1001ef74, not taken
-           1915000    0x8000566c j 8                            #; goto 0x80005674
+          10530000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1001ef74, a3  = 0x1001ef74, not taken
+          10531000    0x80004370 j 8                            #; goto 0x80004378
 #; .LBB0_7 (memcpy.c:84:7)
 #;   if (unlikely (a < end))
 #;       ^
-           1916000    0x80005674 bltu a5, a2, 20                #; a5  = 0x1001ef74, a2  = 0x1001ef74, not taken
+          10532000    0x80004378 bltu a5, a2, 20                #; a5  = 0x1001ef74, a2  = 0x1001ef74, not taken
 #; .LBB0_8 (memcpy.c:87:1)
 #;   }
 #;   ^
-           1917000    0x80005678 lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
-           1918000    0x8000567c addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
-           1919000    0x80005680 ret                            #; ra  = 0x80003e00, goto 0x80003e00
+          10533000    0x8000437c lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
+          10535000    0x80004380 addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
+          10536000    0x80004384 ret                            #; ra  = 0x80003e28, (lsu) s0  <-- 12, goto 0x80003e28
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:28)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                    ^
-           1920000    0x80003e00 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30], (lsu) s0  <-- 12
+          10537000    0x80003e28 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:68)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                                                            ^
-           1921000    0x80003e04 lw a1, 8(sp)                   #; sp  = 0x1001ef28, a1  <~~ Word[0x1001ef30]
-           1923000                                              #; (lsu) a0  <-- 0x1001ef68
+          10538000    0x80003e2c lw a1, 8(sp)                   #; sp  = 0x1001ef28, a1  <~~ Word[0x1001ef30]
+          10541000                                              #; (lsu) a0  <-- 0x1001ef68
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:36)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                            ^
-           1924000    0x80003e08 addi a0, a0, 1032              #; a0  = 0x1001ef68, (wrb) a0  <-- 0x1001f370
+          10542000    0x80003e30 addi a0, a0, 1032              #; a0  = 0x1001ef68, (wrb) a0  <-- 0x1001f370
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:13)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;     ^
-           1925000    0x80003e0c mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
-           1926000    0x80003e10 auipc ra, 1                    #; (wrb) ra  <-- 0x80004e10
-           1927000    0x80003e14 jalr 2044(ra)                  #; ra  = 0x80004e10, (wrb) ra  <-- 0x80003e18, goto 0x8000560c
+          10543000    0x80003e34 mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
+          10544000    0x80003e38 auipc ra, 0                    #; (wrb) ra  <-- 0x80003e38
+          10545000    0x80003e3c jalr 1240(ra)                  #; ra  = 0x80003e38, (wrb) ra  <-- 0x80003e40, goto 0x80004310
 #; memcpy (memcpy.c:25)
 #;   {
-           1928000    0x8000560c addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
-           1929000    0x80005610 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24], (lsu) a1  <-- 0x1001ef68
+          10546000    0x80004310 addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
+          10547000    0x80004314 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24], (lsu) a1  <-- 0x1001ef68
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           1930000    0x80005614 andi a3, a0, 3                 #; a0  = 0x1001f370, (wrb) a3  <-- 0
-           1931000    0x80005618 andi a4, a1, 3                 #; a1  = 0x1001ef68, (wrb) a4  <-- 0
-           1932000    0x8000561c xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
-           1933000    0x80005620 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
-           1934000    0x80005624 li a5, 3                       #; (wrb) a5  <-- 3
-           1935000    0x80005628 sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
-           1936000    0x8000562c and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
+          10548000    0x80004318 andi a3, a0, 3                 #; a0  = 0x1001f370, (wrb) a3  <-- 0
+          10549000    0x8000431c andi a4, a1, 3                 #; a1  = 0x1001ef68, (wrb) a4  <-- 0
+          10550000    0x80004320 xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
+          10551000    0x80004324 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
+          10552000    0x80004328 li a5, 3                       #; (wrb) a5  <-- 3
+          10553000    0x8000432c sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
+          10554000    0x80004330 and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
 #; memcpy (memcpy.c:34:17)
 #;   char *end = a + n;
 #;                 ^
-           1937000    0x80005630 add a2, a0, a2                 #; a0  = 0x1001f370, a2  = 12, (wrb) a2  <-- 0x1001f37c
+          10555000    0x80004334 add a2, a0, a2                 #; a0  = 0x1001f370, a2  = 12, (wrb) a2  <-- 0x1001f37c
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           1938000    0x80005634 beqz a4, 80                    #; a4  = 1, not taken
+          10556000    0x80004338 beqz a4, 80                    #; a4  = 1, not taken
 #; memcpy (memcpy.c:46:7)
 #;   if (unlikely (((uintptr_t)a & msk) != 0))
 #;       ^
-           1939000    0x80005638 bnez a3, 116                   #; a3  = 0, not taken
-           1940000    0x8000563c mv a4, a0                      #; a0  = 0x1001f370, (wrb) a4  <-- 0x1001f370
+          10557000    0x8000433c bnez a3, 116                   #; a3  = 0, not taken
+          10558000    0x80004340 mv a4, a0                      #; a0  = 0x1001f370, (wrb) a4  <-- 0x1001f370
 #; .LBB0_3 (memcpy.c:52:40)
 #;   long *lend = (long *)((uintptr_t)end & ~msk);
 #;                                        ^
-           1941000    0x80005640 andi a3, a2, -4                #; a2  = 0x1001f37c, (wrb) a3  <-- 0x1001f37c
+          10559000    0x80004344 andi a3, a2, -4                #; a2  = 0x1001f37c, (wrb) a3  <-- 0x1001f37c
 #; .LBB0_3 (memcpy.c:54:7)
 #;   if (unlikely (lend - la > 8))
 #;       ^
-           1942000    0x80005644 sub a5, a3, a4                 #; a3  = 0x1001f37c, a4  = 0x1001f370, (wrb) a5  <-- 12
-           1943000    0x80005648 li a6, 33                      #; (wrb) a6  <-- 33
-           1944000    0x8000564c bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
+          10560000    0x80004348 sub a5, a3, a4                 #; a3  = 0x1001f37c, a4  = 0x1001f370, (wrb) a5  <-- 12
+          10561000    0x8000434c li a6, 33                      #; (wrb) a6  <-- 33
+          10562000    0x80004350 bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
 #; .LBB0_4 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           1945000    0x80005650 bgeu a4, a3, 32                #; a4  = 0x1001f370, a3  = 0x1001f37c, not taken
+          10563000    0x80004354 bgeu a4, a3, 32                #; a4  = 0x1001f370, a3  = 0x1001f37c, not taken
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           1946000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef68, a6  <~~ Word[0x1001ef68]
-           1947000    0x80005658 addi a5, a4, 4                 #; a4  = 0x1001f370, (wrb) a5  <-- 0x1001f374
-           1948000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef6c
-           1949000                                              #; (lsu) a6  <-- 0x80005e80
-           1950000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x1001f370, 0x80005e80 ~~> Word[0x1001f370]
-           1951000    0x80005664 mv a4, a5                      #; a5  = 0x1001f374, (wrb) a4  <-- 0x1001f374
+          10564000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef68, a6  <~~ Word[0x1001ef68]
+          10565000    0x8000435c addi a5, a4, 4                 #; a4  = 0x1001f370, (wrb) a5  <-- 0x1001f374
+          10566000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef6c
+          10567000                                              #; (lsu) a6  <-- 0x80005fc0
+          10568000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x1001f370, 0x80005fc0 ~~> Word[0x1001f370]
+          10569000    0x80004368 mv a4, a5                      #; a5  = 0x1001f374, (wrb) a4  <-- 0x1001f374
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           1952000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1001f374, a3  = 0x1001f37c, taken, goto 0x80005654
+          10570000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1001f374, a3  = 0x1001f37c, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           1953000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef6c, a6  <~~ Word[0x1001ef6c]
-           1954000    0x80005658 addi a5, a4, 4                 #; a4  = 0x1001f374, (wrb) a5  <-- 0x1001f378
-           1955000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef6c, (wrb) a1  <-- 0x1001ef70
-           1956000                                              #; (lsu) a6  <-- 1
-           1957000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x1001f374, 1 ~~> Word[0x1001f374]
-           1958000    0x80005664 mv a4, a5                      #; a5  = 0x1001f378, (wrb) a4  <-- 0x1001f378
+          10571000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef6c, a6  <~~ Word[0x1001ef6c]
+          10572000    0x8000435c addi a5, a4, 4                 #; a4  = 0x1001f374, (wrb) a5  <-- 0x1001f378
+          10573000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef6c, (wrb) a1  <-- 0x1001ef70
+          10574000                                              #; (lsu) a6  <-- 1
+          10575000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x1001f374, 1 ~~> Word[0x1001f374]
+          10576000    0x80004368 mv a4, a5                      #; a5  = 0x1001f378, (wrb) a4  <-- 0x1001f378
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           1959000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1001f378, a3  = 0x1001f37c, taken, goto 0x80005654
+          10577000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1001f378, a3  = 0x1001f37c, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           1960000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef70, a6  <~~ Word[0x1001ef70]
-           1961000    0x80005658 addi a5, a4, 4                 #; a4  = 0x1001f378, (wrb) a5  <-- 0x1001f37c
-           1962000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef70, (wrb) a1  <-- 0x1001ef74
-           1963000                                              #; (lsu) a6  <-- 1
-           1964000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x1001f378, 1 ~~> Word[0x1001f378]
-           1965000    0x80005664 mv a4, a5                      #; a5  = 0x1001f37c, (wrb) a4  <-- 0x1001f37c
+          10578000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef70, a6  <~~ Word[0x1001ef70]
+          10579000    0x8000435c addi a5, a4, 4                 #; a4  = 0x1001f378, (wrb) a5  <-- 0x1001f37c
+          10580000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef70, (wrb) a1  <-- 0x1001ef74
+          10581000                                              #; (lsu) a6  <-- 1
+          10582000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x1001f378, 1 ~~> Word[0x1001f378]
+          10583000    0x80004368 mv a4, a5                      #; a5  = 0x1001f37c, (wrb) a4  <-- 0x1001f37c
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           1966000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1001f37c, a3  = 0x1001f37c, not taken
-           1967000    0x8000566c j 8                            #; goto 0x80005674
+          10584000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1001f37c, a3  = 0x1001f37c, not taken
+          10585000    0x80004370 j 8                            #; goto 0x80004378
 #; .LBB0_7 (memcpy.c:84:7)
 #;   if (unlikely (a < end))
 #;       ^
-           1968000    0x80005674 bltu a5, a2, 20                #; a5  = 0x1001f37c, a2  = 0x1001f37c, not taken
+          10586000    0x80004378 bltu a5, a2, 20                #; a5  = 0x1001f37c, a2  = 0x1001f37c, not taken
 #; .LBB0_8 (memcpy.c:87:1)
 #;   }
 #;   ^
-           1969000    0x80005678 lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
-           1970000    0x8000567c addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
-           1971000    0x80005680 ret                            #; ra  = 0x80003e18, goto 0x80003e18
+          10587000    0x8000437c lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
+          10588000    0x80004380 addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
+          10589000    0x80004384 ret                            #; ra  = 0x80003e40, goto 0x80003e40
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:28)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                    ^
-           1972000    0x80003e18 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30], (lsu) s0  <-- 12
+          10590000    0x80003e40 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30], (lsu) s0  <-- 12
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:68)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                                                            ^
-           1973000    0x80003e1c lw a1, 8(sp)                   #; sp  = 0x1001ef28, a1  <~~ Word[0x1001ef30]
-           1974000    0x80003e20 lui s7, 1                      #; (wrb) s7  <-- 4096
-           1975000    0x80003e24 addi s1, s7, -2032             #; s7  = 4096, (wrb) s1  <-- 2064
-           1976000                                              #; (lsu) a0  <-- 0x1001ef68
+          10591000    0x80003e44 lw a1, 8(sp)                   #; sp  = 0x1001ef28, a1  <~~ Word[0x1001ef30]
+          10592000    0x80003e48 lui s7, 1                      #; (wrb) s7  <-- 4096
+          10593000    0x80003e4c addi s1, s7, -2032             #; s7  = 4096, (wrb) s1  <-- 2064
+          10594000                                              #; (lsu) a0  <-- 0x1001ef68
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:36)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                            ^
-           1977000    0x80003e28 add a0, a0, s1                 #; a0  = 0x1001ef68, s1  = 2064, (wrb) a0  <-- 0x1001f778
+          10595000    0x80003e50 add a0, a0, s1                 #; a0  = 0x1001ef68, s1  = 2064, (wrb) a0  <-- 0x1001f778
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:13)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;     ^
-           1978000    0x80003e2c mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
-           1979000    0x80003e30 auipc ra, 1                    #; (wrb) ra  <-- 0x80004e30
-           1980000    0x80003e34 jalr 2012(ra)                  #; ra  = 0x80004e30, (wrb) ra  <-- 0x80003e38, goto 0x8000560c
+          10596000    0x80003e54 mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
+          10597000    0x80003e58 auipc ra, 0                    #; (wrb) ra  <-- 0x80003e58
+          10598000    0x80003e5c jalr 1208(ra)                  #; ra  = 0x80003e58, (wrb) ra  <-- 0x80003e60, goto 0x80004310
 #; memcpy (memcpy.c:25)
 #;   {
-           1981000    0x8000560c addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
-           1982000    0x80005610 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24], (lsu) a1  <-- 0x1001ef68
+          10599000    0x80004310 addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
+          10600000    0x80004314 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24], (lsu) a1  <-- 0x1001ef68
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           1983000    0x80005614 andi a3, a0, 3                 #; a0  = 0x1001f778, (wrb) a3  <-- 0
-           1984000    0x80005618 andi a4, a1, 3                 #; a1  = 0x1001ef68, (wrb) a4  <-- 0
-           1985000    0x8000561c xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
-           1986000    0x80005620 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
-           1987000    0x80005624 li a5, 3                       #; (wrb) a5  <-- 3
-           1988000    0x80005628 sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
-           1989000    0x8000562c and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
+          10601000    0x80004318 andi a3, a0, 3                 #; a0  = 0x1001f778, (wrb) a3  <-- 0
+          10602000    0x8000431c andi a4, a1, 3                 #; a1  = 0x1001ef68, (wrb) a4  <-- 0
+          10603000    0x80004320 xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
+          10604000    0x80004324 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
+          10605000    0x80004328 li a5, 3                       #; (wrb) a5  <-- 3
+          10606000    0x8000432c sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
+          10607000    0x80004330 and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
 #; memcpy (memcpy.c:34:17)
 #;   char *end = a + n;
 #;                 ^
-           1990000    0x80005630 add a2, a0, a2                 #; a0  = 0x1001f778, a2  = 12, (wrb) a2  <-- 0x1001f784
+          10608000    0x80004334 add a2, a0, a2                 #; a0  = 0x1001f778, a2  = 12, (wrb) a2  <-- 0x1001f784
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           1991000    0x80005634 beqz a4, 80                    #; a4  = 1, not taken
+          10609000    0x80004338 beqz a4, 80                    #; a4  = 1, not taken
 #; memcpy (memcpy.c:46:7)
 #;   if (unlikely (((uintptr_t)a & msk) != 0))
 #;       ^
-           1992000    0x80005638 bnez a3, 116                   #; a3  = 0, not taken
-           1993000    0x8000563c mv a4, a0                      #; a0  = 0x1001f778, (wrb) a4  <-- 0x1001f778
+          10610000    0x8000433c bnez a3, 116                   #; a3  = 0, not taken
+          10611000    0x80004340 mv a4, a0                      #; a0  = 0x1001f778, (wrb) a4  <-- 0x1001f778
 #; .LBB0_3 (memcpy.c:52:40)
 #;   long *lend = (long *)((uintptr_t)end & ~msk);
 #;                                        ^
-           1994000    0x80005640 andi a3, a2, -4                #; a2  = 0x1001f784, (wrb) a3  <-- 0x1001f784
+          10612000    0x80004344 andi a3, a2, -4                #; a2  = 0x1001f784, (wrb) a3  <-- 0x1001f784
 #; .LBB0_3 (memcpy.c:54:7)
 #;   if (unlikely (lend - la > 8))
 #;       ^
-           1995000    0x80005644 sub a5, a3, a4                 #; a3  = 0x1001f784, a4  = 0x1001f778, (wrb) a5  <-- 12
-           1996000    0x80005648 li a6, 33                      #; (wrb) a6  <-- 33
-           1997000    0x8000564c bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
+          10613000    0x80004348 sub a5, a3, a4                 #; a3  = 0x1001f784, a4  = 0x1001f778, (wrb) a5  <-- 12
+          10614000    0x8000434c li a6, 33                      #; (wrb) a6  <-- 33
+          10615000    0x80004350 bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
 #; .LBB0_4 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           1998000    0x80005650 bgeu a4, a3, 32                #; a4  = 0x1001f778, a3  = 0x1001f784, not taken
+          10616000    0x80004354 bgeu a4, a3, 32                #; a4  = 0x1001f778, a3  = 0x1001f784, not taken
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           1999000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef68, a6  <~~ Word[0x1001ef68]
-           2000000    0x80005658 addi a5, a4, 4                 #; a4  = 0x1001f778, (wrb) a5  <-- 0x1001f77c
-           2001000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef6c
-           2002000                                              #; (lsu) a6  <-- 0x80005e80
-           2003000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x1001f778, 0x80005e80 ~~> Word[0x1001f778]
-           2004000    0x80005664 mv a4, a5                      #; a5  = 0x1001f77c, (wrb) a4  <-- 0x1001f77c
+          10617000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef68, a6  <~~ Word[0x1001ef68]
+          10618000    0x8000435c addi a5, a4, 4                 #; a4  = 0x1001f778, (wrb) a5  <-- 0x1001f77c
+          10619000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef6c
+          10620000                                              #; (lsu) a6  <-- 0x80005fc0
+          10621000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x1001f778, 0x80005fc0 ~~> Word[0x1001f778]
+          10622000    0x80004368 mv a4, a5                      #; a5  = 0x1001f77c, (wrb) a4  <-- 0x1001f77c
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2005000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1001f77c, a3  = 0x1001f784, taken, goto 0x80005654
+          10623000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1001f77c, a3  = 0x1001f784, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2006000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef6c, a6  <~~ Word[0x1001ef6c]
-           2007000    0x80005658 addi a5, a4, 4                 #; a4  = 0x1001f77c, (wrb) a5  <-- 0x1001f780
-           2008000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef6c, (wrb) a1  <-- 0x1001ef70
-           2009000                                              #; (lsu) a6  <-- 1
-           2010000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x1001f77c, 1 ~~> Word[0x1001f77c]
-           2011000    0x80005664 mv a4, a5                      #; a5  = 0x1001f780, (wrb) a4  <-- 0x1001f780
+          10624000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef6c, a6  <~~ Word[0x1001ef6c]
+          10625000    0x8000435c addi a5, a4, 4                 #; a4  = 0x1001f77c, (wrb) a5  <-- 0x1001f780
+          10626000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef6c, (wrb) a1  <-- 0x1001ef70
+          10627000                                              #; (lsu) a6  <-- 1
+          10628000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x1001f77c, 1 ~~> Word[0x1001f77c]
+          10629000    0x80004368 mv a4, a5                      #; a5  = 0x1001f780, (wrb) a4  <-- 0x1001f780
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2012000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1001f780, a3  = 0x1001f784, taken, goto 0x80005654
+          10630000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1001f780, a3  = 0x1001f784, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2013000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef70, a6  <~~ Word[0x1001ef70]
-           2014000    0x80005658 addi a5, a4, 4                 #; a4  = 0x1001f780, (wrb) a5  <-- 0x1001f784
-           2015000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef70, (wrb) a1  <-- 0x1001ef74
-           2016000                                              #; (lsu) a6  <-- 1
-           2017000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x1001f780, 1 ~~> Word[0x1001f780]
-           2018000    0x80005664 mv a4, a5                      #; a5  = 0x1001f784, (wrb) a4  <-- 0x1001f784
+          10631000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef70, a6  <~~ Word[0x1001ef70]
+          10632000    0x8000435c addi a5, a4, 4                 #; a4  = 0x1001f780, (wrb) a5  <-- 0x1001f784
+          10633000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef70, (wrb) a1  <-- 0x1001ef74
+          10634000                                              #; (lsu) a6  <-- 1
+          10635000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x1001f780, 1 ~~> Word[0x1001f780]
+          10636000    0x80004368 mv a4, a5                      #; a5  = 0x1001f784, (wrb) a4  <-- 0x1001f784
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2019000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1001f784, a3  = 0x1001f784, not taken
-           2020000    0x8000566c j 8                            #; goto 0x80005674
+          10637000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1001f784, a3  = 0x1001f784, not taken
+          10638000    0x80004370 j 8                            #; goto 0x80004378
 #; .LBB0_7 (memcpy.c:84:7)
 #;   if (unlikely (a < end))
 #;       ^
-           2021000    0x80005674 bltu a5, a2, 20                #; a5  = 0x1001f784, a2  = 0x1001f784, not taken
+          10639000    0x80004378 bltu a5, a2, 20                #; a5  = 0x1001f784, a2  = 0x1001f784, not taken
 #; .LBB0_8 (memcpy.c:87:1)
 #;   }
 #;   ^
-           2022000    0x80005678 lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
-           2023000    0x8000567c addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
-           2024000    0x80005680 ret                            #; ra  = 0x80003e38, goto 0x80003e38
+          10640000    0x8000437c lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
+          10641000    0x80004380 addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
+          10642000    0x80004384 ret                            #; ra  = 0x80003e60, goto 0x80003e60
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:28)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                    ^
-           2025000    0x80003e38 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30], (lsu) s0  <-- 12
+          10643000    0x80003e60 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30], (lsu) s0  <-- 12
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:68)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                                                            ^
-           2026000    0x80003e3c lw a1, 8(sp)                   #; sp  = 0x1001ef28, a1  <~~ Word[0x1001ef30]
+          10644000    0x80003e64 lw a1, 8(sp)                   #; sp  = 0x1001ef28, a1  <~~ Word[0x1001ef30]
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:36)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                            ^
-           2027000    0x80003e40 ori s6, s1, 1032               #; s1  = 2064, (wrb) s6  <-- 3096
-           2028000                                              #; (lsu) a0  <-- 0x1001ef68
-           2029000    0x80003e44 add a0, a0, s6                 #; a0  = 0x1001ef68, s6  = 3096, (wrb) a0  <-- 0x1001fb80
+          10645000    0x80003e68 ori s6, s1, 1032               #; s1  = 2064, (wrb) s6  <-- 3096
+          10646000                                              #; (lsu) a0  <-- 0x1001ef68
+          10647000    0x80003e6c add a0, a0, s6                 #; a0  = 0x1001ef68, s6  = 3096, (wrb) a0  <-- 0x1001fb80
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:13)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;     ^
-           2030000    0x80003e48 mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
-           2031000    0x80003e4c auipc ra, 1                    #; (wrb) ra  <-- 0x80004e4c
-           2032000    0x80003e50 jalr 1984(ra)                  #; ra  = 0x80004e4c, (wrb) ra  <-- 0x80003e54, goto 0x8000560c
+          10648000    0x80003e70 mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
+          10649000    0x80003e74 auipc ra, 0                    #; (wrb) ra  <-- 0x80003e74
+          10650000    0x80003e78 jalr 1180(ra)                  #; ra  = 0x80003e74, (wrb) ra  <-- 0x80003e7c, goto 0x80004310
 #; memcpy (memcpy.c:25)
 #;   {
-           2033000    0x8000560c addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
-           2034000    0x80005610 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24], (lsu) a1  <-- 0x1001ef68
+          10651000    0x80004310 addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
+          10652000    0x80004314 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24], (lsu) a1  <-- 0x1001ef68
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           2035000    0x80005614 andi a3, a0, 3                 #; a0  = 0x1001fb80, (wrb) a3  <-- 0
-           2036000    0x80005618 andi a4, a1, 3                 #; a1  = 0x1001ef68, (wrb) a4  <-- 0
-           2037000    0x8000561c xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
-           2038000    0x80005620 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
-           2039000    0x80005624 li a5, 3                       #; (wrb) a5  <-- 3
-           2040000    0x80005628 sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
-           2041000    0x8000562c and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
+          10653000    0x80004318 andi a3, a0, 3                 #; a0  = 0x1001fb80, (wrb) a3  <-- 0
+          10654000    0x8000431c andi a4, a1, 3                 #; a1  = 0x1001ef68, (wrb) a4  <-- 0
+          10655000    0x80004320 xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
+          10656000    0x80004324 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
+          10657000    0x80004328 li a5, 3                       #; (wrb) a5  <-- 3
+          10658000    0x8000432c sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
+          10659000    0x80004330 and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
 #; memcpy (memcpy.c:34:17)
 #;   char *end = a + n;
 #;                 ^
-           2042000    0x80005630 add a2, a0, a2                 #; a0  = 0x1001fb80, a2  = 12, (wrb) a2  <-- 0x1001fb8c
+          10660000    0x80004334 add a2, a0, a2                 #; a0  = 0x1001fb80, a2  = 12, (wrb) a2  <-- 0x1001fb8c
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           2043000    0x80005634 beqz a4, 80                    #; a4  = 1, not taken
+          10661000    0x80004338 beqz a4, 80                    #; a4  = 1, not taken
 #; memcpy (memcpy.c:46:7)
 #;   if (unlikely (((uintptr_t)a & msk) != 0))
 #;       ^
-           2044000    0x80005638 bnez a3, 116                   #; a3  = 0, not taken
-           2045000    0x8000563c mv a4, a0                      #; a0  = 0x1001fb80, (wrb) a4  <-- 0x1001fb80
+          10662000    0x8000433c bnez a3, 116                   #; a3  = 0, not taken
+          10663000    0x80004340 mv a4, a0                      #; a0  = 0x1001fb80, (wrb) a4  <-- 0x1001fb80
 #; .LBB0_3 (memcpy.c:52:40)
 #;   long *lend = (long *)((uintptr_t)end & ~msk);
 #;                                        ^
-           2046000    0x80005640 andi a3, a2, -4                #; a2  = 0x1001fb8c, (wrb) a3  <-- 0x1001fb8c
+          10664000    0x80004344 andi a3, a2, -4                #; a2  = 0x1001fb8c, (wrb) a3  <-- 0x1001fb8c
 #; .LBB0_3 (memcpy.c:54:7)
 #;   if (unlikely (lend - la > 8))
 #;       ^
-           2047000    0x80005644 sub a5, a3, a4                 #; a3  = 0x1001fb8c, a4  = 0x1001fb80, (wrb) a5  <-- 12
-           2048000    0x80005648 li a6, 33                      #; (wrb) a6  <-- 33
-           2049000    0x8000564c bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
+          10665000    0x80004348 sub a5, a3, a4                 #; a3  = 0x1001fb8c, a4  = 0x1001fb80, (wrb) a5  <-- 12
+          10666000    0x8000434c li a6, 33                      #; (wrb) a6  <-- 33
+          10667000    0x80004350 bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
 #; .LBB0_4 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2050000    0x80005650 bgeu a4, a3, 32                #; a4  = 0x1001fb80, a3  = 0x1001fb8c, not taken
+          10668000    0x80004354 bgeu a4, a3, 32                #; a4  = 0x1001fb80, a3  = 0x1001fb8c, not taken
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2051000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef68, a6  <~~ Word[0x1001ef68]
-           2052000    0x80005658 addi a5, a4, 4                 #; a4  = 0x1001fb80, (wrb) a5  <-- 0x1001fb84
-           2053000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef6c
-           2054000                                              #; (lsu) a6  <-- 0x80005e80
-           2055000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x1001fb80, 0x80005e80 ~~> Word[0x1001fb80]
-           2056000    0x80005664 mv a4, a5                      #; a5  = 0x1001fb84, (wrb) a4  <-- 0x1001fb84
+          10669000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef68, a6  <~~ Word[0x1001ef68]
+          10670000    0x8000435c addi a5, a4, 4                 #; a4  = 0x1001fb80, (wrb) a5  <-- 0x1001fb84
+          10671000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef6c
+          10672000                                              #; (lsu) a6  <-- 0x80005fc0
+          10673000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x1001fb80, 0x80005fc0 ~~> Word[0x1001fb80]
+          10674000    0x80004368 mv a4, a5                      #; a5  = 0x1001fb84, (wrb) a4  <-- 0x1001fb84
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2057000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1001fb84, a3  = 0x1001fb8c, taken, goto 0x80005654
+          10675000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1001fb84, a3  = 0x1001fb8c, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2058000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef6c, a6  <~~ Word[0x1001ef6c]
-           2059000    0x80005658 addi a5, a4, 4                 #; a4  = 0x1001fb84, (wrb) a5  <-- 0x1001fb88
-           2060000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef6c, (wrb) a1  <-- 0x1001ef70
-           2061000                                              #; (lsu) a6  <-- 1
-           2062000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x1001fb84, 1 ~~> Word[0x1001fb84]
-           2063000    0x80005664 mv a4, a5                      #; a5  = 0x1001fb88, (wrb) a4  <-- 0x1001fb88
+          10676000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef6c, a6  <~~ Word[0x1001ef6c]
+          10677000    0x8000435c addi a5, a4, 4                 #; a4  = 0x1001fb84, (wrb) a5  <-- 0x1001fb88
+          10678000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef6c, (wrb) a1  <-- 0x1001ef70
+          10679000                                              #; (lsu) a6  <-- 1
+          10680000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x1001fb84, 1 ~~> Word[0x1001fb84]
+          10681000    0x80004368 mv a4, a5                      #; a5  = 0x1001fb88, (wrb) a4  <-- 0x1001fb88
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2064000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1001fb88, a3  = 0x1001fb8c, taken, goto 0x80005654
+          10682000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1001fb88, a3  = 0x1001fb8c, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2065000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef70, a6  <~~ Word[0x1001ef70]
-           2066000    0x80005658 addi a5, a4, 4                 #; a4  = 0x1001fb88, (wrb) a5  <-- 0x1001fb8c
-           2067000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef70, (wrb) a1  <-- 0x1001ef74
-           2068000                                              #; (lsu) a6  <-- 1
-           2069000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x1001fb88, 1 ~~> Word[0x1001fb88]
-           2070000    0x80005664 mv a4, a5                      #; a5  = 0x1001fb8c, (wrb) a4  <-- 0x1001fb8c
+          10683000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef70, a6  <~~ Word[0x1001ef70]
+          10684000    0x8000435c addi a5, a4, 4                 #; a4  = 0x1001fb88, (wrb) a5  <-- 0x1001fb8c
+          10685000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef70, (wrb) a1  <-- 0x1001ef74
+          10686000                                              #; (lsu) a6  <-- 1
+          10687000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x1001fb88, 1 ~~> Word[0x1001fb88]
+          10688000    0x80004368 mv a4, a5                      #; a5  = 0x1001fb8c, (wrb) a4  <-- 0x1001fb8c
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2071000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1001fb8c, a3  = 0x1001fb8c, not taken
-           2072000    0x8000566c j 8                            #; goto 0x80005674
+          10689000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1001fb8c, a3  = 0x1001fb8c, not taken
+          10690000    0x80004370 j 8                            #; goto 0x80004378
 #; .LBB0_7 (memcpy.c:84:7)
 #;   if (unlikely (a < end))
 #;       ^
-           2073000    0x80005674 bltu a5, a2, 20                #; a5  = 0x1001fb8c, a2  = 0x1001fb8c, not taken
+          10691000    0x80004378 bltu a5, a2, 20                #; a5  = 0x1001fb8c, a2  = 0x1001fb8c, not taken
 #; .LBB0_8 (memcpy.c:87:1)
 #;   }
 #;   ^
-           2074000    0x80005678 lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
-           2075000    0x8000567c addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
-           2076000    0x80005680 ret                            #; ra  = 0x80003e54, goto 0x80003e54
+          10692000    0x8000437c lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
+          10693000    0x80004380 addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
+          10694000    0x80004384 ret                            #; ra  = 0x80003e7c, goto 0x80003e7c
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:28)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                    ^
-           2077000    0x80003e54 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30], (lsu) s0  <-- 12
+          10695000    0x80003e7c lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30], (lsu) s0  <-- 12
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:68)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                                                            ^
-           2078000    0x80003e58 lw a1, 8(sp)                   #; sp  = 0x1001ef28, a1  <~~ Word[0x1001ef30]
-           2079000    0x80003e5c addi s7, s7, 32                #; s7  = 4096, (wrb) s7  <-- 4128
-           2080000                                              #; (lsu) a0  <-- 0x1001ef68
+          10696000    0x80003e80 lw a1, 8(sp)                   #; sp  = 0x1001ef28, a1  <~~ Word[0x1001ef30]
+          10697000    0x80003e84 addi s7, s7, 32                #; s7  = 4096, (wrb) s7  <-- 4128
+          10698000                                              #; (lsu) a0  <-- 0x1001ef68
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:36)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                            ^
-           2081000    0x80003e60 add a0, a0, s7                 #; a0  = 0x1001ef68, s7  = 4128, (wrb) a0  <-- 0x1001ff88
+          10699000    0x80003e88 add a0, a0, s7                 #; a0  = 0x1001ef68, s7  = 4128, (wrb) a0  <-- 0x1001ff88
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:13)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;     ^
-           2082000    0x80003e64 mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
-           2083000    0x80003e68 auipc ra, 1                    #; (wrb) ra  <-- 0x80004e68
-           2084000    0x80003e6c jalr 1956(ra)                  #; ra  = 0x80004e68, (wrb) ra  <-- 0x80003e70, goto 0x8000560c
+          10700000    0x80003e8c mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
+          10701000    0x80003e90 auipc ra, 0                    #; (wrb) ra  <-- 0x80003e90
+          10702000    0x80003e94 jalr 1152(ra)                  #; ra  = 0x80003e90, (wrb) ra  <-- 0x80003e98, goto 0x80004310
+          10703000                                              #; (lsu) a1  <-- 0x1001ef68
 #; memcpy (memcpy.c:25)
 #;   {
-           2085000    0x8000560c addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
-           2086000    0x80005610 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24], (lsu) a1  <-- 0x1001ef68
+          10705000    0x80004310 addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
+          10706000    0x80004314 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24]
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           2087000    0x80005614 andi a3, a0, 3                 #; a0  = 0x1001ff88, (wrb) a3  <-- 0
-           2088000    0x80005618 andi a4, a1, 3                 #; a1  = 0x1001ef68, (wrb) a4  <-- 0
-           2089000    0x8000561c xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
-           2090000    0x80005620 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
-           2091000    0x80005624 li a5, 3                       #; (wrb) a5  <-- 3
-           2092000    0x80005628 sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
-           2093000    0x8000562c and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
+          10707000    0x80004318 andi a3, a0, 3                 #; a0  = 0x1001ff88, (wrb) a3  <-- 0
+          10708000    0x8000431c andi a4, a1, 3                 #; a1  = 0x1001ef68, (wrb) a4  <-- 0
+          10709000    0x80004320 xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
+          10710000    0x80004324 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
+          10711000    0x80004328 li a5, 3                       #; (wrb) a5  <-- 3
+          10712000    0x8000432c sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
+          10713000    0x80004330 and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
 #; memcpy (memcpy.c:34:17)
 #;   char *end = a + n;
 #;                 ^
-           2094000    0x80005630 add a2, a0, a2                 #; a0  = 0x1001ff88, a2  = 12, (wrb) a2  <-- 0x1001ff94
+          10714000    0x80004334 add a2, a0, a2                 #; a0  = 0x1001ff88, a2  = 12, (wrb) a2  <-- 0x1001ff94
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           2095000    0x80005634 beqz a4, 80                    #; a4  = 1, not taken
+          10715000    0x80004338 beqz a4, 80                    #; a4  = 1, not taken
 #; memcpy (memcpy.c:46:7)
 #;   if (unlikely (((uintptr_t)a & msk) != 0))
 #;       ^
-           2096000    0x80005638 bnez a3, 116                   #; a3  = 0, not taken
-           2097000    0x8000563c mv a4, a0                      #; a0  = 0x1001ff88, (wrb) a4  <-- 0x1001ff88
+          10716000    0x8000433c bnez a3, 116                   #; a3  = 0, not taken
+          10717000    0x80004340 mv a4, a0                      #; a0  = 0x1001ff88, (wrb) a4  <-- 0x1001ff88
 #; .LBB0_3 (memcpy.c:52:40)
 #;   long *lend = (long *)((uintptr_t)end & ~msk);
 #;                                        ^
-           2098000    0x80005640 andi a3, a2, -4                #; a2  = 0x1001ff94, (wrb) a3  <-- 0x1001ff94
+          10718000    0x80004344 andi a3, a2, -4                #; a2  = 0x1001ff94, (wrb) a3  <-- 0x1001ff94
 #; .LBB0_3 (memcpy.c:54:7)
 #;   if (unlikely (lend - la > 8))
 #;       ^
-           2099000    0x80005644 sub a5, a3, a4                 #; a3  = 0x1001ff94, a4  = 0x1001ff88, (wrb) a5  <-- 12
-           2100000    0x80005648 li a6, 33                      #; (wrb) a6  <-- 33
-           2101000    0x8000564c bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
+          10719000    0x80004348 sub a5, a3, a4                 #; a3  = 0x1001ff94, a4  = 0x1001ff88, (wrb) a5  <-- 12
+          10720000    0x8000434c li a6, 33                      #; (wrb) a6  <-- 33
+          10721000    0x80004350 bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
 #; .LBB0_4 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2102000    0x80005650 bgeu a4, a3, 32                #; a4  = 0x1001ff88, a3  = 0x1001ff94, not taken
+          10722000    0x80004354 bgeu a4, a3, 32                #; a4  = 0x1001ff88, a3  = 0x1001ff94, not taken
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2103000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef68, a6  <~~ Word[0x1001ef68]
-           2104000    0x80005658 addi a5, a4, 4                 #; a4  = 0x1001ff88, (wrb) a5  <-- 0x1001ff8c
-           2105000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef6c
-           2106000                                              #; (lsu) a6  <-- 0x80005e80
-           2107000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x1001ff88, 0x80005e80 ~~> Word[0x1001ff88]
-           2108000    0x80005664 mv a4, a5                      #; a5  = 0x1001ff8c, (wrb) a4  <-- 0x1001ff8c
+          10723000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef68, a6  <~~ Word[0x1001ef68]
+          10724000    0x8000435c addi a5, a4, 4                 #; a4  = 0x1001ff88, (wrb) a5  <-- 0x1001ff8c
+          10725000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef6c
+          10726000                                              #; (lsu) a6  <-- 0x80005fc0
+          10727000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x1001ff88, 0x80005fc0 ~~> Word[0x1001ff88]
+          10728000    0x80004368 mv a4, a5                      #; a5  = 0x1001ff8c, (wrb) a4  <-- 0x1001ff8c
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2109000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1001ff8c, a3  = 0x1001ff94, taken, goto 0x80005654
+          10729000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1001ff8c, a3  = 0x1001ff94, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2110000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef6c, a6  <~~ Word[0x1001ef6c]
-           2111000    0x80005658 addi a5, a4, 4                 #; a4  = 0x1001ff8c, (wrb) a5  <-- 0x1001ff90
-           2112000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef6c, (wrb) a1  <-- 0x1001ef70
-           2113000                                              #; (lsu) a6  <-- 1
-           2114000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x1001ff8c, 1 ~~> Word[0x1001ff8c]
-           2115000    0x80005664 mv a4, a5                      #; a5  = 0x1001ff90, (wrb) a4  <-- 0x1001ff90
+          10730000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef6c, a6  <~~ Word[0x1001ef6c]
+          10731000    0x8000435c addi a5, a4, 4                 #; a4  = 0x1001ff8c, (wrb) a5  <-- 0x1001ff90
+          10732000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef6c, (wrb) a1  <-- 0x1001ef70
+          10733000                                              #; (lsu) a6  <-- 1
+          10734000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x1001ff8c, 1 ~~> Word[0x1001ff8c]
+          10735000    0x80004368 mv a4, a5                      #; a5  = 0x1001ff90, (wrb) a4  <-- 0x1001ff90
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2116000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1001ff90, a3  = 0x1001ff94, taken, goto 0x80005654
+          10736000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1001ff90, a3  = 0x1001ff94, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2117000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef70, a6  <~~ Word[0x1001ef70]
-           2118000    0x80005658 addi a5, a4, 4                 #; a4  = 0x1001ff90, (wrb) a5  <-- 0x1001ff94
-           2119000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef70, (wrb) a1  <-- 0x1001ef74
-           2120000                                              #; (lsu) a6  <-- 1
-           2121000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x1001ff90, 1 ~~> Word[0x1001ff90]
-           2122000    0x80005664 mv a4, a5                      #; a5  = 0x1001ff94, (wrb) a4  <-- 0x1001ff94
+          10737000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef70, a6  <~~ Word[0x1001ef70]
+          10738000    0x8000435c addi a5, a4, 4                 #; a4  = 0x1001ff90, (wrb) a5  <-- 0x1001ff94
+          10739000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef70, (wrb) a1  <-- 0x1001ef74
+          10740000                                              #; (lsu) a6  <-- 1
+          10741000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x1001ff90, 1 ~~> Word[0x1001ff90]
+          10742000    0x80004368 mv a4, a5                      #; a5  = 0x1001ff94, (wrb) a4  <-- 0x1001ff94
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2123000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1001ff94, a3  = 0x1001ff94, not taken
-           2124000    0x8000566c j 8                            #; goto 0x80005674
+          10743000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1001ff94, a3  = 0x1001ff94, not taken
+          10744000    0x80004370 j 8                            #; goto 0x80004378
 #; .LBB0_7 (memcpy.c:84:7)
 #;   if (unlikely (a < end))
 #;       ^
-           2125000    0x80005674 bltu a5, a2, 20                #; a5  = 0x1001ff94, a2  = 0x1001ff94, not taken
+          10745000    0x80004378 bltu a5, a2, 20                #; a5  = 0x1001ff94, a2  = 0x1001ff94, not taken
 #; .LBB0_8 (memcpy.c:87:1)
 #;   }
 #;   ^
-           2126000    0x80005678 lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
-           2127000    0x8000567c addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
-           2128000    0x80005680 ret                            #; ra  = 0x80003e70, goto 0x80003e70
+          10746000    0x8000437c lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
+          10747000    0x80004380 addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
+          10748000    0x80004384 ret                            #; ra  = 0x80003e98, goto 0x80003e98
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:28)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                    ^
-           2129000    0x80003e70 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30], (lsu) s0  <-- 12
+          10749000    0x80003e98 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30], (lsu) s0  <-- 12
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:68)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                                                            ^
-           2130000    0x80003e74 lw a1, 8(sp)                   #; sp  = 0x1001ef28, a1  <~~ Word[0x1001ef30]
+          10750000    0x80003e9c lw a1, 8(sp)                   #; sp  = 0x1001ef28, a1  <~~ Word[0x1001ef30]
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:36)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                            ^
-           2131000    0x80003e78 ori s8, s7, 1032               #; s7  = 4128, (wrb) s8  <-- 5160
-           2132000                                              #; (lsu) a0  <-- 0x1001ef68
-           2133000    0x80003e7c add a0, a0, s8                 #; a0  = 0x1001ef68, s8  = 5160, (wrb) a0  <-- 0x10020390
+          10751000    0x80003ea0 ori s8, s7, 1032               #; s7  = 4128, (wrb) s8  <-- 5160
+          10752000                                              #; (lsu) a0  <-- 0x1001ef68
+          10753000    0x80003ea4 add a0, a0, s8                 #; a0  = 0x1001ef68, s8  = 5160, (wrb) a0  <-- 0x10020390
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:13)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;     ^
-           2134000    0x80003e80 mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
-           2135000    0x80003e84 auipc ra, 1                    #; (wrb) ra  <-- 0x80004e84
-           2136000    0x80003e88 jalr 1928(ra)                  #; ra  = 0x80004e84, (wrb) ra  <-- 0x80003e8c, goto 0x8000560c
+          10754000    0x80003ea8 mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
+          10755000    0x80003eac auipc ra, 0                    #; (wrb) ra  <-- 0x80003eac
+          10756000    0x80003eb0 jalr 1124(ra)                  #; ra  = 0x80003eac, (wrb) ra  <-- 0x80003eb4, goto 0x80004310
 #; memcpy (memcpy.c:25)
 #;   {
-           2137000    0x8000560c addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
-           2138000    0x80005610 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24], (lsu) a1  <-- 0x1001ef68
+          10757000    0x80004310 addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
+          10758000    0x80004314 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24], (lsu) a1  <-- 0x1001ef68
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           2139000    0x80005614 andi a3, a0, 3                 #; a0  = 0x10020390, (wrb) a3  <-- 0
-           2140000    0x80005618 andi a4, a1, 3                 #; a1  = 0x1001ef68, (wrb) a4  <-- 0
-           2141000    0x8000561c xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
-           2142000    0x80005620 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
-           2143000    0x80005624 li a5, 3                       #; (wrb) a5  <-- 3
-           2144000    0x80005628 sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
-           2145000    0x8000562c and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
+          10759000    0x80004318 andi a3, a0, 3                 #; a0  = 0x10020390, (wrb) a3  <-- 0
+          10760000    0x8000431c andi a4, a1, 3                 #; a1  = 0x1001ef68, (wrb) a4  <-- 0
+          10761000    0x80004320 xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
+          10762000    0x80004324 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
+          10763000    0x80004328 li a5, 3                       #; (wrb) a5  <-- 3
+          10764000    0x8000432c sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
+          10765000    0x80004330 and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
 #; memcpy (memcpy.c:34:17)
 #;   char *end = a + n;
 #;                 ^
-           2146000    0x80005630 add a2, a0, a2                 #; a0  = 0x10020390, a2  = 12, (wrb) a2  <-- 0x1002039c
+          10766000    0x80004334 add a2, a0, a2                 #; a0  = 0x10020390, a2  = 12, (wrb) a2  <-- 0x1002039c
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           2147000    0x80005634 beqz a4, 80                    #; a4  = 1, not taken
+          10767000    0x80004338 beqz a4, 80                    #; a4  = 1, not taken
 #; memcpy (memcpy.c:46:7)
 #;   if (unlikely (((uintptr_t)a & msk) != 0))
 #;       ^
-           2148000    0x80005638 bnez a3, 116                   #; a3  = 0, not taken
-           2149000    0x8000563c mv a4, a0                      #; a0  = 0x10020390, (wrb) a4  <-- 0x10020390
+          10768000    0x8000433c bnez a3, 116                   #; a3  = 0, not taken
+          10769000    0x80004340 mv a4, a0                      #; a0  = 0x10020390, (wrb) a4  <-- 0x10020390
 #; .LBB0_3 (memcpy.c:52:40)
 #;   long *lend = (long *)((uintptr_t)end & ~msk);
 #;                                        ^
-           2150000    0x80005640 andi a3, a2, -4                #; a2  = 0x1002039c, (wrb) a3  <-- 0x1002039c
+          10770000    0x80004344 andi a3, a2, -4                #; a2  = 0x1002039c, (wrb) a3  <-- 0x1002039c
 #; .LBB0_3 (memcpy.c:54:7)
 #;   if (unlikely (lend - la > 8))
 #;       ^
-           2151000    0x80005644 sub a5, a3, a4                 #; a3  = 0x1002039c, a4  = 0x10020390, (wrb) a5  <-- 12
-           2152000    0x80005648 li a6, 33                      #; (wrb) a6  <-- 33
-           2153000    0x8000564c bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
+          10771000    0x80004348 sub a5, a3, a4                 #; a3  = 0x1002039c, a4  = 0x10020390, (wrb) a5  <-- 12
+          10772000    0x8000434c li a6, 33                      #; (wrb) a6  <-- 33
+          10773000    0x80004350 bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
 #; .LBB0_4 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2154000    0x80005650 bgeu a4, a3, 32                #; a4  = 0x10020390, a3  = 0x1002039c, not taken
+          10774000    0x80004354 bgeu a4, a3, 32                #; a4  = 0x10020390, a3  = 0x1002039c, not taken
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2155000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef68, a6  <~~ Word[0x1001ef68]
-           2156000    0x80005658 addi a5, a4, 4                 #; a4  = 0x10020390, (wrb) a5  <-- 0x10020394
-           2157000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef6c
-           2158000                                              #; (lsu) a6  <-- 0x80005e80
-           2159000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x10020390, 0x80005e80 ~~> Word[0x10020390]
-           2160000    0x80005664 mv a4, a5                      #; a5  = 0x10020394, (wrb) a4  <-- 0x10020394
+          10775000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef68, a6  <~~ Word[0x1001ef68]
+          10776000    0x8000435c addi a5, a4, 4                 #; a4  = 0x10020390, (wrb) a5  <-- 0x10020394
+          10777000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef6c
+          10778000                                              #; (lsu) a6  <-- 0x80005fc0
+          10779000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x10020390, 0x80005fc0 ~~> Word[0x10020390]
+          10780000    0x80004368 mv a4, a5                      #; a5  = 0x10020394, (wrb) a4  <-- 0x10020394
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2161000    0x80005668 bltu a5, a3, -20               #; a5  = 0x10020394, a3  = 0x1002039c, taken, goto 0x80005654
+          10781000    0x8000436c bltu a5, a3, -20               #; a5  = 0x10020394, a3  = 0x1002039c, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2162000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef6c, a6  <~~ Word[0x1001ef6c]
-           2163000    0x80005658 addi a5, a4, 4                 #; a4  = 0x10020394, (wrb) a5  <-- 0x10020398
-           2164000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef6c, (wrb) a1  <-- 0x1001ef70
-           2176000                                              #; (lsu) a6  <-- 1
-           2177000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x10020394, 1 ~~> Word[0x10020394]
-           2178000    0x80005664 mv a4, a5                      #; a5  = 0x10020398, (wrb) a4  <-- 0x10020398
+          10782000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef6c, a6  <~~ Word[0x1001ef6c]
+          10783000    0x8000435c addi a5, a4, 4                 #; a4  = 0x10020394, (wrb) a5  <-- 0x10020398
+          10784000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef6c, (wrb) a1  <-- 0x1001ef70
+          10807000                                              #; (lsu) a6  <-- 1
+          10808000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x10020394, 1 ~~> Word[0x10020394]
+          10809000    0x80004368 mv a4, a5                      #; a5  = 0x10020398, (wrb) a4  <-- 0x10020398
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2179000    0x80005668 bltu a5, a3, -20               #; a5  = 0x10020398, a3  = 0x1002039c, taken, goto 0x80005654
+          10810000    0x8000436c bltu a5, a3, -20               #; a5  = 0x10020398, a3  = 0x1002039c, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2180000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef70, a6  <~~ Word[0x1001ef70]
-           2181000    0x80005658 addi a5, a4, 4                 #; a4  = 0x10020398, (wrb) a5  <-- 0x1002039c
-           2182000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef70, (wrb) a1  <-- 0x1001ef74
-           2189000                                              #; (lsu) a6  <-- 1
-           2190000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x10020398, 1 ~~> Word[0x10020398]
-           2191000    0x80005664 mv a4, a5                      #; a5  = 0x1002039c, (wrb) a4  <-- 0x1002039c
+          10811000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef70, a6  <~~ Word[0x1001ef70]
+          10812000    0x8000435c addi a5, a4, 4                 #; a4  = 0x10020398, (wrb) a5  <-- 0x1002039c
+          10813000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef70, (wrb) a1  <-- 0x1001ef74
+          10820000                                              #; (lsu) a6  <-- 1
+          10821000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x10020398, 1 ~~> Word[0x10020398]
+          10822000    0x80004368 mv a4, a5                      #; a5  = 0x1002039c, (wrb) a4  <-- 0x1002039c
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2192000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1002039c, a3  = 0x1002039c, not taken
-           2193000    0x8000566c j 8                            #; goto 0x80005674
+          10823000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1002039c, a3  = 0x1002039c, not taken
+          10824000    0x80004370 j 8                            #; goto 0x80004378
 #; .LBB0_7 (memcpy.c:84:7)
 #;   if (unlikely (a < end))
 #;       ^
-           2194000    0x80005674 bltu a5, a2, 20                #; a5  = 0x1002039c, a2  = 0x1002039c, not taken
+          10825000    0x80004378 bltu a5, a2, 20                #; a5  = 0x1002039c, a2  = 0x1002039c, not taken
 #; .LBB0_8 (memcpy.c:87:1)
 #;   }
 #;   ^
-           2195000    0x80005678 lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
-           2196000    0x8000567c addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
-           2197000    0x80005680 ret                            #; ra  = 0x80003e8c, goto 0x80003e8c
+          10826000    0x8000437c lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
+          10827000    0x80004380 addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
+          10828000    0x80004384 ret                            #; ra  = 0x80003eb4, goto 0x80003eb4
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:28)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                    ^
-           2199000    0x80003e8c lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
+          10830000    0x80003eb4 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:68)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                                                            ^
-           2200000    0x80003e90 lw a1, 8(sp)                   #; sp  = 0x1001ef28, a1  <~~ Word[0x1001ef30]
-           2201000    0x80003e94 lui s11, 2                     #; (wrb) s11 <-- 8192
-           2202000    0x80003e98 addi s9, s11, -2000            #; s11 = 8192, (wrb) s9  <-- 6192
-           2209000                                              #; (lsu) s0  <-- 12
-           2210000                                              #; (lsu) a0  <-- 0x1001ef68
+          10831000    0x80003eb8 lw a1, 8(sp)                   #; sp  = 0x1001ef28, a1  <~~ Word[0x1001ef30]
+          10832000    0x80003ebc lui s11, 2                     #; (wrb) s11 <-- 8192
+          10833000    0x80003ec0 addi s9, s11, -2000            #; s11 = 8192, (wrb) s9  <-- 6192
+          10840000                                              #; (lsu) s0  <-- 12
+          10841000                                              #; (lsu) a0  <-- 0x1001ef68
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:36)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                            ^
-           2211000    0x80003e9c add a0, a0, s9                 #; a0  = 0x1001ef68, s9  = 6192, (wrb) a0  <-- 0x10020798
+          10842000    0x80003ec4 add a0, a0, s9                 #; a0  = 0x1001ef68, s9  = 6192, (wrb) a0  <-- 0x10020798
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:13)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;     ^
-           2212000    0x80003ea0 mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
-           2213000    0x80003ea4 auipc ra, 1                    #; (wrb) ra  <-- 0x80004ea4
-           2214000    0x80003ea8 jalr 1896(ra)                  #; ra  = 0x80004ea4, (wrb) ra  <-- 0x80003eac, goto 0x8000560c
+          10843000    0x80003ec8 mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
+          10844000    0x80003ecc auipc ra, 0                    #; (wrb) ra  <-- 0x80003ecc
+          10845000    0x80003ed0 jalr 1092(ra)                  #; ra  = 0x80003ecc, (wrb) ra  <-- 0x80003ed4, goto 0x80004310
 #; memcpy (memcpy.c:25)
 #;   {
-           2215000    0x8000560c addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
-           2216000    0x80005610 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24], (lsu) a1  <-- 0x1001ef68
+          10846000    0x80004310 addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
+          10847000    0x80004314 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24], (lsu) a1  <-- 0x1001ef68
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           2217000    0x80005614 andi a3, a0, 3                 #; a0  = 0x10020798, (wrb) a3  <-- 0
-           2218000    0x80005618 andi a4, a1, 3                 #; a1  = 0x1001ef68, (wrb) a4  <-- 0
-           2219000    0x8000561c xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
-           2220000    0x80005620 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
-           2221000    0x80005624 li a5, 3                       #; (wrb) a5  <-- 3
-           2222000    0x80005628 sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
-           2223000    0x8000562c and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
+          10848000    0x80004318 andi a3, a0, 3                 #; a0  = 0x10020798, (wrb) a3  <-- 0
+          10849000    0x8000431c andi a4, a1, 3                 #; a1  = 0x1001ef68, (wrb) a4  <-- 0
+          10850000    0x80004320 xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
+          10851000    0x80004324 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
+          10852000    0x80004328 li a5, 3                       #; (wrb) a5  <-- 3
+          10853000    0x8000432c sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
+          10854000    0x80004330 and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
 #; memcpy (memcpy.c:34:17)
 #;   char *end = a + n;
 #;                 ^
-           2224000    0x80005630 add a2, a0, a2                 #; a0  = 0x10020798, a2  = 12, (wrb) a2  <-- 0x100207a4
+          10855000    0x80004334 add a2, a0, a2                 #; a0  = 0x10020798, a2  = 12, (wrb) a2  <-- 0x100207a4
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           2225000    0x80005634 beqz a4, 80                    #; a4  = 1, not taken
+          10856000    0x80004338 beqz a4, 80                    #; a4  = 1, not taken
 #; memcpy (memcpy.c:46:7)
 #;   if (unlikely (((uintptr_t)a & msk) != 0))
 #;       ^
-           2226000    0x80005638 bnez a3, 116                   #; a3  = 0, not taken
-           2227000    0x8000563c mv a4, a0                      #; a0  = 0x10020798, (wrb) a4  <-- 0x10020798
+          10857000    0x8000433c bnez a3, 116                   #; a3  = 0, not taken
+          10858000    0x80004340 mv a4, a0                      #; a0  = 0x10020798, (wrb) a4  <-- 0x10020798
 #; .LBB0_3 (memcpy.c:52:40)
 #;   long *lend = (long *)((uintptr_t)end & ~msk);
 #;                                        ^
-           2228000    0x80005640 andi a3, a2, -4                #; a2  = 0x100207a4, (wrb) a3  <-- 0x100207a4
+          10859000    0x80004344 andi a3, a2, -4                #; a2  = 0x100207a4, (wrb) a3  <-- 0x100207a4
 #; .LBB0_3 (memcpy.c:54:7)
 #;   if (unlikely (lend - la > 8))
 #;       ^
-           2229000    0x80005644 sub a5, a3, a4                 #; a3  = 0x100207a4, a4  = 0x10020798, (wrb) a5  <-- 12
-           2230000    0x80005648 li a6, 33                      #; (wrb) a6  <-- 33
-           2231000    0x8000564c bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
+          10860000    0x80004348 sub a5, a3, a4                 #; a3  = 0x100207a4, a4  = 0x10020798, (wrb) a5  <-- 12
+          10861000    0x8000434c li a6, 33                      #; (wrb) a6  <-- 33
+          10862000    0x80004350 bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
 #; .LBB0_4 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2232000    0x80005650 bgeu a4, a3, 32                #; a4  = 0x10020798, a3  = 0x100207a4, not taken
+          10863000    0x80004354 bgeu a4, a3, 32                #; a4  = 0x10020798, a3  = 0x100207a4, not taken
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2233000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef68, a6  <~~ Word[0x1001ef68]
-           2234000    0x80005658 addi a5, a4, 4                 #; a4  = 0x10020798, (wrb) a5  <-- 0x1002079c
-           2235000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef6c
-           2236000                                              #; (lsu) a6  <-- 0x80005e80
-           2237000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x10020798, 0x80005e80 ~~> Word[0x10020798]
-           2238000    0x80005664 mv a4, a5                      #; a5  = 0x1002079c, (wrb) a4  <-- 0x1002079c
+          10864000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef68, a6  <~~ Word[0x1001ef68]
+          10865000    0x8000435c addi a5, a4, 4                 #; a4  = 0x10020798, (wrb) a5  <-- 0x1002079c
+          10866000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef6c
+          10867000                                              #; (lsu) a6  <-- 0x80005fc0
+          10868000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x10020798, 0x80005fc0 ~~> Word[0x10020798]
+          10869000    0x80004368 mv a4, a5                      #; a5  = 0x1002079c, (wrb) a4  <-- 0x1002079c
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2239000    0x80005668 bltu a5, a3, -20               #; a5  = 0x1002079c, a3  = 0x100207a4, taken, goto 0x80005654
+          10870000    0x8000436c bltu a5, a3, -20               #; a5  = 0x1002079c, a3  = 0x100207a4, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2240000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef6c, a6  <~~ Word[0x1001ef6c]
-           2241000    0x80005658 addi a5, a4, 4                 #; a4  = 0x1002079c, (wrb) a5  <-- 0x100207a0
-           2242000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef6c, (wrb) a1  <-- 0x1001ef70
-           2265000                                              #; (lsu) a6  <-- 1
-           2266000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x1002079c, 1 ~~> Word[0x1002079c]
-           2267000    0x80005664 mv a4, a5                      #; a5  = 0x100207a0, (wrb) a4  <-- 0x100207a0
+          10871000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef6c, a6  <~~ Word[0x1001ef6c]
+          10872000    0x8000435c addi a5, a4, 4                 #; a4  = 0x1002079c, (wrb) a5  <-- 0x100207a0
+          10873000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef6c, (wrb) a1  <-- 0x1001ef70
+          10888000                                              #; (lsu) a6  <-- 1
+          10889000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x1002079c, 1 ~~> Word[0x1002079c]
+          10890000    0x80004368 mv a4, a5                      #; a5  = 0x100207a0, (wrb) a4  <-- 0x100207a0
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2268000    0x80005668 bltu a5, a3, -20               #; a5  = 0x100207a0, a3  = 0x100207a4, taken, goto 0x80005654
+          10891000    0x8000436c bltu a5, a3, -20               #; a5  = 0x100207a0, a3  = 0x100207a4, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2269000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef70, a6  <~~ Word[0x1001ef70]
-           2270000    0x80005658 addi a5, a4, 4                 #; a4  = 0x100207a0, (wrb) a5  <-- 0x100207a4
-           2271000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef70, (wrb) a1  <-- 0x1001ef74
-           2290000                                              #; (lsu) a6  <-- 1
-           2291000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x100207a0, 1 ~~> Word[0x100207a0]
-           2292000    0x80005664 mv a4, a5                      #; a5  = 0x100207a4, (wrb) a4  <-- 0x100207a4
+          10892000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef70, a6  <~~ Word[0x1001ef70]
+          10893000    0x8000435c addi a5, a4, 4                 #; a4  = 0x100207a0, (wrb) a5  <-- 0x100207a4
+          10894000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef70, (wrb) a1  <-- 0x1001ef74
+          10911000                                              #; (lsu) a6  <-- 1
+          10912000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x100207a0, 1 ~~> Word[0x100207a0]
+          10913000    0x80004368 mv a4, a5                      #; a5  = 0x100207a4, (wrb) a4  <-- 0x100207a4
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2293000    0x80005668 bltu a5, a3, -20               #; a5  = 0x100207a4, a3  = 0x100207a4, not taken
-           2294000    0x8000566c j 8                            #; goto 0x80005674
+          10914000    0x8000436c bltu a5, a3, -20               #; a5  = 0x100207a4, a3  = 0x100207a4, not taken
+          10915000    0x80004370 j 8                            #; goto 0x80004378
 #; .LBB0_7 (memcpy.c:84:7)
 #;   if (unlikely (a < end))
 #;       ^
-           2295000    0x80005674 bltu a5, a2, 20                #; a5  = 0x100207a4, a2  = 0x100207a4, not taken
+          10916000    0x80004378 bltu a5, a2, 20                #; a5  = 0x100207a4, a2  = 0x100207a4, not taken
 #; .LBB0_8 (memcpy.c:87:1)
 #;   }
 #;   ^
-           2296000    0x80005678 lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
-           2297000    0x8000567c addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
-           2298000    0x80005680 ret                            #; ra  = 0x80003eac, goto 0x80003eac
+          10917000    0x8000437c lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
+          10918000    0x80004380 addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
+          10919000    0x80004384 ret                            #; ra  = 0x80003ed4, goto 0x80003ed4
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:28)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                    ^
-           2302000    0x80003eac lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
+          10929000    0x80003ed4 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:68)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                                                            ^
-           2303000    0x80003eb0 lw a1, 8(sp)                   #; sp  = 0x1001ef28, a1  <~~ Word[0x1001ef30]
+          10930000    0x80003ed8 lw a1, 8(sp)                   #; sp  = 0x1001ef28, a1  <~~ Word[0x1001ef30]
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:36)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                            ^
-           2304000    0x80003eb4 ori s10, s9, 1032              #; s9  = 6192, (wrb) s10 <-- 7224
-           2312000                                              #; (lsu) s0  <-- 12
-           2313000                                              #; (lsu) a0  <-- 0x1001ef68
-           2314000    0x80003eb8 add a0, a0, s10                #; a0  = 0x1001ef68, s10 = 7224, (wrb) a0  <-- 0x10020ba0
+          10931000    0x80003edc ori s10, s9, 1032              #; s9  = 6192, (wrb) s10 <-- 7224
+          10939000                                              #; (lsu) s0  <-- 12
+          10940000                                              #; (lsu) a0  <-- 0x1001ef68
+          10941000    0x80003ee0 add a0, a0, s10                #; a0  = 0x1001ef68, s10 = 7224, (wrb) a0  <-- 0x10020ba0
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:13)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;     ^
-           2315000    0x80003ebc mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
-           2316000    0x80003ec0 auipc ra, 1                    #; (wrb) ra  <-- 0x80004ec0
-           2317000    0x80003ec4 jalr 1868(ra)                  #; ra  = 0x80004ec0, (wrb) ra  <-- 0x80003ec8, goto 0x8000560c
+          10942000    0x80003ee4 mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
+          10943000    0x80003ee8 auipc ra, 0                    #; (wrb) ra  <-- 0x80003ee8
+          10944000    0x80003eec jalr 1064(ra)                  #; ra  = 0x80003ee8, (wrb) ra  <-- 0x80003ef0, goto 0x80004310
 #; memcpy (memcpy.c:25)
 #;   {
-           2318000    0x8000560c addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
-           2319000    0x80005610 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24], (lsu) a1  <-- 0x1001ef68
+          10945000    0x80004310 addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
+          10946000    0x80004314 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24], (lsu) a1  <-- 0x1001ef68
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           2320000    0x80005614 andi a3, a0, 3                 #; a0  = 0x10020ba0, (wrb) a3  <-- 0
-           2321000    0x80005618 andi a4, a1, 3                 #; a1  = 0x1001ef68, (wrb) a4  <-- 0
-           2322000    0x8000561c xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
-           2323000    0x80005620 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
-           2324000    0x80005624 li a5, 3                       #; (wrb) a5  <-- 3
-           2325000    0x80005628 sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
-           2326000    0x8000562c and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
+          10947000    0x80004318 andi a3, a0, 3                 #; a0  = 0x10020ba0, (wrb) a3  <-- 0
+          10948000    0x8000431c andi a4, a1, 3                 #; a1  = 0x1001ef68, (wrb) a4  <-- 0
+          10949000    0x80004320 xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
+          10950000    0x80004324 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
+          10951000    0x80004328 li a5, 3                       #; (wrb) a5  <-- 3
+          10952000    0x8000432c sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
+          10953000    0x80004330 and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
 #; memcpy (memcpy.c:34:17)
 #;   char *end = a + n;
 #;                 ^
-           2327000    0x80005630 add a2, a0, a2                 #; a0  = 0x10020ba0, a2  = 12, (wrb) a2  <-- 0x10020bac
+          10954000    0x80004334 add a2, a0, a2                 #; a0  = 0x10020ba0, a2  = 12, (wrb) a2  <-- 0x10020bac
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           2328000    0x80005634 beqz a4, 80                    #; a4  = 1, not taken
+          10955000    0x80004338 beqz a4, 80                    #; a4  = 1, not taken
 #; memcpy (memcpy.c:46:7)
 #;   if (unlikely (((uintptr_t)a & msk) != 0))
 #;       ^
-           2329000    0x80005638 bnez a3, 116                   #; a3  = 0, not taken
-           2330000    0x8000563c mv a4, a0                      #; a0  = 0x10020ba0, (wrb) a4  <-- 0x10020ba0
+          10956000    0x8000433c bnez a3, 116                   #; a3  = 0, not taken
+          10957000    0x80004340 mv a4, a0                      #; a0  = 0x10020ba0, (wrb) a4  <-- 0x10020ba0
 #; .LBB0_3 (memcpy.c:52:40)
 #;   long *lend = (long *)((uintptr_t)end & ~msk);
 #;                                        ^
-           2331000    0x80005640 andi a3, a2, -4                #; a2  = 0x10020bac, (wrb) a3  <-- 0x10020bac
+          10958000    0x80004344 andi a3, a2, -4                #; a2  = 0x10020bac, (wrb) a3  <-- 0x10020bac
 #; .LBB0_3 (memcpy.c:54:7)
 #;   if (unlikely (lend - la > 8))
 #;       ^
-           2332000    0x80005644 sub a5, a3, a4                 #; a3  = 0x10020bac, a4  = 0x10020ba0, (wrb) a5  <-- 12
-           2333000    0x80005648 li a6, 33                      #; (wrb) a6  <-- 33
-           2334000    0x8000564c bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
+          10959000    0x80004348 sub a5, a3, a4                 #; a3  = 0x10020bac, a4  = 0x10020ba0, (wrb) a5  <-- 12
+          10960000    0x8000434c li a6, 33                      #; (wrb) a6  <-- 33
+          10961000    0x80004350 bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
 #; .LBB0_4 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2335000    0x80005650 bgeu a4, a3, 32                #; a4  = 0x10020ba0, a3  = 0x10020bac, not taken
+          10962000    0x80004354 bgeu a4, a3, 32                #; a4  = 0x10020ba0, a3  = 0x10020bac, not taken
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2336000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef68, a6  <~~ Word[0x1001ef68]
-           2337000    0x80005658 addi a5, a4, 4                 #; a4  = 0x10020ba0, (wrb) a5  <-- 0x10020ba4
-           2338000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef6c
-           2339000                                              #; (lsu) a6  <-- 0x80005e80
-           2340000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x10020ba0, 0x80005e80 ~~> Word[0x10020ba0]
-           2341000    0x80005664 mv a4, a5                      #; a5  = 0x10020ba4, (wrb) a4  <-- 0x10020ba4
+          10963000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef68, a6  <~~ Word[0x1001ef68]
+          10964000    0x8000435c addi a5, a4, 4                 #; a4  = 0x10020ba0, (wrb) a5  <-- 0x10020ba4
+          10965000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef6c
+          10966000                                              #; (lsu) a6  <-- 0x80005fc0
+          10967000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x10020ba0, 0x80005fc0 ~~> Word[0x10020ba0]
+          10968000    0x80004368 mv a4, a5                      #; a5  = 0x10020ba4, (wrb) a4  <-- 0x10020ba4
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2342000    0x80005668 bltu a5, a3, -20               #; a5  = 0x10020ba4, a3  = 0x10020bac, taken, goto 0x80005654
+          10969000    0x8000436c bltu a5, a3, -20               #; a5  = 0x10020ba4, a3  = 0x10020bac, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2343000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef6c, a6  <~~ Word[0x1001ef6c]
-           2344000    0x80005658 addi a5, a4, 4                 #; a4  = 0x10020ba4, (wrb) a5  <-- 0x10020ba8
-           2345000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef6c, (wrb) a1  <-- 0x1001ef70
-           2374000                                              #; (lsu) a6  <-- 1
-           2375000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x10020ba4, 1 ~~> Word[0x10020ba4]
-           2376000    0x80005664 mv a4, a5                      #; a5  = 0x10020ba8, (wrb) a4  <-- 0x10020ba8
+          10970000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef6c, a6  <~~ Word[0x1001ef6c]
+          10971000    0x8000435c addi a5, a4, 4                 #; a4  = 0x10020ba4, (wrb) a5  <-- 0x10020ba8
+          10972000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef6c, (wrb) a1  <-- 0x1001ef70
+          11001000                                              #; (lsu) a6  <-- 1
+          11002000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x10020ba4, 1 ~~> Word[0x10020ba4]
+          11003000    0x80004368 mv a4, a5                      #; a5  = 0x10020ba8, (wrb) a4  <-- 0x10020ba8
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2377000    0x80005668 bltu a5, a3, -20               #; a5  = 0x10020ba8, a3  = 0x10020bac, taken, goto 0x80005654
+          11004000    0x8000436c bltu a5, a3, -20               #; a5  = 0x10020ba8, a3  = 0x10020bac, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2378000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef70, a6  <~~ Word[0x1001ef70]
-           2379000    0x80005658 addi a5, a4, 4                 #; a4  = 0x10020ba8, (wrb) a5  <-- 0x10020bac
-           2380000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef70, (wrb) a1  <-- 0x1001ef74
-           2401000                                              #; (lsu) a6  <-- 1
-           2402000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x10020ba8, 1 ~~> Word[0x10020ba8]
-           2403000    0x80005664 mv a4, a5                      #; a5  = 0x10020bac, (wrb) a4  <-- 0x10020bac
+          11005000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef70, a6  <~~ Word[0x1001ef70]
+          11006000    0x8000435c addi a5, a4, 4                 #; a4  = 0x10020ba8, (wrb) a5  <-- 0x10020bac
+          11007000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef70, (wrb) a1  <-- 0x1001ef74
+          11028000                                              #; (lsu) a6  <-- 1
+          11029000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x10020ba8, 1 ~~> Word[0x10020ba8]
+          11030000    0x80004368 mv a4, a5                      #; a5  = 0x10020bac, (wrb) a4  <-- 0x10020bac
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2404000    0x80005668 bltu a5, a3, -20               #; a5  = 0x10020bac, a3  = 0x10020bac, not taken
-           2405000    0x8000566c j 8                            #; goto 0x80005674
+          11031000    0x8000436c bltu a5, a3, -20               #; a5  = 0x10020bac, a3  = 0x10020bac, not taken
+          11032000    0x80004370 j 8                            #; goto 0x80004378
 #; .LBB0_7 (memcpy.c:84:7)
 #;   if (unlikely (a < end))
 #;       ^
-           2406000    0x80005674 bltu a5, a2, 20                #; a5  = 0x10020bac, a2  = 0x10020bac, not taken
+          11033000    0x80004378 bltu a5, a2, 20                #; a5  = 0x10020bac, a2  = 0x10020bac, not taken
 #; .LBB0_8 (memcpy.c:87:1)
 #;   }
 #;   ^
-           2407000    0x80005678 lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
-           2408000    0x8000567c addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
-           2409000    0x80005680 ret                            #; ra  = 0x80003ec8, goto 0x80003ec8
+          11034000    0x8000437c lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
+          11035000    0x80004380 addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
+          11036000    0x80004384 ret                            #; ra  = 0x80003ef0, goto 0x80003ef0
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:28)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                    ^
-           2410000    0x80003ec8 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
+          11043000    0x80003ef0 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:68)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                                                            ^
-           2411000    0x80003ecc lw a1, 8(sp)                   #; sp  = 0x1001ef28, a1  <~~ Word[0x1001ef30]
-           2412000    0x80003ed0 addi s11, s11, 64              #; s11 = 8192, (wrb) s11 <-- 8256
-           2419000                                              #; (lsu) s0  <-- 12
-           2420000                                              #; (lsu) a0  <-- 0x1001ef68
+          11044000    0x80003ef4 lw a1, 8(sp)                   #; sp  = 0x1001ef28, a1  <~~ Word[0x1001ef30]
+          11045000    0x80003ef8 addi s11, s11, 64              #; s11 = 8192, (wrb) s11 <-- 8256
+          11053000                                              #; (lsu) s0  <-- 12
+          11054000                                              #; (lsu) a0  <-- 0x1001ef68
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:36)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;                            ^
-           2421000    0x80003ed4 add a0, a0, s11                #; a0  = 0x1001ef68, s11 = 8256, (wrb) a0  <-- 0x10020fa8
+          11055000    0x80003efc add a0, a0, s11                #; a0  = 0x1001ef68, s11 = 8256, (wrb) a0  <-- 0x10020fa8
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:75:13)
 #;     memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
 #;     ^
-           2422000    0x80003ed8 mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
-           2423000    0x80003edc auipc ra, 1                    #; (wrb) ra  <-- 0x80004edc
-           2424000    0x80003ee0 jalr 1840(ra)                  #; ra  = 0x80004edc, (wrb) ra  <-- 0x80003ee4, goto 0x8000560c
+          11056000    0x80003f00 mv a2, s0                      #; s0  = 12, (wrb) a2  <-- 12
+          11057000    0x80003f04 auipc ra, 0                    #; (wrb) ra  <-- 0x80003f04
+          11058000    0x80003f08 jalr 1036(ra)                  #; ra  = 0x80003f04, (wrb) ra  <-- 0x80003f0c, goto 0x80004310
 #; memcpy (memcpy.c:25)
 #;   {
-           2425000    0x8000560c addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
-           2426000    0x80005610 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24], (lsu) a1  <-- 0x1001ef68
+          11059000    0x80004310 addi sp, sp, -16               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef18
+          11060000    0x80004314 sw s0, 12(sp)                  #; sp  = 0x1001ef18, 12 ~~> Word[0x1001ef24], (lsu) a1  <-- 0x1001ef68
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           2427000    0x80005614 andi a3, a0, 3                 #; a0  = 0x10020fa8, (wrb) a3  <-- 0
-           2428000    0x80005618 andi a4, a1, 3                 #; a1  = 0x1001ef68, (wrb) a4  <-- 0
-           2429000    0x8000561c xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
-           2430000    0x80005620 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
-           2431000    0x80005624 li a5, 3                       #; (wrb) a5  <-- 3
-           2432000    0x80005628 sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
-           2433000    0x8000562c and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
+          11061000    0x80004318 andi a3, a0, 3                 #; a0  = 0x10020fa8, (wrb) a3  <-- 0
+          11062000    0x8000431c andi a4, a1, 3                 #; a1  = 0x1001ef68, (wrb) a4  <-- 0
+          11063000    0x80004320 xor a4, a3, a4                 #; a3  = 0, a4  = 0, (wrb) a4  <-- 0
+          11064000    0x80004324 seqz a4, a4                    #; a4  = 0, (wrb) a4  <-- 1
+          11065000    0x80004328 li a5, 3                       #; (wrb) a5  <-- 3
+          11066000    0x8000432c sltu a5, a5, a2                #; a5  = 3, a2  = 12, (wrb) a5  <-- 1
+          11067000    0x80004330 and a4, a5, a4                 #; a5  = 1, a4  = 1, (wrb) a4  <-- 1
 #; memcpy (memcpy.c:34:17)
 #;   char *end = a + n;
 #;                 ^
-           2434000    0x80005630 add a2, a0, a2                 #; a0  = 0x10020fa8, a2  = 12, (wrb) a2  <-- 0x10020fb4
+          11068000    0x80004334 add a2, a0, a2                 #; a0  = 0x10020fa8, a2  = 12, (wrb) a2  <-- 0x10020fb4
 #; memcpy (memcpy.c:36:7)
 #;   if (unlikely ((((uintptr_t)a & msk) != ((uintptr_t)b & msk))
 #;       ^
-           2435000    0x80005634 beqz a4, 80                    #; a4  = 1, not taken
+          11069000    0x80004338 beqz a4, 80                    #; a4  = 1, not taken
 #; memcpy (memcpy.c:46:7)
 #;   if (unlikely (((uintptr_t)a & msk) != 0))
 #;       ^
-           2436000    0x80005638 bnez a3, 116                   #; a3  = 0, not taken
-           2437000    0x8000563c mv a4, a0                      #; a0  = 0x10020fa8, (wrb) a4  <-- 0x10020fa8
+          11070000    0x8000433c bnez a3, 116                   #; a3  = 0, not taken
+          11071000    0x80004340 mv a4, a0                      #; a0  = 0x10020fa8, (wrb) a4  <-- 0x10020fa8
 #; .LBB0_3 (memcpy.c:52:40)
 #;   long *lend = (long *)((uintptr_t)end & ~msk);
 #;                                        ^
-           2438000    0x80005640 andi a3, a2, -4                #; a2  = 0x10020fb4, (wrb) a3  <-- 0x10020fb4
+          11072000    0x80004344 andi a3, a2, -4                #; a2  = 0x10020fb4, (wrb) a3  <-- 0x10020fb4
 #; .LBB0_3 (memcpy.c:54:7)
 #;   if (unlikely (lend - la > 8))
 #;       ^
-           2439000    0x80005644 sub a5, a3, a4                 #; a3  = 0x10020fb4, a4  = 0x10020fa8, (wrb) a5  <-- 12
-           2440000    0x80005648 li a6, 33                      #; (wrb) a6  <-- 33
-           2441000    0x8000564c bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
+          11073000    0x80004348 sub a5, a3, a4                 #; a3  = 0x10020fb4, a4  = 0x10020fa8, (wrb) a5  <-- 12
+          11074000    0x8000434c li a6, 33                      #; (wrb) a6  <-- 33
+          11075000    0x80004350 bge a5, a6, 140                #; a5  = 12, a6  = 33, not taken
 #; .LBB0_4 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2442000    0x80005650 bgeu a4, a3, 32                #; a4  = 0x10020fa8, a3  = 0x10020fb4, not taken
+          11076000    0x80004354 bgeu a4, a3, 32                #; a4  = 0x10020fa8, a3  = 0x10020fb4, not taken
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2443000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef68, a6  <~~ Word[0x1001ef68]
-           2444000    0x80005658 addi a5, a4, 4                 #; a4  = 0x10020fa8, (wrb) a5  <-- 0x10020fac
-           2445000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef6c
-           2446000                                              #; (lsu) a6  <-- 0x80005e80
-           2447000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x10020fa8, 0x80005e80 ~~> Word[0x10020fa8]
-           2448000    0x80005664 mv a4, a5                      #; a5  = 0x10020fac, (wrb) a4  <-- 0x10020fac
+          11077000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef68, a6  <~~ Word[0x1001ef68]
+          11078000    0x8000435c addi a5, a4, 4                 #; a4  = 0x10020fa8, (wrb) a5  <-- 0x10020fac
+          11079000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef6c
+          11080000                                              #; (lsu) a6  <-- 0x80005fc0
+          11081000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x10020fa8, 0x80005fc0 ~~> Word[0x10020fa8]
+          11082000    0x80004368 mv a4, a5                      #; a5  = 0x10020fac, (wrb) a4  <-- 0x10020fac
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2449000    0x80005668 bltu a5, a3, -20               #; a5  = 0x10020fac, a3  = 0x10020fb4, taken, goto 0x80005654
+          11083000    0x8000436c bltu a5, a3, -20               #; a5  = 0x10020fac, a3  = 0x10020fb4, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2450000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef6c, a6  <~~ Word[0x1001ef6c]
-           2451000    0x80005658 addi a5, a4, 4                 #; a4  = 0x10020fac, (wrb) a5  <-- 0x10020fb0
-           2452000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef6c, (wrb) a1  <-- 0x1001ef70
-           2464000                                              #; (lsu) a6  <-- 1
-           2465000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x10020fac, 1 ~~> Word[0x10020fac]
-           2466000    0x80005664 mv a4, a5                      #; a5  = 0x10020fb0, (wrb) a4  <-- 0x10020fb0
+          11084000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef6c, a6  <~~ Word[0x1001ef6c]
+          11085000    0x8000435c addi a5, a4, 4                 #; a4  = 0x10020fac, (wrb) a5  <-- 0x10020fb0
+          11086000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef6c, (wrb) a1  <-- 0x1001ef70
+          11105000                                              #; (lsu) a6  <-- 1
+          11106000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x10020fac, 1 ~~> Word[0x10020fac]
+          11107000    0x80004368 mv a4, a5                      #; a5  = 0x10020fb0, (wrb) a4  <-- 0x10020fb0
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2467000    0x80005668 bltu a5, a3, -20               #; a5  = 0x10020fb0, a3  = 0x10020fb4, taken, goto 0x80005654
+          11108000    0x8000436c bltu a5, a3, -20               #; a5  = 0x10020fb0, a3  = 0x10020fb4, taken, goto 0x80004358
 #; .LBB0_5 (memcpy.c:80:5)
 #;   BODY (la, lb, long);
 #;   ^
-           2468000    0x80005654 lw a6, 0(a1)                   #; a1  = 0x1001ef70, a6  <~~ Word[0x1001ef70]
-           2469000    0x80005658 addi a5, a4, 4                 #; a4  = 0x10020fb0, (wrb) a5  <-- 0x10020fb4
-           2470000    0x8000565c addi a1, a1, 4                 #; a1  = 0x1001ef70, (wrb) a1  <-- 0x1001ef74
-           2492000                                              #; (lsu) a6  <-- 1
-           2493000    0x80005660 sw a6, 0(a4)                   #; a4  = 0x10020fb0, 1 ~~> Word[0x10020fb0]
-           2494000    0x80005664 mv a4, a5                      #; a5  = 0x10020fb4, (wrb) a4  <-- 0x10020fb4
+          11109000    0x80004358 lw a6, 0(a1)                   #; a1  = 0x1001ef70, a6  <~~ Word[0x1001ef70]
+          11110000    0x8000435c addi a5, a4, 4                 #; a4  = 0x10020fb0, (wrb) a5  <-- 0x10020fb4
+          11111000    0x80004360 addi a1, a1, 4                 #; a1  = 0x1001ef70, (wrb) a1  <-- 0x1001ef74
+          11127000                                              #; (lsu) a6  <-- 1
+          11128000    0x80004364 sw a6, 0(a4)                   #; a4  = 0x10020fb0, 1 ~~> Word[0x10020fb0]
+          11129000    0x80004368 mv a4, a5                      #; a5  = 0x10020fb4, (wrb) a4  <-- 0x10020fb4
 #; .LBB0_5 (memcpy.c:79:3)
 #;   while (la < lend)
 #;   ^
-           2495000    0x80005668 bltu a5, a3, -20               #; a5  = 0x10020fb4, a3  = 0x10020fb4, not taken
-           2496000    0x8000566c j 8                            #; goto 0x80005674
+          11130000    0x8000436c bltu a5, a3, -20               #; a5  = 0x10020fb4, a3  = 0x10020fb4, not taken
+          11131000    0x80004370 j 8                            #; goto 0x80004378
 #; .LBB0_7 (memcpy.c:84:7)
 #;   if (unlikely (a < end))
 #;       ^
-           2497000    0x80005674 bltu a5, a2, 20                #; a5  = 0x10020fb4, a2  = 0x10020fb4, not taken
+          11132000    0x80004378 bltu a5, a2, 20                #; a5  = 0x10020fb4, a2  = 0x10020fb4, not taken
 #; .LBB0_8 (memcpy.c:87:1)
 #;   }
 #;   ^
-           2498000    0x80005678 lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
-           2499000    0x8000567c addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
-           2500000    0x80005680 ret                            #; ra  = 0x80003ee4, goto 0x80003ee4
+          11133000    0x8000437c lw s0, 12(sp)                  #; sp  = 0x1001ef18, s0  <~~ Word[0x1001ef24]
+          11134000    0x80004380 addi sp, sp, 16                #; sp  = 0x1001ef18, (wrb) sp  <-- 0x1001ef28
+          11135000    0x80004384 ret                            #; ra  = 0x80003f0c, goto 0x80003f0c
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:79:17)
 #;     tls_ptr += size;
 #;             ^
-           2501000    0x80003ee4 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
-           2512000                                              #; (lsu) s0  <-- 12
-           2513000                                              #; (lsu) a0  <-- 0x1001ef68
-           2514000    0x80003ee8 add a0, a0, s0                 #; a0  = 0x1001ef68, s0  = 12, (wrb) a0  <-- 0x1001ef74
-           2515000    0x80003eec sw a0, 8(sp)                   #; sp  = 0x1001ef28, 0x1001ef74 ~~> Word[0x1001ef30]
+          11136000    0x80003f0c lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
+          11144000                                              #; (lsu) s0  <-- 12
+          11145000                                              #; (lsu) a0  <-- 0x1001ef68
+          11146000    0x80003f10 add a0, a0, s0                 #; a0  = 0x1001ef68, s0  = 12, (wrb) a0  <-- 0x1001ef74
+          11147000    0x80003f14 sw a0, 8(sp)                   #; sp  = 0x1001ef28, 0x1001ef74 ~~> Word[0x1001ef30]
 #; .LBB25_24 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:28)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                    ^
-           2516000    0x80003ef0 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
+          11148000    0x80003f18 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
 #; .LBB25_25 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:13)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;     ^
-           2517000    0x80003ef4 auipc a1, 2                    #; (wrb) a1  <-- 0x80005ef4
-           2518000    0x80003ef8 addi a1, a1, -412              #; a1  = 0x80005ef4, (wrb) a1  <-- 0x80005d58
+          11149000    0x80003f1c auipc a1, 2                    #; (wrb) a1  <-- 0x80005f1c
+          11150000    0x80003f20 addi a1, a1, -132              #; a1  = 0x80005f1c, (wrb) a1  <-- 0x80005e98
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:13)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;     ^
-           2519000    0x80003efc auipc a2, 2                    #; (wrb) a2  <-- 0x80005efc
-           2520000                                              #; (lsu) a0  <-- 0x1001ef74
-           2522000    0x80003f00 addi a2, a2, -356              #; a2  = 0x80005efc, (wrb) a2  <-- 0x80005d98
-           2523000    0x80003f04 sub s0, a2, a1                 #; a2  = 0x80005d98, a1  = 0x80005d58, (wrb) s0  <-- 64
-           2524000    0x80003f08 li a1, 0                       #; (wrb) a1  <-- 0
-           2525000    0x80003f0c mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
-           2526000    0x80003f10 auipc ra, 0                    #; (wrb) ra  <-- 0x80003f10
-           2527000    0x80003f14 jalr 764(ra)                   #; ra  = 0x80003f10, (wrb) ra  <-- 0x80003f18, goto 0x8000420c
+          11151000    0x80003f24 auipc a2, 2                    #; (wrb) a2  <-- 0x80005f24
+          11152000    0x80003f28 addi a2, a2, -76               #; a2  = 0x80005f24, (wrb) a2  <-- 0x80005ed8
+          11153000    0x80003f2c sub s0, a2, a1                 #; a2  = 0x80005ed8, a1  = 0x80005e98, (wrb) s0  <-- 64
+          11154000    0x80003f30 li a1, 0                       #; (wrb) a1  <-- 0
+          11155000    0x80003f34 mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
+          11156000    0x80003f38 auipc ra, 0                    #; (wrb) ra  <-- 0x80003f38
+          11157000    0x80003f3c jalr 764(ra)                   #; ra  = 0x80003f38, (wrb) ra  <-- 0x80003f40, goto 0x80004234
+          11158000                                              #; (lsu) a0  <-- 0x1001ef74
 #; memset (memset.S:30)
 #;   li t1, 15
-           2530000    0x8000420c li t1, 15                      #; (wrb) t1  <-- 15
+          11161000    0x80004234 li t1, 15                      #; (wrb) t1  <-- 15
 #; memset (memset.S:31)
 #;   move a4, a0
-           2531000    0x80004210 mv a4, a0                      #; a0  = 0x1001ef74, (wrb) a4  <-- 0x1001ef74
+          11162000    0x80004238 mv a4, a0                      #; a0  = 0x1001ef74, (wrb) a4  <-- 0x1001ef74
 #; memset (memset.S:32)
 #;   bleu a2, t1, .Ltiny
-           2532000    0x80004214 bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
+          11163000    0x8000423c bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
 #; memset (memset.S:33)
 #;   and a5, a4, 15
-           2533000    0x80004218 andi a5, a4, 15                #; a4  = 0x1001ef74, (wrb) a5  <-- 4
+          11166000    0x80004240 andi a5, a4, 15                #; a4  = 0x1001ef74, (wrb) a5  <-- 4
 #; memset (memset.S:34)
 #;   bnez a5, .Lmisaligned
-           2534000    0x8000421c bnez a5, 160                   #; a5  = 4, taken, goto 0x800042bc
+          11167000    0x80004244 bnez a5, 160                   #; a5  = 4, taken, goto 0x800042e4
 #; .Lmisaligned (memset.S:100)
 #;   sll a3, a5, 2
-           2537000    0x800042bc slli a3, a5, 2                 #; a5  = 4, (wrb) a3  <-- 16
+          11170000    0x800042e4 slli a3, a5, 2                 #; a5  = 4, (wrb) a3  <-- 16
 #; .Ltmp2 (memset.S:101)
 #;   1:auipc t0, %pcrel_hi(.Ltable_misaligned)
-           2540000    0x800042c0 auipc t0, 0                    #; (wrb) t0  <-- 0x800042c0
+          11171000    0x800042e8 auipc t0, 0                    #; (wrb) t0  <-- 0x800042e8
 #; .Ltmp2 (memset.S:102)
 #;   add a3, a3, t0
-           2541000    0x800042c4 add a3, a3, t0                 #; a3  = 16, t0  = 0x800042c0, (wrb) a3  <-- 0x800042d0
+          11172000    0x800042ec add a3, a3, t0                 #; a3  = 16, t0  = 0x800042e8, (wrb) a3  <-- 0x800042f8
 #; .Ltmp2 (memset.S:103)
 #;   mv t0, ra
-           2542000    0x800042c8 mv t0, ra                      #; ra  = 0x80003f18, (wrb) t0  <-- 0x80003f18
+          11173000    0x800042f0 mv t0, ra                      #; ra  = 0x80003f40, (wrb) t0  <-- 0x80003f40
 #; .Ltmp2 (memset.S:104)
 #;   jalr a3, %pcrel_lo(1b)
-           2543000    0x800042cc jalr -96(a3)                   #; a3  = 0x800042d0, (wrb) ra  <-- 0x800042d0, goto 0x80004270
+          11174000    0x800042f4 jalr -96(a3)                   #; a3  = 0x800042f8, (wrb) ra  <-- 0x800042f8, goto 0x80004298
 #; .Ltable (memset.S:72)
 #;   sb a1,11(a4)
-           2546000    0x80004270 sb a1, 11(a4)                  #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef7f]
+          11177000    0x80004298 sb a1, 11(a4)                  #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef7f]
 #; .Ltable (memset.S:73)
 #;   sb a1,10(a4)
-           2547000    0x80004274 sb a1, 10(a4)                  #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef7e]
+          11178000    0x8000429c sb a1, 10(a4)                  #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef7e]
 #; .Ltable (memset.S:74)
 #;   sb a1, 9(a4)
-           2548000    0x80004278 sb a1, 9(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef7d]
+          11179000    0x800042a0 sb a1, 9(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef7d]
 #; .Ltable (memset.S:75)
 #;   sb a1, 8(a4)
-           2549000    0x8000427c sb a1, 8(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef7c]
+          11180000    0x800042a4 sb a1, 8(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef7c]
 #; .Ltable (memset.S:76)
 #;   sb a1, 7(a4)
-           2550000    0x80004280 sb a1, 7(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef7b]
+          11181000    0x800042a8 sb a1, 7(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef7b]
 #; .Ltable (memset.S:77)
 #;   sb a1, 6(a4)
-           2551000    0x80004284 sb a1, 6(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef7a]
+          11183000    0x800042ac sb a1, 6(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef7a]
 #; .Ltable (memset.S:78)
 #;   sb a1, 5(a4)
-           2552000    0x80004288 sb a1, 5(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef79]
+          11185000    0x800042b0 sb a1, 5(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef79]
 #; .Ltable (memset.S:79)
 #;   sb a1, 4(a4)
-           2553000    0x8000428c sb a1, 4(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef78]
+          11186000    0x800042b4 sb a1, 4(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef78]
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           2554000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef77]
+          11187000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef77]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           2555000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef76]
+          11188000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef76]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           2556000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef75]
+          11189000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef75]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           2557000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef74]
+          11190000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x1001ef74, 0 ~~> Byte[0x1001ef74]
 #; .Ltable (memset.S:85)
 #;   ret
-           2558000    0x800042a0 ret                            #; ra  = 0x800042d0, goto 0x800042d0
+          11191000    0x800042c8 ret                            #; ra  = 0x800042f8, goto 0x800042f8
 #; .Ltmp2 (memset.S:105)
 #;   mv ra, t0
-           2559000    0x800042d0 mv ra, t0                      #; t0  = 0x80003f18, (wrb) ra  <-- 0x80003f18
+          11192000    0x800042f8 mv ra, t0                      #; t0  = 0x80003f40, (wrb) ra  <-- 0x80003f40
 #; .Ltmp2 (memset.S:107)
 #;   add a5, a5, -16
-           2560000    0x800042d4 addi a5, a5, -16               #; a5  = 4, (wrb) a5  <-- -12
+          11193000    0x800042fc addi a5, a5, -16               #; a5  = 4, (wrb) a5  <-- -12
 #; .Ltmp2 (memset.S:108)
 #;   sub a4, a4, a5
-           2561000    0x800042d8 sub a4, a4, a5                 #; a4  = 0x1001ef74, a5  = -12, (wrb) a4  <-- 0x1001ef80
+          11194000    0x80004300 sub a4, a4, a5                 #; a4  = 0x1001ef74, a5  = -12, (wrb) a4  <-- 0x1001ef80
 #; .Ltmp2 (memset.S:109)
 #;   add a2, a2, a5
-           2562000    0x800042dc add a2, a2, a5                 #; a2  = 64, a5  = -12, (wrb) a2  <-- 52
+          11195000    0x80004304 add a2, a2, a5                 #; a2  = 64, a5  = -12, (wrb) a2  <-- 52
 #; .Ltmp2 (memset.S:110)
 #;   bleu a2, t1, .Ltiny
-           2563000    0x800042e0 bgeu t1, a2, -144              #; t1  = 15, a2  = 52, not taken
+          11196000    0x80004308 bgeu t1, a2, -144              #; t1  = 15, a2  = 52, not taken
 #; .Ltmp2 (memset.S:111)
 #;   j .Laligned
-           2564000    0x800042e4 j -196                         #; goto 0x80004220
+          11197000    0x8000430c j -196                         #; goto 0x80004248
 #; .Laligned (memset.S:37)
 #;   bnez a1, .Lwordify
-           2565000    0x80004220 bnez a1, 132                   #; a1  = 0, not taken
+          11198000    0x80004248 bnez a1, 132                   #; a1  = 0, not taken
 #; .Lwordified (memset.S:40)
 #;   and a3, a2, ~15
-           2566000    0x80004224 andi a3, a2, -16               #; a2  = 52, (wrb) a3  <-- 48
+          11199000    0x8000424c andi a3, a2, -16               #; a2  = 52, (wrb) a3  <-- 48
 #; .Lwordified (memset.S:41)
 #;   and a2, a2, 15
-           2567000    0x80004228 andi a2, a2, 15                #; a2  = 52, (wrb) a2  <-- 4
+          11200000    0x80004250 andi a2, a2, 15                #; a2  = 52, (wrb) a2  <-- 4
 #; .Lwordified (memset.S:42)
 #;   add a3, a3, a4
-           2568000    0x8000422c add a3, a3, a4                 #; a3  = 48, a4  = 0x1001ef80, (wrb) a3  <-- 0x1001efb0
+          11201000    0x80004254 add a3, a3, a4                 #; a3  = 48, a4  = 0x1001ef80, (wrb) a3  <-- 0x1001efb0
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           2569000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x1001ef80, 0 ~~> Word[0x1001ef80]
+          11202000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x1001ef80, 0 ~~> Word[0x1001ef80]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           2570000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x1001ef80, 0 ~~> Word[0x1001ef84]
+          11203000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x1001ef80, 0 ~~> Word[0x1001ef84]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           2571000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x1001ef80, 0 ~~> Word[0x1001ef88]
+          11205000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x1001ef80, 0 ~~> Word[0x1001ef88]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           2572000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x1001ef80, 0 ~~> Word[0x1001ef8c]
+          11207000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x1001ef80, 0 ~~> Word[0x1001ef8c]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           2573000    0x80004240 addi a4, a4, 16                #; a4  = 0x1001ef80, (wrb) a4  <-- 0x1001ef90
+          11208000    0x80004268 addi a4, a4, 16                #; a4  = 0x1001ef80, (wrb) a4  <-- 0x1001ef90
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           2574000    0x80004244 bltu a4, a3, -20               #; a4  = 0x1001ef90, a3  = 0x1001efb0, taken, goto 0x80004230
+          11209000    0x8000426c bltu a4, a3, -20               #; a4  = 0x1001ef90, a3  = 0x1001efb0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           2575000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x1001ef90, 0 ~~> Word[0x1001ef90]
+          11210000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x1001ef90, 0 ~~> Word[0x1001ef90]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           2576000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x1001ef90, 0 ~~> Word[0x1001ef94]
+          11211000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x1001ef90, 0 ~~> Word[0x1001ef94]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           2577000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x1001ef90, 0 ~~> Word[0x1001ef98]
+          11212000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x1001ef90, 0 ~~> Word[0x1001ef98]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           2578000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x1001ef90, 0 ~~> Word[0x1001ef9c]
+          11213000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x1001ef90, 0 ~~> Word[0x1001ef9c]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           2579000    0x80004240 addi a4, a4, 16                #; a4  = 0x1001ef90, (wrb) a4  <-- 0x1001efa0
+          11214000    0x80004268 addi a4, a4, 16                #; a4  = 0x1001ef90, (wrb) a4  <-- 0x1001efa0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           2580000    0x80004244 bltu a4, a3, -20               #; a4  = 0x1001efa0, a3  = 0x1001efb0, taken, goto 0x80004230
+          11215000    0x8000426c bltu a4, a3, -20               #; a4  = 0x1001efa0, a3  = 0x1001efb0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           2581000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x1001efa0, 0 ~~> Word[0x1001efa0]
+          11216000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x1001efa0, 0 ~~> Word[0x1001efa0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           2582000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x1001efa0, 0 ~~> Word[0x1001efa4]
+          11217000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x1001efa0, 0 ~~> Word[0x1001efa4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           2583000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x1001efa0, 0 ~~> Word[0x1001efa8]
+          11218000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x1001efa0, 0 ~~> Word[0x1001efa8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           2584000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x1001efa0, 0 ~~> Word[0x1001efac]
+          11219000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x1001efa0, 0 ~~> Word[0x1001efac]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           2585000    0x80004240 addi a4, a4, 16                #; a4  = 0x1001efa0, (wrb) a4  <-- 0x1001efb0
+          11220000    0x80004268 addi a4, a4, 16                #; a4  = 0x1001efa0, (wrb) a4  <-- 0x1001efb0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           2586000    0x80004244 bltu a4, a3, -20               #; a4  = 0x1001efb0, a3  = 0x1001efb0, not taken
+          11221000    0x8000426c bltu a4, a3, -20               #; a4  = 0x1001efb0, a3  = 0x1001efb0, not taken
 #; .Ltmp0 (memset.S:56)
 #;   bnez a2, .Ltiny
-           2587000    0x80004248 bnez a2, 8                     #; a2  = 4, taken, goto 0x80004250
+          11222000    0x80004270 bnez a2, 8                     #; a2  = 4, taken, goto 0x80004278
 #; .Ltiny (memset.S:60)
 #;   sub a3, t1, a2
-           2588000    0x80004250 sub a3, t1, a2                 #; t1  = 15, a2  = 4, (wrb) a3  <-- 11
+          11223000    0x80004278 sub a3, t1, a2                 #; t1  = 15, a2  = 4, (wrb) a3  <-- 11
 #; .Ltiny (memset.S:61)
 #;   sll a3, a3, 2
-           2589000    0x80004254 slli a3, a3, 2                 #; a3  = 11, (wrb) a3  <-- 44
+          11224000    0x8000427c slli a3, a3, 2                 #; a3  = 11, (wrb) a3  <-- 44
 #; .Ltmp1 (memset.S:62)
 #;   1:auipc t0, %pcrel_hi(.Ltable)
-           2590000    0x80004258 auipc t0, 0                    #; (wrb) t0  <-- 0x80004258
+          11225000    0x80004280 auipc t0, 0                    #; (wrb) t0  <-- 0x80004280
 #; .Ltmp1 (memset.S:63)
 #;   add a3, a3, t0
-           2591000    0x8000425c add a3, a3, t0                 #; a3  = 44, t0  = 0x80004258, (wrb) a3  <-- 0x80004284
+          11226000    0x80004284 add a3, a3, t0                 #; a3  = 44, t0  = 0x80004280, (wrb) a3  <-- 0x800042ac
 #; .Ltable_misaligned (memset.S:67)
 #;   jr a3, %pcrel_lo(1b)
-           2592000    0x80004260 jr 12(a3)                      #; a3  = 0x80004284, goto 0x80004290
+          11227000    0x80004288 jr 12(a3)                      #; a3  = 0x800042ac, goto 0x800042b8
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           2593000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x1001efb0, 0 ~~> Byte[0x1001efb3]
+          11228000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x1001efb0, 0 ~~> Byte[0x1001efb3]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           2594000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x1001efb0, 0 ~~> Byte[0x1001efb2]
+          11229000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x1001efb0, 0 ~~> Byte[0x1001efb2]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           2595000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x1001efb0, 0 ~~> Byte[0x1001efb1]
+          11230000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x1001efb0, 0 ~~> Byte[0x1001efb1]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           2596000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x1001efb0, 0 ~~> Byte[0x1001efb0]
+          11231000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x1001efb0, 0 ~~> Byte[0x1001efb0]
 #; .Ltable (memset.S:85)
 #;   ret
-           2597000    0x800042a0 ret                            #; ra  = 0x80003f18, goto 0x80003f18
+          11232000    0x800042c8 ret                            #; ra  = 0x80003f40, goto 0x80003f40
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:28)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                    ^
-           2598000    0x80003f18 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
-           2601000                                              #; (lsu) a0  <-- 0x1001ef74
+          11235000    0x80003f40 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
+          11238000                                              #; (lsu) a0  <-- 0x1001ef74
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:36)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                            ^
-           2602000    0x80003f1c addi a0, a0, 1032              #; a0  = 0x1001ef74, (wrb) a0  <-- 0x1001f37c
+          11239000    0x80003f44 addi a0, a0, 1032              #; a0  = 0x1001ef74, (wrb) a0  <-- 0x1001f37c
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:13)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;     ^
-           2603000    0x80003f20 li a1, 0                       #; (wrb) a1  <-- 0
-           2604000    0x80003f24 mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
-           2605000    0x80003f28 auipc ra, 0                    #; (wrb) ra  <-- 0x80003f28
-           2606000    0x80003f2c jalr 740(ra)                   #; ra  = 0x80003f28, (wrb) ra  <-- 0x80003f30, goto 0x8000420c
+          11240000    0x80003f48 li a1, 0                       #; (wrb) a1  <-- 0
+          11241000    0x80003f4c mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
+          11242000    0x80003f50 auipc ra, 0                    #; (wrb) ra  <-- 0x80003f50
+          11243000    0x80003f54 jalr 740(ra)                   #; ra  = 0x80003f50, (wrb) ra  <-- 0x80003f58, goto 0x80004234
 #; memset (memset.S:30)
 #;   li t1, 15
-           2607000    0x8000420c li t1, 15                      #; (wrb) t1  <-- 15
+          11244000    0x80004234 li t1, 15                      #; (wrb) t1  <-- 15
 #; memset (memset.S:31)
 #;   move a4, a0
-           2608000    0x80004210 mv a4, a0                      #; a0  = 0x1001f37c, (wrb) a4  <-- 0x1001f37c
+          11245000    0x80004238 mv a4, a0                      #; a0  = 0x1001f37c, (wrb) a4  <-- 0x1001f37c
 #; memset (memset.S:32)
 #;   bleu a2, t1, .Ltiny
-           2609000    0x80004214 bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
+          11246000    0x8000423c bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
 #; memset (memset.S:33)
 #;   and a5, a4, 15
-           2610000    0x80004218 andi a5, a4, 15                #; a4  = 0x1001f37c, (wrb) a5  <-- 12
+          11247000    0x80004240 andi a5, a4, 15                #; a4  = 0x1001f37c, (wrb) a5  <-- 12
 #; memset (memset.S:34)
 #;   bnez a5, .Lmisaligned
-           2611000    0x8000421c bnez a5, 160                   #; a5  = 12, taken, goto 0x800042bc
+          11248000    0x80004244 bnez a5, 160                   #; a5  = 12, taken, goto 0x800042e4
 #; .Lmisaligned (memset.S:100)
 #;   sll a3, a5, 2
-           2612000    0x800042bc slli a3, a5, 2                 #; a5  = 12, (wrb) a3  <-- 48
+          11249000    0x800042e4 slli a3, a5, 2                 #; a5  = 12, (wrb) a3  <-- 48
 #; .Ltmp2 (memset.S:101)
 #;   1:auipc t0, %pcrel_hi(.Ltable_misaligned)
-           2613000    0x800042c0 auipc t0, 0                    #; (wrb) t0  <-- 0x800042c0
+          11250000    0x800042e8 auipc t0, 0                    #; (wrb) t0  <-- 0x800042e8
 #; .Ltmp2 (memset.S:102)
 #;   add a3, a3, t0
-           2614000    0x800042c4 add a3, a3, t0                 #; a3  = 48, t0  = 0x800042c0, (wrb) a3  <-- 0x800042f0
+          11251000    0x800042ec add a3, a3, t0                 #; a3  = 48, t0  = 0x800042e8, (wrb) a3  <-- 0x80004318
 #; .Ltmp2 (memset.S:103)
 #;   mv t0, ra
-           2615000    0x800042c8 mv t0, ra                      #; ra  = 0x80003f30, (wrb) t0  <-- 0x80003f30
+          11252000    0x800042f0 mv t0, ra                      #; ra  = 0x80003f58, (wrb) t0  <-- 0x80003f58
 #; .Ltmp2 (memset.S:104)
 #;   jalr a3, %pcrel_lo(1b)
-           2616000    0x800042cc jalr -96(a3)                   #; a3  = 0x800042f0, (wrb) ra  <-- 0x800042d0, goto 0x80004290
+          11253000    0x800042f4 jalr -96(a3)                   #; a3  = 0x80004318, (wrb) ra  <-- 0x800042f8, goto 0x800042b8
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           2617000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x1001f37c, 0 ~~> Byte[0x1001f37f]
+          11254000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x1001f37c, 0 ~~> Byte[0x1001f37f]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           2618000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x1001f37c, 0 ~~> Byte[0x1001f37e]
+          11255000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x1001f37c, 0 ~~> Byte[0x1001f37e]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           2619000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x1001f37c, 0 ~~> Byte[0x1001f37d]
+          11256000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x1001f37c, 0 ~~> Byte[0x1001f37d]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           2620000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x1001f37c, 0 ~~> Byte[0x1001f37c]
+          11257000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x1001f37c, 0 ~~> Byte[0x1001f37c]
 #; .Ltable (memset.S:85)
 #;   ret
-           2621000    0x800042a0 ret                            #; ra  = 0x800042d0, goto 0x800042d0
+          11258000    0x800042c8 ret                            #; ra  = 0x800042f8, goto 0x800042f8
 #; .Ltmp2 (memset.S:105)
 #;   mv ra, t0
-           2622000    0x800042d0 mv ra, t0                      #; t0  = 0x80003f30, (wrb) ra  <-- 0x80003f30
+          11259000    0x800042f8 mv ra, t0                      #; t0  = 0x80003f58, (wrb) ra  <-- 0x80003f58
 #; .Ltmp2 (memset.S:107)
 #;   add a5, a5, -16
-           2623000    0x800042d4 addi a5, a5, -16               #; a5  = 12, (wrb) a5  <-- -4
+          11260000    0x800042fc addi a5, a5, -16               #; a5  = 12, (wrb) a5  <-- -4
 #; .Ltmp2 (memset.S:108)
 #;   sub a4, a4, a5
-           2624000    0x800042d8 sub a4, a4, a5                 #; a4  = 0x1001f37c, a5  = -4, (wrb) a4  <-- 0x1001f380
+          11261000    0x80004300 sub a4, a4, a5                 #; a4  = 0x1001f37c, a5  = -4, (wrb) a4  <-- 0x1001f380
 #; .Ltmp2 (memset.S:109)
 #;   add a2, a2, a5
-           2625000    0x800042dc add a2, a2, a5                 #; a2  = 64, a5  = -4, (wrb) a2  <-- 60
+          11262000    0x80004304 add a2, a2, a5                 #; a2  = 64, a5  = -4, (wrb) a2  <-- 60
 #; .Ltmp2 (memset.S:110)
 #;   bleu a2, t1, .Ltiny
-           2626000    0x800042e0 bgeu t1, a2, -144              #; t1  = 15, a2  = 60, not taken
+          11263000    0x80004308 bgeu t1, a2, -144              #; t1  = 15, a2  = 60, not taken
 #; .Ltmp2 (memset.S:111)
 #;   j .Laligned
-           2627000    0x800042e4 j -196                         #; goto 0x80004220
+          11264000    0x8000430c j -196                         #; goto 0x80004248
 #; .Laligned (memset.S:37)
 #;   bnez a1, .Lwordify
-           2628000    0x80004220 bnez a1, 132                   #; a1  = 0, not taken
+          11265000    0x80004248 bnez a1, 132                   #; a1  = 0, not taken
 #; .Lwordified (memset.S:40)
 #;   and a3, a2, ~15
-           2629000    0x80004224 andi a3, a2, -16               #; a2  = 60, (wrb) a3  <-- 48
+          11266000    0x8000424c andi a3, a2, -16               #; a2  = 60, (wrb) a3  <-- 48
 #; .Lwordified (memset.S:41)
 #;   and a2, a2, 15
-           2630000    0x80004228 andi a2, a2, 15                #; a2  = 60, (wrb) a2  <-- 12
+          11267000    0x80004250 andi a2, a2, 15                #; a2  = 60, (wrb) a2  <-- 12
 #; .Lwordified (memset.S:42)
 #;   add a3, a3, a4
-           2631000    0x8000422c add a3, a3, a4                 #; a3  = 48, a4  = 0x1001f380, (wrb) a3  <-- 0x1001f3b0
+          11268000    0x80004254 add a3, a3, a4                 #; a3  = 48, a4  = 0x1001f380, (wrb) a3  <-- 0x1001f3b0
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           2632000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x1001f380, 0 ~~> Word[0x1001f380]
+          11269000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x1001f380, 0 ~~> Word[0x1001f380]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           2633000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x1001f380, 0 ~~> Word[0x1001f384]
+          11270000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x1001f380, 0 ~~> Word[0x1001f384]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           2634000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x1001f380, 0 ~~> Word[0x1001f388]
+          11271000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x1001f380, 0 ~~> Word[0x1001f388]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           2635000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x1001f380, 0 ~~> Word[0x1001f38c]
+          11272000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x1001f380, 0 ~~> Word[0x1001f38c]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           2636000    0x80004240 addi a4, a4, 16                #; a4  = 0x1001f380, (wrb) a4  <-- 0x1001f390
+          11273000    0x80004268 addi a4, a4, 16                #; a4  = 0x1001f380, (wrb) a4  <-- 0x1001f390
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           2637000    0x80004244 bltu a4, a3, -20               #; a4  = 0x1001f390, a3  = 0x1001f3b0, taken, goto 0x80004230
+          11274000    0x8000426c bltu a4, a3, -20               #; a4  = 0x1001f390, a3  = 0x1001f3b0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           2638000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x1001f390, 0 ~~> Word[0x1001f390]
+          11275000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x1001f390, 0 ~~> Word[0x1001f390]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           2639000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x1001f390, 0 ~~> Word[0x1001f394]
+          11276000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x1001f390, 0 ~~> Word[0x1001f394]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           2640000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x1001f390, 0 ~~> Word[0x1001f398]
+          11277000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x1001f390, 0 ~~> Word[0x1001f398]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           2641000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x1001f390, 0 ~~> Word[0x1001f39c]
+          11278000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x1001f390, 0 ~~> Word[0x1001f39c]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           2642000    0x80004240 addi a4, a4, 16                #; a4  = 0x1001f390, (wrb) a4  <-- 0x1001f3a0
+          11279000    0x80004268 addi a4, a4, 16                #; a4  = 0x1001f390, (wrb) a4  <-- 0x1001f3a0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           2643000    0x80004244 bltu a4, a3, -20               #; a4  = 0x1001f3a0, a3  = 0x1001f3b0, taken, goto 0x80004230
+          11280000    0x8000426c bltu a4, a3, -20               #; a4  = 0x1001f3a0, a3  = 0x1001f3b0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           2644000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x1001f3a0, 0 ~~> Word[0x1001f3a0]
+          11281000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x1001f3a0, 0 ~~> Word[0x1001f3a0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           2645000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x1001f3a0, 0 ~~> Word[0x1001f3a4]
+          11282000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x1001f3a0, 0 ~~> Word[0x1001f3a4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           2646000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x1001f3a0, 0 ~~> Word[0x1001f3a8]
+          11283000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x1001f3a0, 0 ~~> Word[0x1001f3a8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           2647000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x1001f3a0, 0 ~~> Word[0x1001f3ac]
+          11284000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x1001f3a0, 0 ~~> Word[0x1001f3ac]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           2648000    0x80004240 addi a4, a4, 16                #; a4  = 0x1001f3a0, (wrb) a4  <-- 0x1001f3b0
+          11285000    0x80004268 addi a4, a4, 16                #; a4  = 0x1001f3a0, (wrb) a4  <-- 0x1001f3b0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           2649000    0x80004244 bltu a4, a3, -20               #; a4  = 0x1001f3b0, a3  = 0x1001f3b0, not taken
+          11286000    0x8000426c bltu a4, a3, -20               #; a4  = 0x1001f3b0, a3  = 0x1001f3b0, not taken
 #; .Ltmp0 (memset.S:56)
 #;   bnez a2, .Ltiny
-           2650000    0x80004248 bnez a2, 8                     #; a2  = 12, taken, goto 0x80004250
+          11287000    0x80004270 bnez a2, 8                     #; a2  = 12, taken, goto 0x80004278
 #; .Ltiny (memset.S:60)
 #;   sub a3, t1, a2
-           2651000    0x80004250 sub a3, t1, a2                 #; t1  = 15, a2  = 12, (wrb) a3  <-- 3
+          11288000    0x80004278 sub a3, t1, a2                 #; t1  = 15, a2  = 12, (wrb) a3  <-- 3
 #; .Ltiny (memset.S:61)
 #;   sll a3, a3, 2
-           2652000    0x80004254 slli a3, a3, 2                 #; a3  = 3, (wrb) a3  <-- 12
+          11289000    0x8000427c slli a3, a3, 2                 #; a3  = 3, (wrb) a3  <-- 12
 #; .Ltmp1 (memset.S:62)
 #;   1:auipc t0, %pcrel_hi(.Ltable)
-           2653000    0x80004258 auipc t0, 0                    #; (wrb) t0  <-- 0x80004258
+          11290000    0x80004280 auipc t0, 0                    #; (wrb) t0  <-- 0x80004280
 #; .Ltmp1 (memset.S:63)
 #;   add a3, a3, t0
-           2654000    0x8000425c add a3, a3, t0                 #; a3  = 12, t0  = 0x80004258, (wrb) a3  <-- 0x80004264
+          11291000    0x80004284 add a3, a3, t0                 #; a3  = 12, t0  = 0x80004280, (wrb) a3  <-- 0x8000428c
 #; .Ltable_misaligned (memset.S:67)
 #;   jr a3, %pcrel_lo(1b)
-           2655000    0x80004260 jr 12(a3)                      #; a3  = 0x80004264, goto 0x80004270
+          11292000    0x80004288 jr 12(a3)                      #; a3  = 0x8000428c, goto 0x80004298
 #; .Ltable (memset.S:72)
 #;   sb a1,11(a4)
-           2656000    0x80004270 sb a1, 11(a4)                  #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3bb]
+          11293000    0x80004298 sb a1, 11(a4)                  #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3bb]
 #; .Ltable (memset.S:73)
 #;   sb a1,10(a4)
-           2657000    0x80004274 sb a1, 10(a4)                  #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3ba]
+          11294000    0x8000429c sb a1, 10(a4)                  #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3ba]
 #; .Ltable (memset.S:74)
 #;   sb a1, 9(a4)
-           2658000    0x80004278 sb a1, 9(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b9]
+          11295000    0x800042a0 sb a1, 9(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b9]
 #; .Ltable (memset.S:75)
 #;   sb a1, 8(a4)
-           2659000    0x8000427c sb a1, 8(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b8]
+          11296000    0x800042a4 sb a1, 8(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b8]
 #; .Ltable (memset.S:76)
 #;   sb a1, 7(a4)
-           2660000    0x80004280 sb a1, 7(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b7]
+          11297000    0x800042a8 sb a1, 7(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b7]
 #; .Ltable (memset.S:77)
 #;   sb a1, 6(a4)
-           2661000    0x80004284 sb a1, 6(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b6]
+          11298000    0x800042ac sb a1, 6(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b6]
 #; .Ltable (memset.S:78)
 #;   sb a1, 5(a4)
-           2662000    0x80004288 sb a1, 5(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b5]
+          11299000    0x800042b0 sb a1, 5(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b5]
 #; .Ltable (memset.S:79)
 #;   sb a1, 4(a4)
-           2663000    0x8000428c sb a1, 4(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b4]
+          11301000    0x800042b4 sb a1, 4(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b4]
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           2664000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b3]
+          11303000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b3]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           2665000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b2]
+          11304000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b2]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           2666000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b1]
+          11305000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b1]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           2667000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b0]
+          11306000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x1001f3b0, 0 ~~> Byte[0x1001f3b0]
 #; .Ltable (memset.S:85)
 #;   ret
-           2668000    0x800042a0 ret                            #; ra  = 0x80003f30, goto 0x80003f30
+          11307000    0x800042c8 ret                            #; ra  = 0x80003f58, goto 0x80003f58
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:28)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                    ^
-           2669000    0x80003f30 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
-           2672000                                              #; (lsu) a0  <-- 0x1001ef74
+          11308000    0x80003f58 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
+          11311000                                              #; (lsu) a0  <-- 0x1001ef74
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:36)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                            ^
-           2673000    0x80003f34 add a0, a0, s1                 #; a0  = 0x1001ef74, s1  = 2064, (wrb) a0  <-- 0x1001f784
+          11312000    0x80003f5c add a0, a0, s1                 #; a0  = 0x1001ef74, s1  = 2064, (wrb) a0  <-- 0x1001f784
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:13)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;     ^
-           2674000    0x80003f38 li a1, 0                       #; (wrb) a1  <-- 0
-           2675000    0x80003f3c mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
-           2678000    0x80003f40 auipc ra, 0                    #; (wrb) ra  <-- 0x80003f40
-           2679000    0x80003f44 jalr 716(ra)                   #; ra  = 0x80003f40, (wrb) ra  <-- 0x80003f48, goto 0x8000420c
+          11313000    0x80003f60 li a1, 0                       #; (wrb) a1  <-- 0
+          11314000    0x80003f64 mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
+          11315000    0x80003f68 auipc ra, 0                    #; (wrb) ra  <-- 0x80003f68
+          11316000    0x80003f6c jalr 716(ra)                   #; ra  = 0x80003f68, (wrb) ra  <-- 0x80003f70, goto 0x80004234
 #; memset (memset.S:30)
 #;   li t1, 15
-           2680000    0x8000420c li t1, 15                      #; (wrb) t1  <-- 15
+          11317000    0x80004234 li t1, 15                      #; (wrb) t1  <-- 15
 #; memset (memset.S:31)
 #;   move a4, a0
-           2681000    0x80004210 mv a4, a0                      #; a0  = 0x1001f784, (wrb) a4  <-- 0x1001f784
+          11318000    0x80004238 mv a4, a0                      #; a0  = 0x1001f784, (wrb) a4  <-- 0x1001f784
 #; memset (memset.S:32)
 #;   bleu a2, t1, .Ltiny
-           2682000    0x80004214 bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
+          11319000    0x8000423c bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
 #; memset (memset.S:33)
 #;   and a5, a4, 15
-           2683000    0x80004218 andi a5, a4, 15                #; a4  = 0x1001f784, (wrb) a5  <-- 4
+          11320000    0x80004240 andi a5, a4, 15                #; a4  = 0x1001f784, (wrb) a5  <-- 4
 #; memset (memset.S:34)
 #;   bnez a5, .Lmisaligned
-           2684000    0x8000421c bnez a5, 160                   #; a5  = 4, taken, goto 0x800042bc
+          11321000    0x80004244 bnez a5, 160                   #; a5  = 4, taken, goto 0x800042e4
 #; .Lmisaligned (memset.S:100)
 #;   sll a3, a5, 2
-           2685000    0x800042bc slli a3, a5, 2                 #; a5  = 4, (wrb) a3  <-- 16
+          11322000    0x800042e4 slli a3, a5, 2                 #; a5  = 4, (wrb) a3  <-- 16
 #; .Ltmp2 (memset.S:101)
 #;   1:auipc t0, %pcrel_hi(.Ltable_misaligned)
-           2686000    0x800042c0 auipc t0, 0                    #; (wrb) t0  <-- 0x800042c0
+          11323000    0x800042e8 auipc t0, 0                    #; (wrb) t0  <-- 0x800042e8
 #; .Ltmp2 (memset.S:102)
 #;   add a3, a3, t0
-           2687000    0x800042c4 add a3, a3, t0                 #; a3  = 16, t0  = 0x800042c0, (wrb) a3  <-- 0x800042d0
+          11324000    0x800042ec add a3, a3, t0                 #; a3  = 16, t0  = 0x800042e8, (wrb) a3  <-- 0x800042f8
 #; .Ltmp2 (memset.S:103)
 #;   mv t0, ra
-           2688000    0x800042c8 mv t0, ra                      #; ra  = 0x80003f48, (wrb) t0  <-- 0x80003f48
+          11325000    0x800042f0 mv t0, ra                      #; ra  = 0x80003f70, (wrb) t0  <-- 0x80003f70
 #; .Ltmp2 (memset.S:104)
 #;   jalr a3, %pcrel_lo(1b)
-           2689000    0x800042cc jalr -96(a3)                   #; a3  = 0x800042d0, (wrb) ra  <-- 0x800042d0, goto 0x80004270
+          11326000    0x800042f4 jalr -96(a3)                   #; a3  = 0x800042f8, (wrb) ra  <-- 0x800042f8, goto 0x80004298
 #; .Ltable (memset.S:72)
 #;   sb a1,11(a4)
-           2690000    0x80004270 sb a1, 11(a4)                  #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f78f]
+          11327000    0x80004298 sb a1, 11(a4)                  #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f78f]
 #; .Ltable (memset.S:73)
 #;   sb a1,10(a4)
-           2691000    0x80004274 sb a1, 10(a4)                  #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f78e]
+          11328000    0x8000429c sb a1, 10(a4)                  #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f78e]
 #; .Ltable (memset.S:74)
 #;   sb a1, 9(a4)
-           2692000    0x80004278 sb a1, 9(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f78d]
+          11329000    0x800042a0 sb a1, 9(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f78d]
 #; .Ltable (memset.S:75)
 #;   sb a1, 8(a4)
-           2693000    0x8000427c sb a1, 8(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f78c]
+          11330000    0x800042a4 sb a1, 8(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f78c]
 #; .Ltable (memset.S:76)
 #;   sb a1, 7(a4)
-           2694000    0x80004280 sb a1, 7(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f78b]
+          11331000    0x800042a8 sb a1, 7(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f78b]
 #; .Ltable (memset.S:77)
 #;   sb a1, 6(a4)
-           2695000    0x80004284 sb a1, 6(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f78a]
+          11332000    0x800042ac sb a1, 6(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f78a]
 #; .Ltable (memset.S:78)
 #;   sb a1, 5(a4)
-           2696000    0x80004288 sb a1, 5(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f789]
+          11333000    0x800042b0 sb a1, 5(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f789]
 #; .Ltable (memset.S:79)
 #;   sb a1, 4(a4)
-           2697000    0x8000428c sb a1, 4(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f788]
+          11334000    0x800042b4 sb a1, 4(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f788]
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           2698000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f787]
+          11335000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f787]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           2699000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f786]
+          11336000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f786]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           2700000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f785]
+          11337000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f785]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           2701000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f784]
+          11338000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x1001f784, 0 ~~> Byte[0x1001f784]
 #; .Ltable (memset.S:85)
 #;   ret
-           2702000    0x800042a0 ret                            #; ra  = 0x800042d0, goto 0x800042d0
+          11339000    0x800042c8 ret                            #; ra  = 0x800042f8, goto 0x800042f8
 #; .Ltmp2 (memset.S:105)
 #;   mv ra, t0
-           2703000    0x800042d0 mv ra, t0                      #; t0  = 0x80003f48, (wrb) ra  <-- 0x80003f48
+          11340000    0x800042f8 mv ra, t0                      #; t0  = 0x80003f70, (wrb) ra  <-- 0x80003f70
 #; .Ltmp2 (memset.S:107)
 #;   add a5, a5, -16
-           2704000    0x800042d4 addi a5, a5, -16               #; a5  = 4, (wrb) a5  <-- -12
+          11341000    0x800042fc addi a5, a5, -16               #; a5  = 4, (wrb) a5  <-- -12
 #; .Ltmp2 (memset.S:108)
 #;   sub a4, a4, a5
-           2705000    0x800042d8 sub a4, a4, a5                 #; a4  = 0x1001f784, a5  = -12, (wrb) a4  <-- 0x1001f790
+          11342000    0x80004300 sub a4, a4, a5                 #; a4  = 0x1001f784, a5  = -12, (wrb) a4  <-- 0x1001f790
 #; .Ltmp2 (memset.S:109)
 #;   add a2, a2, a5
-           2706000    0x800042dc add a2, a2, a5                 #; a2  = 64, a5  = -12, (wrb) a2  <-- 52
+          11343000    0x80004304 add a2, a2, a5                 #; a2  = 64, a5  = -12, (wrb) a2  <-- 52
 #; .Ltmp2 (memset.S:110)
 #;   bleu a2, t1, .Ltiny
-           2707000    0x800042e0 bgeu t1, a2, -144              #; t1  = 15, a2  = 52, not taken
+          11344000    0x80004308 bgeu t1, a2, -144              #; t1  = 15, a2  = 52, not taken
 #; .Ltmp2 (memset.S:111)
 #;   j .Laligned
-           2708000    0x800042e4 j -196                         #; goto 0x80004220
+          11345000    0x8000430c j -196                         #; goto 0x80004248
 #; .Laligned (memset.S:37)
 #;   bnez a1, .Lwordify
-           2709000    0x80004220 bnez a1, 132                   #; a1  = 0, not taken
+          11346000    0x80004248 bnez a1, 132                   #; a1  = 0, not taken
 #; .Lwordified (memset.S:40)
 #;   and a3, a2, ~15
-           2710000    0x80004224 andi a3, a2, -16               #; a2  = 52, (wrb) a3  <-- 48
+          11347000    0x8000424c andi a3, a2, -16               #; a2  = 52, (wrb) a3  <-- 48
 #; .Lwordified (memset.S:41)
 #;   and a2, a2, 15
-           2711000    0x80004228 andi a2, a2, 15                #; a2  = 52, (wrb) a2  <-- 4
+          11348000    0x80004250 andi a2, a2, 15                #; a2  = 52, (wrb) a2  <-- 4
 #; .Lwordified (memset.S:42)
 #;   add a3, a3, a4
-           2712000    0x8000422c add a3, a3, a4                 #; a3  = 48, a4  = 0x1001f790, (wrb) a3  <-- 0x1001f7c0
+          11349000    0x80004254 add a3, a3, a4                 #; a3  = 48, a4  = 0x1001f790, (wrb) a3  <-- 0x1001f7c0
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           2713000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x1001f790, 0 ~~> Word[0x1001f790]
+          11350000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x1001f790, 0 ~~> Word[0x1001f790]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           2714000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x1001f790, 0 ~~> Word[0x1001f794]
+          11351000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x1001f790, 0 ~~> Word[0x1001f794]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           2716000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x1001f790, 0 ~~> Word[0x1001f798]
+          11352000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x1001f790, 0 ~~> Word[0x1001f798]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           2718000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x1001f790, 0 ~~> Word[0x1001f79c]
+          11353000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x1001f790, 0 ~~> Word[0x1001f79c]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           2719000    0x80004240 addi a4, a4, 16                #; a4  = 0x1001f790, (wrb) a4  <-- 0x1001f7a0
+          11354000    0x80004268 addi a4, a4, 16                #; a4  = 0x1001f790, (wrb) a4  <-- 0x1001f7a0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           2720000    0x80004244 bltu a4, a3, -20               #; a4  = 0x1001f7a0, a3  = 0x1001f7c0, taken, goto 0x80004230
+          11355000    0x8000426c bltu a4, a3, -20               #; a4  = 0x1001f7a0, a3  = 0x1001f7c0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           2721000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x1001f7a0, 0 ~~> Word[0x1001f7a0]
+          11356000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x1001f7a0, 0 ~~> Word[0x1001f7a0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           2722000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x1001f7a0, 0 ~~> Word[0x1001f7a4]
+          11357000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x1001f7a0, 0 ~~> Word[0x1001f7a4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           2724000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x1001f7a0, 0 ~~> Word[0x1001f7a8]
+          11358000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x1001f7a0, 0 ~~> Word[0x1001f7a8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           2725000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x1001f7a0, 0 ~~> Word[0x1001f7ac]
+          11359000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x1001f7a0, 0 ~~> Word[0x1001f7ac]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           2726000    0x80004240 addi a4, a4, 16                #; a4  = 0x1001f7a0, (wrb) a4  <-- 0x1001f7b0
+          11360000    0x80004268 addi a4, a4, 16                #; a4  = 0x1001f7a0, (wrb) a4  <-- 0x1001f7b0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           2727000    0x80004244 bltu a4, a3, -20               #; a4  = 0x1001f7b0, a3  = 0x1001f7c0, taken, goto 0x80004230
+          11361000    0x8000426c bltu a4, a3, -20               #; a4  = 0x1001f7b0, a3  = 0x1001f7c0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           2728000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x1001f7b0, 0 ~~> Word[0x1001f7b0]
+          11362000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x1001f7b0, 0 ~~> Word[0x1001f7b0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           2729000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x1001f7b0, 0 ~~> Word[0x1001f7b4]
+          11363000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x1001f7b0, 0 ~~> Word[0x1001f7b4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           2730000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x1001f7b0, 0 ~~> Word[0x1001f7b8]
+          11364000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x1001f7b0, 0 ~~> Word[0x1001f7b8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           2731000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x1001f7b0, 0 ~~> Word[0x1001f7bc]
+          11365000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x1001f7b0, 0 ~~> Word[0x1001f7bc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           2732000    0x80004240 addi a4, a4, 16                #; a4  = 0x1001f7b0, (wrb) a4  <-- 0x1001f7c0
+          11366000    0x80004268 addi a4, a4, 16                #; a4  = 0x1001f7b0, (wrb) a4  <-- 0x1001f7c0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           2733000    0x80004244 bltu a4, a3, -20               #; a4  = 0x1001f7c0, a3  = 0x1001f7c0, not taken
+          11367000    0x8000426c bltu a4, a3, -20               #; a4  = 0x1001f7c0, a3  = 0x1001f7c0, not taken
 #; .Ltmp0 (memset.S:56)
 #;   bnez a2, .Ltiny
-           2734000    0x80004248 bnez a2, 8                     #; a2  = 4, taken, goto 0x80004250
+          11368000    0x80004270 bnez a2, 8                     #; a2  = 4, taken, goto 0x80004278
 #; .Ltiny (memset.S:60)
 #;   sub a3, t1, a2
-           2735000    0x80004250 sub a3, t1, a2                 #; t1  = 15, a2  = 4, (wrb) a3  <-- 11
+          11369000    0x80004278 sub a3, t1, a2                 #; t1  = 15, a2  = 4, (wrb) a3  <-- 11
 #; .Ltiny (memset.S:61)
 #;   sll a3, a3, 2
-           2736000    0x80004254 slli a3, a3, 2                 #; a3  = 11, (wrb) a3  <-- 44
+          11370000    0x8000427c slli a3, a3, 2                 #; a3  = 11, (wrb) a3  <-- 44
 #; .Ltmp1 (memset.S:62)
 #;   1:auipc t0, %pcrel_hi(.Ltable)
-           2737000    0x80004258 auipc t0, 0                    #; (wrb) t0  <-- 0x80004258
+          11371000    0x80004280 auipc t0, 0                    #; (wrb) t0  <-- 0x80004280
 #; .Ltmp1 (memset.S:63)
 #;   add a3, a3, t0
-           2738000    0x8000425c add a3, a3, t0                 #; a3  = 44, t0  = 0x80004258, (wrb) a3  <-- 0x80004284
+          11372000    0x80004284 add a3, a3, t0                 #; a3  = 44, t0  = 0x80004280, (wrb) a3  <-- 0x800042ac
 #; .Ltable_misaligned (memset.S:67)
 #;   jr a3, %pcrel_lo(1b)
-           2739000    0x80004260 jr 12(a3)                      #; a3  = 0x80004284, goto 0x80004290
+          11373000    0x80004288 jr 12(a3)                      #; a3  = 0x800042ac, goto 0x800042b8
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           2740000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x1001f7c0, 0 ~~> Byte[0x1001f7c3]
+          11374000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x1001f7c0, 0 ~~> Byte[0x1001f7c3]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           2741000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x1001f7c0, 0 ~~> Byte[0x1001f7c2]
+          11375000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x1001f7c0, 0 ~~> Byte[0x1001f7c2]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           2742000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x1001f7c0, 0 ~~> Byte[0x1001f7c1]
+          11376000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x1001f7c0, 0 ~~> Byte[0x1001f7c1]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           2743000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x1001f7c0, 0 ~~> Byte[0x1001f7c0]
+          11377000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x1001f7c0, 0 ~~> Byte[0x1001f7c0]
 #; .Ltable (memset.S:85)
 #;   ret
-           2744000    0x800042a0 ret                            #; ra  = 0x80003f48, goto 0x80003f48
+          11378000    0x800042c8 ret                            #; ra  = 0x80003f70, goto 0x80003f70
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:28)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                    ^
-           2745000    0x80003f48 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
-           2748000                                              #; (lsu) a0  <-- 0x1001ef74
+          11379000    0x80003f70 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
+          11382000                                              #; (lsu) a0  <-- 0x1001ef74
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:36)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                            ^
-           2749000    0x80003f4c add a0, a0, s6                 #; a0  = 0x1001ef74, s6  = 3096, (wrb) a0  <-- 0x1001fb8c
+          11383000    0x80003f74 add a0, a0, s6                 #; a0  = 0x1001ef74, s6  = 3096, (wrb) a0  <-- 0x1001fb8c
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:13)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;     ^
-           2750000    0x80003f50 li a1, 0                       #; (wrb) a1  <-- 0
-           2751000    0x80003f54 mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
-           2752000    0x80003f58 auipc ra, 0                    #; (wrb) ra  <-- 0x80003f58
-           2753000    0x80003f5c jalr 692(ra)                   #; ra  = 0x80003f58, (wrb) ra  <-- 0x80003f60, goto 0x8000420c
+          11384000    0x80003f78 li a1, 0                       #; (wrb) a1  <-- 0
+          11385000    0x80003f7c mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
+          11388000    0x80003f80 auipc ra, 0                    #; (wrb) ra  <-- 0x80003f80
+          11389000    0x80003f84 jalr 692(ra)                   #; ra  = 0x80003f80, (wrb) ra  <-- 0x80003f88, goto 0x80004234
 #; memset (memset.S:30)
 #;   li t1, 15
-           2754000    0x8000420c li t1, 15                      #; (wrb) t1  <-- 15
+          11390000    0x80004234 li t1, 15                      #; (wrb) t1  <-- 15
 #; memset (memset.S:31)
 #;   move a4, a0
-           2755000    0x80004210 mv a4, a0                      #; a0  = 0x1001fb8c, (wrb) a4  <-- 0x1001fb8c
+          11391000    0x80004238 mv a4, a0                      #; a0  = 0x1001fb8c, (wrb) a4  <-- 0x1001fb8c
 #; memset (memset.S:32)
 #;   bleu a2, t1, .Ltiny
-           2756000    0x80004214 bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
+          11392000    0x8000423c bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
 #; memset (memset.S:33)
 #;   and a5, a4, 15
-           2757000    0x80004218 andi a5, a4, 15                #; a4  = 0x1001fb8c, (wrb) a5  <-- 12
+          11393000    0x80004240 andi a5, a4, 15                #; a4  = 0x1001fb8c, (wrb) a5  <-- 12
 #; memset (memset.S:34)
 #;   bnez a5, .Lmisaligned
-           2758000    0x8000421c bnez a5, 160                   #; a5  = 12, taken, goto 0x800042bc
+          11394000    0x80004244 bnez a5, 160                   #; a5  = 12, taken, goto 0x800042e4
 #; .Lmisaligned (memset.S:100)
 #;   sll a3, a5, 2
-           2759000    0x800042bc slli a3, a5, 2                 #; a5  = 12, (wrb) a3  <-- 48
+          11395000    0x800042e4 slli a3, a5, 2                 #; a5  = 12, (wrb) a3  <-- 48
 #; .Ltmp2 (memset.S:101)
 #;   1:auipc t0, %pcrel_hi(.Ltable_misaligned)
-           2760000    0x800042c0 auipc t0, 0                    #; (wrb) t0  <-- 0x800042c0
+          11396000    0x800042e8 auipc t0, 0                    #; (wrb) t0  <-- 0x800042e8
 #; .Ltmp2 (memset.S:102)
 #;   add a3, a3, t0
-           2761000    0x800042c4 add a3, a3, t0                 #; a3  = 48, t0  = 0x800042c0, (wrb) a3  <-- 0x800042f0
+          11397000    0x800042ec add a3, a3, t0                 #; a3  = 48, t0  = 0x800042e8, (wrb) a3  <-- 0x80004318
 #; .Ltmp2 (memset.S:103)
 #;   mv t0, ra
-           2762000    0x800042c8 mv t0, ra                      #; ra  = 0x80003f60, (wrb) t0  <-- 0x80003f60
+          11398000    0x800042f0 mv t0, ra                      #; ra  = 0x80003f88, (wrb) t0  <-- 0x80003f88
 #; .Ltmp2 (memset.S:104)
 #;   jalr a3, %pcrel_lo(1b)
-           2763000    0x800042cc jalr -96(a3)                   #; a3  = 0x800042f0, (wrb) ra  <-- 0x800042d0, goto 0x80004290
+          11399000    0x800042f4 jalr -96(a3)                   #; a3  = 0x80004318, (wrb) ra  <-- 0x800042f8, goto 0x800042b8
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           2764000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x1001fb8c, 0 ~~> Byte[0x1001fb8f]
+          11400000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x1001fb8c, 0 ~~> Byte[0x1001fb8f]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           2765000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x1001fb8c, 0 ~~> Byte[0x1001fb8e]
+          11401000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x1001fb8c, 0 ~~> Byte[0x1001fb8e]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           2766000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x1001fb8c, 0 ~~> Byte[0x1001fb8d]
+          11402000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x1001fb8c, 0 ~~> Byte[0x1001fb8d]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           2767000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x1001fb8c, 0 ~~> Byte[0x1001fb8c]
+          11403000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x1001fb8c, 0 ~~> Byte[0x1001fb8c]
 #; .Ltable (memset.S:85)
 #;   ret
-           2768000    0x800042a0 ret                            #; ra  = 0x800042d0, goto 0x800042d0
+          11404000    0x800042c8 ret                            #; ra  = 0x800042f8, goto 0x800042f8
 #; .Ltmp2 (memset.S:105)
 #;   mv ra, t0
-           2769000    0x800042d0 mv ra, t0                      #; t0  = 0x80003f60, (wrb) ra  <-- 0x80003f60
+          11405000    0x800042f8 mv ra, t0                      #; t0  = 0x80003f88, (wrb) ra  <-- 0x80003f88
 #; .Ltmp2 (memset.S:107)
 #;   add a5, a5, -16
-           2770000    0x800042d4 addi a5, a5, -16               #; a5  = 12, (wrb) a5  <-- -4
+          11406000    0x800042fc addi a5, a5, -16               #; a5  = 12, (wrb) a5  <-- -4
 #; .Ltmp2 (memset.S:108)
 #;   sub a4, a4, a5
-           2771000    0x800042d8 sub a4, a4, a5                 #; a4  = 0x1001fb8c, a5  = -4, (wrb) a4  <-- 0x1001fb90
+          11407000    0x80004300 sub a4, a4, a5                 #; a4  = 0x1001fb8c, a5  = -4, (wrb) a4  <-- 0x1001fb90
 #; .Ltmp2 (memset.S:109)
 #;   add a2, a2, a5
-           2772000    0x800042dc add a2, a2, a5                 #; a2  = 64, a5  = -4, (wrb) a2  <-- 60
+          11408000    0x80004304 add a2, a2, a5                 #; a2  = 64, a5  = -4, (wrb) a2  <-- 60
 #; .Ltmp2 (memset.S:110)
 #;   bleu a2, t1, .Ltiny
-           2773000    0x800042e0 bgeu t1, a2, -144              #; t1  = 15, a2  = 60, not taken
+          11409000    0x80004308 bgeu t1, a2, -144              #; t1  = 15, a2  = 60, not taken
 #; .Ltmp2 (memset.S:111)
 #;   j .Laligned
-           2774000    0x800042e4 j -196                         #; goto 0x80004220
+          11410000    0x8000430c j -196                         #; goto 0x80004248
 #; .Laligned (memset.S:37)
 #;   bnez a1, .Lwordify
-           2775000    0x80004220 bnez a1, 132                   #; a1  = 0, not taken
+          11411000    0x80004248 bnez a1, 132                   #; a1  = 0, not taken
 #; .Lwordified (memset.S:40)
 #;   and a3, a2, ~15
-           2776000    0x80004224 andi a3, a2, -16               #; a2  = 60, (wrb) a3  <-- 48
+          11412000    0x8000424c andi a3, a2, -16               #; a2  = 60, (wrb) a3  <-- 48
 #; .Lwordified (memset.S:41)
 #;   and a2, a2, 15
-           2777000    0x80004228 andi a2, a2, 15                #; a2  = 60, (wrb) a2  <-- 12
+          11413000    0x80004250 andi a2, a2, 15                #; a2  = 60, (wrb) a2  <-- 12
 #; .Lwordified (memset.S:42)
 #;   add a3, a3, a4
-           2778000    0x8000422c add a3, a3, a4                 #; a3  = 48, a4  = 0x1001fb90, (wrb) a3  <-- 0x1001fbc0
+          11414000    0x80004254 add a3, a3, a4                 #; a3  = 48, a4  = 0x1001fb90, (wrb) a3  <-- 0x1001fbc0
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           2779000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x1001fb90, 0 ~~> Word[0x1001fb90]
+          11415000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x1001fb90, 0 ~~> Word[0x1001fb90]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           2780000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x1001fb90, 0 ~~> Word[0x1001fb94]
+          11416000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x1001fb90, 0 ~~> Word[0x1001fb94]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           2781000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x1001fb90, 0 ~~> Word[0x1001fb98]
+          11417000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x1001fb90, 0 ~~> Word[0x1001fb98]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           2782000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x1001fb90, 0 ~~> Word[0x1001fb9c]
+          11418000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x1001fb90, 0 ~~> Word[0x1001fb9c]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           2783000    0x80004240 addi a4, a4, 16                #; a4  = 0x1001fb90, (wrb) a4  <-- 0x1001fba0
+          11419000    0x80004268 addi a4, a4, 16                #; a4  = 0x1001fb90, (wrb) a4  <-- 0x1001fba0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           2784000    0x80004244 bltu a4, a3, -20               #; a4  = 0x1001fba0, a3  = 0x1001fbc0, taken, goto 0x80004230
+          11420000    0x8000426c bltu a4, a3, -20               #; a4  = 0x1001fba0, a3  = 0x1001fbc0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           2785000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x1001fba0, 0 ~~> Word[0x1001fba0]
+          11421000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x1001fba0, 0 ~~> Word[0x1001fba0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           2786000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x1001fba0, 0 ~~> Word[0x1001fba4]
+          11422000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x1001fba0, 0 ~~> Word[0x1001fba4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           2787000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x1001fba0, 0 ~~> Word[0x1001fba8]
+          11423000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x1001fba0, 0 ~~> Word[0x1001fba8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           2788000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x1001fba0, 0 ~~> Word[0x1001fbac]
+          11424000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x1001fba0, 0 ~~> Word[0x1001fbac]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           2789000    0x80004240 addi a4, a4, 16                #; a4  = 0x1001fba0, (wrb) a4  <-- 0x1001fbb0
+          11425000    0x80004268 addi a4, a4, 16                #; a4  = 0x1001fba0, (wrb) a4  <-- 0x1001fbb0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           2790000    0x80004244 bltu a4, a3, -20               #; a4  = 0x1001fbb0, a3  = 0x1001fbc0, taken, goto 0x80004230
+          11426000    0x8000426c bltu a4, a3, -20               #; a4  = 0x1001fbb0, a3  = 0x1001fbc0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           2791000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x1001fbb0, 0 ~~> Word[0x1001fbb0]
+          11427000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x1001fbb0, 0 ~~> Word[0x1001fbb0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           2792000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x1001fbb0, 0 ~~> Word[0x1001fbb4]
+          11428000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x1001fbb0, 0 ~~> Word[0x1001fbb4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           2794000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x1001fbb0, 0 ~~> Word[0x1001fbb8]
+          11429000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x1001fbb0, 0 ~~> Word[0x1001fbb8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           2796000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x1001fbb0, 0 ~~> Word[0x1001fbbc]
+          11430000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x1001fbb0, 0 ~~> Word[0x1001fbbc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           2797000    0x80004240 addi a4, a4, 16                #; a4  = 0x1001fbb0, (wrb) a4  <-- 0x1001fbc0
+          11431000    0x80004268 addi a4, a4, 16                #; a4  = 0x1001fbb0, (wrb) a4  <-- 0x1001fbc0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           2798000    0x80004244 bltu a4, a3, -20               #; a4  = 0x1001fbc0, a3  = 0x1001fbc0, not taken
+          11432000    0x8000426c bltu a4, a3, -20               #; a4  = 0x1001fbc0, a3  = 0x1001fbc0, not taken
 #; .Ltmp0 (memset.S:56)
 #;   bnez a2, .Ltiny
-           2799000    0x80004248 bnez a2, 8                     #; a2  = 12, taken, goto 0x80004250
+          11433000    0x80004270 bnez a2, 8                     #; a2  = 12, taken, goto 0x80004278
 #; .Ltiny (memset.S:60)
 #;   sub a3, t1, a2
-           2800000    0x80004250 sub a3, t1, a2                 #; t1  = 15, a2  = 12, (wrb) a3  <-- 3
+          11434000    0x80004278 sub a3, t1, a2                 #; t1  = 15, a2  = 12, (wrb) a3  <-- 3
 #; .Ltiny (memset.S:61)
 #;   sll a3, a3, 2
-           2801000    0x80004254 slli a3, a3, 2                 #; a3  = 3, (wrb) a3  <-- 12
+          11435000    0x8000427c slli a3, a3, 2                 #; a3  = 3, (wrb) a3  <-- 12
 #; .Ltmp1 (memset.S:62)
 #;   1:auipc t0, %pcrel_hi(.Ltable)
-           2802000    0x80004258 auipc t0, 0                    #; (wrb) t0  <-- 0x80004258
+          11436000    0x80004280 auipc t0, 0                    #; (wrb) t0  <-- 0x80004280
 #; .Ltmp1 (memset.S:63)
 #;   add a3, a3, t0
-           2803000    0x8000425c add a3, a3, t0                 #; a3  = 12, t0  = 0x80004258, (wrb) a3  <-- 0x80004264
+          11437000    0x80004284 add a3, a3, t0                 #; a3  = 12, t0  = 0x80004280, (wrb) a3  <-- 0x8000428c
 #; .Ltable_misaligned (memset.S:67)
 #;   jr a3, %pcrel_lo(1b)
-           2804000    0x80004260 jr 12(a3)                      #; a3  = 0x80004264, goto 0x80004270
+          11438000    0x80004288 jr 12(a3)                      #; a3  = 0x8000428c, goto 0x80004298
 #; .Ltable (memset.S:72)
 #;   sb a1,11(a4)
-           2805000    0x80004270 sb a1, 11(a4)                  #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbcb]
+          11439000    0x80004298 sb a1, 11(a4)                  #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbcb]
 #; .Ltable (memset.S:73)
 #;   sb a1,10(a4)
-           2806000    0x80004274 sb a1, 10(a4)                  #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbca]
+          11440000    0x8000429c sb a1, 10(a4)                  #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbca]
 #; .Ltable (memset.S:74)
 #;   sb a1, 9(a4)
-           2807000    0x80004278 sb a1, 9(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc9]
+          11441000    0x800042a0 sb a1, 9(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc9]
 #; .Ltable (memset.S:75)
 #;   sb a1, 8(a4)
-           2808000    0x8000427c sb a1, 8(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc8]
+          11442000    0x800042a4 sb a1, 8(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc8]
 #; .Ltable (memset.S:76)
 #;   sb a1, 7(a4)
-           2809000    0x80004280 sb a1, 7(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc7]
+          11443000    0x800042a8 sb a1, 7(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc7]
 #; .Ltable (memset.S:77)
 #;   sb a1, 6(a4)
-           2810000    0x80004284 sb a1, 6(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc6]
+          11444000    0x800042ac sb a1, 6(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc6]
 #; .Ltable (memset.S:78)
 #;   sb a1, 5(a4)
-           2811000    0x80004288 sb a1, 5(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc5]
+          11445000    0x800042b0 sb a1, 5(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc5]
 #; .Ltable (memset.S:79)
 #;   sb a1, 4(a4)
-           2812000    0x8000428c sb a1, 4(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc4]
+          11446000    0x800042b4 sb a1, 4(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc4]
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           2813000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc3]
+          11447000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc3]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           2814000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc2]
+          11448000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc2]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           2815000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc1]
+          11449000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc1]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           2816000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc0]
+          11450000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x1001fbc0, 0 ~~> Byte[0x1001fbc0]
 #; .Ltable (memset.S:85)
 #;   ret
-           2817000    0x800042a0 ret                            #; ra  = 0x80003f60, goto 0x80003f60
+          11451000    0x800042c8 ret                            #; ra  = 0x80003f88, goto 0x80003f88
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:28)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                    ^
-           2818000    0x80003f60 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
-           2821000                                              #; (lsu) a0  <-- 0x1001ef74
+          11452000    0x80003f88 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
+          11455000                                              #; (lsu) a0  <-- 0x1001ef74
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:36)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                            ^
-           2822000    0x80003f64 add a0, a0, s7                 #; a0  = 0x1001ef74, s7  = 4128, (wrb) a0  <-- 0x1001ff94
+          11456000    0x80003f8c add a0, a0, s7                 #; a0  = 0x1001ef74, s7  = 4128, (wrb) a0  <-- 0x1001ff94
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:13)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;     ^
-           2823000    0x80003f68 li a1, 0                       #; (wrb) a1  <-- 0
-           2824000    0x80003f6c mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
-           2825000    0x80003f70 auipc ra, 0                    #; (wrb) ra  <-- 0x80003f70
-           2826000    0x80003f74 jalr 668(ra)                   #; ra  = 0x80003f70, (wrb) ra  <-- 0x80003f78, goto 0x8000420c
+          11457000    0x80003f90 li a1, 0                       #; (wrb) a1  <-- 0
+          11458000    0x80003f94 mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
+          11459000    0x80003f98 auipc ra, 0                    #; (wrb) ra  <-- 0x80003f98
+          11460000    0x80003f9c jalr 668(ra)                   #; ra  = 0x80003f98, (wrb) ra  <-- 0x80003fa0, goto 0x80004234
 #; memset (memset.S:30)
 #;   li t1, 15
-           2827000    0x8000420c li t1, 15                      #; (wrb) t1  <-- 15
+          11461000    0x80004234 li t1, 15                      #; (wrb) t1  <-- 15
 #; memset (memset.S:31)
 #;   move a4, a0
-           2828000    0x80004210 mv a4, a0                      #; a0  = 0x1001ff94, (wrb) a4  <-- 0x1001ff94
+          11462000    0x80004238 mv a4, a0                      #; a0  = 0x1001ff94, (wrb) a4  <-- 0x1001ff94
 #; memset (memset.S:32)
 #;   bleu a2, t1, .Ltiny
-           2829000    0x80004214 bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
+          11463000    0x8000423c bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
 #; memset (memset.S:33)
 #;   and a5, a4, 15
-           2830000    0x80004218 andi a5, a4, 15                #; a4  = 0x1001ff94, (wrb) a5  <-- 4
+          11464000    0x80004240 andi a5, a4, 15                #; a4  = 0x1001ff94, (wrb) a5  <-- 4
 #; memset (memset.S:34)
 #;   bnez a5, .Lmisaligned
-           2831000    0x8000421c bnez a5, 160                   #; a5  = 4, taken, goto 0x800042bc
+          11465000    0x80004244 bnez a5, 160                   #; a5  = 4, taken, goto 0x800042e4
 #; .Lmisaligned (memset.S:100)
 #;   sll a3, a5, 2
-           2832000    0x800042bc slli a3, a5, 2                 #; a5  = 4, (wrb) a3  <-- 16
+          11466000    0x800042e4 slli a3, a5, 2                 #; a5  = 4, (wrb) a3  <-- 16
 #; .Ltmp2 (memset.S:101)
 #;   1:auipc t0, %pcrel_hi(.Ltable_misaligned)
-           2833000    0x800042c0 auipc t0, 0                    #; (wrb) t0  <-- 0x800042c0
+          11467000    0x800042e8 auipc t0, 0                    #; (wrb) t0  <-- 0x800042e8
 #; .Ltmp2 (memset.S:102)
 #;   add a3, a3, t0
-           2834000    0x800042c4 add a3, a3, t0                 #; a3  = 16, t0  = 0x800042c0, (wrb) a3  <-- 0x800042d0
+          11468000    0x800042ec add a3, a3, t0                 #; a3  = 16, t0  = 0x800042e8, (wrb) a3  <-- 0x800042f8
 #; .Ltmp2 (memset.S:103)
 #;   mv t0, ra
-           2835000    0x800042c8 mv t0, ra                      #; ra  = 0x80003f78, (wrb) t0  <-- 0x80003f78
+          11469000    0x800042f0 mv t0, ra                      #; ra  = 0x80003fa0, (wrb) t0  <-- 0x80003fa0
 #; .Ltmp2 (memset.S:104)
 #;   jalr a3, %pcrel_lo(1b)
-           2836000    0x800042cc jalr -96(a3)                   #; a3  = 0x800042d0, (wrb) ra  <-- 0x800042d0, goto 0x80004270
+          11470000    0x800042f4 jalr -96(a3)                   #; a3  = 0x800042f8, (wrb) ra  <-- 0x800042f8, goto 0x80004298
 #; .Ltable (memset.S:72)
 #;   sb a1,11(a4)
-           2837000    0x80004270 sb a1, 11(a4)                  #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff9f]
+          11471000    0x80004298 sb a1, 11(a4)                  #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff9f]
 #; .Ltable (memset.S:73)
 #;   sb a1,10(a4)
-           2838000    0x80004274 sb a1, 10(a4)                  #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff9e]
+          11472000    0x8000429c sb a1, 10(a4)                  #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff9e]
 #; .Ltable (memset.S:74)
 #;   sb a1, 9(a4)
-           2839000    0x80004278 sb a1, 9(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff9d]
+          11475000    0x800042a0 sb a1, 9(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff9d]
 #; .Ltable (memset.S:75)
 #;   sb a1, 8(a4)
-           2840000    0x8000427c sb a1, 8(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff9c]
+          11477000    0x800042a4 sb a1, 8(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff9c]
 #; .Ltable (memset.S:76)
 #;   sb a1, 7(a4)
-           2842000    0x80004280 sb a1, 7(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff9b]
+          11478000    0x800042a8 sb a1, 7(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff9b]
 #; .Ltable (memset.S:77)
 #;   sb a1, 6(a4)
-           2844000    0x80004284 sb a1, 6(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff9a]
+          11479000    0x800042ac sb a1, 6(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff9a]
 #; .Ltable (memset.S:78)
 #;   sb a1, 5(a4)
-           2845000    0x80004288 sb a1, 5(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff99]
+          11480000    0x800042b0 sb a1, 5(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff99]
 #; .Ltable (memset.S:79)
 #;   sb a1, 4(a4)
-           2846000    0x8000428c sb a1, 4(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff98]
+          11481000    0x800042b4 sb a1, 4(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff98]
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           2847000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff97]
+          11482000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff97]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           2848000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff96]
+          11483000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff96]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           2849000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff95]
+          11484000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff95]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           2850000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff94]
+          11485000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x1001ff94, 0 ~~> Byte[0x1001ff94]
 #; .Ltable (memset.S:85)
 #;   ret
-           2851000    0x800042a0 ret                            #; ra  = 0x800042d0, goto 0x800042d0
+          11486000    0x800042c8 ret                            #; ra  = 0x800042f8, goto 0x800042f8
 #; .Ltmp2 (memset.S:105)
 #;   mv ra, t0
-           2852000    0x800042d0 mv ra, t0                      #; t0  = 0x80003f78, (wrb) ra  <-- 0x80003f78
+          11487000    0x800042f8 mv ra, t0                      #; t0  = 0x80003fa0, (wrb) ra  <-- 0x80003fa0
 #; .Ltmp2 (memset.S:107)
 #;   add a5, a5, -16
-           2853000    0x800042d4 addi a5, a5, -16               #; a5  = 4, (wrb) a5  <-- -12
+          11488000    0x800042fc addi a5, a5, -16               #; a5  = 4, (wrb) a5  <-- -12
 #; .Ltmp2 (memset.S:108)
 #;   sub a4, a4, a5
-           2854000    0x800042d8 sub a4, a4, a5                 #; a4  = 0x1001ff94, a5  = -12, (wrb) a4  <-- 0x1001ffa0
+          11489000    0x80004300 sub a4, a4, a5                 #; a4  = 0x1001ff94, a5  = -12, (wrb) a4  <-- 0x1001ffa0
 #; .Ltmp2 (memset.S:109)
 #;   add a2, a2, a5
-           2855000    0x800042dc add a2, a2, a5                 #; a2  = 64, a5  = -12, (wrb) a2  <-- 52
+          11490000    0x80004304 add a2, a2, a5                 #; a2  = 64, a5  = -12, (wrb) a2  <-- 52
 #; .Ltmp2 (memset.S:110)
 #;   bleu a2, t1, .Ltiny
-           2856000    0x800042e0 bgeu t1, a2, -144              #; t1  = 15, a2  = 52, not taken
+          11491000    0x80004308 bgeu t1, a2, -144              #; t1  = 15, a2  = 52, not taken
 #; .Ltmp2 (memset.S:111)
 #;   j .Laligned
-           2857000    0x800042e4 j -196                         #; goto 0x80004220
+          11492000    0x8000430c j -196                         #; goto 0x80004248
 #; .Laligned (memset.S:37)
 #;   bnez a1, .Lwordify
-           2858000    0x80004220 bnez a1, 132                   #; a1  = 0, not taken
+          11493000    0x80004248 bnez a1, 132                   #; a1  = 0, not taken
 #; .Lwordified (memset.S:40)
 #;   and a3, a2, ~15
-           2859000    0x80004224 andi a3, a2, -16               #; a2  = 52, (wrb) a3  <-- 48
+          11494000    0x8000424c andi a3, a2, -16               #; a2  = 52, (wrb) a3  <-- 48
 #; .Lwordified (memset.S:41)
 #;   and a2, a2, 15
-           2860000    0x80004228 andi a2, a2, 15                #; a2  = 52, (wrb) a2  <-- 4
+          11495000    0x80004250 andi a2, a2, 15                #; a2  = 52, (wrb) a2  <-- 4
 #; .Lwordified (memset.S:42)
 #;   add a3, a3, a4
-           2861000    0x8000422c add a3, a3, a4                 #; a3  = 48, a4  = 0x1001ffa0, (wrb) a3  <-- 0x1001ffd0
+          11496000    0x80004254 add a3, a3, a4                 #; a3  = 48, a4  = 0x1001ffa0, (wrb) a3  <-- 0x1001ffd0
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           2862000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x1001ffa0, 0 ~~> Word[0x1001ffa0]
+          11497000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x1001ffa0, 0 ~~> Word[0x1001ffa0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           2863000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x1001ffa0, 0 ~~> Word[0x1001ffa4]
+          11498000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x1001ffa0, 0 ~~> Word[0x1001ffa4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           2864000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x1001ffa0, 0 ~~> Word[0x1001ffa8]
+          11499000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x1001ffa0, 0 ~~> Word[0x1001ffa8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           2865000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x1001ffa0, 0 ~~> Word[0x1001ffac]
+          11500000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x1001ffa0, 0 ~~> Word[0x1001ffac]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           2866000    0x80004240 addi a4, a4, 16                #; a4  = 0x1001ffa0, (wrb) a4  <-- 0x1001ffb0
+          11501000    0x80004268 addi a4, a4, 16                #; a4  = 0x1001ffa0, (wrb) a4  <-- 0x1001ffb0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           2867000    0x80004244 bltu a4, a3, -20               #; a4  = 0x1001ffb0, a3  = 0x1001ffd0, taken, goto 0x80004230
+          11502000    0x8000426c bltu a4, a3, -20               #; a4  = 0x1001ffb0, a3  = 0x1001ffd0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           2868000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x1001ffb0, 0 ~~> Word[0x1001ffb0]
+          11503000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x1001ffb0, 0 ~~> Word[0x1001ffb0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           2869000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x1001ffb0, 0 ~~> Word[0x1001ffb4]
+          11504000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x1001ffb0, 0 ~~> Word[0x1001ffb4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           2870000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x1001ffb0, 0 ~~> Word[0x1001ffb8]
+          11505000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x1001ffb0, 0 ~~> Word[0x1001ffb8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           2871000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x1001ffb0, 0 ~~> Word[0x1001ffbc]
+          11506000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x1001ffb0, 0 ~~> Word[0x1001ffbc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           2872000    0x80004240 addi a4, a4, 16                #; a4  = 0x1001ffb0, (wrb) a4  <-- 0x1001ffc0
+          11507000    0x80004268 addi a4, a4, 16                #; a4  = 0x1001ffb0, (wrb) a4  <-- 0x1001ffc0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           2873000    0x80004244 bltu a4, a3, -20               #; a4  = 0x1001ffc0, a3  = 0x1001ffd0, taken, goto 0x80004230
+          11508000    0x8000426c bltu a4, a3, -20               #; a4  = 0x1001ffc0, a3  = 0x1001ffd0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           2874000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x1001ffc0, 0 ~~> Word[0x1001ffc0]
+          11509000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x1001ffc0, 0 ~~> Word[0x1001ffc0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           2875000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x1001ffc0, 0 ~~> Word[0x1001ffc4]
+          11510000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x1001ffc0, 0 ~~> Word[0x1001ffc4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           2876000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x1001ffc0, 0 ~~> Word[0x1001ffc8]
+          11511000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x1001ffc0, 0 ~~> Word[0x1001ffc8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           2877000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x1001ffc0, 0 ~~> Word[0x1001ffcc]
+          11512000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x1001ffc0, 0 ~~> Word[0x1001ffcc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           2878000    0x80004240 addi a4, a4, 16                #; a4  = 0x1001ffc0, (wrb) a4  <-- 0x1001ffd0
+          11513000    0x80004268 addi a4, a4, 16                #; a4  = 0x1001ffc0, (wrb) a4  <-- 0x1001ffd0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           2879000    0x80004244 bltu a4, a3, -20               #; a4  = 0x1001ffd0, a3  = 0x1001ffd0, not taken
+          11514000    0x8000426c bltu a4, a3, -20               #; a4  = 0x1001ffd0, a3  = 0x1001ffd0, not taken
 #; .Ltmp0 (memset.S:56)
 #;   bnez a2, .Ltiny
-           2880000    0x80004248 bnez a2, 8                     #; a2  = 4, taken, goto 0x80004250
+          11515000    0x80004270 bnez a2, 8                     #; a2  = 4, taken, goto 0x80004278
 #; .Ltiny (memset.S:60)
 #;   sub a3, t1, a2
-           2881000    0x80004250 sub a3, t1, a2                 #; t1  = 15, a2  = 4, (wrb) a3  <-- 11
+          11516000    0x80004278 sub a3, t1, a2                 #; t1  = 15, a2  = 4, (wrb) a3  <-- 11
 #; .Ltiny (memset.S:61)
 #;   sll a3, a3, 2
-           2882000    0x80004254 slli a3, a3, 2                 #; a3  = 11, (wrb) a3  <-- 44
+          11517000    0x8000427c slli a3, a3, 2                 #; a3  = 11, (wrb) a3  <-- 44
 #; .Ltmp1 (memset.S:62)
 #;   1:auipc t0, %pcrel_hi(.Ltable)
-           2883000    0x80004258 auipc t0, 0                    #; (wrb) t0  <-- 0x80004258
+          11518000    0x80004280 auipc t0, 0                    #; (wrb) t0  <-- 0x80004280
 #; .Ltmp1 (memset.S:63)
 #;   add a3, a3, t0
-           2884000    0x8000425c add a3, a3, t0                 #; a3  = 44, t0  = 0x80004258, (wrb) a3  <-- 0x80004284
+          11519000    0x80004284 add a3, a3, t0                 #; a3  = 44, t0  = 0x80004280, (wrb) a3  <-- 0x800042ac
 #; .Ltable_misaligned (memset.S:67)
 #;   jr a3, %pcrel_lo(1b)
-           2885000    0x80004260 jr 12(a3)                      #; a3  = 0x80004284, goto 0x80004290
+          11520000    0x80004288 jr 12(a3)                      #; a3  = 0x800042ac, goto 0x800042b8
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           2886000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x1001ffd0, 0 ~~> Byte[0x1001ffd3]
+          11521000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x1001ffd0, 0 ~~> Byte[0x1001ffd3]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           2887000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x1001ffd0, 0 ~~> Byte[0x1001ffd2]
+          11522000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x1001ffd0, 0 ~~> Byte[0x1001ffd2]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           2888000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x1001ffd0, 0 ~~> Byte[0x1001ffd1]
+          11523000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x1001ffd0, 0 ~~> Byte[0x1001ffd1]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           2889000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x1001ffd0, 0 ~~> Byte[0x1001ffd0]
+          11524000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x1001ffd0, 0 ~~> Byte[0x1001ffd0]
 #; .Ltable (memset.S:85)
 #;   ret
-           2890000    0x800042a0 ret                            #; ra  = 0x80003f78, goto 0x80003f78
+          11525000    0x800042c8 ret                            #; ra  = 0x80003fa0, goto 0x80003fa0
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:28)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                    ^
-           2891000    0x80003f78 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
-           2894000                                              #; (lsu) a0  <-- 0x1001ef74
+          11526000    0x80003fa0 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
+          11529000                                              #; (lsu) a0  <-- 0x1001ef74
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:36)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                            ^
-           2895000    0x80003f7c add a0, a0, s8                 #; a0  = 0x1001ef74, s8  = 5160, (wrb) a0  <-- 0x1002039c
+          11530000    0x80003fa4 add a0, a0, s8                 #; a0  = 0x1001ef74, s8  = 5160, (wrb) a0  <-- 0x1002039c
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:13)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;     ^
-           2898000    0x80003f80 li a1, 0                       #; (wrb) a1  <-- 0
-           2899000    0x80003f84 mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
-           2900000    0x80003f88 auipc ra, 0                    #; (wrb) ra  <-- 0x80003f88
-           2901000    0x80003f8c jalr 644(ra)                   #; ra  = 0x80003f88, (wrb) ra  <-- 0x80003f90, goto 0x8000420c
+          11531000    0x80003fa8 li a1, 0                       #; (wrb) a1  <-- 0
+          11532000    0x80003fac mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
+          11533000    0x80003fb0 auipc ra, 0                    #; (wrb) ra  <-- 0x80003fb0
+          11534000    0x80003fb4 jalr 644(ra)                   #; ra  = 0x80003fb0, (wrb) ra  <-- 0x80003fb8, goto 0x80004234
 #; memset (memset.S:30)
 #;   li t1, 15
-           2902000    0x8000420c li t1, 15                      #; (wrb) t1  <-- 15
+          11535000    0x80004234 li t1, 15                      #; (wrb) t1  <-- 15
 #; memset (memset.S:31)
 #;   move a4, a0
-           2903000    0x80004210 mv a4, a0                      #; a0  = 0x1002039c, (wrb) a4  <-- 0x1002039c
+          11536000    0x80004238 mv a4, a0                      #; a0  = 0x1002039c, (wrb) a4  <-- 0x1002039c
 #; memset (memset.S:32)
 #;   bleu a2, t1, .Ltiny
-           2904000    0x80004214 bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
+          11537000    0x8000423c bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
 #; memset (memset.S:33)
 #;   and a5, a4, 15
-           2905000    0x80004218 andi a5, a4, 15                #; a4  = 0x1002039c, (wrb) a5  <-- 12
+          11538000    0x80004240 andi a5, a4, 15                #; a4  = 0x1002039c, (wrb) a5  <-- 12
 #; memset (memset.S:34)
 #;   bnez a5, .Lmisaligned
-           2906000    0x8000421c bnez a5, 160                   #; a5  = 12, taken, goto 0x800042bc
+          11539000    0x80004244 bnez a5, 160                   #; a5  = 12, taken, goto 0x800042e4
 #; .Lmisaligned (memset.S:100)
 #;   sll a3, a5, 2
-           2907000    0x800042bc slli a3, a5, 2                 #; a5  = 12, (wrb) a3  <-- 48
+          11540000    0x800042e4 slli a3, a5, 2                 #; a5  = 12, (wrb) a3  <-- 48
 #; .Ltmp2 (memset.S:101)
 #;   1:auipc t0, %pcrel_hi(.Ltable_misaligned)
-           2908000    0x800042c0 auipc t0, 0                    #; (wrb) t0  <-- 0x800042c0
+          11541000    0x800042e8 auipc t0, 0                    #; (wrb) t0  <-- 0x800042e8
 #; .Ltmp2 (memset.S:102)
 #;   add a3, a3, t0
-           2909000    0x800042c4 add a3, a3, t0                 #; a3  = 48, t0  = 0x800042c0, (wrb) a3  <-- 0x800042f0
+          11542000    0x800042ec add a3, a3, t0                 #; a3  = 48, t0  = 0x800042e8, (wrb) a3  <-- 0x80004318
 #; .Ltmp2 (memset.S:103)
 #;   mv t0, ra
-           2910000    0x800042c8 mv t0, ra                      #; ra  = 0x80003f90, (wrb) t0  <-- 0x80003f90
+          11543000    0x800042f0 mv t0, ra                      #; ra  = 0x80003fb8, (wrb) t0  <-- 0x80003fb8
 #; .Ltmp2 (memset.S:104)
 #;   jalr a3, %pcrel_lo(1b)
-           2911000    0x800042cc jalr -96(a3)                   #; a3  = 0x800042f0, (wrb) ra  <-- 0x800042d0, goto 0x80004290
+          11544000    0x800042f4 jalr -96(a3)                   #; a3  = 0x80004318, (wrb) ra  <-- 0x800042f8, goto 0x800042b8
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           2912000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x1002039c, 0 ~~> Byte[0x1002039f]
+          11545000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x1002039c, 0 ~~> Byte[0x1002039f]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           2913000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x1002039c, 0 ~~> Byte[0x1002039e]
+          11546000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x1002039c, 0 ~~> Byte[0x1002039e]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           2920000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x1002039c, 0 ~~> Byte[0x1002039d]
+          11563000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x1002039c, 0 ~~> Byte[0x1002039d]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           2949000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x1002039c, 0 ~~> Byte[0x1002039c]
+          11592000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x1002039c, 0 ~~> Byte[0x1002039c]
 #; .Ltable (memset.S:85)
 #;   ret
-           2950000    0x800042a0 ret                            #; ra  = 0x800042d0, goto 0x800042d0
+          11593000    0x800042c8 ret                            #; ra  = 0x800042f8, goto 0x800042f8
 #; .Ltmp2 (memset.S:105)
 #;   mv ra, t0
-           2951000    0x800042d0 mv ra, t0                      #; t0  = 0x80003f90, (wrb) ra  <-- 0x80003f90
+          11594000    0x800042f8 mv ra, t0                      #; t0  = 0x80003fb8, (wrb) ra  <-- 0x80003fb8
 #; .Ltmp2 (memset.S:107)
 #;   add a5, a5, -16
-           2952000    0x800042d4 addi a5, a5, -16               #; a5  = 12, (wrb) a5  <-- -4
+          11595000    0x800042fc addi a5, a5, -16               #; a5  = 12, (wrb) a5  <-- -4
 #; .Ltmp2 (memset.S:108)
 #;   sub a4, a4, a5
-           2953000    0x800042d8 sub a4, a4, a5                 #; a4  = 0x1002039c, a5  = -4, (wrb) a4  <-- 0x100203a0
+          11596000    0x80004300 sub a4, a4, a5                 #; a4  = 0x1002039c, a5  = -4, (wrb) a4  <-- 0x100203a0
 #; .Ltmp2 (memset.S:109)
 #;   add a2, a2, a5
-           2954000    0x800042dc add a2, a2, a5                 #; a2  = 64, a5  = -4, (wrb) a2  <-- 60
+          11597000    0x80004304 add a2, a2, a5                 #; a2  = 64, a5  = -4, (wrb) a2  <-- 60
 #; .Ltmp2 (memset.S:110)
 #;   bleu a2, t1, .Ltiny
-           2955000    0x800042e0 bgeu t1, a2, -144              #; t1  = 15, a2  = 60, not taken
+          11598000    0x80004308 bgeu t1, a2, -144              #; t1  = 15, a2  = 60, not taken
 #; .Ltmp2 (memset.S:111)
 #;   j .Laligned
-           2956000    0x800042e4 j -196                         #; goto 0x80004220
+          11599000    0x8000430c j -196                         #; goto 0x80004248
 #; .Laligned (memset.S:37)
 #;   bnez a1, .Lwordify
-           2957000    0x80004220 bnez a1, 132                   #; a1  = 0, not taken
+          11600000    0x80004248 bnez a1, 132                   #; a1  = 0, not taken
 #; .Lwordified (memset.S:40)
 #;   and a3, a2, ~15
-           2958000    0x80004224 andi a3, a2, -16               #; a2  = 60, (wrb) a3  <-- 48
+          11601000    0x8000424c andi a3, a2, -16               #; a2  = 60, (wrb) a3  <-- 48
 #; .Lwordified (memset.S:41)
 #;   and a2, a2, 15
-           2959000    0x80004228 andi a2, a2, 15                #; a2  = 60, (wrb) a2  <-- 12
+          11602000    0x80004250 andi a2, a2, 15                #; a2  = 60, (wrb) a2  <-- 12
 #; .Lwordified (memset.S:42)
 #;   add a3, a3, a4
-           2960000    0x8000422c add a3, a3, a4                 #; a3  = 48, a4  = 0x100203a0, (wrb) a3  <-- 0x100203d0
+          11603000    0x80004254 add a3, a3, a4                 #; a3  = 48, a4  = 0x100203a0, (wrb) a3  <-- 0x100203d0
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           2979000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x100203a0, 0 ~~> Word[0x100203a0]
+          11613000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x100203a0, 0 ~~> Word[0x100203a0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           3009000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x100203a0, 0 ~~> Word[0x100203a4]
+          11643000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x100203a0, 0 ~~> Word[0x100203a4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           3049000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x100203a0, 0 ~~> Word[0x100203a8]
+          11683000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x100203a0, 0 ~~> Word[0x100203a8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           3089000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x100203a0, 0 ~~> Word[0x100203ac]
+          11723000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x100203a0, 0 ~~> Word[0x100203ac]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           3090000    0x80004240 addi a4, a4, 16                #; a4  = 0x100203a0, (wrb) a4  <-- 0x100203b0
+          11724000    0x80004268 addi a4, a4, 16                #; a4  = 0x100203a0, (wrb) a4  <-- 0x100203b0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           3091000    0x80004244 bltu a4, a3, -20               #; a4  = 0x100203b0, a3  = 0x100203d0, taken, goto 0x80004230
+          11725000    0x8000426c bltu a4, a3, -20               #; a4  = 0x100203b0, a3  = 0x100203d0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           3129000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x100203b0, 0 ~~> Word[0x100203b0]
+          11763000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x100203b0, 0 ~~> Word[0x100203b0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           3169000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x100203b0, 0 ~~> Word[0x100203b4]
+          11803000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x100203b0, 0 ~~> Word[0x100203b4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           3209000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x100203b0, 0 ~~> Word[0x100203b8]
+          11843000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x100203b0, 0 ~~> Word[0x100203b8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           3249000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x100203b0, 0 ~~> Word[0x100203bc]
+          11883000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x100203b0, 0 ~~> Word[0x100203bc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           3250000    0x80004240 addi a4, a4, 16                #; a4  = 0x100203b0, (wrb) a4  <-- 0x100203c0
+          11884000    0x80004268 addi a4, a4, 16                #; a4  = 0x100203b0, (wrb) a4  <-- 0x100203c0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           3251000    0x80004244 bltu a4, a3, -20               #; a4  = 0x100203c0, a3  = 0x100203d0, taken, goto 0x80004230
+          11885000    0x8000426c bltu a4, a3, -20               #; a4  = 0x100203c0, a3  = 0x100203d0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           3289000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x100203c0, 0 ~~> Word[0x100203c0]
+          11923000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x100203c0, 0 ~~> Word[0x100203c0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           3329000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x100203c0, 0 ~~> Word[0x100203c4]
+          11963000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x100203c0, 0 ~~> Word[0x100203c4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           3369000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x100203c0, 0 ~~> Word[0x100203c8]
+          12003000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x100203c0, 0 ~~> Word[0x100203c8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           3409000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x100203c0, 0 ~~> Word[0x100203cc]
+          12043000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x100203c0, 0 ~~> Word[0x100203cc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           3410000    0x80004240 addi a4, a4, 16                #; a4  = 0x100203c0, (wrb) a4  <-- 0x100203d0
+          12044000    0x80004268 addi a4, a4, 16                #; a4  = 0x100203c0, (wrb) a4  <-- 0x100203d0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           3411000    0x80004244 bltu a4, a3, -20               #; a4  = 0x100203d0, a3  = 0x100203d0, not taken
+          12045000    0x8000426c bltu a4, a3, -20               #; a4  = 0x100203d0, a3  = 0x100203d0, not taken
 #; .Ltmp0 (memset.S:56)
 #;   bnez a2, .Ltiny
-           3412000    0x80004248 bnez a2, 8                     #; a2  = 12, taken, goto 0x80004250
+          12046000    0x80004270 bnez a2, 8                     #; a2  = 12, taken, goto 0x80004278
 #; .Ltiny (memset.S:60)
 #;   sub a3, t1, a2
-           3413000    0x80004250 sub a3, t1, a2                 #; t1  = 15, a2  = 12, (wrb) a3  <-- 3
+          12047000    0x80004278 sub a3, t1, a2                 #; t1  = 15, a2  = 12, (wrb) a3  <-- 3
 #; .Ltiny (memset.S:61)
 #;   sll a3, a3, 2
-           3414000    0x80004254 slli a3, a3, 2                 #; a3  = 3, (wrb) a3  <-- 12
+          12048000    0x8000427c slli a3, a3, 2                 #; a3  = 3, (wrb) a3  <-- 12
 #; .Ltmp1 (memset.S:62)
 #;   1:auipc t0, %pcrel_hi(.Ltable)
-           3415000    0x80004258 auipc t0, 0                    #; (wrb) t0  <-- 0x80004258
+          12049000    0x80004280 auipc t0, 0                    #; (wrb) t0  <-- 0x80004280
 #; .Ltmp1 (memset.S:63)
 #;   add a3, a3, t0
-           3416000    0x8000425c add a3, a3, t0                 #; a3  = 12, t0  = 0x80004258, (wrb) a3  <-- 0x80004264
+          12050000    0x80004284 add a3, a3, t0                 #; a3  = 12, t0  = 0x80004280, (wrb) a3  <-- 0x8000428c
 #; .Ltable_misaligned (memset.S:67)
 #;   jr a3, %pcrel_lo(1b)
-           3417000    0x80004260 jr 12(a3)                      #; a3  = 0x80004264, goto 0x80004270
+          12051000    0x80004288 jr 12(a3)                      #; a3  = 0x8000428c, goto 0x80004298
 #; .Ltable (memset.S:72)
 #;   sb a1,11(a4)
-           3449000    0x80004270 sb a1, 11(a4)                  #; a4  = 0x100203d0, 0 ~~> Byte[0x100203db]
+          12083000    0x80004298 sb a1, 11(a4)                  #; a4  = 0x100203d0, 0 ~~> Byte[0x100203db]
 #; .Ltable (memset.S:73)
 #;   sb a1,10(a4)
-           3489000    0x80004274 sb a1, 10(a4)                  #; a4  = 0x100203d0, 0 ~~> Byte[0x100203da]
+          12123000    0x8000429c sb a1, 10(a4)                  #; a4  = 0x100203d0, 0 ~~> Byte[0x100203da]
 #; .Ltable (memset.S:74)
 #;   sb a1, 9(a4)
-           3529000    0x80004278 sb a1, 9(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d9]
+          12163000    0x800042a0 sb a1, 9(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d9]
 #; .Ltable (memset.S:75)
 #;   sb a1, 8(a4)
-           3569000    0x8000427c sb a1, 8(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d8]
+          12203000    0x800042a4 sb a1, 8(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d8]
 #; .Ltable (memset.S:76)
 #;   sb a1, 7(a4)
-           3609000    0x80004280 sb a1, 7(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d7]
+          12243000    0x800042a8 sb a1, 7(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d7]
 #; .Ltable (memset.S:77)
 #;   sb a1, 6(a4)
-           3649000    0x80004284 sb a1, 6(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d6]
+          12283000    0x800042ac sb a1, 6(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d6]
 #; .Ltable (memset.S:78)
 #;   sb a1, 5(a4)
-           3689000    0x80004288 sb a1, 5(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d5]
+          12323000    0x800042b0 sb a1, 5(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d5]
 #; .Ltable (memset.S:79)
 #;   sb a1, 4(a4)
-           3729000    0x8000428c sb a1, 4(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d4]
+          12363000    0x800042b4 sb a1, 4(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d4]
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           3769000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d3]
+          12403000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d3]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           3809000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d2]
+          12443000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d2]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           3849000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d1]
+          12483000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d1]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           3889000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d0]
+          12523000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x100203d0, 0 ~~> Byte[0x100203d0]
 #; .Ltable (memset.S:85)
 #;   ret
-           3890000    0x800042a0 ret                            #; ra  = 0x80003f90, goto 0x80003f90
+          12524000    0x800042c8 ret                            #; ra  = 0x80003fb8, goto 0x80003fb8
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:28)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                    ^
-           3929000    0x80003f90 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
-           3979000                                              #; (lsu) a0  <-- 0x1001ef74
+          12563000    0x80003fb8 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
+          12613000                                              #; (lsu) a0  <-- 0x1001ef74
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:36)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                            ^
-           3980000    0x80003f94 add a0, a0, s9                 #; a0  = 0x1001ef74, s9  = 6192, (wrb) a0  <-- 0x100207a4
+          12614000    0x80003fbc add a0, a0, s9                 #; a0  = 0x1001ef74, s9  = 6192, (wrb) a0  <-- 0x100207a4
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:13)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;     ^
-           3981000    0x80003f98 li a1, 0                       #; (wrb) a1  <-- 0
-           3982000    0x80003f9c mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
-           3983000    0x80003fa0 auipc ra, 0                    #; (wrb) ra  <-- 0x80003fa0
-           3984000    0x80003fa4 jalr 620(ra)                   #; ra  = 0x80003fa0, (wrb) ra  <-- 0x80003fa8, goto 0x8000420c
+          12617000    0x80003fc0 li a1, 0                       #; (wrb) a1  <-- 0
+          12618000    0x80003fc4 mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
+          12619000    0x80003fc8 auipc ra, 0                    #; (wrb) ra  <-- 0x80003fc8
+          12620000    0x80003fcc jalr 620(ra)                   #; ra  = 0x80003fc8, (wrb) ra  <-- 0x80003fd0, goto 0x80004234
 #; memset (memset.S:30)
 #;   li t1, 15
-           3985000    0x8000420c li t1, 15                      #; (wrb) t1  <-- 15
+          12621000    0x80004234 li t1, 15                      #; (wrb) t1  <-- 15
 #; memset (memset.S:31)
 #;   move a4, a0
-           3986000    0x80004210 mv a4, a0                      #; a0  = 0x100207a4, (wrb) a4  <-- 0x100207a4
+          12622000    0x80004238 mv a4, a0                      #; a0  = 0x100207a4, (wrb) a4  <-- 0x100207a4
 #; memset (memset.S:32)
 #;   bleu a2, t1, .Ltiny
-           3987000    0x80004214 bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
+          12623000    0x8000423c bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
 #; memset (memset.S:33)
 #;   and a5, a4, 15
-           3988000    0x80004218 andi a5, a4, 15                #; a4  = 0x100207a4, (wrb) a5  <-- 4
+          12624000    0x80004240 andi a5, a4, 15                #; a4  = 0x100207a4, (wrb) a5  <-- 4
 #; memset (memset.S:34)
 #;   bnez a5, .Lmisaligned
-           3989000    0x8000421c bnez a5, 160                   #; a5  = 4, taken, goto 0x800042bc
+          12625000    0x80004244 bnez a5, 160                   #; a5  = 4, taken, goto 0x800042e4
 #; .Lmisaligned (memset.S:100)
 #;   sll a3, a5, 2
-           3990000    0x800042bc slli a3, a5, 2                 #; a5  = 4, (wrb) a3  <-- 16
+          12626000    0x800042e4 slli a3, a5, 2                 #; a5  = 4, (wrb) a3  <-- 16
 #; .Ltmp2 (memset.S:101)
 #;   1:auipc t0, %pcrel_hi(.Ltable_misaligned)
-           3991000    0x800042c0 auipc t0, 0                    #; (wrb) t0  <-- 0x800042c0
+          12627000    0x800042e8 auipc t0, 0                    #; (wrb) t0  <-- 0x800042e8
 #; .Ltmp2 (memset.S:102)
 #;   add a3, a3, t0
-           3992000    0x800042c4 add a3, a3, t0                 #; a3  = 16, t0  = 0x800042c0, (wrb) a3  <-- 0x800042d0
+          12628000    0x800042ec add a3, a3, t0                 #; a3  = 16, t0  = 0x800042e8, (wrb) a3  <-- 0x800042f8
 #; .Ltmp2 (memset.S:103)
 #;   mv t0, ra
-           3993000    0x800042c8 mv t0, ra                      #; ra  = 0x80003fa8, (wrb) t0  <-- 0x80003fa8
+          12629000    0x800042f0 mv t0, ra                      #; ra  = 0x80003fd0, (wrb) t0  <-- 0x80003fd0
 #; .Ltmp2 (memset.S:104)
 #;   jalr a3, %pcrel_lo(1b)
-           3994000    0x800042cc jalr -96(a3)                   #; a3  = 0x800042d0, (wrb) ra  <-- 0x800042d0, goto 0x80004270
+          12630000    0x800042f4 jalr -96(a3)                   #; a3  = 0x800042f8, (wrb) ra  <-- 0x800042f8, goto 0x80004298
 #; .Ltable (memset.S:72)
 #;   sb a1,11(a4)
-           3995000    0x80004270 sb a1, 11(a4)                  #; a4  = 0x100207a4, 0 ~~> Byte[0x100207af]
+          12631000    0x80004298 sb a1, 11(a4)                  #; a4  = 0x100207a4, 0 ~~> Byte[0x100207af]
 #; .Ltable (memset.S:73)
 #;   sb a1,10(a4)
-           3996000    0x80004274 sb a1, 10(a4)                  #; a4  = 0x100207a4, 0 ~~> Byte[0x100207ae]
+          12632000    0x8000429c sb a1, 10(a4)                  #; a4  = 0x100207a4, 0 ~~> Byte[0x100207ae]
 #; .Ltable (memset.S:74)
 #;   sb a1, 9(a4)
-           4009000    0x80004278 sb a1, 9(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207ad]
+          12643000    0x800042a0 sb a1, 9(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207ad]
 #; .Ltable (memset.S:75)
 #;   sb a1, 8(a4)
-           4049000    0x8000427c sb a1, 8(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207ac]
+          12683000    0x800042a4 sb a1, 8(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207ac]
 #; .Ltable (memset.S:76)
 #;   sb a1, 7(a4)
-           4089000    0x80004280 sb a1, 7(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207ab]
+          12723000    0x800042a8 sb a1, 7(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207ab]
 #; .Ltable (memset.S:77)
 #;   sb a1, 6(a4)
-           4129000    0x80004284 sb a1, 6(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207aa]
+          12763000    0x800042ac sb a1, 6(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207aa]
 #; .Ltable (memset.S:78)
 #;   sb a1, 5(a4)
-           4160000    0x80004288 sb a1, 5(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207a9]
+          12802000    0x800042b0 sb a1, 5(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207a9]
 #; .Ltable (memset.S:79)
 #;   sb a1, 4(a4)
-           4199000    0x8000428c sb a1, 4(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207a8]
+          12833000    0x800042b4 sb a1, 4(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207a8]
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           4230000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207a7]
+          12872000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207a7]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           4269000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207a6]
+          12903000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207a6]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           4300000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207a5]
+          12942000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207a5]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           4339000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207a4]
+          12973000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x100207a4, 0 ~~> Byte[0x100207a4]
 #; .Ltable (memset.S:85)
 #;   ret
-           4340000    0x800042a0 ret                            #; ra  = 0x800042d0, goto 0x800042d0
+          12974000    0x800042c8 ret                            #; ra  = 0x800042f8, goto 0x800042f8
 #; .Ltmp2 (memset.S:105)
 #;   mv ra, t0
-           4341000    0x800042d0 mv ra, t0                      #; t0  = 0x80003fa8, (wrb) ra  <-- 0x80003fa8
+          12975000    0x800042f8 mv ra, t0                      #; t0  = 0x80003fd0, (wrb) ra  <-- 0x80003fd0
 #; .Ltmp2 (memset.S:107)
 #;   add a5, a5, -16
-           4342000    0x800042d4 addi a5, a5, -16               #; a5  = 4, (wrb) a5  <-- -12
+          12976000    0x800042fc addi a5, a5, -16               #; a5  = 4, (wrb) a5  <-- -12
 #; .Ltmp2 (memset.S:108)
 #;   sub a4, a4, a5
-           4343000    0x800042d8 sub a4, a4, a5                 #; a4  = 0x100207a4, a5  = -12, (wrb) a4  <-- 0x100207b0
+          12979000    0x80004300 sub a4, a4, a5                 #; a4  = 0x100207a4, a5  = -12, (wrb) a4  <-- 0x100207b0
 #; .Ltmp2 (memset.S:109)
 #;   add a2, a2, a5
-           4344000    0x800042dc add a2, a2, a5                 #; a2  = 64, a5  = -12, (wrb) a2  <-- 52
+          12980000    0x80004304 add a2, a2, a5                 #; a2  = 64, a5  = -12, (wrb) a2  <-- 52
 #; .Ltmp2 (memset.S:110)
 #;   bleu a2, t1, .Ltiny
-           4345000    0x800042e0 bgeu t1, a2, -144              #; t1  = 15, a2  = 52, not taken
+          12981000    0x80004308 bgeu t1, a2, -144              #; t1  = 15, a2  = 52, not taken
 #; .Ltmp2 (memset.S:111)
 #;   j .Laligned
-           4346000    0x800042e4 j -196                         #; goto 0x80004220
+          12982000    0x8000430c j -196                         #; goto 0x80004248
 #; .Laligned (memset.S:37)
 #;   bnez a1, .Lwordify
-           4347000    0x80004220 bnez a1, 132                   #; a1  = 0, not taken
+          12983000    0x80004248 bnez a1, 132                   #; a1  = 0, not taken
 #; .Lwordified (memset.S:40)
 #;   and a3, a2, ~15
-           4348000    0x80004224 andi a3, a2, -16               #; a2  = 52, (wrb) a3  <-- 48
+          12984000    0x8000424c andi a3, a2, -16               #; a2  = 52, (wrb) a3  <-- 48
 #; .Lwordified (memset.S:41)
 #;   and a2, a2, 15
-           4349000    0x80004228 andi a2, a2, 15                #; a2  = 52, (wrb) a2  <-- 4
+          12985000    0x80004250 andi a2, a2, 15                #; a2  = 52, (wrb) a2  <-- 4
 #; .Lwordified (memset.S:42)
 #;   add a3, a3, a4
-           4350000    0x8000422c add a3, a3, a4                 #; a3  = 48, a4  = 0x100207b0, (wrb) a3  <-- 0x100207e0
+          12986000    0x80004254 add a3, a3, a4                 #; a3  = 48, a4  = 0x100207b0, (wrb) a3  <-- 0x100207e0
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           4370000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x100207b0, 0 ~~> Word[0x100207b0]
+          13012000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x100207b0, 0 ~~> Word[0x100207b0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           4409000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x100207b0, 0 ~~> Word[0x100207b4]
+          13043000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x100207b0, 0 ~~> Word[0x100207b4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           4440000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x100207b0, 0 ~~> Word[0x100207b8]
+          13082000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x100207b0, 0 ~~> Word[0x100207b8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           4479000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x100207b0, 0 ~~> Word[0x100207bc]
+          13113000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x100207b0, 0 ~~> Word[0x100207bc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           4480000    0x80004240 addi a4, a4, 16                #; a4  = 0x100207b0, (wrb) a4  <-- 0x100207c0
+          13114000    0x80004268 addi a4, a4, 16                #; a4  = 0x100207b0, (wrb) a4  <-- 0x100207c0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           4481000    0x80004244 bltu a4, a3, -20               #; a4  = 0x100207c0, a3  = 0x100207e0, taken, goto 0x80004230
+          13115000    0x8000426c bltu a4, a3, -20               #; a4  = 0x100207c0, a3  = 0x100207e0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           4510000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x100207c0, 0 ~~> Word[0x100207c0]
+          13152000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x100207c0, 0 ~~> Word[0x100207c0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           4549000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x100207c0, 0 ~~> Word[0x100207c4]
+          13183000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x100207c0, 0 ~~> Word[0x100207c4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           4580000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x100207c0, 0 ~~> Word[0x100207c8]
+          13222000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x100207c0, 0 ~~> Word[0x100207c8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           4619000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x100207c0, 0 ~~> Word[0x100207cc]
+          13253000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x100207c0, 0 ~~> Word[0x100207cc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           4620000    0x80004240 addi a4, a4, 16                #; a4  = 0x100207c0, (wrb) a4  <-- 0x100207d0
+          13254000    0x80004268 addi a4, a4, 16                #; a4  = 0x100207c0, (wrb) a4  <-- 0x100207d0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           4621000    0x80004244 bltu a4, a3, -20               #; a4  = 0x100207d0, a3  = 0x100207e0, taken, goto 0x80004230
+          13255000    0x8000426c bltu a4, a3, -20               #; a4  = 0x100207d0, a3  = 0x100207e0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           4650000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x100207d0, 0 ~~> Word[0x100207d0]
+          13292000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x100207d0, 0 ~~> Word[0x100207d0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           4689000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x100207d0, 0 ~~> Word[0x100207d4]
+          13323000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x100207d0, 0 ~~> Word[0x100207d4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           4720000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x100207d0, 0 ~~> Word[0x100207d8]
+          13362000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x100207d0, 0 ~~> Word[0x100207d8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           4759000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x100207d0, 0 ~~> Word[0x100207dc]
+          13393000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x100207d0, 0 ~~> Word[0x100207dc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           4760000    0x80004240 addi a4, a4, 16                #; a4  = 0x100207d0, (wrb) a4  <-- 0x100207e0
+          13394000    0x80004268 addi a4, a4, 16                #; a4  = 0x100207d0, (wrb) a4  <-- 0x100207e0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           4761000    0x80004244 bltu a4, a3, -20               #; a4  = 0x100207e0, a3  = 0x100207e0, not taken
+          13395000    0x8000426c bltu a4, a3, -20               #; a4  = 0x100207e0, a3  = 0x100207e0, not taken
 #; .Ltmp0 (memset.S:56)
 #;   bnez a2, .Ltiny
-           4762000    0x80004248 bnez a2, 8                     #; a2  = 4, taken, goto 0x80004250
+          13396000    0x80004270 bnez a2, 8                     #; a2  = 4, taken, goto 0x80004278
 #; .Ltiny (memset.S:60)
 #;   sub a3, t1, a2
-           4763000    0x80004250 sub a3, t1, a2                 #; t1  = 15, a2  = 4, (wrb) a3  <-- 11
+          13397000    0x80004278 sub a3, t1, a2                 #; t1  = 15, a2  = 4, (wrb) a3  <-- 11
 #; .Ltiny (memset.S:61)
 #;   sll a3, a3, 2
-           4764000    0x80004254 slli a3, a3, 2                 #; a3  = 11, (wrb) a3  <-- 44
+          13398000    0x8000427c slli a3, a3, 2                 #; a3  = 11, (wrb) a3  <-- 44
 #; .Ltmp1 (memset.S:62)
 #;   1:auipc t0, %pcrel_hi(.Ltable)
-           4765000    0x80004258 auipc t0, 0                    #; (wrb) t0  <-- 0x80004258
+          13399000    0x80004280 auipc t0, 0                    #; (wrb) t0  <-- 0x80004280
 #; .Ltmp1 (memset.S:63)
 #;   add a3, a3, t0
-           4766000    0x8000425c add a3, a3, t0                 #; a3  = 44, t0  = 0x80004258, (wrb) a3  <-- 0x80004284
+          13400000    0x80004284 add a3, a3, t0                 #; a3  = 44, t0  = 0x80004280, (wrb) a3  <-- 0x800042ac
 #; .Ltable_misaligned (memset.S:67)
 #;   jr a3, %pcrel_lo(1b)
-           4767000    0x80004260 jr 12(a3)                      #; a3  = 0x80004284, goto 0x80004290
+          13401000    0x80004288 jr 12(a3)                      #; a3  = 0x800042ac, goto 0x800042b8
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           4790000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x100207e0, 0 ~~> Byte[0x100207e3]
+          13432000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x100207e0, 0 ~~> Byte[0x100207e3]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           4829000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x100207e0, 0 ~~> Byte[0x100207e2]
+          13463000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x100207e0, 0 ~~> Byte[0x100207e2]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           4860000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x100207e0, 0 ~~> Byte[0x100207e1]
+          13502000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x100207e0, 0 ~~> Byte[0x100207e1]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           4899000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x100207e0, 0 ~~> Byte[0x100207e0]
+          13533000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x100207e0, 0 ~~> Byte[0x100207e0]
 #; .Ltable (memset.S:85)
 #;   ret
-           4900000    0x800042a0 ret                            #; ra  = 0x80003fa8, goto 0x80003fa8
+          13534000    0x800042c8 ret                            #; ra  = 0x80003fd0, goto 0x80003fd0
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:28)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                    ^
-           4930000    0x80003fa8 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
-           4979000                                              #; (lsu) a0  <-- 0x1001ef74
+          13572000    0x80003fd0 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
+          13613000                                              #; (lsu) a0  <-- 0x1001ef74
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:36)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                            ^
-           4980000    0x80003fac add a0, a0, s10                #; a0  = 0x1001ef74, s10 = 7224, (wrb) a0  <-- 0x10020bac
+          13614000    0x80003fd4 add a0, a0, s10                #; a0  = 0x1001ef74, s10 = 7224, (wrb) a0  <-- 0x10020bac
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:13)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;     ^
-           4981000    0x80003fb0 li a1, 0                       #; (wrb) a1  <-- 0
-           4982000    0x80003fb4 mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
-           4983000    0x80003fb8 auipc ra, 0                    #; (wrb) ra  <-- 0x80003fb8
-           4984000    0x80003fbc jalr 596(ra)                   #; ra  = 0x80003fb8, (wrb) ra  <-- 0x80003fc0, goto 0x8000420c
+          13615000    0x80003fd8 li a1, 0                       #; (wrb) a1  <-- 0
+          13616000    0x80003fdc mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
+          13617000    0x80003fe0 auipc ra, 0                    #; (wrb) ra  <-- 0x80003fe0
+          13618000    0x80003fe4 jalr 596(ra)                   #; ra  = 0x80003fe0, (wrb) ra  <-- 0x80003fe8, goto 0x80004234
 #; memset (memset.S:30)
 #;   li t1, 15
-           4985000    0x8000420c li t1, 15                      #; (wrb) t1  <-- 15
+          13619000    0x80004234 li t1, 15                      #; (wrb) t1  <-- 15
 #; memset (memset.S:31)
 #;   move a4, a0
-           4986000    0x80004210 mv a4, a0                      #; a0  = 0x10020bac, (wrb) a4  <-- 0x10020bac
+          13620000    0x80004238 mv a4, a0                      #; a0  = 0x10020bac, (wrb) a4  <-- 0x10020bac
 #; memset (memset.S:32)
 #;   bleu a2, t1, .Ltiny
-           4987000    0x80004214 bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
+          13621000    0x8000423c bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
 #; memset (memset.S:33)
 #;   and a5, a4, 15
-           4988000    0x80004218 andi a5, a4, 15                #; a4  = 0x10020bac, (wrb) a5  <-- 12
+          13622000    0x80004240 andi a5, a4, 15                #; a4  = 0x10020bac, (wrb) a5  <-- 12
 #; memset (memset.S:34)
 #;   bnez a5, .Lmisaligned
-           4989000    0x8000421c bnez a5, 160                   #; a5  = 12, taken, goto 0x800042bc
+          13623000    0x80004244 bnez a5, 160                   #; a5  = 12, taken, goto 0x800042e4
 #; .Lmisaligned (memset.S:100)
 #;   sll a3, a5, 2
-           4990000    0x800042bc slli a3, a5, 2                 #; a5  = 12, (wrb) a3  <-- 48
+          13624000    0x800042e4 slli a3, a5, 2                 #; a5  = 12, (wrb) a3  <-- 48
 #; .Ltmp2 (memset.S:101)
 #;   1:auipc t0, %pcrel_hi(.Ltable_misaligned)
-           4991000    0x800042c0 auipc t0, 0                    #; (wrb) t0  <-- 0x800042c0
+          13625000    0x800042e8 auipc t0, 0                    #; (wrb) t0  <-- 0x800042e8
 #; .Ltmp2 (memset.S:102)
 #;   add a3, a3, t0
-           4992000    0x800042c4 add a3, a3, t0                 #; a3  = 48, t0  = 0x800042c0, (wrb) a3  <-- 0x800042f0
+          13626000    0x800042ec add a3, a3, t0                 #; a3  = 48, t0  = 0x800042e8, (wrb) a3  <-- 0x80004318
 #; .Ltmp2 (memset.S:103)
 #;   mv t0, ra
-           4993000    0x800042c8 mv t0, ra                      #; ra  = 0x80003fc0, (wrb) t0  <-- 0x80003fc0
+          13627000    0x800042f0 mv t0, ra                      #; ra  = 0x80003fe8, (wrb) t0  <-- 0x80003fe8
 #; .Ltmp2 (memset.S:104)
 #;   jalr a3, %pcrel_lo(1b)
-           4994000    0x800042cc jalr -96(a3)                   #; a3  = 0x800042f0, (wrb) ra  <-- 0x800042d0, goto 0x80004290
+          13628000    0x800042f4 jalr -96(a3)                   #; a3  = 0x80004318, (wrb) ra  <-- 0x800042f8, goto 0x800042b8
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           4995000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x10020bac, 0 ~~> Byte[0x10020baf]
+          13629000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x10020bac, 0 ~~> Byte[0x10020baf]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           4996000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x10020bac, 0 ~~> Byte[0x10020bae]
+          13630000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x10020bac, 0 ~~> Byte[0x10020bae]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           5000000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x10020bac, 0 ~~> Byte[0x10020bad]
+          13642000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x10020bac, 0 ~~> Byte[0x10020bad]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           5039000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x10020bac, 0 ~~> Byte[0x10020bac]
+          13673000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x10020bac, 0 ~~> Byte[0x10020bac]
 #; .Ltable (memset.S:85)
 #;   ret
-           5040000    0x800042a0 ret                            #; ra  = 0x800042d0, goto 0x800042d0
+          13674000    0x800042c8 ret                            #; ra  = 0x800042f8, goto 0x800042f8
 #; .Ltmp2 (memset.S:105)
 #;   mv ra, t0
-           5041000    0x800042d0 mv ra, t0                      #; t0  = 0x80003fc0, (wrb) ra  <-- 0x80003fc0
+          13675000    0x800042f8 mv ra, t0                      #; t0  = 0x80003fe8, (wrb) ra  <-- 0x80003fe8
 #; .Ltmp2 (memset.S:107)
 #;   add a5, a5, -16
-           5042000    0x800042d4 addi a5, a5, -16               #; a5  = 12, (wrb) a5  <-- -4
+          13676000    0x800042fc addi a5, a5, -16               #; a5  = 12, (wrb) a5  <-- -4
 #; .Ltmp2 (memset.S:108)
 #;   sub a4, a4, a5
-           5043000    0x800042d8 sub a4, a4, a5                 #; a4  = 0x10020bac, a5  = -4, (wrb) a4  <-- 0x10020bb0
+          13677000    0x80004300 sub a4, a4, a5                 #; a4  = 0x10020bac, a5  = -4, (wrb) a4  <-- 0x10020bb0
 #; .Ltmp2 (memset.S:109)
 #;   add a2, a2, a5
-           5044000    0x800042dc add a2, a2, a5                 #; a2  = 64, a5  = -4, (wrb) a2  <-- 60
+          13678000    0x80004304 add a2, a2, a5                 #; a2  = 64, a5  = -4, (wrb) a2  <-- 60
 #; .Ltmp2 (memset.S:110)
 #;   bleu a2, t1, .Ltiny
-           5045000    0x800042e0 bgeu t1, a2, -144              #; t1  = 15, a2  = 60, not taken
+          13679000    0x80004308 bgeu t1, a2, -144              #; t1  = 15, a2  = 60, not taken
 #; .Ltmp2 (memset.S:111)
 #;   j .Laligned
-           5046000    0x800042e4 j -196                         #; goto 0x80004220
+          13680000    0x8000430c j -196                         #; goto 0x80004248
 #; .Laligned (memset.S:37)
 #;   bnez a1, .Lwordify
-           5047000    0x80004220 bnez a1, 132                   #; a1  = 0, not taken
+          13681000    0x80004248 bnez a1, 132                   #; a1  = 0, not taken
 #; .Lwordified (memset.S:40)
 #;   and a3, a2, ~15
-           5048000    0x80004224 andi a3, a2, -16               #; a2  = 60, (wrb) a3  <-- 48
+          13682000    0x8000424c andi a3, a2, -16               #; a2  = 60, (wrb) a3  <-- 48
 #; .Lwordified (memset.S:41)
 #;   and a2, a2, 15
-           5049000    0x80004228 andi a2, a2, 15                #; a2  = 60, (wrb) a2  <-- 12
+          13683000    0x80004250 andi a2, a2, 15                #; a2  = 60, (wrb) a2  <-- 12
 #; .Lwordified (memset.S:42)
 #;   add a3, a3, a4
-           5050000    0x8000422c add a3, a3, a4                 #; a3  = 48, a4  = 0x10020bb0, (wrb) a3  <-- 0x10020be0
+          13684000    0x80004254 add a3, a3, a4                 #; a3  = 48, a4  = 0x10020bb0, (wrb) a3  <-- 0x10020be0
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           5070000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x10020bb0, 0 ~~> Word[0x10020bb0]
+          13712000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x10020bb0, 0 ~~> Word[0x10020bb0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           5109000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x10020bb0, 0 ~~> Word[0x10020bb4]
+          13743000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x10020bb0, 0 ~~> Word[0x10020bb4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           5139000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x10020bb0, 0 ~~> Word[0x10020bb8]
+          13773000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x10020bb0, 0 ~~> Word[0x10020bb8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           5169000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x10020bb0, 0 ~~> Word[0x10020bbc]
+          13803000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x10020bb0, 0 ~~> Word[0x10020bbc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           5170000    0x80004240 addi a4, a4, 16                #; a4  = 0x10020bb0, (wrb) a4  <-- 0x10020bc0
+          13804000    0x80004268 addi a4, a4, 16                #; a4  = 0x10020bb0, (wrb) a4  <-- 0x10020bc0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           5171000    0x80004244 bltu a4, a3, -20               #; a4  = 0x10020bc0, a3  = 0x10020be0, taken, goto 0x80004230
+          13805000    0x8000426c bltu a4, a3, -20               #; a4  = 0x10020bc0, a3  = 0x10020be0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           5199000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x10020bc0, 0 ~~> Word[0x10020bc0]
+          13833000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x10020bc0, 0 ~~> Word[0x10020bc0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           5229000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x10020bc0, 0 ~~> Word[0x10020bc4]
+          13863000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x10020bc0, 0 ~~> Word[0x10020bc4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           5259000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x10020bc0, 0 ~~> Word[0x10020bc8]
+          13893000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x10020bc0, 0 ~~> Word[0x10020bc8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           5289000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x10020bc0, 0 ~~> Word[0x10020bcc]
+          13923000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x10020bc0, 0 ~~> Word[0x10020bcc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           5290000    0x80004240 addi a4, a4, 16                #; a4  = 0x10020bc0, (wrb) a4  <-- 0x10020bd0
+          13924000    0x80004268 addi a4, a4, 16                #; a4  = 0x10020bc0, (wrb) a4  <-- 0x10020bd0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           5291000    0x80004244 bltu a4, a3, -20               #; a4  = 0x10020bd0, a3  = 0x10020be0, taken, goto 0x80004230
+          13925000    0x8000426c bltu a4, a3, -20               #; a4  = 0x10020bd0, a3  = 0x10020be0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           5319000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x10020bd0, 0 ~~> Word[0x10020bd0]
+          13953000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x10020bd0, 0 ~~> Word[0x10020bd0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           5349000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x10020bd0, 0 ~~> Word[0x10020bd4]
+          13983000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x10020bd0, 0 ~~> Word[0x10020bd4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           5379000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x10020bd0, 0 ~~> Word[0x10020bd8]
+          14013000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x10020bd0, 0 ~~> Word[0x10020bd8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           5409000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x10020bd0, 0 ~~> Word[0x10020bdc]
+          14043000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x10020bd0, 0 ~~> Word[0x10020bdc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           5410000    0x80004240 addi a4, a4, 16                #; a4  = 0x10020bd0, (wrb) a4  <-- 0x10020be0
+          14044000    0x80004268 addi a4, a4, 16                #; a4  = 0x10020bd0, (wrb) a4  <-- 0x10020be0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           5411000    0x80004244 bltu a4, a3, -20               #; a4  = 0x10020be0, a3  = 0x10020be0, not taken
+          14045000    0x8000426c bltu a4, a3, -20               #; a4  = 0x10020be0, a3  = 0x10020be0, not taken
 #; .Ltmp0 (memset.S:56)
 #;   bnez a2, .Ltiny
-           5412000    0x80004248 bnez a2, 8                     #; a2  = 12, taken, goto 0x80004250
+          14046000    0x80004270 bnez a2, 8                     #; a2  = 12, taken, goto 0x80004278
 #; .Ltiny (memset.S:60)
 #;   sub a3, t1, a2
-           5413000    0x80004250 sub a3, t1, a2                 #; t1  = 15, a2  = 12, (wrb) a3  <-- 3
+          14047000    0x80004278 sub a3, t1, a2                 #; t1  = 15, a2  = 12, (wrb) a3  <-- 3
 #; .Ltiny (memset.S:61)
 #;   sll a3, a3, 2
-           5414000    0x80004254 slli a3, a3, 2                 #; a3  = 3, (wrb) a3  <-- 12
+          14048000    0x8000427c slli a3, a3, 2                 #; a3  = 3, (wrb) a3  <-- 12
 #; .Ltmp1 (memset.S:62)
 #;   1:auipc t0, %pcrel_hi(.Ltable)
-           5415000    0x80004258 auipc t0, 0                    #; (wrb) t0  <-- 0x80004258
+          14049000    0x80004280 auipc t0, 0                    #; (wrb) t0  <-- 0x80004280
 #; .Ltmp1 (memset.S:63)
 #;   add a3, a3, t0
-           5416000    0x8000425c add a3, a3, t0                 #; a3  = 12, t0  = 0x80004258, (wrb) a3  <-- 0x80004264
+          14050000    0x80004284 add a3, a3, t0                 #; a3  = 12, t0  = 0x80004280, (wrb) a3  <-- 0x8000428c
 #; .Ltable_misaligned (memset.S:67)
 #;   jr a3, %pcrel_lo(1b)
-           5417000    0x80004260 jr 12(a3)                      #; a3  = 0x80004264, goto 0x80004270
+          14051000    0x80004288 jr 12(a3)                      #; a3  = 0x8000428c, goto 0x80004298
 #; .Ltable (memset.S:72)
 #;   sb a1,11(a4)
-           5439000    0x80004270 sb a1, 11(a4)                  #; a4  = 0x10020be0, 0 ~~> Byte[0x10020beb]
+          14073000    0x80004298 sb a1, 11(a4)                  #; a4  = 0x10020be0, 0 ~~> Byte[0x10020beb]
 #; .Ltable (memset.S:73)
 #;   sb a1,10(a4)
-           5469000    0x80004274 sb a1, 10(a4)                  #; a4  = 0x10020be0, 0 ~~> Byte[0x10020bea]
+          14102000    0x8000429c sb a1, 10(a4)                  #; a4  = 0x10020be0, 0 ~~> Byte[0x10020bea]
 #; .Ltable (memset.S:74)
 #;   sb a1, 9(a4)
-           5499000    0x80004278 sb a1, 9(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be9]
+          14132000    0x800042a0 sb a1, 9(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be9]
 #; .Ltable (memset.S:75)
 #;   sb a1, 8(a4)
-           5520000    0x8000427c sb a1, 8(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be8]
+          14162000    0x800042a4 sb a1, 8(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be8]
 #; .Ltable (memset.S:76)
 #;   sb a1, 7(a4)
-           5550000    0x80004280 sb a1, 7(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be7]
+          14192000    0x800042a8 sb a1, 7(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be7]
 #; .Ltable (memset.S:77)
 #;   sb a1, 6(a4)
-           5580000    0x80004284 sb a1, 6(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be6]
+          14222000    0x800042ac sb a1, 6(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be6]
 #; .Ltable (memset.S:78)
 #;   sb a1, 5(a4)
-           5610000    0x80004288 sb a1, 5(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be5]
+          14252000    0x800042b0 sb a1, 5(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be5]
 #; .Ltable (memset.S:79)
 #;   sb a1, 4(a4)
-           5640000    0x8000428c sb a1, 4(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be4]
+          14273000    0x800042b4 sb a1, 4(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be4]
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           5670000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be3]
+          14303000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be3]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           5700000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be2]
+          14332000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be2]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           5730000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be1]
+          14362000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be1]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           5759000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be0]
+          14392000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x10020be0, 0 ~~> Byte[0x10020be0]
 #; .Ltable (memset.S:85)
 #;   ret
-           5760000    0x800042a0 ret                            #; ra  = 0x80003fc0, goto 0x80003fc0
+          14393000    0x800042c8 ret                            #; ra  = 0x80003fe8, goto 0x80003fe8
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:28)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                    ^
-           5789000    0x80003fc0 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
-           5829000                                              #; (lsu) a0  <-- 0x1001ef74
+          14422000    0x80003fe8 lw a0, 8(sp)                   #; sp  = 0x1001ef28, a0  <~~ Word[0x1001ef30]
+          14462000                                              #; (lsu) a0  <-- 0x1001ef74
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:36)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;                            ^
-           5830000    0x80003fc4 add a0, a0, s11                #; a0  = 0x1001ef74, s11 = 8256, (wrb) a0  <-- 0x10020fb4
+          14463000    0x80003fec add a0, a0, s11                #; a0  = 0x1001ef74, s11 = 8256, (wrb) a0  <-- 0x10020fb4
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:82:13)
 #;     memset((void*)(tls_ptr + i * tls_offset), 0, size);
 #;     ^
-           5831000    0x80003fc8 li a1, 0                       #; (wrb) a1  <-- 0
-           5832000    0x80003fcc mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
-           5833000    0x80003fd0 auipc ra, 0                    #; (wrb) ra  <-- 0x80003fd0
-           5834000    0x80003fd4 jalr 572(ra)                   #; ra  = 0x80003fd0, (wrb) ra  <-- 0x80003fd8, goto 0x8000420c
+          14464000    0x80003ff0 li a1, 0                       #; (wrb) a1  <-- 0
+          14465000    0x80003ff4 mv a2, s0                      #; s0  = 64, (wrb) a2  <-- 64
+          14466000    0x80003ff8 auipc ra, 0                    #; (wrb) ra  <-- 0x80003ff8
+          14467000    0x80003ffc jalr 572(ra)                   #; ra  = 0x80003ff8, (wrb) ra  <-- 0x80004000, goto 0x80004234
 #; memset (memset.S:30)
 #;   li t1, 15
-           5835000    0x8000420c li t1, 15                      #; (wrb) t1  <-- 15
+          14468000    0x80004234 li t1, 15                      #; (wrb) t1  <-- 15
 #; memset (memset.S:31)
 #;   move a4, a0
-           5836000    0x80004210 mv a4, a0                      #; a0  = 0x10020fb4, (wrb) a4  <-- 0x10020fb4
+          14469000    0x80004238 mv a4, a0                      #; a0  = 0x10020fb4, (wrb) a4  <-- 0x10020fb4
 #; memset (memset.S:32)
 #;   bleu a2, t1, .Ltiny
-           5837000    0x80004214 bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
+          14470000    0x8000423c bgeu t1, a2, 60                #; t1  = 15, a2  = 64, not taken
 #; memset (memset.S:33)
 #;   and a5, a4, 15
-           5838000    0x80004218 andi a5, a4, 15                #; a4  = 0x10020fb4, (wrb) a5  <-- 4
+          14471000    0x80004240 andi a5, a4, 15                #; a4  = 0x10020fb4, (wrb) a5  <-- 4
 #; memset (memset.S:34)
 #;   bnez a5, .Lmisaligned
-           5839000    0x8000421c bnez a5, 160                   #; a5  = 4, taken, goto 0x800042bc
+          14472000    0x80004244 bnez a5, 160                   #; a5  = 4, taken, goto 0x800042e4
 #; .Lmisaligned (memset.S:100)
 #;   sll a3, a5, 2
-           5840000    0x800042bc slli a3, a5, 2                 #; a5  = 4, (wrb) a3  <-- 16
+          14473000    0x800042e4 slli a3, a5, 2                 #; a5  = 4, (wrb) a3  <-- 16
 #; .Ltmp2 (memset.S:101)
 #;   1:auipc t0, %pcrel_hi(.Ltable_misaligned)
-           5841000    0x800042c0 auipc t0, 0                    #; (wrb) t0  <-- 0x800042c0
+          14474000    0x800042e8 auipc t0, 0                    #; (wrb) t0  <-- 0x800042e8
 #; .Ltmp2 (memset.S:102)
 #;   add a3, a3, t0
-           5842000    0x800042c4 add a3, a3, t0                 #; a3  = 16, t0  = 0x800042c0, (wrb) a3  <-- 0x800042d0
+          14475000    0x800042ec add a3, a3, t0                 #; a3  = 16, t0  = 0x800042e8, (wrb) a3  <-- 0x800042f8
 #; .Ltmp2 (memset.S:103)
 #;   mv t0, ra
-           5843000    0x800042c8 mv t0, ra                      #; ra  = 0x80003fd8, (wrb) t0  <-- 0x80003fd8
+          14476000    0x800042f0 mv t0, ra                      #; ra  = 0x80004000, (wrb) t0  <-- 0x80004000
 #; .Ltmp2 (memset.S:104)
 #;   jalr a3, %pcrel_lo(1b)
-           5844000    0x800042cc jalr -96(a3)                   #; a3  = 0x800042d0, (wrb) ra  <-- 0x800042d0, goto 0x80004270
+          14477000    0x800042f4 jalr -96(a3)                   #; a3  = 0x800042f8, (wrb) ra  <-- 0x800042f8, goto 0x80004298
 #; .Ltable (memset.S:72)
 #;   sb a1,11(a4)
-           5845000    0x80004270 sb a1, 11(a4)                  #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fbf]
+          14478000    0x80004298 sb a1, 11(a4)                  #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fbf]
 #; .Ltable (memset.S:73)
 #;   sb a1,10(a4)
-           5846000    0x80004274 sb a1, 10(a4)                  #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fbe]
+          14479000    0x8000429c sb a1, 10(a4)                  #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fbe]
 #; .Ltable (memset.S:74)
 #;   sb a1, 9(a4)
-           5869000    0x80004278 sb a1, 9(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fbd]
+          14499000    0x800042a0 sb a1, 9(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fbd]
 #; .Ltable (memset.S:75)
 #;   sb a1, 8(a4)
-           5894000    0x8000427c sb a1, 8(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fbc]
+          14532000    0x800042a4 sb a1, 8(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fbc]
 #; .Ltable (memset.S:76)
 #;   sb a1, 7(a4)
-           5919000    0x80004280 sb a1, 7(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fbb]
+          14557000    0x800042a8 sb a1, 7(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fbb]
 #; .Ltable (memset.S:77)
 #;   sb a1, 6(a4)
-           5944000    0x80004284 sb a1, 6(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fba]
+          14582000    0x800042ac sb a1, 6(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fba]
 #; .Ltable (memset.S:78)
 #;   sb a1, 5(a4)
-           5969000    0x80004288 sb a1, 5(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fb9]
+          14607000    0x800042b0 sb a1, 5(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fb9]
 #; .Ltable (memset.S:79)
 #;   sb a1, 4(a4)
-           5994000    0x8000428c sb a1, 4(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fb8]
+          14632000    0x800042b4 sb a1, 4(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fb8]
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           6019000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fb7]
+          14657000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fb7]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           6044000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fb6]
+          14682000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fb6]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           6069000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fb5]
+          14707000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fb5]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           6094000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fb4]
+          14732000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x10020fb4, 0 ~~> Byte[0x10020fb4]
 #; .Ltable (memset.S:85)
 #;   ret
-           6095000    0x800042a0 ret                            #; ra  = 0x800042d0, goto 0x800042d0
+          14733000    0x800042c8 ret                            #; ra  = 0x800042f8, goto 0x800042f8
 #; .Ltmp2 (memset.S:105)
 #;   mv ra, t0
-           6096000    0x800042d0 mv ra, t0                      #; t0  = 0x80003fd8, (wrb) ra  <-- 0x80003fd8
+          14734000    0x800042f8 mv ra, t0                      #; t0  = 0x80004000, (wrb) ra  <-- 0x80004000
 #; .Ltmp2 (memset.S:107)
 #;   add a5, a5, -16
-           6097000    0x800042d4 addi a5, a5, -16               #; a5  = 4, (wrb) a5  <-- -12
+          14735000    0x800042fc addi a5, a5, -16               #; a5  = 4, (wrb) a5  <-- -12
 #; .Ltmp2 (memset.S:108)
 #;   sub a4, a4, a5
-           6098000    0x800042d8 sub a4, a4, a5                 #; a4  = 0x10020fb4, a5  = -12, (wrb) a4  <-- 0x10020fc0
+          14736000    0x80004300 sub a4, a4, a5                 #; a4  = 0x10020fb4, a5  = -12, (wrb) a4  <-- 0x10020fc0
 #; .Ltmp2 (memset.S:109)
 #;   add a2, a2, a5
-           6099000    0x800042dc add a2, a2, a5                 #; a2  = 64, a5  = -12, (wrb) a2  <-- 52
+          14737000    0x80004304 add a2, a2, a5                 #; a2  = 64, a5  = -12, (wrb) a2  <-- 52
 #; .Ltmp2 (memset.S:110)
 #;   bleu a2, t1, .Ltiny
-           6100000    0x800042e0 bgeu t1, a2, -144              #; t1  = 15, a2  = 52, not taken
+          14738000    0x80004308 bgeu t1, a2, -144              #; t1  = 15, a2  = 52, not taken
 #; .Ltmp2 (memset.S:111)
 #;   j .Laligned
-           6101000    0x800042e4 j -196                         #; goto 0x80004220
+          14739000    0x8000430c j -196                         #; goto 0x80004248
 #; .Laligned (memset.S:37)
 #;   bnez a1, .Lwordify
-           6102000    0x80004220 bnez a1, 132                   #; a1  = 0, not taken
+          14740000    0x80004248 bnez a1, 132                   #; a1  = 0, not taken
 #; .Lwordified (memset.S:40)
 #;   and a3, a2, ~15
-           6103000    0x80004224 andi a3, a2, -16               #; a2  = 52, (wrb) a3  <-- 48
+          14741000    0x8000424c andi a3, a2, -16               #; a2  = 52, (wrb) a3  <-- 48
 #; .Lwordified (memset.S:41)
 #;   and a2, a2, 15
-           6104000    0x80004228 andi a2, a2, 15                #; a2  = 52, (wrb) a2  <-- 4
+          14742000    0x80004250 andi a2, a2, 15                #; a2  = 52, (wrb) a2  <-- 4
 #; .Lwordified (memset.S:42)
 #;   add a3, a3, a4
-           6105000    0x8000422c add a3, a3, a4                 #; a3  = 48, a4  = 0x10020fc0, (wrb) a3  <-- 0x10020ff0
+          14743000    0x80004254 add a3, a3, a4                 #; a3  = 48, a4  = 0x10020fc0, (wrb) a3  <-- 0x10020ff0
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           6119000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x10020fc0, 0 ~~> Word[0x10020fc0]
+          14757000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x10020fc0, 0 ~~> Word[0x10020fc0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           6144000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x10020fc0, 0 ~~> Word[0x10020fc4]
+          14782000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x10020fc0, 0 ~~> Word[0x10020fc4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           6169000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x10020fc0, 0 ~~> Word[0x10020fc8]
+          14807000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x10020fc0, 0 ~~> Word[0x10020fc8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           6194000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x10020fc0, 0 ~~> Word[0x10020fcc]
+          14832000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x10020fc0, 0 ~~> Word[0x10020fcc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           6195000    0x80004240 addi a4, a4, 16                #; a4  = 0x10020fc0, (wrb) a4  <-- 0x10020fd0
+          14833000    0x80004268 addi a4, a4, 16                #; a4  = 0x10020fc0, (wrb) a4  <-- 0x10020fd0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           6196000    0x80004244 bltu a4, a3, -20               #; a4  = 0x10020fd0, a3  = 0x10020ff0, taken, goto 0x80004230
+          14834000    0x8000426c bltu a4, a3, -20               #; a4  = 0x10020fd0, a3  = 0x10020ff0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           6219000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x10020fd0, 0 ~~> Word[0x10020fd0]
+          14857000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x10020fd0, 0 ~~> Word[0x10020fd0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           6244000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x10020fd0, 0 ~~> Word[0x10020fd4]
+          14880000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x10020fd0, 0 ~~> Word[0x10020fd4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           6269000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x10020fd0, 0 ~~> Word[0x10020fd8]
+          14905000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x10020fd0, 0 ~~> Word[0x10020fd8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           6292000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x10020fd0, 0 ~~> Word[0x10020fdc]
+          14930000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x10020fd0, 0 ~~> Word[0x10020fdc]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           6293000    0x80004240 addi a4, a4, 16                #; a4  = 0x10020fd0, (wrb) a4  <-- 0x10020fe0
+          14931000    0x80004268 addi a4, a4, 16                #; a4  = 0x10020fd0, (wrb) a4  <-- 0x10020fe0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           6294000    0x80004244 bltu a4, a3, -20               #; a4  = 0x10020fe0, a3  = 0x10020ff0, taken, goto 0x80004230
+          14932000    0x8000426c bltu a4, a3, -20               #; a4  = 0x10020fe0, a3  = 0x10020ff0, taken, goto 0x80004258
 #; .Ltmp0 (memset.S:48)
 #;   1:sw a1, 0(a4)
-           6317000    0x80004230 sw a1, 0(a4)                   #; a4  = 0x10020fe0, 0 ~~> Word[0x10020fe0]
+          14955000    0x80004258 sw a1, 0(a4)                   #; a4  = 0x10020fe0, 0 ~~> Word[0x10020fe0]
 #; .Ltmp0 (memset.S:49)
 #;   sw a1, 4(a4)
-           6342000    0x80004234 sw a1, 4(a4)                   #; a4  = 0x10020fe0, 0 ~~> Word[0x10020fe4]
+          14980000    0x8000425c sw a1, 4(a4)                   #; a4  = 0x10020fe0, 0 ~~> Word[0x10020fe4]
 #; .Ltmp0 (memset.S:50)
 #;   sw a1, 8(a4)
-           6367000    0x80004238 sw a1, 8(a4)                   #; a4  = 0x10020fe0, 0 ~~> Word[0x10020fe8]
+          15005000    0x80004260 sw a1, 8(a4)                   #; a4  = 0x10020fe0, 0 ~~> Word[0x10020fe8]
 #; .Ltmp0 (memset.S:51)
 #;   sw a1, 12(a4)
-           6384000    0x8000423c sw a1, 12(a4)                  #; a4  = 0x10020fe0, 0 ~~> Word[0x10020fec]
+          15022000    0x80004264 sw a1, 12(a4)                  #; a4  = 0x10020fe0, 0 ~~> Word[0x10020fec]
 #; .Ltmp0 (memset.S:53)
 #;   add a4, a4, 16
-           6385000    0x80004240 addi a4, a4, 16                #; a4  = 0x10020fe0, (wrb) a4  <-- 0x10020ff0
+          15023000    0x80004268 addi a4, a4, 16                #; a4  = 0x10020fe0, (wrb) a4  <-- 0x10020ff0
 #; .Ltmp0 (memset.S:54)
 #;   bltu a4, a3, 1b
-           6386000    0x80004244 bltu a4, a3, -20               #; a4  = 0x10020ff0, a3  = 0x10020ff0, not taken
+          15024000    0x8000426c bltu a4, a3, -20               #; a4  = 0x10020ff0, a3  = 0x10020ff0, not taken
 #; .Ltmp0 (memset.S:56)
 #;   bnez a2, .Ltiny
-           6387000    0x80004248 bnez a2, 8                     #; a2  = 4, taken, goto 0x80004250
+          15025000    0x80004270 bnez a2, 8                     #; a2  = 4, taken, goto 0x80004278
 #; .Ltiny (memset.S:60)
 #;   sub a3, t1, a2
-           6388000    0x80004250 sub a3, t1, a2                 #; t1  = 15, a2  = 4, (wrb) a3  <-- 11
+          15026000    0x80004278 sub a3, t1, a2                 #; t1  = 15, a2  = 4, (wrb) a3  <-- 11
 #; .Ltiny (memset.S:61)
 #;   sll a3, a3, 2
-           6389000    0x80004254 slli a3, a3, 2                 #; a3  = 11, (wrb) a3  <-- 44
+          15027000    0x8000427c slli a3, a3, 2                 #; a3  = 11, (wrb) a3  <-- 44
 #; .Ltmp1 (memset.S:62)
 #;   1:auipc t0, %pcrel_hi(.Ltable)
-           6390000    0x80004258 auipc t0, 0                    #; (wrb) t0  <-- 0x80004258
+          15028000    0x80004280 auipc t0, 0                    #; (wrb) t0  <-- 0x80004280
 #; .Ltmp1 (memset.S:63)
 #;   add a3, a3, t0
-           6391000    0x8000425c add a3, a3, t0                 #; a3  = 44, t0  = 0x80004258, (wrb) a3  <-- 0x80004284
+          15029000    0x80004284 add a3, a3, t0                 #; a3  = 44, t0  = 0x80004280, (wrb) a3  <-- 0x800042ac
 #; .Ltable_misaligned (memset.S:67)
 #;   jr a3, %pcrel_lo(1b)
-           6392000    0x80004260 jr 12(a3)                      #; a3  = 0x80004284, goto 0x80004290
+          15030000    0x80004288 jr 12(a3)                      #; a3  = 0x800042ac, goto 0x800042b8
 #; .Ltable (memset.S:80)
 #;   sb a1, 3(a4)
-           6406000    0x80004290 sb a1, 3(a4)                   #; a4  = 0x10020ff0, 0 ~~> Byte[0x10020ff3]
+          15044000    0x800042b8 sb a1, 3(a4)                   #; a4  = 0x10020ff0, 0 ~~> Byte[0x10020ff3]
 #; .Ltable (memset.S:81)
 #;   sb a1, 2(a4)
-           6428000    0x80004294 sb a1, 2(a4)                   #; a4  = 0x10020ff0, 0 ~~> Byte[0x10020ff2]
+          15061000    0x800042bc sb a1, 2(a4)                   #; a4  = 0x10020ff0, 0 ~~> Byte[0x10020ff2]
 #; .Ltable (memset.S:82)
 #;   sb a1, 1(a4)
-           6450000    0x80004298 sb a1, 1(a4)                   #; a4  = 0x10020ff0, 0 ~~> Byte[0x10020ff1]
+          15086000    0x800042c0 sb a1, 1(a4)                   #; a4  = 0x10020ff0, 0 ~~> Byte[0x10020ff1]
 #; .Ltable (memset.S:83)
 #;   sb a1, 0(a4)
-           6467000    0x8000429c sb a1, 0(a4)                   #; a4  = 0x10020ff0, 0 ~~> Byte[0x10020ff0]
+          15108000    0x800042c4 sb a1, 0(a4)                   #; a4  = 0x10020ff0, 0 ~~> Byte[0x10020ff0]
 #; .Ltable (memset.S:85)
 #;   ret
-           6468000    0x800042a0 ret                            #; ra  = 0x80003fd8, goto 0x80003fd8
+          15109000    0x800042c8 ret                            #; ra  = 0x80004000, goto 0x80004000
 #; .LBB25_26 (start.c:227:5)
 #;   snrt_init_tls (start.c:85:5)
 #;     snrt_cluster_hw_barrier (sync.h:174:5)
 #;       asm volatile("csrr x0, 0x7C2" ::: "memory");
 #;       ^
-           6469000    0x80003fd8 csrr zero, 1986                #; csr@7c2 = 0
-           7338000    0x80003fdc auipc s0, 2                    #; (wrb) s0  <-- 0x80005fdc
-           7339000    0x80003fe0 addi s0, s0, -580              #; s0  = 0x80005fdc, (wrb) s0  <-- 0x80005d98
-           7340000    0x80003fe4 auipc s7, 2                    #; (wrb) s7  <-- 0x80005fe4
-           7341000    0x80003fe8 addi s7, s7, -588              #; s7  = 0x80005fe4, (wrb) s7  <-- 0x80005d98
-           7342000    0x80003fec auipc s6, 2                    #; (wrb) s6  <-- 0x80005fec
-           7343000    0x80003ff0 addi s6, s6, -596              #; s6  = 0x80005fec, (wrb) s6  <-- 0x80005d98
-           7344000    0x80003ff4 auipc s8, 2                    #; (wrb) s8  <-- 0x80005ff4
-           7345000    0x80003ff8 addi s8, s8, -572              #; s8  = 0x80005ff4, (wrb) s8  <-- 0x80005db8
+          15112000    0x80004000 csrr zero, 1986                #; csr@7c2 = 0
+          15959000    0x80004004 auipc s0, 2                    #; (wrb) s0  <-- 0x80006004
+          15960000    0x80004008 addi s0, s0, -300              #; s0  = 0x80006004, (wrb) s0  <-- 0x80005ed8
+          15961000    0x8000400c auipc s7, 2                    #; (wrb) s7  <-- 0x8000600c
+          15962000    0x80004010 addi s7, s7, -308              #; s7  = 0x8000600c, (wrb) s7  <-- 0x80005ed8
+          15963000    0x80004014 auipc s6, 2                    #; (wrb) s6  <-- 0x80006014
+          15964000    0x80004018 addi s6, s6, -316              #; s6  = 0x80006014, (wrb) s6  <-- 0x80005ed8
+          15965000    0x8000401c auipc s8, 2                    #; (wrb) s8  <-- 0x8000601c
+          15966000    0x80004020 addi s8, s8, -292              #; s8  = 0x8000601c, (wrb) s8  <-- 0x80005ef8
 #; .LBB25_30 (start.c:235:5)
 #;   snrt_init_cls (start.c:166:13)
 #;     if (snrt_cluster_core_idx() == 0) {
 #;         ^
-           7346000    0x80003ffc beqz s4, 84                    #; s4  = 0, taken, goto 0x80004050
+          15967000    0x80004024 beqz s4, 84                    #; s4  = 0, taken, goto 0x80004078
 #; .LBB25_14 (start.c:235:5)
 #;   snrt_init_cls (start.c:182:14)
 #;     _cls_ptr = (cls_t*)snrt_cls_base_addr();
 #;              ^
-           7358000    0x80004050 sub a0, s7, s0                 #; s7  = 0x80005d98, s0  = 0x80005d98, (wrb) a0  <-- 0
-           7359000    0x80004054 add a0, a0, s8                 #; a0  = 0, s8  = 0x80005db8, (wrb) a0  <-- 0x80005db8
-           7360000    0x80004058 sub a0, s6, a0                 #; s6  = 0x80005d98, a0  = 0x80005db8, (wrb) a0  <-- -32
-           7361000    0x8000405c lui a2, 65568                  #; (wrb) a2  <-- 0x10020000
-           7362000    0x80004060 add a1, a0, a2                 #; a0  = -32, a2  = 0x10020000, (wrb) a1  <-- 0x1001ffe0
-           7363000    0x80004064 lui a3, 0                      #; (wrb) a3  <-- 0
-           7364000    0x80004068 add s0, a3, tp                 #; a3  = 0, tp  = 0x1001ef68, (wrb) s0  <-- 0x1001ef68
-           7365000    0x8000406c sw a1, 64(s0)                  #; s0  = 0x1001ef68, 0x1001ffe0 ~~> Word[0x1001efa8]
+          15978000    0x80004078 sub a0, s7, s0                 #; s7  = 0x80005ed8, s0  = 0x80005ed8, (wrb) a0  <-- 0
+          15979000    0x8000407c add a0, a0, s8                 #; a0  = 0, s8  = 0x80005ef8, (wrb) a0  <-- 0x80005ef8
+          15991000    0x80004080 sub a0, s6, a0                 #; s6  = 0x80005ed8, a0  = 0x80005ef8, (wrb) a0  <-- -32
+          15992000    0x80004084 lui a2, 65568                  #; (wrb) a2  <-- 0x10020000
+          15993000    0x80004088 add a1, a0, a2                 #; a0  = -32, a2  = 0x10020000, (wrb) a1  <-- 0x1001ffe0
+          15994000    0x8000408c lui a3, 0                      #; (wrb) a3  <-- 0
+          15995000    0x80004090 add s0, a3, tp                 #; a3  = 0, tp  = 0x1001ef68, (wrb) s0  <-- 0x1001ef68
+          15996000    0x80004094 sw a1, 64(s0)                  #; s0  = 0x1001ef68, 0x1001ffe0 ~~> Word[0x1001efa8]
 #; .LBB25_14 (start.c:235:5)
 #;   snrt_init_cls (start.c:183:5)
 #;     snrt_cluster_hw_barrier (sync.h:174:5)
 #;       asm volatile("csrr x0, 0x7C2" ::: "memory");
 #;       ^
-           7366000    0x80004070 csrr zero, 1986                #; csr@7c2 = 0
-           7406000    0x80004074 li a3, 8                       #; (wrb) a3  <-- 8
-           7407000    0x80004078 auipc a1, 4                    #; (wrb) a1  <-- 0x80008078
-           7408000    0x8000407c addi a1, a1, 1200              #; a1  = 0x80008078, (wrb) a1  <-- 0x80008528
+          15997000    0x80004098 csrr zero, 1986                #; csr@7c2 = 0
+          16027000    0x8000409c li a3, 8                       #; (wrb) a3  <-- 8
+          16028000    0x800040a0 auipc a1, 5                    #; (wrb) a1  <-- 0x800090a0
+          16029000    0x800040a4 addi a1, a1, -1848             #; a1  = 0x800090a0, (wrb) a1  <-- 0x80008968
 #; .LBB25_31 (start.c:243:5)
 #;   snrt_init_libs (start.c:189:5)
 #;     snrt_alloc_init (alloc.h:113:9)
 #;       if (snrt_is_dm_core()) {
 #;           ^
-           7419000    0x80004080 bltu s5, a3, 84                #; s5  = 4, a3  = 8, taken, goto 0x800040d4
+          16030000    0x800040a8 bltu s5, a3, 84                #; s5  = 4, a3  = 8, taken, goto 0x800040fc
 #; .LBB25_16 (start.c:243:5)
 #;   snrt_init_libs (start.c:189:5)
 #;     snrt_alloc_init (alloc.h:131:5)
 #;       snrt_cluster_hw_barrier (sync.h:174:5)
 #;         asm volatile("csrr x0, 0x7C2" ::: "memory");
 #;         ^
-           7430000    0x800040d4 csrr zero, 1986                #; csr@7c2 = 0
-           7453000    0x800040d8 lui a2, 65536                  #; (wrb) a2  <-- 0x10000000
+          16041000    0x800040fc csrr zero, 1986                #; csr@7c2 = 0
+          16076000    0x80004100 lui a2, 65536                  #; (wrb) a2  <-- 0x10000000
 #; .LBB25_16 (start.c:243:5)
 #;   snrt_init_libs (start.c:190:5)
 #;     snrt_l1_init (alloc_v2.h:117:43)
 #;       snrt_cluster (snitch_cluster_memory.h:23:46)
 #;         return &(snitch_cluster_addrmap.cluster) + snrt_cluster_idx();
 #;                                                  ^
-           7454000    0x800040dc add a2, s3, a2                 #; s3  = 0, a2  = 0x10000000, (wrb) a2  <-- 0x10000000
+          16077000    0x80004104 add a2, s3, a2                 #; s3  = 0, a2  = 0x10000000, (wrb) a2  <-- 0x10000000
 #; .LBB25_16 (start.c:243:5)
 #;   snrt_init_libs (start.c:190:5)
 #;     snrt_l1_init (alloc_v2.h:118:34)
 #;       snrt_l1_allocator_v2()->base = snrt_align_up(l1_start_addr, MIN_CHUNK_SIZE);
 #;                                    ^
-           7455000    0x800040e0 lui a3, 0                      #; (wrb) a3  <-- 0
-           7456000    0x800040e4 add a3, a3, tp                 #; a3  = 0, tp  = 0x1001ef68, (wrb) a3  <-- 0x1001ef68
-           7457000    0x800040e8 sw zero, 20(a3)                #; a3  = 0x1001ef68, 0 ~~> Word[0x1001ef7c]
-           7458000    0x800040ec sw a2, 16(a3)                  #; a3  = 0x1001ef68, 0x10000000 ~~> Word[0x1001ef78]
-           7459000    0x800040f0 addi a3, a3, 16                #; a3  = 0x1001ef68, (wrb) a3  <-- 0x1001ef78
+          16078000    0x80004108 lui a3, 0                      #; (wrb) a3  <-- 0
+          16079000    0x8000410c add a3, a3, tp                 #; a3  = 0, tp  = 0x1001ef68, (wrb) a3  <-- 0x1001ef68
+          16080000    0x80004110 sw zero, 20(a3)                #; a3  = 0x1001ef68, 0 ~~> Word[0x1001ef7c]
+          16081000    0x80004114 sw a2, 16(a3)                  #; a3  = 0x1001ef68, 0x10000000 ~~> Word[0x1001ef78]
+          16082000    0x80004118 addi a3, a3, 16                #; a3  = 0x1001ef68, (wrb) a3  <-- 0x1001ef78
 #; .LBB25_16 (start.c:243:5)
 #;   snrt_init_libs (start.c:190:5)
 #;     snrt_l1_init (alloc_v2.h:119:33)
 #;       snrt_l1_allocator_v2()->end = heap_end_addr;
 #;                                   ^
-           7460000    0x800040f4 sw zero, 12(a3)                #; a3  = 0x1001ef78, 0 ~~> Word[0x1001ef84]
-           7461000    0x800040f8 lui a4, 65566                  #; (wrb) a4  <-- 0x1001e000
-           7462000    0x800040fc addi a4, a4, -1152             #; a4  = 0x1001e000, (wrb) a4  <-- 0x1001db80
-           7473000    0x80004100 add a0, a0, a4                 #; a0  = -32, a4  = 0x1001db80, (wrb) a0  <-- 0x1001db60
-           7474000    0x80004104 sw a0, 8(a3)                   #; a3  = 0x1001ef78, 0x1001db60 ~~> Word[0x1001ef80]
+          16083000    0x8000411c sw zero, 12(a3)                #; a3  = 0x1001ef78, 0 ~~> Word[0x1001ef84]
+          16084000    0x80004120 lui a4, 65566                  #; (wrb) a4  <-- 0x1001e000
+          16085000    0x80004124 addi a4, a4, -1152             #; a4  = 0x1001e000, (wrb) a4  <-- 0x1001db80
+          16086000    0x80004128 add a0, a0, a4                 #; a0  = -32, a4  = 0x1001db80, (wrb) a0  <-- 0x1001db60
+          16087000    0x8000412c sw a0, 8(a3)                   #; a3  = 0x1001ef78, 0x1001db60 ~~> Word[0x1001ef80]
 #; .LBB25_16 (start.c:243:5)
 #;   snrt_init_libs (start.c:190:5)
 #;     snrt_l1_init (alloc_v2.h:120:34)
 #;       snrt_l1_allocator_v2()->next = snrt_l1_allocator_v2()->base;
 #;                                    ^
-           7475000    0x80004108 sw zero, 20(a3)                #; a3  = 0x1001ef78, 0 ~~> Word[0x1001ef8c]
-           7476000    0x8000410c sw a2, 16(a3)                  #; a3  = 0x1001ef78, 0x10000000 ~~> Word[0x1001ef88]
+          16088000    0x80004130 sw zero, 20(a3)                #; a3  = 0x1001ef78, 0 ~~> Word[0x1001ef8c]
+          16089000    0x80004134 sw a2, 16(a3)                  #; a3  = 0x1001ef78, 0x10000000 ~~> Word[0x1001ef88]
 #; .LBB25_16 (start.c:243:5)
 #;   snrt_init_libs (start.c:191:5)
 #;     snrt_l3_init (alloc_v2.h:184:34)
 #;       snrt_l3_allocator_v2()->base =
 #;                                    ^
-           7477000    0x80004110 lui a0, 0                      #; (wrb) a0  <-- 0
-           7478000    0x80004114 add a0, a0, tp                 #; a0  = 0, tp  = 0x1001ef68, (wrb) a0  <-- 0x1001ef68
-           7479000    0x80004118 sw zero, 44(a0)                #; a0  = 0x1001ef68, 0 ~~> Word[0x1001ef94]
-           7480000    0x8000411c addi a1, a1, 7                 #; a1  = 0x80008528, (wrb) a1  <-- 0x8000852f
-           7481000    0x80004120 andi a1, a1, -8                #; a1  = 0x8000852f, (wrb) a1  <-- 0x80008528
-           7482000    0x80004124 sw a1, 40(a0)                  #; a0  = 0x1001ef68, 0x80008528 ~~> Word[0x1001ef90]
-           7483000    0x80004128 addi a0, a0, 40                #; a0  = 0x1001ef68, (wrb) a0  <-- 0x1001ef90
-           7484000    0x8000412c li a2, 1                       #; (wrb) a2  <-- 1
+          16090000    0x80004138 lui a0, 0                      #; (wrb) a0  <-- 0
+          16091000    0x8000413c add a0, a0, tp                 #; a0  = 0, tp  = 0x1001ef68, (wrb) a0  <-- 0x1001ef68
+          16102000    0x80004140 sw zero, 44(a0)                #; a0  = 0x1001ef68, 0 ~~> Word[0x1001ef94]
+          16103000    0x80004144 addi a1, a1, 7                 #; a1  = 0x80008968, (wrb) a1  <-- 0x8000896f
+          16104000    0x80004148 andi a1, a1, -8                #; a1  = 0x8000896f, (wrb) a1  <-- 0x80008968
+          16105000    0x8000414c sw a1, 40(a0)                  #; a0  = 0x1001ef68, 0x80008968 ~~> Word[0x1001ef90]
+          16106000    0x80004150 addi a0, a0, 40                #; a0  = 0x1001ef68, (wrb) a0  <-- 0x1001ef90
+          16107000    0x80004154 li a2, 1                       #; (wrb) a2  <-- 1
 #; .LBB25_16 (start.c:243:5)
 #;   snrt_init_libs (start.c:191:5)
 #;     snrt_l3_init (alloc_v2.h:186:33)
 #;       snrt_l3_allocator_v2()->end = SNRT_L3_END_ADDR;
 #;                                   ^
-           7485000    0x80004130 sw a2, 12(a0)                  #; a0  = 0x1001ef90, 1 ~~> Word[0x1001ef9c]
-           7486000    0x80004134 sw zero, 8(a0)                 #; a0  = 0x1001ef90, 0 ~~> Word[0x1001ef98]
+          16108000    0x80004158 sw a2, 12(a0)                  #; a0  = 0x1001ef90, 1 ~~> Word[0x1001ef9c]
+          16109000    0x8000415c sw zero, 8(a0)                 #; a0  = 0x1001ef90, 0 ~~> Word[0x1001ef98]
 #; .LBB25_16 (start.c:243:5)
 #;   snrt_init_libs (start.c:191:5)
 #;     snrt_l3_init (alloc_v2.h:187:34)
 #;       snrt_l3_allocator_v2()->next = snrt_l3_allocator_v2()->base;
 #;                                    ^
-           7487000    0x80004138 sw zero, 20(a0)                #; a0  = 0x1001ef90, 0 ~~> Word[0x1001efa4]
-           7488000    0x8000413c sw a1, 16(a0)                  #; a0  = 0x1001ef90, 0x80008528 ~~> Word[0x1001efa0]
+          16110000    0x80004160 sw zero, 20(a0)                #; a0  = 0x1001ef90, 0 ~~> Word[0x1001efa4]
+          16111000    0x80004164 sw a1, 16(a0)                  #; a0  = 0x1001ef90, 0x80008968 ~~> Word[0x1001efa0]
 #; .LBB25_16 (start.c:243:5)
 #;   snrt_init_libs (start.c:192:5)
 #;     snrt_comm_init (sync.h:37:48)
 #;       inline void snrt_comm_init() { snrt_comm_world = &snrt_comm_world_info; }
 #;                                                      ^
-           7499000    0x80004140 lui a0, 0                      #; (wrb) a0  <-- 0
-           7500000    0x80004144 add a0, a0, tp                 #; a0  = 0, tp  = 0x1001ef68, (wrb) a0  <-- 0x1001ef68
-           7501000    0x80004148 lui a1, 0                      #; (wrb) a1  <-- 0
-           7502000    0x8000414c add a1, a1, tp                 #; a1  = 0, tp  = 0x1001ef68, (wrb) a1  <-- 0x1001ef68
-           7503000    0x80004150 mv a1, a1                      #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef68
-           7504000    0x80004154 sw a1, 76(a0)                  #; a0  = 0x1001ef68, 0x1001ef68 ~~> Word[0x1001efb4]
+          16112000    0x80004168 lui a0, 0                      #; (wrb) a0  <-- 0
+          16113000    0x8000416c add a0, a0, tp                 #; a0  = 0, tp  = 0x1001ef68, (wrb) a0  <-- 0x1001ef68
+          16114000    0x80004170 lui a1, 0                      #; (wrb) a1  <-- 0
+          16115000    0x80004174 add a1, a1, tp                 #; a1  = 0, tp  = 0x1001ef68, (wrb) a1  <-- 0x1001ef68
+          16116000    0x80004178 mv a1, a1                      #; a1  = 0x1001ef68, (wrb) a1  <-- 0x1001ef68
+          16117000    0x8000417c sw a1, 76(a0)                  #; a0  = 0x1001ef68, 0x1001ef68 ~~> Word[0x1001efb4]
 #; .LBB25_16 (start.c:251:5)
 #;   snrt_cluster_hw_barrier (sync.h:174:5)
 #;     asm volatile("csrr x0, 0x7C2" ::: "memory");
 #;     ^
-           7505000    0x80004158 csrr zero, 1986                #; csr@7c2 = 0
+          16128000    0x80004180 csrr zero, 1986                #; csr@7c2 = 0
 #; .LBB25_16 (start.c:260:17)
 #;   exit_code = main();
 #;               ^
-           7507000    0x8000415c auipc ra, 1048572              #; (wrb) ra  <-- 0x8000015c
-           7508000    0x80004160 jalr 112(ra)                   #; ra  = 0x8000015c, (wrb) ra  <-- 0x80004164, goto 0x800001cc
-#; main (xpulp_vect.c:4)
+          16130000    0x80004184 auipc ra, 1048572              #; (wrb) ra  <-- 0x80000184
+          16131000    0x80004188 jalr 1300(ra)                  #; ra  = 0x80000184, (wrb) ra  <-- 0x8000418c, goto 0x80000698
+#; main (matmul_i32.c:75)
 #;   int main() {
-           7517000    0x800001cc addi sp, sp, -48               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001eef8
-#; main (xpulp_vect.c:6:5)
+          16142000    0x80000698 addi sp, sp, -80               #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001eed8
+#; main (matmul_i32.c:76:26)
+#;   snrt_cluster_core_idx (team.h:108:12)
+#;     snrt_global_core_idx (team.h:80:12)
+#;       snrt_hartid (team.h:25:5)
+#;         asm("csrr %0, mhartid" : "=r"(hartid));
+#;         ^
+          16143000    0x8000069c sw ra, 76(sp)                  #; sp  = 0x1001eed8, 0x8000418c ~~> Word[0x1001ef24]
+          16144000    0x800006a0 sw s0, 72(sp)                  #; sp  = 0x1001eed8, 0x1001ef68 ~~> Word[0x1001ef20]
+          16145000    0x800006a4 sw s1, 68(sp)                  #; sp  = 0x1001eed8, 2064 ~~> Word[0x1001ef1c]
+          16146000    0x800006a8 sw s2, 64(sp)                  #; sp  = 0x1001eed8, 4 ~~> Word[0x1001ef18]
+          16147000    0x800006ac sw s3, 60(sp)                  #; sp  = 0x1001eed8, 0 ~~> Word[0x1001ef14]
+          16148000    0x800006b0 sw s4, 56(sp)                  #; sp  = 0x1001eed8, 0 ~~> Word[0x1001ef10]
+          16149000    0x800006b4 sw s5, 52(sp)                  #; sp  = 0x1001eed8, 4 ~~> Word[0x1001ef0c]
+          16150000    0x800006b8 sw s6, 48(sp)                  #; sp  = 0x1001eed8, 0x80005ed8 ~~> Word[0x1001ef08]
+          16151000    0x800006bc sw s7, 44(sp)                  #; sp  = 0x1001eed8, 0x80005ed8 ~~> Word[0x1001ef04]
+          16162000    0x800006c0 sw s8, 40(sp)                  #; sp  = 0x1001eed8, 0x80005ef8 ~~> Word[0x1001ef00]
+          16163000    0x800006c4 sw s9, 36(sp)                  #; sp  = 0x1001eed8, 6192 ~~> Word[0x1001eefc]
+          16164000    0x800006c8 sw s10, 32(sp)                 #; sp  = 0x1001eed8, 7224 ~~> Word[0x1001eef8]
+          16165000    0x800006cc sw s11, 28(sp)                 #; sp  = 0x1001eed8, 8256 ~~> Word[0x1001eef4]
+          16166000    0x800006d0 csrr a0, mhartid               #; mhartid = 4, (wrb) a0  <-- 4
+          16167000    0x800006d4 lui a1, 233017                 #; (wrb) a1  <-- 0x38e39000
+          16168000    0x800006d8 addi a1, a1, -455              #; a1  = 0x38e39000, (wrb) a1  <-- 0x38e38e39
+#; main (matmul_i32.c:107:9)
+#;   snrt_stop_perf_counter (perf_cnt.h:54:5)
+#;     snrt_perf_counters (perf_cnt.h:23:14)
+#;       snrt_cluster (snitch_cluster_memory.h:23:48)
+#;         snrt_cluster_idx (team.h:99:35)
+#;           return snrt_global_core_idx() / snrt_cluster_core_num();
+#;                                         ^
+          16169000    0x800006dc mulhu a1, a0, a1               #; a0  = 4, a1  = 0x38e38e39
+          16171000                                              #; (acc) a1  <-- 0
+          16172000    0x800006e0 srli s2, a1, 1                 #; a1  = 0, (wrb) s2  <-- 0
+          16173000    0x800006e4 slli a1, s2, 3                 #; s2  = 0, (wrb) a1  <-- 0
+          16174000    0x800006e8 add a1, a1, s2                 #; a1  = 0, s2  = 0, (wrb) a1  <-- 0
+          16175000    0x800006ec sub a0, a0, a1                 #; a0  = 4, a1  = 0, (wrb) a0  <-- 4
+#; main (matmul_i32.c:80:5)
 #;   snrt_cluster_hw_barrier (sync.h:174:5)
 #;     asm volatile("csrr x0, 0x7C2" ::: "memory");
 #;     ^
-           7518000    0x800001d0 sw s0, 44(sp)                  #; sp  = 0x1001eef8, 0x1001ef68 ~~> Word[0x1001ef24]
-           7519000    0x800001d4 sw s1, 40(sp)                  #; sp  = 0x1001eef8, 2064 ~~> Word[0x1001ef20]
-           7520000    0x800001d8 sw s2, 36(sp)                  #; sp  = 0x1001eef8, 4 ~~> Word[0x1001ef1c]
-           7521000    0x800001dc sw s3, 32(sp)                  #; sp  = 0x1001eef8, 0 ~~> Word[0x1001ef18]
-           7523000    0x800001e0 sw s4, 28(sp)                  #; sp  = 0x1001eef8, 0 ~~> Word[0x1001ef14]
-           7524000    0x800001e4 sw s5, 24(sp)                  #; sp  = 0x1001eef8, 4 ~~> Word[0x1001ef10]
-           7526000    0x800001e8 sw s6, 20(sp)                  #; sp  = 0x1001eef8, 0x80005d98 ~~> Word[0x1001ef0c]
-           7527000    0x800001ec sw s7, 16(sp)                  #; sp  = 0x1001eef8, 0x80005d98 ~~> Word[0x1001ef08]
-           7528000    0x800001f0 sw s8, 12(sp)                  #; sp  = 0x1001eef8, 0x80005db8 ~~> Word[0x1001ef04]
-           7529000    0x800001f4 csrr zero, 1986                #; csr@7c2 = 0
-#; main (xpulp_vect.c:5:18)
-#;   snrt_global_core_idx (team.h:80:12)
-#;     snrt_hartid (team.h:25:5)
-#;       asm("csrr %0, mhartid" : "=r"(hartid));
+          16176000    0x800006f0 csrr zero, 1986                #; csr@7c2 = 0
+          16178000    0x800006f4 auipc s0, 6                    #; (wrb) s0  <-- 0x800066f4
+          16179000    0x800006f8 addi s0, s0, -1836             #; s0  = 0x800066f4, (wrb) s0  <-- 0x80005fc8
+          16180000    0x800006fc auipc s1, 6                    #; (wrb) s1  <-- 0x800066fc
+          16191000    0x80000700 addi s1, s1, -1588             #; s1  = 0x800066fc, (wrb) s1  <-- 0x800060c8
+          16192000    0x80000704 auipc s4, 6                    #; (wrb) s4  <-- 0x80006704
+          16193000    0x80000708 addi s4, s4, -1340             #; s4  = 0x80006704, (wrb) s4  <-- 0x800061c8
+#; .LBB2_46 (matmul_i32.c:81:9)
+#;   if (core_id == 0) {
 #;       ^
-           7531000    0x800001f8 csrr a0, mhartid               #; mhartid = 4, (wrb) a0  <-- 4
-           7532000    0x800001fc li a1, 2                       #; (wrb) a1  <-- 2
-#; main (xpulp_vect.c:7:9)
-#;   if (i == 2) {
+          16194000    0x8000070c sw s1, 16(sp)                  #; sp  = 0x1001eed8, 0x800060c8 ~~> Word[0x1001eee8]
+          16195000    0x80000710 sw s2, 12(sp)                  #; sp  = 0x1001eed8, 0 ~~> Word[0x1001eee4]
+          16196000    0x80000714 sw a0, 20(sp)                  #; sp  = 0x1001eed8, 4 ~~> Word[0x1001eeec]
+          16197000    0x80000718 beqz a0, 432                   #; a0  = 4, not taken
+#; .LBB2_46 (matmul_i32.c:87:5)
+#;   snrt_cluster_hw_barrier (sync.h:174:5)
+#;     asm volatile("csrr x0, 0x7C2" ::: "memory");
+#;     ^
+          16198000    0x8000071c csrr zero, 1986                #; csr@7c2 = 0
+#; .LBB2_46 (matmul_i32.c:93:5)
+#;   snrt_cluster_hw_barrier (sync.h:174:5)
+#;     asm volatile("csrr x0, 0x7C2" ::: "memory");
+#;     ^
+          22528000    0x80000720 csrr zero, 1986                #; csr@7c2 = 0
+#; .LBB2_46 (matmul_i32.c:99:5)
+#;   snrt_cluster_hw_barrier (sync.h:174:5)
+#;     asm volatile("csrr x0, 0x7C2" ::: "memory");
+#;     ^
+          22530000    0x80000724 csrr zero, 1986                #; csr@7c2 = 0
+#; .LBB2_46 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:82:42)
+#;     uint32_t const c_start = (P / c) * (id % c);
+#;                                            ^
+          22632000    0x80000728 andi a2, a0, 7                 #; a0  = 4, (wrb) a2  <-- 4
+#; .LBB2_46 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:88:23)
+#;     for (uint32_t i = 2 * (id / c); i < M; i += 2 * (numThreads / c)) {
+#;                         ^
+          22633000    0x8000072c srli a1, a0, 2                 #; a0  = 4, (wrb) a1  <-- 1
+          22634000    0x80000730 andi a5, a1, 2                 #; a1  = 1, (wrb) a5  <-- 0
+          22635000    0x80000734 sw a2, 24(sp)                  #; sp  = 0x1001eed8, 4 ~~> Word[0x1001eef0]
+          22636000    0x80000738 slli a1, a2, 2                 #; a2  = 4, (wrb) a1  <-- 16
+          22637000    0x8000073c add a1, a1, s4                 #; a1  = 16, s4  = 0x800061c8, (wrb) a1  <-- 0x800061d8
+          22648000    0x80000740 addi a2, a1, 64                #; a1  = 0x800061d8, (wrb) a2  <-- 0x80006218
+          22649000    0x80000744 addi a3, a1, 128               #; a1  = 0x800061d8, (wrb) a3  <-- 0x80006258
+          22650000    0x80000748 addi a4, a1, 192               #; a1  = 0x800061d8, (wrb) a4  <-- 0x80006298
+          22651000    0x8000074c addi a5, a5, -2                #; a5  = 0, (wrb) a5  <-- -2
+          22652000    0x80000750 srli a6, a0, 3                 #; a0  = 4, (wrb) a6  <-- 0
+          22653000    0x80000754 andi a7, a6, 1                 #; a6  = 0, (wrb) a7  <-- 0
+          22654000    0x80000758 slli a6, a7, 4                 #; a7  = 0, (wrb) a6  <-- 0
+          22655000    0x8000075c slli a7, a7, 6                 #; a7  = 0, (wrb) a7  <-- 0
+          22656000    0x80000760 add a7, a7, s1                 #; a7  = 0, s1  = 0x800060c8, (wrb) a7  <-- 0x800060c8
+          22657000    0x80000764 li t0, 28                      #; (wrb) t0  <-- 28
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          22658000    0x80000768 mv t2, a7                      #; a7  = 0x800060c8, (wrb) t2  <-- 0x800060c8
+          22659000    0x8000076c mv t3, a1                      #; a1  = 0x800061d8, (wrb) t3  <-- 0x800061d8
+          22660000    0x80000770 p.lw t4, 4(t2!)                #; t2  = 0x800060c8, t4  <~~ Word[0x800060cc]
+          22661000    0x80000774 p.lw t5, t0(t2!)               #; t2  = 0x800060cc, t0  = 28, t5  <~~ Word[0x800060e8]
+          22686000    0x80000778 p.lw t6, 4(t2!)                #; t2  = 0x800060e8, t6  <~~ Word[0x800060ec]
+          22694000                                              #; (lsu) t4  <-- 1
+          22723000    0x8000077c p.lw s1, 0(t2!)                #; t2  = 0x800060ec, s1  <~~ Word[0x800060ec]
+          22731000                                              #; (lsu) t5  <-- 2
+          22767000    0x80000780 p.lw s4, 4(t3!)                #; t3  = 0x800061d8, s4  <~~ Word[0x800061dc]
+          22775000                                              #; (lsu) t6  <-- 2
+          22804000    0x80000784 p.lw s5, t0(t3!)               #; t3  = 0x800061dc, t0  = 28, s5  <~~ Word[0x800061f8]
+          22812000                                              #; (lsu) s1  <-- 4
+          22848000    0x80000788 p.lw s6, 4(t3!)                #; t3  = 0x800061f8, s6  <~~ Word[0x800061fc]
+          22856000                                              #; (lsu) s4  <-- 0
+          22885000    0x8000078c p.lw s7, 0(t3!)                #; t3  = 0x800061fc, s7  <~~ Word[0x800061fc]
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:124:24)
+#;     c00 += val_a00 * val_b00;
+#;                    ^
+          22886000    0x80000790 mul t2, t4, s4                 #; t4  = 1, s4  = 0
+          22888000                                              #; (acc) t2  <-- 0
+          22893000                                              #; (lsu) s5  <-- 0
+          22937000                                              #; (lsu) s6  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:125:13)
+#;     c00 += val_a01 * val_b10;
+#;         ^
+          22938000    0x80000794 p.mac t2, t5, s6               #; t5  = 2, s6  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:126:24)
+#;     c01 += val_a00 * val_b01;
+#;                    ^
+          22939000    0x80000798 mul t3, t4, s5                 #; t4  = 1, s5  = 0
+          22940000                                              #; (acc) t2  <-- 0
+          22941000                                              #; (acc) t3  <-- 0
+          22974000                                              #; (lsu) s7  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:127:13)
+#;     c01 += val_a01 * val_b11;
+#;         ^
+          22975000    0x8000079c p.mac t3, t5, s7               #; t5  = 2, s7  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:128:24)
+#;     c10 += val_a10 * val_b00;
+#;                    ^
+          22976000    0x800007a0 mul t4, t6, s4                 #; t6  = 2, s4  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          22977000    0x800007a4 addi t5, a7, 8                 #; a7  = 0x800060c8, (wrb) t5  <-- 0x800060d0
+          22978000    0x800007a8 mv s4, a2                      #; a2  = 0x80006218, (wrb) s4  <-- 0x80006218
+          22979000    0x800007ac mv a0, s0                      #; s0  = 0x80005fc8, (wrb) a0  <-- 0x80005fc8
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          22980000    0x800007b0 p.lw s8, 4(t5!)                #; t5  = 0x800060d0, s8  <~~ Word[0x800060d4]
+          22981000    0x800007b4 p.lw s9, t0(t5!)               #; t5  = 0x800060d4, t0  = 28, s9  <~~ Word[0x800060f0]
+          22982000                                              #; (acc) t3  <-- 0
+          22983000                                              #; (acc) t4  <-- 0
+          23010000    0x800007b8 p.lw s10, 4(t5!)               #; t5  = 0x800060f0, s10 <~~ Word[0x800060f4]
+          23018000                                              #; (lsu) s8  <-- 3
+          23047000    0x800007bc p.lw s11, 0(t5!)               #; t5  = 0x800060f4, s11 <~~ Word[0x800060f4]
+          23055000                                              #; (lsu) s9  <-- 4
+          23091000    0x800007c0 p.lw ra, 4(s4!)                #; s4  = 0x80006218, ra  <~~ Word[0x8000621c]
+          23099000                                              #; (lsu) s10 <-- 6
+          23128000    0x800007c4 p.lw s2, t0(s4!)               #; s4  = 0x8000621c, t0  = 28, s2  <~~ Word[0x80006238]
+          23136000                                              #; (lsu) s11 <-- 8
+          23172000    0x800007c8 p.lw s0, 4(s4!)                #; s4  = 0x80006238, s0  <~~ Word[0x8000623c]
+          23180000                                              #; (lsu) ra  <-- 0
+          23209000    0x800007cc p.lw s3, 0(s4!)                #; s4  = 0x8000623c, s3  <~~ Word[0x8000623c]
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:129:13)
+#;     c10 += val_a11 * val_b10;
+#;         ^
+          23210000    0x800007d0 p.mac t4, s1, s6               #; s1  = 4, s6  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:130:24)
+#;     c11 += val_a10 * val_b01;
+#;                    ^
+          23211000    0x800007d4 mul t5, t6, s5                 #; t6  = 2, s5  = 0
+          23212000                                              #; (acc) t4  <-- 0
+          23213000                                              #; (acc) t5  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:131:13)
+#;     c11 += val_a11 * val_b11;
+#;         ^
+          23214000    0x800007d8 p.mac t5, s1, s7               #; s1  = 4, s7  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:124:13)
+#;     c00 += val_a00 * val_b00;
+#;         ^
+          23215000    0x800007dc p.mac t2, s8, ra               #; s8  = 3, ra  = 0
+          23216000                                              #; (acc) t5  <-- 0
+          23217000                                              #; (lsu) s2  <-- 0
+          23218000                                              #; (acc) t2  <-- 0
+          23261000                                              #; (lsu) s0  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:125:13)
+#;     c00 += val_a01 * val_b10;
+#;         ^
+          23262000    0x800007e0 p.mac t2, s9, s0               #; s9  = 4, s0  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:126:13)
+#;     c01 += val_a00 * val_b01;
+#;         ^
+          23263000    0x800007e4 p.mac t3, s8, s2               #; s8  = 3, s2  = 0
+          23264000                                              #; (acc) t2  <-- 0
+          23265000                                              #; (acc) t3  <-- 0
+          23298000                                              #; (lsu) s3  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:127:13)
+#;     c01 += val_a01 * val_b11;
+#;         ^
+          23299000    0x800007e8 p.mac t3, s9, s3               #; s9  = 4, s3  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:128:13)
+#;     c10 += val_a10 * val_b00;
+#;         ^
+          23300000    0x800007ec p.mac t4, s10, ra              #; s10 = 6, ra  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          23301000    0x800007f0 addi t6, a7, 16                #; a7  = 0x800060c8, (wrb) t6  <-- 0x800060d8
+          23302000    0x800007f4 mv s1, a3                      #; a3  = 0x80006258, (wrb) s1  <-- 0x80006258
+          23303000    0x800007f8 p.lw s4, 4(t6!)                #; t6  = 0x800060d8, s4  <~~ Word[0x800060dc]
+          23304000    0x800007fc p.lw s5, t0(t6!)               #; t6  = 0x800060dc, t0  = 28, s5  <~~ Word[0x800060f8]
+          23305000                                              #; (acc) t3  <-- 0
+          23306000                                              #; (acc) t4  <-- 0
+          23334000    0x80000800 p.lw s6, 4(t6!)                #; t6  = 0x800060f8, s6  <~~ Word[0x800060fc]
+          23342000                                              #; (lsu) s4  <-- 5
+          23371000    0x80000804 p.lw s7, 0(t6!)                #; t6  = 0x800060fc, s7  <~~ Word[0x800060fc]
+          23379000                                              #; (lsu) s5  <-- 6
+          23415000    0x80000808 p.lw s8, 4(s1!)                #; s1  = 0x80006258, s8  <~~ Word[0x8000625c]
+          23423000                                              #; (lsu) s6  <-- 10
+          23452000    0x8000080c p.lw s9, t0(s1!)               #; s1  = 0x8000625c, t0  = 28, s9  <~~ Word[0x80006278]
+          23460000                                              #; (lsu) s7  <-- 12
+          23496000    0x80000810 p.lw ra, 4(s1!)                #; s1  = 0x80006278, ra  <~~ Word[0x8000627c]
+          23504000                                              #; (lsu) s8  <-- 1
+          23533000    0x80000814 p.lw t1, 0(s1!)                #; s1  = 0x8000627c, t1  <~~ Word[0x8000627c]
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:129:13)
+#;     c10 += val_a11 * val_b10;
+#;         ^
+          23534000    0x80000818 p.mac t4, s11, s0              #; s11 = 8, s0  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:130:13)
+#;     c11 += val_a10 * val_b01;
+#;         ^
+          23535000    0x8000081c p.mac t5, s10, s2              #; s10 = 6, s2  = 0
+          23536000                                              #; (acc) t4  <-- 0
+          23537000                                              #; (acc) t5  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:131:13)
+#;     c11 += val_a11 * val_b11;
+#;         ^
+          23538000    0x80000820 p.mac t5, s11, s3              #; s11 = 8, s3  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:124:13)
+#;     c00 += val_a00 * val_b00;
+#;         ^
+          23539000    0x80000824 p.mac t2, s4, s8               #; s4  = 5, s8  = 1
+          23540000                                              #; (acc) t5  <-- 0
+          23541000                                              #; (lsu) s9  <-- 0
+          23542000                                              #; (acc) t2  <-- 5
+          23585000                                              #; (lsu) ra  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:125:13)
+#;     c00 += val_a01 * val_b10;
+#;         ^
+          23586000    0x80000828 p.mac t2, s5, ra               #; s5  = 6, ra  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:126:13)
+#;     c01 += val_a00 * val_b01;
+#;         ^
+          23587000    0x8000082c p.mac t3, s4, s9               #; s4  = 5, s9  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:128:13)
+#;     c10 += val_a10 * val_b00;
+#;         ^
+          23588000    0x80000830 p.mac t4, s6, s8               #; s6  = 10, s8  = 1, (acc) t2  <-- 5
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:130:13)
+#;     c11 += val_a10 * val_b01;
+#;         ^
+          23589000    0x80000834 p.mac t5, s6, s9               #; s6  = 10, s9  = 0, (acc) t3  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          23590000    0x80000838 addi t6, a7, 24                #; a7  = 0x800060c8, (wrb) t6  <-- 0x800060e0
+          23591000    0x8000083c mv s0, a4                      #; a4  = 0x80006298, (wrb) s0  <-- 0x80006298
+          23592000                                              #; (acc) t4  <-- 10
+          23593000                                              #; (acc) t5  <-- 0
+          23594000    0x80000840 p.lw s1, 4(t6!)                #; t6  = 0x800060e0, s1  <~~ Word[0x800060e4]
+          23614000    0x80000844 p.lw s2, t0(t6!)               #; t6  = 0x800060e4, t0  = 28, s2  <~~ Word[0x80006100]
+          23622000                                              #; (lsu) t1  <-- 1
+          23658000    0x80000848 p.lw s3, 4(t6!)                #; t6  = 0x80006100, s3  <~~ Word[0x80006104]
+          23666000                                              #; (lsu) s1  <-- 7
+          23695000    0x8000084c p.lw s4, 0(t6!)                #; t6  = 0x80006104, s4  <~~ Word[0x80006104]
+          23703000                                              #; (lsu) s2  <-- 8
+          23739000    0x80000850 p.lw s6, 4(s0!)                #; s0  = 0x80006298, s6  <~~ Word[0x8000629c]
+          23747000                                              #; (lsu) s3  <-- 14
+          23776000    0x80000854 p.lw s8, t0(s0!)               #; s0  = 0x8000629c, t0  = 28, s8  <~~ Word[0x800062b8]
+          23784000                                              #; (lsu) s4  <-- 16
+          23821000    0x80000858 p.lw s9, 4(s0!)                #; s0  = 0x800062b8, s9  <~~ Word[0x800062bc]
+          23829000                                              #; (lsu) s6  <-- 0
+          23866000    0x8000085c p.lw s10, 0(s0!)               #; s0  = 0x800062bc, s10 <~~ Word[0x800062bc]
+          23867000    0x80000860 mv s0, a0                      #; a0  = 0x80005fc8, (wrb) s0  <-- 0x80005fc8
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:127:13)
+#;     c01 += val_a01 * val_b11;
+#;         ^
+          23868000    0x80000864 p.mac t3, s5, t1               #; s5  = 6, t1  = 1
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:129:13)
+#;     c10 += val_a11 * val_b10;
+#;         ^
+          23869000    0x80000868 p.mac t4, s7, ra               #; s7  = 12, ra  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:131:13)
+#;     c11 += val_a11 * val_b11;
+#;         ^
+          23870000    0x8000086c p.mac t5, s7, t1               #; s7  = 12, t1  = 1, (acc) t3  <-- 6
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:124:13)
+#;     c00 += val_a00 * val_b00;
+#;         ^
+          23871000    0x80000870 p.mac t2, s1, s6               #; s1  = 7, s6  = 0, (acc) t4  <-- 10
+          23872000                                              #; (acc) t5  <-- 12
+          23873000                                              #; (acc) t2  <-- 5
+          23874000                                              #; (lsu) s8  <-- 0
+          23919000                                              #; (lsu) s9  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:125:13)
+#;     c00 += val_a01 * val_b10;
+#;         ^
+          23920000    0x80000874 p.mac t2, s2, s9               #; s2  = 8, s9  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:126:13)
+#;     c01 += val_a00 * val_b01;
+#;         ^
+          23921000    0x80000878 p.mac t3, s1, s8               #; s1  = 7, s8  = 0
+          23922000                                              #; (acc) t2  <-- 5
+          23923000                                              #; (acc) t3  <-- 6
+          23964000                                              #; (lsu) s10 <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:127:13)
+#;     c01 += val_a01 * val_b11;
+#;         ^
+          23965000    0x8000087c p.mac t3, s2, s10              #; s2  = 8, s10 = 0
+          23967000                                              #; (acc) t3  <-- 6
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:128:13)
+#;     c10 += val_a10 * val_b00;
+#;         ^
+          23969000    0x80000880 p.mac t4, s3, s6               #; s3  = 14, s6  = 0
+          23971000                                              #; (acc) t4  <-- 10
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:129:13)
+#;     c10 += val_a11 * val_b10;
+#;         ^
+          23972000    0x80000884 p.mac t4, s4, s9               #; s4  = 16, s9  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:130:13)
+#;     c11 += val_a10 * val_b01;
+#;         ^
+          23973000    0x80000888 p.mac t5, s3, s8               #; s3  = 14, s8  = 0
+          23974000                                              #; (acc) t4  <-- 10
+          23975000                                              #; (acc) t5  <-- 12
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:131:13)
+#;     c11 += val_a11 * val_b11;
+#;         ^
+          23976000    0x8000088c p.mac t5, s4, s10              #; s4  = 16, s10 = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:133:33)
+#;     int32_t *idx_c = &C[i * P + j];
+#;                               ^
+          23977000    0x80000890 lw a0, 24(sp)                  #; sp  = 0x1001eed8, a0  <~~ Word[0x1001eef0]
+          23978000                                              #; (acc) t5  <-- 12
+          23980000                                              #; (lsu) a0  <-- 4
+          23981000    0x80000894 or t1, a0, a6                  #; a0  = 4, a6  = 0, (wrb) t1  <-- 4
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:133:25)
+#;     int32_t *idx_c = &C[i * P + j];
+#;                       ^
+          23982000    0x80000898 slli t1, t1, 2                 #; t1  = 4, (wrb) t1  <-- 16
+          23983000    0x8000089c add t1, t1, s0                 #; t1  = 16, s0  = 0x80005fc8, (wrb) t1  <-- 0x80005fd8
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:134:7)
+#;     __asm__ volatile("p.sw %[s00], 4(%[addr_c]!) \n"
+#;     ^
+          23984000    0x800008a0 p.sw t2, 4(t1!)                #; t1  = 0x80005fd8, 5 ~~> Word[0x80005fdc]
+          23985000    0x800008a4 p.sw t3, t0(t1!)               #; t1  = 0x80005fdc, 6 ~~> Word[0x80005ff8]
+          24002000    0x800008a8 p.sw t4, 4(t1!)                #; t1  = 0x80005ff8, 10 ~~> Word[0x80005ffc]
+          24050000    0x800008ac p.sw t5, 0(t1!)                #; t1  = 0x80005ffc, 12 ~~> Word[0x80005ffc]
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:88:37)
+#;     for (uint32_t i = 2 * (id / c); i < M; i += 2 * (numThreads / c)) {
+#;                                       ^
+          24051000    0x800008b0 addi a5, a5, 2                 #; a5  = -2, (wrb) a5  <-- 0
+          24052000    0x800008b4 addi a6, a6, 16                #; a6  = 0, (wrb) a6  <-- 16
+          24053000    0x800008b8 addi a7, a7, 64                #; a7  = 0x800060c8, (wrb) a7  <-- 0x80006108
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:88:3)
+#;     for (uint32_t i = 2 * (id / c); i < M; i += 2 * (numThreads / c)) {
+#;     ^
+          24054000    0x800008bc li a0, 6                       #; (wrb) a0  <-- 6
+          24057000    0x800008c0 bltu a5, a0, -344              #; a5  = 0, a0  = 6, taken, goto 0x80000768
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          24058000    0x80000768 mv t2, a7                      #; a7  = 0x80006108, (wrb) t2  <-- 0x80006108
+          24059000    0x8000076c mv t3, a1                      #; a1  = 0x800061d8, (wrb) t3  <-- 0x800061d8
+          24098000    0x80000770 p.lw t4, 4(t2!)                #; t2  = 0x80006108, t4  <~~ Word[0x8000610c]
+          24146000    0x80000774 p.lw t5, t0(t2!)               #; t2  = 0x8000610c, t0  = 28, t5  <~~ Word[0x80006128]
+          24193000    0x80000778 p.lw t6, 4(t2!)                #; t2  = 0x80006128, t6  <~~ Word[0x8000612c]
+          24201000                                              #; (lsu) t4  <-- 3
+          24230000    0x8000077c p.lw s1, 0(t2!)                #; t2  = 0x8000612c, s1  <~~ Word[0x8000612c]
+          24238000                                              #; (lsu) t5  <-- 6
+          24274000    0x80000780 p.lw s4, 4(t3!)                #; t3  = 0x800061d8, s4  <~~ Word[0x800061dc]
+          24282000                                              #; (lsu) t6  <-- 4
+          24311000    0x80000784 p.lw s5, t0(t3!)               #; t3  = 0x800061dc, t0  = 28, s5  <~~ Word[0x800061f8]
+          24319000                                              #; (lsu) s1  <-- 8
+          24355000    0x80000788 p.lw s6, 4(t3!)                #; t3  = 0x800061f8, s6  <~~ Word[0x800061fc]
+          24363000                                              #; (lsu) s4  <-- 0
+          24392000    0x8000078c p.lw s7, 0(t3!)                #; t3  = 0x800061fc, s7  <~~ Word[0x800061fc]
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:124:24)
+#;     c00 += val_a00 * val_b00;
+#;                    ^
+          24393000    0x80000790 mul t2, t4, s4                 #; t4  = 3, s4  = 0
+          24395000                                              #; (acc) t2  <-- 0
+          24400000                                              #; (lsu) s5  <-- 0
+          24444000                                              #; (lsu) s6  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:125:13)
+#;     c00 += val_a01 * val_b10;
+#;         ^
+          24445000    0x80000794 p.mac t2, t5, s6               #; t5  = 6, s6  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:126:24)
+#;     c01 += val_a00 * val_b01;
+#;                    ^
+          24446000    0x80000798 mul t3, t4, s5                 #; t4  = 3, s5  = 0
+          24447000                                              #; (acc) t2  <-- 0
+          24448000                                              #; (acc) t3  <-- 0
+          24481000                                              #; (lsu) s7  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:127:13)
+#;     c01 += val_a01 * val_b11;
+#;         ^
+          24482000    0x8000079c p.mac t3, t5, s7               #; t5  = 6, s7  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:128:24)
+#;     c10 += val_a10 * val_b00;
+#;                    ^
+          24483000    0x800007a0 mul t4, t6, s4                 #; t6  = 4, s4  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          24484000    0x800007a4 addi t5, a7, 8                 #; a7  = 0x80006108, (wrb) t5  <-- 0x80006110
+          24485000    0x800007a8 mv s4, a2                      #; a2  = 0x80006218, (wrb) s4  <-- 0x80006218
+          24486000    0x800007ac mv a0, s0                      #; s0  = 0x80005fc8, (wrb) a0  <-- 0x80005fc8
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          24487000    0x800007b0 p.lw s8, 4(t5!)                #; t5  = 0x80006110, s8  <~~ Word[0x80006114]
+          24488000    0x800007b4 p.lw s9, t0(t5!)               #; t5  = 0x80006114, t0  = 28, s9  <~~ Word[0x80006130]
+          24489000                                              #; (acc) t3  <-- 0
+          24490000                                              #; (acc) t4  <-- 0
+          24517000    0x800007b8 p.lw s10, 4(t5!)               #; t5  = 0x80006130, s10 <~~ Word[0x80006134]
+          24525000                                              #; (lsu) s8  <-- 9
+          24554000    0x800007bc p.lw s11, 0(t5!)               #; t5  = 0x80006134, s11 <~~ Word[0x80006134]
+          24562000                                              #; (lsu) s9  <-- 12
+          24598000    0x800007c0 p.lw ra, 4(s4!)                #; s4  = 0x80006218, ra  <~~ Word[0x8000621c]
+          24606000                                              #; (lsu) s10 <-- 12
+          24635000    0x800007c4 p.lw s2, t0(s4!)               #; s4  = 0x8000621c, t0  = 28, s2  <~~ Word[0x80006238]
+          24643000                                              #; (lsu) s11 <-- 16
+          24679000    0x800007c8 p.lw s0, 4(s4!)                #; s4  = 0x80006238, s0  <~~ Word[0x8000623c]
+          24687000                                              #; (lsu) ra  <-- 0
+          24716000    0x800007cc p.lw s3, 0(s4!)                #; s4  = 0x8000623c, s3  <~~ Word[0x8000623c]
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:129:13)
+#;     c10 += val_a11 * val_b10;
+#;         ^
+          24717000    0x800007d0 p.mac t4, s1, s6               #; s1  = 8, s6  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:130:24)
+#;     c11 += val_a10 * val_b01;
+#;                    ^
+          24718000    0x800007d4 mul t5, t6, s5                 #; t6  = 4, s5  = 0
+          24719000                                              #; (acc) t4  <-- 0
+          24720000                                              #; (acc) t5  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:131:13)
+#;     c11 += val_a11 * val_b11;
+#;         ^
+          24721000    0x800007d8 p.mac t5, s1, s7               #; s1  = 8, s7  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:124:13)
+#;     c00 += val_a00 * val_b00;
+#;         ^
+          24722000    0x800007dc p.mac t2, s8, ra               #; s8  = 9, ra  = 0
+          24723000                                              #; (acc) t5  <-- 0
+          24724000                                              #; (lsu) s2  <-- 0
+          24725000                                              #; (acc) t2  <-- 0
+          24768000                                              #; (lsu) s0  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:125:13)
+#;     c00 += val_a01 * val_b10;
+#;         ^
+          24769000    0x800007e0 p.mac t2, s9, s0               #; s9  = 12, s0  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:126:13)
+#;     c01 += val_a00 * val_b01;
+#;         ^
+          24770000    0x800007e4 p.mac t3, s8, s2               #; s8  = 9, s2  = 0
+          24771000                                              #; (acc) t2  <-- 0
+          24772000                                              #; (acc) t3  <-- 0
+          24805000                                              #; (lsu) s3  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:127:13)
+#;     c01 += val_a01 * val_b11;
+#;         ^
+          24806000    0x800007e8 p.mac t3, s9, s3               #; s9  = 12, s3  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:128:13)
+#;     c10 += val_a10 * val_b00;
+#;         ^
+          24807000    0x800007ec p.mac t4, s10, ra              #; s10 = 12, ra  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          24808000    0x800007f0 addi t6, a7, 16                #; a7  = 0x80006108, (wrb) t6  <-- 0x80006118
+          24809000    0x800007f4 mv s1, a3                      #; a3  = 0x80006258, (wrb) s1  <-- 0x80006258
+          24810000    0x800007f8 p.lw s4, 4(t6!)                #; t6  = 0x80006118, s4  <~~ Word[0x8000611c]
+          24811000    0x800007fc p.lw s5, t0(t6!)               #; t6  = 0x8000611c, t0  = 28, s5  <~~ Word[0x80006138]
+          24812000                                              #; (acc) t3  <-- 0
+          24813000                                              #; (acc) t4  <-- 0
+          24841000    0x80000800 p.lw s6, 4(t6!)                #; t6  = 0x80006138, s6  <~~ Word[0x8000613c]
+          24849000                                              #; (lsu) s4  <-- 15
+          24878000    0x80000804 p.lw s7, 0(t6!)                #; t6  = 0x8000613c, s7  <~~ Word[0x8000613c]
+          24886000                                              #; (lsu) s5  <-- 18
+          24922000    0x80000808 p.lw s8, 4(s1!)                #; s1  = 0x80006258, s8  <~~ Word[0x8000625c]
+          24930000                                              #; (lsu) s6  <-- 20
+          24959000    0x8000080c p.lw s9, t0(s1!)               #; s1  = 0x8000625c, t0  = 28, s9  <~~ Word[0x80006278]
+          24967000                                              #; (lsu) s7  <-- 24
+          25003000    0x80000810 p.lw ra, 4(s1!)                #; s1  = 0x80006278, ra  <~~ Word[0x8000627c]
+          25011000                                              #; (lsu) s8  <-- 1
+          25040000    0x80000814 p.lw t1, 0(s1!)                #; s1  = 0x8000627c, t1  <~~ Word[0x8000627c]
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:129:13)
+#;     c10 += val_a11 * val_b10;
+#;         ^
+          25041000    0x80000818 p.mac t4, s11, s0              #; s11 = 16, s0  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:130:13)
+#;     c11 += val_a10 * val_b01;
+#;         ^
+          25042000    0x8000081c p.mac t5, s10, s2              #; s10 = 12, s2  = 0
+          25043000                                              #; (acc) t4  <-- 0
+          25044000                                              #; (acc) t5  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:131:13)
+#;     c11 += val_a11 * val_b11;
+#;         ^
+          25045000    0x80000820 p.mac t5, s11, s3              #; s11 = 16, s3  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:124:13)
+#;     c00 += val_a00 * val_b00;
+#;         ^
+          25046000    0x80000824 p.mac t2, s4, s8               #; s4  = 15, s8  = 1
+          25047000                                              #; (acc) t5  <-- 0
+          25048000                                              #; (lsu) s9  <-- 0
+          25049000                                              #; (acc) t2  <-- 15
+          25092000                                              #; (lsu) ra  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:125:13)
+#;     c00 += val_a01 * val_b10;
+#;         ^
+          25093000    0x80000828 p.mac t2, s5, ra               #; s5  = 18, ra  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:126:13)
+#;     c01 += val_a00 * val_b01;
+#;         ^
+          25094000    0x8000082c p.mac t3, s4, s9               #; s4  = 15, s9  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:128:13)
+#;     c10 += val_a10 * val_b00;
+#;         ^
+          25095000    0x80000830 p.mac t4, s6, s8               #; s6  = 20, s8  = 1, (acc) t2  <-- 15
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:130:13)
+#;     c11 += val_a10 * val_b01;
+#;         ^
+          25096000    0x80000834 p.mac t5, s6, s9               #; s6  = 20, s9  = 0, (acc) t3  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          25097000    0x80000838 addi t6, a7, 24                #; a7  = 0x80006108, (wrb) t6  <-- 0x80006120
+          25098000    0x8000083c mv s0, a4                      #; a4  = 0x80006298, (wrb) s0  <-- 0x80006298
+          25099000    0x80000840 p.lw s1, 4(t6!)                #; t6  = 0x80006120, s1  <~~ Word[0x80006124]
+          25100000                                              #; (acc) t4  <-- 20
+          25101000                                              #; (acc) t5  <-- 0
+          25121000    0x80000844 p.lw s2, t0(t6!)               #; t6  = 0x80006124, t0  = 28, s2  <~~ Word[0x80006140]
+          25129000                                              #; (lsu) t1  <-- 1
+          25165000    0x80000848 p.lw s3, 4(t6!)                #; t6  = 0x80006140, s3  <~~ Word[0x80006144]
+          25173000                                              #; (lsu) s1  <-- 21
+          25202000    0x8000084c p.lw s4, 0(t6!)                #; t6  = 0x80006144, s4  <~~ Word[0x80006144]
+          25210000                                              #; (lsu) s2  <-- 24
+          25246000    0x80000850 p.lw s6, 4(s0!)                #; s0  = 0x80006298, s6  <~~ Word[0x8000629c]
+          25254000                                              #; (lsu) s3  <-- 28
+          25291000    0x80000854 p.lw s8, t0(s0!)               #; s0  = 0x8000629c, t0  = 28, s8  <~~ Word[0x800062b8]
+          25299000                                              #; (lsu) s4  <-- 32
+          25336000    0x80000858 p.lw s9, 4(s0!)                #; s0  = 0x800062b8, s9  <~~ Word[0x800062bc]
+          25344000                                              #; (lsu) s6  <-- 0
+          25381000    0x8000085c p.lw s10, 0(s0!)               #; s0  = 0x800062bc, s10 <~~ Word[0x800062bc]
+          25382000    0x80000860 mv s0, a0                      #; a0  = 0x80005fc8, (wrb) s0  <-- 0x80005fc8
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:127:13)
+#;     c01 += val_a01 * val_b11;
+#;         ^
+          25383000    0x80000864 p.mac t3, s5, t1               #; s5  = 18, t1  = 1
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:129:13)
+#;     c10 += val_a11 * val_b10;
+#;         ^
+          25384000    0x80000868 p.mac t4, s7, ra               #; s7  = 24, ra  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:131:13)
+#;     c11 += val_a11 * val_b11;
+#;         ^
+          25385000    0x8000086c p.mac t5, s7, t1               #; s7  = 24, t1  = 1, (acc) t3  <-- 18
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:124:13)
+#;     c00 += val_a00 * val_b00;
+#;         ^
+          25386000    0x80000870 p.mac t2, s1, s6               #; s1  = 21, s6  = 0, (acc) t4  <-- 20
+          25387000                                              #; (acc) t5  <-- 24
+          25388000                                              #; (acc) t2  <-- 15
+          25389000                                              #; (lsu) s8  <-- 0
+          25434000                                              #; (lsu) s9  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:125:13)
+#;     c00 += val_a01 * val_b10;
+#;         ^
+          25435000    0x80000874 p.mac t2, s2, s9               #; s2  = 24, s9  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:126:13)
+#;     c01 += val_a00 * val_b01;
+#;         ^
+          25436000    0x80000878 p.mac t3, s1, s8               #; s1  = 21, s8  = 0
+          25437000                                              #; (acc) t2  <-- 15
+          25438000                                              #; (acc) t3  <-- 18
+          25478000                                              #; (lsu) s10 <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:127:13)
+#;     c01 += val_a01 * val_b11;
+#;         ^
+          25479000    0x8000087c p.mac t3, s2, s10              #; s2  = 24, s10 = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:128:13)
+#;     c10 += val_a10 * val_b00;
+#;         ^
+          25480000    0x80000880 p.mac t4, s3, s6               #; s3  = 28, s6  = 0
+          25481000                                              #; (acc) t3  <-- 18
+          25482000                                              #; (acc) t4  <-- 20
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:129:13)
+#;     c10 += val_a11 * val_b10;
+#;         ^
+          25483000    0x80000884 p.mac t4, s4, s9               #; s4  = 32, s9  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:130:13)
+#;     c11 += val_a10 * val_b01;
+#;         ^
+          25484000    0x80000888 p.mac t5, s3, s8               #; s3  = 28, s8  = 0
+          25485000                                              #; (acc) t4  <-- 20
+          25486000                                              #; (acc) t5  <-- 24
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:131:13)
+#;     c11 += val_a11 * val_b11;
+#;         ^
+          25487000    0x8000088c p.mac t5, s4, s10              #; s4  = 32, s10 = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:133:33)
+#;     int32_t *idx_c = &C[i * P + j];
+#;                               ^
+          25488000    0x80000890 lw a0, 24(sp)                  #; sp  = 0x1001eed8, a0  <~~ Word[0x1001eef0]
+          25489000                                              #; (acc) t5  <-- 24
+          25491000                                              #; (lsu) a0  <-- 4
+          25492000    0x80000894 or t1, a0, a6                  #; a0  = 4, a6  = 16, (wrb) t1  <-- 20
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:133:25)
+#;     int32_t *idx_c = &C[i * P + j];
+#;                       ^
+          25493000    0x80000898 slli t1, t1, 2                 #; t1  = 20, (wrb) t1  <-- 80
+          25494000    0x8000089c add t1, t1, s0                 #; t1  = 80, s0  = 0x80005fc8, (wrb) t1  <-- 0x80006018
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:134:7)
+#;     __asm__ volatile("p.sw %[s00], 4(%[addr_c]!) \n"
+#;     ^
+          25495000    0x800008a0 p.sw t2, 4(t1!)                #; t1  = 0x80006018, 15 ~~> Word[0x8000601c]
+          25496000    0x800008a4 p.sw t3, t0(t1!)               #; t1  = 0x8000601c, 18 ~~> Word[0x80006038]
+          25508000    0x800008a8 p.sw t4, 4(t1!)                #; t1  = 0x80006038, 20 ~~> Word[0x8000603c]
+          25556000    0x800008ac p.sw t5, 0(t1!)                #; t1  = 0x8000603c, 24 ~~> Word[0x8000603c]
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:88:37)
+#;     for (uint32_t i = 2 * (id / c); i < M; i += 2 * (numThreads / c)) {
+#;                                       ^
+          25557000    0x800008b0 addi a5, a5, 2                 #; a5  = 0, (wrb) a5  <-- 2
+          25558000    0x800008b4 addi a6, a6, 16                #; a6  = 16, (wrb) a6  <-- 32
+          25559000    0x800008b8 addi a7, a7, 64                #; a7  = 0x80006108, (wrb) a7  <-- 0x80006148
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:88:3)
+#;     for (uint32_t i = 2 * (id / c); i < M; i += 2 * (numThreads / c)) {
+#;     ^
+          25560000    0x800008bc li a0, 6                       #; (wrb) a0  <-- 6
+          25561000    0x800008c0 bltu a5, a0, -344              #; a5  = 2, a0  = 6, taken, goto 0x80000768
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          25562000    0x80000768 mv t2, a7                      #; a7  = 0x80006148, (wrb) t2  <-- 0x80006148
+          25563000    0x8000076c mv t3, a1                      #; a1  = 0x800061d8, (wrb) t3  <-- 0x800061d8
+          25604000    0x80000770 p.lw t4, 4(t2!)                #; t2  = 0x80006148, t4  <~~ Word[0x8000614c]
+          25652000    0x80000774 p.lw t5, t0(t2!)               #; t2  = 0x8000614c, t0  = 28, t5  <~~ Word[0x80006168]
+          25699000    0x80000778 p.lw t6, 4(t2!)                #; t2  = 0x80006168, t6  <~~ Word[0x8000616c]
+          25707000                                              #; (lsu) t4  <-- 5
+          25736000    0x8000077c p.lw s1, 0(t2!)                #; t2  = 0x8000616c, s1  <~~ Word[0x8000616c]
+          25744000                                              #; (lsu) t5  <-- 10
+          25780000    0x80000780 p.lw s4, 4(t3!)                #; t3  = 0x800061d8, s4  <~~ Word[0x800061dc]
+          25788000                                              #; (lsu) t6  <-- 6
+          25817000    0x80000784 p.lw s5, t0(t3!)               #; t3  = 0x800061dc, t0  = 28, s5  <~~ Word[0x800061f8]
+          25825000                                              #; (lsu) s1  <-- 12
+          25861000    0x80000788 p.lw s6, 4(t3!)                #; t3  = 0x800061f8, s6  <~~ Word[0x800061fc]
+          25869000                                              #; (lsu) s4  <-- 0
+          25898000    0x8000078c p.lw s7, 0(t3!)                #; t3  = 0x800061fc, s7  <~~ Word[0x800061fc]
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:124:24)
+#;     c00 += val_a00 * val_b00;
+#;                    ^
+          25899000    0x80000790 mul t2, t4, s4                 #; t4  = 5, s4  = 0
+          25901000                                              #; (acc) t2  <-- 0
+          25906000                                              #; (lsu) s5  <-- 0
+          25950000                                              #; (lsu) s6  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:125:13)
+#;     c00 += val_a01 * val_b10;
+#;         ^
+          25951000    0x80000794 p.mac t2, t5, s6               #; t5  = 10, s6  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:126:24)
+#;     c01 += val_a00 * val_b01;
+#;                    ^
+          25952000    0x80000798 mul t3, t4, s5                 #; t4  = 5, s5  = 0
+          25953000                                              #; (acc) t2  <-- 0
+          25954000                                              #; (acc) t3  <-- 0
+          25987000                                              #; (lsu) s7  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:127:13)
+#;     c01 += val_a01 * val_b11;
+#;         ^
+          25988000    0x8000079c p.mac t3, t5, s7               #; t5  = 10, s7  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:128:24)
+#;     c10 += val_a10 * val_b00;
+#;                    ^
+          25989000    0x800007a0 mul t4, t6, s4                 #; t6  = 6, s4  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          25990000    0x800007a4 addi t5, a7, 8                 #; a7  = 0x80006148, (wrb) t5  <-- 0x80006150
+          25991000    0x800007a8 mv s4, a2                      #; a2  = 0x80006218, (wrb) s4  <-- 0x80006218
+          25992000    0x800007ac mv a0, s0                      #; s0  = 0x80005fc8, (wrb) a0  <-- 0x80005fc8
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          25993000    0x800007b0 p.lw s8, 4(t5!)                #; t5  = 0x80006150, s8  <~~ Word[0x80006154]
+          25994000    0x800007b4 p.lw s9, t0(t5!)               #; t5  = 0x80006154, t0  = 28, s9  <~~ Word[0x80006170]
+          25995000                                              #; (acc) t3  <-- 0
+          25996000                                              #; (acc) t4  <-- 0
+          26023000    0x800007b8 p.lw s10, 4(t5!)               #; t5  = 0x80006170, s10 <~~ Word[0x80006174]
+          26031000                                              #; (lsu) s8  <-- 15
+          26060000    0x800007bc p.lw s11, 0(t5!)               #; t5  = 0x80006174, s11 <~~ Word[0x80006174]
+          26068000                                              #; (lsu) s9  <-- 20
+          26104000    0x800007c0 p.lw ra, 4(s4!)                #; s4  = 0x80006218, ra  <~~ Word[0x8000621c]
+          26112000                                              #; (lsu) s10 <-- 18
+          26141000    0x800007c4 p.lw s2, t0(s4!)               #; s4  = 0x8000621c, t0  = 28, s2  <~~ Word[0x80006238]
+          26149000                                              #; (lsu) s11 <-- 24
+          26185000    0x800007c8 p.lw s0, 4(s4!)                #; s4  = 0x80006238, s0  <~~ Word[0x8000623c]
+          26193000                                              #; (lsu) ra  <-- 0
+          26222000    0x800007cc p.lw s3, 0(s4!)                #; s4  = 0x8000623c, s3  <~~ Word[0x8000623c]
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:129:13)
+#;     c10 += val_a11 * val_b10;
+#;         ^
+          26223000    0x800007d0 p.mac t4, s1, s6               #; s1  = 12, s6  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:130:24)
+#;     c11 += val_a10 * val_b01;
+#;                    ^
+          26224000    0x800007d4 mul t5, t6, s5                 #; t6  = 6, s5  = 0
+          26225000                                              #; (acc) t4  <-- 0
+          26226000                                              #; (acc) t5  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:131:13)
+#;     c11 += val_a11 * val_b11;
+#;         ^
+          26227000    0x800007d8 p.mac t5, s1, s7               #; s1  = 12, s7  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:124:13)
+#;     c00 += val_a00 * val_b00;
+#;         ^
+          26228000    0x800007dc p.mac t2, s8, ra               #; s8  = 15, ra  = 0
+          26229000                                              #; (acc) t5  <-- 0
+          26230000                                              #; (lsu) s2  <-- 0
+          26231000                                              #; (acc) t2  <-- 0
+          26274000                                              #; (lsu) s0  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:125:13)
+#;     c00 += val_a01 * val_b10;
+#;         ^
+          26275000    0x800007e0 p.mac t2, s9, s0               #; s9  = 20, s0  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:126:13)
+#;     c01 += val_a00 * val_b01;
+#;         ^
+          26276000    0x800007e4 p.mac t3, s8, s2               #; s8  = 15, s2  = 0
+          26277000                                              #; (acc) t2  <-- 0
+          26278000                                              #; (acc) t3  <-- 0
+          26311000                                              #; (lsu) s3  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:127:13)
+#;     c01 += val_a01 * val_b11;
+#;         ^
+          26312000    0x800007e8 p.mac t3, s9, s3               #; s9  = 20, s3  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:128:13)
+#;     c10 += val_a10 * val_b00;
+#;         ^
+          26313000    0x800007ec p.mac t4, s10, ra              #; s10 = 18, ra  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          26314000    0x800007f0 addi t6, a7, 16                #; a7  = 0x80006148, (wrb) t6  <-- 0x80006158
+          26315000    0x800007f4 mv s1, a3                      #; a3  = 0x80006258, (wrb) s1  <-- 0x80006258
+          26316000    0x800007f8 p.lw s4, 4(t6!)                #; t6  = 0x80006158, s4  <~~ Word[0x8000615c]
+          26317000    0x800007fc p.lw s5, t0(t6!)               #; t6  = 0x8000615c, t0  = 28, s5  <~~ Word[0x80006178]
+          26318000                                              #; (acc) t3  <-- 0
+          26319000                                              #; (acc) t4  <-- 0
+          26347000    0x80000800 p.lw s6, 4(t6!)                #; t6  = 0x80006178, s6  <~~ Word[0x8000617c]
+          26355000                                              #; (lsu) s4  <-- 25
+          26384000    0x80000804 p.lw s7, 0(t6!)                #; t6  = 0x8000617c, s7  <~~ Word[0x8000617c]
+          26392000                                              #; (lsu) s5  <-- 30
+          26428000    0x80000808 p.lw s8, 4(s1!)                #; s1  = 0x80006258, s8  <~~ Word[0x8000625c]
+          26436000                                              #; (lsu) s6  <-- 30
+          26465000    0x8000080c p.lw s9, t0(s1!)               #; s1  = 0x8000625c, t0  = 28, s9  <~~ Word[0x80006278]
+          26473000                                              #; (lsu) s7  <-- 36
+          26509000    0x80000810 p.lw ra, 4(s1!)                #; s1  = 0x80006278, ra  <~~ Word[0x8000627c]
+          26517000                                              #; (lsu) s8  <-- 1
+          26546000    0x80000814 p.lw t1, 0(s1!)                #; s1  = 0x8000627c, t1  <~~ Word[0x8000627c]
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:129:13)
+#;     c10 += val_a11 * val_b10;
+#;         ^
+          26547000    0x80000818 p.mac t4, s11, s0              #; s11 = 24, s0  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:130:13)
+#;     c11 += val_a10 * val_b01;
+#;         ^
+          26548000    0x8000081c p.mac t5, s10, s2              #; s10 = 18, s2  = 0
+          26549000                                              #; (acc) t4  <-- 0
+          26550000                                              #; (acc) t5  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:131:13)
+#;     c11 += val_a11 * val_b11;
+#;         ^
+          26551000    0x80000820 p.mac t5, s11, s3              #; s11 = 24, s3  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:124:13)
+#;     c00 += val_a00 * val_b00;
+#;         ^
+          26552000    0x80000824 p.mac t2, s4, s8               #; s4  = 25, s8  = 1
+          26553000                                              #; (acc) t5  <-- 0
+          26554000                                              #; (lsu) s9  <-- 0
+          26555000                                              #; (acc) t2  <-- 25
+          26598000                                              #; (lsu) ra  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:125:13)
+#;     c00 += val_a01 * val_b10;
+#;         ^
+          26599000    0x80000828 p.mac t2, s5, ra               #; s5  = 30, ra  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:126:13)
+#;     c01 += val_a00 * val_b01;
+#;         ^
+          26600000    0x8000082c p.mac t3, s4, s9               #; s4  = 25, s9  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:128:13)
+#;     c10 += val_a10 * val_b00;
+#;         ^
+          26601000    0x80000830 p.mac t4, s6, s8               #; s6  = 30, s8  = 1, (acc) t2  <-- 25
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:130:13)
+#;     c11 += val_a10 * val_b01;
+#;         ^
+          26602000    0x80000834 p.mac t5, s6, s9               #; s6  = 30, s9  = 0, (acc) t3  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          26603000    0x80000838 addi t6, a7, 24                #; a7  = 0x80006148, (wrb) t6  <-- 0x80006160
+          26604000    0x8000083c mv s0, a4                      #; a4  = 0x80006298, (wrb) s0  <-- 0x80006298
+          26605000    0x80000840 p.lw s1, 4(t6!)                #; t6  = 0x80006160, s1  <~~ Word[0x80006164]
+          26606000                                              #; (acc) t4  <-- 30
+          26607000                                              #; (acc) t5  <-- 0
+          26627000    0x80000844 p.lw s2, t0(t6!)               #; t6  = 0x80006164, t0  = 28, s2  <~~ Word[0x80006180]
+          26635000                                              #; (lsu) t1  <-- 1
+          26671000    0x80000848 p.lw s3, 4(t6!)                #; t6  = 0x80006180, s3  <~~ Word[0x80006184]
+          26679000                                              #; (lsu) s1  <-- 35
+          26708000    0x8000084c p.lw s4, 0(t6!)                #; t6  = 0x80006184, s4  <~~ Word[0x80006184]
+          26716000                                              #; (lsu) s2  <-- 40
+          26752000    0x80000850 p.lw s6, 4(s0!)                #; s0  = 0x80006298, s6  <~~ Word[0x8000629c]
+          26760000                                              #; (lsu) s3  <-- 42
+          26797000    0x80000854 p.lw s8, t0(s0!)               #; s0  = 0x8000629c, t0  = 28, s8  <~~ Word[0x800062b8]
+          26805000                                              #; (lsu) s4  <-- 48
+          26842000    0x80000858 p.lw s9, 4(s0!)                #; s0  = 0x800062b8, s9  <~~ Word[0x800062bc]
+          26850000                                              #; (lsu) s6  <-- 0
+          26887000    0x8000085c p.lw s10, 0(s0!)               #; s0  = 0x800062bc, s10 <~~ Word[0x800062bc]
+          26888000    0x80000860 mv s0, a0                      #; a0  = 0x80005fc8, (wrb) s0  <-- 0x80005fc8
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:127:13)
+#;     c01 += val_a01 * val_b11;
+#;         ^
+          26889000    0x80000864 p.mac t3, s5, t1               #; s5  = 30, t1  = 1
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:129:13)
+#;     c10 += val_a11 * val_b10;
+#;         ^
+          26890000    0x80000868 p.mac t4, s7, ra               #; s7  = 36, ra  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:131:13)
+#;     c11 += val_a11 * val_b11;
+#;         ^
+          26891000    0x8000086c p.mac t5, s7, t1               #; s7  = 36, t1  = 1, (acc) t3  <-- 30
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:124:13)
+#;     c00 += val_a00 * val_b00;
+#;         ^
+          26892000    0x80000870 p.mac t2, s1, s6               #; s1  = 35, s6  = 0, (acc) t4  <-- 30
+          26893000                                              #; (acc) t5  <-- 36
+          26894000                                              #; (acc) t2  <-- 25
+          26895000                                              #; (lsu) s8  <-- 0
+          26940000                                              #; (lsu) s9  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:125:13)
+#;     c00 += val_a01 * val_b10;
+#;         ^
+          26941000    0x80000874 p.mac t2, s2, s9               #; s2  = 40, s9  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:126:13)
+#;     c01 += val_a00 * val_b01;
+#;         ^
+          26942000    0x80000878 p.mac t3, s1, s8               #; s1  = 35, s8  = 0
+          26943000                                              #; (acc) t2  <-- 25
+          26944000                                              #; (acc) t3  <-- 30
+          26984000                                              #; (lsu) s10 <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:127:13)
+#;     c01 += val_a01 * val_b11;
+#;         ^
+          26985000    0x8000087c p.mac t3, s2, s10              #; s2  = 40, s10 = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:128:13)
+#;     c10 += val_a10 * val_b00;
+#;         ^
+          26986000    0x80000880 p.mac t4, s3, s6               #; s3  = 42, s6  = 0
+          26987000                                              #; (acc) t3  <-- 30
+          26988000                                              #; (acc) t4  <-- 30
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:129:13)
+#;     c10 += val_a11 * val_b10;
+#;         ^
+          26989000    0x80000884 p.mac t4, s4, s9               #; s4  = 48, s9  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:130:13)
+#;     c11 += val_a10 * val_b01;
+#;         ^
+          26990000    0x80000888 p.mac t5, s3, s8               #; s3  = 42, s8  = 0
+          26991000                                              #; (acc) t4  <-- 30
+          26992000                                              #; (acc) t5  <-- 36
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:131:13)
+#;     c11 += val_a11 * val_b11;
+#;         ^
+          26993000    0x8000088c p.mac t5, s4, s10              #; s4  = 48, s10 = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:133:33)
+#;     int32_t *idx_c = &C[i * P + j];
+#;                               ^
+          26994000    0x80000890 lw a0, 24(sp)                  #; sp  = 0x1001eed8, a0  <~~ Word[0x1001eef0]
+          26995000                                              #; (acc) t5  <-- 36
+          26997000                                              #; (lsu) a0  <-- 4
+          26998000    0x80000894 or t1, a0, a6                  #; a0  = 4, a6  = 32, (wrb) t1  <-- 36
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:133:25)
+#;     int32_t *idx_c = &C[i * P + j];
+#;                       ^
+          26999000    0x80000898 slli t1, t1, 2                 #; t1  = 36, (wrb) t1  <-- 144
+          27000000    0x8000089c add t1, t1, s0                 #; t1  = 144, s0  = 0x80005fc8, (wrb) t1  <-- 0x80006058
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:134:7)
+#;     __asm__ volatile("p.sw %[s00], 4(%[addr_c]!) \n"
+#;     ^
+          27001000    0x800008a0 p.sw t2, 4(t1!)                #; t1  = 0x80006058, 25 ~~> Word[0x8000605c]
+          27002000    0x800008a4 p.sw t3, t0(t1!)               #; t1  = 0x8000605c, 30 ~~> Word[0x80006078]
+          27014000    0x800008a8 p.sw t4, 4(t1!)                #; t1  = 0x80006078, 30 ~~> Word[0x8000607c]
+          27062000    0x800008ac p.sw t5, 0(t1!)                #; t1  = 0x8000607c, 36 ~~> Word[0x8000607c]
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:88:37)
+#;     for (uint32_t i = 2 * (id / c); i < M; i += 2 * (numThreads / c)) {
+#;                                       ^
+          27063000    0x800008b0 addi a5, a5, 2                 #; a5  = 2, (wrb) a5  <-- 4
+          27064000    0x800008b4 addi a6, a6, 16                #; a6  = 32, (wrb) a6  <-- 48
+          27065000    0x800008b8 addi a7, a7, 64                #; a7  = 0x80006148, (wrb) a7  <-- 0x80006188
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:88:3)
+#;     for (uint32_t i = 2 * (id / c); i < M; i += 2 * (numThreads / c)) {
+#;     ^
+          27066000    0x800008bc li a0, 6                       #; (wrb) a0  <-- 6
+          27067000    0x800008c0 bltu a5, a0, -344              #; a5  = 4, a0  = 6, taken, goto 0x80000768
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          27068000    0x80000768 mv t2, a7                      #; a7  = 0x80006188, (wrb) t2  <-- 0x80006188
+          27069000    0x8000076c mv t3, a1                      #; a1  = 0x800061d8, (wrb) t3  <-- 0x800061d8
+          27110000    0x80000770 p.lw t4, 4(t2!)                #; t2  = 0x80006188, t4  <~~ Word[0x8000618c]
+          27158000    0x80000774 p.lw t5, t0(t2!)               #; t2  = 0x8000618c, t0  = 28, t5  <~~ Word[0x800061a8]
+          27205000    0x80000778 p.lw t6, 4(t2!)                #; t2  = 0x800061a8, t6  <~~ Word[0x800061ac]
+          27213000                                              #; (lsu) t4  <-- 7
+          27241000    0x8000077c p.lw s1, 0(t2!)                #; t2  = 0x800061ac, s1  <~~ Word[0x800061ac]
+          27249000                                              #; (lsu) t5  <-- 14
+          27277000    0x80000780 p.lw s4, 4(t3!)                #; t3  = 0x800061d8, s4  <~~ Word[0x800061dc]
+          27285000                                              #; (lsu) t6  <-- 8
+          27313000    0x80000784 p.lw s5, t0(t3!)               #; t3  = 0x800061dc, t0  = 28, s5  <~~ Word[0x800061f8]
+          27321000                                              #; (lsu) s1  <-- 16
+          27349000    0x80000788 p.lw s6, 4(t3!)                #; t3  = 0x800061f8, s6  <~~ Word[0x800061fc]
+          27357000                                              #; (lsu) s4  <-- 0
+          27385000    0x8000078c p.lw s7, 0(t3!)                #; t3  = 0x800061fc, s7  <~~ Word[0x800061fc]
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:124:24)
+#;     c00 += val_a00 * val_b00;
+#;                    ^
+          27386000    0x80000790 mul t2, t4, s4                 #; t4  = 7, s4  = 0
+          27388000                                              #; (acc) t2  <-- 0
+          27393000                                              #; (lsu) s5  <-- 0
+          27429000                                              #; (lsu) s6  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:125:13)
+#;     c00 += val_a01 * val_b10;
+#;         ^
+          27430000    0x80000794 p.mac t2, t5, s6               #; t5  = 14, s6  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:126:24)
+#;     c01 += val_a00 * val_b01;
+#;                    ^
+          27431000    0x80000798 mul t3, t4, s5                 #; t4  = 7, s5  = 0
+          27432000                                              #; (acc) t2  <-- 0
+          27433000                                              #; (acc) t3  <-- 0
+          27465000                                              #; (lsu) s7  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:127:13)
+#;     c01 += val_a01 * val_b11;
+#;         ^
+          27466000    0x8000079c p.mac t3, t5, s7               #; t5  = 14, s7  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:128:24)
+#;     c10 += val_a10 * val_b00;
+#;                    ^
+          27467000    0x800007a0 mul t4, t6, s4                 #; t6  = 8, s4  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          27468000    0x800007a4 addi t5, a7, 8                 #; a7  = 0x80006188, (wrb) t5  <-- 0x80006190
+          27469000    0x800007a8 mv s4, a2                      #; a2  = 0x80006218, (wrb) s4  <-- 0x80006218
+          27470000    0x800007ac mv a0, s0                      #; s0  = 0x80005fc8, (wrb) a0  <-- 0x80005fc8
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          27471000    0x800007b0 p.lw s8, 4(t5!)                #; t5  = 0x80006190, s8  <~~ Word[0x80006194]
+          27472000    0x800007b4 p.lw s9, t0(t5!)               #; t5  = 0x80006194, t0  = 28, s9  <~~ Word[0x800061b0]
+          27473000                                              #; (acc) t3  <-- 0
+          27474000                                              #; (acc) t4  <-- 0
+          27493000    0x800007b8 p.lw s10, 4(t5!)               #; t5  = 0x800061b0, s10 <~~ Word[0x800061b4]
+          27501000                                              #; (lsu) s8  <-- 21
+          27529000    0x800007bc p.lw s11, 0(t5!)               #; t5  = 0x800061b4, s11 <~~ Word[0x800061b4]
+          27537000                                              #; (lsu) s9  <-- 28
+          27565000    0x800007c0 p.lw ra, 4(s4!)                #; s4  = 0x80006218, ra  <~~ Word[0x8000621c]
+          27573000                                              #; (lsu) s10 <-- 24
+          27601000    0x800007c4 p.lw s2, t0(s4!)               #; s4  = 0x8000621c, t0  = 28, s2  <~~ Word[0x80006238]
+          27609000                                              #; (lsu) s11 <-- 32
+          27637000    0x800007c8 p.lw s0, 4(s4!)                #; s4  = 0x80006238, s0  <~~ Word[0x8000623c]
+          27645000                                              #; (lsu) ra  <-- 0
+          27673000    0x800007cc p.lw s3, 0(s4!)                #; s4  = 0x8000623c, s3  <~~ Word[0x8000623c]
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:129:13)
+#;     c10 += val_a11 * val_b10;
+#;         ^
+          27674000    0x800007d0 p.mac t4, s1, s6               #; s1  = 16, s6  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:130:24)
+#;     c11 += val_a10 * val_b01;
+#;                    ^
+          27675000    0x800007d4 mul t5, t6, s5                 #; t6  = 8, s5  = 0
+          27676000                                              #; (acc) t4  <-- 0
+          27677000                                              #; (acc) t5  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:131:13)
+#;     c11 += val_a11 * val_b11;
+#;         ^
+          27678000    0x800007d8 p.mac t5, s1, s7               #; s1  = 16, s7  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:124:13)
+#;     c00 += val_a00 * val_b00;
+#;         ^
+          27679000    0x800007dc p.mac t2, s8, ra               #; s8  = 21, ra  = 0
+          27680000                                              #; (acc) t5  <-- 0
+          27681000                                              #; (lsu) s2  <-- 0
+          27682000                                              #; (acc) t2  <-- 0
+          27717000                                              #; (lsu) s0  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:125:13)
+#;     c00 += val_a01 * val_b10;
+#;         ^
+          27718000    0x800007e0 p.mac t2, s9, s0               #; s9  = 28, s0  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:126:13)
+#;     c01 += val_a00 * val_b01;
+#;         ^
+          27719000    0x800007e4 p.mac t3, s8, s2               #; s8  = 21, s2  = 0
+          27720000                                              #; (acc) t2  <-- 0
+          27721000                                              #; (acc) t3  <-- 0
+          27753000                                              #; (lsu) s3  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:127:13)
+#;     c01 += val_a01 * val_b11;
+#;         ^
+          27754000    0x800007e8 p.mac t3, s9, s3               #; s9  = 28, s3  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:128:13)
+#;     c10 += val_a10 * val_b00;
+#;         ^
+          27755000    0x800007ec p.mac t4, s10, ra              #; s10 = 24, ra  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          27756000    0x800007f0 addi t6, a7, 16                #; a7  = 0x80006188, (wrb) t6  <-- 0x80006198
+          27757000    0x800007f4 mv s1, a3                      #; a3  = 0x80006258, (wrb) s1  <-- 0x80006258
+          27758000    0x800007f8 p.lw s4, 4(t6!)                #; t6  = 0x80006198, s4  <~~ Word[0x8000619c]
+          27759000    0x800007fc p.lw s5, t0(t6!)               #; t6  = 0x8000619c, t0  = 28, s5  <~~ Word[0x800061b8]
+          27760000                                              #; (acc) t3  <-- 0
+          27761000                                              #; (acc) t4  <-- 0
+          27781000    0x80000800 p.lw s6, 4(t6!)                #; t6  = 0x800061b8, s6  <~~ Word[0x800061bc]
+          27789000                                              #; (lsu) s4  <-- 35
+          27817000    0x80000804 p.lw s7, 0(t6!)                #; t6  = 0x800061bc, s7  <~~ Word[0x800061bc]
+          27825000                                              #; (lsu) s5  <-- 42
+          27853000    0x80000808 p.lw s8, 4(s1!)                #; s1  = 0x80006258, s8  <~~ Word[0x8000625c]
+          27861000                                              #; (lsu) s6  <-- 40
+          27889000    0x8000080c p.lw s9, t0(s1!)               #; s1  = 0x8000625c, t0  = 28, s9  <~~ Word[0x80006278]
+          27897000                                              #; (lsu) s7  <-- 48
+          27925000    0x80000810 p.lw ra, 4(s1!)                #; s1  = 0x80006278, ra  <~~ Word[0x8000627c]
+          27933000                                              #; (lsu) s8  <-- 1
+          27961000    0x80000814 p.lw t1, 0(s1!)                #; s1  = 0x8000627c, t1  <~~ Word[0x8000627c]
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:129:13)
+#;     c10 += val_a11 * val_b10;
+#;         ^
+          27962000    0x80000818 p.mac t4, s11, s0              #; s11 = 32, s0  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:130:13)
+#;     c11 += val_a10 * val_b01;
+#;         ^
+          27963000    0x8000081c p.mac t5, s10, s2              #; s10 = 24, s2  = 0
+          27964000                                              #; (acc) t4  <-- 0
+          27965000                                              #; (acc) t5  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:131:13)
+#;     c11 += val_a11 * val_b11;
+#;         ^
+          27966000    0x80000820 p.mac t5, s11, s3              #; s11 = 32, s3  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:124:13)
+#;     c00 += val_a00 * val_b00;
+#;         ^
+          27967000    0x80000824 p.mac t2, s4, s8               #; s4  = 35, s8  = 1
+          27968000                                              #; (acc) t5  <-- 0
+          27969000                                              #; (lsu) s9  <-- 0
+          27970000                                              #; (acc) t2  <-- 35
+          28005000                                              #; (lsu) ra  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:125:13)
+#;     c00 += val_a01 * val_b10;
+#;         ^
+          28006000    0x80000828 p.mac t2, s5, ra               #; s5  = 42, ra  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:126:13)
+#;     c01 += val_a00 * val_b01;
+#;         ^
+          28007000    0x8000082c p.mac t3, s4, s9               #; s4  = 35, s9  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:128:13)
+#;     c10 += val_a10 * val_b00;
+#;         ^
+          28008000    0x80000830 p.mac t4, s6, s8               #; s6  = 40, s8  = 1, (acc) t2  <-- 35
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:130:13)
+#;     c11 += val_a10 * val_b01;
+#;         ^
+          28009000    0x80000834 p.mac t5, s6, s9               #; s6  = 40, s9  = 0, (acc) t3  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:100:9)
+#;     __asm__ volatile(
+#;     ^
+          28010000    0x80000838 addi t6, a7, 24                #; a7  = 0x80006188, (wrb) t6  <-- 0x800061a0
+          28011000    0x8000083c mv s0, a4                      #; a4  = 0x80006298, (wrb) s0  <-- 0x80006298
+          28012000    0x80000840 p.lw s1, 4(t6!)                #; t6  = 0x800061a0, s1  <~~ Word[0x800061a4]
+          28013000                                              #; (acc) t4  <-- 40
+          28014000                                              #; (acc) t5  <-- 0
+          28033000    0x80000844 p.lw s2, t0(t6!)               #; t6  = 0x800061a4, t0  = 28, s2  <~~ Word[0x800061c0]
+          28041000                                              #; (lsu) t1  <-- 1
+          28069000    0x80000848 p.lw s3, 4(t6!)                #; t6  = 0x800061c0, s3  <~~ Word[0x800061c4]
+          28077000                                              #; (lsu) s1  <-- 49
+          28105000    0x8000084c p.lw s4, 0(t6!)                #; t6  = 0x800061c4, s4  <~~ Word[0x800061c4]
+          28113000                                              #; (lsu) s2  <-- 56
+          28141000    0x80000850 p.lw s6, 4(s0!)                #; s0  = 0x80006298, s6  <~~ Word[0x8000629c]
+          28149000                                              #; (lsu) s3  <-- 56
+          28178000    0x80000854 p.lw s8, t0(s0!)               #; s0  = 0x8000629c, t0  = 28, s8  <~~ Word[0x800062b8]
+          28186000                                              #; (lsu) s4  <-- 64
+          28222000    0x80000858 p.lw s9, 4(s0!)                #; s0  = 0x800062b8, s9  <~~ Word[0x800062bc]
+          28230000                                              #; (lsu) s6  <-- 0
+          28266000    0x8000085c p.lw s10, 0(s0!)               #; s0  = 0x800062bc, s10 <~~ Word[0x800062bc]
+          28267000    0x80000860 mv s0, a0                      #; a0  = 0x80005fc8, (wrb) s0  <-- 0x80005fc8
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:127:13)
+#;     c01 += val_a01 * val_b11;
+#;         ^
+          28268000    0x80000864 p.mac t3, s5, t1               #; s5  = 42, t1  = 1
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:129:13)
+#;     c10 += val_a11 * val_b10;
+#;         ^
+          28269000    0x80000868 p.mac t4, s7, ra               #; s7  = 48, ra  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:131:13)
+#;     c11 += val_a11 * val_b11;
+#;         ^
+          28270000    0x8000086c p.mac t5, s7, t1               #; s7  = 48, t1  = 1, (acc) t3  <-- 42
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:124:13)
+#;     c00 += val_a00 * val_b00;
+#;         ^
+          28271000    0x80000870 p.mac t2, s1, s6               #; s1  = 49, s6  = 0, (acc) t4  <-- 40
+          28272000                                              #; (acc) t5  <-- 48
+          28273000                                              #; (acc) t2  <-- 35
+          28274000                                              #; (lsu) s8  <-- 0
+          28318000                                              #; (lsu) s9  <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:125:13)
+#;     c00 += val_a01 * val_b10;
+#;         ^
+          28319000    0x80000874 p.mac t2, s2, s9               #; s2  = 56, s9  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:126:13)
+#;     c01 += val_a00 * val_b01;
+#;         ^
+          28320000    0x80000878 p.mac t3, s1, s8               #; s1  = 49, s8  = 0
+          28321000                                              #; (acc) t2  <-- 35
+          28322000                                              #; (acc) t3  <-- 42
+          28353000                                              #; (lsu) s10 <-- 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:127:13)
+#;     c01 += val_a01 * val_b11;
+#;         ^
+          28354000    0x8000087c p.mac t3, s2, s10              #; s2  = 56, s10 = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:128:13)
+#;     c10 += val_a10 * val_b00;
+#;         ^
+          28355000    0x80000880 p.mac t4, s3, s6               #; s3  = 56, s6  = 0
+          28356000                                              #; (acc) t3  <-- 42
+          28357000                                              #; (acc) t4  <-- 40
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:129:13)
+#;     c10 += val_a11 * val_b10;
+#;         ^
+          28358000    0x80000884 p.mac t4, s4, s9               #; s4  = 64, s9  = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:130:13)
+#;     c11 += val_a10 * val_b01;
+#;         ^
+          28359000    0x80000888 p.mac t5, s3, s8               #; s3  = 56, s8  = 0
+          28360000                                              #; (acc) t4  <-- 40
+          28361000                                              #; (acc) t5  <-- 48
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:131:13)
+#;     c11 += val_a11 * val_b11;
+#;         ^
+          28362000    0x8000088c p.mac t5, s4, s10              #; s4  = 64, s10 = 0
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:133:33)
+#;     int32_t *idx_c = &C[i * P + j];
+#;                               ^
+          28363000    0x80000890 lw a0, 24(sp)                  #; sp  = 0x1001eed8, a0  <~~ Word[0x1001eef0]
+          28364000                                              #; (acc) t5  <-- 48
+          28366000                                              #; (lsu) a0  <-- 4
+          28367000    0x80000894 or t1, a0, a6                  #; a0  = 4, a6  = 48, (wrb) t1  <-- 52
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:133:25)
+#;     int32_t *idx_c = &C[i * P + j];
+#;                       ^
+          28368000    0x80000898 slli t1, t1, 2                 #; t1  = 52, (wrb) t1  <-- 208
+          28369000    0x8000089c add t1, t1, s0                 #; t1  = 208, s0  = 0x80005fc8, (wrb) t1  <-- 0x80006098
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:134:7)
+#;     __asm__ volatile("p.sw %[s00], 4(%[addr_c]!) \n"
+#;     ^
+          28370000    0x800008a0 p.sw t2, 4(t1!)                #; t1  = 0x80006098, 35 ~~> Word[0x8000609c]
+          28371000    0x800008a4 p.sw t3, t0(t1!)               #; t1  = 0x8000609c, 42 ~~> Word[0x800060b8]
+          28374000    0x800008a8 p.sw t4, 4(t1!)                #; t1  = 0x800060b8, 40 ~~> Word[0x800060bc]
+          28413000    0x800008ac p.sw t5, 0(t1!)                #; t1  = 0x800060bc, 48 ~~> Word[0x800060bc]
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:88:37)
+#;     for (uint32_t i = 2 * (id / c); i < M; i += 2 * (numThreads / c)) {
+#;                                       ^
+          28414000    0x800008b0 addi a5, a5, 2                 #; a5  = 4, (wrb) a5  <-- 6
+          28415000    0x800008b4 addi a6, a6, 16                #; a6  = 48, (wrb) a6  <-- 64
+          28416000    0x800008b8 addi a7, a7, 64                #; a7  = 0x80006188, (wrb) a7  <-- 0x800061c8
+#; .LBB2_2 (matmul_i32.c:101:5)
+#;   matmul_unrolled_2x2_parallel_i32_xpulpv2 (mempool_matmul_i32p.h:88:3)
+#;     for (uint32_t i = 2 * (id / c); i < M; i += 2 * (numThreads / c)) {
+#;     ^
+          28417000    0x800008bc li a0, 6                       #; (wrb) a0  <-- 6
+          28418000    0x800008c0 bltu a5, a0, -344              #; a5  = 6, a0  = 6, not taken
+          28419000    0x800008c4 j 1152                         #; goto 0x80000d44
+#; .LBB2_5 (matmul_i32.c:105:5)
+#;   snrt_cluster_hw_barrier (sync.h:174:5)
+#;     asm volatile("csrr x0, 0x7C2" ::: "memory");
+#;     ^
+          28422000    0x80000d44 csrr zero, 1986                #; csr@7c2 = 0
+#; .LBB2_5 (matmul_i32.c:106:9)
+#;   if (core_id == 0) {
 #;       ^
-           7543000    0x80000200 bne a0, a1, 3456               #; a0  = 4, a1  = 2, taken, goto 0x80000f80
-           7554000    0x80000f80 li a0, 0                       #; (wrb) a0  <-- 0
-#; .LBB0_5 (xpulp_vect.c:1310:1)
-#;   }
+          28444000    0x80000d48 lw a0, 20(sp)                  #; sp  = 0x1001eed8, a0  <~~ Word[0x1001eeec]
+          28498000                                              #; (lsu) a0  <-- 4
+          28499000    0x80000d4c bnez a0, 584                   #; a0  = 4, taken, goto 0x80000f94
+#; .LBB2_43 (matmul_i32.c:150:5)
+#;   snrt_cluster_hw_barrier (sync.h:174:5)
+#;     asm volatile("csrr x0, 0x7C2" ::: "memory");
+#;     ^
+          28502000    0x80000f94 csrr zero, 1986                #; csr@7c2 = 0
+#; .LBB2_43 (matmul_i32.c:151:5)
+#;   return 0;
 #;   ^
-           7555000    0x80000f84 lw s0, 44(sp)                  #; sp  = 0x1001eef8, s0  <~~ Word[0x1001ef24]
-           7556000    0x80000f88 lw s1, 40(sp)                  #; sp  = 0x1001eef8, s1  <~~ Word[0x1001ef20]
-           7557000    0x80000f8c lw s2, 36(sp)                  #; sp  = 0x1001eef8, s2  <~~ Word[0x1001ef1c]
-           7558000    0x80000f90 lw s3, 32(sp)                  #; sp  = 0x1001eef8, s3  <~~ Word[0x1001ef18], (lsu) s0  <-- 0x1001ef68
-           7559000    0x80000f94 lw s4, 28(sp)                  #; sp  = 0x1001eef8, s4  <~~ Word[0x1001ef14], (lsu) s1  <-- 2064
-           7560000    0x80000f98 lw s5, 24(sp)                  #; sp  = 0x1001eef8, s5  <~~ Word[0x1001ef10], (lsu) s2  <-- 4
-           7561000    0x80000f9c lw s6, 20(sp)                  #; sp  = 0x1001eef8, s6  <~~ Word[0x1001ef0c], (lsu) s3  <-- 0
-           7562000    0x80000fa0 lw s7, 16(sp)                  #; sp  = 0x1001eef8, s7  <~~ Word[0x1001ef08], (lsu) s4  <-- 0
-           7563000    0x80000fa4 lw s8, 12(sp)                  #; sp  = 0x1001eef8, s8  <~~ Word[0x1001ef04], (lsu) s5  <-- 4
-           7564000    0x80000fa8 addi sp, sp, 48                #; sp  = 0x1001eef8, (wrb) sp  <-- 0x1001ef28
-           7565000    0x80000fac ret                            #; ra  = 0x80004164, (lsu) s6  <-- 0x80005d98, goto 0x80004164
+          45700000    0x80000f98 li a0, 0                       #; (wrb) a0  <-- 0
+          45701000    0x80000f9c lw ra, 76(sp)                  #; sp  = 0x1001eed8, ra  <~~ Word[0x1001ef24]
+          45702000    0x80000fa0 lw s0, 72(sp)                  #; sp  = 0x1001eed8, s0  <~~ Word[0x1001ef20]
+          45703000    0x80000fa4 lw s1, 68(sp)                  #; sp  = 0x1001eed8, s1  <~~ Word[0x1001ef1c]
+          45704000    0x80000fa8 lw s2, 64(sp)                  #; sp  = 0x1001eed8, s2  <~~ Word[0x1001ef18], (lsu) ra  <-- 0x8000418c
+          45705000    0x80000fac lw s3, 60(sp)                  #; sp  = 0x1001eed8, s3  <~~ Word[0x1001ef14], (lsu) s0  <-- 0x1001ef68
+          45706000    0x80000fb0 lw s4, 56(sp)                  #; sp  = 0x1001eed8, s4  <~~ Word[0x1001ef10], (lsu) s1  <-- 2064
+          45707000    0x80000fb4 lw s5, 52(sp)                  #; sp  = 0x1001eed8, s5  <~~ Word[0x1001ef0c], (lsu) s2  <-- 4
+          45708000    0x80000fb8 lw s6, 48(sp)                  #; sp  = 0x1001eed8, s6  <~~ Word[0x1001ef08], (lsu) s3  <-- 0
+          45709000    0x80000fbc lw s7, 44(sp)                  #; sp  = 0x1001eed8, s7  <~~ Word[0x1001ef04], (lsu) s4  <-- 0
+          45710000                                              #; (lsu) s5  <-- 4
+          45711000                                              #; (lsu) s6  <-- 0x80005ed8
+          45712000                                              #; (lsu) s7  <-- 0x80005ed8
+          45720000    0x80000fc0 lw s8, 40(sp)                  #; sp  = 0x1001eed8, s8  <~~ Word[0x1001ef00]
+          45721000    0x80000fc4 lw s9, 36(sp)                  #; sp  = 0x1001eed8, s9  <~~ Word[0x1001eefc]
+          45722000    0x80000fc8 lw s10, 32(sp)                 #; sp  = 0x1001eed8, s10 <~~ Word[0x1001eef8]
+          45723000    0x80000fcc lw s11, 28(sp)                 #; sp  = 0x1001eed8, s11 <~~ Word[0x1001eef4], (lsu) s8  <-- 0x80005ef8
+          45724000    0x80000fd0 addi sp, sp, 80                #; sp  = 0x1001eed8, (wrb) sp  <-- 0x1001ef28
+          45725000    0x80000fd4 ret                            #; ra  = 0x8000418c, (lsu) s9  <-- 6192, goto 0x8000418c
+          45726000                                              #; (lsu) s10 <-- 7224
+          45727000                                              #; (lsu) s11 <-- 8256
 #; .LBB25_16 (start.c:268:5)
 #;   snrt_cluster_hw_barrier (sync.h:174:5)
 #;     asm volatile("csrr x0, 0x7C2" ::: "memory");
 #;     ^
-           7566000    0x80004164 csrr zero, 1986                #; csr@7c2 = 0, (lsu) s7  <-- 0x80005d98
-           7567000                                              #; (lsu) s8  <-- 0x80005db8
+          45733000    0x8000418c csrr zero, 1986                #; csr@7c2 = 0
 #; .LBB25_16 (start.c:276:5)
 #;   snrt_exit (start.h:20:40)
 #;     snrt_exit_default (start.h:11:17)
@@ -4075,23 +6367,23 @@
 #;         cls (cls.h:9:30)
 #;           inline cls_t* cls() { return _cls_ptr; }
 #;                                        ^
-           9094000    0x80004168 lw a1, 64(s0)                  #; s0  = 0x1001ef68, a1  <~~ Word[0x1001efa8]
-           9097000                                              #; (lsu) a1  <-- 0x1001ffe0
+          45738000    0x80004190 lw a1, 64(s0)                  #; s0  = 0x1001ef68, a1  <~~ Word[0x1001efa8]
+          45741000                                              #; (lsu) a1  <-- 0x1001ffe0
 #; .LBB25_16 (start.c:276:5)
 #;   snrt_exit (start.h:20:40)
 #;     snrt_exit_default (start.h:11:17)
 #;       snrt_global_all_to_all_reduction (sync.h:293:41)
 #;         uint32_t *cluster_result = &(cls()->reduction);
 #;                                             ^
-           9098000    0x8000416c addi a2, a1, 4                 #; a1  = 0x1001ffe0, (wrb) a2  <-- 0x1001ffe4
+          45742000    0x80004194 addi a2, a1, 4                 #; a1  = 0x1001ffe0, (wrb) a2  <-- 0x1001ffe4
 #; .LBB25_16 (start.c:276:5)
 #;   snrt_exit (start.h:20:40)
 #;     snrt_exit_default (start.h:11:17)
 #;       snrt_global_all_to_all_reduction (sync.h:294:20)
 #;         uint32_t tmp = __atomic_fetch_add(cluster_result, value, __ATOMIC_RELAXED);
 #;                        ^
-           9099000    0x80004170 amoadd.w a0, a0, (a2)          #; a2  = 0x1001ffe4, a0  = 0, a0  <~~ Word[0x1001ffe4]
-           9117000                                              #; (lsu) a0  <-- 6
+          45743000    0x80004198 amoadd.w a0, a0, (a2)          #; a2  = 0x1001ffe4, a0  = 0, a0  <~~ Word[0x1001ffe4]
+          45767000                                              #; (lsu) a0  <-- 0
 #; .LBB25_16 (start.c:276:5)
 #;   snrt_exit (start.h:20:40)
 #;     snrt_exit_default (start.h:11:17)
@@ -4099,7 +6391,7 @@
 #;         snrt_wait_writeback (sync.h:404:5)
 #;           asm volatile("mv %0, %0" : "+r"(val)::);
 #;           ^
-           9118000    0x80004174 mv a0, a0                      #; a0  = 6, (wrb) a0  <-- 6
+          45768000    0x8000419c mv a0, a0                      #; a0  = 0, (wrb) a0  <-- 0
 #; .LBB25_16 (start.c:276:5)
 #;   snrt_exit (start.h:20:40)
 #;     snrt_exit_default (start.h:11:17)
@@ -4107,14 +6399,14 @@
 #;         snrt_cluster_hw_barrier (sync.h:174:5)
 #;           asm volatile("csrr x0, 0x7C2" ::: "memory");
 #;           ^
-           9119000    0x80004178 csrr zero, 1986                #; csr@7c2 = 0
+          45769000    0x800041a0 csrr zero, 1986                #; csr@7c2 = 0
 #; .LBB25_16 (start.c:276:5)
 #;   snrt_exit (start.h:20:40)
 #;     snrt_exit_default (start.h:11:17)
 #;       snrt_global_all_to_all_reduction (sync.h:300:9)
 #;         if (snrt_cluster_core_idx() == 0) {
 #;             ^
-           9130000    0x8000417c beqz s4, 72                    #; s4  = 0, taken, goto 0x800041c4
+          45774000    0x800041a4 beqz s4, 72                    #; s4  = 0, taken, goto 0x800041ec
 #; .LBB25_19 (start.c:276:5)
 #;   snrt_exit (start.h:20:40)
 #;     snrt_exit_default (start.h:11:17)
@@ -4123,7 +6415,7 @@
 #;           snrt_cluster_hw_barrier (sync.h:174:5)
 #;             asm volatile("csrr x0, 0x7C2" ::: "memory");
 #;             ^
-           9141000    0x800041c4 csrr zero, 1986                #; csr@7c2 = 0
+          45785000    0x800041ec csrr zero, 1986                #; csr@7c2 = 0
 #; .LBB25_19 (start.c:276:5)
 #;   snrt_exit (start.h:20:40)
 #;     snrt_exit_default (start.h:11:17)
@@ -4132,7 +6424,7 @@
 #;           snrt_cluster_hw_barrier (sync.h:174:5)
 #;             asm volatile("csrr x0, 0x7C2" ::: "memory");
 #;             ^
-           9155000    0x800041c8 csrr zero, 1986                #; csr@7c2 = 0
+          45787000    0x800041f0 csrr zero, 1986                #; csr@7c2 = 0
 #; .LBB25_19 (start.c:276:5)
 #;   snrt_exit (start.h:20:40)
 #;     snrt_exit_default (start.h:11:17)
@@ -4140,51 +6432,55 @@
 #;         snrt_cluster_hw_barrier (sync.h:174:5)
 #;           asm volatile("csrr x0, 0x7C2" ::: "memory");
 #;           ^
-           9157000    0x800041cc csrr zero, 1986                #; csr@7c2 = 0
+          45789000    0x800041f4 csrr zero, 1986                #; csr@7c2 = 0
 #; .LBB25_20 (start.c:282:1)
 #;   }
 #;   ^
-           9183000    0x800041d0 lw ra, 60(sp)                  #; sp  = 0x1001ef28, ra  <~~ Word[0x1001ef64]
-           9184000    0x800041d4 lw s0, 56(sp)                  #; sp  = 0x1001ef28, s0  <~~ Word[0x1001ef60]
-           9185000    0x800041d8 lw s1, 52(sp)                  #; sp  = 0x1001ef28, s1  <~~ Word[0x1001ef5c]
-           9186000    0x800041dc lw s2, 48(sp)                  #; sp  = 0x1001ef28, s2  <~~ Word[0x1001ef58], (lsu) ra  <-- 0x800001c4
-           9187000    0x800041e0 lw s3, 44(sp)                  #; sp  = 0x1001ef28, s3  <~~ Word[0x1001ef54], (lsu) s0  <-- 0
-           9188000    0x800041e4 lw s4, 40(sp)                  #; sp  = 0x1001ef28, s4  <~~ Word[0x1001ef50], (lsu) s1  <-- 0
-           9189000    0x800041e8 lw s5, 36(sp)                  #; sp  = 0x1001ef28, s5  <~~ Word[0x1001ef4c], (lsu) s2  <-- 0
-           9190000    0x800041ec lw s6, 32(sp)                  #; sp  = 0x1001ef28, s6  <~~ Word[0x1001ef48], (lsu) s3  <-- 0
-           9191000    0x800041f0 lw s7, 28(sp)                  #; sp  = 0x1001ef28, s7  <~~ Word[0x1001ef44], (lsu) s4  <-- 0
-           9192000    0x800041f4 lw s8, 24(sp)                  #; sp  = 0x1001ef28, s8  <~~ Word[0x1001ef40], (lsu) s5  <-- 0
-           9193000    0x800041f8 lw s9, 20(sp)                  #; sp  = 0x1001ef28, s9  <~~ Word[0x1001ef3c], (lsu) s6  <-- 0
-           9194000    0x800041fc lw s10, 16(sp)                 #; sp  = 0x1001ef28, s10 <~~ Word[0x1001ef38], (lsu) s7  <-- 0
-           9195000                                              #; (lsu) s8  <-- 0
-           9196000                                              #; (lsu) s9  <-- 0
-           9197000                                              #; (lsu) s10 <-- 0
-           9205000    0x80004200 lw s11, 12(sp)                 #; sp  = 0x1001ef28, s11 <~~ Word[0x1001ef34]
-           9206000    0x80004204 addi sp, sp, 64                #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef68
-           9207000    0x80004208 ret                            #; ra  = 0x800001c4, goto 0x800001c4
-           9208000                                              #; (lsu) s11 <-- 0
+          45810000    0x800041f8 lw ra, 60(sp)                  #; sp  = 0x1001ef28, ra  <~~ Word[0x1001ef64]
+          45811000    0x800041fc lw s0, 56(sp)                  #; sp  = 0x1001ef28, s0  <~~ Word[0x1001ef60]
+          45813000                                              #; (lsu) ra  <-- 0x800001c4
+          45814000                                              #; (lsu) s0  <-- 0
+          45817000    0x80004200 lw s1, 52(sp)                  #; sp  = 0x1001ef28, s1  <~~ Word[0x1001ef5c]
+          45818000    0x80004204 lw s2, 48(sp)                  #; sp  = 0x1001ef28, s2  <~~ Word[0x1001ef58]
+          45819000    0x80004208 lw s3, 44(sp)                  #; sp  = 0x1001ef28, s3  <~~ Word[0x1001ef54]
+          45820000                                              #; (lsu) s1  <-- 0
+          45821000    0x8000420c lw s4, 40(sp)                  #; sp  = 0x1001ef28, s4  <~~ Word[0x1001ef50]
+          45822000    0x80004210 lw s5, 36(sp)                  #; sp  = 0x1001ef28, s5  <~~ Word[0x1001ef4c], (lsu) s2  <-- 0
+          45823000    0x80004214 lw s6, 32(sp)                  #; sp  = 0x1001ef28, s6  <~~ Word[0x1001ef48], (lsu) s3  <-- 0
+          45824000                                              #; (lsu) s4  <-- 0
+          45825000    0x80004218 lw s7, 28(sp)                  #; sp  = 0x1001ef28, s7  <~~ Word[0x1001ef44]
+          45826000    0x8000421c lw s8, 24(sp)                  #; sp  = 0x1001ef28, s8  <~~ Word[0x1001ef40], (lsu) s5  <-- 0
+          45827000                                              #; (lsu) s6  <-- 0
+          45828000    0x80004220 lw s9, 20(sp)                  #; sp  = 0x1001ef28, s9  <~~ Word[0x1001ef3c]
+          45829000    0x80004224 lw s10, 16(sp)                 #; sp  = 0x1001ef28, s10 <~~ Word[0x1001ef38], (lsu) s7  <-- 0
+          45830000                                              #; (lsu) s8  <-- 0
+          45831000    0x80004228 lw s11, 12(sp)                 #; sp  = 0x1001ef28, s11 <~~ Word[0x1001ef34]
+          45832000    0x8000422c addi sp, sp, 64                #; sp  = 0x1001ef28, (wrb) sp  <-- 0x1001ef68
+          45833000    0x80004230 ret                            #; ra  = 0x800001c4, (lsu) s9  <-- 0, goto 0x800001c4
+          45834000                                              #; (lsu) s10 <-- 0
+          45835000                                              #; (lsu) s11 <-- 0
 #; .Ltmp2 (start.S:183)
 #;   wfi
-           9219000    0x800001c4 wfi                            #; 
+          45837000    0x800001c4 wfi                            #; 
 
 ## Performance metrics
 
-Performance metrics for section 0 @ (14, 9217):
+Performance metrics for section 0 @ (14, 45835):
 tstart                                          16
-snitch_loads                                    92
-snitch_stores                                  351
-tend                                          9219
+snitch_loads                                   229
+snitch_stores                                  567
+tend                                         45837
 fpss_loads                                       0
-snitch_avg_load_latency                      10.04
-snitch_occupancy                            0.1562
-snitch_fseq_rel_offloads                   0.02177
+snitch_avg_load_latency                      51.02
+snitch_occupancy                           0.04655
+snitch_fseq_rel_offloads                   0.01478
 fseq_yield                                     1.0
 fseq_fpu_yield                                 1.0
 fpss_section_latency                             0
 fpss_avg_fpu_latency                           2.0
 fpss_avg_load_latency                            0
-fpss_occupancy                            0.003477
-fpss_fpu_occupancy                        0.003477
+fpss_occupancy                           0.0006984
+fpss_fpu_occupancy                       0.0006984
 fpss_fpu_rel_occupancy                         1.0
-cycles                                        9204
-total_ipc                                   0.1597
+cycles                                       45822
+total_ipc                                  0.04725

@@ -33,5 +33,11 @@
 #define SNRT_SUPPORTS_MULTICAST
 % endif
 
+% if cfg['cluster']['enable_dma']:
+#define SNRT_SUPPORTS_DMA
+% endif
+
+
+
 // Software configuration
 #define SNRT_LOG2_STACK_SIZE 10
