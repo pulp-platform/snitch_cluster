@@ -398,7 +398,7 @@ def derive_axes_from_keys(experiment, keys):
     return {key: experiment[key] for key in keys}
 
 
-def derive_data_cfg_from_template(experiment, template_path="cfg.json.tpl",
+def derive_data_cfg_from_template(experiment, template_path=Path("cfg.json.tpl"),
                                   root_cfg_dir=Path('data').absolute()):
     """Derive the data configuration file from a template.
 
