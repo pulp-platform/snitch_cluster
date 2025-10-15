@@ -2324,7 +2324,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
 
         x_register_o.hartid    = hart_id_i;
         x_register_o.id        = xif_offload_counter_q;
-        x_register_o.rs        = {rs3, rs2, rs1};
+        x_register_o.rs        = {opc, opb, opa};
         x_register_o.rs_valid  = {~sb_q[rs3], ~sb_q[rs2], ~sb_q[rs1]};
 
         x_commit_o.hartid      = hart_id_i;
