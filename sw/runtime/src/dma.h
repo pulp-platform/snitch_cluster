@@ -620,6 +620,26 @@ inline snrt_dma_txid_t snrt_dma_load_2d_tile_mcast(
 }
 
 /**
+ * @brief Load a 2D tile of a 2D array using multicast.
+ * @param comm Communicator specifying which clusters to multicast to.
+ *
+ * The stride in the destination tile is assumed to be that of a 1D tile,
+ * effectively. In other words, this is similar to snrt_dma_2d_to_1d().
+ *
+ * @see snrt_dma_load_2d_tile_mcast(void *, void *, size_t, size_t, size_t, size_t, size_t, uint32_t, size_t, uint32_t)
+ *      for a detailed description of the parameters.
+ */
+ inline snrt_dma_txid_t snrt_dma_load_2d_tile_mcast(
+    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
+    uint32_t prec, snrt_comm_t comm) {
+    uint64_t mask = snrt_get_collective_mask(comm);
+    return snrt_dma_load_2d_tile_mcast(dst, src, tile_x1_idx, tile_x0_idx,
+                                       tile_x1_size, tile_x0_size,
+                                       full_x0_size, prec, mask);
+}
+
+/**
  * @brief Load a 2D tile of a 2D array and reshape it to occupy a subset of
  *        TCDM banks.
  * @param dst Pointer to the tile destination.
