@@ -197,7 +197,10 @@ class ExperimentManager:
             for experiment in experiments:
                 print(colored('Generate traces', 'black', attrs=['bold']),
                       colored(experiment['run_dir'], 'cyan', attrs=['bold']))
-                vars = {'SIM_DIR': experiment['run_dir']}
+                vars = {
+                    'SIM_DIR': experiment['run_dir'],
+                    'DEBUG': 'ON'
+                }
                 if self.args.n_procs:
                     flags = ['-j', self.args.n_procs]
                 common.make('traces', vars, flags=flags)
