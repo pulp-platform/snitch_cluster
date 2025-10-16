@@ -12,40 +12,17 @@ variables:
   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: /usr/pack/gcc-9.2.0-af/linux-x64/bin/gcc
   LLVM_SYS_120_PREFIX: /usr/pack/llvm-12.0.1-af
   CMAKE: cmake-3.18.1
-  # Override pip cache directory
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
 default:
   before_script:
     source iis-setup.sh
-  cache: &global_cache
-    key:
-      files:
-        - pyproject.toml
-    paths:
-      - .cache/pip
-    policy: pull
 
-
-#########
-# Setup #
-#########
-
-setup:
-  cache:
-    # inherit all global cache settings
-    <<: *global_cache
-    # override the policy
-    policy: pull-push
-  script:
-    - echo "Setup completed."
 
 ##############
 # Build docs #
 ##############
 
 docs:
-  needs: [setup]
   script:
     - make docs
 
@@ -54,7 +31,6 @@ docs:
 #####################
 
 pytest:
-  needs: [setup]
   script:
     - pytest
 
@@ -63,7 +39,6 @@ pytest:
 #################################
 
 snitch-cluster-sw:
-  needs: [setup]
   script:
     - make sw -j
   artifacts:
@@ -82,7 +57,6 @@ snitch-cluster-sw:
 # - snitch_dma
 # - snitch
 snitch-ip-tests:
-  needs: [setup]
   parallel:
     matrix:
       - IP:
@@ -133,7 +107,6 @@ snitch-cluster-vsim:
 
 # Test OmegaNet TCDM interconnect
 snitch-cluster-omega-vsim:
-  needs: [setup]
   script:
     - make CFG_OVERRIDE=cfg/omega.json sw -j
     - make vsim -j
@@ -142,7 +115,6 @@ snitch-cluster-omega-vsim:
 
 # Test Multi-channel DMA
 snitch-cluster-mchan-vsim:
-  needs: [setup]
   script:
     - make CFG_OVERRIDE=cfg/dma_mchan.json sw -j
     - make vsim -j
@@ -151,7 +123,6 @@ snitch-cluster-mchan-vsim:
 
 # Additional tests for different FREP configurations
 snitch-cluster-frep-vsim:
-  needs: [setup]
   script:
     # Large FREP configuration
     - make CFG_OVERRIDE=cfg/frep_xl.json sw -j
@@ -167,7 +138,6 @@ snitch-cluster-frep-vsim:
 
 # COPIFT and scalar chaining experiments
 snitch-cluster-copift-sc-vsim:
-  needs: [setup]
   script:
     - make CFG_OVERRIDE=experiments/copift/cfg.json vsim -j
     - cd experiments/copift
@@ -180,7 +150,6 @@ snitch-cluster-copift-sc-vsim:
 ############
 
 nonfree:
-  needs: [setup]
   script:
     - make nonfree
     - make elab
