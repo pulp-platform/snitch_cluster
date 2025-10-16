@@ -43,7 +43,10 @@ RUN wget https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.g
 # Get the precompiled LLVM toolchain
 RUN wget https://github.com/pulp-platform/llvm-project/releases/download/${SNITCH_LLVM_VERSION}/riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION}.tar.gz && \
     tar xvf riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION}.tar.gz && \
-    mv riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION} riscv-llvm 
+    mv riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION} riscv-llvm
+
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 #-------------------------------------------------------------------------------
 # Stage 2: Hardware development stage
@@ -68,21 +71,12 @@ RUN apt-get update && \
         software-properties-common gnupg2 \
         # Required for fesvr
         device-tree-compiler && \
-    # Install Python (both binaries and headers)
-    apt-add-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        python${PYTHON_VERSION}-venv \
-        python${PYTHON_VERSION}-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+RUN uv python install ${PYTHON_VERSION}
 
 # Copy all needed files to install the package
 COPY . /repo
-
-# Create and activate virtual environment
-ENV VIRTUAL_ENV="/root/.venvs/snitch_cluster"
-RUN python${PYTHON_VERSION} -m venv ${VIRTUAL_ENV}
 
 # Copy the tools from the builder stage
 COPY --from=tool-builder /tools/bender /tools/bin/
@@ -92,19 +86,12 @@ COPY --from=tool-builder /tools/riscv-llvm /tools/riscv-llvm
 # Modify environment and path variables
 ENV SN_VLT="verilator"
 ENV SN_LLVM_BINROOT="/tools/riscv-llvm/bin"
-ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
+ENV SN_PYTHON="uv run"
 ENV PATH="/tools/bin:${PATH}"
 ENV PATH="/tools/riscv-llvm/bin:${PATH}"
 ENV PATH="/repo/target/sim/build/bin:${PATH}"
 
-# Upgrade pip and install packages using the virtual environment's pip
-# Don't cache pip files to avoid polluting the docker container
-# Install torch from the CPU-only index to avoid installing the GPU version.
-# Since we previously added the venv's bin/ directory to the path, pip here resolves to that.
-ARG PIP_NO_CACHE_DIR=1
-RUN pip install --upgrade pip && \
-    pip install torch --index-url https://download.pytorch.org/whl/cpu && \
-    pip install /repo[all]
+RUN uv sync --extra all
 
 #-------------------------------------------------------------------------------
 # Stage 3: Hardware build
@@ -136,19 +123,11 @@ RUN apt-get update && \
         software-properties-common gnupg2 && \
     # Install Python (both binaries and headers)
     apt-add-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        python${PYTHON_VERSION}-venv \
-        python${PYTHON_VERSION}-dev && \
-    apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+RUN uv python install ${PYTHON_VERSION}
 
 # Copy all needed files to install the package
 COPY . /repo
-
-# Create and activate virtual environment
-ENV VIRTUAL_ENV="/root/.venvs/snitch_cluster"
-RUN python${PYTHON_VERSION} -m venv ${VIRTUAL_ENV}
 
 # Copy the tools from the builder stages
 COPY --from=tool-builder /tools/bender /tools/bin/
@@ -158,15 +137,8 @@ COPY --from=hw-builder /repo/target/sim/build/bin/snitch_cluster_bin.vlt /tools/
 
 # Modify environment and path variables
 ENV SN_LLVM_BINROOT="/tools/riscv-llvm/bin"
-ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
+ENV SN_PYTHON="uv run"
 ENV PATH="/tools/bin:${PATH}"
 ENV PATH="/tools/riscv-llvm/bin:${PATH}"
 
-# Upgrade pip and install packages using the virtual environment's pip
-# Don't cache pip files to avoid polluting the docker container
-# Install torch from the CPU-only index to avoid installing the GPU version
-# Since we previously added the venv's bin/ directory to the path, pip here resolves to that.
-ARG PIP_NO_CACHE_DIR=1
-RUN pip install --upgrade pip && \
-    pip install torch --index-url https://download.pytorch.org/whl/cpu && \
-    pip install /repo[all]
+RUN uv sync --extra all
