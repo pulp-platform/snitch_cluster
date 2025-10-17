@@ -342,7 +342,7 @@ class ExperimentManager:
             results.rename('results', inplace=True)
             self.perf_results_available = True
         except FileNotFoundError:
-            print('Performance results not available.')
+            pass
 
         # Create PowerResults objects
         if 'PowerResults' in globals():
@@ -351,7 +351,7 @@ class ExperimentManager:
                 power_results.rename('power_results', inplace=True)
                 self.power_results_available = True
             except FileNotFoundError:
-                print('Power results not available.')
+                pass
 
         # Combine experiment axes and results into a new DataFrame
         columns = [axes]
