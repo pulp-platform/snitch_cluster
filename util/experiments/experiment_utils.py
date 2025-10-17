@@ -38,13 +38,14 @@ ACTIONS = ['sw', 'hw', 'run', 'traces', 'annotate', 'perf', 'visual-trace', 'pow
 
 class ExperimentManager:
 
-    def __init__(self, experiments=None, actions=None, args=None, callbacks={}, parse_args=True):
+    def __init__(self, experiments=None, dir=None, actions=None, args=None, callbacks={},
+                 parse_args=True):
         """Initializes the class from the command-line arguments."""
         # Get command-line arguments, if any
         if args is not None:
             self.args = args
         elif parse_args:
-                self.args = self.parser().parse_args()
+            self.args = self.parser().parse_args()
         else:
             self.args = None
 
@@ -58,7 +59,10 @@ class ExperimentManager:
         self.callbacks = callbacks
 
         # Save directory
-        self.dir = Path.cwd()
+        if dir is not None:
+            self.dir = Path(dir)
+        else:
+            self.dir = Path.cwd()
         if self.args is not None:
             self.run_dir = self.dir / self.args.run_dir
         else:
