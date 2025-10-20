@@ -216,16 +216,16 @@ static inline void snrt_inter_cluster_barrier(snrt_comm_t comm = NULL) {
  */
 inline void snrt_global_barrier(snrt_comm_t comm) {
     snrt_cluster_hw_barrier();
-    #ifdef SNRT_SUPPORTS_DMA
+#ifdef SNRT_SUPPORTS_DMA
     // Synchronize all DM cores in software
     if (snrt_is_dm_core()) {
         snrt_inter_cluster_barrier(comm);
     }
- //   #else
- //   if (snrt_cluster_core_idx() == 8) {
- //       snrt_inter_cluster_barrier(comm);
- //   }
-    #endif
+    //   #else
+    //   if (snrt_cluster_core_idx() == 8) {
+    //       snrt_inter_cluster_barrier(comm);
+    //   }
+#endif
     // Synchronize cores in a cluster with the HW barrier
     snrt_cluster_hw_barrier();
 }

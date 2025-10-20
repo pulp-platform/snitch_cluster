@@ -18,7 +18,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 FROM ubuntu:${UBUNTU_VERSION} AS tool-builder
 ARG BENDER_VERSION=0.28.1
 ARG DOXYGEN_VERSION=1.12.0
-ARG SNITCH_LLVM_VERSION=15.0.0-snitch-0.2.0
+ARG SNITCH_LLVM_VERSION=15.0.0-snitch-0.3.1
 ARG UBUNTU_VERSION
 ARG DEBIAN_FRONTEND
 
@@ -41,7 +41,9 @@ RUN wget https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.g
     mv doxygen-${DOXYGEN_VERSION} doxygen
 
 # Get the precompiled LLVM toolchain
-RUN wget https://github.com/pulp-platform/llvm-project/releases/download/${SNITCH_LLVM_VERSION}/riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION}.tar.gz && \
+#RUN wget https://github.com/pulp-platform/llvm-project/releases/
+RUN wget https://github.com/igor-sachok/llvm-project/releases/
+download/${SNITCH_LLVM_VERSION}/riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION}.tar.gz && \
     tar xvf riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION}.tar.gz && \
     mv riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION} riscv-llvm 
 

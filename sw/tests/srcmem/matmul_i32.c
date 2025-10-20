@@ -1,9 +1,11 @@
+// Copyright 2025 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 // Compare RV32IM vs XPULPV2 integer matmul kernels on Snitch (no DMA, no checks)
 
+#include <snrt.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <snrt.h>
 #define matrix_M 32
 #define matrix_N 32
 #define matrix_P 32
@@ -16,13 +18,13 @@
 // Matrix configuration
 // ----------------------
 #ifndef M
-#define M  32
+#define M 32
 #endif
 #ifndef N
-#define N  32
+#define N 32
 #endif
 #ifndef P
-#define P  32
+#define P 32
 #endif
 
 // ----------------------
@@ -45,7 +47,7 @@ static void fill_inputs_identityB(void) {
     }
     for (uint32_t k = 0; k < N; ++k) {
         for (uint32_t j = 0; j < P; ++j) {
-            B[k * P + j] = (k == j) ? 1 : 0; // identity
+            B[k * P + j] = (k == j) ? 1 : 0;  // identity
         }
     }
 }
@@ -57,13 +59,17 @@ static void clear_out(int32_t *C) {
 static int compare_C(const int32_t *Aexp, const int32_t *C) {
     // With B=I, expected C == A (when MxN and NxP with N==P)
     // Works as long as N == P; if not, you can skip this check.
-    if (N != P) return 0; // not a strict check in that case
+    if (N != P) return 0;  // not a strict check in that case
     int errs = 0;
     for (uint32_t i = 0; i < M; ++i) {
         for (uint32_t j = 0; j < P; ++j) {
             int32_t a = Aexp[i * N + j];
             int32_t c = C[i * P + j];
-            if (a != c) { ++errs; if (errs < 4) printf("Mismatch @(%u,%u): A=%d C=%d\n", i, j, a, c); }
+            if (a != c) {
+                ++errs;
+                if (errs < 4)
+                    printf("Mismatch @(%u,%u): A=%d C=%d\n", i, j, a, c);
+            }
         }
     }
     return errs;
@@ -73,13 +79,14 @@ static int compare_C(const int32_t *Aexp, const int32_t *C) {
 // Main
 // ----------------------
 int main() {
-    uint32_t core_id   = snrt_cluster_core_idx();
+    uint32_t core_id = snrt_cluster_core_idx();
     uint32_t num_cores = snrt_cluster_core_num();
 
     // Prepare inputs (core 0), then sync
     snrt_cluster_hw_barrier();
     if (core_id == 0) {
-        printf("MatMul i32 compare on Snitch: M=%u N=%u P=%u, cores=%u\n", M, N, P, num_cores);
+        printf("MatMul i32 compare on Snitch: M=%u N=%u P=%u, cores=%u\n", M, N,
+               P, num_cores);
         fill_inputs_identityB();
         clear_out(C_rv);
         clear_out(C_xp);
@@ -98,9 +105,8 @@ int main() {
     }
     snrt_cluster_hw_barrier();
 
-    matmul_unrolled_2x2_parallel_i32_xpulpv2(
-        A, B, C_xp, M, N, P, core_id, num_cores
-    );
+    matmul_unrolled_2x2_parallel_i32_xpulpv2(A, B, C_xp, M, N, P, core_id,
+                                             num_cores);
 
     snrt_cluster_hw_barrier();
     if (core_id == 0) {
@@ -108,10 +114,12 @@ int main() {
         uint32_t cycles_xp = snrt_get_perf_counter(0);
         printf("XPULPV2 cycles: %u\n", cycles_xp);
     }
-        if (core_id == 0) {
+    if (core_id == 0) {
         int errs = compare_C(A, C_xp);
-        if (errs) printf("XPULPV2 result: %d mismatches\n", errs);
-        else      printf("XPULPV2 result: OK\n");
+        if (errs)
+            printf("XPULPV2 result: %d mismatches\n", errs);
+        else
+            printf("XPULPV2 result: OK\n");
     }
 
 #else
@@ -127,9 +135,8 @@ int main() {
     snrt_cluster_hw_barrier();
 
     // Your reused kernel (parallel, row-split)
-    matmul_unrolled_2x2_parallel_i32_rv32im(
-        A, B, C_rv, M, N, P, core_id, num_cores
-    );
+    matmul_unrolled_2x2_parallel_i32_rv32im(A, B, C_rv, M, N, P, core_id,
+                                            num_cores);
 
     snrt_cluster_hw_barrier();
     if (core_id == 0) {
@@ -142,8 +149,10 @@ int main() {
     snrt_cluster_hw_barrier();
     if (core_id == 0) {
         int errs = compare_C(A, C_rv);
-        if (errs) printf("RV32IM result: %d mismatches\n", errs);
-        else      printf("RV32IM result: OK\n");
+        if (errs)
+            printf("RV32IM result: %d mismatches\n", errs);
+        else
+            printf("RV32IM result: OK\n");
     }
 #endif
 

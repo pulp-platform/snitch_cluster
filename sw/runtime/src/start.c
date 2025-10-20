@@ -68,19 +68,19 @@ static inline void snrt_init_tls() {
 
     // Then initialize all other cores' .tdata sections from the DM
     // core's. The offset between the TLS section of successive cores
-        // is defined in start.S
-        // Copy .tdata into all other cores' TLS regions
-        size_t tls_offset = (1 << SNRT_LOG2_STACK_SIZE) + 8;
-        for (int i = 1; i < snrt_cluster_core_num(); i++) {
-            memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
-        }
+    // is defined in start.S
+    // Copy .tdata into all other cores' TLS regions
+    size_t tls_offset = (1 << SNRT_LOG2_STACK_SIZE) + 8;
+    for (int i = 1; i < snrt_cluster_core_num(); i++) {
+        memcpy((void*)(tls_ptr + i * tls_offset), (const void*)tls_ptr, size);
+    }
 
-        // Initialize all cores' .tbss sections
-        tls_ptr += size;
-        size = (size_t)(&__tbss_end) - (size_t)(&__tbss_start);
-        for (int i = 0; i < snrt_cluster_core_num(); i++) {
-            memset((void*)(tls_ptr + i * tls_offset), 0, size);
-        }
+    // Initialize all cores' .tbss sections
+    tls_ptr += size;
+    size = (size_t)(&__tbss_end) - (size_t)(&__tbss_start);
+    for (int i = 0; i < snrt_cluster_core_num(); i++) {
+        memset((void*)(tls_ptr + i * tls_offset), 0, size);
+    }
 
     snrt_cluster_hw_barrier();
 }
@@ -116,7 +116,7 @@ static inline void snrt_init_bss() {
     }
 }
 #endif
-#endif 
+#endif
 
 #ifdef SNRT_WAKE_UP
 static inline void snrt_wake_up() {
@@ -146,8 +146,8 @@ static inline void snrt_init_cls() {
     extern volatile uint32_t __cdata_start, __cdata_end;
     extern volatile uint32_t __cbss_start, __cbss_end;
 
-    // Only one core per cluster has to do this
-    #ifdef SNRT_SUPPORTS_DMA
+// Only one core per cluster has to do this
+#ifdef SNRT_SUPPORTS_DMA
     if (snrt_is_dm_core()) {
         uint64_t ptr = (uint64_t)snrt_cls_base_addr();
         size_t size;
@@ -162,22 +162,20 @@ static inline void snrt_init_cls() {
         snrt_dma_memset((void*)ptr, 0, size);
         snrt_dma_wait_all();
     }
-    #else 
-        if (snrt_cluster_core_idx() == 0) {
-            uint64_t ptr = (uint64_t)snrt_cls_base_addr();
-            size_t size;
+#else
+    if (snrt_cluster_core_idx() == 0) {
+        uint64_t ptr = (uint64_t)snrt_cls_base_addr();
+        size_t size;
 
-            // Copy cdata section
-            size = (size_t)(&__cdata_end) - (size_t)(&__cdata_start);
-            if (size)
-                memcpy((void*)ptr, (const void*)&__cdata_start, size);
-                // Clear cbss section
-                ptr += size;
-                size = (size_t)(&__cbss_end) - (size_t)(&__cbss_start);
-                if (size)
-                   memset((void*)ptr, 0, size);
+        // Copy cdata section
+        size = (size_t)(&__cdata_end) - (size_t)(&__cdata_start);
+        if (size) memcpy((void*)ptr, (const void*)&__cdata_start, size);
+        // Clear cbss section
+        ptr += size;
+        size = (size_t)(&__cbss_end) - (size_t)(&__cbss_start);
+        if (size) memset((void*)ptr, 0, size);
     }
-    #endif
+#endif
     // Init the cls pointer
     _cls_ptr = (cls_t*)snrt_cls_base_addr();
     snrt_cluster_hw_barrier();

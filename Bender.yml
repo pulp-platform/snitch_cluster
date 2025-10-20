@@ -205,3 +205,8 @@ sources:
     files:
       - nonfree/gf12/mems/tc_sram.sv
       - nonfree/gf12/sourcecode/tc_clk.sv
+
+  - target: ihp13
+    files:
+      - ihp13/tc_clk.sv
+      - ihp13/tc_sram_impl.sv
