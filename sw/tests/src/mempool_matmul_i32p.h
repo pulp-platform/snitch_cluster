@@ -106,12 +106,12 @@ void matmul_unrolled_2x2_parallel_i32_xpulpv2(int32_t const *__restrict__ A,
                     "p.lw %[b01], %[b_incr](%[addr_b]!) \n"
                     "p.lw %[b10], 4(%[addr_b]!) \n"
                     "p.lw %[b11], 0(%[addr_b]!) \n"
-                    : [a00] "=&r"(val_a00), [a01] "=&r"(val_a01),
-                      [a10] "=&r"(val_a10), [a11] "=&r"(val_a11),
-                      [b00] "=&r"(val_b00), [b01] "=&r"(val_b01),
-                      [b10] "=&r"(val_b10), [b11] "=&r"(val_b11),
-                      [addr_a] "+&r"(idx_a), [addr_b] "+&r"(idx_b)
-                    : [a_incr] "r"(A_incr), [b_incr] "r"(B_incr)
+                    : [ a00 ] "=&r"(val_a00), [ a01 ] "=&r"(val_a01),
+                      [ a10 ] "=&r"(val_a10), [ a11 ] "=&r"(val_a11),
+                      [ b00 ] "=&r"(val_b00), [ b01 ] "=&r"(val_b01),
+                      [ b10 ] "=&r"(val_b10), [ b11 ] "=&r"(val_b11),
+                      [ addr_a ] "+&r"(idx_a), [ addr_b ] "+&r"(idx_b)
+                    : [ a_incr ] "r"(A_incr), [ b_incr ] "r"(B_incr)
                     : "memory");
                 /* The asm code above implements the following commented C code */
                 // int32_t val_a00 = A[(i + 0) * N + k + 0];
@@ -137,9 +137,9 @@ void matmul_unrolled_2x2_parallel_i32_xpulpv2(int32_t const *__restrict__ A,
                 "p.sw %[s01], %[c_incr](%[addr_c]!) \n"
                 "p.sw %[s10], 4(%[addr_c]!) \n"
                 "p.sw %[s11], 0(%[addr_c]!) \n"
-                : [addr_c] "+&r"(idx_c)
-                : [s00] "r"(c00), [s01] "r"(c01), [s10] "r"(c10),
-                  [s11] "r"(c11), [c_incr] "r"(B_incr)
+                : [ addr_c ] "+&r"(idx_c)
+                : [ s00 ] "r"(c00), [ s01 ] "r"(c01), [ s10 ] "r"(c10),
+                  [ s11 ] "r"(c11), [ c_incr ] "r"(B_incr)
                 : "memory");
             /* The asm code above implements the following commented C code */
             // C[(i + 0) * P + j + 0] = c00;

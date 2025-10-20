@@ -68,4 +68,3 @@ runs:
     simulators: [vsim, vcs, verilator] # GVSOC does not model caq
   - elf: ../sw/kernels/dnn/mha/build/mha.elf
     cmd: [../sw/kernels/dnn/mha/scripts/verify.py, "${sim_bin}", "${elf}"]
-    

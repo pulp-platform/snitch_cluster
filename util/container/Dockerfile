@@ -41,9 +41,7 @@ RUN wget https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.g
     mv doxygen-${DOXYGEN_VERSION} doxygen
 
 # Get the precompiled LLVM toolchain
-#RUN wget https://github.com/pulp-platform/llvm-project/releases/
-RUN wget https://github.com/igor-sachok/llvm-project/releases/
-download/${SNITCH_LLVM_VERSION}/riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION}.tar.gz && \
+RUN wget https://github.com/igor-sachok/llvm-project/releases/download/${SNITCH_LLVM_VERSION}/riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION}.tar.gz && \
     tar xvf riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION}.tar.gz && \
     mv riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION} riscv-llvm 
 

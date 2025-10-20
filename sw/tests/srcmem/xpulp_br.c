@@ -24,7 +24,7 @@ int main() {
                 "1:\n"
                 "li %[tk], 1\n"  // if jumped → tk = 1
                 "2:\n"
-                : [tk] "=r"(taken)
+                : [ tk ] "=r"(taken)
                 : "r"(rs1)
                 : "a4");
             if (taken != 1) errs++;
@@ -43,7 +43,7 @@ int main() {
                 "1:\n"
                 "li %[tk], 1\n"
                 "2:\n"
-                : [tk] "=r"(taken)
+                : [ tk ] "=r"(taken)
                 : "r"(rs1)
                 : "a4");
             if (taken != 0) errs++;
@@ -62,7 +62,7 @@ int main() {
                 "1:\n"
                 "li %[tk], 1\n"  // if jumped → tk = 1
                 "2:\n"
-                : [tk] "=r"(taken)
+                : [ tk ] "=r"(taken)
                 : "r"(rs1)
                 : "a4");
             if (taken != 1) errs++;
@@ -81,7 +81,7 @@ int main() {
                 "1:\n"
                 "li %[tk], 1\n"
                 "2:\n"
-                : [tk] "=r"(taken)
+                : [ tk ] "=r"(taken)
                 : "r"(rs1)
                 : "a4");
             if (taken != 0) errs++;
