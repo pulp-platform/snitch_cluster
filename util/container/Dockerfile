@@ -45,8 +45,10 @@ RUN wget https://github.com/pulp-platform/llvm-project/releases/download/${SNITC
     tar xvf riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION}.tar.gz && \
     mv riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION} riscv-llvm
 
-# Install uv
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+# Install uv and python
+ENV UV_INSTALL_DIR=/tools
+ADD https://astral.sh/uv/install.sh /uv-installer.sh
+RUN sh /uv-installer.sh && rm /uv-installer.sh
 
 #-------------------------------------------------------------------------------
 # Stage 2: Hardware development stage
@@ -67,31 +69,33 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         # General requirements
         curl wget build-essential git \
-        # Required for python
-        software-properties-common gnupg2 \
         # Required for fesvr
         device-tree-compiler && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
-RUN uv python install ${PYTHON_VERSION}
 
 # Copy all needed files to install the package
 COPY . /repo
 
 # Copy the tools from the builder stage
 COPY --from=tool-builder /tools/bender /tools/bin/
+COPY --from=tool-builder /tools/uv /tools/bin/
 COPY --from=tool-builder /tools/doxygen/bin/doxygen /tools/bin/
 COPY --from=tool-builder /tools/riscv-llvm /tools/riscv-llvm
 
 # Modify environment and path variables
 ENV SN_VLT="verilator"
 ENV SN_LLVM_BINROOT="/tools/riscv-llvm/bin"
-ENV SN_PYTHON="uv run"
 ENV PATH="/tools/bin:${PATH}"
 ENV PATH="/tools/riscv-llvm/bin:${PATH}"
 ENV PATH="/repo/target/sim/build/bin:${PATH}"
 
-RUN uv sync --extra all
+# Install desired python version...
+RUN uv python install ${PYTHON_VERSION}
+ENV PATH="/root/.local/bin/:${PATH}"
+# ... and sync all required python packages
+RUN uv sync --extra all --locked --directory /repo
+ENV SN_PYTHON="uv run"
 
 #-------------------------------------------------------------------------------
 # Stage 3: Hardware build
@@ -118,27 +122,27 @@ ARG DEBIAN_FRONTEND
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         # General requirements
-        curl wget build-essential git \
-        # Required for python
-        software-properties-common gnupg2 && \
-    # Install Python (both binaries and headers)
-    apt-add-repository ppa:deadsnakes/ppa && \
+        curl wget build-essential git && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
-RUN uv python install ${PYTHON_VERSION}
 
 # Copy all needed files to install the package
 COPY . /repo
 
 # Copy the tools from the builder stages
 COPY --from=tool-builder /tools/bender /tools/bin/
+COPY --from=tool-builder /tools/uv /tools/bin/
 COPY --from=tool-builder /tools/doxygen/bin/doxygen /tools/bin/
 COPY --from=tool-builder /tools/riscv-llvm /tools/riscv-llvm
 COPY --from=hw-builder /repo/target/sim/build/bin/snitch_cluster_bin.vlt /tools/bin/snitch_cluster.vlt
 
 # Modify environment and path variables
 ENV SN_LLVM_BINROOT="/tools/riscv-llvm/bin"
-ENV SN_PYTHON="uv run"
 ENV PATH="/tools/bin:${PATH}"
 ENV PATH="/tools/riscv-llvm/bin:${PATH}"
 
-RUN uv sync --extra all
+# Install desired python version...
+RUN uv python install ${PYTHON_VERSION}
+ENV PATH="/root/.local/bin/:${PATH}"
+# ... and sync all required python packages
+RUN uv sync --extra all --locked --directory /repo
+ENV SN_PYTHON="uv run"
