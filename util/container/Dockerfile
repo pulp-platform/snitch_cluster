@@ -90,11 +90,9 @@ ENV PATH="/tools/bin:${PATH}"
 ENV PATH="/tools/riscv-llvm/bin:${PATH}"
 ENV PATH="/repo/target/sim/build/bin:${PATH}"
 
-# Install desired python version...
+# Install desired python version
 RUN uv python install ${PYTHON_VERSION}
 ENV PATH="/root/.local/bin/:${PATH}"
-# ... and sync all required python packages
-RUN uv sync --extra all --locked --directory /repo
 ENV SN_PYTHON="uv run"
 
 #-------------------------------------------------------------------------------
@@ -140,9 +138,7 @@ ENV SN_LLVM_BINROOT="/tools/riscv-llvm/bin"
 ENV PATH="/tools/bin:${PATH}"
 ENV PATH="/tools/riscv-llvm/bin:${PATH}"
 
-# Install desired python version...
+# Install desired python version
 RUN uv python install ${PYTHON_VERSION}
 ENV PATH="/root/.local/bin/:${PATH}"
-# ... and sync all required python packages
-RUN uv sync --extra all --locked --directory /repo
 ENV SN_PYTHON="uv run"
