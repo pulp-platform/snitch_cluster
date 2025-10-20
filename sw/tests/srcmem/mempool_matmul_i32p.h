@@ -111,7 +111,7 @@ void matmul_unrolled_2x2_parallel_i32_xpulpv2(int32_t const *__restrict__ A,
                       [ b00 ] "=&r"(val_b00), [ b01 ] "=&r"(val_b01),
                       [ b10 ] "=&r"(val_b10), [ b11 ] "=&r"(val_b11),
                       [ addr_a ] "+&r"(idx_a), [ addr_b ] "+&r"(idx_b)
-                    : [ a_incr ] "r"(A_incr), [ b_incr ] "r"(B_incr)                    
+                    : [ a_incr ] "r"(A_incr), [ b_incr ] "r"(B_incr)
                     : "memory");
                 /* The asm code above implements the following commented C code */
                 // int32_t val_a00 = A[(i + 0) * N + k + 0];
