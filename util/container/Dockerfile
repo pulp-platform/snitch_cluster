@@ -68,7 +68,7 @@ LABEL org.opencontainers.image.source=https://github.com/pulp-platform/snitch_cl
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         # General requirements
-        curl wget build-essential git \
+        curl wget build-essential git ca-certificates \
         # Required for fesvr
         device-tree-compiler && \
     apt-get clean && \
@@ -121,7 +121,7 @@ ARG DEBIAN_FRONTEND
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         # General requirements
-        curl wget build-essential git && \
+        curl wget build-essential git ca-certificates && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 # Copy all needed files to install the package
