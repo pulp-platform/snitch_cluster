@@ -20,9 +20,9 @@ SN_BIN_DIR    = $(SN_TARGET_DIR)/sim/build/bin
 SN_WORK_DIR   = $(SN_TARGET_DIR)/sim/build/work
 
 # External executables
-SN_BENDER	        ?= bender
-SN_UV 					  ?=
-SN_PYTHON					?= $(SN_UV) python
+SN_BENDER         ?= bender
+SN_UV             ?=
+SN_PYTHON         ?= $(SN_UV) python
 SN_PEAKRDL        ?= $(SN_UV) peakrdl
 SN_VERIBLE_FMT    ?= verible-verilog-format
 SN_CLANG_FORMAT   ?= clang-format
