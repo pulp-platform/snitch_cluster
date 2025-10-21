@@ -184,8 +184,8 @@ jobs:
       - name: Run Tests
         working-directory: test
         run: |
-          ../util/experiments/run.py run.yaml --simulator verilator -j
-          ../util/experiments/run.py riscv_tests_isa.yaml --simulator verilator -j
+          uv run ../util/experiments/run.py run.yaml --simulator verilator -j
+          uv run ../util/experiments/run.py riscv_tests_isa.yaml --simulator verilator -j
       - name: Annotate traces
         # Build the traces using the --permissive flag, since the Verilator
         # testbench does not wait until all the instructions are retired
