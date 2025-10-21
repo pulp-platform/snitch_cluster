@@ -106,6 +106,10 @@ FROM snitch_cluster-hw AS hw-builder
 # Copy the snitch_cluster repository from the build context into /repo
 COPY . /repo
 # Build the verilator model
+RUN ls -al /repo
+RUN which python
+RUN uv pip list
+RUN which peakrdl
 RUN cd /repo && make verilator
 
 #-------------------------------------------------------------------------------
