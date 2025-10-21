@@ -76,6 +76,7 @@ RUN apt-get update && \
 
 # Copy all needed files to install the package
 COPY . /repo
+WORKDIR /repo
 
 # Copy the tools from the builder stage
 COPY --from=tool-builder /tools/bender /tools/bin/
@@ -90,11 +91,10 @@ ENV PATH="/tools/bin:${PATH}"
 ENV PATH="/tools/riscv-llvm/bin:${PATH}"
 ENV PATH="/repo/target/sim/build/bin:${PATH}"
 
-# Install desired python version
-ENV PATH="/root/.local/bin/:${PATH}"
-RUN uv python install ${PYTHON_VERSION}
-ENV PATH="/repo/.venv/bin/:${PATH}"
-ENV SN_PYTHON="uv run"
+# Install python and venv
+ENV UV_LINK_MODE=copy
+RUN uv sync --locked --extra all
+ENV SN_UV="uv run"
 
 #-------------------------------------------------------------------------------
 # Stage 3: Hardware build
@@ -126,6 +126,7 @@ RUN apt-get update && \
 
 # Copy all needed files to install the package
 COPY . /repo
+WORKDIR /repo
 
 # Copy the tools from the builder stages
 COPY --from=tool-builder /tools/bender /tools/bin/
@@ -139,8 +140,7 @@ ENV SN_LLVM_BINROOT="/tools/riscv-llvm/bin"
 ENV PATH="/tools/bin:${PATH}"
 ENV PATH="/tools/riscv-llvm/bin:${PATH}"
 
-# Install desired python version
-ENV PATH="/root/.local/bin/:${PATH}"
-RUN uv python install ${PYTHON_VERSION}
-ENV PATH="/repo/.venv/bin/:${PATH}"
-ENV SN_PYTHON="uv run"
+# Install python and venv
+ENV UV_LINK_MODE=copy
+RUN uv sync --locked --extra all
+ENV SN_UV="uv run"
