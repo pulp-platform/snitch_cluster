@@ -93,7 +93,8 @@ ENV PATH="/repo/target/sim/build/bin:${PATH}"
 # Install desired python version
 RUN uv python install ${PYTHON_VERSION}
 ENV PATH="/root/.local/bin/:${PATH}"
-ENV SN_PYTHON="uv run"
+RUN uv sync --locked --directory /repo
+ENV PATH="/repo/.venv/bin:${PATH}"
 
 #-------------------------------------------------------------------------------
 # Stage 3: Hardware build
@@ -141,4 +142,5 @@ ENV PATH="/tools/riscv-llvm/bin:${PATH}"
 # Install desired python version
 RUN uv python install ${PYTHON_VERSION}
 ENV PATH="/root/.local/bin/:${PATH}"
-ENV SN_PYTHON="uv run"
+RUN uv sync --locked --directory /repo
+ENV PATH="/repo/.venv/bin:${PATH}"
