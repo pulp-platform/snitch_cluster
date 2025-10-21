@@ -15,8 +15,10 @@ SN_TESTS_BUILDDIR ?= $(SN_ROOT)/sw/tests/build
 # Build variables #
 ###################
 
+SN_TESTS_INCDIRS += $(SN_RUNTIME_INCDIRS)
+
 SN_TESTS_RISCV_CFLAGS += $(SN_RISCV_CFLAGS)
-SN_TESTS_RISCV_CFLAGS += $(addprefix -I,$(SN_RUNTIME_INCDIRS))
+SN_TESTS_RISCV_CFLAGS += $(addprefix -I,$(SN_TESTS_INCDIRS))
 
 SN_RUNTIME_BASE_LD    = $(SN_RUNTIME_DIR)/base.ld
 SN_RUNTIME_MEMORY_LD ?= $(SN_RUNTIME_SRCDIR)/memory.ld
