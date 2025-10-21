@@ -93,6 +93,7 @@ ENV PATH="/repo/target/sim/build/bin:${PATH}"
 # Install desired python version
 ENV PATH="/root/.local/bin/:${PATH}"
 RUN uv python install ${PYTHON_VERSION}
+ENV PATH="/repo/.venv/bin/:${PATH}"
 ENV SN_PYTHON="uv run"
 
 #-------------------------------------------------------------------------------
@@ -141,4 +142,5 @@ ENV PATH="/tools/riscv-llvm/bin:${PATH}"
 # Install desired python version
 ENV PATH="/root/.local/bin/:${PATH}"
 RUN uv python install ${PYTHON_VERSION}
+ENV PATH="/repo/.venv/bin/:${PATH}"
 ENV SN_PYTHON="uv run"
