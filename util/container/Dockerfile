@@ -94,7 +94,7 @@ ENV PATH="/repo/target/sim/build/bin:${PATH}"
 # Install python and venv
 ENV UV_LINK_MODE=copy
 RUN uv sync --locked --extra all
-ENV SN_UV="uv run"
+ENV SN_UV="uv run --all-extras"
 
 #-------------------------------------------------------------------------------
 # Stage 3: Hardware build
@@ -143,4 +143,4 @@ ENV PATH="/tools/riscv-llvm/bin:${PATH}"
 # Install python and venv
 ENV UV_LINK_MODE=copy
 RUN uv sync --locked --extra all
-ENV SN_UV="uv run"
+ENV SN_UV="uv run --all-extras"
