@@ -62,6 +62,19 @@ all = [
     "snitch[kernels,docs]"
 ]
 
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu" },
+]
+torchvision = [
+    { index = "pytorch-cpu" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
 [tool.setuptools.package-dir]
 "snitch.dnn" = "sw/kernels/dnn"
 "snitch.blas" = "sw/kernels/blas"
