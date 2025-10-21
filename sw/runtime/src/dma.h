@@ -147,6 +147,24 @@ static inline uint32_t snrt_dma_start_1d_reduction(
 }
 
 /**
+ * @brief Start an asynchronous reduction 1D DMA transfer with 64-bit wide
+ * pointers.
+ * @param comm The communicator for the reduction operation
+ * @param opcode Reduction operation
+ * @see snrt_dma_start_1d(uint64_t, uint64_t, size_t, uint32_t) for a
+ *      description of the other parameters.
+ */
+ static inline uint32_t snrt_dma_start_1d_reduction(
+    uint64_t dst, uint64_t src, size_t size, snrt_comm_t comm,
+    snrt_collective_opcode_t opcode, const uint32_t channel = 0) {
+
+    uint64_t mask = snrt_get_collective_mask(comm);
+    uint32_t txid = snrt_dma_start_1d_reduction(dst, src, size, mask, opcode,
+                                                channel);
+    return txid;
+}
+
+/**
  * @brief Start an asynchronous multicast 1D DMA transfer with 64-bit wide
  * pointers.
  * @param mask The mask for the multicast operation
