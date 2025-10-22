@@ -149,6 +149,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
+      - name: Activate Python environment
+        run: |
+          uv sync --locked --all-extras
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
       - name: Hash Verilator prerequisites
         id: verilator-hash
         uses: colluca/pymakeutils@v1.2.0
