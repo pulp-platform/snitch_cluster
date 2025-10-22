@@ -6,7 +6,6 @@
 
 ARG VERILATOR_VERSION=5.034
 ARG UBUNTU_VERSION=22.04
-ARG PYTHON_VERSION=3.11
 # Run dpkg without interactive dialogue
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -45,7 +44,7 @@ RUN wget https://github.com/pulp-platform/llvm-project/releases/download/${SNITC
     tar xvf riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION}.tar.gz && \
     mv riscv32-snitch-llvm-ubuntu2204-${SNITCH_LLVM_VERSION} riscv-llvm
 
-# Install uv and python
+# Install uv
 ENV UV_INSTALL_DIR=/tools
 ADD https://astral.sh/uv/install.sh /uv-installer.sh
 RUN sh /uv-installer.sh && rm /uv-installer.sh
@@ -57,7 +56,6 @@ RUN sh /uv-installer.sh && rm /uv-installer.sh
 #------------------------------------------------------------------------------
 
 FROM verilator/verilator:v${VERILATOR_VERSION} AS snitch_cluster-hw
-ARG PYTHON_VERSION
 ARG DEBIAN_FRONTEND
 
 LABEL version="0.1"
@@ -76,7 +74,6 @@ RUN apt-get update && \
 
 # Copy all needed files to install the package
 COPY . /repo
-WORKDIR /repo
 
 # Copy the tools from the builder stage
 COPY --from=tool-builder /tools/bender /tools/bin/
@@ -91,9 +88,8 @@ ENV PATH="/tools/bin:${PATH}"
 ENV PATH="/tools/riscv-llvm/bin:${PATH}"
 ENV PATH="/repo/target/sim/build/bin:${PATH}"
 
-# Install python and venv
+# Define uv environment
 ENV UV_LINK_MODE=copy
-RUN uv sync --locked --extra all
 ENV SN_UV="uv run --all-extras"
 
 #-------------------------------------------------------------------------------
@@ -126,7 +122,6 @@ RUN apt-get update && \
 
 # Copy all needed files to install the package
 COPY . /repo
-WORKDIR /repo
 
 # Copy the tools from the builder stages
 COPY --from=tool-builder /tools/bender /tools/bin/
@@ -140,7 +135,6 @@ ENV SN_LLVM_BINROOT="/tools/riscv-llvm/bin"
 ENV PATH="/tools/bin:${PATH}"
 ENV PATH="/tools/riscv-llvm/bin:${PATH}"
 
-# Install python and venv
+# Define uv environment
 ENV UV_LINK_MODE=copy
-RUN uv sync --locked --extra all
 ENV SN_UV="uv run --all-extras"
