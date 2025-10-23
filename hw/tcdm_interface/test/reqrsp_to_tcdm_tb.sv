@@ -50,8 +50,7 @@ module reqrsp_to_tcdm_tb import reqrsp_pkg::*; #(
   reqrsp_to_tcdm_intf #(
     .AddrWidth (AW),
     .DataWidth (DW),
-    .BufDepth (BufDepth),
-    .user_t (logic)
+    .BufDepth (BufDepth)
   ) i_dut (
     .clk_i (clk),
     .rst_ni (rst_n),
