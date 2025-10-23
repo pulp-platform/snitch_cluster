@@ -152,7 +152,7 @@ jobs:
       - name: Hash Verilator prerequisites
         id: verilator-hash
         run: |
-          hash=$(uv run list-dependent-make-targets verilator --recursive --hash)
+          hash=$(uv run list-make-prerequisites verilator --recursive --hash)
           echo "hash=$hash" >> "$GITHUB_OUTPUT"
       - name: Set up cache for Verilator build
         id: verilator-cache
