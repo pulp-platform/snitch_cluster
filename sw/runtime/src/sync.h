@@ -247,7 +247,7 @@ static inline void snrt_inter_cluster_barrier(snrt_comm_t comm = NULL) {
 
     // Launch the reduction
     snrt_enable_reduction(mask, SNRT_REDUCTION_BARRIER);
-    *addr = 1;
+    *addr = 0;
     snrt_disable_reduction();
 
     // Fence to wait until the reduction is finished
