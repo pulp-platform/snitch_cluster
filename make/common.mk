@@ -127,5 +127,5 @@ endef
 # Usage:
 #   $(call sn_include_deps)
 define sn_include_deps
-$(eval $(if $(strip $(MAKECMDGOALS)),$(shell $(SN_PYTHON) list-dependent-make-targets -M -r $(SN_DEPS))))
+$(eval $(if $(strip $(MAKECMDGOALS)),$(shell $(SN_UV) list-dependent-make-targets -M -r $(SN_DEPS))))
 endef
