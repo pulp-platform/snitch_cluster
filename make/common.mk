@@ -22,7 +22,6 @@ SN_WORK_DIR   = $(SN_TARGET_DIR)/sim/build/work
 # External executables
 SN_BENDER         ?= bender
 SN_UV             ?=
-SN_PYTHON         ?= $(SN_UV) python
 SN_PEAKRDL        ?= $(SN_UV) peakrdl
 SN_VERIBLE_FMT    ?= verible-verilog-format
 SN_CLANG_FORMAT   ?= clang-format
@@ -98,7 +97,7 @@ endef
 define sn_cluster_gen_rule
 $(1): $(SN_CFG) $(SN_CLUSTER_GEN) $(SN_CLUSTER_GEN_SRC) $(2) | $(call sn_normalize_dir,$(dir $(1)))
 	@echo "[CLUSTERGEN] Generate $$@"
-	$(SN_PYTHON) $(SN_CLUSTER_GEN) -c $$< -o $$@ --template $(2)
+	$(SN_UV) $(SN_CLUSTER_GEN) -c $$< -o $$@ --template $(2)
 endef
 
 # Common rule to generate a Makefile with RTL source and header

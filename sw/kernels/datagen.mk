@@ -22,4 +22,4 @@ $(dir $(DATA_H)):
 
 $(DATA_H): DATAGEN_ARGS := $($(APP)_DATAGEN_ARGS)
 $(DATA_H): $(DATAGEN_PY) $($(APP)_DATA_CFG) | $(dir $(DATA_H))
-	$(SN_PYTHON) $< $(DATAGEN_ARGS) $@
+	$(SN_UV) $< $(DATAGEN_ARGS) $@
