@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "omp.h"
-#ifdef SNRT_SUPPORT_DMA
+#ifdef SNRT_SUPPORTS_DMA
 #include "dm.h"
 #endif
 
@@ -109,7 +109,7 @@ void omp_init(void) {
  * @param core_idx cluster-local core-index
  */
 unsigned __attribute__((noinline)) snrt_omp_bootstrap(uint32_t core_idx) {
-#ifdef SNRT_SUPPORT_DMA
+#ifdef SNRT_SUPPORTS_DMA
     dm_init();
 #endif
     eu_init();
@@ -121,7 +121,7 @@ unsigned __attribute__((noinline)) snrt_omp_bootstrap(uint32_t core_idx) {
             ;
         return 0;
     }
-#ifdef SNRT_SUPPORT_DMA
+#ifdef SNRT_SUPPORTS_DMA
     else if (snrt_is_dm_core()) {
         // send datamover to dm_main
         snrt_cluster_hw_barrier();

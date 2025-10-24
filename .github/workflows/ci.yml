@@ -234,7 +234,7 @@ jobs:
           submodules: 'recursive'
       - name: Build Software for xpulpv2 tests
         run: |
-          make tests SNITCH_MEMPOOL=ON -j
+          make tests CFG_OVERRIDE=cfg/xpulpv2.json SNITCH_MEMPOOL=ON -j
       - name: Run Tests
         working-directory: test
         run: |
