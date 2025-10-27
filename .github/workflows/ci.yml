@@ -245,7 +245,6 @@ jobs:
         with:
           name: verilator-mempool-hw
           path: target/sim/build
-          
       - name: Build Software for xpulpv2 tests
         run: |
           make tests CFG_OVERRIDE=cfg/xpulpv2.json SNITCH_MEMPOOL=ON -j
