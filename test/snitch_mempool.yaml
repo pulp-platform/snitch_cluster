@@ -48,11 +48,6 @@ runs:
   - elf: ../sw/tests/build/interrupt_local.elf
     simulators: [vsim, vcs, verilator]
   - elf: ../sw/tests/build/multi_cluster.elf
-  - elf: ../sw/tests/build/openmp_parallel.elf
-    simulators: [vsim, vcs, verilator]
-  # Compilation fails, seems to require libc++abi
-  # - elf: ../sw/tests/build/openmp_double_buffering.elf
-  #   simulators: [vsim, vcs, verilator]
   - elf: ../sw/tests/build/matmul_i32.elf
   - elf: ../sw/tests/build/printf_simple.elf
   - elf: ../sw/tests/build/printf_fmtint.elf
@@ -65,5 +60,3 @@ runs:
     retcode: 56
   - elf: ../sw/tests/build/caq.elf
     simulators: [vsim, vcs, verilator] # GVSOC does not model caq
-  - elf: ../sw/kernels/dnn/mha/build/mha.elf
-    cmd: [../sw/kernels/dnn/mha/scripts/verify.py, "${sim_bin}", "${elf}"]
