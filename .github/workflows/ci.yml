@@ -232,7 +232,9 @@ jobs:
   sw-snitch-mempool-cluster-vlt:
     name: Simulate SW on Snitch Cluster with XPULPV2 w/ Verilator
     runs-on: ubuntu-22.04
-    needs: snitch-mempool-cluster-vlt
+    needs:
+      - build-docker
+      - snitch-mempool-cluster-vlt
     container:
       image: ${{ needs.build-docker.outputs.sw_image_name }}
     steps:
