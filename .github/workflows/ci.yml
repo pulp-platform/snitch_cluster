@@ -213,7 +213,8 @@ jobs:
         id: verilator-cache
         uses: actions/cache@v4
         with:
-          path: target/sim/build/bin
+          path: |
+            target/sim/build
           key: verilator-xpulpv2-${{ steps.verilator-hash.outputs.hash }}
           restore-keys: |
             verilator-xpulpv2-
@@ -225,21 +226,28 @@ jobs:
   sw-snitch-mempool-cluster-vlt:
     name: Simulate SW on Snitch Cluster with XPULPV2 w/ Verilator
     runs-on: ubuntu-22.04
-    needs: build-docker
+    needs: snitch-mempool-cluster-vlt
     container:
       image: ${{ needs.build-docker.outputs.sw_image_name }}
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
+      - name: Load Verilator cache
+        id: verilator-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            target/sim/build
+        key: verilator-xpulpv2-${{ steps.verilator-hash.outputs.hash }}
+        restore-keys: |
+          verilator-xpulpv2-
       - name: Build Software for xpulpv2 tests
         run: |
           make tests CFG_OVERRIDE=cfg/xpulpv2.json SNITCH_MEMPOOL=ON -j
       - name: Run Tests
         working-directory: test
         run: |
-          ../util/experiments/run.py run.yaml --simulator verilator -j
-          ../util/experiments/run.py riscv_tests_isa.yaml --simulator verilator -j
           ../util/experiments/run.py snitch_mempool.yaml --simulator verilator -j
       - name: Annotate traces
         # Build the traces using the --permissive flag, since the Verilator

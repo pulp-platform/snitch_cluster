@@ -55,6 +55,7 @@ runs:
   # Compilation fails, seems to require libc++abi
   # - elf: ../sw/tests/build/openmp_double_buffering.elf
   #   simulators: [vsim, vcs, verilator]
+  - elf: ../sw/tests/build/matmul_i32.elf
   - elf: ../sw/tests/build/printf_simple.elf
   - elf: ../sw/tests/build/printf_fmtint.elf
   - elf: ../sw/tests/build/simple.elf
