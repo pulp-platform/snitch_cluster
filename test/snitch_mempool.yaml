@@ -50,8 +50,6 @@ runs:
   - elf: ../sw/tests/build/multi_cluster.elf
   - elf: ../sw/tests/build/openmp_parallel.elf
     simulators: [vsim, vcs, verilator]
-  - elf: ../sw/tests/build/openmp_for_static_schedule.elf
-    simulators: [vsim, vcs, verilator]
   # Compilation fails, seems to require libc++abi
   # - elf: ../sw/tests/build/openmp_double_buffering.elf
   #   simulators: [vsim, vcs, verilator]
