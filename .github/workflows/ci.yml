@@ -239,9 +239,9 @@ jobs:
         with:
           path: |
             target/sim/build
-        key: verilator-xpulpv2-${{ steps.verilator-hash.outputs.hash }}
-        restore-keys: |
-          verilator-xpulpv2-
+          key: verilator-xpulpv2-${{ steps.verilator-hash.outputs.hash }}
+          restore-keys: |
+            verilator-xpulpv2-
       - name: Build Software for xpulpv2 tests
         run: |
           make tests CFG_OVERRIDE=cfg/xpulpv2.json SNITCH_MEMPOOL=ON -j
