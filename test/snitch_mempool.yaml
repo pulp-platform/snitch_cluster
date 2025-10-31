@@ -60,3 +60,4 @@ runs:
     retcode: 56
   - elf: ../sw/tests/build/caq.elf
     simulators: [vsim, vcs, verilator] # GVSOC does not model caq
+    
