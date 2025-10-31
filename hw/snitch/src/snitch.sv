@@ -2314,6 +2314,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       end
 
       default: begin // Offload the instruction to the coprocessor
+        write_rd = x_issue_ready_i & x_issue_valid_o & x_issue_resp_i.writeback;
+
         opa_select = Reg;
         opb_select = Reg;
         opc_select = Reg;
