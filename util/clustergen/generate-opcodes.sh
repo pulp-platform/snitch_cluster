@@ -24,5 +24,5 @@ cat > $INSTR_SV <<- EOM
 
 EOM
 echo -e "// verilog_lint: waive-start parameter-name-style" >> $INSTR_SV
-cd $RISCV_OPCODES && cat ${OPCODES[@]} | ./parse_opcodes -sverilog >> $INSTR_SV
+cd $RISCV_OPCODES && cat ${OPCODES[@]} | ./parse_opcodes -sverilog --warn-overlap >> $INSTR_SV
 echo -e "// verilog_lint: waive-stop parameter-name-style" >> $INSTR_SV
