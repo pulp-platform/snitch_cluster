@@ -228,6 +228,7 @@ jobs:
       - name: Run Tests
         working-directory: test
         run: |
+          export PATH=$(pwd)/../target/sim/build/bin:$PATH
           ../util/experiments/run.py snitch_mempool.yaml --simulator verilator -j
       - name: Annotate traces
         # Build the traces using the --permissive flag, since the Verilator
