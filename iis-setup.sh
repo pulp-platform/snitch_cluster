@@ -9,6 +9,7 @@ export CXX=g++-9.2.0
 export SN_BENDER=bender-0.28.1
 # TODO(fischeti): Install it locally? or tell IT to install it system-wide?
 export SN_UV="/home/fischeti/.local/bin/uv run --all-extras"
+export PATH=$PATH:/home/fischeti/.local/bin
 export UV_LINK_MODE=copy
 export SN_VCS_SEPP=vcs-2024.09
 export SN_VERILATOR_SEPP=oseda
