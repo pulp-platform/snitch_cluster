@@ -80,7 +80,7 @@ snitch-cluster-vlt:
   script:
     - make verilator
     - cd test
-    - ../util/experiments/run.py run.yaml --simulator verilator -j --run-dir runs/vlt
+    - uv run ../util/experiments/run.py run.yaml --simulator verilator -j --run-dir runs/vlt
 
 # # VCS
 # snitch-cluster-vcs:
@@ -88,7 +88,7 @@ snitch-cluster-vlt:
 #   script:
 #     - make vcs
 #     - cd test
-#     - ../util/experiments/run.py run.yaml --simulator vcs -j --run-dir runs/vcs
+#     - uv run ../util/experiments/run.py run.yaml --simulator vcs -j --run-dir runs/vcs
 
 # Questa
 snitch-cluster-vsim:
@@ -96,8 +96,8 @@ snitch-cluster-vsim:
   script:
     - make vsim -j
     - cd test
-    - ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim
-    - ../util/experiments/run.py riscv_tests_isa.yaml --simulator vsim -j --run-dir runs/vsim
+    - uv run ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim
+    - uv run ../util/experiments/run.py riscv_tests_isa.yaml --simulator vsim -j --run-dir runs/vsim
     # Test trace annotation
     - make -C .. SIM_DIR=$(PWD)/runs/vsim/simple annotate -j
     # Run additional, more extensive tests
@@ -111,7 +111,7 @@ snitch-cluster-omega-vsim:
     - make CFG_OVERRIDE=cfg/omega.json sw -j
     - make vsim -j
     - cd test
-    - ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim
+    - uv run ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim
 
 # Test Multi-channel DMA
 snitch-cluster-mchan-vsim:
@@ -119,7 +119,7 @@ snitch-cluster-mchan-vsim:
     - make CFG_OVERRIDE=cfg/dma_mchan.json sw -j
     - make vsim -j
     - cd test
-    - ../util/experiments/run.py dma_mchan.yaml --simulator vsim -j --run-dir runs/vsim
+    - uv run ../util/experiments/run.py dma_mchan.yaml --simulator vsim -j --run-dir runs/vsim
 
 # Additional tests for different FREP configurations
 snitch-cluster-frep-vsim:
@@ -128,22 +128,22 @@ snitch-cluster-frep-vsim:
     - make CFG_OVERRIDE=cfg/frep_xl.json sw -j
     - make vsim -j
     - cd test
-    - ../util/experiments/run.py frep_xl.yaml --simulator vsim -j --run-dir runs/vsim
+    - uv run ../util/experiments/run.py frep_xl.yaml --simulator vsim -j --run-dir runs/vsim
     - cd -
     # Small FREP configuration
     - make CFG_OVERRIDE=cfg/frep_xs.json sw -j
     - make vsim -j
     - cd test
-    - ../util/experiments/run.py frep_xs.yaml --simulator vsim -j --run-dir runs/vsim
+    - uv run ../util/experiments/run.py frep_xs.yaml --simulator vsim -j --run-dir runs/vsim
 
 # COPIFT and scalar chaining experiments
 snitch-cluster-copift-sc-vsim:
   script:
     - make CFG_OVERRIDE=experiments/copift/cfg.json vsim -j
     - cd experiments/copift
-    - ./experiments.py experiments.yaml --actions sw run perf -j
+    - uv run ./experiments.py experiments.yaml --actions sw run perf -j
     - cd ../chaining
-    - ./experiments.py experiments.yaml --actions sw run perf -j
+    - uv run ./experiments.py experiments.yaml --actions sw run perf -j
 
 ############
 # Non-free #
