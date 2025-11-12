@@ -15,7 +15,8 @@ variables:
 
 default:
   before_script:
-    source iis-setup.sh
+    - source iis-setup.sh
+    - unset VIRTUAL_ENV # Gets rid of uv warnings
 
 
 ##############
