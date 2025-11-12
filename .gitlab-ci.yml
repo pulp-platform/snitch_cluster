@@ -76,7 +76,7 @@ snitch-ip-tests:
 
 # Verilator
 snitch-cluster-vlt:
-  needs: [setup, snitch-cluster-sw]
+  needs: [snitch-cluster-sw]
   script:
     - make verilator
     - cd test
@@ -84,7 +84,7 @@ snitch-cluster-vlt:
 
 # # VCS
 # snitch-cluster-vcs:
-#   needs: [setup, snitch-cluster-sw]
+#   needs: [snitch-cluster-sw]
 #   script:
 #     - make vcs
 #     - cd test
@@ -92,7 +92,7 @@ snitch-cluster-vlt:
 
 # Questa
 snitch-cluster-vsim:
-  needs: [setup, snitch-cluster-sw]
+  needs: [snitch-cluster-sw]
   script:
     - make vsim -j
     - cd test
