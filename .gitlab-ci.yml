@@ -12,12 +12,18 @@ variables:
   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: /usr/pack/gcc-9.2.0-af/linux-x64/bin/gcc
   LLVM_SYS_120_PREFIX: /usr/pack/llvm-12.0.1-af
   CMAKE: cmake-3.18.1
+  UV_CACHE_DIR: $CI_BUILDS_DIR/../cache/uv
 
 default:
   before_script:
     - source iis-setup.sh
-    - unset VIRTUAL_ENV # Gets rid of uv warnings
-    - echo $CI_BUILDS_DIR
+    # Gets rid of uv warnings about already activated virtualenv
+    - unset VIRTUAL_ENV
+    # The CI is configured such that the uv cache directory (`UV_CACHE_DIR`),
+    # is located on the same file system outside of the build directory.
+    # `uv` should try to link files instead of copying them to save space,
+    # which is the default behavior.
+    - unset UV_LINK_MODE
 
 
 ##############
