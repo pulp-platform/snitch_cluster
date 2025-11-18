@@ -8,6 +8,7 @@ runs:
   - elf: ../sw/tests/build/atomics.elf
   - elf: ../sw/tests/build/barrier.elf
   - elf: ../sw/tests/build/communicator.elf
+  - elf: ../sw/tests/build/copift_queues.elf
   - elf: ../sw/tests/build/data_mover.elf
     simulators: [vsim, vcs, verilator]
   - elf: ../sw/tests/build/dma_empty_transfer.elf
@@ -128,3 +129,4 @@ runs:
     cmd: [../sw/kernels/misc/j3d27pt/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ../sw/kernels/misc/box3d1r/build/box3d1r.elf
     cmd: [../sw/kernels/misc/box3d1r/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/misc/montecarlo/pi_estimation/build/pi_estimation.elf

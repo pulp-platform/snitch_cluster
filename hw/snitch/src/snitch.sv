@@ -114,6 +114,14 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   input  x_result_t     x_result_i,
   input  logic          x_result_valid_i,
   output logic          x_result_ready_o,
+  // i2f queue interface
+  output logic [31:0]   i2f_rdata_o,
+  output logic          i2f_rvalid_o,
+  input  logic          i2f_rready_i,
+  // f2i queue interface
+  input  logic [31:0]   f2i_wdata_i,
+  input  logic          f2i_wvalid_i,
+  output logic          f2i_wready_o,
   /// TCDM Data Interface
   /// Write transactions do not return data on the `P Channel`
   /// Transactions need to be handled strictly in-order.
@@ -135,6 +143,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   input  logic          caq_pvalid_i,
   // Core events for performance counters
   output snitch_pkg::core_events_t  core_events_o,
+  // FP Queue CSR
+  output logic          en_fpinq_o,
   // Cluster HW barrier
   output logic          barrier_o,
   input  logic          barrier_i
@@ -187,6 +197,26 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic [0:0][31:0]                        gpr_wdata;
   logic [0:0]                              gpr_we;
   logic [2**RegWidth-1:0]                  sb_d, sb_q;
+
+  // IN->FP Queue write
+  logic        rd_is_i2f;
+  logic        i2f_wready;
+  logic [31:0] i2f_wdata;
+  // FP->IN Queue read
+  logic        f2i_rready;
+  logic        f2i_rvalid;
+  logic [31:0] f2i_rdata;
+
+  logic        rs1_is_inq;
+  logic        rs2_is_inq;
+
+  // When queues are enabled:
+  // Do NOT write to IN RF if t6 (any IN RF) is written to in FPSS.
+  // These are FP instrs that write back to IN RF through AccBus
+  logic        inq_false_write;
+  // Do NOT read from inq if t6 must be read in FPSS.
+  // These are FP instrs that read from int RF
+  logic        inq_false_read;
 
   // Load/Store Defines
   logic is_load, is_store, is_signed;
@@ -286,6 +316,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic [0:0][4:0] cause_d, cause_q;
   logic [0:0] cause_irq_d, cause_irq_q;
   logic spp_d, spp_q;
+  logic csr_fpinq_d, csr_fpinq_q;
   snitch_pkg::priv_lvl_t mpp_d, mpp_q;
   logic [0:0] ie_d, ie_q;
   logic [0:0] pie_d, pie_q;
@@ -323,6 +354,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   `FFAR(spp_q, spp_d, 1'b0, clk_i, rst_i)
   `FFAR(ie_q, ie_d, '0, clk_i, rst_i)
   `FFAR(pie_q, pie_d, '0, clk_i, rst_i)
+  `FFAR(csr_fpinq_q, csr_fpinq_d, 1'b0, clk_i, rst_i)
   // Interrupts
   `FFAR(eie_q, eie_d, '0, clk_i, rst_i)
   `FFAR(tie_q, tie_d, '0, clk_i, rst_i)
@@ -478,21 +510,22 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     sb_d = sb_q;
     if (retire_load) sb_d[lsu_rd] = 1'b0;
     // only place the reservation if we actually executed the load or offload instruction
-    if ((is_load | acc_register_rd | (x_issue_hs & x_issue_resp_i.writeback)) && !stall && !exception) sb_d[rd] = 1'b1;
+    if ((is_load | (acc_register_rd  & ~inq_false_write) | (x_issue_hs & x_issue_resp_i.writeback)) && !stall && !exception) sb_d[rd] = 1'b1;
     if (retire_acc) sb_d[acc_prsp_i.id[RegWidth-1:0]] = 1'b0;
     if (EnableXif & retire_x) sb_d[x_result_i.rd] = 1'b0;
     sb_d[0] = 1'b0;
   end
   // TODO(zarubaf): This can probably be described a bit more efficient
   assign opa_ready = (opa_select != Reg) | ~sb_q[rs1];
-  assign opb_ready = (opb_select != Reg & opb_select != SImmediate) | ~sb_q[rs2];
+  assign opb_ready = (opb_select != Reg & opb_select != SImmediate) | (rs2_is_inq ? f2i_rvalid : ~sb_q[rs2]);
   assign opc_ready = (opc_select != Reg) | ~sb_q[rs3];
 
   // Here we do not use the opc_ready signal
   assign operands_ready = opa_ready & opb_ready;
   // either we are not using the destination register or we need to make
   // sure that its destination operand is not marked busy in the scoreboard.
-  assign dst_ready = ~uses_rd | (uses_rd & ~sb_q[rd]);
+  // TODO(colluca): check if rd_is_i2f should also be conditional on uses_rd
+  assign dst_ready = rd_is_i2f ? i2f_wready : ~uses_rd | (uses_rd & ~sb_q[rd]);
 
   assign valid_instr = inst_ready_i
                       & inst_valid_o
@@ -580,6 +613,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     // if we are writing the field this cycle we need
     // an int destination register
     uses_rd = write_rd;
+    inq_false_read = 1'b0;
 
     rd_bypass = '0;
     zero_lsb = 1'b0;
@@ -2000,6 +2034,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           opa_select = Reg;
           write_rd = 1'b0;
           acc_qvalid_o = valid_instr;
+          inq_false_read = 1'b1;
         end else begin
           illegal_inst = 1'b1;
         end
@@ -2022,6 +2057,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           opa_select = Reg;
           write_rd = 1'b0;
           acc_qvalid_o = valid_instr;
+          inq_false_read = 1'b1;
         end else begin
           illegal_inst = 1'b1;
         end
@@ -2135,6 +2171,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           acc_qvalid_o = valid_instr & trans_ready & caq_qready;
           ls_size = Double;
           is_fp_load = 1'b1;
+          inq_false_read = 1'b1;
         end else begin
           illegal_inst = 1'b1;
         end
@@ -2418,6 +2455,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     fcsr_d.fflags = fcsr_q.fflags | fpu_status_i;
     fcsr_d.fmode.src = fcsr_q.fmode.src;
     fcsr_d.fmode.dst = fcsr_q.fmode.dst;
+    csr_fpinq_d = csr_fpinq_q;
     scratch_d = scratch_q;
     epc_d = epc_q;
     cause_d = cause_q;
@@ -2679,6 +2717,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
             csr_rvalue = csr_mcast_q;
             csr_mcast_d = alu_result[31:0];
           end
+          CSR_FPQ: begin
+            csr_rvalue = {31'b0, csr_fpinq_q};
+            if (!exception) csr_fpinq_d = alu_result[0];
+          end
           default: begin
             csr_rvalue = '0;
             csr_dump = 1'b1;
@@ -2778,6 +2820,58 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   end
   // pragma translate_on
 
+  // --------------------
+  // COPIFT Queue
+  // --------------------
+
+  // Common enable signal for the IN->FP and FP->IN Queues
+  assign en_fpinq_o = csr_fpinq_q;
+
+  // Read from inq if rs==t6 & queues are enabled, but not if t6 is to be read in FPSS.
+  assign rs1_is_inq = (rs1=='d31) & en_fpinq_o & ~inq_false_read;
+  assign rs2_is_inq = (rs2=='d31) & en_fpinq_o & ~inq_false_read;
+  assign f2i_rready = valid_instr && (((opa_select == Reg) && rs1_is_inq) || ((opb_select == Reg) && rs2_is_inq));
+  // False Writes to IN RF: FP instrs that write to back int RF through AccBus when queue is enabled
+  assign inq_false_write = (acc_qreq_o.addr == FP_SS) & acc_register_rd & en_fpinq_o;
+
+  // Integer-to-FP COPIFT queue
+  stream_fifo #(
+    .FALL_THROUGH(1'b0),
+    .DATA_WIDTH  (32),
+    .DEPTH       (16)
+  ) i_i2f_queue (
+    .clk_i     (clk_i),
+    .rst_ni    (~rst_i),
+    .flush_i   ('0),
+    .testmode_i('0),
+    .usage_o   (),
+    .data_i    (i2f_wdata),
+    .valid_i   (rd_is_i2f),
+    .ready_o   (i2f_wready),
+    .data_o    (i2f_rdata_o),
+    .valid_o   (i2f_rvalid_o),
+    .ready_i   (i2f_rready_i)
+  );
+
+  // FP-to-integer COPIFT queue
+  stream_fifo #(
+    .FALL_THROUGH(1'b0),
+    .DATA_WIDTH  (32),
+    .DEPTH       (16)
+  ) i_f2i_queue (
+    .clk_i     (clk_i),
+    .rst_ni    (~rst_i),
+    .flush_i   ('0),
+    .testmode_i('0),
+    .usage_o   (),
+    .data_i    (f2i_wdata_i),
+    .valid_i   (f2i_wvalid_i),
+    .ready_o   (f2i_wready_o),
+    .data_o    (f2i_rdata),
+    .valid_o   (f2i_rvalid),
+    .ready_i   (f2i_rready)
+  );
+
   snitch_regfile #(
     .DataWidth    ( 32             ),
     .NrReadPorts  ( NumRfReadPorts ),
@@ -2800,7 +2894,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   always_comb begin
     unique case (opa_select)
       None: opa = '0;
-      Reg: opa = gpr_rdata[0];
+      Reg: opa = rs1_is_inq ? f2i_rdata : gpr_rdata[0];
       UImmediate: opa = uimm;
       JImmediate: opa = jimm;
       CSRImmmediate: opa = {{{32-RegWidth}{1'b0}}, rs1};
@@ -2811,7 +2905,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   always_comb begin
     unique case (opb_select)
       None: opb = '0;
-      Reg: opb = gpr_rdata[1];
+      Reg: opb = rs2_is_inq ? f2i_rdata : gpr_rdata[1];
       IImmediate: opb = iimm;
       SFImmediate, SImmediate: opb = simm;
       PC: opb = pc_q;
@@ -3081,10 +3175,15 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     endcase
   end
 
+  // Set we of gpr to zero if writing to queue
   always_comb begin
     gpr_we[0] = 1'b0;
     gpr_waddr[0] = rd;
     gpr_wdata[0] = alu_writeback;
+
+    rd_is_i2f  = 1'b0;
+    i2f_wdata = alu_writeback;
+    
     // external interfaces
     lsu_pready = 1'b0;
     acc_pready_o = 1'b0;
@@ -3095,19 +3194,26 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     retire_x = 1'b0;
 
     if (retire_i) begin
-      gpr_we[0] = 1'b1;
+      rd_is_i2f  = (rd =='d31) & en_fpinq_o; // write to fpq if rd==t6  and csr is enabled
+      gpr_we[0] = ~rd_is_i2f;
     // if we are not retiring another instruction retire the load now
     end else if (lsu_pvalid) begin
       retire_load = 1'b1;
-      gpr_we[0] = 1'b1;
+      rd_is_i2f  = (lsu_rd =='d31) & en_fpinq_o;
+      gpr_we[0] = ~rd_is_i2f;
       gpr_waddr[0] = lsu_rd;
       gpr_wdata[0] = ld_result[31:0];
+      i2f_wdata = ld_result[31:0];
+
       lsu_pready = 1'b1;
     end else if (acc_pvalid_i) begin
       retire_acc = 1'b1;
-      gpr_we[0] = 1'b1;
+      rd_is_i2f  = (acc_prsp_i.id =='d31) & en_fpinq_o;
+      gpr_we[0] = ~rd_is_i2f & ~inq_false_write; // if inq_false_write, FP would have already written into inq. But it works even without this signal because acc_pvalid_i is set to false in FPSS.
       gpr_waddr[0] = acc_prsp_i.id;
       gpr_wdata[0] = acc_prsp_i.data[31:0];
+      i2f_wdata = acc_prsp_i.data[31:0];
+
       acc_pready_o = 1'b1;
     end else if (EnableXif & x_result_valid_i & x_result_i.we) begin
       retire_x = 1'b1;
