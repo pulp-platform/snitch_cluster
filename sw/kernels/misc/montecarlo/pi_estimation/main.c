@@ -17,7 +17,7 @@
 #endif
 
 #ifndef FUNC_PTR
-#define FUNC_PTR calculate_psum_optimized
+#define FUNC_PTR calculate_psum_optimized_v2
 #endif
 
 #ifndef N_CORES
@@ -497,6 +497,169 @@ static inline uint32_t calculate_psum_optimized(PRNG_T *prngs,
 
     return 0;
 }
+
+static inline uint32_t calculate_psum_optimized_v2(PRNG_T *prngs,
+                                                   unsigned int n_samples) {
+    unsigned int result = 0;
+
+    // Accumulators for partial sums
+    int temp0 = 0;
+    int temp1 = 0;
+    int temp2 = 0;
+    int temp3 = 0;
+
+#if PRNG == PRNG_LCG
+    // LCG state
+    uint32_t lcg_state_x0 = prngs[0].state;
+    uint32_t lcg_state_x1 = prngs[1].state;
+    uint32_t lcg_state_x2 = prngs[2].state;
+    uint32_t lcg_state_x3 = prngs[3].state;
+    uint32_t lcg_state_y0 = prngs[4].state;
+    uint32_t lcg_state_y1 = prngs[5].state;
+    uint32_t lcg_state_y2 = prngs[6].state;
+    uint32_t lcg_state_y3 = prngs[7].state;
+    uint32_t lcg_Ap = prngs->A;
+    uint32_t lcg_Cp = prngs->C;
+#elif PRNG == PRNG_XOSHIRO128P
+    // xoshiro128p state
+    uint32_t xoshiro128p_state_0 = prngs->s[0];
+    uint32_t xoshiro128p_state_1 = prngs->s[1];
+    uint32_t xoshiro128p_state_2 = prngs->s[2];
+    uint32_t xoshiro128p_state_3 = prngs->s[3];
+    uint32_t xoshiro128p_tmp;
+#endif
+
+    if (snrt_cluster_core_idx() < N_CORES) {
+
+        snrt_mcycle();
+
+        // Fix register used by 1.0 constant
+        register double reg_one asm("ft8") = one;
+        register double reg_two asm("ft9") = two;
+        register double reg_three asm("ft10") = three;
+
+        // Unrolled by 4
+        uint32_t n_iter = n_samples / 4;
+
+        // clang-format off
+        asm volatile(
+            // Enable COPIFT queues
+            "csrrsi x0, 0x7C4, 0x1 \n"
+
+            // Compute 4 integer PRN (X, Y) pairs (prologue of integer thread)
+#if PRNG == PRNG_LCG
+            EVAL_LCG_UNROLL4_TO_I2F
+#elif PRNG == PRNG_XOSHIRO128P
+            EVAL_XOSHIRO128P_UNROLL4_TO_I2F
+#endif
+
+#if APPLICATION == APPLICATION_PI
+            "frep.o %[n_frep], 28, 0, 0 \n"
+#elif APPLICATION == APPLICATION_POLY
+            "frep.o %[n_frep], 40, 0, 0 \n"
+#endif
+
+            // Convert integer PRNs to doubles
+            "fcvt.d.wu fa0, t6 \n"
+            "fcvt.d.wu fa1, t6 \n"
+            "fcvt.d.wu fa2, t6 \n"
+            "fcvt.d.wu fa3, t6 \n"
+            "fcvt.d.wu fa4, t6 \n"
+            "fcvt.d.wu fa5, t6 \n"
+            "fcvt.d.wu fa6, t6 \n"
+            "fcvt.d.wu fa7, t6 \n"
+
+            // Normalize PRNs to [0, 1] range
+            "fmul.d fa0, fa0, %[div] \n"
+            "fmul.d fa2, fa2, %[div] \n"
+            "fmul.d fa4, fa4, %[div] \n"
+            "fmul.d fa6, fa6, %[div] \n"
+            "fmul.d fa1, fa1, %[div] \n"
+            "fmul.d fa3, fa3, %[div] \n"
+            "fmul.d fa5, fa5, %[div] \n"
+            "fmul.d fa7, fa7, %[div] \n"
+
+#if APPLICATION == APPLICATION_PI
+            // x^2 + y^2
+            EVAL_X2_PLUS_Y2_UNROLL4(fa0, fa1, fa2, fa3, fa4, fa5, fa6,
+                                    fa7, fa4, fa5, fa6, fa7)
+            // (x^2 + y^2) < 1
+            FLT_SSR_UNROLL_4_TO_F2I(fa4, fa5, fa6, fa7, ft8, ft8, ft8, ft8,
+                                    t6, t6, t6, t6)
+#elif APPLICATION == APPLICATION_POLY
+            // y * 3
+            // x^3 + x^2 - x + 2
+            EVAL_POLY_UNROLL4(fa0, fa1, fa2, fa3, fa4, fa5, fa6, fa7,
+                              ft3, ft4, ft5, ft6, fa0, fa1, fa2, fa3)
+            // y * 3 < x^3 + x^2 - x + 2
+            FLT_SSR_UNROLL_4_TO_F2I(fa4, fa5, fa6, fa7, fa0, fa1, fa2, fa3,
+                                    t6, t6, t6, t6)
+#endif
+
+            // Other iterations of integer thread (steady-state)
+            "addi %[n_iter], %[n_iter], -1 \n"
+            "1:"
+#if PRNG == PRNG_LCG
+            EVAL_LCG_UNROLL4_TO_I2F
+#elif PRNG == PRNG_XOSHIRO128P
+            EVAL_XOSHIRO128P_UNROLL4_TO_I2F
+#endif
+            "add   %[temp0],  %[temp0], t6 \n"
+            "add   %[temp1],  %[temp1], t6 \n"
+            "add   %[temp2],  %[temp2], t6 \n"
+            "add   %[temp3],  %[temp3], t6 \n"
+            "addi %[n_iter], %[n_iter], -1 \n"
+            "bnez %[n_iter], 1b            \n"
+
+            // Update the partial sums (epilogue of integer thread)
+            "add   %[temp0],  %[temp0], t6 \n"
+            "add   %[temp1],  %[temp1], t6 \n"
+            "add   %[temp2],  %[temp2], t6 \n"
+            "add   %[temp3],  %[temp3], t6 \n"
+
+            // Disable COPIFT queues
+            "csrrci x0, 0x7C4, 0x1 \n"
+
+            : [ temp0 ] "+r"(temp0), [ temp1 ] "+r"(temp1),
+              [ temp2 ] "+r"(temp2), [ temp3 ] "+r"(temp3)
+#if PRNG == PRNG_LCG
+              , ASM_LCG_OUTPUTS
+#elif PRNG == PRNG_XOSHIRO128P
+              , ASM_XOSHIRO128P_OUTPUTS
+#endif
+            : [ n_iter ] "r"(n_iter), [ n_frep ] "r"(n_iter - 1),
+                [ div ] "f"(max_uint_plus_1_inverse)
+#if APPLICATION == APPLICATION_PI
+                , ASM_PI_CONSTANTS(reg_one)
+#elif APPLICATION == APPLICATION_POLY
+                , ASM_POLY_CONSTANTS(reg_two, reg_three)
+#endif
+#if PRNG == PRNG_LCG
+                , ASM_LCG_INPUTS
+#elif PRNG == PRNG_XOSHIRO128P
+                , ASM_XOSHIRO128P_INPUTS
+#endif
+            : "t0", "a0", "t1", "a1", "t2", "a2", "t3", "a3", "t6",
+              "ft0", "ft1", "ft2", "ft3", "ft4", "ft5", "ft6", "ft8",
+              "fa0", "fa1", "fa2", "fa3", "fa4", "fa5", "fa6", "fa7",
+              "memory"
+        );
+        // clang-format on
+
+        // Synchronize FP and integer threads
+        snrt_fpu_fence();
+
+        // Reduce partial sums
+        result += temp0;
+        result += temp1;
+        result += temp2;
+        result += temp3;
+        return result;
+    }
+
+    return 0;
+}
+
 
 int main() {
     uint32_t n_seq_per_core, n_seq;
