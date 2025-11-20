@@ -15,11 +15,10 @@ export SN_LLVM_BINROOT=/usr/scratch2/vulcano/colluca/tools/riscv32-snitch-llvm-a
 # Add simulator binaries to PATH
 export PATH=$PWD/target/sim/build/bin:$PATH
 
-# For all python developments we use uv to setup the environment etc.,
+# We use `uv` for managing python dependencies and environments
 export SN_UV="/usr/local/uv/uv run --all-extras"
-export PATH="/usr/local/uv/:$PATH"
-# IT does not like if stuff is cached in home. We could use a temporary
-# directory, but since this script is not usually run numerous times, we
-# just disable the cache.
-# (see .gitlab-ci.yml for example of using smart caching with uv)
-export UV_NO_CACHE="true"
+# Setting the path is only necessary for manual `uv run` commands
+export PATH=$PATH:/usr/local/uv
+# Copy instead link packages from global cache, since the cache is typically
+# located on a different file system (e.g. your home directory).
+export UV_LINK_MODE=copy

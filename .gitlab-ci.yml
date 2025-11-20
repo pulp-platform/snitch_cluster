@@ -21,8 +21,8 @@ default:
     - unset VIRTUAL_ENV
     # The CI is configured such that the uv cache directory (`UV_CACHE_DIR`),
     # is located on the same file system outside of the build directory.
-    # `uv` will link files instead of copying them when possible.
-    - unset UV_NO_CACHE
+    # `uv` should try to hardlink files instead of copying them to save space
+    - export UV_LINK_MODE=hardlink
 
 
 ##############
