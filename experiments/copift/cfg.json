@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
-// Cluster configuration for a simple testbench system.
 {
     cluster: {
         cluster_base_addr: 0x10000000,
@@ -10,7 +9,8 @@
         cluster_base_hartid: 0,
         addr_width: 48,
         data_width: 64,
-        user_width: 5, // clog2(total number of clusters)
+        atomic_id_width: 5, // clog2(total number of clusters)
+        user_width: 53, // addr_width + atomic_id_width
         tcdm: {
             size: 128,
             banks: 32,
@@ -23,7 +23,8 @@
         dma_req_fifo_depth: 8,
         narrow_trans: 4,
         wide_trans: 32,
-        dma_user_width: 1,
+        dma_user_width: 48,
+        enable_multicast: true,
         // We don't need Snitch debugging in Occamy
         enable_debug: false,
         // We don't need Snitch (core-internal) virtual memory support
@@ -64,7 +65,7 @@
                 icache: {
                     size: 8, // total instruction cache size in kByte
                     ways: 2, // number of ways
-                    cacheline: 256 // word size in bits
+                    cacheline: 512 // word size in bits
                 },
                 cores: [
                     { $ref: "#/compute_core_template" },
@@ -105,6 +106,7 @@
         num_fp_outstanding_loads: 4,
         num_fp_outstanding_mem: 4,
         num_sequencer_instructions: 64,
+        num_sequencer_loops: 4,
         num_dtlb_entries: 1,
         num_itlb_entries: 1,
         // SSSR configuration below
@@ -121,6 +123,7 @@
         xdma: true,
         xssr: false,
         xfrep: false,
+        xcopift: false,
         xf16: false,
         xf16alt: false,
         xf8: false,
@@ -131,7 +134,6 @@
         num_int_outstanding_mem: 4,
         num_fp_outstanding_loads: 4,
         num_fp_outstanding_mem: 4,
-        num_sequencer_instructions: 64,
         num_dtlb_entries: 1,
         num_itlb_entries: 1,
     }

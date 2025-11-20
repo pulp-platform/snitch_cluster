@@ -17,6 +17,7 @@ from snitch.util.experiments.SimResults import SimRegion
 from statistics import geometric_mean
 import yaml
 
+
 # Plot parameters
 A4_HEIGHT = 11.7
 IEEE_TEXT_WIDTH = 7.244
@@ -57,15 +58,18 @@ class CopiftExperimentManager(ExperimentManager):
                 'N_SAMPLES': experiment['n_samples'],
                 'N_CORES': experiment['n_cores'],
                 'FUNC_PTR': 'calculate_psum_' + experiment['impl'],
-                'BATCH_SIZE': experiment['batch_size'],
+                'BATCH_SIZE': experiment['batch_size']
             }
         # LIBC kernels
         else:
-            return {
+            cdefs = {
                 'IMPL': 'IMPL_' + experiment['impl'].upper(),
                 'LEN': experiment['length'],
                 'BATCH_SIZE': experiment['batch_size']
             }
+            if self.args.bist:
+                cdefs['BIST'] = 1
+            return cdefs
 
     def derive_env(self, experiment):
         if 'vcd_start' in experiment and 'vcd_end' in experiment:
@@ -107,15 +111,22 @@ def get_rois(row, start_iter=-1, end_iter=-1):
             # Baseline Monte Carlo iterations are smaller than batch size
             # (and process exactly only 4 samples) so we adjust it here
             return 2 + iter * (row['batch_size'] // 4)
+        elif row['app'] not in ['exp', 'log'] and row['impl'] == 'COPIFTv2':
+            # We do not measure individual iterations in Monte Carlo COPIFTv2
+            # kernels, simply return region index 2 (the whole ROI)
+            return 2
         else:
             return 2 + iter
 
     start = iter_to_region_idx(start_iter)
 
-    if end_iter == -1:
-        end = iter_to_region_idx(get_num_iterations(row) - 1)
+    if row['app'] not in ['exp', 'log'] and row['impl'] == 'COPIFTv2':
+        end = start + 1
     else:
-        end = iter_to_region_idx(end_iter)
+        if end_iter == -1:
+            end = iter_to_region_idx(get_num_iterations(row) - 1)
+        else:
+            end = iter_to_region_idx(end_iter)
 
     return [SimRegion('hart_0', i) for i in range(start, end)]
 
@@ -132,6 +143,21 @@ def get_runtime(row, start_iter=-1, end_iter=-1):
     return interval[1] - interval[0]
 
 
+def get_cycles_per_sample(row, start_iter, end_iter):
+    runtime = get_runtime(row, start_iter, end_iter)  # cycles
+    if row['app'] not in ['exp', 'log'] and row['impl'] == 'COPIFTv2':
+        # Assumes n_samples_per_core = n_samples (n_cores = 1)
+        n_samples = row['length']
+    else:
+        n_samples = row['batch_size'] * (end_iter - start_iter)
+    return runtime / n_samples
+
+
+def get_throughput(row, start_iter, end_iter):
+    cycles_per_sample = get_cycles_per_sample(row, start_iter, end_iter)
+    return 100 / cycles_per_sample  # samples/100cycle
+
+
 def get_ipc(row, start_iter=-1, end_iter=-1):
     rois = get_rois(row, start_iter, end_iter)
     interval = get_interval(row, start_iter, end_iter)
@@ -144,8 +170,11 @@ def get_ipc(row, start_iter=-1, end_iter=-1):
 
 
 def fig1(df):
+    # Drop rows with COPIFTv2 implementation
+    df = df[df['impl'] != 'COPIFTv2'].reset_index(drop=True)
+
     # Calculate IPC for every run
-    df['ipc'] = df.apply(lambda row: get_ipc(row, 4, 8), axis=1)
+    df['ipc'] = df.apply(lambda row: get_ipc(row, 4, 6), axis=1)
 
     # Pivot the DataFrame to reshape it for plotting
     df = df.pivot(index='app', columns='impl', values='ipc').reset_index()
@@ -243,6 +272,8 @@ def fig1(df):
 
 
 def fig2(df):
+    # Drop rows with COPIFTv2 implementation
+    df = df[df['impl'] != 'COPIFTv2'].reset_index(drop=True)
 
     # Prepare data for plotting
     apps = df['app'].unique()
@@ -307,62 +338,64 @@ def fig2(df):
     }
 
 
-def fig3(df):
-    df['runtime'] = df.apply(lambda row: get_runtime(row, 4, 8), axis=1)
+def fig3(df, baseline, optimized, height, file='plot7.pdf'):
+    df['cps'] = df.apply(lambda row: get_cycles_per_sample(row, 4, 6), axis=1)
 
     # Prepare data for plotting
     apps = df['app'].unique()
     x = np.arange(len(apps))
     width = 0.35
-    base_runtimes = df[df['impl'] == 'Baseline']['runtime'].values
-    copift_runtimes = df[df['impl'] == 'COPIFT']['runtime'].values
-    base_powers = df[df['impl'] == 'Baseline']['total_power'].values
-    copift_powers = df[df['impl'] == 'COPIFT']['total_power'].values
-    speedup = base_runtimes / copift_runtimes
-    energy_saving = (base_powers * base_runtimes) / (copift_powers * copift_runtimes)
+    base_cps = df[df['impl'] == baseline]['cps'].values
+    optimized_cps = df[df['impl'] == optimized]['cps'].values
+    base_powers = df[df['impl'] == baseline]['total_power'].values
+    optimized_powers = df[df['impl'] == optimized]['total_power'].values
+    speedup = base_cps / optimized_cps
+    energy_saving = (base_powers * base_cps) / (optimized_powers * optimized_cps)
 
     # Create the plot
     _, ax = plt.subplots()
     ax.axhline(1, color='black', linewidth=0.5, zorder=1)
     cmap = mpl.colormaps['plasma']
     speedup_bars = ax.bar(x - width/2, speedup, width, label='Speedup', color=cmap(0.48))
-    energy_saving_bars = ax.bar(x + width/2, energy_saving, width, label='Energy improvement',
+    energy_saving_bars = ax.bar(x + width/2, energy_saving, width, label='Energy impr.',
                                 color=cmap(0.82))
 
     # Add labels to the bars
     ax.bar_label(speedup_bars, label_type='center', fmt='{:.2f}', rotation=90, color='white')
     ax.bar_label(energy_saving_bars, label_type='center', fmt='{:.2f}', rotation=90, color='white')
 
-    # Draw expected speedup values
-    exp_speedups = [1.14, 1.26, 1.39, 1.55, 1.6, 2.21]
-    for i in range(len(apps)):
-        # Get the coordinates for the line
-        base_x = x[i] - width/2
-        speedup_y = speedup[i]
-        exp_speedup_y = exp_speedups[i]
+    if baseline == 'Baseline' and optimized == 'COPIFT':
+        # Draw expected speedup values
+        exp_speedups = [1.14, 1.26, 1.39, 1.55, 1.6, 2.21]
+        for i in range(len(apps)):
+            # Get the coordinates for the line
+            base_x = x[i] - width/2
+            speedup_y = speedup[i]
+            exp_speedup_y = exp_speedups[i]
 
-        # Draw vertical line
-        ax.plot([base_x, base_x], [speedup_y, exp_speedup_y], color='black', linewidth=0.5,
-                linestyle='--')
+            # Draw vertical line
+            ax.plot([base_x, base_x], [speedup_y, exp_speedup_y], color='black', linewidth=0.5,
+                    linestyle='--')
 
-        # Draw horizontal line
-        ax.plot([base_x - width/2, base_x + width/2], [exp_speedup_y, exp_speedup_y],
-                color='black', linewidth=0.5, linestyle='--')
+            # Draw horizontal line
+            ax.plot([base_x - width/2, base_x + width/2], [exp_speedup_y, exp_speedup_y],
+                    color='black', linewidth=0.5, linestyle='--')
 
     # Customize the plot
     ax.set_axisbelow(True)
     ax.grid(color='gainsboro', which='both', axis='y', linewidth=0.5)
     ax.set_xlabel('')
-    ax.set_ylabel('(c) Speedup/Energy impr.')
+    ax.set_ylabel('(c) Speedup/En. im.')
     ax.set_xticks(x)
-    ax.set_xticklabels(apps, rotation=30)
+    apps = [app.replace('_', '_\n') if 'xoshiro128p' in app else app for app in apps]
+    ax.set_xticklabels(apps, rotation=10)
     ax.legend(title='', ncols=2)
     plt.tight_layout()
 
     # Display the plot
-    file = RESULT_DIR / 'plot3.pdf'
+    file = RESULT_DIR / file
     file.parent.mkdir(parents=True, exist_ok=True)
-    plt.gcf().set_size_inches(IEEE_COL_WIDTH, 0.131 * A4_HEIGHT)
+    plt.gcf().set_size_inches(IEEE_COL_WIDTH, height * A4_HEIGHT)
     plt.gcf().subplots_adjust(
         left=0.1,
         bottom=0.34,
@@ -378,6 +411,149 @@ def fig3(df):
         'PeakEnergySaving': '{:.2f}'.format(energy_saving.max()),
         'GeomeanEnergySaving': '{:.2f}'.format(geometric_mean(energy_saving)),
     }
+
+
+def fig4(df):
+    # Calculate IPC for every run
+    df['ipc'] = df.apply(lambda row: get_ipc(row, 4, 6), axis=1)
+
+    # Pivot the DataFrame to reshape it for plotting
+    df = df.pivot(index='app', columns='impl', values='ipc').reset_index()
+
+    # Prepare data for plotting
+    apps = df['app']
+    x = np.arange(len(apps))
+    width = 0.25
+
+    # Create the plot
+    _, ax = plt.subplots()
+    ax.axhline(1, color='black', linewidth=0.5, zorder=1)
+    cmap = mpl.colormaps['plasma']
+    base_bars = ax.bar(x - width, df['Baseline'], width, label='Base', color=cmap(0.46))
+    copift_bars = ax.bar(x, df['COPIFT'], width, label='COPIFT', color=cmap(0.74))
+    copift_v2_bars = ax.bar(x + width, df['COPIFTv2'], width, label='COPIFTv2', color=cmap(0.9))
+    ax.bar_label(base_bars, label_type='center', fmt='{:.2f}', rotation=90, color='white')
+    ax.bar_label(copift_bars, label_type='center', fmt='{:.2f}', rotation=90, color='white')
+    ax.bar_label(copift_v2_bars, label_type='center', fmt='{:.2f}', rotation=90, color='white')
+
+    # Customize the plot
+    ax.set_axisbelow(True)
+    ax.grid(color='gainsboro', which='both', axis='y', linewidth=0.5)
+    ax.set_xlabel('')
+    ax.set_ylabel('(a) IPC')
+    ax.set_xticks([], labels=[])
+    ax.legend(title='', ncols=3)
+    plt.tight_layout()
+
+    # Display the plot
+    file = RESULT_DIR / 'plot4.pdf'
+    file.parent.mkdir(parents=True, exist_ok=True)
+    plt.gcf().set_size_inches(IEEE_COL_WIDTH, 0.07 * A4_HEIGHT)
+    plt.gcf().subplots_adjust(
+        left=0.1,
+        bottom=0.04,
+        right=1,
+        top=1
+    )
+    plt.savefig(file)
+
+    # Return metrics
+    return {
+        'PeakIPC': '{:.2f}'.format(df['COPIFTv2'].max()),
+    }
+
+
+def fig5(df):
+    # Calculate IPC for every run
+    df['throughput'] = df.apply(lambda row: get_throughput(row, 4, 6), axis=1)
+
+    # Pivot the DataFrame to reshape it for plotting
+    df = df.pivot(index='app', columns='impl', values='throughput').reset_index()
+
+    # Prepare data for plotting
+    apps = df['app']
+    x = np.arange(len(apps))
+    width = 0.25
+
+    # Create the plot
+    _, ax = plt.subplots()
+    # ax.axhline(1, color='black', linewidth=0.5, zorder=1)
+    cmap = mpl.colormaps['plasma']
+    base_bars = ax.bar(x - width, df['Baseline'], width, label='Base', color=cmap(0.46))
+    copift_bars = ax.bar(x, df['COPIFT'], width, label='COPIFT', color=cmap(0.74))
+    copift_v2_bars = ax.bar(x + width, df['COPIFTv2'], width, label='COPIFTv2', color=cmap(0.9))
+    ax.bar_label(base_bars, label_type='center', fmt='{:.1f}', rotation=90, color='white')
+    ax.bar_label(copift_bars, label_type='center', fmt='{:.1f}', rotation=90, color='white')
+    ax.bar_label(copift_v2_bars, label_type='center', fmt='{:.1f}', rotation=90, color='white')
+
+    # Customize the plot
+    ax.set_axisbelow(True)
+    ax.grid(color='gainsboro', which='both', axis='y', linewidth=0.5)
+    ax.set_xlabel('')
+    ax.set_ylabel('(a) Throughput')
+    ax.set_xticks(x, labels=[str(app) for app in apps])
+    ax.legend(title='', ncols=3)
+    plt.tight_layout()
+
+    # Display the plot
+    file = RESULT_DIR / 'plot5.pdf'
+    file.parent.mkdir(parents=True, exist_ok=True)
+    plt.gcf().set_size_inches(IEEE_COL_WIDTH, 0.09 * A4_HEIGHT)
+    plt.gcf().subplots_adjust(
+        left=0.1,
+        bottom=0.18,
+        right=1,
+        top=1
+    )
+    plt.savefig(file)
+
+    # Return metrics
+    return {}
+
+
+def fig6(df):
+    # Prepare data for plotting
+    apps = df['app'].unique()
+    x = np.arange(len(apps))
+    width = 0.25
+
+    # Create the plot
+    base_powers = df[df['impl'] == 'Baseline']['total_power'].values
+    copift_powers = df[df['impl'] == 'COPIFT']['total_power'].values
+    copift_v2_powers = df[df['impl'] == 'COPIFTv2']['total_power'].values
+    _, ax = plt.subplots()
+    cmap = mpl.colormaps['plasma']
+    base_bars = ax.bar(x - width, base_powers, width, label='Base', color=cmap(0.46))
+    copift_bars = ax.bar(x, copift_powers, width, label='COPIFT', color=cmap(0.74))
+    copift_v2_bars = ax.bar(x + width, copift_v2_powers, width, label='COPIFTv2', color=cmap(0.9))
+    ax.bar_label(base_bars, label_type='center', fmt='{:.1f}', rotation=90, color='white')
+    ax.bar_label(copift_bars, label_type='center', fmt='{:.1f}', rotation=90, color='white')
+    ax.bar_label(copift_v2_bars, label_type='center', fmt='{:.1f}', rotation=90, color='white')
+
+    # Customize the plot
+    ax.set_axisbelow(True)
+    ax.grid(color='gainsboro', which='both', axis='y', linewidth=0.5)
+    ax.set_xlabel('')
+    ax.set_ylabel('(b) Power [mW]')
+    ax.set_ylim(0, copift_powers.max() * 1.2)
+    ax.set_xticks([], labels=[])
+    ax.legend(title='', ncols=3)
+    plt.tight_layout()
+
+    # Display the plot
+    file = RESULT_DIR / 'plot6.pdf'
+    file.parent.mkdir(parents=True, exist_ok=True)
+    plt.gcf().set_size_inches(IEEE_COL_WIDTH, 0.07 * A4_HEIGHT)
+    plt.gcf().subplots_adjust(
+        left=0.1,
+        bottom=0.04,
+        right=1,
+        top=1
+    )
+    plt.savefig(file)
+
+    # Return metrics
+    return {}
 
 
 def group_power_breakdown(df):
@@ -409,7 +585,7 @@ def group_power_breakdown(df):
 
 
 def dump_pls_testlist(testlist, df):
-    vcd_interval = df.apply(lambda row: get_interval(row, 4, 8), axis=1)
+    vcd_interval = df.apply(lambda row: get_interval(row, 4, 6), axis=1)
 
     for i, experiment in enumerate(testlist['experiments']):
         vcd_start, vcd_end = vcd_interval.iloc[i]
@@ -420,13 +596,13 @@ def dump_pls_testlist(testlist, df):
         yaml.dump(testlist, f, sort_keys=False)
 
 
-def latex_metrics(metrics):
+def latex_metrics(metrics, file):
     # Auxiliary function to format a metric as a LaTeX command
     def latex_metric(name, value):
         return f"\\newcommand{{\\Result{name}}}{{{value}}}\n"
 
     # Create file
-    with open(RESULT_DIR / 'metrics.tex', 'w') as f:
+    with open(RESULT_DIR / file, 'w') as f:
         [f.write(latex_metric(name, value)) for name, value in metrics.items()]
 
 
@@ -523,6 +699,7 @@ def main():
     parser = CopiftExperimentManager.parser()
     parser.add_argument('--dump-pls-testlist', action='store_true')
     parser.add_argument('--plot', action='store_true')
+    parser.add_argument('--bist', action='store_true')
     args = parser.parse_args()
     manager = CopiftExperimentManager(args=args)
     manager.run()
@@ -547,6 +724,7 @@ def main():
     df['impl'] = df['impl'].replace({
         'issr': 'COPIFT',
         'optimized': 'COPIFT',
+        'optimized_v2': 'COPIFTv2',
         'baseline': 'Baseline'
     })
 
@@ -560,12 +738,18 @@ def main():
     df['app'] = pd.Categorical(df['app'], categories=desired_order, ordered=True)
     df = df.sort_values('app').reset_index(drop=True)
 
-    metrics = {}
-    metrics.update(fig1(df))
+    copift_metrics = {}
+    copift_v2_metrics = {}
+    copift_metrics.update(fig1(df))
     if power_results_available:
-        metrics.update(fig2(df))
-        metrics.update(fig3(df))
-    latex_metrics(metrics)
+        copift_metrics.update(fig2(df))
+        copift_metrics.update(fig3(df, 'Baseline', 'COPIFT', 0.131, 'plot3.pdf'))
+        copift_v2_metrics.update(fig3(df, 'COPIFT', 'COPIFTv2', 0.1, 'plot7.pdf'))
+    copift_v2_metrics.update(fig4(df))
+    copift_v2_metrics.update(fig5(df))
+    copift_v2_metrics.update(fig6(df))
+    latex_metrics(copift_metrics, 'copift_metrics.tex')
+    latex_metrics(copift_v2_metrics, 'copift_v2_metrics.tex')
 
 
 if __name__ == '__main__':
