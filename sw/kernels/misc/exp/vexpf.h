@@ -15,9 +15,10 @@
 #define IMPL_NAIVE 0
 #define IMPL_BASELINE 1
 #define IMPL_OPTIMIZED 2
+#define IMPL_OPTIMIZED_V2 3
 
 #ifndef IMPL
-#define IMPL IMPL_OPTIMIZED
+#define IMPL IMPL_OPTIMIZED_V2
 #endif
 
 #if IMPL == IMPL_NAIVE
@@ -26,6 +27,8 @@
 #define FUNC_PTR vexpf_baseline
 #elif IMPL == IMPL_OPTIMIZED
 #define FUNC_PTR vexpf_optimized
+#elif IMPL == IMPL_OPTIMIZED_V2
+#define FUNC_PTR vexpf_optimized_v2
 #endif
 
 #define ALLOCATE_BUFFER(type, size) \
@@ -56,6 +59,7 @@ __thread const double C[4] = {0x1.c6af84b912394p-5 / N / N / N,
 #include "vexpf_baseline.h"
 #include "vexpf_naive.h"
 #include "vexpf_optimized.h"
+#include "vexpf_optimized_v2.h"
 
 static inline void vexpf_kernel(double *a, double *b) {
     snrt_mcycle();
