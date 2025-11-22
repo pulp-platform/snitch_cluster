@@ -107,7 +107,7 @@ doc-srcs: $(GENERATED_DOC_SRCS)
 doxygen-docs: $(DOXYGEN_DOCS_DIR)
 
 docs: doc-srcs doxygen-docs
-	mkdocs build
+	$(SN_UV) mkdocs build
 
 clean-docs:
 	rm -rf $(GENERATED_DOCS_DIR)
@@ -121,7 +121,7 @@ $(GENERATED_DOCS_DIR)/peripherals.md: hw/snitch_cluster/src/snitch_cluster_perip
 	$(SN_PEAKRDL) markdown $< -o $@
 
 $(DOXYGEN_DOCS_DIR): $(DOXYFILE) $(DOXYGEN_INPUTS)
-	doxygen $<
+	$(SN_UV) doxygen $<
 
 #######
 # RTL #
@@ -138,7 +138,7 @@ clean-rtl: sn-clean-rtl
 ############
 
 NONFREE_REMOTE ?= git@iis-git.ee.ethz.ch:pulp-restricted/snitch-cluster-nonfree.git
-NONFREE_COMMIT ?= refactor
+NONFREE_COMMIT ?= 41979e8257904625e45118675f72553d37f86bf4
 NONFREE_DIR = $(SN_ROOT)/nonfree
 
 .PHONY: nonfree clean-nonfree

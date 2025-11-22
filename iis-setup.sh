@@ -12,16 +12,13 @@ export SN_VERILATOR_SEPP=oseda
 export SN_QUESTA_SEPP=questa-2023.4
 export SN_LLVM_BINROOT=/usr/scratch2/vulcano/colluca/tools/riscv32-snitch-llvm-almalinux8-15.0.0-snitch-0.2.0/bin
 
-# Create Python virtual environment with required packages
-/usr/local/anaconda3-2023.07/bin/python -m venv .venv
-source .venv/bin/activate
-# Install local packages in editable mode and unpack packages in a
-# local temporary directory which can be safely cleaned after installation.
-# Also protects against "No space left on device" errors
-# occurring when the /tmp folder is filled by other processes.
-mkdir tmp
-TMPDIR=tmp pip install -e .[all]
-rm -rf tmp
-
 # Add simulator binaries to PATH
 export PATH=$PWD/target/sim/build/bin:$PATH
+
+# We use `uv` for managing python dependencies and environments
+export SN_UV="/usr/local/uv/uv run --all-extras"
+# Setting the path is only necessary for manual `uv run` commands
+export PATH=$PATH:/usr/local/uv
+# Copy instead link packages from global cache, since the cache is typically
+# located on a different file system (e.g. your home directory).
+export UV_LINK_MODE=copy

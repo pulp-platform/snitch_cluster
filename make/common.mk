@@ -20,8 +20,9 @@ SN_BIN_DIR    = $(SN_TARGET_DIR)/sim/build/bin
 SN_WORK_DIR   = $(SN_TARGET_DIR)/sim/build/work
 
 # External executables
-SN_BENDER	      ?= bender
-SN_PEAKRDL        ?= peakrdl
+SN_BENDER         ?= bender
+SN_UV             ?=
+SN_PEAKRDL        ?= $(SN_UV) peakrdl
 SN_VERIBLE_FMT    ?= verible-verilog-format
 SN_CLANG_FORMAT   ?= clang-format
 SN_RISCV_MC       ?= $(SN_LLVM_BINROOT)/llvm-mc
@@ -96,7 +97,7 @@ endef
 define sn_cluster_gen_rule
 $(1): $(SN_CFG) $(SN_CLUSTER_GEN) $(SN_CLUSTER_GEN_SRC) $(2) | $(call sn_normalize_dir,$(dir $(1)))
 	@echo "[CLUSTERGEN] Generate $$@"
-	$(SN_CLUSTER_GEN) -c $$< -o $$@ --template $(2)
+	$(SN_UV) $(SN_CLUSTER_GEN) -c $$< -o $$@ --template $(2)
 endef
 
 # Common rule to generate a Makefile with RTL source and header
@@ -125,5 +126,5 @@ endef
 # Usage:
 #   $(call sn_include_deps)
 define sn_include_deps
-$(eval $(if $(strip $(MAKECMDGOALS)),$(shell list-dependent-make-targets -M -r $(SN_DEPS))))
+$(eval $(if $(strip $(MAKECMDGOALS)),$(shell $(SN_UV) list-dependent-make-targets -M -r $(SN_DEPS))))
 endef

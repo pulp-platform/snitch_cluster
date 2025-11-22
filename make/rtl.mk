@@ -47,7 +47,7 @@ $(SN_BOOTROM_ELF) $(SN_BOOTROM_DUMP) $(SN_BOOTROM_BIN) $(SN_BOOTROM): $(SN_BOOTR
 	$(SN_RISCV_CC) -mabi=ilp32d -march=rv32imafd -static -nostartfiles -fuse-ld=$(SN_RISCV_LD) -L$(SN_ROOT)/sw/runtime -T$(SN_BOOTROM_DIR)/bootrom.ld $< -o $(SN_BOOTROM_ELF)
 	$(SN_RISCV_OBJDUMP) -d $(SN_BOOTROM_ELF) > $(SN_BOOTROM_DUMP)
 	$(SN_RISCV_OBJCOPY) -j .text -O binary $(SN_BOOTROM_ELF) $(SN_BOOTROM_BIN)
-	$(SN_BOOTROM_GEN) --sv-module snitch_bootrom $(SN_BOOTROM_BIN) > $(SN_BOOTROM)
+	$(SN_UV) $(SN_BOOTROM_GEN) --sv-module snitch_bootrom $(SN_BOOTROM_BIN) > $(SN_BOOTROM)
 
 # General RTL targets
 .PHONY: sn-rtl sn-clean-rtl

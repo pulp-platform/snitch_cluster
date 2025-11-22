@@ -12,40 +12,24 @@ variables:
   CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER: /usr/pack/gcc-9.2.0-af/linux-x64/bin/gcc
   LLVM_SYS_120_PREFIX: /usr/pack/llvm-12.0.1-af
   CMAKE: cmake-3.18.1
-  # Override pip cache directory
-  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  UV_CACHE_DIR: $CI_BUILDS_DIR/../cache/uv
 
 default:
   before_script:
-    source iis-setup.sh
-  cache: &global_cache
-    key:
-      files:
-        - pyproject.toml
-    paths:
-      - .cache/pip
-    policy: pull
+    - source iis-setup.sh
+    # Gets rid of uv warnings about already activated virtualenv
+    - unset VIRTUAL_ENV
+    # The CI is configured such that the uv cache directory (`UV_CACHE_DIR`),
+    # is located on the same file system outside of the build directory.
+    # `uv` should try to hardlink files instead of copying them to save space
+    - export UV_LINK_MODE=hardlink
 
-
-#########
-# Setup #
-#########
-
-setup:
-  cache:
-    # inherit all global cache settings
-    <<: *global_cache
-    # override the policy
-    policy: pull-push
-  script:
-    - echo "Setup completed."
 
 ##############
 # Build docs #
 ##############
 
 docs:
-  needs: [setup]
   script:
     - make docs
 
@@ -54,16 +38,14 @@ docs:
 #####################
 
 pytest:
-  needs: [setup]
   script:
-    - pytest
+    - uv run pytest
 
 #################################
 # Build Snitch cluster software #
 #################################
 
 snitch-cluster-sw:
-  needs: [setup]
   script:
     - make sw -j
   artifacts:
@@ -82,7 +64,6 @@ snitch-cluster-sw:
 # - snitch_dma
 # - snitch
 snitch-ip-tests:
-  needs: [setup]
   parallel:
     matrix:
       - IP:
@@ -102,28 +83,28 @@ snitch-ip-tests:
 
 # Verilator
 snitch-cluster-vlt:
-  needs: [setup, snitch-cluster-sw]
+  needs: [snitch-cluster-sw]
   script:
     - make verilator
     - cd test
-    - ../util/experiments/run.py run.yaml --simulator verilator -j --run-dir runs/vlt
+    - uv run ../util/experiments/run.py run.yaml --simulator verilator -j --run-dir runs/vlt
 
 # # VCS
 # snitch-cluster-vcs:
-#   needs: [setup, snitch-cluster-sw]
+#   needs: [snitch-cluster-sw]
 #   script:
 #     - make vcs
 #     - cd test
-#     - ../util/experiments/run.py run.yaml --simulator vcs -j --run-dir runs/vcs
+#     - uv run ../util/experiments/run.py run.yaml --simulator vcs -j --run-dir runs/vcs
 
 # Questa
 snitch-cluster-vsim:
-  needs: [setup, snitch-cluster-sw]
+  needs: [snitch-cluster-sw]
   script:
     - make vsim -j
     - cd test
-    - ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim
-    - ../util/experiments/run.py riscv_tests_isa.yaml --simulator vsim -j --run-dir runs/vsim
+    - uv run ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim
+    - uv run ../util/experiments/run.py riscv_tests_isa.yaml --simulator vsim -j --run-dir runs/vsim
     # Test trace annotation
     - make -C .. SIM_DIR=$(PWD)/runs/vsim/simple annotate -j
     # Run additional, more extensive tests
@@ -133,54 +114,49 @@ snitch-cluster-vsim:
 
 # Test OmegaNet TCDM interconnect
 snitch-cluster-omega-vsim:
-  needs: [setup]
   script:
     - make CFG_OVERRIDE=cfg/omega.json sw -j
     - make vsim -j
     - cd test
-    - ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim
+    - uv run ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim
 
 # Test Multi-channel DMA
 snitch-cluster-mchan-vsim:
-  needs: [setup]
   script:
     - make CFG_OVERRIDE=cfg/dma_mchan.json sw -j
     - make vsim -j
     - cd test
-    - ../util/experiments/run.py dma_mchan.yaml --simulator vsim -j --run-dir runs/vsim
+    - uv run ../util/experiments/run.py dma_mchan.yaml --simulator vsim -j --run-dir runs/vsim
 
 # Additional tests for different FREP configurations
 snitch-cluster-frep-vsim:
-  needs: [setup]
   script:
     # Large FREP configuration
     - make CFG_OVERRIDE=cfg/frep_xl.json sw -j
     - make vsim -j
     - cd test
-    - ../util/experiments/run.py frep_xl.yaml --simulator vsim -j --run-dir runs/vsim
+    - uv run ../util/experiments/run.py frep_xl.yaml --simulator vsim -j --run-dir runs/vsim
     - cd -
     # Small FREP configuration
     - make CFG_OVERRIDE=cfg/frep_xs.json sw -j
     - make vsim -j
     - cd test
-    - ../util/experiments/run.py frep_xs.yaml --simulator vsim -j --run-dir runs/vsim
+    - uv run ../util/experiments/run.py frep_xs.yaml --simulator vsim -j --run-dir runs/vsim
 
 # COPIFT and scalar chaining experiments
 snitch-cluster-copift-sc-vsim:
-  needs: [setup]
   script:
     - make CFG_OVERRIDE=experiments/copift/cfg.json vsim -j
     - cd experiments/copift
-    - ./experiments.py experiments.yaml --actions sw run perf -j
+    - uv run ./experiments.py experiments.yaml --actions sw run perf -j
     - cd ../chaining
-    - ./experiments.py experiments.yaml --actions sw run perf -j
+    - uv run ./experiments.py experiments.yaml --actions sw run perf -j
 
 ############
 # Non-free #
 ############
 
 nonfree:
-  needs: [setup]
   script:
     - make nonfree
     - make elab

@@ -133,7 +133,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run pytest
-        run: pytest
+        run: uv run pytest
 
   ##############################################
   # Simulate SW on Snitch Cluster w/ Verilator #
@@ -151,10 +151,9 @@ jobs:
           submodules: 'recursive'
       - name: Hash Verilator prerequisites
         id: verilator-hash
-        uses: colluca/pymakeutils@v1.2.0
-        with:
-          target: verilator
-          flags: --recursive
+        run: |
+          hash=$(uv run list-make-prerequisites verilator --recursive --hash)
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
       - name: Set up cache for Verilator build
         id: verilator-cache
         uses: actions/cache@v4
@@ -184,8 +183,8 @@ jobs:
       - name: Run Tests
         working-directory: test
         run: |
-          ../util/experiments/run.py run.yaml --simulator verilator -j
-          ../util/experiments/run.py riscv_tests_isa.yaml --simulator verilator -j
+          uv run ../util/experiments/run.py run.yaml --simulator verilator -j
+          uv run ../util/experiments/run.py riscv_tests_isa.yaml --simulator verilator -j
       - name: Annotate traces
         # Build the traces using the --permissive flag, since the Verilator
         # testbench does not wait until all the instructions are retired

@@ -46,19 +46,19 @@ sn-clean-visual-trace:
 	rm -f $(SN_VISUAL_TRACE)
 
 $(addprefix $(SN_LOGS_DIR)/,trace_hart_%.txt hart_%_perf.json dma_%_perf.json): $(SN_LOGS_DIR)/trace_hart_%.dasm $(SN_GENTRACE_PY) $(SN_GENTRACE_SRC)
-	$(SN_GENTRACE_PY) $< $(SN_GENTRACE_PY_FLAGS) --dma-trace $(SN_SIM_DIR)/dma_trace_$*_00000.log --dump-hart-perf $(SN_LOGS_DIR)/hart_$*_perf.json --dump-dma-perf $(SN_LOGS_DIR)/dma_$*_perf.json -o $(SN_LOGS_DIR)/trace_hart_$*.txt
+	$(SN_UV) $(SN_GENTRACE_PY) $< $(SN_GENTRACE_PY_FLAGS) --dma-trace $(SN_SIM_DIR)/dma_trace_$*_00000.log --dump-hart-perf $(SN_LOGS_DIR)/hart_$*_perf.json --dump-dma-perf $(SN_LOGS_DIR)/dma_$*_perf.json -o $(SN_LOGS_DIR)/trace_hart_$*.txt
 
 # Generate source-code interleaved traces for all harts
 $(SN_LOGS_DIR)/trace_hart_%.s: $(SN_LOGS_DIR)/trace_hart_%.txt $(SN_ANNOTATE_PY) $(SN_ANNOTATE_SRC)
-	$(SN_ANNOTATE_PY) $(SN_ANNOTATE_FLAGS) -o $@ $(SN_BINARY) $<
+	$(SN_UV) $(SN_ANNOTATE_PY) $(SN_ANNOTATE_FLAGS) -o $@ $(SN_BINARY) $<
 $(SN_LOGS_DIR)/trace_hart_%.diff: $(SN_LOGS_DIR)/trace_hart_%.txt $(SN_ANNOTATE_PY) $(SN_ANNOTATE_SRC)
-	$(SN_ANNOTATE_PY) $(SN_ANNOTATE_FLAGS) -o $@ $(SN_BINARY) $< -d
+	$(SN_UV) $(SN_ANNOTATE_PY) $(SN_ANNOTATE_FLAGS) -o $@ $(SN_BINARY) $< -d
 
 $(SN_JOINT_PERF_DUMP): $(SN_PERF_DUMPS) $(SN_JOIN_PY)
-	$(SN_JOIN_PY) -i $(shell ls $(SN_LOGS_DIR)/*_perf.json) -o $@
+	$(SN_UV) $(SN_JOIN_PY) -i $(shell ls $(SN_LOGS_DIR)/*_perf.json) -o $@
 
 $(SN_ROI_DUMP): $(SN_JOINT_PERF_DUMP) $(SN_ROI_SPEC) $(SN_ROI_PY)
-	$(SN_ROI_PY) $(SN_JOINT_PERF_DUMP) $(SN_ROI_SPEC) --cfg $(SN_CFG) -o $@
+	$(SN_UV) $(SN_ROI_PY) $(SN_JOINT_PERF_DUMP) $(SN_ROI_SPEC) --cfg $(SN_CFG) -o $@
 
 $(SN_VISUAL_TRACE): $(SN_ROI_DUMP) $(SN_VISUALIZE_PY)
-	$(SN_VISUALIZE_PY) $(SN_ROI_DUMP) $(SN_VISUALIZE_PY_FLAGS) -o $@
+	$(SN_UV) $(SN_VISUALIZE_PY) $(SN_ROI_DUMP) $(SN_VISUALIZE_PY_FLAGS) -o $@

@@ -11,6 +11,7 @@ name = "snitch"
 authors = [
     {name = "Luca Colagrande", email = "colluca@iis.ee.ethz.ch"}
 ]
+requires-python = ">=3.11"
 dynamic = ["version"]
 dependencies = [
     # Alphabetically sorted.
@@ -60,6 +61,16 @@ docs = [
 all = [
     "snitch[kernels,docs]"
 ]
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 [tool.setuptools.package-dir]
 "snitch.dnn" = "sw/kernels/dnn"
