@@ -2399,23 +2399,27 @@ module snitch_fp_ss import snitch_pkg::*; #(
       // Single Precision Floating-Point
       riscv_instr::FLW: begin
         is_load = 1'b1;
+        op_select[2] = AccBus;
         use_fpu = 1'b0;
       end
       riscv_instr::FSW: begin
         is_store = 1'b1;
         op_select[1] = RegB;
+        op_select[2] = AccBus;
         use_fpu = 1'b0;
         rd_is_fp = 1'b0;
       end
       // Double Precision Floating-Point
       riscv_instr::FLD: begin
         is_load = 1'b1;
+        op_select[2] = AccBus;
         ls_size = DoubleWord;
         use_fpu = 1'b0;
       end
       riscv_instr::FSD: begin
         is_store = 1'b1;
         op_select[1] = RegB;
+        op_select[2] = AccBus;
         ls_size = DoubleWord;
         use_fpu = 1'b0;
         rd_is_fp = 1'b0;
@@ -2423,12 +2427,14 @@ module snitch_fp_ss import snitch_pkg::*; #(
       // [Alternate] Half Precision Floating-Point
       riscv_instr::FLH: begin
         is_load = 1'b1;
+        op_select[2] = AccBus;
         ls_size = HalfWord;
         use_fpu = 1'b0;
       end
       riscv_instr::FSH: begin
         is_store = 1'b1;
         op_select[1] = RegB;
+        op_select[2] = AccBus;
         ls_size = HalfWord;
         use_fpu = 1'b0;
         rd_is_fp = 1'b0;
@@ -2436,12 +2442,14 @@ module snitch_fp_ss import snitch_pkg::*; #(
       // [Alternate] Quarter Precision Floating-Point
       riscv_instr::FLB: begin
         is_load = 1'b1;
+        op_select[2] = AccBus;
         ls_size = Byte;
         use_fpu = 1'b0;
       end
       riscv_instr::FSB: begin
         is_store = 1'b1;
         op_select[1] = RegB;
+        op_select[2] = AccBus;
         ls_size = Byte;
         use_fpu = 1'b0;
         rd_is_fp = 1'b0;
@@ -2706,7 +2714,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .lsu_qtag_i (rd),
     .lsu_qwrite_i (is_store),
     .lsu_qsigned_i (1'b1), // all floating point loads are signed
-    .lsu_qaddr_i (acc_req_q.data_argc[AddrWidth-1:0]),
+    .lsu_qaddr_i (op[2][AddrWidth-1:0]),
     .lsu_qdata_i (op[1]),
     .lsu_qsize_i (ls_size),
     .lsu_qamo_i (reqrsp_pkg::AMONone),
