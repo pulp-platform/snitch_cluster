@@ -55,7 +55,7 @@ package ${cfg['cluster']['name']}_pkg;
   localparam int unsigned NrNarrowMasters = 3;
   localparam int unsigned NarrowIdWidthOut = $clog2(NrNarrowMasters) + NarrowIdWidthIn;
 
-  localparam int unsigned NrWideMasters = 1 + ${cfg['cluster']['dma_nr_channels']} + ${cfg['cluster']['nr_hives']};
+  localparam int unsigned NrWideMasters = ${cfg['cluster']['dma_nr_channels']} + ${cfg['cluster']['nr_hives']};
   localparam int unsigned WideIdWidthIn = ${cfg['cluster']['dma_id_width_in']};
   localparam int unsigned WideIdWidthOut = $clog2(NrWideMasters) + WideIdWidthIn;
 

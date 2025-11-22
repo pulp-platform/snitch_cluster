@@ -19,15 +19,16 @@ package:
     - Matheus Cavalcante <matheusd@iis.ee.ethz.ch>
 
 dependencies:
-  axi:                { git: https://github.com/colluca/axi,                      rev:  multicast       }
+  axi:                { git: https://github.com/pulp-platform/axi,                rev:  multicast       }
   axi_riscv_atomics:  { git: https://github.com/pulp-platform/axi_riscv_atomics,  version:  0.6.0       }
   common_cells:       { git: https://github.com/pulp-platform/common_cells,       rev:      snitch      }
   apb:                { git: https://github.com/pulp-platform/apb.git,            version:  0.2.2       }
   FPnew:              { git: https://github.com/pulp-platform/cvfpu.git,          rev:      pulp-v0.1.3 }
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.13      }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0       }
+  obi:                { git: "https://github.com/pulp-platform/obi.git",          version:  0.1.2       }
   cluster_icache:     { git: https://github.com/pulp-platform/cluster_icache.git, rev: 64e21ae455bbdde850c4df13bef86ea55ac42537 }
-  idma:               { git: https://github.com/pulp-platform/iDMA.git,           rev: __deploy__bebefa3__master }
+  idma:               { git: https://github.com/pulp-platform/iDMA,               rev: 9e352db1b70bc87e88670e1ef359aa3fd8bad5f6 }
 
 export_include_dirs:
   - hw/reqrsp_interface/include
@@ -79,6 +80,7 @@ sources:
       - hw/tcdm_interface/src/tcdm_interface.sv
       # Level 1
       - hw/tcdm_interface/src/axi_to_tcdm.sv
+      - hw/tcdm_interface/src/obi_to_tcdm.sv
       - hw/tcdm_interface/src/reqrsp_to_tcdm.sv
       - hw/tcdm_interface/src/tcdm_mux.sv
   - target: simulation

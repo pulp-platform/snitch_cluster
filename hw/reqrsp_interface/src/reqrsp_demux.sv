@@ -104,6 +104,8 @@ module reqrsp_demux_intf #(
     parameter int unsigned AddrWidth    = 0,
     /// Data width of the interface.
     parameter int unsigned DataWidth    = 0,
+    /// User width of the interface.
+    parameter int unsigned UserWidth    = 0,
     /// Amount of outstanding responses. Determines the FIFO size.
     parameter int unsigned RespDepth    = 8,
     // Dependent parameters, DO NOT OVERRIDE!
@@ -120,8 +122,9 @@ module reqrsp_demux_intf #(
   typedef logic [AddrWidth-1:0] addr_t;
   typedef logic [DataWidth-1:0] data_t;
   typedef logic [DataWidth/8-1:0] strb_t;
+  typedef logic [UserWidth-1:0] user_t;
 
-  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t)
+  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
 
   reqrsp_req_t reqrsp_slv_req;
   reqrsp_rsp_t reqrsp_slv_rsp;
