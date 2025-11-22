@@ -118,7 +118,7 @@ jobs:
           make doc-srcs
           make doxygen-docs
       - name: Build and deploy documentation
-        run: mkdocs gh-deploy --force
+        run: uv run mkdocs gh-deploy --force
 
   #####################
   # Python unit tests #
