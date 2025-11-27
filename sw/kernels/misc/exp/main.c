@@ -18,12 +18,14 @@ int main() {
     if (snrt_cluster_core_idx() == 0)
         for (int i = 0; i < LEN; i++) a[i] = (float)i / LEN;
 
+#ifdef BIST
     // Calculate exponential of input array using reference implementation
     if (snrt_cluster_core_idx() == 0) {
         for (int i = 0; i < LEN; i++) {
             b_golden[i] = (double)expf((float)a[i]);
         }
     }
+#endif
 
     // Synchronize cores
     snrt_cluster_hw_barrier();
@@ -31,6 +33,7 @@ int main() {
     // Calculate exponential of input array using vectorized implementation
     vexpf_kernel(a, b_actual);
 
+#ifdef BIST
     // Check if the results are correct
     if (snrt_cluster_core_idx() == 0) {
         uint32_t n_err = LEN;
@@ -43,5 +46,6 @@ int main() {
         }
         return n_err;
     } else
+#endif
         return 0;
 }
