@@ -19,12 +19,14 @@ int main() {
     if (snrt_cluster_core_idx() == 0)
         for (int i = 0; i < LEN; i++) a[i] = (float)(i + 1) / LEN;
 
+#ifdef BIST
     // Calculate logarithm of input array using reference implementation
     if (snrt_cluster_core_idx() == 0) {
         for (int i = 0; i < LEN; i++) {
             b_golden[i] = (double)logf(a[i]);
         }
     }
+#endif
 
     // Synchronize cores
     snrt_cluster_hw_barrier();
@@ -32,6 +34,7 @@ int main() {
     // Calculate logarithm of input array using vectorized implementation
     vlogf_kernel(a, b_actual);
 
+#ifdef BIST
     // Check if the results are correct
     if (snrt_cluster_core_idx() == 0) {
         uint32_t n_err = LEN;
@@ -44,5 +47,6 @@ int main() {
         }
         return n_err;
     } else
+#endif
         return 0;
 }
