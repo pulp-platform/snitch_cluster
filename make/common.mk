@@ -58,7 +58,11 @@ SN_BENDER_YML  = $(SN_ROOT)/Bender.yml
 # Flags
 SN_COMMON_BENDER_FLAGS     += -t rtl -t snitch_cluster
 SN_COMMON_BENDER_SIM_FLAGS += -t simulation -t test
+ifeq ($(SNITCH_MEMPOOL), ON)
+SN_RISCV_MC_FLAGS          ?= -disassemble -mcpu=snitch-mempool
+else
 SN_RISCV_MC_FLAGS          ?= -disassemble -mcpu=snitch
+endif
 SN_ANNOTATE_FLAGS          ?= -q --keep-time --addr2line=$(SN_ADDR2LINE)
 SN_LAYOUT_EVENTS_FLAGS     ?= --cfg=$(SN_CFG)
 

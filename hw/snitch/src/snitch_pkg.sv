@@ -37,7 +37,8 @@ package snitch_pkg;
     SHARED_MULDIV = 1,
     DMA_SS = 2,
     INT_SS = 3,
-    SSR_CFG = 4
+    SSR_CFG = 4,
+    XPULP_IPU = 5
   } acc_addr_e;
 
   typedef enum logic [1:0] {

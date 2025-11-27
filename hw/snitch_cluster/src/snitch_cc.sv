@@ -60,6 +60,18 @@ module snitch_cc #(
   parameter bit          XF16ALT            = 0,
   parameter bit          XFVEC              = 0,
   parameter bit          XFDOTP             = 0,
+  parameter bit		       XPULPPOSTMOD	      = 0,
+  parameter bit          XPULPABS           = 0,
+  parameter bit          XPULPBITOP         = 0,
+  parameter bit          XPULPBR            = 0,
+  parameter bit          XPULPCLIP          = 0,
+  parameter bit          XPULPMACSI         = 0,
+  parameter bit          XPULPMINMAX        = 0,
+  parameter bit          XPULPSLET          = 0,
+  parameter bit          XPULPVECT          = 0,
+  parameter bit          XPULPVECTSHUFFLEPACK = 0,
+  /// Enable own multiply-division unit for every core
+  parameter bit          OwnMulDiv          = 0,
   /// Enable Snitch DMA
   parameter bit          Xdma               = 0,
   /// Has `frep` support.
@@ -150,6 +162,7 @@ module snitch_cc #(
   // FMA architecture is "merged" -> mulexp and macexp instructions are supported
   localparam bit XFauxMerged  = (FPUImplementation.UnitTypes[3] == fpnew_pkg::MERGED);
   localparam bit FPEn = RVF | RVD | XF16 | XF16ALT | XF8 | XF8ALT | XFVEC | XFauxMerged | XFDOTP;
+  localparam bit XPULPV2 = XPULPABS | XPULPBITOP | XPULPBR | XPULPCLIP | XPULPMACSI | XPULPMINMAX | XPULPSLET | XPULPVECT | XPULPVECTSHUFFLEPACK;
   localparam int unsigned FLEN = RVD     ? 64 : // D ext.
                           RVF     ? 32 : // F ext.
                           XF16    ? 16 : // Xf16 ext.
@@ -178,6 +191,7 @@ module snitch_cc #(
   acc_resp_t acc_demux_snitch_q;
   acc_resp_t dma_resp;
   acc_resp_t ipu_resp;
+  acc_resp_t mempool_ipu_resp;
 
   acc_resp_t ssr_resp;
 
@@ -187,11 +201,13 @@ module snitch_cc #(
   logic dma_qvalid, dma_qready;
   logic ipu_qvalid, ipu_qready;
   logic ssr_qvalid, ssr_qready;
+  logic mempool_ipu_qvalid, mempool_ipu_qready;
 
   logic acc_pvalid, acc_pready;
   logic dma_pvalid, dma_pready;
   logic ipu_pvalid, ipu_pready;
   logic ssr_pvalid, ssr_pready;
+  logic mempool_ipu_pvalid, mempool_ipu_pready;
   logic acc_demux_snitch_valid, acc_demux_snitch_ready;
   logic acc_demux_snitch_valid_q, acc_demux_snitch_ready_q;
 
@@ -233,6 +249,19 @@ module snitch_cc #(
     .FP_EN (FPEn),
     .Xdma (Xdma),
     .Xssr (Xssr),
+    .Xipu  (Xipu),
+    .OwnMulDiv (OwnMulDiv),
+    .XPULPPOSTMOD (XPULPPOSTMOD),
+    .XPULPABS (XPULPABS),
+    .XPULPBITOP (XPULPBITOP),
+    .XPULPBR (XPULPBR),
+    .XPULPCLIP (XPULPCLIP),
+    .XPULPMACSI (XPULPMACSI),
+    .XPULPMINMAX (XPULPMINMAX),
+    .XPULPSLET (XPULPSLET),
+    .XPULPVECT (XPULPVECT),
+    .XPULPVECTSHUFFLEPACK (XPULPVECTSHUFFLEPACK),
+    .XPULPV2 (XPULPV2),
     .Xcopift (Xcopift),
     .RVF (RVF),
     .RVD (RVD),
@@ -355,13 +384,13 @@ module snitch_cc #(
 
   // Accelerator Demux Port
   stream_demux #(
-    .N_OUP ( 5 )
+    .N_OUP ( 6 )
   ) i_stream_demux_offload (
     .inp_valid_i  ( acc_snitch_demux_qvalid_q  ),
     .inp_ready_o  ( acc_snitch_demux_qready_q  ),
-    .oup_sel_i    ( acc_snitch_demux_q.addr[$clog2(5)-1:0]             ),
-    .oup_valid_o  ( {ssr_qvalid, ipu_qvalid, dma_qvalid, hive_req_o.acc_qvalid, acc_qvalid} ),
-    .oup_ready_i  ( {ssr_qready, ipu_qready, dma_qready, hive_rsp_i.acc_qready, acc_qready} )
+    .oup_sel_i    ( acc_snitch_demux_q.addr[$clog2(6)-1:0]             ), 
+    .oup_valid_o  ( {mempool_ipu_qvalid, ssr_qvalid, ipu_qvalid, dma_qvalid, hive_req_o.acc_qvalid, acc_qvalid} ),
+    .oup_ready_i  ( {mempool_ipu_qready, ssr_qready, ipu_qready, dma_qready, hive_rsp_i.acc_qready, acc_qready} )
   );
 
   // To shared muldiv
@@ -370,13 +399,13 @@ module snitch_cc #(
 
   stream_arbiter #(
     .DATA_T      ( acc_resp_t ),
-    .N_INP       ( 5          )
+    .N_INP       ( 6          )
   ) i_stream_arbiter_offload (
     .clk_i       ( clk_i                                   ),
     .rst_ni      ( rst_ni                                  ),
-    .inp_data_i  ( {ssr_resp,   ipu_resp,   dma_resp,   hive_rsp_i.acc_resp,   acc_seq    } ),
-    .inp_valid_i ( {ssr_pvalid, ipu_pvalid, dma_pvalid, hive_rsp_i.acc_pvalid, acc_pvalid } ),
-    .inp_ready_o ( {ssr_pready, ipu_pready, dma_pready, hive_req_o.acc_pready, acc_pready } ),
+    .inp_data_i  ( {mempool_ipu_resp, ssr_resp,   ipu_resp,   dma_resp,   hive_rsp_i.acc_resp,   acc_seq } ),
+    .inp_valid_i ( {mempool_ipu_pvalid, ssr_pvalid, ipu_pvalid, dma_pvalid, hive_rsp_i.acc_pvalid, acc_pvalid } ),
+    .inp_ready_o ( {mempool_ipu_pready, ssr_pready, ipu_pready, dma_pready, hive_req_o.acc_pready, acc_pready } ),
     .oup_data_o  ( acc_demux_snitch_q                      ),
     .oup_valid_o ( acc_demux_snitch_valid_q                ),
     .oup_ready_i ( acc_demux_snitch_ready_q                )
@@ -426,6 +455,30 @@ module snitch_cc #(
     assign dma_pvalid       = '0;
     assign axi_dma_events_o = '0;
   end
+
+    // Mempool`s Snitch IPU accelerator
+  if (XPULPV2 | OwnMulDiv) begin : gen_mempool_ipu
+    snitch_ipu #(
+    .IdWidth ( 5 ),
+    .XPULPV2  (XPULPV2),
+    .acc_resp_t(acc_resp_t),
+    .acc_req_t (acc_req_t)
+    ) i_snitch_ipu (
+      .clk_i                                   ,
+      .rst_ni                                  ,
+      .acc_req_i        ( acc_snitch_req      ),
+      .acc_req_valid_i     ( mempool_ipu_qvalid  ),
+      .acc_req_ready_o     ( mempool_ipu_qready  ),
+      .acc_resp_o       ( mempool_ipu_resp    ),
+      .acc_resp_valid_o     ( mempool_ipu_pvalid  ),
+      .acc_resp_ready_i     ( mempool_ipu_pready  )
+  );
+  end else begin : gen_no_mempool_ipu
+    assign mempool_ipu_resp = '0;
+    assign mempool_ipu_qready = 1'b0;
+    assign mempool_ipu_pvalid = '0;
+  end
+  
 
   if (Xipu) begin : gen_ipu
     snitch_int_ss # (

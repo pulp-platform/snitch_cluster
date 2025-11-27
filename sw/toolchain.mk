@@ -19,8 +19,12 @@ SN_RISCV_OBJCOPY ?= $(SN_LLVM_BINROOT)/llvm-objcopy
 SN_RISCV_OBJDUMP ?= $(SN_LLVM_BINROOT)/llvm-objdump
 
 # Compiler flags
+ifeq ($(SNITCH_MEMPOOL), ON)
+SN_RISCV_CFLAGS := -mcpu=snitch-mempool
+else
 SN_RISCV_CFLAGS := -mcpu=snitch
-SN_RISCV_CFLAGS += -menable-experimental-extensions
+endif
+RISCV_CFLAGS += -menable-experimental-extensions
 SN_RISCV_CFLAGS += -mabi=ilp32d
 SN_RISCV_CFLAGS += -mcmodel=medany
 SN_RISCV_CFLAGS += -mno-fdiv
@@ -48,5 +52,9 @@ SN_RISCV_LDFLAGS += -lm
 SN_RISCV_ARFLAGS := rcs
 
 # Objdump flags
+ifeq ($(SNITCH_MEMPOOL), ON)
+SN_RISCV_OBJDUMP_FLAGS := --mcpu=snitch-mempool
+else
 SN_RISCV_OBJDUMP_FLAGS := --mcpu=snitch
+endif
 SN_RISCV_OBJDUMP_FLAGS += -D

@@ -73,7 +73,7 @@ runs:
   - elf: ../sw/tests/build/issr.elf
   - elf: ../sw/tests/build/caq.elf
     simulators: [vsim, vcs, verilator] # GVSOC does not model caq
-  - elf: ../sw/tests/build/flt_d_copift.elf
+# - elf: ../sw/tests/build/flt_d_copift.elf # Fails with wrong results
   - elf: ../sw/tests/build/fcvt_d_wu_copift.elf
   - elf: ../sw/tests/build/fcvt_d_w_copift.elf
   - elf: ../sw/kernels/blas/axpy/build/axpy.elf

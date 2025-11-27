@@ -24,6 +24,7 @@ module snitch_hive import snitch_icache_pkg::*; #(
   parameter int unsigned WideDataWidth      = 0,
   /// Enable virtual memory support.
   parameter bit          VMSupport          = 1,
+  parameter bit          SharedMuldiv       = 1,
   parameter type         dreq_t             = logic,
   parameter type         drsp_t             = logic,
   parameter type         axi_req_t          = logic,
@@ -336,7 +337,8 @@ module snitch_hive import snitch_icache_pkg::*; #(
     .ready_i ( acc_req_sfu_ready_q ),
     .data_o  ( acc_req_sfu_q       )
   );
-
+ 
+  if (SharedMuldiv == 1)
   snitch_shared_muldiv #(
     .DataWidth (NarrowDataWidth),
     .IdWidth ( ExtendedIdWidth )

@@ -111,6 +111,28 @@ module snitch_cluster
   parameter bit [NrCores-1:0] Xfrep         = '0,
   /// Per-core enabling of the custom `Xcopift` ISA extensions.
   parameter bit [NrCores-1:0] Xcopift       = '0,
+  // Per-core enabling own muldiv unit.
+  parameter bit [NrCores-1:0] OwnMulDiv     = '0,
+  /// Per-core enabling of the custom 'XPULPPOSTMOD' ISA extensions.
+  parameter bit [NrCores-1:0] XPULPPOSTMOD  = '0,
+  /// Per-core enabling of the custom 'XPULPABS' ISA extensions.
+  parameter bit [NrCores-1:0] XPULPABS      = '0,
+  /// Per-core enabling of the custom 'XPULPBITOP' ISA extensions.
+  parameter bit [NrCores-1:0] XPULPBITOP    = '0,
+  /// Per-core enabling of the custom 'XPULPBR' ISA extensions.
+  parameter bit [NrCores-1:0] XPULPBR       = '0,
+  /// Per-core enabling of the custom 'XPULPCLIP' ISA extensions.
+  parameter bit [NrCores-1:0] XPULPCLIP     = '0,
+  /// Per-core enabling of the custom 'XPULPMACSI' ISA extensions.
+  parameter bit [NrCores-1:0] XPULPMACSI    = '0,
+  /// Per-core enabling of the custom 'XPULPMINMAX' ISA extensions.
+  parameter bit [NrCores-1:0] XPULPMINMAX   = '0,
+  /// Per-core enabling of the custom 'XPULPSLET' ISA extensions.
+  parameter bit [NrCores-1:0] XPULPSLET     = '0,
+  /// Per-core enabling of the custom 'XPULPVECT' ISA extensions.
+  parameter bit [NrCores-1:0] XPULPVECT     = '0,
+  /// Per-core enabling of the custom 'XPULPVECTSHUFFLEPACK' ISA extensions.
+  parameter bit [NrCores-1:0] XPULPVECTSHUFFLEPACK = '0,
   /// # Core-global parameters
   /// FPU configuration.
   parameter fpnew_pkg::fpu_implementation_t FPUImplementation [NrCores] =
@@ -326,6 +348,8 @@ module snitch_cluster
   localparam int unsigned NrWideRuleIdcs = NrWideSlaves - 1;
   localparam int unsigned NrWideRules = (1 + AliasRegionEnable) * NrWideRuleIdcs;
 
+  localparam bit [NrCores-1:0] XPULPV2 = XPULPABS  | XPULPBITOP | XPULPBR | XPULPCLIP | XPULPMACSI | XPULPMINMAX | XPULPSLET | XPULPVECT | XPULPVECTSHUFFLEPACK;
+
   // AXI Configuration
   localparam axi_pkg::xbar_cfg_t ClusterXbarCfg = '{
     NoSlvPorts: NrNarrowMasters,
@@ -395,6 +419,16 @@ module snitch_cluster
       if (Hive[i] == hive_id) n++;
     end
     return n;
+  endfunction
+
+  //If in hive at least one core doesn't have ownmuldiv - shared_muldiv for this hive is needed. 
+
+  function automatic bit use_shared_muldiv(int unsigned hive_id);
+    for (int i = 0; i < NrCores; i++) begin
+      if ((Hive[i] == hive_id) && (OwnMulDiv[i] == 0) && (XPULPV2[i] == 0))
+        return 1;
+    end
+    return 0;
   endfunction
 
   // --------
@@ -659,9 +693,7 @@ module snitch_cluster
   );
 
 
-  logic [WideSlaveIdxBits-1:0] dma_xbar_default_port;
-  assign dma_xbar_default_port = SoCDMAOut;
-
+  logic [WideSlaveIdxBits-1:0] dma_xbar_default_port = SoCDMAOut;
   xbar_rule_t dma_xbar_default_port_rule;
   assign dma_xbar_default_port_rule = '{
     idx: dma_xbar_default_port,
@@ -1051,6 +1083,17 @@ module snitch_cluster
         .Xfrep (Xfrep[i]),
         .Xssr (Xssr[i]),
         .Xcopift (Xcopift[i]),
+        .OwnMulDiv (OwnMulDiv[i]),
+        .XPULPPOSTMOD (XPULPPOSTMOD[i]),
+        .XPULPABS (XPULPABS[i]),
+        .XPULPBITOP (XPULPBITOP[i]),
+        .XPULPBR (XPULPBR[i]),
+        .XPULPCLIP (XPULPCLIP[i]),
+        .XPULPMACSI (XPULPMACSI[i]),
+        .XPULPMINMAX (XPULPMINMAX[i]),
+        .XPULPSLET (XPULPSLET[i]),
+        .XPULPVECT (XPULPVECT[i]),
+        .XPULPVECTSHUFFLEPACK (XPULPVECTSHUFFLEPACK[i]),
         .Xipu (1'b0),
         .VMSupport (VMSupport),
         .NumIntOutstandingLoads (NumIntOutstandingLoads[i]),
@@ -1121,7 +1164,7 @@ module snitch_cluster
 
   for (genvar i = 0; i < NrHives; i++) begin : gen_hive
       localparam int unsigned HiveSize = get_hive_size(i);
-
+      localparam bit SharedMuldiv = use_shared_muldiv(i);
       hive_req_t [HiveSize-1:0] hive_req_reshape;
       hive_rsp_t [HiveSize-1:0] hive_rsp_reshape;
 
@@ -1142,6 +1185,7 @@ module snitch_cluster
         .NarrowDataWidth (NarrowDataWidth),
         .WideDataWidth (WideDataWidth),
         .VMSupport (VMSupport),
+        .SharedMuldiv (SharedMuldiv),
         .dreq_t (reqrsp_req_t),
         .drsp_t (reqrsp_rsp_t),
         .hive_req_t (hive_req_t),
