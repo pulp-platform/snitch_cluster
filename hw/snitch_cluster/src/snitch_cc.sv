@@ -195,6 +195,13 @@ module snitch_cc #(
   logic acc_demux_snitch_valid, acc_demux_snitch_ready;
   logic acc_demux_snitch_valid_q, acc_demux_snitch_ready_q;
 
+  logic [31:0] i2f_rdata;
+  logic        i2f_rvalid;
+  logic        i2f_rready;
+  logic [31:0] f2i_wdata;
+  logic        f2i_wvalid;
+  logic        f2i_wready;
+
   fpnew_pkg::roundmode_e fpu_rnd_mode;
   fpnew_pkg::fmt_mode_t  fpu_fmt_mode;
   fpnew_pkg::status_t    fpu_status;
@@ -266,6 +273,12 @@ module snitch_cc #(
     .acc_prsp_i ( acc_demux_snitch ),
     .acc_pvalid_i ( acc_demux_snitch_valid ),
     .acc_pready_o ( acc_demux_snitch_ready ),
+    .i2f_rdata_o(i2f_rdata),
+    .i2f_rvalid_o(i2f_rvalid),
+    .i2f_rready_i(i2f_rready),
+    .f2i_wdata_i(f2i_wdata),
+    .f2i_wvalid_i(f2i_wvalid),
+    .f2i_wready_o(f2i_wready),
     .caq_pvalid_i ( caq_pvalid_q ),
     .data_req_o ( snitch_dreq_d ),
     .data_rsp_i ( snitch_drsp_d ),
@@ -280,7 +293,8 @@ module snitch_cc #(
     .fpu_status_i ( fpu_status ),
     .core_events_o ( snitch_events),
     .barrier_o ( barrier_o ),
-    .barrier_i ( barrier_i )
+    .barrier_i ( barrier_i ),
+    .en_fpinq_o (en_fpinq)
   );
 
   reqrsp_iso #(
@@ -530,6 +544,12 @@ module snitch_cc #(
       .acc_resp_o       ( acc_seq        ),
       .acc_resp_valid_o ( acc_pvalid     ),
       .acc_resp_ready_i ( acc_pready     ),
+      .i2f_rdata_i      ( i2f_rdata      ),
+      .i2f_rvalid_i     ( i2f_rvalid     ),
+      .i2f_rready_o     ( i2f_rready     ),
+      .f2i_wdata_o      ( f2i_wdata      ),
+      .f2i_wvalid_o     ( f2i_wvalid     ),
+      .f2i_wready_i     ( f2i_wready     ),
       .caq_pvalid_o     ( caq_pvalid     ),
       .data_req_o       ( fpu_dreq       ),
       .data_rsp_i       ( fpu_drsp       ),
@@ -549,7 +569,8 @@ module snitch_cc #(
       .streamctl_done_i   ( ssr_streamctl_done  ),
       .streamctl_valid_i  ( ssr_streamctl_valid ),
       .streamctl_ready_o  ( ssr_streamctl_ready ),
-      .core_events_o      ( fp_ss_core_events   )
+      .core_events_o      ( fp_ss_core_events   ),
+      .en_fpinq_i         (en_fpinq)
     );
 
     reqrsp_mux #(

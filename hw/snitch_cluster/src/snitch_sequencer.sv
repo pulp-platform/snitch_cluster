@@ -77,6 +77,8 @@ module snitch_sequencer import snitch_pkg::*; #(
   // Ring buffer entry type
   typedef struct packed {
     logic [31:0] qdata_op;
+    addr_t qdata_arga;
+    addr_t qdata_argb;
     addr_t qdata_argc;
   } rb_entry_t;
 
@@ -145,7 +147,7 @@ module snitch_sequencer import snitch_pkg::*; #(
       riscv_instr::FCLASS_S,
       riscv_instr::FCVT_W_S,
       riscv_instr::FCVT_WU_S,
-      riscv_instr::FMV_X_W,
+      // riscv_instr::FMV_X_W,
       riscv_instr::VFEQ_S,
       riscv_instr::VFEQ_R_S,
       riscv_instr::VFNE_S,
@@ -160,11 +162,11 @@ module snitch_sequencer import snitch_pkg::*; #(
       riscv_instr::VFGT_R_S,
       riscv_instr::VFCLASS_S,
       riscv_instr::FLE_D,
-      riscv_instr::FLT_D,
+      // riscv_instr::FLT_D,
       riscv_instr::FEQ_D,
       riscv_instr::FCLASS_D,
-      riscv_instr::FCVT_W_D,
-      riscv_instr::FCVT_WU_D,
+      // riscv_instr::FCVT_W_D,
+      // riscv_instr::FCVT_WU_D,
       riscv_instr::FMV_X_D,
       riscv_instr::FLE_H,
       riscv_instr::FLT_H,
@@ -235,11 +237,11 @@ module snitch_sequencer import snitch_pkg::*; #(
       riscv_instr::VFCVT_XU_B,
 
       // int to float
-      riscv_instr::FMV_W_X,
+      // riscv_instr::FMV_W_X,
       riscv_instr::FCVT_S_W,
       riscv_instr::FCVT_S_WU,
-      riscv_instr::FCVT_D_W,
-      riscv_instr::FCVT_D_WU,
+      // riscv_instr::FCVT_D_W,
+      // riscv_instr::FCVT_D_WU,
       riscv_instr::FMV_H_X,
       riscv_instr::FCVT_H_W,
       riscv_instr::FCVT_H_WU,
@@ -327,6 +329,8 @@ module snitch_sequencer import snitch_pkg::*; #(
 
   assign rb_wdata = '{
     qdata_op: inp_qdata_op_i,
+    qdata_arga: inp_qdata_arga_i,
+    qdata_argb: inp_qdata_argb_i,
     qdata_argc: inp_qdata_argc_i
   };
 
@@ -659,8 +663,8 @@ module snitch_sequencer import snitch_pkg::*; #(
     qaddr:      DstAddr,
     qid:        '0,
     qdata_op:   seq_qdata_op,
-    qdata_arga: '0,
-    qdata_argb: '0,
+    qdata_arga: rb_rdata.qdata_arga,
+    qdata_argb: rb_rdata.qdata_argb,
     qdata_argc: $unsigned(rb_rdata.qdata_argc),
     // When we repeat a previously issued instruction, communicate this
     // to subsystem (e.g. for single issuing of CAQ responses).

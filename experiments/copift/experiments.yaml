@@ -19,12 +19,23 @@ experiments:
     n_cores: 1
     n_samples: 8192
     batch_size: 256
+  - app: pi_estimation
+    integrand: pi
+    prng: lcg
+    impl: optimized_v2
+    n_cores: 1
+    n_samples: 8192
+    batch_size: 256
   - app: exp
     impl: baseline
     length: 4096
     batch_size: 128
   - app: exp
     impl: optimized
+    length: 4096
+    batch_size: 128
+  - app: exp
+    impl: optimized_v2
     length: 4096
     batch_size: 128
   - app: log
@@ -35,6 +46,10 @@ experiments:
     impl: issr
     length: 4096
     batch_size: 256
+  - app: log
+    impl: optimized_v2
+    length: 4096
+    batch_size: 256
   - app: pi_estimation
     integrand: poly
     prng: lcg
@@ -51,6 +66,13 @@ experiments:
     batch_size: 256
   - app: pi_estimation
     integrand: poly
+    prng: lcg
+    impl: optimized_v2
+    n_cores: 1
+    n_samples: 8192
+    batch_size: 256
+  - app: pi_estimation
+    integrand: poly
     prng: xoshiro128p
     impl: baseline
     n_cores: 1
@@ -60,6 +82,13 @@ experiments:
     integrand: poly
     prng: xoshiro128p
     impl: optimized
+    n_cores: 1
+    n_samples: 8192
+    batch_size: 256
+  - app: pi_estimation
+    integrand: poly
+    prng: xoshiro128p
+    impl: optimized_v2
     n_cores: 1
     n_samples: 8192
     batch_size: 256
@@ -74,6 +103,13 @@ experiments:
     integrand: pi
     prng: xoshiro128p
     impl: optimized
+    n_cores: 1
+    n_samples: 8192
+    batch_size: 256
+  - app: pi_estimation
+    integrand: pi
+    prng: xoshiro128p
+    impl: optimized_v2
     n_cores: 1
     n_samples: 8192
     batch_size: 256

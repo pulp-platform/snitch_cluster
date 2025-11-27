@@ -34,7 +34,6 @@ except ImportError as e:
 
 
 ACTIONS = ['sw', 'hw', 'run', 'traces', 'annotate', 'perf', 'visual-trace', 'power', 'all', 'none']
-SNITCH_ROOT = Path(__file__).parent.parent.parent.parent
 
 
 class ExperimentManager:
@@ -242,8 +241,7 @@ class ExperimentManager:
                     'SIM_DIR': experiment['run_dir'],
                     'POWER_REPDIR': experiment['power_dir']
                 }
-                dir = SNITCH_ROOT / 'nonfree'
-                return common.make('power', vars, dir=dir, dry_run=dry_run)
+                return common.make('power', vars, dry_run=dry_run)
 
             with ThreadPoolExecutor(max_workers=n_procs) as executor:
                 futures = [executor.submit(run_power, exp) for exp in experiments]

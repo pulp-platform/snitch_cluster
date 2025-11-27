@@ -386,9 +386,9 @@ inline void snrt_wait_writeback(uint32_t val) {
  *
  * @param mask Multicast mask value
  */
-inline void snrt_enable_multicast(uint32_t mask) { write_csr(0x7c4, mask); }
+inline void snrt_enable_multicast(uint32_t mask) { write_csr(0x7c5, mask); }
 
 /**
  * @brief Disable LSU multicast
  */
-inline void snrt_disable_multicast() { write_csr(0x7c4, 0); }
+inline void snrt_disable_multicast() { write_csr(0x7c5, 0); }
