@@ -46,6 +46,7 @@ module snitch_cc #(
   parameter type         acc_resp_t         = logic,
   parameter type         dma_events_t       = logic,
   // XIF parameters
+  parameter bit          EnableXif          = 1,
   parameter int unsigned XifIdWidth         = 4,
   // XIF port types
   parameter type         x_issue_req_t      = logic,
@@ -243,6 +244,7 @@ module snitch_cc #(
     .drsp_t (drsp_t),
     .pa_t (pa_t),
     .l0_pte_t (l0_pte_t),
+    .EnableXif (EnableXif),
     .XifIdWidth (XifIdWidth),
     .x_issue_req_t (x_issue_req_t),
     .x_issue_resp_t (x_issue_resp_t),

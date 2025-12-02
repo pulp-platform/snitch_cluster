@@ -52,6 +52,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   parameter type         pa_t       = logic,
   parameter type         l0_pte_t   = logic,
   // XIF parameters
+  parameter bit          EnableXif  = 1,
   parameter int unsigned XifIdWidth = 4,
   // XIF port types
   parameter type         x_issue_req_t  = logic,
@@ -145,6 +146,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   localparam int unsigned PPNSize = AddrWidth - PageShift;
   localparam bit NSX = XF16 | XF16ALT | XF8 | XFVEC;
 
+  // Number of read ports
+  localparam int unsigned NumRfReadPorts = EnableXif ? 3 : 2;
+
   logic illegal_inst, illegal_csr;
   logic interrupt, ecall, ebreak;
   logic zero_lsb;
@@ -177,12 +181,12 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic [RegWidth-1:0] rd, rs1, rs2, rs3;
   logic stall, lsu_stall, acc_stall, nonacc_stall, fence_stall, x_stall;
   // Register connections
-  logic [2:0][RegWidth-1:0] gpr_raddr;
-  logic [2:0][31:0]         gpr_rdata;
-  logic [0:0][RegWidth-1:0] gpr_waddr;
-  logic [0:0][31:0]         gpr_wdata;
-  logic [0:0]               gpr_we;
-  logic [2**RegWidth-1:0]   sb_d, sb_q;
+  logic [NumRfReadPorts-1:0][RegWidth-1:0] gpr_raddr;
+  logic [NumRfReadPorts-1:0][31:0]         gpr_rdata;
+  logic [0:0][RegWidth-1:0]                gpr_waddr;
+  logic [0:0][31:0]                        gpr_wdata;
+  logic [0:0]                              gpr_we;
+  logic [2**RegWidth-1:0]                  sb_d, sb_q;
 
   // Load/Store Defines
   logic is_load, is_store, is_signed;
@@ -466,14 +470,17 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic operands_ready;
   logic dst_ready;
   logic opa_ready, opb_ready;
+  logic x_issue_hs;
+
+  assign x_issue_hs = EnableXif & x_issue_valid_o & x_issue_ready_i;
 
   always_comb begin
     sb_d = sb_q;
     if (retire_load) sb_d[lsu_rd] = 1'b0;
     // only place the reservation if we actually executed the load or offload instruction
-    if ((is_load | acc_register_rd | (x_issue_valid_o & x_issue_ready_i & x_issue_resp_i.writeback)) && !stall && !exception) sb_d[rd] = 1'b1;
+    if ((is_load | acc_register_rd | (x_issue_hs & x_issue_resp_i.writeback)) && !stall && !exception) sb_d[rd] = 1'b1;
     if (retire_acc) sb_d[acc_prsp_i.id[RegWidth-1:0]] = 1'b0;
-    if (retire_x) sb_d[x_result_i.rd] = 1'b0;
+    if (EnableXif & retire_x) sb_d[x_result_i.rd] = 1'b0;
     sb_d[0] = 1'b0;
   end
   // TODO(zarubaf): This can probably be described a bit more efficient
@@ -495,7 +502,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // the accelerator interface stalled us. Also wait for CAQ if this is an FP load/store.
   assign acc_stall = acc_qvalid_o & ~acc_qready_i | (caq_ena & ~caq_qready);
   // the coprocessor is not ready yet
-  assign x_stall = (x_issue_valid_o & ~x_issue_ready_i) | (x_register_valid_o & ~x_register_ready_i);
+  assign x_stall = EnableXif & ((x_issue_valid_o & ~x_issue_ready_i) | (x_register_valid_o & ~x_register_ready_i));
   // the LSU Interface didn't accept our request yet
   assign lsu_stall = lsu_tlb_qvalid & ~lsu_tlb_qready;
   // Stall the stage if we either didn't get a valid instruction, the LSU is not ready
@@ -2314,40 +2321,44 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       end
 
       default: begin // Offload the instruction to the coprocessor
-        write_rd = x_issue_ready_i & x_issue_valid_o & x_issue_resp_i.writeback;
+        if (EnableXif) begin
+          write_rd = x_issue_ready_i & x_issue_valid_o & x_issue_resp_i.writeback;
 
-        opa_select = Reg;
-        opb_select = Reg;
-        opc_select = Reg;
+          opa_select = Reg;
+          opb_select = Reg;
+          opc_select = Reg;
 
-        x_issue_req_o.instr    = inst_data_i;
-        x_issue_req_o.id       = xif_offload_counter_q;
-        x_issue_req_o.hartid   = hart_id_i;
+          x_issue_req_o.instr    = inst_data_i;
+          x_issue_req_o.id       = xif_offload_counter_q;
+          x_issue_req_o.hartid   = hart_id_i;
 
-        x_register_o.hartid    = hart_id_i;
-        x_register_o.id        = xif_offload_counter_q;
-        x_register_o.rs        = {opc, opb, opa};
-        x_register_o.rs_valid  = {~sb_q[rs3], ~sb_q[rs2], ~sb_q[rs1]};
+          x_register_o.hartid    = hart_id_i;
+          x_register_o.id        = xif_offload_counter_q;
+          x_register_o.rs        = {opc, opb, opa};
+          x_register_o.rs_valid  = {~sb_q[rs3], ~sb_q[rs2], ~sb_q[rs1]};
 
-        x_commit_o.hartid      = hart_id_i;
-        x_commit_o.id          = xif_offload_counter_q;
-        // We do not speculate so the commit_kill signal can be set statically to zero
-        x_commit_o.commit_kill = 1'b0;
+          x_commit_o.hartid      = hart_id_i;
+          x_commit_o.id          = xif_offload_counter_q;
+          // We do not speculate so the commit_kill signal can be set statically to zero
+          x_commit_o.commit_kill = 1'b0;
 
-        // Since we cannot know whether a source register will be used or not by the processor,
-        // here we do not use valid_instr as in the other instructions
-        x_issue_valid_o         = inst_ready_i
-                                & inst_valid_o
-                                & ((itlb_valid & itlb_ready) | ~trans_active);
+          // Since we cannot know whether a source register will be used or not by the processor,
+          // here we do not use valid_instr as in the other instructions
+          x_issue_valid_o         = inst_ready_i
+                                  & inst_valid_o
+                                  & ((itlb_valid & itlb_ready) | ~trans_active);
 
-        // Same as x_issue_valid since reigsters are provided instantly
-        x_register_valid_o      = x_issue_valid_o;
+          // Same as x_issue_valid since reigsters are provided instantly
+          x_register_valid_o      = x_issue_valid_o;
 
-        // Assert x_commit_valid as soon as there's a valid issue handshake
-        x_commit_valid_o        = x_issue_valid_o & x_issue_ready_i;
+          // Assert x_commit_valid as soon as there's a valid issue handshake
+          x_commit_valid_o        = x_issue_valid_o & x_issue_ready_i;
 
-        // Flag the instruction as illegal if not accepted by the coprocessor
-        illegal_inst = x_issue_ready_i & x_issue_valid_o & ~x_issue_resp_i.accept;
+          // Flag the instruction as illegal if not accepted by the coprocessor
+          illegal_inst = x_issue_ready_i & x_issue_valid_o & ~x_issue_resp_i.accept;
+        end else begin
+          illegal_inst = 1'b1;
+        end
       end
     endcase
 
@@ -2768,11 +2779,11 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // pragma translate_on
 
   snitch_regfile #(
-    .DataWidth    ( 32       ),
-    .NrReadPorts  ( 3        ),
-    .NrWritePorts ( 1        ),
-    .ZeroRegZero  ( 1        ),
-    .AddrWidth    ( RegWidth )
+    .DataWidth    ( 32             ),
+    .NrReadPorts  ( NumRfReadPorts ),
+    .NrWritePorts ( 1              ),
+    .ZeroRegZero  ( 1              ),
+    .AddrWidth    ( RegWidth       )
   ) i_snitch_regfile (
     .clk_i,
     .rst_ni    ( ~rst_i    ),
@@ -2810,17 +2821,21 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   end
 
   // The C operand is currently only used for XIF instructions
-  always_comb begin
-    unique case (opc_select)
-      None: opc = '0;
-      Reg: opc = gpr_rdata[2];
-      default: opc = '0;
-    endcase
+  if (NumRfReadPorts > 2) begin : gen_opc
+    always_comb begin
+      unique case (opc_select)
+        None: opc = '0;
+        Reg: opc = gpr_rdata[2];
+        default: opc = '0;
+      endcase
+    end
   end
 
   assign gpr_raddr[0] = rs1;
   assign gpr_raddr[1] = rs2;
-  assign gpr_raddr[2] = rs3;
+  if (NumRfReadPorts > 2) begin : gen_third_read_port
+    assign gpr_raddr[2] = rs3;
+  end
 
   // --------------------
   // ALU
@@ -3094,7 +3109,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       gpr_waddr[0] = acc_prsp_i.id;
       gpr_wdata[0] = acc_prsp_i.data[31:0];
       acc_pready_o = 1'b1;
-    end else if (x_result_valid_i & x_result_i.we) begin
+    end else if (EnableXif & x_result_valid_i & x_result_i.we) begin
       retire_x = 1'b1;
       gpr_we[0] = 1'b1;
       gpr_waddr[0] = x_result_i.rd;

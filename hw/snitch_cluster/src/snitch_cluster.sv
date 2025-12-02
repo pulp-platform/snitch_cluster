@@ -207,6 +207,7 @@ module snitch_cluster
   parameter type         sram_cfg_t        = logic,
   parameter type         sram_cfgs_t       = logic,
   // XIF parameters
+  parameter bit          EnableXif         = 1'b1,
   parameter int unsigned XifIdWidth        = 4,
   // XIF port types
   parameter type         x_issue_req_t     = logic,
@@ -1059,6 +1060,7 @@ module snitch_cluster
         .acc_req_t (acc_req_t),
         .acc_resp_t (acc_resp_t),
         .dma_events_t (dma_events_t),
+        .EnableXif (EnableXif),
         .XifIdWidth (XifIdWidth),
         .x_issue_req_t (x_issue_req_t),
         .x_issue_resp_t (x_issue_resp_t),

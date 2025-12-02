@@ -128,6 +128,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .ICacheWays (${cfg['cluster']['name']}_pkg::ICacheWays),
     .VMSupport (${int(cfg['cluster']['vm_support'])}),
     .EnableDMAMulticast (${int(cfg['cluster']['enable_multicast'])}),
+    .EnableXif (${int(cfg['cluster']['enable_xif'])}),
     .XifIdWidth (${cfg['cluster']['name']}_pkg::XifIdWidth),
     .RVE (${core_isa('e')}),
     .RVF (${core_isa('f')}),
