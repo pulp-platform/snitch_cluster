@@ -1128,7 +1128,7 @@ module snitch_cluster
         .x_issue_resp_i (x_issue_resp_i[i]),
         .x_issue_valid_o (x_issue_valid_o[i]),
         .x_issue_ready_i (x_issue_ready_i[i]),
-        .x_register_o ( x_register_o[i] ),
+        .x_register_o (x_register_o[i] ),
         .x_register_valid_o (x_register_valid_o[i]),
         .x_register_ready_i (x_register_ready_i[i]),
         .x_commit_o (x_commit_o[i]),
