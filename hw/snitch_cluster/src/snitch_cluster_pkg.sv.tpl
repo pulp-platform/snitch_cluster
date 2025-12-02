@@ -74,7 +74,7 @@ package ${cfg['cluster']['name']}_pkg;
   localparam int unsigned XifNumHarts = NrCores;
   localparam int unsigned XifHartIdWidth = 32;
   localparam logic [25:0] XifMisa = ${cfg['cluster']['xif_misa']};
-  localparam int unsigned XifDualread = 0;
+  localparam int unsigned XifDualRead = 0;
   localparam int unsigned XifIssueRegisterSplit = 0;
 
   localparam int unsigned Hive [NrCores] = '{${core_cfg('hive')}};
