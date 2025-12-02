@@ -114,37 +114,41 @@ package ${cfg['cluster']['name']}_pkg;
 
   `TCDM_TYPEDEF_ALL(tcdm_dma, tcdm_addr_t, data_dma_t, strb_dma_t, logic)
 
+  typedef logic [XifHartIdWidth-1:0]       x_hartid_t;
+  typedef logic [XifIdWidth-1:0]           x_id_t;
+  typedef logic [XifNumRs+XifDualRead-1:0] x_readregflags_t;
+
   typedef struct packed {
-    logic [31:0]           instr;
-    logic [31:0]           hartid;
-    logic [XifIdWidth-1:0] id;
+    logic [31:0] instr;
+    x_hartid_t   hartid;
+    x_id_t       id;
   } x_issue_req_t;
 
   typedef struct packed {
-    logic       accept;
-    logic       writeback;
-    logic [2:0] register_read;
+    logic            accept;
+    logic            writeback;
+    x_readregflags_t register_read;
   } x_issue_resp_t;
 
   typedef struct packed {
-    logic [31:0]           hartid;
-    logic [XifIdWidth-1:0] id;
-    logic [2:0][31:0]      rs;
-    logic [2:0]            rs_valid;
+    x_hartid_t                            hartid;
+    x_id_t                                id;
+    logic [XifNumRs-1:0][XifRfrWidth-1:0] rs;
+    x_readregflags_t                      rs_valid;
   } x_register_t;
 
   typedef struct packed {
-    logic [31:0]           hartid;
-    logic [XifIdWidth-1:0] id;
-    logic                  commit_kill;
+    x_hartid_t hartid;
+    x_id_t     id;
+    logic      commit_kill;
   } x_commit_t;
 
   typedef struct packed {
-    logic [31:0]           hartid;
-    logic [XifIdWidth-1:0] id;
-    logic [31:0]           data;
-    logic [4:0]            rd;
-    logic                  we;
+    x_hartid_t              hartid;
+    x_id_t                  id;
+    logic [XifRfwWidth-1:0] data;
+    logic [4:0]             rd;
+    logic                   we;
   } x_result_t;
 
 
