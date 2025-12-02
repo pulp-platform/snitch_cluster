@@ -471,7 +471,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     sb_d = sb_q;
     if (retire_load) sb_d[lsu_rd] = 1'b0;
     // only place the reservation if we actually executed the load or offload instruction
-    if ((is_load | acc_register_rd | x_issue_valid_o & x_issue_ready_i & x_issue_resp_i.writeback) && !stall && !exception) sb_d[rd] = 1'b1;
+    if ((is_load | acc_register_rd | (x_issue_valid_o & x_issue_ready_i & x_issue_resp_i.writeback)) && !stall && !exception) sb_d[rd] = 1'b1;
     if (retire_acc) sb_d[acc_prsp_i.id[RegWidth-1:0]] = 1'b0;
     if (retire_x) sb_d[x_result_i.rd] = 1'b0;
     sb_d[0] = 1'b0;
@@ -495,7 +495,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // the accelerator interface stalled us. Also wait for CAQ if this is an FP load/store.
   assign acc_stall = acc_qvalid_o & ~acc_qready_i | (caq_ena & ~caq_qready);
   // the coprocessor is not ready yet
-  assign x_stall = x_issue_valid_o & ~x_issue_ready_i | x_register_valid_o & ~x_register_ready_i;
+  assign x_stall = (x_issue_valid_o & ~x_issue_ready_i) | (x_register_valid_o & ~x_register_ready_i);
   // the LSU Interface didn't accept our request yet
   assign lsu_stall = lsu_tlb_qvalid & ~lsu_tlb_qready;
   // Stall the stage if we either didn't get a valid instruction, the LSU is not ready
