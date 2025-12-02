@@ -231,7 +231,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic retire_load; // retire a load instruction
   logic retire_i; // retire the rest of the base instruction set
   logic retire_acc; // retire an instruction we offloaded
-  logic retire_x; // retire a XIF-offloaded instruction
+  logic retire_x; // retire an XIF-offloaded instruction
 
   logic valid_instr;
   logic exception;
