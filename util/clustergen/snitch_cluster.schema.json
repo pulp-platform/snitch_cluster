@@ -246,6 +246,21 @@
                     "description": "Whether to enable external interrupts",
                     "default": false
                 },
+                "enable_xif": {
+                    "type": "boolean",
+                    "description": "Whether to enable the extension interface",
+                    "default": false
+                },
+                "xif_id_width": {
+                    "type": "integer",
+                    "description": "Number of bits to be used for instruction IDs of the extension interface",
+                    "default": 4
+                },
+                "xif_misa": {
+                    "type": "number",
+                    "description": "MISA extensions implemented on the extension interface",
+                    "default": 0
+                },
                 "sram_cfg_fields": {
                     "type": "object",
                     "description": "The names and widths of memory cut configuration inputs needed for implementation",

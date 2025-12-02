@@ -67,6 +67,16 @@ package ${cfg['cluster']['name']}_pkg;
   localparam int unsigned ICacheLineCount [NrHives] = '{${icache_cfg('depth')}};
   localparam int unsigned ICacheWays [NrHives] = '{${icache_cfg('ways')}};
 
+  localparam int unsigned XifNumRs = 3;
+  localparam int unsigned XifIdWidth = ${cfg['cluster']['xif_id_width']};
+  localparam int unsigned XifRfrWidth = 32;
+  localparam int unsigned XifRfwWidth = 32;
+  localparam int unsigned XifNumHarts = NrCores;
+  localparam int unsigned XifHartIdWidth = 32;
+  localparam logic [25:0] XifMisa = ${cfg['cluster']['xif_misa']};
+  localparam int unsigned XifDualRead = 0;
+  localparam int unsigned XifIssueRegisterSplit = 0;
+
   localparam int unsigned Hive [NrCores] = '{${core_cfg('hive')}};
 
   localparam int unsigned TcdmAddrWidth = $clog2(TcdmSize*1024);
@@ -103,6 +113,44 @@ package ${cfg['cluster']['name']}_pkg;
   typedef logic [TcdmAddrWidth-1:0]     tcdm_addr_t;
 
   `TCDM_TYPEDEF_ALL(tcdm_dma, tcdm_addr_t, data_dma_t, strb_dma_t, logic)
+
+  typedef logic [XifHartIdWidth-1:0]       x_hartid_t;
+  typedef logic [XifIdWidth-1:0]           x_id_t;
+  typedef logic [XifNumRs+XifDualRead-1:0] x_readregflags_t;
+
+  typedef struct packed {
+    logic [31:0] instr;
+    x_hartid_t   hartid;
+    x_id_t       id;
+  } x_issue_req_t;
+
+  typedef struct packed {
+    logic            accept;
+    logic            writeback;
+    x_readregflags_t register_read;
+  } x_issue_resp_t;
+
+  typedef struct packed {
+    x_hartid_t                            hartid;
+    x_id_t                                id;
+    logic [XifNumRs-1:0][XifRfrWidth-1:0] rs;
+    x_readregflags_t                      rs_valid;
+  } x_register_t;
+
+  typedef struct packed {
+    x_hartid_t hartid;
+    x_id_t     id;
+    logic      commit_kill;
+  } x_commit_t;
+
+  typedef struct packed {
+    x_hartid_t              hartid;
+    x_id_t                  id;
+    logic [XifRfwWidth-1:0] data;
+    logic [4:0]             rd;
+    logic                   we;
+  } x_result_t;
+
 
   function automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] get_cached_regions();
     automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] cached_regions;
