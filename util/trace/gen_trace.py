@@ -559,7 +559,7 @@ def update_dma(insn, extras, dma_trans):
             pass
         elif mnemonic == 'dmrep':
             dma_trans[-1]['rep'] = extras['opa']
-        elif mnemonic in ['dmcpy', 'dmcpyi']:
+        elif mnemonic in ['dmcpy', 'dmcpyi', 'dminit']:
             # Create new placeholder transaction to inherit current DMA settings
             dma_trans.append(dma_trans[-1].copy())
             # Set size of the transaction

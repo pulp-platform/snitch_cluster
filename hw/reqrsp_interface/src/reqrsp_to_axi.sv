@@ -48,7 +48,6 @@ module reqrsp_to_axi import reqrsp_pkg::*; #(
   parameter int unsigned ID = 0,
   /// Data width of bus, must be 32 or 64.
   parameter int unsigned DataWidth = 32'b0,
-  parameter int unsigned UserWidth = 32'b0,
   parameter type reqrsp_req_t = logic,
   parameter type reqrsp_rsp_t = logic,
   parameter type axi_req_t = logic,
@@ -56,7 +55,6 @@ module reqrsp_to_axi import reqrsp_pkg::*; #(
 ) (
   input  logic clk_i,
   input  logic rst_ni,
-  input  logic [UserWidth-1:0] user_i,
   input  reqrsp_req_t reqrsp_req_i,
   output reqrsp_rsp_t reqrsp_rsp_o,
   output axi_req_t axi_req_o,
@@ -175,7 +173,7 @@ module reqrsp_to_axi import reqrsp_pkg::*; #(
   assign axi_req_o.ar.lock   = (reqrsp_req_i.q.amo == AMOLR);
   assign axi_req_o.ar.cache  = axi_pkg::CACHE_MODIFIABLE;
   assign axi_req_o.ar.id     = $unsigned(ID);
-  assign axi_req_o.ar.user   = user_i;
+  assign axi_req_o.ar.user   = reqrsp_req_i.q.user;
   assign axi_req_o.ar_valid  = q_valid_read;
   assign q_ready_read        = axi_rsp_i.ar_ready;
 
@@ -190,11 +188,11 @@ module reqrsp_to_axi import reqrsp_pkg::*; #(
   assign axi_req_o.aw.lock   = (reqrsp_req_i.q.amo == AMOSC);
   assign axi_req_o.aw.cache  = axi_pkg::CACHE_MODIFIABLE;
   assign axi_req_o.aw.id     = $unsigned(ID);
-  assign axi_req_o.aw.user   = user_i;
+  assign axi_req_o.aw.user   = reqrsp_req_i.q.user;
   assign axi_req_o.w.data    = write_data;
   assign axi_req_o.w.strb    = reqrsp_req_i.q.strb;
   assign axi_req_o.w.last    = 1'b1;
-  assign axi_req_o.w.user    = user_i;
+  assign axi_req_o.w.user    = reqrsp_req_i.q.user;
 
   // Both channels need to handshake (independently).
   stream_fork #(
@@ -305,12 +303,11 @@ module reqrsp_to_axi_intf #(
   parameter int unsigned AddrWidth = 32'd0,
   /// AXI and REQRSP data width.
   parameter int unsigned DataWidth = 32'd0,
-  /// AXI user width.
-  parameter int unsigned AxiUserWidth = 32'd0
+  /// AXI and REQRSP user width.
+  parameter int unsigned UserWidth = 32'd0
 ) (
   input logic clk_i,
   input logic rst_ni,
-  input logic [AxiUserWidth-1:0] user_i,
   REQRSP_BUS  reqrsp,
   AXI_BUS     axi
 );
@@ -319,9 +316,9 @@ module reqrsp_to_axi_intf #(
   typedef logic [DataWidth-1:0] data_t;
   typedef logic [DataWidth/8-1:0] strb_t;
   typedef logic [AxiIdWidth-1:0] id_t;
-  typedef logic [AxiUserWidth-1:0] user_t;
+  typedef logic [UserWidth-1:0] user_t;
 
-  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t)
+  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
 
   `AXI_TYPEDEF_AW_CHAN_T(aw_chan_t, addr_t, id_t, user_t)
   `AXI_TYPEDEF_W_CHAN_T(w_chan_t, data_t, strb_t, user_t)
@@ -347,7 +344,6 @@ module reqrsp_to_axi_intf #(
   ) i_reqrsp_to_axi (
     .clk_i,
     .rst_ni,
-    .user_i,
     .reqrsp_req_i (reqrsp_req),
     .reqrsp_rsp_o (reqrsp_rsp),
     .axi_req_o (axi_req),

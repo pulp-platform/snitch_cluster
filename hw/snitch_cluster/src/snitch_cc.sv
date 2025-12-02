@@ -40,6 +40,14 @@ module snitch_cc #(
   parameter type         axi_aw_chan_t      = logic,
   parameter type         axi_req_t          = logic,
   parameter type         axi_rsp_t          = logic,
+  parameter type         init_req_chan_t    = logic,
+  parameter type         init_rsp_chan_t    = logic,
+  parameter type         init_req_t         = logic,
+  parameter type         init_rsp_t         = logic,
+  parameter type         obi_a_chan_t       = logic,
+  parameter type         obi_r_chan_t       = logic,
+  parameter type         obi_req_t          = logic,
+  parameter type         obi_rsp_t          = logic,
   parameter type         hive_req_t         = logic,
   parameter type         hive_rsp_t         = logic,
   parameter type         acc_req_t          = logic,
@@ -125,7 +133,8 @@ module snitch_cc #(
   /// Derived parameter *Do not override*
   parameter int unsigned TCDMPorts = (NumSsrs > 1 ? NumSsrs : 1),
   parameter type addr_t = logic [AddrWidth-1:0],
-  parameter type data_t = logic [DataWidth-1:0]
+  parameter type data_t = logic [DataWidth-1:0],
+  parameter type addr_rule_t = axi_pkg::xbar_rule_64_t
 ) (
   input  logic                              clk_i,
   input  logic                              clk_d2_i,
@@ -159,6 +168,8 @@ module snitch_cc #(
   // DMA ports
   output axi_req_t    [DMANumChannels-1:0]  axi_dma_req_o,
   input  axi_rsp_t    [DMANumChannels-1:0]  axi_dma_res_i,
+  output obi_req_t    [DMANumChannels-1:0]  obi_dma_req_o,
+  input  obi_rsp_t    [DMANumChannels-1:0]  obi_dma_res_i,
   output logic        [DMANumChannels-1:0]  axi_dma_busy_o,
   output dma_events_t [DMANumChannels-1:0]  axi_dma_events_o,
   // Core event strobes
@@ -166,7 +177,9 @@ module snitch_cc #(
   input  addr_t                             tcdm_addr_base_i,
   // Cluster HW barrier
   output logic                              barrier_o,
-  input  logic                              barrier_i
+  input  logic                              barrier_i,
+  // address decode map
+  input  addr_rule_t [TCDMAliasEnable:0]    dma_addr_rule_i
 );
 
   // FMA architecture is "merged" -> mulexp and macexp instructions are supported
@@ -327,6 +340,7 @@ module snitch_cc #(
   reqrsp_iso #(
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
+    .UserWidth (64),
     .req_t (dreq_t),
     .rsp_t (drsp_t),
     .BypassReq (!RegisterCoreReq),
@@ -432,20 +446,32 @@ module snitch_cc #(
       .NumAxInFlight (DMANumAxInFlight),
       .DMAReqFifoDepth (DMAReqFifoDepth),
       .NumChannels (DMANumChannels),
+      .TCDMAliasEnable (TCDMAliasEnable),
       .DMATracing (1),
       .axi_ar_chan_t (axi_ar_chan_t),
       .axi_aw_chan_t (axi_aw_chan_t),
       .axi_req_t (axi_req_t),
       .axi_res_t (axi_rsp_t),
+      .init_req_chan_t (init_req_chan_t),
+      .init_rsp_chan_t (init_rsp_chan_t),
+      .init_req_t (init_req_t),
+      .init_rsp_t (init_rsp_t),
+      .obi_a_chan_t (obi_a_chan_t),
+      .obi_r_chan_t (obi_r_chan_t),
+      .obi_req_t (obi_req_t),
+      .obi_res_t (obi_rsp_t),
       .acc_req_t (acc_req_t),
       .acc_res_t (acc_resp_t),
-      .dma_events_t (dma_events_t)
+      .dma_events_t (dma_events_t),
+      .addr_rule_t (addr_rule_t)
     ) i_idma_inst64_top (
       .clk_i,
       .rst_ni,
       .testmode_i      ( 1'b0             ),
       .axi_req_o       ( axi_dma_req_o    ),
       .axi_res_i       ( axi_dma_res_i    ),
+      .obi_req_o       ( obi_dma_req_o    ),
+      .obi_res_i       ( obi_dma_res_i    ),
       .busy_o          ( axi_dma_busy_o   ),
       .acc_req_i       ( acc_snitch_req   ),
       .acc_req_valid_i ( dma_qvalid       ),
@@ -454,7 +480,8 @@ module snitch_cc #(
       .acc_res_valid_o ( dma_pvalid       ),
       .acc_res_ready_i ( dma_pready       ),
       .hart_id_i       ( hart_id_i        ),
-      .events_o        ( axi_dma_events_o )
+      .events_o        ( axi_dma_events_o ),
+      .addr_map_i      ( dma_addr_rule_i  )
     );
 
   // no DMA instanciated
@@ -597,6 +624,7 @@ module snitch_cc #(
       .NrPorts (2),
       .AddrWidth (AddrWidth),
       .DataWidth (DataWidth),
+      .UserWidth (64),
       .req_t (dreq_t),
       .rsp_t (drsp_t),
       // TODO(zarubaf): Wire-up to top-level.
@@ -706,6 +734,7 @@ module snitch_cc #(
   reqrsp_to_tcdm #(
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
+    .UserWidth (64),
     // TODO(zarubaf): Make a parameter.
     .BufDepth (4),
     .reqrsp_req_t (dreq_t),
