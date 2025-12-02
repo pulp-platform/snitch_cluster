@@ -253,7 +253,7 @@
                 },
                 "xif_id_width": {
                     "type": "integer",
-                    "description": "Number of bits to be used for instruciton IDs of the extension interface",
+                    "description": "Number of bits to be used for instruction IDs of the extension interface",
                     "default": 4
                 },
                 "xif_misa": {
