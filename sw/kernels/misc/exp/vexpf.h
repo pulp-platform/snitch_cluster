@@ -5,11 +5,11 @@
 // Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 #ifndef LEN
-#define LEN 12288
+#define LEN 1024
 #endif
 
 #ifndef BATCH_SIZE
-#define BATCH_SIZE 96
+#define BATCH_SIZE 64
 #endif
 
 #define IMPL_NAIVE 0
@@ -18,7 +18,7 @@
 #define IMPL_OPTIMIZED_V2 3
 
 #ifndef IMPL
-#define IMPL IMPL_OPTIMIZED_V2
+#define IMPL IMPL_BASELINE
 #endif
 
 #if IMPL == IMPL_NAIVE

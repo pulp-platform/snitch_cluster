@@ -17,7 +17,7 @@
 #endif
 
 #ifndef FUNC_PTR
-#define FUNC_PTR calculate_psum_optimized_v2
+#define FUNC_PTR calculate_psum_baseline
 #endif
 
 #ifndef N_CORES
