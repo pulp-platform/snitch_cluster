@@ -429,9 +429,12 @@ def fig4(df):
     width = 0.25
 
     # Number of floating point and integer instructions in all implementations
-    base_insns = [f'{172/56:.1f}', f'{172/80:.1f}', f'{44/56:.1f}', f'{44/80:.1f}', f'{39/52:.1f}', f'{43/52:.1f}']
-    copift_insns = [f'{200/56:.1f}', f'{200/80:.1f}', f'{72/56:.1f}', f'{72/80:.1f}', f'{57/36:.1f}', f'{43/36:.1f}']
-    copift_v2_insns = [f'{86/28:.1f}', f'{86/40:.1f}', f'{22/28:.1f}', f'{22/40:.1f}', f'{46/48:.1f}', f'{46/44:.1f}']
+    base_insns = [172/56, 172/80, 44/56, 44/80, 39/52, 43/52]
+    copift_insns = [200/56, 200/80, 72/56, 72/80, 57/36, 43/36]
+    copift_v2_insns = [86/28, 86/40, 22/28, 22/40, 46/48, 46/44]
+    base_insns = [f'{val:.1f}' for val in base_insns]
+    copift_insns = [f'{val:.1f}' for val in copift_insns]
+    copift_v2_insns = [f'{val:.1f}' for val in copift_v2_insns]
 
     # Create the plot
     _, ax = plt.subplots()
