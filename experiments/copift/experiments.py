@@ -264,7 +264,7 @@ def fig1(df):
     df_poly_lcg = df[df['app'] == 'poly_lcg']
     poly_lcg_increase = (df_poly_lcg['COPIFT'] / df_poly_lcg['Baseline']).item()
     return {
-        'GeomeanIPCIncrease': '{:.2f}'.format(geometric_mean(ipc_increases)),
+        'GeomeanIPCIncrease': '{:.1f}'.format(geometric_mean(ipc_increases)),
         'PeakIPC': '{:.2f}'.format(df['COPIFT'].max()),
         'GeomeanIPC': '{:.2f}'.format(geometric_mean(df['COPIFT'])),
         'PolyLCGIPCIncrease': '{:.2f}'.format(poly_lcg_increase),
@@ -338,8 +338,11 @@ def fig2(df):
     }
 
 
-def fig3(df, baseline, optimized, height, file='plot7.pdf'):
+def fig3(df):
     df['cps'] = df.apply(lambda row: get_cycles_per_sample(row, 4, 6), axis=1)
+
+    baseline = 'Baseline'
+    optimized = 'COPIFT'
 
     # Prepare data for plotting
     apps = df['app'].unique()
@@ -393,9 +396,9 @@ def fig3(df, baseline, optimized, height, file='plot7.pdf'):
     plt.tight_layout()
 
     # Display the plot
-    file = RESULT_DIR / file
+    file = RESULT_DIR / 'plot3.pdf'
     file.parent.mkdir(parents=True, exist_ok=True)
-    plt.gcf().set_size_inches(IEEE_COL_WIDTH, height * A4_HEIGHT)
+    plt.gcf().set_size_inches(IEEE_COL_WIDTH, 0.131 * A4_HEIGHT)
     plt.gcf().subplots_adjust(
         left=0.1,
         bottom=0.34,
@@ -409,7 +412,7 @@ def fig3(df, baseline, optimized, height, file='plot7.pdf'):
         'PeakSpeedup': '{:.2f}'.format(speedup.max()),
         'GeomeanSpeedup': '{:.2f}'.format(geometric_mean(speedup)),
         'PeakEnergySaving': '{:.2f}'.format(energy_saving.max()),
-        'GeomeanEnergySaving': '{:.2f}'.format(geometric_mean(energy_saving)),
+        'GeomeanEnergySaving': '{:.1f}'.format(geometric_mean(energy_saving)),
     }
 
 
@@ -425,22 +428,33 @@ def fig4(df):
     x = np.arange(len(apps))
     width = 0.25
 
+    # Number of floating point and integer instructions in all implementations
+    base_insns = [f'{172/56:.1f}', f'{172/80:.1f}', f'{44/56:.1f}', f'{44/80:.1f}', f'{39/52:.1f}', f'{43/52:.1f}']
+    copift_insns = [f'{200/56:.1f}', f'{200/80:.1f}', f'{72/56:.1f}', f'{72/80:.1f}', f'{57/36:.1f}', f'{43/36:.1f}']
+    copift_v2_insns = [f'{86/28:.1f}', f'{86/40:.1f}', f'{22/28:.1f}', f'{22/40:.1f}', f'{46/48:.1f}', f'{46/44:.1f}']
+
     # Create the plot
     _, ax = plt.subplots()
-    ax.axhline(1, color='black', linewidth=0.5, zorder=1)
+    ax.axhline(1, color='gray', linewidth=0.5, zorder=1)
     cmap = mpl.colormaps['plasma']
     base_bars = ax.bar(x - width, df['Baseline'], width, label='Base', color=cmap(0.46))
-    copift_bars = ax.bar(x, df['COPIFT'], width, label='COPIFT', color=cmap(0.74))
+    copift_bars = ax.bar(x, df['COPIFT'], width, label='COPIFT [1]', color=cmap(0.74))
     copift_v2_bars = ax.bar(x + width, df['COPIFTv2'], width, label='COPIFTv2', color=cmap(0.9))
+    # IPC labels in bars
     ax.bar_label(base_bars, label_type='center', fmt='{:.2f}', rotation=90, color='white')
     ax.bar_label(copift_bars, label_type='center', fmt='{:.2f}', rotation=90, color='white')
     ax.bar_label(copift_v2_bars, label_type='center', fmt='{:.2f}', rotation=90, color='white')
+    # Instruction number labels on top of bars
+    ax.bar_label(base_bars, labels=base_insns, label_type='edge', padding=0, fontsize=5)
+    ax.bar_label(copift_bars, labels=copift_insns, label_type='edge', padding=0, fontsize=5)
+    ax.bar_label(copift_v2_bars, labels=copift_v2_insns, label_type='edge', padding=0, fontsize=5)
 
     # Customize the plot
     ax.set_axisbelow(True)
     ax.grid(color='gainsboro', which='both', axis='y', linewidth=0.5)
     ax.set_xlabel('')
     ax.set_ylabel('(a) IPC')
+    ax.set_ylim(0.2, df['COPIFTv2'].max() * 1.5)
     ax.set_xticks([], labels=[])
     ax.legend(title='', ncols=3)
     plt.tight_layout()
@@ -448,10 +462,10 @@ def fig4(df):
     # Display the plot
     file = RESULT_DIR / 'plot4.pdf'
     file.parent.mkdir(parents=True, exist_ok=True)
-    plt.gcf().set_size_inches(IEEE_COL_WIDTH, 0.07 * A4_HEIGHT)
+    plt.gcf().set_size_inches(IEEE_COL_WIDTH, 0.06 * A4_HEIGHT)
     plt.gcf().subplots_adjust(
         left=0.1,
-        bottom=0.04,
+        bottom=0.0,
         right=1,
         top=1
     )
@@ -498,7 +512,7 @@ def fig5(df):
     # Display the plot
     file = RESULT_DIR / 'plot5.pdf'
     file.parent.mkdir(parents=True, exist_ok=True)
-    plt.gcf().set_size_inches(IEEE_COL_WIDTH, 0.09 * A4_HEIGHT)
+    plt.gcf().set_size_inches(IEEE_COL_WIDTH, 0.08 * A4_HEIGHT)
     plt.gcf().subplots_adjust(
         left=0.1,
         bottom=0.18,
@@ -524,7 +538,7 @@ def fig6(df):
     _, ax = plt.subplots()
     cmap = mpl.colormaps['plasma']
     base_bars = ax.bar(x - width, base_powers, width, label='Base', color=cmap(0.46))
-    copift_bars = ax.bar(x, copift_powers, width, label='COPIFT', color=cmap(0.74))
+    copift_bars = ax.bar(x, copift_powers, width, label='COPIFT [1]', color=cmap(0.74))
     copift_v2_bars = ax.bar(x + width, copift_v2_powers, width, label='COPIFTv2', color=cmap(0.9))
     ax.bar_label(base_bars, label_type='center', fmt='{:.1f}', rotation=90, color='white')
     ax.bar_label(copift_bars, label_type='center', fmt='{:.1f}', rotation=90, color='white')
@@ -535,7 +549,7 @@ def fig6(df):
     ax.grid(color='gainsboro', which='both', axis='y', linewidth=0.5)
     ax.set_xlabel('')
     ax.set_ylabel('(b) Power [mW]')
-    ax.set_ylim(0, copift_powers.max() * 1.2)
+    ax.set_ylim(15, copift_powers.max() * 1.3)
     ax.set_xticks([], labels=[])
     ax.legend(title='', ncols=3)
     plt.tight_layout()
@@ -543,10 +557,10 @@ def fig6(df):
     # Display the plot
     file = RESULT_DIR / 'plot6.pdf'
     file.parent.mkdir(parents=True, exist_ok=True)
-    plt.gcf().set_size_inches(IEEE_COL_WIDTH, 0.07 * A4_HEIGHT)
+    plt.gcf().set_size_inches(IEEE_COL_WIDTH, 0.056 * A4_HEIGHT)
     plt.gcf().subplots_adjust(
         left=0.1,
-        bottom=0.04,
+        bottom=0.01,
         right=1,
         top=1
     )
@@ -554,6 +568,94 @@ def fig6(df):
 
     # Return metrics
     return {}
+
+
+def fig7(df):
+    df['cps'] = df.apply(lambda row: get_cycles_per_sample(row, 4, 6), axis=1)
+
+    snitch = 'Baseline'
+    baseline = 'COPIFT'
+    optimized = 'COPIFTv2'
+
+    # Prepare data for plotting
+    apps = df['app'].unique()
+    x = np.arange(len(apps))
+    width = 0.35
+    snitch_cps = df[df['impl'] == snitch]['cps'].values
+    base_cps = df[df['impl'] == baseline]['cps'].values
+    optimized_cps = df[df['impl'] == optimized]['cps'].values
+    snitch_powers = df[df['impl'] == snitch]['total_power'].values
+    base_powers = df[df['impl'] == baseline]['total_power'].values
+    optimized_powers = df[df['impl'] == optimized]['total_power'].values
+    speedup = base_cps / optimized_cps
+    energy_saving = (base_powers * base_cps) / (optimized_powers * optimized_cps)
+    speedup_over_snitch = snitch_cps / optimized_cps
+    energy_saving_over_snitch = (snitch_powers * snitch_cps) / (optimized_powers * optimized_cps)
+
+    # Create the plot
+    _, ax = plt.subplots()
+    ax.axhline(1, color='black', linewidth=0.5, zorder=1)
+    cmap = mpl.colormaps['plasma']
+    speedup_bars = ax.bar(x - width/2, speedup, width, label='Speedup', color=cmap(0.48))
+    energy_saving_bars = ax.bar(x + width/2, energy_saving, width, label='Energy impr.',
+                                color=cmap(0.82))
+
+    # Add labels to the bars
+    ax.bar_label(speedup_bars, label_type='center', fmt='{:.2f}', rotation=90, color='white')
+    ax.bar_label(energy_saving_bars, label_type='center', fmt='{:.2f}', rotation=90, color='white')
+
+    if baseline == 'Baseline' and optimized == 'COPIFT':
+        # Draw expected speedup values
+        exp_speedups = [1.14, 1.26, 1.39, 1.55, 1.6, 2.21]
+        for i in range(len(apps)):
+            # Get the coordinates for the line
+            base_x = x[i] - width/2
+            speedup_y = speedup[i]
+            exp_speedup_y = exp_speedups[i]
+
+            # Draw vertical line
+            ax.plot([base_x, base_x], [speedup_y, exp_speedup_y], color='black', linewidth=0.5,
+                    linestyle='--')
+
+            # Draw horizontal line
+            ax.plot([base_x - width/2, base_x + width/2], [exp_speedup_y, exp_speedup_y],
+                    color='black', linewidth=0.5, linestyle='--')
+
+    # Customize the plot
+    ax.set_axisbelow(True)
+    ax.grid(color='gainsboro', which='both', axis='y', linewidth=0.5)
+    ax.set_xlabel('')
+    ax.set_ylabel('(c) SU/En. im.')
+    ax.set_ylim(0.5, speedup.max() * 1.1)
+    ax.set_xticks(x)
+    apps = [app.replace('_', '_\n') if 'xoshiro128p' in app else app for app in apps]
+    ax.set_xticklabels(apps, rotation=10)
+    ax.tick_params(axis='x', pad=0)
+    ax.legend(title='', ncols=2)
+    ax.yaxis.set_label_coords(-0.07, 0.3)
+    plt.tight_layout()
+
+    # Display the plot
+    file = RESULT_DIR / 'plot7.pdf'
+    file.parent.mkdir(parents=True, exist_ok=True)
+    plt.gcf().set_size_inches(IEEE_COL_WIDTH, 0.07 * A4_HEIGHT)
+    plt.gcf().subplots_adjust(
+        left=0.1,
+        bottom=0.34,
+        right=1,
+        top=0.99
+    )
+    plt.savefig(file)
+
+    # Return metrics
+    return {
+        'PeakSpeedup': '{:.2f}'.format(speedup.max()),
+        'PeakSpeedupOverSnitch': '{:.2f}'.format(speedup_over_snitch.max()),
+        'GeomeanSpeedup': '{:.2f}'.format(geometric_mean(speedup)),
+        'PeakEnergySaving': '{:.2f}'.format(energy_saving.max()),
+        'PeakEnergySavingOverSnitch': '{:.2f}'.format(energy_saving_over_snitch.max()),
+        'GeomeanEnergySaving': '{:.2f}'.format(geometric_mean(energy_saving)),
+    }
 
 
 def group_power_breakdown(df):
@@ -596,10 +698,10 @@ def dump_pls_testlist(testlist, df):
         yaml.dump(testlist, f, sort_keys=False)
 
 
-def latex_metrics(metrics, file):
+def latex_metrics(metrics, file, prefix=''):
     # Auxiliary function to format a metric as a LaTeX command
     def latex_metric(name, value):
-        return f"\\newcommand{{\\Result{name}}}{{{value}}}\n"
+        return f"\\newcommand{{\\{prefix}Result{name}}}{{{value}}}\n"
 
     # Create file
     with open(RESULT_DIR / file, 'w') as f:
@@ -743,12 +845,12 @@ def main():
     copift_metrics.update(fig1(df))
     if power_results_available:
         copift_metrics.update(fig2(df))
-        copift_metrics.update(fig3(df, 'Baseline', 'COPIFT', 0.131, 'plot3.pdf'))
-        copift_v2_metrics.update(fig3(df, 'COPIFT', 'COPIFTv2', 0.1, 'plot7.pdf'))
+        copift_metrics.update(fig3(df))
+        copift_v2_metrics.update(fig7(df))
     copift_v2_metrics.update(fig4(df))
     copift_v2_metrics.update(fig5(df))
     copift_v2_metrics.update(fig6(df))
-    latex_metrics(copift_metrics, 'copift_metrics.tex')
+    latex_metrics(copift_metrics, 'copift_metrics.tex', prefix='Old')
     latex_metrics(copift_v2_metrics, 'copift_v2_metrics.tex')
 
 
