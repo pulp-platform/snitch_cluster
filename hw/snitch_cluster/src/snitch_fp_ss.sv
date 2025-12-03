@@ -87,8 +87,8 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // Notifies the issuing Snitch core of retired loads/stores.
   // TODO: is it good enough to assert this at issuing time instead?
   output logic             caq_pvalid_o,
-  // FP Queue CSR signal
-  input logic en_fpinq_i,
+  // COPIFT queues enable signal
+  input logic en_copift_queues_i,
   // Core event strobes
   output core_events_t core_events_o
 );
@@ -275,10 +275,10 @@ module snitch_fp_ss import snitch_pkg::*; #(
 
   // either the FPU or the regfile produced a result
   // If queue is enabled, data goes to queue instead of AccBus
-  assign acc_resp_valid_o = ~en_fpinq_i & (fpu_tag_out.acc & fpu_out_valid);
-  assign f2i_wvalid_o = en_fpinq_i & (fpu_tag_out.acc & fpu_out_valid);
-  // stall FPU if we forward from reg
-  assign fpu_out_ready = fpu_tag_out.acc ? (en_fpinq_i ? f2i_wready_i : acc_resp_ready_i) : fpr_wready;
+  assign acc_resp_valid_o = ~en_copift_queues_i & (fpu_tag_out.acc & fpu_out_valid);
+  assign f2i_wvalid_o = en_copift_queues_i & (fpu_tag_out.acc & fpu_out_valid);
+  // stall FPU if result destination is not ready
+  assign fpu_out_ready = fpu_tag_out.acc ? (en_copift_queues_i ? f2i_wready_i : acc_resp_ready_i) : fpr_wready;
 
   // FPU Result
   logic [FLEN-1:0] fpu_result;
@@ -2559,8 +2559,8 @@ module snitch_fp_ss import snitch_pkg::*; #(
     endcase
   end
 
-  logic [2:0] rs_is_fpq;
-  assign i2f_rready_o = acc_req_valid_q && acc_req_ready_q && (rs_is_fpq[2] || rs_is_fpq[1] || rs_is_fpq[0]);
+  logic [2:0] rs_is_int;
+  assign i2f_rready_o = acc_req_valid_q && acc_req_ready_q && (rs_is_int[2] || rs_is_int[1] || rs_is_int[0]);
 
   for (genvar i = 0; i < 3; i++) begin: gen_operand_select
     logic is_raddr_ssr;
@@ -2570,7 +2570,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
         is_raddr_ssr |= (SsrRegs[s] == fpr_raddr[i]);
     end
     always_comb begin
-      rs_is_fpq[i] = op_select[i]==AccBus ? en_fpinq_i : 0; // Read from any INT RF will be from fpq if queues are enabled
+      rs_is_int[i] = op_select[i]==AccBus ? en_copift_queues_i : 0; // Read from any INT RF will be from I2F queue if queues are enabled
     end
     always_comb begin
       ssr_rvalid_o[i] = 1'b0;
@@ -2580,8 +2580,8 @@ module snitch_fp_ss import snitch_pkg::*; #(
           op_ready[i] = 1'b1;
         end
         AccBus: begin
-          op[i] = rs_is_fpq[i] ? { {(FLEN-32){i2f_rdata_i[31]}}, i2f_rdata_i[31:0] } : acc_qdata[i];
-          op_ready[i] = rs_is_fpq[i] ? i2f_rvalid_i : acc_req_valid_q;
+          op[i] = rs_is_int[i] ? { {(FLEN-32){i2f_rdata_i[31]}}, i2f_rdata_i[31:0] } : acc_qdata[i];
+          op_ready[i] = rs_is_int[i] ? i2f_rvalid_i : acc_req_valid_q;
         end
         // Scoreboard or SSR
         RegA, RegB, RegBRep, RegC, RegDest: begin
