@@ -67,7 +67,6 @@ static inline void vlogf_optimized_v2(float *a, double *b) {
         if (snrt_cluster_core_idx() == 0) {
             // Compute phase
             if (iteration > 0 && iteration < n_iterations - 1) {
-
                 int n_inner_iter_m2 = BATCH_SIZE / 4 - 2;
 
                 // Index buffers
@@ -230,15 +229,15 @@ static inline void vlogf_optimized_v2(float *a, double *b) {
                     "mv       x0, t6                     \n" // FPU fence (part 2)
                     "csrrci   x0, 0x7C4, 0x1             \n" // Disable COPIFT queues
                     // clang-format on
-                    : [ input ] "+r"(comp_a_ptr), [ n_iter ] "+r"(n_inner_iter_m2)
+                    :
+                    [ input ] "+r"(comp_a_ptr), [ n_iter ] "+r"(n_inner_iter_m2)
                     : [ n_frep ] "r"(n_frep_m1), [ Ln2 ] "f"(Ln2),
                       [ OFF ] "r"(OFF), [ T ] "r"(T), [ A0 ] "f"(A[0]),
                       [ A1 ] "f"(A[1]), [ A2 ] "f"(A[2]), [ A3 ] "f"(A[3])
-                    : "memory", "a0", "a1", "a3", "a4", "a5", "a6",
-                      "a7", "t0", "t1", "t5", "t6", "x0",
-                      "s0", "s1", "fa0", "fa1", "fa2", "fa3", "fa4", "fa5",
-                      "fa6", "fa7", "ft3", "ft4", "ft5", "ft6", "ft7",
-                      "ft8", "ft9", "ft10", "ft0", "ft1", "ft2");
+                    : "memory", "a0", "a1", "a3", "a4", "a5", "a6", "a7", "t0",
+                      "t1", "t5", "t6", "x0", "s0", "s1", "fa0", "fa1", "fa2",
+                      "fa3", "fa4", "fa5", "fa6", "fa7", "ft3", "ft4", "ft5",
+                      "ft6", "ft7", "ft8", "ft9", "ft10", "ft0", "ft1", "ft2");
 
                 // Increment buffer indices for next iteration
                 comp_idx += 1;

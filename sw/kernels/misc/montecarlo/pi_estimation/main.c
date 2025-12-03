@@ -530,7 +530,6 @@ static inline uint32_t calculate_psum_optimized_v2(PRNG_T *prngs,
 #endif
 
     if (snrt_cluster_core_idx() < N_CORES) {
-
         snrt_mcycle();
 
         // Fix register used by 1.0 constant
@@ -659,7 +658,6 @@ static inline uint32_t calculate_psum_optimized_v2(PRNG_T *prngs,
 
     return 0;
 }
-
 
 int main() {
     uint32_t n_seq_per_core, n_seq;
