@@ -193,16 +193,17 @@ jobs:
         run: |
           make SIM_DIR=./test/runs/simple DEBUG=ON annotate -j
 
+  ########################################################
+  # Simulate SW on Snitch Cluster (Mempool) w/ Verilator #
+  ########################################################
+
   snitch-mempool-cluster-vlt:
-    name: Build Snitch Cluster (Mempool) w/ Verilator & Simulate SW for it
+    name: Build Snitch Cluster (Mempool) w/ Verilator & Simulate SW
     runs-on: ubuntu-22.04
     needs: build-docker
     container:
       image: ${{ needs.build-docker.outputs.hw_image_name }}
     steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
       - name: Hash Verilator prerequisites
         id: verilator-hash
         uses: colluca/pymakeutils@v1.2.0
@@ -228,7 +229,6 @@ jobs:
       - name: Run Tests
         working-directory: test
         run: |
-          export PATH=$(pwd)/../target/sim/build/bin:$PATH
           ../util/experiments/run.py snitch_mempool.yaml --simulator verilator -j
       - name: Annotate traces
         # Build the traces using the --permissive flag, since the Verilator
