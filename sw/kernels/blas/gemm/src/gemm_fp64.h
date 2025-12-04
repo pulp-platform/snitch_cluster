@@ -197,6 +197,7 @@ static inline void gemm_fp64_opt(uint32_t setup_ssr, uint32_t partition_banks,
     // and a different element of C needs to be preloaded in every (m, n)
     // iteration. These (integer) operations cannot be done in the FREP loop,
     // so we cannot map the `m` and `n` loops to an FREP loop.
+#ifdef SNRT_SUPPORTS_FREP
     if (SNRT_NUM_SEQUENCER_LOOPS > 1 && SNRT_NUM_SEQUENCER_INSNS >= 24 &&
         beta == 0) {
         asm volatile(
@@ -277,7 +278,7 @@ static inline void gemm_fp64_opt(uint32_t setup_ssr, uint32_t partition_banks,
                         : [ c ] "=r"(&C[m * ldc + n0 * unroll])
                         : "ft0", "ft1", "ft2");
                 }
-
+#ifdef SNRT_SUPPORTS_FREP
                 asm volatile(
                     "frep.o %[n_frep], %[unroll], 0, 0 \n"
                     "fmadd.d %[c0], ft0, ft1, %[c0] \n"
@@ -302,9 +303,11 @@ static inline void gemm_fp64_opt(uint32_t setup_ssr, uint32_t partition_banks,
                       [ c6 ] "f"(c[6]), [ c7 ] "f"(c[7]), [ n_frep ] "r"(K - 3),
                       [ unroll ] "i"(unroll)
                     : "ft0", "ft1", "ft2");
+#endif
             }
         }
     }
+#endif
     snrt_fpu_fence();
     snrt_mcycle();
 

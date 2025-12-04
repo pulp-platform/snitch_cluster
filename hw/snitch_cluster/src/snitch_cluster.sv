@@ -348,7 +348,7 @@ module snitch_cluster
   localparam int unsigned NrWideRuleIdcs = NrWideSlaves - 1;
   localparam int unsigned NrWideRules = (1 + AliasRegionEnable) * NrWideRuleIdcs;
 
-  localparam bit [NrCores-1:0] XPULPV2 = XPULPABS  | XPULPBITOP | XPULPBR | XPULPCLIP | XPULPMACSI | XPULPMINMAX | XPULPSLET | XPULPVECT | XPULPVECTSHUFFLEPACK;
+  localparam bit [NrCores-1:0] XPULPV2 = XPULPABS | XPULPBITOP | XPULPBR | XPULPCLIP | XPULPMACSI | XPULPMINMAX | XPULPSLET | XPULPVECT | XPULPVECTSHUFFLEPACK;
 
   // AXI Configuration
   localparam axi_pkg::xbar_cfg_t ClusterXbarCfg = '{
@@ -421,8 +421,7 @@ module snitch_cluster
     return n;
   endfunction
 
-  //If in hive at least one core doesn't have ownmuldiv - shared_muldiv for this hive is needed. 
-
+  // If in hive at least one core doesn't have ownmuldiv - shared_muldiv for this hive is needed. 
   function automatic bit use_shared_muldiv(int unsigned hive_id);
     for (int i = 0; i < NrCores; i++) begin
       if ((Hive[i] == hive_id) && (OwnMulDiv[i] == 0) && (XPULPV2[i] == 0))
@@ -693,7 +692,8 @@ module snitch_cluster
   );
 
 
-  logic [WideSlaveIdxBits-1:0] dma_xbar_default_port = SoCDMAOut;
+  logic [WideSlaveIdxBits-1:0] dma_xbar_default_port;
+  assign dma_xbar_default_port = SoCDMAOut;
   xbar_rule_t dma_xbar_default_port_rule;
   assign dma_xbar_default_port_rule = '{
     idx: dma_xbar_default_port,
@@ -1094,7 +1094,6 @@ module snitch_cluster
         .XPULPSLET (XPULPSLET[i]),
         .XPULPVECT (XPULPVECT[i]),
         .XPULPVECTSHUFFLEPACK (XPULPVECTSHUFFLEPACK[i]),
-        .Xipu (1'b0),
         .VMSupport (VMSupport),
         .NumIntOutstandingLoads (NumIntOutstandingLoads[i]),
         .NumIntOutstandingMem (NumIntOutstandingMem[i]),

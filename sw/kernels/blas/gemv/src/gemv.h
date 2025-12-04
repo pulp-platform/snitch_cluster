@@ -47,16 +47,16 @@ static inline void single_core_gemv(uint32_t trans, uint32_t m, uint32_t n,
 
     for (uint32_t i = 0; i < m; i++) {
         double acc = 0.0;
-
+        #ifdef SNRT_SUPPORTS_FREP
         asm volatile(
-            "fld ft3, 0(%[alpha]) \n"
-            "frep.o %[n_frep], 1, 0, 0 \n"
-            "fmadd.d %[acc], ft0, ft1, %[acc] \n"
-            "fmul.d %[acc], %[acc], ft3 \n"
-            : [ acc ] "+f"(acc)
-            : [ n_frep ] "r"(n - 1), [ alpha ] "r"(&alpha)
-            : "ft0", "ft1", "ft2", "ft3", "memory");
-
+                "fld ft3, 0(%[alpha]) \n"
+                "frep.o %[n_frep], 1, 0, 0 \n"
+                "fmadd.d %[acc], ft0, ft1, %[acc] \n"
+                "fmul.d %[acc], %[acc], ft3 \n"
+                : [ acc ] "+f"(acc)
+                : [ n_frep ] "r"(n - 1), [ alpha ] "r"(&alpha)
+                : "ft0", "ft1", "ft2", "ft3", "memory");
+        #endif
         y[i] = acc;
     }
     snrt_ssr_disable();

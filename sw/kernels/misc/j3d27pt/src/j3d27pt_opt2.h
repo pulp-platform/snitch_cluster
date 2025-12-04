@@ -91,6 +91,7 @@ static inline void j3d27pt_opt2(int fac, int nx, int ny, int nz, double* c,
                                    (void*)(&A_[(z + 1) * ny * nx +
                                                (y + 1) * nx + (x + 1)]));
                 }
+#ifdef SNRT_SUPPORTS_FREP
                 asm volatile(
                     "fmul.d    fa0, ft3, ft0        \n"
                     "fmul.d    fa0, ft3, ft1        \n"
@@ -208,6 +209,7 @@ static inline void j3d27pt_opt2(int fac, int nx, int ny, int nz, double* c,
                       "ft6", "ft7", "ft8", "ft9", "ft10", "ft11", "fs0", "fs1",
                       "fs2", "fs3", "fs4", "fs5", "fs6", "fs7", "fs8", "fs9",
                       "fs10", "fs11", "fa1", "fa2", "fa3", "fa4", "fa5", "fa6");
+#endif
             }
         }
     }

@@ -144,7 +144,7 @@ void syrk_opt(uint32_t m, uint32_t n, double alpha, double *a, double *at,
             acc[1] = 0;
             acc[2] = 0;
             acc[3] = 0;
-
+#ifdef SNRT_SUPPORTS_FREP
             asm volatile(
                 "frep.o %[n_frep], %[unroll], 0, 0 \n"
                 "fmadd.d %[acc0], ft0, ft1, %[acc0] \n"
@@ -166,6 +166,7 @@ void syrk_opt(uint32_t m, uint32_t n, double alpha, double *a, double *at,
                 : [ n_frep ] "r"(n - 1), [ unroll ] "i"(unroll),
                   [ alpha ] "f"(alpha), [ beta ] "f"(beta)
                 : "ft0", "ft1", "ft2");
+#endif
         }
     }
 

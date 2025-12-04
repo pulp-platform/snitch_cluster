@@ -144,15 +144,17 @@ static inline void vlogf_optimized(float *a, double *b) {
                 snrt_ssr_enable();
 
                 // FP computation
-                asm volatile("frep.o %[n_frep], 36, 0, 0 \n" FP_ASM_BODY
-                             :
-                             : [ n_frep ] "r"(BATCH_SIZE / unroll_factor - 1),
-                               [ A0 ] "f"(A[0]), [ A1 ] "f"(A[1]),
-                               [ A2 ] "f"(A[2]), [ A3 ] "f"(A[3]),
-                               [ Ln2 ] "f"(Ln2)
-                             : "ft0", "ft1", "ft2", "fa0", "fa1", "fa2", "fa3",
-                               "fa4", "fa5", "fa6", "fa7", "ft3", "ft4", "ft5",
-                               "ft6", "ft7", "ft8", "ft9", "ft10", "memory");
+                #ifdef SNRT_SUPPORTS_FREP
+                    asm volatile("frep.o %[n_frep], 36, 0, 0 \n" FP_ASM_BODY
+                                 :
+                                 : [ n_frep ] "r"(BATCH_SIZE / unroll_factor - 1),
+                                   [ A0 ] "f"(A[0]), [ A1 ] "f"(A[1]),
+                                   [ A2 ] "f"(A[2]), [ A3 ] "f"(A[3]),
+                                   [ Ln2 ] "f"(Ln2)
+                                 : "ft0", "ft1", "ft2", "fa0", "fa1", "fa2", "fa3",
+                                   "fa4", "fa5", "fa6", "fa7", "ft3", "ft4", "ft5",
+                                   "ft6", "ft7", "ft8", "ft9", "ft10", "memory");
+                #endif
 
                 // Increment buffer indices for next iteration
                 fp_buff_idx += 1;

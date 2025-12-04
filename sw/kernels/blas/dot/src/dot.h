@@ -21,6 +21,7 @@ inline void dot_seq(uint32_t n, double *x, double *y, double *output) {
     snrt_ssr_enable();
 
     const register uint32_t Nm1 asm("t0") = n - 1;
+#ifdef SNRT_SUPPORTS_FREP
     asm volatile(
         "frep.o %[n_frep], 1, 0, 0 \n"
         "fmadd.d %0, ft0, ft1, %0"
@@ -28,7 +29,7 @@ inline void dot_seq(uint32_t n, double *x, double *y, double *output) {
         : "f"(ft0), "f"(ft1), "0"(res_ssr),
           [ n_frep ] "r"(Nm1) /* input operands */
         :);
-
+#endif
     // End of SSR region.
     snrt_fpu_fence();
     snrt_ssr_disable();
@@ -56,6 +57,7 @@ inline void dot_seq_4_acc(uint32_t n, double *x, double *y, double *output) {
     snrt_ssr_enable();
 
     const register uint32_t Nm1 asm("t0") = (n >> 2) - 1;
+#ifdef SNRT_SUPPORTS_FREP
     asm volatile(
         "frep.o %[n_frep], 4, 0, 0 \n"
         "fmadd.d %0, ft0, ft1, %0 \n"
@@ -67,7 +69,7 @@ inline void dot_seq_4_acc(uint32_t n, double *x, double *y, double *output) {
         : "f"(ft0), "f"(ft1), "0"(res_ssr_0), "1"(res_ssr_1), "2"(res_ssr_2),
           "3"(res_ssr_3), [ n_frep ] "r"(Nm1) /* input operands */
         :);
-
+#endif
     // End of SSR region.
     snrt_ssr_disable();
 

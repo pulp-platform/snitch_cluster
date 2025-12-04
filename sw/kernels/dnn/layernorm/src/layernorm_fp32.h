@@ -125,6 +125,7 @@ static inline void layernorm_fp32_opt(float *input, float *output,
                 var_tot = 0.0;
                 snrt_ssr_enable();
                 // Computation of the row mean
+#ifdef SNRT_SUPPORTS_FREP
                 asm volatile(
                     "vfcpka.s.s %[mean0], %[zero], %[zero] \n"
                     "vfcpka.s.s %[mean1], %[zero], %[zero] \n"
@@ -210,6 +211,7 @@ static inline void layernorm_fp32_opt(float *input, float *output,
                     : "ft0", "ft1", "ft2"
 
                 );
+#endif
                 snrt_ssr_disable();
             }
         }

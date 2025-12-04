@@ -53,7 +53,7 @@ inline void kbpcpa(uint32_t l, double k, double* a, double* b, double* c) {
     snrt_ssr_write(SNRT_SSR_DM2, SNRT_SSR_1D, a);
 
     snrt_ssr_enable();
-
+#ifdef SNRT_SUPPORTS_FREP
     asm volatile(
         "frep.o %[n_frep], 2, 0, 0 \n"
         "fadd.d ft3, ft0, ft1 \n"   // ft3 <-- d = b + c
@@ -61,6 +61,7 @@ inline void kbpcpa(uint32_t l, double k, double* a, double* b, double* c) {
         :
         : [ n_frep ] "r"(l - 1), [ k ] "f"(k)
         : "ft0", "ft1", "ft2", "ft3", "memory");
+#endif
     snrt_fpu_fence();
     snrt_ssr_disable();
     snrt_mcycle();
@@ -76,7 +77,7 @@ inline void kbpcpa(uint32_t l, double k, double* a, double* b, double* c) {
     snrt_ssr_write(SNRT_SSR_DM2, SNRT_SSR_1D, a);
 
     snrt_ssr_enable();
-
+#ifdef SNRT_SUPPORTS_FREP
     asm volatile(
         "frep.o %[n_frep], 8, 0, 0 \n"
         "fadd.d ft3, ft0, ft1 \n"   // ft3 <-- d = b + c
@@ -90,6 +91,7 @@ inline void kbpcpa(uint32_t l, double k, double* a, double* b, double* c) {
         :
         : [ n_frep ] "r"(l / 4 - 1), [ k ] "f"(k)
         : "ft0", "ft1", "ft2", "ft3", "ft4", "ft5", "ft6", "memory");
+#endif
     snrt_fpu_fence();
     snrt_ssr_disable();
     snrt_mcycle();
@@ -108,7 +110,7 @@ inline void kbpcpa(uint32_t l, double k, double* a, double* b, double* c) {
 
     uint32_t mask = 0x00000008;
     snrt_sc_enable(mask);
-
+#ifdef SNRT_SUPPORTS_FREP
     asm volatile(
         "fence \n"
         "frep.o %[n_frep], 8, 0, 0 \n"
@@ -123,6 +125,7 @@ inline void kbpcpa(uint32_t l, double k, double* a, double* b, double* c) {
         :
         : [ n_frep ] "r"(l / 4 - 1), [ k ] "f"(k)
         : "ft0", "ft1", "ft2", "ft3", "memory");
+#endif
     snrt_fpu_fence();
     snrt_sc_disable(mask);
     snrt_ssr_disable();

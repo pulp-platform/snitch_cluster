@@ -24,7 +24,7 @@ SN_RISCV_CFLAGS := -mcpu=snitch-mempool
 else
 SN_RISCV_CFLAGS := -mcpu=snitch
 endif
-RISCV_CFLAGS += -menable-experimental-extensions
+SN_RISCV_CFLAGS += -menable-experimental-extensions
 SN_RISCV_CFLAGS += -mabi=ilp32d
 SN_RISCV_CFLAGS += -mcmodel=medany
 SN_RISCV_CFLAGS += -mno-fdiv

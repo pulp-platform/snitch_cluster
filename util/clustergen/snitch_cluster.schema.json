@@ -181,6 +181,31 @@
                     "description": "Whether to enable multicast in the cluster.",
                     "default": false
                 },
+                "enable_dma": {
+                    "type": "boolean",
+                    "description": "Whether to enable DMA in the cluster.",
+                    "default": true
+                },
+                "enable_ssr": {
+                    "type": "boolean",
+                    "description": "Whether to enable Stream Semantic Registers in the cluster.",
+                    "default": true
+                },
+                "enable_frep": {
+                    "type": "boolean",
+                    "description": "Whether to enable Floating-Point Repetition in the cluster.",
+                    "default": true
+                },
+                "enable_copift": {
+                    "type": "boolean",
+                    "description": "Whether to enable Cooperative Parallel Integer and Floating-Point Threads in the cluster.",
+                    "default": true
+                },
+                "enable_xpulp": {
+                    "type": "boolean",
+                    "description": "Whether to enable Xpulpv2 extension in the cluster.",
+                    "default": false
+                },
                 "hart_base_id": {
                     "type": "number",
                     "description": "Base hart id of the cluster. All cores get the respective cluster id plus their cluster position as the final `hart_id`.",
@@ -443,6 +468,11 @@
                                     }
                                 }
                             },
+                            "private_muldiv_per_core": {
+                                "type": "boolean",
+                                 "description": "Whether cores in this hive use their own private mul/div units instead of a single shared hive-wide mul/div unit.",
+                                 "default": false
+                            },
                             "cores": {
                                 "type": "array",
                                 "title": "Cores",
@@ -525,6 +555,66 @@
                                             "type": "boolean",
                                             "title": "Xfvec Extension",
                                             "description": "Enable Smallfloat vector extension (SIMD).",
+                                            "default": false
+                                        },
+                                        "xpulppostmod": {
+                                            "type": "boolean",
+                                            "title": "Xpulppostmod Subextension",
+                                            "description": "Enable Xpulppostmod subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpabs": {
+                                            "type": "boolean",
+                                            "title": "Xpulpabs Subextension",
+                                            "description": "Enable Xpulpabs subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpbitop": {
+                                            "type": "boolean",
+                                            "title": "Xpulpbitop Subextension",
+                                            "description": "Enable Xpulpbitop subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpbr": {
+                                            "type": "boolean",
+                                            "title": "Xpulpbr Subextension",
+                                            "description": "Enable Xpulpbr subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpclip": {
+                                            "type": "boolean",
+                                            "title": "Xpulpclip Subextension",
+                                            "description": "Enable Xpulpclip subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpmacsi": {
+                                            "type": "boolean",
+                                            "title": "Xpulpmacsi Subextension",
+                                            "description": "Enable Xpulpmacsi subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpminmax": {
+                                            "type": "boolean",
+                                            "title": "Xpulpminmax Subextension",
+                                            "description": "Enable Xpulpminmax subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpslet": {
+                                            "type": "boolean",
+                                            "title": "Xpulpslet Subextension",
+                                            "description": "Enable Xpulpslet subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpvect": {
+                                            "type": "boolean",
+                                            "title": "Xpulpvect Subextension",
+                                            "description": "Enable Xpulpvect subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpvectshufflepack": {
+                                            "type": "boolean",
+                                            "title": "Xpulpvectshufflepack Subextension",
+                                            "description": "Enable Xpulpvectshufflepack subextension.",
                                             "default": false
                                         },
                                         "num_int_outstanding_loads": {

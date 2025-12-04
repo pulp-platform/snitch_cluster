@@ -68,12 +68,12 @@ static inline void transpose_fp64_opt(double* input, double* output, uint32_t M,
     snrt_ssr_read(SNRT_SSR_DM0, SNRT_SSR_2D, input);
     snrt_ssr_write(SNRT_SSR_DM1, SNRT_SSR_2D, output);
     snrt_ssr_enable();
-
+#ifdef SNRT_SUPPORTS_FREP
     asm volatile(
         "frep.o  %[n_frep], 1, 0, 0 \n"
         "fsgnj.d ft1, ft0, ft0 \n" ::[n_frep] "r"(M * N - 1)
         : "ft0", "ft1", "ft2");
-
+#endif
     snrt_ssr_disable();
 
     snrt_fpu_fence();

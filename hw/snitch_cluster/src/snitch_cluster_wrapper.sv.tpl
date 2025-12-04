@@ -125,7 +125,6 @@ module ${cfg['cluster']['name']}_wrapper (
     .Xssr (${core_cfg_flat('xssr')}),
     .Xfrep (${core_cfg_flat('xfrep')}),
     .Xcopift (${core_cfg_flat('xcopift')}),
-    .OwnMulDiv (${core_cfg_flat('ownmuldiv')}),
     .XPULPPOSTMOD (${core_cfg_flat('xpulppostmod')}),
     .XPULPABS (${core_cfg_flat('xpulpabs')}),
     .XPULPBITOP(${core_cfg_flat('xpulpbitop')}),

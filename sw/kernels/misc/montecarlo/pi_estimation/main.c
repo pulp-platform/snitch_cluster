@@ -328,6 +328,9 @@ static inline uint32_t calculate_psum_optimized(PRNG_T *prngs,
 
                 // Floating-point thread
                 // clang-format off
+#ifdef SNRT_SUPPORTS_SSR
+#ifdef SNRT_SUPPORTS_COPIFT
+#ifdef SNRT_SUPPORTS_FREP
                 asm volatile(
                     // Unrolled by 4
 #if APPLICATION == APPLICATION_PI
@@ -335,7 +338,6 @@ static inline uint32_t calculate_psum_optimized(PRNG_T *prngs,
 #elif APPLICATION == APPLICATION_POLY
                     "frep.o %[n_frep], 40, 0, 0 \n"
 #endif
-
                     // Convert integer PRNs to doubles
                     "fcvt.d.wu.copift fa0, ft0 \n"
                     "fcvt.d.wu.copift fa1, ft1 \n"
@@ -384,6 +386,9 @@ static inline uint32_t calculate_psum_optimized(PRNG_T *prngs,
                       "fa0", "fa1", "fa2", "fa3", "fa4", "fa5", "fa6", "fa7",
                       "memory"
                 );
+#endif
+#endif
+#endif
                 // clang-format on
             }
 

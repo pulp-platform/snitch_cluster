@@ -155,7 +155,7 @@ void gemm_fp16_opt(uint32_t setup_ssr, uint32_t partition_banks,
             const float zero = 0.0;
             v4f16 c[unroll];
             v2f32 reduce_reg[unroll];
-
+#ifdef SNRT_SUPPORTS_FREP
             asm volatile(
                 "beqz %[beta], 1f \n"
                 // Load intermediate results
@@ -275,6 +275,7 @@ void gemm_fp16_opt(uint32_t setup_ssr, uint32_t partition_banks,
                 : [ C ] "r"(_C), [ zero ] "f"(zero), [ n_frep ] "r"(n_frep),
                   [ beta ] "r"(beta)
                 : "ft0", "ft1", "ft2");
+#endif
 
             n += unroll;
         }
@@ -347,7 +348,7 @@ void gemm_fp16_opt_ex(uint32_t setup_ssr, uint32_t partition_banks,
             const float zero = 0.0;
             v4f16 c[unroll];
             v2f32 reduce_reg[unroll];
-
+#ifdef SNRT_SUPPORTS_FREP
             asm volatile(
                 "beqz %[beta], 1f \n"
                 "flh %[reduce_reg0], 0(%[C]) \n"
@@ -447,7 +448,7 @@ void gemm_fp16_opt_ex(uint32_t setup_ssr, uint32_t partition_banks,
                 : [ C ] "r"(_C), [ zero ] "f"(zero), [ n_frep ] "r"(n_frep),
                   [ unroll ] "i"(unroll), [ beta ] "r"(beta)
                 : "ft0", "ft1", "ft2");
-
+#endif
             n += unroll;
         }
 

@@ -151,7 +151,7 @@ void doitgen_opt(uint32_t r, uint32_t q, uint32_t s, double *A, double *x,
                 acc[1] = 0;
                 acc[2] = 0;
                 acc[3] = 0;
-
+#ifdef SNRT_SUPPORTS_FREP
                 asm volatile(
                     "frep.o %[n_frep], %[unroll], 0, 0 \n"
                     "fmadd.d %[acc0], ft0, ft1, %[acc0] \n"
@@ -162,6 +162,7 @@ void doitgen_opt(uint32_t r, uint32_t q, uint32_t s, double *A, double *x,
                       [ acc2 ] "+f"(acc[2]), [ acc3 ] "+f"(acc[3])
                     : [ n_frep ] "r"(s - 1), [ unroll ] "i"(unroll)
                     : "ft0", "ft1", "ft2");
+#endif
 
                 Aout[i * q * s + j * s + k + 0] = acc[0];
                 Aout[i * q * s + j * s + k + 1] = acc[1];

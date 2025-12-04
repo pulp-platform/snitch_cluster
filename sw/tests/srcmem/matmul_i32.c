@@ -92,7 +92,23 @@ int main() {
         clear_out(C_xp);
     }
     snrt_cluster_hw_barrier();
+    static int32_t *A_l1;
+    static int32_t *B_l1;
+    static int32_t *C_rv_l1;
+    static int32_t *C_xp_l1;
 
+    if (core_id == 0) {
+        A_l1 = (int32_t *) snrt_l1_alloc(M * N * sizeof(int32_t));
+        B_l1 = (int32_t *) snrt_l1_alloc(N * P * sizeof(int32_t));
+        C_rv_l1 = (int32_t *) snrt_l1_alloc(M * P * sizeof(int32_t));
+        C_xp_l1 = (int32_t *) snrt_l1_alloc(M * P * sizeof(int32_t));
+
+        // copy inputs from global static to L1
+        memcpy(A_l1, A, M*N*sizeof(int32_t));
+        memcpy(B_l1, B, N*P*sizeof(int32_t));
+        memset(C_rv_l1, 0, M*P*sizeof(int32_t));
+        memset(C_xp_l1, 0, M*P*sizeof(int32_t));
+    }
     // ------------------------------
     // XPULPV2 optimized (if available)
     // ------------------------------
@@ -105,7 +121,7 @@ int main() {
     }
     snrt_cluster_hw_barrier();
 
-    matmul_unrolled_2x2_parallel_i32_xpulpv2(A, B, C_xp, M, N, P, core_id,
+    matmul_unrolled_2x2_parallel_i32_xpulpv2(A_l1, B_l1, C_xp_l1, M, N, P, core_id,
                                              num_cores);
 
     snrt_cluster_hw_barrier();
@@ -115,7 +131,7 @@ int main() {
         printf("XPULPV2 cycles: %u\n", cycles_xp);
     }
     if (core_id == 0) {
-        int errs = compare_C(A, C_xp);
+        int errs = compare_C(A_l1, C_xp_l1);
         if (errs)
             printf("XPULPV2 result: %d mismatches\n", errs);
         else

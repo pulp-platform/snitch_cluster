@@ -55,14 +55,14 @@ static inline void axpy_opt(uint32_t n, double a, double *x, double *y,
     snrt_ssr_write(SNRT_SSR_DM2, SNRT_SSR_1D, z + offset);
 
     snrt_ssr_enable();
-
+#ifdef SNRT_SUPPORTS_FREP
     asm volatile(
         "frep.o %[n_frep], 1, 0, 0 \n"
         "fmadd.d ft2, %[a], ft0, ft1\n"
         :
         : [ n_frep ] "r"(frac - 1), [ a ] "f"(a)
         : "ft0", "ft1", "ft2", "memory");
-
+#endif
     snrt_fpu_fence();
     snrt_ssr_disable();
 }

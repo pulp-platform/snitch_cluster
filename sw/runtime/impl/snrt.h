@@ -17,9 +17,7 @@
 // Forward declarations
 #include "alloc_decls.h"
 #include "cls_decls.h"
-#ifdef SNRT_SUPPORTS_DMA
 #include "dma_decls.h"
-#endif
 #include "memory_decls.h"
 #include "riscv_decls.h"
 #include "start_decls.h"
@@ -32,10 +30,8 @@
 #include "cls.h"
 #include "cluster_interrupts.h"
 #include "copift.h"
-#ifdef SNRT_SUPPORTS_DMA
 #include "dm.h"
 #include "dma.h"
-#endif
 #include "dump.h"
 #include "eu.h"
 #include "kmp.h"

@@ -129,6 +129,7 @@ void covariance_opt(uint32_t m, uint32_t n, double inv_n, double inv_n_m1,
         m[1] = 0.0;  // mean(datat[i])
         m[2] = 0.0;  // mean(data[i + stride])
         m[3] = 0.0;  // mean(datat[i + stride])
+#ifdef SNRT_SUPPORTS_FREP
         asm volatile(
             "frep.o %[n_frep], %[n_insn], 0, 0 \n"
             "fadd.d %[m0], ft0, %[m0] \n"
@@ -139,13 +140,14 @@ void covariance_opt(uint32_t m, uint32_t n, double inv_n, double inv_n_m1,
               [ m3 ] "+f"(m[3])
             : [ n_frep ] "r"(n - 1), [ n_insn ] "i"(2 * unroll0)
             : "ft0", "ft1", "ft2");
+#endif
         m[0] *= inv_n;
         m[1] *= inv_n;
         m[2] *= inv_n;
         m[3] *= inv_n;
 
         snrt_fpu_fence();
-
+#ifdef SNRT_SUPPORTS_FREP
         // Center row around zero
         asm volatile(
             "frep.o %[n_frep], %[n_insn], 0, 0 \n"
@@ -157,6 +159,7 @@ void covariance_opt(uint32_t m, uint32_t n, double inv_n, double inv_n_m1,
               [ m3 ] "+f"(m[3])
             : [ n_frep ] "r"(n - 1), [ n_insn ] "i"(2 * unroll0)
             : "ft0", "ft1", "ft2");
+#endif
     }
 
     snrt_ssr_disable();
@@ -205,7 +208,7 @@ void covariance_opt(uint32_t m, uint32_t n, double inv_n, double inv_n_m1,
             acc[1] = 0;
             acc[2] = 0;
             acc[3] = 0;
-
+#ifdef SNRT_SUPPORTS_FREP
             asm volatile(
                 "frep.o %[n_frep], %[unroll1], 0, 0 \n"
                 "fmadd.d %[acc0], ft0, ft1, %[acc0] \n"
@@ -225,6 +228,7 @@ void covariance_opt(uint32_t m, uint32_t n, double inv_n, double inv_n_m1,
                 : [ n_frep ] "r"(n - 1), [ unroll1 ] "i"(unroll1),
                   [ alpha ] "f"(inv_n_m1)
                 : "ft0", "ft1", "ft2");
+#endif
         }
     }
 

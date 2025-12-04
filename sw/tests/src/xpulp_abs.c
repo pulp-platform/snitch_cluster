@@ -12,7 +12,9 @@ int main() {
         int32_t result_rs1;
         register int32_t rd asm("a3") = 0;
         register int32_t rs1 asm("a4") = -42;  // rs1, data source
-        asm volatile("p.abs a3, a4\n" : "=r"(rd) : "r"(rs1) : "a3", "a4");
+        #ifdef SNRT_SUPPORTS_XPULP
+            asm volatile("p.abs a3, a4\n" : "=r"(rd) : "r"(rs1) : "a3", "a4");
+        #endif
         result_rd = rd;
         result_rs1 = rs1;
         if (!((result_rd == 42) && (result_rs1 == -42))) {

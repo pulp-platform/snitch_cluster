@@ -123,12 +123,13 @@ void matmul_unrolled_2x2_parallel_i32_xpulpv2(int32_t const *__restrict__ A,
                 // int32_t val_b10 = B[(k + 1) * P + j + 0];
                 // int32_t val_b11 = B[(k + 1) * P + j + 1];
                 c00 += val_a00 * val_b00;
-                c00 += val_a01 * val_b10;
+
                 c01 += val_a00 * val_b01;
-                c01 += val_a01 * val_b11;
                 c10 += val_a10 * val_b00;
-                c10 += val_a11 * val_b10;
                 c11 += val_a10 * val_b01;
+                c00 += val_a01 * val_b10;
+                c01 += val_a01 * val_b11;
+                c10 += val_a11 * val_b10;
                 c11 += val_a11 * val_b11;
             }
             int32_t *idx_c = &C[i * P + j];

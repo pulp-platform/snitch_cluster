@@ -88,7 +88,6 @@ static inline void snrt_init_tls() {
 #endif
 
 #ifdef SNRT_INIT_BSS
-#ifdef SNRT_SUPPORTS_DMA
 static inline void snrt_init_bss() {
     extern volatile uint32_t __bss_start, __bss_end;
 
@@ -102,20 +101,6 @@ static inline void snrt_init_bss() {
         snrt_cluster_hw_barrier();
     }
 }
-#else
-static inline void snrt_init_bss() {
-    extern volatile uint32_t __bss_start, __bss_end;
-
-    // Only one core needs to perform the initialization
-    if (snrt_cluster_idx() == 0) {
-        size_t size = (size_t)(&__bss_end) - (size_t)(&__bss_start);
-        memset((void*)&__bss_start, 0, size);
-
-        // Synchronize with all cores in the cluster
-        snrt_cluster_hw_barrier();
-    }
-}
-#endif
 #endif
 
 #ifdef SNRT_WAKE_UP
@@ -147,7 +132,6 @@ static inline void snrt_init_cls() {
     extern volatile uint32_t __cbss_start, __cbss_end;
 
 // Only one core per cluster has to do this
-#ifdef SNRT_SUPPORTS_DMA
     if (snrt_is_dm_core()) {
         uint64_t ptr = (uint64_t)snrt_cls_base_addr();
         size_t size;
@@ -162,20 +146,6 @@ static inline void snrt_init_cls() {
         snrt_dma_memset((void*)ptr, 0, size);
         snrt_dma_wait_all();
     }
-#else
-    if (snrt_cluster_core_idx() == 0) {
-        uint64_t ptr = (uint64_t)snrt_cls_base_addr();
-        size_t size;
-
-        // Copy cdata section
-        size = (size_t)(&__cdata_end) - (size_t)(&__cdata_start);
-        if (size) memcpy((void*)ptr, (const void*)&__cdata_start, size);
-        // Clear cbss section
-        ptr += size;
-        size = (size_t)(&__cbss_end) - (size_t)(&__cbss_start);
-        if (size) memset((void*)ptr, 0, size);
-    }
-#endif
     // Init the cls pointer
     _cls_ptr = (cls_t*)snrt_cls_base_addr();
     snrt_cluster_hw_barrier();

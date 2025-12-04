@@ -255,7 +255,7 @@ void gemm_fp32_opt(uint32_t setup_ssr, uint32_t partition_banks,
             float* _C = &C[m * ldc + n / 2];
             const float zero = 0.0;
             v2f32 c[unroll], reduce_reg[unroll];
-
+#ifdef SNRT_SUPPORTS_FREP
             asm volatile(
                 "beqz    %[beta], 1f \n"
                 // Load intermediate results
@@ -341,7 +341,7 @@ void gemm_fp32_opt(uint32_t setup_ssr, uint32_t partition_banks,
                 : [ C ] "r"(_C), [ zero ] "f"(zero), [ n_frep ] "r"(n_frep - 1),
                   [ unroll ] "i"(unroll), [ beta ] "r"(beta)
                 : "ft0", "ft1", "ft2");
-
+#endif
             // progress by 2 columns each iteration of the loop
             n += unroll * 2;
         }

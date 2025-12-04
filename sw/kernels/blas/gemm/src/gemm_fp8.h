@@ -163,7 +163,7 @@ void gemm_fp8_opt_ex(uint32_t setup_ssr, uint32_t partition_banks,
             const float zero = 0.0;
             v8f8 c[unroll];
             v4f16 reduce_reg[unroll];
-
+#ifdef SNRT_SUPPORTS_FREP
             asm volatile(
                 "beqz %[beta], 1f \n"
                 "flb %[reduce_reg0], 0(%[C]) \n"
@@ -284,6 +284,7 @@ void gemm_fp8_opt_ex(uint32_t setup_ssr, uint32_t partition_banks,
                 : [ C ] "r"(_C), [ n_frep ] "r"(n_frep), [ beta ] "r"(beta),
                   [ unroll ] "i"(unroll), [ zero ] "f"(zero)
                 : "ft0", "ft1", "ft2");
+#endif
 
             // Store results back
             ((v8f8*)_C)[0] = c[0];

@@ -124,16 +124,18 @@ static inline void vexpf_optimized(double *a, double *b) {
 
                 // FP0 computation
                 int unroll_factor = 4;
-                asm volatile("frep.o %[n_frep], 36, 0, 0 \n" FP0_ASM_BODY
-                             :
-                             : [ n_frep ] "r"(BATCH_SIZE / unroll_factor - 1),
-                               [ InvLn2N ] "f"(InvLn2N), [ SHIFT ] "f"(SHIFT),
-                               [ C0 ] "f"(C[0]), [ C1 ] "f"(C[1]),
-                               [ C2 ] "f"(C[2]), [ C3 ] "f"(C[3])
-                             : "memory", "ft0", "ft1", "ft2", "fa3", "ft3",
-                               "ft4", "ft5", "fa1", "fa2", "fa3", "fa4", "fa5",
-                               "fa6", "fa7", "ft3", "ft4", "ft5", "ft6", "ft7",
-                               "ft8", "fs0", "fs1", "fs2", "ft0", "ft1", "ft2");
+                #ifdef SNRT_SUPPORTS_FREP
+                    asm volatile("frep.o %[n_frep], 36, 0, 0 \n" FP0_ASM_BODY
+                                 :
+                                 : [ n_frep ] "r"(BATCH_SIZE / unroll_factor - 1),
+                                   [ InvLn2N ] "f"(InvLn2N), [ SHIFT ] "f"(SHIFT),
+                                   [ C0 ] "f"(C[0]), [ C1 ] "f"(C[1]),
+                                   [ C2 ] "f"(C[2]), [ C3 ] "f"(C[3])
+                                 : "memory", "ft0", "ft1", "ft2", "fa3", "ft3",
+                                   "ft4", "ft5", "fa1", "fa2", "fa3", "fa4", "fa5",
+                                   "fa6", "fa7", "ft3", "ft4", "ft5", "ft6", "ft7",
+                                   "ft8", "fs0", "fs1", "fs2", "ft0", "ft1", "ft2");
+                #endif
 
                 // Increment buffer index for next iteration
                 fp0_w_idx += 1;
@@ -168,15 +170,17 @@ static inline void vexpf_optimized(double *a, double *b) {
                 snrt_ssr_enable();
 
                 // FP0 and FP1 computation
-                asm volatile("frep.o %[n_frep], 40, 0, 0 \n" FP0_FP1_ASM_BODY
-                             :
-                             : [ n_frep ] "r"(BATCH_SIZE / unroll_factor - 1),
-                               [ InvLn2N ] "f"(InvLn2N), [ SHIFT ] "f"(SHIFT),
-                               [ C0 ] "f"(C[0]), [ C1 ] "f"(C[1]),
-                               [ C2 ] "f"(C[2]), [ C3 ] "f"(C[3])
-                             : "memory", "ft0", "ft1", "ft2", "fa1", "fa2",
-                               "fa3", "fa4", "fa5", "fa6", "fa7", "ft3", "ft4",
-                               "ft5", "ft6", "ft7", "ft8", "fs0", "fs1", "fs2");
+                #ifdef SNRT_SUPPORTS_FREP
+                    asm volatile("frep.o %[n_frep], 40, 0, 0 \n" FP0_FP1_ASM_BODY
+                                 :
+                                 : [ n_frep ] "r"(BATCH_SIZE / unroll_factor - 1),
+                                   [ InvLn2N ] "f"(InvLn2N), [ SHIFT ] "f"(SHIFT),
+                                   [ C0 ] "f"(C[0]), [ C1 ] "f"(C[1]),
+                                   [ C2 ] "f"(C[2]), [ C3 ] "f"(C[3])
+                                 : "memory", "ft0", "ft1", "ft2", "fa1", "fa2",
+                                   "fa3", "fa4", "fa5", "fa6", "fa7", "ft3", "ft4",
+                                   "ft5", "ft6", "ft7", "ft8", "fs0", "fs1", "fs2");
+                #endif
 
                 // Increment buffer index for next iteration
                 fp0_w_idx += 1;
@@ -206,10 +210,12 @@ static inline void vexpf_optimized(double *a, double *b) {
                 snrt_ssr_enable();
 
                 // FP1 computation
-                asm volatile("frep.o %[n_frep], 4, 0, 0 \n" FP1_ASM_BODY
-                             :
-                             : [ n_frep ] "r"(BATCH_SIZE / unroll_factor - 1)
-                             : "memory", "ft0", "ft1", "ft2");
+                #ifdef SNRT_SUPPORTS_FREP
+                    asm volatile("frep.o %[n_frep], 4, 0, 0 \n" FP1_ASM_BODY
+                                 :
+                                 : [ n_frep ] "r"(BATCH_SIZE / unroll_factor - 1)
+                                 : "memory", "ft0", "ft1", "ft2");
+                #endif
 
                 // Increment buffer indices for next iteration
                 fp1_w_idx += 1;

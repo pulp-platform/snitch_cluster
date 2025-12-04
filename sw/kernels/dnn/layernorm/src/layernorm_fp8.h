@@ -63,7 +63,7 @@ static inline void layernorm_fp8_opt(char *input, char *output,
                 mean_tot = 0.0;
 
                 snrt_ssr_enable();
-
+#ifdef SNRT_SUPPORTS_FREP
                 asm volatile(
                     "vfcpka.s.s %[mean_v4_0], %[zero], %[zero] \n"
                     "vfcpka.s.s %[mean_v4_1], %[zero], %[zero] \n"
@@ -205,6 +205,7 @@ static inline void layernorm_fp8_opt(char *input, char *output,
                     : [ mean_reg ] "+f"(mean_reg.f64)
                     : [ n_frep ] "r"(n_frep - 1)
                     : "ft0", "ft1", "ft2");
+#endif
                 snrt_ssr_disable();
             }
         }

@@ -194,7 +194,7 @@ jobs:
           make SIM_DIR=./test/runs/simple DEBUG=ON annotate -j
 
   snitch-mempool-cluster-vlt:
-    name: Build Snitch Cluster with XPULPV2 w/ Verilator & Simulate SW for it
+    name: Build Snitch Cluster (Mempool) w/ Verilator & Simulate SW for it
     runs-on: ubuntu-22.04
     needs: build-docker
     container:
@@ -215,16 +215,16 @@ jobs:
         with:
           path: |
             target/sim/build/bin
-          key: verilator-xpulpv2-${{ steps.verilator-hash.outputs.hash }}
+          key: verilator-mempool-${{ steps.verilator-hash.outputs.hash }}
           restore-keys: |
-            verilator-xpulpv2-
+            verilator-mempool-
       - name: Build Hardware
         if: steps.verilator-cache.outputs.cache-hit != 'true'
         run: |
-          make CFG_OVERRIDE=cfg/xpulpv2.json VLT_JOBS=1 verilator
-      - name: Build Software for xpulpv2 tests
+          make CFG_OVERRIDE=cfg/mempool.json VLT_JOBS=1 verilator
+      - name: Build Software for mempool tests
         run: |
-          make tests CFG_OVERRIDE=cfg/xpulpv2.json SNITCH_MEMPOOL=ON -j
+          make tests CFG_OVERRIDE=cfg/mempool.json SNITCH_MEMPOOL=ON -j
       - name: Run Tests
         working-directory: test
         run: |
@@ -236,7 +236,6 @@ jobs:
         # (compiler introduces few instructions after exit routine).
         run: |
           make SIM_DIR=./test/runs/simple SNITCH_MEMPOOL=ON DEBUG=ON annotate -j
-
 
   ######################
   # Sources Up-to-Date #

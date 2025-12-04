@@ -37,7 +37,21 @@
 #define SNRT_SUPPORTS_DMA
 % endif
 
+% if cfg['cluster']['enable_ssr']:
+#define SNRT_SUPPORTS_SSR
+% endif
 
+% if cfg['cluster']['enable_frep']:
+#define SNRT_SUPPORTS_FREP
+% endif
+
+% if cfg['cluster']['enable_copift']:
+#define SNRT_SUPPORTS_COPIFT
+% endif
+
+% if cfg['cluster']['enable_xpulp']:
+#define SNRT_SUPPORTS_XPULP
+% endif
 
 // Software configuration
 #define SNRT_LOG2_STACK_SIZE 10

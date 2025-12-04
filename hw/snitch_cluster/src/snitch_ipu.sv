@@ -15,20 +15,6 @@ module snitch_ipu import snitch_pkg::*;  #(
   input  logic                     clk_i,
   input  logic                     rst_ni,
   // Accelerator Interface - Slave
-  // input  acc_addr_e                acc_qaddr_i,      // unused
-  // input  logic [IdWidth-1:0]       acc_qid_i,
-  // input  logic [31:0]              acc_qdata_op_i,   // RISC-V instruction
-  // input  logic [31:0]              acc_qdata_arga_i,
-  // input  logic [31:0]              acc_qdata_argb_i,
-  // input  logic [31:0]              acc_qdata_argc_i,
-  // input  logic                     acc_qvalid_i,
-  // output logic                     acc_qready_o,
-  // output logic [31:0]              acc_pdata_o,
-  // output logic [IdWidth-1:0]       acc_pid_o,
-  // output logic                     acc_perror_o,
-  // output logic                     acc_pvalid_o,
-  // input  logic                     acc_pready_i
-  // Accelerator Interface - Slave
   input  acc_req_t         acc_req_i,
   input  logic             acc_req_valid_i,
   output logic             acc_req_ready_o,
