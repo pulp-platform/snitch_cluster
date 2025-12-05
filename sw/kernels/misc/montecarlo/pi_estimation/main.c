@@ -543,7 +543,7 @@ static inline uint32_t calculate_psum_optimized_v2(PRNG_T *prngs,
         // clang-format off
         asm volatile(
             // Enable COPIFT queues
-            "csrrsi x0, 0x7C4, 0x1 \n"
+            "csrsi copift, 0x1 \n"
 
             // Compute 4 integer PRN (X, Y) pairs (prologue of integer thread)
 #if PRNG == PRNG_LCG
@@ -617,7 +617,7 @@ static inline uint32_t calculate_psum_optimized_v2(PRNG_T *prngs,
             "add   %[temp3],  %[temp3], t6 \n"
 
             // Disable COPIFT queues
-            "csrrci x0, 0x7C4, 0x1 \n"
+            "csrci copift, 0x1 \n"
 
             : [ temp0 ] "+r"(temp0), [ temp1 ] "+r"(temp1),
               [ temp2 ] "+r"(temp2), [ temp3 ] "+r"(temp3)

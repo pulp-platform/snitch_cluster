@@ -314,7 +314,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic [0:0][4:0] cause_d, cause_q;
   logic [0:0] cause_irq_d, cause_irq_q;
   logic spp_d, spp_q;
-  logic csr_en_copift_d, csr_en_copift_q;
+  logic csr_copift_d, csr_copift_q;
   snitch_pkg::priv_lvl_t mpp_d, mpp_q;
   logic [0:0] ie_d, ie_q;
   logic [0:0] pie_d, pie_q;
@@ -352,7 +352,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   `FFAR(spp_q, spp_d, 1'b0, clk_i, rst_i)
   `FFAR(ie_q, ie_d, '0, clk_i, rst_i)
   `FFAR(pie_q, pie_d, '0, clk_i, rst_i)
-  `FFAR(csr_en_copift_q, csr_en_copift_d, 1'b0, clk_i, rst_i)
+  `FFAR(csr_copift_q, csr_copift_d, 1'b0, clk_i, rst_i)
   // Interrupts
   `FFAR(eie_q, eie_d, '0, clk_i, rst_i)
   `FFAR(tie_q, tie_d, '0, clk_i, rst_i)
@@ -2304,7 +2304,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           illegal_inst = 1'b1;
         end
       end
-      DMMCAST: begin
+      DMUSER: begin
         if (Xdma) begin
           acc_qreq_o.addr = DMA_SS;
           opa_select      = Reg;
@@ -2479,7 +2479,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     
     csr_stall_d = csr_stall_q;
     csr_mcast_d = csr_mcast_q;
-    csr_en_copift_d = csr_en_copift_q;
+    csr_copift_d = csr_copift_q;
 
     if (barrier_i) csr_stall_d = 1'b0;
     barrier_o = 1'b0;
@@ -2707,17 +2707,20 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
             csr_stall_d = 1'b1;
           end
           // Multicast mask
-          CSR_MCAST: begin
+          CSR_USER_LOW: begin
             csr_rvalue = csr_mcast_q;
             csr_mcast_d = alu_result[31:0];
           end
-          CSR_FPQ: begin
-            csr_rvalue = {31'b0, csr_en_copift_q};
-            if (!exception) csr_en_copift_d = alu_result[0];
+          CSR_COPIFT: begin
+            csr_rvalue = {31'b0, csr_copift_q};
+            if (!exception) csr_copift_d = alu_result[0];
+          end
+          CSR_DUMP: begin
+            csr_rvalue = '0;
+            csr_dump = 1'b1;
           end
           default: begin
             csr_rvalue = '0;
-            csr_dump = 1'b1;
           end
         endcase
       end else illegal_csr = 1'b1;
@@ -2805,7 +2808,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
 
   // pragma translate_off
   always_ff @(posedge clk_i or posedge rst_i) begin
-    // Display CSR write if the CSR does not exist
+    // Display writes to CSR_DUMP
     if (!rst_i && csr_dump && inst_valid_o && inst_ready_i && !stall) begin
       // $timeformat(-9, 0, " ns", 0);
       $display("[Dump Core %0d] %t 0x%3h = 0x%08h, %d, %f", hart_id_i,
@@ -2819,7 +2822,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // --------------------
 
   // Common enable signal for the I2F and F2I queues
-  assign en_copift_queues_o = csr_en_copift_q;
+  assign en_copift_queues_o = csr_copift_q;
 
   // Is an instruction a FP instruction (i.e. an instruction executed in the FPSS)
   assign is_fp_inst = is_acc_inst && (acc_qreq_o.addr == FP_SS);

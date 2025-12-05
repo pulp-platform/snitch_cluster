@@ -82,7 +82,7 @@ static inline void vexpf_optimized_v2(double *a, double *b) {
 
                 asm volatile(
                     // clang-format off
-                    "csrrsi  x0, 0x7C4, 0x1            \n" // Enable COPIFT queues
+                    "csrsi   copift, 0x1               \n" // Enable COPIFT queues
                     "fmul.d  fa3, %[InvLn2N], ft0      \n" // z = InvLn2N * xd
                     "fmul.d  ft3, %[InvLn2N], ft0      \n" // z = InvLn2N * xd
                     "fmul.d  ft4, %[InvLn2N], ft0      \n" // z = InvLn2N * xd
@@ -271,7 +271,7 @@ static inline void vexpf_optimized_v2(double *a, double *b) {
                     // Synchronize and disable COPIFT queues
                     "fmv.x.w a0, fs2                   \n" // FPU fence (part 1)
                     "mv      x0, t6                    \n" // FPU fence (part 2)
-                    "csrrci  x0, 0x7C4, 0x1            \n" // Disable COPIFT queues
+                    "csrci   copift, 0x1               \n" // Disable COPIFT queues
                     // clang-format on
                     : [ n_iter ] "+r"(n_inner_iter_m2)
                     : [ t ] "r"(t), [ T ] "r"(T), [ InvLn2N ] "f"(InvLn2N),

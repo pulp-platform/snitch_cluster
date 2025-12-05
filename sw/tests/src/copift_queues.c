@@ -32,7 +32,7 @@ int main() {
     // FREP to make sure we can unblock it.
     asm volatile(
         "mv        t6, x0 \n"                 // Load 0 into t6
-        "csrrsi    x0, 0x7C4, 0x1 \n"         // Enable queues
+        "csrsi     copift, 0x1 \n"            // Enable queues
         "mv        t6, %[val] \n"             // Write val to i2f
         "frep.o    %[n_iters], 3, 0, 0 \n"    // FP loop
         "fcvt.d.wu ft3, t6 \n"                // Read val from i2f to ft3
@@ -49,7 +49,7 @@ int main() {
         "addi      %[f2i], %[f2i], 4 \n"      // Increment f2i pointer
         "addi      %[val], %[val], 1 \n"      // Increment val
         "bne       %[val], %[eval], loop \n"  // End integer loop body
-        "csrrci    x0, 0x7C4, 0x1 \n"         // Disable queues
+        "csrci     copift, 0x1 \n"            // Disable queues
         "mv        %[t6], t6 \n"              // Read t6 into %[t6]
         : [ t6 ] "=r"(t6), [ val ] "+r"(val)
         : [ eval ] "r"(end_val), [ n_iters ] "r"(n_iters - 1), [ f2i ] "r"(f2i)

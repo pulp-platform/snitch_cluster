@@ -171,7 +171,7 @@ inline void snrt_wake_clusters(uint32_t core_mask, snrt_comm_t comm = NULL) {
  *       this function, or the calling cores will stall indefinitely.
  */
 inline void snrt_cluster_hw_barrier() {
-    asm volatile("csrr x0, 0x7C2" ::: "memory");
+    asm volatile("csrr x0, barrier" ::: "memory");
 }
 
 /**
@@ -386,9 +386,9 @@ inline void snrt_wait_writeback(uint32_t val) {
  *
  * @param mask Multicast mask value
  */
-inline void snrt_enable_multicast(uint32_t mask) { write_csr(0x7c5, mask); }
+inline void snrt_enable_multicast(uint32_t mask) { write_csr(user_low, mask); }
 
 /**
  * @brief Disable LSU multicast
  */
-inline void snrt_disable_multicast() { write_csr(0x7c5, 0); }
+inline void snrt_disable_multicast() { write_csr(user_low, 0); }

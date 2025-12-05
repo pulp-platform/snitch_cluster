@@ -80,7 +80,7 @@ static inline void vlogf_optimized_v2(float *a, double *b) {
 
                 asm volatile(
                     // clang-format off
-                    "csrrsi   x0, 0x7C4, 0x1             \n" // Enable COPIFT queues
+                    "csrsi    copift, 0x1                \n" // Enable COPIFT queues
                     "lw       a0,  0(%[input])           \n" // ix = asuint (x)
                     "lw       a4,  4(%[input])           \n" // ix = asuint (x)
                     "lw       a5,  8(%[input])           \n" // ix = asuint (x)
@@ -227,7 +227,7 @@ static inline void vlogf_optimized_v2(float *a, double *b) {
                     // Synchronize and disable COPIFT queues
                     "fmv.x.w  t6, fa3                    \n" // FPU fence (part 1)
                     "mv       x0, t6                     \n" // FPU fence (part 2)
-                    "csrrci   x0, 0x7C4, 0x1             \n" // Disable COPIFT queues
+                    "csrci    copift, 0x1                \n" // Disable COPIFT queues
                     // clang-format on
                     :
                     [ input ] "+r"(comp_a_ptr), [ n_iter ] "+r"(n_inner_iter_m2)
