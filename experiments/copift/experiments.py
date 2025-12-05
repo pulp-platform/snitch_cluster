@@ -849,10 +849,10 @@ def main():
     if power_results_available:
         copift_metrics.update(fig2(df))
         copift_metrics.update(fig3(df))
+        copift_v2_metrics.update(fig6(df))
         copift_v2_metrics.update(fig7(df))
     copift_v2_metrics.update(fig4(df))
     copift_v2_metrics.update(fig5(df))
-    copift_v2_metrics.update(fig6(df))
     latex_metrics(copift_metrics, 'copift_metrics.tex', prefix='Old')
     latex_metrics(copift_v2_metrics, 'copift_v2_metrics.tex')
 
