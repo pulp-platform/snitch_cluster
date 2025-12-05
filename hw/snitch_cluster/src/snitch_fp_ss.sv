@@ -52,6 +52,14 @@ module snitch_fp_ss import snitch_pkg::*; #(
   output acc_resp_t        acc_resp_o,
   output logic             acc_resp_valid_o,
   input  logic             acc_resp_ready_i,
+  // Integer-to-FP COPIFT queue interface
+  input  logic [31:0]      i2f_rdata_i,
+  input  logic             i2f_rvalid_i,
+  output logic             i2f_rready_o,
+  // FP-to-integer COPIFT queue interface
+  output  logic [31:0]     f2i_wdata_o,
+  output  logic            f2i_wvalid_o,
+  input   logic            f2i_wready_i,
   // TCDM Data Interface for regular FP load/stores.
   output dreq_t            data_req_o,
   input  drsp_t            data_rsp_i,
@@ -79,6 +87,8 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // Notifies the issuing Snitch core of retired loads/stores.
   // TODO: is it good enough to assert this at issuing time instead?
   output logic             caq_pvalid_o,
+  // COPIFT enable signal
+  input logic              en_copift_i,
   // Core event strobes
   output core_events_t core_events_o
 );
@@ -248,7 +258,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // When scalar chaining is enabled, WAW hazards are prevented at writeback
   // time, by checking the sc_valid bits, not at issue time, thus this check
   // is disabled.
-  assign dst_ready = sc_mask_q[rd] ? 1'b1 : (~(rd_is_fp & sb_q[rd]));
+  assign dst_ready = sc_mask_q[rd] ? 1'b1 : ~(rd_is_fp & sb_q[rd]);
 
   // check that either:
   // 1. The FPU and all operands are ready
@@ -264,9 +274,11 @@ module snitch_fp_ss import snitch_pkg::*; #(
                                       | (acc_req_valid_q && result_select == ResAccBus));
 
   // either the FPU or the regfile produced a result
-  assign acc_resp_valid_o = (fpu_tag_out.acc & fpu_out_valid);
-  // stall FPU if we forward from reg
-  assign fpu_out_ready = ((fpu_tag_out.acc & acc_resp_ready_i) | (~fpu_tag_out.acc & fpr_wready));
+  // If queue is enabled, data goes to queue instead of AccBus
+  assign acc_resp_valid_o = ~en_copift_i & (fpu_tag_out.acc & fpu_out_valid);
+  assign f2i_wvalid_o = en_copift_i & (fpu_tag_out.acc & fpu_out_valid);
+  // stall FPU if result destination is not ready
+  assign fpu_out_ready = fpu_tag_out.acc ? (en_copift_i ? f2i_wready_i : acc_resp_ready_i) : fpr_wready;
 
   // FPU Result
   logic [FLEN-1:0] fpu_result;
@@ -275,6 +287,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   assign acc_resp_o.id = fpu_tag_out.rd;
   // accelerator bus write-port
   assign acc_resp_o.data = fpu_result;
+  assign f2i_wdata_o = fpu_result;
 
   assign rd = acc_req_q.data_op[11:7];
   assign rs1 = acc_req_q.data_op[19:15];
@@ -2399,23 +2412,27 @@ module snitch_fp_ss import snitch_pkg::*; #(
       // Single Precision Floating-Point
       riscv_instr::FLW: begin
         is_load = 1'b1;
+        op_select[2] = AccBus;
         use_fpu = 1'b0;
       end
       riscv_instr::FSW: begin
         is_store = 1'b1;
         op_select[1] = RegB;
+        op_select[2] = AccBus;
         use_fpu = 1'b0;
         rd_is_fp = 1'b0;
       end
       // Double Precision Floating-Point
       riscv_instr::FLD: begin
         is_load = 1'b1;
+        op_select[2] = AccBus;
         ls_size = DoubleWord;
         use_fpu = 1'b0;
       end
       riscv_instr::FSD: begin
         is_store = 1'b1;
         op_select[1] = RegB;
+        op_select[2] = AccBus;
         ls_size = DoubleWord;
         use_fpu = 1'b0;
         rd_is_fp = 1'b0;
@@ -2423,12 +2440,14 @@ module snitch_fp_ss import snitch_pkg::*; #(
       // [Alternate] Half Precision Floating-Point
       riscv_instr::FLH: begin
         is_load = 1'b1;
+        op_select[2] = AccBus;
         ls_size = HalfWord;
         use_fpu = 1'b0;
       end
       riscv_instr::FSH: begin
         is_store = 1'b1;
         op_select[1] = RegB;
+        op_select[2] = AccBus;
         ls_size = HalfWord;
         use_fpu = 1'b0;
         rd_is_fp = 1'b0;
@@ -2436,12 +2455,14 @@ module snitch_fp_ss import snitch_pkg::*; #(
       // [Alternate] Quarter Precision Floating-Point
       riscv_instr::FLB: begin
         is_load = 1'b1;
+        op_select[2] = AccBus;
         ls_size = Byte;
         use_fpu = 1'b0;
       end
       riscv_instr::FSB: begin
         is_store = 1'b1;
         op_select[1] = RegB;
+        op_select[2] = AccBus;
         ls_size = Byte;
         use_fpu = 1'b0;
         rd_is_fp = 1'b0;
@@ -2538,12 +2559,19 @@ module snitch_fp_ss import snitch_pkg::*; #(
     endcase
   end
 
+  logic [2:0] rs_is_int;
+  assign i2f_rready_o = acc_req_valid_q && acc_req_ready_q && (rs_is_int[2] || rs_is_int[1] || rs_is_int[0]);
+
   for (genvar i = 0; i < 3; i++) begin: gen_operand_select
     logic is_raddr_ssr;
     always_comb begin
       is_raddr_ssr = 1'b0;
       for (int s = 0; s < NumSsrs; s++)
         is_raddr_ssr |= (SsrRegs[s] == fpr_raddr[i]);
+    end
+    always_comb begin
+      // Read from any INT RF will be from I2F queue if queues are enabled
+      rs_is_int[i] = op_select[i] == AccBus ? en_copift_i : 0;
     end
     always_comb begin
       ssr_rvalid_o[i] = 1'b0;
@@ -2553,8 +2581,8 @@ module snitch_fp_ss import snitch_pkg::*; #(
           op_ready[i] = 1'b1;
         end
         AccBus: begin
-          op[i] = acc_qdata[i];
-          op_ready[i] = acc_req_valid_q;
+          op[i] = rs_is_int[i] ? { {(FLEN-32){i2f_rdata_i[31]}}, i2f_rdata_i[31:0] } : acc_qdata[i];
+          op_ready[i] = rs_is_int[i] ? i2f_rvalid_i : acc_req_valid_q;
         end
         // Scoreboard or SSR
         RegA, RegB, RegBRep, RegC, RegDest: begin
@@ -2706,7 +2734,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .lsu_qtag_i (rd),
     .lsu_qwrite_i (is_store),
     .lsu_qsigned_i (1'b1), // all floating point loads are signed
-    .lsu_qaddr_i (acc_req_q.data_argc[AddrWidth-1:0]),
+    .lsu_qaddr_i (op[2][AddrWidth-1:0]),
     .lsu_qdata_i (op[1]),
     .lsu_qsize_i (ls_size),
     .lsu_qamo_i (reqrsp_pkg::AMONone),

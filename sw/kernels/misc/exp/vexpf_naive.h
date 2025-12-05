@@ -14,8 +14,9 @@ static inline void vexpf_naive(double *a, double *b) {
                 // clang-format off
                 "fmul.d  fa3, %[InvLn2N], %[input] \n" // z = InvLn2N * xd
                 "fadd.d  fa1, fa3, %[SHIFT]        \n" // kd = (double) (z + SHIFT)
-                "fsd     fa1, 0(%[ki])             \n" // ki = asuint64 (kd)
-                "lw      a0, 0(%[ki])              \n" // ki = asuint64 (kd)
+                // "fsd     fa1, 0(%[ki])             \n" // ki = asuint64 (kd)
+                // "lw      a0, 0(%[ki])              \n" // ki = asuint64 (kd)
+                "fmv.x.w a0, fa1                   \n" // ki = asuint64 (kd)
                 "andi    a1, a0, 0x1f              \n" // ki % N
                 "slli    a1, a1, 0x3               \n" // T[ki % N]
                 "add     a1, %[T], a1              \n" // T[ki % N]

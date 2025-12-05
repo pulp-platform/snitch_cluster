@@ -1,21 +1,26 @@
-Build the hardware (in `target/snitch_cluster`):
+Build the hardware:
 ```
-make CFG_OVERRIDE=experiments/copift/cfg.json bin/snitch_cluster.vsim -j
+make -C ../../ CFG_OVERRIDE=$PWD/cfg.json vsim -j
 ```
 
-Run RTL experiments:
+Run RTL experiments w/ verification:
 ```
-./experiments.py experiments.yaml --actions sw run perf --dump-pls-testlist -j
+uv run ./experiments.py experiments.yaml --actions sw run perf --bist -j
+```
+
+Run RTL experiments w/o verification, use this to shorten PLS time:
+```
+uv run ./experiments.py experiments.yaml --actions sw run perf --dump-pls-testlist -j
 ```
 
 Run PLS experiments:
 ```
-make clean-vsim
-make PL_SIM=1 DEBUG=ON VCD_DUMP=1 bin/snitch_cluster.vsim
-./experiments.py pls.yaml --actions run power -j --run-dir pls
+make -C ../../ clean-vsim
+make -C ../../ CFG_OVERRIDE=$PWD/cfg.json PL_SIM=1 DEBUG=ON VCD_DUMP=1 vsim -j
+uv run ./experiments.py pls.yaml --actions run power -j --run-dir pls
 ```
 
 Run MATRIX experiments:
 ```
-./matrix.py none.yaml sw run -j
+uv run ./matrix.py none.yaml sw run -j
 ```

@@ -358,13 +358,7 @@ Firstly, we need to clone all the sources for the physical flow. The following c
 make nonfree
 ```
 
-Behind the scenes, it will clone the `snitch-cluster-nonfree` repo under the `nonfree` folder. Let's move into this folder:
-
-```shell
-cd nonfree
-```
-
-Here, you will find a Makefile with a series of convenience targets to launch our flow up to a certain stage: may it be elaboration (`elab`), synthesis (`synth`) or place-and-route (`pnr`). If you can wait long enough you may also launch the entire flow to produce a final optimized post-layout netlist:
+Behind the scenes, it will clone the `snitch-cluster-nonfree` repo under the `nonfree` folder. In that folder, you will find a Makefile defining a series of convenience targets to launch our flow up to a certain stage: may it be elaboration (`elab`), synthesis (`synth`) or place-and-route (`pnr`). If you can wait long enough you may also launch the entire flow to produce a final optimized post-layout netlist:
 
 ```shell
 make post-layout-netlist
