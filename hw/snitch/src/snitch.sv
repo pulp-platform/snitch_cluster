@@ -144,7 +144,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // Core events for performance counters
   output snitch_pkg::core_events_t  core_events_o,
   // FP Queue CSR
-  output logic          en_copift_queues_o,
+  output logic          en_copift_o,
   // Cluster HW barrier
   output logic          barrier_o,
   input  logic          barrier_i
@@ -508,7 +508,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     sb_d = sb_q;
     if (retire_load) sb_d[lsu_rd] = 1'b0;
     // only place the reservation if we actually executed the load or offload instruction
-    if ((is_load | (acc_register_rd & ~(en_copift_queues_o & is_fp_inst)) | (x_issue_hs & x_issue_resp_i.writeback)) && !stall && !exception) sb_d[rd] = 1'b1;
+    if ((is_load | (acc_register_rd & ~(en_copift_o & is_fp_inst)) | (x_issue_hs & x_issue_resp_i.writeback)) && !stall && !exception) sb_d[rd] = 1'b1;
     if (retire_acc) sb_d[acc_prsp_i.id[RegWidth-1:0]] = 1'b0;
     if (EnableXif & retire_x) sb_d[x_result_i.rd] = 1'b0;
     sb_d[0] = 1'b0;
@@ -2453,7 +2453,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     epc_d = epc_q;
     cause_d = cause_q;
     cause_irq_d = cause_irq_q;
-    
+
     satp_d = satp_q;
     mseg_d = mseg_q;
     mpp_d = mpp_q;
@@ -2470,13 +2470,13 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     stip_d = stip_q;
     ssip_d = ssip_q;
     scip_d = scip_q;
-    
+
     tvec_d = tvec_q;
-    
+
     dcsr_d = dcsr_q;
     dpc_d = dpc_q;
     dscratch_d = dscratch_q;
-    
+
     csr_stall_d = csr_stall_q;
     csr_mcast_d = csr_mcast_q;
     csr_copift_d = csr_copift_q;
@@ -2822,18 +2822,18 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // --------------------
 
   // Common enable signal for the I2F and F2I queues
-  assign en_copift_queues_o = csr_copift_q;
+  assign en_copift_o = csr_copift_q;
 
   // Is an instruction a FP instruction (i.e. an instruction executed in the FPSS)
   assign is_fp_inst = is_acc_inst && (acc_qreq_o.addr == FP_SS);
 
   // Read from F2I if rs==x31, queues are enabled and the instruction is an integer instruction (not a FP instruction).
-  assign rs1_is_f2i = (rs1 == 'd31) & en_copift_queues_o & ~is_fp_inst;
-  assign rs2_is_f2i = (rs2 == 'd31) & en_copift_queues_o & ~is_fp_inst;
+  assign rs1_is_f2i = (rs1 == 'd31) & en_copift_o & ~is_fp_inst;
+  assign rs2_is_f2i = (rs2 == 'd31) & en_copift_o & ~is_fp_inst;
   assign f2i_rready = valid_instr && (((opa_select == Reg) && rs1_is_f2i) || ((opb_select == Reg) && rs2_is_f2i));
 
   // Write to I2F if rd==x31 and queues are enabled
-  assign rd_is_i2f = (rd == 'd31) & en_copift_queues_o;
+  assign rd_is_i2f = (rd == 'd31) & en_copift_o;
 
   // Integer-to-FP COPIFT queue
   stream_fifo #(
@@ -3200,24 +3200,24 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     // if we are not retiring another instruction retire the load now
     end else if (lsu_pvalid) begin
       retire_load = 1'b1;
-      gpr_we[0] = ~((lsu_rd =='d31) & en_copift_queues_o);
+      gpr_we[0] = ~((lsu_rd =='d31) & en_copift_o);
       gpr_waddr[0] = lsu_rd;
       gpr_wdata[0] = ld_result[31:0];
 
-      i2f_wvalid = (lsu_rd =='d31) & en_copift_queues_o;
+      i2f_wvalid = (lsu_rd =='d31) & en_copift_o;
       i2f_wdata = ld_result[31:0];
 
-      lsu_pready = ((lsu_rd =='d31) & en_copift_queues_o) ? i2f_wready : 1'b1;
+      lsu_pready = ((lsu_rd =='d31) & en_copift_o) ? i2f_wready : 1'b1;
     end else if (acc_pvalid_i) begin
       retire_acc = 1'b1;
-      gpr_we[0] = ~((acc_prsp_i.id =='d31) & en_copift_queues_o);
+      gpr_we[0] = ~((acc_prsp_i.id =='d31) & en_copift_o);
       gpr_waddr[0] = acc_prsp_i.id;
       gpr_wdata[0] = acc_prsp_i.data[31:0];
 
-      i2f_wvalid = ((acc_prsp_i.id =='d31) & en_copift_queues_o);
+      i2f_wvalid = ((acc_prsp_i.id =='d31) & en_copift_o);
       i2f_wdata = acc_prsp_i.data[31:0];
 
-      acc_pready_o = en_copift_queues_o ? i2f_wready : 1'b1;
+      acc_pready_o = en_copift_o ? i2f_wready : 1'b1;
     end else if (EnableXif & x_result_valid_i & x_result_i.we) begin
       retire_x = 1'b1;
       gpr_we[0] = 1'b1;

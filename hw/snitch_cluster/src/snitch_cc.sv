@@ -223,7 +223,7 @@ module snitch_cc #(
   logic [31:0] f2i_wdata;
   logic        f2i_wvalid;
   logic        f2i_wready;
-  logic        en_copift_queues;
+  logic        en_copift;
 
   fpnew_pkg::roundmode_e fpu_rnd_mode;
   fpnew_pkg::fmt_mode_t  fpu_fmt_mode;
@@ -336,7 +336,7 @@ module snitch_cc #(
     .core_events_o ( snitch_events),
     .barrier_o ( barrier_o ),
     .barrier_i ( barrier_i ),
-    .en_copift_queues_o ( en_copift_queues )
+    .en_copift_o ( en_copift )
   );
 
   reqrsp_iso #(
@@ -612,7 +612,7 @@ module snitch_cc #(
       .streamctl_valid_i  ( ssr_streamctl_valid ),
       .streamctl_ready_o  ( ssr_streamctl_ready ),
       .core_events_o      ( fp_ss_core_events   ),
-      .en_copift_queues_i ( en_copift_queues )
+      .en_copift_i ( en_copift )
     );
 
     reqrsp_mux #(
