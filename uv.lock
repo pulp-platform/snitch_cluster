@@ -1317,11 +1317,15 @@ wheels = [
 
 [[package]]
 name = "peakrdl-rawheader"
-version = "1.0.0"
-source = { git = "https://github.com/colluca/PeakRDL-rawheader.git?rev=7b8dbc9ad5854dc1cdaf36d4ea024c29ffb00a4c#7b8dbc9ad5854dc1cdaf36d4ea024c29ffb00a4c" }
+version = "0.1.1"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "jinja2" },
+    { name = "mako" },
     { name = "systemrdl-compiler" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5f/d7/3434c3b577ccec20f90544153d459c4183df476d2aea3011171c04e3c888/peakrdl_rawheader-0.1.1.tar.gz", hash = "sha256:ec786b2f5b4e116c307e3ad5e58cee1afa08de9104f52bfac452aab27b4780cb", size = 3381, upload-time = "2025-12-08T18:02:20.571Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/36/b8/8534065b5d21f552d315d3f756885f443beb61737258573843ec0148a521/peakrdl_rawheader-0.1.1-py3-none-any.whl", hash = "sha256:f8dd779ff5e2a80859599633a1eb83bdca1de54134b0b3095d4b7e88dbd595a2", size = 5931, upload-time = "2025-12-08T18:02:19.857Z" },
 ]
 
 [[package]]
@@ -2118,7 +2122,7 @@ requires-dist = [
     { name = "pandas" },
     { name = "peakrdl" },
     { name = "peakrdl-markdown" },
-    { name = "peakrdl-rawheader", git = "https://github.com/colluca/PeakRDL-rawheader.git?rev=7b8dbc9ad5854dc1cdaf36d4ea024c29ffb00a4c" },
+    { name = "peakrdl-rawheader", specifier = ">=0.1.1" },
     { name = "prettytable" },
     { name = "progressbar2" },
     { name = "psutil" },
