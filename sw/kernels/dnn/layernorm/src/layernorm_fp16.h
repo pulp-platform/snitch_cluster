@@ -9,6 +9,7 @@
 static inline void layernorm_fp16_opt(__fp16 *input, __fp16 *output,
                                       uint32_t batch_size, uint32_t seq_len,
                                       const uint32_t embeddings, int32_t eps) {
+#ifdef SNRT_SUPPORTS_FREP
     if (snrt_is_compute_core()) {
         uint32_t offset = snrt_cluster_core_idx() * embeddings;
         uint32_t stride = snrt_cluster_compute_core_num() * embeddings;
@@ -184,4 +185,5 @@ static inline void layernorm_fp16_opt(__fp16 *input, __fp16 *output,
 
         snrt_fpu_fence();
     }
+#endif
 }

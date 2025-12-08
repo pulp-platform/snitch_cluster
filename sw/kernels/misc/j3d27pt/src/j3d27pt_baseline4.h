@@ -65,6 +65,7 @@ static inline void j3d27pt_baseline4(int fac, int nx, int ny, int nz, double* c,
                     winit = false;
                     snrt_ssr_read(SNRT_SSR_DM2, SNRT_SSR_2D, (void*)ca);
                 }
+#ifdef SNRT_SUPPORTS_FREP
                 asm volatile(
                     "fmul.d    fa0, ft2, ft0        \n"
                     "fmul.d    fa1, ft2, ft1        \n"
@@ -88,6 +89,7 @@ static inline void j3d27pt_baseline4(int fac, int nx, int ny, int nz, double* c,
                     [ wb ] "r"(&A_[(z + 1) * ny * nx + (y + 1) * nx + (x + 1)])
                     : "memory", "fa0", "fa1", "fa2", "fa3", "ft0", "ft1",
                       "ft2");
+#endif
             }
         }
     }

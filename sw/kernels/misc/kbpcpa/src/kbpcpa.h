@@ -7,23 +7,18 @@
 
 #include "snrt.h"
 
-// #define C_BASE
-// #define ASM_BASE
+#if defined(SNRT_SUPPORTS_FREP) && defined(SNRT_SUPPORTS_SSR)
+#define SCSSR
+#else
+#define ASM_BASE
+#endif
+
 // #define SSR_BASE
 // #define SSR_UNROLL
-#define SCSSR
 
 // The Kernel
 inline void kbpcpa(uint32_t l, double k, double* a, double* b, double* c) {
-#ifdef C_BASE
-    snrt_mcycle();
-    for (int i = 0; i < l; i++) {
-        a[i] = (k * (b[i] + c[i]));
-    }
-    snrt_fpu_fence();
-    snrt_mcycle();
-
-#elif defined(ASM_BASE)
+#if defined(ASM_BASE)
     snrt_mcycle();
     for (int i = 0; i < l; i++) {
         asm volatile(
@@ -53,7 +48,6 @@ inline void kbpcpa(uint32_t l, double k, double* a, double* b, double* c) {
     snrt_ssr_write(SNRT_SSR_DM2, SNRT_SSR_1D, a);
 
     snrt_ssr_enable();
-
     asm volatile(
         "frep.o %[n_frep], 2, 0, 0 \n"
         "fadd.d ft3, ft0, ft1 \n"   // ft3 <-- d = b + c
@@ -76,7 +70,6 @@ inline void kbpcpa(uint32_t l, double k, double* a, double* b, double* c) {
     snrt_ssr_write(SNRT_SSR_DM2, SNRT_SSR_1D, a);
 
     snrt_ssr_enable();
-
     asm volatile(
         "frep.o %[n_frep], 8, 0, 0 \n"
         "fadd.d ft3, ft0, ft1 \n"   // ft3 <-- d = b + c
@@ -108,7 +101,6 @@ inline void kbpcpa(uint32_t l, double k, double* a, double* b, double* c) {
 
     uint32_t mask = 0x00000008;
     snrt_sc_enable(mask);
-
     asm volatile(
         "fence \n"
         "frep.o %[n_frep], 8, 0, 0 \n"

@@ -192,6 +192,52 @@ jobs:
         run: |
           make SIM_DIR=./test/runs/simple DEBUG=ON annotate -j
 
+  ########################################################
+  # Simulate SW on Snitch Cluster (Mempool) w/ Verilator #
+  ########################################################
+
+  snitch-mempool-cluster-vlt:
+    name: Build and Simulate Mempool Snitch Cluster w/ Verilator
+    runs-on: ubuntu-22.04
+    needs: build-docker
+    container:
+      image: ${{ needs.build-docker.outputs.hw_image_name }}
+    defaults:
+      run:
+        working-directory: /repo
+    steps:
+      - name: Hash Verilator prerequisites
+        id: verilator-hash
+        run: |
+          hash=$(uv run list-make-prerequisites verilator --recursive --hash)
+          echo "hash=$hash" >> "$GITHUB_OUTPUT"
+      - name: Set up cache for Verilator build
+        id: verilator-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            target/sim/build/bin
+          key: verilator-mempool-${{ steps.verilator-hash.outputs.hash }}
+          restore-keys: |
+            verilator-mempool-
+      - name: Build Hardware
+        if: steps.verilator-cache.outputs.cache-hit != 'true'
+        run: |
+          make CFG_OVERRIDE=cfg/mempool.json VLT_JOBS=1 verilator
+      - name: Build Software for mempool tests
+        run: |
+          make sw SN_MCPU=snitch-mempool -j
+      - name: Run Tests
+        working-directory: test
+        run: |
+          uv run ../util/experiments/run.py mempool.yaml --simulator verilator -j
+      - name: Annotate traces
+        # Build the traces using the --permissive flag, since the Verilator
+        # testbench does not wait until all the instructions are retired
+        # (compiler introduces few instructions after exit routine).
+        run: |
+          make SIM_DIR=./test/runs/simple SN_MCPU=snitch-mempool DEBUG=ON annotate -j
+
   ######################
   # Sources Up-to-Date #
   ######################

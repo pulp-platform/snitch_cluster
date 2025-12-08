@@ -23,6 +23,8 @@ typedef struct {
 static inline void single_core_gemv(uint32_t trans, uint32_t m, uint32_t n,
                                     double alpha, double *a, uint32_t lda,
                                     double *x, uint32_t incx, double *y) {
+#ifdef SNRT_SUPPORTS_FREP
+
     // Configure SSR 0 to stream a
     uint32_t ssr0_b[2] = {n, m};
     if (trans) {
@@ -61,6 +63,7 @@ static inline void single_core_gemv(uint32_t trans, uint32_t m, uint32_t n,
     }
     snrt_ssr_disable();
     snrt_fpu_fence();
+#endif
 }
 
 // In contrast with BLAS we accept incx==0, as could be used e.g.

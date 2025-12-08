@@ -32,6 +32,9 @@ typedef struct {
 static inline void batchnorm_fp64(double *ifmap, double *gamma, double *beta,
                                   double *ofmap, uint32_t OW, uint32_t CI,
                                   uint32_t compute_num, uint32_t setup_SSR) {
+#ifdef SNRT_SUPPORTS_FREP
+#ifdef SNRT_SUPPORTS_SSR
+
     // initial SSR setup
     if (setup_SSR) {
         uint32_t ssr_b[2] = {OW, CI / compute_num};
@@ -60,6 +63,8 @@ static inline void batchnorm_fp64(double *ifmap, double *gamma, double *beta,
     snrt_fpu_fence();
     __builtin_ssr_barrier(SNRT_SSR_DM1);
     snrt_ssr_disable();
+#endif
+#endif
 }
 
 static inline void batchnorm_layer(const batchnorm_layer_t *l) {

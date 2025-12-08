@@ -172,6 +172,7 @@ inline void dm_init(void) {
  * @details
  */
 inline void dm_main(void) {
+#ifdef SNRT_SUPPORTS_DMA
     volatile dm_task_t *t;
     uint32_t do_exit = 0;
     uint32_t cluster_core_idx = snrt_cluster_core_idx();
@@ -230,6 +231,7 @@ inline void dm_main(void) {
         }
     }
     DM_PRINTF(10, "dm: exit\n");
+#endif
 #ifdef DM_USE_GLOBAL_CLINT
     snrt_interrupt_disable(IRQ_M_SOFT);
 #else

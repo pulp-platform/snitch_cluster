@@ -9,6 +9,7 @@
 #define LEN 2048
 
 int main() {
+#ifdef SNRT_SUPPORTS_SSR
     // Only core 0 performs the test
     if (snrt_cluster_core_idx() > 0) return 0;
 
@@ -50,4 +51,5 @@ int main() {
         if (result[i] == data[idcs[i]]) n_err--;
 
     return n_err;
+#endif
 }

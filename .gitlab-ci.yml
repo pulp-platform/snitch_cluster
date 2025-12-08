@@ -128,6 +128,15 @@ snitch-cluster-mchan-vsim:
     - cd test
     - uv run ../util/experiments/run.py dma_mchan.yaml --simulator vsim -j --run-dir runs/vsim
 
+# Test Mempool configuration
+snitch-cluster-mempool-vsim:
+  script:
+    - make CFG_OVERRIDE=cfg/mempool.json SN_MCPU=snitch-mempool sw -j
+    - make vsim -j
+    - cd test
+    - uv run ../util/experiments/run.py mempool.yaml --simulator vsim -j --run-dir runs/vsim
+    - make -C .. SIM_DIR=$(PWD)/runs/vsim/simple SN_MCPU=snitch-mempool annotate -j
+
 # Additional tests for different FREP configurations
 snitch-cluster-frep-vsim:
   script:

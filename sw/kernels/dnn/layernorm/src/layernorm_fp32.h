@@ -67,6 +67,7 @@ static inline void layernorm_naive(T *input, T *output, int32_t batch_size,
 static inline void layernorm_fp32_opt(float *input, float *output,
                                       uint32_t batch_size, uint32_t seq_len,
                                       const uint32_t embeddings, int32_t eps) {
+#ifdef SNRT_SUPPORTS_FREP
     if (snrt_is_compute_core()) {
         uint32_t offset = snrt_cluster_core_idx() * embeddings;
         uint32_t stride = snrt_cluster_compute_core_num() * embeddings;
@@ -124,6 +125,7 @@ static inline void layernorm_fp32_opt(float *input, float *output,
 
                 var_tot = 0.0;
                 snrt_ssr_enable();
+
                 // Computation of the row mean
                 asm volatile(
                     "vfcpka.s.s %[mean0], %[zero], %[zero] \n"
@@ -216,4 +218,5 @@ static inline void layernorm_fp32_opt(float *input, float *output,
 
         snrt_fpu_fence();
     }
+#endif
 }

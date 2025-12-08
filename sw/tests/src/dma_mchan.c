@@ -11,6 +11,7 @@
 uint32_t buffer_src_l3[TRANSFER_LEN * TRANSFER_REP];
 
 int main() {
+#ifdef SNRT_SUPPORTS_DMA
     if (!snrt_is_dm_core()) return 0;  // only DMA core
     uint32_t errors = 0;
     uint32_t buffer_src_l1[TRANSFER_LEN];
@@ -57,4 +58,5 @@ int main() {
     }
 
     return errors;
+#endif
 }

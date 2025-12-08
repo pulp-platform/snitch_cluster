@@ -204,6 +204,9 @@ static inline uint32_t calculate_psum_baseline(PRNG_T *prngs,
 
 static inline uint32_t calculate_psum_optimized(PRNG_T *prngs,
                                                 unsigned int n_samples) {
+#if defined(SNRT_SUPPORTS_SSR) && defined(SNRT_SUPPORTS_FREP) && \
+    defined(SNRT_SUPPORTS_COPIFT)
+
     // Derived parameters
     uint32_t n_batches = n_samples / BATCH_SIZE;
     uint32_t n_iterations = n_batches + 2;
@@ -494,7 +497,7 @@ static inline uint32_t calculate_psum_optimized(PRNG_T *prngs,
         result += temp7;
         return result;
     }
-
+#endif
     return 0;
 }
 

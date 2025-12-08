@@ -93,10 +93,12 @@ typedef enum {
  * @brief Enable all SSRs.
  */
 inline void snrt_ssr_enable() {
+#ifdef SNRT_SUPPORTS_SSR
 #ifdef __TOOLCHAIN_LLVM__
     __builtin_ssr_enable();
 #else
-    asm volatile("csrsi 0x7C0, 1\n");
+    asm volatile("csrsi ssr, 1\n");
+#endif
 #endif
 }
 
@@ -104,10 +106,12 @@ inline void snrt_ssr_enable() {
  * @brief Disable all SSRs.
  */
 inline void snrt_ssr_disable() {
+#ifdef SNRT_SUPPORTS_SSR
 #ifdef __TOOLCHAIN_LLVM__
     __builtin_ssr_disable();
 #else
-    asm volatile("csrci 0x7C0, 1\n");
+    asm volatile("csrci ssr, 1\n");
+#endif
 #endif
 }
 
@@ -117,14 +121,14 @@ inline void snrt_ssr_disable() {
  *             chaining.
  */
 inline void snrt_sc_enable(uint32_t mask) {
-    asm volatile("csrs 0x7C3, %[mask]\n" : : [ mask ] "r"(mask) :);
+    asm volatile("csrs sc, %[mask]\n" : : [ mask ] "r"(mask) :);
 }
 
 /**
  * @brief Disable scalar chaining.
  */
 inline void snrt_sc_disable(uint32_t mask) {
-    asm volatile("csrc 0x7C3, %[mask]\n" : : [ mask ] "r"(mask) :);
+    asm volatile("csrc sc, %[mask]\n" : : [ mask ] "r"(mask) :);
 }
 
 /**
@@ -135,11 +139,15 @@ inline void snrt_sc_disable(uint32_t mask) {
  */
 static inline uint32_t read_ssr_cfg(const snrt_ssr_reg_t reg,
                                     const snrt_ssr_dm_t dm) {
+#ifdef SNRT_SUPPORTS_SSR
     uint32_t value;
     asm volatile("scfgri %[value], %[dm] | %[reg]<<5\n"
                  : [ value ] "=r"(value)
                  : [ dm ] "i"(dm), [ reg ] "i"(reg));
     return value;
+#else
+    return 0;
+#endif
 }
 
 /**
@@ -155,8 +163,10 @@ static inline uint32_t read_ssr_cfg(const snrt_ssr_reg_t reg,
  */
 static inline void write_ssr_cfg(const snrt_ssr_reg_t reg,
                                  const snrt_ssr_dm_t dm, uint32_t value) {
+#ifdef SNRT_SUPPORTS_SSR
     asm volatile("scfgwi %[value], %[dm] | %[reg]<<5\n" ::[value] "r"(value),
                  [ dm ] "i"(dm), [ reg ] "i"(reg));
+#endif
 }
 
 /**

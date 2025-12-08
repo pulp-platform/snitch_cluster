@@ -108,6 +108,8 @@ void gemm_fp16_opt(uint32_t setup_ssr, uint32_t partition_banks,
                    uint32_t transa, uint32_t transb, uint32_t M, uint32_t N,
                    uint32_t K, void* A_p, uint32_t lda, void* B_p, uint32_t ldb,
                    uint32_t beta, void* C_p, uint32_t ldc) {
+#ifdef SNRT_SUPPORTS_FREP
+
     __fp16* A = (__fp16*)A_p;
     __fp16* B = (__fp16*)B_p;
     __fp16* C = (__fp16*)C_p;
@@ -294,12 +296,14 @@ void gemm_fp16_opt(uint32_t setup_ssr, uint32_t partition_banks,
     }
 
     snrt_ssr_disable();
+#endif
 }
 
 void gemm_fp16_opt_ex(uint32_t setup_ssr, uint32_t partition_banks,
                       uint32_t transa, uint32_t transb, uint32_t M, uint32_t N,
                       uint32_t K, void* A_p, uint32_t lda, void* B_p,
                       uint32_t ldb, uint32_t beta, void* C_p, uint32_t ldc) {
+#ifdef SNRT_SUPPORTS_FREP
     __fp16* A = (__fp16*)A_p;
     __fp16* B = (__fp16*)B_p;
     __fp16* C = (__fp16*)C_p;
@@ -466,4 +470,5 @@ void gemm_fp16_opt_ex(uint32_t setup_ssr, uint32_t partition_banks,
     }
 
     snrt_ssr_disable();
+#endif
 }

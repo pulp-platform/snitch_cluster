@@ -41,8 +41,19 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   int unsigned           FLEN      = DataWidth,
   /// Enable virtual memory support.
   parameter bit          VMSupport = 1,
-  /// Enable experimental IPU extension.
-  parameter bit          Xipu      = 1,
+  parameter bit          OwnMulDiv = 0,
+  /// Enable Xpulp instructions
+  parameter bit          Xpulppostmod = 0,  // overlaps witch DMA, SSR, copift and frep
+  parameter bit          Xpulpabs     = 0,
+  parameter bit          Xpulpbitop   = 0,
+  parameter bit          Xpulpbr      = 0,
+  parameter bit          Xpulpclip    = 0,
+  parameter bit          Xpulpmacsi   = 0,
+  parameter bit          Xpulpminmax  = 0,
+  parameter bit          Xpulpslet    = 0,
+  parameter bit          Xpulpvect    = 0,
+  parameter bit          Xpulpvectshufflepack = 0,
+  parameter bit          Xpulpv2     = 0,
   /// Data port request type.
   parameter type         dreq_t    = logic,
   /// Data port response type.
@@ -157,7 +168,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   localparam bit NSX = XF16 | XF16ALT | XF8 | XFVEC;
 
   // Number of read ports
-  localparam int unsigned NumRfReadPorts = EnableXif ? 3 : 2;
+  localparam int unsigned NumRfReadPorts = EnableXif | Xpulppostmod ? 3 : 2;
 
   logic illegal_inst, illegal_csr;
   logic interrupt, ecall, ebreak;
@@ -173,7 +184,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic wfi_d, wfi_q;
   logic [31:0] consec_pc;
   // Immediates
-  logic [31:0] iimm, uimm, jimm, bimm, simm;
+  logic [31:0] iimm, uimm, jimm, bimm, simm, pbimm;
   /* verilator lint_off WIDTH */
   assign iimm = $signed({inst_data_i[31:20]});
   assign uimm = {inst_data_i[31:12], 12'b0};
@@ -182,6 +193,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign bimm = $signed({inst_data_i[31],
                                     inst_data_i[7], inst_data_i[30:25], inst_data_i[11:8], 1'b0});
   assign simm = $signed({inst_data_i[31:25], inst_data_i[11:7]});
+  assign pbimm = $signed(inst_data_i[24:20]); // Xpulpv2 immediate branching signed immediate
   /* verilator lint_on WIDTH */
 
   logic [31:0] opa, opb, opc;
@@ -218,6 +230,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
 
   // Load/Store Defines
   logic is_load, is_store, is_signed;
+  logic is_postincr;
   logic is_fp_load, is_fp_store;
   logic ls_misaligned;
   logic ld_addr_misaligned;
@@ -261,6 +274,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic [RegWidth-1:0] lsu_rd;
 
   logic retire_load; // retire a load instruction
+  logic retire_p; // retire from post-increment instructions
   logic retire_i; // retire the rest of the base instruction set
   logic retire_acc; // retire an instruction we offloaded
   logic retire_x; // retire an XIF-offloaded instruction
@@ -280,11 +294,12 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   alu_op_e alu_op;
 
   typedef enum logic [3:0] {
-    None, Reg, IImmediate, UImmediate, JImmediate, SImmediate, SFImmediate, PC, CSR, CSRImmmediate
+    None, RegRs1, RegRs2, RegRs3, RegRd, IImmediate, UImmediate, JImmediate, SImmediate, SFImmediate, PC, CSR, CSRImmmediate, PBImmediate
   } op_select_e;
   op_select_e opa_select, opb_select, opc_select;
 
   logic write_rd; // write destination this cycle
+  logic write_rs1; // write rs1 destination this cycle
   logic uses_rd;
   typedef enum logic [2:0] {Consec, Alu, Exception, MRet, SRet, DRet} next_pc_e;
   next_pc_e next_pc;
@@ -431,8 +446,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign acc_qreq_o.data_op = inst_data_i;
   assign acc_qreq_o.data_arga = {{32{opa[31]}}, opa};
   assign acc_qreq_o.data_argb = {{32{opb[31]}}, opb};
-  // operand C is currently only used for load/store instructions
-  assign acc_qreq_o.data_argc = ls_paddr;
+  // operand C is used for load/store instructions or for multiply-accumulate function
+  assign acc_qreq_o.data_argc = (acc_qreq_o.addr == XPULP_IPU) ? {{32{opc[31]}}, opc} : ls_paddr;
 
   // XIF ID counter
   logic [XifIdWidth-1:0] xif_offload_counter_q;
@@ -496,10 +511,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // --------------------
   // Control
   // --------------------
-  // Scoreboard: Keep track of rd dependencies (only loads at the moment)
+  // Scoreboard: Keep track of rd dependencies
   logic operands_ready;
   logic dst_ready;
-  logic opa_ready, opb_ready;
+  logic opa_ready, opb_ready, opc_ready;
   logic x_issue_hs;
 
   assign x_issue_hs = EnableXif & x_issue_valid_o & x_issue_ready_i;
@@ -513,15 +528,14 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     if (EnableXif & retire_x) sb_d[x_result_i.rd] = 1'b0;
     sb_d[0] = 1'b0;
   end
-  // TODO(zarubaf): This can probably be described a bit more efficient
-  assign opa_ready = (opa_select != Reg) | (rs1_is_f2i ? f2i_rvalid : ~sb_q[rs1]);
-  assign opb_ready = (opb_select != Reg & opb_select != SImmediate) | (rs2_is_f2i ? f2i_rvalid : ~sb_q[rs2]);
-  assign opc_ready = (opc_select != Reg) | ~sb_q[rs3];
+  assign opa_ready = (opa_select != RegRs1) | (rs1_is_f2i ? f2i_rvalid : ~sb_q[rs1]);
+  assign opb_ready = ((opb_select != RegRs2) | (rs2_is_f2i ? f2i_rvalid : ~sb_q[rs2])) & ((opb_select != RegRd) | ~sb_q[rd]);
+  assign opc_ready = ((opc_select != RegRs2) | (rs2_is_f2i ? f2i_rvalid : ~sb_q[rs2])) & ((opc_select != RegRs3) | ~sb_q[rs3]) & ((opc_select != RegRd) | ~sb_q[rd]);
 
-  // Here we do not use the opc_ready signal
-  assign operands_ready = opa_ready & opb_ready;
+  assign operands_ready = opa_ready & opb_ready & opc_ready;
   // either we are not using the destination register or we need to make
   // sure that its destination operand is not marked busy in the scoreboard.
+  // TODO(colluca): should this include also the additional destination register of postmod instructions?
   assign dst_ready = uses_rd ? (rd_is_i2f ? i2f_wready : ~sb_q[rd]) : 1'b1;
 
   assign valid_instr = inst_ready_i
@@ -611,6 +625,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     // if we are writing the field this cycle we need
     // an int destination register
     uses_rd = write_rd;
+    // instruction writes rs1 in the decoding cycle
+    write_rs1 = 1'b0;
 
     rd_bypass = '0;
     zero_lsb = 1'b0;
@@ -618,6 +634,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     // LSU interface
     is_load = 1'b0;
     is_store = 1'b0;
+    is_postincr = 1'b0;
     is_fp_load = 1'b0;
     is_fp_store = 1'b0;
     is_signed = 1'b0;
@@ -647,96 +664,96 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
 
     unique casez (inst_data_i)
       ADD: begin
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       ADDI: begin
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = IImmediate;
       end
       SUB: begin
         alu_op = Sub;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       XOR: begin
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
         alu_op = LXor;
       end
       XORI: begin
         alu_op = LXor;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = IImmediate;
       end
       OR: begin
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
         alu_op = LOr;
       end
       ORI: begin
         alu_op = LOr;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = IImmediate;
       end
       AND: begin
         alu_op = LAnd;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       ANDI: begin
         alu_op = LAnd;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = IImmediate;
       end
       SLT: begin
         alu_op = Slt;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       SLTI: begin
         alu_op = Slt;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = IImmediate;
       end
       SLTU: begin
         alu_op = Sltu;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       SLTIU: begin
         alu_op = Sltu;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = IImmediate;
       end
       SLL: begin
         alu_op = Sll;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       SRL: begin
         alu_op = Srl;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       SRA: begin
         alu_op = Sra;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       SLLI: begin
         alu_op = Sll;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = IImmediate;
       end
       SRLI: begin
         alu_op = Srl;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = IImmediate;
       end
       SRAI: begin
         alu_op = Sra;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = IImmediate;
       end
       LUI: begin
@@ -757,7 +774,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       end
       JALR: begin
         rd_select = RdConsecPC;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = IImmediate;
         next_pc = Alu;
         zero_lsb = 1'b1;
@@ -767,71 +784,74 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_branch = 1'b1;
         write_rd = 1'b0;
         alu_op = Eq;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       BNE: begin
         is_branch = 1'b1;
         write_rd = 1'b0;
         alu_op = Neq;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       BLT: begin
         is_branch = 1'b1;
         write_rd = 1'b0;
         alu_op = Slt;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       BLTU: begin
         is_branch = 1'b1;
         write_rd = 1'b0;
         alu_op = Sltu;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       BGE: begin
         is_branch = 1'b1;
         write_rd = 1'b0;
         alu_op = Ge;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       BGEU: begin
         is_branch = 1'b1;
         write_rd = 1'b0;
         alu_op = Geu;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       // Load/Stores
       SB: begin
         write_rd = 1'b0;
         is_store = 1'b1;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = SImmediate;
+        opc_select = RegRs2;
       end
       SH: begin
         write_rd = 1'b0;
         is_store = 1'b1;
         ls_size = HalfWord;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = SImmediate;
+        opc_select = RegRs2;
       end
       SW: begin
         write_rd = 1'b0;
         is_store = 1'b1;
         ls_size = Word;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = SImmediate;
+        opc_select = RegRs2;
       end
       LB: begin
         write_rd = 1'b0;
         uses_rd = 1'b1;
         is_load = 1'b1;
         is_signed = 1'b1;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = IImmediate;
       end
       LH: begin
@@ -840,7 +860,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = HalfWord;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = IImmediate;
       end
       LW: begin
@@ -849,14 +869,14 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = IImmediate;
       end
       LBU: begin
         write_rd = 1'b0;
         uses_rd = 1'b1;
         is_load = 1'b1;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = IImmediate;
       end
       LHU: begin
@@ -864,12 +884,12 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         uses_rd = 1'b1;
         is_load = 1'b1;
         ls_size = HalfWord;
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = IImmediate;
       end
       // CSR Instructions
       CSRRW: begin // Atomic Read/Write CSR
-        opa_select = Reg;
+        opa_select = RegRs1;
         opb_select = None;
         rd_select = RdBypass;
         rd_bypass = csr_rvalue;
@@ -885,13 +905,13 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       CSRRS: begin  // Atomic Read and Set Bits in CSR
         if (inst_data_i[31:20] != CSR_SC) begin
           alu_op = LOr;
-          opa_select = Reg;
+          opa_select = RegRs1;
           opb_select = CSR;
           rd_select = RdBypass;
           rd_bypass = csr_rvalue;
           csr_en = valid_instr;
         end else begin
-          opa_select = Reg;
+          opa_select = RegRs1;
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
         end
@@ -913,13 +933,13 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       CSRRC: begin // Atomic Read and Clear Bits in CSR
         if (inst_data_i[31:20] != CSR_SC) begin
           alu_op = LNAnd;
-          opa_select = Reg;
+          opa_select = RegRs1;
           opb_select = CSR;
           rd_select = RdBypass;
           rd_bypass = csr_rvalue;
           csr_en = valid_instr;
         end else begin
-          opa_select = Reg;
+          opa_select = RegRs1;
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
         end
@@ -984,8 +1004,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_signed = 1'b1;
         ls_size = Word;
         ls_amo = reqrsp_pkg::AMOAdd;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       AMOXOR_W: begin
         alu_op = BypassA;
@@ -995,8 +1015,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_signed = 1'b1;
         ls_size = Word;
         ls_amo = reqrsp_pkg::AMOXor;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       AMOOR_W: begin
         alu_op = BypassA;
@@ -1006,8 +1026,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_signed = 1'b1;
         ls_size = Word;
         ls_amo = reqrsp_pkg::AMOOr;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       AMOAND_W: begin
         alu_op = BypassA;
@@ -1017,8 +1037,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_signed = 1'b1;
         ls_size = Word;
         ls_amo = reqrsp_pkg::AMOAnd;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       AMOMIN_W: begin
         alu_op = BypassA;
@@ -1028,8 +1048,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_signed = 1'b1;
         ls_size = Word;
         ls_amo = reqrsp_pkg::AMOMin;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       AMOMAX_W: begin
         alu_op = BypassA;
@@ -1039,8 +1059,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_signed = 1'b1;
         ls_size = Word;
         ls_amo = reqrsp_pkg::AMOMax;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       AMOMINU_W: begin
         alu_op = BypassA;
@@ -1050,8 +1070,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_signed = 1'b1;
         ls_size = Word;
         ls_amo = reqrsp_pkg::AMOMinu;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       AMOMAXU_W: begin
         alu_op = BypassA;
@@ -1061,8 +1081,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_signed = 1'b1;
         ls_size = Word;
         ls_amo = reqrsp_pkg::AMOMaxu;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       AMOSWAP_W: begin
         alu_op = BypassA;
@@ -1072,8 +1092,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_signed = 1'b1;
         ls_size = Word;
         ls_amo = reqrsp_pkg::AMOSwap;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       LR_W: begin
         alu_op = BypassA;
@@ -1083,8 +1103,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_signed = 1'b1;
         ls_size = Word;
         ls_amo = reqrsp_pkg::AMOLR;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       SC_W: begin
         alu_op = BypassA;
@@ -1094,8 +1114,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_signed = 1'b1;
         ls_size = Word;
         ls_amo = reqrsp_pkg::AMOSC;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
       end
       // Off-load to shared multiplier
       MUL,
@@ -1109,84 +1129,315 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       MULW,
       DIVW,
       DIVUW,
-      REMW,
+      REMW, 
       REMUW: begin
         write_rd = 1'b0;
         uses_rd = 1'b1;
         is_acc_inst = 1'b1;
-        opa_select = Reg;
-        opb_select = Reg;
+        opa_select = RegRs1;
+        opb_select = RegRs2;
         acc_register_rd = 1'b1;
-        acc_qreq_o.addr = SHARED_MULDIV;
-      end
-      // Off-loaded to IPU
-      ANDN, ORN, XNOR, SLO, SRO, ROL, ROR, SBCLR, SBSET, SBINV, SBEXT,
-      GORC, GREV, CLZ, CTZ, PCNT, SEXT_B,
-      SEXT_H, CRC32_B, CRC32_H, CRC32_W, CRC32C_B, CRC32C_H, CRC32C_W,
-      CLMUL, CLMULR, CLMULH, MIN, MAX, MINU, MAXU, SHFL, UNSHFL, BEXT,
-      BDEP, PACK, PACKU, PACKH, BFP: begin
-        write_rd = 1'b0;
-        uses_rd = 1'b1;
-        is_acc_inst = 1'b1;
-        opa_select = Reg;
-        opb_select = Reg;
-        acc_register_rd = 1'b1;
-        acc_qreq_o.addr = INT_SS;
-      end
-      SLOI, SROI, RORI, SBCLRI, SBSETI, SBINVI, SBEXTI, GORCI,
-      GREVI, SHFLI, UNSHFLI: begin
-        write_rd = 1'b0;
-        uses_rd = 1'b1;
-        is_acc_inst = 1'b1;
-        opa_select = Reg;
-        opb_select = IImmediate;
-        acc_register_rd = 1'b1;
-        acc_qreq_o.addr = INT_SS;
-      end
-      IADDI, ISLLI, ISLTI, ISLTIU, IXORI, ISRLI, ISRAI, IORI, IANDI, IADD,
-      ISUB, ISLL, ISLT, ISLTU, IXOR, ISRL, ISRA, IOR, IAND,
-      IAND, IMADD, IMSUB, INMSUB, INMADD, IMUL, IMULH, IMULHSU, IMULHU,
-      IANDN, IORN, IXNOR, ISLO, ISRO, IROL, IROR, ISBCLR, ISBSET, ISBINV,
-      ISBEXT, IGORC, IGREV, ISLOI, ISROI, IRORI, ISBCLRI, ISBSETI, ISBINVI,
-      ISBEXTI, IGORCI, IGREVI, ICLZ, ICTZ, IPCNT, ISEXT_B, ISEXT_H, ICRC32_B,
-      ICRC32_H, ICRC32_W, ICRC32C_B, ICRC32C_H, ICRC32C_W, ICLMUL, ICLMULR,
-      ICLMULH, IMIN, IMAX, IMINU, IMAXU, ISHFL, IUNSHFL, IBEXT, IBDEP, IPACK,
-      IPACKU, IPACKH, IBFP: begin
-        if (Xipu) begin
-          acc_qreq_o.addr = INT_SS;
+        acc_qreq_o.addr = Xpulpv2 ? XPULP_IPU : SHARED_MULDIV;
+      end                         
+      P_ABS: begin                 // Xpulpv2: p.abs
+        if (Xpulpabs) begin
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
+          opa_select = RegRs1;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
         end else begin
           illegal_inst = 1'b1;
         end
       end
-      IMV_X_W: begin
-        if (Xipu) begin
-          acc_qreq_o.addr = INT_SS;
+      P_EXTHS,                       // Xpulpv2: p.exths
+      P_EXTHZ,                       // Xpulpv2: p.exthz
+      P_EXTBS,                       // Xpulpv2: p.extbs
+      P_EXTBZ: begin                 // Xpulpv2: p.extbz
+        if (Xpulpbitop) begin
           write_rd = 1'b0;
-          uses_rd = 1'b1;
           is_acc_inst = 1'b1;
-          acc_register_rd = 1'b1; // No RS in GPR but RD in GPR, register in int scoreboard
+          opa_select = RegRs1;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
         end else begin
           illegal_inst = 1'b1;
         end
       end
-      IMV_W_X: begin
-        if (Xipu) begin
-          acc_qreq_o.addr = INT_SS;
-          opa_select = Reg;
+      // Immediate branching
+      P_BEQIMM: begin // Xpulpv2: p.beqimm
+        if (Xpulpbr) begin
+          is_branch = 1'b1;
           write_rd = 1'b0;
-          is_acc_inst = 1'b1;
+          uses_rd = 1'b0;
+          alu_op = Eq;
+          opa_select = RegRs1;
+          opb_select = PBImmediate;
+          acc_qreq_o.addr = XPULP_IPU;
         end else begin
           illegal_inst = 1'b1;
         end
       end
-      IREP: begin
-        if (Xipu) begin
-          acc_qreq_o.addr = INT_SS;
-          opa_select = Reg;
+      P_BNEIMM: begin // Xpulpv2: p.bneimm
+        if (Xpulpbr) begin
+          is_branch = 1'b1;
+          write_rd = 1'b0;
+          uses_rd = 1'b0;
+          alu_op = Neq;
+          opa_select = RegRs1;
+          opb_select = PBImmediate;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      P_CLIP,               // Xpulpv2: p.clip
+      P_CLIPU: begin // Xpulpv2: pv.dotsp.sci.b
+        if (Xpulpclip) begin
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
+          opa_select = RegRs1;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      P_CLIPR,        // Xpulpv2: p.clipr
+      P_CLIPUR: begin // Xpulpv2: p.clipur
+        if (Xpulpclip) begin
+          write_rd = 1'b0;
+          is_acc_inst = 1'b1;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      // 3 source registers (rs1, rs2, rd)
+      // xpulpmacsi_custom extension
+      P_MAC,                // Xpulpv2: p.mac
+      P_MSU: begin          // Xpulpv2: p.msu
+        if (Xpulpmacsi) begin
+          write_rd = 1'b0;
+          is_acc_inst = 1'b1;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+          opc_select = RegRd;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      // 2 source registers (rs1, rs2)
+      // xpulpminmax_custom extension
+      P_MIN,               // Xpulpv2: p.min
+      P_MINU,              // Xpulpv2: p.minu
+      P_MAX,               // Xpulpv2: p.max
+      P_MAXU: begin        // Xpulpv2: p.maxu
+        if (Xpulpminmax) begin
+          write_rd = 1'b0;
+          is_acc_inst = 1'b1;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      // 2 source registers (rs1, rs2)
+      // xpulpslet_custom extension
+      P_SLET,              // Xpulpv2: p.slet
+      P_SLETU: begin       // Xpulpv2: p.sletu
+        if (Xpulpslet) begin
+          write_rd = 1'b0;
+          is_acc_inst = 1'b1;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      // Off-load to IPU coprocessor
+      // 1 source register (rs1)
+      PV_ADD_SCI_H,         // Xpulpv2: pv.add.sci.h
+      PV_ADD_SCI_B,         // Xpulpv2: pv.add.sci.b
+      PV_SUB_SCI_H,         // Xpulpv2: pv.sub.sci.h
+      PV_SUB_SCI_B,         // Xpulpv2: pv.sub.sci.b
+      PV_AVG_SCI_H,         // Xpulpv2: pv.avg.sci.h
+      PV_AVG_SCI_B,         // Xpulpv2: pv.avg.sci.b
+      PV_AVGU_SCI_H,        // Xpulpv2: pv.avgu.sci.h
+      PV_AVGU_SCI_B,        // Xpulpv2: pv.avgu.sci.b
+      PV_MIN_SCI_H,         // Xpulpv2: pv.min.sci.h
+      PV_MIN_SCI_B,         // Xpulpv2: pv.min.sci.b
+      PV_MINU_SCI_H,        // Xpulpv2: pv.minu.sci.h
+      PV_MINU_SCI_B,        // Xpulpv2: pv.minu.sci.b
+      PV_MAX_SCI_H,         // Xpulpv2: pv.max.sci.h
+      PV_MAX_SCI_B,         // Xpulpv2: pv.max.sci.b
+      PV_MAXU_SCI_H,        // Xpulpv2: pv.maxu.sci.h
+      PV_MAXU_SCI_B,        // Xpulpv2: pv.maxu.sci.b
+      PV_SRL_SCI_H,         // Xpulpv2: pv.srl.sci.h
+      PV_SRL_SCI_B,         // Xpulpv2: pv.srl.sci.b
+      PV_SRA_SCI_H,         // Xpulpv2: pv.sra.sci.h
+      PV_SRA_SCI_B,         // Xpulpv2: pv.sra.sci.b
+      PV_SLL_SCI_H,         // Xpulpv2: pv.sll.sci.h
+      PV_SLL_SCI_B,         // Xpulpv2: pv.sll.sci.b
+      PV_OR_SCI_H,          // Xpulpv2: pv.or.sci.h
+      PV_OR_SCI_B,          // Xpulpv2: pv.or.sci.b
+      PV_XOR_SCI_H,         // Xpulpv2: pv.xor.sci.h
+      PV_XOR_SCI_B,         // Xpulpv2: pv.xor.sci.b
+      PV_AND_SCI_B,         // Xpulpv2: pv.and.sci.b
+      PV_AND_SCI_H,         // Xpulpv2: pv.and.sci.h
+      PV_ABS_H,             // Xpulpv2: pv.abs.h
+      PV_ABS_B,             // Xpulpv2: pv.abs.b
+      PV_EXTRACT_H,         // Xpulpv2: pv.extract.h
+      PV_EXTRACT_B,         // Xpulpv2: pv.extract.b
+      PV_EXTRACTU_H,        // Xpulpv2: pv.extractu.h
+      PV_EXTRACTU_B,        // Xpulpv2: pv.extractu.b
+      PV_DOTUP_SCI_H,       // Xpulpv2: pv.dotup.sci.h
+      PV_DOTUP_SCI_B,       // Xpulpv2: pv.dotup.sci.b
+      PV_DOTUSP_SCI_H,      // Xpulpv2: pv.dotusp.sci.h
+      PV_DOTUSP_SCI_B,      // Xpulpv2: pv.dotusp.sci.b
+      PV_DOTSP_SCI_H,       // Xpulpv2: pv.dotsp.sci.h
+      PV_DOTSP_SCI_B: begin // Xpulpv2: pv.dotsp.sci.b
+        if (Xpulpvect) begin
+          write_rd = 1'b0;
+          is_acc_inst = 1'b1;
+          opa_select = RegRs1;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      // 2 source registers (rs1, rs2)
+      // xpulpvect_custom extension
+      PV_ADD_H,            // Xpulpv2: pv.add.h
+      PV_ADD_SC_H,         // Xpulpv2: pv.add.sc.h
+      PV_ADD_B,            // Xpulpv2: pv.add.b
+      PV_ADD_SC_B,         // Xpulpv2: pv.add.sc.b
+      PV_SUB_H,            // Xpulpv2: pv.sub.h
+      PV_SUB_SC_H,         // Xpulpv2: pv.sub.sc.h
+      PV_SUB_B,            // Xpulpv2: pv.sub.b
+      PV_SUB_SC_B,         // Xpulpv2: pv.sub.sc.b
+      PV_AVG_H,            // Xpulpv2: pv.avg.h
+      PV_AVG_SC_H,         // Xpulpv2: pv.avg.sc.h
+      PV_AVG_B,            // Xpulpv2: pv.avg.b
+      PV_AVG_SC_B,         // Xpulpv2: pv.avg.sc.b
+      PV_AVGU_H,           // Xpulpv2: pv.avgu.h
+      PV_AVGU_SC_H,        // Xpulpv2: pv.avgu.sc.h
+      PV_AVGU_B,           // Xpulpv2: pv.avgu.b
+      PV_AVGU_SC_B,        // Xpulpv2: pv.avgu.sc.b
+      PV_MIN_H,            // Xpulpv2: pv.min.h
+      PV_MIN_SC_H,         // Xpulpv2: pv.min.sc.h
+      PV_MIN_B,            // Xpulpv2: pv.min.b
+      PV_MIN_SC_B,         // Xpulpv2: pv.min.sc.b
+      PV_MINU_H,           // Xpulpv2: pv.minu.h
+      PV_MINU_SC_H,        // Xpulpv2: pv.minu.sc.h
+      PV_MINU_B,           // Xpulpv2: pv.minu.b
+      PV_MINU_SC_B,        // Xpulpv2: pv.minu.sc.b
+      PV_MAX_H,            // Xpulpv2: pv.max.h
+      PV_MAX_SC_H,         // Xpulpv2: pv.max.sc.h
+      PV_MAX_B,            // Xpulpv2: pv.max.b
+      PV_MAX_SC_B,         // Xpulpv2: pv.max.sc.b
+      PV_MAXU_H,           // Xpulpv2: pv.maxu.h
+      PV_MAXU_SC_H,        // Xpulpv2: pv.maxu.sc.h
+      PV_MAXU_B,           // Xpulpv2: pv.maxu.b
+      PV_MAXU_SC_B,        // Xpulpv2: pv.maxu.sc.b
+      PV_SRL_H,            // Xpulpv2: pv.srl.h
+      PV_SRL_SC_H,         // Xpulpv2: pv.srl.sc.h
+      PV_SRL_B,            // Xpulpv2: pv.srl.b
+      PV_SRL_SC_B,         // Xpulpv2: pv.srl.sc.b
+      PV_SRA_H,            // Xpulpv2: pv.sra.h
+      PV_SRA_SC_H,         // Xpulpv2: pv.sra.sc.h
+      PV_SRA_B,            // Xpulpv2: pv.sra.b
+      PV_SRA_SC_B,         // Xpulpv2: pv.sra.sc.b
+      PV_SLL_H,            // Xpulpv2: pv.sll.h
+      PV_SLL_SC_H,         // Xpulpv2: pv.sll.sc.h
+      PV_SLL_B,            // Xpulpv2: pv.sll.b
+      PV_SLL_SC_B,         // Xpulpv2: pv.sll.sc.b
+      PV_OR_H,             // Xpulpv2: pv.or.h
+      PV_OR_SC_H,          // Xpulpv2: pv.or.sc.h
+      PV_OR_B,             // Xpulpv2: pv.or.b
+      PV_OR_SC_B,          // Xpulpv2: pv.or.sc.b
+      PV_XOR_H,            // Xpulpv2: pv.xor.h
+      PV_XOR_SC_H,         // Xpulpv2: pv.xor.sc.h
+      PV_XOR_B,            // Xpulpv2: pv.xor.b
+      PV_XOR_SC_B,         // Xpulpv2: pv.xor.sc.b
+      PV_AND_H,            // Xpulpv2: pv.and.h
+      PV_AND_SC_H,         // Xpulpv2: pv.and.sc.h
+      PV_AND_B,            // Xpulpv2: pv.and.b
+      PV_AND_SC_B,         // Xpulpv2: pv.and.sc.b
+      PV_DOTUP_H,          // Xpulpv2: pv.dotup.h
+      PV_DOTUP_SC_H,       // Xpulpv2: pv.dotup.sc.h
+      PV_DOTUP_B,          // Xpulpv2: pv.dotup.b
+      PV_DOTUP_SC_B,       // Xpulpv2: pv.dotup.sc.b
+      PV_DOTUSP_H,         // Xpulpv2: pv.dotusp.h
+      PV_DOTUSP_SC_H,      // Xpulpv2: pv.dotusp.sc.h
+      PV_DOTUSP_B,         // Xpulpv2: pv.dotusp.b
+      PV_DOTUSP_SC_B,      // Xpulpv2: pv.dotusp.sc.b
+      PV_DOTSP_H,          // Xpulpv2: pv.dotsp.h
+      PV_DOTSP_SC_H,       // Xpulpv2: pv.dotsp.sc.h
+      PV_DOTSP_B,          // Xpulpv2: pv.dotsp.b
+      PV_DOTSP_SC_B: begin // Xpulpv2: pv.dotsp.sc.b
+        if (Xpulpvect) begin
+          write_rd = 1'b0;
+          is_acc_inst = 1'b1;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      // 2 source registers (rs1, rd)
+      PV_INSERT_H,           // Xpulpv2: pv.insert.h
+      PV_INSERT_B,           // Xpulpv2: pv.insert.b
+      PV_SDOTUP_SCI_H,       // Xpulpv2: pv.sdotup.sci.h
+      PV_SDOTUP_SCI_B,       // Xpulpv2: pv.sdotup.sci.b
+      PV_SDOTUSP_SCI_H,      // Xpulpv2: pv.sdotusp.sci.h
+      PV_SDOTUSP_SCI_B,      // Xpulpv2: pv.sdotusp.sci.b
+      PV_SDOTSP_SCI_H,       // Xpulpv2: pv.sdotsp.sci.h
+      PV_SDOTSP_SCI_B: begin // Xpulpv2: pv.sdotsp.sci.b
+        if (Xpulpvect) begin
+          write_rd = 1'b0;
+          is_acc_inst = 1'b1;
+          opa_select = RegRs1;
+          opc_select = RegRd;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      // 3 source registers (rs1, rs2, rd)
+      PV_SDOTUP_H,          // Xpulpv2: pv.sdotup.h
+      PV_SDOTUP_SC_H,       // Xpulpv2: pv.sdotup.sc.h
+      PV_SDOTUP_B,          // Xpulpv2: pv.sdotup.b
+      PV_SDOTUP_SC_B,       // Xpulpv2: pv.sdotup.sc.b
+      PV_SDOTUSP_H,         // Xpulpv2: pv.sdotusp.h
+      PV_SDOTUSP_SC_H,      // Xpulpv2: pv.sdotusp.sc.h
+      PV_SDOTUSP_B,         // Xpulpv2: pv.sdotusp.b
+      PV_SDOTUSP_SC_B,      // Xpulpv2: pv.sdotusp.sc.b
+      PV_SDOTSP_H,          // Xpulpv2: pv.sdotsp.h
+      PV_SDOTSP_SC_H,       // Xpulpv2: pv.sdotsp.sc.h
+      PV_SDOTSP_B,          // Xpulpv2: pv.sdotsp.b
+      PV_SDOTSP_SC_B: begin // Xpulpv2: pv.sdotsp.sc.b
+        if (Xpulpvect) begin
+          write_rd = 1'b0;
+          is_acc_inst = 1'b1;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+          opc_select = RegRd;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr = XPULP_IPU;
         end else begin
           illegal_inst = 1'b1;
         end
@@ -1319,7 +1570,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       end
       FMACEX_S_H,
       FMULEX_S_H: begin
-        if (FP_EN && RVF && XF16 && XFAUX) begin
+        if (FP_EN && RVF && XF16 && XFAUX) begin      
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
         end else begin
@@ -1555,7 +1806,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       end
       FMACEX_S_B,
       FMULEX_S_B: begin
-        if (FP_EN && RVF && XF16 && XFAUX) begin
+        if (FP_EN && RVF && XF16 && XFAUX) begin    
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
         end else begin
@@ -1666,7 +1917,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       VFSGNJN_R_B,
       VFSGNJX_B,
       VFSGNJX_R_B: begin
-        if (FP_EN && XFVEC && XF8 && FLEN >= 16
+        if (FP_EN && XFVEC && XF8 && FLEN >= 16			
           && (!(inst_data_i inside {VFDIV_B, VFDIV_R_B, VFSQRT_B}) || XDivSqrt)) begin
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
@@ -1829,14 +2080,6 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           uses_rd = 1'b1;
           is_acc_inst = 1'b1;
           acc_register_rd = 1'b1; // No RS in GPR but RD in GPR, register in int scoreboard
-        end else begin
-          illegal_inst = 1'b1;
-        end
-      end
-      FLT_D_COPIFT: begin
-        if(FP_EN && RVD && Xcopift) begin
-          write_rd = 1'b0;
-          is_acc_inst = 1'b1;
         end else begin
           illegal_inst = 1'b1;
         end
@@ -2028,17 +2271,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       FCVT_D_W,
       FCVT_D_WU: begin
         if (FP_EN && RVD) begin
-          opa_select = Reg;
-          write_rd = 1'b0;
-          is_acc_inst = 1'b1;
-        end else begin
-          illegal_inst = 1'b1;
-        end
-      end
-      // Double Precision Floating Point operate on SSRs
-      FCVT_D_W_COPIFT,
-      FCVT_D_WU_COPIFT: begin
-        if(FP_EN && RVD && Xcopift) begin
+          opa_select = RegRs1;
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
         end else begin
@@ -2050,7 +2283,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       FCVT_S_W,
       FCVT_S_WU: begin
         if (FP_EN && RVF) begin
-          opa_select = Reg;
+          opa_select = RegRs1;
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
         end else begin
@@ -2062,11 +2295,11 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       FCVT_H_W,
       FCVT_H_WU: begin
         if (FP_EN && XF16 && (fcsr_q.fmode.dst == 1'b0)) begin
-          opa_select = Reg;
+          opa_select = RegRs1;
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
         end else if (FP_EN && XF16ALT && (fcsr_q.fmode.dst == 1'b1)) begin
-          opa_select = Reg;
+          opa_select = RegRs1;
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
         end else begin
@@ -2094,11 +2327,11 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       FCVT_B_W,
       FCVT_B_WU: begin
         if (FP_EN && XF8 && fcsr_q.fmode.dst == 1'b0) begin
-          opa_select = Reg;
+          opa_select = RegRs1;
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
         end else if (FP_EN && XF8ALT && fcsr_q.fmode.dst == 1'b1) begin
-          opa_select = Reg;
+          opa_select = RegRs1;
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
         end else begin
@@ -2121,21 +2354,267 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           end
         end
       end
-      // FP Sequencer
-      FREP_O: begin
-        if (FP_EN) begin
-          opa_select = Reg;
+      // FP Sequencer and Postmod
+      FREP_O,
+      P_LB_IRPOST,
+      P_LBU_IRPOST,
+      P_LH_IRPOST,
+      P_LHU_IRPOST,
+      P_LW_IRPOST,
+      P_LB_RRPOST,
+      P_LBU_RRPOST,
+      P_LH_RRPOST,
+      P_LHU_RRPOST,
+      P_LW_RRPOST : begin
+        if (Xpulppostmod == 1) begin
+          casez (inst_data_i)
+            P_LB_IRPOST: begin  //  p.lb rd,iimm(rs1!)
+              write_rd = 1'b0;
+              write_rs1 = 1'b1;
+              is_load = 1'b1;
+              is_postincr = 1'b1;
+              is_signed = 1'b1;
+              opa_select = RegRs1;
+              opb_select = IImmediate;
+            end
+            P_LBU_IRPOST: begin // p.lbu
+              write_rd = 1'b0;
+              write_rs1 = 1'b1;
+              is_load = 1'b1;
+              is_postincr = 1'b1;
+              opa_select = RegRs1;
+              opb_select = IImmediate;
+            end
+            P_LH_IRPOST: begin  //p.lh
+              write_rd = 1'b0;
+              write_rs1 = 1'b1;
+              is_load = 1'b1;
+              is_postincr = 1'b1;
+              is_signed = 1'b1;
+              ls_size = HalfWord;
+              opa_select = RegRs1;
+              opb_select = IImmediate;
+            end
+            P_LHU_IRPOST: begin //p.lhu
+              write_rd = 1'b0;
+              write_rs1 = 1'b1;
+              is_load = 1'b1;
+              is_postincr = 1'b1;
+              ls_size = HalfWord;
+              opa_select = RegRs1;
+              opb_select = IImmediate;
+            end
+            P_LW_IRPOST: begin //p.lw
+              write_rd = 1'b0;
+              write_rs1 = 1'b1;
+              is_load = 1'b1;
+              is_postincr = 1'b1;
+              is_signed = 1'b1;
+              ls_size = Word;
+              opa_select = RegRs1;
+              opb_select = IImmediate;
+            end
+            P_LB_RRPOST: begin //p.lb rd,rs2(rs1!)
+              write_rd = 1'b0;
+              write_rs1 = 1'b1;
+              is_load = 1'b1;
+              is_postincr = 1'b1;
+              is_signed = 1'b1;
+              opa_select = RegRs1;
+              opb_select = RegRs2;
+            end
+            P_LBU_RRPOST: begin //p.lbu
+              write_rd = 1'b0;
+              write_rs1 = 1'b1;
+              is_load = 1'b1;
+              is_postincr = 1'b1;
+              opa_select = RegRs1;
+              opb_select = RegRs2;
+            end
+            P_LH_RRPOST: begin //p.lh
+              write_rd = 1'b0;
+              write_rs1 = 1'b1;
+              is_load = 1'b1;
+              is_postincr = 1'b1;
+              is_signed = 1'b1;
+              ls_size = HalfWord;
+              opa_select = RegRs1;
+              opb_select = RegRs2;
+            end
+            P_LHU_RRPOST: begin //p.lhu
+              write_rd = 1'b0;
+              write_rs1 = 1'b1;
+              is_load = 1'b1;
+              is_postincr = 1'b1;
+              ls_size = HalfWord;
+              opa_select = RegRs1;
+              opb_select = RegRs2;
+            end
+            P_LW_RRPOST: begin //p.lw
+              write_rd = 1'b0;
+              write_rs1 = 1'b1;
+              is_load = 1'b1;
+              is_postincr = 1'b1;
+              is_signed = 1'b1;
+              ls_size = Word;
+              opa_select = RegRs1;
+              opb_select = RegRs2;
+            end
+            default: begin
+              illegal_inst = 1'b1;
+            end
+          endcase
+        end else begin
+          if (FP_EN && (inst_data_i ==? FREP_O) ) begin
+            opa_select = RegRs1;
+            write_rd = 1'b0;
+            is_acc_inst = 1'b1;
+          end else begin
+            illegal_inst = 1'b1;
+          end 
+        end
+      end
+      P_LB_RR: begin      // p.lb rd,rs2(rs1)
+        if (Xpulppostmod == 1) begin
           write_rd = 1'b0;
-          is_acc_inst = 1'b1;
+          is_load = 1'b1;
+          is_signed = 1'b1;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
         end else begin
           illegal_inst = 1'b1;
         end
       end
+      P_LBU_RR: begin     // p.lbu
+        if (Xpulppostmod == 1) begin
+          write_rd = 1'b0;
+          is_load = 1'b1;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      P_LH_RR: begin      // p.lh
+        if (Xpulppostmod == 1) begin
+          write_rd = 1'b0;
+          is_load = 1'b1;
+          is_signed = 1'b1;
+          ls_size = HalfWord;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      P_LHU_RR: begin     // p.lhu
+        if (Xpulppostmod == 1) begin
+          write_rd = 1'b0;
+          is_load = 1'b1;
+          ls_size = HalfWord;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      P_LW_RR: begin      // p.lw
+        if (Xpulppostmod == 1) begin
+          write_rd = 1'b0;
+          is_load = 1'b1;
+          is_signed = 1'b1;
+          ls_size = Word;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      // opb is usually assigned with the content of rs2; in stores with reg-reg
+      // addressing mode, however, the offset is stored in rd, so rd content is
+      // instead assigned to opb: if we cross such signals now (rd -> opb,
+      // rs2 -> opc) we don't have to do that in the ALU, with bigger muxes
+      P_SB_RRPOST: begin  // p.sb rs2,rd(rs1!)
+        if (Xpulppostmod == 1) begin
+          write_rd = 1'b0;
+          write_rs1 = 1'b1;
+          is_store = 1'b1;
+          is_postincr = 1'b1;
+          opa_select = RegRs1; // rs1 base address
+          opb_select = RegRd; // rd offset
+          opc_select = RegRs2; // rs2 source data
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      P_SH_RRPOST: begin  // p.sh
+        if (Xpulppostmod == 1) begin
+          write_rd = 1'b0;
+          write_rs1 = 1'b1;
+          is_store = 1'b1;
+          is_postincr = 1'b1;
+          ls_size = HalfWord;
+          opa_select = RegRs1;
+          opb_select = RegRd;
+          opc_select = RegRs2;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      P_SW_RRPOST: begin  // p.sw
+        if (Xpulppostmod == 1) begin
+          write_rd = 1'b0;
+          write_rs1 = 1'b1;
+          is_store = 1'b1;
+          is_postincr = 1'b1;
+          ls_size = Word;
+          opa_select = RegRs1;
+          opb_select = RegRd;
+          opc_select = RegRs2;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      P_SB_RR: begin      // p.sb rs2,rs3(rs1)
+        if (Xpulppostmod == 1) begin
+          write_rd = 1'b0;
+          is_store = 1'b1;
+          opa_select = RegRs1;
+          opb_select = RegRd;
+          opc_select = RegRs2;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      P_SH_RR: begin      // p.sh
+        if (Xpulppostmod == 1) begin
+          write_rd = 1'b0;
+          is_store = 1'b1;
+          ls_size = HalfWord;
+          opa_select = RegRs1;
+          opb_select = RegRd;
+          opc_select = RegRs2;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      P_SW_RR: begin      // p.sw
+        if (Xpulppostmod == 1) begin
+          write_rd = 1'b0;
+          is_store = 1'b1;
+          ls_size = Word;
+          opa_select = RegRs1;
+          opb_select = RegRd;
+          opc_select = RegRs2;
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end 
       // Floating-Point Load/Store
       // Single Precision Floating-Point
       FLW: begin
         if (FP_EN && RVF) begin
-          opa_select = Reg;
+          opa_select = RegRs1;
           opb_select = IImmediate;
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
@@ -2147,7 +2626,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       end
       FSW: begin
         if (FP_EN && RVF) begin
-          opa_select = Reg;
+          opa_select = RegRs1;
           opb_select = SFImmediate;
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
@@ -2160,7 +2639,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       // Double Precision Floating-Point
       FLD: begin
         if (FP_EN && (RVD || XFVEC)) begin
-          opa_select = Reg;
+          opa_select = RegRs1;
           opb_select = IImmediate;
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
@@ -2172,7 +2651,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       end
       FSD: begin
         if (FP_EN && (RVD || XFVEC)) begin
-          opa_select = Reg;
+          opa_select = RegRs1;
           opb_select = SFImmediate;
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
@@ -2185,7 +2664,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       // Half Precision Floating-Point
       FLH: begin
         if (FP_EN && (XF16 || XF16ALT)) begin
-          opa_select = Reg;
+          opa_select = RegRs1;
           opb_select = IImmediate;
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
@@ -2197,7 +2676,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       end
       FSH: begin
         if (FP_EN && (XF16 || XF16ALT)) begin
-          opa_select = Reg;
+          opa_select = RegRs1;
           opb_select = SFImmediate;
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
@@ -2210,7 +2689,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       // Quarter Precision Floating-Point
       FLB: begin
         if (FP_EN && (XF8 || XF8ALT)) begin
-          opa_select = Reg;
+          opa_select = RegRs1;
           opb_select = IImmediate;
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
@@ -2222,7 +2701,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       end
       FSB: begin
         if (FP_EN && (XF8 || XF8ALT)) begin
-          opa_select = Reg;
+          opa_select = RegRs1;
           opb_select = SFImmediate;
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
@@ -2233,131 +2712,234 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         end
       end
       // DMA instructions
+      P_SB_IRPOST,
       DMSRC,
       DMDST,
-      DMSTR: begin
-        if (Xdma) begin
-          acc_qreq_o.addr  = DMA_SS;
-          opa_select   = Reg;
-          opb_select   = Reg;
-          is_acc_inst = 1'b1;
-          write_rd     = 1'b0;
+      DMSTR,
+      DMCPYI,
+      DMCPY,
+      DMSTATI,
+      DMSTAT,
+      DMREP,
+      FCVT_D_W_COPIFT,
+      FCVT_D_WU_COPIFT : begin
+        if (Xpulppostmod) begin
+          write_rd = 1'b0;
+          uses_rd = 1'b0;
+          write_rs1 = 1'b1;
+          is_store = 1'b1;
+          is_postincr = 1'b1;
+          opa_select = RegRs1;
+          opb_select = SImmediate;
         end else begin
-          illegal_inst = 1'b1;
-        end
-      end
-      DMCPYI: begin
-        if (Xdma) begin
-          acc_qreq_o.addr     = DMA_SS;
-          opa_select      = Reg;
-          is_acc_inst     = 1'b1;
-          write_rd        = 1'b0;
-          uses_rd         = 1'b1;
-          acc_register_rd = 1'b1;
-        end else begin
-          illegal_inst = 1'b1;
-        end
-      end
-      DMCPY: begin
-        if (Xdma) begin
-          acc_qreq_o.addr     = DMA_SS;
-          opa_select      = Reg;
-          opb_select      = Reg;
-          is_acc_inst     = 1'b1;
-          write_rd        = 1'b0;
-          uses_rd         = 1'b1;
-          acc_register_rd = 1'b1;
-        end else begin
-          illegal_inst = 1'b1;
-        end
-      end
-      DMSTATI: begin
-        if (Xdma) begin
-          acc_qreq_o.addr     = DMA_SS;
-          is_acc_inst     = 1'b1;
-          write_rd        = 1'b0;
-          uses_rd         = 1'b1;
-          acc_register_rd = 1'b1;
-        end else begin
-          illegal_inst = 1'b1;
-        end
-      end
-      DMSTAT: begin
-        if (Xdma) begin
-          acc_qreq_o.addr     = DMA_SS;
-          opb_select      = Reg;
-          is_acc_inst     = 1'b1;
-          write_rd        = 1'b0;
-          uses_rd         = 1'b1;
-          acc_register_rd = 1'b1;
-        end else begin
-          illegal_inst = 1'b1;
-        end
-      end
-      DMREP: begin
-        if (Xdma) begin
-          acc_qreq_o.addr     = DMA_SS;
-          opa_select      = Reg;
-          is_acc_inst     = 1'b1;
-          write_rd        = 1'b0;
-        end else begin
-          illegal_inst = 1'b1;
+          casez (inst_data_i)
+            DMSRC,
+            DMDST,
+            DMSTR: begin
+              if (Xdma) begin
+                acc_qreq_o.addr  = DMA_SS;
+                opa_select   = RegRs1;
+                opb_select   = RegRs2;
+                is_acc_inst  = 1'b1;
+                write_rd     = 1'b0;
+              end else begin
+                illegal_inst = 1'b1;
+              end
+            end
+            DMCPYI: begin
+              if (Xdma) begin
+                acc_qreq_o.addr     = DMA_SS;
+                opa_select      = RegRs1;
+                is_acc_inst     = 1'b1;
+                write_rd        = 1'b0;
+                uses_rd         = 1'b1;
+                acc_register_rd = 1'b1;
+              end else begin
+                illegal_inst = 1'b1;
+              end
+            end
+            DMCPY: begin
+              if (Xdma) begin
+                acc_qreq_o.addr     = DMA_SS;
+                opa_select      = RegRs1;
+                opb_select      = RegRs2;
+                is_acc_inst     = 1'b1;
+                write_rd        = 1'b0;
+                uses_rd         = 1'b1;
+                acc_register_rd = 1'b1;
+              end else begin
+                illegal_inst = 1'b1;
+              end
+            end
+            DMSTATI: begin
+              if (Xdma) begin
+                acc_qreq_o.addr     = DMA_SS;
+                is_acc_inst     = 1'b1;
+                write_rd        = 1'b0;
+                uses_rd         = 1'b1;
+                acc_register_rd = 1'b1;
+              end else begin
+                illegal_inst = 1'b1;
+              end
+            end
+            DMSTAT: begin
+              if (Xdma) begin
+                acc_qreq_o.addr     = DMA_SS;
+                opb_select      = RegRs2;
+                is_acc_inst     = 1'b1;
+                write_rd        = 1'b0;
+                uses_rd         = 1'b1;
+                acc_register_rd = 1'b1;
+              end else begin
+                illegal_inst = 1'b1;
+              end
+            end
+            DMREP: begin
+              if (Xdma) begin
+                acc_qreq_o.addr     = DMA_SS;
+                opa_select      = RegRs1;
+                is_acc_inst     = 1'b1;
+                write_rd        = 1'b0;
+              end else begin
+                illegal_inst = 1'b1;
+              end
+            end
+            FCVT_D_W_COPIFT,
+            FCVT_D_WU_COPIFT: begin
+              if (FP_EN && RVD && Xcopift) begin
+                write_rd = 1'b0;
+                is_acc_inst = 1'b1;
+              end else begin
+                illegal_inst = 1'b1;
+              end
+            end
+            default: begin
+              illegal_inst = 1'b1;
+            end
+          endcase
         end
       end
       DMUSER: begin
         if (Xdma) begin
           acc_qreq_o.addr = DMA_SS;
-          opa_select      = Reg;
+          opa_select      = RegRs1;
           is_acc_inst     = 1'b1;
           write_rd        = 1'b0;
         end else begin
           illegal_inst = 1'b1;
         end
       end
-      SCFGRI: begin
-        if (Xssr) begin
+
+      P_SH_IRPOST,
+      SCFGRI,
+      SCFGR,
+      FLT_D_COPIFT: begin
+        if (Xpulppostmod) begin
           write_rd = 1'b0;
-          uses_rd = 1'b1;
-          acc_qreq_o.addr = SSR_CFG;
-          is_acc_inst = 1'b1;
-          acc_register_rd = 1'b1; // No RS in GPR but RD in GPR, register in int scoreboard
-        end else illegal_inst = 1'b1;
+          uses_rd = 1'b0;
+          write_rs1 = 1'b1;
+          is_store = 1'b1;
+          is_postincr = 1'b1;
+          ls_size = HalfWord;
+          opa_select = RegRs1;
+          opb_select = SImmediate;
+        end else begin
+          casez (inst_data_i)
+            SCFGRI: begin
+              if (Xssr) begin
+                write_rd = 1'b0;
+                uses_rd = 1'b1;
+                acc_qreq_o.addr = SSR_CFG;
+                is_acc_inst = 1'b1;
+                acc_register_rd = 1'b1; // No RS in GPR but RD in GPR, register in int scoreboard
+              end else illegal_inst = 1'b1;
+            end
+            SCFGR: begin
+              if (Xssr) begin
+                write_rd = 1'b0;
+                uses_rd = 1'b1;
+                acc_qreq_o.addr = SSR_CFG;
+                opb_select = RegRs2;
+                is_acc_inst = 1'b1;
+                acc_register_rd = 1'b1;
+              end else illegal_inst = 1'b1;
+            end
+            FLT_D_COPIFT: begin
+              if (FP_EN && RVD && Xcopift) begin
+                write_rd = 1'b0;
+                is_acc_inst = 1'b1;
+              end else begin
+                illegal_inst = 1'b1;
+              end
+            end
+            default: begin
+              illegal_inst = 1'b1;
+            end
+          endcase
+        end
       end
-      SCFGWI: begin
-        if (Xssr) begin
-          acc_qreq_o.addr = SSR_CFG;
-          opa_select = Reg;
-          is_acc_inst = 1'b1;
-          write_rd = 1'b0;
-        end else illegal_inst = 1'b1;
-      end
-      SCFGR: begin
-        if (Xssr) begin
-          write_rd = 1'b0;
-          uses_rd = 1'b1;
-          acc_qreq_o.addr = SSR_CFG;
-          opb_select = Reg;
-          is_acc_inst = 1'b1;
-          acc_register_rd = 1'b1;
-        end else illegal_inst = 1'b1;
-      end
+
+      P_SW_IRPOST,
+      SCFGWI,
       SCFGW: begin
-        if (Xssr) begin
-          acc_qreq_o.addr = SSR_CFG;
-          opa_select = Reg;
-          opb_select = Reg;
-          is_acc_inst = 1'b1;
+        if (Xpulppostmod) begin
           write_rd = 1'b0;
-        end else illegal_inst = 1'b1;
+          uses_rd = 1'b0;
+          write_rs1 = 1'b1;
+          is_store = 1'b1;
+          is_postincr = 1'b1;
+          ls_size = Word;
+          opa_select = RegRs1;
+          opb_select = SImmediate;
+        end else begin
+          casez (inst_data_i)
+            SCFGWI: begin
+              if (Xssr) begin
+                acc_qreq_o.addr = SSR_CFG;
+                opa_select = RegRs1;
+                is_acc_inst = 1'b1;
+                write_rd = 1'b0;
+              end else illegal_inst = 1'b1;
+            end
+            SCFGW: begin
+              if (Xssr) begin
+                acc_qreq_o.addr = SSR_CFG;
+                opa_select = RegRs1;
+                opb_select = RegRs2;
+                is_acc_inst = 1'b1;
+                write_rd = 1'b0;
+              end else illegal_inst = 1'b1;
+            end
+            default: begin
+              illegal_inst = 1'b1;
+            end
+          endcase
+        end
+      end
+      PV_SHUFFLE2_H,        // Xpulpv2: pv.shuffle2.h
+      PV_SHUFFLE2_B,        // Xpulpv2: pv.shuffle2.b
+      PV_PACK,              // Xpulpv2: pv.pack
+      PV_PACK_H: begin      // Xpulpv2: pv.pack.h
+        if (Xpulpvectshufflepack) begin
+          write_rd = 1'b0;
+          is_acc_inst = 1'b1;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+          opc_select = RegRd;
+          acc_register_rd = 1'b1;
+          acc_qreq_o.addr  = XPULP_IPU;
+        end else begin
+          illegal_inst = 1'b1;
+        end
       end
 
       default: begin // Offload the instruction to the coprocessor
         if (EnableXif) begin
           write_rd = x_issue_ready_i & x_issue_valid_o & x_issue_resp_i.writeback;
 
-          opa_select = Reg;
-          opb_select = Reg;
-          opc_select = Reg;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+          opc_select = RegRs3;
 
           x_issue_req_o.instr    = inst_data_i;
           x_issue_req_o.id       = xif_offload_counter_q;
@@ -2396,6 +2978,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     // Sanitize illegal instructions so that they don't exert any side-effects.
     if (exception) begin
      write_rd = 1'b0;
+     write_rs1 = 1'b0;
      is_acc_inst = 1'b0;
      next_pc = Exception;
     end
@@ -2830,7 +3413,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // Read from F2I if rs==x31, queues are enabled and the instruction is an integer instruction (not a FP instruction).
   assign rs1_is_f2i = (rs1 == 'd31) & en_copift_o & ~is_fp_inst;
   assign rs2_is_f2i = (rs2 == 'd31) & en_copift_o & ~is_fp_inst;
-  assign f2i_rready = valid_instr && (((opa_select == Reg) && rs1_is_f2i) || ((opb_select == Reg) && rs2_is_f2i));
+  assign f2i_rready = valid_instr && (((opa_select == RegRs1) && rs1_is_f2i) || ((opb_select == RegRs2) && rs2_is_f2i) || ((opc_select == RegRs2) && rs2_is_f2i));
 
   // Write to I2F if rd==x31 and queues are enabled
   assign rd_is_i2f = (rd == 'd31) & en_copift_o;
@@ -2892,10 +3475,18 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // --------------------
   // Operand Select
   // --------------------
+  // opa, opb and opc are tied to FU operands (1st, 2nd and 3rd, respectively).
+  // rs1, rs2, rs3 and rd are tied to the instruction encoding.
+  // Finally, gpr_r[addr|data][i] identify the i-th RF read port.
+  // An operand (op*) is read from a register ([rs1, rs2, rs3, rd]), through a RF read port (gpr_raddr[i]).
+  //
+  // op*_select specifies which RF port (if any) an operand accesses.
+  // gpr_raddr[i] specifies which register the i-th read port accesses.
+
   always_comb begin
     unique case (opa_select)
       None: opa = '0;
-      Reg: opa = rs1_is_f2i ? f2i_rdata : gpr_rdata[0];
+      RegRs1: opa = rs1_is_f2i ? f2i_rdata : gpr_rdata[0];
       UImmediate: opa = uimm;
       JImmediate: opa = jimm;
       CSRImmmediate: opa = {{{32-RegWidth}{1'b0}}, rs1};
@@ -2906,30 +3497,31 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   always_comb begin
     unique case (opb_select)
       None: opb = '0;
-      Reg: opb = rs2_is_f2i ? f2i_rdata : gpr_rdata[1];
+      RegRs2: opb = rs2_is_f2i ? f2i_rdata : gpr_rdata[1];
+      RegRd: opb = (NumRfReadPorts > 2) ? gpr_rdata[2] : '0;
       IImmediate: opb = iimm;
       SFImmediate, SImmediate: opb = simm;
       PC: opb = pc_q;
       CSR: opb = csr_rvalue;
+      PBImmediate: opb = pbimm;
       default: opb = '0;
     endcase
   end
 
-  // The C operand is currently only used for XIF instructions
-  if (NumRfReadPorts > 2) begin : gen_opc
-    always_comb begin
-      unique case (opc_select)
-        None: opc = '0;
-        Reg: opc = gpr_rdata[2];
-        default: opc = '0;
-      endcase
-    end
+  always_comb begin
+    unique case (opc_select)
+      None: opc = '0;
+      RegRs2: opc = gpr_rdata[1];
+      RegRs3, RegRd: opc = (NumRfReadPorts > 2) ? gpr_rdata[2] : '0;
+      default: opc = '0;
+    endcase
   end
 
-  assign gpr_raddr[0] = rs1;
-  assign gpr_raddr[1] = rs2;
+  assign gpr_raddr[0] = rs1;  // Read port 1 always accesses rs1
+  assign gpr_raddr[1] = rs2;  // Read port 2 always accesses rs2
   if (NumRfReadPorts > 2) begin : gen_third_read_port
-    assign gpr_raddr[2] = rs3;
+    // Read port 3 can access either rs3 or rd
+    assign gpr_raddr[2] = ((opb_select == RegRd) || (opc_select == RegRd)) ? rd : rs3;
   end
 
   // --------------------
@@ -3015,7 +3607,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // --------------------
   // L0 DTLB
   // --------------------
-  assign dtlb_va = va_t'(alu_result[31:PageShift]);
+  assign dtlb_va = va_t'(is_postincr ? gpr_rdata[0][31:PageShift] : alu_result[31:PageShift]);
 
   if (VMSupport) begin : gen_dtlb
     snitch_l0_tlb #(
@@ -3064,10 +3656,12 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign dtlb_valid = (lsu_tlb_qvalid & trans_active) | ((is_fp_load | is_fp_store) & trans_active);
 
   // Mulitplexer using and/or as this signal is likely timing critical.
+  // Without virtual memory, address can be alu_result (i.e. rs1 + iimm/simm) or rs1 (for post-increment load/stores)
+  // TODO(colluca): do not hardcode gpr_rdata[0] here
   assign ls_paddr[PPNSize+PageShift-1:PageShift] =
           ({(PPNSize){trans_active}} & dtlb_pa) |
-          (~{(PPNSize){trans_active}} & {mseg_q, alu_result[31:PageShift]});
-  assign ls_paddr[PageShift-1:0] = alu_result[PageShift-1:0];
+          (~{(PPNSize){trans_active}} & {mseg_q, (is_postincr ? gpr_rdata[0][31:PageShift] : alu_result[31:PageShift])});
+  assign ls_paddr[PageShift-1:0] = is_postincr ? gpr_rdata[0][PageShift-1:0] : alu_result[PageShift-1:0];
 
   assign lsu_qvalid = lsu_tlb_qvalid & trans_ready;
   assign lsu_tlb_qready = lsu_qready & trans_ready;
@@ -3077,7 +3671,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // --------------------
   data_t lsu_qdata;
   // sign exten to appropriate length
-  assign lsu_qdata = $unsigned(gpr_rdata[1]);
+  assign lsu_qdata = $unsigned((ls_amo == reqrsp_pkg::AMONone) ? opc : opb);
 
   // Consider CAQ in accelerator handshake when offloading an FPU load or store.
   assign caq_ena = is_fp_load | is_fp_store;
@@ -3131,6 +3725,13 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign lsu_tlb_qvalid = valid_instr & (is_load | is_store)
                                       & ~(ld_addr_misaligned | st_addr_misaligned);
 
+  // NOTE: write-backs "on rd from non-load or non-acc instructions" and "on rs1 from
+  // post-increment instructions" in the same cycle should be mutually exclusive (currently valid
+  // assumption since write-back to rs1 happens on the cycle in which the post-increment load/store
+  // is issued, if that cycle is not a stall, and it is not postponed like offloaded instructions,
+  // so no other instructions writing back on rd can be issued in the same cycle)
+  // retire post-incremented address on rs1 if valid postincr instruction and LSU not stalling
+  assign retire_p = write_rs1 & ~stall & (rs1 != 0);
   // we can retire if we are not stalling and if the instruction is writing a register
   assign retire_i = write_rd & valid_instr & (rd != 0);
 
@@ -3179,7 +3780,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // Writeback can be to GPR or to I2F queue
   always_comb begin
     gpr_we[0] = 1'b0;
-    gpr_waddr[0] = rd;
+      // NOTE: this works because write-backs on rd and rs1 in the same cycle are mutually
+      // exclusive; if this should change, the following statement has to be written in another form
+    gpr_waddr[0] = retire_p ? rs1 : rd; // choose whether to writeback at RF[rs1] for post-increment load/stores
     gpr_wdata[0] = alu_writeback;
 
     i2f_wvalid = 1'b0;
@@ -3194,7 +3797,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     retire_load = 1'b0;
     retire_x = 1'b0;
 
-    if (retire_i) begin
+    if (retire_i | retire_p) begin
       gpr_we[0] = ~rd_is_i2f;
       i2f_wvalid = rd_is_i2f;
     // if we are not retiring another instruction retire the load now
@@ -3248,7 +3851,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       (inst_valid_o && inst_ready_i && inst_cacheable_o) ##1 (inst_valid_o && $stable(inst_addr_o))
       |-> inst_ready_i && $stable(inst_data_i), clk_i, rst_i)
 
+  // Make sure that we never write back an unknown value to the register file
   `ASSERT(RegWriteKnown, gpr_we & (gpr_waddr != 0) |-> !$isunknown(gpr_wdata), clk_i, rst_i)
+
   // Check that PMA rule counts do not exceed maximum number of rules
   `ASSERT_INIT(CheckPMANonIdempotent,
     SnitchPMACfg.NrNonIdempotentRegionRules <= snitch_pma_pkg::NrMaxRules);
@@ -3261,5 +3866,11 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
 
   // Make sure debug IRQ line is not raised when debug mode is not supported
   `ASSERT(DebugModeUnsupported, irq_i.debug == 1'b1 |-> DebugSupport == 1, clk_i, rst_i)
+
+  // Both rd and rs3 reads share the third read port to the RF, so they can't be simultaneously accessed
+  `ASSERT(NoMixedRdRs3,
+    !((opb_select == RegRd && opc_select == RegRs3) ||
+    (opb_select == RegRs3 && opc_select == RegRd)), clk_i, rst_i)
+
 
 endmodule

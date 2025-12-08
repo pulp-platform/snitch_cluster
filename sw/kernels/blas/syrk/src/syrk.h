@@ -101,6 +101,7 @@ void syrk_baseline(uint32_t m, uint32_t n, double alpha, double *a, double *at,
 
 void syrk_opt(uint32_t m, uint32_t n, double alpha, double *a, double *at,
               double beta, double *c) {
+#ifdef SNRT_SUPPORTS_FREP
     uint32_t offset = snrt_cluster_core_idx();
     uint32_t stride = snrt_cluster_compute_core_num();
 
@@ -171,6 +172,7 @@ void syrk_opt(uint32_t m, uint32_t n, double alpha, double *a, double *at,
 
     snrt_ssr_disable();
     snrt_fpu_fence();
+#endif
 }
 
 void syrk_job(syrk_args_t *args) {

@@ -1,0 +1,60 @@
+# Copyright 2025 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+runs:
+  - elf: ../sw/tests/build/atomics.elf
+  - elf: ../sw/tests/build/barrier.elf
+  - elf: ../sw/tests/build/communicator.elf
+    simulators: [vsim, vcs, verilator]
+  - elf: ../sw/tests/build/event_unit.elf
+    simulators: [vsim, vcs, verilator]
+  - elf: ../sw/tests/build/fence_i.elf
+  - elf: ../sw/tests/build/fp8_comparison_scalar.elf
+  - elf: ../sw/tests/build/fp8_comparison_vector.elf
+  - elf: ../sw/tests/build/fp8_computation_scalar.elf
+  - elf: ../sw/tests/build/fp8_computation_vector.elf
+  - elf: ../sw/tests/build/fp8alt_comparison_scalar.elf
+  - elf: ../sw/tests/build/fp8alt_comparison_vector.elf
+  - elf: ../sw/tests/build/fp8alt_computation_scalar.elf
+  - elf: ../sw/tests/build/fp8alt_computation_vector.elf
+  - elf: ../sw/tests/build/fp16_comparison_scalar.elf
+  - elf: ../sw/tests/build/fp16_comparison_vector.elf
+  - elf: ../sw/tests/build/fp16_computation_scalar.elf
+  - elf: ../sw/tests/build/fp16_computation_vector.elf
+  - elf: ../sw/tests/build/fp16alt_comparison_scalar.elf
+  - elf: ../sw/tests/build/fp16alt_comparison_vector.elf
+  - elf: ../sw/tests/build/fp16alt_computation_scalar.elf
+  - elf: ../sw/tests/build/fp16alt_computation_vector.elf
+  - elf: ../sw/tests/build/fp32_comparison_scalar.elf
+  - elf: ../sw/tests/build/fp32_comparison_vector.elf
+  - elf: ../sw/tests/build/fp32_computation_scalar.elf
+  - elf: ../sw/tests/build/fp32_computation_vector.elf
+  - elf: ../sw/tests/build/fp32_conversions_scalar.elf
+  # - elf: ../sw/tests/build/fp64_conversions_scalar.elf
+  #   simulators: [vsim, vcs, verilator]
+  - elf: ../sw/tests/build/xpulp_abs.elf
+  - elf: ../sw/tests/build/xpulp_bitop.elf
+  - elf: ../sw/tests/build/xpulp_br.elf
+  - elf: ../sw/tests/build/xpulp_clip.elf
+  - elf: ../sw/tests/build/xpulp_macsi.elf
+  - elf: ../sw/tests/build/xpulp_minmax.elf
+  - elf: ../sw/tests/build/xpulp_postinc.elf
+  - elf: ../sw/tests/build/xpulp_slet.elf
+  - elf: ../sw/tests/build/xpulp_vect.elf
+  - elf: ../sw/tests/build/xpulp_vectshufflepack.elf
+  - elf: ../sw/tests/build/interrupt_local.elf
+    simulators: [vsim, vcs, verilator]
+  - elf: ../sw/tests/build/multi_cluster.elf
+  - elf: ../sw/tests/build/matmul_i32.elf
+  - elf: ../sw/tests/build/printf_simple.elf
+  - elf: ../sw/tests/build/printf_fmtint.elf
+  - elf: ../sw/tests/build/simple.elf
+  - elf: ../sw/tests/build/tcdm.elf
+  - elf: ../sw/tests/build/tls.elf
+  - elf: ../sw/tests/build/varargs_1.elf
+  - elf: ../sw/tests/build/varargs_2.elf
+  - elf: ../sw/tests/build/non_null_exitcode.elf
+    retcode: 56
+  - elf: ../sw/tests/build/caq.elf
+    simulators: [vsim, vcs, verilator] # GVSOC does not model caq

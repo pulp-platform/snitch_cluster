@@ -10,6 +10,8 @@
 #include "vexpf_optimized_asm.h"
 
 static inline void vexpf_optimized(double *a, double *b) {
+#ifdef SNRT_SUPPORTS_FREP
+
     // Derived parameters
     unsigned int n_batches = LEN / BATCH_SIZE;
     unsigned int n_iterations = n_batches + 2 + 2;
@@ -253,4 +255,5 @@ static inline void vexpf_optimized(double *a, double *b) {
         // Synchronize cores
         snrt_cluster_hw_barrier();
     }
+#endif
 }

@@ -10,6 +10,7 @@
 #define LENGTH 64
 
 int main() {
+#ifdef SNRT_SUPPORTS_COPIFT
     // Only compute cores proceed
     if (snrt_is_dm_core()) return 0;
 
@@ -58,4 +59,5 @@ int main() {
         if (golden_output[i] == actual_output[i]) n_errors--;
     }
     return n_errors;
+#endif
 }

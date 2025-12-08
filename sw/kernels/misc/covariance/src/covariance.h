@@ -75,6 +75,7 @@ void covariance_baseline(uint32_t m, uint32_t n, double inv_n, double inv_n_m1,
 
 void covariance_opt(uint32_t m, uint32_t n, double inv_n, double inv_n_m1,
                     double *data, double *datat, double *cov) {
+#ifdef SNRT_SUPPORTS_FREP
     uint32_t offset = snrt_cluster_core_idx();
     uint32_t stride = snrt_cluster_compute_core_num();
 
@@ -129,6 +130,7 @@ void covariance_opt(uint32_t m, uint32_t n, double inv_n, double inv_n_m1,
         m[1] = 0.0;  // mean(datat[i])
         m[2] = 0.0;  // mean(data[i + stride])
         m[3] = 0.0;  // mean(datat[i + stride])
+
         asm volatile(
             "frep.o %[n_frep], %[n_insn], 0, 0 \n"
             "fadd.d %[m0], ft0, %[m0] \n"
@@ -139,6 +141,7 @@ void covariance_opt(uint32_t m, uint32_t n, double inv_n, double inv_n_m1,
               [ m3 ] "+f"(m[3])
             : [ n_frep ] "r"(n - 1), [ n_insn ] "i"(2 * unroll0)
             : "ft0", "ft1", "ft2");
+
         m[0] *= inv_n;
         m[1] *= inv_n;
         m[2] *= inv_n;
@@ -230,6 +233,7 @@ void covariance_opt(uint32_t m, uint32_t n, double inv_n, double inv_n_m1,
 
     snrt_ssr_disable();
     snrt_fpu_fence();
+#endif
 }
 
 void covariance_job(covariance_args_t *args) {

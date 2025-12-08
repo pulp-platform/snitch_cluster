@@ -36,7 +36,7 @@ package snitch_pkg;
     FP_SS = 0,
     SHARED_MULDIV = 1,
     DMA_SS = 2,
-    INT_SS = 3,
+    XPULP_IPU = 3,
     SSR_CFG = 4
   } acc_addr_e;
 
