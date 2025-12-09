@@ -10,6 +10,7 @@
 // The Kernel
 static inline void j3d27pt_baseline3(int fac, int nx, int ny, int nz, double* c,
                                      double* A, double* A_) {
+#ifdef SNRT_SUPPORTS_SSR
     snrt_mcycle();
     const uint32_t dx = 1, dy = nx, dz = ny * nx, sx = dx, sy = dy,
                    sb = sy + sx;
@@ -65,7 +66,6 @@ static inline void j3d27pt_baseline3(int fac, int nx, int ny, int nz, double* c,
                     winit = false;
                     snrt_ssr_read(SNRT_SSR_DM2, SNRT_SSR_2D, (void*)ca);
                 }
-#ifdef SNRT_SUPPORTS_FREP
                 asm volatile(
                     "fmul.d    fa0, ft2, ft0        \n"
                     "fmul.d    fa1, ft2, ft1        \n"
@@ -188,11 +188,11 @@ static inline void j3d27pt_baseline3(int fac, int nx, int ny, int nz, double* c,
                     [ wb ] "r"(&A_[(z + 1) * ny * nx + (y + 1) * nx + (x + 1)])
                     : "memory", "fa0", "fa1", "fa2", "fa3", "ft0", "ft1",
                       "ft2");
-#endif
             }
         }
     }
     snrt_ssr_disable();
     snrt_fpu_fence();
     snrt_mcycle();
+#endif
 }

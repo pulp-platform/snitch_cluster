@@ -116,6 +116,7 @@
 	    xpulpslet: true,
 	    xpulpvect: true,
 	    xpulpvectshufflepack: true,
+        private_ipu: true,
         ssr_nr_credits: 4,
         num_int_outstanding_loads: 4,
         num_int_outstanding_mem: 4,

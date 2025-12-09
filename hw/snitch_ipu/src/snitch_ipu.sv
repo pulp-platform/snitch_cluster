@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: SHL-0.51
 
 /// Integer Processing Unit
-/// Based on Snitch Shared Muliplier/Divider
+/// Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 /// Author: Sergio Mazzola, <smazzola@student.ethz.ch>
 
 module snitch_ipu import snitch_pkg::*;  #(
@@ -229,7 +229,7 @@ module snitch_ipu import snitch_pkg::*;  #(
   end
 
   // Serial Divider
-  snitch_shared_muldiv_serdiv #(
+  snitch_serial_divider #(
       .WIDTH       ( 32      ),
       .IdWidth     ( IdWidth )
   ) i_div (
@@ -283,7 +283,7 @@ module snitch_ipu import snitch_pkg::*;  #(
     );
   end else begin : gen_vanilla
     // Multiplication
-    multiplier #(
+    snitch_multiplier #(
       .Width    ( 32      ),
       .IdWidth  ( IdWidth )
     ) i_multiplier (

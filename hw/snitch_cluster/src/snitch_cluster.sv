@@ -111,8 +111,6 @@ module snitch_cluster
   parameter bit [NrCores-1:0] Xfrep         = '0,
   /// Per-core enabling of the custom `Xcopift` ISA extensions.
   parameter bit [NrCores-1:0] Xcopift       = '0,
-  // Per-core enabling own muldiv unit.
-  parameter bit [NrCores-1:0] OwnMulDiv     = '0,
   /// Per-core enabling of the custom 'Xpulppostmod' ISA extensions.
   parameter bit [NrCores-1:0] Xpulppostmod  = '0,
   /// Per-core enabling of the custom 'Xpulpabs' ISA extensions.
@@ -133,6 +131,8 @@ module snitch_cluster
   parameter bit [NrCores-1:0] Xpulpvect     = '0,
   /// Per-core enabling of the custom 'Xpulpvectshufflepack' ISA extensions.
   parameter bit [NrCores-1:0] Xpulpvectshufflepack = '0,
+  // Per-core enable of private IPU.
+  parameter bit [NrCores-1:0] PrivateIpu    = '0,
   /// # Core-global parameters
   /// FPU configuration.
   parameter fpnew_pkg::fpu_implementation_t FPUImplementation [NrCores] =
@@ -446,10 +446,19 @@ module snitch_cluster
     return n;
   endfunction
 
-  // If in hive at least one core doesn't have ownmuldiv - shared_muldiv for this hive is needed. 
-  function automatic bit use_shared_muldiv(int unsigned hive_id);
+  // If at least one core in the hive doesn't have a private IPU, then a shared IPU is needed in this hive. 
+  function automatic bit requires_shared_ipu(int unsigned hive_id);
     for (int i = 0; i < NrCores; i++) begin
-      if ((Hive[i] == hive_id) && (OwnMulDiv[i] == 0) && (Xpulpv2[i] == 0))
+      if ((Hive[i] == hive_id) && (PrivateIpu[i] == 0))
+        return 1;
+    end
+    return 0;
+  endfunction
+
+  // If at least one core in the hive supports the Xpulp extension, then the hive supports the Xpulp extension. 
+  function automatic bit supports_xpulp(int unsigned hive_id);
+    for (int i = 0; i < NrCores; i++) begin
+      if ((Hive[i] == hive_id) && (Xpulpv2[i] != 0))
         return 1;
     end
     return 0;
@@ -1115,7 +1124,6 @@ module snitch_cluster
         .Xfrep (Xfrep[i]),
         .Xssr (Xssr[i]),
         .Xcopift (Xcopift[i]),
-        .OwnMulDiv (OwnMulDiv[i]),
         .Xpulppostmod (Xpulppostmod[i]),
         .Xpulpabs (Xpulpabs[i]),
         .Xpulpbitop (Xpulpbitop[i]),
@@ -1126,6 +1134,7 @@ module snitch_cluster
         .Xpulpslet (Xpulpslet[i]),
         .Xpulpvect (Xpulpvect[i]),
         .Xpulpvectshufflepack (Xpulpvectshufflepack[i]),
+        .PrivateIpu (PrivateIpu[i]),
         .VMSupport (VMSupport),
         .NumIntOutstandingLoads (NumIntOutstandingLoads[i]),
         .NumIntOutstandingMem (NumIntOutstandingMem[i]),
@@ -1207,7 +1216,8 @@ module snitch_cluster
 
   for (genvar i = 0; i < NrHives; i++) begin : gen_hive
       localparam int unsigned HiveSize = get_hive_size(i);
-      localparam bit SharedMuldiv = use_shared_muldiv(i);
+      localparam bit SharedIpu = requires_shared_ipu(i);
+      localparam bit Xpulpv2 = supports_xpulp(i);
       hive_req_t [HiveSize-1:0] hive_req_reshape;
       hive_rsp_t [HiveSize-1:0] hive_rsp_reshape;
 
@@ -1228,7 +1238,8 @@ module snitch_cluster
         .NarrowDataWidth (NarrowDataWidth),
         .WideDataWidth (WideDataWidth),
         .VMSupport (VMSupport),
-        .SharedMuldiv (SharedMuldiv),
+        .SharedIpu (SharedIpu),
+        .Xpulpv2 (Xpulpv2),
         .dreq_t (reqrsp_req_t),
         .drsp_t (reqrsp_rsp_t),
         .hive_req_t (hive_req_t),

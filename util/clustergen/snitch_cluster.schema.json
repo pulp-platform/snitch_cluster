@@ -607,6 +607,11 @@
                                             "description": "Enable Xpulpvectshufflepack subextension.",
                                             "default": false
                                         },
+                                        "private_ipu": {
+                                            "type": "boolean",
+                                            "description": "Whether the core should be equipped with its own, not a hive-shared, private IPU.",
+                                            "default": false
+                                        },
                                         "num_int_outstanding_loads": {
                                             "type": "number",
                                             "description": "Number of outstanding integer loads. Determines the buffer size in the core's load/store unit.",

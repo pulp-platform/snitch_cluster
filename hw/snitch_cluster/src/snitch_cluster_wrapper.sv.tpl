@@ -156,6 +156,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .Xpulpvectshufflepack(${core_cfg_flat('xpulpvectshufflepack')}),
     .FPUImplementation (${cfg['cluster']['name']}_pkg::FPUImplementation),
     .SnitchPMACfg (${cfg['cluster']['name']}_pkg::SnitchPMACfg),
+    .PrivateIpu (${core_cfg_flat('private_ipu')}),
     .NumIntOutstandingLoads (NumIntOutstandingLoads),
     .NumIntOutstandingMem (NumIntOutstandingMem),
     .NumFPOutstandingLoads (NumFPOutstandingLoads),

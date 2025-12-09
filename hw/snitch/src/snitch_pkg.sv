@@ -34,10 +34,10 @@ package snitch_pkg;
 
   typedef enum logic [31:0] {
     FP_SS = 0,
-    SHARED_MULDIV = 1,
+    IPU = 1,
     DMA_SS = 2,
-    XPULP_IPU = 3,
-    SSR_CFG = 4
+    SSR_CFG = 3,
+    NUM_ACC = 4
   } acc_addr_e;
 
   typedef enum logic [1:0] {

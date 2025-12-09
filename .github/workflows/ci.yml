@@ -228,8 +228,8 @@ jobs:
         run: |
           make sw SN_MCPU=snitch-mempool -j
       - name: Run Tests
-        working-directory: test
         run: |
+          cd test
           uv run ../util/experiments/run.py mempool.yaml --simulator verilator -j
       - name: Annotate traces
         # Build the traces using the --permissive flag, since the Verilator
