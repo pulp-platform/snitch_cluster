@@ -10,16 +10,16 @@ packages:
     revision: 06410c36819924e32db2afa428d244dbdbcd5d4e
     version: null
     source:
-      Git: https://github.com/colluca/axi
+      Git: https://github.com/colluca/axi.git
     dependencies:
     - common_cells
     - common_verification
     - tech_cells_generic
   axi_riscv_atomics:
-    revision: 430838a10a9bdf1e381d4fcb33907428f3273420
-    version: 0.6.0
+    revision: 0ac3a78fe342c5a5b9b10bff49d58897f773059e
+    version: 0.8.2
     source:
-      Git: https://github.com/pulp-platform/axi_riscv_atomics
+      Git: https://github.com/pulp-platform/axi_riscv_atomics.git
     dependencies:
     - axi
     - common_cells
@@ -56,7 +56,7 @@ packages:
       Git: https://github.com/pulp-platform/common_verification.git
     dependencies: []
   fpnew:
-    revision: a8e0cba6dd50f357ece73c2c955d96efc3c6c315
+    revision: e5aa6a01b5bbe1675c3aa8872e1203413ded83d1
     version: null
     source:
       Git: https://github.com/pulp-platform/cvfpu.git
@@ -91,8 +91,8 @@ packages:
     - common_cells
     - common_verification
   register_interface:
-    revision: 5daa85d164cf6b54ad061ea1e4c6f3624556e467
-    version: 0.4.5
+    revision: d6e1d4cdaab7870f4faf3f88a1c788eaf5ac129d
+    version: 0.4.7
     source:
       Git: https://github.com/pulp-platform/register_interface.git
     dependencies:
@@ -104,7 +104,7 @@ packages:
     revision: 358f90110220adf7a083f8b65d157e836d706236
     version: 0.8.1
     source:
-      Git: https://github.com/pulp-platform/riscv-dbg
+      Git: https://github.com/pulp-platform/riscv-dbg.git
     dependencies:
     - common_cells
     - tech_cells_generic
@@ -119,6 +119,6 @@ packages:
     revision: 7968dd6e6180df2c644636bc6d2908a49f2190cf
     version: 0.2.13
     source:
-      Git: https://github.com/pulp-platform/tech_cells_generic
+      Git: https://github.com/pulp-platform/tech_cells_generic.git
     dependencies:
     - common_verification
