@@ -30,13 +30,14 @@ engine, and the DMA trace logged during simulation is fed to the tool.
 DMA performance metrics are dumped to a separate JSON file.
 """
 
-# TODO: OPER_TYPES and FPU_OPER_TYPES could break: optimization might alter enum mapping
+# TODO: FPU_OPER_TYPES could break: optimization might alter enum mapping
 # TODO: We annotate all FP16 LSU values as IEEE, not FP16ALT... can we do better?
 
 import sys
 import re
 import argparse
 import subprocess
+import json5
 import json
 import ast
 from ctypes import c_int32, c_uint32
@@ -80,8 +81,6 @@ REG_ABI_NAMES_F = (*('ft{}'.format(i) for i in range(0, 8)), 'fs0', 'fs1',
                    *('fs{}'.format(i)
                      for i in range(2, 12)), *('ft{}'.format(i)
                                                for i in range(8, 12)))
-
-TRACE_SRCES = {'snitch': 0, 'fpu': 1, 'sequencer': 2}
 
 LS_SIZES = ('Byte', 'Half', 'Word', 'Doub')
 
@@ -333,6 +332,14 @@ CSR_NAMES = {
 }
 
 PRIV_LVL = {'3': 'M', '1': 'S', '0': 'U'}
+
+
+# -------------------- Operand helpers  --------------------
+
+
+def operand_is_gpr(op_select):
+    return op_select in ['RegRs1', 'RegRs2', 'RegRs3', 'RegRd']
+
 
 # -------------------- FPU helpers  --------------------
 
@@ -662,14 +669,6 @@ def eval_dma_metrics(dma_trans, dma_trace):
 # -------------------- Annotation --------------------
 
 
-def read_annotations(dict_str: str) -> dict:
-    # return literal_eval(dict_str) 	# Could be used, but slow due to universality: needs compiler
-    return {
-        key: int(val, 16)
-        for key, val in re.findall(r"'([^']+)'\s*:\s*([^\s,]+)", dict_str)
-    }
-
-
 def annotate_snitch(extras: dict,
                     sim_time: int,
                     cycle: int,
@@ -691,14 +690,14 @@ def annotate_snitch(extras: dict,
     # Regular linear datapath operation
     if not (extras['stall'] or extras['fpu_offload']):
         # Operand registers
-        if extras['opa_select'] == OPER_TYPES['gpr'] and extras['rs1'] != 0:
+        if operand_is_gpr(extras['opa_select']) and extras['rs1'] != 0:
             ret.append('{:<3} = {}'.format(REG_ABI_NAMES_I[extras['rs1']],
                                            int_lit(extras['opa'])))
-        if extras['opb_select'] == OPER_TYPES['gpr'] and extras['rs2'] != 0:
+        if operand_is_gpr(extras['opb_select']) and extras['rs2'] != 0:
             ret.append('{:<3} = {}'.format(REG_ABI_NAMES_I[extras['rs2']],
                                            int_lit(extras['opb'])))
         # CSR (always operand b)
-        if extras['opb_select'] == OPER_TYPES['csr']:
+        if extras['opb_select'] == 'Csr':
             csr_addr = extras['csr_addr']
             csr_name = CSR_NAMES[
                 csr_addr] if csr_addr in CSR_NAMES else 'csr@{:x}'.format(
@@ -876,9 +875,9 @@ def annotate_insn(
         (str(elem) if show_time_info else '') for elem in time_info)
     # Annotated trace
     if extras_str:
-        extras = read_annotations(extras_str)
+        extras = json5.loads(extras_str)
         # Parse lines traced by Snitch
-        if extras['source'] == TRACE_SRCES['snitch']:
+        if extras['source'] == 'SrcSnitch':
             annot = annotate_snitch(extras, time_info[0], time_info[1],
                                     int(pc_str, 16), gpr_wb_info, perf_metrics,
                                     annot_fseq_offl, int_as_hex, permissive)
@@ -896,13 +895,13 @@ def annotate_insn(
                 perf_metrics[-1]['snitch_issues'] += 1
             update_dma(insn, extras, dma_trans)
         # Parse lines traced by the sequencer
-        elif extras['source'] == TRACE_SRCES['sequencer']:
+        elif extras['source'] == 'SrcFpuSeq':
             # Sequencer only traces FREP configurations when the respective
             # FREP instruction is handshaked within the sequencer.
             assert (extras['cbuf_push']), 'Unexpected sequencer trace line'
             pc_str, insn, annot = sequencer.decode_frep(extras)
         # Parse lines traced by the FPSS
-        elif extras['source'] == TRACE_SRCES['fpu']:
+        elif extras['source'] == 'SrcFpu':
             annot_list = []
             # Parse lines corresponding to instruction issues
             if extras['acc_q_hs']:

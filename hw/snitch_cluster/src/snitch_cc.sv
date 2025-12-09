@@ -1013,6 +1013,7 @@ module snitch_cc #(
         opb:          i_snitch.opb,
         opa_select:   i_snitch.opa_select,
         opb_select:   i_snitch.opb_select,
+        opc_select:   i_snitch.opc_select,
         write_rd:     i_snitch.write_rd,
         csr_addr:     i_snitch.inst_data_i[31:20],
         // Pipeline writeback

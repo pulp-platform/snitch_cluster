@@ -253,7 +253,6 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic [PPNSize-1:0] trans_active_exp;
   logic  tlb_flush;
 
-
   typedef enum logic [1:0] {
     Byte = 2'b00,
     HalfWord = 2'b01,
@@ -292,9 +291,6 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   } alu_op_e;
   alu_op_e alu_op;
 
-  typedef enum logic [3:0] {
-    None, RegRs1, RegRs2, RegRs3, RegRd, IImmediate, UImmediate, JImmediate, SImmediate, SFImmediate, PC, CSR, CSRImmmediate, PBImmediate
-  } op_select_e;
   op_select_e opa_select, opb_select, opc_select;
 
   logic write_rd; // write destination this cycle
@@ -895,7 +891,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         csr_en = valid_instr;
       end
       CSRRWI: begin
-        opa_select = CSRImmmediate;
+        opa_select = CsrImmediate;
         opb_select = None;
         rd_select = RdBypass;
         rd_bypass = csr_rvalue;
@@ -905,7 +901,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         if (inst_data_i[31:20] != CSR_SC) begin
           alu_op = LOr;
           opa_select = RegRs1;
-          opb_select = CSR;
+          opb_select = Csr;
           rd_select = RdBypass;
           rd_bypass = csr_rvalue;
           csr_en = valid_instr;
@@ -919,8 +915,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         // offload CSR enable to FP SS
         if (inst_data_i[31:20] != CSR_SSR) begin
           alu_op = LOr;
-          opa_select = CSRImmmediate;
-          opb_select = CSR;
+          opa_select = CsrImmediate;
+          opb_select = Csr;
           rd_select = RdBypass;
           rd_bypass = csr_rvalue;
           csr_en = valid_instr;
@@ -933,7 +929,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         if (inst_data_i[31:20] != CSR_SC) begin
           alu_op = LNAnd;
           opa_select = RegRs1;
-          opb_select = CSR;
+          opb_select = Csr;
           rd_select = RdBypass;
           rd_bypass = csr_rvalue;
           csr_en = valid_instr;
@@ -946,8 +942,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       CSRRCI: begin
         if (inst_data_i[31:20] != CSR_SSR) begin
           alu_op = LNAnd;
-          opa_select = CSRImmmediate;
-          opb_select = CSR;
+          opa_select = CsrImmediate;
+          opb_select = Csr;
           rd_select = RdBypass;
           rd_bypass = csr_rvalue;
           csr_en = valid_instr;
@@ -3488,7 +3484,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       RegRs1: opa = rs1_is_f2i ? f2i_rdata : gpr_rdata[0];
       UImmediate: opa = uimm;
       JImmediate: opa = jimm;
-      CSRImmmediate: opa = {{{32-RegWidth}{1'b0}}, rs1};
+      CsrImmediate: opa = {{{32-RegWidth}{1'b0}}, rs1};
       default: opa = '0;
     endcase
   end
@@ -3501,7 +3497,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       IImmediate: opb = iimm;
       SFImmediate, SImmediate: opb = simm;
       PC: opb = pc_q;
-      CSR: opb = csr_rvalue;
+      Csr: opb = csr_rvalue;
       PBImmediate: opb = pbimm;
       default: opb = '0;
     endcase
