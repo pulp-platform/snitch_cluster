@@ -728,6 +728,7 @@ module snitch_cluster
 
   logic [WideSlaveIdxBits-1:0] dma_xbar_default_port;
   assign dma_xbar_default_port = SoCDMAOut;
+
   xbar_rule_t dma_xbar_default_port_rule;
   assign dma_xbar_default_port_rule = '{
     idx: dma_xbar_default_port,
@@ -1218,6 +1219,7 @@ module snitch_cluster
       localparam int unsigned HiveSize = get_hive_size(i);
       localparam bit SharedIpu = requires_shared_ipu(i);
       localparam bit Xpulpv2 = supports_xpulp(i);
+
       hive_req_t [HiveSize-1:0] hive_req_reshape;
       hive_rsp_t [HiveSize-1:0] hive_rsp_reshape;
 

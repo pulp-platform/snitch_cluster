@@ -528,10 +528,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign opc_ready = ((opc_select != RegRs2) | (rs2_is_f2i ? f2i_rvalid : ~sb_q[rs2])) & ((opc_select != RegRs3) | ~sb_q[rs3]) & ((opc_select != RegRd) | ~sb_q[rd]);
 
   assign operands_ready = opa_ready & opb_ready & opc_ready;
-  // either we are not using the destination register or we need to make
-  // sure that its destination operand is not marked busy in the scoreboard.
-  // TODO(colluca): should this include also the additional destination register of postmod instructions?
-  assign dst_ready = uses_rd ? (rd_is_i2f ? i2f_wready : ~sb_q[rd]) : 1'b1;
+  // Either we are not using the destination register or we need to make
+  // sure that its destination operand is not marked busy in the scoreboard (to prevent WAW violations).
+  // Similarly, some instructions (e.g. in Xpulppostmod) also write rs1.
+  assign dst_ready = (uses_rd ? (rd_is_i2f ? i2f_wready : ~sb_q[rd]) : 1'b1) && (write_rs1 ? ~sb_q[rs1] : 1'b1);
 
   assign valid_instr = inst_ready_i
                       & inst_valid_o
@@ -3602,7 +3602,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // --------------------
   // L0 DTLB
   // --------------------
-  assign dtlb_va = va_t'(is_postincr ? gpr_rdata[0][31:PageShift] : alu_result[31:PageShift]);
+  assign dtlb_va = va_t'(is_postincr ? opa[31:PageShift] : alu_result[31:PageShift]);
 
   if (VMSupport) begin : gen_dtlb
     snitch_l0_tlb #(
@@ -3652,11 +3652,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
 
   // Mulitplexer using and/or as this signal is likely timing critical.
   // Without virtual memory, address can be alu_result (i.e. rs1 + iimm/simm) or rs1 (for post-increment load/stores)
-  // TODO(colluca): do not hardcode gpr_rdata[0] here
   assign ls_paddr[PPNSize+PageShift-1:PageShift] =
           ({(PPNSize){trans_active}} & dtlb_pa) |
-          (~{(PPNSize){trans_active}} & {mseg_q, (is_postincr ? gpr_rdata[0][31:PageShift] : alu_result[31:PageShift])});
-  assign ls_paddr[PageShift-1:0] = is_postincr ? gpr_rdata[0][PageShift-1:0] : alu_result[PageShift-1:0];
+          (~{(PPNSize){trans_active}} & {mseg_q, (is_postincr ? opa[31:PageShift] : alu_result[31:PageShift])});
+  assign ls_paddr[PageShift-1:0] = is_postincr ? opa[PageShift-1:0] : alu_result[PageShift-1:0];
 
   assign lsu_qvalid = lsu_tlb_qvalid & trans_ready;
   assign lsu_tlb_qready = lsu_qready & trans_ready;

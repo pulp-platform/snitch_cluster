@@ -458,11 +458,6 @@
                                     }
                                 }
                             },
-                            "private_muldiv_per_core": {
-                                "type": "boolean",
-                                 "description": "Whether cores in this hive use their own private mul/div units instead of a single shared hive-wide mul/div unit.",
-                                 "default": false
-                            },
                             "cores": {
                                 "type": "array",
                                 "title": "Cores",

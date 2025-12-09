@@ -226,7 +226,7 @@ jobs:
           make CFG_OVERRIDE=cfg/mempool.json VLT_JOBS=1 verilator
       - name: Build Software for mempool tests
         run: |
-          make sw SN_MCPU=snitch-mempool -j
+          make sw CFG_OVERRIDE=cfg/mempool.json SN_MCPU=snitch-mempool -j
       - name: Run Tests
         run: |
           cd test
