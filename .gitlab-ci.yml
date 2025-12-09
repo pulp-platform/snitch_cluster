@@ -106,7 +106,7 @@ snitch-cluster-vsim:
     - uv run ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim
     - uv run ../util/experiments/run.py riscv_tests_isa.yaml --simulator vsim -j --run-dir runs/vsim
     # Test trace annotation
-    - make -C .. SIM_DIR=$(PWD)/runs/vsim/simple annotate -j
+    - make -C .. SIM_DIR=$PWD/runs/vsim/simple annotate -j
     # Run additional, more extensive tests
     - cd blas/gemm && ./test.sh && cd -
     - cd dnn/transpose && ./test.sh && cd -
@@ -135,7 +135,7 @@ snitch-cluster-mempool-vsim:
     - make vsim -j
     - cd test
     - uv run ../util/experiments/run.py mempool.yaml --simulator vsim -j --run-dir runs/vsim
-    - make -C .. SIM_DIR=$(PWD)/runs/vsim/simple SN_MCPU=snitch-mempool annotate -j
+    - make -C .. SIM_DIR=$PWD/runs/vsim/simple SN_MCPU=snitch-mempool annotate -j
 
 # Additional tests for different FREP configurations
 snitch-cluster-frep-vsim:
