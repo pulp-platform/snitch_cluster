@@ -7,11 +7,15 @@
 # Dependency files
 /.bender/
 
-# Modelsim Files
+# Modelsim files
 *.wlf
 modelsim.ini
 *stacktrace*
 transcript
+
+# VCS files
+AN.DB/
+work.lib++/
 
 # Miscellaneous
 .vscode/

@@ -89,13 +89,13 @@ snitch-cluster-vlt:
     - cd test
     - uv run ../util/experiments/run.py run.yaml --simulator verilator -j --run-dir runs/vlt
 
-# # VCS
-# snitch-cluster-vcs:
-#   needs: [snitch-cluster-sw]
-#   script:
-#     - make vcs
-#     - cd test
-#     - uv run ../util/experiments/run.py run.yaml --simulator vcs -j --run-dir runs/vcs
+# VCS
+snitch-cluster-vcs:
+  needs: [snitch-cluster-sw]
+  script:
+    - make vcs
+    - cd test
+    - uv run ../util/experiments/run.py run.yaml --simulator vcs -j --run-dir runs/vcs
 
 # Questa
 snitch-cluster-vsim:
