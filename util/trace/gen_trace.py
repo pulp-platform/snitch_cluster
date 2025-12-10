@@ -37,7 +37,6 @@ import sys
 import re
 import argparse
 import subprocess
-import json5
 import json
 import ast
 from ctypes import c_int32, c_uint32
@@ -667,6 +666,14 @@ def eval_dma_metrics(dma_trans, dma_trace):
 # -------------------- Annotation --------------------
 
 
+def read_annotations(dict_str: str) -> dict:
+    # return literal_eval(dict_str) 	# Could be used, but slow due to universality: needs compiler
+    return {
+        key: int(val, 16) if val.startswith("0x") else val[1:-1]
+        for key, val in re.findall(r"'([^']+)'\s*:\s*([^\s,]+)", dict_str)
+    }
+
+
 def annotate_snitch(extras: dict,
                     sim_time: int,
                     cycle: int,
@@ -873,7 +880,7 @@ def annotate_insn(
         (str(elem) if show_time_info else '') for elem in time_info)
     # Annotated trace
     if extras_str:
-        extras = json5.loads(extras_str)
+        extras = read_annotations(extras_str)
         # Parse lines traced by Snitch
         if extras['source'] == 'SrcSnitch':
             annot = annotate_snitch(extras, time_info[0], time_info[1],
