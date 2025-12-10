@@ -61,7 +61,9 @@ static inline void batchnorm_fp64(double *ifmap, double *gamma, double *beta,
             : "ft0", "ft1", "ft2");
     }
     snrt_fpu_fence();
-    __builtin_ssr_barrier(SNRT_SSR_DM1);
+    // SCFGRI conflicts with FLT.D.COPIFT instruction. We give the latter priority since
+    // SCFGRI takes an unreasonable amount of encoding space, and should be redesigned.
+    // __builtin_ssr_barrier(SNRT_SSR_DM1);
     snrt_ssr_disable();
 #endif
 #endif
