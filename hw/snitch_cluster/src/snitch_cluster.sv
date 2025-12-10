@@ -373,7 +373,8 @@ module snitch_cluster
   localparam int unsigned NrWideRuleIdcs = NrWideSlaves - 1;
   localparam int unsigned NrWideRules = (1 + AliasRegionEnable) * NrWideRuleIdcs;
 
-  localparam bit [NrCores-1:0] Xpulpv2 = Xpulpabs | Xpulpbitop | Xpulpbr | Xpulpclip | Xpulpmacsi | Xpulpminmax | Xpulpslet | Xpulpvect | Xpulpvectshufflepack;
+  localparam bit [NrCores-1:0] Xpulpv2 = Xpulpabs | Xpulpbitop | Xpulpbr | Xpulpclip | Xpulpmacsi |
+    Xpulpminmax | Xpulpslet | Xpulpvect | Xpulpvectshufflepack;
 
   // AXI Configuration
   localparam axi_pkg::xbar_cfg_t ClusterXbarCfg = '{
@@ -446,7 +447,8 @@ module snitch_cluster
     return n;
   endfunction
 
-  // If at least one core in the hive doesn't have a private IPU, then a shared IPU is needed in this hive. 
+  // If at least one core in the hive doesn't have a private IPU, then a shared IPU is needed
+  // in this hive.
   function automatic bit requires_shared_ipu(int unsigned hive_id);
     for (int i = 0; i < NrCores; i++) begin
       if ((Hive[i] == hive_id) && (PrivateIpu[i] == 0))
@@ -455,7 +457,8 @@ module snitch_cluster
     return 0;
   endfunction
 
-  // If at least one core in the hive supports the Xpulp extension, then the hive supports the Xpulp extension. 
+  // If at least one core in the hive supports the Xpulp extension, then the hive supports
+  // the Xpulp extension.
   function automatic bit supports_xpulp(int unsigned hive_id);
     for (int i = 0; i < NrCores; i++) begin
       if ((Hive[i] == hive_id) && (Xpulpv2[i] != 0))

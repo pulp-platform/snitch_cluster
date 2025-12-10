@@ -3780,9 +3780,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // Writeback can be to GPR or to I2F queue
   always_comb begin
     gpr_we[0] = 1'b0;
-      // NOTE: this works because write-backs on rd and rs1 in the same cycle are mutually
-      // exclusive; if this should change, the following statement has to be written in another form
-    gpr_waddr[0] = retire_p ? rs1 : rd; // choose whether to writeback at RF[rs1] for post-increment load/stores
+    // choose whether to writeback at RF[rs1] for post-increment load/stores
+    // NOTE: this works because write-backs on rd and rs1 in the same cycle are mutually
+    // exclusive; if this should change, the following statement has to be written in another form
+    gpr_waddr[0] = retire_p ? rs1 : rd;
     gpr_wdata[0] = alu_writeback;
 
     i2f_wvalid = 1'b0;
