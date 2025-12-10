@@ -2839,15 +2839,20 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           opa_select = RegRs1;
           opb_select = SImmediate;
         end else begin
-          casez (inst_data_i)
-            SCFGRI: begin
-              if (Xssr) begin
+          unique casez (inst_data_i)
+            SCFGRI, FLT_D_COPIFT: begin
+              if (FP_EN && RVD && Xcopift) begin
+                write_rd = 1'b0;
+                is_acc_inst = 1'b1;
+              end else if (Xssr) begin
                 write_rd = 1'b0;
                 uses_rd = 1'b1;
                 acc_qreq_o.addr = SSR_CFG;
                 is_acc_inst = 1'b1;
                 acc_register_rd = 1'b1; // No RS in GPR but RD in GPR, register in int scoreboard
-              end else illegal_inst = 1'b1;
+              end else begin
+                illegal_inst = 1'b1;
+              end
             end
             SCFGR: begin
               if (Xssr) begin
@@ -2858,14 +2863,6 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
                 is_acc_inst = 1'b1;
                 acc_register_rd = 1'b1;
               end else illegal_inst = 1'b1;
-            end
-            FLT_D_COPIFT: begin
-              if (FP_EN && RVD && Xcopift) begin
-                write_rd = 1'b0;
-                is_acc_inst = 1'b1;
-              end else begin
-                illegal_inst = 1'b1;
-              end
             end
             default: begin
               illegal_inst = 1'b1;

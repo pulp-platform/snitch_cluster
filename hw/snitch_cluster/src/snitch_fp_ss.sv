@@ -1824,7 +1824,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
         rd_is_fp       = 1'b0;
       end
       // Double Precision Floating-Point, MC extension
-      riscv_instr:: FLT_D_COPIFT: begin
+      riscv_instr::FLT_D_COPIFT: begin
         if (Xcopift) begin
           fpu_op = fpnew_pkg::CMP;
           op_select[0]   = RegA;
@@ -2304,10 +2304,10 @@ module snitch_fp_ss import snitch_pkg::*; #(
         if (acc_req_q.data_op inside {riscv_instr::FCVT_D_WU}) op_mode = 1'b1; // unsigned
       end
       // Double Precision Floating-Point
-      riscv_instr:: FCVT_D_W_COPIFT,
-      riscv_instr:: FCVT_D_WU_COPIFT: begin
+      riscv_instr::FCVT_D_W_COPIFT,
+      riscv_instr::FCVT_D_WU_COPIFT: begin
         if (Xcopift) begin
-          fpu_op = fpnew_pkg:: I2F;
+          fpu_op = fpnew_pkg::I2F;
           op_select[0] = RegA;
           src_fmt      = fpnew_pkg::FP64;
           dst_fmt      = fpnew_pkg::FP64;

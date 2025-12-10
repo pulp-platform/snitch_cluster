@@ -56,8 +56,8 @@ int main() {
         :
         : [ n_frep ] "r"(LENGTH - 1), "f"(reg_one)
         : "ft0", "ft1", "ft2", "ft3", "memory");
-    snrt_ssr_disable();
     snrt_fpu_fence();
+    snrt_ssr_disable();
 
     // Compare results
     uint32_t n_errors = LENGTH;
