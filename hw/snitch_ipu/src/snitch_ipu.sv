@@ -1374,7 +1374,7 @@ module dspu #(
   assign mac_op_a = mac_msu ? -mac_gated.op_a : mac_gated.op_a;
 
   // 32-bits input, 64-bits output multiplier
-  assign mul_result = $signed({mac_op_a[Width-1] & mac_op_a_sign, mac_op_a}) * 
+  assign mul_result = $signed({mac_op_a[Width-1] & mac_op_a_sign, mac_op_a}) *
     $signed({mac_gated.op_b[Width-1] & mac_op_b_sign, mac_gated.op_b});
 
   always_comb begin
@@ -1408,17 +1408,24 @@ module dspu #(
       // half-word granularity
       HalfWord:
         for (int i = 0; i < Width/16; i++) begin
-          simd_op_a[2*i +: 2] = simd_gated.op_a[16*i +: 16]; // operands A are the half-words of op_a_i
-          // operands B are the half-words of op_b_i, replicated lowest half-word of op_b_i or replicated 6-bit immediate
-          simd_op_b[2*i +: 2] = ((simd_mode == Vect) || (simd_mode == High)) ? simd_gated.op_b[16*i +: 16] : ((simd_mode == Sc) ? simd_gated.op_b[15:0] : simd_imm);
-          simd_op_c[2*i +: 2] = simd_gated.op_c[16*i +: 16]; // operands C are the half-words of op_c_i
+          // operands A are the half-words of op_a_i
+          simd_op_a[2*i +: 2] = simd_gated.op_a[16*i +: 16];
+          // operands B are the half-words of op_b_i, replicated lowest half-word of op_b_i or
+          // replicated 6-bit immediate
+          simd_op_b[2*i +: 2] = ((simd_mode == Vect) || (simd_mode == High)) ?
+            simd_gated.op_b[16*i +: 16] : ((simd_mode == Sc) ? simd_gated.op_b[15:0] : simd_imm);
+          // operands C are the half-words of op_c_i
+          simd_op_c[2*i +: 2] = simd_gated.op_c[16*i +: 16];
         end
       // byte granularity
       Byte:
         for (int i = 0; i < Width/8; i++) begin
-          simd_op_a[i] = simd_gated.op_a[8*i +: 8]; // operands A are the bytes of op_a_i
-          // operands B are the bytes of op_b_i, replicated lowest byte of op_b_i or replicated 6-bit immediate
-          simd_op_b[i] = (simd_mode == Vect) ? simd_gated.op_b[8*i +: 8] : ((simd_mode == Sc) ? simd_gated.op_b[7:0] : simd_imm[0]);
+          // operands A are the bytes of op_a_i
+          simd_op_a[i] = simd_gated.op_a[8*i +: 8];
+          // operands B are the bytes of op_b_i, replicated lowest byte of op_b_i or
+          // replicated 6-bit immediate
+          simd_op_b[i] = (simd_mode == Vect) ? simd_gated.op_b[8*i +: 8] :
+            ((simd_mode == Sc) ? simd_gated.op_b[7:0] : simd_imm[0]);
           simd_op_c[i] = simd_gated.op_c[8*i +: 8]; // operands C are the bytes of op_c_i
         end
       default: ;
@@ -1441,18 +1448,21 @@ module dspu #(
           SimdAvg:
             for (int i = 0; i < Width/16; i++) begin
               simd_result[2*i +: 2] = $signed(simd_op_a[2*i +: 2]) + $signed(simd_op_b[2*i +: 2]);
-              simd_result[2*i +: 2] = {simd_result[2*i+1][7] & simd_signed, simd_result[2*i +: 2]} >> 1;
+              simd_result[2*i +: 2] =
+                {simd_result[2*i+1][7] & simd_signed, simd_result[2*i +: 2]} >> 1;
             end
           SimdMin:
             for (int i = 0; i < Width/16; i++)
-              simd_result[2*i +: 2] = $signed({simd_op_a[2*i+1][7] & simd_signed, simd_op_a[2*i +: 2]}) <=
-                                       $signed({simd_op_b[2*i+1][7] & simd_signed, simd_op_b[2*i +: 2]}) ?
-                                       simd_op_a[2*i +: 2] : simd_op_b[2*i +: 2];
+              simd_result[2*i +: 2] =
+                $signed({simd_op_a[2*i+1][7] & simd_signed, simd_op_a[2*i +: 2]}) <=
+                $signed({simd_op_b[2*i+1][7] & simd_signed, simd_op_b[2*i +: 2]}) ?
+                simd_op_a[2*i +: 2] : simd_op_b[2*i +: 2];
           SimdMax:
             for (int i = 0; i < Width/16; i++)
-              simd_result[2*i +: 2] = $signed({simd_op_a[2*i+1][7] & simd_signed, simd_op_a[2*i +: 2]}) >
-                                       $signed({simd_op_b[2*i+1][7] & simd_signed, simd_op_b[2*i +: 2]}) ?
-                                       simd_op_a[2*i +: 2] : simd_op_b[2*i +: 2];
+              simd_result[2*i +: 2] =
+                $signed({simd_op_a[2*i+1][7] & simd_signed, simd_op_a[2*i +: 2]}) >
+                $signed({simd_op_b[2*i+1][7] & simd_signed, simd_op_b[2*i +: 2]}) ?
+                simd_op_a[2*i +: 2] : simd_op_b[2*i +: 2];
           SimdSrl:
             for (int i = 0; i < Width/16; i++)
               simd_result[2*i +: 2] = $unsigned(simd_op_a[2*i +: 2]) >> simd_op_b[2*i][3:0];
@@ -1467,7 +1477,8 @@ module dspu #(
           SimdAnd: simd_result = simd_op_a & simd_op_b;
           SimdAbs:
             for (int i = 0; i < Width/16; i++)
-              simd_result[2*i +: 2] = $signed(simd_op_a[2*i +: 2]) > 0 ? simd_op_a[2*i +: 2] : -$signed(simd_op_a[2*i +: 2]);
+              simd_result[2*i +: 2] = $signed(simd_op_a[2*i +: 2]) > 0 ?
+                simd_op_a[2*i +: 2] : -$signed(simd_op_a[2*i +: 2]);
           SimdExt: begin
             simd_result[1:0] = simd_op_a[2*simd_gated.imm6[0] +: 2];
             // sign- or zero-extend
@@ -1478,15 +1489,18 @@ module dspu #(
             simd_result[2*simd_gated.imm6[0] +: 2] = simd_op_a[1:0];
           end
           SimdDotp: begin
-            simd_result = op_c_i & {(Width){simd_dotp_acc}}; // accumulate on rd or start from zero
+            // accumulate on rd or start from zero
+            simd_result = op_c_i & {(Width){simd_dotp_acc}};
             for (int i = 0; i < Width/16; i++) begin
-              simd_result = $signed(simd_result) + $signed({simd_op_a[2*i+1][7] & simd_dotp_op_a_signed, simd_op_a[2*i +: 2]}) *
-                                                   $signed({simd_op_b[2*i+1][7] & simd_dotp_op_b_signed, simd_op_b[2*i +: 2]});
+              simd_result = $signed(simd_result) +
+                $signed({simd_op_a[2*i+1][7] & simd_dotp_op_a_signed, simd_op_a[2*i +: 2]}) *
+                $signed({simd_op_b[2*i+1][7] & simd_dotp_op_b_signed, simd_op_b[2*i +: 2]});
             end
           end
           SimdShuffle:
             for (int i = 0; i < Width/16; i++) begin
-              simd_result[2*i +: 2] = simd_op_b[2*i][1] ? simd_op_a[2*simd_op_b[2*i][0] +: 2] : simd_op_c[2*simd_op_b[2*i][0] +: 2];
+              simd_result[2*i +: 2] = simd_op_b[2*i][1] ?
+                simd_op_a[2*simd_op_b[2*i][0] +: 2] : simd_op_c[2*simd_op_b[2*i][0] +: 2];
             end
           SimdPack: begin
             simd_result[3:2] = (simd_mode == High) ? simd_op_a[3:2] : simd_op_a[1:0];
@@ -1546,8 +1560,9 @@ module dspu #(
           SimdDotp: begin
             simd_result = simd_gated.op_c & {(Width){simd_dotp_acc}}; // accumulate on rd or start from zero
             for (int i = 0; i < Width/8; i++)
-              simd_result = $signed(simd_result) + $signed({simd_op_a[i][7] & simd_dotp_op_a_signed, simd_op_a[i]}) *
-                                                   $signed({simd_op_b[i][7] & simd_dotp_op_b_signed, simd_op_b[i]});
+              simd_result = $signed(simd_result) +
+                $signed({simd_op_a[i][7] & simd_dotp_op_a_signed, simd_op_a[i]}) *
+                $signed({simd_op_b[i][7] & simd_dotp_op_b_signed, simd_op_b[i]});
           end
           SimdShuffle:
             for (int i = 0; i < Width/8; i++)
@@ -1573,22 +1588,26 @@ module dspu #(
       Exthz: result_o = $unsigned(op_a_i[15:0]);
       Extbs: result_o = $signed(op_a_i[7:0]);
       Extbz: result_o = $unsigned(op_a_i[7:0]);
-      // Select the clip output basing on the result of the comparison and on the signs of the operands:
+      // Select the clip output basing on the result of the comparison and on the signs of the
+      // operands:
       // - if rs1 <= clip_comp (i.e. cmp_result = 1)
-      //   * if clip_comp=clip_op_b_n (i.e. rs1<0 or clip_op_b<0): rs1 is below the lower boundand since
-      //     this check has priority over the others, result_o is clipped to clip_op_b_n
-      //   * if clip_comp=clip_op_b (i.e. rs1>=0 and clip_op_b>=0): since rs1<=clip_op_b, then it is
-      //     clip_op_b_n < 0 <= rs1 <= clip_op_b thus rs1 is already within the clip bounds
+      //   * if clip_comp=clip_op_b_n (i.e. rs1<0 or clip_op_b<0): rs1 is below the lower bound
+      //     and since this check has priority over the others, result_o is clipped to clip_op_b_n
+      //   * if clip_comp=clip_op_b (i.e. rs1>=0 and clip_op_b>=0): since rs1<=clip_op_b, then it
+      //     is clip_op_b_n < 0 <= rs1 <= clip_op_b thus rs1 is already within the clip bounds
       // - if rs1 > clip_comp (i.e. cmp_result = 0)
-      //   * if rs1 < 0: clip_comp=clip_op_b_n because clip_use_n_bound=1; since rs1>clip_op_b_n and
-      //     rs1<0 it is clip_op_b_n < rs1 < 0 <= clip_op_b, thus rs1 is already within the clip bounds
-      //   * if rs1 >= 0: then clip_comp might be clip_op_b_n or clip_op_b basing on clip_op_b sign;
-      //     + if clip_op_b < 0: clip_comp=clip_op_b_n, so rs1>clip_op_b_n but also rs1 >= 0, so it is
-      //       clip_op_b < 0 <= clip_op_n <= rs1; then rs1 is not <= clip_ob_n but it is >= clip_op_b,
-      //       so result_o is clipped to clip_op_b
-      //     + if clip_op_b >= 0: clip_comp=clip_op_b (i.e. rs1>=0 and clip_op_b>=0) and the result must
-      //       be clipped to the upper bound since rs1 > clip_op_b
-      Clip: result_o = cmp_result ? (clip_use_n_bound ? clip_op_b_n : op_a_i) : (op_a_i[Width-1] ? op_a_i : clip_op_b);
+      //   * if rs1 < 0: clip_comp=clip_op_b_n because clip_use_n_bound=1; since rs1>clip_op_b_n
+      //     and rs1<0 it is clip_op_b_n < rs1 < 0 <= clip_op_b, thus rs1 is already within the
+      //     clip bounds
+      //   * if rs1 >= 0: then clip_comp might be clip_op_b_n or clip_op_b basing on clip_op_b
+      //     sign;
+      //     + if clip_op_b < 0: clip_comp=clip_op_b_n, so rs1>clip_op_b_n but also rs1 >= 0, so
+      //       it is clip_op_b < 0 <= clip_op_n <= rs1; then rs1 is not <= clip_ob_n but it is
+      //       >= clip_op_b, so result_o is clipped to clip_op_b
+      //     + if clip_op_b >= 0: clip_comp=clip_op_b (i.e. rs1>=0 and clip_op_b>=0) and the
+      //       result must be clipped to the upper bound since rs1 > clip_op_b
+      Clip: result_o = cmp_result ? (clip_use_n_bound ? clip_op_b_n : op_a_i) :
+        (op_a_i[Width-1] ? op_a_i : clip_op_b);
       Mac: result_o = mac_result;
       Simd: result_o = simd_result;
       default: result_o = '0;
