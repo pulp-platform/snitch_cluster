@@ -1558,7 +1558,8 @@ module dspu #(
             simd_result[simd_gated.imm6[1:0]] = simd_op_a[0];
           end
           SimdDotp: begin
-            simd_result = simd_gated.op_c & {(Width){simd_dotp_acc}}; // accumulate on rd or start from zero
+            // accumulate on rd or start from zero
+            simd_result = simd_gated.op_c & {(Width){simd_dotp_acc}};
             for (int i = 0; i < Width/8; i++)
               simd_result = $signed(simd_result) +
                 $signed({simd_op_a[i][7] & simd_dotp_op_a_signed, simd_op_a[i]}) *
@@ -1566,7 +1567,8 @@ module dspu #(
           end
           SimdShuffle:
             for (int i = 0; i < Width/8; i++)
-              simd_result[i] = simd_op_b[i][2] ? simd_op_a[simd_op_b[i][1:0]] : simd_op_c[simd_op_b[i][1:0]];
+              simd_result[i] = simd_op_b[i][2] ? simd_op_a[simd_op_b[i][1:0]] :
+                simd_op_c[simd_op_b[i][1:0]];
           default: ;
         endcase
       end

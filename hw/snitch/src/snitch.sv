@@ -518,27 +518,33 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     sb_d = sb_q;
     if (retire_load) sb_d[lsu_rd] = 1'b0;
     // only place the reservation if we actually executed the load or offload instruction
-    if ((is_load | (acc_register_rd & ~(en_copift_o & is_fp_inst)) | (x_issue_hs & x_issue_resp_i.writeback)) && !stall && !exception) sb_d[rd] = 1'b1;
+    if ((is_load |
+        (acc_register_rd & ~(en_copift_o & is_fp_inst)) |
+        (x_issue_hs & x_issue_resp_i.writeback)) && !stall && !exception) sb_d[rd] = 1'b1;
     if (retire_acc) sb_d[acc_prsp_i.id[RegWidth-1:0]] = 1'b0;
     if (EnableXif & retire_x) sb_d[x_result_i.rd] = 1'b0;
     sb_d[0] = 1'b0;
   end
   assign opa_ready = (opa_select != RegRs1) | (rs1_is_f2i ? f2i_rvalid : ~sb_q[rs1]);
-  assign opb_ready = ((opb_select != RegRs2) | (rs2_is_f2i ? f2i_rvalid : ~sb_q[rs2])) & ((opb_select != RegRd) | ~sb_q[rd]);
-  assign opc_ready = ((opc_select != RegRs2) | (rs2_is_f2i ? f2i_rvalid : ~sb_q[rs2])) & ((opc_select != RegRs3) | ~sb_q[rs3]) & ((opc_select != RegRd) | ~sb_q[rd]);
+  assign opb_ready = ((opb_select != RegRs2) | (rs2_is_f2i ? f2i_rvalid : ~sb_q[rs2])) &
+                     ((opb_select != RegRd) | ~sb_q[rd]);
+  assign opc_ready = ((opc_select != RegRs2) | (rs2_is_f2i ? f2i_rvalid : ~sb_q[rs2])) &
+                     ((opc_select != RegRs3) | ~sb_q[rs3]) & ((opc_select != RegRd) | ~sb_q[rd]);
 
   assign operands_ready = opa_ready & opb_ready & opc_ready;
   // Either we are not using the destination register or we need to make
   // sure that its destination operand is not marked busy in the scoreboard (to prevent WAW violations).
   // Similarly, some instructions (e.g. in Xpulppostmod) also write rs1.
-  assign dst_ready = (uses_rd ? (rd_is_i2f ? i2f_wready : ~sb_q[rd]) : 1'b1) && (write_rs1 ? ~sb_q[rs1] : 1'b1);
+  assign dst_ready = (uses_rd ? (rd_is_i2f ? i2f_wready : ~sb_q[rd]) : 1'b1) &&
+                     (write_rs1 ? ~sb_q[rs1] : 1'b1);
 
   assign valid_instr = inst_ready_i
                       & inst_valid_o
                       & operands_ready
                       & dst_ready
                       & ((itlb_valid & itlb_ready) | ~trans_active);
-  assign acc_qvalid_o = is_acc_inst & valid_instr & ((is_fp_store | is_fp_load) ? (trans_ready & caq_qready) : 1'b1);
+  assign acc_qvalid_o = is_acc_inst & valid_instr &
+                        ((is_fp_store | is_fp_load) ? (trans_ready & caq_qready) : 1'b1);
   // the accelerator interface stalled us. Also wait for CAQ if this is an FP load/store.
   assign acc_stall = acc_qvalid_o & ~acc_qready_i | (caq_ena & ~caq_qready);
   // the coprocessor is not ready yet
@@ -1124,7 +1130,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       MULW,
       DIVW,
       DIVUW,
-      REMW, 
+      REMW,
       REMUW: begin
         write_rd = 1'b0;
         uses_rd = 1'b1;
@@ -1133,7 +1139,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         opb_select = RegRs2;
         acc_register_rd = 1'b1;
         acc_qreq_o.addr = IPU;
-      end                         
+      end
       P_ABS: begin                 // Xpulpv2: p.abs
         if (Xpulpabs) begin
           write_rd = 1'b0;
@@ -1565,7 +1571,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       end
       FMACEX_S_H,
       FMULEX_S_H: begin
-        if (FP_EN && RVF && XF16 && XFAUX) begin      
+        if (FP_EN && RVF && XF16 && XFAUX) begin
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
         end else begin
@@ -1801,7 +1807,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       end
       FMACEX_S_B,
       FMULEX_S_B: begin
-        if (FP_EN && RVF && XF16 && XFAUX) begin    
+        if (FP_EN && RVF && XF16 && XFAUX) begin
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
         end else begin
@@ -1912,7 +1918,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       VFSGNJN_R_B,
       VFSGNJX_B,
       VFSGNJX_R_B: begin
-        if (FP_EN && XFVEC && XF8 && FLEN >= 16			
+        if (FP_EN && XFVEC && XF8 && FLEN >= 16
           && (!(inst_data_i inside {VFDIV_B, VFDIV_R_B, VFSQRT_B}) || XDivSqrt)) begin
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
