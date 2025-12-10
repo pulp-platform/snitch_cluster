@@ -106,14 +106,15 @@ snitch-cluster-vsim:
     - uv run ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim
     - uv run ../util/experiments/run.py riscv_tests_isa.yaml --simulator vsim -j --run-dir runs/vsim
     # Test convenience Make target
+    - cd ..
     - make vsim-run SN_BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf \
         SN_VERIFY_PY=$PWD/sw/kernels/blas/axpy/scripts/verify.py
     # Test trace annotation
-    - make -C .. SIM_DIR=$PWD/runs/vsim/simple annotate -j
+    - make SIM_DIR=$PWD/test/runs/vsim/simple annotate -j
     # Run additional, more extensive tests
-    - cd blas/gemm && ./test.sh && cd -
-    - cd dnn/transpose && ./test.sh && cd -
-    - cd dnn/flashattention_2 && ./test.sh && cd -
+    - cd test/blas/gemm && ./test.sh && cd -
+    - cd test/dnn/transpose && ./test.sh && cd -
+    - cd test/dnn/flashattention_2 && ./test.sh && cd -
 
 # Test OmegaNet TCDM interconnect
 snitch-cluster-omega-vsim:
