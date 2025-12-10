@@ -216,7 +216,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            target/sim/build/bin
+            /repo/target/sim/build/bin
           key: verilator-mempool-${{ steps.verilator-hash.outputs.hash }}
           restore-keys: |
             verilator-mempool-
