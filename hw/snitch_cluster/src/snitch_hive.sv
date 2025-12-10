@@ -338,7 +338,7 @@ module snitch_hive import snitch_icache_pkg::*; #(
     .ready_i ( acc_req_sfu_ready_q ),
     .data_o  ( acc_req_sfu_q       )
   );
- 
+
   if (SharedIpu == 1) begin : gen_shared_ipu
     snitch_ipu #(
       .IdWidth    ( ExtendedIdWidth ),

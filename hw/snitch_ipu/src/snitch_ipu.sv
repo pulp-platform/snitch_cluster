@@ -346,6 +346,31 @@ module dspu #(
     logic [5:0] imm6;
   } dspu_input_t;
 
+  typedef enum logic [1:0] {
+    None, Reg, Zero, ClipBound
+  } cmp_op_b_sel_e;
+
+  typedef enum logic [1:0] {
+    NoMul, MulLow, MulHigh, MulMac
+  } mac_op_e;
+
+  typedef enum logic [4:0] {
+    SimdNop, SimdAdd, SimdSub, SimdAvg, SimdMin, SimdMax, SimdSrl, SimdSra, SimdSll, SimdOr,
+    SimdXor, SimdAnd, SimdAbs, SimdExt, SimdIns, SimdDotp, SimdShuffle, SimdPack
+  } simd_op_e;
+
+  typedef enum logic {
+    HalfWord, Byte
+  } simd_size_e;
+
+  typedef enum logic [1:0] {
+    Vect, Sc, Sci, High
+  } simd_mode_e;
+
+  typedef enum logic [3:0] {
+    Nop, Abs, Sle, Min, Max, Exths, Exthz, Extbs, Extbz, Clip, Mac, Simd
+  } res_sel_e;
+
   // Control signals
   assign out_valid_o = in_valid_i;
   assign in_ready_o = out_ready_i;
@@ -359,39 +384,26 @@ module dspu #(
 
   // Internal control signals
   logic cmp_signed;            // comparator operation is signed
-  enum logic [1:0] {
-    None, Reg, Zero, ClipBound
-  } cmp_op_b_sel;              // selection of shared comparator operands
+  cmp_op_b_sel_e cmp_op_b_sel; // selection of shared comparator operands
   logic clip_unsigned;         // clip operation has "0" as lower bound
   logic clip_register;         // if 1 clip operation uses rs2, else imm5
 
   dspu_input_t mac_gated;
-  enum logic [1:0] {
-    NoMul, MulLow, MulHigh, MulMac
-  } mac_op;                    // type of multiplication operation
+  mac_op_e mac_op;             // type of multiplication operation
   logic mac_msu;               // multiplication operation is MSU
   logic mac_op_a_sign;         // sign of multiplier operand a
   logic mac_op_b_sign;         // sign of multiplier operand b
 
   dspu_input_t simd_gated;
-  enum logic [4:0] {
-    SimdNop, SimdAdd, SimdSub, SimdAvg, SimdMin, SimdMax, SimdSrl, SimdSra, SimdSll, SimdOr,
-    SimdXor, SimdAnd, SimdAbs, SimdExt, SimdIns, SimdDotp, SimdShuffle, SimdPack
-  } simd_op;                   // SIMD operation
-  enum logic {
-    HalfWord, Byte
-  } simd_size;                 // SIMD granularity
-  enum logic [1:0] {
-    Vect, Sc, Sci, High
-  } simd_mode;                 // SIMD mode
+  simd_op_e simd_op;           // SIMD operation
+  simd_size_e simd_size;       // SIMD granularity
+  simd_mode_e simd_mode;       // SIMD mode
   logic simd_signed;           // SIMD operation is signed and uses sign-extended imm6
   logic simd_dotp_op_a_signed; // signedness of SIMD dotp operand a
   logic simd_dotp_op_b_signed; // signedness of SIMD dotp operand b
   logic simd_dotp_acc;         // accumulate result of SIMD dotp on destination reg
 
-  enum logic [3:0] {
-    Nop, Abs, Sle, Min, Max, Exths, Exthz, Extbs, Extbz, Clip, Mac, Simd
-  } res_sel;                   // result selection
+  res_sel_e res_sel;  // result selection
 
   // --------------------
   // Decoder
@@ -449,7 +461,7 @@ module dspu #(
         mac_op = MulHigh;
         mac_op_a_sign = 1'b1;
         res_sel = Mac;
-      end 
+      end
       riscv_instr::MULHU: begin
         mac_op = MulHigh;
         res_sel = Mac;
@@ -1346,7 +1358,8 @@ module dspu #(
   end
 
   // Instantiate comparator
-  assign cmp_result = $signed({cmp_op_a[Width-1] & cmp_signed, cmp_op_a}) <= $signed({cmp_op_b[Width-1] & cmp_signed, cmp_op_b});
+  assign cmp_result = $signed({cmp_op_a[Width-1] & cmp_signed, cmp_op_a}) <=
+    $signed({cmp_op_b[Width-1] & cmp_signed, cmp_op_b});
 
   // --------------------
   // Multiplier & acc
@@ -1357,10 +1370,12 @@ module dspu #(
   logic [2*Width-1:0] mul_result;
   logic [Width-1:0] mac_result;
 
-  assign mac_op_a = mac_msu ? -mac_gated.op_a : mac_gated.op_a; // op_a_i is sign-inverted if mac_msu=1, to have -op_a*op_b
+  // op_a_i is sign-inverted if mac_msu=1, to have -op_a*op_b
+  assign mac_op_a = mac_msu ? -mac_gated.op_a : mac_gated.op_a;
 
   // 32-bits input, 64-bits output multiplier
-  assign mul_result = $signed({mac_op_a[Width-1] & mac_op_a_sign, mac_op_a}) * $signed({mac_gated.op_b[Width-1] & mac_op_b_sign, mac_gated.op_b});
+  assign mul_result = $signed({mac_op_a[Width-1] & mac_op_a_sign, mac_op_a}) * 
+    $signed({mac_gated.op_b[Width-1] & mac_op_b_sign, mac_gated.op_b});
 
   always_comb begin
     unique case (mac_op)
