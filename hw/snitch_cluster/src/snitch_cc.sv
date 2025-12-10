@@ -69,7 +69,7 @@ module snitch_cc #(
   parameter bit          XF16ALT            = 0,
   parameter bit          XFVEC              = 0,
   parameter bit          XFDOTP             = 0,
-  parameter bit		       Xpulppostmod	      = 0,
+  parameter bit          Xpulppostmod       = 0,
   parameter bit          Xpulpabs           = 0,
   parameter bit          Xpulpbitop         = 0,
   parameter bit          Xpulpbr            = 0,
@@ -182,7 +182,8 @@ module snitch_cc #(
   // FMA architecture is "merged" -> mulexp and macexp instructions are supported
   localparam bit XFauxMerged  = (FPUImplementation.UnitTypes[3] == fpnew_pkg::MERGED);
   localparam bit FPEn = RVF | RVD | XF16 | XF16ALT | XF8 | XF8ALT | XFVEC | XFauxMerged | XFDOTP;
-  localparam bit Xpulpv2 = Xpulpabs | Xpulpbitop | Xpulpbr | Xpulpclip | Xpulpmacsi | Xpulpminmax | Xpulpslet | Xpulpvect | Xpulpvectshufflepack;
+  localparam bit Xpulpv2 = Xpulpabs | Xpulpbitop | Xpulpbr | Xpulpclip | Xpulpmacsi | Xpulpminmax |
+                           Xpulpslet | Xpulpvect | Xpulpvectshufflepack;
   localparam int unsigned FLEN = RVD     ? 64 : // D ext.
                           RVF     ? 32 : // F ext.
                           XF16    ? 16 : // Xf16 ext.
@@ -459,7 +460,8 @@ module snitch_cc #(
   assign ssr_qvalid = acc_snitch_demux_out_qvalid[snitch_pkg::SSR_CFG];
 
   assign acc_snitch_demux_out_qready[snitch_pkg::FP_SS] = fpss_qready;
-  assign acc_snitch_demux_out_qready[snitch_pkg::IPU] = PrivateIpu ? ipu_qready : hive_rsp_i.acc_qready;
+  assign acc_snitch_demux_out_qready[snitch_pkg::IPU] = PrivateIpu ? ipu_qready :
+    hive_rsp_i.acc_qready;
   assign acc_snitch_demux_out_qready[snitch_pkg::DMA_SS] = dma_qready;
   assign acc_snitch_demux_out_qready[snitch_pkg::SSR_CFG] = ssr_qready;
 
@@ -489,7 +491,8 @@ module snitch_cc #(
   assign acc_demux_snitch_in[snitch_pkg::SSR_CFG] = ssr_resp;
 
   assign acc_demux_snitch_in_valid[snitch_pkg::FP_SS] = fpss_pvalid;
-  assign acc_demux_snitch_in_valid[snitch_pkg::IPU] = PrivateIpu ? ipu_pvalid : hive_rsp_i.acc_pvalid;
+  assign acc_demux_snitch_in_valid[snitch_pkg::IPU] = PrivateIpu ? ipu_pvalid :
+    hive_rsp_i.acc_pvalid;
   assign acc_demux_snitch_in_valid[snitch_pkg::DMA_SS] = dma_pvalid;
   assign acc_demux_snitch_in_valid[snitch_pkg::SSR_CFG] = ssr_pvalid;
 
@@ -1033,7 +1036,8 @@ module snitch_cc #(
         acc_pdata_32: i_snitch.acc_prsp_i.data[31:0],
         // FPU offload
         fpu_offload:
-          (i_snitch.acc_qready_i && i_snitch.acc_qvalid_o && i_snitch.acc_qreq_o.addr == snitch_pkg::FP_SS),
+          (i_snitch.acc_qready_i && i_snitch.acc_qvalid_o &&
+           i_snitch.acc_qreq_o.addr == snitch_pkg::FP_SS),
         is_seq_insn:  (i_snitch.inst_data_i ==? riscv_instr::FREP_O)
       };
 

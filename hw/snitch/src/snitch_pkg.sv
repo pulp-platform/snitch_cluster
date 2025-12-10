@@ -8,7 +8,8 @@
 package snitch_pkg;
 
   typedef enum logic [3:0] {
-    None, RegRs1, RegRs2, RegRs3, RegRd, IImmediate, UImmediate, JImmediate, SImmediate, SFImmediate, PC, Csr, CsrImmediate, PBImmediate
+    None, RegRs1, RegRs2, RegRs3, RegRd, IImmediate, UImmediate, JImmediate, SImmediate,
+    SFImmediate, PC, Csr, CsrImmediate, PBImmediate
   } op_select_e;
 
   localparam dm::hartinfo_t SnitchHartinfo = '{

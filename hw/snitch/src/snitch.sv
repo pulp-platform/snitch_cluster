@@ -2472,7 +2472,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
             is_acc_inst = 1'b1;
           end else begin
             illegal_inst = 1'b1;
-          end 
+          end
         end
       end
       P_LB_RR: begin      // p.lb rd,rs2(rs1)
@@ -2610,7 +2610,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         end else begin
           illegal_inst = 1'b1;
         end
-      end 
+      end
       // Floating-Point Load/Store
       // Single Precision Floating-Point
       FLW: begin
@@ -3408,10 +3408,12 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // Is an instruction a FP instruction (i.e. an instruction executed in the FPSS)
   assign is_fp_inst = is_acc_inst && (acc_qreq_o.addr == FP_SS);
 
-  // Read from F2I if rs==x31, queues are enabled and the instruction is an integer instruction (not a FP instruction).
+  // Read from F2I if rs==x31, queues are enabled and the instruction is an integer
+  // instruction (not a FP instruction).
   assign rs1_is_f2i = (rs1 == 'd31) & en_copift_o & ~is_fp_inst;
   assign rs2_is_f2i = (rs2 == 'd31) & en_copift_o & ~is_fp_inst;
-  assign f2i_rready = valid_instr && (((opa_select == RegRs1) && rs1_is_f2i) || ((opb_select == RegRs2) && rs2_is_f2i) || ((opc_select == RegRs2) && rs2_is_f2i));
+  assign f2i_rready = valid_instr && (((opa_select == RegRs1) && rs1_is_f2i) ||
+    ((opb_select == RegRs2) && rs2_is_f2i) || ((opc_select == RegRs2) && rs2_is_f2i));
 
   // Write to I2F if rd==x31 and queues are enabled
   assign rd_is_i2f = (rd == 'd31) & en_copift_o;
@@ -3657,7 +3659,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // Without virtual memory, address can be alu_result (i.e. rs1 + iimm/simm) or rs1 (for post-increment load/stores)
   assign ls_paddr[PPNSize+PageShift-1:PageShift] =
           ({(PPNSize){trans_active}} & dtlb_pa) |
-          (~{(PPNSize){trans_active}} & {mseg_q, (is_postincr ? opa[31:PageShift] : alu_result[31:PageShift])});
+          (~{(PPNSize){trans_active}} &
+          {mseg_q, (is_postincr ? opa[31:PageShift] : alu_result[31:PageShift])});
   assign ls_paddr[PageShift-1:0] = is_postincr ? opa[PageShift-1:0] : alu_result[PageShift-1:0];
 
   assign lsu_qvalid = lsu_tlb_qvalid & trans_ready;
