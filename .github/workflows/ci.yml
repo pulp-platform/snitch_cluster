@@ -182,9 +182,12 @@ jobs:
           make sw -j
       - name: Run Tests
         working-directory: test
+        # Regression tests and single test using convenience Make target
         run: |
           uv run ../util/experiments/run.py run.yaml --simulator verilator -j
           uv run ../util/experiments/run.py riscv_tests_isa.yaml --simulator verilator -j
+          make vsim-run SN_BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf \
+            SN_VERIFY_PY=$PWD/sw/kernels/blas/axpy/scripts/verify.py
       - name: Annotate traces
         # Build the traces using the --permissive flag, since the Verilator
         # testbench does not wait until all the instructions are retired
