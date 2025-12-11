@@ -7,7 +7,8 @@
 #include "printf.h"
 
 int main() {
-    if (snrt_cluster_core_idx() != 0) return 0;
+#ifdef SNRT_SUPPORTS_FREP
+    if (snrt_is_dm_core()) return 0;
 
     int n_iter_1 = 1;
     int n_iter_2 = 1;
@@ -30,4 +31,5 @@ int main() {
     snrt_fpu_fence();
 
     return exp_res - res;
+#endif
 }

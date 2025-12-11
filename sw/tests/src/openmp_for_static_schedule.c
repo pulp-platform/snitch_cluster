@@ -7,6 +7,7 @@
 #define AXPY_N 64
 
 unsigned __attribute__((noinline)) static_schedule(void) {
+#ifdef SNRT_SUPPORTS_SSR
     static double *data_x, *data_y, data_a;
 
     // Allocate AXPY input vectors
@@ -56,9 +57,13 @@ unsigned __attribute__((noinline)) static_schedule(void) {
 
     if (errs) printf("Error [static_schedule]: %d mismatches\n", errs);
     return errs ? 1 : 0;
+#else
+    return 0;
+#endif
 }
 
 int main() {
+#ifdef SNRT_SUPPORTS_SSR
     unsigned core_idx = snrt_cluster_core_idx();
     unsigned core_num = snrt_cluster_core_num();
     unsigned err = 0;
@@ -73,4 +78,5 @@ int main() {
     // exit
     __snrt_omp_destroy(core_idx);
     return err;
+#endif
 }

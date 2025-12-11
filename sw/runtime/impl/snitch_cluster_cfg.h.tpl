@@ -8,6 +8,34 @@
         dram = external_addr_region
 %>
 
+<%
+  supports_dma = False
+  supports_ssr = False
+  supports_frep = False
+  supports_copift = False
+  supports_pulp = False
+  pulp_subextensions = [
+    'xpulppostmod',
+    'xpulpabs',
+    'xpulpbitop',
+    'xpulpbr',
+    'xpulpclip',
+    'xpulpmacsi',
+    'xpulpminmax',
+    'xpulpslet',
+    'xpulpvect',
+    'xpulpvectshufflepack',
+  ]
+  for hive in cfg['cluster']['hives']:
+    for core in hive['cores']:
+      supports_dma = supports_dma or core['xdma']
+      supports_ssr = supports_ssr or core['xssr']
+      supports_frep = supports_frep or core['xfrep']
+      supports_copift = supports_copift or core['xcopift']
+      supports_pulp = supports_pulp or any([core[ext] for ext in pulp_subextensions])
+%>
+
+
 #include "snitch_cluster_raw_addrmap.h"
 
 #define CFG_CLUSTER_NR_CORES ${cfg['cluster']['nr_cores']}
@@ -31,6 +59,26 @@
 
 % if cfg['cluster']['enable_multicast']:
 #define SNRT_SUPPORTS_MULTICAST
+% endif
+
+% if supports_dma:
+#define SNRT_SUPPORTS_DMA
+% endif
+
+% if supports_ssr:
+#define SNRT_SUPPORTS_SSR
+% endif
+
+% if supports_frep:
+#define SNRT_SUPPORTS_FREP
+% endif
+
+% if supports_copift:
+#define SNRT_SUPPORTS_COPIFT
+% endif
+
+% if supports_pulp:
+#define SNRT_SUPPORTS_PULP
 % endif
 
 // Software configuration

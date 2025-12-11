@@ -69,6 +69,16 @@ module snitch_cc #(
   parameter bit          XF16ALT            = 0,
   parameter bit          XFVEC              = 0,
   parameter bit          XFDOTP             = 0,
+  parameter bit          Xpulppostmod       = 0,
+  parameter bit          Xpulpabs           = 0,
+  parameter bit          Xpulpbitop         = 0,
+  parameter bit          Xpulpbr            = 0,
+  parameter bit          Xpulpclip          = 0,
+  parameter bit          Xpulpmacsi         = 0,
+  parameter bit          Xpulpminmax        = 0,
+  parameter bit          Xpulpslet          = 0,
+  parameter bit          Xpulpvect          = 0,
+  parameter bit          Xpulpvectshufflepack = 0,
   /// Enable Snitch DMA
   parameter bit          Xdma               = 0,
   /// Has `frep` support.
@@ -77,8 +87,8 @@ module snitch_cc #(
   parameter bit          Xssr               = 1,
   /// Has `COPIFT` support.
   parameter bit          Xcopift            = 1,
-  /// Has `IPU` support.
-  parameter bit          Xipu               = 1,
+  /// Enable private IPU.
+  parameter bit          PrivateIpu         = 0,
   /// Has virtual memory support.
   parameter bit          VMSupport          = 1,
   parameter int unsigned NumIntOutstandingLoads = 0,
@@ -172,6 +182,8 @@ module snitch_cc #(
   // FMA architecture is "merged" -> mulexp and macexp instructions are supported
   localparam bit XFauxMerged  = (FPUImplementation.UnitTypes[3] == fpnew_pkg::MERGED);
   localparam bit FPEn = RVF | RVD | XF16 | XF16ALT | XF8 | XF8ALT | XFVEC | XFauxMerged | XFDOTP;
+  localparam bit Xpulpv2 = Xpulpabs | Xpulpbitop | Xpulpbr | Xpulpclip | Xpulpmacsi | Xpulpminmax |
+                           Xpulpslet | Xpulpvect | Xpulpvectshufflepack;
   localparam int unsigned FLEN = RVD     ? 64 : // D ext.
                           RVF     ? 32 : // F ext.
                           XF16    ? 16 : // Xf16 ext.
@@ -192,30 +204,35 @@ module snitch_cc #(
     logic [31:0] data;
   } ssr_cfg_rsp_t;
 
-  acc_req_t acc_snitch_req;
   acc_req_t acc_snitch_demux;
   acc_req_t acc_snitch_demux_q;
-  acc_resp_t acc_seq;
   acc_resp_t acc_demux_snitch;
   acc_resp_t acc_demux_snitch_q;
+  acc_resp_t [snitch_pkg::NUM_ACC-1:0] acc_demux_snitch_in;
+  acc_req_t fpss_req;
+  acc_req_t dma_req;
+  acc_req_t ipu_req;
+  acc_req_t ssr_req;
+  acc_resp_t fpss_resp;
   acc_resp_t dma_resp;
   acc_resp_t ipu_resp;
-
   acc_resp_t ssr_resp;
 
   logic acc_snitch_demux_qvalid, acc_snitch_demux_qready;
   logic acc_snitch_demux_qvalid_q, acc_snitch_demux_qready_q;
-  logic acc_qvalid, acc_qready;
+  logic [snitch_pkg::NUM_ACC-1:0] acc_snitch_demux_out_qvalid, acc_snitch_demux_out_qready;
+  logic fpss_qvalid, fpss_qready;
   logic dma_qvalid, dma_qready;
-  logic ipu_qvalid, ipu_qready;
   logic ssr_qvalid, ssr_qready;
+  logic ipu_qvalid, ipu_qready;
 
-  logic acc_pvalid, acc_pready;
+  logic fpss_pvalid, fpss_pready;
   logic dma_pvalid, dma_pready;
-  logic ipu_pvalid, ipu_pready;
   logic ssr_pvalid, ssr_pready;
+  logic ipu_pvalid, ipu_pready;
   logic acc_demux_snitch_valid, acc_demux_snitch_ready;
   logic acc_demux_snitch_valid_q, acc_demux_snitch_ready_q;
+  logic [snitch_pkg::NUM_ACC-1:0] acc_demux_snitch_in_valid, acc_demux_snitch_in_ready;
 
   logic [31:0] i2f_rdata;
   logic        i2f_rvalid;
@@ -270,6 +287,17 @@ module snitch_cc #(
     .FP_EN (FPEn),
     .Xdma (Xdma),
     .Xssr (Xssr),
+    .Xpulppostmod (Xpulppostmod),
+    .Xpulpabs (Xpulpabs),
+    .Xpulpbitop (Xpulpbitop),
+    .Xpulpbr (Xpulpbr),
+    .Xpulpclip (Xpulpclip),
+    .Xpulpmacsi (Xpulpmacsi),
+    .Xpulpminmax (Xpulpminmax),
+    .Xpulpslet (Xpulpslet),
+    .Xpulpvect (Xpulpvect),
+    .Xpulpvectshufflepack (Xpulpvectshufflepack),
+    .Xpulpv2 (Xpulpv2),
     .Xcopift (Xcopift),
     .RVF (RVF),
     .RVD (RVD),
@@ -411,32 +439,68 @@ module snitch_cc #(
 
   // Accelerator Demux Port
   stream_demux #(
-    .N_OUP ( 5 )
+    .N_OUP ( snitch_pkg::NUM_ACC )
   ) i_stream_demux_offload (
-    .inp_valid_i  ( acc_snitch_demux_qvalid_q  ),
-    .inp_ready_o  ( acc_snitch_demux_qready_q  ),
-    .oup_sel_i    ( acc_snitch_demux_q.addr[$clog2(5)-1:0]             ),
-    .oup_valid_o  ( {ssr_qvalid, ipu_qvalid, dma_qvalid, hive_req_o.acc_qvalid, acc_qvalid} ),
-    .oup_ready_i  ( {ssr_qready, ipu_qready, dma_qready, hive_rsp_i.acc_qready, acc_qready} )
+    .inp_valid_i  ( acc_snitch_demux_qvalid_q ),
+    .inp_ready_o  ( acc_snitch_demux_qready_q ),
+    .oup_sel_i    ( acc_snitch_demux_q.addr[$clog2(snitch_pkg::NUM_ACC)-1:0] ),
+    .oup_valid_o  ( acc_snitch_demux_out_qvalid ),
+    .oup_ready_i  ( acc_snitch_demux_out_qready )
   );
 
-  // To shared muldiv
+  assign fpss_qvalid = acc_snitch_demux_out_qvalid[snitch_pkg::FP_SS];
+  if (PrivateIpu) begin : gen_private_ipu_connection
+    assign ipu_qvalid = acc_snitch_demux_out_qvalid[snitch_pkg::IPU];
+    assign hive_req_o.acc_qvalid = 1'b0;
+  end else begin : gen_shared_ipu_connection
+    assign hive_req_o.acc_qvalid = acc_snitch_demux_out_qvalid[snitch_pkg::IPU];
+    assign ipu_qvalid = 1'b0;
+  end
+  assign dma_qvalid = acc_snitch_demux_out_qvalid[snitch_pkg::DMA_SS];
+  assign ssr_qvalid = acc_snitch_demux_out_qvalid[snitch_pkg::SSR_CFG];
+
+  assign acc_snitch_demux_out_qready[snitch_pkg::FP_SS] = fpss_qready;
+  assign acc_snitch_demux_out_qready[snitch_pkg::IPU] = PrivateIpu ? ipu_qready :
+    hive_rsp_i.acc_qready;
+  assign acc_snitch_demux_out_qready[snitch_pkg::DMA_SS] = dma_qready;
+  assign acc_snitch_demux_out_qready[snitch_pkg::SSR_CFG] = ssr_qready;
+
+  assign fpss_req = acc_snitch_demux_q;
+  assign ipu_req = acc_snitch_demux_q;
   assign hive_req_o.acc_req = acc_snitch_demux_q;
-  assign acc_snitch_req = acc_snitch_demux_q;
+  assign dma_req = acc_snitch_demux_q;
+  assign ssr_req = acc_snitch_demux_q;
 
   stream_arbiter #(
     .DATA_T      ( acc_resp_t ),
-    .N_INP       ( 5          )
+    .N_INP       ( snitch_pkg::NUM_ACC    )
   ) i_stream_arbiter_offload (
-    .clk_i       ( clk_i                                   ),
-    .rst_ni      ( rst_ni                                  ),
-    .inp_data_i  ( {ssr_resp,   ipu_resp,   dma_resp,   hive_rsp_i.acc_resp,   acc_seq    } ),
-    .inp_valid_i ( {ssr_pvalid, ipu_pvalid, dma_pvalid, hive_rsp_i.acc_pvalid, acc_pvalid } ),
-    .inp_ready_o ( {ssr_pready, ipu_pready, dma_pready, hive_req_o.acc_pready, acc_pready } ),
-    .oup_data_o  ( acc_demux_snitch_q                      ),
-    .oup_valid_o ( acc_demux_snitch_valid_q                ),
-    .oup_ready_i ( acc_demux_snitch_ready_q                )
+    .clk_i       ( clk_i                     ),
+    .rst_ni      ( rst_ni                    ),
+    .inp_data_i  ( acc_demux_snitch_in       ),
+    .inp_valid_i ( acc_demux_snitch_in_valid ),
+    .inp_ready_o ( acc_demux_snitch_in_ready ),
+    .oup_data_o  ( acc_demux_snitch_q        ),
+    .oup_valid_o ( acc_demux_snitch_valid_q  ),
+    .oup_ready_i ( acc_demux_snitch_ready_q  )
   );
+
+  assign acc_demux_snitch_in[snitch_pkg::FP_SS] = fpss_resp;
+  assign acc_demux_snitch_in[snitch_pkg::IPU] = PrivateIpu ? ipu_resp : hive_rsp_i.acc_resp;
+  assign acc_demux_snitch_in[snitch_pkg::DMA_SS] = dma_resp;
+  assign acc_demux_snitch_in[snitch_pkg::SSR_CFG] = ssr_resp;
+
+  assign acc_demux_snitch_in_valid[snitch_pkg::FP_SS] = fpss_pvalid;
+  assign acc_demux_snitch_in_valid[snitch_pkg::IPU] = PrivateIpu ? ipu_pvalid :
+    hive_rsp_i.acc_pvalid;
+  assign acc_demux_snitch_in_valid[snitch_pkg::DMA_SS] = dma_pvalid;
+  assign acc_demux_snitch_in_valid[snitch_pkg::SSR_CFG] = ssr_pvalid;
+
+  assign fpss_pready = acc_demux_snitch_in_ready[snitch_pkg::FP_SS];
+  assign ipu_pready = acc_demux_snitch_in_ready[snitch_pkg::IPU];
+  assign hive_req_o.acc_pready = acc_demux_snitch_in_ready[snitch_pkg::IPU];
+  assign dma_pready = acc_demux_snitch_in_ready[snitch_pkg::DMA_SS];
+  assign ssr_pready = acc_demux_snitch_in_ready[snitch_pkg::SSR_CFG];
 
   if (Xdma) begin : gen_dma
     idma_inst64_top #(
@@ -462,7 +526,7 @@ module snitch_cc #(
       .axi_req_o       ( axi_dma_req_o    ),
       .axi_res_i       ( axi_dma_res_i    ),
       .busy_o          ( axi_dma_busy_o   ),
-      .acc_req_i       ( acc_snitch_req   ),
+      .acc_req_i       ( dma_req          ),
       .acc_req_valid_i ( dma_qvalid       ),
       .acc_req_ready_o ( dma_qready       ),
       .acc_res_o       ( dma_resp         ),
@@ -483,35 +547,22 @@ module snitch_cc #(
     assign axi_dma_events_o = '0;
   end
 
-  if (Xipu) begin : gen_ipu
-    snitch_int_ss # (
-      .AddrWidth (AddrWidth),
-      .DataWidth (DataWidth),
-      .NumIPUSequencerInstr (NumSequencerInstr),
-      .acc_req_t (acc_req_t),
-      .acc_resp_t (acc_resp_t)
-    ) i_snitch_int_ss (
-      .clk_i            ( clk_i                    ),
-      .rst_i            ( (~rst_ni) | (~rst_int_ss_ni) ),
-      .acc_req_i        ( acc_snitch_req           ),
-      .acc_req_valid_i  ( ipu_qvalid               ),
-      .acc_req_ready_o  ( ipu_qready               ),
-      .acc_resp_o       ( ipu_resp                 ),
-      .acc_resp_valid_o ( ipu_pvalid               ),
-      .acc_resp_ready_i ( ipu_pready               ),
-      .ssr_raddr_o      ( /* TODO */               ),
-      .ssr_rdata_i      ('0                        ),
-      .ssr_rvalid_o     ( /* TODO */               ),
-      .ssr_rready_i     ('0                        ),
-      .ssr_rdone_o      ( /* TODO */               ),
-      .ssr_waddr_o      ( /* TODO */               ),
-      .ssr_wdata_o      ( /* TODO */               ),
-      .ssr_wvalid_o     ( /* TODO */               ),
-      .ssr_wready_i     ('0                        ),
-      .ssr_wdone_o      ( /* TODO */               ),
-      .streamctl_done_i   ( /* TODO */             ),
-      .streamctl_valid_i  ( /* TODO */             ),
-      .streamctl_ready_o  ( /* TODO */             )
+  // IPU
+  if (PrivateIpu) begin : gen_ipu
+    snitch_ipu #(
+      .IdWidth   (5),
+      .Xpulpv2   (Xpulpv2),
+      .acc_resp_t(acc_resp_t),
+      .acc_req_t (acc_req_t)
+    ) i_snitch_ipu (
+      .clk_i,
+      .rst_ni,
+      .acc_req_i       (ipu_req),
+      .acc_req_valid_i (ipu_qvalid),
+      .acc_req_ready_o (ipu_qready),
+      .acc_resp_o      (ipu_resp),
+      .acc_resp_valid_o(ipu_pvalid),
+      .acc_resp_ready_i(ipu_pready)
     );
   end else begin : gen_no_ipu
     assign ipu_resp = '0;
@@ -580,12 +631,12 @@ module snitch_cc #(
       .sequencer_tracer_port_o ( fpu_sequencer_trace ),
       // pragma translate_on
       .hart_id_i        ( hart_id_i      ),
-      .acc_req_i        ( acc_snitch_req ),
-      .acc_req_valid_i  ( acc_qvalid     ),
-      .acc_req_ready_o  ( acc_qready     ),
-      .acc_resp_o       ( acc_seq        ),
-      .acc_resp_valid_o ( acc_pvalid     ),
-      .acc_resp_ready_i ( acc_pready     ),
+      .acc_req_i        ( fpss_req       ),
+      .acc_req_valid_i  ( fpss_qvalid    ),
+      .acc_req_ready_o  ( fpss_qready    ),
+      .acc_resp_o       ( fpss_resp      ),
+      .acc_resp_valid_o ( fpss_pvalid    ),
+      .acc_resp_ready_i ( fpss_pready    ),
       .i2f_rdata_i      ( i2f_rdata      ),
       .i2f_rvalid_i     ( i2f_rvalid     ),
       .i2f_rready_o     ( i2f_rready     ),
@@ -649,11 +700,11 @@ module snitch_cc #(
     assign ssr_wvalid = '0;
     assign ssr_wdone = '0;
 
-    assign acc_qready    = '0;
-    assign acc_seq.data  = '0;
-    assign acc_seq.id    = '0;
-    assign acc_seq.error = '0;
-    assign acc_pvalid    = '0;
+    assign fpss_qready     = '0;
+    assign fpss_resp.data  = '0;
+    assign fpss_resp.id    = '0;
+    assign fpss_resp.error = '0;
+    assign fpss_pvalid     = '0;
 
     assign caq_pvalid = '0;
 
@@ -965,6 +1016,7 @@ module snitch_cc #(
         opb:          i_snitch.opb,
         opa_select:   i_snitch.opa_select,
         opb_select:   i_snitch.opb_select,
+        opc_select:   i_snitch.opc_select,
         write_rd:     i_snitch.write_rd,
         csr_addr:     i_snitch.inst_data_i[31:20],
         // Pipeline writeback
@@ -984,7 +1036,8 @@ module snitch_cc #(
         acc_pdata_32: i_snitch.acc_prsp_i.data[31:0],
         // FPU offload
         fpu_offload:
-          (i_snitch.acc_qready_i && i_snitch.acc_qvalid_o && i_snitch.acc_qreq_o.addr == 0),
+          (i_snitch.acc_qready_i && i_snitch.acc_qvalid_o &&
+           i_snitch.acc_qreq_o.addr == snitch_pkg::FP_SS),
         is_seq_insn:  (i_snitch.inst_data_i ==? riscv_instr::FREP_O)
       };
 

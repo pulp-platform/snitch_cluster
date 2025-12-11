@@ -107,6 +107,7 @@ void doitgen_baseline(uint32_t r, uint32_t q, uint32_t s, double *A, double *x,
 
 void doitgen_opt(uint32_t r, uint32_t q, uint32_t s, double *A, double *x,
                  double *Aout) {
+#ifdef SNRT_SUPPORTS_FREP
     uint32_t bound = r / snrt_cluster_compute_core_num();
     uint32_t offset = bound * snrt_cluster_core_idx();
 
@@ -173,6 +174,7 @@ void doitgen_opt(uint32_t r, uint32_t q, uint32_t s, double *A, double *x,
 
     snrt_ssr_disable();
     snrt_fpu_fence();
+#endif
 }
 
 void doitgen_job(doitgen_args_t *args) {

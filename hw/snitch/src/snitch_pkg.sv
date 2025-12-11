@@ -7,6 +7,11 @@
 
 package snitch_pkg;
 
+  typedef enum logic [3:0] {
+    None, RegRs1, RegRs2, RegRs3, RegRd, IImmediate, UImmediate, JImmediate, SImmediate,
+    SFImmediate, PC, Csr, CsrImmediate, PBImmediate
+  } op_select_e;
+
   localparam dm::hartinfo_t SnitchHartinfo = '{
     zero1: '0,
     nscratch: 1,
@@ -34,10 +39,10 @@ package snitch_pkg;
 
   typedef enum logic [31:0] {
     FP_SS = 0,
-    SHARED_MULDIV = 1,
+    IPU = 1,
     DMA_SS = 2,
-    INT_SS = 3,
-    SSR_CFG = 4
+    SSR_CFG = 3,
+    NUM_ACC = 4
   } acc_addr_e;
 
   typedef enum logic [1:0] {
@@ -189,41 +194,42 @@ package snitch_pkg;
   } trace_src_e;
 
   typedef struct packed {
-    longint source;
-    longint stall;
-    longint exception;
-    longint rs1;
-    longint rs2;
-    longint rd;
-    longint is_load;
-    longint is_store;
-    longint is_branch;
-    longint pc_d;
-    longint opa;
-    longint opb;
-    longint opa_select;
-    longint opb_select;
-    longint write_rd;
-    longint csr_addr;
-    longint writeback;
-    longint gpr_rdata_1;
-    longint ls_size;
-    longint ld_result_32;
-    longint lsu_rd;
-    longint retire_load;
-    longint alu_result;
-    longint ls_amo;
-    longint retire_acc;
-    longint acc_pid;
-    longint acc_pdata_32;
-    longint fpu_offload;
-    longint is_seq_insn;
+    trace_src_e source;
+    longint     stall;
+    longint     exception;
+    longint     rs1;
+    longint     rs2;
+    longint     rd;
+    longint     is_load;
+    longint     is_store;
+    longint     is_branch;
+    longint     pc_d;
+    longint     opa;
+    longint     opb;
+    op_select_e opa_select;
+    op_select_e opb_select;
+    op_select_e opc_select;
+    longint     write_rd;
+    longint     csr_addr;
+    longint     writeback;
+    longint     gpr_rdata_1;
+    longint     ls_size;
+    longint     ld_result_32;
+    longint     lsu_rd;
+    longint     retire_load;
+    longint     alu_result;
+    longint     ls_amo;
+    longint     retire_acc;
+    longint     acc_pid;
+    longint     acc_pdata_32;
+    longint     fpu_offload;
+    longint     is_seq_insn;
   } snitch_trace_port_t;
 
   // verilog_lint: waive-start line-length
   function automatic string print_snitch_trace(snitch_trace_port_t snitch_trace);
     string extras_str = "{";
-    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "source", snitch_trace.source);
+    extras_str = $sformatf("%s'%s': '%s', ", extras_str, "source", snitch_trace.source.name);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "stall", snitch_trace.stall);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "exception", snitch_trace.exception);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "rs1", snitch_trace.rs1);
@@ -235,8 +241,9 @@ package snitch_pkg;
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "pc_d", snitch_trace.pc_d);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "opa", snitch_trace.opa);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "opb", snitch_trace.opb);
-    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "opa_select", snitch_trace.opa_select);
-    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "opb_select", snitch_trace.opb_select);
+    extras_str = $sformatf("%s'%s': '%s', ", extras_str, "opa_select", snitch_trace.opa_select.name);
+    extras_str = $sformatf("%s'%s': '%s', ", extras_str, "opb_select", snitch_trace.opb_select.name);
+    extras_str = $sformatf("%s'%s': '%s', ", extras_str, "opc_select", snitch_trace.opc_select.name);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "write_rd", snitch_trace.write_rd);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "csr_addr", snitch_trace.csr_addr);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "writeback", snitch_trace.writeback);
@@ -259,45 +266,45 @@ package snitch_pkg;
 
   // Trace-Port Definitions
   typedef struct packed {
-    longint source;
-    longint acc_q_hs;
-    longint fpu_out_hs;
-    longint lsu_q_hs;
-    longint op_in;
-    longint rs1;
-    longint rs2;
-    longint rs3;
-    longint rd;
-    longint op_sel_0;
-    longint op_sel_1;
-    longint op_sel_2;
-    longint src_fmt;
-    longint dst_fmt;
-    longint int_fmt;
-    longint acc_qdata_0;
-    longint acc_qdata_1;
-    longint acc_qdata_2;
-    longint op_0;
-    longint op_1;
-    longint op_2;
-    longint use_fpu;
-    longint fpu_in_rd;
-    longint fpu_in_acc;
-    longint ls_size;
-    longint is_load;
-    longint is_store;
-    longint lsu_qaddr;
-    longint lsu_rd;
-    longint acc_wb_ready;
-    longint fpu_out_acc;
-    longint fpr_waddr;
-    longint fpr_wdata;
-    longint fpr_we;
+    trace_src_e source;
+    longint     acc_q_hs;
+    longint     fpu_out_hs;
+    longint     lsu_q_hs;
+    longint     op_in;
+    longint     rs1;
+    longint     rs2;
+    longint     rs3;
+    longint     rd;
+    longint     op_sel_0;
+    longint     op_sel_1;
+    longint     op_sel_2;
+    longint     src_fmt;
+    longint     dst_fmt;
+    longint     int_fmt;
+    longint     acc_qdata_0;
+    longint     acc_qdata_1;
+    longint     acc_qdata_2;
+    longint     op_0;
+    longint     op_1;
+    longint     op_2;
+    longint     use_fpu;
+    longint     fpu_in_rd;
+    longint     fpu_in_acc;
+    longint     ls_size;
+    longint     is_load;
+    longint     is_store;
+    longint     lsu_qaddr;
+    longint     lsu_rd;
+    longint     acc_wb_ready;
+    longint     fpu_out_acc;
+    longint     fpr_waddr;
+    longint     fpr_wdata;
+    longint     fpr_we;
   } fpu_trace_port_t;
 
   function automatic string print_fpu_trace(fpu_trace_port_t fpu_trace);
     string extras_str = "{";
-    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "source", fpu_trace.source);
+    extras_str = $sformatf("%s'%s': '%s', ", extras_str, "source", fpu_trace.source.name);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "acc_q_hs", fpu_trace.acc_q_hs);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "fpu_out_hs", fpu_trace.fpu_out_hs);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "lsu_q_hs", fpu_trace.lsu_q_hs);
@@ -336,17 +343,17 @@ package snitch_pkg;
   endfunction
 
   typedef struct packed {
-    longint source;
-    longint cbuf_push;
-    longint max_inst;
-    longint max_iter;
-    longint stg_max;
-    longint stg_mask;
+    trace_src_e source;
+    longint     cbuf_push;
+    longint     max_inst;
+    longint     max_iter;
+    longint     stg_max;
+    longint     stg_mask;
   } fpu_sequencer_trace_port_t;
 
   function automatic string print_fpu_sequencer_trace(fpu_sequencer_trace_port_t fpu_sequencer);
     string extras_str = "{";
-    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "source", fpu_sequencer.source);
+    extras_str = $sformatf("%s'%s': '%s', ", extras_str, "source", fpu_sequencer.source.name);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "cbuf_push", fpu_sequencer.cbuf_push);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "max_inst", fpu_sequencer.max_inst);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "max_iter", fpu_sequencer.max_iter);

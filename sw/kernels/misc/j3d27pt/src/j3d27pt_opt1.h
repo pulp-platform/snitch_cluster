@@ -10,6 +10,7 @@
 // The Kernel
 static inline void j3d27pt_opt1(int fac, int nx, int ny, int nz, double* c,
                                 double* A, double* A_) {
+#ifdef SNRT_SUPPORTS_SSR
     snrt_mcycle();
     const uint32_t dx = 1, dy = nx, dz = ny * nx, sx = dx, sy = dy,
                    sb = sy + sx;
@@ -212,4 +213,5 @@ static inline void j3d27pt_opt1(int fac, int nx, int ny, int nz, double* c,
     snrt_ssr_disable();
     snrt_fpu_fence();
     snrt_mcycle();
+#endif
 }

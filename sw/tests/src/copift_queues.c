@@ -13,6 +13,7 @@
 #define START_VAL 6
 
 int main() {
+#ifdef SNRT_SUPPORTS_COPIFT
     if (snrt_cluster_core_idx() > 0) return 0;
 
     uint32_t n_iters = N_ITERS;
@@ -69,4 +70,5 @@ int main() {
     for (int i = 0; i < n_iters; i++) n_errs -= (f2i[i] == (START_VAL + i));
 
     return n_errs;
+#endif
 }

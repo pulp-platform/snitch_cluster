@@ -111,6 +111,28 @@ module snitch_cluster
   parameter bit [NrCores-1:0] Xfrep         = '0,
   /// Per-core enabling of the custom `Xcopift` ISA extensions.
   parameter bit [NrCores-1:0] Xcopift       = '0,
+  /// Per-core enabling of the custom 'Xpulppostmod' ISA extensions.
+  parameter bit [NrCores-1:0] Xpulppostmod  = '0,
+  /// Per-core enabling of the custom 'Xpulpabs' ISA extensions.
+  parameter bit [NrCores-1:0] Xpulpabs      = '0,
+  /// Per-core enabling of the custom 'Xpulpbitop' ISA extensions.
+  parameter bit [NrCores-1:0] Xpulpbitop    = '0,
+  /// Per-core enabling of the custom 'Xpulpbr' ISA extensions.
+  parameter bit [NrCores-1:0] Xpulpbr       = '0,
+  /// Per-core enabling of the custom 'Xpulpclip' ISA extensions.
+  parameter bit [NrCores-1:0] Xpulpclip     = '0,
+  /// Per-core enabling of the custom 'Xpulpmacsi' ISA extensions.
+  parameter bit [NrCores-1:0] Xpulpmacsi    = '0,
+  /// Per-core enabling of the custom 'Xpulpminmax' ISA extensions.
+  parameter bit [NrCores-1:0] Xpulpminmax   = '0,
+  /// Per-core enabling of the custom 'Xpulpslet' ISA extensions.
+  parameter bit [NrCores-1:0] Xpulpslet     = '0,
+  /// Per-core enabling of the custom 'Xpulpvect' ISA extensions.
+  parameter bit [NrCores-1:0] Xpulpvect     = '0,
+  /// Per-core enabling of the custom 'Xpulpvectshufflepack' ISA extensions.
+  parameter bit [NrCores-1:0] Xpulpvectshufflepack = '0,
+  // Per-core enable of private IPU.
+  parameter bit [NrCores-1:0] PrivateIpu    = '0,
   /// # Core-global parameters
   /// FPU configuration.
   parameter fpnew_pkg::fpu_implementation_t FPUImplementation [NrCores] =
@@ -351,6 +373,9 @@ module snitch_cluster
   localparam int unsigned NrWideRuleIdcs = NrWideSlaves - 1;
   localparam int unsigned NrWideRules = (1 + AliasRegionEnable) * NrWideRuleIdcs;
 
+  localparam bit [NrCores-1:0] Xpulpv2 = Xpulpabs | Xpulpbitop | Xpulpbr | Xpulpclip | Xpulpmacsi |
+    Xpulpminmax | Xpulpslet | Xpulpvect | Xpulpvectshufflepack;
+
   // AXI Configuration
   localparam axi_pkg::xbar_cfg_t ClusterXbarCfg = '{
     NoSlvPorts: NrNarrowMasters,
@@ -420,6 +445,26 @@ module snitch_cluster
       if (Hive[i] == hive_id) n++;
     end
     return n;
+  endfunction
+
+  // If at least one core in the hive doesn't have a private IPU, then a shared IPU is needed
+  // in this hive.
+  function automatic bit requires_shared_ipu(int unsigned hive_id);
+    for (int i = 0; i < NrCores; i++) begin
+      if ((Hive[i] == hive_id) && (PrivateIpu[i] == 0))
+        return 1;
+    end
+    return 0;
+  endfunction
+
+  // If at least one core in the hive supports the Xpulp extension, then the hive supports
+  // the Xpulp extension.
+  function automatic bit supports_xpulp(int unsigned hive_id);
+    for (int i = 0; i < NrCores; i++) begin
+      if ((Hive[i] == hive_id) && (Xpulpv2[i] != 0))
+        return 1;
+    end
+    return 0;
   endfunction
 
   // --------
@@ -1083,7 +1128,17 @@ module snitch_cluster
         .Xfrep (Xfrep[i]),
         .Xssr (Xssr[i]),
         .Xcopift (Xcopift[i]),
-        .Xipu (1'b0),
+        .Xpulppostmod (Xpulppostmod[i]),
+        .Xpulpabs (Xpulpabs[i]),
+        .Xpulpbitop (Xpulpbitop[i]),
+        .Xpulpbr (Xpulpbr[i]),
+        .Xpulpclip (Xpulpclip[i]),
+        .Xpulpmacsi (Xpulpmacsi[i]),
+        .Xpulpminmax (Xpulpminmax[i]),
+        .Xpulpslet (Xpulpslet[i]),
+        .Xpulpvect (Xpulpvect[i]),
+        .Xpulpvectshufflepack (Xpulpvectshufflepack[i]),
+        .PrivateIpu (PrivateIpu[i]),
         .VMSupport (VMSupport),
         .NumIntOutstandingLoads (NumIntOutstandingLoads[i]),
         .NumIntOutstandingMem (NumIntOutstandingMem[i]),
@@ -1165,6 +1220,8 @@ module snitch_cluster
 
   for (genvar i = 0; i < NrHives; i++) begin : gen_hive
       localparam int unsigned HiveSize = get_hive_size(i);
+      localparam bit SharedIpu = requires_shared_ipu(i);
+      localparam bit Xpulpv2 = supports_xpulp(i);
 
       hive_req_t [HiveSize-1:0] hive_req_reshape;
       hive_rsp_t [HiveSize-1:0] hive_rsp_reshape;
@@ -1186,6 +1243,8 @@ module snitch_cluster
         .NarrowDataWidth (NarrowDataWidth),
         .WideDataWidth (WideDataWidth),
         .VMSupport (VMSupport),
+        .SharedIpu (SharedIpu),
+        .Xpulpv2 (Xpulpv2),
         .dreq_t (reqrsp_req_t),
         .drsp_t (reqrsp_rsp_t),
         .hive_req_t (hive_req_t),

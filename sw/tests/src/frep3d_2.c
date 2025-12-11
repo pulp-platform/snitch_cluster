@@ -7,6 +7,7 @@
 #include "printf.h"
 
 int main() {
+#ifdef SNRT_SUPPORTS_FREP
     if (snrt_is_dm_core()) return 0;
 
     int n_iter_1 = 2;
@@ -35,4 +36,5 @@ int main() {
     snrt_fpu_fence();
 
     return exp_res - res;
+#endif
 }

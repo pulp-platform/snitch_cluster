@@ -10,6 +10,7 @@
 #define LENGTH 8
 
 int main() {
+#ifdef SNRT_SUPPORTS_COPIFT
     // Only compute cores proceed
     if (snrt_is_dm_core()) return 0;
 
@@ -55,8 +56,8 @@ int main() {
         :
         : [ n_frep ] "r"(LENGTH - 1), "f"(reg_one)
         : "ft0", "ft1", "ft2", "ft3", "memory");
-    snrt_ssr_disable();
     snrt_fpu_fence();
+    snrt_ssr_disable();
 
     // Compare results
     uint32_t n_errors = LENGTH;
@@ -64,4 +65,5 @@ int main() {
         if (golden_output[i] == (uint32_t)actual_output[i]) n_errors--;
     }
     return n_errors;
+#endif
 }

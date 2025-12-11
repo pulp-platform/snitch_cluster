@@ -2,6 +2,10 @@
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
 
+#ifndef SNRT_SUPPORTS_DMA
+#include <string.h>
+#endif
+
 /**
  * @file
  * @brief This file provides functions to program the Snitch DMA.
@@ -31,6 +35,7 @@ typedef uint32_t snrt_dma_txid_t;
 static inline uint32_t snrt_dma_start_1d(uint64_t dst, uint64_t src,
                                          size_t size,
                                          const uint32_t channel = 0) {
+#ifdef SNRT_SUPPORTS_DMA
     uint32_t dst_lo = dst & 0xFFFFFFFF;
     uint32_t dst_hi = dst >> 32;
     uint32_t src_lo = src & 0xFFFFFFFF;
@@ -47,6 +52,10 @@ static inline uint32_t snrt_dma_start_1d(uint64_t dst, uint64_t src,
           [ channel ] "i"(channel));
 
     return txid;
+#else
+    memcpy((void *)dst, (const void *)src, size);
+    return 0;
+#endif
 }
 
 /**
@@ -66,14 +75,20 @@ static inline uint32_t snrt_dma_start_1d(volatile void *dst, volatile void *src,
  * @param mask Multicast mask applied to successive transfers.
  */
 inline void snrt_dma_enable_mcast(uint32_t mask) {
+#ifdef SNRT_SUPPORTS_DMA
     asm volatile("dmuser %[mask], zero \n" : : [ mask ] "r"(mask));
+#endif
 }
 
 /**
  * @brief Disable multicast for successive transfers.
  * @details Resets the multicast mask to zero.
  */
-inline void snrt_dma_disable_mcast() { asm volatile("dmuser zero, zero \n"); }
+inline void snrt_dma_disable_mcast() {
+#ifdef SNRT_SUPPORTS_DMA
+    asm volatile("dmuser zero, zero \n");
+#endif
+}
 
 /**
  * @brief Start an asynchronous multicast 1D DMA transfer with 64-bit wide
@@ -130,6 +145,7 @@ static inline snrt_dma_txid_t snrt_dma_start_2d(uint64_t dst, uint64_t src,
                                                 size_t src_stride,
                                                 size_t repeat,
                                                 const uint32_t channel = 0) {
+#ifdef SNRT_SUPPORTS_DMA
     uint32_t dst_lo = dst & 0xFFFFFFFF;
     uint32_t dst_hi = dst >> 32;
     uint32_t src_lo = src & 0xFFFFFFFF;
@@ -149,6 +165,10 @@ static inline snrt_dma_txid_t snrt_dma_start_2d(uint64_t dst, uint64_t src,
           [ repeat ] "r"(repeat), [ size ] "r"(size), [ channel ] "i"(channel));
 
     return txid;
+#else
+    // TODO(colluca): we can implement this as a series of memcpy calls
+    return 0;
+#endif
 }
 
 /**
@@ -218,6 +238,7 @@ static inline uint32_t snrt_dma_start_2d_mcast(volatile void *dst,
  */
 static inline void snrt_dma_wait(snrt_dma_txid_t txid,
                                  const uint32_t channel = 0) {
+#ifdef SNRT_SUPPORTS_DMA
     asm volatile(
         "1: \n"
         "dmstati t0, (%[channel] << 2) | 0 \n"
@@ -225,6 +246,7 @@ static inline void snrt_dma_wait(snrt_dma_txid_t txid,
         :
         : [ txid ] "r"(txid), [ channel ] "i"(channel)
         : "t0");
+#endif
 }
 
 /**
@@ -237,6 +259,7 @@ static inline void snrt_dma_wait(snrt_dma_txid_t txid,
  *       function, and passing down an argument to @p channel.
  */
 static inline void snrt_dma_wait_all(const uint32_t channel = 0) {
+#ifdef SNRT_SUPPORTS_DMA
     uint32_t busy;
     asm volatile(
         "1: \n"
@@ -244,6 +267,7 @@ static inline void snrt_dma_wait_all(const uint32_t channel = 0) {
         "bne %[busy], zero, 1b \n"
         : [ busy ] "=r"(busy)
         : [ channel ] "i"(channel));
+#endif
 }
 
 /**
@@ -262,7 +286,11 @@ inline void snrt_dma_wait_all_channels(uint32_t num_channels) {
  * analyzed.
  * @deprecated
  */
-inline void snrt_dma_start_tracking() { asm volatile("dmstati zero, 0 \n"); }
+inline void snrt_dma_start_tracking() {
+#ifdef SNRT_SUPPORTS_DMA
+    asm volatile("dmstati zero, 0 \n");
+#endif
+}
 
 /**
  * @brief Stop tracking of dma performance region. Does not have any
@@ -270,7 +298,11 @@ inline void snrt_dma_start_tracking() { asm volatile("dmstati zero, 0 \n"); }
  * analyzed.
  * @deprecated
  */
-inline void snrt_dma_stop_tracking() { asm volatile("dmstati zero, 0 \n"); }
+inline void snrt_dma_stop_tracking() {
+#ifdef SNRT_SUPPORTS_DMA
+    asm volatile("dmstati zero, 0 \n");
+#endif
+}
 
 /**
  * @brief Fast memset function performed by DMA.
@@ -280,6 +312,7 @@ inline void snrt_dma_stop_tracking() { asm volatile("dmstati zero, 0 \n"); }
  *            the DMA.
  */
 inline void snrt_dma_memset(void *ptr, uint8_t value, uint32_t len) {
+#ifdef SNRT_SUPPORTS_DMA
     // We set the first 64 bytes to the value, and then we use the DMA to copy
     // these into the remaining memory region. DMA is used only if len is
     // larger than 64 bytes, and an integer multiple of 64 bytes.
@@ -296,6 +329,9 @@ inline void snrt_dma_memset(void *ptr, uint8_t value, uint32_t len) {
         snrt_dma_start_2d(ptr, ptr, 64, 64, 0, n_1d_transfers);
         snrt_dma_wait_all();
     }
+#else
+    memset(ptr, (int)value, len);
+#endif
 }
 
 /**

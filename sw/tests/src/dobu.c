@@ -26,6 +26,7 @@
 int main() {
     int n_errors = 0;
 
+#ifdef SNRT_SUPPORTS_FREP
     double zero = 0.0;
     double *bank0 = (double *)snrt_l1_next();
     double *bank1 = bank0 + 1;
@@ -37,13 +38,9 @@ int main() {
     if (snrt_cluster_core_idx() == 0) {
         for (int i = 0; i < LEN; i++) {
             bank0[i * NR_BANK_PER_HYPERBANK] = 1;
-            // *((uint64_t *)(bank0 + i * NR_BANK_PER_HYPERBANK)) =
-            // 0xAAAAAAAAAAAAAAAA;
         }
         for (int i = 0; i < LEN; i++) {
             bank24[i * NR_BANK_PER_HYPERBANK] = 2;
-            // *((uint64_t *)(bank24 + i * NR_BANK_PER_HYPERBANK)) =
-            // 0xBBBBBBBBBBBBBBBB;
         }
     }
 
@@ -86,19 +83,16 @@ int main() {
         n_errors = LEN * 2;
         for (int i = 0; i < LEN; i++) {
             if (bank2[i * NR_BANK_PER_HYPERBANK] == 1) {
-                // if (*((uint64_t *)(bank2 + i * NR_BANK_PER_HYPERBANK)) ==
-                // 0xAAAAAAAAAAAAAAAA) {
                 n_errors--;
             }
         }
         for (int i = 0; i < LEN; i++) {
             if (bank24[i * NR_BANK_PER_HYPERBANK] == 2) {
-                // if (*((uint64_t *)(bank1 + i * NR_BANK_PER_HYPERBANK)) ==
-                // 0xBBBBBBBBBBBBBBBB) {
                 n_errors--;
             }
         }
     }
+#endif
 
     return n_errors;
 }

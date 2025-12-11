@@ -107,7 +107,7 @@ $(SN_BIN_DIR)/$(TARGET).vsim: $(SN_VSIM_BUILDDIR)/compile.vsim.tcl $(SN_TB_CC_SO
 vsim: $(SN_BIN_DIR)/$(TARGET).vsim
 
 vsim-run: $(SN_VSIM_BINARY) $(SN_BINARY)
-	cd $(SN_SIM_DIR) && $(SN_VERIFY_PY) $(SN_VSIM_BINARY) $(SN_BINARY)
+	cd $(SN_SIM_DIR) && $(SN_UV) $(SN_VERIFY_PY) $(SN_VSIM_BINARY) $(SN_BINARY)
 
 # Clean all build directories and temporary files for Questasim simulation
 clean-vsim: clean-work

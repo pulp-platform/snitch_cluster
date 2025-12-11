@@ -77,6 +77,7 @@ runs:
   - elf: ../sw/tests/build/flt_d_copift.elf
   - elf: ../sw/tests/build/fcvt_d_wu_copift.elf
   - elf: ../sw/tests/build/fcvt_d_w_copift.elf
+  - elf: ../sw/tests/build/mcycle.elf
   - elf: ../sw/kernels/blas/axpy/build/axpy.elf
     cmd: [../sw/kernels/blas/axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ../sw/kernels/blas/gemm/build/gemm.elf

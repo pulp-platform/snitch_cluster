@@ -9,6 +9,7 @@
 #include "vlogf_optimized_asm.h"
 
 static inline void vlogf_optimized(float *a, double *b) {
+#ifdef SNRT_SUPPORTS_FREP
     // Derived parameters
     unsigned int n_stages = 4;  // DMA in, INT, FP, DMA out
     unsigned int n_batches = LEN / BATCH_SIZE;
@@ -204,4 +205,5 @@ static inline void vlogf_optimized(float *a, double *b) {
         // Synchronize cores
         snrt_cluster_hw_barrier();
     }
+#endif
 }

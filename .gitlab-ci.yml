@@ -89,13 +89,13 @@ snitch-cluster-vlt:
     - cd test
     - uv run ../util/experiments/run.py run.yaml --simulator verilator -j --run-dir runs/vlt
 
-# # VCS
-# snitch-cluster-vcs:
-#   needs: [snitch-cluster-sw]
-#   script:
-#     - make vcs
-#     - cd test
-#     - uv run ../util/experiments/run.py run.yaml --simulator vcs -j --run-dir runs/vcs
+# VCS
+snitch-cluster-vcs:
+  needs: [snitch-cluster-sw]
+  script:
+    - make vcs
+    - cd test
+    - uv run ../util/experiments/run.py run.yaml --simulator vcs -j --run-dir runs/vcs
 
 # Questa
 snitch-cluster-vsim:
@@ -105,12 +105,16 @@ snitch-cluster-vsim:
     - cd test
     - uv run ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim
     - uv run ../util/experiments/run.py riscv_tests_isa.yaml --simulator vsim -j --run-dir runs/vsim
+    # Test convenience Make target
+    - cd ..
+    - make vsim-run SN_BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf \
+        SN_VERIFY_PY=$PWD/sw/kernels/blas/axpy/scripts/verify.py
     # Test trace annotation
-    - make -C .. SIM_DIR=$(PWD)/runs/vsim/simple annotate -j
+    - make SIM_DIR=$PWD/test/runs/vsim/simple annotate -j
     # Run additional, more extensive tests
-    - cd blas/gemm && ./test.sh && cd -
-    - cd dnn/transpose && ./test.sh && cd -
-    - cd dnn/flashattention_2 && ./test.sh && cd -
+    - cd test/blas/gemm && ./test.sh && cd -
+    - cd test/dnn/transpose && ./test.sh && cd -
+    - cd test/dnn/flashattention_2 && ./test.sh && cd -
 
 # Test OmegaNet TCDM interconnect
 snitch-cluster-omega-vsim:
@@ -127,6 +131,15 @@ snitch-cluster-mchan-vsim:
     - make vsim -j
     - cd test
     - uv run ../util/experiments/run.py dma_mchan.yaml --simulator vsim -j --run-dir runs/vsim
+
+# Test Mempool configuration
+snitch-cluster-mempool-vsim:
+  script:
+    - make CFG_OVERRIDE=cfg/mempool.json SN_MCPU=snitch-mempool sw -j
+    - make vsim -j
+    - cd test
+    - uv run ../util/experiments/run.py mempool.yaml --simulator vsim -j --run-dir runs/vsim
+    - make -C .. SIM_DIR=$PWD/runs/vsim/simple SN_MCPU=snitch-mempool annotate -j
 
 # Additional tests for different FREP configurations
 snitch-cluster-frep-vsim:

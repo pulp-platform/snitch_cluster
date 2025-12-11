@@ -24,6 +24,8 @@ module snitch_hive import snitch_icache_pkg::*; #(
   parameter int unsigned WideDataWidth      = 0,
   /// Enable virtual memory support.
   parameter bit          VMSupport          = 1,
+  parameter bit          SharedIpu          = 1,
+  parameter bit          Xpulpv2            = 0,
   parameter type         dreq_t             = logic,
   parameter type         drsp_t             = logic,
   parameter type         axi_req_t          = logic,
@@ -326,7 +328,7 @@ module snitch_hive import snitch_icache_pkg::*; #(
   spill_register  #(
     .T      ( acc_req_t  ),
     .Bypass ( 1'b1       )
-  ) i_spill_register_muldiv (
+  ) i_spill_register_ipu (
     .clk_i   ,
     .rst_ni  ( rst_ni              ),
     .valid_i ( acc_req_sfu_valid   ),
@@ -337,25 +339,22 @@ module snitch_hive import snitch_icache_pkg::*; #(
     .data_o  ( acc_req_sfu_q       )
   );
 
-  snitch_shared_muldiv #(
-    .DataWidth (NarrowDataWidth),
-    .IdWidth ( ExtendedIdWidth )
-  ) i_snitch_shared_muldiv (
-    .clk_i            ( clk_i                   ),
-    .rst_ni           ( rst_ni                  ),
-    .acc_qaddr_i      ( acc_req_sfu_q.addr      ),
-    .acc_qid_i        ( acc_req_sfu_q.id        ),
-    .acc_qdata_op_i   ( acc_req_sfu_q.data_op   ),
-    .acc_qdata_arga_i ( acc_req_sfu_q.data_arga ),
-    .acc_qdata_argb_i ( acc_req_sfu_q.data_argb ),
-    .acc_qdata_argc_i ( acc_req_sfu_q.data_argc ),
-    .acc_qvalid_i     ( acc_req_sfu_valid_q     ),
-    .acc_qready_o     ( acc_req_sfu_ready_q     ),
-    .acc_pdata_o      ( acc_resp_sfu.data       ),
-    .acc_pid_o        ( acc_resp_sfu.id         ),
-    .acc_perror_o     ( acc_resp_sfu.error      ),
-    .acc_pvalid_o     ( acc_resp_sfu_valid      ),
-    .acc_pready_i     ( acc_resp_sfu_ready      )
-  );
+  if (SharedIpu == 1) begin : gen_shared_ipu
+    snitch_ipu #(
+      .IdWidth    ( ExtendedIdWidth ),
+      .Xpulpv2    ( Xpulpv2         ),
+      .acc_req_t  ( acc_req_t       ),
+      .acc_resp_t ( acc_resp_t      )
+    ) i_snitch_ipu (
+      .clk_i,
+      .rst_ni,
+      .acc_req_i        ( acc_req_sfu_q       ),
+      .acc_req_valid_i  ( acc_req_sfu_valid_q ),
+      .acc_req_ready_o  ( acc_req_sfu_ready_q ),
+      .acc_resp_o       ( acc_resp_sfu        ),
+      .acc_resp_valid_o ( acc_resp_sfu_valid  ),
+      .acc_resp_ready_i ( acc_resp_sfu_ready  )
+    );
+  end
 
 endmodule

@@ -542,6 +542,71 @@
                                             "description": "Enable Smallfloat vector extension (SIMD).",
                                             "default": false
                                         },
+                                        "xpulppostmod": {
+                                            "type": "boolean",
+                                            "title": "Xpulppostmod Subextension",
+                                            "description": "Enable Xpulppostmod subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpabs": {
+                                            "type": "boolean",
+                                            "title": "Xpulpabs Subextension",
+                                            "description": "Enable Xpulpabs subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpbitop": {
+                                            "type": "boolean",
+                                            "title": "Xpulpbitop Subextension",
+                                            "description": "Enable Xpulpbitop subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpbr": {
+                                            "type": "boolean",
+                                            "title": "Xpulpbr Subextension",
+                                            "description": "Enable Xpulpbr subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpclip": {
+                                            "type": "boolean",
+                                            "title": "Xpulpclip Subextension",
+                                            "description": "Enable Xpulpclip subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpmacsi": {
+                                            "type": "boolean",
+                                            "title": "Xpulpmacsi Subextension",
+                                            "description": "Enable Xpulpmacsi subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpminmax": {
+                                            "type": "boolean",
+                                            "title": "Xpulpminmax Subextension",
+                                            "description": "Enable Xpulpminmax subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpslet": {
+                                            "type": "boolean",
+                                            "title": "Xpulpslet Subextension",
+                                            "description": "Enable Xpulpslet subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpvect": {
+                                            "type": "boolean",
+                                            "title": "Xpulpvect Subextension",
+                                            "description": "Enable Xpulpvect subextension.",
+                                            "default": false
+                                        },
+                                        "xpulpvectshufflepack": {
+                                            "type": "boolean",
+                                            "title": "Xpulpvectshufflepack Subextension",
+                                            "description": "Enable Xpulpvectshufflepack subextension.",
+                                            "default": false
+                                        },
+                                        "private_ipu": {
+                                            "type": "boolean",
+                                            "description": "Whether the core should be equipped with its own, not a hive-shared, private IPU.",
+                                            "default": false
+                                        },
                                         "num_int_outstanding_loads": {
                                             "type": "number",
                                             "description": "Number of outstanding integer loads. Determines the buffer size in the core's load/store unit.",
