@@ -365,22 +365,22 @@ package snitch_pkg;
   endfunction
 
   typedef struct packed {
-    longint source;
-    longint req_hs;
-    longint rsp_hs;
-    longint operand0;
-    longint operand1;
-    longint operand2;
-    longint rnd_mode;
-    longint op;
-    longint op_mod;
-    longint src_fmt;
-    longint dst_fmt;
-    longint int_fmt;
-    longint vectorial_op;
-    longint tag;
-    longint status;
-    longint result;
+    trace_src_e source;
+    longint     req_hs;
+    longint     rsp_hs;
+    longint     operand0;
+    longint     operand1;
+    longint     operand2;
+    longint     rnd_mode;
+    longint     op;
+    longint     op_mod;
+    longint     src_fmt;
+    longint     dst_fmt;
+    longint     int_fmt;
+    longint     vectorial_op;
+    longint     tag;
+    longint     status;
+    longint     result;
   } dca_trace_port_t;
 
   function automatic string print_dca_trace(dca_trace_port_t dca_trace);
