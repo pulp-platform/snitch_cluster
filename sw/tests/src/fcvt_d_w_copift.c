@@ -15,8 +15,8 @@ int main() {
     if (snrt_is_dm_core()) return 0;
 
     // Allocate input and output arrays
-    uint64_t *input = (uint64_t *)snrt_l1_alloc_compute_core_local(
-        LENGTH * sizeof(uint32_t), sizeof(uint32_t));
+    int64_t *input = (int64_t *)snrt_l1_alloc_compute_core_local(
+        LENGTH * sizeof(int64_t), sizeof(int64_t));
     double *golden_output = (double *)snrt_l1_alloc_compute_core_local(
         LENGTH * sizeof(double), sizeof(double));
     double *actual_output = (double *)snrt_l1_alloc_compute_core_local(
@@ -36,7 +36,7 @@ int main() {
     for (int i = 0; i < LENGTH; i++) {
         asm volatile("fcvt.d.w %[out], %[in] \n"
                      : [ out ] "=f"(golden_output[i])
-                     : [ in ] "r"((uint32_t)input[i])
+                     : [ in ] "r"((int32_t)input[i])
                      :);
     }
     snrt_fpu_fence();
