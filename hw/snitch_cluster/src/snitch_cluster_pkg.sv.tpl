@@ -109,8 +109,7 @@ package ${cfg['cluster']['name']}_pkg;
   typedef logic [WideIdWidthIn-1:0]     wide_in_id_t;
   typedef logic [WideIdWidthOut-1:0]    wide_out_id_t;
 
-// Generate the typedef's for the userfield's with the required subfields depending
-// on the configuration
+// Generate the user field type definitions depending on the configuration
 % if cfg['cluster']['enable_narrow_collectives']:
   typedef struct packed {
     addr_t                          collective_mask;
@@ -123,7 +122,6 @@ package ${cfg['cluster']['name']}_pkg;
   } user_narrow_t;
 %endif
 
-// Will be extended when implementing collective operation on the wide dma link
 % if cfg['cluster']['enable_wide_collectives']:
   typedef struct packed {
     addr_t                          collective_mask;

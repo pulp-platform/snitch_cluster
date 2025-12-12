@@ -299,7 +299,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .dca_rsp_o
 % else:
     .dca_req_i ('0),
-    .dca_rsp_o
+    .dca_rsp_o ()
 %endif
   );
 
@@ -321,5 +321,10 @@ module ${cfg['cluster']['name']}_wrapper (
 % if cfg['cluster']['num_exposed_wide_tcdm_ports'] == 0:
     // Tie off external TCDM output ports if none are exposed
     assign tcdm_ext_resp_o = '0;
+% endif
+
+% if cfg['cluster']['enable_dca'] == 0:
+    // Tie off DCA response if DCA interface is disabled
+    assign dca_rsp_o = '0;
 % endif
 endmodule

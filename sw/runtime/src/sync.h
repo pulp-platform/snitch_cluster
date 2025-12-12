@@ -36,7 +36,7 @@ inline void snrt_comm_init() {
 
     // Allocate barrier counter in L1. This allows us to perform global
     // hardware barriers, as reductions are currently not supported in L3.
-    // All clusters allocate a barrier counter becase we want to keep all
+    // All clusters allocate a barrier counter because we want to keep all
     // clusters' L1 allocators aligned, but only the zero-th cluster's is
     // actually used. So all clusters allocate one, but only the zero-th
     // cluster's is initialized. A global barrier is then used to ensure
@@ -71,7 +71,7 @@ inline void snrt_comm_create(uint32_t size, snrt_comm_t *communicator) {
 
     // Allocate barrier counter in L1. This allows us to perform global
     // hardware barriers, as reductions are currently not supported in L3.
-    // All clusters allocate a barrier counter becase we want to keep all
+    // All clusters allocate a barrier counter because we want to keep all
     // clusters' L1 allocators aligned, but only the zero-th cluster's is
     // actually used. So all clusters allocate one, but only the zero-th
     // cluster's is initialized. A global barrier is then used to ensure

@@ -118,10 +118,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
   } op_select_e;
 
   typedef enum logic [1:0] {
-    ResNone, ResAccBus
-  } result_select_e;
-
-  typedef enum logic [1:0] {
     Byte       = 2'b00,
     HalfWord   = 2'b01,
     Word       = 2'b10,
@@ -199,9 +195,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
   logic fpu_in_valid, fpu_in_ready;
 
   op_select_e [2:0] op_select;
-
-  // TODO(colluca): can this be removed? it seems to be always fixed to ResNone
-  result_select_e result_select;
 
   logic op_mode;
 
@@ -297,9 +290,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   assign acc_req_ready_q = dst_ready & ((fpu_in_ready & fpu_in_valid)
                                       // Load/Store
                                       | (lsu_qvalid & lsu_qready)
-                                      | csr_instr
-                                      // Direct Reg Write
-                                      | (acc_req_valid_q && result_select == ResAccBus));
+                                      | csr_instr);
 
   // either the FPU or the regfile produced a result
   // If queue is enabled, data goes to queue instead of AccBus
@@ -377,8 +368,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
     src_fmt = fpnew_pkg::FP32;
     dst_fmt = fpnew_pkg::FP32;
     int_fmt = fpnew_pkg::INT32;
-
-    result_select = ResNone;
 
     op_select[0] = None;
     op_select[1] = None;
@@ -2748,15 +2737,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     fpr_wready = 1'b1;
     ssr_wvalid_o = 1'b0;
     ssr_wdone_o = 1'b1;
-    // the accelerator master wants to write
-    if (acc_req_valid_q && result_select == ResAccBus) begin
-      fpr_we = 1'b1;
-      // NaN-Box the value
-      fpr_wdata = nan_boxed_arga[FLEN-1:0];
-      fpr_waddr = rd;
-      fpr_wvalid = 1'b1;
-      fpr_wready = 1'b0;
-    end else if (fpu_out_valid && !fpu_tag_out.acc) begin
+    if (fpu_out_valid && !fpu_tag_out.acc) begin
       fpr_we = 1'b1;
       if (fpu_tag_out.ssr) begin
         ssr_wvalid_o = 1'b1;
@@ -2858,7 +2839,10 @@ module snitch_fp_ss import snitch_pkg::*; #(
     core_events_o.issue_fpu_seq = issue_fpu_seq;
   end
 
+  // ----------------------
   // Tracer
+  // ----------------------
+
   // pragma translate_off
   // Assign the FPU trace
   assign trace_port_o.source       = snitch_pkg::SrcFpu;
@@ -2890,7 +2874,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
   assign trace_port_o.is_store     = is_store;
   assign trace_port_o.lsu_qaddr    = i_snitch_lsu.lsu_qaddr_i;
   assign trace_port_o.lsu_rd       = lsu_rd;
-  assign trace_port_o.acc_wb_ready = (result_select == ResAccBus);
   assign trace_port_o.fpu_out_acc  = fpu_tag_out.acc;
   assign trace_port_o.fpr_waddr    = fpr_waddr[0];
   assign trace_port_o.fpr_wdata    = fpr_wdata[0];

@@ -637,8 +637,9 @@ module snitch_cluster
   assign ext_mem_start_address = zero_mem_end_address;
   assign ext_mem_end_address   = ext_mem_start_address + ExtMemorySize * 1024;
 
-  addr_t cluster_end_address;
-  assign cluster_end_address = cluster_base_addr_i + cluster_base_offset_i;
+  addr_t cluster_start_address, cluster_end_address;
+  assign cluster_start_address = cluster_base_addr_i;
+  assign cluster_end_address = cluster_start_address + cluster_base_offset_i;
 
   localparam addr_t TCDMAliasStart = AliasRegionBase & TCDMMask;
   localparam addr_t TCDMAliasEnd   = (TCDMAliasStart + TCDMSizeNapotRounded) & TCDMMask;
@@ -767,7 +768,7 @@ module snitch_cluster
   xbar_rule_t dma_xbar_default_rule;
   assign dma_xbar_default_rule = '{
     idx: dma_xbar_default_port,
-    start_addr: tcdm_start_address,
+    start_addr: cluster_start_address,
     end_addr: cluster_end_address
   };
 

@@ -6,9 +6,6 @@
 
 #include <stdint.h>
 
-#define SNRT_COLLECTIVE_MASK_WIDTH \
-    (64 - SNRT_REDUCTION_OPCODE_WIDTH - SNRT_COLLECTIVE_OPCODE_WIDTH)
-
 typedef struct {
     uint32_t volatile cnt;
     uint32_t volatile iteration;

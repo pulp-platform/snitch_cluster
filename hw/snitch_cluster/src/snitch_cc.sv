@@ -1149,8 +1149,7 @@ module snitch_cc #(
       end
       if (EnableDca) begin
         extras_dca = dca_trace;
-        // Trace DCA iff
-        // When either a request or response handshake occures
+        // Trace DCA iff a request or response handshake occurs
         if (extras_dca.req_hs || extras_dca.rsp_hs) begin
           $sformat(trace_entry, "%t %1d %8d 0x%h DASM(%h) #; %s\n",
               $time, cycle, i_snitch.priv_lvl_q, 32'hz, extras_dca.op,

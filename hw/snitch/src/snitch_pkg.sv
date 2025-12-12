@@ -296,7 +296,6 @@ package snitch_pkg;
     longint     is_store;
     longint     lsu_qaddr;
     longint     lsu_rd;
-    longint     acc_wb_ready;
     longint     fpu_out_acc;
     longint     fpr_waddr;
     longint     fpr_wdata;
