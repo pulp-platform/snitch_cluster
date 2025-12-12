@@ -409,7 +409,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   `FFAR(fcsr_q, fcsr_d, '0, clk_i, rst_i)
 
   // performance counter
-  `ifdef SNITCH_ENABLE_PERF
+`ifdef SNITCH_ENABLE_PERF
   logic [63:0] cycle_q;
   logic [63:0] instret_q;
   logic retired_instr_q;
@@ -424,14 +424,17 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   `FFAR(retired_i_q, retire_i, '0, clk_i, rst_i)
   `FFAR(retired_acc_q, retire_acc, '0, clk_i, rst_i)
   `FFAR(retired_x_q, retire_x, '0, clk_i, rst_i)
-  assign core_events_o.retired_instr = retired_instr_q;
-  assign core_events_o.retired_load = retired_load_q;
-  assign core_events_o.retired_i = retired_i_q;
-  assign core_events_o.retired_acc = retired_acc_q;
-  assign core_events_o.retired_x = retired_x_q;
-  `else
+  always_comb begin
+    core_events_o = '0;
+    core_events_o.retired_instr = retired_instr_q;
+    core_events_o.retired_load = retired_load_q;
+    core_events_o.retired_i = retired_i_q;
+    core_events_o.retired_acc = retired_acc_q;
+    core_events_o.retired_x = retired_x_q;
+  end
+`else
   assign core_events_o = '0;
-  `endif
+`endif
 
   logic [AddrWidth-32-1:0] mseg_q, mseg_d;
   `FFAR(mseg_q, mseg_d, '0, clk_i, rst_i)

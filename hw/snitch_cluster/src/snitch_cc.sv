@@ -267,7 +267,7 @@ module snitch_cc #(
   fpnew_pkg::status_t    fpu_status;
 
   snitch_pkg::core_events_t snitch_events;
-  snitch_pkg::core_events_t fpu_events;
+  snitch_pkg::core_events_t fpss_events;
 
   // Snitch Integer Core
   dreq_t snitch_dreq_d, snitch_dreq_q, merged_dreq;
@@ -612,7 +612,6 @@ module snitch_cc #(
   logic             ssr_streamctl_ready;
 
   if (FPEn) begin : gen_fpu
-    snitch_pkg::core_events_t fp_ss_core_events;
 
     dreq_t fpu_dreq;
     drsp_t fpu_drsp;
@@ -703,7 +702,7 @@ module snitch_cc #(
       .streamctl_done_i   ( ssr_streamctl_done  ),
       .streamctl_valid_i  ( ssr_streamctl_valid ),
       .streamctl_ready_o  ( ssr_streamctl_ready ),
-      .core_events_o      ( fp_ss_core_events   ),
+      .core_events_o      ( fpss_events         ),
       .en_copift_i        ( en_copift           ),
       .dca_req_i          ( dca_req             ),
       .dca_rsp_o          ( dca_rsp             )
@@ -729,10 +728,6 @@ module snitch_cc #(
       .idx_o (/*not connected*/)
     );
 
-    assign core_events_o.issue_fpu = fp_ss_core_events.issue_fpu;
-    assign core_events_o.issue_fpu_seq = fp_ss_core_events.issue_fpu_seq;
-    assign core_events_o.issue_core_to_fpu = fp_ss_core_events.issue_core_to_fpu;
-
   end else begin : gen_no_fpu
     assign fpu_status = '0;
 
@@ -755,9 +750,7 @@ module snitch_cc #(
     assign merged_dreq = snitch_dreq_q;
     assign snitch_drsp_q = merged_drsp;
 
-    assign core_events_o.issue_fpu = '0;
-    assign core_events_o.issue_fpu_seq = '0;
-    assign core_events_o.issue_core_to_fpu = '0;
+    assign fpss_events = '0;
 
     assign dca_rsp_o = '0;
   end
@@ -1026,10 +1019,12 @@ module snitch_cc #(
   end
 
   // Core events for performance counters
-  assign core_events_o.retired_instr = snitch_events.retired_instr;
-  assign core_events_o.retired_load = snitch_events.retired_load;
-  assign core_events_o.retired_i = snitch_events.retired_i;
-  assign core_events_o.retired_acc = snitch_events.retired_acc;
+  always_comb begin
+    core_events_o = snitch_events;
+    core_events_o.issue_fpu = fpss_events.issue_fpu;
+    core_events_o.issue_fpu_seq = fpss_events.issue_fpu_seq;
+    core_events_o.issue_core_to_fpu = fpss_events.issue_core_to_fpu;
+  end
 
   // --------------------------
   // Tracer

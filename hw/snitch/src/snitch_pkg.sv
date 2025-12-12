@@ -333,7 +333,6 @@ package snitch_pkg;
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "is_store", fpu_trace.is_store);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "lsu_qaddr", fpu_trace.lsu_qaddr);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "lsu_rd", fpu_trace.lsu_rd);
-    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "acc_wb_ready", fpu_trace.acc_wb_ready);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "fpu_out_acc", fpu_trace.fpu_out_acc);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "fpr_waddr", fpu_trace.fpr_waddr);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "fpr_wdata", fpu_trace.fpr_wdata);

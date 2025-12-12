@@ -304,27 +304,27 @@ module ${cfg['cluster']['name']}_wrapper (
   );
 
 % if not cfg['cluster']['enable_xif']:
-    // Tie off XIF outputs if XIF is disabled
-    assign x_issue_req_o = '{default: ${cfg['cluster']['name']}_pkg::x_issue_req_t'('0)};
-    assign x_issue_valid_o = '0;
-    assign x_register_o = '{default: ${cfg['cluster']['name']}_pkg::x_register_t'('0)};
-    assign x_register_valid_o = '0;
-    assign x_commit_o = '{default: ${cfg['cluster']['name']}_pkg::x_commit_t'('0)};
-    assign x_commit_valid_o = '0;
-    assign x_result_ready_o = '0;
+  // Tie off XIF outputs if XIF is disabled
+  assign x_issue_req_o = '{default: ${cfg['cluster']['name']}_pkg::x_issue_req_t'('0)};
+  assign x_issue_valid_o = '0;
+  assign x_register_o = '{default: ${cfg['cluster']['name']}_pkg::x_register_t'('0)};
+  assign x_register_valid_o = '0;
+  assign x_commit_o = '{default: ${cfg['cluster']['name']}_pkg::x_commit_t'('0)};
+  assign x_commit_valid_o = '0;
+  assign x_result_ready_o = '0;
 % endif
 
 % if not cfg['cluster']['narrow_axi_port_expose']:
-    // Tie off narrow AXI port outputs if external narrow AXI port is disabled
-    assign narrow_ext_req_o = '0;
+  // Tie off narrow AXI port outputs if external narrow AXI port is disabled
+  assign narrow_ext_req_o = '0;
 % endif
 % if cfg['cluster']['num_exposed_wide_tcdm_ports'] == 0:
-    // Tie off external TCDM output ports if none are exposed
-    assign tcdm_ext_resp_o = '0;
+  // Tie off external TCDM output ports if none are exposed
+  assign tcdm_ext_resp_o = '0;
 % endif
 
 % if cfg['cluster']['enable_dca'] == 0:
-    // Tie off DCA response if DCA interface is disabled
-    assign dca_rsp_o = '0;
+  // Tie off DCA response if DCA interface is disabled
+  assign dca_rsp_o = '0;
 % endif
 endmodule
