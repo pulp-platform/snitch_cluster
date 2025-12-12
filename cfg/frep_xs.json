@@ -61,7 +61,7 @@
             // Hive 0
             {
                 icache: {
-                    size: 8, // total instruction cache size in kByte
+                    size: 16, // total instruction cache size in kByte
                     ways: 2, // number of ways
                     cacheline: 512 // word size in bits
                 },
