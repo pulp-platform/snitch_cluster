@@ -1118,6 +1118,9 @@ module snitch_cc #(
             $time, cycle, i_snitch.priv_lvl_q, i_snitch.pc_q, i_snitch.inst_data_i,
             snitch_pkg::print_snitch_trace(extras_snitch));
         $fwrite(f, trace_entry);
+`ifdef DEBUG
+        $fflush(f);
+`endif
       end
       if (FPEn) begin
         // Trace FPU iff:
@@ -1131,6 +1134,9 @@ module snitch_cc #(
               $time, cycle, i_snitch.priv_lvl_q, 32'hz, extras_fpu.op_in,
               snitch_pkg::print_fpu_trace(extras_fpu));
           $fwrite(f, trace_entry);
+`ifdef DEBUG
+          $fflush(f);
+`endif
         end
         // sequencer instructions
         if (Xfrep) begin
@@ -1139,6 +1145,9 @@ module snitch_cc #(
                 $time, cycle, i_snitch.priv_lvl_q, 32'hz, 64'hz,
                 snitch_pkg::print_fpu_sequencer_trace(extras_fpu_seq_out));
             $fwrite(f, trace_entry);
+`ifdef DEBUG
+            $fflush(f);
+`endif
           end
         end
       end
@@ -1150,6 +1159,9 @@ module snitch_cc #(
               $time, cycle, i_snitch.priv_lvl_q, 32'hz, extras_dca.op,
               snitch_pkg::print_dca_trace(extras_dca));
           $fwrite(f, trace_entry);
+`ifdef DEBUG
+          $fflush(f);
+`endif
         end
       end
     end else begin
