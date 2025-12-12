@@ -39,8 +39,7 @@ typedef enum {
 
 typedef union {
     struct __attribute__((__packed__)) {
-        snrt_collective_opcode_t collective_op
-            : SNRT_COLLECTIVE_OPCODE_WIDTH;
+        snrt_collective_opcode_t collective_op : SNRT_COLLECTIVE_OPCODE_WIDTH;
         uint64_t mask : (64 - SNRT_COLLECTIVE_OPCODE_WIDTH);
     } f;
     uint64_t w;

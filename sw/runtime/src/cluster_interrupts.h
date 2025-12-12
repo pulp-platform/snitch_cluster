@@ -12,7 +12,8 @@
  * @param cluster_idx Index of the cluster to which the interrupt is sent
  */
 inline void snrt_int_cluster_set(uint32_t mask, uint32_t cluster_idx) {
-    snrt_cluster(cluster_idx)->peripheral_reg.cl_clint_set.f.cl_clint_set = mask;
+    snrt_cluster(cluster_idx)->peripheral_reg.cl_clint_set.f.cl_clint_set =
+        mask;
 }
 
 /**

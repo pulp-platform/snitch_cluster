@@ -154,13 +154,12 @@ static inline uint32_t snrt_dma_start_1d_reduction(
  * @see snrt_dma_start_1d(uint64_t, uint64_t, size_t, uint32_t) for a
  *      description of the other parameters.
  */
- static inline uint32_t snrt_dma_start_1d_reduction(
+static inline uint32_t snrt_dma_start_1d_reduction(
     uint64_t dst, uint64_t src, size_t size, snrt_comm_t comm,
     snrt_collective_opcode_t opcode, const uint32_t channel = 0) {
-
     uint64_t mask = snrt_get_collective_mask(comm);
-    uint32_t txid = snrt_dma_start_1d_reduction(dst, src, size, mask, opcode,
-                                                channel);
+    uint32_t txid =
+        snrt_dma_start_1d_reduction(dst, src, size, mask, opcode, channel);
     return txid;
 }
 
@@ -187,9 +186,9 @@ static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
  * @see snrt_dma_start_1d(uint64_t, uint64_t, size_t, uint32_t) for a
  *      description of the other parameters.
  */
- static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
-                                                size_t size, snrt_comm_t comm,
-                                                const uint32_t channel = 0) {
+static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
+                                               size_t size, snrt_comm_t comm,
+                                               const uint32_t channel = 0) {
     uint64_t mask = snrt_get_collective_mask(comm);
     uint32_t txid = snrt_dma_start_1d_mcast(dst, src, size, mask, channel);
     return txid;
@@ -647,14 +646,14 @@ inline snrt_dma_txid_t snrt_dma_load_2d_tile_mcast(
  * @see snrt_dma_load_2d_tile_mcast(void *, void *, size_t, size_t, size_t, size_t, size_t, uint32_t, size_t, uint32_t)
  *      for a detailed description of the parameters.
  */
- inline snrt_dma_txid_t snrt_dma_load_2d_tile_mcast(
+inline snrt_dma_txid_t snrt_dma_load_2d_tile_mcast(
     void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
     uint32_t prec, snrt_comm_t comm) {
     uint64_t mask = snrt_get_collective_mask(comm);
     return snrt_dma_load_2d_tile_mcast(dst, src, tile_x1_idx, tile_x0_idx,
-                                       tile_x1_size, tile_x0_size,
-                                       full_x0_size, prec, mask);
+                                       tile_x1_size, tile_x0_size, full_x0_size,
+                                       prec, mask);
 }
 
 /**
