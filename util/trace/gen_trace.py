@@ -907,9 +907,7 @@ def annotate_fpu(
         perf_metrics[-1]['fpss_fpu_issues'] += 1
     # Register writeback
     if extras['fpr_we']:
-        writer = 'acc' if extras['acc_q_hs'] and extras['acc_wb_ready'] else (
-            'fpu'
-            if extras['fpu_out_hs'] and not extras['fpu_out_acc'] else 'lsu')
+        writer = 'fpu' if extras['fpu_out_hs'] and not extras['fpu_out_acc'] else 'lsu'
         fmt = 0  # accelerator bus format is 0 for regular float32
         if writer == 'fpu' or writer == 'lsu':
             try:
