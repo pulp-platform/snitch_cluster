@@ -44,6 +44,8 @@ inline void snrt_comm_init() {
     // default-initialized barrier pointer in L3. It must thus be a software
     // barrier, as we currently do not support hardware reductions in L3.
     void *barrier_ptr = snrt_l1_alloc_cluster_local(sizeof(uint32_t));
+    // TODO(colluca): we should remove the alloc.h API once and for all
+    snrt_l1_update_next(snrt_l1_next_v2());
     barrier_ptr = snrt_remote_l1_ptr(barrier_ptr, snrt_cluster_idx(), 0);
     if (snrt_global_core_idx() == 0) *(uint32_t *)barrier_ptr = 0;
     snrt_global_sw_barrier();
