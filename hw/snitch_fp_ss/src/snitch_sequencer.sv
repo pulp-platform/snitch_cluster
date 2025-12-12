@@ -326,6 +326,7 @@ module snitch_sequencer import snitch_pkg::*; #(
 
   rb_entry_t rb_rdata;
   rb_entry_t rb_wdata;
+  logic rb_empty;
 
   assign rb_wdata = '{
     qdata_op: inp_qdata_op_i,

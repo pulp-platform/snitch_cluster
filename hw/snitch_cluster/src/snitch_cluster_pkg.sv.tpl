@@ -33,6 +33,7 @@ ${',' if not loop.last else ''}
 
 `include "axi/typedef.svh"
 `include "tcdm_interface/typedef.svh"
+`include "dca_interface/typedef.svh"
 
 // verilog_lint: waive-start package-filename
 package ${cfg['cluster']['name']}_pkg;
@@ -59,9 +60,11 @@ package ${cfg['cluster']['name']}_pkg;
   localparam int unsigned WideIdWidthIn = ${cfg['cluster']['dma_id_width_in']};
   localparam int unsigned WideIdWidthOut = $clog2(NrWideMasters) + WideIdWidthIn;
 
-  localparam int unsigned NarrowUserWidth = ${cfg['cluster']['user_width']};
-  localparam int unsigned WideUserWidth = ${cfg['cluster']['dma_user_width']};
+  localparam int unsigned EnableWideCollectives = ${int(cfg['cluster']['enable_wide_collectives'])};
+  localparam int unsigned EnableNarrowCollectives = ${int(cfg['cluster']['enable_narrow_collectives'])};
+
   localparam int unsigned AtomicIdWidth = ${cfg['cluster']['atomic_id_width']};
+  localparam int unsigned CollectiveWidth = ${cfg['cluster']['collective_width']};
 
   localparam int unsigned ICacheLineWidth [NrHives] = '{${icache_cfg('cacheline')}};
   localparam int unsigned ICacheLineCount [NrHives] = '{${icache_cfg('depth')}};
@@ -93,6 +96,9 @@ package ${cfg['cluster']['name']}_pkg;
     sram_cfg_t tcdm;
   } sram_cfgs_t;
 
+  // Define dca_req_t and dca_rsp_t
+  `DCA_TYPEDEF_ALL(dca, WideDataWidth)
+
   typedef logic [AddrWidth-1:0]         addr_t;
   typedef logic [NarrowDataWidth-1:0]   data_t;
   typedef logic [NarrowDataWidth/8-1:0] strb_t;
@@ -102,11 +108,34 @@ package ${cfg['cluster']['name']}_pkg;
   typedef logic [NarrowIdWidthOut-1:0]  narrow_out_id_t;
   typedef logic [WideIdWidthIn-1:0]     wide_in_id_t;
   typedef logic [WideIdWidthOut-1:0]    wide_out_id_t;
-  typedef logic [NarrowUserWidth-1:0]   user_t;
-  typedef logic [WideUserWidth-1:0]     user_dma_t;
 
-  `AXI_TYPEDEF_ALL(narrow_in, addr_t, narrow_in_id_t, data_t, strb_t, user_t)
-  `AXI_TYPEDEF_ALL(narrow_out, addr_t, narrow_out_id_t, data_t, strb_t, user_t)
+// Generate the user field type definitions depending on the configuration
+% if cfg['cluster']['enable_narrow_collectives']:
+  typedef struct packed {
+    addr_t                          collective_mask;
+    logic [CollectiveWidth-1:0]     collective_op;
+    logic [AtomicIdWidth-1:0]       atomic_id;
+  } user_narrow_t;
+%else:
+  typedef struct packed {
+    logic [AtomicIdWidth-1:0]       atomic_id;
+  } user_narrow_t;
+%endif
+
+% if cfg['cluster']['enable_wide_collectives']:
+  typedef struct packed {
+    addr_t                          collective_mask;
+    logic [CollectiveWidth-1:0]     collective_op;
+  } user_dma_t;
+%else:
+  typedef logic user_dma_t;
+%endif
+
+  localparam int unsigned NarrowUserWidth = $bits(user_narrow_t);
+  localparam int unsigned WideUserWidth = $bits(user_dma_t);
+
+  `AXI_TYPEDEF_ALL(narrow_in, addr_t, narrow_in_id_t, data_t, strb_t, user_narrow_t)
+  `AXI_TYPEDEF_ALL(narrow_out, addr_t, narrow_out_id_t, data_t, strb_t, user_narrow_t)
   `AXI_TYPEDEF_ALL(wide_in, addr_t, wide_in_id_t, data_dma_t, strb_dma_t, user_dma_t)
   `AXI_TYPEDEF_ALL(wide_out, addr_t, wide_out_id_t, data_dma_t, strb_dma_t, user_dma_t)
 
@@ -264,8 +293,9 @@ ${ssr_cfg(core, '{reg_idx}', '/*None*/ 0', ',')}\
   };
 
   // Forward potentially optional configuration parameters
-  localparam logic [9:0] CfgBaseHartId      =  (${to_sv_hex(cfg['cluster']['cluster_base_hartid'], 10)});
-  localparam addr_t    	 CfgClusterBaseAddr = (${to_sv_hex(cfg['cluster']['cluster_base_addr'], cfg['cluster']['addr_width'])});
+  localparam logic [9:0] CfgBaseHartId        = (${to_sv_hex(cfg['cluster']['cluster_base_hartid'], 10)});
+  localparam addr_t    	 CfgClusterBaseAddr   = (${to_sv_hex(cfg['cluster']['cluster_base_addr'], cfg['cluster']['addr_width'])});
+  localparam addr_t    	 CfgClusterBaseOffset = (${to_sv_hex(cfg['cluster']['cluster_base_offset'], cfg['cluster']['addr_width'])});
 
 endpackage
 // verilog_lint: waive-stop package-filename

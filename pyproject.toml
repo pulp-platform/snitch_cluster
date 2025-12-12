@@ -33,7 +33,7 @@ dependencies = [
     "psutil",
     "pyelftools",
     "pyflexfloat",
-    "pymakeutils",
+    "pymakeutils>=1.4.0",
     "pytablewriter",
     "pytest",
     "pyyaml",

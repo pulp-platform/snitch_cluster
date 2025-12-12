@@ -9,8 +9,7 @@
         cluster_base_hartid: 0,
         addr_width: 48,
         data_width: 64,
-        atomic_id_width: 5, // clog2(total number of clusters)
-        user_width: 53, // addr_width + atomic_id_width
+        atomic_id_width: 5,
         tcdm: {
             size: 128,
             banks: 32,
@@ -23,8 +22,6 @@
         dma_req_fifo_depth: 8,
         narrow_trans: 4,
         wide_trans: 32,
-        dma_user_width: 48,
-        enable_multicast: true,
         // We don't need Snitch debugging in Occamy
         enable_debug: false,
         // We don't need Snitch (core-internal) virtual memory support

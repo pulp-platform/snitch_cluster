@@ -28,6 +28,11 @@
                     "description": "Base address of this cluster.",
                     "default": 0
                 },
+                "cluster_base_offset": {
+                    "type": "number",
+                    "description": "Address offset between successive clusters.",
+                    "default": 0
+                },
                 "tcdm": {
                     "type": "object",
                     "description": "Configuration of the Tightly Coupled Data Memory of this cluster.",
@@ -161,25 +166,35 @@
                     "description": "The number of separate DMA channels to instantiate.",
                     "default": 1
                 },
-                "user_width": {
-                    "type": "number",
-                    "description": "User width of the narrower AXI plug into the cluster.",
-                    "default": 1
-                },
-                "dma_user_width": {
-                    "type": "number",
-                    "description": "User width of the wide AXI plug into the cluster.",
-                    "default": 1
-                },
                 "atomic_id_width": {
                     "type": "number",
-                    "description": "Width of the cluster's atomics ID.",
+                    "description": "Width of the cluster's atomic ID.",
                     "default": 1
                 },
-                "enable_multicast": {
+                "collective_width": {
+                    "type": "number",
+                    "description": "Width of the collective operation information in the awuser field, which includes the reduction opcode.",
+                    "default": 6
+                },
+                "enable_narrow_collectives": {
                     "type": "boolean",
-                    "description": "Whether to enable multicast in the cluster.",
+                    "description": "Whether to enable narrow multicast and reduction support in the cluster. Requires multicast and reduction requests to be handled in the SoC interconnect.",
                     "default": false
+                },
+                "enable_wide_collectives": {
+                    "type": "boolean",
+                    "description": "Whether to enable wide multicast and reduction support in the cluster. Requires multicast and reduction requests to be handled in the SoC interconnect.",
+                    "default": false
+                },
+                "enable_dca": {
+                    "type": "boolean",
+                    "description": "Whether to enable the direct compute access into the cluster",
+                    "default": false
+                },
+                "dca_data_width": {
+                    "type": "number",
+                    "description": "Size of the DCA interface",
+                    "default": 512
                 },
                 "hart_base_id": {
                     "type": "number",
@@ -223,7 +238,7 @@
                 },
                 "cluster_base_expose": {
                     "type": "boolean",
-                    "description": "Whether to expose base_addr and base_hart_id",
+                    "description": "Whether to expose base_addr, base_offset and base_hart_id",
                     "default": false
                 },
                 "sram_cfg_expose": {
@@ -339,6 +354,16 @@
                         "register_fpu_out": {
                             "type": "boolean",
                             "description": "Insert Pipeline registers immediately after FPU datapath",
+                            "default": false
+                        },
+                        "register_dca_req": {
+                            "type": "boolean",
+                            "description": "Insert pipeline register on the DCA request path",
+                            "default": false
+                        },
+                        "register_dca_rsp": {
+                            "type": "boolean",
+                            "description": "Insert pipeline register on the DCA response path",
                             "default": false
                         },
                         "register_tcdm_cuts": {

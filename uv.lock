@@ -2128,7 +2128,7 @@ requires-dist = [
     { name = "psutil" },
     { name = "pyelftools" },
     { name = "pyflexfloat" },
-    { name = "pymakeutils" },
+    { name = "pymakeutils", specifier = ">=1.4.0" },
     { name = "pytablewriter" },
     { name = "pytest" },
     { name = "pyyaml" },
