@@ -39,9 +39,12 @@
 `define DCA_TYPEDEF_RSP_CHAN_T(__name, __data_width) \
   typedef `DCA_RSP_CHAN_STRUCT(__data_width) __name``_rsp_chan_t;
 
-`define DCA_TYPEDEF_ALL(__name, __data_width)   \
+`define DCA_TYPEDEF_REQRSP_CHAN_ALL(__name, __data_width) \
   `DCA_TYPEDEF_REQ_CHAN_T(__name, __data_width) \
   `DCA_TYPEDEF_RSP_CHAN_T(__name, __data_width) \
+
+`define DCA_TYPEDEF_ALL(__name, __data_width)   \
+  `DCA_TYPEDEF_REQRSP_CHAN_ALL(__name, __data_width) \
   `GENERIC_REQRSP_TYPEDEF_ALL(__name, __name``_req_chan_t, __name``_rsp_chan_t)
 
 `endif  // DCA_INTERFACE_TYPEDEF_SVH_

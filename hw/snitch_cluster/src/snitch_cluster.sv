@@ -267,8 +267,14 @@ module snitch_cluster
   /// Width of the external DCA interface
   parameter int unsigned DcaDataWidth       = WideDataWidth,
   /// Derived parameters
-  localparam type        dca_req_t = `DCA_REQ_STRUCT(DcaDataWidth),
-  localparam type        dca_rsp_t = `DCA_RSP_STRUCT(DcaDataWidth)
+  // TODO(colluca): this currently does not compile in Verilator (https://github.com/verilator/verilator/issues/6818)
+  // localparam type dca_req_t = `DCA_REQ_STRUCT(DataWidth),
+  // localparam type dca_rsp_t = `DCA_RSP_STRUCT(DataWidth)
+  // Workaround:
+  localparam type dca_req_chan_t = `DCA_REQ_CHAN_STRUCT(DcaDataWidth),
+  localparam type dca_req_t = `GENERIC_REQRSP_REQ_STRUCT(dca_req_chan_t),
+  localparam type dca_rsp_chan_t = `DCA_RSP_CHAN_STRUCT(DcaDataWidth),
+  localparam type dca_rsp_t = `GENERIC_REQRSP_RSP_STRUCT(dca_rsp_chan_t)
 ) (
   /// System clock. If `IsoCrossing` is enabled this port is the _fast_ clock.
   /// The slower, half-frequency clock, is derived internally.
