@@ -95,8 +95,8 @@ inline void snrt_dma_set_awuser(uint64_t field) {
  * @param mask Multicast mask value
  */
 inline void snrt_dma_enable_multicast(uint64_t mask) {
-    snrt_collective_op_t op;
-    op.f.collective_op = SNRT_COLLECTIVE_MULTICAST;
+    snrt_collective_t op;
+    op.f.opcode = SNRT_COLLECTIVE_MULTICAST;
     op.f.mask = mask;
     snrt_dma_set_awuser(op.w);
 }
@@ -111,8 +111,8 @@ inline void snrt_dma_enable_multicast(uint64_t mask) {
  */
 inline void snrt_dma_enable_reduction(uint64_t mask,
                                       snrt_collective_opcode_t opcode) {
-    snrt_collective_op_t op;
-    op.f.collective_op = opcode;
+    snrt_collective_t op;
+    op.f.opcode = opcode;
     op.f.mask = mask;
     snrt_dma_set_awuser(op.w);
 }

@@ -486,8 +486,8 @@ inline uint64_t snrt_get_collective_mask(snrt_comm_t comm) {
  * @param mask Multicast mask value
  */
 inline void snrt_enable_multicast(uint64_t mask) {
-    snrt_collective_op_t op;
-    op.f.collective_op = SNRT_COLLECTIVE_MULTICAST;
+    snrt_collective_t op;
+    op.f.opcode = SNRT_COLLECTIVE_MULTICAST;
     op.f.mask = mask;
     snrt_set_awuser(op.w);
 }
@@ -510,8 +510,8 @@ inline void snrt_disable_multicast() { snrt_set_awuser(0); }
  */
 inline void snrt_enable_reduction(uint64_t mask,
                                   snrt_collective_opcode_t opcode) {
-    snrt_collective_op_t op;
-    op.f.collective_op = opcode;
+    snrt_collective_t op;
+    op.f.opcode = opcode;
     op.f.mask = mask;
     snrt_set_awuser(op.w);
 }
