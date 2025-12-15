@@ -85,7 +85,7 @@ static inline void batchnorm_layer(const batchnorm_layer_t *l) {
     uint32_t weights_size = l->CI;
     uint32_t ofmap_size = 2 * l->IW * l->TILE_CI;
 
-    double *ptr = (double *)(snrt_cluster()->tcdm.mem);
+    double *ptr = (double *)snrt_l1_next();
     double *ifmap = ptr;
     ptr += ifmap_size;
     double *gamma = ptr;
