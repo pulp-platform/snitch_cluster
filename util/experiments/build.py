@@ -60,7 +60,7 @@ def parser():
 
 
 # Build software target with a specific data configuration
-def build(target=None, build_dir=None, data_cfg=None, defines=None, hw_cfg=None, sync=False,
+def build(target=None, build_dir=None, data_cfg=None, defines=None, hw_cfg=None, sync=True,
           dry_run=False):
     # Define variables for build system
     vars = {
@@ -128,9 +128,15 @@ def main():
     cfgs = [Path(cfg) for cfg in args.cfg]
 
     # Build software
+    processes = []
     for cfg in cfgs:
         build_dir = Path(f'build/{cfg.stem}').resolve()
-        build(args.target, build_dir, data_cfg=cfg)
+        processes.append(build(args.target, build_dir, data_cfg=cfg, sync=False))
+        print(colored('Build app', 'black', attrs=['bold']),
+              colored(args.target + '-' + cfg.stem, 'cyan', attrs=['bold']),
+              colored('in', 'black', attrs=['bold']),
+              colored(build_dir, 'cyan', attrs=['bold']))
+    common.wait_processes(processes)
 
     # Build testlist
     tests = [create_test(args.target, cfg, args.testlist_cmd) for cfg in cfgs]
