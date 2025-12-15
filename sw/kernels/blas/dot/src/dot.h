@@ -97,8 +97,8 @@ static inline void dot(uint32_t n, double *x, double *y, double *result) {
     // Allocate space in TCDM
     local_x = snrt_l1_alloc_cluster_local<double>(n);
     local_y = snrt_l1_alloc_cluster_local<double>(n);
-    partial_sums = snrt_l1_alloc_cluster_local<double>(
-        snrt_cluster_compute_core_num());
+    partial_sums =
+        snrt_l1_alloc_cluster_local<double>(snrt_cluster_compute_core_num());
 
     // Copy data in TCDM
     if (snrt_is_dm_core()) {

@@ -20,7 +20,7 @@ extern snrt_allocator_t *snrt_l3_allocator_v2();
 
 extern void *snrt_l1_next_v2();
 
-extern void *snrt_l1_next_aligned_hyperbank() ;
+extern void *snrt_l1_next_aligned_hyperbank();
 
 extern void *snrt_l3_next_v2();
 

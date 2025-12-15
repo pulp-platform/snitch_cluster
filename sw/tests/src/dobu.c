@@ -18,8 +18,7 @@ int main() {
     double *bank0 = (double *)snrt_l1_next_aligned_hyperbank();
     double *bank1 = bank0 + 1;
     double *bank2 = bank1 + 1;
-    double *bank24 =
-        (double *)((uintptr_t)bank0 + SNRT_TCDM_HYPERBANK_SIZE);
+    double *bank24 = (double *)((uintptr_t)bank0 + SNRT_TCDM_HYPERBANK_SIZE);
 
     // Core 0 initializes bank 0 and 24 with data
     if (snrt_cluster_core_idx() == 0) {
