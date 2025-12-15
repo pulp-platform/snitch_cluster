@@ -19,13 +19,13 @@ int main() {
     remote_a = a;
 
     // Allocate space in TCDM
-    local_b = (double *)snrt_l1_next();
-    local_c = local_b + L;
-    local_a = local_c + L;
+    size_t size = L * sizeof(double);
+    local_b = snrt_l1_alloc_cluster_local<double>(L);
+    local_c = snrt_l1_alloc_cluster_local<double>(L);
+    local_a = snrt_l1_alloc_cluster_local<double>(L);
 
     // Copy data in TCDM
     if (snrt_is_dm_core()) {
-        size_t size = L * sizeof(double);
         snrt_dma_start_1d(local_b, remote_b, size);
         snrt_dma_start_1d(local_c, remote_c, size);
         snrt_dma_wait_all();
@@ -40,7 +40,6 @@ int main() {
 
     // Copy data out of TCDM
     if (snrt_is_dm_core()) {
-        size_t size = L * sizeof(double);
         snrt_dma_start_1d(remote_a, local_a, size);
         snrt_dma_wait_all();
     }

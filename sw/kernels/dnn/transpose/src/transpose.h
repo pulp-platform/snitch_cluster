@@ -141,11 +141,8 @@ static inline void transpose_kernel(precision_t dtype, void* input,
 static inline void transpose_layer(transpose_layer_t const l) {
     uint32_t matrix_size = l.M * l.N * l.dtype;
 
-    char* ptr = (char*)snrt_l1_next();
-    void* input = ptr;
-    ptr += matrix_size;
-    void* output = ptr;
-    ptr += matrix_size;
+    void* input = snrt_l1_alloc_cluster_local(matrix_size, l.dtype);
+    void* output = snrt_l1_alloc_cluster_local(matrix_size, l.dtype);
 
     // DMA transfer the matrix into the cluster TCDM
     if (snrt_is_dm_core()) {
