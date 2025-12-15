@@ -33,6 +33,15 @@ inline snrt_allocator_t *snrt_l1_allocator_v2() { return &l1_allocator_v2; }
 inline void *snrt_l1_next_v2() { return (void *)snrt_l1_allocator_v2()->next; }
 
 /**
+ * @brief Get the next pointer of the L1 allocator, aligned to the hyperbank.
+ *
+ * @return The next pointer of the L1 allocator.
+ */
+inline void *snrt_l1_next_aligned_hyperbank() {
+    return snrt_align_up_hyperbank(snrt_l1_next_v2());
+}
+
+/**
  * @brief Override the L1 allocator next pointer.
  *
  * @param next The new value for the next pointer.
@@ -68,6 +77,17 @@ inline void *snrt_l1_alloc_cluster_local(size_t size,
         snrt_align_up(snrt_l1_allocator_v2()->next, alignment);
     void *retval = snrt_l1_next_v2();
     snrt_l1_allocator_v2()->next += size;
+    snrt_l1_alloc_check_bounds();
+    return retval;
+}
+
+template <typename T>
+inline T *snrt_l1_alloc_cluster_local(size_t count = 1,
+                                      const size_t alignment = alignof(T)) {
+    snrt_l1_allocator_v2()->next =
+        snrt_align_up(snrt_l1_allocator_v2()->next, alignment);
+    T *retval = (T *)snrt_l1_next_v2();
+    snrt_l1_allocator_v2()->next += count * sizeof(T);
     snrt_l1_alloc_check_bounds();
     return retval;
 }
