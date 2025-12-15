@@ -7,7 +7,7 @@ packages:
     dependencies:
     - common_cells
   axi:
-    revision: 8e04779f341eb2c89412aae92223a292beef487e
+    revision: 06410c36819924e32db2afa428d244dbdbcd5d4e
     version: null
     source:
       Git: https://github.com/colluca/axi
@@ -42,7 +42,7 @@ packages:
     - scm
     - tech_cells_generic
   common_cells:
-    revision: bef3d3c5ed0e2cc211e69a6dbd81c4fe3a97025c
+    revision: ca9d577f2fbc45ec557ab4e0905bbfc154441540
     version: null
     source:
       Git: https://github.com/pulp-platform/common_cells.git

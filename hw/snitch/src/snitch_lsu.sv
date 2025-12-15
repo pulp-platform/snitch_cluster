@@ -8,7 +8,7 @@
 /// `NumOutstandingMem` requests in total) and optionally NaNBox if used in a
 /// floating-point setting. It expects its memory sub-system to keep order (as if
 /// issued with a single ID).
-module snitch_lsu #(
+module snitch_lsu import cf_math_pkg::*; #(
   parameter int unsigned AddrWidth           = 32,
   parameter int unsigned DataWidth           = 32,
   parameter int unsigned UserWidth           = 0,
@@ -37,9 +37,9 @@ module snitch_lsu #(
   parameter type         dreq_t              = logic,
   parameter type         drsp_t              = logic,
   /// Derived parameter *Do not override*
-  parameter type addr_t = logic [AddrWidth-1:0],
-  parameter type data_t = logic [DataWidth-1:0],
-  parameter type user_t = logic [UserWidth-1:0]
+  parameter type addr_t = logic [iomsb(AddrWidth):0],
+  parameter type data_t = logic [iomsb(DataWidth):0],
+  parameter type user_t = logic [iomsb(UserWidth):0]
 ) (
   input  logic                 clk_i,
   input  logic                 rst_i,

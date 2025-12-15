@@ -1577,6 +1577,8 @@ module snitch_cluster
     .AddrWidth (PhysicalAddrWidth),
     .DataWidth (NarrowDataWidth),
     .IdWidth (NarrowIdWidthOut),
+    // TODO(colluca): this is fragile as it depends on the tcdm_user_t definition
+    .UserWidth (CoreIDWidth + 1),
     .BufDepth (MemoryMacroLatency + 1)
   ) i_axi_to_tcdm (
     .clk_i,
