@@ -7,10 +7,10 @@ packages:
     dependencies:
     - common_cells
   axi:
-    revision: cda42b9632d22172a571a66c451335513e64b2ee
+    revision: 8e04779f341eb2c89412aae92223a292beef487e
     version: null
     source:
-      Git: https://github.com/colluca/axi.git
+      Git: https://github.com/colluca/axi
     dependencies:
     - common_cells
     - common_verification
@@ -72,7 +72,7 @@ packages:
     - common_cells
   idma:
     revision: 28a36e5e07705549e59fc33db96ab681bc1ca88e
-    version: null
+    version: 0.6.5
     source:
       Git: https://github.com/pulp-platform/iDMA.git
     dependencies:
