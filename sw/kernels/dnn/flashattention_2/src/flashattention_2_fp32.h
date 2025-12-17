@@ -69,10 +69,12 @@ static inline void flashattention_2_fp32(flashattention_2_layer_t layer) {
         (float *)snrt_l1_alloc_cluster_local(p_fa_size, alignof(double));
     float *O_fa =
         (float *)snrt_l1_alloc_cluster_local(o_fa_size, alignof(double));
-    float *m_i = (float *)snrt_l1_alloc_cluster_local(m_i_size, alignof(double));
+    float *m_i =
+        (float *)snrt_l1_alloc_cluster_local(m_i_size, alignof(double));
     float *m_i_prev =
         (float *)snrt_l1_alloc_cluster_local(m_i_size, alignof(double));
-    float *l_i = (float *)snrt_l1_alloc_cluster_local(l_i_size, alignof(double));
+    float *l_i =
+        (float *)snrt_l1_alloc_cluster_local(l_i_size, alignof(double));
 
     // allocate space for V^t when using optimized kernels
     float *V_t;
