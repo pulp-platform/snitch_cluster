@@ -66,6 +66,11 @@ extern snrt_dma_txid_t snrt_dma_load_2d_tile_mcast(
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
     uint32_t prec, uint32_t mask);
 
+extern snrt_dma_txid_t snrt_dma_load_2d_tile_mcast(
+    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
+    uint32_t prec, snrt_comm_t comm);
+
 extern snrt_dma_txid_t snrt_dma_load_2d_tile_in_banks(
     void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
