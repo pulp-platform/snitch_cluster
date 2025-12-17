@@ -1,48 +1,35 @@
 // Copyright 2025 ETH Zurich and University of Bologna.
 // Licensed under the Apache License, Version 2.0, see LICENSE for details.
 // SPDX-License-Identifier: Apache-2.0
-
+//
 // Author: Luca Colagrande <colluca@iis.ee.ethz.ch>
-
-// Test TCDM alignment functions
 
 #include "snrt.h"
 
 #define LEN 32
 
-#define ALIGN_NEXT_FROM_BASE(addr, base, size) \
-    (((((addr) - (base)) + (size)-1) / (size)) * (size) + (base))
-
-#define BANK_SIZE (4 * 1024)
-
-#define NR_BANK_PER_HYPERBANK 24
-#define NR_HYPERBANK 2
-
-#define BANK_ALIGNMENT 8
-#define TCDM_ALIGNMENT (NR_HYPERBANK * NR_BANK_PER_HYPERBANK * BANK_ALIGNMENT)
-#define ALIGN_UP_TCDM(addr) \
-    ALIGN_NEXT_FROM_BASE(addr, SNRT_TCDM_START_ADDR, TCDM_ALIGNMENT)
-
 int main() {
     int n_errors = 0;
 
+#if SNRT_TCDM_HYPERBANK_NUM != 1
 #ifdef SNRT_SUPPORTS_FREP
+    // TODO(colluca): currently only works with a bank width of 64 bits
     double zero = 0.0;
-    double *bank0 = (double *)snrt_l1_next();
+    double *bank0 = (double *)snrt_l1_next_aligned_hyperbank();
     double *bank1 = bank0 + 1;
     double *bank2 = bank1 + 1;
-    double *bank24 =
-        (double *)((uintptr_t)bank0 + NR_BANK_PER_HYPERBANK * BANK_SIZE);
+    double *bank24 = (double *)((uintptr_t)bank0 + SNRT_TCDM_HYPERBANK_SIZE);
 
     // Core 0 initializes bank 0 and 24 with data
     if (snrt_cluster_core_idx() == 0) {
         for (int i = 0; i < LEN; i++) {
-            bank0[i * NR_BANK_PER_HYPERBANK] = 1;
+            bank0[i * SNRT_TCDM_BANK_PER_HYPERBANK_NUM] = 1;
         }
         for (int i = 0; i < LEN; i++) {
-            bank24[i * NR_BANK_PER_HYPERBANK] = 2;
+            bank24[i * SNRT_TCDM_BANK_PER_HYPERBANK_NUM] = 2;
         }
     }
+    snrt_cluster_hw_barrier();
 
     // Only cores 0 and 1 perform the test
     if (snrt_cluster_core_idx() <= 1) {
@@ -52,7 +39,7 @@ int main() {
         double *dst = snrt_cluster_core_idx() == 0 ? bank1 : bank2;
 
         // Stride makes sure that accesses from an SSR are within same bank
-        size_t stride = NR_BANK_PER_HYPERBANK * sizeof(double);
+        size_t stride = SNRT_TCDM_BANK_PER_HYPERBANK_NUM * sizeof(double);
         snrt_ssr_loop_1d(SNRT_SSR_DM0, LEN, stride);
         snrt_ssr_loop_1d(SNRT_SSR_DM2, LEN, stride);
 
@@ -82,16 +69,17 @@ int main() {
     if (snrt_cluster_core_idx() == 0) {
         n_errors = LEN * 2;
         for (int i = 0; i < LEN; i++) {
-            if (bank2[i * NR_BANK_PER_HYPERBANK] == 1) {
+            if (bank2[i * SNRT_TCDM_BANK_PER_HYPERBANK_NUM] == 1) {
                 n_errors--;
             }
         }
         for (int i = 0; i < LEN; i++) {
-            if (bank24[i * NR_BANK_PER_HYPERBANK] == 2) {
+            if (bank24[i * SNRT_TCDM_BANK_PER_HYPERBANK_NUM] == 2) {
                 n_errors--;
             }
         }
     }
+#endif
 #endif
 
     return n_errors;

@@ -56,27 +56,30 @@ static inline void flashattention_2_fp32(flashattention_2_layer_t layer) {
     uint32_t shifted_exp_size = B_r * sizeof(float);
 
     // allocate memory in TCDM
+    // align to size of double since this is required for some GEMM arrays
     float *Q_fa =
-        (float *)snrt_l1_alloc_cluster_local(q_fa_size, alignof(float));
+        (float *)snrt_l1_alloc_cluster_local(q_fa_size, alignof(double));
     float *K_fa =
-        (float *)snrt_l1_alloc_cluster_local(k_fa_size, alignof(float));
+        (float *)snrt_l1_alloc_cluster_local(k_fa_size, alignof(double));
     float *V_fa =
-        (float *)snrt_l1_alloc_cluster_local(v_fa_size, alignof(float));
+        (float *)snrt_l1_alloc_cluster_local(v_fa_size, alignof(double));
     float *S_fa =
-        (float *)snrt_l1_alloc_cluster_local(s_fa_size, alignof(float));
+        (float *)snrt_l1_alloc_cluster_local(s_fa_size, alignof(double));
     float *P_fa =
-        (float *)snrt_l1_alloc_cluster_local(p_fa_size, alignof(float));
+        (float *)snrt_l1_alloc_cluster_local(p_fa_size, alignof(double));
     float *O_fa =
-        (float *)snrt_l1_alloc_cluster_local(o_fa_size, alignof(float));
-    float *m_i = (float *)snrt_l1_alloc_cluster_local(m_i_size, alignof(float));
+        (float *)snrt_l1_alloc_cluster_local(o_fa_size, alignof(double));
+    float *m_i =
+        (float *)snrt_l1_alloc_cluster_local(m_i_size, alignof(double));
     float *m_i_prev =
-        (float *)snrt_l1_alloc_cluster_local(m_i_size, alignof(float));
-    float *l_i = (float *)snrt_l1_alloc_cluster_local(l_i_size, alignof(float));
+        (float *)snrt_l1_alloc_cluster_local(m_i_size, alignof(double));
+    float *l_i =
+        (float *)snrt_l1_alloc_cluster_local(l_i_size, alignof(double));
 
     // allocate space for V^t when using optimized kernels
     float *V_t;
     if (!baseline) {
-        V_t = (float *)snrt_l1_alloc_cluster_local(v_fa_size, alignof(float));
+        V_t = (float *)snrt_l1_alloc_cluster_local(v_fa_size, alignof(double));
     }
 
     float shifted_exp;

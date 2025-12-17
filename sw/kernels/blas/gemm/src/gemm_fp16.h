@@ -306,7 +306,7 @@ void gemm_fp16_opt_ex(uint32_t setup_ssr, uint32_t partition_banks,
 #ifdef SNRT_SUPPORTS_FREP
     __fp16* A = (__fp16*)A_p;
     __fp16* B = (__fp16*)B_p;
-    __fp16* C = (__fp16*)C_p;
+    __fp16* C = (__fp16*)C_p;  // Should be double-aligned (see fsd below)
 
     // Unrolling factor of most inner loop.
     // Should be at least as high as the FMA delay

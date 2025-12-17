@@ -12,6 +12,8 @@ module reqrsp_cut #(
     parameter int unsigned AddrWidth = 0,
     /// Data width of the interface.
     parameter int unsigned DataWidth = 0,
+    /// User width of the interface.
+    parameter int unsigned UserWidth = 0,
     /// Request type.
     parameter type req_t             = logic,
     /// Response type.
@@ -32,35 +34,22 @@ module reqrsp_cut #(
   typedef logic [AddrWidth-1:0] addr_t;
   typedef logic [DataWidth-1:0] data_t;
   typedef logic [DataWidth/8-1:0] strb_t;
+  typedef logic [UserWidth-1:0] user_t;
 
-  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t)
+  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
 
-  spill_register #(
-    .T (reqrsp_req_chan_t),
-    .Bypass ( BypassReq )
-  ) i_spill_register_q (
+  generic_reqrsp_cut #(
+    .req_chan_t(reqrsp_req_chan_t),
+    .rsp_chan_t(reqrsp_rsp_chan_t),
+    .BypassReq (BypassReq),
+    .BypassRsp (BypassRsp)
+  ) i_generic_reqrsp_cut (
     .clk_i,
     .rst_ni,
-    .valid_i (slv_req_i.q_valid) ,
-    .ready_o (slv_rsp_o.q_ready) ,
-    .data_i (slv_req_i.q),
-    .valid_o (mst_req_o.q_valid),
-    .ready_i (mst_rsp_i.q_ready),
-    .data_o (mst_req_o.q)
-  );
-
-  spill_register #(
-    .T (reqrsp_rsp_chan_t),
-    .Bypass ( BypassRsp )
-  ) i_spill_register_p (
-    .clk_i,
-    .rst_ni,
-    .valid_i (mst_rsp_i.p_valid) ,
-    .ready_o (mst_req_o.p_ready) ,
-    .data_i (mst_rsp_i.p),
-    .valid_o (slv_rsp_o.p_valid),
-    .ready_i (slv_req_i.p_ready),
-    .data_o (slv_rsp_o.p)
+    .slv_req_i (slv_req_i),
+    .slv_rsp_o (slv_rsp_o),
+    .mst_req_o (mst_req_o),
+    .mst_rsp_i (mst_rsp_i)
   );
 
 endmodule
@@ -74,6 +63,8 @@ module reqrsp_cut_intf #(
     parameter int unsigned AddrWidth = 0,
     /// Data width of the interface.
     parameter int unsigned DataWidth = 0,
+    /// User width of the interface.
+    parameter int unsigned UserWidth = 0,
     /// Bypass request channel.
     parameter bit  BypassReq         = 0,
     /// Bypass Response channel.
@@ -88,8 +79,9 @@ module reqrsp_cut_intf #(
   typedef logic [AddrWidth-1:0] addr_t;
   typedef logic [DataWidth-1:0] data_t;
   typedef logic [DataWidth/8-1:0] strb_t;
+  typedef logic [UserWidth-1:0] user_t;
 
-  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t)
+  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
 
   reqrsp_req_t reqrsp_slv_req, reqrsp_mst_req;
   reqrsp_rsp_t reqrsp_slv_rsp, reqrsp_mst_rsp;
@@ -97,6 +89,7 @@ module reqrsp_cut_intf #(
   reqrsp_cut #(
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
+    .UserWidth (UserWidth),
     .req_t (reqrsp_req_t),
     .rsp_t (reqrsp_rsp_t),
     .BypassReq (BypassReq),

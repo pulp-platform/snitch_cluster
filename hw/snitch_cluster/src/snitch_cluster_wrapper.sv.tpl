@@ -44,6 +44,7 @@ module ${cfg['cluster']['name']}_wrapper (
   input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] mxip_i,
   input  logic [9:0]                             hart_base_id_i,
   input  logic [${cfg['cluster']['addr_width']-1}:0]                            cluster_base_addr_i,
+  input  logic [${cfg['cluster']['addr_width']-1}:0]                            cluster_base_offset_i,
   input  logic                                   clk_d2_bypass_i,
   input  ${cfg['cluster']['name']}_pkg::sram_cfgs_t         sram_cfgs_i,
   input  ${cfg['cluster']['name']}_pkg::narrow_in_req_t     narrow_in_req_i,
@@ -69,7 +70,9 @@ module ${cfg['cluster']['name']}_wrapper (
   output ${cfg['cluster']['name']}_pkg::narrow_out_req_t    narrow_ext_req_o,
   input  ${cfg['cluster']['name']}_pkg::narrow_out_resp_t   narrow_ext_resp_i,
   input  ${cfg['cluster']['name']}_pkg::tcdm_dma_req_t [${actual_num_exposed_wide_tcdm_ports}-1:0] tcdm_ext_req_i,
-  output ${cfg['cluster']['name']}_pkg::tcdm_dma_rsp_t [${actual_num_exposed_wide_tcdm_ports}-1:0] tcdm_ext_resp_o
+  output ${cfg['cluster']['name']}_pkg::tcdm_dma_rsp_t [${actual_num_exposed_wide_tcdm_ports}-1:0] tcdm_ext_resp_o,
+  input  ${cfg['cluster']['name']}_pkg::dca_req_t           dca_req_i,
+  output ${cfg['cluster']['name']}_pkg::dca_rsp_t           dca_rsp_o
 );
 
   localparam int unsigned NumIntOutstandingLoads [${cfg['cluster']['nr_cores']}] = '{${core_cfg('num_int_outstanding_loads')}};
@@ -90,9 +93,8 @@ module ${cfg['cluster']['name']}_wrapper (
     .WideDataWidth (${cfg['cluster']['dma_data_width']}),
     .NarrowIdWidthIn (${cfg['cluster']['name']}_pkg::NarrowIdWidthIn),
     .WideIdWidthIn (${cfg['cluster']['name']}_pkg::WideIdWidthIn),
-    .NarrowUserWidth (${cfg['cluster']['name']}_pkg::NarrowUserWidth),
-    .WideUserWidth (${cfg['cluster']['name']}_pkg::WideUserWidth),
     .AtomicIdWidth (${cfg['cluster']['name']}_pkg::AtomicIdWidth),
+    .CollectiveWidth (${cfg['cluster']['name']}_pkg::CollectiveWidth),
     .BootAddr (${to_sv_hex(cfg['cluster']['boot_addr'], 32)}),
     .IntBootromEnable (${int(cfg['cluster']['int_bootrom_enable'])}),
     .narrow_in_req_t (${cfg['cluster']['name']}_pkg::narrow_in_req_t),
@@ -103,6 +105,8 @@ module ${cfg['cluster']['name']}_wrapper (
     .wide_out_resp_t (${cfg['cluster']['name']}_pkg::wide_out_resp_t),
     .wide_in_req_t (${cfg['cluster']['name']}_pkg::wide_in_req_t),
     .wide_in_resp_t (${cfg['cluster']['name']}_pkg::wide_in_resp_t),
+    .user_narrow_t (${cfg['cluster']['name']}_pkg::user_narrow_t),
+    .user_dma_t (${cfg['cluster']['name']}_pkg::user_dma_t),
     .tcdm_dma_req_t (${cfg['cluster']['name']}_pkg::tcdm_dma_req_t),
     .tcdm_dma_rsp_t (${cfg['cluster']['name']}_pkg::tcdm_dma_rsp_t),
     .x_issue_req_t (${cfg['cluster']['name']}_pkg::x_issue_req_t),
@@ -127,7 +131,8 @@ module ${cfg['cluster']['name']}_wrapper (
     .ICacheLineCount (${cfg['cluster']['name']}_pkg::ICacheLineCount),
     .ICacheWays (${cfg['cluster']['name']}_pkg::ICacheWays),
     .VMSupport (${int(cfg['cluster']['vm_support'])}),
-    .EnableDMAMulticast (${int(cfg['cluster']['enable_multicast'])}),
+    .EnableWideCollectives (${cfg['cluster']['name']}_pkg::EnableWideCollectives),
+    .EnableNarrowCollectives (${cfg['cluster']['name']}_pkg::EnableNarrowCollectives),
     .EnableXif (${int(cfg['cluster']['enable_xif'])}),
     .XifIdWidth (${cfg['cluster']['name']}_pkg::XifIdWidth),
     .RVE (${core_isa('e')}),
@@ -186,6 +191,8 @@ module ${cfg['cluster']['name']}_wrapper (
     .RegisterFPUReq (${int(cfg['cluster']['timing']['register_fpu_req'])}),
     .RegisterFPUIn (${int(cfg['cluster']['timing']['register_fpu_in'])}),
     .RegisterFPUOut (${int(cfg['cluster']['timing']['register_fpu_out'])}),
+    .RegisterDcaReq (${int(cfg['cluster']['timing']['register_dca_req'])}),
+    .RegisterDcaRsp (${int(cfg['cluster']['timing']['register_dca_rsp'])}),
     .RegisterSequencer (${int(cfg['cluster']['timing']['register_sequencer'])}),
     .IsoCrossing (${int(cfg['cluster']['timing']['iso_crossings'])}),
     .NarrowXbarLatency (axi_pkg::${cfg['cluster']['timing']['narrow_xbar_latency']}),
@@ -200,7 +207,9 @@ module ${cfg['cluster']['name']}_wrapper (
     .CaqTagWidth (${int(cfg['cluster']['caq_tag_width'])}),
     .DebugSupport (${int(cfg['cluster']['enable_debug'])}),
     .AliasRegionEnable (${int(cfg['cluster']['alias_region_enable'])}),
-    .AliasRegionBase (${int(cfg['cluster']['alias_region_base'])})
+    .AliasRegionBase (${int(cfg['cluster']['alias_region_base'])}),
+    .EnableDca (${int(cfg['cluster']['enable_dca'])}),
+    .DcaDataWidth (${int(cfg['cluster']['dca_data_width'])})
   ) i_cluster (
     .clk_i,
     .rst_ni,
@@ -220,9 +229,11 @@ module ${cfg['cluster']['name']}_wrapper (
 % if cfg['cluster']['cluster_base_expose']:
     .hart_base_id_i,
     .cluster_base_addr_i,
+    .cluster_base_offset_i,
 % else:
     .hart_base_id_i (snitch_cluster_pkg::CfgBaseHartId),
     .cluster_base_addr_i (snitch_cluster_pkg::CfgClusterBaseAddr),
+    .cluster_base_offset_i (snitch_cluster_pkg::CfgClusterBaseOffset),
 % endif
 % if cfg['cluster']['timing']['iso_crossings']:
     .clk_d2_bypass_i,
@@ -282,26 +293,38 @@ module ${cfg['cluster']['name']}_wrapper (
     .wide_out_req_o,
     .wide_out_resp_i,
     .wide_in_req_i,
-    .wide_in_resp_o
+    .wide_in_resp_o,
+% if cfg['cluster']['enable_dca']:
+    .dca_req_i,
+    .dca_rsp_o
+% else:
+    .dca_req_i ('0),
+    .dca_rsp_o ()
+%endif
   );
 
 % if not cfg['cluster']['enable_xif']:
-    // Tie off XIF outputs if XIF is disabled
-    assign x_issue_req_o = '{default: ${cfg['cluster']['name']}_pkg::x_issue_req_t'('0)};
-    assign x_issue_valid_o = '0;
-    assign x_register_o = '{default: ${cfg['cluster']['name']}_pkg::x_register_t'('0)};
-    assign x_register_valid_o = '0;
-    assign x_commit_o = '{default: ${cfg['cluster']['name']}_pkg::x_commit_t'('0)};
-    assign x_commit_valid_o = '0;
-    assign x_result_ready_o = '0;
+  // Tie off XIF outputs if XIF is disabled
+  assign x_issue_req_o = '{default: ${cfg['cluster']['name']}_pkg::x_issue_req_t'('0)};
+  assign x_issue_valid_o = '0;
+  assign x_register_o = '{default: ${cfg['cluster']['name']}_pkg::x_register_t'('0)};
+  assign x_register_valid_o = '0;
+  assign x_commit_o = '{default: ${cfg['cluster']['name']}_pkg::x_commit_t'('0)};
+  assign x_commit_valid_o = '0;
+  assign x_result_ready_o = '0;
 % endif
 
 % if not cfg['cluster']['narrow_axi_port_expose']:
-    // Tie off narrow AXI port outputs if external narrow AXI port is disabled
-    assign narrow_ext_req_o = '0;
+  // Tie off narrow AXI port outputs if external narrow AXI port is disabled
+  assign narrow_ext_req_o = '0;
 % endif
 % if cfg['cluster']['num_exposed_wide_tcdm_ports'] == 0:
-    // Tie off external TCDM output ports if none are exposed
-    assign tcdm_ext_resp_o = '0;
+  // Tie off external TCDM output ports if none are exposed
+  assign tcdm_ext_resp_o = '0;
+% endif
+
+% if cfg['cluster']['enable_dca'] == 0:
+  // Tie off DCA response if DCA interface is disabled
+  assign dca_rsp_o = '0;
 % endif
 endmodule

@@ -14,6 +14,8 @@ volatile uint32_t _reduction_result;
 __thread snrt_comm_info_t snrt_comm_world_info = {
     .barrier_ptr = &(_snrt_barrier.cnt),
     .size = SNRT_CLUSTER_NUM,
+    .mask = SNRT_CLUSTER_NUM - 1,
+    .base = 0,
     .is_participant = 1};
 __thread snrt_comm_t snrt_comm_world;
 
@@ -39,6 +41,8 @@ extern void snrt_mutex_release(volatile uint32_t *pmtx);
 
 extern void snrt_cluster_hw_barrier();
 
+extern void snrt_global_sw_barrier(snrt_comm_t comm);
+
 extern void snrt_global_barrier(snrt_comm_t comm);
 
 extern void snrt_partial_barrier(snrt_barrier_t *barr, uint32_t n);
@@ -50,6 +54,19 @@ extern uint32_t snrt_global_all_to_all_reduction(uint32_t value);
 
 extern void snrt_wait_writeback(uint32_t val);
 
-extern void snrt_enable_multicast(uint32_t mask);
+extern void snrt_set_awuser(uint64_t field);
+
+extern void snrt_set_awuser_low(uint32_t field);
+
+extern uint64_t snrt_get_collective_mask(snrt_comm_t comm);
+
+extern uint64_t snrt_get_collective_mask(snrt_comm_t comm);
+
+extern void snrt_enable_multicast(uint64_t mask);
 
 extern void snrt_disable_multicast();
+
+extern void snrt_enable_reduction(uint64_t mask,
+                                  snrt_collective_opcode_t opcode);
+
+extern void snrt_disable_reduction();

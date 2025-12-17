@@ -32,6 +32,7 @@ SN_VSIM_FLAGS += -t 1ps
 # DEBUG flag ensures visibility of all signals in the waveforms
 ifeq ($(DEBUG), ON)
 SN_VSIM_FLAGS += -do "log -r /*"
+SN_VSIM_FLAGS += +define+DEBUG
 SN_VOPT_FLAGS  = +acc
 endif
 

@@ -7,6 +7,8 @@
 `include "common_cells/assertions.svh"
 `include "common_cells/registers.svh"
 `include "snitch_vm/typedef.svh"
+`include "reqrsp_interface/typedef.svh"
+`include "dca_interface/typedef.svh"
 
 /// Snitch Core Complex (CC)
 /// Contains the Snitch Integer Core + FPU + Private Accelerators
@@ -123,6 +125,10 @@ module snitch_cc #(
   parameter bit          RegisterFPUIn      = 0,
   /// Insert Pipeline registers immediately after FPU datapath
   parameter bit          RegisterFPUOut     = 0,
+  /// Cut DCA request to FPU
+  parameter bit          RegisterDcaReq     = 0,
+  /// Cut DCA response from FPU
+  parameter bit          RegisterDcaRsp     = 0,
   parameter snitch_pma_pkg::snitch_pma_t SnitchPMACfg = '{default: 0},
   /// Consistency Address Queue (CAQ) parameters.
   parameter int unsigned CaqDepth     = 0,
@@ -132,10 +138,22 @@ module snitch_cc #(
   /// Optional fixed TCDM alias.
   parameter bit          TCDMAliasEnable = 1'b0,
   parameter logic [AddrWidth-1:0] TCDMAliasStart  = '0,
+  /// Width of the collective operation field
+  parameter int unsigned CollectiveWidth    = 1,
+  /// Enable direct compute access (DCA).
+  parameter bit          EnableDca          = 0,
   /// Derived parameter *Do not override*
-  parameter int unsigned TCDMPorts = (NumSsrs > 1 ? NumSsrs : 1),
-  parameter type addr_t = logic [AddrWidth-1:0],
-  parameter type data_t = logic [DataWidth-1:0]
+  localparam int unsigned TCDMPorts = (NumSsrs > 1 ? NumSsrs : 1),
+  localparam type addr_t = logic [AddrWidth-1:0],
+  localparam type data_t = logic [DataWidth-1:0],
+  // TODO(colluca): this currently does not compile in Verilator (https://github.com/verilator/verilator/issues/6818)
+  // localparam type dca_req_t = `DCA_REQ_STRUCT(DataWidth),
+  // localparam type dca_rsp_t = `DCA_RSP_STRUCT(DataWidth)
+  // Workaround:
+  localparam type dca_req_chan_t = `DCA_REQ_CHAN_STRUCT(DataWidth),
+  localparam type dca_req_t = `GENERIC_REQRSP_REQ_STRUCT(dca_req_chan_t),
+  localparam type dca_rsp_chan_t = `DCA_RSP_CHAN_STRUCT(DataWidth),
+  localparam type dca_rsp_t = `GENERIC_REQRSP_RSP_STRUCT(dca_rsp_chan_t)
 ) (
   input  logic                              clk_i,
   input  logic                              clk_d2_i,
@@ -176,7 +194,10 @@ module snitch_cc #(
   input  addr_t                             tcdm_addr_base_i,
   // Cluster HW barrier
   output logic                              barrier_o,
-  input  logic                              barrier_i
+  input  logic                              barrier_i,
+  // Direct Compute Access (DCA) interface
+  input  dca_req_t                          dca_req_i,
+  output dca_rsp_t                          dca_rsp_o
 );
 
   // FMA architecture is "merged" -> mulexp and macexp instructions are supported
@@ -204,6 +225,11 @@ module snitch_cc #(
     logic [31:0] data;
   } ssr_cfg_rsp_t;
 
+  // TODO(colluca): not needed with workaround in parameter port list
+  // Define dca_req_chan_t and dca_rsp_chan_t
+  // `DCA_TYPEDEF_REQRSP_CHAN_ALL(dca, DataWidth)
+
+  acc_req_t acc_snitch_req;
   acc_req_t acc_snitch_demux;
   acc_req_t acc_snitch_demux_q;
   acc_resp_t acc_demux_snitch;
@@ -247,7 +273,7 @@ module snitch_cc #(
   fpnew_pkg::status_t    fpu_status;
 
   snitch_pkg::core_events_t snitch_events;
-  snitch_pkg::core_events_t fpu_events;
+  snitch_pkg::core_events_t fpss_events;
 
   // Snitch Integer Core
   dreq_t snitch_dreq_d, snitch_dreq_q, merged_dreq;
@@ -370,6 +396,7 @@ module snitch_cc #(
   reqrsp_iso #(
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
+    .UserWidth (64),
     .req_t (dreq_t),
     .rsp_t (drsp_t),
     .BypassReq (!RegisterCoreReq),
@@ -573,6 +600,7 @@ module snitch_cc #(
   // pragma translate_off
   snitch_pkg::fpu_trace_port_t fpu_trace;
   snitch_pkg::fpu_sequencer_trace_port_t fpu_sequencer_trace;
+  snitch_pkg::dca_trace_port_t dca_trace;
   // pragma translate_on
 
   logic  [2:0][4:0] ssr_raddr;
@@ -590,10 +618,26 @@ module snitch_cc #(
   logic             ssr_streamctl_ready;
 
   if (FPEn) begin : gen_fpu
-    snitch_pkg::core_events_t fp_ss_core_events;
 
     dreq_t fpu_dreq;
     drsp_t fpu_drsp;
+
+    dca_req_t dca_req;
+    dca_rsp_t dca_rsp;
+
+    generic_reqrsp_cut #(
+      .req_chan_t(dca_req_chan_t),
+      .rsp_chan_t(dca_rsp_chan_t),
+      .BypassReq(!EnableDca || !RegisterDcaReq),
+      .BypassRsp(!EnableDca || !RegisterDcaRsp)
+    ) i_dca_cut (
+      .clk_i(clk_i),
+      .rst_ni(rst_ni),
+      .slv_req_i(dca_req_i),
+      .slv_rsp_o(dca_rsp_o),
+      .mst_req_o(dca_req),
+      .mst_rsp_i(dca_rsp)
+    );
 
     snitch_fp_ss #(
       .AddrWidth (AddrWidth),
@@ -602,7 +646,7 @@ module snitch_cc #(
       .NumFPOutstandingMem (NumFPOutstandingMem),
       .NumFPUSequencerInstr (NumSequencerInstr),
       .NumFPUSequencerLoops (NumSequencerLoops),
-      .FPUImplementation (FPUImplementation),
+      .FpuImplementation (FPUImplementation),
       .NumSsrs (NumSsrs),
       .SsrRegs (SsrRegs),
       .dreq_t (dreq_t),
@@ -610,8 +654,8 @@ module snitch_cc #(
       .acc_req_t (acc_req_t),
       .acc_resp_t (acc_resp_t),
       .RegisterSequencer (RegisterSequencer),
-      .RegisterFPUIn (RegisterFPUIn),
-      .RegisterFPUOut (RegisterFPUOut),
+      .RegisterFpuReq (RegisterFPUIn),
+      .RegisterFpuRsp (RegisterFPUOut),
       .Xfrep (Xfrep),
       .Xssr (Xssr),
       .Xcopift (Xcopift),
@@ -622,13 +666,15 @@ module snitch_cc #(
       .XF8 (XF8),
       .XF8ALT (XF8ALT),
       .XFVEC (XFVEC),
-      .FLEN (FLEN)
+      .FLEN (FLEN),
+      .EnableDca (EnableDca)
     ) i_snitch_fp_ss (
       .clk_i,
       .rst_i            ( ~rst_ni | (~rst_fp_ss_ni)   ),
       // pragma translate_off
       .trace_port_o            ( fpu_trace           ),
       .sequencer_tracer_port_o ( fpu_sequencer_trace ),
+      .dca_trace_port_o        ( dca_trace ),
       // pragma translate_on
       .hart_id_i        ( hart_id_i      ),
       .acc_req_i        ( fpss_req       ),
@@ -662,14 +708,17 @@ module snitch_cc #(
       .streamctl_done_i   ( ssr_streamctl_done  ),
       .streamctl_valid_i  ( ssr_streamctl_valid ),
       .streamctl_ready_o  ( ssr_streamctl_ready ),
-      .core_events_o      ( fp_ss_core_events   ),
-      .en_copift_i ( en_copift )
+      .core_events_o      ( fpss_events         ),
+      .en_copift_i        ( en_copift           ),
+      .dca_req_i          ( dca_req             ),
+      .dca_rsp_o          ( dca_rsp             )
     );
 
     reqrsp_mux #(
       .NrPorts (2),
       .AddrWidth (AddrWidth),
       .DataWidth (DataWidth),
+      .UserWidth (64),
       .req_t (dreq_t),
       .rsp_t (drsp_t),
       // TODO(zarubaf): Wire-up to top-level.
@@ -684,10 +733,6 @@ module snitch_cc #(
       .mst_rsp_i (merged_drsp),
       .idx_o (/*not connected*/)
     );
-
-    assign core_events_o.issue_fpu = fp_ss_core_events.issue_fpu;
-    assign core_events_o.issue_fpu_seq = fp_ss_core_events.issue_fpu_seq;
-    assign core_events_o.issue_core_to_fpu = fp_ss_core_events.issue_core_to_fpu;
 
   end else begin : gen_no_fpu
     assign fpu_status = '0;
@@ -711,17 +756,22 @@ module snitch_cc #(
     assign merged_dreq = snitch_dreq_q;
     assign snitch_drsp_q = merged_drsp;
 
-    assign core_events_o.issue_fpu = '0;
-    assign core_events_o.issue_fpu_seq = '0;
-    assign core_events_o.issue_core_to_fpu = '0;
+    assign fpss_events = '0;
+
+    assign dca_rsp_o = '0;
   end
 
   // Decide whether to go to SoC or TCDM
-  dreq_t data_tcdm_req;
-  drsp_t data_tcdm_rsp;
+
   localparam int unsigned SelectWidth = cf_math_pkg::idx_width(2);
   typedef logic [SelectWidth-1:0] select_t;
-  select_t slave_select;
+  typedef enum select_t {SelectTcdm = 1, SelectSoc = 0} select_e;
+
+  dreq_t data_tcdm_req;
+  drsp_t data_tcdm_rsp;
+
+  select_t slave_select, slave_select_coll_op;
+
   reqrsp_demux #(
     .NrPorts (2),
     .req_t (dreq_t),
@@ -731,7 +781,7 @@ module snitch_cc #(
   ) i_reqrsp_demux (
     .clk_i,
     .rst_ni,
-    .slv_select_i (slave_select),
+    .slv_select_i (slave_select_coll_op),
     .slv_req_i (merged_dreq),
     .slv_rsp_o (merged_drsp),
     .mst_req_o ({data_tcdm_req, data_req_o}),
@@ -746,13 +796,13 @@ module snitch_cc #(
 
   reqrsp_rule_t [TCDMAliasEnable:0] addr_map;
   assign addr_map[0] = '{
-    idx: 1,
+    idx: SelectTcdm,
     base: tcdm_addr_base_i,
     mask: ({AddrWidth{1'b1}} << TCDMAddrWidth)
   };
   if (TCDMAliasEnable) begin : gen_tcdm_alias_rule
     assign addr_map[1] = '{
-      idx: 1,
+      idx: SelectTcdm,
       base: TCDMAliasStart,
       mask: ({AddrWidth{1'b1}} << TCDMAddrWidth)
     };
@@ -770,8 +820,18 @@ module snitch_cc #(
     .dec_valid_o (),
     .dec_error_o (),
     .en_default_idx_i (1'b1),
-    .default_idx_i ('0)
+    .default_idx_i (SelectSoc)
   );
+
+  // Collective communication operations are performed within the interconnect at the SoC
+  // level. However, requests destined to the TCDM never arrive at the SoC interconnect,
+  // as they are routed internally within the cluster. In order for collectives destined to
+  // the TCDM to work, we need to handle them differently, and always forward them to the
+  // SoC interconnect, which will reroute them back to the TCDM from outside the cluster.
+  // The collective mask, in the user field, is used to detect collective operations.
+  addr_t collective_mask;
+  assign collective_mask = addr_t'(merged_dreq.q.user[CollectiveWidth+:AddrWidth]);
+  assign slave_select_coll_op = (collective_mask != 0) ? SelectSoc : slave_select;
 
   tcdm_req_t core_tcdm_req;
   tcdm_rsp_t core_tcdm_rsp;
@@ -779,6 +839,7 @@ module snitch_cc #(
   reqrsp_to_tcdm #(
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
+    .UserWidth (64),
     // TODO(zarubaf): Make a parameter.
     .BufDepth (4),
     .reqrsp_req_t (dreq_t),
@@ -964,10 +1025,12 @@ module snitch_cc #(
   end
 
   // Core events for performance counters
-  assign core_events_o.retired_instr = snitch_events.retired_instr;
-  assign core_events_o.retired_load = snitch_events.retired_load;
-  assign core_events_o.retired_i = snitch_events.retired_i;
-  assign core_events_o.retired_acc = snitch_events.retired_acc;
+  always_comb begin
+    core_events_o = snitch_events;
+    core_events_o.issue_fpu = fpss_events.issue_fpu;
+    core_events_o.issue_fpu_seq = fpss_events.issue_fpu_seq;
+    core_events_o.issue_core_to_fpu = fpss_events.issue_core_to_fpu;
+  end
 
   // --------------------------
   // Tracer
@@ -996,6 +1059,7 @@ module snitch_cc #(
     automatic snitch_pkg::snitch_trace_port_t extras_snitch;
     automatic snitch_pkg::fpu_trace_port_t extras_fpu;
     automatic snitch_pkg::fpu_sequencer_trace_port_t extras_fpu_seq_out;
+    automatic snitch_pkg::dca_trace_port_t extras_dca;
 
     if (rst_ni) begin
       extras_snitch = '{
@@ -1060,6 +1124,9 @@ module snitch_cc #(
             $time, cycle, i_snitch.priv_lvl_q, i_snitch.pc_q, i_snitch.inst_data_i,
             snitch_pkg::print_snitch_trace(extras_snitch));
         $fwrite(f, trace_entry);
+`ifdef DEBUG
+        $fflush(f);
+`endif
       end
       if (FPEn) begin
         // Trace FPU iff:
@@ -1073,6 +1140,9 @@ module snitch_cc #(
               $time, cycle, i_snitch.priv_lvl_q, 32'hz, extras_fpu.op_in,
               snitch_pkg::print_fpu_trace(extras_fpu));
           $fwrite(f, trace_entry);
+`ifdef DEBUG
+          $fflush(f);
+`endif
         end
         // sequencer instructions
         if (Xfrep) begin
@@ -1081,7 +1151,23 @@ module snitch_cc #(
                 $time, cycle, i_snitch.priv_lvl_q, 32'hz, 64'hz,
                 snitch_pkg::print_fpu_sequencer_trace(extras_fpu_seq_out));
             $fwrite(f, trace_entry);
+`ifdef DEBUG
+            $fflush(f);
+`endif
           end
+        end
+      end
+      if (EnableDca) begin
+        extras_dca = dca_trace;
+        // Trace DCA iff a request or response handshake occurs
+        if (extras_dca.req_hs || extras_dca.rsp_hs) begin
+          $sformat(trace_entry, "%t %1d %8d 0x%h DASM(%h) #; %s\n",
+              $time, cycle, i_snitch.priv_lvl_q, 32'hz, extras_dca.op,
+              snitch_pkg::print_dca_trace(extras_dca));
+          $fwrite(f, trace_entry);
+`ifdef DEBUG
+          $fflush(f);
+`endif
         end
       end
     end else begin
@@ -1095,6 +1181,14 @@ module snitch_cc #(
   // verilog_lint: waive-stop always-ff-non-blocking
   // pragma translate_on
 
+  ////////////////
+  // Assertions //
+  ////////////////
+
   `ASSERT_INIT(BootAddrAligned, BootAddr[1:0] == 2'b00)
+  
+  // DCA extension currently only supports 64-bit datawidth
+  `ASSERT_INIT(DcaCoreConfiguration, (!EnableDca) || RVD)
+  `ASSERT_INIT(DcaDataWidth, (!EnableDca) || (DataWidth == 64))
 
 endmodule

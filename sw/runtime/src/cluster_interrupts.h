@@ -9,9 +9,19 @@
 /**
  * @brief Write mask to the cluster-local interrupt set register
  * @param mask set bit at X sets the interrupt of hart X
+ * @param cluster_idx Index of the cluster to which the interrupt is sent
+ */
+inline void snrt_int_cluster_set(uint32_t mask, uint32_t cluster_idx) {
+    snrt_cluster(cluster_idx)->peripheral_reg.cl_clint_set.f.cl_clint_set =
+        mask;
+}
+
+/**
+ * @brief Write mask to the cluster-local interrupt set register
+ * @param mask set bit at X sets the interrupt of hart X
  */
 inline void snrt_int_cluster_set(uint32_t mask) {
-    snrt_cluster()->peripheral_reg.cl_clint_set.f.cl_clint_set = mask;
+    snrt_int_cluster_set(mask, snrt_cluster_idx());
 }
 
 /**
@@ -34,19 +44,11 @@ inline void snrt_int_clr_mcip_unsafe() {
 }
 
 /**
- * @brief Wait for MCIP interrupt to be cleared
- */
-inline void snrt_int_wait_mcip_clr() {
-    while (read_csr(mip) & MIP_MCIP)
-        ;
-}
-
-/**
  * @brief Clear MCIP interrupt and wait for the write to have effect
  */
 inline void snrt_int_clr_mcip() {
     snrt_int_clr_mcip_unsafe();
-    snrt_int_wait_mcip_clr();
+    snrt_fence();
 }
 
 inline void snrt_int_set_mcip() {

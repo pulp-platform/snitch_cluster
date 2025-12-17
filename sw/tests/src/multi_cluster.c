@@ -15,11 +15,16 @@ int main() {
     uint32_t *cluster_sum = (uint32_t *)snrt_l3_next();
     uint32_t *core_cluster_sum = (uint32_t *)snrt_l3_next() + 4;
 
+    // One at a time, the zero-th cores in all clusters increment
+    // cluster_sum (i.e. should contain cluster_num at the end),
+    // and all cores in cluster i increment core_cluster_sum[i]
+    // (i.e. should contain cluster_core_num at the end).
     for (uint32_t i = 0; i < global_core_num; i++) {
         snrt_global_barrier();
         if (i == global_core_id) {
             *cluster_sum += (cluster_core_id == 0);
             core_cluster_sum[cluster_id] += 1;
+            snrt_fence();
         }
     }
 

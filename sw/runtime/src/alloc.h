@@ -44,7 +44,7 @@ inline void *snrt_align_up_hyperbank(void *addr) {
 extern snrt_allocator_t l3_allocator;
 
 inline snrt_allocator_t *snrt_l1_allocator() {
-    return (snrt_allocator_t *)&(cls()->l1_allocator);
+    return (snrt_allocator_t *)&(snrt_cls()->l1_allocator);
 }
 
 inline snrt_allocator_t *snrt_l3_allocator() { return &l3_allocator; }

@@ -13,8 +13,10 @@
 
 `include "mem_interface/typedef.svh"
 `include "apb/typedef.svh"
+`include "reqrsp_interface/assign.svh"
 `include "reqrsp_interface/typedef.svh"
 `include "tcdm_interface/typedef.svh"
+`include "dca_interface/typedef.svh"
 
 `include "snitch_vm/typedef.svh"
 
@@ -34,12 +36,10 @@ module snitch_cluster
   parameter int unsigned NarrowIdWidthIn    = 2,
   /// AXI: dma id width in.
   parameter int unsigned WideIdWidthIn      = 2,
-  /// AXI: user width.
-  parameter int unsigned NarrowUserWidth    = 1,
-  /// AXI: dma user width.
-  parameter int unsigned WideUserWidth      = 1,
   /// Width of the atomic ID to be used in a system.
   parameter int unsigned AtomicIdWidth      = 1,
+  /// Width of the collective operation
+  parameter int unsigned CollectiveWidth    = 1,
   /// Boot Address from which to fetch the first instructions.
   /// Used if `AliasRegionEnable` or `IntBootromEnable` is not set.
   parameter logic [31:0] BootAddr           = 32'h0,
@@ -80,8 +80,10 @@ module snitch_cluster
   parameter int unsigned ICacheWays [NrHives]      = '{default: 0},
   /// Enable virtual memory support.
   parameter bit          VMSupport          = 1,
-  /// Enable multicast on DMA XBAR.
-  parameter bit          EnableDMAMulticast = 0,
+  /// Enable wide collective operations.
+  parameter bit          EnableWideCollectives     = 0,
+  /// Enable narrow collective operations.
+  parameter bit          EnableNarrowCollectives   = 0,
   /// Per-core enabling of the standard `E` ISA reduced-register extension.
   parameter bit [NrCores-1:0] RVE           = '0,
   /// Per-core enabling of the standard `F` ISA extensions.
@@ -202,6 +204,10 @@ module snitch_cluster
   parameter bit          RegisterFPUIn      = 0,
   /// Insert Pipeline registers immediately after FPU datapath
   parameter bit          RegisterFPUOut     = 0,
+  /// Cut DCA request to FPU
+  parameter bit          RegisterDcaReq     = 0,
+  /// Cut DCA response from FPU
+  parameter bit          RegisterDcaRsp     = 0,
   /// Run Snitch (the integer part) at half of the clock frequency
   parameter bit          IsoCrossing        = 0,
   parameter axi_pkg::xbar_latency_e NarrowXbarLatency = axi_pkg::CUT_ALL_PORTS,
@@ -222,6 +228,9 @@ module snitch_cluster
   parameter type         wide_out_resp_t   = logic,
   parameter type         wide_in_req_t     = logic,
   parameter type         wide_in_resp_t    = logic,
+  /// User field is given as type as the subfields are config dependent!
+  parameter type         user_narrow_t     = logic,
+  parameter type         user_dma_t        = logic,
   // TCDM Ports
   parameter type         tcdm_dma_req_t    = logic,
   parameter type         tcdm_dma_rsp_t    = logic,
@@ -252,7 +261,20 @@ module snitch_cluster
   parameter bit          AliasRegionEnable  = 1'b0,
   parameter logic [PhysicalAddrWidth-1:0] AliasRegionBase    = '0,
   /// Instantiate internal bootrom.
-  parameter bit          IntBootromEnable   = 1'b1
+  parameter bit          IntBootromEnable   = 1'b1,
+  /// Enable direct compute access (DCA).
+  parameter bit EnableDca                   = 0,
+  /// Width of the external DCA interface
+  parameter int unsigned DcaDataWidth       = WideDataWidth,
+  /// Derived parameters
+  // TODO(colluca): this currently does not compile in Verilator (https://github.com/verilator/verilator/issues/6818)
+  // localparam type dca_req_t = `DCA_REQ_STRUCT(DataWidth),
+  // localparam type dca_rsp_t = `DCA_RSP_STRUCT(DataWidth)
+  // Workaround:
+  localparam type dca_req_chan_t = `DCA_REQ_CHAN_STRUCT(DcaDataWidth),
+  localparam type dca_req_t = `GENERIC_REQRSP_REQ_STRUCT(dca_req_chan_t),
+  localparam type dca_rsp_chan_t = `DCA_RSP_CHAN_STRUCT(DcaDataWidth),
+  localparam type dca_rsp_t = `GENERIC_REQRSP_RSP_STRUCT(dca_rsp_chan_t)
 ) (
   /// System clock. If `IsoCrossing` is enabled this port is the _fast_ clock.
   /// The slower, half-frequency clock, is derived internally.
@@ -282,6 +304,9 @@ module snitch_cluster
   /// Base address of cluster. TCDM and cluster peripheral location are derived from
   /// it. This signal is pseudo-static.
   input  logic [PhysicalAddrWidth-1:0]            cluster_base_addr_i,
+  /// Base address of cluster. TCDM and cluster peripheral location are derived from
+  /// it. This signal is pseudo-static.
+  input  logic [PhysicalAddrWidth-1:0]            cluster_base_offset_i,
   /// Configuration inputs for the memory cuts used in implementation.
   /// These signals are pseudo-static.
   input  sram_cfgs_t                              sram_cfgs_i,
@@ -325,13 +350,17 @@ module snitch_cluster
   // internal AXI plug.
   output narrow_out_req_t                         narrow_ext_req_o,
   input  narrow_out_resp_t                        narrow_ext_resp_i,
-  // External TCDM ports
+  // External TCDM ports.
   input  tcdm_dma_req_t [NumExpWideTcdmPorts-1:0] tcdm_ext_req_i,
-  output tcdm_dma_rsp_t [NumExpWideTcdmPorts-1:0] tcdm_ext_resp_o
+  output tcdm_dma_rsp_t [NumExpWideTcdmPorts-1:0] tcdm_ext_resp_o,
+  /// Direct compute access (DCA) interface.
+  input  dca_req_t dca_req_i,
+  output dca_rsp_t dca_rsp_o
 );
   // ---------
   // Constants
   // ---------
+
   /// Minimum width to hold the core number.
   localparam int unsigned CoreIDWidth = cf_math_pkg::idx_width(NrCores);
   localparam int unsigned TCDMMemAddrWidth = $clog2(TCDMDepth);
@@ -341,6 +370,7 @@ module snitch_cluster
   localparam int unsigned BanksPerHyperBank = NrBanks / NrHyperBanks;
   localparam int unsigned BanksPerSuperBank = WideDataWidth / NarrowDataWidth;
   localparam int unsigned NrSuperBanks = NrBanks / BanksPerSuperBank;
+  localparam int unsigned DcaLaneDataWidth = NarrowDataWidth;
 
   function automatic int unsigned get_tcdm_ports(int unsigned core);
     return (NumSsrs[core] > 1 ? NumSsrs[core] : 1);
@@ -355,6 +385,11 @@ module snitch_cluster
   localparam int unsigned NrTCDMPortsCores = get_tcdm_port_offs(NrCores);
   localparam int unsigned NumTCDMIn = NrTCDMPortsCores + 1;
   localparam logic [PhysicalAddrWidth-1:0] TCDMMask = ~(TCDMSizeNapotRounded - 1);
+
+  // User widths
+  localparam int unsigned CoreUserWidth   = 64;
+  localparam int unsigned NarrowUserWidth = $bits(user_narrow_t);
+  localparam int unsigned WideUserWidth   = $bits(user_dma_t);
 
   // Core Requests, SoC Request, PTW.
   localparam int unsigned NrNarrowMasters = 3;
@@ -391,28 +426,13 @@ module snitch_cluster
     AxiAddrWidth: PhysicalAddrWidth,
     AxiDataWidth: NarrowDataWidth,
     NoAddrRules: NrRules,
+    NoMulticastRules: 0,
+    // SoC is the only multicast-targetable port
+    NoMulticastPorts: EnableNarrowCollectives ? 1 : 0,
     default: '0
   };
 
   // DMA configuration struct
-  localparam axi_pkg::xbar_cfg_t DmaMcastXbarCfg = '{
-    NoSlvPorts: NrWideMasters,
-    NoMstPorts: NrWideSlaves,
-    MaxMstTrans: WideMaxMstTrans,
-    MaxSlvTrans: WideMaxSlvTrans,
-    FallThrough: 1'b0,
-    LatencyMode: WideXbarLatency,
-    PipelineStages: 0,
-    AxiIdWidthSlvPorts: WideIdWidthIn,
-    AxiIdUsedSlvPorts: WideIdWidthIn,
-    UniqueIds: 1'b0,
-    AxiAddrWidth: PhysicalAddrWidth,
-    AxiDataWidth: WideDataWidth,
-    NoAddrRules: NrWideRules,
-    NoMulticastRules: 1,
-    NoMulticastPorts: 2,
-    default: '0
-  };
   localparam axi_pkg::xbar_cfg_t DmaXbarCfg = '{
     NoSlvPorts: NrWideMasters,
     NoMstPorts: NrWideSlaves,
@@ -427,6 +447,9 @@ module snitch_cluster
     AxiAddrWidth: PhysicalAddrWidth,
     AxiDataWidth: WideDataWidth,
     NoAddrRules: NrWideRules,
+    NoMulticastRules: 0,
+    // SoC is the only multicast-targetable port
+    NoMulticastPorts: EnableWideCollectives ? 1 : 0,
     default: '0
   };
   localparam int unsigned WideSlaveIdxBits = cf_math_pkg::idx_width(NrWideSlaves);
@@ -473,19 +496,19 @@ module snitch_cluster
   typedef logic [PhysicalAddrWidth-1:0] addr_t;
   typedef logic [NarrowDataWidth-1:0]   data_t;
   typedef logic [NarrowDataWidth/8-1:0] strb_t;
+  typedef logic [CoreUserWidth-1:0]     user_t;
   typedef logic [WideDataWidth-1:0]     data_dma_t;
   typedef logic [WideDataWidth/8-1:0]   strb_dma_t;
   typedef logic [NarrowIdWidthIn-1:0]   id_mst_t;
   typedef logic [NarrowIdWidthOut-1:0]  id_slv_t;
   typedef logic [WideIdWidthIn-1:0]     id_dma_mst_t;
   typedef logic [WideIdWidthOut-1:0]    id_dma_slv_t;
-  typedef logic [NarrowUserWidth-1:0]   user_t;
-  typedef struct packed {
-    logic [WideUserWidth-1:0] collective_mask;
-  } user_dma_t;
 
   typedef logic [TCDMMemAddrWidth-1:0]  tcdm_mem_addr_t;
   typedef logic [TCDMAddrWidth-1:0]     tcdm_addr_t;
+
+  typedef logic [CollectiveWidth-1:0]   collective_op_t;
+  typedef logic [AtomicIdWidth-1:0]     atomic_id_t;
 
   // Struct replaced by logic array to workaround Questa optimization bug.
   // typedef struct packed {
@@ -495,8 +518,8 @@ module snitch_cluster
   typedef logic [CoreIDWidth:0] tcdm_user_t;
 
   // Regbus peripherals.
-  `AXI_TYPEDEF_ALL(axi_mst, addr_t, id_mst_t, data_t, strb_t, user_t)
-  `AXI_TYPEDEF_ALL(axi_slv, addr_t, id_slv_t, data_t, strb_t, user_t)
+  `AXI_TYPEDEF_ALL(axi_mst, addr_t, id_mst_t, data_t, strb_t, user_narrow_t)
+  `AXI_TYPEDEF_ALL(axi_slv, addr_t, id_slv_t, data_t, strb_t, user_narrow_t)
   `AXI_TYPEDEF_ALL(axi_mst_dma, addr_t, id_dma_mst_t, data_dma_t, strb_dma_t, user_dma_t)
   `AXI_TYPEDEF_ALL(axi_slv_dma, addr_t, id_dma_slv_t, data_dma_t, strb_dma_t, user_dma_t)
 
@@ -504,12 +527,19 @@ module snitch_cluster
 
   `APB_TYPEDEF_ALL(apb, addr_t, data_t, strb_t)
 
-  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t)
+  // Reqrsp interface of the core has a 64b user field
+  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
+  // Reqrsp interface in the cluster additionally contains the cluster ID
+  // (used for atomic operations) in the user field
+  `REQRSP_TYPEDEF_ALL(reqrsp_amo, addr_t, data_t, strb_t, user_narrow_t)
 
   `MEM_TYPEDEF_ALL(mem, tcdm_mem_addr_t, data_t, strb_t, tcdm_user_t)
   `MEM_TYPEDEF_ALL(mem_dma, tcdm_mem_addr_t, data_dma_t, strb_dma_t, logic)
 
   `TCDM_TYPEDEF_ALL(tcdm, tcdm_addr_t, data_t, strb_t, tcdm_user_t)
+
+  // Define dca_lane_req_t and dca_lane_rsp_t
+  `DCA_TYPEDEF_ALL(dca_lane, DcaLaneDataWidth)
 
   // Event counter increments for the TCDM.
   typedef struct packed {
@@ -613,6 +643,10 @@ module snitch_cluster
   assign ext_mem_start_address = zero_mem_end_address;
   assign ext_mem_end_address   = ext_mem_start_address + ExtMemorySize * 1024;
 
+  addr_t cluster_start_address, cluster_end_address;
+  assign cluster_start_address = cluster_base_addr_i;
+  assign cluster_end_address = cluster_start_address + cluster_base_offset_i;
+
   localparam addr_t TCDMAliasStart = AliasRegionBase & TCDMMask;
   localparam addr_t TCDMAliasEnd   = (TCDMAliasStart + TCDMSizeNapotRounded) & TCDMMask;
 
@@ -655,8 +689,8 @@ module snitch_cluster
   mem_dma_rsp_t [NrSuperBanks-1:0] sb_ext_rsp;
 
   // 3. Memory Subsystem (Interconnect)
-  tcdm_dma_req_t ext_dma_req;
-  tcdm_dma_rsp_t ext_dma_rsp;
+  tcdm_dma_req_t [1:0] ext_dma_req;
+  tcdm_dma_rsp_t [1:0] ext_dma_rsp;
 
   // AXI Ports into TCDM (from SoC).
   tcdm_req_t axi_soc_req;
@@ -728,20 +762,25 @@ module snitch_cluster
     .mst_resp_i (wide_axi_mst_rsp[SoCDMAIn])
   );
 
+  // Enable default master port for wide XBAR
+  localparam bit DmaEnableDefaultMstPort = 1'b1;
 
+  // Set default master port for wide XBAR to SoC
   logic [WideSlaveIdxBits-1:0] dma_xbar_default_port;
   assign dma_xbar_default_port = SoCDMAOut;
 
-  xbar_rule_t dma_xbar_default_port_rule;
-  assign dma_xbar_default_port_rule = '{
+  // Rule for default master port covers everything outside the cluster
+  // (defined by its complementary address set)
+  xbar_rule_t dma_xbar_default_rule;
+  assign dma_xbar_default_rule = '{
     idx: dma_xbar_default_port,
-    start_addr: tcdm_start_address,
-    end_addr: zero_mem_end_address
+    start_addr: cluster_start_address,
+    end_addr: cluster_end_address
   };
 
+  // Define the address map for the wide XBAR
   xbar_rule_t [5:0] dma_xbar_rules;
   xbar_rule_t [DmaXbarCfg.NoAddrRules-1:0] enabled_dma_xbar_rule;
-
   assign dma_xbar_rules = '{
     '{idx: BootRom,    start_addr: BootRomAliasStart,      end_addr: BootRomAliasEnd},
     '{idx: ZeroMemory, start_addr: ZeroMemAliasStart,      end_addr: ZeroMemAliasEnd},
@@ -750,7 +789,6 @@ module snitch_cluster
     '{idx: ZeroMemory, start_addr: zero_mem_start_address, end_addr: zero_mem_end_address},
     '{idx: TCDMDMA,    start_addr: tcdm_start_address,     end_addr: tcdm_end_address}
   };
-
   always_comb begin
     automatic int unsigned i = 0;
     enabled_dma_xbar_rule[i] = dma_xbar_rules[0]; i++; // TCDM
@@ -763,68 +801,49 @@ module snitch_cluster
     end
   end
 
-  localparam bit [DmaXbarCfg.NoSlvPorts-1:0] DMAEnableDefaultMstPort = '1;
-  if (EnableDMAMulticast) begin : gen_mcast_dma_xbar
-    axi_mcast_xbar #(
-      .Cfg (DmaMcastXbarCfg),
-      .ATOPs (0),
-      .slv_aw_chan_t (axi_mst_dma_aw_chan_t),
-      .mst_aw_chan_t (axi_slv_dma_aw_chan_t),
-      .w_chan_t (axi_mst_dma_w_chan_t),
-      .slv_b_chan_t (axi_mst_dma_b_chan_t),
-      .mst_b_chan_t (axi_slv_dma_b_chan_t),
-      .slv_ar_chan_t (axi_mst_dma_ar_chan_t),
-      .mst_ar_chan_t (axi_slv_dma_ar_chan_t),
-      .slv_r_chan_t (axi_mst_dma_r_chan_t),
-      .mst_r_chan_t (axi_slv_dma_r_chan_t),
-      .slv_req_t (axi_mst_dma_req_t),
-      .slv_resp_t (axi_mst_dma_resp_t),
-      .mst_req_t (axi_slv_dma_req_t),
-      .mst_resp_t (axi_slv_dma_resp_t),
-      .rule_t (xbar_rule_t)
-    ) i_axi_dma_xbar (
-      .clk_i (clk_i),
-      .rst_ni (rst_ni),
-      .test_i (1'b0),
-      .slv_ports_req_i (wide_axi_mst_req),
-      .slv_ports_resp_o (wide_axi_mst_rsp),
-      .mst_ports_req_o (wide_axi_slv_req),
-      .mst_ports_resp_i (wide_axi_slv_rsp),
-      .addr_map_i (enabled_dma_xbar_rule),
-      .en_default_mst_port_i (DMAEnableDefaultMstPort),
-      .default_mst_port_i ({DmaXbarCfg.NoSlvPorts{dma_xbar_default_port_rule}})
-    );
-  end else begin : gen_dma_xbar
-    axi_xbar #(
-      .Cfg (DmaXbarCfg),
-      .ATOPs (0),
-      .slv_aw_chan_t (axi_mst_dma_aw_chan_t),
-      .mst_aw_chan_t (axi_slv_dma_aw_chan_t),
-      .w_chan_t (axi_mst_dma_w_chan_t),
-      .slv_b_chan_t (axi_mst_dma_b_chan_t),
-      .mst_b_chan_t (axi_slv_dma_b_chan_t),
-      .slv_ar_chan_t (axi_mst_dma_ar_chan_t),
-      .mst_ar_chan_t (axi_slv_dma_ar_chan_t),
-      .slv_r_chan_t (axi_mst_dma_r_chan_t),
-      .mst_r_chan_t (axi_slv_dma_r_chan_t),
-      .slv_req_t (axi_mst_dma_req_t),
-      .slv_resp_t (axi_mst_dma_resp_t),
-      .mst_req_t (axi_slv_dma_req_t),
-      .mst_resp_t (axi_slv_dma_resp_t),
-      .rule_t (xbar_rule_t)
-    ) i_axi_dma_xbar (
-      .clk_i (clk_i),
-      .rst_ni (rst_ni),
-      .test_i (1'b0),
-      .slv_ports_req_i (wide_axi_mst_req),
-      .slv_ports_resp_o (wide_axi_mst_rsp),
-      .mst_ports_req_o (wide_axi_slv_req),
-      .mst_ports_resp_i (wide_axi_slv_rsp),
-      .addr_map_i (enabled_dma_xbar_rule),
-      .en_default_mst_port_i (DMAEnableDefaultMstPort),
-      .default_mst_port_i ({DmaXbarCfg.NoSlvPorts{dma_xbar_default_port}})
-    );
-  end
+  // Define collective connectivity matrix to ensure collectives are routed to the SoC port only
+  // i.e. they are handled outside of the cluster, e.g. in the NoC router
+  typedef bit [DmaXbarCfg.NoMstPorts-1:0] wide_mst_connectivity_t;
+  typedef wide_mst_connectivity_t [DmaXbarCfg.NoSlvPorts-1:0] wide_xbar_connectivity_t;
+  localparam wide_mst_connectivity_t WideMstCollectiveConnectivity = wide_mst_connectivity_t'{
+    SoCDMAOut: 1'b1,
+    default: 1'b0
+  };
+  localparam wide_xbar_connectivity_t DmaCollectiveConnectivity = wide_xbar_connectivity_t'{
+    default: WideMstCollectiveConnectivity
+  };
+
+  // Instantiate the wide AXI XBAR
+  axi_mcast_xbar #(
+    .Cfg                  (DmaXbarCfg),
+    .MulticastConnectivity(DmaCollectiveConnectivity),
+    .ATOPs                (0),
+    .slv_aw_chan_t        (axi_mst_dma_aw_chan_t),
+    .mst_aw_chan_t        (axi_slv_dma_aw_chan_t),
+    .w_chan_t             (axi_mst_dma_w_chan_t),
+    .slv_b_chan_t         (axi_mst_dma_b_chan_t),
+    .mst_b_chan_t         (axi_slv_dma_b_chan_t),
+    .slv_ar_chan_t        (axi_mst_dma_ar_chan_t),
+    .mst_ar_chan_t        (axi_slv_dma_ar_chan_t),
+    .slv_r_chan_t         (axi_mst_dma_r_chan_t),
+    .mst_r_chan_t         (axi_slv_dma_r_chan_t),
+    .slv_req_t            (axi_mst_dma_req_t),
+    .slv_resp_t           (axi_mst_dma_resp_t),
+    .mst_req_t            (axi_slv_dma_req_t),
+    .mst_resp_t           (axi_slv_dma_resp_t),
+    .rule_t               (xbar_rule_t)
+  ) i_axi_dma_xbar (
+    .clk_i                (clk_i),
+    .rst_ni               (rst_ni),
+    .test_i               (1'b0),
+    .slv_ports_req_i      (wide_axi_mst_req),
+    .slv_ports_resp_o     (wide_axi_mst_rsp),
+    .mst_ports_req_o      (wide_axi_slv_req),
+    .mst_ports_resp_i     (wide_axi_slv_rsp),
+    .addr_map_i           (enabled_dma_xbar_rule),
+    .en_default_mst_port_i({DmaXbarCfg.NoSlvPorts{DmaEnableDefaultMstPort}}),
+    .default_mst_port_i   ({DmaXbarCfg.NoSlvPorts{dma_xbar_default_rule}})
+  );
 
   axi_zero_mem #(
     .axi_req_t (axi_slv_dma_req_t),
@@ -842,40 +861,42 @@ module snitch_cluster
     .axi_resp_o (wide_axi_slv_rsp[ZeroMemory])
   );
 
-  addr_t ext_dma_req_q_addr_nontrunc;
+  addr_t [1:0] ext_dma_req_q_addr_nontrunc;
 
-  axi_to_mem_interleaved #(
+  axi_to_mem_split #(
     .axi_req_t (axi_slv_dma_req_t),
     .axi_resp_t (axi_slv_dma_resp_t),
     .AddrWidth (PhysicalAddrWidth),
-    .DataWidth (WideDataWidth),
+    .AxiDataWidth (WideDataWidth),
     .IdWidth (WideIdWidthOut),
-    .NumBanks (1),
+    .MemDataWidth (WideDataWidth),
     .BufDepth (MemoryMacroLatency + 1)
-  ) i_axi_to_mem_dma (
+  ) i_axi_to_mem_split (
     .clk_i,
     .rst_ni,
     .busy_o (),
     .test_i (1'b0),
     .axi_req_i (wide_axi_slv_req[TCDMDMA]),
     .axi_resp_o (wide_axi_slv_rsp[TCDMDMA]),
-    .mem_req_o (ext_dma_req.q_valid),
-    .mem_gnt_i (ext_dma_rsp.q_ready),
+    .mem_req_o ({ext_dma_req[1].q_valid, ext_dma_req[0].q_valid}),
+    .mem_gnt_i ({ext_dma_rsp[1].q_ready, ext_dma_rsp[0].q_ready}),
     .mem_addr_o (ext_dma_req_q_addr_nontrunc),
-    .mem_wdata_o (ext_dma_req.q.data),
-    .mem_strb_o (ext_dma_req.q.strb),
+    .mem_wdata_o ({ext_dma_req[1].q.data, ext_dma_req[0].q.data}),
+    .mem_strb_o ({ext_dma_req[1].q.strb, ext_dma_req[0].q.strb}),
     .mem_atop_o (/* The DMA does not support atomics */),
-    .mem_we_o (ext_dma_req.q.write),
-    .mem_rvalid_i (ext_dma_rsp.p_valid),
-    .mem_rdata_i (ext_dma_rsp.p.data)
+    .mem_we_o ({ext_dma_req[1].q.write, ext_dma_req[0].q.write}),
+    .mem_rvalid_i ({ext_dma_rsp[1].p_valid, ext_dma_rsp[0].p_valid}),
+    .mem_rdata_i ({ext_dma_rsp[1].p.data, ext_dma_rsp[0].p.data})
   );
 
-  assign ext_dma_req.q.addr = tcdm_addr_t'(ext_dma_req_q_addr_nontrunc);
-  assign ext_dma_req.q.amo = reqrsp_pkg::AMONone;
-  assign ext_dma_req.q.user = '0;
+  for (genvar i = 0; i < 2; i++) begin : gen_dma_rw_mem_ports
+    assign ext_dma_req[i].q.addr = tcdm_addr_t'(ext_dma_req_q_addr_nontrunc[i]);
+    assign ext_dma_req[i].q.amo = reqrsp_pkg::AMONone;
+    assign ext_dma_req[i].q.user = '0;
+  end
 
   snitch_tcdm_interconnect #(
-    .NumInp (1),
+    .NumInp (2),
     .NumOut (NrSuperBanks),
     .NumHyperBanks (NrHyperBanks),
     .tcdm_req_t (tcdm_dma_req_t),
@@ -1056,6 +1077,31 @@ module snitch_cluster
   hive_req_t [NrCores-1:0] hive_req;
   hive_rsp_t [NrCores-1:0] hive_rsp;
 
+  dca_lane_req_t [NrCores-1:0] dca_lane_req;
+  dca_lane_rsp_t [NrCores-1:0] dca_lane_rsp;
+
+  // Fork the external DCA port to the various SIMD lanes, and tie off DMA
+  // TODO(colluca): the number of DMA cores here is hardcoded
+  if (EnableDca) begin : gen_dca
+    dca_fork #(
+      .LaneDataWidth(DcaLaneDataWidth),
+      .NumLanes(NrCores-1)
+    ) i_dca_fork (
+      .clk_i,
+      .rst_ni,
+      .slv_req_i(dca_req_i),
+      .slv_rsp_o(dca_rsp_o),
+      .mst_req_o(dca_lane_req[NrCores-2:0]),
+      .mst_rsp_i(dca_lane_rsp[NrCores-2:0])
+    );
+    `REQRSP_TIE_OFF_REQ(dca_lane_req[NrCores-1])
+  end else begin : gen_no_dca
+    for (genvar i = 0; i < NrCores; i++) begin : gen_tie_off_lane
+      `REQRSP_TIE_OFF_REQ(dca_lane_req[i])
+    end
+    `REQRSP_TIE_OFF_RSP(dca_rsp_o)
+  end
+
   for (genvar i = 0; i < NrCores; i++) begin : gen_core
     localparam int unsigned TcdmPorts = get_tcdm_ports(i);
     localparam int unsigned TcdmPortsOffs = get_tcdm_port_offs(i);
@@ -1076,202 +1122,208 @@ module snitch_cluster
     assign irq.mcip = cl_interrupt[i];
     assign irq.mxip = mxip_i[i];
 
-      tcdm_req_t [TcdmPorts-1:0] tcdm_req_wo_user;
+    tcdm_req_t [TcdmPorts-1:0] tcdm_req_wo_user;
 
-      parameter logic [31:0] BootAddrInternal = (AliasRegionEnable & IntBootromEnable) ?
-                                                 BootRomAliasStart : BootAddr;
+    parameter logic [31:0] BootAddrInternal = (AliasRegionEnable & IntBootromEnable) ?
+                                                BootRomAliasStart : BootAddr;
 
-      snitch_cc #(
-        .AddrWidth (PhysicalAddrWidth),
-        .DataWidth (NarrowDataWidth),
-        .DMADataWidth (WideDataWidth),
-        .DMAIdWidth (WideIdWidthIn),
-        .DMAUserWidth (WideUserWidth),
-        .SnitchPMACfg (SnitchPMACfg),
-        .DMANumAxInFlight (DMANumAxInFlight),
-        .DMAReqFifoDepth (DMAReqFifoDepth),
-        .DMANumChannels (DMANumChannels),
-        .dreq_t (reqrsp_req_t),
-        .drsp_t (reqrsp_rsp_t),
-        .tcdm_req_t (tcdm_req_t),
-        .tcdm_rsp_t (tcdm_rsp_t),
-        .tcdm_user_t (tcdm_user_t),
-        .axi_ar_chan_t (axi_mst_dma_ar_chan_t),
-        .axi_aw_chan_t (axi_mst_dma_aw_chan_t),
-        .axi_req_t (axi_mst_dma_req_t),
-        .axi_rsp_t (axi_mst_dma_resp_t),
-        .hive_req_t (hive_req_t),
-        .hive_rsp_t (hive_rsp_t),
-        .acc_req_t (acc_req_t),
-        .acc_resp_t (acc_resp_t),
-        .dma_events_t (dma_events_t),
-        .EnableXif (EnableXif),
-        .XifIdWidth (XifIdWidth),
-        .x_issue_req_t (x_issue_req_t),
-        .x_issue_resp_t (x_issue_resp_t),
-        .x_register_t (x_register_t),
-        .x_commit_t (x_commit_t),
-        .x_result_t (x_result_t),
-        .BootAddr (BootAddrInternal),
-        .RVE (RVE[i]),
-        .RVF (RVF[i]),
-        .RVD (RVD[i]),
-        .XDivSqrt (XDivSqrt[i]),
-        .XF16 (XF16[i]),
-        .XF16ALT (XF16ALT[i]),
-        .XF8 (XF8[i]),
-        .XF8ALT (XF8ALT[i]),
-        .XFVEC (XFVEC[i]),
-        .XFDOTP (XFDOTP[i]),
-        .Xdma (Xdma[i]),
-        .IsoCrossing (IsoCrossing),
-        .Xfrep (Xfrep[i]),
-        .Xssr (Xssr[i]),
-        .Xcopift (Xcopift[i]),
-        .Xpulppostmod (Xpulppostmod[i]),
-        .Xpulpabs (Xpulpabs[i]),
-        .Xpulpbitop (Xpulpbitop[i]),
-        .Xpulpbr (Xpulpbr[i]),
-        .Xpulpclip (Xpulpclip[i]),
-        .Xpulpmacsi (Xpulpmacsi[i]),
-        .Xpulpminmax (Xpulpminmax[i]),
-        .Xpulpslet (Xpulpslet[i]),
-        .Xpulpvect (Xpulpvect[i]),
-        .Xpulpvectshufflepack (Xpulpvectshufflepack[i]),
-        .PrivateIpu (PrivateIpu[i]),
-        .VMSupport (VMSupport),
-        .NumIntOutstandingLoads (NumIntOutstandingLoads[i]),
-        .NumIntOutstandingMem (NumIntOutstandingMem[i]),
-        .NumFPOutstandingLoads (NumFPOutstandingLoads[i]),
-        .NumFPOutstandingMem (NumFPOutstandingMem[i]),
-        .FPUImplementation (FPUImplementation[i]),
-        .NumDTLBEntries (NumDTLBEntries[i]),
-        .NumITLBEntries (NumITLBEntries[i]),
-        .NumSequencerInstr (NumSequencerInstr[i]),
-        .NumSequencerLoops (NumSequencerLoops[i]),
-        .NumSsrs (NumSsrs[i]),
-        .SsrMuxRespDepth (SsrMuxRespDepth[i]),
-        .SsrCfgs (SsrCfgs[i][NumSsrs[i]-1:0]),
-        .SsrRegs (SsrRegs[i][NumSsrs[i]-1:0]),
-        .RegisterOffloadReq (RegisterOffloadReq),
-        .RegisterOffloadRsp (RegisterOffloadRsp),
-        .RegisterCoreReq (RegisterCoreReq),
-        .RegisterCoreRsp (RegisterCoreRsp),
-        .RegisterFPUReq (RegisterFPUReq),
-        .RegisterSequencer (RegisterSequencer),
-        .RegisterFPUIn (RegisterFPUIn),
-        .RegisterFPUOut (RegisterFPUOut),
-        .TCDMAddrWidth (TCDMAddrWidth),
-        .CaqDepth (CaqDepth),
-        .CaqTagWidth (CaqTagWidth),
-        .DebugSupport (DebugSupport),
-        .TCDMAliasEnable (AliasRegionEnable),
-        .TCDMAliasStart (TCDMAliasStart)
-      ) i_snitch_cc (
-        .clk_i,
-        .clk_d2_i (clk_d2),
-        .rst_ni,
-        .rst_int_ss_ni (1'b1),
-        .rst_fp_ss_ni (1'b1),
-        .hart_id_i (hart_base_id_i + i),
-        .hive_req_o (hive_req[i]),
-        .hive_rsp_i (hive_rsp[i]),
-        .irq_i (irq),
-        .data_req_o (core_req[i]),
-        .data_rsp_i (core_rsp[i]),
-        .tcdm_req_o (tcdm_req_wo_user),
-        .tcdm_rsp_i (tcdm_rsp[TcdmPortsOffs+:TcdmPorts]),
-        .x_issue_req_o (x_issue_req_o[i]),
-        .x_issue_resp_i (x_issue_resp_i[i]),
-        .x_issue_valid_o (x_issue_valid_o[i]),
-        .x_issue_ready_i (x_issue_ready_i[i]),
-        .x_register_o (x_register_o[i] ),
-        .x_register_valid_o (x_register_valid_o[i]),
-        .x_register_ready_i (x_register_ready_i[i]),
-        .x_commit_o (x_commit_o[i]),
-        .x_commit_valid_o (x_commit_valid_o[i]),
-        .x_result_i (x_result_i[i]),
-        .x_result_valid_i (x_result_valid_i[i]),
-        .x_result_ready_o (x_result_ready_o[i]),
-        .axi_dma_req_o (axi_dma_req),
-        .axi_dma_res_i (axi_dma_res),
-        .axi_dma_busy_o (),
-        .axi_dma_events_o (dma_core_events),
-        .core_events_o (core_events[i]),
-        .tcdm_addr_base_i (tcdm_start_address),
-        .barrier_o (barrier_in[i]),
-        .barrier_i (barrier_out)
-      );
-      for (genvar j = 0; j < TcdmPorts; j++) begin : gen_tcdm_user
-        always_comb begin
-          tcdm_req[TcdmPortsOffs+j] = tcdm_req_wo_user[j];
-          tcdm_req[TcdmPortsOffs+j].q.user[CoreIDWidth:1] = i;
-          tcdm_req[TcdmPortsOffs+j].q.user[0] = 1;
-        end
+    snitch_cc #(
+      .AddrWidth (PhysicalAddrWidth),
+      .DataWidth (NarrowDataWidth),
+      .DMADataWidth (WideDataWidth),
+      .DMAIdWidth (WideIdWidthIn),
+      .DMAUserWidth (WideUserWidth),
+      .SnitchPMACfg (SnitchPMACfg),
+      .DMANumAxInFlight (DMANumAxInFlight),
+      .DMAReqFifoDepth (DMAReqFifoDepth),
+      .DMANumChannels (DMANumChannels),
+      .dreq_t (reqrsp_req_t),
+      .drsp_t (reqrsp_rsp_t),
+      .tcdm_req_t (tcdm_req_t),
+      .tcdm_rsp_t (tcdm_rsp_t),
+      .tcdm_user_t (tcdm_user_t),
+      .axi_ar_chan_t (axi_mst_dma_ar_chan_t),
+      .axi_aw_chan_t (axi_mst_dma_aw_chan_t),
+      .axi_req_t (axi_mst_dma_req_t),
+      .axi_rsp_t (axi_mst_dma_resp_t),
+      .hive_req_t (hive_req_t),
+      .hive_rsp_t (hive_rsp_t),
+      .acc_req_t (acc_req_t),
+      .acc_resp_t (acc_resp_t),
+      .dma_events_t (dma_events_t),
+      .EnableXif (EnableXif),
+      .XifIdWidth (XifIdWidth),
+      .x_issue_req_t (x_issue_req_t),
+      .x_issue_resp_t (x_issue_resp_t),
+      .x_register_t (x_register_t),
+      .x_commit_t (x_commit_t),
+      .x_result_t (x_result_t),
+      .BootAddr (BootAddrInternal),
+      .RVE (RVE[i]),
+      .RVF (RVF[i]),
+      .RVD (RVD[i]),
+      .XDivSqrt (XDivSqrt[i]),
+      .XF16 (XF16[i]),
+      .XF16ALT (XF16ALT[i]),
+      .XF8 (XF8[i]),
+      .XF8ALT (XF8ALT[i]),
+      .XFVEC (XFVEC[i]),
+      .XFDOTP (XFDOTP[i]),
+      .Xdma (Xdma[i]),
+      .IsoCrossing (IsoCrossing),
+      .Xfrep (Xfrep[i]),
+      .Xssr (Xssr[i]),
+      .Xcopift (Xcopift[i]),
+      .Xpulppostmod (Xpulppostmod[i]),
+      .Xpulpabs (Xpulpabs[i]),
+      .Xpulpbitop (Xpulpbitop[i]),
+      .Xpulpbr (Xpulpbr[i]),
+      .Xpulpclip (Xpulpclip[i]),
+      .Xpulpmacsi (Xpulpmacsi[i]),
+      .Xpulpminmax (Xpulpminmax[i]),
+      .Xpulpslet (Xpulpslet[i]),
+      .Xpulpvect (Xpulpvect[i]),
+      .Xpulpvectshufflepack (Xpulpvectshufflepack[i]),
+      .PrivateIpu (PrivateIpu[i]),
+      .VMSupport (VMSupport),
+      .NumIntOutstandingLoads (NumIntOutstandingLoads[i]),
+      .NumIntOutstandingMem (NumIntOutstandingMem[i]),
+      .NumFPOutstandingLoads (NumFPOutstandingLoads[i]),
+      .NumFPOutstandingMem (NumFPOutstandingMem[i]),
+      .FPUImplementation (FPUImplementation[i]),
+      .NumDTLBEntries (NumDTLBEntries[i]),
+      .NumITLBEntries (NumITLBEntries[i]),
+      .NumSequencerInstr (NumSequencerInstr[i]),
+      .NumSequencerLoops (NumSequencerLoops[i]),
+      .NumSsrs (NumSsrs[i]),
+      .SsrMuxRespDepth (SsrMuxRespDepth[i]),
+      .SsrCfgs (SsrCfgs[i][NumSsrs[i]-1:0]),
+      .SsrRegs (SsrRegs[i][NumSsrs[i]-1:0]),
+      .RegisterOffloadReq (RegisterOffloadReq),
+      .RegisterOffloadRsp (RegisterOffloadRsp),
+      .RegisterCoreReq (RegisterCoreReq),
+      .RegisterCoreRsp (RegisterCoreRsp),
+      .RegisterFPUReq (RegisterFPUReq),
+      .RegisterSequencer (RegisterSequencer),
+      .RegisterFPUIn (RegisterFPUIn),
+      .RegisterFPUOut (RegisterFPUOut),
+      .RegisterDcaReq (RegisterDcaReq),
+      .RegisterDcaRsp (RegisterDcaRsp),
+      .TCDMAddrWidth (TCDMAddrWidth),
+      .CaqDepth (CaqDepth),
+      .CaqTagWidth (CaqTagWidth),
+      .DebugSupport (DebugSupport),
+      .TCDMAliasEnable (AliasRegionEnable),
+      .TCDMAliasStart (TCDMAliasStart),
+      .CollectiveWidth (CollectiveWidth),
+      .EnableDca (EnableDca)  
+    ) i_snitch_cc (
+      .clk_i,
+      .clk_d2_i (clk_d2),
+      .rst_ni,
+      .rst_int_ss_ni (1'b1),
+      .rst_fp_ss_ni (1'b1),
+      .hart_id_i (hart_base_id_i + i),
+      .hive_req_o (hive_req[i]),
+      .hive_rsp_i (hive_rsp[i]),
+      .irq_i (irq),
+      .data_req_o (core_req[i]),
+      .data_rsp_i (core_rsp[i]),
+      .tcdm_req_o (tcdm_req_wo_user),
+      .tcdm_rsp_i (tcdm_rsp[TcdmPortsOffs+:TcdmPorts]),
+      .x_issue_req_o (x_issue_req_o[i]),
+      .x_issue_resp_i (x_issue_resp_i[i]),
+      .x_issue_valid_o (x_issue_valid_o[i]),
+      .x_issue_ready_i (x_issue_ready_i[i]),
+      .x_register_o (x_register_o[i] ),
+      .x_register_valid_o (x_register_valid_o[i]),
+      .x_register_ready_i (x_register_ready_i[i]),
+      .x_commit_o (x_commit_o[i]),
+      .x_commit_valid_o (x_commit_valid_o[i]),
+      .x_result_i (x_result_i[i]),
+      .x_result_valid_i (x_result_valid_i[i]),
+      .x_result_ready_o (x_result_ready_o[i]),
+      .axi_dma_req_o (axi_dma_req),
+      .axi_dma_res_i (axi_dma_res),
+      .axi_dma_busy_o (),
+      .axi_dma_events_o (dma_core_events),
+      .core_events_o (core_events[i]),
+      .tcdm_addr_base_i (tcdm_start_address),
+      .barrier_o (barrier_in[i]),
+      .barrier_i (barrier_out),
+      .dca_req_i (dca_lane_req[i]),
+      .dca_rsp_o (dca_lane_rsp[i])  
+    );
+    for (genvar j = 0; j < TcdmPorts; j++) begin : gen_tcdm_user
+      always_comb begin
+        tcdm_req[TcdmPortsOffs+j] = tcdm_req_wo_user[j];
+        tcdm_req[TcdmPortsOffs+j].q.user[CoreIDWidth:1] = i;
+        tcdm_req[TcdmPortsOffs+j].q.user[0] = 1;
       end
-      if (Xdma[i]) begin : gen_dma_connection
-        for (genvar j = 0; j < DMANumChannels; j++) begin : gen_dma_connection
-          assign wide_axi_mst_req[SDMAMst + j] = axi_dma_req[j];
-          assign axi_dma_res[j] = wide_axi_mst_rsp[SDMAMst + j];
-        end
-        assign dma_events = dma_core_events;
+    end
+    if (Xdma[i]) begin : gen_dma_connection
+      for (genvar j = 0; j < DMANumChannels; j++) begin : gen_dma_connection
+        assign wide_axi_mst_req[SDMAMst + j] = axi_dma_req[j];
+        assign axi_dma_res[j] = wide_axi_mst_rsp[SDMAMst + j];
       end
+      assign dma_events = dma_core_events;
+    end
   end
 
   for (genvar i = 0; i < NrHives; i++) begin : gen_hive
-      localparam int unsigned HiveSize = get_hive_size(i);
-      localparam bit SharedIpu = requires_shared_ipu(i);
-      localparam bit Xpulpv2 = supports_xpulp(i);
+    localparam int unsigned HiveSize = get_hive_size(i);
+    localparam bit SharedIpu = requires_shared_ipu(i);
+    localparam bit Xpulpv2 = supports_xpulp(i);
 
-      hive_req_t [HiveSize-1:0] hive_req_reshape;
-      hive_rsp_t [HiveSize-1:0] hive_rsp_reshape;
+    hive_req_t [HiveSize-1:0] hive_req_reshape;
+    hive_rsp_t [HiveSize-1:0] hive_rsp_reshape;
 
-      icache_l0_events_t [HiveSize-1:0] icache_events_reshape;
+    icache_l0_events_t [HiveSize-1:0] icache_events_reshape;
 
-      for (genvar j = 0; j < NrCores; j++) begin : gen_hive_matrix
-        // Check whether the core actually belongs to the current hive.
-        if (Hive[j] == i) begin : gen_hive_connection
-          localparam int unsigned HivePosition = get_core_position(i, j);
-          assign hive_req_reshape[HivePosition] = hive_req[j];
-          assign hive_rsp[j] = hive_rsp_reshape[HivePosition];
-          assign icache_events[j] = icache_events_reshape[HivePosition];
-        end
+    for (genvar j = 0; j < NrCores; j++) begin : gen_hive_matrix
+      // Check whether the core actually belongs to the current hive.
+      if (Hive[j] == i) begin : gen_hive_connection
+        localparam int unsigned HivePosition = get_core_position(i, j);
+        assign hive_req_reshape[HivePosition] = hive_req[j];
+        assign hive_rsp[j] = hive_rsp_reshape[HivePosition];
+        assign icache_events[j] = icache_events_reshape[HivePosition];
       end
+    end
 
-      snitch_hive #(
-        .AddrWidth (PhysicalAddrWidth),
-        .NarrowDataWidth (NarrowDataWidth),
-        .WideDataWidth (WideDataWidth),
-        .VMSupport (VMSupport),
-        .SharedIpu (SharedIpu),
-        .Xpulpv2 (Xpulpv2),
-        .dreq_t (reqrsp_req_t),
-        .drsp_t (reqrsp_rsp_t),
-        .hive_req_t (hive_req_t),
-        .hive_rsp_t (hive_rsp_t),
-        .CoreCount (HiveSize),
-        .ICacheLineWidth (ICacheLineWidth[i]),
-        .ICacheLineCount (ICacheLineCount[i]),
-        .ICacheWays (ICacheWays[i]),
-        .IsoCrossing (IsoCrossing),
-        .sram_cfg_t  (sram_cfg_t),
-        .sram_cfgs_t (sram_cfgs_t),
-        .axi_req_t (axi_mst_dma_req_t),
-        .axi_rsp_t (axi_mst_dma_resp_t)
-      ) i_snitch_hive (
-        .clk_i,
-        .clk_d2_i (clk_d2),
-        .rst_ni,
-        .hive_req_i (hive_req_reshape),
-        .hive_rsp_o (hive_rsp_reshape),
-        .ptw_data_req_o (ptw_req[i]),
-        .ptw_data_rsp_i (ptw_rsp[i]),
-        .axi_req_o (wide_axi_mst_req[SDMAMst+DMANumChannels+i]),
-        .axi_rsp_i (wide_axi_mst_rsp[SDMAMst+DMANumChannels+i]),
-        .icache_prefetch_enable_i (icache_prefetch_enable),
-        .icache_events_o(icache_events_reshape),
-        .sram_cfgs_i
-      );
+    snitch_hive #(
+      .AddrWidth (PhysicalAddrWidth),
+      .NarrowDataWidth (NarrowDataWidth),
+      .WideDataWidth (WideDataWidth),
+      .VMSupport (VMSupport),
+      .SharedIpu (SharedIpu),
+      .Xpulpv2 (Xpulpv2),
+      .dreq_t (reqrsp_req_t),
+      .drsp_t (reqrsp_rsp_t),
+      .hive_req_t (hive_req_t),
+      .hive_rsp_t (hive_rsp_t),
+      .CoreCount (HiveSize),
+      .ICacheLineWidth (ICacheLineWidth[i]),
+      .ICacheLineCount (ICacheLineCount[i]),
+      .ICacheWays (ICacheWays[i]),
+      .IsoCrossing (IsoCrossing),
+      .sram_cfg_t  (sram_cfg_t),
+      .sram_cfgs_t (sram_cfgs_t),
+      .axi_req_t (axi_mst_dma_req_t),
+      .axi_rsp_t (axi_mst_dma_resp_t)
+    ) i_snitch_hive (
+      .clk_i,
+      .clk_d2_i (clk_d2),
+      .rst_ni,
+      .hive_req_i (hive_req_reshape),
+      .hive_rsp_o (hive_rsp_reshape),
+      .ptw_data_req_o (ptw_req[i]),
+      .ptw_data_rsp_i (ptw_rsp[i]),
+      .axi_req_o (wide_axi_mst_req[SDMAMst+DMANumChannels+i]),
+      .axi_rsp_i (wide_axi_mst_rsp[SDMAMst+DMANumChannels+i]),
+      .icache_prefetch_enable_i (icache_prefetch_enable),
+      .icache_events_o(icache_events_reshape),
+      .sram_cfgs_i
+    );
   end
 
   // --------
@@ -1284,6 +1336,7 @@ module snitch_cluster
     .NrPorts (NrHives),
     .AddrWidth (PhysicalAddrWidth),
     .DataWidth (NarrowDataWidth),
+    .UserWidth (CoreUserWidth),
     .req_t (reqrsp_req_t),
     .rsp_t (reqrsp_rsp_t),
     .RespDepth (2)
@@ -1299,7 +1352,6 @@ module snitch_cluster
 
   reqrsp_to_axi #(
     .DataWidth (NarrowDataWidth),
-    .UserWidth (NarrowUserWidth),
     .reqrsp_req_t (reqrsp_req_t),
     .reqrsp_rsp_t (reqrsp_rsp_t),
     .axi_req_t (axi_mst_req_t),
@@ -1307,7 +1359,6 @@ module snitch_cluster
   ) i_reqrsp_to_axi_ptw (
     .clk_i,
     .rst_ni,
-    .user_i ('0),
     .reqrsp_req_i (ptw_to_axi_req),
     .reqrsp_rsp_o (ptw_to_axi_rsp),
     .axi_req_o (narrow_axi_mst_req[PTW]),
@@ -1329,16 +1380,12 @@ module snitch_cluster
 
   reqrsp_req_t core_to_axi_req;
   reqrsp_rsp_t core_to_axi_rsp;
-  user_t cluster_user;
-  // Atomic ID, needs to be unique ID of cluster
-  // cluster_id + HartIdOffset + 1 (because 0 is for non-atomic masters)
-  assign cluster_user = (core_to_axi_req.q.mask << AtomicIdWidth) |
-                        ((hart_base_id_i / NrCores) +  (hart_base_id_i % NrCores) + 1'b1);
 
   reqrsp_mux #(
     .NrPorts (NrCores),
     .AddrWidth (PhysicalAddrWidth),
     .DataWidth (NarrowDataWidth),
+    .UserWidth (CoreUserWidth),
     .req_t (reqrsp_req_t),
     .rsp_t (reqrsp_rsp_t),
     .RespDepth (2)
@@ -1352,32 +1399,83 @@ module snitch_cluster
     .idx_o (/*unused*/)
   );
 
+  // User field for the AXI transmission
+  // Encodes the atomic ID and (if enabled) collective operation information
+  atomic_id_t   atomic_id;
+  user_narrow_t cluster_user;
+
+  // Atomic ID, needs to be unique ID of cluster
+  // cluster_id + HartIdOffset + 1 (because 0 is for non-atomic masters)
+  assign atomic_id = (hart_base_id_i / NrCores) + (hart_base_id_i % NrCores) + 1'b1;
+
+  if (EnableNarrowCollectives) begin : gen_user
+    assign cluster_user = '{
+      collective_mask: addr_t'(core_to_axi_req.q.user[CollectiveWidth+:PhysicalAddrWidth]),
+      collective_op:   collective_op_t'(core_to_axi_req.q.user[0+:CollectiveWidth]),
+      atomic_id:       atomic_id,
+      default:         '0
+    };
+  end else begin : gen_user_no_collectives
+    assign cluster_user = '{
+      atomic_id: atomic_id,
+      default:   '0
+    };
+  end
+
+  reqrsp_amo_req_t core_to_axi_amo_req;
+  reqrsp_amo_rsp_t core_to_axi_amo_rsp;
+
+  always_comb begin
+    core_to_axi_amo_req.q.addr  = core_to_axi_req.q.addr;
+    core_to_axi_amo_req.q.write = core_to_axi_req.q.write;
+    core_to_axi_amo_req.q.amo   = core_to_axi_req.q.amo;
+    core_to_axi_amo_req.q.data  = core_to_axi_req.q.data;
+    core_to_axi_amo_req.q.strb  = core_to_axi_req.q.strb;
+    core_to_axi_amo_req.q.user  = cluster_user;
+    core_to_axi_amo_req.q.size  = core_to_axi_req.q.size;
+    core_to_axi_amo_req.q_valid = core_to_axi_req.q_valid;
+    core_to_axi_amo_req.p_ready = core_to_axi_req.p_ready;
+    core_to_axi_rsp             = core_to_axi_amo_rsp;
+  end
+
   reqrsp_to_axi #(
     .DataWidth (NarrowDataWidth),
-    .UserWidth (NarrowUserWidth),
-    .reqrsp_req_t (reqrsp_req_t),
-    .reqrsp_rsp_t (reqrsp_rsp_t),
+    .reqrsp_req_t (reqrsp_amo_req_t),
+    .reqrsp_rsp_t (reqrsp_amo_rsp_t),
     .axi_req_t (axi_mst_req_t),
     .axi_rsp_t (axi_mst_resp_t)
   ) i_reqrsp_to_axi_core (
     .clk_i,
     .rst_ni,
-    .user_i (cluster_user),
-    .reqrsp_req_i (core_to_axi_req),
-    .reqrsp_rsp_o (core_to_axi_rsp),
+    .reqrsp_req_i (core_to_axi_amo_req),
+    .reqrsp_rsp_o (core_to_axi_amo_rsp),
     .axi_req_o (narrow_axi_mst_req[CoreReq]),
     .axi_rsp_i (narrow_axi_mst_rsp[CoreReq])
   );
 
-  logic [ClusterXbarCfg.NoSlvPorts-1:0][$clog2(ClusterXbarCfg.NoMstPorts)-1:0]
-    cluster_xbar_default_port;
-  xbar_rule_t [NrRules-1:0] cluster_xbar_rules;
+  // Enable default master port for narrow XBAR
+  localparam bit ClusterEnableDefaultMstPort = 1'b1;
 
+  // Set default master port for narrow XBAR to SoC
+  logic [$clog2(ClusterXbarCfg.NoMstPorts)-1:0] cluster_xbar_default_port;
+  assign cluster_xbar_default_port = SoC;
+
+  // Rule for default master port covers everything outside the cluster
+  // (defined by its complementary address set)
+  xbar_rule_t cluster_xbar_default_rule;
+  assign cluster_xbar_default_rule = '{
+    idx: SoC,
+    start_addr: tcdm_start_address,
+    end_addr: ext_mem_end_address
+  };
+
+  // Define the address map for the narrow XBAR
+  xbar_rule_t [NrRules-1:0] cluster_xbar_rules;
   assign cluster_xbar_rules [NrRuleIdcs-1:0] = '{
     '{
-      idx:        TCDM,
-      start_addr: tcdm_start_address,
-      end_addr:   tcdm_end_address
+      idx:        ExtSlave,
+      start_addr: ext_mem_start_address,
+      end_addr:   ext_mem_end_address
     },
     '{
       idx:        ClusterPeripherals,
@@ -1385,17 +1483,17 @@ module snitch_cluster
       end_addr:   cluster_periph_end_address
     },
     '{
-      idx:        ExtSlave,
-      start_addr: ext_mem_start_address,
-      end_addr:   ext_mem_end_address
+      idx:        TCDM,
+      start_addr: tcdm_start_address,
+      end_addr:   tcdm_end_address
     }
   };
   if (AliasRegionEnable) begin : gen_cluster_xbar_alias
     assign cluster_xbar_rules [NrRules-1:NrRuleIdcs] = '{
       '{
-        idx:        TCDM,
-        start_addr: TCDMAliasStart,
-        end_addr:   TCDMAliasEnd
+        idx:        ExtSlave,
+        start_addr: ExtAliasStart,
+        end_addr:   ExtAliasEnd
       },
       '{
         idx:        ClusterPeripherals,
@@ -1403,43 +1501,55 @@ module snitch_cluster
         end_addr:   PeriphAliasEnd
       },
       '{
-        idx:        ExtSlave,
-        start_addr: ExtAliasStart,
-        end_addr:   ExtAliasEnd
+        idx:        TCDM,
+        start_addr: TCDMAliasStart,
+        end_addr:   TCDMAliasEnd
       }
     };
   end
 
-  localparam bit [ClusterXbarCfg.NoSlvPorts-1:0] ClusterEnableDefaultMstPort = '1;
-  axi_xbar #(
-    .Cfg (ClusterXbarCfg),
-    .slv_aw_chan_t (axi_mst_aw_chan_t),
-    .mst_aw_chan_t (axi_slv_aw_chan_t),
-    .w_chan_t (axi_mst_w_chan_t),
-    .slv_b_chan_t (axi_mst_b_chan_t),
-    .mst_b_chan_t (axi_slv_b_chan_t),
-    .slv_ar_chan_t (axi_mst_ar_chan_t),
-    .mst_ar_chan_t (axi_slv_ar_chan_t),
-    .slv_r_chan_t (axi_mst_r_chan_t),
-    .mst_r_chan_t (axi_slv_r_chan_t),
-    .slv_req_t (axi_mst_req_t),
-    .slv_resp_t (axi_mst_resp_t),
-    .mst_req_t (axi_slv_req_t),
-    .mst_resp_t (axi_slv_resp_t),
-    .rule_t (xbar_rule_t)
-  ) i_cluster_xbar (
+  // Define collective connectivity matrix to ensure collectives are routed to the SoC port only
+  // i.e. they are handled outside of the cluster, e.g. in the NoC router
+  typedef bit [ClusterXbarCfg.NoMstPorts-1:0] narrow_mst_connectivity_t;
+  typedef narrow_mst_connectivity_t [ClusterXbarCfg.NoSlvPorts-1:0] xbar_connectivity_t;
+  localparam narrow_mst_connectivity_t MasterCollectiveConnectivity = narrow_mst_connectivity_t'{
+    SoC: 1'b1,
+    default: 1'b0
+  };
+  localparam xbar_connectivity_t ClusterCollectiveConnectivity = xbar_connectivity_t'{
+    default: MasterCollectiveConnectivity
+  };
+
+  // Instantiate the narrow AXI XBAR
+  axi_mcast_xbar #(
+    .Cfg                  (ClusterXbarCfg),
+    .MulticastConnectivity(ClusterCollectiveConnectivity),
+    .slv_aw_chan_t        (axi_mst_aw_chan_t),
+    .mst_aw_chan_t        (axi_slv_aw_chan_t),
+    .w_chan_t             (axi_mst_w_chan_t),
+    .slv_b_chan_t         (axi_mst_b_chan_t),
+    .mst_b_chan_t         (axi_slv_b_chan_t),
+    .slv_ar_chan_t        (axi_mst_ar_chan_t),
+    .mst_ar_chan_t        (axi_slv_ar_chan_t),
+    .slv_r_chan_t         (axi_mst_r_chan_t),
+    .mst_r_chan_t         (axi_slv_r_chan_t),
+    .slv_req_t            (axi_mst_req_t),
+    .slv_resp_t           (axi_mst_resp_t),
+    .mst_req_t            (axi_slv_req_t),
+    .mst_resp_t           (axi_slv_resp_t),
+    .rule_t               (xbar_rule_t)
+  ) i_cluster_mcast_xbar (
     .clk_i,
     .rst_ni,
-    .test_i (1'b0),
-    .slv_ports_req_i (narrow_axi_mst_req),
-    .slv_ports_resp_o (narrow_axi_mst_rsp),
-    .mst_ports_req_o (narrow_axi_slv_req),
-    .mst_ports_resp_i (narrow_axi_slv_rsp),
-    .addr_map_i (cluster_xbar_rules),
-    .en_default_mst_port_i (ClusterEnableDefaultMstPort),
-    .default_mst_port_i (cluster_xbar_default_port)
+    .test_i               (1'b0),
+    .slv_ports_req_i      (narrow_axi_mst_req),
+    .slv_ports_resp_o     (narrow_axi_mst_rsp),
+    .mst_ports_req_o      (narrow_axi_slv_req),
+    .mst_ports_resp_i     (narrow_axi_slv_rsp),
+    .addr_map_i           (cluster_xbar_rules),
+    .en_default_mst_port_i({ClusterXbarCfg.NoSlvPorts{ClusterEnableDefaultMstPort}}),
+    .default_mst_port_i   ({ClusterXbarCfg.NoSlvPorts{cluster_xbar_default_rule}})
   );
-  assign cluster_xbar_default_port = '{default: SoC};
 
   // Optionally decouple the external narrow AXI slave port.
   axi_cut #(
@@ -1473,6 +1583,8 @@ module snitch_cluster
     .AddrWidth (PhysicalAddrWidth),
     .DataWidth (NarrowDataWidth),
     .IdWidth (NarrowIdWidthOut),
+    // TODO(colluca): this is fragile as it depends on the tcdm_user_t definition
+    .UserWidth (CoreIDWidth + 1),
     .BufDepth (MemoryMacroLatency + 1)
   ) i_axi_to_tcdm (
     .clk_i,
@@ -1683,5 +1795,14 @@ module snitch_cluster
     ~AliasRegionEnable || ((TCDMSizeNapotRounded - 1) & AliasRegionBase) == 0)
   // Make sure we only have one DMA in the system.
   `ASSERT_INIT(NumberDMA, $onehot0(Xdma))
+  `ASSERT_INIT(UserCsrWidth, (CollectiveWidth + PhysicalAddrWidth) < 64,
+    $sformatf("64-bit user CSR too small to accomodate %d-bit collective and %d-bit address", CollectiveWidth, PhysicalAddrWidth))
+  // TODO(colluca): extend to support any DcaDataWidth that is an integer multiple of NarrowDataWidth
+  //                and lower than NarrowDataWidth * NrComputeCores
+  `ASSERT_INIT(DcaSystemConfiguration, (!EnableDca) || (NrCores == 9))
+  `ASSERT_INIT(DcaSystemWideDataWidth, (!EnableDca) || (WideDataWidth == 512))
+  `ASSERT_INIT(DcaSystemNarrowDataWidth, (!EnableDca) || (NarrowDataWidth == 64))
+  // DcaDataWidth could potentially be < WideDataWidth, but for now we don't allow this
+  `ASSERT_INIT(CheckDcaDataWidth, DcaDataWidth == WideDataWidth)
 
 endmodule

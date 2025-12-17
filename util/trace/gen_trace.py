@@ -263,6 +263,12 @@ CSR_NAMES = {
     0xf12: 'marchid',
     0xf13: 'mimpid',
     0xf14: 'mhartid',
+    0x7c0: 'ssr',
+    0x7c1: 'fpmode',
+    0x7c2: 'barrier',
+    0x7c3: 'sc',
+    0x7c4: 'user_low',
+    0x7c5: 'user_high',
     0xc80: 'cycleh',
     0xc81: 'timeh',
     0xc82: 'instreth',
@@ -507,18 +513,87 @@ def flt_fmt(flt: float, width: int = 6) -> str:
     return fmt.format(flt)
 
 
+# -------------------- DCA helpers  --------------------
+
+
+def fpu_operation(mnemonic, req_op_0, req_op_1, req_op_2, src_fmt_int, dst_fmt_int):
+    return {
+        "mnemonic": mnemonic,
+        "req_op_0": req_op_0,
+        "req_op_1": req_op_1,
+        "req_op_2": req_op_2,
+        "src_fmt_int": src_fmt_int,
+        "dst_fmt_int": dst_fmt_int
+    }
+
+
+FPU_OPS = [
+    fpu_operation("FMADD",    True,  True,  True,  False, False),
+    fpu_operation("FNMSUB",   True,  True,  True,  False, False),
+    fpu_operation("ADD",      False, True,  True,  False, False),
+    fpu_operation("MUL",      True,  True,  False, False, False),
+    fpu_operation("DIV",      True,  True,  False, False, False),
+    fpu_operation("SQRT",     True,  False, False, False, False),
+    fpu_operation("SGNJ",     True,  True,  False, False, False),
+    fpu_operation("MINMAX",   True,  True,  False, False, False),
+    fpu_operation("CMP",      True,  True,  False, False, False),
+    fpu_operation("CLASSIFY", True,  False, False, False, False),
+    fpu_operation("F2F",      True,  False, False, False, False),
+    fpu_operation("F2I",      True,  False, False, False, True),
+    fpu_operation("I2F",      True,  False, False, True,  False),
+    fpu_operation("CPKAB",    True,  True,  True,  False, False),
+    fpu_operation("CPKCD",    True,  True,  True,  False, False),
+    fpu_operation("SDOTP",    True,  True,  True,  False, False),
+    fpu_operation("EXVSUM",   True,  True,  True,  False, False),
+    fpu_operation("VSUM",     True,  True,  True,  False, False),
+]
+
+RND_MODE_MNEMONICS = ['RNE', 'RTZ', 'RDN', 'RUP', 'RMM', 'ROD', 'RSR', 'DYN']
+
+FP_VLEN = [
+    2,  # FP32
+    1,  # FP64
+    4,  # FP16
+    8,  # FP8
+    4,  # FP16A
+    8,  # FP8A
+]
+
+INT_VLEN = [
+    8,  # INT8
+    4,  # INT16
+    2,  # INT32
+    1,  # INT64
+]
+
+
 # -------------------- Literal formatting  --------------------
 
 
-def int_lit(num: int, size: int = 2, as_hex: Optional[bool] = None) -> str:
-    width = (8 * int(2**size))
-    size_mask = (0x1 << width) - 1
-    num = num & size_mask  # num is unsigned
-    num_signed = c_int32(c_uint32(num).value).value
-    if as_hex is True or abs(num_signed) > MAX_SIGNED_INT_LIT and as_hex is not False:
-        return '0x{0:0{1}x}'.format(num, width // 4)
+def int_lit(num: int, size: int = 2, vlen: int = 1, as_hex: Optional[bool] = None) -> str:
+    """Formats integer data.
+
+    Args:
+        num: The integer data to format.
+        size: log2 of the size in bytes of each number (in the vector).
+        vlen: The number of numbers packed in the encoding,
+              >1 for SIMD vectors.
+        as_hex: If True, always format as hex.
+    """
+    ints = []
+    bitwidth = (8 * int(2**size))
+    for i in reversed(range(vlen)):
+        slice = num >> (bitwidth * i) & (2**bitwidth - 1)
+        slice_signed = c_int32(c_uint32(slice).value).value
+        if as_hex is True or abs(slice_signed) > MAX_SIGNED_INT_LIT and as_hex is not False:
+            ints.append('0x{0:0{1}x}'.format(slice, bitwidth // 4))
+        else:
+            ints.append(str(slice_signed))
+    # Represent the encodings as a vector if SIMD.
+    if len(ints) > 1:
+        return '[{}]'.format(', '.join(ints))
     else:
-        return str(num_signed)
+        return ints[0]
 
 
 def flt_lit(num: int, fmt: int, width: int = 6, vlen: int = 1) -> str:
@@ -528,7 +603,7 @@ def flt_lit(num: int, fmt: int, width: int = 6, vlen: int = 1) -> str:
         num: The integer encoding of the floating-point number(s).
         fmt: The floating point number format, as an index into the
             `FLOAT_FMTS` array.
-        width: The bitwidth of the floating-point type.
+        width: The number of significant decimal digits to round to.
         vlen: The number of floating-point numbers packed in the encoding,
             >1 for SIMD vectors.
     """
@@ -542,6 +617,25 @@ def flt_lit(num: int, fmt: int, width: int = 6, vlen: int = 1) -> str:
         return '[{}]'.format(', '.join(floats))
     else:
         return floats[0]
+
+
+def fpu_operand_lit(num, fmt, is_vector, is_int) -> str:
+    """Formats an FPU operand's data.
+
+    Args:
+        num: The integer encoding of the floating-point number(s).
+        fmt: The floating point number format, as an index into the
+             `FLOAT_FMTS` array.
+        width: The bitwidth of the floating-point type.
+        vlen: The number of floating-point numbers packed in the encoding,
+            >1 for SIMD vectors.
+    """
+    if is_int:
+        vlen = INT_VLEN[fmt] if is_vector else 1
+        return int_lit(num, 3, vlen)
+    else:
+        vlen = FP_VLEN[fmt] if is_vector else 1
+        return flt_lit(num, fmt, 6, vlen)
 
 
 # -------------------- DMA --------------------
@@ -813,9 +907,7 @@ def annotate_fpu(
         perf_metrics[-1]['fpss_fpu_issues'] += 1
     # Register writeback
     if extras['fpr_we']:
-        writer = 'acc' if extras['acc_q_hs'] and extras['acc_wb_ready'] else (
-            'fpu'
-            if extras['fpu_out_hs'] and not extras['fpu_out_acc'] else 'lsu')
+        writer = 'fpu' if extras['fpu_out_hs'] and not extras['fpu_out_acc'] else 'lsu'
         fmt = 0  # accelerator bus format is 0 for regular float32
         if writer == 'fpu' or writer == 'lsu':
             try:
@@ -838,6 +930,87 @@ def annotate_fpu(
     return ', '.join(ret)
 
 
+# Annotate DCA Instruction
+# Info: We receive the pure op-code / op-mode / vector-mode from the tracer
+#       rather than the 32-bit instruction.
+#       Documentation: https://github.com/openhwgroup/cvfpu/tree/master/docs
+def annotate_dca(
+        extras: dict,
+        insn: str,
+        cycle: int,
+        dca_wb_info: dict,  # One deque (FIFO) for storing information about the DCA access
+        perf_metrics: list,
+        force_hex_addr: bool = True,
+        permissive: bool = False):
+
+    inst = ''
+    annot = ''
+
+    # Retrieve operation information
+    rnd_mode_mnemonic = RND_MODE_MNEMONICS[extras['rnd_mode']]
+    opcode_mnemonic = FPU_OPS[extras['op']]['mnemonic']
+    req_op_0 = FPU_OPS[extras['op']]['req_op_0']
+    req_op_1 = FPU_OPS[extras['op']]['req_op_1']
+    req_op_2 = FPU_OPS[extras['op']]['req_op_2']
+    src_fmt_int = FPU_OPS[extras['op']]['src_fmt_int']
+    dst_fmt_int = FPU_OPS[extras['op']]['dst_fmt_int']
+    is_vector = extras['vectorial_op']
+    src_fp_fmt = extras['src_fmt']
+    dst_fp_fmt = extras['dst_fmt']
+    int_fmt = extras['int_fmt']
+
+    # Request handshake
+    if extras['req_hs'] == 1:
+
+        inst = f"DCA {opcode_mnemonic} (M:{extras['op_mod']} RND:{rnd_mode_mnemonic})"
+
+        # Uses operand 0
+        if req_op_0:
+            # Operand 0 is an integer if src_fmt_int is true
+            operand_lit = fpu_operand_lit(
+                extras['operand0'],
+                int_fmt if src_fmt_int else src_fp_fmt,
+                is_vector,
+                src_fmt_int
+            )
+            annot += 'op[0] = ' + operand_lit + ', '
+
+        # Uses operand 1
+        if req_op_1:
+            operand_lit = fpu_operand_lit(
+                extras['operand1'],
+                src_fp_fmt,
+                is_vector,
+                False
+            )
+            annot += 'op[1] = ' + operand_lit + ', '
+
+        # Uses operand 2
+        if req_op_2:
+            operand_lit = fpu_operand_lit(
+                extras['operand2'],
+                src_fp_fmt,
+                is_vector,
+                False
+            )
+            annot += 'op[2] = ' + operand_lit + ', '
+
+        # Update the performence metric
+        perf_metrics[-1]['dca_fpu_issues'] += 1
+
+        # Push dst format to the queue, if it is integer and if it is vector
+        fmt = int_fmt if dst_fmt_int else dst_fp_fmt
+        dca_wb_info[0].appendleft((dst_fmt_int, fmt, is_vector))
+
+    # On a response handshake pop format information from queue and annotate writeback
+    if extras['rsp_hs'] == 1:
+        is_int, fmt, is_vector = dca_wb_info[0].pop()
+        dst_lit = fpu_operand_lit(extras['result'], fmt, is_vector, is_int)
+        annot += '(d:dca) res = ' + dst_lit
+
+    return inst, annot
+
+
 # noinspection PyTypeChecker
 def annotate_insn(
     line: str,
@@ -845,6 +1018,8 @@ def annotate_insn(
     dict,  # One deque (FIFO) per GPR storing start cycles for each GPR WB
     fpr_wb_info:
     dict,  # One deque (FIFO) per FPR storing start cycles and formats for each FPR WB
+    dca_wb_info:
+    dict,  # One deque (FIFO) for storing information about the DCA access
     sequencer:
     Sequencer,  # Sequencer model to properly map tunneled instruction PCs
     perf_metrics: list,  # A list performance metric dicts
@@ -929,6 +1104,11 @@ def annotate_insn(
                              sequencer.curr_sec, int_as_hex,
                              permissive))
             annot = ', '.join(annot_list)
+
+        # Annotate DCA
+        elif extras['source'] == 'SrcDca':
+            insn, annot = annotate_dca(extras, insn, time_info[1], dca_wb_info, perf_metrics)
+
         else:
             raise ValueError('Unknown trace source: {}'.format(
                 extras['source']))
@@ -1107,6 +1287,7 @@ def main():
         time_info = None
         gpr_wb_info = defaultdict(deque)
         fpr_wb_info = defaultdict(deque)
+        dca_wb_info = defaultdict(deque)
         sequencer = Sequencer()
         dma_trans = [{'rep': 1}]
         perf_metrics = [
@@ -1121,6 +1302,7 @@ def main():
                         line,
                         gpr_wb_info,
                         fpr_wb_info,
+                        dca_wb_info,
                         sequencer,
                         perf_metrics,
                         args.mc_exec,
@@ -1187,6 +1369,10 @@ def main():
         if len(que) != 0:
             warn_trip = True
             warnings.warn(wb_msg(REG_ABI_NAMES_I[gpr], que))
+    for dca, que in dca_wb_info.items():
+        if len(que) != 0:
+            warn_trip = True
+            warnings.warn(wb_msg("DCA", que))
     # Check final state of sequencer is clean
     if sequencer.terminate():
         warn_trip = True

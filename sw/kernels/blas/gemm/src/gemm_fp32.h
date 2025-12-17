@@ -214,7 +214,7 @@ void gemm_fp32_opt(uint32_t setup_ssr, uint32_t partition_banks,
     // cast void pointers to float pointers
     float* A = (float*)A_p;
     float* B = (float*)B_p;
-    float* C = (float*)C_p;
+    float* C = (float*)C_p;  // Should be double-aligned (see fsd below)
     // Unrolling factor of most inner loop.
     // Should be at least as high as the FMA delay
     // for maximum utilization

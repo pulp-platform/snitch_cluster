@@ -4,6 +4,11 @@
 
 `include "common_cells/registers.svh"
 `include "common_cells/assertions.svh"
+`include "reqrsp_interface/assign.svh"
+`include "fpu_interface/assign.svh"
+`include "fpu_interface/typedef.svh"
+`include "dca_interface/assign.svh"
+`include "dca_interface/typedef.svh"
 
 // Floating Point Subsystem
 module snitch_fp_ss import snitch_pkg::*; #(
@@ -16,10 +21,10 @@ module snitch_fp_ss import snitch_pkg::*; #(
   parameter type dreq_t = logic,
   parameter type drsp_t = logic,
   parameter bit RegisterSequencer = 0,
-  parameter bit RegisterFPUIn     = 0,
-  parameter bit RegisterFPUOut    = 0,
+  parameter bit RegisterFpuReq    = 0,
+  parameter bit RegisterFpuRsp    = 0,
   parameter bit Xfrep = 1,
-  parameter fpnew_pkg::fpu_implementation_t FPUImplementation = '0,
+  parameter fpnew_pkg::fpu_implementation_t FpuImplementation = '0,
   parameter bit Xssr = 1,
   parameter bit Xcopift = 1,
   parameter int unsigned NumSsrs = 0,
@@ -34,15 +39,25 @@ module snitch_fp_ss import snitch_pkg::*; #(
   parameter bit XF8ALT = 0,
   parameter bit XFVEC = 0,
   parameter int unsigned FLEN = DataWidth,
+  parameter bit EnableDca = 0,
   /// Derived parameter *Do not override*
-  parameter type addr_t = logic [AddrWidth-1:0],
-  parameter type data_t = logic [DataWidth-1:0]
+  localparam type addr_t = logic [AddrWidth-1:0],
+  localparam type data_t = logic [DataWidth-1:0],
+  // TODO(colluca): this currently does not compile in Verilator (https://github.com/verilator/verilator/issues/6818)
+  // localparam type dca_req_t = `DCA_REQ_STRUCT(DataWidth),
+  // localparam type dca_rsp_t = `DCA_RSP_STRUCT(DataWidth)
+  // Workaround:
+  localparam type dca_req_chan_t = `DCA_REQ_CHAN_STRUCT(DataWidth),
+  localparam type dca_req_t = `GENERIC_REQRSP_REQ_STRUCT(dca_req_chan_t),
+  localparam type dca_rsp_chan_t = `DCA_RSP_CHAN_STRUCT(DataWidth),
+  localparam type dca_rsp_t = `GENERIC_REQRSP_RSP_STRUCT(dca_rsp_chan_t)
 ) (
   input  logic             clk_i,
   input  logic             rst_i,
   // pragma translate_off
   output fpu_trace_port_t  trace_port_o,
   output fpu_sequencer_trace_port_t sequencer_tracer_port_o,
+  output dca_trace_port_t  dca_trace_port_o,
   // pragma translate_on
   input  logic [31:0]      hart_id_i,
   // Accelerator Interface - Slave
@@ -90,8 +105,49 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // COPIFT enable signal
   input logic              en_copift_i,
   // Core event strobes
-  output core_events_t core_events_o
+  output core_events_t core_events_o,
+  // Direct Compute Access (DCA) interface
+  input  dca_req_t         dca_req_i,
+  output dca_rsp_t         dca_rsp_o
 );
+
+  // --------
+  // Typedefs
+  // --------
+
+  typedef enum logic [2:0] {
+    None,
+    AccBus,
+    RegA, RegB, RegC,
+    RegBRep, // Replication for vectors
+    RegDest
+  } op_select_e;
+
+  typedef enum logic [1:0] {
+    Byte       = 2'b00,
+    HalfWord   = 2'b01,
+    Word       = 2'b10,
+    DoubleWord = 2'b11
+  } ls_size_e;
+
+  typedef struct packed {
+    logic       dca; // write-back to DCA port
+    logic       ssr; // write-back to SSR at rd
+    logic       acc; // write-back to result bus
+    logic [4:0] rd;  // write-back to floating point regfile
+  } fpu_tag_t;
+
+  // Define fpu_req_t, fpu_rsp_t, fpu_req_chan_t, fpu_rsp_chan_t
+  `FPU_TYPEDEF_REQRSP_ALL(fpu, FLEN, fpu_tag_t)
+
+  typedef struct packed {
+    logic     repd;
+    acc_req_t req;
+  } acc_req_repd_t;
+
+  // -------------------
+  // Signal declarations
+  // -------------------
 
   fpnew_pkg::operation_e  fpu_op;
   fpnew_pkg::roundmode_e  fpu_rnd_mode;
@@ -112,12 +168,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   logic ssr_active_d, ssr_active_q, ssr_active_ena;
   `FFLAR(ssr_active_q, Xssr & ssr_active_d, ssr_active_ena, 1'b0, clk_i, rst_i)
 
-  typedef struct packed {
-    logic       ssr; // write-back to SSR at rd
-    logic       acc; // write-back to result bus
-    logic [4:0] rd;  // write-back to floating point regfile
-  } tag_t;
-  tag_t fpu_tag_in, fpu_tag_out;
+  fpu_tag_t fpu_tag_in, fpu_tag_out;
 
   logic use_fpu;
   logic [2:0][FLEN-1:0] op;
@@ -149,44 +200,20 @@ module snitch_fp_ss import snitch_pkg::*; #(
   logic fpu_out_valid, fpu_out_ready;
   logic fpu_in_valid, fpu_in_ready;
 
-  typedef enum logic [2:0] {
-    None,
-    AccBus,
-    RegA, RegB, RegC,
-    RegBRep, // Replication for vectors
-    RegDest
-  } op_select_e;
   op_select_e [2:0] op_select;
-
-  typedef enum logic [1:0] {
-    ResNone, ResAccBus
-  } result_select_e;
-  // TODO(colluca): can this be removed? it seems to be always fixed to ResNone
-  result_select_e result_select;
 
   logic op_mode;
 
   logic [4:0] rs1, rs2, rs3, rd;
 
   // LSU
-  typedef enum logic [1:0] {
-    Byte       = 2'b00,
-    HalfWord   = 2'b01,
-    Word       = 2'b10,
-    DoubleWord = 2'b11
-  } ls_size_e;
   ls_size_e ls_size;
-
 
   logic dst_ready;
 
   // -------------
   // FPU Sequencer
   // -------------
-  typedef struct packed {
-    logic     repd;
-    acc_req_t req;
-  } acc_req_repd_t;
 
   acc_req_repd_t    acc_req;
   acc_req_t         acc_req_q;
@@ -269,9 +296,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   assign acc_req_ready_q = dst_ready & ((fpu_in_ready & fpu_in_valid)
                                       // Load/Store
                                       | (lsu_qvalid & lsu_qready)
-                                      | csr_instr
-                                      // Direct Reg Write
-                                      | (acc_req_valid_q && result_select == ResAccBus));
+                                      | csr_instr);
 
   // either the FPU or the regfile produced a result
   // If queue is enabled, data goes to queue instead of AccBus
@@ -335,6 +360,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
       is_rd_ssr |= (SsrRegs[s] == rd);
   end
 
+  // Decoder
   always_comb begin
     acc_resp_o.error = 1'b0;
     fpu_op = fpnew_pkg::ADD;
@@ -349,8 +375,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
     dst_fmt = fpnew_pkg::FP32;
     int_fmt = fpnew_pkg::INT32;
 
-    result_select = ResNone;
-
     op_select[0] = None;
     op_select[1] = None;
     op_select[2] = None;
@@ -361,6 +385,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     fpu_tag_in.rd = rd;
     fpu_tag_in.acc = 1'b0; // RD is on accelerator bus
     fpu_tag_in.ssr = ssr_active_q & is_rd_ssr;
+    fpu_tag_in.dca = 1'b0;
 
     is_store = 1'b0;
     is_load = 1'b0;
@@ -2616,48 +2641,99 @@ module snitch_fp_ss import snitch_pkg::*; #(
   end
 
   // ----------------------
+  // Direct Compute Access
+  // ----------------------
+
+  fpu_req_t dca_req, snitch_req, fpu_req;
+  fpu_rsp_t dca_rsp, snitch_rsp, fpu_rsp;
+
+  // Tag DCA request
+  always_comb begin
+    `DCA_REQRSP_ASSIGN_REQ(, dca_req, dca_req_i)
+    `DCA_REQRSP_ASSIGN_RSP(, dca_rsp_o, dca_rsp)
+    dca_req.q.tag = '0;
+    dca_req.q.tag.dca = 1'b1;
+  end
+
+  // Compose Snitch request and response
+  assign snitch_req.q_valid        = fpu_in_valid;
+  assign snitch_req.p_ready        = fpu_out_ready;
+  assign snitch_req.q.operands     = op;
+  assign snitch_req.q.rnd_mode     = fpu_rnd_mode;
+  assign snitch_req.q.op           = fpu_op;
+  assign snitch_req.q.op_mod       = op_mode;
+  assign snitch_req.q.src_fmt      = src_fmt;
+  assign snitch_req.q.dst_fmt      = dst_fmt;
+  assign snitch_req.q.int_fmt      = int_fmt;
+  assign snitch_req.q.vectorial_op = vectorial_op;
+  assign snitch_req.q.tag          = fpu_tag_in;
+  assign fpu_out_valid = snitch_rsp.p_valid;
+  assign fpu_in_ready  = snitch_rsp.q_ready;
+  assign fpu_result    = snitch_rsp.p.result;
+  assign fpu_status_o  = snitch_rsp.p.status;
+  assign fpu_tag_out   = snitch_rsp.p.tag;
+
+  // Multiplex Snitch and external DCA port requests
+  if (EnableDca) begin : gen_dca_mux
+    // Uses rotating priority. Could be changed but the problem is rr_arb_tree
+    // doesn't really support lock-in and priority at the same time. 
+    generic_reqrsp_mux #(
+      .NrPorts    (2),
+      .req_chan_t (fpu_req_chan_t),
+      .rsp_chan_t (fpu_rsp_chan_t),
+      .ExtRspRoute(1'b1),
+      .RspDepth   (0),
+      .RegisterReq('0)
+    ) i_mux_dca (
+      .clk_i      (clk_i),
+      .rst_ni     (~rst_i),
+      .slv_req_i  ({dca_req, snitch_req}),
+      .slv_rsp_o  ({dca_rsp, snitch_rsp}),
+      .mst_req_o  (fpu_req),
+      .mst_rsp_i  (fpu_rsp),
+      .rsp_route_i(fpu_rsp.p.tag.dca),
+      .idx_o      ()
+    );
+  end else begin : gen_no_dca_mux
+    `FPU_REQRSP_ASSIGN_REQ(assign, fpu_req, snitch_req)
+    `FPU_REQRSP_ASSIGN_RSP(assign, snitch_rsp, fpu_rsp)
+    `REQRSP_TIE_OFF_RSP(dca_rsp)
+  end
+
+  // ----------------------
   // Floating Point Unit
   // ----------------------
   snitch_fpu #(
-    .RVF     ( RVF     ),
-    .RVD     ( RVD     ),
-    .XF16    ( XF16    ),
-    .XF16ALT ( XF16ALT ),
-    .XF8     ( XF8     ),
-    .XF8ALT  ( XF8ALT  ),
-    .XFVEC   ( XFVEC   ),
-    .FLEN    ( FLEN    ),
-    .FPUImplementation  (FPUImplementation),
-    .RegisterFPUIn      (RegisterFPUIn),
-    .RegisterFPUOut     (RegisterFPUOut)
+    .RVF              (RVF),
+    .RVD              (RVD),
+    .XF16             (XF16),
+    .XF16ALT          (XF16ALT),
+    .XF8              (XF8),
+    .XF8ALT           (XF8ALT),
+    .XFVEC            (XFVEC),
+    .FLEN             (FLEN),
+    .FpuImplementation(FpuImplementation),
+    .RegisterFpuReq   (RegisterFpuReq),
+    .RegisterFpuRsp   (RegisterFpuRsp),
+    // TODO(colluca): do not hardcode
+    .TagType          (fpu_tag_t)
   ) i_fpu (
-    .clk_i                           ,
-    .rst_ni         ( ~rst_i        ),
-    .hart_id_i      ( hart_id_i     ),
-    .operands_i     ( op            ),
-    .rnd_mode_i     ( fpu_rnd_mode  ),
-    .op_i           ( fpu_op        ),
-    .op_mod_i       ( op_mode       ), // Sign of operand?
-    .src_fmt_i      ( src_fmt       ),
-    .dst_fmt_i      ( dst_fmt       ),
-    .int_fmt_i      ( int_fmt       ),
-    .vectorial_op_i ( vectorial_op  ),
-    .tag_i          ( fpu_tag_in    ),
-    .in_valid_i     ( fpu_in_valid  ),
-    .in_ready_o     ( fpu_in_ready  ),
-    .result_o       ( fpu_result    ),
-    .status_o       ( fpu_status_o  ),
-    .tag_o          ( fpu_tag_out   ),
-    .out_valid_o    ( fpu_out_valid ),
-    .out_ready_i    ( fpu_out_ready )
+    .clk_i,
+    .rst_ni   (~rst_i),
+    .hart_id_i(hart_id_i),
+    .req_i    (fpu_req),
+    .rsp_o    (fpu_rsp)
   );
+
+  // ----------------------
+  // Register file write port arbitration
+  // ----------------------
 
   assign ssr_waddr_o = fpr_waddr;
   assign ssr_wdata_o = fpr_wdata;
   logic [63:0] nan_boxed_arga;
   assign nan_boxed_arga = {{32{1'b1}}, acc_req_q.data_arga[31:0]};
 
-  // Arbitrate Register File Write Port
   always_comb begin
     fpr_we = 1'b0;
     fpr_waddr = '0;
@@ -2667,15 +2743,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     fpr_wready = 1'b1;
     ssr_wvalid_o = 1'b0;
     ssr_wdone_o = 1'b1;
-    // the accelerator master wants to write
-    if (acc_req_valid_q && result_select == ResAccBus) begin
-      fpr_we = 1'b1;
-      // NaN-Box the value
-      fpr_wdata = nan_boxed_arga[FLEN-1:0];
-      fpr_waddr = rd;
-      fpr_wvalid = 1'b1;
-      fpr_wready = 1'b0;
-    end else if (fpu_out_valid && !fpu_tag_out.acc) begin
+    if (fpu_out_valid && !fpu_tag_out.acc) begin
       fpr_we = 1'b1;
       if (fpu_tag_out.ssr) begin
         ssr_wvalid_o = 1'b1;
@@ -2739,7 +2807,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .lsu_qsize_i (ls_size),
     .lsu_qamo_i (reqrsp_pkg::AMONone),
     .lsu_qrepd_i (acc_req_repd_q),
-    .lsu_qmcast_i ('0),
+    .lsu_quser_i ('0),
     .lsu_qvalid_i (lsu_qvalid),
     .lsu_qready_o (lsu_qready),
     .lsu_pdata_o (ld_result),
@@ -2777,8 +2845,12 @@ module snitch_fp_ss import snitch_pkg::*; #(
     core_events_o.issue_fpu_seq = issue_fpu_seq;
   end
 
+  // ----------------------
   // Tracer
+  // ----------------------
+
   // pragma translate_off
+  // Assign the FPU trace
   assign trace_port_o.source       = snitch_pkg::SrcFpu;
   assign trace_port_o.acc_q_hs     = (acc_req_valid_q  && acc_req_ready_q );
   assign trace_port_o.fpu_out_hs   = (fpu_out_valid && fpu_out_ready );
@@ -2808,13 +2880,37 @@ module snitch_fp_ss import snitch_pkg::*; #(
   assign trace_port_o.is_store     = is_store;
   assign trace_port_o.lsu_qaddr    = i_snitch_lsu.lsu_qaddr_i;
   assign trace_port_o.lsu_rd       = lsu_rd;
-  assign trace_port_o.acc_wb_ready = (result_select == ResAccBus);
   assign trace_port_o.fpu_out_acc  = fpu_tag_out.acc;
   assign trace_port_o.fpr_waddr    = fpr_waddr[0];
   assign trace_port_o.fpr_wdata    = fpr_wdata[0];
   assign trace_port_o.fpr_we       = fpr_we[0];
+
+  // Assign the DCA tracer
+  assign dca_trace_port_o.source       = snitch_pkg::SrcDca;
+  assign dca_trace_port_o.req_hs       = (dca_req_i.q_valid && dca_rsp_o.q_ready);
+  assign dca_trace_port_o.rsp_hs       = (dca_rsp_o.p_valid && dca_req_i.p_ready);
+  assign dca_trace_port_o.operand0     = dca_req_i.q.operands[0];
+  assign dca_trace_port_o.operand1     = dca_req_i.q.operands[1];
+  assign dca_trace_port_o.operand2     = dca_req_i.q.operands[2];
+  assign dca_trace_port_o.rnd_mode     = dca_req_i.q.rnd_mode;
+  assign dca_trace_port_o.op           = dca_req_i.q.op;
+  assign dca_trace_port_o.op_mod       = dca_req_i.q.op_mod;
+  assign dca_trace_port_o.src_fmt      = dca_req_i.q.src_fmt;
+  assign dca_trace_port_o.dst_fmt      = dca_req_i.q.dst_fmt;
+  assign dca_trace_port_o.int_fmt      = dca_req_i.q.int_fmt;
+  assign dca_trace_port_o.vectorial_op = dca_req_i.q.vectorial_op;
+  assign dca_trace_port_o.status       = dca_rsp_o.p.status;
+  assign dca_trace_port_o.result       = dca_rsp_o.p.result;
   // pragma translate_on
 
-  /// Assertions
+  // ----------
+  // Assertions
+  // ----------
+
   `ASSERT(RegWriteKnown, fpr_we |-> !$isunknown(fpr_wdata), clk_i, rst_i)
+
+  // DCA extension currently only supports 64-bit datawidth
+  `ASSERT_INIT(DcaFpssConfiguration, (!EnableDca) || RVD)
+  `ASSERT_INIT(DcaDataWidth, (!EnableDca) || (DataWidth == 64))
+
 endmodule

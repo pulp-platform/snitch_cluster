@@ -19,7 +19,7 @@ package:
     - Matheus Cavalcante <matheusd@iis.ee.ethz.ch>
 
 dependencies:
-  axi:                { git: https://github.com/colluca/axi,                      rev:  multicast       }
+  axi:                { git: https://github.com/colluca/axi,                      rev: multicast }
   axi_riscv_atomics:  { git: https://github.com/pulp-platform/axi_riscv_atomics,  version:  0.6.0       }
   common_cells:       { git: https://github.com/pulp-platform/common_cells,       rev:      snitch      }
   apb:                { git: https://github.com/pulp-platform/apb.git,            version:  0.2.2       }
@@ -27,13 +27,15 @@ dependencies:
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.13      }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0       }
   cluster_icache:     { git: https://github.com/pulp-platform/cluster_icache.git, rev: 64e21ae455bbdde850c4df13bef86ea55ac42537 }
-  idma:               { git: https://github.com/pulp-platform/iDMA.git,           rev: __deploy__bebefa3__master }
+  idma:               { git: https://github.com/pulp-platform/iDMA.git,           version:  0.6.5       }
 
 export_include_dirs:
   - hw/reqrsp_interface/include
   - hw/mem_interface/include
   - hw/tcdm_interface/include
+  - hw/dca_interface/include
   - hw/snitch/include
+  - hw/snitch_fp_ss/include
   - hw/snitch_ssr/include
   - hw/generated
 
@@ -41,6 +43,8 @@ sources:
   # reqrsp_interface
   - files:
       # Level 0
+      - hw/reqrsp_interface/src/generic_reqrsp_cut.sv
+      - hw/reqrsp_interface/src/generic_reqrsp_mux.sv
       - hw/reqrsp_interface/src/reqrsp_pkg.sv
       # Level 1
       - hw/reqrsp_interface/src/reqrsp_intf.sv
@@ -88,6 +92,10 @@ sources:
     files:
       - hw/tcdm_interface/test/reqrsp_to_tcdm_tb.sv
       - hw/tcdm_interface/test/tcdm_mux_tb.sv
+
+  # dca_interface
+  - files:
+      - hw/dca_interface/src/dca_fork.sv
 
   # snitch
   - files:
@@ -149,6 +157,14 @@ sources:
       # Level 1
       - hw/snitch_ipu/src/snitch_ipu.sv
 
+  # snitch_fp_ss
+  - files:
+      # Level 0
+      - hw/snitch_fp_ss/src/snitch_fpu.sv
+      - hw/snitch_fp_ss/src/snitch_sequencer.sv
+      # Level 1
+      - hw/snitch_fp_ss/src/snitch_fp_ss.sv
+
   # snitch_cluster
   - files:
       # Level 0
@@ -156,13 +172,10 @@ sources:
       - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv
       - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.sv
       - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral.sv
-      - hw/snitch_cluster/src/snitch_fpu.sv
-      - hw/snitch_cluster/src/snitch_sequencer.sv
       - hw/snitch_cluster/src/snitch_tcdm_fc_interconnect.sv
       - hw/bootrom/snitch_bootrom.sv
       # Level 1
       - hw/snitch_cluster/src/snitch_barrier.sv
-      - hw/snitch_cluster/src/snitch_fp_ss.sv
       - hw/snitch_cluster/src/snitch_tcdm_interconnect.sv
       # Level 2
       - hw/snitch_cluster/src/snitch_cc.sv

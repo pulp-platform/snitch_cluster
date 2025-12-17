@@ -132,9 +132,9 @@ package snitch_pkg;
 
   // Slaves on Cluster AXI Bus
   typedef enum integer {
-    TCDM               = 0,
-    ClusterPeripherals = 1,
-    SoC                = 2,
+    SoC                = 0,
+    TCDM               = 1,
+    ClusterPeripherals = 2,
     ExtSlave           = 3
   } cluster_slave_e;
 
@@ -146,8 +146,8 @@ package snitch_pkg;
 
   // Slaves on Cluster DMA AXI Bus
   typedef enum int unsigned {
-    TCDMDMA    = 0,
-    SoCDMAOut  = 1,
+    SoCDMAOut  = 0,
+    TCDMDMA    = 1,
     ZeroMemory = 2,
     BootRom    = 3
   } cluster_slave_dma_e;
@@ -190,7 +190,8 @@ package snitch_pkg;
   typedef enum logic [1:0] {
     SrcSnitch =  0,
     SrcFpu = 1,
-    SrcFpuSeq = 2
+    SrcFpuSeq = 2,
+    SrcDca = 3
   } trace_src_e;
 
   typedef struct packed {
@@ -295,7 +296,6 @@ package snitch_pkg;
     longint     is_store;
     longint     lsu_qaddr;
     longint     lsu_rd;
-    longint     acc_wb_ready;
     longint     fpu_out_acc;
     longint     fpr_waddr;
     longint     fpr_wdata;
@@ -333,7 +333,6 @@ package snitch_pkg;
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "is_store", fpu_trace.is_store);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "lsu_qaddr", fpu_trace.lsu_qaddr);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "lsu_rd", fpu_trace.lsu_rd);
-    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "acc_wb_ready", fpu_trace.acc_wb_ready);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "fpu_out_acc", fpu_trace.fpu_out_acc);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "fpr_waddr", fpu_trace.fpr_waddr);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "fpr_wdata", fpu_trace.fpr_wdata);
@@ -359,6 +358,46 @@ package snitch_pkg;
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "max_iter", fpu_sequencer.max_iter);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "stg_max", fpu_sequencer.stg_max);
     extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "stg_mask", fpu_sequencer.stg_mask);
+    extras_str = $sformatf("%s}", extras_str);
+    return extras_str;
+  endfunction
+
+  typedef struct packed {
+    trace_src_e source;
+    longint     req_hs;
+    longint     rsp_hs;
+    longint     operand0;
+    longint     operand1;
+    longint     operand2;
+    longint     rnd_mode;
+    longint     op;
+    longint     op_mod;
+    longint     src_fmt;
+    longint     dst_fmt;
+    longint     int_fmt;
+    longint     vectorial_op;
+    longint     tag;
+    longint     status;
+    longint     result;
+  } dca_trace_port_t;
+
+  function automatic string print_dca_trace(dca_trace_port_t dca_trace);
+    string extras_str = "{";
+    extras_str = $sformatf("%s'%s': '%s', ", extras_str, "source", dca_trace.source.name);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "req_hs", dca_trace.req_hs);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "rsp_hs", dca_trace.rsp_hs);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "op", dca_trace.op);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "op_mod", dca_trace.op_mod);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "rnd_mode", dca_trace.rnd_mode);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "vectorial_op", dca_trace.vectorial_op);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "operand0", dca_trace.operand0);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "operand1", dca_trace.operand1);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "operand2", dca_trace.operand2);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "src_fmt", dca_trace.src_fmt);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "dst_fmt", dca_trace.dst_fmt);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "int_fmt", dca_trace.int_fmt);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "status", dca_trace.status);
+    extras_str = $sformatf("%s'%s': 0x%0x, ", extras_str, "result", dca_trace.result);
     extras_str = $sformatf("%s}", extras_str);
     return extras_str;
   endfunction

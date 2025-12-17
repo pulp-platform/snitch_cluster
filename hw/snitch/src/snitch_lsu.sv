@@ -8,9 +8,10 @@
 /// `NumOutstandingMem` requests in total) and optionally NaNBox if used in a
 /// floating-point setting. It expects its memory sub-system to keep order (as if
 /// issued with a single ID).
-module snitch_lsu #(
+module snitch_lsu import cf_math_pkg::*; #(
   parameter int unsigned AddrWidth           = 32,
   parameter int unsigned DataWidth           = 32,
+  parameter int unsigned UserWidth           = 0,
   /// Tag passed from input to output. All transactions are in-order.
   parameter type tag_t                       = logic [4:0],
   /// Number of outstanding memory transactions.
@@ -36,8 +37,9 @@ module snitch_lsu #(
   parameter type         dreq_t              = logic,
   parameter type         drsp_t              = logic,
   /// Derived parameter *Do not override*
-  parameter type addr_t = logic [AddrWidth-1:0],
-  parameter type data_t = logic [DataWidth-1:0]
+  parameter type addr_t = logic [iomsb(AddrWidth):0],
+  parameter type data_t = logic [iomsb(DataWidth):0],
+  parameter type user_t = logic [iomsb(UserWidth):0]
 ) (
   input  logic                 clk_i,
   input  logic                 rst_i,
@@ -50,7 +52,7 @@ module snitch_lsu #(
   input  logic [1:0]           lsu_qsize_i,
   input  reqrsp_pkg::amo_op_e  lsu_qamo_i,
   input  logic                 lsu_qrepd_i,  // Whether this is a sequencer repetition
-  input  addr_t                lsu_qmcast_i,  // Multicast mask
+  input  user_t                lsu_quser_i,  // User field for the axi transmission
   input  logic                 lsu_qvalid_i,
   output logic                 lsu_qready_o,
   // response channel
@@ -254,7 +256,7 @@ module snitch_lsu #(
   assign data_req_o.q_valid = lsu_postcaq_qvalid & (lsu_qwrite_i | ~laq_full) & ~mem_full;
   assign data_req_o.q.write = lsu_qwrite_i;
   assign data_req_o.q.addr = lsu_qaddr_i;
-  assign data_req_o.q.mask = lsu_qmcast_i;
+  assign data_req_o.q.user = lsu_quser_i;
   assign data_req_o.q.amo  = lsu_qamo_i;
   assign data_req_o.q.size = lsu_qsize_i;
 
