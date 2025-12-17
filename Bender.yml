@@ -200,7 +200,7 @@ sources:
   - target: snitch_cluster_wrapper
     files:
       - hw/generated/snitch_cluster_pkg.sv
-  - target: all(snitch_cluster_wrapper, not(postlayout))
+  - target: all(snitch_cluster_wrapper, not(postlayout), not(yosys_netlist))
     files:
       - hw/generated/snitch_cluster_wrapper.sv
   - target: all(snitch_cluster_wrapper, postlayout)
@@ -215,3 +215,12 @@ sources:
     files:
       - nonfree/gf12/mems/tc_sram.sv
       - nonfree/gf12/sourcecode/tc_clk.sv
+
+  - target: ihp13
+    files:
+      - target/ihp13/tc_clk.sv
+      - target/ihp13/tc_sram_impl.sv
+
+  - target: all(snitch_cluster_wrapper, yosys_netlist)
+    files:
+      - target/yosys/out/snitch_cluster_wrapper_yosys_debug.v

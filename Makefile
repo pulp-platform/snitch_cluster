@@ -225,6 +225,12 @@ include $(SN_ROOT)/make/verilator.mk
 include $(SN_ROOT)/make/vsim.mk
 include $(SN_ROOT)/make/vcs.mk
 
+############
+# Synthesis #
+############
+
+include $(SN_ROOT)/target/yosys/yosys.mk
+
 #########
 # GVSOC #
 #########
