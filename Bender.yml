@@ -218,9 +218,9 @@ sources:
 
   - target: ihp13
     files:
-      - target/ihp13/tc_clk.sv
-      - target/ihp13/tc_sram_impl.sv
+      - target/asic/ihp13/tc_clk.sv
+      - target/asic/ihp13/tc_sram_impl.sv
 
   - target: all(snitch_cluster_wrapper, yosys_netlist)
     files:
-      - target/yosys/out/snitch_cluster_wrapper_yosys_debug.v
+      - target/asic/yosys/out/snitch_cluster_wrapper_yosys.v

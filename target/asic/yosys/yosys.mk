@@ -14,11 +14,11 @@
 SN_YOSYS ?= yosys
 
 # Directories
-YOSYS_DIR     = $(SN_ROOT)/target/yosys
+YOSYS_DIR     = $(SN_ROOT)/target/asic/yosys
 YOSYS_OUT     = $(YOSYS_DIR)/out
 YOSYS_TMP     = $(YOSYS_DIR)/tmp
 YOSYS_REPORTS = $(YOSYS_DIR)/reports
-PROJ_DIR      = $(SN_ROOT)/target
+PROJ_DIR      = $(SN_ROOT)/target/asic
 
 # top level to be synthesized
 TOP_DESIGN		?= snitch_cluster_wrapper
@@ -62,6 +62,6 @@ clean-yosys:
 	rm -rf $(YOSYS_TMP)
 	rm -rf $(YOSYS_REPORTS) 
 	rm -f $(YOSYS_DIR)/$(TOP_DESIGN).log
-	rm -r $(PROJ_DIR)/snitch.flist
+	rm -f $(PROJ_DIR)/snitch.flist
 
 .PHONY: clean-yosys yosys

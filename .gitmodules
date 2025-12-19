@@ -7,6 +7,6 @@
 [submodule "sw/deps/riscv-tests"]
 	path = sw/deps/riscv-tests
 	url = git@github.com:riscv-software-src/riscv-tests.git
-[submodule "target/ihp13/pdk"]
-	path = target/ihp13/pdk
+[submodule "target/asic/ihp13/pdk"]
+	path = target/asic/ihp13/pdk
 	url = git@github.com:IHP-GmbH/IHP-Open-PDK.git

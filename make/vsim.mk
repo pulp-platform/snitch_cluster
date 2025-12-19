@@ -53,7 +53,7 @@ SN_COMMON_BENDER_FLAGS += -t yosys_netlist
 SN_COMMON_BENDER_FLAGS += -t ihp13 
 SN_COMMON_BENDER_FLAGS += -t snitch_cluster_wrapper
 SN_VSIM_BENDER_FLAGS += -DSIMULATION
-VSIM_TECH_SRC := source $(SN_TARGET_DIR)/compile_tech.tcl
+VSIM_TECH_SRC := source $(SN_TARGET_DIR)/asic/compile_tech.tcl
 endif
 
 # VCD_DUMP flag enables VCD dump generation

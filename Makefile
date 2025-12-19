@@ -229,7 +229,7 @@ include $(SN_ROOT)/make/vcs.mk
 # Synthesis #
 ############
 
-include $(SN_ROOT)/target/yosys/yosys.mk
+include $(SN_ROOT)/target/asic/yosys/yosys.mk
 
 #########
 # GVSOC #
