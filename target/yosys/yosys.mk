@@ -4,18 +4,21 @@
 #
 # Authors:
 # - Philippe Sauter <phsauter@iis.ee.ethz.ch>
+# - Luca Colagrande <colluca@iis.ee.ethz.ch>
+
+#############
+# Variables #
+#############
 
 # Tools
-BENDER	  ?= bender
-YOSYS     ?= yosys
+SN_YOSYS ?= yosys
 
 # Directories
-# directory of the path to the last called Makefile (this one)
-YOSYS_DIR 		:= $(realpath $(dir $(realpath $(lastword $(MAKEFILE_LIST)))))
-YOSYS_OUT		:= $(YOSYS_DIR)/out
-YOSYS_TMP		:= $(YOSYS_DIR)/tmp
-YOSYS_REPORTS	:= $(YOSYS_DIR)/reports
-PROJ_DIR		:= $(SN_ROOT)/target
+YOSYS_DIR     = $(SN_ROOT)/target/yosys
+YOSYS_OUT     = $(YOSYS_DIR)/out
+YOSYS_TMP     = $(YOSYS_DIR)/tmp
+YOSYS_REPORTS = $(YOSYS_DIR)/reports
+PROJ_DIR      = $(SN_ROOT)/target
 
 # top level to be synthesized
 TOP_DESIGN		?= snitch_cluster_wrapper
@@ -29,15 +32,15 @@ NETLIST_DEBUG	:= $(YOSYS_OUT)/$(TOP_DESIGN)_debug_yosys.v
 SV_DEFINES     ?= VERILATOR SYNTHESIS COMMON_CELLS_ASSERTS_OFF
 BENDER_TARGETS ?= snitch_cluster snitch_cluster_wrapper asic ihp13 rtl synthesis
 
-## Generate snitch.flist used to read design in yosys
-yosys-flist: Bender.lock Bender.yml
-	$(BENDER) script flist-plus $(foreach t,$(BENDER_TARGETS),-t $(t)) $(foreach d,$(SV_DEFINES),-D $(d)=1) > $(PROJ_DIR)/snitch.flist
+#########
+# Rules #
+#########
 
+$(SV_FLIST): $(SN_BENDER_LOCK) $(SN_BENDER_YML)
+	$(SN_BENDER) script flist-plus $(foreach t,$(BENDER_TARGETS),-t $(t)) $(foreach d,$(SV_DEFINES),-D $(d)=1) > $@
 
-## Synthesize netlist using Yosys
-yosys: $(NETLIST)
-
-$(NETLIST) $(NETLIST_DEBUG):  $(SV_FLIST)
+# Synthesize netlist using Yosys
+$(NETLIST) $(NETLIST_DEBUG): $(SV_FLIST)
 	@mkdir -p $(YOSYS_OUT)
 	@mkdir -p $(YOSYS_TMP)
 	@mkdir -p $(YOSYS_REPORTS)
@@ -47,17 +50,18 @@ $(NETLIST) $(NETLIST_DEBUG):  $(SV_FLIST)
 	TMP="$(YOSYS_TMP)" \
 	OUT="$(YOSYS_OUT)" \
 	REPORTS="$(YOSYS_REPORTS)" \
-	$(YOSYS) -c $(YOSYS_DIR)/scripts/yosys_synthesis.tcl \
+	$(SN_YOSYS) -c $(YOSYS_DIR)/scripts/yosys_synthesis.tcl \
 		2>&1 | TZ=UTC gawk '{ print strftime("[%Y-%m-%d %H:%M %Z]"), $$0 }' \
 		     | tee "$(YOSYS_DIR)/$(TOP_DESIGN).log" \
-		     | gawk -f $(YOSYS_DIR)/scripts/filter_output.awk;
-		
+		     | gawk -f $(YOSYS_DIR)/scripts/filter_output.awk
 
-clean-ys:
+yosys: $(NETLIST)
+
+clean-yosys:
 	rm -rf $(YOSYS_OUT)
 	rm -rf $(YOSYS_TMP)
 	rm -rf $(YOSYS_REPORTS) 
-	rm -f $(YOSYS_DIR)/$(TOP_DESIGN).log\
+	rm -f $(YOSYS_DIR)/$(TOP_DESIGN).log
 	rm -r $(PROJ_DIR)/snitch.flist
 
-.PHONY: clean-ys yosys yosys-flist
+.PHONY: clean-yosys yosys
