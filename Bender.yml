@@ -223,4 +223,4 @@ sources:
 
   - target: all(snitch_cluster_wrapper, yosys_netlist)
     files:
-      - target/asic/yosys/out/snitch_cluster_wrapper_yosys.v
+      - target/asic/yosys/out/snitch_cluster_wrapper_yosys_debug.v
