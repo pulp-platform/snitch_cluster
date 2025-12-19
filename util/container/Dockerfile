@@ -1,13 +1,17 @@
 # Copyright 2020 ETH Zurich and University of Bologna.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
+# 
+# Author: Luca Colagrande <colluca@iis.ee.ethz.ch>
+# 
+# Docker containers for Snitch hardware and software development.
 
-# Docker container for Snitch development.
-
-ARG VERILATOR_VERSION=5.034
+ARG OSEDA_VERSION=2025.07
 ARG UBUNTU_VERSION=22.04
 # Run dpkg without interactive dialogue
 ARG DEBIAN_FRONTEND=noninteractive
+ARG REPO_DIR=/foss/designs/snitch_cluster
+ARG TOOL_DIR=/foss/tools
 
 #-------------------------------------------------------------------------------
 # Stage 1: Tool builder
@@ -51,18 +55,21 @@ RUN sh /uv-installer.sh && rm /uv-installer.sh
 
 #-------------------------------------------------------------------------------
 # Stage 2: Hardware development stage
-# Builds on Verilator image and installs all tools required for both hardware
-# and software development.
+# Builds on open-source EDA tool image from Harald Pretl and installs all tools
+# required for both hardware and software development.
 #------------------------------------------------------------------------------
 
-FROM verilator/verilator:v${VERILATOR_VERSION} AS snitch_cluster-hw
+FROM hpretl/iic-osic-tools:${OSEDA_VERSION} AS snitch_cluster-hw
 ARG DEBIAN_FRONTEND
+ARG REPO_DIR
+ARG TOOL_DIR
 
 LABEL version="0.1"
 LABEL description="Snitch container for hardware and software development."
 LABEL maintainer="colluca@iis.ee.ethz.ch"
 LABEL org.opencontainers.image.source=https://github.com/pulp-platform/snitch_cluster
 
+USER root
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         # General requirements
@@ -71,26 +78,33 @@ RUN apt-get update && \
         device-tree-compiler && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
-
-# Copy all needed files to install the package
-COPY . /repo
+USER 1000
 
 # Copy the tools from the builder stage
-COPY --from=tool-builder /tools/bender /tools/bin/
-COPY --from=tool-builder /tools/uv /tools/bin/
-COPY --from=tool-builder /tools/doxygen/bin/doxygen /tools/bin/
-COPY --from=tool-builder /tools/riscv-llvm /tools/riscv-llvm
+USER root
+COPY --from=tool-builder /tools/bender ${TOOL_DIR}/bin/
+COPY --from=tool-builder /tools/uv ${TOOL_DIR}/bin/
+COPY --from=tool-builder /tools/doxygen/bin/doxygen ${TOOL_DIR}/bin/
+COPY --from=tool-builder /tools/riscv-llvm ${TOOL_DIR}/riscv-llvm
+USER 1000
+
+# Overwrite .bashrc to make sure PYTHONPATH variable does not conflict with uv
+USER root
+RUN echo "export PS1='\[\033[0;32m\]\w >\[\033[0;38m\] '" > ~/.bashrc
+USER 1000
 
 # Modify environment and path variables
-ENV SN_VLT="verilator"
-ENV SN_LLVM_BINROOT="/tools/riscv-llvm/bin"
-ENV PATH="/tools/bin:${PATH}"
-ENV PATH="/tools/riscv-llvm/bin:${PATH}"
-ENV PATH="/repo/target/sim/build/bin:${PATH}"
+ENV SN_LLVM_BINROOT="${TOOL_DIR}/riscv-llvm/bin"
+ENV PATH="${REPO_DIR}/target/sim/build/bin:${PATH}"
+ENV PATH="${TOOL_DIR}/bin:${PATH}"
 
 # Define uv environment
 ENV UV_LINK_MODE=copy
 ENV SN_UV="uv run --all-extras"
+
+# Define default working directory and entrypoint
+WORKDIR /foss/designs/snitch_cluster
+ENTRYPOINT ["/bin/bash"]
 
 #-------------------------------------------------------------------------------
 # Stage 3: Hardware build
@@ -98,11 +112,15 @@ ENV SN_UV="uv run --all-extras"
 #------------------------------------------------------------------------------
 
 FROM snitch_cluster-hw AS hw-builder
+ARG REPO_DIR
 
-# Copy the snitch_cluster repository from the build context into /repo
-COPY . /repo
+# Copy the snitch_cluster repository from the build context into ${REPO_DIR}
+COPY . ${REPO_DIR}
+WORKDIR ${REPO_DIR}
+
 # Build the verilator model
-RUN cd /repo && make verilator
+USER root
+RUN make verilator
 
 #-------------------------------------------------------------------------------
 # Stage 4: Software development stage
@@ -113,6 +131,7 @@ RUN cd /repo && make verilator
 FROM ubuntu:${UBUNTU_VERSION} AS snitch_cluster-sw
 ARG PYTHON_VERSION
 ARG DEBIAN_FRONTEND
+ARG REPO_DIR
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -120,21 +139,21 @@ RUN apt-get update && \
         curl wget build-essential git ca-certificates && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
-# Copy all needed files to install the package
-COPY . /repo
-
 # Copy the tools from the builder stages
 COPY --from=tool-builder /tools/bender /tools/bin/
 COPY --from=tool-builder /tools/uv /tools/bin/
 COPY --from=tool-builder /tools/doxygen/bin/doxygen /tools/bin/
 COPY --from=tool-builder /tools/riscv-llvm /tools/riscv-llvm
-COPY --from=hw-builder /repo/target/sim/build/bin/snitch_cluster_bin.vlt /tools/bin/snitch_cluster.vlt
+COPY --from=hw-builder ${REPO_DIR}/target/sim/build/bin/snitch_cluster_bin.vlt /tools/bin/snitch_cluster.vlt
 
 # Modify environment and path variables
 ENV SN_LLVM_BINROOT="/tools/riscv-llvm/bin"
 ENV PATH="/tools/bin:${PATH}"
-ENV PATH="/tools/riscv-llvm/bin:${PATH}"
 
 # Define uv environment
 ENV UV_LINK_MODE=copy
 ENV SN_UV="uv run --all-extras"
+
+# Define default working directory and entrypoint
+WORKDIR /foss/designs/snitch_cluster
+ENTRYPOINT ["/bin/bash"]

@@ -6,7 +6,7 @@
 # Define environment variables
 export CC=gcc-9.2.0
 export CXX=g++-9.2.0
-export SN_OSEDA="oseda -2025.03"
+export SN_OSEDA="oseda -2025.07"
 export SN_BENDER=bender-0.28.1
 export SN_VCS_SEPP=vcs-2024.09
 export SN_VERILATOR_SEPP=$SN_OSEDA

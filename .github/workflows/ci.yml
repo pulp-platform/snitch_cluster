@@ -238,6 +238,24 @@ jobs:
         run: |
           make SIM_DIR=./test/runs/simple SN_MCPU=snitch-mempool DEBUG=ON annotate -j
 
+  #############
+  # Synthesis #
+  #############
+
+  synthesis:
+    name: Synthesis w/ Yosys
+    runs-on: ubuntu-22.04
+    needs: build-docker
+    container:
+      image: ${{ needs.build-docker.outputs.hw_image_name }}
+    defaults:
+      run:
+        working-directory: /repo
+    steps:
+      - name: Run Synthesis
+        run: |
+          make CFG_OVERRIDE=cfg/yosys-ci.json yosys
+
   ######################
   # Sources Up-to-Date #
   ######################
