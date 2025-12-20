@@ -16,6 +16,8 @@ module snitch_hive import snitch_icache_pkg::*; #(
   parameter int unsigned ICacheLineCount    = 128,
   /// Number of icache ways.
   parameter int unsigned ICacheWays         = 4,
+  parameter bit          ICacheL1TagScm     = 1'b0,
+  parameter bit          ICacheL1DataScm    = 1'b0,
   parameter bit          IsoCrossing        = 1,
   /// Address width of the buses
   parameter int unsigned AddrWidth          = 0,
@@ -95,7 +97,8 @@ module snitch_hive import snitch_icache_pkg::*; #(
     .FILL_AW            ( AddrWidth        ),
     .FILL_DW            ( WideDataWidth    ),
     .SERIAL_LOOKUP      ( 0                ),
-    .L1_TAG_SCM         ( 0                ),
+    .L1_TAG_SCM         ( ICacheL1TagScm   ),
+    .L1_DATA_SCM        ( ICacheL1DataScm  ),
     .NUM_AXI_OUTSTANDING( 2                ),
     .EARLY_LATCH        ( 0                ),
     .L0_EARLY_TAG_WIDTH ( snitch_pkg::PageShift - $clog2(ICacheLineWidth/8) ),
@@ -109,6 +112,7 @@ module snitch_hive import snitch_icache_pkg::*; #(
     .clk_d2_i (clk_d2_i),
     .rst_ni (rst_ni),
     .enable_prefetching_i ( icache_prefetch_enable_i ),
+    .enable_branch_pred_i ( 1'b1 ),
     .icache_l0_events_o   ( icache_events_o),
     .icache_l1_events_o   ( ),
     .flush_valid_i    ( flush_valid    ),
@@ -123,6 +127,8 @@ module snitch_hive import snitch_icache_pkg::*; #(
 
     .sram_cfg_tag_i   ( sram_cfgs_i.icache_tag  ),
     .sram_cfg_data_i  ( sram_cfgs_i.icache_data ),
+    .sram_cfg_out_data_o ( ),
+    .sram_cfg_out_tag_o  ( ),
 
     .axi_req_o (axi_req_o),
     .axi_rsp_i (axi_rsp_i)

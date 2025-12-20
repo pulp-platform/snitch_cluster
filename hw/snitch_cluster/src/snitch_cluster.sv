@@ -78,6 +78,9 @@ module snitch_cluster
   parameter int unsigned ICacheLineCount [NrHives] = '{default: 0},
   /// Number of icache ways.
   parameter int unsigned ICacheWays [NrHives]      = '{default: 0},
+  /// Use SCM for icache tag and data arrays.
+  parameter bit          ICacheL1TagScm [NrHives]  = '{default: 1'b0},
+  parameter bit          ICacheL1DataScm [NrHives] = '{default: 1'b0},
   /// Enable virtual memory support.
   parameter bit          VMSupport          = 1,
   /// Enable wide collective operations.
@@ -1305,6 +1308,8 @@ module snitch_cluster
       .ICacheLineWidth (ICacheLineWidth[i]),
       .ICacheLineCount (ICacheLineCount[i]),
       .ICacheWays (ICacheWays[i]),
+      .ICacheL1TagScm (ICacheL1TagScm[i]),
+      .ICacheL1DataScm (ICacheL1DataScm[i]),
       .IsoCrossing (IsoCrossing),
       .sram_cfg_t  (sram_cfg_t),
       .sram_cfgs_t (sram_cfgs_t),

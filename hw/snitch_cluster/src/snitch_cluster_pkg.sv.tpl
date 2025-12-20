@@ -10,7 +10,7 @@ ${"{}'h{}".format(length or "", hex(x)[2:])}\
 
 <%def name="icache_cfg(prop)">
   % for lw in cfg['cluster']['hives']:
-    ${lw['icache'][prop]}${',' if not loop.last else ''}
+    ${int(lw['icache'][prop])}${',' if not loop.last else ''}
   % endfor
 </%def>
 
@@ -69,6 +69,8 @@ package ${cfg['cluster']['name']}_pkg;
   localparam int unsigned ICacheLineWidth [NrHives] = '{${icache_cfg('cacheline')}};
   localparam int unsigned ICacheLineCount [NrHives] = '{${icache_cfg('depth')}};
   localparam int unsigned ICacheWays [NrHives] = '{${icache_cfg('ways')}};
+  localparam int unsigned ICacheL1TagScm [NrHives] = '{${icache_cfg('tag_scm')}};
+  localparam int unsigned ICacheL1DataScm [NrHives] = '{${icache_cfg('data_scm')}};
 
   localparam int unsigned XifNumRs = 3;
   localparam int unsigned XifIdWidth = ${cfg['cluster']['xif_id_width']};

@@ -26,7 +26,7 @@ dependencies:
   FPnew:              { git: https://github.com/pulp-platform/cvfpu.git,          rev:      pulp-v0.1.3 }
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.13      }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0       }
-  cluster_icache:     { git: https://github.com/pulp-platform/cluster_icache.git, rev: 64e21ae455bbdde850c4df13bef86ea55ac42537 }
+  cluster_icache:     { git: https://github.com/pulp-platform/cluster_icache.git, version:  0.3.0       }
   idma:               { git: https://github.com/pulp-platform/iDMA.git,           version:  0.6.5       }
 
 export_include_dirs:

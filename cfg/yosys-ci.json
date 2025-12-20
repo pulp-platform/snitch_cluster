@@ -62,7 +62,9 @@
                 icache: {
                     size: 16, // total instruction cache size in kByte
                     ways: 2, // number of ways
-                    cacheline: 512 // word size in bits
+                    cacheline: 512, // word size in bits
+                    tag_scm: true,
+                    data_scm: true,
                 },
                 cores: [
                     { $ref: "#/compute_core_template" },
