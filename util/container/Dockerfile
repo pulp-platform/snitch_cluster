@@ -121,7 +121,6 @@ COPY . ${REPO_DIR}
 WORKDIR ${REPO_DIR}
 
 # Build the verilator model
-USER root
 RUN make verilator
 
 #-------------------------------------------------------------------------------
