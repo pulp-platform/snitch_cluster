@@ -20,7 +20,7 @@ ARG TOOL_DIR=/tools
 #------------------------------------------------------------------------------
 
 FROM ubuntu:${UBUNTU_VERSION} AS tool-builder
-ARG BENDER_VERSION=0.28.1
+ARG BENDER_VERSION=0.28.2
 ARG DOXYGEN_VERSION=1.12.0
 ARG SNITCH_LLVM_VERSION=15.0.0-snitch-0.5.0
 ARG UBUNTU_VERSION
