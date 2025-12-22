@@ -6,8 +6,9 @@
 # 
 # Docker containers for Snitch hardware and software development.
 
+# Ubuntu version must be aligned with OSEDA version
 ARG OSEDA_VERSION=2025.07
-ARG UBUNTU_VERSION=22.04
+ARG UBUNTU_VERSION=24.04
 # Run dpkg without interactive dialogue
 ARG DEBIAN_FRONTEND=noninteractive
 ARG REPO_DIR=/repo
@@ -75,6 +76,8 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         # General requirements
         curl wget build-essential git ca-certificates \
+        # Required for Verilator
+        ccache \
         # Required for fesvr
         device-tree-compiler && \
     apt-get clean && \
