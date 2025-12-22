@@ -77,7 +77,7 @@ RUN apt-get update && \
         # General requirements
         curl wget build-essential git ca-certificates \
         # Required for Verilator
-        ccache \
+        ccache mold binutils \
         # Required for fesvr
         device-tree-compiler && \
     apt-get clean && \
