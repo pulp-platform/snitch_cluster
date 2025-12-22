@@ -10,8 +10,8 @@ ARG OSEDA_VERSION=2025.07
 ARG UBUNTU_VERSION=22.04
 # Run dpkg without interactive dialogue
 ARG DEBIAN_FRONTEND=noninteractive
-ARG REPO_DIR=/foss/designs/snitch_cluster
-ARG TOOL_DIR=/foss/tools
+ARG REPO_DIR=/repo
+ARG TOOL_DIR=/tools
 
 #-------------------------------------------------------------------------------
 # Stage 1: Tool builder
@@ -59,7 +59,9 @@ RUN sh /uv-installer.sh && rm /uv-installer.sh
 # required for both hardware and software development.
 #------------------------------------------------------------------------------
 
-FROM hpretl/iic-osic-tools:${OSEDA_VERSION} AS snitch_cluster-hw
+FROM hpretl/iic-osic-tools:${OSEDA_VERSION} AS oseda
+
+FROM ubuntu:${UBUNTU_VERSION} AS snitch_cluster-hw
 ARG DEBIAN_FRONTEND
 ARG REPO_DIR
 ARG TOOL_DIR
@@ -69,7 +71,6 @@ LABEL description="Snitch container for hardware and software development."
 LABEL maintainer="colluca@iis.ee.ethz.ch"
 LABEL org.opencontainers.image.source=https://github.com/pulp-platform/snitch_cluster
 
-USER root
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         # General requirements
@@ -78,32 +79,33 @@ RUN apt-get update && \
         device-tree-compiler && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
-USER 1000
 
-# Copy the tools from the builder stage
-USER root
+# Copy tools from the builder stage
 COPY --from=tool-builder /tools/bender ${TOOL_DIR}/bin/
 COPY --from=tool-builder /tools/uv ${TOOL_DIR}/bin/
 COPY --from=tool-builder /tools/doxygen/bin/doxygen ${TOOL_DIR}/bin/
 COPY --from=tool-builder /tools/riscv-llvm ${TOOL_DIR}/riscv-llvm
-USER 1000
+
+# Copy tools from OSEDA container
+COPY --from=oseda /foss/tools/verilator ${TOOL_DIR}/verilator
+COPY --from=oseda /foss/tools/yosys ${TOOL_DIR}/yosys
 
 # Overwrite .bashrc to make sure PYTHONPATH variable does not conflict with uv
-USER root
 RUN echo "export PS1='\[\033[0;32m\]\w >\[\033[0;38m\] '" > ~/.bashrc
-USER 1000
 
 # Modify environment and path variables
 ENV SN_LLVM_BINROOT="${TOOL_DIR}/riscv-llvm/bin"
 ENV PATH="${REPO_DIR}/target/sim/build/bin:${PATH}"
 ENV PATH="${TOOL_DIR}/bin:${PATH}"
+ENV PATH="${TOOL_DIR}/verilator/bin:${PATH}"
+ENV PATH="${TOOL_DIR}/yosys/bin:${PATH}"
 
 # Define uv environment
 ENV UV_LINK_MODE=copy
 ENV SN_UV="uv run --all-extras"
 
 # Define default working directory and entrypoint
-WORKDIR /foss/designs/snitch_cluster
+WORKDIR ${REPO_DIR}
 ENTRYPOINT ["/bin/bash"]
 
 #-------------------------------------------------------------------------------
