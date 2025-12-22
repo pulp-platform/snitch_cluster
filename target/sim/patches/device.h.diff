@@ -1,0 +1,10 @@
+--- target/sim/build/work/fesvr/device.h	2025-12-22 01:29:30.739331429 +0100
++++ target/sim/build/work/fesvr/device.h.new	2025-12-22 01:29:22.465324022 +0100
+@@ -6,6 +6,7 @@
+ #include <cstring>
+ #include <string>
+ #include <functional>
++#include <cstdint>
+ 
+ class memif_t;
+ 

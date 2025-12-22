@@ -213,6 +213,8 @@ SN_FESVR_VERSION ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
 $(SN_WORK_DIR)/$(SN_FESVR_VERSION)_unzip: | $(SN_WORK_DIR)
 	wget -O $(dir $@)/$(SN_FESVR_VERSION) https://github.com/riscv/riscv-isa-sim/tarball/$(SN_FESVR_VERSION)
 	tar xfm $(dir $@)$(SN_FESVR_VERSION) --strip-components=1 -C $(dir $@)
+	patch $(SN_WORK_DIR)/fesvr/context.h < $(SN_TARGET_DIR)/sim/patches/context.h.diff
+	patch $(SN_WORK_DIR)/fesvr/device.h < $(SN_TARGET_DIR)/sim/patches/device.h.diff
 	touch $@
 
 $(SN_WORK_DIR)/lib/libfesvr.a: $(SN_WORK_DIR)/$(SN_FESVR_VERSION)_unzip
