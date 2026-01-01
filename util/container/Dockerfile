@@ -79,7 +79,16 @@ RUN apt-get update && \
         # Required for Verilator
         ccache mold binutils \
         # Required for fesvr
-        device-tree-compiler && \
+        device-tree-compiler \
+        # Shared libraries required by yosys (see https://github.com/iic-jku/IIC-OSIC-TOOLS/blob/main/_build/images/base-dev/scripts/install.sh)
+        libboost-filesystem-dev \
+        libboost-python-dev \
+        libexpat1-dev \
+        libffi-dev \
+        libreadline-dev \
+        libz-dev \
+        python3-dev \
+        tcl-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
