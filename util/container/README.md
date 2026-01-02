@@ -45,7 +45,7 @@ docker build --target snitch_cluster-hw -t ghcr.io/pulp-platform/snitch_cluster-
 To run the hardware container in interactive mode:
 
 ```shell
-docker run -it -v <path_to_repository_root>:/foss/designs/snitch_cluster ghcr.io/pulp-platform/snitch_cluster-hw:main
+docker run -it -v <path_to_repository_root>:/repo ghcr.io/pulp-platform/snitch_cluster-hw:main
 ```
 
 To run the software container in interactive mode:
