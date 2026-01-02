@@ -31,16 +31,23 @@ NETLIST			:= $(YOSYS_OUT)/$(TOP_DESIGN)_yosys.v
 NETLIST_DEBUG	:= $(YOSYS_OUT)/$(TOP_DESIGN)_debug_yosys.v
 SV_DEFINES     ?= VERILATOR SYNTHESIS COMMON_CELLS_ASSERTS_OFF
 BENDER_TARGETS ?= snitch_cluster snitch_cluster_wrapper asic ihp13 rtl synthesis
+BENDER_FLAGS    = $(foreach t,$(BENDER_TARGETS),-t $(t)) $(foreach d,$(SV_DEFINES),-D $(d)=1)
+
+# Misc
+SN_YOSYS_RTL_PREREQ_FILE = $(YOSYS_TMP)/$(TOP_DESIGN).d
 
 #########
 # Rules #
 #########
 
+# Generate RTL prerequisites
+$(eval $(call sn_gen_rtl_prerequisites,$(SN_YOSYS_RTL_PREREQ_FILE),$(YOSYS_TMP),$(BENDER_FLAGS),$(TOP_DESIGN),$(NETLIST)))
+
 $(SV_FLIST): $(SN_BENDER_LOCK) $(SN_BENDER_YML)
-	$(SN_BENDER) script flist-plus $(foreach t,$(BENDER_TARGETS),-t $(t)) $(foreach d,$(SV_DEFINES),-D $(d)=1) > $@
+	$(SN_BENDER) script flist-plus $(BENDER_FLAGS) > $@
 
 # Synthesize netlist using Yosys
-$(NETLIST) $(NETLIST_DEBUG): $(SV_FLIST)
+$(NETLIST) $(NETLIST_DEBUG): $(SV_FLIST) $(SN_YOSYS_RTL_PREREQ_FILE)
 	@mkdir -p $(YOSYS_OUT)
 	@mkdir -p $(YOSYS_TMP)
 	@mkdir -p $(YOSYS_REPORTS)
@@ -55,6 +62,8 @@ $(NETLIST) $(NETLIST_DEBUG): $(SV_FLIST)
 		| tee "$(YOSYS_DIR)/$(TOP_DESIGN).log" \
 		| awk -f $(YOSYS_DIR)/scripts/filter_output.awk
 
+.PHONY: yosys clean-yosys
+
 yosys: $(NETLIST)
 
 clean-yosys:
@@ -62,6 +71,8 @@ clean-yosys:
 	rm -rf $(YOSYS_TMP)
 	rm -rf $(YOSYS_REPORTS) 
 	rm -f $(YOSYS_DIR)/$(TOP_DESIGN).log
-	rm -f $(PROJ_DIR)/snitch.flist
+	rm -f $(SV_FLIST)
 
-.PHONY: clean-yosys yosys
+clean: clean-yosys
+
+SN_DEPS += $(SN_YOSYS_RTL_PREREQ_FILE)
