@@ -40,6 +40,10 @@ SN_YOSYS_RTL_PREREQ_FILE = $(YOSYS_TMP)/$(TOP_DESIGN).d
 # Rules #
 #########
 
+$(YOSYS_OUT) $(YOSYS_TMP) $(YOSYS_REPORTS):
+	mkdir -p $@
+
+
 # Generate RTL prerequisites
 $(eval $(call sn_gen_rtl_prerequisites,$(SN_YOSYS_RTL_PREREQ_FILE),$(YOSYS_TMP),$(BENDER_FLAGS),$(TOP_DESIGN),$(NETLIST)))
 
@@ -47,10 +51,7 @@ $(SV_FLIST): $(SN_BENDER_LOCK) $(SN_BENDER_YML)
 	$(SN_BENDER) script flist-plus $(BENDER_FLAGS) > $@
 
 # Synthesize netlist using Yosys
-$(NETLIST) $(NETLIST_DEBUG): $(SV_FLIST) $(SN_YOSYS_RTL_PREREQ_FILE)
-	@mkdir -p $(YOSYS_OUT)
-	@mkdir -p $(YOSYS_TMP)
-	@mkdir -p $(YOSYS_REPORTS)
+$(NETLIST) $(NETLIST_DEBUG): $(SV_FLIST) $(SN_YOSYS_RTL_PREREQ_FILE) | $(YOSYS_OUT) $(YOSYS_TMP) $(YOSYS_REPORTS)
 	cd $(YOSYS_DIR) && \
 	SV_FLIST="$(SV_FLIST)" \
 	TOP_DESIGN="$(TOP_DESIGN)" \

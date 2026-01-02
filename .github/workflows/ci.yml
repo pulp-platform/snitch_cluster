@@ -264,7 +264,6 @@ jobs:
           submodules: 'recursive'
       - name: Run Synthesis
         run: |
-          echo $PWD
           make CFG_OVERRIDE=cfg/yosys-ci.json yosys
       - name: Run Post-Synthesis Simulation
         run: |
