@@ -51,8 +51,7 @@ endif
 ifeq ($(PS_FREE_SIM), 1)
 SN_COMMON_BENDER_FLAGS += -t yosys_netlist
 SN_COMMON_BENDER_FLAGS += -t ihp13 
-SN_VSIM_BENDER_FLAGS += -DSIMULATION
-VSIM_TECH_SRC := source $(SN_TARGET_DIR)/asic/compile_tech.tcl
+SN_COMMON_BENDER_FLAGS += -DSIMULATION
 endif
 
 # VCD_DUMP flag enables VCD dump generation
@@ -92,7 +91,7 @@ $(SN_VSIM_BUILDDIR)/compile.vsim.tcl: $(SN_BENDER_YML) $(SN_BENDER_LOCK) | $(SN_
 
 # Run compilation script and create Questasim simulation binary
 $(SN_BIN_DIR)/$(TARGET).vsim: $(SN_VSIM_BUILDDIR)/compile.vsim.tcl $(SN_TB_CC_SOURCES) $(SN_RTL_CC_SOURCES) $(SN_WORK_DIR)/lib/libfesvr.a $(SN_VSIM_RTL_PREREQ_FILE) | $(SN_BIN_DIR)
-	$(SN_VSIM) -c -do "source $<; $(VSIM_TECH_SRC); quit" | tee $(dir $<)/vlog.log
+	$(SN_VSIM) -c -do "source $<; quit" | tee $(dir $<)/vlog.log
 	@! grep -P "Errors: [1-9]*," $(dir $<)/vlog.log
 	$(SN_VOPT) $(SN_VOPT_FLAGS) -work $(dir $<) $(SN_VSIM_TOP_MODULE) -o $(SN_VSIM_TOP_MODULE)_opt | tee $(dir $<)/vopt.log
 	@! grep -P "Errors: [1-9]*," $(dir $<)/vopt.log
