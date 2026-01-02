@@ -202,11 +202,15 @@ jobs:
     needs: build-docker
     container:
       image: ${{ needs.build-docker.outputs.hw_image_name }}
-      options: -v ${{ github.workspace }}:/repo
+      volumes:
+        - ${{ github.workspace }}:/repo
     defaults:
       run:
         working-directory: /repo
     steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
       - name: Hash Verilator prerequisites
         id: verilator-hash
         run: |
@@ -249,11 +253,15 @@ jobs:
     needs: build-docker
     container:
       image: ${{ needs.build-docker.outputs.hw_image_name }}
-      options: -v ${{ github.workspace }}:/repo
+      volumes:
+        - ${{ github.workspace }}:/repo
     defaults:
       run:
         working-directory: /repo
     steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
       - name: Run Synthesis
         run: |
           echo $PWD
@@ -273,14 +281,15 @@ jobs:
     needs: build-docker
     container:
       image: ${{ needs.build-docker.outputs.hw_image_name }}
-      options: -v ${{ github.workspace }}:/repo
+      volumes:
+        - ${{ github.workspace }}:/repo
     defaults:
       run:
         working-directory: /repo
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: 'recursive'
       - name: Generate opcodes
         run: |
           uv run ./util/clustergen/generate-opcodes.sh
