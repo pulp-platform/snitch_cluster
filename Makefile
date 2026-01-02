@@ -37,6 +37,9 @@ clean: clean-rtl clean-sw clean-work clean-logs clean-bender clean-misc
 # Common #
 ##########
 
+SHELL       := /bin/bash
+.SHELLFLAGS := -euo pipefail -c
+
 SN_ROOT := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 include $(SN_ROOT)/make/common.mk
