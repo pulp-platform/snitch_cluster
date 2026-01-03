@@ -7,7 +7,7 @@
 #######################
 
 SN_VLT_NUM_THREADS ?= 1
-SN_VLT_JOBS        ?= $(shell nproc)
+SN_VLT_JOBS        ?=
 
 #############
 # Variables #
@@ -57,7 +57,7 @@ $(SN_BIN_DIR)/$(TARGET)_bin.vlt: $(SN_TB_CC_SOURCES) $(SN_VLT_CC_SOURCES) $(SN_W
 		-CFLAGS -I$(SN_TB_DIR) \
 		-j $(SN_VLT_JOBS) \
 		-o $@ --cc --exe --build --top-module $(SN_VLT_TOP_MODULE) \
-		$(SN_TB_CC_SOURCES) $(SN_VLT_CC_SOURCES) $(SN_WORK_DIR)/lib/libfesvr.a
+		$(SN_TB_CC_SOURCES) $(SN_VLT_CC_SOURCES) $(SN_WORK_DIR)/lib/libfesvr.a | tee $(SN_VLT_BUILDDIR)/verilator.log
 
 # This target just redirects the verilator simulation binary.
 # On IIS machines, verilator needs to be built and run in

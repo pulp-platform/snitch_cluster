@@ -165,7 +165,7 @@ jobs:
       - name: Build Hardware
         if: steps.verilator-cache.outputs.cache-hit != 'true'
         run: |
-          make CFG_OVERRIDE=cfg/github-ci.json VLT_JOBS=1 verilator
+          make CFG_OVERRIDE=cfg/github-ci.json verilator
 
   sw-snitch-cluster-vlt:
     name: Simulate SW on Snitch Cluster w/ Verilator
@@ -228,7 +228,7 @@ jobs:
       - name: Build Hardware
         if: steps.verilator-cache.outputs.cache-hit != 'true'
         run: |
-          make CFG_OVERRIDE=cfg/mempool.json VLT_JOBS=1 verilator
+          make CFG_OVERRIDE=cfg/mempool.json verilator
       - name: Build Software for mempool tests
         run: |
           make sw CFG_OVERRIDE=cfg/mempool.json SN_MCPU=snitch-mempool -j
@@ -265,10 +265,13 @@ jobs:
       - name: Run Synthesis
         run: |
           make CFG_OVERRIDE=cfg/yosys-ci.json yosys
+      - name: Verilate Post-Synthesis Netlist
+        run: |
+          make PS_FREE_SIM=1 SN_VLT_JOBS=1 verilator
       - name: Run Post-Synthesis Simulation
         run: |
-          make PS_FREE_SIM=1 verilator
-
+          make tests
+          snitch_cluster.vlt sw/tests/build/simple.elf
 
   ######################
   # Sources Up-to-Date #
