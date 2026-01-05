@@ -77,9 +77,9 @@ snitch-ip-tests:
     - ./util/compile.sh
     - ./util/run_vsim.sh
 
-########################
-# Snitch cluster tests #
-########################
+####################
+# Simulation tests #
+####################
 
 # Verilator
 snitch-cluster-vlt:
@@ -165,9 +165,22 @@ snitch-cluster-copift-sc-vsim:
     - cd ../chaining
     - uv run ./experiments.py experiments.yaml --actions sw run perf -j
 
-############
-# Non-free #
-############
+###################################
+# Open-source implementation flow #
+###################################
+
+yosys-synthesis:
+  script:
+    - make CFG_OVERRIDE=cfg/yosys-ci.json yosys
+    # Following steps are not included in open-source CI since netlist
+    # compilation with Verilator takes an excessive amount of time and memory.
+    - make PS_FREE_SIM=1 vsim
+    - make sw -j
+    - make vsim-run SN_BINARY=$PWD/sw/tests/build/simple.elf
+
+################################
+# Non-free implementation flow #
+################################
 
 nonfree:
   script:

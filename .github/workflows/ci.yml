@@ -258,13 +258,6 @@ jobs:
       - name: Run Synthesis
         run: |
           make CFG_OVERRIDE=cfg/yosys-ci.json yosys
-      - name: Verilate Post-Synthesis Netlist
-        run: |
-          make PS_FREE_SIM=1 SN_VLT_JOBS=1 verilator
-      - name: Run Post-Synthesis Simulation
-        run: |
-          make tests
-          snitch_cluster.vlt sw/tests/build/simple.elf
 
   ######################
   # Sources Up-to-Date #
