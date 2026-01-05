@@ -226,8 +226,8 @@ $(SN_WORK_DIR)/lib/libfesvr.a: $(SN_WORK_DIR)/$(SN_FESVR_VERSION)_unzip
 	mkdir -p $(dir $@)
 	cp $(dir $<)libfesvr.a $@
 
-include $(SN_ROOT)/make/verilator.mk
 include $(SN_ROOT)/make/vsim.mk
+include $(SN_ROOT)/make/verilator.mk
 include $(SN_ROOT)/make/vcs.mk
 
 ############

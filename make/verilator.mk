@@ -21,7 +21,6 @@ SN_VLT_FESVR    = $(SN_VLT_BUILDDIR)/riscv-isa-sim
 SN_VLT_BENDER_FLAGS += $(SN_COMMON_BENDER_FLAGS) -t verilator -DASSERTS_OFF
 SN_VLT_FLAGS += --timing
 SN_VLT_FLAGS += --timescale 1ns/1ps
-SN_VLT_FLAGS += --trace
 SN_VLT_FLAGS += -Wno-BLKANDNBLK
 SN_VLT_FLAGS += -Wno-LITENDIAN
 SN_VLT_FLAGS += -Wno-CASEINCOMPLETE
@@ -33,6 +32,10 @@ SN_VLT_FLAGS += -Wno-UNOPTFLAT
 SN_VLT_FLAGS += -Wno-fatal
 SN_VLT_FLAGS += --unroll-count 1024
 SN_VLT_FLAGS += --threads $(SN_VLT_NUM_THREADS)
+
+ifeq ($(DEBUG), ON)
+SN_VLT_FLAGS += --trace
+endif
 
 # Misc
 SN_VLT_TOP_MODULE = testharness
