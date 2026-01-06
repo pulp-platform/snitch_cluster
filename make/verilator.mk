@@ -22,6 +22,7 @@ SN_VLT_BENDER_FLAGS += $(SN_COMMON_BENDER_FLAGS) -t verilator -DASSERTS_OFF
 SN_VLT_FLAGS += --timing
 SN_VLT_FLAGS += --timescale 1ns/1ps
 SN_VLT_FLAGS += --trace-vcd
+SN_VLT_FLAGS += --no-assert-case
 SN_VLT_FLAGS += -Wno-BLKANDNBLK
 SN_VLT_FLAGS += -Wno-LITENDIAN
 SN_VLT_FLAGS += -Wno-CASEINCOMPLETE
