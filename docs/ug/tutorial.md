@@ -353,7 +353,8 @@ Most of the logic in our verification script is implemented in convenience class
 
 If you make changes to the hardware, you probably also want to physically implement it to estimate the PPA impact of your modifications.
 We currently support two physical implementation flows:
-- a proprietary flow using GF12 technology and Synopsys Fusion Compiler
+
+- a proprietary (nonfree) flow using GF12 technology and Synopsys Fusion Compiler
 - a fully open-source flow using IHP130 technology and open-source EDA tools
 
 The following two subsections describe how to use the two flows.
@@ -394,25 +395,35 @@ You will find reports and output files produced by the flow in `target/asic/yosy
 ## Running a physical simulation
 
 Once your design is physically implemented, you want to also verify that it works as intended.
-Assuming you used the previous command to get a final optimized post-layout netlist, you can directly build a simulation model out of it. Head back to the main repository, in the root directory, and build the simulation model with the following flag:
+Assuming you used one of the previous commands to produce a netlist, you can directly build a simulation model out of it. The technology flag is used to specify which netlist we want to compile:
 
-```shell
-make clean-vsim
-make PL_SIM=1 vsim
-```
+=== "Nonfree flow"
+    ```shell
+    make clean-vsim
+    make TECH=gf12 vsim
+    ```
 
-This resembles the commands you've previously seen in section [Building the hardware](#building-the-hardware). In fact, all testbench components are the same, we simply use the added flag to tell [Bender](https://github.com/pulp-platform/bender) to reference the physical netlist in place of the source RTL as a DUT during compilation.
-The `Bender.yml` file automatically references the final netlist in our flow, but you could replace that with a netlist from an intermediate stage if you do not intend to run the whole flow.
+=== "Free flow"
+    ```shell
+    make clean-vsim
+    make TECH=ihp13 vsim
+    ```
+
+This resembles the commands you've previously seen in section [Building the hardware](#building-the-hardware). In fact, all testbench components are the same, we simply use the technology flag to tell [Bender](https://github.com/pulp-platform/bender) to reference the physical netlist in place of the source RTL as a DUT during compilation.
+The `Bender.yml` file automatically references the final, post-layout netlist in the nonfree flow, but you could replace that with a netlist from an intermediate stage if you do not intend to run the whole flow.
 
 !!! note
     Make does not track changes in the flags passed to it, so it does not know that it has to update the RTL source list for compilation. To ensure that it is updated, we can delete the compilation script, which was implicitly generated when you last built the simulation model. The first command above achieves this, by deleting all artifacts from the last build with QuestaSim.
 
 Running a physical simulation is then no different from running a functional simulation, so you may continue using the commands introduced in section [Running a simulation](#running-a-simulation).
 
+!!! warning
+    Physical simulations using Verilator have not been tested, as in our experiments Verilator takes an excessive amount of time and memory to build the simulation model.
+
 ## Power estimation
 
 !!! warning
-    The power estimation flow is currently only available for IIS users with access to our nonfree repo.
+    The power estimation flow is currently only available for IIS users with access to the nonfree flow.
 
 During physical implementation, the tools are able to independently generate area and timing numbers. For a complete PPA analysis, you will want to include power estimates as well.
 
@@ -420,7 +431,7 @@ Power numbers are extremely dependent on the switching activity in your circuit,
 
 To do so, set the `VCD_DUMP` flag when building the physical simulation model:
 ```shell
-make PL_SIM=1 VCD_DUMP=1 DEBUG=ON vsim
+make TECH=gf12 VCD_DUMP=1 DEBUG=ON vsim
 ``` 
 
 !!! danger

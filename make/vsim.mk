@@ -36,8 +36,8 @@ SN_VSIM_FLAGS += +define+DEBUG
 SN_VOPT_FLAGS  = +acc
 endif
 
-# PL_SIM flag selects between RTL or post-layout simulation
-ifeq ($(PL_SIM), 1)
+# GF12 physical simulation options
+ifeq ($(TECH),gf12)
 include $(SN_ROOT)/nonfree/gf12/modelsim/Makefrag
 SN_COMMON_BENDER_FLAGS += -t postlayout
 SN_VOPT_FLAGS += -modelsimini $(SN_ROOT)/nonfree/gf12/modelsim/modelsim.ini
@@ -47,8 +47,8 @@ SN_VSIM_FLAGS += -modelsimini $(SN_ROOT)/nonfree/gf12/modelsim/modelsim.ini
 SN_VSIM_FLAGS += +nospecify
 endif
 
-# PL_SIM flag selects between RTL or post-synthesis simulation
-ifeq ($(PS_FREE_SIM), 1)
+# IHP130 physical simulation options
+ifeq ($(TECH),ihp13)
 SN_COMMON_BENDER_FLAGS += -t yosys_netlist
 SN_COMMON_BENDER_FLAGS += -t ihp13 
 SN_COMMON_BENDER_FLAGS += -DSIMULATION

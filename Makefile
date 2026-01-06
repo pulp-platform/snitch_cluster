@@ -12,7 +12,7 @@
 
 DEBUG        ?= OFF  # ON to turn on debugging symbols and wave logging
 CFG_OVERRIDE ?=      # Override default configuration file
-PL_SIM       ?= 0    # 1 for post-layout simulation
+TECH         ?=      # [gf12, ihp13] for physical simulation
 VCD_DUMP     ?= 0    # 1 to dump VCD traces
 
 # Non-namespaced aliases for common command-line variables

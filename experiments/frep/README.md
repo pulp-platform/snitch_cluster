@@ -10,14 +10,14 @@ PLS simulations:
 To test the PLS results:
 ```
 make clean-vsim
-make PL_SIM=1 DEBUG=ON vsim
+make TECH=gf12 DEBUG=ON vsim
 ./experiments.py --actions run -j --run-dir pls_test
 ```
 
 To run the power simulation:
 ```
 SN_BIN_DIR=$PWD/experiments/frep/hw/<cfg>/bin/ make SN_VSIM_BUILDDIR=$PWD/experiments/frep/hw/<cfg>/work-vsim/ clean-vsim
-SN_BIN_DIR=$PWD/experiments/frep/hw/<cfg>/bin/ make PL_SIM=1 DEBUG=ON VCD_DUMP=1 SN_VSIM_BUILDDIR=$PWD/experiments/frep/hw/<cfg>/work-vsim/ $SN_BIN_DIR/snitch_cluster.vsim -j
+SN_BIN_DIR=$PWD/experiments/frep/hw/<cfg>/bin/ make TECH=gf12 DEBUG=ON VCD_DUMP=1 SN_VSIM_BUILDDIR=$PWD/experiments/frep/hw/<cfg>/work-vsim/ $SN_BIN_DIR/snitch_cluster.vsim -j
 ./experiments.py power.yaml --actions run power -j --run-dir pls_power
 ```
 
