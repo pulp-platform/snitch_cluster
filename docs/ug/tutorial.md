@@ -355,7 +355,7 @@ If you make changes to the hardware, you probably also want to physically implem
 We currently support two physical implementation flows:
 
 - a proprietary (nonfree) flow using GF12 technology and Synopsys Fusion Compiler
-- a fully open-source flow using IHP130 technology and open-source EDA tools
+- a fully open-source flow using IHP130 technology and open-source EDA tools (inspired by the [Croc flow](https://github.com/pulp-platform/croc))
 
 The following two subsections describe how to use the two flows.
 
