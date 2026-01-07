@@ -173,5 +173,5 @@ ENV UV_LINK_MODE=copy
 ENV SN_UV="uv run --all-extras"
 
 # Define default working directory and entrypoint
-WORKDIR /foss/designs/snitch_cluster
+WORKDIR ${REPO_DIR}
 ENTRYPOINT ["/bin/bash"]
