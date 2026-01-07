@@ -15,6 +15,7 @@ variables:
   UV_CACHE_DIR: $CI_BUILDS_DIR/../cache/uv
 
 default:
+  timeout: 60m
   before_script:
     - source iis-setup.sh
     # Gets rid of uv warnings about already activated virtualenv
@@ -170,6 +171,7 @@ snitch-cluster-copift-sc-vsim:
 ###################################
 
 yosys-synthesis:
+  timeout: 2h
   script:
     - make CFG_OVERRIDE=cfg/yosys-ci.json yosys
     # Following steps are not included in open-source CI since netlist
