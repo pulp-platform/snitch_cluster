@@ -14,65 +14,62 @@
 SN_YOSYS ?= yosys
 
 # Directories
-YOSYS_DIR     = $(SN_ROOT)/target/asic/yosys
-YOSYS_OUT     = $(YOSYS_DIR)/out
-YOSYS_TMP     = $(YOSYS_DIR)/tmp
-YOSYS_REPORTS = $(YOSYS_DIR)/reports
-PROJ_DIR      = $(SN_ROOT)/target/asic
+SN_YOSYS_DIR     = $(SN_ROOT)/target/asic/yosys
+SN_YOSYS_OUT     = $(SN_YOSYS_DIR)/out
+SN_YOSYS_TMP     = $(SN_YOSYS_DIR)/tmp
+SN_YOSYS_REPORTS = $(SN_YOSYS_DIR)/reports
 
-# top level to be synthesized
-TOP_DESIGN		?= snitch_cluster_wrapper
+# Inputs
+SN_YOSYS_TOP_MODULE = snitch_cluster_wrapper
 
-# file containing include dirs, defines and paths to all source files
-SV_FLIST    	:= $(PROJ_DIR)/snitch.flist
+# Flags
+SN_YOSYS_BENDER_DEFINES = VERILATOR SYNTHESIS COMMON_CELLS_ASSERTS_OFF
+SN_YOSYS_BENDER_TARGETS = snitch_cluster snitch_cluster_wrapper asic ihp13 rtl synthesis
+SN_YOSYS_BENDER_FLAGS   = $(foreach t,$(SN_YOSYS_BENDER_TARGETS),-t $(t)) $(foreach d,$(SN_YOSYS_BENDER_DEFINES),-D $(d)=1)
 
-# path to the resulting netlists (debug preserves multibit signals)
-NETLIST			:= $(YOSYS_OUT)/$(TOP_DESIGN)_yosys.v
-NETLIST_DEBUG	:= $(YOSYS_OUT)/$(TOP_DESIGN)_debug_yosys.v
-SV_DEFINES     ?= VERILATOR SYNTHESIS COMMON_CELLS_ASSERTS_OFF
-BENDER_TARGETS ?= snitch_cluster snitch_cluster_wrapper asic ihp13 rtl synthesis
-BENDER_FLAGS    = $(foreach t,$(BENDER_TARGETS),-t $(t)) $(foreach d,$(SV_DEFINES),-D $(d)=1)
+# Intermediate files
+SN_YOSYS_FILELIST        = $(SN_YOSYS_TMP)/snitch.flist
+SN_YOSYS_RTL_PREREQ_FILE = $(SN_YOSYS_TMP)/$(SN_YOSYS_TOP_MODULE).d
 
-# Misc
-SN_YOSYS_RTL_PREREQ_FILE = $(YOSYS_TMP)/$(TOP_DESIGN).d
+# Outputs (debug netlist preserves multibit signals)
+SN_YOSYS_NETLIST       = $(SN_YOSYS_OUT)/$(SN_YOSYS_TOP_MODULE)_yosys.v
+SN_YOSYS_NETLIST_DEBUG = $(SN_YOSYS_OUT)/$(SN_YOSYS_TOP_MODULE)_debug_yosys.v
 
 #########
 # Rules #
 #########
 
-$(YOSYS_OUT) $(YOSYS_TMP) $(YOSYS_REPORTS):
+$(SN_YOSYS_OUT) $(SN_YOSYS_TMP) $(SN_YOSYS_REPORTS):
 	mkdir -p $@
 
-
 # Generate RTL prerequisites
-$(eval $(call sn_gen_rtl_prerequisites,$(SN_YOSYS_RTL_PREREQ_FILE),$(YOSYS_TMP),$(BENDER_FLAGS),$(TOP_DESIGN),$(NETLIST)))
+$(eval $(call sn_gen_rtl_prerequisites,$(SN_YOSYS_RTL_PREREQ_FILE),$(SN_YOSYS_TMP),$(SN_YOSYS_BENDER_FLAGS),$(SN_YOSYS_TOP_MODULE),$(SN_YOSYS_NETLIST)))
 
-$(SV_FLIST): $(SN_BENDER_LOCK) $(SN_BENDER_YML)
-	$(SN_BENDER) script flist-plus $(BENDER_FLAGS) > $@
+$(SN_YOSYS_FILELIST): $(SN_BENDER_LOCK) $(SN_BENDER_YML)
+	$(SN_BENDER) script flist-plus $(SN_YOSYS_BENDER_FLAGS) > $@
 
 # Synthesize netlist using Yosys
-$(NETLIST) $(NETLIST_DEBUG): $(SV_FLIST) $(SN_YOSYS_RTL_PREREQ_FILE) | $(YOSYS_OUT) $(YOSYS_TMP) $(YOSYS_REPORTS)
-	cd $(YOSYS_DIR) && \
-	SV_FLIST="$(SV_FLIST)" \
-	TOP_DESIGN="$(TOP_DESIGN)" \
-	TMP="$(YOSYS_TMP)" \
-	OUT="$(YOSYS_OUT)" \
-	REPORTS="$(YOSYS_REPORTS)" \
-	$(SN_YOSYS) -c $(YOSYS_DIR)/scripts/yosys_synthesis.tcl 2>&1 \
+$(SN_YOSYS_NETLIST) $(SN_YOSYS_NETLIST_DEBUG) &: $(SN_YOSYS_FILELIST) $(SN_YOSYS_RTL_PREREQ_FILE) | $(SN_YOSYS_OUT) $(SN_YOSYS_TMP) $(SN_YOSYS_REPORTS)
+	cd $(SN_YOSYS_DIR) && \
+	SV_FLIST="$(SN_YOSYS_FILELIST)" \
+	TOP_DESIGN="$(SN_YOSYS_TOP_MODULE)" \
+	TMP="$(SN_YOSYS_TMP)" \
+	OUT="$(SN_YOSYS_OUT)" \
+	REPORTS="$(SN_YOSYS_REPORTS)" \
+	$(SN_YOSYS) -c $(SN_YOSYS_DIR)/scripts/yosys_synthesis.tcl 2>&1 \
 		| TZ=UTC awk '{ print strftime("[%Y-%m-%d %H:%M %Z]"), $$0 }' \
-		| tee "$(YOSYS_DIR)/$(TOP_DESIGN).log" \
-		| awk -f $(YOSYS_DIR)/scripts/filter_output.awk
+		| tee "$(SN_YOSYS_DIR)/$(SN_YOSYS_TOP_MODULE).log" \
+		| awk -f $(SN_YOSYS_DIR)/scripts/filter_output.awk
 
 .PHONY: yosys clean-yosys
 
-yosys: $(NETLIST)
+yosys: $(SN_YOSYS_NETLIST)
 
 clean-yosys:
-	rm -rf $(YOSYS_OUT)
-	rm -rf $(YOSYS_TMP)
-	rm -rf $(YOSYS_REPORTS) 
-	rm -f $(YOSYS_DIR)/$(TOP_DESIGN).log
-	rm -f $(SV_FLIST)
+	rm -rf $(SN_YOSYS_OUT)
+	rm -rf $(SN_YOSYS_TMP)
+	rm -rf $(SN_YOSYS_REPORTS) 
+	rm -f $(SN_YOSYS_DIR)/$(SN_YOSYS_TOP_MODULE).log
 
 clean: clean-yosys
 
