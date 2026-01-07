@@ -77,3 +77,9 @@ explicit = true
 "snitch.blas" = "sw/kernels/blas"
 "snitch.util" = "util"
 "snitch.nonfree" = "nonfree/util"
+
+# Do not run pytest in submodules
+[tool.pytest.ini_options]
+norecursedirs = [
+    "target/asic/ihp13/pdk"
+]

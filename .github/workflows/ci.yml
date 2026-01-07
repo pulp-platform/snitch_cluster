@@ -125,6 +125,8 @@ jobs:
       image: ${{ needs.docker-meta.outputs.sw_image_name }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
       - name: Run pytest
         run: uv run pytest
 
