@@ -200,10 +200,10 @@ sources:
   - target: snitch_cluster_wrapper
     files:
       - hw/generated/snitch_cluster_pkg.sv
-  - target: all(snitch_cluster_wrapper, not(postlayout), not(yosys_netlist))
+  - target: all(snitch_cluster_wrapper, not(netlist))
     files:
       - hw/generated/snitch_cluster_wrapper.sv
-  - target: all(snitch_cluster_wrapper, postlayout)
+  - target: all(snitch_cluster_wrapper, gf12, netlist)
     files:
       - nonfree/gf12/fusion/runs/0/out/15/snitch_cluster_wrapper.v
   - target: all(snitch_cluster_wrapper, any(simulation, verilator))
@@ -221,7 +221,7 @@ sources:
       - target/asic/ihp13/tc_sram_impl.sv
       - target/asic/ihp13/tc_clk.sv
 
-  - target: all(ihp13, yosys_netlist)
+  - target: all(ihp13, netlist)
     defines:
       FUNCTIONAL: ~
     files:
@@ -237,6 +237,6 @@ sources:
       - target/asic/ihp13/tc_sram_impl.sv
       - target/asic/ihp13/tc_clk.sv
 
-  - target: all(snitch_cluster_wrapper, yosys_netlist)
+  - target: all(snitch_cluster_wrapper, ihp13, netlist)
     files:
       - target/asic/yosys/out/snitch_cluster_wrapper_yosys_debug.v

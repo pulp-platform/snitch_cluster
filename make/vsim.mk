@@ -39,7 +39,7 @@ endif
 # GF12 physical simulation options
 ifeq ($(TECH),gf12)
 include $(SN_ROOT)/nonfree/gf12/modelsim/Makefrag
-SN_COMMON_BENDER_FLAGS += -t postlayout
+SN_COMMON_BENDER_FLAGS += -t gf12 -t netlist
 SN_VOPT_FLAGS += -modelsimini $(SN_ROOT)/nonfree/gf12/modelsim/modelsim.ini
 SN_VOPT_FLAGS += +nospecify
 SN_VOPT_FLAGS += $(SN_GATE_LIBS)
@@ -49,8 +49,7 @@ endif
 
 # IHP130 physical simulation options
 ifeq ($(TECH),ihp13)
-SN_COMMON_BENDER_FLAGS += -t yosys_netlist
-SN_COMMON_BENDER_FLAGS += -t ihp13 
+SN_COMMON_BENDER_FLAGS += -t ihp13 -t netlist 
 SN_COMMON_BENDER_FLAGS += -DSIMULATION
 endif
 
