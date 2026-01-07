@@ -24,3 +24,6 @@ export PATH=$PATH:/usr/local/uv
 # Copy instead link packages from global cache, since the cache is typically
 # located on a different file system (e.g. your home directory).
 export UV_LINK_MODE=copy
+
+# We need Make >4.3 for grouped targets
+alias make=make-4.4.1
