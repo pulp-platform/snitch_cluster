@@ -56,8 +56,9 @@ RUN sh /uv-installer.sh && rm /uv-installer.sh
 
 #-------------------------------------------------------------------------------
 # Stage 2: Hardware development stage
-# Builds on open-source EDA tool image from Harald Pretl and installs all tools
-# required for both hardware and software development.
+# Contains all tools required for both hardware and software development, copied
+# from Harald Pretl's open-source EDA container and the previous tool-builder
+# stage.
 #------------------------------------------------------------------------------
 
 FROM hpretl/iic-osic-tools:${OSEDA_VERSION} AS oseda
@@ -102,7 +103,7 @@ COPY --from=tool-builder /tools/riscv-llvm ${TOOL_DIR}/riscv-llvm
 COPY --from=oseda /foss/tools/verilator ${TOOL_DIR}/verilator
 COPY --from=oseda /foss/tools/yosys ${TOOL_DIR}/yosys
 
-# Overwrite .bashrc to make sure PYTHONPATH variable does not conflict with uv
+# Create a simple bash prompt
 RUN echo "export PS1='\[\033[0;32m\]\w >\[\033[0;38m\] '" > ~/.bashrc
 
 # Modify environment and path variables
@@ -137,8 +138,9 @@ RUN make verilator
 
 #-------------------------------------------------------------------------------
 # Stage 4: Software development stage
-# Copies the Verilated model and all (and only) tools required for software
-# development from the previous stages.
+# Contains all and only tools required for software development, including a
+# pre-built Verilator model of the default Snitch cluster, as built in the
+# previous hw-builder stage.
 #------------------------------------------------------------------------------
 
 FROM ubuntu:${UBUNTU_VERSION} AS snitch_cluster-sw
@@ -158,6 +160,9 @@ COPY --from=tool-builder /tools/uv /tools/bin/
 COPY --from=tool-builder /tools/doxygen/bin/doxygen /tools/bin/
 COPY --from=tool-builder /tools/riscv-llvm /tools/riscv-llvm
 COPY --from=hw-builder ${REPO_DIR}/target/sim/build/bin/snitch_cluster_bin.vlt /tools/bin/snitch_cluster.vlt
+
+# Create a simple bash prompt
+RUN echo "export PS1='\[\033[0;32m\]\w >\[\033[0;38m\] '" > ~/.bashrc
 
 # Modify environment and path variables
 ENV SN_LLVM_BINROOT="/tools/riscv-llvm/bin"
