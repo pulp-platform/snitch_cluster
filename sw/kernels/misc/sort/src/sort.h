@@ -55,7 +55,7 @@ void bucketSort(int32_t* x, uint32_t n, uint32_t numBuckets, int32_t maximum,
     int offset_core = core_idx * frac_core;
 
     // Create buckets shared between all cores in cluster
-    int32_t* bucketscratchpad = 
+    int32_t* bucketscratchpad =
         snrt_l1_alloc_cluster_local<int32_t>(n * numBuckets);
     int32_t* buckets[numBuckets];
     int32_t* bucket_count = snrt_l1_alloc_cluster_local<int32_t>(numBuckets);
@@ -64,8 +64,7 @@ void bucketSort(int32_t* x, uint32_t n, uint32_t numBuckets, int32_t maximum,
     // Since each core uses the same variables, they need to be initialized only
     // once.
     for (int32_t i = 0; i < numBuckets; i++) {
-        if (core_idx == 0)
-            bucket_count[i] = 0;
+        if (core_idx == 0) bucket_count[i] = 0;
         buckets[i] = bucketscratchpad + i * n;
     }
     snrt_cluster_hw_barrier();
