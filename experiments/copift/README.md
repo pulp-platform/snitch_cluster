@@ -16,7 +16,7 @@ uv run ./experiments.py experiments.yaml --actions sw run perf --dump-pls-testli
 Run PLS experiments:
 ```
 make -C ../../ clean-vsim
-make -C ../../ CFG_OVERRIDE=$PWD/cfg.json PL_SIM=1 DEBUG=ON VCD_DUMP=1 vsim -j
+make -C ../../ CFG_OVERRIDE=$PWD/cfg.json TECH=gf12 DEBUG=ON VCD_DUMP=1 vsim -j
 uv run ./experiments.py pls.yaml --actions run power -j --run-dir pls
 ```
 

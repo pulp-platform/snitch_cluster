@@ -24,7 +24,7 @@ SN_BENDER         ?= bender
 SN_UV             ?=
 SN_PEAKRDL        ?= $(SN_UV) peakrdl
 SN_VERIBLE_FMT    ?= verible-verilog-format
-SN_CLANG_FORMAT   ?= clang-format
+SN_CLANG_FORMAT   ?= $(SN_LLVM_BINROOT)/clang-format
 SN_RISCV_MC       ?= $(SN_LLVM_BINROOT)/llvm-mc
 SN_ADDR2LINE      ?= $(SN_LLVM_BINROOT)/llvm-addr2line
 # tail is required for nonsense oseda output

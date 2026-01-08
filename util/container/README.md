@@ -42,26 +42,13 @@ docker build --target snitch_cluster-hw -t ghcr.io/pulp-platform/snitch_cluster-
 
 ## Usage
 
-To run e.g. the hardware container in interactive mode:
+To run the hardware container in interactive mode:
 
 ```shell
-docker run -it --entrypoint /bin/bash -v <path_to_repository_root>:/repo -w /repo ghcr.io/pulp-platform/snitch_cluster-hw:main
+docker run -it -v <path_to_repository_root>:/repo ghcr.io/pulp-platform/snitch_cluster-hw:main
 ```
 
-## Limitations
-
-Some operations require more memory than the default Docker VM might provide by
-default (2 GB on OS X for example). *We recommend at least 16 GB of memory.*
-
-The memory resources can be adjusted in the Docker daemon's settings.
-
-> The swap space is limited to 4 GB in OS X default VM image. It doesn't seem as
-> this is enough for using `verilator`, `cc` keeps crashing because it runs out
-> of swap space (at least that is what `dmesg` tells us). Also 8 GB of swap
-> space don't seem to be enough.
->
-> ```shell
-> dd if=/dev/zero of=/var/lib/swap bs=1k count=8388608
-> chmod go= /var/lib/swap && mkswap /var/lib/swap
-> swapon -v /var/lib/swap
-> ```
+To run the software container in interactive mode:
+```shell
+docker run -it -v <path_to_repository_root>:/repo ghcr.io/pulp-platform/snitch_cluster-sw:main
+```

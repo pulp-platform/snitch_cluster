@@ -26,7 +26,7 @@ dependencies:
   FPnew:              { git: https://github.com/pulp-platform/cvfpu.git,          rev:      pulp-v0.1.3 }
   tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic, version:  0.2.13      }
   riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg,          version:  0.8.0       }
-  cluster_icache:     { git: https://github.com/pulp-platform/cluster_icache.git, rev: 64e21ae455bbdde850c4df13bef86ea55ac42537 }
+  cluster_icache:     { git: https://github.com/pulp-platform/cluster_icache.git, version:  0.3.0       }
   idma:               { git: https://github.com/pulp-platform/iDMA.git,           version:  0.6.5       }
 
 export_include_dirs:
@@ -200,10 +200,10 @@ sources:
   - target: snitch_cluster_wrapper
     files:
       - hw/generated/snitch_cluster_pkg.sv
-  - target: all(snitch_cluster_wrapper, not(postlayout))
+  - target: all(snitch_cluster_wrapper, not(netlist))
     files:
       - hw/generated/snitch_cluster_wrapper.sv
-  - target: all(snitch_cluster_wrapper, postlayout)
+  - target: all(snitch_cluster_wrapper, gf12, netlist)
     files:
       - nonfree/gf12/fusion/runs/0/out/15/snitch_cluster_wrapper.v
   - target: all(snitch_cluster_wrapper, any(simulation, verilator))
@@ -215,3 +215,28 @@ sources:
     files:
       - nonfree/gf12/mems/tc_sram.sv
       - nonfree/gf12/sourcecode/tc_clk.sv
+
+  - target: ihp13
+    files:
+      - target/asic/ihp13/tc_sram_impl.sv
+      - target/asic/ihp13/tc_clk.sv
+
+  - target: all(ihp13, netlist)
+    defines:
+      FUNCTIONAL: ~
+    files:
+      - target/asic/ihp13/pdk/ihp-sg13g2/libs.ref/sg13g2_stdcell/verilog/sg13g2_stdcell.v
+      - target/asic/ihp13/pdk/ihp-sg13g2/libs.ref/sg13g2_sram/verilog/RM_IHPSG13_1P_core_behavioral_bm_bist.v
+      - target/asic/ihp13/pdk/ihp-sg13g2/libs.ref/sg13g2_sram/verilog/RM_IHPSG13_1P_64x64_c2_bm_bist.v
+      - target/asic/ihp13/pdk/ihp-sg13g2/libs.ref/sg13g2_sram/verilog/RM_IHPSG13_1P_256x64_c2_bm_bist.v
+      - target/asic/ihp13/pdk/ihp-sg13g2/libs.ref/sg13g2_sram/verilog/RM_IHPSG13_1P_512x64_c2_bm_bist.v
+      - target/asic/ihp13/pdk/ihp-sg13g2/libs.ref/sg13g2_sram/verilog/RM_IHPSG13_1P_1024x64_c2_bm_bist.v
+      - target/asic/ihp13/pdk/ihp-sg13g2/libs.ref/sg13g2_sram/verilog/RM_IHPSG13_1P_2048x64_c2_bm_bist.v
+      - target/asic/ihp13/pdk/ihp-sg13g2/libs.ref/sg13g2_sram/verilog/RM_IHPSG13_1P_256x48_c2_bm_bist.v
+      - target/asic/ihp13/pdk/ihp-sg13g2/libs.ref/sg13g2_sram/verilog/RM_IHPSG13_1P_256x48_c2_bm_bist.v
+      - target/asic/ihp13/tc_sram_impl.sv
+      - target/asic/ihp13/tc_clk.sv
+
+  - target: all(snitch_cluster_wrapper, ihp13, netlist)
+    files:
+      - target/asic/yosys/out/snitch_cluster_wrapper_yosys_debug.v

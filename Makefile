@@ -12,7 +12,7 @@
 
 DEBUG        ?= OFF  # ON to turn on debugging symbols and wave logging
 CFG_OVERRIDE ?=      # Override default configuration file
-PL_SIM       ?= 0    # 1 for post-layout simulation
+TECH         ?=      # [gf12, ihp13] for physical simulation
 VCD_DUMP     ?= 0    # 1 to dump VCD traces
 
 # Non-namespaced aliases for common command-line variables
@@ -36,6 +36,9 @@ clean: clean-rtl clean-sw clean-work clean-logs clean-bender clean-misc
 ##########
 # Common #
 ##########
+
+SHELL       := /bin/bash
+.SHELLFLAGS := -euo pipefail -c
 
 SN_ROOT := $(realpath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
@@ -138,7 +141,7 @@ clean-rtl: sn-clean-rtl
 ############
 
 NONFREE_REMOTE ?= git@iis-git.ee.ethz.ch:pulp-restricted/snitch-cluster-nonfree.git
-NONFREE_COMMIT ?= 4cba0d246ae7c9508ce93c8844b0ad4403421a1f
+NONFREE_COMMIT ?= 45ffdbd53f04cafbcd8369bbcaf04b3ee8a90b31
 NONFREE_DIR = $(SN_ROOT)/nonfree
 
 .PHONY: nonfree clean-nonfree
@@ -213,6 +216,8 @@ SN_FESVR_VERSION ?= 35d50bc40e59ea1d5566fbd3d9226023821b1bb6
 $(SN_WORK_DIR)/$(SN_FESVR_VERSION)_unzip: | $(SN_WORK_DIR)
 	wget -O $(dir $@)/$(SN_FESVR_VERSION) https://github.com/riscv/riscv-isa-sim/tarball/$(SN_FESVR_VERSION)
 	tar xfm $(dir $@)$(SN_FESVR_VERSION) --strip-components=1 -C $(dir $@)
+	patch $(SN_WORK_DIR)/fesvr/context.h < $(SN_TARGET_DIR)/sim/patches/context.h.diff
+	patch $(SN_WORK_DIR)/fesvr/device.h < $(SN_TARGET_DIR)/sim/patches/device.h.diff
 	touch $@
 
 $(SN_WORK_DIR)/lib/libfesvr.a: $(SN_WORK_DIR)/$(SN_FESVR_VERSION)_unzip
@@ -221,9 +226,15 @@ $(SN_WORK_DIR)/lib/libfesvr.a: $(SN_WORK_DIR)/$(SN_FESVR_VERSION)_unzip
 	mkdir -p $(dir $@)
 	cp $(dir $<)libfesvr.a $@
 
-include $(SN_ROOT)/make/verilator.mk
 include $(SN_ROOT)/make/vsim.mk
+include $(SN_ROOT)/make/verilator.mk
 include $(SN_ROOT)/make/vcs.mk
+
+############
+# Synthesis #
+############
+
+include $(SN_ROOT)/target/asic/yosys/yosys.mk
 
 #########
 # GVSOC #

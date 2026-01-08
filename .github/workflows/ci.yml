@@ -17,67 +17,60 @@ jobs:
   # Build Docker Container #
   ##########################
 
-  build-docker:
-    name: Deploy Docker image
+  docker-meta:
+    name: Define Docker image names
     runs-on: ubuntu-22.04
-    # Export Docker image name used by dependent jobs
     outputs:
-      hw_image_name: ${{ steps.image_name.outputs.hw_image_name }}
-      sw_image_name: ${{ steps.image_name.outputs.sw_image_name }}
+      hw_image_name: ${{ steps.meta.outputs.hw_image_name }}
+      sw_image_name: ${{ steps.meta.outputs.sw_image_name }}
     steps:
-      - name: Define Docker image name
-        id: image_name
-        # To satisfy Docker tag naming requirements, we replace all slashes
-        # in the ref name with hyphens and convert the repository name to lowercase.
+      - id: meta
         run: |
           SANITIZED_REF_NAME="${GITHUB_REF_NAME//\//-}"
-          echo "Sanitized GITHUB_REF_NAME: $SANITIZED_REF_NAME"
           SANITIZED_REPO_NAME="$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')"
+
+          echo "Sanitized GITHUB_REF_NAME: $SANITIZED_REF_NAME"
           echo "Sanitized GITHUB_REPOSITORY: $SANITIZED_REPO_NAME"
+
           HW_IMAGE_NAME="ghcr.io/${SANITIZED_REPO_NAME}-hw:${SANITIZED_REF_NAME}"
           SW_IMAGE_NAME="ghcr.io/${SANITIZED_REPO_NAME}-sw:${SANITIZED_REF_NAME}"
-          echo "HW image name: $HW_IMAGE_NAME"
-          echo "SW image name: $SW_IMAGE_NAME"
+
           {
             echo "hw_image_name=$HW_IMAGE_NAME"
             echo "sw_image_name=$SW_IMAGE_NAME"
-          } >> $GITHUB_OUTPUT
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          docker-images: false
+          } >> "$GITHUB_OUTPUT"
+
+  build-hw-image:
+    name: Deploy hardware development image
+    runs-on: ubuntu-22.04
+    needs: [docker-meta]
+    outputs:
+      hw_image_name: ${{ needs.docker-meta.outputs.hw_image_name }}
+    steps:
       - uses: actions/checkout@v4
         with:
-          submodules: 'recursive'
-      - uses: docker/setup-buildx-action@v3
-      - name: GHCR Log-in
-        uses: docker/login-action@v3
+          submodules: recursive
+      - uses: ./.github/actions/docker-build-push
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      # Build and push hardware container
-      - name: Build and push (hw container)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: util/container/Dockerfile
           target: snitch_cluster-hw
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          push: true
-          tags: ${{ steps.image_name.outputs.hw_image_name }}
-      # Build and push software container
-      - name: Build and push (sw container)
-        uses: docker/build-push-action@v6
+          tags: ${{ needs.docker-meta.outputs.hw_image_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-sw-image:
+    name: Deploy software development image
+    runs-on: ubuntu-22.04
+    needs: [docker-meta]
+    outputs:
+      sw_image_name: ${{ needs.docker-meta.outputs.sw_image_name }}
+    steps:
+      - uses: actions/checkout@v4
         with:
-          context: .
-          file: util/container/Dockerfile
+          submodules: recursive
+      - uses: ./.github/actions/docker-build-push
+        with:
           target: snitch_cluster-sw
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          push: true
-          tags: ${{ steps.image_name.outputs.sw_image_name }}
+          tags: ${{ needs.docker-meta.outputs.sw_image_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   ########
   # Docs #
@@ -86,9 +79,9 @@ jobs:
   build-docs:
     name: Build documentation
     runs-on: ubuntu-22.04
-    needs: build-docker
+    needs: [docker-meta, build-sw-image]
     container:
-      image: ${{ needs.build-docker.outputs.hw_image_name }}
+      image: ${{ needs.docker-meta.outputs.sw_image_name }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -99,10 +92,10 @@ jobs:
   deploy-docs:
     name: Deploy documentation
     runs-on: ubuntu-22.04
-    needs: build-docker
+    needs: [docker-meta, build-sw-image]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     container:
-      image: ${{ needs.build-docker.outputs.hw_image_name }}
+      image: ${{ needs.docker-meta.outputs.sw_image_name }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -127,11 +120,13 @@ jobs:
   pytest:
     name: Python unit tests
     runs-on: ubuntu-22.04
-    needs: build-docker
+    needs: [docker-meta, build-sw-image]
     container:
-      image: ${{ needs.build-docker.outputs.hw_image_name }}
+      image: ${{ needs.docker-meta.outputs.sw_image_name }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
       - name: Run pytest
         run: uv run pytest
 
@@ -142,9 +137,9 @@ jobs:
   snitch-cluster-vlt:
     name: Build Snitch Cluster w/ Verilator
     runs-on: ubuntu-22.04
-    needs: build-docker
+    needs: [docker-meta, build-hw-image]
     container:
-      image: ${{ needs.build-docker.outputs.hw_image_name }}
+      image: ${{ needs.docker-meta.outputs.hw_image_name }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -165,14 +160,14 @@ jobs:
       - name: Build Hardware
         if: steps.verilator-cache.outputs.cache-hit != 'true'
         run: |
-          make CFG_OVERRIDE=cfg/github-ci.json VLT_JOBS=1 verilator
+          make CFG_OVERRIDE=cfg/github-ci.json verilator
 
   sw-snitch-cluster-vlt:
     name: Simulate SW on Snitch Cluster w/ Verilator
     runs-on: ubuntu-22.04
-    needs: build-docker
+    needs: [docker-meta, build-sw-image]
     container:
-      image: ${{ needs.build-docker.outputs.sw_image_name }}
+      image: ${{ needs.docker-meta.outputs.sw_image_name }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -199,13 +194,18 @@ jobs:
   snitch-mempool-cluster-vlt:
     name: Build and Simulate Mempool Snitch Cluster w/ Verilator
     runs-on: ubuntu-22.04
-    needs: build-docker
+    needs: [docker-meta, build-hw-image]
     container:
-      image: ${{ needs.build-docker.outputs.hw_image_name }}
+      image: ${{ needs.docker-meta.outputs.hw_image_name }}
+      volumes:
+        - ${{ github.workspace }}:/repo
     defaults:
       run:
         working-directory: /repo
     steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
       - name: Hash Verilator prerequisites
         id: verilator-hash
         run: |
@@ -223,7 +223,7 @@ jobs:
       - name: Build Hardware
         if: steps.verilator-cache.outputs.cache-hit != 'true'
         run: |
-          make CFG_OVERRIDE=cfg/mempool.json VLT_JOBS=1 verilator
+          make CFG_OVERRIDE=cfg/mempool.json verilator
       - name: Build Software for mempool tests
         run: |
           make sw CFG_OVERRIDE=cfg/mempool.json SN_MCPU=snitch-mempool -j
@@ -238,6 +238,29 @@ jobs:
         run: |
           make SIM_DIR=./test/runs/simple SN_MCPU=snitch-mempool DEBUG=ON annotate -j
 
+  #############
+  # Synthesis #
+  #############
+
+  synthesis:
+    name: Synthesis w/ Yosys
+    runs-on: ubuntu-22.04
+    needs: [docker-meta, build-hw-image]
+    container:
+      image: ${{ needs.docker-meta.outputs.hw_image_name }}
+      volumes:
+        - ${{ github.workspace }}:/repo
+    defaults:
+      run:
+        working-directory: /repo
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - name: Run Synthesis
+        run: |
+          make CFG_OVERRIDE=cfg/yosys-ci.json yosys
+
   ######################
   # Sources Up-to-Date #
   ######################
@@ -245,16 +268,21 @@ jobs:
   sources-up-to-date:
     name: Check Sources Up-to-Date
     runs-on: ubuntu-22.04
-    needs: build-docker
+    needs: [docker-meta, build-hw-image]
     container:
-      image: ${{ needs.build-docker.outputs.hw_image_name }}
+      image: ${{ needs.docker-meta.outputs.hw_image_name }}
+      volumes:
+        - ${{ github.workspace }}:/repo
+    defaults:
+      run:
+        working-directory: /repo
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: 'recursive'
       - name: Generate opcodes
         run: |
-          ./util/clustergen/generate-opcodes.sh
+          uv run ./util/clustergen/generate-opcodes.sh
       - name: Generate RTL sources
         run: |
           make rtl

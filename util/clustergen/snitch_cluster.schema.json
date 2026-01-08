@@ -466,7 +466,9 @@
                                 "default": {
                                     "size": 8,
                                     "ways": 2,
-                                    "cacheline": 128
+                                    "cacheline": 128,
+                                    "tag_scm": false,
+                                    "data_scm": false
                                 },
                                 "properties": {
                                     "size": {
@@ -480,6 +482,16 @@
                                     "cacheline": {
                                         "type": "number",
                                         "description": "Cacheline/Word size in bits."
+                                    },
+                                    "tag_scm": {
+                                        "type": "boolean",
+                                        "description": "Implement tag array as SCM.",
+                                        "default": false
+                                    },
+                                    "data_scm": {
+                                        "type": "boolean",
+                                        "description": "Implement data array as SCM.",
+                                        "default": false
                                     }
                                 }
                             },

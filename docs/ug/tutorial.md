@@ -351,14 +351,23 @@ Most of the logic in our verification script is implemented in convenience class
 
 ## Implementing the hardware
 
-If you make changes to the hardware, you probably also want to physically implement it to estimate the PPA impact of your modifications. As the physical implementation flow involves proprietary tools licensed under non-disclosure agreements, our physical implementation flow is contained in a separate private git repository. If you are an IIS user, with access to our Gitlab server and IIS machines, you may follow the next instructions to replicate our implementation flow.
+If you make changes to the hardware, you probably also want to physically implement it to estimate the PPA impact of your modifications.
+We currently support two physical implementation flows:
 
-Firstly, we need to clone all the sources for the physical flow. The following command takes care of everything for you:
+- a proprietary (nonfree) flow using GF12 technology and Synopsys Fusion Compiler
+- a fully open-source flow using IHP130 technology and open-source EDA tools (inspired by the [Croc flow](https://github.com/pulp-platform/croc))
+
+The following two subsections describe how to use the two flows.
+
+### Proprietary flow
+
+As the proprietary flow involves proprietary tools and technologies, the flow is contained in a separate private git repository. 
+If you are an IIS user, with access to our Gitlab server and IIS machines, you may follow the next instructions to replicate our proprietary implementation flow. Firstly, we need to clone all the sources for the physical flow. The following command takes care of everything for you:
 ```shell
 make nonfree
 ```
 
-Behind the scenes, it will clone the `snitch-cluster-nonfree` repo under the `nonfree` folder. In that folder, you will find a Makefile defining a series of convenience targets to launch our flow up to a certain stage: may it be elaboration (`elab`), synthesis (`synth`) or place-and-route (`pnr`). If you can wait long enough you may also launch the entire flow to produce a final optimized post-layout netlist:
+Behind the scenes, it will clone the `snitch-cluster-nonfree` repo under the `nonfree` folder. In that folder, you will find a Makefile defining a series of convenience targets to launch the proprietary flow up to a certain stage: may it be elaboration (`elab`), synthesis (`synth`) or place-and-route (`pnr`). If you can wait long enough you may also launch the entire flow to produce a final optimized post-layout netlist:
 
 ```shell
 make post-layout-netlist
@@ -372,25 +381,49 @@ make FIRST_STAGE=synth-init-opto post-layout-netlist
 
 You will find reports and output files produced by the flow in the `nonfree/gf12/fusion/runs/0/` folder, respectively in the `reports` and `out` subdirectories, separated into individual subdirectories for every stage in the flow. These are all you should need to derive area and timing numbers for your design.
 
+### Open source flow
+
+The sources for this flow are contained in the open source repo under `target/asic`.
+
+You can run the full synthesis flow using the following command:
+```shell
+make yosys
+```
+
+You will find reports and output files produced by the flow in `target/asic/yosys/`.
+
 ## Running a physical simulation
 
 Once your design is physically implemented, you want to also verify that it works as intended.
-Assuming you used the previous command to get a final optimized post-layout netlist, you can directly build a simulation model out of it. Head back to the main repository, in the root directory, and build the simulation model with the following flag:
+Assuming you used one of the previous commands to produce a netlist, you can directly build a simulation model out of it. The technology flag is used to specify which netlist we want to compile:
 
-```shell
-make clean-vsim
-make PL_SIM=1 vsim
-```
+=== "Nonfree flow"
+    ```shell
+    make clean-vsim
+    make TECH=gf12 vsim
+    ```
 
-This resembles the commands you've previously seen in section [Building the hardware](#building-the-hardware). In fact, all testbench components are the same, we simply use the added flag to tell [Bender](https://github.com/pulp-platform/bender) to reference the physical netlist in place of the source RTL as a DUT during compilation.
-The `Bender.yml` file automatically references the final netlist in our flow, but you could replace that with a netlist from an intermediate stage if you do not intend to run the whole flow.
+=== "Free flow"
+    ```shell
+    make clean-vsim
+    make TECH=ihp13 vsim
+    ```
+
+This resembles the commands you've previously seen in section [Building the hardware](#building-the-hardware). In fact, all testbench components are the same, we simply use the technology flag to tell [Bender](https://github.com/pulp-platform/bender) to reference the physical netlist in place of the source RTL as a DUT during compilation.
+The `Bender.yml` file automatically references the final, post-layout netlist in the nonfree flow, but you could replace that with a netlist from an intermediate stage if you do not intend to run the whole flow.
 
 !!! note
     Make does not track changes in the flags passed to it, so it does not know that it has to update the RTL source list for compilation. To ensure that it is updated, we can delete the compilation script, which was implicitly generated when you last built the simulation model. The first command above achieves this, by deleting all artifacts from the last build with QuestaSim.
 
 Running a physical simulation is then no different from running a functional simulation, so you may continue using the commands introduced in section [Running a simulation](#running-a-simulation).
 
+!!! warning
+    Physical simulations using Verilator have not been tested, as in our experiments Verilator takes an excessive amount of time and memory to build the simulation model.
+
 ## Power estimation
+
+!!! warning
+    The power estimation flow is currently only available for IIS users with access to the nonfree flow.
 
 During physical implementation, the tools are able to independently generate area and timing numbers. For a complete PPA analysis, you will want to include power estimates as well.
 
@@ -398,7 +431,7 @@ Power numbers are extremely dependent on the switching activity in your circuit,
 
 To do so, set the `VCD_DUMP` flag when building the physical simulation model:
 ```shell
-make PL_SIM=1 VCD_DUMP=1 DEBUG=ON vsim
+make TECH=gf12 VCD_DUMP=1 DEBUG=ON vsim
 ``` 
 
 !!! danger
@@ -418,7 +451,7 @@ VCD_START=127 VCD_END=8898 snitch_cluster.vsim sw/kernels/blas/axpy/build/axpy.e
 
 A benefit of RTL simulations is that they are cycle-accurate. You can thus use them as a reference to find the start and end times of interest with the help of the simulation traces (unavailable during physical simulation), and directly apply these to the physical simulation.
 
-With a VCD file at your disposal, you can now estimate the power consumption of your circuit. In the non-free repository, run the following command:
+With a VCD file at your disposal, you can now estimate the power consumption of your circuit. Run the following command:
 ```shell
 make SIM_DIR=<path_to_simulation_directory> power
 ```
