@@ -133,3 +133,5 @@ runs:
   - elf: ../sw/kernels/misc/montecarlo/pi_estimation/build/pi_estimation.elf
   - elf: ../sw/kernels/misc/exp/build/exp.elf
   - elf: ../sw/kernels/misc/log/build/log.elf
+  - elf: ../sw/kernels/misc/sort/build/sort.elf
+    cmd: [../sw/kernels/misc/sort/scripts/verify.py, "${sim_bin}", "${elf}"]

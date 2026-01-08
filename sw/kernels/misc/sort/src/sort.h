@@ -48,28 +48,28 @@ void prefixSum(const int* a, int* b, size_t n) {
 
 void bucketSort(int32_t* x, uint32_t n, uint32_t numBuckets, int32_t maximum,
                 int32_t minimum) {
-    int32_t ttemp = snrt_mcycle();
+    snrt_mcycle();
 
     int32_t core_idx = snrt_cluster_core_idx();
     int frac_core = n / snrt_cluster_compute_core_num();
     int offset_core = core_idx * frac_core;
 
-    // Create buckets shared over all cores in Cluster
-    int32_t* bucketscratchpad = x + n;
+    // Create buckets shared between all cores in cluster
+    int32_t* bucketscratchpad = 
+        snrt_l1_alloc_cluster_local<int32_t>(n * numBuckets);
     int32_t* buckets[numBuckets];
-    int32_t* bucket_count = (int32_t*)(bucketscratchpad + numBuckets * n);
+    int32_t* bucket_count = snrt_l1_alloc_cluster_local<int32_t>(numBuckets);
 
     // Initialize buckets and bucket counts.
     // Since each core uses the same variables, they need to be initialized only
     // once.
-    if (core_idx == 0) {
-        for (int32_t i = 0; i < numBuckets; i++) {
+    for (int32_t i = 0; i < numBuckets; i++) {
+        if (core_idx == 0)
             bucket_count[i] = 0;
-            buckets[i] = &bucketscratchpad[i * n];
-        }
+        buckets[i] = bucketscratchpad + i * n;
     }
     snrt_cluster_hw_barrier();
-    ttemp = snrt_mcycle();
+    snrt_mcycle();
 
     // Distribute array elements into buckets
     if (snrt_is_compute_core()) {
@@ -85,11 +85,11 @@ void bucketSort(int32_t* x, uint32_t n, uint32_t numBuckets, int32_t maximum,
 
     // Before sorting the buckets, the data needs to be distributed
     snrt_cluster_hw_barrier();
-    ttemp = snrt_mcycle();
+    snrt_mcycle();
 
     // Sort each bucket
     if (snrt_is_compute_core()) {
-        for (uint8_t next_bucket = 0 + core_idx; next_bucket < numBuckets;
+        for (uint8_t next_bucket = core_idx; next_bucket < numBuckets;
              next_bucket += snrt_cluster_compute_core_num()) {
             if (bucket_count[next_bucket] > 0) {
                 quicksort(buckets[next_bucket],
@@ -100,7 +100,7 @@ void bucketSort(int32_t* x, uint32_t n, uint32_t numBuckets, int32_t maximum,
 
     // Before merging the buckets, all of them need to be sorted
     snrt_cluster_hw_barrier();
-    ttemp = snrt_mcycle();
+    snrt_mcycle();
 
     // Make a cumulative sum array, to know the offset per bucket
     int idx_offset[numBuckets];
@@ -117,5 +117,5 @@ void bucketSort(int32_t* x, uint32_t n, uint32_t numBuckets, int32_t maximum,
             }
         }
     }
-    ttemp = snrt_mcycle();
+    snrt_mcycle();
 }

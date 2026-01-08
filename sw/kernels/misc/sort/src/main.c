@@ -8,7 +8,7 @@
 #include "snrt.h"
 
 #include "data.h"
-#include "intsort.h"
+#include "sort.h"
 
 // Define Number of Buckets, use multiple of 8
 #define N_BUCKETS 8
@@ -24,7 +24,7 @@ int main() {
     remote_z = z + offset;
 
     // Allocate space in TCDM
-    local_x = (int32_t *)snrt_l1_next();
+    local_x = snrt_l1_alloc_cluster_local<int32_t>(frac);
 
     // Copy data in TCDM
     if (snrt_is_dm_core()) {

@@ -2,6 +2,5 @@
 {
     "n": 512,
     "min": -256,
-    "max": 256,
-    "syntetic": false
+    "max": 256
 }

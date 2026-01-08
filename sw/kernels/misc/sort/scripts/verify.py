@@ -7,14 +7,12 @@
 # Author: Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 import sys
-from pathlib import Path
-from datagen import IntsortDataGen
+from datagen import SortDataGen
 
-sys.path.append(str(Path(__file__).parent / '../../../../util/sim/'))
-from verif_utils import Verifier  # noqa: E402
+from snitch.util.sim.verif_utils import Verifier
 
 
-class IntsortVerifier(Verifier):
+class SortVerifier(Verifier):
 
     OUTPUT_UIDS = ['z']
 
@@ -23,11 +21,11 @@ class IntsortVerifier(Verifier):
 
     def get_expected_results(self):
         x = self.get_input_from_symbol('x', 'int32_t')
-        return IntsortDataGen().golden_model(x)
+        return SortDataGen().golden_model(x)
 
     def check_results(self, *args):
         return super().check_results(*args, rtol=1e-10)
 
 
 if __name__ == "__main__":
-    sys.exit(IntsortVerifier().main())
+    sys.exit(SortVerifier().main())
