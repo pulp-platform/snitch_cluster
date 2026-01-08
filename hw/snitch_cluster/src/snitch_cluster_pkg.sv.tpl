@@ -93,8 +93,8 @@ package ${cfg['cluster']['name']}_pkg;
   } sram_cfg_t;
 
   typedef struct packed {
-    sram_cfg_t icache_tag;
-    sram_cfg_t icache_data;
+    sram_cfg_t [${icache_cfg('ways')}-1:0] icache_tag;
+    sram_cfg_t [${icache_cfg('ways')}-1:0] icache_data;
     sram_cfg_t tcdm;
   } sram_cfgs_t;
 
