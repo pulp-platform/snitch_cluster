@@ -47,6 +47,10 @@ $(eval $(call sn_gen_rtl_prerequisites,$(SN_YOSYS_RTL_PREREQ_FILE),$(SN_YOSYS_TM
 
 $(SN_YOSYS_FILELIST): $(SN_BENDER_LOCK) $(SN_BENDER_YML)
 	$(SN_BENDER) script flist-plus $(SN_YOSYS_BENDER_FLAGS) > $@
+# At the moment we need to filter out `axi_riscv_atomics` from synthesis
+# since they cause elaboration issues. They are not used in the design,
+# but only in the testbench, which might be the issue here.
+	sed -i '/axi_riscv_atomics/d' $@
 
 # Synthesize netlist using Yosys
 $(SN_YOSYS_NETLIST) $(SN_YOSYS_NETLIST_DEBUG) &: $(SN_YOSYS_FILELIST) $(SN_YOSYS_RTL_PREREQ_FILE) | $(SN_YOSYS_OUT) $(SN_YOSYS_TMP) $(SN_YOSYS_REPORTS)
