@@ -72,7 +72,7 @@ yosys: $(SN_YOSYS_NETLIST)
 clean-yosys:
 	rm -rf $(SN_YOSYS_OUT)
 	rm -rf $(SN_YOSYS_TMP)
-	rm -rf $(SN_YOSYS_REPORTS) 
+	rm -rf $(SN_YOSYS_REPORTS)
 	rm -f $(SN_YOSYS_DIR)/$(SN_YOSYS_TOP_MODULE).log
 
 clean: clean-yosys
