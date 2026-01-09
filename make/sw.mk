@@ -100,6 +100,7 @@ SN_APPS += $(SN_ROOT)/sw/kernels/misc/log
 SN_APPS += $(SN_ROOT)/sw/kernels/misc/kbpcpa
 SN_APPS += $(SN_ROOT)/sw/kernels/misc/box3d1r
 SN_APPS += $(SN_ROOT)/sw/kernels/misc/j3d27pt
+SN_APPS += $(SN_ROOT)/sw/kernels/misc/sort
 endif
 
 # Include Makefile from each app subdirectory
