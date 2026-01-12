@@ -116,6 +116,12 @@ snitch-cluster-vsim:
     - cd test/blas/gemm && ./test.sh && cd -
     - cd test/dnn/transpose && ./test.sh && cd -
     - cd test/dnn/flashattention_2 && ./test.sh && cd -
+  artifacts:
+    when: on_failure
+    expire_in: 1 day
+    paths:
+      - test/runs/vsim/**/sim.txt
+
 
 # Test OmegaNet TCDM interconnect
 snitch-cluster-omega-vsim:
