@@ -30,7 +30,7 @@ proc envVarValid {var_name} {
 }
 
 # If the ENVVAR is valid use it, otherwise use fallback
-foreach var [dict keys $variables] {  
+foreach var [dict keys $variables] {
     set values [dict get $variables $var]
     set env_var [lindex $values 0]
     set fallback [lindex $values 1]

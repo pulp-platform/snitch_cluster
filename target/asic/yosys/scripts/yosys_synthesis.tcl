@@ -72,7 +72,7 @@ yosys opt_expr
 yosys opt -noff
 yosys fsm
 yosys tee -q -o "${rep_dir}/${top_design}_initial_opt.rpt" stat
-yosys wreduce 
+yosys wreduce
 yosys peepopt
 yosys opt_clean
 yosys opt -full
@@ -160,4 +160,3 @@ yosys tee -q -o "${rep_dir}/${top_design}_area_logic.rpt" stat -top $top_design 
 
 # final netlist
 yosys write_verilog -noattr -noexpr -nohex -nodec ${out_dir}/${top_design}_yosys.v
-

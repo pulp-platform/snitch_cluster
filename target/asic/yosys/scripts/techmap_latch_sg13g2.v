@@ -24,4 +24,3 @@ module \$_DLATCH_N_ (D, E, Q);
         .Q      (Q)
     );
 endmodule
-
