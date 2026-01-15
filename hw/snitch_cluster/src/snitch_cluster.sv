@@ -796,7 +796,9 @@ module snitch_cluster
     automatic int unsigned i = 0;
     enabled_dma_xbar_rule[i] = dma_xbar_rules[0]; i++; // TCDM
     enabled_dma_xbar_rule[i] = dma_xbar_rules[1]; i++; // ZeroMemory
-    if (IntBootromEnable) enabled_dma_xbar_rule[i] = dma_xbar_rules[2]; i++; // Bootrom
+    if (IntBootromEnable) begin
+      enabled_dma_xbar_rule[i] = dma_xbar_rules[2]; i++; // Bootrom
+    end
     if (AliasRegionEnable) begin
       enabled_dma_xbar_rule[i] = dma_xbar_rules[3]; i++; // TCDM Alias
       enabled_dma_xbar_rule[i] = dma_xbar_rules[4]; i++; // ZeroMemory Alias
