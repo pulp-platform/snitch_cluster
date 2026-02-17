@@ -18,7 +18,6 @@ AN.DB/
 work.lib++/
 
 # Miscellaneous
-.vscode/
 __pycache__
 gmon.out
 

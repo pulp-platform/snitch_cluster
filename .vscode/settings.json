@@ -1,0 +1,6 @@
+{
+    "chat.tools.terminal.terminalProfile.linux": {
+        "path": "bash",
+        "args": ["--rcfile", "${workspaceFolder}/.vscode/vscode_bashrc"]
+    }
+}
