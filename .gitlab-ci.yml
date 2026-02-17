@@ -19,14 +19,11 @@ default:
   interruptible: true
   timeout: 60m
   before_script:
-    - source iis-setup.sh
-    # Gets rid of uv warnings about already activated virtualenv
-    - unset VIRTUAL_ENV
     # The CI is configured such that the uv cache directory (`UV_CACHE_DIR`),
     # is located on the same file system outside of the build directory.
     # `uv` should try to hardlink files instead of copying them to save space
     - export UV_LINK_MODE=hardlink
-
+    - source iis-setup.sh
 
 ##############
 # Build docs #
@@ -42,7 +39,7 @@ docs:
 
 pytest:
   script:
-    - uv run pytest
+    - pytest
 
 #################################
 # Build Snitch cluster software #
@@ -90,7 +87,7 @@ snitch-cluster-vlt:
   script:
     - make verilator
     - cd test
-    - uv run ../util/experiments/run.py run.yaml --simulator verilator -j --run-dir runs/vlt
+    - ../util/experiments/run.py run.yaml --simulator verilator -j --run-dir runs/vlt
 
 # VCS
 snitch-cluster-vcs:
@@ -98,7 +95,7 @@ snitch-cluster-vcs:
   script:
     - make vcs
     - cd test
-    - uv run ../util/experiments/run.py run.yaml --simulator vcs -j --run-dir runs/vcs
+    - ../util/experiments/run.py run.yaml --simulator vcs -j --run-dir runs/vcs
 
 # Questa
 snitch-cluster-vsim:
@@ -106,8 +103,8 @@ snitch-cluster-vsim:
   script:
     - make vsim -j
     - cd test
-    - uv run ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim
-    - uv run ../util/experiments/run.py riscv_tests_isa.yaml --simulator vsim -j --run-dir runs/vsim
+    - ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim
+    - ../util/experiments/run.py riscv_tests_isa.yaml --simulator vsim -j --run-dir runs/vsim
     # Test convenience Make target
     - cd ..
     - make vsim-run SN_BINARY=$PWD/sw/kernels/blas/axpy/build/axpy.elf \
@@ -131,7 +128,7 @@ snitch-cluster-omega-vsim:
     - make CFG_OVERRIDE=cfg/omega.json sw -j
     - make vsim -j
     - cd test
-    - uv run ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim
+    - ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim
 
 # Test Multi-channel DMA
 snitch-cluster-mchan-vsim:
@@ -139,7 +136,7 @@ snitch-cluster-mchan-vsim:
     - make CFG_OVERRIDE=cfg/dma_mchan.json sw -j
     - make vsim -j
     - cd test
-    - uv run ../util/experiments/run.py dma_mchan.yaml --simulator vsim -j --run-dir runs/vsim
+    - ../util/experiments/run.py dma_mchan.yaml --simulator vsim -j --run-dir runs/vsim
 
 # Test Mempool configuration
 snitch-cluster-mempool-vsim:
@@ -147,7 +144,7 @@ snitch-cluster-mempool-vsim:
     - make CFG_OVERRIDE=cfg/mempool.json SN_MCPU=snitch-mempool sw -j
     - make vsim -j
     - cd test
-    - uv run ../util/experiments/run.py mempool.yaml --simulator vsim -j --run-dir runs/vsim
+    - ../util/experiments/run.py mempool.yaml --simulator vsim -j --run-dir runs/vsim
     - make -C .. SIM_DIR=$PWD/runs/vsim/simple SN_MCPU=snitch-mempool annotate -j
 
 # Additional tests for different FREP configurations
@@ -157,22 +154,22 @@ snitch-cluster-frep-vsim:
     - make CFG_OVERRIDE=cfg/frep_xl.json sw -j
     - make vsim -j
     - cd test
-    - uv run ../util/experiments/run.py frep_xl.yaml --simulator vsim -j --run-dir runs/vsim
+    - ../util/experiments/run.py frep_xl.yaml --simulator vsim -j --run-dir runs/vsim
     - cd -
     # Small FREP configuration
     - make CFG_OVERRIDE=cfg/frep_xs.json sw -j
     - make vsim -j
     - cd test
-    - uv run ../util/experiments/run.py frep_xs.yaml --simulator vsim -j --run-dir runs/vsim
+    - ../util/experiments/run.py frep_xs.yaml --simulator vsim -j --run-dir runs/vsim
 
 # COPIFT and scalar chaining experiments
 snitch-cluster-copift-sc-vsim:
   script:
     - make CFG_OVERRIDE=experiments/copift/cfg.json vsim -j
     - cd experiments/copift
-    - uv run ./experiments.py experiments.yaml --actions sw run perf -j
+    - ./experiments.py experiments.yaml --actions sw run perf -j
     - cd ../chaining
-    - uv run ./experiments.py experiments.yaml --actions sw run perf -j
+    - ./experiments.py experiments.yaml --actions sw run perf -j
 
 ###################################
 # Open-source implementation flow #

@@ -113,13 +113,25 @@ ENV PATH="${TOOL_DIR}/bin:${PATH}"
 ENV PATH="${TOOL_DIR}/verilator/bin:${PATH}"
 ENV PATH="${TOOL_DIR}/yosys/bin:${PATH}"
 
-# Define uv environment
-ENV UV_LINK_MODE=copy
-ENV SN_UV="uv run --all-extras"
+# Set up Python environment
+# Doing it here ensures that, even if someone (such as the Github CI) overwrites entrypoint.sh,
+# the environment variables will still be set up correctly.
+ENV UV_PROJECT_ENVIRONMENT="${REPO_DIR}/.venv"
+ENV PATH="${REPO_DIR}/.venv/bin:$PATH"
+# Persists the uv Python installation and cache across container runs, by storing them in the mounted volume.
+# Paths mimic the default ones derived from XDG_CACHE_HOME and XDG_DATA_HOME.
+ENV UV_CACHE_DIR="${REPO_DIR}/.cache/uv"
+ENV UV_PYTHON_INSTALL_DIR="${REPO_DIR}/.local/share/uv/python"
 
-# Define default working directory and entrypoint
+# Define default working directory
 WORKDIR ${REPO_DIR}
-ENTRYPOINT ["/bin/bash"]
+
+# Define default entrypoint and command
+# Launches a bash shell with the environment defined in `entrypoint.sh`
+COPY util/container/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["bash"]
 
 #-------------------------------------------------------------------------------
 # Stage 3: Hardware build
@@ -134,7 +146,7 @@ COPY . ${REPO_DIR}
 WORKDIR ${REPO_DIR}
 
 # Build the verilator model
-RUN make verilator
+RUN uv run make verilator
 
 #-------------------------------------------------------------------------------
 # Stage 4: Software development stage
@@ -168,10 +180,22 @@ RUN echo "export PS1='\[\033[0;32m\]\w >\[\033[0;38m\] '" > ~/.bashrc
 ENV SN_LLVM_BINROOT="/tools/riscv-llvm/bin"
 ENV PATH="/tools/bin:${PATH}"
 
-# Define uv environment
-ENV UV_LINK_MODE=copy
-ENV SN_UV="uv run --all-extras"
+# Set up Python environment
+# Doing it here ensures that, even if someone (such as the Github CI) overwrites entrypoint.sh,
+# the environment variables will still be set up correctly.
+ENV UV_PROJECT_ENVIRONMENT="${REPO_DIR}/.venv"
+ENV PATH="${REPO_DIR}/.venv/bin:$PATH"
+# Persists the uv Python installation and cache across container runs, by storing them in the mounted volume.
+# Paths mimic the default ones derived from XDG_CACHE_HOME and XDG_DATA_HOME.
+ENV UV_CACHE_DIR="${REPO_DIR}/.cache/uv"
+ENV UV_PYTHON_INSTALL_DIR="${REPO_DIR}/.local/share/uv/python"
 
-# Define default working directory and entrypoint
+# Define default working directory
 WORKDIR ${REPO_DIR}
-ENTRYPOINT ["/bin/bash"]
+
+# Define default entrypoint and command
+# Launches a bash shell with the environment defined in `entrypoint.sh`
+COPY util/container/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["bash"]

@@ -110,7 +110,7 @@ doc-srcs: $(GENERATED_DOC_SRCS)
 doxygen-docs: $(DOXYGEN_DOCS_DIR)
 
 docs: doc-srcs doxygen-docs
-	$(SN_UV) mkdocs build
+	mkdocs build
 
 clean-docs:
 	rm -rf $(GENERATED_DOCS_DIR)
@@ -124,7 +124,7 @@ $(GENERATED_DOCS_DIR)/peripherals.md: hw/snitch_cluster/src/snitch_cluster_perip
 	$(SN_PEAKRDL) markdown $< -o $@
 
 $(DOXYGEN_DOCS_DIR): $(DOXYFILE) $(DOXYGEN_INPUTS)
-	$(SN_UV) doxygen $<
+	doxygen $<
 
 #######
 # RTL #

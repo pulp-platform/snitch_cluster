@@ -18,12 +18,14 @@ export SN_LLVM_BINROOT=/usr/scratch2/vulcano/colluca/tools/riscv32-snitch-llvm-a
 export PATH=$PWD/target/sim/build/bin:$PATH
 
 # We use `uv` for managing python dependencies and environments
-export SN_UV="/usr/local/uv/uv run --all-extras"
-# Setting the path is only necessary for manual `uv run` commands
 export PATH=$PATH:/usr/local/uv
 # Copy instead link packages from global cache, since the cache is typically
 # located on a different file system (e.g. your home directory).
 export UV_LINK_MODE=copy
+
+# Bootstrap the Python environment
+uv sync --all-extras --locked
+source .venv/bin/activate
 
 # We need Make >4.3 for grouped targets
 alias make=make-4.4.1

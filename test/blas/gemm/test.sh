@@ -11,7 +11,7 @@ BUILD_PY=$ROOT/util/experiments/build.py
 RUN_PY=$ROOT/util/experiments/run.py
 TEST_LIST=$(pwd)/run.yaml
 CFG_FILES=$(pwd)/cfg/"*"
-CMD="$SN_UV $ROOT/sw/kernels/blas/gemm/scripts/verify.py \${sim_bin} \${elf} --dump-results"
+CMD="$ROOT/sw/kernels/blas/gemm/scripts/verify.py \${sim_bin} \${elf} --dump-results"
 
-$SN_UV $BUILD_PY gemm --cfg $CFG_FILES --testlist $TEST_LIST --testlist-cmd "$CMD"
-$SN_UV $RUN_PY $TEST_LIST --simulator vsim -j
+$BUILD_PY gemm --cfg $CFG_FILES --testlist $TEST_LIST --testlist-cmd "$CMD"
+$RUN_PY $TEST_LIST --simulator vsim -j
