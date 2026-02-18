@@ -6,6 +6,10 @@
 name: lint
 on: [push, pull_request]
 
+env:
+  TERM: xterm-256color
+  FORCE_COLOR: 1
+
 jobs:
 
   ################
