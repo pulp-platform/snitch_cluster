@@ -1,0 +1,28 @@
+# Copyright 2026 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+name: setup-python
+description: Install Python dependencies once per job, and cache across jobs
+
+runs:
+  using: "composite"
+  steps:
+    # Cache the venv directory (fast subsequent jobs on same lockfile and Python version)
+    - name: Cache venv
+      uses: actions/cache@v4
+      with:
+        path: /repo/.venv
+        key: venv-${{ hashFiles('uv.lock', '.python-version') }}
+
+    # Cache uv's download/build cache
+    - name: Cache uv downloads
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/uv
+        key: uvcache-${{ hashFiles('uv.lock', '.python-version') }}
+
+    - name: Sync Python environment
+      shell: sh
+      run: |
+        uv sync --all-extras --locked
