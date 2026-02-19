@@ -18,16 +18,19 @@ package:
     - Luca Bertaccini <lbertaccini@iis.ee.ethz.ch>
     - Matheus Cavalcante <matheusd@iis.ee.ethz.ch>
 
+remotes:
+  pulp: https://github.com/pulp-platform
+
 dependencies:
+  axi_riscv_atomics: 0.8.2
+  apb: 0.2.2
+  tech_cells_generic: 0.2.13
+  riscv-dbg: 0.8.1
+  cluster_icache: 0.3.0
+  idma: 0.6.5
   axi:                { git: https://github.com/colluca/axi.git,                      rev:      multicast   }
-  axi_riscv_atomics:  { git: https://github.com/pulp-platform/axi_riscv_atomics.git,  version:  0.8.2       }
   common_cells:       { git: https://github.com/pulp-platform/common_cells.git,       rev:      snitch      }
-  apb:                { git: https://github.com/pulp-platform/apb.git,                version:  0.2.2       }
   FPnew:              { git: https://github.com/pulp-platform/cvfpu.git,              rev:      pulp-v0.2.3 }
-  tech_cells_generic: { git: https://github.com/pulp-platform/tech_cells_generic.git, version:  0.2.13      }
-  riscv-dbg:          { git: https://github.com/pulp-platform/riscv-dbg.git,          version:  0.8.1       }
-  cluster_icache:     { git: https://github.com/pulp-platform/cluster_icache.git,     version:  0.3.0       }
-  idma:               { git: https://github.com/pulp-platform/iDMA.git,               version:  0.6.5       }
 
 export_include_dirs:
   - hw/reqrsp_interface/include
