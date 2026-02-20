@@ -20,7 +20,7 @@ module snitch_fpu import snitch_pkg::*; #(
   input logic                               rst_ni,
   // Input signals
   input logic [31:0]                        hart_id_i,
-  input logic [2:0][FLEN-1:0]               operands_i,
+  input logic [2:0][63:0]                   operands_i,
   input fpnew_pkg::roundmode_e              rnd_mode_i,
   input fpnew_pkg::operation_e              op_i,
   input logic                               op_mod_i,
@@ -33,7 +33,7 @@ module snitch_fpu import snitch_pkg::*; #(
   input  logic                              in_valid_i,
   output logic                              in_ready_o,
   // Output signals
-  output logic [FLEN-1:0]                   result_o,
+  output logic [63:0]                       result_o,
   output logic [4:0]                        status_o,
   output logic [6:0]                        tag_o,
   // Output handshake
@@ -50,6 +50,19 @@ module snitch_fpu import snitch_pkg::*; #(
   };
 
   typedef struct packed {
+    logic [2:0][63:0]        operands;
+    fpnew_pkg::roundmode_e   rnd_mode;
+    fpnew_pkg::operation_e   op;
+    logic                    op_mod;
+    fpnew_pkg::fp_format_e   src_fmt;
+    fpnew_pkg::fp_format_e   dst_fmt;
+    fpnew_pkg::int_format_e  int_fmt;
+    logic                    vectorial_op;
+    logic [6:0]              tag;
+  } fpu_inz_t;
+
+
+typedef struct packed {
     logic [2:0][FLEN-1:0]    operands;
     fpnew_pkg::roundmode_e   rnd_mode;
     fpnew_pkg::operation_e   op;
@@ -62,13 +75,24 @@ module snitch_fpu import snitch_pkg::*; #(
   } fpu_in_t;
 
   typedef struct packed {
-    logic [FLEN-1:0] result;
+    logic [63:0]     result;
+    logic [4:0]      status;
+    logic [6:0]      tag;
+  } fpu_outz_t;
+
+  typedef struct packed {
+    logic [FLEN-1:0]     result;
     logic [4:0]      status;
     logic [6:0]      tag;
   } fpu_out_t;
 
-  fpu_in_t fpu_in_q, fpu_in;
-  fpu_out_t fpu_out_q, fpu_out;
+
+
+  fpu_inz_t fpu_in_q, fpu_in;
+  fpu_in_t fpu_in_tr_q, fpu_tr_in;
+  fpu_outz_t fpu_out_q, fpu_out;
+  fpu_out_t fpu_out_tr_q, fpu_tr_out;
+  //handle the 32bit integer case
   logic in_valid_q, in_ready_q;
   logic out_valid, out_ready;
 
@@ -85,7 +109,7 @@ module snitch_fpu import snitch_pkg::*; #(
   };
 
   spill_register #(
-    .T      ( fpu_in_t ),
+    .T      ( fpu_inz_t ),
     .Bypass ( ~RegisterFPUIn )
   ) i_spill_register_fpu_in (
     .clk_i                 ,
@@ -131,7 +155,7 @@ module snitch_fpu import snitch_pkg::*; #(
   );
 
   spill_register #(
-    .T      ( fpu_out_t ),
+    .T      ( fpu_outz_t ),
     .Bypass ( ~RegisterFPUOut )
   ) i_spill_register_fpu_out (
     .clk_i                  ,

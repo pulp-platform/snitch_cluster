@@ -27,6 +27,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   parameter type acc_req_t = logic,
   parameter type acc_resp_t = logic,
   parameter bit RVF = 1,
+  parameter bit ZFINX_EN = 0,
   parameter bit RVD = 1,
   parameter bit XF16 = 0,
   parameter bit XF16ALT = 0,
@@ -92,6 +93,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
 
   logic [2:0][4:0]      fpr_raddr;
   logic [2:0][FLEN-1:0] fpr_rdata;
+  logic [2:0][FLEN-1:0] fpr_rdata_plch;
 
   logic [0:0]           fpr_we;
   logic [0:0][4:0]      fpr_waddr;
@@ -99,8 +101,21 @@ module snitch_fp_ss import snitch_pkg::*; #(
   logic [0:0]           fpr_wvalid;
   logic [0:0]           fpr_wready;
 
-  logic ssr_active_d, ssr_active_q, ssr_active_ena;
-  `FFLAR(ssr_active_q, Xssr & ssr_active_d, ssr_active_ena, 1'b0, clk_i, rst_i)
+  logic [6:0] op_code;
+  logic [1:0] prec;
+  logic is_single_prec, is_vector_instr, zfinx_s_nv; 
+  //boolean for precision & vec operation
+  assign op_code = acc_req_q.data_op[6:0];
+  assign prec = acc_req_q.data_op[26:25];
+  //checking for precison
+
+  assign is_vector_instr = (op_code == 7'b0110011);
+  assign is_single_prec = (prec == 2'b00);
+  assign zfinx_s_nv = (ZFINX_EN & is_single_prec & !(is_vector_instr)) ; 
+
+  logic ssr_active_d, ssr_active_q, ssr_active_ena, Xssr_dmx;
+  assign Xssr_dmx = zfinx_s_nv ? 1'b0 : Xssr; 
+  `FFLAR(ssr_active_q, Xssr_dmx & ssr_active_d, ssr_active_ena, 1'b0, clk_i, rst_i)
 
   typedef struct packed {
     logic       ssr; // write-back to SSR at rd
@@ -111,6 +126,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
 
   logic use_fpu;
   logic [2:0][FLEN-1:0] op;
+  logic [2:0][63:0] op_z;
   logic [2:0] op_ready; // operand is ready
 
   logic        lsu_qready;
@@ -139,14 +155,19 @@ module snitch_fp_ss import snitch_pkg::*; #(
   logic fpu_out_valid, fpu_out_ready;
   logic fpu_in_valid, fpu_in_ready;
 
-  typedef enum logic [2:0] {
+
+  typedef enum logic [3:0] {
     None,
     AccBus,
+    AccBus_A,
+    AccBus_B,
+    AccBus_C,
     RegA, RegB, RegC,
     RegBRep, // Replication for vectors
     RegDest
   } op_select_e;
-  op_select_e [2:0] op_select;
+  op_select_e [3:0] op_select;
+  
 
   typedef enum logic [1:0] {
     ResNone, ResAccBus
@@ -157,7 +178,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   logic op_mode;
 
   logic [4:0] rs1, rs2, rs3, rd;
-
+  
   // LSU
   typedef enum logic [1:0] {
     Byte       = 2'b00,
@@ -269,13 +290,15 @@ module snitch_fp_ss import snitch_pkg::*; #(
   assign fpu_out_ready = ((fpu_tag_out.acc & acc_resp_ready_i) | (~fpu_tag_out.acc & fpr_wready));
 
   // FPU Result
-  logic [FLEN-1:0] fpu_result;
+  logic [63:0] fpu_result;
+  logic [FLEN-1:0] fpu_32_result;
+  assign fpu_32_result = fpu_result[31:0];
 
   // FPU Tag
   assign acc_resp_o.id = fpu_tag_out.rd;
   // accelerator bus write-port
-  assign acc_resp_o.data = fpu_result;
-
+  assign acc_resp_o.data = fpu_32_result;
+  
   assign rd = acc_req_q.data_op[11:7];
   assign rs1 = acc_req_q.data_op[19:15];
   assign rs2 = acc_req_q.data_op[24:20];
@@ -300,16 +323,18 @@ module snitch_fp_ss import snitch_pkg::*; #(
     sc_valid_d = sc_valid_q;
     // If an instruction is reading a chaining-enabled register,
     // clear the register's valid bit
-    if (acc_req_valid_q & acc_req_ready_q) begin
-      for (int i = 0; i < 3; i++) begin
-        if (sc_mask_q[fpr_raddr[i]]) sc_valid_d[fpr_raddr[i]] = 1'b0;
+    if(!zfinx_s_nv) begin
+      if (acc_req_valid_q & acc_req_ready_q) begin
+        for (int i = 0; i < 3; i++) begin
+          if (sc_mask_q[fpr_raddr[i]]) sc_valid_d[fpr_raddr[i]] = 1'b0;
+        end
       end
-    end
-    // If there is a writeback to a chaining-enabled register,
-    // set the register's valid bit
-    if (fpr_we) begin
-      if (sc_mask_q[fpr_waddr]) begin
-        sc_valid_d[fpr_waddr] = 1'b1;
+      // If there is a writeback to a chaining-enabled register,
+      // set the register's valid bit
+      if (fpr_we) begin
+        if (sc_mask_q[fpr_waddr]) begin
+          sc_valid_d[fpr_waddr] = 1'b1;
+        end
       end
     end
   end
@@ -354,7 +379,11 @@ module snitch_fp_ss import snitch_pkg::*; #(
     ls_size = Word;
 
     // Destination register is in FPR
-    rd_is_fp = 1'b1;
+    if(ZFINX_EN) begin 
+      rd_is_fp = 1'b0;
+    end else begin
+      rd_is_fp = 1'b1;
+    end
     csr_instr = 1'b0; // is a csr instruction
     // SSR register
     ssr_active_d = ssr_active_q;
@@ -363,11 +392,18 @@ module snitch_fp_ss import snitch_pkg::*; #(
     unique casez (acc_req_q.data_op)
       // FP - FP Operations
       // Single Precision
-      riscv_instr::FADD_S: begin
+      riscv_instr::FADD_S: begin 
         fpu_op = fpnew_pkg::ADD;
-        op_select[1] = RegA;
-        op_select[2] = RegB;
+        if (ZFINX_EN) begin
+          op_select[0] = AccBus_A;
+          op_select[1] = AccBus_B;
+        end else begin 
+          op_select[1] = RegA;
+          op_select[2] = RegB;
+        end
       end
+
+      
       riscv_instr::FSUB_S: begin
         fpu_op = fpnew_pkg::ADD;
         op_select[1] = RegA;
@@ -2490,7 +2526,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     if (src_fmt == fpnew_pkg::FP8 && fpu_fmt_mode_i.src == 1'b1) src_fmt = fpnew_pkg::FP8ALT;
     if (dst_fmt == fpnew_pkg::FP8 && fpu_fmt_mode_i.dst == 1'b1) dst_fmt = fpnew_pkg::FP8ALT;
   end
-
+  
   snitch_regfile #(
     .DataWidth    ( FLEN ),
     .NrReadPorts  ( 3    ),
@@ -2500,18 +2536,24 @@ module snitch_fp_ss import snitch_pkg::*; #(
   ) i_ff_regfile (
     .clk_i,
     .rst_ni    ( ~rst_i    ),
-    .raddr_i   ( fpr_raddr ),
-    .rdata_o   ( fpr_rdata ),
-    .waddr_i   ( fpr_waddr ),
-    .wdata_i   ( fpr_wdata ),
-    .we_i      ( fpr_we    )
+    .raddr_i   (fpr_raddr),
+    .rdata_o   (fpr_rdata_plch),
+    .waddr_i   (fpr_waddr),
+    .wdata_i   (fpr_wdata),
+    .we_i      (fpr_we)
   );
+
+
+
 
   // ----------------------
   // Operand Select
   // ----------------------
   logic [2:0][FLEN-1:0] acc_qdata;
+  logic [2:0][63:0] acc_qdata_z;
   assign acc_qdata = {acc_req_q.data_argc, acc_req_q.data_argb, acc_req_q.data_arga};
+  assign acc_qdata_z = {acc_req_q.data_argc, acc_req_q.data_argb, acc_req_q.data_arga};
+  assign fpr_rdata = zfinx_s_nv ? '{ default : '0 } : fpr_rdata_plch;
 
   // Mux address lines as operands for the FPU can be mangled
   always_comb begin
@@ -2549,11 +2591,25 @@ module snitch_fp_ss import snitch_pkg::*; #(
       ssr_rvalid_o[i] = 1'b0;
       unique case (op_select[i])
         None: begin
-          op[i] = '1;
+          op_z[i] = '1;
           op_ready[i] = 1'b1;
         end
         AccBus: begin
-          op[i] = acc_qdata[i];
+          op[i] = acc_qdata[i];//TODO pass op[] as well and select in FPU
+          op_ready[i] = acc_req_valid_q;
+        end
+        AccBus_A: begin
+          op_z[i] = acc_qdata_z[0][63:0];
+          op_ready[i] = acc_req_valid_q;
+        end
+
+        AccBus_B: begin
+          op_z[i] = acc_qdata_z[1][63:0];
+          op_ready[i] = acc_req_valid_q;
+        end
+
+        AccBus_C: begin
+          op_z[i] = acc_qdata_z[2][63:0];
           op_ready[i] = acc_req_valid_q;
         end
         // Scoreboard or SSR
@@ -2580,7 +2636,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
           end
         end
         default: begin
-          op[i] = '0;
+          op_z[i] = '0;
           op_ready[i] = 1'b1;
         end
       endcase
@@ -2606,7 +2662,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .clk_i                           ,
     .rst_ni         ( ~rst_i        ),
     .hart_id_i      ( hart_id_i     ),
-    .operands_i     ( op            ),
+    .operands_i     ( op_z            ),
     .rnd_mode_i     ( fpu_rnd_mode  ),
     .op_i           ( fpu_op        ),
     .op_mod_i       ( op_mode       ), // Sign of operand?
@@ -2630,6 +2686,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   assign nan_boxed_arga = {{32{1'b1}}, acc_req_q.data_arga[31:0]};
 
   // Arbitrate Register File Write Port
+  
   always_comb begin
     fpr_we = 1'b0;
     fpr_waddr = '0;
@@ -2665,7 +2722,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
         fpr_we = ~sc_valid_q[fpu_tag_out.rd];
         fpr_wready = ~sc_valid_q[fpu_tag_out.rd];
         if (((fpu_tag_out.rd == fpr_raddr[0]) | (fpu_tag_out.rd == fpr_raddr[1]) |
-             (fpu_tag_out.rd == fpr_raddr[2])) &
+            (fpu_tag_out.rd == fpr_raddr[2])) &
             (fpu_in_valid | (lsu_qvalid & lsu_qready))) begin
           fpr_wready = 1'b1;
           fpr_we = 1'b1;
@@ -2683,12 +2740,13 @@ module snitch_fp_ss import snitch_pkg::*; #(
       fpr_wready = 1'b0;
     end
   end
-
+  
   // ----------------------
   // Load/Store Unit
   // ----------------------
-  assign lsu_qvalid = acc_req_valid_q & (&op_ready) & (is_load | is_store) & dst_ready;
-
+  assign lsu_qvalid = zfinx_s_nv ? 1'b0 : (acc_req_valid_q & (&op_ready) & (is_load | is_store) & dst_ready);
+  //assign lsu_qvalid = acc_req_valid_q & (&op_ready) & (is_load | is_store) & dst_ready;
+  
   snitch_lsu #(
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
@@ -2731,8 +2789,10 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .data_req_o,
     .data_rsp_i
   );
+  
 
   // SSRs
+  
   for (genvar i = 0; i < 3; i++) assign ssr_rdone_o[i] = ssr_rvalid_o[i] & acc_req_ready_q;
   assign ssr_raddr_o = fpr_raddr;
 
@@ -2766,12 +2826,12 @@ module snitch_fp_ss import snitch_pkg::*; #(
   assign trace_port_o.src_fmt      = src_fmt;
   assign trace_port_o.dst_fmt      = dst_fmt;
   assign trace_port_o.int_fmt      = int_fmt;
-  assign trace_port_o.acc_qdata_0  = acc_qdata[0];
-  assign trace_port_o.acc_qdata_1  = acc_qdata[1];
-  assign trace_port_o.acc_qdata_2  = acc_qdata[2];
-  assign trace_port_o.op_0         = op[0];
-  assign trace_port_o.op_1         = op[1];
-  assign trace_port_o.op_2         = op[2];
+  assign trace_port_o.acc_qdata_0  = acc_qdata_z[0];
+  assign trace_port_o.acc_qdata_1  = acc_qdata_z[1];
+  assign trace_port_o.acc_qdata_2  = acc_qdata_z[2];
+  assign trace_port_o.op_0         = op_z[0];
+  assign trace_port_o.op_1         = op_z[1];
+  assign trace_port_o.op_2         = op_z[2];
   assign trace_port_o.use_fpu      = use_fpu;
   assign trace_port_o.fpu_in_rd    = fpu_tag_in.rd;
   assign trace_port_o.fpu_in_acc   = fpu_tag_in.acc;

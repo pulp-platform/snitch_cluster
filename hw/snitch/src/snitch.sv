@@ -26,6 +26,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   /// Enable FP in general
   parameter bit          FP_EN     = 1,
   /// Enable F Extension.
+  parameter bit          ZFINX_EN  = 0,
+  /// Enable ZFINX Extension
   parameter bit          RVF       = 0,
   /// Enable D Extension.
   parameter bit          RVD       = 0,
@@ -366,11 +368,14 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // accelerator offloading interface
   // register int destination in scoreboard
   logic  acc_register_rd;
+  
 
   assign acc_qreq_o.id = rd;
   assign acc_qreq_o.data_op = inst_data_i;
-  assign acc_qreq_o.data_arga = {{32{opa[31]}}, opa};
-  assign acc_qreq_o.data_argb = {{32{opb[31]}}, opb};
+  
+  assign acc_qreq_o.data_arga = ZFINX_EN ? {{32{1'b1}}, opa} : {{32{opa[31]}}, opa};
+  assign acc_qreq_o.data_argb = ZFINX_EN ? {{32{1'b1}}, opb} : {{32{opb[31]}}, opb};
+
   // operand C is currently only used for load/store instructions
   assign acc_qreq_o.data_argc = ls_paddr;
 
@@ -510,6 +515,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign rd = inst_data_i[7 + RegWidth - 1:7];
   assign rs1 = inst_data_i[15 + RegWidth - 1:15];
   assign rs2 = inst_data_i[20 + RegWidth - 1:20];
+
 
   always_comb begin
     illegal_inst = 1'b0;
@@ -1111,7 +1117,32 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       // Offload FP-FP Instructions - fire and forget
       // TODO (smach): Check legal rounding modes and issue illegal isn if needed
       // Single Precision Floating-Point
-      FADD_S,
+      FADD_S: begin
+      if (FP_EN && RVF
+          && (!(inst_data_i inside {FDIV_S, FSQRT_S}) || XDivSqrt)) begin
+          if (ZFINX_EN) begin
+            //acc_qreq_o.id is assigned rd which comes from outside
+            //acc_qreq_o.data_op is by default FP_SS
+            opa_select = Reg;
+            opb_select = Reg;
+            //acc_qreq_o.data_argc only for store and loads
+            acc_qvalid_o = valid_instr;
+            write_rd = 1'b0; 
+            acc_register_rd =1'b1;
+            //mark the sb as busy for rd entry
+          end else begin
+            write_rd = 1'b0;
+            acc_qvalid_o = valid_instr;
+          end
+        
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end      
+     //FMADD_S: begin
+     //
+     //end
+
       FSUB_S,
       FMUL_S,
       FDIV_S,
@@ -1766,15 +1797,17 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       FCVT_W_S,
       FCVT_WU_S,
       FMV_X_W: begin
-        if (FP_EN && RVF) begin
+        if ((ZFINX_EN && (inst_data_i == FMV_X_W)) && !(FP_EN && RVF)) begin
+          illegal_inst = 1'b1;
+        end else begin
           write_rd = 1'b0;
           uses_rd = 1'b1;
           acc_qvalid_o = valid_instr;
           acc_register_rd = 1'b1; // No RS in GPR but RD in GPR, register in int scoreboard
-        end else begin
-          illegal_inst = 1'b1;
+
         end
-      end
+      end  
+
       // Vectors
       VFEQ_S,
       VFEQ_R_S,
@@ -1963,17 +1996,19 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         end
       end
       // Single Precision Floating-Point
+    
       FMV_W_X,
       FCVT_S_W,
       FCVT_S_WU: begin
-        if (FP_EN && RVF) begin
+        if ((ZFINX_EN && (inst_data_i == FMV_W_X))||(!(FP_EN && RVF))) begin
+          illegal_inst = 1'b1;
+        end else begin
           opa_select = Reg;
           write_rd = 1'b0;
           acc_qvalid_o = valid_instr;
-        end else begin
-          illegal_inst = 1'b1;
         end
       end
+      
       // [Alternate] Half Precision Floating-Point
       FMV_H_X,
       FCVT_H_W,
@@ -2051,54 +2086,50 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       // Floating-Point Load/Store
       // Single Precision Floating-Point
       FLW: begin
-        if (FP_EN && RVF) begin
-          opa_select = Reg;
-          opb_select = IImmediate;
-          write_rd = 1'b0;
-          acc_qvalid_o = valid_instr & trans_ready & caq_qready;
-          ls_size = Word;
-          is_fp_load = 1'b1;
-        end else begin
-          illegal_inst = 1'b1;
+          if (FP_EN && RVF) begin
+            if(ZFINX_EN) begin
+              write_rd = 1'b0;
+              uses_rd = 1'b1;
+              is_load = 1'b1;
+              is_signed = 1'b1;
+              ls_size = Word;
+              opa_select = Reg;
+              opb_select = IImmediate;
+            end
+            else begin
+              opa_select = Reg;
+              opb_select = IImmediate;
+              write_rd = 1'b0;
+              acc_qvalid_o = valid_instr & trans_ready & caq_qready;
+              ls_size = Word;
+              is_fp_load = 1'b1;
+            end
+          end else begin
+            illegal_inst = 1'b1;
+          end
         end
-      end
       FSW: begin
         if (FP_EN && RVF) begin
-          opa_select = Reg;
-          opb_select = SFImmediate;
-          write_rd = 1'b0;
-          acc_qvalid_o = valid_instr & trans_ready & caq_qready;
-          ls_size = Word;
-          is_fp_store = 1'b1;
+          if(ZFINX_EN) begin
+            write_rd = 1'b0;
+            is_store = 1'b1;
+            ls_size = Word;
+            opa_select = Reg;
+            opb_select = SImmediate;
+          end else begin
+            opa_select = Reg;
+            opb_select = SFImmediate;
+            write_rd = 1'b0;
+            acc_qvalid_o = valid_instr & trans_ready & caq_qready;
+            ls_size = Word;
+            is_fp_store = 1'b1;
+          end
         end else begin
           illegal_inst = 1'b1;
         end
       end
-      // Double Precision Floating-Point
-      FLD: begin
-        if (FP_EN && (RVD || XFVEC)) begin
-          opa_select = Reg;
-          opb_select = IImmediate;
-          write_rd = 1'b0;
-          acc_qvalid_o = valid_instr & trans_ready & caq_qready;
-          ls_size = Double;
-          is_fp_load = 1'b1;
-        end else begin
-          illegal_inst = 1'b1;
-        end
-      end
-      FSD: begin
-        if (FP_EN && (RVD || XFVEC)) begin
-          opa_select = Reg;
-          opb_select = SFImmediate;
-          write_rd = 1'b0;
-          acc_qvalid_o = valid_instr & trans_ready & caq_qready;
-          ls_size = Double;
-          is_fp_store = 1'b1;
-        end else begin
-          illegal_inst = 1'b1;
-        end
-      end
+      
+        
       // Half Precision Floating-Point
       FLH: begin
         if (FP_EN && (XF16 || XF16ALT)) begin

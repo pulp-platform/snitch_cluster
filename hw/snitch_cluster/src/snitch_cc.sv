@@ -104,6 +104,8 @@ module snitch_cc #(
   parameter bit          RegisterFPUIn      = 0,
   /// Insert Pipeline registers immediately after FPU datapath
   parameter bit          RegisterFPUOut     = 0,
+  /// Enable Zfinx ISA extension
+  parameter bit          ZFINX_EN           = 1,
   parameter snitch_pma_pkg::snitch_pma_t SnitchPMACfg = '{default: 0},
   /// Consistency Address Queue (CAQ) parameters.
   parameter int unsigned CaqDepth     = 0,
@@ -231,6 +233,7 @@ module snitch_cc #(
     .NumITLBEntries (NumITLBEntries),
     .RVE (RVE),
     .FP_EN (FPEn),
+    .ZFINX_EN (ZFINX_EN),
     .Xdma (Xdma),
     .Xssr (Xssr),
     .Xcopift (Xcopift),
@@ -509,6 +512,7 @@ module snitch_cc #(
       .Xssr (Xssr),
       .Xcopift (Xcopift),
       .RVF (RVF),
+      .ZFINX_EN (ZFINX_EN),
       .RVD (RVD),
       .XF16 (XF16),
       .XF16ALT (XF16ALT),
