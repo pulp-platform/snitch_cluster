@@ -1,0 +1,6953 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="snitch_cluster.html">
+      
+      
+        <link rel="next" href="reqrsp_interface.html">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>Peripherals - Snitch Cluster</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.84d31ad4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#snitch-cluster-peripherals" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../index.html" title="Snitch Cluster" class="md-header__button md-logo" aria-label="Snitch Cluster" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Snitch Cluster
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Peripherals
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pulp-platform/snitch_cluster" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pulp-platform/snitch_cluster
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../index.html" title="Snitch Cluster" class="md-nav__button md-logo" aria-label="Snitch Cluster" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Snitch Cluster
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pulp-platform/snitch_cluster" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pulp-platform/snitch_cluster
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ug/getting_started.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ug/directory_structure.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Repository Structure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Tutorial
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorial
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ug/tutorial.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Base
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3_2" id="__nav_2_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Advanced
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_2_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Advanced
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ug/trace_analysis.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Trace Analysis
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ug/code_optimization.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Code Optimization
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ug/system_integration.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    System Integration
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ug/documentation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Documentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Reference Manual
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Reference Manual
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Hardware
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            Hardware
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="snitch.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Snitch
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_1_2" id="__nav_3_1_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Snitch Cluster
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_1_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            Snitch Cluster
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="snitch_cluster.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Peripherals
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="peripherals.html" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Peripherals
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#snitch_cluster_peripheral_reg-address-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      snitch_cluster_peripheral_reg address map
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#perf_regs-register-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_regs register file
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_regs register file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scratch-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      scratch register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="scratch register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scratch-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      scratch field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scratch-register_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      scratch register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="scratch register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scratch-field_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      scratch field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scratch-register_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      scratch register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="scratch register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scratch-field_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      scratch field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scratch-register_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      scratch register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="scratch register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scratch-field_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      scratch field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cl_clint_set-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      cl_clint_set register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cl_clint_set register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cl_clint_set-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      cl_clint_set field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cl_clint_clear-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      cl_clint_clear register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cl_clint_clear register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cl_clint_clear-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      cl_clint_clear field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#icache_prefetch_enable-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      icache_prefetch_enable register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="icache_prefetch_enable register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#icache_prefetch_enable-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      icache_prefetch_enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unused-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      unused register
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reqrsp_interface.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Reqrsp Interface
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="custom_instructions.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Custom Instructions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="boot_procedure.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Boot Procedure
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Software
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Software
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_1" id="__nav_3_2_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Simulation Utilities
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            Simulation Utilities
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw/sim/data_utils.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    data_utils
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw/sim/verif_utils.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    verif_utils
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw/sim/sim_utils.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    sim_utils
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw/sim/Simulation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Simulation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw/sim/Simulator.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Simulator
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw/sim/Elf.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Elf
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_2" id="__nav_3_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Trace Utilities
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Trace Utilities
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw/trace/gen_trace.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    gen_trace.py
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw/trace/annotate.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    annotate.py
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw/trace/events.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    events.py
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_3" id="__nav_3_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Benchmarking Utilities
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            Benchmarking Utilities
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw/bench/join.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    join.py
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw/bench/roi.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    roi.py
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw/bench/visualize.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    visualize.py
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2_4" id="__nav_3_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Experiment Utilities
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_3_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            Experiment Utilities
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw/experiments/run.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    run.py
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sw/experiments/build.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    build.py
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../doxygen/html/index.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Snitch Runtime
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../publications.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Publications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#snitch_cluster_peripheral_reg-address-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      snitch_cluster_peripheral_reg address map
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#perf_regs-register-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_regs register file
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_regs register file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_en-register_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_en register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_en register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enable-field_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt_sel-register_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt_sel register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt_sel register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hart-field_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      hart field
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#metric-field_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      metric field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#perf_cnt-register_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_cnt register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="perf_cnt register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#perf_counter-field_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      perf_counter field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scratch-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      scratch register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="scratch register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scratch-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      scratch field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scratch-register_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      scratch register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="scratch register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scratch-field_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      scratch field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scratch-register_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      scratch register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="scratch register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scratch-field_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      scratch field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scratch-register_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      scratch register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="scratch register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scratch-field_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      scratch field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cl_clint_set-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      cl_clint_set register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cl_clint_set register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cl_clint_set-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      cl_clint_set field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cl_clint_clear-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      cl_clint_clear register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="cl_clint_clear register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cl_clint_clear-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      cl_clint_clear field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#icache_prefetch_enable-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      icache_prefetch_enable register
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="icache_prefetch_enable register">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#icache_prefetch_enable-field" class="md-nav__link">
+    <span class="md-ellipsis">
+      icache_prefetch_enable field
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unused-register" class="md-nav__link">
+    <span class="md-ellipsis">
+      unused register
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="snitch-cluster-peripherals">Snitch Cluster peripherals</h1>
+<p>This section documents the registers exposed by the Snitch cluster to interface with various cluster-level peripherals, including the performance counters.</p>
+<!---
+Markdown description for SystemRDL register map.
+
+Don't override. Generated from: snitch_cluster_peripheral_reg
+  - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.rdl
+-->
+
+<h2 id="snitch_cluster_peripheral_reg-address-map">snitch_cluster_peripheral_reg address map</h2>
+<ul>
+<li>Absolute Address: 0x0</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x1C0</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Offset</th>
+<th>Identifier</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x000</td>
+<td>perf_regs</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x180</td>
+<td>scratch[0]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x188</td>
+<td>scratch[1]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x190</td>
+<td>scratch[2]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x198</td>
+<td>scratch[3]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x1A0</td>
+<td>cl_clint_set</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x1A8</td>
+<td>cl_clint_clear</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x1B0</td>
+<td>icache_prefetch_enable</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x1B8</td>
+<td>unused</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h2 id="perf_regs-register-file">perf_regs register file</h2>
+<ul>
+<li>Absolute Address: 0x0</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x180</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Offset</th>
+<th>Identifier</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x000</td>
+<td>perf_cnt_en[0]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x008</td>
+<td>perf_cnt_en[1]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x010</td>
+<td>perf_cnt_en[2]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x018</td>
+<td>perf_cnt_en[3]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x020</td>
+<td>perf_cnt_en[4]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x028</td>
+<td>perf_cnt_en[5]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x030</td>
+<td>perf_cnt_en[6]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x038</td>
+<td>perf_cnt_en[7]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x040</td>
+<td>perf_cnt_en[8]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x048</td>
+<td>perf_cnt_en[9]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x050</td>
+<td>perf_cnt_en[10]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x058</td>
+<td>perf_cnt_en[11]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x060</td>
+<td>perf_cnt_en[12]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x068</td>
+<td>perf_cnt_en[13]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x070</td>
+<td>perf_cnt_en[14]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x078</td>
+<td>perf_cnt_en[15]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x080</td>
+<td>perf_cnt_sel[0]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x088</td>
+<td>perf_cnt_sel[1]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x090</td>
+<td>perf_cnt_sel[2]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x098</td>
+<td>perf_cnt_sel[3]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x0A0</td>
+<td>perf_cnt_sel[4]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x0A8</td>
+<td>perf_cnt_sel[5]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x0B0</td>
+<td>perf_cnt_sel[6]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x0B8</td>
+<td>perf_cnt_sel[7]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x0C0</td>
+<td>perf_cnt_sel[8]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x0C8</td>
+<td>perf_cnt_sel[9]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x0D0</td>
+<td>perf_cnt_sel[10]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x0D8</td>
+<td>perf_cnt_sel[11]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x0E0</td>
+<td>perf_cnt_sel[12]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x0E8</td>
+<td>perf_cnt_sel[13]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x0F0</td>
+<td>perf_cnt_sel[14]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x0F8</td>
+<td>perf_cnt_sel[15]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x100</td>
+<td>perf_cnt[0]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x108</td>
+<td>perf_cnt[1]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x110</td>
+<td>perf_cnt[2]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x118</td>
+<td>perf_cnt[3]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x120</td>
+<td>perf_cnt[4]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x128</td>
+<td>perf_cnt[5]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x130</td>
+<td>perf_cnt[6]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x138</td>
+<td>perf_cnt[7]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x140</td>
+<td>perf_cnt[8]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x148</td>
+<td>perf_cnt[9]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x150</td>
+<td>perf_cnt[10]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x158</td>
+<td>perf_cnt[11]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x160</td>
+<td>perf_cnt[12]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x168</td>
+<td>perf_cnt[13]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x170</td>
+<td>perf_cnt[14]</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0x178</td>
+<td>perf_cnt[15]</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="perf_cnt_en-register">perf_cnt_en register</h3>
+<ul>
+<li>Absolute Address: 0x0</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>enable</td>
+<td>rw</td>
+<td>0x1</td>
+<td>enable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enable-field">enable field</h4>
+<p>Enable a particular performance counter to start tracking.</p>
+
+<h3 id="perf_cnt_en-register_1">perf_cnt_en register</h3>
+<ul>
+<li>Absolute Address: 0x8</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>enable</td>
+<td>rw</td>
+<td>0x1</td>
+<td>enable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enable-field_1">enable field</h4>
+<p>Enable a particular performance counter to start tracking.</p>
+
+<h3 id="perf_cnt_en-register_2">perf_cnt_en register</h3>
+<ul>
+<li>Absolute Address: 0x10</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>enable</td>
+<td>rw</td>
+<td>0x1</td>
+<td>enable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enable-field_2">enable field</h4>
+<p>Enable a particular performance counter to start tracking.</p>
+
+<h3 id="perf_cnt_en-register_3">perf_cnt_en register</h3>
+<ul>
+<li>Absolute Address: 0x18</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>enable</td>
+<td>rw</td>
+<td>0x1</td>
+<td>enable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enable-field_3">enable field</h4>
+<p>Enable a particular performance counter to start tracking.</p>
+
+<h3 id="perf_cnt_en-register_4">perf_cnt_en register</h3>
+<ul>
+<li>Absolute Address: 0x20</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>enable</td>
+<td>rw</td>
+<td>0x1</td>
+<td>enable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enable-field_4">enable field</h4>
+<p>Enable a particular performance counter to start tracking.</p>
+
+<h3 id="perf_cnt_en-register_5">perf_cnt_en register</h3>
+<ul>
+<li>Absolute Address: 0x28</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>enable</td>
+<td>rw</td>
+<td>0x1</td>
+<td>enable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enable-field_5">enable field</h4>
+<p>Enable a particular performance counter to start tracking.</p>
+
+<h3 id="perf_cnt_en-register_6">perf_cnt_en register</h3>
+<ul>
+<li>Absolute Address: 0x30</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>enable</td>
+<td>rw</td>
+<td>0x1</td>
+<td>enable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enable-field_6">enable field</h4>
+<p>Enable a particular performance counter to start tracking.</p>
+
+<h3 id="perf_cnt_en-register_7">perf_cnt_en register</h3>
+<ul>
+<li>Absolute Address: 0x38</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>enable</td>
+<td>rw</td>
+<td>0x1</td>
+<td>enable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enable-field_7">enable field</h4>
+<p>Enable a particular performance counter to start tracking.</p>
+
+<h3 id="perf_cnt_en-register_8">perf_cnt_en register</h3>
+<ul>
+<li>Absolute Address: 0x40</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>enable</td>
+<td>rw</td>
+<td>0x1</td>
+<td>enable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enable-field_8">enable field</h4>
+<p>Enable a particular performance counter to start tracking.</p>
+
+<h3 id="perf_cnt_en-register_9">perf_cnt_en register</h3>
+<ul>
+<li>Absolute Address: 0x48</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>enable</td>
+<td>rw</td>
+<td>0x1</td>
+<td>enable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enable-field_9">enable field</h4>
+<p>Enable a particular performance counter to start tracking.</p>
+
+<h3 id="perf_cnt_en-register_10">perf_cnt_en register</h3>
+<ul>
+<li>Absolute Address: 0x50</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>enable</td>
+<td>rw</td>
+<td>0x1</td>
+<td>enable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enable-field_10">enable field</h4>
+<p>Enable a particular performance counter to start tracking.</p>
+
+<h3 id="perf_cnt_en-register_11">perf_cnt_en register</h3>
+<ul>
+<li>Absolute Address: 0x58</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>enable</td>
+<td>rw</td>
+<td>0x1</td>
+<td>enable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enable-field_11">enable field</h4>
+<p>Enable a particular performance counter to start tracking.</p>
+
+<h3 id="perf_cnt_en-register_12">perf_cnt_en register</h3>
+<ul>
+<li>Absolute Address: 0x60</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>enable</td>
+<td>rw</td>
+<td>0x1</td>
+<td>enable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enable-field_12">enable field</h4>
+<p>Enable a particular performance counter to start tracking.</p>
+
+<h3 id="perf_cnt_en-register_13">perf_cnt_en register</h3>
+<ul>
+<li>Absolute Address: 0x68</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>enable</td>
+<td>rw</td>
+<td>0x1</td>
+<td>enable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enable-field_13">enable field</h4>
+<p>Enable a particular performance counter to start tracking.</p>
+
+<h3 id="perf_cnt_en-register_14">perf_cnt_en register</h3>
+<ul>
+<li>Absolute Address: 0x70</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>enable</td>
+<td>rw</td>
+<td>0x1</td>
+<td>enable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enable-field_14">enable field</h4>
+<p>Enable a particular performance counter to start tracking.</p>
+
+<h3 id="perf_cnt_en-register_15">perf_cnt_en register</h3>
+<ul>
+<li>Absolute Address: 0x78</li>
+<li>Base Offset: 0x0</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>enable</td>
+<td>rw</td>
+<td>0x1</td>
+<td>enable</td>
+</tr>
+</tbody>
+</table>
+<h4 id="enable-field_15">enable field</h4>
+<p>Enable a particular performance counter to start tracking.</p>
+
+<h3 id="perf_cnt_sel-register">perf_cnt_sel register</h3>
+<ul>
+<li>Absolute Address: 0x80</li>
+<li>Base Offset: 0x80</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Select the metric that is tracked for each performance counter.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15:0</td>
+<td>hart</td>
+<td>rw</td>
+<td>—</td>
+<td>hart</td>
+</tr>
+<tr>
+<td>31:16</td>
+<td>metric</td>
+<td>rw</td>
+<td>—</td>
+<td>metric</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hart-field">hart field</h4>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+the event should be counted. For each performance counter
+the cores can be selected individually. If a hart greater
+than the cluster's total hart size is selected the selection
+will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+will be selected.</p>
+
+<h4 id="metric-field">metric field</h4>
+<p>Select the metric that is tracked for each performance counter</p>
+
+<h3 id="perf_cnt_sel-register_1">perf_cnt_sel register</h3>
+<ul>
+<li>Absolute Address: 0x88</li>
+<li>Base Offset: 0x80</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Select the metric that is tracked for each performance counter.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15:0</td>
+<td>hart</td>
+<td>rw</td>
+<td>—</td>
+<td>hart</td>
+</tr>
+<tr>
+<td>31:16</td>
+<td>metric</td>
+<td>rw</td>
+<td>—</td>
+<td>metric</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hart-field_1">hart field</h4>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+the event should be counted. For each performance counter
+the cores can be selected individually. If a hart greater
+than the cluster's total hart size is selected the selection
+will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+will be selected.</p>
+
+<h4 id="metric-field_1">metric field</h4>
+<p>Select the metric that is tracked for each performance counter</p>
+
+<h3 id="perf_cnt_sel-register_2">perf_cnt_sel register</h3>
+<ul>
+<li>Absolute Address: 0x90</li>
+<li>Base Offset: 0x80</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Select the metric that is tracked for each performance counter.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15:0</td>
+<td>hart</td>
+<td>rw</td>
+<td>—</td>
+<td>hart</td>
+</tr>
+<tr>
+<td>31:16</td>
+<td>metric</td>
+<td>rw</td>
+<td>—</td>
+<td>metric</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hart-field_2">hart field</h4>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+the event should be counted. For each performance counter
+the cores can be selected individually. If a hart greater
+than the cluster's total hart size is selected the selection
+will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+will be selected.</p>
+
+<h4 id="metric-field_2">metric field</h4>
+<p>Select the metric that is tracked for each performance counter</p>
+
+<h3 id="perf_cnt_sel-register_3">perf_cnt_sel register</h3>
+<ul>
+<li>Absolute Address: 0x98</li>
+<li>Base Offset: 0x80</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Select the metric that is tracked for each performance counter.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15:0</td>
+<td>hart</td>
+<td>rw</td>
+<td>—</td>
+<td>hart</td>
+</tr>
+<tr>
+<td>31:16</td>
+<td>metric</td>
+<td>rw</td>
+<td>—</td>
+<td>metric</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hart-field_3">hart field</h4>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+the event should be counted. For each performance counter
+the cores can be selected individually. If a hart greater
+than the cluster's total hart size is selected the selection
+will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+will be selected.</p>
+
+<h4 id="metric-field_3">metric field</h4>
+<p>Select the metric that is tracked for each performance counter</p>
+
+<h3 id="perf_cnt_sel-register_4">perf_cnt_sel register</h3>
+<ul>
+<li>Absolute Address: 0xA0</li>
+<li>Base Offset: 0x80</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Select the metric that is tracked for each performance counter.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15:0</td>
+<td>hart</td>
+<td>rw</td>
+<td>—</td>
+<td>hart</td>
+</tr>
+<tr>
+<td>31:16</td>
+<td>metric</td>
+<td>rw</td>
+<td>—</td>
+<td>metric</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hart-field_4">hart field</h4>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+the event should be counted. For each performance counter
+the cores can be selected individually. If a hart greater
+than the cluster's total hart size is selected the selection
+will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+will be selected.</p>
+
+<h4 id="metric-field_4">metric field</h4>
+<p>Select the metric that is tracked for each performance counter</p>
+
+<h3 id="perf_cnt_sel-register_5">perf_cnt_sel register</h3>
+<ul>
+<li>Absolute Address: 0xA8</li>
+<li>Base Offset: 0x80</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Select the metric that is tracked for each performance counter.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15:0</td>
+<td>hart</td>
+<td>rw</td>
+<td>—</td>
+<td>hart</td>
+</tr>
+<tr>
+<td>31:16</td>
+<td>metric</td>
+<td>rw</td>
+<td>—</td>
+<td>metric</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hart-field_5">hart field</h4>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+the event should be counted. For each performance counter
+the cores can be selected individually. If a hart greater
+than the cluster's total hart size is selected the selection
+will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+will be selected.</p>
+
+<h4 id="metric-field_5">metric field</h4>
+<p>Select the metric that is tracked for each performance counter</p>
+
+<h3 id="perf_cnt_sel-register_6">perf_cnt_sel register</h3>
+<ul>
+<li>Absolute Address: 0xB0</li>
+<li>Base Offset: 0x80</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Select the metric that is tracked for each performance counter.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15:0</td>
+<td>hart</td>
+<td>rw</td>
+<td>—</td>
+<td>hart</td>
+</tr>
+<tr>
+<td>31:16</td>
+<td>metric</td>
+<td>rw</td>
+<td>—</td>
+<td>metric</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hart-field_6">hart field</h4>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+the event should be counted. For each performance counter
+the cores can be selected individually. If a hart greater
+than the cluster's total hart size is selected the selection
+will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+will be selected.</p>
+
+<h4 id="metric-field_6">metric field</h4>
+<p>Select the metric that is tracked for each performance counter</p>
+
+<h3 id="perf_cnt_sel-register_7">perf_cnt_sel register</h3>
+<ul>
+<li>Absolute Address: 0xB8</li>
+<li>Base Offset: 0x80</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Select the metric that is tracked for each performance counter.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15:0</td>
+<td>hart</td>
+<td>rw</td>
+<td>—</td>
+<td>hart</td>
+</tr>
+<tr>
+<td>31:16</td>
+<td>metric</td>
+<td>rw</td>
+<td>—</td>
+<td>metric</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hart-field_7">hart field</h4>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+the event should be counted. For each performance counter
+the cores can be selected individually. If a hart greater
+than the cluster's total hart size is selected the selection
+will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+will be selected.</p>
+
+<h4 id="metric-field_7">metric field</h4>
+<p>Select the metric that is tracked for each performance counter</p>
+
+<h3 id="perf_cnt_sel-register_8">perf_cnt_sel register</h3>
+<ul>
+<li>Absolute Address: 0xC0</li>
+<li>Base Offset: 0x80</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Select the metric that is tracked for each performance counter.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15:0</td>
+<td>hart</td>
+<td>rw</td>
+<td>—</td>
+<td>hart</td>
+</tr>
+<tr>
+<td>31:16</td>
+<td>metric</td>
+<td>rw</td>
+<td>—</td>
+<td>metric</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hart-field_8">hart field</h4>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+the event should be counted. For each performance counter
+the cores can be selected individually. If a hart greater
+than the cluster's total hart size is selected the selection
+will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+will be selected.</p>
+
+<h4 id="metric-field_8">metric field</h4>
+<p>Select the metric that is tracked for each performance counter</p>
+
+<h3 id="perf_cnt_sel-register_9">perf_cnt_sel register</h3>
+<ul>
+<li>Absolute Address: 0xC8</li>
+<li>Base Offset: 0x80</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Select the metric that is tracked for each performance counter.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15:0</td>
+<td>hart</td>
+<td>rw</td>
+<td>—</td>
+<td>hart</td>
+</tr>
+<tr>
+<td>31:16</td>
+<td>metric</td>
+<td>rw</td>
+<td>—</td>
+<td>metric</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hart-field_9">hart field</h4>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+the event should be counted. For each performance counter
+the cores can be selected individually. If a hart greater
+than the cluster's total hart size is selected the selection
+will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+will be selected.</p>
+
+<h4 id="metric-field_9">metric field</h4>
+<p>Select the metric that is tracked for each performance counter</p>
+
+<h3 id="perf_cnt_sel-register_10">perf_cnt_sel register</h3>
+<ul>
+<li>Absolute Address: 0xD0</li>
+<li>Base Offset: 0x80</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Select the metric that is tracked for each performance counter.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15:0</td>
+<td>hart</td>
+<td>rw</td>
+<td>—</td>
+<td>hart</td>
+</tr>
+<tr>
+<td>31:16</td>
+<td>metric</td>
+<td>rw</td>
+<td>—</td>
+<td>metric</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hart-field_10">hart field</h4>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+the event should be counted. For each performance counter
+the cores can be selected individually. If a hart greater
+than the cluster's total hart size is selected the selection
+will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+will be selected.</p>
+
+<h4 id="metric-field_10">metric field</h4>
+<p>Select the metric that is tracked for each performance counter</p>
+
+<h3 id="perf_cnt_sel-register_11">perf_cnt_sel register</h3>
+<ul>
+<li>Absolute Address: 0xD8</li>
+<li>Base Offset: 0x80</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Select the metric that is tracked for each performance counter.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15:0</td>
+<td>hart</td>
+<td>rw</td>
+<td>—</td>
+<td>hart</td>
+</tr>
+<tr>
+<td>31:16</td>
+<td>metric</td>
+<td>rw</td>
+<td>—</td>
+<td>metric</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hart-field_11">hart field</h4>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+the event should be counted. For each performance counter
+the cores can be selected individually. If a hart greater
+than the cluster's total hart size is selected the selection
+will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+will be selected.</p>
+
+<h4 id="metric-field_11">metric field</h4>
+<p>Select the metric that is tracked for each performance counter</p>
+
+<h3 id="perf_cnt_sel-register_12">perf_cnt_sel register</h3>
+<ul>
+<li>Absolute Address: 0xE0</li>
+<li>Base Offset: 0x80</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Select the metric that is tracked for each performance counter.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15:0</td>
+<td>hart</td>
+<td>rw</td>
+<td>—</td>
+<td>hart</td>
+</tr>
+<tr>
+<td>31:16</td>
+<td>metric</td>
+<td>rw</td>
+<td>—</td>
+<td>metric</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hart-field_12">hart field</h4>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+the event should be counted. For each performance counter
+the cores can be selected individually. If a hart greater
+than the cluster's total hart size is selected the selection
+will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+will be selected.</p>
+
+<h4 id="metric-field_12">metric field</h4>
+<p>Select the metric that is tracked for each performance counter</p>
+
+<h3 id="perf_cnt_sel-register_13">perf_cnt_sel register</h3>
+<ul>
+<li>Absolute Address: 0xE8</li>
+<li>Base Offset: 0x80</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Select the metric that is tracked for each performance counter.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15:0</td>
+<td>hart</td>
+<td>rw</td>
+<td>—</td>
+<td>hart</td>
+</tr>
+<tr>
+<td>31:16</td>
+<td>metric</td>
+<td>rw</td>
+<td>—</td>
+<td>metric</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hart-field_13">hart field</h4>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+the event should be counted. For each performance counter
+the cores can be selected individually. If a hart greater
+than the cluster's total hart size is selected the selection
+will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+will be selected.</p>
+
+<h4 id="metric-field_13">metric field</h4>
+<p>Select the metric that is tracked for each performance counter</p>
+
+<h3 id="perf_cnt_sel-register_14">perf_cnt_sel register</h3>
+<ul>
+<li>Absolute Address: 0xF0</li>
+<li>Base Offset: 0x80</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Select the metric that is tracked for each performance counter.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15:0</td>
+<td>hart</td>
+<td>rw</td>
+<td>—</td>
+<td>hart</td>
+</tr>
+<tr>
+<td>31:16</td>
+<td>metric</td>
+<td>rw</td>
+<td>—</td>
+<td>metric</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hart-field_14">hart field</h4>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+the event should be counted. For each performance counter
+the cores can be selected individually. If a hart greater
+than the cluster's total hart size is selected the selection
+will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+will be selected.</p>
+
+<h4 id="metric-field_14">metric field</h4>
+<p>Select the metric that is tracked for each performance counter</p>
+
+<h3 id="perf_cnt_sel-register_15">perf_cnt_sel register</h3>
+<ul>
+<li>Absolute Address: 0xF8</li>
+<li>Base Offset: 0x80</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Select the metric that is tracked for each performance counter.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15:0</td>
+<td>hart</td>
+<td>rw</td>
+<td>—</td>
+<td>hart</td>
+</tr>
+<tr>
+<td>31:16</td>
+<td>metric</td>
+<td>rw</td>
+<td>—</td>
+<td>metric</td>
+</tr>
+</tbody>
+</table>
+<h4 id="hart-field_15">hart field</h4>
+<p>Select from which hart in the cluster, starting from <code>0</code>,
+the event should be counted. For each performance counter
+the cores can be selected individually. If a hart greater
+than the cluster's total hart size is selected the selection
+will wrap and the hart corresponding to <code>hart_select % total_harts_in_cluster</code>
+will be selected.</p>
+
+<h4 id="metric-field_15">metric field</h4>
+<p>Select the metric that is tracked for each performance counter</p>
+
+<h3 id="perf_cnt-register">perf_cnt register</h3>
+<ul>
+<li>Absolute Address: 0x100</li>
+<li>Base Offset: 0x100</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Performance counter. Set corresponding perf_cnt_sel register depending on what
+performance metric and hart you would like to track.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47:0</td>
+<td>perf_counter</td>
+<td>rw, wclr</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="perf_counter-field">perf_counter field</h4>
+<p>Performance counter</p>
+
+<h3 id="perf_cnt-register_1">perf_cnt register</h3>
+<ul>
+<li>Absolute Address: 0x108</li>
+<li>Base Offset: 0x100</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Performance counter. Set corresponding perf_cnt_sel register depending on what
+performance metric and hart you would like to track.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47:0</td>
+<td>perf_counter</td>
+<td>rw, wclr</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="perf_counter-field_1">perf_counter field</h4>
+<p>Performance counter</p>
+
+<h3 id="perf_cnt-register_2">perf_cnt register</h3>
+<ul>
+<li>Absolute Address: 0x110</li>
+<li>Base Offset: 0x100</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Performance counter. Set corresponding perf_cnt_sel register depending on what
+performance metric and hart you would like to track.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47:0</td>
+<td>perf_counter</td>
+<td>rw, wclr</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="perf_counter-field_2">perf_counter field</h4>
+<p>Performance counter</p>
+
+<h3 id="perf_cnt-register_3">perf_cnt register</h3>
+<ul>
+<li>Absolute Address: 0x118</li>
+<li>Base Offset: 0x100</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Performance counter. Set corresponding perf_cnt_sel register depending on what
+performance metric and hart you would like to track.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47:0</td>
+<td>perf_counter</td>
+<td>rw, wclr</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="perf_counter-field_3">perf_counter field</h4>
+<p>Performance counter</p>
+
+<h3 id="perf_cnt-register_4">perf_cnt register</h3>
+<ul>
+<li>Absolute Address: 0x120</li>
+<li>Base Offset: 0x100</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Performance counter. Set corresponding perf_cnt_sel register depending on what
+performance metric and hart you would like to track.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47:0</td>
+<td>perf_counter</td>
+<td>rw, wclr</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="perf_counter-field_4">perf_counter field</h4>
+<p>Performance counter</p>
+
+<h3 id="perf_cnt-register_5">perf_cnt register</h3>
+<ul>
+<li>Absolute Address: 0x128</li>
+<li>Base Offset: 0x100</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Performance counter. Set corresponding perf_cnt_sel register depending on what
+performance metric and hart you would like to track.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47:0</td>
+<td>perf_counter</td>
+<td>rw, wclr</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="perf_counter-field_5">perf_counter field</h4>
+<p>Performance counter</p>
+
+<h3 id="perf_cnt-register_6">perf_cnt register</h3>
+<ul>
+<li>Absolute Address: 0x130</li>
+<li>Base Offset: 0x100</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Performance counter. Set corresponding perf_cnt_sel register depending on what
+performance metric and hart you would like to track.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47:0</td>
+<td>perf_counter</td>
+<td>rw, wclr</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="perf_counter-field_6">perf_counter field</h4>
+<p>Performance counter</p>
+
+<h3 id="perf_cnt-register_7">perf_cnt register</h3>
+<ul>
+<li>Absolute Address: 0x138</li>
+<li>Base Offset: 0x100</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Performance counter. Set corresponding perf_cnt_sel register depending on what
+performance metric and hart you would like to track.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47:0</td>
+<td>perf_counter</td>
+<td>rw, wclr</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="perf_counter-field_7">perf_counter field</h4>
+<p>Performance counter</p>
+
+<h3 id="perf_cnt-register_8">perf_cnt register</h3>
+<ul>
+<li>Absolute Address: 0x140</li>
+<li>Base Offset: 0x100</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Performance counter. Set corresponding perf_cnt_sel register depending on what
+performance metric and hart you would like to track.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47:0</td>
+<td>perf_counter</td>
+<td>rw, wclr</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="perf_counter-field_8">perf_counter field</h4>
+<p>Performance counter</p>
+
+<h3 id="perf_cnt-register_9">perf_cnt register</h3>
+<ul>
+<li>Absolute Address: 0x148</li>
+<li>Base Offset: 0x100</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Performance counter. Set corresponding perf_cnt_sel register depending on what
+performance metric and hart you would like to track.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47:0</td>
+<td>perf_counter</td>
+<td>rw, wclr</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="perf_counter-field_9">perf_counter field</h4>
+<p>Performance counter</p>
+
+<h3 id="perf_cnt-register_10">perf_cnt register</h3>
+<ul>
+<li>Absolute Address: 0x150</li>
+<li>Base Offset: 0x100</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Performance counter. Set corresponding perf_cnt_sel register depending on what
+performance metric and hart you would like to track.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47:0</td>
+<td>perf_counter</td>
+<td>rw, wclr</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="perf_counter-field_10">perf_counter field</h4>
+<p>Performance counter</p>
+
+<h3 id="perf_cnt-register_11">perf_cnt register</h3>
+<ul>
+<li>Absolute Address: 0x158</li>
+<li>Base Offset: 0x100</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Performance counter. Set corresponding perf_cnt_sel register depending on what
+performance metric and hart you would like to track.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47:0</td>
+<td>perf_counter</td>
+<td>rw, wclr</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="perf_counter-field_11">perf_counter field</h4>
+<p>Performance counter</p>
+
+<h3 id="perf_cnt-register_12">perf_cnt register</h3>
+<ul>
+<li>Absolute Address: 0x160</li>
+<li>Base Offset: 0x100</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Performance counter. Set corresponding perf_cnt_sel register depending on what
+performance metric and hart you would like to track.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47:0</td>
+<td>perf_counter</td>
+<td>rw, wclr</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="perf_counter-field_12">perf_counter field</h4>
+<p>Performance counter</p>
+
+<h3 id="perf_cnt-register_13">perf_cnt register</h3>
+<ul>
+<li>Absolute Address: 0x168</li>
+<li>Base Offset: 0x100</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Performance counter. Set corresponding perf_cnt_sel register depending on what
+performance metric and hart you would like to track.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47:0</td>
+<td>perf_counter</td>
+<td>rw, wclr</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="perf_counter-field_13">perf_counter field</h4>
+<p>Performance counter</p>
+
+<h3 id="perf_cnt-register_14">perf_cnt register</h3>
+<ul>
+<li>Absolute Address: 0x170</li>
+<li>Base Offset: 0x100</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Performance counter. Set corresponding perf_cnt_sel register depending on what
+performance metric and hart you would like to track.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47:0</td>
+<td>perf_counter</td>
+<td>rw, wclr</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="perf_counter-field_14">perf_counter field</h4>
+<p>Performance counter</p>
+
+<h3 id="perf_cnt-register_15">perf_cnt register</h3>
+<ul>
+<li>Absolute Address: 0x178</li>
+<li>Base Offset: 0x100</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [16]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x80</li>
+</ul>
+<p>Performance counter. Set corresponding perf_cnt_sel register depending on what
+performance metric and hart you would like to track.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>47:0</td>
+<td>perf_counter</td>
+<td>rw, wclr</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="perf_counter-field_15">perf_counter field</h4>
+<p>Performance counter</p>
+
+<h3 id="scratch-register">scratch register</h3>
+<ul>
+<li>Absolute Address: 0x180</li>
+<li>Base Offset: 0x180</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [4]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x20</li>
+</ul>
+<p>Scratch registers. Used in the bootrom for various purposes.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>31:0</td>
+<td>scratch</td>
+<td>rw</td>
+<td>0x0</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="scratch-field">scratch field</h4>
+<p>Scratch register</p>
+
+<h3 id="scratch-register_1">scratch register</h3>
+<ul>
+<li>Absolute Address: 0x188</li>
+<li>Base Offset: 0x180</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [4]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x20</li>
+</ul>
+<p>Scratch registers. Used in the bootrom for various purposes.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>31:0</td>
+<td>scratch</td>
+<td>rw</td>
+<td>0x0</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="scratch-field_1">scratch field</h4>
+<p>Scratch register</p>
+
+<h3 id="scratch-register_2">scratch register</h3>
+<ul>
+<li>Absolute Address: 0x190</li>
+<li>Base Offset: 0x180</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [4]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x20</li>
+</ul>
+<p>Scratch registers. Used in the bootrom for various purposes.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>31:0</td>
+<td>scratch</td>
+<td>rw</td>
+<td>0x0</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="scratch-field_2">scratch field</h4>
+<p>Scratch register</p>
+
+<h3 id="scratch-register_3">scratch register</h3>
+<ul>
+<li>Absolute Address: 0x198</li>
+<li>Base Offset: 0x180</li>
+<li>Size: 0x8</li>
+<li>Array Dimensions: [4]</li>
+<li>Array Stride: 0x8</li>
+<li>Total Size: 0x20</li>
+</ul>
+<p>Scratch registers. Used in the bootrom for various purposes.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>31:0</td>
+<td>scratch</td>
+<td>rw</td>
+<td>0x0</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="scratch-field_3">scratch field</h4>
+<p>Scratch register</p>
+
+<h3 id="cl_clint_set-register">cl_clint_set register</h3>
+<ul>
+<li>Absolute Address: 0x1A0</li>
+<li>Base Offset: 0x1A0</li>
+<li>Size: 0x8</li>
+</ul>
+<p>Set bits in the cluster-local CLINT. Writing a 1 at location i sets the cluster-local interrupt
+of hart i, where i is relative to the first hart in the cluster, ignoring the cluster base hart ID.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>31:0</td>
+<td>cl_clint_set</td>
+<td>w</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="cl_clint_set-field">cl_clint_set field</h4>
+<p>Set cluster-local interrupt of hart i</p>
+
+<h3 id="cl_clint_clear-register">cl_clint_clear register</h3>
+<ul>
+<li>Absolute Address: 0x1A8</li>
+<li>Base Offset: 0x1A8</li>
+<li>Size: 0x8</li>
+</ul>
+<p>Clear bits in the cluster-local CLINT. Writing a 1 at location i clears the cluster-local interrupt
+of hart i, where i is relative to the first hart in the cluster, ignoring the cluster base hart ID.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>31:0</td>
+<td>cl_clint_clear</td>
+<td>w</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="cl_clint_clear-field">cl_clint_clear field</h4>
+<p>Set cluster-local interrupt of hart i</p>
+
+<h3 id="icache_prefetch_enable-register">icache_prefetch_enable register</h3>
+<ul>
+<li>Absolute Address: 0x1B0</li>
+<li>Base Offset: 0x1B0</li>
+<li>Size: 0x8</li>
+</ul>
+<p>Controls prefetching of the instruction cache.</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>icache_prefetch_enable</td>
+<td>w</td>
+<td>0x1</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h4 id="icache_prefetch_enable-field">icache_prefetch_enable field</h4>
+<p>Enable instruction prefetching.</p>
+
+<h3 id="unused-register">unused register</h3>
+<ul>
+<li>Absolute Address: 0x1B8</li>
+<li>Base Offset: 0x1B8</li>
+<li>Size: 0x8</li>
+</ul>
+<p>Unused register added to print enum</p>
+
+<table>
+<thead>
+<tr>
+<th>Bits</th>
+<th>Identifier</th>
+<th>Access</th>
+<th>Reset</th>
+<th>Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4:0</td>
+<td>f</td>
+<td>r</td>
+<td>0x0</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>
