@@ -14,6 +14,9 @@ export SN_QUESTA_SEPP=questa-2023.4
 export SN_YOSYS="$SN_OSEDA yosys"
 export SN_LLVM_BINROOT=/usr/scratch2/vulcano/colluca/tools/riscv32-snitch-llvm-almalinux8-15.0.0-snitch-0.5.0/bin
 
+# We need Make >4.3 for grouped targets
+export PATH=$PWD/util/bin:$PATH
+
 # Add simulator binaries to PATH
 export PATH=$PWD/target/sim/build/bin:$PATH
 
@@ -26,6 +29,3 @@ export UV_LINK_MODE=copy
 # Bootstrap the Python environment
 uv sync --all-extras --locked
 source .venv/bin/activate
-
-# We need Make >4.3 for grouped targets
-alias make=make-4.4.1
