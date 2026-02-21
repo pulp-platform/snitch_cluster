@@ -37,6 +37,7 @@ export_include_dirs:
   - hw/snitch/include
   - hw/snitch_fp_ss/include
   - hw/snitch_ssr/include
+  - hw/generated
 
 sources:
   # reqrsp_interface
@@ -197,13 +198,9 @@ sources:
 
   # target/snitch_cluster
   - target: snitch_cluster_wrapper
-    include_dirs:
-      - hw/generated
     files:
       - hw/generated/snitch_cluster_pkg.sv
   - target: all(snitch_cluster_wrapper, not(netlist))
-    include_dirs:
-      - hw/generated
     files:
       - hw/generated/snitch_cluster_wrapper.sv
   - target: all(snitch_cluster_wrapper, gf12, netlist)
