@@ -40,7 +40,6 @@ export_include_dirs:
   - hw/snitch/include
   - hw/snitch_fp_ss/include
   - hw/snitch_ssr/include
-  - hw/generated
 
 sources:
   # reqrsp_interface
@@ -210,6 +209,8 @@ sources:
     files:
       - nonfree/gf12/fusion/runs/0/out/15/snitch_cluster_wrapper.v
   - target: all(snitch_cluster_wrapper, any(simulation, verilator))
+    include_dirs:
+      - hw/generated
     files:
       - target/sim/tb/vip_snitch_cluster.sv
       - target/sim/tb/testharness.sv
