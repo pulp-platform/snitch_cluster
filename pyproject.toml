@@ -79,8 +79,8 @@ explicit = true
 "snitch.util" = "util"
 "snitch.nonfree" = "nonfree/util"
 
-# Do not run pytest in submodules
 [tool.pytest.ini_options]
+testpaths = ["util/bench/tests"]
 norecursedirs = [
     "target/asic/ihp13/pdk"
 ]
