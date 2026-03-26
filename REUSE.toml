@@ -1,0 +1,87 @@
+# Copyright 2020 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+version = 1
+
+# .gitignore files and other git metadata
+[[annotations]]
+path = [".gitignore", "**/.gitignore", ".gitmodules"]
+SPDX-FileCopyrightText = "2020 ETH Zurich and University of Bologna"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Markdown documentation (bulk annotation; preferred over cluttering docs with HTML comments)
+[[annotations]]
+path = "**/*.md"
+SPDX-FileCopyrightText = "2020 ETH Zurich and University of Bologna"
+SPDX-License-Identifier = "Apache-2.0"
+
+# JSON files loaded via stdlib json (no comment syntax)
+[[annotations]]
+path = [
+  "util/clustergen/snitch_cluster.schema.json",
+  "sw/saris/eval.json",
+]
+SPDX-FileCopyrightText = "2020 ETH Zurich and University of Bologna"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Generated PeakRDL SystemVerilog (manually adding headers would be overwritten on regeneration)
+[[annotations]]
+path = [
+  "hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.sv",
+  "hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv",
+  "hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.svh",
+]
+SPDX-FileCopyrightText = "2020 ETH Zurich and University of Bologna"
+SPDX-License-Identifier = "SHL-0.51"
+
+# Hex test data
+[[annotations]]
+path = [
+  "hw/snitch_ssr/test/tb_simple_ssr.hex",
+  "hw/snitch_ssr/test/tb_simple_ssr_streamer.hex",
+]
+SPDX-FileCopyrightText = "2020 ETH Zurich and University of Bologna"
+SPDX-License-Identifier = "SHL-0.51"
+
+# Patch / diff files
+[[annotations]]
+path = [
+  "target/sim/patches/context.h.diff",
+  "target/sim/patches/device.h.diff",
+]
+SPDX-FileCopyrightText = "2020 ETH Zurich and University of Bologna"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Lock files and version pins
+[[annotations]]
+path = ["Bender.lock", "uv.lock", ".python-version"]
+SPDX-FileCopyrightText = "2020 ETH Zurich and University of Bologna"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Infrastructure / miscellaneous files
+[[annotations]]
+path = [
+  ".github/CODEOWNERS",
+  "docs/Doxyfile",
+  "target/sim/synopsys_sim.setup",
+  "target/asic/yosys/scripts/filter_output.awk",
+  "target/asic/yosys/src/lazy_man_synth_library.aig",
+  "util/bin/make",
+  "sw/kernels/dnn/layernorm/layout.csv",
+  "util/trace/opcodes-flt-occamy_CUSTOM.csv",
+]
+SPDX-FileCopyrightText = "2020 ETH Zurich and University of Bologna"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Root LICENSE file (kept for GitHub license detection; canonical text is in LICENSES/)
+[[annotations]]
+path = "LICENSE"
+SPDX-FileCopyrightText = "2004 The Apache Software Foundation"
+SPDX-License-Identifier = "Apache-2.0"
+
+# Third-party LLVM header — do not modify source file
+[[annotations]]
+path = "sw/runtime/src/omp/interface.h"
+SPDX-FileCopyrightText = "2003-2019 University of Illinois at Urbana-Champaign"
+SPDX-License-Identifier = "Apache-2.0 WITH LLVM-exception"
