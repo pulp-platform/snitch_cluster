@@ -37,6 +37,7 @@ dependencies = [
     "pytablewriter",
     "pytest",
     "pyyaml",
+    "reuse",
     "tabulate",
     "termcolor",
     "yamllint",
