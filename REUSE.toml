@@ -83,5 +83,5 @@ SPDX-License-Identifier = "Apache-2.0"
 # Third-party LLVM header — do not modify source file
 [[annotations]]
 path = "sw/runtime/src/omp/interface.h"
-SPDX-FileCopyrightText = "2003-2019 University of Illinois at Urbana-Champaign"
+SPDX-FileCopyrightText = "LLVM Project"
 SPDX-License-Identifier = "Apache-2.0 WITH LLVM-exception"
