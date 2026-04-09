@@ -5,7 +5,7 @@
 #
 # Author: Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-import json
+import json5
 from pathlib import Path
 import pytest
 from bench.roi import get_roi, format_roi, load_json_inputs, filter_and_label_rois
@@ -51,12 +51,12 @@ def test_format_roi():
 ])
 def test_get_roi(thread, idx, roi):
     with open(INPUT_JSON, 'r') as f:
-        data = json.load(f)
+        data = json5.load(f)
     assert get_roi(data, thread, idx) == roi
 
 
 def test_filter_and_label_rois():
     data, spec = load_json_inputs(INPUT_JSON, SPEC_JSON, num_clusters=2)
     with open(OUTPUT_JSON, 'r') as f:
-        output = json.load(f)
+        output = json5.load(f)
     assert filter_and_label_rois(data, spec) == output

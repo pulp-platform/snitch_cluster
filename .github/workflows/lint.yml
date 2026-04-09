@@ -49,31 +49,15 @@ jobs:
   #################
   # Check License #
   #################
-  license-lint:
-    name: Check License headers
+  reuse-lint:
+    name: Check REUSE Compliance
     runs-on: ubuntu-latest
     if: >
       github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name != github.repository
     steps:
-      - name: Check License
-        uses: pulp-platform/pulp-actions/lint-license@v2.4.3
-        with:
-          linters_revision: 20250217_01
-          # We cover ETH Zurich and lowRISC licenses and Apache 2.0
-          # (mostly for SW) and Solderpad for the hardware.
-          # yamllint disable rule:line-length
-          license: |
-            Copyright( \([c]\))?\s(\d{4}(-\d{4})?\s)?(ETH Zurich and University of Bologna|lowRISC contributors).
-            (Solderpad Hardware License, Version 0.51|Licensed under the Apache License, Version 2.0), see LICENSE for details.
-            SPDX-License-Identifier: (SHL-0.51|Apache-2.0)
-          # yamllint enable rule:line-length
-          match_regex: true
-          exclude_paths: |
-            sw/runtime/src/omp/interface.h
-            hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv
-            hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.sv
-            hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.svh
+      - uses: actions/checkout@v6
+      - uses: fsfe/reuse-action@v6
 
   ##################
   # Lint YML Files #
