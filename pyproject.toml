@@ -81,6 +81,3 @@ explicit = true
 
 [tool.pytest.ini_options]
 testpaths = ["util/bench/tests"]
-norecursedirs = [
-    "target/asic/ihp13/pdk"
-]
