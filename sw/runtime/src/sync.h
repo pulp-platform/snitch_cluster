@@ -346,8 +346,11 @@ inline uint32_t snrt_global_all_to_all_reduction(uint32_t value) {
     snrt_wait_writeback(tmp);
     snrt_cluster_hw_barrier();
 
-    // Reduce DM cores across clusters in global memory
-    if (snrt_is_dm_core()) {
+    // Reduce DM cores across clusters in global memory.
+    // If we only have a single cluster, this step is unnecessary and we must
+    // not enter the inter-cluster barrier (it may deadlock if the barrier state
+    // is not pristine).
+    if ((snrt_cluster_num() > 1) && snrt_is_dm_core()) {
         __atomic_add_fetch(&_reduction_result, *cluster_result,
                            __ATOMIC_RELAXED);
         snrt_inter_cluster_barrier();
