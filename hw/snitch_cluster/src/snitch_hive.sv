@@ -4,7 +4,8 @@
 
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 
-`include "snitch_vm/typedef.svh"
+`include "snitch/typedef.svh"
+`include "reqrsp_interface/typedef.svh"
 
 /// Shared subsystems for `CoreCount` cores.
 module snitch_hive import snitch_icache_pkg::*; #(
@@ -76,13 +77,13 @@ module snitch_hive import snitch_icache_pkg::*; #(
 
 
   for (genvar i = 0; i < CoreCount; i++) begin : gen_unpack_icache
-    assign inst_addr[i] = hive_req_i[i].inst_addr;
-    assign inst_cacheable[i] = hive_req_i[i].inst_cacheable;
-    assign inst_valid[i] = hive_req_i[i].inst_valid;
+    assign inst_addr[i] = hive_req_i[i].instr_req.addr;
+    assign inst_cacheable[i] = hive_req_i[i].instr_req.cacheable;
+    assign inst_valid[i] = hive_req_i[i].instr_req.q_valid;
     assign flush_valid[i] = hive_req_i[i].flush_i_valid;
-    assign hive_rsp_o[i].inst_data = inst_data[i];
-    assign hive_rsp_o[i].inst_ready = inst_ready[i];
-    assign hive_rsp_o[i].inst_error = inst_error[i];
+    assign hive_rsp_o[i].instr_rsp.data = inst_data[i];
+    assign hive_rsp_o[i].instr_rsp.q_ready = inst_ready[i];
+    assign hive_rsp_o[i].instr_rsp.error = inst_error[i];
     assign hive_rsp_o[i].flush_i_ready = flush_ready[i];
   end
 
@@ -141,7 +142,7 @@ module snitch_hive import snitch_icache_pkg::*; #(
   // Typedef outside of the generate block
   // for VCS compatibility reasons
 
-  `SNITCH_VM_TYPEDEF(AddrWidth)
+  `SNITCH_VM_TYPEDEF_ALL(AddrWidth)
 
   typedef struct packed {
     snitch_pkg::va_t va;
@@ -161,13 +162,13 @@ module snitch_hive import snitch_icache_pkg::*; #(
 
     for (genvar i = 0; i < CoreCount; i++) begin : gen_connect_ptw_core
       for (genvar j = 0; j < 2; j++) begin : gen_connect_ptw_port
-        assign ptw_req_in[2*i+j].va = hive_req_i[i].ptw_va;
-        assign ptw_req_in[2*i+j].ppn = hive_req_i[i].ptw_ppn;
-        assign ptw_valid[2*i+j] = hive_req_i[i].ptw_valid;
+        assign ptw_req_in[2*i+j].va = hive_req_i[i].ptw_req.va;
+        assign ptw_req_in[2*i+j].ppn = hive_req_i[i].ptw_req.ppn;
+        assign ptw_valid[2*i+j] = hive_req_i[i].ptw_req.valid;
       end
-      assign hive_rsp_o[i].ptw_ready = ptw_ready[2*i+:2];
-      assign hive_rsp_o[i].ptw_pte = ptw_pte;
-      assign hive_rsp_o[i].ptw_is_4mega = ptw_is_4mega;
+      assign hive_rsp_o[i].ptw_rsp.ready = ptw_ready[2*i+:2];
+      assign hive_rsp_o[i].ptw_rsp.pte = ptw_pte;
+      assign hive_rsp_o[i].ptw_rsp.is_4mega = ptw_is_4mega;
     end
 
     logic ptw_valid_out, ptw_ready_out;
@@ -236,9 +237,7 @@ module snitch_hive import snitch_icache_pkg::*; #(
     assign ptw_data_req_o = '0;
 
     for (genvar i = 0; i < CoreCount; i++) begin : gen_tie_ptw_core
-      assign hive_rsp_o[i].ptw_ready = '0;
-      assign hive_rsp_o[i].ptw_pte = '0;
-      assign hive_rsp_o[i].ptw_is_4mega = 1'b0;
+      assign hive_rsp_o[i].ptw_rsp = '0;
     end
 
   end
@@ -253,45 +252,47 @@ module snitch_hive import snitch_icache_pkg::*; #(
     data_t          data_arga;
     data_t          data_argb;
     data_t          data_argc;
-  } acc_req_t;
+  } acc_req_chan_t;
 
   typedef struct packed {
     logic [ExtendedIdWidth-1:0] id;
     logic                       error;
     data_t          data;
-  } acc_resp_t;
+  } acc_rsp_chan_t;
 
-  acc_req_t              acc_req_sfu, acc_req_sfu_q; // to shared functional unit
-  logic                  acc_req_sfu_valid, acc_req_sfu_valid_q;
-  logic                  acc_req_sfu_ready, acc_req_sfu_ready_q;
+  `GENERIC_REQRSP_TYPEDEF_ALL(acc, acc_req_chan_t, acc_rsp_chan_t)
 
-  acc_resp_t             acc_resp_sfu; // to shared functional unit
+  acc_req_chan_t         acc_req_sfu; // to shared functional unit
+  logic                  acc_req_sfu_valid;
+  logic                  acc_req_sfu_ready;
+
+  acc_rsp_chan_t         acc_resp_sfu; // to shared functional unit
   logic                  acc_resp_sfu_valid;
   logic                  acc_resp_sfu_ready;
 
 
-  acc_req_t              [CoreCount-1:0] acc_req_ext; // extended version
+  acc_req_chan_t         [CoreCount-1:0] acc_req_ext; // extended version
   logic                  [CoreCount-1:0] acc_qvalid;
   logic                  [CoreCount-1:0] acc_qready;
   logic                  [CoreCount-1:0] acc_pvalid;
   logic                  [CoreCount-1:0] acc_pready;
 
   for (genvar i = 0; i < CoreCount; i++) begin : gen_core
-    assign acc_qvalid[i] = hive_req_i[i].acc_qvalid;
-    assign acc_pready[i] = hive_req_i[i].acc_pready;
-    assign hive_rsp_o[i].acc_qready = acc_qready[i];
-    assign hive_rsp_o[i].acc_pvalid = acc_pvalid[i];
-    assign acc_req_ext[i].id = {i[LogCoreCount-1:0], hive_req_i[i].acc_req.id};
-    assign acc_req_ext[i].addr = hive_req_i[i].acc_req.addr;
-    assign acc_req_ext[i].data_op = hive_req_i[i].acc_req.data_op;
-    assign acc_req_ext[i].data_arga = hive_req_i[i].acc_req.data_arga;
-    assign acc_req_ext[i].data_argb = hive_req_i[i].acc_req.data_argb;
-    assign acc_req_ext[i].data_argc = hive_req_i[i].acc_req.data_argc;
+    assign acc_qvalid[i] = hive_req_i[i].acc_req.q_valid;
+    assign acc_pready[i] = hive_req_i[i].acc_req.p_ready;
+    assign acc_req_ext[i].id = {i[LogCoreCount-1:0], hive_req_i[i].acc_req.q.id};
+    assign acc_req_ext[i].addr = hive_req_i[i].acc_req.q.addr;
+    assign acc_req_ext[i].data_op = hive_req_i[i].acc_req.q.data_op;
+    assign acc_req_ext[i].data_arga = hive_req_i[i].acc_req.q.data_arga;
+    assign acc_req_ext[i].data_argb = hive_req_i[i].acc_req.q.data_argb;
+    assign acc_req_ext[i].data_argc = hive_req_i[i].acc_req.q.data_argc;
+    assign hive_rsp_o[i].acc_rsp.q_ready = acc_qready[i];
+    assign hive_rsp_o[i].acc_rsp.p_valid = acc_pvalid[i];
   end
 
   if (CoreCount > 1) begin : gen_shared_interconnect
     stream_arbiter #(
-      .DATA_T  ( acc_req_t ),
+      .DATA_T  ( acc_req_chan_t ),
       .N_INP   ( CoreCount ),
       .ARBITER ( "rr" )
     ) i_stream_arbiter (
@@ -326,40 +327,31 @@ module snitch_hive import snitch_icache_pkg::*; #(
 
   for (genvar i = 0; i < CoreCount; i++) begin : gen_id_extension
     // reduce IP width again
-    assign hive_rsp_o[i].acc_resp.id    = acc_resp_sfu.id[IdWidth-1:0];
-    assign hive_rsp_o[i].acc_resp.error = acc_resp_sfu.error;
-    assign hive_rsp_o[i].acc_resp.data  = acc_resp_sfu.data;
+    assign hive_rsp_o[i].acc_rsp.p.id    = acc_resp_sfu.id[IdWidth-1:0];
+    assign hive_rsp_o[i].acc_rsp.p.error = acc_resp_sfu.error;
+    assign hive_rsp_o[i].acc_rsp.p.data  = acc_resp_sfu.data;
   end
 
-  spill_register  #(
-    .T      ( acc_req_t  ),
-    .Bypass ( 1'b1       )
-  ) i_spill_register_ipu (
-    .clk_i   ,
-    .rst_ni  ( rst_ni              ),
-    .valid_i ( acc_req_sfu_valid   ),
-    .ready_o ( acc_req_sfu_ready   ),
-    .data_i  ( acc_req_sfu         ),
-    .valid_o ( acc_req_sfu_valid_q ),
-    .ready_i ( acc_req_sfu_ready_q ),
-    .data_o  ( acc_req_sfu_q       )
-  );
+  acc_req_t acc_req;
+  acc_rsp_t acc_rsp;
+  assign acc_req.q         = acc_req_sfu;
+  assign acc_req.q_valid   = acc_req_sfu_valid;
+  assign acc_req.p_ready   = acc_resp_sfu_ready;
+  assign acc_resp_sfu       = acc_rsp.p;
+  assign acc_resp_sfu_valid = acc_rsp.p_valid;
+  assign acc_req_sfu_ready  = acc_rsp.q_ready;
 
   if (SharedIpu == 1) begin : gen_shared_ipu
     snitch_ipu #(
-      .IdWidth    ( ExtendedIdWidth ),
-      .Xpulpv2    ( Xpulpv2         ),
-      .acc_req_t  ( acc_req_t       ),
-      .acc_resp_t ( acc_resp_t      )
+      .IdWidth  (ExtendedIdWidth),
+      .Xpulpv2  (Xpulpv2),
+      .acc_req_t(acc_req_t),
+      .acc_rsp_t(acc_rsp_t)
     ) i_snitch_ipu (
       .clk_i,
       .rst_ni,
-      .acc_req_i        ( acc_req_sfu_q       ),
-      .acc_req_valid_i  ( acc_req_sfu_valid_q ),
-      .acc_req_ready_o  ( acc_req_sfu_ready_q ),
-      .acc_resp_o       ( acc_resp_sfu        ),
-      .acc_resp_valid_o ( acc_resp_sfu_valid  ),
-      .acc_resp_ready_i ( acc_resp_sfu_ready  )
+      .acc_req_i(acc_req),
+      .acc_rsp_o(acc_rsp)
     );
   end
 

@@ -8,7 +8,7 @@
 `include "axi/assign.svh"
 
 /// Testbench for the request/response TB
-module reqrsp_to_axi_tb import reqrsp_pkg::*; #(
+module reqrsp_to_axi_tb import reqrsp_pkg::*; import snitch_pkg::*; #(
   parameter int unsigned AW = 32,
   parameter int unsigned DW = 32,
   parameter int unsigned IW = 2,

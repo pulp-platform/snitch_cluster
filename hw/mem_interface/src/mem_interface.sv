@@ -15,7 +15,7 @@ interface MEM_BUS #(
   parameter type user_t  = logic
 );
 
-  import reqrsp_pkg::*;
+  import snitch_pkg::*;
 
   localparam int unsigned StrbWidth = DATA_WIDTH / 8;
 
@@ -65,7 +65,7 @@ interface MEM_BUS_DV #(
   input logic clk_i
 );
 
-  import reqrsp_pkg::*;
+  import snitch_pkg::*;
 
   localparam int unsigned StrbWidth = DATA_WIDTH / 8;
 

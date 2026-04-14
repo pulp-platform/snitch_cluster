@@ -16,7 +16,7 @@
 /// LR/SC reservations are happening on `DataWidth` granularity.
 module snitch_amo_shim
   import snitch_pkg::*;
-  import reqrsp_pkg::*;
+  import snitch_pkg::*;
 #(
   /// Address width.
   parameter int unsigned AddrMemWidth = 32,
@@ -258,7 +258,7 @@ module snitch_amo_shim
 endmodule
 
 /// Simple ALU supporting atomic memory operations.
-module snitch_amo_alu import reqrsp_pkg::*; (
+module snitch_amo_alu import snitch_pkg::*; (
   input  amo_op_e amo_op_i,
   input  logic [31:0]         operand_a_i,
   input  logic [31:0]         operand_b_i,

@@ -18,7 +18,7 @@
 `include "tcdm_interface/typedef.svh"
 `include "dca_interface/typedef.svh"
 
-`include "snitch_vm/typedef.svh"
+`include "snitch/typedef.svh"
 
 /// Snitch many-core cluster with improved TCDM interconnect.
 /// Snitch Cluster Top-Level.
@@ -87,55 +87,8 @@ module snitch_cluster
   parameter bit          EnableWideCollectives     = 0,
   /// Enable narrow collective operations.
   parameter bit          EnableNarrowCollectives   = 0,
-  /// Per-core enabling of the standard `E` ISA reduced-register extension.
-  parameter bit [NrCores-1:0] RVE           = '0,
-  /// Per-core enabling of the standard `F` ISA extensions.
-  parameter bit [NrCores-1:0] RVF           = '0,
-  /// Per-core enabling of the standard `D` ISA extensions.
-  parameter bit [NrCores-1:0] RVD           = '0,
-  /// Per-core enabling of `XDivSqrt` ISA extensions.
-  parameter bit [NrCores-1:0] XDivSqrt      = '0,
-  // Small-float extensions
-  /// FP 16-bit
-  parameter bit [NrCores-1:0] XF16          = '0,
-  /// FP 16 alt a.k.a. brain-float
-  parameter bit [NrCores-1:0] XF16ALT       = '0,
-  /// FP 8-bit
-  parameter bit [NrCores-1:0] XF8           = '0,
-  /// FP 8-bit alt
-  parameter bit [NrCores-1:0] XF8ALT        = '0,
-  /// Enable SIMD support.
-  parameter bit [NrCores-1:0] XFVEC         = '0,
-  /// Enable DOTP support.
-  parameter bit [NrCores-1:0] XFDOTP        = '0,
-  /// Per-core enabling of the custom `Xdma` ISA extensions.
-  parameter bit [NrCores-1:0] Xdma          = '0,
-  /// Per-core enabling of the custom `Xssr` ISA extensions.
-  parameter bit [NrCores-1:0] Xssr          = '0,
-  /// Per-core enabling of the custom `Xfrep` ISA extensions.
-  parameter bit [NrCores-1:0] Xfrep         = '0,
-  /// Per-core enabling of the custom `Xcopift` ISA extensions.
-  parameter bit [NrCores-1:0] Xcopift       = '0,
-  /// Per-core enabling of the custom 'Xpulppostmod' ISA extensions.
-  parameter bit [NrCores-1:0] Xpulppostmod  = '0,
-  /// Per-core enabling of the custom 'Xpulpabs' ISA extensions.
-  parameter bit [NrCores-1:0] Xpulpabs      = '0,
-  /// Per-core enabling of the custom 'Xpulpbitop' ISA extensions.
-  parameter bit [NrCores-1:0] Xpulpbitop    = '0,
-  /// Per-core enabling of the custom 'Xpulpbr' ISA extensions.
-  parameter bit [NrCores-1:0] Xpulpbr       = '0,
-  /// Per-core enabling of the custom 'Xpulpclip' ISA extensions.
-  parameter bit [NrCores-1:0] Xpulpclip     = '0,
-  /// Per-core enabling of the custom 'Xpulpmacsi' ISA extensions.
-  parameter bit [NrCores-1:0] Xpulpmacsi    = '0,
-  /// Per-core enabling of the custom 'Xpulpminmax' ISA extensions.
-  parameter bit [NrCores-1:0] Xpulpminmax   = '0,
-  /// Per-core enabling of the custom 'Xpulpslet' ISA extensions.
-  parameter bit [NrCores-1:0] Xpulpslet     = '0,
-  /// Per-core enabling of the custom 'Xpulpvect' ISA extensions.
-  parameter bit [NrCores-1:0] Xpulpvect     = '0,
-  /// Per-core enabling of the custom 'Xpulpvectshufflepack' ISA extensions.
-  parameter bit [NrCores-1:0] Xpulpvectshufflepack = '0,
+  /// ISA configurations of all cores.
+  parameter snitch_pkg::isa_cfg_t IsaCfg [NrCores] = '{default: '0},
   // Per-core enable of private IPU.
   parameter bit [NrCores-1:0] PrivateIpu    = '0,
   /// # Core-global parameters
@@ -411,9 +364,6 @@ module snitch_cluster
   localparam int unsigned NrWideRuleIdcs = NrWideSlaves - 1;
   localparam int unsigned NrWideRules = (1 + AliasRegionEnable) * NrWideRuleIdcs;
 
-  localparam bit [NrCores-1:0] Xpulpv2 = Xpulpabs | Xpulpbitop | Xpulpbr | Xpulpclip | Xpulpmacsi |
-    Xpulpminmax | Xpulpslet | Xpulpvect | Xpulpvectshufflepack;
-
   // AXI Configuration
   localparam axi_pkg::xbar_cfg_t ClusterXbarCfg = '{
     NoSlvPorts: NrNarrowMasters,
@@ -487,10 +437,20 @@ module snitch_cluster
   // the Xpulp extension.
   function automatic bit supports_xpulp(int unsigned hive_id);
     for (int i = 0; i < NrCores; i++) begin
-      if ((Hive[i] == hive_id) && (Xpulpv2[i] != 0))
+      bit Xpulpv2 = snitch_pkg::calculate_xpulpv2(IsaCfg[i]);
+      if ((Hive[i] == hive_id) && (Xpulpv2 != 0))
         return 1;
     end
     return 0;
+  endfunction
+
+  // If at least one core in the hive doesn't have a private IPU, then a shared IPU is needed
+  // in this hive.
+  function automatic int unsigned dma_count();
+    automatic int unsigned cnt = 0;
+    for (int i = 0; i < NrCores; i++)
+      if (IsaCfg[i].Xdma) cnt++;
+    return cnt;
   endfunction
 
   // --------
@@ -573,53 +533,22 @@ module snitch_cluster
     addr_t end_addr;
   } xbar_rule_t;
 
-  typedef struct packed {
-    acc_addr_e   addr;
-    logic [4:0]  id;
-    logic [31:0] data_op;
-    data_t       data_arga;
-    data_t       data_argb;
-    addr_t       data_argc;
-  } acc_req_t;
-
-    typedef struct packed {
-    logic [4:0] id;
-    logic       error;
-    data_t      data;
-  } acc_resp_t;
-
-  `SNITCH_VM_TYPEDEF(PhysicalAddrWidth)
+  `SNITCH_VM_TYPEDEF_ALL(PhysicalAddrWidth)
+  `SNITCH_INSTR_TYPEDEF_ALL(PhysicalAddrWidth)
+  `SNITCH_ACC_TYPEDEF_ALL(NarrowDataWidth, PhysicalAddrWidth)
 
   typedef struct packed {
-    // Slow domain.
-    logic       flush_i_valid;
-    addr_t      inst_addr;
-    logic       inst_cacheable;
-    logic       inst_valid;
-    // Fast domain.
-    acc_req_t   acc_req;
-    logic       acc_qvalid;
-    logic       acc_pready;
-    // Slow domain.
-    logic [1:0] ptw_valid;
-    va_t [1:0]  ptw_va;
-    pa_t [1:0]  ptw_ppn;
+    logic           flush_i_valid;
+    instr_req_t     instr_req;
+    acc_req_t       acc_req;
+    ptw_req_t [1:0] ptw_req;
   } hive_req_t;
 
   typedef struct packed {
-    // Slow domain.
-    logic          flush_i_ready;
-    logic [31:0]   inst_data;
-    logic          inst_ready;
-    logic          inst_error;
-    // Fast domain.
-    logic          acc_qready;
-    acc_resp_t     acc_resp;
-    logic          acc_pvalid;
-    // Slow domain.
-    logic [1:0]    ptw_ready;
-    l0_pte_t [1:0] ptw_pte;
-    logic [1:0]    ptw_is_4mega;
+    logic           flush_i_ready;
+    instr_rsp_t     instr_rsp;
+    acc_rsp_t       acc_rsp;
+    ptw_rsp_t [1:0] ptw_rsp;
   } hive_rsp_t;
 
   // ---------------------------
@@ -896,7 +825,7 @@ module snitch_cluster
 
   for (genvar i = 0; i < 2; i++) begin : gen_dma_rw_mem_ports
     assign ext_dma_req[i].q.addr = tcdm_addr_t'(ext_dma_req_q_addr_nontrunc[i]);
-    assign ext_dma_req[i].q.amo = reqrsp_pkg::AMONone;
+    assign ext_dma_req[i].q.amo = snitch_pkg::AMONone;
     assign ext_dma_req[i].q.user = '0;
   end
 
@@ -1153,8 +1082,6 @@ module snitch_cluster
       .axi_rsp_t (axi_mst_dma_resp_t),
       .hive_req_t (hive_req_t),
       .hive_rsp_t (hive_rsp_t),
-      .acc_req_t (acc_req_t),
-      .acc_resp_t (acc_resp_t),
       .dma_events_t (dma_events_t),
       .EnableXif (EnableXif),
       .XifIdWidth (XifIdWidth),
@@ -1164,31 +1091,7 @@ module snitch_cluster
       .x_commit_t (x_commit_t),
       .x_result_t (x_result_t),
       .BootAddr (BootAddrInternal),
-      .RVE (RVE[i]),
-      .RVF (RVF[i]),
-      .RVD (RVD[i]),
-      .XDivSqrt (XDivSqrt[i]),
-      .XF16 (XF16[i]),
-      .XF16ALT (XF16ALT[i]),
-      .XF8 (XF8[i]),
-      .XF8ALT (XF8ALT[i]),
-      .XFVEC (XFVEC[i]),
-      .XFDOTP (XFDOTP[i]),
-      .Xdma (Xdma[i]),
-      .IsoCrossing (IsoCrossing),
-      .Xfrep (Xfrep[i]),
-      .Xssr (Xssr[i]),
-      .Xcopift (Xcopift[i]),
-      .Xpulppostmod (Xpulppostmod[i]),
-      .Xpulpabs (Xpulpabs[i]),
-      .Xpulpbitop (Xpulpbitop[i]),
-      .Xpulpbr (Xpulpbr[i]),
-      .Xpulpclip (Xpulpclip[i]),
-      .Xpulpmacsi (Xpulpmacsi[i]),
-      .Xpulpminmax (Xpulpminmax[i]),
-      .Xpulpslet (Xpulpslet[i]),
-      .Xpulpvect (Xpulpvect[i]),
-      .Xpulpvectshufflepack (Xpulpvectshufflepack[i]),
+      .IsaCfg (IsaCfg[i]),
       .PrivateIpu (PrivateIpu[i]),
       .VMSupport (VMSupport),
       .NumIntOutstandingLoads (NumIntOutstandingLoads[i]),
@@ -1266,7 +1169,7 @@ module snitch_cluster
         tcdm_req[TcdmPortsOffs+j].q.user[0] = 1;
       end
     end
-    if (Xdma[i]) begin : gen_dma_connection
+    if (IsaCfg[i].Xdma) begin : gen_dma_connection
       for (genvar j = 0; j < DMANumChannels; j++) begin : gen_dma_connection
         assign wide_axi_mst_req[SDMAMst + j] = axi_dma_req[j];
         assign axi_dma_res[j] = wide_axi_mst_rsp[SDMAMst + j];
@@ -1801,7 +1704,7 @@ module snitch_cluster
   `ASSERT_INIT(AliasRegionAddrAlign,
     ~AliasRegionEnable || ((TCDMSizeNapotRounded - 1) & AliasRegionBase) == 0)
   // Make sure we only have one DMA in the system.
-  `ASSERT_INIT(NumberDMA, $onehot0(Xdma))
+  `ASSERT_INIT(NumberDMA, dma_count() <= 1)
   `ASSERT_INIT(UserCsrWidth, (CollectiveWidth + PhysicalAddrWidth) < 64,
     $sformatf("64-bit user CSR too small to accomodate %d-bit collective and %d-bit address", CollectiveWidth, PhysicalAddrWidth))
   // TODO(colluca): extend to support any DcaDataWidth that is an integer multiple of NarrowDataWidth

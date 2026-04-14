@@ -123,7 +123,7 @@ module snitch_ssr_indirector import snitch_ssr_pkg::*; #(
 
     // Index TCDM request (write-only)
     assign idx_req_o.q = '{addr: idx_addr, write: 1'b1,
-        strb: idx_strb_q, data: idx_data_q, amo: reqrsp_pkg::AMONone, default: '0};
+        strb: idx_strb_q, data: idx_data_q, amo: snitch_pkg::AMONone, default: '0};
 
     // Write index word when it is complete or when done is popped
     assign idx_req_o.q_valid = idx_word_valid_q;
@@ -336,7 +336,7 @@ module snitch_ssr_indirector import snitch_ssr_pkg::*; #(
     end
 
     // Index TCDM request (read-only)
-    assign idx_req_o.q = '{addr: idx_addr, amo: reqrsp_pkg::AMONone, default: '0};
+    assign idx_req_o.q = '{addr: idx_addr, amo: snitch_pkg::AMONone, default: '0};
 
     // Index handshaking
     assign natit_ena          = cfg_indir_i & idx_cred_left & ~isect_mst_blk_q & ~natit_done_i;

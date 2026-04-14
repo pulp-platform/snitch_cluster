@@ -10,17 +10,13 @@ module snitch_ipu import snitch_pkg::*;  #(
   parameter int unsigned IdWidth = 5,
   parameter bit Xpulpv2 = 0,
   parameter type acc_req_t = logic,
-  parameter type acc_resp_t = logic
+  parameter type acc_rsp_t = logic
 ) (
-  input  logic                     clk_i,
-  input  logic                     rst_ni,
+  input  logic     clk_i,
+  input  logic     rst_ni,
   // Accelerator Interface - Slave
-  input  acc_req_t         acc_req_i,
-  input  logic             acc_req_valid_i,
-  output logic             acc_req_ready_o,
-  output acc_resp_t        acc_resp_o,
-  output logic             acc_resp_valid_o,
-  input  logic             acc_resp_ready_i
+  input  acc_req_t acc_req_i,
+  output acc_rsp_t acc_rsp_o
 );
   `include "common_cells/registers.svh"
 
@@ -45,28 +41,28 @@ module snitch_ipu import snitch_pkg::*;  #(
     mul_valid_op = 1'b0;
     div_valid_op = 1'b0;
     dsp_valid_op = 1'b0;
-    acc_req_ready_o = 1'b0;
-    acc_resp_o.error = 1'b0;
+    acc_rsp_o.q_ready = 1'b0;
+    acc_rsp_o.p.error = 1'b0;
     illegal_instruction = 1'b0;
-    unique casez (acc_req_i.data_op)
+    unique casez (acc_req_i.q.data_op)
       riscv_instr::MUL,
       riscv_instr::MULH,
       riscv_instr::MULHSU,
       riscv_instr::MULHU: begin
         if (Xpulpv2) begin
-          dsp_valid_op = acc_req_valid_i;
-          acc_req_ready_o = dsp_ready_op;
+          dsp_valid_op = acc_req_i.q_valid;
+          acc_rsp_o.q_ready = dsp_ready_op;
         end else begin
-          mul_valid_op = acc_req_valid_i;
-          acc_req_ready_o = mul_ready_op;
+          mul_valid_op = acc_req_i.q_valid;
+          acc_rsp_o.q_ready = mul_ready_op;
         end
       end
       riscv_instr::DIV,
       riscv_instr::DIVU,
       riscv_instr::REM,
       riscv_instr::REMU: begin
-        div_valid_op = acc_req_valid_i;
-        acc_req_ready_o = div_ready_op;
+        div_valid_op = acc_req_i.q_valid;
+        acc_rsp_o.q_ready = div_ready_op;
       end
       riscv_instr::P_ABS,                 // Xpulpv2: p.abs
       riscv_instr::P_SLET,                // Xpulpv2: p.slet
@@ -218,8 +214,8 @@ module snitch_ipu import snitch_pkg::*;  #(
       riscv_instr::PV_PACK,               // Xpulpv2: pv.pack
       riscv_instr::PV_PACK_H: begin       // Xpulpv2: pv.pack.h
         if (Xpulpv2) begin
-          dsp_valid_op = acc_req_valid_i;
-          acc_req_ready_o = dsp_ready_op;
+          dsp_valid_op = acc_req_i.q_valid;
+          acc_rsp_o.q_ready = dsp_ready_op;
         end else begin
           illegal_instruction = 1'b1;
         end
@@ -233,18 +229,18 @@ module snitch_ipu import snitch_pkg::*;  #(
       .WIDTH       ( 32      ),
       .IdWidth     ( IdWidth )
   ) i_div (
-      .clk_i       ( clk_i                    ),
-      .rst_ni      ( rst_ni                   ),
-      .id_i        ( acc_req_i.id             ),
-      .operator_i  ( acc_req_i.data_op        ),
-      .op_a_i      ( acc_req_i.data_arga[31:0]),
-      .op_b_i      ( acc_req_i.data_argb[31:0]),
-      .in_vld_i    ( div_valid_op             ),
-      .in_rdy_o    ( div_ready_op             ),
-      .out_vld_o   ( div_valid                ),
-      .out_rdy_i   ( div_ready                ),
-      .id_o        ( div.id                   ),
-      .res_o       ( div.result               )
+      .clk_i       ( clk_i                       ),
+      .rst_ni      ( rst_ni                      ),
+      .id_i        ( acc_req_i.q.id              ),
+      .operator_i  ( acc_req_i.q.data_op         ),
+      .op_a_i      ( acc_req_i.q.data_arga[31:0] ),
+      .op_b_i      ( acc_req_i.q.data_argb[31:0] ),
+      .in_vld_i    ( div_valid_op                ),
+      .in_rdy_o    ( div_ready_op                ),
+      .out_vld_o   ( div_valid                   ),
+      .out_rdy_i   ( div_ready                   ),
+      .id_o        ( div.id                      ),
+      .res_o       ( div.result                  )
   );
 
   if (Xpulpv2) begin : gen_Xpulpv2
@@ -253,19 +249,19 @@ module snitch_ipu import snitch_pkg::*;  #(
         .Width    ( 32      ),
         .IdWidth  ( IdWidth )
     ) i_dspu (
-        .clk_i       ( clk_i                    ),
-        .rst_ni      ( rst_ni                   ),
-        .id_i        ( acc_req_i.id             ),
-        .operator_i  ( acc_req_i.data_op        ),
-        .op_a_i      ( acc_req_i.data_arga[31:0]),
-        .op_b_i      ( acc_req_i.data_argb[31:0]),
-        .op_c_i      ( acc_req_i.data_argc[31:0]),
-        .in_valid_i  ( dsp_valid_op             ),
-        .in_ready_o  ( dsp_ready_op             ),
-        .out_valid_o ( dsp_valid                ),
-        .out_ready_i ( dsp_ready                ),
-        .id_o        ( dsp.id                   ),
-        .result_o    ( dsp.result               )
+        .clk_i       ( clk_i                       ),
+        .rst_ni      ( rst_ni                      ),
+        .id_i        ( acc_req_i.q.id              ),
+        .operator_i  ( acc_req_i.q.data_op         ),
+        .op_a_i      ( acc_req_i.q.data_arga[31:0] ),
+        .op_b_i      ( acc_req_i.q.data_argb[31:0] ),
+        .op_c_i      ( acc_req_i.q.data_argc[31:0] ),
+        .in_valid_i  ( dsp_valid_op                ),
+        .in_ready_o  ( dsp_ready_op                ),
+        .out_valid_o ( dsp_valid                   ),
+        .out_ready_i ( dsp_ready                   ),
+        .id_o        ( dsp.id                      ),
+        .result_o    ( dsp.result                  )
     );
     // Output Arbitration
     stream_arbiter #(
@@ -278,8 +274,8 @@ module snitch_ipu import snitch_pkg::*;  #(
       .inp_valid_i ( {div_valid, dsp_valid} ),
       .inp_ready_o ( {div_ready, dsp_ready} ),
       .oup_data_o  ( oup                    ),
-      .oup_valid_o ( acc_resp_valid_o       ),
-      .oup_ready_i ( acc_resp_ready_i       )
+      .oup_valid_o ( acc_rsp_o.p_valid      ),
+      .oup_ready_i ( acc_req_i.p_ready      )
     );
   end else begin : gen_vanilla
     // Multiplication
@@ -289,16 +285,16 @@ module snitch_ipu import snitch_pkg::*;  #(
     ) i_multiplier (
       .clk_i,
       .rst_ni,
-      .id_i        ( acc_req_i.id             ),
-      .operator_i  ( acc_req_i.data_op        ),
-      .operand_a_i ( acc_req_i.data_arga[31:0]),
-      .operand_b_i ( acc_req_i.data_argb[31:0]),
-      .valid_i     ( mul_valid_op             ),
-      .ready_o     ( mul_ready_op             ),
-      .result_o    ( mul.result               ),
-      .valid_o     ( mul_valid                ),
-      .ready_i     ( mul_ready                ),
-      .id_o        ( mul.id                   )
+      .id_i        ( acc_req_i.q.id              ),
+      .operator_i  ( acc_req_i.q.data_op         ),
+      .operand_a_i ( acc_req_i.q.data_arga[31:0] ),
+      .operand_b_i ( acc_req_i.q.data_argb[31:0] ),
+      .valid_i     ( mul_valid_op                ),
+      .ready_o     ( mul_ready_op                ),
+      .result_o    ( mul.result                  ),
+      .valid_o     ( mul_valid                   ),
+      .ready_i     ( mul_ready                   ),
+      .id_o        ( mul.id                      )
     );
     // Output Arbitration
     stream_arbiter #(
@@ -311,13 +307,13 @@ module snitch_ipu import snitch_pkg::*;  #(
       .inp_valid_i ( {div_valid, mul_valid} ),
       .inp_ready_o ( {div_ready, mul_ready} ),
       .oup_data_o  ( oup                    ),
-      .oup_valid_o ( acc_resp_valid_o       ),
-      .oup_ready_i ( acc_resp_ready_i       )
+      .oup_valid_o ( acc_rsp_o.p_valid      ),
+      .oup_ready_i ( acc_req_i.p_ready      )
     );
   end
 
-  assign acc_resp_o.data = oup.result;
-  assign acc_resp_o.id = oup.id;
+  assign acc_rsp_o.p.data = oup.result;
+  assign acc_rsp_o.p.id = oup.id;
 endmodule
 
 module dspu #(
