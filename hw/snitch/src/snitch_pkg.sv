@@ -12,15 +12,6 @@ package snitch_pkg;
     SFImmediate, PC, Csr, CsrImmediate, PBImmediate
   } op_select_e;
 
-  localparam dm::hartinfo_t SnitchHartinfo = '{
-    zero1: '0,
-    nscratch: 1,
-    zero0: '0,
-    dataaccess: 1,
-    datasize: dm::DataCount,
-    dataaddr: dm::DataAddr
-  };
-
   /// Async interrupts of the core.
   typedef struct packed {
     /// Debug request
