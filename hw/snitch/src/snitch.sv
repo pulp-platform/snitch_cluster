@@ -278,7 +278,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   logic retire_x; // retire an XIF-offloaded instruction
 
   logic valid_instr;
-  logic exception;
+  logic exception, exception_pc_taken;
 
   // ALU Operations
   typedef enum logic [3:0]  {
@@ -571,6 +571,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
 
   logic [31:0] npc;
   always_comb begin
+    exception_pc_taken = 1'b0;
     pc_d = pc_q;
     npc = pc_q; // the next PC if we wouldn't be in debug mode
     // if we got a valid instruction word increment the PC unless we are waiting for an event
@@ -578,7 +579,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       casez (next_pc)
         Consec: npc = consec_pc;
         Alu: npc = alu_result & {{31{1'b1}}, ~zero_lsb};
-        Exception: npc = {tvec_q[M], 2'b0};
+        Exception: begin
+            npc = {tvec_q[M], 2'b0};
+            exception_pc_taken = 1'b1;
+        end
         MRet: npc = epc_q[M];
         SRet: npc = epc_q[S];
         DRet: npc = dpc_q;
@@ -3355,6 +3359,11 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       if (exception) begin
         epc_d[M] = pc_q;
         cause_irq_d[M] = interrupt;
+      end
+
+      // Only disable interrupt sensitivity and switch privilege levels
+      // once the next pc is going to be the appropriate trap handler.
+      if (exception_pc_taken) begin
         priv_lvl_d = PrivLvlM;
 
         // Manipulate exception stack.
