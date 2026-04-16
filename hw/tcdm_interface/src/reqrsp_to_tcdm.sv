@@ -94,7 +94,7 @@ module reqrsp_to_tcdm_intf #(
   typedef logic [UserWidth-1:0] user_t;
 
   `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
-  `TCDM_TYPEDEF_ALL(tcdm, addr_t, data_t, strb_t, user_t)
+  `TCDM_TYPEDEF_ALL(tcdm, DataWidth, AddrWidth, user_t)
 
   reqrsp_req_t reqrsp_req;
   reqrsp_rsp_t reqrsp_rsp;

@@ -25,11 +25,7 @@ module tcdm_mux #(
   localparam int unsigned SelectWidth = cf_math_pkg::idx_width(NrPorts);
   typedef logic [SelectWidth-1:0] select_t;
 
-  typedef logic [AddrWidth-1:0] addr_t;
-  typedef logic [DataWidth-1:0] data_t;
-  typedef logic [DataWidth/8-1:0] strb_t;
-
-  `TCDM_TYPEDEF_REQ_CHAN_T(tcdm_req_chan_t, addr_t, data_t, strb_t, user_t)
+  `TCDM_TYPEDEF_REQ_CHAN_T(tcdm_req_chan_t, DataWidth, AddrWidth, user_t)
 
   if (NrPorts > 1) begin : gen_mux
     logic [NrPorts-1:0] slv_req_valid, slv_req_ready;
@@ -119,11 +115,7 @@ module tcdm_mux_intf #(
   TCDM_BUS                        mst
 );
 
-  typedef logic [AddrWidth-1:0] addr_t;
-  typedef logic [DataWidth-1:0] data_t;
-  typedef logic [DataWidth/8-1:0] strb_t;
-
-  `TCDM_TYPEDEF_ALL(tcdm, addr_t, data_t, strb_t, user_t)
+  `TCDM_TYPEDEF_ALL(tcdm, DataWidth, AddrWidth, user_t)
 
   tcdm_req_t [NrPorts-1:0] tcdm_slv_req;
   tcdm_rsp_t [NrPorts-1:0] tcdm_slv_rsp;

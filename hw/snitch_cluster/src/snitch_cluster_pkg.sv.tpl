@@ -89,12 +89,6 @@ package ${cfg['cluster']['name']}_pkg;
 % endfor
   } sram_cfg_t;
 
-  typedef struct packed {
-    sram_cfg_t [${icache_cfg('ways')}-1:0] icache_tag;
-    sram_cfg_t [${icache_cfg('ways')}-1:0] icache_data;
-    sram_cfg_t tcdm;
-  } sram_cfgs_t;
-
   // Define dca_req_t and dca_rsp_t
   `DCA_TYPEDEF_ALL(dca, WideDataWidth)
 
@@ -111,13 +105,13 @@ package ${cfg['cluster']['name']}_pkg;
   typedef logic [WideIdWidthIn-1:0]     wide_in_id_t;
   typedef logic [WideIdWidthOut-1:0]    wide_out_id_t;
 
-// Generate the user field type definitions depending on the configuration
-% if cfg['cluster']['enable_narrow_collectives']:
   typedef struct packed {
     addr_t                          collective_mask;
     logic [CollectiveWidth-1:0]     collective_op;
     logic [AtomicIdWidth-1:0]       atomic_id;
-  } user_narrow_t;
+  } user_narrow_ext_t;
+% if cfg['cluster']['enable_narrow_collectives']:
+  typedef user_narrow_ext_t user_narrow_t;
 %else:
   typedef struct packed {
     logic [AtomicIdWidth-1:0]       atomic_id;
@@ -141,9 +135,7 @@ package ${cfg['cluster']['name']}_pkg;
   `AXI_TYPEDEF_ALL(wide_in, addr_t, wide_in_id_t, data_dma_t, strb_dma_t, user_dma_t)
   `AXI_TYPEDEF_ALL(wide_out, addr_t, wide_out_id_t, data_dma_t, strb_dma_t, user_dma_t)
 
-  typedef logic [TcdmAddrWidth-1:0]     tcdm_addr_t;
-
-  `TCDM_TYPEDEF_ALL(tcdm_dma, tcdm_addr_t, data_dma_t, strb_dma_t, logic)
+  `TCDM_TYPEDEF_ALL(tcdm_dma, WideDataWidth, TcdmAddrWidth, logic)
 
   function automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] get_cached_regions();
     automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] cached_regions;

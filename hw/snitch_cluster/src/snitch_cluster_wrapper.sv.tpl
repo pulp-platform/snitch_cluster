@@ -39,7 +39,9 @@ module ${cfg['cluster']['name']}_wrapper (
   input  logic [${cfg['cluster']['addr_width']-1}:0]                            cluster_base_addr_i,
   input  logic [${cfg['cluster']['addr_width']-1}:0]                            cluster_base_offset_i,
   input  logic                                   clk_d2_bypass_i,
-  input  ${cfg['cluster']['name']}_pkg::sram_cfgs_t         sram_cfgs_i,
+  input  ${cfg['cluster']['name']}_pkg::sram_cfg_t           sram_cfg_tcdm_i,
+  input  ${cfg['cluster']['name']}_pkg::sram_cfg_t [${cfg['cluster']['name']}_pkg::NrHives-1:0] sram_cfg_icache_tag_i,
+  input  ${cfg['cluster']['name']}_pkg::sram_cfg_t [${cfg['cluster']['name']}_pkg::NrHives-1:0] sram_cfg_icache_data_i,
   input  ${cfg['cluster']['name']}_pkg::narrow_in_req_t     narrow_in_req_i,
   output ${cfg['cluster']['name']}_pkg::narrow_in_resp_t    narrow_in_resp_o,
   output ${cfg['cluster']['name']}_pkg::narrow_out_req_t    narrow_out_req_o,
@@ -98,10 +100,6 @@ module ${cfg['cluster']['name']}_wrapper (
     .wide_out_resp_t (${cfg['cluster']['name']}_pkg::wide_out_resp_t),
     .wide_in_req_t (${cfg['cluster']['name']}_pkg::wide_in_req_t),
     .wide_in_resp_t (${cfg['cluster']['name']}_pkg::wide_in_resp_t),
-    .user_narrow_t (${cfg['cluster']['name']}_pkg::user_narrow_t),
-    .user_dma_t (${cfg['cluster']['name']}_pkg::user_dma_t),
-    .tcdm_dma_req_t (${cfg['cluster']['name']}_pkg::tcdm_dma_req_t),
-    .tcdm_dma_rsp_t (${cfg['cluster']['name']}_pkg::tcdm_dma_rsp_t),
     .x_issue_req_t (${cfg['cluster']['name']}_pkg::x_issue_req_t),
     .x_issue_resp_t (${cfg['cluster']['name']}_pkg::x_issue_resp_t),
     .x_register_t (${cfg['cluster']['name']}_pkg::x_register_t),
@@ -174,7 +172,6 @@ module ${cfg['cluster']['name']}_wrapper (
     .NarrowMaxMstTrans (${cfg['cluster']['narrow_trans']}),
     .NarrowMaxSlvTrans (${cfg['cluster']['narrow_trans']}),
     .sram_cfg_t (${cfg['cluster']['name']}_pkg::sram_cfg_t),
-    .sram_cfgs_t (${cfg['cluster']['name']}_pkg::sram_cfgs_t),
     .CaqDepth (${int(cfg['cluster']['caq_depth'])}),
     .CaqTagWidth (${int(cfg['cluster']['caq_tag_width'])}),
     .DebugSupport (${int(cfg['cluster']['enable_debug'])}),
@@ -213,9 +210,13 @@ module ${cfg['cluster']['name']}_wrapper (
     .clk_d2_bypass_i (1'b0),
 % endif
 % if cfg['cluster']['sram_cfg_expose']:
-    .sram_cfgs_i (sram_cfgs_i),
+    .sram_cfg_tcdm_i  (sram_cfg_tcdm_i),
+    .sram_cfg_icache_tag_i  (sram_cfg_icache_tag_i),
+    .sram_cfg_icache_data_i (sram_cfg_icache_data_i),
 % else:
-    .sram_cfgs_i (${cfg['cluster']['name']}_pkg::sram_cfgs_t'('0)),
+    .sram_cfg_tcdm_i  ('0),
+    .sram_cfg_icache_tag_i  ('0),
+    .sram_cfg_icache_data_i ('0),
 % endif
 % if cfg['cluster']['enable_xif']:
     .x_issue_resp_i,

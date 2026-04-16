@@ -273,7 +273,7 @@ module snitch_lsu import cf_math_pkg::*; #(
 
   // Re-align write data.
   /* verilator lint_off WIDTH */
-  assign lsu_qdata = $unsigned(lsu_qdata_i);
+  assign lsu_qdata = lsu_qdata_i;
   always_comb begin
     unique case (lsu_qaddr_i[DataAlign-1:0])
       3'b000: data_qdata = lsu_qdata;

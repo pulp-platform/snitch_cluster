@@ -37,7 +37,6 @@ module snitch_hive import snitch_icache_pkg::*; #(
   parameter type         hive_rsp_t         = logic,
   /// Configuration input types for memory cuts used in implementation.
   parameter type         sram_cfg_t         = logic,
-  parameter type         sram_cfgs_t        = logic,
   /// Derived parameter *Do not override*
   parameter type addr_t = logic [AddrWidth-1:0],
   parameter type data_t = logic [NarrowDataWidth-1:0]
@@ -56,7 +55,8 @@ module snitch_hive import snitch_icache_pkg::*; #(
 
   input logic      icache_prefetch_enable_i,
 
-  input sram_cfgs_t sram_cfgs_i,
+  input sram_cfg_t  sram_cfg_icache_tag_i,
+  input sram_cfg_t  sram_cfg_icache_data_i,
 
   output icache_l0_events_t [CoreCount-1:0] icache_events_o
 );
@@ -126,8 +126,8 @@ module snitch_hive import snitch_icache_pkg::*; #(
     .inst_ready_o     ( inst_ready     ),
     .inst_error_o     ( inst_error     ),
 
-    .sram_cfg_tag_i   ( sram_cfgs_i.icache_tag  ),
-    .sram_cfg_data_i  ( sram_cfgs_i.icache_data ),
+    .sram_cfg_tag_i   ( {ICacheWays{sram_cfg_icache_tag_i}}  ),
+    .sram_cfg_data_i  ( {ICacheWays{sram_cfg_icache_data_i}} ),
     .sram_cfg_out_data_o ( ),
     .sram_cfg_out_tag_o  ( ),
 
@@ -162,13 +162,13 @@ module snitch_hive import snitch_icache_pkg::*; #(
 
     for (genvar i = 0; i < CoreCount; i++) begin : gen_connect_ptw_core
       for (genvar j = 0; j < 2; j++) begin : gen_connect_ptw_port
-        assign ptw_req_in[2*i+j].va = hive_req_i[i].ptw_req.va;
-        assign ptw_req_in[2*i+j].ppn = hive_req_i[i].ptw_req.ppn;
-        assign ptw_valid[2*i+j] = hive_req_i[i].ptw_req.valid;
+        assign ptw_req_in[2*i+j].va = hive_req_i[i].ptw_req[j].va;
+        assign ptw_req_in[2*i+j].ppn = hive_req_i[i].ptw_req[j].ppn;
+        assign ptw_valid[2*i+j] = hive_req_i[i].ptw_req[j].valid;
+        assign hive_rsp_o[i].ptw_rsp[j].ready = ptw_ready[2*i+j];
+        assign hive_rsp_o[i].ptw_rsp[j].pte = ptw_pte;
+        assign hive_rsp_o[i].ptw_rsp[j].is_4mega = ptw_is_4mega;
       end
-      assign hive_rsp_o[i].ptw_rsp.ready = ptw_ready[2*i+:2];
-      assign hive_rsp_o[i].ptw_rsp.pte = ptw_pte;
-      assign hive_rsp_o[i].ptw_rsp.is_4mega = ptw_is_4mega;
     end
 
     logic ptw_valid_out, ptw_ready_out;

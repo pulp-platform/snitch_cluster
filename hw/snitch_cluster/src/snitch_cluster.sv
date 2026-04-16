@@ -117,9 +117,9 @@ module snitch_cluster
   /// Per-core depth of TCDM Mux unifying SSR 0 and Snitch requests.
   parameter int unsigned SsrMuxRespDepth [NrCores] = '{default: 0},
   /// Per-core internal parameters for each SSR.
-  parameter snitch_ssr_pkg::ssr_cfg_t [NumSsrsMax-1:0] SsrCfgs [NrCores] = '{default: '0},
+  parameter snitch_ssr_pkg::ssr_cfg_t [cf_math_pkg::iomsb(NumSsrsMax):0] SsrCfgs [NrCores] = '{default: '0},
   /// Per-core register indices for each SSR.
-  parameter logic [NumSsrsMax-1:0][4:0]  SsrRegs [NrCores] = '{default: 0},
+  parameter logic [cf_math_pkg::iomsb(NumSsrsMax):0][4:0]  SsrRegs [NrCores] = '{default: 0},
   /// Per-core amount of sequencer instructions for IPU and FPU if enabled.
   parameter int unsigned NumSequencerInstr [NrCores] = '{default: 0},
   /// Per-core amount of sequencer loops for FPU if enabled.
@@ -184,15 +184,8 @@ module snitch_cluster
   parameter type         wide_out_resp_t   = logic,
   parameter type         wide_in_req_t     = logic,
   parameter type         wide_in_resp_t    = logic,
-  /// User field is given as type as the subfields are config dependent!
-  parameter type         user_narrow_t     = logic,
-  parameter type         user_dma_t        = logic,
-  // TCDM Ports
-  parameter type         tcdm_dma_req_t    = logic,
-  parameter type         tcdm_dma_rsp_t    = logic,
   // Memory configuration input types; these vary depending on implementation.
   parameter type         sram_cfg_t        = logic,
-  parameter type         sram_cfgs_t       = logic,
   // XIF parameters
   parameter bit          EnableXif         = 1'b1,
   parameter int unsigned XifIdWidth        = 4,
@@ -223,6 +216,8 @@ module snitch_cluster
   /// Width of the external DCA interface
   parameter int unsigned DcaDataWidth       = WideDataWidth,
   /// Derived parameters
+  localparam int unsigned TCDMSize = NrBanks * TCDMDepth * (NarrowDataWidth/8),
+  localparam int unsigned TCDMAddrWidth = $clog2(TCDMSize),
   // TODO(colluca): this currently does not compile in Verilator (https://github.com/verilator/verilator/issues/6818)
   // localparam type dca_req_t = `DCA_REQ_STRUCT(DataWidth),
   // localparam type dca_rsp_t = `DCA_RSP_STRUCT(DataWidth)
@@ -230,7 +225,9 @@ module snitch_cluster
   localparam type dca_req_chan_t = `DCA_REQ_CHAN_STRUCT(DcaDataWidth),
   localparam type dca_req_t = `GENERIC_REQRSP_REQ_STRUCT(dca_req_chan_t),
   localparam type dca_rsp_chan_t = `DCA_RSP_CHAN_STRUCT(DcaDataWidth),
-  localparam type dca_rsp_t = `GENERIC_REQRSP_RSP_STRUCT(dca_rsp_chan_t)
+  localparam type dca_rsp_t = `GENERIC_REQRSP_RSP_STRUCT(dca_rsp_chan_t),
+  localparam type tcdm_dma_req_t = `TCDM_REQ_STRUCT(WideDataWidth, TCDMAddrWidth, logic),
+  localparam type tcdm_dma_rsp_t = `TCDM_RSP_STRUCT(WideDataWidth)
 ) (
   /// System clock. If `IsoCrossing` is enabled this port is the _fast_ clock.
   /// The slower, half-frequency clock, is derived internally.
@@ -265,7 +262,9 @@ module snitch_cluster
   input  logic [PhysicalAddrWidth-1:0]            cluster_base_offset_i,
   /// Configuration inputs for the memory cuts used in implementation.
   /// These signals are pseudo-static.
-  input  sram_cfgs_t                              sram_cfgs_i,
+  input  sram_cfg_t                               sram_cfg_tcdm_i,
+  input  sram_cfg_t [NrHives-1:0]                 sram_cfg_icache_tag_i,
+  input  sram_cfg_t [NrHives-1:0]                 sram_cfg_icache_data_i,
   /// Bypass half-frequency clock. (`d2` = divide-by-two). This signal is
   /// pseudo-static.
   input  logic                                    clk_d2_bypass_i,
@@ -320,8 +319,6 @@ module snitch_cluster
   /// Minimum width to hold the core number.
   localparam int unsigned CoreIDWidth = cf_math_pkg::idx_width(NrCores);
   localparam int unsigned TCDMMemAddrWidth = $clog2(TCDMDepth);
-  localparam int unsigned TCDMSize = NrBanks * TCDMDepth * (NarrowDataWidth/8);
-  localparam int unsigned TCDMAddrWidth = $clog2(TCDMSize);
   localparam int unsigned TCDMSizeNapotRounded = 1 << TCDMAddrWidth;
   localparam int unsigned BanksPerHyperBank = NrBanks / NrHyperBanks;
   localparam int unsigned BanksPerSuperBank = WideDataWidth / NarrowDataWidth;
@@ -344,8 +341,8 @@ module snitch_cluster
 
   // User widths
   localparam int unsigned CoreUserWidth   = 64;
-  localparam int unsigned NarrowUserWidth = $bits(user_narrow_t);
-  localparam int unsigned WideUserWidth   = $bits(user_dma_t);
+  localparam int unsigned NarrowUserWidth = $bits(snitch_cluster_pkg::user_narrow_t);
+  localparam int unsigned WideUserWidth   = $bits(snitch_cluster_pkg::user_dma_t);
 
   // Core Requests, SoC Request, PTW.
   localparam int unsigned NrNarrowMasters = 3;
@@ -481,10 +478,10 @@ module snitch_cluster
   typedef logic [CoreIDWidth:0] tcdm_user_t;
 
   // Regbus peripherals.
-  `AXI_TYPEDEF_ALL(axi_mst, addr_t, id_mst_t, data_t, strb_t, user_narrow_t)
-  `AXI_TYPEDEF_ALL(axi_slv, addr_t, id_slv_t, data_t, strb_t, user_narrow_t)
-  `AXI_TYPEDEF_ALL(axi_mst_dma, addr_t, id_dma_mst_t, data_dma_t, strb_dma_t, user_dma_t)
-  `AXI_TYPEDEF_ALL(axi_slv_dma, addr_t, id_dma_slv_t, data_dma_t, strb_dma_t, user_dma_t)
+  `AXI_TYPEDEF_ALL(axi_mst, addr_t, id_mst_t, data_t, strb_t, snitch_cluster_pkg::user_narrow_t)
+  `AXI_TYPEDEF_ALL(axi_slv, addr_t, id_slv_t, data_t, strb_t, snitch_cluster_pkg::user_narrow_t)
+  `AXI_TYPEDEF_ALL(axi_mst_dma, addr_t, id_dma_mst_t, data_dma_t, strb_dma_t, snitch_cluster_pkg::user_dma_t)
+  `AXI_TYPEDEF_ALL(axi_slv_dma, addr_t, id_dma_slv_t, data_dma_t, strb_dma_t, snitch_cluster_pkg::user_dma_t)
 
   `AXI_LITE_TYPEDEF_ALL(axi_lite, addr_t, data_t, strb_t)
 
@@ -494,12 +491,12 @@ module snitch_cluster
   `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
   // Reqrsp interface in the cluster additionally contains the cluster ID
   // (used for atomic operations) in the user field
-  `REQRSP_TYPEDEF_ALL(reqrsp_amo, addr_t, data_t, strb_t, user_narrow_t)
+  `REQRSP_TYPEDEF_ALL(reqrsp_amo, addr_t, data_t, strb_t, snitch_cluster_pkg::user_narrow_t)
 
   `MEM_TYPEDEF_ALL(mem, tcdm_mem_addr_t, data_t, strb_t, tcdm_user_t)
   `MEM_TYPEDEF_ALL(mem_dma, tcdm_mem_addr_t, data_dma_t, strb_dma_t, logic)
 
-  `TCDM_TYPEDEF_ALL(tcdm, tcdm_addr_t, data_t, strb_t, tcdm_user_t)
+  `TCDM_TYPEDEF_ALL(tcdm, NarrowDataWidth, TCDMAddrWidth, tcdm_user_t)
 
   // Define dca_lane_req_t and dca_lane_rsp_t
   `DCA_TYPEDEF_ALL(dca_lane, DcaLaneDataWidth)
@@ -722,7 +719,8 @@ module snitch_cluster
     '{idx: TCDMDMA,    start_addr: tcdm_start_address,     end_addr: tcdm_end_address}
   };
   always_comb begin
-    automatic int unsigned i = 0;
+    automatic int unsigned i;
+    i = 0;
     enabled_dma_xbar_rule[i] = dma_xbar_rules[0]; i++; // TCDM
     enabled_dma_xbar_rule[i] = dma_xbar_rules[1]; i++; // ZeroMemory
     if (IntBootromEnable) begin
@@ -739,10 +737,7 @@ module snitch_cluster
   // i.e. they are handled outside of the cluster, e.g. in the NoC router
   typedef bit [DmaXbarCfg.NoMstPorts-1:0] wide_mst_connectivity_t;
   typedef wide_mst_connectivity_t [DmaXbarCfg.NoSlvPorts-1:0] wide_xbar_connectivity_t;
-  localparam wide_mst_connectivity_t WideMstCollectiveConnectivity = wide_mst_connectivity_t'{
-    SoCDMAOut: 1'b1,
-    default: 1'b0
-  };
+  localparam wide_mst_connectivity_t WideMstCollectiveConnectivity = wide_mst_connectivity_t'(1 << SoCDMAOut);
   localparam wide_xbar_connectivity_t DmaCollectiveConnectivity = wide_xbar_connectivity_t'{
     default: WideMstCollectiveConnectivity
   };
@@ -833,8 +828,6 @@ module snitch_cluster
     .NumInp (2),
     .NumOut (NrSuperBanks),
     .NumHyperBanks (NrHyperBanks),
-    .tcdm_req_t (tcdm_dma_req_t),
-    .tcdm_rsp_t (tcdm_dma_rsp_t),
     .mem_req_t (mem_dma_req_t),
     .mem_rsp_t (mem_dma_rsp_t),
     .user_t (logic),
@@ -855,8 +848,6 @@ module snitch_cluster
     .NumInp (NumExpWideTcdmPorts),
     .NumOut (NrSuperBanks),
     .NumHyperBanks (NrHyperBanks),
-    .tcdm_req_t (tcdm_dma_req_t),
-    .tcdm_rsp_t (tcdm_dma_rsp_t),
     .mem_req_t (mem_dma_req_t),
     .mem_rsp_t (mem_dma_rsp_t),
     .user_t (logic),
@@ -919,7 +910,7 @@ module snitch_cluster
       ) i_data_mem (
         .clk_i,
         .rst_ni,
-        .impl_i (sram_cfgs_i.tcdm),
+        .impl_i (sram_cfg_tcdm_i),
         .impl_o (  ),
         .req_i (mem_cs),
         .we_i (mem_wen),
@@ -972,8 +963,6 @@ module snitch_cluster
     .NumInp (NumTCDMIn),
     .NumOut (NrBanks),
     .NumHyperBanks (NrHyperBanks),
-    .tcdm_req_t (tcdm_req_t),
-    .tcdm_rsp_t (tcdm_rsp_t),
     .mem_req_t (mem_req_t),
     .mem_rsp_t (mem_rsp_t),
     .TcdmAddrWidth (TCDMAddrWidth),
@@ -1105,8 +1094,8 @@ module snitch_cluster
       .NumSequencerLoops (NumSequencerLoops[i]),
       .NumSsrs (NumSsrs[i]),
       .SsrMuxRespDepth (SsrMuxRespDepth[i]),
-      .SsrCfgs (SsrCfgs[i][NumSsrs[i]-1:0]),
-      .SsrRegs (SsrRegs[i][NumSsrs[i]-1:0]),
+      .SsrCfgs (SsrCfgs[i][cf_math_pkg::iomsb(NumSsrs[i]):0]),
+      .SsrRegs (SsrRegs[i][cf_math_pkg::iomsb(NumSsrs[i]):0]),
       .RegisterOffloadReq (RegisterOffloadReq),
       .RegisterOffloadRsp (RegisterOffloadRsp),
       .RegisterCoreReq (RegisterCoreReq),
@@ -1217,7 +1206,6 @@ module snitch_cluster
       .ICacheL1DataScm (ICacheL1DataScm[i]),
       .IsoCrossing (IsoCrossing),
       .sram_cfg_t  (sram_cfg_t),
-      .sram_cfgs_t (sram_cfgs_t),
       .axi_req_t (axi_mst_dma_req_t),
       .axi_rsp_t (axi_mst_dma_resp_t)
     ) i_snitch_hive (
@@ -1232,7 +1220,8 @@ module snitch_cluster
       .axi_rsp_i (wide_axi_mst_rsp[SDMAMst+DMANumChannels+i]),
       .icache_prefetch_enable_i (icache_prefetch_enable),
       .icache_events_o(icache_events_reshape),
-      .sram_cfgs_i
+      .sram_cfg_icache_tag_i  (sram_cfg_icache_tag_i[i]),
+      .sram_cfg_icache_data_i (sram_cfg_icache_data_i[i])
     );
   end
 
@@ -1312,14 +1301,14 @@ module snitch_cluster
   // User field for the AXI transmission
   // Encodes the atomic ID and (if enabled) collective operation information
   atomic_id_t   atomic_id;
-  user_narrow_t cluster_user;
+  snitch_cluster_pkg::user_narrow_t cluster_user;
 
   // Atomic ID, needs to be unique ID of cluster
   // cluster_id + HartIdOffset + 1 (because 0 is for non-atomic masters)
   assign atomic_id = (hart_base_id_i / NrCores) + (hart_base_id_i % NrCores) + 1'b1;
 
   if (EnableNarrowCollectives) begin : gen_user
-    assign cluster_user = '{
+    assign cluster_user = snitch_cluster_pkg::user_narrow_ext_t'{
       collective_mask: addr_t'(core_to_axi_req.q.user[CollectiveWidth+:PhysicalAddrWidth]),
       collective_op:   collective_op_t'(core_to_axi_req.q.user[0+:CollectiveWidth]),
       atomic_id:       atomic_id,
@@ -1422,10 +1411,7 @@ module snitch_cluster
   // i.e. they are handled outside of the cluster, e.g. in the NoC router
   typedef bit [ClusterXbarCfg.NoMstPorts-1:0] narrow_mst_connectivity_t;
   typedef narrow_mst_connectivity_t [ClusterXbarCfg.NoSlvPorts-1:0] xbar_connectivity_t;
-  localparam narrow_mst_connectivity_t MasterCollectiveConnectivity = narrow_mst_connectivity_t'{
-    SoC: 1'b1,
-    default: 1'b0
-  };
+  localparam narrow_mst_connectivity_t MasterCollectiveConnectivity = narrow_mst_connectivity_t'(1 << SoC);
   localparam xbar_connectivity_t ClusterCollectiveConnectivity = xbar_connectivity_t'{
     default: MasterCollectiveConnectivity
   };

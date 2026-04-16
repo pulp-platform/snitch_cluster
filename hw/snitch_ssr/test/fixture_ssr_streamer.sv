@@ -42,9 +42,8 @@ module fixture_ssr_streamer import snitch_ssr_pkg::*; #(
   // TCDM derived types
   typedef logic [AddrWidth-1:0]   addr_t;
   typedef logic [DataWidth-1:0]   data_t;
-  typedef logic [DataWidth/8-1:0] strb_t;
   typedef logic                   user_t;
-  `TCDM_TYPEDEF_ALL(tcdm, addr_t, data_t, strb_t, user_t);
+  `TCDM_TYPEDEF_ALL(tcdm, DataWidth, AddrWidth, user_t);
 
   // Configuration written through proper registers
   typedef struct packed {

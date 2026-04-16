@@ -73,8 +73,8 @@ module snitch_cc #(
   parameter int unsigned NumSequencerLoops = 0,
   parameter int unsigned NumSsrs = 0,
   parameter int unsigned SsrMuxRespDepth = 0,
-  parameter snitch_ssr_pkg::ssr_cfg_t [NumSsrs-1:0] SsrCfgs = '0,
-  parameter logic [NumSsrs-1:0][4:0] SsrRegs = '0,
+  parameter snitch_ssr_pkg::ssr_cfg_t [cf_math_pkg::iomsb(NumSsrs):0] SsrCfgs = '0,
+  parameter logic [cf_math_pkg::iomsb(NumSsrs):0][4:0] SsrRegs = '0,
   /// Add isochronous clock-domain crossings e.g., make it possible to operate
   /// the core in a slower clock domain.
   parameter bit          IsoCrossing        = 0,

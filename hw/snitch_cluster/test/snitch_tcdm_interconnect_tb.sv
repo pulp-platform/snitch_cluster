@@ -33,7 +33,7 @@ module snitch_tcdm_interconnect_tb #(
 
   logic  clk, rst_n;
 
-  `TCDM_TYPEDEF_ALL(tcdm, addr_t, data_t, strb_t, user_t)
+  `TCDM_TYPEDEF_ALL(tcdm, DataWidth, AddrWidth, user_t)
   `MEM_TYPEDEF_ALL(mem, tcdm_addr_t, data_t, strb_t, user_t)
 
   tcdm_req_t [NrInput-1:0] tcdm_req;

@@ -6,56 +6,63 @@
 // Author: Wolfgang Roenninger <wroennin@ethz.ch>
 
 `include "mem_interface/typedef.svh"
+`include "tcdm_interface/typedef.svh"
 
 /// Lightweight wrapper for a fixed response latency fully-connected (FC) interconnect,
 /// i.e. something that can be used to interconnect memories.
+/*
+Module: snitch_tcdm_fc_interconnect
+Lightweight wrapper for a fixed response latency fully-connected (FC) interconnect,
+i.e. something that can be used to interconnect memories.
+
+Parameters:
+  NumInp                - Number of inputs into the interconnect (`> 0`).
+  NumOut                - Number of outputs from the interconnect (`> 0`).
+  Radix                 - Radix of the individual switch points of the network.
+  NumSwitchNets         - Number of parallel networks for switch-based interconnects.
+  SwitchLfsrArbiter     - Whether to use an LFSR to arbitrate switch-based networks.
+  DataWidth             - Size of the data payload on the interconnect.
+  TcdmAddrWidth         - Address width on the request side.
+  MemAddrWidth          - Address width on the memory side.
+  MemoryResponseLatency - Latency of memory response (in cycles).
+  Topology              - Interconnect topology.
+  user_t                - Additional user payload to route.
+  mem_req_t             - Type of the data request ports.
+  mem_rsp_t             - Type of the data response ports.
+
+Ports:
+  clk_i     - Clock, positive edge triggered.
+  rst_ni    - Reset, active low.
+  req_i     - Request ports.
+  rsp_o     - Response ports.
+  mem_req_o - Memory-side request ports.
+  mem_rsp_i - Memory-side response ports.
+*/
 module snitch_tcdm_fc_interconnect #(
-  /// Number of inputs into the interconnect (`> 0`).
   parameter int unsigned NumInp                = 32'd0,
-  /// Number of outputs from the interconnect (`> 0`).
   parameter int unsigned NumOut                = 32'd0,
-  /// Radix of the individual switch points of the network.
-  /// Currently supported are `32'd2` and `32'd4`.
   parameter int unsigned Radix                 = 32'd2,
-  /// Number of parallel networks for switch-based interconnects.
-  parameter int unsigned NumSwitchNets          = 32'd2,
-  /// Whether to use an LFSR to arbitrate switch-based networks.
-  parameter bit          SwitchLfsrArbiter      = 1'b0,
-  /// Payload type of the data request ports.
-  parameter type         tcdm_req_t            = logic,
-  /// Payload type of the data response ports.
-  parameter type         tcdm_rsp_t            = logic,
-  /// Payload type of the data request ports.
-  parameter type         mem_req_t             = logic,
-  /// Payload type of the data response ports.
-  parameter type         mem_rsp_t             = logic,
-  /// Address width on the request side.
-  parameter int unsigned TcdmAddrWidth         = 32,
-  /// Address width on the memory side. Must be smaller than the incoming
-  /// address width.
-  parameter int unsigned MemAddrWidth          = 32,
-  /// Data size of the interconnect. Only the data portion counts. The offsets
-  /// into the address are derived from this.
+  parameter int unsigned NumSwitchNets         = 32'd2,
+  parameter bit          SwitchLfsrArbiter     = 1'b0,
   parameter int unsigned DataWidth             = 32,
-  /// Additional user payload to route.
-  parameter type         user_t                = logic,
-  /// Latency of memory response (in cycles)
+  parameter int unsigned TcdmAddrWidth         = 32,
+  parameter int unsigned MemAddrWidth          = 32,
   parameter int unsigned MemoryResponseLatency = 1,
-  parameter snitch_pkg::topo_e Topology        = snitch_pkg::LogarithmicInterconnect
+  parameter snitch_pkg::topo_e Topology        = snitch_pkg::LogarithmicInterconnect,
+  parameter type         user_t                = logic,
+  parameter type         mem_req_t             = logic,
+  parameter type         mem_rsp_t             = logic,
+
+  // Derived parameters
+  localparam type        tcdm_req_t            = `TCDM_REQ_STRUCT(DataWidth, TcdmAddrWidth, user_t),
+  localparam type        tcdm_rsp_t            = `TCDM_RSP_STRUCT(DataWidth)
 ) (
-  /// Clock, positive edge triggered.
-  input  logic                             clk_i,
-  /// Reset, active low.
-  input  logic                             rst_ni,
-  /// Request port.
-  input  tcdm_req_t           [NumInp-1:0] req_i,
-  /// Resposne port.
-  output tcdm_rsp_t           [NumInp-1:0] rsp_o,
-  /// Memory Side
-  /// Request.
-  output mem_req_t            [NumOut-1:0] mem_req_o,
-  /// Response.
-  input  mem_rsp_t            [NumOut-1:0] mem_rsp_i
+  input  logic                   clk_i,
+  input  logic                   rst_ni,
+  input  tcdm_req_t [NumInp-1:0] req_i,
+  output tcdm_rsp_t [NumInp-1:0] rsp_o,
+  output mem_req_t  [NumOut-1:0] mem_req_o,
+  input  mem_rsp_t  [NumOut-1:0] mem_rsp_i
 );
 
   localparam int unsigned ByteOffset = $clog2(DataWidth/8);
@@ -286,7 +293,7 @@ module snitch_tcdm_fc_interconnect #(
       bank_select: bank_select[i],
       valid: req_i[i].q_valid & rsp_o[i].q_ready
     };
-    // A this is a fixed latency interconnect a simple shift register is
+    // As this is a fixed latency interconnect a simple shift register is
     // sufficient to track the arbitration decisions.
     shift_reg #(
       .dtype ( rsp_t ),
