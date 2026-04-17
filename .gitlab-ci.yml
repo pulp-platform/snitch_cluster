@@ -185,11 +185,20 @@ yosys-synthesis:
     - make sw -j
     - make vsim-run SN_BINARY=$PWD/sw/tests/build/simple.elf
 
-################################
-# Non-free implementation flow #
-################################
+#################
+# Non-free jobs #
+#################
 
-nonfree:
+# Non-free elaboration flow
+elab:
   script:
     - make nonfree
     - make elab
+
+# Spyglass lint
+spyglass:
+  script:
+    - make nonfree
+    - make spyglass
+    - util/lint/check_spyglass_lint.py --threshold 3
+        nonfree/lint/build/sg_projects/snitch_cluster/snitch_cluster/lint/lint_rtl/spyglass_reports/moresimple.rpt
