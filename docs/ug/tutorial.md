@@ -461,3 +461,9 @@ You need to point the command to the _simulation directory_ in which the VCD dum
     Since the actual simulation command is run in a different directory, you need to point to the _simulation directory_ using an absolute path.
 
 Once the command terminates, you will find power reports in the `nonfree/gf12/synopsys/reports` folder, from which you can extract relevant power numbers.
+
+### Alternative: SAIF instead of VCD
+
+The VCD produced by the flow above is useful for waveform debugging but is large (several GB for a typical gate-level simulation window). If you only need the switching-activity data for power estimation, a much smaller [SAIF](https://en.wikipedia.org/wiki/Switching_Activity_Interchange_Format) (Switching Activity Interchange Format) file carries the same information — typically ~300× smaller than the VCD with no impact on the resulting power numbers.
+
+The nonfree flow provides a `power_saif` Make target that consumes a SAIF instead of a VCD; see the nonfree repository's README for how to produce the SAIF (either converted from an existing VCD, or dumped directly during simulation) and drive the `power_saif` target.
