@@ -73,6 +73,7 @@ snitch-ip-tests:
           - snitch_ssr
           - reqrsp_interface
   script:
+    - make rtl -j
     - cd hw/$IP
     - ./util/compile.sh
     - ./util/run_vsim.sh
