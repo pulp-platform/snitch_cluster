@@ -53,9 +53,16 @@ SN_COMMON_BENDER_FLAGS += -t ihp13 -t netlist
 SN_COMMON_BENDER_FLAGS += -DSIMULATION
 endif
 
-# VCD_DUMP flag enables VCD dump generation
+# VCD_DUMP / SAIF_DUMP flags enable VCD or SAIF dump generation. Only
+# one should be set at a time; if both are set, VCD_DUMP wins.
+SN_SAIF_TCL := $(SN_ROOT)/nonfree/gf12/modelsim/saif.tcl
 ifeq ($(VCD_DUMP), 1)
 SN_VSIM_FLAGS += -do "source $(SN_ROOT)/nonfree/gf12/modelsim/vcd.tcl"
+else ifeq ($(SAIF_DUMP), 1)
+ifeq ($(wildcard $(SN_SAIF_TCL)),)
+$(error SAIF_DUMP=1 requires $(SN_SAIF_TCL); please update/install the nonfree gf12 ModelSim collateral (e.g. merge the companion nonfree MR or refresh your nonfree checkout))
+endif
+SN_VSIM_FLAGS += -do "source $(SN_SAIF_TCL)"
 else
 SN_VSIM_FLAGS += -do "run -a"
 endif

@@ -461,3 +461,19 @@ You need to point the command to the _simulation directory_ in which the VCD dum
     Since the actual simulation command is run in a different directory, you need to point to the _simulation directory_ using an absolute path.
 
 Once the command terminates, you will find power reports in the `nonfree/gf12/synopsys/reports` folder, from which you can extract relevant power numbers.
+
+### Alternative: SAIF instead of VCD
+
+The VCD produced by the flow above is useful for waveform debugging but is large (several GB for a typical gate-level simulation window). If you only need the switching-activity data for power estimation, a much smaller [SAIF](https://en.wikipedia.org/wiki/Switching_Activity_Interchange_Format) (Switching Activity Interchange Format) file carries the same information — typically ~300× smaller than the VCD with no impact on the resulting power numbers.
+
+The physical simulation exposes a `SAIF_DUMP` flag which is the direct counterpart of `VCD_DUMP`. Build the model with it set:
+```shell
+make TECH=gf12 SAIF_DUMP=1 DEBUG=ON vsim
+```
+
+Then run the simulation, optionally windowing the recording with `SAIF_START` / `SAIF_END` (in ns, same semantics as `VCD_START` / `VCD_END`):
+```shell
+SAIF_START=127 SAIF_END=8898 snitch_cluster.vsim sw/kernels/blas/axpy/build/axpy.elf
+```
+
+The resulting `snitch_cluster.saif.gz` lives in a `saif` subdirectory of the _simulation directory_. The nonfree flow provides a corresponding `power_saif` Make target that consumes it; see the nonfree repository's README for the full details, including how to derive a SAIF from an existing VCD via Synopsys's `vcd2saif` utility.
