@@ -77,7 +77,7 @@ module axi_to_reqrsp #(
     logic           lock;
   } meta_t;
 
-  reqrsp_pkg::amo_op_e amo;
+  snitch_pkg::amo_op_e amo;
   data_t data;
   axi_pkg::resp_t resp;
   axi_pkg::len_t  r_cnt_d,        r_cnt_q,
@@ -298,7 +298,7 @@ module axi_to_reqrsp #(
 
   assign reqrsp_req_o.q = '{
     addr: meta.addr,
-    write: meta.write & (amo == reqrsp_pkg::AMONone),
+    write: meta.write & (amo == snitch_pkg::AMONone),
     amo: amo,
     // Silence those channels in case of a read.
     data: data & {DataWidth{meta.write}},
@@ -311,11 +311,11 @@ module axi_to_reqrsp #(
     amo = reqrsp_pkg::from_axi_amo(meta.atop);
     data = axi_req_i.w.data;
     // The `AMOAnd` has a slightly different semantic to the AXI `Set`.
-    if (amo == reqrsp_pkg::AMOAnd) data = ~axi_req_i.w.data;
+    if (amo == snitch_pkg::AMOAnd) data = ~axi_req_i.w.data;
     // Check wether this meant to be an exclusive access.
     if (meta.lock) begin
-      if (meta.write) amo = reqrsp_pkg::AMOSC;
-      else amo = reqrsp_pkg::AMOLR;
+      if (meta.write) amo = snitch_pkg::AMOSC;
+      else amo = snitch_pkg::AMOLR;
     end
   end
 
@@ -382,7 +382,7 @@ module axi_to_reqrsp #(
   // Assertions
   // Make sure that write is never set for AMOs.
   `ASSERT(AMOWriteEnable, reqrsp_req_o.q_valid &&
-    (reqrsp_req_o.q.amo != reqrsp_pkg::AMONone) |-> !reqrsp_req_o.q.write)
+    (reqrsp_req_o.q.amo != snitch_pkg::AMONone) |-> !reqrsp_req_o.q.write)
   // pragma translate_off
   `ifndef VERILATOR
   default disable iff (!rst_ni);

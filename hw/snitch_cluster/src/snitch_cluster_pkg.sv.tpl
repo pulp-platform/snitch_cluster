@@ -20,6 +20,10 @@ ${c[prop]}${', ' if not loop.last else ''}\
   % endfor
 </%def>\
 
+<%def name="core_isa(core_idx,isa)">\
+${int(getattr(cfg['cluster']['cores'][core_idx]['isa_parsed'], isa))}\
+</%def>\
+
 <%def name="ssr_cfg(core, ssr_fmt_str, none_str, inner_sep)">\
 % for core in cfg['cluster']['cores']:
   % for s in list(reversed(core['ssrs'] + [None]*(cfg['cluster']['num_ssrs_max']-len(core['ssrs'])))):
@@ -34,6 +38,7 @@ ${',' if not loop.last else ''}
 `include "axi/typedef.svh"
 `include "tcdm_interface/typedef.svh"
 `include "dca_interface/typedef.svh"
+`include "cv_x_if/typedef.svh"
 
 // verilog_lint: waive-start package-filename
 package ${cfg['cluster']['name']}_pkg;
@@ -72,19 +77,11 @@ package ${cfg['cluster']['name']}_pkg;
   localparam bit ICacheL1TagScm [NrHives] = '{${icache_cfg('tag_scm')}};
   localparam bit ICacheL1DataScm [NrHives] = '{${icache_cfg('data_scm')}};
 
-  localparam int unsigned XifNumRs = 3;
-  localparam int unsigned XifIdWidth = ${cfg['cluster']['xif_id_width']};
-  localparam int unsigned XifRfrWidth = 32;
-  localparam int unsigned XifRfwWidth = 32;
-  localparam int unsigned XifNumHarts = NrCores;
-  localparam int unsigned XifHartIdWidth = 32;
-  localparam logic [25:0] XifMisa = ${cfg['cluster']['xif_misa']};
-  localparam int unsigned XifDualRead = 0;
-  localparam int unsigned XifIssueRegisterSplit = 0;
-
   localparam int unsigned Hive [NrCores] = '{${core_cfg('hive')}};
 
   localparam int unsigned TcdmAddrWidth = $clog2(TcdmSize*1024);
+
+  localparam int unsigned XifIdWidth = ${cfg['cluster']['xif_id_width']};
 
   typedef struct packed {
 % for field, width in cfg['cluster']['sram_cfg_fields'].items():
@@ -100,6 +97,9 @@ package ${cfg['cluster']['name']}_pkg;
 
   // Define dca_req_t and dca_rsp_t
   `DCA_TYPEDEF_ALL(dca, WideDataWidth)
+
+  // Define x_issue_req_t, x_issue_resp_t, x_register_t, x_commit_t, x_result_t
+  `CV_X_IF_TYPEDEF_ALL(XifIdWidth)
 
   typedef logic [AddrWidth-1:0]         addr_t;
   typedef logic [NarrowDataWidth-1:0]   data_t;
@@ -144,44 +144,6 @@ package ${cfg['cluster']['name']}_pkg;
   typedef logic [TcdmAddrWidth-1:0]     tcdm_addr_t;
 
   `TCDM_TYPEDEF_ALL(tcdm_dma, tcdm_addr_t, data_dma_t, strb_dma_t, logic)
-
-  typedef logic [XifHartIdWidth-1:0]       x_hartid_t;
-  typedef logic [XifIdWidth-1:0]           x_id_t;
-  typedef logic [XifNumRs+XifDualRead-1:0] x_readregflags_t;
-
-  typedef struct packed {
-    logic [31:0] instr;
-    x_hartid_t   hartid;
-    x_id_t       id;
-  } x_issue_req_t;
-
-  typedef struct packed {
-    logic            accept;
-    logic            writeback;
-    x_readregflags_t register_read;
-  } x_issue_resp_t;
-
-  typedef struct packed {
-    x_hartid_t                            hartid;
-    x_id_t                                id;
-    logic [XifNumRs-1:0][XifRfrWidth-1:0] rs;
-    x_readregflags_t                      rs_valid;
-  } x_register_t;
-
-  typedef struct packed {
-    x_hartid_t hartid;
-    x_id_t     id;
-    logic      commit_kill;
-  } x_commit_t;
-
-  typedef struct packed {
-    x_hartid_t              hartid;
-    x_id_t                  id;
-    logic [XifRfwWidth-1:0] data;
-    logic [4:0]             rd;
-    logic                   we;
-  } x_result_t;
-
 
   function automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] get_cached_regions();
     automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] cached_regions;
@@ -279,6 +241,39 @@ package ${cfg['cluster']['name']}_pkg;
                         fpnew_pkg::DISABLED}}, // DOTP
 % endif
         PipeConfig: fpnew_pkg::${cfg['cluster']['timing']['fpu_pipe_config']}
+    }${',\n' if not loop.last else '\n'}\
+  % endfor
+  };
+
+  localparam snitch_pkg::isa_cfg_t IsaCfg [${cfg['cluster']['nr_cores']}] = '{
+  % for i, c in list(enumerate(cfg['cluster']['cores'])):
+    '{
+      RVE: ${int(getattr(c['isa_parsed'], 'e'))},
+      RVF: ${int(getattr(c['isa_parsed'], 'f'))},
+      RVD: ${int(getattr(c['isa_parsed'], 'd'))},
+      Xdma: ${int(c['xdma'])},
+      Xssr: ${int(c['xssr'])},
+      Xfrep: ${int(c['xfrep'])},
+      Xcopift: ${int(c['xcopift'])},
+      XF16: ${int(c['xf16'])},
+      XF16ALT: ${int(c['xf16alt'])},
+      XF8: ${int(c['xf8'])},
+      XF8ALT: ${int(c['xf8alt'])},
+      XDivSqrt: ${int(c['Xdiv_sqrt'])},
+      XFVEC: ${int(c['xfvec'])},
+      XFDOTP: ${int(c['xfdotp'])},
+      // FMA architecture is "merged" -> mulexp and macexp instructions are supported
+      XFAUX: FPUImplementation[${i}].UnitTypes[3] == fpnew_pkg::MERGED,
+      Xpulppostmod: ${int(c['xpulppostmod'])},
+      Xpulpabs: ${int(c['xpulpabs'])},
+      Xpulpbitop: ${int(c['xpulpbitop'])},
+      Xpulpbr: ${int(c['xpulpbr'])},
+      Xpulpclip: ${int(c['xpulpclip'])},
+      Xpulpmacsi: ${int(c['xpulpmacsi'])},
+      Xpulpminmax: ${int(c['xpulpminmax'])},
+      Xpulpslet: ${int(c['xpulpslet'])},
+      Xpulpvect: ${int(c['xpulpvect'])},
+      Xpulpvectshufflepack: ${int(c['xpulpvectshufflepack'])}
     }${',\n' if not loop.last else '\n'}\
   % endfor
   };

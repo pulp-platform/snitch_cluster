@@ -21,13 +21,6 @@ ${int(c[prop])}\
   % endfor
 </%def>\
 
-<%def name="core_isa(isa)">\
-${cfg['cluster']['nr_cores']}'b\
-  % for c in cfg['cluster']['cores'][::-1]:
-${int(getattr(c['isa_parsed'], isa))}\
-  % endfor
-</%def>\
-
 <%
   actual_num_exposed_wide_tcdm_ports = cfg['cluster']['num_exposed_wide_tcdm_ports']
   if actual_num_exposed_wide_tcdm_ports == 0:
@@ -55,7 +48,7 @@ module ${cfg['cluster']['name']}_wrapper (
   input  ${cfg['cluster']['name']}_pkg::wide_out_resp_t     wide_out_resp_i,
   input  ${cfg['cluster']['name']}_pkg::wide_in_req_t       wide_in_req_i,
   output ${cfg['cluster']['name']}_pkg::wide_in_resp_t      wide_in_resp_o,
-  output ${cfg['cluster']['name']}_pkg::x_issue_req_t [${cfg['cluster']['name']}_pkg::NrCores-1:0]  x_issue_req_o,
+  output ${cfg['cluster']['name']}_pkg::x_issue_req_t  [${cfg['cluster']['name']}_pkg::NrCores-1:0] x_issue_req_o,
   input  ${cfg['cluster']['name']}_pkg::x_issue_resp_t [${cfg['cluster']['name']}_pkg::NrCores-1:0] x_issue_resp_i,
   output logic [${cfg['cluster']['name']}_pkg::NrCores-1:0]                              x_issue_valid_o,
   input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0]                              x_issue_ready_i,
@@ -65,7 +58,7 @@ module ${cfg['cluster']['name']}_wrapper (
   output ${cfg['cluster']['name']}_pkg::x_commit_t [${cfg['cluster']['name']}_pkg::NrCores-1:0]     x_commit_o,
   output logic [${cfg['cluster']['name']}_pkg::NrCores-1:0]                              x_commit_valid_o,
   input  ${cfg['cluster']['name']}_pkg::x_result_t [${cfg['cluster']['name']}_pkg::NrCores-1:0]     x_result_i,
-  input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0]                                         x_result_valid_i,
+  input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0]                              x_result_valid_i,
   output logic [${cfg['cluster']['name']}_pkg::NrCores-1:0]                              x_result_ready_o,
   output ${cfg['cluster']['name']}_pkg::narrow_out_req_t    narrow_ext_req_o,
   input  ${cfg['cluster']['name']}_pkg::narrow_out_resp_t   narrow_ext_resp_i,
@@ -137,30 +130,7 @@ module ${cfg['cluster']['name']}_wrapper (
     .EnableNarrowCollectives (${cfg['cluster']['name']}_pkg::EnableNarrowCollectives),
     .EnableXif (${int(cfg['cluster']['enable_xif'])}),
     .XifIdWidth (${cfg['cluster']['name']}_pkg::XifIdWidth),
-    .RVE (${core_isa('e')}),
-    .RVF (${core_isa('f')}),
-    .RVD (${core_isa('d')}),
-    .XDivSqrt (${core_cfg_flat('Xdiv_sqrt')}),
-    .XF16 (${core_cfg_flat('xf16')}),
-    .XF16ALT (${core_cfg_flat('xf16alt')}),
-    .XF8 (${core_cfg_flat('xf8')}),
-    .XF8ALT (${core_cfg_flat('xf8alt')}),
-    .XFVEC (${core_cfg_flat('xfvec')}),
-    .XFDOTP (${core_cfg_flat('xfdotp')}),
-    .Xdma (${core_cfg_flat('xdma')}),
-    .Xssr (${core_cfg_flat('xssr')}),
-    .Xfrep (${core_cfg_flat('xfrep')}),
-    .Xcopift (${core_cfg_flat('xcopift')}),
-    .Xpulppostmod (${core_cfg_flat('xpulppostmod')}),
-    .Xpulpabs (${core_cfg_flat('xpulpabs')}),
-    .Xpulpbitop(${core_cfg_flat('xpulpbitop')}),
-    .Xpulpbr(${core_cfg_flat('xpulpbr')}),
-    .Xpulpclip(${core_cfg_flat('xpulpclip')}),
-    .Xpulpmacsi(${core_cfg_flat('xpulpmacsi')}),
-    .Xpulpminmax(${core_cfg_flat('xpulpminmax')}),
-    .Xpulpslet(${core_cfg_flat('xpulpslet')}),
-    .Xpulpvect(${core_cfg_flat('xpulpvect')}),
-    .Xpulpvectshufflepack(${core_cfg_flat('xpulpvectshufflepack')}),
+    .IsaCfg(${cfg['cluster']['name']}_pkg::IsaCfg),
     .PrivateIpu (${core_cfg_flat('private_ipu')}),
     .FPUImplementation (${cfg['cluster']['name']}_pkg::FPUImplementation),
     .SnitchPMACfg (${cfg['cluster']['name']}_pkg::SnitchPMACfg),

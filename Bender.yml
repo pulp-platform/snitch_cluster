@@ -42,10 +42,35 @@ export_include_dirs:
   - hw/snitch_ssr/include
 
 sources:
+  # snitch
+  - files:
+      # Level 0
+      - hw/snitch/src/snitch_pma_pkg.sv
+      - hw/snitch/src/riscv_instr.sv
+      # Level 1
+      - hw/snitch/src/snitch_pkg.sv
+      # Level 2
+      - hw/snitch/src/snitch_regfile_ff.sv
+      - hw/snitch/src/snitch_lsu.sv
+      - hw/snitch/src/snitch_l0_tlb.sv
+  - target: not(disable_pmcs)
+    defines:
+      SNITCH_ENABLE_PERF:
+    files:
+      - hw/snitch/src/snitch.sv
+  # Disable the performance monitoring counters to save area.
+  - target: disable_pmcs
+    files:
+      - hw/snitch/src/snitch.sv
+  - target: test
+    files:
+      - hw/snitch/test/snitch_l0_tlb_tb.sv
+
   # reqrsp_interface
   - files:
       # Level 0
       - hw/reqrsp_interface/src/generic_reqrsp_cut.sv
+      - hw/reqrsp_interface/src/generic_reqrsp_demux.sv
       - hw/reqrsp_interface/src/generic_reqrsp_mux.sv
       - hw/reqrsp_interface/src/reqrsp_pkg.sv
       # Level 1
@@ -98,30 +123,6 @@ sources:
   # dca_interface
   - files:
       - hw/dca_interface/src/dca_fork.sv
-
-  # snitch
-  - files:
-      # Level 0
-      - hw/snitch/src/snitch_pma_pkg.sv
-      - hw/snitch/src/riscv_instr.sv
-      # Level 1
-      - hw/snitch/src/snitch_pkg.sv
-      # Level 2
-      - hw/snitch/src/snitch_regfile_ff.sv
-      - hw/snitch/src/snitch_lsu.sv
-      - hw/snitch/src/snitch_l0_tlb.sv
-  - target: not(disable_pmcs)
-    defines:
-      SNITCH_ENABLE_PERF:
-    files:
-      - hw/snitch/src/snitch.sv
-  # Disable the performance monitoring counters to save area.
-  - target: disable_pmcs
-    files:
-      - hw/snitch/src/snitch.sv
-  - target: test
-    files:
-      - hw/snitch/test/snitch_l0_tlb_tb.sv
 
   # snitch_vm
   - files:

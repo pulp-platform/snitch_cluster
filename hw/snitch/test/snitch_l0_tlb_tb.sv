@@ -3,10 +3,10 @@
 // SPDX-License-Identifier: SHL-0.51
 
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
-`include "snitch_vm/typedef.svh"
+`include "snitch/typedef.svh"
 // verilog_lint: waive-start package-filename
 package snitch_l0_tlb_tb_pkg;
-  `SNITCH_VM_TYPEDEF(48)
+  `SNITCH_VM_TYPEDEF_ALL(48)
 endpackage
 // verilog_lint: waive-stop package-filename
 

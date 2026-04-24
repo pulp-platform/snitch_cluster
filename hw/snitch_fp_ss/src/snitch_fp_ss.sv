@@ -9,6 +9,7 @@
 `include "fpu_interface/typedef.svh"
 `include "dca_interface/assign.svh"
 `include "dca_interface/typedef.svh"
+`include "snitch/typedef.svh"
 
 // Floating Point Subsystem
 module snitch_fp_ss import snitch_pkg::*; #(
@@ -23,22 +24,10 @@ module snitch_fp_ss import snitch_pkg::*; #(
   parameter bit RegisterSequencer = 0,
   parameter bit RegisterFpuReq    = 0,
   parameter bit RegisterFpuRsp    = 0,
-  parameter bit Xfrep = 1,
   parameter fpnew_pkg::fpu_implementation_t FpuImplementation = '0,
-  parameter bit Xssr = 1,
-  parameter bit Xcopift = 1,
+  parameter snitch_pkg::isa_cfg_t IsaCfg = '0,
   parameter int unsigned NumSsrs = 0,
   parameter logic [NumSsrs-1:0][4:0]  SsrRegs = '0,
-  parameter type acc_req_t = logic,
-  parameter type acc_resp_t = logic,
-  parameter bit RVF = 1,
-  parameter bit RVD = 1,
-  parameter bit XF16 = 0,
-  parameter bit XF16ALT = 0,
-  parameter bit XF8 = 0,
-  parameter bit XF8ALT = 0,
-  parameter bit XFVEC = 0,
-  parameter int unsigned FLEN = DataWidth,
   parameter bit EnableDca = 0,
   /// Derived parameter *Do not override*
   localparam type addr_t = logic [AddrWidth-1:0],
@@ -50,7 +39,9 @@ module snitch_fp_ss import snitch_pkg::*; #(
   localparam type dca_req_chan_t = `DCA_REQ_CHAN_STRUCT(DataWidth),
   localparam type dca_req_t = `GENERIC_REQRSP_REQ_STRUCT(dca_req_chan_t),
   localparam type dca_rsp_chan_t = `DCA_RSP_CHAN_STRUCT(DataWidth),
-  localparam type dca_rsp_t = `GENERIC_REQRSP_RSP_STRUCT(dca_rsp_chan_t)
+  localparam type dca_rsp_t = `GENERIC_REQRSP_RSP_STRUCT(dca_rsp_chan_t),
+  localparam type acc_req_t = `SNITCH_ACC_REQ_STRUCT(DataWidth, AddrWidth),
+  localparam type acc_rsp_t = `SNITCH_ACC_RSP_STRUCT(DataWidth)
 ) (
   input  logic             clk_i,
   input  logic             rst_i,
@@ -62,11 +53,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   input  logic [31:0]      hart_id_i,
   // Accelerator Interface - Slave
   input  acc_req_t         acc_req_i,
-  input  logic             acc_req_valid_i,
-  output logic             acc_req_ready_o,
-  output acc_resp_t        acc_resp_o,
-  output logic             acc_resp_valid_o,
-  input  logic             acc_resp_ready_i,
+  output acc_rsp_t         acc_rsp_o,
   // Integer-to-FP COPIFT queue interface
   input  logic [31:0]      i2f_rdata_i,
   input  logic             i2f_rvalid_i,
@@ -111,6 +98,12 @@ module snitch_fp_ss import snitch_pkg::*; #(
   output dca_rsp_t         dca_rsp_o
 );
 
+  // -----------
+  // Localparams
+  // -----------
+
+  localparam int unsigned FLEN = snitch_pkg::calculate_flen(IsaCfg);
+
   // --------
   // Typedefs
   // --------
@@ -140,9 +133,12 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // Define fpu_req_t, fpu_rsp_t, fpu_req_chan_t, fpu_rsp_chan_t
   `FPU_TYPEDEF_REQRSP_ALL(fpu, FLEN, fpu_tag_t)
 
+  // Define acc_req_chan_t
+  `SNITCH_ACC_TYPEDEF_REQ_CHAN_T(DataWidth, AddrWidth)
+
   typedef struct packed {
     logic     repd;
-    acc_req_t req;
+    acc_req_chan_t req;
   } acc_req_repd_t;
 
   // -------------------
@@ -166,7 +162,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   logic [0:0]           fpr_wready;
 
   logic ssr_active_d, ssr_active_q, ssr_active_ena;
-  `FFLAR(ssr_active_q, Xssr & ssr_active_d, ssr_active_ena, 1'b0, clk_i, rst_i)
+  `FFLAR(ssr_active_q, IsaCfg.Xssr & ssr_active_d, ssr_active_ena, 1'b0, clk_i, rst_i)
 
   fpu_tag_t fpu_tag_in, fpu_tag_out;
 
@@ -216,11 +212,11 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // -------------
 
   acc_req_repd_t    acc_req;
-  acc_req_t         acc_req_q;
+  acc_req_chan_t    acc_req_q;
   logic             acc_req_repd_q;
   logic             acc_req_valid, acc_req_valid_q;
   logic             acc_req_ready, acc_req_ready_q;
-  if (Xfrep) begin : gen_fpu_sequencer
+  if (IsaCfg.Xfrep) begin : gen_fpu_sequencer
     snitch_sequencer #(
       .AddrWidth  (AddrWidth),
       .DataWidth  (DataWidth),
@@ -232,21 +228,21 @@ module snitch_fp_ss import snitch_pkg::*; #(
       // pragma translate_off
       .trace_port_o     ( sequencer_tracer_port_o ),
       // pragma translate_on
-      .inp_qaddr_i      ( acc_req_i.addr      ),
-      .inp_qid_i        ( acc_req_i.id        ),
-      .inp_qdata_op_i   ( acc_req_i.data_op   ),
-      .inp_qdata_arga_i ( acc_req_i.data_arga ),
-      .inp_qdata_argb_i ( acc_req_i.data_argb ),
-      .inp_qdata_argc_i ( acc_req_i.data_argc ),
-      .inp_qvalid_i     ( acc_req_valid_i     ),
-      .inp_qready_o     ( acc_req_ready_o     ),
-      .oup_qaddr_o      ( acc_req.req.addr        ),
-      .oup_qid_o        ( acc_req.req.id          ),
-      .oup_qdata_op_o   ( acc_req.req.data_op     ),
-      .oup_qdata_arga_o ( acc_req.req.data_arga   ),
-      .oup_qdata_argb_o ( acc_req.req.data_argb   ),
-      .oup_qdata_argc_o ( acc_req.req.data_argc   ),
-      .oup_qdata_repd_o ( acc_req.repd            ),
+      .inp_qaddr_i      ( acc_req_i.q.addr      ),
+      .inp_qid_i        ( acc_req_i.q.id        ),
+      .inp_qdata_op_i   ( acc_req_i.q.data_op   ),
+      .inp_qdata_arga_i ( acc_req_i.q.data_arga ),
+      .inp_qdata_argb_i ( acc_req_i.q.data_argb ),
+      .inp_qdata_argc_i ( acc_req_i.q.data_argc ),
+      .inp_qvalid_i     ( acc_req_i.q_valid     ),
+      .inp_qready_o     ( acc_rsp_o.q_ready     ),
+      .oup_qaddr_o      ( acc_req.req.addr      ),
+      .oup_qid_o        ( acc_req.req.id        ),
+      .oup_qdata_op_o   ( acc_req.req.data_op   ),
+      .oup_qdata_arga_o ( acc_req.req.data_arga ),
+      .oup_qdata_argb_o ( acc_req.req.data_argb ),
+      .oup_qdata_argc_o ( acc_req.req.data_argc ),
+      .oup_qdata_repd_o ( acc_req.repd          ),
       .oup_qvalid_o     ( acc_req_valid       ),
       .oup_qready_i     ( acc_req_ready       ),
       .streamctl_done_i,
@@ -257,15 +253,15 @@ module snitch_fp_ss import snitch_pkg::*; #(
     // pragma translate_off
     assign sequencer_tracer_port_o = 0;
     // pragma translate_on
-    assign acc_req_ready_o = acc_req_ready;
-    assign acc_req_valid = acc_req_valid_i;
-    assign acc_req = acc_req_repd_t'{req: acc_req_i, repd: '0};
+    assign acc_rsp_o.q_ready = acc_req_ready;
+    assign acc_req_valid = acc_req_i.q_valid;
+    assign acc_req = acc_req_repd_t'{req: acc_req_i.q, repd: '0};
   end
 
   // Optional spill-register
   spill_register  #(
     .T      ( acc_req_repd_t ),
-    .Bypass ( !RegisterSequencer || !Xfrep )
+    .Bypass ( !RegisterSequencer || !IsaCfg.Xfrep )
   ) i_spill_register_acc (
     .clk_i   ,
     .rst_ni  ( ~rst_i          ),
@@ -300,18 +296,18 @@ module snitch_fp_ss import snitch_pkg::*; #(
 
   // either the FPU or the regfile produced a result
   // If queue is enabled, data goes to queue instead of AccBus
-  assign acc_resp_valid_o = ~en_copift_i & (fpu_tag_out.acc & fpu_out_valid);
+  assign acc_rsp_o.p_valid = ~en_copift_i & (fpu_tag_out.acc & fpu_out_valid);
   assign f2i_wvalid_o = en_copift_i & (fpu_tag_out.acc & fpu_out_valid);
   // stall FPU if result destination is not ready
-  assign fpu_out_ready = fpu_tag_out.acc ? (en_copift_i ? f2i_wready_i : acc_resp_ready_i) : fpr_wready;
+  assign fpu_out_ready = fpu_tag_out.acc ? (en_copift_i ? f2i_wready_i : acc_req_i.p_ready) : fpr_wready;
 
   // FPU Result
   logic [FLEN-1:0] fpu_result;
 
   // FPU Tag
-  assign acc_resp_o.id = fpu_tag_out.rd;
+  assign acc_rsp_o.p.id = fpu_tag_out.rd;
   // accelerator bus write-port
-  assign acc_resp_o.data = fpu_result;
+  assign acc_rsp_o.p.data = fpu_result;
   assign f2i_wdata_o = fpu_result;
 
   assign rd = acc_req_q.data_op[11:7];
@@ -362,7 +358,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
 
   // Decoder
   always_comb begin
-    acc_resp_o.error = 1'b0;
+    acc_rsp_o.p.error = 1'b0;
     fpu_op = fpnew_pkg::ADD;
     use_fpu = 1'b1;
     fpu_rnd_mode = (fpnew_pkg::roundmode_e'(acc_req_q.data_op[14:12]) == fpnew_pkg::DYN)
@@ -1850,7 +1846,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
       end
       // Double Precision Floating-Point, MC extension
       riscv_instr::FLT_D_COPIFT: begin
-        if (Xcopift) begin
+        if (IsaCfg.Xcopift) begin
           fpu_op = fpnew_pkg::CMP;
           op_select[0]   = RegA;
           op_select[1]   = RegB;
@@ -2331,7 +2327,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
       // Double Precision Floating-Point
       riscv_instr::FCVT_D_W_COPIFT,
       riscv_instr::FCVT_D_WU_COPIFT: begin
-        if (Xcopift) begin
+        if (IsaCfg.Xcopift) begin
           fpu_op = fpnew_pkg::I2F;
           op_select[0] = RegA;
           src_fmt      = fpnew_pkg::FP64;
@@ -2522,7 +2518,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
       end
       default: begin
         use_fpu = 1'b0;
-        acc_resp_o.error = 1'b1;
+        acc_rsp_o.p.error = 1'b1;
         rd_is_fp = 1'b0;
       end
     endcase
@@ -2704,13 +2700,13 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // Floating Point Unit
   // ----------------------
   snitch_fpu #(
-    .RVF              (RVF),
-    .RVD              (RVD),
-    .XF16             (XF16),
-    .XF16ALT          (XF16ALT),
-    .XF8              (XF8),
-    .XF8ALT           (XF8ALT),
-    .XFVEC            (XFVEC),
+    .RVF              (IsaCfg.RVF),
+    .RVD              (IsaCfg.RVD),
+    .XF16             (IsaCfg.XF16),
+    .XF16ALT          (IsaCfg.XF16ALT),
+    .XF8              (IsaCfg.XF8),
+    .XF8ALT           (IsaCfg.XF8ALT),
+    .XFVEC            (IsaCfg.XFVEC),
     .FLEN             (FLEN),
     .FpuImplementation(FpuImplementation),
     .RegisterFpuReq   (RegisterFpuReq),
@@ -2795,7 +2791,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .NumOutstandingLoads (NumFPOutstandingLoads),
     .NaNBox (1'b1),
     .Caq  (1'b0),
-    .CaqRespTrackSeq (Xfrep)
+    .CaqRespTrackSeq (IsaCfg.Xfrep)
   ) i_snitch_lsu (
     .clk_i (clk_i),
     .rst_i (rst_i),
@@ -2805,7 +2801,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     .lsu_qaddr_i (op[2][AddrWidth-1:0]),
     .lsu_qdata_i (op[1]),
     .lsu_qsize_i (ls_size),
-    .lsu_qamo_i (reqrsp_pkg::AMONone),
+    .lsu_qamo_i (snitch_pkg::AMONone),
     .lsu_qrepd_i (acc_req_repd_q),
     .lsu_quser_i ('0),
     .lsu_qvalid_i (lsu_qvalid),
@@ -2835,7 +2831,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   // Counter pipeline.
   logic issue_fpu, issue_core_to_fpu, issue_fpu_seq;
   `FFAR(issue_fpu, fpu_in_valid & fpu_in_ready, 1'b0, clk_i, rst_i)
-  `FFAR(issue_core_to_fpu, acc_req_valid_i & acc_req_ready_o, 1'b0, clk_i, rst_i)
+  `FFAR(issue_core_to_fpu, acc_req_i.q_valid & acc_rsp_o.q_ready, 1'b0, clk_i, rst_i)
   `FFAR(issue_fpu_seq, acc_req_valid & acc_req_ready, 1'b0, clk_i, rst_i)
 
   always_comb begin
@@ -2910,7 +2906,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   `ASSERT(RegWriteKnown, fpr_we |-> !$isunknown(fpr_wdata), clk_i, rst_i)
 
   // DCA extension currently only supports 64-bit datawidth
-  `ASSERT_INIT(DcaFpssConfiguration, (!EnableDca) || RVD)
+  `ASSERT_INIT(DcaFpssConfiguration, (!EnableDca) || IsaCfg.RVD)
   `ASSERT_INIT(DcaDataWidth, (!EnableDca) || (DataWidth == 64))
 
 endmodule

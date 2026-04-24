@@ -12,15 +12,6 @@ package snitch_pkg;
     SFImmediate, PC, Csr, CsrImmediate, PBImmediate
   } op_select_e;
 
-  localparam dm::hartinfo_t SnitchHartinfo = '{
-    zero1: '0,
-    nscratch: 1,
-    zero0: '0,
-    dataaccess: 1,
-    datasize: dm::DataCount,
-    dataaddr: dm::DataAddr
-  };
-
   /// Async interrupts of the core.
   typedef struct packed {
     /// Debug request
@@ -36,14 +27,6 @@ package snitch_pkg;
     /// Machine external accelerator interrupt pending
     logic mxip;
   } interrupts_t;
-
-  typedef enum logic [31:0] {
-    FP_SS = 0,
-    IPU = 1,
-    DMA_SS = 2,
-    SSR_CFG = 3,
-    NUM_ACC = 4
-  } acc_addr_e;
 
   typedef enum logic [1:0] {
     PrivLvlM = 2'b11,
@@ -130,6 +113,114 @@ package snitch_pkg;
   localparam logic [3:0] SEI = 9;
   localparam logic [4:0] SCI = 17;
 
+  // Event strobes per core, counted by the performance counters in the cluster
+  // peripherals.
+  typedef struct packed {
+    logic issue_fpu;          // core operations performed in the FPU
+    logic issue_fpu_seq;      // includes load/store operations
+    logic issue_core_to_fpu;  // instructions issued from core to FPU
+    logic retired_instr;      // number of instructions retired by the core
+    logic retired_load;       // number of load instructions retired by the core
+    logic retired_i;          // number of base instructions retired by the core
+    logic retired_acc;        // number of offloaded instructions retired by the core
+    logic retired_x;          // number of offloaded instructions to the XIF retired by the core
+  } core_events_t;
+
+  /// ISA configuration
+  typedef struct packed {
+    /// Reduced-register extension.
+    bit RVE;
+    /// Enable Snitch DMA as accelerator.
+    bit Xdma;
+    bit Xssr;
+    bit Xfrep;
+    bit Xcopift;
+    /// Enable F Extension.
+    bit RVF;
+    /// Enable D Extension.
+    bit RVD;
+    bit XF16;
+    bit XF16ALT;
+    bit XF8;
+    bit XF8ALT;
+    /// Enable div/sqrt unit (buggy - use with caution)
+    bit XDivSqrt;
+    bit XFVEC;
+    bit XFDOTP;
+    bit XFAUX;
+    /// Enable Xpulp instructions (overlaps with DMA, SSR, copift and frep)
+    bit Xpulppostmod;
+    bit Xpulpabs;
+    bit Xpulpbitop;
+    bit Xpulpbr;
+    bit Xpulpclip;
+    bit Xpulpmacsi;
+    bit Xpulpminmax;
+    bit Xpulpslet;
+    bit Xpulpvect;
+    bit Xpulpvectshufflepack;
+  } isa_cfg_t;
+
+  // SSRs
+  localparam logic [11:0] CsrMseg = 12'hBC0;
+
+  // Same semantic as AXI.
+  typedef logic [2:0] size_t;
+
+  typedef enum logic [3:0] {
+    AMONone = 4'h0,
+    AMOSwap = 4'h1,
+    AMOAdd  = 4'h2,
+    AMOAnd  = 4'h3,
+    AMOOr   = 4'h4,
+    AMOXor  = 4'h5,
+    AMOMax  = 4'h6,
+    AMOMaxu = 4'h7,
+    AMOMin  = 4'h8,
+    AMOMinu = 4'h9,
+    AMOLR   = 4'hA,
+    AMOSC   = 4'hB
+  } amo_op_e;
+
+  typedef enum logic [31:0] {
+    FP_SS = 0,
+    IPU = 1,
+    DMA_SS = 2,
+    SSR_CFG = 3,
+    NUM_ACC = 4
+  } acc_addr_e;
+
+  localparam int unsigned XifNumRs = 3;
+  localparam int unsigned XifRfrWidth = 32;
+  localparam int unsigned XifRfwWidth = 32;
+  localparam int unsigned XifHartIdWidth = 32;
+  localparam int unsigned XifDualRead = 0;
+  localparam int unsigned XifIssueRegisterSplit = 0;
+
+  function automatic int unsigned calculate_flen(isa_cfg_t isa);
+    return isa.RVD     ? 64 : // D ext.
+           isa.RVF     ? 32 : // F ext.
+           isa.XF16    ? 16 : // Xf16 ext.
+           isa.XF16ALT ? 16 : // Xf16alt ext.
+           isa.XF8     ?  8 : // Xf8 ext.
+           isa.XF8ALT  ?  8 : // Xf8alt ext.
+                          0;  // Unused in case of no FP
+  endfunction
+
+  function automatic bit calculate_fp_enable(isa_cfg_t isa);
+    return isa.RVF || isa.RVD || isa.XF16 || isa.XF16ALT || isa.XF8 || isa.XF8ALT ||
+           isa.XFVEC || isa.XFAUX || isa.XFDOTP;
+  endfunction
+
+  function automatic bit calculate_xpulpv2(isa_cfg_t isa);
+    return isa.Xpulpabs || isa.Xpulpbitop || isa.Xpulpbr || isa.Xpulpclip || isa.Xpulpmacsi ||
+           isa.Xpulpminmax || isa.Xpulpslet || isa.Xpulpvect || isa.Xpulpvectshufflepack;
+  endfunction
+
+  ///////////////////
+  // Cluster-level //
+  ///////////////////
+
   // Slaves on Cluster AXI Bus
   typedef enum integer {
     SoC                = 0,
@@ -166,22 +257,6 @@ package snitch_pkg;
     /// Omega Network. It is isomorphic to a butterfly network.
     OmegaNet
   } topo_e;
-
-  // Event strobes per core, counted by the performance counters in the cluster
-  // peripherals.
-  typedef struct packed {
-    logic issue_fpu;          // core operations performed in the FPU
-    logic issue_fpu_seq;      // includes load/store operations
-    logic issue_core_to_fpu;  // instructions issued from core to FPU
-    logic retired_instr;      // number of instructions retired by the core
-    logic retired_load;       // number of load instructions retired by the core
-    logic retired_i;          // number of base instructions retired by the core
-    logic retired_acc;        // number of offloaded instructions retired by the core
-    logic retired_x;          // number of offloaded instructions to the XIF retired by the core
-  } core_events_t;
-
-  // SSRs
-  localparam logic [11:0] CsrMseg = 12'hBC0;
 
   // --------------------
   // Trace Infrastructure
