@@ -177,7 +177,7 @@ snitch-cluster-copift-sc-vsim:
 ###################################
 
 yosys-synthesis:
-  timeout: 2h
+  timeout: 3h
   script:
     - make CFG_OVERRIDE=cfg/yosys-ci.json yosys
     # Following steps are not included in open-source CI since netlist
