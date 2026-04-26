@@ -38,6 +38,7 @@ dependencies = [
     "pytest",
     "pyyaml",
     "reuse",
+    "riscv-opcodes",
     "tabulate",
     "termcolor",
     "yamllint",
@@ -64,6 +65,7 @@ all = [
 ]
 
 [tool.uv.sources]
+riscv-opcodes = { path = "sw/deps/riscv-opcodes", editable = true }
 torch = [
     { index = "pytorch-cpu" },
 ]
