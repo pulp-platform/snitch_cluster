@@ -116,14 +116,8 @@ module snitch_cc #(
   localparam int unsigned TCDMPorts = (NumSsrs > 1 ? NumSsrs : 1),
   localparam type addr_t = logic [AddrWidth-1:0],
   localparam type data_t = logic [DataWidth-1:0],
-  // TODO(colluca): this currently does not compile in Verilator (https://github.com/verilator/verilator/issues/6818)
-  // localparam type dca_req_t = `DCA_REQ_STRUCT(DataWidth),
-  // localparam type dca_rsp_t = `DCA_RSP_STRUCT(DataWidth)
-  // Workaround:
-  localparam type dca_req_chan_t = `DCA_REQ_CHAN_STRUCT(DataWidth),
-  localparam type dca_req_t = `GENERIC_REQRSP_REQ_STRUCT(dca_req_chan_t),
-  localparam type dca_rsp_chan_t = `DCA_RSP_CHAN_STRUCT(DataWidth),
-  localparam type dca_rsp_t = `GENERIC_REQRSP_RSP_STRUCT(dca_rsp_chan_t)
+  localparam type dca_req_t = `DCA_REQ_STRUCT(DataWidth),
+  localparam type dca_rsp_t = `DCA_RSP_STRUCT(DataWidth)
 ) (
   input  logic                              clk_i,
   input  logic                              clk_d2_i,
@@ -186,9 +180,8 @@ module snitch_cc #(
     logic [31:0] data;
   } ssr_cfg_rsp_t;
 
-  // TODO(colluca): not needed with workaround in parameter port list
   // Define dca_req_chan_t and dca_rsp_chan_t
-  // `DCA_TYPEDEF_REQRSP_CHAN_ALL(dca, DataWidth)
+  `DCA_TYPEDEF_REQRSP_CHAN_ALL(dca, DataWidth)
 
   `SNITCH_ACC_TYPEDEF_ALL(DataWidth, AddrWidth)
   `SNITCH_INSTR_TYPEDEF_ALL(AddrWidth)

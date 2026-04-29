@@ -218,14 +218,8 @@ module snitch_cluster
   /// Derived parameters
   localparam int unsigned TCDMSize = NrBanks * TCDMDepth * (NarrowDataWidth/8),
   localparam int unsigned TCDMAddrWidth = $clog2(TCDMSize),
-  // TODO(colluca): this currently does not compile in Verilator (https://github.com/verilator/verilator/issues/6818)
-  // localparam type dca_req_t = `DCA_REQ_STRUCT(DataWidth),
-  // localparam type dca_rsp_t = `DCA_RSP_STRUCT(DataWidth)
-  // Workaround:
-  localparam type dca_req_chan_t = `DCA_REQ_CHAN_STRUCT(DcaDataWidth),
-  localparam type dca_req_t = `GENERIC_REQRSP_REQ_STRUCT(dca_req_chan_t),
-  localparam type dca_rsp_chan_t = `DCA_RSP_CHAN_STRUCT(DcaDataWidth),
-  localparam type dca_rsp_t = `GENERIC_REQRSP_RSP_STRUCT(dca_rsp_chan_t),
+  localparam type dca_req_t = `DCA_REQ_STRUCT(DataWidth),
+  localparam type dca_rsp_t = `DCA_RSP_STRUCT(DataWidth)
   localparam type tcdm_dma_req_t = `TCDM_REQ_STRUCT(WideDataWidth, TCDMAddrWidth, logic),
   localparam type tcdm_dma_rsp_t = `TCDM_RSP_STRUCT(WideDataWidth)
 ) (
