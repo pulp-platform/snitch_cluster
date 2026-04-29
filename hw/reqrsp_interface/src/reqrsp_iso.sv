@@ -45,7 +45,7 @@ module reqrsp_iso #(
   typedef logic [AddrWidth-1:0] addr_t;
   typedef logic [DataWidth-1:0] data_t;
   typedef logic [DataWidth/8-1:0] strb_t;
-  typedef logic [UserWidth-1:0] user_t;
+  typedef logic [cf_math_pkg::iomsb(UserWidth):0] user_t;
 
   `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
 
@@ -115,7 +115,7 @@ module reqrsp_iso_intf #(
   typedef logic [AddrWidth-1:0] addr_t;
   typedef logic [DataWidth-1:0] data_t;
   typedef logic [DataWidth/8-1:0] strb_t;
-  typedef logic [UserWidth-1:0] user_t;
+  typedef logic [cf_math_pkg::iomsb(UserWidth):0] user_t;
 
   `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
 

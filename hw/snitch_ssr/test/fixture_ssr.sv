@@ -22,6 +22,7 @@ module fixture_ssr import snitch_ssr_pkg::*; #(
   localparam bit  TcdmLog   = 0;
   localparam bit  MatchLog  = 1;
   localparam time Timeout   = 200ns;
+  localparam int unsigned UserWidth = 1;
 
   // Timing parameters
   localparam time TCK = 10ns;
@@ -35,11 +36,10 @@ module fixture_ssr import snitch_ssr_pkg::*; #(
   localparam int unsigned WordAddrWidth  = AddrWidth - WordAddrBits;
 
   // TCDM derived types
-  typedef logic [AddrWidth-1:0]   addr_t;
-  typedef logic [DataWidth-1:0]   data_t;
-  typedef logic [DataWidth/8-1:0] strb_t;
-  typedef logic                   user_t;
-  `TCDM_TYPEDEF_ALL(tcdm, addr_t, data_t, strb_t, user_t);
+  typedef logic [AddrWidth-1:0] addr_t;
+  typedef logic [DataWidth-1:0] data_t;
+  typedef logic [UserWidth-1:0] user_t;
+  `TCDM_TYPEDEF_ALL(tcdm, DataWidth, AddrWidth, UserWidth);
 
   // Intersector types
   `SSR_ISECT_TYPEDEF_ALL(isect, logic [Cfg.IndexWidth-1:0])
@@ -109,7 +109,7 @@ module fixture_ssr import snitch_ssr_pkg::*; #(
     .Cfg          ( Cfg         ),
     .AddrWidth    ( AddrWidth   ),
     .DataWidth    ( DataWidth   ),
-    .tcdm_user_t  ( user_t      ),
+    .UserWidth    ( UserWidth   ),
     .tcdm_req_t   ( tcdm_req_t  ),
     .tcdm_rsp_t   ( tcdm_rsp_t  ),
     .isect_slv_req_t  ( isect_slv_req_t ),

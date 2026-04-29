@@ -3605,13 +3605,13 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         alu_result = {30'b0, ~adder_result[32]};
       end
       Sltu: begin
-        alu_opa = $unsigned(opa);
-        alu_opb = -$unsigned(opb);
+        alu_opa = opa;
+        alu_opb = -opb;
         alu_result = {30'b0, adder_result[32]};
       end
       Geu: begin
-        alu_opa = $unsigned(opa);
-        alu_opb = -$unsigned(opb);
+        alu_opa = opa;
+        alu_opb = -opb;
         alu_result = {30'b0, ~adder_result[32]};
       end
       Sll: begin
@@ -3683,8 +3683,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     assign ptw_req_o[1].va    = '0;
   end
 
-  assign ptw_req_o[0].ppn = $unsigned(satp_q.ppn);
-  assign ptw_req_o[1].ppn = $unsigned(satp_q.ppn);
+  assign ptw_req_o[0].ppn = satp_q.ppn;
+  assign ptw_req_o[1].ppn = satp_q.ppn;
 
   // Translation is active if it is set in SATP and we are not in machine mode or debug mode.
   assign trans_active = satp_q.mode & (priv_lvl_q != PrivLvlM) & ~debug_q;
@@ -3710,7 +3710,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // --------------------
   data_t lsu_qdata;
   // sign exten to appropriate length
-  assign lsu_qdata = $unsigned((ls_amo == AMONone) ? opc : opb);
+  assign lsu_qdata = (ls_amo == AMONone) ? opc : opb;
 
   // Consider CAQ in accelerator handshake when offloading an FPU load or store.
   assign caq_ena = is_fp_load | is_fp_store;

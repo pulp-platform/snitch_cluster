@@ -9,7 +9,7 @@ module tcdm_mux #(
   parameter int unsigned NrPorts = 2,
   parameter int unsigned AddrWidth = 0,
   parameter int unsigned DataWidth = 0,
-  parameter type user_t = logic,
+  parameter int unsigned UserWidth = 0,
   parameter int unsigned RespDepth = 8,
   parameter type tcdm_req_t = logic,
   parameter type tcdm_rsp_t = logic
@@ -25,11 +25,7 @@ module tcdm_mux #(
   localparam int unsigned SelectWidth = cf_math_pkg::idx_width(NrPorts);
   typedef logic [SelectWidth-1:0] select_t;
 
-  typedef logic [AddrWidth-1:0] addr_t;
-  typedef logic [DataWidth-1:0] data_t;
-  typedef logic [DataWidth/8-1:0] strb_t;
-
-  `TCDM_TYPEDEF_REQ_CHAN_T(tcdm_req_chan_t, addr_t, data_t, strb_t, user_t)
+  `TCDM_TYPEDEF_REQ_CHAN_T(tcdm_req_chan_t, DataWidth, AddrWidth, UserWidth)
 
   if (NrPorts > 1) begin : gen_mux
     logic [NrPorts-1:0] slv_req_valid, slv_req_ready;
@@ -110,7 +106,7 @@ module tcdm_mux_intf #(
   parameter int unsigned NrPorts = 2,
   parameter int unsigned AddrWidth = 0,
   parameter int unsigned DataWidth = 0,
-  parameter type         user_t    = logic,
+  parameter int unsigned UserWidth = 0,
   parameter int unsigned RespDepth = 8
 ) (
   input  logic                    clk_i,
@@ -119,11 +115,7 @@ module tcdm_mux_intf #(
   TCDM_BUS                        mst
 );
 
-  typedef logic [AddrWidth-1:0] addr_t;
-  typedef logic [DataWidth-1:0] data_t;
-  typedef logic [DataWidth/8-1:0] strb_t;
-
-  `TCDM_TYPEDEF_ALL(tcdm, addr_t, data_t, strb_t, user_t)
+  `TCDM_TYPEDEF_ALL(tcdm, DataWidth, AddrWidth, UserWidth)
 
   tcdm_req_t [NrPorts-1:0] tcdm_slv_req;
   tcdm_rsp_t [NrPorts-1:0] tcdm_slv_rsp;
@@ -135,8 +127,7 @@ module tcdm_mux_intf #(
     .NrPorts (NrPorts),
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
-    .user_t (user_t),
-    // TODO(zarubaf): Make parameter
+    .UserWidth (UserWidth),
     .RespDepth (RespDepth),
     .tcdm_req_t (tcdm_req_t),
     .tcdm_rsp_t (tcdm_rsp_t)

@@ -33,6 +33,7 @@ module fixture_ssr_streamer import snitch_ssr_pkg::*; #(
   localparam bit  MatchLog  = 1;
   localparam time Timeout   = 20*TCK;
   localparam time MstIsectTimeout = 1*TCK;
+  localparam int unsigned UserWidth = 1;
 
   // TCDM derived parameters
   localparam int unsigned WordBytes      = DataWidth/8;
@@ -40,11 +41,10 @@ module fixture_ssr_streamer import snitch_ssr_pkg::*; #(
   localparam int unsigned WordAddrWidth  = AddrWidth - WordAddrBits;
 
   // TCDM derived types
-  typedef logic [AddrWidth-1:0]   addr_t;
-  typedef logic [DataWidth-1:0]   data_t;
-  typedef logic [DataWidth/8-1:0] strb_t;
-  typedef logic                   user_t;
-  `TCDM_TYPEDEF_ALL(tcdm, addr_t, data_t, strb_t, user_t);
+  typedef logic [AddrWidth-1:0] addr_t;
+  typedef logic [DataWidth-1:0] data_t;
+  typedef logic [UserWidth-1:0] user_t;
+  `TCDM_TYPEDEF_ALL(tcdm, DataWidth, AddrWidth, UserWidth);
 
   // Configuration written through proper registers
   typedef struct packed {
@@ -123,9 +123,9 @@ module fixture_ssr_streamer import snitch_ssr_pkg::*; #(
     .WPorts       ( WPorts      ),
     .AddrWidth    ( AddrWidth   ),
     .DataWidth    ( DataWidth   ),
+    .UserWidth    ( UserWidth   ),
     .SsrCfgs      ( SsrCfgs     ),
     .SsrRegs      ( SsrRegs     ),
-    .tcdm_user_t  ( user_t      ),
     .tcdm_req_t   ( tcdm_req_t  ),
     .tcdm_rsp_t   ( tcdm_rsp_t  )
   ) i_snitch_ssr_streamer (

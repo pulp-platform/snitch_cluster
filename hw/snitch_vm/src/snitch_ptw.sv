@@ -98,8 +98,8 @@ module snitch_ptw import snitch_pkg::*; #(
     lvl_d = lvl_q;
     state_d = state_q;
 
-    page_table_index = $unsigned({va_i.vpn1, {{PTEAddrOffset}{1'b0}}});
-    data_req_o.q.addr = $unsigned({ppn_i, page_table_index});
+    page_table_index = {va_i.vpn1, {{PTEAddrOffset}{1'b0}}};
+    data_req_o.q.addr = {ppn_i, page_table_index};
     data_req_o.q.size = $clog2(DataWidth/8);
     data_req_o.q_valid = 1'b0;
     data_req_o.p_ready = 1'b1;
@@ -133,8 +133,8 @@ module snitch_ptw import snitch_pkg::*; #(
         if (lvl_q < 2) begin
           data_req_o.q_valid = 1'b1;
           // Compose virtual address;
-          page_table_index = $unsigned({va_i.vpn0, {{PTEAddrOffset}{1'b0}}});
-          data_req_o.q.addr = $unsigned({pte_q.pa, page_table_index});
+          page_table_index = {va_i.vpn0, {{PTEAddrOffset}{1'b0}}};
+          data_req_o.q.addr = {pte_q.pa, page_table_index};
           if (data_rsp_i.q_ready) state_d = WaitPTE;
         end else begin
           pte_d.flags.a = '0; // clear PTE.a making it invalid for downstream
