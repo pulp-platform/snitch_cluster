@@ -49,7 +49,7 @@ module tcdm_mux_tb import reqrsp_pkg::*; #(
     .NrPorts (NrPorts),
     .AddrWidth (AW),
     .DataWidth (DW),
-    .user_t (logic),
+    .UserWidth (1),
     .RespDepth (RespDepth)
   ) dut (
     .clk_i (clk),

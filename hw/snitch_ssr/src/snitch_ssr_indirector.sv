@@ -15,7 +15,6 @@ module snitch_ssr_indirector import snitch_ssr_pkg::*; #(
   parameter int unsigned DataWidth = 0,
   parameter type tcdm_req_t   = logic,
   parameter type tcdm_rsp_t   = logic,
-  parameter type tcdm_user_t  = logic,
   parameter type isect_slv_req_t = logic,
   parameter type isect_slv_rsp_t = logic,
   parameter type isect_mst_req_t = logic,

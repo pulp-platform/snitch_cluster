@@ -218,9 +218,9 @@ module snitch_cluster
   /// Derived parameters
   localparam int unsigned TCDMSize = NrBanks * TCDMDepth * (NarrowDataWidth/8),
   localparam int unsigned TCDMAddrWidth = $clog2(TCDMSize),
-  localparam type dca_req_t = `DCA_REQ_STRUCT(DataWidth),
-  localparam type dca_rsp_t = `DCA_RSP_STRUCT(DataWidth)
-  localparam type tcdm_dma_req_t = `TCDM_REQ_STRUCT(WideDataWidth, TCDMAddrWidth, logic),
+  localparam type dca_req_t = `DCA_REQ_STRUCT(DcaDataWidth),
+  localparam type dca_rsp_t = `DCA_RSP_STRUCT(DcaDataWidth),
+  localparam type tcdm_dma_req_t = `TCDM_REQ_STRUCT(WideDataWidth, TCDMAddrWidth, 1),
   localparam type tcdm_dma_rsp_t = `TCDM_RSP_STRUCT(WideDataWidth)
 ) (
   /// System clock. If `IsoCrossing` is enabled this port is the _fast_ clock.
@@ -318,6 +318,11 @@ module snitch_cluster
   localparam int unsigned BanksPerSuperBank = WideDataWidth / NarrowDataWidth;
   localparam int unsigned NrSuperBanks = NrBanks / BanksPerSuperBank;
   localparam int unsigned DcaLaneDataWidth = NarrowDataWidth;
+
+  // tcdm_user_t contains the following fields:
+  // [CoreIDWidth:1] core_id
+  // [0:0]           is_core
+  localparam int unsigned TcdmUserWidth = CoreIDWidth + 1;
 
   function automatic int unsigned get_tcdm_ports(int unsigned core);
     return (NumSsrs[core] > 1 ? NumSsrs[core] : 1);
@@ -464,12 +469,7 @@ module snitch_cluster
   typedef logic [CollectiveWidth-1:0]   collective_op_t;
   typedef logic [AtomicIdWidth-1:0]     atomic_id_t;
 
-  // Struct replaced by logic array to workaround Questa optimization bug.
-  // typedef struct packed {
-  //   logic [CoreIDWidth-1:0] core_id;
-  //   bit                     is_core;
-  // } tcdm_user_t;
-  typedef logic [CoreIDWidth:0] tcdm_user_t;
+  typedef logic [TcdmUserWidth-1:0] tcdm_user_t;
 
   // Regbus peripherals.
   `AXI_TYPEDEF_ALL(axi_mst, addr_t, id_mst_t, data_t, strb_t, snitch_cluster_pkg::user_narrow_t)
@@ -490,7 +490,7 @@ module snitch_cluster
   `MEM_TYPEDEF_ALL(mem, tcdm_mem_addr_t, data_t, strb_t, tcdm_user_t)
   `MEM_TYPEDEF_ALL(mem_dma, tcdm_mem_addr_t, data_dma_t, strb_dma_t, logic)
 
-  `TCDM_TYPEDEF_ALL(tcdm, NarrowDataWidth, TCDMAddrWidth, tcdm_user_t)
+  `TCDM_TYPEDEF_ALL(tcdm, NarrowDataWidth, TCDMAddrWidth, TcdmUserWidth)
 
   // Define dca_lane_req_t and dca_lane_rsp_t
   `DCA_TYPEDEF_ALL(dca_lane, DcaLaneDataWidth)
@@ -824,7 +824,6 @@ module snitch_cluster
     .NumHyperBanks (NrHyperBanks),
     .mem_req_t (mem_dma_req_t),
     .mem_rsp_t (mem_dma_rsp_t),
-    .user_t (logic),
     .TcdmAddrWidth (TCDMAddrWidth),
     .MemAddrWidth (TCDMMemAddrWidth),
     .DataWidth (WideDataWidth),
@@ -844,7 +843,6 @@ module snitch_cluster
     .NumHyperBanks (NrHyperBanks),
     .mem_req_t (mem_dma_req_t),
     .mem_rsp_t (mem_dma_rsp_t),
-    .user_t (logic),
     .TcdmAddrWidth (TCDMAddrWidth),
     .MemAddrWidth (TCDMMemAddrWidth),
     .DataWidth (WideDataWidth),
@@ -962,7 +960,7 @@ module snitch_cluster
     .TcdmAddrWidth (TCDMAddrWidth),
     .MemAddrWidth (TCDMMemAddrWidth),
     .DataWidth (NarrowDataWidth),
-    .user_t (tcdm_user_t),
+    .UserWidth (TcdmUserWidth),
     .MemoryResponseLatency (1 + RegisterTCDMCuts),
     .Radix (Radix),
     .Topology (Topology),
@@ -1047,6 +1045,7 @@ module snitch_cluster
     snitch_cc #(
       .AddrWidth (PhysicalAddrWidth),
       .DataWidth (NarrowDataWidth),
+      .TcdmUserWidth (TcdmUserWidth),
       .DMADataWidth (WideDataWidth),
       .DMAIdWidth (WideIdWidthIn),
       .DMAUserWidth (WideUserWidth),
@@ -1058,7 +1057,6 @@ module snitch_cluster
       .drsp_t (reqrsp_rsp_t),
       .tcdm_req_t (tcdm_req_t),
       .tcdm_rsp_t (tcdm_rsp_t),
-      .tcdm_user_t (tcdm_user_t),
       .axi_ar_chan_t (axi_mst_dma_ar_chan_t),
       .axi_aw_chan_t (axi_mst_dma_aw_chan_t),
       .axi_req_t (axi_mst_dma_req_t),
@@ -1473,8 +1471,7 @@ module snitch_cluster
     .AddrWidth (PhysicalAddrWidth),
     .DataWidth (NarrowDataWidth),
     .IdWidth (NarrowIdWidthOut),
-    // TODO(colluca): this is fragile as it depends on the tcdm_user_t definition
-    .UserWidth (CoreIDWidth + 1),
+    .UserWidth (TcdmUserWidth),
     .BufDepth (MemoryMacroLatency + 1)
   ) i_axi_to_tcdm (
     .clk_i,

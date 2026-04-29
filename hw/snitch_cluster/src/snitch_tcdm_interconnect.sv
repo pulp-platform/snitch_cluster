@@ -22,11 +22,11 @@ Parameters:
   NumSwitchNets         - Number of parallel networks for switch-based interconnects.
   SwitchLfsrArbiter     - Whether to use an LFSR to arbitrate switch-based networks.
   DataWidth             - Size of the data payload on the interconnect.
+  UserWidth             - Width of the user field on the interconnect.
   TcdmAddrWidth         - Address width on the request side.
   MemAddrWidth          - Address width on the memory side.
   MemoryResponseLatency - Latency of memory response (in cycles).
   Topology              - Interconnect topology.
-  user_t                - Additional user payload to route.
   mem_req_t             - Type of the data request ports.
   mem_rsp_t             - Type of the data response ports.
 
@@ -46,15 +46,15 @@ module snitch_tcdm_interconnect #(
   parameter int unsigned NumSwitchNets         = 32'd2,
   parameter bit          SwitchLfsrArbiter     = 1'b0,
   parameter int unsigned DataWidth             = 32,
+  parameter int unsigned UserWidth             = 1,
   parameter int unsigned TcdmAddrWidth         = 32,
   parameter int unsigned MemAddrWidth          = 32,
   parameter int unsigned MemoryResponseLatency = 1,
   parameter snitch_pkg::topo_e Topology        = snitch_pkg::LogarithmicInterconnect,
-  parameter type         user_t                = logic,
   parameter type         mem_req_t             = logic,
   parameter type         mem_rsp_t             = logic,
   // Derived parameters
-  localparam type        tcdm_req_t            = `TCDM_REQ_STRUCT(DataWidth, TcdmAddrWidth, user_t),
+  localparam type        tcdm_req_t            = `TCDM_REQ_STRUCT(DataWidth, TcdmAddrWidth, UserWidth),
   localparam type        tcdm_rsp_t            = `TCDM_RSP_STRUCT(DataWidth)
 ) (
   input  logic                   clk_i,
@@ -72,6 +72,7 @@ module snitch_tcdm_interconnect #(
   typedef logic [VirtualMemAddrWidth-1:0] virtual_mem_addr_t;
   typedef logic [DataWidth-1:0] data_t;
   typedef logic [StrbWidth-1:0] strb_t;
+  typedef logic [UserWidth-1:0] user_t;
 
   // Define a new datatype to support larger addresses from TCDM interconnect
   // We basically pretend to the IC that our banks are combined as larger hyperbanks (Add memoryspace from two banks into one), such that we can demux the address later
@@ -142,7 +143,7 @@ module snitch_tcdm_interconnect #(
     .TcdmAddrWidth (TcdmAddrWidth),
     .MemAddrWidth (VirtualMemAddrWidth),
     .DataWidth (DataWidth),
-    .user_t (user_t),
+    .UserWidth (UserWidth),
     .MemoryResponseLatency (MemoryResponseLatency),
     .Radix (Radix),
     .Topology (Topology),

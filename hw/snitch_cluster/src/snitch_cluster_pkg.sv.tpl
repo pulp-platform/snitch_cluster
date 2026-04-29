@@ -135,7 +135,7 @@ package ${cfg['cluster']['name']}_pkg;
   `AXI_TYPEDEF_ALL(wide_in, addr_t, wide_in_id_t, data_dma_t, strb_dma_t, user_dma_t)
   `AXI_TYPEDEF_ALL(wide_out, addr_t, wide_out_id_t, data_dma_t, strb_dma_t, user_dma_t)
 
-  `TCDM_TYPEDEF_ALL(tcdm_dma, WideDataWidth, TcdmAddrWidth, logic)
+  `TCDM_TYPEDEF_ALL(tcdm_dma, WideDataWidth, TcdmAddrWidth, 1)
 
   function automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] get_cached_regions();
     automatic snitch_pma_pkg::rule_t [snitch_pma_pkg::NrMaxRules-1:0] cached_regions;

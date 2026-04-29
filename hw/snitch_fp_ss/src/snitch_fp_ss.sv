@@ -33,7 +33,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   localparam type addr_t = logic [AddrWidth-1:0],
   localparam type data_t = logic [DataWidth-1:0],
   localparam type dca_req_t = `DCA_REQ_STRUCT(DataWidth),
-  localparam type dca_rsp_t = `DCA_RSP_STRUCT(DataWidth)
+  localparam type dca_rsp_t = `DCA_RSP_STRUCT(DataWidth),
   localparam type acc_req_t = `SNITCH_ACC_REQ_STRUCT(DataWidth, AddrWidth),
   localparam type acc_rsp_t = `SNITCH_ACC_RSP_STRUCT(DataWidth)
 ) (
