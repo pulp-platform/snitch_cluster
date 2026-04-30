@@ -85,3 +85,9 @@ SPDX-License-Identifier = "Apache-2.0"
 path = "sw/runtime/src/omp/interface.h"
 SPDX-FileCopyrightText = "LLVM Project"
 SPDX-License-Identifier = "Apache-2.0 WITH LLVM-exception"
+
+# Lists
+[[annotations]]
+path = ["util/clustergen/opcodes.txt"]
+SPDX-FileCopyrightText = "2020 ETH Zurich and University of Bologna"
+SPDX-License-Identifier = "Apache-2.0"
