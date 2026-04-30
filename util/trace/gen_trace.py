@@ -365,7 +365,7 @@ def load_opcodes():
 
 
 @lru_cache
-def disasm_inst(hex_inst, mc_exec='llvm-mc', mc_flags='-disassemble -mcpu=snitch'):
+def disasm_inst(hex_inst, mc_exec='llvm-mc', mc_flags='-disassemble'):
     """Disassemble a single RISC-V instruction using llvm-mc."""
     # Reverse the endianness of the hex instruction
     inst_fmt = ' '.join(f'0x{byte:02x}' for byte in bytes.fromhex(hex_inst)[::-1])
@@ -1266,7 +1266,7 @@ def main():
     )
     parser.add_argument(
         '--mc-flags',
-        default='-disassemble -mcpu=snitch',
+        default='-disassemble',
         help='Flags to pass to the llvm-mc executable'
     )
 

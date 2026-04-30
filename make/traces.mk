@@ -4,10 +4,6 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-##########
-# Traces #
-##########
-
 # Reads the binary from the logs/.rtlbinary file that is written at start
 # of simulation in the vsim script
 SN_BINARY ?= $(shell cat $(SN_SIM_DIR)/.rtlbinary)
@@ -22,7 +18,9 @@ SN_JOINT_PERF_DUMP  = $(SN_LOGS_DIR)/perf.json
 SN_ROI_DUMP         = $(SN_LOGS_DIR)/roi.json
 SN_VISUAL_TRACE     = $(SN_LOGS_DIR)/trace.json
 
-SN_VISUALIZE_PY_FLAGS += --tracevis "$(SN_BINARY) $(SN_TXT_TRACES) --addr2line $(SN_ADDR2LINE) -f snitch"
+SN_RISCV_MC_FLAGS     ?= -disassemble $(SN_RISCV_MATTR_FLAG)
+SN_ANNOTATE_FLAGS     ?= -q --keep-time --addr2line=$(SN_RISCV_ADDR2LINE)
+SN_VISUALIZE_PY_FLAGS += --tracevis "$(SN_BINARY) $(SN_TXT_TRACES) --addr2line $(SN_RISCV_ADDR2LINE) -f snitch"
 SN_GENTRACE_PY_FLAGS  += --mc-exec $(SN_RISCV_MC) --mc-flags "$(SN_RISCV_MC_FLAGS)"
 
 # Do not suspend trace generation upon gentrace errors when debugging
