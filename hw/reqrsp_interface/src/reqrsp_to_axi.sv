@@ -172,7 +172,7 @@ module reqrsp_to_axi import reqrsp_pkg::*; import snitch_pkg::*; #(
   assign axi_req_o.ar.burst  = axi_pkg::BURST_INCR;
   assign axi_req_o.ar.lock   = (reqrsp_req_i.q.amo == AMOLR);
   assign axi_req_o.ar.cache  = axi_pkg::CACHE_MODIFIABLE;
-  assign axi_req_o.ar.id     = $unsigned(ID);
+  assign axi_req_o.ar.id     = ID;
   assign axi_req_o.ar.user   = reqrsp_req_i.q.user;
   assign axi_req_o.ar_valid  = q_valid_read;
   assign q_ready_read        = axi_rsp_i.ar_ready;
@@ -187,7 +187,7 @@ module reqrsp_to_axi import reqrsp_pkg::*; import snitch_pkg::*; #(
   assign axi_req_o.aw.burst  = axi_pkg::BURST_INCR;
   assign axi_req_o.aw.lock   = (reqrsp_req_i.q.amo == AMOSC);
   assign axi_req_o.aw.cache  = axi_pkg::CACHE_MODIFIABLE;
-  assign axi_req_o.aw.id     = $unsigned(ID);
+  assign axi_req_o.aw.id     = ID;
   assign axi_req_o.aw.user   = reqrsp_req_i.q.user;
   assign axi_req_o.w.data    = write_data;
   assign axi_req_o.w.strb    = reqrsp_req_i.q.strb;

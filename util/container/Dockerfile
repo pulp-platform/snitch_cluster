@@ -7,7 +7,7 @@
 # Docker containers for Snitch hardware and software development.
 
 # Ubuntu version must be aligned with OSEDA version
-ARG OSEDA_VERSION=2025.07
+ARG OSEDA_VERSION=2026.02
 ARG UBUNTU_VERSION=24.04
 # Run dpkg without interactive dialogue
 ARG DEBIAN_FRONTEND=noninteractive

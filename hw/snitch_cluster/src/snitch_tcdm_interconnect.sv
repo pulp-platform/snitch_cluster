@@ -6,59 +6,63 @@
 // Author: Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 `include "mem_interface/typedef.svh"
+`include "tcdm_interface/typedef.svh"
 `include "common_cells/registers.svh"
 `include "common_cells/assertions.svh"
 
-/// Fixed response latency interconnect with support for multiple hyperbanks.
+/*
+Module: snitch_tcdm_interconnect
+Fixed response latency interconnect with support for multiple hyperbanks.
+
+Parameters:
+  NumInp                - Number of inputs into the interconnect (`> 0`).
+  NumOut                - Number of outputs from the interconnect (`> 0`).
+  NumHyperBanks         - Number of hyperbanks.
+  Radix                 - Radix of the individual switch points of the network.
+  NumSwitchNets         - Number of parallel networks for switch-based interconnects.
+  SwitchLfsrArbiter     - Whether to use an LFSR to arbitrate switch-based networks.
+  DataWidth             - Size of the data payload on the interconnect.
+  UserWidth             - Width of the user field on the interconnect.
+  TcdmAddrWidth         - Address width on the request side.
+  MemAddrWidth          - Address width on the memory side.
+  MemoryResponseLatency - Latency of memory response (in cycles).
+  Topology              - Interconnect topology.
+  mem_req_t             - Type of the data request ports.
+  mem_rsp_t             - Type of the data response ports.
+
+Ports:
+  clk_i     - Clock, positive edge triggered.
+  rst_ni    - Reset, active low.
+  req_i     - Request ports.
+  rsp_o     - Response ports.
+  mem_req_o - Memory-side request ports.
+  mem_rsp_i - Memory-side response ports.
+*/
 module snitch_tcdm_interconnect #(
-  /// Number of inputs into the interconnect (`> 0`).
   parameter int unsigned NumInp                = 32'd0,
-  /// Number of outputs from the interconnect (`> 0`).
   parameter int unsigned NumOut                = 32'd0,
-  /// Number of hyperbanks.
   parameter int unsigned NumHyperBanks         = 32'd1,
-  /// Radix of the individual switch points of the network.
-  /// Currently supported are `32'd2` and `32'd4`.
   parameter int unsigned Radix                 = 32'd2,
-  /// Number of parallel networks for switch-based interconnects.
-  parameter int unsigned NumSwitchNets          = 32'd2,
-  /// Whether to use an LFSR to arbitrate switch-based networks.
-  parameter bit          SwitchLfsrArbiter      = 1'b0,
-  /// Payload type of the data request ports.
-  parameter type         tcdm_req_t            = logic,
-  /// Payload type of the data response ports.
-  parameter type         tcdm_rsp_t            = logic,
-  /// Payload type of the data request ports.
-  parameter type         mem_req_t             = logic,
-  /// Payload type of the data response ports.
-  parameter type         mem_rsp_t             = logic,
-  /// Address width on the request side.
-  parameter int unsigned TcdmAddrWidth         = 32,
-  /// Address width on the memory side. Must be smaller than the incoming
-  /// address width.
-  parameter int unsigned MemAddrWidth          = 32,
-  /// Data size of the interconnect. Only the data portion counts. The offsets
-  /// into the address are derived from this.
+  parameter int unsigned NumSwitchNets         = 32'd2,
+  parameter bit          SwitchLfsrArbiter     = 1'b0,
   parameter int unsigned DataWidth             = 32,
-  /// Additional user payload to route.
-  parameter type         user_t                = logic,
-  /// Latency of memory response (in cycles)
+  parameter int unsigned UserWidth             = 1,
+  parameter int unsigned TcdmAddrWidth         = 32,
+  parameter int unsigned MemAddrWidth          = 32,
   parameter int unsigned MemoryResponseLatency = 1,
-  parameter snitch_pkg::topo_e Topology        = snitch_pkg::LogarithmicInterconnect
+  parameter snitch_pkg::topo_e Topology        = snitch_pkg::LogarithmicInterconnect,
+  parameter type         mem_req_t             = logic,
+  parameter type         mem_rsp_t             = logic,
+  // Derived parameters
+  localparam type        tcdm_req_t            = `TCDM_REQ_STRUCT(DataWidth, TcdmAddrWidth, UserWidth),
+  localparam type        tcdm_rsp_t            = `TCDM_RSP_STRUCT(DataWidth)
 ) (
-  /// Clock, positive edge triggered.
-  input  logic                             clk_i,
-  /// Reset, active low.
-  input  logic                             rst_ni,
-  /// Request port.
-  input  tcdm_req_t           [NumInp-1:0] req_i,
-  /// Resposne port.
-  output tcdm_rsp_t           [NumInp-1:0] rsp_o,
-  /// Memory Side
-  /// Request.
-  output mem_req_t            [NumOut-1:0] mem_req_o,
-  /// Response.
-  input  mem_rsp_t            [NumOut-1:0] mem_rsp_i
+  input  logic                   clk_i,
+  input  logic                   rst_ni,
+  input  tcdm_req_t [NumInp-1:0] req_i,
+  output tcdm_rsp_t [NumInp-1:0] rsp_o,
+  output mem_req_t  [NumOut-1:0] mem_req_o,
+  input  mem_rsp_t  [NumOut-1:0] mem_rsp_i
 );
 
   localparam int unsigned BanksPerHyperBank = NumOut / NumHyperBanks;
@@ -68,6 +72,7 @@ module snitch_tcdm_interconnect #(
   typedef logic [VirtualMemAddrWidth-1:0] virtual_mem_addr_t;
   typedef logic [DataWidth-1:0] data_t;
   typedef logic [StrbWidth-1:0] strb_t;
+  typedef logic [UserWidth-1:0] user_t;
 
   // Define a new datatype to support larger addresses from TCDM interconnect
   // We basically pretend to the IC that our banks are combined as larger hyperbanks (Add memoryspace from two banks into one), such that we can demux the address later
@@ -133,14 +138,12 @@ module snitch_tcdm_interconnect #(
   snitch_tcdm_fc_interconnect #(
     .NumInp (NumInp),
     .NumOut (BanksPerHyperBank),
-    .tcdm_req_t (tcdm_req_t),
-    .tcdm_rsp_t (tcdm_rsp_t),
     .mem_req_t (virtual_mem_req_t),
     .mem_rsp_t (mem_rsp_t),
     .TcdmAddrWidth (TcdmAddrWidth),
     .MemAddrWidth (VirtualMemAddrWidth),
     .DataWidth (DataWidth),
-    .user_t (user_t),
+    .UserWidth (UserWidth),
     .MemoryResponseLatency (MemoryResponseLatency),
     .Radix (Radix),
     .Topology (Topology),
@@ -157,5 +160,8 @@ module snitch_tcdm_interconnect #(
 
   // Only one or two hyperbanks are currently supported
   `ASSERT_INIT(CheckNumHyperbanks, (NumHyperBanks == 1 || NumHyperBanks == 2));
+
+  // MemAddrWidth must be smaller than TcdmAddrWidth.
+  `ASSERT_INIT(CheckMemAddrWidth, MemAddrWidth <= TcdmAddrWidth);
 
 endmodule

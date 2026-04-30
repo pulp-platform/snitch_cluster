@@ -62,6 +62,9 @@ docs = [
 all = [
     "snitch[kernels,docs]"
 ]
+nonfree = [
+    "pysynthutils @ git+ssh://git@iis-git.ee.ethz.ch/colluca/pysynthutils.git@b92ea41",
+]
 
 [tool.uv.sources]
 torch = [

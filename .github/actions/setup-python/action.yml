@@ -25,4 +25,4 @@ runs:
     - name: Sync Python environment
       shell: sh
       run: |
-        uv sync --all-extras --locked
+        uv sync --extra all --locked

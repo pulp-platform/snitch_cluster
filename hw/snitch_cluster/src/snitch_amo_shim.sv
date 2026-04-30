@@ -186,7 +186,7 @@ module snitch_amo_shim
   // Atomics
   // -------
   logic [63:0] wdata;
-  assign wdata = $unsigned(wdata_i);
+  assign wdata = wdata_i;
 
   `FF(state_q, state_d, Idle)
   `FFL(amo_op_q, amo_i, load_amo, AMONone, clk_i, rst_ni)
@@ -295,13 +295,13 @@ module snitch_amo_alu import snitch_pkg::*; (
                 result_o = adder_sum[32] ? operand_a_i : operand_b_i;
             end
             AMOMaxu: begin
-                adder_operand_a = $unsigned(operand_a_i);
-                adder_operand_b = -$unsigned(operand_b_i);
+                adder_operand_a = operand_a_i;
+                adder_operand_b = -operand_b_i;
                 result_o = adder_sum[32] ? operand_b_i : operand_a_i;
             end
             AMOMinu: begin
-                adder_operand_a = $unsigned(operand_a_i);
-                adder_operand_b = -$unsigned(operand_b_i);
+                adder_operand_a = operand_a_i;
+                adder_operand_b = -operand_b_i;
                 result_o = adder_sum[32] ? operand_a_i : operand_b_i;
             end
             default: result_o = '0;

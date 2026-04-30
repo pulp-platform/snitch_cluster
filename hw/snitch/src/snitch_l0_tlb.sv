@@ -55,14 +55,14 @@ module snitch_l0_tlb import snitch_pkg::*; #(
     /// This is a 4 mega page entry.
     logic is_4mega;
   } tag_t;
-  tag_t [NrEntries-1:0] tag_d, tag_q;
-  logic [NrEntries-1:0] is_4mega_exp; //expanded version
+  tag_t [cf_math_pkg::iomsb(NrEntries):0] tag_d, tag_q;
+  logic [cf_math_pkg::iomsb(NrEntries):0] is_4mega_exp; //expanded version
   logic is_4mega;
   // Tag is valid array.
-  logic [NrEntries-1:0] tag_valid_d, tag_valid_q;
+  logic [cf_math_pkg::iomsb(NrEntries):0] tag_valid_d, tag_valid_q;
   logic [$clog2(NrEntries+1)-1:0] evict_d, evict_q;
 
-  l0_pte_t [NrEntries-1:0] pte_q, pte_d;
+  l0_pte_t [cf_math_pkg::iomsb(NrEntries):0] pte_q, pte_d;
 
   l0_pte_t pte;
 
@@ -70,7 +70,7 @@ module snitch_l0_tlb import snitch_pkg::*; #(
   `FFAR(tag_q, tag_d, '0, clk_i, rst_i)
   `FFAR(pte_q, pte_d, '0, clk_i, rst_i)
 
-  logic [NrEntries-1:0] hit;
+  logic [cf_math_pkg::iomsb(NrEntries):0] hit;
   logic miss_d, miss_q; // we got a miss
   logic refill_d, refill_q; // refill request is underway
 

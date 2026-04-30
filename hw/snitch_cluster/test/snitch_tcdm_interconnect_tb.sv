@@ -20,6 +20,7 @@ module snitch_tcdm_interconnect_tb #(
   localparam int unsigned AddrWidth = 32;
   localparam int unsigned MemAddrWidth = 15;
   localparam int unsigned DataWidth = 32;
+  localparam int unsigned UserWidth = 1;
   localparam int unsigned RespLatency = 1;
 
   localparam int unsigned ByteOffset = $clog2(DataWidth/8);
@@ -29,11 +30,11 @@ module snitch_tcdm_interconnect_tb #(
   typedef logic [MemAddrWidth-1:0] tcdm_addr_t;
   typedef logic [DataWidth-1:0] data_t;
   typedef logic [DataWidth/8-1:0] strb_t;
-  typedef logic user_t;
+  typedef logic [UserWidth-1:0] user_t;
 
   logic  clk, rst_n;
 
-  `TCDM_TYPEDEF_ALL(tcdm, addr_t, data_t, strb_t, user_t)
+  `TCDM_TYPEDEF_ALL(tcdm, DataWidth, AddrWidth, UserWidth)
   `MEM_TYPEDEF_ALL(mem, tcdm_addr_t, data_t, strb_t, user_t)
 
   tcdm_req_t [NrInput-1:0] tcdm_req;
@@ -63,14 +64,14 @@ module snitch_tcdm_interconnect_tb #(
   TCDM_BUS_DV #(
     .ADDR_WIDTH ( AddrWidth ),
     .DATA_WIDTH ( DataWidth ),
-    .user_t (logic)
+    .user_t     ( user_t )
   ) master_dv [NrInput-1:0](clk);
 
 
   MEM_BUS_DV #(
     .ADDR_WIDTH ( MemAddrWidth ),
     .DATA_WIDTH ( DataWidth ),
-    .user_t (logic)
+    .user_t     ( user_t )
   ) slave_dv [NrOutput-1:0](clk);
 
   for (genvar i = 0; i < NrInput; i++) begin : gen_input_assign
