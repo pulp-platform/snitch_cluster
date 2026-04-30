@@ -5,26 +5,39 @@
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 # Viviane Potocnik <vivianep@iis.ee.ethz.ch>
 
+########
+# Util #
+########
+
+empty :=
+space := $(empty) $(empty)
+comma := ,
+
+comma-join = $(subst $(space),$(comma),$(strip $(1)))
+
 ###################
 # Build variables #
 ###################
 
 # Compiler toolchain
-SN_LLVM_BINROOT  ?= $(dir $(shell which riscv32-unknown-elf-clang))
-SN_RISCV_CC      ?= $(SN_LLVM_BINROOT)/clang
-SN_RISCV_CXX     ?= $(SN_LLVM_BINROOT)/clang++
-SN_RISCV_LD      ?= $(SN_LLVM_BINROOT)/ld.lld
-SN_RISCV_AR      ?= $(SN_LLVM_BINROOT)/llvm-ar
-SN_RISCV_OBJCOPY ?= $(SN_LLVM_BINROOT)/llvm-objcopy
-SN_RISCV_OBJDUMP ?= $(SN_LLVM_BINROOT)/llvm-objdump
+SN_LLVM_BINROOT    ?= $(dir $(shell which riscv32-unknown-elf-clang))
+SN_RISCV_CC        ?= $(SN_LLVM_BINROOT)/clang
+SN_RISCV_CXX       ?= $(SN_LLVM_BINROOT)/clang++
+SN_RISCV_LD        ?= $(SN_LLVM_BINROOT)/ld.lld
+SN_RISCV_AR        ?= $(SN_LLVM_BINROOT)/llvm-ar
+SN_RISCV_OBJCOPY   ?= $(SN_LLVM_BINROOT)/llvm-objcopy
+SN_RISCV_OBJDUMP   ?= $(SN_LLVM_BINROOT)/llvm-objdump
+SN_RISCV_MC        ?= $(SN_LLVM_BINROOT)/llvm-mc
+SN_RISCV_ADDR2LINE ?= $(SN_LLVM_BINROOT)/llvm-addr2line
 
 # Compiler flags
-SN_MCPU ?= snitch
-SN_RISCV_CFLAGS := -mcpu=$(SN_MCPU)
+SN_RISCV_FEATURES = xfrep xssr xdma xcopift xsmallfloat
+SN_RISCV_CFLAGS := -march=rv32imafd_zfh_zifencei
+SN_RISCV_CFLAGS += $(foreach feat,$(SN_RISCV_FEATURES),-Xclang -target-feature -Xclang +$(feat))
 SN_RISCV_CFLAGS += -menable-experimental-extensions
 SN_RISCV_CFLAGS += -mabi=ilp32d
 SN_RISCV_CFLAGS += -mcmodel=medany
-SN_RISCV_CFLAGS += -mno-fdiv
+# SN_RISCV_CFLAGS += -mno-fdiv
 SN_RISCV_CFLAGS += -fno-builtin-printf
 SN_RISCV_CFLAGS += -fno-builtin-sqrtf
 SN_RISCV_CFLAGS += -fno-common
@@ -49,5 +62,7 @@ SN_RISCV_LDFLAGS += -lm
 SN_RISCV_ARFLAGS := rcs
 
 # Objdump flags
-SN_RISCV_OBJDUMP_FLAGS := --mcpu=$(SN_MCPU)
-SN_RISCV_OBJDUMP_FLAGS += -D
+SN_RISCV_MATTR_FEATURES  = $(call comma-join,$(addprefix +,$(SN_RISCV_FEATURES)))
+SN_RISCV_MATTR_FLAG      = --mattr=+m,+a,+f,+d,+zfh,+zifencei,$(SN_RISCV_MATTR_FEATURES)
+SN_RISCV_OBJDUMP_FLAGS  := --triple=riscv32 $(SN_RISCV_MATTR_FLAG)
+SN_RISCV_OBJDUMP_FLAGS  += -D

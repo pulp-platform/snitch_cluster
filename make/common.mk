@@ -24,8 +24,6 @@ SN_BENDER         ?= bender
 SN_PEAKRDL        ?= peakrdl
 SN_VERIBLE_FMT    ?= verible-verilog-format
 SN_CLANG_FORMAT   ?= $(SN_LLVM_BINROOT)/clang-format
-SN_RISCV_MC       ?= $(SN_LLVM_BINROOT)/llvm-mc
-SN_ADDR2LINE      ?= $(SN_LLVM_BINROOT)/llvm-addr2line
 # tail is required for nonsense oseda output
 SN_VERILATOR_SEPP ?=
 SN_VLT_BIN         = $(shell $(SN_VERILATOR_SEPP) which verilator_bin | tail -n1 | $(SN_VERILATOR_SEPP) xargs realpath | tail -n1)
@@ -57,10 +55,6 @@ SN_BENDER_YML  = $(SN_ROOT)/Bender.yml
 # Flags
 SN_COMMON_BENDER_FLAGS     += -t rtl -t snitch_cluster
 SN_COMMON_BENDER_SIM_FLAGS += -t simulation -t test
-SN_MCPU                    ?= snitch
-SN_RISCV_MC_FLAGS          ?= -disassemble
-SN_RISCV_MC_FLAGS          += -mcpu=$(SN_MCPU)
-SN_ANNOTATE_FLAGS          ?= -q --keep-time --addr2line=$(SN_ADDR2LINE)
 SN_LAYOUT_EVENTS_FLAGS     ?= --cfg=$(SN_CFG)
 
 # Internal state
