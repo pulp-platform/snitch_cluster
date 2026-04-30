@@ -183,18 +183,18 @@ inline void dm_main(void) {
         /// New transaction to issue?
         if (dm_p->queue_fill) {
             // wait until DMA is ready
-            while (__builtin_sdma_stat(DM_STATUS_WOULD_BLOCK))
+            while (snrt_dma_would_block())
                 ;
 
             t = &dm_p->queue[dm_p->queue_back];
 
             if (t->twod) {
                 DM_PRINTF(10, "start twod\n");
-                __builtin_sdma_start_twod(t->src, t->dst, t->size, t->sstrd,
-                                          t->dstrd, t->nreps, t->cfg);
+                snrt_dma_start_2d(t->dst, t->src, t->size, t->dstrd, t->sstrd,
+                                  t->nreps, t->cfg);
             } else {
                 DM_PRINTF(10, "start oned\n");
-                __builtin_sdma_start_oned(t->src, t->dst, t->size, t->cfg);
+                snrt_dma_start_1d(t->dst, t->src, t->size, 0);
             }
 
             // bump
@@ -208,7 +208,7 @@ inline void dm_main(void) {
                 case STAT_WAIT_IDLE:
                     // check status and set pvalid if DMA is idle and clear
                     // request
-                    if (__builtin_sdma_stat(DM_STATUS_BUSY) == 0) {
+                    if (!snrt_dma_busy()) {
                         DM_PRINTF(50, "idle\n");
                         dm_p->stat_pvalid = 1;
                         dm_p->stat_q = (en_stat_t)0;
