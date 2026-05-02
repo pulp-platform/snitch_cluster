@@ -70,8 +70,6 @@ void gemm_fp8_baseline(uint32_t setup_ssr, uint32_t partition_banks,
             v8f8 a, b;
             volatile char* c_ptr;
             const float zero = 0.0;
-            double c = 0.0;
-            v8f8 reduce_reg;
 
             a_ptr = (v8f8*)(&A[m * lda]);
             b_ptr = (v8f8*)(&B[n * ldb]);
@@ -106,8 +104,7 @@ void gemm_fp8_baseline(uint32_t setup_ssr, uint32_t partition_banks,
                 // Store results
                 "fsb ft2, 0(%[C]) \n"
                 : [ a_ptr ] "+r"(a_ptr), [ b_ptr ] "+r"(b_ptr)
-                : [ c ] "f"(c), [ reduce_reg ] "f"(reduce_reg),
-                  [ C ] "r"(c_ptr), [ beta ] "r"(beta), [ K ] "r"(K),
+                : [ C ] "r"(c_ptr), [ beta ] "r"(beta), [ K ] "r"(K),
                   [ zero ] "f"(zero)
                 : "ft0", "ft1", "ft2", "ft3", "ft4", "t0");
         }
@@ -162,8 +159,8 @@ void gemm_fp8_opt_ex(uint32_t setup_ssr, uint32_t partition_banks,
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
             char* _C = &C[m * ldc + n];
             const float zero = 0.0;
-            v8f8 c[unroll];
-            v4f16 reduce_reg[unroll];
+            double c[unroll];
+            double reduce_reg[unroll];
 
             asm volatile(
                 "beqz %[beta], 1f \n"
@@ -287,7 +284,7 @@ void gemm_fp8_opt_ex(uint32_t setup_ssr, uint32_t partition_banks,
                 : "ft0", "ft1", "ft2");
 
             // Store results back
-            ((v8f8*)_C)[0] = c[0];
+            ((double*)_C)[0] = c[0];
             n += unroll;
         }
 

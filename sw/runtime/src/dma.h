@@ -330,6 +330,8 @@ static inline uint32_t snrt_dma_busy(const uint32_t channel) {
                  : [ channel ] "i"(channel)
                  :);
     return busy;
+#else
+    return 0;
 #endif
 }
 
@@ -350,6 +352,8 @@ static inline uint32_t snrt_dma_would_block(const uint32_t channel) {
                  : [ channel ] "i"(channel)
                  :);
     return would_block;
+#else
+    return 0;
 #endif
 }
 

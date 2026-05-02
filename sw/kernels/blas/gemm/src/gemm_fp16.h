@@ -61,8 +61,6 @@ void gemm_fp16_baseline(uint32_t setup_ssr, uint32_t transa, uint32_t transb,
             v4f16 a, b;
             volatile __fp16* c_ptr;
             const float zero = 0.0;
-            double c = 0.0;
-            v4f16 reduce_reg;
 
             a_ptr = (v4f16*)(&A[m * lda]);
             b_ptr = (v4f16*)(&B[n * ldb]);
@@ -96,8 +94,7 @@ void gemm_fp16_baseline(uint32_t setup_ssr, uint32_t transa, uint32_t transb,
                 // Store results
                 "fsh ft3, 0(%[C]) \n"
                 : [ a_ptr ] "+r"(a_ptr), [ b_ptr ] "+r"(b_ptr)
-                : [ c ] "f"(c), [ reduce_reg ] "f"(reduce_reg),
-                  [ C ] "r"(c_ptr), [ beta ] "r"(beta), [ K ] "r"(K),
+                : [ C ] "r"(c_ptr), [ beta ] "r"(beta), [ K ] "r"(K),
                   [ zero ] "f"(zero)
                 : "ft0", "ft1", "ft2", "ft3", "ft4", "t0");
         }
@@ -155,8 +152,8 @@ void gemm_fp16_opt(uint32_t setup_ssr, uint32_t partition_banks,
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
             __fp16* _C = &C[m * ldc + n];
             const float zero = 0.0;
-            v4f16 c[unroll];
-            v2f32 reduce_reg[unroll];
+            double c[unroll];
+            double reduce_reg[unroll];
 
             asm volatile(
                 "beqz %[beta], 1f \n"
@@ -349,8 +346,8 @@ void gemm_fp16_opt_ex(uint32_t setup_ssr, uint32_t partition_banks,
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
             __fp16* _C = &C[m * ldc + n];
             const float zero = 0.0;
-            v4f16 c[unroll];
-            v2f32 reduce_reg[unroll];
+            double c[unroll];
+            double reduce_reg[unroll];
 
             asm volatile(
                 "beqz %[beta], 1f \n"
