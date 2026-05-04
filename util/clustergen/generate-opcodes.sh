@@ -7,13 +7,9 @@
 set -e
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 
-RISCV_OPCODES=$ROOT/sw/deps/riscv-opcodes
-OPCODES=(opcodes-pseudo opcodes-rv32i opcodes-rv64i opcodes-rv32m opcodes-rv64m opcodes-rv32a opcodes-rv64a opcodes-rv32h opcodes-rv64h opcodes-rv32f opcodes-rv64f opcodes-rv32d opcodes-rv64d opcodes-rv32q opcodes-rv64q opcodes-system opcodes-custom opcodes-rv32b_CUSTOM opcodes-dma_CUSTOM opcodes-frep_CUSTOM opcodes-ssr_CUSTOM opcodes-copift_CUSTOM opcodes-flt-occamy_CUSTOM opcodes-rvv-pseudo opcodes-xpulppostmod_CUSTOM opcodes-xpulpabs_CUSTOM opcodes-xpulpbitop_CUSTOM opcodes-xpulpbr_CUSTOM opcodes-xpulpclip_CUSTOM opcodes-xpulpmacsi_CUSTOM opcodes-xpulpminmax_CUSTOM opcodes-xpulpslet_CUSTOM opcodes-xpulpvect_CUSTOM opcodes-xpulpvectshufflepack_CUSTOM)
+# TODO(colluca): what about rvv-pseudo?
+OPCODES=(rv_i rv32_i rv64_i rv_zicsr rv_zifencei rv_s rv_m rv_sdext rv32_m rv64_m rv_a rv64_a rv32_h rv64_h rv_f rv64_f rv_d rv64_d rv_q rv64_q rv_system unratified/rv32_b unratified/rv_dma unratified/rv_frep unratified/rv_ssr unratified/rv_ipu unratified/rv_copift unratified/rv_flt_occamy unratified/rv32_xpulppostmod unratified/rv32_xpulpabs unratified/rv32_xpulpbitop unratified/rv32_xpulpbr unratified/rv32_xpulpclip unratified/rv32_xpulpmacsi unratified/rv32_xpulpminmax unratified/rv32_xpulpslet unratified/rv32_xpulpvect unratified/rv32_xpulpvectshufflepack)
 
-#######
-# RTL #
-#######
-OPCODES+=(opcodes-ipu_CUSTOM)
 INSTR_SV=$ROOT/hw/snitch/src/riscv_instr.sv
 
 cat > $INSTR_SV <<- EOM
@@ -23,5 +19,9 @@ cat > $INSTR_SV <<- EOM
 
 EOM
 echo -e "// verilog_lint: waive-start parameter-name-style" >> $INSTR_SV
-cd $RISCV_OPCODES && cat ${OPCODES[@]} | ./parse_opcodes -sverilog --warn-overlap >> $INSTR_SV
+riscv_opcodes -sverilog --warn-overlap ${OPCODES[@]}
+# Dump riscv_opcodes output to the instruction file
+cat inst.sverilog >> $INSTR_SV
+# Delete riscv_opcodes artifacts
+rm inst.sverilog instr_dict.json
 echo -e "// verilog_lint: waive-stop parameter-name-style" >> $INSTR_SV
