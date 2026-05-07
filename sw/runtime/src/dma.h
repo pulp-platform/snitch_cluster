@@ -15,9 +15,6 @@
 
 #include <math.h>
 
-/// A DMA transfer identifier.
-typedef uint32_t snrt_dma_txid_t;
-
 /**
  * @brief Start an asynchronous 1D DMA transfer with 64-bit wide pointers on a
  *        specific DMA channel.
@@ -26,31 +23,25 @@ typedef uint32_t snrt_dma_txid_t;
  * @param size The size of the transfer in bytes.
  * @param channel The index of the channel.
  * @return The DMA transfer ID.
- * @note The function passes the @p channel argument as an immediate,
- *       thus this must be known at compile time. As a consequence, the
- *       function must use internal linkage (`static` keyword) and must be
- *       always inlined. This is true also for all functions invoking this
- *       function, and passing down an argument to @p channel.
  */
-static inline uint32_t snrt_dma_start_1d(uint64_t dst, uint64_t src,
-                                         size_t size,
-                                         const uint32_t channel = 0) {
+inline uint32_t snrt_dma_start_1d(uint64_t dst, uint64_t src, size_t size,
+                                  uint32_t channel) {
 #ifdef SNRT_SUPPORTS_DMA
     uint32_t dst_lo = dst & 0xFFFFFFFF;
     uint32_t dst_hi = dst >> 32;
     uint32_t src_lo = src & 0xFFFFFFFF;
     uint32_t src_hi = src >> 32;
+    uint32_t cfg = (channel << 2) | 0b00;
     uint32_t txid;
 
     asm volatile(
         "dmsrc %[src_lo], %[src_hi] \n"
         "dmdst %[dst_lo], %[dst_hi] \n"
-        "dmcpyi %[txid], %[size], (%[channel] << 2) | 0b00 \n"
+        "dmcpy %[txid], %[size], %[cfg] \n"
         : [ txid ] "=r"(txid)
         : [ src_lo ] "r"(src_lo), [ src_hi ] "r"(src_hi),
           [ dst_lo ] "r"(dst_lo), [ dst_hi ] "r"(dst_hi), [ size ] "r"(size),
-          [ channel ] "i"(channel));
-
+          [ cfg ] "r"(cfg));
     return txid;
 #else
     memcpy((void *)dst, (const void *)src, size);
@@ -64,9 +55,8 @@ static inline uint32_t snrt_dma_start_1d(uint64_t dst, uint64_t src,
  * This is a convenience overload of snrt_dma_start_1d(uint64_t, uint64_t, size_t, uint32_t)
  * using `void*` pointers.
  */
-static inline uint32_t snrt_dma_start_1d(volatile void *dst, volatile void *src,
-                                         size_t size,
-                                         const uint32_t channel = 0) {
+inline uint32_t snrt_dma_start_1d(volatile void *dst, volatile void *src,
+                                  size_t size, uint32_t channel = 0) {
     return snrt_dma_start_1d((uint64_t)dst, (uint64_t)src, size, channel);
 }
 
@@ -137,9 +127,10 @@ inline void snrt_dma_disable_reduction() { snrt_dma_set_awuser(0); }
  * @see snrt_dma_start_1d(uint64_t, uint64_t, size_t, uint32_t) for a
  *      description of the other parameters.
  */
-static inline uint32_t snrt_dma_start_1d_reduction(
-    uint64_t dst, uint64_t src, size_t size, uint64_t mask,
-    snrt_collective_opcode_t opcode, const uint32_t channel = 0) {
+inline uint32_t snrt_dma_start_1d_reduction(uint64_t dst, uint64_t src,
+                                            size_t size, uint64_t mask,
+                                            snrt_collective_opcode_t opcode,
+                                            uint32_t channel = 0) {
     snrt_dma_enable_reduction(mask, opcode);
     uint32_t txid = snrt_dma_start_1d(dst, src, size, channel);
     snrt_dma_disable_reduction();
@@ -154,9 +145,10 @@ static inline uint32_t snrt_dma_start_1d_reduction(
  * @see snrt_dma_start_1d(uint64_t, uint64_t, size_t, uint32_t) for a
  *      description of the other parameters.
  */
-static inline uint32_t snrt_dma_start_1d_reduction(
-    uint64_t dst, uint64_t src, size_t size, snrt_comm_t comm,
-    snrt_collective_opcode_t opcode, const uint32_t channel = 0) {
+inline uint32_t snrt_dma_start_1d_reduction(uint64_t dst, uint64_t src,
+                                            size_t size, snrt_comm_t comm,
+                                            snrt_collective_opcode_t opcode,
+                                            uint32_t channel = 0) {
     uint64_t mask = snrt_get_collective_mask(comm);
     uint32_t txid =
         snrt_dma_start_1d_reduction(dst, src, size, mask, opcode, channel);
@@ -170,9 +162,8 @@ static inline uint32_t snrt_dma_start_1d_reduction(
  * @see snrt_dma_start_1d(uint64_t, uint64_t, size_t, uint32_t) for a
  *      description of the other parameters.
  */
-static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
-                                               size_t size, uint64_t mask,
-                                               const uint32_t channel = 0) {
+inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src, size_t size,
+                                        uint64_t mask, uint32_t channel = 0) {
     snrt_dma_enable_multicast(mask);
     uint32_t txid = snrt_dma_start_1d(dst, src, size, channel);
     snrt_dma_disable_multicast();
@@ -186,9 +177,9 @@ static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
  * @see snrt_dma_start_1d(uint64_t, uint64_t, size_t, uint32_t) for a
  *      description of the other parameters.
  */
-static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
-                                               size_t size, snrt_comm_t comm,
-                                               const uint32_t channel = 0) {
+inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src, size_t size,
+                                        snrt_comm_t comm,
+                                        uint32_t channel = 0) {
     uint64_t mask = snrt_get_collective_mask(comm);
     uint32_t txid = snrt_dma_start_1d_mcast(dst, src, size, mask, channel);
     return txid;
@@ -202,9 +193,11 @@ static inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src,
  * snrt_dma_start_1d_reduction(uint64_t, uint64_t, size_t, uint64_t, uint32_t, uint32_t)
  * using `void*` pointers.
  */
-static inline uint32_t snrt_dma_start_1d_reduction(
-    volatile void *dst, volatile void *src, size_t size, uint64_t mask,
-    snrt_collective_opcode_t opcode, const uint32_t channel = 0) {
+inline uint32_t snrt_dma_start_1d_reduction(volatile void *dst,
+                                            volatile void *src, size_t size,
+                                            uint64_t mask,
+                                            snrt_collective_opcode_t opcode,
+                                            uint32_t channel = 0) {
     return snrt_dma_start_1d_reduction((uint64_t)dst, (uint64_t)src, size, mask,
                                        opcode, channel);
 }
@@ -217,10 +210,9 @@ static inline uint32_t snrt_dma_start_1d_reduction(
  * snrt_dma_start_1d_mcast(uint64_t, uint64_t, size_t, uint64_t, uint32_t)
  * using `void*` pointers.
  */
-static inline uint32_t snrt_dma_start_1d_mcast(volatile void *dst,
-                                               volatile void *src, size_t size,
-                                               uint64_t mask,
-                                               const uint32_t channel = 0) {
+inline uint32_t snrt_dma_start_1d_mcast(volatile void *dst, volatile void *src,
+                                        size_t size, uint64_t mask,
+                                        uint32_t channel = 0) {
     return snrt_dma_start_1d_mcast((uint64_t)dst, (uint64_t)src, size, mask,
                                    channel);
 }
@@ -237,22 +229,17 @@ static inline uint32_t snrt_dma_start_1d_mcast(volatile void *dst,
  * @param repeat The number of 1D transfers composing the 2D transfer.
  * @param channel The index of the channel.
  * @return The DMA transfer ID.
- * @note The function passes the @p channel argument as an immediate,
- *       thus this must be known at compile time. As a consequence, the
- *       function must use internal linkage (`static` keyword) and must be
- *       always inlined. This is true also for all functions invoking this
- *       function, and passing down an argument to @p channel.
  */
-static inline snrt_dma_txid_t snrt_dma_start_2d(uint64_t dst, uint64_t src,
-                                                size_t size, size_t dst_stride,
-                                                size_t src_stride,
-                                                size_t repeat,
-                                                const uint32_t channel = 0) {
+inline snrt_dma_txid_t snrt_dma_start_2d(uint64_t dst, uint64_t src,
+                                         size_t size, size_t dst_stride,
+                                         size_t src_stride, size_t repeat,
+                                         uint32_t channel) {
 #ifdef SNRT_SUPPORTS_DMA
     uint32_t dst_lo = dst & 0xFFFFFFFF;
     uint32_t dst_hi = dst >> 32;
     uint32_t src_lo = src & 0xFFFFFFFF;
     uint32_t src_hi = src >> 32;
+    uint32_t cfg = (channel << 2) | 0b10;
     uint32_t txid;
 
     asm volatile(
@@ -260,12 +247,12 @@ static inline snrt_dma_txid_t snrt_dma_start_2d(uint64_t dst, uint64_t src,
         "dmdst %[dst_lo], %[dst_hi] \n"
         "dmstr %[src_stride], %[dst_stride] \n"
         "dmrep %[repeat] \n"
-        "dmcpyi %[txid], %[size], (%[channel] << 2) | 0b10 \n"
+        "dmcpy %[txid], %[size], %[cfg] \n"
         : [ txid ] "=r"(txid)
         : [ src_lo ] "r"(src_lo), [ src_hi ] "r"(src_hi),
           [ dst_lo ] "r"(dst_lo), [ dst_hi ] "r"(dst_hi),
           [ dst_stride ] "r"(dst_stride), [ src_stride ] "r"(src_stride),
-          [ repeat ] "r"(repeat), [ size ] "r"(size), [ channel ] "i"(channel));
+          [ repeat ] "r"(repeat), [ size ] "r"(size), [ cfg ] "r"(cfg));
 
     return txid;
 #else
@@ -281,10 +268,10 @@ static inline snrt_dma_txid_t snrt_dma_start_2d(uint64_t dst, uint64_t src,
  * snrt_dma_start_2d(uint64_t, uint64_t, size_t, size_t, size_t, size_t, uint32_t)
  * using `void*` pointers.
  */
-static inline uint32_t snrt_dma_start_2d(volatile void *dst, volatile void *src,
-                                         size_t size, size_t dst_stride,
-                                         size_t src_stride, size_t repeat,
-                                         const uint32_t channel = 0) {
+inline uint32_t snrt_dma_start_2d(volatile void *dst, volatile void *src,
+                                  size_t size, size_t dst_stride,
+                                  size_t src_stride, size_t repeat,
+                                  uint32_t channel = 0) {
     return snrt_dma_start_2d((uint64_t)dst, (uint64_t)src, size, dst_stride,
                              src_stride, repeat, channel);
 }
@@ -298,11 +285,10 @@ static inline uint32_t snrt_dma_start_2d(volatile void *dst, volatile void *src,
  * @see snrt_dma_start_2d(uint64_t, uint64_t, size_t, size_t, size_t, size_t, uint32_t)
  *      for a description of the other parameters.
  */
-static inline uint32_t snrt_dma_start_2d_mcast(uint64_t dst, uint64_t src,
-                                               size_t size, size_t dst_stride,
-                                               size_t src_stride, size_t repeat,
-                                               uint32_t mask,
-                                               const uint32_t channel = 0) {
+inline uint32_t snrt_dma_start_2d_mcast(uint64_t dst, uint64_t src, size_t size,
+                                        size_t dst_stride, size_t src_stride,
+                                        size_t repeat, uint32_t mask,
+                                        uint32_t channel = 0) {
     snrt_dma_enable_multicast(mask);
     uint32_t txid = snrt_dma_start_2d(dst, src, size, dst_stride, src_stride,
                                       repeat, channel);
@@ -318,15 +304,57 @@ static inline uint32_t snrt_dma_start_2d_mcast(uint64_t dst, uint64_t src,
  * snrt_dma_start_2d_mcast(uint64_t, uint64_t, size_t, size_t, size_t, size_t, uint32_t, uint32_t)
  * using `void*` pointers.
  */
-static inline uint32_t snrt_dma_start_2d_mcast(volatile void *dst,
-                                               volatile void *src, size_t size,
-                                               size_t dst_stride,
-                                               size_t src_stride, size_t repeat,
-                                               uint32_t mask,
-                                               const uint32_t channel = 0) {
+inline uint32_t snrt_dma_start_2d_mcast(volatile void *dst, volatile void *src,
+                                        size_t size, size_t dst_stride,
+                                        size_t src_stride, size_t repeat,
+                                        uint32_t mask, uint32_t channel = 0) {
     return snrt_dma_start_2d_mcast((uint64_t)dst, (uint64_t)src, size,
                                    dst_stride, src_stride, repeat, mask,
                                    channel);
+}
+
+/**
+ * @brief Read DMA busy flag.
+ * @param channel The index of the channel.
+ * @note The function passes the @p channel argument as an immediate,
+ *       thus this must be known at compile time. As a consequence, the
+ *       function must use internal linkage (`static` keyword) and must be
+ *       always inlined. This is true also for all functions invoking this
+ *       function, and passing down an argument to @p channel.
+ */
+static inline uint32_t snrt_dma_busy(const uint32_t channel) {
+#ifdef SNRT_SUPPORTS_DMA
+    uint32_t busy;
+    asm volatile("dmstati %[busy], (%[channel] << 2) | 2 \n"
+                 : [ busy ] "=r"(busy)
+                 : [ channel ] "i"(channel)
+                 :);
+    return busy;
+#else
+    return 0;
+#endif
+}
+
+/**
+ * @brief Read DMA would_block flag.
+ * @param channel The index of the channel.
+ * @note The function passes the @p channel argument as an immediate,
+ *       thus this must be known at compile time. As a consequence, the
+ *       function must use internal linkage (`static` keyword) and must be
+ *       always inlined. This is true also for all functions invoking this
+ *       function, and passing down an argument to @p channel.
+ */
+static inline uint32_t snrt_dma_would_block(const uint32_t channel) {
+#ifdef SNRT_SUPPORTS_DMA
+    uint32_t would_block;
+    asm volatile("dmstati %[would_block], (%[channel] << 2) | 3 \n"
+                 : [ would_block ] "=r"(would_block)
+                 : [ channel ] "i"(channel)
+                 :);
+    return would_block;
+#else
+    return 0;
+#endif
 }
 
 /**
@@ -363,13 +391,8 @@ static inline void snrt_dma_wait(snrt_dma_txid_t txid,
  */
 static inline void snrt_dma_wait_all(const uint32_t channel = 0) {
 #ifdef SNRT_SUPPORTS_DMA
-    uint32_t busy;
-    asm volatile(
-        "1: \n"
-        "dmstati %[busy], (%[channel] << 2) | 2 \n"
-        "bne %[busy], zero, 1b \n"
-        : [ busy ] "=r"(busy)
-        : [ channel ] "i"(channel));
+    while (snrt_dma_busy(channel))
+        ;
 #endif
 }
 

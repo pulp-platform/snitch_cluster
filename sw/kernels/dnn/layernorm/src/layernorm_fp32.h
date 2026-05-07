@@ -80,7 +80,7 @@ static inline void layernorm_fp32_opt(float *input, float *output,
         // compute the mean and variance along the last dimension
         float mean_tot = 0.0;  // max value of the current core
         float var_tot = 0.0;   // sum of the exp values of the current core
-        v2f32 mean_reg = {0.0, 0.0};
+        double mean_reg;
         const int num_elems_per_vector = sizeof(double) / sizeof(float);
         for (int32_t b = 0; b < batch_size; b++) {
             const uint32_t ssr0_b[4] = {
@@ -119,9 +119,13 @@ static inline void layernorm_fp32_opt(float *input, float *output,
                 float var[UNROLL] = {0.0, 0.0};
                 mean_tot = 0.0;
                 var_tot = 0.0;
-                v2f32 var_reg[UNROLL];
-                v2f32 pow[UNROLL];
+                double var_reg[UNROLL];
+                double pow[UNROLL];
                 v2f32 one_reg = {1.0f, 1.0f};
+                // Must convert to double since operands other than float and
+                // double cannot use the "f" constraint in LLVM 18 and there is
+                // no constraint for vector registers
+                double one_reg_d = *((double *)&one_reg);
 
                 var_tot = 0.0;
                 snrt_ssr_enable();
@@ -191,7 +195,7 @@ static inline void layernorm_fp32_opt(float *input, float *output,
                     : [ n_frep ] "r"(n_frep - 1), [ mean_tot ] "f"(mean_tot),
                       [ embeddings ] "f"((float)embeddings),
                       [ eps ] "f"((float)eps), [ zero ] "f"(0.0),
-                      [ one_reg ] "f"(one_reg)
+                      [ one_reg ] "f"(one_reg_d)
                     : "ft0", "ft1", "ft2"
 
                 );

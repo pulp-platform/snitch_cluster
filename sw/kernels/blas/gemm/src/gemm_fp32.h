@@ -160,8 +160,6 @@ void gemm_fp32_baseline(uint32_t setup_ssr, uint32_t partition_banks,
             v2f32 a, b;
             volatile float* c_ptr;
             const float zero = 0.0;
-            double c = 0.0;
-            v2f32 reduce_reg;
 
             a_ptr = (v2f32*)(&A[m * lda]);
             b_ptr = (v2f32*)(&B[n * ldb]);
@@ -198,8 +196,7 @@ void gemm_fp32_baseline(uint32_t setup_ssr, uint32_t partition_banks,
                 // Store results
                 "fsw ft2, 0(%[C]) \n"
                 : [ a_ptr ] "+r"(a_ptr), [ b_ptr ] "+r"(b_ptr)
-                : [ c ] "f"(c), [ reduce_reg ] "f"(reduce_reg),
-                  [ C ] "r"(c_ptr), [ beta ] "r"(beta), [ K ] "r"(K),
+                : [ C ] "r"(c_ptr), [ beta ] "r"(beta), [ K ] "r"(K),
                   [ zero ] "f"(zero)
                 : "ft0", "ft1", "ft2", "ft3", "ft4", "t0");
         }
@@ -255,10 +252,10 @@ void gemm_fp32_opt(uint32_t setup_ssr, uint32_t partition_banks,
         for (uint32_t n0 = 0; n0 < N / unroll; n0++) {
             float* _C = &C[m * ldc + n / 2];
             const float zero = 0.0;
-            v2f32 c[unroll], reduce_reg[unroll];
+            double c[unroll], reduce_reg[unroll];
 
             asm volatile(
-                "beqz    %[beta], 1f \n"
+                "beqz %[beta], 1f \n"
                 // Load intermediate results
                 "flw %[reduce_reg0], 0(%[C]) \n"
                 "flw %[reduce_reg1], 4(%[C]) \n"
