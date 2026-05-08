@@ -28,6 +28,7 @@ rv64_zbb
 rv_zba
 rv_zbc
 rv_zbkb
+rv_v
 unratified/rv_xdma
 unratified/rv_xfrep
 unratified/rv_xssr
