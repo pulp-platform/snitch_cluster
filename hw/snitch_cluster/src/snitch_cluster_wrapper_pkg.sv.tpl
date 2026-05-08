@@ -299,6 +299,7 @@ package snitch_cluster_wrapper_pkg;
       RVD: ${int(getattr(c['isa_parsed'], 'd'))},
       Xdma: ${int(c['xdma'])},
       Xssr: ${int(c['xssr'])},
+      RVV: ${int(c['rvv'])},
       Xfrep: ${int(c['xfrep'])},
       Xcopift: ${int(c['xcopift'])},
       XF16: ${int(c['xf16'])},

@@ -123,3 +123,23 @@ packages:
       Git: https://github.com/pulp-platform/tech_cells_generic.git
     dependencies:
     - common_verification
+  reqrsp_interface:
+    revision: null
+    version: null
+    source:
+      Path: hw/reqrsp_interface
+    dependencies:
+    - axi
+    - common_cells
+    - tech_cells_generic
+  spatz_core:
+    revision: 6843d310ddf0190a9f0d8e3d876678ccd4cb2a0f
+    version: null
+    source:
+      Git: https://github.com/DiyouS/spatz.git
+    dependencies:
+    - reqrsp_interface
+    - common_cells
+    - fpnew
+    - riscv-dbg
+    - tech_cells_generic
