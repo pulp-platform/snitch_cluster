@@ -8,7 +8,7 @@
 /// A set of testbench utilities for REQRSP interfaces.
 package reqrsp_test;
 
-  import snitch_pkg::*;
+  import reqrsp_pkg::*;
 
   class req_t #(
     parameter int AW = 32,

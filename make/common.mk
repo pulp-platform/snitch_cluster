@@ -53,7 +53,7 @@ SN_BENDER_LOCK = $(SN_ROOT)/Bender.lock
 SN_BENDER_YML  = $(SN_ROOT)/Bender.yml
 
 # Flags
-SN_COMMON_BENDER_FLAGS     += -t rtl -t snitch_cluster
+SN_COMMON_BENDER_FLAGS     += -t rtl -t snitch_cluster -t spatz
 SN_COMMON_BENDER_SIM_FLAGS += -t simulation -t test
 SN_LAYOUT_EVENTS_FLAGS     ?= --cfg=$(SN_CFG)
 

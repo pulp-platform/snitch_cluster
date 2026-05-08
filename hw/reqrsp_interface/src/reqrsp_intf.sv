@@ -26,7 +26,7 @@ interface REQRSP_BUS #(
   parameter int DATA_WIDTH = -1
 );
 
-  import snitch_pkg::*;
+  import reqrsp_pkg::*;
 
   localparam int unsigned StrbWidth = DATA_WIDTH / 8;
 
@@ -75,7 +75,7 @@ interface REQRSP_BUS_DV #(
   input logic clk_i
 );
 
-  import snitch_pkg::*;
+  import reqrsp_pkg::*;
 
   localparam int unsigned StrbWidth = DATA_WIDTH / 8;
 
