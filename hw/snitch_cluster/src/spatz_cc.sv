@@ -12,7 +12,7 @@
 
 /// Snitch Core Complex (CC)
 /// Contains the Snitch Integer Core + FPU + Private Accelerators
-module snitch_cc #(
+module spatz_cc #(
   /// Address width of the buses
   parameter int unsigned AddrWidth          = 0,
   /// Data width of the buses.
@@ -55,9 +55,7 @@ module snitch_cc #(
   parameter type         x_commit_t         = logic,
   parameter type         x_result_t         = logic,
   // Spatz / RVV parameters
-  parameter int unsigned                 NumSpatzFPUs              = 4,
-  parameter int unsigned                 NumSpatzIPUs              = 1,
-  parameter int unsigned                 NumSpatzOutstandingLoads  = 0,
+  parameter int unsigned                 NumSpatzOutstandingLoads  = 4,
   // TCDM channel types (used by Spatz mem ports)
   parameter type                         tcdm_req_chan_t           = logic,
   parameter type                         tcdm_rsp_chan_t           = logic,
@@ -127,8 +125,12 @@ module snitch_cc #(
   // mem ports in indices [0:NumMemPortsPerSpatz-1] and the integer core's data
   // TCDM port at index [NumMemPortsPerSpatz]. SSR/FP_SS no longer share this
   // array (use a different cc file for the SSR+FP_SS variant).
-  localparam int unsigned NumSpatzFUs = (NumSpatzFPUs > NumSpatzIPUs) ? NumSpatzFPUs : NumSpatzIPUs,
+  localparam int unsigned NumSpatzFUs = spatz_pkg::N_FU,
+`ifdef DOUBLE_BW
+  localparam int unsigned NumMemPortsPerSpatz = 2 * NumSpatzFUs,
+`else
   localparam int unsigned NumMemPortsPerSpatz = NumSpatzFUs,
+`endif
   localparam int unsigned TCDMPorts = IsaCfg.RVV ? NumMemPortsPerSpatz + 1 : 1,
   localparam type addr_t = logic [AddrWidth-1:0],
   localparam type data_t = logic [DataWidth-1:0],
@@ -184,6 +186,35 @@ module snitch_cc #(
   localparam bit FpEn = snitch_pkg::calculate_fp_enable(IsaCfg);
   localparam bit Xpulpv2 = snitch_pkg::calculate_xpulpv2(IsaCfg);
   localparam int unsigned FLEN = snitch_pkg::calculate_flen(IsaCfg);
+
+  localparam snitch_pkg::isa_cfg_t IsaCfgSpatz = '{
+    RVE                 : IsaCfg.RVE,
+    RVV                 : IsaCfg.RVV,
+    Xdma                : IsaCfg.Xdma,
+    Xssr                : IsaCfg.Xssr,
+    Xfrep               : 0,
+    Xcopift             : IsaCfg.Xcopift,
+    RVF                 : 0,
+    RVD                 : 0,
+    XF16                : 0,
+    XF16ALT             : 0,
+    XF8                 : 0,
+    XF8ALT              : 0,
+    XDivSqrt            : IsaCfg.XDivSqrt,
+    XFVEC               : 0,
+    XFDOTP              : 0,
+    XFAUX               : 0,
+    Xpulppostmod        : IsaCfg.Xpulppostmod,
+    Xpulpabs            : IsaCfg.Xpulpabs,
+    Xpulpbitop          : IsaCfg.Xpulpbitop,
+    Xpulpbr             : IsaCfg.Xpulpbr,
+    Xpulpclip           : IsaCfg.Xpulpclip,
+    Xpulpmacsi          : IsaCfg.Xpulpmacsi,
+    Xpulpminmax         : IsaCfg.Xpulpminmax,
+    Xpulpslet           : IsaCfg.Xpulpslet,
+    Xpulpvect           : IsaCfg.Xpulpvect,
+    Xpulpvectshufflepack: IsaCfg.Xpulpvectshufflepack
+  };
 
   typedef struct packed {
     logic [4:0]  id;
@@ -272,7 +303,7 @@ module snitch_cc #(
 
   snitch #(
     .BootAddr (BootAddr),
-    .IsaCfg (IsaCfg),
+    .IsaCfg (IsaCfgSpatz),
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
     .VMSupport (VMSupport),
@@ -480,11 +511,6 @@ module snitch_cc #(
       .drsp_t              (drsp_t                  ),
       .spatz_mem_req_t     (tcdm_req_chan_t         ),
       .spatz_mem_rsp_t     (tcdm_rsp_chan_t         ),
-      // Internal acc-shaped types (still required by Spatz's FPU sequencer
-      // parametrization even when X-IF mode is selected).
-      .spatz_issue_req_t   (acc_issue_req_t         ),
-      .spatz_issue_rsp_t   (acc_issue_rsp_t         ),
-      .spatz_rsp_t         (acc_rsp_t               ),
       // X-IF types (used; Spatz must be compiled with `define X_INTERFACE).
       .x_issue_req_t       (x_issue_req_t           ),
       .x_issue_resp_t      (x_issue_resp_t          ),

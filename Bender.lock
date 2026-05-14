@@ -132,7 +132,7 @@ packages:
     - common_cells
     - tech_cells_generic
   spatz_core:
-    revision: 6843d310ddf0190a9f0d8e3d876678ccd4cb2a0f
+    revision: 6469953e4997a396acfecde49f8e7c164dffb236
     version: null
     source:
       Git: https://github.com/DiyouS/spatz.git

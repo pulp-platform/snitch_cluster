@@ -32,7 +32,7 @@ SN_RISCV_ADDR2LINE ?= $(SN_LLVM_BINROOT)/llvm-addr2line
 
 # Compiler flags
 SN_RISCV_FEATURES = xfrep xssr xdma xcopift xsmallfloat
-SN_RISCV_CFLAGS := -march=rv32imafd_zfh_zifencei
+SN_RISCV_CFLAGS := -march=rv32imafd_v_zfh_zifencei
 SN_RISCV_CFLAGS += $(foreach feat,$(SN_RISCV_FEATURES),-Xclang -target-feature -Xclang +$(feat))
 SN_RISCV_CFLAGS += -menable-experimental-extensions
 SN_RISCV_CFLAGS += -mabi=ilp32d
