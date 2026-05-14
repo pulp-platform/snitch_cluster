@@ -45,6 +45,11 @@ SN_RISCV_CFLAGS += -fopenmp
 SN_RISCV_CFLAGS += -ftls-model=local-exec
 SN_RISCV_CFLAGS += -O3
 SN_RISCV_CFLAGS += -Werror
+
+# Disable auto-vectorization so the compiler does not emit RVV instructions
+# behind the programmer's back. Can be overridden by setting LLVM_V_FLAGS=.
+LLVM_V_FLAGS ?= -fno-vectorize -mllvm -scalable-vectorization=off
+SN_RISCV_CFLAGS += $(LLVM_V_FLAGS)
 ifeq ($(DEBUG), ON)
 SN_RISCV_CFLAGS += -g
 endif
