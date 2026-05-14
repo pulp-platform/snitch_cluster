@@ -37,7 +37,7 @@ SN_RISCV_FEATURES = xdma xcvmem xpulpabs xpulpbitop xpulpbr xpulpclip xpulpmacsi
 else
 SN_RISCV_FEATURES = xfrep xssr xdma xcopift xsmallfloatb xsmallfloath xsmallfloatvb xsmallfloatvh xsmallfloatvs
 endif
-SN_RISCV_CFLAGS := -march=rv32imafd_zfh_zifencei
+SN_RISCV_CFLAGS := -march=rv32imafd_v_zfh_zifencei
 SN_RISCV_CFLAGS += $(foreach feat,$(SN_RISCV_FEATURES),-Xclang -target-feature -Xclang +$(feat))
 SN_RISCV_CFLAGS += -menable-experimental-extensions
 SN_RISCV_CFLAGS += -mabi=ilp32d
@@ -68,6 +68,6 @@ SN_RISCV_ARFLAGS := rcs
 
 # Objdump flags
 SN_RISCV_MATTR_FEATURES  = $(call comma-join,$(addprefix +,$(SN_RISCV_FEATURES)))
-SN_RISCV_MATTR_FLAG      = --mattr=+m,+a,+f,+d,+zfh,+zifencei,$(SN_RISCV_MATTR_FEATURES)
+SN_RISCV_MATTR_FLAG      = --mattr=+m,+a,+f,+d,+v,+zfh,+zifencei,$(SN_RISCV_MATTR_FEATURES)
 SN_RISCV_OBJDUMP_FLAGS  := --triple=riscv32 $(SN_RISCV_MATTR_FLAG)
 SN_RISCV_OBJDUMP_FLAGS  += -D

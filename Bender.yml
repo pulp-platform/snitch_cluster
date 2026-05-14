@@ -174,6 +174,7 @@ sources:
       - hw/snitch_cluster/src/snitch_tcdm_interconnect.sv
       # Level 2
       - hw/snitch_cluster/src/snitch_cc.sv
+      - hw/snitch_cluster/src/spatz_cc.sv
       - hw/snitch_cluster/src/snitch_clkdiv2.sv
       # Level 3
       - hw/snitch_cluster/src/snitch_hive.sv

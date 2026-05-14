@@ -176,6 +176,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   localparam bit Xpulpvect            = IsaCfg.Xpulpvect;
   localparam bit Xpulpvectshufflepack = IsaCfg.Xpulpvectshufflepack;
 
+  // Print out XIF transactions for debugging purpose
+  localparam bit DebugXif             = 1'b0;
+
   typedef logic [DataWidth-1:0] data_t;
   typedef logic [AddrWidth-1:0] addr_t;
 
@@ -292,7 +295,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   } ls_size_e;
   ls_size_e ls_size;
 
-  amo_op_e ls_amo;
+  reqrsp_pkg::amo_op_e ls_amo;
 
   data_t ld_result;
   logic  lsu_qready, lsu_qvalid;
@@ -682,7 +685,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     is_fp_store = 1'b0;
     is_signed = 1'b0;
     ls_size = Byte;
-    ls_amo = AMONone;
+    ls_amo = reqrsp_pkg::AMONone;
 
     is_acc_inst = 1'b0;
     acc_req_o.q.addr = FP_SS;
@@ -1046,7 +1049,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = AMOAdd;
+        ls_amo = reqrsp_pkg::AMOAdd;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1057,7 +1060,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = AMOXor;
+        ls_amo = reqrsp_pkg::AMOXor;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1068,7 +1071,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = AMOOr;
+        ls_amo = reqrsp_pkg::AMOOr;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1079,7 +1082,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = AMOAnd;
+        ls_amo = reqrsp_pkg::AMOAnd;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1090,7 +1093,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = AMOMin;
+        ls_amo = reqrsp_pkg::AMOMin;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1101,7 +1104,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = AMOMax;
+        ls_amo = reqrsp_pkg::AMOMax;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1112,7 +1115,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = AMOMinu;
+        ls_amo = reqrsp_pkg::AMOMinu;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1123,7 +1126,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = AMOMaxu;
+        ls_amo = reqrsp_pkg::AMOMaxu;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1134,7 +1137,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = AMOSwap;
+        ls_amo = reqrsp_pkg::AMOSwap;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1145,7 +1148,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = AMOLR;
+        ls_amo = reqrsp_pkg::AMOLR;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1156,7 +1159,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = AMOSC;
+        ls_amo = reqrsp_pkg::AMOSC;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -2996,6 +2999,15 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     if (unsupported_inst) begin
       if (EnableXif) begin
         write_rd = x_issue_ready_i & x_issue_valid_o & x_issue_resp_i.writeback;
+        // For XIF non-writeback instructions (e.g. FP ops whose destination lives
+        // in the coprocessor's own register file), rd in the encoding does NOT map
+        // to Snitch's integer register file.  Setting uses_rd=1 (the default) would
+        // cause dst_ready to check sb_q[rd], which can be spuriously set by a
+        // preceding integer-writeback XIF instruction that happens to share the same
+        // register number (e.g. feq.d a5 sets sb_q[15] while fld fa5 also has
+        // rd=15).  Only gate on the integer scoreboard when the result will actually
+        // be written back to Snitch's GPR.
+        uses_rd = x_issue_resp_i.writeback;
 
         opa_select = RegRs1;
         opb_select = RegRs2;
@@ -3468,6 +3480,25 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       $display("[Dump Core %0d] %t 0x%3h = 0x%08h, %d, %f", hart_id_i,
                $time, inst_rsp_i.data[31:20], alu_result, alu_result, $bitstoshortreal(alu_result));
     end
+    // XIF trace
+    if (EnableXif && !rst_i && DebugXif) begin
+      if (x_issue_valid_o)
+        $display("[XIF Core %0d] %t ISSUE   instr=0x%08h id=%0d ready=%0b accept=%0b writeback=%0b",
+                 hart_id_i, $time,
+                 x_issue_req_o.instr, x_issue_req_o.id,
+                 x_issue_ready_i, x_issue_resp_i.accept, x_issue_resp_i.writeback);
+      if (x_register_valid_o)
+        $display("[XIF Core %0d] %t REGFILE id=%0d rs={%08h,%08h,%08h} rs_valid=%03b ready=%0b",
+                 hart_id_i, $time,
+                 x_register_o.id,
+                 x_register_o.rs[2], x_register_o.rs[1], x_register_o.rs[0],
+                 x_register_o.rs_valid, x_register_ready_i);
+      if (x_result_valid_i)
+        $display("[XIF Core %0d] %t RESULT  id=%0d rd=%0d data=0x%08h we=%0b ready=%0b",
+                 hart_id_i, $time,
+                 x_result_i.id, x_result_i.rd, x_result_i.data,
+                 x_result_i.we, x_result_ready_o);
+    end
   end
   // pragma translate_on
 
@@ -3761,7 +3792,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     .tag_t (logic[RegWidth-1:0]),
     .NumOutstandingMem (NumIntOutstandingMem),
     .NumOutstandingLoads (NumIntOutstandingLoads),
-    .Caq (FP_EN),
+    .Caq (1'b1),
     .CaqDepth (CaqDepth),
     .CaqTagWidth (CaqTagWidth),
     .CaqRespTrackSeq (1'b0)

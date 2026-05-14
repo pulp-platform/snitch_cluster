@@ -327,7 +327,14 @@ module snitch_cluster
   // [0:0]           is_core
   localparam int unsigned TcdmUserWidth = CoreIDWidth + 1;
 
+`ifdef DOUBLE_BW
+  localparam int unsigned SpatzTCDMPorts = 2 * spatz_pkg::N_FU + 1;
+`else
+  localparam int unsigned SpatzTCDMPorts = spatz_pkg::N_FU + 1;
+`endif
+
   function automatic int unsigned get_tcdm_ports(int unsigned core);
+    if (IsaCfg[core].RVV) return SpatzTCDMPorts;
     return (NumSsrs[core] > 1 ? NumSsrs[core] : 1);
   endfunction
 
@@ -816,7 +823,7 @@ module snitch_cluster
 
   for (genvar i = 0; i < 2; i++) begin : gen_dma_rw_mem_ports
     assign ext_dma_req[i].q.addr = tcdm_addr_t'(ext_dma_req_q_addr_nontrunc[i]);
-    assign ext_dma_req[i].q.amo = snitch_pkg::AMONone;
+    assign ext_dma_req[i].q.amo = reqrsp_pkg::AMONone;
     assign ext_dma_req[i].q.user = '0;
   end
 
@@ -1050,7 +1057,7 @@ module snitch_cluster
     parameter logic [31:0] BootAddrInternal = (AliasRegionEnable & IntBootromEnable) ?
                                                 BootromAliasStart : BootAddr;
 
-    if (IsaCfg.RVV) begin : gen_spatz_cc
+    if (IsaCfg[i].RVV) begin : gen_spatz_cc
       spatz_cc #(
         .AddrWidth (PhysicalAddrWidth),
         .DataWidth (NarrowDataWidth),
@@ -1066,6 +1073,8 @@ module snitch_cluster
         .drsp_t (reqrsp_rsp_t),
         .tcdm_req_t (tcdm_req_t),
         .tcdm_rsp_t (tcdm_rsp_t),
+        .tcdm_req_chan_t (tcdm_req_chan_t),
+        .tcdm_rsp_chan_t (tcdm_rsp_chan_t),
         .axi_ar_chan_t (axi_mst_dma_ar_chan_t),
         .axi_aw_chan_t (axi_mst_dma_aw_chan_t),
         .axi_req_t (axi_mst_dma_req_t),
