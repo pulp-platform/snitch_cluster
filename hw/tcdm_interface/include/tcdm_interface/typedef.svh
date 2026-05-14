@@ -12,7 +12,7 @@
   struct packed {                                                      \
     logic [``__addr_width``-1:0]   addr;                               \
     logic                          write;                              \
-    snitch_pkg::amo_op_e           amo;                                \
+    reqrsp_pkg::amo_op_e           amo;                                \
     logic [``__data_width``-1:0]   data;                               \
     logic [``__data_width``/8-1:0] strb;                               \
     logic [``__user_width``-1:0]   user;                               \

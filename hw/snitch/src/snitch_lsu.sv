@@ -8,7 +8,7 @@
 /// `NumOutstandingMem` requests in total) and optionally NaNBox if used in a
 /// floating-point setting. It expects its memory sub-system to keep order (as if
 /// issued with a single ID).
-module snitch_lsu import cf_math_pkg::*; #(
+module snitch_lsu import cf_math_pkg::*; import reqrsp_pkg::amo_op_e; #(
   parameter int unsigned AddrWidth           = 32,
   parameter int unsigned DataWidth           = 32,
   parameter int unsigned UserWidth           = 0,
@@ -50,7 +50,7 @@ module snitch_lsu import cf_math_pkg::*; #(
   input  addr_t                lsu_qaddr_i,
   input  data_t                lsu_qdata_i,
   input  logic [1:0]           lsu_qsize_i,
-  input  snitch_pkg::amo_op_e  lsu_qamo_i,
+  input  reqrsp_pkg::amo_op_e  lsu_qamo_i,
   input  logic                 lsu_qrepd_i,  // Whether this is a sequencer repetition
   input  user_t                lsu_quser_i,  // User field for the axi transmission
   input  logic                 lsu_qvalid_i,
@@ -108,7 +108,7 @@ module snitch_lsu import cf_math_pkg::*; #(
     assign caq_pass = caq_lsu_gnt & ~caq_lsu_exists;
 
     // We need to stall on collisions with anything altering memory, including atomics
-    assign caq_alters_mem = lsu_qwrite_i | (lsu_qamo_i != snitch_pkg::AMONone);
+    assign caq_alters_mem = lsu_qwrite_i | (lsu_qamo_i != reqrsp_pkg::AMONone);
 
     // Gate downstream LSU on CAQ pass
     assign lsu_postcaq_qvalid = caq_pass & lsu_qvalid_i;
