@@ -4,7 +4,7 @@
 #include <snrt.h>
 
 int main() {
-#ifdef SNRT_SUPPORTS_XPULP
+#ifdef SNRT_SUPPORTS_PULP
     uint32_t i = snrt_global_core_idx();
     snrt_cluster_hw_barrier();
     if (i == 2) {
@@ -72,6 +72,8 @@ int main() {
     } else
         return 0;
     snrt_cluster_hw_barrier();
-#endif
     return 0;
+#else
+    return 1;
+#endif
 }
