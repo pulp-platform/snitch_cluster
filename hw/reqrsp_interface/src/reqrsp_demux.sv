@@ -17,7 +17,7 @@ module reqrsp_demux #(
     /// Amount of outstanding responses. Determines the FIFO size.
     parameter int unsigned RespDepth   = 8,
     // Dependent parameters, DO NOT OVERRIDE!
-    parameter int unsigned SelectWidth = cf_math_pkg::idx_width(NrPorts),
+    parameter int unsigned SelectWidth = cc_pkg::idx_width(NrPorts),
     parameter type         select_t    = logic [SelectWidth-1:0]
 ) (
     input  logic               clk_i,
@@ -58,14 +58,13 @@ module reqrsp_demux #(
   end
 
   // Remember selected master for correct forwarding of read data/acknowledge.
-  fifo_v3 #(
+  cc_fifo #(
     .DATA_WIDTH ( NrPorts ),
     .DEPTH ( RespDepth )
   ) i_id_fifo (
     .clk_i,
     .rst_ni,
     .flush_i (1'b0),
-    .testmode_i (1'b0),
     .full_o (fifo_full),
     .empty_o (fifo_empty),
     .usage_o ( ),
@@ -109,7 +108,7 @@ module reqrsp_demux_intf #(
     /// Amount of outstanding responses. Determines the FIFO size.
     parameter int unsigned RespDepth    = 8,
     // Dependent parameters, DO NOT OVERRIDE!
-    parameter int unsigned SelectWidth    = cf_math_pkg::idx_width(NrPorts),
+    parameter int unsigned SelectWidth    = cc_pkg::idx_width(NrPorts),
     parameter type         select_t       = logic [SelectWidth-1:0]
 ) (
     input  logic    clk_i,

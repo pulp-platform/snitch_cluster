@@ -8,7 +8,7 @@
 /// `NumOutstandingMem` requests in total) and optionally NaNBox if used in a
 /// floating-point setting. It expects its memory sub-system to keep order (as if
 /// issued with a single ID).
-module snitch_lsu import cf_math_pkg::*; #(
+module snitch_lsu import cc_pkg::*; #(
   parameter int unsigned AddrWidth           = 32,
   parameter int unsigned DataWidth           = 32,
   parameter int unsigned UserWidth           = 0,
@@ -114,7 +114,7 @@ module snitch_lsu import cf_math_pkg::*; #(
     assign lsu_postcaq_qvalid = caq_pass & lsu_qvalid_i;
     assign lsu_qready_o = caq_pass & lsu_postcaq_qready;
 
-    id_queue #(
+    cc_id_queue #(
       .data_t    ( logic [CaqTagWidth:0] ), // Store address tag *and* write enable
       .ID_WIDTH  ( 1 ),                     // De facto 0: no reorder capability here
       .CAPACITY  ( CaqDepth ),
@@ -188,7 +188,7 @@ module snitch_lsu import cf_math_pkg::*; #(
   logic laq_full, mem_full;
   logic laq_push;
 
-  fifo_v3 #(
+  cc_fifo #(
     .FALL_THROUGH ( 1'b0                ),
     .DEPTH        ( NumOutstandingLoads ),
     .dtype        ( laq_t               )
@@ -196,7 +196,6 @@ module snitch_lsu import cf_math_pkg::*; #(
     .clk_i,
     .rst_ni (~rst_i),
     .flush_i (1'b0),
-    .testmode_i(1'b0),
     .full_o (laq_full),
     .empty_o (/* open */),
     .usage_o (/* open */),
@@ -225,7 +224,7 @@ module snitch_lsu import cf_math_pkg::*; #(
     assign caq_pvalid_o = data_rsp_i.p_valid & data_req_o.p_ready;
   end
 
-  fifo_v3 #(
+  cc_fifo #(
     .FALL_THROUGH (1'b0),
     .DEPTH (NumOutstandingMem),
     .DATA_WIDTH (1 + CaqRespTrackSeq)
@@ -233,7 +232,6 @@ module snitch_lsu import cf_math_pkg::*; #(
     .clk_i,
     .rst_ni (~rst_i),
     .flush_i (1'b0),
-    .testmode_i (1'b0),
     .full_o (mem_full),
     .empty_o (lsu_empty_o),
     .usage_o ( /* open */ ),

@@ -24,7 +24,7 @@ module snitch_tcdm_interconnect_tb #(
   localparam int unsigned RespLatency = 1;
 
   localparam int unsigned ByteOffset = $clog2(DataWidth/8);
-  localparam int unsigned SelWidth = cf_math_pkg::idx_width(NrOutput);
+  localparam int unsigned SelWidth = cc_pkg::idx_width(NrOutput);
 
   typedef logic [AddrWidth-1:0] addr_t;
   typedef logic [MemAddrWidth-1:0] tcdm_addr_t;

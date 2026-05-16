@@ -54,8 +54,10 @@ module snitch_fpu import snitch_pkg::*; #(
     Width:         fpnew_pkg::maximum(FLEN, 32),
     EnableVectors: XFVEC,
     EnableNanBox:  1'b1,
-    FpFmtMask:     {RVF, RVD, XF16, XF8, XF16ALT, XF8ALT},
-    IntFmtMask:    {XFVEC && (XF8 || XF8ALT), XFVEC && (XF16 || XF16ALT), 1'b1, 1'b0}
+    FpFmtMask:     {RVF, RVD, XF16, XF8, XF16ALT, XF8ALT, 1'b0, 1'b0, 1'b0},
+    IntFmtMask:    {XFVEC && (XF8 || XF8ALT), XFVEC && (XF16 || XF16ALT), 1'b1, 1'b0},
+    MxFpFmtMask:   '0,
+    MxIntFmtMask:  '0
   };
 
   fpnew_top #(

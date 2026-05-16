@@ -117,9 +117,9 @@ module snitch_cluster
   /// Per-core depth of TCDM Mux unifying SSR 0 and Snitch requests.
   parameter int unsigned SsrMuxRespDepth [NrCores] = '{default: 0},
   /// Per-core internal parameters for each SSR.
-  parameter snitch_ssr_pkg::ssr_cfg_t [cf_math_pkg::iomsb(NumSsrsMax):0] SsrCfgs [NrCores] = '{default: '0},
+  parameter snitch_ssr_pkg::ssr_cfg_t [cc_pkg::iomsb(NumSsrsMax):0] SsrCfgs [NrCores] = '{default: '0},
   /// Per-core register indices for each SSR.
-  parameter logic [cf_math_pkg::iomsb(NumSsrsMax):0][4:0]  SsrRegs [NrCores] = '{default: 0},
+  parameter logic [cc_pkg::iomsb(NumSsrsMax):0][4:0]  SsrRegs [NrCores] = '{default: 0},
   /// Per-core amount of sequencer instructions for IPU and FPU if enabled.
   parameter int unsigned NumSequencerInstr [NrCores] = '{default: 0},
   /// Per-core amount of sequencer loops for FPU if enabled.
@@ -311,7 +311,7 @@ module snitch_cluster
   // ---------
 
   /// Minimum width to hold the core number.
-  localparam int unsigned CoreIDWidth = cf_math_pkg::idx_width(NrCores);
+  localparam int unsigned CoreIDWidth = cc_pkg::idx_width(NrCores);
   localparam int unsigned TCDMMemAddrWidth = $clog2(TCDMDepth);
   localparam int unsigned TCDMSizeNapotRounded = 1 << TCDMAddrWidth;
   localparam int unsigned BanksPerHyperBank = NrBanks / NrHyperBanks;
@@ -401,7 +401,7 @@ module snitch_cluster
     NoMulticastPorts: EnableWideCollectives ? 1 : 0,
     default: '0
   };
-  localparam int unsigned WideSlaveIdxBits = cf_math_pkg::idx_width(NrWideSlaves);
+  localparam int unsigned WideSlaveIdxBits = cc_pkg::idx_width(NrWideSlaves);
 
 
   function automatic int unsigned get_hive_size(int unsigned current_hive);
@@ -498,9 +498,9 @@ module snitch_cluster
   // Event counter increments for the TCDM.
   typedef struct packed {
     /// Number requests going in
-    logic [$clog2(NrTCDMPortsCores):0] inc_accessed;
+    logic [$clog2(NrTCDMPortsCores+1)-1:0] inc_accessed;
     /// Number of requests stalled due to congestion
-    logic [$clog2(NrTCDMPortsCores):0] inc_congested;
+    logic [$clog2(NrTCDMPortsCores+1)-1:0] inc_congested;
   } tcdm_events_t;
 
   // Event counter increments for DMA.
@@ -758,7 +758,6 @@ module snitch_cluster
   ) i_axi_dma_xbar (
     .clk_i                (clk_i),
     .rst_ni               (rst_ni),
-    .test_i               (1'b0),
     .slv_ports_req_i      (wide_axi_mst_req),
     .slv_ports_resp_o     (wide_axi_mst_rsp),
     .mst_ports_req_o      (wide_axi_slv_req),
@@ -798,7 +797,6 @@ module snitch_cluster
     .clk_i,
     .rst_ni,
     .busy_o (),
-    .test_i (1'b0),
     .axi_req_i (wide_axi_slv_req[TCDMDMA]),
     .axi_resp_o (wide_axi_slv_rsp[TCDMDMA]),
     .mem_req_o ({ext_dma_req[1].q_valid, ext_dma_req[0].q_valid}),
@@ -944,7 +942,7 @@ module snitch_cluster
       );
 
       // Insert a pipeline register at the output of each SRAM.
-      shift_reg #( .dtype (data_t), .Depth (RegisterTCDMCuts)) i_sram_pipe (
+      cc_shift_register #( .dtype (data_t), .Depth (RegisterTCDMCuts)) i_sram_pipe (
         .clk_i, .rst_ni,
         .d_i (amo_rdata_local), .d_o (amo_rsp[j].p.data)
       );
@@ -1026,13 +1024,13 @@ module snitch_cluster
     interrupts_t irq;
     dma_events_t        [DMANumChannels-1:0] dma_core_events;
 
-    sync #(.STAGES (2))
+    cc_sync #(.STAGES (2))
       i_sync_debug (.clk_i, .rst_ni, .serial_i (debug_req_i[i]), .serial_o (irq.debug));
-    sync #(.STAGES (2))
+    cc_sync #(.STAGES (2))
       i_sync_meip  (.clk_i, .rst_ni, .serial_i (meip_i[i]), .serial_o (irq.meip));
-    sync #(.STAGES (2))
+    cc_sync #(.STAGES (2))
       i_sync_mtip  (.clk_i, .rst_ni, .serial_i (mtip_i[i]), .serial_o (irq.mtip));
-    sync #(.STAGES (2))
+    cc_sync #(.STAGES (2))
       i_sync_msip  (.clk_i, .rst_ni, .serial_i (msip_i[i]), .serial_o (irq.msip));
     assign irq.mcip = cl_interrupt[i];
     assign irq.mxip = mxip_i[i];
@@ -1086,8 +1084,8 @@ module snitch_cluster
       .NumSequencerLoops (NumSequencerLoops[i]),
       .NumSsrs (NumSsrs[i]),
       .SsrMuxRespDepth (SsrMuxRespDepth[i]),
-      .SsrCfgs (SsrCfgs[i][cf_math_pkg::iomsb(NumSsrs[i]):0]),
-      .SsrRegs (SsrRegs[i][cf_math_pkg::iomsb(NumSsrs[i]):0]),
+      .SsrCfgs (SsrCfgs[i][cc_pkg::iomsb(NumSsrs[i]):0]),
+      .SsrRegs (SsrRegs[i][cc_pkg::iomsb(NumSsrs[i]):0]),
       .RegisterOffloadReq (RegisterOffloadReq),
       .RegisterOffloadRsp (RegisterOffloadRsp),
       .RegisterCoreReq (RegisterCoreReq),
@@ -1429,7 +1427,6 @@ module snitch_cluster
   ) i_cluster_mcast_xbar (
     .clk_i,
     .rst_ni,
-    .test_i               (1'b0),
     .slv_ports_req_i      (narrow_axi_mst_req),
     .slv_ports_resp_o     (narrow_axi_mst_rsp),
     .mst_ports_req_o      (narrow_axi_slv_req),
@@ -1497,7 +1494,6 @@ module snitch_cluster
   ) i_axi_to_axi_lite (
     .clk_i     (clk_i),
     .rst_ni    (rst_ni),
-    .test_i    (1'b0),
     .slv_req_i (narrow_axi_slv_req[ClusterPeripherals]),
     .slv_resp_o(narrow_axi_slv_rsp[ClusterPeripherals]),
     .mst_req_o (axi_lite_req),
@@ -1653,14 +1649,14 @@ module snitch_cluster
     `FF(flat_con[i], tcdm_req[i].q_valid & ~tcdm_rsp[i].q_ready, '0, clk_i, rst_ni)
   end
 
-  popcount #(
+  cc_popcount #(
     .INPUT_WIDTH ( NrTCDMPortsCores )
   ) i_popcount_req (
     .data_i      ( flat_acc                  ),
     .popcount_o  ( tcdm_events.inc_accessed  )
   );
 
-  popcount #(
+  cc_popcount #(
     .INPUT_WIDTH ( NrTCDMPortsCores )
   ) i_popcount_con (
     .data_i      ( flat_con                  ),

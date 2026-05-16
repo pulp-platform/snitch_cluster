@@ -28,7 +28,7 @@ module generic_reqrsp_cut #(
     input  rsp_t mst_rsp_i
 );
 
-  spill_register #(
+  cc_spill_register #(
     .T     (req_chan_t),
     .Bypass(BypassReq)
   ) i_spill_register_q (
@@ -42,7 +42,7 @@ module generic_reqrsp_cut #(
     .data_o (mst_req_o.q)
   );
 
-  spill_register #(
+  cc_spill_register #(
     .T     (rsp_chan_t),
     .Bypass(BypassRsp)
   ) i_spill_register_p (

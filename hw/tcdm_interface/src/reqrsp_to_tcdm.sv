@@ -34,7 +34,7 @@ module reqrsp_to_tcdm #(
   rr_req_chan_t req;
   rr_rsp_chan_t rsp;
 
-  stream_to_mem #(
+  cc_stream_to_mem #(
     .mem_req_t (rr_req_chan_t),
     .mem_resp_t (rr_rsp_chan_t),
     .BufDepth (BufDepth)
