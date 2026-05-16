@@ -69,7 +69,6 @@ module tcdm_shim #(
     .clk_i,
     .rst_ni      ( ~rst_i             ),
     .flush_i     ( 1'b0               ),
-    .testmode_i  ( 1'b0               ),
     .full_o      (                    ),
     .empty_o     ( empty              ),
     .threshold_o (                    ),

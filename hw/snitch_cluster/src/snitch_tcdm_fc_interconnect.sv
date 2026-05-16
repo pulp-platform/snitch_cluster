@@ -80,7 +80,7 @@ module snitch_tcdm_fc_interconnect #(
       '{data: '0, strb: '0, amo: snitch_pkg::amo_op_e'('1), default: '1};
 
   // Width of the bank select signal.
-  localparam int unsigned SelWidth = cf_math_pkg::idx_width(NumOut);
+  localparam int unsigned SelWidth = cc_pkg::idx_width(NumOut);
   typedef logic [SelWidth-1:0] select_t;
   select_t [NumInp-1:0] bank_select;
 
@@ -146,7 +146,7 @@ module snitch_tcdm_fc_interconnect #(
   // We need to arbitrate the requests coming from the input side and resolve
   // potential bank conflicts. Therefore a full arbitration tree is needed.
   if (Topology == snitch_pkg::LogarithmicInterconnect) begin : gen_xbar
-    stream_xbar #(
+    cc_stream_xbar #(
       .NumInp      ( NumInp    ),
       .NumOut      ( NumOut    ),
       .payload_t   ( mem_req_chan_t ),
@@ -170,20 +170,20 @@ module snitch_tcdm_fc_interconnect #(
       .ready_i ( mem_q_ready_flat )
     );
   end else if (Topology == snitch_pkg::OmegaNet) begin : gen_omega_net
-    localparam int unsigned NumInpPerNet = cf_math_pkg::ceil_div(NumInp, NumSwitchNets);
+    localparam int unsigned NumInpPerNet = cc_pkg::ceil_div(NumInp, NumSwitchNets);
 
     // Intermediate request signals for Omega-to-Xbar interface
     mem_req_chan_t  [NumSwitchNets-1:0][NumOut-1:0] oout_data;
     logic           [NumSwitchNets-1:0][NumOut-1:0] oout_valid, oout_ready;
 
     // Arbitration for Omega and Xbar stages, respectively
-    logic [cf_math_pkg::idx_width(NumOut)-1:0]        rr1;
-    logic [cf_math_pkg::idx_width(NumSwitchNets)-1:0]  rr2;
+    logic [cc_pkg::idx_width(NumOut)-1:0]        rr1;
+    logic [cc_pkg::idx_width(NumSwitchNets)-1:0]  rr2;
 
     // Use pseudorandom arbitration if desired. For reference, see:
     // https://github.com/pulp-platform/cluster_interconnect/blob/master/rtl/tcdm_interconnect/tcdm_interconnect.sv
     if (SwitchLfsrArbiter) begin : gen_omega_lsfr
-      logic [cf_math_pkg::idx_width(NumInp)-1:0] rr;
+      logic [cc_pkg::idx_width(NumInp)-1:0] rr;
       lfsr #(
         .LfsrWidth    ( 64 ),
         .OutWidth     ( $clog2(NumInp) ),
@@ -262,7 +262,7 @@ module snitch_tcdm_fc_interconnect #(
         assign oout_ready[k][i] = rrin_ready[k];
       end
 
-      rr_arb_tree #(
+      cc_rr_arb_tree #(
         .NumIn     ( NumSwitchNets ),
         .DataType  ( mem_req_chan_t ),
         .ExtPrio   ( SwitchLfsrArbiter ),
@@ -296,7 +296,7 @@ module snitch_tcdm_fc_interconnect #(
     };
     // As this is a fixed latency interconnect a simple shift register is
     // sufficient to track the arbitration decisions.
-    shift_reg #(
+    cc_shift_register #(
       .dtype ( rsp_t ),
       .Depth ( MemoryResponseLatency )
     ) i_shift_reg (

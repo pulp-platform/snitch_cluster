@@ -101,7 +101,7 @@ module snitch_serial_divider #(
   assign lzc_a_input = (signed_op & op_a_sign) ? {~op_a_i, 1'b0} : op_a_i;
   assign lzc_b_input = (signed_op & op_b_sign) ? ~op_b_i : op_b_i;
 
-  lzc #(
+  cc_lzc #(
     .MODE (1),  // count leading zeros
     .WIDTH(WIDTH)
   ) i_lzc_a (
@@ -110,7 +110,7 @@ module snitch_serial_divider #(
     .empty_o(lzc_a_no_one)
   );
 
-  lzc #(
+  cc_lzc #(
     .MODE (1),  // count leading zeros
     .WIDTH(WIDTH)
   ) i_lzc_b (

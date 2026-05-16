@@ -50,14 +50,13 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
   logic has_credit, credit_take, credit_give, credit_full;
   logic [Cfg.RptWidth-1:0] rep_max, rep_q, rep_d, rep_done, rep_enable, rep_clear;
 
-  fifo_v3 #(
+  cc_fifo #(
     .FALL_THROUGH ( 0           ),
     .DATA_WIDTH   ( DataWidth   ),
     .DEPTH        ( Cfg.DataCredits )
   ) i_fifo (
     .clk_i,
     .rst_ni,
-    .testmode_i ( 1'b0       ),
     .flush_i    ( '0         ),
     .full_o     ( fifo_full  ),
     .empty_o    ( fifo_empty ),
@@ -180,14 +179,13 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
 
   if (Cfg.IsectMaster) begin : gen_isect_master
     // A FIFO keeping the zero flag for in-flight reads only.
-    fifo_v3 #(
+    cc_fifo #(
       .FALL_THROUGH ( 0 ),
       .DATA_WIDTH   ( 1 ),
       .DEPTH        ( Cfg.DataCredits )
     ) i_fifo_zero (
       .clk_i,
       .rst_ni,
-      .testmode_i ( 1'b0        ),
       .flush_i    ( '0          ),
       .full_o     (  ),
       .empty_o    ( zero_empty  ),
