@@ -26,6 +26,11 @@ export PATH=$PATH:/usr/local/uv
 # located on a different file system (e.g. your home directory).
 export UV_LINK_MODE=copy
 
+# Initialize submodules if needed
+if git submodule status --recursive 2>/dev/null | grep -q '^-'; then
+    git submodule update --init --recursive
+fi
+
 # Bootstrap the Python environment
 uv sync --all-extras --locked
 source .venv/bin/activate
