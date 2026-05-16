@@ -84,15 +84,14 @@ module snitch_ssr_intersector import snitch_ssr_pkg::*; #(
   };
 
   // Stream controller interface
-  stream_fifo #(
-    .FALL_THROUGH ( 0 ),
-    .DEPTH        ( StreamctlDepth ),
-    .DATA_WIDTH   ( 1 )
+  cc_stream_fifo #(
+    .FallThrough ( 0 ),
+    .Depth       ( StreamctlDepth ),
+    .DataWidth   ( 1 )
   ) i_fifo_streamctl (
     .clk_i,
     .rst_ni,
     .flush_i   ( 1'b0 ),
-    .testmode_i( 1'b0 ),
     .usage_o   (  ),
     .data_i    ( isect_done ),
     .valid_i   ( src_valid & dst_slv_ready & isect_ena ),

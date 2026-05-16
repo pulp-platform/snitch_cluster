@@ -22,7 +22,7 @@ module tcdm_mux #(
   input  tcdm_rsp_t               mst_rsp_i
 );
 
-  localparam int unsigned SelectWidth = cf_math_pkg::idx_width(NrPorts);
+  localparam int unsigned SelectWidth = cc_pkg::idx_width(NrPorts);
   typedef logic [SelectWidth-1:0] select_t;
 
   `TCDM_TYPEDEF_REQ_CHAN_T(tcdm_req_chan_t, DataWidth, AddrWidth, UserWidth)
@@ -44,9 +44,9 @@ module tcdm_mux #(
     end
 
     /// Arbitrate on instruction request port
-    rr_arb_tree #(
+    cc_rr_arb_tree #(
       .NumIn (NrPorts),
-      .DataType (tcdm_req_chan_t),
+      .data_t (tcdm_req_chan_t),
       .AxiVldRdy (1'b1),
       .LockIn (1'b1)
     ) i_q_mux (
@@ -63,8 +63,8 @@ module tcdm_mux #(
       .idx_o (fifo_in_select)
     );
 
-    stream_fork #(
-      .N_OUP (2)
+    cc_stream_fork #(
+      .NumOup (2)
     ) i_stream_fork (
       .clk_i (clk_i),
       .rst_ni (rst_ni),
@@ -74,15 +74,14 @@ module tcdm_mux #(
       .ready_i ({fifo_ready, mst_rsp_i.q_ready})
     );
 
-    stream_fifo #(
-      .FALL_THROUGH (1'b0),
-      .DEPTH (RespDepth),
-      .T (select_t)
+    cc_stream_fifo #(
+      .FallThrough (1'b0),
+      .Depth (RespDepth),
+      .data_t (select_t)
     ) i_stream_fifo (
       .clk_i,
       .rst_ni,
       .flush_i (1'b0),
-      .testmode_i (1'b0),
       .usage_o (),
       .data_i (fifo_in_select),
       .valid_i (fifo_valid),

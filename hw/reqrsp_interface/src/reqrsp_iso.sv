@@ -45,12 +45,12 @@ module reqrsp_iso #(
   typedef logic [AddrWidth-1:0] addr_t;
   typedef logic [DataWidth-1:0] data_t;
   typedef logic [DataWidth/8-1:0] strb_t;
-  typedef logic [cf_math_pkg::iomsb(UserWidth):0] user_t;
+  typedef logic [cc_pkg::iomsb(UserWidth):0] user_t;
 
   `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
 
-  isochronous_spill_register #(
-    .T (reqrsp_req_chan_t),
+  cc_isochronous_spill_register #(
+    .data_t (reqrsp_req_chan_t),
     .Bypass (BypassReq)
   ) i_isochronous_spill_register_q (
     .src_clk_i (src_clk_i),
@@ -65,8 +65,8 @@ module reqrsp_iso #(
     .dst_data_o (dst_req_o.q)
   );
 
-  isochronous_spill_register #(
-    .T (reqrsp_rsp_chan_t),
+  cc_isochronous_spill_register #(
+    .data_t (reqrsp_rsp_chan_t),
     .Bypass (BypassRsp)
   ) i_isochronous_spill_register_p (
     .src_clk_i (dst_clk_i),
@@ -115,7 +115,7 @@ module reqrsp_iso_intf #(
   typedef logic [AddrWidth-1:0] addr_t;
   typedef logic [DataWidth-1:0] data_t;
   typedef logic [DataWidth/8-1:0] strb_t;
-  typedef logic [cf_math_pkg::iomsb(UserWidth):0] user_t;
+  typedef logic [cc_pkg::iomsb(UserWidth):0] user_t;
 
   `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
 

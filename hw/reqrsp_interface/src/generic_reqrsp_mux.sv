@@ -25,7 +25,7 @@ module generic_reqrsp_mux #(
   parameter bit               ExtRspRoute = 1'b0,
   /// Dependent parameters *do not override*
   /// Width of the arbitrated index.
-  localparam int unsigned     IdxWidth    = cf_math_pkg::idx_width(NrPorts),
+  localparam int unsigned     IdxWidth    = cc_pkg::idx_width(NrPorts),
   localparam type             req_t       = `GENERIC_REQRSP_REQ_STRUCT(req_chan_t),
   localparam type             rsp_t       = `GENERIC_REQRSP_RSP_STRUCT(rsp_chan_t)
 ) (
@@ -55,8 +55,8 @@ module generic_reqrsp_mux #(
 
   // Optionally cut the incoming paths
   for (genvar i = 0; i < NrPorts; i++) begin : gen_cuts
-    spill_register #(
-      .T (req_chan_t),
+    cc_spill_register #(
+      .data_t (req_chan_t),
       .Bypass (!RegisterReq[i])
     ) i_spill_register_req (
       .clk_i,
@@ -78,9 +78,9 @@ module generic_reqrsp_mux #(
   end
 
   /// Arbitrate requests
-  rr_arb_tree #(
+  cc_rr_arb_tree #(
     .NumIn (NrPorts),
-    .DataType (req_chan_t),
+    .data_t (req_chan_t),
     .AxiVldRdy (1'b1),
     .LockIn (1'b1)
   ) i_q_mux (
@@ -111,21 +111,20 @@ module generic_reqrsp_mux #(
       // For the "normal" case we need to save the arbitration decision. We do so
       // by converting the handshake into a binary signal which we save for
       // response routing.
-      onehot_to_bin #(
-        .ONEHOT_WIDTH (NrPorts)
+      cc_onehot_to_bin #(
+        .OnehotWidth (NrPorts)
       ) i_onehot_to_bin (
-        .onehot (req_valid_q & req_ready_q),
-        .bin    (idx)
+        .onehot_i (req_valid_q & req_ready_q),
+        .bin_o    (idx)
       );
       // Save the arbitration decision.
-      fifo_v3 #(
-        .DATA_WIDTH (IdxWidth),
-        .DEPTH (RspDepth)
+      cc_fifo #(
+        .DataWidth (IdxWidth),
+        .Depth (RspDepth)
       ) i_rsp_fifo (
         .clk_i,
         .rst_ni,
         .flush_i (1'b0),
-        .testmode_i (1'b0),
         .full_o (full),
         .empty_o (),
         .usage_o (),

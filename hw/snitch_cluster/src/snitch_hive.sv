@@ -62,7 +62,7 @@ module snitch_hive import snitch_icache_pkg::*; #(
 );
   // Extend the ID to route back results to the appropriate core.
   localparam int unsigned IdWidth = 5;
-  localparam int unsigned LogCoreCount = cf_math_pkg::idx_width(CoreCount);
+  localparam int unsigned LogCoreCount = cc_pkg::idx_width(CoreCount);
   localparam int unsigned ExtendedIdWidth = IdWidth + LogCoreCount;
 
   addr_t [CoreCount-1:0] inst_addr;
@@ -174,9 +174,9 @@ module snitch_hive import snitch_icache_pkg::*; #(
     logic ptw_valid_out, ptw_ready_out;
 
     /// Multiplex translation requests
-    stream_arbiter #(
-      .DATA_T ( va_arb_t ),
-      .N_INP  ( 2*CoreCount )
+    cc_stream_arbiter #(
+      .data_t ( va_arb_t ),
+      .NumInp ( 2*CoreCount )
     ) i_stream_arbiter (
       .clk_i       ( clk_d2_i      ),
       .rst_ni      ( rst_ni        ),
@@ -291,10 +291,10 @@ module snitch_hive import snitch_icache_pkg::*; #(
   end
 
   if (CoreCount > 1) begin : gen_shared_interconnect
-    stream_arbiter #(
-      .DATA_T  ( acc_req_chan_t ),
-      .N_INP   ( CoreCount ),
-      .ARBITER ( "rr" )
+    cc_stream_arbiter #(
+      .data_t  ( acc_req_chan_t ),
+      .NumInp  ( CoreCount ),
+      .ArbMode ( cc_pkg::ARB_RR )
     ) i_stream_arbiter (
       .clk_i       ( clk_i             ),
       .rst_ni      ( rst_ni            ),
@@ -315,8 +315,8 @@ module snitch_hive import snitch_icache_pkg::*; #(
   logic [LogCoreCount-1:0] resp_sel;
   assign resp_sel = acc_resp_sfu.id[ExtendedIdWidth-1:IdWidth];
 
-  stream_demux #(
-    .N_OUP ( CoreCount )
+  cc_stream_demux #(
+    .NumOup ( CoreCount )
   ) i_stream_demux (
     .inp_valid_i ( acc_resp_sfu_valid ),
     .inp_ready_o ( acc_resp_sfu_ready ),

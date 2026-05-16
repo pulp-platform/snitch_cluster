@@ -3493,15 +3493,14 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign rd_is_i2f = (rd == 'd31) & en_copift_o;
 
   // Integer-to-FP COPIFT queue
-  stream_fifo #(
-    .FALL_THROUGH(1'b0),
-    .DATA_WIDTH  (32),
-    .DEPTH       (16)
+  cc_stream_fifo #(
+    .FallThrough(1'b0),
+    .DataWidth  (32),
+    .Depth      (16)
   ) i_i2f_queue (
     .clk_i     (clk_i),
     .rst_ni    (~rst_i),
     .flush_i   ('0),
-    .testmode_i('0),
     .usage_o   (),
     .data_i    (i2f_wdata),
     .valid_i   (i2f_wvalid),
@@ -3512,15 +3511,14 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   );
 
   // FP-to-integer COPIFT queue
-  stream_fifo #(
-    .FALL_THROUGH(1'b0),
-    .DATA_WIDTH  (32),
-    .DEPTH       (16)
+  cc_stream_fifo #(
+    .FallThrough(1'b0),
+    .DataWidth  (32),
+    .Depth      (16)
   ) i_f2i_queue (
     .clk_i     (clk_i),
     .rst_ni    (~rst_i),
     .flush_i   ('0),
-    .testmode_i('0),
     .usage_o   (),
     .data_i    (f2i_wdata_i),
     .valid_i   (f2i_wvalid_i),

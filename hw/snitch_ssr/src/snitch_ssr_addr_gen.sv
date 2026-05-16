@@ -244,8 +244,8 @@ module snitch_ssr_addr_gen import snitch_ssr_pkg::*; #(
     end
 
     // Generate spill register at output to cut timing paths if desired.
-    spill_register #(
-      .T      ( out_spill_t         ),
+    cc_spill_register #(
+      .data_t ( out_spill_t         ),
       .Bypass ( !Cfg.IndirOutSpill  )
     ) i_out_spill (
       .clk_i,

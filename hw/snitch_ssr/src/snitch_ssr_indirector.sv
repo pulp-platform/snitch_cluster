@@ -138,9 +138,9 @@ module snitch_ssr_indirector import snitch_ssr_pkg::*; #(
     `FFL(cfg_idx_isect_o, isect_cnt, isect_cnt_swap, '0, clk_i, rst_ni)
 
     // Counter for number of elements emitted by intersector
-    counter #(
-      .WIDTH            ( Cfg.IndexWidth ),
-      .STICKY_OVERFLOW  ( 1'b0 )
+    cc_counter #(
+      .Width          ( Cfg.IndexWidth ),
+      .StickyOverflow ( 1'b0 )
     ) i_isect_counter (
       .clk_i,
       .rst_ni,
@@ -154,9 +154,9 @@ module snitch_ssr_indirector import snitch_ssr_pkg::*; #(
     );
 
     // Cut timing paths from intersector slave port
-    spill_register #(
-      .T        ( logic [Cfg.IndexWidth:0] ),
-      .Bypass   ( Cfg.IsectSlaveSpill   )
+    cc_spill_register #(
+      .data_t ( logic [Cfg.IndexWidth:0] ),
+      .Bypass ( Cfg.IsectSlaveSpill   )
       ) i_spill_slv_idx (
       .clk_i,
       .rst_ni,
@@ -204,15 +204,14 @@ module snitch_ssr_indirector import snitch_ssr_pkg::*; #(
     `FFLARNC(idx_word_valid_q, idx_word_valid_d, isect_slv_hs, idx_word_clr, 1'b0, clk_i, rst_ni)
 
     // Track done and decouple address emission from index write
-    stream_fifo #(
-      .FALL_THROUGH ( 0 ),
-      .DATA_WIDTH   ( 1 ),
-      .DEPTH        ( Cfg.IsectSlaveCredits )
+    cc_stream_fifo #(
+      .FallThrough ( 0 ),
+      .DataWidth   ( 1 ),
+      .Depth       ( Cfg.IsectSlaveCredits )
     ) i_done_fifo (
       .clk_i,
       .rst_ni,
       .flush_i    ( 1'b0 ),
-      .testmode_i ( 1'b0 ),
       .usage_o    (  ),
       .data_i     ( isect_slv_done  ),
       .valid_i    ( isect_slv_hs    ),
@@ -343,15 +342,14 @@ module snitch_ssr_indirector import snitch_ssr_pkg::*; #(
     assign natit_ready_o      = natit_ena & idx_rsp_i.q_ready;
 
     // Index FIFO: stores full unserialized words.
-    fifo_v3 #(
-      .FALL_THROUGH ( 1'b0              ),
-      .DATA_WIDTH   ( DataWidth         ),
-      .DEPTH        ( Cfg.IndexCredits  )
+    cc_fifo #(
+      .FallThrough ( 1'b0              ),
+      .DataWidth   ( DataWidth         ),
+      .Depth       ( Cfg.IndexCredits  )
     ) i_idx_fifo (
       .clk_i,
       .rst_ni,
       .flush_i    ( isect_mst_blk_q   ),
-      .testmode_i ( 1'b0              ),
       .full_o     (  ),                     // Credit counter prevents overflows
       .empty_o    ( idx_fifo_empty    ),
       .usage_o    (  ),

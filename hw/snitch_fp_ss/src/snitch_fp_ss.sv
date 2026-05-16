@@ -253,8 +253,8 @@ module snitch_fp_ss import snitch_pkg::*; #(
   end
 
   // Optional spill-register
-  spill_register  #(
-    .T      ( acc_req_repd_t ),
+  cc_spill_register  #(
+    .data_t ( acc_req_repd_t ),
     .Bypass ( !RegisterSequencer || !IsaCfg.Xfrep )
   ) i_spill_register_acc (
     .clk_i   ,

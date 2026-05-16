@@ -189,9 +189,9 @@ module axi_to_reqrsp #(
   end
 
   // Arbitrate between reads and writes.
-  stream_mux #(
-    .DATA_T ( meta_t ),
-    .N_INP  ( 32'd2  )
+  cc_stream_mux #(
+    .data_t ( meta_t ),
+    .NumInp ( 32'd2  )
   ) i_ax_mux (
     .inp_data_i   ({wr_meta,  rd_meta }),
     .inp_valid_i  ({wr_valid, rd_valid}),
@@ -246,8 +246,8 @@ module axi_to_reqrsp #(
   end
 
   // Fork arbitrated stream to meta data, memory requests, and R/B channel selection.
-  stream_fork #(
-    .N_OUP ( 32'd3 )
+  cc_stream_fork #(
+    .NumOup ( 32'd3 )
   ) i_fork (
     .clk_i,
     .rst_ni,
@@ -260,15 +260,14 @@ module axi_to_reqrsp #(
   assign sel_b = meta.write & meta.last;
   assign sel_r = ~meta.write | meta.atop[5];
 
-  stream_fifo #(
-    .FALL_THROUGH ( 1'b1             ),
-    .DEPTH        ( 32'd1 + BufDepth ),
-    .T            ( logic[1:0]       )
+  cc_stream_fifo #(
+    .FallThrough ( 1'b1             ),
+    .Depth       ( 32'd1 + BufDepth ),
+    .data_t      ( logic[1:0]       )
   ) i_sel_buf (
     .clk_i,
     .rst_ni,
     .flush_i    ( 1'b0                    ),
-    .testmode_i ( 1'b0                    ),
     .data_i     ({sel_b,        sel_r    }),
     .valid_i    ( sel_valid               ),
     .ready_o    ( sel_ready               ),
@@ -278,15 +277,14 @@ module axi_to_reqrsp #(
     .usage_o    ( /* unused */            )
   );
 
-  stream_fifo #(
-    .FALL_THROUGH ( 1'b1             ),
-    .DEPTH        ( 32'd1 + BufDepth ),
-    .T            ( meta_t           )
+  cc_stream_fifo #(
+    .FallThrough ( 1'b1             ),
+    .Depth       ( 32'd1 + BufDepth ),
+    .data_t      ( meta_t           )
   ) i_meta_buf (
     .clk_i,
     .rst_ni,
     .flush_i    ( 1'b0           ),
-    .testmode_i ( 1'b0           ),
     .data_i     ( meta           ),
     .valid_i    ( meta_valid     ),
     .ready_o    ( meta_ready     ),
@@ -321,8 +319,8 @@ module axi_to_reqrsp #(
 
   // Join memory read data and meta data stream.
   logic mem_join_valid, mem_join_ready;
-  stream_join #(
-    .N_INP ( 32'd2 )
+  cc_stream_join #(
+    .NumInp ( 32'd2 )
   ) i_join (
     .inp_valid_i  ({reqrsp_rsp_i.p_valid, meta_buf_valid}),
     .inp_ready_o  ({reqrsp_req_o.p_ready, meta_buf_ready}),
@@ -331,8 +329,8 @@ module axi_to_reqrsp #(
   );
 
   // Dynamically fork the joined stream to B and R channels.
-  stream_fork_dynamic #(
-    .N_OUP ( 32'd2 )
+  cc_stream_fork_dynamic #(
+    .NumOup ( 32'd2 )
   ) i_fork_dynamic (
     .clk_i,
     .rst_ni,

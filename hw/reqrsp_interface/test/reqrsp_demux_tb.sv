@@ -22,7 +22,7 @@ module reqrsp_demux_tb import reqrsp_pkg::*; #(
   localparam time ClkPeriod = 10ns;
   localparam time ApplTime =  2ns;
   localparam time TestTime =  8ns;
-  localparam int unsigned SelectWidth = cf_math_pkg::idx_width(NrPorts);
+  localparam int unsigned SelectWidth = cc_pkg::idx_width(NrPorts);
   typedef logic [SelectWidth-1:0] select_t;
   logic  clk, rst_n;
   select_t slv_select;

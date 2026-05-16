@@ -30,7 +30,7 @@ module generic_reqrsp_demux #(
   parameter type         req_chan_t = logic,
   parameter type         rsp_chan_t = logic,
   // Dependent parameters
-  localparam int unsigned IdxWidth = cf_math_pkg::idx_width(NrPorts),
+  localparam int unsigned IdxWidth = cc_pkg::idx_width(NrPorts),
   localparam type         req_t    = `GENERIC_REQRSP_REQ_STRUCT(req_chan_t),
   localparam type         rsp_t    = `GENERIC_REQRSP_RSP_STRUCT(rsp_chan_t)
 ) (
@@ -48,8 +48,8 @@ module generic_reqrsp_demux #(
   rsp_chan_t [NrPorts-1:0] mst_p_data;
 
   // Demux the request valid/ready handshake to the selected master port.
-  stream_demux #(
-    .N_OUP(NrPorts)
+  cc_stream_demux #(
+    .NumOup(NrPorts)
   ) i_stream_demux (
     .inp_valid_i(slv_req_i.q_valid),
     .inp_ready_o(slv_rsp_o.q_ready),
@@ -59,9 +59,9 @@ module generic_reqrsp_demux #(
   );
 
   // Arbitrate responses from all master ports back to the slave.
-  stream_arbiter #(
-    .DATA_T(rsp_chan_t),
-    .N_INP (NrPorts)
+  cc_stream_arbiter #(
+    .data_t(rsp_chan_t),
+    .NumInp(NrPorts)
   ) i_stream_arbiter (
     .clk_i,
     .rst_ni,

@@ -264,9 +264,9 @@ module snitch_ipu import snitch_pkg::*;  #(
         .result_o    ( dsp.result                  )
     );
     // Output Arbitration
-    stream_arbiter #(
-      .DATA_T ( result_t ),
-      .N_INP  ( 2        )
+    cc_stream_arbiter #(
+      .data_t ( result_t ),
+      .NumInp ( 2        )
     ) i_stream_arbiter (
       .clk_i,
       .rst_ni,
@@ -297,9 +297,9 @@ module snitch_ipu import snitch_pkg::*;  #(
       .id_o        ( mul.id                      )
     );
     // Output Arbitration
-    stream_arbiter #(
-      .DATA_T ( result_t ),
-      .N_INP  ( 2        )
+    cc_stream_arbiter #(
+      .data_t ( result_t ),
+      .NumInp ( 2        )
     ) i_stream_arbiter (
       .clk_i,
       .rst_ni,
