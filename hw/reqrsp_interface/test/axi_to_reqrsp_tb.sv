@@ -9,7 +9,7 @@
 `include "axi/typedef.svh"
 `include "axi/assign.svh"
 
-module axi_to_reqrsp_tb import reqrsp_pkg::*; #(
+module axi_to_reqrsp_tb import reqrsp_pkg::*; import snitch_pkg::*; #(
   parameter int unsigned AW = 32,
   parameter int unsigned DW = 32,
   parameter int unsigned IW = 2,

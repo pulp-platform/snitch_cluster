@@ -40,7 +40,7 @@
 ///
 /// This module does not emit any bursts, but AXI5 capability is needed because
 /// of the atomic memory operations.
-module reqrsp_to_axi import reqrsp_pkg::*; #(
+module reqrsp_to_axi import reqrsp_pkg::*; import snitch_pkg::*; #(
   /// Number of same transactions which can be in-flight
   /// simulatnously. Must be greater than 1.
   parameter int unsigned MaxTrans = 4,
@@ -279,7 +279,7 @@ module reqrsp_to_axi import reqrsp_pkg::*; #(
   // Assertions:
   // Make sure that write is never set for AMOs.
   `ASSERT(AMOWriteEnable, reqrsp_req_i.q_valid &&
-    (reqrsp_req_i.q.amo != reqrsp_pkg::AMONone) |-> !reqrsp_req_i.q.write)
+    (reqrsp_req_i.q.amo != snitch_pkg::AMONone) |-> !reqrsp_req_i.q.write)
   // Check that the data width is in the range of 32 or 64 bit. We didn't define
   // any other bus widths so far.
   `ASSERT_INIT(check_DataWidth, DataWidth inside {32, 64})

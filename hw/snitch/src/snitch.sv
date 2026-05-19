@@ -295,7 +295,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   } ls_size_e;
   ls_size_e ls_size;
 
-  reqrsp_pkg::amo_op_e ls_amo;
+  amo_op_e ls_amo;
 
   data_t ld_result;
   logic  lsu_qready, lsu_qvalid;
@@ -685,7 +685,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     is_fp_store = 1'b0;
     is_signed = 1'b0;
     ls_size = Byte;
-    ls_amo = reqrsp_pkg::AMONone;
+    ls_amo = AMONone;
 
     is_acc_inst = 1'b0;
     acc_req_o.q.addr = FP_SS;
@@ -1049,7 +1049,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = reqrsp_pkg::AMOAdd;
+        ls_amo = AMOAdd;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1060,7 +1060,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = reqrsp_pkg::AMOXor;
+        ls_amo = AMOXor;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1071,7 +1071,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = reqrsp_pkg::AMOOr;
+        ls_amo = AMOOr;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1082,7 +1082,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = reqrsp_pkg::AMOAnd;
+        ls_amo = AMOAnd;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1093,7 +1093,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = reqrsp_pkg::AMOMin;
+        ls_amo = AMOMin;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1104,7 +1104,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = reqrsp_pkg::AMOMax;
+        ls_amo = AMOMax;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1115,7 +1115,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = reqrsp_pkg::AMOMinu;
+        ls_amo = AMOMinu;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1126,7 +1126,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = reqrsp_pkg::AMOMaxu;
+        ls_amo = AMOMaxu;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1137,7 +1137,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = reqrsp_pkg::AMOSwap;
+        ls_amo = AMOSwap;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1148,7 +1148,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = reqrsp_pkg::AMOLR;
+        ls_amo = AMOLR;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end
@@ -1159,7 +1159,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         is_load = 1'b1;
         is_signed = 1'b1;
         ls_size = Word;
-        ls_amo = reqrsp_pkg::AMOSC;
+        ls_amo = AMOSC;
         opa_select = RegRs1;
         opb_select = RegRs2;
       end

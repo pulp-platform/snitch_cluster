@@ -94,7 +94,7 @@ module mem_wide_narrow_mux #(
         out_req_o[i].q = '{
           addr: in_wide_req_i.q.addr,
           write: in_wide_req_i.q.write,
-          amo: reqrsp_pkg::AMONone,
+          amo: snitch_pkg::AMONone,
           data: in_wide_req_i.q.data[i*NarrowDataWidth+:NarrowDataWidth],
           strb: in_wide_req_i.q.strb[i*NarrowStrbWidth+:NarrowStrbWidth],
           user: in_wide_req_i.q.user
@@ -111,7 +111,7 @@ module mem_wide_narrow_mux #(
         out_req_o[i].q = '{
           addr: in_ext_req_i.q.addr,
           write: in_ext_req_i.q.write,
-          amo: reqrsp_pkg::AMONone,
+          amo: snitch_pkg::AMONone,
           data: in_ext_req_i.q.data[i*NarrowDataWidth+:NarrowDataWidth],
           strb: in_ext_req_i.q.strb[i*NarrowStrbWidth+:NarrowStrbWidth],
           user: in_ext_req_i.q.user

@@ -90,7 +90,7 @@ module snitch_ptw import snitch_pkg::*; #(
   always_comb begin
     automatic logic [PageShift-1:0] page_table_index;
     // As of now this is a read only interface.
-    data_req_o.q.amo = reqrsp_pkg::AMONone;
+    data_req_o.q.amo = snitch_pkg::AMONone;
     data_req_o.q.data = '0;
     data_req_o.q.write = 0;
     data_req_o.q.strb = '0;
