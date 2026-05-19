@@ -8,10 +8,10 @@
 #define N 8
 
 // Input data in off-chip memory (DRAM)
-double a[N] __attribute__((aligned(4096))) = {1.0, 1.0, 1.0, 1.0,
-                                              1.0, 1.0, 1.0, 1.0};
-double b[N] __attribute__((aligned(4096))) = {1.0, 1.0, 1.0, 1.0,
-                                              1.0, 1.0, 1.0, 1.0};
+double a[N] __attribute__((aligned(4096))) = {3.0, 3.0, 3.0, 3.0,
+                                              3.0, 3.0, 3.0, 3.0};
+double b[N] __attribute__((aligned(4096))) = {2.0, 2.0, 2.0, 2.0,
+                                              2.0, 2.0, 2.0, 2.0};
 
 int main() {
   // Allocate space for a, b, c in L1 (TCDM)
@@ -45,7 +45,7 @@ int main() {
     // Check results via volatile pointer to prevent auto-vectorization
     volatile double *vc = (volatile double *)local_c;
     for (int i = 0; i < N; i++) {
-      if (vc[i] != 1.0)
+      if ((vc[i] - 6.0) > 0.01f)
         errs++;
     }
 
