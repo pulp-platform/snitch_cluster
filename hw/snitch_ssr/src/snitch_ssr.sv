@@ -148,7 +148,7 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
   end
 
   assign data_req.q_valid = data_req_qvalid;
-  assign data_req.q.amo = reqrsp_pkg::AMONone;
+  assign data_req.q.amo = snitch_pkg::AMONone;
   assign data_req.q.user = '0;
 
   assign lane_rdata_o = lane_zero ? '0 : fifo_out;

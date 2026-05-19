@@ -17,11 +17,11 @@
   struct packed {                                               \
     logic [``__addr_width``-1:0]   addr;                        \
     logic                          write;                       \
-    reqrsp_pkg::amo_op_e           amo;                         \
+    snitch_pkg::amo_op_e           amo;                         \
     logic [``__data_width``-1:0]   data;                        \
     logic [``__data_width``/8-1:0] strb;                        \
     logic [63:0]                   user;                        \
-    reqrsp_pkg::size_t             size;                        \
+    snitch_pkg::size_t             size;                        \
   }
 
 `define SNITCH_DATA_RSP_CHAN_STRUCT(__data_width) \

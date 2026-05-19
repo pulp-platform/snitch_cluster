@@ -12,11 +12,11 @@
   typedef struct packed { \
     __addr_t             addr;  \
     logic                write; \
-    reqrsp_pkg::amo_op_e amo;   \
+    snitch_pkg::amo_op_e amo;   \
     __data_t             data;  \
     __strb_t             strb;  \
     __user_t             user;  \
-    reqrsp_pkg::size_t   size;  \
+    snitch_pkg::size_t   size;  \
   } __req_chan_t;
 
 `define REQRSP_TYPEDEF_RSP_CHAN_T(__rsp_chan_t, __data_t) \

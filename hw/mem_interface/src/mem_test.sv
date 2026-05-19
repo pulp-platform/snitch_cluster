@@ -12,7 +12,7 @@ package mem_test;
   );
     rand logic [AW-1:0]       addr;
     rand logic                write;
-    rand reqrsp_pkg::amo_op_e amo;
+    rand snitch_pkg::amo_op_e amo;
     rand logic [DW-1:0]       data;
     rand logic [DW/8-1:0]     strb;
     rand user_t               user;
@@ -21,31 +21,31 @@ package mem_test;
 
     constraint legal_amo_op_c {
       amo inside {
-        reqrsp_pkg::AMOSwap,
-        reqrsp_pkg::AMOAdd,
-        reqrsp_pkg::AMOAnd,
-        reqrsp_pkg::AMOOr,
-        reqrsp_pkg::AMOXor,
-        reqrsp_pkg::AMOMax,
-        reqrsp_pkg::AMOMaxu,
-        reqrsp_pkg::AMOMin,
-        reqrsp_pkg::AMOMinu,
-        reqrsp_pkg::AMOSC} -> write == 1;
+        snitch_pkg::AMOSwap,
+        snitch_pkg::AMOAdd,
+        snitch_pkg::AMOAnd,
+        snitch_pkg::AMOOr,
+        snitch_pkg::AMOXor,
+        snitch_pkg::AMOMax,
+        snitch_pkg::AMOMaxu,
+        snitch_pkg::AMOMin,
+        snitch_pkg::AMOMinu,
+        snitch_pkg::AMOSC} -> write == 1;
     }
 
     // Reduce the amount of atomics.
     constraint amo_reduce_c {
       is_amo dist { 1:= 1, 0:= 10};
       is_amo -> amo inside {
-        reqrsp_pkg::AMOSwap,
-        reqrsp_pkg::AMOAdd,
-        reqrsp_pkg::AMOAnd,
-        reqrsp_pkg::AMOOr,
-        reqrsp_pkg::AMOXor,
-        reqrsp_pkg::AMOMax,
-        reqrsp_pkg::AMOMaxu,
-        reqrsp_pkg::AMOMin,
-        reqrsp_pkg::AMOMinu
+        snitch_pkg::AMOSwap,
+        snitch_pkg::AMOAdd,
+        snitch_pkg::AMOAnd,
+        snitch_pkg::AMOOr,
+        snitch_pkg::AMOXor,
+        snitch_pkg::AMOMax,
+        snitch_pkg::AMOMaxu,
+        snitch_pkg::AMOMin,
+        snitch_pkg::AMOMinu
       };
     }
 
@@ -104,7 +104,7 @@ package mem_test;
     task reset_master;
       bus.q_addr  <= '0;
       bus.q_write <= '0;
-      bus.q_amo   <= reqrsp_pkg::AMONone;
+      bus.q_amo   <= snitch_pkg::AMONone;
       bus.q_data  <= '0;
       bus.q_strb  <= '0;
       bus.q_user  <= '0;

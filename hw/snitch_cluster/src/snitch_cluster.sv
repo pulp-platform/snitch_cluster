@@ -823,7 +823,7 @@ module snitch_cluster
 
   for (genvar i = 0; i < 2; i++) begin : gen_dma_rw_mem_ports
     assign ext_dma_req[i].q.addr = tcdm_addr_t'(ext_dma_req_q_addr_nontrunc[i]);
-    assign ext_dma_req[i].q.amo = reqrsp_pkg::AMONone;
+    assign ext_dma_req[i].q.amo = AMONone;
     assign ext_dma_req[i].q.user = '0;
   end
 
