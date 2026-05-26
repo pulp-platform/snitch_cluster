@@ -33,7 +33,7 @@ SN_RISCV_ADDR2LINE ?= $(SN_LLVM_BINROOT)/llvm-addr2line
 # Compiler flags
 SN_MCPU ?= snitch
 ifeq ($(SN_MCPU),snitch-mempool)
-SN_RISCV_FEATURES = xdma xsmallfloat xcvmem xpulpabs xpulpbitop xpulpbr xpulpclip xpulpmacsi xpulpminmax xpulpslet xpulpvect xpulpvectshufflepack
+SN_RISCV_FEATURES = xdma xcvmem xpulpabs xpulpbitop xpulpbr xpulpclip xpulpmacsi xpulpminmax xpulpslet xpulpvect xpulpvectshufflepack
 else
 SN_RISCV_FEATURES = xfrep xssr xdma xcopift xsmallfloat
 endif

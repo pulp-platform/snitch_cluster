@@ -10,27 +10,8 @@ runs:
   - elf: ../sw/tests/build/event_unit.elf
     simulators: [vsim, vcs, verilator]
   - elf: ../sw/tests/build/fence_i.elf
-  - elf: ../sw/tests/build/fp8_comparison_scalar.elf
-  - elf: ../sw/tests/build/fp8_comparison_vector.elf
-  - elf: ../sw/tests/build/fp8_computation_scalar.elf
-  - elf: ../sw/tests/build/fp8_computation_vector.elf
-  - elf: ../sw/tests/build/fp8alt_comparison_scalar.elf
-  - elf: ../sw/tests/build/fp8alt_comparison_vector.elf
-  - elf: ../sw/tests/build/fp8alt_computation_scalar.elf
-  - elf: ../sw/tests/build/fp8alt_computation_vector.elf
-  - elf: ../sw/tests/build/fp16_comparison_scalar.elf
-  - elf: ../sw/tests/build/fp16_comparison_vector.elf
-  - elf: ../sw/tests/build/fp16_computation_scalar.elf
-  - elf: ../sw/tests/build/fp16_computation_vector.elf
-  - elf: ../sw/tests/build/fp16alt_comparison_scalar.elf
-  - elf: ../sw/tests/build/fp16alt_comparison_vector.elf
-  - elf: ../sw/tests/build/fp16alt_computation_scalar.elf
-  - elf: ../sw/tests/build/fp16alt_computation_vector.elf
   - elf: ../sw/tests/build/fp32_comparison_scalar.elf
-  - elf: ../sw/tests/build/fp32_comparison_vector.elf
   - elf: ../sw/tests/build/fp32_computation_scalar.elf
-  - elf: ../sw/tests/build/fp32_computation_vector.elf
-  - elf: ../sw/tests/build/fp32_conversions_scalar.elf
   # - elf: ../sw/tests/build/fp64_conversions_scalar.elf
   #   simulators: [vsim, vcs, verilator]
   - elf: ../sw/tests/build/xpulp_abs.elf
