@@ -580,7 +580,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
                      & operands_ready
                      & dst_ready
                      & ((itlb_valid & itlb_ready) | ~trans_active);
-  assign acc_req_o.q_valid = is_acc_inst & valid_instr &
+  assign acc_req_o.q_valid = is_acc_inst & valid_instr & ~exception &
                         ((is_fp_store | is_fp_load) ? (trans_ready & caq_qready) : 1'b1);
   // the accelerator interface stalled us. Also wait for CAQ if this is an FP load/store.
   assign acc_stall = acc_req_o.q_valid & ~acc_rsp_i.q_ready | (caq_ena & ~caq_qready);
@@ -3040,7 +3040,6 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
     if (exception) begin
      write_rd = 1'b0;
      write_rs1 = 1'b0;
-     is_acc_inst = 1'b0;
      next_pc = Exception;
     end
   end
