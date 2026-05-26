@@ -7,26 +7,31 @@
 
 static inline float fp8_to_float(char val) {
     float res;
+#ifdef SNRT_SUPPORTS_SMALLFLOAT
     asm volatile(
         "fmv.b.x %[res], %[val]\n"
         "fcvt.s.b %[res], %[res]\n"
         : [ res ] "=f"(res)
         : [ val ] "r"(val));
+#endif
     return res;
 }
 
 static inline char float_to_fp8(float val) {
     char res;
+#ifdef SNRT_SUPPORTS_SMALLFLOAT
     asm volatile(
         "fcvt.b.s ft3, %[val]\n"
         "fmv.x.b %[res], ft3\n"
         : [ res ] "=r"(res)
         : [ val ] "f"(val)
         : "ft3");
+#endif
     return res;
 }
 
 static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
+#ifdef SNRT_SUPPORTS_SMALLFLOAT
     // alias layer parameters
     uint32_t dtype = layer.dtype;
     uint32_t L = layer.L;
@@ -339,4 +344,5 @@ static inline void flashattention_2_fp8(flashattention_2_layer_t layer) {
     }  // end of T_r loop
 
     snrt_cluster_hw_barrier();
+#endif
 }

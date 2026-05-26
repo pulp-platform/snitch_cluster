@@ -6,6 +6,7 @@
 #include "printf.h"
 
 int main() {
+#ifdef SNRT_SUPPORTS_SMALLFLOAT
     if (snrt_is_compute_core()) {
         int errs = 64;
 
@@ -291,4 +292,7 @@ int main() {
         return errs;
     }
     return 0;
+#else
+    return 1;
+#endif
 }

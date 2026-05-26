@@ -8,6 +8,7 @@
 typedef float v2s __attribute__((vector_size(8)));
 
 int main() {
+#ifdef SNRT_SUPPORTS_SMALLFLOAT
     if (snrt_is_compute_core()) {
         int errs = 48;
 
@@ -499,4 +500,7 @@ int main() {
         return errs;
     }
     return 0;
+#else
+    return 1;
+#endif
 }
