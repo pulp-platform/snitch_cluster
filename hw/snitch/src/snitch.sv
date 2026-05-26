@@ -165,7 +165,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   localparam bit XFVEC                = IsaCfg.XFVEC;
   localparam bit XFDOTP               = IsaCfg.XFDOTP;
   localparam bit XFAUX                = IsaCfg.XFAUX;
-  localparam bit Xpulppostmod         = IsaCfg.Xpulppostmod;
+  localparam bit Xcvmem               = IsaCfg.Xcvmem;
   localparam bit Xpulpabs             = IsaCfg.Xpulpabs;
   localparam bit Xpulpbitop           = IsaCfg.Xpulpbitop;
   localparam bit Xpulpbr              = IsaCfg.Xpulpbr;
@@ -193,7 +193,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   localparam bit NSX = XF16 | XF16ALT | XF8 | XFVEC;
 
   // Number of read ports
-  localparam int unsigned NumRfReadPorts = EnableXif | Xpulppostmod ? 3 : 2;
+  localparam int unsigned NumRfReadPorts = EnableXif | Xcvmem ? 3 : 2;
 
   logic illegal_csr;
   // Non-native instruction, unsupported by Snitch and ACC coprocessors, but possibly
@@ -571,7 +571,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   assign operands_ready = opa_ready & opb_ready & opc_ready;
   // Either we are not using the destination register or we need to make
   // sure that its destination operand is not marked busy in the scoreboard (to prevent WAW violations).
-  // Similarly, some instructions (e.g. in Xpulppostmod) also write rs1.
+  // Similarly, some instructions (e.g. in Xcvmem) also write rs1.
   assign dst_ready = (uses_rd ? (rd_is_i2f ? i2f_wready : ~sb_q[rd]) : 1'b1) &&
                      (write_rs1 ? ~sb_q[rs1] : 1'b1);
 
@@ -2397,21 +2397,16 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           end
         end
       end
-      // FP Sequencer and Postmod
+      // FP Sequencer and Core-V post-increment loads
       FREP_O,
-      P_LB_IRPOST,
-      P_LBU_IRPOST,
-      P_LH_IRPOST,
-      P_LHU_IRPOST,
-      P_LW_IRPOST,
-      P_LB_RRPOST,
-      P_LBU_RRPOST,
-      P_LH_RRPOST,
-      P_LHU_RRPOST,
-      P_LW_RRPOST : begin
-        if (Xpulppostmod == 1) begin
+      CV_LB_IRPOST,
+      CV_LBU_IRPOST,
+      CV_LH_IRPOST,
+      CV_LHU_IRPOST,
+      CV_LW_IRPOST : begin
+        if (Xcvmem) begin
           casez (inst_rsp_i.data)
-            P_LB_IRPOST: begin  //  p.lb rd,iimm(rs1!)
+            CV_LB_IRPOST: begin
               write_rd = 1'b0;
               write_rs1 = 1'b1;
               is_load = 1'b1;
@@ -2420,7 +2415,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
               opa_select = RegRs1;
               opb_select = IImmediate;
             end
-            P_LBU_IRPOST: begin // p.lbu
+            CV_LBU_IRPOST: begin
               write_rd = 1'b0;
               write_rs1 = 1'b1;
               is_load = 1'b1;
@@ -2428,7 +2423,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
               opa_select = RegRs1;
               opb_select = IImmediate;
             end
-            P_LH_IRPOST: begin  //p.lh
+            CV_LH_IRPOST: begin
               write_rd = 1'b0;
               write_rs1 = 1'b1;
               is_load = 1'b1;
@@ -2438,7 +2433,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
               opa_select = RegRs1;
               opb_select = IImmediate;
             end
-            P_LHU_IRPOST: begin //p.lhu
+            CV_LHU_IRPOST: begin
               write_rd = 1'b0;
               write_rs1 = 1'b1;
               is_load = 1'b1;
@@ -2447,7 +2442,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
               opa_select = RegRs1;
               opb_select = IImmediate;
             end
-            P_LW_IRPOST: begin //p.lw
+            CV_LW_IRPOST: begin
               write_rd = 1'b0;
               write_rs1 = 1'b1;
               is_load = 1'b1;
@@ -2456,59 +2451,13 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
               ls_size = Word;
               opa_select = RegRs1;
               opb_select = IImmediate;
-            end
-            P_LB_RRPOST: begin //p.lb rd,rs2(rs1!)
-              write_rd = 1'b0;
-              write_rs1 = 1'b1;
-              is_load = 1'b1;
-              is_postincr = 1'b1;
-              is_signed = 1'b1;
-              opa_select = RegRs1;
-              opb_select = RegRs2;
-            end
-            P_LBU_RRPOST: begin //p.lbu
-              write_rd = 1'b0;
-              write_rs1 = 1'b1;
-              is_load = 1'b1;
-              is_postincr = 1'b1;
-              opa_select = RegRs1;
-              opb_select = RegRs2;
-            end
-            P_LH_RRPOST: begin //p.lh
-              write_rd = 1'b0;
-              write_rs1 = 1'b1;
-              is_load = 1'b1;
-              is_postincr = 1'b1;
-              is_signed = 1'b1;
-              ls_size = HalfWord;
-              opa_select = RegRs1;
-              opb_select = RegRs2;
-            end
-            P_LHU_RRPOST: begin //p.lhu
-              write_rd = 1'b0;
-              write_rs1 = 1'b1;
-              is_load = 1'b1;
-              is_postincr = 1'b1;
-              ls_size = HalfWord;
-              opa_select = RegRs1;
-              opb_select = RegRs2;
-            end
-            P_LW_RRPOST: begin //p.lw
-              write_rd = 1'b0;
-              write_rs1 = 1'b1;
-              is_load = 1'b1;
-              is_postincr = 1'b1;
-              is_signed = 1'b1;
-              ls_size = Word;
-              opa_select = RegRs1;
-              opb_select = RegRs2;
             end
             default: begin
               unsupported_inst = 1'b1;
             end
           endcase
         end else begin
-          if (Xfrep && FP_EN && (inst_rsp_i.data ==? FREP_O) ) begin
+          if (Xfrep && FP_EN && (inst_rsp_i.data ==? FREP_O)) begin
             opa_select = RegRs1;
             write_rd = 1'b0;
             is_acc_inst = 1'b1;
@@ -2517,8 +2466,76 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           end
         end
       end
-      P_LB_RR: begin      // p.lb rd,rs2(rs1)
-        if (Xpulppostmod == 1) begin
+      // Core-V post-increment reg-reg loads
+      CV_LB_RRPOST: begin
+        if (Xcvmem) begin
+          write_rd = 1'b0;
+          write_rs1 = 1'b1;
+          is_load = 1'b1;
+          is_postincr = 1'b1;
+          is_signed = 1'b1;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+        end else begin
+          unsupported_inst = 1'b1;
+        end
+      end
+      CV_LBU_RRPOST: begin
+        if (Xcvmem) begin
+          write_rd = 1'b0;
+          write_rs1 = 1'b1;
+          is_load = 1'b1;
+          is_postincr = 1'b1;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+        end else begin
+          unsupported_inst = 1'b1;
+        end
+      end
+      CV_LH_RRPOST: begin
+        if (Xcvmem) begin
+          write_rd = 1'b0;
+          write_rs1 = 1'b1;
+          is_load = 1'b1;
+          is_postincr = 1'b1;
+          is_signed = 1'b1;
+          ls_size = HalfWord;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+        end else begin
+          unsupported_inst = 1'b1;
+        end
+      end
+      CV_LHU_RRPOST: begin
+        if (Xcvmem) begin
+          write_rd = 1'b0;
+          write_rs1 = 1'b1;
+          is_load = 1'b1;
+          is_postincr = 1'b1;
+          ls_size = HalfWord;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+        end else begin
+          unsupported_inst = 1'b1;
+        end
+      end
+      CV_LW_RRPOST: begin
+        if (Xcvmem) begin
+          write_rd = 1'b0;
+          write_rs1 = 1'b1;
+          is_load = 1'b1;
+          is_postincr = 1'b1;
+          is_signed = 1'b1;
+          ls_size = Word;
+          opa_select = RegRs1;
+          opb_select = RegRs2;
+        end else begin
+          unsupported_inst = 1'b1;
+        end
+      end
+      // Core-V register-register loads
+      CV_LB_RR: begin
+        if (Xcvmem) begin
           write_rd = 1'b0;
           is_load = 1'b1;
           is_signed = 1'b1;
@@ -2528,8 +2545,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           unsupported_inst = 1'b1;
         end
       end
-      P_LBU_RR: begin     // p.lbu
-        if (Xpulppostmod == 1) begin
+      CV_LBU_RR: begin
+        if (Xcvmem) begin
           write_rd = 1'b0;
           is_load = 1'b1;
           opa_select = RegRs1;
@@ -2538,8 +2555,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           unsupported_inst = 1'b1;
         end
       end
-      P_LH_RR: begin      // p.lh
-        if (Xpulppostmod == 1) begin
+      CV_LH_RR: begin
+        if (Xcvmem) begin
           write_rd = 1'b0;
           is_load = 1'b1;
           is_signed = 1'b1;
@@ -2550,8 +2567,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           unsupported_inst = 1'b1;
         end
       end
-      P_LHU_RR: begin     // p.lhu
-        if (Xpulppostmod == 1) begin
+      CV_LHU_RR: begin
+        if (Xcvmem) begin
           write_rd = 1'b0;
           is_load = 1'b1;
           ls_size = HalfWord;
@@ -2561,8 +2578,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           unsupported_inst = 1'b1;
         end
       end
-      P_LW_RR: begin      // p.lw
-        if (Xpulppostmod == 1) begin
+      CV_LW_RR: begin
+        if (Xcvmem) begin
           write_rd = 1'b0;
           is_load = 1'b1;
           is_signed = 1'b1;
@@ -2573,12 +2590,13 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           unsupported_inst = 1'b1;
         end
       end
+      // CV-X post-increment reg-reg stores
       // opb is usually assigned with the content of rs2; in stores with reg-reg
       // addressing mode, however, the offset is stored in rd, so rd content is
       // instead assigned to opb: if we cross such signals now (rd -> opb,
       // rs2 -> opc) we don't have to do that in the ALU, with bigger muxes
-      P_SB_RRPOST: begin  // p.sb rs2,rd(rs1!)
-        if (Xpulppostmod == 1) begin
+      CV_SB_RRPOST: begin  // p.sb rs2,rd(rs1!)
+        if (Xcvmem) begin
           write_rd = 1'b0;
           write_rs1 = 1'b1;
           is_store = 1'b1;
@@ -2590,8 +2608,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           unsupported_inst = 1'b1;
         end
       end
-      P_SH_RRPOST: begin  // p.sh
-        if (Xpulppostmod == 1) begin
+      CV_SH_RRPOST: begin
+        if (Xcvmem) begin
           write_rd = 1'b0;
           write_rs1 = 1'b1;
           is_store = 1'b1;
@@ -2604,8 +2622,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           unsupported_inst = 1'b1;
         end
       end
-      P_SW_RRPOST: begin  // p.sw
-        if (Xpulppostmod == 1) begin
+      CV_SW_RRPOST: begin
+        if (Xcvmem) begin
           write_rd = 1'b0;
           write_rs1 = 1'b1;
           is_store = 1'b1;
@@ -2618,8 +2636,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           unsupported_inst = 1'b1;
         end
       end
-      P_SB_RR: begin      // p.sb rs2,rs3(rs1)
-        if (Xpulppostmod == 1) begin
+      // Core-V register-register stores
+      CV_SB_RR: begin
+        if (Xcvmem) begin
           write_rd = 1'b0;
           is_store = 1'b1;
           opa_select = RegRs1;
@@ -2629,8 +2648,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           unsupported_inst = 1'b1;
         end
       end
-      P_SH_RR: begin      // p.sh
-        if (Xpulppostmod == 1) begin
+      CV_SH_RR: begin
+        if (Xcvmem) begin
           write_rd = 1'b0;
           is_store = 1'b1;
           ls_size = HalfWord;
@@ -2641,8 +2660,8 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           unsupported_inst = 1'b1;
         end
       end
-      P_SW_RR: begin      // p.sw
-        if (Xpulppostmod == 1) begin
+      CV_SW_RR: begin
+        if (Xcvmem) begin
           write_rd = 1'b0;
           is_store = 1'b1;
           ls_size = Word;
@@ -2755,7 +2774,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         end
       end
       // DMA instructions
-      P_SB_IRPOST,
+      CV_SB_IRPOST,
       DMSRC,
       DMDST,
       DMSTR,
@@ -2767,7 +2786,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       DMUSER,
       FCVT_D_W_COPIFT,
       FCVT_D_WU_COPIFT : begin
-        if (Xpulppostmod) begin
+        if (Xcvmem) begin
           write_rd = 1'b0;
           uses_rd = 1'b0;
           write_rs1 = 1'b1;
@@ -2775,6 +2794,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           is_postincr = 1'b1;
           opa_select = RegRs1;
           opb_select = SImmediate;
+          opc_select = RegRs2;
         end else begin
           casez (inst_rsp_i.data)
             DMSRC,
@@ -2865,11 +2885,11 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         end
       end
 
-      P_SH_IRPOST,
+      CV_SH_IRPOST,
       SCFGRI,
       SCFGR,
       FLT_D_COPIFT: begin
-        if (Xpulppostmod) begin
+        if (Xcvmem) begin
           write_rd = 1'b0;
           uses_rd = 1'b0;
           write_rs1 = 1'b1;
@@ -2878,6 +2898,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           ls_size = HalfWord;
           opa_select = RegRs1;
           opb_select = SImmediate;
+          opc_select = RegRs2;
         end else begin
           unique casez (inst_rsp_i.data)
             SCFGRI, FLT_D_COPIFT: begin
@@ -2911,10 +2932,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
         end
       end
 
-      P_SW_IRPOST,
+      CV_SW_IRPOST,
       SCFGWI,
       SCFGW: begin
-        if (Xpulppostmod) begin
+        if (Xcvmem) begin
           write_rd = 1'b0;
           uses_rd = 1'b0;
           write_rs1 = 1'b1;
@@ -2923,6 +2944,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
           ls_size = Word;
           opa_select = RegRs1;
           opb_select = SImmediate;
+          opc_select = RegRs2;
         end else begin
           casez (inst_rsp_i.data)
             SCFGWI: begin
@@ -3707,7 +3729,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
 
   assign dtlb_valid = (lsu_tlb_qvalid & trans_active) | ((is_fp_load | is_fp_store) & trans_active);
 
-  // Mulitplexer using and/or as this signal is likely timing critical.
+  // Multiplexer using and/or as this signal is likely timing critical.
   // Without virtual memory, address can be alu_result (i.e. rs1 + iimm/simm) or rs1 (for post-increment load/stores)
   assign ls_paddr[PPNSize+PageShift-1:PageShift] =
           ({(PPNSize){trans_active}} & dtlb_pa) |

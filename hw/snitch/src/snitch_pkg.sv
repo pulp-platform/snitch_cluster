@@ -148,8 +148,8 @@ package snitch_pkg;
     bit XFVEC;
     bit XFDOTP;
     bit XFAUX;
-    /// Enable Xpulp instructions (overlaps with DMA, SSR, copift and frep)
-    bit Xpulppostmod;
+    /// Enable Xcvmem instructions (overlaps with DMA, SSR, copift)
+    bit Xcvmem;
     bit Xpulpabs;
     bit Xpulpbitop;
     bit Xpulpbr;

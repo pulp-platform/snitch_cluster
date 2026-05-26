@@ -26,7 +26,7 @@ unratified/rv_xipu
 unratified/rv_xcopift
 unratified/rv_xsmallfloat
 unratified/rv32_xb
-unratified/rv32_xpulppostmod
+unratified/rv32_xcvmem
 unratified/rv32_xpulpabs
 unratified/rv32_xpulpbitop
 unratified/rv32_xpulpbr

@@ -574,10 +574,10 @@
                                             "description": "Enable Smallfloat vector extension (SIMD).",
                                             "default": false
                                         },
-                                        "xpulppostmod": {
+                                        "xcvmem": {
                                             "type": "boolean",
-                                            "title": "Xpulppostmod Subextension",
-                                            "description": "Enable Xpulppostmod subextension.",
+                                            "title": "Xcvmem Subextension",
+                                            "description": "Enable Xcvmem subextension.",
                                             "default": false
                                         },
                                         "xpulpabs": {

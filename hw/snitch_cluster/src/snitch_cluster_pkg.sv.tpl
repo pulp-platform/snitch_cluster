@@ -256,7 +256,7 @@ package ${cfg['cluster']['name']}_pkg;
       XFDOTP: ${int(c['xfdotp'])},
       // FMA architecture is "merged" -> mulexp and macexp instructions are supported
       XFAUX: FPUImplementation[${i}].UnitTypes[3] == fpnew_pkg::MERGED,
-      Xpulppostmod: ${int(c['xpulppostmod'])},
+      Xcvmem: ${int(c['xcvmem'])},
       Xpulpabs: ${int(c['xpulpabs'])},
       Xpulpbitop: ${int(c['xpulpbitop'])},
       Xpulpbr: ${int(c['xpulpbr'])},

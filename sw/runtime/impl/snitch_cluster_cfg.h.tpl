@@ -15,7 +15,7 @@
   supports_copift = False
   supports_pulp = False
   pulp_subextensions = [
-    'xpulppostmod',
+    'xcvmem',
     'xpulpabs',
     'xpulpbitop',
     'xpulpbr',

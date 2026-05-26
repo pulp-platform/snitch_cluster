@@ -134,10 +134,10 @@ void matmul_unrolled_2x2_parallel_i32_xpulpv2(int32_t const *__restrict__ A,
             }
             int32_t *idx_c = &C[i * P + j];
             __asm__ volatile(
-                "p.sw %[s00], 4(%[addr_c]!) \n"
-                "p.sw %[s01], %[c_incr](%[addr_c]!) \n"
-                "p.sw %[s10], 4(%[addr_c]!) \n"
-                "p.sw %[s11], 0(%[addr_c]!) \n"
+                "cv.sw %[s00], (%[addr_c]), 4 \n"
+                "cv.sw %[s01], (%[addr_c]), %[c_incr] \n"
+                "cv.sw %[s10], (%[addr_c]), 4 \n"
+                "cv.sw %[s11], (%[addr_c]), 0 \n"
                 : [ addr_c ] "+&r"(idx_c)
                 : [ s00 ] "r"(c00), [ s01 ] "r"(c01), [ s10 ] "r"(c10),
                   [ s11 ] "r"(c11), [ c_incr ] "r"(B_incr)
