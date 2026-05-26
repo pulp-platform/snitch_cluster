@@ -972,7 +972,7 @@ int main() {
                          : "=r"(rd)
                          : "r"(rs1)
                          : "a3", "a4");
-            result_rd = rd;  // -> 0x129E00AA
+            result_rd = rd;  // -> 0x123E00FA
             if (result_rd != 0x123E00FA) errs++;
         }
 
@@ -1198,7 +1198,7 @@ int main() {
             asm volatile("pv.insert.h a3, a4, 1\n"
                          : "+r"(rd)
                          : "r"(rs1)
-                         : "a3", "a4");
+                         : "a4");
             result_rd = rd;  // upper half replaced -> 0xBEEF2222
             if (result_rd != 0xBEEF2222) errs++;
 
@@ -1206,7 +1206,7 @@ int main() {
             asm volatile("pv.insert.h a3, a4, 0\n"
                          : "+r"(rd)
                          : "r"(rs1)
-                         : "a3", "a4");
+                         : "a4");
             result_rd = rd;  // lower half replaced -> 0x1111BEEF
             if (result_rd != 0x1111BEEF) errs++;
         }
@@ -1218,7 +1218,7 @@ int main() {
             asm volatile("pv.insert.b a3, a4, 2\n"
                          : "+r"(rd)
                          : "r"(rs1)
-                         : "a3", "a4");
+                         : "a4");
             result_rd = rd;  // byte[2] = 0xAA -> 0x11AA3344
             if (result_rd != 0x11AA3344) errs++;
 
@@ -1226,7 +1226,7 @@ int main() {
             asm volatile("pv.insert.b a3, a4, 0\n"
                          : "+r"(rd)
                          : "r"(rs1)
-                         : "a3", "a4");
+                         : "a4");
             result_rd = rd;  // byte[0] = 0xAA -> 0x112233AA
             if (result_rd != 0x112233AA) errs++;
         }

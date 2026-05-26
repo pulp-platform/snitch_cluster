@@ -24,7 +24,7 @@ int main() {
             asm volatile("pv.shuffle2.h a3, a4, a5\n"
                          : "+r"(rd)
                          : "r"(rs1), "r"(rs2)
-                         : "a3", "a4", "a5");
+                         : "a4", "a5");
 
             result_rd = rd;
             if (result_rd != 0x5678DEAD) errs++;
@@ -32,20 +32,20 @@ int main() {
 
         // pv.shuffle2.b
         {
-            int errs = 0;
             register int32_t rd asm("a3") =
                 0xAAAABBBB;  // rd initial = [AA][AA][BB][BB]
             register int32_t rs1 asm("a4") =
                 0x11223344;  // rs1        = [11][22][33][44]
-            // rs2 control:
-            // upper byte: take from rs1, index 0 => 0x44
-            // next byte:  take from rs1, index 1 => 0x33
-            // next byte:  take from rd,  index 2 => 0xAA
-            // low byte:   take from rd,  index 3 => 0xBB
-            register int32_t rs2 asm("a5") = 0b01000101         // low nibble
-                                             | (0b0101 << 8)    // next byte
-                                             | (0b0010 << 16)   // next
-                                             | (0b0000 << 24);  // top
+            // rs2 control (each byte: bit[2]=1→rs1, bit[2]=0→rd, bits[1:0]=index):
+            // byte[3] (upper): rs1[idx 0] => 0x44 → ctrl = 0x04
+            // byte[2]:         rs1[idx 1] => 0x33 → ctrl = 0x05
+            // byte[1]:         rd[idx 2]  => 0xAA → ctrl = 0x02
+            // byte[0] (low):   rd[idx 0]  => 0xBB → ctrl = 0x00
+            register int32_t rs2 asm("a5") =
+                0x00             // byte[0]: rd[idx 0] = 0xBB
+                | (0x02 << 8)    // byte[1]: rd[idx 2] = 0xAA
+                | (0x05 << 16)   // byte[2]: rs1[idx 1] = 0x33
+                | (0x04 << 24);  // byte[3]: rs1[idx 0] = 0x44
             int32_t result_rd;
 
             asm volatile("pv.shuffle2.b a3, a4, a5\n"
@@ -60,8 +60,8 @@ int main() {
         // pv.pack.h
         {
             register int32_t rd asm("a3") = 0;
-            register int32_t rs1 asm("a4") = 0x00001234;
-            register int32_t rs2 asm("a5") = 0x00005678;
+            register int32_t rs1 asm("a4") = 0x12340000;  // high half = 0x1234
+            register int32_t rs2 asm("a5") = 0x56780000;  // high half = 0x5678
             asm volatile("pv.pack.h a3, a4, a5\n"
                          : "=r"(rd)
                          : "r"(rs1), "r"(rs2)
