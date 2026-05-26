@@ -26,6 +26,8 @@ SN_VLOG_FLAGS += -suppress 13314
 SN_VLOG_FLAGS += -work $(SN_VSIM_BUILDDIR)
 SN_VOPT_FLAGS += -work $(SN_VSIM_BUILDDIR)
 SN_VSIM_FLAGS += -64
+SN_VSIM_FLAGS += -suppress vsim-8386
+SN_VSIM_FLAGS += -suppress vsim-3999
 SN_VSIM_FLAGS += -work $(SN_VSIM_BUILDDIR)
 SN_VSIM_FLAGS += -t 1ps
 
