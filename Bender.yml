@@ -87,7 +87,10 @@ sources:
   # snitch
   - files:
       # Level 0
+      - hw/snitch/src/snitch_pma_pkg.sv
+      - hw/snitch/src/riscv_instr.sv
       # Level 1
+      - hw/snitch/src/snitch_pkg.sv
       # Level 2
       - hw/snitch/src/snitch_regfile_ff.sv
       - hw/snitch/src/snitch_lsu.sv

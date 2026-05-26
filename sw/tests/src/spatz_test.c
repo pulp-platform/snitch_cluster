@@ -43,7 +43,7 @@ int main() {
     asm volatile("vse64.v v8, (%0)" ::"r"(local_c));
 
     // Check results via volatile pointer to prevent auto-vectorization
-    volatile double *vc = (volatile double *)local_c;
+    double *vc = (double *)local_c;
     for (int i = 0; i < N; i++) {
       if ((vc[i] - 6.0) > 0.01f)
         errs++;

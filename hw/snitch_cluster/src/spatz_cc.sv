@@ -280,6 +280,10 @@ module spatz_cc #(
   x_result_t     x_result;
   logic          x_result_valid;
   logic          x_result_ready;
+  // Registered XIF result channel (breaks combinational loop through Spatz)
+  x_result_t     x_result_q;
+  logic          x_result_valid_q;
+  logic          x_result_ready_q;
 
   // ----------------------------------------------------------------------
   // Spatz mem-port and FP-LSU signals
@@ -337,9 +341,9 @@ module spatz_cc #(
     .x_register_ready_i ( x_register_ready ),
     .x_commit_o ( x_commit ),
     .x_commit_valid_o ( x_commit_valid ),
-    .x_result_i ( x_result ),
-    .x_result_valid_i ( x_result_valid ),
-    .x_result_ready_o ( x_result_ready ),
+    .x_result_i ( x_result_q ),
+    .x_result_valid_i ( x_result_valid_q ),
+    .x_result_ready_o ( x_result_ready_q ),
     .i2f_rdata_o ( i2f_rdata ),
     .i2f_rvalid_o ( i2f_rvalid ),
     .i2f_rready_i ( i2f_rready ),
@@ -550,6 +554,24 @@ module spatz_cc #(
       .fpu_rnd_mode_i           (fpu_rnd_mode          ),
       .fpu_fmt_mode_i           (fpu_fmt_mode          ),
       .fpu_status_o             (fpu_status            )
+    );
+
+    // Break the XIF result combinational loop:
+    // In Spatz, x_issue_ready_o depends combinationally on x_result_ready_i,
+    // which feeds back through snitch's retire logic. A spill_register here
+    // decouples the ready signal.
+    spill_register #(
+      .T      (x_result_t        ),
+      .Bypass (!RegisterOffloadRsp)
+    ) i_xif_result_cut (
+      .clk_i   (clk_i            ),
+      .rst_ni  (rst_ni           ),
+      .valid_i (x_result_valid   ),
+      .ready_o (x_result_ready   ),
+      .data_i  (x_result         ),
+      .valid_o (x_result_valid_q ),
+      .ready_i (x_result_ready_q ),
+      .data_o  (x_result_q       )
     );
 
     // Wire Spatz mem ports to TCDM ports [0:NumMemPortsPerSpatz-1].
