@@ -376,7 +376,7 @@ module dspu #(
   logic [4:0] imm5;
   logic [5:0] imm6;
   assign imm5 = operator_i[24:20];
-  assign imm6 = {operator_i[24:20], operator_i[25]};
+  assign imm6 = operator_i[25:20];
 
   // Internal control signals
   logic cmp_signed;            // comparator operation is signed
