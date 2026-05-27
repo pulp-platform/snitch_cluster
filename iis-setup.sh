@@ -20,12 +20,6 @@ export PATH=$PWD/util/bin:$PATH
 # Add simulator binaries to PATH
 export PATH=$PWD/target/sim/build/bin:$PATH
 
-# We use `uv` for managing python dependencies and environments
-export PATH=$PATH:/usr/local/uv
-# Copy instead link packages from global cache, since the cache is typically
-# located on a different file system (e.g. your home directory).
-export UV_LINK_MODE=copy
-
 # Initialize submodules if needed
 if git submodule status --recursive 2>/dev/null | grep -q '^-'; then
     git submodule update --init --recursive
