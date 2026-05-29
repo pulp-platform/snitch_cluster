@@ -72,6 +72,8 @@ include $(SN_ROOT)/sw/riscv-tests/riscv-tests.mk
 SN_BUILD_APPS ?= ON
 
 ifeq ($(SN_BUILD_APPS), ON)
+include $(SN_ROOT)/sw/spatz/spatz.mk
+
 SN_APPS += $(SN_ROOT)/sw/kernels/blas/axpy
 SN_APPS += $(SN_ROOT)/sw/kernels/blas/gemm
 SN_APPS += $(SN_ROOT)/sw/kernels/blas/gemv
