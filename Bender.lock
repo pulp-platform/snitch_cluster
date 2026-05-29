@@ -124,7 +124,7 @@ packages:
     dependencies:
     - common_verification
   spatz_core:
-    revision: f462df6b2b33444811d415599e5da187708f8c08
+    revision: 7d3d6511a3147c607976fa7da7f514263e18162f
     version: null
     source:
       Git: https://github.com/DiyouS/spatz.git
