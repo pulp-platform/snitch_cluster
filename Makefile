@@ -230,11 +230,29 @@ include $(SN_ROOT)/make/vsim.mk
 include $(SN_ROOT)/make/verilator.mk
 include $(SN_ROOT)/make/vcs.mk
 
-############
+#############
 # Synthesis #
-############
+#############
 
 include $(SN_ROOT)/target/asic/yosys/yosys.mk
+
+#################
+# Spyglass lint #
+#################
+
+LINT_DIR = $(SN_ROOT)/util/lint
+LINT_BUILD_DIR = $(LINT_DIR)/build
+
+.PHONY: spyglass
+
+$(LINT_BUILD_DIR):
+	mkdir -p $@
+
+$(LINT_BUILD_DIR)/analyze.tcl: $(SN_BENDER_LOCK) $(SN_BENDER_YML) $(SN_GEN_RTL_SRCS) | $(LINT_BUILD_DIR)
+	$(SN_BENDER) script flist-plus -t rtl -t snitch_cluster -t snitch_cluster_wrapper > $@
+
+spyglass: $(LINT_DIR)/spyglass.tcl $(LINT_BUILD_DIR)/analyze.tcl | $(LINT_BUILD_DIR)
+	cd $(LINT_BUILD_DIR) && $(SN_SG_SHELL) -tcl $<
 
 #########
 # GVSOC #

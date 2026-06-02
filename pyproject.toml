@@ -34,6 +34,7 @@ dependencies = [
     "pyelftools",
     "pyflexfloat",
     "pymakeutils>=1.4.0",
+    "pysynthutils",
     "pytablewriter",
     "pytest",
     "pyyaml",
@@ -62,9 +63,6 @@ docs = [
 ]
 all = [
     "snitch[kernels,docs]"
-]
-nonfree = [
-    "pysynthutils @ git+ssh://git@iis-git.ee.ethz.ch/colluca/pysynthutils.git@b92ea41",
 ]
 
 [tool.uv.sources]

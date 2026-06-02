@@ -28,6 +28,7 @@ SN_CLANG_FORMAT   ?= $(SN_LLVM_BINROOT)/clang-format
 SN_VERILATOR_SEPP ?=
 SN_VLT_BIN         = $(shell $(SN_VERILATOR_SEPP) which verilator_bin | tail -n1 | $(SN_VERILATOR_SEPP) xargs realpath | tail -n1)
 SN_VLT            ?= $(SN_VERILATOR_SEPP) verilator
+SN_SG_SHELL       ?= sg_shell
 
 # Internal executables
 SN_GENTRACE_PY  ?= $(SN_UTIL_DIR)/trace/gen_trace.py

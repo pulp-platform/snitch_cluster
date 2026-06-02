@@ -13,6 +13,7 @@ export SN_VERILATOR_SEPP=$SN_OSEDA
 export SN_QUESTA_SEPP=questa-2023.4
 export SN_YOSYS="$SN_OSEDA yosys"
 export SN_LLVM_BINROOT=/usr/scratch2/vulcano/colluca/workspace/REPOS/LLVM_PROJECT/install/bin/
+export SN_SG_SHELL="spyglass-2024.09 sg_shell"
 
 # We need Make >4.3 for grouped targets
 export PATH=$PWD/util/bin:$PATH

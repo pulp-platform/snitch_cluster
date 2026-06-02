@@ -51,6 +51,16 @@ snitch-cluster-sw:
       - sw/**/build/*.elf
     expire_in: 1 day
 
+#################
+# Spyglass lint #
+#################
+
+spyglass:
+  script:
+    - make spyglass
+    - util/lint/check_spyglass_lint.py
+        util/lint/build/snitch_cluster_wrapper/consolidated_reports/snitch_cluster_wrapper_lint_lint_rtl/moresimple.rpt
+
 #######################
 # Standalone IP tests #
 #######################
@@ -193,11 +203,3 @@ elab:
   script:
     - make nonfree
     - make elab
-
-# Spyglass lint
-spyglass:
-  script:
-    - make nonfree
-    - make spyglass
-    - util/lint/check_spyglass_lint.py --threshold 3
-        nonfree/lint/build/sg_projects/snitch_cluster/snitch_cluster/lint/lint_rtl/spyglass_reports/moresimple.rpt

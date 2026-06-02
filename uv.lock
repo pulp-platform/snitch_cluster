@@ -1652,11 +1652,15 @@ wheels = [
 [[package]]
 name = "pysynthutils"
 version = "0.0.0"
-source = { git = "ssh://git@iis-git.ee.ethz.ch/colluca/pysynthutils.git?rev=b92ea41#b92ea41e43a88fbb27c506378a149ee04dde8872" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bigtree" },
     { name = "pandas" },
     { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f6/90/533748e2eb3cf93ccc76b7c8816a047b4f43d907a07bddd66349848009e2/pysynthutils-0.0.0.tar.gz", hash = "sha256:3d666daf13b1ffaaf49b15a71b75f24a67080d8c88a61ebf4cad85cfbb7195aa", size = 5135, upload-time = "2026-06-02T16:55:46.26Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2f/68/3d918d12c4d332338171e06d5d801a8caa8ba66e642255f0fcb5447f3dfe/pysynthutils-0.0.0-py3-none-any.whl", hash = "sha256:97c201f63a8506d23b953ffab042647f7836dbbbe6c55494d5c423553ed43b0b", size = 6113, upload-time = "2026-06-02T16:55:45.037Z" },
 ]
 
 [[package]]
@@ -2152,6 +2156,7 @@ dependencies = [
     { name = "pyelftools" },
     { name = "pyflexfloat" },
     { name = "pymakeutils" },
+    { name = "pysynthutils" },
     { name = "pytablewriter" },
     { name = "pytest" },
     { name = "pyyaml" },
@@ -2191,9 +2196,6 @@ kernels = [
     { name = "torch", version = "2.9.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
     { name = "torch", version = "2.9.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
 ]
-nonfree = [
-    { name = "pysynthutils" },
-]
 
 [package.metadata]
 requires-dist = [
@@ -2224,7 +2226,7 @@ requires-dist = [
     { name = "pyelftools" },
     { name = "pyflexfloat" },
     { name = "pymakeutils", specifier = ">=1.4.0" },
-    { name = "pysynthutils", marker = "extra == 'nonfree'", git = "ssh://git@iis-git.ee.ethz.ch/colluca/pysynthutils.git?rev=b92ea41" },
+    { name = "pysynthutils" },
     { name = "pytablewriter" },
     { name = "pytest" },
     { name = "pyyaml" },
@@ -2237,7 +2239,7 @@ requires-dist = [
     { name = "torch", marker = "extra == 'kernels'", index = "https://download.pytorch.org/whl/cpu" },
     { name = "yamllint" },
 ]
-provides-extras = ["kernels", "docs", "all", "nonfree"]
+provides-extras = ["kernels", "docs", "all"]
 
 [[package]]
 name = "super-collections"
