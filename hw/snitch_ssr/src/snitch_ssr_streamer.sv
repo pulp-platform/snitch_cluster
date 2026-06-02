@@ -56,10 +56,12 @@ module snitch_ssr_streamer import snitch_ssr_pkg::*; #(
   // This will *not* validate the configuration (see assertions below).
   function automatic isect_cfg_t derive_isect_cfg();
     // Ensure nonzero width parameters to keep derived types sane.
-    automatic isect_cfg_t ret = '{IndexWidth: 1, default: '0};
+    automatic isect_cfg_t ret;
+    ret = '{IndexWidth: 1, default: '0};
     for (int i = 0; i < NumSsrs; i++) begin
       if (SsrCfgs[i].IsectMaster) begin
-        automatic int unsigned DataBufDepth =
+        automatic int unsigned DataBufDepth;
+        DataBufDepth =
             SsrCfgs[i].DataCredits + 2*unsigned'(SsrCfgs[i].IndirOutSpill);
         if (DataBufDepth > ret.StreamctlDepth)
           ret.StreamctlDepth = DataBufDepth;

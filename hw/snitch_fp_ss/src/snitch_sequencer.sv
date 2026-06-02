@@ -667,7 +667,7 @@ module snitch_sequencer import snitch_pkg::*; #(
     qdata_op:   seq_qdata_op,
     qdata_arga: rb_rdata.qdata_arga,
     qdata_argb: rb_rdata.qdata_argb,
-    qdata_argc: $unsigned(rb_rdata.qdata_argc),
+    qdata_argc: rb_rdata.qdata_argc,
     // When we repeat a previously issued instruction, communicate this
     // to subsystem (e.g. for single issuing of CAQ responses).
     qdata_repd: (iter_cnt[loop_idx_q] != 0)

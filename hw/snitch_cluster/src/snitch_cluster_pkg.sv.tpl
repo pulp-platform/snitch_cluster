@@ -324,10 +324,13 @@ ${ssr_cfg(core, "'{{{indirection:d}, {isect_master:d}, {isect_master_idx:d}, {is
 ${ssr_cfg(core, '{reg_idx}', '/*None*/ 0', ',')}\
   };
 
+  // RISC-V hart ID width (32 bits per spec)
+  localparam int unsigned HartIdWidth = 32;
+
   // Forward potentially optional configuration parameters
-  localparam logic [9:0] CfgBaseHartId        = (${to_sv_hex(cfg['cluster']['cluster_base_hartid'], 10)});
-  localparam addr_t    	 CfgClusterBaseAddr   = (${to_sv_hex(cfg['cluster']['cluster_base_addr'], cfg['cluster']['addr_width'])});
-  localparam addr_t    	 CfgClusterBaseOffset = (${to_sv_hex(cfg['cluster']['cluster_base_offset'], cfg['cluster']['addr_width'])});
+  localparam logic [HartIdWidth-1:0] CfgBaseHartId = (${to_sv_hex(cfg['cluster']['cluster_base_hartid'], 32)});
+  localparam addr_t    	             CfgClusterBaseAddr   = (${to_sv_hex(cfg['cluster']['cluster_base_addr'], cfg['cluster']['addr_width'])});
+  localparam addr_t    	             CfgClusterBaseOffset = (${to_sv_hex(cfg['cluster']['cluster_base_offset'], cfg['cluster']['addr_width'])});
 
 endpackage
 // verilog_lint: waive-stop package-filename

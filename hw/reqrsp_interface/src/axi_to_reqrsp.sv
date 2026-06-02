@@ -124,7 +124,7 @@ module axi_to_reqrsp #(
     // Handle new AR if there is one.
     end else if (axi_req_i.ar_valid) begin
       rd_meta_d = '{
-        addr:  addr_t'(axi_pkg::aligned_addr(axi_req_i.ar.addr, axi_req_i.ar.size)),
+        addr:  addr_t'(axi_pkg::aligned_addr(axi_pkg::largest_addr_t'(axi_req_i.ar.addr), axi_req_i.ar.size)),
         atop:  '0,
         id:    axi_req_i.ar.id,
         last:  (axi_req_i.ar.len == '0),
@@ -168,7 +168,7 @@ module axi_to_reqrsp #(
     // Handle new AW if there is one.
     end else if (axi_req_i.aw_valid && axi_req_i.w_valid) begin
       wr_meta_d = '{
-        addr:   addr_t'(axi_pkg::aligned_addr(axi_req_i.aw.addr, axi_req_i.aw.size)),
+        addr:   addr_t'(axi_pkg::aligned_addr(axi_pkg::largest_addr_t'(axi_req_i.aw.addr), axi_req_i.aw.size)),
         atop:   axi_req_i.aw.atop,
         id:     axi_req_i.aw.id,
         last:   (axi_req_i.aw.len == '0),

@@ -35,7 +35,7 @@ module ${cfg['cluster']['name']}_wrapper (
   input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] mtip_i,
   input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] msip_i,
   input  logic [${cfg['cluster']['name']}_pkg::NrCores-1:0] mxip_i,
-  input  logic [9:0]                             hart_base_id_i,
+  input  logic [${cfg['cluster']['name']}_pkg::HartIdWidth-1:0]  hart_base_id_i,
   input  logic [${cfg['cluster']['addr_width']-1}:0]                            cluster_base_addr_i,
   input  logic [${cfg['cluster']['addr_width']-1}:0]                            cluster_base_offset_i,
   input  logic                                   clk_d2_bypass_i,

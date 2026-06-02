@@ -7,7 +7,7 @@ packages:
     dependencies:
     - common_cells
   axi:
-    revision: ab775e705d95c7626000308906aeda950f680850
+    revision: 2a2d8c7e532a7e03b988dbb5b29ec0bd10d943f2
     version: null
     source:
       Git: https://github.com/colluca/axi.git
@@ -32,7 +32,7 @@ packages:
     dependencies:
     - common_cells
   cluster_icache:
-    revision: 60eeab8b518dee1257a9c90e979dbacf651f44f2
+    revision: b2961fa7e268c365e243df7f2e493f04d88339b5
     version: null
     source:
       Git: https://github.com/pulp-platform/cluster_icache.git
@@ -42,7 +42,7 @@ packages:
     - scm
     - tech_cells_generic
   common_cells:
-    revision: 0dddb5ae9e8c1297b40244745447c2ad2b88e28c
+    revision: cd44ad53120bfb5609fcb3890faca14d16cd2fd3
     version: null
     source:
       Git: https://github.com/pulp-platform/common_cells.git
@@ -56,7 +56,7 @@ packages:
       Git: https://github.com/pulp-platform/common_verification.git
     dependencies: []
   fpnew:
-    revision: 58871404fcb43f45de3679d085b93abe50ee29b2
+    revision: 4101e71b389f7873555ff4e0c2afb960021215b6
     version: null
     source:
       Git: https://github.com/pulp-platform/cvfpu.git

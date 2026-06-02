@@ -247,7 +247,7 @@ module snitch_cluster
   /// First hartid of the cluster. Cores of a cluster are monotonically
   /// increasing without a gap, i.e., a cluster with 8 cores and a
   /// `hart_base_id_i` of 5 get the hartids 5 - 12.
-  input  logic [9:0]                              hart_base_id_i,
+  input  logic [snitch_cluster_pkg::HartIdWidth-1:0] hart_base_id_i,
   /// Base address of cluster. TCDM and cluster peripheral location are derived from
   /// it. This signal is pseudo-static.
   input  logic [PhysicalAddrWidth-1:0]            cluster_base_addr_i,
@@ -433,7 +433,8 @@ module snitch_cluster
   // the Xpulp extension.
   function automatic bit supports_xpulp(int unsigned hive_id);
     for (int i = 0; i < NrCores; i++) begin
-      bit Xpulpv2 = snitch_pkg::calculate_xpulpv2(IsaCfg[i]);
+      bit Xpulpv2;
+      Xpulpv2 = snitch_pkg::calculate_xpulpv2(IsaCfg[i]);
       if ((Hive[i] == hive_id) && (Xpulpv2 != 0))
         return 1;
     end

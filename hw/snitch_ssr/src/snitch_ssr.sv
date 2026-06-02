@@ -48,7 +48,8 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
   data_t fifo_out, fifo_in;
   logic fifo_push, fifo_pop, fifo_full, fifo_empty;
   logic has_credit, credit_take, credit_give, credit_full;
-  logic [Cfg.RptWidth-1:0] rep_max, rep_q, rep_d, rep_done, rep_enable, rep_clear;
+  logic [Cfg.RptWidth-1:0] rep_max, rep_q, rep_d;
+  logic rep_done, rep_enable, rep_clear;
 
   cc_fifo #(
     .FallThrough ( 0           ),

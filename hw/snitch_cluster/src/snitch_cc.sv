@@ -124,7 +124,7 @@ module snitch_cc #(
   input  logic                              rst_ni,
   input  logic                              rst_int_ss_ni,
   input  logic                              rst_fp_ss_ni,
-  input  logic [31:0]                       hart_id_i,
+  input  logic [snitch_cluster_pkg::HartIdWidth-1:0] hart_id_i,
   input  snitch_pkg::interrupts_t           irq_i,
   output hive_req_t                         hive_req_o,
   input  hive_rsp_t                         hive_rsp_i,
