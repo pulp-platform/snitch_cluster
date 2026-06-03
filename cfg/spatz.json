@@ -24,6 +24,7 @@
         wide_trans: 32,
         // We don't need Snitch debugging in Occamy
         enable_debug: false,
+        enable_xif: true,
         // We don't need Snitch (core-internal) virtual memory support
         vm_support: false,
         // Memory configuration inputs
@@ -123,7 +124,7 @@
         rvv: false,
         xfrep: false,
         xcopift: false,
-        xf16: false,
+        xf16: true,
         xf16alt: false,
         xf8: false,
         xf8alt: false,
