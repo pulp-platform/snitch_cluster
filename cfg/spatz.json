@@ -57,6 +57,18 @@
             register_ext_narrow: false,
             register_ext_wide: false
         },
+        // Spatz VFU configuration (used by hw/Makefile in spatz_core to generate spatz_pkg.sv)
+        n_ipu: 1,
+        n_fpu: 8,
+        vlen: 512,
+        spatz_nports: 8,
+        double_bw: false,
+        spatz_fpu: true,
+        mempool: false,
+        buf_fpu: 1,
+        rvf: true,
+        rvd: true,
+
         hives: [
             // Hive 0
             {
