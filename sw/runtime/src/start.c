@@ -133,6 +133,12 @@ extern void snrt_exit(int exit_code);
 #endif
 #endif
 
+// Declared at file scope so it has C++ linkage (not C linkage) when compiled
+// as C++. Clang 22+ warns if this declaration appears inside extern "C" scope.
+#ifdef SNRT_INVOKE_MAIN
+extern int main();
+#endif
+
 // Referenced in an assembly file (start.S), must use C linkage
 EXTERN_C void snrt_main() {
     int exit_code = 0;
@@ -189,7 +195,6 @@ EXTERN_C void snrt_main() {
 #endif
 
 #ifdef SNRT_INVOKE_MAIN
-    extern int main();
     exit_code = main();
 #endif
 

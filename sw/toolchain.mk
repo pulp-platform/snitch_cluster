@@ -31,7 +31,8 @@ SN_RISCV_MC        ?= $(SN_LLVM_BINROOT)/llvm-mc
 SN_RISCV_ADDR2LINE ?= $(SN_LLVM_BINROOT)/llvm-addr2line
 
 # Compiler flags
-SN_RISCV_FEATURES = xfrep xssr xdma xcopift xsmallfloat
+# xsmallfloat was split into sub-extensions in LLVM 22+
+SN_RISCV_FEATURES = xfrep xssr xdma xcopift xsflth xsfltb xsfltvh xsfltvb xsfltvs
 SN_RISCV_CFLAGS := -march=rv32imafd_v_zfh_zifencei
 SN_RISCV_CFLAGS += $(foreach feat,$(SN_RISCV_FEATURES),-Xclang -target-feature -Xclang +$(feat))
 SN_RISCV_CFLAGS += -menable-experimental-extensions
