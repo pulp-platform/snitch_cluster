@@ -186,7 +186,7 @@ static inline uint32_t calculate_psum_baseline(PRNG_T *prngs,
 #endif
             : "ft0", "ft1", "ft2", "ft3",
               "fa0", "fa1", "fa2", "fa3",
-              "t0", "t1", "t2", "t3",
+              "t0", "t1", "t2", "t3", "t4",
               "a0", "a1", "a2", "a3",
               "memory"
 #if APPLICATION == APPLICATION_POLY
