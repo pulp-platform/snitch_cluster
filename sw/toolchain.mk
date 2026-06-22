@@ -35,7 +35,7 @@ SN_MCPU ?= snitch
 ifeq ($(SN_MCPU),snitch-mempool)
 SN_RISCV_FEATURES = xdma xcvmem xpulpabs xpulpbitop xpulpbr xpulpclip xpulpmacsi xpulpminmax xpulpslet xpulpvect xpulpvectshufflepack
 else
-SN_RISCV_FEATURES = xfrep xssr xdma xcopift xsmallfloat
+SN_RISCV_FEATURES = xfrep xssr xdma xcopift xsmallfloatb xsmallfloath xsmallfloatvb xsmallfloatvh xsmallfloatvs
 endif
 SN_RISCV_CFLAGS := -march=rv32imafd_zfh_zifencei
 SN_RISCV_CFLAGS += $(foreach feat,$(SN_RISCV_FEATURES),-Xclang -target-feature -Xclang +$(feat))

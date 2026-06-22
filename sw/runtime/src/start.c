@@ -12,6 +12,10 @@
 extern uint32_t snrt_cls_base_addr();
 #endif
 
+#ifdef SNRT_INVOKE_MAIN
+extern int main(void);
+#endif
+
 #ifdef SNRT_INIT_TLS
 static inline void snrt_init_tls() {
     extern volatile uint32_t __tdata_start, __tdata_end;
@@ -189,7 +193,6 @@ EXTERN_C void snrt_main() {
 #endif
 
 #ifdef SNRT_INVOKE_MAIN
-    extern int main();
     exit_code = main();
 #endif
 
