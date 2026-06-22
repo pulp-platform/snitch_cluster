@@ -1037,25 +1037,41 @@ def annotate_insn(
 ) -> (str, tuple, bool
       ):  # Return time info, whether trace line contains no info, and fseq_len
 
-    # Disassemble instruction
-    match = re.search(DASM_IN_REGEX, line)
-    if match is not None:
-        line = re.sub(
-            DASM_IN_REGEX,
-            disasm_inst(match.groups()[0], mc_exec, mc_flags),
-            line,
-        )
+    # Parse the raw line first to detect frontend stall before disassembly
     match = re.search(TRACE_IN_REGEX, line.strip('\n'))
     if match is None:
         raise ValueError('Not a valid trace line:\n{}'.format(line))
     time_str, cycle_str, priv_lvl, pc_str, insn, _, extras_str = match.groups()
+
+    # Pre-check stall: when the Snitch instruction frontend is stalled,
+    # inst_rsp_i.data (the DASM source) is not a valid instruction encoding.
+    frontend_stalled = False
+    extras = None
+    if extras_str:
+        extras = read_annotations(extras_str)
+        if extras.get('source') == 'SrcSnitch' and extras.get('stall'):
+            frontend_stalled = True
+
+    # Disassemble instruction only when the frontend holds a valid instruction
+    dasm_match = re.search(DASM_IN_REGEX, line)
+    if dasm_match is not None and not frontend_stalled:
+        line = re.sub(
+            DASM_IN_REGEX,
+            disasm_inst(dasm_match.groups()[0], mc_exec, mc_flags),
+            line,
+        )
+        # Re-parse after substitution to get the disassembled mnemonic
+        match = re.search(TRACE_IN_REGEX, line.strip('\n'))
+        time_str, cycle_str, priv_lvl, pc_str, insn, _, extras_str = match.groups()
+
     time_info = (int(time_str), int(cycle_str))
     show_time_info = (dupl_time_info or time_info != last_time_info)
     time_info_strs = tuple(
         (str(elem) if show_time_info else '') for elem in time_info)
     # Annotated trace
     if extras_str:
-        extras = read_annotations(extras_str)
+        if extras is None:
+            extras = read_annotations(extras_str)
         # Parse lines traced by Snitch
         if extras['source'] == 'SrcSnitch':
             annot = annotate_snitch(extras, time_info[0], time_info[1],
