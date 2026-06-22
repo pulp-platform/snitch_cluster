@@ -122,20 +122,20 @@ int main() {
         // alternative formates
         write_csr(2048, 3);
         asm volatile(
-            "fmv.ah.x ft2, %0\n"
-            "fmv.ah.x ft3, %1\n"
+            "fmv.h.x ft2, %0\n"
+            "fmv.h.x ft3, %1\n"
             : "+r"(ia16a), "+r"(ia16an));  // fp16alt values
         asm volatile(
-            "fmv.ab.x ft4, %0\n"
-            "fmv.ab.x ft5, %1\n"
+            "fmv.b.x ft4, %0\n"
+            "fmv.b.x ft5, %1\n"
             : "+r"(ia8a), "+r"(ia8an));  // fp8alt values
 
         // D -> AH
         asm volatile(
-            "fcvt.ah.d ft6, %2\n"
-            "fcvt.ah.d ft7, %3\n"
-            "feq.ah %0, ft6, ft2\n"
-            "feq.ah %1, ft7, ft3\n"
+            "fcvt.h.d ft6, %2\n"
+            "fcvt.h.d ft7, %3\n"
+            "feq.h %0, ft6, ft2\n"
+            "feq.h %1, ft7, ft3\n"
             : "+r"(res_cvt0), "+r"(res_cvt1), "+f"(fvalue),
               "+f"(fvalue_negative));
         errs -= (res_cvt0 == 0x1);
@@ -143,10 +143,10 @@ int main() {
 
         // D -> AB
         asm volatile(
-            "fcvt.ab.d ft6, %2\n"
-            "fcvt.ab.d ft7, %3\n"
-            "feq.ab %0, ft6, ft4\n"
-            "feq.ab %1, ft7, ft5\n"
+            "fcvt.b.d ft6, %2\n"
+            "fcvt.b.d ft7, %3\n"
+            "feq.b %0, ft6, ft4\n"
+            "feq.b %1, ft7, ft5\n"
             : "+r"(res_cvt0), "+r"(res_cvt1), "+f"(fvalue),
               "+f"(fvalue_negative));
         errs -= (res_cvt0 == 0x1);
@@ -191,20 +191,20 @@ int main() {
         // alternative formates
         write_csr(2048, 3);
         asm volatile(
-            "fmv.ah.x ft2, %0\n"
-            "fmv.ah.x ft3, %1\n"
+            "fmv.h.x ft2, %0\n"
+            "fmv.h.x ft3, %1\n"
             : "+r"(ia16b), "+r"(ia16bn));  // fp16alt values
         asm volatile(
-            "fmv.ab.x ft4, %0\n"
-            "fmv.ab.x ft5, %1\n"
+            "fmv.b.x ft4, %0\n"
+            "fmv.b.x ft5, %1\n"
             : "+r"(ia8b), "+r"(ia8bn));  // fp8alt values
 
         // D -> AH
         asm volatile(
-            "fcvt.ah.d ft6, %2\n"
-            "fcvt.ah.d ft7, %3\n"
-            "feq.ah %0, ft6, ft2\n"
-            "feq.ah %1, ft7, ft3\n"
+            "fcvt.h.d ft6, %2\n"
+            "fcvt.h.d ft7, %3\n"
+            "feq.h %0, ft6, ft2\n"
+            "feq.h %1, ft7, ft3\n"
             : "+r"(res_cvt0), "+r"(res_cvt1), "+f"(fvalue),
               "+f"(fvalue_negative));
         errs -= (res_cvt0 == 0x1);
@@ -212,10 +212,10 @@ int main() {
 
         // D -> AB
         asm volatile(
-            "fcvt.ab.d ft6, %2\n"
-            "fcvt.ab.d ft7, %3\n"
-            "feq.ab %0, ft6, ft4\n"
-            "feq.ab %1, ft7, ft5\n"
+            "fcvt.b.d ft6, %2\n"
+            "fcvt.b.d ft7, %3\n"
+            "feq.b %0, ft6, ft4\n"
+            "feq.b %1, ft7, ft5\n"
             : "+r"(res_cvt0), "+r"(res_cvt1), "+f"(fvalue),
               "+f"(fvalue_negative));
         errs -= (res_cvt0 == 0x1);
@@ -260,20 +260,20 @@ int main() {
         // alternative formates
         write_csr(2048, 3);
         asm volatile(
-            "fmv.ah.x ft2, %0\n"
-            "fmv.ah.x ft3, %1\n"
+            "fmv.h.x ft2, %0\n"
+            "fmv.h.x ft3, %1\n"
             : "+r"(ia16c), "+r"(ia16cn));  // fp16alt values
         asm volatile(
-            "fmv.ab.x ft4, %0\n"
-            "fmv.ab.x ft5, %1\n"
+            "fmv.b.x ft4, %0\n"
+            "fmv.b.x ft5, %1\n"
             : "+r"(ia8c), "+r"(ia8cn));  // fp8alt values
 
         // D -> AH
         asm volatile(
-            "fcvt.ah.d ft6, %2\n"
-            "fcvt.ah.d ft7, %3\n"
-            "feq.ah %0, ft6, ft2\n"
-            "feq.ah %1, ft7, ft3\n"
+            "fcvt.h.d ft6, %2\n"
+            "fcvt.h.d ft7, %3\n"
+            "feq.h %0, ft6, ft2\n"
+            "feq.h %1, ft7, ft3\n"
             : "+r"(res_cvt0), "+r"(res_cvt1), "+f"(fvalue),
               "+f"(fvalue_negative));
         errs -= (res_cvt0 == 0x1);
@@ -281,10 +281,10 @@ int main() {
 
         // D -> AB
         asm volatile(
-            "fcvt.ab.d ft6, %2\n"
-            "fcvt.ab.d ft7, %3\n"
-            "feq.ab %0, ft6, ft4\n"
-            "feq.ab %1, ft7, ft5\n"
+            "fcvt.b.d ft6, %2\n"
+            "fcvt.b.d ft7, %3\n"
+            "feq.b %0, ft6, ft4\n"
+            "feq.b %1, ft7, ft5\n"
             : "+r"(res_cvt0), "+r"(res_cvt1), "+f"(fvalue),
               "+f"(fvalue_negative));
         errs -= (res_cvt0 == 0x1);
@@ -329,20 +329,20 @@ int main() {
         // alternative formates
         write_csr(2048, 3);
         asm volatile(
-            "fmv.ah.x ft2, %0\n"
-            "fmv.ah.x ft3, %1\n"
+            "fmv.h.x ft2, %0\n"
+            "fmv.h.x ft3, %1\n"
             : "+r"(ia16d), "+r"(ia16dn));  // fp16alt values
         asm volatile(
-            "fmv.ab.x ft4, %0\n"
-            "fmv.ab.x ft5, %1\n"
+            "fmv.b.x ft4, %0\n"
+            "fmv.b.x ft5, %1\n"
             : "+r"(ia8d), "+r"(ia8dn));  // fp8alt values
 
         // D -> AH
         asm volatile(
-            "fcvt.ah.d ft6, %2\n"
-            "fcvt.ah.d ft7, %3\n"
-            "feq.ah %0, ft6, ft2\n"
-            "feq.ah %1, ft7, ft3\n"
+            "fcvt.h.d ft6, %2\n"
+            "fcvt.h.d ft7, %3\n"
+            "feq.h %0, ft6, ft2\n"
+            "feq.h %1, ft7, ft3\n"
             : "+r"(res_cvt0), "+r"(res_cvt1), "+f"(fvalue),
               "+f"(fvalue_negative));
         errs -= (res_cvt0 == 0x1);
@@ -350,10 +350,10 @@ int main() {
 
         // D -> AB
         asm volatile(
-            "fcvt.ab.d ft6, %2\n"
-            "fcvt.ab.d ft7, %3\n"
-            "feq.ab %0, ft6, ft4\n"
-            "feq.ab %1, ft7, ft5\n"
+            "fcvt.b.d ft6, %2\n"
+            "fcvt.b.d ft7, %3\n"
+            "feq.b %0, ft6, ft4\n"
+            "feq.b %1, ft7, ft5\n"
             : "+r"(res_cvt0), "+r"(res_cvt1), "+f"(fvalue),
               "+f"(fvalue_negative));
         errs -= (res_cvt0 == 0x1);
@@ -398,20 +398,20 @@ int main() {
         // alternative formates
         write_csr(2048, 3);
         asm volatile(
-            "fmv.ah.x ft2, %0\n"
-            "fmv.ah.x ft3, %1\n"
+            "fmv.h.x ft2, %0\n"
+            "fmv.h.x ft3, %1\n"
             : "+r"(ia16e), "+r"(ia16en));  // fp16alt values
         asm volatile(
-            "fmv.ab.x ft4, %0\n"
-            "fmv.ab.x ft5, %1\n"
+            "fmv.b.x ft4, %0\n"
+            "fmv.b.x ft5, %1\n"
             : "+r"(ia8e), "+r"(ia8en));  // fp8alt values
 
         // D -> AH
         asm volatile(
-            "fcvt.ah.d ft6, %2\n"
-            "fcvt.ah.d ft7, %3\n"
-            "feq.ah %0, ft6, ft2\n"
-            "feq.ah %1, ft7, ft3\n"
+            "fcvt.h.d ft6, %2\n"
+            "fcvt.h.d ft7, %3\n"
+            "feq.h %0, ft6, ft2\n"
+            "feq.h %1, ft7, ft3\n"
             : "+r"(res_cvt0), "+r"(res_cvt1), "+f"(fvalue),
               "+f"(fvalue_negative));
         errs -= (res_cvt0 == 0x1);
@@ -419,10 +419,10 @@ int main() {
 
         // D -> AB
         asm volatile(
-            "fcvt.ab.d ft6, %2\n"
-            "fcvt.ab.d ft7, %3\n"
-            "feq.ab %0, ft6, ft4\n"
-            "feq.ab %1, ft7, ft5\n"
+            "fcvt.b.d ft6, %2\n"
+            "fcvt.b.d ft7, %3\n"
+            "feq.b %0, ft6, ft4\n"
+            "feq.b %1, ft7, ft5\n"
             : "+r"(res_cvt0), "+r"(res_cvt1), "+f"(fvalue),
               "+f"(fvalue_negative));
         errs -= (res_cvt0 == 0x1);
@@ -467,20 +467,20 @@ int main() {
         // alternative formates
         write_csr(2048, 3);
         asm volatile(
-            "fmv.ah.x ft2, %0\n"
-            "fmv.ah.x ft3, %1\n"
+            "fmv.h.x ft2, %0\n"
+            "fmv.h.x ft3, %1\n"
             : "+r"(ia16f), "+r"(ia16fn));  // fp16alt values
         asm volatile(
-            "fmv.ab.x ft4, %0\n"
-            "fmv.ab.x ft5, %1\n"
+            "fmv.b.x ft4, %0\n"
+            "fmv.b.x ft5, %1\n"
             : "+r"(ia8f), "+r"(ia8fn));  // fp8alt values
 
         // D -> AH
         asm volatile(
-            "fcvt.ah.d ft6, %2\n"
-            "fcvt.ah.d ft7, %3\n"
-            "feq.ah %0, ft6, ft2\n"
-            "feq.ah %1, ft7, ft3\n"
+            "fcvt.h.d ft6, %2\n"
+            "fcvt.h.d ft7, %3\n"
+            "feq.h %0, ft6, ft2\n"
+            "feq.h %1, ft7, ft3\n"
             : "+r"(res_cvt0), "+r"(res_cvt1), "+f"(fvalue),
               "+f"(fvalue_negative));
         errs -= (res_cvt0 == 0x1);
@@ -488,10 +488,10 @@ int main() {
 
         // D -> AB
         asm volatile(
-            "fcvt.ab.d ft6, %2\n"
-            "fcvt.ab.d ft7, %3\n"
-            "feq.ab %0, ft6, ft4\n"
-            "feq.ab %1, ft7, ft5\n"
+            "fcvt.b.d ft6, %2\n"
+            "fcvt.b.d ft7, %3\n"
+            "feq.b %0, ft6, ft4\n"
+            "feq.b %1, ft7, ft5\n"
             : "+r"(res_cvt0), "+r"(res_cvt1), "+f"(fvalue),
               "+f"(fvalue_negative));
         errs -= (res_cvt0 == 0x1);

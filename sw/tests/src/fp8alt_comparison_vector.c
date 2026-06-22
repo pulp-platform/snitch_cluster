@@ -25,30 +25,30 @@ int main() {
         asm volatile(
             "fmv.s.x ft3, %0\n"
             "fmv.s.x ft4, %1\n"
-            "vfcpka.ab.s ft5, ft4, ft3\n"
-            "vfcpkb.ab.s ft5, ft4, ft3\n"
-            "vfcpkc.ab.s ft5, ft4, ft3\n"
-            "vfcpkd.ab.s ft5, ft4, ft3\n"
-            "vfcpka.ab.s ft6, ft3, ft4\n"
-            "vfcpkb.ab.s ft6, ft3, ft4\n"
-            "vfcpkc.ab.s ft6, ft3, ft4\n"
-            "vfcpkd.ab.s ft6, ft3, ft4\n"
-            "vfcpka.ab.s ft7, ft3, ft3\n"
-            "vfcpkb.ab.s ft7, ft3, ft3\n"
-            "vfcpkc.ab.s ft7, ft3, ft3\n"
-            "vfcpkd.ab.s ft7, ft3, ft3\n"
-            "vfcpka.ab.s ft8, ft4, ft4\n"
-            "vfcpkb.ab.s ft8, ft4, ft4\n"
-            "vfcpkc.ab.s ft8, ft4, ft4\n"
-            "vfcpkd.ab.s ft8, ft4, ft4\n"
+            "vfcpka.b.s ft5, ft4, ft3\n"
+            "vfcpkb.b.s ft5, ft4, ft3\n"
+            "vfcpkc.b.s ft5, ft4, ft3\n"
+            "vfcpkd.b.s ft5, ft4, ft3\n"
+            "vfcpka.b.s ft6, ft3, ft4\n"
+            "vfcpkb.b.s ft6, ft3, ft4\n"
+            "vfcpkc.b.s ft6, ft3, ft4\n"
+            "vfcpkd.b.s ft6, ft3, ft4\n"
+            "vfcpka.b.s ft7, ft3, ft3\n"
+            "vfcpkb.b.s ft7, ft3, ft3\n"
+            "vfcpkc.b.s ft7, ft3, ft3\n"
+            "vfcpkd.b.s ft7, ft3, ft3\n"
+            "vfcpka.b.s ft8, ft4, ft4\n"
+            "vfcpkb.b.s ft8, ft4, ft4\n"
+            "vfcpkc.b.s ft8, ft4, ft4\n"
+            "vfcpkd.b.s ft8, ft4, ft4\n"
             : "+r"(fa8), "+r"(fb8));
 
         // vfeq
         asm volatile(
-            "vfeq.ab %0, ft5, ft5\n"
-            "vfeq.ab %1, ft6, ft6\n"
-            "vfeq.ab %2, ft5, ft6\n"
-            "vfeq.ab %3, ft6, ft5\n"
+            "vfeq.b %0, ft5, ft5\n"
+            "vfeq.b %1, ft6, ft6\n"
+            "vfeq.b %2, ft5, ft6\n"
+            "vfeq.b %3, ft6, ft5\n"
             : "+r"(cmp0), "+r"(cmp1), "+r"(cmp2), "+r"(cmp3));
 
         errs -= (cmp0 == 0xff);  // 1111
@@ -58,10 +58,10 @@ int main() {
 
         // vfeq.R
         asm volatile(
-            "vfeq.r.ab %0, ft5, ft5\n"
-            "vfeq.r.ab %1, ft6, ft6\n"
-            "vfeq.r.ab %2, ft5, ft6\n"
-            "vfeq.r.ab %3, ft6, ft5\n"
+            "vfeq.r.b %0, ft5, ft5\n"
+            "vfeq.r.b %1, ft6, ft6\n"
+            "vfeq.r.b %2, ft5, ft6\n"
+            "vfeq.r.b %3, ft6, ft5\n"
             : "+r"(cmp0), "+r"(cmp1), "+r"(cmp2), "+r"(cmp3));
 
         errs -= (cmp0 == 0x55);
@@ -71,10 +71,10 @@ int main() {
 
         // vfne
         asm volatile(
-            "vfne.ab %0, ft5, ft5\n"
-            "vfne.ab %1, ft6, ft6\n"
-            "vfne.ab %2, ft5, ft6\n"
-            "vfne.ab %3, ft6, ft5\n"
+            "vfne.b %0, ft5, ft5\n"
+            "vfne.b %1, ft6, ft6\n"
+            "vfne.b %2, ft5, ft6\n"
+            "vfne.b %3, ft6, ft5\n"
             : "+r"(cmp0), "+r"(cmp1), "+r"(cmp2), "+r"(cmp3));
 
         errs -= (cmp0 == 0);
@@ -84,10 +84,10 @@ int main() {
 
         // vfne.R
         asm volatile(
-            "vfne.r.ab %0, ft5, ft5\n"
-            "vfne.r.ab %1, ft6, ft6\n"
-            "vfne.r.ab %2, ft5, ft6\n"
-            "vfne.r.ab %3, ft6, ft5\n"
+            "vfne.r.b %0, ft5, ft5\n"
+            "vfne.r.b %1, ft6, ft6\n"
+            "vfne.r.b %2, ft5, ft6\n"
+            "vfne.r.b %3, ft6, ft5\n"
             : "+r"(cmp0), "+r"(cmp1), "+r"(cmp2), "+r"(cmp3));
 
         errs -= (cmp0 == 0xaa);
@@ -97,10 +97,10 @@ int main() {
 
         // vflt
         asm volatile(
-            "vflt.ab %0, ft5, ft5\n"
-            "vflt.ab %1, ft6, ft6\n"
-            "vflt.ab %2, ft5, ft6\n"
-            "vflt.ab %3, ft6, ft5\n"
+            "vflt.b %0, ft5, ft5\n"
+            "vflt.b %1, ft6, ft6\n"
+            "vflt.b %2, ft5, ft6\n"
+            "vflt.b %3, ft6, ft5\n"
             : "+r"(cmp0), "+r"(cmp1), "+r"(cmp2), "+r"(cmp3));
 
         errs -= (cmp0 == 0);
@@ -110,10 +110,10 @@ int main() {
 
         // vflt.R
         asm volatile(
-            "vflt.r.ab %0, ft5, ft5\n"
-            "vflt.r.ab %1, ft6, ft6\n"
-            "vflt.r.ab %2, ft5, ft6\n"
-            "vflt.r.ab %3, ft6, ft5\n"
+            "vflt.r.b %0, ft5, ft5\n"
+            "vflt.r.b %1, ft6, ft6\n"
+            "vflt.r.b %2, ft5, ft6\n"
+            "vflt.r.b %3, ft6, ft5\n"
             : "+r"(cmp0), "+r"(cmp1), "+r"(cmp2), "+r"(cmp3));
 
         errs -= (cmp0 == 0);
@@ -123,10 +123,10 @@ int main() {
 
         // vfle
         asm volatile(
-            "vfle.ab %0, ft5, ft5\n"
-            "vfle.ab %1, ft6, ft6\n"
-            "vfle.ab %2, ft5, ft6\n"
-            "vfle.ab %3, ft6, ft5\n"
+            "vfle.b %0, ft5, ft5\n"
+            "vfle.b %1, ft6, ft6\n"
+            "vfle.b %2, ft5, ft6\n"
+            "vfle.b %3, ft6, ft5\n"
             : "+r"(cmp0), "+r"(cmp1), "+r"(cmp2), "+r"(cmp3));
 
         errs -= (cmp0 == 0xff);
@@ -136,10 +136,10 @@ int main() {
 
         // vfle.R
         asm volatile(
-            "vfle.r.ab %0, ft5, ft5\n"
-            "vfle.r.ab %1, ft6, ft6\n"
-            "vfle.r.ab %2, ft5, ft6\n"
-            "vfle.r.ab %3, ft6, ft5\n"
+            "vfle.r.b %0, ft5, ft5\n"
+            "vfle.r.b %1, ft6, ft6\n"
+            "vfle.r.b %2, ft5, ft6\n"
+            "vfle.r.b %3, ft6, ft5\n"
             : "+r"(cmp0), "+r"(cmp1), "+r"(cmp2), "+r"(cmp3));
 
         errs -= (cmp0 == 0x55);
@@ -149,10 +149,10 @@ int main() {
 
         // vfgt
         asm volatile(
-            "vfgt.ab %0, ft5, ft5\n"
-            "vfgt.ab %1, ft6, ft6\n"
-            "vfgt.ab %2, ft5, ft6\n"
-            "vfgt.ab %3, ft6, ft5\n"
+            "vfgt.b %0, ft5, ft5\n"
+            "vfgt.b %1, ft6, ft6\n"
+            "vfgt.b %2, ft5, ft6\n"
+            "vfgt.b %3, ft6, ft5\n"
             : "+r"(cmp0), "+r"(cmp1), "+r"(cmp2), "+r"(cmp3));
 
         errs -= (cmp0 == 0);
@@ -162,10 +162,10 @@ int main() {
 
         // vfgt.R
         asm volatile(
-            "vfgt.r.ab %0, ft5, ft5\n"
-            "vfgt.r.ab %1, ft6, ft6\n"
-            "vfgt.r.ab %2, ft5, ft6\n"
-            "vfgt.r.ab %3, ft6, ft5\n"
+            "vfgt.r.b %0, ft5, ft5\n"
+            "vfgt.r.b %1, ft6, ft6\n"
+            "vfgt.r.b %2, ft5, ft6\n"
+            "vfgt.r.b %3, ft6, ft5\n"
             : "+r"(cmp0), "+r"(cmp1), "+r"(cmp2), "+r"(cmp3));
 
         errs -= (cmp0 == 0xaa);
@@ -175,10 +175,10 @@ int main() {
 
         // vfge
         asm volatile(
-            "vfge.ab %0, ft5, ft5\n"
-            "vfge.ab %1, ft6, ft6\n"
-            "vfge.ab %2, ft5, ft6\n"
-            "vfge.ab %3, ft6, ft5\n"
+            "vfge.b %0, ft5, ft5\n"
+            "vfge.b %1, ft6, ft6\n"
+            "vfge.b %2, ft5, ft6\n"
+            "vfge.b %3, ft6, ft5\n"
             : "+r"(cmp0), "+r"(cmp1), "+r"(cmp2), "+r"(cmp3));
 
         errs -= (cmp0 == 0xff);
@@ -188,10 +188,10 @@ int main() {
 
         // vfge.R
         asm volatile(
-            "vfge.r.ab %0, ft5, ft5\n"
-            "vfge.r.ab %1, ft6, ft6\n"
-            "vfge.r.ab %2, ft5, ft6\n"
-            "vfge.r.ab %3, ft6, ft5\n"
+            "vfge.r.b %0, ft5, ft5\n"
+            "vfge.r.b %1, ft6, ft6\n"
+            "vfge.r.b %2, ft5, ft6\n"
+            "vfge.r.b %3, ft6, ft5\n"
             : "+r"(cmp0), "+r"(cmp1), "+r"(cmp2), "+r"(cmp3));
 
         errs -= (cmp0 == 0xff);
@@ -201,101 +201,101 @@ int main() {
 
         // vfmax
         asm volatile(
-            "vfmax.ab ft0, ft5, ft5\n"
-            "vfeq.ab %1, ft5, ft0\n"
+            "vfmax.b ft0, ft5, ft5\n"
+            "vfeq.b %1, ft5, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
 
         asm volatile(
-            "vfmax.ab ft0, ft6, ft6\n"
-            "vfeq.ab %1, ft6, ft0\n"
+            "vfmax.b ft0, ft6, ft6\n"
+            "vfeq.b %1, ft6, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
 
         asm volatile(
-            "vfmax.ab ft0, ft5, ft6\n"
-            "vfeq.ab %1, ft7, ft0\n"
+            "vfmax.b ft0, ft5, ft6\n"
+            "vfeq.b %1, ft7, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
 
         asm volatile(
-            "vfmax.ab ft0, ft6, ft5\n"
-            "vfeq.ab %1, ft7, ft0\n"
+            "vfmax.b ft0, ft6, ft5\n"
+            "vfeq.b %1, ft7, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
 
         // vfmax.R
         asm volatile(
-            "vfmax.r.ab ft0, ft5, ft5\n"
-            "vfeq.ab %1, ft5, ft0\n"
+            "vfmax.r.b ft0, ft5, ft5\n"
+            "vfeq.b %1, ft5, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
 
         asm volatile(
-            "vfmax.r.ab ft0, ft6, ft6\n"
-            "vfeq.ab %1, ft7, ft0\n"
+            "vfmax.r.b ft0, ft6, ft6\n"
+            "vfeq.b %1, ft7, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
 
         asm volatile(
-            "vfmax.r.ab ft0, ft5, ft6\n"
-            "vfeq.ab %1, ft7, ft0\n"
+            "vfmax.r.b ft0, ft5, ft6\n"
+            "vfeq.b %1, ft7, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
 
         asm volatile(
-            "vfmax.r.ab ft0, ft6, ft5\n"
-            "vfeq.ab %1, ft6, ft0\n"
+            "vfmax.r.b ft0, ft6, ft5\n"
+            "vfeq.b %1, ft6, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
 
         // vfmin
         asm volatile(
-            "vfmin.ab ft0, ft5, ft5\n"
-            "vfeq.ab %1, ft5, ft0\n"
+            "vfmin.b ft0, ft5, ft5\n"
+            "vfeq.b %1, ft5, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
 
         asm volatile(
-            "vfmin.ab ft0, ft6, ft6\n"
-            "vfeq.ab %1, ft6, ft0\n"
+            "vfmin.b ft0, ft6, ft6\n"
+            "vfeq.b %1, ft6, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
 
         asm volatile(
-            "vfmin.ab ft0, ft5, ft6\n"
-            "vfeq.ab %1, ft8, ft0\n"
+            "vfmin.b ft0, ft5, ft6\n"
+            "vfeq.b %1, ft8, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
 
         asm volatile(
-            "vfmin.ab ft0, ft6, ft5\n"
-            "vfeq.ab %1, ft8, ft0\n"
+            "vfmin.b ft0, ft6, ft5\n"
+            "vfeq.b %1, ft8, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
 
         // vfmin.R
         asm volatile(
-            "vfmin.r.ab ft0, ft5, ft5\n"
-            "vfeq.ab %1, ft8, ft0\n"
+            "vfmin.r.b ft0, ft5, ft5\n"
+            "vfeq.b %1, ft8, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
 
         asm volatile(
-            "vfmin.r.ab ft0, ft6, ft6\n"
-            "vfeq.ab %1, ft6, ft0\n"
+            "vfmin.r.b ft0, ft6, ft6\n"
+            "vfeq.b %1, ft6, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
 
         asm volatile(
-            "vfmin.r.ab ft0, ft5, ft6\n"
-            "vfeq.ab %1, ft5, ft0\n"
+            "vfmin.r.b ft0, ft5, ft6\n"
+            "vfeq.b %1, ft5, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
 
         asm volatile(
-            "vfmin.r.ab ft0, ft6, ft5\n"
-            "vfeq.ab %1, ft8, ft0\n"
+            "vfmin.r.b ft0, ft6, ft5\n"
+            "vfeq.b %1, ft8, ft0\n"
             : "+r"(cmp0));
         errs -= (cmp0 == 0xff);
 

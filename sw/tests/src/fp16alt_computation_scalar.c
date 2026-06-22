@@ -37,76 +37,76 @@ int main() {
 
         // FSGNJ
         asm volatile(
-            "fsgnj.ah ft0, ft4, ft4\n"
-            "feq.ah %0, ft4, ft0\n"
+            "fsgnj.h ft0, ft4, ft4\n"
+            "feq.h %0, ft4, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fsgnj.ah ft0, ft4, ft5\n"
-            "feq.ah %0, ft5, ft0\n"
+            "fsgnj.h ft0, ft4, ft5\n"
+            "feq.h %0, ft5, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fsgnj.ah ft0, ft5, ft6\n"
-            "feq.ah %0, ft4, ft0\n"
+            "fsgnj.h ft0, ft5, ft6\n"
+            "feq.h %0, ft4, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fsgnj.ah ft0, ft5, ft7\n"
-            "feq.ah %0, ft5, ft0\n"
+            "fsgnj.h ft0, ft5, ft7\n"
+            "feq.h %0, ft5, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         // FSGNJN
         asm volatile(
-            "fsgnjn.ah ft0, ft4, ft4\n"
-            "feq.ah %0, ft5, ft0\n"
+            "fsgnjn.h ft0, ft4, ft4\n"
+            "feq.h %0, ft5, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fsgnjn.ah ft0, ft4, ft5\n"
-            "feq.ah %0, ft4, ft0\n"
+            "fsgnjn.h ft0, ft4, ft5\n"
+            "feq.h %0, ft4, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fsgnjn.ah ft0, ft5, ft6\n"
-            "feq.ah %0, ft5, ft0\n"
+            "fsgnjn.h ft0, ft5, ft6\n"
+            "feq.h %0, ft5, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fsgnjn.ah ft0, ft5, ft7\n"
-            "feq.ah %0, ft4, ft0\n"
+            "fsgnjn.h ft0, ft5, ft7\n"
+            "feq.h %0, ft4, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         // FSGNJX
         asm volatile(
-            "fsgnjx.ah ft0, ft4, ft4\n"
-            "feq.ah %0, ft4, ft0\n"
+            "fsgnjx.h ft0, ft4, ft4\n"
+            "feq.h %0, ft4, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fsgnjx.ah ft0, ft4, ft5\n"
-            "feq.ah %0, ft5, ft0\n"
+            "fsgnjx.h ft0, ft4, ft5\n"
+            "feq.h %0, ft5, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fsgnjx.ah ft0, ft5, ft6\n"
-            "feq.ah %0, ft5, ft0\n"
+            "fsgnjx.h ft0, ft5, ft6\n"
+            "feq.h %0, ft5, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fsgnjx.ah ft0, ft5, ft7\n"
-            "feq.ah %0, ft4, ft0\n"
+            "fsgnjx.h ft0, ft5, ft7\n"
+            "feq.h %0, ft4, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
@@ -130,20 +130,20 @@ int main() {
             : "+r"(res1), "+r"(res2), "+r"(res3));
 
         asm volatile(
-            "fadd.ah ft0, ft4, ft5\n"
-            "feq.ah %0, ft1, ft0\n"
+            "fadd.h ft0, ft4, ft5\n"
+            "feq.h %0, ft1, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fadd.ah ft0, ft5, ft6\n"
-            "feq.ah %0, ft2, ft0\n"
+            "fadd.h ft0, ft5, ft6\n"
+            "feq.h %0, ft2, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fadd.ah ft0, ft6, ft7\n"
-            "feq.ah %0, ft3, ft0\n"
+            "fadd.h ft0, ft6, ft7\n"
+            "feq.h %0, ft3, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
@@ -159,20 +159,20 @@ int main() {
             : "+r"(res1), "+r"(res2), "+r"(res3));
 
         asm volatile(
-            "fsub.ah ft0, ft4, ft5\n"
-            "feq.ah %0, ft1, ft0\n"
+            "fsub.h ft0, ft4, ft5\n"
+            "feq.h %0, ft1, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fsub.ah ft0, ft5, ft6\n"
-            "feq.ah %0, ft2, ft0\n"
+            "fsub.h ft0, ft5, ft6\n"
+            "feq.h %0, ft2, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fsub.ah ft0, ft6, ft7\n"
-            "feq.ah %0, ft3, ft0\n"
+            "fsub.h ft0, ft6, ft7\n"
+            "feq.h %0, ft3, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
@@ -188,20 +188,20 @@ int main() {
             : "+r"(res1), "+r"(res2), "+r"(res3));
 
         asm volatile(
-            "fmul.ah ft0, ft4, ft5\n"
-            "feq.ah %0, ft1, ft0\n"
+            "fmul.h ft0, ft4, ft5\n"
+            "feq.h %0, ft1, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fmul.ah ft0, ft5, ft6\n"
-            "feq.ah %0, ft2, ft0\n"
+            "fmul.h ft0, ft5, ft6\n"
+            "feq.h %0, ft2, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fmul.ah ft0, ft6, ft7\n"
-            "feq.ah %0, ft3, ft0\n"
+            "fmul.h ft0, ft6, ft7\n"
+            "feq.h %0, ft3, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
@@ -217,20 +217,20 @@ int main() {
             : "+r"(res1), "+r"(res2), "+r"(res3));
 
         asm volatile(
-            "fmadd.ah ft0, ft4, ft5, ft6\n"
-            "feq.ah %0, ft1, ft0\n"
+            "fmadd.h ft0, ft4, ft5, ft6\n"
+            "feq.h %0, ft1, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fmadd.ah ft0, ft5, ft6, ft7, dyn\n"
-            "feq.ah %0, ft2, ft0\n"
+            "fmadd.h ft0, ft5, ft6, ft7, dyn\n"
+            "feq.h %0, ft2, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fmadd.ah ft0, ft6, ft7, ft4, dyn\n"
-            "feq.ah %0, ft3, ft0\n"
+            "fmadd.h ft0, ft6, ft7, ft4, dyn\n"
+            "feq.h %0, ft3, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
@@ -246,20 +246,20 @@ int main() {
             : "+r"(res1), "+r"(res2), "+r"(res3));
 
         asm volatile(
-            "fnmadd.ah ft0, ft4, ft5, ft6\n"
-            "feq.ah %0, ft1, ft0\n"
+            "fnmadd.h ft0, ft4, ft5, ft6\n"
+            "feq.h %0, ft1, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fnmadd.ah ft0, ft5, ft6, ft7\n"
-            "feq.ah %0, ft2, ft0\n"
+            "fnmadd.h ft0, ft5, ft6, ft7\n"
+            "feq.h %0, ft2, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fnmadd.ah ft0, ft6, ft7, ft4\n"
-            "feq.ah %0, ft3, ft0\n"
+            "fnmadd.h ft0, ft6, ft7, ft4\n"
+            "feq.h %0, ft3, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
@@ -275,20 +275,20 @@ int main() {
             : "+r"(res1), "+r"(res2), "+r"(res3));
 
         asm volatile(
-            "fmsub.ah ft0, ft4, ft5, ft6\n"
-            "feq.ah %0, ft1, ft0\n"
+            "fmsub.h ft0, ft4, ft5, ft6\n"
+            "feq.h %0, ft1, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fmsub.ah ft0, ft5, ft6, ft7\n"
-            "feq.ah %0, ft2, ft0\n"
+            "fmsub.h ft0, ft5, ft6, ft7\n"
+            "feq.h %0, ft2, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fmsub.ah ft0, ft6, ft7, ft4\n"
-            "feq.ah %0, ft3, ft0\n"
+            "fmsub.h ft0, ft6, ft7, ft4\n"
+            "feq.h %0, ft3, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
@@ -304,20 +304,20 @@ int main() {
             : "+r"(res1), "+r"(res2), "+r"(res3));
 
         asm volatile(
-            "fnmsub.ah ft0, ft4, ft5, ft6\n"
-            "feq.ah %0, ft1, ft0\n"
+            "fnmsub.h ft0, ft4, ft5, ft6\n"
+            "feq.h %0, ft1, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fnmsub.ah ft0, ft5, ft6, ft7\n"
-            "feq.ah %0, ft2, ft0\n"
+            "fnmsub.h ft0, ft5, ft6, ft7\n"
+            "feq.h %0, ft2, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
         asm volatile(
-            "fnmsub.ah ft0, ft6, ft7, ft4\n"
-            "feq.ah %0, ft3, ft0\n"
+            "fnmsub.h ft0, ft6, ft7, ft4\n"
+            "feq.h %0, ft3, ft0\n"
             : "+r"(res0));
         errs -= (res0 == 0x1);
 
