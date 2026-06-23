@@ -97,7 +97,7 @@ static inline void softmax_layer(softmax_layer_t const l) {
         snrt_dma_txid_t txid_ifmap = snrt_dma_start_2d(
             ifmap, l.ifmap, l.batch_size * sizeof(float),
             l.batch_size * sizeof(float), l.batch_size * sizeof(float),
-            l.seq_len * l.input_samples * sizeof(float));
+            l.seq_len * l.input_samples);
 
         snrt_dma_wait_all();
     }
@@ -127,7 +127,7 @@ static inline void softmax_layer(softmax_layer_t const l) {
         snrt_dma_txid_t txid_ofmap = snrt_dma_start_2d(
             l.ofmap, ofmap, l.batch_size * sizeof(float),
             l.batch_size * sizeof(float), l.batch_size * sizeof(float),
-            l.seq_len * l.input_samples * sizeof(float));
+            l.seq_len * l.input_samples);
 
         snrt_dma_wait_all();
     }
