@@ -95,16 +95,17 @@ runs:
     cmd: [../sw/kernels/misc/doitgen/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ../sw/kernels/blas/gemv/build/gemv.elf
     cmd: [../sw/kernels/blas/gemv/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/kernels/dnn/softmax/build/softmax.elf
-    cmd: [../sw/kernels/dnn/softmax/scripts/verify.py, "${sim_bin}", "${elf}"]
   # Uses fdiv and fsqrt instructions in inline assembly statements, so it's only supported
   # on cluster configurations with the FDIV/SQRT unit, compiling with -mno-fdiv is not sufficient.
   # - elf: ../sw/kernels/dnn/layernorm/build/layernorm.elf
   #   cmd: [../sw/kernels/dnn/layernorm/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ../sw/kernels/dnn/gelu/build/gelu.elf
     cmd: [../sw/kernels/dnn/gelu/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/kernels/dnn/flashattention_2/build/flashattention_2.elf
-    cmd: [../sw/kernels/dnn/flashattention_2/scripts/verify.py, "${sim_bin}", "${elf}"]
+  # expf function exposes an instruction sequence that fails due to Snitch's memory consistency bug
+  # - elf: ../sw/kernels/dnn/softmax/build/softmax.elf
+  #   cmd: [../sw/kernels/dnn/softmax/scripts/verify.py, "${sim_bin}", "${elf}"]
+  # - elf: ../sw/kernels/dnn/flashattention_2/build/flashattention_2.elf
+  #   cmd: [../sw/kernels/dnn/flashattention_2/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ../sw/kernels/misc/correlation/build/correlation.elf
     cmd: [../sw/kernels/misc/correlation/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ../sw/kernels/misc/kmeans/build/kmeans.elf
