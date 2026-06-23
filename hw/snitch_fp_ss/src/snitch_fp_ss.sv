@@ -884,12 +884,6 @@ module snitch_fp_ss import snitch_pkg::*; #(
         src_fmt      = fpnew_pkg::FP64;
         dst_fmt      = fpnew_pkg::FP16;
       end
-      riscv_instr::FCVT_H_H: begin
-        fpu_op = fpnew_pkg::F2F;
-        op_select[0] = RegA;
-        src_fmt      = fpnew_pkg::FP16;
-        dst_fmt      = fpnew_pkg::FP16;
-      end
       // Vectorial [alternate] Half Precision
       riscv_instr::VFADD_H,
       riscv_instr::VFADD_R_H: begin

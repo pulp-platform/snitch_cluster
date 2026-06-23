@@ -24,7 +24,11 @@ unratified/rv_xfrep
 unratified/rv_xssr
 unratified/rv_xipu
 unratified/rv_xcopift
-unratified/rv_xsmallfloat
+unratified/rv_xsmallfloat_b
+unratified/rv_xsmallfloat_h
+unratified/rv_xsmallfloat_vb
+unratified/rv_xsmallfloat_vh
+unratified/rv_xsmallfloat_vs
 unratified/rv32_xb
 unratified/rv32_xcvmem
 unratified/rv32_xpulpabs
