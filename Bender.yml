@@ -171,7 +171,7 @@ sources:
   # snitch_cluster
   - files:
       # Level 0
-      - hw/generated/snitch_cluster_pkg.sv
+      - hw/snitch_cluster/src/snitch_cluster_pkg.sv
       - hw/snitch_cluster/src/snitch_amo_shim.sv
       - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv
       - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg.sv
@@ -201,9 +201,12 @@ sources:
       - target/sim/tb/tb_bin.sv
 
   # target/snitch_cluster
+  - target: all(snitch_cluster_wrapper)
+    files:
+      - hw/generated/snitch_cluster_wrapper_pkg.sv
   - target: all(snitch_cluster_wrapper, not(netlist))
     files:
-      - hw/generated/snitch_cluster_wrapper.sv
+      - hw/snitch_cluster/src/snitch_cluster_wrapper.sv
   - target: all(snitch_cluster_wrapper, gf12, netlist)
     files:
       - nonfree/gf12/fusion/runs/0/out/15/snitch_cluster_wrapper.v

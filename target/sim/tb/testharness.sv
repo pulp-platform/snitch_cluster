@@ -9,7 +9,7 @@ module testharness #(
   parameter realtime ClkPeriod = 1ns
 );
 
-  import snitch_cluster_pkg::*;
+  import snitch_cluster_wrapper_pkg::*;
 
   logic clk;
   logic rst_n;
@@ -22,7 +22,7 @@ module testharness #(
   wide_out_resp_t wide_out_resp;
   wide_in_req_t wide_in_req;
   wide_in_resp_t wide_in_resp;
-  logic [snitch_cluster_pkg::NrCores-1:0] msip, meip, mtip, mxip;
+  logic [NrCores-1:0] msip, meip, mtip, mxip;
 
   snitch_cluster_wrapper i_snitch_cluster (
     .clk_i (clk),
@@ -37,13 +37,13 @@ module testharness #(
     .cluster_base_offset_i (CfgClusterBaseOffset),
     .clk_d2_bypass_i (1'b0),
 `ifdef TARGET_POSTLAYOUT
-    .sram_cfg_tcdm_i(snitch_cluster_pkg::sram_cfg_t'('1)),
-    .sram_cfg_icache_tag_i(snitch_cluster_pkg::sram_cfg_t'('1)),
-    .sram_cfg_icache_data_i(snitch_cluster_pkg::sram_cfg_t'('1)),
+    .sram_cfg_tcdm_i(sram_cfg_t'('1)),
+    .sram_cfg_icache_tag_i(sram_cfg_t'('1)),
+    .sram_cfg_icache_data_i(sram_cfg_t'('1)),
 `else
-    .sram_cfg_tcdm_i(snitch_cluster_pkg::sram_cfg_t'('0)),
-    .sram_cfg_icache_tag_i(snitch_cluster_pkg::sram_cfg_t'('0)),
-    .sram_cfg_icache_data_i(snitch_cluster_pkg::sram_cfg_t'('0)),
+    .sram_cfg_tcdm_i(sram_cfg_t'('0)),
+    .sram_cfg_icache_tag_i(sram_cfg_t'('0)),
+    .sram_cfg_icache_data_i(sram_cfg_t'('0)),
 `endif
     .narrow_in_req_i (narrow_in_req),
     .narrow_in_resp_o (narrow_in_resp),

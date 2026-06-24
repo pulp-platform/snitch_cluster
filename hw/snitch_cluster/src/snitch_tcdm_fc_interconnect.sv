@@ -38,7 +38,9 @@ Ports:
   mem_req_o - Memory-side request ports.
   mem_rsp_i - Memory-side response ports.
 */
-module snitch_tcdm_fc_interconnect #(
+module snitch_tcdm_fc_interconnect
+  import snitch_cluster_pkg::*;
+#(
   parameter int unsigned NumInp                = 32'd0,
   parameter int unsigned NumOut                = 32'd0,
   parameter int unsigned Radix                 = 32'd2,
@@ -49,7 +51,7 @@ module snitch_tcdm_fc_interconnect #(
   parameter int unsigned TcdmAddrWidth         = 32,
   parameter int unsigned MemAddrWidth          = 32,
   parameter int unsigned MemoryResponseLatency = 1,
-  parameter snitch_pkg::topo_e Topology        = snitch_pkg::LogarithmicInterconnect,
+  parameter topo_e       Topology              = LogarithmicInterconnect,
   parameter type         mem_req_t             = logic,
   parameter type         mem_rsp_t             = logic,
 
@@ -145,7 +147,7 @@ module snitch_tcdm_fc_interconnect #(
   // ------------
   // We need to arbitrate the requests coming from the input side and resolve
   // potential bank conflicts. Therefore a full arbitration tree is needed.
-  if (Topology == snitch_pkg::LogarithmicInterconnect) begin : gen_xbar
+  if (Topology == LogarithmicInterconnect) begin : gen_xbar
     cc_stream_xbar #(
       .NumInp      ( NumInp    ),
       .NumOut      ( NumOut    ),
@@ -169,7 +171,7 @@ module snitch_tcdm_fc_interconnect #(
       .valid_o ( mem_q_valid_flat ),
       .ready_i ( mem_q_ready_flat )
     );
-  end else if (Topology == snitch_pkg::OmegaNet) begin : gen_omega_net
+  end else if (Topology == OmegaNet) begin : gen_omega_net
     localparam int unsigned NumInpPerNet = cc_pkg::ceil_div(NumInp, NumSwitchNets);
 
     // Intermediate request signals for Omega-to-Xbar interface

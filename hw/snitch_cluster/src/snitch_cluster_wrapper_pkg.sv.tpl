@@ -20,6 +20,13 @@ ${c[prop]}${', ' if not loop.last else ''}\
   % endfor
 </%def>\
 
+<%def name="core_cfg_flat(prop)">\
+${cfg['cluster']['nr_cores']}'b\
+  % for c in cfg['cluster']['cores'][::-1]:
+${int(c[prop])}\
+  % endfor
+</%def>\
+
 <%def name="core_isa(core_idx,isa)">\
 ${int(getattr(cfg['cluster']['cores'][core_idx]['isa_parsed'], isa))}\
 </%def>\
@@ -35,20 +42,25 @@ ${',' if not loop.last else ''}
 % endfor
 </%def>\
 
+<%
+  actual_num_exposed_wide_tcdm_ports = cfg['cluster']['num_exposed_wide_tcdm_ports']
+  if actual_num_exposed_wide_tcdm_ports == 0:
+    actual_num_exposed_wide_tcdm_ports += 1
+%>
+
 `include "axi/typedef.svh"
 `include "tcdm_interface/typedef.svh"
 `include "dca_interface/typedef.svh"
 `include "cv_x_if/typedef.svh"
 
 // verilog_lint: waive-start package-filename
-package ${cfg['cluster']['name']}_pkg;
+package snitch_cluster_wrapper_pkg;
 
   localparam int unsigned NrCores = ${cfg['cluster']['nr_cores']};
   localparam int unsigned NrHives = ${cfg['cluster']['nr_hives']};
 
   localparam int unsigned TcdmSize = ${cfg['cluster']['tcdm']['size']};
   localparam int unsigned TcdmSizeNapotRounded = 1 << $clog2(TcdmSize);
-  localparam int unsigned BootromSize = 4; // Fixed size of 4kB
   localparam int unsigned ClusterPeriphSize = ${cfg['cluster']['cluster_periph_size']};
   localparam int unsigned ZeroMemorySize = ${cfg['cluster']['zero_mem_size']};
   localparam int unsigned ExtMemorySize = ${cfg['cluster']['ext_mem_size']};
@@ -65,8 +77,8 @@ package ${cfg['cluster']['name']}_pkg;
   localparam int unsigned WideIdWidthIn = ${cfg['cluster']['dma_id_width_in']};
   localparam int unsigned WideIdWidthOut = $clog2(NrWideMasters) + WideIdWidthIn;
 
-  localparam int unsigned EnableWideCollectives = ${int(cfg['cluster']['enable_wide_collectives'])};
-  localparam int unsigned EnableNarrowCollectives = ${int(cfg['cluster']['enable_narrow_collectives'])};
+  localparam bit EnableWideCollectives = ${int(cfg['cluster']['enable_wide_collectives'])};
+  localparam bit EnableNarrowCollectives = ${int(cfg['cluster']['enable_narrow_collectives'])};
 
   localparam int unsigned AtomicIdWidth = ${cfg['cluster']['atomic_id_width']};
   localparam int unsigned CollectiveWidth = ${cfg['cluster']['collective_width']};
@@ -105,13 +117,12 @@ package ${cfg['cluster']['name']}_pkg;
   typedef logic [WideIdWidthIn-1:0]     wide_in_id_t;
   typedef logic [WideIdWidthOut-1:0]    wide_out_id_t;
 
+% if cfg['cluster']['enable_narrow_collectives']:
   typedef struct packed {
     addr_t                          collective_mask;
     logic [CollectiveWidth-1:0]     collective_op;
     logic [AtomicIdWidth-1:0]       atomic_id;
-  } user_narrow_ext_t;
-% if cfg['cluster']['enable_narrow_collectives']:
-  typedef user_narrow_ext_t user_narrow_t;
+  } user_narrow_t;
 %else:
   typedef struct packed {
     logic [AtomicIdWidth-1:0]       atomic_id;
@@ -324,13 +335,76 @@ ${ssr_cfg(core, "'{{{indirection:d}, {isect_master:d}, {isect_master_idx:d}, {is
 ${ssr_cfg(core, '{reg_idx}', '/*None*/ 0', ',')}\
   };
 
-  // RISC-V hart ID width (32 bits per spec)
-  localparam int unsigned HartIdWidth = 32;
-
   // Forward potentially optional configuration parameters
-  localparam logic [HartIdWidth-1:0] CfgBaseHartId = (${to_sv_hex(cfg['cluster']['cluster_base_hartid'], 32)});
-  localparam addr_t    	             CfgClusterBaseAddr   = (${to_sv_hex(cfg['cluster']['cluster_base_addr'], cfg['cluster']['addr_width'])});
-  localparam addr_t    	             CfgClusterBaseOffset = (${to_sv_hex(cfg['cluster']['cluster_base_offset'], cfg['cluster']['addr_width'])});
+  localparam snitch_cluster_pkg::hart_id_t CfgBaseHartId    = (${to_sv_hex(cfg['cluster']['cluster_base_hartid'], 32)});
+  localparam addr_t                  CfgClusterBaseAddr   = (${to_sv_hex(cfg['cluster']['cluster_base_addr'], cfg['cluster']['addr_width'])});
+  localparam addr_t                  CfgClusterBaseOffset = (${to_sv_hex(cfg['cluster']['cluster_base_offset'], cfg['cluster']['addr_width'])});
+
+  // Cluster configuration parameters for snitch_cluster instantiation
+  localparam logic [31:0]            BootAddr           = ${to_sv_hex(cfg['cluster']['boot_addr'], 32)};
+  localparam bit                     IntBootromEnable   = ${int(cfg['cluster']['int_bootrom_enable'])};
+  localparam int unsigned            TCDMDepth          = ${cfg['cluster']['tcdm']['depth']};
+  localparam int unsigned            NrBanks            = ${cfg['cluster']['tcdm']['banks']};
+  localparam int unsigned            NrHyperBanks       = ${cfg['cluster']['tcdm']['hyperbanks']};
+  localparam int unsigned            DMANumAxInFlight   = ${cfg['cluster']['dma_axi_req_fifo_depth']};
+  localparam int unsigned            DMAReqFifoDepth    = ${cfg['cluster']['dma_req_fifo_depth']};
+  localparam int unsigned            DMANumChannels     = ${cfg['cluster']['dma_nr_channels']};
+  // NumExpWideTcdmPorts is the effective count used for port sizing (minimum 1).
+  // NumExpWideTcdmPortsCfg is the raw configured value used for connection gating.
+  localparam int unsigned            NumExpWideTcdmPorts    = ${actual_num_exposed_wide_tcdm_ports};
+  localparam int unsigned            NumExpWideTcdmPortsCfg = ${cfg['cluster']['num_exposed_wide_tcdm_ports']};
+  localparam bit                     VMSupport          = ${int(cfg['cluster']['vm_support'])};
+  localparam bit                     EnableXif          = ${int(cfg['cluster']['enable_xif'])};
+  localparam bit [NrCores-1:0]       PrivateIpu         = ${core_cfg_flat('private_ipu')};
+  localparam int unsigned            NumSsrsMax         = ${cfg['cluster']['num_ssrs_max']};
+  localparam snitch_cluster_pkg::topo_e Topology        = snitch_cluster_pkg::${cfg['cluster']['tcdm']['topology']};
+  localparam int unsigned            Radix              = ${int(cfg['cluster']['tcdm']['radix'])};
+  localparam int unsigned            NumSwitchNets      = ${int(cfg['cluster']['tcdm']['num_switch_nets'])};
+  localparam bit                     SwitchLfsrArbiter  = ${int(cfg['cluster']['tcdm']['switch_lfsr_arbiter'])};
+  localparam bit                     RegisterOffloadReq = ${int(cfg['cluster']['timing']['register_offload_req'])};
+  localparam bit                     RegisterOffloadRsp = ${int(cfg['cluster']['timing']['register_offload_rsp'])};
+  localparam bit                     RegisterCoreReq    = ${int(cfg['cluster']['timing']['register_core_req'])};
+  localparam bit                     RegisterCoreRsp    = ${int(cfg['cluster']['timing']['register_core_rsp'])};
+  localparam bit                     RegisterTCDMCuts   = ${int(cfg['cluster']['timing']['register_tcdm_cuts'])};
+  localparam bit                     RegisterExtWide    = ${int(cfg['cluster']['timing']['register_ext_wide'])};
+  localparam bit                     RegisterExtNarrow  = ${int(cfg['cluster']['timing']['register_ext_narrow'])};
+  localparam bit                     RegisterExpNarrow  = ${int(cfg['cluster']['timing']['register_exp_narrow'])};
+  localparam bit                     RegisterFPUReq     = ${int(cfg['cluster']['timing']['register_fpu_req'])};
+  localparam bit                     RegisterFPUIn      = ${int(cfg['cluster']['timing']['register_fpu_in'])};
+  localparam bit                     RegisterFPUOut     = ${int(cfg['cluster']['timing']['register_fpu_out'])};
+  localparam bit                     RegisterDcaReq     = ${int(cfg['cluster']['timing']['register_dca_req'])};
+  localparam bit                     RegisterDcaRsp     = ${int(cfg['cluster']['timing']['register_dca_rsp'])};
+  localparam bit                     RegisterSequencer  = ${int(cfg['cluster']['timing']['register_sequencer'])};
+  localparam bit                     IsoCrossing        = ${int(cfg['cluster']['timing']['iso_crossings'])};
+  localparam axi_pkg::xbar_latency_e NarrowXbarLatency  = axi_pkg::${cfg['cluster']['timing']['narrow_xbar_latency']};
+  localparam axi_pkg::xbar_latency_e WideXbarLatency    = axi_pkg::${cfg['cluster']['timing']['wide_xbar_latency']};
+  localparam int unsigned            WideMaxTrans       = ${cfg['cluster']['wide_trans']};
+  localparam int unsigned            NarrowMaxTrans     = ${cfg['cluster']['narrow_trans']};
+  localparam int unsigned            CaqDepth           = ${int(cfg['cluster']['caq_depth'])};
+  localparam int unsigned            CaqTagWidth        = ${int(cfg['cluster']['caq_tag_width'])};
+  localparam bit                     DebugSupport       = ${int(cfg['cluster']['enable_debug'])};
+  localparam bit                     AliasRegionEnable  = ${int(cfg['cluster']['alias_region_enable'])};
+  localparam int unsigned            AliasRegionBase    = ${int(cfg['cluster']['alias_region_base'])};
+  localparam bit                     EnableDca          = ${int(cfg['cluster']['enable_dca'])};
+  localparam int unsigned            DcaDataWidth       = ${int(cfg['cluster']['dca_data_width'])};
+
+  // Feature flags controlling wrapper port connections
+  localparam bit EnableExternalInterrupts = ${int(cfg['cluster']['enable_external_interrupts'])};
+  localparam bit ClusterBaseExpose        = ${int(cfg['cluster']['cluster_base_expose'])};
+  localparam bit SramCfgExpose            = ${int(cfg['cluster']['sram_cfg_expose'])};
+  localparam bit NarrowAxiPortExpose      = ${int(cfg['cluster']['narrow_axi_port_expose'])};
+
+  // Per-core localparam arrays
+  localparam int unsigned NumIntOutstandingLoads [NrCores] = '{${core_cfg('num_int_outstanding_loads')}};
+  localparam int unsigned NumIntOutstandingMem   [NrCores] = '{${core_cfg('num_int_outstanding_mem')}};
+  localparam int unsigned NumFPOutstandingLoads  [NrCores] = '{${core_cfg('num_fp_outstanding_loads')}};
+  localparam int unsigned NumFPOutstandingMem    [NrCores] = '{${core_cfg('num_fp_outstanding_mem')}};
+  localparam int unsigned NumDTLBEntries         [NrCores] = '{${core_cfg('num_dtlb_entries')}};
+  localparam int unsigned NumITLBEntries         [NrCores] = '{${core_cfg('num_itlb_entries')}};
+  localparam int unsigned NumSequencerInstr      [NrCores] = '{${core_cfg('num_sequencer_instructions')}};
+  localparam int unsigned NumSequencerLoops      [NrCores] = '{${core_cfg('num_sequencer_loops')}};
+  localparam int unsigned NumSsrs                [NrCores] = '{${core_cfg('num_ssrs')}};
+  localparam int unsigned SsrMuxRespDepth        [NrCores] = '{${core_cfg('ssr_mux_resp_depth')}};
 
 endpackage
 // verilog_lint: waive-stop package-filename

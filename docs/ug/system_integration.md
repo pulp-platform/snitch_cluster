@@ -10,9 +10,9 @@ For a reference implementation of the procedure described in the following secti
 
 A reference instantiation of the Snitch cluster can be found in the testbench used to test the cluster within this repository, see [testharness.sv](https://github.com/pulp-platform/{{ repo }}/blob/{{ branch }}/target/sim/tb/testharness.sv).
 
-As you may note, we do not instantiate the `snitch_cluster` directly but a so-called `snitch_cluster_wrapper`, with a much simplified interface. All parameters of the `snitch_cluster` module are set within the wrapper.
+As you may note, we do not instantiate the `snitch_cluster` directly but a so-called `snitch_cluster_wrapper`, with a much simplified interface. The wrapper exposes no parameters, and it internally sets the parameters of the `snitch_cluster` module to the values defined in `snitch_cluster_wrapper_pkg`. All top-level configuration settings are therefore contained in this single package file.
 
-The benefit of the wrapper is that it can be programmatically generated from a single source of truth, namely a JSON5 configuration file, from which the software hardware abstraction layer (HAL), and all other sources dependent on the configuration within the repository, are also generated.
+This file can be programmatically generated from a single source of truth, namely a JSON5 configuration file, from which the software hardware abstraction layer (HAL), and all other sources dependent on the configuration within the repository, are also generated.
 
 This way, if you want to modify the cluster configuration, you don't have to go and manually change it in multiple places (the RTL, the HAL, etc.), but only in the single-source-of-truth cluster configuration file. More information on the configuration file can be found in the [tutorial](tutorial.md#configuring-the-hardware).
 
@@ -42,7 +42,7 @@ The included Makefiles can be customized to some extent by overriding some varia
 
 By default, the build directories of all auto-generated sources live in the Snitch cluster repo. If you are simultaneously working on the Snitch cluster and your derived system repos, it may be beneficial to have separate build directories for your artifacts, to avoid having to regenerate the sources for the right target every time you switch between the two.
 
-To overwrite the build directory for the generated cluster wrapper, add the following customization line to your Makefile, to point `SN_GEN_DIR` to a directory of your choice:
+To overwrite the build directory for the generated cluster wrapper package, add the following customization line to your Makefile, to point `SN_GEN_DIR` to a directory of your choice:
 ```Makefile
 SN_GEN_DIR = $(SYSTEM_GENERATED_RTL_DIR)
 ```
@@ -55,8 +55,7 @@ dependencies:
   snitch_cluster: { git: "https://github.com/pulp-platform/snitch_cluster.git", rev: "<hash>" }
 
 sources:
-  - <SN_GEN_DIR>/snitch_cluster_pkg.sv
-  - <SN_GEN_DIR>/snitch_cluster_wrapper.sv
+  - <SN_GEN_DIR>/snitch_cluster_wrapper_pkg.sv
 ```
 
 Additionally, add the `-t snitch_cluster` target flag to your `bender` commands.

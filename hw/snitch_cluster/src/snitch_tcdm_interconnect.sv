@@ -38,7 +38,9 @@ Ports:
   mem_req_o - Memory-side request ports.
   mem_rsp_i - Memory-side response ports.
 */
-module snitch_tcdm_interconnect #(
+module snitch_tcdm_interconnect
+  import snitch_cluster_pkg::*;
+#(
   parameter int unsigned NumInp                = 32'd0,
   parameter int unsigned NumOut                = 32'd0,
   parameter int unsigned NumHyperBanks         = 32'd1,
@@ -50,7 +52,7 @@ module snitch_tcdm_interconnect #(
   parameter int unsigned TcdmAddrWidth         = 32,
   parameter int unsigned MemAddrWidth          = 32,
   parameter int unsigned MemoryResponseLatency = 1,
-  parameter snitch_pkg::topo_e Topology        = snitch_pkg::LogarithmicInterconnect,
+  parameter topo_e       Topology              = LogarithmicInterconnect,
   parameter type         mem_req_t             = logic,
   parameter type         mem_rsp_t             = logic,
   // Derived parameters

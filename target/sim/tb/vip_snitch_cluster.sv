@@ -5,7 +5,7 @@
 `include "snitch_cluster_addrmap.svh"
 
 module vip_snitch_cluster
-  import snitch_cluster_pkg::*;
+  import snitch_cluster_wrapper_pkg::*;
 #(
   // Timing
   parameter realtime ClkPeriod = 10ns
@@ -28,6 +28,7 @@ module vip_snitch_cluster
   output wide_out_resp_t wide_out_resp
 );
 
+  import snitch_cluster_pkg::*;
   import snitch_cluster_peripheral_reg_pkg::*;
 
   import "DPI-C" function void clint_tick(output byte msip[]);
