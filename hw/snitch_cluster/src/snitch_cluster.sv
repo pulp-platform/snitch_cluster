@@ -946,9 +946,15 @@ module snitch_cluster
       );
 
       // Insert a pipeline register at the output of each SRAM.
-      cc_shift_register #( .data_t (data_t), .Depth (RegisterTCDMCuts)) i_sram_pipe (
-        .clk_i, .rst_ni,
-        .d_i (amo_rdata_local), .d_o (amo_rsp[j].p.data)
+      cc_shift_register #(
+        .data_t(data_t),
+        .Depth (RegisterTCDMCuts)
+      ) i_sram_pipe (
+        .clk_i,
+        .rst_ni,
+        .clr_i(1'b0),
+        .d_i  (amo_rdata_local),
+        .d_o  (amo_rsp[j].p.data)
       );
     end
   end
@@ -1028,13 +1034,13 @@ module snitch_cluster
     interrupts_t irq;
     dma_events_t        [DMANumChannels-1:0] dma_core_events;
 
-    cc_sync #(.Stages (2))
+    tc_sync #(.Stages (2))
       i_sync_debug (.clk_i, .rst_ni, .serial_i (debug_req_i[i]), .serial_o (irq.debug));
-    cc_sync #(.Stages (2))
+    tc_sync #(.Stages (2))
       i_sync_meip  (.clk_i, .rst_ni, .serial_i (meip_i[i]), .serial_o (irq.meip));
-    cc_sync #(.Stages (2))
+    tc_sync #(.Stages (2))
       i_sync_mtip  (.clk_i, .rst_ni, .serial_i (mtip_i[i]), .serial_o (irq.mtip));
-    cc_sync #(.Stages (2))
+    tc_sync #(.Stages (2))
       i_sync_msip  (.clk_i, .rst_ni, .serial_i (msip_i[i]), .serial_o (irq.msip));
     assign irq.mcip = cl_interrupt[i];
     assign irq.mxip = mxip_i[i];

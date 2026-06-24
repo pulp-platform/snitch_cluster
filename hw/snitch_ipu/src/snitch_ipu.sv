@@ -270,6 +270,7 @@ module snitch_ipu import snitch_pkg::*;  #(
     ) i_stream_arbiter (
       .clk_i,
       .rst_ni,
+      .clr_i       ( 1'b0                   ),
       .inp_data_i  ( {div, dsp}             ),
       .inp_valid_i ( {div_valid, dsp_valid} ),
       .inp_ready_o ( {div_ready, dsp_ready} ),
@@ -303,6 +304,7 @@ module snitch_ipu import snitch_pkg::*;  #(
     ) i_stream_arbiter (
       .clk_i,
       .rst_ni,
+      .clr_i       ( 1'b0                   ),
       .inp_data_i  ( {div, mul}             ),
       .inp_valid_i ( {div_valid, mul_valid} ),
       .inp_ready_o ( {div_ready, mul_ready} ),

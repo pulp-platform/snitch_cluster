@@ -250,6 +250,7 @@ module snitch_ssr_addr_gen import snitch_ssr_pkg::*; #(
     ) i_out_spill (
       .clk_i,
       .rst_ni,
+      .clr_i   ( 1'b0 ),
       .valid_i ( spill_in_valid ),
       .ready_o ( spill_in_ready ),
       .data_i  ( spill_in_data  ),

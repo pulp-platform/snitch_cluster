@@ -259,6 +259,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   ) i_spill_register_acc (
     .clk_i   ,
     .rst_ni  ( ~rst_i          ),
+    .clr_i   ( 1'b0            ),
     .valid_i ( acc_req_valid   ),
     .ready_o ( acc_req_ready   ),
     .data_i  ( acc_req         ),

@@ -34,6 +34,7 @@ module generic_reqrsp_cut #(
   ) i_spill_register_q (
     .clk_i,
     .rst_ni,
+    .clr_i  (1'b0),
     .valid_i(slv_req_i.q_valid),
     .ready_o(slv_rsp_o.q_ready),
     .data_i (slv_req_i.q),
@@ -48,6 +49,7 @@ module generic_reqrsp_cut #(
   ) i_spill_register_p (
     .clk_i,
     .rst_ni,
+    .clr_i  (1'b0),
     .valid_i(mst_rsp_i.p_valid),
     .ready_o(mst_req_o.p_ready),
     .data_i (mst_rsp_i.p),

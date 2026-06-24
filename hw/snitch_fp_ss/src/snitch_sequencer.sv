@@ -316,6 +316,7 @@ module snitch_sequencer import snitch_pkg::*; #(
   ) i_ring_buffer (
     .clk_i(clk_i),
     .rst_ni(~rst_i),
+    .clr_i(1'b0),
     .wvalid_i(core_rb_valid),
     .wready_o(core_rb_ready),
     .wdata_i(rb_wdata),
@@ -346,7 +347,7 @@ module snitch_sequencer import snitch_pkg::*; #(
     ) i_inst_counter (
       .clk_i(clk_i),
       .rst_ni(~rst_i),
-      .clear_i(1'b0),
+      .clr_i(1'b0),
       .en_i(incr_inst[i]),
       .delta_i(DepthBits'(1)),
       .bound_i(nest_cfg_q[i].max_inst),
@@ -360,7 +361,7 @@ module snitch_sequencer import snitch_pkg::*; #(
     ) i_iter_counter (
       .clk_i(clk_i),
       .rst_ni(~rst_i),
-      .clear_i(1'b0),
+      .clr_i(1'b0),
       .en_i(incr_iter),
       .delta_i(LoopIterBits'(1)),
       .bound_i(nest_cfg_q[i].max_iter),

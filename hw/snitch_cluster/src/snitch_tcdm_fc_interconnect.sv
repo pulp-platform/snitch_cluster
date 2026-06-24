@@ -160,7 +160,8 @@ module snitch_tcdm_fc_interconnect
     ) i_stream_xbar (
       .clk_i,
       .rst_ni,
-      .flush_i ( 1'b0 ),
+      .clr_i     ( 1'b0 ),
+      .clr_arb_i ( 1'b0 ),
       .rr_i    ( '0 ),
       .data_i  ( in_req ),
       .sel_i   ( bank_select ),
@@ -194,6 +195,7 @@ module snitch_tcdm_fc_interconnect
       ) i_lfsr (
         .clk_i,
         .rst_ni,
+        .clr_i    ( 1'b0 ),
         .en_i     ( |(req_q_valid_flat & rsp_q_ready_flat) ),
         .out_o    ( rr )
       );
@@ -238,7 +240,8 @@ module snitch_tcdm_fc_interconnect
       ) i_stream_omega_net (
         .clk_i,
         .rst_ni,
-        .flush_i ( 1'b0 ),
+        .clr_i     ( 1'b0 ),
+        .clr_arb_i ( 1'b0 ),
         // TODO: switch-level arbitration currently unconnected inside `stream_omega_net`
         .rr_i    ( /*rr1*/ '0 ),
         .sel_i   ( in_sel[i] ),
@@ -273,7 +276,7 @@ module snitch_tcdm_fc_interconnect
       ) i_rr_arb_tree (
         .clk_i,
         .rst_ni,
-        .flush_i ( 1'b0 ),
+        .clr_i   ( 1'b0 ),
         .rr_i    ( rr2 ),
         .data_i  ( rrin_data ),
         .req_i   ( rrin_valid ),
@@ -304,6 +307,7 @@ module snitch_tcdm_fc_interconnect
     ) i_shift_reg (
       .clk_i,
       .rst_ni,
+      .clr_i ( 1'b0 ),
       .d_i ( in_rsp_mux ),
       .d_o ( out_rsp_mux )
     );

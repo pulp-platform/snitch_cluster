@@ -251,6 +251,7 @@ module axi_to_reqrsp #(
   ) i_fork (
     .clk_i,
     .rst_ni,
+    .clr_i   ( 1'b0                                 ),
     .valid_i ( arb_valid                            ),
     .ready_o ( arb_ready                            ),
     .valid_o ({sel_valid, meta_valid, reqrsp_req_o.q_valid}),
@@ -267,6 +268,7 @@ module axi_to_reqrsp #(
   ) i_sel_buf (
     .clk_i,
     .rst_ni,
+    .clr_i      ( 1'b0                    ),
     .flush_i    ( 1'b0                    ),
     .data_i     ({sel_b,        sel_r    }),
     .valid_i    ( sel_valid               ),
@@ -284,6 +286,7 @@ module axi_to_reqrsp #(
   ) i_meta_buf (
     .clk_i,
     .rst_ni,
+    .clr_i      ( 1'b0           ),
     .flush_i    ( 1'b0           ),
     .data_i     ( meta           ),
     .valid_i    ( meta_valid     ),
@@ -334,6 +337,7 @@ module axi_to_reqrsp #(
   ) i_fork_dynamic (
     .clk_i,
     .rst_ni,
+    .clr_i        ( 1'b0                                   ),
     .valid_i      ( mem_join_valid                         ),
     .ready_o      ( mem_join_ready                         ),
     .sel_i        ({sel_buf_b,          sel_buf_r         }),

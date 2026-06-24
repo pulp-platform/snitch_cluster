@@ -37,6 +37,7 @@ module dca_fork #(
   ) i_dca_fork_fpu (
     .clk_i  (clk_i),
     .rst_ni (rst_ni),
+    .clr_i  (1'b0),
     .valid_i(slv_req_i.q_valid),
     .ready_o(slv_rsp_o.q_ready),
     .valid_o(flat_q_valids),

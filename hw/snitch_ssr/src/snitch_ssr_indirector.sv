@@ -144,7 +144,7 @@ module snitch_ssr_indirector import snitch_ssr_pkg::*; #(
     ) i_isect_counter (
       .clk_i,
       .rst_ni,
-      .clear_i    ( isect_cnt_swap  ),
+      .clr_i      ( isect_cnt_swap  ),
       .en_i       ( isect_slv_up_hs ),
       .load_i     ( '0  ),
       .down_i     ( '0  ),
@@ -160,6 +160,7 @@ module snitch_ssr_indirector import snitch_ssr_pkg::*; #(
       ) i_spill_slv_idx (
       .clk_i,
       .rst_ni,
+      .clr_i    ( 1'b0 ),
       .valid_i  ( isect_slv_rsp_i.valid ),
       .ready_o  ( isect_slv_req_o.ready ),
       .data_i   ( {isect_slv_rsp_i.idx, isect_slv_rsp_i.done} ),
@@ -211,6 +212,7 @@ module snitch_ssr_indirector import snitch_ssr_pkg::*; #(
     ) i_done_fifo (
       .clk_i,
       .rst_ni,
+      .clr_i      ( 1'b0 ),
       .flush_i    ( 1'b0 ),
       .usage_o    (  ),
       .data_i     ( isect_slv_done  ),
@@ -349,6 +351,7 @@ module snitch_ssr_indirector import snitch_ssr_pkg::*; #(
     ) i_idx_fifo (
       .clk_i,
       .rst_ni,
+      .clr_i      ( 1'b0 ),
       .flush_i    ( isect_mst_blk_q   ),
       .full_o     (  ),                     // Credit counter prevents overflows
       .empty_o    ( idx_fifo_empty    ),

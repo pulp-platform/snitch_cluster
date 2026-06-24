@@ -122,6 +122,7 @@ module snitch_lsu import cc_pkg::*; #(
     ) i_caq (
       .clk_i,
       .rst_ni   ( ~rst_i ),
+      .clr_i    ( 1'b0 ),
       // Push in snooped accesses offloaded to downstream LSU
       .inp_id_i   ( '0 ),
       .inp_data_i ( {caq_qwrite_i, caq_qaddr_i[CaqTagWidth+DataAlign-1:DataAlign]} ),
@@ -195,6 +196,7 @@ module snitch_lsu import cc_pkg::*; #(
   ) i_fifo_laq (
     .clk_i,
     .rst_ni (~rst_i),
+    .clr_i (1'b0),
     .flush_i (1'b0),
     .full_o (laq_full),
     .empty_o (/* open */),
@@ -231,6 +233,7 @@ module snitch_lsu import cc_pkg::*; #(
   ) i_fifo_mem (
     .clk_i,
     .rst_ni (~rst_i),
+    .clr_i (1'b0),
     .flush_i (1'b0),
     .full_o (mem_full),
     .empty_o (lsu_empty_o),

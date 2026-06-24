@@ -61,14 +61,14 @@ module tcdm_shim #(
   logic [$clog2(MaxOutStandingReads):0] credits_q, credits_d;
   `FFAR(credits_q, credits_d, MaxOutStandingReads, clk_i, rst_i)
 
-  fifo #(
+  cc_fifo #(
     .FALL_THROUGH ( 1'b1                ),
     .DATA_WIDTH   ( DataWidth           ),
     .DEPTH        ( MaxOutStandingReads )
   ) i_resp_fifo (
     .clk_i,
     .rst_ni      ( ~rst_i             ),
-    .flush_i     ( 1'b0               ),
+    .clr_i       ( 1'b0               ),
     .full_o      (                    ),
     .empty_o     ( empty              ),
     .threshold_o (                    ),

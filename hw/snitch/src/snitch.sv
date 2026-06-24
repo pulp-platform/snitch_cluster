@@ -3499,6 +3499,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   ) i_i2f_queue (
     .clk_i     (clk_i),
     .rst_ni    (~rst_i),
+    .clr_i     ('0),
     .flush_i   ('0),
     .usage_o   (),
     .data_i    (i2f_wdata),
@@ -3517,6 +3518,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   ) i_f2i_queue (
     .clk_i     (clk_i),
     .rst_ni    (~rst_i),
+    .clr_i     ('0),
     .flush_i   ('0),
     .usage_o   (),
     .data_i    (f2i_wdata_i),

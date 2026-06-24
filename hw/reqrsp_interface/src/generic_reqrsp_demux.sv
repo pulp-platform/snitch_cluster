@@ -65,6 +65,7 @@ module generic_reqrsp_demux #(
   ) i_stream_arbiter (
     .clk_i,
     .rst_ni,
+    .clr_i      (1'b0),
     .inp_data_i (mst_p_data),
     .inp_valid_i(mst_p_valid),
     .inp_ready_o(mst_p_ready),

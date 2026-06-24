@@ -58,6 +58,7 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
   ) i_fifo (
     .clk_i,
     .rst_ni,
+    .clr_i      ( '0         ),
     .flush_i    ( '0         ),
     .full_o     ( fifo_full  ),
     .empty_o    ( fifo_empty ),
@@ -187,6 +188,7 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
     ) i_fifo_zero (
       .clk_i,
       .rst_ni,
+      .clr_i      ( '0          ),
       .flush_i    ( '0          ),
       .full_o     (  ),
       .empty_o    ( zero_empty  ),

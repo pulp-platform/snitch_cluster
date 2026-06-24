@@ -738,6 +738,7 @@ module snitch_cc #(
     ) i_stream_to_mem (
       .clk_i,
       .rst_ni,
+      .clr_i (1'b0),
       .req_i (ssr_cfg_req),
       .req_valid_i (ssr_qvalid),
       .req_ready_o (ssr_qready),

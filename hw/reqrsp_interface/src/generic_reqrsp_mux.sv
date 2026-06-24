@@ -61,6 +61,7 @@ module generic_reqrsp_mux #(
     ) i_spill_register_req (
       .clk_i,
       .rst_ni,
+      .clr_i (1'b0),
       .valid_i (slv_req_i[i].q_valid),
       .ready_o (slv_rsp_q_ready[i]),
       .data_i (slv_req_i[i].q),
@@ -86,7 +87,7 @@ module generic_reqrsp_mux #(
   ) i_q_mux (
     .clk_i,
     .rst_ni,
-    .flush_i (1'b0),
+    .clr_i (1'b0),
     .rr_i  ('0),
     .req_i (req_valid_masked),
     .gnt_o (req_ready_q),
@@ -124,6 +125,7 @@ module generic_reqrsp_mux #(
       ) i_rsp_fifo (
         .clk_i,
         .rst_ni,
+        .clr_i (1'b0),
         .flush_i (1'b0),
         .full_o (full),
         .empty_o (),

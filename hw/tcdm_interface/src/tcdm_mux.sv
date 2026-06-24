@@ -52,7 +52,7 @@ module tcdm_mux #(
     ) i_q_mux (
       .clk_i (clk_i),
       .rst_ni (rst_ni),
-      .flush_i (1'b0),
+      .clr_i (1'b0),
       .rr_i  ('0),
       .req_i (slv_req_valid),
       .gnt_o (slv_req_ready),
@@ -68,6 +68,7 @@ module tcdm_mux #(
     ) i_stream_fork (
       .clk_i (clk_i),
       .rst_ni (rst_ni),
+      .clr_i (1'b0),
       .valid_i (rr_valid),
       .ready_o (rr_ready),
       .valid_o ({fifo_valid, mst_req_o.q_valid}),
@@ -81,6 +82,7 @@ module tcdm_mux #(
     ) i_stream_fifo (
       .clk_i,
       .rst_ni,
+      .clr_i (1'b0),
       .flush_i (1'b0),
       .usage_o (),
       .data_i (fifo_in_select),

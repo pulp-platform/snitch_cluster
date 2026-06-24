@@ -41,6 +41,7 @@ module reqrsp_to_tcdm #(
   ) i_stream_to_mem (
     .clk_i,
     .rst_ni,
+    .clr_i (1'b0),
     .req_i (reqrsp_req_i.q),
     .req_valid_i (reqrsp_req_i.q_valid),
     .req_ready_o (reqrsp_rsp_o.q_ready),

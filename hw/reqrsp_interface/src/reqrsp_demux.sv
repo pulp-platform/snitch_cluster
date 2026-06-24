@@ -64,6 +64,7 @@ module reqrsp_demux #(
   ) i_id_fifo (
     .clk_i,
     .rst_ni,
+    .clr_i (1'b0),
     .flush_i (1'b0),
     .full_o (fifo_full),
     .empty_o (fifo_empty),

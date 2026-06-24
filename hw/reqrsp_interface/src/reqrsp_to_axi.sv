@@ -200,6 +200,7 @@ module reqrsp_to_axi import reqrsp_pkg::*; import snitch_pkg::*; #(
   ) i_stream_fork (
     .clk_i,
     .rst_ni,
+    .clr_i   (1'b0),
     .valid_i (q_valid_write),
     .ready_o (q_ready_write),
     .valid_o ({axi_req_o.aw_valid, axi_req_o.w_valid}),

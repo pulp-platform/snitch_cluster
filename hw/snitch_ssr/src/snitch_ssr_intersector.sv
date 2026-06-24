@@ -91,6 +91,7 @@ module snitch_ssr_intersector import snitch_ssr_pkg::*; #(
   ) i_fifo_streamctl (
     .clk_i,
     .rst_ni,
+    .clr_i     ( 1'b0 ),
     .flush_i   ( 1'b0 ),
     .usage_o   (  ),
     .data_i    ( isect_done ),

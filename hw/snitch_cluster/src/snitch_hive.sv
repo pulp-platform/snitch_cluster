@@ -180,6 +180,7 @@ module snitch_hive import snitch_icache_pkg::*; #(
     ) i_stream_arbiter (
       .clk_i       ( clk_d2_i      ),
       .rst_ni      ( rst_ni        ),
+      .clr_i       ( 1'b0          ),
       .inp_data_i  ( ptw_req_in    ),
       .inp_valid_i ( ptw_valid     ),
       .inp_ready_o ( ptw_ready     ),
@@ -298,6 +299,7 @@ module snitch_hive import snitch_icache_pkg::*; #(
     ) i_stream_arbiter (
       .clk_i       ( clk_i             ),
       .rst_ni      ( rst_ni            ),
+      .clr_i       ( 1'b0              ),
       .inp_data_i  ( acc_req_ext       ),
       .inp_valid_i ( acc_qvalid        ),
       .inp_ready_o ( acc_qready        ),
