@@ -18,7 +18,7 @@ SN_VLT_BUILDDIR = $(SN_TARGET_DIR)/sim/build/work-vlt
 SN_VLT_FESVR    = $(SN_VLT_BUILDDIR)/riscv-isa-sim
 
 # Flags
-SN_VLT_BENDER_FLAGS += $(SN_COMMON_BENDER_FLAGS) -t verilator -DASSERTS_OFF
+SN_VLT_BENDER_FLAGS += $(SN_COMMON_BENDER_FLAGS) -t snitch_cluster:tb -t verilator -DASSERTS_OFF
 SN_VLT_FLAGS += --timing
 SN_VLT_FLAGS += --timescale 1ns/1ps
 SN_VLT_FLAGS += --trace-vcd

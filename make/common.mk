@@ -54,9 +54,10 @@ SN_BENDER_LOCK = $(SN_ROOT)/Bender.lock
 SN_BENDER_YML  = $(SN_ROOT)/Bender.yml
 
 # Flags
-SN_COMMON_BENDER_FLAGS     += -t rtl -t snitch_cluster
-SN_COMMON_BENDER_SIM_FLAGS += -t simulation -t test
-SN_LAYOUT_EVENTS_FLAGS     ?= --cfg=$(SN_CFG)
+SN_COMMON_BENDER_FLAGS      += -t rtl -t cc_no_deprecated -t tech_cells_generic_include_tc_sync
+SN_COMMON_BENDER_SIM_FLAGS  += $(SN_COMMON_BENDER_FLAGS) -t test -t snitch_cluster:tb
+SN_COMMON_BENDER_ASIC_FLAGS += $(SN_COMMON_BENDER_FLAGS) -t asic
+SN_LAYOUT_EVENTS_FLAGS      ?= --cfg=$(SN_CFG)
 
 # Internal state
 SN_DEPS :=

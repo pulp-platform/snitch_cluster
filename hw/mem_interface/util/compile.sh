@@ -10,7 +10,7 @@ set -e
 
 [ ! -z "$VSIM" ] || VSIM=vsim
 
-$SN_BENDER script vsim -t test \
+$SN_BENDER script vsim -t test -t snitch_cluster:tb \
     --vlog-arg="-svinputport=compat" \
     --vlog-arg="-override_timescale 1ns/1ps" \
     --vlog-arg="-suppress 2583" \

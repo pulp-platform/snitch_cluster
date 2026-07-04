@@ -24,12 +24,6 @@ set_option stop bus_err_unit_bare
 set_option stop tc_sram
 set_option stop tc_sram_impl
 
-# Waive unused macro warnings for macros created implictly by bender
-waive -rules CMD_define02 -msg "*TARGET_FLIST*"
-waive -rules CMD_define02 -msg "*TARGET_RTL*"
-waive -rules CMD_define02 -msg "*TARGET_SNITCH_CLUSTER*"
-waive -rules CMD_define02 -msg "*TARGET_SNITCH_CLUSTER_WRAPPER*"
-
 compile_design
 run_goal -goal lint/lint_rtl
 

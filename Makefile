@@ -249,7 +249,7 @@ $(LINT_BUILD_DIR):
 	mkdir -p $@
 
 $(LINT_BUILD_DIR)/analyze.tcl: $(SN_BENDER_LOCK) $(SN_BENDER_YML) $(SN_GEN_RTL_SRCS) | $(LINT_BUILD_DIR)
-	$(SN_BENDER) script flist-plus -t rtl -t snitch_cluster -t snitch_cluster_wrapper > $@
+	$(SN_BENDER) script flist-plus $(SN_COMMON_BENDER_ASIC_FLAGS) -t ihp13 > $@
 
 spyglass: $(LINT_DIR)/spyglass.tcl $(LINT_BUILD_DIR)/analyze.tcl | $(LINT_BUILD_DIR)
 	cd $(LINT_BUILD_DIR) && $(SN_SG_SHELL) -tcl $<

@@ -30,6 +30,15 @@ WAIVERS = [
     'W528'
 ]
 
+IMPLICIT_MACROS = [
+    'TARGET_FLIST',
+    'TARGET_RTL',
+    'TARGET_SNITCH_CLUSTER',
+    'TARGET_ASIC',
+    'TARGET_IHP13',
+    'TARGET_TECH_CELLS_GENERIC_INCLUDE_TC_SYNC'
+]
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -50,6 +59,11 @@ def main():
     df = df[~((df.rule == 'SYNTH_12604') &
               (df.file.str.contains(r'snitch(?:_sequencer)?\.sv')))]
     print(f'Ignore SYNTH_12604 in snitch and snitch_sequencer. {len(df)} messages remaining.')
+
+    # Waive unused macro warnings for macros created implicitly by bender
+    df = df[~((df.rule == 'CMD_define02') &
+              (df.message.str.contains('|'.join(IMPLICIT_MACROS))))]
+    print(f'Waive CMD_define02 for {", ".join(IMPLICIT_MACROS)}. {len(df)} messages remaining.')
 
     # Waive safe to ignore rules
     df = df[~df.rule.isin(WAIVERS)]

@@ -17,7 +17,7 @@ SN_VLIB        ?= $(SN_QUESTA_SEPP) vlib
 SN_VSIM_BUILDDIR ?= $(SN_TARGET_DIR)/sim/build/work-vsim
 
 # Flags
-SN_VSIM_BENDER_FLAGS = $(SN_COMMON_BENDER_FLAGS) $(SN_COMMON_BENDER_SIM_FLAGS) -t vsim
+SN_VSIM_BENDER_FLAGS = $(SN_COMMON_BENDER_SIM_FLAGS) -t vsim
 SN_VLOG_FLAGS += -64
 SN_VLOG_FLAGS += -svinputport=compat
 SN_VLOG_FLAGS += -override_timescale 1ns/1ps

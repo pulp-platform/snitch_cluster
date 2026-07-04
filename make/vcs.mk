@@ -16,7 +16,7 @@ SN_VCS      ?= $(SN_VCS_SEPP) vcs
 SN_VCS_BUILDDIR = $(SN_TARGET_DIR)/sim/build/work-vcs
 
 # Flags
-SN_VCS_BENDER_FLAGS += $(SN_COMMON_BENDER_FLAGS) $(SN_COMMON_BENDER_SIM_FLAGS) -t vcs
+SN_VCS_BENDER_FLAGS += $(SN_COMMON_BENDER_SIM_FLAGS) -t vcs
 SN_VLOGAN_FLAGS := -assert svaext
 SN_VLOGAN_FLAGS += -assert disable_cover
 SN_VLOGAN_FLAGS += -full64

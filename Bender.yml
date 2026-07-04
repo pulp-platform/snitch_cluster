@@ -22,19 +22,17 @@ remotes:
   pulp: https://github.com/pulp-platform
 
 dependencies:
-  tech_cells_generic:
-    version: 0.2.14
-    pass_targets: ["tech_cells_generic_include_tc_sync"]  # No technology-specific sync cells are used
+  tech_cells_generic: 0.2.14
   riscv-dbg: 0.8.1
   cluster_icache:    { git: https://github.com/pulp-platform/cluster_icache.git,    rev: common-cells-v2 }
   axi_riscv_atomics: { git: https://github.com/pulp-platform/axi_riscv_atomics.git, rev: common-cells-v2 }
   apb:               { git: https://github.com/pulp-platform/apb.git,               rev: common-cells-v2 }
-  idma:              { git: https://github.com/pulp-platform/idma.git,              rev: __deploy__eaf0d29__common-cells-v2 }
+  idma:
+    git: https://github.com/pulp-platform/idma.git
+    rev: __deploy__eaf0d29__common-cells-v2
+    pass_targets: ["snitch_cluster"]
   axi:               { git: https://github.com/colluca/axi.git,                     rev: multicast }
-  common_cells:
-    git: https://github.com/pulp-platform/common_cells.git
-    rev: 65881ba0300209f181ddd34a12a8a2e5df7c07c8
-    pass_targets: ["cc_no_deprecated"]
+  common_cells:      { git: https://github.com/pulp-platform/common_cells.git,      rev: 65881ba0300209f181ddd34a12a8a2e5df7c07c8 }
   FPnew:             { git: https://github.com/pulp-platform/cvfpu.git,             rev: common-cells-v2 }
 
 export_include_dirs:
@@ -67,7 +65,7 @@ sources:
   - target: disable_pmcs
     files:
       - hw/snitch/src/snitch.sv
-  - target: test
+  - target: all(tb, not(verilator))
     files:
       - hw/snitch/test/snitch_l0_tlb_tb.sv
 
@@ -87,10 +85,10 @@ sources:
       - hw/reqrsp_interface/src/reqrsp_iso.sv
       - hw/reqrsp_interface/src/reqrsp_mux.sv
       - hw/reqrsp_interface/src/reqrsp_to_axi.sv
-  - target: simulation
+  - target: test
     files:
       - hw/reqrsp_interface/src/reqrsp_test.sv
-  - target: test
+  - target: all(tb, not(verilator))
     files:
       - hw/reqrsp_interface/test/axi_to_reqrsp_tb.sv
       - hw/reqrsp_interface/test/reqrsp_demux_tb.sv
@@ -102,10 +100,10 @@ sources:
   - files:
       - hw/mem_interface/src/mem_wide_narrow_mux.sv
       - hw/mem_interface/src/mem_interface.sv
-  - target: simulation
+  - target: test
     files:
       - hw/mem_interface/src/mem_test.sv
-  - target: test
+  - target: all(tb, not(verilator))
     files:
       - hw/mem_interface/test/mem_wide_narrow_mux_tb.sv
 
@@ -117,10 +115,10 @@ sources:
       - hw/tcdm_interface/src/axi_to_tcdm.sv
       - hw/tcdm_interface/src/reqrsp_to_tcdm.sv
       - hw/tcdm_interface/src/tcdm_mux.sv
-  - target: simulation
+  - target: test
     files:
       - hw/tcdm_interface/src/tcdm_test.sv
-  - target: test
+  - target: all(tb, not(verilator))
     files:
       - hw/tcdm_interface/test/reqrsp_to_tcdm_tb.sv
       - hw/tcdm_interface/test/tcdm_mux_tb.sv
@@ -148,7 +146,7 @@ sources:
       - hw/snitch_ssr/src/snitch_ssr.sv
       # Level 4
       - hw/snitch_ssr/src/snitch_ssr_streamer.sv
-  - target: test
+  - target: all(tb, not(verilator))
     files:
       # Level 0
       - hw/snitch_ssr/test/fixture_ssr.sv
@@ -193,32 +191,24 @@ sources:
       - hw/snitch_cluster/src/snitch_hive.sv
       # Level 4
       - hw/snitch_cluster/src/snitch_cluster.sv
-  - target: test
+  - target: all(tb, not(verilator))
     files:
       - hw/snitch_cluster/test/snitch_tcdm_interconnect_tb.sv
 
-  # target/common
-  - target: any(simulation, verilator)
-    files:
-      - target/sim/tb/tb_memory_axi.sv
-  - target: test
-    files:
-      - target/sim/tb/tb_bin.sv
-
-  # target/snitch_cluster
-  - target: all(snitch_cluster_wrapper)
+  - target: any(tb, asic)
     files:
       - hw/generated/snitch_cluster_wrapper_pkg.sv
-  - target: all(snitch_cluster_wrapper, not(netlist))
+
+  - target: not(netlist)
     files:
       - hw/snitch_cluster/src/snitch_cluster_wrapper.sv
-  - target: all(snitch_cluster_wrapper, gf12, netlist)
-    files:
-      - nonfree/gf12/fusion/runs/0/out/15/snitch_cluster_wrapper.v
-  - target: all(snitch_cluster_wrapper, any(simulation, verilator))
+
+  - target: tb
     include_dirs:
       - hw/generated
     files:
+      - target/sim/tb/tb_memory_axi.sv
+      - target/sim/tb/tb_bin.sv
       - target/sim/tb/vip_snitch_cluster.sv
       - target/sim/tb/testharness.sv
 
@@ -226,6 +216,10 @@ sources:
     files:
       - nonfree/gf12/mems/tc_sram.sv
       - nonfree/gf12/sourcecode/tc_clk.sv
+
+  - target: all(gf12, netlist)
+    files:
+      - nonfree/gf12/fusion/runs/0/out/15/snitch_cluster_wrapper.v
 
   - target: ihp13
     files:
@@ -248,6 +242,6 @@ sources:
       - target/asic/ihp13/tc_sram_impl.sv
       - target/asic/ihp13/tc_clk.sv
 
-  - target: all(snitch_cluster_wrapper, ihp13, netlist)
+  - target: all(ihp13, netlist)
     files:
       - target/asic/yosys/out/snitch_cluster_wrapper_yosys_debug.v
