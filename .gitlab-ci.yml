@@ -4,7 +4,6 @@
 
 variables:
   GIT_STRATEGY: clone
-  GIT_SUBMODULE_STRATEGY: recursive
   # Enable colors in CI terminal
   TERM: ansi
   FORCE_COLOR: 1
@@ -20,7 +19,7 @@ default:
   before_script:
     # Prevent race condition in managed Python installation,
     # see https://github.com/astral-sh/uv/issues/19329
-    - nfslock ${HOME}/uv-ci.lock uv sync --all-extras --locked
+    - nfslock ${HOME}/uv-ci.lock uv sync --extra all --locked
     - source iis-setup.sh
 
 ##############

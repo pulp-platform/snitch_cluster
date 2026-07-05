@@ -10,3 +10,7 @@
 [submodule "target/asic/ihp13/pdk"]
 	path = target/asic/ihp13/pdk
 	url = https://github.com/IHP-GmbH/IHP-Open-PDK.git
+[submodule "nonfree"]
+	path = nonfree
+	url = git@iis-git.ee.ethz.ch:pulp-restricted/snitch-cluster-nonfree.git
+	update = none

@@ -362,12 +362,9 @@ The following two subsections describe how to use the two flows.
 ### Proprietary flow
 
 As the proprietary flow involves proprietary tools and technologies, the flow is contained in a separate private git repository. 
-If you are an IIS user, with access to our Gitlab server and IIS machines, you may follow the next instructions to replicate our proprietary implementation flow. Firstly, we need to clone all the sources for the physical flow. The following command takes care of everything for you:
-```shell
-make nonfree
-```
+If you are an IIS user, with access to our Gitlab server and IIS machines, sourcing the `iis-setup.sh` script clones the `snitch-cluster-nonfree` submodule in the non `nonfree` folder.
 
-Behind the scenes, it will clone the `snitch-cluster-nonfree` repo under the `nonfree` folder. In that folder, you will find a Makefile defining a series of convenience targets to launch the proprietary flow up to a certain stage: may it be elaboration (`elab`), synthesis (`synth`) or place-and-route (`pnr`). If you can wait long enough you may also launch the entire flow to produce a final optimized post-layout netlist:
+There, you will find a Makefile defining a series of convenience targets to launch the proprietary flow up to a certain stage: may it be elaboration (`elab`), synthesis (`synth`) or place-and-route (`pnr`). If you can wait long enough you may also launch the entire flow to produce a final optimized post-layout netlist:
 
 ```shell
 make post-layout-netlist

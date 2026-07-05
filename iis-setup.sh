@@ -21,11 +21,10 @@ export PATH=$PWD/util/bin:$PATH
 # Add simulator binaries to PATH
 export PATH=$PWD/target/sim/build/bin:$PATH
 
-# Initialize submodules if needed
-if git submodule status --recursive 2>/dev/null | grep -q '^-'; then
-    git submodule update --init --recursive
-fi
+# Initialize submodules
+git -c submodule.nonfree.update=checkout submodule update --init --recursive
 
 # Bootstrap the Python environment
 uv sync --all-extras --locked
+uv pip install -e nonfree
 source .venv/bin/activate
