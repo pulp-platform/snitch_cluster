@@ -140,24 +140,7 @@ clean-rtl: sn-clean-rtl
 # Non-free #
 ############
 
-NONFREE_REMOTE ?= git@iis-git.ee.ethz.ch:pulp-restricted/snitch-cluster-nonfree.git
-NONFREE_COMMIT ?= 3da8864984e3dafbc63ce5de13f5e1fdaa135ac7
-NONFREE_DIR = $(SN_ROOT)/nonfree
-
-.PHONY: nonfree clean-nonfree
-
-nonfree:
-	cd $(NONFREE_DIR) && \
-	git init && \
-	git remote add origin $(NONFREE_REMOTE) && \
-	git fetch origin && \
-	git checkout $(NONFREE_COMMIT) -f
-
-clean-nonfree:
-	rm -rf $(NONFREE_DIR)
-	mkdir -p $(NONFREE_DIR)/util && touch $(NONFREE_DIR)/util/.gitignore
-
--include $(NONFREE_DIR)/Makefile
+-include nonfree/Makefile
 
 ############
 # Software #

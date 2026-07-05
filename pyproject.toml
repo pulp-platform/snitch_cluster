@@ -80,7 +80,6 @@ explicit = true
 "snitch.dnn" = "sw/kernels/dnn"
 "snitch.blas" = "sw/kernels/blas"
 "snitch.util" = "util"
-"snitch.nonfree" = "nonfree/util"
 
 [tool.pytest.ini_options]
 testpaths = ["util/bench/tests"]

@@ -201,5 +201,4 @@ yosys-synthesis:
 # Non-free elaboration flow
 elab:
   script:
-    - make nonfree
     - make elab
