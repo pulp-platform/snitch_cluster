@@ -17,9 +17,6 @@ default:
   interruptible: true
   timeout: 60m
   before_script:
-    # Prevent race condition in managed Python installation,
-    # see https://github.com/astral-sh/uv/issues/19329
-    - nfslock ${HOME}/uv-ci.lock uv sync --extra all --locked
     - source iis-setup.sh
 
 ##############
