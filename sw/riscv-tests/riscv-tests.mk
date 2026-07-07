@@ -15,6 +15,19 @@
 # Sources & destination
 SN_RVTESTS_SCRDIR    = $(SN_ROOT)/sw/deps/riscv-tests/isa
 SN_RVTESTS_BUILDDIR ?= $(SN_ROOT)/sw/riscv-tests/build/
+SN_RVTESTS_MAKEFRAGS = $(SN_RVTESTS_SCRDIR)/rv32ui/Makefrag
+# SN_RVTESTS_MAKEFRAGS += $(SN_RVTESTS_SCRDIR)/rv32uc/Makefrag
+SN_RVTESTS_MAKEFRAGS += $(SN_RVTESTS_SCRDIR)/rv32um/Makefrag
+SN_RVTESTS_MAKEFRAGS += $(SN_RVTESTS_SCRDIR)/rv32ua/Makefrag
+SN_RVTESTS_MAKEFRAGS += $(SN_RVTESTS_SCRDIR)/rv32uf/Makefrag
+SN_RVTESTS_MAKEFRAGS += $(SN_RVTESTS_SCRDIR)/rv32ud/Makefrag
+# SN_RVTESTS_MAKEFRAGS += $(SN_RVTESTS_SCRDIR)/rv32uzfh/Makefrag
+# SN_RVTESTS_MAKEFRAGS += $(SN_RVTESTS_SCRDIR)/rv32uzba/Makefrag
+# SN_RVTESTS_MAKEFRAGS += $(SN_RVTESTS_SCRDIR)/rv32uzbb/Makefrag
+# SN_RVTESTS_MAKEFRAGS += $(SN_RVTESTS_SCRDIR)/rv32uzbc/Makefrag
+# SN_RVTESTS_MAKEFRAGS += $(SN_RVTESTS_SCRDIR)/rv32uzbs/Makefrag
+# SN_RVTESTS_MAKEFRAGS += $(SN_RVTESTS_SCRDIR)/rv32si/Makefrag
+# SN_RVTESTS_MAKEFRAGS += $(SN_RVTESTS_SCRDIR)/rv32mi/Makefrag
 
 # Select the desired test cases
 # We ignore the following tests as we cannot build them with the snitch
@@ -30,19 +43,7 @@ SN_RVTESTS_BUILDDIR ?= $(SN_ROOT)/sw/riscv-tests/build/
 # - rv32uzbc
 # - rv32uzbs
 
-include $(SN_RVTESTS_SCRDIR)/rv32ui/Makefrag
-# include $(SN_RVTESTS_SCRDIR)/rv32uc/Makefrag
-include $(SN_RVTESTS_SCRDIR)/rv32um/Makefrag
-include $(SN_RVTESTS_SCRDIR)/rv32ua/Makefrag
-include $(SN_RVTESTS_SCRDIR)/rv32uf/Makefrag
-include $(SN_RVTESTS_SCRDIR)/rv32ud/Makefrag
-# include $(SN_RVTESTS_SCRDIR)/rv32uzfh/Makefrag
-# include $(SN_RVTESTS_SCRDIR)/rv32uzba/Makefrag
-# include $(SN_RVTESTS_SCRDIR)/rv32uzbb/Makefrag
-# include $(SN_RVTESTS_SCRDIR)/rv32uzbc/Makefrag
-# include $(SN_RVTESTS_SCRDIR)/rv32uzbs/Makefrag
-# include $(SN_RVTESTS_SCRDIR)/rv32si/Makefrag
-# include $(SN_RVTESTS_SCRDIR)/rv32mi/Makefrag
+-include $(SN_RVTESTS_MAKEFRAGS)
 
 ###################
 # Build variables #
@@ -117,10 +118,15 @@ $(SN_RVTESTS_BUILDDIR):
 
 .PHONY: sn-riscv-tests sn-clean-riscv-tests
 
+ifneq ($(wildcard $(firstword $(SN_RVTESTS_MAKEFRAGS))),)
 sn-riscv-tests: $(tests_dump) | $(SN_RVTESTS_BUILDDIR)
+else
+sn-riscv-tests:
+	$(MAKE) $@
+endif
 
 sn-clean-riscv-tests:
-	rm -rf $(junk)
+	rm -rf $(SN_RVTESTS_BUILDDIR) $(junk)
 
 # Integrate into main Makefile flow
 sn-sw: sn-riscv-tests

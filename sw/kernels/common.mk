@@ -8,6 +8,8 @@
 # Build variables #
 ###################
 
+include $(SN_ROOT)/make/sw-submodules.mk
+
 $(APP)_HEADERS += $(SN_RUNTIME_HAL_HDRS)
 
 $(APP)_INCDIRS += $(SN_RUNTIME_INCDIRS)
@@ -71,7 +73,7 @@ $(ELF): SRCS := $(SRCS)
 $(DEP) $(ELF): SN_RISCV_CFLAGS := $($(APP)_RISCV_CFLAGS)
 $(ELF): SN_RISCV_LDFLAGS := $($(APP)_RISCV_LDFLAGS)
 
-$(DEP): $(SRCS) | $($(APP)_BUILD_DIR) $($(APP)_HEADERS)
+$(DEP): $(SRCS) | $($(APP)_BUILD_DIR) $($(APP)_HEADERS) sn-sw-submodules
 	$(SN_RISCV_CXX) $(SN_RISCV_CFLAGS) -MM -MT '$(ELF)' -x c++ $< > $@
 
 $(ELF): $(SRCS) $(DEP) $(SN_RUNTIME_LD_DEPS) | $($(APP)_BUILD_DIR)

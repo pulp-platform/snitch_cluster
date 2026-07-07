@@ -13,6 +13,8 @@
 sn-sw: sn-runtime sn-tests sn-apps
 sn-clean-sw: sn-clean-runtime sn-clean-tests sn-clean-apps
 
+include $(SN_ROOT)/make/sw-submodules.mk
+
 ####################
 # Platform headers #
 ####################
@@ -68,6 +70,8 @@ include $(SN_ROOT)/sw/toolchain.mk
 include $(SN_ROOT)/sw/runtime/runtime.mk
 include $(SN_ROOT)/sw/tests/tests.mk
 include $(SN_ROOT)/sw/riscv-tests/riscv-tests.mk
+
+sn-runtime sn-tests sn-apps sn-riscv-tests: sn-sw-submodules
 
 SN_BUILD_APPS ?= ON
 

@@ -82,6 +82,6 @@ $(foreach test,$(SN_TESTS), \
 	$(eval $(call sn_test_rules,$(test))) \
 )
 
-$(SN_TEST_DEPS): | $(SN_RUNTIME_HAL_HDRS)
+$(SN_TEST_DEPS): | $(SN_RUNTIME_HAL_HDRS) sn-sw-submodules
 
 SN_DEPS += $(SN_TEST_DEPS)
