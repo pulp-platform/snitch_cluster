@@ -29,7 +29,7 @@ dependencies:
   apb:               { git: https://github.com/pulp-platform/apb.git,               rev: common-cells-v2 }
   idma:
     git: https://github.com/pulp-platform/idma.git
-    rev: __deploy__eaf0d29__common-cells-v2
+    rev: __deploy__9785d30__common-cells-v2
     pass_targets: ["snitch_cluster"]
   axi:               { git: https://github.com/colluca/axi.git,                     rev: multicast }
   common_cells:      { git: https://github.com/pulp-platform/common_cells.git,      rev: 65881ba0300209f181ddd34a12a8a2e5df7c07c8 }
