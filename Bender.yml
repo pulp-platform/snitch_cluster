@@ -26,7 +26,7 @@ dependencies:
   apb: 0.2.2
   tech_cells_generic: 0.2.13
   riscv-dbg: 0.8.1
-  cluster_icache: 0.3.0
+  cluster_icache:     { git: https://github.com/liyinrong/cluster_icache.git,         rev:      main        }
   idma: 0.6.5
   axi:                { git: https://github.com/colluca/axi.git,                      rev:      multicast   }
   common_cells:       { git: https://github.com/pulp-platform/common_cells.git,       rev:      snitch      }
