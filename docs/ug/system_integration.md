@@ -55,10 +55,10 @@ dependencies:
   snitch_cluster: { git: "https://github.com/pulp-platform/snitch_cluster.git", rev: "<hash>" }
 
 sources:
-  - <SN_GEN_DIR>/snitch_cluster_wrapper_pkg.sv
+  - override_files: true
+    files:
+      - <SN_GEN_DIR>/snitch_cluster_wrapper_pkg.sv
 ```
-
-Additionally, add the `-t snitch_cluster` target flag to your `bender` commands.
 
 ## Integrating the software
 

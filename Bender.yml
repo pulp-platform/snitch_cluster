@@ -195,7 +195,8 @@ sources:
     files:
       - hw/snitch_cluster/test/snitch_tcdm_interconnect_tb.sv
 
-  - target: any(tb, asic)
+  # To be overridden by the top-level package using Bender's `override_files`.
+  - target:
     files:
       - hw/generated/snitch_cluster_wrapper_pkg.sv
 

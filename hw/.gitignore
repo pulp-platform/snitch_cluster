@@ -1,1 +1,2 @@
-generated/
+generated/*
+!generated/snitch_cluster_wrapper_pkg.sv
