@@ -3,29 +3,32 @@
 // SPDX-License-Identifier: Apache-2.0
 #include <snrt.h>
 
+// Note: operands are passed to the asm blocks below through ordinary "r"
+// constraints and referenced in the templates via %N placeholders, rather
+// than being pinned to fixed hardware registers (e.g. via GCC/Clang's
+// local register variable extension). Pinning operands to fixed
+// registers is unreliable under Clang: the compiler does not guarantee
+// that a register bound this way keeps its assigned value up to the
+// point where an asm block reads it, even when the assignment and the
+// asm are adjacent in the source, since intervening (from the compiler's
+// point of view unrelated) code is free to reuse that same physical
+// register as scratch space in between, silently corrupting the
+// operand before the asm block ever sees it.
+
 int main() {
 #ifdef SNRT_SUPPORTS_PULP
     uint32_t i = snrt_global_core_idx();
     snrt_cluster_hw_barrier();
     if (i == 0) {
         int errs = 0;
-        int32_t result_rd;
-        int32_t result_rs1;
-        register int32_t rd asm("a3") = 1;
-        register int32_t rs1 asm("a4");
+        int32_t rd, rs1, rs2;
         ///////////////////////////
         // P_LB_IRPOST
         int8_t *lb_irpost = snrt_l1_alloc_cluster_local<int8_t>(1);
         *lb_irpost = 0x21;
         rs1 = (int32_t)(uintptr_t)lb_irpost;
-        asm volatile("cv.lb a3, (a4), 4\n"
-                     : "+r"(rs1), "=r"(rd)
-                     :
-                     : "a3", "a4");
-        result_rd = rd;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x21) &&
-              (result_rs1 == (int32_t)((uintptr_t)lb_irpost + 4)))) {
+        asm volatile("cv.lb %1, (%0), 4\n" : "+r"(rs1), "=r"(rd));
+        if (!((rd == 0x21) && (rs1 == (int32_t)((uintptr_t)lb_irpost + 4)))) {
             errs = errs + 1;
         }
         ///////////////////////////
@@ -33,14 +36,8 @@ int main() {
         uint8_t *lbu_irpost = snrt_l1_alloc_cluster_local<uint8_t>(1);
         *lbu_irpost = 0x78;
         rs1 = (int32_t)(uintptr_t)lbu_irpost;
-        asm volatile("cv.lbu a3, (a4), 4\n"
-                     : "+r"(rs1), "=r"(rd)
-                     :
-                     : "a3", "a4");
-        result_rd = rd;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x78) &&
-              (result_rs1 == (int32_t)((uintptr_t)lbu_irpost + 4)))) {
+        asm volatile("cv.lbu %1, (%0), 4\n" : "+r"(rs1), "=r"(rd));
+        if (!((rd == 0x78) && (rs1 == (int32_t)((uintptr_t)lbu_irpost + 4)))) {
             errs = errs + 1;
         }
         ////////////////////
@@ -49,14 +46,9 @@ int main() {
         *lh_irpost = 0x231;
         rs1 = (int32_t)(uintptr_t)lh_irpost;
         asm volatile(  //incr +4 to rs1
-            "cv.lh a3, (a4), 4\n"
-            : "+r"(rs1), "=r"(rd)
-            :
-            : "a3", "a4");
-        result_rd = rd;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x231) &&
-              (result_rs1 == (int32_t)((uintptr_t)lh_irpost + 4)))) {
+            "cv.lh %1, (%0), 4\n"
+            : "+r"(rs1), "=r"(rd));
+        if (!((rd == 0x231) && (rs1 == (int32_t)((uintptr_t)lh_irpost + 4)))) {
             errs = errs + 1;
         }
         /////////////////
@@ -65,14 +57,9 @@ int main() {
         *lhu_irpost = 0x34;
         rs1 = (int32_t)(uintptr_t)lhu_irpost;
         asm volatile(  //incr +4 to rs1
-            "cv.lhu a3, (a4), 4\n"
-            : "+r"(rs1), "=r"(rd)
-            :
-            : "a3", "a4");
-        result_rd = rd;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x34) &&
-              (result_rs1 == (int32_t)((uintptr_t)lhu_irpost + 4)))) {
+            "cv.lhu %1, (%0), 4\n"
+            : "+r"(rs1), "=r"(rd));
+        if (!((rd == 0x34) && (rs1 == (int32_t)((uintptr_t)lhu_irpost + 4)))) {
             errs = errs + 1;
         }
         /////////////////
@@ -81,99 +68,74 @@ int main() {
         *lw_irpost = 0x23;
         rs1 = (int32_t)(uintptr_t)lw_irpost;
         asm volatile(  //incr +4 to rs1
-            "cv.lw   a3, (a4), 4\n"
-            : "+r"(rs1), "=r"(rd)
-            :
-            : "a3", "a4");
-        result_rd = rd;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x23) &&
-              (result_rs1 == (int32_t)((uintptr_t)lw_irpost + 4)))) {
+            "cv.lw   %1, (%0), 4\n"
+            : "+r"(rs1), "=r"(rd));
+        if (!((rd == 0x23) && (rs1 == (int32_t)((uintptr_t)lw_irpost + 4)))) {
             errs = errs + 1;
         }
         //////////////////
         // P_LB_RRPOST
         int8_t *lb_rrpost = snrt_l1_alloc_cluster_local<int8_t>(1);
         *lb_rrpost = 0x23;
-        register int32_t rs2 asm("a5") = 8;
         rs1 = (int32_t)(uintptr_t)lb_rrpost;
+        rs2 = 8;
         asm volatile(  //incr +rs2 to rs1
-            "cv.lb   a3, (a4), a5\n"
+            "cv.lb   %1, (%0), %2\n"
             : "+r"(rs1), "=r"(rd)
-            : "r"(rs2)
-            : "a3", "a4", "a5");
-        result_rd = rd;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x23) &&
-              (result_rs1 == (int32_t)(uintptr_t)lb_rrpost + rs2))) {
+            : "r"(rs2));
+        if (!((rd == 0x23) && (rs1 == (int32_t)(uintptr_t)lb_rrpost + rs2))) {
             errs = errs + 1;
         }
         //////////////////
         // P_LBU_RRPOST
         uint8_t *lbu_rrpost = snrt_l1_alloc_cluster_local<uint8_t>(1);
         *lbu_rrpost = 0x57;
-        rs2 = 4;
         rs1 = (int32_t)(uintptr_t)lbu_rrpost;
+        rs2 = 4;
         asm volatile(  //incr +rs2 to rs1
-            "cv.lbu  a3, (a4), a5\n"
+            "cv.lbu  %1, (%0), %2\n"
             : "+r"(rs1), "=r"(rd)
-            : "r"(rs2)
-            : "a3", "a4", "a5");
-        result_rd = rd;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x57) &&
-              (result_rs1 == (int32_t)(uintptr_t)lbu_rrpost + rs2))) {
+            : "r"(rs2));
+        if (!((rd == 0x57) && (rs1 == (int32_t)(uintptr_t)lbu_rrpost + rs2))) {
             errs = errs + 1;
         }
         ////////////////////
         // P_LH_RRPOST
         int16_t *lh_rrpost = snrt_l1_alloc_cluster_local<int16_t>(1);
         *lh_rrpost = 0x12;
-        rs2 = 8;
         rs1 = (int32_t)(uintptr_t)lh_rrpost;
+        rs2 = 8;
         asm volatile(  //incr +rs2 to rs1
-            "cv.lh   a3, (a4), a5\n"
+            "cv.lh   %1, (%0), %2\n"
             : "+r"(rs1), "=r"(rd)
-            : "r"(rs2)
-            : "a3", "a4", "a5");
-        result_rd = rd;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x12) &&
-              (result_rs1 == (int32_t)(uintptr_t)lh_rrpost + rs2))) {
+            : "r"(rs2));
+        if (!((rd == 0x12) && (rs1 == (int32_t)(uintptr_t)lh_rrpost + rs2))) {
             errs = errs + 1;
         }
         //////////////////
         // P_LHU_RRPOST
         uint16_t *lhu_rrpost = snrt_l1_alloc_cluster_local<uint16_t>(1);
         *lhu_rrpost = 0x41;
-        rs2 = 10;
         rs1 = (int32_t)(uintptr_t)lhu_rrpost;
+        rs2 = 10;
         asm volatile(  //incr +rs2 to rs1
-            "cv.lhu  a3, (a4), a5\n"
+            "cv.lhu  %1, (%0), %2\n"
             : "+r"(rs1), "=r"(rd)
-            : "r"(rs2)
-            : "a3", "a4", "a5");
-        result_rd = rd;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x41) &&
-              (result_rs1 == (int32_t)(uintptr_t)lhu_rrpost + rs2))) {
+            : "r"(rs2));
+        if (!((rd == 0x41) && (rs1 == (int32_t)(uintptr_t)lhu_rrpost + rs2))) {
             errs = errs + 1;
         }
         ///////////////
         // P_LW_RRPOST
         int32_t *lw_rrpost = snrt_l1_alloc_cluster_local<int32_t>(1);
         *lw_rrpost = 0x9;
-        rs2 = 20;
         rs1 = (int32_t)(uintptr_t)lw_rrpost;
+        rs2 = 20;
         asm volatile(  //incr +rs2 to rs1
-            "cv.lw   a3, (a4), a5\n"
+            "cv.lw   %1, (%0), %2\n"
             : "+r"(rs1), "=r"(rd)
-            : "r"(rs2)
-            : "a3", "a4", "a5");
-        result_rd = rd;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x9) &&
-              (result_rs1 == (int32_t)(uintptr_t)lw_rrpost + rs2))) {
+            : "r"(rs2));
+        if (!((rd == 0x9) && (rs1 == (int32_t)(uintptr_t)lw_rrpost + rs2))) {
             errs = errs + 1;
         }
         /////////////
@@ -183,14 +145,10 @@ int main() {
         lb_rr[rs2] = 0x49;
         rs1 = (int32_t)(uintptr_t)lb_rr;
         asm volatile(  //read from rs1 + rs2
-            "cv.lb   a3, a5(a4)\n"
+            "cv.lb   %0, %2(%1)\n"
             : "=r"(rd)
-            : "r"(rs1), "r"(rs2)
-            : "a3", "a4", "a5");
-        result_rd = rd;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x49) &&
-              (result_rs1 == (int32_t)(uintptr_t)lb_rr))) {
+            : "r"(rs1), "r"(rs2));
+        if (!((rd == 0x49) && (rs1 == (int32_t)(uintptr_t)lb_rr))) {
             errs = errs + 1;
         }
         ////////////
@@ -200,14 +158,10 @@ int main() {
         lbu_rr[rs2] = 0x69;
         rs1 = (int32_t)(uintptr_t)lbu_rr;
         asm volatile(  //read from rs1 + rs2
-            "cv.lbu  a3, a5(a4)\n"
+            "cv.lbu  %0, %2(%1)\n"
             : "=r"(rd)
-            : "r"(rs1), "r"(rs2)
-            : "a3", "a4", "a5");
-        result_rd = rd;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x69) &&
-              (result_rs1 == (int32_t)(uintptr_t)lbu_rr))) {
+            : "r"(rs1), "r"(rs2));
+        if (!((rd == 0x69) && (rs1 == (int32_t)(uintptr_t)lbu_rr))) {
             errs = errs + 1;
         }
         ////////////
@@ -217,14 +171,10 @@ int main() {
         lh_rr[rs2 / sizeof(int16_t)] = 0x25;
         rs1 = (int32_t)(uintptr_t)lh_rr;
         asm volatile(  //read from rs1 + rs2
-            "cv.lh   a3, a5(a4)\n"
+            "cv.lh   %0, %2(%1)\n"
             : "=r"(rd)
-            : "r"(rs1), "r"(rs2)
-            : "a3", "a4", "a5");
-        result_rd = rd;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x25) &&
-              (result_rs1 == (int32_t)(uintptr_t)lh_rr))) {
+            : "r"(rs1), "r"(rs2));
+        if (!((rd == 0x25) && (rs1 == (int32_t)(uintptr_t)lh_rr))) {
             errs = errs + 1;
         }
         ////////////
@@ -234,14 +184,10 @@ int main() {
         lhu_rr[rs2 / sizeof(uint16_t)] = 0x11;
         rs1 = (int32_t)(uintptr_t)lhu_rr;
         asm volatile(  //read from rs1 + rs2
-            "cv.lhu  a3, a5(a4)\n"
+            "cv.lhu  %0, %2(%1)\n"
             : "=r"(rd)
-            : "r"(rs1), "r"(rs2)
-            : "a3", "a4", "a5");
-        result_rd = rd;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x11) &&
-              (result_rs1 == (int32_t)(uintptr_t)lhu_rr))) {
+            : "r"(rs1), "r"(rs2));
+        if (!((rd == 0x11) && (rs1 == (int32_t)(uintptr_t)lhu_rr))) {
             errs = errs + 1;
         }
         ///////////
@@ -251,14 +197,10 @@ int main() {
         lw_rr[rs2 / sizeof(int32_t)] = 0x33;
         rs1 = (int32_t)(uintptr_t)lw_rr;
         asm volatile(  //read from rs1 + rs2
-            "cv.lw   a3, a5(a4)\n"
+            "cv.lw   %0, %2(%1)\n"
             : "=r"(rd)
-            : "r"(rs1), "r"(rs2)
-            : "a3", "a4", "a5");
-        result_rd = rd;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x33) &&
-              (result_rs1 == (int32_t)(uintptr_t)lw_rr))) {
+            : "r"(rs1), "r"(rs2));
+        if (!((rd == 0x33) && (rs1 == (int32_t)(uintptr_t)lw_rr))) {
             errs = errs + 1;
         }
         ////////////
@@ -267,14 +209,11 @@ int main() {
         rs2 = 0x76;
         rs1 = (int32_t)(uintptr_t)sb_irpost;
         asm volatile(  //write rs2 value to rs1, increment rs1
-            "cv.sb   a5, (a4), 4\n"
+            "cv.sb   %1, (%0), 4\n"
             : "+r"(rs1)
-            : "r"(rs2)
-            : "a3", "a4");
-        result_rd = *sb_irpost;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x76) &&
-              (result_rs1 == (int32_t)((uintptr_t)sb_irpost + 4)))) {
+            : "r"(rs2));
+        if (!((*sb_irpost == 0x76) &&
+              (rs1 == (int32_t)((uintptr_t)sb_irpost + 4)))) {
             errs = errs + 1;
         }
         //////////
@@ -283,14 +222,11 @@ int main() {
         rs2 = 0x99;
         rs1 = (int32_t)(uintptr_t)sh_irpost;
         asm volatile(  //write rs2 value to rs1, increment rs1
-            "cv.sh   a5, (a4), 4\n"
+            "cv.sh   %1, (%0), 4\n"
             : "+r"(rs1)
-            : "r"(rs2)
-            : "a3", "a4");
-        result_rd = *sh_irpost;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x99) &&
-              (result_rs1 == (int32_t)((uintptr_t)sh_irpost + 4)))) {
+            : "r"(rs2));
+        if (!((*sh_irpost == 0x99) &&
+              (rs1 == (int32_t)((uintptr_t)sh_irpost + 4)))) {
             errs = errs + 1;
         }
         //////////
@@ -299,14 +235,11 @@ int main() {
         rs2 = 0x71;
         rs1 = (int32_t)(uintptr_t)sw_irpost;
         asm volatile(  //write rs2 value to rs1, increment rs1
-            "cv.sw   a5, (a4), 4\n"
+            "cv.sw   %1, (%0), 4\n"
             : "+r"(rs1)
-            : "r"(rs2)
-            : "a4", "a5");
-        result_rd = *sw_irpost;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x71) &&
-              (result_rs1 == (int32_t)((uintptr_t)sw_irpost + 4)))) {
+            : "r"(rs2));
+        if (!((*sw_irpost == 0x71) &&
+              (rs1 == (int32_t)((uintptr_t)sw_irpost + 4)))) {
             errs = errs + 1;
         }
         //////////
@@ -315,15 +248,12 @@ int main() {
         rs2 = 0x21;
         rs1 = (int32_t)(uintptr_t)sb_rrpost;
         rd = 0x4;
-        asm volatile(  //write rs2 value to rs1, increment rs1 by rs3
-            "cv.sb   a5, (a4), a3\n"
+        asm volatile(  //write rs2 value to rs1, increment rs1 by rd
+            "cv.sb   %1, (%0), %2\n"
             : "+r"(rs1)
-            : "r"(rs2), "r"(rd)
-            : "a3", "a4", "a5");
-        result_rd = *sb_rrpost;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x21) &&
-              (result_rs1 == (int32_t)(uintptr_t)sb_rrpost + rd))) {
+            : "r"(rs2), "r"(rd));
+        if (!((*sb_rrpost == 0x21) &&
+              (rs1 == (int32_t)(uintptr_t)sb_rrpost + rd))) {
             errs = errs + 1;
         }
         //////////
@@ -332,15 +262,12 @@ int main() {
         rs2 = 0x15;
         rs1 = (int32_t)(uintptr_t)sh_rrpost;
         rd = 0x8;
-        asm volatile(  //write rs2 value to rs1, increment rs1 by rs3
-            "cv.sh   a5, (a4), a3\n"
+        asm volatile(  //write rs2 value to rs1, increment rs1 by rd
+            "cv.sh   %1, (%0), %2\n"
             : "+r"(rs1)
-            : "r"(rs2), "r"(rd)
-            : "a3", "a4", "a5");
-        result_rd = *sh_rrpost;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x15) &&
-              (result_rs1 == (int32_t)(uintptr_t)sh_rrpost + rd))) {
+            : "r"(rs2), "r"(rd));
+        if (!((*sh_rrpost == 0x15) &&
+              (rs1 == (int32_t)(uintptr_t)sh_rrpost + rd))) {
             errs = errs + 1;
         }
         /////////
@@ -349,15 +276,12 @@ int main() {
         rs2 = 0x57;
         rs1 = (int32_t)(uintptr_t)sw_rrpost;
         rd = 0x100;
-        asm volatile(  //write rs2 value to rs1, increment rs1 by rs3
-            "cv.sw   a5, (a4), a3\n"
+        asm volatile(  //write rs2 value to rs1, increment rs1 by rd
+            "cv.sw   %1, (%0), %2\n"
             : "+r"(rs1)
-            : "r"(rs2), "r"(rd)
-            : "a3", "a4", "a5");
-        result_rd = *sw_rrpost;
-        result_rs1 = rs1;
-        if (!((result_rd == 0x57) &&
-              (result_rs1 == (int32_t)(uintptr_t)sw_rrpost + rd))) {
+            : "r"(rs2), "r"(rd));
+        if (!((*sw_rrpost == 0x57) &&
+              (rs1 == (int32_t)(uintptr_t)sw_rrpost + rd))) {
             errs = errs + 1;
         }
         /////////
@@ -366,15 +290,11 @@ int main() {
         rs2 = 0x23;
         rs1 = (int32_t)(uintptr_t)sb_rr;
         rd = 0x100;
-        asm volatile(  //write rs2 value to rs1 + rs3
-            "cv.sb   a5, a3(a4)\n"
+        asm volatile(  //write rs2 value to rs1 + rd
+            "cv.sb   %0, %2(%1)\n"
             :
-            : "r"(rs2), "+r"(rs1), "r"(rd)
-            : "a3", "a4", "a5");
-        result_rd = sb_rr[rd];
-        result_rs1 = rs1;
-        if (!((result_rd == 0x23) &&
-              (result_rs1 == (int32_t)(uintptr_t)sb_rr))) {
+            : "r"(rs2), "r"(rs1), "r"(rd));
+        if (!((sb_rr[rd] == 0x23) && (rs1 == (int32_t)(uintptr_t)sb_rr))) {
             errs = errs + 1;
         }
         /////////
@@ -383,15 +303,12 @@ int main() {
         rs2 = 0x18;
         rs1 = (int32_t)(uintptr_t)sh_rr;
         rd = 0x80;
-        asm volatile(  //write rs2 value to rs1 + rs3
-            "cv.sh   a5, a3(a4)\n"
+        asm volatile(  //write rs2 value to rs1 + rd
+            "cv.sh   %0, %2(%1)\n"
             :
-            : "r"(rs2), "+r"(rs1), "r"(rd)
-            : "a3", "a4", "a5");
-        result_rd = sh_rr[rd / sizeof(int16_t)];
-        result_rs1 = rs1;
-        if (!((result_rd == 0x18) &&
-              (result_rs1 == (int32_t)(uintptr_t)sh_rr))) {
+            : "r"(rs2), "r"(rs1), "r"(rd));
+        if (!((sh_rr[rd / sizeof(int16_t)] == 0x18) &&
+              (rs1 == (int32_t)(uintptr_t)sh_rr))) {
             errs = errs + 1;
         }
         /////////
@@ -400,15 +317,12 @@ int main() {
         rs2 = 0x98;
         rs1 = (int32_t)(uintptr_t)sw_rr;
         rd = 0x20;
-        asm volatile(  //write rs2 value to rs1 + rs3
-            "cv.sw   a5, a3(a4)\n"
+        asm volatile(  //write rs2 value to rs1 + rd
+            "cv.sw   %0, %2(%1)\n"
             :
-            : "r"(rs2), "+r"(rs1), "r"(rd)
-            : "a3", "a4", "a5");
-        result_rd = sw_rr[rd / sizeof(int32_t)];
-        result_rs1 = rs1;
-        if (!((result_rd == 0x98) &&
-              (result_rs1 == (int32_t)(uintptr_t)sw_rr))) {
+            : "r"(rs2), "r"(rs1), "r"(rd));
+        if (!((sw_rr[rd / sizeof(int32_t)] == 0x98) &&
+              (rs1 == (int32_t)(uintptr_t)sw_rr))) {
             errs = errs + 1;
         }
 
