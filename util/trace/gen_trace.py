@@ -702,8 +702,26 @@ def eval_dma_metrics(dma_trans, dma_trace):
                 # to pre-compute from the core trace as it depends on address alignments, etc.)
                 if dma['backend']['req_valid'] and dma['backend']['req_ready']:
                     if req_bytes == 0:
+                        # Skip transactions which do not produce any burst on the
+                        # DMA backend, and hence do not appear in the DMA trace.
+                        # Zero-size transfers are rejected by the iDMA backend
+                        # (see the `reject_zero_tfs` backend parameter), and the
+                        # trailing placeholder transaction has no `size` set yet.
+                        while transfer_idx < len(dma_trans) and \
+                                dma_trans[transfer_idx].get('size', 0) == 0:
+                            transfer_idx += 1
+                        # Guard against more transfers appearing in the DMA trace
+                        # than were decoded from the core trace (e.g. if the core
+                        # trace was truncated). Stop evaluating DMA metrics rather
+                        # than crashing on the incomplete placeholder transaction.
+                        if transfer_idx >= len(dma_trans):
+                            print('Warning: DMA trace contains more transfers '
+                                  'than were decoded from the core trace; '
+                                  'stopping DMA metric evaluation.',
+                                  file=sys.stderr)
+                            break
                         exp_bytes = dma_trans[transfer_idx]['rep'] * \
-                                    dma_trans[transfer_idx]['size']
+                            dma_trans[transfer_idx]['size']
                         outst_transfers.append({'tstart': time,
                                                 'bytes': exp_bytes})
                     req_bytes += dma['backend']['req_length']
