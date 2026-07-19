@@ -389,8 +389,12 @@ inline void snrt_global_reduction_dma(T *dst_buffer, T *src_buffer, size_t len,
         snrt_fpu_fence();
         snrt_cluster_hw_barrier();
 
-        // Iterate levels in the binary reduction tree
-        int num_levels = ceil(log2(comm->size));
+        // Iterate levels in the binary reduction tree. This is ceil(log2(size)),
+        // computed with integer arithmetic. Using the floating-point log2()/ceil()
+        // here is both unnecessary (this is a bit-width computation on an integer)
+        // and fragile: it lowers to a libm call which can trigger Snitch's FP/integer
+        // LSU memory-ordering bug.
+        int num_levels = 32 - __builtin_clz(comm->size - 1);
         for (unsigned int level = 0; level < num_levels; level++) {
             // Determine whether the current cluster is an active cluster.
             // An active cluster is a cluster that participates in the current
