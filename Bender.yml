@@ -24,16 +24,26 @@ remotes:
 dependencies:
   tech_cells_generic: 0.2.14
   riscv-dbg: 0.8.1
-  cluster_icache:    { git: https://github.com/pulp-platform/cluster_icache.git,    rev: common-cells-v2 }
-  axi_riscv_atomics: { git: https://github.com/pulp-platform/axi_riscv_atomics.git, rev: common-cells-v2 }
-  apb:               { git: https://github.com/pulp-platform/apb.git,               rev: common-cells-v2 }
+  cluster_icache:
+    git: https://github.com/pulp-platform/cluster_icache.git
+    rev: common-cells-v2
+  axi_riscv_atomics:
+    git: https://github.com/pulp-platform/axi_riscv_atomics.git
+    rev: common-cells-v2
+  apb:
+    git: https://github.com/pulp-platform/apb.git
+    rev: common-cells-v2
   idma:
     git: https://github.com/pulp-platform/idma.git
     rev: __deploy__9785d30__common-cells-v2
     pass_targets: ["snitch_cluster"]
-  axi:               { git: https://github.com/colluca/axi.git,                     rev: multicast }
-  common_cells:      { git: https://github.com/pulp-platform/common_cells.git,      rev: 65881ba0300209f181ddd34a12a8a2e5df7c07c8 }
-  FPnew:             { git: https://github.com/pulp-platform/cvfpu.git,             rev: common-cells-v2 }
+  axi:
+    git: https://github.com/colluca/axi.git
+    rev: multicast
+  common_cells: 2.0.0-beta.2
+  FPnew:
+    git: https://github.com/pulp-platform/cvfpu.git
+    rev: common-cells-v2
 
 export_include_dirs:
   - hw/reqrsp_interface/include
