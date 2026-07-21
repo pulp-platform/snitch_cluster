@@ -15,7 +15,6 @@ variables:
 default:
   # Allow interrupting long-running jobs when a new pipeline on the same branch is triggered
   interruptible: true
-  timeout: 60m
   before_script:
     - source iis-setup.sh
 
