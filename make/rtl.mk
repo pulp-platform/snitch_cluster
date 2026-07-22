@@ -44,16 +44,6 @@ $(SPATZ_PKG): $(SN_CFG) $(SPATZ_PKG_TPL) | $(SN_GEN_DIR)
 	cd $(SPATZ_HW_DIR) && python apply_cfg.py $(basename $(notdir $(SN_CFG)))
 	cp $(SPATZ_HW_DIR)/src/generated/spatz_pkg.sv $@
 
-# riscv_instr.sv is authoritative in snitch_cluster; this target propagates it
-# to the Spatz repo so the two stay in sync.
-SPATZ_RISCV_INSTR_SRC = $(SN_HW_DIR)/snitch/src/riscv_instr.sv
-SPATZ_RISCV_INSTR_DST = $(SPATZ_HW_DIR)/ip/snitch/src/riscv_instr.sv
-
-.PHONY: sync-spatz-riscv-instr
-sync-spatz-riscv-instr:
-	cp $(SPATZ_RISCV_INSTR_SRC) $(SPATZ_RISCV_INSTR_DST)
-	@echo "[SPATZ] Synced riscv_instr.sv → $(SPATZ_RISCV_INSTR_DST)"
-
 # peakRDL rules
 $(SN_CLUSTER_PERIPH_PKG): $(SN_CLUSTER_PERIPH)
 $(SN_CLUSTER_PERIPH): $(SN_PERIPH_DIR)/snitch_cluster_peripheral_reg.rdl
