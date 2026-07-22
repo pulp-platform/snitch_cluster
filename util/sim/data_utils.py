@@ -284,6 +284,7 @@ def from_buffer(byte_array, ctype='uint32_t'):
     """
     # Types which have a direct correspondence in Numpy
     NP_DTYPE_FROM_CTYPE = {
+        'uint16_t': np.uint16,
         'uint32_t': np.uint32,
         'int32_t': np.int32,
         'double': np.float64,
@@ -303,6 +304,8 @@ def from_buffer(byte_array, ctype='uint32_t'):
         return np.frombuffer(byte_array, dtype=dtype)
     elif ctype == '__fp8':
         return ff.frombuffer(byte_array, 'e5m2')
+    else:
+        raise ValueError(f"Unsupported ctype for from_buffer(): {ctype}")
 
 
 class DataGen:

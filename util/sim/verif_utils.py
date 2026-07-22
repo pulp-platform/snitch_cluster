@@ -236,7 +236,26 @@ class Verifier:
         """
         # Compute absolute error
         expected, actual = map(flatten, (expected, actual))
-        err = np.abs(expected - actual)
+
+        # Numpy emits a RuntimeWarning for operations such as (+inf) - (+inf)
+        # which yields NaN, even though such entries can still be considered
+        # correct (exactly equal) depending on the comparison logic.
+        if expected.dtype != np.dtype(object) and actual.dtype != np.dtype(object):
+            with np.errstate(invalid='ignore', over='ignore', divide='ignore'):
+                err = np.abs(np.subtract(expected, actual))
+
+            # Treat identical infinities as exact matches (zero error) so that
+            # result dumps are readable and comparisons remain stable.
+            same_inf = (
+                np.isinf(expected)
+                & np.isinf(actual)
+                & (np.signbit(expected) == np.signbit(actual))
+            )
+            if np.any(same_inf):
+                err = err.copy()
+                err[same_inf] = 0
+        else:
+            err = np.abs(expected - actual)
         # Check absolute or relative error
         if atol is not None and rtol is not None:
             raise ValueError('atol and rtol are mutually exclusive.')
