@@ -35,27 +35,7 @@ SN_RUNTIME_LD_DEPS = $(SN_RUNTIME_MEMORY_LD) $(SN_RUNTIME_BASE_LD) $(SN_RUNTIME_
 # Outputs #
 ###########
 
-# Tests using alt-half (.ah) or alt-byte (.ab) mnemonics that LLVM 22+ does
-# not yet implement (neither under 'xsmallfloat' nor the new 'xsflt*' names).
-# Standard FP8 (.b) tests work fine with +xsfltb/+xsfltvb and are NOT listed here.
-SN_BUILD_FP_ALT_TESTS ?= OFF
-
-SN_FP_ALT_TESTS += $(SN_TESTS_SRCDIR)/fp16alt_comparison_scalar.c
-SN_FP_ALT_TESTS += $(SN_TESTS_SRCDIR)/fp16alt_comparison_vector.c
-SN_FP_ALT_TESTS += $(SN_TESTS_SRCDIR)/fp16alt_computation_scalar.c
-SN_FP_ALT_TESTS += $(SN_TESTS_SRCDIR)/fp16alt_computation_vector.c
-SN_FP_ALT_TESTS += $(SN_TESTS_SRCDIR)/fp8alt_comparison_scalar.c
-SN_FP_ALT_TESTS += $(SN_TESTS_SRCDIR)/fp8alt_comparison_vector.c
-SN_FP_ALT_TESTS += $(SN_TESTS_SRCDIR)/fp8alt_computation_scalar.c
-SN_FP_ALT_TESTS += $(SN_TESTS_SRCDIR)/fp8alt_computation_vector.c
-SN_FP_ALT_TESTS += $(SN_TESTS_SRCDIR)/fp32_conversions_scalar.c
-SN_FP_ALT_TESTS += $(SN_TESTS_SRCDIR)/fp64_conversions_scalar.c
-
 SN_TESTS       += $(wildcard $(SN_TESTS_SRCDIR)/*.c)
-ifeq ($(SN_BUILD_FP_ALT_TESTS),OFF)
-SN_TESTS       := $(filter-out $(SN_FP_ALT_TESTS),$(SN_TESTS))
-endif
-
 SN_TEST_NAMES   = $(basename $(notdir $(SN_TESTS)))
 SN_TEST_ELFS    = $(abspath $(addprefix $(SN_TESTS_BUILDDIR)/,$(addsuffix .elf,$(SN_TEST_NAMES))))
 SN_TEST_DEPS    = $(abspath $(addprefix $(SN_TESTS_BUILDDIR)/,$(addsuffix .d,$(SN_TEST_NAMES))))

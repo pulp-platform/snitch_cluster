@@ -130,7 +130,7 @@ package snitch_pkg;
   typedef struct packed {
     /// Reduced-register extension.
     bit RVE;
-    /// RISC-V V extention for Spatz
+    /// RISC-V V extension for Spatz
     bit RVV;
     /// Enable Snitch DMA as accelerator.
     bit Xdma;

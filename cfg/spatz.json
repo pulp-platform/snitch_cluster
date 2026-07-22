@@ -125,7 +125,7 @@
         rvv: false,
         xfrep: false,
         xcopift: false,
-        xf16: true,
+        xf16: false,
         xf16alt: false,
         xf8: false,
         xf8alt: false,

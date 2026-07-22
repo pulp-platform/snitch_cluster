@@ -37,7 +37,7 @@ SN_RISCV_FEATURES = xdma xcvmem xpulpabs xpulpbitop xpulpbr xpulpclip xpulpmacsi
 else
 SN_RISCV_FEATURES = xfrep xssr xdma xcopift xsmallfloatb xsmallfloath xsmallfloatvb xsmallfloatvh xsmallfloatvs
 endif
-SN_RISCV_CFLAGS := -march=rv32imafd_v_zfh_zifencei
+SN_RISCV_CFLAGS := -march=rv32imafdv_zfh_zifencei
 SN_RISCV_CFLAGS += $(foreach feat,$(SN_RISCV_FEATURES),-Xclang -target-feature -Xclang +$(feat))
 SN_RISCV_CFLAGS += -menable-experimental-extensions
 SN_RISCV_CFLAGS += -mabi=ilp32d
@@ -50,11 +50,10 @@ SN_RISCV_CFLAGS += -fopenmp
 SN_RISCV_CFLAGS += -ftls-model=local-exec
 SN_RISCV_CFLAGS += -O3
 SN_RISCV_CFLAGS += -Werror
-
 # Disable auto-vectorization so the compiler does not emit RVV instructions
-# behind the programmer's back. Can be overridden by setting LLVM_V_FLAGS=.
-LLVM_V_FLAGS ?= -fno-vectorize -fno-slp-vectorize -mllvm -scalable-vectorization=off
-SN_RISCV_CFLAGS += $(LLVM_V_FLAGS)
+# behind the programmer's back. Can be overridden by setting SN_RISCV_V_FLAGS=.
+SN_RISCV_V_FLAGS ?= -fno-vectorize -fno-slp-vectorize -mllvm -scalable-vectorization=off
+SN_RISCV_CFLAGS += $(SN_RISCV_V_FLAGS)
 ifeq ($(DEBUG), ON)
 SN_RISCV_CFLAGS += -g
 endif
