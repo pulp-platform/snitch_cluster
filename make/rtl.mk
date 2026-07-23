@@ -8,6 +8,7 @@ SN_BOOTROM_DIR ?= $(SN_HW_DIR)/bootrom
 # Templates
 SN_CLUSTER_WRAPPER_PKG_TPL = $(SN_HW_DIR)/snitch_cluster/src/snitch_cluster_wrapper_pkg.sv.tpl
 SN_CLUSTER_RDL_TPL         = $(SN_HW_DIR)/snitch_cluster/src/snitch_cluster.rdl.tpl
+SN_SPATZ_CFG_TPL           = $(SN_HW_DIR)/snitch_cluster/src/spatz_cfg.json.tpl
 
 # Generated RTL sources
 SN_CLUSTER_WRAPPER_PKG = $(SN_GEN_DIR)/snitch_cluster_wrapper_pkg.sv
@@ -18,12 +19,13 @@ SN_BOOTROM             = $(SN_BOOTROM_DIR)/snitch_bootrom.sv
 SN_CLUSTER_RDL         = $(SN_GEN_DIR)/snitch_cluster.rdl
 
 # Spatz package generation
-SPATZ_HW_DIR  = $(shell $(SN_BENDER) path spatz_core)/hw
-SPATZ_PKG_TPL = $(SPATZ_HW_DIR)/src/spatz_pkg.sv.tpl
-SPATZ_PKG     = $(SN_GEN_DIR)/spatz_pkg.sv
+SN_SPATZ_HW_DIR  = $(shell $(SN_BENDER) path spatz_core)/hw
+SN_SPATZ_CFG     = $(SN_GEN_DIR)/spatz_cfg.json
+SN_SPATZ_PKG_TPL = $(SN_SPATZ_HW_DIR)/src/spatz_pkg.sv.tpl
+SN_SPATZ_PKG     = $(SN_GEN_DIR)/spatz_pkg.sv
 
 # All generated RTL sources
-SN_GEN_RTL_SRCS = $(SN_CLUSTER_WRAPPER_PKG) $(SN_CLUSTER_ADDRMAP_SVH) $(SN_CLUSTER_PERIPH) $(SN_CLUSTER_PERIPH_PKG) $(SN_BOOTROM) $(SPATZ_PKG)
+SN_GEN_RTL_SRCS = $(SN_CLUSTER_WRAPPER_PKG) $(SN_CLUSTER_ADDRMAP_SVH) $(SN_CLUSTER_PERIPH) $(SN_CLUSTER_PERIPH_PKG) $(SN_BOOTROM) $(SN_SPATZ_PKG)
 
 # Intermediate artifacts
 SN_BOOTROM_ELF       = $(SN_BOOTROM_DIR)/bootrom.elf
@@ -34,15 +36,16 @@ SN_BOOTROM_ARTIFACTS = $(SN_BOOTROM_ELF) $(SN_BOOTROM_DUMP) $(SN_BOOTROM_BIN)
 # CLUSTERGEN rules
 $(eval $(call sn_cluster_gen_rule,$(SN_CLUSTER_WRAPPER_PKG),$(SN_CLUSTER_WRAPPER_PKG_TPL)))
 $(eval $(call sn_cluster_gen_rule,$(SN_CLUSTER_RDL),$(SN_CLUSTER_RDL_TPL)))
+$(eval $(call sn_cluster_gen_rule,$(SN_SPATZ_CFG),$(SN_SPATZ_CFG_TPL)))
 
 # Spatz package generation via the Spatz hw/Makefile flow:
 #   import_cfg.py extracts Spatz VFU fields from the cluster config,
 #   apply_cfg.py renders spatz_pkg.sv.tpl into the generated file.
-$(SPATZ_PKG): $(SN_CFG) $(SPATZ_PKG_TPL) | $(SN_GEN_DIR)
+$(SN_SPATZ_PKG): $(SN_SPATZ_CFG) $(SN_SPATZ_PKG_TPL) | $(SN_GEN_DIR)
 	@echo "[SPATZ] Generating $@"
-	cd $(SPATZ_HW_DIR) && python import_cfg.py $(abspath $(SN_CFG))
-	cd $(SPATZ_HW_DIR) && python apply_cfg.py $(basename $(notdir $(SN_CFG)))
-	cp $(SPATZ_HW_DIR)/src/generated/spatz_pkg.sv $@
+	cd $(SN_SPATZ_HW_DIR) && python import_cfg.py $(abspath $(SN_SPATZ_CFG))
+	cd $(SN_SPATZ_HW_DIR) && python apply_cfg.py $(basename $(notdir $(SN_SPATZ_CFG)))
+	cp $(SN_SPATZ_HW_DIR)/src/generated/spatz_pkg.sv $@
 
 # peakRDL rules
 $(SN_CLUSTER_PERIPH_PKG): $(SN_CLUSTER_PERIPH)
