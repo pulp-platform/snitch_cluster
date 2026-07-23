@@ -45,8 +45,8 @@ dependencies:
     git: https://github.com/pulp-platform/cvfpu.git
     rev: common-cells-v2
   spatz_core:
-    git: https://github.com/DiyouS/spatz.git
-    rev: diyou/spatz_core_rebase
+    git: https://github.com/pulp-platform/spatz_vpu.git
+    rev: common_cell_v2
 
 export_include_dirs:
   - hw/reqrsp_interface/include
