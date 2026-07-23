@@ -168,7 +168,7 @@
                 },
                 "atomic_id_width": {
                     "type": "number",
-                    "description": "Width of the cluster's atomic ID.",
+                    "description": "Width of the cluster's atomic ID. Should be set to clog2(num_atomic_masters + 1); atomic ID 0 is reserved for non-atomic masters. All cores in a cluster use the same atomic ID.",
                     "default": 1
                 },
                 "collective_width": {
