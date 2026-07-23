@@ -47,7 +47,8 @@ SN_GENTRACE_SRC = $(SN_UTIL_DIR)/trace/sequencer.py
 SN_ANNOTATE_SRC = $(SN_UTIL_DIR)/trace/a2l.py
 
 # Clustergen prerequisites
-SN_CLUSTER_GEN_SRC = $(SN_ROOT)/util/clustergen/cluster.py
+SN_CLUSTER_GEN_SRC  = $(SN_ROOT)/util/clustergen/cluster.py
+SN_CLUSTER_GEN_SRC += $(SN_ROOT)/util/clustergen/snitch_cluster.schema.json
 
 # Bender prerequisites
 SN_BENDER_LOCK = $(SN_ROOT)/Bender.lock
