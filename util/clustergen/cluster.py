@@ -89,8 +89,9 @@ class RiscvISA:
     a: bool = False
     f: bool = False
     d: bool = False
+    v: bool = False
 
-    isa_string = re.compile(r"^rv32(i|e)([m|a|f|d]*)$")
+    isa_string = re.compile(r"^rv32(i|e)([m|a|f|d|v]*)$")
 
 
 def parse_isa_string(s):
