@@ -17,7 +17,10 @@ package snitch_cc_pkg;
     NumCopro = 2
   } copro_id_e;
 
-  function automatic int unsigned num_spatz_mem_ports(int unsigned spatz_num_fu, bit spatz_double_bw);
+  function automatic int unsigned num_spatz_mem_ports(
+    int unsigned spatz_num_fu,
+    bit spatz_double_bw
+  );
     return spatz_double_bw ? spatz_num_fu * 2 : spatz_num_fu;
   endfunction
 

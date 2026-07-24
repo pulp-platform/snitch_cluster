@@ -115,7 +115,12 @@ module snitch_cc
   /// Enable direct compute access (DCA).
   parameter bit          EnableDca          = 0,
   /// Derived parameter *Do not override*
-  localparam int unsigned NumTcdmPorts = snitch_cc_pkg::get_tcdm_ports(IsaCfg, NumSsrs, spatz_pkg::N_FU, SpatzDoubleBw),
+  localparam int unsigned NumTcdmPorts = snitch_cc_pkg::get_tcdm_ports(
+    IsaCfg,
+    NumSsrs,
+    spatz_pkg::N_FU,
+    SpatzDoubleBw
+  ),
   localparam type addr_t = logic [AddrWidth-1:0],
   localparam type data_t = logic [DataWidth-1:0],
   localparam type tcdm_req_t = `TCDM_REQ_STRUCT(DataWidth, TcdmAddrWidth, TcdmUserWidth),
@@ -169,7 +174,10 @@ module snitch_cc
 
   localparam bit NativeFpSupport = snitch_pkg::calculate_fp_enable(IsaCfg) && !IsaCfg.RVV;
   localparam bit Xpulpv2 = snitch_pkg::calculate_xpulpv2(IsaCfg);
-  localparam int unsigned NumSpatzMemPorts = snitch_cc_pkg::num_spatz_mem_ports(spatz_pkg::N_FU, SpatzDoubleBw);
+  localparam int unsigned NumSpatzMemPorts = snitch_cc_pkg::num_spatz_mem_ports(
+    spatz_pkg::N_FU,
+    SpatzDoubleBw
+  );
 
   // Define tcdm_req_chan_t and tcdm_rsp_chan_t
   `TCDM_TYPEDEF_REQRSP_CHAN_ALL(tcdm, DataWidth, TcdmAddrWidth, TcdmUserWidth)
@@ -279,7 +287,7 @@ module snitch_cc
 
   // LSU/SSR0 muxed TCDM interface
   tcdm_req_t muxed_tcdm_req;
-  tcdm_rsp_t muxed_tcdm_rsp; 
+  tcdm_rsp_t muxed_tcdm_rsp;
 
   // Spatz FLSU interface
   dreq_t spatz_flsu_dreq;

@@ -200,9 +200,11 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   /// Total physical address portion.
   localparam int unsigned PPNSize = AddrWidth - PageShift;
   /// Non-ratified extensions are enabled
-  localparam bit NonRatifiedExtensions = XF16ALT | XF8 | XF8ALT | XFVEC | XFDOTP | XFAUX | Xpulpabs |
-    Xpulpbitop | Xpulpbr | Xpulpclip | Xpulpmacsi | Xpulpminmax | Xpulpslet | Xpulpvect |
-    Xpulpvectshufflepack | Xcvmem | Xssr | Xfrep | Xcopift | Xdma;
+  localparam bit NonRatifiedExtensions =
+      XF16ALT | XF8 | XF8ALT | XFVEC | XFDOTP | XFAUX | Xpulpabs |
+      Xpulpbitop | Xpulpbr | Xpulpclip | Xpulpmacsi | Xpulpminmax |
+      Xpulpslet | Xpulpvect | Xpulpvectshufflepack | Xcvmem | Xssr |
+      Xfrep | Xcopift | Xdma;
 
   // Number of read ports
   localparam int unsigned NumRfReadPorts = EnableXif | Xcvmem ? 3 : 2;
@@ -1580,7 +1582,10 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
       FMSUB_D,
       FNMSUB_D,
       FNMADD_D: begin
-        if (NativeFpSupport && RVD && (!(inst_rsp_i.data inside {FDIV_D, FSQRT_D}) || XDivSqrt)) begin
+        if (
+          NativeFpSupport && RVD &&
+          (!(inst_rsp_i.data inside {FDIV_D, FSQRT_D}) || XDivSqrt)
+        ) begin
           write_rd = 1'b0;
           is_acc_inst = 1'b1;
         end else begin
