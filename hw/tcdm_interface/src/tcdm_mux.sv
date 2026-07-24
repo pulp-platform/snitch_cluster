@@ -25,7 +25,7 @@ module tcdm_mux #(
   localparam int unsigned SelectWidth = cc_pkg::idx_width(NrPorts);
   typedef logic [SelectWidth-1:0] select_t;
 
-  `TCDM_TYPEDEF_REQ_CHAN_T(tcdm_req_chan_t, DataWidth, AddrWidth, UserWidth)
+  `TCDM_TYPEDEF_REQ_CHAN_T(tcdm, DataWidth, AddrWidth, UserWidth)
 
   if (NrPorts > 1) begin : gen_mux
     logic [NrPorts-1:0] slv_req_valid, slv_req_ready;
