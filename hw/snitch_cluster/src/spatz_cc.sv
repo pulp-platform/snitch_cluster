@@ -81,8 +81,8 @@ module spatz_cc #(
   parameter int unsigned NumSequencerLoops = 0,
   parameter int unsigned NumSsrs = 0,
   parameter int unsigned SsrMuxRespDepth = 0,
-  parameter snitch_ssr_pkg::ssr_cfg_t [cc_pkg::iomsb(NumSsrs):0] SsrCfgs = '0,
-  parameter logic [cc_pkg::iomsb(NumSsrs):0][4:0] SsrRegs = '0,
+  parameter snitch_ssr_pkg::ssr_cfg_t [cf_math_pkg::iomsb(NumSsrs):0] SsrCfgs = '0,
+  parameter logic [cf_math_pkg::iomsb(NumSsrs):0][4:0] SsrRegs = '0,
   /// Add isochronous clock-domain crossings e.g., make it possible to operate
   /// the core in a slower clock domain.
   parameter bit          IsoCrossing        = 0,
@@ -204,7 +204,7 @@ module spatz_cc #(
     XFVEC               : 0,
     XFDOTP              : 0,
     XFAUX               : 0,
-    Xcvmem              : IsaCfg.Xcvmem,
+    Xpulppostmod        : IsaCfg.Xpulppostmod,
     Xpulpabs            : IsaCfg.Xpulpabs,
     Xpulpbitop          : IsaCfg.Xpulpbitop,
     Xpulpbr             : IsaCfg.Xpulpbr,
@@ -398,8 +398,8 @@ module spatz_cc #(
   );
 
   // Cut CAQ response for proper handshake with divided clock.
-  cc_isochronous_spill_register #(
-    .data_t (logic),
+  isochronous_spill_register #(
+    .T (logic),
     .Bypass (!IsoCrossing)
   ) i_spill_register_caq_pvalid (
     .src_clk_i   ( clk_i  ),
@@ -560,13 +560,12 @@ module spatz_cc #(
     // In Spatz, x_issue_ready_o depends combinationally on x_result_ready_i,
     // which feeds back through snitch's retire logic. A spill_register here
     // decouples the ready signal.
-    cc_spill_register #(
-      .data_t (x_result_t        ),
+    spill_register #(
+      .T      (x_result_t        ),
       .Bypass (!RegisterOffloadRsp)
     ) i_xif_result_cut (
       .clk_i   (clk_i            ),
       .rst_ni  (rst_ni           ),
-      .clr_i   (1'b0             ),
       .valid_i (x_result_valid   ),
       .ready_o (x_result_ready   ),
       .data_i  (x_result         ),
@@ -660,7 +659,7 @@ module spatz_cc #(
 
   // Decide whether to go to SoC or TCDM
 
-  localparam int unsigned SelectWidth = cc_pkg::idx_width(2);
+  localparam int unsigned SelectWidth = cf_math_pkg::idx_width(2);
   typedef logic [SelectWidth-1:0] select_t;
   typedef enum select_t {SelectTcdm = 1, SelectSoc = 0} select_e;
 
@@ -705,7 +704,7 @@ module spatz_cc #(
     };
   end
 
-  cc_addr_decode_napot #(
+  addr_decode_napot #(
     .NoIndices (2),
     .NoRules (1 + TCDMAliasEnable),
     .addr_t (logic [AddrWidth-1:0]),
