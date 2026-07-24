@@ -102,6 +102,8 @@ sources:
       - hw/reqrsp_interface/src/reqrsp_iso.sv
       - hw/reqrsp_interface/src/reqrsp_mux.sv
       - hw/reqrsp_interface/src/reqrsp_to_axi.sv
+      # Level 3
+      - hw/reqrsp_interface/src/reqrsp_demux_mapped.sv
   - target: test
     files:
       - hw/reqrsp_interface/src/reqrsp_test.sv
