@@ -1,7 +1,7 @@
 // Copyright 2025 ETH Zurich and University of Bologna.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
-
+//
 // Author: Luca Colagrande <colluca@iis.ee.ethz.ch>
 
 `include "reqrsp_interface/typedef.svh"
@@ -48,7 +48,7 @@ module generic_reqrsp_mux #(
   req_chan_t [NrPorts-1:0] req_payload_q;
   logic [NrPorts-1:0] req_valid_q, req_ready_q;
 
-  // Unforunately we need this signal otherwise the simulator complains about
+  // Unfortunately we need this signal otherwise the simulator complains about
   // multiple driven signals, because some other signals are driven from an
   // `always_comb` block.
   logic [NrPorts-1:0] slv_rsp_q_ready;
