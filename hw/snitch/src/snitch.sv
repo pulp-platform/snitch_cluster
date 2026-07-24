@@ -109,6 +109,9 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
 ) (
   input  logic                  clk_i,
   input  logic                  rst_i,
+  // pragma translate_off
+  output snitch_trace_t         trace_o,
+  // pragma translate_on
   input  logic [31:0]           hart_id_i,
   input  interrupts_t           irq_i,
   output logic                  flush_i_valid_o,
@@ -3500,6 +3503,42 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
                  x_result_i.we, x_result_ready_o);
     end
   end
+  // pragma translate_on
+
+  // pragma translate_off
+  assign trace_o.pc_q                = pc_q;
+  assign trace_o.priv_lvl_q          = priv_lvl_q;
+  assign trace_o.instr               = inst_rsp_i.data;
+  assign trace_o.extras.source       = snitch_pkg::SrcSnitch;
+  assign trace_o.extras.stall        = stall;
+  assign trace_o.extras.exception    = exception;
+  assign trace_o.extras.rs1          = rs1;
+  assign trace_o.extras.rs2          = rs2;
+  assign trace_o.extras.rd           = rd;
+  assign trace_o.extras.is_load      = is_load;
+  assign trace_o.extras.is_store     = is_store;
+  assign trace_o.extras.is_branch    = is_branch;
+  assign trace_o.extras.pc_d         = pc_d;
+  assign trace_o.extras.opa          = opa;
+  assign trace_o.extras.opb          = opb;
+  assign trace_o.extras.opa_select   = opa_select;
+  assign trace_o.extras.opb_select   = opb_select;
+  assign trace_o.extras.opc_select   = opc_select;
+  assign trace_o.extras.write_rd     = write_rd;
+  assign trace_o.extras.csr_addr     = inst_rsp_i.data[31:20];
+  assign trace_o.extras.writeback    = gpr_wdata[0];
+  assign trace_o.extras.gpr_rdata_1  = gpr_rdata[0];
+  assign trace_o.extras.ls_size      = ls_size;
+  assign trace_o.extras.ld_result_32 = ld_result[31:0];
+  assign trace_o.extras.lsu_rd       = lsu_rd;
+  assign trace_o.extras.retire_load  = retire_load;
+  assign trace_o.extras.alu_result   = alu_result;
+  assign trace_o.extras.ls_amo       = ls_amo;
+  assign trace_o.extras.retire_acc   = retire_acc;
+  assign trace_o.extras.acc_pid      = acc_rsp_i.p.id;
+  assign trace_o.extras.acc_pdata_32 = acc_rsp_i.p.data[31:0];
+  assign trace_o.extras.fpu_offload  = is_fp_inst;
+  assign trace_o.extras.is_seq_insn  = wfi_q;
   // pragma translate_on
 
   // --------------------

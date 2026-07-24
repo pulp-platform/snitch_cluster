@@ -40,9 +40,9 @@ module snitch_fp_ss import snitch_pkg::*; #(
   input  logic             clk_i,
   input  logic             rst_i,
   // pragma translate_off
-  output fpu_trace_port_t  trace_port_o,
-  output fpu_sequencer_trace_port_t sequencer_tracer_port_o,
-  output dca_trace_port_t  dca_trace_port_o,
+  output fpss_trace_t          trace_o,
+  output fpu_sequencer_trace_t sequencer_trace_o,
+  output dca_trace_t           dca_trace_o,
   // pragma translate_on
   input  logic [31:0]      hart_id_i,
   // Accelerator Interface - Slave
@@ -220,7 +220,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
       .clk_i,
       .rst_i,
       // pragma translate_off
-      .trace_port_o     ( sequencer_tracer_port_o ),
+      .trace_o          ( sequencer_trace_o ),
       // pragma translate_on
       .inp_qaddr_i      ( acc_req_i.q.addr      ),
       .inp_qid_i        ( acc_req_i.q.id        ),
@@ -245,7 +245,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     );
   end else begin : gen_no_fpu_sequencer
     // pragma translate_off
-    assign sequencer_tracer_port_o = 0;
+    assign sequencer_tracer_o = 0;
     // pragma translate_on
     assign acc_rsp_o.q_ready = acc_req_ready;
     assign acc_req_valid = acc_req_i.q_valid;
@@ -2836,56 +2836,56 @@ module snitch_fp_ss import snitch_pkg::*; #(
 
   // pragma translate_off
   // Assign the FPU trace
-  assign trace_port_o.source       = snitch_pkg::SrcFpu;
-  assign trace_port_o.acc_q_hs     = (acc_req_valid_q  && acc_req_ready_q );
-  assign trace_port_o.fpu_out_hs   = (fpu_out_valid && fpu_out_ready );
-  assign trace_port_o.lsu_q_hs     = (lsu_qvalid    && lsu_qready    );
-  assign trace_port_o.op_in        = acc_req_q.data_op;
-  assign trace_port_o.rs1          = rs1;
-  assign trace_port_o.rs2          = rs2;
-  assign trace_port_o.rs3          = rs3;
-  assign trace_port_o.rd           = rd;
-  assign trace_port_o.op_sel_0     = op_select[0];
-  assign trace_port_o.op_sel_1     = op_select[1];
-  assign trace_port_o.op_sel_2     = op_select[2];
-  assign trace_port_o.src_fmt      = src_fmt;
-  assign trace_port_o.dst_fmt      = dst_fmt;
-  assign trace_port_o.int_fmt      = int_fmt;
-  assign trace_port_o.acc_qdata_0  = acc_qdata[0];
-  assign trace_port_o.acc_qdata_1  = acc_qdata[1];
-  assign trace_port_o.acc_qdata_2  = acc_qdata[2];
-  assign trace_port_o.op_0         = op[0];
-  assign trace_port_o.op_1         = op[1];
-  assign trace_port_o.op_2         = op[2];
-  assign trace_port_o.use_fpu      = use_fpu;
-  assign trace_port_o.fpu_in_rd    = fpu_tag_in.rd;
-  assign trace_port_o.fpu_in_acc   = fpu_tag_in.acc;
-  assign trace_port_o.ls_size      = ls_size;
-  assign trace_port_o.is_load      = is_load;
-  assign trace_port_o.is_store     = is_store;
-  assign trace_port_o.lsu_qaddr    = i_snitch_lsu.lsu_qaddr_i;
-  assign trace_port_o.lsu_rd       = lsu_rd;
-  assign trace_port_o.fpu_out_acc  = fpu_tag_out.acc;
-  assign trace_port_o.fpr_waddr    = fpr_waddr[0];
-  assign trace_port_o.fpr_wdata    = fpr_wdata[0];
-  assign trace_port_o.fpr_we       = fpr_we[0];
+  assign trace_o.source       = snitch_pkg::SrcFpu;
+  assign trace_o.acc_q_hs     = (acc_req_valid_q  && acc_req_ready_q );
+  assign trace_o.fpu_out_hs   = (fpu_out_valid && fpu_out_ready );
+  assign trace_o.lsu_q_hs     = (lsu_qvalid    && lsu_qready    );
+  assign trace_o.op_in        = acc_req_q.data_op;
+  assign trace_o.rs1          = rs1;
+  assign trace_o.rs2          = rs2;
+  assign trace_o.rs3          = rs3;
+  assign trace_o.rd           = rd;
+  assign trace_o.op_sel_0     = op_select[0];
+  assign trace_o.op_sel_1     = op_select[1];
+  assign trace_o.op_sel_2     = op_select[2];
+  assign trace_o.src_fmt      = src_fmt;
+  assign trace_o.dst_fmt      = dst_fmt;
+  assign trace_o.int_fmt      = int_fmt;
+  assign trace_o.acc_qdata_0  = acc_qdata[0];
+  assign trace_o.acc_qdata_1  = acc_qdata[1];
+  assign trace_o.acc_qdata_2  = acc_qdata[2];
+  assign trace_o.op_0         = op[0];
+  assign trace_o.op_1         = op[1];
+  assign trace_o.op_2         = op[2];
+  assign trace_o.use_fpu      = use_fpu;
+  assign trace_o.fpu_in_rd    = fpu_tag_in.rd;
+  assign trace_o.fpu_in_acc   = fpu_tag_in.acc;
+  assign trace_o.ls_size      = ls_size;
+  assign trace_o.is_load      = is_load;
+  assign trace_o.is_store     = is_store;
+  assign trace_o.lsu_qaddr    = i_snitch_lsu.lsu_qaddr_i;
+  assign trace_o.lsu_rd       = lsu_rd;
+  assign trace_o.fpu_out_acc  = fpu_tag_out.acc;
+  assign trace_o.fpr_waddr    = fpr_waddr[0];
+  assign trace_o.fpr_wdata    = fpr_wdata[0];
+  assign trace_o.fpr_we       = fpr_we[0];
 
   // Assign the DCA tracer
-  assign dca_trace_port_o.source       = snitch_pkg::SrcDca;
-  assign dca_trace_port_o.req_hs       = (dca_req_i.q_valid && dca_rsp_o.q_ready);
-  assign dca_trace_port_o.rsp_hs       = (dca_rsp_o.p_valid && dca_req_i.p_ready);
-  assign dca_trace_port_o.operand0     = dca_req_i.q.operands[0];
-  assign dca_trace_port_o.operand1     = dca_req_i.q.operands[1];
-  assign dca_trace_port_o.operand2     = dca_req_i.q.operands[2];
-  assign dca_trace_port_o.rnd_mode     = dca_req_i.q.rnd_mode;
-  assign dca_trace_port_o.op           = dca_req_i.q.op;
-  assign dca_trace_port_o.op_mod       = dca_req_i.q.op_mod;
-  assign dca_trace_port_o.src_fmt      = dca_req_i.q.src_fmt;
-  assign dca_trace_port_o.dst_fmt      = dca_req_i.q.dst_fmt;
-  assign dca_trace_port_o.int_fmt      = dca_req_i.q.int_fmt;
-  assign dca_trace_port_o.vectorial_op = dca_req_i.q.vectorial_op;
-  assign dca_trace_port_o.status       = dca_rsp_o.p.status;
-  assign dca_trace_port_o.result       = dca_rsp_o.p.result;
+  assign dca_trace_o.source       = snitch_pkg::SrcDca;
+  assign dca_trace_o.req_hs       = (dca_req_i.q_valid && dca_rsp_o.q_ready);
+  assign dca_trace_o.rsp_hs       = (dca_rsp_o.p_valid && dca_req_i.p_ready);
+  assign dca_trace_o.operand0     = dca_req_i.q.operands[0];
+  assign dca_trace_o.operand1     = dca_req_i.q.operands[1];
+  assign dca_trace_o.operand2     = dca_req_i.q.operands[2];
+  assign dca_trace_o.rnd_mode     = dca_req_i.q.rnd_mode;
+  assign dca_trace_o.op           = dca_req_i.q.op;
+  assign dca_trace_o.op_mod       = dca_req_i.q.op_mod;
+  assign dca_trace_o.src_fmt      = dca_req_i.q.src_fmt;
+  assign dca_trace_o.dst_fmt      = dca_req_i.q.dst_fmt;
+  assign dca_trace_o.int_fmt      = dca_req_i.q.int_fmt;
+  assign dca_trace_o.vectorial_op = dca_req_i.q.vectorial_op;
+  assign dca_trace_o.status       = dca_rsp_o.p.status;
+  assign dca_trace_o.result       = dca_rsp_o.p.result;
   // pragma translate_on
 
   // ----------

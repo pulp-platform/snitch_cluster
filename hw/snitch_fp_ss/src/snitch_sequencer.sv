@@ -19,7 +19,7 @@ module snitch_sequencer import snitch_pkg::*; #(
     input  logic                             clk_i,
     input  logic                             rst_i,
     // pragma translate_off
-    output fpu_sequencer_trace_port_t        trace_port_o,
+    output fpu_sequencer_trace_t             trace_o,
     // pragma translate_on
     input  acc_addr_e                        inp_qaddr_i,
     input  logic                      [ 4:0] inp_qid_i,
@@ -692,12 +692,12 @@ module snitch_sequencer import snitch_pkg::*; #(
   ////////////
 
   // pragma translate_off
-  assign trace_port_o.source    = snitch_pkg::SrcFpuSeq;
-  assign trace_port_o.cbuf_push = core_frep_valid && core_frep_ready;
-  assign trace_port_o.max_inst  = inp_qdata_op_i[20+:DepthBits] - 1;
-  assign trace_port_o.max_iter  = inp_qdata_arga_i[LoopIterBits-1:0];
-  assign trace_port_o.stg_max   = inp_qdata_op_i[14:12];
-  assign trace_port_o.stg_mask  = inp_qdata_op_i[11:8];
+  assign trace_o.source    = snitch_pkg::SrcFpuSeq;
+  assign trace_o.cbuf_push = core_frep_valid && core_frep_ready;
+  assign trace_o.max_inst  = inp_qdata_op_i[20+:DepthBits] - 1;
+  assign trace_o.max_iter  = inp_qdata_arga_i[LoopIterBits-1:0];
+  assign trace_o.stg_max   = inp_qdata_op_i[14:12];
+  assign trace_o.stg_mask  = inp_qdata_op_i[11:8];
   // pragma translate_on
 
   ////////////////
