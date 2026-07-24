@@ -190,6 +190,10 @@ sources:
       # Level 1
       - hw/snitch_fp_ss/src/snitch_fp_ss.sv
 
+  # cv_x_if
+  - files:
+      - hw/cv_x_if/src/cvxif_demux.sv
+
   # snitch_cluster
   - files:
       # Level 0
