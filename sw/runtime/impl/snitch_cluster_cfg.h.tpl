@@ -15,7 +15,7 @@
   supports_copift = False
   supports_pulp = False
   supports_smallfloat = False
-  smallfloat_subextensions = ['xf8', 'xf8alt', 'xf16', 'xf16alt', 'xfdotp', 'xfvec']
+  smallfloat_subextensions = ['xf8', 'xf8alt', 'zfh', 'xf16alt', 'xfdotp', 'xfvec']
   pulp_subextensions = [
     'xcvmem',
     'xpulpabs',

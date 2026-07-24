@@ -302,7 +302,7 @@ package snitch_cluster_wrapper_pkg;
       Xssr: ${int(c['xssr'])},
       Xfrep: ${int(c['xfrep'])},
       Xcopift: ${int(c['xcopift'])},
-      XF16: ${int(c['xf16'])},
+      Zfh: ${int(c['zfh'])},
       XF16ALT: ${int(c['xf16alt'])},
       XF8: ${int(c['xf8'])},
       XF8ALT: ${int(c['xf8alt'])},

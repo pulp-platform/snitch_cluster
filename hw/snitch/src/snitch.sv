@@ -157,7 +157,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   localparam bit Xcopift              = IsaCfg.Xcopift;
   localparam bit RVF                  = IsaCfg.RVF;
   localparam bit RVD                  = IsaCfg.RVD;
-  localparam bit XF16                 = IsaCfg.XF16;
+  localparam bit Zfh                  = IsaCfg.Zfh;
   localparam bit XF16ALT              = IsaCfg.XF16ALT;
   localparam bit XF8                  = IsaCfg.XF8;
   localparam bit XF8ALT               = IsaCfg.XF8ALT;

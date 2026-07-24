@@ -9,7 +9,7 @@ module snitch_fpu import snitch_pkg::*; #(
   parameter fpnew_pkg::fpu_implementation_t FpuImplementation = '0,
   parameter bit          RVF            = 1,
   parameter bit          RVD            = 1,
-  parameter bit          XF16           = 0,
+  parameter bit          Zfh           = 0,
   parameter bit          XF16ALT        = 0,
   parameter bit          XF8            = 0,
   parameter bit          XF8ALT         = 0,
@@ -54,8 +54,8 @@ module snitch_fpu import snitch_pkg::*; #(
     Width:         fpnew_pkg::maximum(FLEN, 32),
     EnableVectors: XFVEC,
     EnableNanBox:  1'b1,
-    FpFmtMask:     {RVF, RVD, XF16, XF8, XF16ALT, XF8ALT, 1'b0, 1'b0, 1'b0},
-    IntFmtMask:    {XFVEC && (XF8 || XF8ALT), XFVEC && (XF16 || XF16ALT), 1'b1, 1'b0},
+    FpFmtMask:     {RVF, RVD, Zfh, XF8, XF16ALT, XF8ALT, 1'b0, 1'b0, 1'b0},
+    IntFmtMask:    {XFVEC && (XF8 || XF8ALT), XFVEC && (Zfh || XF16ALT), 1'b1, 1'b0},
     MxFpFmtMask:   '0,
     MxIntFmtMask:  '0
   };

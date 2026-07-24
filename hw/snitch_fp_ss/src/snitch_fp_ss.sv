@@ -2691,7 +2691,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   snitch_fpu #(
     .RVF              (IsaCfg.RVF),
     .RVD              (IsaCfg.RVD),
-    .XF16             (IsaCfg.XF16),
+    .Zfh              (IsaCfg.Zfh),
     .XF16ALT          (IsaCfg.XF16ALT),
     .XF8              (IsaCfg.XF8),
     .XF8ALT           (IsaCfg.XF8ALT),

@@ -141,7 +141,7 @@ package snitch_pkg;
     bit RVF;
     /// Enable D Extension.
     bit RVD;
-    bit XF16;
+    bit Zfh;
     bit XF16ALT;
     bit XF8;
     bit XF8ALT;
@@ -202,7 +202,7 @@ package snitch_pkg;
   function automatic int unsigned calculate_flen(isa_cfg_t isa);
     return isa.RVD     ? 64 : // D ext.
            isa.RVF     ? 32 : // F ext.
-           isa.XF16    ? 16 : // Xf16 ext.
+           isa.Zfh     ? 16 : // Zfh ext.
            isa.XF16ALT ? 16 : // Xf16alt ext.
            isa.XF8     ?  8 : // Xf8 ext.
            isa.XF8ALT  ?  8 : // Xf8alt ext.
@@ -210,7 +210,7 @@ package snitch_pkg;
   endfunction
 
   function automatic bit calculate_fp_enable(isa_cfg_t isa);
-    return isa.RVF || isa.RVD || isa.XF16 || isa.XF16ALT || isa.XF8 || isa.XF8ALT ||
+    return isa.RVF || isa.RVD || isa.Zfh || isa.XF16ALT || isa.XF8 || isa.XF8ALT ||
            isa.XFVEC || isa.XFAUX || isa.XFDOTP;
   endfunction
 

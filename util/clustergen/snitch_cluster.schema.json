@@ -550,10 +550,10 @@
                                             "description": "Enable Smallfloat Xf8alt extension.",
                                             "default": false
                                         },
-                                        "xf16": {
+                                        "zfh": {
                                             "type": "boolean",
-                                            "title": "Xf16 16-bit Float Extension",
-                                            "description": "Enable Smallfloat Xf16 extension (IEEE 16-bit float).",
+                                            "title": "Zfh 16-bit Float Extension",
+                                            "description": "Enable Zfh extension (IEEE 16-bit float).",
                                             "default": false
                                         },
                                         "xf16alt": {
