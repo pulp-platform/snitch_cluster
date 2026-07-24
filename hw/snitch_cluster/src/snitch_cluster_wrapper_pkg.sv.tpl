@@ -20,6 +20,12 @@ ${c[prop]}${', ' if not loop.last else ''}\
   % endfor
 </%def>\
 
+<%def name="core_cfg_lambda(f)">\
+  % for c in cfg['cluster']['cores']:
+${f(c)}${', ' if not loop.last else ''}\
+  % endfor
+</%def>\
+
 <%def name="core_cfg_flat(prop)">\
 ${cfg['cluster']['nr_cores']}'b\
   % for c in cfg['cluster']['cores'][::-1]:
@@ -396,16 +402,18 @@ ${ssr_cfg(core, '{reg_idx}', '/*None*/ 0', ',')}\
   localparam bit NarrowAxiPortExpose      = ${int(cfg['cluster']['narrow_axi_port_expose'])};
 
   // Per-core localparam arrays
-  localparam int unsigned NumIntOutstandingLoads [NrCores] = '{${core_cfg('num_int_outstanding_loads')}};
-  localparam int unsigned NumIntOutstandingMem   [NrCores] = '{${core_cfg('num_int_outstanding_mem')}};
-  localparam int unsigned NumFPOutstandingLoads  [NrCores] = '{${core_cfg('num_fp_outstanding_loads')}};
-  localparam int unsigned NumFPOutstandingMem    [NrCores] = '{${core_cfg('num_fp_outstanding_mem')}};
-  localparam int unsigned NumDTLBEntries         [NrCores] = '{${core_cfg('num_dtlb_entries')}};
-  localparam int unsigned NumITLBEntries         [NrCores] = '{${core_cfg('num_itlb_entries')}};
-  localparam int unsigned NumSequencerInstr      [NrCores] = '{${core_cfg('num_sequencer_instructions')}};
-  localparam int unsigned NumSequencerLoops      [NrCores] = '{${core_cfg('num_sequencer_loops')}};
-  localparam int unsigned NumSsrs                [NrCores] = '{${core_cfg('num_ssrs')}};
-  localparam int unsigned SsrMuxRespDepth        [NrCores] = '{${core_cfg('ssr_mux_resp_depth')}};
+  localparam int unsigned NumIntOutstandingLoads   [NrCores] = '{${core_cfg('num_int_outstanding_loads')}};
+  localparam int unsigned NumIntOutstandingMem     [NrCores] = '{${core_cfg('num_int_outstanding_mem')}};
+  localparam int unsigned NumFPOutstandingLoads    [NrCores] = '{${core_cfg('num_fp_outstanding_loads')}};
+  localparam int unsigned NumFPOutstandingMem      [NrCores] = '{${core_cfg('num_fp_outstanding_mem')}};
+  localparam int unsigned NumDTLBEntries           [NrCores] = '{${core_cfg('num_dtlb_entries')}};
+  localparam int unsigned NumITLBEntries           [NrCores] = '{${core_cfg('num_itlb_entries')}};
+  localparam int unsigned NumSequencerInstr        [NrCores] = '{${core_cfg('num_sequencer_instructions')}};
+  localparam int unsigned NumSequencerLoops        [NrCores] = '{${core_cfg('num_sequencer_loops')}};
+  localparam int unsigned NumSsrs                  [NrCores] = '{${core_cfg('num_ssrs')}};
+  localparam int unsigned SsrMuxRespDepth          [NrCores] = '{${core_cfg('ssr_mux_resp_depth')}};
+  localparam bit          SpatzDoubleBw            [NrCores] = '{${core_cfg_lambda(lambda x: int(x['spatz']['double_bw']))}};
+  localparam int unsigned NumSpatzOutstandingLoads [NrCores] = '{${core_cfg_lambda(lambda x: int(x['spatz']['num_outstanding_loads']))}};
 
 endpackage
 // verilog_lint: waive-stop package-filename

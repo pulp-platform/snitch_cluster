@@ -801,6 +801,11 @@
                                             "description": "Configuration of the Spatz VPU.",
                                             "default": {},
                                             "properties": {
+                                                "num_outstanding_loads": {
+                                                    "type": "number",
+                                                    "description": "Number of outstanding loads. Determines the buffer size in Spatz' LSU.",
+                                                    "default": 1
+                                                },
                                                 "n_ipu": {
                                                     "type": "number",
                                                     "description": "Number of integer processing units.",

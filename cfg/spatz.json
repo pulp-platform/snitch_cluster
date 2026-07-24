@@ -105,6 +105,7 @@
         num_dtlb_entries: 1,
         num_itlb_entries: 1,
         spatz: {
+            num_outstanding_loads: 4,
             n_ipu: 1,
             n_fpu: 8,
             vlen: 512,

@@ -41,7 +41,7 @@ $(eval $(call sn_cluster_gen_rule,$(SN_SPATZ_CFG),$(SN_SPATZ_CFG_TPL)))
 # Spatz package generation via the Spatz hw/Makefile flow:
 #   import_cfg.py extracts Spatz VFU fields from the cluster config,
 #   apply_cfg.py renders spatz_pkg.sv.tpl into the generated file.
-$(SN_SPATZ_PKG): $(SN_SPATZ_CFG) $(SN_SPATZ_PKG_TPL) | $(SN_GEN_DIR)
+$(SN_SPATZ_PKG): $(SN_SPATZ_CFG) $(SN_SPATZ_PKG_TPL) | $(SN_GEN_DIR) $(SN_SPATZ_HW_DIR)
 	@echo "[SPATZ] Generating $@"
 	cd $(SN_SPATZ_HW_DIR) && python import_cfg.py $(abspath $(SN_SPATZ_CFG))
 	cd $(SN_SPATZ_HW_DIR) && python apply_cfg.py $(basename $(notdir $(SN_SPATZ_CFG)))
@@ -69,7 +69,7 @@ $(SN_BOOTROM_ELF) $(SN_BOOTROM_DUMP) $(SN_BOOTROM_BIN) $(SN_BOOTROM): $(SN_BOOTR
 sn-rtl: $(SN_GEN_RTL_SRCS)
 
 sn-clean-rtl:
-	rm -f $(SN_GEN_RTL_SRCS) $(SN_CLUSTER_RDL) $(SN_BOOTROM_ARTIFACTS)
+	rm -f $(SN_GEN_RTL_SRCS) $(SN_CLUSTER_RDL) $(SN_BOOTROM_ARTIFACTS) $(SN_SPATZ_CFG)
 
 $(SN_BOOTROM_DIR):
 	mkdir -p $@
