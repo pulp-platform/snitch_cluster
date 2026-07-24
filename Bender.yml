@@ -41,6 +41,9 @@ dependencies:
     git: https://github.com/colluca/axi.git
     rev: multicast
   common_cells: 2.0.0-beta.2
+  core_v_xif:
+    git: https://github.com/pulp-platform/core-v-xif.git
+    rev: colluca/cvxif-demux-bender-ready
   FPnew:
     git: https://github.com/pulp-platform/cvfpu.git
     rev: common-cells-v2
@@ -189,10 +192,6 @@ sources:
       - hw/snitch_fp_ss/src/snitch_sequencer.sv
       # Level 1
       - hw/snitch_fp_ss/src/snitch_fp_ss.sv
-
-  # cv_x_if
-  - files:
-      - hw/cv_x_if/src/cvxif_demux.sv
 
   # snitch_cluster
   - files:
