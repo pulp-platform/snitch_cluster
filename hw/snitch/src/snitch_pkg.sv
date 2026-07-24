@@ -184,6 +184,9 @@ package snitch_pkg;
     AMOSC   = 4'hB
   } amo_op_e;
 
+  // Snitch (and not the CC) defines the accelerators it supports, since they have to be known
+  // by Snitch to properly address them in the decoder. This is unlike the CV-X-IF interface
+  // where coprocessors don't have to be addressed by the processor.
   typedef enum logic [31:0] {
     FP_SS = 0,
     IPU = 1,
