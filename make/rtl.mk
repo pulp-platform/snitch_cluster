@@ -8,7 +8,7 @@ SN_BOOTROM_DIR ?= $(SN_HW_DIR)/bootrom
 # Templates
 SN_CLUSTER_WRAPPER_PKG_TPL = $(SN_HW_DIR)/snitch_cluster/src/snitch_cluster_wrapper_pkg.sv.tpl
 SN_CLUSTER_RDL_TPL         = $(SN_HW_DIR)/snitch_cluster/src/snitch_cluster.rdl.tpl
-SN_SPATZ_CFG_TPL           = $(SN_HW_DIR)/snitch_cluster/src/spatz_cfg.json.tpl
+SN_SPATZ_CFG_TPL           = $(SN_HW_DIR)/snitch_cc/src/spatz_cfg.json.tpl
 
 # Generated RTL sources
 SN_CLUSTER_WRAPPER_PKG = $(SN_GEN_DIR)/snitch_cluster_wrapper_pkg.sv

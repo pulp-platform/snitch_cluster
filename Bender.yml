@@ -193,10 +193,19 @@ sources:
       # Level 1
       - hw/snitch_fp_ss/src/snitch_fp_ss.sv
 
+  # snitch_cc
+  - files:
+      # Level 0
+      - hw/snitch_cc/src/snitch_cc_pkg.sv
+      # Level 1
+      - hw/snitch_cc/src/snitch_tracer.sv
+      - hw/snitch_cc/src/snitch_ssr_subsystem.sv
+      # Level 2
+      - hw/snitch_cc/src/snitch_cc.sv
+
   # snitch_cluster
   - files:
       # Level 0
-      - hw/snitch_cluster/src/snitch_cc_pkg.sv
       - hw/snitch_cluster/src/snitch_cluster_pkg.sv
       - hw/snitch_cluster/src/snitch_amo_shim.sv
       - hw/snitch_cluster/src/snitch_cluster_peripheral/snitch_cluster_peripheral_reg_pkg.sv
@@ -207,10 +216,7 @@ sources:
       # Level 1
       - hw/snitch_cluster/src/snitch_barrier.sv
       - hw/snitch_cluster/src/snitch_tcdm_interconnect.sv
-      - hw/snitch_cluster/src/snitch_tracer.sv
-      - hw/snitch_cluster/src/snitch_ssr_subsystem.sv
       # Level 2
-      - hw/snitch_cluster/src/snitch_cc.sv
       - hw/snitch_cluster/src/snitch_clkdiv2.sv
       # Level 3
       - hw/snitch_cluster/src/snitch_hive.sv
