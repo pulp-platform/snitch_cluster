@@ -1,12 +1,14 @@
 // Copyright 2020 ETH Zurich and University of Bologna.
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
-
+//
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
+//
+// Simulation-only instruction tracer for the Snitch Core Complex (CC).
+// Emits one DASM trace line per retired/stalled Snitch, FPU, FPU-sequencer,
+// and DCA event to `logs/trace_hart_<hart_id>.dasm`.
 
-/// Simulation-only instruction tracer for the Snitch Core Complex (CC).
-/// Emits one DASM trace line per retired/stalled Snitch, FPU, FPU-sequencer,
-/// and DCA event to `logs/trace_hart_<hart_id>.dasm`.
+// pragma translate_off
 module snitch_tracer #(
   parameter bit FpEn      = 0,
   parameter bit Xfrep     = 0,
@@ -21,7 +23,6 @@ module snitch_tracer #(
   input snitch_pkg::dca_trace_t dca_trace_i
 );
 
-  // pragma translate_off
   int f;
   string fn;
   logic [63:0] cycle;
@@ -109,6 +110,6 @@ module snitch_tracer #(
     $fclose(f);
   end
   // verilog_lint: waive-stop always-ff-non-blocking
-  // pragma translate_on
 
 endmodule
+// pragma translate_on

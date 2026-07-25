@@ -266,6 +266,13 @@ package snitch_pkg;
     longint     is_seq_insn;
   } snitch_trace_extras_t;
 
+  typedef struct packed {
+    logic [31:0]          pc_q;
+    priv_lvl_t            priv_lvl_q;
+    logic [31:0]          instr;
+    snitch_trace_extras_t extras;
+  } snitch_trace_t;
+
   // verilog_lint: waive-start line-length
   function automatic string print_snitch_extras(snitch_trace_extras_t trace);
     string extras_str = "{";
@@ -303,13 +310,6 @@ package snitch_pkg;
     return extras_str;
   endfunction
   // verilog_lint: waive-stop line-length
-
-  typedef struct packed {
-    logic [31:0]          pc_q;
-    priv_lvl_t            priv_lvl_q;
-    logic [31:0]          instr;
-    snitch_trace_extras_t extras;
-  } snitch_trace_t;
 
   typedef struct packed {
     trace_src_e source;
