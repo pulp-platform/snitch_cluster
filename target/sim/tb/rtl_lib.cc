@@ -44,12 +44,21 @@ void Sim::idle() { host->switch_to(); }
 int Sim::run() {
     host = context_t::current();
     target.switch_to();
+    // While an IPC host is connected, keep the testbench ticking (report "not
+    // done") even after the program has exited, so memory writes still in
+    // flight drain and the host can read back committed results. Report the
+    // real exit status only once the host disconnects.
+    if (ipc.session_open()) return 0;
     return (exit_code() << 1 | done());
 }
 
 // Host thread.
 void Sim::main() {
-    htif_t::run();
+    int exit_code = htif_t::run();
+    // HTIF has finished: release the IPC thread's pending `Wait` command (and
+    // hand it the exit code) so the host-side verification script can detect
+    // completion.
+    ipc.notify_finished(exit_code);
     // HTIF has finished, just idle now.
     while (true) {
         idle();

@@ -91,15 +91,13 @@ class SnitchSim:
         self.tx.write(data)
 
     @__sim_active
-    def poll(self, addr: int, mask32: int, exp32: int):
-        op = struct.pack('=QQLL', 2, addr, mask32, exp32)
-        while True:
-            try:
-                self.tx.write(op)
-            except IOError:
-                print('Broken pipe error')
-                continue
-            break
+    def wait(self):
+        # Block until the simulation has finished, and return its exit code.
+        # The testbench replies only once the simulation terminates, so this
+        # doubles as an end-of-simulation barrier. The address/length fields
+        # are unused by this opcode but kept for a uniform message layout.
+        op = struct.pack('=QQQ', 2, 0, 0)
+        self.tx.write(op)
         bytestring = self.rx.read(4)
         return int.from_bytes(bytestring, byteorder='little')
 

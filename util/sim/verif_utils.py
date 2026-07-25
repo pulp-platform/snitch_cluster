@@ -184,7 +184,7 @@ class Verifier:
         Spawns a subprocess to simulate the `snitch_bin` binary, using a
         command of the form `sim_bin snitch_bin <ipc_args>`. It
         communicates with the simulation using inter-process communication
-        (IPC) facilities, to poll the program for termination and retrieve
+        (IPC) facilities, to wait for the program to terminate and retrieve
         the memory contents where the results of the simulation are
         stored. The results of the simulation must have global symbols
         associated in `snitch_bin` in order to retrieve their address and
@@ -196,17 +196,13 @@ class Verifier:
         simulation, formatted as raw bytes. The dictionary is stored in
         the `self.raw_outputs` attribute.
         """
-        # Open ELF file for processing
-        elf = Elf(self.args.snitch_bin)
-
         # Start simulation
         sim = SnitchSim(self.args.sim_bin, self.args.snitch_bin, simulator=self.args.simulator,
                         log=self.args.log)
         sim.start()
 
         # Wait for kernel execution to be over
-        tohost = elf.get_symbol_address('tohost')
-        sim.poll(tohost, 1, 0)
+        sim.wait()
 
         # Read out results from memory
         output_locs = self.get_output_memory_locations()

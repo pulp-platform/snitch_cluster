@@ -58,29 +58,28 @@ void* IpcIface::ipc_thread_handle(void* in) {
                     fread(buf_data, op.len, 1, tx);
                     sim::MEM.write(op.addr, op.len, buf_data, buf_strb);
                     break;
-                case Poll:
-                    // Unpack 32b checking mask and expected value from length
-                    uint32_t mask = op.len & 0xFFFFFFFF;
-                    uint32_t expected = (op.len >> 32) & 0xFFFFFFFF;
-                    printf("[IPC] Poll on 0x%x mask 0x%x expected 0x%x ...\n",
-                           op.addr, mask, expected);
-                    uint32_t read;
-                    do {
-                        sim::MEM.read(op.addr, sizeof(uint32_t),
-                                      (uint8_t*)(void*)&read);
+                case Wait:
+                    // Block until the simulation has finished, then send back
+                    // its exit code. `finished` is set by `notify_finished()`
+                    // when the fesvr/HTIF run loop returns.
+                    printf("[IPC] Wait for simulation to finish ...\n");
+                    while (!targs->finished->load()) {
                         nanosleep(
-                            (const struct timespec[]){{0, IPC_POLL_PERIOD_NS}},
+                            (const struct timespec[]){{0, IPC_WAIT_PERIOD_NS}},
                             NULL);
-                    } while ((read & mask) == (expected & mask));
-                    // Send back read 32b word
-                    fwrite(&read, sizeof(uint32_t), 1, rx);
+                    }
+                    uint32_t exit_code = (uint32_t)targs->exit_code->load();
+                    fwrite(&exit_code, sizeof(uint32_t), 1, rx);
                     fflush(rx);
                     break;
             }
         }
     }
 
-    // TX FIFO closed at other end: close both FIFOs and join main thread
+    // TX FIFO closed at other end: the host has finished issuing commands.
+    // Signal this so the main thread stops evaluating the RTL, then close both
+    // FIFOs and join the main thread.
+    targs->disconnected->store(true);
     fclose(tx);
     fclose(rx);
     pthread_exit(NULL);
@@ -106,12 +105,25 @@ IpcIface::IpcIface(int argc, char** argv) {
             targs.rx = (char*)malloc(strlen(rx) + 1);
             strcpy(targs.tx, tx);
             strcpy(targs.rx, rx);
+            targs.finished = &finished;
+            targs.exit_code = &exit_code;
+            targs.disconnected = &disconnected;
             // Initialize IO thread which will handle TX, RX pipes
             pthread_create(&thread, NULL, *ipc_thread_handle, (void*)&targs);
             printf("[IPC] Thread launched with TX FIFO `%s`, RX FIFO `%s`\n",
                    targs.tx, targs.rx);
             active = true;
         }
+    }
+}
+
+// Notify the IPC thread that the simulation has finished.
+void IpcIface::notify_finished(int ec) {
+    if (active) {
+        // Store the exit code before setting `finished`, so it is visible to
+        // the IPC thread as soon as the flag is observed.
+        exit_code.store(ec);
+        finished.store(true);
     }
 }
 
