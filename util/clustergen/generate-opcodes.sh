@@ -18,9 +18,11 @@ cat > $INSTR_SV <<- EOM
 
 EOM
 echo -e "// verilog_lint: waive-start parameter-name-style" >> $INSTR_SV
+echo -e "// verilog_lint: waive-start explicit-parameter-storage-type" >> $INSTR_SV
 riscv_opcodes -sverilog --warn-overlap ${OPCODES[@]}
 # Dump riscv_opcodes output to the instruction file
 cat inst.sverilog >> $INSTR_SV
 # Delete riscv_opcodes artifacts
 rm inst.sverilog instr_dict.json
 echo -e "// verilog_lint: waive-stop parameter-name-style" >> $INSTR_SV
+echo -e "// verilog_lint: waive-stop explicit-parameter-storage-type" >> $INSTR_SV
