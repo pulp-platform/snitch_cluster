@@ -19,7 +19,7 @@ SN_BOOTROM             = $(SN_BOOTROM_DIR)/snitch_bootrom.sv
 SN_CLUSTER_RDL         = $(SN_GEN_DIR)/snitch_cluster.rdl
 
 # Spatz package generation
-SN_SPATZ_HW_DIR  = $(shell $(SN_BENDER) path spatz_core)/hw
+SN_SPATZ_HW_DIR  = $(shell $(SN_BENDER) path spatz_vpu)/hw
 SN_SPATZ_CFG     = $(SN_GEN_DIR)/spatz_cfg.json
 SN_SPATZ_PKG_TPL = $(SN_SPATZ_HW_DIR)/src/spatz_pkg.sv.tpl
 SN_SPATZ_PKG     = $(SN_GEN_DIR)/spatz_pkg.sv

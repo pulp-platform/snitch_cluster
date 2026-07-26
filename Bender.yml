@@ -47,13 +47,13 @@ dependencies:
   FPnew:
     git: https://github.com/pulp-platform/cvfpu.git
     rev: common-cells-v2
-  spatz_core:
+  spatz_vpu:
     git: https://github.com/pulp-platform/spatz_vpu.git
     rev: common_cell_v2
 
 workspace:
   package_links:
-    deps/spatz_core: spatz_core
+    deps/spatz_vpu: spatz_vpu
 
 export_include_dirs:
   - hw/reqrsp_interface/include
