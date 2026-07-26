@@ -106,8 +106,9 @@ endef
 # Arg 3: bender arguments
 # Arg 4: top module name
 # Arg 5: name of target for which prerequisites are generated
+# Arg 6: additional prerequisites to generate Bender filelist
 define sn_gen_rtl_prerequisites
-$(2)/$(4).f: $(SN_BENDER_YML) $(SN_BENDER_LOCK) $(SN_GEN_RTL_SRCS) | $(2)
+$(2)/$(4).f: $(SN_BENDER_YML) $(SN_BENDER_LOCK) $(SN_GEN_RTL_SRCS) $(6) | $(2)
 	$(SN_BENDER) script verilator $(3) > $$@
 
 $(1): $(2)/$(4).f $(SN_GEN_RTL_SRCS) | $(2)
