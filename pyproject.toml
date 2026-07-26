@@ -40,6 +40,7 @@ dependencies = [
     "pyyaml",
     "reuse",
     "riscv-opcodes",
+    "spatz-core",
     "tabulate",
     "termcolor",
     "yamllint",
@@ -67,6 +68,7 @@ all = [
 
 [tool.uv.sources]
 riscv-opcodes = { path = "sw/deps/riscv-opcodes", editable = true }
+spatz-core = { path = "deps/spatz_core", editable = true }
 torch = [
     { index = "pytorch-cpu" },
 ]

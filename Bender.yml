@@ -51,6 +51,10 @@ dependencies:
     git: https://github.com/pulp-platform/spatz_vpu.git
     rev: common_cell_v2
 
+workspace:
+  package_links:
+    deps/spatz_core: spatz_core
+
 export_include_dirs:
   - hw/reqrsp_interface/include
   - hw/mem_interface/include

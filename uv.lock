@@ -2162,6 +2162,7 @@ dependencies = [
     { name = "pyyaml" },
     { name = "reuse" },
     { name = "riscv-opcodes" },
+    { name = "spatz-core" },
     { name = "tabulate" },
     { name = "termcolor" },
     { name = "yamllint" },
@@ -2234,12 +2235,38 @@ requires-dist = [
     { name = "riscv-opcodes", editable = "sw/deps/riscv-opcodes" },
     { name = "scikit-learn", marker = "extra == 'kernels'" },
     { name = "snitch", extras = ["docs", "kernels"], marker = "extra == 'all'" },
+    { name = "spatz-core", editable = "deps/spatz_core" },
     { name = "tabulate" },
     { name = "termcolor" },
     { name = "torch", marker = "extra == 'kernels'", index = "https://download.pytorch.org/whl/cpu" },
     { name = "yamllint" },
 ]
 provides-extras = ["kernels", "docs", "all"]
+
+[[package]]
+name = "spatz-core"
+source = { editable = "deps/spatz_core" }
+dependencies = [
+    { name = "dataclasses" },
+    { name = "hjson" },
+    { name = "jsonref" },
+    { name = "jsonschema" },
+    { name = "mako" },
+    { name = "termcolor" },
+    { name = "torch", version = "2.9.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
+    { name = "torch", version = "2.9.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "dataclasses" },
+    { name = "hjson" },
+    { name = "jsonref" },
+    { name = "jsonschema" },
+    { name = "mako" },
+    { name = "termcolor" },
+    { name = "torch", index = "https://download.pytorch.org/whl/cpu" },
+]
 
 [[package]]
 name = "super-collections"
