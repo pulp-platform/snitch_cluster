@@ -6,6 +6,7 @@
 set -e
 
 # We sync dependencies at Docker startup, so we don't have to bake them in in the build stage
+bender checkout
 uv sync --extra all --locked
 
 exec "$@"

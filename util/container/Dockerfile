@@ -146,6 +146,7 @@ COPY . ${REPO_DIR}
 WORKDIR ${REPO_DIR}
 
 # Build the verilator model
+RUN bender checkout
 RUN uv run make verilator
 
 #-------------------------------------------------------------------------------
