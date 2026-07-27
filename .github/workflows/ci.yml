@@ -91,7 +91,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - uses: ./.github/actions/setup-python
+      - uses: ./.github/actions/setup-container
       - name: Build docs
         run: make docs
 
@@ -106,7 +106,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - uses: ./.github/actions/setup-python
+      - uses: ./.github/actions/setup-container
       # For some reason, the checkout is done by a different user
       # than that deploying to Github (root, possibly due to Docker).
       # So we need to set the repository as a safe directory.
@@ -134,7 +134,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - uses: ./.github/actions/setup-python
+      - uses: ./.github/actions/setup-container
       - name: Run pytest
         run: pytest
 
@@ -152,7 +152,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - uses: ./.github/actions/setup-python
+      - uses: ./.github/actions/setup-container
       - name: Hash Verilator prerequisites
         id: verilator-hash
         run: |
@@ -181,7 +181,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - uses: ./.github/actions/setup-python
+      - uses: ./.github/actions/setup-container
       - name: Build Software
         run: |
           make sw -j
@@ -216,7 +216,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - uses: ./.github/actions/setup-python
+      - uses: ./.github/actions/setup-container
       - name: Hash Verilator prerequisites
         id: verilator-hash
         run: |
@@ -268,7 +268,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - uses: ./.github/actions/setup-python
+      - uses: ./.github/actions/setup-container
       - name: Run Synthesis
         run: |
           make CFG_OVERRIDE=cfg/yosys-ci.json yosys
@@ -292,7 +292,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-      - uses: ./.github/actions/setup-python
+      - uses: ./.github/actions/setup-container
       - name: Generate opcodes
         run: |
           ./util/clustergen/generate-opcodes.sh

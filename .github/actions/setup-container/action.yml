@@ -2,8 +2,8 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
-name: setup-python
-description: Install Python dependencies once per job, and cache across jobs
+name: setup-container
+description: Set up the container's Bender and Python dependencies
 
 runs:
   using: "composite"
@@ -21,6 +21,21 @@ runs:
       with:
         path: ~/.cache/uv
         key: uvcache-${{ hashFiles('uv.lock', '.python-version') }}
+
+    # Cache the .bender directory (checked out Bender dependencies)
+    - name: Cache Bender dependencies
+      uses: actions/cache@v4
+      with:
+        path: .bender
+        key: bender-${{ hashFiles('Bender.lock') }}
+
+    # In container jobs the entrypoint's `bender checkout` runs before
+    # actions/checkout populates the workspace, so it has no effect here and
+    # we need to check out Bender dependencies again after checkout.
+    - name: Checkout Bender dependencies
+      shell: sh
+      run: |
+        bender checkout
 
     - name: Sync Python environment
       shell: sh
