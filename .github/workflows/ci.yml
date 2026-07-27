@@ -18,6 +18,33 @@ concurrency:
 
 jobs:
 
+  #############
+  # Base SHA  #
+  #############
+
+  base-sha:
+    name: Determine base SHA
+    runs-on: ubuntu-22.04
+    outputs:
+      sha: ${{ steps.base-sha.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Determine base SHA
+        id: base-sha
+        # Compare against the merge-base with `main`, not just the previous
+        # commit on this branch: CI doesn't necessarily run on every push
+        # (e.g. superseded runs get cancelled), so a plain previous-commit
+        # diff could silently skip over a real prerequisite change.
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "sha=${{ github.event.before }}" >> "$GITHUB_OUTPUT"
+          else
+            git fetch origin main
+            echo "sha=$(git merge-base origin/main HEAD)" >> "$GITHUB_OUTPUT"
+          fi
+
   ##########################
   # Build Docker Container #
   ##########################
@@ -252,7 +279,7 @@ jobs:
   synthesis:
     name: Synthesis w/ Yosys
     runs-on: ubuntu-22.04
-    needs: [docker-meta, build-hw-image]
+    needs: [docker-meta, build-hw-image, base-sha]
     container:
       image: ${{ needs.docker-meta.outputs.hw_image_name }}
       volumes:
@@ -272,6 +299,7 @@ jobs:
         with:
           target: yosys
           flags: --recursive
+          base_sha: ${{ needs.base-sha.outputs.sha }}
       - name: Run Synthesis
         if: steps.make-prerequisites-changed.outputs.changed == 'true'
         run: |
