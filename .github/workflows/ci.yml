@@ -272,6 +272,15 @@ jobs:
       - name: Run Synthesis
         run: |
           make CFG_OVERRIDE=cfg/yosys-ci.json yosys
+      - name: Upload Yosys logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yosys-synthesis-logs
+          path: |
+            target/asic/yosys/*.log
+            target/asic/yosys/reports/
+          if-no-files-found: warn
 
   ######################
   # Sources Up-to-Date #
