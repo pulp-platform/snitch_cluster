@@ -1617,14 +1617,14 @@ wheels = [
 
 [[package]]
 name = "pymakeutils"
-version = "1.4.0"
+version = "1.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anytree" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/90/f7/6b854a6e9f5012cbcb778d8eacf8d4497b5b55032982b444ca1255d4df66/pymakeutils-1.4.0.tar.gz", hash = "sha256:48cd5b7958a82a5cbb0ac44f1ea5200ecee382afa34535a4d375dc87c75b06f3", size = 15250, upload-time = "2025-09-29T12:55:24.452Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bb/ff/0e2a6a69faa7f524da559c38ea395559e025ebb9827d109ebb68e4a99cb5/pymakeutils-1.5.0.tar.gz", hash = "sha256:2356b8ac0804a4f36c294bec73f4a5654ef1cd3a0dc15837013d6d71d4459a71", size = 16497, upload-time = "2026-07-27T13:27:20.511Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/68/f4/6a06822fe183455725b4ce1b73289176cf37d9dcd52280fa86688d6e86d3/pymakeutils-1.4.0-py3-none-any.whl", hash = "sha256:4c5685c3921d896a1087632a587d2c377f87fddf48d2c88f0f0127a1c227ed18", size = 13691, upload-time = "2025-09-29T12:55:23.118Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/0d/38bde112a164633497a0d7f8f23bf120cc88bad89fe8e173def2768346ee/pymakeutils-1.5.0-py3-none-any.whl", hash = "sha256:3ee35cc23f66b623cdef6ce76a0aaa9dd15995ab983c08ad782281e0389ad17a", size = 14096, upload-time = "2026-07-27T13:27:19.253Z" },
 ]
 
 [[package]]
