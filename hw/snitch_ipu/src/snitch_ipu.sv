@@ -45,10 +45,10 @@ module snitch_ipu import snitch_pkg::*;  #(
     acc_rsp_o.p.error = 1'b0;
     illegal_instruction = 1'b0;
     unique casez (acc_req_i.q.data_op)
-      riscv_instr::MUL,
-      riscv_instr::MULH,
-      riscv_instr::MULHSU,
-      riscv_instr::MULHU: begin
+      snitch_riscv_instr::MUL,
+      snitch_riscv_instr::MULH,
+      snitch_riscv_instr::MULHSU,
+      snitch_riscv_instr::MULHU: begin
         if (Xpulpv2) begin
           dsp_valid_op = acc_req_i.q_valid;
           acc_rsp_o.q_ready = dsp_ready_op;
@@ -57,162 +57,162 @@ module snitch_ipu import snitch_pkg::*;  #(
           acc_rsp_o.q_ready = mul_ready_op;
         end
       end
-      riscv_instr::DIV,
-      riscv_instr::DIVU,
-      riscv_instr::REM,
-      riscv_instr::REMU: begin
+      snitch_riscv_instr::DIV,
+      snitch_riscv_instr::DIVU,
+      snitch_riscv_instr::REM,
+      snitch_riscv_instr::REMU: begin
         div_valid_op = acc_req_i.q_valid;
         acc_rsp_o.q_ready = div_ready_op;
       end
-      riscv_instr::P_ABS,                 // Xpulpv2: p.abs
-      riscv_instr::P_SLET,                // Xpulpv2: p.slet
-      riscv_instr::P_SLETU,               // Xpulpv2: p.sletu
-      riscv_instr::P_MIN,                 // Xpulpv2: p.min
-      riscv_instr::P_MINU,                // Xpulpv2: p.minu
-      riscv_instr::P_MAX,                 // Xpulpv2: p.max
-      riscv_instr::P_MAXU,                // Xpulpv2: p.maxu
-      riscv_instr::P_EXTHS,               // Xpulpv2: p.exths
-      riscv_instr::P_EXTHZ,               // Xpulpv2: p.exthz
-      riscv_instr::P_EXTBS,               // Xpulpv2: p.extbs
-      riscv_instr::P_EXTBZ,               // Xpulpv2: p.extbz
-      riscv_instr::P_CLIP,                // Xpulpv2: p.clip
-      riscv_instr::P_CLIPU,               // Xpulpv2: p.clipu
-      riscv_instr::P_CLIPR,               // Xpulpv2: p.clipr
-      riscv_instr::P_CLIPUR,              // Xpulpv2: p.clipur
-      riscv_instr::P_MAC,                 // Xpulpv2: p.mac
-      riscv_instr::P_MSU,                 // Xpulpv2: p.msu
-      riscv_instr::PV_ADD_H,              // Xpulpv2: pv.add.h
-      riscv_instr::PV_ADD_SC_H,           // Xpulpv2: pv.add.sc.h
-      riscv_instr::PV_ADD_SCI_H,          // Xpulpv2: pv.add.sci.h
-      riscv_instr::PV_ADD_B,              // Xpulpv2: pv.add.b
-      riscv_instr::PV_ADD_SC_B,           // Xpulpv2: pv.add.sc.b
-      riscv_instr::PV_ADD_SCI_B,          // Xpulpv2: pv.add.sci.b
-      riscv_instr::PV_SUB_H,              // Xpulpv2: pv.sub.h
-      riscv_instr::PV_SUB_SC_H,           // Xpulpv2: pv.sub.sc.h
-      riscv_instr::PV_SUB_SCI_H,          // Xpulpv2: pv.sub.sci.h
-      riscv_instr::PV_SUB_B,              // Xpulpv2: pv.sub.b
-      riscv_instr::PV_SUB_SC_B,           // Xpulpv2: pv.sub.sc.b
-      riscv_instr::PV_SUB_SCI_B,          // Xpulpv2: pv.sub.sci.b
-      riscv_instr::PV_AVG_H,              // Xpulpv2: pv.avg.h
-      riscv_instr::PV_AVG_SC_H,           // Xpulpv2: pv.avg.sc.h
-      riscv_instr::PV_AVG_SCI_H,          // Xpulpv2: pv.avg.sci.h
-      riscv_instr::PV_AVG_B,              // Xpulpv2: pv.avg.b
-      riscv_instr::PV_AVG_SC_B,           // Xpulpv2: pv.avg.sc.b
-      riscv_instr::PV_AVG_SCI_B,          // Xpulpv2: pv.avg.sci.b
-      riscv_instr::PV_AVGU_H,             // Xpulpv2: pv.avgu.h
-      riscv_instr::PV_AVGU_SC_H,          // Xpulpv2: pv.avgu.sc.h
-      riscv_instr::PV_AVGU_SCI_H,         // Xpulpv2: pv.avgu.sci.h
-      riscv_instr::PV_AVGU_B,             // Xpulpv2: pv.avgu.b
-      riscv_instr::PV_AVGU_SC_B,          // Xpulpv2: pv.avgu.sc.b
-      riscv_instr::PV_AVGU_SCI_B,         // Xpulpv2: pv.avgu.sci.b
-      riscv_instr::PV_MIN_H,              // Xpulpv2: pv.min.h
-      riscv_instr::PV_MIN_SC_H,           // Xpulpv2: pv.min.sc.h
-      riscv_instr::PV_MIN_SCI_H,          // Xpulpv2: pv.min.sci.h
-      riscv_instr::PV_MIN_B,              // Xpulpv2: pv.min.b
-      riscv_instr::PV_MIN_SC_B,           // Xpulpv2: pv.min.sc.b
-      riscv_instr::PV_MIN_SCI_B,          // Xpulpv2: pv.min.sci.b
-      riscv_instr::PV_MINU_H,             // Xpulpv2: pv.minu.h
-      riscv_instr::PV_MINU_SC_H,          // Xpulpv2: pv.minu.sc.h
-      riscv_instr::PV_MINU_SCI_H,         // Xpulpv2: pv.minu.sci.h
-      riscv_instr::PV_MINU_B,             // Xpulpv2: pv.minu.b
-      riscv_instr::PV_MINU_SC_B,          // Xpulpv2: pv.minu.sc.b
-      riscv_instr::PV_MINU_SCI_B,         // Xpulpv2: pv.minu.sci.b
-      riscv_instr::PV_MAX_H,              // Xpulpv2: pv.max.h
-      riscv_instr::PV_MAX_SC_H,           // Xpulpv2: pv.max.sc.h
-      riscv_instr::PV_MAX_SCI_H,          // Xpulpv2: pv.max.sci.h
-      riscv_instr::PV_MAX_B,              // Xpulpv2: pv.max.b
-      riscv_instr::PV_MAX_SC_B,           // Xpulpv2: pv.max.sc.b
-      riscv_instr::PV_MAX_SCI_B,          // Xpulpv2: pv.max.sci.b
-      riscv_instr::PV_MAXU_H,             // Xpulpv2: pv.maxu.h
-      riscv_instr::PV_MAXU_SC_H,          // Xpulpv2: pv.maxu.sc.h
-      riscv_instr::PV_MAXU_SCI_H,         // Xpulpv2: pv.maxu.sci.h
-      riscv_instr::PV_MAXU_B,             // Xpulpv2: pv.maxu.b
-      riscv_instr::PV_MAXU_SC_B,          // Xpulpv2: pv.maxu.sc.b
-      riscv_instr::PV_MAXU_SCI_B,         // Xpulpv2: pv.maxu.sci.b
-      riscv_instr::PV_SRL_H,              // Xpulpv2: pv.srl.h
-      riscv_instr::PV_SRL_SC_H,           // Xpulpv2: pv.srl.sc.h
-      riscv_instr::PV_SRL_SCI_H,          // Xpulpv2: pv.srl.sci.h
-      riscv_instr::PV_SRL_B,              // Xpulpv2: pv.srl.b
-      riscv_instr::PV_SRL_SC_B,           // Xpulpv2: pv.srl.sc.b
-      riscv_instr::PV_SRL_SCI_B,          // Xpulpv2: pv.srl.sci.b
-      riscv_instr::PV_SRA_H,              // Xpulpv2: pv.sra.h
-      riscv_instr::PV_SRA_SC_H,           // Xpulpv2: pv.sra.sc.h
-      riscv_instr::PV_SRA_SCI_H,          // Xpulpv2: pv.sra.sci.h
-      riscv_instr::PV_SRA_B,              // Xpulpv2: pv.sra.b
-      riscv_instr::PV_SRA_SC_B,           // Xpulpv2: pv.sra.sc.b
-      riscv_instr::PV_SRA_SCI_B,          // Xpulpv2: pv.sra.sci.b
-      riscv_instr::PV_SLL_H,              // Xpulpv2: pv.sll.h
-      riscv_instr::PV_SLL_SC_H,           // Xpulpv2: pv.sll.sc.h
-      riscv_instr::PV_SLL_SCI_H,          // Xpulpv2: pv.sll.sci.h
-      riscv_instr::PV_SLL_B,              // Xpulpv2: pv.sll.b
-      riscv_instr::PV_SLL_SC_B,           // Xpulpv2: pv.sll.sc.b
-      riscv_instr::PV_SLL_SCI_B,          // Xpulpv2: pv.sll.sci.b
-      riscv_instr::PV_OR_H,               // Xpulpv2: pv.or.h
-      riscv_instr::PV_OR_SC_H,            // Xpulpv2: pv.or.sc.h
-      riscv_instr::PV_OR_SCI_H,           // Xpulpv2: pv.or.sci.h
-      riscv_instr::PV_OR_B,               // Xpulpv2: pv.or.b
-      riscv_instr::PV_OR_SC_B,            // Xpulpv2: pv.or.sc.b
-      riscv_instr::PV_OR_SCI_B,           // Xpulpv2: pv.or.sci.b
-      riscv_instr::PV_XOR_H,              // Xpulpv2: pv.xor.h
-      riscv_instr::PV_XOR_SC_H,           // Xpulpv2: pv.xor.sc.h
-      riscv_instr::PV_XOR_SCI_H,          // Xpulpv2: pv.xor.sci.h
-      riscv_instr::PV_XOR_B,              // Xpulpv2: pv.xor.b
-      riscv_instr::PV_XOR_SC_B,           // Xpulpv2: pv.xor.sc.b
-      riscv_instr::PV_XOR_SCI_B,          // Xpulpv2: pv.xor.sci.b
-      riscv_instr::PV_AND_H,              // Xpulpv2: pv.and.h
-      riscv_instr::PV_AND_SC_H,           // Xpulpv2: pv.and.sc.h
-      riscv_instr::PV_AND_SCI_H,          // Xpulpv2: pv.and.sci.h
-      riscv_instr::PV_AND_B,              // Xpulpv2: pv.and.b
-      riscv_instr::PV_AND_SC_B,           // Xpulpv2: pv.and.sc.b
-      riscv_instr::PV_AND_SCI_B,          // Xpulpv2: pv.and.sci.b
-      riscv_instr::PV_ABS_H,              // Xpulpv2: pv.abs.h
-      riscv_instr::PV_ABS_B,              // Xpulpv2: pv.abs.b
-      riscv_instr::PV_EXTRACT_H,          // Xpulpv2: pv.extract.h
-      riscv_instr::PV_EXTRACT_B,          // Xpulpv2: pv.extract.b
-      riscv_instr::PV_EXTRACTU_H,         // Xpulpv2: pv.extractu.h
-      riscv_instr::PV_EXTRACTU_B,         // Xpulpv2: pv.extractu.b
-      riscv_instr::PV_INSERT_H,           // Xpulpv2: pv.insert.h
-      riscv_instr::PV_INSERT_B,           // Xpulpv2: pv.insert.b
-      riscv_instr::PV_DOTUP_H,            // Xpulpv2: pv.dotup.h
-      riscv_instr::PV_DOTUP_SC_H,         // Xpulpv2: pv.dotup.sc.h
-      riscv_instr::PV_DOTUP_SCI_H,        // Xpulpv2: pv.dotup.sci.h
-      riscv_instr::PV_DOTUP_B,            // Xpulpv2: pv.dotup.b
-      riscv_instr::PV_DOTUP_SC_B,         // Xpulpv2: pv.dotup.sc.b
-      riscv_instr::PV_DOTUP_SCI_B,        // Xpulpv2: pv.dotup.sci.b
-      riscv_instr::PV_DOTUSP_H,           // Xpulpv2: pv.dotusp.h
-      riscv_instr::PV_DOTUSP_SC_H,        // Xpulpv2: pv.dotusp.sc.h
-      riscv_instr::PV_DOTUSP_SCI_H,       // Xpulpv2: pv.dotusp.sci.h
-      riscv_instr::PV_DOTUSP_B,           // Xpulpv2: pv.dotusp.b
-      riscv_instr::PV_DOTUSP_SC_B,        // Xpulpv2: pv.dotusp.sc.b
-      riscv_instr::PV_DOTUSP_SCI_B,       // Xpulpv2: pv.dotusp.sci.b
-      riscv_instr::PV_DOTSP_H,            // Xpulpv2: pv.dotsp.h
-      riscv_instr::PV_DOTSP_SC_H,         // Xpulpv2: pv.dotsp.sc.h
-      riscv_instr::PV_DOTSP_SCI_H,        // Xpulpv2: pv.dotsp.sci.h
-      riscv_instr::PV_DOTSP_B,            // Xpulpv2: pv.dotsp.b
-      riscv_instr::PV_DOTSP_SC_B,         // Xpulpv2: pv.dotsp.sc.b
-      riscv_instr::PV_DOTSP_SCI_B,        // Xpulpv2: pv.dotsp.sci.b
-      riscv_instr::PV_SDOTUP_H,           // Xpulpv2: pv.sdotup.h
-      riscv_instr::PV_SDOTUP_SC_H,        // Xpulpv2: pv.sdotup.sc.h
-      riscv_instr::PV_SDOTUP_SCI_H,       // Xpulpv2: pv.sdotup.sci.h
-      riscv_instr::PV_SDOTUP_B,           // Xpulpv2: pv.sdotup.b
-      riscv_instr::PV_SDOTUP_SC_B,        // Xpulpv2: pv.sdotup.sc.b
-      riscv_instr::PV_SDOTUP_SCI_B,       // Xpulpv2: pv.sdotup.sci.b
-      riscv_instr::PV_SDOTUSP_H,          // Xpulpv2: pv.sdotusp.h
-      riscv_instr::PV_SDOTUSP_SC_H,       // Xpulpv2: pv.sdotusp.sc.h
-      riscv_instr::PV_SDOTUSP_SCI_H,      // Xpulpv2: pv.sdotusp.sci.h
-      riscv_instr::PV_SDOTUSP_B,          // Xpulpv2: pv.sdotusp.b
-      riscv_instr::PV_SDOTUSP_SC_B,       // Xpulpv2: pv.sdotusp.sc.b
-      riscv_instr::PV_SDOTUSP_SCI_B,      // Xpulpv2: pv.sdotusp.sci.b
-      riscv_instr::PV_SDOTSP_H,           // Xpulpv2: pv.sdotsp.h
-      riscv_instr::PV_SDOTSP_SC_H,        // Xpulpv2: pv.sdotsp.sc.h
-      riscv_instr::PV_SDOTSP_SCI_H,       // Xpulpv2: pv.sdotsp.sci.h
-      riscv_instr::PV_SDOTSP_B,           // Xpulpv2: pv.sdotsp.b
-      riscv_instr::PV_SDOTSP_SC_B,        // Xpulpv2: pv.sdotsp.sc.b
-      riscv_instr::PV_SDOTSP_SCI_B,       // Xpulpv2: pv.sdotsp.sci.b
-      riscv_instr::PV_SHUFFLE2_H,         // Xpulpv2: pv.shuffle2.h
-      riscv_instr::PV_SHUFFLE2_B,         // Xpulpv2: pv.shuffle2.b
-      riscv_instr::PV_PACK,               // Xpulpv2: pv.pack
-      riscv_instr::PV_PACK_H: begin       // Xpulpv2: pv.pack.h
+      snitch_riscv_instr::P_ABS,                 // Xpulpv2: p.abs
+      snitch_riscv_instr::P_SLET,                // Xpulpv2: p.slet
+      snitch_riscv_instr::P_SLETU,               // Xpulpv2: p.sletu
+      snitch_riscv_instr::P_MIN,                 // Xpulpv2: p.min
+      snitch_riscv_instr::P_MINU,                // Xpulpv2: p.minu
+      snitch_riscv_instr::P_MAX,                 // Xpulpv2: p.max
+      snitch_riscv_instr::P_MAXU,                // Xpulpv2: p.maxu
+      snitch_riscv_instr::P_EXTHS,               // Xpulpv2: p.exths
+      snitch_riscv_instr::P_EXTHZ,               // Xpulpv2: p.exthz
+      snitch_riscv_instr::P_EXTBS,               // Xpulpv2: p.extbs
+      snitch_riscv_instr::P_EXTBZ,               // Xpulpv2: p.extbz
+      snitch_riscv_instr::P_CLIP,                // Xpulpv2: p.clip
+      snitch_riscv_instr::P_CLIPU,               // Xpulpv2: p.clipu
+      snitch_riscv_instr::P_CLIPR,               // Xpulpv2: p.clipr
+      snitch_riscv_instr::P_CLIPUR,              // Xpulpv2: p.clipur
+      snitch_riscv_instr::P_MAC,                 // Xpulpv2: p.mac
+      snitch_riscv_instr::P_MSU,                 // Xpulpv2: p.msu
+      snitch_riscv_instr::PV_ADD_H,              // Xpulpv2: pv.add.h
+      snitch_riscv_instr::PV_ADD_SC_H,           // Xpulpv2: pv.add.sc.h
+      snitch_riscv_instr::PV_ADD_SCI_H,          // Xpulpv2: pv.add.sci.h
+      snitch_riscv_instr::PV_ADD_B,              // Xpulpv2: pv.add.b
+      snitch_riscv_instr::PV_ADD_SC_B,           // Xpulpv2: pv.add.sc.b
+      snitch_riscv_instr::PV_ADD_SCI_B,          // Xpulpv2: pv.add.sci.b
+      snitch_riscv_instr::PV_SUB_H,              // Xpulpv2: pv.sub.h
+      snitch_riscv_instr::PV_SUB_SC_H,           // Xpulpv2: pv.sub.sc.h
+      snitch_riscv_instr::PV_SUB_SCI_H,          // Xpulpv2: pv.sub.sci.h
+      snitch_riscv_instr::PV_SUB_B,              // Xpulpv2: pv.sub.b
+      snitch_riscv_instr::PV_SUB_SC_B,           // Xpulpv2: pv.sub.sc.b
+      snitch_riscv_instr::PV_SUB_SCI_B,          // Xpulpv2: pv.sub.sci.b
+      snitch_riscv_instr::PV_AVG_H,              // Xpulpv2: pv.avg.h
+      snitch_riscv_instr::PV_AVG_SC_H,           // Xpulpv2: pv.avg.sc.h
+      snitch_riscv_instr::PV_AVG_SCI_H,          // Xpulpv2: pv.avg.sci.h
+      snitch_riscv_instr::PV_AVG_B,              // Xpulpv2: pv.avg.b
+      snitch_riscv_instr::PV_AVG_SC_B,           // Xpulpv2: pv.avg.sc.b
+      snitch_riscv_instr::PV_AVG_SCI_B,          // Xpulpv2: pv.avg.sci.b
+      snitch_riscv_instr::PV_AVGU_H,             // Xpulpv2: pv.avgu.h
+      snitch_riscv_instr::PV_AVGU_SC_H,          // Xpulpv2: pv.avgu.sc.h
+      snitch_riscv_instr::PV_AVGU_SCI_H,         // Xpulpv2: pv.avgu.sci.h
+      snitch_riscv_instr::PV_AVGU_B,             // Xpulpv2: pv.avgu.b
+      snitch_riscv_instr::PV_AVGU_SC_B,          // Xpulpv2: pv.avgu.sc.b
+      snitch_riscv_instr::PV_AVGU_SCI_B,         // Xpulpv2: pv.avgu.sci.b
+      snitch_riscv_instr::PV_MIN_H,              // Xpulpv2: pv.min.h
+      snitch_riscv_instr::PV_MIN_SC_H,           // Xpulpv2: pv.min.sc.h
+      snitch_riscv_instr::PV_MIN_SCI_H,          // Xpulpv2: pv.min.sci.h
+      snitch_riscv_instr::PV_MIN_B,              // Xpulpv2: pv.min.b
+      snitch_riscv_instr::PV_MIN_SC_B,           // Xpulpv2: pv.min.sc.b
+      snitch_riscv_instr::PV_MIN_SCI_B,          // Xpulpv2: pv.min.sci.b
+      snitch_riscv_instr::PV_MINU_H,             // Xpulpv2: pv.minu.h
+      snitch_riscv_instr::PV_MINU_SC_H,          // Xpulpv2: pv.minu.sc.h
+      snitch_riscv_instr::PV_MINU_SCI_H,         // Xpulpv2: pv.minu.sci.h
+      snitch_riscv_instr::PV_MINU_B,             // Xpulpv2: pv.minu.b
+      snitch_riscv_instr::PV_MINU_SC_B,          // Xpulpv2: pv.minu.sc.b
+      snitch_riscv_instr::PV_MINU_SCI_B,         // Xpulpv2: pv.minu.sci.b
+      snitch_riscv_instr::PV_MAX_H,              // Xpulpv2: pv.max.h
+      snitch_riscv_instr::PV_MAX_SC_H,           // Xpulpv2: pv.max.sc.h
+      snitch_riscv_instr::PV_MAX_SCI_H,          // Xpulpv2: pv.max.sci.h
+      snitch_riscv_instr::PV_MAX_B,              // Xpulpv2: pv.max.b
+      snitch_riscv_instr::PV_MAX_SC_B,           // Xpulpv2: pv.max.sc.b
+      snitch_riscv_instr::PV_MAX_SCI_B,          // Xpulpv2: pv.max.sci.b
+      snitch_riscv_instr::PV_MAXU_H,             // Xpulpv2: pv.maxu.h
+      snitch_riscv_instr::PV_MAXU_SC_H,          // Xpulpv2: pv.maxu.sc.h
+      snitch_riscv_instr::PV_MAXU_SCI_H,         // Xpulpv2: pv.maxu.sci.h
+      snitch_riscv_instr::PV_MAXU_B,             // Xpulpv2: pv.maxu.b
+      snitch_riscv_instr::PV_MAXU_SC_B,          // Xpulpv2: pv.maxu.sc.b
+      snitch_riscv_instr::PV_MAXU_SCI_B,         // Xpulpv2: pv.maxu.sci.b
+      snitch_riscv_instr::PV_SRL_H,              // Xpulpv2: pv.srl.h
+      snitch_riscv_instr::PV_SRL_SC_H,           // Xpulpv2: pv.srl.sc.h
+      snitch_riscv_instr::PV_SRL_SCI_H,          // Xpulpv2: pv.srl.sci.h
+      snitch_riscv_instr::PV_SRL_B,              // Xpulpv2: pv.srl.b
+      snitch_riscv_instr::PV_SRL_SC_B,           // Xpulpv2: pv.srl.sc.b
+      snitch_riscv_instr::PV_SRL_SCI_B,          // Xpulpv2: pv.srl.sci.b
+      snitch_riscv_instr::PV_SRA_H,              // Xpulpv2: pv.sra.h
+      snitch_riscv_instr::PV_SRA_SC_H,           // Xpulpv2: pv.sra.sc.h
+      snitch_riscv_instr::PV_SRA_SCI_H,          // Xpulpv2: pv.sra.sci.h
+      snitch_riscv_instr::PV_SRA_B,              // Xpulpv2: pv.sra.b
+      snitch_riscv_instr::PV_SRA_SC_B,           // Xpulpv2: pv.sra.sc.b
+      snitch_riscv_instr::PV_SRA_SCI_B,          // Xpulpv2: pv.sra.sci.b
+      snitch_riscv_instr::PV_SLL_H,              // Xpulpv2: pv.sll.h
+      snitch_riscv_instr::PV_SLL_SC_H,           // Xpulpv2: pv.sll.sc.h
+      snitch_riscv_instr::PV_SLL_SCI_H,          // Xpulpv2: pv.sll.sci.h
+      snitch_riscv_instr::PV_SLL_B,              // Xpulpv2: pv.sll.b
+      snitch_riscv_instr::PV_SLL_SC_B,           // Xpulpv2: pv.sll.sc.b
+      snitch_riscv_instr::PV_SLL_SCI_B,          // Xpulpv2: pv.sll.sci.b
+      snitch_riscv_instr::PV_OR_H,               // Xpulpv2: pv.or.h
+      snitch_riscv_instr::PV_OR_SC_H,            // Xpulpv2: pv.or.sc.h
+      snitch_riscv_instr::PV_OR_SCI_H,           // Xpulpv2: pv.or.sci.h
+      snitch_riscv_instr::PV_OR_B,               // Xpulpv2: pv.or.b
+      snitch_riscv_instr::PV_OR_SC_B,            // Xpulpv2: pv.or.sc.b
+      snitch_riscv_instr::PV_OR_SCI_B,           // Xpulpv2: pv.or.sci.b
+      snitch_riscv_instr::PV_XOR_H,              // Xpulpv2: pv.xor.h
+      snitch_riscv_instr::PV_XOR_SC_H,           // Xpulpv2: pv.xor.sc.h
+      snitch_riscv_instr::PV_XOR_SCI_H,          // Xpulpv2: pv.xor.sci.h
+      snitch_riscv_instr::PV_XOR_B,              // Xpulpv2: pv.xor.b
+      snitch_riscv_instr::PV_XOR_SC_B,           // Xpulpv2: pv.xor.sc.b
+      snitch_riscv_instr::PV_XOR_SCI_B,          // Xpulpv2: pv.xor.sci.b
+      snitch_riscv_instr::PV_AND_H,              // Xpulpv2: pv.and.h
+      snitch_riscv_instr::PV_AND_SC_H,           // Xpulpv2: pv.and.sc.h
+      snitch_riscv_instr::PV_AND_SCI_H,          // Xpulpv2: pv.and.sci.h
+      snitch_riscv_instr::PV_AND_B,              // Xpulpv2: pv.and.b
+      snitch_riscv_instr::PV_AND_SC_B,           // Xpulpv2: pv.and.sc.b
+      snitch_riscv_instr::PV_AND_SCI_B,          // Xpulpv2: pv.and.sci.b
+      snitch_riscv_instr::PV_ABS_H,              // Xpulpv2: pv.abs.h
+      snitch_riscv_instr::PV_ABS_B,              // Xpulpv2: pv.abs.b
+      snitch_riscv_instr::PV_EXTRACT_H,          // Xpulpv2: pv.extract.h
+      snitch_riscv_instr::PV_EXTRACT_B,          // Xpulpv2: pv.extract.b
+      snitch_riscv_instr::PV_EXTRACTU_H,         // Xpulpv2: pv.extractu.h
+      snitch_riscv_instr::PV_EXTRACTU_B,         // Xpulpv2: pv.extractu.b
+      snitch_riscv_instr::PV_INSERT_H,           // Xpulpv2: pv.insert.h
+      snitch_riscv_instr::PV_INSERT_B,           // Xpulpv2: pv.insert.b
+      snitch_riscv_instr::PV_DOTUP_H,            // Xpulpv2: pv.dotup.h
+      snitch_riscv_instr::PV_DOTUP_SC_H,         // Xpulpv2: pv.dotup.sc.h
+      snitch_riscv_instr::PV_DOTUP_SCI_H,        // Xpulpv2: pv.dotup.sci.h
+      snitch_riscv_instr::PV_DOTUP_B,            // Xpulpv2: pv.dotup.b
+      snitch_riscv_instr::PV_DOTUP_SC_B,         // Xpulpv2: pv.dotup.sc.b
+      snitch_riscv_instr::PV_DOTUP_SCI_B,        // Xpulpv2: pv.dotup.sci.b
+      snitch_riscv_instr::PV_DOTUSP_H,           // Xpulpv2: pv.dotusp.h
+      snitch_riscv_instr::PV_DOTUSP_SC_H,        // Xpulpv2: pv.dotusp.sc.h
+      snitch_riscv_instr::PV_DOTUSP_SCI_H,       // Xpulpv2: pv.dotusp.sci.h
+      snitch_riscv_instr::PV_DOTUSP_B,           // Xpulpv2: pv.dotusp.b
+      snitch_riscv_instr::PV_DOTUSP_SC_B,        // Xpulpv2: pv.dotusp.sc.b
+      snitch_riscv_instr::PV_DOTUSP_SCI_B,       // Xpulpv2: pv.dotusp.sci.b
+      snitch_riscv_instr::PV_DOTSP_H,            // Xpulpv2: pv.dotsp.h
+      snitch_riscv_instr::PV_DOTSP_SC_H,         // Xpulpv2: pv.dotsp.sc.h
+      snitch_riscv_instr::PV_DOTSP_SCI_H,        // Xpulpv2: pv.dotsp.sci.h
+      snitch_riscv_instr::PV_DOTSP_B,            // Xpulpv2: pv.dotsp.b
+      snitch_riscv_instr::PV_DOTSP_SC_B,         // Xpulpv2: pv.dotsp.sc.b
+      snitch_riscv_instr::PV_DOTSP_SCI_B,        // Xpulpv2: pv.dotsp.sci.b
+      snitch_riscv_instr::PV_SDOTUP_H,           // Xpulpv2: pv.sdotup.h
+      snitch_riscv_instr::PV_SDOTUP_SC_H,        // Xpulpv2: pv.sdotup.sc.h
+      snitch_riscv_instr::PV_SDOTUP_SCI_H,       // Xpulpv2: pv.sdotup.sci.h
+      snitch_riscv_instr::PV_SDOTUP_B,           // Xpulpv2: pv.sdotup.b
+      snitch_riscv_instr::PV_SDOTUP_SC_B,        // Xpulpv2: pv.sdotup.sc.b
+      snitch_riscv_instr::PV_SDOTUP_SCI_B,       // Xpulpv2: pv.sdotup.sci.b
+      snitch_riscv_instr::PV_SDOTUSP_H,          // Xpulpv2: pv.sdotusp.h
+      snitch_riscv_instr::PV_SDOTUSP_SC_H,       // Xpulpv2: pv.sdotusp.sc.h
+      snitch_riscv_instr::PV_SDOTUSP_SCI_H,      // Xpulpv2: pv.sdotusp.sci.h
+      snitch_riscv_instr::PV_SDOTUSP_B,          // Xpulpv2: pv.sdotusp.b
+      snitch_riscv_instr::PV_SDOTUSP_SC_B,       // Xpulpv2: pv.sdotusp.sc.b
+      snitch_riscv_instr::PV_SDOTUSP_SCI_B,      // Xpulpv2: pv.sdotusp.sci.b
+      snitch_riscv_instr::PV_SDOTSP_H,           // Xpulpv2: pv.sdotsp.h
+      snitch_riscv_instr::PV_SDOTSP_SC_H,        // Xpulpv2: pv.sdotsp.sc.h
+      snitch_riscv_instr::PV_SDOTSP_SCI_H,       // Xpulpv2: pv.sdotsp.sci.h
+      snitch_riscv_instr::PV_SDOTSP_B,           // Xpulpv2: pv.sdotsp.b
+      snitch_riscv_instr::PV_SDOTSP_SC_B,        // Xpulpv2: pv.sdotsp.sc.b
+      snitch_riscv_instr::PV_SDOTSP_SCI_B,       // Xpulpv2: pv.sdotsp.sci.b
+      snitch_riscv_instr::PV_SHUFFLE2_H,         // Xpulpv2: pv.shuffle2.h
+      snitch_riscv_instr::PV_SHUFFLE2_B,         // Xpulpv2: pv.shuffle2.b
+      snitch_riscv_instr::PV_PACK,               // Xpulpv2: pv.pack
+      snitch_riscv_instr::PV_PACK_H: begin       // Xpulpv2: pv.pack.h
         if (Xpulpv2) begin
           dsp_valid_op = acc_req_i.q_valid;
           acc_rsp_o.q_ready = dsp_ready_op;
@@ -443,606 +443,606 @@ module dspu #(
     simd_dotp_acc = 0;
     unique casez (operator_i)
       // Multiplications from M extension
-      riscv_instr::MUL: begin
+      snitch_riscv_instr::MUL: begin
         mac_op = MulLow;
         mac_op_a_sign = 1'b1;
         mac_op_b_sign = 1'b1;
         res_sel = Mac;
       end
-      riscv_instr::MULH: begin
+      snitch_riscv_instr::MULH: begin
         mac_op = MulHigh;
         mac_op_a_sign = 1'b1;
         mac_op_b_sign = 1'b1;
         res_sel = Mac;
       end
-      riscv_instr::MULHSU: begin
+      snitch_riscv_instr::MULHSU: begin
         mac_op = MulHigh;
         mac_op_a_sign = 1'b1;
         res_sel = Mac;
       end
-      riscv_instr::MULHU: begin
+      snitch_riscv_instr::MULHU: begin
         mac_op = MulHigh;
         res_sel = Mac;
       end
       // Instructions from Xpulpv2
-      riscv_instr::P_ABS: begin
+      snitch_riscv_instr::P_ABS: begin
         cmp_op_b_sel = Zero;
         res_sel = Abs;
       end
-      riscv_instr::P_SLET: begin
+      snitch_riscv_instr::P_SLET: begin
         cmp_op_b_sel = Reg;
         res_sel = Sle;
       end
-      riscv_instr::P_SLETU: begin
+      snitch_riscv_instr::P_SLETU: begin
         cmp_signed = 1'b0;
         cmp_op_b_sel = Reg;
         res_sel = Sle;
       end
-      riscv_instr::P_MIN: begin
+      snitch_riscv_instr::P_MIN: begin
         cmp_op_b_sel = Reg;
         res_sel = Min;
       end
-      riscv_instr::P_MINU: begin
+      snitch_riscv_instr::P_MINU: begin
         cmp_signed = 1'b0;
         cmp_op_b_sel = Reg;
         res_sel = Min;
       end
-      riscv_instr::P_MAX: begin
+      snitch_riscv_instr::P_MAX: begin
         cmp_op_b_sel = Reg;
         res_sel = Max;
       end
-      riscv_instr::P_MAXU: begin
+      snitch_riscv_instr::P_MAXU: begin
         cmp_signed = 1'b0;
         cmp_op_b_sel = Reg;
         res_sel = Max;
       end
-      riscv_instr::P_EXTHS: begin
+      snitch_riscv_instr::P_EXTHS: begin
         cmp_op_b_sel = Reg;
         res_sel = Exths;
       end
-      riscv_instr::P_EXTHZ: begin
+      snitch_riscv_instr::P_EXTHZ: begin
         cmp_op_b_sel = Reg;
         res_sel = Exthz;
       end
-      riscv_instr::P_EXTBS: begin
+      snitch_riscv_instr::P_EXTBS: begin
         cmp_op_b_sel = Reg;
         res_sel = Extbs;
       end
-      riscv_instr::P_EXTBZ: begin
+      snitch_riscv_instr::P_EXTBZ: begin
         cmp_op_b_sel = Reg;
         res_sel = Extbz;
       end
-      riscv_instr::P_CLIP: begin
+      snitch_riscv_instr::P_CLIP: begin
         cmp_op_b_sel = ClipBound;
         res_sel = Clip;
       end
-      riscv_instr::P_CLIPU: begin
+      snitch_riscv_instr::P_CLIPU: begin
         clip_unsigned = 1'b1;
         cmp_op_b_sel = ClipBound;
         res_sel = Clip;
       end
-      riscv_instr::P_CLIPR: begin
+      snitch_riscv_instr::P_CLIPR: begin
         clip_register = 1'b1;
         cmp_op_b_sel = ClipBound;
         res_sel = Clip;
       end
-      riscv_instr::P_CLIPUR: begin
+      snitch_riscv_instr::P_CLIPUR: begin
         clip_unsigned = 1'b1;
         clip_register = 1'b1;
         cmp_op_b_sel = ClipBound;
         res_sel = Clip;
       end
-      riscv_instr::P_MAC: begin
+      snitch_riscv_instr::P_MAC: begin
         mac_op = MulMac;
         mac_op_a_sign = 1'b1;
         mac_op_b_sign = 1'b1;
         res_sel = Mac;
       end
-      riscv_instr::P_MSU: begin
+      snitch_riscv_instr::P_MSU: begin
         mac_op = MulMac;
         mac_msu = 1'b1;
         mac_op_a_sign = 1'b1;
         mac_op_b_sign = 1'b1;
         res_sel = Mac;
       end
-      riscv_instr::PV_ADD_H: begin
+      snitch_riscv_instr::PV_ADD_H: begin
         simd_op = SimdAdd;
         res_sel = Simd;
       end
-      riscv_instr::PV_ADD_SC_H: begin
+      snitch_riscv_instr::PV_ADD_SC_H: begin
         simd_op = SimdAdd;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_ADD_SCI_H: begin
+      snitch_riscv_instr::PV_ADD_SCI_H: begin
         simd_op = SimdAdd;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_ADD_B: begin
+      snitch_riscv_instr::PV_ADD_B: begin
         simd_op = SimdAdd;
         simd_size = Byte;
         res_sel = Simd;
       end
-      riscv_instr::PV_ADD_SC_B: begin
+      snitch_riscv_instr::PV_ADD_SC_B: begin
         simd_op = SimdAdd;
         simd_size = Byte;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_ADD_SCI_B: begin
+      snitch_riscv_instr::PV_ADD_SCI_B: begin
         simd_op = SimdAdd;
         simd_size = Byte;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_SUB_H: begin
+      snitch_riscv_instr::PV_SUB_H: begin
         simd_op = SimdSub;
         res_sel = Simd;
       end
-      riscv_instr::PV_SUB_SC_H: begin
+      snitch_riscv_instr::PV_SUB_SC_H: begin
         simd_op = SimdSub;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_SUB_SCI_H: begin
+      snitch_riscv_instr::PV_SUB_SCI_H: begin
         simd_op = SimdSub;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_SUB_B: begin
+      snitch_riscv_instr::PV_SUB_B: begin
         simd_op = SimdSub;
         simd_size = Byte;
         res_sel = Simd;
       end
-      riscv_instr::PV_SUB_SC_B: begin
+      snitch_riscv_instr::PV_SUB_SC_B: begin
         simd_op = SimdSub;
         simd_size = Byte;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_SUB_SCI_B: begin
+      snitch_riscv_instr::PV_SUB_SCI_B: begin
         simd_op = SimdSub;
         simd_size = Byte;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_AVG_H: begin
+      snitch_riscv_instr::PV_AVG_H: begin
         simd_op = SimdAvg;
         res_sel = Simd;
       end
-      riscv_instr::PV_AVG_SC_H: begin
+      snitch_riscv_instr::PV_AVG_SC_H: begin
         simd_op = SimdAvg;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_AVG_SCI_H: begin
+      snitch_riscv_instr::PV_AVG_SCI_H: begin
         simd_op = SimdAvg;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_AVG_B: begin
+      snitch_riscv_instr::PV_AVG_B: begin
         simd_op = SimdAvg;
         simd_size = Byte;
         res_sel = Simd;
       end
-      riscv_instr::PV_AVG_SC_B: begin
+      snitch_riscv_instr::PV_AVG_SC_B: begin
         simd_op = SimdAvg;
         simd_size = Byte;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_AVG_SCI_B: begin
+      snitch_riscv_instr::PV_AVG_SCI_B: begin
         simd_op = SimdAvg;
         simd_size = Byte;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_AVGU_H: begin
+      snitch_riscv_instr::PV_AVGU_H: begin
         simd_op = SimdAvg;
         simd_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_AVGU_SC_H: begin
+      snitch_riscv_instr::PV_AVGU_SC_H: begin
         simd_op = SimdAvg;
         simd_mode = Sc;
         simd_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_AVGU_SCI_H: begin
+      snitch_riscv_instr::PV_AVGU_SCI_H: begin
         simd_op = SimdAvg;
         simd_mode = Sci;
         simd_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_AVGU_B: begin
+      snitch_riscv_instr::PV_AVGU_B: begin
         simd_op = SimdAvg;
         simd_size = Byte;
         simd_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_AVGU_SC_B: begin
+      snitch_riscv_instr::PV_AVGU_SC_B: begin
         simd_op = SimdAvg;
-        simd_size = Byte;
-        simd_mode = Sc;
-        simd_signed = 0;
-        res_sel = Simd;
-      end
-      riscv_instr::PV_AVGU_SCI_B: begin
-        simd_op = SimdAvg;
-        simd_size = Byte;
-        simd_mode = Sci;
-        simd_signed = 0;
-        res_sel = Simd;
-      end
-      riscv_instr::PV_MIN_H: begin
-        simd_op = SimdMin;
-        res_sel = Simd;
-      end
-      riscv_instr::PV_MIN_SC_H: begin
-        simd_op = SimdMin;
-        simd_mode = Sc;
-        res_sel = Simd;
-      end
-      riscv_instr::PV_MIN_SCI_H: begin
-        simd_op = SimdMin;
-        simd_mode = Sci;
-        res_sel = Simd;
-      end
-      riscv_instr::PV_MIN_B: begin
-        simd_op = SimdMin;
-        simd_size = Byte;
-        res_sel = Simd;
-      end
-      riscv_instr::PV_MIN_SC_B: begin
-        simd_op = SimdMin;
-        simd_size = Byte;
-        simd_mode = Sc;
-        res_sel = Simd;
-      end
-      riscv_instr::PV_MIN_SCI_B: begin
-        simd_op = SimdMin;
-        simd_size = Byte;
-        simd_mode = Sci;
-        res_sel = Simd;
-      end
-      riscv_instr::PV_MINU_H: begin
-        simd_op = SimdMin;
-        simd_signed = 0;
-        res_sel = Simd;
-      end
-      riscv_instr::PV_MINU_SC_H: begin
-        simd_op = SimdMin;
-        simd_mode = Sc;
-        simd_signed = 0;
-        res_sel = Simd;
-      end
-      riscv_instr::PV_MINU_SCI_H: begin
-        simd_op = SimdMin;
-        simd_mode = Sci;
-        simd_signed = 0;
-        res_sel = Simd;
-      end
-      riscv_instr::PV_MINU_B: begin
-        simd_op = SimdMin;
-        simd_size = Byte;
-        simd_signed = 0;
-        res_sel = Simd;
-      end
-      riscv_instr::PV_MINU_SC_B: begin
-        simd_op = SimdMin;
         simd_size = Byte;
         simd_mode = Sc;
         simd_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_MINU_SCI_B: begin
+      snitch_riscv_instr::PV_AVGU_SCI_B: begin
+        simd_op = SimdAvg;
+        simd_size = Byte;
+        simd_mode = Sci;
+        simd_signed = 0;
+        res_sel = Simd;
+      end
+      snitch_riscv_instr::PV_MIN_H: begin
+        simd_op = SimdMin;
+        res_sel = Simd;
+      end
+      snitch_riscv_instr::PV_MIN_SC_H: begin
+        simd_op = SimdMin;
+        simd_mode = Sc;
+        res_sel = Simd;
+      end
+      snitch_riscv_instr::PV_MIN_SCI_H: begin
+        simd_op = SimdMin;
+        simd_mode = Sci;
+        res_sel = Simd;
+      end
+      snitch_riscv_instr::PV_MIN_B: begin
+        simd_op = SimdMin;
+        simd_size = Byte;
+        res_sel = Simd;
+      end
+      snitch_riscv_instr::PV_MIN_SC_B: begin
+        simd_op = SimdMin;
+        simd_size = Byte;
+        simd_mode = Sc;
+        res_sel = Simd;
+      end
+      snitch_riscv_instr::PV_MIN_SCI_B: begin
+        simd_op = SimdMin;
+        simd_size = Byte;
+        simd_mode = Sci;
+        res_sel = Simd;
+      end
+      snitch_riscv_instr::PV_MINU_H: begin
+        simd_op = SimdMin;
+        simd_signed = 0;
+        res_sel = Simd;
+      end
+      snitch_riscv_instr::PV_MINU_SC_H: begin
+        simd_op = SimdMin;
+        simd_mode = Sc;
+        simd_signed = 0;
+        res_sel = Simd;
+      end
+      snitch_riscv_instr::PV_MINU_SCI_H: begin
+        simd_op = SimdMin;
+        simd_mode = Sci;
+        simd_signed = 0;
+        res_sel = Simd;
+      end
+      snitch_riscv_instr::PV_MINU_B: begin
+        simd_op = SimdMin;
+        simd_size = Byte;
+        simd_signed = 0;
+        res_sel = Simd;
+      end
+      snitch_riscv_instr::PV_MINU_SC_B: begin
+        simd_op = SimdMin;
+        simd_size = Byte;
+        simd_mode = Sc;
+        simd_signed = 0;
+        res_sel = Simd;
+      end
+      snitch_riscv_instr::PV_MINU_SCI_B: begin
         simd_op = SimdMin;
         simd_size = Byte;
         simd_mode = Sci;
         simd_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_MAX_H: begin
+      snitch_riscv_instr::PV_MAX_H: begin
         simd_op = SimdMax;
         res_sel = Simd;
       end
-      riscv_instr::PV_MAX_SC_H: begin
+      snitch_riscv_instr::PV_MAX_SC_H: begin
         simd_op = SimdMax;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_MAX_SCI_H: begin
+      snitch_riscv_instr::PV_MAX_SCI_H: begin
         simd_op = SimdMax;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_MAX_B: begin
+      snitch_riscv_instr::PV_MAX_B: begin
         simd_op = SimdMax;
         simd_size = Byte;
         res_sel = Simd;
       end
-      riscv_instr::PV_MAX_SC_B: begin
+      snitch_riscv_instr::PV_MAX_SC_B: begin
         simd_op = SimdMax;
         simd_size = Byte;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_MAX_SCI_B: begin
+      snitch_riscv_instr::PV_MAX_SCI_B: begin
         simd_op = SimdMax;
         simd_size = Byte;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_MAXU_H: begin
+      snitch_riscv_instr::PV_MAXU_H: begin
         simd_op = SimdMax;
         simd_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_MAXU_SC_H: begin
+      snitch_riscv_instr::PV_MAXU_SC_H: begin
         simd_op = SimdMax;
         simd_mode = Sc;
         simd_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_MAXU_SCI_H: begin
+      snitch_riscv_instr::PV_MAXU_SCI_H: begin
         simd_op = SimdMax;
         simd_mode = Sci;
         simd_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_MAXU_B: begin
+      snitch_riscv_instr::PV_MAXU_B: begin
         simd_op = SimdMax;
         simd_size = Byte;
         simd_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_MAXU_SC_B: begin
+      snitch_riscv_instr::PV_MAXU_SC_B: begin
         simd_op = SimdMax;
         simd_size = Byte;
         simd_mode = Sc;
         simd_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_MAXU_SCI_B: begin
+      snitch_riscv_instr::PV_MAXU_SCI_B: begin
         simd_op = SimdMax;
         simd_size = Byte;
         simd_mode = Sci;
         simd_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_SRL_H: begin
+      snitch_riscv_instr::PV_SRL_H: begin
         simd_op = SimdSrl;
         res_sel = Simd;
       end
-      riscv_instr::PV_SRL_SC_H: begin
+      snitch_riscv_instr::PV_SRL_SC_H: begin
         simd_op = SimdSrl;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_SRL_SCI_H: begin
+      snitch_riscv_instr::PV_SRL_SCI_H: begin
         simd_op = SimdSrl;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_SRL_B: begin
+      snitch_riscv_instr::PV_SRL_B: begin
         simd_op = SimdSrl;
         simd_size = Byte;
         res_sel = Simd;
       end
-      riscv_instr::PV_SRL_SC_B: begin
+      snitch_riscv_instr::PV_SRL_SC_B: begin
         simd_op = SimdSrl;
         simd_size = Byte;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_SRL_SCI_B: begin
+      snitch_riscv_instr::PV_SRL_SCI_B: begin
         simd_op = SimdSrl;
         simd_size = Byte;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_SRA_H: begin
+      snitch_riscv_instr::PV_SRA_H: begin
         simd_op = SimdSra;
         res_sel = Simd;
       end
-      riscv_instr::PV_SRA_SC_H: begin
+      snitch_riscv_instr::PV_SRA_SC_H: begin
         simd_op = SimdSra;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_SRA_SCI_H: begin
+      snitch_riscv_instr::PV_SRA_SCI_H: begin
         simd_op = SimdSra;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_SRA_B: begin
+      snitch_riscv_instr::PV_SRA_B: begin
         simd_op = SimdSra;
         simd_size = Byte;
         res_sel = Simd;
       end
-      riscv_instr::PV_SRA_SC_B: begin
+      snitch_riscv_instr::PV_SRA_SC_B: begin
         simd_op = SimdSra;
         simd_size = Byte;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_SRA_SCI_B: begin
+      snitch_riscv_instr::PV_SRA_SCI_B: begin
         simd_op = SimdSra;
         simd_size = Byte;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_SLL_H: begin
+      snitch_riscv_instr::PV_SLL_H: begin
         simd_op = SimdSll;
         res_sel = Simd;
       end
-      riscv_instr::PV_SLL_SC_H: begin
+      snitch_riscv_instr::PV_SLL_SC_H: begin
         simd_op = SimdSll;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_SLL_SCI_H: begin
+      snitch_riscv_instr::PV_SLL_SCI_H: begin
         simd_op = SimdSll;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_SLL_B: begin
+      snitch_riscv_instr::PV_SLL_B: begin
         simd_op = SimdSll;
         simd_size = Byte;
         res_sel = Simd;
       end
-      riscv_instr::PV_SLL_SC_B: begin
+      snitch_riscv_instr::PV_SLL_SC_B: begin
         simd_op = SimdSll;
         simd_size = Byte;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_SLL_SCI_B: begin
+      snitch_riscv_instr::PV_SLL_SCI_B: begin
         simd_op = SimdSll;
         simd_size = Byte;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_OR_H: begin
+      snitch_riscv_instr::PV_OR_H: begin
         simd_op = SimdOr;
         res_sel = Simd;
       end
-      riscv_instr::PV_OR_SC_H: begin
+      snitch_riscv_instr::PV_OR_SC_H: begin
         simd_op = SimdOr;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_OR_SCI_H: begin
+      snitch_riscv_instr::PV_OR_SCI_H: begin
         simd_op = SimdOr;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_OR_B: begin
+      snitch_riscv_instr::PV_OR_B: begin
         simd_op = SimdOr;
         simd_size = Byte;
         res_sel = Simd;
       end
-      riscv_instr::PV_OR_SC_B: begin
+      snitch_riscv_instr::PV_OR_SC_B: begin
         simd_op = SimdOr;
         simd_size = Byte;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_OR_SCI_B: begin
+      snitch_riscv_instr::PV_OR_SCI_B: begin
         simd_op = SimdOr;
         simd_size = Byte;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_XOR_H: begin
+      snitch_riscv_instr::PV_XOR_H: begin
         simd_op = SimdXor;
         res_sel = Simd;
       end
-      riscv_instr::PV_XOR_SC_H: begin
+      snitch_riscv_instr::PV_XOR_SC_H: begin
         simd_op = SimdXor;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_XOR_SCI_H: begin
+      snitch_riscv_instr::PV_XOR_SCI_H: begin
         simd_op = SimdXor;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_XOR_B: begin
+      snitch_riscv_instr::PV_XOR_B: begin
         simd_op = SimdXor;
         simd_size = Byte;
         res_sel = Simd;
       end
-      riscv_instr::PV_XOR_SC_B: begin
+      snitch_riscv_instr::PV_XOR_SC_B: begin
         simd_op = SimdXor;
         simd_size = Byte;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_XOR_SCI_B: begin
+      snitch_riscv_instr::PV_XOR_SCI_B: begin
         simd_op = SimdXor;
         simd_size = Byte;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_AND_H: begin
+      snitch_riscv_instr::PV_AND_H: begin
         simd_op = SimdAnd;
         res_sel = Simd;
       end
-      riscv_instr::PV_AND_SC_H: begin
+      snitch_riscv_instr::PV_AND_SC_H: begin
         simd_op = SimdAnd;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_AND_SCI_H: begin
+      snitch_riscv_instr::PV_AND_SCI_H: begin
         simd_op = SimdAnd;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_AND_B: begin
+      snitch_riscv_instr::PV_AND_B: begin
         simd_op = SimdAnd;
         simd_size = Byte;
         res_sel = Simd;
       end
-      riscv_instr::PV_AND_SC_B: begin
+      snitch_riscv_instr::PV_AND_SC_B: begin
         simd_op = SimdAnd;
         simd_size = Byte;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_AND_SCI_B: begin
+      snitch_riscv_instr::PV_AND_SCI_B: begin
         simd_op = SimdAnd;
         simd_size = Byte;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_ABS_H: begin
+      snitch_riscv_instr::PV_ABS_H: begin
         simd_op = SimdAbs;
         res_sel = Simd;
       end
-      riscv_instr::PV_ABS_B: begin
+      snitch_riscv_instr::PV_ABS_B: begin
         simd_op = SimdAbs;
         simd_size = Byte;
         res_sel = Simd;
       end
-      riscv_instr::PV_EXTRACT_H: begin
+      snitch_riscv_instr::PV_EXTRACT_H: begin
         simd_op = SimdExt;
         res_sel = Simd;
       end
-      riscv_instr::PV_EXTRACT_B: begin
+      snitch_riscv_instr::PV_EXTRACT_B: begin
         simd_op = SimdExt;
         simd_size = Byte;
         res_sel = Simd;
       end
-      riscv_instr::PV_EXTRACTU_H: begin
+      snitch_riscv_instr::PV_EXTRACTU_H: begin
         simd_op = SimdExt;
         simd_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_EXTRACTU_B: begin
+      snitch_riscv_instr::PV_EXTRACTU_B: begin
         simd_op = SimdExt;
         simd_size = Byte;
         simd_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_INSERT_H: begin
+      snitch_riscv_instr::PV_INSERT_H: begin
         simd_op = SimdIns;
         res_sel = Simd;
       end
-      riscv_instr::PV_INSERT_B: begin
+      snitch_riscv_instr::PV_INSERT_B: begin
         simd_op = SimdIns;
         simd_size = Byte;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTUP_H: begin
+      snitch_riscv_instr::PV_DOTUP_H: begin
         simd_op = SimdDotp;
         simd_signed = 0;
         simd_dotp_op_a_signed = 0;
         simd_dotp_op_b_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTUP_SC_H: begin
+      snitch_riscv_instr::PV_DOTUP_SC_H: begin
         simd_op = SimdDotp;
         simd_mode = Sc;
         simd_signed = 0;
@@ -1050,7 +1050,7 @@ module dspu #(
         simd_dotp_op_b_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTUP_SCI_H: begin
+      snitch_riscv_instr::PV_DOTUP_SCI_H: begin
         simd_op = SimdDotp;
         simd_mode = Sci;
         simd_signed = 0;
@@ -1058,7 +1058,7 @@ module dspu #(
         simd_dotp_op_b_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTUP_B: begin
+      snitch_riscv_instr::PV_DOTUP_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_signed = 0;
@@ -1066,7 +1066,7 @@ module dspu #(
         simd_dotp_op_b_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTUP_SC_B: begin
+      snitch_riscv_instr::PV_DOTUP_SC_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_mode = Sc;
@@ -1075,7 +1075,7 @@ module dspu #(
         simd_dotp_op_b_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTUP_SCI_B: begin
+      snitch_riscv_instr::PV_DOTUP_SCI_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_mode = Sci;
@@ -1084,75 +1084,75 @@ module dspu #(
         simd_dotp_op_b_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTUSP_H: begin
+      snitch_riscv_instr::PV_DOTUSP_H: begin
         simd_op = SimdDotp;
         simd_dotp_op_a_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTUSP_SC_H: begin
+      snitch_riscv_instr::PV_DOTUSP_SC_H: begin
         simd_op = SimdDotp;
         simd_mode = Sc;
         simd_dotp_op_a_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTUSP_SCI_H: begin
+      snitch_riscv_instr::PV_DOTUSP_SCI_H: begin
         simd_op = SimdDotp;
         simd_mode = Sci;
         simd_dotp_op_a_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTUSP_B: begin
+      snitch_riscv_instr::PV_DOTUSP_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_dotp_op_a_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTUSP_SC_B: begin
+      snitch_riscv_instr::PV_DOTUSP_SC_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_mode = Sc;
         simd_dotp_op_a_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTUSP_SCI_B: begin
+      snitch_riscv_instr::PV_DOTUSP_SCI_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_mode = Sci;
         simd_dotp_op_a_signed = 0;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTSP_H: begin
+      snitch_riscv_instr::PV_DOTSP_H: begin
         simd_op = SimdDotp;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTSP_SC_H: begin
+      snitch_riscv_instr::PV_DOTSP_SC_H: begin
         simd_op = SimdDotp;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTSP_SCI_H: begin
+      snitch_riscv_instr::PV_DOTSP_SCI_H: begin
         simd_op = SimdDotp;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTSP_B: begin
+      snitch_riscv_instr::PV_DOTSP_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTSP_SC_B: begin
+      snitch_riscv_instr::PV_DOTSP_SC_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_mode = Sc;
         res_sel = Simd;
       end
-      riscv_instr::PV_DOTSP_SCI_B: begin
+      snitch_riscv_instr::PV_DOTSP_SCI_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_mode = Sci;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTUP_H: begin
+      snitch_riscv_instr::PV_SDOTUP_H: begin
         simd_op = SimdDotp;
         simd_signed = 0;
         simd_dotp_op_a_signed = 0;
@@ -1160,7 +1160,7 @@ module dspu #(
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTUP_SC_H: begin
+      snitch_riscv_instr::PV_SDOTUP_SC_H: begin
         simd_op = SimdDotp;
         simd_mode = Sc;
         simd_signed = 0;
@@ -1169,7 +1169,7 @@ module dspu #(
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTUP_SCI_H: begin
+      snitch_riscv_instr::PV_SDOTUP_SCI_H: begin
         simd_op = SimdDotp;
         simd_mode = Sci;
         simd_signed = 0;
@@ -1178,7 +1178,7 @@ module dspu #(
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTUP_B: begin
+      snitch_riscv_instr::PV_SDOTUP_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_signed = 0;
@@ -1187,7 +1187,7 @@ module dspu #(
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTUP_SC_B: begin
+      snitch_riscv_instr::PV_SDOTUP_SC_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_mode = Sc;
@@ -1197,7 +1197,7 @@ module dspu #(
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTUP_SCI_B: begin
+      snitch_riscv_instr::PV_SDOTUP_SCI_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_mode = Sci;
@@ -1207,34 +1207,34 @@ module dspu #(
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTUSP_H: begin
+      snitch_riscv_instr::PV_SDOTUSP_H: begin
         simd_op = SimdDotp;
         simd_dotp_op_a_signed = 0;
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTUSP_SC_H: begin
+      snitch_riscv_instr::PV_SDOTUSP_SC_H: begin
         simd_op = SimdDotp;
         simd_mode = Sc;
         simd_dotp_op_a_signed = 0;
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTUSP_SCI_H: begin
+      snitch_riscv_instr::PV_SDOTUSP_SCI_H: begin
         simd_op = SimdDotp;
         simd_mode = Sci;
         simd_dotp_op_a_signed = 0;
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTUSP_B: begin
+      snitch_riscv_instr::PV_SDOTUSP_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_dotp_op_a_signed = 0;
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTUSP_SC_B: begin
+      snitch_riscv_instr::PV_SDOTUSP_SC_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_mode = Sc;
@@ -1242,7 +1242,7 @@ module dspu #(
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTUSP_SCI_B: begin
+      snitch_riscv_instr::PV_SDOTUSP_SCI_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_mode = Sci;
@@ -1250,57 +1250,57 @@ module dspu #(
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTSP_H: begin
+      snitch_riscv_instr::PV_SDOTSP_H: begin
         simd_op = SimdDotp;
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTSP_SC_H: begin
+      snitch_riscv_instr::PV_SDOTSP_SC_H: begin
         simd_op = SimdDotp;
         simd_mode = Sc;
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTSP_SCI_H: begin
+      snitch_riscv_instr::PV_SDOTSP_SCI_H: begin
         simd_op = SimdDotp;
         simd_mode = Sci;
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTSP_B: begin
+      snitch_riscv_instr::PV_SDOTSP_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTSP_SC_B: begin
+      snitch_riscv_instr::PV_SDOTSP_SC_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_mode = Sc;
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SDOTSP_SCI_B: begin
+      snitch_riscv_instr::PV_SDOTSP_SCI_B: begin
         simd_op = SimdDotp;
         simd_size = Byte;
         simd_mode = Sci;
         simd_dotp_acc = 1;
         res_sel = Simd;
       end
-      riscv_instr::PV_SHUFFLE2_H: begin
+      snitch_riscv_instr::PV_SHUFFLE2_H: begin
         simd_op = SimdShuffle;
         res_sel = Simd;
       end
-      riscv_instr::PV_SHUFFLE2_B: begin
+      snitch_riscv_instr::PV_SHUFFLE2_B: begin
         simd_op = SimdShuffle;
         simd_size = Byte;
         res_sel = Simd;
       end
-      riscv_instr::PV_PACK: begin
+      snitch_riscv_instr::PV_PACK: begin
         simd_op = SimdPack;
         res_sel = Simd;
       end
-      riscv_instr::PV_PACK_H: begin
+      snitch_riscv_instr::PV_PACK_H: begin
         simd_op = SimdPack;
         simd_mode = High;
         res_sel = Simd;

@@ -48,15 +48,15 @@ module snitch_multiplier #(
     sign_a = 1'b0;
     sign_b = 1'b0;
     unique casez (operator_i)
-      riscv_instr::MULH: begin
+      snitch_riscv_instr::MULH: begin
         sign_a = 1'b1;
         sign_b = 1'b1;
         select_upper_d = 1'b1;
       end
-      riscv_instr::MULHU: begin
+      snitch_riscv_instr::MULHU: begin
         select_upper_d = 1'b1;
       end
-      riscv_instr::MULHSU: begin
+      snitch_riscv_instr::MULHSU: begin
         sign_a = 1'b1;
         select_upper_d = 1'b1;
       end

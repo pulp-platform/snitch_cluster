@@ -38,16 +38,16 @@ module snitch_serial_divider #(
     signed_op = 1'b0;
     rem = 1'b0;
     unique casez (operator_i)
-      riscv_instr::DIV: begin
+      snitch_riscv_instr::DIV: begin
         signed_op = 1'b1;
       end
-      riscv_instr::DIVU: begin
+      snitch_riscv_instr::DIVU: begin
       end
-      riscv_instr::REM: begin
+      snitch_riscv_instr::REM: begin
         signed_op = 1'b1;
         rem = 1'b1;
       end
-      riscv_instr::REMU: begin
+      snitch_riscv_instr::REMU: begin
         rem = 1'b1;
       end
       default: ;

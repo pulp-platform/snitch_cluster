@@ -92,7 +92,7 @@ module snitch_ssr_subsystem #(
 
     // SSR config decoder
     always_comb begin
-      import riscv_instr::*;
+      import snitch_riscv_instr::*;
       automatic logic [11:0] addr;
       automatic logic [4:0] addr_dm;
       automatic logic [6:0] addr_reg;

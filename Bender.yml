@@ -65,15 +65,12 @@ export_include_dirs:
   - hw/snitch_ssr/include
 
 sources:
-  # Override Spatz' own riscv_instr.sv
-  - override_files: true
-    files:
-      - hw/snitch/src/riscv_instr.sv
 
   # snitch
   - files:
       # Level 0
       - hw/snitch/src/snitch_pma_pkg.sv
+      - hw/snitch/src/snitch_riscv_instr.sv
       # Level 1
       - hw/snitch/src/snitch_pkg.sv
       # Level 2
