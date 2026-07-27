@@ -115,7 +115,7 @@ module snitch import snitch_pkg::*; import riscv_instr::*; #(
   // pragma translate_off
   output snitch_trace_t         trace_o,
   // pragma translate_on
-  input  logic [31:0]           hart_id_i,
+  input  hart_id_t              hart_id_i,
   input  interrupts_t           irq_i,
   output logic                  flush_i_valid_o,
   input  logic                  flush_i_ready_i,

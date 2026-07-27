@@ -1325,7 +1325,7 @@ package snitch_cluster_wrapper_pkg;
   };
 
   // Forward potentially optional configuration parameters
-  localparam snitch_cluster_pkg::hart_id_t CfgBaseHartId    = (32'h0);
+  localparam snitch_pkg::hart_id_t   CfgBaseHartId        = (32'h0);
   localparam addr_t                  CfgClusterBaseAddr   = (48'h10000000);
   localparam addr_t                  CfgClusterBaseOffset = (48'h0);
 

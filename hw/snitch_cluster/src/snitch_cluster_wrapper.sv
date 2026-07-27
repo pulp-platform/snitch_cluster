@@ -12,7 +12,7 @@ module snitch_cluster_wrapper
   input  logic [NrCores-1:0]                      mtip_i,
   input  logic [NrCores-1:0]                      msip_i,
   input  logic [NrCores-1:0]                      mxip_i,
-  input  snitch_cluster_pkg::hart_id_t            hart_base_id_i,
+  input  snitch_pkg::hart_id_t                    hart_base_id_i,
   input  logic [AddrWidth-1:0]                    cluster_base_addr_i,
   input  logic [AddrWidth-1:0]                    cluster_base_offset_i,
   input  logic                                    clk_d2_bypass_i,
@@ -64,16 +64,16 @@ module snitch_cluster_wrapper
   end
 
   // hart_base_id / cluster_base_addr / cluster_base_offset
-  snitch_cluster_pkg::hart_id_t hart_base_id_int;
-  logic [AddrWidth-1:0]   cluster_base_addr_int;
-  logic [AddrWidth-1:0]   cluster_base_offset_int;
+  snitch_pkg::hart_id_t hart_base_id_int;
+  logic [AddrWidth-1:0] cluster_base_addr_int;
+  logic [AddrWidth-1:0] cluster_base_offset_int;
   if (ClusterBaseExpose) begin : gen_base_fwd
-    assign hart_base_id_int       = hart_base_id_i;
-    assign cluster_base_addr_int  = cluster_base_addr_i;
+    assign hart_base_id_int        = hart_base_id_i;
+    assign cluster_base_addr_int   = cluster_base_addr_i;
     assign cluster_base_offset_int = cluster_base_offset_i;
   end else begin : gen_base_tie
-    assign hart_base_id_int       = CfgBaseHartId;
-    assign cluster_base_addr_int  = CfgClusterBaseAddr;
+    assign hart_base_id_int        = CfgBaseHartId;
+    assign cluster_base_addr_int   = CfgClusterBaseAddr;
     assign cluster_base_offset_int = CfgClusterBaseOffset;
   end
 

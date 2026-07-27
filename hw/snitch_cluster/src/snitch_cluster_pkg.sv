@@ -6,9 +6,6 @@ package snitch_cluster_pkg;
 
   /// Fixed bootrom size in kB (always 4 kB).
   localparam int unsigned BootromSize = 4;
-  /// RISC-V hart ID width (32 bits per spec).
-  localparam int unsigned HartIdWidth = 32;
-  typedef logic [HartIdWidth-1:0] hart_id_t;
 
   // Slaves on Cluster AXI Bus
   typedef enum integer {

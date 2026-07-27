@@ -16,7 +16,7 @@ module snitch_tracer #(
 ) (
   input logic clk_i,
   input logic rst_ni,
-  input snitch_cluster_pkg::hart_id_t hart_id_i,
+  input snitch_pkg::hart_id_t hart_id_i,
   input snitch_pkg::snitch_trace_t trace_port_i,
   input snitch_pkg::fpss_trace_t fpss_trace_i,
   input snitch_pkg::fpu_sequencer_trace_t fpu_sequencer_trace_i,

@@ -7,6 +7,10 @@
 
 package snitch_pkg;
 
+  /// RISC-V hart ID width (32 bits per spec).
+  localparam int unsigned HartIdWidth = 32;
+  typedef logic [HartIdWidth-1:0] hart_id_t;
+
   typedef enum logic [3:0] {
     None, RegRs1, RegRs2, RegRs3, RegRd, IImmediate, UImmediate, JImmediate, SImmediate,
     SFImmediate, PC, Csr, CsrImmediate, PBImmediate
