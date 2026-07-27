@@ -268,7 +268,7 @@ jobs:
       - uses: ./.github/actions/setup-python
       - name: Check if Yosys prerequisites changed
         id: make-prerequisites-changed
-        uses: colluca/make-prerequisites-changed@v1.0.0
+        uses: colluca/make-prerequisites-changed@v1.1.1
         with:
           target: yosys
           flags: --recursive
