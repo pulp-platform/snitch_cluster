@@ -681,7 +681,7 @@ module snitch_cc
     assign f2i_wvalid = '0;
     assign caq_pvalid = '0;
     assign fpss_dreq = '0;
-    assign fpu_status_fpss = '0;
+    assign fpss_fpu_status = '0;
     assign ssr_raddr = '0;
     assign ssr_rvalid = '0;
     assign ssr_rdone = '0;

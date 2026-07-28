@@ -245,7 +245,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
     );
   end else begin : gen_no_fpu_sequencer
     // pragma translate_off
-    assign sequencer_tracer_o = 0;
+    assign sequencer_trace_o = 0;
     // pragma translate_on
     assign acc_rsp_o.q_ready = acc_req_ready;
     assign acc_req_valid = acc_req_i.q_valid;
