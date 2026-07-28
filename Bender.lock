@@ -116,6 +116,7 @@ packages:
     dependencies:
     - axi
     - common_cells
+    - snitch
     - tech_cells_generic
   riscv-dbg:
     revision: 358f90110220adf7a083f8b65d157e836d706236
@@ -138,7 +139,6 @@ packages:
     source:
       Path: hw/snitch
     dependencies:
-    - reqrsp_interface
     - common_cells
     - tech_cells_generic
   spatz_vpu:
