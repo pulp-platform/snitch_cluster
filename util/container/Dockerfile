@@ -145,9 +145,9 @@ ARG REPO_DIR
 COPY . ${REPO_DIR}
 WORKDIR ${REPO_DIR}
 
-# Build the verilator model (with FST tracing enabled)
+# Build the verilator model (with simple FST tracing enabled, to meet CI memory constraints)
 RUN bender checkout
-RUN uv run make verilator DEBUG=ON
+RUN uv run make verilator DEBUG=ON CI=ON
 
 #-------------------------------------------------------------------------------
 # Stage 4: Software development stage

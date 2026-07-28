@@ -36,8 +36,10 @@ SN_VLT_FLAGS += --threads $(SN_VLT_NUM_THREADS)
 
 ifeq ($(DEBUG), ON)
 SN_VLT_FLAGS += --trace-fst
+ifneq ($(CI), ON)
 SN_VLT_FLAGS += --trace-structs
 SN_VLT_FLAGS += --trace-max-array 128
+endif
 endif
 
 # Misc
