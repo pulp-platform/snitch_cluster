@@ -48,7 +48,7 @@ struct Sim : htif_t {
    private:
     context_t *host;
     context_t target;
-    bool vlt_vcd = false;
+    bool vlt_fst = false;
     bool disable_preloading = false;
     IpcIface ipc;
 };

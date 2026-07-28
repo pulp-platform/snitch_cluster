@@ -9,7 +9,7 @@
 #include "sim.hh"
 #include "tb_lib.hh"
 #include "verilated.h"
-#include "verilated_vcd_c.h"
+#include "verilated_fst_c.h"
 
 std::unique_ptr<sim::Sim> s;
 
@@ -28,11 +28,11 @@ void sim_thread_main(void *arg) { ((Sim *)arg)->main(); }
 vluint64_t TIME = 0;
 
 Sim::Sim(int argc, char **argv) : htif_t(argc, argv), ipc(argc, argv) {
-    // Search arguments for `--vcd` flag and enable waves if requested
+    // Search arguments for `--fst` flag and enable waves if requested
     for (auto i = 1; i < argc; ++i) {
-        if (strcmp(argv[i], "--vcd") == 0) {
-            printf("VCD wave generation enabled\n");
-            vlt_vcd = true;
+        if (strcmp(argv[i], "--fst") == 0) {
+            printf("FST wave generation enabled\n");
+            vlt_fst = true;
         }
     }
     Verilated::commandArgs(argc, argv);
@@ -50,22 +50,22 @@ int Sim::run() {
 void Sim::main() {
     // Initialize verilator environment.
     Verilated::traceEverOn(true);
-    // Allocate the simulation state and VCD trace.
+    // Allocate the simulation state and FST trace.
     auto top = std::make_unique<Vtestharness>();
-    auto vcd = std::make_unique<VerilatedVcdC>();
+    auto fst = std::make_unique<VerilatedFstC>();
 
     // Trace 8 levels of hierarchy.
-    if (vlt_vcd) {
-        top->trace(vcd.get(), 8);
-        vcd->open("sim.vcd");
-        vcd->dump(TIME);
+    if (vlt_fst) {
+        top->trace(fst.get(), 8);
+        fst->open("sim.fst");
+        fst->dump(TIME);
     }
     TIME += 2;
 
     while (!Verilated::gotFinish()) {
         // Evaluate the DUT.
         top->eval();
-        if (vlt_vcd) vcd->dump(TIME);
+        if (vlt_fst) fst->dump(TIME);
         // Increase global time.
         TIME++;
         // Switch to the HTIF interface in regular intervals.
@@ -75,7 +75,7 @@ void Sim::main() {
     }
 
     // Clean up.
-    if (vlt_vcd) vcd->close();
+    if (vlt_fst) fst->close();
 }
 }  // namespace sim
 
