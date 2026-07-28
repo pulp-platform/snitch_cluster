@@ -43,7 +43,7 @@ $(SN_VCS_BUILDDIR):
 $(eval $(call sn_gen_rtl_prerequisites,$(SN_VCS_RTL_PREREQ_FILE),$(SN_VCS_BUILDDIR),$(SN_VCS_BENDER_FLAGS),$(SN_VCS_TOP_MODULE),$(SN_BIN_DIR)/$(TARGET).vcs))
 
 # Generate compilation script
-$(SN_VCS_BUILDDIR)/compile.sh: $(SN_BENDER_YML) $(SN_BENDER_LOCK) | $(SN_VCS_BUILDDIR)
+$(SN_VCS_BUILDDIR)/compile.sh: $(SN_BENDER_PREREQS) | $(SN_VCS_BUILDDIR)
 	$(SN_BENDER) script vcs $(SN_VCS_BENDER_FLAGS) --vlog-arg="$(SN_VLOGAN_FLAGS)" --vcom-arg="$(SN_VHDLAN_FLAGS)" > $@
 	chmod +x $@
 

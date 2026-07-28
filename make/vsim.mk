@@ -85,7 +85,7 @@ $(SN_VSIM_BUILDDIR):
 $(eval $(call sn_gen_rtl_prerequisites,$(SN_VSIM_RTL_PREREQ_FILE),$(SN_VSIM_BUILDDIR),$(SN_VSIM_BENDER_FLAGS),$(SN_VSIM_TOP_MODULE),$(SN_BIN_DIR)/$(TARGET).vsim))
 
 # Generate compilation script
-$(SN_VSIM_BUILDDIR)/compile.vsim.tcl: $(SN_BENDER_YML) $(SN_BENDER_LOCK) | $(SN_VSIM_BUILDDIR)
+$(SN_VSIM_BUILDDIR)/compile.vsim.tcl: $(SN_BENDER_PREREQS) | $(SN_VSIM_BUILDDIR)
 	$(SN_VLIB) $(dir $@)
 	$(SN_BENDER) script vsim $(SN_VSIM_BENDER_FLAGS) --vlog-arg="$(SN_VLOG_FLAGS) " > $@
 	echo '$(SN_VLOG) -work $(SN_VSIM_BUILDDIR) $(SN_TB_CC_SOURCES) $(SN_RTL_CC_SOURCES) -vv -ccflags "$(SN_TB_CC_FLAGS)"' >> $@

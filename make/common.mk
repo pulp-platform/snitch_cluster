@@ -51,8 +51,12 @@ SN_CLUSTER_GEN_SRC  = $(SN_ROOT)/util/clustergen/cluster.py
 SN_CLUSTER_GEN_SRC += $(SN_ROOT)/util/clustergen/snitch_cluster.schema.json
 
 # Bender prerequisites
-SN_BENDER_LOCK = $(SN_ROOT)/Bender.lock
-SN_BENDER_YML  = $(SN_ROOT)/Bender.yml
+SN_BENDER_LOCK     = $(SN_ROOT)/Bender.lock
+SN_BENDER_YML      = $(SN_ROOT)/Bender.yml
+SN_BENDER_PREREQS  = $(SN_BENDER_LOCK)
+SN_BENDER_PREREQS += $(SN_BENDER_YML)
+SN_BENDER_PREREQS += $(SN_ROOT)/hw/snitch/Bender.yml
+SN_BENDER_PREREQS += $(SN_ROOT)/hw/reqrsp_interface/Bender.yml
 
 # Flags
 SN_COMMON_BENDER_FLAGS      += -t rtl -t cc_no_deprecated -t tech_cells_generic_include_tc_sync
@@ -109,7 +113,7 @@ endef
 # Arg 5: name of target for which prerequisites are generated
 # Arg 6: additional prerequisites to generate Bender filelist
 define sn_gen_rtl_prerequisites
-$(2)/$(4).f: $(SN_BENDER_YML) $(SN_BENDER_LOCK) $(SN_GEN_RTL_SRCS) $(6) | $(2)
+$(2)/$(4).f: $(SN_BENDER_PREREQS) $(SN_GEN_RTL_SRCS) $(6) | $(2)
 	$(SN_BENDER) script verilator $(3) > $$@
 
 $(1): $(2)/$(4).f $(SN_GEN_RTL_SRCS) | $(2)
