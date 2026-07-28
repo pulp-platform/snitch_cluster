@@ -326,7 +326,7 @@ module snitch_cc
     .DataWidth             (DataWidth),
     .VMSupport             (VMSupport),
     .DebugSupport          (DebugSupport),
-    .EnableXif             (EnableXif),
+    .EnableXif             (EnableXif | IsaCfg.RVV),
     .XifIdWidth            (XifIdWidth),
     .NumIntOutstandingLoads(NumIntOutstandingLoads),
     .NumIntOutstandingMem  (NumIntOutstandingMem),
@@ -1008,6 +1008,6 @@ module snitch_cc
   // Spatz and SSRs/FREP/DCA are not compatible
   `ASSERT_INIT(IllegalSpatzSsrCombo, (!IsaCfg.RVV) || (!IsaCfg.Xssr))
   `ASSERT_INIT(IllegalSpatzFrepCombo, (!IsaCfg.RVV) || (!IsaCfg.Xfrep))
-  `ASSERT_INIT(IllegalSpatzDcaCombo, (!IsaCfg.RVV) || EnableDca)
+  `ASSERT_INIT(IllegalSpatzDcaCombo, (!IsaCfg.RVV) || !EnableDca)
 
 endmodule

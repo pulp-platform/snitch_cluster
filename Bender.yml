@@ -47,6 +47,10 @@ dependencies:
   FPnew:
     git: https://github.com/pulp-platform/cvfpu.git
     rev: common-cells-v2
+  reqrsp_interface:
+    path: "hw/reqrsp_interface"
+  snitch:
+    path: "hw/snitch"
   spatz_vpu:
     git: https://github.com/pulp-platform/spatz_vpu.git
     rev: common_cell_v2
@@ -65,60 +69,6 @@ export_include_dirs:
   - hw/snitch_ssr/include
 
 sources:
-
-  # snitch
-  - files:
-      # Level 0
-      - hw/snitch/src/snitch_pma_pkg.sv
-      - hw/snitch/src/snitch_riscv_instr.sv
-      # Level 1
-      - hw/snitch/src/snitch_pkg.sv
-      # Level 2
-      - hw/snitch/src/snitch_regfile_ff.sv
-      - hw/snitch/src/snitch_lsu.sv
-      - hw/snitch/src/snitch_l0_tlb.sv
-  - target: not(disable_pmcs)
-    defines:
-      SNITCH_ENABLE_PERF:
-    files:
-      - hw/snitch/src/snitch.sv
-  # Disable the performance monitoring counters to save area.
-  - target: disable_pmcs
-    files:
-      - hw/snitch/src/snitch.sv
-  - target: all(tb, not(verilator))
-    files:
-      - hw/snitch/test/snitch_l0_tlb_tb.sv
-
-  # reqrsp_interface
-  - files:
-      # Level 0
-      - hw/reqrsp_interface/src/generic_reqrsp_cut.sv
-      - hw/reqrsp_interface/src/generic_reqrsp_demux.sv
-      - hw/reqrsp_interface/src/generic_reqrsp_mux.sv
-      - hw/reqrsp_interface/src/reqrsp_pkg.sv
-      # Level 1
-      - hw/reqrsp_interface/src/reqrsp_intf.sv
-      # Level 2
-      - hw/reqrsp_interface/src/axi_to_reqrsp.sv
-      - hw/reqrsp_interface/src/reqrsp_cut.sv
-      - hw/reqrsp_interface/src/reqrsp_demux.sv
-      - hw/reqrsp_interface/src/reqrsp_iso.sv
-      - hw/reqrsp_interface/src/reqrsp_mux.sv
-      - hw/reqrsp_interface/src/reqrsp_to_axi.sv
-      # Level 3
-      - hw/reqrsp_interface/src/reqrsp_demux_mapped.sv
-  - target: test
-    files:
-      - hw/reqrsp_interface/src/reqrsp_test.sv
-  - target: all(tb, not(verilator))
-    files:
-      - hw/reqrsp_interface/test/axi_to_reqrsp_tb.sv
-      - hw/reqrsp_interface/test/reqrsp_demux_tb.sv
-      - hw/reqrsp_interface/test/reqrsp_idempotent_tb.sv
-      - hw/reqrsp_interface/test/reqrsp_mux_tb.sv
-      - hw/reqrsp_interface/test/reqrsp_to_axi_tb.sv
-
   # mem_interface
   - files:
       - hw/mem_interface/src/mem_wide_narrow_mux.sv

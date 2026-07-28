@@ -127,7 +127,7 @@ module snitch_cluster_wrapper
     assign x_result_ready_o    = x_result_ready_int;
   end else begin : gen_xif_tie
     assign x_issue_resp_int    = '{NrCores{x_issue_resp_t'('0)}};
-    assign x_issue_ready_int   = '0;
+    assign x_issue_ready_int   = '1;
     assign x_register_ready_int = '0;
     assign x_result_int        = '{NrCores{x_result_t'('0)}};
     assign x_result_valid_int  = '0;
