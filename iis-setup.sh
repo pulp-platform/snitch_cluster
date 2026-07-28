@@ -31,7 +31,7 @@ $SN_BENDER checkout
 # Prefix with flock to prevent race condition in managed Python installation,
 # see https://github.com/astral-sh/uv/issues/19329
 flock-2.41 --fcntl "${HOME}/uv-ci.lock" bash -euo pipefail -c '
-  uv sync --all-extras --locked
+  uv sync --all-extras --all-groups --locked
   uv pip install -e nonfree
 '
 source .venv/bin/activate

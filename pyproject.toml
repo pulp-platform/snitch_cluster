@@ -11,7 +11,7 @@ name = "snitch"
 authors = [
     {name = "Luca Colagrande", email = "colluca@iis.ee.ethz.ch"}
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dynamic = ["version"]
 dependencies = [
     # Alphabetically sorted.
@@ -66,12 +66,18 @@ all = [
     "snitch[kernels,docs]"
 ]
 
+[dependency-groups]
+dev = [
+    "tsunami-wave",
+]
+
 [tool.uv.sources]
 riscv-opcodes = { path = "sw/deps/riscv-opcodes", editable = true }
 spatz-vpu = { path = "deps/spatz_vpu", editable = true }
 torch = [
     { index = "pytorch-cpu" },
 ]
+tsunami-wave = { git = "https://github.com/zarubaf/tsunami.git", rev = "4a2d5c02462875fcebaef6f4e84563eb28b99cf8" }
 
 [[tool.uv.index]]
 name = "pytorch-cpu"
