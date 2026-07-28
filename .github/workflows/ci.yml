@@ -39,11 +39,13 @@ jobs:
         # diff could silently skip over a real prerequisite change.
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "sha=${{ github.event.before }}" >> "$GITHUB_OUTPUT"
+            sha="${{ github.event.before }}"
           else
             git fetch origin main
-            echo "sha=$(git merge-base origin/main HEAD)" >> "$GITHUB_OUTPUT"
+            sha="$(git merge-base origin/main HEAD)"
           fi
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "Base SHA: $sha"
 
   ##########################
   # Build Docker Container #
