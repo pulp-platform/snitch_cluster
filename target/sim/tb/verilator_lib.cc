@@ -44,7 +44,20 @@ void Sim::idle() { target.switch_to(); }
 int Sim::run() {
     host = context_t::current();
     target.init(sim_thread_main, this);
-    return htif_t::run();
+    int exit_code = htif_t::run();
+    // The program has signalled end-of-computation (fesvr/HTIF observed the
+    // `tohost` write), but memory writes it issued just before exiting may
+    // still be in flight in the interconnect and not yet committed to the
+    // global memory. Release the host's pending `Wait` command so it can read
+    // back results, but keep evaluating the RTL until the host disconnects, so
+    // those writes drain and the read-back observes committed data. (Once the
+    // program has exited its cores are parked, so this just drains pending
+    // transactions and then idles.)
+    ipc.notify_finished(exit_code);
+    while (ipc.session_open() && !Verilated::gotFinish()) {
+        idle();
+    }
+    return exit_code;
 }
 
 void Sim::main() {

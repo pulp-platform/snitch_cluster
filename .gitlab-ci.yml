@@ -12,11 +12,45 @@ variables:
   LLVM_SYS_120_PREFIX: /usr/pack/llvm-12.0.1-af
   CMAKE: cmake-3.18.1
 
+##########
+# Common #
+##########
+
 default:
   # Allow interrupting long-running jobs when a new pipeline on the same branch is triggered
   interruptible: true
   before_script:
     - source iis-setup.sh
+
+# Reusable guard that skips a job when MAKE_TARGET's prerequisites haven't
+# changed w.r.t. main. Usage: extend this job and `!reference` its script
+# before the real one; MAKE_TARGET defaults to the job name.
+.skip-if-unchanged:
+  variables:
+    MAKE_TARGET: $CI_JOB_NAME
+  script:
+    - |
+      if [ "$CI_COMMIT_REF_NAME" = "main" ]; then
+        BASE_SHA=$CI_COMMIT_BEFORE_SHA
+      else
+        git fetch origin main
+        BASE_SHA=$(git merge-base origin/main HEAD)
+      fi
+    - CHANGED=$(git diff --name-only $BASE_SHA HEAD | sed "s|^|$CI_PROJECT_DIR/|")
+    - PREREQS=$(list-make-prerequisites $MAKE_TARGET --recursive)
+    # Turn `CHANGED` into a regex to match entire directories (e.g. submodules) against
+    # individual files in `PREREQS`.
+    - |
+      CHANGED_PATTERN=$(sed -E 's/[.[\*^$()+?{}|]/\\&/g; s#^#^#; s#$#($|/)#' <<< "$CHANGED")
+    - TRIGGERS=$(grep -E -f <(printf '%s\n' "$CHANGED_PATTERN") <<< "$PREREQS" || true)
+    - |
+      if [ -n "$TRIGGERS" ]; then
+        echo "Running '$MAKE_TARGET': prerequisites changed since $BASE_SHA:"
+        echo "$TRIGGERS" | sed 's/^/  /'
+      else
+        echo "Skipping '$MAKE_TARGET': no prerequisites changed since $BASE_SHA"
+        exit 0
+      fi
 
 ##############
 # Build docs #
@@ -166,22 +200,29 @@ snitch-cluster-frep-vsim:
     - cd test
     - ../util/experiments/run.py frep_xs.yaml --simulator vsim -j --run-dir runs/vsim
 
-# COPIFT and scalar chaining experiments
-snitch-cluster-copift-sc-vsim:
+# COPIFT experiments
+snitch-cluster-copift-vsim:
   script:
     - make CFG_OVERRIDE=experiments/copift/cfg.json vsim -j
     - cd experiments/copift
     - ./experiments.py experiments.yaml --actions sw run perf -j
-    - cd ../chaining
+
+# Scalar chaining experiments
+snitch-cluster-chaining-vsim:
+  script:
+    - make CFG_OVERRIDE=experiments/copift/cfg.json vsim -j
+    - cd experiments/chaining
     - ./experiments.py experiments.yaml --actions sw run perf -j
 
 ###################################
 # Open-source implementation flow #
 ###################################
 
-yosys-synthesis:
+yosys:
   timeout: 4h
+  extends: .skip-if-unchanged
   script:
+    - !reference [.skip-if-unchanged, script]
     - make CFG_OVERRIDE=cfg/yosys-ci.json yosys
     # Following steps are not included in open-source CI since netlist
     # compilation with Verilator takes an excessive amount of time and memory.
@@ -195,5 +236,7 @@ yosys-synthesis:
 
 # Non-free elaboration flow
 elab:
+  extends: .skip-if-unchanged
   script:
+    - !reference [.skip-if-unchanged, script]
     - make elab
