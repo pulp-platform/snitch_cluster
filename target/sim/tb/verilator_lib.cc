@@ -11,7 +11,9 @@
 #include "sim.hh"
 #include "tb_lib.hh"
 #include "verilated.h"
+#if VM_TRACE_FST
 #include "verilated_fst_c.h"
+#endif
 
 std::unique_ptr<sim::Sim> s;
 
@@ -29,6 +31,7 @@ void sim_thread_main(void *arg) { ((Sim *)arg)->main(); }
 // Sim time.
 vluint64_t TIME = 0;
 
+#if VM_TRACE_FST
 // The "target" fiber (running `Sim::main()`'s eval/dump loop) can be
 // abandoned mid-loop: if no `--ipc` host is attached, `Sim::run()` returns as
 // soon as `htif_t::run()` does, without resuming the target fiber again, so
@@ -44,8 +47,10 @@ void close_fst_at_exit() {
         g_fst = nullptr;
     }
 }
+#endif
 
 Sim::Sim(int argc, char **argv) : htif_t(argc, argv), ipc(argc, argv) {
+#if VM_TRACE_FST
     // Search arguments for `--fst` flag and enable waves if requested
     for (auto i = 1; i < argc; ++i) {
         if (strcmp(argv[i], "--fst") == 0) {
@@ -53,6 +58,7 @@ Sim::Sim(int argc, char **argv) : htif_t(argc, argv), ipc(argc, argv) {
             vlt_fst = true;
         }
     }
+#endif
     Verilated::commandArgs(argc, argv);
 }
 
@@ -81,8 +87,10 @@ int Sim::run() {
 void Sim::main() {
     // Initialize verilator environment.
     Verilated::traceEverOn(true);
-    // Allocate the simulation state and FST trace.
+    // Allocate the simulation state.
     auto top = std::make_unique<Vtestharness>();
+#if VM_TRACE_FST
+    // Allocate the FST trace.
     auto fst = std::make_unique<VerilatedFstC>();
 
     // Trace 8 levels of hierarchy.
@@ -93,12 +101,15 @@ void Sim::main() {
         g_fst = fst.get();
         std::atexit(close_fst_at_exit);
     }
+#endif
     TIME += 2;
 
     while (!Verilated::gotFinish()) {
         // Evaluate the DUT.
         top->eval();
+#if VM_TRACE_FST
         if (vlt_fst) fst->dump(TIME);
+#endif
         // Increase global time.
         TIME++;
         // Switch to the HTIF interface in regular intervals.
@@ -107,9 +118,11 @@ void Sim::main() {
         }
     }
 
+#if VM_TRACE_FST
     // Clean up. (`close_fst_at_exit` guards against a second close() if this
     // path is reached normally, by clearing `g_fst` once closed here.)
     if (vlt_fst) close_fst_at_exit();
+#endif
 }
 }  // namespace sim
 
