@@ -947,15 +947,19 @@ module snitch_cc
     tcdm_req_o[i] = muxed_tcdm_req;
     muxed_tcdm_rsp = tcdm_rsp_i[i];
     i++;
-    for (int j = 0; j < NumSsrs - 1; j++) begin
-      tcdm_req_o[i] = ssr_tcdm_req_extra[j];
-      ssr_tcdm_rsp_extra[j] = tcdm_rsp_i[i];
-      i++;
+    if (NumSsrs > 1) begin
+      for (int j = 0; j < NumSsrs - 1; j++) begin
+        tcdm_req_o[i] = ssr_tcdm_req_extra[j];
+        ssr_tcdm_rsp_extra[j] = tcdm_rsp_i[i];
+        i++;
+      end
     end
-    for (int j = 0; j < NumSpatzMemPorts; j++) begin
-      tcdm_req_o[i] = spatz_tcdm_req[j];
-      spatz_tcdm_rsp[j] = tcdm_rsp_i[i];
-      i++;
+    if (IsaCfg.RVV) begin
+      for (int j = 0; j < NumSpatzMemPorts; j++) begin
+        tcdm_req_o[i] = spatz_tcdm_req[j];
+        spatz_tcdm_rsp[j] = tcdm_rsp_i[i];
+        i++;
+      end
     end
   end
 
