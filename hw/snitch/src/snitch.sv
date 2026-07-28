@@ -182,9 +182,6 @@ module snitch import snitch_pkg::*; import snitch_riscv_instr::*; #(
   localparam bit Xpulpvect            = IsaCfg.Xpulpvect;
   localparam bit Xpulpvectshufflepack = IsaCfg.Xpulpvectshufflepack;
 
-  // Print out XIF transactions for debugging purpose
-  localparam bit DebugXif             = 1'b0;
-
   typedef logic [DataWidth-1:0] data_t;
   typedef logic [AddrWidth-1:0] addr_t;
 
@@ -3493,25 +3490,6 @@ module snitch import snitch_pkg::*; import snitch_riscv_instr::*; #(
       // $timeformat(-9, 0, " ns", 0);
       $display("[Dump Core %0d] %t 0x%3h = 0x%08h, %d, %f", hart_id_i,
                $time, inst_rsp_i.data[31:20], alu_result, alu_result, $bitstoshortreal(alu_result));
-    end
-    // XIF trace
-    if (EnableXif && !rst_i && DebugXif) begin
-      if (x_issue_valid_o)
-        $display("[XIF Core %0d] %t ISSUE   instr=0x%08h id=%0d ready=%0b accept=%0b writeback=%0b",
-                 hart_id_i, $time,
-                 x_issue_req_o.instr, x_issue_req_o.id,
-                 x_issue_ready_i, x_issue_resp_i.accept, x_issue_resp_i.writeback);
-      if (x_register_valid_o)
-        $display("[XIF Core %0d] %t REGFILE id=%0d rs={%08h,%08h,%08h} rs_valid=%03b ready=%0b",
-                 hart_id_i, $time,
-                 x_register_o.id,
-                 x_register_o.rs[2], x_register_o.rs[1], x_register_o.rs[0],
-                 x_register_o.rs_valid, x_register_ready_i);
-      if (x_result_valid_i)
-        $display("[XIF Core %0d] %t RESULT  id=%0d rd=%0d data=0x%08h we=%0b ready=%0b",
-                 hart_id_i, $time,
-                 x_result_i.id, x_result_i.rd, x_result_i.data,
-                 x_result_i.we, x_result_ready_o);
     end
   end
   // pragma translate_on
