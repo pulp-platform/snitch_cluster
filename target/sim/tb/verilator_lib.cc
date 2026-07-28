@@ -4,6 +4,8 @@
 
 #include <stdio.h>
 
+#include <cstdlib>
+
 #include "Vtestharness.h"
 #include "Vtestharness__Dpi.h"
 #include "sim.hh"
@@ -26,6 +28,22 @@ void sim_thread_main(void *arg) { ((Sim *)arg)->main(); }
 
 // Sim time.
 vluint64_t TIME = 0;
+
+// The "target" fiber (running `Sim::main()`'s eval/dump loop) can be
+// abandoned mid-loop: if no `--ipc` host is attached, `Sim::run()` returns as
+// soon as `htif_t::run()` does, without resuming the target fiber again, so
+// it never reaches its own post-loop cleanup below (only reachable once the
+// loop itself sees `Verilated::gotFinish()`). That drops any FST data not
+// yet flushed on a failing test, exactly the run we most want a usable
+// waveform for. Register a process-exit hook so the trace gets closed
+// regardless of which path terminates the process.
+VerilatedFstC *g_fst = nullptr;
+void close_fst_at_exit() {
+    if (g_fst != nullptr) {
+        g_fst->close();
+        g_fst = nullptr;
+    }
+}
 
 Sim::Sim(int argc, char **argv) : htif_t(argc, argv), ipc(argc, argv) {
     // Search arguments for `--fst` flag and enable waves if requested
@@ -72,6 +90,8 @@ void Sim::main() {
         top->trace(fst.get(), 8);
         fst->open("sim.fst");
         fst->dump(TIME);
+        g_fst = fst.get();
+        std::atexit(close_fst_at_exit);
     }
     TIME += 2;
 
@@ -87,8 +107,9 @@ void Sim::main() {
         }
     }
 
-    // Clean up.
-    if (vlt_fst) fst->close();
+    // Clean up. (`close_fst_at_exit` guards against a second close() if this
+    // path is reached normally, by clearing `g_fst` once closed here.)
+    if (vlt_fst) close_fst_at_exit();
 }
 }  // namespace sim
 
