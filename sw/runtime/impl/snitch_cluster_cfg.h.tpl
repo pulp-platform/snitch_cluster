@@ -15,6 +15,7 @@
   supports_copift = False
   supports_pulp = False
   supports_smallfloat = False
+  supports_spatz = False
   smallfloat_subextensions = ['xf8', 'xf8alt', 'zfh', 'xf16alt', 'xfdotp', 'xfvec']
   pulp_subextensions = [
     'xcvmem',
@@ -36,6 +37,7 @@
       supports_copift = supports_copift or core['xcopift']
       supports_pulp = supports_pulp or any([core[ext] for ext in pulp_subextensions])
       supports_smallfloat = supports_smallfloat or any([core[ext] for ext in smallfloat_subextensions])
+      supports_spatz = supports_spatz or core['isa_parsed'].v
 %>
 
 
@@ -89,6 +91,10 @@
 
 % if supports_smallfloat:
 #define SNRT_SUPPORTS_SMALLFLOAT
+% endif
+
+% if supports_spatz:
+#define SNRT_SUPPORTS_SPATZ
 % endif
 
 // Software configuration

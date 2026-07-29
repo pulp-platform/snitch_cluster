@@ -52,6 +52,9 @@ T *mat_buf0;
 T *mat_buf1;
 T *result;
 
+#ifndef SNRT_SUPPORTS_SPATZ
+int main() { return 0; }
+#else
 int main() {
   const unsigned int num_cores = snrt_cluster_compute_core_num();
   const unsigned int cid = snrt_cluster_core_idx();
@@ -351,3 +354,4 @@ int main() {
   snrt_cluster_hw_barrier();
   return 0;
 }
+#endif

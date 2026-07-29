@@ -41,6 +41,9 @@ T *a;
 T *b;
 T *c;
 
+#ifndef SNRT_SUPPORTS_SPATZ
+int main() { return 0; }
+#else
 int main() {
   // DM core: allocate L1 buffers and DMA data from DRAM
   if (snrt_is_dm_core()) {
@@ -108,3 +111,4 @@ int main() {
 
   return 0;
 }
+#endif

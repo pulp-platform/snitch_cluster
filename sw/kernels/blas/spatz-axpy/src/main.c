@@ -31,6 +31,9 @@ double *a;
 double *x;
 double *y;
 
+#ifndef SNRT_SUPPORTS_SPATZ
+int main() { return 0; }
+#else
 int main() {
   const unsigned int dim = axpy_l.M;
 
@@ -95,3 +98,4 @@ int main() {
 
   return 0;
 }
+#endif
