@@ -37,12 +37,16 @@ jobs:
         # commit on this branch: CI doesn't necessarily run on every push
         # (e.g. superseded runs get cancelled), so a plain previous-commit
         # diff could silently skip over a real prerequisite change.
+        #
+        # On forks, `origin` is the fork itself, whose `main` can lag behind
+        # the upstream repo it was forked from, so we always fetch
+        # `main` from the canonical upstream repo instead of `origin`.
         run: |
           if [ "${{ github.ref_name }}" = "main" ]; then
             sha="${{ github.event.before }}"
           else
-            git fetch origin main
-            sha="$(git merge-base origin/main HEAD)"
+            git fetch https://github.com/pulp-platform/snitch_cluster.git main
+            sha="$(git merge-base FETCH_HEAD HEAD)"
           fi
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "Base SHA: $sha"
