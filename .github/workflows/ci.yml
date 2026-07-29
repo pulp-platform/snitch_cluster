@@ -307,7 +307,7 @@ jobs:
       - uses: ./.github/actions/setup-container
       - name: Check if Yosys prerequisites changed
         id: make-prerequisites-changed
-        uses: colluca/make-prerequisites-changed@v1.1.1
+        uses: colluca/make-prerequisites-changed@v1.2.0
         with:
           target: yosys
           flags: --recursive
