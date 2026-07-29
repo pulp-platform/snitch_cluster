@@ -284,6 +284,53 @@ jobs:
         run: |
           make SIM_DIR=./test/runs/simple SN_MCPU=snitch-mempool DEBUG=ON annotate -j
 
+  ######################################################
+  # Simulate SW on Snitch Cluster (Spatz) w/ Verilator #
+  ######################################################
+
+  snitch-spatz-cluster-vlt:
+    name: Build and Simulate Spatz Snitch Cluster w/ Verilator
+    runs-on: ubuntu-22.04
+    needs: [docker-meta, build-hw-image]
+    container:
+      image: ${{ needs.docker-meta.outputs.hw_image_name }}
+      volumes:
+        - ${{ github.workspace }}:/repo
+    defaults:
+      run:
+        working-directory: /repo
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - uses: ./.github/actions/setup-container
+      - name: Hash Verilator prerequisites
+        id: list-make-prerequisites
+        uses: colluca/list-make-prerequisites@v1.0.0
+        with:
+          target: verilator
+          flags: --recursive
+      - name: Set up cache for Verilator build
+        id: verilator-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            /repo/target/sim/build/bin
+          key: verilator-spatz-${{ steps.list-make-prerequisites.outputs.hash }}
+          restore-keys: |
+            verilator-spatz-
+      - name: Build Hardware
+        if: steps.verilator-cache.outputs.cache-hit != 'true'
+        run: |
+          make CFG_OVERRIDE=cfg/spatz.json verilator
+      - name: Build Software
+        run: |
+          make CFG_OVERRIDE=cfg/spatz.json sw -j
+      - name: Run Tests
+        run: |
+          cd test
+          ../util/experiments/run.py spatz.yaml --simulator verilator -j
+
   #############
   # Synthesis #
   #############

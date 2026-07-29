@@ -200,6 +200,14 @@ snitch-cluster-frep-vsim:
     - cd test
     - ../util/experiments/run.py frep_xs.yaml --simulator vsim -j --run-dir runs/vsim
 
+# Test Spatz configuration
+snitch-cluster-spatz-vsim:
+  script:
+    - make CFG_OVERRIDE=cfg/spatz.json sw -j
+    - make vsim -j
+    - cd test
+    - ../util/experiments/run.py spatz.yaml --simulator vsim -j --run-dir runs/vsim
+
 # COPIFT experiments
 snitch-cluster-copift-vsim:
   script:

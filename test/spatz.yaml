@@ -1,0 +1,11 @@
+# Copyright 2026 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+runs:
+  - elf: ../sw/kernels/blas/spatz-axpy/build/spatz-axpy.elf
+    cmd: [../sw/kernels/blas/spatz-axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/blas/spatz-fmatmul/build/spatz-fmatmul.elf
+    cmd: [../sw/kernels/blas/spatz-fmatmul/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/blas/spatz-sel-gemv/build/spatz-sel-gemv.elf
+    cmd: [../sw/kernels/blas/spatz-sel-gemv/scripts/verify.py, "${sim_bin}", "${elf}"]

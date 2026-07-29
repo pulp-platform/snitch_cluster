@@ -24,7 +24,9 @@
         wide_trans: 32,
         // We don't need Snitch debugging in Occamy
         enable_debug: false,
-        enable_xif: true,
+        enable_xif: false,
+        // DCA adaption for Spatz is not yet implemented
+        enable_dca: false,
         // We don't need Snitch (core-internal) virtual memory support
         vm_support: false,
         // Memory configuration inputs
@@ -89,8 +91,8 @@
     compute_core_template: {
         isa: "rv32imafdv",
         xssr: false,
-        xfrep: true,
-        xcopift: true,
+        xfrep: false,
+        xcopift: false,
         xdma: false,
         zfh: true,
         xf16alt: true,
@@ -124,7 +126,7 @@
         xssr: false,
         xfrep: false,
         xcopift: false,
-        zfh: false,
+        zfh: true,
         xf16alt: false,
         xf8: false,
         xf8alt: false,
