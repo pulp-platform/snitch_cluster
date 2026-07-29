@@ -272,7 +272,7 @@ jobs:
           make CFG_OVERRIDE=cfg/mempool.json verilator
       - name: Build Software for mempool tests
         run: |
-          make sw CFG_OVERRIDE=cfg/mempool.json SN_MCPU=snitch-mempool -j
+          make sw CFG_OVERRIDE=cfg/mempool.json -j
       - name: Run Tests
         run: |
           cd test
@@ -282,7 +282,7 @@ jobs:
         # testbench does not wait until all the instructions are retired
         # (compiler introduces few instructions after exit routine).
         run: |
-          make SIM_DIR=./test/runs/simple SN_MCPU=snitch-mempool DEBUG=ON annotate -j
+          make SIM_DIR=./test/runs/simple DEBUG=ON annotate -j
 
   ######################################################
   # Simulate SW on Snitch Cluster (Spatz) w/ Verilator #
