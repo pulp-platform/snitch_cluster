@@ -978,6 +978,7 @@ module snitch_cc
   // Tracer //
   ////////////
 
+`ifdef DEBUG
   // pragma translate_off
   snitch_tracer #(
     .FpEn     (NativeFpSupport),
@@ -993,6 +994,7 @@ module snitch_cc
     .dca_trace_i          (dca_trace)
   );
   // pragma translate_on
+`endif
 
   ////////////////
   // Assertions //
