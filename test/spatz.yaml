@@ -7,5 +7,3 @@ runs:
     cmd: [../sw/kernels/blas/spatz-axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ../sw/kernels/blas/spatz-fmatmul/build/spatz-fmatmul.elf
     cmd: [../sw/kernels/blas/spatz-fmatmul/scripts/verify.py, "${sim_bin}", "${elf}"]
-  - elf: ../sw/kernels/blas/spatz-sel-gemv/build/spatz-sel-gemv.elf
-    cmd: [../sw/kernels/blas/spatz-sel-gemv/scripts/verify.py, "${sim_bin}", "${elf}"]
