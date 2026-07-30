@@ -141,6 +141,7 @@ packages:
     dependencies:
     - common_cells
     - tech_cells_generic
+    - riscv-dbg
   spatz_vpu:
     revision: a36814897db3e508c7a9c9020ec9d4257371c2cc
     version: null
