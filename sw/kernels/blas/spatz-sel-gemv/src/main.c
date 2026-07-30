@@ -21,6 +21,11 @@
 #include <stdio.h>
 
 #include "data.h"
+
+#ifndef SNRT_SUPPORTS_SPATZ
+int main() { return 0; }
+#else
+
 #include "sel-gemv.c"
 
 // Number of FPU lanes per Spatz core (matches N_FPU in spatz_pkg)
@@ -52,9 +57,6 @@ T *mat_buf0;
 T *mat_buf1;
 T *result;
 
-#ifndef SNRT_SUPPORTS_SPATZ
-int main() { return 0; }
-#else
 int main() {
   const unsigned int num_cores = snrt_cluster_compute_core_num();
   const unsigned int cid = snrt_cluster_core_idx();

@@ -21,6 +21,10 @@
 
 #include "data.h"
 
+#ifndef SNRT_SUPPORTS_SPATZ
+int main() { return 0; }
+#else
+
 #if (PREC == 64)
 typedef double T;
 #include "fmatmul_fp64.c"
@@ -41,9 +45,6 @@ T *a;
 T *b;
 T *c;
 
-#ifndef SNRT_SUPPORTS_SPATZ
-int main() { return 0; }
-#else
 int main() {
   // DM core: allocate L1 buffers and DMA data from DRAM
   if (snrt_is_dm_core()) {

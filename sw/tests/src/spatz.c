@@ -13,6 +13,9 @@ double a[N] __attribute__((aligned(4096))) = {3.0, 3.0, 3.0, 3.0,
 double b[N] __attribute__((aligned(4096))) = {2.0, 2.0, 2.0, 2.0,
                                               2.0, 2.0, 2.0, 2.0};
 
+#ifndef SNRT_SUPPORTS_SPATZ
+int main() { return 0; }
+#else
 int main() {
   // Allocate space for a, b, c in L1 (TCDM)
   double *local_a = (double *)snrt_l1_next();
@@ -58,3 +61,4 @@ int main() {
 
   return 0;
 }
+#endif

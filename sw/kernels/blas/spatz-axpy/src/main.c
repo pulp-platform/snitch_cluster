@@ -20,6 +20,11 @@
 #include <stdio.h>
 
 #include "data.h"
+
+#ifndef SNRT_SUPPORTS_SPATZ
+int main() { return 0; }
+#else
+
 #include "faxpy.c"
 
 // Number of FPU lanes per Spatz core (matches N_FPU in spatz_pkg)
@@ -31,9 +36,6 @@ double *a;
 double *x;
 double *y;
 
-#ifndef SNRT_SUPPORTS_SPATZ
-int main() { return 0; }
-#else
 int main() {
   const unsigned int dim = axpy_l.M;
 
