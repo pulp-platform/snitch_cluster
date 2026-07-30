@@ -84,12 +84,12 @@ $(1): $$($(1)_tests_dump)
 $$($(1)_tests_dump): %.dump: %.elf
 	$$(SN_RISCV_OBJDUMP) $$(SN_RVT_RISCV_OBJDUMP_FLAGS) $$(SN_RVTESTS_BUILDDIR)$$< > $$(SN_RVTESTS_BUILDDIR)$$@
 
-COMPILER_SUPPORTS_$(1) := $$(shell $(SN_RISCV_CC) $(2) -c -x c /dev/null -o /dev/null 2> /dev/null; echo $$$$?)
+ifdef SN_RISCV_CC
+COMPILER_SUPPORTS_$(1) := $$(shell $$(SN_RISCV_CC) $(2) -c -x c /dev/null -o /dev/null 2> /dev/null; echo $$$$?)
 ifeq ($$(COMPILER_SUPPORTS_$(1)),0)
 tests += $$($(1)_tests)
 endif
-
-tests += $$($(1)_tests)
+endif
 
 endef
 
