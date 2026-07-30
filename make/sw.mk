@@ -60,23 +60,6 @@ sn-clean-sw: sn-clean-headers
 sn-clean-headers:
 	rm -f $(SN_RUNTIME_HAL_HDRS) $(SN_SNITCH_CLUSTER_ADDRMAP_RDL)
 
-#############
-# Toolchain #
-#############
-
-SN_TOOLCHAIN_MK     = $(SN_ROOT)/sw/toolchain.mk
-SN_TOOLCHAIN_MK_TPL = $(SN_ROOT)/sw/toolchain.mk.tpl
-
-# Toolchain flags are generated from the cluster configuration
-$(eval $(call sn_cluster_gen_rule,$(SN_TOOLCHAIN_MK),$(SN_TOOLCHAIN_MK_TPL)))
-
-include $(SN_TOOLCHAIN_MK)
-
-.PHONY: sn-clean-toolchain
-sn-clean-sw: sn-clean-toolchain
-sn-clean-toolchain:
-	rm -f $(SN_TOOLCHAIN_MK)
-
 ##################
 # Subdirectories #
 ##################

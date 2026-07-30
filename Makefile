@@ -31,7 +31,7 @@ endif
 
 .PHONY: all clean
 all: rtl sw
-clean: clean-rtl clean-sw clean-work clean-logs clean-bender clean-misc
+clean: clean-rtl clean-sw clean-work clean-logs clean-bender clean-misc clean-toolchain
 
 ##########
 # Common #
@@ -125,6 +125,17 @@ $(GENERATED_DOCS_DIR)/peripherals.md: hw/snitch_cluster/src/snitch_cluster_perip
 
 $(DOXYGEN_DOCS_DIR): $(DOXYFILE) $(DOXYGEN_INPUTS)
 	doxygen $<
+
+#############
+# Toolchain #
+#############
+
+# Toolchain used by both RTL and SW stages
+include $(SN_ROOT)/make/toolchain.mk
+
+.PHONY: toolchain clean-toolchain
+toolchain: sn-toolchain
+clean-toolchain: sn-clean-toolchain
 
 #######
 # RTL #
