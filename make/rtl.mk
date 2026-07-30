@@ -57,10 +57,14 @@ $(SN_CLUSTER_ADDRMAP_SVH): $(SN_CLUSTER_RDL)
 	$(SN_PEAKRDL) raw-header $< -o $@ --format svh -I $(SN_PERIPH_DIR)
 
 # Bootrom rules
-$(SN_BOOTROM_ELF) $(SN_BOOTROM_DUMP) $(SN_BOOTROM_BIN) $(SN_BOOTROM): $(SN_BOOTROM_DIR)/bootrom.S $(SN_BOOTROM_DIR)/bootrom.ld $(SN_BOOTROM_GEN) | $(SN_BOOTROM_DIR)
+$(SN_BOOTROM_ELF): $(SN_BOOTROM_DIR)/bootrom.S $(SN_BOOTROM_DIR)/bootrom.ld $(SN_BOOTROM_GEN) | $(SN_BOOTROM_DIR)
+	$(info $(SN_RISCV_CC))
 	$(SN_RISCV_CC) -mabi=ilp32d -march=rv32imafd -static -nostartfiles -fuse-ld=$(SN_RISCV_LD) -L$(SN_ROOT)/sw/runtime -T$(SN_BOOTROM_DIR)/bootrom.ld $< -o $(SN_BOOTROM_ELF)
+$(SN_BOOTROM_DUMP): $(SN_BOOTROM_ELF)
 	$(SN_RISCV_OBJDUMP) -d $(SN_BOOTROM_ELF) > $(SN_BOOTROM_DUMP)
+$(SN_BOOTROM_BIN): $(SN_BOOTROM_ELF)
 	$(SN_RISCV_OBJCOPY) -j .text -O binary $(SN_BOOTROM_ELF) $(SN_BOOTROM_BIN)
+$(SN_BOOTROM): $(SN_BOOTROM_BIN)
 	$(SN_BOOTROM_GEN) --sv-module snitch_bootrom $(SN_BOOTROM_BIN) > $(SN_BOOTROM)
 
 # General RTL targets
