@@ -850,6 +850,7 @@ module snitch_cc #(
   ////////////
 
   // pragma translate_off
+`ifdef DEBUG
   int f;
   string fn;
   logic [63:0] cycle;
@@ -993,6 +994,7 @@ module snitch_cc #(
     $fclose(f);
   end
   // verilog_lint: waive-stop always-ff-non-blocking
+`endif
   // pragma translate_on
 
   ////////////////
