@@ -129,5 +129,5 @@ endef
 # Usage:
 #   $(call sn_include_deps)
 define sn_include_deps
-$(eval $(if $(strip $(MAKECMDGOALS)),$(shell list-dependent-make-targets -M -r -f "$(MAKEOVERRIDES)" $(SN_DEPS))))
+$(eval $(if $(strip $(SN_DEPS)),$(if $(strip $(MAKECMDGOALS)),$(shell list-dependent-make-targets -M -r -f "$(MAKEOVERRIDES)" $(SN_DEPS)))))
 endef

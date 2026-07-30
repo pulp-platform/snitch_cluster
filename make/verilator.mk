@@ -2,6 +2,10 @@
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
+# Simulation model build is dependent on rtl.mk and must thus be deferred
+# after the rtl.mk file is included and read.
+ifdef SN_RTL_MK_READ
+
 #######################
 # Makefile invocation #
 #######################
@@ -89,3 +93,5 @@ clean-verilator: clean-work
 clean: clean-verilator
 
 SN_DEPS += $(SN_VLT_RTL_PREREQ_FILE)
+
+endif

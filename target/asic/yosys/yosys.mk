@@ -6,6 +6,10 @@
 # - Philippe Sauter <phsauter@iis.ee.ethz.ch>
 # - Luca Colagrande <colluca@iis.ee.ethz.ch>
 
+# Yosys build is dependent on rtl.mk and must thus be deferred
+# after the rtl.mk file is included and read.
+ifdef SN_RTL_MK_READ
+
 #############
 # Variables #
 #############
@@ -78,3 +82,5 @@ clean-yosys:
 clean: clean-yosys
 
 SN_DEPS += $(SN_YOSYS_RTL_PREREQ_FILE)
+
+endif

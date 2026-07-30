@@ -2,6 +2,13 @@
 # Solderpad Hardware License, Version 0.51, see LICENSE for details.
 # SPDX-License-Identifier: SHL-0.51
 
+# bootrom build is dependent on toolchain.mk and must thus be deferred
+# after the toolchain.mk file is included and read.
+ifdef SN_TOOLCHAIN_MK_READ
+
+# Sentinel to test that rtl.mk has been included and read
+SN_RTL_MK_READ = 1
+
 # Directories
 SN_BOOTROM_DIR ?= $(SN_HW_DIR)/bootrom
 
@@ -56,16 +63,15 @@ $(SN_CLUSTER_ADDRMAP_SVH): $(SN_CLUSTER_RDL)
 	@echo "[peakrdl] Generating $@"
 	$(SN_PEAKRDL) raw-header $< -o $@ --format svh -I $(SN_PERIPH_DIR)
 
-# Bootrom rules
-$(SN_BOOTROM_ELF): $(SN_BOOTROM_DIR)/bootrom.S $(SN_BOOTROM_DIR)/bootrom.ld $(SN_BOOTROM_GEN) | $(SN_BOOTROM_DIR)
-	$(info $(SN_RISCV_CC))
-	$(SN_RISCV_CC) -mabi=ilp32d -march=rv32imafd -static -nostartfiles -fuse-ld=$(SN_RISCV_LD) -L$(SN_ROOT)/sw/runtime -T$(SN_BOOTROM_DIR)/bootrom.ld $< -o $(SN_BOOTROM_ELF)
+# Bootrom rules: explicit dependency on toolchain.mk ensures that the bootrom is rebuilt if the toolchain is updated
+$(SN_BOOTROM_ELF): $(SN_BOOTROM_DIR)/bootrom.S $(SN_BOOTROM_DIR)/bootrom.ld $(SN_TOOLCHAIN_MK) | $(SN_BOOTROM_DIR)
+	$(SN_RISCV_CC) -mabi=ilp32d -march=rv32imafd -static -nostartfiles -fuse-ld=$(SN_RISCV_LD) -L$(SN_ROOT)/sw/runtime -T$(SN_BOOTROM_DIR)/bootrom.ld $< -o $@
 $(SN_BOOTROM_DUMP): $(SN_BOOTROM_ELF)
-	$(SN_RISCV_OBJDUMP) -d $(SN_BOOTROM_ELF) > $(SN_BOOTROM_DUMP)
+	$(SN_RISCV_OBJDUMP) -d $< > $@
 $(SN_BOOTROM_BIN): $(SN_BOOTROM_ELF)
-	$(SN_RISCV_OBJCOPY) -j .text -O binary $(SN_BOOTROM_ELF) $(SN_BOOTROM_BIN)
-$(SN_BOOTROM): $(SN_BOOTROM_BIN)
-	$(SN_BOOTROM_GEN) --sv-module snitch_bootrom $(SN_BOOTROM_BIN) > $(SN_BOOTROM)
+	$(SN_RISCV_OBJCOPY) -j .text -O binary $< $@
+$(SN_BOOTROM): $(SN_BOOTROM_BIN) $(SN_BOOTROM_GEN)
+	$(SN_BOOTROM_GEN) --sv-module snitch_bootrom $< > $@
 
 # General RTL targets
 .PHONY: sn-rtl sn-clean-rtl
@@ -77,3 +83,5 @@ sn-clean-rtl:
 
 $(SN_BOOTROM_DIR):
 	mkdir -p $@
+
+endif

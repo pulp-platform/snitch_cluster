@@ -71,7 +71,8 @@ $(ELF): SRCS := $(SRCS)
 $(DEP) $(ELF): SN_RISCV_CFLAGS := $($(APP)_RISCV_CFLAGS)
 $(ELF): SN_RISCV_LDFLAGS := $($(APP)_RISCV_LDFLAGS)
 
-$(DEP): $(SRCS) | $($(APP)_BUILD_DIR) $($(APP)_HEADERS)
+# explicit dependency on toolchain.mk ensures that the kernels are rebuilt if the toolchain is updated
+$(DEP): $(SRCS) $(SN_TOOLCHAIN_MK) | $($(APP)_BUILD_DIR) $($(APP)_HEADERS)
 	$(SN_RISCV_CXX) $(SN_RISCV_CFLAGS) -MM -MT '$(ELF)' -x c++ $< > $@
 
 $(ELF): $(SRCS) $(DEP) $(SN_RUNTIME_LD_DEPS) | $($(APP)_BUILD_DIR)

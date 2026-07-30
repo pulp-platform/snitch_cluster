@@ -48,6 +48,9 @@
 %>
 ${disclaimer}
 
+# Sentinel to test that toolchain.mk has been included and read
+SN_TOOLCHAIN_MK_READ = 1
+
 # Compiler toolchain
 SN_LLVM_BINROOT    ?= $(dir $(shell which riscv32-unknown-elf-clang))
 SN_RISCV_CC        ?= $(SN_LLVM_BINROOT)/clang

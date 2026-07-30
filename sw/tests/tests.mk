@@ -66,7 +66,8 @@ $(SN_TESTS_BUILDDIR):
 # $(1) = full source path
 define sn_test_rules
 
-$$(SN_TESTS_BUILDDIR)/$$(notdir $$(basename $(1))).d: $(1) | $$(SN_TESTS_BUILDDIR)
+# explicit dependency on toolchain.mk ensures that the tests are rebuilt if the toolchain is updated
+$$(SN_TESTS_BUILDDIR)/$$(notdir $$(basename $(1))).d: $(1) $(SN_TOOLCHAIN_MK) | $$(SN_TESTS_BUILDDIR)
 	$$(SN_RISCV_CXX) $$(SN_TESTS_RISCV_CFLAGS) -MM -MT '$$(SN_TESTS_BUILDDIR)/$$(notdir $$(basename $(1))).elf' -x c++ $$< > $$@
 
 $$(SN_TESTS_BUILDDIR)/$$(notdir $$(basename $(1))).elf: $(1) $$(SN_RUNTIME_LD_DEPS) $$(SN_TESTS_BUILDDIR)/$$(notdir $$(basename $(1))).d | $$(SN_TESTS_BUILDDIR)

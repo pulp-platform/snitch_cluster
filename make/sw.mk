@@ -4,6 +4,10 @@
 #
 # Luca Colagrande <colluca@iis.ee.ethz.ch>
 
+# Software build is dependent on toolchain.mk and must thus be deferred
+# after the toolchain.mk file is included and read.
+ifdef SN_TOOLCHAIN_MK_READ
+
 ###################
 # General targets #
 ###################
@@ -109,3 +113,5 @@ endif
 $(foreach app,$(SN_APPS), \
 	$(eval include $(app)/app.mk) \
 )
+
+endif

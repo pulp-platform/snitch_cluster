@@ -141,9 +141,7 @@ clean-toolchain: sn-clean-toolchain
 # RTL #
 #######
 
-ifdef SN_RISCV_CC
 include $(SN_ROOT)/make/rtl.mk
-endif
 
 .PHONY: rtl clean-rtl
 rtl: sn-rtl
@@ -159,9 +157,7 @@ clean-rtl: sn-clean-rtl
 # Software #
 ############
 
-ifdef SN_RISCV_CC
 include $(SN_ROOT)/make/sw.mk
-endif
 
 .PHONY: tests riscv-tests apps sw clean-tests clean-riscv-tests clean-apps clean-sw
 tests: sn-tests
@@ -224,11 +220,9 @@ $(SN_WORK_DIR)/lib/libfesvr.a: $(SN_WORK_DIR)/$(SN_FESVR_VERSION)_unzip
 	mkdir -p $(dir $@)
 	cp $(dir $<)libfesvr.a $@
 
-ifdef SN_RISCV_CC
 include $(SN_ROOT)/make/vsim.mk
 include $(SN_ROOT)/make/verilator.mk
 include $(SN_ROOT)/make/vcs.mk
-endif
 
 #############
 # Synthesis #
