@@ -8,9 +8,11 @@
 
 set -e
 
+SN_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)
+
 [ ! -z "$VSIM" ] || VSIM=vsim
 
-$SN_BENDER script vsim -t test -t reqrsp_interface:tb \
+$SN_BENDER -d "$SN_ROOT" script vsim -t test -t snitch:tb \
     --vlog-arg="-svinputport=compat" \
     --vlog-arg="-override_timescale 1ns/1ps" \
     --vlog-arg="-suppress 2583" \

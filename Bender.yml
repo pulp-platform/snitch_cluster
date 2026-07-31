@@ -23,7 +23,6 @@ remotes:
 
 dependencies:
   tech_cells_generic: 0.2.14
-  riscv-dbg: 0.8.1
   cluster_icache:
     git: https://github.com/pulp-platform/cluster_icache.git
     rev: common-cells-v2
@@ -85,16 +84,18 @@ sources:
       # Level 0
       - hw/tcdm_interface/src/tcdm_interface.sv
       # Level 1
+      - hw/tcdm_interface/src/tcdm_width_converter.sv
       - hw/tcdm_interface/src/axi_to_tcdm.sv
-      - hw/tcdm_interface/src/reqrsp_to_tcdm.sv
+      - hw/tcdm_interface/src/lsu_to_tcdm.sv
       - hw/tcdm_interface/src/tcdm_mux.sv
   - target: test
     files:
       - hw/tcdm_interface/src/tcdm_test.sv
   - target: all(tb, not(verilator))
     files:
-      - hw/tcdm_interface/test/reqrsp_to_tcdm_tb.sv
+      - hw/tcdm_interface/test/lsu_to_tcdm_intf.sv
       - hw/tcdm_interface/test/tcdm_mux_tb.sv
+      - hw/tcdm_interface/test/lsu_to_tcdm_tb.sv
 
   # dca_interface
   - files:

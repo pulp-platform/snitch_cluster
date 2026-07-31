@@ -35,7 +35,7 @@ module snitch_fpu import snitch_pkg::*; #(
   fpu_req_t fpu_req;
   fpu_rsp_t fpu_rsp;
 
-  generic_reqrsp_cut #(
+  reqrsp_cut #(
     .req_chan_t(fpu_req_chan_t),
     .rsp_chan_t(fpu_rsp_chan_t),
     .BypassReq (!RegisterFpuReq),

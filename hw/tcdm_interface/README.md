@@ -37,8 +37,8 @@ channel.
 
 | Name             | Description                                                                   | Status |
 | ---------------- | ----------------------------------------------------------------------------- | ------ |
-| `axi_to_tcdm`    | Translates from AXI4+ATOP to `tcdm` using `axi_to_reqrsp` and `reqrsp_to_mem` | active |
-| `reqrsp_to_tcdm` | Translates from `reqrsp` to `tcdm`.                                           | active |
+| `axi_to_tcdm`    | Translates from AXI4+ATOP to `tcdm` using `axi_to_lsu` and `lsu_to_tcdm`      | active |
+| `lsu_to_tcdm`    | Translates from the Snitch LSU interface to `tcdm`.                          | active |
 | `tcdm_intf`      | Systemverilog interface definition of `tcdm` interface.                       | active |
 | `tcdm_mux`       | Arbitrate multiple ports based on round-robin arbitration.                    | active |
 | `tcdm_test`      | Common test infrastructure for the `tcdm` protocol.                           | active |

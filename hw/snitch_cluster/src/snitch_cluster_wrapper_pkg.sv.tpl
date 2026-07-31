@@ -411,7 +411,7 @@ ${ssr_cfg(core, '{reg_idx}', '/*None*/ 0', ',')}\
   localparam int unsigned NumSequencerInstr        [NrCores] = '{${core_cfg('num_sequencer_instructions')}};
   localparam int unsigned NumSequencerLoops        [NrCores] = '{${core_cfg('num_sequencer_loops')}};
   localparam int unsigned NumSsrs                  [NrCores] = '{${core_cfg('num_ssrs')}};
-  localparam int unsigned SsrMuxRespDepth          [NrCores] = '{${core_cfg('ssr_mux_resp_depth')}};
+  localparam int unsigned SsrMuxRspDepth           [NrCores] = '{${core_cfg('ssr_mux_rsp_depth')}};
   localparam bit          SpatzDoubleBw            [NrCores] = '{${core_cfg_lambda(lambda x: int(x['spatz']['double_bw']))}};
   localparam int unsigned NumSpatzOutstandingLoads [NrCores] = '{${core_cfg_lambda(lambda x: int(x['spatz']['num_outstanding_loads']))}};
 

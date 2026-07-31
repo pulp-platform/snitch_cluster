@@ -5,103 +5,62 @@
 // Fabian Schuiki <fschuiki@iis.ee.ethz.ch>
 // Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 
-/// A set of testbench utilities for REQRSP interfaces.
+/// A set of testbench utilities for reqrsp interfaces.
 package reqrsp_test;
 
-  import snitch_pkg::*;
-
   class req_t #(
-    parameter int AW = 32,
-    parameter int DW = 32
+    parameter type req_chan_t = logic
   );
-    rand logic [AW-1:0]   addr;
-    rand logic            write;
-    rand amo_op_e         amo;
-    rand logic [DW-1:0]   data;
-    rand logic [DW/8-1:0] strb;
-    rand size_t           size;
+    rand req_chan_t q;
 
-    rand bit is_amo;
-
-    constraint legal_amo_op_c {
-      amo inside {
-        AMOSwap, AMOAdd, AMOAnd,
-        AMOOr, AMOXor, AMOMax,
-        AMOMaxu, AMOMin, AMOMinu, AMOLR, AMOSC} -> write == 0;
-    }
-
-    // Reduce the amount of atomics.
-    constraint amo_reduce_c {
-      is_amo dist { 1:= 1, 0:= 10};
-      is_amo -> amo inside {
-        AMOSwap, AMOAdd, AMOAnd,
-        AMOOr, AMOXor, AMOMax,
-        AMOMaxu, AMOMin, AMOMinu, AMOLR, AMOSC
-      };
-    }
-
-    /// Compare objects of same type.
-    function do_compare(req_t rhs);
-      return addr == rhs.addr &
-             write == rhs.write &
-             amo == rhs.amo &
-             data == rhs.data &
-             strb == rhs.strb &
-             size == rhs.size;
+    function bit do_compare(req_t #(.req_chan_t(req_chan_t)) rhs);
+      return q == rhs.q;
     endfunction
-
   endclass
 
   class rsp_t #(
-    parameter int DW = 32
+    parameter type rsp_chan_t = logic
   );
-    rand logic [DW-1:0]   data;
-    rand logic            error;
+    rand rsp_chan_t p;
 
-    /// Compare objects of same type.
-    function do_compare(rsp_t rhs);
-      return data == rhs.data &
-             error == rhs.error;
+    function bit do_compare(rsp_t #(.rsp_chan_t(rsp_chan_t)) rhs);
+      return p == rhs.p;
     endfunction
-
   endclass
 
-  /// A driver for the REQRSP interface.
+  /// A driver for reqrsp-like interfaces with opaque payloads.
   class reqrsp_driver #(
-    parameter int  AW = -1,
-    parameter int  DW = -1,
-    parameter time TA = 0 , // stimuli application time
-    parameter time TT = 0   // stimuli test time
+    parameter type req_chan_t = logic,
+    parameter type rsp_chan_t = logic,
+    parameter time TA = 0,
+    parameter time TT = 0
   );
+    typedef reqrsp_test::req_t #(.req_chan_t(req_chan_t)) req_item_t;
+    typedef reqrsp_test::rsp_t #(.rsp_chan_t(rsp_chan_t)) rsp_item_t;
+
     virtual REQRSP_BUS_DV #(
-      .ADDR_WIDTH(AW),
-      .DATA_WIDTH(DW)
+      .req_chan_t(req_chan_t),
+      .rsp_chan_t(rsp_chan_t)
     ) bus;
 
     function new(
       virtual REQRSP_BUS_DV #(
-        .ADDR_WIDTH(AW),
-        .DATA_WIDTH(DW)
+        .req_chan_t(req_chan_t),
+        .rsp_chan_t(rsp_chan_t)
       ) bus
     );
       this.bus = bus;
     endfunction
 
     task reset_master;
-      bus.q_addr  <= '0;
-      bus.q_write <= '0;
-      bus.q_amo   <= AMONone;
-      bus.q_data  <= '0;
-      bus.q_strb  <= '0;
-      bus.q_size  <= '0;
+      bus.q       <= '0;
       bus.q_valid <= '0;
       bus.p_ready <= '0;
     endtask
 
     task reset_slave;
       bus.q_ready <= '0;
-      bus.p_data  <= '0;
-      bus.p_error <= '0;
+      bus.p       <= '0;
       bus.p_valid <= '0;
     endtask
 
@@ -113,115 +72,85 @@ package reqrsp_test;
       @(posedge bus.clk_i);
     endtask
 
-    /// Send a request.
-    task send_req (input req_t req);
-      bus.q_addr  <= #TA req.addr;
-      bus.q_write <= #TA req.write;
-      bus.q_amo   <= #TA req.amo;
-      bus.q_data  <= #TA req.data;
-      bus.q_strb  <= #TA req.strb;
-      bus.q_size  <= #TA req.size;
-      bus.q_valid <= #TA 1;
+    task send_req(input req_item_t req);
+      bus.q       <= #TA req.q;
+      bus.q_valid <= #TA 1'b1;
       cycle_start();
-      while (bus.q_ready != 1) begin cycle_end(); cycle_start(); end
+      while (bus.q_ready != 1'b1) begin cycle_end(); cycle_start(); end
       cycle_end();
-      bus.q_addr  <= #TA '0;
-      bus.q_write <= #TA '0;
-      bus.q_data  <= #TA '0;
-      bus.q_strb  <= #TA '0;
-      bus.q_valid <= #TA 0;
+      bus.q       <= #TA '0;
+      bus.q_valid <= #TA 1'b0;
     endtask
 
-    /// Send a response.
-    task send_rsp (input rsp_t rsp);
-      bus.p_data  <= #TA rsp.data;
-      bus.p_error <= #TA rsp.error;
-      bus.p_valid <= #TA 1;
+    task send_rsp(input rsp_item_t rsp);
+      bus.p       <= #TA rsp.p;
+      bus.p_valid <= #TA 1'b1;
       cycle_start();
-      while (bus.p_ready != 1) begin cycle_end(); cycle_start(); end
+      while (bus.p_ready != 1'b1) begin cycle_end(); cycle_start(); end
       cycle_end();
-      bus.p_data  <= #TA '0;
-      bus.p_error <= #TA '0;
-      bus.p_valid <= #TA 0;
+      bus.p       <= #TA '0;
+      bus.p_valid <= #TA 1'b0;
     endtask
 
-    /// Receive a request.
-    task recv_req (output req_t req);
-      bus.q_ready <= #TA 1;
+    task recv_req(output req_item_t req);
+      bus.q_ready <= #TA 1'b1;
       cycle_start();
-      while (bus.q_valid != 1) begin cycle_end(); cycle_start(); end
+      while (bus.q_valid != 1'b1) begin cycle_end(); cycle_start(); end
       req = new;
-      req.addr  = bus.q_addr;
-      req.write = bus.q_write;
-      req.amo   = bus.q_amo;
-      req.data  = bus.q_data;
-      req.strb  = bus.q_strb;
-      req.size  = bus.q_size;
+      req.q = bus.q;
       cycle_end();
-      bus.q_ready <= #TA 0;
+      bus.q_ready <= #TA 1'b0;
     endtask
 
-    /// Receive a response.
-    task recv_rsp (output rsp_t rsp);
-      bus.p_ready <= #TA 1;
+    task recv_rsp(output rsp_item_t rsp);
+      bus.p_ready <= #TA 1'b1;
       cycle_start();
-      while (bus.p_valid != 1) begin cycle_end(); cycle_start(); end
+      while (bus.p_valid != 1'b1) begin cycle_end(); cycle_start(); end
       rsp = new;
-      rsp.data  = bus.p_data;
-      rsp.error = bus.p_error;
+      rsp.p = bus.p;
       cycle_end();
-      bus.p_ready <= #TA 0;
+      bus.p_ready <= #TA 1'b0;
     endtask
 
-    /// Monitor request.
-    task mon_req (output req_t req);
+    task mon_req(output req_item_t req);
       cycle_start();
       while (!(bus.q_valid && bus.q_ready)) begin cycle_end(); cycle_start(); end
       req = new;
-      req.addr  = bus.q_addr;
-      req.write = bus.q_write;
-      req.amo   = bus.q_amo;
-      req.data  = bus.q_data;
-      req.strb  = bus.q_strb;
-      req.size  = bus.q_size;
+      req.q = bus.q;
       cycle_end();
     endtask
 
-    /// Monitor response.
-    task mon_rsp (output rsp_t rsp);
+    task mon_rsp(output rsp_item_t rsp);
       cycle_start();
       while (!(bus.p_valid && bus.p_ready)) begin cycle_end(); cycle_start(); end
       rsp = new;
-      rsp.data  = bus.p_data;
-      rsp.error = bus.p_error;
+      rsp.p = bus.p;
       cycle_end();
     endtask
-
   endclass
 
-  // Super classs for random reqrsp drivers.
   virtual class rand_reqrsp #(
-    // Reqrsp interface parameters
-    parameter int   AW = 32,
-    parameter int   DW = 32,
-    // Stimuli application and test time
-    parameter time  TA = 0ps,
-    parameter time  TT = 0ps
+    parameter type req_chan_t = logic,
+    parameter type rsp_chan_t = logic,
+    parameter time TA = 0ps,
+    parameter time TT = 0ps
   );
-
-    typedef reqrsp_test::reqrsp_driver #(
-      // Reqrsp bus interface paramaters;
-      .AW ( AW ),
-      .DW ( DW ),
-      // Stimuli application and test time
-      .TA ( TA ),
-      .TT ( TT )
+    typedef reqrsp_driver #(
+      .req_chan_t (req_chan_t),
+      .rsp_chan_t (rsp_chan_t),
+      .TA (TA),
+      .TT (TT)
     ) reqrsp_driver_t;
 
     reqrsp_driver_t drv;
 
-    function new(virtual REQRSP_BUS_DV #( .ADDR_WIDTH (AW), .DATA_WIDTH (DW)) bus);
-      this.drv = new (bus);
+    function new(
+      virtual REQRSP_BUS_DV #(
+        .req_chan_t(req_chan_t),
+        .rsp_chan_t(rsp_chan_t)
+      ) bus
+    );
+      this.drv = new(bus);
     endfunction
 
     task automatic rand_wait(input int unsigned min, input int unsigned max);
@@ -229,67 +158,65 @@ package reqrsp_test;
       rand_success = std::randomize(cycles) with {
         cycles >= min;
         cycles <= max;
-        // Weigh the distribution so that the minimum cycle time is the common
-        // case.
         cycles dist {min := 10, [min+1:max] := 1};
       };
       assert (rand_success) else $error("Failed to randomize wait cycles!");
       repeat (cycles) @(posedge this.drv.bus.clk_i);
     endtask
-
   endclass
 
-  /// Generate random requests as a master device.
   class rand_reqrsp_master #(
-    // Reqrsp interface parameters
-    parameter int   AW = 32,
-    parameter int   DW = 32,
-    // Stimuli application and test time
-    parameter time  TA = 0ps,
-    parameter time  TT = 0ps,
+    parameter type req_chan_t = logic,
+    parameter type rsp_chan_t = logic,
+    parameter time TA = 0ps,
+    parameter time TT = 0ps,
     parameter int unsigned REQ_MIN_WAIT_CYCLES = 1,
     parameter int unsigned REQ_MAX_WAIT_CYCLES = 20,
     parameter int unsigned RSP_MIN_WAIT_CYCLES = 1,
     parameter int unsigned RSP_MAX_WAIT_CYCLES = 20
-  ) extends rand_reqrsp #(.AW(AW), .DW(DW), .TA(TA), .TT(TT));
+  ) extends rand_reqrsp #(
+    .req_chan_t(req_chan_t), .rsp_chan_t(rsp_chan_t), .TA(TA), .TT(TT)
+  );
+    typedef reqrsp_test::req_t #(.req_chan_t(req_chan_t)) req_item_t;
+    typedef reqrsp_test::rsp_t #(.rsp_chan_t(rsp_chan_t)) rsp_item_t;
 
     int unsigned cnt = 0;
     bit req_done = 0;
 
-    /// Reset the driver.
     task reset();
       drv.reset_master();
     endtask
 
-    /// Constructor.
-    function new(virtual REQRSP_BUS_DV #( .ADDR_WIDTH (AW), .DATA_WIDTH (DW)) bus);
+    function new(
+      virtual REQRSP_BUS_DV #(
+        .req_chan_t(req_chan_t),
+        .rsp_chan_t(rsp_chan_t)
+      ) bus
+    );
       super.new(bus);
     endfunction
 
     task run(input int n);
       fork
         send_requests(n);
-        recv_response();
+        recv_responses();
       join
     endtask
 
-    /// Send random requests.
-    task send_requests (input int n);
-      automatic req_t r = new;
-
+    task send_requests(input int n);
       repeat (n) begin
+        automatic req_item_t req = new;
         this.cnt++;
-        assert(r.randomize());
+        assert(req.randomize());
         rand_wait(REQ_MIN_WAIT_CYCLES, REQ_MAX_WAIT_CYCLES);
-        this.drv.send_req(r);
+        this.drv.send_req(req);
       end
       this.req_done = 1;
     endtask
 
-    /// Receive random responses.
-    task recv_response;
+    task recv_responses;
       while (!this.req_done || this.cnt > 0) begin
-        automatic rsp_t rsp;
+        automatic rsp_item_t rsp;
         this.cnt--;
         rand_wait(RSP_MIN_WAIT_CYCLES, RSP_MAX_WAIT_CYCLES);
         this.drv.recv_rsp(rsp);
@@ -298,24 +225,34 @@ package reqrsp_test;
   endclass
 
   class rand_reqrsp_slave #(
-    // Reqrsp interface parameters
-    parameter int   AW = 32,
-    parameter int   DW = 32,
-    // Stimuli application and test time
-    parameter time  TA = 0ps,
-    parameter time  TT = 0ps,
+    parameter type req_chan_t = logic,
+    parameter type rsp_chan_t = logic,
+    parameter time TA = 0ps,
+    parameter time TT = 0ps,
     parameter int unsigned REQ_MIN_WAIT_CYCLES = 0,
     parameter int unsigned REQ_MAX_WAIT_CYCLES = 10,
     parameter int unsigned RSP_MIN_WAIT_CYCLES = 0,
     parameter int unsigned RSP_MAX_WAIT_CYCLES = 10
-  ) extends rand_reqrsp #(.AW(AW), .DW(DW), .TA(TA), .TT(TT));
+  ) extends rand_reqrsp #(
+    .req_chan_t(req_chan_t), .rsp_chan_t(rsp_chan_t), .TA(TA), .TT(TT)
+  );
+    typedef reqrsp_test::req_t #(.req_chan_t(req_chan_t)) req_item_t;
+    typedef reqrsp_test::rsp_t #(.rsp_chan_t(rsp_chan_t)) rsp_item_t;
 
     mailbox req_mbx = new();
 
-    /// Reset the driver.
     task reset();
       drv.reset_slave();
     endtask
+
+    function new(
+      virtual REQRSP_BUS_DV #(
+        .req_chan_t(req_chan_t),
+        .rsp_chan_t(rsp_chan_t)
+      ) bus
+    );
+      super.new(bus);
+    endfunction
 
     task run();
       fork
@@ -324,14 +261,9 @@ package reqrsp_test;
       join
     endtask
 
-    /// Constructor.
-    function new(virtual REQRSP_BUS_DV #( .ADDR_WIDTH (AW), .DATA_WIDTH (DW)) bus);
-      super.new(bus);
-    endfunction
-
     task recv_requests();
       forever begin
-        automatic req_t req;
+        automatic req_item_t req;
         rand_wait(REQ_MIN_WAIT_CYCLES, REQ_MAX_WAIT_CYCLES);
         this.drv.recv_req(req);
         req_mbx.put(req);
@@ -339,9 +271,9 @@ package reqrsp_test;
     endtask
 
     task send_responses();
-      automatic rsp_t rsp = new;
-      automatic req_t req;
       forever begin
+        automatic req_item_t req;
+        automatic rsp_item_t rsp = new;
         req_mbx.get(req);
         assert(rsp.randomize());
         @(posedge this.drv.bus.clk_i);
@@ -352,31 +284,36 @@ package reqrsp_test;
   endclass
 
   class reqrsp_monitor #(
-    // Reqrsp interface parameters
-    parameter int   AW = 32,
-    parameter int   DW = 32,
-    // Stimuli application and test time
-    parameter time  TA = 0ps,
-    parameter time  TT = 0ps
-  ) extends rand_reqrsp #(.AW(AW), .DW(DW), .TA(TA), .TT(TT));
+    parameter type req_chan_t = logic,
+    parameter type rsp_chan_t = logic,
+    parameter time TA = 0ps,
+    parameter time TT = 0ps
+  ) extends rand_reqrsp #(
+    .req_chan_t(req_chan_t), .rsp_chan_t(rsp_chan_t), .TA(TA), .TT(TT)
+  );
+    typedef reqrsp_test::req_t #(.req_chan_t(req_chan_t)) req_item_t;
+    typedef reqrsp_test::rsp_t #(.rsp_chan_t(rsp_chan_t)) rsp_item_t;
 
     mailbox req_mbx = new, rsp_mbx = new;
 
-    /// Constructor.
-    function new(virtual REQRSP_BUS_DV #( .ADDR_WIDTH (AW), .DATA_WIDTH (DW)) bus);
+    function new(
+      virtual REQRSP_BUS_DV #(
+        .req_chan_t(req_chan_t),
+        .rsp_chan_t(rsp_chan_t)
+      ) bus
+    );
       super.new(bus);
     endfunction
 
-    // Reqrsp Monitor.
     task monitor;
       fork
         forever begin
-          automatic reqrsp_test::req_t req;
+          automatic req_item_t req;
           this.drv.mon_req(req);
           req_mbx.put(req);
         end
         forever begin
-          automatic reqrsp_test::rsp_t rsp;
+          automatic rsp_item_t rsp;
           this.drv.mon_rsp(rsp);
           rsp_mbx.put(rsp);
         end

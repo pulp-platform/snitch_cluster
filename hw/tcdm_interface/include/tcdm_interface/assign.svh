@@ -55,9 +55,9 @@
 // The request macro `TCDM_ASSIGN_FROM_REQ(TCDM_if, req_struct)` assigns the
 // request channel and the request-side handshake signals of the `TCDM_if`
 // interface from the signals in `req_struct`. The response macro
-// `TCDM_ASSIGN_FROM_RESP(TCDM_if, resp_struct)` assigns the response
+// `TCDM_ASSIGN_FROM_RSP(TCDM_if, rsp_struct)` assigns the response
 // channel and the response-side handshake signals of the `TCDM_if` interface
-// from the signals in `resp_struct`.
+// from the signals in `rsp_struct`.
 //
 // Usage Example:
 // `TCDM_ASSIGN_FROM_REQ(my_if, my_req_struct)
@@ -65,10 +65,10 @@
   `TCDM_ASSIGN_VALID(assign, TCDM_if, req_struct, q)     \
   `TCDM_ASSIGN_Q_CHAN(assign, TCDM_if, req_struct, _, .)
 
-`define TCDM_ASSIGN_FROM_RESP(TCDM_if, resp_struct)       \
-  `TCDM_ASSIGN_READY(assign, TCDM_if, resp_struct, q)     \
-  `TCDM_ASSIGN_P_CHAN(assign, TCDM_if, resp_struct, _, .) \
-  `TCDM_ASSIGN_VALID(assign, TCDM_if, resp_struct, p)
+`define TCDM_ASSIGN_FROM_RSP(TCDM_if, rsp_struct)       \
+  `TCDM_ASSIGN_READY(assign, TCDM_if, rsp_struct, q)     \
+  `TCDM_ASSIGN_P_CHAN(assign, TCDM_if, rsp_struct, _, .) \
+  `TCDM_ASSIGN_VALID(assign, TCDM_if, rsp_struct, p)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -76,11 +76,11 @@
 // Assigning channel or request/response structs from an interface outside a
 // process.
 //
-// The request macro `TCDM_ASSIGN_TO_REQ(TCDM_if, req_struct)` assigns all
+// The request macro `TCDM_ASSIGN_TO_REQ(req_struct, TCDM_if)` assigns all
 // signals of `req_struct` payload and request-side handshake signals to the
 // signals in the `TCDM_if` interface. The response macro
-// `TCDM_ASSIGN_TO_RESP(TCDM_if, resp_struct)` assigns all signals of
-// `resp_struct` payload and response-side handshake signals to the signals in
+// `TCDM_ASSIGN_TO_RSP(rsp_struct, TCDM_if)` assigns all signals of
+// `rsp_struct` payload and response-side handshake signals to the signals in
 // the `TCDM_if` interface.
 //
 // Usage Example:
@@ -89,10 +89,10 @@
   `TCDM_ASSIGN_VALID(assign, req_struct, TCDM_if, q)     \
   `TCDM_ASSIGN_Q_CHAN(assign, req_struct, TCDM_if, ., _)
 
-`define TCDM_ASSIGN_TO_RESP(resp_struct, TCDM_if)         \
-  `TCDM_ASSIGN_READY(assign, resp_struct, TCDM_if, q)     \
-  `TCDM_ASSIGN_P_CHAN(assign, resp_struct, TCDM_if, ., _) \
-  `TCDM_ASSIGN_VALID(assign, resp_struct, TCDM_if, p)
+`define TCDM_ASSIGN_TO_RSP(rsp_struct, TCDM_if)         \
+  `TCDM_ASSIGN_READY(assign, rsp_struct, TCDM_if, q)     \
+  `TCDM_ASSIGN_P_CHAN(assign, rsp_struct, TCDM_if, ., _) \
+  `TCDM_ASSIGN_VALID(assign, rsp_struct, TCDM_if, p)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 `endif

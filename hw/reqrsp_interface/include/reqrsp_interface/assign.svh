@@ -6,107 +6,57 @@
 // Author: Fabian Schuiki <fschuiki@iis.ee.ethz.ch>
 // Author: Luca Colagrande <colluca@iis.ee.ethz.ch>
 
-// Macros to assign reqrsp Interfaces and Structs
+// Macros to assign reqrsp structs and interfaces with q/p channels.
 
 `ifndef REQRSP_ASSIGN_SVH_
 `define REQRSP_ASSIGN_SVH_
 
-// Tie off a generic reqrsp-like interface
-`define REQRSP_TIE_OFF_REQ(__if)  \
-  assign ``__if``.q = '0;         \
-  assign ``__if``.q_valid = 1'b0; \
-  assign ``__if``.p_ready = 1'b0;
-`define REQRSP_TIE_OFF_RSP(__if)  \
-  assign ``__if``.p = '0;         \
-  assign ``__if``.p_valid = 1'b0; \
-  assign ``__if``.q_ready = 1'b0;
+// Tie off a reqrsp-like interface
+`define REQRSP_TIE_OFF_REQ(__req) \
+  assign ``__req``.q       = '0;  \
+  assign ``__req``.q_valid = 1'b0; \
+  assign ``__req``.p_ready = 1'b0;
 
-// Assign an reqrsp handshake.
+`define REQRSP_TIE_OFF_RSP(__rsp) \
+  assign ``__rsp``.p       = '0;  \
+  assign ``__rsp``.p_valid = 1'b0; \
+  assign ``__rsp``.q_ready = 1'b0;
+
+// Assign a reqrsp handshake.
 `define REQRSP_ASSIGN_VALID(__opt_as, __dst, __src, __chan) \
-  __opt_as ``__dst``.``__chan``_valid   = ``__src``.``__chan``_valid;
+  __opt_as ``__dst``.``__chan``_valid = ``__src``.``__chan``_valid;
+
 `define REQRSP_ASSIGN_READY(__opt_as, __dst, __src, __chan) \
-  __opt_as ``__dst``.``__chan``_ready   = ``__src``.``__chan``_ready;
+  __opt_as ``__dst``.``__chan``_ready = ``__src``.``__chan``_ready;
 
 `define REQRSP_ASSIGN_HANDSHAKE(__opt_as, __dst, __src, __chan) \
   `REQRSP_ASSIGN_VALID(__opt_as, __dst, __src, __chan)          \
   `REQRSP_ASSIGN_READY(__opt_as, __src, __dst, __chan)
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Assigning one REQRSP interface to another, as if you would do `assign slv =
-// mst;`
-//
-// The channel assignments `REQRSP_ASSIGN_XX(dst, src)` assign all payload and
-// the valid signal of the `XX` channel from the `src` to the `dst` interface
-// and they assign the ready signal from the `src` to the `dst` interface. The
-// interface assignment `REQRSP_ASSIGN(dst, src)` assigns all channels including
-// handshakes as if `src` was the master of `dst`.
-//
-// Usage Example: `REQRSP_ASSIGN(slv, mst) `REQRSP_ASSIGN_Q(dst, src, aw)
-// `REQRSP_ASSIGN_P(dst, src)
-`define REQRSP_ASSIGN_Q_CHAN(__opt_as, dst, src, __sep_dst, __sep_src) \
-  __opt_as dst.q``__sep_dst``addr  = src.q``__sep_src``addr;           \
-  __opt_as dst.q``__sep_dst``write = src.q``__sep_src``write;          \
-  __opt_as dst.q``__sep_dst``amo   = src.q``__sep_src``amo;            \
-  __opt_as dst.q``__sep_dst``data  = src.q``__sep_src``data;           \
-  __opt_as dst.q``__sep_dst``strb  = src.q``__sep_src``strb;           \
-  __opt_as dst.q``__sep_dst``size  = src.q``__sep_src``size;
-`define REQRSP_ASSIGN_P_CHAN(__opt_as, dst, src, __sep_dst, __sep_src) \
-  __opt_as dst.p``__sep_dst``data   = src.p``__sep_src``data;          \
-  __opt_as dst.p``__sep_dst``error   = src.p``__sep_src``error;
-`define REQRSP_ASSIGN(slv, mst)                 \
-  `REQRSP_ASSIGN_Q_CHAN(assign, slv, mst, _, _) \
-  `REQRSP_ASSIGN_HANDSHAKE(assign, slv, mst, q) \
-  `REQRSP_ASSIGN_P_CHAN(assign, mst, slv, _, _) \
-  `REQRSP_ASSIGN_HANDSHAKE(assign, mst, slv, p)
-////////////////////////////////////////////////////////////////////////////////////////////////////
+`define REQRSP_ASSIGN_REQ(__opt_as, __dst, __src) \
+  __opt_as ``__dst``.q       = ``__src``.q;       \
+  __opt_as ``__dst``.q_valid = ``__src``.q_valid; \
+  __opt_as ``__dst``.p_ready = ``__src``.p_ready;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Assigning an interface from channel or request/response structs outside a
-// process.
-//
-// The request macro `REQRSP_ASSIGN_FROM_REQ(reqrsp_if, req_struct)` assigns the
-// request channel and the request-side handshake signals of the `reqrsp_if`
-// interface from the signals in `req_struct`. The response macro
-// `REQRSP_ASSIGN_FROM_RESP(reqrsp_if, resp_struct)` assigns the response
-// channel and the response-side handshake signals of the `reqrsp_if` interface
-// from the signals in `resp_struct`.
-//
-// Usage Example:
-// `REQRSP_ASSIGN_FROM_REQ(my_if, my_req_struct)
-`define REQRSP_ASSIGN_FROM_REQ(reqrsp_if, req_struct)        \
-  `REQRSP_ASSIGN_VALID(assign, reqrsp_if, req_struct, q)     \
-  `REQRSP_ASSIGN_Q_CHAN(assign, reqrsp_if, req_struct, _, .) \
-  `REQRSP_ASSIGN_READY(assign, reqrsp_if, req_struct, p)
+`define REQRSP_ASSIGN_RSP(__opt_as, __dst, __src) \
+  __opt_as ``__dst``.p       = ``__src``.p;       \
+  __opt_as ``__dst``.p_valid = ``__src``.p_valid; \
+  __opt_as ``__dst``.q_ready = ``__src``.q_ready;
 
-`define REQRSP_ASSIGN_FROM_RESP(reqrsp_if, resp_struct)       \
-  `REQRSP_ASSIGN_READY(assign, reqrsp_if, resp_struct, q)     \
-  `REQRSP_ASSIGN_P_CHAN(assign, reqrsp_if, resp_struct, _, .) \
-  `REQRSP_ASSIGN_VALID(assign, reqrsp_if, resp_struct, p)
+`define REQRSP_ASSIGN(__slv, __mst)          \
+  `REQRSP_ASSIGN_REQ(assign, __slv, __mst)   \
+  `REQRSP_ASSIGN_RSP(assign, __mst, __slv)
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+`define REQRSP_ASSIGN_FROM_REQ(__reqrsp, __req) \
+  `REQRSP_ASSIGN_REQ(assign, __reqrsp, __req)
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Assigning channel or request/response structs from an interface outside a
-// process.
-//
-// The request macro `REQRSP_ASSIGN_TO_REQ(reqrsp_if, req_struct)` assigns all
-// signals of `req_struct` payload and request-side handshake signals to the
-// signals in the `reqrsp_if` interface. The response macro
-// `REQRSP_ASSIGN_TO_RESP(reqrsp_if, resp_struct)` assigns all signals of
-// `resp_struct` payload and response-side handshake signals to the signals in
-// the `reqrsp_if` interface.
-//
-// Usage Example:
-// `REQRSP_ASSIGN_TO_REQ(my_req_struct, my_if)
-`define REQRSP_ASSIGN_TO_REQ(req_struct, reqrsp_if)          \
-  `REQRSP_ASSIGN_VALID(assign, req_struct, reqrsp_if, q)     \
-  `REQRSP_ASSIGN_Q_CHAN(assign, req_struct, reqrsp_if, ., _) \
-  `REQRSP_ASSIGN_READY(assign, req_struct, reqrsp_if, p)
+`define REQRSP_ASSIGN_FROM_RSP(__reqrsp, __rsp) \
+  `REQRSP_ASSIGN_RSP(assign, __reqrsp, __rsp)
 
-`define REQRSP_ASSIGN_TO_RESP(resp_struct, reqrsp_if)         \
-  `REQRSP_ASSIGN_READY(assign, resp_struct, reqrsp_if, q)     \
-  `REQRSP_ASSIGN_P_CHAN(assign, resp_struct, reqrsp_if, ., _) \
-  `REQRSP_ASSIGN_VALID(assign, resp_struct, reqrsp_if, p)
-////////////////////////////////////////////////////////////////////////////////////////////////////
+`define REQRSP_ASSIGN_TO_REQ(__req, __reqrsp) \
+  `REQRSP_ASSIGN_REQ(assign, __req, __reqrsp)
+
+`define REQRSP_ASSIGN_TO_RSP(__rsp, __reqrsp) \
+  `REQRSP_ASSIGN_RSP(assign, __rsp, __reqrsp)
 
 `endif

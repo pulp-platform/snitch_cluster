@@ -20,17 +20,15 @@ module snitch_hive import snitch_icache_pkg::*; #(
   parameter bit          ICacheL1TagScm     = 1'b0,
   parameter bit          ICacheL1DataScm    = 1'b0,
   parameter bit          IsoCrossing        = 1,
-  /// Address width of the buses
+  /// Widths of the buses.
   parameter int unsigned AddrWidth          = 0,
-  /// Data width of the Narrow bus.
   parameter int unsigned NarrowDataWidth    = 0,
   parameter int unsigned WideDataWidth      = 0,
+  parameter int unsigned UserWidth          = 0,
   /// Enable virtual memory support.
   parameter bit          VMSupport          = 1,
   parameter bit          SharedIpu          = 1,
   parameter bit          Xpulpv2            = 0,
-  parameter type         dreq_t             = logic,
-  parameter type         drsp_t             = logic,
   parameter type         axi_req_t          = logic,
   parameter type         axi_rsp_t          = logic,
   parameter type         hive_req_t         = logic,
@@ -38,8 +36,8 @@ module snitch_hive import snitch_icache_pkg::*; #(
   /// Configuration input types for memory cuts used in implementation.
   parameter type         sram_cfg_t         = logic,
   /// Derived parameter *Do not override*
-  parameter type addr_t = logic [AddrWidth-1:0],
-  parameter type data_t = logic [NarrowDataWidth-1:0]
+  localparam type lsu_req_t = `LSU_REQ_STRUCT(NarrowDataWidth, AddrWidth, UserWidth),
+  localparam type lsu_rsp_t = `LSU_RSP_STRUCT(NarrowDataWidth)
 ) (
   input  logic     clk_i,
   input  logic     clk_d2_i, // divide-by-two clock
@@ -48,8 +46,8 @@ module snitch_hive import snitch_icache_pkg::*; #(
   input  hive_req_t [CoreCount-1:0] hive_req_i,
   output hive_rsp_t [CoreCount-1:0] hive_rsp_o,
 
-  output dreq_t    ptw_data_req_o,
-  input  drsp_t    ptw_data_rsp_i,
+  output lsu_req_t ptw_data_req_o,
+  input  lsu_rsp_t ptw_data_rsp_i,
   output axi_req_t axi_req_o,
   input  axi_rsp_t axi_rsp_i,
 
@@ -60,6 +58,9 @@ module snitch_hive import snitch_icache_pkg::*; #(
 
   output icache_l0_events_t [CoreCount-1:0] icache_events_o
 );
+  typedef logic [AddrWidth-1:0] addr_t;
+  typedef logic [NarrowDataWidth-1:0] data_t;
+
   // Extend the ID to route back results to the appropriate core.
   localparam int unsigned IdWidth = 5;
   localparam int unsigned LogCoreCount = cc_pkg::idx_width(CoreCount);
@@ -189,17 +190,16 @@ module snitch_hive import snitch_icache_pkg::*; #(
       .oup_ready_i ( ptw_ready_out )
     );
 
-    dreq_t ptw_req;
-    drsp_t ptw_rsp;
+    lsu_req_t ptw_req;
+    lsu_rsp_t ptw_rsp;
 
     snitch_ptw #(
       .AddrWidth (AddrWidth),
       .DataWidth (NarrowDataWidth),
+      .UserWidth (UserWidth),
       .pa_t (pa_t),
       .l0_pte_t (l0_pte_t),
-      .pte_sv32_t (pte_sv32_t),
-      .dreq_t (dreq_t),
-      .drsp_t (drsp_t)
+      .pte_sv32_t (pte_sv32_t)
     ) i_snitch_ptw (
       .clk_i         ( clk_d2_i        ),
       .rst_ni        ( rst_ni          ),
@@ -213,11 +213,11 @@ module snitch_hive import snitch_icache_pkg::*; #(
       .data_rsp_i    ( ptw_rsp )
     );
 
+    `LSU_TYPEDEF_REQRSP_CHAN_ALL(lsu, NarrowDataWidth, AddrWidth, UserWidth)
+
     reqrsp_iso #(
-      .AddrWidth (AddrWidth),
-      .DataWidth (NarrowDataWidth),
-      .req_t (dreq_t),
-      .rsp_t (drsp_t),
+      .req_chan_t (lsu_req_chan_t),
+      .rsp_chan_t (lsu_rsp_chan_t),
       .BypassReq (1'b0),
       .BypassRsp (1'b0)
     ) i_reqrsp_iso (
@@ -261,7 +261,7 @@ module snitch_hive import snitch_icache_pkg::*; #(
     data_t          data;
   } acc_rsp_chan_t;
 
-  `GENERIC_REQRSP_TYPEDEF_ALL(acc, acc_req_chan_t, acc_rsp_chan_t)
+  `REQRSP_TYPEDEF_ALL(acc, acc_req_chan_t, acc_rsp_chan_t)
 
   acc_req_chan_t         acc_req_sfu; // to shared functional unit
   logic                  acc_req_sfu_valid;

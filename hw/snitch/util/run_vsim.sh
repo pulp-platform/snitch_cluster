@@ -16,9 +16,5 @@ call_vsim() {
     grep "Errors: 0," vsim.log
 }
 
-call_vsim reqrsp_mux_tb
-call_vsim reqrsp_demux_tb
-# Test `reqrsp_cut`
-call_vsim reqrsp_idempotent_tb -gCut=1 -gIso=0
-# Test `reqrsp_iso`
-call_vsim reqrsp_idempotent_tb -gCut=0 -gIso=1
+call_vsim axi_to_lsu_tb
+call_vsim lsu_to_axi_tb

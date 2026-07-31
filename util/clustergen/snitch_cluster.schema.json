@@ -696,7 +696,7 @@
                                                 "type": "number"
                                             }
                                         },
-                                        "ssr_mux_resp_depth": {
+                                        "ssr_mux_rsp_depth": {
                                             "type": "number",
                                             "description": "Depth of response buffer in the TCDM multiplexer arbitrating between core and SSR 0.",
                                             "default": 4

@@ -32,7 +32,7 @@ module tb_simple_ssr_streamer;
       ShiftWidth:     3,
       IndexCredits:   3,
       DataCredits:    4,
-      MuxRespDepth:   3,
+      MuxRspDepth:    3,
       RptWidth:       4,
       IsectSlaveSpill:    1,
       IsectSlaveCredits:  8,

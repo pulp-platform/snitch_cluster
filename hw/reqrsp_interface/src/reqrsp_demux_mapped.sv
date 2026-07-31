@@ -4,32 +4,36 @@
 
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 
+`include "reqrsp_interface/typedef.svh"
+
 /// Address-map-based reqrsp demultiplexer.
 ///
 /// Decodes the request address against an address map to select the target
-/// master port, and forwards the request through a plain `reqrsp_demux`. The
+/// master port, and forwards the request through a `reqrsp_demux`. The
 /// address-based selection can be overridden externally (e.g. to force a
 /// collective/multicast request onto a specific port) by asserting
 /// `ext_select_override_i` and driving the desired port on `ext_select_i`.
 module reqrsp_demux_mapped #(
     /// Number of master ports.
-    parameter int unsigned NrPorts     = 2,
-    /// Request type.
-    parameter type         req_t       = logic,
-    /// Response type.
-    parameter type         rsp_t       = logic,
+    parameter int unsigned  NrPorts     = 2,
+    /// Request channel type.
+    parameter type          req_chan_t  = logic,
+    /// Response channel type.
+    parameter type          rsp_chan_t  = logic,
     /// Amount of outstanding responses. Determines the response FIFO size.
-    parameter int unsigned RespDepth   = 8,
+    parameter int unsigned  RspDepth    = 8,
     /// Number of address map rules.
-    parameter int unsigned NoRules     = 1,
+    parameter int unsigned  NoRules     = 1,
     /// Address type used by the address map.
-    parameter type         addr_t      = logic,
+    parameter type          addr_t      = logic,
     /// Address map rule type. Must be a packed struct `{idx, base, mask}` as
     /// expected by `cc_addr_decode_napot`.
-    parameter type         rule_t      = logic,
+    parameter type          rule_t      = logic,
     // Dependent parameters, DO NOT OVERRIDE!
-    parameter int unsigned SelectWidth = cc_pkg::idx_width(NrPorts),
-    parameter type         select_t    = logic [SelectWidth-1:0]
+    localparam int unsigned SelectWidth = cc_pkg::idx_width(NrPorts),
+    localparam type         select_t    = logic [SelectWidth-1:0],
+    localparam type         req_t       = `REQRSP_REQ_STRUCT(req_chan_t),
+    localparam type         rsp_t       = `REQRSP_RSP_STRUCT(rsp_chan_t)
 ) (
     input  logic                clk_i,
     input  logic                rst_ni,
@@ -71,17 +75,18 @@ module reqrsp_demux_mapped #(
 
   reqrsp_demux #(
     .NrPorts   (NrPorts),
-    .req_t     (req_t),
-    .rsp_t     (rsp_t),
-    .RespDepth (RespDepth)
+    .req_chan_t(req_chan_t),
+    .rsp_chan_t(rsp_chan_t),
+    .Ordered   (1'b1),
+    .RspDepth  (RspDepth)
   ) i_reqrsp_demux (
     .clk_i,
     .rst_ni,
-    .slv_select_i (slv_select),
-    .slv_req_i    (slv_req_i),
-    .slv_rsp_o    (slv_rsp_o),
-    .mst_req_o    (mst_req_o),
-    .mst_rsp_i    (mst_rsp_i)
+    .select_i (slv_select),
+    .slv_req_i(slv_req_i),
+    .slv_rsp_o(slv_rsp_o),
+    .mst_req_o(mst_req_o),
+    .mst_rsp_i(mst_rsp_i)
   );
 
 endmodule

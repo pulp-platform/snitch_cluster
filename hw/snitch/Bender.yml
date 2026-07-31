@@ -22,7 +22,13 @@ remotes:
   pulp: https://github.com/pulp-platform
 
 dependencies:
+  axi:
+    git: https://github.com/colluca/axi.git
+    rev: multicast
   common_cells: 2.0.0-beta.2
+  reqrsp_interface:
+    path: "../reqrsp_interface"
+  riscv-dbg: 0.8.1
   tech_cells_generic: 0.2.14
 
 export_include_dirs:
@@ -37,8 +43,11 @@ sources:
       - src/snitch_pkg.sv
       # Level 2
       - src/snitch_regfile_ff.sv
+      - src/lsu_width_converter.sv
       - src/snitch_lsu.sv
       - src/snitch_l0_tlb.sv
+      - src/axi_to_lsu.sv
+      - src/lsu_to_axi.sv
   - target: not(disable_pmcs)
     defines:
       SNITCH_ENABLE_PERF:
@@ -48,6 +57,14 @@ sources:
   - target: disable_pmcs
     files:
       - src/snitch.sv
+  - target: test
+    files:
+      - test/lsu_intf.sv
+      - test/lsu_test.sv
   - target: all(tb, not(verilator))
     files:
+      - test/axi_to_lsu_intf.sv
+      - test/lsu_to_axi_intf.sv
+      - test/axi_to_lsu_tb.sv
+      - test/lsu_to_axi_tb.sv
       - test/snitch_l0_tlb_tb.sv

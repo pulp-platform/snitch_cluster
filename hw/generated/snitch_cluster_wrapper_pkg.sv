@@ -1393,7 +1393,7 @@ package snitch_cluster_wrapper_pkg;
   localparam int unsigned NumSequencerInstr        [NrCores] = '{32, 32, 32, 32, 32, 32, 32, 32, 16};
   localparam int unsigned NumSequencerLoops        [NrCores] = '{2, 2, 2, 2, 2, 2, 2, 2, 1};
   localparam int unsigned NumSsrs                  [NrCores] = '{3, 3, 3, 3, 3, 3, 3, 3, 1};
-  localparam int unsigned SsrMuxRespDepth          [NrCores] = '{4, 4, 4, 4, 4, 4, 4, 4, 4};
+  localparam int unsigned SsrMuxRspDepth           [NrCores] = '{4, 4, 4, 4, 4, 4, 4, 4, 4};
   localparam bit          SpatzDoubleBw            [NrCores] = '{0, 0, 0, 0, 0, 0, 0, 0, 0};
   localparam int unsigned NumSpatzOutstandingLoads [NrCores] = '{1, 1, 1, 1, 1, 1, 1, 1, 1};
 

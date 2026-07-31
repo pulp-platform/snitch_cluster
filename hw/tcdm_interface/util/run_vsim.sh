@@ -17,4 +17,4 @@ call_vsim() {
 }
 
 call_vsim tcdm_mux_tb
-call_vsim reqrsp_to_tcdm_tb
+call_vsim lsu_to_tcdm_tb

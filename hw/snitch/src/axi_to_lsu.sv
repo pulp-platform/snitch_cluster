@@ -9,9 +9,12 @@
 
 `include "common_cells/registers.svh"
 `include "common_cells/assertions.svh"
+`include "snitch/typedef.svh"
+`include "axi/typedef.svh"
 
-/// AXI4+ATOP slave module which translates AXI bursts to reqrsp. This module
-/// fully supports the Atomic + LR/SC semantic of the reqrsp interface.
+/// AXI4+ATOP slave module which translates AXI bursts to the Snitch LSU
+/// interface. This module fully supports the Atomic + LR/SC semantic of the
+/// LSU interface.
 ///
 /// ## Complexity
 ///
@@ -23,12 +26,8 @@
 ///
 /// > This work is largely (99.5%) based on `axi_to_mem` found in the AXI
 /// > repository. Eventually these two modules can be merged (translating from AXI
-/// > to reqrsp to mem).
-module axi_to_reqrsp #(
-  /// AXI4+ATOP request type. See `include/axi/typedef.svh`.
-  parameter type         axi_req_t  = logic,
-  /// AXI4+ATOP response type. See `include/axi/typedef.svh`.
-  parameter type         axi_rsp_t = logic,
+/// > to LSU to mem).
+module axi_to_lsu #(
   /// Address width, has to be less or equal than the width off the AXI address
   /// field. Determines the width of `mem_addr_o`. Has to be wide enough to emit
   /// the memory region which should be accessible.
@@ -36,13 +35,27 @@ module axi_to_reqrsp #(
   parameter int unsigned DataWidth  = 0,
   /// AXI4+ATOP ID width.
   parameter int unsigned IdWidth    = 0,
+  /// AXI4+ATOP and LSU user width.
+  parameter int unsigned UserWidth = 0,
   /// Depth of memory response buffer. This should be equal to the downstream
   /// response latency.
   parameter int unsigned BufDepth   = 1,
-  /// Reqrsp request channel type.
-  parameter type         reqrsp_req_t = logic,
-  /// Reqrsp response channel type.
-  parameter type         reqrsp_rsp_t = logic
+  /// Derived parameters *do not override*
+  localparam int unsigned StrbWidth = DataWidth/8,
+  localparam type addr_t = logic [AddrWidth-1:0],
+  localparam type data_t = logic [DataWidth-1:0],
+  localparam type strb_t = logic [StrbWidth-1:0],
+  localparam type axi_id_t = logic [IdWidth-1:0],
+  localparam type user_t = logic [UserWidth-1:0],
+  localparam type lsu_req_t = `LSU_REQ_STRUCT(DataWidth, AddrWidth, UserWidth),
+  localparam type lsu_rsp_t = `LSU_RSP_STRUCT(DataWidth),
+  localparam type aw_chan_t = `AXI_DECL_AW_CHAN_T(addr_t, axi_id_t, user_t),
+  localparam type w_chan_t = `AXI_DECL_W_CHAN_T(data_t, strb_t, user_t),
+  localparam type b_chan_t = `AXI_DECL_B_CHAN_T(axi_id_t, user_t),
+  localparam type ar_chan_t = `AXI_DECL_AR_CHAN_T(addr_t, axi_id_t, user_t),
+  localparam type r_chan_t = `AXI_DECL_R_CHAN_T(data_t, axi_id_t, user_t),
+  localparam type axi_req_t = `AXI_DECL_REQ_T(aw_chan_t, w_chan_t, ar_chan_t),
+  localparam type axi_rsp_t = `AXI_DECL_RESP_T(b_chan_t, r_chan_t)
 ) (
   /// Clock input.
   input  logic                           clk_i,
@@ -54,17 +67,11 @@ module axi_to_reqrsp #(
   input  axi_req_t                       axi_req_i,
   /// AXI4+ATOP slave port, response output.
   output axi_rsp_t                       axi_rsp_o,
-  /// Reqrsp request channel.
-  output reqrsp_req_t                    reqrsp_req_o,
-  /// Reqrsp respone channel.
-  input  reqrsp_rsp_t                    reqrsp_rsp_i
+  /// LSU request channel.
+  output lsu_req_t                       lsu_req_o,
+  /// LSU response channel.
+  input  lsu_rsp_t                       lsu_rsp_i
 );
-
-  localparam int unsigned StrbWidth = DataWidth/8;
-
-  typedef logic [AddrWidth-1:0]   addr_t;
-  typedef logic [DataWidth-1:0]   data_t;
-  typedef logic [IdWidth-1:0]     axi_id_t;
 
   typedef struct packed {
     addr_t          addr;
@@ -254,8 +261,8 @@ module axi_to_reqrsp #(
     .clr_i   ( 1'b0                                 ),
     .valid_i ( arb_valid                            ),
     .ready_o ( arb_ready                            ),
-    .valid_o ({sel_valid, meta_valid, reqrsp_req_o.q_valid}),
-    .ready_i ({sel_ready, meta_ready, reqrsp_rsp_i.q_ready})
+    .valid_o ({sel_valid, meta_valid, lsu_req_o.q_valid}),
+    .ready_i ({sel_ready, meta_ready, lsu_rsp_i.q_ready})
   );
 
   assign sel_b = meta.write & meta.last;
@@ -297,7 +304,7 @@ module axi_to_reqrsp #(
     .usage_o    ( /* unused */   )
   );
 
-  assign reqrsp_req_o.q = '{
+  assign lsu_req_o.q = '{
     addr: meta.addr,
     write: meta.write & (amo == snitch_pkg::AMONone),
     amo: amo,
@@ -309,7 +316,7 @@ module axi_to_reqrsp #(
   };
 
   always_comb begin
-    amo = reqrsp_pkg::from_axi_amo(meta.atop);
+    amo = snitch_pkg::from_axi_amo(meta.atop);
     data = axi_req_i.w.data;
     // The `AMOAnd` has a slightly different semantic to the AXI `Set`.
     if (amo == snitch_pkg::AMOAnd) data = ~axi_req_i.w.data;
@@ -325,8 +332,8 @@ module axi_to_reqrsp #(
   cc_stream_join #(
     .NumInp ( 32'd2 )
   ) i_join (
-    .inp_valid_i  ({reqrsp_rsp_i.p_valid, meta_buf_valid}),
-    .inp_ready_o  ({reqrsp_req_o.p_ready, meta_buf_ready}),
+    .inp_valid_i  ({lsu_rsp_i.p_valid, meta_buf_valid}),
+    .inp_ready_o  ({lsu_req_o.p_ready, meta_buf_ready}),
     .oup_valid_o  ( mem_join_valid                 ),
     .oup_ready_i  ( mem_join_ready                 )
   );
@@ -350,10 +357,10 @@ module axi_to_reqrsp #(
   // Compose error flag.
   always_comb begin
     resp = axi_pkg::RESP_OKAY;
-    resp[1] = reqrsp_rsp_i.p.error;
+    resp[1] = lsu_rsp_i.p.error;
     // The success is encoded in the LSB.
     if (meta_buf.lock) begin
-      resp[0] = reqrsp_rsp_i.p.data[0];
+      resp[0] = lsu_rsp_i.p.data[0];
     end
   end
 
@@ -366,7 +373,7 @@ module axi_to_reqrsp #(
 
   // Compose R responses.
   assign axi_rsp_o.r = '{
-    data: reqrsp_rsp_i.p.data,
+    data: lsu_rsp_i.p.data,
     id:   meta_buf.id,
     last: meta_buf.last,
     resp: resp,
@@ -383,8 +390,8 @@ module axi_to_reqrsp #(
 
   // Assertions
   // Make sure that write is never set for AMOs.
-  `ASSERT(AMOWriteEnable, reqrsp_req_o.q_valid &&
-    (reqrsp_req_o.q.amo != snitch_pkg::AMONone) |-> !reqrsp_req_o.q.write)
+  `ASSERT(AMOWriteEnable, lsu_req_o.q_valid &&
+    (lsu_req_o.q.amo != snitch_pkg::AMONone) |-> !lsu_req_o.q.write)
   // pragma translate_off
   `ifndef VERILATOR
   default disable iff (!rst_ni);
@@ -413,83 +420,4 @@ module axi_to_reqrsp #(
     else $warning("Unexpected atomic operation on read.");
   `endif
   // pragma translate_on
-endmodule
-
-`include "reqrsp_interface/typedef.svh"
-`include "reqrsp_interface/assign.svh"
-`include "axi/typedef.svh"
-`include "axi/assign.svh"
-
-/// Interface Wrapper
-module axi_to_reqrsp_intf #(
-  /// AXI addr width.
-  parameter int unsigned AddrWidth  = 0,
-  /// AXI data width.
-  parameter int unsigned DataWidth  = 0,
-  /// AXI id width.
-  parameter int unsigned IdWidth    = 0,
-  /// AXI user wdith.
-  parameter int unsigned UserWidth  = 0,
-  /// Depth of memory response buffer. This should be equal to the downstream
-  /// response latency.
-  parameter int unsigned BufDepth   = 1
-) (
-  /// Clock input.
-  input  logic   clk_i,
-  /// Asynchronous reset, active low.
-  input  logic   rst_ni,
-  /// The unit is busy handling an AXI4+ATOP request.
-  output logic   busy_o,
-  REQRSP_BUS     reqrsp,
-  AXI_BUS        axi
-);
-
-  typedef logic [AddrWidth-1:0] addr_t;
-  typedef logic [DataWidth-1:0] data_t;
-  typedef logic [DataWidth/8-1:0] strb_t;
-  typedef logic [IdWidth-1:0] id_t;
-  typedef logic [UserWidth-1:0] user_t;
-
-  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
-
-  `AXI_TYPEDEF_AW_CHAN_T(aw_chan_t, addr_t, id_t, user_t)
-  `AXI_TYPEDEF_W_CHAN_T(w_chan_t, data_t, strb_t, user_t)
-  `AXI_TYPEDEF_B_CHAN_T(b_chan_t, id_t, user_t)
-  `AXI_TYPEDEF_AR_CHAN_T(ar_chan_t, addr_t, id_t, user_t)
-  `AXI_TYPEDEF_R_CHAN_T(r_chan_t, data_t, id_t, user_t)
-
-  `AXI_TYPEDEF_REQ_T(axi_req_t, aw_chan_t, w_chan_t, ar_chan_t)
-  `AXI_TYPEDEF_RESP_T(axi_rsp_t, b_chan_t, r_chan_t)
-
-  reqrsp_req_t reqrsp_req;
-  reqrsp_rsp_t reqrsp_rsp;
-
-  axi_req_t axi_req;
-  axi_rsp_t axi_rsp;
-
-  axi_to_reqrsp #(
-    .axi_req_t (axi_req_t),
-    .axi_rsp_t (axi_rsp_t),
-    .AddrWidth (AddrWidth),
-    .DataWidth (DataWidth),
-    .IdWidth (IdWidth),
-    .BufDepth (BufDepth),
-    .reqrsp_req_t (reqrsp_req_t),
-    .reqrsp_rsp_t (reqrsp_rsp_t )
-  ) i_dut (
-    .clk_i,
-    .rst_ni,
-    .busy_o,
-    .axi_req_i (axi_req),
-    .axi_rsp_o (axi_rsp),
-    .reqrsp_req_o (reqrsp_req),
-    .reqrsp_rsp_i (reqrsp_rsp)
-  );
-
-  `REQRSP_ASSIGN_FROM_REQ(reqrsp, reqrsp_req)
-  `REQRSP_ASSIGN_TO_RESP(reqrsp_rsp, reqrsp)
-
-  `AXI_ASSIGN_TO_REQ(axi_req, axi)
-  `AXI_ASSIGN_FROM_RESP(axi, axi_rsp)
-
 endmodule

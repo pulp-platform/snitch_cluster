@@ -24,7 +24,7 @@ package snitch_ssr_pkg;
     int unsigned  IndexCredits;
     int unsigned  IsectSlaveCredits;
     int unsigned  DataCredits;
-    int unsigned  MuxRespDepth;
+    int unsigned  MuxRspDepth;
   } ssr_cfg_t;
 
   // Derived parameters for intersection

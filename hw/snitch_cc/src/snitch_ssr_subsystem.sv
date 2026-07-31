@@ -17,7 +17,7 @@ module snitch_ssr_subsystem #(
   parameter int unsigned NumSsrs         = 0,
   parameter snitch_ssr_pkg::ssr_cfg_t [cc_pkg::iomsb(NumSsrs):0] SsrCfgs = '0,
   parameter logic [cc_pkg::iomsb(NumSsrs):0][4:0] SsrRegs = '0,
-  parameter int unsigned SsrMuxRespDepth = 0,
+  parameter int unsigned SsrMuxRspDepth  = 0,
   parameter int unsigned TcdmAddrWidth   = 0,
   parameter int unsigned DataWidth       = 0,
   parameter int unsigned TcdmUserWidth   = 0,

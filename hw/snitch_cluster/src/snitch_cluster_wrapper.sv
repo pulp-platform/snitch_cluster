@@ -231,7 +231,7 @@ module snitch_cluster_wrapper
     .NumITLBEntries           (NumITLBEntries),
     .NumSsrsMax               (NumSsrsMax),
     .NumSsrs                  (NumSsrs),
-    .SsrMuxRespDepth          (SsrMuxRespDepth),
+    .SsrMuxRspDepth           (SsrMuxRspDepth),
     .SsrRegs                  (SsrRegs),
     .SsrCfgs                  (SsrCfgs),
     .SpatzDoubleBw            (SpatzDoubleBw),

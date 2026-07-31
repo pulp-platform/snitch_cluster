@@ -7,12 +7,13 @@
 /// Multiplex `NrPorts` TCDM interfaces onto one.
 module tcdm_mux #(
   parameter int unsigned NrPorts = 2,
+  parameter int unsigned RspDepth = 8,
   parameter int unsigned AddrWidth = 0,
   parameter int unsigned DataWidth = 0,
   parameter int unsigned UserWidth = 0,
-  parameter int unsigned RespDepth = 8,
-  parameter type tcdm_req_t = logic,
-  parameter type tcdm_rsp_t = logic
+  /// Derived parameters *do not override*
+  localparam type tcdm_req_t = `TCDM_REQ_STRUCT(DataWidth, AddrWidth, UserWidth),
+  localparam type tcdm_rsp_t = `TCDM_RSP_STRUCT(DataWidth)
 ) (
   input  logic                    clk_i,
   input  logic                    rst_ni,
@@ -24,7 +25,6 @@ module tcdm_mux #(
 
   localparam int unsigned SelectWidth = cc_pkg::idx_width(NrPorts);
   typedef logic [SelectWidth-1:0] select_t;
-
   `TCDM_TYPEDEF_REQ_CHAN_T(tcdm, DataWidth, AddrWidth, UserWidth)
 
   if (NrPorts > 1) begin : gen_mux
@@ -77,7 +77,7 @@ module tcdm_mux #(
 
     cc_stream_fifo #(
       .FallThrough (1'b0),
-      .Depth (RespDepth),
+      .Depth (RspDepth),
       .data_t (select_t)
     ) i_stream_fifo (
       .clk_i,
@@ -108,7 +108,7 @@ module tcdm_mux_intf #(
   parameter int unsigned AddrWidth = 0,
   parameter int unsigned DataWidth = 0,
   parameter int unsigned UserWidth = 0,
-  parameter int unsigned RespDepth = 8
+  parameter int unsigned RspDepth = 8
 ) (
   input  logic                    clk_i,
   input  logic                    rst_ni,
@@ -126,12 +126,10 @@ module tcdm_mux_intf #(
 
   tcdm_mux #(
     .NrPorts (NrPorts),
+    .RspDepth (RspDepth),
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
-    .UserWidth (UserWidth),
-    .RespDepth (RespDepth),
-    .tcdm_req_t (tcdm_req_t),
-    .tcdm_rsp_t (tcdm_rsp_t)
+    .UserWidth (UserWidth)
   ) i_tcdm_mux (
     .clk_i,
     .rst_ni,
@@ -143,10 +141,10 @@ module tcdm_mux_intf #(
 
   for (genvar i = 0; i < NrPorts; i++) begin : gen_interface_assignment
     `TCDM_ASSIGN_TO_REQ(tcdm_slv_req[i], slv[i])
-    `TCDM_ASSIGN_FROM_RESP(slv[i], tcdm_slv_rsp[i])
+    `TCDM_ASSIGN_FROM_RSP(slv[i], tcdm_slv_rsp[i])
   end
 
   `TCDM_ASSIGN_FROM_REQ(mst, tcdm_mst_req)
-  `TCDM_ASSIGN_TO_RESP(tcdm_mst_rsp, mst)
+  `TCDM_ASSIGN_TO_RSP(tcdm_mst_rsp, mst)
 
 endmodule

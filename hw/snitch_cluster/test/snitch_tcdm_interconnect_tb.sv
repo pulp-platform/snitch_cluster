@@ -76,12 +76,12 @@ module snitch_tcdm_interconnect_tb #(
 
   for (genvar i = 0; i < NrInput; i++) begin : gen_input_assign
     `TCDM_ASSIGN_TO_REQ(tcdm_req[i], master_dv[i]);
-    `TCDM_ASSIGN_FROM_RESP(master_dv[i], tcdm_rsp[i]);
+    `TCDM_ASSIGN_FROM_RSP(master_dv[i], tcdm_rsp[i]);
   end
 
   for (genvar i = 0; i < NrOutput; i++) begin : gen_output_assign
     `MEM_ASSIGN_FROM_REQ(slave_dv[i], mem_req[i]);
-    `MEM_ASSIGN_TO_RESP(mem_rsp[i], slave_dv[i]);
+    `MEM_ASSIGN_TO_RSP(mem_rsp[i], slave_dv[i]);
   end
 
   // ----------------

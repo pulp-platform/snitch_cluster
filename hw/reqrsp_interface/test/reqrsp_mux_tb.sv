@@ -5,17 +5,16 @@
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 
 `include "reqrsp_interface/assign.svh"
+`include "reqrsp_interface/typedef.svh"
 
-/// Testbench for `reqrsp_mux`. Random drivers on the slave and master ports
-/// drive a random pattern. The monitors track all packets and the scoreboard
-/// tries to generate a legit schedule. If the testbench terminates and no
-/// schedule could be found the request and response routing of the arbiter is
-/// wrong.
-module reqrsp_mux_tb import reqrsp_pkg::*; #(
-  parameter int unsigned AW = 32,
-  parameter int unsigned DW = 32,
+/// Testbench for `reqrsp_mux`. Random drivers on the slave and master
+/// ports drive a random opaque payload pattern. The monitors track all packets and
+/// the scoreboard tries to generate a legit schedule.
+module reqrsp_mux_tb #(
+  parameter int unsigned ReqWidth = 64,
+  parameter int unsigned RspWidth = 32,
   parameter int unsigned NrPorts = 4,
-  parameter int unsigned RespDepth = 2,
+  parameter int unsigned RspDepth = 2,
   parameter int unsigned RegisterReq = 1,
   parameter int unsigned NrRandomTransactions = 100
 );
@@ -23,45 +22,51 @@ module reqrsp_mux_tb import reqrsp_pkg::*; #(
   localparam time ApplTime =  2ns;
   localparam time TestTime =  8ns;
 
-  logic  clk, rst_n;
+  typedef logic [ReqWidth-1:0] req_chan_t;
+  typedef logic [RspWidth-1:0] rsp_chan_t;
 
-  REQRSP_BUS #(
-    .ADDR_WIDTH ( AW ),
-    .DATA_WIDTH ( DW )
-  ) master [NrPorts] ();
+  `REQRSP_TYPEDEF_ALL(mux, req_chan_t, rsp_chan_t)
+
+  logic clk, rst_n;
 
   REQRSP_BUS_DV #(
-    .ADDR_WIDTH ( AW ),
-    .DATA_WIDTH ( DW )
+    .req_chan_t (req_chan_t),
+    .rsp_chan_t (rsp_chan_t)
   ) master_dv [NrPorts] (clk);
 
-  REQRSP_BUS #(
-    .ADDR_WIDTH ( AW ),
-    .DATA_WIDTH ( DW )
-  ) slave ();
-
   REQRSP_BUS_DV #(
-    .ADDR_WIDTH ( AW ),
-    .DATA_WIDTH ( DW )
+    .req_chan_t (req_chan_t),
+    .rsp_chan_t (rsp_chan_t)
   ) slave_dv (clk);
 
-  reqrsp_mux_intf #(
-    .NrPorts (NrPorts),
-    .AddrWidth (AW),
-    .DataWidth (DW),
-    .RespDepth (RespDepth),
+  mux_req_t [NrPorts-1:0] mux_slv_req;
+  mux_rsp_t [NrPorts-1:0] mux_slv_rsp;
+  mux_req_t               mux_mst_req;
+  mux_rsp_t               mux_mst_rsp;
+
+  reqrsp_mux #(
+    .NrPorts     (NrPorts),
+    .req_chan_t  (req_chan_t),
+    .rsp_chan_t  (rsp_chan_t),
+    .RspDepth    (RspDepth),
     .RegisterReq (RegisterReq)
   ) dut (
-    .clk_i (clk),
-    .rst_ni (rst_n),
-    .slv (master),
-    .mst (slave),
-    .idx_o (/*not connected*/)
+    .clk_i       (clk),
+    .rst_ni      (rst_n),
+    .slv_req_i   (mux_slv_req),
+    .slv_rsp_o   (mux_slv_rsp),
+    .mst_req_o   (mux_mst_req),
+    .mst_rsp_i   (mux_mst_rsp),
+    .rsp_route_i ('0),
+    .idx_o       (/*not connected*/)
   );
 
-  `REQRSP_ASSIGN(slave_dv, slave)
+  `REQRSP_ASSIGN_FROM_REQ(slave_dv, mux_mst_req)
+  `REQRSP_ASSIGN_TO_RSP(mux_mst_rsp, slave_dv)
+
   for (genvar i = 0; i < NrPorts; i++) begin : gen_if_assignment
-    `REQRSP_ASSIGN(master[i], master_dv[i])
+    `REQRSP_ASSIGN_TO_REQ(mux_slv_req[i], master_dv[i])
+    `REQRSP_ASSIGN_FROM_RSP(master_dv[i], mux_slv_rsp[i])
   end
 
   // ----------------
@@ -84,16 +89,13 @@ module reqrsp_mux_tb import reqrsp_pkg::*; #(
   // Monitor
   // -------
   typedef reqrsp_test::reqrsp_monitor #(
-    // Reqrsp bus interface paramaters;
-    .AW ( AW ),
-    .DW ( DW ),
-    // Stimuli application and test time
-    .TA ( ApplTime ),
-    .TT ( TestTime )
+    .req_chan_t (req_chan_t),
+    .rsp_chan_t (rsp_chan_t),
+    .TA (ApplTime),
+    .TT (TestTime)
   ) reqrsp_monitor_t;
 
-  reqrsp_monitor_t reqrsp_slv_monitor = new (slave_dv);
-  // Reqrsp Monitor.
+  reqrsp_monitor_t reqrsp_slv_monitor = new(slave_dv);
   initial begin
     @(posedge rst_n);
     reqrsp_slv_monitor.monitor();
@@ -102,7 +104,7 @@ module reqrsp_mux_tb import reqrsp_pkg::*; #(
   reqrsp_monitor_t reqrsp_mst_monitor [NrPorts];
   for (genvar i = 0; i < NrPorts; i++) begin : gen_mst_mon
     initial begin
-      reqrsp_mst_monitor[i] = new (master_dv[i]);
+      reqrsp_mst_monitor[i] = new(master_dv[i]);
       @(posedge rst_n);
       reqrsp_mst_monitor[i].monitor();
     end
@@ -112,18 +114,16 @@ module reqrsp_mux_tb import reqrsp_pkg::*; #(
   // Driver
   // ------
   typedef reqrsp_test::rand_reqrsp_master #(
-    // Reqrsp bus interface paramaters;
-    .AW ( AW ),
-    .DW ( DW ),
-    // Stimuli application and test time
-    .TA ( ApplTime ),
-    .TT ( TestTime )
+    .req_chan_t (req_chan_t),
+    .rsp_chan_t (rsp_chan_t),
+    .TA (ApplTime),
+    .TT (TestTime)
   ) reqrsp_rand_master_t;
 
   reqrsp_rand_master_t rand_reqrsp_master [NrPorts];
   for (genvar i = 0; i < NrPorts; i++) begin : gen_mst_driver
     initial begin
-      rand_reqrsp_master[i] = new (master_dv[i]);
+      rand_reqrsp_master[i] = new(master_dv[i]);
       rand_reqrsp_master[i].reset();
       @(posedge rst_n);
       rand_reqrsp_master[i].run(NrRandomTransactions);
@@ -131,17 +131,14 @@ module reqrsp_mux_tb import reqrsp_pkg::*; #(
   end
 
   typedef reqrsp_test::rand_reqrsp_slave #(
-    // Reqrsp bus interface paramaters;
-    .AW ( AW ),
-    .DW ( DW ),
-    // Stimuli application and test time
-    .TA ( ApplTime ),
-    .TT ( TestTime )
+    .req_chan_t (req_chan_t),
+    .rsp_chan_t (rsp_chan_t),
+    .TA (ApplTime),
+    .TT (TestTime)
   ) reqrsp_rand_slave_t;
 
-  reqrsp_rand_slave_t rand_reqrsp_slave = new (slave_dv);
+  reqrsp_rand_slave_t rand_reqrsp_slave = new(slave_dv);
 
-  // Reqrsp Slave.
   initial begin
     rand_reqrsp_slave.reset();
     @(posedge rst_n);
@@ -165,8 +162,8 @@ module reqrsp_mux_tb import reqrsp_pkg::*; #(
   initial begin
     automatic int unsigned nr_transactions = 0;
     forever begin
-      automatic reqrsp_test::req_t req;
-      automatic reqrsp_test::rsp_t rsp;
+      automatic reqrsp_test::req_t #(.req_chan_t(req_chan_t)) req;
+      automatic reqrsp_test::rsp_t #(.rsp_chan_t(rsp_chan_t)) rsp;
       automatic bit arb_found = 0;
       reqrsp_slv_monitor.req_mbx.get(req);
       reqrsp_slv_monitor.rsp_mbx.get(rsp);
@@ -179,8 +176,8 @@ module reqrsp_mux_tb import reqrsp_pkg::*; #(
         // observeable on the output the input must have handshaked, so this is
         // a safe operation.
         if (reqrsp_mst_monitor[i].req_mbx.num() != 0) begin
-          automatic reqrsp_test::req_t req_inp;
-          automatic reqrsp_test::rsp_t rsp_inp;
+          automatic reqrsp_test::req_t #(.req_chan_t(req_chan_t)) req_inp;
+          automatic reqrsp_test::rsp_t #(.rsp_chan_t(rsp_chan_t)) rsp_inp;
           reqrsp_mst_monitor[i].req_mbx.peek(req_inp);
           reqrsp_mst_monitor[i].rsp_mbx.peek(rsp_inp);
           if (req_inp.do_compare(req) && rsp_inp.do_compare(rsp)) begin
@@ -197,7 +194,6 @@ module reqrsp_mux_tb import reqrsp_pkg::*; #(
     end
   end
 
-  // Check that we have associated all transactions.
   final begin
     assert(reqrsp_slv_monitor.req_mbx.num() == 0);
     assert(reqrsp_slv_monitor.rsp_mbx.num() == 0);
@@ -207,4 +203,5 @@ module reqrsp_mux_tb import reqrsp_pkg::*; #(
     end
     $display("Checked for non-empty mailboxes.");
   end
+
 endmodule

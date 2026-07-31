@@ -6,18 +6,20 @@
 
 `include "common_cells/registers.svh"
 `include "common_cells/assertions.svh"
+`include "snitch/typedef.svh"
 
 /// Page table walker (PTW) for RISC-V (Custom)Sv32 address translation.
 module snitch_ptw import snitch_pkg::*; #(
   parameter int unsigned AddrWidth = 64,
   parameter int unsigned DataWidth = 64,
-  parameter type dreq_t = logic,
-  parameter type drsp_t = logic,
+  parameter int unsigned UserWidth = 0,
   parameter type pa_t = logic,
   parameter type l0_pte_t = logic,
   parameter type pte_sv32_t = logic,
   /// Derived parameter. *Do not change*
-  parameter int unsigned PPNSize = AddrWidth - PageShift
+  localparam int unsigned PPNSize = AddrWidth - PageShift,
+  localparam type lsu_req_t = `LSU_REQ_STRUCT(DataWidth, AddrWidth, UserWidth),
+  localparam type lsu_rsp_t = `LSU_RSP_STRUCT(DataWidth)
 ) (
   input  logic                clk_i,
   input  logic                rst_ni,
@@ -30,8 +32,8 @@ module snitch_ptw import snitch_pkg::*; #(
   /// Is this a 4 mega page i.e,. super-page
   output logic                is_4mega_o,
   /// Memory interface
-  output dreq_t               data_req_o,
-  input  drsp_t               data_rsp_i
+  output lsu_req_t            data_req_o,
+  input  lsu_rsp_t            data_rsp_i
 );
 
   /// Page Table Entry Size in Bytes
@@ -94,6 +96,7 @@ module snitch_ptw import snitch_pkg::*; #(
     data_req_o.q.data = '0;
     data_req_o.q.write = 0;
     data_req_o.q.strb = '0;
+    data_req_o.q.user = '0;
 
     lvl_d = lvl_q;
     state_d = state_q;

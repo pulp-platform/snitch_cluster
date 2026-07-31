@@ -33,10 +33,6 @@ module snitch_cc
   parameter int unsigned DMANumAxInFlight   = 0,
   parameter int unsigned DMAReqFifoDepth    = 0,
   parameter int unsigned DMANumChannels     = 0,
-  /// Data port request type.
-  parameter type         dreq_t             = logic,
-  /// Data port response type.
-  parameter type         drsp_t             = logic,
   parameter type         axi_ar_chan_t      = logic,
   parameter type         axi_aw_chan_t      = logic,
   parameter type         axi_req_t          = logic,
@@ -71,7 +67,7 @@ module snitch_cc
   parameter int unsigned NumSequencerInstr = 0,
   parameter int unsigned NumSequencerLoops = 0,
   parameter int unsigned NumSsrs = 0,
-  parameter int unsigned SsrMuxRespDepth = 0,
+  parameter int unsigned SsrMuxRspDepth = 0,
   parameter snitch_ssr_pkg::ssr_cfg_t [cc_pkg::iomsb(NumSsrs):0] SsrCfgs = '0,
   parameter logic [cc_pkg::iomsb(NumSsrs):0][4:0] SsrRegs = '0,
   /// Spatz parameters
@@ -122,7 +118,8 @@ module snitch_cc
     SpatzDoubleBw
   ),
   localparam type addr_t = logic [AddrWidth-1:0],
-  localparam type data_t = logic [DataWidth-1:0],
+  localparam type lsu_req_t = `LSU_REQ_STRUCT(DataWidth, AddrWidth, snitch_pkg::UserWidth),
+  localparam type lsu_rsp_t = `LSU_RSP_STRUCT(DataWidth),
   localparam type tcdm_req_t = `TCDM_REQ_STRUCT(DataWidth, TcdmAddrWidth, TcdmUserWidth),
   localparam type tcdm_rsp_t = `TCDM_RSP_STRUCT(DataWidth),
   localparam type dca_req_t = `DCA_REQ_STRUCT(DataWidth),
@@ -138,8 +135,8 @@ module snitch_cc
   output hive_req_t                         hive_req_o,
   input  hive_rsp_t                         hive_rsp_i,
   // SoC data port
-  output dreq_t                             data_req_o,
-  input  drsp_t                             data_rsp_i,
+  output lsu_req_t                          soc_req_o,
+  input  lsu_rsp_t                          soc_rsp_i,
   // TCDM ports
   output tcdm_req_t [NumTcdmPorts-1:0]      tcdm_req_o,
   input  tcdm_rsp_t [NumTcdmPorts-1:0]      tcdm_rsp_i,
@@ -178,6 +175,13 @@ module snitch_cc
     spatz_pkg::N_FU,
     SpatzDoubleBw
   );
+  typedef logic [DataWidth-1:0] data_t;
+
+  // Define lsu_req_chan_t and lsu_rsp_chan_t
+  `LSU_TYPEDEF_REQRSP_CHAN_ALL(lsu, DataWidth, AddrWidth, snitch_pkg::UserWidth)
+
+  // Define tcdm_lsu_req_t and tcdm_lsu_rsp_t
+  `LSU_TYPEDEF_ALL(tcdm_lsu, DataWidth, TcdmAddrWidth, TcdmUserWidth)
 
   // Define tcdm_req_chan_t and tcdm_rsp_chan_t
   `TCDM_TYPEDEF_REQRSP_CHAN_ALL(tcdm, DataWidth, TcdmAddrWidth, TcdmUserWidth)
@@ -218,8 +222,8 @@ module snitch_cc
   snitch_pkg::core_events_t fpss_events;
 
   // Snitch LSU interface
-  dreq_t snitch_dreq_d, snitch_dreq_q;
-  drsp_t snitch_drsp_d, snitch_drsp_q;
+  lsu_req_t snitch_lsu_req_d, snitch_lsu_req_q;
+  lsu_rsp_t snitch_lsu_rsp_d, snitch_lsu_rsp_q;
 
   // CPU-side XIF
   x_issue_req_t  x_issue_req;
@@ -255,8 +259,8 @@ module snitch_cc
   logic          [NumCopro-1:0] cop_result_ready;
 
   // FPSS LSU interface
-  dreq_t fpss_dreq;
-  drsp_t fpss_drsp;
+  lsu_req_t fpss_lsu_req;
+  lsu_rsp_t fpss_lsu_rsp;
 
   // Registered DCA interface
   dca_req_t dca_req_q;
@@ -290,8 +294,8 @@ module snitch_cc
   tcdm_rsp_t muxed_tcdm_rsp;
 
   // Spatz FLSU interface
-  dreq_t spatz_flsu_dreq;
-  drsp_t spatz_flsu_drsp;
+  lsu_req_t spatz_flsu_req;
+  lsu_rsp_t spatz_flsu_rsp;
 
   // Spatz TCDM interface
   tcdm_req_chan_t [NumSpatzMemPorts-1:0] spatz_tcdm_req_chan;
@@ -303,8 +307,20 @@ module snitch_cc
   tcdm_rsp_t      [NumSpatzMemPorts-1:0] spatz_tcdm_rsp;
 
   // Muxed LSU request
-  dreq_t muxed_dreq;
-  drsp_t muxed_drsp;
+  lsu_req_t muxed_lsu_req;
+  lsu_rsp_t muxed_lsu_rsp;
+
+  // LSU request towards TCDM
+  lsu_req_t lsu_tcdm_req;
+  lsu_rsp_t lsu_tcdm_rsp;
+
+  // LSU request resized to match TCDM bus widths
+  tcdm_lsu_req_t core_lsu_req_resized;
+  tcdm_lsu_rsp_t core_lsu_rsp_resized;
+
+  // LSU request converted to TCDM protocol
+  tcdm_req_t core_tcdm_req;
+  tcdm_rsp_t core_tcdm_rsp;
 
   // Trace interfaces
   // pragma translate_off
@@ -368,8 +384,8 @@ module snitch_cc
     .f2i_wvalid_i      (f2i_wvalid),
     .f2i_wready_o      (f2i_wready),
     .caq_pvalid_i      (caq_pvalid_q),
-    .data_req_o        (snitch_dreq_d),
-    .data_rsp_i        (snitch_drsp_d),
+    .lsu_req_o         (snitch_lsu_req_d),
+    .lsu_rsp_i         (snitch_lsu_rsp_d),
     .ptw_req_o         (hive_req_o.ptw_req),
     .ptw_rsp_i         (hive_rsp_i.ptw_rsp),
     .fpu_rnd_mode_o    (fpu_rnd_mode),
@@ -383,26 +399,23 @@ module snitch_cc
 
   // Cut Snitch's LSU interface
   reqrsp_iso #(
-    .AddrWidth(AddrWidth),
-    .DataWidth(DataWidth),
-    .UserWidth(64),
-    .req_t    (dreq_t),
-    .rsp_t    (drsp_t),
+    .req_chan_t(lsu_req_chan_t),
+    .rsp_chan_t(lsu_rsp_chan_t),
     .BypassReq(!RegisterCoreReq),
     .BypassRsp(!IsoCrossing && !RegisterCoreRsp)
   ) i_data_cut (
     .src_clk_i (clk_d2_i),
     .src_rst_ni(rst_ni),
-    .src_req_i (snitch_dreq_d),
-    .src_rsp_o (snitch_drsp_d),
+    .src_req_i (snitch_lsu_req_d),
+    .src_rsp_o (snitch_lsu_rsp_d),
     .dst_clk_i (clk_i),
     .dst_rst_ni(rst_ni),
-    .dst_req_o (snitch_dreq_q),
-    .dst_rsp_i (snitch_drsp_q)
+    .dst_req_o (snitch_lsu_req_q),
+    .dst_rsp_i (snitch_lsu_rsp_q)
   );
 
   // Cut Snitch's accelerator interface
-  generic_reqrsp_cut #(
+  reqrsp_cut #(
     .req_chan_t(acc_req_chan_t),
     .rsp_chan_t(acc_rsp_chan_t),
     .BypassReq (!RegisterOffloadReq),
@@ -462,9 +475,14 @@ module snitch_cc
   assign spatz_fpu_fmt_mode = fpu_fmt_mode;
   assign fpu_status = fpss_fpu_status | spatz_fpu_status;
 
-  // Demux accelerator interface to all accelerators
-  generic_reqrsp_demux #(
+  // Demux accelerator interface to all accelerators.
+  // NOTE: `Ordered` is explicitly disabled here to preserve this dispatch
+  // path's pre-existing (long-standing, not a regression) behavior, where
+  // responses from different accelerators are not guaranteed to be returned
+  // in request order.
+  reqrsp_demux #(
     .NrPorts   (snitch_pkg::NUM_ACC),
+    .Ordered   (1'b0),
     .req_chan_t(acc_req_chan_t),
     .rsp_chan_t(acc_rsp_chan_t)
   ) i_acc_demux (
@@ -474,7 +492,7 @@ module snitch_cc
     .slv_rsp_o(snitch_acc_rsp_q),
     .mst_req_o(snitch_acc_req_demuxed),
     .mst_rsp_i(snitch_acc_rsp_demuxed),
-    .idx_i    (snitch_acc_req_q.q.addr[$clog2(snitch_pkg::NUM_ACC)-1:0])
+    .select_i (snitch_acc_req_q.q.addr[$clog2(snitch_pkg::NUM_ACC)-1:0])
   );
 
   // Demux XIF to all coprocessors
@@ -598,7 +616,7 @@ module snitch_cc
   //////////////////
 
   // Cut DCA interface
-  generic_reqrsp_cut #(
+  reqrsp_cut #(
     .req_chan_t(dca_req_chan_t),
     .rsp_chan_t(dca_rsp_chan_t),
     .BypassReq (!EnableDca || !RegisterDcaReq),
@@ -624,8 +642,6 @@ module snitch_cc
       .IsaCfg               (IsaCfg),
       .NumSsrs              (NumSsrs),
       .SsrRegs              (SsrRegs),
-      .dreq_t               (dreq_t),
-      .drsp_t               (drsp_t),
       .RegisterSequencer    (RegisterSequencer),
       .RegisterFpuReq       (RegisterFPUIn),
       .RegisterFpuRsp       (RegisterFPUOut),
@@ -648,8 +664,8 @@ module snitch_cc
       .f2i_wvalid_o           (f2i_wvalid),
       .f2i_wready_i           (f2i_wready),
       .caq_pvalid_o           (caq_pvalid),
-      .data_req_o             (fpss_dreq),
-      .data_rsp_i             (fpss_drsp),
+      .data_req_o             (fpss_lsu_req),
+      .data_rsp_i             (fpss_lsu_rsp),
       .fpu_rnd_mode_i         (fpss_fpu_rnd_mode),
       .fpu_fmt_mode_i         (fpss_fpu_fmt_mode),
       .fpu_status_o           (fpss_fpu_status),
@@ -680,7 +696,7 @@ module snitch_cc
     assign f2i_wdata = '0;
     assign f2i_wvalid = '0;
     assign caq_pvalid = '0;
-    assign fpss_dreq = '0;
+    assign fpss_lsu_req = '0;
     assign fpss_fpu_status = '0;
     assign ssr_raddr = '0;
     assign ssr_rvalid = '0;
@@ -704,8 +720,8 @@ module snitch_cc
       .NumOutstandingLoads(NumSpatzOutstandingLoads),
       .FPUImplementation  (FPUImplementation),
       .RegisterRsp        (RegisterOffloadRsp),
-      .dreq_t             (dreq_t),
-      .drsp_t             (drsp_t),
+      .dreq_t             (lsu_req_t),
+      .drsp_t             (lsu_rsp_t),
       .spatz_mem_req_t    (tcdm_req_chan_t),
       .spatz_mem_rsp_t    (tcdm_rsp_chan_t),
       // X-IF types (used; Spatz must be compiled with `define X_INTERFACE).
@@ -738,8 +754,8 @@ module snitch_cc
       .spatz_mem_rsp_valid_i   (spatz_tcdm_rsp_valid),
       .spatz_mem_finished_o    (/*TODO: wire to fence instruction*/),
       .spatz_mem_str_finished_o(),
-      .fp_lsu_mem_req_o        (spatz_flsu_dreq),
-      .fp_lsu_mem_rsp_i        (spatz_flsu_drsp),
+      .fp_lsu_mem_req_o        (spatz_flsu_req),
+      .fp_lsu_mem_rsp_i        (spatz_flsu_rsp),
       .fpu_rnd_mode_i          (spatz_fpu_rnd_mode),
       .fpu_fmt_mode_i          (spatz_fpu_fmt_mode),
       .fpu_status_o            (spatz_fpu_status)
@@ -752,7 +768,7 @@ module snitch_cc
     assign cop_result[SpatzCopro] = '0;
     assign spatz_tcdm_req_chan = '0;
     assign spatz_tcdm_req_valid = '0;
-    assign spatz_flsu_dreq = '0;
+    assign spatz_flsu_req = '0;
     assign spatz_fpu_status = '0;
   end
 
@@ -773,30 +789,25 @@ module snitch_cc
 
   reqrsp_mux #(
     .NrPorts    (3),
-    .AddrWidth  (AddrWidth),
-    .DataWidth  (DataWidth),
-    .UserWidth  (64),
-    .req_t      (dreq_t),
-    .rsp_t      (drsp_t),
+    .req_chan_t (lsu_req_chan_t),
+    .rsp_chan_t (lsu_rsp_chan_t),
     // TODO(zarubaf): Wire-up to top-level.
-    .RespDepth  (8),
+    .RspDepth   (8),
     .RegisterReq({1'b0, RegisterFPUReq, RegisterFPUReq})
   ) i_reqrsp_mux (
     .clk_i,
     .rst_ni,
-    .slv_req_i({snitch_dreq_q, fpss_dreq, spatz_flsu_dreq}),
-    .slv_rsp_o({snitch_drsp_q, fpss_drsp, spatz_flsu_drsp}),
-    .mst_req_o(muxed_dreq),
-    .mst_rsp_i(muxed_drsp),
-    .idx_o    ()
+    .slv_req_i  ({snitch_lsu_req_q, fpss_lsu_req, spatz_flsu_req}),
+    .slv_rsp_o  ({snitch_lsu_rsp_q, fpss_lsu_rsp, spatz_flsu_rsp}),
+    .mst_req_o  (muxed_lsu_req),
+    .mst_rsp_i  (muxed_lsu_rsp),
+    .rsp_route_i('0),
+    .idx_o      ()
   );
 
   //////////////////////////////
   // Demux LSU -> SoC or TCDM //
   //////////////////////////////
-
-  dreq_t data_tcdm_req;
-  drsp_t data_tcdm_rsp;
 
   typedef struct packed {
     int unsigned idx;
@@ -827,15 +838,15 @@ module snitch_cc
   // The collective mask, in the user field, is used to detect collective operations.
   addr_t collective_mask;
   logic  is_collective;
-  assign collective_mask = addr_t'(muxed_dreq.q.user[CollectiveWidth+:AddrWidth]);
+  assign collective_mask = addr_t'(muxed_lsu_req.q.user[CollectiveWidth+:AddrWidth]);
   assign is_collective = (collective_mask != 0);
 
   reqrsp_demux_mapped #(
-    .NrPorts  (2),
-    .req_t    (dreq_t),
-    .rsp_t    (drsp_t),
+    .NrPorts   (2),
+    .req_chan_t(lsu_req_chan_t),
+    .rsp_chan_t(lsu_rsp_chan_t),
     // TODO(zarubaf): Make a parameter.
-    .RespDepth(4),
+    .RspDepth (4),
     .NoRules  (1 + TCDMAliasEnable),
     .addr_t   (logic [AddrWidth-1:0]),
     .rule_t   (reqrsp_rule_t)
@@ -846,33 +857,41 @@ module snitch_cc
     .default_select_i     (DreqSelectSoc),
     .ext_select_i         (DreqSelectSoc),
     .ext_select_override_i(is_collective),
-    .slv_req_i            (muxed_dreq),
-    .slv_rsp_o            (muxed_drsp),
-    .mst_req_o            ({data_tcdm_req, data_req_o}),
-    .mst_rsp_i            ({data_tcdm_rsp, data_rsp_i})
+    .slv_req_i            (muxed_lsu_req),
+    .slv_rsp_o            (muxed_lsu_rsp),
+    .mst_req_o            ({lsu_tcdm_req, soc_req_o}),
+    .mst_rsp_i            ({lsu_tcdm_rsp, soc_rsp_i})
   );
 
-  tcdm_req_t core_tcdm_req;
-  tcdm_rsp_t core_tcdm_rsp;
+  // Resize LSU request to match TCDM bus widths
+  lsu_width_converter #(
+    .InAddrWidth (AddrWidth),
+    .InDataWidth (DataWidth),
+    .InUserWidth (snitch_pkg::UserWidth),
+    .OutAddrWidth(TcdmAddrWidth),
+    .OutDataWidth(DataWidth),
+    .OutUserWidth(TcdmUserWidth)
+  ) i_lsu_width_converter (
+    .lsu_req_i(lsu_tcdm_req),
+    .lsu_rsp_o(lsu_tcdm_rsp),
+    .lsu_req_o(core_lsu_req_resized),
+    .lsu_rsp_i(core_lsu_rsp_resized)
+  );
 
-  // Convert TCDM request to TCDM protocol
-  reqrsp_to_tcdm #(
-    .AddrWidth   (AddrWidth),
-    .DataWidth   (DataWidth),
-    .UserWidth   (64),
+  // Convert LSU request to TCDM protocol
+  lsu_to_tcdm #(
     // TODO(zarubaf): Make a parameter.
-    .BufDepth    (4),
-    .reqrsp_req_t(dreq_t),
-    .reqrsp_rsp_t(drsp_t),
-    .tcdm_req_t  (tcdm_req_t),
-    .tcdm_rsp_t  (tcdm_rsp_t)
-  ) i_reqrsp_to_tcdm (
+    .BufDepth (4),
+    .AddrWidth(TcdmAddrWidth),
+    .UserWidth(TcdmUserWidth),
+    .DataWidth(DataWidth)
+  ) i_lsu_to_tcdm (
     .clk_i,
     .rst_ni,
-    .reqrsp_req_i(data_tcdm_req),
-    .reqrsp_rsp_o(data_tcdm_rsp),
-    .tcdm_req_o  (core_tcdm_req),
-    .tcdm_rsp_i  (core_tcdm_rsp)
+    .lsu_req_i (core_lsu_req_resized),
+    .lsu_rsp_o (core_lsu_rsp_resized),
+    .tcdm_req_o(core_tcdm_req),
+    .tcdm_rsp_i(core_tcdm_rsp)
   );
 
   //////////
@@ -880,18 +899,18 @@ module snitch_cc
   //////////
 
   snitch_ssr_subsystem #(
-    .IsaCfg         (IsaCfg),
-    .NumSsrs        (NumSsrs),
-    .SsrCfgs        (SsrCfgs),
-    .SsrRegs        (SsrRegs),
-    .SsrMuxRespDepth(SsrMuxRespDepth),
-    .TcdmAddrWidth  (TcdmAddrWidth),
-    .DataWidth      (DataWidth),
-    .TcdmUserWidth  (TcdmUserWidth),
-    .acc_req_t      (acc_req_t),
-    .acc_rsp_t      (acc_rsp_t),
-    .tcdm_req_t     (tcdm_req_t),
-    .tcdm_rsp_t     (tcdm_rsp_t)
+    .IsaCfg        (IsaCfg),
+    .NumSsrs       (NumSsrs),
+    .SsrCfgs       (SsrCfgs),
+    .SsrRegs       (SsrRegs),
+    .SsrMuxRspDepth(SsrMuxRspDepth),
+    .TcdmAddrWidth (TcdmAddrWidth),
+    .DataWidth     (DataWidth),
+    .TcdmUserWidth (TcdmUserWidth),
+    .acc_req_t     (acc_req_t),
+    .acc_rsp_t     (acc_rsp_t),
+    .tcdm_req_t    (tcdm_req_t),
+    .tcdm_rsp_t    (tcdm_rsp_t)
   ) i_snitch_ssr_subsystem (
     .clk_i,
     .rst_ni,
@@ -924,13 +943,11 @@ module snitch_cc
 
   // Mux TCDM requests from core and SSR0 onto TCDM port 0
   tcdm_mux #(
-    .NrPorts   (2),
-    .AddrWidth (TcdmAddrWidth),
-    .DataWidth (DataWidth),
-    .UserWidth (TcdmUserWidth),
-    .RespDepth (SsrMuxRespDepth),
-    .tcdm_req_t(tcdm_req_t),
-    .tcdm_rsp_t(tcdm_rsp_t)
+    .NrPorts  (2),
+    .RspDepth (SsrMuxRspDepth),
+    .AddrWidth(TcdmAddrWidth),
+    .DataWidth(DataWidth),
+    .UserWidth(TcdmUserWidth)
   ) i_tcdm_mux (
     .clk_i,
     .rst_ni,

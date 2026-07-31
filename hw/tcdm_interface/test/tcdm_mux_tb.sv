@@ -7,11 +7,11 @@
 /// Testbench for the `tcdm_mux`. Based on the `reqrsp_mux_tb`, see that
 /// testbench for a more indepth and commented version. This one just
 /// instantiates the right tcdm drivers.
-module tcdm_mux_tb import reqrsp_pkg::*; #(
+module tcdm_mux_tb #(
   parameter int unsigned AW = 32,
   parameter int unsigned DW = 32,
   parameter int unsigned NrPorts = 4,
-  parameter int unsigned RespDepth = 2,
+  parameter int unsigned RspDepth = 2,
   parameter int unsigned RegisterReq = 1,
   parameter int unsigned NrRandomTransactions = 1000
 );
@@ -50,7 +50,7 @@ module tcdm_mux_tb import reqrsp_pkg::*; #(
     .AddrWidth (AW),
     .DataWidth (DW),
     .UserWidth (1),
-    .RespDepth (RespDepth)
+    .RspDepth (RspDepth)
   ) dut (
     .clk_i (clk),
     .rst_ni (rst_n),

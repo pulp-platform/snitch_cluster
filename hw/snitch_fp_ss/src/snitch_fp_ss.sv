@@ -5,22 +5,20 @@
 `include "common_cells/registers.svh"
 `include "common_cells/assertions.svh"
 `include "reqrsp_interface/assign.svh"
-`include "fpu_interface/assign.svh"
 `include "fpu_interface/typedef.svh"
-`include "dca_interface/assign.svh"
 `include "dca_interface/typedef.svh"
 `include "snitch/typedef.svh"
 
 // Floating Point Subsystem
-module snitch_fp_ss import snitch_pkg::*; #(
+module snitch_fp_ss
+  import snitch_pkg::*;
+#(
   parameter int unsigned AddrWidth = 32,
   parameter int unsigned DataWidth = 32,
   parameter int unsigned NumFPOutstandingLoads = 0,
   parameter int unsigned NumFPOutstandingMem = 0,
   parameter int unsigned NumFPUSequencerInstr = 0,
   parameter int unsigned NumFPUSequencerLoops = 0,
-  parameter type dreq_t = logic,
-  parameter type drsp_t = logic,
   parameter bit RegisterSequencer = 0,
   parameter bit RegisterFpuReq    = 0,
   parameter bit RegisterFpuRsp    = 0,
@@ -30,8 +28,9 @@ module snitch_fp_ss import snitch_pkg::*; #(
   parameter logic [NumSsrs-1:0][4:0]  SsrRegs = '0,
   parameter bit EnableDca = 0,
   /// Derived parameter *Do not override*
-  localparam type addr_t = logic [AddrWidth-1:0],
   localparam type data_t = logic [DataWidth-1:0],
+  localparam type lsu_req_t = `LSU_REQ_STRUCT(DataWidth, AddrWidth, UserWidth),
+  localparam type lsu_rsp_t = `LSU_RSP_STRUCT(DataWidth),
   localparam type dca_req_t = `DCA_REQ_STRUCT(DataWidth),
   localparam type dca_rsp_t = `DCA_RSP_STRUCT(DataWidth),
   localparam type acc_req_t = `SNITCH_ACC_REQ_STRUCT(DataWidth, AddrWidth),
@@ -57,8 +56,8 @@ module snitch_fp_ss import snitch_pkg::*; #(
   output  logic            f2i_wvalid_o,
   input   logic            f2i_wready_i,
   // TCDM Data Interface for regular FP load/stores.
-  output dreq_t            data_req_o,
-  input  drsp_t            data_rsp_i,
+  output lsu_req_t         data_req_o,
+  input  lsu_rsp_t         data_rsp_i,
   // Register Interface
   // FPU **un-timed** Side-channel
   input  fpnew_pkg::roundmode_e fpu_rnd_mode_i,
@@ -2634,8 +2633,8 @@ module snitch_fp_ss import snitch_pkg::*; #(
 
   // Tag DCA request
   always_comb begin
-    `DCA_REQRSP_ASSIGN_REQ(, dca_req, dca_req_i)
-    `DCA_REQRSP_ASSIGN_RSP(, dca_rsp_o, dca_rsp)
+    dca_req   = dca_req_i;
+    dca_rsp_o = dca_rsp;
     dca_req.q.tag = '0;
     dca_req.q.tag.dca = 1'b1;
   end
@@ -2662,7 +2661,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   if (EnableDca) begin : gen_dca_mux
     // Uses rotating priority. Could be changed but the problem is rr_arb_tree
     // doesn't really support lock-in and priority at the same time. 
-    generic_reqrsp_mux #(
+    reqrsp_mux #(
       .NrPorts    (2),
       .req_chan_t (fpu_req_chan_t),
       .rsp_chan_t (fpu_rsp_chan_t),
@@ -2680,8 +2679,8 @@ module snitch_fp_ss import snitch_pkg::*; #(
       .idx_o      ()
     );
   end else begin : gen_no_dca_mux
-    `FPU_REQRSP_ASSIGN_REQ(assign, fpu_req, snitch_req)
-    `FPU_REQRSP_ASSIGN_RSP(assign, snitch_rsp, fpu_rsp)
+    assign fpu_req    = snitch_req;
+    assign snitch_rsp = fpu_rsp;
     `REQRSP_TIE_OFF_RSP(dca_rsp)
   end
 
@@ -2773,8 +2772,7 @@ module snitch_fp_ss import snitch_pkg::*; #(
   snitch_lsu #(
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
-    .dreq_t (dreq_t),
-    .drsp_t (drsp_t),
+    .UserWidth (UserWidth),
     .tag_t (logic [4:0]),
     .NumOutstandingMem (NumFPOutstandingMem),
     .NumOutstandingLoads (NumFPOutstandingLoads),

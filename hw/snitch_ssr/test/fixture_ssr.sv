@@ -152,7 +152,7 @@ module fixture_ssr import snitch_ssr_pkg::*; #(
 
   // Connect DUT to TCDM bus
   `TCDM_ASSIGN_FROM_REQ(tcdm_bus, mem_req_o)
-  `TCDM_ASSIGN_TO_RESP(mem_rsp_i, tcdm_bus)
+  `TCDM_ASSIGN_TO_RSP(mem_rsp_i, tcdm_bus)
 
   // TCDM driver
   tcdm_test::tcdm_driver #(

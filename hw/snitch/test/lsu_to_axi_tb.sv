@@ -5,10 +5,11 @@
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 
 `include "reqrsp_interface/assign.svh"
+`include "snitch/typedef.svh"
 `include "axi/assign.svh"
 
 /// Testbench for the request/response TB
-module reqrsp_to_axi_tb import reqrsp_pkg::*; import snitch_pkg::*; #(
+module lsu_to_axi_tb import snitch_pkg::*; #(
   parameter int unsigned AW = 32,
   parameter int unsigned DW = 32,
   parameter int unsigned IW = 2,
@@ -30,12 +31,12 @@ module reqrsp_to_axi_tb import reqrsp_pkg::*; import snitch_pkg::*; #(
   typedef logic [UW-1:0] user_t;
 
   // interfaces
-  REQRSP_BUS #(
+  LSU_BUS #(
     .ADDR_WIDTH ( AW ),
     .DATA_WIDTH ( DW )
   ) master ();
 
-  REQRSP_BUS_DV #(
+  LSU_BUS_DV #(
     .ADDR_WIDTH ( AW ),
     .DATA_WIDTH ( DW )
   ) master_dv (clk);
@@ -54,19 +55,19 @@ module reqrsp_to_axi_tb import reqrsp_pkg::*; import snitch_pkg::*; #(
     .AXI_USER_WIDTH ( UW )
   ) slave_dv (clk);
 
-  reqrsp_to_axi_intf #(
+  lsu_to_axi_intf #(
     .AxiIdWidth (IW),
     .AddrWidth (AW),
     .DataWidth (DW),
     .UserWidth (UW)
-  ) i_reqrsp_to_axi (
+  ) i_lsu_to_axi (
     .clk_i (clk),
     .rst_ni (rst_n),
-    .reqrsp (master),
+    .lsu (master),
     .axi (slave)
   );
 
-  `REQRSP_ASSIGN(master, master_dv)
+  `LSU_ASSIGN(master, master_dv)
   `AXI_ASSIGN(slave_dv, slave)
   // ----------------
   // Clock generation
@@ -87,20 +88,20 @@ module reqrsp_to_axi_tb import reqrsp_pkg::*; import snitch_pkg::*; #(
   // -------
   // Monitor
   // -------
-  typedef reqrsp_test::reqrsp_monitor #(
-    // Reqrsp bus interface paramaters;
+  typedef lsu_test::lsu_monitor #(
+    // LSU bus interface paramaters;
     .AW ( AW ),
     .DW ( DW ),
     // Stimuli application and test time
     .TA ( ApplTime ),
     .TT ( TestTime )
-  ) reqrsp_monitor_t;
+  ) lsu_monitor_t;
 
-  reqrsp_monitor_t reqrsp_monitor = new (master_dv);
-  // Reqrsp Monitor.
+  lsu_monitor_t lsu_monitor = new (master_dv);
+  // LSU Monitor.
   initial begin
     @(posedge rst_n);
-    reqrsp_monitor.monitor();
+    lsu_monitor.monitor();
   end
 
   // AXI Monitor
@@ -125,16 +126,16 @@ module reqrsp_to_axi_tb import reqrsp_pkg::*; import snitch_pkg::*; #(
   // ----------
   initial begin
     forever begin
-      automatic reqrsp_test::req_t req;
-      automatic reqrsp_test::rsp_t rsp;
+      automatic lsu_test::req_t req;
+      automatic lsu_test::rsp_t rsp;
       automatic axi_monitor_t::ax_beat_t ax;
       automatic axi_monitor_t::b_beat_t b;
       automatic axi_monitor_t::r_beat_t r;
       automatic axi_monitor_t::w_beat_t w;
-      reqrsp_monitor.req_mbx.get(req);
+      lsu_monitor.req_mbx.get(req);
       // check fields match
       // Writes and atomics.
-      // For each "AXI" write (i.e. incl. ATOPs) on the reqrsp bus we want to see a `aw` beat.
+      // For each "AXI" write (i.e. incl. ATOPs) on the lsu bus we want to see a `aw` beat.
       if (req.write | is_amo(req.amo) | (req.amo == AMOSC)) begin
         axi_monitor.aw_mbx.get(ax);
         axi_monitor.w_mbx.get(w);
@@ -151,7 +152,7 @@ module reqrsp_to_axi_tb import reqrsp_pkg::*; import snitch_pkg::*; #(
         // Check exclusive access.
         assert(req.amo != AMOSC || ax.ax_lock == 1);
         axi_monitor.b_mbx.get(b);
-        reqrsp_monitor.rsp_mbx.get(rsp);
+        lsu_monitor.rsp_mbx.get(rsp);
 
         // Check error flag.
         assert(rsp.error == b.b_resp[1])
@@ -172,7 +173,7 @@ module reqrsp_to_axi_tb import reqrsp_pkg::*; import snitch_pkg::*; #(
 
         // Check exclusive access.
         assert(req.amo != AMOLR || ax.ax_lock == 1);
-        reqrsp_monitor.rsp_mbx.get(rsp);
+        lsu_monitor.rsp_mbx.get(rsp);
 
         // Check read data access.
         assert(rsp.data == r.r_data)
@@ -218,16 +219,16 @@ module reqrsp_to_axi_tb import reqrsp_pkg::*; import snitch_pkg::*; #(
 
   rand_axi_slave_t axi_rand_slave = new (slave_dv);
 
-  typedef reqrsp_test::rand_reqrsp_master #(
-    // Reqrsp bus interface paramaters;
+  typedef lsu_test::rand_lsu_master #(
+    // LSU bus interface paramaters;
     .AW ( AW ),
     .DW ( DW ),
     // Stimuli application and test time
     .TA ( ApplTime ),
     .TT ( TestTime )
-  ) reqrsp_driver_t;
+  ) lsu_driver_t;
 
-  reqrsp_driver_t rand_reqrsp_master = new (master_dv);
+  lsu_driver_t rand_lsu_master = new (master_dv);
 
   // AXI side.
   initial begin
@@ -236,40 +237,40 @@ module reqrsp_to_axi_tb import reqrsp_pkg::*; import snitch_pkg::*; #(
     axi_rand_slave.run();
   end
 
-  // Reqrsp master side.
+  // LSU master side.
   initial begin
-    rand_reqrsp_master.reset();
+    rand_lsu_master.reset();
     @(posedge rst_n);
     // Directed testing.
     // 1. Directed testing (read).
     fork
       repeat(NrDirectedReads) begin
-        automatic reqrsp_test::req_t req = new;
+        automatic lsu_test::req_t req = new;
         assert(req.randomize() with { amo == AMONone; write == 0;});
-        rand_reqrsp_master.drv.send_req(req);
+        rand_lsu_master.drv.send_req(req);
       end
       repeat (NrDirectedReads) begin
-        automatic reqrsp_test::rsp_t rsp;
-        rand_reqrsp_master.drv.recv_rsp(rsp);
+        automatic lsu_test::rsp_t rsp;
+        rand_lsu_master.drv.recv_rsp(rsp);
       end
     join
     // 2. Directed testing (write).
     fork
       repeat(NrDirectedWrites) begin
-        automatic reqrsp_test::req_t req = new;
+        automatic lsu_test::req_t req = new;
         assert(req.randomize() with { amo == AMONone; write == 1;});
-        rand_reqrsp_master.drv.send_req(req);
+        rand_lsu_master.drv.send_req(req);
       end
       repeat (NrDirectedWrites) begin
-        automatic reqrsp_test::rsp_t rsp;
-        rand_reqrsp_master.drv.recv_rsp(rsp);
+        automatic lsu_test::rsp_t rsp;
+        rand_lsu_master.drv.recv_rsp(rsp);
       end
     join
     // 3. Random testing.
-    rand_reqrsp_master.run(NrRandomTransactions);
-    $info("Rand reqrsp master finished. Waiting for completion.");
+    rand_lsu_master.run(NrRandomTransactions);
+    $info("Rand lsu master finished. Waiting for completion.");
     // Wait until req/rsp mailboxes are empty.
-    while (reqrsp_monitor.req_mbx.num() > 0 || reqrsp_monitor.rsp_mbx.num() > 0) begin
+    while (lsu_monitor.req_mbx.num() > 0 || lsu_monitor.rsp_mbx.num() > 0) begin
       @(posedge clk);
     end
     $info("Finished Testing %d vectors", NrRandomTransactions + NrDirectedReads + NrDirectedWrites);

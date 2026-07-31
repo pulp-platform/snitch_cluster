@@ -23,7 +23,6 @@
 /// Snitch many-core cluster with improved TCDM interconnect.
 /// Snitch Cluster Top-Level.
 module snitch_cluster
-  import snitch_pkg::*;
   import snitch_icache_pkg::*;
   import snitch_cluster_pkg::*;
 #(
@@ -114,7 +113,7 @@ module snitch_cluster
   /// Per-core number of SSRs.
   parameter int unsigned NumSsrs [NrCores] = '{default: 0},
   /// Per-core depth of TCDM Mux unifying SSR 0 and Snitch requests.
-  parameter int unsigned SsrMuxRespDepth [NrCores] = '{default: 0},
+  parameter int unsigned SsrMuxRspDepth [NrCores] = '{default: 0},
   /// Per-core internal parameters for each SSR.
   parameter snitch_ssr_pkg::ssr_cfg_t [cc_pkg::iomsb(NumSsrsMax):0] SsrCfgs [NrCores] = '{default: '0},
   /// Number of outstanding loads in Spatz
@@ -346,7 +345,6 @@ module snitch_cluster
   localparam logic [PhysicalAddrWidth-1:0] TCDMMask = ~(TCDMSizeNapotRounded - 1);
 
   // User widths
-  localparam int unsigned CoreUserWidth   = 64;
   localparam int unsigned NarrowUserWidth = $bits(user_narrow_t);
   localparam int unsigned WideUserWidth   = $bits(user_dma_t);
 
@@ -463,7 +461,6 @@ module snitch_cluster
   typedef logic [PhysicalAddrWidth-1:0] addr_t;
   typedef logic [NarrowDataWidth-1:0]   data_t;
   typedef logic [NarrowDataWidth/8-1:0] strb_t;
-  typedef logic [CoreUserWidth-1:0]     user_t;
   typedef logic [WideDataWidth-1:0]     data_dma_t;
   typedef logic [WideDataWidth/8-1:0]   strb_dma_t;
   typedef logic [NarrowIdWidthIn-1:0]   id_mst_t;
@@ -489,15 +486,16 @@ module snitch_cluster
 
   `APB_TYPEDEF_ALL(apb, addr_t, data_t, strb_t)
 
-  // Reqrsp interface of the core has a 64b user field
-  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
-  // Reqrsp interface in the cluster additionally contains the cluster ID
+  // LSU interface of the core has a 64b user field
+  `LSU_TYPEDEF_ALL(lsu, NarrowDataWidth, PhysicalAddrWidth, snitch_pkg::UserWidth)
+  // LSU interface in the cluster additionally contains the cluster ID
   // (used for atomic operations) in the user field
-  `REQRSP_TYPEDEF_ALL(reqrsp_amo, addr_t, data_t, strb_t, user_narrow_t)
+  `LSU_TYPEDEF_ALL(lsu_amo, NarrowDataWidth, PhysicalAddrWidth, NarrowUserWidth)
 
   `MEM_TYPEDEF_ALL(mem, tcdm_mem_addr_t, data_t, strb_t, tcdm_user_t)
   `MEM_TYPEDEF_ALL(mem_dma, tcdm_mem_addr_t, data_dma_t, strb_dma_t, logic)
 
+  `TCDM_TYPEDEF_ALL(soc_tcdm, NarrowDataWidth, PhysicalAddrWidth, TcdmUserWidth)
   `TCDM_TYPEDEF_ALL(tcdm, NarrowDataWidth, TCDMAddrWidth, TcdmUserWidth)
 
   // Define dca_lane_req_t and dca_lane_rsp_t
@@ -624,22 +622,24 @@ module snitch_cluster
   tcdm_dma_rsp_t [1:0] ext_dma_rsp;
 
   // AXI Ports into TCDM (from SoC).
-  tcdm_req_t axi_soc_req;
-  tcdm_rsp_t axi_soc_rsp;
+  soc_tcdm_req_t soc_tcdm_req;
+  soc_tcdm_rsp_t soc_tcdm_rsp;
+  tcdm_req_t soc_tcdm_req_resized;
+  tcdm_rsp_t soc_tcdm_rsp_resized;
 
   tcdm_req_t [NrTCDMPortsCores-1:0] tcdm_req;
   tcdm_rsp_t [NrTCDMPortsCores-1:0] tcdm_rsp;
 
-  core_events_t      [NrCores-1:0]        core_events;
+  snitch_pkg::core_events_t [NrCores-1:0] core_events;
   tcdm_events_t                           tcdm_events;
   dma_events_t       [DMANumChannels-1:0] dma_events;
   icache_l0_events_t [NrCores-1:0]        icache_events;
 
   // 4. Memory Subsystem (Core side).
-  reqrsp_req_t [NrCores-1:0] core_req;
-  reqrsp_rsp_t [NrCores-1:0] core_rsp;
-  reqrsp_req_t [NrHives-1:0] ptw_req;
-  reqrsp_rsp_t [NrHives-1:0] ptw_rsp;
+  lsu_req_t [NrCores-1:0] core_req;
+  lsu_rsp_t [NrCores-1:0] core_rsp;
+  lsu_req_t [NrHives-1:0] ptw_req;
+  lsu_rsp_t [NrHives-1:0] ptw_rsp;
 
   // 5. Peripheral Subsystem
   axi_lite_req_t axi_lite_req;
@@ -820,7 +820,7 @@ module snitch_cluster
 
   for (genvar i = 0; i < 2; i++) begin : gen_dma_rw_mem_ports
     assign ext_dma_req[i].q.addr = tcdm_addr_t'(ext_dma_req_q_addr_nontrunc[i]);
-    assign ext_dma_req[i].q.amo = AMONone;
+    assign ext_dma_req[i].q.amo = snitch_pkg::AMONone;
     assign ext_dma_req[i].q.user = '0;
   end
 
@@ -981,8 +981,8 @@ module snitch_cluster
   ) i_tcdm_interconnect (
     .clk_i,
     .rst_ni,
-    .req_i ({axi_soc_req, tcdm_req}),
-    .rsp_o ({axi_soc_rsp, tcdm_rsp}),
+    .req_i ({soc_tcdm_req_resized, tcdm_req}),
+    .rsp_o ({soc_tcdm_rsp_resized, tcdm_rsp}),
     .mem_req_o (ic_req),
     .mem_rsp_i (ic_rsp)
   );
@@ -1037,7 +1037,7 @@ module snitch_cluster
 
     axi_mst_dma_req_t   [DMANumChannels-1:0] axi_dma_req;
     axi_mst_dma_resp_t  [DMANumChannels-1:0] axi_dma_res;
-    interrupts_t irq;
+    snitch_pkg::interrupts_t                 irq;
     dma_events_t        [DMANumChannels-1:0] dma_core_events;
 
     tc_sync #(.Stages (2))
@@ -1068,8 +1068,6 @@ module snitch_cluster
       .DMANumAxInFlight (DMANumAxInFlight),
       .DMAReqFifoDepth (DMAReqFifoDepth),
       .DMANumChannels (DMANumChannels),
-      .dreq_t (reqrsp_req_t),
-      .drsp_t (reqrsp_rsp_t),
       .axi_ar_chan_t (axi_mst_dma_ar_chan_t),
       .axi_aw_chan_t (axi_mst_dma_aw_chan_t),
       .axi_req_t (axi_mst_dma_req_t),
@@ -1098,7 +1096,7 @@ module snitch_cluster
       .NumSequencerInstr (NumSequencerInstr[i]),
       .NumSequencerLoops (NumSequencerLoops[i]),
       .NumSsrs (NumSsrs[i]),
-      .SsrMuxRespDepth (SsrMuxRespDepth[i]),
+      .SsrMuxRspDepth (SsrMuxRspDepth[i]),
       .SsrCfgs (SsrCfgs[i][cc_pkg::iomsb(NumSsrs[i]):0]),
       .SsrRegs (SsrRegs[i][cc_pkg::iomsb(NumSsrs[i]):0]),
       .NumSpatzOutstandingLoads (NumSpatzOutstandingLoads[i]),
@@ -1130,8 +1128,8 @@ module snitch_cluster
       .hive_req_o (hive_req[i]),
       .hive_rsp_i (hive_rsp[i]),
       .irq_i (irq),
-      .data_req_o (core_req[i]),
-      .data_rsp_i (core_rsp[i]),
+      .soc_req_o (core_req[i]),
+      .soc_rsp_i (core_rsp[i]),
       .tcdm_req_o (tcdm_req_wo_user),
       .tcdm_rsp_i (tcdm_rsp[TcdmPortsOffs+:TcdmPorts]),
       .x_issue_req_o (x_issue_req_o[i]),
@@ -1200,8 +1198,7 @@ module snitch_cluster
       .VMSupport (VMSupport),
       .SharedIpu (SharedIpu),
       .Xpulpv2 (Xpulpv2),
-      .dreq_t (reqrsp_req_t),
-      .drsp_t (reqrsp_rsp_t),
+      .UserWidth (snitch_pkg::UserWidth),
       .hive_req_t (hive_req_t),
       .hive_rsp_t (hive_rsp_t),
       .CoreCount (HiveSize),
@@ -1234,17 +1231,16 @@ module snitch_cluster
   // --------
   // PTW Demux
   // --------
-  reqrsp_req_t ptw_to_axi_req;
-  reqrsp_rsp_t ptw_to_axi_rsp;
+  lsu_req_t ptw_to_axi_req;
+  lsu_rsp_t ptw_to_axi_rsp;
+  lsu_amo_req_t ptw_to_axi_amo_req;
+  lsu_amo_rsp_t ptw_to_axi_amo_rsp;
 
   reqrsp_mux #(
     .NrPorts (NrHives),
-    .AddrWidth (PhysicalAddrWidth),
-    .DataWidth (NarrowDataWidth),
-    .UserWidth (CoreUserWidth),
-    .req_t (reqrsp_req_t),
-    .rsp_t (reqrsp_rsp_t),
-    .RespDepth (2)
+    .req_chan_t (lsu_req_chan_t),
+    .rsp_chan_t (lsu_rsp_chan_t),
+    .RspDepth (2)
   ) i_reqrsp_mux_ptw (
     .clk_i,
     .rst_ni,
@@ -1252,20 +1248,34 @@ module snitch_cluster
     .slv_rsp_o (ptw_rsp),
     .mst_req_o (ptw_to_axi_req),
     .mst_rsp_i (ptw_to_axi_rsp),
+    .rsp_route_i ('0),
     .idx_o (/*not connected*/)
   );
 
-  reqrsp_to_axi #(
+  lsu_width_converter #(
+    .InAddrWidth  (PhysicalAddrWidth),
+    .InDataWidth  (NarrowDataWidth),
+    .InUserWidth  (snitch_pkg::UserWidth),
+    .OutAddrWidth (PhysicalAddrWidth),
+    .OutDataWidth (NarrowDataWidth),
+    .OutUserWidth (NarrowUserWidth)
+  ) i_lsu_width_converter_ptw_to_axi (
+    .lsu_req_i (ptw_to_axi_req),
+    .lsu_rsp_o (ptw_to_axi_rsp),
+    .lsu_req_o (ptw_to_axi_amo_req),
+    .lsu_rsp_i (ptw_to_axi_amo_rsp)
+  );
+
+  lsu_to_axi #(
+    .AddrWidth (PhysicalAddrWidth),
     .DataWidth (NarrowDataWidth),
-    .reqrsp_req_t (reqrsp_req_t),
-    .reqrsp_rsp_t (reqrsp_rsp_t),
-    .axi_req_t (axi_mst_req_t),
-    .axi_rsp_t (axi_mst_resp_t)
-  ) i_reqrsp_to_axi_ptw (
+    .IdWidth (NarrowIdWidthOut),
+    .UserWidth (NarrowUserWidth)
+  ) i_lsu_to_axi_ptw (
     .clk_i,
     .rst_ni,
-    .reqrsp_req_i (ptw_to_axi_req),
-    .reqrsp_rsp_o (ptw_to_axi_rsp),
+    .lsu_req_i (ptw_to_axi_amo_req),
+    .lsu_rsp_o (ptw_to_axi_amo_rsp),
     .axi_req_o (narrow_axi_mst_req[PTW]),
     .axi_rsp_i (narrow_axi_mst_rsp[PTW])
   );
@@ -1283,17 +1293,14 @@ module snitch_cluster
     .barrier_o(barrier_out)
   );
 
-  reqrsp_req_t core_to_axi_req;
-  reqrsp_rsp_t core_to_axi_rsp;
+  lsu_req_t core_to_axi_req;
+  lsu_rsp_t core_to_axi_rsp;
 
   reqrsp_mux #(
     .NrPorts (NrCores),
-    .AddrWidth (PhysicalAddrWidth),
-    .DataWidth (NarrowDataWidth),
-    .UserWidth (CoreUserWidth),
-    .req_t (reqrsp_req_t),
-    .rsp_t (reqrsp_rsp_t),
-    .RespDepth (2)
+    .req_chan_t (lsu_req_chan_t),
+    .rsp_chan_t (lsu_rsp_chan_t),
+    .RspDepth (2)
   ) i_reqrsp_mux_core (
     .clk_i,
     .rst_ni,
@@ -1301,6 +1308,7 @@ module snitch_cluster
     .slv_rsp_o (core_rsp),
     .mst_req_o (core_to_axi_req),
     .mst_rsp_i (core_to_axi_rsp),
+    .rsp_route_i ('0),
     .idx_o (/*unused*/)
   );
 
@@ -1327,8 +1335,8 @@ module snitch_cluster
     };
   end
 
-  reqrsp_amo_req_t core_to_axi_amo_req;
-  reqrsp_amo_rsp_t core_to_axi_amo_rsp;
+  lsu_amo_req_t core_to_axi_amo_req;
+  lsu_amo_rsp_t core_to_axi_amo_rsp;
 
   always_comb begin
     core_to_axi_amo_req.q.addr  = core_to_axi_req.q.addr;
@@ -1343,17 +1351,16 @@ module snitch_cluster
     core_to_axi_rsp             = core_to_axi_amo_rsp;
   end
 
-  reqrsp_to_axi #(
+  lsu_to_axi #(
+    .AddrWidth (PhysicalAddrWidth),
     .DataWidth (NarrowDataWidth),
-    .reqrsp_req_t (reqrsp_amo_req_t),
-    .reqrsp_rsp_t (reqrsp_amo_rsp_t),
-    .axi_req_t (axi_mst_req_t),
-    .axi_rsp_t (axi_mst_resp_t)
-  ) i_reqrsp_to_axi_core (
+    .IdWidth (NarrowIdWidthOut),
+    .UserWidth (NarrowUserWidth)
+  ) i_lsu_to_axi_core (
     .clk_i,
     .rst_ni,
-    .reqrsp_req_i (core_to_axi_amo_req),
-    .reqrsp_rsp_o (core_to_axi_amo_rsp),
+    .lsu_req_i (core_to_axi_amo_req),
+    .lsu_rsp_o (core_to_axi_amo_rsp),
     .axi_req_o (narrow_axi_mst_req[CoreReq]),
     .axi_rsp_i (narrow_axi_mst_rsp[CoreReq])
   );
@@ -1477,10 +1484,6 @@ module snitch_cluster
   // 1. TCDM
   // Add an adapter that allows access from AXI to the TCDM.
   axi_to_tcdm #(
-    .axi_req_t (axi_slv_req_t),
-    .axi_rsp_t (axi_slv_resp_t),
-    .tcdm_req_t (tcdm_req_t),
-    .tcdm_rsp_t (tcdm_rsp_t),
     .AddrWidth (PhysicalAddrWidth),
     .DataWidth (NarrowDataWidth),
     .IdWidth (NarrowIdWidthOut),
@@ -1491,8 +1494,22 @@ module snitch_cluster
     .rst_ni,
     .axi_req_i (narrow_axi_slv_req[TCDM]),
     .axi_rsp_o (narrow_axi_slv_rsp[TCDM]),
-    .tcdm_req_o (axi_soc_req),
-    .tcdm_rsp_i (axi_soc_rsp)
+    .tcdm_req_o (soc_tcdm_req),
+    .tcdm_rsp_i (soc_tcdm_rsp)
+  );
+
+  tcdm_width_converter #(
+    .InAddrWidth  (PhysicalAddrWidth),
+    .InDataWidth  (NarrowDataWidth),
+    .InUserWidth  (TcdmUserWidth),
+    .OutAddrWidth (TCDMAddrWidth),
+    .OutDataWidth (NarrowDataWidth),
+    .OutUserWidth (TcdmUserWidth)
+  ) i_tcdm_width_converter_axi_soc (
+    .tcdm_req_i (soc_tcdm_req),
+    .tcdm_rsp_o (soc_tcdm_rsp),
+    .tcdm_req_o (soc_tcdm_req_resized),
+    .tcdm_rsp_i (soc_tcdm_rsp_resized)
   );
 
   // 2. Peripherals

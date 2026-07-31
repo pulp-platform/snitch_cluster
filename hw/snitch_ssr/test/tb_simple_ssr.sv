@@ -31,7 +31,7 @@ module tb_simple_ssr;
     ShiftWidth:     3,
     IndexCredits:   3,
     DataCredits:    4,
-    MuxRespDepth:   3,
+    MuxRspDepth:    3,
     RptWidth:       4,
     // Zero intersection params
     default:        '0

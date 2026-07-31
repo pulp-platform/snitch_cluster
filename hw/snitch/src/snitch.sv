@@ -64,8 +64,8 @@ Ports:
   f2i_wdata_i        - FPSS-to-integer (F2I) packet.
   f2i_wvalid_i       - F2I valid.
   f2i_wready_o       - F2I ready.
-  data_req_o         - Data interface (outgoing). Transactions need to be handled strictly in-order.
-  data_rsp_i         - Data interface (incoming). Transactions need to be handled strictly in-order.
+  lsu_req_o          - LSU interface (outgoing). Transactions need to be handled strictly in-order.
+  lsu_rsp_i          - LSU interface (incoming). Transactions need to be handled strictly in-order.
   ptw_req_o          - Address translation interface (outgoing).
   ptw_rsp_i          - Address translation interface (incoming).
   fpu_rnd_mode_o     - FPU control interface, rounding mode.
@@ -77,7 +77,10 @@ Ports:
   barrier_o          - Signals core's arrival on a cluster hardware barrier.
   barrier_i          - Signals to the core that it can depart from a cluster hardware barrier.
 */
-module snitch import snitch_pkg::*; import snitch_riscv_instr::*; #(
+module snitch
+  import snitch_pkg::*;
+  import snitch_riscv_instr::*; 
+#(
   parameter logic [31:0] BootAddr = 32'h0000_1000,
   parameter isa_cfg_t    IsaCfg = '0,
   parameter bit          NativeFpSupport = 1'b0,
@@ -105,8 +108,8 @@ module snitch import snitch_pkg::*; import snitch_riscv_instr::*; #(
   localparam type x_register_t   = `CV_X_IF_REGISTER_STRUCT(XifIdWidth),
   localparam type x_commit_t     = `CV_X_IF_COMMIT_STRUCT(XifIdWidth),
   localparam type x_result_t     = `CV_X_IF_RESULT_STRUCT(XifIdWidth),
-  localparam type dreq_t         = `SNITCH_DATA_REQ_STRUCT(DataWidth, AddrWidth),
-  localparam type drsp_t         = `SNITCH_DATA_RSP_STRUCT(DataWidth),
+  localparam type lsu_req_t      = `LSU_REQ_STRUCT(DataWidth, AddrWidth, UserWidth),
+  localparam type lsu_rsp_t      = `LSU_RSP_STRUCT(DataWidth),
   localparam type ptw_req_t      = `SNITCH_PTW_REQ_STRUCT(AddrWidth),
   localparam type ptw_rsp_t      = `SNITCH_PTW_RSP_STRUCT(AddrWidth)
 ) (
@@ -141,8 +144,8 @@ module snitch import snitch_pkg::*; import snitch_riscv_instr::*; #(
   input  logic [31:0]           f2i_wdata_i,
   input  logic                  f2i_wvalid_i,
   output logic                  f2i_wready_o,
-  output dreq_t                 data_req_o,
-  input  drsp_t                 data_rsp_i,
+  output lsu_req_t              lsu_req_o,
+  input  lsu_rsp_t              lsu_rsp_i,
   output ptw_req_t [1:0]        ptw_req_o,
   input  ptw_rsp_t [1:0]        ptw_rsp_i,
   output fpnew_pkg::roundmode_e fpu_rnd_mode_o,
@@ -3814,9 +3817,7 @@ module snitch import snitch_pkg::*; import snitch_riscv_instr::*; #(
   snitch_lsu #(
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
-    .UserWidth (64),
-    .dreq_t (dreq_t),
-    .drsp_t (drsp_t),
+    .UserWidth (UserWidth),
     .tag_t (logic[RegWidth-1:0]),
     .NumOutstandingMem (NumIntOutstandingMem),
     .NumOutstandingLoads (NumIntOutstandingLoads),
@@ -3851,8 +3852,8 @@ module snitch import snitch_pkg::*; import snitch_riscv_instr::*; #(
     .caq_pvalid_i,
     .caq_pvalid_o ( ),
     .caq_empty_o (caq_empty),
-    .data_req_o,
-    .data_rsp_i
+    .data_req_o (lsu_req_o),
+    .data_rsp_i (lsu_rsp_i)
   );
 
   assign lsu_tlb_qvalid = valid_instr & (is_load | is_store)

@@ -125,13 +125,11 @@ module snitch_ssr import snitch_ssr_pkg::*; #(
 
   if (Cfg.Indirection) begin : gen_demux
     tcdm_mux #(
-      .NrPorts    ( 2             ),
-      .AddrWidth  ( AddrWidth     ),
-      .DataWidth  ( DataWidth     ),
-      .UserWidth  ( UserWidth     ),
-      .RespDepth  ( Cfg.MuxRespDepth  ),
-      .tcdm_req_t ( tcdm_req_t    ),
-      .tcdm_rsp_t ( tcdm_rsp_t    )
+      .NrPorts   ( 2               ),
+      .RspDepth  ( Cfg.MuxRspDepth ),
+      .AddrWidth ( AddrWidth       ),
+      .DataWidth ( DataWidth       ),
+      .UserWidth ( UserWidth       )
     ) i_tcdm_mux (
       .clk_i,
       .rst_ni,

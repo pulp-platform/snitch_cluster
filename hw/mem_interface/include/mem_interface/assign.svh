@@ -54,9 +54,9 @@
 // The request macro `MEM_ASSIGN_FROM_REQ(MEM_if, req_struct)` assigns the
 // request channel and the request-side handshake signals of the `MEM_if`
 // interface from the signals in `req_struct`. The response macro
-// `MEM_ASSIGN_FROM_RESP(MEM_if, resp_struct)` assigns the response
+// `MEM_ASSIGN_FROM_RSP(MEM_if, rsp_struct)` assigns the response
 // channel and the response-side handshake signals of the `MEM_if` interface
-// from the signals in `resp_struct`.
+// from the signals in `rsp_struct`.
 //
 // Usage Example:
 // `MEM_ASSIGN_FROM_REQ(my_if, my_req_struct)
@@ -64,9 +64,9 @@
   `MEM_ASSIGN_VALID(assign, MEM_if, req_struct, q)     \
   `MEM_ASSIGN_Q_CHAN(assign, MEM_if, req_struct, _, .)
 
-`define MEM_ASSIGN_FROM_RESP(MEM_if, resp_struct)       \
-  `MEM_ASSIGN_READY(assign, MEM_if, resp_struct, q)     \
-  `MEM_ASSIGN_P_CHAN(assign, MEM_if, resp_struct, _, .)
+`define MEM_ASSIGN_FROM_RSP(MEM_if, rsp_struct)       \
+  `MEM_ASSIGN_READY(assign, MEM_if, rsp_struct, q)     \
+  `MEM_ASSIGN_P_CHAN(assign, MEM_if, rsp_struct, _, .)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -74,11 +74,11 @@
 // Assigning channel or request/response structs from an interface outside a
 // process.
 //
-// The request macro `MEM_ASSIGN_TO_REQ(MEM_if, req_struct)` assigns all
+// The request macro `MEM_ASSIGN_TO_REQ(req_struct, MEM_if)` assigns all
 // signals of `req_struct` payload and request-side handshake signals to the
 // signals in the `MEM_if` interface. The response macro
-// `MEM_ASSIGN_TO_RESP(MEM_if, resp_struct)` assigns all signals of
-// `resp_struct` payload and response-side handshake signals to the signals in
+// `MEM_ASSIGN_TO_RSP(rsp_struct, MEM_if)` assigns all signals of
+// `rsp_struct` payload and response-side handshake signals to the signals in
 // the `MEM_if` interface.
 //
 // Usage Example:
@@ -87,9 +87,9 @@
   `MEM_ASSIGN_VALID(assign, req_struct, MEM_if, q)     \
   `MEM_ASSIGN_Q_CHAN(assign, req_struct, MEM_if, ., _)
 
-`define MEM_ASSIGN_TO_RESP(resp_struct, MEM_if)         \
-  `MEM_ASSIGN_READY(assign, resp_struct, MEM_if, q)     \
-  `MEM_ASSIGN_P_CHAN(assign, resp_struct, MEM_if, ., _)
+`define MEM_ASSIGN_TO_RSP(rsp_struct, MEM_if)         \
+  `MEM_ASSIGN_READY(assign, rsp_struct, MEM_if, q)     \
+  `MEM_ASSIGN_P_CHAN(assign, rsp_struct, MEM_if, ., _)
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 `endif

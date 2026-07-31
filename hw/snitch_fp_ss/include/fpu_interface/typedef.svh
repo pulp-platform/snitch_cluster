@@ -30,10 +30,10 @@
   }
 
 `define FPU_REQ_STRUCT(__data_width, __tag_t) \
-  `GENERIC_REQRSP_REQ_STRUCT(`FPU_REQ_CHAN_STRUCT(__data_width, __tag_t))
+  `REQRSP_REQ_STRUCT(`FPU_REQ_CHAN_STRUCT(__data_width, __tag_t))
 
 `define FPU_RSP_STRUCT(__data_width, __tag_t) \
-  `GENERIC_REQRSP_RSP_STRUCT(`FPU_RSP_CHAN_STRUCT(__data_width, __tag_t))
+  `REQRSP_RSP_STRUCT(`FPU_RSP_CHAN_STRUCT(__data_width, __tag_t))
 
 `define FPU_TYPEDEF_REQ_CHAN_T(__name, __data_width, __tag_t) \
   typedef `FPU_REQ_CHAN_STRUCT(__data_width, __tag_t) __name``_req_chan_t;
@@ -47,6 +47,6 @@
 
 `define FPU_TYPEDEF_REQRSP_ALL(__name, __data_width, __tag_t) \
   `FPU_TYPEDEF_REQRSP_CHAN_ALL(__name, __data_width, __tag_t) \
-  `GENERIC_REQRSP_TYPEDEF_ALL(__name, __name``_req_chan_t, __name``_rsp_chan_t)
+  `REQRSP_TYPEDEF_ALL(__name, __name``_req_chan_t, __name``_rsp_chan_t)
 
 `endif // FPU_INTERFACE_TYPEDEF_SVH_

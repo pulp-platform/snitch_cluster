@@ -6,13 +6,15 @@
 
 `include "common_cells/registers.svh"
 `include "common_cells/assertions.svh"
+`include "snitch/typedef.svh"
+`include "axi/typedef.svh"
 
-/// Convert reqrsp to AXI.
+/// Convert the Snitch LSU interface to AXI.
 ///
 /// Two things make this module a bit more special:
 /// 1. We need to be careful with the memory model: AXI does not imply any
 ///    ordering between the read and the write channel. On the other hand the
-///    reqrsp protocol does (implicitly because everything is in issue order).
+///    LSU protocol does (implicitly because everything is in issue order).
 /// 2. Atomic memory operations are supported and they are a bit quirky in the
 ///    AXI5 standard. In particular the kind of break the assumption that every
 ///    `AW` implies exactly one `B` because the read data is also returned on
@@ -40,23 +42,37 @@
 ///
 /// This module does not emit any bursts, but AXI5 capability is needed because
 /// of the atomic memory operations.
-module reqrsp_to_axi import reqrsp_pkg::*; import snitch_pkg::*; #(
+module lsu_to_axi import snitch_pkg::*; #(
   /// Number of same transactions which can be in-flight
   /// simulatnously. Must be greater than 1.
   parameter int unsigned MaxTrans = 4,
   /// ID with which to send the transactions.
   parameter int unsigned ID = 0,
-  /// Data width of bus, must be 32 or 64.
-  parameter int unsigned DataWidth = 32'b0,
-  parameter type reqrsp_req_t = logic,
-  parameter type reqrsp_rsp_t = logic,
-  parameter type axi_req_t = logic,
-  parameter type axi_rsp_t = logic
+  parameter int unsigned AddrWidth = 0,
+  parameter int unsigned DataWidth = 0,
+  parameter int unsigned IdWidth = 0,
+  parameter int unsigned UserWidth = 0,
+  /// Derived parameters *do not override*
+  localparam int unsigned StrbWidth = DataWidth/8,
+  localparam type addr_t = logic [AddrWidth-1:0],
+  localparam type data_t = logic [DataWidth-1:0],
+  localparam type strb_t = logic [StrbWidth-1:0],
+  localparam type id_t = logic [IdWidth-1:0],
+  localparam type user_t = logic [UserWidth-1:0],
+  localparam type lsu_req_t = `LSU_REQ_STRUCT(DataWidth, AddrWidth, UserWidth),
+  localparam type lsu_rsp_t = `LSU_RSP_STRUCT(DataWidth),
+  localparam type aw_chan_t = `AXI_DECL_AW_CHAN_T(addr_t, id_t, user_t),
+  localparam type w_chan_t = `AXI_DECL_W_CHAN_T(data_t, strb_t, user_t),
+  localparam type b_chan_t = `AXI_DECL_B_CHAN_T(id_t, user_t),
+  localparam type ar_chan_t = `AXI_DECL_AR_CHAN_T(addr_t, id_t, user_t),
+  localparam type r_chan_t = `AXI_DECL_R_CHAN_T(data_t, id_t, user_t),
+  localparam type axi_req_t = `AXI_DECL_REQ_T(aw_chan_t, w_chan_t, ar_chan_t),
+  localparam type axi_rsp_t = `AXI_DECL_RESP_T(b_chan_t, r_chan_t)
 ) (
   input  logic clk_i,
   input  logic rst_ni,
-  input  reqrsp_req_t reqrsp_req_i,
-  output reqrsp_rsp_t reqrsp_rsp_o,
+  input  lsu_req_t lsu_req_i,
+  output lsu_rsp_t lsu_rsp_o,
   output axi_req_t axi_req_o,
   input  axi_rsp_t axi_rsp_i
 );
@@ -87,8 +103,8 @@ module reqrsp_to_axi import reqrsp_pkg::*; import snitch_pkg::*; #(
   // AMos need to make sure that they don't re-use an in-flight ID.
   logic stall_amo;
 
-  assign req_is_amo = is_amo(reqrsp_req_i.q.amo);
-  assign is_write = reqrsp_req_i.q.write | req_is_amo | (reqrsp_req_i.q.amo == AMOSC);
+  assign req_is_amo = is_amo(lsu_req_i.q.amo);
+  assign is_write = lsu_req_i.q.write | req_is_amo | (lsu_req_i.q.amo == AMOSC);
 
   assign dec_read_cnt = r_valid & r_ready;
   assign dec_write_cnt = axi_rsp_i.b_valid & axi_req_o.b_ready;
@@ -110,12 +126,12 @@ module reqrsp_to_axi import reqrsp_pkg::*; import snitch_pkg::*; #(
   // Incoming handshake. Make sure we can accept the new transactions according
   // to our rules.
   always_comb begin
-    q_valid = reqrsp_req_i.q_valid;
-    reqrsp_rsp_o.q_ready = q_ready;
+    q_valid = lsu_req_i.q_valid;
+    lsu_rsp_o.q_ready = q_ready;
     // Stall new transaction.
     if (atomic_in_flight_q || stall_write || stall_read || stall_amo) begin
       q_valid = 1'b0;
-      reqrsp_rsp_o.q_ready = 1'b0;
+      lsu_rsp_o.q_ready = 1'b0;
     end
   end
 
@@ -137,7 +153,7 @@ module reqrsp_to_axi import reqrsp_pkg::*; import snitch_pkg::*; #(
     read_cnt_d = read_cnt_q;
     write_cnt_d = write_cnt_q;
 
-    if (reqrsp_req_i.q_valid && reqrsp_rsp_o.q_ready) begin
+    if (lsu_req_i.q_valid && lsu_rsp_o.q_ready) begin
       // Set atomic in-flight flag if we sent an atomic.
       if (req_is_amo) begin
         atomic_in_flight_d = 1'b1;
@@ -167,13 +183,13 @@ module reqrsp_to_axi import reqrsp_pkg::*; import snitch_pkg::*; #(
   // -------------
 
   // AXI read bus assignment.
-  assign axi_req_o.ar.addr   = reqrsp_req_i.q.addr;
-  assign axi_req_o.ar.size   = {1'b0, reqrsp_req_i.q.size};
+  assign axi_req_o.ar.addr   = lsu_req_i.q.addr;
+  assign axi_req_o.ar.size   = {1'b0, lsu_req_i.q.size};
   assign axi_req_o.ar.burst  = axi_pkg::BURST_INCR;
-  assign axi_req_o.ar.lock   = (reqrsp_req_i.q.amo == AMOLR);
+  assign axi_req_o.ar.lock   = (lsu_req_i.q.amo == AMOLR);
   assign axi_req_o.ar.cache  = axi_pkg::CACHE_MODIFIABLE;
   assign axi_req_o.ar.id     = ID;
-  assign axi_req_o.ar.user   = reqrsp_req_i.q.user;
+  assign axi_req_o.ar.user   = lsu_req_i.q.user;
   assign axi_req_o.ar_valid  = q_valid_read;
   assign q_ready_read        = axi_rsp_i.ar_ready;
 
@@ -182,17 +198,17 @@ module reqrsp_to_axi import reqrsp_pkg::*; import snitch_pkg::*; #(
   // -------------
 
   // AXI write bus assignment.
-  assign axi_req_o.aw.addr   = reqrsp_req_i.q.addr;
-  assign axi_req_o.aw.size   = {1'b0, reqrsp_req_i.q.size};
+  assign axi_req_o.aw.addr   = lsu_req_i.q.addr;
+  assign axi_req_o.aw.size   = {1'b0, lsu_req_i.q.size};
   assign axi_req_o.aw.burst  = axi_pkg::BURST_INCR;
-  assign axi_req_o.aw.lock   = (reqrsp_req_i.q.amo == AMOSC);
+  assign axi_req_o.aw.lock   = (lsu_req_i.q.amo == AMOSC);
   assign axi_req_o.aw.cache  = axi_pkg::CACHE_MODIFIABLE;
   assign axi_req_o.aw.id     = ID;
-  assign axi_req_o.aw.user   = reqrsp_req_i.q.user;
+  assign axi_req_o.aw.user   = lsu_req_i.q.user;
   assign axi_req_o.w.data    = write_data;
-  assign axi_req_o.w.strb    = reqrsp_req_i.q.strb;
+  assign axi_req_o.w.strb    = lsu_req_i.q.strb;
   assign axi_req_o.w.last    = 1'b1;
-  assign axi_req_o.w.user    = reqrsp_req_i.q.user;
+  assign axi_req_o.w.user    = lsu_req_i.q.user;
 
   // Both channels need to handshake (independently).
   cc_stream_fork #(
@@ -210,12 +226,12 @@ module reqrsp_to_axi import reqrsp_pkg::*; import snitch_pkg::*; #(
   `ASSERT(AssertStability, q_valid_write && !q_ready_write |=> q_valid_write)
 
   // Atomic signalling.
-  assign axi_req_o.aw.atop = to_axi_amo(reqrsp_req_i.q.amo);
+  assign axi_req_o.aw.atop = to_axi_amo(lsu_req_i.q.amo);
   always_comb begin
-    write_data = reqrsp_req_i.q.data;
-    if (reqrsp_req_i.q.amo == AMOAnd) begin
+    write_data = lsu_req_i.q.data;
+    if (lsu_req_i.q.amo == AMOAnd) begin
       // in this case we need to invert the data to get a "CLR"
-      write_data = ~reqrsp_req_i.q.data;
+      write_data = ~lsu_req_i.q.data;
     end
   end
 
@@ -237,33 +253,33 @@ module reqrsp_to_axi import reqrsp_pkg::*; import snitch_pkg::*; #(
   // As we can never have two read and write transactions in-flight (except for
   // atomics) simultaneously return path arbitration becomes quite an simply an
   // `or` between `r` and `b` channel.
-  assign reqrsp_rsp_o.p.error = (r_valid & axi_rsp_i.r.resp[1])
+  assign lsu_rsp_o.p.error = (r_valid & axi_rsp_i.r.resp[1])
                               | (axi_rsp_i.b_valid & axi_rsp_i.b.resp[1]);
 
   // In case we have an atomic instruction in-flight we don't pass on the
   // b channel as we are just interested in the read data. The logic in this
   // module will make sure that we only issue new instructions if the atomic has
   // been fully resolved.
-  assign reqrsp_rsp_o.p_valid = r_valid | (~atomic_in_flight_q & axi_rsp_i.b_valid);
+  assign lsu_rsp_o.p_valid = r_valid | (~atomic_in_flight_q & axi_rsp_i.b_valid);
   // In case we have an atomic in flight we need to delay the r response. In AXI
   // they can come before the interface accepted the W beat, this would mess
   // with the counters (underflow).
-  assign r_ready = reqrsp_req_i.p_ready & r_valid;
-  assign axi_req_o.b_ready = (reqrsp_req_i.p_ready | atomic_in_flight_q) & axi_rsp_i.b_valid;
+  assign r_ready = lsu_req_i.p_ready & r_valid;
+  assign axi_req_o.b_ready = (lsu_req_i.p_ready | atomic_in_flight_q) & axi_rsp_i.b_valid;
 
   always_comb begin
-    reqrsp_rsp_o.p.data = '0;
+    lsu_rsp_o.p.data = '0;
     // Normal case.
-    if (r_valid) reqrsp_rsp_o.p.data = axi_rsp_i.r.data;
+    if (r_valid) lsu_rsp_o.p.data = axi_rsp_i.r.data;
     // In case we got a B response and this wasn't an atomic, let's check
     // if we need to signal an `exclusive error` i.e., check if the we got `RESP_EXOKAY`.
     // In case we didn't, we set the response to `1` which signals a failed
-    // store conditional for the reqrsp interface.
+    // store conditional for the LSU interface.
     if ((axi_rsp_i.b_valid && ~atomic_in_flight_q
           && axi_rsp_i.b.resp != axi_pkg::RESP_EXOKAY)) begin
       // Set all 32-bit words to 1 since we don't know the alignment
       // and which bits are cut off by the core.
-      reqrsp_rsp_o.p.data = {DataWidth/32{32'h1}};
+      lsu_rsp_o.p.data = {DataWidth/32{32'h1}};
     end
   end
 
@@ -279,82 +295,13 @@ module reqrsp_to_axi import reqrsp_pkg::*; import snitch_pkg::*; #(
 
   // Assertions:
   // Make sure that write is never set for AMOs.
-  `ASSERT(AMOWriteEnable, reqrsp_req_i.q_valid &&
-    (reqrsp_req_i.q.amo != snitch_pkg::AMONone) |-> !reqrsp_req_i.q.write)
+  `ASSERT(AMOWriteEnable, lsu_req_i.q_valid &&
+    (lsu_req_i.q.amo != snitch_pkg::AMONone) |-> !lsu_req_i.q.write)
   // Check that the data width is in the range of 32 or 64 bit. We didn't define
   // any other bus widths so far.
   `ASSERT_INIT(check_DataWidth, DataWidth inside {32, 64})
   `ASSERT_INIT(MaxTrans_greater_than_one, MaxTrans > 1)
   // 1. Assert that the in-flight counters are never both 2+ == 2+, that would
   //    imply an illegal state.
-
-endmodule
-
-`include "reqrsp_interface/typedef.svh"
-`include "reqrsp_interface/assign.svh"
-`include "axi/typedef.svh"
-`include "axi/assign.svh"
-
-module reqrsp_to_axi_intf #(
-  /// ID width which to send the transactions.
-  parameter int unsigned ID = 0,
-  /// AXI ID width.
-  parameter int unsigned AxiIdWidth = 32'd0,
-  /// AXI and REQRSP address width.
-  parameter int unsigned AddrWidth = 32'd0,
-  /// AXI and REQRSP data width.
-  parameter int unsigned DataWidth = 32'd0,
-  /// AXI and REQRSP user width.
-  parameter int unsigned UserWidth = 32'd0
-) (
-  input logic clk_i,
-  input logic rst_ni,
-  REQRSP_BUS  reqrsp,
-  AXI_BUS     axi
-);
-
-  typedef logic [AddrWidth-1:0] addr_t;
-  typedef logic [DataWidth-1:0] data_t;
-  typedef logic [DataWidth/8-1:0] strb_t;
-  typedef logic [AxiIdWidth-1:0] id_t;
-  typedef logic [UserWidth-1:0] user_t;
-
-  `REQRSP_TYPEDEF_ALL(reqrsp, addr_t, data_t, strb_t, user_t)
-
-  `AXI_TYPEDEF_AW_CHAN_T(aw_chan_t, addr_t, id_t, user_t)
-  `AXI_TYPEDEF_W_CHAN_T(w_chan_t, data_t, strb_t, user_t)
-  `AXI_TYPEDEF_B_CHAN_T(b_chan_t, id_t, user_t)
-  `AXI_TYPEDEF_AR_CHAN_T(ar_chan_t, addr_t, id_t, user_t)
-  `AXI_TYPEDEF_R_CHAN_T(r_chan_t, data_t, id_t, user_t)
-
-  `AXI_TYPEDEF_REQ_T(axi_req_t, aw_chan_t, w_chan_t, ar_chan_t)
-  `AXI_TYPEDEF_RESP_T(axi_rsp_t, b_chan_t, r_chan_t)
-
-  reqrsp_req_t reqrsp_req;
-  reqrsp_rsp_t reqrsp_rsp;
-
-  axi_req_t axi_req;
-  axi_rsp_t axi_rsp;
-
-  reqrsp_to_axi #(
-    .DataWidth ( DataWidth ),
-    .reqrsp_req_t (reqrsp_req_t),
-    .reqrsp_rsp_t (reqrsp_rsp_t),
-    .axi_req_t (axi_req_t),
-    .axi_rsp_t (axi_rsp_t)
-  ) i_reqrsp_to_axi (
-    .clk_i,
-    .rst_ni,
-    .reqrsp_req_i (reqrsp_req),
-    .reqrsp_rsp_o (reqrsp_rsp),
-    .axi_req_o (axi_req),
-    .axi_rsp_i (axi_rsp)
-  );
-
-  `REQRSP_ASSIGN_TO_REQ(reqrsp_req, reqrsp)
-  `REQRSP_ASSIGN_FROM_RESP(reqrsp, reqrsp_rsp)
-
-  `AXI_ASSIGN_FROM_REQ(axi, axi_req)
-  `AXI_ASSIGN_TO_RESP(axi_rsp, axi)
 
 endmodule

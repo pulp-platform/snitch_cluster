@@ -4,6 +4,8 @@
 
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 
+`include "snitch/typedef.svh"
+
 /// Load Store Unit (can handle `NumOutstandingLoads` outstanding loads and
 /// `NumOutstandingMem` requests in total) and optionally NaNBox if used in a
 /// floating-point setting. It expects its memory sub-system to keep order (as if
@@ -34,12 +36,12 @@ module snitch_lsu import cc_pkg::*; #(
   /// Whether the LSU should track repeated instructions issued by a sequencer
   /// and accordingly filter them from its CAQ responses as is necessary.
   parameter bit          CaqRespTrackSeq     = 0,
-  parameter type         dreq_t              = logic,
-  parameter type         drsp_t              = logic,
   /// Derived parameter *Do not override*
-  parameter type addr_t = logic [iomsb(AddrWidth):0],
-  parameter type data_t = logic [iomsb(DataWidth):0],
-  parameter type user_t = logic [iomsb(UserWidth):0]
+  localparam type addr_t = logic [iomsb(AddrWidth):0],
+  localparam type data_t = logic [iomsb(DataWidth):0],
+  localparam type user_t = logic [iomsb(UserWidth):0],
+  localparam type lsu_req_t = `LSU_REQ_STRUCT(DataWidth, AddrWidth, UserWidth),
+  localparam type lsu_rsp_t = `LSU_RSP_STRUCT(DataWidth)
 ) (
   input  logic                 clk_i,
   input  logic                 rst_i,
@@ -78,8 +80,8 @@ module snitch_lsu import cc_pkg::*; #(
   /// High if the CAQ is empty.
   output logic                 caq_empty_o,
   // Memory Interface Channel
-  output dreq_t                data_req_o,
-  input  drsp_t                data_rsp_i
+  output lsu_req_t             data_req_o,
+  input  lsu_rsp_t             data_rsp_i
 );
 
   `include "common_cells/assertions.svh"
