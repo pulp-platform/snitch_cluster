@@ -270,6 +270,26 @@ clean-annotate: sn-clean-annotate
 clean-perf: sn-clean-perf
 clean-visual-trace: sn-clean-visual-trace
 
+############
+# IP tests #
+############
+
+IP_LIST  = mem_interface
+IP_LIST += tcdm_interface
+IP_LIST += reqrsp_interface
+IP_LIST += snitch
+IP_LIST += snitch_ssr
+IP_LIST += snitch_cluster
+
+IP_TARGETS = $(addprefix test-,$(IP_LIST))
+
+.PHONY: test-ips
+
+test-ips: $(IP_TARGETS)
+
+$(IP_TARGETS): test-%:
+	cd hw/$* && ./util/compile.sh && ./util/run_vsim.sh
+
 ############################
 # Additional PHONY targets #
 ############################
