@@ -24,11 +24,9 @@ remotes:
 dependencies:
   common_cells: 2.0.0-beta.2
   tech_cells_generic: 0.2.14
-  riscv-dbg: 0.8.1
 
 export_include_dirs:
   - include
-  - ../reqrsp_interface/include
 
 sources:
   - files:

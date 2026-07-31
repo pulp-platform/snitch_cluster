@@ -37,7 +37,6 @@ sources:
   # reqrsp_interface
   - files:
       # Level 0
-      - ../snitch/src/snitch_pkg.sv
       - src/generic_reqrsp_cut.sv
       - src/generic_reqrsp_demux.sv
       - src/generic_reqrsp_mux.sv
