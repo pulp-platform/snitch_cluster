@@ -56,7 +56,7 @@ packages:
       Git: https://github.com/pulp-platform/common_verification.git
     dependencies: []
   core_ips:
-    revision: 1f7f8de4c853f50c80629b102ced7bab5c044246
+    revision: e1a85a7f72d0d799dd9ecc4deb40e2e41969b88e
     version: null
     source:
       Git: https://github.com/colluca/core_ips.git
@@ -163,7 +163,6 @@ packages:
     - core_ips
     - fpnew
     - reqrsp_interface
-    - snitch
     - tech_cells_generic
   tech_cells_generic:
     revision: 3a3de73632a06826b1bd9c65a0a2e92b32016845

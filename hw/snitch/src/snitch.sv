@@ -3815,7 +3815,7 @@ module snitch
   // Do *not* issue request when a non-accelerator (CAQ-unrelated) stall is blocking progress.
   assign caq_qvalid = caq_ena & acc_rsp_i.q_ready & ~nonacc_stall;
 
-  snitch_lsu #(
+  lsu #(
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
     .UserWidth (UserWidth),

@@ -2769,7 +2769,7 @@ module snitch_fp_ss
   // ----------------------
   assign lsu_qvalid = acc_req_valid_q & (&op_ready) & (is_load | is_store) & dst_ready;
 
-  snitch_lsu #(
+  lsu #(
     .AddrWidth (AddrWidth),
     .DataWidth (DataWidth),
     .UserWidth (UserWidth),
