@@ -2348,7 +2348,7 @@ requires-dist = [
     { name = "riscv-opcodes", editable = "sw/deps/riscv-opcodes" },
     { name = "scikit-learn", marker = "extra == 'kernels'" },
     { name = "snitch", extras = ["docs", "kernels"], marker = "extra == 'all'" },
-    { name = "spatz-vpu", editable = "deps/spatz_vpu" },
+    { name = "spatz-vpu", git = "https://github.com/pulp-platform/spatz_vpu.git?rev=0411cc6278d65bf46ca700ec5cde84cd681ce082" },
     { name = "tabulate" },
     { name = "termcolor" },
     { name = "torch", marker = "extra == 'kernels'", index = "https://download.pytorch.org/whl/cpu" },
@@ -2361,7 +2361,8 @@ dev = [{ name = "tsunami-wave", git = "https://github.com/zarubaf/tsunami.git?re
 
 [[package]]
 name = "spatz-vpu"
-source = { editable = "deps/spatz_vpu" }
+version = "0.0.0"
+source = { git = "https://github.com/pulp-platform/spatz_vpu.git?rev=0411cc6278d65bf46ca700ec5cde84cd681ce082#0411cc6278d65bf46ca700ec5cde84cd681ce082" }
 dependencies = [
     { name = "dataclasses" },
     { name = "hjson" },
@@ -2371,17 +2372,6 @@ dependencies = [
     { name = "termcolor" },
     { name = "torch", version = "2.9.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
     { name = "torch", version = "2.9.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "dataclasses" },
-    { name = "hjson" },
-    { name = "jsonref" },
-    { name = "jsonschema" },
-    { name = "mako" },
-    { name = "termcolor" },
-    { name = "torch", index = "https://download.pytorch.org/whl/cpu" },
 ]
 
 [[package]]

@@ -40,7 +40,7 @@ dependencies = [
     "pyyaml",
     "reuse",
     "riscv-opcodes",
-    "spatz-vpu",
+    "spatz-vpu @ git+https://github.com/pulp-platform/spatz_vpu.git@0411cc6278d65bf46ca700ec5cde84cd681ce082",
     "tabulate",
     "termcolor",
     "yamllint",
@@ -68,16 +68,14 @@ all = [
 
 [dependency-groups]
 dev = [
-    "tsunami-wave",
+    "tsunami-wave @ git+https://github.com/zarubaf/tsunami.git@4a2d5c02462875fcebaef6f4e84563eb28b99cf8",
 ]
 
 [tool.uv.sources]
 riscv-opcodes = { path = "sw/deps/riscv-opcodes", editable = true }
-spatz-vpu = { path = "deps/spatz_vpu", editable = true }
 torch = [
     { index = "pytorch-cpu" },
 ]
-tsunami-wave = { git = "https://github.com/zarubaf/tsunami.git", rev = "4a2d5c02462875fcebaef6f4e84563eb28b99cf8" }
 
 [[tool.uv.index]]
 name = "pytorch-cpu"
