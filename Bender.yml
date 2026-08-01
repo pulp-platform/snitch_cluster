@@ -60,6 +60,7 @@ dependencies:
 
 workspace:
   package_links:
+    # Required for proper Python integration
     deps/spatz_vpu: spatz_vpu
 
 export_include_dirs:
