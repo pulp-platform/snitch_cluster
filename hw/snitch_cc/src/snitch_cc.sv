@@ -719,6 +719,7 @@ module snitch_cc
       .NrMemPorts         (NumSpatzMemPorts),
       .NumOutstandingLoads(NumSpatzOutstandingLoads),
       .FPUImplementation  (FPUImplementation),
+      .AddrWidth          (AddrWidth),
       .RegisterRsp        (RegisterOffloadRsp),
       .dreq_t             (lsu_req_t),
       .drsp_t             (lsu_rsp_t),
