@@ -55,6 +55,15 @@ packages:
     source:
       Git: https://github.com/pulp-platform/common_verification.git
     dependencies: []
+  core_ips:
+    revision: 1f7f8de4c853f50c80629b102ced7bab5c044246
+    version: null
+    source:
+      Git: https://github.com/colluca/core_ips.git
+    dependencies:
+    - axi
+    - common_cells
+    - reqrsp_interface
   core_v_xif:
     revision: fad32c62f07ec7304a7169640eaf946da3727f77
     version: null
@@ -109,10 +118,10 @@ packages:
     - common_cells
     - common_verification
   reqrsp_interface:
-    revision: null
+    revision: 99811636e334a0a588e67c55fbb233beccf66ef4
     version: null
     source:
-      Path: hw/reqrsp_interface
+      Git: https://github.com/colluca/reqrsp_interface.git
     dependencies:
     - axi
     - common_cells
@@ -140,6 +149,7 @@ packages:
     dependencies:
     - axi
     - common_cells
+    - core_ips
     - reqrsp_interface
     - riscv-dbg
     - tech_cells_generic
@@ -150,6 +160,7 @@ packages:
       Git: https://github.com/pulp-platform/spatz_vpu.git
     dependencies:
     - common_cells
+    - core_ips
     - fpnew
     - reqrsp_interface
     - snitch

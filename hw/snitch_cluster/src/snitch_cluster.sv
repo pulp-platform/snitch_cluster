@@ -820,7 +820,7 @@ module snitch_cluster
 
   for (genvar i = 0; i < 2; i++) begin : gen_dma_rw_mem_ports
     assign ext_dma_req[i].q.addr = tcdm_addr_t'(ext_dma_req_q_addr_nontrunc[i]);
-    assign ext_dma_req[i].q.amo = snitch_pkg::AMONone;
+    assign ext_dma_req[i].q.amo = lsu_pkg::AMONone;
     assign ext_dma_req[i].q.user = '0;
   end
 
@@ -1269,7 +1269,7 @@ module snitch_cluster
   lsu_to_axi #(
     .AddrWidth (PhysicalAddrWidth),
     .DataWidth (NarrowDataWidth),
-    .IdWidth (NarrowIdWidthOut),
+    .IdWidth (NarrowIdWidthIn),
     .UserWidth (NarrowUserWidth)
   ) i_lsu_to_axi_ptw (
     .clk_i,
@@ -1354,7 +1354,7 @@ module snitch_cluster
   lsu_to_axi #(
     .AddrWidth (PhysicalAddrWidth),
     .DataWidth (NarrowDataWidth),
-    .IdWidth (NarrowIdWidthOut),
+    .IdWidth (NarrowIdWidthIn),
     .UserWidth (NarrowUserWidth)
   ) i_lsu_to_axi_core (
     .clk_i,

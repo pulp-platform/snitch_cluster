@@ -79,7 +79,7 @@ module snitch_tcdm_fc_interconnect
   // as write data may freely change on (non-atomic) reads. We properly assert
   // conditional write data stability below.
   localparam mem_req_chan_t MemReqAsrtMask =
-      '{data: '0, strb: '0, amo: snitch_pkg::amo_op_e'('1), default: '1};
+      '{data: '0, strb: '0, amo: lsu_pkg::amo_op_e'('1), default: '1};
 
   // Width of the bank select signal.
   localparam int unsigned SelWidth = cc_pkg::idx_width(NumOut);
@@ -121,7 +121,7 @@ module snitch_tcdm_fc_interconnect
 
     // Write data must also be stable during AMOs, so include this case in assertions.
     logic in_req_alters_mem;
-    assign in_req_alters_mem = in_req[i].write | (in_req[i].amo != snitch_pkg::AMONone);
+    assign in_req_alters_mem = in_req[i].write | (in_req[i].amo != lsu_pkg::AMONone);
 
     // TODO: we could clean this up with an additional common_cells assertion macro.
     `ifndef VERILATOR

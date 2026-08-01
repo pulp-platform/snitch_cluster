@@ -4,7 +4,7 @@
 
 `include "reqrsp_interface/typedef.svh"
 `include "reqrsp_interface/assign.svh"
-`include "snitch/typedef.svh"
+`include "lsu_interface/typedef.svh"
 `include "tcdm_interface/typedef.svh"
 `include "tcdm_interface/assign.svh"
 

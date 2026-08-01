@@ -46,8 +46,12 @@ dependencies:
   FPnew:
     git: https://github.com/pulp-platform/cvfpu.git
     rev: common-cells-v2
+  core_ips:
+    git: https://github.com/colluca/core_ips.git
+    rev: main
   reqrsp_interface:
-    path: "hw/reqrsp_interface"
+    git: https://github.com/colluca/reqrsp_interface.git
+    rev: main
   snitch:
     path: "hw/snitch"
   spatz_vpu:
@@ -59,7 +63,6 @@ workspace:
     deps/spatz_vpu: spatz_vpu
 
 export_include_dirs:
-  - hw/reqrsp_interface/include
   - hw/mem_interface/include
   - hw/tcdm_interface/include
   - hw/dca_interface/include

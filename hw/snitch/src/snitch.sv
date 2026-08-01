@@ -79,6 +79,7 @@ Ports:
 */
 module snitch
   import snitch_pkg::*;
+  import lsu_pkg::*;
   import snitch_riscv_instr::*; 
 #(
   parameter logic [31:0] BootAddr = 32'h0000_1000,

@@ -5,7 +5,7 @@
 // Author: Florian Zaruba <zarubaf@iis.ee.ethz.ch>
 
 `include "reqrsp_interface/typedef.svh"
-`include "snitch/typedef.svh"
+`include "lsu_interface/typedef.svh"
 `include "tcdm_interface/typedef.svh"
 
 /// Convert from the Snitch LSU interface to tcdm.

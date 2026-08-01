@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: SHL-0.51
 
 `include "reqrsp_interface/assign.svh"
-`include "snitch/typedef.svh"
+`include "lsu_interface/typedef.svh"
 `include "tcdm_interface/assign.svh"
 
 /// Testbench for `lsu_to_tcdm` module.

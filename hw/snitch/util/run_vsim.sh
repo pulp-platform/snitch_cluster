@@ -16,5 +16,4 @@ call_vsim() {
     grep "Errors: 0," vsim.log
 }
 
-call_vsim axi_to_lsu_tb
-call_vsim lsu_to_axi_tb
+call_vsim snitch_l0_tlb_tb

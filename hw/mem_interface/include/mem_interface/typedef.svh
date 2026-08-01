@@ -12,7 +12,7 @@
   typedef struct packed { \
     __addr_t             addr;  \
     logic                write; \
-    snitch_pkg::amo_op_e amo;   \
+    lsu_pkg::amo_op_e amo;   \
     __data_t             data;  \
     __strb_t             strb;  \
     __user_t             user;  \
