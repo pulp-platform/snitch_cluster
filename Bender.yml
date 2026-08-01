@@ -46,14 +46,13 @@ dependencies:
   FPnew:
     git: https://github.com/pulp-platform/cvfpu.git
     rev: common-cells-v2
-  core_ips:
-    git: https://github.com/colluca/core_ips.git
-    rev: main
   reqrsp_interface:
     git: https://github.com/colluca/reqrsp_interface.git
     rev: main
-  snitch:
-    path: "hw/snitch"
+  core_ips:
+    git: https://github.com/colluca/core_ips.git
+    rev: main
+  riscv-dbg: 0.8.1
   spatz_vpu:
     git: https://github.com/pulp-platform/spatz_vpu.git
     rev: common_cell_v2
@@ -72,6 +71,29 @@ export_include_dirs:
   - hw/snitch_ssr/include
 
 sources:
+  # snitch
+  - files:
+      # Level 0
+      - hw/snitch/src/snitch_pma_pkg.sv
+      - hw/snitch/src/snitch_riscv_instr.sv
+      # Level 1
+      - hw/snitch/src/snitch_pkg.sv
+      # Level 2
+      - hw/snitch/src/snitch_regfile_ff.sv
+      - hw/snitch/src/snitch_l0_tlb.sv
+  - target: not(disable_pmcs)
+    defines:
+      SNITCH_ENABLE_PERF:
+    files:
+      - hw/snitch/src/snitch.sv
+  # Disable the performance monitoring counters to save area.
+  - target: disable_pmcs
+    files:
+      - hw/snitch/src/snitch.sv
+  - target: all(tb, not(verilator))
+    files:
+      - hw/snitch/test/snitch_l0_tlb_tb.sv
+
   # mem_interface
   - files:
       - hw/mem_interface/src/mem_wide_narrow_mux.sv

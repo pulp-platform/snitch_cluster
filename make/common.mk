@@ -55,7 +55,6 @@ SN_BENDER_LOCK     = $(SN_ROOT)/Bender.lock
 SN_BENDER_YML      = $(SN_ROOT)/Bender.yml
 SN_BENDER_PREREQS  = $(SN_BENDER_LOCK)
 SN_BENDER_PREREQS += $(SN_BENDER_YML)
-SN_BENDER_PREREQS += $(SN_ROOT)/hw/snitch/Bender.yml
 
 # Flags
 SN_COMMON_BENDER_FLAGS      += -t rtl -t cc_no_deprecated -t tech_cells_generic_include_tc_sync

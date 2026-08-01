@@ -141,18 +141,6 @@ packages:
       Git: https://github.com/pulp-platform/scm.git
     dependencies:
     - tech_cells_generic
-  snitch:
-    revision: null
-    version: null
-    source:
-      Path: hw/snitch
-    dependencies:
-    - axi
-    - common_cells
-    - core_ips
-    - reqrsp_interface
-    - riscv-dbg
-    - tech_cells_generic
   spatz_vpu:
     revision: 0266c93f3e660db0d2eb756a00fa622b9076ddd9
     version: null
