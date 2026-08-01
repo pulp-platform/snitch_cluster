@@ -4,6 +4,7 @@
 
 variables:
   GIT_STRATEGY: clone
+  GIT_DEPTH: 0
   # Enable colors in CI terminal
   TERM: ansi
   FORCE_COLOR: 1
