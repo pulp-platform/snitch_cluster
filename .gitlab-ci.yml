@@ -109,6 +109,7 @@ snitch-ip-tests:
           - tcdm_interface
           - snitch_ssr
   script:
+    - make rtl -j
     - make test-$IP
 
 ####################

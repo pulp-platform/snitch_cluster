@@ -282,12 +282,12 @@ module snitch_cc
   logic             ssr_streamctl_ready;
 
   // SSR TCDM interface
-  tcdm_req_t [NumSsrs-1:0] ssr_tcdm_req;
-  tcdm_rsp_t [NumSsrs-1:0] ssr_tcdm_rsp;
-  tcdm_req_t               ssr_tcdm_req_0;
-  tcdm_rsp_t               ssr_tcdm_rsp_0;
-  tcdm_req_t [NumSsrs-2:0] ssr_tcdm_req_extra;
-  tcdm_rsp_t [NumSsrs-2:0] ssr_tcdm_rsp_extra;
+  tcdm_req_t [cc_pkg::iomsb(NumSsrs):0]   ssr_tcdm_req;
+  tcdm_rsp_t [cc_pkg::iomsb(NumSsrs):0]   ssr_tcdm_rsp;
+  tcdm_req_t                              ssr_tcdm_req_0;
+  tcdm_rsp_t                              ssr_tcdm_rsp_0;
+  tcdm_req_t [cc_pkg::iomsb(NumSsrs-1):0] ssr_tcdm_req_extra;
+  tcdm_rsp_t [cc_pkg::iomsb(NumSsrs-1):0] ssr_tcdm_rsp_extra;
 
   // LSU/SSR0 muxed TCDM interface
   tcdm_req_t muxed_tcdm_req;
@@ -761,27 +761,27 @@ module snitch_cc
       .fpu_fmt_mode_i          (spatz_fpu_fmt_mode),
       .fpu_status_o            (spatz_fpu_status)
     );
+
+    // Convert Spatz TCDM requests to TCDM protocol
+    for (genvar p = 0; p < NumSpatzMemPorts; p++) begin: gen_spatz_tcdm_assignment
+      assign spatz_tcdm_req[p] = '{
+          q: spatz_tcdm_req_chan[p],
+          q_valid: spatz_tcdm_req_valid[p]
+        };
+      assign spatz_tcdm_req_ready[p] = spatz_tcdm_rsp[p].q_ready;
+      assign spatz_tcdm_rsp_chan[p] = spatz_tcdm_rsp[p].p;
+      assign spatz_tcdm_rsp_valid[p] = spatz_tcdm_rsp[p].p_valid;
+    end
+
   end else begin : gen_no_spatz
     assign cop_issue_ready[SpatzCopro] = '0;
     assign cop_issue_resp[SpatzCopro] = '0;
     assign cop_register_ready[SpatzCopro] = '0;
     assign cop_result_valid[SpatzCopro] = '0;
     assign cop_result[SpatzCopro] = '0;
-    assign spatz_tcdm_req_chan = '0;
-    assign spatz_tcdm_req_valid = '0;
+    assign spatz_tcdm_req = '0;
     assign spatz_flsu_req = '0;
     assign spatz_fpu_status = '0;
-  end
-
-  // Convert Spatz TCDM requests to TCDM protocol
-  for (genvar p = 0; p < NumSpatzMemPorts; p++) begin: gen_spatz_tcdm_assignment
-    assign spatz_tcdm_req[p] = '{
-        q: spatz_tcdm_req_chan[p],
-        q_valid: spatz_tcdm_req_valid[p]
-      };
-    assign spatz_tcdm_req_ready[p] = spatz_tcdm_rsp[p].q_ready;
-    assign spatz_tcdm_rsp_chan[p] = spatz_tcdm_rsp[p].p;
-    assign spatz_tcdm_rsp_valid[p] = spatz_tcdm_rsp[p].p_valid;
   end
 
   /////////////////////////////////////////////
