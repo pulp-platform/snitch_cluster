@@ -11,6 +11,7 @@
 #######################
 
 DEBUG        ?= OFF  # ON to turn on debugging symbols and wave logging
+TRACE        ?= ON   # OFF to turn off trace logging
 CFG_OVERRIDE ?=      # Override default configuration file
 TECH         ?=      # [gf12, ihp13] for physical simulation
 VCD_DUMP     ?= 0    # 1 to dump VCD traces

@@ -996,7 +996,7 @@ module snitch_cc
   // Tracer //
   ////////////
 
-`ifdef DEBUG
+`ifndef TRACE_OFF
   // pragma translate_off
   snitch_tracer #(
     .FpEn     (NativeFpSupport),

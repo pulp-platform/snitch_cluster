@@ -120,7 +120,7 @@ snitch-ip-tests:
 snitch-cluster-vlt:
   needs: [snitch-cluster-sw]
   script:
-    - make verilator
+    - make verilator TRACE=OFF -j
     - cd test
     - ../util/experiments/run.py run.yaml --simulator verilator -j --run-dir runs/vlt
 
@@ -128,7 +128,7 @@ snitch-cluster-vlt:
 snitch-cluster-vcs:
   needs: [snitch-cluster-sw]
   script:
-    - make vcs
+    - make vcs TRACE=OFF -j
     - cd test
     - ../util/experiments/run.py run.yaml --simulator vcs -j --run-dir runs/vcs
 
@@ -161,7 +161,7 @@ snitch-cluster-vsim:
 snitch-cluster-omega-vsim:
   script:
     - make CFG_OVERRIDE=cfg/omega.json sw -j
-    - make vsim -j
+    - make vsim TRACE=OFF -j
     - cd test
     - ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim
 
@@ -169,7 +169,7 @@ snitch-cluster-omega-vsim:
 snitch-cluster-mchan-vsim:
   script:
     - make CFG_OVERRIDE=cfg/dma_mchan.json sw -j
-    - make vsim -j
+    - make vsim TRACE=OFF -j
     - cd test
     - ../util/experiments/run.py dma_mchan.yaml --simulator vsim -j --run-dir runs/vsim
 
@@ -187,13 +187,13 @@ snitch-cluster-frep-vsim:
   script:
     # Large FREP configuration
     - make CFG_OVERRIDE=cfg/frep_xl.json sw -j
-    - make vsim -j
+    - make vsim TRACE=OFF -j
     - cd test
     - ../util/experiments/run.py frep_xl.yaml --simulator vsim -j --run-dir runs/vsim
     - cd -
     # Small FREP configuration
     - make CFG_OVERRIDE=cfg/frep_xs.json sw -j
-    - make vsim -j
+    - make vsim TRACE=OFF -j
     - cd test
     - ../util/experiments/run.py frep_xs.yaml --simulator vsim -j --run-dir runs/vsim
 
@@ -201,7 +201,7 @@ snitch-cluster-frep-vsim:
 snitch-cluster-spatz-vsim:
   script:
     - make CFG_OVERRIDE=cfg/spatz.json sw -j
-    - make vsim -j
+    - make vsim TRACE=OFF -j
     - cd test
     - ../util/experiments/run.py spatz.yaml --simulator vsim -j --run-dir runs/vsim
 
