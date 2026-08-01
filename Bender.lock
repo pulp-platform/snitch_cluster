@@ -118,7 +118,7 @@ packages:
     - common_cells
     - common_verification
   reqrsp_interface:
-    revision: 99811636e334a0a588e67c55fbb233beccf66ef4
+    revision: 521f457d754471d9174d27c7c6c6c3892f3387a2
     version: null
     source:
       Git: https://github.com/colluca/reqrsp_interface.git
