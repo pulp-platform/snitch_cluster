@@ -44,26 +44,26 @@
  * Use expanding DOTP instructions
  */
 typedef struct gemm_layer_struct {
-  uint32_t M;
-  uint32_t M_p;
-  uint32_t N;
-  uint32_t K;
+    uint32_t M;
+    uint32_t M_p;
+    uint32_t N;
+    uint32_t K;
 
-  uint32_t TA;
-  uint32_t TB;
+    uint32_t TA;
+    uint32_t TB;
 
-  uint32_t TILE_M;
-  uint32_t TILE_N;
-  uint32_t TILE_K;
+    uint32_t TILE_M;
+    uint32_t TILE_N;
+    uint32_t TILE_K;
 
-  double *A;
-  double *B;
-  double *C;
+    double *A;
+    double *B;
+    double *C;
 
-  uint32_t ALPHA;
+    uint32_t ALPHA;
 
-  precision_t dtype;
-  uint32_t expand;
+    precision_t dtype;
+    uint32_t expand;
 } gemm_layer;
 
 /**
@@ -108,28 +108,28 @@ typedef struct gemm_layer_struct {
  * Precision of Convolution layer
  */
 typedef struct conv_layer_struct {
-  // CONV2D
-  uint32_t CO;
-  uint32_t CI;
-  uint32_t IH;
-  uint32_t IW;
-  uint32_t OH;
-  uint32_t OW;
-  uint32_t FH;
-  uint32_t FW;
-  uint32_t pad;
+    // CONV2D
+    uint32_t CO;
+    uint32_t CI;
+    uint32_t IH;
+    uint32_t IW;
+    uint32_t OH;
+    uint32_t OW;
+    uint32_t FH;
+    uint32_t FW;
+    uint32_t pad;
 
-  double *ifmap;
-  double *weights;
-  double *ofmap;
+    double *ifmap;
+    double *weights;
+    double *ofmap;
 
-  uint32_t TILE_CI;
-  uint32_t cluster2cluster;
-  uint32_t im2col;
+    uint32_t TILE_CI;
+    uint32_t cluster2cluster;
+    uint32_t im2col;
 
-  // BATCHNORM
-  double *gamma;
-  double *beta;
+    // BATCHNORM
+    double *gamma;
+    double *beta;
 
-  precision_t dtype;
+    precision_t dtype;
 } conv_layer;
