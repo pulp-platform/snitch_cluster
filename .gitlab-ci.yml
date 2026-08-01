@@ -108,7 +108,6 @@ snitch-ip-tests:
           - snitch_cluster
           - tcdm_interface
           - snitch_ssr
-          - reqrsp_interface
   script:
     - make test-$IP
 

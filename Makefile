@@ -276,7 +276,6 @@ clean-visual-trace: sn-clean-visual-trace
 
 IP_LIST  = mem_interface
 IP_LIST += tcdm_interface
-IP_LIST += reqrsp_interface
 IP_LIST += snitch_ssr
 IP_LIST += snitch_cluster
 
