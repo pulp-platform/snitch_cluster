@@ -495,7 +495,7 @@ module snitch_cluster
   `MEM_TYPEDEF_ALL(mem, tcdm_mem_addr_t, data_t, strb_t, tcdm_user_t)
   `MEM_TYPEDEF_ALL(mem_dma, tcdm_mem_addr_t, data_dma_t, strb_dma_t, logic)
 
-  `TCDM_TYPEDEF_ALL(soc_tcdm, NarrowDataWidth, PhysicalAddrWidth, TcdmUserWidth)
+  `TCDM_TYPEDEF_ALL(soc_tcdm, NarrowDataWidth, PhysicalAddrWidth, NarrowUserWidth)
   `TCDM_TYPEDEF_ALL(tcdm, NarrowDataWidth, TCDMAddrWidth, TcdmUserWidth)
 
   // Define dca_lane_req_t and dca_lane_rsp_t
@@ -1487,7 +1487,7 @@ module snitch_cluster
     .AddrWidth (PhysicalAddrWidth),
     .DataWidth (NarrowDataWidth),
     .IdWidth (NarrowIdWidthOut),
-    .UserWidth (TcdmUserWidth),
+    .UserWidth (NarrowUserWidth),
     .BufDepth (MemoryMacroLatency + 1)
   ) i_axi_to_tcdm (
     .clk_i,
@@ -1501,7 +1501,7 @@ module snitch_cluster
   tcdm_width_converter #(
     .InAddrWidth  (PhysicalAddrWidth),
     .InDataWidth  (NarrowDataWidth),
-    .InUserWidth  (TcdmUserWidth),
+    .InUserWidth  (NarrowUserWidth),
     .OutAddrWidth (TCDMAddrWidth),
     .OutDataWidth (NarrowDataWidth),
     .OutUserWidth (TcdmUserWidth)
