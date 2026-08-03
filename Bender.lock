@@ -56,10 +56,10 @@ packages:
       Git: https://github.com/pulp-platform/common_verification.git
     dependencies: []
   core_ips:
-    revision: e1a85a7f72d0d799dd9ecc4deb40e2e41969b88e
-    version: null
+    revision: 5d0eaf02297ef0818f83e178f2818435eaa8fc05
+    version: 0.1.0
     source:
-      Git: https://github.com/colluca/core_ips.git
+      Git: https://github.com/pulp-platform/core_ips.git
     dependencies:
     - axi
     - common_cells
@@ -118,10 +118,10 @@ packages:
     - common_cells
     - common_verification
   reqrsp_interface:
-    revision: 521f457d754471d9174d27c7c6c6c3892f3387a2
-    version: null
+    revision: 390e41cd4885f09548dda6e1e989aee561e03986
+    version: 0.1.0
     source:
-      Git: https://github.com/colluca/reqrsp_interface.git
+      Git: https://github.com/pulp-platform/reqrsp_interface.git
     dependencies:
     - axi
     - common_cells

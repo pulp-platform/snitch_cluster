@@ -46,12 +46,8 @@ dependencies:
   FPnew:
     git: https://github.com/pulp-platform/cvfpu.git
     rev: common-cells-v2
-  reqrsp_interface:
-    git: https://github.com/colluca/reqrsp_interface.git
-    rev: main
-  core_ips:
-    git: https://github.com/colluca/core_ips.git
-    rev: main
+  reqrsp_interface: 0.1.0
+  core_ips: 0.1.0
   riscv-dbg: 0.8.1
   spatz_vpu:
     git: https://github.com/pulp-platform/spatz_vpu.git
