@@ -349,6 +349,11 @@ module snitch_cc #(
   /////////
 
   if (IsaCfg.Xdma) begin : gen_dma
+`ifdef TRACE_OFF
+    localparam bit DMATrace = 1'b0;
+`else
+    localparam bit DMATrace = 1'b1;
+`endif
     idma_inst64_top #(
       .AxiAddrWidth (AddrWidth),
       .AxiDataWidth (DMADataWidth),
@@ -357,7 +362,7 @@ module snitch_cc #(
       .NumAxInFlight (DMANumAxInFlight),
       .DMAReqFifoDepth (DMAReqFifoDepth),
       .NumChannels (DMANumChannels),
-      .DMATracing (1),
+      .DMATracing (DMATrace),
       .axi_ar_chan_t (axi_ar_chan_t),
       .axi_aw_chan_t (axi_aw_chan_t),
       .axi_req_t (axi_req_t),

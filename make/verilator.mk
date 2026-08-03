@@ -19,6 +19,9 @@ SN_VLT_FESVR    = $(SN_VLT_BUILDDIR)/riscv-isa-sim
 
 # Flags
 SN_VLT_BENDER_FLAGS += $(SN_COMMON_BENDER_FLAGS) -t snitch_cluster:tb -t verilator -DASSERTS_OFF
+ifeq ($(TRACE), OFF)
+SN_VLT_BENDER_FLAGS += -DTRACE_OFF
+endif
 SN_VLT_FLAGS += --timing
 SN_VLT_FLAGS += --timescale 1ns/1ps
 SN_VLT_FLAGS += --trace-vcd
