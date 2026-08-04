@@ -323,9 +323,6 @@ module snitch_cluster
   localparam int unsigned BanksPerHyperBank = NrBanks / NrHyperBanks;
   localparam int unsigned BanksPerSuperBank = WideDataWidth / NarrowDataWidth;
   localparam int unsigned NrSuperBanks = NrBanks / BanksPerSuperBank;
-  localparam int unsigned DcaLaneWidth = dca_lane_width(IsaCfg, NarrowDataWidth);
-  localparam int unsigned NumDcaLanes = DcaDataWidth / DcaLaneWidth;
-  localparam int unsigned MaxDcaDataWidth = max_dca_width(IsaCfg, NrCores, NarrowDataWidth);
 
   // tcdm_user_t contains the following fields:
   // [CoreIDWidth:1] core_id
@@ -456,6 +453,65 @@ module snitch_cluster
       if (IsaCfg[i].Xdma) cnt++;
     return cnt;
   endfunction
+
+  // -------------
+  // DCA Constants
+  // -------------
+
+  // These are local to this module, rather than living in `snitch_cluster_pkg`, because their
+  // `isa_cfg` array formal needs to be sized to `NrCores` for Verilator to be able to
+  // constant-fold calls to them into the `localparam`s below. `NrCores` is only a genuine
+  // elaboration-time constant here, in the module that instantiates the cluster; a
+  // package-level function would need an unsized (`isa_cfg[]`) formal instead, which Verilator
+  // implements internally as a queue, and it can't constant-fold the implicit conversion of the
+  // fixed-size actual array into that formal.
+
+  // Calculate number of DCA lanes. Assumes that the first N cores all have the same datapath
+  // width, for some N. This is the value calculated by this function.
+  function automatic int unsigned num_dca_lanes_available(
+    input snitch_pkg::isa_cfg_t isa_cfg[NrCores]
+  );
+    automatic int unsigned lanes = 0;
+    if (isa_cfg[0].RVV) begin
+      for (int i = 0; i < NrCores; i++) begin
+        if (isa_cfg[i].RVV) begin
+          lanes++;
+        end else begin
+          break;
+        end
+      end
+    end else begin
+      for (int i = 0; i < NrCores; i++) begin
+        if (!isa_cfg[i].RVV) begin
+          lanes++;
+        end else begin
+          break;
+        end
+      end
+    end
+    return lanes;
+  endfunction
+
+  // DCA lane width. Assumes that the first N cores all have the same datapath width, for some N,
+  // and that these cores are the ones that support DCA.
+  function automatic int unsigned dca_lane_width(
+    input snitch_pkg::isa_cfg_t isa_cfg[NrCores],
+    input int unsigned narrow_data_width
+  );
+    return snitch_cc_pkg::datapath_width(isa_cfg[0], narrow_data_width);
+  endfunction
+
+  // Maximum DCA data width. Assumes that all DCA lanes have the same datapath width.
+  function automatic int unsigned max_dca_width(
+    input snitch_pkg::isa_cfg_t isa_cfg[NrCores],
+    input int unsigned narrow_data_width
+  );
+    return dca_lane_width(isa_cfg, narrow_data_width) * num_dca_lanes_available(isa_cfg);
+  endfunction
+
+  localparam int unsigned DcaLaneWidth = dca_lane_width(IsaCfg, NarrowDataWidth);
+  localparam int unsigned NumDcaLanes = DcaDataWidth / DcaLaneWidth;
+  localparam int unsigned MaxDcaDataWidth = max_dca_width(IsaCfg, NarrowDataWidth);
 
   // --------
   // Typedefs
