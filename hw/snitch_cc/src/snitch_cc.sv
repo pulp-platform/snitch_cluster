@@ -122,8 +122,9 @@ module snitch_cc
   localparam type lsu_rsp_t = `LSU_RSP_STRUCT(DataWidth),
   localparam type tcdm_req_t = `TCDM_REQ_STRUCT(DataWidth, TcdmAddrWidth, TcdmUserWidth),
   localparam type tcdm_rsp_t = `TCDM_RSP_STRUCT(DataWidth),
-  localparam type dca_req_t = `DCA_REQ_STRUCT(DataWidth),
-  localparam type dca_rsp_t = `DCA_RSP_STRUCT(DataWidth)
+  localparam int unsigned DcaDataWidth = datapath_width(IsaCfg, DataWidth),
+  localparam type dca_req_t = `DCA_REQ_STRUCT(DcaDataWidth),
+  localparam type dca_rsp_t = `DCA_RSP_STRUCT(DcaDataWidth)
 ) (
   input  logic                              clk_i,
   input  logic                              clk_d2_i,
@@ -187,7 +188,7 @@ module snitch_cc
   `TCDM_TYPEDEF_REQRSP_CHAN_ALL(tcdm, DataWidth, TcdmAddrWidth, TcdmUserWidth)
 
   // Define dca_req_chan_t and dca_rsp_chan_t
-  `DCA_TYPEDEF_REQRSP_CHAN_ALL(dca, DataWidth)
+  `DCA_TYPEDEF_REQRSP_CHAN_ALL(dca, DcaDataWidth)
 
   // Define acc_req_t, acc_rsp_t, acc_req_chan_t and acc_rsp_chan_t
   `SNITCH_ACC_TYPEDEF_ALL(DataWidth, AddrWidth)
@@ -265,6 +266,10 @@ module snitch_cc
   // Registered DCA interface
   dca_req_t dca_req_q;
   dca_rsp_t dca_rsp_q;
+
+  // Demuxed DCA interface
+  dca_req_t [NumDcaDemuxPorts-1:0] dca_demux_req;
+  dca_rsp_t [NumDcaDemuxPorts-1:0] dca_demux_rsp;
 
   // SSR interface
   logic  [2:0][4:0] ssr_raddr;
@@ -611,9 +616,9 @@ module snitch_cc
     assign snitch_acc_rsp_demuxed[snitch_pkg::IPU] = hive_rsp_i.acc_rsp;
   end
 
-  //////////////////
-  // FP subsystem //
-  //////////////////
+  /////////
+  // DCA //
+  /////////
 
   // Cut DCA interface
   reqrsp_cut #(
@@ -629,6 +634,27 @@ module snitch_cc
     .mst_req_o(dca_req_q),
     .mst_rsp_i(dca_rsp_q)
   );
+
+  // Demux the DCA interface to whichever of the FP subsystem or Spatz is present
+  // on this core. Only one is ever active (see `NativeFpSupport`), so
+  // the unselected side is always tied off by that subsystem's own "absent" branch.
+  reqrsp_demux #(
+    .NrPorts   (NumDcaDemuxPorts),
+    .req_chan_t(dca_req_chan_t),
+    .rsp_chan_t(dca_rsp_chan_t)
+  ) i_dca_demux (
+    .clk_i,
+    .rst_ni,
+    .slv_req_i(dca_req_q),
+    .slv_rsp_o(dca_rsp_q),
+    .mst_req_o(dca_demux_req),
+    .mst_rsp_i(dca_demux_rsp),
+    .select_i (IsaCfg.RVV)
+  );
+
+  //////////////////
+  // FP subsystem //
+  //////////////////
 
   if (NativeFpSupport) begin : gen_fpu
     snitch_fp_ss #(
@@ -684,8 +710,8 @@ module snitch_cc
       .streamctl_ready_o      (ssr_streamctl_ready),
       .core_events_o          (fpss_events),
       .en_copift_i            (en_copift),
-      .dca_req_i              (dca_req_q),
-      .dca_rsp_o              (dca_rsp_q)
+      .dca_req_i              (dca_demux_req[DcaFpss]),
+      .dca_rsp_o              (dca_demux_rsp[DcaFpss])
     );
   end else begin : gen_no_fpu
     assign fpss_trace = '0;
@@ -707,7 +733,7 @@ module snitch_cc
     assign ssr_wdone = '0;
     assign ssr_streamctl_ready = '0;
     assign fpss_events = '0;
-    assign dca_rsp_q = '0;
+    assign dca_demux_rsp[DcaFpss] = '0;
   end
 
   ///////////
@@ -720,6 +746,7 @@ module snitch_cc
       .NumOutstandingLoads(NumSpatzOutstandingLoads),
       .FPUImplementation  (FPUImplementation),
       .AddrWidth          (AddrWidth),
+      .EnableDca          (EnableDca),
       .RegisterRsp        (RegisterOffloadRsp),
       .dreq_t             (lsu_req_t),
       .drsp_t             (lsu_rsp_t),
@@ -759,7 +786,9 @@ module snitch_cc
       .fp_lsu_mem_rsp_i        (spatz_flsu_rsp),
       .fpu_rnd_mode_i          (spatz_fpu_rnd_mode),
       .fpu_fmt_mode_i          (spatz_fpu_fmt_mode),
-      .fpu_status_o            (spatz_fpu_status)
+      .fpu_status_o            (spatz_fpu_status),
+      .dca_req_i               (dca_demux_req[DcaSpatz]),
+      .dca_rsp_o               (dca_demux_rsp[DcaSpatz])
     );
 
     // Convert Spatz TCDM requests to TCDM protocol
@@ -782,6 +811,7 @@ module snitch_cc
     assign spatz_tcdm_req = '0;
     assign spatz_flsu_req = '0;
     assign spatz_fpu_status = '0;
+    assign dca_demux_rsp[DcaSpatz] = '0;
   end
 
   /////////////////////////////////////////////
@@ -1023,11 +1053,9 @@ module snitch_cc
   
   // DCA extension currently only supports 64-bit datawidth
   `ASSERT_INIT(DcaCoreConfiguration, (!EnableDca) || IsaCfg.RVD)
-  `ASSERT_INIT(DcaDataWidth, (!EnableDca) || (DataWidth == 64))
 
-  // Spatz and SSRs/FREP/DCA are not compatible
+  // Spatz and SSRs/FREP are not compatible
   `ASSERT_INIT(IllegalSpatzSsrCombo, (!IsaCfg.RVV) || (!IsaCfg.Xssr))
   `ASSERT_INIT(IllegalSpatzFrepCombo, (!IsaCfg.RVV) || (!IsaCfg.Xfrep))
-  `ASSERT_INIT(IllegalSpatzDcaCombo, (!IsaCfg.RVV) || !EnableDca)
 
 endmodule

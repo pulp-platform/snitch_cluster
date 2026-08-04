@@ -323,7 +323,9 @@ module snitch_cluster
   localparam int unsigned BanksPerHyperBank = NrBanks / NrHyperBanks;
   localparam int unsigned BanksPerSuperBank = WideDataWidth / NarrowDataWidth;
   localparam int unsigned NrSuperBanks = NrBanks / BanksPerSuperBank;
-  localparam int unsigned DcaLaneDataWidth = NarrowDataWidth;
+  localparam int unsigned DcaLaneWidth = dca_lane_width(isa_cfg, NarrowDataWidth);
+  localparam int unsigned NumDcaLanes = DcaDataWidth / DcaLaneWidth;
+  localparam int unsigned MaxDcaDataWidth = max_dca_width(IsaCfg, NrCores, NarrowDataWidth);
 
   // tcdm_user_t contains the following fields:
   // [CoreIDWidth:1] core_id
@@ -499,7 +501,7 @@ module snitch_cluster
   `TCDM_TYPEDEF_ALL(tcdm, NarrowDataWidth, TCDMAddrWidth, TcdmUserWidth)
 
   // Define dca_lane_req_t and dca_lane_rsp_t
-  `DCA_TYPEDEF_ALL(dca_lane, DcaLaneDataWidth)
+  `DCA_TYPEDEF_ALL(dca_lane, DcaLaneWidth)
 
   // Event counter increments for the TCDM.
   typedef struct packed {
@@ -1004,26 +1006,25 @@ module snitch_cluster
   hive_req_t [NrCores-1:0] hive_req;
   hive_rsp_t [NrCores-1:0] hive_rsp;
 
-  dca_lane_req_t [NrCores-1:0] dca_lane_req;
-  dca_lane_rsp_t [NrCores-1:0] dca_lane_rsp;
+  dca_lane_req_t [NumDcaLanes-1:0] dca_lane_req;
+  dca_lane_rsp_t [NumDcaLanes-1:0] dca_lane_rsp;
 
   // Fork the external DCA port to the various SIMD lanes, and tie off DMA
   // TODO(colluca): the number of DMA cores here is hardcoded
   if (EnableDca) begin : gen_dca
     dca_fork #(
-      .LaneDataWidth(DcaLaneDataWidth),
-      .NumLanes(NrCores-1)
+      .LaneDataWidth(DcaLaneWidth),
+      .NumLanes(NumDcaLanes)
     ) i_dca_fork (
       .clk_i,
       .rst_ni,
       .slv_req_i(dca_req_i),
       .slv_rsp_o(dca_rsp_o),
-      .mst_req_o(dca_lane_req[NrCores-2:0]),
-      .mst_rsp_i(dca_lane_rsp[NrCores-2:0])
+      .mst_req_o(dca_lane_req[NumDcaLanes-1:0]),
+      .mst_rsp_i(dca_lane_rsp[NumDcaLanes-1:0])
     );
-    `REQRSP_TIE_OFF_REQ(dca_lane_req[NrCores-1])
   end else begin : gen_no_dca
-    for (genvar i = 0; i < NrCores; i++) begin : gen_tie_off_lane
+    for (genvar i = 0; i < NumDcaLanes; i++) begin : gen_tie_off_lane
       `REQRSP_TIE_OFF_REQ(dca_lane_req[i])
     end
     `REQRSP_TIE_OFF_RSP(dca_rsp_o)
@@ -1713,12 +1714,11 @@ module snitch_cluster
   `ASSERT_INIT(NumberDMA, dma_count() <= 1)
   `ASSERT_INIT(UserCsrWidth, (CollectiveWidth + PhysicalAddrWidth) < 64,
     $sformatf("64-bit user CSR too small to accomodate %d-bit collective and %d-bit address", CollectiveWidth, PhysicalAddrWidth))
-  // TODO(colluca): extend to support any DcaDataWidth that is an integer multiple of NarrowDataWidth
-  //                and lower than NarrowDataWidth * NrComputeCores
-  `ASSERT_INIT(DcaSystemConfiguration, (!EnableDca) || (NrCores == 9))
-  `ASSERT_INIT(DcaSystemWideDataWidth, (!EnableDca) || (WideDataWidth == 512))
-  `ASSERT_INIT(DcaSystemNarrowDataWidth, (!EnableDca) || (NarrowDataWidth == 64))
-  // DcaDataWidth could potentially be < WideDataWidth, but for now we don't allow this
-  `ASSERT_INIT(CheckDcaDataWidth, DcaDataWidth == WideDataWidth)
+  // DcaDataWidth must be an integer multiple of the lane width
+  `ASSERT_INIT(IntegerNumDcaLanes, (!EnableDca) || (DcaDataWidth % DcaLaneWidth == 0))
+  // DcaDataWidth must be smaller than the aggregate width of all the lanes
+  `ASSERT_INIT(MaxDcaDataWidth, (!EnableDca) || (DcaDataWidth <= MaxDcaDataWidth))
+  // DCA currently assumes NarrowDataWidth == 64. Could be relaxed if RVV is used for DCA...
+  `ASSERT_INIT(DcaCompatibleNarrowDataWidth, (!EnableDca) || (NarrowDataWidth == 64))
 
 endmodule

@@ -17,6 +17,13 @@ package snitch_cc_pkg;
     NumCopro = 2
   } copro_id_e;
 
+  // DCA demux port IDs
+  typedef enum logic [1:0] {
+    DcaFpss = 0,
+    DcaSpatz = 1,
+    NumDcaDemuxPorts = 2
+  } dca_demux_port_e;
+
   function automatic int unsigned num_spatz_mem_ports(
     int unsigned spatz_num_fu,
     bit spatz_double_bw
@@ -36,6 +43,14 @@ package snitch_cc_pkg;
     // SSR 0 shares port with LSU, take the maximum between one port
     // and the number of SSR ports.
     return cc_pkg::max(ssr_ports, 1) + spatz_ports;
+  endfunction
+
+  // Datapath width of the CC (depends if RVV or not)
+  function automatic int unsigned datapath_width(
+    input snitch_pkg::isa_cfg_t isa_cfg,
+    input int unsigned narrow_data_width
+  );
+    return isa_cfg.RVV ? (spatz_pkg::N_FPU * spatz_pkg::ELEN) : narrow_data_width;
   endfunction
 
 endpackage
