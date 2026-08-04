@@ -6,6 +6,7 @@
 `include "common_cells/assertions.svh"
 `include "reqrsp_interface/assign.svh"
 `include "fpu_interface/typedef.svh"
+`include "fpu_interface/assign.svh"
 `include "dca_interface/typedef.svh"
 `include "snitch/typedef.svh"
 
@@ -2633,11 +2634,13 @@ module snitch_fp_ss
 
   // Tag DCA request
   always_comb begin
-    dca_req   = dca_req_i;
-    dca_rsp_o = dca_rsp;
+    `FPU_ASSIGN_UNTAGGED_REQ(, dca_req, dca_req_i);
     dca_req.q.tag = '0;
     dca_req.q.tag.dca = 1'b1;
   end
+ 
+  // Drop tag from DCA response
+  `FPU_ASSIGN_UNTAGGED_RSP(assign, dca_rsp_o, dca_rsp);
 
   // Compose Snitch request and response
   assign snitch_req.q_valid        = fpu_in_valid;
