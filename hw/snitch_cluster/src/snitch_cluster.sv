@@ -1118,7 +1118,7 @@ module snitch_cluster
       .TCDMAliasEnable (AliasRegionEnable),
       .TCDMAliasStart (TCDMAliasStart),
       .CollectiveWidth (CollectiveWidth),
-      .EnableDca (EnableDca)  
+      .EnableDca (EnableDca && (i < NumDcaLanes))
     ) i_snitch_cc (
       .clk_i,
       .clk_d2_i (clk_d2),

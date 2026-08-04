@@ -635,9 +635,9 @@ module snitch_cc
     .mst_rsp_i(dca_rsp_q)
   );
 
-  // Demux the DCA interface to whichever of the FP subsystem or Spatz is present
-  // on this core. Only one is ever active (see `NativeFpSupport`), so
-  // the unselected side is always tied off by that subsystem's own "absent" branch.
+  // Demux the DCA interface to either the FPSS or Spatz. Only one is ever active (see
+  // `NativeFpSupport`), so the unselected side is always tied off by that subsystem's own
+  // "absent" branch.
   reqrsp_demux #(
     .NrPorts   (NumDcaDemuxPorts),
     .req_chan_t(dca_req_chan_t),
