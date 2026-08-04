@@ -51,7 +51,7 @@ dependencies:
   riscv-dbg: 0.8.1
   spatz_vpu:
     git: https://github.com/pulp-platform/spatz_vpu.git
-    rev: common_cell_v2
+    rev: dca
 
 workspace:
   package_links:
