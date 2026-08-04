@@ -81,7 +81,7 @@ package snitch_cluster_pkg;
     input snitch_pkg::isa_cfg_t isa_cfg[],
     input int unsigned narrow_data_width
   );
-    return cc_pkg::datapath_width(isa_cfg[0], narrow_data_width);
+    return snitch_cc_pkg::datapath_width(isa_cfg[0], narrow_data_width);
   endfunction
 
   // Maximum DCA data width. Assumes that all DCA lanes have the same datapath width.

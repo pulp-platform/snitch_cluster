@@ -323,7 +323,7 @@ module snitch_cluster
   localparam int unsigned BanksPerHyperBank = NrBanks / NrHyperBanks;
   localparam int unsigned BanksPerSuperBank = WideDataWidth / NarrowDataWidth;
   localparam int unsigned NrSuperBanks = NrBanks / BanksPerSuperBank;
-  localparam int unsigned DcaLaneWidth = dca_lane_width(isa_cfg, NarrowDataWidth);
+  localparam int unsigned DcaLaneWidth = dca_lane_width(IsaCfg, NarrowDataWidth);
   localparam int unsigned NumDcaLanes = DcaDataWidth / DcaLaneWidth;
   localparam int unsigned MaxDcaDataWidth = max_dca_width(IsaCfg, NrCores, NarrowDataWidth);
 
@@ -1717,7 +1717,7 @@ module snitch_cluster
   // DcaDataWidth must be an integer multiple of the lane width
   `ASSERT_INIT(IntegerNumDcaLanes, (!EnableDca) || (DcaDataWidth % DcaLaneWidth == 0))
   // DcaDataWidth must be smaller than the aggregate width of all the lanes
-  `ASSERT_INIT(MaxDcaDataWidth, (!EnableDca) || (DcaDataWidth <= MaxDcaDataWidth))
+  `ASSERT_INIT(DcaDataWidthInBounds, (!EnableDca) || (DcaDataWidth <= MaxDcaDataWidth))
   // DCA currently assumes NarrowDataWidth == 64. Could be relaxed if RVV is used for DCA...
   `ASSERT_INIT(DcaCompatibleNarrowDataWidth, (!EnableDca) || (NarrowDataWidth == 64))
 
