@@ -510,7 +510,7 @@ module snitch_cluster
   endfunction
 
   localparam int unsigned DcaLaneWidth = dca_lane_width(IsaCfg, NarrowDataWidth);
-  localparam int unsigned NumDcaLanes = DcaDataWidth / DcaLaneWidth;
+  localparam int unsigned NumDcaLanes = EnableDca ? DcaDataWidth / DcaLaneWidth : 0;
   localparam int unsigned MaxDcaDataWidth = max_dca_width(IsaCfg, NarrowDataWidth);
 
   // --------
