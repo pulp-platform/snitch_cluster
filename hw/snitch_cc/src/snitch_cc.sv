@@ -746,7 +746,7 @@ module snitch_cc
       .NumOutstandingLoads(NumSpatzOutstandingLoads),
       .FPUImplementation  (FPUImplementation),
       .AddrWidth          (AddrWidth),
-      .EnableDca          (EnableDca),
+      // .EnableDca          (EnableDca),
       .RegisterRsp        (RegisterOffloadRsp),
       .dreq_t             (lsu_req_t),
       .drsp_t             (lsu_rsp_t),
@@ -763,6 +763,7 @@ module snitch_cc
       .rst_ni                  (rst_ni),
       .testmode_i              (1'b0),
       .hart_id_i               (hart_id_i),
+      .fpu_pace_mode_i         ('0),
       .x_issue_valid_i         (cop_issue_valid[SpatzCopro]),
       .x_issue_ready_o         (cop_issue_ready[SpatzCopro]),
       .x_issue_req_i           (cop_issue_req[SpatzCopro]),
@@ -786,9 +787,9 @@ module snitch_cc
       .fp_lsu_mem_rsp_i        (spatz_flsu_rsp),
       .fpu_rnd_mode_i          (spatz_fpu_rnd_mode),
       .fpu_fmt_mode_i          (spatz_fpu_fmt_mode),
-      .fpu_status_o            (spatz_fpu_status),
-      .dca_req_i               (dca_demux_req[DcaSpatz]),
-      .dca_rsp_o               (dca_demux_rsp[DcaSpatz])
+      .fpu_status_o            (spatz_fpu_status)
+      // .dca_req_i               (dca_demux_req[DcaSpatz]),
+      // .dca_rsp_o               (dca_demux_rsp[DcaSpatz])
     );
 
     // Convert Spatz TCDM requests to TCDM protocol
