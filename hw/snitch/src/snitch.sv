@@ -151,6 +151,7 @@ module snitch
   input  ptw_rsp_t [1:0]        ptw_rsp_i,
   output fpnew_pkg::roundmode_e fpu_rnd_mode_o,
   output fpnew_pkg::fmt_mode_t  fpu_fmt_mode_o,
+  output fpnew_pkg::pace_mode_t fpu_pace_mode_o,
   input  fpnew_pkg::status_t    fpu_status_i,
   input  logic                  caq_pvalid_i,
   output core_events_t          core_events_o,
@@ -448,11 +449,21 @@ module snitch
   assign fpu_rnd_mode_o = fcsr_q.frm;
   assign fpu_fmt_mode_o = fcsr_q.fmode;
 
+`ifdef PACE
+  fpnew_pkg::pace_mode_t pace_mode_d, pace_mode_q;
+  assign fpu_pace_mode_o = pace_mode_q;
+`else
+  assign fpu_pace_mode_o = '0;
+`endif
+
   // Registers
   `FFAR(pc_q, pc_d, BootAddr, clk_i, rst_i)
   `FFAR(wfi_q, wfi_d, '0, clk_i, rst_i)
   `FFAR(sb_q, sb_d, '0, clk_i, rst_i)
   `FFAR(fcsr_q, fcsr_d, '0, clk_i, rst_i)
+`ifdef PACE
+  `FFAR(pace_mode_q, pace_mode_d, '0, clk_i, rst_i)
+`endif
 
   // performance counter
 `ifdef SNITCH_ENABLE_PERF
@@ -3119,6 +3130,9 @@ module snitch
     fcsr_d.fflags = fcsr_q.fflags | fpu_status_i;
     fcsr_d.fmode.src = fcsr_q.fmode.src;
     fcsr_d.fmode.dst = fcsr_q.fmode.dst;
+`ifdef PACE
+    pace_mode_d = pace_mode_q;
+`endif
     scratch_d = scratch_q;
     epc_d = epc_q;
     cause_d = cause_q;
@@ -3372,6 +3386,14 @@ module snitch
               if (!exception) fcsr_d = fcsr_t'(alu_result[9:0]);
             end else illegal_csr = 1'b1;
           end
+`ifdef PACE
+          CSR_PACE: begin
+            if (FpEn) begin
+              csr_rvalue = {27'b0, pace_mode_q};
+              if (!exception) pace_mode_d = fpnew_pkg::pace_mode_t'(alu_result[4:0]);
+            end else illegal_csr = 1'b1;
+          end
+`endif
           // HW cluster barrier
           CSR_BARRIER: begin
             barrier_o = 1'b1;
