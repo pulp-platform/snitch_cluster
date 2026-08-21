@@ -40,6 +40,9 @@ endif
 ifneq ($(findstring "buf_fpu": 1,$(SN_SPATZ_CFG_PREVIEW)),)
 SN_COMMON_BENDER_FLAGS += -DBUF_FPU
 endif
+ifneq ($(findstring "pace": true,$(SN_SPATZ_CFG_PREVIEW)),)
+SN_COMMON_BENDER_FLAGS += -DPACE
+endif
 
 # All generated RTL sources
 SN_GEN_RTL_SRCS = $(SN_CLUSTER_WRAPPER_PKG) $(SN_CLUSTER_ADDRMAP_SVH) $(SN_CLUSTER_PERIPH) $(SN_CLUSTER_PERIPH_PKG) $(SN_BOOTROM) $(SN_SPATZ_PKG)

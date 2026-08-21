@@ -118,6 +118,7 @@
             spatz_fpu: true,
             mempool: false,
             buf_fpu: 1,
+            pace: true,
             rvf: true,
             rvd: true
         }
