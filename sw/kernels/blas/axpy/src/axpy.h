@@ -67,6 +67,15 @@ static inline void axpy_opt(uint32_t n, double a, double *x, double *y,
     snrt_ssr_disable();
 }
 
+static inline axpy_fp_t axpy_fallback(axpy_fp_t fp) {
+#if !defined(SNRT_SUPPORTS_FREP) || !defined(SNRT_SUPPORTS_SSR)
+    if (fp == axpy_opt) {
+        return axpy_fma;
+    }
+#endif
+    return fp;
+}
+
 static inline void axpy_job(axpy_args_t *args) {
     uint32_t frac, offset, size;
     uint64_t local_x0_addr, local_y0_addr, local_z0_addr, local_x1_addr,
@@ -111,14 +120,6 @@ static inline void axpy_job(axpy_args_t *args) {
         local_x[1] = (double *)local_x1_addr;
         local_y[1] = (double *)local_y1_addr;
         local_z[1] = (double *)local_z1_addr;
-    }
-    if (snrt_cluster_core_idx() == 0) {
-        DUMP(local_x0_addr);
-        DUMP(local_y0_addr);
-        DUMP(local_z0_addr);
-        DUMP(local_x1_addr);
-        DUMP(local_y1_addr);
-        DUMP(local_z1_addr);
     }
 
     // Calculate number of iterations
@@ -187,7 +188,7 @@ static inline void axpy_job(axpy_args_t *args) {
 
                 // Perform tile computation
                 axpy_fp_t fp = args->funcptr;
-                fp(frac, args->a, local_x[buff_idx], local_y[buff_idx],
+                axpy_fallback(fp)(frac, args->a, local_x[buff_idx], local_y[buff_idx],
                    local_z[buff_idx]);
 
                 snrt_mcycle();

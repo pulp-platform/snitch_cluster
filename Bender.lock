@@ -143,7 +143,7 @@ packages:
     dependencies:
     - tech_cells_generic
   spatz_vpu:
-    revision: 5818fad0b44ce0d4cd88ddf4c05df8e3302474b7
+    revision: f396e76985f3a07d77c0e1e45159e46d5ae04dd0
     version: null
     source:
       Git: https://github.com/pulp-platform/spatz_vpu.git

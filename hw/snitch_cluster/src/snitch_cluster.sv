@@ -1062,8 +1062,8 @@ module snitch_cluster
   hive_req_t [NrCores-1:0] hive_req;
   hive_rsp_t [NrCores-1:0] hive_rsp;
 
-  dca_lane_req_t [NrCores-1:0] dca_lane_req;
-  dca_lane_rsp_t [NrCores-1:0] dca_lane_rsp;
+  dca_lane_req_t [NumDcaLanes-1:0] dca_lane_req;
+  dca_lane_rsp_t [NumDcaLanes-1:0] dca_lane_rsp;
 
   // Fork the external DCA port to the various SIMD lanes, and tie off DMA
   // TODO(colluca): the number of DMA cores here is hardcoded
@@ -1084,11 +1084,6 @@ module snitch_cluster
       `REQRSP_TIE_OFF_REQ(dca_lane_req[i])
     end
     `REQRSP_TIE_OFF_RSP(dca_rsp_o)
-  end
-
-  // Tie off disabled DCA lanes
-  for (genvar i = NumDcaLanes; i < NrCores; i++) begin : gen_tie_off_dca
-    `REQRSP_TIE_OFF_REQ(dca_lane_req[i])
   end
 
   for (genvar i = 0; i < NrCores; i++) begin : gen_core
@@ -1117,6 +1112,19 @@ module snitch_cluster
 
     parameter logic [31:0] BootAddrInternal = (AliasRegionEnable & IntBootromEnable) ?
                                                 BootromAliasStart : BootAddr;
+
+    parameter bit CoreEnableDca = EnableDca && (i < NumDcaLanes);
+
+    // Tie off disabled DCA lane
+    `DCA_TYPEDEF_ALL(core_dca, snitch_cc_pkg::datapath_width(IsaCfg[i], NarrowDataWidth))
+    core_dca_req_t core_dca_req;
+    core_dca_rsp_t core_dca_rsp;
+    if (i < NumDcaLanes) begin : gen_dca_lane
+      assign core_dca_req = dca_lane_req[i];
+      assign dca_lane_rsp[i] = core_dca_rsp;
+    end else begin : gen_no_dca_lane
+      `REQRSP_TIE_OFF_REQ(core_dca_req)
+    end
 
     snitch_cc #(
       .AddrWidth (PhysicalAddrWidth),
@@ -1179,7 +1187,7 @@ module snitch_cluster
       .TCDMAliasEnable (AliasRegionEnable),
       .TCDMAliasStart (TCDMAliasStart),
       .CollectiveWidth (CollectiveWidth),
-      .EnableDca (EnableDca && (i < NumDcaLanes))
+      .EnableDca (CoreEnableDca)
     ) i_snitch_cc (
       .clk_i,
       .clk_d2_i (clk_d2),
@@ -1214,8 +1222,8 @@ module snitch_cluster
       .tcdm_addr_base_i (tcdm_start_address),
       .barrier_o (barrier_in[i]),
       .barrier_i (barrier_out),
-      .dca_req_i (dca_lane_req[i]),
-      .dca_rsp_o (dca_lane_rsp[i])  
+      .dca_req_i (core_dca_req),
+      .dca_rsp_o (core_dca_rsp)
     );
     for (genvar j = 0; j < TcdmPorts; j++) begin : gen_tcdm_user
       always_comb begin

@@ -33,7 +33,10 @@ static inline void gemm_fp64_naive(uint32_t setup_ssr, uint32_t partition_banks,
                 } else {
                     c_idx = m * ldc + n;
                 }
-                double c0 = multiply_opt(C[c_idx], beta);
+                // Volatile prevents compiler optimizations which result in a
+                // bug when executed on Spatz.
+                // TODO: investigate and find a robust solution.
+                volatile double c0 = multiply_opt(C[c_idx], beta);
                 for (uint32_t k = 0; k < K; k++) {
                     uint32_t a_idx, b_idx;
                     if (partition_banks) {
@@ -55,7 +58,7 @@ static inline void gemm_fp64_naive(uint32_t setup_ssr, uint32_t partition_banks,
     } else if (transa && !transb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                double c0 = multiply_opt(C[m * ldc + n], beta);
+                volatile double c0 = multiply_opt(C[m * ldc + n], beta);
                 for (uint32_t k = 0; k < K; k++) {
                     c0 += A[k * M * lda + m * lda] * B[k * ldb + n];
                 }
@@ -65,7 +68,7 @@ static inline void gemm_fp64_naive(uint32_t setup_ssr, uint32_t partition_banks,
     } else if (!transa && transb) {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                double c0 = multiply_opt(C[m * ldc + n], beta);
+                volatile double c0 = multiply_opt(C[m * ldc + n], beta);
                 for (uint32_t k = 0; k < K; k++) {
                     c0 += A[m * lda + k] * B[n * ldb + k];
                 }
@@ -75,7 +78,7 @@ static inline void gemm_fp64_naive(uint32_t setup_ssr, uint32_t partition_banks,
     } else {
         for (uint32_t m = 0; m < M; m++) {
             for (uint32_t n = 0; n < N; n++) {
-                double c0 = multiply_opt(C[m * ldc + n], beta);
+                volatile double c0 = multiply_opt(C[m * ldc + n], beta);
                 for (uint32_t k = 0; k < K; k++) {
                     c0 += A[k * M * lda + m * lda] * B[k + n * ldb];
                 }
