@@ -73,7 +73,7 @@ packages:
     dependencies:
     - common_cells
   fpnew:
-    revision: 45f273e95ccc5123a2c3d4d02c9b62f73385fd8f
+    revision: 1c20ab091efdf7e6784d4d652459eb3cfd883fae
     version: null
     source:
       Git: https://github.com/pulp-platform/cvfpu.git
