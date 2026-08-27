@@ -4,7 +4,14 @@
 
 runs:
   - elf: ../sw/tests/build/vector.elf
+  - elf: ../sw/tests/build/pace_vfmul.elf
   - elf: ../sw/kernels/blas/spatz-axpy/build/spatz-axpy.elf
     cmd: [../sw/kernels/blas/spatz-axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ../sw/kernels/blas/spatz-fmatmul/build/spatz-fmatmul.elf
     cmd: [../sw/kernels/blas/spatz-fmatmul/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/blas/axpy/build/axpy.elf
+    cmd: [../sw/kernels/blas/axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/blas/gemm/build/gemm.elf
+    cmd: [../sw/kernels/blas/gemm/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/dnn/fused_concat_linear/build/fused_concat_linear.elf
+    cmd: [../sw/kernels/dnn/fused_concat_linear/scripts/verify.py, "${sim_bin}", "${elf}"]

@@ -213,6 +213,7 @@ module snitch_cc
   // FPU control/status signals
   fpnew_pkg::roundmode_e fpu_rnd_mode, spatz_fpu_rnd_mode, fpss_fpu_rnd_mode;
   fpnew_pkg::fmt_mode_t  fpu_fmt_mode, spatz_fpu_fmt_mode, fpss_fpu_fmt_mode;
+  fpnew_pkg::pace_mode_t fpu_pace_mode;
   fpnew_pkg::status_t    fpu_status, spatz_fpu_status, fpss_fpu_status;
 
   // Consistency Address Queue (CAQ) interface
@@ -395,6 +396,7 @@ module snitch_cc
     .ptw_rsp_i         (hive_rsp_i.ptw_rsp),
     .fpu_rnd_mode_o    (fpu_rnd_mode),
     .fpu_fmt_mode_o    (fpu_fmt_mode),
+    .fpu_pace_mode_o   (fpu_pace_mode),
     .fpu_status_i      (fpu_status),
     .core_events_o     (snitch_events),
     .barrier_o         (barrier_o),
@@ -746,7 +748,7 @@ module snitch_cc
       .NumOutstandingLoads(NumSpatzOutstandingLoads),
       .FPUImplementation  (FPUImplementation),
       .AddrWidth          (AddrWidth),
-      .EnableDca          (EnableDca),
+      // .EnableDca          (EnableDca),
       .RegisterRsp        (RegisterOffloadRsp),
       .dreq_t             (lsu_req_t),
       .drsp_t             (lsu_rsp_t),
@@ -763,6 +765,7 @@ module snitch_cc
       .rst_ni                  (rst_ni),
       .testmode_i              (1'b0),
       .hart_id_i               (hart_id_i),
+      .fpu_pace_mode_i         (fpu_pace_mode),
       .x_issue_valid_i         (cop_issue_valid[SpatzCopro]),
       .x_issue_ready_o         (cop_issue_ready[SpatzCopro]),
       .x_issue_req_i           (cop_issue_req[SpatzCopro]),
