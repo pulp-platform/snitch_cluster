@@ -4,6 +4,7 @@
 
 runs:
   - elf: ../sw/tests/build/vector.elf
+  - elf: ../sw/tests/build/pace_vfmul.elf
   - elf: ../sw/kernels/blas/spatz-axpy/build/spatz-axpy.elf
     cmd: [../sw/kernels/blas/spatz-axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ../sw/kernels/blas/spatz-fmatmul/build/spatz-fmatmul.elf
