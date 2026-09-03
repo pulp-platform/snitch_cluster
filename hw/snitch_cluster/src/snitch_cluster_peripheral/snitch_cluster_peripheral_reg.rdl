@@ -132,27 +132,35 @@ addrmap snitch_cluster_peripheral_reg #(
             desc = "Incremented whenever B handshake occurs.
                     _This is a DMA-local signal_";
         };
-        dma_busy = 25 {
+        dma_obi_wr_req = 25 {
+            desc = "Incremented whenever an OBI write A-channel handshake occurs
+                    _This is a DMA-local signal_";
+        };
+        dma_obi_rd_req = 26 {
+            desc = "Incremented whenever an OBI read A-channel handshake occurs
+                    _This is a DMA-local signal_";
+        };
+        dma_busy = 27 {
             desc = "Incremented whenever DMA is busy.
                     _This is a DMA-local signal_";
         };
-        icache_miss = 26 {
+        icache_miss = 28 {
             desc = "Incremented for instruction cache misses.
                     _This is a hart-local signal_";
         };
-        icache_hit = 27 {
+        icache_hit = 29 {
             desc = "Incremented for instruction cache hits.
                     _This is a hart-local signal_";
         };
-        icache_prefetch = 28 {
+        icache_prefetch = 30 {
             desc = "Incremented for instruction cache prefetches.
                     _This is a hart-local signal_";
         };
-        icache_double_hit = 29 {
+        icache_double_hit = 31 {
             desc = "Incremented for instruction cache double hit.
                     _This is a hart-local signal_";
         };
-        icache_stall = 30 {
+        icache_stall = 32 {
             desc = "Incremented for instruction cache stalls.
                     _This is a hart-local signal_";
         };
@@ -237,7 +245,7 @@ addrmap snitch_cluster_peripheral_reg #(
         field {
             sw=r; hw=na;
             encode = perf_metric;
-        } f[4:0] = 0;
+        } f[5:0] = 0;
     };
 
     regfile perf_regs {

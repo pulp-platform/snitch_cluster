@@ -30,7 +30,6 @@ package snitch_cluster_wrapper_pkg;
   localparam int unsigned TcdmSize = 128;
   localparam int unsigned TcdmSizeNapotRounded = 1 << $clog2(TcdmSize);
   localparam int unsigned ClusterPeriphSize = 60;
-  localparam int unsigned ZeroMemorySize = 64;
   localparam int unsigned ExtMemorySize = 1;
 
   localparam int unsigned AddrWidth = 48;
@@ -41,7 +40,7 @@ package snitch_cluster_wrapper_pkg;
   localparam int unsigned NrNarrowMasters = 3;
   localparam int unsigned NarrowIdWidthOut = $clog2(NrNarrowMasters) + NarrowIdWidthIn;
 
-  localparam int unsigned NrWideMasters = 1 + 1 + 1;
+  localparam int unsigned NrWideMasters = 1 + 1;
   localparam int unsigned WideIdWidthIn = 1;
   localparam int unsigned WideIdWidthOut = $clog2(NrWideMasters) + WideIdWidthIn;
 

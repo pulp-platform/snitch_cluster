@@ -209,14 +209,14 @@ snitch-cluster-spatz-vsim:
 # COPIFT experiments
 snitch-cluster-copift-vsim:
   script:
-    - make CFG_OVERRIDE=experiments/copift/cfg.json vsim -j
+    - make DEBUG=ON CFG_OVERRIDE=experiments/copift/cfg.json vsim -j
     - cd experiments/copift
     - ./experiments.py experiments.yaml --actions sw run perf -j
 
 # Scalar chaining experiments
 snitch-cluster-chaining-vsim:
   script:
-    - make CFG_OVERRIDE=experiments/copift/cfg.json vsim -j
+    - make DEBUG=ON CFG_OVERRIDE=experiments/copift/cfg.json vsim -j
     - cd experiments/chaining
     - ./experiments.py experiments.yaml --actions sw run perf -j
 

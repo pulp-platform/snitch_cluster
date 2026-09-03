@@ -99,14 +99,6 @@
                         64
                     ]
                 },
-                "zero_mem_size": {
-                    "type": "number",
-                    "description": "Address region size reserved for the Zero-Memory in KiByte.",
-                    "examples": [
-                        128,
-                        64
-                    ]
-                },
                 "ext_mem_size": {
                     "type": "number",
                     "description": "Address region size reserved for an external slave in KiByte.",

@@ -50,7 +50,7 @@ runs:
   # - elf: ../sw/tests/build/openmp_double_buffering.elf
   #   simulators: [vsim, vcs, verilator]
   - elf: ../sw/tests/build/perf_cnt.elf
-    simulators: [vsim, vcs, verilator]
+  #   simulators: [vsim, vcs, verilator]
   - elf: ../sw/tests/build/printf_simple.elf
   - elf: ../sw/tests/build/printf_fmtint.elf
   - elf: ../sw/tests/build/simple.elf
@@ -58,7 +58,6 @@ runs:
   - elf: ../sw/tests/build/tls.elf
   - elf: ../sw/tests/build/varargs_1.elf
   - elf: ../sw/tests/build/varargs_2.elf
-  - elf: ../sw/tests/build/zero_mem.elf
   - elf: ../sw/tests/build/non_null_exitcode.elf
     retcode: 56
   - elf: ../sw/tests/build/issr.elf

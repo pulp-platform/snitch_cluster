@@ -118,7 +118,21 @@ def parser(default_simulator='vsim', simulator_choices=['vsim']):
         help=('Maximum number of tests to run in parallel. '
               'One if the option is not present. Equal to the number of CPU cores '
               'if the option is present but not followed by an argument.'))
+    parser.add_argument(
+        '--wave-file',
+        default=None,
+        metavar='WAVE_DO',
+        help='Path to a QuestaSim waveform .do file to load at startup (vsim-gui only)')
     return parser
+
+
+def apply_wave_file(args):
+    """Export QUESTA_WAVE_DO so the vsim-gui binary picks it up.
+
+    Nothings happen when --wave-file is not passed or the simulator is not vsim-gui.
+    """
+    if getattr(args, 'wave_file', None) is not None:
+        os.environ['QUESTA_WAVE_DO'] = str(Path(args.wave_file).resolve())
 
 
 def _resolve_relative_path(base_path, s):

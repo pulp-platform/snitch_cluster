@@ -42,8 +42,8 @@ packages:
     - scm
     - tech_cells_generic
   common_cells:
-    revision: 03d98106aa19952a10360d2230def85144a0008b
-    version: 2.0.0-beta.2
+    revision: 86231fd4ab9c48df902fb4fa469b7f024caa0b88
+    version: 2.0.0-beta.3
     source:
       Git: https://github.com/pulp-platform/common_cells.git
     dependencies:
@@ -88,7 +88,7 @@ packages:
     dependencies:
     - common_cells
   idma:
-    revision: 83260ebc146e848b4a13356db01414fc81c7a188
+    revision: 5078f7766101c722ea4df75133004554d288a538
     version: null
     source:
       Git: https://github.com/pulp-platform/idma.git
@@ -99,7 +99,6 @@ packages:
     - common_cells
     - common_verification
     - obi
-    - register_interface
   obi:
     revision: ddeced68bf1d180750171384eed809628eb890c7
     version: null

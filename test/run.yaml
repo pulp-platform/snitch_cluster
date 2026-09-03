@@ -11,9 +11,12 @@ runs:
   - elf: ../sw/tests/build/copift_queues.elf
   - elf: ../sw/tests/build/data_mover.elf
     simulators: [vsim, vcs, verilator]
+  - elf: ../sw/tests/build/dma_dminit.elf
   - elf: ../sw/tests/build/dma_empty_transfer.elf
   - elf: ../sw/tests/build/dma_1d.elf
   - elf: ../sw/tests/build/dma_2d.elf
+  - elf: ../sw/tests/build/dma_l1l1.elf
+  - elf: ../sw/tests/build/dma_l1l1_remote.elf
   - elf: ../sw/tests/build/dobu.elf
   - elf: ../sw/tests/build/event_unit.elf
     simulators: [vsim, vcs, verilator]
@@ -66,9 +69,10 @@ runs:
   - elf: ../sw/tests/build/simple.elf
   - elf: ../sw/tests/build/tcdm.elf
   - elf: ../sw/tests/build/tls.elf
+  - elf: ../sw/tests/build/tls_per_core_init.elf
+  - elf: ../sw/tests/build/tls_dma_pattern.elf
   - elf: ../sw/tests/build/varargs_1.elf
   - elf: ../sw/tests/build/varargs_2.elf
-  - elf: ../sw/tests/build/zero_mem.elf
   - elf: ../sw/tests/build/non_null_exitcode.elf
     retcode: 56
   - elf: ../sw/tests/build/issr.elf

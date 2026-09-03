@@ -17,6 +17,7 @@ from snitch.util.sim import sim_utils, Simulator
 
 SIMULATORS = {
     'vsim': Simulator.QuestaSimulator('snitch_cluster.vsim'),
+    'vsim-gui': Simulator.QuestaSimulator('snitch_cluster.vsim.gui'),
     'vcs': Simulator.VCSSimulator('snitch_cluster.vcs'),
     'verilator': Simulator.VerilatorSimulator('snitch_cluster.vlt'),
     'gvsoc': Simulator.GvsocSimulator('snitch_cluster.gvsoc')
@@ -39,6 +40,7 @@ def run_simulations(simulations, args):
 def main():
     # Parse args
     args = get_parser().parse_args()
+    sim_utils.apply_wave_file(args)
     testlist = args.testlist
     simulator = SIMULATORS[args.simulator]
     run_dir = args.run_dir

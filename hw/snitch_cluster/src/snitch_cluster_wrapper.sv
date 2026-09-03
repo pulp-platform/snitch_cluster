@@ -200,7 +200,6 @@ module snitch_cluster_wrapper
     .NrHives                  (NrHives),
     .NrCores                  (NrCores),
     .TCDMDepth                (TCDMDepth),
-    .ZeroMemorySize           (ZeroMemorySize),
     .ExtMemorySize            (ExtMemorySize),
     .ClusterPeriphSize        (ClusterPeriphSize),
     .NrBanks                  (NrBanks),

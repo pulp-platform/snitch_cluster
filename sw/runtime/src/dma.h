@@ -434,30 +434,68 @@ inline void snrt_dma_stop_tracking() {
  * @brief Fast memset function performed by DMA.
  * @param ptr Pointer to the start of the region.
  * @param value Value to set.
- * @param len Number of bytes, must be a multiple of the DMA bus width to use
- *            the DMA.
+ * @param size Number of bytes to set.
+ * @param channel The index of the channel.
+ * @details The region is filled by the DMA itself, through the `dminit`
+ *          instruction, so no source data is read from memory. The function
+ *          blocks until the region is filled.
+ * @note The function passes the @p channel argument as an immediate,
+ *       thus this must be known at compile time. As a consequence, the
+ *       function must use internal linkage (`static` keyword) and must be
+ *       always inlined. This is true also for all functions invoking this
+ *       function, and passing down an argument to @p channel.
  */
-inline void snrt_dma_memset(void *ptr, uint8_t value, uint32_t len) {
+static inline void snrt_dma_memset(uint64_t ptr, uint8_t value, uint32_t size,
+                                   const uint32_t channel) {
 #ifdef SNRT_SUPPORTS_DMA
-    // We set the first 64 bytes to the value, and then we use the DMA to copy
-    // these into the remaining memory region. DMA is used only if len is
-    // larger than 64 bytes, and an integer multiple of 64 bytes.
-    size_t n_1d_transfers = len / 64;
-    size_t use_dma = (len % 64) == 0 && len > 64;
-    uint8_t *p = (uint8_t *)ptr;
+    // The DMA addresses a 64-bit space, while the core is 32-bit: the
+    // destination address is therefore passed as a pair of 32-bit halves.
+    uint32_t dst_lo = ptr & 0xFFFFFFFF;
+    uint32_t dst_hi = ptr >> 32;
+    uint32_t txid;
 
-    uint32_t nbytes = len < 64 || !use_dma ? len : 64;
-    while (nbytes--) {
-        *p++ = value;
+    // Configure the DMA destination address.
+    asm volatile("dmdst %[dst_lo], %[dst_hi] \n"
+                 :
+                 : [ dst_lo ] "r"(dst_lo), [ dst_hi ] "r"(dst_hi));
+
+    // Start memory initialization and return a transfer ID.
+    if (value == 0x00) {
+        // Initialize with value 0.
+        asm volatile("dminit %[txid], %[size], (%[channel] << 2) | 0 \n"
+                     : [ txid ] "=r"(txid)
+                     : [ size ] "r"(size), [ channel ] "i"(channel));
+    } else if (value == 0xff) {
+        // Initialize with value 1.
+        asm volatile("dminit %[txid], %[size], (%[channel] << 2) | 1 \n"
+                     : [ txid ] "=r"(txid)
+                     : [ size ] "r"(size), [ channel ] "i"(channel));
+    } else {
+        // Initialize with arbitrary value.
+        uint32_t val = value;
+        asm volatile("dmsrc %[val], zero \n" : : [ val ] "r"(val));
+        asm volatile("dminit %[txid], %[size], (%[channel] << 2) | 2 \n"
+                     : [ txid ] "=r"(txid)
+                     : [ size ] "r"(size), [ channel ] "i"(channel));
     }
 
-    if (use_dma) {
-        snrt_dma_start_2d(ptr, ptr, 64, 64, 0, n_1d_transfers);
-        snrt_dma_wait_all();
-    }
+    // Wait until termination.
+    snrt_dma_wait(txid, channel);
 #else
-    memset(ptr, (int)value, len);
+    memset((void *)ptr, (int)value, size);
 #endif
+}
+
+/**
+ * @brief Fast memset function performed by DMA, using native-size pointers.
+ *
+ * This is a convenience overload of
+ * snrt_dma_memset(uint64_t, uint8_t, uint32_t, uint32_t)
+ * using `void*` pointers.
+ */
+static inline void snrt_dma_memset(volatile void *ptr, uint8_t value,
+                                   uint32_t size, const uint32_t channel) {
+    snrt_dma_memset((uint64_t)ptr, value, size, channel);
 }
 
 /**

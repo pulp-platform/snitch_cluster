@@ -184,6 +184,10 @@ module snitch_cluster_peripheral
           sel_dma_events.num_bytes_written;
         snitch_cluster_peripheral_reg__perf_metric__dma_b_done: perf_cnt_d[i] +=
           sel_dma_events.b_done;
+        snitch_cluster_peripheral_reg__perf_metric__dma_obi_wr_req: perf_cnt_d[i] +=
+          sel_dma_events.obi_wr_req;
+        snitch_cluster_peripheral_reg__perf_metric__dma_obi_rd_req: perf_cnt_d[i] +=
+          sel_dma_events.obi_rd_req;
         snitch_cluster_peripheral_reg__perf_metric__dma_busy: perf_cnt_d[i] +=
           sel_dma_events.dma_busy;
         snitch_cluster_peripheral_reg__perf_metric__icache_miss: perf_cnt_d[i] +=

@@ -37,6 +37,10 @@ module snitch_cc
   parameter type         axi_aw_chan_t      = logic,
   parameter type         axi_req_t          = logic,
   parameter type         axi_rsp_t          = logic,
+  parameter type         obi_a_chan_t       = logic,
+  parameter type         obi_r_chan_t       = logic,
+  parameter type         obi_req_t          = logic,
+  parameter type         obi_rsp_t          = logic,
   parameter type         hive_req_t         = logic,
   parameter type         hive_rsp_t         = logic,
   parameter type         dma_events_t       = logic,
@@ -118,6 +122,7 @@ module snitch_cc
     SpatzDoubleBw
   ),
   localparam type addr_t = logic [AddrWidth-1:0],
+  parameter type addr_rule_t = axi_pkg::xbar_rule_64_t,
   localparam type lsu_req_t = `LSU_REQ_STRUCT(DataWidth, AddrWidth, snitch_pkg::UserWidth),
   localparam type lsu_rsp_t = `LSU_RSP_STRUCT(DataWidth),
   localparam type tcdm_req_t = `TCDM_REQ_STRUCT(DataWidth, TcdmAddrWidth, TcdmUserWidth),
@@ -157,6 +162,8 @@ module snitch_cc
   // DMA ports
   output axi_req_t    [DMANumChannels-1:0]  axi_dma_req_o,
   input  axi_rsp_t    [DMANumChannels-1:0]  axi_dma_res_i,
+  output obi_req_t    [DMANumChannels-1:0]  obi_dma_req_o,
+  input  obi_rsp_t    [DMANumChannels-1:0]  obi_dma_res_i,
   output logic        [DMANumChannels-1:0]  axi_dma_busy_o,
   output dma_events_t [DMANumChannels-1:0]  axi_dma_events_o,
   // Core event strobes
@@ -165,6 +172,8 @@ module snitch_cc
   // Cluster HW barrier
   output logic                              barrier_o,
   input  logic                              barrier_i,
+  // Address decode map
+  input  addr_rule_t [TCDMAliasEnable:0]    dma_addr_map_i,
   // Direct Compute Access (DCA) interface
   input  dca_req_t                          dca_req_i,
   output dca_rsp_t                          dca_rsp_o
@@ -192,6 +201,31 @@ module snitch_cc
 
   // Define acc_req_t, acc_rsp_t, acc_req_chan_t and acc_rsp_chan_t
   `SNITCH_ACC_TYPEDEF_ALL(DataWidth, AddrWidth)
+
+  // Define init_req_chan_t and init_rsp_chan_t
+  typedef struct packed {
+      logic [AddrWidth-1:0]       cfg;
+      logic [DMADataWidth-1:0]    term;
+      logic [DMADataWidth/8-1:0]  strb;
+      logic [DMAIdWidth-1:0]      id;
+  } init_req_chan_t;
+
+  typedef struct packed {
+      logic [DMADataWidth-1:0] init;
+  } init_rsp_chan_t;
+
+  // Define init_req_t and init_rsp_t
+  typedef struct packed {
+      init_req_chan_t req_chan;
+      logic           req_valid;
+      logic           rsp_ready;
+  } init_req_t;
+
+  typedef struct packed {
+      init_rsp_chan_t rsp_chan;
+      logic           rsp_valid;
+      logic           req_ready;
+  } init_rsp_t;
 
   // Accelerator offload interface
   acc_req_t snitch_acc_req;
@@ -557,26 +591,38 @@ module snitch_cc
 
   if (IsaCfg.Xdma) begin : gen_dma
     idma_inst64_top #(
-      .AxiAddrWidth   (AddrWidth),
-      .AxiDataWidth   (DMADataWidth),
-      .AxiIdWidth     (DMAIdWidth),
-      .AxiUserWidth   (DMAUserWidth),
-      .NumAxInFlight  (DMANumAxInFlight),
-      .DMAReqFifoDepth(DMAReqFifoDepth),
-      .NumChannels    (DMANumChannels),
-      .DMATracing     (1),
-      .axi_ar_chan_t  (axi_ar_chan_t),
-      .axi_aw_chan_t  (axi_aw_chan_t),
-      .axi_req_t      (axi_req_t),
-      .axi_res_t      (axi_rsp_t),
-      .acc_req_t      (acc_req_chan_t),
-      .acc_res_t      (acc_rsp_chan_t),
-      .dma_events_t   (dma_events_t)
+      .AxiAddrWidth     (AddrWidth),
+      .AxiDataWidth     (DMADataWidth),
+      .AxiIdWidth       (DMAIdWidth),
+      .AxiUserWidth     (DMAUserWidth),
+      .NumAxInFlight    (DMANumAxInFlight),
+      .DMAReqFifoDepth  (DMAReqFifoDepth),
+      .NumChannels      (DMANumChannels),
+      .TCDMAliasEnable  (TCDMAliasEnable),
+      .DMATracing       (1),
+      .axi_ar_chan_t    (axi_ar_chan_t),
+      .axi_aw_chan_t    (axi_aw_chan_t),
+      .axi_req_t        (axi_req_t),
+      .axi_res_t        (axi_rsp_t),
+      .init_req_chan_t  (init_req_chan_t),
+      .init_rsp_chan_t  (init_rsp_chan_t),
+      .init_req_t       (init_req_t),
+      .init_rsp_t       (init_rsp_t),
+      .obi_a_chan_t     (obi_a_chan_t),
+      .obi_r_chan_t     (obi_r_chan_t),
+      .obi_req_t        (obi_req_t),
+      .obi_res_t        (obi_rsp_t),
+      .acc_req_t        (acc_req_chan_t),
+      .acc_res_t        (acc_rsp_chan_t),
+      .dma_events_t     (dma_events_t),
+      .addr_rule_t (addr_rule_t)
     ) i_idma_inst64_top (
       .clk_i,
       .rst_ni,
       .axi_req_o      (axi_dma_req_o),
       .axi_res_i      (axi_dma_res_i),
+      .obi_req_o      (obi_dma_req_o),
+      .obi_res_i      (obi_dma_res_i),
       .busy_o         (axi_dma_busy_o),
       .acc_req_i      (snitch_acc_req_demuxed[snitch_pkg::DMA_SS].q),
       .acc_req_valid_i(snitch_acc_req_demuxed[snitch_pkg::DMA_SS].q_valid),
@@ -585,11 +631,13 @@ module snitch_cc
       .acc_res_valid_o(snitch_acc_rsp_demuxed[snitch_pkg::DMA_SS].p_valid),
       .acc_res_ready_i(snitch_acc_req_demuxed[snitch_pkg::DMA_SS].p_ready),
       .hart_id_i      (hart_id_i),
-      .events_o       (axi_dma_events_o)
+      .events_o       (axi_dma_events_o),
+      .addr_map_i     (dma_addr_map_i)
     );
   end else begin : gen_no_dma
     assign axi_dma_req_o = '0;
     assign axi_dma_busy_o = '0;
+    assign obi_dma_req_o = '0;
     assign snitch_acc_rsp_demuxed[snitch_pkg::DMA_SS] = '0;
     assign axi_dma_events_o = '0;
   end
