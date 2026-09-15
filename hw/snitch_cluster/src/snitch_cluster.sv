@@ -1275,7 +1275,7 @@ module snitch_cluster
   end
 
   // When no core has DMA, tie off the DMA events to avoid undriven networks.
-  if (!HasDmaCore) begin : gen_dma_bus_stub
+  if (!HasDmaCore) begin : gen_dma_events_stub
     assign dma_events   = '0;
   end
 
