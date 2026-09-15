@@ -897,6 +897,20 @@ module snitch_cluster
   tcdm_dma_req_t [NumDmaIcoInputs-1:0] dma_interconnect_req;
   tcdm_dma_rsp_t [NumDmaIcoInputs-1:0] dma_interconnect_rsp;
 
+  assign dma_interconnect_req[0] = ext_dma_req[0];
+  assign dma_interconnect_req[1] = ext_dma_req[1];
+
+  for (genvar i = 0; i < DMANumChannels; i++) begin : gen_dma_req_tcdm
+    assign dma_interconnect_req[2 + i] = tcdm_dma_req[i];
+  end
+
+  assign ext_dma_rsp[0] = dma_interconnect_rsp[0];
+  assign ext_dma_rsp[1] = dma_interconnect_rsp[1];
+
+  for (genvar i = 0; i < DMANumChannels; i++) begin : gen_dma_rsp_tcdm
+    assign tcdm_dma_rsp[i] = dma_interconnect_rsp[2 + i];
+  end
+  
   snitch_tcdm_interconnect #(
     .NumInp (NumDmaIcoInputs),
     .NumOut (NrSuperBanks),
@@ -915,20 +929,6 @@ module snitch_cluster
     .mem_req_o (sb_dma_req),
     .mem_rsp_i (sb_dma_rsp)
   );
-
-  assign dma_interconnect_req[0] = ext_dma_req[0];
-  assign dma_interconnect_req[1] = ext_dma_req[1];
-
-  for (genvar i = 0; i < DMANumChannels; i++) begin : gen_dma_req_tcdm
-    assign dma_interconnect_req[2 + i] = tcdm_dma_req[i];
-  end
-
-  assign ext_dma_rsp[0] = dma_interconnect_rsp[0];
-  assign ext_dma_rsp[1] = dma_interconnect_rsp[1];
-
-  for (genvar i = 0; i < DMANumChannels; i++) begin : gen_dma_rsp_tcdm
-    assign tcdm_dma_rsp[i] = dma_interconnect_rsp[2 + i];
-  end
 
   snitch_tcdm_interconnect #(
     .NumInp (NumExpWideTcdmPorts),
