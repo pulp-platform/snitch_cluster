@@ -445,6 +445,13 @@ module snitch_cluster
     return 0;
   endfunction
 
+  // If at least one core supports the Xdma extension, then the cluster has a DMA core.
+  function automatic bit supports_xdma();
+    for (int i = 0; i < NrCores; i++)
+      if (IsaCfg[i].Xdma) return 1;
+    return 0;
+  endfunction
+
   // If at least one core in the hive doesn't have a private IPU, then a shared IPU is needed
   // in this hive.
   function automatic int unsigned dma_count();
@@ -452,14 +459,6 @@ module snitch_cluster
     for (int i = 0; i < NrCores; i++)
       if (IsaCfg[i].Xdma) cnt++;
     return cnt;
-  endfunction
-
-  // Reconstruct a per-core bitmask of which cores enable the `Xdma` ISA extension.
-  function automatic bit [NrCores-1:0] xdma_mask();
-    bit [NrCores-1:0] mask = '0;
-    for (int i = 0; i < NrCores; i++)
-      if (IsaCfg[i].Xdma) mask[i] = 1'b1;
-    return mask;
   endfunction
 
   // -------------
@@ -904,20 +903,19 @@ module snitch_cluster
   // ------------
   // TCDM Arbiter
   // ------------
-  localparam bit [NrCores-1:0] Xdma = xdma_mask();
-  localparam bit HasDmaCore = |Xdma;
+  localparam bit HasDmaCore = supports_xdma();
 
   // Bridge the DMA OBI bus to the shared TCDM DMA bus.
   //
   // snitch_cc exposes the DMA OBI bus ports for every core, regardless of whether DMA is enabled.
   // The loop below iterates over all cores so that:
-  // - The single DMA-capable core (Xdma[i] == 1) gets a real obi_to_tcdm bridge.
+  // - The single DMA-capable core (`IsaCfg[i].Xdma`) gets a real obi_to_tcdm bridge.
   // - All other cores get their obi_dma_res tied to zero, since no bridge is needed and the ports must still be driven.
   //
-  // At most one core may have Xdma set (enforced by `ASSERT_INIT(NumberDMA, $onehot0(Xdma))` below).
+  // At most one core may have Xdma set (enforced by `ASSERT_INIT(NumberDMA, dma_count() <= 1)` below).
   // This guarantees that tcdm_dma_req has exactly one driver.
   for (genvar i = 0; i < NrCores; i++) begin : gen_core_obi_to_tcdm
-    if (Xdma[i]) begin : gen_dma_obi_to_tcdm
+    if (IsaCfg[i].Xdma) begin : gen_dma_obi_to_tcdm
       obi_to_tcdm #(
         .obi_req_t (obi_dma_req_t),
         .obi_rsp_t (obi_dma_rsp_t),
