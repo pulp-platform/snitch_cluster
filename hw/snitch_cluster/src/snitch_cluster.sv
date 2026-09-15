@@ -889,10 +889,9 @@ module snitch_cluster
   localparam bit HasDmaCore = supports_xdma();
   localparam int unsigned NumDmaIcoInputs = DMANumChannels + 2;
 
-  // When no core has DMA, tie off to avoid undriven networks.
+  // When no core has DMA, tie off the TCDM DMA interface to avoid undriven networks.
   if (!HasDmaCore) begin : gen_dma_bus_stub
     assign tcdm_dma_req = '0;
-    assign dma_events   = '0;
   end
 
   tcdm_dma_req_t [NumDmaIcoInputs-1:0] dma_interconnect_req;
@@ -1273,6 +1272,11 @@ module snitch_cluster
       // Only the DMA-capable core drives the shared wide TCDM bus.
       assign core_tcdm_dma_rsp = '0;
     end
+  end
+
+  // When no core has DMA, tie off the DMA events to avoid undriven networks.
+  if (!HasDmaCore) begin : gen_dma_bus_stub
+    assign dma_events   = '0;
   end
 
   for (genvar i = 0; i < NrHives; i++) begin : gen_hive
