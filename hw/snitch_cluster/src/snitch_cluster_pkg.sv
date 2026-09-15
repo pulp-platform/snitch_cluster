@@ -10,26 +10,26 @@ package snitch_cluster_pkg;
   // Slaves on Cluster AXI Bus
   typedef enum integer {
     SoC                = 0,
-    TCDM               = 1,
+    Tcdm               = 1,
     ClusterPeripherals = 2,
     ExtSlave           = 3
   } cluster_slave_e;
 
   typedef enum integer {
     CoreReq = 0,
-    AXISoC  = 1,
+    AxiSoc  = 1,
     PTW     = 2
   } cluster_master_e;
 
   // Slaves on Cluster DMA AXI Bus
   typedef enum int unsigned {
-    SoCDMAOut  = 0,
-    BootRom    = 1
+    SocDmaOut  = 0,
+    Bootrom    = 1
   } cluster_slave_dma_e;
 
     typedef enum logic {
-    TCDMDMA   = 0,
-    ToSoC     = 1
+    TcdmDma   = 0,
+    ToSoc     = 1
   } dma_e;
 
   /// Possible interconnect implementations.
