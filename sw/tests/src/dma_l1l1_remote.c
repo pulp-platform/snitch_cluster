@@ -15,7 +15,7 @@ int main() {
     uint32_t errors = 0;
 
     // Local cluster buffer. Access it via OBI.
-    uint32_t *local = (uint32_t *)snrt_l1_alloc(MAXN * sizeof(uint32_t));
+    uint32_t *local = snrt_l1_alloc_cluster_local<uint32_t>(MAXN);
 
     // Remote cluster buffer. Use same offset in the neighbouring cluster's TCDM.
     // Accesses to this address leave the cluster via AXI.

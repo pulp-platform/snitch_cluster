@@ -4,11 +4,12 @@
 
 // L1->L1 (TCDM->TCDM) iDMA copy across a range of sizes.
 //
-// Both buffers are allocated in the cluster TCDM via snrt_l1_alloc(), so
-// the iDMA address decoder routes source to an OBI read and destination to
-// an OBI write -- they share the single OBI/TCDM manager port, exercising
-// concurrent OBI read+write arbitration. snrt_fence() orders the CPU stores
-// that fill the source buffer before the DMA reads it.
+// Both buffers are allocated in the cluster TCDM via
+// snrt_l1_alloc_cluster_local(), so the iDMA address decoder routes source to
+// an OBI read and destination to an OBI write -- they share the single
+// OBI/TCDM manager port, exercising concurrent OBI read+write arbitration.
+// snrt_fence() orders the CPU stores that fill the source buffer before the
+// DMA reads it.
 
 #include <snrt.h>
 
@@ -18,8 +19,8 @@ int main() {
 #ifdef SNRT_SUPPORTS_DMA
     if (!snrt_is_dm_core()) return 0;  // only the DMA core
 
-    uint32_t *src = (uint32_t *)snrt_l1_alloc(MAXN * sizeof(uint32_t));
-    uint32_t *dst = (uint32_t *)snrt_l1_alloc(MAXN * sizeof(uint32_t));
+    uint32_t *src = snrt_l1_alloc_cluster_local<uint32_t>(MAXN);
+    uint32_t *dst = snrt_l1_alloc_cluster_local<uint32_t>(MAXN);
     uint32_t errors = 0;
 
     const uint32_t sizes[] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024};
