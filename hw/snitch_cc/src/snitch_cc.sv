@@ -44,6 +44,7 @@ module snitch_cc
   parameter type         hive_req_t         = logic,
   parameter type         hive_rsp_t         = logic,
   parameter type         dma_events_t       = logic,
+  parameter type         addr_rule_t        = axi_pkg::xbar_rule_64_t,
   // XIF parameters
   parameter bit          EnableXif          = 1,
   parameter int unsigned XifIdWidth         = 4,
@@ -122,7 +123,6 @@ module snitch_cc
     SpatzDoubleBw
   ),
   localparam type addr_t = logic [AddrWidth-1:0],
-  parameter type addr_rule_t = axi_pkg::xbar_rule_64_t,
   localparam type lsu_req_t = `LSU_REQ_STRUCT(DataWidth, AddrWidth, snitch_pkg::UserWidth),
   localparam type lsu_rsp_t = `LSU_RSP_STRUCT(DataWidth),
   localparam type tcdm_req_t = `TCDM_REQ_STRUCT(DataWidth, TcdmAddrWidth, TcdmUserWidth),
