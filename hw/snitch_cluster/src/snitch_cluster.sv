@@ -20,8 +20,6 @@
 
 `include "snitch/typedef.svh"
 
-`include "obi/typedef.svh"
-
 /// Snitch many-core cluster with improved TCDM interconnect.
 /// Snitch Cluster Top-Level.
 module snitch_cluster
@@ -566,16 +564,6 @@ module snitch_cluster
   // Define dca_lane_req_t and dca_lane_rsp_t
   `DCA_TYPEDEF_ALL(dca_lane, DcaLaneWidth)
 
-  // OBI typedefs
-  `OBI_TYPEDEF_MINIMAL_A_OPTIONAL(a_opt_t)
-  `OBI_TYPEDEF_MINIMAL_R_OPTIONAL(r_opt_t)
-
-  `OBI_TYPEDEF_TYPE_A_CHAN_T(obi_a_chan_t, addr_t, data_dma_t, strb_dma_t, id_dma_mst_t, a_opt_t)
-  `OBI_TYPEDEF_TYPE_R_CHAN_T(obi_r_chan_t, data_dma_t, id_dma_mst_t, r_opt_t)
-
-  `OBI_TYPEDEF_REQ_T(obi_dma_req_t, obi_a_chan_t)
-  `OBI_TYPEDEF_RSP_T(obi_dma_rsp_t, obi_r_chan_t)
-
   // Event counter increments for the TCDM.
   typedef struct packed {
     /// Number requests going in
@@ -727,10 +715,6 @@ module snitch_cluster
   logic [NrCores-1:0] cl_interrupt;
   logic [NrCores-1:0] barrier_in;
   logic barrier_out;
-
-  // OBI
-  obi_dma_req_t [NrCores-1:0][DMANumChannels-1:0] obi_dma_req;
-  obi_dma_rsp_t [NrCores-1:0][DMANumChannels-1:0] obi_dma_res;
 
   // -------------
   // DMA Subsystem
@@ -905,39 +889,6 @@ module snitch_cluster
   localparam bit HasDmaCore = supports_xdma();
   localparam int unsigned NumDmaIcoInputs = DMANumChannels + 2;
 
-  // Bridge the DMA OBI bus to the shared TCDM DMA bus.
-  //
-  // snitch_cc exposes the DMA OBI bus ports for every core, regardless of whether DMA is enabled.
-  // The loop below iterates over all cores so that:
-  // - The single DMA-capable core (`IsaCfg[i].Xdma`) gets a real obi_to_tcdm bridge.
-  // - All other cores get their obi_dma_res tied to zero, since no bridge is needed and the ports must still be driven.
-  //
-  // At most one core may have Xdma set (enforced by `ASSERT_INIT(NumberDMA, dma_count() <= 1)` below).
-  // This guarantees that tcdm_dma_req has exactly one driver.
-  for (genvar i = 0; i < NrCores; i++) begin : gen_core_obi_to_tcdm
-    if (IsaCfg[i].Xdma) begin : gen_dma_obi_to_tcdm
-      obi_to_tcdm #(
-        .obi_req_t (obi_dma_req_t),
-        .obi_rsp_t (obi_dma_rsp_t),
-        .tcdm_req_t (tcdm_dma_req_t),
-        .tcdm_rsp_t (tcdm_dma_rsp_t),
-        .DataWidth (WideDataWidth),
-        .IdWidth (WideIdWidthIn),
-        .MemRespLat (MemoryMacroLatency),
-        .NumChannels (DMANumChannels)
-      ) i_obi_to_tcdm (
-        .clk_i,
-        .rst_ni,
-        .obi_req_i (obi_dma_req[i]),
-        .obi_rsp_o (obi_dma_res[i]),
-        .tcdm_req_o (tcdm_dma_req),
-        .tcdm_rsp_i (tcdm_dma_rsp)
-      );
-    end else begin : gen_dma_obi_to_tcdm_stub
-      // No DMA on this core: tie off its response port.
-      assign obi_dma_res[i] = '0;
-    end
-  end
   // When no core has DMA, tie off to avoid undriven networks.
   if (!HasDmaCore) begin : gen_dma_bus_stub
     assign tcdm_dma_req = '0;
@@ -1178,6 +1129,8 @@ module snitch_cluster
 
     axi_mst_dma_req_t   [DMANumChannels-1:0] axi_dma_req;
     axi_mst_dma_resp_t  [DMANumChannels-1:0] axi_dma_res;
+    tcdm_dma_req_t      [DMANumChannels-1:0] core_tcdm_dma_req;
+    tcdm_dma_rsp_t      [DMANumChannels-1:0] core_tcdm_dma_rsp;
     snitch_pkg::interrupts_t                 irq;
     dma_events_t        [DMANumChannels-1:0] dma_core_events;
 
@@ -1209,14 +1162,11 @@ module snitch_cluster
       .DmaNumAxInFlight (DMANumAxInFlight),
       .DmaReqFifoDepth (DMAReqFifoDepth),
       .DmaNumChannels (DMANumChannels),
+      .TcdmMemRespLat (MemoryMacroLatency),
       .axi_ar_chan_t (axi_mst_dma_ar_chan_t),
       .axi_aw_chan_t (axi_mst_dma_aw_chan_t),
       .axi_req_t (axi_mst_dma_req_t),
       .axi_rsp_t (axi_mst_dma_resp_t),
-      .obi_a_chan_t (obi_a_chan_t),
-      .obi_r_chan_t (obi_r_chan_t),
-      .obi_req_t (obi_dma_req_t),
-      .obi_rsp_t (obi_dma_rsp_t),
       .hive_req_t (hive_req_t),
       .hive_rsp_t (hive_rsp_t),
       .dma_events_t (dma_events_t),
@@ -1292,8 +1242,8 @@ module snitch_cluster
       .x_result_ready_o (x_result_ready_o[i]),
       .axi_dma_req_o (axi_dma_req),
       .axi_dma_res_i (axi_dma_res),
-      .obi_dma_req_o (obi_dma_req[i]),
-      .obi_dma_res_i (obi_dma_res[i]),
+      .tcdm_dma_req_o (core_tcdm_dma_req),
+      .tcdm_dma_rsp_i (core_tcdm_dma_rsp),
       .axi_dma_busy_o (),
       .axi_dma_events_o (dma_core_events),
       .core_events_o (core_events[i]),
@@ -1317,6 +1267,11 @@ module snitch_cluster
         assign axi_dma_res[j] = wide_axi_mst_rsp[j];
       end
       assign dma_events = dma_core_events;
+      assign tcdm_dma_req = core_tcdm_dma_req;
+      assign core_tcdm_dma_rsp = tcdm_dma_rsp;
+    end else begin : gen_no_dma_connection
+      // Only the DMA-capable core drives the shared wide TCDM bus.
+      assign core_tcdm_dma_rsp = '0;
     end
   end
 
