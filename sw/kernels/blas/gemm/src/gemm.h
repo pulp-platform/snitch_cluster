@@ -386,13 +386,16 @@ static inline int gemm(const gemm_args_t *args) {
                         if (largs->partition_banks) {
                             uint32_t row_size =
                                 banks_per_buffer * SNRT_TCDM_BANK_WIDTH;
-                            uint32_t c_span = (tile_c_size / row_size) *
-                                              SNRT_TCDM_HYPERBANK_WIDTH;
-                            snrt_dma_memset((uint64_t)lc[c_buff_idx], 0, c_span,
-                                            0);
+                            uint32_t num_rows = tile_c_size / row_size;
+                            uintptr_t row_addr = (uintptr_t)lc[c_buff_idx];
+                            for (uint32_t row = 0; row < num_rows; row++) {
+                                snrt_dma_memset((uint64_t)row_addr, 0,
+                                                row_size);
+                                row_addr += SNRT_TCDM_HYPERBANK_WIDTH;
+                            }
                         } else {
                             snrt_dma_memset((uint64_t)lc[c_buff_idx], 0,
-                                            tile_c_size, 0);
+                                            tile_c_size);
                         }
                     }
                 }
