@@ -25,8 +25,9 @@ int main() {
     uint32_t errors = 0;
 
     // Allocate one big TCDM region: slot 0 is the "DM core TLS", slots 1..8
-    // are the "other cores' TLS", matching the layout in snrt_init_tls().
-    uint8_t *tcdm = snrt_l1_alloc_cluster_local<uint8_t>((N_COPIES + 1) * TLS_SLOT);
+    // are the "other cores TLS", matching the layout in snrt_init_tls().
+    uint8_t *tcdm =
+        snrt_l1_alloc_cluster_local<uint8_t>((N_COPIES + 1) * TLS_SLOT);
 
     // Fill the fake L3 source with a known pattern.
     for (uint32_t i = 0; i < TDATA_BYTES; i++) l3_src[i] = (uint8_t)(0xAB ^ i);
