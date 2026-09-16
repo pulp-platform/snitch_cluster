@@ -441,12 +441,11 @@ inline void snrt_dma_stop_tracking() {
  *          blocks until the region is filled.
  * @note The function passes the @p channel argument as an immediate,
  *       thus this must be known at compile time. As a consequence, the
- *       function must use internal linkage (`static` keyword) and must be
- *       always inlined. This is true also for all functions invoking this
- *       function, and passing down an argument to @p channel.
+ *       function must always be inlined. This is true also for all functions
+ *       invoking this function, and passing down an argument to @p channel.
  */
-static inline void snrt_dma_memset(uint64_t ptr, uint8_t value, uint32_t size,
-                                   const uint32_t channel) {
+inline void snrt_dma_memset(uint64_t ptr, uint8_t value, uint32_t size,
+                            uint32_t channel) {
 #ifdef SNRT_SUPPORTS_DMA
     // The DMA addresses a 64-bit space, while the core is 32-bit: the
     // destination address is therefore passed as a pair of 32-bit halves.
@@ -493,8 +492,8 @@ static inline void snrt_dma_memset(uint64_t ptr, uint8_t value, uint32_t size,
  * snrt_dma_memset(uint64_t, uint8_t, uint32_t, uint32_t)
  * using `void*` pointers.
  */
-static inline void snrt_dma_memset(volatile void *ptr, uint8_t value,
-                                   uint32_t size, const uint32_t channel) {
+inline void snrt_dma_memset(volatile void *ptr, uint8_t value, uint32_t size,
+                            uint32_t channel) {
     snrt_dma_memset((uint64_t)ptr, value, size, channel);
 }
 
