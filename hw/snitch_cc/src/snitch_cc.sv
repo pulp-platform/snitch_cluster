@@ -11,6 +11,7 @@
 `include "tcdm_interface/typedef.svh"
 `include "dca_interface/typedef.svh"
 `include "obi/typedef.svh"
+`include "idma/typedef.svh"
 
 /// Snitch Core Complex (CC)
 /// Contains the Snitch Integer Core + FPU + Private Accelerators
@@ -220,30 +221,8 @@ module snitch_cc
   `OBI_TYPEDEF_REQ_T(obi_req_t, obi_a_chan_t)
   `OBI_TYPEDEF_RSP_T(obi_rsp_t, obi_r_chan_t)
 
-  // Define init_req_chan_t and init_rsp_chan_t
-  typedef struct packed {
-      logic [AddrWidth-1:0]       cfg;
-      logic [DmaDataWidth-1:0]    term;
-      logic [DmaDataWidth/8-1:0]  strb;
-      logic [DmaIdWidth-1:0]      id;
-  } init_req_chan_t;
-
-  typedef struct packed {
-      logic [DmaDataWidth-1:0] init;
-  } init_rsp_chan_t;
-
-  // Define init_req_t and init_rsp_t
-  typedef struct packed {
-      init_req_chan_t req_chan;
-      logic           req_valid;
-      logic           rsp_ready;
-  } init_req_t;
-
-  typedef struct packed {
-      init_rsp_chan_t rsp_chan;
-      logic           rsp_valid;
-      logic           req_ready;
-  } init_rsp_t;
+  // Define init_req_chan_t, init_rsp_chan_t, init_req_t and init_rsp_t
+  `IDMA_TYPEDEF_INIT_ALL(init, AddrWidth, DmaDataWidth, DmaDataWidth/8, DmaIdWidth)
 
   // Accelerator offload interface
   acc_req_t snitch_acc_req;
