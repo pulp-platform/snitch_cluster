@@ -13,7 +13,7 @@
         user_width: 53, // addr_width + atomic_id_width
         tcdm: {
             size: 128,
-            banks: 32,
+            banks: 16,
         },
         cluster_periph_size: 60, // kB
         zero_mem_size: 64, // kB

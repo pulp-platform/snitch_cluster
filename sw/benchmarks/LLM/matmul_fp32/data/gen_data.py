@@ -2,9 +2,9 @@ import numpy as np
 import os
 
 # Matrix dimensions (general case)
-M = 64
-N = 64
-K = 64
+M = 24
+N = M
+K = N
 
 # Generate random matrices
 mat_a = np.random.rand(M, K).astype(np.float32)

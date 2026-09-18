@@ -59,8 +59,8 @@ static inline void gelu_fp32(float *input, float *output, uint32_t size) {
     
     if (snrt_is_compute_core()) {
         for (uint32_t i = 0; i < size; i++) {
-            output[i] = sigmoid_gelu_fp32(input[i], -0.2888, -1.769);
-            // output[i] = gelu_activation_fp32(input[i]);
+            // output[i] = sigmoid_gelu_fp32(input[i], -0.2888, -1.769);
+            output[i] = gelu_activation_fp32(input[i]);
         }
     }
     

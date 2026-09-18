@@ -2,8 +2,8 @@ import numpy as np
 import os
 
 # Matrix dimensions
-M = 128  # rows of A
-N = 128  # cols of A (= length of x)
+M = 64  # rows of A
+N = M  # cols of A (= length of x)
 
 # Generate random matrix, vector and scalar
 alpha   = np.float32(np.random.rand())

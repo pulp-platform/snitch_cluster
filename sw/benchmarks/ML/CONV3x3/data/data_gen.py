@@ -3,7 +3,7 @@ import os
 from scipy.signal import correlate2d
 
 # Input feature map dimension (square)
-FM_ROWS = 32
+FM_ROWS = 64
 
 # Output dimension after valid (no-padding) 3x3 cross-correlation
 OUT_ROWS = FM_ROWS - 2   # FM_ROWS - KERNEL_SIZE + 1

@@ -1,14 +1,14 @@
 Folder: /data2/luca.colombo/snitch_FP32/logs
 Range:  [0x80000318 - 0x800004c8]
 =============================================
-  Core 0  |  FP ops:        384  |  Cycles:        884
-  Core 1  |  FP ops:        384  |  Cycles:        884
-  Core 2  |  FP ops:        384  |  Cycles:        884
-  Core 3  |  FP ops:        384  |  Cycles:        884
-  Core 4  |  FP ops:        384  |  Cycles:        884
-  Core 5  |  FP ops:        384  |  Cycles:        884
-  Core 6  |  FP ops:        384  |  Cycles:        884
-  Core 7  |  FP ops:        384  |  Cycles:        884
+  Core 0  |  FP ops:        384  |  Cycles:        954
+  Core 1  |  FP ops:        384  |  Cycles:        954
+  Core 2  |  FP ops:        384  |  Cycles:        954
+  Core 3  |  FP ops:        384  |  Cycles:        954
+  Core 4  |  FP ops:        384  |  Cycles:        954
+  Core 5  |  FP ops:        384  |  Cycles:        954
+  Core 6  |  FP ops:        384  |  Cycles:        954
+  Core 7  |  FP ops:        384  |  Cycles:        954
 =============================================
-  TOTAL   |  FP ops:       3072  |  Cycles:       7072
+  TOTAL   |  FP ops:       3072  |  Cycles:       7632
 =============================================
