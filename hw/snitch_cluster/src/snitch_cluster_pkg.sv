@@ -27,11 +27,6 @@ package snitch_cluster_pkg;
     Bootrom    = 1
   } cluster_slave_dma_e;
 
-    typedef enum logic {
-    TcdmDma   = 0,
-    ToSoc     = 1
-  } dma_e;
-
   /// Possible interconnect implementations.
   typedef enum bit {
     /// Crossbar implementation. We call it `LogarithmicInterconnect` because the

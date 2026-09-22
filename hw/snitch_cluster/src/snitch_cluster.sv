@@ -780,13 +780,14 @@ module snitch_cluster
     end
   end
 
-  // dma address rules
+  // DMA address rules
   xbar_rule_t [1:0] dma_addr_map;
   xbar_rule_t [AliasRegionEnable:0] enabled_dma_addr_map;
 
+  // The DMA port towards TCDM is the only target, so index is hardcoded
   assign dma_addr_map = '{
-    '{idx: TcdmDma,    start_addr: TcdmAliasStart,         end_addr: TcdmAliasEnd},
-    '{idx: TcdmDma,    start_addr: tcdm_start_address,     end_addr: tcdm_end_address}
+    '{idx: 0, start_addr: TcdmAliasStart,     end_addr: TcdmAliasEnd},
+    '{idx: 0, start_addr: tcdm_start_address, end_addr: tcdm_end_address}
   };
 
   always_comb begin
