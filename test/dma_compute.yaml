@@ -4,3 +4,5 @@
 
 runs:
   - elf: ../sw/tests/build/dma_mxquant.elf
+  - elf: ../sw/tests/build/dma_transpose.elf
+  - elf: ../sw/tests/build/dma_transpose_remote.elf
