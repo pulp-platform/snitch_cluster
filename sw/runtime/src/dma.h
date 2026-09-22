@@ -790,3 +790,87 @@ inline snrt_dma_txid_t snrt_dma_store_2d_tile_from_banks(
                                   tile_x1_size_in_banks, tile_x0_size_in_banks,
                                   full_x0_size, prec, tile_ld);
 }
+
+//===----------------------------------------------------------------------===//
+// On-the-fly compute (DMOPC)
+//===----------------------------------------------------------------------===//
+//
+// Contract of idma_inst64_compute_pkg (iDMA 0.7.0 deploy pin), requires the
+// cluster config to set `dma_enable_compute`:
+//  - DMOPC latches the opcode word from rs1 and the op parameters from rs2;
+//    every subsequent DMCPY/DMCPYI carries them until the next DMOPC. Reset
+//    state is a plain copy, so no boot DMOPC is needed.
+//  - The frontend asserts on an opcode byte it cannot decode; only the bytes
+//    defined below exist on this pin.
+//  - DMINIT (snrt_dma_memset) clears the compute configuration for that one
+//    transfer only; the latched opcode survives it.
+
+/// Compute opcode byte, rs1[7:0]
+#define SNRT_DMA_OPCODE_PASSTHROUGH 0x08u
+#define SNRT_DMA_OPCODE_MX_QUANT 0x20u
+#define SNRT_DMA_OPCODE_MX_DEQUANT 0x21u
+#define SNRT_DMA_OPCODE_MX_QUANT_FP16 0x22u
+#define SNRT_DMA_OPCODE_MX_DEQUANT_FP16 0x23u
+#define SNRT_DMA_OPCODE_TRANSPOSE 0x50u
+
+/// Transpose element-size mode in rs1
+#define SNRT_DMA_OPCODE_TP_MODE_SHIFT 16u
+
+/// Transpose dimensions in rs2; both stay below bit 31, which rs2 sign-extends from
+#define SNRT_DMA_OPCODE_TP_TENSOR_M_SHIFT 0u
+#define SNRT_DMA_OPCODE_TP_TENSOR_N_SHIFT 12u
+
+/// Transpose opcode word for rs1; mode selects 1 << mode byte elements
+#define SNRT_DMA_OPCODE_TRANSPOSE_CFG(mode) \
+    (SNRT_DMA_OPCODE_TRANSPOSE |            \
+     (((uint32_t)(mode)&0x3u) << SNRT_DMA_OPCODE_TP_MODE_SHIFT))
+
+/// Transpose dimension word for rs2
+#define SNRT_DMA_OPCODE_TRANSPOSE_DIMS(tensor_m, tensor_n)                  \
+    ((((uint32_t)(tensor_m)&0xFFFu) << SNRT_DMA_OPCODE_TP_TENSOR_M_SHIFT) | \
+     (((uint32_t)(tensor_n)&0xFFFu) << SNRT_DMA_OPCODE_TP_TENSOR_N_SHIFT))
+
+/**
+ * @brief Set the on-the-fly compute configuration for subsequent transfers.
+ * @param opcode Opcode word for rs1: opcode byte in [7:0], element-size mode
+ *        in [17:16]. Use the SNRT_DMA_OPCODE_* macros.
+ * @param params Op-parameter word for rs2; 0 for ops that take none.
+ * @details The configuration is latched at the DMOPC handshake and applies to
+ *          every following DMCPY/DMCPYI until the next DMOPC. Both operands are
+ *          32-bit registers sign-extended onto the 64-bit accelerator bus, so no
+ *          field may cross bit 31.
+ */
+inline void snrt_dma_set_opcode_params(uint32_t opcode, uint32_t params) {
+#ifdef SNRT_SUPPORTS_DMA
+    // dmopc is not in riscv-opcodes rv_xdma yet, so there is no mnemonic
+    asm volatile(".insn r 0x2b, 0x0, 0x0a, x0, %[opcode], %[params] \n"
+                 :
+                 : [ opcode ] "r"(opcode), [ params ] "r"(params)
+                 : "memory");
+#endif
+}
+
+/**
+ * @brief Set a parameterless on-the-fly compute op for subsequent transfers.
+ */
+inline void snrt_dma_set_opcode(uint32_t opcode) {
+    snrt_dma_set_opcode_params(opcode, 0u);
+}
+
+/**
+ * @brief Select the tiled transpose of a row-major tensor_m x tensor_n tensor.
+ * @param mode Element size selector; elements are 1 << mode bytes.
+ */
+inline void snrt_dma_set_transpose(uint32_t mode, uint32_t tensor_m,
+                                   uint32_t tensor_n) {
+    snrt_dma_set_opcode_params(
+        SNRT_DMA_OPCODE_TRANSPOSE_CFG(mode),
+        SNRT_DMA_OPCODE_TRANSPOSE_DIMS(tensor_m, tensor_n));
+}
+
+/**
+ * @brief Reset the on-the-fly compute configuration to a plain copy.
+ */
+inline void snrt_dma_clear_opcode() {
+    snrt_dma_set_opcode(SNRT_DMA_OPCODE_PASSTHROUGH);
+}

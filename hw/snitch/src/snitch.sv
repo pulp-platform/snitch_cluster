@@ -2802,6 +2802,7 @@ module snitch
       DMSTAT,
       DMREP,
       DMUSER,
+      DMOPC,
       FCVT_D_W_COPIFT,
       FCVT_D_WU_COPIFT : begin
         if (Xcvmem) begin
@@ -2825,6 +2826,18 @@ module snitch
                 opb_select   = RegRs2;
                 is_acc_inst  = 1'b1;
                 write_rd     = 1'b0;
+              end else begin
+                unsupported_inst = 1'b1;
+              end
+            end
+            // DMOPC latches the on-the-fly compute configuration; rs1 = op, rs2 = params, no rd.
+            DMOPC: begin
+              if (Xdma) begin
+                acc_req_o.q.addr = DMA_SS;
+                opa_select       = RegRs1;
+                opb_select       = RegRs2;
+                is_acc_inst      = 1'b1;
+                write_rd         = 1'b0;
               end else begin
                 unsupported_inst = 1'b1;
               end
