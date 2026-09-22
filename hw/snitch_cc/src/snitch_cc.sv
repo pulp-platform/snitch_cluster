@@ -598,8 +598,6 @@ module snitch_cc
       .NumAxInFlight    (DmaNumAxInFlight),
       .DMAReqFifoDepth  (DmaReqFifoDepth),
       .NumChannels      (DmaNumChannels),
-      .TCDMAliasEnable  (TcdmAliasEnable),
-      .DMATracing       (1),
       .axi_ar_chan_t    (axi_ar_chan_t),
       .axi_aw_chan_t    (axi_aw_chan_t),
       .axi_req_t        (axi_req_t),
