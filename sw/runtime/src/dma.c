@@ -90,3 +90,12 @@ extern snrt_dma_txid_t snrt_dma_store_2d_tile_from_banks(
     void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
     uint32_t prec, size_t num_banks);
+
+extern void snrt_dma_set_opcode_params(uint32_t opcode, uint32_t params);
+
+extern void snrt_dma_set_opcode(uint32_t opcode);
+
+extern void snrt_dma_set_transpose(uint32_t mode, uint32_t tensor_m,
+                                   uint32_t tensor_n);
+
+extern void snrt_dma_clear_opcode();
