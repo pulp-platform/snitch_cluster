@@ -1339,6 +1339,7 @@ package snitch_cluster_wrapper_pkg;
   localparam int unsigned            DMANumAxInFlight   = 24;
   localparam int unsigned            DMAReqFifoDepth    = 8;
   localparam int unsigned            DMANumChannels     = 1;
+  localparam bit                     DMAEnableCompute   = 0;
   // NumExpWideTcdmPorts is the effective count used for port sizing (minimum 1).
   // NumExpWideTcdmPortsCfg is the raw configured value used for connection gating.
   localparam int unsigned            NumExpWideTcdmPorts    = 1;

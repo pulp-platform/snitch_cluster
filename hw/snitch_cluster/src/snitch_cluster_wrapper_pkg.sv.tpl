@@ -357,6 +357,7 @@ ${ssr_cfg(core, '{reg_idx}', '/*None*/ 0', ',')}\
   localparam int unsigned            DMANumAxInFlight   = ${cfg['cluster']['dma_axi_req_fifo_depth']};
   localparam int unsigned            DMAReqFifoDepth    = ${cfg['cluster']['dma_req_fifo_depth']};
   localparam int unsigned            DMANumChannels     = ${cfg['cluster']['dma_nr_channels']};
+  localparam bit                     DMAEnableCompute   = ${int(cfg['cluster']['dma_enable_compute'])};
   // NumExpWideTcdmPorts is the effective count used for port sizing (minimum 1).
   // NumExpWideTcdmPortsCfg is the raw configured value used for connection gating.
   localparam int unsigned            NumExpWideTcdmPorts    = ${actual_num_exposed_wide_tcdm_ports};

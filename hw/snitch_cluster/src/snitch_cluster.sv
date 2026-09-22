@@ -69,6 +69,8 @@ module snitch_cluster
   parameter int unsigned DMAReqFifoDepth    = 3,
   /// Number of DMA channels.
   parameter int unsigned DMANumChannels     = 1,
+  /// Enable the DMA compute path (DMOPC).
+  parameter bit          DMAEnableCompute   = 1'b0,
   /// Number of exposed TCDM wide ports
   parameter int unsigned NumExpWideTcdmPorts = 1,
   /// Width of a single icache line.
@@ -1127,6 +1129,7 @@ module snitch_cluster
       .DMANumAxInFlight (DMANumAxInFlight),
       .DMAReqFifoDepth (DMAReqFifoDepth),
       .DMANumChannels (DMANumChannels),
+      .DMAEnableCompute (DMAEnableCompute),
       .axi_ar_chan_t (axi_mst_dma_ar_chan_t),
       .axi_aw_chan_t (axi_mst_dma_aw_chan_t),
       .axi_req_t (axi_mst_dma_req_t),
