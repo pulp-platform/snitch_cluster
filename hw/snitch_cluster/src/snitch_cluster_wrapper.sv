@@ -208,6 +208,7 @@ module snitch_cluster_wrapper
     .DMANumAxInFlight         (DMANumAxInFlight),
     .DMAReqFifoDepth          (DMAReqFifoDepth),
     .DMANumChannels           (DMANumChannels),
+    .DMAEnableCompute         (DMAEnableCompute),
     .NumExpWideTcdmPorts      (NumExpWideTcdmPorts),
     .ICacheLineWidth          (ICacheLineWidth),
     .ICacheLineCount          (ICacheLineCount),
