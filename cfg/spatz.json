@@ -118,7 +118,9 @@
             buf_fpu: 1,
             pace: true,
             rvf: true,
-            rvd: true
+            rvd: true,
+            fp64: true,
+            xf16alt: true
         }
     },
     dma_core_template: {
