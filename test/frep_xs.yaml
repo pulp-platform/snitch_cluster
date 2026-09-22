@@ -50,7 +50,7 @@ runs:
   # - elf: ../sw/tests/build/openmp_double_buffering.elf
   #   simulators: [vsim, vcs, verilator]
   - elf: ../sw/tests/build/perf_cnt.elf
-  #   simulators: [vsim, vcs, verilator]
+    simulators: [vsim, vcs, verilator]
   - elf: ../sw/tests/build/printf_simple.elf
   - elf: ../sw/tests/build/printf_fmtint.elf
   - elf: ../sw/tests/build/simple.elf
