@@ -40,7 +40,6 @@ def run_simulations(simulations, args):
 def main():
     # Parse args
     args = get_parser().parse_args()
-    sim_utils.apply_wave_file(args)
     testlist = args.testlist
     simulator = SIMULATORS[args.simulator]
     run_dir = args.run_dir
