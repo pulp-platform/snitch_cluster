@@ -17,6 +17,8 @@
 #define MX_BYTES (NUM_BLOCKS * 33)
 #define MX_BYTES_PADDED ((MX_BYTES + 63) & ~63u)
 
+#ifdef SNRT_SUPPORTS_DMA_COMPUTE
+
 // Quantize NUM_ELEMS elements of T from L3 into `mx`, dequantize back into L1
 // and compare. `exp_bias` and `mant_shift` place the exponent and the top two
 // mantissa bits of T, so both formats get the same 1.m * 2^e values.
@@ -39,7 +41,7 @@ static uint32_t run_roundtrip(const char *name, uint32_t quant_op,
     for (size_t i = 0; i < NUM_ELEMS; i++) out[i] = 0;
 
     // Stage the source to L3
-    snrt_dma_set_opcode(SNRT_DMA_OPCODE_PASSTHROUGH);
+    snrt_dma_disable_compute();
     snrt_dma_start_1d((volatile void *)l3, (volatile void *)src, bytes);
     snrt_dma_wait_all();
 
@@ -71,7 +73,10 @@ static uint32_t run_roundtrip(const char *name, uint32_t quant_op,
     return errors;
 }
 
+#endif
+
 int main() {
+#ifdef SNRT_SUPPORTS_DMA_COMPUTE
     if (!snrt_is_dm_core()) {
         snrt_cluster_hw_barrier();
         return 0;
@@ -91,10 +96,11 @@ int main() {
                                 SNRT_DMA_OPCODE_MX_DEQUANT_FP16, 15u, 8u, mx);
 #endif
 
-    snrt_dma_set_opcode(SNRT_DMA_OPCODE_PASSTHROUGH);
+    snrt_dma_disable_compute();
 
     printf("[dma_mxquant] %s (%u errors)\n", errors ? "FAIL" : "PASS", errors);
 
     snrt_cluster_hw_barrier();
     return errors ? 1 : 0;
+#endif
 }
