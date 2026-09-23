@@ -33,7 +33,6 @@ module snitch_cc
   parameter int unsigned DMANumAxInFlight   = 0,
   parameter int unsigned DMAReqFifoDepth    = 0,
   parameter int unsigned DMANumChannels     = 0,
-  /// Enable the DMA compute path (DMOPC).
   parameter bit          DMAEnableCompute   = 1'b0,
   parameter type         axi_ar_chan_t      = logic,
   parameter type         axi_aw_chan_t      = logic,
