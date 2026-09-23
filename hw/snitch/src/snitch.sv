@@ -2830,7 +2830,6 @@ module snitch
                 unsupported_inst = 1'b1;
               end
             end
-            // DMOPC latches the on-the-fly compute configuration; rs1 = op, rs2 = params, no rd.
             DMOPC: begin
               if (Xdma) begin
                 acc_req_o.q.addr = DMA_SS;

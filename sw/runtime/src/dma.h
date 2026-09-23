@@ -795,10 +795,6 @@ inline snrt_dma_txid_t snrt_dma_store_2d_tile_from_banks(
 }
 
 // On-the-fly compute (DMOPC); needs `dma_enable_compute` in the cluster config.
-// DMOPC latches the opcode word from rs1 and the op parameters from rs2, and
-// every subsequent DMCPY/DMCPYI carries them until the next DMOPC. Reset state
-// is a plain copy, so no boot DMOPC is needed. See idma_inst64_compute_pkg for
-// the encoding; the frontend asserts on an opcode byte it cannot decode.
 
 /// Compute opcode byte, rs1[7:0]
 #define SNRT_DMA_OPCODE_PASSTHROUGH IDMA_DMOPC_OPC_PASSTHROUGH
@@ -830,10 +826,7 @@ inline snrt_dma_txid_t snrt_dma_store_2d_tile_from_banks(
  * @param opcode Opcode word for rs1: opcode byte in [7:0], element-size mode
  *        in [17:16]. Use the SNRT_DMA_OPCODE_* macros.
  * @param params Op-parameter word for rs2; 0 for ops that take none.
- * @details The configuration is latched at the DMOPC handshake and applies to
- *          every following DMCPY/DMCPYI until the next DMOPC. Both operands are
- *          32-bit registers sign-extended onto the 64-bit accelerator bus, so no
- *          field may cross bit 31.
+ * @details Latched at the DMOPC handshake and applied until the next DMOPC.
  */
 inline void snrt_dma_set_opcode_params(uint32_t opcode, uint32_t params) {
 #ifdef SNRT_SUPPORTS_DMA
