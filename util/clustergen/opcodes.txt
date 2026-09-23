@@ -50,3 +50,4 @@ unratified/rv32_xpulpminmax
 unratified/rv32_xpulpslet
 unratified/rv32_xpulpvect
 unratified/rv32_xpulpvectshufflepack
+unratified/rv_xpace

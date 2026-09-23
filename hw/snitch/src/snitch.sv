@@ -151,6 +151,7 @@ module snitch
   input  ptw_rsp_t [1:0]        ptw_rsp_i,
   output fpnew_pkg::roundmode_e fpu_rnd_mode_o,
   output fpnew_pkg::fmt_mode_t  fpu_fmt_mode_o,
+  output fpnew_pkg::pace_mode_t fpu_pace_mode_o,
   input  fpnew_pkg::status_t    fpu_status_i,
   input  logic                  caq_pvalid_i,
   output core_events_t          core_events_o,
@@ -167,6 +168,7 @@ module snitch
   localparam bit Xcopift              = IsaCfg.Xcopift;
   localparam bit RVF                  = IsaCfg.RVF;
   localparam bit RVD                  = IsaCfg.RVD;
+  localparam bit RVV                  = IsaCfg.RVV;
   localparam bit Zfh                  = IsaCfg.Zfh;
   localparam bit XF16ALT              = IsaCfg.XF16ALT;
   localparam bit XF8                  = IsaCfg.XF8;
@@ -446,14 +448,21 @@ module snitch
   } fcsr_t;
   fcsr_t fcsr_d, fcsr_q;
 
+  fpnew_pkg::pace_deg_t pace_degree_d, pace_degree_q;
+
   assign fpu_rnd_mode_o = fcsr_q.frm;
   assign fpu_fmt_mode_o = fcsr_q.fmode;
+  always_comb begin
+    fpu_pace_mode_o = '0;
+    fpu_pace_mode_o.degree = pace_degree_q;
+  end
 
   // Registers
   `FFAR(pc_q, pc_d, BootAddr, clk_i, rst_i)
   `FFAR(wfi_q, wfi_d, '0, clk_i, rst_i)
   `FFAR(sb_q, sb_d, '0, clk_i, rst_i)
   `FFAR(fcsr_q, fcsr_d, '0, clk_i, rst_i)
+  `FFAR(pace_degree_q, pace_degree_d, '0, clk_i, rst_i)
 
   // performance counter
 `ifdef SNITCH_ENABLE_PERF
@@ -757,6 +766,56 @@ module snitch
         alu_op = LOr;
         opa_select = RegRs1;
         opb_select = IImmediate;
+      end
+      PACE_PWPA_S,
+      PACE_INV_S,
+      PACE_SQRT_S,
+      PACE_RSQRT_S,
+      PACE_PWPA_H,
+      PACE_INV_H,
+      PACE_SQRT_H,
+      PACE_RSQRT_H: begin
+        if (RVV) begin
+          unsupported_inst = 1'b1;
+        end else if (FpEn && RVF) begin
+          if ((inst_rsp_i.data inside {PACE_PWPA_S, PACE_INV_S, PACE_SQRT_S, PACE_RSQRT_S}) ||
+              ((inst_rsp_i.data inside {PACE_PWPA_H, PACE_INV_H, PACE_SQRT_H, PACE_RSQRT_H}) &&
+               ((Zfh && fcsr_q.fmode.dst == 1'b0) ||
+                (XF16ALT && fcsr_q.fmode.dst == 1'b1)))) begin
+            write_rd = 1'b0;
+            is_acc_inst = 1'b1;
+            acc_req_o.q.addr = FP_SS;
+          end else begin
+            illegal_inst = 1'b1;
+          end
+        end else begin
+          illegal_inst = 1'b1;
+        end
+      end
+      VPACE_PWPA_S,
+      VPACE_INV_S,
+      VPACE_SQRT_S,
+      VPACE_RSQRT_S,
+      VPACE_PWPA_H,
+      VPACE_INV_H,
+      VPACE_SQRT_H,
+      VPACE_RSQRT_H: begin
+        if (RVV) begin
+          unsupported_inst = 1'b1;
+        end else if (FpEn && RVF && XFVEC) begin
+          if ((inst_rsp_i.data inside {VPACE_PWPA_S, VPACE_INV_S, VPACE_SQRT_S, VPACE_RSQRT_S}) ||
+              ((inst_rsp_i.data inside {VPACE_PWPA_H, VPACE_INV_H, VPACE_SQRT_H, VPACE_RSQRT_H}) &&
+               ((Zfh && fcsr_q.fmode.dst == 1'b0) ||
+                (XF16ALT && fcsr_q.fmode.dst == 1'b1)))) begin
+            write_rd = 1'b0;
+            is_acc_inst = 1'b1;
+            acc_req_o.q.addr = FP_SS;
+          end else begin
+            illegal_inst = 1'b1;
+          end
+        end else begin
+          illegal_inst = 1'b1;
+        end
       end
       AND: begin
         alu_op = LAnd;
@@ -3125,6 +3184,7 @@ module snitch
     fcsr_d.fflags = fcsr_q.fflags | fpu_status_i;
     fcsr_d.fmode.src = fcsr_q.fmode.src;
     fcsr_d.fmode.dst = fcsr_q.fmode.dst;
+    pace_degree_d = pace_degree_q;
     scratch_d = scratch_q;
     epc_d = epc_q;
     cause_d = cause_q;
@@ -3376,6 +3436,14 @@ module snitch
             if (FpEn) begin
               csr_rvalue = {22'b0, fcsr_q};
               if (!exception) fcsr_d = fcsr_t'(alu_result[9:0]);
+            end else illegal_csr = 1'b1;
+          end
+          CSR_PACE: begin
+            if (FpEn) begin
+              csr_rvalue = {{(32-fpnew_pkg::MAX_PACE_DEGREE_BITS){1'b0}}, pace_degree_q};
+              if (!exception) begin
+                pace_degree_d = alu_result[fpnew_pkg::MAX_PACE_DEGREE_BITS-1:0];
+              end
             end else illegal_csr = 1'b1;
           end
           // HW cluster barrier

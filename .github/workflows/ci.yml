@@ -231,6 +231,54 @@ jobs:
         run: |
           make SIM_DIR=./test/runs/simple DEBUG=ON annotate -j
 
+  #####################################################
+  # Simulate SW on PACE Snitch Cluster w/ Verilator   #
+  #####################################################
+
+  snitch-pace-cluster-vlt:
+    name: Build and Simulate PACE Snitch Cluster w/ Verilator
+    runs-on: ubuntu-22.04
+    needs: [docker-meta, build-hw-image]
+    container:
+      image: ${{ needs.docker-meta.outputs.hw_image_name }}
+      volumes:
+        - ${{ github.workspace }}:/repo
+    defaults:
+      run:
+        working-directory: /repo
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - uses: ./.github/actions/setup-container
+      - name: Hash Verilator prerequisites
+        id: list-make-prerequisites
+        uses: colluca/list-make-prerequisites@v1.0.0
+        with:
+          target: verilator
+          flags: --recursive
+      - name: Set up cache for Verilator build
+        id: verilator-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            /repo/target/sim/build/bin
+          key: verilator-pace-${{ hashFiles('cfg/pace.json') }}-${{ steps.list-make-prerequisites.outputs.hash }}
+          restore-keys: |
+            verilator-pace-
+      - name: Build Hardware
+        if: steps.verilator-cache.outputs.cache-hit != 'true'
+        run: |
+          make CFG_OVERRIDE=cfg/pace.json verilator
+      - name: Build Software
+        run: |
+          make CFG_OVERRIDE=cfg/pace.json SN_BUILD_PACE_APPS=ON sw -j
+      - name: Run Tests
+        run: |
+          cd test
+          ../util/experiments/run.py run.yaml --simulator verilator -j --run-dir runs/vlt-pace
+          ../util/experiments/run.py pace.yaml --simulator verilator -j --run-dir runs/vlt-pace
+
   ########################################################
   # Simulate SW on Snitch Cluster (Mempool) w/ Verilator #
   ########################################################
