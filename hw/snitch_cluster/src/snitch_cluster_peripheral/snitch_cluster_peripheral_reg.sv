@@ -363,8 +363,8 @@ module snitch_cluster_peripheral_reg (
         assign readback_array[i0 * 1 + 48][31:0] = (decoded_reg_strb.scratch[i0] && !decoded_req_is_wr) ? field_storage.scratch[i0].scratch.value : '0;
         assign readback_array[i0 * 1 + 48][63:32] = '0;
     end
-    assign readback_array[52][4:0] = (decoded_reg_strb.unused && !decoded_req_is_wr) ? 5'h0 : '0;
-    assign readback_array[52][63:5] = '0;
+    assign readback_array[52][5:0] = (decoded_reg_strb.unused && !decoded_req_is_wr) ? 6'h0 : '0;
+    assign readback_array[52][63:6] = '0;
 
     // Reduce the array
     always_comb begin

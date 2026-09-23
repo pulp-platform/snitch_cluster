@@ -120,3 +120,17 @@ Similarly, waiting for the completion of *all* DMA transfers on channel 1:
 
     1:  dmstati t0, (1 << 2) | 2
         bnez t0, zero, 1b
+
+### Init (Memset) Operations
+
+| funct7  | imm5    | rs1   | funct3 | rd    | opcode     | operation |
+|:-------:|:-------:|:-----:|:------:|:-----:|:----------:|:---------:|
+| 7       | 5       | 5     | 3      | 5     | 7          |           |
+| 0001001 | cfg     | size  | 000    | dest  | OP-CUSTOM1 | DMINIT    |
+
+DMINIT initiates an asynchronous memset-style transfer that fills the destination region (configured by a preceding DMDST instruction) with a constant pattern or the value set by DMSRC. A transfer id is placed in register *rd*, which is necessary to later check for transfer completion. *size* contains the number of consecutive bytes to fill. The immediate *cfg* encodes the following parameters:
+
+| Bits      | Value      | Description
+|-----------|------------|-------------
+| cfg[1:0]  | init_cfg   | Initialization pattern: `00` → fill with 0x00, `01` → fill with 0xFF, `1x` → fill with value from DMSRC
+| cfg[4:2]  | channel_sel | Selects the DMA backend if a multi-channel DMA is used

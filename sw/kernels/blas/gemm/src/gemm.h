@@ -384,15 +384,18 @@ static inline int gemm(const gemm_args_t *args) {
                         // Clusters other than the first need to initialize
                         // the C array to zero in their first iteration
                         if (largs->partition_banks) {
-                            snrt_dma_1d_to_2d(
-                                lc[c_buff_idx], snrt_cluster()->zeromem.mem,
-                                tile_c_size,
-                                banks_per_buffer * SNRT_TCDM_BANK_WIDTH,
-                                SNRT_TCDM_HYPERBANK_WIDTH);
+                            uint32_t row_size =
+                                banks_per_buffer * SNRT_TCDM_BANK_WIDTH;
+                            uint32_t num_rows = tile_c_size / row_size;
+                            uintptr_t row_addr = (uintptr_t)lc[c_buff_idx];
+                            for (uint32_t row = 0; row < num_rows; row++) {
+                                snrt_dma_memset((uint64_t)row_addr, 0,
+                                                row_size);
+                                row_addr += SNRT_TCDM_HYPERBANK_WIDTH;
+                            }
                         } else {
-                            snrt_dma_start_1d(lc[c_buff_idx],
-                                              snrt_cluster()->zeromem.mem,
-                                              tile_c_size);
+                            snrt_dma_memset((uint64_t)lc[c_buff_idx], 0,
+                                            tile_c_size);
                         }
                     }
                 }

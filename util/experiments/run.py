@@ -17,6 +17,7 @@ from snitch.util.sim import sim_utils, Simulator
 
 SIMULATORS = {
     'vsim': Simulator.QuestaSimulator('snitch_cluster.vsim'),
+    'vsim-gui': Simulator.QuestaSimulator('snitch_cluster.vsim.gui'),
     'vcs': Simulator.VCSSimulator('snitch_cluster.vcs'),
     'verilator': Simulator.VerilatorSimulator('snitch_cluster.vlt'),
     'gvsoc': Simulator.GvsocSimulator('snitch_cluster.gvsoc')

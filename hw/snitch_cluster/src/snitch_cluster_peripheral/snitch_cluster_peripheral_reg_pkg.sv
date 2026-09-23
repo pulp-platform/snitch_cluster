@@ -129,7 +129,7 @@ package snitch_cluster_peripheral_reg_pkg;
         snitch_cluster_peripheral_reg__icache_prefetch_enable__out_t icache_prefetch_enable;
     } snitch_cluster_peripheral_reg__out_t;
 
-    typedef enum logic [4:0] {
+    typedef enum logic [5:0] {
         snitch_cluster_peripheral_reg__perf_metric__cycle = 'h0,
         snitch_cluster_peripheral_reg__perf_metric__tcdm_accessed = 'h1,
         snitch_cluster_peripheral_reg__perf_metric__tcdm_congested = 'h2,
@@ -155,11 +155,13 @@ package snitch_cluster_peripheral_reg_pkg;
         snitch_cluster_peripheral_reg__perf_metric__dma_w_done = 'h16,
         snitch_cluster_peripheral_reg__perf_metric__dma_w_bw = 'h17,
         snitch_cluster_peripheral_reg__perf_metric__dma_b_done = 'h18,
-        snitch_cluster_peripheral_reg__perf_metric__dma_busy = 'h19,
-        snitch_cluster_peripheral_reg__perf_metric__icache_miss = 'h1a,
-        snitch_cluster_peripheral_reg__perf_metric__icache_hit = 'h1b,
-        snitch_cluster_peripheral_reg__perf_metric__icache_prefetch = 'h1c,
-        snitch_cluster_peripheral_reg__perf_metric__icache_double_hit = 'h1d,
-        snitch_cluster_peripheral_reg__perf_metric__icache_stall = 'h1e
+        snitch_cluster_peripheral_reg__perf_metric__dma_obi_wr_req = 'h19,
+        snitch_cluster_peripheral_reg__perf_metric__dma_obi_rd_req = 'h1a,
+        snitch_cluster_peripheral_reg__perf_metric__dma_busy = 'h1b,
+        snitch_cluster_peripheral_reg__perf_metric__icache_miss = 'h1c,
+        snitch_cluster_peripheral_reg__perf_metric__icache_hit = 'h1d,
+        snitch_cluster_peripheral_reg__perf_metric__icache_prefetch = 'h1e,
+        snitch_cluster_peripheral_reg__perf_metric__icache_double_hit = 'h1f,
+        snitch_cluster_peripheral_reg__perf_metric__icache_stall = 'h20
     } snitch_cluster_peripheral_reg__perf_metric_e;
 endpackage

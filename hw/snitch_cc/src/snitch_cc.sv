@@ -10,6 +10,8 @@
 `include "reqrsp_interface/typedef.svh"
 `include "tcdm_interface/typedef.svh"
 `include "dca_interface/typedef.svh"
+`include "obi/typedef.svh"
+`include "idma/typedef.svh"
 
 /// Snitch Core Complex (CC)
 /// Contains the Snitch Integer Core + FPU + Private Accelerators
@@ -25,14 +27,16 @@ module snitch_cc
   /// User width of the TCDM bus.
   parameter int unsigned TcdmUserWidth      = 0,
   /// Data width of the AXI DMA buses.
-  parameter int unsigned DMADataWidth       = 0,
+  parameter int unsigned DmaDataWidth       = 0,
   /// Id width of the AXI DMA bus.
-  parameter int unsigned DMAIdWidth         = 0,
+  parameter int unsigned DmaIdWidth         = 0,
   /// User width of the AXI DMA bus.
-  parameter int unsigned DMAUserWidth       = 0,
-  parameter int unsigned DMANumAxInFlight   = 0,
-  parameter int unsigned DMAReqFifoDepth    = 0,
-  parameter int unsigned DMANumChannels     = 0,
+  parameter int unsigned DmaUserWidth       = 0,
+  parameter int unsigned DmaNumAxInFlight   = 0,
+  parameter int unsigned DmaReqFifoDepth    = 0,
+  parameter int unsigned DmaNumChannels     = 0,
+  /// TCDM response latency.
+  parameter int unsigned TcdmMemRespLat     = 0,
   parameter type         axi_ar_chan_t      = logic,
   parameter type         axi_aw_chan_t      = logic,
   parameter type         axi_req_t          = logic,
@@ -40,6 +44,7 @@ module snitch_cc
   parameter type         hive_req_t         = logic,
   parameter type         hive_rsp_t         = logic,
   parameter type         dma_events_t       = logic,
+  parameter type         addr_rule_t        = axi_pkg::xbar_rule_64_t,
   // XIF parameters
   parameter bit          EnableXif          = 1,
   parameter int unsigned XifIdWidth         = 4,
@@ -104,8 +109,8 @@ module snitch_cc
   /// Enable debug support.
   parameter bit          DebugSupport = 1,
   /// Optional fixed TCDM alias.
-  parameter bit          TCDMAliasEnable = 1'b0,
-  parameter logic [AddrWidth-1:0] TCDMAliasStart  = '0,
+  parameter bit          TcdmAliasEnable = 1'b0,
+  parameter logic [AddrWidth-1:0] TcdmAliasStart  = '0,
   /// Width of the collective operation field
   parameter int unsigned CollectiveWidth    = 1,
   /// Enable direct compute access (DCA).
@@ -122,6 +127,8 @@ module snitch_cc
   localparam type lsu_rsp_t = `LSU_RSP_STRUCT(DataWidth),
   localparam type tcdm_req_t = `TCDM_REQ_STRUCT(DataWidth, TcdmAddrWidth, TcdmUserWidth),
   localparam type tcdm_rsp_t = `TCDM_RSP_STRUCT(DataWidth),
+  localparam type tcdm_dma_req_t = `TCDM_REQ_STRUCT(DmaDataWidth, TcdmAddrWidth, 1),
+  localparam type tcdm_dma_rsp_t = `TCDM_RSP_STRUCT(DmaDataWidth),
   localparam int unsigned DcaDataWidth = datapath_width(IsaCfg, DataWidth),
   localparam type dca_req_t = `DCA_REQ_STRUCT(DcaDataWidth),
   localparam type dca_rsp_t = `DCA_RSP_STRUCT(DcaDataWidth)
@@ -155,16 +162,20 @@ module snitch_cc
   input  logic                              x_result_valid_i,
   output logic                              x_result_ready_o,
   // DMA ports
-  output axi_req_t    [DMANumChannels-1:0]  axi_dma_req_o,
-  input  axi_rsp_t    [DMANumChannels-1:0]  axi_dma_res_i,
-  output logic        [DMANumChannels-1:0]  axi_dma_busy_o,
-  output dma_events_t [DMANumChannels-1:0]  axi_dma_events_o,
+  output axi_req_t    [DmaNumChannels-1:0]  axi_dma_req_o,
+  input  axi_rsp_t    [DmaNumChannels-1:0]  axi_dma_res_i,
+  output tcdm_dma_req_t [DmaNumChannels-1:0] tcdm_dma_req_o,
+  input  tcdm_dma_rsp_t [DmaNumChannels-1:0] tcdm_dma_rsp_i,
+  output logic        [DmaNumChannels-1:0]  axi_dma_busy_o,
+  output dma_events_t [DmaNumChannels-1:0]  axi_dma_events_o,
   // Core event strobes
   output snitch_pkg::core_events_t          core_events_o,
   input  addr_t                             tcdm_addr_base_i,
   // Cluster HW barrier
   output logic                              barrier_o,
   input  logic                              barrier_i,
+  // Address decode map
+  input  addr_rule_t [TcdmAliasEnable:0]    dma_addr_map_i,
   // Direct Compute Access (DCA) interface
   input  dca_req_t                          dca_req_i,
   output dca_rsp_t                          dca_rsp_o
@@ -192,6 +203,26 @@ module snitch_cc
 
   // Define acc_req_t, acc_rsp_t, acc_req_chan_t and acc_rsp_chan_t
   `SNITCH_ACC_TYPEDEF_ALL(DataWidth, AddrWidth)
+
+  // Define dma_data_t, dma_strb_t and dma_id_t
+  typedef logic [DmaDataWidth-1:0]   dma_data_t;
+  typedef logic [DmaDataWidth/8-1:0] dma_strb_t;
+  typedef logic [DmaIdWidth-1:0]     dma_id_t;
+
+  // Define obi_a_opt_t and obi_r_opt_t
+  `OBI_TYPEDEF_MINIMAL_A_OPTIONAL(obi_a_opt_t)
+  `OBI_TYPEDEF_MINIMAL_R_OPTIONAL(obi_r_opt_t)
+
+  // Define obi_a_chan_t and obi_r_chan_t
+  `OBI_TYPEDEF_TYPE_A_CHAN_T(obi_a_chan_t, addr_t, dma_data_t, dma_strb_t, dma_id_t, obi_a_opt_t)
+  `OBI_TYPEDEF_TYPE_R_CHAN_T(obi_r_chan_t, dma_data_t, dma_id_t, obi_r_opt_t)
+
+  // Define obi_req_t and obi_rsp_t
+  `OBI_TYPEDEF_REQ_T(obi_req_t, obi_a_chan_t)
+  `OBI_TYPEDEF_RSP_T(obi_rsp_t, obi_r_chan_t)
+
+  // Define init_req_chan_t, init_rsp_chan_t, init_req_t and init_rsp_t
+  `IDMA_TYPEDEF_INIT_ALL(init, AddrWidth, DmaDataWidth, DmaDataWidth/8, DmaIdWidth)
 
   // Accelerator offload interface
   acc_req_t snitch_acc_req;
@@ -556,27 +587,43 @@ module snitch_cc
   /////////
 
   if (IsaCfg.Xdma) begin : gen_dma
+    obi_req_t [DmaNumChannels-1:0] obi_dma_req;
+    obi_rsp_t [DmaNumChannels-1:0] obi_dma_rsp;
+
     idma_inst64_top #(
-      .AxiAddrWidth   (AddrWidth),
-      .AxiDataWidth   (DMADataWidth),
-      .AxiIdWidth     (DMAIdWidth),
-      .AxiUserWidth   (DMAUserWidth),
-      .NumAxInFlight  (DMANumAxInFlight),
-      .DMAReqFifoDepth(DMAReqFifoDepth),
-      .NumChannels    (DMANumChannels),
-      .DMATracing     (1),
-      .axi_ar_chan_t  (axi_ar_chan_t),
-      .axi_aw_chan_t  (axi_aw_chan_t),
-      .axi_req_t      (axi_req_t),
-      .axi_res_t      (axi_rsp_t),
-      .acc_req_t      (acc_req_chan_t),
-      .acc_res_t      (acc_rsp_chan_t),
-      .dma_events_t   (dma_events_t)
+      .AxiAddrWidth     (AddrWidth),
+      .AxiDataWidth     (DmaDataWidth),
+      .AxiIdWidth       (DmaIdWidth),
+      .AxiUserWidth     (DmaUserWidth),
+      .NumAxInFlight    (DmaNumAxInFlight),
+      .DMAReqFifoDepth  (DmaReqFifoDepth),
+      .NumChannels      (DmaNumChannels),
+      .NumAddrRules     (1 + TcdmAliasEnable),
+      .EnableTcdmObi    (1'b1),
+      .DMATracing       (1),
+      .axi_ar_chan_t    (axi_ar_chan_t),
+      .axi_aw_chan_t    (axi_aw_chan_t),
+      .axi_req_t        (axi_req_t),
+      .axi_res_t        (axi_rsp_t),
+      .init_req_chan_t  (init_req_chan_t),
+      .init_rsp_chan_t  (init_rsp_chan_t),
+      .init_req_t       (init_req_t),
+      .init_rsp_t       (init_rsp_t),
+      .obi_a_chan_t     (obi_a_chan_t),
+      .obi_r_chan_t     (obi_r_chan_t),
+      .obi_req_t        (obi_req_t),
+      .obi_res_t        (obi_rsp_t),
+      .acc_req_t        (acc_req_chan_t),
+      .acc_res_t        (acc_rsp_chan_t),
+      .dma_events_t     (dma_events_t),
+      .addr_rule_t (addr_rule_t)
     ) i_idma_inst64_top (
       .clk_i,
       .rst_ni,
       .axi_req_o      (axi_dma_req_o),
       .axi_res_i      (axi_dma_res_i),
+      .obi_req_o      (obi_dma_req),
+      .obi_res_i      (obi_dma_rsp),
       .busy_o         (axi_dma_busy_o),
       .acc_req_i      (snitch_acc_req_demuxed[snitch_pkg::DMA_SS].q),
       .acc_req_valid_i(snitch_acc_req_demuxed[snitch_pkg::DMA_SS].q_valid),
@@ -585,11 +632,32 @@ module snitch_cc
       .acc_res_valid_o(snitch_acc_rsp_demuxed[snitch_pkg::DMA_SS].p_valid),
       .acc_res_ready_i(snitch_acc_req_demuxed[snitch_pkg::DMA_SS].p_ready),
       .hart_id_i      (hart_id_i),
-      .events_o       (axi_dma_events_o)
+      .events_o       (axi_dma_events_o),
+      .addr_map_i     (dma_addr_map_i)
+    );
+
+    // Bridge the DMA OBI interface to the cluster wide TCDM interconnect.
+    obi_to_tcdm #(
+      .obi_req_t  (obi_req_t),
+      .obi_rsp_t  (obi_rsp_t),
+      .tcdm_req_t (tcdm_dma_req_t),
+      .tcdm_rsp_t (tcdm_dma_rsp_t),
+      .DataWidth  (DmaDataWidth),
+      .IdWidth    (DmaIdWidth),
+      .MemRespLat (TcdmMemRespLat),
+      .NumChannels(DmaNumChannels)
+    ) i_obi_to_tcdm (
+      .clk_i,
+      .rst_ni,
+      .obi_req_i  (obi_dma_req),
+      .obi_rsp_o  (obi_dma_rsp),
+      .tcdm_req_o (tcdm_dma_req_o),
+      .tcdm_rsp_i (tcdm_dma_rsp_i)
     );
   end else begin : gen_no_dma
     assign axi_dma_req_o = '0;
     assign axi_dma_busy_o = '0;
+    assign tcdm_dma_req_o = '0;
     assign snitch_acc_rsp_demuxed[snitch_pkg::DMA_SS] = '0;
     assign axi_dma_events_o = '0;
   end
@@ -847,16 +915,16 @@ module snitch_cc
   } reqrsp_rule_t;
 
   // Define the addrmap for the demux select logic.
-  reqrsp_rule_t [TCDMAliasEnable:0] addr_map;
+  reqrsp_rule_t [TcdmAliasEnable:0] addr_map;
   assign addr_map[0] = '{
     idx: DreqSelectTcdm,
     base: tcdm_addr_base_i,
     mask: ({AddrWidth{1'b1}} << TcdmAddrWidth)
   };
-  if (TCDMAliasEnable) begin : gen_tcdm_alias_rule
+  if (TcdmAliasEnable) begin : gen_tcdm_alias_rule
     assign addr_map[1] = '{
       idx: DreqSelectTcdm,
-      base: TCDMAliasStart,
+      base: TcdmAliasStart,
       mask: ({AddrWidth{1'b1}} << TcdmAddrWidth)
     };
   end
@@ -878,7 +946,7 @@ module snitch_cc
     .rsp_chan_t(lsu_rsp_chan_t),
     // TODO(zarubaf): Make a parameter.
     .RspDepth (4),
-    .NoRules  (1 + TCDMAliasEnable),
+    .NoRules  (1 + TcdmAliasEnable),
     .addr_t   (logic [AddrWidth-1:0]),
     .rule_t   (reqrsp_rule_t)
   ) i_reqrsp_demux_mapped (
