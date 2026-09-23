@@ -794,17 +794,11 @@ inline snrt_dma_txid_t snrt_dma_store_2d_tile_from_banks(
                                   full_x0_size, prec, tile_ld);
 }
 
-//===----------------------------------------------------------------------===//
-// On-the-fly compute (DMOPC)
-//===----------------------------------------------------------------------===//
-//
-// Contract of idma_inst64_compute_pkg (iDMA 0.7.0 deploy pin), requires the
-// cluster config to set `dma_enable_compute`:
-//  - DMOPC latches the opcode word from rs1 and the op parameters from rs2;
-//    every subsequent DMCPY/DMCPYI carries them until the next DMOPC. Reset
-//    state is a plain copy, so no boot DMOPC is needed.
-//  - The frontend asserts on an opcode byte it cannot decode; only the bytes
-//    defined below exist on this pin.
+// On-the-fly compute (DMOPC); needs `dma_enable_compute` in the cluster config.
+// DMOPC latches the opcode word from rs1 and the op parameters from rs2, and
+// every subsequent DMCPY/DMCPYI carries them until the next DMOPC. Reset state
+// is a plain copy, so no boot DMOPC is needed. See idma_inst64_compute_pkg for
+// the encoding; the frontend asserts on an opcode byte it cannot decode.
 
 /// Compute opcode byte, rs1[7:0]
 #define SNRT_DMA_OPCODE_PASSTHROUGH IDMA_DMOPC_OPC_PASSTHROUGH
