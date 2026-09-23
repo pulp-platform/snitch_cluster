@@ -1672,6 +1672,7 @@ package snitch_riscv_instr;
   localparam logic [11:0] CSR_MHPMCOUNTER29H = 12'hb9d;
   localparam logic [11:0] CSR_MHPMCOUNTER30H = 12'hb9e;
   localparam logic [11:0] CSR_MHPMCOUNTER31H = 12'hb9f;
+  localparam logic [11:0] CSR_PACE = 12'hba0;
   localparam logic [11:0] CSR_CYCLE = 12'hc00;
   localparam logic [11:0] CSR_TIME = 12'hc01;
   localparam logic [11:0] CSR_INSTRET = 12'hc02;

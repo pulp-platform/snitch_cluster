@@ -66,6 +66,8 @@ SN_RISCV_ADDR2LINE ?= $(SN_LLVM_BINROOT)/llvm-addr2line
 SN_RISCV_FEATURES = ${' '.join(features)}
 SN_RISCV_CFLAGS := -march=${march}
 SN_RISCV_CFLAGS += $(foreach feat,$(SN_RISCV_FEATURES),-Xclang -target-feature -Xclang +$(feat))
+# Spatz does not support the full RVV ISA, hence we must disable vector code generation
+SN_RISCV_CFLAGS += -fno-vectorize -fno-slp-vectorize -mllvm -scalable-vectorization=off -mllvm -combiner-store-merging=false -mllvm -disable-vector-combine
 SN_RISCV_CFLAGS += -menable-experimental-extensions
 SN_RISCV_CFLAGS += -mabi=ilp32d
 SN_RISCV_CFLAGS += -mcmodel=medany

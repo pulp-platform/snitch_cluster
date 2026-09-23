@@ -79,8 +79,10 @@ package snitch_cluster_wrapper_pkg;
     logic [0:0] emas;
   } sram_cfg_t;
 
+  localparam int unsigned DcaDataWidth = ${cfg['cluster']['dca_data_width']};
+
   // Define dca_req_t and dca_rsp_t
-  `DCA_TYPEDEF_ALL(dca, WideDataWidth)
+  `DCA_TYPEDEF_ALL(dca, DcaDataWidth)
 
   // Define x_issue_req_t, x_issue_resp_t, x_register_t, x_commit_t, x_result_t
   `CV_X_IF_TYPEDEF_ALL(XifIdWidth)

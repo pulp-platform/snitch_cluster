@@ -16,6 +16,7 @@
   supports_pulp = False
   supports_smallfloat = False
   supports_vector = False
+  supports_fp64 = True
   smallfloat_subextensions = ['xf8', 'xf8alt', 'zfh', 'xf16alt', 'xfdotp', 'xfvec']
   pulp_subextensions = [
     'xcvmem',
@@ -38,6 +39,11 @@
       supports_pulp = supports_pulp or any([core[ext] for ext in pulp_subextensions])
       supports_smallfloat = supports_smallfloat or any([core[ext] for ext in smallfloat_subextensions])
       supports_vector = supports_vector or core['isa_parsed'].v
+      # Spatz can be built with fp64 disabled (FP64 arithmetic removed from
+      # FpFmtMask for area, while the datapath stays 64b) even though the
+      # core's own isa string/misa.D still reports D support.
+      if core['isa_parsed'].v and not core.get('spatz', {}).get('fp64', True):
+        supports_fp64 = False
 %>
 
 
@@ -95,6 +101,10 @@
 
 % if supports_vector:
 #define SNRT_SUPPORTS_VECTOR
+% endif
+
+% if supports_fp64:
+#define SNRT_SUPPORTS_FP64
 % endif
 
 // Software configuration
