@@ -74,6 +74,10 @@
 #define SNRT_SUPPORTS_DMA
 % endif
 
+% if supports_dma and cfg['cluster']['dma_enable_compute']:
+#define SNRT_SUPPORTS_DMA_COMPUTE
+% endif
+
 % if supports_ssr:
 #define SNRT_SUPPORTS_SSR
 % endif

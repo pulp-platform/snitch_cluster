@@ -6,8 +6,6 @@
 #include <string.h>
 #endif
 
-#include "idma_compute.h"
-
 /**
  * @file
  * @brief This file provides functions to program the Snitch DMA.
@@ -16,6 +14,9 @@
 #pragma once
 
 #include <math.h>
+#ifdef SNRT_SUPPORTS_DMA_COMPUTE
+#include "idma_compute.h"
+#endif
 
 /**
  * @brief Start an asynchronous 1D DMA transfer with 64-bit wide pointers on a
@@ -793,9 +794,9 @@ inline snrt_dma_txid_t snrt_dma_store_2d_tile_from_banks(
                                   full_x0_size, prec, tile_ld);
 }
 
-// On-the-fly compute (DMOPC); needs `dma_enable_compute` in the cluster config.
+#ifdef SNRT_SUPPORTS_DMA_COMPUTE
 
-/// Compute opcode byte, rs1[7:0]
+/// On-the-fly compute opcode byte, rs1[7:0]
 #define SNRT_DMA_OPCODE_PASSTHROUGH IDMA_DMOPC_OPC_PASSTHROUGH
 #define SNRT_DMA_OPCODE_MX_QUANT IDMA_DMOPC_OPC_MX_QUANT
 #define SNRT_DMA_OPCODE_MX_DEQUANT IDMA_DMOPC_OPC_MX_DEQUANT
@@ -803,22 +804,9 @@ inline snrt_dma_txid_t snrt_dma_store_2d_tile_from_banks(
 #define SNRT_DMA_OPCODE_MX_DEQUANT_FP16 IDMA_DMOPC_OPC_MX_DEQUANT_FP16
 #define SNRT_DMA_OPCODE_TRANSPOSE IDMA_DMOPC_OPC_TRANSPOSE
 
-/// Transpose element-size mode in rs1
-#define SNRT_DMA_OPCODE_TP_MODE_SHIFT IDMA_DMOPC_RS1_TP_MODE_SHIFT
-
-/// Transpose dimensions in rs2; both stay below bit 31, which rs2 sign-extends from
-#define SNRT_DMA_OPCODE_TP_TENSOR_M_SHIFT IDMA_DMOPC_RS2_TP_TENSOR_M_SHIFT
-#define SNRT_DMA_OPCODE_TP_TENSOR_N_SHIFT IDMA_DMOPC_RS2_TP_TENSOR_N_SHIFT
-
-/// Transpose opcode word for rs1; mode selects 1 << mode byte elements
-#define SNRT_DMA_OPCODE_TRANSPOSE_CFG(mode) \
-    (SNRT_DMA_OPCODE_TRANSPOSE |            \
-     (((uint32_t)(mode)&0x3u) << SNRT_DMA_OPCODE_TP_MODE_SHIFT))
-
-/// Transpose dimension word for rs2
-#define SNRT_DMA_OPCODE_TRANSPOSE_DIMS(tensor_m, tensor_n)                  \
-    ((((uint32_t)(tensor_m)&0xFFFu) << SNRT_DMA_OPCODE_TP_TENSOR_M_SHIFT) | \
-     (((uint32_t)(tensor_n)&0xFFFu) << SNRT_DMA_OPCODE_TP_TENSOR_N_SHIFT))
+/// Transpose field widths, mirroring idma_pkg mode and TransposeDimWidth
+#define SNRT_DMA_TP_MODE_MASK 0x3u
+#define SNRT_DMA_TP_DIM_MASK 0xFFFu
 
 /**
  * @brief Set the on-the-fly compute configuration for subsequent transfers.
@@ -839,25 +827,69 @@ inline void snrt_dma_set_opcode_params(uint32_t opcode, uint32_t params) {
 
 /**
  * @brief Set a parameterless on-the-fly compute op for subsequent transfers.
+ * @param opcode Opcode byte; one of the SNRT_DMA_OPCODE_* macros.
  */
 inline void snrt_dma_set_opcode(uint32_t opcode) {
     snrt_dma_set_opcode_params(opcode, 0u);
 }
 
 /**
- * @brief Select the tiled transpose of a row-major tensor_m x tensor_n tensor.
+ * @brief Enable the tiled transpose of a row-major tensor for successive
+ *        transfers
  * @param mode Element size selector; elements are 1 << mode bytes.
+ * @param tensor_m Rows of the source tensor, in elements.
+ * @param tensor_n Columns of the source tensor, in elements.
  */
-inline void snrt_dma_set_transpose(uint32_t mode, uint32_t tensor_m,
-                                   uint32_t tensor_n) {
+inline void snrt_dma_enable_transpose(uint32_t mode, uint32_t tensor_m,
+                                      uint32_t tensor_n) {
     snrt_dma_set_opcode_params(
-        SNRT_DMA_OPCODE_TRANSPOSE_CFG(mode),
-        SNRT_DMA_OPCODE_TRANSPOSE_DIMS(tensor_m, tensor_n));
+        SNRT_DMA_OPCODE_TRANSPOSE |
+            ((mode & SNRT_DMA_TP_MODE_MASK) << IDMA_DMOPC_RS1_TP_MODE_SHIFT),
+        ((tensor_m & SNRT_DMA_TP_DIM_MASK)
+         << IDMA_DMOPC_RS2_TP_TENSOR_M_SHIFT) |
+            ((tensor_n & SNRT_DMA_TP_DIM_MASK)
+             << IDMA_DMOPC_RS2_TP_TENSOR_N_SHIFT));
 }
 
 /**
- * @brief Reset the on-the-fly compute configuration to a plain copy.
+ * @brief Disable on-the-fly compute for successive transfers
+ * @details Successive DMA transfers will be plain copies
  */
-inline void snrt_dma_clear_opcode() {
+inline void snrt_dma_disable_compute() {
     snrt_dma_set_opcode(SNRT_DMA_OPCODE_PASSTHROUGH);
 }
+
+/**
+ * @brief Start an asynchronous transposing 1D DMA transfer.
+ * @param mode Element size selector; elements are 1 << mode bytes.
+ * @param tensor_m Rows of the source tensor, in elements.
+ * @param tensor_n Columns of the source tensor, in elements.
+ * @see snrt_dma_start_1d(uint64_t, uint64_t, size_t, uint32_t) for a
+ *      description of the other parameters.
+ */
+inline uint32_t snrt_dma_start_1d_transpose(uint64_t dst, uint64_t src,
+                                            size_t size, uint32_t mode,
+                                            uint32_t tensor_m,
+                                            uint32_t tensor_n,
+                                            uint32_t channel = 0) {
+    snrt_dma_enable_transpose(mode, tensor_m, tensor_n);
+    uint32_t txid = snrt_dma_start_1d(dst, src, size, channel);
+    snrt_dma_disable_compute();
+    return txid;
+}
+
+/**
+ * @brief Start an asynchronous transposing 1D DMA transfer.
+ * @see snrt_dma_start_1d_transpose(uint64_t, uint64_t, size_t, uint32_t,
+ *      uint32_t, uint32_t, uint32_t)
+ */
+inline uint32_t snrt_dma_start_1d_transpose(volatile void *dst,
+                                            volatile void *src, size_t size,
+                                            uint32_t mode, uint32_t tensor_m,
+                                            uint32_t tensor_n,
+                                            uint32_t channel = 0) {
+    return snrt_dma_start_1d_transpose((uint64_t)dst, (uint64_t)src, size, mode,
+                                       tensor_m, tensor_n, channel);
+}
+
+#endif  // SNRT_SUPPORTS_DMA_COMPUTE

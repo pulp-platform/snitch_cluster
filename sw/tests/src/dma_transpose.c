@@ -12,6 +12,8 @@
 #define TP_M 4
 #define TP_N 8
 
+#ifdef SNRT_SUPPORTS_DMA_COMPUTE
+
 // Transpose one TP_M x TP_N tile of T elements and check every result element
 template <typename T>
 static uint32_t run_transpose(uint32_t mode) {
@@ -30,13 +32,12 @@ static uint32_t run_transpose(uint32_t mode) {
         for (uint32_t c = 0; c < TP_N; c++) src[r * ne + c] = (T)(r * 100 + c);
     for (size_t i = 0; i < elems; i++) dst[i] = poison;
 
-    snrt_dma_set_transpose(mode, TP_M, TP_N);
     uint32_t c0 = snrt_mcycle();
-    snrt_dma_start_1d((volatile void *)dst, (volatile void *)src,
-                      (size_t)ne * SNRT_DMA_BYTES_PER_BEAT);
+    snrt_dma_start_1d_transpose((volatile void *)dst, (volatile void *)src,
+                                (size_t)ne * SNRT_DMA_BYTES_PER_BEAT, mode,
+                                TP_M, TP_N);
     snrt_dma_wait_all();
     uint32_t cycles = snrt_mcycle() - c0;
-    snrt_dma_clear_opcode();
 
     uint32_t errors = 0, differ = 0;
     for (uint32_t c = 0; c < ne; c++) {
@@ -67,7 +68,10 @@ static uint32_t run_transpose(uint32_t mode) {
     return errors;
 }
 
+#endif
+
 int main() {
+#ifdef SNRT_SUPPORTS_DMA_COMPUTE
     if (!snrt_is_dm_core()) {
         snrt_cluster_hw_barrier();
         return 0;
@@ -82,4 +86,5 @@ int main() {
 
     snrt_cluster_hw_barrier();
     return errors ? 1 : 0;
+#endif
 }
