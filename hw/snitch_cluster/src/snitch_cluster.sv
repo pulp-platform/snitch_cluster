@@ -71,6 +71,16 @@ module snitch_cluster
   parameter int unsigned DMANumChannels     = 1,
   /// Enable the DMA compute path (DMOPC).
   parameter bit          DMAEnableCompute   = 1'b0,
+  /// Elaborate the DMA transpose engine.
+  parameter bit          DMAComputeTranspose           = 1'b1,
+  /// Elaborate the DMA MX quantization engine.
+  parameter bit          DMAComputeMxQuant             = 1'b1,
+  /// Elaborate the DMA MX dequantization engine.
+  parameter bit          DMAComputeMxDequant           = 1'b1,
+  /// Elaborate the FP16 paths of the DMA MX engines.
+  parameter bit          DMAComputeMxFp16              = 1'b1,
+  /// Use two ping-pong tile banks in the DMA transpose engine.
+  parameter bit          DMAComputeTransposeFullDuplex = 1'b1,
   /// Number of exposed TCDM wide ports
   parameter int unsigned NumExpWideTcdmPorts = 1,
   /// Width of a single icache line.
@@ -1130,6 +1140,11 @@ module snitch_cluster
       .DMAReqFifoDepth (DMAReqFifoDepth),
       .DMANumChannels (DMANumChannels),
       .DMAEnableCompute (DMAEnableCompute),
+      .DMAComputeTranspose (DMAComputeTranspose),
+      .DMAComputeMxQuant (DMAComputeMxQuant),
+      .DMAComputeMxDequant (DMAComputeMxDequant),
+      .DMAComputeMxFp16 (DMAComputeMxFp16),
+      .DMAComputeTransposeFullDuplex (DMAComputeTransposeFullDuplex),
       .axi_ar_chan_t (axi_mst_dma_ar_chan_t),
       .axi_aw_chan_t (axi_mst_dma_aw_chan_t),
       .axi_req_t (axi_mst_dma_req_t),
