@@ -1062,8 +1062,8 @@ module snitch_cluster
   hive_req_t [NrCores-1:0] hive_req;
   hive_rsp_t [NrCores-1:0] hive_rsp;
 
-  dca_lane_req_t [NumDcaLanes-1:0] dca_lane_req;
-  dca_lane_rsp_t [NumDcaLanes-1:0] dca_lane_rsp;
+  dca_lane_req_t [cc_pkg::iomsb(NumDcaLanes):0] dca_lane_req;
+  dca_lane_rsp_t [cc_pkg::iomsb(NumDcaLanes):0] dca_lane_rsp;
 
   // Fork the external DCA port to the various SIMD lanes, and tie off DMA
   // TODO(colluca): the number of DMA cores here is hardcoded
@@ -1076,8 +1076,8 @@ module snitch_cluster
       .rst_ni,
       .slv_req_i(dca_req_i),
       .slv_rsp_o(dca_rsp_o),
-      .mst_req_o(dca_lane_req[NumDcaLanes-1:0]),
-      .mst_rsp_i(dca_lane_rsp[NumDcaLanes-1:0])
+      .mst_req_o(dca_lane_req),
+      .mst_rsp_i(dca_lane_rsp)
     );
   end else begin : gen_no_dca
     for (genvar i = 0; i < NumDcaLanes; i++) begin : gen_tie_off_lane
