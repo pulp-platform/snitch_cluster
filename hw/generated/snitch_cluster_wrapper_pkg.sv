@@ -36,6 +36,7 @@ package snitch_cluster_wrapper_pkg;
   localparam int unsigned AddrWidth = 48;
   localparam int unsigned NarrowDataWidth = 64;
   localparam int unsigned WideDataWidth = 512;
+  localparam int unsigned DcaDataWidth = 512;
 
   localparam int unsigned NarrowIdWidthIn = 2;
   localparam int unsigned NrNarrowMasters = 3;
@@ -78,8 +79,6 @@ package snitch_cluster_wrapper_pkg;
     logic [1:0] emaw;
     logic [0:0] emas;
   } sram_cfg_t;
-
-  localparam int unsigned DcaDataWidth = ${cfg['cluster']['dca_data_width']};
 
   // Define dca_req_t and dca_rsp_t
   `DCA_TYPEDEF_ALL(dca, DcaDataWidth)
@@ -1377,7 +1376,6 @@ package snitch_cluster_wrapper_pkg;
   localparam bit                     AliasRegionEnable  = 1;
   localparam int unsigned            AliasRegionBase    = 402653184;
   localparam bit                     EnableDca          = 0;
-  localparam int unsigned            DcaDataWidth       = 512;
 
   // Feature flags controlling wrapper port connections
   localparam bit EnableExternalInterrupts = 0;
