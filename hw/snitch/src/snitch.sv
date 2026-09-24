@@ -2819,24 +2819,14 @@ module snitch
             DMSRC,
             DMDST,
             DMSTR,
-            DMUSER: begin
+            DMUSER,
+            DMOPC: begin
               if (Xdma) begin
                 acc_req_o.q.addr  = DMA_SS;
                 opa_select   = RegRs1;
                 opb_select   = RegRs2;
                 is_acc_inst  = 1'b1;
                 write_rd     = 1'b0;
-              end else begin
-                unsupported_inst = 1'b1;
-              end
-            end
-            DMOPC: begin
-              if (Xdma) begin
-                acc_req_o.q.addr = DMA_SS;
-                opa_select       = RegRs1;
-                opb_select       = RegRs2;
-                is_acc_inst      = 1'b1;
-                write_rd         = 1'b0;
               end else begin
                 unsupported_inst = 1'b1;
               end
