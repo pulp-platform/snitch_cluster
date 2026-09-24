@@ -34,11 +34,8 @@ module snitch_cc
   parameter int unsigned DMAReqFifoDepth    = 0,
   parameter int unsigned DMANumChannels     = 0,
   parameter bit          DMAEnableCompute   = 1'b0,
-  parameter bit          DMAComputeTranspose           = 1'b1,
-  parameter bit          DMAComputeMxQuant             = 1'b1,
-  parameter bit          DMAComputeMxDequant           = 1'b1,
-  parameter bit          DMAComputeMxFp16              = 1'b1,
-  parameter bit          DMAComputeTransposeFullDuplex = 1'b1,
+  parameter idma_pkg::compute_enable_t DMAComputeOps    = '1,
+  parameter idma_pkg::compute_tuning_t DMAComputeTuning = '1,
   parameter type         axi_ar_chan_t      = logic,
   parameter type         axi_aw_chan_t      = logic,
   parameter type         axi_req_t          = logic,
@@ -572,16 +569,8 @@ module snitch_cc
       .NumChannels    (DMANumChannels),
       .EnableTcdmObi  (1'b0),
       .EnableCompute  (DMAEnableCompute),
-      // Assembled here so no idma_pkg type enters the cluster package.
-      .ComputeOps     (idma_pkg::compute_enable_t'{
-                         transpose: DMAComputeTranspose,
-                         mxquant:   DMAComputeMxQuant,
-                         mxdequant: DMAComputeMxDequant,
-                         mxfp16:    DMAComputeMxFp16
-                       }),
-      .ComputeTuning  (idma_pkg::compute_tuning_t'{
-                         transpose_full_duplex: DMAComputeTransposeFullDuplex
-                       }),
+      .ComputeOps     (DMAComputeOps),
+      .ComputeTuning  (DMAComputeTuning),
       .DMATracing     (1),
       .axi_ar_chan_t  (axi_ar_chan_t),
       .axi_aw_chan_t  (axi_aw_chan_t),

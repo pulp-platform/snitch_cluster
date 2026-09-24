@@ -357,11 +357,15 @@ ${ssr_cfg(core, '{reg_idx}', '/*None*/ 0', ',')}\
   localparam int unsigned            DMAReqFifoDepth    = ${cfg['cluster']['dma_req_fifo_depth']};
   localparam int unsigned            DMANumChannels     = ${cfg['cluster']['dma_nr_channels']};
   localparam bit                     DMAEnableCompute   = ${int(cfg['cluster']['dma_enable_compute'])};
-  localparam bit                     DMAComputeTranspose           = ${int(cfg['cluster']['dma_compute_transpose'])};
-  localparam bit                     DMAComputeMxQuant             = ${int(cfg['cluster']['dma_compute_mxquant'])};
-  localparam bit                     DMAComputeMxDequant           = ${int(cfg['cluster']['dma_compute_mxdequant'])};
-  localparam bit                     DMAComputeMxFp16              = ${int(cfg['cluster']['dma_compute_mxfp16'])};
-  localparam bit                     DMAComputeTransposeFullDuplex = ${int(cfg['cluster']['dma_compute_transpose_full_duplex'])};
+  localparam idma_pkg::compute_enable_t DMAComputeOps = '{
+    transpose: ${int(cfg['cluster']['dma_compute_transpose'])},
+    mxquant:   ${int(cfg['cluster']['dma_compute_mxquant'])},
+    mxdequant: ${int(cfg['cluster']['dma_compute_mxdequant'])},
+    mxfp16:    ${int(cfg['cluster']['dma_compute_mxfp16'])}
+  };
+  localparam idma_pkg::compute_tuning_t DMAComputeTuning = '{
+    transpose_full_duplex: ${int(cfg['cluster']['dma_compute_transpose_full_duplex'])}
+  };
   // NumExpWideTcdmPorts is the effective count used for port sizing (minimum 1).
   // NumExpWideTcdmPortsCfg is the raw configured value used for connection gating.
   localparam int unsigned            NumExpWideTcdmPorts    = ${actual_num_exposed_wide_tcdm_ports};
