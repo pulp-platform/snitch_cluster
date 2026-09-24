@@ -23,9 +23,9 @@
 // and compare. `exp_bias` and `mant_shift` place the exponent and the top two
 // mantissa bits of T, so both formats get the same 1.m * 2^e values.
 template <typename T>
-static uint32_t run_roundtrip(const char *name, uint32_t quant_op,
-                              uint32_t dequant_op, uint32_t exp_bias,
-                              uint32_t mant_shift, volatile uint8_t *mx) {
+static uint32_t run_roundtrip(uint32_t quant_op, uint32_t dequant_op,
+                              uint32_t exp_bias, uint32_t mant_shift,
+                              volatile uint8_t *mx) {
     const size_t bytes = (size_t)NUM_ELEMS * sizeof(T);
 
     T *l3 = (T *)snrt_l3_alloc_v2(bytes, 128);
@@ -46,30 +46,16 @@ static uint32_t run_roundtrip(const char *name, uint32_t quant_op,
     snrt_dma_wait_all();
 
     snrt_dma_set_opcode(quant_op);
-    uint32_t c0 = snrt_mcycle();
     snrt_dma_start_1d((volatile void *)mx, (volatile void *)l3, bytes);
     snrt_dma_wait_all();
-    uint32_t quant_cycles = snrt_mcycle() - c0;
 
     snrt_dma_set_opcode(dequant_op);
-    c0 = snrt_mcycle();
     snrt_dma_start_1d((volatile void *)out, (volatile void *)mx, MX_BYTES);
     snrt_dma_wait_all();
-    uint32_t dequant_cycles = snrt_mcycle() - c0;
 
     uint32_t errors = 0;
-    for (size_t i = 0; i < NUM_ELEMS; i++) {
-        if (out[i] != src[i]) {
-            if (errors < 8)
-                printf("%s mismatch at %u: exp %x got %x\n", name, (unsigned)i,
-                       (unsigned)src[i], (unsigned)out[i]);
-            errors++;
-        }
-    }
-
-    printf("%s: quant %u B -> %u B in %u cycles, dequant back in %u, %s\n",
-           name, (unsigned)bytes, (unsigned)MX_BYTES, quant_cycles,
-           dequant_cycles, errors ? "FAIL" : "ok");
+    for (size_t i = 0; i < NUM_ELEMS; i++)
+        if (out[i] != src[i]) errors++;
     return errors;
 }
 
@@ -85,20 +71,17 @@ int main() {
     volatile uint8_t *mx =
         (volatile uint8_t *)snrt_l1_alloc_cluster_local(MX_BYTES_PADDED, 128);
 
-    uint32_t errors =
-        run_roundtrip<uint32_t>("fp32", SNRT_DMA_OPCODE_MX_QUANT,
-                                SNRT_DMA_OPCODE_MX_DEQUANT, 127u, 21u, mx);
+    uint32_t errors = run_roundtrip<uint32_t>(
+        IDMA_DMOPC_OPC_MX_QUANT, IDMA_DMOPC_OPC_MX_DEQUANT, 127u, 21u, mx);
 
 #if SNRT_DMA_BYTES_PER_BEAT <= 64
     // The FP16 element format exists on buses up to 512 bit
     errors +=
-        run_roundtrip<uint16_t>("fp16", SNRT_DMA_OPCODE_MX_QUANT_FP16,
-                                SNRT_DMA_OPCODE_MX_DEQUANT_FP16, 15u, 8u, mx);
+        run_roundtrip<uint16_t>(IDMA_DMOPC_OPC_MX_QUANT_FP16,
+                                IDMA_DMOPC_OPC_MX_DEQUANT_FP16, 15u, 8u, mx);
 #endif
 
     snrt_dma_disable_compute();
-
-    printf("[dma_mxquant] %s (%u errors)\n", errors ? "FAIL" : "PASS", errors);
 
     snrt_cluster_hw_barrier();
     return errors ? 1 : 0;

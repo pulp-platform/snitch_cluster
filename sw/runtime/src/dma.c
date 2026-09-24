@@ -102,16 +102,14 @@ extern void snrt_dma_enable_transpose(uint32_t mode, uint32_t tensor_m,
 
 extern void snrt_dma_disable_compute();
 
-extern uint32_t snrt_dma_start_1d_transpose(uint64_t dst, uint64_t src,
-                                            size_t size, uint32_t mode,
-                                            uint32_t tensor_m,
-                                            uint32_t tensor_n,
-                                            uint32_t channel);
+extern uint32_t snrt_dma_start_transpose(uint64_t dst, uint64_t src,
+                                         size_t size, uint32_t mode,
+                                         uint32_t tensor_m, uint32_t tensor_n,
+                                         uint32_t channel);
 
-extern uint32_t snrt_dma_start_1d_transpose(volatile void *dst,
-                                            volatile void *src, size_t size,
-                                            uint32_t mode, uint32_t tensor_m,
-                                            uint32_t tensor_n,
-                                            uint32_t channel);
+extern uint32_t snrt_dma_start_transpose(volatile void *dst, volatile void *src,
+                                         size_t size, uint32_t mode,
+                                         uint32_t tensor_m, uint32_t tensor_n,
+                                         uint32_t channel);
 
 #endif  // SNRT_SUPPORTS_DMA_COMPUTE
