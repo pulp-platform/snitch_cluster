@@ -91,8 +91,6 @@ extern snrt_dma_txid_t snrt_dma_store_2d_tile_from_banks(
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
     uint32_t prec, size_t num_banks);
 
-#ifdef SNRT_SUPPORTS_DMA_COMPUTE
-
 extern void snrt_dma_set_opcode_params(uint32_t opcode, uint32_t params);
 
 extern void snrt_dma_set_opcode(uint32_t opcode);
@@ -111,5 +109,3 @@ extern uint32_t snrt_dma_start_transpose(volatile void *dst, volatile void *src,
                                          size_t size, uint32_t mode,
                                          uint32_t tensor_m, uint32_t tensor_n,
                                          uint32_t channel);
-
-#endif  // SNRT_SUPPORTS_DMA_COMPUTE

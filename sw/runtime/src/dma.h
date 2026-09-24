@@ -16,6 +16,11 @@
 #include <math.h>
 #ifdef SNRT_SUPPORTS_DMA_COMPUTE
 #include "idma_compute.h"
+#define SNRT_DMA_COMPUTE_API
+#else
+// Calling the DMA compute API on a cluster without it is a compile error
+#define SNRT_DMA_COMPUTE_API \
+    __attribute__((unavailable("cluster built without DMA compute")))
 #endif
 
 /**
@@ -794,8 +799,6 @@ inline snrt_dma_txid_t snrt_dma_store_2d_tile_from_banks(
                                   full_x0_size, prec, tile_ld);
 }
 
-#ifdef SNRT_SUPPORTS_DMA_COMPUTE
-
 /**
  * @brief Set the on-the-fly compute configuration for subsequent transfers.
  * @param opcode Opcode word for rs1: an IDMA_DMOPC_OPC_* byte, plus the
@@ -803,7 +806,8 @@ inline snrt_dma_txid_t snrt_dma_store_2d_tile_from_banks(
  * @param params Op-parameter word for rs2; 0 for ops that take none.
  * @details Latched at the DMOPC handshake and applied until the next DMOPC.
  */
-inline void snrt_dma_set_opcode_params(uint32_t opcode, uint32_t params) {
+SNRT_DMA_COMPUTE_API inline void snrt_dma_set_opcode_params(uint32_t opcode,
+                                                            uint32_t params) {
     // pulp LLVM has no dmopc mnemonic yet
     asm volatile(".insn r 0x2b, 0x0, 0x0a, x0, %[opcode], %[params] \n"
                  :
@@ -815,7 +819,7 @@ inline void snrt_dma_set_opcode_params(uint32_t opcode, uint32_t params) {
  * @brief Set a parameterless on-the-fly compute op for subsequent transfers.
  * @param opcode Opcode byte; one of the IDMA_DMOPC_OPC_* defines.
  */
-inline void snrt_dma_set_opcode(uint32_t opcode) {
+SNRT_DMA_COMPUTE_API inline void snrt_dma_set_opcode(uint32_t opcode) {
     snrt_dma_set_opcode_params(opcode, 0u);
 }
 
@@ -826,8 +830,10 @@ inline void snrt_dma_set_opcode(uint32_t opcode) {
  * @param tensor_m Rows of the source tensor, in elements.
  * @param tensor_n Columns of the source tensor, in elements.
  */
-inline void snrt_dma_enable_transpose(uint32_t mode, uint32_t tensor_m,
-                                      uint32_t tensor_n) {
+SNRT_DMA_COMPUTE_API inline void snrt_dma_enable_transpose(uint32_t mode,
+                                                           uint32_t tensor_m,
+                                                           uint32_t tensor_n) {
+#ifdef SNRT_SUPPORTS_DMA_COMPUTE
     snrt_dma_set_opcode_params(
         IDMA_DMOPC_OPC_TRANSPOSE | ((mode & IDMA_DMOPC_RS1_TP_MODE_MASK)
                                     << IDMA_DMOPC_RS1_TP_MODE_SHIFT),
@@ -835,14 +841,17 @@ inline void snrt_dma_enable_transpose(uint32_t mode, uint32_t tensor_m,
          << IDMA_DMOPC_RS2_TP_TENSOR_M_SHIFT) |
             ((tensor_n & IDMA_DMOPC_RS2_TP_TENSOR_N_MASK)
              << IDMA_DMOPC_RS2_TP_TENSOR_N_SHIFT));
+#endif
 }
 
 /**
  * @brief Disable on-the-fly compute for successive transfers
  * @details Successive DMA transfers will be plain copies
  */
-inline void snrt_dma_disable_compute() {
+SNRT_DMA_COMPUTE_API inline void snrt_dma_disable_compute() {
+#ifdef SNRT_SUPPORTS_DMA_COMPUTE
     snrt_dma_set_opcode(IDMA_DMOPC_OPC_PASSTHROUGH);
+#endif
 }
 
 /**
@@ -853,10 +862,9 @@ inline void snrt_dma_disable_compute() {
  * @see snrt_dma_start_1d(uint64_t, uint64_t, size_t, uint32_t) for a
  *      description of the other parameters.
  */
-inline uint32_t snrt_dma_start_transpose(uint64_t dst, uint64_t src,
-                                         size_t size, uint32_t mode,
-                                         uint32_t tensor_m, uint32_t tensor_n,
-                                         uint32_t channel = 0) {
+SNRT_DMA_COMPUTE_API inline uint32_t snrt_dma_start_transpose(
+    uint64_t dst, uint64_t src, size_t size, uint32_t mode, uint32_t tensor_m,
+    uint32_t tensor_n, uint32_t channel = 0) {
     snrt_dma_enable_transpose(mode, tensor_m, tensor_n);
     uint32_t txid = snrt_dma_start_1d(dst, src, size, channel);
     snrt_dma_disable_compute();
@@ -868,12 +876,9 @@ inline uint32_t snrt_dma_start_transpose(uint64_t dst, uint64_t src,
  * @see snrt_dma_start_transpose(uint64_t, uint64_t, size_t, uint32_t,
  *      uint32_t, uint32_t, uint32_t)
  */
-inline uint32_t snrt_dma_start_transpose(volatile void *dst, volatile void *src,
-                                         size_t size, uint32_t mode,
-                                         uint32_t tensor_m, uint32_t tensor_n,
-                                         uint32_t channel = 0) {
+SNRT_DMA_COMPUTE_API inline uint32_t snrt_dma_start_transpose(
+    volatile void *dst, volatile void *src, size_t size, uint32_t mode,
+    uint32_t tensor_m, uint32_t tensor_n, uint32_t channel = 0) {
     return snrt_dma_start_transpose((uint64_t)dst, (uint64_t)src, size, mode,
                                     tensor_m, tensor_n, channel);
 }
-
-#endif  // SNRT_SUPPORTS_DMA_COMPUTE
