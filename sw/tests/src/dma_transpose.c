@@ -32,39 +32,24 @@ static uint32_t run_transpose(uint32_t mode) {
         for (uint32_t c = 0; c < TP_N; c++) src[r * ne + c] = (T)(r * 100 + c);
     for (size_t i = 0; i < elems; i++) dst[i] = poison;
 
-    uint32_t c0 = snrt_mcycle();
-    snrt_dma_start_1d_transpose((volatile void *)dst, (volatile void *)src,
-                                (size_t)ne * SNRT_DMA_BYTES_PER_BEAT, mode,
-                                TP_M, TP_N);
+    snrt_dma_start_transpose((volatile void *)dst, (volatile void *)src,
+                             (size_t)ne * SNRT_DMA_BYTES_PER_BEAT, mode, TP_M,
+                             TP_N);
     snrt_dma_wait_all();
-    uint32_t cycles = snrt_mcycle() - c0;
 
     uint32_t errors = 0, differ = 0;
     for (uint32_t c = 0; c < ne; c++) {
         for (uint32_t r = 0; r < ne; r++) {
             T got = dst[c * ne + r];
             T exp = (c < TP_N && r < TP_M) ? src[r * ne + c] : poison;
-            if (got != exp) {
-                if (errors < 8)
-                    printf("out[%u][%u]: exp %u got %u\n", c, r, (unsigned)exp,
-                           (unsigned)got);
-                errors++;
-            }
+            if (got != exp) errors++;
             // A plain copy would leave src[c][r], i.e. c * 100 + r
             if (c < TP_N && r < TP_M && got != src[c * ne + r]) differ++;
         }
     }
 
     // Catches a DMOPC that never latched: passthrough leaves differ == 0
-    if (differ != TP_M * TP_N - TP_M) {
-        printf("%u of %u tile elements differ from a plain copy\n", differ,
-               TP_M * TP_N);
-        errors++;
-    }
-
-    printf("mode %u (%u B elems): %ux%u -> %ux%u, %u cycles, %s\n", mode,
-           (unsigned)sizeof(T), TP_M, TP_N, TP_N, TP_M, cycles,
-           errors ? "FAIL" : "ok");
+    if (differ != TP_M * TP_N - TP_M) errors++;
     return errors;
 }
 
@@ -80,9 +65,6 @@ int main() {
     // One case per DMOPC operand: the mode rides rs1, the dimensions rs2
     uint32_t errors = run_transpose<uint32_t>(2);
     errors += run_transpose<uint16_t>(1);
-
-    printf("[dma_transpose] %s (%u errors)\n", errors ? "FAIL" : "PASS",
-           errors);
 
     snrt_cluster_hw_barrier();
     return errors ? 1 : 0;

@@ -34,7 +34,7 @@ dependencies:
     rev: common-cells-v2
   idma:
     git: https://github.com/pulp-platform/idma.git
-    rev: __deploy__b770669__devel
+    rev: __deploy__5c1565c__devel
     pass_targets: ["snitch_cluster"]
   axi:
     git: https://github.com/colluca/axi.git

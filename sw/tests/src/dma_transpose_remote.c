@@ -34,8 +34,7 @@ static uintptr_t neighbour_next = NEIGHBOUR_L1_BASE;
 // Transpose one TP_M x TP_N tile of T elements into dst, which must hold
 // ne * ne elements, and check every result element
 template <typename T>
-static uint32_t run_transpose(const char *where, uint32_t mode,
-                              volatile T *dst) {
+static uint32_t run_transpose(uint32_t mode, volatile T *dst) {
     const uint32_t ne = SNRT_DMA_BYTES_PER_BEAT / sizeof(T);
     const size_t elems = (size_t)ne * ne;
     const T poison = (T)0xA5A5A5A5u;
@@ -43,11 +42,7 @@ static uint32_t run_transpose(const char *where, uint32_t mode,
     volatile T *src = (volatile T *)snrt_l1_alloc_cluster_local(
         elems * sizeof(T), SNRT_DMA_BYTES_PER_BEAT);
 
-    uint32_t errors = 0;
-    if ((uintptr_t)dst % SNRT_DMA_BYTES_PER_BEAT) {
-        printf("%s: dst %p is not beat-aligned\n", where, (void *)dst);
-        errors++;
-    }
+    uint32_t errors = ((uintptr_t)dst % SNRT_DMA_BYTES_PER_BEAT) ? 1 : 0;
 
     // Position-coded: in[r][c] = r * 100 + c is nowhere equal to its transpose
     for (size_t i = 0; i < elems; i++) src[i] = poison;
@@ -57,39 +52,24 @@ static uint32_t run_transpose(const char *where, uint32_t mode,
     // The poison stores are posted; retire them before the DMA writes the tile
     snrt_fence();
 
-    uint32_t c0 = snrt_mcycle();
-    snrt_dma_start_1d_transpose((volatile void *)dst, (volatile void *)src,
-                                (size_t)ne * SNRT_DMA_BYTES_PER_BEAT, mode,
-                                TP_M, TP_N);
+    snrt_dma_start_transpose((volatile void *)dst, (volatile void *)src,
+                             (size_t)ne * SNRT_DMA_BYTES_PER_BEAT, mode, TP_M,
+                             TP_N);
     snrt_dma_wait_all();
-    uint32_t cycles = snrt_mcycle() - c0;
 
     uint32_t differ = 0;
     for (uint32_t c = 0; c < ne; c++) {
         for (uint32_t r = 0; r < ne; r++) {
             T got = dst[c * ne + r];
             T exp = (c < TP_N && r < TP_M) ? src[r * ne + c] : poison;
-            if (got != exp) {
-                if (errors < 8)
-                    printf("%s out[%u][%u]: exp %u got %u\n", where, c, r,
-                           (unsigned)exp, (unsigned)got);
-                errors++;
-            }
+            if (got != exp) errors++;
             // A plain copy would leave src[c][r], i.e. c * 100 + r
             if (c < TP_N && r < TP_M && got != src[c * ne + r]) differ++;
         }
     }
 
     // Catches a DMOPC that never latched: passthrough leaves differ == 0
-    if (differ != TP_M * TP_N - TP_M) {
-        printf("%s: %u of %u tile elements differ from a plain copy\n", where,
-               differ, TP_M * TP_N);
-        errors++;
-    }
-
-    printf("%s mode %u (%u B elems): %ux%u -> %ux%u at %p, %u cycles, %s\n",
-           where, mode, (unsigned)sizeof(T), TP_M, TP_N, TP_N, TP_M,
-           (void *)dst, cycles, errors ? "FAIL" : "ok");
+    if (differ != TP_M * TP_N - TP_M) errors++;
     return errors;
 }
 
@@ -102,20 +82,20 @@ static uint32_t run_all_destinations(uint32_t mode) {
 
     // SoC-side memory: the default port, terminated by the simulation memory
     errors += run_transpose<T>(
-        "l3", mode, (volatile T *)snrt_l3_alloc_v2(tile_bytes, tile_bytes));
+        mode, (volatile T *)snrt_l3_alloc_v2(tile_bytes, tile_bytes));
 
     // The window a second cluster's L1 would answer: same default port, but an
     // address the local TCDM and alias rules must not claim
     volatile T *neighbour = (volatile T *)neighbour_next;
     neighbour_next += tile_bytes;
-    errors += run_transpose<T>("neighbour-l1", mode, neighbour);
+    errors += run_transpose<T>(mode, neighbour);
 
     // Beat-aligned but straddling a 4 kiB page, so the legalizer must split the
     // tile across two write bursts
     uintptr_t split =
         (uintptr_t)snrt_l3_alloc_v2(AXI_PAGE_SIZE + tile_bytes, AXI_PAGE_SIZE);
     split += AXI_PAGE_SIZE - tile_bytes / 2;
-    errors += run_transpose<T>("l3-page-split", mode, (volatile T *)split);
+    errors += run_transpose<T>(mode, (volatile T *)split);
 
     return errors;
 }
@@ -131,9 +111,6 @@ int main() {
 
     uint32_t errors = run_all_destinations<uint32_t>(2);
     errors += run_all_destinations<uint16_t>(1);
-
-    printf("[dma_transpose_remote] %s (%u errors)\n", errors ? "FAIL" : "PASS",
-           errors);
 
     snrt_cluster_hw_barrier();
     return errors ? 1 : 0;
