@@ -808,8 +808,7 @@ inline snrt_dma_txid_t snrt_dma_store_2d_tile_from_banks(
  */
 SNRT_DMA_COMPUTE_API inline void snrt_dma_set_opcode_params(uint32_t opcode,
                                                             uint32_t params) {
-    // pulp LLVM has no dmopc mnemonic yet
-    asm volatile(".insn r 0x2b, 0x0, 0x0a, x0, %[opcode], %[params] \n"
+    asm volatile("dmopc %[opcode], %[params] \n"
                  :
                  : [ opcode ] "r"(opcode), [ params ] "r"(params)
                  : "memory");
