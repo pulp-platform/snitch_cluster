@@ -7,9 +7,9 @@
 // wide crossbar routes these addresses out over its default port instead of
 // into the local TCDM.
 //
-// Caveat: the testbench instantiates one cluster, so the neighbour-L1 address
-// is answered by tb_memory_axi, which never stalls W. Real TCDM bank-conflict
-// backpressure needs a multi-cluster platform and is not covered here.
+// Caveat: on a single-cluster platform such as the standalone testbench, the
+// neighbour-L1 address is answered by tb_memory_axi, which never stalls W. Real
+// TCDM bank-conflict backpressure is only covered on multi-cluster platforms.
 
 #include <snrt.h>
 
@@ -17,19 +17,29 @@
 #define TP_M 4
 #define TP_N 8
 
-// L1 of the cluster two strides up. Index 1 is the cluster's own ext_mem
-// window, which stays inside the cluster and is tied off in the testbench.
-#define NEIGHBOUR_L1_BASE                       \
-    (SNITCH_CLUSTER_ADDRMAP_CLUSTER_BASE_ADDR + \
-     2 * SNITCH_CLUSTER_ADDRMAP_CLUSTER_SIZE)
-
 // The AXI write port legalizes bursts against a 4 kiB page
 #define AXI_PAGE_SIZE 4096
 
 #ifdef SNRT_SUPPORTS_DMA_COMPUTE
 
-// Bump allocator over the neighbour L1 window
-static uintptr_t neighbour_next = NEIGHBOUR_L1_BASE;
+// Bytes handed out from the single-cluster neighbour window
+static size_t neighbour_used;
+
+// Destination in another cluster's L1. With several clusters, the next
+// cluster's copy of a local reservation, which it leaves unused. Alone, the
+// window two cluster strides up: index 1 is the cluster's own ext_mem window,
+// which stays inside the cluster and is tied off in the testbench.
+static void *neighbour_alloc(size_t size) {
+    uint32_t idx = snrt_cluster_idx(), num = snrt_cluster_num();
+    if (num > 1 && SNRT_CLUSTER_OFFSET) {
+        void *local =
+            snrt_l1_alloc_cluster_local(size, SNRT_DMA_BYTES_PER_BEAT);
+        return snrt_remote_l1_ptr(local, idx, (idx + 1) % num);
+    }
+    uintptr_t addr = (uintptr_t)snrt_cluster(2) + neighbour_used;
+    neighbour_used += size;
+    return (void *)addr;
+}
 
 // Transpose one TP_M x TP_N tile of T elements into dst, which must hold
 // ne * ne elements, and check every result element
@@ -86,9 +96,7 @@ static uint32_t run_all_destinations(uint32_t mode) {
 
     // The window a second cluster's L1 would answer: same default port, but an
     // address the local TCDM and alias rules must not claim
-    volatile T *neighbour = (volatile T *)neighbour_next;
-    neighbour_next += tile_bytes;
-    errors += run_transpose<T>(mode, neighbour);
+    errors += run_transpose<T>(mode, (volatile T *)neighbour_alloc(tile_bytes));
 
     // Beat-aligned but straddling a 4 kiB page, so the legalizer must split the
     // tile across two write bursts
