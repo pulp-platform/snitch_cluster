@@ -188,8 +188,8 @@ static inline void axpy_job(axpy_args_t *args) {
 
                 // Perform tile computation
                 axpy_fp_t fp = args->funcptr;
-                axpy_fallback(fp)(frac, args->a, local_x[buff_idx], local_y[buff_idx],
-                   local_z[buff_idx]);
+                axpy_fallback(fp)(frac, args->a, local_x[buff_idx],
+                                  local_y[buff_idx], local_z[buff_idx]);
 
                 snrt_mcycle();
             }
