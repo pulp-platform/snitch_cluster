@@ -78,6 +78,33 @@ DMREP configures the value in register *rs1* as the size of the outer dimension 
 
 DMUSER sets user-provided data in the AWUSER field of the DMA's AW transaction. The values in registers *rs1* and *rs2* are placed in the lower and upper 32 bits of the AWUSER field, respectively. The use of the AWUSER field is system-dependent.
 
+### Compute Operations
+
+| funct7  | rs2    | rs1    | funct3 | rd    | opcode     | operation |
+|:-------:|:------:|:------:|:------:|:-----:|:----------:|:---------:|
+| 7       | 5      | 5      | 3      | 5     | 7          |           |
+| 0001010 | params | opcode | 000    | 00000 | OP-CUSTOM1 | DMOPC     |
+
+DMOPC selects an on-the-fly compute operation that the DMA applies to the data of all subsequent DMCPY and DMCPYI transfers, until the next DMOPC. After reset the DMA performs plain copies. It requires a cluster configured with `dma_enable_compute`; the individual operations are selected with the `dma_compute_*` options. The fields of *rs1* and *rs2* are:
+
+| Field           | Bits          | Description
+|-----------------|---------------|-------------
+| opcode          | rs1[7:0]      | Compute operation, see below
+| tp_mode         | rs1[17:16]    | Transpose element size, 1 << tp_mode bytes
+| tp_tensor_m     | rs2[11:0]     | Transpose rows of the source tensor, in elements
+| tp_tensor_n     | rs2[23:12]    | Transpose columns of the source tensor, in elements
+
+| opcode | Operation
+|--------|-----------
+| 0x08   | Plain copy
+| 0x20   | MX quantization, FP32 source
+| 0x21   | MX dequantization, FP32 destination
+| 0x22   | MX quantization, FP16 source
+| 0x23   | MX dequantization, FP16 destination
+| 0x50   | Tiled transpose
+
+The iDMA generates these encodings as C defines in `idma_compute.h`.
+
 ### Control Operations
 
 | funct7  | rs2    | rs1   | funct3 | rd    | opcode     | operation |

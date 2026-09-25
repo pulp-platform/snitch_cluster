@@ -221,6 +221,36 @@
                     "description": "Number of request entries the DMA can keep",
                     "default": 3
                 },
+                "dma_enable_compute": {
+                    "type": "boolean",
+                    "description": "Whether to enable the DMA compute path (DMOPC) in the iDMA inst64 frontend.",
+                    "default": false
+                },
+                "dma_compute_transpose": {
+                    "type": "boolean",
+                    "description": "Whether to elaborate the DMA transpose engine. Ignored unless dma_enable_compute is set.",
+                    "default": true
+                },
+                "dma_compute_mxquant": {
+                    "type": "boolean",
+                    "description": "Whether to elaborate the DMA MX quantization engine. Ignored unless dma_enable_compute is set.",
+                    "default": true
+                },
+                "dma_compute_mxdequant": {
+                    "type": "boolean",
+                    "description": "Whether to elaborate the DMA MX dequantization engine. Ignored unless dma_enable_compute is set.",
+                    "default": true
+                },
+                "dma_compute_mxfp16": {
+                    "type": "boolean",
+                    "description": "Whether to elaborate the FP16 source/destination paths of the DMA MX engines.",
+                    "default": true
+                },
+                "dma_compute_transpose_full_duplex": {
+                    "type": "boolean",
+                    "description": "Whether the DMA transpose engine uses two ping-pong tile banks. Halves the tile buffer when unset.",
+                    "default": true
+                },
                 "caq_depth": {
                     "type": "number",
                     "description": "Depth of consistency address queue (CAQ). Should cover as many FP load-stores as may be deferred in sequencer to prevent pseudo-dual-issue blocking.",
