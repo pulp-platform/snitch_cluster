@@ -20,6 +20,7 @@
         dma_data_width: 512,
         dma_axi_req_fifo_depth: 24,
         dma_req_fifo_depth: 8,
+        // DMA compute off: with it on, the Yosys CI job runs out of memory
         dma_enable_compute: false,
         dma_compute_transpose_full_duplex: false,
         narrow_trans: 4,
