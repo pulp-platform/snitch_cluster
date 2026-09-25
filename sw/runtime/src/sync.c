@@ -66,7 +66,12 @@ extern void snrt_enable_multicast(uint64_t mask);
 
 extern void snrt_disable_multicast();
 
-extern void snrt_enable_reduction(uint64_t mask,
-                                  snrt_collective_opcode_t opcode);
+extern snrt_collective_opcode_t snrt_reduction_op(snrt_reduction_op_type_t op,
+                                                  snrt_reduction_data_type_t type);
+
+extern void snrt_enable_reduction(uint64_t mask, snrt_collective_opcode_t collective_opcode);
+
+extern void snrt_enable_reduction(uint64_t mask, snrt_reduction_op_type_t op,
+                                  snrt_reduction_data_type_t type);
 
 extern void snrt_disable_reduction();
