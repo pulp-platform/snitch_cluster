@@ -115,8 +115,8 @@ yosys splitnets -format __v
 # rename DFFs from the driven signal
 yosys rename -wire -suffix _reg t:*DFF*
 yosys select -write ${rep_dir}/${top_design}_registers.rpt t:*DFF*
-# rename all other cells
-yosys autoname t:*DFF* %n
+# name latches; combinational cells are replaced by ABC
+yosys autoname {t:$_DLATCH*}
 yosys clean -purge
 
 # print paths to important instances (hierarchy and naming is final here)
