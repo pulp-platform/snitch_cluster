@@ -9,6 +9,8 @@ runs:
     cmd: [../sw/kernels/blas/spatz-axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ../sw/kernels/blas/spatz-fmatmul/build/spatz-fmatmul.elf
     cmd: [../sw/kernels/blas/spatz-fmatmul/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/blas/spatz-fgemv/build/spatz-fgemv.elf
+    cmd: [../sw/kernels/blas/spatz-fgemv/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ../sw/kernels/blas/axpy/build/axpy.elf
     cmd: [../sw/kernels/blas/axpy/scripts/verify.py, "${sim_bin}", "${elf}"]
   - elf: ../sw/kernels/blas/gemm/build/gemm.elf

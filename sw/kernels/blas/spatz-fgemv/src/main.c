@@ -1,4 +1,4 @@
-// Copyright 2023 ETH Zurich and University of Bologna.
+// Copyright 2025 ETH Zurich and University of Bologna.
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -14,7 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Author: Matheus Cavalcante, ETH Zurich
+// Author: Navaneeth Kunhi Purayil, ETH Zurich
 
 #include <snrt.h>
 #include <stdio.h>
@@ -27,17 +27,13 @@ int main() { return 0; }
 
 #if (PREC == 64)
 typedef double T;
-#include "fmatmul_fp64.c"
+#include "fgemv_fp64.c"
 #elif (PREC == 32)
 typedef float T;
-#include "fmatmul_fp32.c"
+#include "fgemv_fp32.c"
 #elif (PREC == 16)
-// BF16 reuses the fp16 kernel source as-is: vle16.v/vfmacc.vf/vse16.v don't
-// encode a format, they just move/operate on 16-bit slots. Which FP16
-// variant (IEEE half vs. bf16) those slots are interpreted as is a runtime
-// property, selected below via CSR_FMODE right before the kernel is called.
 typedef __fp16 T;
-#include "fmatmul_fp16.c"
+#include "fgemv_fp16.c"
 #endif
 
 // Number of FPU lanes per Spatz core (matches N_FPU in spatz_pkg)
@@ -52,13 +48,14 @@ T *c;
 int main() {
     // DM core: allocate L1 buffers and DMA data from DRAM
     if (snrt_is_dm_core()) {
-        a = (T *)snrt_l1_alloc(gemm_l.M * gemm_l.K * sizeof(T));
-        b = (T *)snrt_l1_alloc(gemm_l.K * gemm_l.N * sizeof(T));
-        c = (T *)snrt_l1_alloc(gemm_l.M * gemm_l.N * sizeof(T));
+        // a is stored column-major: gemv_A_dram holds A^T (N x M)
+        a = (T *)snrt_l1_alloc(gemv_l.M * gemv_l.N * sizeof(T));
+        b = (T *)snrt_l1_alloc(gemv_l.N * sizeof(T));
+        c = (T *)snrt_l1_alloc(gemv_l.M * sizeof(T));
 
-        snrt_dma_start_1d(a, gemm_A_dram, gemm_l.M * gemm_l.K * sizeof(T));
-        snrt_dma_start_1d(b, gemm_B_dram, gemm_l.K * gemm_l.N * sizeof(T));
-        snrt_dma_start_1d(c, gemm_C_dram, gemm_l.M * gemm_l.N * sizeof(T));
+        snrt_dma_start_1d(a, gemv_A_dram, gemv_l.M * gemv_l.N * sizeof(T));
+        snrt_dma_start_1d(b, gemv_B_dram, gemv_l.N * sizeof(T));
+        snrt_dma_start_1d(c, gemv_C_dram, gemv_l.M * sizeof(T));
         snrt_dma_wait_all();
     }
 
@@ -75,24 +72,11 @@ int main() {
         const unsigned int compute_num = snrt_cluster_compute_core_num();
         const unsigned int compute_id = snrt_cluster_core_idx();
 
-        const unsigned int m_start = (gemm_l.M / compute_num) * compute_id;
-        const unsigned int m_end = (gemm_l.M / compute_num) * (compute_id + 1);
-        const unsigned int p_start = 0;
-        const unsigned int p_end = gemm_l.N;
+        const unsigned int m_core = gemv_l.M / compute_num;
+        T *a_core = a + m_core * compute_id;
+        T *c_core = c + m_core * compute_id;
 
-#ifdef BF16
-        // Select the alternate (bf16) format for both source and
-        // destination of e16 FP ops, via the custom CSR_FMODE (0x800;
-        // {src,dst}, see hw/snitch/src/snitch.sv). Left set for the rest
-        // of the program, which does no other FP work after this.
-        {
-            unsigned int fmode = 0x3;
-            asm volatile("csrw 0x800, %0" ::"r"(fmode));
-        }
-#endif
-
-        matmul_4xVL(c, a, b, m_start, m_end, gemm_l.K, gemm_l.N, p_start,
-                    p_end);
+        gemv(a_core, b, c_core, gemv_l.M, m_core, gemv_l.N);
     }
 
     snrt_cluster_hw_barrier();
@@ -102,8 +86,7 @@ int main() {
         timer = snrt_mcycle() - timer;
 
         const unsigned int compute_num = snrt_cluster_compute_core_num();
-        long unsigned int performance =
-            1000 * 2 * gemm_l.M * gemm_l.N * gemm_l.K / timer;
+        long unsigned int performance = 1000 * 2 * gemv_l.M * gemv_l.N / timer;
 // fp32/fp16 pack 2x/4x as many elements per FPU lane as fp64, multiplying
 // peak ops/cycle accordingly
 #if (PREC == 32)
@@ -117,19 +100,15 @@ int main() {
             performance / (2 * compute_num * SNRT_NFPU_PER_CORE);
 #endif
 
-#ifdef BF16
-        printf("\n----- (%dx%d) fmatmul (bf16) -----\n", gemm_l.M, gemm_l.N);
-#else
-        printf("\n----- (%dx%d) fmatmul (fp%d) -----\n", gemm_l.M, gemm_l.N,
+        printf("\n----- (%dx%d) fgemv (fp%d) -----\n", gemv_l.M, gemv_l.N,
                PREC);
-#endif
         printf("Compute cores: %d\n", compute_num);
         printf("The execution took %u cycles.\n", timer);
         printf("The performance is %ld OP/1000cycle (%ld%%o utilization).\n",
                performance, utilization);
 
-        // Write results back to DRAM; verify.py reads gemm_C_dram post-simulation
-        snrt_dma_start_1d(gemm_C_dram, c, gemm_l.M * gemm_l.N * sizeof(T));
+        // Write results back to DRAM; verify.py reads gemv_C_dram post-simulation
+        snrt_dma_start_1d(gemv_C_dram, c, gemv_l.M * sizeof(T));
         snrt_dma_wait_all();
     }
 
