@@ -611,7 +611,7 @@ module snitch_cc
       .acc_rsp_o(snitch_acc_rsp_demuxed[snitch_pkg::IPU])
     );
     assign hive_req_o.acc_req = '0;
-  end else begin
+  end else begin : gen_no_ipu
     assign hive_req_o.acc_req = snitch_acc_req_demuxed[snitch_pkg::IPU];
     assign snitch_acc_rsp_demuxed[snitch_pkg::IPU] = hive_rsp_i.acc_rsp;
   end
@@ -1050,7 +1050,7 @@ module snitch_cc
 
   // Boot addr must be aligned to 4 bytes (32-bit instruction)
   `ASSERT_INIT(BootAddrAligned, BootAddr[1:0] == 2'b00)
-  
+
   // DCA extension currently only supports 64-bit datawidth
   `ASSERT_INIT(DcaCoreConfiguration, (!EnableDca) || IsaCfg.RVD)
 

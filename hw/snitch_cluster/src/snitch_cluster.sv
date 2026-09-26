@@ -115,7 +115,8 @@ module snitch_cluster
   /// Per-core depth of TCDM Mux unifying SSR 0 and Snitch requests.
   parameter int unsigned SsrMuxRspDepth [NrCores] = '{default: 0},
   /// Per-core internal parameters for each SSR.
-  parameter snitch_ssr_pkg::ssr_cfg_t [cc_pkg::iomsb(NumSsrsMax):0] SsrCfgs [NrCores] = '{default: '0},
+  parameter snitch_ssr_pkg::ssr_cfg_t [cc_pkg::iomsb(NumSsrsMax):0] SsrCfgs [NrCores]
+      = '{default: '0},
   /// Number of outstanding loads in Spatz
   parameter int unsigned NumSpatzOutstandingLoads [NrCores] = '{default: 0},
   /// Per-core enable of double bandwidth for Spatz.
@@ -797,7 +798,8 @@ module snitch_cluster
   // i.e. they are handled outside of the cluster, e.g. in the NoC router
   typedef bit [DmaXbarCfg.NoMstPorts-1:0] wide_mst_connectivity_t;
   typedef wide_mst_connectivity_t [DmaXbarCfg.NoSlvPorts-1:0] wide_xbar_connectivity_t;
-  localparam wide_mst_connectivity_t WideMstCollectiveConnectivity = wide_mst_connectivity_t'(1 << SoCDMAOut);
+  localparam wide_mst_connectivity_t WideMstCollectiveConnectivity =
+      wide_mst_connectivity_t'(1 << SoCDMAOut);
   localparam wide_xbar_connectivity_t DmaCollectiveConnectivity = wide_xbar_connectivity_t'{
     default: WideMstCollectiveConnectivity
   };
@@ -1494,7 +1496,8 @@ module snitch_cluster
   // i.e. they are handled outside of the cluster, e.g. in the NoC router
   typedef bit [ClusterXbarCfg.NoMstPorts-1:0] narrow_mst_connectivity_t;
   typedef narrow_mst_connectivity_t [ClusterXbarCfg.NoSlvPorts-1:0] xbar_connectivity_t;
-  localparam narrow_mst_connectivity_t MasterCollectiveConnectivity = narrow_mst_connectivity_t'(1 << SoC);
+  localparam narrow_mst_connectivity_t MasterCollectiveConnectivity =
+      narrow_mst_connectivity_t'(1 << SoC);
   localparam xbar_connectivity_t ClusterCollectiveConnectivity = xbar_connectivity_t'{
     default: MasterCollectiveConnectivity
   };
@@ -1782,7 +1785,8 @@ module snitch_cluster
   // Make sure we only have one DMA in the system.
   `ASSERT_INIT(NumberDMA, dma_count() <= 1)
   `ASSERT_INIT(UserCsrWidth, (CollectiveWidth + PhysicalAddrWidth) < 64,
-    $sformatf("64-bit user CSR too small to accomodate %d-bit collective and %d-bit address", CollectiveWidth, PhysicalAddrWidth))
+    $sformatf("64-bit user CSR too small to accomodate %d-bit collective and %d-bit address",
+              CollectiveWidth, PhysicalAddrWidth))
   // DcaDataWidth must be an integer multiple of the lane width
   `ASSERT_INIT(IntegerNumDcaLanes, (!EnableDca) || (DcaDataWidth % DcaLaneWidth == 0))
   // DcaDataWidth must be smaller than the aggregate width of all the lanes
