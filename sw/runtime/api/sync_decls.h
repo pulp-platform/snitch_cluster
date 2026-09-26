@@ -48,7 +48,7 @@ typedef enum {
 } snrt_reduction_data_type_t;
 
 // Minimum number of bits required to encode a reduction data type
-#define SNRT_REDUCTION_DATA_TYPE_BITS \
+#define SNRT_REDUCTION_DATA_TYPE_BITS         \
     ((int)(sizeof(unsigned int) * CHAR_BIT) - \
      __builtin_clz(SNRT_NUM_REDUCTION_DATA_TYPES - 1))
 
@@ -88,10 +88,11 @@ inline void snrt_enable_multicast(uint64_t mask);
 
 inline void snrt_disable_multicast();
 
-inline snrt_collective_opcode_t snrt_reduction_op(snrt_reduction_op_type_t op,
-                                                  snrt_reduction_data_type_t type);
+inline snrt_collective_opcode_t snrt_reduction_op(
+    snrt_reduction_op_type_t op, snrt_reduction_data_type_t type);
 
-inline void snrt_enable_reduction(uint64_t mask, snrt_collective_opcode_t collective_opcode);
+inline void snrt_enable_reduction(uint64_t mask,
+                                  snrt_collective_opcode_t collective_opcode);
 
 inline void snrt_enable_reduction(uint64_t mask, snrt_reduction_op_type_t op,
                                   snrt_reduction_data_type_t type);

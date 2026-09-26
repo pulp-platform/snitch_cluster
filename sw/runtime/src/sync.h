@@ -518,10 +518,11 @@ inline void snrt_disable_multicast() { snrt_set_awuser(0); }
  * @param type The data type of the reduction operation
  * @return The opcode for the reduction operation
  */
-inline snrt_collective_opcode_t snrt_reduction_op(snrt_reduction_op_type_t op,
-                                                  snrt_reduction_data_type_t type) {
+inline snrt_collective_opcode_t snrt_reduction_op(
+    snrt_reduction_op_type_t op, snrt_reduction_data_type_t type) {
     return (snrt_collective_opcode_t)(SNRT_NUM_BUILTIN_COLLECTIVE_OPS +
-        (op << SNRT_REDUCTION_DATA_TYPE_BITS) + type);
+                                      (op << SNRT_REDUCTION_DATA_TYPE_BITS) +
+                                      type);
 }
 
 /**
@@ -531,7 +532,8 @@ inline snrt_collective_opcode_t snrt_reduction_op(snrt_reduction_op_type_t op,
  * @param mask Mask defines all involved members
  * @param collective_opcode Opcode identifying the reduction operation
  */
-inline void snrt_enable_reduction(uint64_t mask, snrt_collective_opcode_t collective_opcode) {
+inline void snrt_enable_reduction(uint64_t mask,
+                                  snrt_collective_opcode_t collective_opcode) {
     snrt_collective_t collective_op;
     collective_op.f.opcode = collective_opcode;
     collective_op.f.mask = mask;
@@ -546,7 +548,8 @@ inline void snrt_enable_reduction(uint64_t mask, snrt_collective_opcode_t collec
  * @param op Reduction operation type
  * @param type Reduction data type
  */
-inline void snrt_enable_reduction(uint64_t mask, snrt_reduction_op_type_t reduction_op,
+inline void snrt_enable_reduction(uint64_t mask,
+                                  snrt_reduction_op_type_t reduction_op,
                                   snrt_reduction_data_type_t type) {
     snrt_enable_reduction(mask, snrt_reduction_op(reduction_op, type));
 }
