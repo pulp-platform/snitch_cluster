@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <limits.h>
 #include <stdint.h>
 
 typedef struct {
@@ -21,21 +22,35 @@ typedef struct {
 
 typedef snrt_comm_info_t *snrt_comm_t;
 
+// NOTE: these numeric values must match FlooNoC's encoding
 typedef enum {
     SNRT_COLLECTIVE_UNICAST = 0,
     SNRT_COLLECTIVE_MULTICAST = 1,
     SNRT_REDUCTION_BARRIER = 2,
-    SNRT_REDUCTION_FADD = 3,
-    SNRT_REDUCTION_FMUL = 4,
-    SNRT_REDUCTION_FMIN = 5,
-    SNRT_REDUCTION_FMAX = 6,
-    SNRT_REDUCTION_ADD = 7,
-    SNRT_REDUCTION_MUL = 8,
-    SNRT_REDUCTION_MIN = 9,
-    SNRT_REDUCTION_MINU = 10,
-    SNRT_REDUCTION_MAX = 11,
-    SNRT_REDUCTION_MAXU = 12
+    SNRT_NUM_BUILTIN_COLLECTIVE_OPS = 6,
+    // Other reduction opcodes are generated through snrt_reduction_op()
 } snrt_collective_opcode_t;
+
+typedef enum {
+    SNRT_REDUCTION_MAX = 0,
+    SNRT_REDUCTION_MIN = 1,
+    SNRT_REDUCTION_SUM = 2,
+    SNRT_REDUCTION_PROD = 3,
+} snrt_reduction_op_type_t;
+
+typedef enum {
+    SNRT_REDUCTION_FP8 = 0,
+    SNRT_REDUCTION_FP16 = 1,
+    SNRT_REDUCTION_FP16ALT = 2,
+    SNRT_REDUCTION_FP32 = 3,
+    SNRT_REDUCTION_FP64 = 4,
+    SNRT_NUM_REDUCTION_DATA_TYPES = 5,
+} snrt_reduction_data_type_t;
+
+// Minimum number of bits required to encode a reduction data type
+#define SNRT_REDUCTION_DATA_TYPE_BITS         \
+    ((int)(sizeof(unsigned int) * CHAR_BIT) - \
+     __builtin_clz(SNRT_NUM_REDUCTION_DATA_TYPES - 1))
 
 typedef union {
     struct __attribute__((__packed__)) {
@@ -73,7 +88,13 @@ inline void snrt_enable_multicast(uint64_t mask);
 
 inline void snrt_disable_multicast();
 
+inline snrt_collective_opcode_t snrt_reduction_op(
+    snrt_reduction_op_type_t op, snrt_reduction_data_type_t type);
+
 inline void snrt_enable_reduction(uint64_t mask,
-                                  snrt_collective_opcode_t reduction);
+                                  snrt_collective_opcode_t collective_opcode);
+
+inline void snrt_enable_reduction(uint64_t mask, snrt_reduction_op_type_t op,
+                                  snrt_reduction_data_type_t type);
 
 inline void snrt_disable_reduction();
