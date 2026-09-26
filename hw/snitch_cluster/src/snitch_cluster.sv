@@ -19,6 +19,7 @@
 `include "dca_interface/typedef.svh"
 
 `include "snitch/typedef.svh"
+`include "idma/typedef.svh"
 
 /// Snitch many-core cluster with improved TCDM interconnect.
 /// Snitch Cluster Top-Level.
@@ -68,6 +69,12 @@ module snitch_cluster
   parameter int unsigned DMAReqFifoDepth    = 3,
   /// Number of DMA channels.
   parameter int unsigned DMANumChannels     = 1,
+  /// Enable the DMA compute path (DMOPC).
+  parameter bit          DMAEnableCompute   = 1'b0,
+  /// Compute ops elaborated in the DMA.
+  parameter idma_pkg::compute_enable_t DMAComputeOps    = '1,
+  /// Implementation tuning of the DMA compute engines.
+  parameter idma_pkg::compute_tuning_t DMAComputeTuning = '1,
   /// Number of exposed TCDM wide ports
   parameter int unsigned NumExpWideTcdmPorts = 1,
   /// Width of a single icache line.
@@ -568,19 +575,7 @@ module snitch_cluster
   } tcdm_events_t;
 
   // Event counter increments for DMA.
-  typedef struct packed {
-      logic aw_stall, ar_stall, r_stall, w_stall,
-                   buf_w_stall, buf_r_stall;
-      logic aw_valid, aw_ready, aw_done, aw_bw;
-      logic ar_valid, ar_ready, ar_done, ar_bw;
-      logic r_valid,  r_ready,  r_done, r_bw;
-      logic w_valid,  w_ready,  w_done, w_bw;
-      logic b_valid,  b_ready,  b_done;
-      logic dma_busy;
-      axi_pkg::len_t aw_len, ar_len;
-      axi_pkg::size_t aw_size, ar_size;
-      logic [$clog2(WideDataWidth/8):0] num_bytes_written;
-  } dma_events_t;
+  `IDMA_TYPEDEF_EVENTS_T(dma_events_t, WideDataWidth)
 
   typedef struct packed {
     int unsigned idx;
@@ -1138,6 +1133,9 @@ module snitch_cluster
       .DMANumAxInFlight (DMANumAxInFlight),
       .DMAReqFifoDepth (DMAReqFifoDepth),
       .DMANumChannels (DMANumChannels),
+      .DMAEnableCompute (DMAEnableCompute),
+      .DMAComputeOps (DMAComputeOps),
+      .DMAComputeTuning (DMAComputeTuning),
       .axi_ar_chan_t (axi_mst_dma_ar_chan_t),
       .axi_aw_chan_t (axi_mst_dma_aw_chan_t),
       .axi_req_t (axi_mst_dma_req_t),
