@@ -246,8 +246,11 @@ $(LINT_BUILD_DIR):
 $(LINT_BUILD_DIR)/analyze.tcl: $(SN_BENDER_LOCK) $(SN_BENDER_YML) $(SN_GEN_RTL_SRCS) | $(LINT_BUILD_DIR)
 	$(SN_BENDER) script flist-plus $(SN_COMMON_BENDER_ASIC_FLAGS) -t ihp13 > $@
 
+LINT_REPORT = $(LINT_BUILD_DIR)/snitch_cluster_wrapper/consolidated_reports/snitch_cluster_wrapper_lint_lint_rtl/moresimple.rpt
+
 spyglass: $(LINT_DIR)/spyglass.tcl $(LINT_BUILD_DIR)/analyze.tcl | $(LINT_BUILD_DIR)
 	cd $(LINT_BUILD_DIR) && $(SN_SG_SHELL) -tcl $<
+	$(LINT_DIR)/check_spyglass_lint.py $(LINT_REPORT)
 
 #########
 # GVSOC #
@@ -275,6 +278,7 @@ clean-visual-trace: sn-clean-visual-trace
 # IP tests #
 ############
 
+# Currently missing IP tests: snitch_vm, snitch_ipu, snitch_dma, snitch
 IP_LIST  = mem_interface
 IP_LIST += tcdm_interface
 IP_LIST += snitch_ssr
@@ -286,8 +290,8 @@ IP_TARGETS = $(addprefix test-,$(IP_LIST))
 
 test-ips: $(IP_TARGETS)
 
-$(IP_TARGETS): test-%:
-	cd hw/$* && ./util/compile.sh && ./util/run_vsim.sh
+$(IP_TARGETS): test-%: rtl
+	cd hw/$* && export QUESTA_SEPP="$(SN_QUESTA_SEPP)" SN_BENDER="$(SN_BENDER)" && ./util/compile.sh && ./util/run_vsim.sh
 
 ############################
 # Additional PHONY targets #
