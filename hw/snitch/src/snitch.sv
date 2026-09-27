@@ -2806,6 +2806,7 @@ module snitch
       DMSTAT,
       DMREP,
       DMUSER,
+      DMOPC,
       FCVT_D_W_COPIFT,
       FCVT_D_WU_COPIFT : begin
         if (Xcvmem) begin
@@ -2822,7 +2823,8 @@ module snitch
             DMSRC,
             DMDST,
             DMSTR,
-            DMUSER: begin
+            DMUSER,
+            DMOPC: begin
               if (Xdma) begin
                 acc_req_o.q.addr  = DMA_SS;
                 opa_select   = RegRs1;

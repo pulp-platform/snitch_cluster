@@ -20,6 +20,8 @@
         dma_data_width: 512,
         dma_axi_req_fifo_depth: 24,
         dma_req_fifo_depth: 8,
+        dma_enable_compute: true,
+        dma_compute_transpose_full_duplex: false,
         narrow_trans: 4,
         wide_trans: 32,
         // We don't need Snitch debugging in Occamy

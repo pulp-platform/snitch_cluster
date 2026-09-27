@@ -33,6 +33,9 @@ module snitch_cc
   parameter int unsigned DMANumAxInFlight   = 0,
   parameter int unsigned DMAReqFifoDepth    = 0,
   parameter int unsigned DMANumChannels     = 0,
+  parameter bit          DMAEnableCompute   = 1'b0,
+  parameter idma_pkg::compute_enable_t DMAComputeOps    = '1,
+  parameter idma_pkg::compute_tuning_t DMAComputeTuning = '1,
   parameter type         axi_ar_chan_t      = logic,
   parameter type         axi_aw_chan_t      = logic,
   parameter type         axi_req_t          = logic,
@@ -564,6 +567,10 @@ module snitch_cc
       .NumAxInFlight  (DMANumAxInFlight),
       .DMAReqFifoDepth(DMAReqFifoDepth),
       .NumChannels    (DMANumChannels),
+      .EnableTcdmObi  (1'b0),
+      .EnableCompute  (DMAEnableCompute),
+      .ComputeOps     (DMAComputeOps),
+      .ComputeTuning  (DMAComputeTuning),
       .DMATracing     (1),
       .axi_ar_chan_t  (axi_ar_chan_t),
       .axi_aw_chan_t  (axi_aw_chan_t),
@@ -585,7 +592,10 @@ module snitch_cc
       .acc_res_valid_o(snitch_acc_rsp_demuxed[snitch_pkg::DMA_SS].p_valid),
       .acc_res_ready_i(snitch_acc_req_demuxed[snitch_pkg::DMA_SS].p_ready),
       .hart_id_i      (hart_id_i),
-      .events_o       (axi_dma_events_o)
+      .events_o       (axi_dma_events_o),
+      .obi_req_o      (),
+      .obi_res_i      ('0),
+      .addr_map_i     ('0)
     );
   end else begin : gen_no_dma
     assign axi_dma_req_o = '0;
