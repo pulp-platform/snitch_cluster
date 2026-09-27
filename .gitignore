@@ -33,3 +33,6 @@ gmon.out
 /tools/
 /build/
 /snitch.egg-info/
+
+# CI reproduction
+/.gitlab-ci-local/

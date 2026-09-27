@@ -53,4 +53,4 @@ def in_any_range(vals, lst):
 
 for i, spr in enumerate(sp_ranges):
     print(f'hartid: {i} sp_min: {spr[0]:08x} '
-          + f'sp_max: {spr[1]:08x} collides: {in_any_range(spr,sp_ranges).remove(i)}')
+          + f'sp_max: {spr[1]:08x} collides: {in_any_range(spr, sp_ranges).remove(i)}')

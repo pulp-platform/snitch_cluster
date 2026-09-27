@@ -56,7 +56,7 @@ endif
 
 # IHP130 physical simulation options
 ifeq ($(TECH),ihp13)
-SN_COMMON_BENDER_FLAGS += -t ihp13 -t netlist 
+SN_COMMON_BENDER_FLAGS += -t ihp13 -t netlist
 SN_COMMON_BENDER_FLAGS += -DSIMULATION
 endif
 
