@@ -291,7 +291,7 @@ IP_TARGETS = $(addprefix test-,$(IP_LIST))
 test-ips: $(IP_TARGETS)
 
 $(IP_TARGETS): test-%: rtl
-	cd hw/$* && export QUESTA_SEPP="$(SN_QUESTA_SEPP)" SN_BENDER="$(SN_BENDER)" && ./util/compile.sh && ./util/run_vsim.sh
+	cd hw/$* && export QUESTA_SEPP="$(SN_QUESTA_SEPP)" SN_BENDER="$(SN_BENDER)" SN_COMMON_BENDER_FLAGS="$(SN_COMMON_BENDER_FLAGS)" && ./util/compile.sh && ./util/run_vsim.sh
 
 ###################
 # CI reproduction #
