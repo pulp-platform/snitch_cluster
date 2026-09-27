@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "jq --arg p 'source ./iis-env.sh && ' '{hookSpecificOutput:{hookEventName:\"PreToolUse\",updatedInput:{command:($p + .tool_input.command)}}}'",
+            "command": "jq --arg p 'source ./iis-setup.sh && ' '{hookSpecificOutput:{hookEventName:\"PreToolUse\",updatedInput:{command:($p + .tool_input.command)}}}'",
             "statusMessage": "Setting up environment..."
           }
         ]
