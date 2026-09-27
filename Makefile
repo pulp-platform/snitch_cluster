@@ -293,6 +293,29 @@ test-ips: $(IP_TARGETS)
 $(IP_TARGETS): test-%: rtl
 	cd hw/$* && export QUESTA_SEPP="$(SN_QUESTA_SEPP)" SN_BENDER="$(SN_BENDER)" && ./util/compile.sh && ./util/run_vsim.sh
 
+###################
+# CI reproduction #
+###################
+
+.PHONY: ci ci-fast lint
+
+# Jobs share one implicit stage and run on the shell executor in this working
+# tree, so concurrent CFG_OVERRIDE jobs would clobber cfg/lru.json and the
+# build dirs if run in parallel.
+SN_GITLAB_CI_LOCAL ?= gitlab-ci-local --concurrency 1
+
+lint:
+	prek run --all-files
+
+ci-fast: lint
+	$(SN_GITLAB_CI_LOCAL) pytest docs snitch-cluster-sw
+
+# On success, writes a receipt fingerprinting the current working tree.
+# Required for Claude Code sessions to proceed to `git push`.
+ci: lint
+	$(SN_GITLAB_CI_LOCAL)
+	util/ci/fingerprint.sh > "$$(git rev-parse --git-dir)/claude-ci-receipt"
+
 ############################
 # Additional PHONY targets #
 ############################
