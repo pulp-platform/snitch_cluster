@@ -1,0 +1,116 @@
+# Copyright 2026 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+repos:
+
+  ###########
+  # License #
+  ###########
+
+  - repo: local
+    hooks:
+      # `reuse-lint-file`: check only staged files.
+      - id: reuse-lint-file
+        name: reuse
+        entry: reuse
+        args: ["lint-file"]
+        language: system
+
+  ###########
+  # Verilog #
+  ###########
+
+  - repo: local
+    hooks:
+      - id: verible-verilog-lint
+        name: verible
+        entry: verible-verilog-lint --waiver_files util/lint/waiver.verible
+        language: system
+        files: '^hw/.*\.(sv|svh)$'
+
+  ########
+  # YAML #
+  ########
+
+  - repo: local
+    hooks:
+      - id: yamllint
+        name: yamllint
+        entry: yamllint
+        args: [-c, util/lint/.yamllint.yml]
+        language: system
+        types: [file, yaml]
+
+  ##########
+  # Python #
+  ##########
+
+  - repo: local
+    hooks:
+      - id: flake8
+        name: flake8
+        entry: flake8
+        language: system
+        types: [python]
+        require_serial: true
+
+  #########
+  # C/C++ #
+  #########
+
+  - repo: local
+    hooks:
+      - id: clang-format
+        name: clang-format
+        entry: clang-format -i -style=file
+        language: system
+        files: '\.(c|h|C|H|cpp|hpp|cc|hh|c\+\+|h\+\+|cxx|hxx)$'
+        exclude: '^sw/saris/'
+
+  #######
+  # RDL #
+  #######
+
+  - repo: local
+    hooks:
+      - id: rdlfmt
+        name: rdlfmt
+        entry: rdlfmt
+        language: system
+        files: \.rdl$
+
+  ###################
+  # General hygiene #
+  ###################
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: detect-private-key
+      - id: check-toml
+      - id: check-yaml
+        # Accept custom yaml tags, e.g. GitLab's !reference tag
+        args: [--unsafe]
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+        # Excluded from the fixers below:
+        # - target/sim/patches/{context,device}.h.diff: unified diffs applied by
+        #   `patch` in the Makefile. Their blank context lines consist of a
+        #   single space; stripping it corrupts the hunks and the fesvr
+        #   patching step fails.
+        # - target/asic/yosys/src/lazy_man_synth_library.aig: AIGER synthesis
+        #   library. Reported as ASCII text, but it holds binary sections whose
+        #   bytes would be mangled.
+        exclude: &whitespace_exclude |
+          (?x)^(
+            target/sim/patches/context\.h\.diff|
+            target/sim/patches/device\.h\.diff|
+            target/asic/yosys/src/lazy_man_synth_library\.aig
+          )$
+      - id: end-of-file-fixer
+        exclude: *whitespace_exclude

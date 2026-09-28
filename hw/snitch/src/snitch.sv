@@ -80,7 +80,7 @@ Ports:
 module snitch
   import snitch_pkg::*;
   import lsu_pkg::*;
-  import snitch_riscv_instr::*; 
+  import snitch_riscv_instr::*;
 #(
   parameter logic [31:0] BootAddr = 32'h0000_1000,
   parameter isa_cfg_t    IsaCfg = '0,
@@ -234,7 +234,8 @@ module snitch
   assign iimm = $signed({inst_rsp_i.data[31:20]});
   assign uimm = {inst_rsp_i.data[31:12], 12'b0};
   assign jimm = $signed({inst_rsp_i.data[31],
-                         inst_rsp_i.data[19:12], inst_rsp_i.data[20], inst_rsp_i.data[30:21], 1'b0});
+                         inst_rsp_i.data[19:12], inst_rsp_i.data[20],
+                         inst_rsp_i.data[30:21], 1'b0});
   assign bimm = $signed({inst_rsp_i.data[31],
                          inst_rsp_i.data[7], inst_rsp_i.data[30:25], inst_rsp_i.data[11:8], 1'b0});
   assign simm = $signed({inst_rsp_i.data[31:25], inst_rsp_i.data[11:7]});
@@ -498,7 +499,8 @@ module snitch
 
   // XIF ID counter
   logic [XifIdWidth-1:0] xif_offload_counter_q;
-  `FFLAR(xif_offload_counter_q, xif_offload_counter_q + 1, x_issue_ready_i & x_issue_valid_o, '0, clk_i, rst_i)
+  `FFLAR(xif_offload_counter_q, xif_offload_counter_q + 1,
+         x_issue_ready_i & x_issue_valid_o, '0, clk_i, rst_i)
 
   // ---------
   // L0 ITLB
@@ -552,7 +554,8 @@ module snitch
       ({(PPNSize){trans_active}} & itlb_pa)
     | (~{(PPNSize){trans_active}} & {{{AddrWidth-32}{1'b0}}, pc_q[31:PageShift]});
   assign inst_req_o.addr[PageShift-1:0] = pc_q[PageShift-1:0];
-  assign inst_req_o.cacheable = snitch_pma_pkg::is_inside_cacheable_regions(SnitchPMACfg, inst_req_o.addr);
+  assign inst_req_o.cacheable =
+      snitch_pma_pkg::is_inside_cacheable_regions(SnitchPMACfg, inst_req_o.addr);
   assign inst_req_o.q_valid = ~wfi_q && ~csr_stall_q;
 
   // --------------------
@@ -600,7 +603,8 @@ module snitch
   // the accelerator interface stalled us. Also wait for CAQ if this is an FP load/store.
   assign acc_stall = acc_req_o.q_valid & ~acc_rsp_i.q_ready | (caq_ena & ~caq_qready);
   // the coprocessor is not ready yet
-  assign x_stall = EnableXif & ((x_issue_valid_o & ~x_issue_ready_i) | (x_register_valid_o & ~x_register_ready_i));
+  assign x_stall = EnableXif & ((x_issue_valid_o & ~x_issue_ready_i)
+                                 | (x_register_valid_o & ~x_register_ready_i));
   // the LSU Interface didn't accept our request yet
   assign lsu_stall = lsu_tlb_qvalid & ~lsu_tlb_qready;
   // Stall the stage if we either didn't get a valid instruction, the LSU is not ready
@@ -3926,7 +3930,7 @@ module snitch
 
     i2f_wvalid = 1'b0;
     i2f_wdata = alu_writeback;
-    
+
     // external interfaces
     lsu_pready = 1'b0;
     acc_req_o.p_ready = 1'b0;
@@ -3987,7 +3991,8 @@ module snitch
   // the LSU or accelerator interface by withdrawing the valid signal.
   // TODO: Remove cacheability attribute, that should hold true for all instruction fetch transacitons.
   `ASSERT(InstructionInterfaceStable,
-      (inst_req_o.q_valid && inst_rsp_i.q_ready && inst_req_o.cacheable) ##1 (inst_req_o.q_valid && $stable(inst_req_o.addr))
+      (inst_req_o.q_valid && inst_rsp_i.q_ready && inst_req_o.cacheable)
+      ##1 (inst_req_o.q_valid && $stable(inst_req_o.addr))
       |-> inst_rsp_i.q_ready && $stable(inst_rsp_i.data), clk_i, rst_i)
 
   // Make sure that we never write back an unknown value to the register file

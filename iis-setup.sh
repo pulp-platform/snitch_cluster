@@ -35,3 +35,9 @@ flock-2.41 --fcntl "${HOME}/uv-ci.lock" bash -euo pipefail -c '
   uv pip install -e nonfree
 '
 source .venv/bin/activate
+
+# Install the git pre-commit hooks via prek.
+# Skipped in CI since `git commit` is never run in CI.
+if [ -z "${CI:-}" ] && command -v prek > /dev/null 2>&1; then
+  prek install --overwrite
+fi

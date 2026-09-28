@@ -56,7 +56,8 @@ module snitch_tcdm_fc_interconnect
   parameter type         mem_rsp_t             = logic,
 
   // Derived parameters
-  localparam type        tcdm_req_t            = `TCDM_REQ_STRUCT(DataWidth, TcdmAddrWidth, UserWidth),
+  localparam type        tcdm_req_t            =
+      `TCDM_REQ_STRUCT(DataWidth, TcdmAddrWidth, UserWidth),
   localparam type        tcdm_rsp_t            = `TCDM_RSP_STRUCT(DataWidth)
 ) (
   input  logic                   clk_i,

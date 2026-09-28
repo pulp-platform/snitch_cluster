@@ -7,9 +7,9 @@
 
 addrmap snitch_cluster_peripheral_reg #(
     longint unsigned NumPerfCounters = 16,
-    longint unsigned NumCtrlScratch = 4
+    longint unsigned NumCtrlScratch  = 4
 ) {
-    default regwidth=64;
+    default regwidth = 64;
 
     reg perf_cnt_en {
         field {
@@ -235,15 +235,15 @@ addrmap snitch_cluster_peripheral_reg #(
     reg unused {
         desc = "Unused register added to print enum";
         field {
-            sw=r; hw=na;
+            sw = r; hw = na;
             encode = perf_metric;
         } f[4:0] = 0;
     };
 
     regfile perf_regs {
-                 perf_cnt_en            perf_cnt_en[NumPerfCounters];
-        external perf_cnt_sel           perf_cnt_sel[NumPerfCounters];
-        external perf_cnt               perf_cnt[NumPerfCounters];
+                 perf_cnt_en  perf_cnt_en[NumPerfCounters];
+        external perf_cnt_sel perf_cnt_sel[NumPerfCounters];
+        external perf_cnt     perf_cnt[NumPerfCounters];
     };
 
              perf_regs              perf_regs;
