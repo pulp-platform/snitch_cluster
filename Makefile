@@ -247,9 +247,10 @@ $(LINT_BUILD_DIR)/analyze.tcl: $(SN_BENDER_LOCK) $(SN_BENDER_YML) $(SN_GEN_RTL_S
 	$(SN_BENDER) script flist-plus $(SN_COMMON_BENDER_ASIC_FLAGS) -t ihp13 > $@
 
 LINT_REPORT = $(LINT_BUILD_DIR)/snitch_cluster_wrapper/consolidated_reports/snitch_cluster_wrapper_lint_lint_rtl/moresimple.rpt
+LINT_LOG = $(LINT_BUILD_DIR)/spyglass.log
 
 spyglass: $(LINT_DIR)/spyglass.tcl $(LINT_BUILD_DIR)/analyze.tcl | $(LINT_BUILD_DIR)
-	cd $(LINT_BUILD_DIR) && $(SN_SG_SHELL) -tcl $<
+	cd $(LINT_BUILD_DIR) && $(SN_SG_SHELL) -tcl $< > $(LINT_LOG) 2>&1
 	$(LINT_DIR)/check_spyglass_lint.py $(LINT_REPORT)
 
 #########
