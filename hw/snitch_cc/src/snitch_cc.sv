@@ -33,13 +33,13 @@ module snitch_cc
   /// Id width of the AXI DMA bus.
   parameter int unsigned DmaIdWidth         = 0,
   /// User width of the AXI DMA bus.
-  parameter int unsigned DMAUserWidth       = 0,
-  parameter int unsigned DMANumAxInFlight   = 0,
-  parameter int unsigned DMAReqFifoDepth    = 0,
-  parameter int unsigned DMANumChannels     = 0,
-  parameter bit          DMAEnableCompute   = 1'b0,
-  parameter idma_pkg::compute_enable_t DMAComputeOps    = '1,
-  parameter idma_pkg::compute_tuning_t DMAComputeTuning = '1,
+  parameter int unsigned DmaUserWidth       = 0,
+  parameter int unsigned DmaNumAxInFlight   = 0,
+  parameter int unsigned DmaReqFifoDepth    = 0,
+  parameter int unsigned DmaNumChannels     = 0,
+  parameter bit          DmaEnableCompute   = 1'b0,
+  parameter idma_pkg::compute_enable_t DmaComputeOps    = '1,
+  parameter idma_pkg::compute_tuning_t DmaComputeTuning = '1,
   parameter type         axi_ar_chan_t      = logic,
   parameter type         axi_aw_chan_t      = logic,
   parameter type         axi_req_t          = logic,
@@ -595,17 +595,17 @@ module snitch_cc
 
     idma_inst64_top #(
       .AxiAddrWidth     (AddrWidth),
-      .AxiDataWidth     (DMADataWidth),
-      .AxiIdWidth       (DMAIdWidth),
-      .AxiUserWidth     (DMAUserWidth),
-      .NumAxInFlight    (DMANumAxInFlight),
-      .DMAReqFifoDepth  (DMAReqFifoDepth),
-      .NumChannels      (DMANumChannels),
+      .AxiDataWidth     (DmaDataWidth),
+      .AxiIdWidth       (DmaIdWidth),
+      .AxiUserWidth     (DmaUserWidth),
+      .NumAxInFlight    (DmaNumAxInFlight),
+      .DMAReqFifoDepth  (DmaReqFifoDepth),
+      .NumChannels      (DmaNumChannels),
       .NumAddrRules     (1 + TcdmAliasEnable),
       .EnableTcdmObi    (1'b0), // TBD: Change to 1'b1
-      .EnableCompute    (DMAEnableCompute),
-      .ComputeOps       (DMAComputeOps),
-      .ComputeTuning    (DMAComputeTuning),
+      .EnableCompute    (DmaEnableCompute),
+      .ComputeOps       (DmaComputeOps),
+      .ComputeTuning    (DmaComputeTuning),
       .DMATracing       (1),
       .axi_ar_chan_t    (axi_ar_chan_t),
       .axi_aw_chan_t    (axi_aw_chan_t),
@@ -621,7 +621,7 @@ module snitch_cc
       .obi_res_t        (obi_rsp_t),
       .acc_req_t        (acc_req_chan_t),
       .acc_res_t        (acc_rsp_chan_t),
-      .dma_events_t     (dma_events_t)
+      .dma_events_t     (dma_events_t),
       .addr_rule_t      (addr_rule_t)
     ) i_idma_inst64_top (
       .clk_i,
