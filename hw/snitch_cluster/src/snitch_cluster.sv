@@ -67,6 +67,12 @@ module snitch_cluster
   parameter int unsigned DMAReqFifoDepth    = 3,
   /// Number of DMA channels.
   parameter int unsigned DMANumChannels     = 1,
+  /// Enable the DMA compute path (DMOPC).
+  parameter bit          DMAEnableCompute   = 1'b0,
+  /// Compute ops elaborated in the DMA.
+  parameter idma_pkg::compute_enable_t DMAComputeOps    = '1,
+  /// Implementation tuning of the DMA compute engines.
+  parameter idma_pkg::compute_tuning_t DMAComputeTuning = '1,
   /// Number of exposed TCDM wide ports
   parameter int unsigned NumExpWideTcdmPorts = 1,
   /// Width of a single icache line.
@@ -114,7 +120,8 @@ module snitch_cluster
   /// Per-core depth of TCDM Mux unifying SSR 0 and Snitch requests.
   parameter int unsigned SsrMuxRspDepth [NrCores] = '{default: 0},
   /// Per-core internal parameters for each SSR.
-  parameter snitch_ssr_pkg::ssr_cfg_t [cc_pkg::iomsb(NumSsrsMax):0] SsrCfgs [NrCores] = '{default: '0},
+  parameter snitch_ssr_pkg::ssr_cfg_t [cc_pkg::iomsb(NumSsrsMax):0] SsrCfgs [NrCores]
+      = '{default: '0},
   /// Number of outstanding loads in Spatz
   parameter int unsigned NumSpatzOutstandingLoads [NrCores] = '{default: 0},
   /// Per-core enable of double bandwidth for Spatz.
@@ -803,7 +810,8 @@ module snitch_cluster
   // i.e. they are handled outside of the cluster, e.g. in the NoC router
   typedef bit [DmaXbarCfg.NoMstPorts-1:0] wide_mst_connectivity_t;
   typedef wide_mst_connectivity_t [DmaXbarCfg.NoSlvPorts-1:0] wide_xbar_connectivity_t;
-  localparam wide_mst_connectivity_t WideMstCollectiveConnectivity = wide_mst_connectivity_t'(1 << SocDmaOut);
+  localparam wide_mst_connectivity_t WideMstCollectiveConnectivity =
+      wide_mst_connectivity_t'(1 << SoCDMAOut);
   localparam wide_xbar_connectivity_t DmaCollectiveConnectivity = wide_xbar_connectivity_t'{
     default: WideMstCollectiveConnectivity
   };
@@ -1080,8 +1088,8 @@ module snitch_cluster
   hive_req_t [NrCores-1:0] hive_req;
   hive_rsp_t [NrCores-1:0] hive_rsp;
 
-  dca_lane_req_t [NrCores-1:0] dca_lane_req;
-  dca_lane_rsp_t [NrCores-1:0] dca_lane_rsp;
+  dca_lane_req_t [cc_pkg::iomsb(NumDcaLanes):0] dca_lane_req;
+  dca_lane_rsp_t [cc_pkg::iomsb(NumDcaLanes):0] dca_lane_rsp;
 
   // Fork the external DCA port to the various SIMD lanes, and tie off DMA
   // TODO(colluca): the number of DMA cores here is hardcoded
@@ -1094,19 +1102,14 @@ module snitch_cluster
       .rst_ni,
       .slv_req_i(dca_req_i),
       .slv_rsp_o(dca_rsp_o),
-      .mst_req_o(dca_lane_req[NumDcaLanes-1:0]),
-      .mst_rsp_i(dca_lane_rsp[NumDcaLanes-1:0])
+      .mst_req_o(dca_lane_req),
+      .mst_rsp_i(dca_lane_rsp)
     );
   end else begin : gen_no_dca
     for (genvar i = 0; i < NumDcaLanes; i++) begin : gen_tie_off_lane
       `REQRSP_TIE_OFF_REQ(dca_lane_req[i])
     end
     `REQRSP_TIE_OFF_RSP(dca_rsp_o)
-  end
-
-  // Tie off disabled DCA lanes
-  for (genvar i = NumDcaLanes; i < NrCores; i++) begin : gen_tie_off_dca
-    `REQRSP_TIE_OFF_REQ(dca_lane_req[i])
   end
 
   for (genvar i = 0; i < NrCores; i++) begin : gen_core
@@ -1138,6 +1141,19 @@ module snitch_cluster
     parameter logic [31:0] BootAddrInternal = (AliasRegionEnable & IntBootromEnable) ?
                                                 BootromAliasStart : BootAddr;
 
+    parameter bit CoreEnableDca = EnableDca && (i < NumDcaLanes);
+
+    // Tie off disabled DCA lane
+    `DCA_TYPEDEF_ALL(core_dca, snitch_cc_pkg::datapath_width(IsaCfg[i], NarrowDataWidth))
+    core_dca_req_t core_dca_req;
+    core_dca_rsp_t core_dca_rsp;
+    if (i < NumDcaLanes) begin : gen_dca_lane
+      assign core_dca_req = dca_lane_req[i];
+      assign dca_lane_rsp[i] = core_dca_rsp;
+    end else begin : gen_no_dca_lane
+      `REQRSP_TIE_OFF_REQ(core_dca_req)
+    end
+
     snitch_cc #(
       .AddrWidth (PhysicalAddrWidth),
       .DataWidth (NarrowDataWidth),
@@ -1147,10 +1163,13 @@ module snitch_cluster
       .DmaIdWidth (WideIdWidthIn),
       .DmaUserWidth (WideUserWidth),
       .SnitchPMACfg (SnitchPMACfg),
-      .DmaNumAxInFlight (DMANumAxInFlight),
-      .DmaReqFifoDepth (DMAReqFifoDepth),
-      .DmaNumChannels (DMANumChannels),
+      .DMANumAxInFlight (DMANumAxInFlight),
+      .DMAReqFifoDepth (DMAReqFifoDepth),
+      .DMANumChannels (DMANumChannels),
       .TcdmMemRespLat (MemoryMacroLatency),
+      .DMAEnableCompute (DMAEnableCompute),
+      .DMAComputeOps (DMAComputeOps),
+      .DMAComputeTuning (DMAComputeTuning),
       .axi_ar_chan_t (axi_mst_dma_ar_chan_t),
       .axi_aw_chan_t (axi_mst_dma_aw_chan_t),
       .axi_req_t (axi_mst_dma_req_t),
@@ -1201,7 +1220,7 @@ module snitch_cluster
       .TcdmAliasStart (TcdmAliasStart),
       .addr_rule_t (xbar_rule_t),
       .CollectiveWidth (CollectiveWidth),
-      .EnableDca (EnableDca && (i < NumDcaLanes))
+      .EnableDca (CoreEnableDca)
     ) i_snitch_cc (
       .clk_i,
       .clk_d2_i (clk_d2),
@@ -1239,8 +1258,8 @@ module snitch_cluster
       .barrier_o (barrier_in[i]),
       .barrier_i (barrier_out),
       .dma_addr_map_i (enabled_dma_addr_map),
-      .dca_req_i (dca_lane_req[i]),
-      .dca_rsp_o (dca_lane_rsp[i])  
+      .dca_req_i (core_dca_req),
+      .dca_rsp_o (core_dca_rsp)
     );
     for (genvar j = 0; j < TcdmPorts; j++) begin : gen_tcdm_user
       always_comb begin
@@ -1521,7 +1540,8 @@ module snitch_cluster
   // i.e. they are handled outside of the cluster, e.g. in the NoC router
   typedef bit [ClusterXbarCfg.NoMstPorts-1:0] narrow_mst_connectivity_t;
   typedef narrow_mst_connectivity_t [ClusterXbarCfg.NoSlvPorts-1:0] xbar_connectivity_t;
-  localparam narrow_mst_connectivity_t MasterCollectiveConnectivity = narrow_mst_connectivity_t'(1 << SoC);
+  localparam narrow_mst_connectivity_t MasterCollectiveConnectivity =
+      narrow_mst_connectivity_t'(1 << SoC);
   localparam xbar_connectivity_t ClusterCollectiveConnectivity = xbar_connectivity_t'{
     default: MasterCollectiveConnectivity
   };
@@ -1809,7 +1829,8 @@ module snitch_cluster
   // Make sure we only have one DMA in the system.
   `ASSERT_INIT(NumberDMA, dma_count() <= 1)
   `ASSERT_INIT(UserCsrWidth, (CollectiveWidth + PhysicalAddrWidth) < 64,
-    $sformatf("64-bit user CSR too small to accomodate %d-bit collective and %d-bit address", CollectiveWidth, PhysicalAddrWidth))
+    $sformatf("64-bit user CSR too small to accomodate %d-bit collective and %d-bit address",
+              CollectiveWidth, PhysicalAddrWidth))
   // DcaDataWidth must be an integer multiple of the lane width
   `ASSERT_INIT(IntegerNumDcaLanes, (!EnableDca) || (DcaDataWidth % DcaLaneWidth == 0))
   // DcaDataWidth must be smaller than the aggregate width of all the lanes

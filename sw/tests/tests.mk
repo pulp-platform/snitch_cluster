@@ -35,7 +35,13 @@ SN_RUNTIME_LD_DEPS = $(SN_RUNTIME_MEMORY_LD) $(SN_RUNTIME_BASE_LD) $(SN_RUNTIME_
 # Outputs #
 ###########
 
+# Downstreams set this OFF and name the tests they want, as with SN_BUILD_APPS
+SN_BUILD_TESTS ?= ON
+
+ifeq ($(SN_BUILD_TESTS), ON)
 SN_TESTS       += $(wildcard $(SN_TESTS_SRCDIR)/*.c)
+endif
+
 SN_TEST_NAMES   = $(basename $(notdir $(SN_TESTS)))
 SN_TEST_ELFS    = $(abspath $(addprefix $(SN_TESTS_BUILDDIR)/,$(addsuffix .elf,$(SN_TEST_NAMES))))
 SN_TEST_DEPS    = $(abspath $(addprefix $(SN_TESTS_BUILDDIR)/,$(addsuffix .d,$(SN_TEST_NAMES))))

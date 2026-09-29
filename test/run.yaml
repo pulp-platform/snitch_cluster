@@ -17,6 +17,9 @@ runs:
   - elf: ../sw/tests/build/dma_2d.elf
   - elf: ../sw/tests/build/dma_l1l1.elf
   - elf: ../sw/tests/build/dma_l1l1_remote.elf
+  - elf: ../sw/tests/build/dma_transpose.elf
+  - elf: ../sw/tests/build/dma_transpose_remote.elf
+  - elf: ../sw/tests/build/dma_mxquant.elf
   - elf: ../sw/tests/build/dobu.elf
   - elf: ../sw/tests/build/event_unit.elf
     simulators: [vsim, vcs, verilator]

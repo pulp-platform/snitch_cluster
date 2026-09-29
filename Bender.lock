@@ -88,8 +88,8 @@ packages:
     dependencies:
     - common_cells
   idma:
-    revision: d48dedda12eb454ec5bfd41d47224c51b220b41c
-    version: null
+    revision: 04867adf336492eb6ebacad6764a3b442a51f129
+    version: 0.7.1
     source:
       Git: https://github.com/pulp-platform/idma.git
     dependencies:
@@ -142,7 +142,7 @@ packages:
     dependencies:
     - tech_cells_generic
   spatz_vpu:
-    revision: 5818fad0b44ce0d4cd88ddf4c05df8e3302474b7
+    revision: f396e76985f3a07d77c0e1e45159e46d5ae04dd0
     version: null
     source:
       Git: https://github.com/pulp-platform/spatz_vpu.git

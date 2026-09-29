@@ -294,7 +294,8 @@ module snitch_fp_ss
   assign acc_rsp_o.p_valid = ~en_copift_i & (fpu_tag_out.acc & fpu_out_valid);
   assign f2i_wvalid_o = en_copift_i & (fpu_tag_out.acc & fpu_out_valid);
   // stall FPU if result destination is not ready
-  assign fpu_out_ready = fpu_tag_out.acc ? (en_copift_i ? f2i_wready_i : acc_req_i.p_ready) : fpr_wready;
+  assign fpu_out_ready =
+      fpu_tag_out.acc ? (en_copift_i ? f2i_wready_i : acc_req_i.p_ready) : fpr_wready;
 
   // FPU Result
   logic [FLEN-1:0] fpu_result;
@@ -2321,7 +2322,8 @@ module snitch_fp_ss
           op_select[0] = RegA;
           src_fmt      = fpnew_pkg::FP64;
           dst_fmt      = fpnew_pkg::FP64;
-          if (acc_req_q.data_op inside {snitch_riscv_instr::FCVT_D_WU_COPIFT}) op_mode = 1'b1; // unsigned
+          if (acc_req_q.data_op inside {snitch_riscv_instr::FCVT_D_WU_COPIFT})
+            op_mode = 1'b1; // unsigned
         end
       end
       // [Alternate] Half Precision Floating-Point
@@ -2570,7 +2572,8 @@ module snitch_fp_ss
   end
 
   logic [2:0] rs_is_int;
-  assign i2f_rready_o = acc_req_valid_q && acc_req_ready_q && (rs_is_int[2] || rs_is_int[1] || rs_is_int[0]);
+  assign i2f_rready_o =
+      acc_req_valid_q && acc_req_ready_q && (rs_is_int[2] || rs_is_int[1] || rs_is_int[0]);
 
   for (genvar i = 0; i < 3; i++) begin: gen_operand_select
     logic is_raddr_ssr;
@@ -2638,7 +2641,7 @@ module snitch_fp_ss
     dca_req.q.tag = '0;
     dca_req.q.tag.dca = 1'b1;
   end
- 
+
   // Drop tag from DCA response
   `FPU_ASSIGN_UNTAGGED_RSP(assign, dca_rsp_o, dca_rsp);
 
@@ -2663,7 +2666,7 @@ module snitch_fp_ss
   // Multiplex Snitch and external DCA port requests
   if (EnableDca) begin : gen_dca_mux
     // Uses rotating priority. Could be changed but the problem is rr_arb_tree
-    // doesn't really support lock-in and priority at the same time. 
+    // doesn't really support lock-in and priority at the same time.
     reqrsp_mux #(
       .NrPorts    (2),
       .req_chan_t (fpu_req_chan_t),

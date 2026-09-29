@@ -73,6 +73,7 @@ package snitch_cluster_wrapper_pkg;
   localparam int unsigned AddrWidth = ${cfg['cluster']['addr_width']};
   localparam int unsigned NarrowDataWidth = ${cfg['cluster']['data_width']};
   localparam int unsigned WideDataWidth = ${cfg['cluster']['dma_data_width']};
+  localparam int unsigned DcaDataWidth = ${int(cfg['cluster']['dca_data_width'])};
 
   localparam int unsigned NarrowIdWidthIn = ${cfg['cluster']['id_width_in']};
   localparam int unsigned NrNarrowMasters = 3;
@@ -107,7 +108,7 @@ package snitch_cluster_wrapper_pkg;
   } sram_cfg_t;
 
   // Define dca_req_t and dca_rsp_t
-  `DCA_TYPEDEF_ALL(dca, WideDataWidth)
+  `DCA_TYPEDEF_ALL(dca, DcaDataWidth)
 
   // Define x_issue_req_t, x_issue_resp_t, x_register_t, x_commit_t, x_result_t
   `CV_X_IF_TYPEDEF_ALL(XifIdWidth)
@@ -355,6 +356,16 @@ ${ssr_cfg(core, '{reg_idx}', '/*None*/ 0', ',')}\
   localparam int unsigned            DMANumAxInFlight   = ${cfg['cluster']['dma_axi_req_fifo_depth']};
   localparam int unsigned            DMAReqFifoDepth    = ${cfg['cluster']['dma_req_fifo_depth']};
   localparam int unsigned            DMANumChannels     = ${cfg['cluster']['dma_nr_channels']};
+  localparam bit                     DMAEnableCompute   = ${int(cfg['cluster']['dma_enable_compute'])};
+  localparam idma_pkg::compute_enable_t DMAComputeOps = '{
+    transpose: ${int(cfg['cluster']['dma_compute_transpose'])},
+    mxquant:   ${int(cfg['cluster']['dma_compute_mxquant'])},
+    mxdequant: ${int(cfg['cluster']['dma_compute_mxdequant'])},
+    mxfp16:    ${int(cfg['cluster']['dma_compute_mxfp16'])}
+  };
+  localparam idma_pkg::compute_tuning_t DMAComputeTuning = '{
+    transpose_full_duplex: ${int(cfg['cluster']['dma_compute_transpose_full_duplex'])}
+  };
   // NumExpWideTcdmPorts is the effective count used for port sizing (minimum 1).
   // NumExpWideTcdmPortsCfg is the raw configured value used for connection gating.
   localparam int unsigned            NumExpWideTcdmPorts    = ${actual_num_exposed_wide_tcdm_ports};
@@ -392,7 +403,6 @@ ${ssr_cfg(core, '{reg_idx}', '/*None*/ 0', ',')}\
   localparam bit                     AliasRegionEnable  = ${int(cfg['cluster']['alias_region_enable'])};
   localparam int unsigned            AliasRegionBase    = ${int(cfg['cluster']['alias_region_base'])};
   localparam bit                     EnableDca          = ${int(cfg['cluster']['enable_dca'])};
-  localparam int unsigned            DcaDataWidth       = ${int(cfg['cluster']['dca_data_width'])};
 
   // Feature flags controlling wrapper port connections
   localparam bit EnableExternalInterrupts = ${int(cfg['cluster']['enable_external_interrupts'])};

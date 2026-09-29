@@ -392,7 +392,6 @@ def flt_op_vlen(insn: str, op_type: str) -> int:
     Returns:
         The vector length of the operand, greater than one if SIMD.
     """
-    global _cached_opcodes
     if _cached_opcodes is None:
         load_opcodes()
 

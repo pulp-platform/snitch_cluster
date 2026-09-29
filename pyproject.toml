@@ -16,7 +16,6 @@ dynamic = ["version"]
 dependencies = [
     # Alphabetically sorted.
     "dataclasses",
-    "flake8",
     "gitpython",
     "humanize",
     "json5",
@@ -38,12 +37,10 @@ dependencies = [
     "pytablewriter",
     "pytest",
     "pyyaml",
-    "reuse",
     "riscv-opcodes",
-    "spatz-vpu @ git+https://github.com/pulp-platform/spatz_vpu.git@0411cc6278d65bf46ca700ec5cde84cd681ce082",
+    "spatz-vpu",
     "tabulate",
     "termcolor",
-    "yamllint",
 ]
 
 [project.optional-dependencies]
@@ -67,12 +64,23 @@ all = [
 ]
 
 [dependency-groups]
+# Lint/format toolchain versions declared here are the single source of truth for
+# .pre-commit-config.yaml's `system`-language hooks, and for the CI lint job.
 dev = [
+    # Alphabetically sorted.
+    "clang-format==10.0.1.1",
+    "flake8==7.3.0",
+    "prek>=0.5.3",
+    "rdlfmt>=0.3.0",
+    "reuse[charset-normalizer,chardet]==6.2.0",
     "tsunami-wave @ git+https://github.com/zarubaf/tsunami.git@4a2d5c02462875fcebaef6f4e84563eb28b99cf8",
+    "verible==0.0.4071.0",
+    "yamllint==1.37.1",
 ]
 
 [tool.uv.sources]
 riscv-opcodes = { path = "sw/deps/riscv-opcodes", editable = true }
+spatz-vpu = { path = "deps/spatz_vpu" }
 torch = [
     { index = "pytorch-cpu" },
 ]

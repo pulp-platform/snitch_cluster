@@ -21,6 +21,7 @@ SPDX-License-Identifier = "Apache-2.0"
 path = [
   "util/clustergen/snitch_cluster.schema.json",
   "sw/saris/eval.json",
+  ".claude/settings.json",
 ]
 SPDX-FileCopyrightText = "2020 ETH Zurich and University of Bologna"
 SPDX-License-Identifier = "Apache-2.0"

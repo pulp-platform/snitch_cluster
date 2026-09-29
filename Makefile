@@ -246,8 +246,12 @@ $(LINT_BUILD_DIR):
 $(LINT_BUILD_DIR)/analyze.tcl: $(SN_BENDER_LOCK) $(SN_BENDER_YML) $(SN_GEN_RTL_SRCS) | $(LINT_BUILD_DIR)
 	$(SN_BENDER) script flist-plus $(SN_COMMON_BENDER_ASIC_FLAGS) -t ihp13 > $@
 
+LINT_REPORT = $(LINT_BUILD_DIR)/snitch_cluster_wrapper/consolidated_reports/snitch_cluster_wrapper_lint_lint_rtl/moresimple.rpt
+LINT_LOG = $(LINT_BUILD_DIR)/spyglass.log
+
 spyglass: $(LINT_DIR)/spyglass.tcl $(LINT_BUILD_DIR)/analyze.tcl | $(LINT_BUILD_DIR)
-	cd $(LINT_BUILD_DIR) && $(SN_SG_SHELL) -tcl $<
+	cd $(LINT_BUILD_DIR) && $(SN_SG_SHELL) -tcl $< > $(LINT_LOG) 2>&1
+	$(LINT_DIR)/check_spyglass_lint.py $(LINT_REPORT)
 
 #########
 # GVSOC #
@@ -275,6 +279,7 @@ clean-visual-trace: sn-clean-visual-trace
 # IP tests #
 ############
 
+# Currently missing IP tests: snitch_vm, snitch_ipu, snitch_dma, snitch
 IP_LIST  = mem_interface
 IP_LIST += tcdm_interface
 IP_LIST += snitch_ssr
@@ -286,8 +291,31 @@ IP_TARGETS = $(addprefix test-,$(IP_LIST))
 
 test-ips: $(IP_TARGETS)
 
-$(IP_TARGETS): test-%:
-	cd hw/$* && ./util/compile.sh && ./util/run_vsim.sh
+$(IP_TARGETS): test-%: rtl
+	cd hw/$* && export QUESTA_SEPP="$(SN_QUESTA_SEPP)" SN_BENDER="$(SN_BENDER)" SN_COMMON_BENDER_FLAGS="$(SN_COMMON_BENDER_FLAGS)" && ./util/compile.sh && ./util/run_vsim.sh
+
+###################
+# CI reproduction #
+###################
+
+.PHONY: ci ci-fast lint
+
+# Jobs share one implicit stage and run on the shell executor in this working
+# tree, so concurrent CFG_OVERRIDE jobs would clobber cfg/lru.json and the
+# build dirs if run in parallel.
+SN_GITLAB_CI_LOCAL ?= gitlab-ci-local --concurrency 1
+
+lint:
+	prek run --all-files
+
+ci-fast: lint
+	$(SN_GITLAB_CI_LOCAL) pytest docs snitch-cluster-sw
+
+# On success, writes a receipt fingerprinting the current working tree.
+# Required for Claude Code sessions to proceed to `git push`.
+ci: lint
+	$(SN_GITLAB_CI_LOCAL)
+	util/ci/fingerprint.sh > "$$(git rev-parse --git-dir)/claude-ci-receipt"
 
 ############################
 # Additional PHONY targets #

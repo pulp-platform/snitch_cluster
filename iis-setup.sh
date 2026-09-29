@@ -12,7 +12,7 @@ export SN_VCS_SEPP=vcs-2024.09
 export SN_VERILATOR_SEPP=$SN_OSEDA
 export SN_QUESTA_SEPP=questa-2023.4
 export SN_YOSYS="$SN_OSEDA yosys"
-export SN_LLVM_BINROOT=/usr/scratch2/vulcano/colluca/tools/riscv32-pulp-llvm-almalinux8-22.1.7-pulp-0.1.0/bin/
+export SN_LLVM_BINROOT=/usr/scratch2/vulcano/colluca/tools/riscv32-pulp-llvm-almalinux8-22.1.7-pulp-0.3.0/bin/
 export SN_SG_SHELL="spyglass-2024.09 sg_shell"
 
 # We need Make >4.3 for grouped targets
@@ -35,3 +35,9 @@ flock-2.41 --fcntl "${HOME}/uv-ci.lock" bash -euo pipefail -c '
   uv pip install -e nonfree
 '
 source .venv/bin/activate
+
+# Install the git pre-commit hooks via prek.
+# Skipped in CI since `git commit` is never run in CI.
+if [ -z "${CI:-}" ] && command -v prek > /dev/null 2>&1; then
+  prek install --overwrite
+fi

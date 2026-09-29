@@ -40,7 +40,7 @@ To run software on Snitch without a physical chip, you will need a simulation mo
     make vcs
     ```
 
-The artifacts of these commands can be found under `target/sim/build`. 
+The artifacts of these commands can be found under `target/sim/build`.
 Particularly, each command compiles the RTL sources with the selected simulator, respectively in `work-vlt`, `work-vsim` and `work-vcs`. Additionally, common C++ testbench sources (e.g. the [frontend server (fesvr)](https://github.com/riscv-software-src/riscv-isa-sim)) are compiled under `work`. Each command will also generate a script or an executable (e.g. `bin/snitch_cluster.vsim`) which we can use to simulate software on Snitch, as we will see in section [Running a simulation](#running-a-simulation).
 
 !!! important
@@ -361,7 +361,7 @@ The following two subsections describe how to use the two flows.
 
 ### Proprietary flow
 
-As the proprietary flow involves proprietary tools and technologies, the flow is contained in a separate private git repository. 
+As the proprietary flow involves proprietary tools and technologies, the flow is contained in a separate private git repository.
 If you are an IIS user, with access to our Gitlab server and IIS machines, sourcing the `iis-setup.sh` script clones the `snitch-cluster-nonfree` submodule in the non `nonfree` folder.
 
 There, you will find a Makefile defining a series of convenience targets to launch the proprietary flow up to a certain stage: may it be elaboration (`elab`), synthesis (`synth`) or place-and-route (`pnr`). If you can wait long enough you may also launch the entire flow to produce a final optimized post-layout netlist:

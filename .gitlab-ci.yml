@@ -88,30 +88,15 @@ snitch-cluster-sw:
 spyglass:
   script:
     - make spyglass
-    - util/lint/check_spyglass_lint.py
-        util/lint/build/snitch_cluster_wrapper/consolidated_reports/snitch_cluster_wrapper_lint_lint_rtl/moresimple.rpt
 
 #######################
 # Standalone IP tests #
 #######################
 
 # Build and run all individual IP testbenches.
-# Currently missing IP tests:
-# - snitch_vm
-# - snitch_ipu
-# - snitch_dma
-# - snitch
 snitch-ip-tests:
-  parallel:
-    matrix:
-      - IP:
-          - mem_interface
-          - snitch_cluster
-          - tcdm_interface
-          - snitch_ssr
   script:
-    - make rtl -j
-    - make test-$IP
+    - make test-ips -j
 
 ####################
 # Simulation tests #

@@ -35,6 +35,7 @@ package snitch_cluster_wrapper_pkg;
   localparam int unsigned AddrWidth = 48;
   localparam int unsigned NarrowDataWidth = 64;
   localparam int unsigned WideDataWidth = 512;
+  localparam int unsigned DcaDataWidth = 512;
 
   localparam int unsigned NarrowIdWidthIn = 2;
   localparam int unsigned NrNarrowMasters = 3;
@@ -79,7 +80,7 @@ package snitch_cluster_wrapper_pkg;
   } sram_cfg_t;
 
   // Define dca_req_t and dca_rsp_t
-  `DCA_TYPEDEF_ALL(dca, WideDataWidth)
+  `DCA_TYPEDEF_ALL(dca, DcaDataWidth)
 
   // Define x_issue_req_t, x_issue_resp_t, x_register_t, x_commit_t, x_result_t
   `CV_X_IF_TYPEDEF_ALL(XifIdWidth)
@@ -1337,6 +1338,16 @@ package snitch_cluster_wrapper_pkg;
   localparam int unsigned            DMANumAxInFlight   = 24;
   localparam int unsigned            DMAReqFifoDepth    = 8;
   localparam int unsigned            DMANumChannels     = 1;
+  localparam bit                     DMAEnableCompute   = 1;
+  localparam idma_pkg::compute_enable_t DMAComputeOps = '{
+    transpose: 1,
+    mxquant:   1,
+    mxdequant: 1,
+    mxfp16:    1
+  };
+  localparam idma_pkg::compute_tuning_t DMAComputeTuning = '{
+    transpose_full_duplex: 0
+  };
   // NumExpWideTcdmPorts is the effective count used for port sizing (minimum 1).
   // NumExpWideTcdmPortsCfg is the raw configured value used for connection gating.
   localparam int unsigned            NumExpWideTcdmPorts    = 1;
@@ -1374,7 +1385,6 @@ package snitch_cluster_wrapper_pkg;
   localparam bit                     AliasRegionEnable  = 1;
   localparam int unsigned            AliasRegionBase    = 402653184;
   localparam bit                     EnableDca          = 0;
-  localparam int unsigned            DcaDataWidth       = 512;
 
   // Feature flags controlling wrapper port connections
   localparam bit EnableExternalInterrupts = 0;

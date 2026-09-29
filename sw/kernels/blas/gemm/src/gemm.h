@@ -21,6 +21,27 @@
 #include "gemm_fp64.h"
 #include "gemm_fp8.h"
 
+static inline gemm_fp_t gemm_fallback(gemm_fp_t fp, uint32_t prec) {
+#if !defined(SNRT_SUPPORTS_FREP) || !defined(SNRT_SUPPORTS_SSR)
+    switch (prec) {
+        case FP64:
+            if (fp == gemm_fp64_opt) return gemm_fp64_naive;
+            break;
+        case FP32:
+            if (fp == gemm_fp32_opt) return gemm_fp32_baseline;
+            break;
+        case FP16:
+            if (fp == gemm_fp16_opt || fp == gemm_fp16_opt_ex)
+                return gemm_fp16_baseline;
+            break;
+        case FP8:
+            if (fp == gemm_fp8_opt_ex) return gemm_fp8_baseline;
+            break;
+    }
+#endif
+    return fp;
+}
+
 /**
  * @brief Executes one GEMM tile on one Snitch cluster (single-cluster,
  *        single-tile GEMM).
@@ -38,6 +59,8 @@
  *    the assigned subproblem.
  */
 void sc_st_gemm(gemm_fp_t kernel, sc_st_gemm_args_t *args) {
+    kernel = gemm_fallback(kernel, args->prec);
+
     if (snrt_is_compute_core()) {
         const uint32_t core_num = snrt_cluster_compute_core_num();
         const uint32_t core_idx = snrt_cluster_core_idx();

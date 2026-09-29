@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq --arg p 'source ./iis-setup.sh && ' '{hookSpecificOutput:{hookEventName:\"PreToolUse\",updatedInput:{command:($p + .tool_input.command)}}}'",
+            "statusMessage": "Setting up environment..."
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/require-ci.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
