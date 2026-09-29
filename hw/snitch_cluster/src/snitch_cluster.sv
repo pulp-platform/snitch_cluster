@@ -907,7 +907,7 @@ module snitch_cluster
   for (genvar i = 0; i < DMANumChannels; i++) begin : gen_dma_rsp_tcdm
     assign tcdm_dma_rsp[i] = dma_interconnect_rsp[2 + i];
   end
-  
+
   snitch_tcdm_interconnect #(
     .NumInp (NumDmaIcoInputs),
     .NumOut (NrSuperBanks),
