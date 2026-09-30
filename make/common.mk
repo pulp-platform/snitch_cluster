@@ -57,7 +57,7 @@ SN_BENDER_PREREQS  = $(SN_BENDER_LOCK)
 SN_BENDER_PREREQS += $(SN_BENDER_YML)
 
 # Flags
-SN_COMMON_BENDER_FLAGS      += -t rtl -t cc_no_deprecated -t tech_cells_generic_include_tc_sync
+SN_COMMON_BENDER_FLAGS      += -t rtl -t tech_cells_generic_include_tc_sync
 SN_COMMON_BENDER_SIM_FLAGS  += $(SN_COMMON_BENDER_FLAGS) -t test -t snitch_cluster:tb
 ifeq ($(DEBUG),ON)
 SN_COMMON_BENDER_SIM_FLAGS  += -DDEBUG

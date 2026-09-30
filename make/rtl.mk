@@ -31,6 +31,19 @@ SN_SPATZ_CFG     = $(SN_GEN_DIR)/spatz_cfg.json
 SN_SPATZ_PKG_TPL = $(SN_SPATZ_HW_DIR)/src/spatz_pkg.sv.tpl
 SN_SPATZ_PKG     = $(SN_GEN_DIR)/spatz_pkg.sv
 
+# Derive DOUBLE_BW from the effective cfg's double_bw field, so it can't drift from spatz_pkg.sv.
+SN_SPATZ_EFFECTIVE_CFG := $(if $(CFG_OVERRIDE),$(CFG_OVERRIDE),$(if $(wildcard $(SN_CFG)),$(SN_CFG),$(SN_DEFAULT_CFG)))
+SN_SPATZ_CFG_PREVIEW   := $(shell $(SN_CLUSTER_GEN) -c $(SN_SPATZ_EFFECTIVE_CFG) -o /dev/stdout --template $(SN_SPATZ_CFG_TPL) 2>/dev/null)
+ifneq ($(findstring "double_bw": true,$(SN_SPATZ_CFG_PREVIEW)),)
+SN_COMMON_BENDER_FLAGS += -DDOUBLE_BW
+endif
+ifneq ($(findstring "buf_fpu": 1,$(SN_SPATZ_CFG_PREVIEW)),)
+SN_COMMON_BENDER_FLAGS += -DBUF_FPU
+endif
+ifneq ($(findstring "pace": true,$(SN_SPATZ_CFG_PREVIEW)),)
+SN_COMMON_BENDER_FLAGS += -DPACE
+endif
+
 # All generated RTL sources
 SN_GEN_RTL_SRCS = $(SN_CLUSTER_WRAPPER_PKG) $(SN_CLUSTER_ADDRMAP_SVH) $(SN_CLUSTER_PERIPH) $(SN_CLUSTER_PERIPH_PKG) $(SN_BOOTROM) $(SN_SPATZ_PKG)
 

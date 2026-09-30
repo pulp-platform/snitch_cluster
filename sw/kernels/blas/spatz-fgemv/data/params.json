@@ -3,8 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 {
-    "m": 64,
+    "m": 256,
     "n": 128,
-    "k": 64,
-    "prec": "BF16"
+    "prec": "FP16"
 }
