@@ -38,6 +38,11 @@ SN_VLT_FLAGS += -Wno-fatal
 SN_VLT_FLAGS += --unroll-count 1024
 SN_VLT_FLAGS += --threads $(SN_VLT_NUM_THREADS)
 
+# TRACE flag allows to disable logging core traces (enabled by default)
+ifeq ($(TRACE), OFF)
+SN_VLT_FLAGS += +define+TRACE_OFF
+endif
+
 ifeq ($(DEBUG), ON)
 SN_VLT_FLAGS += --trace-fst
 ifneq ($(CI), ON)

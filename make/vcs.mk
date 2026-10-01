@@ -32,6 +32,11 @@ SN_VCS_FLAGS    += -full64
 SN_VCS_FLAGS    += -assert disable_cover
 SN_VCS_FLAGS    += -override_timescale=1ns/1ps
 
+# TRACE flag allows to disable logging core traces (enabled by default)
+ifeq ($(TRACE), OFF)
+SN_VLOGAN_FLAGS += +define+TRACE_OFF
+endif
+
 # Misc
 SN_VCS_TOP_MODULE = tb_bin
 SN_VCS_RTL_PREREQ_FILE = $(SN_VCS_BUILDDIR)/$(SN_VCS_TOP_MODULE).d
