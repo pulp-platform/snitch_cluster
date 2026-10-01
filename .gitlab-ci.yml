@@ -89,6 +89,14 @@ spyglass:
   script:
     - make spyglass
 
+#################
+# Slang compile #
+#################
+
+slang:
+  script:
+    - make slang
+
 #######################
 # Standalone IP tests #
 #######################

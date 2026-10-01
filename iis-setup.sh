@@ -12,6 +12,7 @@ export SN_VCS_SEPP=vcs-2024.09
 export SN_VERILATOR_SEPP=$SN_OSEDA
 export SN_QUESTA_SEPP=questa-2023.4
 export SN_YOSYS="$SN_OSEDA yosys"
+export SN_SLANG="$SN_OSEDA slang"
 export SN_LLVM_BINROOT=/usr/scratch2/vulcano/colluca/tools/riscv32-pulp-llvm-almalinux8-22.1.7-pulp-0.3.0/bin/
 export SN_SG_SHELL="spyglass-2024.09 sg_shell"
 
@@ -20,6 +21,20 @@ export PATH=$PWD/util/bin:$PATH
 
 # Add simulator binaries to PATH
 export PATH=$PWD/target/sim/build/bin:$PATH
+
+# Generate wrappers for tools which run in the OSEDA container, and add them to PATH.
+# The wrappers are regenerated on every invocation, so this is idempotent.
+OSS_CAD=$PWD/.vscode/oss-cad
+mkdir -p "$OSS_CAD/bin"
+printf '#!/bin/sh\nexec %s "$@"\n' "$SN_YOSYS" > "$OSS_CAD/bin/yosys"
+chmod +x "$OSS_CAD/bin/yosys"
+export PATH=$OSS_CAD/bin:$PATH
+
+# Point the sv-pathfinder VS Code extension to the wrappers, as it doesn't source this file.
+# Existing workspace settings are left untouched.
+if [ ! -f .vscode/settings.json ]; then
+  printf '{\n  "sv-pathfinder.ossCadSuitePath": "%s/"\n}\n' "$OSS_CAD" > .vscode/settings.json
+fi
 
 # Initialize submodules
 git -c submodule.nonfree.update=checkout submodule update --init --recursive

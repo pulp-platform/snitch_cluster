@@ -1,0 +1,9 @@
+{
+  "build": "sources.f",
+  "flags": "-f sources.f --top snitch_cluster_wrapper",
+  "index": [
+    {
+      "dirs": ["hw", "target", ".bender/git/checkouts"]
+    }
+  ]
+}

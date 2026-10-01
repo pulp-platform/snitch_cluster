@@ -399,6 +399,9 @@ jobs:
       - name: Generate RTL sources
         run: |
           make rtl
+      - name: Generate slang file list
+        run: |
+          make -B slang-flist
       - name: Diff porcelain
         uses: mmontes11/diff-porcelain@v0.0.1
         with:
