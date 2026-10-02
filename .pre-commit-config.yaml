@@ -13,7 +13,7 @@ repos:
       # `reuse-lint-file`: check only staged files.
       - id: reuse-lint-file
         name: reuse
-        entry: reuse
+        entry: .venv/bin/reuse
         args: ["lint-file"]
         language: system
 

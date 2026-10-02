@@ -21,6 +21,7 @@ SN_WORK_DIR   = $(SN_TARGET_DIR)/sim/build/work
 
 # External executables
 SN_BENDER         ?= bender
+SN_SLANG          ?= slang
 SN_PEAKRDL        ?= peakrdl
 SN_VERIBLE_FMT    ?= verible-verilog-format
 SN_CLANG_FORMAT   ?= $(SN_LLVM_BINROOT)/clang-format
