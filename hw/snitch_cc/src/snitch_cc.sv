@@ -602,7 +602,7 @@ module snitch_cc
       .DMAReqFifoDepth  (DmaReqFifoDepth),
       .NumChannels      (DmaNumChannels),
       .NumAddrRules     (1 + TcdmAliasEnable),
-      .EnableTcdmObi    (1'b0), // TBD: Change to 1'b1
+      .EnableTcdmObi    (1'b1),
       .EnableCompute    (DmaEnableCompute),
       .ComputeOps       (DmaComputeOps),
       .ComputeTuning    (DmaComputeTuning),
