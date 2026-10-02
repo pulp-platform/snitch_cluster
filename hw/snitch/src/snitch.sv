@@ -2801,6 +2801,7 @@ module snitch
       DMDST,
       DMSTR,
       DMCPYI,
+      DMINIT,
       DMCPY,
       DMSTATI,
       DMSTAT,
@@ -2835,7 +2836,8 @@ module snitch
                 unsupported_inst = 1'b1;
               end
             end
-            DMCPYI: begin
+            DMCPYI,
+            DMINIT: begin
               if (Xdma) begin
                 acc_req_o.q.addr     = DMA_SS;
                 opa_select      = RegRs1;

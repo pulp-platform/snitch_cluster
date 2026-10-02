@@ -59,8 +59,8 @@ int main() {
 
     // Test 4: Check DMA performance with simple 1D test
     if (snrt_is_dm_core()) {
-        // Configure performance counters to track DMA read and writes
-        snrt_cfg_perf_counter(0, PERF_METRIC__DMA_AW_DONE, 0);
+        // Configure performance counters to track DMA transactions.
+        snrt_cfg_perf_counter(0, PERF_METRIC__DMA_OBI_WR_REQ, 0);
         snrt_cfg_perf_counter(1, PERF_METRIC__DMA_AR_DONE, 0);
 
         // Transfer around some data
@@ -81,7 +81,7 @@ int main() {
         snrt_stop_perf_counter(0);
         snrt_stop_perf_counter(1);
 
-        // There should be one AR and one AW
+        // There should be one OBI write (to L1) and one AXI AR (from L3)
         errors += (snrt_get_perf_counter(0) != 1);
         errors += (snrt_get_perf_counter(1) != 1);
 
@@ -91,8 +91,8 @@ int main() {
     }
     // Test 5: Check DMA performance with misaligned 1D test
     if (snrt_is_dm_core()) {
-        // Configure performance counters to track DMA read and write beats
-        snrt_cfg_perf_counter(0, PERF_METRIC__DMA_W_DONE, 0);
+        // Configure performance counters to track DMA transactions.
+        snrt_cfg_perf_counter(0, PERF_METRIC__DMA_OBI_WR_REQ, 0);
         snrt_cfg_perf_counter(1, PERF_METRIC__DMA_R_DONE, 0);
 
         // Transfer around some data
@@ -114,7 +114,7 @@ int main() {
         snrt_stop_perf_counter(0);
         snrt_stop_perf_counter(1);
 
-        // There should be two R and one W beat from the DMA
+        // There should be one OBI write (aligned dst) and two AXI R beats (misaligned src)
         errors += (snrt_get_perf_counter(0) != 1);
         errors += (snrt_get_perf_counter(1) != 2);
     }

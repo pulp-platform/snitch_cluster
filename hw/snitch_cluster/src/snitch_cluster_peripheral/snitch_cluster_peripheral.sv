@@ -14,8 +14,8 @@ module snitch_cluster_peripheral
   // Nr of cores in the cluster
   parameter int unsigned NrCores = 0,
   // Nr of DMA channels
-  parameter int unsigned DMANumChannels = 0,
-  parameter int unsigned DMADataWidth = 0,
+  parameter int unsigned DmaNumChannels = 0,
+  parameter int unsigned DmaDataWidth = 0,
   parameter type addr_t = logic,
   parameter type data_t = logic,
   parameter type strb_t = logic,
@@ -34,13 +34,13 @@ module snitch_cluster_peripheral
   output logic              [NrCores-1:0]        cl_clint_o,
   input  core_events_t      [NrCores-1:0]        core_events_i,
   input  tcdm_events_t                           tcdm_events_i,
-  input  dma_events_t       [DMANumChannels-1:0] dma_events_i,
+  input  dma_events_t       [DmaNumChannels-1:0] dma_events_i,
   input  icache_l0_events_t [NrCores-1:0]        icache_events_i
 );
 
   // Pipeline register to ease timing.
   tcdm_events_t tcdm_events_q;
-  dma_events_t [DMANumChannels-1:0] dma_events_q;
+  dma_events_t [DmaNumChannels-1:0] dma_events_q;
   icache_l0_events_t [NrCores-1:0] icache_events_q;
   `FF(tcdm_events_q, tcdm_events_i, '0)
   `FF(dma_events_q, dma_events_i, '0)
@@ -177,13 +177,17 @@ module snitch_cluster_peripheral
           ((sel_dma_events.ar_len + 1) << (sel_dma_events.ar_size));
         snitch_cluster_peripheral_reg__perf_metric__dma_r_done: perf_cnt_d[i] +=
           sel_dma_events.r_done;
-        snitch_cluster_peripheral_reg__perf_metric__dma_r_bw: perf_cnt_d[i] += DMADataWidth/8;
+        snitch_cluster_peripheral_reg__perf_metric__dma_r_bw: perf_cnt_d[i] += DmaDataWidth/8;
         snitch_cluster_peripheral_reg__perf_metric__dma_w_done: perf_cnt_d[i] +=
           sel_dma_events.w_done;
         snitch_cluster_peripheral_reg__perf_metric__dma_w_bw: perf_cnt_d[i] +=
           sel_dma_events.num_bytes_written;
         snitch_cluster_peripheral_reg__perf_metric__dma_b_done: perf_cnt_d[i] +=
           sel_dma_events.b_done;
+        snitch_cluster_peripheral_reg__perf_metric__dma_obi_wr_req: perf_cnt_d[i] +=
+          sel_dma_events.obi_wr_req;
+        snitch_cluster_peripheral_reg__perf_metric__dma_obi_rd_req: perf_cnt_d[i] +=
+          sel_dma_events.obi_rd_req;
         snitch_cluster_peripheral_reg__perf_metric__dma_busy: perf_cnt_d[i] +=
           sel_dma_events.dma_busy;
         snitch_cluster_peripheral_reg__perf_metric__icache_miss: perf_cnt_d[i] +=

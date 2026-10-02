@@ -34,7 +34,7 @@ dependencies:
     rev: common-cells-v2
   idma:
     git: https://github.com/pulp-platform/idma.git
-    version: 0.7.3
+    rev: b56bd634ffac086b5bbf777a7cc0d1947254d74d
     pass_targets: ["snitch_cluster"]
   axi:
     git: https://github.com/colluca/axi.git
@@ -49,6 +49,9 @@ dependencies:
   FPnew:
     git: https://github.com/pulp-platform/cvfpu.git
     rev: bump-common-cells-v2
+  obi:
+    git: https://github.com/pulp-platform/obi.git
+    rev: common-cells-v2
   reqrsp_interface: 0.1.0
   core_ips: 0.1.0
   riscv-dbg: 0.8.1
@@ -109,6 +112,7 @@ sources:
       # Level 1
       - hw/tcdm_interface/src/tcdm_width_converter.sv
       - hw/tcdm_interface/src/axi_to_tcdm.sv
+      - hw/tcdm_interface/src/obi_to_tcdm.sv
       - hw/tcdm_interface/src/lsu_to_tcdm.sv
       - hw/tcdm_interface/src/tcdm_mux.sv
   - target: test
