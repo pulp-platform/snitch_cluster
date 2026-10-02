@@ -71,7 +71,7 @@ $$(addsuffix .elf,$$($(1)_p_tests)): $(1)-p-%.elf: $(1)/%.S | $(SN_RVTESTS_BUILD
 	$$(SN_RISCV_CC) $$(SN_RVT_RISCV_CFLAGS) -I$(SN_RVTESTS_SCRDIR)/../env/p -I$(SN_RVTESTS_SCRDIR)/macros/scalar -T$(SN_RVTESTS_SCRDIR)/../env/p/link.ld $$< -o $(SN_RVTESTS_BUILDDIR)$$@
 $(1)_tests += $$($(1)_p_tests)
 
-$$(addsuffix .elf,$$($(1)_v_tests)): $(1)-v-%.elf: $(1)/%.S
+$$(addsuffix .elf,$$($(1)_v_tests)): $(1)-v-%.elf: $(1)/%.S | $(SN_RVTESTS_BUILDDIR)
 	$$(SN_RISCV_CC) $$(SN_RVT_RISCV_CFLAGS) -DENTROPY=0x$$(shell echo \$$@ | md5sum | cut -c 1-7) -std=gnu99 -O2 -I$(SN_RVTESTS_SCRDIR)/../env/v -I$(SN_RVTESTS_SCRDIR)/macros/scalar -T$(SN_RVTESTS_SCRDIR)/../env/v/link.ld $(SN_RVTESTS_SCRDIR)/../env/v/entry.S $(SN_RVTESTS_SCRDIR)/../env/v/*.c $$< -o $(SN_RVTESTS_BUILDDIR)$$@
 $(1)_tests += $$($(1)_v_tests)
 

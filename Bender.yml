@@ -54,7 +54,7 @@ dependencies:
   riscv-dbg: 0.8.1
   spatz_vpu:
     git: https://github.com/pulp-platform/spatz_vpu.git
-    rev: jay/fpnew-mxcore
+    rev: prasadar/pace
 
 workspace:
   package_links:
@@ -171,7 +171,16 @@ sources:
       # Level 1
       - hw/snitch_cc/src/snitch_tracer.sv
       - hw/snitch_cc/src/snitch_ssr_subsystem.sv
+  - target: not(spatz_pace)
+    files:
       # Level 2
+      - hw/snitch_cc/src/snitch_spatz.sv
+  - target: spatz_pace
+    files:
+      # Level 2
+      - hw/snitch_cc/src/snitch_spatz_pace.sv
+  - files:
+      # Level 3
       - hw/snitch_cc/src/snitch_cc.sv
 
   # snitch_cluster
@@ -190,6 +199,7 @@ sources:
       # Level 2
       - hw/snitch_cluster/src/snitch_clkdiv2.sv
       # Level 3
+      - hw/snitch_cluster/src/axi_pace_mem.sv
       - hw/snitch_cluster/src/snitch_hive.sv
       # Level 4
       - hw/snitch_cluster/src/snitch_cluster.sv

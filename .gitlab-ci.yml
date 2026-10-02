@@ -150,6 +150,34 @@ snitch-cluster-vsim:
     paths:
       - test/runs/vsim/**/sim.txt
 
+# Test PACE configuration
+snitch-cluster-pace-vsim:
+  script:
+    - make CFG_OVERRIDE=cfg/pace.json SN_BUILD_PACE_APPS=ON sw -j
+    - make CFG_OVERRIDE=cfg/pace.json vsim TRACE=OFF -j
+    - cd test
+    - ../util/experiments/run.py run.yaml --simulator vsim -j --run-dir runs/vsim-pace
+    - ../util/experiments/run.py pace.yaml --simulator vsim -j --run-dir runs/vsim-pace
+  artifacts:
+    when: on_failure
+    expire_in: 1 day
+    paths:
+      - test/runs/vsim-pace/**/sim.txt
+
+# Test Spatz + PACE configuration
+snitch-cluster-spatz-pace-vsim:
+  script:
+    - make CFG_OVERRIDE=cfg/spatz-pace.json SN_SPATZ_PACE=ON SN_BUILD_SPATZ_PACE_APPS=ON vector spatz-axpy spatz-fmatmul spatz_pace_loop spatz_pace_loop_pwpa_fp16 spatz_pace_loop_pwpa_bfp16 -j
+    - make CFG_OVERRIDE=cfg/spatz-pace.json SN_SPATZ_PACE=ON vsim TRACE=OFF -j
+    - cd test
+    - ../util/experiments/run.py spatz.yaml --simulator vsim -j --run-dir runs/vsim-spatz-pace
+    - ../util/experiments/run.py spatz-pace.yaml --simulator vsim -j --run-dir runs/vsim-spatz-pace
+  artifacts:
+    when: on_failure
+    expire_in: 1 day
+    paths:
+      - test/runs/vsim-spatz-pace/**/sim.txt
+
 
 # Test OmegaNet TCDM interconnect
 snitch-cluster-omega-vsim:

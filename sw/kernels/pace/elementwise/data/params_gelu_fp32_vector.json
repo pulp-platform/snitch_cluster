@@ -1,0 +1,22 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Solderpad Hardware License, Version 0.51, see LICENSE for details.
+// SPDX-License-Identifier: SHL-0.51
+{
+    "x_min" : -4,
+    "x_max" : 4,
+    "n_deg" : 2,
+    "n_part": 16,
+    "bp_mode": "nonuniform",
+    "n_test": 8192,
+    "seed"  : 1234,
+    "eps"   : 5e-7,
+    "prec"  : "FP32",
+    "fpu_data_width" : 64,
+    "super_fmt" : "FP32",
+    "fn_name": "gelu",
+    "execution": "vector",
+    "enable" : true,
+    "extend": false,
+    "enable_fp32"  : true,
+    "debug_fname" : "debug_gelu_fp32_vector.txt"
+}

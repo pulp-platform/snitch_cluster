@@ -113,6 +113,26 @@ module snitch_cc
   parameter int unsigned CollectiveWidth    = 1,
   /// Enable direct compute access (DCA).
   parameter bit          EnableDca          = 0,
+  parameter type         pace_cfg_t         = logic,
+  parameter bit          PaceEnable         = 1'b0,
+  parameter int unsigned PaceDegree         = 0,
+  parameter int unsigned PaceParts          = 0,
+  parameter int unsigned PaceEps            = 0,
+  parameter int unsigned PaceDataWidth      = 0,
+  parameter int unsigned PaceParamWidth     = 0,
+  parameter int unsigned PaceFmtConfig      = 0,
+  parameter int unsigned PacePipeDist       = 0,
+  parameter pace_cfg_t   PaceCfg            = pace_cfg_t'({
+    PaceEnable,
+    32'd0,
+    PaceDegree,
+    PaceParts,
+    PaceEps,
+    PaceDataWidth,
+    PaceParamWidth,
+    PaceFmtConfig,
+    PacePipeDist
+  }),
   /// Derived parameter *Do not override*
   localparam int unsigned NumTcdmPorts = snitch_cc_pkg::get_tcdm_ports(
     IsaCfg,
@@ -168,6 +188,7 @@ module snitch_cc
   // Cluster HW barrier
   output logic                              barrier_o,
   input  logic                              barrier_i,
+  input  logic [cc_pkg::iomsb(PaceParamWidth):0] pace_param_i,
   // Direct Compute Access (DCA) interface
   input  dca_req_t                          dca_req_i,
   output dca_rsp_t                          dca_rsp_o
@@ -217,6 +238,12 @@ module snitch_cc
   fpnew_pkg::roundmode_e fpu_rnd_mode, spatz_fpu_rnd_mode, fpss_fpu_rnd_mode;
   fpnew_pkg::fmt_mode_t  fpu_fmt_mode, spatz_fpu_fmt_mode, fpss_fpu_fmt_mode;
   fpnew_pkg::status_t    fpu_status, spatz_fpu_status, fpss_fpu_status;
+  fpnew_pkg::pace_mode_t fpu_pace_mode;
+  fpnew_pkg::pace_mode_t spatz_pace_mode;
+  logic [cc_pkg::iomsb(PaceParamWidth):0] spatz_pace_param;
+
+  assign spatz_pace_mode  = PaceEnable ? fpu_pace_mode : '0;
+  assign spatz_pace_param = PaceEnable ? pace_param_i  : '0;
 
   // Consistency Address Queue (CAQ) interface
   logic caq_pvalid, caq_pvalid_q;
@@ -398,6 +425,7 @@ module snitch_cc
     .ptw_rsp_i         (hive_rsp_i.ptw_rsp),
     .fpu_rnd_mode_o    (fpu_rnd_mode),
     .fpu_fmt_mode_o    (fpu_fmt_mode),
+    .fpu_pace_mode_o   (fpu_pace_mode),
     .fpu_status_i      (fpu_status),
     .core_events_o     (snitch_events),
     .barrier_o         (barrier_o),
@@ -681,7 +709,16 @@ module snitch_cc
       .RegisterSequencer    (RegisterSequencer),
       .RegisterFpuReq       (RegisterFPUIn),
       .RegisterFpuRsp       (RegisterFPUOut),
-      .EnableDca            (EnableDca)
+      .EnableDca            (EnableDca),
+      .pace_cfg_t           (pace_cfg_t),
+      .PaceCfg              (PaceCfg),
+      .PaceDegree           (PaceDegree),
+      .PaceParts            (PaceParts),
+      .PaceEps              (PaceEps),
+      .PaceDataWidth        (PaceDataWidth),
+      .PaceParamWidth       (PaceParamWidth),
+      .PaceFmtConfig        (PaceFmtConfig),
+      .PacePipeDist         (PacePipeDist)
     ) i_snitch_fp_ss (
       .clk_i,
       .rst_i                  (~rst_ni | (~rst_fp_ss_ni)),
@@ -705,6 +742,8 @@ module snitch_cc
       .fpu_rnd_mode_i         (fpss_fpu_rnd_mode),
       .fpu_fmt_mode_i         (fpss_fpu_fmt_mode),
       .fpu_status_o           (fpss_fpu_status),
+      .fpu_pace_mode_i        (fpu_pace_mode),
+      .fpu_pace_param_i       (pace_param_i),
       .ssr_raddr_o            (ssr_raddr),
       .ssr_rdata_i            (ssr_rdata),
       .ssr_rvalid_o           (ssr_rvalid),
@@ -751,7 +790,7 @@ module snitch_cc
   ///////////
 
   if (IsaCfg.RVV) begin : gen_spatz
-    spatz #(
+    snitch_spatz #(
       .NrMemPorts         (NumSpatzMemPorts),
       .NumOutstandingLoads(NumSpatzOutstandingLoads),
       .FPUImplementation  (FPUImplementation),
@@ -767,8 +806,13 @@ module snitch_cc
       .x_issue_resp_t     (x_issue_resp_t),
       .x_register_t       (x_register_t),
       .x_commit_t         (x_commit_t),
-      .x_result_t         (x_result_t)
-    ) i_spatz (
+      .x_result_t         (x_result_t),
+      .dca_req_t          (dca_req_chan_t),
+      .dca_rsp_t          (dca_rsp_chan_t),
+      .pace_cfg_t         (pace_cfg_t),
+      .PaceCfg            (PaceCfg),
+      .PaceParamWidth     (PaceParamWidth)
+    ) i_snitch_spatz (
       .clk_i                   (clk_i),
       .rst_ni                  (rst_ni),
       .testmode_i              (1'b0),
@@ -792,6 +836,8 @@ module snitch_cc
       .spatz_mem_rsp_valid_i   (spatz_tcdm_rsp_valid),
       .spatz_mem_finished_o    (/*TODO: wire to fence instruction*/),
       .spatz_mem_str_finished_o(),
+      .pace_param_i            (spatz_pace_param),
+      .pace_mode_i             (spatz_pace_mode),
       .fp_lsu_mem_req_o        (spatz_flsu_req),
       .fp_lsu_mem_rsp_i        (spatz_flsu_rsp),
       .fpu_rnd_mode_i          (spatz_fpu_rnd_mode),

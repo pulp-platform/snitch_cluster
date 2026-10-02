@@ -32,22 +32,31 @@ int main() { return 0; }
 #define SNRT_NFPU_PER_CORE 8
 #endif
 
-double *a;
-double *x;
-double *y;
+void *a;
+void *x;
+void *y;
 
 int main() {
     const unsigned int dim = axpy_l.M;
+    const size_t elem_size = axpy_l.dtype == FP32 ? sizeof(float) :
+                             axpy_l.dtype == FP16 ? sizeof(_Float16) :
+                                                     sizeof(double);
 
     // DM core: allocate L1 buffers and DMA data from DRAM
     if (snrt_is_dm_core()) {
-        x = (double *)snrt_l1_alloc(dim * sizeof(double));
-        y = (double *)snrt_l1_alloc(dim * sizeof(double));
-        a = (double *)snrt_l1_alloc(sizeof(double));
+        x = snrt_l1_alloc(dim * elem_size);
+        y = snrt_l1_alloc(dim * elem_size);
+        a = snrt_l1_alloc(elem_size);
 
-        *a = axpy_alpha_dram;
-        snrt_dma_start_1d(x, axpy_X_dram, dim * sizeof(double));
-        snrt_dma_start_1d(y, axpy_Y_dram, dim * sizeof(double));
+        if (axpy_l.dtype == FP32) {
+            *(float *)a = (float)axpy_alpha_dram;
+        } else if (axpy_l.dtype == FP16) {
+            *(_Float16 *)a = (_Float16)axpy_alpha_dram;
+        } else {
+            *(double *)a = (double)axpy_alpha_dram;
+        }
+        snrt_dma_start_1d(x, axpy_X_dram, dim * elem_size);
+        snrt_dma_start_1d(y, axpy_Y_dram, dim * elem_size);
         snrt_dma_wait_all();
     }
 
@@ -65,14 +74,23 @@ int main() {
         const unsigned int compute_id = snrt_cluster_core_idx();
         const unsigned int dim_core = dim / compute_num;
 
-        double *x_int = x + dim_core * compute_id;
-        double *y_int = y + dim_core * compute_id;
-
+        if (axpy_l.dtype == FP32) {
+            float *x_int = (float *)x + dim_core * compute_id;
+            float *y_int = (float *)y + dim_core * compute_id;
+            faxpy_v32b(*(float *)a, x_int, y_int, dim_core);
+        } else if (axpy_l.dtype == FP16) {
+            _Float16 *x_int = (_Float16 *)x + dim_core * compute_id;
+            _Float16 *y_int = (_Float16 *)y + dim_core * compute_id;
+            faxpy_v16b(*(_Float16 *)a, x_int, y_int, dim_core);
+        } else {
+            double *x_int = (double *)x + dim_core * compute_id;
+            double *y_int = (double *)y + dim_core * compute_id;
 #ifdef UNROLL
-        faxpy_v64b_unrl(*a, x_int, y_int, dim_core);
+            faxpy_v64b_unrl(*(double *)a, x_int, y_int, dim_core);
 #else
-        faxpy_v64b(*a, x_int, y_int, dim_core);
+            faxpy_v64b(*(double *)a, x_int, y_int, dim_core);
 #endif
+        }
     }
 
     snrt_cluster_hw_barrier();
@@ -93,7 +111,7 @@ int main() {
                performance, utilization);
 
         // Write results back to DRAM; verify.py reads axpy_Y_dram post-simulation
-        snrt_dma_start_1d(axpy_Y_dram, y, dim * sizeof(double));
+        snrt_dma_start_1d(axpy_Y_dram, y, dim * elem_size);
         snrt_dma_wait_all();
     }
 
