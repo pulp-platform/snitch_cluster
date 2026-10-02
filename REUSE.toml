@@ -22,6 +22,7 @@ path = [
   "util/clustergen/snitch_cluster.schema.json",
   "sw/saris/eval.json",
   ".claude/settings.json",
+  ".slang/server.json",
 ]
 SPDX-FileCopyrightText = "2020 ETH Zurich and University of Bologna"
 SPDX-License-Identifier = "Apache-2.0"
@@ -89,6 +90,9 @@ SPDX-License-Identifier = "Apache-2.0 WITH LLVM-exception"
 
 # Lists
 [[annotations]]
-path = ["util/clustergen/opcodes.txt"]
+path = [
+  "util/clustergen/opcodes.txt",
+  "sources.f",
+]
 SPDX-FileCopyrightText = "2020 ETH Zurich and University of Bologna"
 SPDX-License-Identifier = "Apache-2.0"
