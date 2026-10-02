@@ -7,7 +7,7 @@
 # Docker containers for Snitch hardware and software development.
 
 # Ubuntu version must be aligned with OSEDA version
-ARG OSEDA_VERSION=2026.02
+ARG OSEDA_VERSION=2026.09
 ARG UBUNTU_VERSION=24.04
 # Run dpkg without interactive dialogue
 ARG DEBIAN_FRONTEND=noninteractive
@@ -20,7 +20,6 @@ ARG TOOL_DIR=/tools
 #------------------------------------------------------------------------------
 
 FROM ubuntu:${UBUNTU_VERSION} AS tool-builder
-ARG BENDER_VERSION=0.31.0
 ARG DOXYGEN_VERSION=1.12.0
 ARG SNITCH_LLVM_VERSION=22.1.7-pulp-0.3.0
 ARG UBUNTU_VERSION
@@ -34,10 +33,6 @@ RUN apt-get update && \
 
 # Change working directory
 WORKDIR /tools
-
-# Install Bender
-RUN wget https://github.com/pulp-platform/bender/releases/download/v${BENDER_VERSION}/bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz && \
-    tar xzf bender-${BENDER_VERSION}-x86_64-linux-gnu-ubuntu${UBUNTU_VERSION}.tar.gz
 
 # Install Doxygen
 RUN wget https://www.doxygen.nl/files/doxygen-${DOXYGEN_VERSION}.linux.bin.tar.gz && \
@@ -87,6 +82,7 @@ RUN apt-get update && \
         libexpat1-dev \
         libffi-dev \
         libreadline-dev \
+        libtomlplusplus3t64 \
         libz-dev \
         python3-dev \
         tcl-dev && \
@@ -94,14 +90,16 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 # Copy tools from the builder stage
-COPY --from=tool-builder /tools/bender ${TOOL_DIR}/bin/
 COPY --from=tool-builder /tools/uv ${TOOL_DIR}/bin/
 COPY --from=tool-builder /tools/doxygen/bin/doxygen ${TOOL_DIR}/bin/
 COPY --from=tool-builder /tools/riscv-llvm ${TOOL_DIR}/riscv-llvm
 
 # Copy tools from OSEDA container
+COPY --from=oseda /foss/tools/pulp/bin/bender ${TOOL_DIR}/bin/
 COPY --from=oseda /foss/tools/verilator ${TOOL_DIR}/verilator
 COPY --from=oseda /foss/tools/yosys ${TOOL_DIR}/yosys
+COPY --from=oseda /foss/tools/slang-yosys-plugin ${TOOL_DIR}/slang-yosys-plugin
+RUN ln -sf ${TOOL_DIR}/slang-yosys-plugin/slang.so ${TOOL_DIR}/yosys/share/yosys/plugins/slang.so
 
 # Create a simple bash prompt
 RUN echo "export PS1='\[\033[0;32m\]\w >\[\033[0;38m\] '" > ~/.bashrc
@@ -168,7 +166,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
 # Copy the tools from the builder stages
-COPY --from=tool-builder /tools/bender /tools/bin/
+COPY --from=oseda /foss/tools/pulp/bin/bender /tools/bin/
 COPY --from=tool-builder /tools/uv /tools/bin/
 COPY --from=tool-builder /tools/doxygen/bin/doxygen /tools/bin/
 COPY --from=tool-builder /tools/riscv-llvm /tools/riscv-llvm
