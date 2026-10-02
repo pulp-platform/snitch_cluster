@@ -22,20 +22,6 @@ export PATH=$PWD/util/bin:$PATH
 # Add simulator binaries to PATH
 export PATH=$PWD/target/sim/build/bin:$PATH
 
-# Generate wrappers for tools which run in the OSEDA container, and add them to PATH.
-# The wrappers are regenerated on every invocation, so this is idempotent.
-OSS_CAD=$PWD/.vscode/oss-cad
-mkdir -p "$OSS_CAD/bin"
-printf '#!/bin/sh\nexec %s "$@"\n' "$SN_YOSYS" > "$OSS_CAD/bin/yosys"
-chmod +x "$OSS_CAD/bin/yosys"
-export PATH=$OSS_CAD/bin:$PATH
-
-# Point the sv-pathfinder VS Code extension to the wrappers, as it doesn't source this file.
-# Existing workspace settings are left untouched.
-if [ ! -f .vscode/settings.json ]; then
-  printf '{\n  "sv-pathfinder.ossCadSuitePath": "%s/"\n}\n' "$OSS_CAD" > .vscode/settings.json
-fi
-
 # Initialize submodules
 git -c submodule.nonfree.update=checkout submodule update --init --recursive
 
