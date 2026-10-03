@@ -253,6 +253,25 @@ spyglass: $(LINT_DIR)/spyglass.tcl $(LINT_BUILD_DIR)/analyze.tcl | $(LINT_BUILD_
 	cd $(LINT_BUILD_DIR) && $(SN_SG_SHELL) -tcl $< > $(LINT_LOG) 2>&1
 	$(LINT_DIR)/check_spyglass_lint.py $(LINT_REPORT)
 
+###############
+# Slang flist #
+###############
+
+# File list for slang, used by the slang LSP (see .slang/server.json).
+# It is tracked and checked for staleness in CI, so paths are
+# made relative to the repository root.
+SN_SLANG_FLIST = $(SN_ROOT)/sources.f
+
+.PHONY: slang-flist
+
+slang-flist: $(SN_SLANG_FLIST)
+
+$(SN_SLANG_FLIST): $(SN_BENDER_PREREQS)
+	$(SN_BENDER) script flist-plus $(SN_COMMON_BENDER_FLAGS) | sed -e 's|$(SN_ROOT)/||g' -e '/^$$/d' > $@
+
+slang: $(SN_SLANG_FLIST) $(SN_GEN_RTL_SRCS)
+	$(SN_SLANG) -f $< --top snitch_cluster_wrapper
+
 #########
 # GVSOC #
 #########
