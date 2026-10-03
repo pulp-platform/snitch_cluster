@@ -2577,6 +2577,7 @@ module snitch_fp_ss
 
   for (genvar i = 0; i < 3; i++) begin: gen_operand_select
     logic is_raddr_ssr;
+    logic [FLEN-1:0] op_sel;
     always_comb begin
       is_raddr_ssr = 1'b0;
       for (int s = 0; s < NumSsrs; s++)
@@ -2590,41 +2591,45 @@ module snitch_fp_ss
       ssr_rvalid_o[i] = 1'b0;
       unique case (op_select[i])
         None: begin
-          op[i] = '1;
+          op_sel = '1;
           op_ready[i] = 1'b1;
         end
         AccBus: begin
-          op[i] = rs_is_int[i] ? { {(FLEN-32){i2f_rdata_i[31]}}, i2f_rdata_i[31:0] } : acc_qdata[i];
+          op_sel = rs_is_int[i] ? { {(FLEN-32){i2f_rdata_i[31]}}, i2f_rdata_i[31:0] }
+                                : acc_qdata[i];
           op_ready[i] = rs_is_int[i] ? i2f_rvalid_i : acc_req_valid_q;
         end
         // Scoreboard or SSR
         RegA, RegB, RegBRep, RegC, RegDest: begin
           // map register 0 and 1 to SSRs
           ssr_rvalid_o[i] = ssr_active_q & is_raddr_ssr;
-          op[i] = ssr_rvalid_o[i] ? ssr_rdata_i[i] : fpr_rdata[i];
+          op_sel = ssr_rvalid_o[i] ? ssr_rdata_i[i] : fpr_rdata[i];
           // The operand is ready if it is not marked in the scoreboard
           // and in case of it being an SSR it need to be ready as well.
           // If scalar chaining is enabled, an operand is ready if it's
           // valid bit is set.
           op_ready[i] = sc_mask_q[fpr_raddr[i]] ? sc_valid_q[fpr_raddr[i]] :
                         (~sb_q[fpr_raddr[i]] & (~ssr_rvalid_o[i] | ssr_rready_i[i]));
-          // Replicate if needed
-          if (op_select[i] == RegBRep) begin
-            unique case (src_fmt)
-              fpnew_pkg::FP32:    op[i] = {(FLEN / 32){op[i][31:0]}};
-              fpnew_pkg::FP16,
-              fpnew_pkg::FP16ALT: op[i] = {(FLEN / 16){op[i][15:0]}};
-              fpnew_pkg::FP8,
-              fpnew_pkg::FP8ALT:  op[i] = {(FLEN /  8){op[i][ 7:0]}};
-              default:            op[i] = op[i][FLEN-1:0];
-            endcase
-          end
         end
         default: begin
-          op[i] = '0;
+          op_sel = '0;
           op_ready[i] = 1'b1;
         end
       endcase
+    end
+    // Replicate if needed
+    always_comb begin
+      op[i] = op_sel;
+      if (op_select[i] == RegBRep) begin
+        unique case (src_fmt)
+          fpnew_pkg::FP32:    op[i] = {(FLEN / 32){op_sel[31:0]}};
+          fpnew_pkg::FP16,
+          fpnew_pkg::FP16ALT: op[i] = {(FLEN / 16){op_sel[15:0]}};
+          fpnew_pkg::FP8,
+          fpnew_pkg::FP8ALT:  op[i] = {(FLEN /  8){op_sel[ 7:0]}};
+          default:;
+        endcase
+      end
     end
   end
 
