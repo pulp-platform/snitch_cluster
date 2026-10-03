@@ -73,7 +73,7 @@ RUN apt-get update && \
         # General requirements
         curl wget build-essential git ca-certificates \
         # Required for Verilator
-        ccache mold binutils \
+        ccache mold binutils liblz4-dev \
         # Required for fesvr
         device-tree-compiler \
         # Shared libraries required by yosys (see https://github.com/iic-jku/IIC-OSIC-TOOLS/blob/main/_build/images/base-dev/scripts/install.sh)
