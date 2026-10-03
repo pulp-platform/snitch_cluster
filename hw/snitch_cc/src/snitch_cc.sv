@@ -559,6 +559,12 @@ module snitch_cc
   /////////
 
   if (IsaCfg.Xdma) begin : gen_dma
+    // The iDMA trace follows the core trace (`TRACE=OFF` disables both)
+`ifdef TRACE_OFF
+    localparam int unsigned DmaTrace = 0;
+`else
+    localparam int unsigned DmaTrace = 1;
+`endif
     idma_inst64_top #(
       .AxiAddrWidth   (AddrWidth),
       .AxiDataWidth   (DMADataWidth),
@@ -571,7 +577,7 @@ module snitch_cc
       .EnableCompute  (DMAEnableCompute),
       .ComputeOps     (DMAComputeOps),
       .ComputeTuning  (DMAComputeTuning),
-      .DMATracing     (1),
+      .DMATracing     (DmaTrace),
       .axi_ar_chan_t  (axi_ar_chan_t),
       .axi_aw_chan_t  (axi_aw_chan_t),
       .axi_req_t      (axi_req_t),
