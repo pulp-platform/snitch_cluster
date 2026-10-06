@@ -420,6 +420,7 @@ hw/mem_interface/src/mem_interface.sv
 hw/tcdm_interface/src/tcdm_interface.sv
 hw/tcdm_interface/src/tcdm_width_converter.sv
 hw/tcdm_interface/src/axi_to_tcdm.sv
+hw/tcdm_interface/src/obi_to_tcdm.sv
 hw/tcdm_interface/src/lsu_to_tcdm.sv
 hw/tcdm_interface/src/tcdm_mux.sv
 hw/snitch_vm/src/snitch_ptw.sv

@@ -19,7 +19,11 @@ extern void snrt_dma_start_tracking();
 
 extern void snrt_dma_stop_tracking();
 
-extern void snrt_dma_memset(void *ptr, uint8_t value, uint32_t len);
+extern void snrt_dma_memset(uint64_t ptr, uint8_t value, uint32_t size,
+                            uint32_t channel);
+
+extern void snrt_dma_memset(volatile void *ptr, uint8_t value, uint32_t size,
+                            uint32_t channel);
 
 extern snrt_dma_txid_t snrt_dma_load_1d_tile(void *dst, void *src,
                                              size_t tile_idx, size_t tile_size,
