@@ -1,0 +1,25 @@
+# Copyright 2026 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+runs:
+  - elf: ../sw/kernels/pace/elementwise/build/gelu_fp16_scalar/pace_elementwise_gelu_fp16_scalar.elf
+    cmd: [../sw/kernels/pace/elementwise/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/pace/elementwise/build/gelu_fp16_vector/pace_elementwise_gelu_fp16_vector.elf
+    cmd: [../sw/kernels/pace/elementwise/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/pace/elementwise/build/gelu_fp32_scalar/pace_elementwise_gelu_fp32_scalar.elf
+    cmd: [../sw/kernels/pace/elementwise/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/pace/elementwise/build/gelu_fp32_vector/pace_elementwise_gelu_fp32_vector.elf
+    cmd: [../sw/kernels/pace/elementwise/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/pace/elementwise/build/inv_fp16_scalar/pace_elementwise_inv_fp16_scalar.elf
+    cmd: [../sw/kernels/pace/elementwise/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/pace/elementwise/build/inv_fp16_vector/pace_elementwise_inv_fp16_vector.elf
+    cmd: [../sw/kernels/pace/elementwise/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/pace/elementwise/build/inv_bfp16_vector/pace_elementwise_inv_bfp16_vector.elf
+    cmd: [../sw/kernels/pace/elementwise/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/pace/elementwise/build/inv_fp32_scalar/pace_elementwise_inv_fp32_scalar.elf
+    cmd: [../sw/kernels/pace/elementwise/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/pace/elementwise/build/inv_fp32_vector/pace_elementwise_inv_fp32_vector.elf
+    cmd: [../sw/kernels/pace/elementwise/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/pace/softmax/build/pace_softmax.elf
+    cmd: [../sw/kernels/pace/softmax/scripts/verify.py, "${sim_bin}", "${elf}"]

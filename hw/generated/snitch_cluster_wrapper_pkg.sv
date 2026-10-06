@@ -1407,5 +1407,40 @@ package snitch_cluster_wrapper_pkg;
   localparam bit          SpatzDoubleBw            [NrCores] = '{0, 0, 0, 0, 0, 0, 0, 0, 0};
   localparam int unsigned NumSpatzOutstandingLoads [NrCores] = '{1, 1, 1, 1, 1, 1, 1, 1, 1};
 
+
+  // PACE configuration
+  localparam bit PaceEnable = 0;
+  localparam int unsigned PaceMemorySize = PaceEnable ? 64 : 0;
+  localparam int unsigned PaceDegree = PaceEnable ? 2 : 0;
+  localparam int unsigned PaceParts = PaceEnable ? 16 : 0;
+  localparam int unsigned PaceDataWidth = PaceEnable ? 32 : 0;
+  localparam int unsigned PaceFmtConfig = PaceEnable ? 40 : 0;
+  localparam int unsigned PacePipeDist = PaceEnable ? 4 : 0;
+  localparam int unsigned PaceEps = PaceEnable ? 1 : 0;
+  localparam int unsigned PaceParamWidth =
+    PaceEnable ? (((PaceDegree + 1) * PaceParts + PaceParts - 1 + 2 * PaceEps) * PaceDataWidth) : 0;
+  typedef struct packed {
+    logic        enable;
+    logic [31:0] memory_size;
+    logic [31:0] degree;
+    logic [31:0] parts;
+    logic [31:0] eps;
+    logic [31:0] data_width;
+    logic [31:0] param_width;
+    logic [31:0] fmt_config;
+    logic [31:0] pipe_dist;
+  } pace_cfg_t;
+  localparam pace_cfg_t PaceCfg = '{
+    enable: PaceEnable,
+    memory_size: PaceMemorySize,
+    degree: PaceDegree,
+    parts: PaceParts,
+    eps: PaceEps,
+    data_width: PaceDataWidth,
+    param_width: PaceParamWidth,
+    fmt_config: PaceFmtConfig,
+    pipe_dist: PacePipeDist
+  };
+
 endpackage
 // verilog_lint: waive-stop package-filename

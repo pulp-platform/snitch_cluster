@@ -73,6 +73,8 @@ include $(SN_ROOT)/sw/tests/tests.mk
 include $(SN_ROOT)/sw/riscv-tests/riscv-tests.mk
 
 SN_BUILD_APPS ?= ON
+SN_BUILD_PACE_APPS ?= OFF
+SN_BUILD_SPATZ_PACE_APPS ?= OFF
 
 ifeq ($(SN_BUILD_APPS), ON)
 SN_APPS += $(SN_ROOT)/sw/kernels/blas/axpy
@@ -106,11 +108,24 @@ SN_APPS += $(SN_ROOT)/sw/kernels/misc/kbpcpa
 SN_APPS += $(SN_ROOT)/sw/kernels/misc/box3d1r
 SN_APPS += $(SN_ROOT)/sw/kernels/misc/j3d27pt
 SN_APPS += $(SN_ROOT)/sw/kernels/misc/sort
+
+ifeq ($(SN_BUILD_PACE_APPS), ON)
+SN_APPS += $(SN_ROOT)/sw/kernels/pace/softmax
+SN_APPS += $(SN_ROOT)/sw/kernels/pace/elementwise
+endif
+
+ifeq ($(SN_BUILD_SPATZ_PACE_APPS), ON)
+SN_APPS += $(SN_ROOT)/sw/kernels/pace/spatz_pace_loop
+endif
 endif
 
 # Include Makefile from each app subdirectory
 $(foreach app,$(SN_APPS), \
 	$(eval include $(app)/app.mk) \
 )
+
+.PHONY: pwpa clean-pwpa
+pwpa: pace_elementwise
+clean-pwpa: clean-pace_elementwise
 
 endif

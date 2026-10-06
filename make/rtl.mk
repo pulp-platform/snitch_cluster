@@ -9,6 +9,11 @@ ifdef SN_TOOLCHAIN_MK_READ
 # Sentinel to test that rtl.mk has been included and read
 SN_RTL_MK_READ = 1
 
+SN_SPATZ_PACE ?= OFF
+ifeq ($(SN_SPATZ_PACE), ON)
+SN_COMMON_BENDER_FLAGS += -t spatz_pace
+endif
+
 # Directories
 SN_BOOTROM_DIR ?= $(SN_HW_DIR)/bootrom
 

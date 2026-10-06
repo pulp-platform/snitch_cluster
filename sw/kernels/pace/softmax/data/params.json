@@ -1,0 +1,22 @@
+// Copyright 2020 ETH Zurich and University of Bologna.
+// Solderpad Hardware License, Version 0.51, see LICENSE for details.
+// SPDX-License-Identifier: SHL-0.51
+{
+    "x_min" : -11,
+    "x_max" : 0,
+    "n_deg" : 2,
+    "n_part": 16,
+    "bp_mode": "nonuniform",
+    "rows": 32,
+    "seq_len": 512,
+    "num_cores" : 8,
+    "seed"  : 1234,
+    "eps"   : 5e-7,
+    "prec"  : "FP16",
+    "fpu_data_width" : 64,
+    "layout" : "column-major",
+    "softmax_unroll" : 8,
+    "exp"   : "pwpa",
+    "frac"  : "golden",
+    "debug_fname" : "debug.txt"
+}
