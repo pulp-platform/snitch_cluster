@@ -818,6 +818,31 @@ inline void snrt_dma_set_opcode(uint32_t opcode) {
 }
 
 /**
+ * @brief Set the MX scale plane address for subsequent MX transfers.
+ * @param addr Scale plane address, 64 B aligned.
+ */
+inline void snrt_dma_set_mx_scale_addr(uint64_t addr) {
+    uint64_t v = addr >> IDMA_DMOPC_MX_SCALE_ADDR_UNIT_LOG2;
+    snrt_dma_set_opcode_params(
+        IDMA_DMOPC_OPC_MX_SCALE_ADDR |
+            (((uint32_t)v & IDMA_DMOPC_RS1_MX_SADDR_LO_MASK)
+             << IDMA_DMOPC_RS1_MX_SADDR_LO_SHIFT),
+        (uint32_t)(v >> IDMA_DMOPC_RS1_MX_SADDR_LO_WIDTH) &
+            IDMA_DMOPC_RS2_MX_SADDR_HI_MASK);
+}
+
+/**
+ * @brief Set the MX scale plane stride of 2D MX transfers.
+ * @param stride Scale plane stride per row, a multiple of 64 B.
+ */
+inline void snrt_dma_set_mx_scale_stride(int32_t stride) {
+    snrt_dma_set_opcode_params(
+        IDMA_DMOPC_OPC_MX_SCALE_STRIDE,
+        (uint32_t)(stride >> IDMA_DMOPC_MX_SCALE_STRIDE_UNIT_LOG2) &
+            IDMA_DMOPC_RS2_MX_SSTRIDE_MASK);
+}
+
+/**
  * @brief Enable the tiled transpose of a row-major tensor for successive
  *        transfers
  * @param mode Element size selector; elements are 1 << mode bytes.

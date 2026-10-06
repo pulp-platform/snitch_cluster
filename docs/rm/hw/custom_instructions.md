@@ -93,6 +93,10 @@ DMOPC selects an on-the-fly compute operation that the DMA applies to the data o
 | tp_mode         | rs1[17:16]    | Transpose element size, 1 << tp_mode bytes
 | tp_tensor_m     | rs2[11:0]     | Transpose rows of the source tensor, in elements
 | tp_tensor_n     | rs2[23:12]    | Transpose columns of the source tensor, in elements
+| mx_poison_dis   | rs1[18]       | MX quantization: keep Inf/NaN blocks finite
+| mx_rceil        | rs1[19]       | MX quantization: round the block scale up
+| mx_elem_fmt     | rs1[21:20]    | MX element format, 0: E5M2, 1: E4M3
+| mx_group        | rs1[22]       | MX blocks per scale group, 0: 64, 1: 32
 
 | opcode | Operation
 |--------|-----------
@@ -101,7 +105,11 @@ DMOPC selects an on-the-fly compute operation that the DMA applies to the data o
 | 0x21   | MX dequantization, FP32 destination
 | 0x22   | MX quantization, FP16 source
 | 0x23   | MX dequantization, FP16 destination
+| 0x28   | Set the MX scale plane address to {rs2[31:0], rs1[31:8]} << 6
+| 0x29   | Set the MX scale plane stride to sign-extended rs2[31:0] << 6
 | 0x50   | Tiled transpose
+
+The MX operations keep the MXFP8 elements (32 B per block) and the E8M0 block scales (1 B per block) in separate data and scale planes. The setters 0x28 and 0x29 do not change the selected operation.
 
 The iDMA generates these encodings as C defines in `idma_compute.h`.
 
