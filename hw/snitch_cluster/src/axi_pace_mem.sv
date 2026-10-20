@@ -94,6 +94,8 @@ module axi_pace_mem #(
   );
 
   `FF(mem_rvalid, mem_we & mem_req & mem_gnt, 1'b0, clk_i, rst_ni)
+  // The parameter memory is write-only: reads are not supported
+  assign mem_rdata = '0;
 
 
   `ASSERT_INIT(PACE_EPS_VALUE, (PaceEps == 0) | (PaceEps == 1),
