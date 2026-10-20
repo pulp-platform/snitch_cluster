@@ -276,7 +276,18 @@ module snitch_cluster_wrapper
     .AliasRegionEnable        (AliasRegionEnable),
     .AliasRegionBase          (AliasRegionBase),
     .EnableDca                (EnableDca),
-    .DcaDataWidth             (DcaDataWidth)
+    .DcaDataWidth             (DcaDataWidth),
+    .pace_cfg_t               (pace_cfg_t),
+    .PaceCfg                  (PaceCfg),
+    .PaceEnable               (PaceEnable),
+    .PaceMemorySize           (PaceMemorySize),
+    .PaceDegree               (PaceDegree),
+    .PaceParts                (PaceParts),
+    .PaceEps                  (PaceEps),
+    .PaceDataWidth            (PaceDataWidth),
+    .PaceParamWidth           (PaceParamWidth),
+    .PaceFmtConfig            (PaceFmtConfig),
+    .PacePipeDist             (PacePipeDist)
   ) i_cluster (
     .clk_i,
     .rst_ni,

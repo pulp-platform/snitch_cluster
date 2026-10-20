@@ -38,6 +38,11 @@ ifeq ($(DEBUG), ON)
 SN_VSIM_FLAGS += -do "log -r /*"
 SN_VOPT_FLAGS  = +acc
 endif
+
+# Questa 2023.4 needs PACE payload structs to remain visible during elaboration.
+ifeq ($(SN_SPATZ_PACE), ON)
+SN_VOPT_FLAGS += +acc
+endif
 # TRACE flag allows to disable logging core traces (enabled by default)
 ifeq ($(TRACE), OFF)
 SN_VLOG_FLAGS += +define+TRACE_OFF
@@ -92,7 +97,9 @@ $(SN_VSIM_BUILDDIR):
 $(eval $(call sn_gen_rtl_prerequisites,$(SN_VSIM_RTL_PREREQ_FILE),$(SN_VSIM_BUILDDIR),$(SN_VSIM_BENDER_FLAGS),$(SN_VSIM_TOP_MODULE),$(SN_BIN_DIR)/$(TARGET).vsim))
 
 # Generate compilation script
-$(SN_VSIM_BUILDDIR)/compile.vsim.tcl: $(SN_BENDER_PREREQS) | $(SN_VSIM_BUILDDIR)
+# Bender targets/defines depend on the selected Spatz configuration; regenerate
+# the script when cfg/lru.json switches between single and double bandwidth.
+$(SN_VSIM_BUILDDIR)/compile.vsim.tcl: $(SN_BENDER_PREREQS) $(SN_CFG) | $(SN_VSIM_BUILDDIR)
 	$(SN_VLIB) $(dir $@)
 	$(SN_BENDER) script vsim $(SN_VSIM_BENDER_FLAGS) --vlog-arg="$(SN_VLOG_FLAGS) " > $@
 	echo '$(SN_VLOG) -work $(SN_VSIM_BUILDDIR) $(SN_TB_CC_SOURCES) $(SN_RTL_CC_SOURCES) -vv -ccflags "$(SN_TB_CC_FLAGS)"' >> $@

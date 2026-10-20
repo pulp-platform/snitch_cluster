@@ -32,6 +32,10 @@ typedef double T;
 typedef float T;
 #include "fmatmul_fp32.c"
 #elif (PREC == 16)
+// BF16 reuses the fp16 kernel source as-is: vle16.v/vfmacc.vf/vse16.v don't
+// encode a format, they just move/operate on 16-bit slots. Which FP16
+// variant (IEEE half vs. bf16) those slots are interpreted as is a runtime
+// property, selected below via CSR_FMODE right before the kernel is called.
 typedef __fp16 T;
 #include "fmatmul_fp16.c"
 #endif
@@ -76,6 +80,17 @@ int main() {
         const unsigned int p_start = 0;
         const unsigned int p_end = gemm_l.N;
 
+#ifdef BF16
+        // Select the alternate (bf16) format for both source and
+        // destination of e16 FP ops, via the custom CSR_FMODE (0x800;
+        // {src,dst}, see hw/snitch/src/snitch.sv). Left set for the rest
+        // of the program, which does no other FP work after this.
+        {
+            unsigned int fmode = 0x3;
+            asm volatile("csrw 0x800, %0" ::"r"(fmode));
+        }
+#endif
+
         matmul_4xVL(c, a, b, m_start, m_end, gemm_l.K, gemm_l.N, p_start,
                     p_end);
     }
@@ -89,17 +104,25 @@ int main() {
         const unsigned int compute_num = snrt_cluster_compute_core_num();
         long unsigned int performance =
             1000 * 2 * gemm_l.M * gemm_l.N * gemm_l.K / timer;
-// fp32 packs twice as many elements per FPU lane as fp64, doubling peak ops/cycle
+// fp32/fp16 pack 2x/4x as many elements per FPU lane as fp64, multiplying
+// peak ops/cycle accordingly
 #if (PREC == 32)
         long unsigned int utilization =
             performance / (2 * compute_num * SNRT_NFPU_PER_CORE * 2);
+#elif (PREC == 16)
+        long unsigned int utilization =
+            performance / (2 * compute_num * SNRT_NFPU_PER_CORE * 4);
 #else
         long unsigned int utilization =
             performance / (2 * compute_num * SNRT_NFPU_PER_CORE);
 #endif
 
+#ifdef BF16
+        printf("\n----- (%dx%d) fmatmul (bf16) -----\n", gemm_l.M, gemm_l.N);
+#else
         printf("\n----- (%dx%d) fmatmul (fp%d) -----\n", gemm_l.M, gemm_l.N,
                PREC);
+#endif
         printf("Compute cores: %d\n", compute_num);
         printf("The execution took %u cycles.\n", timer);
         printf("The performance is %ld OP/1000cycle (%ld%%o utilization).\n",

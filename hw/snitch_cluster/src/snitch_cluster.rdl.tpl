@@ -39,6 +39,11 @@ addrmap ${cfg['cluster']['name']} {
         memwidth = ${cfg['cluster']['data_width']};
     };
 
+    mem pacemem {
+        mementries = ${hex(int(cfg['cluster'].get('pace_mem_size', 64) * 1024 * 8 / cfg['cluster']['data_width']))};
+        memwidth = ${cfg['cluster']['data_width']};
+    };
+
 
     external tcdm                 tcdm           ;
 %if cfg['cluster']['int_bootrom_enable']:
@@ -46,6 +51,7 @@ addrmap ${cfg['cluster']['name']} {
 % endif
     snitch_cluster_peripheral_reg peripheral_reg @${hex((next_power_of_2(cfg['cluster']['tcdm']['size']) + (int(cfg['cluster']['int_bootrom_enable']) * 4)) * 1024)};
     external zeromem              zeromem        @${hex((next_power_of_2(cfg['cluster']['tcdm']['size']) + (int(cfg['cluster']['int_bootrom_enable']) * 4) + cfg['cluster']['cluster_periph_size']) * 1024)};
+    external pacemem              pacemem        @${hex((next_power_of_2(cfg['cluster']['tcdm']['size']) + (int(cfg['cluster']['int_bootrom_enable']) * 4) + cfg['cluster']['cluster_periph_size'] + cfg['cluster']['zero_mem_size']) * 1024)};
 
 
 };

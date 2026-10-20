@@ -1,0 +1,155 @@
+// Copyright 2023 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+
+{
+    cluster: {
+        cluster_base_addr: 0x10000000,
+        cluster_base_offset: 0,
+        cluster_base_hartid: 0,
+        addr_width: 48,
+        data_width: 64,
+        atomic_id_width: 5,
+        tcdm: {
+            size: 128,
+            banks: 32,
+        },
+        cluster_periph_size: 60, // kB
+        zero_mem_size: 64, // kB
+        pace_enable: true,
+        pace_mem_size: 64, // kB
+        pace_degree: 2,
+        pace_parts: 16,
+        pace_eps: 1,
+        pace_data_width: 32,
+        pace_pipe_dist: 0x04,
+        pace_fmt_config: 0x150,
+        alias_region_enable: true,
+        dma_data_width: 512,
+        dma_axi_req_fifo_depth: 24,
+        dma_req_fifo_depth: 8,
+        dma_enable_compute: true,
+        dma_compute_transpose_full_duplex: false,
+        narrow_trans: 4,
+        wide_trans: 32,
+        // We don't need Snitch debugging in Occamy
+        enable_debug: false,
+        enable_xif: false,
+        // DCA adaption for Spatz is not yet implemented
+        enable_dca: false,
+        // We don't need Snitch (core-internal) virtual memory support
+        vm_support: false,
+        // Memory configuration inputs
+        sram_cfg_expose: true,
+        sram_cfg_fields: {
+            ema: 3,
+            emaw: 2,
+            emas: 1
+        },
+        // Timing parameters
+        timing: {
+            lat_comp_fp32: 2,
+            lat_comp_fp64: 3,
+            lat_comp_fp16: 1,
+            lat_comp_fp16_alt: 1,
+            lat_comp_fp8: 1,
+            lat_comp_fp8_alt: 1,
+            lat_noncomp: 1,
+            lat_conv: 2,
+            lat_sdotp: 3,
+            fpu_pipe_config: "BEFORE",
+            narrow_xbar_latency: "CUT_ALL_PORTS",
+            wide_xbar_latency: "CUT_ALL_PORTS",
+            // Isolate the core.
+            register_core_req: true,
+            register_core_rsp: true,
+            register_offload_req: true,
+            register_offload_rsp: true,
+            register_fpu_req: true,
+            register_ext_narrow: false,
+            register_ext_wide: false
+        },
+        hives: [
+            // Hive 0
+            {
+                icache: {
+                    size: 16, // total instruction cache size in kByte
+                    ways: 2, // number of ways
+                    cacheline: 512 // word size in bits
+                },
+                cores: [
+                    { $ref: "#/compute_core_template" },
+                    { $ref: "#/dma_core_template" },
+                ]
+            }
+        ]
+    },
+    external_addr_regions: [
+        {
+            name: "dram",
+            address: 0x80000000,
+            length: 0x80000000,
+            cacheable: true
+        },
+        {
+            name: "clint",
+            address: 0xFFFF0000,
+            length: 0x1000
+        },
+    ],
+    // Templates.
+    compute_core_template: {
+        isa: "rv32imafdv",
+        xssr: false,
+        xfrep: false,
+        xcopift: false,
+        xdma: false,
+        xpace: true,
+        zfh: true,
+        xf16alt: true,
+        xf8: true,
+        xf8alt: true,
+        xfdotp: true,
+        xfvec: true,
+        num_int_outstanding_loads: 4,
+        num_int_outstanding_mem: 4,
+        num_fp_outstanding_loads: 4,
+        num_fp_outstanding_mem: 4,
+        num_dtlb_entries: 1,
+        num_itlb_entries: 1,
+        spatz: {
+            num_outstanding_loads: 4,
+            n_ipu: 1,
+            n_fpu: 8,
+            vlen: 512,
+            spatz_nports: 16,
+            double_bw: true,
+            spatz_fpu: true,
+            mempool: false,
+            buf_fpu: 1,
+            rvf: true,
+            rvd: true,
+            fp64: true,
+            xf16alt: true
+        }
+    },
+    dma_core_template: {
+        isa: "rv32imafd",
+        xdma: true,
+        xssr: false,
+        xfrep: false,
+        xcopift: false,
+        zfh: true,
+        xf16alt: false,
+        xf8: false,
+        xf8alt: false,
+        xfdotp: false,
+        xfvec: false,
+        num_int_outstanding_loads: 4,
+        num_int_outstanding_mem: 4,
+        num_fp_outstanding_loads: 4,
+        num_fp_outstanding_mem: 4,
+        num_dtlb_entries: 1,
+        num_itlb_entries: 1,
+    }
+}
