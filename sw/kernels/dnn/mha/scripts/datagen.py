@@ -150,7 +150,7 @@ class MhaDataGen(du.DataGen):
 
         # torch_type = du.torch_type_from_precision_t(prec)
         ff_desc = du.ff_desc_from_precision_t(prec)
-        ctype = du.ctype_from_precision_t(prec)
+        ctype = du.ctype_from_fp_precision_t(prec)
 
         Q_list = []
         K_list = []

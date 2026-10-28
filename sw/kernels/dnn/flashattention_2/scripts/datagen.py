@@ -200,7 +200,7 @@ class FlashAttention2DataGen(du.DataGen):
 
         # torch_type = du.torch_type_from_precision_t(prec)
         ff_desc = du.ff_desc_from_precision_t(prec)
-        ctype = du.ctype_from_precision_t(prec)
+        ctype = du.ctype_from_fp_precision_t(prec)
 
         # Generate same data for all dtypes for easier debugging.
         # To achieve this, we always generate in FP16 and then convert.

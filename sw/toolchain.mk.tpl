@@ -19,7 +19,7 @@
     march += '_zfh' if zfh else ''
     march += '_zifencei'
 
-    all_features = ['xssr', 'xfrep', 'xdma', 'xcopift', 'xcvmem',
+    all_features = ['xssr', 'xfrep', 'xdma', 'xcopift', 'xcvmem', 'xpace',
         'xpulpabs', 'xpulpbitop', 'xpulpbr', 'xpulpclip', 'xpulpmacsi',
         'xpulpminmax', 'xpulpslet', 'xpulpvect', 'xpulpvectshufflepack']
     features = [f for f in all_features if any(c[f] for c in cores)]

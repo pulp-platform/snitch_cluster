@@ -610,6 +610,12 @@
                                             "description": "Enable Xcvmem subextension.",
                                             "default": false
                                         },
+                                        "xpace": {
+                                            "type": "boolean",
+                                            "title": "Xpace Extension",
+                                            "description": "Enable the PACE custom extension.",
+                                            "default": false
+                                        },
                                         "xpulpabs": {
                                             "type": "boolean",
                                             "title": "Xpulpabs Subextension",

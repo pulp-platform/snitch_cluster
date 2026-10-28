@@ -9,7 +9,7 @@ import sys
 from datagen import TransposeDataGen
 
 from snitch.util.sim.verif_utils import Verifier
-from snitch.util.sim.data_utils import ctype_from_precision_t
+from snitch.util.sim.data_utils import ctype_from_fp_precision_t
 
 
 class TransposeVerifier(Verifier):
@@ -32,10 +32,10 @@ class TransposeVerifier(Verifier):
         self.prec = self.layer['dtype']
 
     def get_actual_results(self):
-        return self.get_output_from_symbol('output', ctype_from_precision_t(self.prec))
+        return self.get_output_from_symbol('output', ctype_from_fp_precision_t(self.prec))
 
     def get_expected_results(self):
-        inp = self.get_input_from_symbol('input', ctype_from_precision_t(self.prec))
+        inp = self.get_input_from_symbol('input', ctype_from_fp_precision_t(self.prec))
         inp = inp.reshape(self.M, self.N)
         return TransposeDataGen().golden_model(inp)
 

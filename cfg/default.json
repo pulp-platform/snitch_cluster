@@ -16,6 +16,14 @@
         },
         cluster_periph_size: 60, // kB
         zero_mem_size: 64, // kB
+        pace_enable: true,
+        pace_mem_size: 64, // kB
+        pace_degree: 2,
+        pace_parts: 16,
+        pace_eps: 1,
+        pace_data_width: 32,
+        pace_pipe_dist: 0x04,
+        pace_fmt_config: 0x150,
         alias_region_enable: true,
         dma_data_width: 512,
         dma_axi_req_fifo_depth: 24,
@@ -101,6 +109,7 @@
         xfrep: true,
         xcopift: true,
         xdma: false,
+        xpace: true,
         zfh: true,
         xf16alt: true,
         xf8: true,

@@ -39,7 +39,7 @@ class FusedConcatLinearDataGen(du.DataGen):
                              requires_grad=False, dtype=torch_type)
         linear_output, concat_output = self.golden_model(inputs, weights)
 
-        ctype = du.ctype_from_precision_t(prec)
+        ctype = du.ctype_from_fp_precision_t(prec)
 
         layer_cfg = {
             **kwargs,

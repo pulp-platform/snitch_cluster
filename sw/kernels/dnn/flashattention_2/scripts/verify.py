@@ -12,7 +12,7 @@ import pyflexfloat as ff
 from datagen import FlashAttention2DataGen
 
 from snitch.util.sim.verif_utils import Verifier
-from snitch.util.sim.data_utils import ctype_from_precision_t, ff_desc_from_precision_t
+from snitch.util.sim.data_utils import ctype_from_fp_precision_t, ff_desc_from_precision_t
 
 
 class FlashAttention2Verifier(Verifier):
@@ -45,12 +45,14 @@ class FlashAttention2Verifier(Verifier):
         self.prec = self.layer['dtype']
 
     def get_actual_results(self):
-        return self.get_output_from_symbol(self.OUTPUT_UIDS[0], ctype_from_precision_t(self.prec))
+        return self.get_output_from_symbol(
+            self.OUTPUT_UIDS[0], ctype_from_fp_precision_t(self.prec)
+        )
 
     def get_expected_results(self):
-        Q = self.get_input_from_symbol('Q', ctype_from_precision_t(self.prec))
-        K = self.get_input_from_symbol('K', ctype_from_precision_t(self.prec))
-        V = self.get_input_from_symbol('V', ctype_from_precision_t(self.prec))
+        Q = self.get_input_from_symbol('Q', ctype_from_fp_precision_t(self.prec))
+        K = self.get_input_from_symbol('K', ctype_from_fp_precision_t(self.prec))
+        V = self.get_input_from_symbol('V', ctype_from_fp_precision_t(self.prec))
         # convert Q, K, V to float using ff.FlexFloat.__float__
         Q_f = np.array([q.__float__() for q in Q])
         K_f = np.array([k.__float__() for k in K])
@@ -64,8 +66,9 @@ class FlashAttention2Verifier(Verifier):
         K = ff.array(K_f.reshape(self.S, self.d), ff_desc)
         # return torch_golden_model(Q, K, V).detach().numpy().flatten()
         # return exact_golden_model(Q, K, V, self.B_r, self.B_c).flatten()
-        return FlashAttention2DataGen().exact_flexfloat_golden_model(Q, K, V, self.B_r, self.B_c,
-                                                                     ff_desc).flatten()
+        return FlashAttention2DataGen().exact_flexfloat_golden_model(
+            Q, K, V, self.B_r, self.B_c, ff_desc
+        ).flatten()
 
     def check_results(self, *args):
         return super().check_results(*args, rtol=self.ERR_THRESHOLD[self.prec])

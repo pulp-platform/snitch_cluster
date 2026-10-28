@@ -18,7 +18,7 @@ class SpatzAxpyDataGen(du.DataGen):
 
         m = kwargs['m']
         prec = kwargs['prec']
-        ctype = du.ctype_from_precision_t(prec)
+        ctype = du.ctype_from_fp_precision_t(prec)
 
         alpha = du.generate_random_array(1, prec=prec, seed=0)[0]
         x = du.generate_random_array(m, prec=prec, seed=0)

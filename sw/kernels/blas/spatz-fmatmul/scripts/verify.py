@@ -7,7 +7,7 @@ import sys
 from datagen import FmatmulDataGen
 
 from snitch.util.sim.verif_utils import Verifier
-from snitch.util.sim.data_utils import ctype_from_precision_t
+from snitch.util.sim.data_utils import ctype_from_fp_precision_t
 
 
 class FmatmulVerifier(Verifier):
@@ -24,10 +24,12 @@ class FmatmulVerifier(Verifier):
         self.prec = self.get_input_from_symbol('prec', 'uint32_t')[0]
 
     def get_actual_results(self):
-        return self.get_output_from_symbol(self.OUTPUT_UIDS[0], ctype_from_precision_t(self.prec))
+        return self.get_output_from_symbol(
+            self.OUTPUT_UIDS[0], ctype_from_fp_precision_t(self.prec)
+        )
 
     def get_expected_results(self):
-        ctype = ctype_from_precision_t(self.prec)
+        ctype = ctype_from_fp_precision_t(self.prec)
         m = self.get_input_from_symbol('m', 'uint32_t')[0]
         n = self.get_input_from_symbol('n', 'uint32_t')[0]
         k = self.get_input_from_symbol('k', 'uint32_t')[0]

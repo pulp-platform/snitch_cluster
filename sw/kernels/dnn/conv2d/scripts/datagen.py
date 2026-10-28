@@ -49,7 +49,7 @@ def emit_header(**kwargs):
     # compute checksum row-wise
     conv2d_checksum = np.sum(conv2d_output.numpy(), axis=1)
 
-    ctype = data_utils.ctype_from_precision_t(prec)
+    ctype = data_utils.ctype_from_fp_precision_t(prec)
 
     inputs = data_utils.flatten(inputs.numpy())
     filters = data_utils.flatten(filters[0].numpy())

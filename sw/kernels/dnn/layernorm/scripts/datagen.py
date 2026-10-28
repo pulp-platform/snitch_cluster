@@ -85,7 +85,7 @@ def emit_header(**kwargs):
     implementation = kwargs['implementation']
 
     ff_desc = data_utils.ff_desc_from_precision_t(prec)
-    ctype = data_utils.ctype_from_precision_t(prec)
+    ctype = data_utils.ctype_from_fp_precision_t(prec)
 
     # Generate random input
     ifmap = ff.array(np.random.rand(batch_size, seq_len, embeddings), ff_desc)

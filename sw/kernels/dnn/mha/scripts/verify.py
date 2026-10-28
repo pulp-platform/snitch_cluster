@@ -53,15 +53,21 @@ class MhaVerifier(Verifier):
         self.prec = self.layer['dtype']
         self.num_heads = self.layer['num_heads']
         self.W = self.layer['W']
-        self.Q = [self.get_input_from_symbol('Q_' + str(head), du.ctype_from_precision_t(self.prec))
-                  for head in range(self.num_heads)]
+        self.Q = [
+            self.get_input_from_symbol(
+                'Q_' + str(head), du.ctype_from_fp_precision_t(self.prec)
+            )
+            for head in range(self.num_heads)
+        ]
 
     def get_actual_results(self):
         # Iterates over OUTPUT_UIDS in case we want to verify the intermediate outputs
         # from every head
         outputs = []
         for uid in self.OUTPUT_UIDS:
-            outputs.append(self.get_output_from_symbol(uid, du.ctype_from_precision_t(self.prec)))
+            outputs.append(
+                self.get_output_from_symbol(uid, du.ctype_from_fp_precision_t(self.prec))
+            )
         results = np.concatenate(outputs, axis=None)
         return results
 
@@ -71,9 +77,15 @@ class MhaVerifier(Verifier):
         for head in range(self.num_heads):
 
             # Get input tensors for the current head (raw bytes)
-            Q = self.get_input_from_symbol('Q_' + str(head), du.ctype_from_precision_t(self.prec))
-            K = self.get_input_from_symbol('K_' + str(head), du.ctype_from_precision_t(self.prec))
-            V = self.get_input_from_symbol('V_' + str(head), du.ctype_from_precision_t(self.prec))
+            Q = self.get_input_from_symbol(
+                'Q_' + str(head), du.ctype_from_fp_precision_t(self.prec)
+            )
+            K = self.get_input_from_symbol(
+                'K_' + str(head), du.ctype_from_fp_precision_t(self.prec)
+            )
+            V = self.get_input_from_symbol(
+                'V_' + str(head), du.ctype_from_fp_precision_t(self.prec)
+            )
 
             # Convert input tensors to float using ff.FlexFloat.__float__
             Q_f = np.array([q.__float__() for q in Q])
@@ -98,11 +110,11 @@ class MhaVerifier(Verifier):
         concat_output = np.concatenate(head_outputs, axis=1)
 
         # Final projection
-        W = self.get_input_from_symbol('W', du.ctype_from_precision_t(self.prec))
+        W = self.get_input_from_symbol('W', du.ctype_from_fp_precision_t(self.prec))
         W = np.array([w.__float__() for w in W])
         W = np.reshape(W, (self.d*self.num_heads, self.d))
         W = ff.array(W, du.ff_desc_from_precision_t(self.prec))
-        O_mha = np.zeros((self.L, self.d), dtype=du.ctype_from_precision_t(self.prec))
+        O_mha = np.zeros((self.L, self.d), dtype=du.ctype_from_fp_precision_t(self.prec))
         O_mha = GemmDataGen().exact_golden_model(1, concat_output, W, 0, O_mha)
         return O_mha.flatten()
 

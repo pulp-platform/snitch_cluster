@@ -61,6 +61,7 @@ ${',' if not loop.last else ''}
 
 // verilog_lint: waive-start package-filename
 package snitch_cluster_wrapper_pkg;
+  import snitch_pace_pkg::*;
 
   localparam int unsigned NrCores = ${cfg['cluster']['nr_cores']};
   localparam int unsigned NrHives = ${cfg['cluster']['nr_hives']};
@@ -425,5 +426,28 @@ ${ssr_cfg(core, '{reg_idx}', '/*None*/ 0', ',')}\
   localparam bit          SpatzDoubleBw            [NrCores] = '{${core_cfg_lambda(lambda x: int(x['spatz']['double_bw']))}};
   localparam int unsigned NumSpatzOutstandingLoads [NrCores] = '{${core_cfg_lambda(lambda x: int(x['spatz']['num_outstanding_loads']))}};
 
+
+  // PACE configuration
+  localparam bit PaceEnable = ${int(cfg['cluster'].get('pace_enable', 0))};
+  localparam int unsigned PaceMemorySize = ${cfg['cluster'].get('pace_mem_size', 64)};
+  localparam int unsigned PaceDegree = ${cfg['cluster'].get('pace_degree', 2)};
+  localparam int unsigned PaceParts = ${cfg['cluster'].get('pace_parts', 16)};
+  localparam int unsigned PaceDataWidth = ${cfg['cluster'].get('pace_data_width', 32)};
+  localparam int unsigned PaceFmtConfig = ${cfg['cluster'].get('pace_fmt_config', 40)};
+  localparam int unsigned PacePipeDist = ${cfg['cluster'].get('pace_pipe_dist', 4)};
+  localparam int unsigned PaceEps = ${cfg['cluster'].get('pace_eps', 1)};
+  localparam int unsigned PaceParamWidth = PaceEnable ?
+    (((PaceDegree + 1) * PaceParts + PaceParts - 1 + 2 * PaceEps) * PaceDataWidth) : 0;
+  localparam pace_cfg_t PaceCfg = '{
+    enable: PaceEnable,
+    memory_size: PaceMemorySize,
+    degree: PaceDegree,
+    parts: PaceParts,
+    eps: PaceEps,
+    data_width: PaceDataWidth,
+    param_width: PaceParamWidth,
+    fmt_config: PaceFmtConfig,
+    pipe_dist: PacePipeDist
+  };
 endpackage
 // verilog_lint: waive-stop package-filename

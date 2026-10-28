@@ -38,7 +38,7 @@ def emit_header(section, params):
               for _ in range(num_inputs)]
     output = golden_model(inputs)
 
-    ctype = data_utils.ctype_from_precision_t(prec)
+    ctype = data_utils.ctype_from_fp_precision_t(prec)
 
     layer_cfg = {
         **params,

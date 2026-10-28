@@ -106,11 +106,16 @@ SN_APPS += $(SN_ROOT)/sw/kernels/misc/kbpcpa
 SN_APPS += $(SN_ROOT)/sw/kernels/misc/box3d1r
 SN_APPS += $(SN_ROOT)/sw/kernels/misc/j3d27pt
 SN_APPS += $(SN_ROOT)/sw/kernels/misc/sort
+
+SN_APPS += $(SN_ROOT)/sw/kernels/pace/softmax
+SN_APPS += $(SN_ROOT)/sw/kernels/pace/elementwise
+SN_APPS += $(SN_ROOT)/sw/kernels/pace/spatz_pace_loop
 endif
 
 # Include Makefile from each app subdirectory
 $(foreach app,$(SN_APPS), \
 	$(eval include $(app)/app.mk) \
 )
+
 
 endif

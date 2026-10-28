@@ -117,7 +117,7 @@ class GemmDataGen(du.DataGen):
 
         prec, _ = self.infer_implementation(kwargs['gemm_fp'])
 
-        ctype = du.ctype_from_precision_t(prec)
+        ctype = du.ctype_from_fp_precision_t(prec)
 
         a = du.generate_random_array((m, k), prec, seed=42)
         b = du.generate_random_array((k, n), prec, seed=42)

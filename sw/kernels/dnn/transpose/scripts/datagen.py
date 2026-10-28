@@ -11,7 +11,7 @@ import numpy as np
 import pyflexfloat as ff
 import sys
 
-from snitch.util.sim.data_utils import ctype_from_precision_t, ff_desc_from_precision_t, \
+from snitch.util.sim.data_utils import ctype_from_fp_precision_t, ff_desc_from_precision_t, \
     format_struct_definition, format_array_definition, format_array_declaration, \
     format_ifdef_wrapper, DataGen
 
@@ -34,7 +34,7 @@ class TransposeDataGen(DataGen):
         assert (M % 8) == 0, "M must be an integer multiple of the number of cores"
 
         ff_desc = ff_desc_from_precision_t(prec)
-        ctype = ctype_from_precision_t(prec)
+        ctype = ctype_from_fp_precision_t(prec)
 
         inp = ff.array(np.random.rand(M, N), ff_desc)
         output = self.golden_model(inp)

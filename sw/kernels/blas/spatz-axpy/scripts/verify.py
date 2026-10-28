@@ -7,7 +7,7 @@ import sys
 from datagen import SpatzAxpyDataGen
 
 from snitch.util.sim.verif_utils import Verifier
-from snitch.util.sim.data_utils import ctype_from_precision_t
+from snitch.util.sim.data_utils import ctype_from_fp_precision_t
 
 
 class SpatzAxpyVerifier(Verifier):
@@ -24,10 +24,12 @@ class SpatzAxpyVerifier(Verifier):
         self.prec = self.get_input_from_symbol('prec', 'uint32_t')[0]
 
     def get_actual_results(self):
-        return self.get_output_from_symbol(self.OUTPUT_UIDS[0], ctype_from_precision_t(self.prec))
+        return self.get_output_from_symbol(
+            self.OUTPUT_UIDS[0], ctype_from_fp_precision_t(self.prec)
+        )
 
     def get_expected_results(self):
-        ctype = ctype_from_precision_t(self.prec)
+        ctype = ctype_from_fp_precision_t(self.prec)
         alpha = self.get_input_from_symbol('axpy_alpha_dram', ctype)[0]
         x = self.get_input_from_symbol('axpy_X_dram', ctype)
         y = self.get_input_from_symbol('axpy_Y_dram', ctype)

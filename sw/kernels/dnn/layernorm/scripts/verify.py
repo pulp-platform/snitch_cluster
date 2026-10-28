@@ -10,7 +10,7 @@ import sys
 from datagen import golden_model
 
 from snitch.util.sim.verif_utils import Verifier
-from snitch.util.sim.data_utils import ctype_from_precision_t
+from snitch.util.sim.data_utils import ctype_from_fp_precision_t
 
 
 class LayernormVerifier(Verifier):
@@ -38,10 +38,10 @@ class LayernormVerifier(Verifier):
         self.prec = self.layer['dtype']
 
     def get_actual_results(self):
-        return self.get_output_from_symbol('ofmap', ctype_from_precision_t(self.prec))
+        return self.get_output_from_symbol('ofmap', ctype_from_fp_precision_t(self.prec))
 
     def get_expected_results(self):
-        ifmap = self.get_input_from_symbol('ifmap', ctype_from_precision_t(self.prec))
+        ifmap = self.get_input_from_symbol('ifmap', ctype_from_fp_precision_t(self.prec))
         ifmap = ifmap.reshape(self.batch_size, self.seq_len, self.embeddings)
         return golden_model(ifmap, self.eps).flatten()
 

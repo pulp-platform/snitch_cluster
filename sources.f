@@ -434,6 +434,7 @@ hw/snitch_ssr/src/snitch_ssr_streamer.sv
 hw/snitch_ipu/src/snitch_multiplier.sv
 hw/snitch_ipu/src/snitch_serial_divider.sv
 hw/snitch_ipu/src/snitch_ipu.sv
+hw/snitch_fp_ss/src/snitch_pace_pkg.sv
 hw/snitch_fp_ss/src/snitch_fpu.sv
 hw/snitch_fp_ss/src/snitch_sequencer.sv
 hw/snitch_fp_ss/src/snitch_fp_ss.sv
@@ -451,6 +452,7 @@ hw/bootrom/snitch_bootrom.sv
 hw/snitch_cluster/src/snitch_barrier.sv
 hw/snitch_cluster/src/snitch_tcdm_interconnect.sv
 hw/snitch_cluster/src/snitch_clkdiv2.sv
+hw/snitch_cluster/src/axi_pace_mem.sv
 hw/snitch_cluster/src/snitch_hive.sv
 hw/snitch_cluster/src/snitch_cluster.sv
 hw/generated/snitch_cluster_wrapper_pkg.sv

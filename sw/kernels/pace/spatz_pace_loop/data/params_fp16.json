@@ -1,0 +1,22 @@
+// Copyright 2026 ETH Zurich and University of Bologna.
+// Licensed under the Apache License, Version 2.0, see LICENSE for details.
+// SPDX-License-Identifier: Apache-2.0
+{
+    "x_min" : -6,
+    "x_max" : 6,
+    "n_deg" : 2,
+    "n_part": 16,
+    "bp_mode": "nonuniform",
+    "n_test": 8192,
+    "seed"  : 1234,
+    "eps"   : 5e-7,
+    "prec"  : "FP16",
+    "fpu_data_width" : 64,
+    "super_fmt" : "FP32",
+    "fn_name": "silu",
+    "execution": "vector",
+    "enable" : true,
+    "extend": false,
+    "enable_fp32"  : true,
+    "debug_fname" : "debug_spatz_pwpa_fp16.txt"
+}

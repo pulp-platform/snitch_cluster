@@ -78,6 +78,10 @@
 #define SNRT_SUPPORTS_DMA_COMPUTE
 % endif
 
+% if cfg['cluster'].get('pace_enable', 0):
+#define SNRT_SUPPORTS_PACE
+% endif
+
 % if supports_ssr:
 #define SNRT_SUPPORTS_SSR
 % endif

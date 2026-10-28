@@ -47,7 +47,7 @@ def emit_header(**kwargs):
     prec = kwargs['prec']
 
     torch_type = data_utils.torch_type_from_precision_t(prec)
-    ctype = data_utils.ctype_from_precision_t(prec)
+    ctype = data_utils.ctype_from_fp_precision_t(prec)
 
     ifmap = torch.randn(size, requires_grad=False, dtype=torch_type)
     ofmap = golden_model(ifmap)

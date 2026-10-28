@@ -26,7 +26,7 @@ class FmatmulDataGen(du.DataGen):
 
         m, n, k = kwargs['m'], kwargs['n'], kwargs['k']
         prec = kwargs['prec']
-        ctype = du.ctype_from_precision_t(prec)
+        ctype = du.ctype_from_fp_precision_t(prec)
         prec_bytes = du.size_from_precision_t(prec)
 
         a = du.generate_random_array((m, k), prec=prec, seed=42)

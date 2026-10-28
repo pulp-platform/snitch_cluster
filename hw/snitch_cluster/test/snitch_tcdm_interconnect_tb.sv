@@ -45,8 +45,6 @@ module snitch_tcdm_interconnect_tb #(
   snitch_tcdm_interconnect #(
     .NumInp (NrInput),
     .NumOut (NrOutput),
-    .tcdm_req_t (tcdm_req_t),
-    .tcdm_rsp_t (tcdm_rsp_t),
     .mem_req_t (mem_req_t),
     .mem_rsp_t (mem_rsp_t),
     .MemAddrWidth (MemAddrWidth),

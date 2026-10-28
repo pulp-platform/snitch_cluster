@@ -13,7 +13,7 @@ from data.datagen import golden_model
 
 from snitch.util.sim import verification
 from snitch.util.sim.elf import Elf
-from snitch.util.sim.data_utils import from_buffer, ctype_from_precision_t, check_result
+from snitch.util.sim.data_utils import from_buffer, ctype_from_fp_precision_t, check_result
 
 
 ERR_THRESHOLD = 1E-6
@@ -78,24 +78,24 @@ def main():
     ch_out = layer['ch_out']
     prec = layer['dtype']
 
-    ifmap = elf.from_symbol('fusedconv_pInBuffer_dram', ctype_from_precision_t(prec))
+    ifmap = elf.from_symbol('fusedconv_pInBuffer_dram', ctype_from_fp_precision_t(prec))
     ifmap = torch.from_numpy(ifmap.reshape(dim_in_y, dim_in_x, ch_in))
-    kernel = elf.from_symbol('fusedconv_pWeight_dram', ctype_from_precision_t(prec))
+    kernel = elf.from_symbol('fusedconv_pWeight_dram', ctype_from_fp_precision_t(prec))
     if not layer['depthwise']:
         kernel = torch.from_numpy(kernel.reshape(ch_out, dim_kernel_y, dim_kernel_x, ch_in))
     else:
         kernel = torch.from_numpy(kernel.reshape(dim_kernel_y, dim_kernel_x, ch_out))
 
-    bn_k = elf.from_symbol('fusedconv_kappa_dram', ctype_from_precision_t(prec))
+    bn_k = elf.from_symbol('fusedconv_kappa_dram', ctype_from_fp_precision_t(prec))
     bn_k = torch.from_numpy(bn_k)
-    bn_l = elf.from_symbol('fusedconv_lambda_dram', ctype_from_precision_t(prec))
+    bn_l = elf.from_symbol('fusedconv_lambda_dram', ctype_from_fp_precision_t(prec))
     bn_l = torch.from_numpy(bn_l)
 
     flag_y_accumulate_start = layer['flag_y_accumulate_start']
 
     # Verify results
     output_actual = from_buffer(raw_results['fusedconv_pOutBuffer_dram'],
-                                ctype_from_precision_t(prec))
+                                ctype_from_fp_precision_t(prec))
     output_golden, _, _ = golden_model(ifmap, kernel,
                                        bn_k, bn_l,
                                        layer,

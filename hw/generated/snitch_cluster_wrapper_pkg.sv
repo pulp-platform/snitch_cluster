@@ -23,6 +23,7 @@
 
 // verilog_lint: waive-start package-filename
 package snitch_cluster_wrapper_pkg;
+  import snitch_pace_pkg::*;
 
   localparam int unsigned NrCores = 9;
   localparam int unsigned NrHives = 1;
@@ -1407,5 +1408,28 @@ package snitch_cluster_wrapper_pkg;
   localparam bit          SpatzDoubleBw            [NrCores] = '{0, 0, 0, 0, 0, 0, 0, 0, 0};
   localparam int unsigned NumSpatzOutstandingLoads [NrCores] = '{1, 1, 1, 1, 1, 1, 1, 1, 1};
 
+
+  // PACE configuration
+  localparam bit PaceEnable = 1;
+  localparam int unsigned PaceMemorySize = 64;
+  localparam int unsigned PaceDegree = 2;
+  localparam int unsigned PaceParts = 16;
+  localparam int unsigned PaceDataWidth = 32;
+  localparam int unsigned PaceFmtConfig = 336;
+  localparam int unsigned PacePipeDist = 4;
+  localparam int unsigned PaceEps = 1;
+  localparam int unsigned PaceParamWidth = PaceEnable ?
+    (((PaceDegree + 1) * PaceParts + PaceParts - 1 + 2 * PaceEps) * PaceDataWidth) : 0;
+  localparam pace_cfg_t PaceCfg = '{
+    enable: PaceEnable,
+    memory_size: PaceMemorySize,
+    degree: PaceDegree,
+    parts: PaceParts,
+    eps: PaceEps,
+    data_width: PaceDataWidth,
+    param_width: PaceParamWidth,
+    fmt_config: PaceFmtConfig,
+    pipe_dist: PacePipeDist
+  };
 endpackage
 // verilog_lint: waive-stop package-filename

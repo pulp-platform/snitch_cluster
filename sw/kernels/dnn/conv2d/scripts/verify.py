@@ -13,7 +13,7 @@ from data.datagen import golden_model
 
 from snitch.util.sim import verification
 from snitch.util.sim.elf import Elf
-from snitch.util.sim.data_utils import from_buffer, ctype_from_precision_t, check_result
+from snitch.util.sim.data_utils import from_buffer, ctype_from_fp_precision_t, check_result
 
 
 ERR_THRESHOLD = 1E-6
@@ -64,12 +64,12 @@ def main():
     fw = layer['FW']
     prec = layer['dtype']
 
-    inputs = elf.from_symbol('conv2d_ifmap_dram', ctype_from_precision_t(prec))
+    inputs = elf.from_symbol('conv2d_ifmap_dram', ctype_from_fp_precision_t(prec))
     inputs = torch.from_numpy(inputs.reshape(ci, ih, iw))
-    filters = elf.from_symbol('conv2d_weights_dram', ctype_from_precision_t(prec))
+    filters = elf.from_symbol('conv2d_weights_dram', ctype_from_fp_precision_t(prec))
     filters = torch.from_numpy(filters.reshape(co, ci, fh, fw))
     # Verify results
-    output_actual = from_buffer(raw_results['conv2d_ofmap_dram'], ctype_from_precision_t(prec))
+    output_actual = from_buffer(raw_results['conv2d_ofmap_dram'], ctype_from_fp_precision_t(prec))
     output_golden = golden_model(inputs, filters, padding=1, stride=1)
     output_golden = output_golden.detach().numpy().flatten()
 

@@ -124,7 +124,7 @@ def emit_header(**kwargs):
         ifmap_padded = ifmap_padded.permute(2, 0, 1)
         kernel = kernel.permute(0, 3, 1, 2)
 
-    ctype = data_utils.ctype_from_precision_t(prec)
+    ctype = data_utils.ctype_from_fp_precision_t(prec)
 
     if kwargs['depthwise']:
         ih, iw, ci = ifmap.shape

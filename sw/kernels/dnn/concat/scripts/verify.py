@@ -10,7 +10,7 @@ import torch
 from datagen import golden_model
 
 from snitch.util.sim.verif_utils import Verifier
-from snitch.util.sim.data_utils import ctype_from_precision_t
+from snitch.util.sim.data_utils import ctype_from_fp_precision_t
 
 
 class ConcatVerifier(Verifier):
@@ -33,10 +33,10 @@ class ConcatVerifier(Verifier):
         self.prec = self.layer['dtype']
 
     def get_actual_results(self):
-        return self.get_output_from_symbol('output', ctype_from_precision_t(self.prec))
+        return self.get_output_from_symbol('output', ctype_from_fp_precision_t(self.prec))
 
     def get_expected_results(self):
-        inputs = [self.get_input_from_symbol(f'input_{i}', ctype_from_precision_t(self.prec))
+        inputs = [self.get_input_from_symbol(f'input_{i}', ctype_from_fp_precision_t(self.prec))
                   for i in range(self.num_inputs)]
         inputs = [torch.from_numpy(tensor.reshape(self.input_shape)) for tensor in inputs]
         return golden_model(inputs).detach().numpy().flatten()

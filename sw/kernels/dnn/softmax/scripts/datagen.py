@@ -44,7 +44,7 @@ def emit_header(**kwargs):
     ifmap = data_utils.flatten(ifmap)
     ofmap = data_utils.flatten(ofmap)
 
-    ctype = data_utils.ctype_from_precision_t(prec)
+    ctype = data_utils.ctype_from_fp_precision_t(prec)
 
     ifmap_uid = 'ifmap'
     ofmap_uid = 'ofmap'
