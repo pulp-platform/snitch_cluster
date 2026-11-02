@@ -73,6 +73,7 @@ include $(SN_ROOT)/sw/tests/tests.mk
 include $(SN_ROOT)/sw/riscv-tests/riscv-tests.mk
 
 SN_BUILD_APPS ?= ON
+SN_BUILD_SPATZ_PACE_APPS ?= OFF
 
 ifeq ($(SN_BUILD_APPS), ON)
 SN_APPS += $(SN_ROOT)/sw/kernels/blas/axpy
@@ -82,6 +83,7 @@ SN_APPS += $(SN_ROOT)/sw/kernels/blas/dot
 SN_APPS += $(SN_ROOT)/sw/kernels/blas/syrk
 SN_APPS += $(SN_ROOT)/sw/kernels/blas/spatz-axpy
 SN_APPS += $(SN_ROOT)/sw/kernels/blas/spatz-fmatmul
+SN_APPS += $(SN_ROOT)/sw/kernels/blas/spatz-fgemv
 SN_APPS += $(SN_ROOT)/sw/kernels/dnn/batchnorm
 # SN_APPS += $(SN_ROOT)/sw/kernels/dnn/conv2d
 # SN_APPS += $(SN_ROOT)/sw/kernels/dnn/fusedconv
@@ -106,6 +108,12 @@ SN_APPS += $(SN_ROOT)/sw/kernels/misc/kbpcpa
 SN_APPS += $(SN_ROOT)/sw/kernels/misc/box3d1r
 SN_APPS += $(SN_ROOT)/sw/kernels/misc/j3d27pt
 SN_APPS += $(SN_ROOT)/sw/kernels/misc/sort
+
+ifeq ($(SN_BUILD_SPATZ_PACE_APPS), ON)
+SN_APPS += $(SN_ROOT)/sw/kernels/pace/spatz_pace_loop
+SN_APPS += $(SN_ROOT)/sw/kernels/pace/elementwise
+SN_APPS += $(SN_ROOT)/sw/kernels/pace/softmax
+endif
 endif
 
 # Include Makefile from each app subdirectory

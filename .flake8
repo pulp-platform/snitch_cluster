@@ -9,3 +9,9 @@ extend-exclude =
     .bender,
     sw/deps,
     target/asic/ihp13/pdk
+per-file-ignores =
+    # Imported PACE reference scripts predate the repository-wide flake8 policy.
+    sw/kernels/pace/elementwise/scripts/*.py: E402,E501
+    sw/kernels/pace/scripts/*.py: E203,E221,E222,E225,E231,E302,E303,E305,E402,E501,F403,F405
+    sw/kernels/pace/softmax/scripts/*.py: E201,E202,E221,E225,E302,E303,E402,E501,F401,F403,F405,F541,F841
+    sw/kernels/pace/spatz_pace_loop/scripts/*.py: E402

@@ -23,6 +23,20 @@ module snitch_fp_ss
   parameter bit RegisterSequencer = 0,
   parameter bit RegisterFpuReq    = 0,
   parameter bit RegisterFpuRsp    = 0,
+  parameter type pace_cfg_t       = logic,
+  parameter bit PaceEnable        = 1'b0,
+  parameter int unsigned PaceMemorySize = 0,
+  parameter int unsigned PaceDegree     = 0,
+  parameter int unsigned PaceParts      = 0,
+  parameter int unsigned PaceEps        = 0,
+  parameter int unsigned PaceDataWidth  = 0,
+  parameter int unsigned PaceParamWidth = 0,
+  parameter int unsigned PaceFmtConfig  = 0,
+  parameter int unsigned PacePipeDist   = 0,
+  parameter pace_cfg_t PaceCfg = pace_cfg_t'({
+    PaceEnable, PaceMemorySize, PaceDegree, PaceParts, PaceEps,
+    PaceDataWidth, PaceParamWidth, PaceFmtConfig, PacePipeDist
+  }),
   parameter fpnew_pkg::fpu_implementation_t FpuImplementation = '0,
   parameter snitch_pkg::isa_cfg_t IsaCfg = '0,
   parameter int unsigned NumSsrs = 0,
@@ -64,6 +78,7 @@ module snitch_fp_ss
   input  fpnew_pkg::roundmode_e fpu_rnd_mode_i,
   input  fpnew_pkg::fmt_mode_t  fpu_fmt_mode_i,
   output fpnew_pkg::status_t    fpu_status_o,
+  input  fpnew_pkg::pace_mode_t fpu_pace_mode_i,
   // SSR Interface
   output logic  [2:0][4:0] ssr_raddr_o,
   input  data_t [2:0]      ssr_rdata_i,
@@ -87,6 +102,7 @@ module snitch_fp_ss
   input logic              en_copift_i,
   // Core event strobes
   output core_events_t core_events_o,
+  input logic [cc_pkg::iomsb(PaceParamWidth):0] fpu_pace_param_i,
   // Direct Compute Access (DCA) interface
   input  dca_req_t         dca_req_i,
   output dca_rsp_t         dca_rsp_o
@@ -134,6 +150,46 @@ module snitch_fp_ss
     logic     repd;
     acc_req_chan_t req;
   } acc_req_repd_t;
+
+  function automatic logic is_pace_instr(input logic [31:0] instr);
+    unique casez (instr)
+      snitch_riscv_instr::PACE_PWPA_S, snitch_riscv_instr::PACE_INV_S,
+      snitch_riscv_instr::PACE_SQRT_S, snitch_riscv_instr::PACE_RSQRT_S,
+      snitch_riscv_instr::PACE_PWPA_H, snitch_riscv_instr::PACE_INV_H,
+      snitch_riscv_instr::PACE_SQRT_H, snitch_riscv_instr::PACE_RSQRT_H: is_pace_instr = 1'b1;
+      default: is_pace_instr = 1'b0;
+    endcase
+  endfunction
+  function automatic logic is_vpace_instr(input logic [31:0] instr);
+    unique casez (instr)
+      snitch_riscv_instr::VPACE_PWPA_S, snitch_riscv_instr::VPACE_INV_S,
+      snitch_riscv_instr::VPACE_SQRT_S, snitch_riscv_instr::VPACE_RSQRT_S,
+      snitch_riscv_instr::VPACE_PWPA_H, snitch_riscv_instr::VPACE_INV_H,
+      snitch_riscv_instr::VPACE_SQRT_H, snitch_riscv_instr::VPACE_RSQRT_H: is_vpace_instr = 1'b1;
+      default: is_vpace_instr = 1'b0;
+    endcase
+  endfunction
+  function automatic logic is_pace_single_instr(input logic [31:0] instr);
+    is_pace_single_instr = instr inside {
+      snitch_riscv_instr::PACE_PWPA_S, snitch_riscv_instr::PACE_INV_S,
+      snitch_riscv_instr::PACE_SQRT_S, snitch_riscv_instr::PACE_RSQRT_S,
+      snitch_riscv_instr::VPACE_PWPA_S, snitch_riscv_instr::VPACE_INV_S,
+      snitch_riscv_instr::VPACE_SQRT_S, snitch_riscv_instr::VPACE_RSQRT_S
+    };
+  endfunction
+  function automatic logic [2:0] pace_mode_bits(input logic [31:0] instr);
+    if (is_pace_instr(instr)) pace_mode_bits = instr[14:12];
+    else if (is_vpace_instr(instr)) pace_mode_bits = instr[27:25];
+    else pace_mode_bits = '0;
+  endfunction
+  function automatic fpnew_pkg::operation_e pace_fpu_op(input logic [1:0] mode);
+    unique case (mode)
+      2'b01: pace_fpu_op = fpnew_pkg::PACE_INV;
+      2'b10: pace_fpu_op = fpnew_pkg::PACE_SQRT;
+      2'b11: pace_fpu_op = fpnew_pkg::PACE_RSQRT;
+      default: pace_fpu_op = fpnew_pkg::PWPA;
+    endcase
+  endfunction
 
   // -------------------
   // Signal declarations
@@ -185,6 +241,9 @@ module snitch_fp_ss
   `FFAR(sc_mask_q, sc_mask_d, '0, clk_i, rst_i)
 
   logic csr_instr;
+  fpnew_pkg::pace_mode_t local_pace_mode;
+  logic is_pace_op, is_vpace_op;
+  logic [2:0] pace_mode_sel;
 
   // FPU Controller
   logic fpu_out_valid, fpu_out_ready;
@@ -267,6 +326,16 @@ module snitch_fp_ss
     .ready_i ( acc_req_ready_q ),
     .data_o  ( {acc_req_repd_q, acc_req_q} )
   );
+
+  assign is_pace_op    = is_pace_instr(acc_req_q.data_op);
+  assign is_vpace_op   = is_vpace_instr(acc_req_q.data_op);
+  assign pace_mode_sel = pace_mode_bits(acc_req_q.data_op);
+  always_comb begin
+    local_pace_mode = '0;
+    local_pace_mode.degree = fpu_pace_mode_i.degree;
+    local_pace_mode.enable = is_pace_op || is_vpace_op;
+    local_pace_mode.extend = (is_pace_op || is_vpace_op) && pace_mode_sel[2];
+  end
 
   // Ensure SSR CSR only written on instruction commit
   assign ssr_active_ena = acc_req_valid_q & acc_req_ready_q;
@@ -408,6 +477,25 @@ module snitch_fp_ss
         fpu_op = fpnew_pkg::MUL;
         op_select[0] = RegA;
         op_select[1] = RegB;
+      end
+      snitch_riscv_instr::PACE_PWPA_S, snitch_riscv_instr::PACE_INV_S,
+      snitch_riscv_instr::PACE_SQRT_S, snitch_riscv_instr::PACE_RSQRT_S,
+      snitch_riscv_instr::PACE_PWPA_H, snitch_riscv_instr::PACE_INV_H,
+      snitch_riscv_instr::PACE_SQRT_H, snitch_riscv_instr::PACE_RSQRT_H,
+      snitch_riscv_instr::VPACE_PWPA_S, snitch_riscv_instr::VPACE_INV_S,
+      snitch_riscv_instr::VPACE_SQRT_S, snitch_riscv_instr::VPACE_RSQRT_S,
+      snitch_riscv_instr::VPACE_PWPA_H, snitch_riscv_instr::VPACE_INV_H,
+      snitch_riscv_instr::VPACE_SQRT_H, snitch_riscv_instr::VPACE_RSQRT_H: begin
+        fpu_op = pace_fpu_op(pace_mode_sel[1:0]);
+        op_select[0] = RegA;
+        vectorial_op = is_vpace_op;
+        if (is_pace_single_instr(acc_req_q.data_op)) begin
+          src_fmt = fpnew_pkg::FP32;
+          dst_fmt = fpnew_pkg::FP32;
+        end else begin
+          src_fmt = fpu_fmt_mode_i.dst ? fpnew_pkg::FP16ALT : fpnew_pkg::FP16;
+          dst_fmt = fpu_fmt_mode_i.dst ? fpnew_pkg::FP16ALT : fpnew_pkg::FP16;
+        end
       end
       snitch_riscv_instr::FDIV_S: begin  // currently illegal
         fpu_op = fpnew_pkg::DIV;
@@ -2702,6 +2790,15 @@ module snitch_fp_ss
     .XF8ALT           (IsaCfg.XF8ALT),
     .XFVEC            (IsaCfg.XFVEC),
     .FLEN             (FLEN),
+    .pace_cfg_t       (pace_cfg_t),
+    .PaceCfg          (PaceCfg),
+    .PaceDegree       (PaceDegree),
+    .PaceParts        (PaceParts),
+    .PaceEps          (PaceEps),
+    .PaceDataWidth    (PaceDataWidth),
+    .PaceParamWidth   (PaceParamWidth),
+    .PaceFmtConfig    (PaceFmtConfig),
+    .PacePipeDist     (PacePipeDist),
     .FpuImplementation(FpuImplementation),
     .RegisterFpuReq   (RegisterFpuReq),
     .RegisterFpuRsp   (RegisterFpuRsp),
@@ -2711,6 +2808,8 @@ module snitch_fp_ss
     .clk_i,
     .rst_ni   (~rst_i),
     .hart_id_i(hart_id_i),
+    .pace_param_i(fpu_pace_param_i),
+    .pace_mode_i (local_pace_mode),
     .req_i    (fpu_req),
     .rsp_o    (fpu_rsp)
   );

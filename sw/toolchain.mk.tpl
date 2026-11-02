@@ -19,10 +19,10 @@
     march += '_zfh' if zfh else ''
     march += '_zifencei'
 
-    all_features = ['xssr', 'xfrep', 'xdma', 'xcopift', 'xcvmem',
+    all_features = ['xssr', 'xfrep', 'xdma', 'xcopift', 'xcvmem', 'xpace',
         'xpulpabs', 'xpulpbitop', 'xpulpbr', 'xpulpclip', 'xpulpmacsi',
         'xpulpminmax', 'xpulpslet', 'xpulpvect', 'xpulpvectshufflepack']
-    features = [f for f in all_features if any(c[f] for c in cores)]
+    features = [f for f in all_features if any(c.get(f, False) for c in cores)]
 
     # Features that depend on a combination of configuration parameters
     smallfloat_b = any(c['xf8'] or c['xf8alt'] for c in cores)

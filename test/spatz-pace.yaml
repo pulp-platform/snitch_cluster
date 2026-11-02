@@ -1,0 +1,11 @@
+# Copyright 2026 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+runs:
+  - elf: ../sw/kernels/pace/spatz_pace_loop/build/spatz_pace_loop.elf
+    cmd: [../sw/kernels/pace/spatz_pace_loop/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/pace/spatz_pace_loop/build/pwpa_fp16/spatz_pace_loop_pwpa_fp16.elf
+    cmd: [../sw/kernels/pace/spatz_pace_loop/scripts/verify.py, "${sim_bin}", "${elf}"]
+  - elf: ../sw/kernels/pace/spatz_pace_loop/build/pwpa_bfp16/spatz_pace_loop_pwpa_bfp16.elf
+    cmd: [../sw/kernels/pace/spatz_pace_loop/scripts/verify.py, "${sim_bin}", "${elf}"]

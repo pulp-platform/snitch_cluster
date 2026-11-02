@@ -17,6 +17,20 @@ module snitch_fpu import snitch_pkg::*; #(
   parameter int unsigned FLEN           = 0,
   parameter bit          RegisterFpuReq = 0,
   parameter bit          RegisterFpuRsp = 0,
+  parameter type         pace_cfg_t     = logic,
+  parameter bit          PaceEnable     = 1'b0,
+  parameter int unsigned PaceMemorySize = 0,
+  parameter int unsigned PaceDegree     = 0,
+  parameter int unsigned PaceParts      = 0,
+  parameter int unsigned PaceEps        = 0,
+  parameter int unsigned PaceDataWidth  = 0,
+  parameter int unsigned PaceParamWidth = 0,
+  parameter int unsigned PaceFmtConfig  = 0,
+  parameter int unsigned PacePipeDist   = 0,
+  parameter pace_cfg_t   PaceCfg        = pace_cfg_t'({
+    PaceEnable, PaceMemorySize, PaceDegree, PaceParts, PaceEps,
+    PaceDataWidth, PaceParamWidth, PaceFmtConfig, PacePipeDist
+  }),
   parameter type         TagType        = logic,
   // Derived parameters *do not override*
   localparam type        fpu_req_t      = `FPU_REQ_STRUCT(FLEN, TagType),
@@ -25,6 +39,8 @@ module snitch_fpu import snitch_pkg::*; #(
   input  logic        clk_i,
   input  logic        rst_ni,
   input  logic [31:0] hart_id_i,
+  input  logic [cc_pkg::iomsb(PaceParamWidth):0] pace_param_i,
+  input  fpnew_pkg::pace_mode_t pace_mode_i,
   input  fpu_req_t    req_i,
   output fpu_rsp_t    rsp_o
 );
@@ -49,16 +65,31 @@ module snitch_fpu import snitch_pkg::*; #(
     .mst_rsp_i(fpu_rsp)
   );
 
+  localparam fpnew_pkg::fmt_logic_t FpFmtMask = {
+    RVF, RVD, Zfh, XF8, XF16ALT, XF8ALT, 1'b0, 1'b0, 1'b0
+  };
+  localparam fpnew_pkg::fmt_logic_t PaceFmtMask =
+    fpnew_pkg::fmt_logic_t'(PaceFmtConfig) & FpFmtMask;
+  localparam fpnew_pkg::pace_features_t PaceFeatures = '{
+    PaceDegree:      PaceDegree,
+    PaceParts:       PaceParts,
+    PaceEps:         PaceEps,
+    PaceDataWidth:   PaceDataWidth,
+    PaceParamWidth:  PaceParamWidth,
+    PaceBstPipeRegs: fpnew_pkg::pace_pipe_t'(PacePipeDist),
+    FmtConfig:       PaceFmtMask
+  };
+
   // FPU configuration
   localparam fpnew_pkg::fpu_features_t FpuFeatures = '{
     Width:         fpnew_pkg::maximum(FLEN, 32),
     EnableVectors: XFVEC,
     EnableNanBox:  1'b1,
-    FpFmtMask:     {RVF, RVD, Zfh, XF8, XF16ALT, XF8ALT, 1'b0, 1'b0, 1'b0},
+    FpFmtMask:     FpFmtMask,
     IntFmtMask:    {XFVEC && (XF8 || XF8ALT), XFVEC && (Zfh || XF16ALT), 1'b1, 1'b0},
     MxFpFmtMask:   '0,
     MxIntFmtMask:  '0,
-    PaceFeatures:  '{default: 0}
+    PaceFeatures:  PaceFeatures
   };
 
   fpnew_top #(
@@ -81,8 +112,8 @@ module snitch_fpu import snitch_pkg::*; #(
     .vectorial_op_i(fpu_req.q.vectorial_op),
     .tag_i         (fpu_req.q.tag),
     .simd_mask_i   ('1),
-    .pace_param_i  ('0),
-    .pace_mode_i   ('0),
+    .pace_param_i  (pace_param_i),
+    .pace_mode_i   (pace_mode_i),
     .in_valid_i    (fpu_req.q_valid),
     .in_ready_o    (fpu_rsp.q_ready),
     .flush_i       (1'b0),

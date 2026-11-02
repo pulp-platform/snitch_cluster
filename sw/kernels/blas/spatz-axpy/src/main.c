@@ -68,11 +68,7 @@ int main() {
         double *x_int = x + dim_core * compute_id;
         double *y_int = y + dim_core * compute_id;
 
-#ifdef UNROLL
         faxpy_v64b_unrl(*a, x_int, y_int, dim_core);
-#else
-        faxpy_v64b(*a, x_int, y_int, dim_core);
-#endif
     }
 
     snrt_cluster_hw_barrier();

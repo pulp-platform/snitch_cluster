@@ -35,8 +35,23 @@ module vip_snitch_cluster
   import "DPI-C" function int unsigned get_bin_entry();
 
   localparam addr_t PeriphBaseAddr = CfgClusterBaseAddr + ((TcdmSizeNapotRounded + BootromSize) * 1024);
-  localparam addr_t Scratch1Addr = PeriphBaseAddr + `SNITCH_CLUSTER_PERIPHERAL_REG_SCRATCH_1_REG_OFFSET;
-  localparam addr_t SnitchClClintSetAddr = PeriphBaseAddr + `SNITCH_CLUSTER_PERIPHERAL_REG_CL_CLINT_SET_REG_OFFSET;
+  // PeakRDL's raw header gives offsets within the cluster's address space.
+  // Add the configured cluster base to reach these registers from the SoC.
+`ifdef SNITCH_CLUSTER_PERIPHERAL_REG_SCRATCH_1_REG_ADDR
+  localparam addr_t Scratch1Addr = CfgClusterBaseAddr +
+      `SNITCH_CLUSTER_PERIPHERAL_REG_SCRATCH_1_REG_ADDR;
+`else
+  localparam addr_t Scratch1Addr = CfgClusterBaseAddr +
+      `SNITCH_CLUSTER_PERIPHERAL_REG_SCRATCH_BASE_ADDR(1);
+`endif
+`ifdef SNITCH_CLUSTER_PERIPHERAL_REG_CL_CLINT_SET_REG_ADDR
+  localparam addr_t SnitchClClintSetAddr = CfgClusterBaseAddr +
+      `SNITCH_CLUSTER_PERIPHERAL_REG_CL_CLINT_SET_REG_ADDR;
+`else
+  // peakrdl-rawheader 0.2.x names scalar registers BASE_ADDR.
+  localparam addr_t SnitchClClintSetAddr = CfgClusterBaseAddr +
+      `SNITCH_CLUSTER_PERIPHERAL_REG_CL_CLINT_SET_BASE_ADDR;
+`endif
 
   ///////////////////////////
   //   Clock, Reset, etc.  //
