@@ -29,7 +29,7 @@ TransferParameters transfer_params[] = {
     {63, 79, 81, 2}, {123, 144, 185, 4}, {256, 100, 300, 2}};
 
 int main() {
-    if (snrt_global_core_idx() != 8) return 0;  // only DMA core
+    if (!snrt_is_dm_core() || snrt_cluster_idx() != 0) return 0;  // only DMA core of cluster 0
     uint32_t errors = 0;
     uint32_t nb_bytes, dst_stride, src_stride, reps_2d, src_offset_2d,
         dst_offset_2d;

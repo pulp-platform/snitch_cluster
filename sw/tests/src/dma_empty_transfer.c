@@ -9,7 +9,7 @@
 uint32_t buffer[32];
 
 int main() {
-    if (snrt_global_core_idx() != 8) return 0;  // only DMA core
+    if (!snrt_is_dm_core() || snrt_cluster_idx() != 0) return 0;  // only DMA core of cluster 0
 
     // Populate source buffer.
     uint32_t buffer_src[32];
