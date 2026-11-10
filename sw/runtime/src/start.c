@@ -44,7 +44,7 @@ static inline void snrt_init_tls() {
         }
 
         // Initialize all cores' .tbss sections
-        tls_ptr += size;
+        tls_ptr += (size_t)(&__tbss_start) - (size_t)(&__tdata_start);
         size = (size_t)(&__tbss_end) - (size_t)(&__tbss_start);
         for (int i = 0; i < snrt_cluster_core_num(); i++) {
             snrt_dma_memset((void*)(tls_ptr + i * tls_offset), 0, size);

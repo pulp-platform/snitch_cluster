@@ -152,12 +152,8 @@ snrt.crt0.init_stack:
 #ifdef SNRT_INIT_TLS
 snrt.crt0.init_tls:
     # Reserve space for thread-local storage at the top of the stack
-    la        t0, __tdata_end
-    la        t1, __tdata_start
-    sub       t0, t0, t1
-    sub       sp, sp, t0
     la        t0, __tbss_end
-    la        t1, __tbss_start
+    la        t1, __tdata_start
     sub       t0, t0, t1
     sub       sp, sp, t0
     andi      sp, sp, ~0x7 # align to 8B
