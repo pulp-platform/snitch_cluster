@@ -57,7 +57,7 @@ inline uint32_t snrt_dma_start_1d(uint64_t dst, uint64_t src, size_t size,
  * This is a convenience overload of snrt_dma_start_1d(uint64_t, uint64_t, size_t, uint32_t)
  * using `void*` pointers.
  */
-inline uint32_t snrt_dma_start_1d(volatile void *dst, volatile void *src,
+inline uint32_t snrt_dma_start_1d(volatile void *dst, const volatile void *src,
                                   size_t size, uint32_t channel = 0) {
     return snrt_dma_start_1d((uint64_t)dst, (uint64_t)src, size, channel);
 }
@@ -196,8 +196,8 @@ inline uint32_t snrt_dma_start_1d_mcast(uint64_t dst, uint64_t src, size_t size,
  * using `void*` pointers.
  */
 inline uint32_t snrt_dma_start_1d_reduction(volatile void *dst,
-                                            volatile void *src, size_t size,
-                                            uint64_t mask,
+                                            const volatile void *src,
+                                            size_t size, uint64_t mask,
                                             snrt_collective_opcode_t opcode,
                                             uint32_t channel = 0) {
     return snrt_dma_start_1d_reduction((uint64_t)dst, (uint64_t)src, size, mask,
@@ -212,9 +212,9 @@ inline uint32_t snrt_dma_start_1d_reduction(volatile void *dst,
  * snrt_dma_start_1d_mcast(uint64_t, uint64_t, size_t, uint64_t, uint32_t)
  * using `void*` pointers.
  */
-inline uint32_t snrt_dma_start_1d_mcast(volatile void *dst, volatile void *src,
-                                        size_t size, uint64_t mask,
-                                        uint32_t channel = 0) {
+inline uint32_t snrt_dma_start_1d_mcast(volatile void *dst,
+                                        const volatile void *src, size_t size,
+                                        uint64_t mask, uint32_t channel = 0) {
     return snrt_dma_start_1d_mcast((uint64_t)dst, (uint64_t)src, size, mask,
                                    channel);
 }
@@ -270,7 +270,7 @@ inline snrt_dma_txid_t snrt_dma_start_2d(uint64_t dst, uint64_t src,
  * snrt_dma_start_2d(uint64_t, uint64_t, size_t, size_t, size_t, size_t, uint32_t)
  * using `void*` pointers.
  */
-inline uint32_t snrt_dma_start_2d(volatile void *dst, volatile void *src,
+inline uint32_t snrt_dma_start_2d(volatile void *dst, const volatile void *src,
                                   size_t size, size_t dst_stride,
                                   size_t src_stride, size_t repeat,
                                   uint32_t channel = 0) {
@@ -306,10 +306,11 @@ inline uint32_t snrt_dma_start_2d_mcast(uint64_t dst, uint64_t src, size_t size,
  * snrt_dma_start_2d_mcast(uint64_t, uint64_t, size_t, size_t, size_t, size_t, uint32_t, uint32_t)
  * using `void*` pointers.
  */
-inline uint32_t snrt_dma_start_2d_mcast(volatile void *dst, volatile void *src,
-                                        size_t size, size_t dst_stride,
-                                        size_t src_stride, size_t repeat,
-                                        uint32_t mask, uint32_t channel = 0) {
+inline uint32_t snrt_dma_start_2d_mcast(volatile void *dst,
+                                        const volatile void *src, size_t size,
+                                        size_t dst_stride, size_t src_stride,
+                                        size_t repeat, uint32_t mask,
+                                        uint32_t channel = 0) {
     return snrt_dma_start_2d_mcast((uint64_t)dst, (uint64_t)src, size,
                                    dst_stride, src_stride, repeat, mask,
                                    channel);
@@ -471,7 +472,7 @@ inline void snrt_dma_memset(void *ptr, uint8_t value, uint32_t len) {
  * @param prec Number of bytes of each element in the 1D array.
  */
 inline snrt_dma_txid_t snrt_dma_load_1d_tile(volatile void *dst,
-                                             volatile void *src,
+                                             const volatile void *src,
                                              size_t tile_idx, size_t tile_size,
                                              uint32_t prec) {
     size_t tile_nbytes = tile_size * prec;
@@ -488,11 +489,9 @@ inline snrt_dma_txid_t snrt_dma_load_1d_tile(volatile void *dst,
  * @param prec Number of bytes of each element in the 1D array.
  * @param mask Multicast mask applied on the destination address.
  */
-inline snrt_dma_txid_t snrt_dma_load_1d_tile_mcast(void *dst, void *src,
-                                                   size_t tile_idx,
-                                                   size_t tile_size,
-                                                   uint32_t prec,
-                                                   uint64_t mask) {
+inline snrt_dma_txid_t snrt_dma_load_1d_tile_mcast(
+    void *dst, const volatile void *src, size_t tile_idx, size_t tile_size,
+    uint32_t prec, uint64_t mask) {
     size_t tile_nbytes = tile_size * prec;
     return snrt_dma_start_1d_mcast((uintptr_t)dst,
                                    (uintptr_t)src + tile_idx * tile_nbytes,
@@ -510,8 +509,8 @@ inline snrt_dma_txid_t snrt_dma_load_1d_tile_mcast(void *dst, void *src,
  * @param opcode Reduction operation.
  */
 inline snrt_dma_txid_t snrt_dma_reduction_load_1d_tile(
-    void *dst, void *src, size_t tile_idx, size_t tile_size, uint32_t prec,
-    uint64_t mask, snrt_collective_opcode_t opcode) {
+    void *dst, const volatile void *src, size_t tile_idx, size_t tile_size,
+    uint32_t prec, uint64_t mask, snrt_collective_opcode_t opcode) {
     size_t tile_nbytes = tile_size * prec;
     return snrt_dma_start_1d_reduction((uintptr_t)dst,
                                        (uintptr_t)src + tile_idx * tile_nbytes,
@@ -526,9 +525,9 @@ inline snrt_dma_txid_t snrt_dma_reduction_load_1d_tile(
  * @param row_size Size of a row in the 2D array, in bytes.
  * @param stride Stride between successive rows in the 2D array, in bytes.
  */
-inline snrt_dma_txid_t snrt_dma_1d_to_2d(volatile void *dst, volatile void *src,
-                                         size_t size, size_t row_size,
-                                         size_t stride) {
+inline snrt_dma_txid_t snrt_dma_1d_to_2d(volatile void *dst,
+                                         const volatile void *src, size_t size,
+                                         size_t row_size, size_t stride) {
     return snrt_dma_start_2d(dst, src, row_size, stride, row_size,
                              size / row_size);
 }
@@ -541,9 +540,9 @@ inline snrt_dma_txid_t snrt_dma_1d_to_2d(volatile void *dst, volatile void *src,
  * @param row_size Size of a row in the 2D array, in bytes.
  * @param stride Stride between successive rows in the 2D array, in bytes.
  */
-inline snrt_dma_txid_t snrt_dma_2d_to_1d(volatile void *dst, volatile void *src,
-                                         size_t size, size_t row_size,
-                                         size_t stride) {
+inline snrt_dma_txid_t snrt_dma_2d_to_1d(volatile void *dst,
+                                         const volatile void *src, size_t size,
+                                         size_t row_size, size_t stride) {
     return snrt_dma_start_2d(dst, src, row_size, row_size, stride,
                              size / row_size);
 }
@@ -556,7 +555,8 @@ inline snrt_dma_txid_t snrt_dma_2d_to_1d(volatile void *dst, volatile void *src,
  * @param tile_size Number of elements within a tile of the 1D array.
  * @param prec Number of bytes of each element in the 1D array.
  */
-inline snrt_dma_txid_t snrt_dma_store_1d_tile(void *dst, void *src,
+inline snrt_dma_txid_t snrt_dma_store_1d_tile(void *dst,
+                                              const volatile void *src,
                                               size_t tile_idx, size_t tile_size,
                                               uint32_t prec) {
     size_t tile_nbytes = tile_size * prec;
@@ -580,7 +580,7 @@ inline snrt_dma_txid_t snrt_dma_store_1d_tile(void *dst, void *src,
  * @param tile_ld Leading dimension of the tile, in bytes.
  */
 inline snrt_dma_txid_t snrt_dma_load_2d_tile(
-    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    void *dst, const volatile void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
     uint32_t prec, size_t tile_ld) {
     size_t src_offset = 0;
@@ -604,11 +604,11 @@ inline snrt_dma_txid_t snrt_dma_load_2d_tile(
  * The stride in the destination tile is assumed to be that of a 1D tile,
  * effectively. In other words, this is the same as snrt_dma_2d_to_1d().
  *
- * @see snrt_dma_load_2d_tile(void *, void *, size_t, size_t, size_t, size_t, size_t, uint32_t, size_t)
+ * @see snrt_dma_load_2d_tile(void *, const volatile void *, size_t, size_t, size_t, size_t, size_t, uint32_t, size_t)
  *      for a detailed description of the parameters.
  */
 inline snrt_dma_txid_t snrt_dma_load_2d_tile(
-    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    void *dst, const volatile void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
     uint32_t prec) {
     return snrt_dma_load_2d_tile(dst, src, tile_x1_idx, tile_x0_idx,
@@ -620,11 +620,11 @@ inline snrt_dma_txid_t snrt_dma_load_2d_tile(
  * @brief Load a 2D tile of a 2D array using multicast.
  * @param mask Multicast mask.
  *
- * @see snrt_dma_load_2d_tile(void *, void *, size_t, size_t, size_t, size_t, size_t, uint32_t, size_t)
+ * @see snrt_dma_load_2d_tile(void *, const volatile void *, size_t, size_t, size_t, size_t, size_t, uint32_t, size_t)
  *      for a description of the other parameters.
  */
 inline snrt_dma_txid_t snrt_dma_load_2d_tile_mcast(
-    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    void *dst, const volatile void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
     uint32_t prec, size_t tile_ld, uint32_t mask) {
     size_t src_offset = 0;
@@ -649,11 +649,11 @@ inline snrt_dma_txid_t snrt_dma_load_2d_tile_mcast(
  * The stride in the destination tile is assumed to be that of a 1D tile,
  * effectively. In other words, this is similar to snrt_dma_2d_to_1d().
  *
- * @see snrt_dma_load_2d_tile_mcast(void *, void *, size_t, size_t, size_t, size_t, size_t, uint32_t, size_t, uint32_t)
+ * @see snrt_dma_load_2d_tile_mcast(void *, const volatile void *, size_t, size_t, size_t, size_t, size_t, uint32_t, size_t, uint32_t)
  *      for a detailed description of the parameters.
  */
 inline snrt_dma_txid_t snrt_dma_load_2d_tile_mcast(
-    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    void *dst, const volatile void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
     uint32_t prec, uint32_t mask) {
     return snrt_dma_load_2d_tile_mcast(dst, src, tile_x1_idx, tile_x0_idx,
@@ -668,11 +668,11 @@ inline snrt_dma_txid_t snrt_dma_load_2d_tile_mcast(
  * The stride in the destination tile is assumed to be that of a 1D tile,
  * effectively. In other words, this is similar to snrt_dma_2d_to_1d().
  *
- * @see snrt_dma_load_2d_tile_mcast(void *, void *, size_t, size_t, size_t, size_t, size_t, uint32_t, size_t, uint32_t)
+ * @see snrt_dma_load_2d_tile_mcast(void *, const volatile void *, size_t, size_t, size_t, size_t, size_t, uint32_t, size_t, uint32_t)
  *      for a detailed description of the parameters.
  */
 inline snrt_dma_txid_t snrt_dma_load_2d_tile_mcast(
-    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    void *dst, const volatile void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
     uint32_t prec, snrt_comm_t comm) {
     uint64_t mask = snrt_get_collective_mask(comm);
@@ -698,7 +698,7 @@ inline snrt_dma_txid_t snrt_dma_load_2d_tile_mcast(
  * @param num_banks Number of banks to reshape the tile into.
  */
 inline snrt_dma_txid_t snrt_dma_load_2d_tile_in_banks(
-    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    void *dst, const volatile void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
     uint32_t prec, size_t num_banks) {
     // Calculate new tile size after reshaping the tile in the selected banks
@@ -727,7 +727,7 @@ inline snrt_dma_txid_t snrt_dma_load_2d_tile_in_banks(
  * @param tile_ld Leading dimension of the tile, in bytes.
  */
 inline snrt_dma_txid_t snrt_dma_store_2d_tile(
-    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    void *dst, const volatile void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
     uint32_t prec, size_t tile_ld) {
     size_t dst_offset = 0;
@@ -751,11 +751,11 @@ inline snrt_dma_txid_t snrt_dma_store_2d_tile(
  * @details The stride in the source tile is assumed to be that of a 1D tile,
  * effectively. In other words, this is the same as snrt_dma_1d_to_2d().
  *
- * @see snrt_dma_store_2d_tile(void *, void *, size_t, size_t, size_t, size_t, size_t, uint32_t, size_t)
+ * @see snrt_dma_store_2d_tile(void *, const volatile void *, size_t, size_t, size_t, size_t, size_t, uint32_t, size_t)
  *      for a detailed description of the parameters.
  */
 inline snrt_dma_txid_t snrt_dma_store_2d_tile(
-    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    void *dst, const volatile void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
     uint32_t prec) {
     return snrt_dma_store_2d_tile(dst, src, tile_x1_idx, tile_x0_idx,
@@ -780,7 +780,7 @@ inline snrt_dma_txid_t snrt_dma_store_2d_tile(
  * @param num_banks Number of banks the tile is stored in.
  */
 inline snrt_dma_txid_t snrt_dma_store_2d_tile_from_banks(
-    void *dst, void *src, size_t tile_x1_idx, size_t tile_x0_idx,
+    void *dst, const volatile void *src, size_t tile_x1_idx, size_t tile_x0_idx,
     size_t tile_x1_size, size_t tile_x0_size, size_t full_x0_size,
     uint32_t prec, size_t num_banks) {
     // Calculate new tile size after reshaping the tile in the selected banks
@@ -866,9 +866,10 @@ inline uint32_t snrt_dma_start_transpose(uint64_t dst, uint64_t src,
  * @see snrt_dma_start_transpose(uint64_t, uint64_t, size_t, uint32_t,
  *      uint32_t, uint32_t, uint32_t)
  */
-inline uint32_t snrt_dma_start_transpose(volatile void *dst, volatile void *src,
-                                         size_t size, uint32_t mode,
-                                         uint32_t tensor_m, uint32_t tensor_n,
+inline uint32_t snrt_dma_start_transpose(volatile void *dst,
+                                         const volatile void *src, size_t size,
+                                         uint32_t mode, uint32_t tensor_m,
+                                         uint32_t tensor_n,
                                          uint32_t channel = 0) {
     return snrt_dma_start_transpose((uint64_t)dst, (uint64_t)src, size, mode,
                                     tensor_m, tensor_n, channel);
