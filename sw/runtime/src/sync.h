@@ -405,6 +405,9 @@ inline void snrt_global_reduction_dma(T *dst_buffer, T *src_buffer, size_t len,
             // active ones is a sender.
             uint32_t is_active = (snrt_cluster_idx() % (1 << level)) == 0;
             uint32_t is_sender = (snrt_cluster_idx() % (1 << (level + 1))) != 0;
+            // For non-power-of-two sizes, the last receiver may lack a sender
+            uint32_t has_sender =
+                snrt_cluster_idx() + (1 << level) < comm->size;
 
             // If the cluster is a sender, it sends the data in its source
             // buffer to the respective receiver's destination buffer
@@ -422,7 +425,7 @@ inline void snrt_global_reduction_dma(T *dst_buffer, T *src_buffer, size_t len,
             snrt_global_barrier(comm);
 
             // Every cluster which is not a sender performs the reduction
-            if (is_active && !is_sender) {
+            if (is_active && !is_sender && has_sender) {
                 // Computation is parallelized over the compute cores
                 if (snrt_is_compute_core()) {
                     uint32_t items_per_core =
@@ -436,9 +439,9 @@ inline void snrt_global_reduction_dma(T *dst_buffer, T *src_buffer, size_t len,
                 }
             }
 
-            // Synchronize compute and DM cores for next tree level
+            // The next level may only overwrite dst_buffer once it is reduced
             snrt_fpu_fence();
-            snrt_cluster_hw_barrier();
+            snrt_global_barrier(comm);
         }
     }
 }
